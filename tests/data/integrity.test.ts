@@ -1,0 +1,70 @@
+import { expect, test } from 'vitest';
+import { CODEX, ENCOUNTERS, INTERACTION_IDS, LOOT_TABLES, RUNE_IDS, RUNES, TUNING } from '$data';
+
+test('14 runes, unique tokens', () => {
+  expect(RUNE_IDS).toHaveLength(14);
+  expect(Object.keys(RUNES)).toHaveLength(14);
+  for (const id of RUNE_IDS) expect(RUNES[id].id).toBe(id);
+  const tokens = RUNE_IDS.map((id) => RUNES[id].token);
+  expect(new Set(tokens).size).toBe(14);
+});
+
+test('arrow iff source or bend', () => {
+  for (const id of RUNE_IDS) {
+    const r = RUNES[id];
+    expect(r.arrow, id).toBe(r.family === 'source' || r.id === 'bend');
+  }
+});
+
+test('sources have charges (bolt 3, splash 2, ward 2)', () => {
+  expect(RUNES.bolt.charges).toBe(3);
+  expect(RUNES.splash.charges).toBe(2);
+  expect(RUNES.ward.charges).toBe(2);
+  for (const id of RUNE_IDS) {
+    if (RUNES[id].family !== 'source') expect(RUNES[id].charges, id).toBe(0);
+  }
+});
+
+test('every family has an ink cost', () => {
+  for (const id of RUNE_IDS) expect(TUNING.inkCost[RUNES[id].family]).toBeGreaterThan(0);
+});
+
+test('loot tables reference real runes, at least 3 entries, positive weights', () => {
+  for (const table of Object.values(LOOT_TABLES)) {
+    expect(table.entries.length).toBeGreaterThanOrEqual(3);
+    for (const e of table.entries) {
+      expect(e.weight).toBeGreaterThan(0);
+      if (e.spec.kind === 'rune') expect(RUNE_IDS).toContain(e.spec.rune);
+    }
+  }
+});
+
+test('codex has an entry per rune and per interaction', () => {
+  expect(CODEX).toHaveLength(RUNE_IDS.length + INTERACTION_IDS.length);
+  expect(CODEX).toHaveLength(21);
+  for (const id of RUNE_IDS) expect(CODEX.some((c) => c.id === `rune:${id}`)).toBe(true);
+  for (const id of INTERACTION_IDS)
+    expect(CODEX.some((c) => c.id === `interaction:${id}`)).toBe(true);
+  expect(new Set(CODEX.map((c) => c.id)).size).toBe(CODEX.length);
+  for (const c of CODEX) expect(c.ownerNote.length).toBeGreaterThan(0);
+});
+
+test('encounters: 4, depth 1..4, only last is heart with picks 2', () => {
+  expect(ENCOUNTERS).toHaveLength(4);
+  ENCOUNTERS.forEach((e, i) => {
+    expect(e.depth).toBe(i + 1);
+    expect(e.heart).toBe(i === 3);
+    expect(e.picks).toBe(i === 3 ? 2 : 1);
+  });
+  expect(ENCOUNTERS[3]?.loot).toBe('heart');
+});
+
+test('dummy never in encounter layouts', () => {
+  for (const e of ENCOUNTERS) {
+    const tokens = e.layout.split(/\s+/);
+    expect(
+      tokens.some((t) => t.startsWith('d')),
+      e.id,
+    ).toBe(false);
+  }
+});

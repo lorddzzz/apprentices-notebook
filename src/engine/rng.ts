@@ -23,3 +23,22 @@ export function createRng(seed: number): Rng {
     state: () => s,
   };
 }
+
+/** Derives an independent seed from a base seed and a salt (stable across runs). */
+export function deriveSeed(seed: number, salt: number): number {
+  return Math.floor(createRng(seed ^ Math.imul(salt, 0x9e3779b1)).next() * 4294967296) >>> 0;
+}
+
+/** Index of a weighted pick; zero-weight entries are never chosen. Throws if all weights are 0. */
+export function pickWeighted(rng: Rng, weights: readonly number[]): number {
+  const total = weights.reduce((a, b) => a + Math.max(0, b), 0);
+  if (total <= 0) throw new Error('pickWeighted: no positive weight');
+  let roll = rng.next() * total;
+  for (let i = 0; i < weights.length; i++) {
+    const w = Math.max(0, weights[i] ?? 0);
+    if (w === 0) continue;
+    if (roll < w) return i;
+    roll -= w;
+  }
+  return weights.findLastIndex((w) => w > 0);
+}

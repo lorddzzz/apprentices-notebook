@@ -97,6 +97,7 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-12 | Svelte MCP (remote) added to `.mcp.json` | Current Svelte 5 docs plus an autofixer that catches Svelte 4-isms |
 | 2026-10-12 | Biome rule bans UI/Svelte imports inside `src/engine/**` | Enforces "the engine never imports UI" mechanically |
 | 2026-10-12 | Skeleton deployed; CI-gate failure test skipped | Live URL, build hash and iPhone Home Screen install verified. A red run is assumed to block deploy via `needs: check`, not tested. |
+| 2026-10-13 | Engine layout: `Ctx` draft mutation inside one `structuredClone` per action; `src/data` imports engine types only | Public functions stay pure (previews = call and discard) while internals avoid copy-heavy code; no runtime cycle between data and engine |
 
 ## 8. Repo & tooling
 
