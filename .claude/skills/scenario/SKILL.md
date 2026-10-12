@@ -14,9 +14,11 @@ Scenario tests live in `tests/scenarios/*.test.ts` and use `tests/scenarios/harn
 3. Assert on the **event log** with `expectLog(events, [...plain-English lines])` (exact) or `expectLogIncludes` (contiguous run). The lines come from `describe()` in `src/engine/events.ts`.
 
 ```ts
-const events = /* run the action on parseBoard(...) / the battle built from it */;
-expectLog(events, ['Draughtsman casts Bolt right', 'Bolt hits rat at C1 for 3']);
+const s = withLattices('D . r', { draughtsman: 'Bolt> Spark' }, { hp: { C1: 5 } });
+expectLog(cast(s, 'draughtsman', 'right').events, ['Draughtsman casts Bolt right', 'Bolt hits rat at C1 for 2', 'Spark hits rat at C1 for 1']);
 ```
+
+Helpers: `board(ascii, opts)` (no spells), `withLattices(ascii, lattices, opts)` (compiled with member affinity), `cast(state, member, dir | aim, spellKey?)`, `act(state, action)`, `draft(state, ctx => …)` for engine internals. A combo worth keeping in the Lab goes in `src/data/scenarios.ts` (demo + expected; `tests/scenarios/lab.test.ts` replays all of them).
 
 ## Legend
 

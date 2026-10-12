@@ -1,0 +1,191 @@
+import type { Dir } from '$engine/grid';
+import type { Action } from '$engine/types';
+import type { MemberId, ScenarioDef } from './types';
+
+/**
+ * Lab scenarios (deep link `#/lab?scenario=<id>`). Each demo replays to exactly `expected`
+ * (tests/scenarios/lab.test.ts), so every scenario doubles as a regression test.
+ * Spell keys are the source rune's lattice cell: `Bolt> Spark` → '0,0'.
+ */
+
+const castDir = (unit: MemberId, dir: Dir, spell = '0,0'): Action => ({
+  type: 'cast',
+  unit,
+  spell,
+  aim: { kind: 'dir', dir },
+});
+
+export const SCENARIOS: readonly ScenarioDef[] = [
+  {
+    id: 'sandbox',
+    title: 'Sandbox',
+    note: 'Two training dummies, an oil patch, a steam cloud and a brass plate. Your own lattices.',
+    board: [
+      '. . . . . .',
+      '. d . . d .',
+      '. . . . . .',
+      '. . o o . .',
+      '. ~ . . = .',
+      '. . . . . .',
+      '. D . . S .',
+      '. . . . . .',
+    ].join('\n'),
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'ink-spark-detonation',
+    title: 'Ink, then Spark',
+    note: 'The Draughtsman inks the dummy; the Stoker’s Spark makes the mark detonate.',
+    board: ['D . . d . .', '. . . . . .', '. . . S . .'].join('\n'),
+    lattices: { draughtsman: 'Bolt> Ink', stoker: 'Spark\nBolt^' },
+    demo: [castDir('draughtsman', 'right'), castDir('stoker', 'up', '0,1')],
+    expected: [
+      'Draughtsman casts Bolt right',
+      'Bolt hits dummy at D1 for 2',
+      'dummy at D1 is inked',
+      'ink pools at C1, E1, C2, D2, E2',
+      'Stoker casts Bolt up',
+      'Bolt hits dummy at D1 for 3 (inked +1)',
+      'Spark hits dummy at D1 for 3 (inked +1)',
+      'the ink on dummy at D1 detonates',
+      'Detonation hits dummy at D1 for 2',
+    ],
+  },
+  {
+    id: 'oil-chain',
+    title: 'Oil chain',
+    note: 'One Spark lights the whole oil line; oil-soaked rats burn for extra.',
+    board: ['. . . . . d', 'S . ro o ro o'].join('\n'),
+    lattices: { stoker: 'Bolt> Spark' },
+    demo: [castDir('stoker', 'right')],
+    expected: [
+      'Stoker casts Bolt right',
+      'Bolt hits rat at C2 for 2',
+      'rat at C2 dies',
+      'oil at C2 ignites, fire spreads to D2, E2, F2',
+      'Fire hits rat at E2 for 2 (oil-soaked +1)',
+      'rat at E2 dies',
+    ],
+  },
+  {
+    id: 'brass-conduction',
+    title: 'Brass conduction',
+    note: 'A Bolt stopped by a plate still delivers its Spark through every connected brass.',
+    board: ['S . = = b', '. . . . r&'].join('\n'),
+    lattices: { stoker: 'Bolt> Spark' },
+    demo: [castDir('stoker', 'right')],
+    expected: [
+      'Stoker casts Bolt right',
+      'Bolt is stopped by the brass plate at C1',
+      'Spark conducts through the brass from C1 (4 tiles)',
+      'Spark hits sentry at E1 for 2',
+      'Spark hits rat at E2 for 2',
+      'rat at E2 dies',
+    ],
+  },
+  {
+    id: 'steam-arc',
+    title: 'Steam arc',
+    note: 'Steam blocks the Bolt, but a Spark arcs through the whole cloud.',
+    board: ['D . ~ ~ ~', '. . r~ . f~'].join('\n'),
+    lattices: { draughtsman: 'Bolt> Spark' },
+    demo: [castDir('draughtsman', 'right')],
+    expected: [
+      'Draughtsman casts Bolt right',
+      'Bolt is stopped by the steam at C1',
+      'Spark arcs through the steam from C1 (5 tiles)',
+      'Spark hits rat at C2 for 1',
+      'Spark hits familiar at E2 for 1',
+      'familiar at E2 dies',
+    ],
+  },
+  {
+    id: 'on-kill-burst',
+    title: 'On Kill burst',
+    note: 'When the Bolt kills, the rest of the spell bursts from the victim’s tile.',
+    board: ['. . . r .', 'D . . r r', '. . . . .'].join('\n'),
+    lattices: { draughtsman: 'Bolt> OnKill Spark' },
+    demo: [castDir('draughtsman', 'right')],
+    expected: [
+      'Draughtsman casts Bolt right',
+      'Bolt hits rat at D2 for 2',
+      'rat at D2 dies',
+      'On Kill: bursts from D2',
+      'Spark hits rat at D1 for 1',
+      'Spark hits rat at E2 for 1',
+    ],
+  },
+  {
+    id: 'fork-order',
+    title: 'Fork order',
+    note: 'A Fork runs its left branch first: oil, then the Spark that lights it.',
+    board: 'D . d .',
+    lattices: { draughtsman: ['.     Oil   .', 'Bolt> Fork  .', '.     Spark .'].join('\n') },
+    demo: [castDir('draughtsman', 'right', '0,1')],
+    expected: [
+      'Draughtsman casts Bolt right',
+      'Bolt hits dummy at C1 for 2',
+      'oil coats C1',
+      'Spark hits dummy at C1 for 1',
+      'oil at C1 ignites',
+      'Fire hits dummy at C1 for 1',
+    ],
+  },
+  {
+    id: 'amplify',
+    title: 'Amplify',
+    note: 'Each touching Amplify adds 1 to the rune it touches.',
+    board: 'D . d',
+    lattices: { draughtsman: ['Amp   .', 'Bolt> Spark', '.     Amp'].join('\n') },
+    demo: [castDir('draughtsman', 'right', '0,1')],
+    expected: [
+      'Draughtsman casts Bolt right',
+      'Bolt hits dummy at C1 for 3',
+      'Spark hits dummy at C1 for 2',
+    ],
+  },
+  {
+    id: 'self-combo',
+    title: 'Ink, On Inked, Spark',
+    note: 'One lattice inks the target, checks the mark, then detonates it.',
+    board: 'S . d',
+    lattices: { stoker: 'Bolt> Ink OnInked Spark' },
+    demo: [castDir('stoker', 'right')],
+    expected: [
+      'Stoker casts Bolt right',
+      'Bolt hits dummy at C1 for 2',
+      'dummy at C1 is inked',
+      'On Inked: a target is inked',
+      'Spark hits dummy at C1 for 3 (inked +1)',
+      'the ink on dummy at C1 detonates',
+      'Detonation hits dummy at C1 for 2',
+    ],
+  },
+  {
+    id: 'diffuse',
+    title: 'Ink diffuses',
+    note: 'Ink cast into steam spreads through the whole cloud and marks everyone inside.',
+    board: 'S . ~ r~ .',
+    lattices: { stoker: 'Bolt> Ink' },
+    demo: [castDir('stoker', 'right')],
+    expected: [
+      'Stoker casts Bolt right',
+      'Bolt is stopped by the steam at C1',
+      'ink diffuses through the steam at C1',
+      'rat at D1 is inked',
+    ],
+  },
+  {
+    id: 'shove-slide',
+    title: 'Shove onto oil',
+    note: 'A shoved unit keeps sliding while it stands on oil.',
+    board: 'S r o o . .',
+    demo: [{ type: 'shove', unit: 'stoker', dir: 'right' }],
+    expected: [
+      'Stoker shoves rat at B1 right',
+      'rat at B1 is pushed to C1',
+      'rat at C1 slides across the oil to E1',
+    ],
+  },
+];

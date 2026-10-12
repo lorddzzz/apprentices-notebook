@@ -1,13 +1,20 @@
+import type { MemberId } from '$data';
 import {
   type Action,
+  type Aim,
   applyAction,
   type BattleSpec,
   type BattleState,
   createBattle,
+  type Dir,
   describeLog,
   type EventLog,
   type GameEvent,
+  memberById,
   parseLabel,
+  type ScenarioOptions,
+  type SpellKey,
+  scenarioBattle,
   type Unit,
   unitAt,
 } from '$engine';
@@ -52,6 +59,23 @@ export interface Step {
 /** A battle built from ASCII (fixed seed). `opts` can add hp/intents/party/lab. */
 export function board(ascii: string, opts: Partial<BattleSpec> = {}): BattleState {
   return createBattle({ title: 'test', seed: 1, board: ascii, ...opts }).state;
+}
+
+/** A battle whose members cast the given lattices (ASCII, compiled with member affinity). */
+export function withLattices(
+  ascii: string,
+  lattices: Partial<Record<MemberId, string>>,
+  opts: Partial<BattleSpec> & ScenarioOptions = {},
+): BattleState {
+  return scenarioBattle({ title: 'test', ...opts, board: ascii, lattices }, opts);
+}
+
+/** Casts a member's spell (default: its first) with a direction or a full aim. */
+export function cast(state: BattleState, member: MemberId, aim: Dir | Aim, spell?: SpellKey): Step {
+  const key = spell ?? memberById(state, member).spells[0]?.key;
+  if (key === undefined) throw new Error(`${member} has no spells`);
+  const full: Aim = typeof aim === 'string' ? { kind: 'dir', dir: aim } : aim;
+  return act(state, { type: 'cast', unit: member, spell: key, aim: full });
 }
 
 /** Applies one action (throws if illegal) and returns the log lines with it. */

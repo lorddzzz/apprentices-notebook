@@ -4,5 +4,6 @@ export * from './enemies';
 export * from './loot';
 export * from './members';
 export * from './runes';
+export * from './scenarios';
 export * from './tuning';
 export * from './types';
