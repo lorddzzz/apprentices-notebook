@@ -49,3 +49,23 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 9. **Situation:** the UI steps all need the single browser pane and dev-server port to verify.
    **Decision:** UI steps run one at a time on `main`, and engine steps keep running in parallel worktrees.
    **Why:** avoids agents fighting over the browser and port 5173.
+10. **Situation:** step 4 filled gaps: all legality checks sit in `isLegal`; a member re-placed in the Lab keeps its spells; a plate removes a vent; HP above max raises max; rat oil trails reuse the Oil rune's logic, so nearby fire spreads into them.
+    **Decision:** accepted all of these.
+    **Why:** they're consistent with §9.5 and keep the rules in one place.
+11. **Situation:** step 5 (casting, triggers, echo) is the heart of the combo system, and its expected logs are the spec.
+    **Decision:** opus implements step 5, sonnet implements step 6 (AI and turns), both in parallel worktrees. Where a planned log line turns out to be wrong, the agent fixes the test and reports it.
+    **Why:** casting has the most subtle interactions. The AI is more mechanical.
+12. **Situation:** step 6 (AI and turns) filled gaps:
+    - A rat with no reachable target stays put.
+    - An enemy killed by its own burning oil trail doesn't telegraph.
+    - Spit inks after its damage, so it never gets the inked +1.
+    - A vent refills right after its steam fades, which logs two lines.
+    - Waiting enemies take no order number.
+    **Decision:** accepted all of these.
+    **Why:** readable and deterministic. The double vent line is cosmetic and gets revisited if the log feels noisy.
+13. **Situation:** the plan's S1 scenario gave the Stoker `Bolt^ Spark`, which can't work: the flow leaves upward and never reaches the Spark.
+    **Decision:** the step 5 agent moved Spark above the Bolt. The expected log was unchanged and passes.
+    **Why:** a plan typo. The flow rules are right.
+14. **Situation:** a few chain tests would end with "The party wins" once the last enemy died.
+    **Decision:** gave those tests an extra dummy or more enemy HP.
+    **Why:** keeps each test focused on its chain.
