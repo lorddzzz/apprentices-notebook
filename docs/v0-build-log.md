@@ -69,3 +69,15 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 14. **Situation:** a few chain tests would end with "The party wins" once the last enemy died.
     **Decision:** gave those tests an extra dummy or more enemy HP.
     **Why:** keeps each test focused on its chain.
+15. **Situation:** the engine emits no "projectile travels" event for a Bolt that hits a unit, so the board only shows a cast pulse.
+    **Decision:** left it for now. U4 can draw a trail from the cast aim if it looks flat.
+    **Why:** this is cosmetic, and adding a new engine event would ripple through every expected log.
+16. **Situation:** step 7 (run layer) filled gaps:
+    - `pickLoot` removes the picked offer, which keeps the heart's 2 picks distinct.
+    - Loading a save tolerates a lattice that over-spends ink but rejects a structurally broken one.
+    - `rollOffers` takes the encounter index explicitly.
+    **Decision:** accepted all three. DESIGN.md §9.5 now has an "Engine interpretations" block and a §11 row.
+    **Why:** consistent with the plan, and recorded where you'll read it.
+17. **Situation:** the engine was complete (294 tests), but every test was hand-written, so a simple strategy could still break it, and nobody knew if the encounters are winnable.
+    **Decision:** a haiku agent fuzzes full trips with a random bot and a greedy bot. It checks invariants and reports win rates per encounter. The fixes are decided afterwards.
+    **Why:** this catches crashes and balance holes before you play.
