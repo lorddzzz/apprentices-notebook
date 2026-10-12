@@ -1,5 +1,13 @@
-import { type EnemyId, type MemberId, TUNING } from '$data';
-import type { BattlePhase, BattleState, Coord, GameEvent, Intent, UnitId } from '$engine';
+import { ENEMIES, type EnemyId, MEMBERS, type MemberId, TUNING } from '$data';
+import type {
+  BattlePhase,
+  BattleState,
+  BoardSpec,
+  Coord,
+  GameEvent,
+  Intent,
+  UnitId,
+} from '$engine';
 
 /** What the board draws. Events are projected onto it during playback; the engine state replaces it at the end. */
 export interface TileView {
@@ -58,6 +66,57 @@ export function viewOf(s: BattleState): BoardView {
     })),
     round: s.round,
     phase: s.phase,
+  };
+}
+
+/** A fresh view from parsed ASCII (gallery fixtures, Lab board edits). Mirrors the engine's spawn rules. */
+export function viewOfSpec(spec: BoardSpec): BoardView {
+  const counts = new Map<string, number>();
+  const units: UnitView[] = spec.units.map((b) => {
+    if (b.kind === 'member') {
+      const def = MEMBERS[b.def as MemberId];
+      return {
+        id: def.id,
+        kind: 'member',
+        def: def.id,
+        name: def.name,
+        pos: { ...b.at },
+        hp: def.hp,
+        maxHp: def.hp,
+        shield: 0,
+        inked: b.inked,
+        brass: b.brass,
+        oilSoaked: false,
+        alive: true,
+        intent: null,
+      };
+    }
+    const def = ENEMIES[b.def as EnemyId];
+    const n = (counts.get(def.id) ?? 0) + 1;
+    counts.set(def.id, n);
+    return {
+      id: `${def.id}-${n}`,
+      kind: 'enemy',
+      def: def.id,
+      name: def.name,
+      pos: { ...b.at },
+      hp: def.hp,
+      maxHp: def.hp,
+      shield: 0,
+      inked: b.inked,
+      brass: def.brass || b.brass,
+      oilSoaked: def.oilSoaked,
+      alive: true,
+      intent: null,
+    };
+  });
+  return {
+    width: spec.width,
+    height: spec.height,
+    tiles: spec.tiles.map((t) => ({ ...t })),
+    units,
+    round: 1,
+    phase: 'player',
   };
 }
 

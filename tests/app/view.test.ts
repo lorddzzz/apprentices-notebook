@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest';
-import type { BattleState, Coord, GameEvent, UnitRef } from '$engine';
-import { type BoardView, project, type UnitView, viewOf, withoutIntents } from '../../src/app/view';
+import { type BattleState, type Coord, type GameEvent, parseBoard, type UnitRef } from '$engine';
+import {
+  type BoardView,
+  project,
+  type UnitView,
+  viewOf,
+  viewOfSpec,
+  withoutIntents,
+} from '../../src/app/view';
 import { TUNING } from '../../src/data';
 
 const W = 4;
@@ -206,4 +213,36 @@ test('viewOf copies a battle state', () => {
   expect(v.units[0]).toMatchObject({ alive: false, hp: 0, kind: 'enemy' });
   expect(v.tiles[0]).toEqual(s.tiles[0]);
   expect(v.tiles[0]).not.toBe(s.tiles[0]);
+});
+
+test('viewOfSpec maps parseBoard tiles and units', () => {
+  const v = viewOfSpec(parseBoard('D . r!o\n. @~ *\nb& . r'));
+  expect(v.width).toBe(3);
+  expect(v.height).toBe(3);
+  expect(v.round).toBe(1);
+  expect(v.phase).toBe('player');
+  const rat1 = unitOf(v, 'rat-1');
+  expect(rat1).toMatchObject({
+    kind: 'enemy',
+    def: 'rat',
+    pos: { x: 2, y: 0 },
+    inked: true,
+    oilSoaked: true,
+    hp: 2,
+    maxHp: 2,
+    alive: true,
+    intent: null,
+  });
+  expect(tile(v, 2, 0)).toMatchObject({ oil: true, ink: false });
+  expect(tile(v, 1, 1)).toMatchObject({ vent: true, steam: TUNING.steamRounds });
+  expect(tile(v, 2, 1)).toMatchObject({ oil: true, fire: TUNING.fireRounds });
+  expect(unitOf(v, 'rat-2').pos).toEqual({ x: 2, y: 2 });
+  const sentry = unitOf(v, 'sentry-1');
+  expect(sentry).toMatchObject({ brass: true, hp: 5 });
+  expect(unitOf(v, 'draughtsman')).toMatchObject({ kind: 'member', hp: 6, name: 'Draughtsman' });
+});
+
+test('viewOfSpec ids match what the engine would assign', () => {
+  const v = viewOfSpec(parseBoard('r . r\nS . d'));
+  expect(v.units.map((u) => u.id)).toEqual(['rat-1', 'rat-2', 'stoker', 'dummy-1']);
 });

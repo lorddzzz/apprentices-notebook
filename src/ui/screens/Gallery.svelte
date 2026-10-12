@@ -1,18 +1,79 @@
 <script lang="ts">
   import { RUNE_IDS, RUNES } from '$data';
-  import type { Dir } from '$engine';
+  import { type Coord, type Dir, parseBoard } from '$engine';
+  import { EMPTY_OVERLAY } from '../../app/overlay';
+  import { buildSteps } from '../../app/playback';
+  import { Playback } from '../../app/playback.svelte';
   import { router } from '../../app/router.svelte';
+  import { href } from '../../app/routes';
   import { toast } from '../../app/toasts.svelte';
+  import { type BoardView, viewOfSpec } from '../../app/view';
+  import BattleBoard from '../components/board/BattleBoard.svelte';
+  import { boardViewBox } from '../components/board/geometry';
+  import { cellLabel } from '../components/board/label';
   import BackLink from '../components/common/BackLink.svelte';
   import Button from '../components/common/Button.svelte';
   import Pips from '../components/common/Pips.svelte';
   import Sheet from '../components/common/Sheet.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
+  import {
+    OIL_CHAIN_BOARD,
+    OIL_CHAIN_EVENTS,
+    SHOWCASE_OVERLAY,
+    showcaseView,
+  } from './galleryFixtures';
 
   const DIR_LIST: Dir[] = ['up', 'right', 'down', 'left'];
   const part = $derived(router.params.get('part') ?? 'glyphs');
 
   let sheetOpen = $state(false);
+
+  const PARTS = ['glyphs', 'board', 'fx'] as const;
+
+  // board part
+  const showcase = showcaseView();
+  let tapped = $state('Tap a cell');
+  const aspect = (v: BoardView): string => {
+    const [, , w, h] = boardViewBox(v.width, v.height).split(' ');
+    return `${w} / ${h}`;
+  };
+
+  // fx part
+  const chainStart = viewOfSpec(parseBoard(OIL_CHAIN_BOARD));
+  const chainEnd = buildSteps(chainStart, OIL_CHAIN_EVENTS).at(-1)?.view ?? chainStart;
+  const playback = new Playback();
+  let resting = $state.raw<BoardView>(chainStart);
+  let runId = $state(0);
+  let lastLine = $state('Ready');
+
+  const chainView = $derived(playback.current?.view ?? resting);
+  const chainFx = $derived(playback.current?.fx ?? []);
+  const chainKey = $derived(runId * 1000 + playback.index);
+  const chainLine = $derived(playback.current?.line ?? lastLine);
+
+  function playChain(): void {
+    resting = chainStart;
+    runId += 1;
+    lastLine = 'Ready';
+    void playback.play(chainStart, OIL_CHAIN_EVENTS).then(() => {
+      resting = chainEnd;
+      lastLine = 'Done. Tap Play to replay.';
+    });
+  }
+
+  function resetChain(): void {
+    playback.skip();
+    resting = chainStart;
+    lastLine = 'Ready';
+  }
+
+  function tapChain(at: Coord): void {
+    if (playback.playing) {
+      playback.skip();
+      return;
+    }
+    lastLine = cellLabel(resting, at);
+  }
 </script>
 
 <section data-testid="gallery">
@@ -20,6 +81,11 @@
     <BackLink to="lab" label="Lab" />
     <h1>Gallery</h1>
   </header>
+  <nav aria-label="Gallery parts">
+    {#each PARTS as p (p)}
+      <a href={href('gallery', { part: p })} aria-current={part === p ? 'page' : undefined}>{p}</a>
+    {/each}
+  </nav>
 
   {#if part === 'glyphs'}
     <h2>Runes</h2>
@@ -63,6 +129,31 @@
       <Button label="Toast" variant="quiet" onclick={() => toast('A small toast')} />
       <Button label="Sheet" onclick={() => (sheetOpen = true)} />
     </div>
+  {:else if part === 'board'}
+    <p class="readout" data-testid="readout">{tapped}</p>
+    <div class="boardbox" style:aspect-ratio={aspect(showcase)}>
+      <BattleBoard
+        view={showcase}
+        overlay={SHOWCASE_OVERLAY}
+        ontap={(at) => (tapped = cellLabel(showcase, at))}
+      />
+    </div>
+  {:else if part === 'fx'}
+    <div class="row">
+      <Button label="Play oil chain" onclick={playChain} testid="play-chain" />
+      <Button label="Reset" variant="quiet" onclick={resetChain} />
+    </div>
+    <p class="readout" data-testid="caption">{chainLine}</p>
+    <div class="boardbox" style:aspect-ratio={aspect(chainStart)}>
+      <BattleBoard
+        view={chainView}
+        overlay={EMPTY_OVERLAY}
+        fx={chainFx}
+        fxKey={chainKey}
+        minimal
+        ontap={tapChain}
+      />
+    </div>
   {:else}
     <p>No gallery part "{part}" yet.</p>
   {/if}
@@ -83,6 +174,32 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
+  }
+  nav {
+    display: flex;
+    gap: var(--space-2);
+  }
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    text-decoration: none;
+    text-transform: capitalize;
+  }
+  nav a[aria-current='page'] {
+    background: var(--ink);
+    color: var(--parchment);
+  }
+  .readout {
+    margin: var(--space-2) 0;
+    min-height: 36px;
+    font-size: 14px;
+  }
+  .boardbox {
+    margin: 0 calc(-1 * var(--space-3));
   }
   h1 {
     margin: 0;
