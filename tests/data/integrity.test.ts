@@ -1,5 +1,16 @@
 import { expect, test } from 'vitest';
-import { CODEX, ENCOUNTERS, INTERACTION_IDS, LOOT_TABLES, RUNE_IDS, RUNES, TUNING } from '$data';
+import {
+  CODEX,
+  ENCOUNTERS,
+  INTERACTION_IDS,
+  LOOT_TABLES,
+  MEMBER_IDS,
+  MEMBERS,
+  RUNE_IDS,
+  RUNES,
+  TUNING,
+} from '$data';
+import { parseBoard, parseLattice } from '$engine';
 
 test('14 runes, unique tokens', () => {
   expect(RUNE_IDS).toHaveLength(14);
@@ -66,5 +77,39 @@ test('dummy never in encounter layouts', () => {
       tokens.some((t) => t.startsWith('d')),
       e.id,
     ).toBe(false);
+  }
+});
+
+test('encounter layouts parse to 6x8 with D and S', () => {
+  for (const e of ENCOUNTERS) {
+    const b = parseBoard(e.layout);
+    expect([b.width, b.height], e.id).toEqual([TUNING.grid.width, TUNING.grid.height]);
+    const members = b.units.filter((u) => u.kind === 'member').map((u) => u.def);
+    expect(members.sort(), e.id).toEqual(['draughtsman', 'stoker']);
+  }
+});
+
+test('encounter enemy counts', () => {
+  const count = (i: number, def: string) =>
+    parseBoard(ENCOUNTERS[i]?.layout ?? '').units.filter((u) => u.def === def).length;
+  const oil = (i: number) =>
+    parseBoard(ENCOUNTERS[i]?.layout ?? '').tiles.filter((t) => t.oil).length;
+  const tiles = (i: number) => parseBoard(ENCOUNTERS[i]?.layout ?? '').tiles;
+
+  expect([count(0, 'rat'), count(0, 'familiar'), count(0, 'sentry')]).toEqual([3, 0, 0]);
+  expect([count(1, 'rat'), count(1, 'familiar'), count(1, 'sentry')]).toEqual([2, 1, 0]);
+  expect([count(2, 'rat'), count(2, 'familiar'), count(2, 'sentry')]).toEqual([2, 0, 1]);
+  expect(oil(2)).toBeGreaterThan(0);
+  expect([count(3, 'rat'), count(3, 'familiar'), count(3, 'sentry')]).toEqual([2, 1, 2]);
+  expect(tiles(3).filter((t) => t.vent).length).toBeGreaterThanOrEqual(1);
+  expect(tiles(3).filter((t) => t.plate).length).toBeGreaterThanOrEqual(1);
+});
+
+test('member start lattices match their shape (dims + holes)', () => {
+  for (const id of MEMBER_IDS) {
+    const shape = parseLattice(MEMBERS[id].shape).shape;
+    const start = parseLattice(MEMBERS[id].startLattice);
+    expect(start.shape, id).toEqual(shape);
+    expect(start.runes.length, id).toBeGreaterThan(0);
   }
 });
