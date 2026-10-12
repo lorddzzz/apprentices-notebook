@@ -1,0 +1,40 @@
+<script lang="ts">
+  import Codex from '../ui/screens/Codex.svelte';
+  import Combat from '../ui/screens/Combat.svelte';
+  import Lab from '../ui/screens/Lab.svelte';
+  import Study from '../ui/screens/Study.svelte';
+  import { BUILD } from './build';
+  import { router } from './router.svelte';
+</script>
+
+<main>
+  {#if router.route === 'study'}
+    <Study />
+  {:else if router.route === 'combat'}
+    <Combat />
+  {:else if router.route === 'codex'}
+    <Codex />
+  {:else}
+    <Lab />
+  {/if}
+  <span class="build">{BUILD}</span>
+</main>
+
+<style>
+  main {
+    position: relative;
+    height: 100%;
+    padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+    background: var(--parchment);
+    overflow: hidden;
+  }
+  .build {
+    position: absolute;
+    right: calc(var(--safe-right) + var(--space-2));
+    bottom: calc(var(--safe-bottom) + var(--space-2));
+    font: 11px ui-monospace, Menlo, monospace;
+    color: var(--ink);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+</style>

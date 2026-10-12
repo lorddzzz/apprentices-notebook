@@ -1,0 +1,49 @@
+:root {
+  --parchment: #f1e6cc;
+  --parchment-dark: #e2d2ae;
+  --ink: #2b2118;
+  --ink-soft: #5a4a3a;
+  --accent: #8b3a2b;
+  --lamp: #e8b04a;
+  --night: #1f2a3a;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--ink);
+  color: var(--ink);
+  font-family: Georgia, "Iowan Old Style", serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#app {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+}

@@ -1,0 +1,35 @@
+{
+  "name": "apprentices-notebook",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc --noEmit",
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "icons": "pwa-assets-generator"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/node": "^24.19.2",
+    "@vite-pwa/assets-generator": "^2.0.0",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.3",
+    "workbox-window": "^7.4.1"
+  }
+}

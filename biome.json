@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": { "includes": ["**", "!pnpm-lock.yaml", "!public"] },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "html": { "experimentalFullSupportEnabled": true },
+  "overrides": [
+    {
+      "includes": ["src/engine/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/ui/**", "$ui/**", "**/app/**", "*.svelte", "svelte", "svelte/*"],
+                    "message": "The engine is pure: no UI, app or Svelte imports."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
