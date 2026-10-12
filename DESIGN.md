@@ -251,6 +251,58 @@ A **workbench with a sense of place**: the same tools as a plain editor, framed 
 
 Working titles until names emerge from play: *The Apprentice's Notebook* (game), *the Draughtsman* / *the Stoker* (apprentices), *the city* / *the Seam*.
 
+### 9.5 v0 rule defaults (*Proposal*: Claude's defaults, tune by playing)
+
+The doc leaves these details open, so v0 picks a default for each. Every number lives in `src/data/`.
+
+**Lattice reading**
+- A socket holds at most one rune. **Source** and **Bend** have an absolute arrow (rotate by tapping). Energy entering a Bend leaves through its arrow; if the arrow points back the way it came, the flow stops.
+- **Fork** splits relative to the travel direction: the left branch resolves first, then the right.
+- Each Source in a lattice is one castable spell. Paths of different sources may share runes, because the rule against revisiting a cell applies per cast.
+- **Amplify** gives +1 magnitude to each path cell it touches, and stacks if several touch. If it touches the Source, the base effect gets +1.
+- **Echo** only counts when it touches the Source cell. The spell then recasts at the start of the caster's next turn at half magnitude (rounded down, min 1), with the same aim.
+- **Triggers see same-cast effects (decided default: yes).** The path resolves step by step, so `Ink → On Inked → Spark` always fires. It's a self-combo worth discovering.
+- **On Kill** passes if the cast has killed anything so far, including through chain reactions. The rest of the path then re-targets to each victim's tile and its 4 orthogonal neighbors (a small burst), once per victim.
+- Resolution is deterministic: depth-first along the path, Fork left before right. Within a step, targets resolve in reading order (top row first, then left to right). Chain reactions (fire spread, conduction, arcs) resolve fully before the next step.
+
+**Sources and magnitudes**
+- **Bolt:** aimed in one of 4 directions. It travels until it reaches a unit, a brass plate, a steam tile or the edge, and hits that tile. 2 damage.
+- **Splash:** a target tile within range 3 (Chebyshev). Deals 1 damage to every unit in the 3×3 area, and later runes apply to all 9 tiles. **Friendly fire is on.**
+- **Ward:** targets self or an orthogonally adjacent ally. Gives a shield of 2 that absorbs damage and lasts until used up or the encounter ends. Later runes apply to the warded ally's tile (Ward → Steam = a cloak).
+- **Spark** deals 1 damage. On a material tile, **Amplify** grows the footprint by one ring per +1 instead of adding magnitude. **Affinity:** +1 magnitude for the member's materials (Draughtsman: Ink, Stoker: Spark and Oil).
+
+**Reduced interaction matrix**
+- **Ink** marks a unit as inked. On a tile with no unit, it leaves an ink puddle that marks whoever ends a move there. **Inked units take +1 damage from every hit.**
+- **Spark or Fire on an inked unit** detonates the mark: +2 burst damage, and the mark is consumed.
+- **Oil** coats tiles. A unit pushed onto oil slides until it leaves the oil.
+- **Spark on oil** ignites it. Fire spreads instantly through connected oil, deals 1 damage to each unit standing in it (+1 to oil-soaked units), burns for 2 rounds (1 damage to units ending their turn in it), then the oil is gone.
+- **Spark** reaching a brass plate or a brass unit conducts through every connected brass (plates, brass sentries, brass-coated units) and hits each unit there.
+- **Steam** is a cloud lasting 2 rounds. It blocks Bolts and enemy line attacks. Spark reaching steam arcs to every unit in the connected cloud, and Ink applied into steam marks everyone in the cloud. Fire touching steam is put out.
+- **Brass** raises a plate on an empty tile (blocks movement, conducts). On a unit it brass-coats the unit for the encounter, so the unit conducts.
+- Cut from v0: smear (ink + oil), heated brass, slippery brass.
+
+**Turns (Into the Breach style)**
+1. **Enemy phase:** each enemy moves, then telegraphs an intent relative to itself (a direction and a pattern), so shoving an enemy also moves its attack. Intents show their resolution order.
+2. **Player phase:** each member gets one move (up to 3 tiles, orthogonal, not through units or plates) and one action (cast or Shove), in any order. A move can be undone until that member acts.
+3. **Resolve:** intents fire in order, fire burns, steam decays, and the next round starts.
+- **Shove:** pushes an adjacent unit 1 tile away. If the unit is blocked by a unit, plate or edge, both take 1 bump damage.
+- **Death:** a member at 0 HP is down for the rest of the encounter, and is back at 1 HP afterward if the party wins. If everyone is down, the party wipes.
+
+**Party, enemies and the Seam**
+- **Draughtsman:** HP 6, lattice 5×3. **Stoker:** HP 8, lattice 3×6. Both have a move of 3.
+- **Oil-rat:** HP 2, move 3. It chases the nearest member and bites adjacent for 1. It leaves oil on every tile it walks, and it's oil-soaked.
+- **Brass sentry:** HP 5, move 1, brass. Its line attack deals 2 to the first unit in line.
+- **Ink familiar:** HP 1, move 2. It spits at range 2 for 1 damage and inks its target.
+- **Encounters (4):** (1) three rats. (2) two rats and a familiar. (3) a sentry, two rats and oil puddles. (4) **Heart of the Seam:** two sentries, a familiar, two rats, steam vents and brass. Each one has a hand-placed layout.
+- **Charges per trip:** Bolt 3, Splash 2, Ward 2.
+
+**Ink, collection, loot, codex**
+- **Ink costs:** Source 2, Material 1, Shape 1, Trigger 2, Aura 3. Each member starts with 8 ink capacity, and an ink reserve gives +2.
+- **Collection:** you own runes as counts, and you can't place more copies than you own across both lattices. **Start:** Bolt ×2, Ward, Ink ×2, Spark ×2, Oil, Bend ×2, Fork. **Starting lattices:** Draughtsman `Bolt → Ink`, Stoker `Bolt → Spark`.
+- **Loot:** after each win, pick 1 of 3 offers (a rune, an ink reserve or research materials). The heart gives 2 picks, and deeper encounters offer rarer runes. Loot is banked on returning home and lost on a wipe. Research materials are only counted in v0.
+- **Codex:** a rune entry shows `???` until you own the rune, and an interaction entry (ignite, conduct, arc, detonate, extinguish, slide, diffuse) shows `???` until it's first seen in a fight.
+- **Saves:** between encounters only. Closing the game mid-fight restarts that encounter.
+
 ## 10. Open questions (next design rounds)
 
 **Before building v0:**
@@ -293,3 +345,4 @@ Working titles until names emerge from play: *The Apprentice's Notebook* (game),
 | 2026-10-12 | No audio in v0 | Core first |
 | 2026-10-12 | Tech decisions moved to a separate process; doc stays high level | Player's request |
 | 2026-10-12 | v0 rune set (14), the Seam + 3 enemies, study = workbench with a sense of place, placeholder names | Final v0 design round |
+| 2026-10-13 | v0 rule defaults (§9.5): triggers see same-cast effects, ItB-style relative intents, inked = +1 damage taken, pick-1-of-3 loot | Needed to build v0. Proposals to be judged by playing. |
