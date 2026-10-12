@@ -1,0 +1,106 @@
+import { expect, test } from 'vitest';
+import { RUNE_IDS } from '$data';
+import {
+  beginEncounter,
+  deriveSeed,
+  finishEncounter,
+  newProfile,
+  newSave,
+  nextTripSeed,
+  parseSaveData,
+  pickLoot,
+  type SaveData,
+  startTrip,
+} from '$engine';
+import { CURRENT_VERSION, parse, serialize } from '../../src/app/save';
+
+const json = (v: unknown): unknown => JSON.parse(JSON.stringify(v));
+
+/** A plain-JSON copy of `base` with the value at a dotted path replaced (undefined removes it). */
+function poke(base: unknown, path: string, value: unknown): unknown {
+  const root = json(base) as Record<string, unknown>;
+  const keys = path.split('.');
+  const last = keys.pop() as string;
+  let cur = root;
+  for (const k of keys) cur = cur[k] as Record<string, unknown>;
+  if (value === undefined) delete cur[last];
+  else cur[last] = value;
+  return root;
+}
+
+test('SaveData round-trips through src/app/save serialize/parse at version 0', () => {
+  const profile = newProfile();
+  const trip = startTrip(profile, 7);
+  const b = structuredClone(beginEncounter(profile, trip).state);
+  b.phase = 'won';
+  for (const u of b.units) if (u.kind === 'enemy') u.hp = 0;
+  const won = finishEncounter(profile, trip, b);
+  if (!won.trip) throw new Error('expected a trip');
+  const save: SaveData = { profile: won.profile, trip: pickLoot(won.trip, 0), seedCounter: 3 };
+  expect(CURRENT_VERSION).toBe(0);
+  const env = parse(serialize(save));
+  expect(env.version).toBe(0);
+  expect(parseSaveData(env.data)).toEqual(save);
+
+  const fresh = newSave(99);
+  expect(parseSaveData(parse(serialize(fresh)).data)).toEqual(fresh);
+});
+
+test('newSave starts without a trip', () => {
+  const s = newSave(5);
+  expect(s.trip).toBeNull();
+  expect(s.seedCounter).toBe(5);
+  expect(s.profile).toEqual(newProfile());
+});
+
+test('nextTripSeed is deterministic and advances the counter', () => {
+  const s = newSave(5);
+  const a = nextTripSeed(s);
+  expect(a.seed).toBe(deriveSeed(5, 0));
+  expect(a.save.seedCounter).toBe(6);
+  expect(s.seedCounter).toBe(5);
+  expect(nextTripSeed(s).seed).toBe(a.seed);
+  expect(nextTripSeed(a.save).seed).not.toBe(a.seed);
+});
+
+test('parseSaveData rejects garbage', () => {
+  for (const junk of [null, 5, 'x', [], {}, { profile: 1 }]) {
+    expect(() => parseSaveData(junk)).toThrow('Not a valid save');
+  }
+  const base = newSave(1);
+  const stoker = 'profile.lattices.stoker';
+  const cases: [string, unknown][] = [
+    ['seedCounter', -1],
+    ['profile.collection.bolt', 'many'],
+    ['profile.inkCapacity.stoker', undefined],
+    ['profile.interactions', ['teleport']],
+    [stoker, [{ at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' }]], // a hole
+    [stoker, [{ at: { x: 1, y: 1 }, rune: 'nope' }]],
+    [stoker, [{ at: { x: 1, y: 1 }, rune: 'bolt' }]], // arrow missing
+    ['trip', { seed: 1, encounter: 9, status: 'fight' }],
+  ];
+  for (const [path, value] of cases) {
+    expect(() => parseSaveData(poke(base, path, value))).toThrow('Not a valid save');
+  }
+});
+
+test('parseSaveData rejects a malformed trip', () => {
+  const save = newSave(1);
+  const trip = startTrip(save.profile, 1);
+  const raw = (t: unknown) => poke(save, 'trip', t);
+  expect(parseSaveData(raw(trip)).trip).toEqual(trip);
+  expect(() => parseSaveData(raw({ ...trip, status: 'dancing' }))).toThrow('Not a valid save');
+  expect(() => parseSaveData(raw({ ...trip, hp: { draughtsman: 1 } }))).toThrow('Not a valid save');
+  expect(() => parseSaveData(raw({ ...trip, loot: [{ kind: 'gold' }] }))).toThrow(
+    'Not a valid save',
+  );
+});
+
+test('missing rune keys default to 0', () => {
+  const parsed = parseSaveData(poke(newSave(1), 'profile.collection', { bolt: 3 }));
+  expect(parsed.profile.collection.bolt).toBe(3);
+  for (const id of RUNE_IDS) {
+    if (id !== 'bolt') expect(parsed.profile.collection[id]).toBe(0);
+  }
+  expect(Object.keys(parsed.profile.collection)).toHaveLength(RUNE_IDS.length);
+});

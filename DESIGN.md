@@ -303,6 +303,20 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - **Codex:** a rune entry shows `???` until you own the rune, and an interaction entry (ignite, conduct, arc, detonate, extinguish, slide, diffuse) shows `???` until it's first seen in a fight.
 - **Saves:** between encounters only. Closing the game mid-fight restarts that encounter.
 
+**Engine interpretations** (the engine had to pick; all tunable, judge them by playing)
+- **Magnitude is per rune.** Bolt, Splash and Spark: damage. Ward: shield. Ink, Oil, Steam and Brass: footprint, so magnitude 2 covers 3×3 and 3 covers 5×5. Affinity (+1) and Amplify (+1 each) both add to it. The Draughtsman's Ink covers 3×3 and the Stoker's Spark deals 2.
+- **Steam shields what stands in it.** Bolt, Line and Spit stop at a steam tile and hurt nothing there, even a unit inside. The rest of the spell still lands on that tile, so Bolt → Spark arcs and Ward → Steam is a real cloak. Bites and Splash still hit units in steam.
+- **On Inked is a gate.** It passes if any target is inked at that moment, and doesn't filter targets. **On Kill** counts every death in the cast, allies included.
+- **Inked +1 hits everything:** bolts, fire, bumps and enemy attacks. Only the detonation itself skips it. Spark or fire on an inked unit that survives sets off the mark.
+- **Fire** spreads through connected oil but never into steam. Oil placed next to fire lights at once. Units that merely walk through don't burn.
+- **Sliding** stops at the first dry tile or before a blocker, with no bump damage. A bump hurts the pushed unit and any unit it hits, not edges or plates.
+- **Round 1:** enemies telegraph without moving, so the hand-placed layout is what you see. After that the AI is deterministic: no dice in combat.
+- **Echo** recasts at the start of your next turn, after enemies telegraph. It costs no charge and no action, never echoes again, and fizzles if the caster is down.
+- **Charges belong to each Source rune** on the lattice, not to the rune type.
+- **Loot:** an ink reserve names one member and gives that member +2. The heart's 2 picks come from the same 3 offers. After the heart you must go home.
+- **Wipes and the codex:** a wipe loses the trip's loot, but interactions seen in the fight stay discovered. A downed member returns at 1 HP after a win.
+- **Walls are cut from v0.** Only plates, units and the board edge block. A training dummy exists for the Lab and tests only.
+
 ## 10. Open questions (next design rounds)
 
 **Before building v0:**
@@ -346,3 +360,4 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 | 2026-10-12 | Tech decisions moved to a separate process; doc stays high level | Player's request |
 | 2026-10-12 | v0 rune set (14), the Seam + 3 enemies, study = workbench with a sense of place, placeholder names | Final v0 design round |
 | 2026-10-13 | v0 rule defaults (§9.5): triggers see same-cast effects, ItB-style relative intents, inked = +1 damage taken, pick-1-of-3 loot | Needed to build v0. Proposals to be judged by playing. |
+| 2026-10-13 | Engine interpretations (§9.5): magnitude per rune (footprints, 3×3 Ink), steam shields occupants from projectiles, On Inked is a gate, inked +1 on every hit, wipes keep codex finds | The engine needed exact rules where §9.5 was silent. Judge by playing; numbers live in `src/data/`. |
