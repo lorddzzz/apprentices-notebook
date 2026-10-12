@@ -255,6 +255,7 @@ Working titles until names emerge from play: *The Apprentice's Notebook* (game),
 
 **Before building v0:**
 - [x] Tech decisions (separate process, see [TECH.md](TECH.md))
+- [x] Project skeleton deployed to GitHub Pages and installed on the iPhone (see [TECH.md](TECH.md) §8). Next: build v0.
 
 **Answer by playing v0** (no need to decide upfront):
 - [ ] Hybrid flow + aura: does it feel good?
