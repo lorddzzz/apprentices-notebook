@@ -34,3 +34,18 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 7. **Situation:** agent worktrees branch from `origin/main`, which was behind, so step 3 started from the skeleton and had to fast-forward itself. Also, Biome scanned the nested worktrees under `.claude/worktrees/` and failed `pnpm check` on `main`.
    **Decision:** added `.claude/worktrees` to `.gitignore` (Biome honours it), and now push `main` before spawning worktree agents.
    **Why:** keeps the gate green, and parallel agents start from current code.
+8. **Situation:** the UI plan (opus) invented 17 UX decisions.
+   **Decision:** accepted them all. The ones you might have a view on:
+   - Full Into the Breach-style outcome previews before confirming. Interaction names stay hidden until discovered.
+   - Tap the same aim again to confirm.
+   - Tap a placed rune to rotate it. Long-press or Erase mode removes it.
+   - The shelf shows unowned runes as `???`.
+   - The Study is locked while a trip is active.
+   - You can't retreat mid-fight.
+   - Light parchment theme only, no dark mode.
+   - Save export/import as text in the Study menu.
+   - Dev-only `__game.debug.forceWin()` for verification.
+   **Why:** all of them fit the pillars (readable danger, visible unknowns). Any of them is easy to change after you play.
+9. **Situation:** the UI steps all need the single browser pane and dev-server port to verify.
+   **Decision:** UI steps run one at a time on `main`, and engine steps keep running in parallel worktrees.
+   **Why:** avoids agents fighting over the browser and port 5173.
