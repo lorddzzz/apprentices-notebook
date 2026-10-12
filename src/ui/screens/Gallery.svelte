@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { RUNE_IDS, RUNES } from '$data';
-  import { type Coord, type Dir, parseBoard } from '$engine';
+  import { MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, START_COLLECTION, TUNING } from '$data';
+  import {
+    type Coord,
+    compileLattice,
+    type Dir,
+    type Lattice,
+    parseBoard,
+    parseLattice,
+  } from '$engine';
   import { EMPTY_OVERLAY } from '../../app/overlay';
   import { buildSteps } from '../../app/playback';
   import { Playback } from '../../app/playback.svelte';
   import { router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
+  import { editSocket, freeCounter, NO_TOOL, type ShelfTool, shelfSlots } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import { type BoardView, viewOfSpec } from '../../app/view';
   import BattleBoard from '../components/board/BattleBoard.svelte';
@@ -15,6 +23,7 @@
   import Button from '../components/common/Button.svelte';
   import Pips from '../components/common/Pips.svelte';
   import Sheet from '../components/common/Sheet.svelte';
+  import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import {
     OIL_CHAIN_BOARD,
@@ -28,7 +37,7 @@
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'fx'] as const;
+  const PARTS = ['glyphs', 'board', 'fx', 'lattice'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -37,6 +46,32 @@
     const [, , w, h] = boardViewBox(v.width, v.height).split(' ');
     return `${w} / ${h}`;
   };
+
+  // lattice part: fully interactive, per-member lattices over one shared collection
+  const startLattices = (): Record<MemberId, Lattice> => ({
+    draughtsman: parseLattice(MEMBERS.draughtsman.startLattice),
+    stoker: parseLattice(MEMBERS.stoker.startLattice),
+  });
+  let lattices = $state.raw<Record<MemberId, Lattice>>(startLattices());
+  let member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
+  let tool = $state.raw<ShelfTool>(NO_TOOL);
+
+  const lattice = $derived(lattices[member]);
+  const compiled = $derived(compileLattice(lattice, MEMBERS[member].affinity));
+  const all = $derived(MEMBER_IDS.map((id) => lattices[id]));
+  const slots = $derived(shelfSlots(START_COLLECTION, all, lattice, TUNING.startInk));
+
+  function editAt(at: Coord, longPress: boolean): void {
+    const result = editSocket(
+      { lattice, capacity: TUNING.startInk, free: freeCounter(START_COLLECTION, all) },
+      at,
+      tool,
+      longPress,
+    );
+    lattices = { ...lattices, [member]: result.lattice };
+    tool = result.tool;
+    if (result.message) toast(result.message);
+  }
 
   // fx part
   const chainStart = viewOfSpec(parseBoard(OIL_CHAIN_BOARD));
@@ -87,6 +122,7 @@
     {/each}
   </nav>
 
+  <div class="body" class:fill={part === 'lattice'}>
   {#if part === 'glyphs'}
     <h2>Runes</h2>
     <ul class="runes" data-testid="glyphs">
@@ -154,9 +190,26 @@
         ontap={tapChain}
       />
     </div>
+  {:else if part === 'lattice'}
+    <LatticeEditor
+      {lattice}
+      {compiled}
+      capacity={TUNING.startInk}
+      {slots}
+      {tool}
+      ontool={(t) => (tool = t)}
+      onsocket={editAt}
+      {member}
+      onmember={(m) => {
+        member = m;
+        tool = NO_TOOL;
+      }}
+      onreject={(reason) => toast(reason)}
+    />
   {:else}
     <p>No gallery part "{part}" yet.</p>
   {/if}
+  </div>
 
   <Sheet open={sheetOpen} title="A sheet" onclose={() => (sheetOpen = false)}>
     <p>Bottom sheets hold menus and the copy fallback.</p>
@@ -166,9 +219,24 @@
 
 <style>
   section {
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    padding: 0 var(--space-3);
+  }
+  header,
+  nav {
+    flex: none;
+  }
+  .body {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 0 var(--space-3) var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+  .body.fill {
+    overflow: hidden;
+    padding-bottom: calc(var(--space-3) + 8px);
   }
   header {
     display: flex;
