@@ -1,1 +1,286 @@
-export {};
+import { ATTACKS, ENEMIES, type EncounterDef, type EnemyId, MEMBERS, type MemberId } from '$data';
+import { enemyPhase } from './ai';
+import { castAction } from './cast';
+import { type Ctx, checkEnd, emit, ref, runDraft } from './ctx';
+import { discoveriesIn, type GameEvent } from './events';
+import { type Coord, label, step } from './grid';
+import { moveMember, shove, undoMove } from './movement';
+import { type BoardUnit, parseBoard, parseCell, parseLabel, serializeBoard } from './notation';
+import {
+  canUndoMove,
+  enemies,
+  findUnit,
+  inBoard,
+  isAlive,
+  legalAims,
+  legalMoves,
+  livingUnits,
+  memberById,
+  sameAim,
+  spellOf,
+  unitAt,
+} from './queries';
+import { endTurnAction } from './turn';
+import type {
+  Action,
+  ActionResult,
+  BattleSpec,
+  BattleState,
+  EnemyUnit,
+  MemberUnit,
+  PartyInit,
+  Unit,
+} from './types';
+
+export class IllegalActionError extends Error {
+  readonly reason: string;
+  constructor(reason: string) {
+    super(`Illegal action: ${reason}`);
+    this.name = 'IllegalActionError';
+    this.reason = reason;
+  }
+}
+
+// ── Creation ────────────────────────────────────────────
+
+function spawnMember(b: BoardUnit, init: PartyInit = {}): MemberUnit {
+  const def = MEMBERS[b.def as MemberId];
+  const spells = init.spells ?? [];
+  const hp = init.hp ?? def.hp;
+  return {
+    kind: 'member',
+    id: def.id,
+    def: def.id,
+    name: def.name,
+    pos: { ...b.at },
+    hp,
+    maxHp: Math.max(def.hp, hp),
+    shield: 0,
+    inked: b.inked,
+    brass: b.brass,
+    oilSoaked: false,
+    move: def.move,
+    moved: false,
+    acted: false,
+    undo: null,
+    spells,
+    charges: init.charges ?? Object.fromEntries(spells.map((sp) => [sp.key, sp.charges])),
+  };
+}
+
+function spawnEnemy(b: BoardUnit, n: number): EnemyUnit {
+  const def = ENEMIES[b.def as EnemyId];
+  return {
+    kind: 'enemy',
+    id: `${def.id}-${n}`,
+    def: def.id,
+    name: def.name,
+    pos: { ...b.at },
+    hp: def.hp,
+    maxHp: def.hp,
+    shield: 0,
+    inked: b.inked,
+    brass: def.brass || b.brass,
+    oilSoaked: def.oilSoaked,
+    intent: null,
+  };
+}
+
+function unitAtLabel(s: BattleState, text: string): Unit {
+  const u = unitAt(s, parseLabel(text));
+  if (!u) throw new Error(`No unit at ${text}`);
+  return u;
+}
+
+/** Round-1 telegraphs given explicitly by label (tests, Lab scenarios). Unlisted enemies wait. */
+function telegraphGiven(ctx: Ctx, intents: NonNullable<BattleSpec['intents']>): void {
+  const given = new Map(
+    Object.entries(intents).map(([lbl, dir]) => [unitAtLabel(ctx.s, lbl).id, { lbl, dir }]),
+  );
+  let order = 0;
+  for (const e of enemies(ctx.s)) {
+    const g = given.get(e.id);
+    given.delete(e.id);
+    const attack = ENEMIES[e.def].attack;
+    if (!g) {
+      emit(ctx, { type: 'idle', unit: ref(e) });
+      continue;
+    }
+    if (!attack) throw new Error(`The ${e.name} at ${g.lbl} has no attack to telegraph`);
+    e.intent = { attack, dir: g.dir, order: ++order };
+    emit(ctx, { type: 'telegraph', unit: ref(e), intent: e.intent, verb: ATTACKS[attack].verb });
+  }
+  for (const { lbl } of given.values()) throw new Error(`Intent for ${lbl}: not an enemy`);
+}
+
+export function createBattle(spec: BattleSpec): ActionResult {
+  const board = parseBoard(spec.board);
+  const counts = new Map<EnemyId, number>();
+  const units: Unit[] = board.units.map((b) => {
+    if (b.kind === 'member') return spawnMember(b, spec.party?.[b.def as MemberId]);
+    const n = (counts.get(b.def as EnemyId) ?? 0) + 1;
+    counts.set(b.def as EnemyId, n);
+    return spawnEnemy(b, n);
+  });
+  const state: BattleState = {
+    title: spec.title,
+    width: board.width,
+    height: board.height,
+    tiles: board.tiles,
+    units,
+    round: 1,
+    phase: 'player',
+    echoes: [],
+    discovered: [],
+    rngState: spec.seed >>> 0,
+    lab: !!spec.lab,
+  };
+  for (const [lbl, hp] of Object.entries(spec.hp ?? {})) {
+    const u = unitAtLabel(state, lbl);
+    u.hp = hp;
+    u.maxHp = Math.max(u.maxHp, hp);
+  }
+  return runDraft(state, (ctx) => {
+    emit(ctx, { type: 'battleStart', title: spec.title });
+    emit(ctx, { type: 'round', round: 1 });
+    emit(ctx, { type: 'phase', phase: 'enemy' });
+    if (spec.intents) telegraphGiven(ctx, spec.intents);
+    else enemyPhase(ctx, { move: false });
+    emit(ctx, { type: 'phase', phase: 'player' });
+  });
+}
+
+export function createEncounterBattle(
+  enc: EncounterDef,
+  party: Partial<Record<MemberId, PartyInit>>,
+  seed: number,
+): ActionResult {
+  return createBattle({ title: enc.title, board: enc.layout, seed, party });
+}
+
+// ── Actions ─────────────────────────────────────────────
+
+/** Null when legal, else a short reason (for disabled buttons and the thrown error). */
+export function isLegal(s: BattleState, action: Action): string | null {
+  if (s.phase !== 'player') return 'The battle is over';
+  if (action.type === 'endTurn') return null;
+  const u = findUnit(s, action.unit);
+  if (!u) return `No unit ${action.unit}`;
+  if (u.kind !== 'member') return `${u.name} is not a party member`;
+  if (!isAlive(u)) return `${u.name} is down`;
+  switch (action.type) {
+    case 'move':
+      if (u.moved) return `${u.name} has already moved`;
+      return legalMoves(s, u.id).some((c) => c.x === action.to.x && c.y === action.to.y)
+        ? null
+        : `${u.name} can't reach ${label(action.to)}`;
+    case 'undoMove':
+      return canUndoMove(s, u.id) ? null : `${u.name} has no move to undo`;
+    case 'shove':
+      if (u.acted) return `${u.name} has already acted`;
+      return unitAt(s, step(u.pos, action.dir)) ? null : `Nothing to shove ${action.dir}`;
+    case 'cast': {
+      if (u.acted) return `${u.name} has already acted`;
+      if (!spellOf(u, action.spell)) return `${u.name} has no spell at ${action.spell}`;
+      if (!s.lab && (u.charges[action.spell] ?? 0) <= 0) return 'No charges left';
+      const ok = legalAims(s, u.id, action.spell).some((a) => sameAim(a, action.aim));
+      return ok ? null : 'Not a legal aim';
+    }
+  }
+}
+
+function dispatch(ctx: Ctx, action: Action): void {
+  switch (action.type) {
+    case 'move':
+      moveMember(ctx, memberById(ctx.s, action.unit), action.to);
+      break;
+    case 'undoMove':
+      undoMove(ctx, memberById(ctx.s, action.unit));
+      break;
+    case 'shove':
+      shove(ctx, memberById(ctx.s, action.unit), action.dir);
+      break;
+    case 'cast':
+      castAction(ctx, action);
+      break;
+    case 'endTurn':
+      endTurnAction(ctx);
+      break;
+  }
+}
+
+/** Pure: returns the next state and the events; throws IllegalActionError if not legal. */
+export function applyAction(state: BattleState, action: Action): ActionResult {
+  const reason = isLegal(state, action);
+  if (reason !== null) throw new IllegalActionError(reason);
+  return runDraft(state, (ctx) => {
+    dispatch(ctx, action);
+    const found = discoveriesIn(ctx.log).filter((d) => !ctx.s.discovered.includes(d));
+    ctx.s.discovered.push(...found);
+    if (action.type !== 'endTurn') checkEnd(ctx);
+  });
+}
+
+/** Creates the battle and applies each action. states[0] is the created battle. */
+export function replay(
+  spec: BattleSpec,
+  actions: readonly Action[],
+): { states: BattleState[]; events: GameEvent[] } {
+  const first = createBattle(spec);
+  const states = [first.state];
+  const events = [...first.events];
+  let cur = first.state;
+  for (const a of actions) {
+    const r = applyAction(cur, a);
+    cur = r.state;
+    states.push(cur);
+    events.push(...r.events);
+  }
+  return { states, events };
+}
+
+// ── Lab ─────────────────────────────────────────────────
+
+function toBoardUnit(u: Unit): BoardUnit {
+  const innateBrass = u.kind === 'enemy' && ENEMIES[u.def].brass;
+  return {
+    kind: u.kind,
+    def: u.def,
+    at: { ...u.pos },
+    inked: u.inked,
+    brass: u.brass && !innateBrass,
+  };
+}
+
+/** The current board as ASCII (Lab "copy as scenario"). */
+export function boardOf(s: BattleState): string {
+  return serializeBoard({
+    width: s.width,
+    height: s.height,
+    tiles: s.tiles,
+    units: livingUnits(s).map(toBoardUnit),
+  });
+}
+
+/**
+ * Lab edit: replaces the tile and the unit at `at` with one board token. A member placed again
+ * moves (keeping its spells and charges); a new enemy gets a fresh id and acts last.
+ */
+export function labSetCell(state: BattleState, at: Coord, token: string): BattleState {
+  if (!inBoard(state, at)) throw new Error(`${label(at)} is off the board`);
+  const { tile, unit } = parseCell(token, at);
+  const s = structuredClone(state);
+  s.tiles[at.y * s.width + at.x] = tile;
+  const old = unitAt(s, at);
+  const kept = s.units.filter((u) => u !== old && !(unit?.kind === 'member' && u.id === unit.def));
+  const prev = unit?.kind === 'member' ? s.units.find((u) => u.id === unit.def) : undefined;
+  s.units = kept;
+  if (unit?.kind === 'member') {
+    const init = prev?.kind === 'member' ? { spells: prev.spells, charges: prev.charges } : {};
+    s.units.push(spawnMember(unit, init));
+  } else if (unit) {
+    const ids = s.units.filter((u) => u.def === unit.def).map((u) => Number(u.id.split('-')[1]));
+    s.units.push(spawnEnemy(unit, Math.max(0, ...ids) + 1));
+  }
+  return s;
+}

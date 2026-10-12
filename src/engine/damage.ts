@@ -1,0 +1,64 @@
+import { TUNING } from '$data';
+import { type Ctx, emit, ref } from './ctx';
+import type { Unit } from './types';
+
+/**
+ * Order: base (incl. fire's oil-soaked bonus) → inked +1 → shield → HP. The log line shows the
+ * total before the shield. Returns true if the hit killed the unit.
+ */
+export function dealDamage(
+  ctx: Ctx,
+  unit: Unit,
+  base: number,
+  source: string,
+  extra: readonly string[] = [],
+): boolean {
+  if (unit.hp <= 0) return false;
+  let amount = base;
+  const bonus = [...extra];
+  if (unit.inked) {
+    amount += TUNING.inkedBonus;
+    bonus.push(`inked +${TUNING.inkedBonus}`);
+  }
+  const absorbed = Math.min(unit.shield, amount);
+  unit.shield -= absorbed;
+  unit.hp = Math.max(0, unit.hp - (amount - absorbed));
+  emit(ctx, { type: 'damage', target: ref(unit), amount, source, bonus, hpLeft: unit.hp });
+  if (absorbed > 0)
+    emit(ctx, { type: 'shieldAbsorbs', unit: ref(unit), absorbed, left: unit.shield });
+  if (unit.hp > 0) return false;
+  kill(ctx, unit);
+  return true;
+}
+
+/** Dead units stay in `units` (hp 0) but leave the board. */
+export function kill(ctx: Ctx, unit: Unit): void {
+  emit(ctx, { type: 'died', unit: ref(unit) });
+  ctx.cast?.kills.push({ unit: unit.id, at: { ...unit.pos } });
+  if (unit.kind === 'enemy') unit.intent = null;
+  else unit.undo = null;
+}
+
+/** The ink mark bursts: consumed first, so the detonation itself gets no inked bonus. */
+export function detonate(ctx: Ctx, unit: Unit): void {
+  unit.inked = false;
+  emit(ctx, { type: 'detonate', unit: ref(unit) });
+  dealDamage(ctx, unit, TUNING.detonateDamage, 'Detonation');
+}
+
+export function sparkHit(ctx: Ctx, unit: Unit, damage: number): void {
+  const killed = dealDamage(ctx, unit, damage, 'Spark');
+  if (!killed && unit.inked) detonate(ctx, unit);
+}
+
+export function burn(ctx: Ctx, unit: Unit): void {
+  const soaked = unit.oilSoaked;
+  const killed = dealDamage(
+    ctx,
+    unit,
+    TUNING.fireDamage + (soaked ? TUNING.oilSoakedBonus : 0),
+    'Fire',
+    soaked ? [`oil-soaked +${TUNING.oilSoakedBonus}`] : [],
+  );
+  if (!killed && unit.inked) detonate(ctx, unit);
+}

@@ -51,6 +51,13 @@ export function emptyTile(): Tile {
   return { oil: false, ink: false, steam: 0, fire: 0, plate: false, vent: false };
 }
 
+/** Inverse of `label`: "C4" → {x:2, y:3}. */
+export function parseLabel(text: string): Coord {
+  const m = /^([A-Z])(\d+)$/.exec(text);
+  if (!m?.[1] || !m[2] || Number(m[2]) < 1) throw new Error(`Bad cell label "${text}"`);
+  return { x: m[1].charCodeAt(0) - 65, y: Number(m[2]) - 1 };
+}
+
 // ── Board ───────────────────────────────────────────────
 
 function unitFor(ch: string): { kind: 'member' | 'enemy'; def: MemberId | EnemyId } | null {
