@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { href } from '../../app/router.svelte';
+  import { href } from '../../app/routes';
 </script>
 
 <section>

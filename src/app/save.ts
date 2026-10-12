@@ -10,7 +10,7 @@ export const migrations: Migration[] = [];
 
 export const CURRENT_VERSION = migrations.length;
 
-const KEY = 'apprentices-notebook:save';
+export const SAVE_KEY = 'apprentices-notebook:save';
 
 export function migrate(env: SaveEnvelope, steps: readonly Migration[] = migrations): SaveEnvelope {
   let { version, data } = env;
@@ -41,12 +41,35 @@ export function parse(text: string, steps: readonly Migration[] = migrations): S
   return migrate(env, steps);
 }
 
+/** Where save text lives. Injected so logic is testable without a DOM. */
+export interface SaveBackend {
+  read(): string | null;
+  write(text: string): void;
+}
+
+export function localBackend(key = SAVE_KEY): SaveBackend {
+  return {
+    read: () => localStorage.getItem(key),
+    write: (text) => localStorage.setItem(key, text),
+  };
+}
+
+export function memoryBackend(initial: string | null = null): SaveBackend {
+  let text = initial;
+  return {
+    read: () => text,
+    write: (t) => {
+      text = t;
+    },
+  };
+}
+
 export function saveToStorage(data: unknown): void {
-  localStorage.setItem(KEY, serialize(data));
+  localStorage.setItem(SAVE_KEY, serialize(data));
 }
 
 export function loadFromStorage(): SaveEnvelope | null {
-  const text = localStorage.getItem(KEY);
+  const text = localStorage.getItem(SAVE_KEY);
   return text === null ? null : parse(text);
 }
 

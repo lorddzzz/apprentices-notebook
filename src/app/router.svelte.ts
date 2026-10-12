@@ -1,20 +1,8 @@
-export type Route = 'study' | 'combat' | 'codex' | 'lab';
+import { href, type Location, parseHash, type Route } from './routes';
 
-const ROUTES: readonly Route[] = ['study', 'combat', 'codex', 'lab'];
+const hasLocation = typeof location !== 'undefined';
 
-export interface Location {
-  route: Route;
-  params: URLSearchParams;
-}
-
-/** Parses `#/lab?scenario=smoke` → { route: 'lab', params: { scenario: 'smoke' } }. Unknown → study. */
-export function parseHash(hash: string): Location {
-  const [path = '', query = ''] = hash.replace(/^#\/?/, '').split('?');
-  const route = ROUTES.find((r) => r === path) ?? 'study';
-  return { route, params: new URLSearchParams(query) };
-}
-
-let current = $state(parseHash(location.hash));
+let current = $state.raw<Location>(parseHash(hasLocation ? location.hash : ''));
 
 if (typeof window !== 'undefined') {
   window.addEventListener('hashchange', () => {
@@ -31,7 +19,19 @@ export const router = {
   },
 };
 
-export function href(route: Route, params?: Record<string, string>): string {
-  const q = params ? `?${new URLSearchParams(params)}` : '';
-  return `#/${route}${q}`;
+/** Navigate. `replace` rewrites the current history entry (redirects, scenario picks). */
+export function go(
+  route: Route,
+  params?: Record<string, string>,
+  opts: { replace?: boolean } = {},
+): void {
+  const hash = href(route, params);
+  if (!hasLocation) {
+    current = parseHash(hash);
+  } else if (opts.replace) {
+    history.replaceState(null, '', hash);
+    current = parseHash(hash);
+  } else {
+    location.hash = hash;
+  }
 }

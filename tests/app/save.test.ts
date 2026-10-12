@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { type Migration, migrate, parse, serialize } from '../../src/app/save';
+import { type Migration, memoryBackend, migrate, parse, serialize } from '../../src/app/save';
 
 const steps: Migration[] = [
   (d) => ({ ...(d as object), ink: 10 }), // v0 → v1
@@ -23,4 +23,12 @@ test('old saves are migrated step by step', () => {
 test('rejects garbage and saves from the future', () => {
   expect(() => parse('{"nope":1}', steps)).toThrow(/valid/);
   expect(() => parse(serialize({}, 9), steps)).toThrow(/newer/);
+});
+
+test('memoryBackend round-trips', () => {
+  const b = memoryBackend();
+  expect(b.read()).toBeNull();
+  b.write('hello');
+  expect(b.read()).toBe('hello');
+  expect(memoryBackend('seed').read()).toBe('seed');
 });

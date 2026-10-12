@@ -6,6 +6,42 @@
   --accent: #8b3a2b;
   --lamp: #e8b04a;
   --night: #1f2a3a;
+  --parchment-deep: #d6c39a;
+  --ink-faint: rgba(43, 33, 24, 0.45);
+  --line: rgba(43, 33, 24, 0.22);
+
+  /* materials (tile layers and material-rune frames) */
+  --m-ink: #1d2a4a;
+  --m-oil: #7a6420;
+  --m-oil-tint: rgba(122, 100, 32, 0.3);
+  --m-steam: #a9bcc6;
+  --m-spark: #e2a312;
+  --m-brass: #b5882e;
+  --m-brass-dark: #7a5a1a;
+  --m-fire: #d2552a;
+  --m-fire-tint: rgba(210, 85, 42, 0.4);
+  --vent: #55606a;
+
+  /* rune families */
+  --f-source: #8b3a2b;
+  --f-shape: #5a4a3a;
+  --f-trigger: #5b4a8a;
+  --f-aura: #b07d1e;
+
+  /* roles */
+  --member-draughtsman: #2f4f6f;
+  --member-stoker: #a2471f;
+  --enemy: #2b2118;
+  --danger: #b3261e;
+  --danger-tint: rgba(179, 38, 30, 0.16);
+  --shield: #4f7ea8;
+  --select: #e8b04a;
+  --reach: rgba(47, 79, 111, 0.35);
+
+  --hand: "Snell Roundhand", "Segoe Script", "Bradley Hand", cursive;
+  --mono: ui-monospace, Menlo, monospace;
+  --tap: 44px;
+  --radius: 6px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -46,4 +82,39 @@ body {
 
 a {
   color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Anything tappable is at least 44 × 44 (the visual can be smaller; pad it out). */
+.tap {
+  min-width: var(--tap);
+  min-height: var(--tap);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--parchment-dark);
+  font-size: 13px;
+}
+
+.sheet {
+  background: var(--parchment);
+  border-top: 2px solid var(--ink);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: 0 -8px 24px rgba(43, 33, 24, 0.35);
+}
+
+textarea,
+input[type="text"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
