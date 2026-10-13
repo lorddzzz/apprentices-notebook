@@ -107,6 +107,9 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-13 | Persistence: `GameStore` (`game.svelte.ts`) holds the save in `$state.raw`; every lattice edit goes through pure `flow.editLattice` and one `writeSave` (only when the page changed); `loadSave(backend, now)` copies unreadable text to `<key>.corrupt` and starts a new game | The write path is unit-tested with a counting memory backend; a corrupt save is never lost |
 | 2026-10-13 | `study.ts` Profile wrappers call the engine's `canPlace` as the final say on placements | One rule source for what fits; a test checks study.ts and the engine agree on every rune and socket |
 | 2026-10-13 | Lab battles take members' lattices from the player's profile unless the scenario defines them | The Lab is the place to try the notebook you are building |
+| 2026-10-13 | Trip screens derived from `trip.status` (battle / loot / crossroads / cleared), a wipe from `game.wipe`; reload mid-fight recreates the encounter from the trip seed (`startBattle` is deterministic), so a spent charge in an unfinished fight is not kept | The save only changes on `finishEncounter`/pick/push/return: one write per decision, nothing to repair after a closed tab. The live `BattleSession` is never persisted |
+| 2026-10-13 | `flow.ts` trip reducers (`setOut`, `startBattle`, `endBattle`, `takeOffer`, `pushOnward`, `goHome`) are pure wrappers over `engine/run.ts`; `GameStore` only commits their result. `endBattle` derives the `WipeSummary` (lost loot, interactions learned) | Whole trip lifecycle is tested in `tests/app/trip.test.ts` with no DOM. A wipe summary is shown once and not saved (the save already lost the loot) |
+| 2026-10-13 | `__game.debug.forceWin/forceLose` (`BattleSession.forceEnd`) exist only to verify screens; reachable only through the dev-only `window.__game` handle | Lets the browser checklist reach loot/crossroads/wiped without playing every fight |
 
 ## 8. Repo & tooling
 

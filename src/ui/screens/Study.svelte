@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { MEMBERS } from '$data';
-  import { compiledFor, latticeOf, validateLoadout } from '$engine';
+  import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
+  import { compiledFor, describeSpell, latticeOf, validateLoadout } from '$engine';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
@@ -25,10 +25,18 @@
     }
     return null;
   });
-  // U7 wires the door; until then it stays shut.
-  const doorCaption = $derived(blocker ?? 'Expeditions arrive next');
+  const doorCaption = $derived(
+    blocker ?? `${ENCOUNTERS.length} rooms down to the heart of the Seam`,
+  );
+  // What each member carries out the door (shown on the confirm sheet).
+  const carried = $derived(
+    MEMBER_IDS.map((m) => ({
+      name: MEMBERS[m].name,
+      spells: compiledFor(profile, m).spells.map((s) => `${describeSpell(s)} (${s.charges} charges)`),
+    })),
+  );
 
-  type Panel = 'closed' | 'menu' | 'paste' | 'copy';
+  type Panel = 'closed' | 'menu' | 'paste' | 'copy' | 'door';
   let panel = $state<Panel>('closed');
   let pasted = $state('');
   let copyText = $state('');
@@ -61,8 +69,22 @@
     toast('Save loaded');
   }
 
+  function setOut(): void {
+    const why = game.setOut();
+    if (why) {
+      panel = 'closed';
+      toast(why, 'warn');
+    }
+  }
+
   const title = $derived(
-    panel === 'paste' ? 'Paste save' : panel === 'copy' ? 'Copy save' : 'The study',
+    panel === 'paste'
+      ? 'Paste save'
+      : panel === 'copy'
+        ? 'Copy save'
+        : panel === 'door'
+          ? 'Set out?'
+          : 'The study',
   );
 </script>
 
@@ -85,21 +107,45 @@
   </div>
 
   <div class="doorway">
-    <button type="button" class="door" disabled data-testid="door" aria-describedby="door-note">
+    <button
+      type="button"
+      class="door"
+      disabled={blocker !== null}
+      onclick={() => (panel = 'door')}
+      data-testid="door"
+      aria-describedby="door-note"
+    >
       <svg class="arch" width="28" height="36" viewBox="0 0 28 36" aria-hidden="true">
         <path d="M3 35V14a11 11 0 0 1 22 0v21z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="2" />
         <path d="M14 3v32M8.5 10v25M19.5 10v25" stroke="var(--wood-deep)" stroke-opacity="0.6" />
         <circle cx="20.5" cy="23" r="1.8" fill="var(--lamp)" />
       </svg>
       <span class="words">
-        <span class="label">Set out into the city</span>
+        <span class="label">Set out into the Seam</span>
         <span class="caption" id="door-note">{doorCaption}</span>
       </span>
     </button>
   </div>
 
   <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>
-    {#if panel === 'menu'}
+    {#if panel === 'door'}
+      <p class="hint first">
+        The party takes only what is inscribed. Charges do not come back until you return home, and
+        if everyone falls, whatever you found is lost.
+      </p>
+      <ul class="carry" data-testid="carry">
+        {#each carried as c (c.name)}
+          <li>
+            <strong>{c.name}</strong>
+            <span>{c.spells.join('; ') || 'no spells inscribed'}</span>
+          </li>
+        {/each}
+      </ul>
+      <div class="row">
+        <Button variant="quiet" label="Not yet" onclick={() => (panel = 'closed')} />
+        <Button label="Set out" onclick={setOut} testid="set-out" />
+      </div>
+    {:else if panel === 'menu'}
       <div class="menu">
         <a class="item tap" href={href('lab', { scenario: 'sandbox' })} data-testid="menu-lab">Visit the Lab</a>
         <Button variant="quiet" label="Copy save" onclick={copySave} testid="copy-save" />
@@ -254,6 +300,24 @@
   .hint {
     margin: var(--space-3) 0 var(--space-2);
     font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .first {
+    margin-top: 0;
+  }
+  .carry {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 15px;
+  }
+  .carry li {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+  }
+  .carry span {
+    font-size: 14px;
     color: var(--ink-soft);
   }
   textarea {

@@ -1,11 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Toasts from '../ui/components/common/Toasts.svelte';
+  import Cleared from '../ui/screens/Cleared.svelte';
   import Codex from '../ui/screens/Codex.svelte';
   import Combat from '../ui/screens/Combat.svelte';
+  import Crossroads from '../ui/screens/Crossroads.svelte';
   import Gallery from '../ui/screens/Gallery.svelte';
   import Lab from '../ui/screens/Lab.svelte';
+  import Loot from '../ui/screens/Loot.svelte';
   import Study from '../ui/screens/Study.svelte';
+  import Wiped from '../ui/screens/Wiped.svelte';
   import { BUILD } from './build';
   import { resolveScreen } from './flow';
   import { game } from './instance';
@@ -35,9 +39,16 @@
     <Gallery />
   {:else if resolved.screen === 'lab'}
     <Lab />
-  {:else}
-    <!-- battle, loot, crossroads, cleared, wiped: U7 -->
+  {:else if resolved.screen === 'battle'}
     <Combat />
+  {:else if resolved.screen === 'loot'}
+    <Loot />
+  {:else if resolved.screen === 'crossroads'}
+    <Crossroads />
+  {:else if resolved.screen === 'cleared'}
+    <Cleared />
+  {:else if resolved.screen === 'wiped'}
+    <Wiped />
   {/if}
   <Toasts />
   <span class="build">{BUILD}</span>

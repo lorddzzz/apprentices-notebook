@@ -1,24 +1,38 @@
 <script lang="ts">
-  import { href } from '../../app/routes';
+  import { ENCOUNTERS } from '$data';
+  import { game } from '../../app/instance';
+  import BattleView from '../components/battle/BattleView.svelte';
+  import TopBar from '../components/battle/TopBar.svelte';
+
+  // The save says "fight"; the live battle is built from it (also after a reload).
+  $effect(() => {
+    game.ensureBattle();
+  });
+
+  const session = $derived(game.battle);
+  const depth = $derived((game.save.trip?.encounter ?? 0) + 1);
 </script>
 
-<section>
-  <h1>Combat</h1>
-  <p>Placeholder. Coming in v0.</p>
-  <a class="link" href={href('study')}>← Study</a>
-</section>
+{#if session}
+  {#key session}
+    <BattleView
+      {session}
+      continueLabel={session.state.phase === 'lost' ? 'See what is lost' : 'Gather the spoils'}
+      oncontinue={() => game.finishBattle()}
+    >
+      {#snippet top()}
+        <TopBar title={session.state.title} round={session.state.round}>
+          <span class="depth">Depth {depth} / {ENCOUNTERS.length}</span>
+        </TopBar>
+      {/snippet}
+    </BattleView>
+  {/key}
+{/if}
 
 <style>
-  section {
-    padding: var(--space-4) var(--space-3);
-  }
-  .link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-  h1 {
-    margin: 0 0 var(--space-2);
-    font-weight: normal;
+  .depth {
+    flex: none;
+    font: 12px var(--mono);
+    color: var(--ink-soft);
   }
 </style>
