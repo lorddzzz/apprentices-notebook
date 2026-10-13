@@ -146,6 +146,8 @@ interface UnitBase {
   inked: boolean;
   brass: boolean;
   oilSoaked: boolean;
+  /** Burned into the unit by Brand: fire hits it for +2. */
+  branded: boolean;
 }
 export interface UndoRecord {
   from: Coord;

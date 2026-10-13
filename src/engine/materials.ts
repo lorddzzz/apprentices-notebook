@@ -12,7 +12,7 @@ import {
   tileAt,
   unitAt,
 } from './queries';
-import type { CellKey } from './types';
+import type { CellKey, Unit } from './types';
 
 /**
  * Material runes and their chain reactions. Every apply takes target tiles, processes them in
@@ -22,16 +22,14 @@ import type { CellKey } from './types';
 const notIn = (set: ReadonlySet<CellKey>) => (c: Coord) => !set.has(key(c));
 
 /** Ink (rune or Spit): marks units, pools on empty floor, diffuses through steam to the whole cloud. */
-export function applyInk(ctx: Ctx, tiles: readonly Coord[]): void {
+export function applyInk(ctx: Ctx, tiles: readonly Coord[]): Unit[] {
   const s = ctx.s;
   const cloudDone = new Set<CellKey>();
   const pooled: Coord[] = [];
+  const marked: Unit[] = [];
   const mark = (c: Coord) => {
     const u = unitAt(s, c);
-    if (!u || u.inked) return false;
-    u.inked = true;
-    emit(ctx, { type: 'inked', unit: ref(u), via: 'mark' });
-    return true;
+    if (u) markInked(ctx, u, marked);
   };
   for (const t of clip(s, tiles)) {
     const tile = tileAt(s, t);
@@ -50,6 +48,78 @@ export function applyInk(ctx: Ctx, tiles: readonly Coord[]): void {
     }
   }
   if (pooled.length) emit(ctx, { type: 'puddle', tiles: pooled });
+  return marked;
+}
+
+/** Inks a unit that isn't yet; records it in `into`. */
+function markInked(ctx: Ctx, u: Unit, into: Unit[]): void {
+  if (u.inked) return;
+  u.inked = true;
+  into.push(u);
+  emit(ctx, { type: 'inked', unit: ref(u), via: 'mark' });
+}
+
+/**
+ * Smear: inks like Ink, then each unit it inked passes the mark to its orthogonal neighbours
+ * (one hop; units inked by the pass don't pass it on).
+ */
+export function applySmear(ctx: Ctx, tiles: readonly Coord[]): void {
+  for (const from of applyInk(ctx, tiles)) {
+    const passed: Unit[] = [];
+    for (const n of neighbors4(from.pos)) {
+      const u = inBoard(ctx.s, n) ? unitAt(ctx.s, n) : undefined;
+      if (u && !u.inked) {
+        u.inked = true;
+        passed.push(u);
+      }
+    }
+    if (!passed.length) continue;
+    emit(ctx, { type: 'smear', from: ref(from), to: passed.map((u) => ref(u)) });
+    for (const u of passed) emit(ctx, { type: 'inked', unit: ref(u), via: 'mark' });
+  }
+}
+
+/** Torch: oils the tiles, then lights every oil tile among them (fire runs along connected oil). */
+export function applyTorch(ctx: Ctx, tiles: readonly Coord[]): void {
+  applyOil(ctx, tiles);
+  for (const t of clip(ctx.s, tiles)) ignite(ctx, t);
+}
+
+/** Fog: oil, then steam over it. */
+export function applyFog(ctx: Ctx, tiles: readonly Coord[]): void {
+  applyOil(ctx, tiles);
+  applySteam(ctx, tiles);
+}
+
+/** Mist: inks every unit in each steam cloud touching the tiles, then the steam is gone. */
+export function applyMist(ctx: Ctx, tiles: readonly Coord[]): void {
+  const s = ctx.s;
+  const done = new Set<CellKey>();
+  for (const t of clip(s, tiles)) {
+    if (tileAt(s, t).steam <= 0 || done.has(key(t))) continue;
+    const cloud = steamCloud(s, t);
+    for (const c of cloud) done.add(key(c));
+    emit(ctx, { type: 'mist', tiles: cloud });
+    for (const c of cloud) {
+      const u = unitAt(s, c);
+      if (u) markInked(ctx, u, []);
+    }
+    for (const c of cloud) tileAt(s, c).steam = 0;
+    emit(ctx, { type: 'steamFades', tiles: cloud });
+  }
+}
+
+/** Brand: marks units like Ink (never pools on the floor) and burns the brand in. */
+export function applyBrand(ctx: Ctx, tiles: readonly Coord[]): void {
+  for (const t of clip(ctx.s, tiles)) {
+    const u = unitAt(ctx.s, t);
+    if (!u || tileAt(ctx.s, t).plate) continue;
+    markInked(ctx, u, []);
+    if (!u.branded) {
+      u.branded = true;
+      emit(ctx, { type: 'branded', unit: ref(u) });
+    }
+  }
 }
 
 export function applyOil(ctx: Ctx, tiles: readonly Coord[]): void {

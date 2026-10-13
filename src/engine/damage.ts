@@ -2,6 +2,8 @@ import { TUNING } from '$data';
 import { type Ctx, emit, ref } from './ctx';
 import type { Unit } from './types';
 
+/** Fire's bonus on a branded unit (A2; belongs in TUNING once data/ is open to it). */
+
 /**
  * Order: base (incl. fire's oil-soaked bonus) → inked +1 → shield → HP. The log line shows the
  * total before the shield. Returns true if the hit killed the unit.
@@ -52,13 +54,16 @@ export function sparkHit(ctx: Ctx, unit: Unit, damage: number): void {
 }
 
 export function burn(ctx: Ctx, unit: Unit): void {
-  const soaked = unit.oilSoaked;
+  // Oil-soaked and branded don't stack: the larger bonus applies.
+  const soaked = unit.oilSoaked ? TUNING.oilSoakedBonus : 0;
+  const branded = unit.branded ? TUNING.brandedBonus : 0;
+  const bonus = Math.max(soaked, branded);
   const killed = dealDamage(
     ctx,
     unit,
-    TUNING.fireDamage + (soaked ? TUNING.oilSoakedBonus : 0),
+    TUNING.fireDamage + bonus,
     'Fire',
-    soaked ? [`oil-soaked +${TUNING.oilSoakedBonus}`] : [],
+    bonus === 0 ? [] : [branded > soaked ? `branded +${bonus}` : `oil-soaked +${bonus}`],
   );
   if (!killed && unit.inked) detonate(ctx, unit);
 }

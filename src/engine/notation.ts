@@ -19,7 +19,7 @@ import { isGlyph, type Lattice, type Placed, type Tile } from './types';
  *
  * Board cell = `.` or [unit][mods][layers]:
  *   unit    D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy (first char only)
- *   mods    ! inked, & brass-coated (only after a unit)
+ *   mods    ! inked, & brass-coated, % branded (only after a unit)
  *   layers  o oil, i ink puddle, ~ steam, * fire (implies oil), = brass plate (alone, permanent: rune-raised plates crumble), @ steam vent
  *
  * Lattice cell = `.` empty socket, `x` hole, or a rune token (`Bolt`, `Ink`, `OnInked`, `Amp`…)
@@ -32,6 +32,7 @@ export interface BoardUnit {
   at: Coord;
   inked: boolean;
   brass: boolean;
+  branded: boolean;
 }
 export interface BoardSpec {
   width: number;
@@ -76,7 +77,7 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
   const first = chars[0];
   const found = first === undefined ? null : unitFor(first);
   if (found) {
-    unit = { ...found, at, inked: false, brass: false };
+    unit = { ...found, at, inked: false, brass: false, branded: false };
     chars.shift();
   }
 
@@ -85,9 +86,11 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
     switch (ch) {
       case '!':
       case '&':
+      case '%':
         if (!unit) throw new Error(`Modifier "${ch}" needs a unit in cell ${where} ("${token}")`);
         if (ch === '!') unit.inked = true;
-        else unit.brass = true;
+        else if (ch === '&') unit.brass = true;
+        else unit.branded = true;
         continue;
       case 'o':
         tile.oil = true;
@@ -153,7 +156,7 @@ export function parseBoard(ascii: string): BoardSpec {
 function unitToken(u: BoardUnit): string {
   const base =
     u.kind === 'member' ? MEMBERS[u.def as MemberId].token : ENEMIES[u.def as EnemyId].token;
-  return base + (u.inked ? '!' : '') + (u.brass ? '&' : '');
+  return base + (u.inked ? '!' : '') + (u.brass ? '&' : '') + (u.branded ? '%' : '');
 }
 
 function layerToken(t: Tile): string {
@@ -179,7 +182,7 @@ function padRows(grid: string[][]): string {
     .join('\n');
 }
 
-/** Canonical form: unit, mods (! &), layers in order o i ~ * = @; columns padded to equal width. */
+/** Canonical form: unit, mods (! & %), layers in order o i ~ * = @; columns padded to equal width. */
 export function serializeBoard(spec: BoardSpec): string {
   const grid: string[][] = [];
   for (let y = 0; y < spec.height; y++) {

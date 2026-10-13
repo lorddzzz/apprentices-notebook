@@ -26,6 +26,7 @@ function drawn(v: BoardView) {
       inked: u.inked,
       shield: u.shield,
       brass: u.brass,
+      branded: u.branded,
       intent: u.alive ? u.intent : null,
     })),
     tiles: v.tiles.map((t) => ({
@@ -60,6 +61,12 @@ function playThrough(
 }
 
 const endTurn: Action = { type: 'endTurn' };
+const castRight = (unit: 'draughtsman' | 'stoker'): Action => ({
+  type: 'cast',
+  unit,
+  spell: '',
+  aim: { kind: 'dir', dir: 'right' },
+});
 
 describe('projection matches engine state', () => {
   for (const def of SCENARIOS) {
@@ -81,4 +88,26 @@ describe('projection matches engine state', () => {
       playThrough(created, actions);
     });
   }
+
+  test('bench runes: smear, mist, brand, quill, torch', () => {
+    const lab = { lab: true } as const;
+    const cases: Array<[string, Record<string, string>, Action]> = [
+      ['D . r r\n. . r .', { draughtsman: 'Bolt> Smear' }, castRight('draughtsman')],
+      ['D . r', { draughtsman: 'Bolt> Brand' }, castRight('draughtsman')],
+      ['D . r', { draughtsman: 'Quill>' }, castRight('draughtsman')],
+      ['S . . o o r', { stoker: 'Bolt> Torch' }, castRight('stoker')],
+      [
+        '. r~ r~\n. . .\nS . .',
+        { stoker: 'Splash> Mist' },
+        { type: 'cast', unit: 'stoker', spell: 'A1', aim: { kind: 'tile', at: { x: 1, y: 0 } } },
+      ],
+    ];
+    for (const [board, lattices, action] of cases) {
+      const created = createBattle(
+        scenarioSpec({ board, lattices } as Parameters<typeof scenarioSpec>[0], lab),
+      );
+      const key = created.state.units.find((u) => u.kind === 'member')?.spells[0]?.key;
+      playThrough(created, [action.type === 'cast' && key ? { ...action, spell: key } : action]);
+    }
+  });
 });

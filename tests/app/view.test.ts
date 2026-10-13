@@ -26,6 +26,7 @@ function unit(id: string, kind: 'member' | 'enemy', pos: Coord, hp = 3): UnitVie
     inked: false,
     brass: false,
     oilSoaked: false,
+    branded: false,
     alive: true,
     intent: null,
   };
@@ -205,6 +206,7 @@ test('viewOf copies a battle state', () => {
         inked: false,
         brass: false,
         oilSoaked: false,
+        branded: false,
         intent: null,
       },
     ],
@@ -230,6 +232,7 @@ test('viewOfSpec maps parseBoard tiles and units', () => {
     pos: { x: 2, y: 0 },
     inked: true,
     oilSoaked: true,
+    branded: false,
     hp: 2,
     maxHp: 2,
     alive: true,

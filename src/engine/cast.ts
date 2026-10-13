@@ -3,7 +3,18 @@ import { type Ctx, emit, ref } from './ctx';
 import { dealDamage } from './damage';
 import { who } from './events';
 import { type Coord, label, neighbors4, square } from './grid';
-import { applyBrass, applyInk, applyOil, applySpark, applySteam } from './materials';
+import {
+  applyBrand,
+  applyBrass,
+  applyFog,
+  applyInk,
+  applyMist,
+  applyOil,
+  applySmear,
+  applySpark,
+  applySteam,
+  applyTorch,
+} from './materials';
 import {
   boltRange,
   clip,
@@ -12,6 +23,7 @@ import {
   isAlive,
   memberById,
   spellOf,
+  tileAt,
   travel,
   unitAt,
 } from './queries';
@@ -91,30 +103,35 @@ function resolveSource(
   switch (spell.source) {
     case 'bolt':
     case 'quill': {
-      // A2: Quill pools ink under the unit it hits; until then it flies like a Bolt.
-      if (aim.kind !== 'dir') throw new Error('Bolt needs a direction');
+      // Quill flies like a Bolt but pools ink under the unit it hits.
+      const name = spell.source === 'quill' ? 'Quill' : 'Bolt';
+      if (aim.kind !== 'dir') throw new Error(`${name} needs a direction`);
       const r = travel(s, caster.pos, aim.dir, boltRange(s), caster.id);
       switch (r.reason) {
         case 'none':
-          emit(ctx, { type: 'miss', source: 'Bolt' });
+          emit(ctx, { type: 'miss', source: name });
           return [];
         case 'unit':
-          dealDamage(ctx, r.unit, m, 'Bolt');
+          dealDamage(ctx, r.unit, m, name);
+          if (spell.source === 'quill' && !tileAt(s, r.stop).plate && !tileAt(s, r.stop).ink) {
+            tileAt(s, r.stop).ink = true;
+            emit(ctx, { type: 'puddle', tiles: [{ ...r.stop }] });
+          }
           break;
         case 'steam':
-          emit(ctx, { type: 'stopped', source: 'Bolt', at: r.stop, by: 'steam', path: r.path });
+          emit(ctx, { type: 'stopped', source: name, at: r.stop, by: 'steam', path: r.path });
           break;
         case 'brass':
           emit(ctx, {
             type: 'stopped',
-            source: 'Bolt',
+            source: name,
             at: r.stop,
             by: 'brass plate',
             path: r.path,
           });
           break;
         case 'end':
-          emit(ctx, { type: 'lands', source: 'Bolt', at: r.stop, path: r.path });
+          emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
           break;
       }
       return [{ ...r.stop }];
@@ -162,11 +179,20 @@ function runNodes(ctx: Ctx, nodes: readonly SpellNode[], targets: Coord[], scale
           applyBrass(ctx, footprint(ctx.s, targets, m));
           break;
         case 'smear':
+          applySmear(ctx, footprint(ctx.s, targets, m));
+          break;
         case 'torch':
+          applyTorch(ctx, footprint(ctx.s, targets, m));
+          break;
         case 'fog':
+          applyFog(ctx, footprint(ctx.s, targets, m));
+          break;
         case 'mist':
+          applyMist(ctx, footprint(ctx.s, targets, m));
+          break;
         case 'brand':
-          break; // A2
+          applyBrand(ctx, footprint(ctx.s, targets, m));
+          break;
       }
       runNodes(ctx, node.next, targets, scale);
     } else if (node.rune === 'onInked') {

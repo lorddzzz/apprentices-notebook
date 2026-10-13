@@ -150,6 +150,7 @@ test('buildSteps: step i view = project of steps 0..i', () => {
         inked: false,
         brass: false,
         oilSoaked: false,
+        branded: false,
         alive: true,
         intent: null,
       },

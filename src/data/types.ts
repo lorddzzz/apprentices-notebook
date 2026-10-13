@@ -190,6 +190,7 @@ export interface Tuning {
   bumpDamage: number;
   fireDamage: number;
   oilSoakedBonus: number;
+  brandedBonus: number; // fire bonus on a branded unit; replaces oilSoakedBonus (larger applies)
   fireRounds: number;
   steamRounds: number;
   plateRounds: number;

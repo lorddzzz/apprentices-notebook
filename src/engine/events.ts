@@ -44,6 +44,9 @@ export type GameEvent =
   | { type: 'shieldGained'; unit: UnitRef; amount: number }
   | { type: 'died'; unit: UnitRef }
   | { type: 'inked'; unit: UnitRef; via: 'mark' | 'puddle' }
+  | { type: 'smear'; from: UnitRef; to: UnitRef[] }
+  | { type: 'mist'; tiles: Coord[] }
+  | { type: 'branded'; unit: UnitRef }
   | { type: 'puddle'; tiles: Coord[] }
   | { type: 'diffuse'; at: Coord; tiles: Coord[] }
   | { type: 'oiled'; tiles: Coord[] }
@@ -136,6 +139,12 @@ export function describe(e: GameEvent): string | null {
       return e.via === 'mark'
         ? `${who(e.unit)} is inked`
         : `${who(e.unit)} steps in ink and is inked`;
+    case 'smear':
+      return `the ink on ${who(e.from)} smears to ${e.to.map(who).join(', ')}`;
+    case 'mist':
+      return `mist drifts through the steam at ${list(e.tiles)}`;
+    case 'branded':
+      return `${who(e.unit)} is branded`;
     case 'puddle':
       return `ink pools at ${list(e.tiles)}`;
     case 'diffuse':

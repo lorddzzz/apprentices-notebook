@@ -31,6 +31,7 @@ export interface UnitView {
   inked: boolean;
   brass: boolean;
   oilSoaked: boolean;
+  branded: boolean;
   alive: boolean;
   intent: Intent | null;
 }
@@ -68,6 +69,7 @@ export function viewOf(s: BattleState): BoardView {
       inked: u.inked,
       brass: u.brass,
       oilSoaked: u.oilSoaked,
+      branded: u.branded,
       alive: u.hp > 0,
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
     })),
@@ -94,6 +96,7 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
         inked: b.inked,
         brass: b.brass,
         oilSoaked: false,
+        branded: b.branded,
         alive: true,
         intent: null,
       };
@@ -113,6 +116,7 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
       inked: b.inked,
       brass: def.brass || b.brass,
       oilSoaked: def.oilSoaked,
+      branded: b.branded,
       alive: true,
       intent: null,
     };
@@ -196,6 +200,11 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       }
       break;
     }
+    case 'branded':
+      patchUnit(v, e.unit.id, (u) => {
+        u.branded = true;
+      });
+      break;
     case 'detonate':
       patchUnit(v, e.unit.id, (u) => {
         u.inked = false;

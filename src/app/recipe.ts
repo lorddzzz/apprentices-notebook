@@ -134,9 +134,39 @@ export function spellRecipe(
         text = `Brass coats ${where}${boost}; bare floor becomes a plate.`;
         layers.add('brass');
         break;
-      default:
-        // A2: recipe lines for the bench materials
-        text = `${RUNES[node.rune].name} on ${where}${boost}.`;
+      case 'smear':
+        text = `Smear inks ${where}${boost}, then each unit it inks passes the mark to the units beside it (one hop).`;
+        layers.add('ink');
+        break;
+      case 'torch':
+        text = `Torch oils ${where}${boost} and sets it alight: the fire runs along connected oil.`;
+        if (layers.has('steam')) {
+          reactions.push(said('extinguish', 'steam keeps the oil from lighting', 'oil'));
+        } else {
+          layers.add('fire');
+        }
+        layers.add('oil');
+        break;
+      case 'fog':
+        text = `Fog oils ${where}${boost} and clouds it with steam: units slide, and shots stop.`;
+        if (layers.has('fire')) {
+          reactions.push(said('extinguish', 'the steam puts the fire out (the oil stays)', 'fire'));
+          layers.delete('fire');
+        }
+        layers.add('oil');
+        layers.add('steam');
+        break;
+      case 'mist':
+        text = `Mist inks every unit in the steam cloud touching ${where}${boost}, then the steam is gone.`;
+        if (layers.has('steam')) {
+          layers.add('ink');
+          layers.delete('steam');
+        } else {
+          reactions.push('there is no steam here: nothing happens');
+        }
+        break;
+      case 'brand':
+        text = `Brand marks the units on ${where}${boost} like Ink, but never pools on the floor; fire hits a branded unit for +2.`;
         break;
     }
     return { text, reactions };

@@ -32,6 +32,9 @@ export function durationOf(e: GameEvent): number {
     case 'vent':
     case 'plates':
     case 'coated':
+    case 'smear':
+    case 'mist':
+    case 'branded':
     case 'extinguish':
     case 'attack':
       return STEP_MS.normal;

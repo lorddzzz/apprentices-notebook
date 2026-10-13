@@ -17,15 +17,24 @@ test('parses units, mods and layers', () => {
   expect(b.width).toBe(3);
   expect(b.height).toBe(2);
   expect(b.units).toEqual([
-    { kind: 'enemy', def: 'rat', at: { x: 0, y: 0 }, inked: true, brass: false },
-    { kind: 'enemy', def: 'rat', at: { x: 1, y: 1 }, inked: false, brass: true },
-    { kind: 'member', def: 'draughtsman', at: { x: 2, y: 1 }, inked: false, brass: false },
+    { kind: 'enemy', def: 'rat', at: { x: 0, y: 0 }, inked: true, brass: false, branded: false },
+    { kind: 'enemy', def: 'rat', at: { x: 1, y: 1 }, inked: false, brass: true, branded: false },
+    {
+      kind: 'member',
+      def: 'draughtsman',
+      at: { x: 2, y: 1 },
+      inked: false,
+      brass: false,
+      branded: false,
+    },
   ]);
   expect(b.tiles[0]).toMatchObject({ oil: true, fire: 0 });
   expect(b.tiles[1]).toMatchObject({ oil: true, fire: TUNING.fireRounds });
   expect(b.tiles[2]).toMatchObject({ vent: true, steam: TUNING.steamRounds, oil: false });
   expect(b.tiles[3]).toMatchObject({ plate: true, oil: false });
   expect(parseCell('i', { x: 0, y: 0 }).tile.ink).toBe(true);
+  expect(parseCell('r!%', { x: 0, y: 0 }).unit).toMatchObject({ inked: true, branded: true });
+  expect(serializeBoard(parseBoard('r!&% .'))).toBe('r!&% .');
 });
 
 test('rejects unknown chars / unit on plate / mod without unit / duplicate member', () => {

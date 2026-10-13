@@ -29,13 +29,13 @@ Board cell = `.` (floor) or `[unit][mods][layers]`:
 | Part | Chars |
 |---|---|
 | unit (first char) | `D` Draughtsman, `S` Stoker, `r` rat, `b` brass sentry, `f` familiar, `d` training dummy |
-| mods (after a unit) | `!` inked, `&` brass-coated |
+| mods (after a unit) | `!` inked, `&` brass-coated, `%` branded (fire +2) |
 | layers | `o` oil, `i` ink puddle, `~` steam, `*` fire (implies oil), `=` permanent brass plate (alone, no unit; rune-raised plates crumble after 3 rounds), `@` steam vent |
 
 Examples: `r` rat, `ro` rat on oil, `r!~` inked rat in steam, `r&` brass-coated rat, `*` burning oil, `@~` vent with steam, `=` plate. Each member token (`D`, `S`) may appear once.
 
 Lattice cell: `.` empty socket, `x` hole, or a rune token. Arrow runes (sources and Bend) carry an arrow suffix `>` right, `<` left, `^` up, `v` down; every other rune has none.
-Tokens: `Bolt> Splash> Ward>` (sources), `Ink Oil Spark Steam Brass` (materials), `Bendv Fork` (shape), `OnInked OnKill` (triggers), `Amp Echo` (auras). E.g. `Bolt> Ink . .`.
+Tokens: `Bolt> Splash> Ward>` (sources; `Quill>` is a Bolt that pools ink), `Ink Oil Spark Steam Brass Smear Torch Fog Mist Brand` (materials), `Bendv Fork` (shape), `OnInked OnKill` (triggers), `Amp Echo` (auras). E.g. `Bolt> Ink . .`.
 
 When you add a token, update `src/engine/notation.ts` (header comment), `tests/scenarios/harness.ts` and this legend.
 

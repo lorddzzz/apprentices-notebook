@@ -11,6 +11,7 @@ export const TUNING: Tuning = {
   bumpDamage: 1,
   fireDamage: 1,
   oilSoakedBonus: 1,
+  brandedBonus: 2,
   fireRounds: 2,
   steamRounds: 2,
   plateRounds: 3,

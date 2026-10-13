@@ -73,12 +73,13 @@ function intentPhrase(s: BattleState, e: EnemyUnit): string {
  * their affinity. Inked and coated states count, since they change what spells do to it.
  */
 export function unitTraits(
-  u: Pick<Unit, 'kind' | 'def' | 'inked' | 'brass' | 'oilSoaked'>,
+  u: Pick<Unit, 'kind' | 'def' | 'inked' | 'brass' | 'oilSoaked'> & { branded?: boolean },
 ): string[] {
   const out: string[] = [];
   if (u.inked) out.push(`inked (+${TUNING.inkedBonus} damage taken)`);
   if (u.brass) out.push('brass (conducts spark)');
   if (u.oilSoaked) out.push(`oil-soaked (fire +${TUNING.oilSoakedBonus})`);
+  if (u.branded) out.push(`branded (fire +${TUNING.brandedBonus})`);
   if (u.kind === 'enemy') {
     const def = ENEMIES[u.def as keyof typeof ENEMIES];
     if (def.oilTrail) out.push('leaves an oil trail');

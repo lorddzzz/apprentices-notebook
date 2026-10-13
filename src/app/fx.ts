@@ -78,6 +78,17 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
     case 'inked':
       return [burst([e.unit.at], 'ink')];
+    case 'smear':
+      return [
+        burst(
+          e.to.map((u) => u.at),
+          'ink',
+        ),
+      ];
+    case 'mist':
+      return [burst(e.tiles, 'steam')];
+    case 'branded':
+      return [{ kind: 'pulse', at: e.unit.at, tone: 'fire' }];
     case 'puddle':
     case 'diffuse':
       return [burst(e.tiles, 'ink')];

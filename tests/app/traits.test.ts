@@ -26,3 +26,7 @@ test('members show their affinity', () => {
   expect(unitTraits({ ...m, def: 'stoker' })).toEqual(['Spark and Oil runes +1']);
   expect(unitTraits({ ...m, def: 'draughtsman' })).toEqual(['Ink runes +1']);
 });
+
+test('a branded unit shows its fire bonus', () => {
+  expect(unitTraits(enemy('dummy', { branded: true }))).toContain('branded (fire +2)');
+});

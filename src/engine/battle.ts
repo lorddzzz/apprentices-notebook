@@ -60,6 +60,7 @@ function spawnMember(b: BoardUnit, init: PartyInit = {}): MemberUnit {
     inked: b.inked,
     brass: b.brass,
     oilSoaked: false,
+    branded: b.branded,
     move: def.move,
     moved: false,
     acted: false,
@@ -83,6 +84,7 @@ function spawnEnemy(b: BoardUnit, n: number): EnemyUnit {
     inked: b.inked,
     brass: def.brass || b.brass,
     oilSoaked: def.oilSoaked,
+    branded: b.branded,
     intent: null,
   };
 }
@@ -254,6 +256,7 @@ function toBoardUnit(u: Unit): BoardUnit {
     at: { ...u.pos },
     inked: u.inked,
     brass: u.brass && !innateBrass,
+    branded: u.branded,
   };
 }
 
