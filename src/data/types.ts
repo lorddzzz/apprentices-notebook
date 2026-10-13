@@ -147,7 +147,6 @@ export interface EncounterDef {
 export type LootSpec =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'ink' } // member chosen when rolled
-  | { kind: 'research'; amount: number } // A4 removes: replaced by solvent/vellum
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number };
 export interface LootEntry {

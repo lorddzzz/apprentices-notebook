@@ -154,8 +154,10 @@ describe('loot', () => {
     expect(total(home) - total(p0)).toBe(picked.filter((o) => o.kind === 'rune').length);
     const inkGain = Object.values(home.inkCapacity).reduce((a, b) => a + b, 0) - 16;
     expect(inkGain).toBe(picked.filter((o) => o.kind === 'ink').length * 2);
-    const research = picked.reduce((a, o) => a + (o.kind === 'research' ? o.amount : 0), 0);
-    expect(home.research).toBe(research);
+    const solvents = Object.values(home.solvents).reduce((a, b) => a + b, 0);
+    expect(solvents).toBe(picked.filter((o) => o.kind === 'solvent').length);
+    const vellum = picked.reduce((a, o) => a + (o.kind === 'vellum' ? o.amount : 0), 0);
+    expect(home.vellum).toBe(vellum);
     expect(p0).toEqual(newProfile());
   });
 
@@ -168,13 +170,16 @@ describe('loot', () => {
         { kind: 'rune', rune: 'echo' },
         { kind: 'rune', rune: 'echo' },
         { kind: 'ink', member: 'stoker', amount: 2 },
-        { kind: 'research', amount: 3 },
+        { kind: 'solvent', solvent: 'pitch' },
+        { kind: 'solvent', solvent: 'pitch' },
+        { kind: 'vellum', amount: 3 },
       ],
     };
     const home = returnHome(p, t);
     expect(home.collection.echo).toBe(2);
     expect(home.inkCapacity).toEqual({ draughtsman: 8, stoker: 10 });
-    expect(home.research).toBe(3);
+    expect(home.solvents.pitch).toBe(2);
+    expect(home.vellum).toBe(3);
     expect(p.collection.echo).toBe(0);
   });
 
@@ -202,7 +207,14 @@ describe('loot', () => {
 describe('wipes, hp and charges', () => {
   test('wipe loses loot but keeps codex discoveries', () => {
     const p = newProfile();
-    const t: Trip = { ...startTrip(p, SEED), loot: [{ kind: 'rune', rune: 'echo' }] };
+    const t: Trip = {
+      ...startTrip(p, SEED),
+      loot: [
+        { kind: 'rune', rune: 'echo' },
+        { kind: 'solvent', solvent: 'cinder' },
+        { kind: 'vellum', amount: 1 },
+      ],
+    };
     const b = fought(beginEncounter(p, t).state, 'lost');
     b.discovered = ['ignite', 'arc'];
     const r = finishEncounter(p, t, b);
@@ -210,6 +222,8 @@ describe('wipes, hp and charges', () => {
     expect(r.trip).toBeNull();
     expect(r.profile.interactions).toEqual(['ignite', 'arc']);
     expect(r.profile.collection.echo).toBe(0);
+    expect(r.profile.solvents).toEqual(p.solvents);
+    expect(r.profile.vellum).toBe(0);
     expect(p.interactions).toEqual([]);
   });
 
@@ -317,5 +331,26 @@ describe('resume', () => {
     const ok = recordAction(startTrip(p, SEED), { type: 'endTurn' });
     expect(win(p, ok).trip.actions).toEqual([]);
     expect(() => recordAction(win(p, ok).trip, { type: 'endTurn' })).toThrow(/looting/);
+  });
+});
+
+describe('typed loot tables', () => {
+  test('every table offers solvents; deep and heart also vellum; offers stay distinct', () => {
+    const kinds = (table: 'shallow' | 'deep' | 'heart') => {
+      const seen = new Set<string>();
+      for (let seed = 0; seed < 300; seed++) {
+        const offers = rollOffers(seed, 0, table);
+        const keys = offers.map((o) => JSON.stringify(o));
+        expect(new Set(keys).size).toBe(keys.length);
+        for (const o of offers) seen.add(o.kind);
+      }
+      return seen;
+    };
+    expect(kinds('shallow').has('solvent')).toBe(true);
+    expect(kinds('shallow').has('vellum')).toBe(false);
+    for (const table of ['deep', 'heart'] as const) {
+      expect(kinds(table).has('solvent')).toBe(true);
+      expect(kinds(table).has('vellum')).toBe(true);
+    }
   });
 });

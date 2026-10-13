@@ -37,8 +37,13 @@
           fill="var(--m-ink)"
         />
       </svg>
+    {:else if item.kind === 'solvent'}
+      <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="Solvent">
+        <circle cx="20" cy="20" r="16.5" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2.5" />
+        <text x="20" y="26" text-anchor="middle" font-size="18" font-weight="700" fill="var(--ink)">{line.title.charAt(0)}</text>
+      </svg>
     {:else}
-      <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="Research">
+      <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="Vellum">
         <rect x="7" y="5" width="26" height="30" rx="2" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2" />
         <path d="M12 13h16M12 19h16M12 25h10" stroke="var(--ink-soft)" stroke-width="2" stroke-linecap="round" />
       </svg>

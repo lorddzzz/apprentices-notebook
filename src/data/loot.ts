@@ -1,14 +1,19 @@
-import type { LootEntry, LootTableDef, LootTableId, RuneId } from './types';
+import { SEAM_SOLVENTS } from './aspects';
+import type { LootEntry, LootTableDef, LootTableId, RuneId, SolventId } from './types';
 
 const rune = (r: RuneId, weight: number): LootEntry => ({
   spec: { kind: 'rune', rune: r },
   weight,
 });
 const ink = (weight: number): LootEntry => ({ spec: { kind: 'ink' }, weight });
-const research = (amount: number, weight: number): LootEntry => ({
-  spec: { kind: 'research', amount },
+const solvent = (id: SolventId, weight: number): LootEntry => ({
+  spec: { kind: 'solvent', solvent: id },
   weight,
 });
+const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount: 1 }, weight });
+/** The three Seam solvents at one weight each (offers stay distinct per entry). */
+const seamSolvents = (weight: number): LootEntry[] =>
+  SEAM_SOLVENTS.map((id) => solvent(id, weight));
 
 export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
   shallow: {
@@ -22,7 +27,7 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       rune('steam', 2),
       rune('brass', 2),
       ink(3),
-      research(1, 2),
+      ...seamSolvents(1),
     ],
   },
   deep: {
@@ -37,7 +42,8 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       rune('amplify', 1),
       rune('onKill', 1),
       ink(3),
-      research(2, 2),
+      ...seamSolvents(1),
+      vellum(1),
     ],
   },
   heart: {
@@ -49,7 +55,8 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       rune('onInked', 2),
       rune('splash', 2),
       ink(2),
-      research(3, 1),
+      ...seamSolvents(1),
+      vellum(1),
     ],
   },
 };

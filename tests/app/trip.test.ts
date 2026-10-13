@@ -159,10 +159,10 @@ test('goHome banks the loot into the collection and clears the trip', () => {
     expect(home.profile.inkCapacity[item.member]).toBe(
       before.inkCapacity[item.member] + item.amount,
     );
+  } else if (item?.kind === 'solvent') {
+    expect(home.profile.solvents[item.solvent]).toBe(before.solvents[item.solvent] + 1);
   } else {
-    expect(home.profile.research).toBe(
-      before.research + (item?.kind === 'research' ? item.amount : 0),
-    );
+    expect(home.profile.vellum).toBe(before.vellum + (item?.kind === 'vellum' ? item.amount : 0));
   }
   // a new trip can start again, with the next seed
   expect(setOut(home).trip?.seed).not.toBe(s.trip?.seed);

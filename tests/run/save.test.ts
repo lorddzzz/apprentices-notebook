@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { ENCOUNTERS, RUNE_IDS } from '$data';
+import type { GlyphDef } from '$engine';
 import {
   beginEncounter,
   deriveSeed,
@@ -28,7 +29,7 @@ function poke(base: unknown, path: string, value: unknown): unknown {
   return root;
 }
 
-test('SaveData round-trips through src/app/save serialize/parse at version 1', () => {
+test('SaveData round-trips through src/app/save serialize/parse at version 2', () => {
   const profile = newProfile();
   const trip = startTrip(profile, 7);
   const b = structuredClone(beginEncounter(profile, trip).state);
@@ -37,9 +38,9 @@ test('SaveData round-trips through src/app/save serialize/parse at version 1', (
   const won = finishEncounter(profile, trip, b);
   if (!won.trip) throw new Error('expected a trip');
   const save: SaveData = { profile: won.profile, trip: pickLoot(won.trip, 0), seedCounter: 3 };
-  expect(CURRENT_VERSION).toBe(1);
+  expect(CURRENT_VERSION).toBe(2);
   const env = parse(serialize(save));
-  expect(env.version).toBe(1);
+  expect(env.version).toBe(2);
   expect(parseSaveData(env.data)).toEqual(save);
 
   const fresh = newSave(99);
@@ -112,7 +113,7 @@ test('parseSaveData refuses trip states that could not move on', () => {
   const heart = ENCOUNTERS.findIndex((e) => e.heart);
   const bad = [
     { ...trip, status: 'looting', offers: [], picksLeft: 1 },
-    { ...trip, status: 'looting', offers: [{ kind: 'research', amount: 1 }], picksLeft: 0 },
+    { ...trip, status: 'looting', offers: [{ kind: 'vellum', amount: 1 }], picksLeft: 0 },
     { ...trip, status: 'crossroads', encounter: heart },
     { ...trip, status: 'cleared', encounter: 0 },
     { ...trip, hp: { draughtsman: 0, stoker: 5 } },
@@ -143,7 +144,129 @@ test('a version 0 save migrates: its trip gets an empty action list', () => {
   const { actions: _, ...v0trip } = startTrip(save.profile, 1);
   const text = JSON.stringify({ version: 0, data: { ...save, trip: v0trip } });
   const env = parse(text);
-  expect(env.version).toBe(1);
+  expect(env.version).toBe(2);
   expect(parseSaveData(env.data).trip?.actions).toEqual([]);
   expect(parseSaveData(parse(JSON.stringify({ version: 0, data: save })).data)).toEqual(save);
+});
+
+/** A v1 save as the old game wrote it: research points, a pending trip with research loot. */
+function v1Save(): unknown {
+  const save = poke(newSave(1), 'trip', null) as { profile: Record<string, unknown> };
+  const {
+    solvents: _s,
+    vellum: _v,
+    bench: _b,
+    glyphs: _g,
+    proof: _p,
+    idioms: _i,
+    ...old
+  } = save.profile;
+  const trip = {
+    ...startTrip(newProfile(), 1),
+    status: 'looting',
+    loot: [
+      { kind: 'research', amount: 2 },
+      { kind: 'rune', rune: 'echo' },
+    ],
+    offers: [
+      { kind: 'research', amount: 1 },
+      { kind: 'ink', member: 'stoker', amount: 2 },
+    ],
+    picksLeft: 1,
+  };
+  return { version: 1, data: { ...save, profile: { ...old, research: 4 }, trip } };
+}
+
+test('a version 1 save migrates: research becomes solvents round-robin', () => {
+  const env = parse(JSON.stringify(v1Save()));
+  expect(env.version).toBe(2);
+  const parsed = parseSaveData(env.data);
+  expect(parsed.profile.solvents).toMatchObject({ gallnut: 2, pitch: 1, cinder: 1, chalk: 0 });
+  expect(parsed.profile.vellum).toBe(0);
+  expect(parsed.profile.bench).toEqual({ trials: [], known: [] });
+  expect(parsed.profile.glyphs).toEqual([]);
+  expect(parsed.profile.proof).toEqual({ draughtsman: [], stoker: [] });
+  expect(parsed.profile.idioms).toEqual([]);
+  expect('research' in parsed.profile).toBe(false);
+  // the counter continues after the 4 banked points: loot gets pitch, cinder; the offer gets gallnut
+  expect(parsed.trip?.loot).toEqual([
+    { kind: 'solvent', solvent: 'pitch' },
+    { kind: 'solvent', solvent: 'cinder' },
+    { kind: 'rune', rune: 'echo' },
+  ]);
+  expect(parsed.trip?.offers).toEqual([
+    { kind: 'solvent', solvent: 'gallnut' },
+    { kind: 'ink', member: 'stoker', amount: 2 },
+  ]);
+});
+
+test('parseSaveData rejects malformed v2 fields', () => {
+  const base = newSave(1);
+  const glyph: GlyphDef = {
+    id: 'g1',
+    name: 'Kindle',
+    kind: 'spell',
+    cells: [{ at: { x: 0, y: 0 }, rune: 'spark' }],
+    entry: { x: 0, y: 0 },
+    exits: [],
+    idiom: null,
+  };
+  const withGlyph = poke(base, 'profile.glyphs', [glyph]);
+  expect(parseSaveData(withGlyph).profile.glyphs).toEqual([glyph]);
+  const cases: [string, unknown][] = [
+    ['profile.solvents.gallnut', -1],
+    ['profile.solvents.gallnut', 'two'],
+    ['profile.solvents', { sand: 1 }],
+    ['profile.vellum', undefined],
+    ['profile.vellum', 1.5],
+    ['profile.bench.trials', [3]],
+    ['profile.bench.known', ['not-a-recipe']],
+    ['profile.glyphs', [{ ...glyph, kind: 'wall' }]],
+    ['profile.glyphs', [{ ...glyph, cells: [{ at: { x: 0, y: 0 }, rune: 'nope' }] }]],
+    ['profile.glyphs', [{ ...glyph, entry: 'here' }]],
+    ['profile.glyphs', [{ ...glyph, exits: [{ from: { x: 0, y: 0 }, dir: 'sideways' }] }]],
+    ['profile.glyphs', [{ ...glyph, idiom: 'nonsense' }]],
+    ['profile.glyphs', [glyph, glyph]],
+    ['profile.proof.stoker', [[{ at: { x: 1, y: 1 }, rune: 'nope' }]]],
+    ['profile.proof.stoker', [[{ at: { x: 1, y: 1 }, rune: 'bolt', dir: 'sideways' }]]],
+    ['profile.proof.stoker', [{ at: { x: 1, y: 1 }, rune: 'bolt' }]],
+    ['profile.idioms', ['nonsense']],
+    ['profile.lattices.stoker', [{ at: { x: 1, y: 1 }, glyph: 'ghost', dir: 'right' }]],
+  ];
+  for (const [path, value] of cases) {
+    expect(() => parseSaveData(poke(base, path, value)), path + JSON.stringify(value)).toThrow(
+      'Not a valid save',
+    );
+  }
+});
+
+test('v2 fields round-trip, and a lattice Glyph needs a library entry', () => {
+  const glyph: GlyphDef = {
+    id: 'g1',
+    name: 'Kindle',
+    kind: 'spell',
+    cells: [{ at: { x: 0, y: 0 }, rune: 'spark', dir: 'right' }],
+    entry: { x: 0, y: 0 },
+    exits: [{ from: { x: 0, y: 0 }, dir: 'right' }],
+    idiom: null,
+  };
+  const p = newProfile();
+  const profile = {
+    ...p,
+    solvents: { ...p.solvents, pitch: 3 },
+    vellum: 2,
+    bench: { trials: ['ink+oil+pitch'], known: ['smear'] },
+    glyphs: [glyph],
+    proof: {
+      ...p.proof,
+      stoker: [[{ at: { x: 1, y: 1 }, rune: 'bolt' as const, dir: 'right' as const }]],
+    },
+    idioms: [],
+    lattices: {
+      ...p.lattices,
+      stoker: [{ at: { x: 1, y: 1 }, glyph: 'g1', dir: 'right' as const }],
+    },
+  };
+  const save: SaveData = { profile, trip: null, seedCounter: 1 };
+  expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
 });

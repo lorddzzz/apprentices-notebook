@@ -18,7 +18,7 @@ test('new profile has the start collection and valid lattices', () => {
   expect(p.collection).toEqual(START_COLLECTION);
   expect(p.inkCapacity).toEqual({ draughtsman: TUNING.startInk, stoker: TUNING.startInk });
   expect(p.interactions).toEqual([]);
-  expect(p.research).toBe(0);
+  expect(p.vellum).toBe(0);
   expect(validateLoadout(p)).toEqual({});
   const d = compiledFor(p, 'draughtsman').spells[0];
   const s = compiledFor(p, 'stoker').spells[0];

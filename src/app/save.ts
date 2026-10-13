@@ -8,6 +8,55 @@ export interface SaveEnvelope<T = unknown> {
 /** migrations[n] upgrades data from version n to n+1. */
 export type Migration = (data: unknown) => unknown;
 
+const ROUND_ROBIN = ['gallnut', 'pitch', 'cinder'] as const;
+
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/** Hands out solvent ids Gallnut → Pitch → Cinder → Gallnut …, continuing across calls. */
+function roundRobin(): () => (typeof ROUND_ROBIN)[number] {
+  let n = 0;
+  return () => ROUND_ROBIN[n++ % ROUND_ROBIN.length] ?? 'gallnut';
+}
+
+function migrateResearch(data: unknown): unknown {
+  if (!isObject(data) || !isObject(data.profile)) return data;
+  const next = roundRobin();
+  const { research, ...profile } = data.profile;
+  const solvents = { gallnut: 0, pitch: 0, cinder: 0 };
+  const points = typeof research === 'number' && Number.isInteger(research) ? research : 0;
+  for (let i = 0; i < points; i++) solvents[next()] += 1;
+  const asSolvent = (item: unknown): unknown[] => {
+    if (!isObject(item) || item.kind !== 'research') return [item];
+    const amount =
+      typeof item.amount === 'number' && Number.isInteger(item.amount) ? item.amount : 0;
+    return Array.from({ length: amount }, () => ({ kind: 'solvent', solvent: next() }));
+  };
+  const trip = isObject(data.trip)
+    ? {
+        ...data.trip,
+        loot: Array.isArray(data.trip.loot) ? data.trip.loot.flatMap(asSolvent) : data.trip.loot,
+        offers: Array.isArray(data.trip.offers)
+          ? data.trip.offers.flatMap(asSolvent)
+          : data.trip.offers,
+      }
+    : data.trip;
+  return {
+    ...data,
+    profile: {
+      ...profile,
+      solvents,
+      vellum: 0,
+      bench: { trials: [], known: [] },
+      glyphs: [],
+      proof: { draughtsman: [], stoker: [] },
+      idioms: [],
+    },
+    trip,
+  };
+}
+
 export const migrations: Migration[] = [
   // 0 → 1: the trip records the current fight's actions.
   (data) => {
@@ -16,6 +65,8 @@ export const migrations: Migration[] = [
     if (typeof save.trip !== 'object' || save.trip === null) return data;
     return { ...save, trip: { ...save.trip, actions: [] } };
   },
+  // 1 → 2: each research point becomes one solvent (Gallnut → Pitch → Cinder round-robin).
+  migrateResearch,
 ];
 
 export const CURRENT_VERSION = migrations.length;

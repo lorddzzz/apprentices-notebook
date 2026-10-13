@@ -11,6 +11,8 @@ import {
   RUNE_IDS,
   RUNES,
   type RuneId,
+  SOLVENT_IDS,
+  type SolventId,
   START_COLLECTION,
 } from '$data';
 import {
@@ -633,10 +635,12 @@ function tripTally(bot: Bot): TripTally {
 function checkBank(before: Profile, after: Profile, t: Trip, where: string): void {
   const runes: Partial<Record<RuneId, number>> = {};
   const ink: Partial<Record<MemberId, number>> = {};
-  let research = 0;
+  let vellum = 0;
+  const solvents: Partial<Record<SolventId, number>> = {};
   for (const item of t.loot) {
     if (item.kind === 'rune') runes[item.rune] = (runes[item.rune] ?? 0) + 1;
-    else if (item.kind === 'research') research += item.amount;
+    else if (item.kind === 'vellum') vellum += item.amount;
+    else if (item.kind === 'solvent') solvents[item.solvent] = (solvents[item.solvent] ?? 0) + 1;
     else if (item.kind === 'ink') ink[item.member] = (ink[item.member] ?? 0) + item.amount;
   }
   for (const id of RUNE_IDS) {
@@ -649,8 +653,12 @@ function checkBank(before: Profile, after: Profile, t: Trip, where: string): voi
       flag('returnHome did not bank the ink loot', `${where} ${m}`);
     }
   }
-  if (after.research !== before.research + research)
-    flag('returnHome did not bank research', where);
+  if (after.vellum !== before.vellum + vellum) flag('returnHome did not bank vellum', where);
+  for (const id of SOLVENT_IDS) {
+    if (after.solvents[id] !== before.solvents[id] + (solvents[id] ?? 0)) {
+      flag('returnHome did not bank the solvent loot', `${where} ${id}`);
+    }
+  }
 }
 
 /** Positions change only through movement events; hp never rises; charges never rise. */

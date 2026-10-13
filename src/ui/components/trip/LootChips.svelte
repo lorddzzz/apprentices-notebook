@@ -19,7 +19,7 @@
       {#if item.kind === 'rune'}
         <RuneGlyph rune={item.rune} dir={item.rune === 'bolt' || item.rune === 'bend' ? 'right' : undefined} size={28} />
       {:else}
-        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : '✎'}</span>
+        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'solvent' ? '◍' : '✎'}</span>
       {/if}
       <span class="name">{lootName(item)}</span>
     </li>

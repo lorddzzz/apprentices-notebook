@@ -219,7 +219,6 @@ export interface BattleSpec {
 export type LootItem =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'ink'; member: MemberId; amount: number }
-  | { kind: 'research'; amount: number } // A4 removes
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number };
 
@@ -236,7 +235,6 @@ export interface Profile {
   inkCapacity: Record<MemberId, number>;
   lattices: Record<MemberId, Placed[]>; // shape comes from MEMBERS[m].shape
   interactions: InteractionId[]; // codex: discovered interactions (runes: derived from collection)
-  research: number; // A4 removes (migrates into solvents)
   solvents: Record<SolventId, number>;
   vellum: number;
   bench: {

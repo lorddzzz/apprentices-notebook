@@ -2,6 +2,7 @@ import {
   CODEX,
   type CodexEntryDef,
   ENCOUNTERS,
+  IDIOMS,
   INTERACTION_IDS,
   type InteractionId,
   LOOT_TABLES,
@@ -10,6 +11,7 @@ import {
   MEMBER_IDS,
   MEMBERS,
   type MemberId,
+  RECIPES,
   RUNE_IDS,
   type RuneId,
   SOLVENT_IDS,
@@ -23,7 +25,7 @@ import { type Coord, DIRS } from './grid';
 import { compileLattice, countRunes, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
 import { parseLattice } from './notation';
 import { memberById } from './queries';
-import type { Attempt } from './research';
+import { type Attempt, trial, trialKey } from './research';
 import { createRng, deriveSeed, pickWeighted } from './rng';
 import type {
   Action,
@@ -32,12 +34,14 @@ import type {
   BattleState,
   CompiledLattice,
   FiredCell,
+  GlyphDef,
   GlyphId,
   Lattice,
   LatticeIssue,
   LootItem,
   PartyInit,
   Placed,
+  PlacedRune,
   Profile,
   SaveData,
   SpellKey,
@@ -72,7 +76,6 @@ export function newProfile(): Profile {
     inkCapacity: perMember(() => TUNING.startInk),
     lattices: perMember((m) => parseLattice(MEMBERS[m].startLattice).runes.map(copyRune)),
     interactions: [],
-    research: 0,
     ...researchDefaults(),
   };
 }
@@ -255,7 +258,6 @@ export function rollOffers(
     if (!entry) break;
     const spec = entry.spec;
     if (spec.kind === 'rune') offers.push({ kind: 'rune', rune: spec.rune });
-    else if (spec.kind === 'research') offers.push({ kind: 'research', amount: spec.amount });
     else if (spec.kind === 'solvent') offers.push({ kind: 'solvent', solvent: spec.solvent });
     else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
     else {
@@ -329,21 +331,19 @@ export function returnHome(p: Profile, t: Trip): Profile {
   const collection = { ...p.collection };
   const inkCapacity = { ...p.inkCapacity };
   const solvents = { ...p.solvents };
-  let research = p.research;
   let vellum = p.vellum;
   for (const item of t.loot) {
     if (item.kind === 'rune') collection[item.rune] += 1;
     else if (item.kind === 'ink') inkCapacity[item.member] += item.amount;
     else if (item.kind === 'solvent') solvents[item.solvent] += 1;
-    else if (item.kind === 'vellum') vellum += item.amount;
-    else research += item.amount;
+    else vellum += item.amount;
   }
-  return { ...p, collection, inkCapacity, research, solvents, vellum };
+  return { ...p, collection, inkCapacity, solvents, vellum };
 }
 
 // ── Save data ───────────────────────────────────────────
 
-/** The save shape, version 1 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
+/** The save shape, version 2 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
 export function newSave(seed: number): SaveData {
   return { profile: newProfile(), trip: null, seedCounter: seed };
 }
@@ -402,8 +402,6 @@ function parseLoot(v: unknown): LootItem {
       return { kind: 'rune', rune: oneOf(RUNE_IDS, r.rune) };
     case 'ink':
       return { kind: 'ink', member: oneOf(MEMBER_IDS, r.member), amount: count(r.amount) };
-    case 'research':
-      return { kind: 'research', amount: count(r.amount) };
     case 'solvent':
       return { kind: 'solvent', solvent: oneOf(SOLVENT_IDS, r.solvent) };
     case 'vellum':
@@ -433,15 +431,98 @@ function parseProfile(v: unknown): Profile {
     const id = oneOf(INTERACTION_IDS, i);
     if (!interactions.includes(id)) interactions.push(id);
   }
-  // A4: strict parsing of the v2 fields (and the v1 → v2 migration); defaults until then.
+  const sol = r.solvents === undefined ? {} : record(r.solvents);
+  for (const k of Object.keys(sol)) oneOf(SOLVENT_IDS, k);
+  const solvents = Object.fromEntries(
+    SOLVENT_IDS.map((id) => [id, sol[id] === undefined ? 0 : count(sol[id])]),
+  ) as Record<SolventId, number>;
+  const benchRaw = record(r.bench);
+  const bench = {
+    trials: unique(list(benchRaw.trials).map(text)),
+    known: unique(
+      list(benchRaw.known).map((id) =>
+        oneOf(
+          RECIPES.map((x) => x.id),
+          id,
+        ),
+      ),
+    ),
+  };
+  const glyphs = list(r.glyphs).map(parseGlyphDef);
+  if (new Set(glyphs.map((g) => g.id)).size !== glyphs.length) bad();
+  for (const m of MEMBER_IDS) {
+    for (const placed of lattices[m]) {
+      if (isGlyph(placed) && !glyphs.some((g) => g.id === placed.glyph)) bad();
+    }
+  }
+  const proofRaw = record(r.proof);
+  const proof = perMember((m) => list(proofRaw[m]).map((mask) => list(mask).map(parseFired)));
+  const idioms = unique(
+    list(r.idioms).map((id) =>
+      oneOf(
+        IDIOMS.map((x) => x.id),
+        id,
+      ),
+    ),
+  );
   return {
     collection,
     inkCapacity,
     lattices,
     interactions,
-    research: count(r.research),
-    ...researchDefaults(),
+    solvents,
+    vellum: count(r.vellum),
+    bench,
+    glyphs,
+    proof,
+    idioms,
   };
+}
+
+function unique<T>(items: T[]): T[] {
+  return [...new Set(items)];
+}
+
+function parseRune(v: unknown): PlacedRune {
+  const r = record(v);
+  const rune = oneOf(RUNE_IDS, r.rune);
+  const at = parseCoord(r.at);
+  return r.dir === undefined ? { at, rune } : { at, rune, dir: oneOf(DIRS, r.dir) };
+}
+
+function parseGlyphDef(v: unknown): GlyphDef {
+  const r = record(v);
+  const cells = list(r.cells).map(parseRune);
+  if (cells.length === 0) bad();
+  return {
+    id: text(r.id),
+    name: text(r.name),
+    kind: oneOf<'spell' | 'payload'>(['spell', 'payload'], r.kind),
+    cells,
+    entry: parseCoord(r.entry),
+    exits: list(r.exits).map((e) => {
+      const x = record(e);
+      return { from: parseCoord(x.from), dir: oneOf(DIRS, x.dir) };
+    }),
+    idiom:
+      r.idiom === null
+        ? null
+        : oneOf(
+            IDIOMS.map((x) => x.id),
+            r.idiom,
+          ),
+  };
+}
+
+function parseFired(v: unknown): FiredCell {
+  const r = record(v);
+  const fired: FiredCell = {
+    at: parseCoord(r.at),
+    rune: r.rune === null ? null : oneOf(RUNE_IDS, r.rune),
+  };
+  if (r.glyph !== undefined) fired.glyph = text(r.glyph);
+  if (r.dir !== undefined) fired.dir = oneOf(DIRS, r.dir);
+  return fired;
 }
 
 function text(v: unknown): string {
@@ -522,8 +603,31 @@ export function parseSaveData(data: unknown): SaveData {
 // ── Research and compile (stubs: A4 distil, B2 proof and compile) ─────────
 
 /** Writes a recipe in ink: spends one solvent, adds one rune, marks it known (plan P9). Throws unless exact. */
-export function distil(_p: Profile, _attempt: Attempt): Profile {
-  throw new Error('not implemented (A4)');
+export function distil(p: Profile, attempt: Attempt): Profile {
+  const result = trial(attempt, RECIPES, []);
+  const recipe = result.score === 6 ? RECIPES.find((r) => r.id === result.recipe) : undefined;
+  if (!recipe) throw new Error('That is not a recipe');
+  if (p.solvents[attempt.solvent] < 1) throw new Error('No solvent left');
+  if (p.collection[attempt.left] < 1 || p.collection[attempt.right] < 1) {
+    throw new Error('A parent rune is missing');
+  }
+  const tried = recordTrial(p, attempt);
+  return {
+    ...tried,
+    solvents: { ...p.solvents, [attempt.solvent]: p.solvents[attempt.solvent] - 1 },
+    collection: { ...p.collection, [recipe.result]: p.collection[recipe.result] + 1 },
+    bench: {
+      ...tried.bench,
+      known: p.bench.known.includes(recipe.id) ? p.bench.known : [...p.bench.known, recipe.id],
+    },
+  };
+}
+
+/** Remembers a free trial so the bench can show it again (the key is added once). */
+export function recordTrial(p: Profile, attempt: Attempt): Profile {
+  const key = trialKey(attempt);
+  if (p.bench.trials.includes(key)) return p;
+  return { ...p, bench: { ...p.bench, trials: [...p.bench.trials, key] } };
 }
 
 /** Appends cast masks to a member's proof, keeping the newest `TUNING.proofMasksPerMember`. */
