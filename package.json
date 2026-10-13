@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "fuzz": "FUZZ_SEEDS=200 vitest run tests/sim --silent=false",
     "lint": "biome check",
     "format": "biome format --write",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc --noEmit",
