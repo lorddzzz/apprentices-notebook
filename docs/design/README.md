@@ -1,0 +1,23 @@
+# Feature design docs
+
+[DESIGN.md](../../DESIGN.md) is the game at a glance: pitch, pillars, a short summary of every system, open questions, and the one chronological **decision log** (§11). When a feature's design outgrows a section there, it gets its own file here, and DESIGN.md keeps only a summary and a link.
+
+## Index
+
+| Feature | Doc | Status | Summary in DESIGN.md | Plan |
+|---|---|---|---|---|
+| Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Decided**, building the first slice | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md) |
+
+## How a feature doc works
+
+1. **One file per feature**, named for the feature (`kebab-case.md`), never for an option or a version.
+2. **Header block:** title, a `Status:` line (*Exploring* · *Decided* · *Building* · *Shipped*, plus *Parked* if shelved), links to its DESIGN.md section and its implementation plan.
+3. **§0 Decisions:** a table of what was decided, when, and why, in the player's terms. It mirrors the DESIGN.md §11 row(s) in more detail. Draft numbers are marked *tune by playing*.
+4. **The body:** rules, content tables, screens, risks, hypotheses to test by playing. It covers the *what* only. Engine and data architecture belong in the plan or TECH.md.
+5. **Links both ways:** the DESIGN.md section summarises the feature in a few bullets and links here. The §11 row links here. This doc links back to both.
+
+## Lifecycle
+
+- **Exploring:** while a design round compares alternatives, options can live in a temporary file or folder. **Once one is chosen, delete the others**, keep only the chosen design, and name the commit holding the removed options in the doc header so they stay recoverable from git history.
+- **Decided → Building:** the plan goes in `docs/plans/<feature>-plan.md`. Rule changes found while building are recorded here (§0) and in DESIGN.md §11 in the same commit as the code.
+- **Shipped:** the status line says so. The doc stays the reference for the feature's rules.

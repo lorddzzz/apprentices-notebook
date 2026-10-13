@@ -1,7 +1,9 @@
 # The Apprentice's Notebook — Design Doc
 
 > Working title. Living document: updated after every design round and playtest.
-> Last updated: 2026-10-12 (after discovery rounds 1–12). **v0 design complete.**
+> Last updated: 2026-10-13 (research + mastery decided). **v0 design complete.**
+>
+> **Feature docs:** a feature too big for one section gets its own file in [docs/design/](docs/design/README.md). This doc keeps its summary and a link, and the decision log (§11) stays here. Current: [Research and Mastery](docs/design/research-and-mastery.md) (§6.3).
 >
 > Legend: **Decided** = player chose it · *Proposal* = Claude's suggestion, awaiting the player's reaction · *Open* = not discussed yet
 
@@ -110,7 +112,7 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 | **Aura** | Buffs all touching paths (not on a path) | Amplify, Echo, Thrift (+1 charge) |
 
 - **Decided:** runes come from **expedition loot**, **desk research** (combine known runes), and **mastery** (frequently used runes evolve or branch). v0 covers loot only.
-- **Decided (2026-10-13): research and mastery follow "The Scholar's Press"**, from [docs/design-options/05-scholars-press.md](docs/design-options/05-scholars-press.md). That doc holds the details. The shape:
+- **Decided (2026-10-13): research and mastery follow "The Scholar's Press".** Full design: **[docs/design/research-and-mastery.md](docs/design/research-and-mastery.md)**. Implementation: [docs/plans/research-and-mastery-plan.md](docs/plans/research-and-mastery-plan.md). The shape:
   - **Aspects** are the shared grammar: 8 properties (Reach, Mark, Slick, Heat, Charge, Vapor, Hold, Return). Every rune has two, **read off what its rule does**, and every pair is unique.
   - **Distil (the Bench):** two known runes plus a **solvent** (research loot, one aspect each) make a new rune. Trials are free and play the real reaction. The answer is a **total-only resonance** (x / 6) plus one margin line, so you deduce it rather than look it up. Committing costs the solvent; the parents are kept. Undiscovered recipes show silhouettes, and some are torn pages in the owner's hand.
   - **Compile (the Fair Copy):** a lattice pattern that has resolved 5 times **in expeditions** (not the Lab) can be compressed into a **Glyph**: one socket, cheaper in ink, optionally with parameters, refactorable in versions. **Outer auras reach every inner rune**, at +1 ink per touching aura. Proof survives a wipe.
@@ -345,7 +347,7 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - [ ] Final interaction matrix details (Fire as element or state, terrain decay)
 
 **Post-v0:**
-- [x] Desk research + mastery direction: **The Scholar's Press** (decided 2026-10-13, §6.3). Next: build the Bench + Compile slice.
+- [x] Desk research + mastery direction: **The Scholar's Press** (decided 2026-10-13, §6.3, [feature doc](docs/design/research-and-mastery.md)). Next: build the Bench + Compile slice ([plan](docs/plans/research-and-mastery-plan.md)).
 - [ ] District map, guild content, rival inscribers, the mystery, audio, real names (full list in §10b)
 
 ## 10b. Parked (cut or deferred; come back to these)
@@ -355,7 +357,7 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 - **Next runes:** Pierce, On Ignite, Thrift (aura, +1 charge).
 - **Rune upgrades:** auras that also reach diagonally (from playtest 1).
 - **Materials and terrain cut from v0:** walls, smear (ink + oil; comes back as the Bench recipe *Smear*), heated brass, slippery brass.
-- **Research options not chosen** (parts bin in [docs/design-options/](docs/design-options/)): Fusion & Ripening (rune instances, evolution), Scars & Slow Work (chronicles, quirks, slow projects).
+- **Research directions not chosen:** fusion with rune evolution, and rune chronicles with slow projects. They were removed from the docs; git history has them at `86e1b25`.
 - **Systems:** field rewiring (editing lattices mid-trip), the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
 - **Members:** signature abilities beyond lattice, affinity and HP. Held back until more affinities are explored (playtest 1).
 - **Input alternatives**, if the double tap ever misfires again: Confirm-only casting, or an undo for the last cast.
@@ -408,4 +410,5 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 | 2026-10-13 | Code review (*Proposal*): only a second tap on the same tile confirms a spell (tapping further along a Bolt's line re-previews instead of firing); a cast or shove by anyone ends every pending move undo; a reload mid-fight resumes it, and a wipe can no longer be escaped by reloading | Tapping an enemy to read it fired a Bolt (build log #28); undo after another member's action could rewrite the board (a used ink puddle came back); reloading made losing free |
 | 2026-10-13 | v0.1 legibility: numbered recipe in the Study, Fork order shown on the lattice, visible unit traits. The rules don't change | First playtest: the chain rules were invisible, not wrong. The player picked the written recipe over a live test bench, Fork as ordered steps over a spatial split, and traits on the board over Codex-only |
 | 2026-10-13 | v0.1 built from playtest 1: recipe and step numbers in the Study, unit trait readouts and badges, affinity in the party strip, charges Bolt 5 / Splash 3 / Ward 3. Kept as they are: the same-tile double tap, losing all loot on a wipe, members defined by lattice and affinity only. Aura adjacency feels right | Playtest 1: the chain rules were invisible and charges ran low after fight 2. Expeditions are cheap, so a full wipe loss is fine. Explore more affinities before giving members abilities |
-| 2026-10-13 | Desk research + mastery = **The Scholar's Press** (Bench deduction + Glyph compiling, footnotes + elegance, Crystallise). Design round: total-only resonance; aspects describe what a rune does (all 14 retagged); outer auras reach every inner rune of a Glyph at +1 ink each; crystals are permanent; patterns prove themselves only on expeditions; proof survives a wipe; first slice is Bench + Compile together. Kept defaults: free trials, parents kept, shared Glyphs, 8 aspects | Strongest fit for theorycrafting and "build like code", with no dice. The player leaned toward deduction and toward weight and commitment, except where learning is at stake. Auras: power with a price beat a readable but weaker rule. Full detail: [05-scholars-press.md](docs/design-options/05-scholars-press.md) §0 |
+| 2026-10-13 | Desk research + mastery = **The Scholar's Press** (Bench deduction + Glyph compiling, footnotes + elegance, Crystallise). Design round: total-only resonance; aspects describe what a rune does (all 14 retagged); outer auras reach every inner rune of a Glyph at +1 ink each; crystals are permanent; patterns prove themselves only on expeditions; proof survives a wipe; first slice is Bench + Compile together. Kept defaults: free trials, parents kept, shared Glyphs, 8 aspects | Strongest fit for theorycrafting and "build like code", with no dice. The player leaned toward deduction and toward weight and commitment, except where learning is at stake. Auras: power with a price beat a readable but weaker rule. Full detail: [research-and-mastery.md](docs/design/research-and-mastery.md) §0 |
+| 2026-10-13 | Design docs split by feature: [docs/design/](docs/design/README.md) holds one file per feature, while DESIGN.md keeps summaries, open questions and this log. Options are deleted once one is chosen | DESIGN.md was outgrowing one file, and keeping rejected options next to the decision blurs which one holds |

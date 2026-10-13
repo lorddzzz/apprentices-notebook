@@ -5,6 +5,8 @@ Players wire runes into a lattice like code, then watch chain reactions play out
 Personal project. Live at https://lorddzzz.github.io/apprentices-notebook/
 
 - [DESIGN.md](DESIGN.md): the *what* (game design, decision log in §11)
+- [docs/design/](docs/design/README.md): one design doc per big feature (DESIGN.md summarises and links them)
+- [docs/plans/](docs/plans/): implementation plans
 - [TECH.md](TECH.md): the *how* (stack, architecture, tooling, decision log in §7)
 
 ## Commands
@@ -31,7 +33,7 @@ Personal project. Live at https://lorddzzz.github.io/apprentices-notebook/
 
 - Commit straight to `main` with short conventional-ish messages (`feat:`, `fix:`, `chore:`, `docs:`). A push deploys automatically after CI.
 - Run `pnpm check` before committing. A red CI run leaves the live site on the last good build.
-- Design decisions go in DESIGN.md (§11 log); tech decisions go in TECH.md (§7 log). Update them in the same commit as the change.
+- Design decisions go in DESIGN.md (§11 log), with details in the feature's doc in `docs/design/` when it has one; tech decisions go in TECH.md (§7 log). Update them in the same commit as the change.
 
 ## Collaboration
 

@@ -1,7 +1,8 @@
-# The Scholar's Press (Option 1 + Option 3, designed as one system)
+# Research and Mastery: The Scholar's Press
 
-> **Chosen direction** (design round 2026-10-13, see §0). Numbers and effects are still drafts, to tune by playing. Deep dive on the combo you picked. Builds on [01 The Bench](01-the-bench-deduction.md) and [03 Compile & Refactor](03-compile-and-refactor.md); where this doc differs, this doc wins.
-> Base: [DESIGN.md](../../DESIGN.md) §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
+> **Status: Decided** (design round 2026-10-13, see §0). **Building:** the first slice is Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md).
+> Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
+> Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 
 ## 0. Decided in the design round (2026-10-13)
 
@@ -9,12 +10,12 @@
 |---|---|---|
 | Resonance feedback | **Total only** (x / 6 pips plus one margin line), as in §3.2 | You reason about which slot is wrong. Knowing aspects pays off, and brute force doesn't |
 | What aspects describe | **What the rune does**, read off its rule. All 14 runes retagged (§2) | Deduction is fair only if the clues are visible in rules the player already sees |
-| Outer auras on a Glyph | **They reach every inner rune**, as if touching each one. The Glyph costs **+1 ink per outer aura** touching it (§4.4) | Power with a price. The player chose this over the entry-only and sealed options |
+| Outer auras on a Glyph | **They reach every inner rune**, as if touching each one. The Glyph costs **+1 ink per outer aura** touching it (§4.4) | Power with a price. The player chose this over buffing only the entry rune and over sealed Glyphs |
 | First playable slice | **Stage A + B together** (Bench + Compile, §11) | Test the whole direction before judging it |
 | Crystallise | **Permanent.** The Glyph is retired for good, and there's no un-crystallise (§5.3) | It's a real sacrifice, and the crystal means more because of it |
 | Where patterns prove themselves | **Expeditions only**, not the Lab | A Glyph is a pattern that worked under pressure |
 | Proof on a wipe | **Kept** | Like codex finds: what was learned stays learned |
-| Other §12 defaults | Kept: unlimited free trials, parents not consumed, Glyphs shared across members, free renaming, aspects closed at 8 | No objection; tune by playing |
+| Other defaults (§12) | Kept: unlimited free trials, parents not consumed, Glyphs shared across members, free renaming, aspects closed at 8 | No objection; tune by playing |
 
 ## 1. The idea in one page
 
@@ -139,7 +140,7 @@ Torn pages in the slice: **Smear, Torch, Mist.**
 | **Canon** | Shape | ⟳ ☍ | Echo + Fork + Chalk | Both fork branches recast next turn. |
 | **Reap** | Trigger | ◈ ⟳ | On Inked + On Kill + Wax | Fires when a *mark is consumed*, from the victim's tile. |
 
-**The Seam alone supports six recipes** (Smear, Fog, Quill via Pitch; Mist, Brand via Gallnut; Torch via Cinder), so v0's single district gives a full tutorial arc. The other seven need solvents from places the player hasn't been, which is the pull toward the **district map** (§6.7).
+**The Seam alone supports six recipes** (Smear, Fog, Quill via Pitch; Mist, Brand via Gallnut; Torch via Cinder), so v0's single district gives a full tutorial arc. The other seven need solvents from places the player hasn't been, which is the pull toward the **district map** (DESIGN.md §6.7).
 
 **Same pair, different solvent** is an intentional deepening later: `Spark + Steam + Fog jar` could be *Thunderhead* (a cloud that stores charge), alongside `Spark + Steam + Quicksilver = Arc`. The player learns that the solvent is the *steering wheel*.
 
@@ -238,12 +239,22 @@ The profiler is the game's teaching instrument and the thing a theorycrafter wil
 To avoid two overlapping systems, mastery has a clean rule: **atoms get Footnotes, Glyphs get Elegance.**
 
 ### 5.1 Footnotes (atoms)
-As in [Option 1](01-the-bench-deduction.md): each atom earns **witness points** from distinctive outcomes in the event log; at 5 / 15 / 40 points it gains a footnote level, each offering **two mutually exclusive small rule edits** (re-pickable at the desk for free, and they change ink cost ±1).
+Each atom earns **witness points**. They don't come from being cast; they come from *distinctive outcomes it took part in*, read from the event log. Examples: Spark ignites oil (1), Spark detonates a mark (2), Bolt kills through steam (2), Ward absorbs a hit that would have killed (3), an Echo recast kills (2). The rule table is data: `{ rune, eventPattern, points }`.
+
+At 5 / 15 / 40 points a rune gains a footnote level (I–III). Each level offers **two mutually exclusive small rule edits**. You pick one and can re-pick at the desk any time for free, like rewiring. Each changes the ink cost by ±1, so mastery trades against the lattice budget instead of just adding power. Footnotes are rule edits, never raw numbers. Draft content for the first runes:
+
+| Rune | Level I (pick 1) | Level II | Level III |
+|---|---|---|---|
+| **Bolt** | *Long reach*: +1 range through steam | *Sharpened*: +1 damage to inked | *Bloodhound*: if it kills, keep travelling to the next unit |
+| **Spark** | *Hotter*: ignites oil at +1 ring | *Grounded*: conducts through brass without losing a step | *Ball lightning*: fork outputs 3 directions |
+| **Ink** | *Deep stain*: marks last through a heal | *Seep*: marks one adjacent unit | *Indelible*: detonation leaves a puddle |
+
+**Why witnessing?** Mastery becomes a record of play style. A player who never uses oil never sees Spark ignite oil, so their Spark grows toward conduction instead.
 
 Interaction with Glyphs: **a Glyph snapshots the footnotes of its inner atoms at compile time.** Changing them means a Revision. This keeps Glyphs stable and makes compiling a commitment of *style*.
 
 ### 5.2 Elegance (Glyphs)
-Two metrics (the third from Option 3, *Reach*, is cut for scope):
+Two metrics (a third, *Reach*, was cut for scope):
 
 | Metric | Defined as | Tiers (draft, tune by play) |
 |---|---|---|
@@ -401,7 +412,7 @@ interface Glyph { id: string; name: string; version: number; cells: Cell[]; para
 |---|---|---|
 | **Feels like a wiki** | Aspects could become memorisation | Total-only resonance forces inference; margin lines teach; silhouettes show aspects; every trial animates the real reaction |
 | **Solved by spreadsheet** | Theorycrafters will | It's a feature at ~12–20 recipes; T2 aspect recipes and crystals (player-specific aspects) can't be pre-solved |
-| **Research disconnected from the world** | Option 3's weak spot | Solvents are district-gated; proven requires real fights; idiom rumours per district; owner's drafts are loot |
+| **Research disconnected from the world** | Compiling alone has no world in it | Solvents are district-gated; proven requires real fights; idiom rumours per district; owner's drafts are loot |
 | **Compile changes behaviour** | Trust-breaking bug | The identity property test (§9.4); expansion is the only code path |
 | **Phone UI for clusters** | Selecting in a 3×6 grid | Pre-computed glows, tap-to-select-maximal, tap-tail-to-trim; no box select |
 | **Ink economy bends** | Compression makes lattices bigger | `floor(n/3)` cap, parameter costs, min cost 1, tiers capped; tune in `tuning.ts` |
