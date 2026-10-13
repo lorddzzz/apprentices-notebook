@@ -119,6 +119,11 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
   - **Mastery:** atoms earn **footnotes** (witnessed outcomes unlock a choice of two small rule edits), and Glyphs earn **elegance** (Economy and Reliability tiers, shown in a profiler).
   - **Crystallise:** a polished Glyph becomes a new atom with its own aspects, which can feed the Bench again. **Permanent**: the Glyph is gone for good.
   - **First playable slice: Bench + Compile together** (six Seam recipes, three Seam solvents, Glyphs without parameters), **built 2026-10-13**. Elegance, parameters, footnotes and crystals follow.
+- **Decided (2026-10-14): three loot runes** (the parked "next runes"; plan: [seam-deepening-plan.md](docs/plans/seam-deepening-plan.md)):
+  - **Pierce** (Shape, ☍ Reach · ϟ Charge): a projectile passes through the first unit and stops at the second. Both get the rest of the flow, the first one first. Steam and plates still stop it, and it does nothing on area or self spells.
+  - **On Ignite** (Trigger, ♨ Heat · ⟳ Return): passes if this cast has lit oil so far. The rest of the flow lands **on every tile that just caught fire**, not on the cast's targets, so Spark → Oil → On Ignite → Ink marks everyone in the blaze.
+  - **Thrift** (Aura, ϟ Charge · ⟳ Return): +1 charge per trip to every spell it touches.
+- **Decided (2026-10-14): three more Seam recipes:** **Scald** (Spark + Steam + Cinder, ♨ ☁: a cloud that burns everyone inside each round), **Etch** (Ink + Brass + Gallnut, ◈ ϟ: a mark etched into brass; spark conducting through it sets off marks on everything it reaches), **Kiln** (Brass + Spark + Cinder, ♨ ▣: a plate that arrives already hot). Effects are drafts, see the [feature doc](docs/design/research-and-mastery.md) §3.3.
 
 ### 6.3b Loot (besides runes)
 - **Decided:** **ink reserves** (permanently raise ink capacity, which answers how ink grows) and **research materials** (reagents consumed at the desk to derive new runes). Research materials become typed: **solvents** (one per aspect), **vellum** (for compiling) and **mercury** (for crystallising) (§6.3).
@@ -134,6 +139,9 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 - **Decided:** turn order is **party, then enemies**. All members act in any order, then enemies execute their telegraphed moves (Into the Breach-style).
 - **Decided:** combat grid is **6 wide × 8 tall** (fits portrait).
 - **Decided:** each Source spell has **3–5 charges per trip** (raised in v0.1, see §9.5). Each member also has an **uncharged basic action** (Shove: push an adjacent unit 1 tile), so you're never stuck with nothing, and pushing units into oil and steam is a useful tactic.
+- **Decided (2026-10-14): field rewiring is a rare loot offer**, "a quiet doorway". Taking it costs that pick and opens the notebook right away, with your banked collection. The player chose this over a once-per-trip Crossroads action: rewiring should be a find, not a routine.
+- **Decided (2026-10-14): alternate layouts.** Each depth of a district has several hand-placed layouts. The trip's seed draws one per depth, and the Crossroads names the next fight ("the flooded stair"), so you push on knowing a little.
+- **Decided (2026-10-14): the trip page.** Back home, a page sums up the trip: two or three highlights at the top (the biggest chain, first discoveries, a pattern nearly proven) and a folded ledger below (casts, damage and proof per spell).
 
 ### 6.5 Materials & terrain
 - **Decided:** the materials palette is workshop stuff: **Ink, Oil, Steam, Spark, Brass**.
@@ -150,12 +158,15 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
   - **Steam** = a cloud that blocks line of sight and conducts Spark.
   - **Brass** = solid terrain and constructs. It conducts.
   - **Oil** = slick tiles (pushed units slide) and fuel.
+- **Decided (2026-10-14): heated brass.** Fire next to a brass plate or brass unit heats it. Hot brass scalds every orthogonally adjacent unit for 1 at the end of the round, and cools after 2 rounds. **Slippery brass is cut**: plates can't be walked on, so it has nothing to act on.
+- **Decided (2026-10-14): stained oil** (the board's version of smear). Ink landing on oil stains the puddle, and a unit that ends its move in stained oil is inked. It's a trap you lay. The spreading mark stays the Bench rune *Smear*. Fire burns the stain away along with the oil.
 - *Open:* the final matrix, whether Fire counts as its own element or a state, and whether terrain decays over turns.
 
 ### 6.6 The codex (notebook)
 - **Decided:** a must-have. It fills in as you discover runes and interactions, and undiscovered entries appear as `???`.
 - **Decided:** the codex **is** the previous owner's notebook. Some entries are already written in their hand, half-finished or cryptic. Your discoveries complete them, which ties the codex to the mystery for free.
-- *Open:* automatic vs. player-written entries, and hints for `???`.
+- **Decided (2026-10-14): hints for `???`.** Every unknown entry carries one half-legible line in the owner's hand that hints without naming anything ("the black water does not like the kettle…").
+- *Open:* automatic vs. player-written entries.
 
 ### 6.7 Setting & mystery
 - **Decided:** **the city of guilds.** The study is a rented attic in a big, old, rain-soaked city of rival inscriber guilds. Expeditions go **out**: oil-lit canals, brass bridges, steam baths, the ink-makers' quarter, rooftops, forbidden guild archives.
@@ -349,17 +360,17 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 **Post-v0:**
 - [x] Desk research + mastery direction: **The Scholar's Press** (decided 2026-10-13, §6.3, [feature doc](docs/design/research-and-mastery.md)).
 - [x] Bench + Compile slice built (2026-10-13, [plan](docs/plans/research-and-mastery-plan.md)). Next: the player plays it (hypotheses in the feature doc §10).
+- [ ] **Seam deepening** (decided 2026-10-14, [plan](docs/plans/seam-deepening-plan.md)): slice polish, Pierce / On Ignite / Thrift, Scald / Etch / Kiln, alternate layouts, owner's hints, the quiet doorway, heated brass, stained oil, the trip page.
 - [ ] District map, guild content, rival inscribers, the mystery, audio, real names (full list in §10b)
 
 ## 10b. Parked (cut or deferred; come back to these)
 
 Nothing here is planned yet. The next feature gets its own plan before any of it is built.
 
-- **Next runes:** Pierce, On Ignite, Thrift (aura, +1 charge).
 - **Rune upgrades:** auras that also reach diagonally (from playtest 1).
-- **Materials and terrain cut from v0:** walls, smear (ink + oil; comes back as the Bench recipe *Smear*), heated brass, slippery brass.
+- **Materials and terrain cut from v0:** walls, and slippery brass (cut for good on 2026-10-14). Smear, heated brass and stained oil are in the Seam deepening plan.
 - **Research directions not chosen:** fusion with rune evolution, and rune chronicles with slow projects. They were removed from the docs; git history has them at `86e1b25`.
-- **Systems:** field rewiring (editing lattices mid-trip), the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
+- **Systems:** the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
 - **Members:** signature abilities beyond lattice, affinity and HP. Held back until more affinities are explored (playtest 1).
 - **Input alternatives**, if the double tap ever misfires again: Confirm-only casting, or an undo for the last cast.
 - **Trip pacing alternatives**, if charges become a problem again: charges per fight, or a refill on each win.
@@ -415,3 +426,5 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 | 2026-10-13 | Design docs split by feature: [docs/design/](docs/design/README.md) holds one file per feature, while DESIGN.md keeps summaries, open questions and this log. Options are deleted once one is chosen | DESIGN.md was outgrowing one file, and keeping rejected options next to the decision blurs which one holds |
 | 2026-10-13 | Research slice build defaults (*Proposal*, plan §1 P1–P12): a Glyph uses its inner runes from the collection (no separate copies); Fair Copy collapses into the entry socket and leaves outside runes where they are (the preview names any that disconnect); an aura that also powers outside cells, or another spell flowing through the selection, blocks the Fair Copy; every Glyph carries an arrow that is the way in; an outer Amplify adds +1 to every inner Source and Material, an outer Echo echoes a Spell Glyph, each outer aura costs +1 ink; proven cells glow, a Fair copy toggle selects the largest proven pattern and a tap on its last rune trims it; proof = the last 300 meaningful player casts per member in trip battles (not echoes, not the Lab), written win or wipe; the Bench trial is a 5×3 stage with one dummy (three for area runes); writing a known recipe again makes another copy; old research points became solvents round-robin Gallnut → Pitch → Cinder; the Bench appears with the first solvent, Fair Copy once something is proven, the first compile of each idiom is free; the shelf has Runes and Fair copies tabs | Defaults to play, not rules carved in stone. Full list and reasons: [research-and-mastery.md](docs/design/research-and-mastery.md) §0 |
 | 2026-10-13 | Research slice content (*Proposal*): Quill 2 damage, 4 charges; Brand also inks, never pools, lasts the battle, +2 fire instead of oil-soaked +1 (the larger applies); Smear passes the mark one hop, allies included; Torch lights every oil tile in its footprint; Mist inks a whole touched cloud and clears it; idioms match as an ordered subsequence along one branch (`Bolt ▸ Ink ▸ On Inked ▸ Spark` is Cashing In), Undertaker = Source → On Kill → any Material; Seam loot tables carry Gallnut/Pitch/Cinder (weight 1 each) and vellum in deep and heart; margin lines for the five unwritten aspects ("too cold", "nothing to wake it", "too narrow, it wants air", "it will not stay", "it happens only once"); an aspect counts as known in the Codex once an owned rune carries it | Everything the design left as a draft got a value so the slice is playable. Tune by playing |
+| 2026-10-14 | **Seam deepening** (three design rounds): Fair Copy tidies stranded runes up to the Glyph's way out; a trim that breaks an idiom says so while you trim; every `???` gets an owner's hint line; a trip page (highlights + folded ledger); Pierce hits two in a line; On Ignite lands on the new fire; Thrift +1 charge per trip; seeded alternate layouts named at the Crossroads; field rewiring as a rare loot offer ("a quiet doorway"); heated brass in, slippery brass cut; stained oil on the board; new recipes Scald, Etch, Kiln | The player took the defaults everywhere except the safe spot, where a find beat a routine Crossroads action. Small depth inside the Seam before any new district. Plan: [seam-deepening-plan.md](docs/plans/seam-deepening-plan.md) |
+| 2026-10-14 | Aspect pairs for the new runes: Pierce ☍ϟ, On Ignite ♨⟳, Thrift ϟ⟳, Scald ♨☁, Etch ◈ϟ, Kiln ♨▣. Only ≋ϟ and ≋⟳ remain free | Each pair reads off the rule (Pierce drives through, Thrift returns charge). The cost: the 7 later-district recipes no longer fit in 8 aspects. Lance is covered by Bolt → Pierce → Spark; the rest get retagged, cut, or wait for a new aspect when their districts are designed |

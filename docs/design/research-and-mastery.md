@@ -39,6 +39,8 @@
 | Codex | An aspect counts as known once an owned rune carries it; unknown recipes show their silhouette and torn sentence | Aspects are read off runes you hold |
 | Fair Copy in the Study | Proven cells glow whenever something is proven (the discovery cue); a "Fair copy" toggle appears at the page's bottom-left; tap a glowing cell to select the largest proven pattern, tap its last rune to trim (the way in stays; never below 3); the confirm sheet shows ink before → after, runes that would be stranded, and needs a name (≤ 24 characters) | Pre-computed glows and tap-to-trim keep selection phone-friendly (§10 risk) |
 | Glyphs on the page | Tapping a Glyph turns it (the arrow is the way in) and shows a card with "Look inside" (peek, rename); a placed Glyph tool is dropped after one placement; any placement that would push ink over capacity (an aura next to a Glyph adds +1) is refused | Same gestures as arrow runes |
+| Stranded runes (2026-10-14) | A Fair Copy slides the runes it would strand up to the Glyph's way out, keeping their shape; the old warning remains only when they can't fit. Behaviour must stay identical (the identity test covers it) | The player's pick: a fair copy should look tidier than the draft |
+| Idiom trim (2026-10-14) | While trimming, the selection shows the matched idiom and the cost; the trim that breaks the match fades the name and switches the cost from "free" to "1 vellum" | The player's pick: warn at the moment of the trim, not in the sheet |
 
 ## 1. The idea in one page
 
@@ -151,7 +153,17 @@ Trials are logged per pair+solvent, and exhausted pairs grey out. No retries nee
 
 Torn pages in the slice: **Smear, Torch, Mist.**
 
-**Later recipes (old draft, aspects to retag).** The table below predates the decided tags. Its aspect column breaks rule 3 in places (Smear's old ◈ ≋ was Ink's pair). Each recipe is retagged when its solvent's district is built, and the validity test catches any clash. Pairs still free after the slice: ☍ϟ, ◈ϟ, ≋ϟ, ≋⟳, ♨☁, ♨▣, ♨⟳, ϟ⟳. That's 8 pairs for the 7 later recipes (Lance, Arc, Coil, Bulwark, Ricochet, Canon, Reap). It's tight (for example, Lance would move to ◈ϟ so Ricochet can take ☍ϟ), so some may need a different parent or get cut.
+**Seam deepening (decided 2026-10-14):** three more recipes from the Seam solvents.
+
+| Result | Family | Aspects | Left + Right + Solvent | Effect (draft) |
+|---|---|---|---|---|
+| **Scald** | Material | ♨ ☁ | Spark + Steam + Cinder | Clouds the tiles like Steam, and the cloud scalds: every unit inside takes 1 at the end of each round while it lasts |
+| **Etch** | Material | ◈ ϟ | Ink + Brass + Gallnut | Inks what it hits. Brass it touches (plates, brass units) is etched and stays marked; Spark conducting through etched brass sets off the mark on every unit the conduction reaches |
+| **Kiln** | Material | ♨ ▣ | Brass + Spark + Cinder | Raises a brass plate (like Brass) that arrives already hot (heated brass, DESIGN §6.5) |
+
+The loot runes Pierce (☍ϟ), On Ignite (♨⟳) and Thrift (ϟ⟳) take three more pairs.
+
+**Later recipes (old draft, aspects to retag).** The table below predates the decided tags. Its aspect column breaks rule 3 in places (Smear's old ◈ ≋ was Ink's pair). Each recipe is retagged when its solvent's district is built, and the validity test catches any clash. After the Seam deepening (2026-10-14) only ≋ϟ and ≋⟳ are free, which is not enough for the 7 later recipes (Lance, Arc, Coil, Bulwark, Ricochet, Canon, Reap). Lance is already covered by Bolt → Pierce → Spark. The rest get retagged, cut, or wait for a ninth aspect when their districts are designed.
 
 | Result | Family | Aspects | Left + Right + Solvent | Effect |
 |---|---|---|---|---|
