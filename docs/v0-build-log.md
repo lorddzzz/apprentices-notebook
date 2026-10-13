@@ -93,3 +93,14 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 21. **Situation (balance flag):** a greedy bot that never dodges intents wins encounter 1 98% of the time, encounter 2 30%, encounter 3 24% and the heart 0%. Starting each encounter at full HP, it wins the heart 21% of the time. A random bot almost always wipes.
     **Decision:** no tuning yet.
     **Why:** the bot ignores telegraphs, shoves and Ward, which are exactly what a human uses. Your playtest should decide whether the familiar fight is too hard. If it is, the first knobs are rat count and party HP in `src/data/`.
+22. **Situation:** U4 (battle interaction) landed. Its agent made several calls:
+    - A spell with a single legal aim jumps straight to the preview.
+    - Tapping the selected member again deselects it.
+    - End turn stays armed until any other input, with no timeout.
+    - Attacks that steam or a plate will stop are drawn dashed.
+    - Tiles a spell will change get dashed outlines in the material's colour.
+    **Decision:** accepted all of these, and they're recorded in DESIGN §11 and TECH §7. Open feel notes for you: the ~1.5 s intro playback on every Lab load gets repetitive, small Lab boards leave a lot of empty space, and you should judge whether the Bolt aim chevrons read clearly.
+    **Why:** these are judgement calls, which is what your playtest is for.
+23. **Situation:** you asked me to watch usage. After U4, the 5-hour window was at 35%.
+    **Decision:** reordered the remaining work to U6 (Study, Codex, saves), then U7 (the expedition, which makes v0 playable end to end), then U5 (Lab power tools). They run on sonnet, with opus held back for fixes. The plans and a resume file (`docs/v0-status.md`) are in the repo. Above 80% usage, agents wrap up and write state.
+    **Why:** a playable game first; Lab tools are a bonus.
