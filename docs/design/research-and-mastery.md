@@ -1,6 +1,6 @@
 # Research and Mastery: The Scholar's Press
 
-> **Status: Decided** (design round 2026-10-13, see §0). **Building:** the first slice is Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md).
+> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). Next: stage C (profiler + elegance) after the player has played the slice.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
 > Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 
@@ -16,6 +16,29 @@
 | Where patterns prove themselves | **Expeditions only**, not the Lab | A Glyph is a pattern that worked under pressure |
 | Proof on a wipe | **Kept** | Like codex finds: what was learned stays learned |
 | Other defaults (§12) | Kept: unlimited free trials, parents not consumed, Glyphs shared across members, free renaming, aspects closed at 8 | No objection; tune by playing |
+
+**Build defaults for the first slice** (*Proposal*, 2026-10-13, plan §1; tune by playing):
+
+| Topic | Default | Why |
+|---|---|---|
+| Glyph ownership (P1) | A Glyph uses its inner runes from the collection, as if placed one by one; any member can place it if they are free | Shared Glyphs without a second ownership system |
+| Fair Copy collapse (P2) | The cluster collapses into its entry socket; outside runes stay put; the preview names any that would no longer connect | Nothing moves without the player seeing it |
+| Blocked Fair Copy (P3 + build) | An aura that also powers outside cells blocks it, and so does another spell flowing through the selection (found by the fuzz: it would silently cut that spell). The message names the cell | Compiling must never change behaviour |
+| The arrow (P4) | Every Glyph has an arrow, the way in; a Payload Glyph entered from any other side stops the flow there | One readable rule |
+| Outer auras (P5) | Outer Amplify: +1 to every inner Source and Material; outer Echo: echoes a Spell Glyph, nothing on a Payload; +1 ink per outer aura | §0 rule applied to both auras |
+| Proof (P6, P7) | A player cast (not an echo) in a trip battle with ≥ 1 meaningful event; the last 300 casts per member; written when the fight ends, win or wipe; proof from any member counts | Bounded save, proof survives a wipe |
+| Trial stage (P8) | 5×3 stage, caster on the left, one training dummy two tiles away (three in a column for area runes); a Source parent leads, otherwise `Bolt>` leads | A fixed, readable stage |
+| Recipes again (P9) | Writing a known recipe again makes another copy for one solvent | Runes come in counts |
+| Old saves (P10) | Old research points became solvents round-robin Gallnut → Pitch → Cinder | They were promised as reagents |
+| Unlocks (P11) | Bench: from the first solvent (then it stays). Fair Copy: once anything is proven. The first compile of each idiom is free | §6.2 sequence |
+| Shelf (P12) | Two tabs: Runes (20, three rows of 7) and Fair copies | 20 runes no longer fit two rows |
+| Bench feel | Solvents seen before can be trialled at 0 count; a repeated attempt says "tried before"; Write in ink needs a fresh exact trial | Never punish curiosity; the commit stays deliberate |
+| Idioms | Matched as an ordered subsequence along one branch (`Bolt ▸ Ink ▸ On Inked ▸ Spark` is Cashing In); Undertaker = Source → On Kill → any Material | The §7 example must count; no rune is a "Reach-area" payload |
+| Bench runes | Quill 2 damage, 4 charges, pools ink under what it hits; Brand also inks, never pools, lasts the battle, +2 fire (the larger of branded/oil-soaked applies); Smear passes the mark one hop (allies too); Torch lights every oil tile in its footprint; Mist inks a whole touched cloud, then clears it | Drafts made concrete |
+| Loot | Each Seam table carries Gallnut, Pitch and Cinder (weight 1 each); deep and heart add vellum (1) | Roughly the old research share |
+| Codex | An aspect counts as known once an owned rune carries it; unknown recipes show their silhouette and torn sentence | Aspects are read off runes you hold |
+| Fair Copy in the Study | Proven cells glow whenever something is proven (the discovery cue); a "Fair copy" toggle appears at the page's bottom-left; tap a glowing cell to select the largest proven pattern, tap its last rune to trim (the way in stays; never below 3); the confirm sheet shows ink before → after, runes that would be stranded, and needs a name (≤ 24 characters) | Pre-computed glows and tap-to-trim keep selection phone-friendly (§10 risk) |
+| Glyphs on the page | Tapping a Glyph turns it (the arrow is the way in) and shows a card with "Look inside" (peek, rename); a placed Glyph tool is dropped after one placement; any placement that would push ink over capacity (an aura next to a Glyph adds +1) is refused | Same gestures as arrow runes |
 
 ## 1. The idea in one page
 

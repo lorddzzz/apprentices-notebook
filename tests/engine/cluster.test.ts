@@ -13,6 +13,8 @@ import {
   maximalProven,
   parseLattice,
   provenCount,
+  sharedCells,
+  sharingSpells,
   toGlyphDef,
 } from '$engine';
 import { turnDir } from '../../src/engine/cluster';
@@ -250,6 +252,23 @@ describe('blockingAuras', () => {
     const cl = clustersOf(l)[0];
     if (!cl) throw new Error('no cluster');
     expect(blockingAuras(l, cl)).toEqual([]);
+  });
+});
+
+describe('sharedCells', () => {
+  test('another spell flowing into a cluster cell shares it', () => {
+    const l = parseLattice('Bolt> Ink OnInked Spark\n. Bolt^ . .');
+    const cl = clustersOf(l).find((x) => x.cells.length === 3 && x.root.x === 0);
+    if (!cl) throw new Error('no cluster');
+    expect(sharedCells(l, cl)).toEqual([c(1, 0)]);
+    expect(sharingSpells(l, cl)).toEqual([{ cell: c(1, 0), source: c(1, 1) }]);
+  });
+
+  test('a lone spell shares nothing', () => {
+    const l = parseLattice('Bolt> Ink OnInked Spark');
+    const cl = clustersOf(l)[0];
+    if (!cl) throw new Error('no cluster');
+    expect(sharedCells(l, cl)).toEqual([]);
   });
 });
 

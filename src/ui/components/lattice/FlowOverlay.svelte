@@ -15,8 +15,20 @@
   // Trim so lines live in the gaps between the rune frames instead of under them.
   const TRIM = 0.33;
 
+  // A Glyph's inner cells all sit on its one socket: draw the way in, not the walk inside.
+  const outer = $derived<CompiledLattice>({
+    ...compiled,
+    spells: compiled.spells.map((s) => ({
+      ...s,
+      path: s.path.filter((c, i) => {
+        const prev = s.path[i - 1];
+        return !(c.inner && prev && prev.at.x === c.at.x && prev.at.y === c.at.y);
+      }),
+    })),
+  });
+
   const segments = $derived(
-    flowSegments(compiled, focus)
+    flowSegments(outer, focus)
       // faint segments first so the focused spell always draws on top
       .sort((a, b) => Number(a.focused) - Number(b.focused))
       .map((s) => {

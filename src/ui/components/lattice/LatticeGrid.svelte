@@ -3,6 +3,7 @@
   import {
     type CompiledLattice,
     type Coord,
+    type GlyphLibrary,
     isGlyph,
     isSocket,
     key,
@@ -24,6 +25,12 @@
     numbers?: ReadonlyMap<string, number>;
     /** Socket the player is inspecting (ringed). */
     inspected?: Coord | null;
+    /** The page's Fair copies, for drawing Glyph sockets. */
+    glyphs?: GlyphLibrary;
+    /** Cells of proven clusters (they glow). */
+    glow?: ReadonlySet<string>;
+    /** Cells of the Fair copy selection (outlined). */
+    selection?: ReadonlySet<string>;
     ontap: (at: Coord) => void;
     onlongpress: (at: Coord) => void;
   }
@@ -34,6 +41,9 @@
     focus,
     numbers = new Map(),
     inspected = null,
+    glyphs = {},
+    glow = new Set(),
+    selection = new Set(),
     ontap,
     onlongpress,
   }: Props = $props();
@@ -51,7 +61,7 @@
 
   const cellLabel = (at: Coord): string => {
     const placed = socketAt(lattice, at);
-    return `${label(at)}: ${placed ? (isGlyph(placed) ? `Glyph ${placed.glyph}` : RUNES[placed.rune].name) : 'empty socket'}`;
+    return `${label(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : RUNES[placed.rune].name) : 'empty socket'}`;
   };
 </script>
 
@@ -70,6 +80,8 @@
           class:filled={c.placed !== null}
           class:lit={lit.has(c.k)}
           class:inspected={inspected !== null && key(inspected) === c.k}
+          class:glow={glow.has(c.k)}
+          class:picked={selection.has(c.k)}
           aria-label={cellLabel(c.at)}
           title={c.placed && idle.has(c.k) ? 'Does nothing yet' : undefined}
           data-at={c.k}
@@ -77,7 +89,13 @@
           {@attach longpress(() => onlongpress(c.at))}
         >
           {#if c.placed && isGlyph(c.placed)}
-            <span class="glyph-socket" aria-hidden="true">{c.placed.glyph.charAt(0).toUpperCase()}</span>
+            <RuneGlyph
+              rune={null}
+              dir={c.placed.dir}
+              glyphName={glyphs[c.placed.glyph]?.name ?? c.placed.glyph}
+              glyphKind={glyphs[c.placed.glyph]?.kind ?? 'spell'}
+              size={44}
+            />
           {:else if c.placed}
             <RuneGlyph rune={c.placed.rune} dir={c.placed.dir} dim={idle.has(c.k)} size={44} />
           {/if}
@@ -136,6 +154,16 @@
     background: rgba(139, 58, 43, 0.12);
     border-color: var(--f-source);
   }
+  .socket.glow {
+    border-color: var(--lamp);
+    background: rgba(232, 176, 74, 0.28);
+    box-shadow: 0 0 8px 1px rgba(232, 176, 74, 0.7);
+  }
+  .socket.picked {
+    border: 2.5px solid var(--select);
+    background: rgba(232, 176, 74, 0.5);
+    box-shadow: 0 0 0 2px var(--ink);
+  }
   .socket.inspected {
     outline: 3px solid var(--select);
     outline-offset: 1px;
@@ -157,10 +185,6 @@
     color: var(--parchment);
     font: 700 11px var(--mono);
     pointer-events: none;
-  }
-  .glyph-socket {
-    font: 700 calc(var(--pitch) * 0.4) var(--mono);
-    color: var(--ink);
   }
   .socket :global(svg) {
     width: 82%;

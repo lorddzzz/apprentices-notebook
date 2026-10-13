@@ -22,7 +22,7 @@ import {
   TUNING,
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
-import { blockingAuras, type Cluster, toGlyphDef } from './cluster';
+import { blockingAuras, type Cluster, sharingSpells, toGlyphDef } from './cluster';
 import { fairCopy } from './glyph';
 import { type Coord, DIRS, label } from './grid';
 import { compileLattice, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
@@ -730,6 +730,12 @@ export function compileGlyph(p: Profile, m: MemberId, cluster: Cluster, name: st
     const aura = l.runes.find((r) => r.at.x === blocker.x && r.at.y === blocker.y);
     const what = aura && !isGlyph(aura) ? RUNES[aura.rune].name : 'Aura';
     throw new Error(`The ${what} at ${label(blocker)} also powers runes outside the selection`);
+  }
+  const sharing = sharingSpells(l, cluster, lib)[0];
+  if (sharing) {
+    const other = l.runes.find((r) => r.at.x === sharing.source.x && r.at.y === sharing.source.y);
+    const what = other && !isGlyph(other) ? RUNES[other.rune].name : 'Glyph';
+    throw new Error(`The ${what} at ${label(sharing.source)} also flows through this selection`);
   }
   let n = p.glyphs.length + 1;
   while (lib[`g${n}`]) n += 1;

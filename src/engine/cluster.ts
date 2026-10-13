@@ -183,6 +183,44 @@ export function blockingAuras(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary
   return out.sort(byReadingOrder);
 }
 
+/**
+ * Cluster cells that another spell's flow also runs through (or enters at the root), with that
+ * spell's source cell. The Fair Copy would silently cut such a spell, so it is refused.
+ */
+export function sharingSpells(
+  l: Lattice,
+  cluster: Cluster,
+  glyphs: GlyphLibrary = {},
+): { cell: Coord; source: Coord }[] {
+  const placedAt = placedMap(l);
+  const trees = compileLattice(l, [], glyphs).spells.map((spell) => ({
+    spell,
+    tree: flowTree(spell, placedAt),
+  }));
+  const holdsAll = (t: FlowCell[]): boolean =>
+    cluster.cells.every((c) => t.some((x) => sameCoord(x.at, c)));
+  const own =
+    cluster.kind === 'spell'
+      ? trees.find((t) => sameCoord(t.spell.at, cluster.root))
+      : trees.find((t) => holdsAll(t.tree));
+  const out: { cell: Coord; source: Coord }[] = [];
+  for (const t of trees) {
+    if (t === own) continue;
+    const hit = cluster.cells.find((c) => t.tree.some((x) => sameCoord(x.at, c)));
+    if (hit) out.push({ cell: { ...hit }, source: { ...t.spell.at } });
+  }
+  return out;
+}
+
+/** The cluster cells another spell's flow shares (see `sharingSpells`), in reading order. */
+export function sharedCells(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary = {}): Coord[] {
+  const cells: Coord[] = [];
+  for (const s of sharingSpells(l, cluster, glyphs)) {
+    if (!cells.some((c) => sameCoord(c, s.cell))) cells.push(s.cell);
+  }
+  return cells.sort(byReadingOrder);
+}
+
 // ── Idioms ──────────────────────────────────────────────
 
 /** Ids of the idioms one branch (shapes already skipped, source first for spells) matches. */

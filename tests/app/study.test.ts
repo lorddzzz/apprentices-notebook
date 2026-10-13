@@ -2,13 +2,18 @@ import { expect, test } from 'vitest';
 import { MEMBER_IDS, MEMBERS, RUNE_IDS, START_COLLECTION } from '$data';
 import {
   canPlace,
+  type GlyphDef,
+  glyphCost,
+  glyphLibrary,
   inkUsed,
   isSocket,
   type Lattice,
   latticeOf,
   newProfile,
+  type Profile,
   parseLattice,
   serializeLattice,
+  setMemberLattice,
   socketAt,
 } from '$engine';
 import {
@@ -17,8 +22,10 @@ import {
   editProfile,
   editSocket,
   freeCounter,
+  glyphSlots,
   inkLeft,
   NO_TOOL,
+  noteIdioms,
   profileShelf,
   type ShelfTool,
   shelfSlots,
@@ -234,4 +241,113 @@ test('editProfile leaves the input profile untouched and only the edited member 
   expect(p).toEqual(snapshot);
   expect(r.profile.lattices.stoker).toBe(p.lattices.stoker);
   expect(r.profile.lattices.draughtsman).toHaveLength(p.lattices.draughtsman.length + 1);
+});
+
+// ── Fair copies (Glyphs) on the page ──
+
+const GLYPH_DEF: GlyphDef = {
+  id: 'g1',
+  name: 'Cashing In',
+  kind: 'spell',
+  cells: [
+    { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
+    { at: { x: 1, y: 0 }, rune: 'ink' },
+    { at: { x: 2, y: 0 }, rune: 'onInked' },
+    { at: { x: 3, y: 0 }, rune: 'spark' },
+  ],
+  entry: { x: 0, y: 0 },
+  exits: [],
+  idiom: 'cashingIn',
+};
+
+/** A fresh profile owning one spare of each inner rune, holding the Glyph, with an empty page. */
+function withGlyph(ink = 8): Profile {
+  const p = newProfile();
+  const collection = { ...p.collection };
+  for (const c of GLYPH_DEF.cells) collection[c.rune] += 1;
+  return {
+    ...p,
+    collection,
+    glyphs: [GLYPH_DEF],
+    inkCapacity: { ...p.inkCapacity, draughtsman: ink },
+    lattices: { ...p.lattices, draughtsman: [] },
+  };
+}
+const GLYPH_TOOL: ShelfTool = { kind: 'glyph', glyph: 'g1' };
+const SPOT = { x: 1, y: 1 };
+
+test('glyphSlots: cost, and usable only while every inner rune is free', () => {
+  const p = withGlyph();
+  const [slot] = glyphSlots(p, 'draughtsman');
+  expect(slot?.cost).toBe(glyphCost(GLYPH_DEF));
+  expect(slot?.usable).toBe(true);
+  const poor = { ...p, collection: { ...p.collection, spark: 0 } };
+  expect(glyphSlots(poor, 'draughtsman')[0]?.usable).toBe(false);
+});
+
+test('a Glyph tool places the Glyph pointing right, then lets go of the tool', () => {
+  const p = withGlyph();
+  const r = editProfile(p, 'draughtsman', SPOT, GLYPH_TOOL, false);
+  expect(r.decision).toEqual({ kind: 'placeGlyph', glyph: 'g1' });
+  expect(r.tool).toEqual(NO_TOOL);
+  expect(socketAt(latticeOf(r.profile, 'draughtsman'), SPOT)).toEqual({
+    at: SPOT,
+    glyph: 'g1',
+    dir: 'right',
+  });
+});
+
+test('tapping a placed Glyph turns it like a Source: down, left, up, right', () => {
+  let p = editProfile(withGlyph(), 'draughtsman', SPOT, GLYPH_TOOL, false).profile;
+  const dirs: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    const r = editProfile(p, 'draughtsman', SPOT, NO_TOOL, false);
+    expect(r.decision.kind).toBe('rotate');
+    p = r.profile;
+    const g = socketAt(latticeOf(p, 'draughtsman'), SPOT);
+    dirs.push(g && 'glyph' in g ? g.dir : '?');
+  }
+  expect(dirs).toEqual(['down', 'left', 'up', 'right']);
+});
+
+test('placing a Glyph is refused without ink, and when its runes are in use', () => {
+  const tight = withGlyph(glyphCost(GLYPH_DEF) - 1);
+  const r = editProfile(tight, 'draughtsman', SPOT, GLYPH_TOOL, false);
+  expect(r.changed).toBe(false);
+  expect(r.message).toMatch(/ink/i);
+  const spent = withGlyph();
+  const used = { ...spent, collection: { ...spent.collection, spark: 0 } };
+  expect(editProfile(used, 'draughtsman', SPOT, GLYPH_TOOL, false).message).toBe('None left');
+});
+
+test('ink counts the Glyph and its outer aura (+1), and the shelf counts the inner runes', () => {
+  const cost = glyphCost(GLYPH_DEF);
+  const base = withGlyph(cost + 1);
+  const owned = { ...base, collection: { ...base.collection, amplify: 1 } };
+  const p = editProfile(owned, 'draughtsman', SPOT, GLYPH_TOOL, false).profile;
+  const lib = glyphLibrary(p);
+  expect(inkUsed(latticeOf(p, 'draughtsman'), lib)).toBe(cost);
+  expect(inkLeft(latticeOf(p, 'draughtsman'), p.inkCapacity.draughtsman, lib)).toBe(1);
+  // An Amplify next to the Glyph costs its own ink plus the Glyph's +1: it does not fit in 1.
+  const aura = editProfile(
+    p,
+    'draughtsman',
+    { x: 2, y: 1 },
+    { kind: 'rune', rune: 'amplify' },
+    false,
+  );
+  expect(aura.changed).toBe(false);
+  expect(aura.message).toMatch(/ink/i);
+  // Inner runes are not free on the shelf any more.
+  const spark = profileShelf(p, 'draughtsman').find((s) => s.rune === 'spark');
+  const before = profileShelf(owned, 'draughtsman').find((s) => s.rune === 'spark');
+  expect(spark?.free).toBe((before?.free ?? 0) - 1);
+});
+
+test('noteIdioms toasts a fresh idiom once', () => {
+  let p = newProfile();
+  p = setMemberLattice(p, 'draughtsman', parseLattice('. . . . .\nBolt> Ink OnInked Spark .'));
+  const first = noteIdioms(p);
+  expect(first.toasts).toEqual(['Idiom recognised: Cashing In']);
+  expect(noteIdioms(first.profile).toasts).toEqual([]);
 });

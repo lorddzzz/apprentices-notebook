@@ -1,5 +1,14 @@
 import { type InteractionId, MEMBER_IDS, type MemberId } from '$data';
-import type { ActionResult, Coord, GameEvent, Profile, SaveData } from '$engine';
+import {
+  type ActionResult,
+  type Cluster,
+  type Coord,
+  compileGlyph,
+  type GameEvent,
+  type Profile,
+  renameGlyph,
+  type SaveData,
+} from '$engine';
 import { BattleSession } from './battle.svelte';
 import { interactionTitle } from './describe';
 import {
@@ -17,7 +26,7 @@ import {
 } from './flow';
 import { go } from './router.svelte';
 import { loadSave, type SaveBackend, saveText, writeSave } from './save';
-import { NO_TOOL, type ShelfTool } from './study';
+import { NO_TOOL, noteIdioms, type ShelfTool } from './study';
 import { toast } from './toasts.svelte';
 
 /**
@@ -67,6 +76,36 @@ export class GameStore {
     this.save = r.save;
     this.tool = r.tool;
     if (r.message) toast(r.message);
+    if (r.changed) this.recogniseIdioms();
+  }
+
+  /** A fresh idiom on either page goes into the codex, with a toast (design §4.6). */
+  private recogniseIdioms(): void {
+    const { profile, toasts } = noteIdioms(this.save.profile);
+    if (toasts.length === 0) return;
+    this.setProfile(profile);
+    for (const line of toasts) toast(line);
+  }
+
+  /** Fair Copy: collapses `cluster` on the current page into a named Glyph. Returns why not, or null. */
+  fairCopy(cluster: Cluster, name: string): string | null {
+    try {
+      this.setProfile(compileGlyph(this.save.profile, this.member, cluster, name));
+    } catch (e) {
+      return e instanceof Error ? e.message : 'The Fair copy failed';
+    }
+    this.tool = NO_TOOL;
+    toast(`Fair copy: ${name.trim()}`);
+    return null;
+  }
+
+  renameGlyph(id: string, name: string): string | null {
+    try {
+      this.setProfile(renameGlyph(this.save.profile, id, name));
+    } catch (e) {
+      return e instanceof Error ? e.message : 'Could not rename';
+    }
+    return null;
   }
 
   /** Replaces the profile (the Bench writes recipes through this) and saves. */

@@ -143,12 +143,8 @@ test('research loop: solvent, Smear, proof, Fair Copy, identical cast', () => {
   expect(world(glyphCast.state)).toBe(world(flat.state));
 });
 
-/**
- * ENGINE GAP (reported, not fixed): `compileGlyph` collapses a cluster even when another spell
- * flows through one of its cells (a side entry). The second Bolt below points at the Ink cell;
- * after the Fair Copy that cell is empty and the second spell silently dies.
- */
-test.fails('Fair Copy keeps a second spell that enters the cluster from the side', () => {
+/** A second spell entering the cluster from the side makes the Fair Copy refuse (it would cut that spell). */
+test('Fair Copy refuses when a second spell enters the cluster from the side', () => {
   let p = newProfile();
   p = { ...p, vellum: 2, collection: { ...p.collection, bolt: p.collection.bolt + 1 } };
   let lat = setSocket(latticeOf(p, 'draughtsman'), { x: 2, y: 1 }, 'spark');
@@ -172,7 +168,6 @@ test.fails('Fair Copy keeps a second spell that enters the cluster from the side
       aim: { kind: 'dir', dir },
     });
   };
-  const flatSide = describeLog(cast(p, '1,2', 'down').events);
 
   const first = cast(p, '0,1', 'right');
   for (let i = 0; i < TUNING.provenCasts; i++) {
@@ -182,6 +177,7 @@ test.fails('Fair Copy keeps a second spell that enters the cluster from the side
     (c) => c.kind === 'spell' && c.root.x === 0 && c.cells.length === 3,
   );
   if (!cluster) throw new Error('no cluster');
-  const compiled = compileGlyph(p, 'draughtsman', cluster, 'Row');
-  expect(describeLog(cast(compiled, '1,2', 'down').events)).toEqual(flatSide);
+  expect(() => compileGlyph(p, 'draughtsman', cluster, 'Row')).toThrow(
+    /Bolt at B3 also flows through this selection/,
+  );
 });

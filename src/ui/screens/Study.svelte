@@ -1,21 +1,85 @@
 <script lang="ts">
   import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
-  import { compiledFor, describeSpell, latticeOf, validateLoadout } from '$engine';
+  import {
+    compiledFor,
+    describeSpell,
+    type GlyphId,
+    glyphLibrary,
+    latticeOf,
+    validateLoadout,
+  } from '$engine';
   import { benchUnlocked } from '../../app/bench';
+  import {
+    type FairState,
+    fairTap,
+    glowCells,
+    NO_SELECTION,
+    previewFairCopy,
+  } from '../../app/faircopy';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
-  import { profileShelf } from '../../app/study';
+  import { glyphSlots, NO_TOOL, profileShelf } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import Button from '../components/common/Button.svelte';
   import Sheet from '../components/common/Sheet.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
+  import RuneGlyph from '../components/RuneGlyph.svelte';
+  import FairCopySheet from '../components/study/FairCopySheet.svelte';
+  import GlyphSheet from '../components/study/GlyphSheet.svelte';
   import StudyScene from '../components/study/StudyScene.svelte';
 
   const profile = $derived(game.profile);
   const lattice = $derived(latticeOf(profile, game.member));
   const compiled = $derived(compiledFor(profile, game.member));
   const slots = $derived(profileShelf(profile, game.member));
+  const library = $derived(glyphLibrary(profile));
+  const copies = $derived(glyphSlots(profile, game.member));
+
+  // Fair copy: proven cells glow; the mode selects the maximal proven cluster and trims it.
+  const glow = $derived(glowCells(profile, game.member));
+  let fairMode = $state(false);
+  let fair = $state.raw<FairState>(NO_SELECTION);
+  let fairOpen = $state(false);
+  let peeked = $state<GlyphId | null>(null);
+  const selected = $derived(new Set((fair.cluster?.cells ?? []).map((c) => `${c.x},${c.y}`)));
+  const preview = $derived(
+    fair.cluster ? previewFairCopy(profile, game.member, fair.cluster) : null,
+  );
+  const fairLive = $derived(fairMode && glow.size > 0);
+
+  function leaveFair(): void {
+    fairMode = false;
+    fair = NO_SELECTION;
+    fairOpen = false;
+  }
+
+  function toggleFair(): void {
+    if (fairMode) {
+      leaveFair();
+      return;
+    }
+    game.setTool(NO_TOOL);
+    fairMode = true;
+  }
+
+  function tapFair(at: { x: number; y: number }): void {
+    const r = fairTap(profile, game.member, fair, at);
+    fair = r.state;
+    if (r.message) toast(r.message);
+  }
+
+  function confirmFair(name: string): string | null {
+    if (!fair.cluster) return 'Nothing is selected';
+    const why = game.fairCopy(fair.cluster, name);
+    if (why === null) leaveFair();
+    return why;
+  }
+
+  function switchMember(m: typeof game.member): void {
+    leaveFair();
+    game.selectMember(m);
+  }
 
   // What stops the party leaving: the first problem with either lattice, in plain words.
   const blocker = $derived.by(() => {
@@ -106,10 +170,51 @@
       ontool={(t) => game.setTool(t)}
       onsocket={(at, longPress) => game.tapSocket(at, longPress)}
       member={game.member}
-      onmember={(m) => game.selectMember(m)}
+      onmember={switchMember}
       onreject={(reason) => toast(reason)}
       known={profile.interactions}
-    />
+      glyphs={library}
+      glyphSlots={copies}
+      onpeek={(id) => (peeked = id)}
+      fair={{
+        available: glow.size > 0,
+        active: fairLive,
+        glow,
+        selected,
+        ontoggle: toggleFair,
+        ontap: tapFair,
+      }}
+    >
+      {#snippet fairinfo()}
+        <div class="fairinfo" data-testid="fair-info">
+          {#if preview}
+            <ol class="mini" aria-label="Selected runes">
+              {#each preview.chain as step (`${step.at.x},${step.at.y}`)}
+                <li><RuneGlyph rune={step.rune} dir={step.dir} size={26} /></li>
+              {/each}
+            </ol>
+            <p class="line">
+              {preview.chain.length} runes · ink {preview.inkBefore} &rarr; {preview.inkAfter}
+              {#if preview.blocking.length > 0}<span class="bad"> · blocked</span>{/if}
+            </p>
+            <p class="rule">Tap the last rune to trim it, or another glowing rune to start over.</p>
+            <div class="fairrow">
+              <Button variant="quiet" label="Done" onclick={leaveFair} />
+              <Button label="Fair-copy…" onclick={() => (fairOpen = true)} testid="fair-review" />
+            </div>
+          {:else}
+            <p class="line"><b>Fair copy</b></p>
+            <p class="rule">
+              Glowing runes have proven themselves. Tap one to select the whole proven chain, and
+              fold it into a single Glyph.
+            </p>
+            <div class="fairrow">
+              <Button variant="quiet" label="Done" onclick={leaveFair} />
+            </div>
+          {/if}
+        </div>
+      {/snippet}
+    </LatticeEditor>
   </div>
 
   <div class="doorway">
@@ -132,6 +237,18 @@
       </span>
     </button>
   </div>
+
+  <FairCopySheet
+    preview={fairOpen ? preview : null}
+    vellum={profile.vellum}
+    onclose={() => (fairOpen = false)}
+    onconfirm={confirmFair}
+  />
+  <GlyphSheet
+    glyph={peeked ? (library[peeked] ?? null) : null}
+    onclose={() => (peeked = null)}
+    onrename={(id, name) => game.renameGlyph(id, name)}
+  />
 
   <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>
     {#if panel === 'door'}
@@ -207,6 +324,36 @@
     flex: 1;
     min-height: 0;
     padding: var(--space-2) var(--space-2) 0;
+  }
+  .fairinfo {
+    padding: var(--space-1) var(--space-2);
+  }
+  .mini {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    margin: 0 0 2px;
+    padding: 0;
+    list-style: none;
+  }
+  .fairinfo .line {
+    margin: 0;
+    font-size: 14px;
+  }
+  .fairinfo .rule {
+    margin: 2px 0 0;
+    font-size: 13px;
+    line-height: 1.25;
+    color: var(--ink-soft);
+  }
+  .bad {
+    color: var(--danger);
+  }
+  .fairrow {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
   }
   .doorway {
     flex: none;

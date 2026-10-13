@@ -6,7 +6,7 @@
 
 | Feature | Doc | Status | Summary in DESIGN.md | Plan |
 |---|---|---|---|---|
-| Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Decided**, building the first slice | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md) |
+| Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Building**: first slice (Bench + Compile) shipped 2026-10-13 | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md) |
 
 ## How a feature doc works
 
