@@ -23,6 +23,7 @@ import {
   isAlive,
   memberById,
   spellOf,
+  type Travel,
   tileAt,
   travel,
   unitAt,
@@ -36,11 +37,23 @@ import type {
   MemberUnit,
   Spell,
   SpellNode,
+  Unit,
 } from './types';
 
 export type CastAction = Extract<Action, { type: 'cast' }>;
 
 type Scale = (magnitude: number) => number;
+
+/**
+ * Where the path runes land. `pierced` is for runes behind a Pierce (every unit the projectile
+ * passed); it equals `base` for any spell that has none.
+ */
+interface Targets {
+  base: Coord[];
+  pierced: Coord[];
+}
+
+const same = (tiles: Coord[]): Targets => ({ base: tiles, pierced: tiles });
 
 /** Cast action (legality checked by `isLegal`): spends the charge and the action, then resolves. */
 export function castAction(ctx: Ctx, action: CastAction): void {
@@ -92,7 +105,7 @@ export function castSpell(
   ctx.cast = { kills: [] };
   const targets = resolveSource(ctx, caster, spell, aim, scale);
   const ran: SpellNode[] = [];
-  runNodes(ctx, spell.nodes, targets, scale, ran);
+  runNodes(ctx, spell.nodes, targets, scale, ran, from);
   if (spell.echo && !echo && isAlive(caster)) {
     const entry: EchoEntry = { caster: caster.id, spell: spell.key, aim: structuredClone(aim) };
     ctx.s.echoes.push(entry);
@@ -126,6 +139,7 @@ const MEANINGFUL: ReadonlySet<string> = new Set([
   'smear',
   'mist',
   'branded',
+  'pierced',
 ]);
 
 /** The source, every node that ran and the shape cells walked to reach it, once each (plan P7). */
@@ -159,7 +173,7 @@ function resolveSource(
   spell: Spell,
   aim: Aim,
   scale: Scale,
-): Coord[] {
+): Targets {
   const s = ctx.s;
   const m = scale(spell.magnitude);
   switch (spell.source) {
@@ -168,35 +182,54 @@ function resolveSource(
       // Quill flies like a Bolt but pools ink under the unit it hits.
       const name = spell.source === 'quill' ? 'Quill' : 'Bolt';
       if (aim.kind !== 'dir') throw new Error(`${name} needs a direction`);
+      const strike = (u: Unit, at: Coord): void => {
+        dealDamage(ctx, u, m, name);
+        if (spell.source === 'quill' && !tileAt(s, at).plate && !tileAt(s, at).ink) {
+          tileAt(s, at).ink = true;
+          emit(ctx, { type: 'puddle', tiles: [{ ...at }] });
+        }
+      };
       const r = travel(s, caster.pos, aim.dir, boltRange(s), caster.id);
-      switch (r.reason) {
-        case 'none':
-          emit(ctx, { type: 'miss', source: name });
-          return [];
-        case 'unit':
-          dealDamage(ctx, r.unit, m, name);
-          if (spell.source === 'quill' && !tileAt(s, r.stop).plate && !tileAt(s, r.stop).ink) {
-            tileAt(s, r.stop).ink = true;
-            emit(ctx, { type: 'puddle', tiles: [{ ...r.stop }] });
-          }
-          break;
+      if (r.reason === 'none') {
+        emit(ctx, { type: 'miss', source: name });
+        return same([]);
+      }
+      const first = r.stop;
+      let last: Travel = r;
+      let all: Coord[] = r.path;
+      if (r.reason === 'unit') strike(r.unit, r.stop);
+      // Pierce: the first unit is passed, and the projectile flies on from its tile.
+      const through = r.reason === 'unit' && spell.pierce === true;
+      if (through) {
+        emit(ctx, { type: 'pierced', source: name, unit: ref(r.unit, r.stop) });
+        last = travel(s, r.stop, aim.dir, boltRange(s), caster.id);
+        all = [...r.path, ...last.path];
+      }
+      switch (last.reason) {
         case 'steam':
-          emit(ctx, { type: 'stopped', source: name, at: r.stop, by: 'steam', path: r.path });
+          emit(ctx, { type: 'stopped', source: name, at: last.stop, by: 'steam', path: all });
           break;
         case 'brass':
           emit(ctx, {
             type: 'stopped',
             source: name,
-            at: r.stop,
+            at: last.stop,
             by: 'brass plate',
-            path: r.path,
+            path: all,
           });
           break;
         case 'end':
-          emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
+          emit(ctx, { type: 'lands', source: name, at: last.stop, path: all });
+          break;
+        case 'unit':
+          if (through) strike(last.unit, last.stop);
+          break;
+        case 'none':
           break;
       }
-      return [{ ...r.stop }];
+      if (!through) return same([{ ...first }]);
+      const end = last.reason === 'none' ? [] : [{ ...last.stop }];
+      return { base: [{ ...first }], pierced: [{ ...first }, ...end] };
     }
     case 'splash': {
       if (aim.kind !== 'tile') throw new Error('Splash needs a tile');
@@ -206,15 +239,15 @@ function resolveSource(
         const u = unitAt(s, t);
         if (u) dealDamage(ctx, u, m, 'Splash');
       }
-      return tiles;
+      return same(tiles);
     }
     case 'ward': {
       if (aim.kind !== 'ally') throw new Error('Ward needs an ally');
       const ally = findUnit(s, aim.unit);
-      if (!ally || !isAlive(ally)) return [];
+      if (!ally || !isAlive(ally)) return same([]);
       ally.shield += m;
       emit(ctx, { type: 'shieldGained', unit: ref(ally), amount: m });
-      return [{ ...ally.pos }];
+      return same([{ ...ally.pos }]);
     }
   }
 }
@@ -223,66 +256,87 @@ function resolveSource(
 function runNodes(
   ctx: Ctx,
   nodes: readonly SpellNode[],
-  targets: Coord[],
+  targets: Targets,
   scale: Scale,
   ran: SpellNode[],
+  from: number,
 ): void {
   for (const node of nodes) {
     ran.push(node);
+    const at = node.pierced ? targets.pierced : targets.base;
     if (node.kind === 'material') {
       const m = scale(node.magnitude);
       switch (node.rune) {
         case 'spark':
-          applySpark(ctx, targets, m);
+          applySpark(ctx, at, m);
           break;
         case 'ink':
-          applyInk(ctx, footprint(ctx.s, targets, m));
+          applyInk(ctx, footprint(ctx.s, at, m));
           break;
         case 'oil':
-          applyOil(ctx, footprint(ctx.s, targets, m));
+          applyOil(ctx, footprint(ctx.s, at, m));
           break;
         case 'steam':
-          applySteam(ctx, footprint(ctx.s, targets, m));
+          applySteam(ctx, footprint(ctx.s, at, m));
           break;
         case 'brass':
-          applyBrass(ctx, footprint(ctx.s, targets, m));
+          applyBrass(ctx, footprint(ctx.s, at, m));
           break;
         case 'smear':
-          applySmear(ctx, footprint(ctx.s, targets, m));
+          applySmear(ctx, footprint(ctx.s, at, m));
           break;
         case 'torch':
-          applyTorch(ctx, footprint(ctx.s, targets, m));
+          applyTorch(ctx, footprint(ctx.s, at, m));
           break;
         case 'fog':
-          applyFog(ctx, footprint(ctx.s, targets, m));
+          applyFog(ctx, footprint(ctx.s, at, m));
           break;
         case 'mist':
-          applyMist(ctx, footprint(ctx.s, targets, m));
+          applyMist(ctx, footprint(ctx.s, at, m));
           break;
         case 'brand':
-          applyBrand(ctx, footprint(ctx.s, targets, m));
+          applyBrand(ctx, footprint(ctx.s, at, m));
           break;
         case 'scald':
         case 'etch':
         case 'kiln':
           break; // E3
       }
-      runNodes(ctx, node.next, targets, scale, ran);
+      runNodes(ctx, node.next, targets, scale, ran, from);
     } else if (node.rune === 'onInked') {
-      const passed = targets.some((t) => unitAt(ctx.s, t)?.inked === true);
+      const passed = at.some((t) => unitAt(ctx.s, t)?.inked === true);
       emit(ctx, { type: 'trigger', rune: 'onInked', passed });
-      if (passed) runNodes(ctx, node.next, targets, scale, ran);
+      if (passed) runNodes(ctx, node.next, targets, scale, ran, from);
     } else if (node.rune === 'onIgnite') {
-      emit(ctx, { type: 'trigger', rune: 'onIgnite', passed: false }); // E1
+      const lit = ignitedSince(ctx, from);
+      emit(ctx, { type: 'trigger', rune: 'onIgnite', passed: lit.length > 0 });
+      // The rest of the flow lands on the new fire, not on the cast's targets.
+      if (lit.length) runNodes(ctx, node.next, same(lit), scale, ran, from);
     } else {
       const victims = [...(ctx.cast?.kills ?? [])];
       if (!victims.length) emit(ctx, { type: 'trigger', rune: 'onKill', passed: false });
       for (const v of victims) {
         emit(ctx, { type: 'trigger', rune: 'onKill', passed: true, at: { ...v.at } });
-        runNodes(ctx, node.next, clip(ctx.s, [v.at, ...neighbors4(v.at)]), scale, ran);
+        const burst = clip(ctx.s, [v.at, ...neighbors4(v.at)]);
+        runNodes(ctx, node.next, same(burst), scale, ran, from);
       }
     }
   }
+}
+
+/** Every tile that caught fire since the cast began (log index `from`), each once, in log order. */
+function ignitedSince(ctx: Ctx, from: number): Coord[] {
+  const seen = new Set<string>();
+  const out: Coord[] = [];
+  for (const e of ctx.log.slice(from)) {
+    if (e.type !== 'ignite') continue;
+    for (const t of e.tiles) {
+      if (seen.has(key(t))) continue;
+      seen.add(key(t));
+      out.push({ ...t });
+    }
+  }
+  return out;
 }
 
 /** Is a stored echo still castable now? Bolt needs a flight, Ward a living ally; Splash always. */

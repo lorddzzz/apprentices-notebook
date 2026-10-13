@@ -71,6 +71,7 @@ export type SpellNode =
       next: readonly SpellNode[];
       inner?: Coord; // inside a Glyph: `at` is the Glyph's socket, `inner` the local cell
       via?: readonly Coord[]; // shape cells walked from the parent (or the source) to here
+      pierced?: true; // downstream of a Pierce: acts on every unit the projectile passed (plan S1)
     }
   | {
       kind: 'trigger';
@@ -79,6 +80,7 @@ export type SpellNode =
       next: readonly SpellNode[];
       inner?: Coord;
       via?: readonly Coord[];
+      pierced?: true;
     };
 
 export interface PathCell {
@@ -102,6 +104,8 @@ export interface Spell {
   charges: number; // max charges per trip (RUNES[source].charges)
   nodes: readonly SpellNode[];
   path: readonly PathCell[]; // every cell the flow entered, in walk order (for highlighting)
+  /** A Pierce is on the path of a line spell (Bolt, Quill): the projectile passes the first unit (plan S1). */
+  pierce?: true;
   glyph?: GlyphId; // set when the source is a Spell Glyph (`source` is then its inner source)
   /** Every cell the flow entered as proof sees it (a Glyph's inner cells collapse to its socket). */
   cells?: readonly FiredCell[];

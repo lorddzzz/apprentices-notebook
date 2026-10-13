@@ -78,7 +78,7 @@ interface Frame {
   /** A direction in this frame as seen on the outer lattice. */
   outward(d: Dir): Dir;
   /** Flow stepped onto a cell holding no rune of this frame. */
-  beyond(at: Coord, dir: Dir, via: readonly Coord[]): SpellNode[];
+  beyond(at: Coord, dir: Dir, via: readonly Coord[], pierced: boolean): SpellNode[];
   /** The cell as proof records it. */
   fired(at: Coord, placed: PlacedRune): FiredCell;
   /** Every cell entered, for `Spell.cells`. */
@@ -118,18 +118,27 @@ export function compileLattice(
     }
   };
 
-  function walkIn(f: Frame, cell: Coord, dir: Dir, via: readonly Coord[] = []): SpellNode[] {
+  function walkIn(
+    f: Frame,
+    cell: Coord,
+    dir: Dir,
+    via: readonly Coord[] = [],
+    behindPierce = false,
+  ): SpellNode[] {
     const placed = f.runeAt(cell);
-    if (!placed) return f.beyond(cell, dir, via);
+    if (!placed) return f.beyond(cell, dir, via, behindPierce);
     if (f.visited.has(key(cell))) return [];
     const def = RUNES[placed.rune];
     if (def.family === 'aura' || def.family === 'source') return []; // insulators
     f.visited.add(key(cell));
     f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
     f.cells.push(f.fired(cell, placed));
-    const go = (d: Dir, v: readonly Coord[] = []): SpellNode[] => walkIn(f, step(cell, d), d, v);
+    const pierced = behindPierce || placed.rune === 'pierce';
+    const go = (d: Dir, v: readonly Coord[] = []): SpellNode[] =>
+      walkIn(f, step(cell, d), d, v, pierced);
     const shaped = [...via, f.where(cell).at];
 
+    if (placed.rune === 'pierce') return go(dir, shaped);
     if (placed.rune === 'bend') {
       const out = placed.dir ?? 'right';
       return out === opposite(dir) ? [] : go(out, shaped);
@@ -152,11 +161,21 @@ export function compileLattice(
           amp,
           magnitude: def.base + amp + bonus,
           next: go(dir),
+          ...(pierced ? { pierced: true as const } : {}),
         },
       ];
     }
     if (isTrigger(placed.rune)) {
-      return [{ kind: 'trigger', rune: placed.rune, ...f.where(cell), via, next: go(dir) }];
+      return [
+        {
+          kind: 'trigger',
+          rune: placed.rune,
+          ...f.where(cell),
+          via,
+          next: go(dir),
+          ...(pierced ? { pierced: true as const } : {}),
+        },
+      ];
     }
     return [];
   }
@@ -174,9 +193,9 @@ export function compileLattice(
       where: (at) => ({ at: g.at, inner: at }),
       bonus: countAround(g.at, 'amplify'),
       outward: (d) => rotateDirLocal(d, g.dir),
-      beyond: (_at, dir, via) => {
+      beyond: (_at, dir, via, pierced) => {
         const out = rotateDirLocal(dir, g.dir);
-        return walkIn(outer, step(g.at, out), out, via);
+        return walkIn(outer, step(g.at, out), out, via, pierced);
       },
       fired: () => ({ at: g.at, rune: null, glyph: g.glyph, dir: g.dir }),
       cells: outer.cells,
@@ -196,13 +215,13 @@ export function compileLattice(
       fired: (at, placed) =>
         placed.dir ? { at, rune: placed.rune, dir: placed.dir } : { at, rune: placed.rune },
       cells,
-      beyond: (at, dir, via) => {
+      beyond: (at, dir, via, pierced) => {
         const g = glyphIn(at);
         const def = g ? glyphs[g.glyph] : undefined;
         if (!g || !def || def.kind !== 'payload' || dir !== g.dir) return [];
         if (visited.has(key(at)) || !cellMap(def).has(key(def.entry))) return [];
         visited.add(key(at));
-        return walkIn(innerFrame(g, def, frame), def.entry, 'right', via);
+        return walkIn(innerFrame(g, def, frame), def.entry, 'right', via, pierced);
       },
     };
     return frame;
@@ -227,11 +246,18 @@ export function compileLattice(
     if (!spell) continue;
     spells.push(spell);
     touch('echo', origin.at);
+    touch('thrift', origin.at);
     for (const cell of path) {
       reached.add(key(cell.at));
       // Amplify only matters on the source and on material cells; a socket stands for its inner ones.
       if (isSource(cell.rune) || isMaterial(cell.rune)) touch('amplify', cell.at);
     }
+  }
+
+  /** Pierce only means something to a line spell; on Splash and Ward it does nothing. */
+  function pierceOf(source: SourceRuneId, path: readonly PathCell[]): { pierce?: true } {
+    const line = source === 'bolt' || source === 'quill';
+    return line && path.some((p) => p.rune === 'pierce') ? { pierce: true } : {};
   }
 
   function plainSpell(src: PlacedRune | undefined, outer: Frame): Spell | null {
@@ -249,10 +275,11 @@ export function compileLattice(
       amp,
       magnitude: RUNES[sourceRune].base + amp,
       echo: countAround(src.at, 'echo') > 0,
-      charges: RUNES[sourceRune].charges,
+      charges: RUNES[sourceRune].charges + countAround(src.at, 'thrift'),
       nodes,
       path: outer.path,
       cells: outer.cells,
+      ...pierceOf(sourceRune, outer.path),
     };
   }
 
@@ -274,11 +301,13 @@ export function compileLattice(
       amp,
       magnitude: RUNES[sourceRune].base + amp,
       echo: inner.around(def.entry, 'echo') > 0 || countAround(g.at, 'echo') > 0,
-      charges: RUNES[sourceRune].charges,
+      charges:
+        RUNES[sourceRune].charges + inner.around(def.entry, 'thrift') + countAround(g.at, 'thrift'),
       nodes,
       path: outer.path,
       cells: outer.cells,
       glyph: g.glyph,
+      ...pierceOf(sourceRune, outer.path),
     };
   }
 
@@ -290,7 +319,9 @@ export function compileLattice(
 function describeNode(node: SpellNode): string {
   if (node.kind === 'trigger') {
     const inner = describeNodes(node.next) || '(nothing)';
-    return node.rune === 'onInked' ? `if inked: ${inner}` : `on kill, from each victim: ${inner}`;
+    if (node.rune === 'onInked') return `if inked: ${inner}`;
+    if (node.rune === 'onIgnite') return `if it ignites, on the fire: ${inner}`;
+    return `on kill, from each victim: ${inner}`;
   }
   const head =
     node.rune === 'spark'
@@ -310,9 +341,9 @@ function describeNodes(nodes: readonly SpellNode[]): string {
 function describeSource(s: Spell): string {
   switch (s.source) {
     case 'bolt':
-      return `Bolt (${s.magnitude} damage)`;
+      return `Bolt (${s.magnitude} damage${s.pierce ? ', pierces' : ''})`;
     case 'quill':
-      return `Quill (${s.magnitude} damage, pools ink)`;
+      return `Quill (${s.magnitude} damage, pools ink${s.pierce ? ', pierces' : ''})`;
     case 'splash':
       return `Splash (${s.magnitude} damage, 3×3)`;
     case 'ward':

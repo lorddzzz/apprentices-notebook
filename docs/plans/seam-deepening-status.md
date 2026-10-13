@@ -22,7 +22,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | W0 | opus (me) | M | merged | 88f115d | 5% | contracts, stubs, save v3, worktrees pruned |
 | P1 | haiku | S | todo | | | |
 | D1 | haiku | S | merged | (see log) | ~2% | recipe hints rewritten by me (D1's named the ingredients) |
-| E1 | sonnet | M | running | | | started 22:40 |
+| E1 | sonnet | M | merged | (see log) | ~6% | added Spell.pierce / SpellNode.pierced |
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
 | F1 | sonnet | M | running | | | started 22:40 |
 | E3 | sonnet | M | todo | | | after E2 |
@@ -58,7 +58,15 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - E2: a move ending on a stain cannot be undone (UndoRecord can't record it). Accepted for now; follow-up.
 - E2: fire and a crumbling plate clear stain and heat silently. Accepted.
 
+- E1: Pierce: both units take the Bolt's full damage, unit 1 first; Quill pools ink under each. Accepted.
+- E1: runes before a Pierce act on unit 1 only; a Pierce anywhere on the path makes the spell pierce (the source resolves first), even behind a failing trigger. Accepted.
+- E1: Pierce with no second unit: the projectile lands at the end; later runes target unit 1's tile plus the landing tile. Accepted.
+- E1: pierced projectile's stopped/lands path is the full flight. Accepted.
+- E1: Thrifts stack like Amplify (+1 each); a Glyph's inner Thrift counts too. Accepted (log as Proposal).
+- E1: `pierced` counts as meaningful for proof. Accepted.
+
 ## Decisions and fixes made during the build
 
 ## Follow-ups and rough edges
+- castPreview (src/engine/queries.ts ~318) calls `travel` once: the aim preview misses Pierce's second unit. recipe.ts needs Pierce / On Ignite / Thrift text (orchestrator, after E3).
 - Undo after walking onto a stain (needs `UndoRecord.stain`).
