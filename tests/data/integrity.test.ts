@@ -76,12 +76,12 @@ const recipe = (id: string): RecipeDef => {
   return r;
 };
 
-test('20 runes, unique tokens', () => {
-  expect(RUNE_IDS).toHaveLength(20);
-  expect(Object.keys(RUNES)).toHaveLength(20);
+test('26 runes, unique tokens', () => {
+  expect(RUNE_IDS).toHaveLength(26);
+  expect(Object.keys(RUNES)).toHaveLength(26);
   for (const id of RUNE_IDS) expect(RUNES[id].id).toBe(id);
   const tokens = RUNE_IDS.map((id) => RUNES[id].token);
-  expect(new Set(tokens).size).toBe(20);
+  expect(new Set(tokens).size).toBe(26);
 });
 
 test('arrow iff source or bend', () => {
@@ -118,7 +118,7 @@ test('codex has an entry per rune, interaction, recipe, idiom and aspect', () =>
   const expected =
     RUNE_IDS.length + INTERACTION_IDS.length + RECIPES.length + IDIOMS.length + ASPECT_IDS.length;
   expect(CODEX).toHaveLength(expected);
-  expect(CODEX).toHaveLength(44);
+  expect(CODEX).toHaveLength(55);
   for (const id of RUNE_IDS) expect(CODEX.some((c) => c.id === `rune:${id}`)).toBe(true);
   for (const id of INTERACTION_IDS)
     expect(CODEX.some((c) => c.id === `interaction:${id}`)).toBe(true);
@@ -136,9 +136,9 @@ test('every rune has two different aspects', () => {
   }
 });
 
-test('all 20 rune aspect pairs are unique (unordered)', () => {
+test('all 26 rune aspect pairs are unique (unordered)', () => {
   const pairs = RUNE_IDS.map((id) => pairKey(RUNES[id].aspects));
-  expect(new Set(pairs).size).toBe(20);
+  expect(new Set(pairs).size).toBe(26);
 });
 
 test('recipe results are bench runes, and every bench rune is a recipe result', () => {

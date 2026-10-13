@@ -47,6 +47,7 @@ const TRIP_SCREEN: Record<Trip['status'], Screen> = {
   looting: 'loot',
   crossroads: 'crossroads',
   cleared: 'cleared',
+  doorway: 'loot', // R1: field rewiring
 };
 
 /**

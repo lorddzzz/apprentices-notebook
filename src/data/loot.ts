@@ -82,4 +82,10 @@ export const START_COLLECTION: Record<RuneId, number> = {
   fog: 0,
   mist: 0,
   brand: 0,
+  pierce: 0,
+  onIgnite: 0,
+  thrift: 0,
+  scald: 0,
+  etch: 0,
+  kiln: 0,
 };

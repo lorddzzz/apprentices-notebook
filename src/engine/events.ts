@@ -43,7 +43,7 @@ export type GameEvent =
   | { type: 'shieldAbsorbs'; unit: UnitRef; absorbed: number; left: number }
   | { type: 'shieldGained'; unit: UnitRef; amount: number }
   | { type: 'died'; unit: UnitRef }
-  | { type: 'inked'; unit: UnitRef; via: 'mark' | 'puddle' }
+  | { type: 'inked'; unit: UnitRef; via: 'mark' | 'puddle' | 'stain' }
   | { type: 'smear'; from: UnitRef; to: UnitRef[] }
   | { type: 'mist'; tiles: Coord[] }
   | { type: 'branded'; unit: UnitRef }
@@ -67,6 +67,17 @@ export type GameEvent =
   | { type: 'steamFades'; tiles: Coord[] }
   | { type: 'plateCrumbles'; tiles: Coord[] }
   | { type: 'vent'; at: Coord }
+  /** Pierce: the projectile passes through `unit` and flies on (plan S1). */
+  | { type: 'pierced'; source: string; unit: UnitRef }
+  /** Fire heats brass (plan S5): plates on `tiles`, brass `units`. Re-heating emits it again. */
+  | { type: 'heated'; tiles: Coord[]; units: UnitRef[] }
+  | { type: 'cooled'; tiles: Coord[]; units: UnitRef[] }
+  /** Scald's cloud (plan S7): steam on `tiles` that scalds whoever stands in it. */
+  | { type: 'scalded'; tiles: Coord[] }
+  /** Ink lands on unlit oil and stains it (plan S6). */
+  | { type: 'stained'; tiles: Coord[] }
+  /** Etch marks brass (plan S8): plates on `tiles`, brass `units`. */
+  | { type: 'etched'; tiles: Coord[]; units: UnitRef[] }
   /** Silent: the cells that fired in a player cast, for proof (plan P6/P7). Never shown or animated. */
   | { type: 'trace'; caster: UnitRef; spell: SpellKey; cells: FiredCell[]; meaningful: boolean };
 
@@ -138,7 +149,9 @@ export function describe(e: GameEvent): string | null {
     case 'inked':
       return e.via === 'mark'
         ? `${who(e.unit)} is inked`
-        : `${who(e.unit)} steps in ink and is inked`;
+        : e.via === 'stain'
+          ? `${who(e.unit)} stops on stained oil and is inked`
+          : `${who(e.unit)} steps in ink and is inked`;
     case 'smear':
       return `the ink on ${who(e.from)} smears to ${e.to.map(who).join(', ')}`;
     case 'mist':
@@ -177,6 +190,11 @@ export function describe(e: GameEvent): string | null {
           ? 'On Inked: a target is inked'
           : 'On Inked: no inked target, the chain stops';
       }
+      if (e.rune === 'onIgnite') {
+        return e.passed
+          ? 'On Ignite: the flow follows the fire'
+          : 'On Ignite: nothing caught fire, the chain stops';
+      }
       return e.passed && e.at
         ? `On Kill: bursts from ${label(e.at)}`
         : 'On Kill: nothing died, the chain stops';
@@ -198,6 +216,18 @@ export function describe(e: GameEvent): string | null {
         : `the brass plates at ${list(e.tiles)} crumble`;
     case 'vent':
       return `the vent at ${label(e.at)} puffs steam`;
+    case 'pierced':
+      return `${e.source} passes through ${who(e.unit)}`;
+    case 'heated':
+      return `the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])} heats up`;
+    case 'cooled':
+      return `the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])} cools`;
+    case 'scalded':
+      return `scalding steam rises at ${list(e.tiles)}`;
+    case 'stained':
+      return `ink stains the oil at ${list(e.tiles)}`;
+    case 'etched':
+      return `a mark is etched into the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])}`;
     case 'trace':
       return null;
   }
@@ -215,6 +245,8 @@ const DISCOVERY: Partial<Record<GameEvent['type'], InteractionId>> = {
   extinguish: 'extinguish',
   slide: 'slide',
   diffuse: 'diffuse',
+  heated: 'heat',
+  stained: 'stain',
 };
 
 /** Interactions seen in an event log (dedup, first-seen order). */

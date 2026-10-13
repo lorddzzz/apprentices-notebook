@@ -17,8 +17,26 @@ test('parses units, mods and layers', () => {
   expect(b.width).toBe(3);
   expect(b.height).toBe(2);
   expect(b.units).toEqual([
-    { kind: 'enemy', def: 'rat', at: { x: 0, y: 0 }, inked: true, brass: false, branded: false },
-    { kind: 'enemy', def: 'rat', at: { x: 1, y: 1 }, inked: false, brass: true, branded: false },
+    {
+      kind: 'enemy',
+      def: 'rat',
+      at: { x: 0, y: 0 },
+      inked: true,
+      brass: false,
+      branded: false,
+      heat: 0,
+      etched: false,
+    },
+    {
+      kind: 'enemy',
+      def: 'rat',
+      at: { x: 1, y: 1 },
+      inked: false,
+      brass: true,
+      branded: false,
+      heat: 0,
+      etched: false,
+    },
     {
       kind: 'member',
       def: 'draughtsman',
@@ -26,6 +44,8 @@ test('parses units, mods and layers', () => {
       inked: false,
       brass: false,
       branded: false,
+      heat: 0,
+      etched: false,
     },
   ]);
   expect(b.tiles[0]).toMatchObject({ oil: true, fire: 0 });
@@ -117,4 +137,18 @@ test('a Glyph socket round-trips through lattice ASCII', () => {
   expect(serializeLattice(l)).toBe('Bolt> G:cashing>   .\n.     G:fair-copy^ x');
   expect(() => parseLattice('G:> .')).toThrow(/Glyph/);
   expect(() => parseLattice('G:abc .')).toThrow(/Glyph/);
+});
+
+test('stained oil, scalding steam, hot and etched brass round-trip', () => {
+  const ascii = 'b^# =^ =#\n$ s r&^';
+  const b = parseBoard(ascii);
+  expect(b.units[0]).toMatchObject({ def: 'sentry', heat: TUNING.heatRounds, etched: true });
+  expect(b.tiles[1]).toMatchObject({ plate: true, heat: TUNING.heatRounds, etched: false });
+  expect(b.tiles[2]).toMatchObject({ plate: true, heat: 0, etched: true });
+  expect(b.tiles[3]).toMatchObject({ oil: true, stain: true });
+  expect(b.tiles[4]).toMatchObject({ steam: TUNING.steamRounds, scald: true });
+  expect(b.units[1]).toMatchObject({ brass: true, heat: TUNING.heatRounds });
+  expect(parseBoard(serializeBoard(b))).toEqual(b);
+  expect(() => parseCell('r^', { x: 0, y: 0 })).toThrow('Only brass');
+  expect(() => parseCell('o#', { x: 0, y: 0 })).toThrow('Only brass');
 });

@@ -23,6 +23,13 @@ export const RUNE_GLYPH: Record<RuneId, string> = {
   fog: 'M5 6h11M9 10h10M3 20c3-2 6 2 9 0s6-2 9 0',
   mist: 'M6 18h12a4 4 0 0 0 0-8 6 6 0 0 0-11.5-1.5A4.5 4.5 0 0 0 6 18zM12 14m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0',
   brand: 'M4 12h10v8H4zM18 3c2.5 2.5 3.5 4 3.5 6a3.5 3.5 0 0 1-7 0c0-2 1-3.5 3.5-6z',
+  // seam deepening (C1 draws these; placeholders)
+  pierce: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
+  onIgnite: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
+  thrift: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
+  scald: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
+  etch: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
+  kiln: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
 };
 
 /** Glyphs drawn filled as well as stroked. */
@@ -64,6 +71,8 @@ export const INTERACTION_GLYPH: Record<InteractionId, string> = {
   slide: 'M3 9h15M14 5l4 4-4 4M3 17c4 3 8-3 12 0s4 1 6 0',
   diffuse:
     'M12 5c-2.5 3.5-3.5 5-3.5 6.5a3.5 3.5 0 0 0 7 0c0-1.5-1-3-3.5-6.5zM4 14a8 8 0 0 0 16 0M7 19a8 8 0 0 0 10 0',
+  heat: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0', // C1
+  stain: 'M12 12m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0', // C1
 };
 
 export const FILLED_INTERACTIONS: ReadonlySet<InteractionId> = new Set<InteractionId>(['detonate']);

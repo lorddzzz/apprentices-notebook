@@ -149,6 +149,8 @@ const INTERACTION_WORDS: Record<InteractionId, string> = {
   extinguish: 'fire doused',
   slide: 'slides on oil',
   diffuse: 'ink diffuses',
+  heat: 'brass heats',
+  stain: 'oil stains',
 };
 const INTERACTION_OF: Partial<Record<GameEvent['type'], InteractionId>> = {
   ignite: 'ignite',
@@ -158,6 +160,8 @@ const INTERACTION_OF: Partial<Record<GameEvent['type'], InteractionId>> = {
   extinguish: 'extinguish',
   slide: 'slide',
   diffuse: 'diffuse',
+  heated: 'heat',
+  stained: 'stain',
 };
 
 /** Plain material effects (not interactions): always named. */
@@ -362,6 +366,11 @@ export function lootLine(item: LootItem): { title: string; text: string } {
       return {
         title: `Vellum ×${item.amount}`,
         text: 'Fine skin for a fair copy. Compiling a proven pattern costs one sheet.',
+      };
+    case 'doorway':
+      return {
+        title: 'A quiet doorway',
+        text: 'Somewhere to sit and rewire your lattices before going on.',
       };
   }
 }

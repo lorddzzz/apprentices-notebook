@@ -168,6 +168,11 @@ export function spellRecipe(
       case 'brand':
         text = `Brand marks the units on ${where}${boost} like Ink, but never pools on the floor; fire hits a branded unit for +2.`;
         break;
+      case 'scald':
+      case 'etch':
+      case 'kiln':
+        text = `${RUNES[node.rune].name} on ${where}${boost}.`; // E3
+        break;
     }
     return { text, reactions };
   };

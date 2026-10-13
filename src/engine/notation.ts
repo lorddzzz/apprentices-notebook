@@ -20,7 +20,9 @@ import { isGlyph, type Lattice, type Placed, type Tile } from './types';
  * Board cell = `.` or [unit][mods][layers]:
  *   unit    D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy (first char only)
  *   mods    ! inked, & brass-coated, % branded (only after a unit)
+ *           ^ hot, # etched (after a brass unit, or on a brass plate `=^#`)
  *   layers  o oil, i ink puddle, ~ steam, * fire (implies oil), = brass plate (alone, permanent: rune-raised plates crumble), @ steam vent
+ *           $ stained oil (implies oil), s scalding steam (implies steam)
  *
  * Lattice cell = `.` empty socket, `x` hole, or a rune token (`Bolt`, `Ink`, `OnInked`, `Amp`…)
  * with an arrow suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend).
@@ -33,6 +35,8 @@ export interface BoardUnit {
   inked: boolean;
   brass: boolean;
   branded: boolean;
+  heat: number;
+  etched: boolean;
 }
 export interface BoardSpec {
   width: number;
@@ -49,7 +53,19 @@ function rows(ascii: string): string[][] {
 }
 
 export function emptyTile(): Tile {
-  return { oil: false, ink: false, steam: 0, fire: 0, plate: false, plateRounds: 0, vent: false };
+  return {
+    oil: false,
+    ink: false,
+    steam: 0,
+    fire: 0,
+    plate: false,
+    plateRounds: 0,
+    vent: false,
+    stain: false,
+    heat: 0,
+    etched: false,
+    scald: false,
+  };
 }
 
 /** Inverse of `label`: "C4" → {x:2, y:3}. */
@@ -77,11 +93,13 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
   const first = chars[0];
   const found = first === undefined ? null : unitFor(first);
   if (found) {
-    unit = { ...found, at, inked: false, brass: false, branded: false };
+    unit = { ...found, at, inked: false, brass: false, branded: false, heat: 0, etched: false };
     chars.shift();
   }
 
   let layers = 0;
+  let hot = false;
+  let etched = false;
   for (const ch of chars) {
     switch (ch) {
       case '!':
@@ -92,6 +110,20 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
         else if (ch === '&') unit.brass = true;
         else unit.branded = true;
         continue;
+      case '^':
+        hot = true;
+        continue;
+      case '#':
+        etched = true;
+        continue;
+      case '$':
+        tile.oil = true;
+        tile.stain = true;
+        break;
+      case 's':
+        tile.steam = TUNING.steamRounds;
+        tile.scald = true;
+        break;
       case 'o':
         tile.oil = true;
         break;
@@ -117,6 +149,22 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
     layers++;
   }
 
+  if (hot || etched) {
+    const brassUnit = unit
+      ? unit.brass || (unit.kind === 'enemy' && ENEMIES[unit.def as EnemyId].brass)
+      : false;
+    if (unit && !brassUnit)
+      throw new Error(`Only brass can be hot or etched in cell ${where} ("${token}")`);
+    if (!unit && !tile.plate)
+      throw new Error(`Only brass can be hot or etched in cell ${where} ("${token}")`);
+    if (unit) {
+      unit.heat = hot ? TUNING.heatRounds : 0;
+      unit.etched = etched;
+    } else {
+      tile.heat = hot ? TUNING.heatRounds : 0;
+      tile.etched = etched;
+    }
+  }
   if (tile.plate) {
     if (unit) throw new Error(`A unit cannot stand on a brass plate in cell ${where} ("${token}")`);
     if (layers > 1)
@@ -156,16 +204,25 @@ export function parseBoard(ascii: string): BoardSpec {
 function unitToken(u: BoardUnit): string {
   const base =
     u.kind === 'member' ? MEMBERS[u.def as MemberId].token : ENEMIES[u.def as EnemyId].token;
-  return base + (u.inked ? '!' : '') + (u.brass ? '&' : '') + (u.branded ? '%' : '');
+  return (
+    base +
+    (u.inked ? '!' : '') +
+    (u.brass ? '&' : '') +
+    (u.branded ? '%' : '') +
+    (u.heat > 0 ? '^' : '') +
+    (u.etched ? '#' : '')
+  );
 }
 
 function layerToken(t: Tile): string {
   return (
-    (t.oil && t.fire === 0 ? 'o' : '') +
+    (t.oil && t.fire === 0 ? (t.stain ? '$' : 'o') : '') +
     (t.ink ? 'i' : '') +
-    (t.steam > 0 ? '~' : '') +
+    (t.steam > 0 ? (t.scald ? 's' : '~') : '') +
     (t.fire > 0 ? '*' : '') +
     (t.plate ? '=' : '') +
+    (t.plate && t.heat > 0 ? '^' : '') +
+    (t.plate && t.etched ? '#' : '') +
     (t.vent ? '@' : '')
   );
 }
@@ -182,7 +239,7 @@ function padRows(grid: string[][]): string {
     .join('\n');
 }
 
-/** Canonical form: unit, mods (! & %), layers in order o i ~ * = @; columns padded to equal width. */
+/** Canonical form: unit, mods (! & % ^ #), layers in order o/$ i ~/s * = ^ # @; columns padded to equal width. */
 export function serializeBoard(spec: BoardSpec): string {
   const grid: string[][] = [];
   for (let y = 0; y < spec.height; y++) {

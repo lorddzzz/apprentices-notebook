@@ -128,6 +128,14 @@ export interface Tile {
   /** Rounds until a rune-raised plate crumbles; 0 = permanent (layout terrain). */
   plateRounds: number;
   vent: boolean;
+  /** Unlit oil with ink in it: a unit that ends a move here is inked (plan S6). Goes with the oil. */
+  stain: boolean;
+  /** Rounds a brass plate stays hot (plan S5); 0 = cold. */
+  heat: number;
+  /** A brass plate etched by Etch, for the battle (plan S8). */
+  etched: boolean;
+  /** The steam here is Scald's: it scalds whoever stands in it at the burn step (plan S7). Fades with the steam. */
+  scald: boolean;
 }
 /** `dir` is from the enemy's CURRENT position at resolve time. */
 export interface Intent {
@@ -152,6 +160,10 @@ interface UnitBase {
   oilSoaked: boolean;
   /** Burned into the unit by Brand: fire hits it for +2. */
   branded: boolean;
+  /** Rounds a brass unit stays hot (plan S5); 0 = cold. */
+  heat: number;
+  /** Brass etched by Etch, for the battle (plan S8). */
+  etched: boolean;
 }
 export interface UndoRecord {
   from: Coord;
@@ -226,7 +238,8 @@ export type LootItem =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'ink'; member: MemberId; amount: number }
   | { kind: 'solvent'; solvent: SolventId }
-  | { kind: 'vellum'; amount: number };
+  | { kind: 'vellum'; amount: number }
+  | { kind: 'doorway' }; // never banked: picking it opens field rewiring (plan S11)
 
 /** One cell that fired in a cast (proof masks; plan P7). `at` is the lattice cell. */
 export interface FiredCell {
@@ -251,7 +264,32 @@ export interface Profile {
   proof: Record<MemberId, FiredCell[][]>; // cast masks, newest last, capped
   idioms: string[]; // recognised idiom ids (codex)
 }
-export type TripStatus = 'fight' | 'looting' | 'crossroads' | 'cleared';
+/** One spell's line in the trip ledger (plan S16). A spell is a member's source cell; `name` is for display. */
+export interface SpellTally {
+  member: MemberId;
+  spell: SpellKey;
+  name: string;
+  casts: number;
+  damage: number;
+  kills: number;
+}
+/** What a trip did, accumulated at each `finishEncounter` from the event log (plan S16). */
+export interface TripStats {
+  fights: number; // encounters finished (won or lost)
+  spells: SpellTally[]; // first-cast order
+  /** The cast with the most reaction events (ignite, conduct, arc, detonate, …). */
+  biggestChain: { member: MemberId; spell: SpellKey; name: string; reactions: number } | null;
+  discoveries: string[]; // codex ids first found on this trip, in order ('interaction:ignite', 'idiom:bonfire')
+  proofCasts: number; // meaningful casts recorded toward proof
+}
+/** The last finished trip, kept for the trip page (plan S17) until the next trip starts. */
+export interface TripRecap {
+  outcome: 'returned' | 'wiped';
+  encounter: number; // the deepest encounter index reached
+  stats: TripStats;
+}
+/** doorway: rewiring in the field after picking a quiet doorway (plan S11). */
+export type TripStatus = 'fight' | 'looting' | 'crossroads' | 'cleared' | 'doorway';
 export interface Trip {
   seed: number;
   encounter: number; // index into ENCOUNTERS of the current/next fight
@@ -264,9 +302,11 @@ export interface Trip {
   picksLeft: number;
   /** The current fight's actions so far (status `fight`): a reload replays them instead of restarting. */
   actions: Action[];
+  stats: TripStats;
 }
 export interface SaveData {
   profile: Profile;
   trip: Trip | null;
   seedCounter: number;
+  lastTrip: TripRecap | null;
 }

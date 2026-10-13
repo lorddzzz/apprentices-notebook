@@ -1,6 +1,6 @@
 import type { EncounterDef } from './types';
 
-export const ENCOUNTERS: readonly EncounterDef[] = [
+const BASE: readonly Omit<EncounterDef, 'variants'>[] = [
   {
     id: 'three-rats',
     title: 'Three rats',
@@ -74,3 +74,9 @@ export const ENCOUNTERS: readonly EncounterDef[] = [
     heart: true,
   },
 ];
+
+/** W0 stub: one variant per depth (its current board). L1 adds two more per depth. */
+export const ENCOUNTERS: readonly EncounterDef[] = BASE.map((e) => ({
+  ...e,
+  variants: [{ name: e.title, layout: e.layout }],
+}));

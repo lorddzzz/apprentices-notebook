@@ -12,6 +12,8 @@ export const INTERACTION_IDS: readonly InteractionId[] = [
   'extinguish',
   'slide',
   'diffuse',
+  'heat',
+  'stain',
 ];
 
 const RUNE_NOTES: Record<RuneId, string> = {
@@ -35,6 +37,12 @@ const RUNE_NOTES: Record<RuneId, string> = {
   fog: 'A wet floor under a wet sky.',
   mist: 'The cloud remembers every face, then forgets itself.',
   brand: 'A mark that wants to burn.',
+  pierce: 'TODO(D1)',
+  onIgnite: 'TODO(D1)',
+  thrift: 'TODO(D1)',
+  scald: 'TODO(D1)',
+  etch: 'TODO(D1)',
+  kiln: 'TODO(D1)',
 };
 
 const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNote: string }> = {
@@ -72,6 +80,16 @@ const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNo
     title: 'Diffuse',
     text: 'Ink thrown into steam spreads through the whole cloud and marks every unit in it.',
     ownerNote: 'Even the shy ones get marked in the end.',
+  },
+  heat: {
+    title: 'Heat',
+    text: 'TODO(D1): fire next to brass heats it; hot brass scalds its neighbours at the end of the round.',
+    ownerNote: 'TODO(D1)',
+  },
+  stain: {
+    title: 'Stain',
+    text: 'TODO(D1): ink on oil stains it; whoever ends a move there is inked.',
+    ownerNote: 'TODO(D1)',
   },
 };
 

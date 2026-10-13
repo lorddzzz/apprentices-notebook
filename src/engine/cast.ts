@@ -262,12 +262,18 @@ function runNodes(
         case 'brand':
           applyBrand(ctx, footprint(ctx.s, targets, m));
           break;
+        case 'scald':
+        case 'etch':
+        case 'kiln':
+          break; // E3
       }
       runNodes(ctx, node.next, targets, scale, ran);
     } else if (node.rune === 'onInked') {
       const passed = targets.some((t) => unitAt(ctx.s, t)?.inked === true);
       emit(ctx, { type: 'trigger', rune: 'onInked', passed });
       if (passed) runNodes(ctx, node.next, targets, scale, ran);
+    } else if (node.rune === 'onIgnite') {
+      emit(ctx, { type: 'trigger', rune: 'onIgnite', passed: false }); // E1
     } else {
       const victims = [...(ctx.cast?.kills ?? [])];
       if (!victims.length) emit(ctx, { type: 'trigger', rune: 'onKill', passed: false });

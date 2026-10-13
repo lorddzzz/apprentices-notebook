@@ -1,4 +1,4 @@
-import { newSave, parseSaveData, type SaveData } from '$engine';
+import { emptyStats, newSave, parseSaveData, type SaveData } from '$engine';
 
 export interface SaveEnvelope<T = unknown> {
   version: number;
@@ -57,6 +57,12 @@ function migrateResearch(data: unknown): unknown {
   };
 }
 
+function migrateStats(data: unknown): unknown {
+  if (!isObject(data)) return data;
+  const trip = isObject(data.trip) ? { ...data.trip, stats: emptyStats() } : data.trip;
+  return { ...data, trip, lastTrip: null };
+}
+
 export const migrations: Migration[] = [
   // 0 → 1: the trip records the current fight's actions.
   (data) => {
@@ -67,6 +73,8 @@ export const migrations: Migration[] = [
   },
   // 1 → 2: each research point becomes one solvent (Gallnut → Pitch → Cinder round-robin).
   migrateResearch,
+  // 2 → 3: a live trip starts keeping stats (empty so far); no trip page to show yet.
+  migrateStats,
 ];
 
 export const CURRENT_VERSION = migrations.length;

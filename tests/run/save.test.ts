@@ -37,10 +37,15 @@ test('SaveData round-trips through src/app/save serialize/parse at version 2', (
   for (const u of b.units) if (u.kind === 'enemy') u.hp = 0;
   const won = finishEncounter(profile, trip, b);
   if (!won.trip) throw new Error('expected a trip');
-  const save: SaveData = { profile: won.profile, trip: pickLoot(won.trip, 0), seedCounter: 3 };
-  expect(CURRENT_VERSION).toBe(2);
+  const save: SaveData = {
+    profile: won.profile,
+    trip: pickLoot(won.trip, 0),
+    seedCounter: 3,
+    lastTrip: null,
+  };
+  expect(CURRENT_VERSION).toBe(3);
   const env = parse(serialize(save));
-  expect(env.version).toBe(2);
+  expect(env.version).toBe(3);
   expect(parseSaveData(env.data)).toEqual(save);
 
   const fresh = newSave(99);
@@ -144,7 +149,7 @@ test('a version 0 save migrates: its trip gets an empty action list', () => {
   const { actions: _, ...v0trip } = startTrip(save.profile, 1);
   const text = JSON.stringify({ version: 0, data: { ...save, trip: v0trip } });
   const env = parse(text);
-  expect(env.version).toBe(2);
+  expect(env.version).toBe(3);
   expect(parseSaveData(env.data).trip?.actions).toEqual([]);
   expect(parseSaveData(parse(JSON.stringify({ version: 0, data: save })).data)).toEqual(save);
 });
@@ -179,7 +184,7 @@ function v1Save(): unknown {
 
 test('a version 1 save migrates: research becomes solvents round-robin', () => {
   const env = parse(JSON.stringify(v1Save()));
-  expect(env.version).toBe(2);
+  expect(env.version).toBe(3);
   const parsed = parseSaveData(env.data);
   expect(parsed.profile.solvents).toMatchObject({ gallnut: 2, pitch: 1, cinder: 1, chalk: 0 });
   expect(parsed.profile.vellum).toBe(0);
@@ -267,6 +272,6 @@ test('v2 fields round-trip, and a lattice Glyph needs a library entry', () => {
       stoker: [{ at: { x: 1, y: 1 }, glyph: 'g1', dir: 'right' as const }],
     },
   };
-  const save: SaveData = { profile, trip: null, seedCounter: 1 };
+  const save: SaveData = { profile, trip: null, seedCounter: 1, lastTrip: null };
   expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
 });

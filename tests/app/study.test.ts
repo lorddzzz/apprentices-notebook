@@ -157,7 +157,7 @@ test('shelfSlots: starting collection for the Draughtsman', () => {
   const d = parseLattice(MEMBERS.draughtsman.startLattice);
   const s = parseLattice(MEMBERS.stoker.startLattice);
   const slots = shelfSlots(START_COLLECTION, [d, s], d, 8);
-  expect(slots).toHaveLength(20);
+  expect(slots).toHaveLength(26);
   const by = (id: string) => slots.find((x) => x.rune === id);
   expect(by('bolt')).toMatchObject({ owned: 2, free: 0, usable: false, reason: 'No Bolt left' });
   expect(by('spark')).toMatchObject({ owned: 2, free: 1, usable: true, reason: null });
@@ -183,7 +183,7 @@ test('shelfSlots: a full ink pot makes slots unaffordable but still selectable (
 test('profileShelf: unknown runes are ??? and unusable', () => {
   const p = newProfile();
   const slots = profileShelf(p, 'draughtsman');
-  expect(slots).toHaveLength(20);
+  expect(slots).toHaveLength(26);
   for (const s of slots) {
     expect(s.known).toBe(p.collection[s.rune] > 0);
     if (!s.known) expect(s).toMatchObject({ usable: false, reason: 'Not found yet' });

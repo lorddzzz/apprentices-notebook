@@ -23,6 +23,7 @@ import {
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
 import { blockingAuras, type Cluster, sharingSpells, toGlyphDef } from './cluster';
+import type { EventLog } from './events';
 import { fairCopy } from './glyph';
 import { type Coord, DIRS, label } from './grid';
 import { compileLattice, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
@@ -31,6 +32,7 @@ import { masksFrom, matchIdioms, provenCount } from './proof';
 import { memberById } from './queries';
 import { type Attempt, trial, trialKey } from './research';
 import { createRng, deriveSeed, pickWeighted } from './rng';
+import { accumulateStats, emptyStats } from './tripStats';
 import type {
   Action,
   ActionResult,
@@ -51,6 +53,8 @@ import type {
   SaveData,
   SpellKey,
   Trip,
+  TripRecap,
+  TripStats,
   TripStatus,
 } from './types';
 import { isGlyph } from './types';
@@ -253,7 +257,13 @@ export function startTrip(p: Profile, seed: number): Trip {
     offers: [],
     picksLeft: 0,
     actions: [],
+    stats: emptyStats(),
   };
+}
+
+/** Which of the encounter's layouts this trip plays (plan S10): derived from the seed, never stored. W0 stub. */
+export function variantFor(_t: Trip, _encounter: number): number {
+  return 0;
 }
 
 /**
@@ -311,6 +321,7 @@ export function rollOffers(
     if (!entry) break;
     const spec = entry.spec;
     if (spec.kind === 'rune') offers.push({ kind: 'rune', rune: spec.rune });
+    else if (spec.kind === 'doorway') offers.push({ kind: 'doorway' });
     else if (spec.kind === 'solvent') offers.push({ kind: 'solvent', solvent: spec.solvent });
     else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
     else {
@@ -324,19 +335,22 @@ export function rollOffers(
 /**
  * Closes a finished battle. Interactions seen are kept either way (knowledge isn't loot).
  * Won: HP and charges carry over (a downed member returns at 1 HP) and loot is offered.
- * Wiped: the trip ends and its pending loot is lost.
+ * Wiped: the trip ends and its pending loot is lost. `log` is the whole fight's event log; it
+ * feeds the trip's stats, returned either way so a wipe can still show the trip page.
  */
 export function finishEncounter(
   p: Profile,
   t: Trip,
   b: BattleState,
-): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped' } {
+  log: EventLog = [],
+): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
   need(t, 'fight');
   if (b.phase === 'player') throw new Error('The battle is not over');
+  const stats = accumulateStats(t.stats, log, p);
   const interactions = [...p.interactions];
   for (const d of b.discovered) if (!interactions.includes(d)) interactions.push(d);
   const profile: Profile = { ...p, interactions };
-  if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped' };
+  if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
 
   const enc = ENCOUNTERS[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
@@ -349,8 +363,9 @@ export function finishEncounter(
     offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS),
     picksLeft: enc.picks,
     actions: [],
+    stats,
   };
-  return { profile, trip, outcome: 'won' };
+  return { profile, trip, outcome: 'won', stats };
 }
 
 /** Takes offer `index` into the pending loot. After the last pick the trip moves on. */
@@ -389,16 +404,30 @@ export function returnHome(p: Profile, t: Trip): Profile {
     if (item.kind === 'rune') collection[item.rune] += 1;
     else if (item.kind === 'ink') inkCapacity[item.member] += item.amount;
     else if (item.kind === 'solvent') solvents[item.solvent] += 1;
-    else vellum += item.amount;
+    else if (item.kind === 'vellum') vellum += item.amount;
   }
   return { ...p, collection, inkCapacity, solvents, vellum };
 }
 
+/**
+ * Leaves a quiet doorway (plan S11/S12): the profile takes the rewired lattices, and each Source
+ * keeps the charges its rune (or Glyph) had before, so rewiring never refills a spell. The trip
+ * goes back to looting if picks remain, else to the Crossroads. W0 stub.
+ */
+export function applyDoorway(
+  p: Profile,
+  t: Trip,
+  _lattices: Record<MemberId, Placed[]>,
+): { profile: Profile; trip: Trip } {
+  need(t, 'doorway');
+  return { profile: p, trip: { ...t, status: t.picksLeft > 0 ? 'looting' : 'crossroads' } };
+}
+
 // ── Save data ───────────────────────────────────────────
 
-/** The save shape, version 2 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
+/** The save shape, version 3 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
 export function newSave(seed: number): SaveData {
-  return { profile: newProfile(), trip: null, seedCounter: seed };
+  return { profile: newProfile(), trip: null, seedCounter: seed, lastTrip: null };
 }
 
 /** The seed for the next trip, and the save with its counter advanced. Never reads the clock. */
@@ -624,7 +653,7 @@ function parseTrip(v: unknown): Trip {
   const trip: Trip = {
     seed: count(r.seed),
     encounter,
-    status: oneOf<TripStatus>(['fight', 'looting', 'crossroads', 'cleared'], r.status),
+    status: oneOf<TripStatus>(['fight', 'looting', 'crossroads', 'cleared', 'doorway'], r.status),
     hp: perMember((m) => count(hp[m])),
     charges: perMember((m) => {
       const c = record(charges[m]);
@@ -634,11 +663,13 @@ function parseTrip(v: unknown): Trip {
     offers: list(r.offers).map(parseLoot),
     picksLeft: count(r.picksLeft),
     actions: list(r.actions).map(parseAction),
+    stats: parseStats(r.stats),
   };
   if (MEMBER_IDS.some((m) => trip.hp[m] < 1)) bad();
   if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
   if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= ENCOUNTERS.length)) bad();
   if (trip.status === 'cleared' && !enc.heart) bad();
+  if (trip.status === 'doorway' && enc.heart) bad();
   if (trip.status !== 'fight' && trip.actions.length > 0) bad();
   return trip;
 }
@@ -650,6 +681,49 @@ export function parseSaveData(data: unknown): SaveData {
     profile: parseProfile(r.profile),
     trip: r.trip === null || r.trip === undefined ? null : parseTrip(r.trip),
     seedCounter: count(r.seedCounter),
+    lastTrip: r.lastTrip === null || r.lastTrip === undefined ? null : parseRecap(r.lastTrip),
+  };
+}
+
+/** W0: shape check only; S1 validates the fields it fills. */
+function parseStats(v: unknown): TripStats {
+  const r = record(v);
+  return {
+    fights: count(r.fights),
+    spells: list(r.spells).map((s) => {
+      const x = record(s);
+      return {
+        member: oneOf(MEMBER_IDS, x.member),
+        spell: text(x.spell),
+        name: text(x.name),
+        casts: count(x.casts),
+        damage: count(x.damage),
+        kills: count(x.kills),
+      };
+    }),
+    biggestChain:
+      r.biggestChain === null || r.biggestChain === undefined
+        ? null
+        : (() => {
+            const c = record(r.biggestChain);
+            return {
+              member: oneOf(MEMBER_IDS, c.member),
+              spell: text(c.spell),
+              name: text(c.name),
+              reactions: count(c.reactions),
+            };
+          })(),
+    discoveries: list(r.discoveries).map(text),
+    proofCasts: count(r.proofCasts),
+  };
+}
+
+function parseRecap(v: unknown): TripRecap {
+  const r = record(v);
+  return {
+    outcome: oneOf<TripRecap['outcome']>(['returned', 'wiped'], r.outcome),
+    encounter: count(r.encounter),
+    stats: parseStats(r.stats),
   };
 }
 

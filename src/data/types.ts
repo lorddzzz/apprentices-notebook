@@ -13,10 +13,13 @@ export type MaterialRuneId =
   | 'torch'
   | 'fog'
   | 'mist'
-  | 'brand';
-export type ShapeRuneId = 'bend' | 'fork';
-export type TriggerRuneId = 'onInked' | 'onKill';
-export type AuraRuneId = 'amplify' | 'echo';
+  | 'brand'
+  | 'scald'
+  | 'etch'
+  | 'kiln';
+export type ShapeRuneId = 'bend' | 'fork' | 'pierce';
+export type TriggerRuneId = 'onInked' | 'onKill' | 'onIgnite';
+export type AuraRuneId = 'amplify' | 'echo' | 'thrift';
 export type RuneId = SourceRuneId | MaterialRuneId | ShapeRuneId | TriggerRuneId | AuraRuneId;
 export type MaterialId = MaterialRuneId; // affinity talks about these
 export type MemberId = 'draughtsman' | 'stoker';
@@ -29,7 +32,9 @@ export type InteractionId =
   | 'detonate'
   | 'extinguish'
   | 'slide'
-  | 'diffuse';
+  | 'diffuse'
+  | 'heat'
+  | 'stain';
 export type Rarity = 'common' | 'uncommon' | 'rare';
 /** The eight properties that tag runes, solvents, recipes and idioms (research grammar). */
 export type Aspect = 'reach' | 'mark' | 'slick' | 'heat' | 'charge' | 'vapor' | 'hold' | 'return';
@@ -134,11 +139,17 @@ export interface EnemyDef {
 }
 
 export type LootTableId = 'shallow' | 'deep' | 'heart';
+/** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
+export interface EncounterVariant {
+  name: string; // a short place name: 'The drainage cut'
+  layout: string; // board ASCII, 6×8, includes D and S
+}
 export interface EncounterDef {
   id: string;
   title: string;
   depth: number; // 1..4
-  layout: string; // board ASCII, 6×8, includes D and S
+  layout: string; // = variants[0].layout (the original board)
+  variants: readonly EncounterVariant[];
   loot: LootTableId;
   picks: number; // heart: 2
   heart: boolean;
@@ -148,7 +159,8 @@ export type LootSpec =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'ink' } // member chosen when rolled
   | { kind: 'solvent'; solvent: SolventId }
-  | { kind: 'vellum'; amount: number };
+  | { kind: 'vellum'; amount: number }
+  | { kind: 'doorway' }; // a quiet doorway: rewire in the field (plan S11)
 export interface LootEntry {
   spec: LootSpec;
   weight: number;
@@ -165,6 +177,8 @@ export interface CodexEntryDef {
   title: string;
   text: string; // the rule
   ownerNote: string; // previous owner's cryptic margin note
+  /** One line in the owner's voice shown under `???` while unknown (plan S15). Torn-page recipes have none. */
+  hint?: string;
 }
 
 export interface ScenarioDef {
@@ -194,6 +208,7 @@ export interface Tuning {
   fireRounds: number;
   steamRounds: number;
   plateRounds: number;
+  heatRounds: number; // hot brass stays hot this many rounds (re-heating refreshes)
   splashRange: number;
   splashRadius: number;
   echoDivisor: number;
