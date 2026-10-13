@@ -26,6 +26,7 @@ import type {
   AuraTouch,
   CellKey,
   CompiledLattice,
+  FiredCell,
   GlyphDef,
   GlyphLibrary,
   Lattice,
@@ -77,7 +78,11 @@ interface Frame {
   /** A direction in this frame as seen on the outer lattice. */
   outward(d: Dir): Dir;
   /** Flow stepped onto a cell holding no rune of this frame. */
-  beyond(at: Coord, dir: Dir): SpellNode[];
+  beyond(at: Coord, dir: Dir, via: readonly Coord[]): SpellNode[];
+  /** The cell as proof records it. */
+  fired(at: Coord, placed: PlacedRune): FiredCell;
+  /** Every cell entered, for `Spell.cells`. */
+  cells: FiredCell[];
 }
 
 const cellMap = (def: GlyphDef): Map<CellKey, PlacedRune> =>
@@ -113,24 +118,26 @@ export function compileLattice(
     }
   };
 
-  function walkIn(f: Frame, cell: Coord, dir: Dir): SpellNode[] {
+  function walkIn(f: Frame, cell: Coord, dir: Dir, via: readonly Coord[] = []): SpellNode[] {
     const placed = f.runeAt(cell);
-    if (!placed) return f.beyond(cell, dir);
+    if (!placed) return f.beyond(cell, dir, via);
     if (f.visited.has(key(cell))) return [];
     const def = RUNES[placed.rune];
     if (def.family === 'aura' || def.family === 'source') return []; // insulators
     f.visited.add(key(cell));
     f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
-    const go = (d: Dir): SpellNode[] => walkIn(f, step(cell, d), d);
+    f.cells.push(f.fired(cell, placed));
+    const go = (d: Dir, v: readonly Coord[] = []): SpellNode[] => walkIn(f, step(cell, d), d, v);
+    const shaped = [...via, f.where(cell).at];
 
     if (placed.rune === 'bend') {
       const out = placed.dir ?? 'right';
-      return out === opposite(dir) ? [] : go(out);
+      return out === opposite(dir) ? [] : go(out, shaped);
     }
     if (placed.rune === 'fork') {
       // Left must walk first: it claims shared cells before the right branch.
-      const left = go(turnLeft(dir));
-      const right = go(turnRight(dir));
+      const left = go(turnLeft(dir), shaped);
+      const right = go(turnRight(dir), shaped);
       return [...left, ...right];
     }
     if (isMaterial(placed.rune)) {
@@ -141,6 +148,7 @@ export function compileLattice(
           kind: 'material',
           rune: placed.rune,
           ...f.where(cell),
+          via,
           amp,
           magnitude: def.base + amp + bonus,
           next: go(dir),
@@ -148,7 +156,7 @@ export function compileLattice(
       ];
     }
     if (isTrigger(placed.rune)) {
-      return [{ kind: 'trigger', rune: placed.rune, ...f.where(cell), next: go(dir) }];
+      return [{ kind: 'trigger', rune: placed.rune, ...f.where(cell), via, next: go(dir) }];
     }
     return [];
   }
@@ -166,15 +174,17 @@ export function compileLattice(
       where: (at) => ({ at: g.at, inner: at }),
       bonus: countAround(g.at, 'amplify'),
       outward: (d) => rotateDirLocal(d, g.dir),
-      beyond: (_at, dir) => {
+      beyond: (_at, dir, via) => {
         const out = rotateDirLocal(dir, g.dir);
-        return walkIn(outer, step(g.at, out), out);
+        return walkIn(outer, step(g.at, out), out, via);
       },
+      fired: () => ({ at: g.at, rune: null, glyph: g.glyph, dir: g.dir }),
+      cells: outer.cells,
     };
   };
 
   /** The outer frame for one spell: a payload Glyph is entered only along its own arrow (P4). */
-  const outerFrame = (visited: Set<CellKey>, path: PathCell[]): Frame => {
+  const outerFrame = (visited: Set<CellKey>, path: PathCell[], cells: FiredCell[]): Frame => {
     const frame: Frame = {
       runeAt,
       around: countAround,
@@ -183,13 +193,16 @@ export function compileLattice(
       where: (at) => ({ at }),
       bonus: 0,
       outward: (d) => d,
-      beyond: (at, dir) => {
+      fired: (at, placed) =>
+        placed.dir ? { at, rune: placed.rune, dir: placed.dir } : { at, rune: placed.rune },
+      cells,
+      beyond: (at, dir, via) => {
         const g = glyphIn(at);
         const def = g ? glyphs[g.glyph] : undefined;
         if (!g || !def || def.kind !== 'payload' || dir !== g.dir) return [];
         if (visited.has(key(at)) || !cellMap(def).has(key(def.entry))) return [];
         visited.add(key(at));
-        return walkIn(innerFrame(g, def, frame), def.entry, 'right');
+        return walkIn(innerFrame(g, def, frame), def.entry, 'right', via);
       },
     };
     return frame;
@@ -207,7 +220,7 @@ export function compileLattice(
 
   for (const origin of origins) {
     const path: PathCell[] = [];
-    const outer = outerFrame(new Set([key(origin.at)]), path);
+    const outer = outerFrame(new Set([key(origin.at)]), path, []);
     const spell = origin.glyph
       ? glyphSpell(origin.glyph, outer)
       : plainSpell(byKey.get(key(origin.at)), outer);
@@ -226,6 +239,7 @@ export function compileLattice(
     const sourceRune = src.rune;
     const srcDir = src.dir ?? 'right';
     outer.path.push({ at: src.at, rune: sourceRune, dir: srcDir });
+    outer.cells.push(outer.fired(src.at, src));
     const nodes = walkIn(outer, step(src.at, srcDir), srcDir);
     const amp = countAround(src.at, 'amplify');
     return {
@@ -238,6 +252,7 @@ export function compileLattice(
       charges: RUNES[sourceRune].charges,
       nodes,
       path: outer.path,
+      cells: outer.cells,
     };
   }
 
@@ -249,6 +264,7 @@ export function compileLattice(
     const inner = innerFrame(g, def, outer);
     inner.visited.add(key(def.entry));
     outer.path.push({ ...inner.where(def.entry), rune: sourceRune, dir: g.dir });
+    outer.cells.push(inner.fired(def.entry, src));
     const nodes = walkIn(inner, step(def.entry, 'right'), 'right');
     const amp = inner.around(def.entry, 'amplify') + inner.bonus;
     return {
@@ -261,6 +277,7 @@ export function compileLattice(
       charges: RUNES[sourceRune].charges,
       nodes,
       path: outer.path,
+      cells: outer.cells,
       glyph: g.glyph,
     };
   }

@@ -70,6 +70,7 @@ export type SpellNode =
       magnitude: number;
       next: readonly SpellNode[];
       inner?: Coord; // inside a Glyph: `at` is the Glyph's socket, `inner` the local cell
+      via?: readonly Coord[]; // shape cells walked from the parent (or the source) to here
     }
   | {
       kind: 'trigger';
@@ -77,6 +78,7 @@ export type SpellNode =
       at: Coord;
       next: readonly SpellNode[];
       inner?: Coord;
+      via?: readonly Coord[];
     };
 
 export interface PathCell {
@@ -101,6 +103,8 @@ export interface Spell {
   nodes: readonly SpellNode[];
   path: readonly PathCell[]; // every cell the flow entered, in walk order (for highlighting)
   glyph?: GlyphId; // set when the source is a Spell Glyph (`source` is then its inner source)
+  /** Every cell the flow entered as proof sees it (a Glyph's inner cells collapse to its socket). */
+  cells?: readonly FiredCell[];
 }
 export interface CompiledLattice {
   spells: Spell[];

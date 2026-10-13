@@ -13,6 +13,7 @@ import {
   pickLoot,
   pushOn,
   recordAction,
+  recordTripProof,
   returnHome,
   type SaveData,
   startTrip,
@@ -158,7 +159,7 @@ export interface BattleEnd {
 /** Closes a finished battle: won → looting, wiped → trip gone, pending loot lost, discoveries kept. */
 export function endBattle(save: SaveData, battle: BattleState): BattleEnd {
   const trip = tripOf(save);
-  const r = finishEncounter(save.profile, trip, battle);
+  const r = finishEncounter(recordTripProof(save.profile, trip), trip, battle);
   const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
   const next: SaveData = { ...save, profile: r.profile, trip: r.trip };
   const wipe: WipeSummary | null =

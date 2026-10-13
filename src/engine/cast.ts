@@ -2,7 +2,7 @@ import { RUNES, TUNING } from '$data';
 import { type Ctx, emit, ref } from './ctx';
 import { dealDamage } from './damage';
 import { who } from './events';
-import { type Coord, label, neighbors4, square } from './grid';
+import { type Coord, key, label, neighbors4, sameCoord, square } from './grid';
 import {
   applyBrand,
   applyBrass,
@@ -27,7 +27,16 @@ import {
   travel,
   unitAt,
 } from './queries';
-import type { Action, Aim, BattleState, EchoEntry, MemberUnit, Spell, SpellNode } from './types';
+import type {
+  Action,
+  Aim,
+  BattleState,
+  EchoEntry,
+  FiredCell,
+  MemberUnit,
+  Spell,
+  SpellNode,
+} from './types';
 
 export type CastAction = Extract<Action, { type: 'cast' }>;
 
@@ -79,15 +88,68 @@ export function castSpell(
     echo,
   });
   const outer = ctx.cast;
+  const from = ctx.log.length;
   ctx.cast = { kills: [] };
   const targets = resolveSource(ctx, caster, spell, aim, scale);
-  runNodes(ctx, spell.nodes, targets, scale);
+  const ran: SpellNode[] = [];
+  runNodes(ctx, spell.nodes, targets, scale, ran);
   if (spell.echo && !echo && isAlive(caster)) {
     const entry: EchoEntry = { caster: caster.id, spell: spell.key, aim: structuredClone(aim) };
     ctx.s.echoes.push(entry);
     emit(ctx, { type: 'echoQueued', caster: ref(caster) });
   }
   ctx.cast = outer;
+  if (!echo) {
+    emit(ctx, {
+      type: 'trace',
+      caster: ref(caster),
+      spell: spell.key,
+      cells: firedCells(spell, ran),
+      meaningful: ctx.log.slice(from).some((e) => MEANINGFUL.has(e.type)),
+    });
+  }
+}
+
+/** Event types that make a cast count toward proof (plan P6). */
+const MEANINGFUL: ReadonlySet<string> = new Set([
+  'damage',
+  'shieldGained',
+  'shieldAbsorbs',
+  'inked',
+  'puddle',
+  'oiled',
+  'steam',
+  'plates',
+  'coated',
+  'ignite',
+  'died',
+  'smear',
+  'mist',
+  'branded',
+]);
+
+/** The source, every node that ran and the shape cells walked to reach it, once each (plan P7). */
+function firedCells(spell: Spell, ran: readonly SpellNode[]): FiredCell[] {
+  const known = new Map((spell.cells ?? []).map((c) => [key(c.at), c]));
+  const dir = spell.path.find((p) => sameCoord(p.at, spell.at) && !p.inner)?.dir;
+  const out: FiredCell[] = [];
+  const seen = new Set<string>();
+  const add = (at: Coord, fallback: FiredCell | null): void => {
+    const cell = known.get(key(at)) ?? fallback;
+    if (!cell || seen.has(key(at))) return;
+    seen.add(key(at));
+    out.push({ ...cell, at: { ...cell.at } });
+  };
+  add(spell.at, {
+    at: spell.at,
+    rune: spell.glyph ? null : spell.source,
+    ...(dir ? { dir } : {}),
+  });
+  for (const node of ran) {
+    for (const v of node.via ?? []) add(v, null);
+    add(node.at, { at: node.at, rune: node.rune });
+  }
+  return out;
 }
 
 /** The source's own effect; returns the tiles the path runes apply to. */
@@ -158,8 +220,15 @@ function resolveSource(
 }
 
 /** Path runes in order, depth-first: each node's `next` runs before its later siblings. */
-function runNodes(ctx: Ctx, nodes: readonly SpellNode[], targets: Coord[], scale: Scale): void {
+function runNodes(
+  ctx: Ctx,
+  nodes: readonly SpellNode[],
+  targets: Coord[],
+  scale: Scale,
+  ran: SpellNode[],
+): void {
   for (const node of nodes) {
+    ran.push(node);
     if (node.kind === 'material') {
       const m = scale(node.magnitude);
       switch (node.rune) {
@@ -194,17 +263,17 @@ function runNodes(ctx: Ctx, nodes: readonly SpellNode[], targets: Coord[], scale
           applyBrand(ctx, footprint(ctx.s, targets, m));
           break;
       }
-      runNodes(ctx, node.next, targets, scale);
+      runNodes(ctx, node.next, targets, scale, ran);
     } else if (node.rune === 'onInked') {
       const passed = targets.some((t) => unitAt(ctx.s, t)?.inked === true);
       emit(ctx, { type: 'trigger', rune: 'onInked', passed });
-      if (passed) runNodes(ctx, node.next, targets, scale);
+      if (passed) runNodes(ctx, node.next, targets, scale, ran);
     } else {
       const victims = [...(ctx.cast?.kills ?? [])];
       if (!victims.length) emit(ctx, { type: 'trigger', rune: 'onKill', passed: false });
       for (const v of victims) {
         emit(ctx, { type: 'trigger', rune: 'onKill', passed: true, at: { ...v.at } });
-        runNodes(ctx, node.next, clip(ctx.s, [v.at, ...neighbors4(v.at)]), scale);
+        runNodes(ctx, node.next, clip(ctx.s, [v.at, ...neighbors4(v.at)]), scale, ran);
       }
     }
   }

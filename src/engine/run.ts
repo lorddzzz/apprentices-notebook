@@ -22,10 +22,12 @@ import {
   TUNING,
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
-import type { Cluster } from './cluster';
-import { type Coord, DIRS } from './grid';
-import { compileLattice, countRunes, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
+import { blockingAuras, type Cluster, toGlyphDef } from './cluster';
+import { fairCopy } from './glyph';
+import { type Coord, DIRS, label } from './grid';
+import { compileLattice, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
 import { parseLattice } from './notation';
+import { masksFrom, matchIdioms, provenCount } from './proof';
 import { memberById } from './queries';
 import { type Attempt, trial, trialKey } from './research';
 import { createRng, deriveSeed, pickWeighted } from './rng';
@@ -115,13 +117,18 @@ export function setMemberLattice(p: Profile, m: MemberId, l: Lattice): Profile {
   return { ...p, lattices: { ...p.lattices, [m]: l.runes.map(copyRune) } };
 }
 
+/** Runes a placed socket uses from the collection: itself, or a Glyph's inner runes (plan P1). */
+function runesIn(p: Profile, r: Placed): RuneId[] {
+  if (!isGlyph(r)) return [r.rune];
+  return (glyphLibrary(p)[r.glyph]?.cells ?? []).map((c) => c.rune);
+}
+
 function placedCount(p: Profile, rune: RuneId, except?: { m: MemberId; at: Coord }): number {
   let n = 0;
   for (const m of MEMBER_IDS) {
     for (const r of p.lattices[m]) {
-      if (isGlyph(r) || r.rune !== rune) continue; // B2 counts Glyph contents
       if (except && except.m === m && except.at.x === r.at.x && except.at.y === r.at.y) continue;
-      n += 1;
+      n += runesIn(p, r).filter((x) => x === rune).length;
     }
   }
   return n;
@@ -150,22 +157,43 @@ export function canPlace(p: Profile, m: MemberId, at: Coord, rune: RuneId): stri
   return null;
 }
 
+/** `canPlace` for a Glyph: every inner rune must be free, as if placed one by one (plan P1). */
+export function canPlaceGlyph(p: Profile, m: MemberId, at: Coord, glyph: GlyphId): string | null {
+  const def = glyphLibrary(p)[glyph];
+  if (!def) return 'Unknown Glyph';
+  const l = latticeOf(p, m);
+  if (!isSocket(l.shape, at)) return 'No socket here';
+  const needs = new Map<RuneId, number>();
+  for (const c of def.cells) needs.set(c.rune, (needs.get(c.rune) ?? 0) + 1);
+  for (const [rune, n] of needs) {
+    if (p.collection[rune] - placedCount(p, rune, { m, at }) < n) return 'None left';
+  }
+  const runes = l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y);
+  const placed: Lattice = { shape: l.shape, runes: [...runes, { at, glyph, dir: 'right' }] };
+  if (inkUsed(placed, glyphLibrary(p)) > p.inkCapacity[m]) return 'Not enough ink';
+  return null;
+}
+
 /** Issues per member (ink, structure, and runes used beyond what is owned). Empty object = ready. */
 export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIssue[]>> {
   const lattices = perMember((m) => latticeOf(p, m));
-  const counts = countRunes(MEMBER_IDS.map((m) => lattices[m]));
+  const counts = Object.fromEntries(RUNE_IDS.map((id) => [id, 0])) as Record<RuneId, number>;
+  for (const m of MEMBER_IDS) {
+    for (const r of lattices[m].runes) for (const rune of runesIn(p, r)) counts[rune] += 1;
+  }
   const out: Partial<Record<MemberId, LatticeIssue[]>> = {};
   for (const m of MEMBER_IDS) {
     const issues = validateLattice(lattices[m], p.inkCapacity[m], glyphLibrary(p));
     for (const r of lattices[m].runes) {
-      if (isGlyph(r)) continue;
-      if (counts[r.rune] > p.collection[r.rune]) {
-        issues.push({
-          kind: 'owned',
-          at: r.at,
-          rune: r.rune,
-          message: `Uses ${counts[r.rune]} of ${r.rune}, owns ${p.collection[r.rune]}`,
-        });
+      for (const rune of new Set(runesIn(p, r))) {
+        if (counts[rune] > p.collection[rune]) {
+          issues.push({
+            kind: 'owned',
+            at: r.at,
+            rune,
+            message: `Uses ${counts[rune]} of ${rune}, owns ${p.collection[rune]}`,
+          });
+        }
       }
     }
     if (issues.length > 0) out[m] = issues;
@@ -656,15 +684,68 @@ export function recordTrial(p: Profile, attempt: Attempt): Profile {
 }
 
 /** Appends cast masks to a member's proof, keeping the newest `TUNING.proofMasksPerMember`. */
-export function recordProof(_p: Profile, _m: MemberId, _masks: readonly FiredCell[][]): Profile {
-  throw new Error('not implemented (B2)');
+export function recordProof(p: Profile, m: MemberId, masks: readonly FiredCell[][]): Profile {
+  const proof = [...(p.proof[m] ?? []), ...masks.map((c) => c.map((f) => ({ ...f })))];
+  return { ...p, proof: { ...p.proof, [m]: proof.slice(-TUNING.proofMasksPerMember) } };
+}
+
+/**
+ * Writes proof for a trip's current fight, win or wipe (plan P7): the trip's actions replay
+ * deterministically, so the full log's meaningful player casts come from `beginEncounter`.
+ * A fight that no longer replays records nothing. Lab battles never reach this.
+ */
+export function recordTripProof(p: Profile, t: Trip): Profile {
+  let events: ActionResult['events'];
+  try {
+    events = beginEncounter(p, t).events;
+  } catch {
+    return p;
+  }
+  return MEMBER_IDS.reduce((acc, m) => recordProof(acc, m, masksFrom(events, m)), p);
+}
+
+/** Adds the idioms any member's lattice now contains to the codex; `fresh` are the new ones. */
+export function recogniseIdioms(p: Profile): { profile: Profile; fresh: string[] } {
+  const lib = glyphLibrary(p);
+  const found = new Set(MEMBER_IDS.flatMap((m) => matchIdioms(latticeOf(p, m), lib)));
+  const fresh = IDIOMS.filter((i) => found.has(i.id) && !p.idioms.includes(i.id)).map((i) => i.id);
+  return fresh.length === 0
+    ? { profile: p, fresh }
+    : { profile: { ...p, idioms: [...p.idioms, ...fresh] }, fresh };
 }
 
 /** Fair Copy: collapses the cluster in member m's lattice into a new Glyph (plan P2, P3, P11). */
-export function compileGlyph(_p: Profile, _m: MemberId, _cluster: Cluster, _name: string): Profile {
-  throw new Error('not implemented (B2)');
+export function compileGlyph(p: Profile, m: MemberId, cluster: Cluster, name: string): Profile {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('A Glyph needs a name');
+  if (cluster.cells.length < TUNING.glyphMinCells || cluster.cells.length > TUNING.glyphMaxCells) {
+    throw new Error(`A Glyph holds ${TUNING.glyphMinCells} to ${TUNING.glyphMaxCells} cells`);
+  }
+  const lib = glyphLibrary(p);
+  const l = latticeOf(p, m);
+  const masks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
+  if (provenCount(l, cluster, masks) < TUNING.provenCasts) throw new Error('Not proven yet');
+  const blocker = blockingAuras(l, cluster, lib)[0];
+  if (blocker) {
+    const aura = l.runes.find((r) => r.at.x === blocker.x && r.at.y === blocker.y);
+    const what = aura && !isGlyph(aura) ? RUNES[aura.rune].name : 'Aura';
+    throw new Error(`The ${what} at ${label(blocker)} also powers runes outside the selection`);
+  }
+  let n = p.glyphs.length + 1;
+  while (lib[`g${n}`]) n += 1;
+  const def = toGlyphDef(l, cluster, trimmed, `g${n}`, lib);
+  const free = def.idiom !== null && !p.glyphs.some((g) => g.idiom === def.idiom);
+  const cost = free ? 0 : TUNING.compileVellum;
+  if (p.vellum < cost) throw new Error('Not enough vellum');
+  const glyphs = [...p.glyphs, def];
+  const collapsed = fairCopy(l, cluster, def, lib);
+  const idioms = def.idiom && !p.idioms.includes(def.idiom) ? [...p.idioms, def.idiom] : p.idioms;
+  return setMemberLattice({ ...p, glyphs, vellum: p.vellum - cost, idioms }, m, collapsed);
 }
 
-export function renameGlyph(_p: Profile, _id: GlyphId, _name: string): Profile {
-  throw new Error('not implemented (B2)');
+export function renameGlyph(p: Profile, id: GlyphId, name: string): Profile {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('A Glyph needs a name');
+  if (!p.glyphs.some((g) => g.id === id)) throw new Error(`No Glyph ${id}`);
+  return { ...p, glyphs: p.glyphs.map((g) => (g.id === id ? { ...g, name: trimmed } : g)) };
 }
