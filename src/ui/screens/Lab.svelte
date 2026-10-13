@@ -1,23 +1,31 @@
 <script lang="ts">
-  import { SCENARIOS } from '$data';
+  import { MEMBER_IDS, MEMBERS, SCENARIOS } from '$data';
+  import { compileLattice } from '$engine';
+  import { IDLE } from '../../app/battleInput';
   import { lab } from '../../app/instance';
-  import { labLocation } from '../../app/lab';
+  import { labLocation, PALETTE } from '../../app/lab';
+  import { overlayFor } from '../../app/overlay';
   import { go, router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
+  import { shelfSlots } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import BattleView from '../components/battle/BattleView.svelte';
+  import BattleBoard from '../components/board/BattleBoard.svelte';
   import Button from '../components/common/Button.svelte';
   import Sheet from '../components/common/Sheet.svelte';
+  import CopySheet from '../components/lab/CopySheet.svelte';
   import LabBar from '../components/lab/LabBar.svelte';
+  import Palette from '../components/lab/Palette.svelte';
+  import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
 
-  const wanted = $derived(labLocation(router.params).scenario);
+  const where = $derived(labLocation(router.params));
   let menuOpen = $state(false);
 
   // The URL picks the scenario; unknown ids fall back to the sandbox (and the URL follows).
   $effect(() => {
-    const id = wanted;
+    const { scenario: id, demo } = where;
     if (lab.session && lab.scenario?.id === id) return;
-    const unknown = lab.load(id);
+    const unknown = lab.load(id, { demo });
     if (unknown !== null) {
       toast(`Unknown scenario "${unknown}"`, 'warn');
       go('lab', { scenario: lab.scenario?.id ?? 'sandbox' }, { replace: true });
@@ -32,41 +40,169 @@
     menuOpen = false;
     lab.reset();
   }
+
+  function run(fn: () => void): void {
+    menuOpen = false;
+    fn();
+  }
+
+  const paintName = $derived(PALETTE.find((p) => p.item === lab.palette)?.name ?? '');
+  const slots = $derived(
+    shelfSlots(
+      null,
+      MEMBER_IDS.map((m) => lab.lattices[m]),
+      lab.lattices[lab.member],
+      null,
+    ),
+  );
+  const lattice = $derived(lab.lattices[lab.member]);
+  const compiled = $derived(compileLattice(lattice, MEMBERS[lab.member].affinity));
 </script>
 
 <div class="lab" data-testid="lab">
   {#if lab.session && lab.scenario}
     {@const session = lab.session}
     {@const scenario = lab.scenario}
+    {#snippet bar()}
+      <LabBar
+        scenarios={SCENARIOS}
+        current={scenario}
+        round={session.state.round}
+        mode={lab.mode}
+        onmode={(m) => lab.setMode(m)}
+        onpick={pick}
+        onmenu={() => (menuOpen = true)}
+      />
+    {/snippet}
     {#key session}
-    <BattleView {session} continueLabel="Play again" oncontinue={reset}>
-      {#snippet top()}
-        <LabBar
-          scenarios={SCENARIOS}
-          current={scenario}
-          round={session.state.round}
-          onpick={pick}
-          onmenu={() => (menuOpen = true)}
-        />
-      {/snippet}
-    </BattleView>
+      {#if lab.mode === 'play'}
+        <BattleView {session} continueLabel="Play again" oncontinue={reset} top={bar} />
+      {:else}
+        <section class="workshop">
+          {@render bar()}
+          {#if lab.mode === 'board'}
+            <div class="board-wrap">
+              <BattleBoard
+                view={session.view}
+                overlay={overlayFor(session.state, IDLE)}
+                ontap={(at) => lab.paint(at)}
+              />
+            </div>
+            <div class="paint-line">
+              <p>
+                Painting <b>{paintName}</b>. Tap a tile to place or remove it.
+              </p>
+              <button
+                type="button"
+                class="undo"
+                disabled={!lab.canUndo}
+                data-testid="undo"
+                onclick={() => lab.undo()}
+              >
+                Undo
+              </button>
+            </div>
+            <Palette selected={lab.palette} onselect={(item) => (lab.palette = item)} />
+          {:else}
+            <div class="desk">
+              <LatticeEditor
+                {lattice}
+                {compiled}
+                capacity={null}
+                {slots}
+                tool={lab.tool}
+                ontool={(t) => lab.setTool(t)}
+                onsocket={(at, longPress) => lab.editLattice(at, longPress)}
+                member={lab.member}
+                onmember={(m) => (lab.member = m)}
+              />
+            </div>
+          {/if}
+        </section>
+      {/if}
     {/key}
 
     <Sheet open={menuOpen} title={scenario.title} onclose={() => (menuOpen = false)}>
       <p class="note">{scenario.note}</p>
-      <p class="hint">Lab battles never spend charges. Members without a scenario lattice use the one in your notebook.</p>
-      <div class="menu">
-        <Button label="Reset scenario" onclick={reset} testid="reset" />
+      <p class="hint">
+        Lab battles never spend charges, and the lattices have unlimited ink and runes. Members
+        without a scenario lattice use the one in your notebook; nothing here changes your notebook.
+      </p>
+      <div class="menu" data-testid="lab-sheet">
+        <Button variant="quiet" label="Play demo" onclick={() => run(() => lab.playDemo())} testid="play-demo" />
+        <Button variant="quiet" label="Reset scenario" onclick={reset} testid="reset" />
+        <Button
+          variant="quiet"
+          label="Undo last action"
+          disabled={!lab.canUndo}
+          onclick={() => run(() => lab.undo())}
+          testid="undo-last"
+        />
+        <Button variant="quiet" label="Copy board" onclick={() => run(() => void lab.copy('board'))} testid="copy-board" />
+        <Button variant="quiet" label="Copy lattices" onclick={() => run(() => void lab.copy('lattices'))} testid="copy-lattices" />
+        <Button variant="quiet" label="Copy as scenario" onclick={() => run(() => void lab.copy('scenario'))} testid="copy-scenario" />
         <a class="link" href={href('gallery', { part: 'board' })}>Gallery</a>
         <a class="link" href={href('study')}>Study</a>
       </div>
     </Sheet>
+
+    <CopySheet out={lab.copyOut} onclose={() => lab.closeCopy()} />
   {/if}
 </div>
 
 <style>
   .lab {
     height: 100%;
+  }
+  .workshop {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    padding: 0 var(--space-2) 16px;
+  }
+  .board-wrap {
+    flex: 1;
+    min-height: 0;
+  }
+  .paint-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: none;
+    min-height: 44px;
+    border-left: 3px solid var(--line);
+    padding-left: var(--space-2);
+  }
+  .paint-line p {
+    flex: 1;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .undo {
+    min-width: 64px;
+    height: 44px;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
+    color: var(--ink);
+    font: 15px Georgia, serif;
+    cursor: pointer;
+  }
+  .undo:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  /* the Study's desk: the notebook page and its shelf sit on dark wood */
+  .desk {
+    flex: 1;
+    min-height: 0;
+    padding: 6px;
+    border-radius: var(--radius);
+    background:
+      repeating-linear-gradient(90deg, transparent 0 58px, rgba(0, 0, 0, 0.18) 58px 59px),
+      linear-gradient(var(--wood-dark), #3a281c);
   }
   .note {
     margin: 0 0 var(--space-2);
@@ -78,9 +214,10 @@
     color: var(--ink-soft);
   }
   .menu {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
   }
   .link {
     display: inline-flex;

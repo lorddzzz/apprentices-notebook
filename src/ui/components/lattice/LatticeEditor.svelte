@@ -171,7 +171,7 @@
     align-items: center;
     justify-content: center;
     min-height: var(--tap);
-    padding: 0 var(--space-3);
+    padding: 0 12px;
     border: 1px solid var(--line);
     border-bottom: none;
     border-radius: var(--radius) var(--radius) 0 0;

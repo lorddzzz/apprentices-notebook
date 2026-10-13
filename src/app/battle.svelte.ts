@@ -38,6 +38,8 @@ export interface SessionOptions {
   onEvents?: (events: GameEvent[]) => void;
   /** Play the creation events (enemies declaring intents) on start. */
   intro?: boolean;
+  /** Called with the state and log just before an action took effect (the Lab's undo and export). */
+  onAction?: (before: { state: BattleState; log: GameEvent[] }, action: Action) => void;
 }
 
 /** One battle being played: authoritative state, input mode, playback. Shared by trip and Lab. */
@@ -172,12 +174,22 @@ export class BattleSession {
       toast(err instanceof Error ? err.message : String(err), 'warn');
       return;
     }
+    this.opts.onAction?.({ state: prev, log: this.log }, action);
     this.armed = false;
     this.state = r.state;
     this.log = [...this.log, ...r.events];
     this.input = afterAction(r.state, this.input);
     this.opts.onEvents?.(r.events);
     await this.play(viewOf(prev), r.events, castLead(prev, action, r.events));
+  }
+
+  /** Lab: swaps in an edited or earlier state (and log); the input and playback reset. */
+  replace(state: BattleState, log: GameEvent[]): void {
+    this.skip();
+    this.armed = false;
+    this.state = state;
+    this.log = log;
+    this.input = afterAction(state, IDLE);
   }
 
   /** Dev only: ends the fight at once (all enemies down, or the whole party). */

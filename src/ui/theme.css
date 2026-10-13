@@ -124,3 +124,44 @@ input[type="text"] {
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* The lattice editor on a desk (Study and Lab): its parts become paper, ribbons and a slip of notes. */
+.desk .editor .page {
+  border: 0;
+  border-radius: 3px 8px 8px 3px;
+  background:
+    linear-gradient(90deg, rgba(139, 58, 43, 0.35) 0 2px, transparent 2px) 34px 0 / 100% 100%
+    no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 27px, rgba(47, 79, 111, 0.12) 27px 28px),
+    var(--parchment);
+  box-shadow:
+    inset 8px 0 10px -8px rgba(43, 33, 24, 0.45),
+    0 4px 0 var(--parchment-deep),
+    0 8px 14px rgba(0, 0, 0, 0.45);
+}
+.desk .editor .mark:not(.on) {
+  background: var(--parchment-dark);
+}
+/* the ink pot's count sits on a paper tag so it reads against the wood */
+.desk .editor .pot {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 var(--space-2) 0 var(--space-1);
+  border-radius: 999px;
+  background: var(--parchment);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.desk .editor .info {
+  border-radius: var(--radius);
+  background: var(--parchment);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: rotate(-0.3deg);
+}
+.desk .editor .shelf {
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--wood);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.12);
+}

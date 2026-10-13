@@ -130,3 +130,6 @@ Nothing else. No backend, no analytics, no accounts.
 - `.claude/skills/`: `verify` (self-validation checklist), `scenario` (writing scenario tests), `design-round` (how to run a design round).
 - `.mcp.json`: Svelte MCP (`https://mcp.svelte.dev/mcp`).
 - Built-in browser pane covers interactive checks; Playwright is not used yet.
+| 2026-10-13 | Lab edits are checkpointed: `LabStore` keeps `{state, log, lattices, base, actions}` snapshots (cap 60) pushed before every action (`BattleSession` `onAction` hook) and edit; Undo pops one and `BattleSession.replace` swaps it in. An edit (paint, lattice) rebases: `baseOf(state)` becomes the scenario's start and `actions` restart | One mechanism undoes casts, moves, painted tiles and rune changes; export always replays from the last edit |
+| 2026-10-13 | `toScenarioDef(id, base, actions, events)` emits both members' lattices, `hp` for units off their default hp and `intents` from live telegraphs; `tests/app/lab.test.ts` replays the export of every `SCENARIOS` entry and compares lines and final board. Painting only the tile under a unit keeps the unit (`applyEdits`); changing a unit goes through `labSetCell` (fresh hp, no intent) | The scenario list doubles as the round-trip corpus. Shields, charges, round number and rng state are not captured (not in the notation) |
+
