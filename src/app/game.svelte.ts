@@ -197,7 +197,7 @@ export class GameStore {
   finishBattle(): void {
     const session = this.battle;
     if (!session || session.state.phase === 'player') return;
-    const end = endBattle(this.save, session.state);
+    const end = endBattle(this.save, session.state, session.log);
     this.dropBattle();
     this.wipe = end.wipe;
     this.commit(end.save);
@@ -226,6 +226,18 @@ export class GameStore {
   returnHome(): void {
     this.commit(goHome(this.save));
     this.toasted = [];
+    // `replace` updates the router at once; otherwise the trip-less 'trip' route redirects to the Study first.
+    go('trip-page', undefined, { replace: true });
+  }
+
+  /** Wiped → the trip page (the wipe stays pending until the player leaves it). */
+  readTrip(): void {
+    go('trip-page');
+  }
+
+  /** "Back to the desk" on the trip page. */
+  leaveTripPage(): void {
+    this.wipe = null;
     go('study');
   }
 

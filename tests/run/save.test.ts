@@ -275,3 +275,41 @@ test('v2 fields round-trip, and a lattice Glyph needs a library entry', () => {
   const save: SaveData = { profile, trip: null, seedCounter: 1, lastTrip: null };
   expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
 });
+
+test('a version 2 save with a live trip loads with empty stats and no last trip', () => {
+  const save = newSave(1);
+  const { stats: _s, ...v2trip } = startTrip(save.profile, 1);
+  const { lastTrip: _l, ...v2save } = save;
+  const text = JSON.stringify({ version: 2, data: { ...v2save, trip: v2trip } });
+  const env = parse(text);
+  expect(env.version).toBe(CURRENT_VERSION);
+  const parsed = parseSaveData(env.data);
+  expect(parsed.trip?.stats).toEqual({
+    fights: 0,
+    spells: [],
+    biggestChain: null,
+    discoveries: [],
+    proofCasts: 0,
+  });
+  expect(parsed.lastTrip).toBeNull();
+  // no trip at all also loads
+  const home = parse(JSON.stringify({ version: 2, data: { ...v2save, trip: null } }));
+  expect(parseSaveData(home.data).lastTrip).toBeNull();
+});
+
+test('a last trip with stats round-trips through the save text', () => {
+  const stats = {
+    fights: 2,
+    spells: [
+      { member: 'stoker' as const, spell: '1,0', name: 'Spark', casts: 3, damage: 6, kills: 1 },
+    ],
+    biggestChain: { member: 'stoker' as const, spell: '1,0', name: 'Spark', reactions: 3 },
+    discoveries: ['interaction:ignite'],
+    proofCasts: 2,
+  };
+  const save: SaveData = {
+    ...newSave(1),
+    lastTrip: { outcome: 'wiped', encounter: 1, stats },
+  };
+  expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
+});

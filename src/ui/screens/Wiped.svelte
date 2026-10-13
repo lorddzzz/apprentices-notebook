@@ -37,7 +37,12 @@
         {/if}
       </div>
     </div>
-    <Button onclick={() => game.dismissWipe()} testid="back-to-study">Back to the study</Button>
+    <div class="choices">
+      <Button onclick={() => game.readTrip()} testid="read-trip">Read the trip</Button>
+      <Button variant="quiet" onclick={() => game.dismissWipe()} testid="back-to-study"
+        >Back to the study</Button
+      >
+    </div>
   </section>
 {/if}
 
@@ -86,6 +91,11 @@
     flex-direction: column;
     justify-content: center;
     gap: var(--space-4);
+  }
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
   .wiped :global(.btn) {
     min-height: 56px;

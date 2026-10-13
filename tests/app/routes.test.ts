@@ -37,3 +37,9 @@ test('the bench screen opens at home and is closed out on a trip or with a wipe 
   const wipe: WipeSummary = { encounter: 'Three rats', lost: [], learned: [] };
   expect(resolveScreen('bench', null, wipe)).toEqual({ screen: 'wiped', redirect: 'trip' });
 });
+
+test('the trip page is a route', () => {
+  expect(parseHash('#/trip-page').route).toBe('trip-page');
+  expect(href('trip-page')).toBe('#/trip-page');
+  expect(parseHash('#/trip').route).toBe('trip');
+});

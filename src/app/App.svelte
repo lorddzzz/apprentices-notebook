@@ -10,6 +10,7 @@
   import Lab from '../ui/screens/Lab.svelte';
   import Loot from '../ui/screens/Loot.svelte';
   import Study from '../ui/screens/Study.svelte';
+  import TripPage from '../ui/screens/TripPage.svelte';
   import Wiped from '../ui/screens/Wiped.svelte';
   import { BUILD } from './build';
   import { resolveScreen } from './flow';
@@ -17,7 +18,7 @@
   import { go, router } from './router.svelte';
   import { toast } from './toasts.svelte';
 
-  const resolved = $derived(resolveScreen(router.route, game.save.trip, game.wipe));
+  const resolved = $derived(resolveScreen(router.route, game.save.trip, game.wipe, game.save.lastTrip));
 
   onMount(() => {
     if (game.recovered) {
@@ -52,6 +53,8 @@
     <Cleared />
   {:else if resolved.screen === 'wiped'}
     <Wiped />
+  {:else if resolved.screen === 'tripPage'}
+    <TripPage />
   {/if}
   <Toasts />
   <span class="build">{BUILD}</span>

@@ -1,4 +1,4 @@
-import type { InteractionId, MemberId } from '$data';
+import { type InteractionId, MEMBER_IDS, MEMBERS, type MemberId, RUNES, TUNING } from '$data';
 import {
   type Action,
   type ActionResult,
@@ -6,13 +6,18 @@ import {
   type BattleState,
   beginEncounter,
   type Coord,
+  clustersOf,
   discoveriesIn,
   finishEncounter,
   type GameEvent,
+  glyphLibrary,
+  isGlyph,
   type LootItem,
+  latticeOf,
   nextTripSeed,
   type Profile,
   pickLoot,
+  provenCount,
   pushOn,
   recordAction,
   recordTripProof,
@@ -20,7 +25,10 @@ import {
   type SaveData,
   startTrip,
   type Trip,
+  type TripRecap,
 } from '$engine';
+import { interactionTitle } from './describe';
+import { allMasks } from './faircopy';
 import type { Route } from './routes';
 import { parseSaveText, type SaveBackend, writeSave } from './save';
 import { editProfile, type ShelfTool, type SocketDecision } from './study';
@@ -42,7 +50,8 @@ export type Screen =
   | 'codex'
   | 'lab'
   | 'gallery'
-  | 'bench';
+  | 'bench'
+  | 'tripPage';
 
 const TRIP_SCREEN: Record<Trip['status'], Screen> = {
   fight: 'battle',
@@ -62,10 +71,13 @@ export function resolveScreen(
   route: Route,
   trip: Trip | null,
   wipe: WipeSummary | null,
+  lastTrip: TripRecap | null = null,
 ): { screen: Screen; redirect: Route | null } {
   if (route === 'codex' || route === 'lab' || route === 'gallery') {
     return { screen: route, redirect: null };
   }
+  // The trip page reads the last finished trip; with none (or a trip under way) it is not a place to be.
+  if (route === 'trip-page' && !trip && lastTrip) return { screen: 'tripPage', redirect: null };
   // The Bench is a room of the study: out on a trip (or with a wipe unread) it is closed.
   if (route === 'bench' && !trip && !wipe) return { screen: 'bench', redirect: null };
   const screen: Screen | null = trip ? TRIP_SCREEN[trip.status] : wipe ? 'wiped' : null;
@@ -138,7 +150,7 @@ function tripOf(save: SaveData): Trip {
 export function setOut(save: SaveData): SaveData {
   if (save.trip) throw new Error('The party is already out');
   const { seed, save: next } = nextTripSeed(save);
-  return { ...next, trip: startTrip(next.profile, seed) };
+  return { ...next, trip: startTrip(next.profile, seed), lastTrip: null };
 }
 
 /** The current encounter's battle. The same save always gives the same fight (reload restarts it). */
@@ -161,11 +173,19 @@ export interface BattleEnd {
 }
 
 /** Closes a finished battle: won → looting, wiped → trip gone, pending loot lost, discoveries kept. */
-export function endBattle(save: SaveData, battle: BattleState): BattleEnd {
+export function endBattle(
+  save: SaveData,
+  battle: BattleState,
+  log: readonly GameEvent[] = [],
+): BattleEnd {
   const trip = tripOf(save);
-  const r = finishEncounter(recordTripProof(save.profile, trip), trip, battle);
+  const r = finishEncounter(recordTripProof(save.profile, trip), trip, battle, log);
   const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
-  const next: SaveData = { ...save, profile: r.profile, trip: r.trip };
+  const lastTrip: TripRecap | null =
+    r.outcome === 'wiped'
+      ? { outcome: 'wiped', encounter: trip.encounter, stats: r.stats }
+      : save.lastTrip;
+  const next: SaveData = { ...save, profile: r.profile, trip: r.trip, lastTrip };
   const wipe: WipeSummary | null =
     r.outcome === 'wiped' ? { encounter: battle.title, lost: [...trip.loot], learned } : null;
   return { save: next, outcome: r.outcome, wipe, learned };
@@ -189,9 +209,15 @@ export function pushOnward(save: SaveData): SaveData {
   return { ...save, trip: pushOn(tripOf(save)) };
 }
 
-/** Back to the study with the loot banked. */
+/** Back to the study with the loot banked; the trip's recap is kept for the trip page. */
 export function goHome(save: SaveData): SaveData {
-  return { ...save, profile: returnHome(save.profile, tripOf(save)), trip: null };
+  const trip = tripOf(save);
+  const lastTrip: TripRecap = {
+    outcome: 'returned',
+    encounter: trip.encounter,
+    stats: trip.stats,
+  };
+  return { ...save, profile: returnHome(save.profile, trip), trip: null, lastTrip };
 }
 
 /**
@@ -204,4 +230,67 @@ export function newDiscoveries(
   toasted: readonly InteractionId[],
 ): InteractionId[] {
   return discoveriesIn(events).filter((d) => !known.includes(d) && !toasted.includes(d));
+}
+
+// ── The trip page (plan S17) ──
+
+export interface Highlight {
+  kind: 'discovery' | 'chain' | 'proof';
+  title: string;
+  text: string;
+}
+
+/** The pattern closest to proof: a cluster seen in 3 or more casts but fewer than a proof takes. */
+export function nearProof(p: Profile): { member: MemberId; runes: string[]; casts: number } | null {
+  const masks = allMasks(p);
+  const lib = glyphLibrary(p);
+  let best: { member: MemberId; runes: string[]; casts: number; size: number } | null = null;
+  for (const m of MEMBER_IDS) {
+    const lattice = latticeOf(p, m);
+    for (const c of clustersOf(lattice, lib)) {
+      if (c.cells.length < 2) continue;
+      const casts = provenCount(lattice, c, masks);
+      if (casts < 3 || casts >= TUNING.provenCasts) continue;
+      if (best && (casts < best.casts || (casts === best.casts && c.cells.length <= best.size))) {
+        continue;
+      }
+      const runes = c.cells.flatMap((at) => {
+        const placed = lattice.runes.find((r) => r.at.x === at.x && r.at.y === at.y);
+        return placed && !isGlyph(placed) ? [RUNES[placed.rune].name] : [];
+      });
+      best = { member: m, runes, casts, size: c.cells.length };
+    }
+  }
+  return best;
+}
+
+/** Up to three things to remember a trip by, in order: a discovery, the biggest chain, a pattern nearly proven. */
+export function tripHighlights(recap: TripRecap, profile: Profile): Highlight[] {
+  const out: Highlight[] = [];
+  const first = recap.stats.discoveries[0];
+  if (first?.startsWith('interaction:')) {
+    const id = first.slice('interaction:'.length) as InteractionId;
+    out.push({
+      kind: 'discovery',
+      title: 'A first for the notebook',
+      text: `${interactionTitle(id)} was seen for the first time.`,
+    });
+  }
+  const chain = recap.stats.biggestChain;
+  if (chain && chain.reactions >= 3) {
+    out.push({
+      kind: 'chain',
+      title: 'The biggest chain',
+      text: `${MEMBERS[chain.member].name}'s ${chain.name} set off ${chain.reactions} reactions in one cast.`,
+    });
+  }
+  const near = nearProof(profile);
+  if (near) {
+    out.push({
+      kind: 'proof',
+      title: 'Nearly proven',
+      text: `${near.runes.join(' \u2192 ')} on ${MEMBERS[near.member].name}'s page: ${near.casts} of ${TUNING.provenCasts} casts.`,
+    });
+  }
+  return out;
 }

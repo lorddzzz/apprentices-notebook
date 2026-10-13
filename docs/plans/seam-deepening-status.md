@@ -30,7 +30,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | C1 | sonnet | M | merged | (see log) | ~6% | also UnitToken.svelte + playback fixtures (accepted) |
 | C2 | haiku | S | merged | (see log) | ~2% | aspects show the hint under the rule when unknown (no ??? there) |
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
-| S1 | sonnet | M | running | | | started ~23:02, port 5191 |
+| S1 | sonnet | M | merged | (see log) | ~6% | |
 | D2 | haiku→sonnet | M | todo | | | all |
 | W4 | opus (me) | S | todo | | | |
 
@@ -99,6 +99,12 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - R1: renaming a Glyph is refused in the doorway ("Rename it at home"). Accepted.
 - R1: saves with a doorway in `t.loot`, two in one offer, or one in the heart's offers are rejected. Accepted.
 - R1: a reload in the doorway resumes it but drops the unsaved draft; idiom recognition is skipped in the doorway. Accepted (note for player).
+
+- S1: idiom discoveries skipped (idioms are recognised on Study edits, not at trip end) → discoveries = interactions only. Accepted.
+- S1: a cast owns events from its `cast` to its `trace`; damage/kills credited only within the cast; later fire ticks credited to no one. Accepted.
+- S1: nearProof ignores one-cell clusters; highest of 3–4, ties to the larger cluster. Accepted.
+- S1: header "Deepest: <title> · N fights fought"; "Home from the Seam." / "The trip, as it went." Accepted.
+- S1: returnHome navigates with replace (race with the Study redirect). Accepted.
 
 ## Decisions and fixes made during the build
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.

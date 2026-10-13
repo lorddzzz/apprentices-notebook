@@ -2,8 +2,12 @@ import { expect, test } from 'vitest';
 import {
   available,
   latticeOf,
+  masksFrom,
   newSave,
+  parseLattice,
+  recordProof,
   type SaveData,
+  setMemberLattice,
   socketAt,
   startTrip,
   type Trip,
@@ -12,9 +16,15 @@ import {
 import {
   editAndPersist,
   editLattice,
+  endBattle,
+  goHome,
   importSave,
   leaveDoorway,
+  nearProof,
   resolveScreen,
+  setOut,
+  startBattle,
+  tripHighlights,
   type WipeSummary,
 } from '../../src/app/flow';
 import { GameStore } from '../../src/app/game.svelte';
@@ -29,6 +39,7 @@ import {
   writeSave,
 } from '../../src/app/save';
 import { NO_TOOL, type ShelfTool } from '../../src/app/study';
+import { cast, withLattices } from '../scenarios/harness';
 
 const rune = (r: Extract<ShelfTool, { kind: 'rune' }>['rune']): ShelfTool => ({
   kind: 'rune',
@@ -293,4 +304,123 @@ test('Done returns to the loot when picks remain', () => {
   const r = leaveDoorway({ ...save, trip }, save.profile);
   expect(r.trip?.status).toBe('looting');
   expect(resolveScreen('trip', r.trip, null).screen).toBe('loot');
+});
+
+// ── The trip page (seam-deepening S16, S17) ──
+
+const fightLog = () =>
+  cast(withLattices('D . r', { draughtsman: 'Bolt> Spark' }), 'draughtsman', 'right').events;
+
+test('a won fight folds its whole log into the trip stats', () => {
+  const save = setOut(newSave(7));
+  const battle = { ...startBattle(save).state, phase: 'won' as const };
+  const end = endBattle(save, battle, fightLog());
+  expect(end.outcome).toBe('won');
+  expect(end.save.trip?.stats.fights).toBe(1);
+  expect(end.save.trip?.stats.spells).toEqual([
+    { member: 'draughtsman', spell: '0,0', name: 'Bolt', casts: 1, damage: 2, kills: 1 },
+  ]);
+  expect(end.save.lastTrip).toBeNull(); // the trip is still going
+});
+
+test('a wipe keeps the stats in lastTrip and ends the trip', () => {
+  const save = setOut(newSave(7));
+  const battle = { ...startBattle(save).state, phase: 'lost' as const };
+  const end = endBattle(save, battle, fightLog());
+  expect(end.outcome).toBe('wiped');
+  expect(end.save.trip).toBeNull();
+  expect(end.save.lastTrip).toMatchObject({ outcome: 'wiped', encounter: 0 });
+  expect(end.save.lastTrip?.stats.spells[0]?.casts).toBe(1);
+});
+
+test('returning home keeps the recap; the next trip clears it', () => {
+  const won = endBattle(
+    setOut(newSave(7)),
+    { ...startBattle(setOut(newSave(7))).state, phase: 'won' },
+    fightLog(),
+  );
+  const trip = { ...(won.save.trip as Trip), status: 'crossroads' as const };
+  const home = goHome({ ...won.save, trip });
+  expect(home.trip).toBeNull();
+  expect(home.lastTrip).toEqual({ outcome: 'returned', encounter: 0, stats: trip.stats });
+  expect(setOut(home).lastTrip).toBeNull();
+});
+
+test('the store: Return home leaves the recap in the save, and leaving the page clears the wipe', () => {
+  const b = memoryBackend();
+  writeSave(b, { ...save0(), trip: tripAt('crossroads') });
+  const game = new GameStore(b, () => 1);
+  game.returnHome();
+  expect(game.save.lastTrip?.outcome).toBe('returned');
+  expect(new GameStore(b, () => 2).save.lastTrip?.outcome).toBe('returned'); // survives a reload
+  game.wipe = wipe;
+  game.leaveTripPage();
+  expect(game.wipe).toBeNull();
+});
+
+test('resolveScreen: the trip page shows the last trip, from home or from a wipe', () => {
+  const recap = { outcome: 'returned' as const, encounter: 1, stats: tripAt('fight').stats };
+  expect(resolveScreen('trip-page', null, null, recap)).toEqual({
+    screen: 'tripPage',
+    redirect: null,
+  });
+  expect(resolveScreen('trip-page', null, wipe, recap).screen).toBe('tripPage');
+  // no recap: back to the Study (or the pending wipe)
+  expect(resolveScreen('trip-page', null, null, null)).toEqual({
+    screen: 'study',
+    redirect: 'study',
+  });
+  expect(resolveScreen('trip-page', null, wipe, null).screen).toBe('wiped');
+  // out on a trip, the trip decides
+  expect(resolveScreen('trip-page', tripAt('looting'), null, recap)).toEqual({
+    screen: 'loot',
+    redirect: 'trip',
+  });
+});
+
+test('highlights: discovery first, a chain of 3+, and a chain of 2 is left out', () => {
+  const stats = {
+    ...tripAt('fight').stats,
+    discoveries: ['interaction:ignite'],
+    biggestChain: { member: 'stoker' as const, spell: '1,0', name: 'Spark', reactions: 4 },
+  };
+  const hs = tripHighlights({ outcome: 'returned', encounter: 0, stats }, save0().profile);
+  expect(hs.map((h) => h.kind)).toEqual(['discovery', 'chain']);
+  expect(hs[1]?.text).toContain('Stoker');
+  expect(hs[1]?.text).toContain('4 reactions');
+  const small = {
+    ...stats,
+    discoveries: [],
+    biggestChain: { ...stats.biggestChain, reactions: 2 },
+  };
+  expect(tripHighlights({ outcome: 'wiped', encounter: 0, stats: small }, save0().profile)).toEqual(
+    [],
+  );
+});
+
+test('nearProof finds a pattern cast 3 or 4 times, and not one at 5 or at 2', () => {
+  const lattice = 'Bolt> Ink Oil Spark .';
+  const mask = masksFrom(
+    cast(withLattices('D . d', { draughtsman: lattice }), 'draughtsman', 'right').events,
+    'draughtsman',
+  )[0];
+  if (!mask) throw new Error('the cast was not meaningful');
+  const withCasts = (n: number) =>
+    recordProof(
+      setMemberLattice(newSave(1).profile, 'draughtsman', parseLattice(lattice)),
+      'draughtsman',
+      Array.from({ length: n }, () => mask),
+    );
+  const near = nearProof(withCasts(4));
+  expect(near?.casts).toBe(4);
+  expect(near?.member).toBe('draughtsman');
+  expect(near?.runes).toContain('Bolt');
+  expect(nearProof(withCasts(2))).toBeNull();
+  expect(nearProof(withCasts(5))).toBeNull();
+  const hs = tripHighlights(
+    { outcome: 'returned', encounter: 0, stats: tripAt('fight').stats },
+    withCasts(3),
+  );
+  expect(hs.map((h) => h.kind)).toEqual(['proof']);
+  expect(hs[0]?.text).toContain('3 of 5');
 });
