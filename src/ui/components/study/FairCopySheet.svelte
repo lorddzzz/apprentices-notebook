@@ -51,6 +51,13 @@
       <span class="cells">{preview.chain.length} runes, one socket</span>
     </p>
 
+    {#if preview.slides > 0}
+      <p class="slide" data-testid="fair-slide">
+        {preview.slides} {preview.slides === 1 ? 'rune slides' : 'runes slide'} up to meet the new
+        socket.
+      </p>
+    {/if}
+
     <label class="field">
       <span>Name</span>
       <input
@@ -115,6 +122,11 @@
   }
   .ink b {
     font-family: var(--mono);
+  }
+  .slide {
+    margin: 0 0 var(--space-2);
+    font-size: 13px;
+    color: var(--ink-soft);
   }
   .cells {
     margin-left: var(--space-2);

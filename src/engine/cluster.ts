@@ -1,8 +1,16 @@
 import { IDIOMS, type IdiomStep, RUNES, type RuneId, TUNING } from '$data';
-import { rotateDirLocal, rotateLocal } from './glyph';
+import { disconnected, fairCopy, rotateDirLocal, rotateLocal } from './glyph';
 import { byReadingOrder, type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
-import { compileLattice } from './lattice';
-import type { CellKey, GlyphDef, GlyphLibrary, Lattice, PlacedRune, Spell } from './types';
+import { compileLattice, isSocket } from './lattice';
+import type {
+  CellKey,
+  GlyphDef,
+  GlyphLibrary,
+  Lattice,
+  PlacedRune,
+  Spell,
+  SpellNode,
+} from './types';
 import { isGlyph } from './types';
 
 /** Clusters (design research-and-mastery §4.1): prefix-closed subtrees of a spell's flow tree. */
@@ -328,4 +336,97 @@ function firstIdiom(tree: readonly FlowCell[], root: number, inside: ReadonlySet
   walk(root, []);
   const found = new Set(branches.flatMap(matchBranch));
   return IDIOMS.find((i) => found.has(i.id))?.id ?? null;
+}
+
+// ── Fair Copy tidy (plan seam-deepening S13) ─────────────
+
+/** What a spell does, with no coordinates: the cast cannot tell two lattices apart when these match. */
+function behaviourOf(l: Lattice, glyphs: GlyphLibrary): { sig: string; reached: Set<CellKey> } {
+  const nodes = (ns: readonly SpellNode[]): unknown[] =>
+    ns.map((n) =>
+      n.kind === 'material' ? [n.rune, n.amp, n.magnitude, nodes(n.next)] : [n.rune, nodes(n.next)],
+    );
+  const compiled = compileLattice(l, [], glyphs);
+  const spells = compiled.spells
+    .map((s) => [key(s.at), s.source, s.amp, s.magnitude, s.echo, s.charges, nodes(s.nodes)])
+    .sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+  return { sig: JSON.stringify(spells), reached: new Set(compiled.reached) };
+}
+
+/**
+ * Where the first rune the collapse strands should go: the socket's neighbour on the side flow
+ * leaves the cluster (outer exit directions are the flat ones, whatever the Glyph's rotation),
+ * as an offset from where that rune stands now. Null when no stranded rune hangs off the cluster.
+ */
+function tidyOffset(
+  l: Lattice,
+  cluster: Cluster,
+  stranded: readonly Coord[],
+  glyphs: GlyphLibrary,
+): Coord | null {
+  const placedAt = placedMap(l);
+  const inCluster = (c: Coord): boolean => cluster.cells.some((x) => sameCoord(x, c));
+  for (const spell of compileLattice(l, [], glyphs).spells) {
+    const tree = flowTree(spell, placedAt);
+    if (!cluster.cells.every((c) => tree.some((t) => sameCoord(t.at, c)))) continue;
+    for (const cell of tree) {
+      if (!stranded.some((s) => sameCoord(s, cell.at))) continue;
+      const parent = tree[cell.parent];
+      if (!parent || !inCluster(parent.at)) return null;
+      const d = DIRS.find((x) => sameCoord(step(parent.at, x), cell.at));
+      if (!d) return null;
+      const exit = step(cluster.root, d);
+      return { x: exit.x - cell.at.x, y: exit.y - cell.at.y };
+    }
+  }
+  return null;
+}
+
+export interface Tidied {
+  lattice: Lattice;
+  /** Runes that slid up to the Glyph's way out (0: nothing moved). */
+  slid: number;
+}
+
+/**
+ * The collapsed lattice (the cluster folded into `glyph`), with the runes it would strand slid
+ * up as one block so the first sits on the Glyph's exit cell. Nothing slides unless every target
+ * is a socket that is empty after the collapse and the compiled spells still do exactly what the
+ * flat ones did (the identity property); then the stranded runes stay where they were.
+ */
+export function tidyCollapse(
+  l: Lattice,
+  cluster: Cluster,
+  glyph: GlyphDef,
+  glyphs: GlyphLibrary = {},
+): Tidied {
+  const collapsed = fairCopy(l, cluster, glyph, glyphs);
+  const stranded = disconnected(l, cluster, glyphs);
+  if (stranded.length === 0) return { lattice: collapsed, slid: 0 };
+  const off = tidyOffset(l, cluster, stranded, glyphs);
+  if (!off) return { lattice: collapsed, slid: 0 };
+
+  const moving = new Set<CellKey>(stranded.map(key));
+  const staying = new Set<CellKey>(
+    collapsed.runes.filter((r) => !moving.has(key(r.at))).map((r) => key(r.at)),
+  );
+  const runes = collapsed.runes.map((r) =>
+    moving.has(key(r.at)) ? { ...r, at: { x: r.at.x + off.x, y: r.at.y + off.y } } : r,
+  );
+  const targets = runes.filter((r) => moving.has(key({ x: r.at.x - off.x, y: r.at.y - off.y })));
+  if (targets.some((r) => !isSocket(l.shape, r.at) || staying.has(key(r.at)))) {
+    return { lattice: collapsed, slid: 0 };
+  }
+  const tidy: Lattice = {
+    shape: l.shape,
+    runes: [...runes].sort((a, b) => a.at.y - b.at.y || a.at.x - b.at.x),
+  };
+
+  const library: GlyphLibrary = { ...glyphs, [glyph.id]: glyph };
+  const before = behaviourOf(l, glyphs);
+  const after = behaviourOf(tidy, library);
+  if (before.sig !== after.sig || targets.some((r) => !after.reached.has(key(r.at)))) {
+    return { lattice: collapsed, slid: 0 };
+  }
+  return { lattice: tidy, slid: targets.length };
 }

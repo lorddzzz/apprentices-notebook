@@ -1,24 +1,42 @@
 import { describe, expect, test } from 'vitest';
-import { MEMBERS } from '$data';
+import { MEMBER_IDS, MEMBERS, type MemberId, type RuneId, TUNING } from '$data';
 import {
   type Aim,
   type BattleState,
+  blockingAuras,
   type Cluster,
   type Coord,
+  clustersOf,
+  compileGlyph,
   compileLattice,
   createBattle,
+  createRng,
   type Dir,
   describeLog,
   disconnected,
   fairCopy,
   type GlyphDef,
   type GlyphLibrary,
+  glyphLibrary,
   type Lattice,
+  latticeOf,
+  newProfile,
+  type Placed,
   type PlacedRune,
   parseLabel,
   parseLattice,
+  provenCount,
+  type Rng,
+  recordProof,
   type Spell,
   type SpellNode,
+  setMemberLattice,
+  sharingSpells,
+  step,
+  tidyCollapse,
+  toGlyphDef,
+  turnLeft,
+  turnRight,
 } from '$engine';
 import { cast } from './harness';
 
@@ -353,4 +371,192 @@ describe('fairCopy', () => {
     const whole = parseLattice('Bolt> Ink OnInked . .');
     expect(disconnected(whole, cluster)).toEqual([]);
   });
+});
+
+// ── Fuzz: a tidied Fair Copy (stranded runes slid up) casts what the flat lattice cast ──
+
+const SOURCES: RuneId[] = ['bolt', 'splash', 'quill'];
+const FLOW: RuneId[] = [
+  'ink',
+  'oil',
+  'spark',
+  'steam',
+  'brass',
+  'smear',
+  'torch',
+  'fog',
+  'mist',
+  'brand',
+  'onInked',
+  'onKill',
+  'bend',
+  'fork',
+];
+const AURAS: RuneId[] = ['amplify', 'echo'];
+
+const pickOf = <T>(rng: Rng, xs: readonly T[]): T => xs[rng.int(0, xs.length - 1)] as T;
+
+/** A random flow: a Source, then runes laid by walking outward, forking and bending. */
+function randomLattice(rng: Rng, shape: Lattice['shape']): Lattice {
+  const runes = new Map<string, Placed>();
+  const free = (c: Coord): boolean =>
+    c.x >= 0 &&
+    c.y >= 0 &&
+    c.x < shape.width &&
+    c.y < shape.height &&
+    !shape.holes.some((h) => h.x === c.x && h.y === c.y) &&
+    !runes.has(`${c.x},${c.y}`);
+  const put = (r: Placed): void => void runes.set(`${r.at.x},${r.at.y}`, r);
+  const frontier: { from: Coord; dir: Dir }[] = [];
+  for (let n = rng.int(1, 2), tries = 0; n > 0 && tries < 20; tries++) {
+    const at = { x: rng.int(0, shape.width - 1), y: rng.int(0, shape.height - 1) };
+    if (!free(at)) continue;
+    const dir = pickOf(rng, ['up', 'right', 'down', 'left'] as const);
+    put({ at, rune: pickOf(rng, SOURCES), dir });
+    frontier.push({ from: at, dir });
+    n -= 1;
+  }
+  for (let placed = 0; frontier.length > 0 && placed < 14; ) {
+    const f = frontier.splice(rng.int(0, frontier.length - 1), 1)[0] as (typeof frontier)[number];
+    const at = step(f.from, f.dir);
+    if (!free(at)) continue;
+    const roll = rng.next();
+    placed += 1;
+    if (roll < 0.15) {
+      const out = pickOf(rng, ['up', 'right', 'down', 'left'] as const);
+      put({ at, rune: 'bend', dir: out });
+      frontier.push({ from: at, dir: out });
+    } else if (roll < 0.27) {
+      put({ at, rune: 'fork' });
+      frontier.push({ from: at, dir: turnLeft(f.dir) }, { from: at, dir: turnRight(f.dir) });
+    } else {
+      const rune = pickOf(
+        rng,
+        FLOW.filter((r) => r !== 'bend' && r !== 'fork'),
+      );
+      put({ at, rune });
+      frontier.push({ from: at, dir: f.dir });
+    }
+  }
+  for (let n = rng.int(0, 2); n > 0; n--) {
+    const at = { x: rng.int(0, shape.width - 1), y: rng.int(0, shape.height - 1) };
+    if (free(at)) put({ at, rune: pickOf(rng, AURAS) });
+  }
+  const list = [...runes.values()].sort((a, b) => a.at.y - b.at.y || a.at.x - b.at.x);
+  return { shape, runes: list };
+}
+
+const AIMS: readonly Aim[] = [
+  { kind: 'dir', dir: 'right' },
+  { kind: 'dir', dir: 'down' },
+  { kind: 'dir', dir: 'left' },
+  { kind: 'dir', dir: 'up' },
+];
+
+/** Every spell of the two lattices casts the same log on every board and aim. */
+function sameCasts(flat: Lattice, tidy: Lattice, library: GlyphLibrary): string | null {
+  const a = compileLattice(flat, AFFINITY).spells;
+  const b = compileLattice(tidy, AFFINITY, library).spells;
+  if (a.length !== b.length) return `spell count ${a.length} vs ${b.length}`;
+  for (const [i, sa] of a.entries()) {
+    const sb = b[i] as Spell;
+    for (const board of BOARDS) {
+      for (const aim of [...AIMS, { kind: 'tile', at: board.tile } as Aim]) {
+        const run = (sp: Spell): string => {
+          try {
+            return castLog(battleWith(board.ascii, [sp]), aim).join('\n');
+          } catch (e) {
+            return `threw ${e instanceof Error ? e.message : String(e)}`;
+          }
+        };
+        const x = run(sa);
+        const y = run(sb);
+        if (x !== y) return `spell ${sa.key} ${JSON.stringify(aim)}\nFLAT ${x}\nTIDY ${y}`;
+      }
+    }
+  }
+  return null;
+}
+
+const shapeOf = (m: MemberId): Lattice['shape'] => parseLattice(MEMBERS[m].shape).shape;
+const BIG = { width: 7, height: 7, holes: [{ x: 3, y: 3 }] };
+
+describe('fuzz: a tidied Fair Copy keeps the cast (S13 identity)', () => {
+  test('over random proven clusters on both pages, every tidied compile casts the same', () => {
+    let tidied = 0;
+    let refused = 0;
+    for (let seed = 1; seed <= 400; seed++) {
+      const rng = createRng(seed * 7919);
+      for (const m of MEMBER_IDS) {
+        const lattice = randomLattice(rng, shapeOf(m));
+        let p = setMemberLattice(newProfile(), m, lattice);
+        const masks = compileLattice(latticeOf(p, m), []).spells.map((sp) => [...(sp.cells ?? [])]);
+        for (let i = 0; i < TUNING.provenCasts; i++) p = recordProof(p, m, masks);
+        const l = latticeOf(p, m);
+        const allMasks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
+        const candidates = clustersOf(l).filter(
+          (c) =>
+            c.cells.length >= TUNING.glyphMinCells &&
+            c.cells.length <= TUNING.glyphMaxCells &&
+            blockingAuras(l, c).length === 0 &&
+            sharingSpells(l, c).length === 0 &&
+            provenCount(l, c, allMasks) >= TUNING.provenCasts &&
+            disconnected(l, c).length > 0,
+        );
+        for (let k = 0; k < 3 && candidates.length > 0; k++) {
+          const cluster = pickOf(rng, candidates);
+          const def = toGlyphDef(l, cluster, 'Fuzz', 'gz');
+          const tidy = tidyCollapse(l, cluster, def);
+          if (tidy.slid === 0) {
+            refused += 1;
+            continue;
+          }
+          tidied += 1;
+          const next = compileGlyph({ ...p, vellum: 9 }, m, cluster, 'Fuzz');
+          const compiled = latticeOf(next, m);
+          expect(disconnected(l, cluster)).not.toHaveLength(0);
+          expect(compiled.runes.length).toBe(
+            l.runes.length - cluster.cells.length - cluster.auras.length + 1,
+          );
+          const why = sameCasts(l, compiled, glyphLibrary(next));
+          if (why)
+            throw new Error(
+              `seed ${seed} ${m}: ${why}\n${JSON.stringify(l.runes)}\n${JSON.stringify(cluster)}`,
+            );
+        }
+      }
+    }
+    expect(tidied).toBeGreaterThanOrEqual(30);
+    console.log('fuzz tidied', tidied, 'refused', refused);
+  }, 120_000);
+
+  test('on a roomy page too (tidyCollapse alone)', () => {
+    let tidied = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const rng = createRng(seed * 104729);
+      const l = randomLattice(rng, BIG);
+      const candidates = clustersOf(l).filter(
+        (c) =>
+          c.cells.length >= TUNING.glyphMinCells &&
+          c.cells.length <= TUNING.glyphMaxCells &&
+          blockingAuras(l, c).length === 0 &&
+          sharingSpells(l, c).length === 0 &&
+          disconnected(l, c).length > 0,
+      );
+      for (let k = 0; k < 3 && candidates.length > 0; k++) {
+        const cluster = pickOf(rng, candidates);
+        const def = toGlyphDef(l, cluster, 'Fuzz', 'gz');
+        const tidy = tidyCollapse(l, cluster, def);
+        if (tidy.slid === 0) continue;
+        tidied += 1;
+        const why = sameCasts(l, tidy.lattice, { gz: def });
+        if (why)
+          throw new Error(
+            `seed ${seed}: ${why}\n${JSON.stringify(l.runes)}\n${JSON.stringify(cluster)}`,
+          );
+      }
+    }
+    console.log('roomy tidied', tidied);
+    expect(tidied).toBeGreaterThanOrEqual(40);
+  }, 120_000);
 });

@@ -22,9 +22,8 @@ import {
   TUNING,
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
-import { blockingAuras, type Cluster, sharingSpells, toGlyphDef } from './cluster';
+import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
 import type { EventLog } from './events';
-import { fairCopy } from './glyph';
 import { type Coord, DIRS, label } from './grid';
 import { compileLattice, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
 import { parseLattice } from './notation';
@@ -818,7 +817,7 @@ export function compileGlyph(p: Profile, m: MemberId, cluster: Cluster, name: st
   const cost = free ? 0 : TUNING.compileVellum;
   if (p.vellum < cost) throw new Error('Not enough vellum');
   const glyphs = [...p.glyphs, def];
-  const collapsed = fairCopy(l, cluster, def, lib);
+  const collapsed = tidyCollapse(l, cluster, def, lib).lattice;
   const idioms = def.idiom && !p.idioms.includes(def.idiom) ? [...p.idioms, def.idiom] : p.idioms;
   return setMemberLattice({ ...p, glyphs, vellum: p.vellum - cost, idioms }, m, collapsed);
 }

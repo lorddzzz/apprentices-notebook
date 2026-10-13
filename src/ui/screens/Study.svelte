@@ -15,6 +15,7 @@
     glowCells,
     NO_SELECTION,
     previewFairCopy,
+    trimChip,
   } from '../../app/faircopy';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
@@ -46,6 +47,7 @@
   const preview = $derived(
     fair.cluster ? previewFairCopy(profile, game.member, fair.cluster) : null,
   );
+  const chip = $derived(trimChip(preview, fair.lost));
   const fairLive = $derived(fairMode && glow.size > 0);
 
   function leaveFair(): void {
@@ -181,6 +183,7 @@
         active: fairLive,
         glow,
         selected,
+        chip,
         ontoggle: toggleFair,
         ontap: tapFair,
       }}

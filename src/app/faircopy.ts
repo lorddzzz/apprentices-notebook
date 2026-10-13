@@ -7,7 +7,6 @@ import {
   type Dir,
   disconnected,
   type FiredCell,
-  fairCopy,
   glyphLibrary,
   inkUsed,
   isGlyph,
@@ -19,6 +18,7 @@ import {
   provenCount,
   sameCoord,
   sharingSpells,
+  tidyCollapse,
   toGlyphDef,
 } from '$engine';
 
@@ -55,6 +55,8 @@ export function fairCopyUnlocked(p: Profile): boolean {
 
 export interface FairState {
   cluster: Cluster | null;
+  /** The idiom a trim broke (its name), until the selection starts over (seam-deepening S14). */
+  lost?: string | null;
 }
 
 export const NO_SELECTION: FairState = { cluster: null };
@@ -63,6 +65,12 @@ export interface FairTap {
   state: FairState;
   /** A hint for the player (toast), or null. */
   message: string | null;
+}
+
+/** The name of the idiom a cluster would be compiled as, or null. */
+function idiomNameOf(p: Profile, m: MemberId, cluster: Cluster): string | null {
+  const id = toGlyphDef(latticeOf(p, m), cluster, 'Fair copy', '__idiom', glyphLibrary(p)).idiom;
+  return IDIOMS.find((i) => i.id === id)?.name ?? null;
 }
 
 const sameCells = (a: readonly Coord[], b: readonly Coord[]): boolean =>
@@ -84,7 +92,15 @@ export function fairTap(p: Profile, m: MemberId, state: FairState, at: Coord): F
     const smaller = clustersOf(lattice, lib).find(
       (c) => sameCoord(c.root, sel.root) && sameCells(c.cells, rest),
     );
-    if (smaller) return { state: { cluster: smaller }, message: null };
+    if (smaller) {
+      // A trim that breaks the idiom match remembers which one (the chip says "no longer ...").
+      const kept = idiomNameOf(p, m, smaller);
+      const was = idiomNameOf(p, m, sel);
+      return {
+        state: { cluster: smaller, lost: kept ? null : (was ?? state.lost ?? null) },
+        message: null,
+      };
+    }
     if (rest.length < TUNING.glyphMinCells) {
       return { state, message: `A Fair copy needs at least ${TUNING.glyphMinCells} runes` };
     }
@@ -93,6 +109,27 @@ export function fairTap(p: Profile, m: MemberId, state: FairState, at: Coord): F
   const next = maximalProven(lattice, at, allMasks(p), lib);
   if (next) return { state: { cluster: next }, message: null };
   return { state: sel ? state : NO_SELECTION, message: 'Not proven yet: cast it in 5 fights' };
+}
+
+export interface TrimChip {
+  /** "Cashing In · free", or "no longer Cashing In · 1 vellum" after a trim broke the match. */
+  text: string;
+  lost: boolean;
+}
+
+/** The idiom the selection matches and what compiling it costs, for the trim-mode chip (S14). */
+export function trimChip(
+  preview: FairPreview | null,
+  lost: string | null | undefined,
+): TrimChip | null {
+  if (!preview) return null;
+  if (preview.idiom) {
+    const cost = preview.free ? 'free' : `${TUNING.compileVellum} vellum`;
+    return { text: `${preview.suggestedName} \u00b7 ${cost}`, lost: false };
+  }
+  return lost
+    ? { text: `no longer ${lost} \u00b7 ${TUNING.compileVellum} vellum`, lost: true }
+    : null;
 }
 
 export interface ChainStep {
@@ -106,8 +143,10 @@ export interface FairPreview {
   chain: ChainStep[];
   inkBefore: number;
   inkAfter: number;
-  /** Outside runes the collapse would leave unreached (plan P2). */
+  /** Outside runes the collapse would leave unreached and could not tidy (plan P2). */
   disconnected: { at: Coord; name: string }[];
+  /** Runes that slide up to the Glyph's way out (seam-deepening S13). 0: none move. */
+  slides: number;
   /** Why the Fair copy cannot go ahead (plan P3, a second spell, vellum). Empty = ready. */
   blocking: string[];
   /** The idiom's name, or '' when the selection matches none. */
@@ -129,7 +168,7 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
   const lattice = latticeOf(p, m);
   const lib = glyphLibrary(p);
   const def = toGlyphDef(lattice, cluster, 'Fair copy', '__preview', lib);
-  const collapsed = fairCopy(lattice, cluster, def, lib);
+  const { lattice: collapsed, slid } = tidyCollapse(lattice, cluster, def, lib);
 
   const chain: ChainStep[] = [];
   for (const at of cluster.cells) {
@@ -158,10 +197,11 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
     chain,
     inkBefore: inkUsed(lattice, lib),
     inkAfter: inkUsed(collapsed, { ...lib, [def.id]: def }),
-    disconnected: disconnected(lattice, cluster, lib).map((at) => ({
-      at,
-      name: runeNameAt(p, m, at),
-    })),
+    disconnected:
+      slid > 0
+        ? []
+        : disconnected(lattice, cluster, lib).map((at) => ({ at, name: runeNameAt(p, m, at) })),
+    slides: slid,
     blocking,
     suggestedName: IDIOMS.find((i) => i.id === def.idiom)?.name ?? '',
     idiom: def.idiom,

@@ -2,7 +2,9 @@ import { describe, expect, test } from 'vitest';
 import { TUNING } from '$data';
 import {
   type Cluster,
+  type Coord,
   clustersOf,
+  compileGlyph,
   type FiredCell,
   latticeOf,
   newProfile,
@@ -17,6 +19,7 @@ import {
   glowCells,
   NO_SELECTION,
   previewFairCopy,
+  trimChip,
 } from '../../src/app/faircopy';
 
 const M = 'draughtsman';
@@ -114,14 +117,20 @@ describe('previewFairCopy', () => {
     expect(pv.inkAfter).toBe(pv.inkBefore - Math.floor(4 / 3));
   });
 
-  test('outside runes the collapse strands are listed by name', () => {
-    const p = proven(CHAIN);
-    const three = fairTap(p, M, { cluster: selected(p) }, c(3, 0)).state.cluster;
-    if (!three) throw new Error('no trim');
-    expect(previewFairCopy(p, M, three).disconnected).toEqual([{ at: c(3, 0), name: 'Spark' }]);
+  test('outside runes the collapse strands are listed by name when they cannot slide', () => {
+    // The exit cell (A2, below the socket) is a hole: nothing moves, the warning lists the pair.
+    const p = proven('Bolt> Ink Bendv . .\nx . OnInked . .\n. . Spark . .');
+    const bend = fairTap(p, M, { cluster: selected(p) }, c(2, 2)).state;
+    const trimmed = fairTap(p, M, bend, c(2, 1)).state.cluster;
+    if (!trimmed) throw new Error('no trim');
+    const pv = previewFairCopy(p, M, trimmed);
+    expect(pv.slides).toBe(0);
+    expect(pv.disconnected).toEqual([
+      { at: c(2, 1), name: 'On Inked' },
+      { at: c(2, 2), name: 'Spark' },
+    ]);
     expect(previewFairCopy(p, M, selected(p)).disconnected).toEqual([]);
   });
-
   test('an aura touching the cluster and a cell outside it blocks, naming it (P3)', () => {
     const p = proven('Bolt> Ink Bendv . .\n. Amp Spark . .');
     const whole = selected(p);
@@ -179,5 +188,137 @@ describe('previewFairCopy', () => {
       ],
     };
     expect(previewFairCopy(owned, M, selected(owned)).free).toBe(false);
+  });
+});
+
+/** The cluster after trimming `taps` from the whole selection, in order. */
+function trimmedBy(p: Profile, taps: Coord[], start = c(1, 0)): Cluster {
+  let state = { cluster: selected(p, start) };
+  for (const t of taps) state = fairTap(p, M, state, t).state as typeof state;
+  return state.cluster;
+}
+
+const at = (p: Profile, x: number, y: number) =>
+  latticeOf(p, M).runes.find((r) => r.at.x === x && r.at.y === y);
+
+describe('tidy: stranded runes slide up (S13)', () => {
+  test('a lone tail slides onto the exit cell and the preview says so', () => {
+    const p = { ...proven(CHAIN), vellum: 1 };
+    const cl = trimmedBy(p, [c(3, 0)]);
+    const pv = previewFairCopy(p, M, cl);
+    expect(pv.slides).toBe(1);
+    expect(pv.disconnected).toEqual([]);
+    const after = latticeOf(compileGlyph(p, M, cl, 'Cash'), M);
+    expect(after.runes.map((r) => ('glyph' in r ? 'G' : r.rune))).toEqual(['G', 'spark']);
+    expect(after.runes[1]?.at).toEqual(c(1, 0));
+  });
+
+  test('a block keeps its relative positions and arrows', () => {
+    const p = { ...proven('Bolt> Ink OnInked Bendv .\n. . . Oil .\n. . . Spark .'), vellum: 1 };
+    const cl = trimmedBy(p, [c(3, 2), c(3, 1), c(3, 0)]);
+    expect(cl.cells).toHaveLength(3);
+    const pv = previewFairCopy(p, M, cl);
+    expect(pv.slides).toBe(3);
+    const next = compileGlyph(p, M, cl, 'Cash');
+    expect(at(next, 1, 0)).toEqual({ at: c(1, 0), rune: 'bend', dir: 'down' });
+    expect(at(next, 1, 1)).toMatchObject({ rune: 'oil' });
+    expect(at(next, 1, 2)).toMatchObject({ rune: 'spark' });
+    expect(at(next, 3, 0)).toBeUndefined();
+  });
+
+  test('a turn out of the cluster still lands on the exit cell', () => {
+    // Flow leaves downward from the Bend: the socket's neighbour below it, A2.
+    const p = { ...proven('Bolt> Ink Bendv . .\n. . OnInked . .'), vellum: 1 };
+    const cl = trimmedBy(p, [c(2, 1)]);
+    expect(cl.cells).toHaveLength(3);
+    expect(previewFairCopy(p, M, cl).slides).toBe(1);
+    const next = compileGlyph(p, M, cl, 'Turn');
+    expect(at(next, 0, 1)).toMatchObject({ rune: 'onInked' });
+    expect(at(next, 2, 1)).toBeUndefined();
+  });
+
+  test('nothing slides when a target cell is a hole', () => {
+    // The Draughtsman's page has holes at A3 and E3; the exit cell below the socket is A3.
+    const p = { ...proven('. . . . .\nBolt> Ink Bendv . .\n. . OnInked . .'), vellum: 1 };
+    const cl = trimmedBy(p, [c(2, 2)], c(1, 1));
+    expect(cl.cells).toHaveLength(3);
+    const pv = previewFairCopy(p, M, cl);
+    expect(pv.slides).toBe(0);
+    expect(pv.disconnected.map((d) => d.name)).toEqual(['On Inked']);
+    const next = compileGlyph(p, M, cl, 'Held');
+    expect(at(next, 2, 2)).toMatchObject({ rune: 'onInked' });
+  });
+
+  test('nothing slides when a target cell is occupied', () => {
+    const p = { ...proven('Bolt> Ink Bendv . .\nOil . OnInked . .\n. . Spark . .'), vellum: 1 };
+    const cl = trimmedBy(p, [c(2, 2), c(2, 1)]);
+    const pv = previewFairCopy(p, M, cl);
+    expect(pv.slides).toBe(0);
+    expect(pv.disconnected).toHaveLength(2);
+    const next = compileGlyph(p, M, cl, 'Held');
+    expect(at(next, 0, 1)).toMatchObject({ rune: 'oil' });
+    expect(at(next, 2, 1)).toMatchObject({ rune: 'onInked' });
+  });
+
+  test('nothing slides when the exit cell is outside the lattice', () => {
+    // Flow leaves to the left of a socket on the left edge: there is no cell to land on.
+    const p = { ...proven('. Spark Bend< . .\nBolt> Ink Bend^ . .'), vellum: 1 };
+    const cl = trimmedBy(p, [c(1, 0)]);
+    expect(cl.cells).toHaveLength(4);
+    const pv = previewFairCopy(p, M, cl);
+    expect(pv.slides).toBe(0);
+    expect(pv.disconnected).toEqual([{ at: c(1, 0), name: 'Spark' }]);
+  });
+});
+
+describe('trim chip (S14)', () => {
+  test('shows the matched idiom and its cost while selected', () => {
+    const p = proven(CHAIN);
+    const state = { cluster: selected(p) };
+    expect(trimChip(previewFairCopy(p, M, state.cluster), null)).toEqual({
+      text: 'Cashing In \u00b7 free',
+      lost: false,
+    });
+  });
+
+  test('says 1 vellum once the first Cashing In exists', () => {
+    const p: Profile = {
+      ...proven(CHAIN),
+      glyphs: [
+        {
+          id: 'g1',
+          name: 'x',
+          kind: 'spell',
+          cells: [],
+          entry: c(0, 0),
+          exits: [],
+          idiom: 'cashingIn',
+        },
+      ],
+    };
+    expect(trimChip(previewFairCopy(p, M, selected(p)), null)?.text).toBe(
+      'Cashing In \u00b7 1 vellum',
+    );
+  });
+
+  test('trimming Cashing In by one fades the chip to "no longer ..."', () => {
+    const p = proven(CHAIN);
+    const r = fairTap(p, M, { cluster: selected(p) }, c(3, 0));
+    expect(r.state.lost).toBe('Cashing In');
+    const cluster = r.state.cluster;
+    if (!cluster) throw new Error('no trim');
+    expect(trimChip(previewFairCopy(p, M, cluster), r.state.lost)).toEqual({
+      text: 'no longer Cashing In \u00b7 1 vellum',
+      lost: true,
+    });
+  });
+
+  test('a fresh selection forgets what was lost; a pattern with no idiom has no chip', () => {
+    const p = proven(CHAIN);
+    const trimmed = fairTap(p, M, { cluster: selected(p) }, c(3, 0)).state;
+    const again = fairTap(p, M, trimmed, c(3, 0)).state; // the Spark, now outside: starts over
+    expect(again.lost ?? null).toBeNull();
+    const plain = proven('Bolt> Oil Ink .');
+    expect(trimChip(previewFairCopy(plain, M, selected(plain)), null)).toBeNull();
   });
 });

@@ -24,7 +24,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | D1 | haiku | S | merged | (see log) | ~2% | recipe hints rewritten by me (D1's named the ingredients) |
 | E1 | sonnet | M | merged | (see log) | ~6% | added Spell.pierce / SpellNode.pierced |
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
-| F1 | sonnet | M | running | | | started 22:40 |
+| F1 | sonnet | M | merged | (see log) | ~7% | also touched run.ts compileGlyph + Study.svelte (3 lines), accepted |
 | E3 | sonnet | M | merged | (see log) | ~4% | merge seam with E1 Targets fixed by me |
 | L1 | sonnet | M | running | | | started 22:48, preview dev-alt2 (5191) |
 | C1 | sonnet | M | todo | | | after D1 |
@@ -71,6 +71,13 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - E3: Etch inks exactly like Ink (puddles, diffuse, stains); plates aren't inked but are etched. Accepted.
 - E3: **Etch conduction reinterpreted**: units on a conducted net already take Spark, so when the net contains etched brass, every inked unit on or orthogonally beside a net tile is sparked as if hit directly. ASK PLAYER (feel).
 - E3: Etch etches only brass in its footprint; Kiln heats only the plates it raises (not units it coats, not existing plates). Accepted.
+
+- F1: the chip says "· free" for the first compile of an idiom (design makes it free), "· 1 vellum" after. Accepted.
+- F1: the lost chip stays until the selection restarts or Done, even through further trims. Accepted.
+- F1: tidy also requires the compiled spells to behave exactly as the flat ones (stricter than the plan's three cell conditions; catches multi-exit Forks and auras losing their touch). Accepted.
+- F1: auras that touched stranded runes don't move with them (if that breaks behaviour, nothing slides). Accepted.
+- F1: a target cell may be one the moving block itself vacates. Accepted.
+- F1: Draughtsman/Stoker pages have holes, so tidy refuses more often on real pages. Note for player.
 
 ## Decisions and fixes made during the build
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.

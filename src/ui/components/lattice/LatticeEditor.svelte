@@ -49,6 +49,8 @@
       active: boolean;
       glow: ReadonlySet<string>;
       selected: ReadonlySet<string>;
+      /** The idiom the selection matches and its cost, or what a trim just broke. */
+      chip?: { text: string; lost: boolean } | null;
       ontoggle: () => void;
       ontap: (at: Coord) => void;
     };
@@ -202,6 +204,9 @@
 
   <div class="info" data-testid="info">
     {#if fairOn && fairinfo}
+      {#if fair?.chip}
+        <p class="chip" class:lost={fair.chip.lost} data-testid="fair-chip">{fair.chip.text}</p>
+      {/if}
       {@render fairinfo()}
     {:else if tool.kind === 'erase'}
       <p class="line">Tap a rune to erase it. Holding a rune also lifts it.</p>
@@ -365,6 +370,27 @@
     background: var(--lamp);
     border-color: var(--ink);
     font-weight: 700;
+  }
+  .chip {
+    display: inline-block;
+    margin: var(--space-1) var(--space-2) 0;
+    padding: 2px var(--space-2);
+    border: 1px solid var(--lamp);
+    border-radius: 999px;
+    background: rgba(232, 176, 74, 0.35);
+    font-size: 13px;
+    font-weight: 700;
+    transition:
+      opacity 0.3s,
+      background 0.3s;
+  }
+  .chip.lost {
+    border-style: dashed;
+    border-color: var(--ink-soft);
+    background: transparent;
+    color: var(--ink-soft);
+    font-weight: 400;
+    opacity: 0.75;
   }
   .peek {
     min-height: 36px;
