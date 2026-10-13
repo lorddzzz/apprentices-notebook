@@ -9,7 +9,7 @@ export const RECIPES: readonly RecipeDef[] = [
     right: 'oil',
     solvent: 'pitch',
     torn: 'solvent',
-    ownerNote: 'Pitch, of course. Ink that will not stay where it is put.', // A1: final note
+    ownerNote: 'Pitch, of course. Ink that will not stay where it is put.',
   },
   {
     id: 'torch',

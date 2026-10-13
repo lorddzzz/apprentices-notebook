@@ -1,5 +1,8 @@
+import { ASPECT_IDS, ASPECTS, SOLVENTS } from './aspects';
+import { IDIOMS } from './idioms';
+import { RECIPES } from './recipes';
 import { RUNE_IDS, RUNES } from './runes';
-import type { CodexEntryDef, InteractionId, RuneId } from './types';
+import type { Aspect, CodexEntryDef, InteractionId, RuneId } from './types';
 
 export const INTERACTION_IDS: readonly InteractionId[] = [
   'ignite',
@@ -26,7 +29,7 @@ const RUNE_NOTES: Record<RuneId, string> = {
   onKill: 'Where one falls, three more shall feel it.',
   amplify: 'Loud neighbours make loud spells.',
   echo: 'I swear I only cast it once.',
-  quill: 'A bolt that writes where it lands.', // A1: final notes
+  quill: 'A bolt that writes where it lands.',
   smear: 'Touch one, and the whole crowd wears it.',
   torch: 'Why wait for the spark? Bring it with you.',
   fog: 'A wet floor under a wet sky.',
@@ -72,6 +75,34 @@ const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNo
   },
 };
 
+const ASPECT_READS: Record<Aspect, string> = {
+  reach: 'Travels, lands at a distance.',
+  mark: 'Singles out a target.',
+  slick: 'Coats the floor, spreads, slides.',
+  heat: 'Burns, ignites.',
+  charge: 'Conducts, empowers.',
+  vapor: 'Fills an area.',
+  hold: 'Blocks, shields, holds back.',
+  return: 'Repeats, branches, reacts.',
+};
+
+const ASPECT_NOTES: Record<Aspect, string> = {
+  reach: 'It was never the arrow. It was the distance.',
+  mark: 'Whoever is marked is already spoken for.',
+  slick: 'Nothing stays put on it, and nothing wants to.',
+  heat: 'It remembers being warm. Ask the Stoker.',
+  charge: 'It wants to go somewhere. Let it, carefully.',
+  vapor: 'Fill the room and nobody can say where it began.',
+  hold: 'Hold it long enough and it becomes a wall.',
+  return: 'Every road in this spell comes back to the start.',
+};
+
+const IDIOM_TEXT: Record<string, string> = {
+  cashingIn: 'A source, a trigger that reads Mark, then a payload with Heat or Charge.',
+  bonfire: 'An area source with Vapor, then a Slick material, then a Heat material.',
+  undertaker: 'A source, then a Return trigger with Vapor (On Kill), then an area material.',
+};
+
 export const CODEX: readonly CodexEntryDef[] = [
   ...RUNE_IDS.map(
     (id): CodexEntryDef => ({
@@ -89,6 +120,36 @@ export const CODEX: readonly CodexEntryDef[] = [
       kind: 'interaction',
       ref: id,
       ...INTERACTIONS[id],
+    }),
+  ),
+  ...RECIPES.map(
+    (r): CodexEntryDef => ({
+      id: `recipe:${r.id}`,
+      kind: 'recipe',
+      ref: r.id,
+      title: RUNES[r.result].name,
+      text: `${RUNES[r.left].name} + ${RUNES[r.right].name} + ${SOLVENTS[r.solvent].name}: ${RUNES[r.result].rule}`,
+      ownerNote: r.ownerNote,
+    }),
+  ),
+  ...IDIOMS.map(
+    (i): CodexEntryDef => ({
+      id: `idiom:${i.id}`,
+      kind: 'idiom',
+      ref: i.id,
+      title: i.name,
+      text: IDIOM_TEXT[i.id] ?? '',
+      ownerNote: i.ownerNote,
+    }),
+  ),
+  ...ASPECT_IDS.map(
+    (a): CodexEntryDef => ({
+      id: `aspect:${a}`,
+      kind: 'aspect',
+      ref: a,
+      title: `${ASPECTS[a].glyph} ${ASPECTS[a].name}`,
+      text: `${ASPECT_READS[a]} Carried by ${SOLVENTS[ASPECTS[a].solvent].name}.`,
+      ownerNote: ASPECT_NOTES[a],
     }),
   ),
 ];
