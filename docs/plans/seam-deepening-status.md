@@ -2,8 +2,8 @@
 
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building
-**Next:** Merge P1 when it reports, then HOLD for the 02:00Z reset (epoch 1791943200). After reset: D2 (Lab scenarios per new rune/interaction; fuzz bots use new runes, take doorways, play all variants; Lab palette for new tile states optional), then W4 (battle title = variant name?, docs DESIGN §11 + feature doc §0 + TECH §7, code review, verify whole loop, cleanup worktrees). Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**State:** holding for reset (resumes ~02:01 UTC, epoch 1791943260)
+**Next:** After the 02:00Z reset (epoch 1791943200): D2 (Lab scenarios per new rune/interaction; fuzz bots use new runes, take doorways, play all variants; Lab palette for new tile states optional), then W4 (battle title = variant name?, docs DESIGN §11 + feature doc §0 + TECH §7, code review, verify whole loop, cleanup worktrees). Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -49,6 +49,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 23:02 | 78 | 2h58m | 50 | narrow (78 + C2 2 + S1 8 = 88) | R1 merged + pushed; spawn S1 (told: smallest solution) |
 | 23:03 | 80 | 2h57m | 51 | narrow | C2 merged + pushed; no spawn until S1 reports |
 | 23:11 | 86 | 2h49m | 51 | narrow (86 + P1 3 = 89) | S1 merged + pushed; spawn P1; D2/W4 after reset |
+| 23:15 | 87 | 2h45m | 52 | narrow (87 + D2 8 = 95: no) | P1 merged + pushed; merged worktrees cleaned; HOLD |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
