@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { MEMBERS, RUNES, TUNING } from '$data';
   import type { MemberUnit, UnitId } from '$engine';
   import Pips from '../common/Pips.svelte';
 
@@ -35,6 +36,9 @@
       <span class="row">
         <span class="dot"></span>
         <span class="name">{m.name}</span>
+        <span class="aff" title="Affinity: these runes are +{TUNING.affinityBonus} stronger">
+          {MEMBERS[m.def].affinity.map((a) => RUNES[a].name.toLowerCase()).join('·')}+{TUNING.affinityBonus}
+        </span>
         {#if danger}<span class="danger" title="An attack is aimed here">!</span>{/if}
       </span>
       <span class="row small">
@@ -96,6 +100,11 @@
     flex: none;
     border-radius: 50%;
     background: var(--c);
+  }
+  .aff {
+    font-size: 11px;
+    color: var(--ink-soft);
+    white-space: nowrap;
   }
   .name {
     font-size: 14px;

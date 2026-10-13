@@ -103,6 +103,7 @@
       member={game.member}
       onmember={(m) => game.selectMember(m)}
       onreject={(reason) => toast(reason)}
+      known={profile.interactions}
     />
   </div>
 

@@ -19,13 +19,23 @@
     lattice: Lattice;
     compiled: CompiledLattice;
     focus: SpellKey | null;
+    /** Resolution step per cell of the focused spell (badges). */
+    numbers?: ReadonlyMap<string, number>;
     /** Socket the player is inspecting (ringed). */
     inspected?: Coord | null;
     ontap: (at: Coord) => void;
     onlongpress: (at: Coord) => void;
   }
 
-  let { lattice, compiled, focus, inspected = null, ontap, onlongpress }: Props = $props();
+  let {
+    lattice,
+    compiled,
+    focus,
+    numbers = new Map(),
+    inspected = null,
+    ontap,
+    onlongpress,
+  }: Props = $props();
 
   const cols = $derived(lattice.shape.width);
   const rows = $derived(lattice.shape.height);
@@ -67,6 +77,9 @@
         >
           {#if c.placed}
             <RuneGlyph rune={c.placed.rune} dir={c.placed.dir} dim={idle.has(c.k)} size={44} />
+          {/if}
+          {#if numbers.has(c.k)}
+            <span class="step" data-testid="step-{c.k}">{numbers.get(c.k)}</span>
           {/if}
         </button>
       {:else}
@@ -127,6 +140,20 @@
   .socket:focus-visible {
     outline: 3px solid var(--select);
     outline-offset: 1px;
+  }
+  .step {
+    position: absolute;
+    top: -7px;
+    left: -7px;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--f-source);
+    color: var(--parchment);
+    font: 700 11px var(--mono);
+    pointer-events: none;
   }
   .socket :global(svg) {
     width: 82%;

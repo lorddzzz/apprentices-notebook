@@ -1,4 +1,13 @@
-import { ATTACKS, CODEX, ENCOUNTERS, type InteractionId, MEMBERS, RUNES } from '$data';
+import {
+  ATTACKS,
+  CODEX,
+  ENCOUNTERS,
+  ENEMIES,
+  type InteractionId,
+  MEMBERS,
+  RUNES,
+  TUNING,
+} from '$data';
 import {
   type Action,
   type Aim,
@@ -58,13 +67,34 @@ function intentPhrase(s: BattleState, e: EnemyUnit): string {
   return `${verb} ${e.intent.dir} (${ordinal(e.intent.order)})${target}`;
 }
 
-/** Inspect line: `rat C2 · 2/2 HP · oil-soaked · bites right (2nd), hits Stoker`. */
+/**
+ * What makes a unit special, with the effect spelled out: `oil-soaked (fire +1)`. Members list
+ * their affinity. Inked and coated states count, since they change what spells do to it.
+ */
+export function unitTraits(
+  u: Pick<Unit, 'kind' | 'def' | 'inked' | 'brass' | 'oilSoaked'>,
+): string[] {
+  const out: string[] = [];
+  if (u.inked) out.push(`inked (+${TUNING.inkedBonus} damage taken)`);
+  if (u.brass) out.push('brass (conducts spark)');
+  if (u.oilSoaked) out.push(`oil-soaked (fire +${TUNING.oilSoakedBonus})`);
+  if (u.kind === 'enemy') {
+    const def = ENEMIES[u.def as keyof typeof ENEMIES];
+    if (def.oilTrail) out.push('leaves an oil trail');
+    if (def.attack && ATTACKS[def.attack].inks) out.push('its spit inks');
+  } else {
+    const aff = MEMBERS[u.def as keyof typeof MEMBERS].affinity;
+    if (aff.length)
+      out.push(`${aff.map((m) => RUNES[m].name).join(' and ')} runes +${TUNING.affinityBonus}`);
+  }
+  return out;
+}
+
+/** Inspect line: `rat C2 · 2/2 HP · oil-soaked (fire +1) · bites right (2nd), hits Stoker`. */
 export function unitLine(s: BattleState, u: Unit): string {
   const bits = [shortName(u), `${u.hp}/${u.maxHp} HP`];
   if (u.shield > 0) bits.push(`shield ${u.shield}`);
-  if (u.inked) bits.push('inked');
-  if (u.brass) bits.push('brass');
-  if (u.oilSoaked) bits.push('oil-soaked');
+  bits.push(...unitTraits(u));
   const tile = tileAt(s, u.pos);
   if (tile.steam > 0) bits.push('in steam');
   if (tile.fire > 0) bits.push('on fire');

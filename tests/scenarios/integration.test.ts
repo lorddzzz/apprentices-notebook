@@ -44,7 +44,7 @@ test('echo: the spell repeats next turn at half strength (S8)', () => {
     'Spark hits dummy at C1 for 1',
   ]);
   const d = memberById(r2.state, 'draughtsman');
-  expect(d.charges['0,1']).toBe(2);
+  expect(d.charges['0,1']).toBe(4);
   expect(unitById(r2.state, 'dummy-1').hp).toBe(7);
 });
 

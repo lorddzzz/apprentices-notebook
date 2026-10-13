@@ -37,7 +37,7 @@ test('scenarioBattle in lab mode: no charges spent, spells from the scenario lat
   expect(s.lab).toBe(true);
   expect(s.phase).toBe('player');
   const after = cast(s, 'stoker', 'right').state;
-  expect(memberById(after, 'stoker').charges['0,0']).toBe(3);
+  expect(memberById(after, 'stoker').charges['0,0']).toBe(5);
 });
 
 test('scenarioBattle falls back to the given (profile) lattices for omitted members', () => {
@@ -56,11 +56,11 @@ test('scenarioBattle falls back to the given (profile) lattices for omitted memb
 test('labSetLattice recompiles spells and refills charges', () => {
   const s = scenarioBattle({ title: 'lab', board: 'D . d', lattices: { draughtsman: 'Bolt>' } });
   const spent = cast(s, 'draughtsman', 'right').state;
-  expect(memberById(spent, 'draughtsman').charges['0,0']).toBe(2);
+  expect(memberById(spent, 'draughtsman').charges['0,0']).toBe(4);
   const next = labSetLattice(spent, 'draughtsman', 'Amp .\nBolt> Spark');
   const m = memberById(next, 'draughtsman');
   expect(m.spells.map(describeSpell)).toEqual(['Bolt (3 damage) → Spark (1 damage)']);
-  expect(m.charges).toEqual({ '0,1': 3 });
+  expect(m.charges).toEqual({ '0,1': 5 });
   expect(memberById(spent, 'draughtsman').spells).toHaveLength(1); // input untouched
   expect(memberById(spent, 'draughtsman').spells[0]?.key).toBe('0,0');
 });
@@ -68,7 +68,7 @@ test('labSetLattice recompiles spells and refills charges', () => {
 test('UI contract: castableSpells, aimPreview path, labSetCell errors', () => {
   const s = scenarioBattle(scenarioById('steam-arc') as ScenarioDef, { lab: true });
   const [entry] = castableSpells(s, 'draughtsman');
-  expect(entry?.charges).toBe(3);
+  expect(entry?.charges).toBe(5);
   expect(entry?.usable).toBe(true);
   expect(entry?.spell.path.map((p) => p.dir)).toEqual(['right', 'right']);
   expect(aimPreview(s, 'draughtsman', '0,0', { kind: 'dir', dir: 'right' })).toEqual({

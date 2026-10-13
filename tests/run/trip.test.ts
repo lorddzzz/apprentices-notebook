@@ -52,7 +52,7 @@ describe('start', () => {
     expect(t.status).toBe('fight');
     expect(t.encounter).toBe(0);
     expect(t.hp).toEqual({ draughtsman: 6, stoker: 8 });
-    expect(t.charges).toEqual({ draughtsman: { '0,1': 3 }, stoker: { '1,0': 3 } });
+    expect(t.charges).toEqual({ draughtsman: { '0,1': 5 }, stoker: { '1,0': 5 } });
     expect(t.loot).toEqual([]);
     expect(t.offers).toEqual([]);
   });
@@ -243,7 +243,7 @@ describe('wipes, hp and charges', () => {
     expect(memberById(next.state, 'stoker').hp).toBe(3);
     expect(memberById(next.state, 'stoker').maxHp).toBe(8);
     expect(memberById(next.state, 'draughtsman').charges).toEqual({ '0,1': 1 });
-    expect(memberById(next.state, 'stoker').charges).toEqual({ '1,0': 3 });
+    expect(memberById(next.state, 'stoker').charges).toEqual({ '1,0': 5 });
   });
 
   test('finishEncounter refuses a battle still in progress', () => {

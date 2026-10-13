@@ -51,7 +51,7 @@ test('straight flow', () => {
   expect(shape(s.nodes)).toEqual([{ ink: ['spark'] }]);
   expect(s.key).toBe('0,0');
   expect(s.source).toBe('bolt');
-  expect(s.charges).toBe(3);
+  expect(s.charges).toBe(5);
   expect(s.path.map((p) => p.rune)).toEqual(['bolt', 'ink', 'spark']);
 });
 

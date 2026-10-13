@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
+  import { INTERACTION_IDS, type InteractionId, MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
   import {
     type CompiledLattice,
     type Coord,
@@ -10,6 +10,7 @@
     type SpellKey,
     socketAt,
   } from '$engine';
+  import { spellRecipe, stepNumbers } from '../../../app/recipe';
   import type { ShelfSlot, ShelfTool } from '../../../app/study';
   import RuneGlyph from '../RuneGlyph.svelte';
   import InkPot from './InkPot.svelte';
@@ -30,6 +31,8 @@
     onmember: (member: MemberId) => void;
     /** Why a shelf slot can't be picked up. */
     onreject?: (reason: string) => void;
+    /** Interactions the recipe may name (the rest are hinted at). Default: all (Lab). */
+    known?: readonly InteractionId[];
   }
 
   let {
@@ -43,13 +46,21 @@
     member,
     onmember,
     onreject,
+    known = INTERACTION_IDS,
   }: Props = $props();
 
   let focus = $state<SpellKey | null>(null);
   let inspected = $state<Coord | null>(null);
 
-  // A focus on a spell that no longer exists (rune removed, member switched) falls away.
-  const liveFocus = $derived(compiled.spells.some((s) => s.key === focus) ? focus : null);
+  // A focus on a spell that no longer exists (rune removed, member switched) falls back to the first.
+  const liveFocus = $derived(
+    compiled.spells.some((s) => s.key === focus) ? focus : (compiled.spells[0]?.key ?? null),
+  );
+  const focusedSpell = $derived(compiled.spells.find((s) => s.key === liveFocus) ?? null);
+  const recipe = $derived(
+    focusedSpell ? spellRecipe(focusedSpell, MEMBERS[member].affinity, known) : null,
+  );
+  const numbers = $derived(recipe ? stepNumbers(recipe) : new Map<string, number>());
   const inspectedRune = $derived(inspected ? (socketAt(lattice, inspected)?.rune ?? null) : null);
   const held = $derived(tool.kind === 'rune' ? tool.rune : null);
 
@@ -119,6 +130,7 @@
       {lattice}
       {compiled}
       focus={liveFocus}
+      {numbers}
       {inspected}
       ontap={(at) => tap(at, false)}
       onlongpress={(at) => tap(at, true)}
@@ -140,7 +152,7 @@
         </div>
       </div>
     {:else}
-      <SpellList spells={compiled.spells} focus={liveFocus} onfocus={(k) => (focus = k)} />
+      <SpellList spells={compiled.spells} focus={liveFocus} {recipe} onfocus={(k) => (focus = k)} />
     {/if}
   </div>
 
@@ -242,7 +254,7 @@
   }
   .info {
     flex: none;
-    height: 92px;
+    height: 168px;
     overflow-y: auto;
   }
   .rune {

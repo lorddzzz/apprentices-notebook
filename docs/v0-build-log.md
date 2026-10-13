@@ -138,3 +138,11 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
     **Decision:** fixed all three. Fights now resume after a reload (the save records each action). Only a second tap on the *same* tile confirms. Any cast or shove ends pending undos. The rest: save import refuses trip states that would soft-lock, dead save helpers were removed, and Lab enemy ids are parsed safely.
     **Why:** these are bugs, not feel. The double-tap itself stays as it was; whether you want a Confirm-only or an undo-cast is still your call.
 
+32. **Situation:** playtest 1 feedback. You couldn't tell how runes in one spell connect, spark's rules with brass and steam were unclear, unit traits were hidden, and charges ran low after fight 2.
+    **Decision:** built v0.1:
+    - The Study writes the focused spell out as numbered steps, with the reactions it causes ("→ the oil ignites"). The same numbers sit on the lattice runes, which also shows Fork order.
+    - A step laid after the last Spark says the spark won't reach it.
+    - Reactions you haven't discovered show as "something happens with the oil (not in your notebook yet)", so the connection is visible but the name stays a discovery.
+    - Tapping a unit now spells out its traits. Oil-soaked units get an oil-drop badge. The party strip shows affinity.
+    - Charges went up to Bolt 5, Splash 3, Ward 3.
+    **Why:** your choices in the design round. Watch whether the hinted, unnamed reactions are clear enough, or whether you'd rather see names from the start.

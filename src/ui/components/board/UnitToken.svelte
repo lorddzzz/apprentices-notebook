@@ -57,6 +57,16 @@
     <circle cx="50" cy={CY} r="37" fill="none" stroke="var(--m-brass)" stroke-width="5" />
   {/if}
 
+  {#if unit.oilSoaked}
+    <path
+      d="M16 52c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
+      fill="var(--m-oil)"
+      stroke="var(--parchment)"
+      stroke-width="2.5"
+      data-trait="oil-soaked"
+    />
+  {/if}
+
   {#if unit.inked}
     <path
       d="M84 30c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"

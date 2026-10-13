@@ -124,7 +124,7 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 - **Decided:** enemies have **material traits** that make them pieces in your chains (brass = conducts, oil-soaked = flammable, …). Start **simple** and keep the complexity on the player's side.
 - **Decided:** turn order is **party, then enemies**. All members act in any order, then enemies execute their telegraphed moves (Into the Breach-style).
 - **Decided:** combat grid is **6 wide × 8 tall** (fits portrait).
-- **Decided:** each Source spell has **2–3 charges per trip**. Each member also has an **uncharged basic action** (Shove: push an adjacent unit 1 tile), so you're never stuck with nothing, and pushing units into oil and steam is a useful tactic.
+- **Decided:** each Source spell has **3–5 charges per trip** (raised in v0.1, see §9.5). Each member also has an **uncharged basic action** (Shove: push an adjacent unit 1 tile), so you're never stuck with nothing, and pushing units into oil and steam is a useful tactic.
 
 ### 6.5 Materials & terrain
 - **Decided:** the materials palette is workshop stuff: **Ink, Oil, Steam, Spark, Brass**.
@@ -294,7 +294,7 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - **Brass sentry:** HP 5, move 1, brass. Its line attack deals 2 to the first unit in line.
 - **Ink familiar:** HP 1, move 2. It spits at range 2 for 1 damage and inks its target.
 - **Encounters (4):** (1) three rats. (2) two rats and a familiar. (3) a sentry, two rats and oil puddles. (4) **Heart of the Seam:** two sentries, a familiar, two rats, steam vents and brass. Each one has a hand-placed layout.
-- **Charges per trip:** Bolt 3, Splash 2, Ward 2.
+- **Charges per trip:** Bolt 5, Splash 3, Ward 3 (v0.1; was 3/2/2, which ran low after the second fight). *Tune by playing.*
 
 **Ink, collection, loot, codex**
 - **Ink costs:** Source 2, Material 1, Shape 1, Trigger 2, Aura 3. Each member starts with 8 ink capacity, and an ink reserve gives +2.
@@ -326,18 +326,32 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - [x] v0 built and deployed (2026-10-13): engine, Study, Codex, the Seam expedition, Lab. Build decisions for review: [docs/v0-build-log.md](docs/v0-build-log.md). Next: the player plays v0.
 
 **v0.1 legibility (decided 2026-10-13, from the first playtest):** the player could not tell how runes in one spell connect, how spark meets brass and steam, or what makes a unit special. The rules stay as they are; the game shows them.
-- [ ] **Recipe:** the Study numbers every path rune in resolution order and writes the spell out as steps, naming the reactions it causes ("② Spark hits it → the oil ignites: fire"). Unknown interactions stay unnamed until discovered.
-- [ ] **Fork:** keeps its meaning (both branches act on the same targets, left finishes first). The lattice shows the order on the branches (①/②), so it is never hidden.
-- [ ] **Unit traits:** badges on tokens (oil-soaked, brass, oil trail, ink spit) and a readout on tap; members show their affinity next to their name.
+- [x] **Recipe:** the Study numbers every path rune in resolution order and writes the spell out as steps, naming the reactions it causes ("② Spark hits it → the oil ignites: fire"). Unknown interactions stay unnamed until discovered.
+- [x] **Fork:** keeps its meaning (both branches act on the same targets, left finishes first). The lattice shows the order on the branches (①/②), so it is never hidden. Since "left" is relative to the flow (it can be the right-hand side on screen), the recipe says "follow the numbers" instead of naming sides.
+- [x] **Unit traits:** the tap readout spells out each trait with its effect ("oil-soaked (fire +1)", "leaves an oil trail", "brass (conducts spark)", "its spit inks"), oil-soaked units carry an oil-drop badge (brass units already look brass), and the party strip shows each member's affinity ("spark·oil+1").
+- [x] **Charges** loosened to Bolt 5, Splash 3, Ward 3.
 
 **Answer by playing v0** (no need to decide upfront):
-- [ ] Hybrid flow + aura: does it feel good?
+- [x] Hybrid flow + aura: does it feel good? **Yes** (playtest 1). Upgraded auras could later reach diagonally too (§10b).
 - [ ] Do triggers see same-cast effects? (§6.2)
 - [ ] Lattice sizes, ink costs, charge counts, enemy numbers
 - [ ] Final interaction matrix details (Fire as element or state, terrain decay)
 
 **Post-v0:**
-- [ ] Desk research, mastery, district map, guild content, rival inscribers, the mystery, audio, real names
+- [ ] Desk research, mastery, district map, guild content, rival inscribers, the mystery, audio, real names (full list in §10b)
+
+## 10b. Parked (cut or deferred; come back to these)
+
+Nothing here is planned yet. The next feature gets its own plan before any of it is built.
+
+- **Next runes:** Pierce, On Ignite, Thrift (aura, +1 charge).
+- **Rune upgrades:** auras that also reach diagonally (from playtest 1).
+- **Materials and terrain cut from v0:** walls, smear (ink + oil), heated brass, slippery brass.
+- **Systems:** desk research (combine known runes; research loot already drops and does nothing yet), mastery (used runes evolve or branch), field rewiring (editing lattices mid-trip), the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
+- **Members:** signature abilities beyond lattice, affinity and HP. Held back until more affinities are explored (playtest 1).
+- **Input alternatives**, if the double tap ever misfires again: Confirm-only casting, or an undo for the last cast.
+- **Trip pacing alternatives**, if charges become a problem again: charges per fight, or a refill on each win.
+- **Wipe penalty alternatives**, if trips become longer or costlier: keep one item on a wipe.
 
 ## 11. Decision log
 
@@ -384,3 +398,4 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 | 2026-10-13 | Lab tools (*Proposal*): a Play / Board / Lattices switch under the scenario picker. Board paints one palette item per tap (units replace units, a second tap removes; ! and & toggle on a unit; fire sits on oil; a plate stands alone; the eraser clears), Lattices has unlimited ink and runes (shelf and pot show ∞), and the ⋯ sheet offers Play demo, Reset, Undo last action (casts, moves and edits alike), Copy board, Copy lattices and Copy as scenario (a block to paste into `src/data/scenarios.ts`; if the clipboard is blocked the text appears in a sheet to copy by hand). `#/lab?scenario=<id>&demo=1` plays the demo on arrival | The workshop is where discoveries get made and kept as regression tests; nothing in it touches the notebook |
 | 2026-10-13 | Code review (*Proposal*): only a second tap on the same tile confirms a spell (tapping further along a Bolt's line re-previews instead of firing); a cast or shove by anyone ends every pending move undo; a reload mid-fight resumes it, and a wipe can no longer be escaped by reloading | Tapping an enemy to read it fired a Bolt (build log #28); undo after another member's action could rewrite the board (a used ink puddle came back); reloading made losing free |
 | 2026-10-13 | v0.1 legibility: numbered recipe in the Study, Fork order shown on the lattice, visible unit traits. The rules don't change | First playtest: the chain rules were invisible, not wrong. The player picked the written recipe over a live test bench, Fork as ordered steps over a spatial split, and traits on the board over Codex-only |
+| 2026-10-13 | v0.1 built from playtest 1: recipe and step numbers in the Study, unit trait readouts and badges, affinity in the party strip, charges Bolt 5 / Splash 3 / Ward 3. Kept as they are: the same-tile double tap, losing all loot on a wipe, members defined by lattice and affinity only. Aura adjacency feels right | Playtest 1: the chain rules were invisible and charges ran low after fight 2. Expeditions are cheap, so a full wipe loss is fine. Explore more affinities before giving members abilities |

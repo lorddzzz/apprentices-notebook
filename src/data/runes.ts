@@ -27,7 +27,7 @@ export const RUNES: Record<RuneId, RuneDef> = {
     arrow: true,
     base: 2,
     scale: 'damage',
-    charges: 3,
+    charges: 5,
     rarity: 'common',
   },
   splash: {
@@ -39,7 +39,7 @@ export const RUNES: Record<RuneId, RuneDef> = {
     arrow: true,
     base: 1,
     scale: 'damage',
-    charges: 2,
+    charges: 3,
     rarity: 'uncommon',
   },
   ward: {
@@ -51,7 +51,7 @@ export const RUNES: Record<RuneId, RuneDef> = {
     arrow: true,
     base: 2,
     scale: 'shield',
-    charges: 2,
+    charges: 3,
     rarity: 'uncommon',
   },
   ink: {

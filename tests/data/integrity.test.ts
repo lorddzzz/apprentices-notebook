@@ -27,10 +27,10 @@ test('arrow iff source or bend', () => {
   }
 });
 
-test('sources have charges (bolt 3, splash 2, ward 2)', () => {
-  expect(RUNES.bolt.charges).toBe(3);
-  expect(RUNES.splash.charges).toBe(2);
-  expect(RUNES.ward.charges).toBe(2);
+test('sources have charges (bolt 5, splash 3, ward 3)', () => {
+  expect(RUNES.bolt.charges).toBe(5);
+  expect(RUNES.splash.charges).toBe(3);
+  expect(RUNES.ward.charges).toBe(3);
   for (const id of RUNE_IDS) {
     if (RUNES[id].family !== 'source') expect(RUNES[id].charges, id).toBe(0);
   }

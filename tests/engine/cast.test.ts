@@ -20,15 +20,15 @@ const boltRight = {
 
 test('spends a charge, not in lab', () => {
   const s = withLattices('D . d', { draughtsman: 'Bolt> Spark' });
-  expect(memberById(s, 'draughtsman').charges['0,0']).toBe(3);
+  expect(memberById(s, 'draughtsman').charges['0,0']).toBe(5);
   const r = cast(s, 'draughtsman', 'right');
   const m = memberById(r.state, 'draughtsman');
-  expect(m.charges['0,0']).toBe(2);
+  expect(m.charges['0,0']).toBe(4);
   expect(m.acted).toBe(true);
-  expect(memberById(s, 'draughtsman').charges['0,0']).toBe(3); // input untouched
+  expect(memberById(s, 'draughtsman').charges['0,0']).toBe(5); // input untouched
 
   const lab = withLattices('D . d', { draughtsman: 'Bolt> Spark' }, { lab: true });
-  expect(memberById(cast(lab, 'draughtsman', 'right').state, 'draughtsman').charges['0,0']).toBe(3);
+  expect(memberById(cast(lab, 'draughtsman', 'right').state, 'draughtsman').charges['0,0']).toBe(5);
 });
 
 test('no charges → illegal', () => {
@@ -107,7 +107,7 @@ test('runEchoes recasts at half strength, once', () => {
   ]);
   expect(r.state.echoes).toEqual([]);
   expect(unitAtLabel(r.state, 'C1').hp).toBe(7);
-  expect(memberById(r.state, 'draughtsman').charges['0,1']).toBe(2);
+  expect(memberById(r.state, 'draughtsman').charges['0,1']).toBe(4);
 });
 
 test('echo fizzles when caster is down', () => {
