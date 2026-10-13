@@ -16,6 +16,7 @@ import {
   legalMoves,
   livingUnits,
   memberById,
+  members,
   sameAim,
   spellOf,
   unitAt,
@@ -214,6 +215,10 @@ export function applyAction(state: BattleState, action: Action): ActionResult {
   const reason = isLegal(state, action);
   if (reason !== null) throw new IllegalActionError(reason);
   return runDraft(state, (ctx) => {
+    // A cast or shove changes the board: no earlier move can be taken back after it.
+    if (action.type === 'cast' || action.type === 'shove') {
+      for (const m of members(ctx.s)) m.undo = null;
+    }
     dispatch(ctx, action);
     const found = discoveriesIn(ctx.log).filter((d) => !ctx.s.discovered.includes(d));
     ctx.s.discovered.push(...found);
@@ -279,7 +284,9 @@ export function labSetCell(state: BattleState, at: Coord, token: string): Battle
     const init = prev?.kind === 'member' ? { spells: prev.spells, charges: prev.charges } : {};
     s.units.push(spawnMember(unit, init));
   } else if (unit) {
-    const ids = s.units.filter((u) => u.def === unit.def).map((u) => Number(u.id.split('-')[1]));
+    const ids = s.units
+      .filter((u) => u.def === unit.def)
+      .map((u) => Number(u.id.slice(u.id.lastIndexOf('-') + 1)));
     s.units.push(spawnEnemy(unit, Math.max(0, ...ids) + 1));
   }
   return s;

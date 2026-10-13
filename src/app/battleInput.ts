@@ -290,11 +290,8 @@ export function onCell(
       return tapShove(s, mode.unit, at, known, mode.dirs);
     case 'confirm': {
       if (mode.spell !== null) {
-        const aim = aimAt(s, mode.unit, mode.spell, at);
-        const pending = mode.preview.action;
-        if (aim && pending.type === 'cast' && sameAim(aim, pending.aim)) {
-          return { mode, action: pending };
-        }
+        // Only the tapped tile confirms: tapping further along a Bolt's line re-reads it instead.
+        if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
         return tapAim(s, mode.unit, mode.spell, at, known, legalAims(s, mode.unit, mode.spell));
       }
       if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };

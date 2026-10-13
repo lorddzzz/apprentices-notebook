@@ -81,11 +81,14 @@ describe('battle input', () => {
     expect(aimAt(s, 'draughtsman', '0,0', at('A1'))).toBeNull();
   });
 
-  test('tapping the same aim twice confirms', () => {
+  test('tapping the same tile twice confirms', () => {
     const s = labBattle('ink-spark-detonation');
     const aim = onSpell(s, memberMode(s, 'draughtsman'), '0,0', known).mode;
     const confirm = onCell(s, aim, at('C1'), known).mode;
-    const again = onCell(s, confirm, at('E1'), known); // same line → same aim
+    const further = onCell(s, confirm, at('E1'), known); // same line: re-previews, no cast
+    expect(further.action).toBeUndefined();
+    expect(expectKind(further.mode, 'confirm').at).toEqual(at('E1'));
+    const again = onCell(s, confirm, at('C1'), known);
     expect(again.action?.type).toBe('cast');
     const other = onCell(s, confirm, at('A2'), known); // another legal aim re-previews
     expect(other.action).toBeUndefined();

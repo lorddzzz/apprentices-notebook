@@ -201,6 +201,8 @@ export interface Trip {
   loot: LootItem[]; // pending, banked on return, lost on wipe
   offers: LootItem[];
   picksLeft: number;
+  /** The current fight's actions so far (status `fight`): a reload replays them instead of restarting. */
+  actions: Action[];
 }
 export interface SaveData {
   profile: Profile;

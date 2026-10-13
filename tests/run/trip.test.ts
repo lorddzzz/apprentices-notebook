@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { ENCOUNTERS, MEMBER_IDS, type MemberId, TUNING } from '$data';
 import {
+  type Action,
+  applyAction,
   type BattleState,
   beginEncounter,
   deriveSeed,
@@ -8,11 +10,13 @@ import {
   finishEncounter,
   type LootItem,
   latticeOf,
+  legalMoves,
   memberById,
   newProfile,
   type Profile,
   pickLoot,
   pushOn,
+  recordAction,
   returnHome,
   rollOffers,
   setMemberLattice,
@@ -277,5 +281,40 @@ describe('illegal transitions', () => {
     expect(() => beginEncounter(p, looting)).toThrow();
     const b = fought(beginEncounter(p, fight).state, 'won');
     expect(() => finishEncounter(p, crossroads, b)).toThrow();
+  });
+});
+
+describe('resume', () => {
+  test('beginEncounter replays the recorded actions (a reload resumes the fight)', () => {
+    const p = newProfile();
+    let t = startTrip(p, SEED);
+    const fresh = beginEncounter(p, t);
+    const to = legalMoves(fresh.state, 'stoker')[0];
+    if (!to) throw new Error('expected a legal move');
+    const actions: Action[] = [{ type: 'move', unit: 'stoker', to }, { type: 'endTurn' }];
+    let live = fresh;
+    const events = [...fresh.events];
+    for (const a of actions) {
+      live = applyAction(live.state, a);
+      events.push(...live.events);
+      t = recordAction(t, a);
+    }
+    const resumed = beginEncounter(p, t);
+    expect(resumed.state).toEqual(live.state);
+    expect(resumed.events).toEqual(events);
+    expect(resumed.state.round).toBe(2);
+  });
+
+  test('an illegal recorded action throws, and a won fight clears the record', () => {
+    const p = newProfile();
+    const t = recordAction(startTrip(p, SEED), {
+      type: 'move',
+      unit: 'stoker',
+      to: { x: 99, y: 0 },
+    });
+    expect(() => beginEncounter(p, t)).toThrow(/Illegal action/);
+    const ok = recordAction(startTrip(p, SEED), { type: 'endTurn' });
+    expect(win(p, ok).trip.actions).toEqual([]);
+    expect(() => recordAction(win(p, ok).trip, { type: 'endTurn' })).toThrow(/looting/);
   });
 });

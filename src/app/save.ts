@@ -8,7 +8,15 @@ export interface SaveEnvelope<T = unknown> {
 /** migrations[n] upgrades data from version n to n+1. */
 export type Migration = (data: unknown) => unknown;
 
-export const migrations: Migration[] = [];
+export const migrations: Migration[] = [
+  // 0 → 1: the trip records the current fight's actions.
+  (data) => {
+    if (typeof data !== 'object' || data === null) return data;
+    const save = data as { trip?: unknown };
+    if (typeof save.trip !== 'object' || save.trip === null) return data;
+    return { ...save, trip: { ...save.trip, actions: [] } };
+  },
+];
 
 export const CURRENT_VERSION = migrations.length;
 
@@ -123,15 +131,6 @@ export function loadSave(
 
 export function writeSave(backend: SaveBackend, save: SaveData): void {
   backend.write(saveText(save));
-}
-
-export function saveToStorage(data: unknown): void {
-  localStorage.setItem(SAVE_KEY, serialize(data));
-}
-
-export function loadFromStorage(): SaveEnvelope | null {
-  const text = localStorage.getItem(SAVE_KEY);
-  return text === null ? null : parse(text);
 }
 
 /** Ask iOS/browsers not to evict our storage. Best-effort. */

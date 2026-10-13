@@ -131,3 +131,10 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 30. **Situation:** after all planned steps, the 5-hour usage window was at 70%.
     **Decision:** stopped here instead of running an opus code-review pass. The next session can run `/code-review` if wanted.
     **Why:** your 80% safety line. v0 is complete, green (442 tests) and deployed.
+31. **Situation:** you asked for a code review before feedback. A review of `src/` found six things. Three affect play:
+    - A reload mid-fight restarted the encounter. iOS evicting the app, or the auto-update after a deploy, lost the fight. And reloading on the "lost" screen escaped the wipe with all loot kept.
+    - While confirming a Bolt, tapping any tile further along its line fired it (the wasted charge in #28).
+    - A member could undo a move after the other member had acted, which could duplicate an ink puddle.
+    **Decision:** fixed all three. Fights now resume after a reload (the save records each action). Only a second tap on the *same* tile confirms. Any cast or shove ends pending undos. The rest: save import refuses trip states that would soft-lock, dead save helpers were removed, and Lab enemy ids are parsed safely.
+    **Why:** these are bugs, not feel. The double-tap itself stays as it was; whether you want a Confirm-only or an undo-cast is still your call.
+

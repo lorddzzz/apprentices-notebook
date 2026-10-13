@@ -73,6 +73,20 @@ test('undo cleared after acting', () => {
   );
 });
 
+test("another member's shove clears every pending undo", () => {
+  const s = board('D . . .\nS r . .\n. . . d');
+  const moved = act(s, move('draughtsman', 'B1'));
+  const shoved = act(moved.state, shove('stoker', 'right'));
+  expect(canUndoMove(shoved.state, 'draughtsman')).toBe(false);
+});
+
+test("another member's move keeps the undo", () => {
+  const s = board('D . . .\nS . . .\n. . . d');
+  const moved = act(s, move('draughtsman', 'B1'));
+  const both = act(moved.state, move('stoker', 'B3'));
+  expect(canUndoMove(both.state, 'draughtsman')).toBe(true);
+});
+
 test('a move made after acting can still be undone', () => {
   const s = board('D r . .\n. . . .\n. . . d');
   const shoved = act(s, shove('draughtsman', 'right'));

@@ -15,14 +15,16 @@ import {
   START_COLLECTION,
   TUNING,
 } from '$data';
-import { createEncounterBattle } from './battle';
+import { applyAction, createEncounterBattle } from './battle';
 import { type Coord, DIRS } from './grid';
 import { compileLattice, countRunes, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
 import { parseLattice } from './notation';
 import { memberById } from './queries';
 import { createRng, deriveSeed, pickWeighted } from './rng';
 import type {
+  Action,
   ActionResult,
+  Aim,
   BattleState,
   CompiledLattice,
   Lattice,
@@ -168,10 +170,14 @@ export function startTrip(p: Profile, seed: number): Trip {
     loot: [],
     offers: [],
     picksLeft: 0,
+    actions: [],
   };
 }
 
-/** The current encounter's battle: the party enters with the trip's HP and charges. */
+/**
+ * The current encounter's battle: the party enters with the trip's HP and charges, then the
+ * trip's recorded actions are replayed (a reload resumes the fight). Throws if one is illegal.
+ */
 export function beginEncounter(p: Profile, t: Trip): ActionResult {
   need(t, 'fight');
   const enc = ENCOUNTERS[t.encounter];
@@ -185,7 +191,21 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
       charges: { ...chargesOf(p, m), ...t.charges[m] },
     };
   }
-  return createEncounterBattle(enc, party, deriveSeed(t.seed, t.encounter));
+  const first = createEncounterBattle(enc, party, deriveSeed(t.seed, t.encounter));
+  let state = first.state;
+  const events = [...first.events];
+  for (const a of t.actions) {
+    const r = applyAction(state, a);
+    state = r.state;
+    events.push(...r.events);
+  }
+  return { state, events };
+}
+
+/** Remembers a battle action so a reload can replay the fight up to here. */
+export function recordAction(t: Trip, action: Action): Trip {
+  need(t, 'fight');
+  return { ...t, actions: [...t.actions, structuredClone(action)] };
 }
 
 /** Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed. */
@@ -245,6 +265,7 @@ export function finishEncounter(
     loot: [...t.loot],
     offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS),
     picksLeft: enc.picks,
+    actions: [],
   };
   return { profile, trip, outcome: 'won' };
 }
@@ -290,7 +311,7 @@ export function returnHome(p: Profile, t: Trip): Profile {
 
 // ── Save data ───────────────────────────────────────────
 
-/** Version 0 of the save shape (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
+/** The save shape, version 1 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
 export function newSave(seed: number): SaveData {
   return { profile: newProfile(), trip: null, seedCounter: seed };
 }
@@ -376,13 +397,50 @@ function parseProfile(v: unknown): Profile {
   return { collection, inkCapacity, lattices, interactions, research: count(r.research) };
 }
 
+function text(v: unknown): string {
+  return typeof v === 'string' && v.length > 0 ? v : bad();
+}
+
+function parseAim(v: unknown): Aim {
+  const r = record(v);
+  switch (r.kind) {
+    case 'dir':
+      return { kind: 'dir', dir: oneOf(DIRS, r.dir) };
+    case 'tile':
+      return { kind: 'tile', at: parseCoord(r.at) };
+    case 'ally':
+      return { kind: 'ally', unit: text(r.unit) };
+    default:
+      return bad();
+  }
+}
+
+function parseAction(v: unknown): Action {
+  const r = record(v);
+  switch (r.type) {
+    case 'move':
+      return { type: 'move', unit: text(r.unit), to: parseCoord(r.to) };
+    case 'undoMove':
+      return { type: 'undoMove', unit: text(r.unit) };
+    case 'cast':
+      return { type: 'cast', unit: text(r.unit), spell: text(r.spell), aim: parseAim(r.aim) };
+    case 'shove':
+      return { type: 'shove', unit: text(r.unit), dir: oneOf(DIRS, r.dir) };
+    case 'endTurn':
+      return { type: 'endTurn' };
+    default:
+      return bad();
+  }
+}
+
+/** Field types, plus what each status needs to move on (a bad import must not soft-lock the trip). */
 function parseTrip(v: unknown): Trip {
   const r = record(v);
   const encounter = count(r.encounter);
-  if (encounter >= ENCOUNTERS.length) bad();
+  const enc = ENCOUNTERS[encounter] ?? bad();
   const hp = record(r.hp);
   const charges = record(r.charges);
-  return {
+  const trip: Trip = {
     seed: count(r.seed),
     encounter,
     status: oneOf<TripStatus>(['fight', 'looting', 'crossroads', 'cleared'], r.status),
@@ -394,7 +452,14 @@ function parseTrip(v: unknown): Trip {
     loot: list(r.loot).map(parseLoot),
     offers: list(r.offers).map(parseLoot),
     picksLeft: count(r.picksLeft),
+    actions: list(r.actions).map(parseAction),
   };
+  if (MEMBER_IDS.some((m) => trip.hp[m] < 1)) bad();
+  if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
+  if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= ENCOUNTERS.length)) bad();
+  if (trip.status === 'cleared' && !enc.heart) bad();
+  if (trip.status !== 'fight' && trip.actions.length > 0) bad();
+  return trip;
 }
 
 /** Validates and normalizes loaded save data (missing rune counts become 0). Throws "Not a valid save". */

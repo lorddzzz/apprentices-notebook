@@ -1,5 +1,6 @@
 import type { InteractionId, MemberId } from '$data';
 import {
+  type Action,
   type ActionResult,
   type BattleState,
   beginEncounter,
@@ -11,6 +12,7 @@ import {
   nextTripSeed,
   pickLoot,
   pushOn,
+  recordAction,
   returnHome,
   type SaveData,
   startTrip,
@@ -134,6 +136,11 @@ export function setOut(save: SaveData): SaveData {
 /** The current encounter's battle. The same save always gives the same fight (reload restarts it). */
 export function startBattle(save: SaveData): ActionResult {
   return beginEncounter(save.profile, tripOf(save));
+}
+
+/** One battle action into the trip, so a reload resumes the fight where it was. */
+export function recordBattleAction(save: SaveData, action: Action): SaveData {
+  return { ...save, trip: recordAction(tripOf(save), action) };
 }
 
 export interface BattleEnd {

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { RUNE_IDS } from '$data';
+import { ENCOUNTERS, RUNE_IDS } from '$data';
 import {
   beginEncounter,
   deriveSeed,
@@ -28,7 +28,7 @@ function poke(base: unknown, path: string, value: unknown): unknown {
   return root;
 }
 
-test('SaveData round-trips through src/app/save serialize/parse at version 0', () => {
+test('SaveData round-trips through src/app/save serialize/parse at version 1', () => {
   const profile = newProfile();
   const trip = startTrip(profile, 7);
   const b = structuredClone(beginEncounter(profile, trip).state);
@@ -37,9 +37,9 @@ test('SaveData round-trips through src/app/save serialize/parse at version 0', (
   const won = finishEncounter(profile, trip, b);
   if (!won.trip) throw new Error('expected a trip');
   const save: SaveData = { profile: won.profile, trip: pickLoot(won.trip, 0), seedCounter: 3 };
-  expect(CURRENT_VERSION).toBe(0);
+  expect(CURRENT_VERSION).toBe(1);
   const env = parse(serialize(save));
-  expect(env.version).toBe(0);
+  expect(env.version).toBe(1);
   expect(parseSaveData(env.data)).toEqual(save);
 
   const fresh = newSave(99);
@@ -103,4 +103,47 @@ test('missing rune keys default to 0', () => {
     if (id !== 'bolt') expect(parsed.profile.collection[id]).toBe(0);
   }
   expect(Object.keys(parsed.profile.collection)).toHaveLength(RUNE_IDS.length);
+});
+
+test('parseSaveData refuses trip states that could not move on', () => {
+  const save = newSave(1);
+  const trip = startTrip(save.profile, 1);
+  const raw = (t: unknown) => poke(save, 'trip', t);
+  const heart = ENCOUNTERS.findIndex((e) => e.heart);
+  const bad = [
+    { ...trip, status: 'looting', offers: [], picksLeft: 1 },
+    { ...trip, status: 'looting', offers: [{ kind: 'research', amount: 1 }], picksLeft: 0 },
+    { ...trip, status: 'crossroads', encounter: heart },
+    { ...trip, status: 'cleared', encounter: 0 },
+    { ...trip, hp: { draughtsman: 0, stoker: 5 } },
+    { ...trip, status: 'crossroads', actions: [{ type: 'endTurn' }] },
+    { ...trip, actions: [{ type: 'teleport' }] },
+    { ...trip, actions: [{ type: 'cast', unit: 'stoker', spell: '0,0', aim: { kind: 'up' } }] },
+  ];
+  for (const t of bad) expect(() => parseSaveData(raw(t))).toThrow('Not a valid save');
+});
+
+test('recorded battle actions survive the save text', () => {
+  const save = newSave(1);
+  const trip = {
+    ...startTrip(save.profile, 1),
+    actions: [
+      { type: 'move', unit: 'stoker', to: { x: 1, y: 2 } },
+      { type: 'cast', unit: 'stoker', spell: '0,0', aim: { kind: 'tile', at: { x: 2, y: 2 } } },
+      { type: 'shove', unit: 'draughtsman', dir: 'left' },
+      { type: 'undoMove', unit: 'draughtsman' },
+      { type: 'endTurn' },
+    ],
+  } as const;
+  expect(parseSaveData(parse(serialize({ ...save, trip })).data).trip).toEqual(trip);
+});
+
+test('a version 0 save migrates: its trip gets an empty action list', () => {
+  const save = newSave(1);
+  const { actions: _, ...v0trip } = startTrip(save.profile, 1);
+  const text = JSON.stringify({ version: 0, data: { ...save, trip: v0trip } });
+  const env = parse(text);
+  expect(env.version).toBe(1);
+  expect(parseSaveData(env.data).trip?.actions).toEqual([]);
+  expect(parseSaveData(parse(JSON.stringify({ version: 0, data: save })).data)).toEqual(save);
 });

@@ -13,4 +13,4 @@ Updated by Claude whenever a step lands. If a session stops, a new one reads thi
 
 ## Next
 - The player plays v0 and gives feedback on feel, UX and direction. Open feel questions are in `docs/v0-build-log.md` (entries 21, 22, 25, 28).
-- Optional: an opus `/code-review` pass over the v0 code.
+- Code review done (2026-10-13): fixes in build log entry 31.

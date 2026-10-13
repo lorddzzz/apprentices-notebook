@@ -1,5 +1,5 @@
 import { type InteractionId, MEMBER_IDS, type MemberId } from '$data';
-import type { Coord, GameEvent, Profile, SaveData } from '$engine';
+import type { ActionResult, Coord, GameEvent, Profile, SaveData } from '$engine';
 import { BattleSession } from './battle.svelte';
 import { interactionTitle } from './describe';
 import {
@@ -9,6 +9,7 @@ import {
   importSave,
   newDiscoveries,
   pushOnward,
+  recordBattleAction,
   setOut,
   startBattle,
   takeOffer,
@@ -30,7 +31,7 @@ export class GameStore {
   wipe = $state.raw<WipeSummary | null>(null);
   /** The save could not be read and was replaced by a new game (the old text is kept). App toasts it once. */
   recovered = $state(false);
-  /** The trip's live battle. Never saved: a reload recreates the encounter from the trip's seed. */
+  /** The trip's live battle. Its actions are saved in the trip, so a reload replays the fight. */
   battle = $state.raw<BattleSession | null>(null);
   /** Interactions already announced this trip (the toast shows once per discovery). */
   private toasted: InteractionId[] = [];
@@ -105,11 +106,22 @@ export class GameStore {
 
   /** Status `fight` with no live battle (fresh trip, push on, or a reload) → the encounter starts. */
   ensureBattle(): void {
-    if (this.battle || this.save.trip?.status !== 'fight') return;
-    this.battle = new BattleSession(startBattle(this.save), 'trip', {
+    const trip = this.save.trip;
+    if (this.battle || trip?.status !== 'fight') return;
+    let init: ActionResult;
+    try {
+      init = startBattle(this.save);
+    } catch {
+      // The recorded fight no longer replays (rules changed in an update): start it over.
+      this.commit({ ...this.save, trip: { ...trip, actions: [] } });
+      init = startBattle(this.save);
+      toast('This fight could not be resumed and starts over.', 'warn');
+    }
+    this.battle = new BattleSession(init, 'trip', {
       known: () => this.save.profile.interactions,
       onEvents: (events) => this.announce(events),
-      intro: true,
+      onAction: (_, action) => this.commit(recordBattleAction(this.save, action)),
+      intro: trip.actions.length === 0,
     });
   }
 
