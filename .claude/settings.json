@@ -13,6 +13,11 @@
       "Bash(gh run *)",
       "Bash(gh repo view*)",
       "Bash(gh api repos/lorddzzz/apprentices-notebook/*)",
+      "Bash(git worktree list*)",
+      "Bash(git worktree prune*)",
+      "Bash(git worktree remove .claude/worktrees/agent-*)",
+      "Bash(git worktree remove --force .claude/worktrees/agent-*)",
+      "Bash(git branch -D worktree-agent-*)",
       "mcp__svelte__*"
     ],
     "deny": ["Bash(git push --force*)", "Bash(git push -f*)", "Bash(rm -rf /*)", "Bash(rm -rf ~*)"]
