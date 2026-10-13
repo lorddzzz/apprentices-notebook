@@ -3,7 +3,7 @@
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Wave 1: spawn P1, D1, E1, E2, F1 (keep 2–4 running; E1/E2/F1 first, then D1, P1).
+**Next:** Review/merge wave 1 reports as they arrive (E1, E2, F1, D1 running). Then P1 (after F1 frees port 5190), L1, E3 (after E2), C1/C2 (after D1).
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -19,12 +19,12 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
-| W0 | opus (me) | M | merged | (this commit) | | contracts, stubs, save v3, worktrees pruned |
+| W0 | opus (me) | M | merged | 88f115d | 5% | contracts, stubs, save v3, worktrees pruned |
 | P1 | haiku | S | todo | | | |
-| D1 | haiku | S | todo | | | |
-| E1 | sonnet | M | todo | | | |
-| E2 | sonnet | M | todo | | | |
-| F1 | sonnet | M | todo | | | |
+| D1 | haiku | S | running | | | started 22:40 |
+| E1 | sonnet | M | running | | | started 22:40 |
+| E2 | sonnet | M | running | | | started 22:40 |
+| F1 | sonnet | M | running | | | started 22:40 |
 | E3 | sonnet | M | todo | | | after E2 |
 | L1 | sonnet | M | todo | | | |
 | C1 | sonnet | M | todo | | | after D1 |
@@ -38,6 +38,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
 |---|---|---|---|---|---|
 | 22:32 | 28 | 3h28m (01:59:59Z) | 44 | normal | start, W0 |
+| 22:39 | 33 | 3h21m | 44 | normal | W0 merged; spawn E1 E2 F1 D1 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 
