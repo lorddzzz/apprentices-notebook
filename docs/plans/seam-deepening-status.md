@@ -47,6 +47,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:56 | 66 | 3h07m | 49 | normal (66 + C1 rest 6 + R1 15 = 87) | L1 merged + pushed; spawn R1 |
 | 22:59 | 75 | 3h01m | 50 | normal→narrow (75 + R1 rest ~10 + C2 3 = 88) | C1 merged + pushed; spawn C2 |
 | 23:02 | 78 | 2h58m | 50 | narrow (78 + C2 2 + S1 8 = 88) | R1 merged + pushed; spawn S1 (told: smallest solution) |
+| 23:03 | 80 | 2h57m | 51 | narrow | C2 merged + pushed; no spawn until S1 reports |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
