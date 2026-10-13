@@ -1,0 +1,172 @@
+import { describe, expect, test } from 'vitest';
+import { INTERACTION_IDS } from '$data';
+import { applyAction, type BattleState, memberById } from '$engine';
+import {
+  afterAction,
+  aimAt,
+  IDLE,
+  type InputMode,
+  memberMode,
+  onCancel,
+  onCell,
+  onConfirm,
+  onShove,
+  onSpell,
+} from '../../src/app/battleInput';
+import { hintFor } from '../../src/app/describe';
+import { at, labBattle } from './battleFixtures';
+
+const known = INTERACTION_IDS;
+
+function expectKind<K extends InputMode['kind']>(
+  mode: InputMode,
+  kind: K,
+): Extract<InputMode, { kind: K }> {
+  expect(mode.kind).toBe(kind);
+  return mode as Extract<InputMode, { kind: K }>;
+}
+
+describe('battle input', () => {
+  test('tap member selects and lists moves', () => {
+    const s = labBattle('sandbox');
+    const r = onCell(s, IDLE, at('B7'), known);
+    const m = expectKind(r.mode, 'member');
+    expect(m.unit).toBe('draughtsman');
+    expect(m.moves).toContainEqual(at('B6'));
+    expect(m.moves.every((c) => Math.abs(c.x - 1) + Math.abs(c.y - 6) <= 3)).toBe(true);
+    expect(r.action).toBeUndefined();
+  });
+
+  test('tap reachable tile emits a move action', () => {
+    const s = labBattle('sandbox');
+    const r = onCell(s, memberMode(s, 'draughtsman'), at('B6'), known);
+    expect(r.action).toEqual({ type: 'move', unit: 'draughtsman', to: at('B6') });
+  });
+
+  test('tap enemy inspects and keeps the member', () => {
+    const s = labBattle('sandbox');
+    const r = onCell(s, memberMode(s, 'draughtsman'), at('B2'), known);
+    const m = expectKind(r.mode, 'inspect');
+    expect(m.member).toBe('draughtsman');
+    expect(m.moves.length).toBeGreaterThan(0);
+    expect(hintFor(r.mode, s).text).toMatch(/^dummy B2 · 12\/12 HP · waiting/);
+    // tapping the same tile again closes the readout
+    expect(onCell(s, r.mode, at('B2'), known).mode.kind).toBe('member');
+  });
+
+  test('spell → aim → confirm on the S1 board emits the cast', () => {
+    const s = labBattle('ink-spark-detonation');
+    const aim = expectKind(onSpell(s, memberMode(s, 'draughtsman'), '0,0', known).mode, 'aim');
+    expect(aim.aims).toHaveLength(2); // right and down from the corner
+    const confirm = expectKind(onCell(s, aim, at('D1'), known).mode, 'confirm');
+    expect(confirm.preview.summary).toBe('Bolt right: dummy D1 −2 inked');
+    const r = onConfirm(s, confirm);
+    expect(r.action).toEqual({
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: '0,0',
+      aim: { kind: 'dir', dir: 'right' },
+    });
+  });
+
+  test('bolt aim from any tile in the line', () => {
+    const s = labBattle('ink-spark-detonation');
+    for (const lbl of ['B1', 'C1', 'F1']) {
+      expect(aimAt(s, 'draughtsman', '0,0', at(lbl))).toEqual({ kind: 'dir', dir: 'right' });
+    }
+    expect(aimAt(s, 'draughtsman', '0,0', at('A3'))).toEqual({ kind: 'dir', dir: 'down' });
+    expect(aimAt(s, 'draughtsman', '0,0', at('B2'))).toBeNull();
+    expect(aimAt(s, 'draughtsman', '0,0', at('A1'))).toBeNull();
+  });
+
+  test('tapping the same aim twice confirms', () => {
+    const s = labBattle('ink-spark-detonation');
+    const aim = onSpell(s, memberMode(s, 'draughtsman'), '0,0', known).mode;
+    const confirm = onCell(s, aim, at('C1'), known).mode;
+    const again = onCell(s, confirm, at('E1'), known); // same line → same aim
+    expect(again.action?.type).toBe('cast');
+    const other = onCell(s, confirm, at('A2'), known); // another legal aim re-previews
+    expect(other.action).toBeUndefined();
+    const m = expectKind(other.mode, 'confirm');
+    expect(m.preview.action.type === 'cast' && m.preview.action.aim).toEqual({
+      kind: 'dir',
+      dir: 'down',
+    });
+  });
+
+  test('illegal aim keeps aim mode with a reason', () => {
+    const s = labBattle('ink-spark-detonation');
+    const aim = onSpell(s, memberMode(s, 'draughtsman'), '0,0', known).mode;
+    const r = onCell(s, aim, at('B2'), known);
+    const m = expectKind(r.mode, 'aim');
+    expect(m.note).toMatch(/B2 is not in a straight line/);
+    expect(hintFor(m, s).tone).toBe('warn');
+    expect(r.action).toBeUndefined();
+  });
+
+  test('spell without charges stays in member mode', () => {
+    const base = labBattle('ink-spark-detonation', false);
+    const s: BattleState = structuredClone(base);
+    memberById(s, 'draughtsman').charges['0,0'] = 0;
+    const r = onSpell(s, memberMode(s, 'draughtsman'), '0,0', known);
+    const m = expectKind(r.mode, 'member');
+    expect(m.note).toBe('No charges left.');
+  });
+
+  test('shove flow emits shove with dir', () => {
+    const s = labBattle('shove-slide');
+    const shove = expectKind(onShove(s, memberMode(s, 'stoker')).mode, 'shove');
+    expect(shove.dirs).toEqual(['right']);
+    const confirm = expectKind(onCell(s, shove, at('B1'), known).mode, 'confirm');
+    expect(confirm.preview.path).toEqual([at('B1'), at('C1'), at('D1'), at('E1')]);
+    expect(confirm.preview.summary).toBe('Shove rat right: rat B1 slides to E1');
+    expect(onCell(s, confirm, at('B1'), known).action).toEqual({
+      type: 'shove',
+      unit: 'stoker',
+      dir: 'right',
+    });
+    expect(onCancel(s, confirm).mode.kind).toBe('shove');
+  });
+
+  test('cancel steps back one level', () => {
+    const s = labBattle('ink-spark-detonation');
+    const member = memberMode(s, 'draughtsman');
+    const aim = onSpell(s, member, '0,0', known).mode;
+    const confirm = onCell(s, aim, at('D1'), known).mode;
+    expect(onCancel(s, confirm).mode.kind).toBe('aim');
+    expect(onCancel(s, aim).mode.kind).toBe('member');
+    expect(onCancel(s, member).mode.kind).toBe('idle');
+    // pressing the active spell again also steps back
+    expect(onSpell(s, aim, '0,0', known).mode.kind).toBe('member');
+  });
+
+  test('afterAction keeps a member that can still act, else selects the next ready one', () => {
+    const s = labBattle('sandbox');
+    const moved = applyAction(s, { type: 'move', unit: 'draughtsman', to: at('B6') }).state;
+    expect(afterAction(moved, memberMode(s, 'draughtsman'))).toMatchObject({
+      kind: 'member',
+      unit: 'draughtsman',
+    });
+    const done = applyAction(moved, {
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: '0,1',
+      aim: { kind: 'dir', dir: 'up' },
+    }).state;
+    expect(afterAction(done, memberMode(moved, 'draughtsman'))).toMatchObject({
+      kind: 'member',
+      unit: 'stoker',
+    });
+  });
+
+  test('every mode has a caption', () => {
+    const s = labBattle('ink-spark-detonation');
+    const member = memberMode(s, 'draughtsman');
+    expect(hintFor(IDLE, s).text).toMatch(/Tap a party member/);
+    expect(hintFor(member, s).text).toBe('Draughtsman: tap a dot to move, pick a spell.');
+    const aim = onSpell(s, member, '0,0', known).mode;
+    expect(hintFor(aim, s).text).toMatch(/^Bolt: tap any tile/);
+    const confirm = onCell(s, aim, at('D1'), known).mode;
+    expect(hintFor(confirm, s).text).toMatch(/Tap again or Confirm\.$/);
+  });
+});

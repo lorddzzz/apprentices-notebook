@@ -1,5 +1,14 @@
 import { ATTACKS } from '$data';
-import { type Coord, type GameEvent, inBounds, step } from '$engine';
+import {
+  type Action,
+  aimPreview,
+  type BattleState,
+  type Coord,
+  findUnit,
+  type GameEvent,
+  inBounds,
+  step,
+} from '$engine';
 import type { BoardView } from './view';
 
 export type Tone =
@@ -111,4 +120,18 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     default:
       return [];
   }
+}
+
+/**
+ * A cast that hits a unit emits no `lands`/`stopped` event, so its flight would be invisible:
+ * draw it from the aim instead (projectile spells only; the first step gets it).
+ */
+export function castLead(prev: BattleState, action: Action, events: readonly GameEvent[]): Fx[] {
+  if (action.type !== 'cast' || action.aim.kind !== 'dir') return [];
+  const flown = events.some((e) => e.type === 'lands' || e.type === 'stopped');
+  if (flown || events[0]?.type !== 'cast') return [];
+  const caster = findUnit(prev, action.unit);
+  const { path } = aimPreview(prev, action.unit, action.spell, action.aim);
+  if (!caster || path.length === 0) return [];
+  return [{ kind: 'trail', cells: [{ ...caster.pos }, ...path], tone: 'source' }];
 }

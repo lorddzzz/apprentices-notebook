@@ -1,6 +1,6 @@
 import { describe, type GameEvent } from '$engine';
 import { type Fx, fxFor } from './fx';
-import { durationOf } from './timing';
+import { durationOf, STEP_MS } from './timing';
 import { type BoardView, project } from './view';
 
 export interface Step {
@@ -12,19 +12,32 @@ export interface Step {
   ms: number;
 }
 
-/** One step per event. `scale` < 1 is reduced motion: shorter steps, no trails. */
-export function buildSteps(start: BoardView, events: readonly GameEvent[], scale = 1): Step[] {
+/**
+ * One step per event. `scale` < 1 is reduced motion: shorter steps, no trails. `lead` adds effects
+ * to the first step that the events alone can't show (a Bolt's flight when it hits a unit).
+ */
+export function buildSteps(
+  start: BoardView,
+  events: readonly GameEvent[],
+  scale = 1,
+  lead: readonly Fx[] = [],
+): Step[] {
   const steps: Step[] = [];
   let view = start;
-  for (const event of events) {
-    const fx = fxFor(event, view).filter((f) => scale >= 1 || f.kind !== 'trail');
+  for (const [i, event] of events.entries()) {
+    const fx = [...fxFor(event, view), ...(i === 0 ? lead : [])].filter(
+      (f) => scale >= 1 || f.kind !== 'trail',
+    );
     view = project(view, event);
     steps.push({
       event,
       line: describe(event),
       view,
       fx,
-      ms: Math.round(durationOf(event) * scale),
+      // A lead trail needs a full step to draw.
+      ms: Math.round(
+        Math.max(durationOf(event), i === 0 && lead.length ? STEP_MS.normal : 0) * scale,
+      ),
     });
   }
   return steps;
