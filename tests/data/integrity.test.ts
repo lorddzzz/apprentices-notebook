@@ -213,39 +213,62 @@ test('encounters: 4, depth 1..4, only last is heart with picks 2', () => {
   expect(ENCOUNTERS[3]?.loot).toBe('heart');
 });
 
-test('dummy never in encounter layouts', () => {
+/** Every board of every depth, labelled for failure messages. */
+const VARIANTS = ENCOUNTERS.flatMap((e, i) =>
+  e.variants.map((v, j) => ({ depth: i, label: `${e.id}/${v.name}`, index: j, ...v })),
+);
+
+test('every depth has 3 uniquely named variants and layout = variants[0]', () => {
+  const names = new Set<string>();
   for (const e of ENCOUNTERS) {
-    const tokens = e.layout.split(/\s+/);
+    expect(e.variants, e.id).toHaveLength(3);
+    expect(e.layout, e.id).toBe(e.variants[0]?.layout);
+    for (const v of e.variants) {
+      expect(v.name.trim(), e.id).not.toBe('');
+      expect(names.has(v.name), v.name).toBe(false);
+      names.add(v.name);
+    }
+    expect(new Set(e.variants.map((v) => v.layout)).size, e.id).toBe(3);
+  }
+});
+
+test('dummy never in encounter layouts', () => {
+  for (const v of VARIANTS) {
+    const tokens = v.layout.split(/\s+/);
     expect(
       tokens.some((t) => t.startsWith('d')),
-      e.id,
+      v.label,
     ).toBe(false);
   }
 });
 
 test('encounter layouts parse to 6x8 with D and S', () => {
-  for (const e of ENCOUNTERS) {
-    const b = parseBoard(e.layout);
-    expect([b.width, b.height], e.id).toEqual([TUNING.grid.width, TUNING.grid.height]);
+  for (const v of VARIANTS) {
+    const b = parseBoard(v.layout);
+    expect([b.width, b.height], v.label).toEqual([TUNING.grid.width, TUNING.grid.height]);
     const members = b.units.filter((u) => u.kind === 'member').map((u) => u.def);
-    expect(members.sort(), e.id).toEqual(['draughtsman', 'stoker']);
+    expect(members.sort(), v.label).toEqual(['draughtsman', 'stoker']);
   }
 });
 
-test('encounter enemy counts', () => {
-  const count = (i: number, def: string) =>
-    parseBoard(ENCOUNTERS[i]?.layout ?? '').units.filter((u) => u.def === def).length;
-  const oil = (i: number) =>
-    parseBoard(ENCOUNTERS[i]?.layout ?? '').tiles.filter((t) => t.oil).length;
-  const tiles = (i: number) => parseBoard(ENCOUNTERS[i]?.layout ?? '').tiles;
-
-  expect([count(0, 'rat'), count(0, 'familiar'), count(0, 'sentry')]).toEqual([3, 0, 0]);
-  expect([count(1, 'rat'), count(1, 'familiar'), count(1, 'sentry')]).toEqual([2, 1, 0]);
-  expect([count(2, 'rat'), count(2, 'familiar'), count(2, 'sentry')]).toEqual([2, 0, 1]);
-  expect(oil(2)).toBeGreaterThan(0);
-  expect([count(3, 'rat'), count(3, 'familiar'), count(3, 'sentry')]).toEqual([2, 1, 2]);
-  expect(tiles(3).filter((t) => t.vent).length).toBeGreaterThanOrEqual(1);
-  expect(tiles(3).filter((t) => t.plate).length).toBeGreaterThanOrEqual(1);
+test('encounter enemy counts hold for every variant of a depth', () => {
+  for (const v of VARIANTS) {
+    const b = parseBoard(v.layout);
+    const count = (def: string) => b.units.filter((u) => u.def === def).length;
+    const got = [count('rat'), count('familiar'), count('sentry')];
+    const want = [
+      [3, 0, 0],
+      [2, 1, 0],
+      [2, 0, 1],
+      [2, 1, 2],
+    ][v.depth];
+    expect(got, v.label).toEqual(want);
+    if (v.depth === 2) expect(b.tiles.filter((t) => t.oil).length, v.label).toBeGreaterThan(0);
+    if (v.depth === 3) {
+      expect(b.tiles.filter((t) => t.vent).length, v.label).toBeGreaterThanOrEqual(1);
+      expect(b.tiles.filter((t) => t.plate).length, v.label).toBeGreaterThanOrEqual(1);
+    }
+  }
 });
 
 test('member start lattices match their shape (dims + holes)', () => {

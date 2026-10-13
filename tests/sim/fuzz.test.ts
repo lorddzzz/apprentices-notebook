@@ -68,6 +68,7 @@ import {
   type Trip,
   type Unit,
   validateLoadout,
+  variantFor,
 } from '$engine';
 
 /**
@@ -513,7 +514,8 @@ function specFor(p: Profile, t: Trip): BattleSpec {
       charges: { ...chargesOf(p, m), ...t.charges[m] },
     };
   }
-  return { title: enc.title, board: enc.layout, seed: deriveSeed(t.seed, t.encounter), party };
+  const board = enc.variants[variantFor(t, t.encounter)]?.layout ?? enc.layout;
+  return { title: enc.title, board, seed: deriveSeed(t.seed, t.encounter), party };
 }
 
 /** Randomised lattices (runes spread over the sockets) with a few extra copies owned. */

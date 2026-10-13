@@ -161,8 +161,10 @@ export function createEncounterBattle(
   enc: EncounterDef,
   party: Partial<Record<MemberId, PartyInit>>,
   seed: number,
+  variant = 0,
 ): ActionResult {
-  return createBattle({ title: enc.title, board: enc.layout, seed, party });
+  const layout = enc.variants[variant]?.layout ?? enc.layout;
+  return createBattle({ title: enc.title, board: layout, seed, party });
 }
 
 // ── Actions ─────────────────────────────────────────────

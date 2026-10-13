@@ -260,9 +260,10 @@ export function startTrip(p: Profile, seed: number): Trip {
   };
 }
 
-/** Which of the encounter's layouts this trip plays (plan S10): derived from the seed, never stored. W0 stub. */
-export function variantFor(_t: Trip, _encounter: number): number {
-  return 0;
+/** Which of the encounter's layouts this trip plays (plan S10): derived from the seed, never stored. */
+export function variantFor(t: Trip, encounter: number): number {
+  const count = ENCOUNTERS[encounter]?.variants.length ?? 1;
+  return createRng(deriveSeed(t.seed, 2000 + encounter)).int(0, count - 1);
 }
 
 /**
@@ -282,7 +283,12 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
       charges: { ...chargesOf(p, m), ...t.charges[m] },
     };
   }
-  const first = createEncounterBattle(enc, party, deriveSeed(t.seed, t.encounter));
+  const first = createEncounterBattle(
+    enc,
+    party,
+    deriveSeed(t.seed, t.encounter),
+    variantFor(t, t.encounter),
+  );
   let state = first.state;
   const events = [...first.events];
   for (const a of t.actions) {

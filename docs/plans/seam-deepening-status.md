@@ -26,7 +26,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
 | F1 | sonnet | M | merged | (see log) | ~7% | also touched run.ts compileGlyph + Study.svelte (3 lines), accepted |
 | E3 | sonnet | M | merged | (see log) | ~4% | merge seam with E1 Targets fixed by me |
-| L1 | sonnet | M | running | | | started 22:48, preview dev-alt2 (5191) |
+| L1 | sonnet | M | merged | (see log) | ~6% | also edited tests/sim/fuzz.test.ts specFor (needed) |
 | C1 | sonnet | M | running | | | started ~22:53, preview dev-alt3 (5192); also owns glyphs.ts, view.ts, fx.ts, SteamLayer |
 | C2 | haiku | S | todo | | | after D1 |
 | R1 | sonnet | L | todo | | | after L1 |
@@ -81,10 +81,17 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - F1: a target cell may be one the moving block itself vacates. Accepted.
 - F1: Draughtsman/Stoker pages have holes, so tidy refuses more often on real pages. Note for player.
 
+- L1: variant names — d1 The lamplit landing / The drainage cut / The coal chute; d2 The oil cellar / The scullery / The flooded stair; d3 The sentry post / The brass gallery / The boiler alley; d4 Heart of the Seam / The furnace hall / The old foundry. Player judges.
+- L1: variant pick salt `2000 + encounter` (independent of battle seed and loot 1000+). Accepted.
+- L1: depth 1's new variants use oil and ink puddles, depth 2's steam (variety, same enemy counts). Accepted.
+- L1: Crossroads reads "Deeper: {name} (depth N of 4)". Accepted.
+
 ## Decisions and fixes made during the build
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
 ## Follow-ups and rough edges
+- Battle HUD/log title is still the depth title ("Three rats") while the Crossroads names the variant ("The lamplit landing"). Decide in W4: probably "The lamplit landing" as battle title (≈6 tests assert enc.title).
+- `preview_start` by name runs from the MAIN repo root, so agents must run `pnpm dev --port N --strictPort` from their worktree. Put this in spawn prompts.
 - Port 5190 is held by a stale dev server from another session (cwd = main repo). Agents use dev-alt2 (5191) / dev-alt3 (5192).
 - (fixed) aimPreview follows Pierce; recipe.ts reads out all six new runes.
 - UI doesn't draw scalding steam, etched brass, stain or heat yet: C1 (BadgeLayer/TileLayer) must cover `scald`, `etched`, `stain`, `heat`; playback should animate `scalded`, `etched`, `heated`, `cooled`, `stained`, `pierced`.

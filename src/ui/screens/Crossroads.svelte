@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ENCOUNTERS } from '$data';
-  import { encounterTitle } from '../../app/describe';
+  import { variantFor } from '$engine';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
   import Button from '../components/common/Button.svelte';
@@ -9,6 +9,11 @@
 
   const trip = $derived(game.save.trip);
   const next = $derived(trip ? trip.encounter + 1 : 0);
+  const place = $derived(
+    trip
+      ? (ENCOUNTERS[next]?.variants[variantFor(trip, next)]?.name ?? 'The Seam')
+      : 'The Seam',
+  );
 </script>
 
 {#if trip}
@@ -30,7 +35,7 @@
     <div class="choices">
       <Button onclick={() => game.pushOn()} testid="push">
         <span class="big">Push on</span>
-        <span class="sub">{encounterTitle(next)} (depth {next + 1} of {ENCOUNTERS.length})</span>
+        <span class="sub">Deeper: {place} (depth {next + 1} of {ENCOUNTERS.length})</span>
       </Button>
       <Button variant="quiet" onclick={() => game.returnHome()} testid="return">
         <span class="big">Return home</span>
