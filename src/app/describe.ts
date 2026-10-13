@@ -326,7 +326,7 @@ export function lootLine(item: LootItem): { title: string; text: string } {
     case 'research':
       return {
         title: `Research ×${item.amount}`,
-        text: 'Notes for the workshop. Nothing to spend them on yet.',
+        text: 'Reagents for the desk. Research arrives in a later version.',
       };
   }
 }

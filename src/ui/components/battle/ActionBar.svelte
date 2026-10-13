@@ -1,6 +1,6 @@
 <script lang="ts">
   import { describeSpell, type MemberUnit, type Spell, type SpellKey } from '$engine';
-  import type { InputMode } from '../../../app/battleInput';
+  import { activeAction, type InputMode } from '../../../app/battleInput';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -17,12 +17,9 @@
 
   let { member, spells, mode, canShove, canUndo, onspell, onshove, onundo }: Props = $props();
 
-  const activeSpell = $derived(
-    mode.kind === 'aim' || mode.kind === 'confirm' ? mode.spell : null,
-  );
-  const shoving = $derived(
-    mode.kind === 'shove' || (mode.kind === 'confirm' && mode.spell === null),
-  );
+  const lit = $derived(activeAction(mode));
+  const activeSpell = $derived(lit.spell);
+  const shoving = $derived(lit.shove);
 </script>
 
 <div class="bar" data-testid="actions">
@@ -117,7 +114,15 @@
     font-size: 20px;
     line-height: 1;
   }
-  .active {
+  .act:focus {
+    outline: none;
+  }
+  .act:focus-visible {
+    outline: 2px dashed var(--ink);
+    outline-offset: 2px;
+  }
+  /* Only the mode in use is lit; a button that merely was tapped earlier is not. */
+  .act.active {
     border-color: var(--select);
     box-shadow: 0 0 0 2px var(--select);
     background: #f6e3b4;

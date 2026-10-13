@@ -166,19 +166,44 @@
     flex: 1;
   }
   .mark {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: var(--tap);
     padding: 0 var(--space-3);
-    border: 2px solid var(--tint);
+    border: 1px solid var(--line);
     border-bottom: none;
     border-radius: var(--radius) var(--radius) 0 0;
     background: transparent;
-    color: var(--tint);
+    color: var(--ink-soft);
     font-size: 15px;
     cursor: pointer;
   }
+  /* A small tint flag keeps each member recognisable without reading as selected. */
+  .mark::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--tint);
+    opacity: 0.6;
+  }
+  /* The selected tab is the page's own tab: filled, taller, joined to the page below. */
   .mark.on {
+    z-index: 2;
+    min-height: calc(var(--tap) + 6px);
+    margin-bottom: -1px;
+    border-color: var(--tint);
     background: var(--tint);
     color: var(--parchment);
+    font-weight: 700;
+  }
+  .mark.on::before {
+    background: var(--parchment);
+    opacity: 1;
   }
   .page {
     position: relative;

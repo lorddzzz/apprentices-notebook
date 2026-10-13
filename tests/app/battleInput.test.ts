@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { INTERACTION_IDS } from '$data';
-import { applyAction, type BattleState, memberById } from '$engine';
+import { applyAction, type BattleState, castableSpells, memberById } from '$engine';
 import {
+  activeAction,
   afterAction,
   aimAt,
   IDLE,
@@ -12,6 +13,7 @@ import {
   onConfirm,
   onShove,
   onSpell,
+  unspentCasters,
 } from '../../src/app/battleInput';
 import { hintFor } from '../../src/app/describe';
 import { at, labBattle } from './battleFixtures';
@@ -168,5 +170,42 @@ describe('battle input', () => {
     expect(hintFor(aim, s).text).toMatch(/^Bolt: tap any tile/);
     const confirm = onCell(s, aim, at('D1'), known).mode;
     expect(hintFor(confirm, s).text).toMatch(/Tap again or Confirm\.$/);
+  });
+
+  test('end-turn warning names only members with a usable spell and a legal aim', () => {
+    const s = labBattle('sandbox');
+    expect(unspentCasters(s)).toEqual(['Draughtsman', 'Stoker']);
+    // A member who has already acted is not named.
+    const cast = applyAction(s, {
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: '0,1',
+      aim: { kind: 'dir', dir: 'up' },
+    }).state;
+    expect(unspentCasters(cast)).toEqual(['Stoker']);
+    // Out of charges in a real (non-lab) battle: no usable spell, no warning.
+    const real = labBattle('sandbox', false);
+    expect(unspentCasters(real)).toContain('Stoker');
+    const spent = {
+      ...real,
+      units: real.units.map((u) =>
+        u.kind === 'member' && u.id === 'stoker'
+          ? { ...u, charges: Object.fromEntries(Object.keys(u.charges).map((k) => [k, 0])) }
+          : u,
+      ),
+    };
+    expect(unspentCasters(spent)).not.toContain('Stoker');
+  });
+
+  test('only the active mode lights an action button', () => {
+    const s = labBattle('shove-slide');
+    const member = memberMode(s, 'stoker');
+    expect(activeAction(member)).toEqual({ spell: null, shove: false });
+    expect(activeAction(onShove(s, member).mode)).toEqual({ spell: null, shove: true });
+    const key = castableSpells(s, 'stoker')[0]?.spell.key ?? '';
+    const aim = onSpell(s, member, key, known).mode;
+    expect(activeAction(aim)).toEqual({ spell: key, shove: false });
+    const confirm = onCell(s, aim, at('B1'), known).mode;
+    expect(activeAction(confirm)).toEqual({ spell: key, shove: false });
   });
 });

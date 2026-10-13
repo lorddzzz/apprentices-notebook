@@ -80,7 +80,7 @@
   {/if}
 
   {#if pipText}
-    <text x="50" y="94" text-anchor="middle" font-size="22" fill="var(--ink)" font-family="var(--mono)">{unit.hp}/{unit.maxHp}</text>
+    <text x="50" y="91" text-anchor="middle" font-size="20" fill="var(--ink)" font-family="var(--mono)">{unit.hp}/{unit.maxHp}</text>
   {:else}
     {#each { length: unit.maxHp } as _, i (i)}
       <rect

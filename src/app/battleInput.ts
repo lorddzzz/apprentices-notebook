@@ -72,6 +72,20 @@ export function selectedOf(mode: InputMode): UnitId | null {
   }
 }
 
+/** Which action button is lit: exactly one spell, or Shove, or nothing. */
+export function activeAction(mode: InputMode): { spell: SpellKey | null; shove: boolean } {
+  switch (mode.kind) {
+    case 'aim':
+      return { spell: mode.spell, shove: false };
+    case 'shove':
+      return { spell: null, shove: true };
+    case 'confirm':
+      return { spell: mode.spell, shove: mode.spell === null };
+    default:
+      return { spell: null, shove: false };
+  }
+}
+
 function livingMember(s: BattleState, id: UnitId): MemberUnit | null {
   const u = findUnit(s, id);
   return u?.kind === 'member' && u.hp > 0 ? u : null;
@@ -371,9 +385,14 @@ export function endTurnNeedsConfirm(s: BattleState): boolean {
   return unspentCasters(s).length > 0;
 }
 
-/** Names of members who could still cast this turn. */
+/** Names of members who could still cast this turn: a usable spell with a legal aim. */
 export function unspentCasters(s: BattleState): string[] {
   return members(s)
-    .filter((m) => m.hp > 0 && !m.acted && castableSpells(s, m.id).some((c) => c.usable))
+    .filter(
+      (m) =>
+        m.hp > 0 &&
+        !m.acted &&
+        castableSpells(s, m.id).some((c) => c.usable && legalAims(s, m.id, c.spell.key).length > 0),
+    )
     .map((m) => m.name);
 }
