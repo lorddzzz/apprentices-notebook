@@ -68,5 +68,5 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 ## Decisions and fixes made during the build
 
 ## Follow-ups and rough edges
-- castPreview (src/engine/queries.ts ~318) calls `travel` once: the aim preview misses Pierce's second unit. recipe.ts needs Pierce / On Ignite / Thrift text (orchestrator, after E3).
+- (fixed: aimPreview follows Pierce.) recipe.ts needs Pierce / On Ignite / Thrift text (orchestrator, after E3).
 - Undo after walking onto a stain (needs `UndoRecord.stain`).

@@ -319,6 +319,11 @@ export function aimPreview(
   if (!m || !spell) return { path: [], targets: [] };
   if ((spell.source === 'bolt' || spell.source === 'quill') && aim.kind === 'dir') {
     const r = travel(s, m.pos, aim.dir, boltRange(s), m.id);
+    if (r.reason === 'unit' && spell.pierce) {
+      // Pierce: the flight goes on past the first unit (see cast.ts).
+      const on = travel(s, r.stop, aim.dir, boltRange(s), m.id);
+      return { path: [...r.path, ...on.path], targets: on.stop ? [r.stop, on.stop] : [r.stop] };
+    }
     return { path: r.path, targets: r.stop ? [r.stop] : [] };
   }
   if (spell.source === 'splash' && aim.kind === 'tile') {

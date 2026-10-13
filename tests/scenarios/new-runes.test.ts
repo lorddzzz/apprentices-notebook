@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { MEMBERS } from '$data';
 import {
+  aimPreview,
   compileLattice,
   createBattle,
   type GlyphDef,
@@ -19,6 +20,16 @@ import { type board, cast, expectLog, unitAtLabel, withLattices } from './harnes
 /** The three loot runes (plan seam-deepening S1–S3): Pierce, On Ignite and Thrift. */
 
 describe('pierce', () => {
+  test('the aim preview follows the flight past the first unit', () => {
+    const s = withLattices('D . r b .', { draughtsman: 'Bolt> Pierce Ink' });
+    const p = aimPreview(s, 'draughtsman', '0,0', { kind: 'dir', dir: 'right' });
+    expect(p.targets).toEqual([
+      { x: 2, y: 0 },
+      { x: 3, y: 0 },
+    ]);
+    expect(p.path).toHaveLength(3);
+  });
+
   test('pierce-rat-then-sentry: the bolt passes the rat and hits the sentry, then ink marks both', () => {
     const s = withLattices(
       'D . r b',
