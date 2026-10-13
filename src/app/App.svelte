@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Toasts from '../ui/components/common/Toasts.svelte';
+  import Bench from '../ui/screens/Bench.svelte';
   import Cleared from '../ui/screens/Cleared.svelte';
   import Codex from '../ui/screens/Codex.svelte';
   import Combat from '../ui/screens/Combat.svelte';
@@ -35,6 +36,8 @@
     <Study />
   {:else if resolved.screen === 'codex'}
     <Codex />
+  {:else if resolved.screen === 'bench'}
+    <Bench />
   {:else if resolved.screen === 'gallery'}
     <Gallery />
   {:else if resolved.screen === 'lab'}

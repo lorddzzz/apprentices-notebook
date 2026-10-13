@@ -2,9 +2,11 @@
   interface Props {
     oncodex: () => void;
     onmenu: () => void;
+    /** Set once the Bench is unlocked; null hides the entry. */
+    onbench?: (() => void) | null;
   }
 
-  let { oncodex, onmenu }: Props = $props();
+  let { oncodex, onmenu, onbench = null }: Props = $props();
 
   // Rain streaks inside the window: [x, y, delay in ms]. Fixed so the scene never reshuffles.
   const DROPS: readonly (readonly [number, number, number])[] = [
@@ -68,6 +70,14 @@
   <h1>The Study</h1>
 
   <div class="buttons">
+    {#if onbench}
+      <button type="button" class="knob" aria-label="The bench (research)" data-testid="bench-button" onclick={onbench}>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+          <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />
+          <path d="M7.5 15h9" />
+        </svg>
+      </button>
+    {/if}
     <button type="button" class="knob" aria-label="Read the notebook (codex)" data-testid="codex-button" onclick={oncodex}>
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
         <path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v13c-3-1-6-1-8 1-2-2-5-2-8-1z" />

@@ -69,6 +69,11 @@ export class GameStore {
     if (r.message) toast(r.message);
   }
 
+  /** Replaces the profile (the Bench writes recipes through this) and saves. */
+  setProfile(profile: Profile): void {
+    this.commit({ ...this.save, profile });
+  }
+
   exportText(): string {
     return saveText(this.save);
   }

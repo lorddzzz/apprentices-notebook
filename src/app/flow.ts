@@ -38,7 +38,8 @@ export type Screen =
   | 'wiped'
   | 'codex'
   | 'lab'
-  | 'gallery';
+  | 'gallery'
+  | 'bench';
 
 const TRIP_SCREEN: Record<Trip['status'], Screen> = {
   fight: 'battle',
@@ -60,6 +61,8 @@ export function resolveScreen(
   if (route === 'codex' || route === 'lab' || route === 'gallery') {
     return { screen: route, redirect: null };
   }
+  // The Bench is a room of the study: out on a trip (or with a wipe unread) it is closed.
+  if (route === 'bench' && !trip && !wipe) return { screen: 'bench', redirect: null };
   const screen: Screen | null = trip ? TRIP_SCREEN[trip.status] : wipe ? 'wiped' : null;
   if (screen === null) return { screen: 'study', redirect: route === 'study' ? null : 'study' };
   return { screen, redirect: route === 'trip' ? null : 'trip' };

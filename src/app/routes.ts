@@ -1,6 +1,6 @@
-export type Route = 'study' | 'trip' | 'codex' | 'lab' | 'gallery';
+export type Route = 'study' | 'trip' | 'codex' | 'lab' | 'gallery' | 'bench';
 
-export const ROUTES: readonly Route[] = ['study', 'trip', 'codex', 'lab', 'gallery'];
+export const ROUTES: readonly Route[] = ['study', 'trip', 'codex', 'lab', 'gallery', 'bench'];
 
 export interface Location {
   route: Route;

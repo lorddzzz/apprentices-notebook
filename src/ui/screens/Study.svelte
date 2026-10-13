@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
   import { compiledFor, describeSpell, latticeOf, validateLoadout } from '$engine';
+  import { benchUnlocked } from '../../app/bench';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
@@ -89,7 +90,11 @@
 </script>
 
 <div class="study" data-testid="study">
-  <StudyScene oncodex={() => go('codex')} onmenu={openMenu} />
+  <StudyScene
+    oncodex={() => go('codex')}
+    onmenu={openMenu}
+    onbench={benchUnlocked(profile) ? () => go('bench') : null}
+  />
 
   <div class="desk">
     <LatticeEditor
