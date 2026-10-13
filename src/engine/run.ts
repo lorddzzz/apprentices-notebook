@@ -36,6 +36,7 @@ import type {
   FiredCell,
   GlyphDef,
   GlyphId,
+  GlyphLibrary,
   Lattice,
   LatticeIssue,
   LootItem,
@@ -99,8 +100,13 @@ export function latticeOf(p: Profile, m: MemberId): Lattice {
   return { shape: parseLattice(MEMBERS[m].shape).shape, runes: p.lattices[m].map(copyRune) };
 }
 
+/** The profile's Fair Copies by id, for compiling and costing lattices that hold Glyphs. */
+export function glyphLibrary(p: Pick<Profile, 'glyphs'>): GlyphLibrary {
+  return Object.fromEntries(p.glyphs.map((g) => [g.id, g]));
+}
+
 export function compiledFor(p: Profile, m: MemberId): CompiledLattice {
-  return compileLattice(latticeOf(p, m), MEMBERS[m].affinity);
+  return compileLattice(latticeOf(p, m), MEMBERS[m].affinity, glyphLibrary(p));
 }
 
 export function setMemberLattice(p: Profile, m: MemberId, l: Lattice): Profile {
@@ -136,7 +142,9 @@ export function canPlace(p: Profile, m: MemberId, at: Coord, rune: RuneId): stri
     shape: l.shape,
     runes: l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y),
   };
-  if (inkUsed(without) + inkCost(rune) > p.inkCapacity[m]) return 'Not enough ink';
+  if (inkUsed(without, glyphLibrary(p)) + inkCost(rune) > p.inkCapacity[m]) {
+    return 'Not enough ink';
+  }
   return null;
 }
 
@@ -146,7 +154,7 @@ export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIss
   const counts = countRunes(MEMBER_IDS.map((m) => lattices[m]));
   const out: Partial<Record<MemberId, LatticeIssue[]>> = {};
   for (const m of MEMBER_IDS) {
-    const issues = validateLattice(lattices[m], p.inkCapacity[m]);
+    const issues = validateLattice(lattices[m], p.inkCapacity[m], glyphLibrary(p));
     for (const r of lattices[m].runes) {
       if (isGlyph(r)) continue;
       if (counts[r.rune] > p.collection[r.rune]) {
@@ -421,11 +429,6 @@ function parseProfile(v: unknown): Profile {
   const lat = record(r.lattices);
   const inkCapacity = perMember((m) => count(cap[m]));
   const lattices = perMember((m) => list(lat[m]).map(parsePlaced));
-  for (const m of MEMBER_IDS) {
-    const shape = parseLattice(MEMBERS[m].shape).shape;
-    const structural = validateLattice({ shape, runes: lattices[m] }, null);
-    if (structural.length > 0) bad();
-  }
   const interactions: InteractionId[] = [];
   for (const i of list(r.interactions)) {
     const id = oneOf(INTERACTION_IDS, i);
@@ -451,9 +454,14 @@ function parseProfile(v: unknown): Profile {
   const glyphs = list(r.glyphs).map(parseGlyphDef);
   if (new Set(glyphs.map((g) => g.id)).size !== glyphs.length) bad();
   for (const m of MEMBER_IDS) {
-    for (const placed of lattices[m]) {
-      if (isGlyph(placed) && !glyphs.some((g) => g.id === placed.glyph)) bad();
-    }
+    const shape = parseLattice(MEMBERS[m].shape).shape;
+    // Also rejects a lattice Glyph that is not in the library.
+    const structural = validateLattice(
+      { shape, runes: lattices[m] },
+      null,
+      glyphLibrary({ glyphs }),
+    );
+    if (structural.length > 0) bad();
   }
   const proofRaw = record(r.proof);
   const proof = perMember((m) => list(proofRaw[m]).map((mask) => list(mask).map(parseFired)));

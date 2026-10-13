@@ -9,6 +9,7 @@ import {
   type TriggerRuneId,
   TUNING,
 } from '$data';
+import { glyphCost, rotateDirLocal } from './glyph';
 import {
   byReadingOrder,
   type Coord,
@@ -25,11 +26,14 @@ import type {
   AuraTouch,
   CellKey,
   CompiledLattice,
+  GlyphDef,
+  GlyphLibrary,
   Lattice,
   LatticeIssue,
   LatticeShape,
   PathCell,
   Placed,
+  PlacedGlyph,
   PlacedRune,
   Spell,
   SpellNode,
@@ -55,13 +59,46 @@ export function socketAt(l: Lattice, at: Coord): Placed | null {
 
 // ── Compiler ────────────────────────────────────────────
 
-/** Flow walk from every Source rune. Pure and static: no battle state is involved. */
-export function compileLattice(l: Lattice, affinity: readonly MaterialId[]): CompiledLattice {
+/**
+ * One coordinate space the flow walks in: the outer lattice, or a Glyph's rotated local frame.
+ * The same rune rules run in both; only lookup, adjacency, labelling and "what is past the edge"
+ * differ.
+ */
+interface Frame {
+  runeAt(at: Coord): PlacedRune | null;
+  /** Orthogonal neighbours of `at` holding `rune` in this frame. */
+  around(at: Coord, rune: RuneId): number;
+  visited: Set<CellKey>;
+  path: PathCell[];
+  /** Fields that locate a node: the cell itself, or `at` = socket + `inner` = local cell. */
+  where(at: Coord): { at: Coord; inner?: Coord };
+  /** Outer Amplify bonus every Source and Material in this frame receives (0 outside a Glyph). */
+  bonus: number;
+  /** A direction in this frame as seen on the outer lattice. */
+  outward(d: Dir): Dir;
+  /** Flow stepped onto a cell holding no rune of this frame. */
+  beyond(at: Coord, dir: Dir): SpellNode[];
+}
+
+const cellMap = (def: GlyphDef): Map<CellKey, PlacedRune> =>
+  new Map(def.cells.map((c) => [key(c.at), c]));
+
+/** Compiles `l`; `glyphs` resolves Glyph sockets (default none: a Glyph then insulates). */
+export function compileLattice(
+  l: Lattice,
+  affinity: readonly MaterialId[],
+  glyphs: GlyphLibrary = {},
+): CompiledLattice {
   const byKey = new Map<CellKey, PlacedRune>();
-  // B1: a Glyph socket is an insulator for now, so it is left out of the rune map.
-  for (const r of l.runes) if (!isGlyph(r)) byKey.set(key(r.at), r);
+  const glyphAt = new Map<CellKey, PlacedGlyph>();
+  for (const r of l.runes) {
+    if (isGlyph(r)) glyphAt.set(key(r.at), r);
+    else byKey.set(key(r.at), r);
+  }
   const runeAt = (at: Coord): PlacedRune | null =>
     isSocket(l.shape, at) ? (byKey.get(key(at)) ?? null) : null;
+  const glyphIn = (at: Coord): PlacedGlyph | null =>
+    isSocket(l.shape, at) ? (glyphAt.get(key(at)) ?? null) : null;
   const countAround = (at: Coord, rune: RuneId): number =>
     neighbors4(at).filter((n) => runeAt(n)?.rune === rune).length;
 
@@ -76,58 +113,122 @@ export function compileLattice(l: Lattice, affinity: readonly MaterialId[]): Com
     }
   };
 
-  const sources = [...byKey.values()]
-    .filter((r) => isSource(r.rune))
-    .sort((a, b) => byReadingOrder(a.at, b.at));
-  for (const src of sources) {
-    const sourceRune = src.rune;
-    if (!isSource(sourceRune)) continue;
-    const srcDir = src.dir ?? 'right';
-    const visited = new Set<CellKey>([key(src.at)]);
-    const path: PathCell[] = [{ at: src.at, rune: sourceRune, dir: srcDir }];
+  function walkIn(f: Frame, cell: Coord, dir: Dir): SpellNode[] {
+    const placed = f.runeAt(cell);
+    if (!placed) return f.beyond(cell, dir);
+    if (f.visited.has(key(cell))) return [];
+    const def = RUNES[placed.rune];
+    if (def.family === 'aura' || def.family === 'source') return []; // insulators
+    f.visited.add(key(cell));
+    f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
+    const go = (d: Dir): SpellNode[] => walkIn(f, step(cell, d), d);
 
-    const walk = (cell: Coord, dir: Dir): SpellNode[] => {
-      const placed = runeAt(cell);
-      if (!placed || visited.has(key(cell))) return [];
-      const def = RUNES[placed.rune];
-      if (def.family === 'aura' || def.family === 'source') return []; // insulators
-      visited.add(key(cell));
-      path.push({ at: cell, rune: placed.rune, dir });
+    if (placed.rune === 'bend') {
+      const out = placed.dir ?? 'right';
+      return out === opposite(dir) ? [] : go(out);
+    }
+    if (placed.rune === 'fork') {
+      // Left must walk first: it claims shared cells before the right branch.
+      const left = go(turnLeft(dir));
+      const right = go(turnRight(dir));
+      return [...left, ...right];
+    }
+    if (isMaterial(placed.rune)) {
+      const amp = f.around(cell, 'amplify') + f.bonus;
+      const bonus = affinity.includes(placed.rune) ? TUNING.affinityBonus : 0;
+      return [
+        {
+          kind: 'material',
+          rune: placed.rune,
+          ...f.where(cell),
+          amp,
+          magnitude: def.base + amp + bonus,
+          next: go(dir),
+        },
+      ];
+    }
+    if (isTrigger(placed.rune)) {
+      return [{ kind: 'trigger', rune: placed.rune, ...f.where(cell), next: go(dir) }];
+    }
+    return [];
+  }
 
-      if (placed.rune === 'bend') {
-        const out = placed.dir ?? 'right';
-        if (out === opposite(dir)) return [];
-        return walk(step(cell, out), out);
-      }
-      if (placed.rune === 'fork') {
-        // Left must walk first: it claims shared cells before the right branch.
-        const left = walk(step(cell, turnLeft(dir)), turnLeft(dir));
-        const right = walk(step(cell, turnRight(dir)), turnRight(dir));
-        return [...left, ...right];
-      }
-      if (isMaterial(placed.rune)) {
-        const amp = countAround(cell, 'amplify');
-        const bonus = affinity.includes(placed.rune) ? TUNING.affinityBonus : 0;
-        return [
-          {
-            kind: 'material',
-            rune: placed.rune,
-            at: cell,
-            amp,
-            magnitude: def.base + amp + bonus,
-            next: walk(step(cell, dir), dir),
-          },
-        ];
-      }
-      if (isTrigger(placed.rune)) {
-        return [{ kind: 'trigger', rune: placed.rune, at: cell, next: walk(step(cell, dir), dir) }];
-      }
-      return [];
+  /** A Glyph's cells as a frame; leaving it continues the outer walk from the socket. */
+  const innerFrame = (g: PlacedGlyph, def: GlyphDef, outer: Frame): Frame => {
+    const local = cellMap(def);
+    const around = (at: Coord, rune: RuneId): number =>
+      neighbors4(at).filter((n) => local.get(key(n))?.rune === rune).length;
+    return {
+      runeAt: (at) => local.get(key(at)) ?? null,
+      around,
+      visited: new Set(),
+      path: outer.path,
+      where: (at) => ({ at: g.at, inner: at }),
+      bonus: countAround(g.at, 'amplify'),
+      outward: (d) => rotateDirLocal(d, g.dir),
+      beyond: (_at, dir) => {
+        const out = rotateDirLocal(dir, g.dir);
+        return walkIn(outer, step(g.at, out), out);
+      },
     };
+  };
 
-    const nodes = walk(step(src.at, srcDir), srcDir);
+  /** The outer frame for one spell: a payload Glyph is entered only along its own arrow (P4). */
+  const outerFrame = (visited: Set<CellKey>, path: PathCell[]): Frame => {
+    const frame: Frame = {
+      runeAt,
+      around: countAround,
+      visited,
+      path,
+      where: (at) => ({ at }),
+      bonus: 0,
+      outward: (d) => d,
+      beyond: (at, dir) => {
+        const g = glyphIn(at);
+        const def = g ? glyphs[g.glyph] : undefined;
+        if (!g || !def || def.kind !== 'payload' || dir !== g.dir) return [];
+        if (visited.has(key(at)) || !cellMap(def).has(key(def.entry))) return [];
+        visited.add(key(at));
+        return walkIn(innerFrame(g, def, frame), def.entry, 'right');
+      },
+    };
+    return frame;
+  };
+
+  /** Plain Sources and Spell Glyph sockets, in reading order of their socket. */
+  const origins: { at: Coord; glyph: PlacedGlyph | null }[] = [];
+  for (const r of byKey.values()) if (isSource(r.rune)) origins.push({ at: r.at, glyph: null });
+  for (const g of glyphAt.values()) {
+    if (isSocket(l.shape, g.at) && glyphs[g.glyph]?.kind === 'spell') {
+      origins.push({ at: g.at, glyph: g });
+    }
+  }
+  origins.sort((a, b) => byReadingOrder(a.at, b.at));
+
+  for (const origin of origins) {
+    const path: PathCell[] = [];
+    const outer = outerFrame(new Set([key(origin.at)]), path);
+    const spell = origin.glyph
+      ? glyphSpell(origin.glyph, outer)
+      : plainSpell(byKey.get(key(origin.at)), outer);
+    if (!spell) continue;
+    spells.push(spell);
+    touch('echo', origin.at);
+    for (const cell of path) {
+      reached.add(key(cell.at));
+      // Amplify only matters on the source and on material cells; a socket stands for its inner ones.
+      if (isSource(cell.rune) || isMaterial(cell.rune)) touch('amplify', cell.at);
+    }
+  }
+
+  function plainSpell(src: PlacedRune | undefined, outer: Frame): Spell | null {
+    if (!src || !isSource(src.rune)) return null;
+    const sourceRune = src.rune;
+    const srcDir = src.dir ?? 'right';
+    outer.path.push({ at: src.at, rune: sourceRune, dir: srcDir });
+    const nodes = walkIn(outer, step(src.at, srcDir), srcDir);
     const amp = countAround(src.at, 'amplify');
-    spells.push({
+    return {
       key: key(src.at),
       at: src.at,
       source: sourceRune,
@@ -136,15 +237,32 @@ export function compileLattice(l: Lattice, affinity: readonly MaterialId[]): Com
       echo: countAround(src.at, 'echo') > 0,
       charges: RUNES[sourceRune].charges,
       nodes,
-      path,
-    });
+      path: outer.path,
+    };
+  }
 
-    touch('echo', src.at);
-    for (const cell of path) {
-      reached.add(key(cell.at));
-      // Amplify only matters on the source and on material cells.
-      if (isSource(cell.rune) || isMaterial(cell.rune)) touch('amplify', cell.at);
-    }
+  function glyphSpell(g: PlacedGlyph, outer: Frame): Spell | null {
+    const def = glyphs[g.glyph];
+    const src = def ? cellMap(def).get(key(def.entry)) : undefined;
+    if (!def || !src || !isSource(src.rune)) return null;
+    const sourceRune = src.rune;
+    const inner = innerFrame(g, def, outer);
+    inner.visited.add(key(def.entry));
+    outer.path.push({ ...inner.where(def.entry), rune: sourceRune, dir: g.dir });
+    const nodes = walkIn(inner, step(def.entry, 'right'), 'right');
+    const amp = inner.around(def.entry, 'amplify') + inner.bonus;
+    return {
+      key: key(g.at),
+      at: g.at,
+      source: sourceRune,
+      amp,
+      magnitude: RUNES[sourceRune].base + amp,
+      echo: inner.around(def.entry, 'echo') > 0 || countAround(g.at, 'echo') > 0,
+      charges: RUNES[sourceRune].charges,
+      nodes,
+      path: outer.path,
+      glyph: g.glyph,
+    };
   }
 
   return { spells, reached: [...reached], auraTouches: [...touches.values()] };
@@ -197,11 +315,21 @@ export function inkCost(rune: RuneId): number {
   return TUNING.inkCost[RUNES[rune].family];
 }
 
-/** B1: a Glyph counts 1 ink until glyph costs exist. */
-export const placedInk = (p: Placed): number => (isGlyph(p) ? 1 : inkCost(p.rune));
+/**
+ * Ink one socket costs. A Glyph is its `glyphCost` (1 if its id is unknown) plus 1 for every aura
+ * rune orthogonally next to its socket, which needs `l`; without it only the Glyph itself counts.
+ */
+export function placedInk(p: Placed, glyphs: GlyphLibrary = {}, l?: Lattice): number {
+  if (!isGlyph(p)) return inkCost(p.rune);
+  const def = glyphs[p.glyph];
+  const auras = l ? neighbors4(p.at).filter((n) => isAura(socketAt(l, n))).length : 0;
+  return (def ? glyphCost(def) : 1) + auras;
+}
 
-export function inkUsed(l: Lattice): number {
-  return l.runes.reduce((sum, r) => sum + placedInk(r), 0);
+const isAura = (p: Placed | null): boolean => !!p && !isGlyph(p) && RUNES[p.rune].family === 'aura';
+
+export function inkUsed(l: Lattice, glyphs: GlyphLibrary = {}): number {
+  return l.runes.reduce((sum, r) => sum + placedInk(r, glyphs, l), 0);
 }
 
 export function countRunes(ls: readonly Lattice[]): Record<RuneId, number> {
@@ -213,7 +341,11 @@ export function countRunes(ls: readonly Lattice[]): Record<RuneId, number> {
 // ── Validation ──────────────────────────────────────────
 
 /** Structural checks for one lattice. `capacity` null = unlimited (Lab). Ownership is checked in run.ts. */
-export function validateLattice(l: Lattice, capacity: number | null): LatticeIssue[] {
+export function validateLattice(
+  l: Lattice,
+  capacity: number | null,
+  glyphs: GlyphLibrary = {},
+): LatticeIssue[] {
   const issues: LatticeIssue[] = [];
   const seen = new Set<CellKey>();
   for (const r of l.runes) {
@@ -225,6 +357,13 @@ export function validateLattice(l: Lattice, capacity: number | null): LatticeIss
         issues.push({ kind: 'overlap', at: r.at, message: `Glyph ${r.glyph} shares a socket` });
       }
       seen.add(key(r.at));
+      if (!glyphs[r.glyph]) {
+        issues.push({
+          kind: 'socket',
+          at: r.at,
+          message: `Glyph ${r.glyph} is not in the library`,
+        });
+      }
       continue;
     }
     const name = RUNES[r.rune].name;
@@ -249,7 +388,7 @@ export function validateLattice(l: Lattice, capacity: number | null): LatticeIss
       });
     }
   }
-  const used = inkUsed(l);
+  const used = inkUsed(l, glyphs);
   if (capacity !== null && used > capacity) {
     issues.push({ kind: 'ink', message: `Needs ${used} ink, only ${capacity} available` });
   }
