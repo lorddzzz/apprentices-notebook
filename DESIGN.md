@@ -110,9 +110,16 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 | **Aura** | Buffs all touching paths (not on a path) | Amplify, Echo, Thrift (+1 charge) |
 
 - **Decided:** runes come from **expedition loot**, **desk research** (combine known runes), and **mastery** (frequently used runes evolve or branch). v0 covers loot only.
+- **Decided (2026-10-13): research and mastery follow "The Scholar's Press"**, from [docs/design-options/05-scholars-press.md](docs/design-options/05-scholars-press.md). That doc holds the details. The shape:
+  - **Aspects** are the shared grammar: 8 properties (Reach, Mark, Slick, Heat, Charge, Vapor, Hold, Return). Every rune has two, **read off what its rule does**, and every pair is unique.
+  - **Distil (the Bench):** two known runes plus a **solvent** (research loot, one aspect each) make a new rune. Trials are free and play the real reaction. The answer is a **total-only resonance** (x / 6) plus one margin line, so you deduce it rather than look it up. Committing costs the solvent; the parents are kept. Undiscovered recipes show silhouettes, and some are torn pages in the owner's hand.
+  - **Compile (the Fair Copy):** a lattice pattern that has resolved 5 times **in expeditions** (not the Lab) can be compressed into a **Glyph**: one socket, cheaper in ink, optionally with parameters, refactorable in versions. **Outer auras reach every inner rune**, at +1 ink per touching aura. Proof survives a wipe.
+  - **Mastery:** atoms earn **footnotes** (witnessed outcomes unlock a choice of two small rule edits), and Glyphs earn **elegance** (Economy and Reliability tiers, shown in a profiler).
+  - **Crystallise:** a polished Glyph becomes a new atom with its own aspects, which can feed the Bench again. **Permanent**: the Glyph is gone for good.
+  - **First playable slice: Bench + Compile together** (six Seam recipes, three Seam solvents, Glyphs without parameters). Elegance, parameters, footnotes and crystals follow.
 
 ### 6.3b Loot (besides runes)
-- **Decided:** **ink reserves** (permanently raise ink capacity, which answers how ink grows) and **research materials** (reagents consumed at the desk to derive new runes).
+- **Decided:** **ink reserves** (permanently raise ink capacity, which answers how ink grows) and **research materials** (reagents consumed at the desk to derive new runes). Research materials become typed: **solvents** (one per aspect), **vellum** (for compiling) and **mercury** (for crystallising) (§6.3).
 - Not chosen for now: lattice sockets as loot, notebook pages as loot.
 
 ### 6.4 Combat (expeditions)
@@ -338,7 +345,8 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - [ ] Final interaction matrix details (Fire as element or state, terrain decay)
 
 **Post-v0:**
-- [ ] Desk research, mastery, district map, guild content, rival inscribers, the mystery, audio, real names (full list in §10b)
+- [x] Desk research + mastery direction: **The Scholar's Press** (decided 2026-10-13, §6.3). Next: build the Bench + Compile slice.
+- [ ] District map, guild content, rival inscribers, the mystery, audio, real names (full list in §10b)
 
 ## 10b. Parked (cut or deferred; come back to these)
 
@@ -346,8 +354,9 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 
 - **Next runes:** Pierce, On Ignite, Thrift (aura, +1 charge).
 - **Rune upgrades:** auras that also reach diagonally (from playtest 1).
-- **Materials and terrain cut from v0:** walls, smear (ink + oil), heated brass, slippery brass.
-- **Systems:** desk research (combine known runes; research loot already drops and does nothing yet), mastery (used runes evolve or branch), field rewiring (editing lattices mid-trip), the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
+- **Materials and terrain cut from v0:** walls, smear (ink + oil; comes back as the Bench recipe *Smear*), heated brass, slippery brass.
+- **Research options not chosen** (parts bin in [docs/design-options/](docs/design-options/)): Fusion & Ripening (rune instances, evolution), Scars & Slow Work (chronicles, quirks, slow projects).
+- **Systems:** field rewiring (editing lattices mid-trip), the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
 - **Members:** signature abilities beyond lattice, affinity and HP. Held back until more affinities are explored (playtest 1).
 - **Input alternatives**, if the double tap ever misfires again: Confirm-only casting, or an undo for the last cast.
 - **Trip pacing alternatives**, if charges become a problem again: charges per fight, or a refill on each win.
@@ -399,3 +408,4 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 | 2026-10-13 | Code review (*Proposal*): only a second tap on the same tile confirms a spell (tapping further along a Bolt's line re-previews instead of firing); a cast or shove by anyone ends every pending move undo; a reload mid-fight resumes it, and a wipe can no longer be escaped by reloading | Tapping an enemy to read it fired a Bolt (build log #28); undo after another member's action could rewrite the board (a used ink puddle came back); reloading made losing free |
 | 2026-10-13 | v0.1 legibility: numbered recipe in the Study, Fork order shown on the lattice, visible unit traits. The rules don't change | First playtest: the chain rules were invisible, not wrong. The player picked the written recipe over a live test bench, Fork as ordered steps over a spatial split, and traits on the board over Codex-only |
 | 2026-10-13 | v0.1 built from playtest 1: recipe and step numbers in the Study, unit trait readouts and badges, affinity in the party strip, charges Bolt 5 / Splash 3 / Ward 3. Kept as they are: the same-tile double tap, losing all loot on a wipe, members defined by lattice and affinity only. Aura adjacency feels right | Playtest 1: the chain rules were invisible and charges ran low after fight 2. Expeditions are cheap, so a full wipe loss is fine. Explore more affinities before giving members abilities |
+| 2026-10-13 | Desk research + mastery = **The Scholar's Press** (Bench deduction + Glyph compiling, footnotes + elegance, Crystallise). Design round: total-only resonance; aspects describe what a rune does (all 14 retagged); outer auras reach every inner rune of a Glyph at +1 ink each; crystals are permanent; patterns prove themselves only on expeditions; proof survives a wipe; first slice is Bench + Compile together. Kept defaults: free trials, parents kept, shared Glyphs, 8 aspects | Strongest fit for theorycrafting and "build like code", with no dice. The player leaned toward deduction and toward weight and commitment, except where learning is at stake. Auras: power with a price beat a readable but weaker rule. Full detail: [05-scholars-press.md](docs/design-options/05-scholars-press.md) §0 |
