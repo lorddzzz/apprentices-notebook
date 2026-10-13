@@ -21,7 +21,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 |---|---|---|---|---|---|---|
 | W0 | opus (me) | M | merged | 88f115d | 5% | contracts, stubs, save v3, worktrees pruned |
 | P1 | haiku | S | todo | | | |
-| D1 | haiku | S | running | | | started 22:40 |
+| D1 | haiku | S | merged | (see log) | ~2% | recipe hints rewritten by me (D1's named the ingredients) |
 | E1 | sonnet | M | running | | | started 22:40 |
 | E2 | sonnet | M | running | | | started 22:40 |
 | F1 | sonnet | M | running | | | started 22:40 |
@@ -39,8 +39,14 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 |---|---|---|---|---|---|
 | 22:32 | 28 | 3h28m (01:59:59Z) | 44 | normal | start, W0 |
 | 22:39 | 33 | 3h21m | 44 | normal | W0 merged; spawn E1 E2 F1 D1 |
+| 22:43 | 43 | 3h17m | 46 | narrow? (2.5%/min burst) | D1 merged; hold new spawns until rate settles |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
+- D1: Kiln rule "scalds the units beside it for two rounds" compresses S5/S9. Accepted.
+- D1: Etch rule says "any brass under it" for "brass in its footprint". Accepted.
+- D1: Heat interaction text folds the 2 rounds and 1 damage into one sentence. Accepted.
+- D1: all hints and owner notes written in the owner's voice by D1 (recipe hints rewritten by orchestrator). Player judges.
 
 ## Decisions and fixes made during the build
 

@@ -129,6 +129,14 @@ test('codex has an entry per rune, interaction, recipe, idiom and aspect', () =>
   }
 });
 
+test('every codex entry has an owner hint, except torn recipes (which have none)', () => {
+  const torn = new Set(RECIPES.filter((r) => r.torn !== null).map((r) => `recipe:${r.id}`));
+  for (const c of CODEX) {
+    if (torn.has(c.id)) expect(c.hint, c.id).toBeUndefined();
+    else expect(c.hint?.length ?? 0, c.id).toBeGreaterThan(0);
+  }
+});
+
 test('every rune has two different aspects', () => {
   for (const id of RUNE_IDS) {
     const [a, b] = RUNES[id].aspects;

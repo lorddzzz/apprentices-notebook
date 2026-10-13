@@ -37,12 +37,41 @@ const RUNE_NOTES: Record<RuneId, string> = {
   fog: 'A wet floor under a wet sky.',
   mist: 'The cloud remembers every face, then forgets itself.',
   brand: 'A mark that wants to burn.',
-  pierce: 'TODO(D1)',
-  onIgnite: 'TODO(D1)',
-  thrift: 'TODO(D1)',
-  scald: 'TODO(D1)',
-  etch: 'TODO(D1)',
-  kiln: 'TODO(D1)',
+  pierce: 'Through the first, and stopped only by the second.',
+  onIgnite: 'Let the fire decide where the next one goes.',
+  thrift: 'Waste nothing. Least of all a charge.',
+  scald: 'Hot water in a closed room. Keep your hands out of it.',
+  etch: 'The acid bites where the ink has been. The brass keeps the mark.',
+  kiln: 'Fired, not forged. It stays warm for a while.',
+};
+
+const RUNE_HINTS: Record<RuneId, string> = {
+  bolt: 'What flies straight is the easiest thing to learn, and the hardest to stop.',
+  splash: 'Some things burst. Keep your own feet out of the mess.',
+  ward: 'Something small that keeps the blow off somebody who is not you.',
+  ink: 'The first mark. Put it on something and see who notices.',
+  oil: 'Pour it on the floor, then watch what the floor does to whatever crosses it.',
+  spark: 'It jumps to the next thing, if the next thing will hold it.',
+  steam: 'Hot and wet. Find out what it does to a fire.',
+  brass: 'Solid, cold metal. Ask what passes through it, and what does not.',
+  bend: 'A line can take a corner and keep its speed.',
+  fork: 'Two roads from one. Which one goes first is a matter of habit.',
+  onInked: 'A gate that opens only for the marked. Look for what the mark already did.',
+  onKill: 'Some things carry on after the last blow.',
+  amplify: 'Some things grow louder in company. Try them in a crowd.',
+  echo: 'A spell that says the same thing twice, a turn later.',
+  quill: 'Something writes as it flies. Ask what it leaves behind.',
+  smear: 'Ink that will not stay on one unit. Find out who it passes to.',
+  torch: 'Oil that lights itself as it lands. Lay it in a line.',
+  fog: 'Two things that do not mix well. Mix them anyway, slowly.',
+  mist: 'Steam with a memory. Watch what it leaves on whoever it touched.',
+  brand: 'A mark that the fire will come looking for.',
+  pierce: 'A line that does not stop at the first thing it meets.',
+  onIgnite: 'It waits to see whether the floor has caught before it moves.',
+  thrift: 'Some things get cheaper the second time you use them.',
+  scald: 'Hot, wet air that does not go away on its own.',
+  etch: 'Something that eats into metal and stays. Ink knows the way in.',
+  kiln: 'Clay in a fire, but for metal. What comes out is already warm.',
 };
 
 const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNote: string }> = {
@@ -83,14 +112,36 @@ const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNo
   },
   heat: {
     title: 'Heat',
-    text: 'TODO(D1): fire next to brass heats it; hot brass scalds its neighbours at the end of the round.',
-    ownerNote: 'TODO(D1)',
+    text: 'Fire next to brass, or under it, heats that plate or unit for 2 rounds. At the end of each round, hot brass deals 1 to every unit beside it.',
+    ownerNote: 'It keeps the heat a while, and shares it with whoever stands close.',
   },
   stain: {
     title: 'Stain',
-    text: 'TODO(D1): ink on oil stains it; whoever ends a move there is inked.',
-    ownerNote: 'TODO(D1)',
+    text: 'Ink landing on oil stains the puddle. A unit that ends a move on a stained tile is inked. Fire burns the stain away with the oil.',
+    ownerNote: 'A trap is only a puddle someone forgot to walk around.',
   },
+};
+
+const INTERACTION_HINTS: Record<InteractionId, string> = {
+  ignite: 'Some floors only need a reason.',
+  conduct: 'The metal keeps passing it along, plate to plate.',
+  arc: 'Something jumps the gap when the gap is full of the right air.',
+  detonate: 'A mark is patient, until something hot comes to visit.',
+  extinguish: 'Something cold and wet makes fire go quiet, for a while.',
+  slide: 'Push something across the right floor, then let go.',
+  diffuse: 'Ink dropped into a cloud does not stay in one place.',
+  heat: 'Warm metal stays warm longer than you would think.',
+  stain: 'Ink on a puddle does not stay on the surface.',
+};
+
+/** Recipes with a torn solvent get no hint (their torn sentence is the hint). */
+const RECIPE_HINTS: Record<string, string> = {
+  fog: 'I wanted the floor and the air both against them at once.',
+  quill: 'A shot that leaves something behind where it lands.',
+  brand: 'A mark the fire would know from across the room.',
+  scald: 'A cloud that does not only hide them. It hurts.',
+  etch: 'A mark the metal keeps long after the ink is dry.',
+  kiln: 'A wall that comes up already too hot to touch.',
 };
 
 const ASPECT_READS: Record<Aspect, string> = {
@@ -115,10 +166,27 @@ const ASPECT_NOTES: Record<Aspect, string> = {
   return: 'Every road in this spell comes back to the start.',
 };
 
+const ASPECT_HINTS: Record<Aspect, string> = {
+  reach: 'The thing that lets a spell go further than your hand.',
+  mark: 'What the ink does before anything else happens.',
+  slick: 'Something you cannot stand still on.',
+  heat: 'What is warm, and what makes other things warm.',
+  charge: 'What the brass and the spark both carry.',
+  vapor: 'The thing that fills a room and forgets its edges.',
+  hold: 'What stops a thing from going where it wants.',
+  return: 'A spell that comes back to where it started.',
+};
+
 const IDIOM_TEXT: Record<string, string> = {
   cashingIn: 'A source, a trigger that reads Mark, then a payload with Heat or Charge.',
   bonfire: 'An area source with Vapor, then a Slick material, then a Heat material.',
   undertaker: 'A source, then a Return trigger with Vapor (On Kill), then an area material.',
+};
+
+const IDIOM_HINTS: Record<string, string> = {
+  cashingIn: 'The trigger needs to see a mark the same cast just made.',
+  bonfire: 'Some arrangements of area and oil go up all at once.',
+  undertaker: 'Look at what happens after the last blow, then at what sits next to it.',
 };
 
 export const CODEX: readonly CodexEntryDef[] = [
@@ -130,6 +198,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: RUNES[id].name,
       text: RUNES[id].rule,
       ownerNote: RUNE_NOTES[id],
+      hint: RUNE_HINTS[id],
     }),
   ),
   ...INTERACTION_IDS.map(
@@ -138,6 +207,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       kind: 'interaction',
       ref: id,
       ...INTERACTIONS[id],
+      hint: INTERACTION_HINTS[id],
     }),
   ),
   ...RECIPES.map(
@@ -148,6 +218,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: RUNES[r.result].name,
       text: `${RUNES[r.left].name} + ${RUNES[r.right].name} + ${SOLVENTS[r.solvent].name}: ${RUNES[r.result].rule}`,
       ownerNote: r.ownerNote,
+      ...(r.torn === null ? { hint: RECIPE_HINTS[r.id] } : {}),
     }),
   ),
   ...IDIOMS.map(
@@ -158,6 +229,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: i.name,
       text: IDIOM_TEXT[i.id] ?? '',
       ownerNote: i.ownerNote,
+      hint: IDIOM_HINTS[i.id],
     }),
   ),
   ...ASPECT_IDS.map(
@@ -168,6 +240,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: `${ASPECTS[a].glyph} ${ASPECTS[a].name}`,
       text: `${ASPECT_READS[a]} Carried by ${SOLVENTS[ASPECTS[a].solvent].name}.`,
       ownerNote: ASPECT_NOTES[a],
+      hint: ASPECT_HINTS[a],
     }),
   ),
 ];

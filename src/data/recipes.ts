@@ -63,7 +63,7 @@ export const RECIPES: readonly RecipeDef[] = [
     right: 'steam',
     solvent: 'cinder',
     torn: null,
-    ownerNote: 'TODO(D1): scald',
+    ownerNote: 'A kettle that never goes off the boil. Stand well back from it.',
   },
   {
     id: 'etch',
@@ -72,7 +72,7 @@ export const RECIPES: readonly RecipeDef[] = [
     right: 'brass',
     solvent: 'gallnut',
     torn: null,
-    ownerNote: 'TODO(D1): etch',
+    ownerNote: 'Ink bites brass, if you let it. The brass keeps the scar.',
   },
   {
     id: 'kiln',
@@ -81,6 +81,6 @@ export const RECIPES: readonly RecipeDef[] = [
     right: 'spark',
     solvent: 'cinder',
     torn: null,
-    ownerNote: 'TODO(D1): kiln',
+    ownerNote: 'Brass pulled from the fire is still warm. Mind your fingers.',
   },
 ];
