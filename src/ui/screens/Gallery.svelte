@@ -1,5 +1,17 @@
 <script lang="ts">
-  import { MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, START_COLLECTION, TUNING } from '$data';
+  import {
+    ASPECT_IDS,
+    ASPECTS,
+    MEMBER_IDS,
+    MEMBERS,
+    type MemberId,
+    RUNE_IDS,
+    RUNES,
+    SOLVENT_IDS,
+    SOLVENTS,
+    START_COLLECTION,
+    TUNING,
+  } from '$data';
   import {
     type Coord,
     compileLattice,
@@ -16,6 +28,7 @@
   import { editSocket, freeCounter, NO_TOOL, type ShelfTool, shelfSlots } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import { type BoardView, viewOfSpec } from '../../app/view';
+  import AspectMark from '../components/AspectMark.svelte';
   import BattleBoard from '../components/board/BattleBoard.svelte';
   import { boardViewBox } from '../components/board/geometry';
   import { cellLabel } from '../components/board/label';
@@ -25,12 +38,18 @@
   import Sheet from '../components/common/Sheet.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
+  import SolventIcon from '../components/SolventIcon.svelte';
+  import { SOLVENT_GLYPH } from '../glyphs';
   import {
+    GLYPH_SAMPLES,
     OIL_CHAIN_BOARD,
     OIL_CHAIN_EVENTS,
     SHOWCASE_OVERLAY,
     showcaseView,
   } from './galleryFixtures';
+
+  const BENCH_RUNES = RUNE_IDS.filter((id) => RUNES[id].origin === 'bench');
+  const SHOWN_SOLVENTS = SOLVENT_IDS.filter((id) => SOLVENT_GLYPH[id]);
 
   const DIR_LIST: Dir[] = ['up', 'right', 'down', 'left'];
   const part = $derived(router.params.get('part') ?? 'glyphs');
@@ -139,6 +158,49 @@
         <span class="family">unknown</span>
       </li>
     </ul>
+
+    <h2>Bench runes</h2>
+    <ul class="runes" data-testid="bench-glyphs">
+      {#each BENCH_RUNES as id (id)}
+        <li>
+          <RuneGlyph rune={id} dir={RUNES[id].arrow ? 'right' : undefined} size={56} />
+          <span class="name">{RUNES[id].name}</span>
+          <span class="family">{RUNES[id].family}</span>
+        </li>
+      {/each}
+    </ul>
+
+    <h2>Aspects</h2>
+    <ul class="runes" data-testid="aspects">
+      {#each ASPECT_IDS as a (a)}
+        <li>
+          <AspectMark aspect={a} size={40} />
+          <span class="name">{ASPECTS[a].name}</span>
+          <span class="family">{SOLVENTS[ASPECTS[a].solvent].name}</span>
+        </li>
+      {/each}
+    </ul>
+
+    <h2>Solvents</h2>
+    <div class="row" data-testid="solvents">
+      {#each SHOWN_SOLVENTS as s (s)}
+        <div class="solvent">
+          <SolventIcon solvent={s} size={40} />
+          <span class="name">{SOLVENTS[s].name}</span>
+        </div>
+      {/each}
+    </div>
+
+    <h2>Glyph sockets</h2>
+    <div class="row" data-testid="glyph-sockets">
+      {#each GLYPH_SAMPLES as g (g.name)}
+        <div class="solvent">
+          <RuneGlyph rune={null} glyphName={g.name} glyphKind={g.kind} dir="right" size={56} />
+          <span class="name">{g.name}</span>
+          <span class="family">{g.kind}</span>
+        </div>
+      {/each}
+    </div>
 
     <h2>Arrow runes, four ways</h2>
     {#each ['bolt', 'bend'] as const as id (id)}
@@ -309,6 +371,12 @@
     align-items: center;
     gap: var(--space-3);
     margin-bottom: var(--space-2);
+  }
+  .solvent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
   }
   .label {
     width: 48px;

@@ -86,6 +86,12 @@ export const SHOWCASE_OVERLAY: Overlay = {
   ghosts: [{ unit: 'stoker', at: { x: 1, y: 6 }, kind: 'member', def: 'stoker' }],
 };
 
+/** Compiled Glyph sockets for the Gallery: one spell, one payload. */
+export const GLYPH_SAMPLES: readonly { name: string; kind: 'spell' | 'payload' }[] = [
+  { name: 'Cashing In', kind: 'spell' },
+  { name: 'Bonfire', kind: 'payload' },
+];
+
 /** S2 "oil-chain" from the engine plan. */
 export const OIL_CHAIN_BOARD = `
 . . . . . d

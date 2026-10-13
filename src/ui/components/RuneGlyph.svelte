@@ -9,26 +9,55 @@
     size?: number;
     dim?: boolean;
     selected?: boolean;
+    /** Draw a compiled Glyph socket (folded tile, initial) instead of a rune. */
+    glyphName?: string;
+    glyphKind?: 'spell' | 'payload';
   }
 
-  let { rune, dir, size = 48, dim = false, selected = false }: Props = $props();
+  let {
+    rune,
+    dir,
+    size = 48,
+    dim = false,
+    selected = false,
+    glyphName,
+    glyphKind = 'spell',
+  }: Props = $props();
 
   const DEG: Record<Dir, number> = { up: 0, right: 90, down: 180, left: 270 };
+  // Bench materials have no theme token yet; fall back to a nearby one.
+  const TINT_FALLBACK: Partial<Record<RuneId, string>> = {
+    smear: 'var(--m-ink)',
+    torch: 'var(--m-fire)',
+    fog: 'var(--m-steam)',
+    mist: 'var(--m-steam)',
+    brand: 'var(--m-fire)',
+  };
 
   const def = $derived(rune ? RUNES[rune] : null);
   const family = $derived(def?.family ?? null);
   const frameColor = $derived(
     rune && family === 'material'
-      ? `var(--m-${rune})`
+      ? `var(--m-${rune}, ${TINT_FALLBACK[rune] ?? 'var(--ink-soft)'})`
       : family
         ? `var(--f-${family})`
         : 'var(--ink-faint)',
   );
-  const notch = $derived(def?.arrow && dir ? DEG[dir] : null);
+  const glyphFrame = $derived(glyphKind === 'payload' ? 'var(--f-shape)' : 'var(--f-source)');
+  const notch = $derived(
+    glyphName ? (dir ? DEG[dir] : null) : def?.arrow && dir ? DEG[dir] : null,
+  );
   const glyphTurn = $derived(
     rune && dir && DIRECTIONAL_GLYPHS.has(rune) ? DEG[dir] - 90 : 0,
   );
-  const label = $derived(rune && def ? `${def.name}${dir ? ` ${dir}` : ''}` : 'Unknown rune');
+  const label = $derived(
+    glyphName
+      ? `${glyphName} Glyph${dir ? ` ${dir}` : ''}`
+      : rune && def
+        ? `${def.name}${dir ? ` ${dir}` : ''}`
+        : 'Unknown rune',
+  );
+  const initial = $derived(glyphName?.trim().charAt(0).toUpperCase() ?? '');
 </script>
 
 <svg
@@ -46,7 +75,27 @@
     <circle cx="20" cy="20" r="19" fill="none" stroke="var(--select)" stroke-width="2" />
   {/if}
 
-  {#if !rune}
+  {#if glyphName}
+    <path
+      d="M5 5H27L35 13V35H5Z"
+      fill="var(--parchment)"
+      stroke={glyphFrame}
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M27 5V13H35Z"
+      fill={glyphFrame}
+      fill-opacity="0.3"
+      stroke={glyphFrame}
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+    {#if notch !== null}
+      <path d="M20 0.5 15.5 6.5h9z" fill={glyphFrame} transform="rotate({notch} 20 20)" />
+    {/if}
+    <text x="20" y="27" text-anchor="middle" font-size="18" fill={glyphFrame} font-family="var(--hand)">{initial}</text>
+  {:else if !rune}
     <circle cx="20" cy="20" r="16" fill="none" stroke={frameColor} stroke-width="2" stroke-dasharray="4 3" />
     <text x="20" y="26.5" text-anchor="middle" font-size="18" fill={frameColor} font-family="var(--hand)">?</text>
   {:else}
