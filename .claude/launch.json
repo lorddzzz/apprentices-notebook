@@ -7,6 +7,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev", "--port", "5190", "--strictPort"],
       "port": 5190
+    },
+    {
+      "name": "dev-alt2",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "5191", "--strictPort"],
+      "port": 5191
     }
   ]
 }
