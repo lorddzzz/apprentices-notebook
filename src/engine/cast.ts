@@ -89,7 +89,9 @@ function resolveSource(
   const s = ctx.s;
   const m = scale(spell.magnitude);
   switch (spell.source) {
-    case 'bolt': {
+    case 'bolt':
+    case 'quill': {
+      // A2: Quill pools ink under the unit it hits; until then it flies like a Bolt.
       if (aim.kind !== 'dir') throw new Error('Bolt needs a direction');
       const r = travel(s, caster.pos, aim.dir, boltRange(s), caster.id);
       switch (r.reason) {
@@ -159,6 +161,12 @@ function runNodes(ctx: Ctx, nodes: readonly SpellNode[], targets: Coord[], scale
         case 'brass':
           applyBrass(ctx, footprint(ctx.s, targets, m));
           break;
+        case 'smear':
+        case 'torch':
+        case 'fog':
+        case 'mist':
+        case 'brand':
+          break; // A2
       }
       runNodes(ctx, node.next, targets, scale);
     } else if (node.rune === 'onInked') {
@@ -181,7 +189,7 @@ function echoReady(s: BattleState, caster: MemberUnit, spell: Spell, aim: Aim): 
   switch (aim.kind) {
     case 'dir':
       return (
-        spell.source === 'bolt' &&
+        (spell.source === 'bolt' || spell.source === 'quill') &&
         travel(s, caster.pos, aim.dir, boltRange(s), caster.id).reason !== 'none'
       );
     case 'tile':

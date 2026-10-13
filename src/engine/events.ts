@@ -1,6 +1,6 @@
 import type { InteractionId, TriggerRuneId } from '$data';
 import { type Coord, type Dir, label } from './grid';
-import type { Aim, Intent, UnitId } from './types';
+import type { Aim, FiredCell, Intent, SpellKey, UnitId } from './types';
 
 /** Snapshot of a unit at event time (animation + log text don't depend on later state). */
 export interface UnitRef {
@@ -63,7 +63,12 @@ export type GameEvent =
   | { type: 'fireOut'; tiles: Coord[] }
   | { type: 'steamFades'; tiles: Coord[] }
   | { type: 'plateCrumbles'; tiles: Coord[] }
-  | { type: 'vent'; at: Coord };
+  | { type: 'vent'; at: Coord }
+  /** Silent: the cells that fired in a player cast, for proof (plan P6/P7). Never shown or animated. */
+  | { type: 'trace'; caster: UnitRef; spell: SpellKey; cells: FiredCell[]; meaningful: boolean };
+
+/** Events with no log line and no animation. */
+export const isSilent = (e: GameEvent): boolean => e.type === 'trace';
 
 export type EventLog = readonly GameEvent[];
 
@@ -74,8 +79,8 @@ export function who(r: UnitRef): string {
 
 const list = (tiles: readonly Coord[]): string => tiles.map(label).join(', ');
 
-/** One plain-English line per event: the format scenario tests compare against. */
-export function describe(e: GameEvent): string {
+/** One plain-English line per event (null for silent events): the format scenario tests compare against. */
+export function describe(e: GameEvent): string | null {
   switch (e.type) {
     case 'battleStart':
       return `Encounter: ${e.title}`;
@@ -184,11 +189,13 @@ export function describe(e: GameEvent): string {
         : `the brass plates at ${list(e.tiles)} crumble`;
     case 'vent':
       return `the vent at ${label(e.at)} puffs steam`;
+    case 'trace':
+      return null;
   }
 }
 
 export function describeLog(log: EventLog): string[] {
-  return log.map(describe);
+  return log.flatMap((e) => describe(e) ?? []);
 }
 
 const DISCOVERY: Partial<Record<GameEvent['type'], InteractionId>> = {

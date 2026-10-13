@@ -180,7 +180,8 @@ function checkState(s: BattleState, where: string): void {
 
 function checkEvents(events: readonly GameEvent[], where: string): void {
   for (const e of events) {
-    let text: string;
+    if (e.type === 'trace') continue;
+    let text: string | null;
     try {
       text = describeEvent(e);
     } catch (err) {
@@ -636,7 +637,7 @@ function checkBank(before: Profile, after: Profile, t: Trip, where: string): voi
   for (const item of t.loot) {
     if (item.kind === 'rune') runes[item.rune] = (runes[item.rune] ?? 0) + 1;
     else if (item.kind === 'research') research += item.amount;
-    else ink[item.member] = (ink[item.member] ?? 0) + item.amount;
+    else if (item.kind === 'ink') ink[item.member] = (ink[item.member] ?? 0) + item.amount;
   }
   for (const id of RUNE_IDS) {
     if (after.collection[id] !== before.collection[id] + (runes[id] ?? 0)) {

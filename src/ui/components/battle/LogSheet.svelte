@@ -15,7 +15,10 @@
     const out: { round: number; lines: string[] }[] = [{ round: 1, lines: [] }];
     for (const e of log) {
       if (e.type === 'round' && e.round > 1) out.push({ round: e.round, lines: [] });
-      else if (e.type !== 'round') out.at(-1)?.lines.push(describe(e));
+      else if (e.type !== 'round') {
+        const line = describe(e);
+        if (line !== null) out.at(-1)?.lines.push(line);
+      }
     }
     return out;
   });

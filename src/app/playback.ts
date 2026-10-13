@@ -1,4 +1,4 @@
-import { describe, type GameEvent } from '$engine';
+import { describe, type GameEvent, isSilent } from '$engine';
 import { type Fx, fxFor } from './fx';
 import { durationOf, STEP_MS } from './timing';
 import { type BoardView, project } from './view';
@@ -25,13 +25,14 @@ export function buildSteps(
   const steps: Step[] = [];
   let view = start;
   for (const [i, event] of events.entries()) {
+    if (isSilent(event)) continue;
     const fx = [...fxFor(event, view), ...(i === 0 ? lead : [])].filter(
       (f) => scale >= 1 || f.kind !== 'trail',
     );
     view = project(view, event);
     steps.push({
       event,
-      line: describe(event),
+      line: describe(event) ?? '',
       view,
       fx,
       // A lead trail needs a full step to draw.

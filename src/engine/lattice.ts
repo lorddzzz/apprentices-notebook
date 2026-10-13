@@ -173,6 +173,8 @@ function describeSource(s: Spell): string {
   switch (s.source) {
     case 'bolt':
       return `Bolt (${s.magnitude} damage)`;
+    case 'quill':
+      return `Quill (${s.magnitude} damage, pools ink)`;
     case 'splash':
       return `Splash (${s.magnitude} damage, 3×3)`;
     case 'ward':

@@ -6,6 +6,7 @@ import type {
   MaterialRuneId,
   MemberId,
   RuneId,
+  SolventId,
   SourceRuneId,
   TriggerRuneId,
 } from '$data';
@@ -22,6 +23,33 @@ export interface PlacedRune {
   rune: RuneId;
   dir?: Dir; // iff RUNES[rune].arrow
 }
+/** A compiled Glyph sitting in one socket. Its arrow is the way in (plan P4). */
+export interface PlacedGlyph {
+  at: Coord;
+  glyph: GlyphId;
+  dir: Dir;
+}
+/** What a lattice socket can hold. W0b switches `Lattice.runes` to this. */
+export type Placed = PlacedRune | PlacedGlyph;
+export const isGlyph = (p: Placed): p is PlacedGlyph => 'glyph' in p;
+
+export type GlyphId = string;
+/**
+ * A Fair Copy: a proven cluster compressed into one socket. `cells` are in the Glyph's local
+ * frame, where flow enters at `entry` travelling 'right' (a Spell Glyph's inner source points
+ * 'right'). Placed with dir d, the local frame is rotated so 'right' becomes d.
+ */
+export interface GlyphDef {
+  id: GlyphId;
+  name: string;
+  kind: 'spell' | 'payload';
+  cells: readonly PlacedRune[];
+  entry: Coord;
+  exits: readonly { from: Coord; dir: Dir }[]; // local; inner walk order
+  idiom: string | null;
+}
+export type GlyphLibrary = Readonly<Record<GlyphId, GlyphDef>>;
+
 export interface LatticeShape {
   width: number;
   height: number;
@@ -41,13 +69,21 @@ export type SpellNode =
       amp: number;
       magnitude: number;
       next: readonly SpellNode[];
+      inner?: Coord; // inside a Glyph: `at` is the Glyph's socket, `inner` the local cell
     }
-  | { kind: 'trigger'; rune: TriggerRuneId; at: Coord; next: readonly SpellNode[] };
+  | {
+      kind: 'trigger';
+      rune: TriggerRuneId;
+      at: Coord;
+      next: readonly SpellNode[];
+      inner?: Coord;
+    };
 
 export interface PathCell {
   at: Coord;
   rune: RuneId;
   dir: Dir; // travel direction on entry (source: its arrow)
+  inner?: Coord; // inside a Glyph: `at` is the socket, `inner` the local cell
 }
 export interface AuraTouch {
   aura: AuraRuneId;
@@ -64,6 +100,7 @@ export interface Spell {
   charges: number; // max charges per trip (RUNES[source].charges)
   nodes: readonly SpellNode[];
   path: readonly PathCell[]; // every cell the flow entered, in walk order (for highlighting)
+  glyph?: GlyphId; // set when the source is a Spell Glyph (`source` is then its inner source)
 }
 export interface CompiledLattice {
   spells: Spell[];
@@ -182,13 +219,33 @@ export interface BattleSpec {
 export type LootItem =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'ink'; member: MemberId; amount: number }
-  | { kind: 'research'; amount: number };
+  | { kind: 'research'; amount: number } // A4 removes
+  | { kind: 'solvent'; solvent: SolventId }
+  | { kind: 'vellum'; amount: number };
+
+/** One cell that fired in a cast (proof masks; plan P7). `at` is the lattice cell. */
+export interface FiredCell {
+  at: Coord;
+  rune: RuneId | null; // null for a Glyph socket
+  glyph?: GlyphId;
+  dir?: Dir;
+}
+
 export interface Profile {
   collection: Record<RuneId, number>; // owned counts
   inkCapacity: Record<MemberId, number>;
   lattices: Record<MemberId, PlacedRune[]>; // shape comes from MEMBERS[m].shape
   interactions: InteractionId[]; // codex: discovered interactions (runes: derived from collection)
-  research: number;
+  research: number; // A4 removes (migrates into solvents)
+  solvents: Record<SolventId, number>;
+  vellum: number;
+  bench: {
+    trials: string[]; // trial keys "left+right+solvent" (parents sorted)
+    known: string[]; // recipe ids written in ink
+  };
+  glyphs: GlyphDef[];
+  proof: Record<MemberId, FiredCell[][]>; // cast masks, newest last, capped
+  idioms: string[]; // recognised idiom ids (codex)
 }
 export type TripStatus = 'fight' | 'looting' | 'crossroads' | 'cleared';
 export interface Trip {

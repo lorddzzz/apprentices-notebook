@@ -1,0 +1,59 @@
+import type { RecipeDef } from './types';
+
+/** Tier-1 recipes, Stage A: the six Seam recipes (design doc research-and-mastery §3.3). Order = tie-break order. */
+export const RECIPES: readonly RecipeDef[] = [
+  {
+    id: 'smear',
+    result: 'smear',
+    left: 'ink',
+    right: 'oil',
+    solvent: 'pitch',
+    torn: 'solvent',
+    ownerNote: 'Pitch, of course. Ink that will not stay where it is put.', // A1: final note
+  },
+  {
+    id: 'torch',
+    result: 'torch',
+    left: 'oil',
+    right: 'spark',
+    solvent: 'cinder',
+    torn: 'solvent',
+    ownerNote: 'Of course. The cinder. I had it in my pocket the whole time.',
+  },
+  {
+    id: 'fog',
+    result: 'fog',
+    left: 'oil',
+    right: 'steam',
+    solvent: 'pitch',
+    torn: null,
+    ownerNote: 'A floor you cannot stand on, under a sky you cannot see through.',
+  },
+  {
+    id: 'mist',
+    result: 'mist',
+    left: 'ink',
+    right: 'steam',
+    solvent: 'gallnut',
+    torn: 'solvent',
+    ownerNote: 'The gallnut makes the cloud remember faces.',
+  },
+  {
+    id: 'quill',
+    result: 'quill',
+    left: 'bolt',
+    right: 'ink',
+    solvent: 'pitch',
+    torn: null,
+    ownerNote: 'A bolt that writes. The Draughtsman will want ten.',
+  },
+  {
+    id: 'brand',
+    result: 'brand',
+    left: 'ink',
+    right: 'spark',
+    solvent: 'gallnut',
+    torn: null,
+    ownerNote: 'Mark it so the fire knows where to go.',
+  },
+];

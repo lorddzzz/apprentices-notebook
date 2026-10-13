@@ -2,8 +2,18 @@ import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
 
 export type RuneFamily = 'source' | 'material' | 'shape' | 'trigger' | 'aura';
-export type SourceRuneId = 'bolt' | 'splash' | 'ward';
-export type MaterialRuneId = 'ink' | 'oil' | 'spark' | 'steam' | 'brass';
+export type SourceRuneId = 'bolt' | 'splash' | 'ward' | 'quill';
+export type MaterialRuneId =
+  | 'ink'
+  | 'oil'
+  | 'spark'
+  | 'steam'
+  | 'brass'
+  | 'smear'
+  | 'torch'
+  | 'fog'
+  | 'mist'
+  | 'brand';
 export type ShapeRuneId = 'bend' | 'fork';
 export type TriggerRuneId = 'onInked' | 'onKill';
 export type AuraRuneId = 'amplify' | 'echo';
@@ -21,6 +31,17 @@ export type InteractionId =
   | 'slide'
   | 'diffuse';
 export type Rarity = 'common' | 'uncommon' | 'rare';
+/** The eight properties that tag runes, solvents, recipes and idioms (research grammar). */
+export type Aspect = 'reach' | 'mark' | 'slick' | 'heat' | 'charge' | 'vapor' | 'hold' | 'return';
+export type SolventId =
+  | 'chalk'
+  | 'gallnut'
+  | 'pitch'
+  | 'cinder'
+  | 'quicksilver'
+  | 'fogJar'
+  | 'rivet'
+  | 'wax';
 /** What "magnitude" means for this rune. footprint: radius = magnitude − 1 (Chebyshev square). */
 export type Scale = 'damage' | 'shield' | 'footprint' | 'none';
 
@@ -35,6 +56,43 @@ export interface RuneDef {
   scale: Scale;
   charges: number; // per trip, sources only; 0 otherwise
   rarity: Rarity;
+  aspects: readonly [Aspect, Aspect];
+  origin: 'loot' | 'bench'; // bench = only made by distilling a recipe
+}
+
+export interface AspectDef {
+  id: Aspect;
+  name: string; // 'Reach'
+  glyph: string; // '☍'
+  solvent: SolventId;
+  margin: string; // the Bench's margin line when this aspect is the gap: 'nothing to carry it'
+}
+export interface SolventDef {
+  id: SolventId;
+  name: string; // 'Gallnut'
+  aspect: Aspect;
+  blurb: string;
+}
+export interface RecipeDef {
+  id: string; // = result rune id
+  result: RuneId;
+  left: RuneId;
+  right: RuneId;
+  solvent: SolventId;
+  /** A torn page: the owner's sentence with this slot torn out (null = plain silhouette). */
+  torn: 'left' | 'right' | 'solvent' | null;
+  ownerNote: string; // the owner's reaction once written
+}
+/** A step matches a node if every given field matches (aspects: the node's rune has any listed aspect). */
+export interface IdiomStep {
+  family?: RuneFamily;
+  aspects?: readonly Aspect[];
+}
+export interface IdiomDef {
+  id: string;
+  name: string;
+  steps: readonly IdiomStep[]; // matched along one root-to-leaf branch, skipping shapes
+  ownerNote: string;
 }
 
 export interface MemberDef {
@@ -89,7 +147,9 @@ export interface EncounterDef {
 export type LootSpec =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'ink' } // member chosen when rolled
-  | { kind: 'research'; amount: number };
+  | { kind: 'research'; amount: number } // A4 removes: replaced by solvent/vellum
+  | { kind: 'solvent'; solvent: SolventId }
+  | { kind: 'vellum'; amount: number };
 export interface LootEntry {
   spec: LootSpec;
   weight: number;
@@ -101,8 +161,8 @@ export interface LootTableDef {
 
 export interface CodexEntryDef {
   id: string; // 'rune:bolt', 'interaction:ignite'
-  kind: 'rune' | 'interaction';
-  ref: RuneId | InteractionId;
+  kind: 'rune' | 'interaction' | 'recipe' | 'idiom' | 'aspect';
+  ref: RuneId | InteractionId | Aspect | string; // recipe and idiom ids are strings
   title: string;
   text: string; // the rule
   ownerNote: string; // previous owner's cryptic margin note
@@ -139,4 +199,10 @@ export interface Tuning {
   echoDivisor: number;
   reviveHp: number;
   offersPerWin: number;
+  // Research and compile
+  glyphMinCells: number;
+  glyphMaxCells: number;
+  provenCasts: number; // meaningful casts that prove a cluster
+  proofMasksPerMember: number; // cap on stored cast masks
+  compileVellum: number;
 }

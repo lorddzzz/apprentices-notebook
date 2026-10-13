@@ -69,4 +69,10 @@ export const START_COLLECTION: Record<RuneId, number> = {
   onKill: 0,
   amplify: 0,
   echo: 0,
+  quill: 0,
+  smear: 0,
+  torch: 0,
+  fog: 0,
+  mist: 0,
+  brand: 0,
 };

@@ -12,12 +12,12 @@ import {
 } from '$data';
 import { parseBoard, parseLattice } from '$engine';
 
-test('14 runes, unique tokens', () => {
-  expect(RUNE_IDS).toHaveLength(14);
-  expect(Object.keys(RUNES)).toHaveLength(14);
+test('20 runes, unique tokens', () => {
+  expect(RUNE_IDS).toHaveLength(20);
+  expect(Object.keys(RUNES)).toHaveLength(20);
   for (const id of RUNE_IDS) expect(RUNES[id].id).toBe(id);
   const tokens = RUNE_IDS.map((id) => RUNES[id].token);
-  expect(new Set(tokens).size).toBe(14);
+  expect(new Set(tokens).size).toBe(20);
 });
 
 test('arrow iff source or bend', () => {
@@ -52,7 +52,7 @@ test('loot tables reference real runes, at least 3 entries, positive weights', (
 
 test('codex has an entry per rune and per interaction', () => {
   expect(CODEX).toHaveLength(RUNE_IDS.length + INTERACTION_IDS.length);
-  expect(CODEX).toHaveLength(21);
+  expect(CODEX).toHaveLength(27);
   for (const id of RUNE_IDS) expect(CODEX.some((c) => c.id === `rune:${id}`)).toBe(true);
   for (const id of INTERACTION_IDS)
     expect(CODEX.some((c) => c.id === `interaction:${id}`)).toBe(true);

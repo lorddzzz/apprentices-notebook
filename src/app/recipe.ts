@@ -38,6 +38,8 @@ function sourceText(s: Spell): string {
   switch (s.source) {
     case 'bolt':
       return `Bolt hits the first thing in line for ${s.magnitude} damage.`;
+    case 'quill':
+      return `Quill hits the first thing in line for ${s.magnitude} damage and pools ink under it.`;
     case 'splash':
       return `Splash hits every unit in a 3×3 for ${s.magnitude} damage (allies too).`;
     case 'ward':
@@ -49,6 +51,7 @@ function sourceText(s: Spell): string {
 function targetPhrase(s: Spell): string {
   switch (s.source) {
     case 'bolt':
+    case 'quill':
       return 'the tile it hits';
     case 'splash':
       return 'the 3×3';
@@ -130,6 +133,10 @@ export function spellRecipe(
       case 'brass':
         text = `Brass coats ${where}${boost}; bare floor becomes a plate.`;
         layers.add('brass');
+        break;
+      default:
+        // A2: recipe lines for the bench materials
+        text = `${RUNES[node.rune].name} on ${where}${boost}.`;
         break;
     }
     return { text, reactions };

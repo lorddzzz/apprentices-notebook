@@ -16,13 +16,20 @@ export const RUNE_GLYPH: Record<RuneId, string> = {
   onKill: 'M8 8l8 8M16 8l-8 8',
   amplify: 'M12 5v14M5 12h14',
   echo: 'M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 7a7 7 0 0 1 0 10M18 4a11 11 0 0 1 0 16',
+  // C2: placeholder shapes for the bench runes
+  quill: 'M3 12h12M11 8l4 4-4 4M17 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+  smear: 'M12 3c-4 6-6 9-6 12a6 6 0 0 0 12 0c0-3-2-6-6-12zM2 20h20',
+  torch: 'M12 4c-3 5-5 7-5 10a5 5 0 0 0 10 0c0-3-2-5-5-10zM12 10l1 3-2 1 1 3',
+  fog: 'M4 9h16M4 14h16M4 19h16',
+  mist: 'M5 12a7 7 0 1 0 14 0a7 7 0 1 0-14 0M12 9v6',
+  brand: 'M6 6l12 12M18 6 6 18M12 3v4',
 };
 
 /** Glyphs drawn filled as well as stroked. */
 export const FILLED_GLYPHS: ReadonlySet<RuneId> = new Set<RuneId>(['ink', 'spark']);
 
 /** Glyphs whose drawing points right at dir 'right' and must turn with the rune's arrow. */
-export const DIRECTIONAL_GLYPHS: ReadonlySet<RuneId> = new Set<RuneId>(['bolt', 'bend']);
+export const DIRECTIONAL_GLYPHS: ReadonlySet<RuneId> = new Set<RuneId>(['bolt', 'bend', 'quill']);
 
 /** Codex marks for the seven interactions (same 24-unit box and stroke as the rune glyphs). */
 export const INTERACTION_GLYPH: Record<InteractionId, string> = {

@@ -124,7 +124,8 @@ describe('loot', () => {
       for (let seed = 0; seed < 50; seed++) {
         const offers = rollOffers(seed, 1, table, MEMBER_IDS);
         expect(offers).toHaveLength(3);
-        for (const o of offers) if (o.kind !== 'rune') expect(o.amount).toBeGreaterThan(0);
+        for (const o of offers)
+          if (o.kind !== 'rune' && o.kind !== 'solvent') expect(o.amount).toBeGreaterThan(0);
       }
     }
   });

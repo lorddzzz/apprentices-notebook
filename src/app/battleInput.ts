@@ -123,7 +123,8 @@ export function aimAt(s: BattleState, unit: UnitId, spell: SpellKey, at: Coord):
   const legal = legalAims(s, unit, spell);
   let aim: Aim | null = null;
   switch (sp.source) {
-    case 'bolt': {
+    case 'bolt':
+    case 'quill': {
       if (sameCoord(m.pos, at)) return null;
       if (at.x === m.pos.x) aim = { kind: 'dir', dir: at.y < m.pos.y ? 'up' : 'down' };
       else if (at.y === m.pos.y) aim = { kind: 'dir', dir: at.x < m.pos.x ? 'left' : 'right' };
@@ -230,7 +231,7 @@ function tapAim(
   if (other) return other;
   const sp = caster ? spellOf(caster, spell) : null;
   const why =
-    sp?.source === 'bolt'
+    sp?.source === 'bolt' || sp?.source === 'quill'
       ? `${label(at)} is not in a straight line.`
       : sp?.source === 'splash'
         ? `${label(at)} is out of range.`

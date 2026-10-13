@@ -280,6 +280,7 @@ export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[]
   if (!spell) return [];
   switch (spell.source) {
     case 'bolt':
+    case 'quill':
       return DIRS.filter((d) => inBoard(s, step(m.pos, d))).map((dir) => ({ kind: 'dir', dir }));
     case 'splash':
       return s.tiles
@@ -316,7 +317,7 @@ export function aimPreview(
   const m = findUnit(s, id);
   const spell = m?.kind === 'member' ? spellOf(m, spellKey) : null;
   if (!m || !spell) return { path: [], targets: [] };
-  if (spell.source === 'bolt' && aim.kind === 'dir') {
+  if ((spell.source === 'bolt' || spell.source === 'quill') && aim.kind === 'dir') {
     const r = travel(s, m.pos, aim.dir, boltRange(s), m.id);
     return { path: r.path, targets: r.stop ? [r.stop] : [] };
   }

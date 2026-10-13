@@ -6,6 +6,7 @@ import {
   type InteractionId,
   MEMBERS,
   RUNES,
+  SOLVENTS,
   TUNING,
 } from '$data';
 import {
@@ -274,6 +275,7 @@ function aimHint(s: BattleState, mode: Extract<InputMode, { kind: 'aim' }>): str
   const name = RUNES[spell.source].name;
   switch (spell.source) {
     case 'bolt':
+    case 'quill':
       return `${name}: tap any tile in a lit line to aim it that way.`;
     case 'splash':
       return `${name}: tap a tile within 3 to burst there (3×3, hits allies too).`;
@@ -357,6 +359,13 @@ export function lootLine(item: LootItem): { title: string; text: string } {
       return {
         title: `Research ×${item.amount}`,
         text: 'Reagents for the desk. Research arrives in a later version.',
+      };
+    case 'solvent':
+      return { title: SOLVENTS[item.solvent].name, text: SOLVENTS[item.solvent].blurb };
+    case 'vellum':
+      return {
+        title: `Vellum ×${item.amount}`,
+        text: 'Fine skin for a fair copy. Compiling a proven pattern costs one sheet.',
       };
   }
 }

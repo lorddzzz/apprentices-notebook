@@ -19,4 +19,9 @@ export const TUNING: Tuning = {
   echoDivisor: 2,
   reviveHp: 1,
   offersPerWin: 3,
+  glyphMinCells: 3,
+  glyphMaxCells: 8,
+  provenCasts: 5,
+  proofMasksPerMember: 300,
+  compileVellum: 1,
 };

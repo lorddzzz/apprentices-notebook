@@ -26,6 +26,12 @@ const RUNE_NOTES: Record<RuneId, string> = {
   onKill: 'Where one falls, three more shall feel it.',
   amplify: 'Loud neighbours make loud spells.',
   echo: 'I swear I only cast it once.',
+  quill: 'A bolt that writes where it lands.', // A1: final notes
+  smear: 'Touch one, and the whole crowd wears it.',
+  torch: 'Why wait for the spark? Bring it with you.',
+  fog: 'A wet floor under a wet sky.',
+  mist: 'The cloud remembers every face, then forgets itself.',
+  brand: 'A mark that wants to burn.',
 };
 
 const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNote: string }> = {

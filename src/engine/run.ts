@@ -12,14 +12,18 @@ import {
   type MemberId,
   RUNE_IDS,
   type RuneId,
+  SOLVENT_IDS,
+  type SolventId,
   START_COLLECTION,
   TUNING,
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
+import type { Cluster } from './cluster';
 import { type Coord, DIRS } from './grid';
 import { compileLattice, countRunes, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
 import { parseLattice } from './notation';
 import { memberById } from './queries';
+import type { Attempt } from './research';
 import { createRng, deriveSeed, pickWeighted } from './rng';
 import type {
   Action,
@@ -27,6 +31,8 @@ import type {
   Aim,
   BattleState,
   CompiledLattice,
+  FiredCell,
+  GlyphId,
   Lattice,
   LatticeIssue,
   LootItem,
@@ -64,6 +70,22 @@ export function newProfile(): Profile {
     lattices: perMember((m) => parseLattice(MEMBERS[m].startLattice).runes.map(copyRune)),
     interactions: [],
     research: 0,
+    ...researchDefaults(),
+  };
+}
+
+/** The research and compile fields of a fresh profile (save v2). */
+export function researchDefaults(): Pick<
+  Profile,
+  'solvents' | 'vellum' | 'bench' | 'glyphs' | 'proof' | 'idioms'
+> {
+  return {
+    solvents: Object.fromEntries(SOLVENT_IDS.map((id) => [id, 0])) as Record<SolventId, number>,
+    vellum: 0,
+    bench: { trials: [], known: [] },
+    glyphs: [],
+    proof: perMember(() => []),
+    idioms: [],
   };
 }
 
@@ -230,6 +252,8 @@ export function rollOffers(
     const spec = entry.spec;
     if (spec.kind === 'rune') offers.push({ kind: 'rune', rune: spec.rune });
     else if (spec.kind === 'research') offers.push({ kind: 'research', amount: spec.amount });
+    else if (spec.kind === 'solvent') offers.push({ kind: 'solvent', solvent: spec.solvent });
+    else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
     else {
       const member = members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
       offers.push({ kind: 'ink', member, amount: TUNING.inkReserve });
@@ -300,13 +324,17 @@ export function returnHome(p: Profile, t: Trip): Profile {
   need(t, 'crossroads', 'cleared');
   const collection = { ...p.collection };
   const inkCapacity = { ...p.inkCapacity };
+  const solvents = { ...p.solvents };
   let research = p.research;
+  let vellum = p.vellum;
   for (const item of t.loot) {
     if (item.kind === 'rune') collection[item.rune] += 1;
     else if (item.kind === 'ink') inkCapacity[item.member] += item.amount;
+    else if (item.kind === 'solvent') solvents[item.solvent] += 1;
+    else if (item.kind === 'vellum') vellum += item.amount;
     else research += item.amount;
   }
-  return { ...p, collection, inkCapacity, research };
+  return { ...p, collection, inkCapacity, research, solvents, vellum };
 }
 
 // ── Save data ───────────────────────────────────────────
@@ -369,6 +397,10 @@ function parseLoot(v: unknown): LootItem {
       return { kind: 'ink', member: oneOf(MEMBER_IDS, r.member), amount: count(r.amount) };
     case 'research':
       return { kind: 'research', amount: count(r.amount) };
+    case 'solvent':
+      return { kind: 'solvent', solvent: oneOf(SOLVENT_IDS, r.solvent) };
+    case 'vellum':
+      return { kind: 'vellum', amount: count(r.amount) };
     default:
       return bad();
   }
@@ -394,7 +426,15 @@ function parseProfile(v: unknown): Profile {
     const id = oneOf(INTERACTION_IDS, i);
     if (!interactions.includes(id)) interactions.push(id);
   }
-  return { collection, inkCapacity, lattices, interactions, research: count(r.research) };
+  // A4: strict parsing of the v2 fields (and the v1 → v2 migration); defaults until then.
+  return {
+    collection,
+    inkCapacity,
+    lattices,
+    interactions,
+    research: count(r.research),
+    ...researchDefaults(),
+  };
 }
 
 function text(v: unknown): string {
@@ -470,4 +510,25 @@ export function parseSaveData(data: unknown): SaveData {
     trip: r.trip === null || r.trip === undefined ? null : parseTrip(r.trip),
     seedCounter: count(r.seedCounter),
   };
+}
+
+// ── Research and compile (stubs: A4 distil, B2 proof and compile) ─────────
+
+/** Writes a recipe in ink: spends one solvent, adds one rune, marks it known (plan P9). Throws unless exact. */
+export function distil(_p: Profile, _attempt: Attempt): Profile {
+  throw new Error('not implemented (A4)');
+}
+
+/** Appends cast masks to a member's proof, keeping the newest `TUNING.proofMasksPerMember`. */
+export function recordProof(_p: Profile, _m: MemberId, _masks: readonly FiredCell[][]): Profile {
+  throw new Error('not implemented (B2)');
+}
+
+/** Fair Copy: collapses the cluster in member m's lattice into a new Glyph (plan P2, P3, P11). */
+export function compileGlyph(_p: Profile, _m: MemberId, _cluster: Cluster, _name: string): Profile {
+  throw new Error('not implemented (B2)');
+}
+
+export function renameGlyph(_p: Profile, _id: GlyphId, _name: string): Profile {
+  throw new Error('not implemented (B2)');
 }
