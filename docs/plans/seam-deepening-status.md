@@ -3,7 +3,7 @@
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Merge L1, C1 as they report. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**Next:** Merge C1, R1 as they report. Then S1 (after R1; flow.ts), C2 + P1 (small UI, ports 5192 after C1), D2, W4. Expect to enter Narrow (~80%) during R1: nudge, and hold before 96%; window resets 02:00Z. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -29,7 +29,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | L1 | sonnet | M | merged | (see log) | ~6% | also edited tests/sim/fuzz.test.ts specFor (needed) |
 | C1 | sonnet | M | running | | | started ~22:53, preview dev-alt3 (5192); also owns glyphs.ts, view.ts, fx.ts, SteamLayer |
 | C2 | haiku | S | todo | | | after D1 |
-| R1 | sonnet | L | todo | | | after L1 |
+| R1 | sonnet | L | running | | | started ~22:57, port 5191 (manual pnpm dev) |
 | S1 | sonnet | M | todo | | | after L1; merge after R1 |
 | D2 | haiku→sonnet | M | todo | | | all |
 | W4 | opus (me) | S | todo | | | |
@@ -44,6 +44,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:47 | 51 | 3h14m | 47 | normal | E1 merged + pushed; spawn L1 |
 | 22:49 | 58 | 3h11m | 48 | normal (budget) | E3 merged + pushed; no spawn |
 | 22:52 | 60 | 3h10m | 48 | normal | F1 merged + pushed; spawn C1 |
+| 22:56 | 66 | 3h07m | 49 | normal (66 + C1 rest 6 + R1 15 = 87) | L1 merged + pushed; spawn R1 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
