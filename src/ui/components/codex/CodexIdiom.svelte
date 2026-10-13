@@ -40,6 +40,9 @@
       <p class="note">{entry.ownerNote}</p>
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>
+      {#if entry.hint}
+        <p class="note faded">{entry.hint}</p>
+      {/if}
       {#if idiom}
         <p class="shape" data-testid="codex-silhouette">{idiomShape(idiom)}</p>
       {/if}
@@ -91,6 +94,9 @@
     font-size: 14px;
     line-height: 1.3;
     color: var(--ink-soft);
+  }
+  .faded {
+    opacity: 0.6;
   }
   .note {
     margin: 6px 0 0 var(--space-1);

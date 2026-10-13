@@ -42,6 +42,9 @@
     </div>
     <div class="text">
       <h3 class="blank" aria-label="Not found yet">???</h3>
+      {#if entry.hint && !silhouette?.torn}
+        <p class="note faded">{entry.hint}</p>
+      {/if}
       {#if silhouette}
         <p class="shape" data-testid="codex-silhouette">
           {familyName(silhouette.parents[0])} + {familyName(silhouette.parents[1])} + <span class="gap">?</span>
@@ -125,6 +128,9 @@
     font-size: 14px;
     line-height: 1.3;
     color: var(--ink-soft);
+  }
+  .faded {
+    opacity: 0.6;
   }
   .note {
     margin: 6px 0 0 var(--space-1);

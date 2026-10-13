@@ -28,7 +28,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | E3 | sonnet | M | merged | (see log) | ~4% | merge seam with E1 Targets fixed by me |
 | L1 | sonnet | M | merged | (see log) | ~6% | also edited tests/sim/fuzz.test.ts specFor (needed) |
 | C1 | sonnet | M | merged | (see log) | ~6% | also UnitToken.svelte + playback fixtures (accepted) |
-| C2 | haiku | S | running | | | started ~23:00, port 5192 |
+| C2 | haiku | S | merged | (see log) | ~2% | aspects show the hint under the rule when unknown (no ??? there) |
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
 | S1 | sonnet | M | running | | | started ~23:02, port 5191 |
 | D2 | haiku→sonnet | M | todo | | | all |

@@ -22,6 +22,9 @@
   <div class="text">
     <h3>{ASPECTS[aspect].name}</h3>
     <p class="rule">{entry.text}</p>
+    {#if !known && entry.hint}
+      <p class="note">{entry.hint}</p>
+    {/if}
     <p class="solvent">
       <SolventIcon solvent={solvent.id} size={16} />
       <span>Solvent: {solvent.name}</span>
@@ -61,6 +64,15 @@
     font-size: 14px;
     line-height: 1.3;
     color: var(--ink-soft);
+  }
+  .note {
+    margin: 6px 0 0 var(--space-1);
+    padding-left: var(--space-2);
+    border-left: 2px solid rgba(139, 58, 43, 0.45);
+    font-family: var(--hand);
+    font-size: 16px;
+    line-height: 1.25;
+    color: var(--accent);
   }
   .solvent {
     display: flex;
