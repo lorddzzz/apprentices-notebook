@@ -1,4 +1,7 @@
+import { GameStore } from './game.svelte';
 import { LabStore } from './lab.svelte';
+import { localBackend } from './save';
 
-/** App-wide stores. U6 adds `game` (the save, study and trip). */
-export const lab = new LabStore();
+/** App-wide stores. U7 grows `game` with the trip. */
+export const game = new GameStore(localBackend(), () => Date.now());
+export const lab = new LabStore(game);

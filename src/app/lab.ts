@@ -1,5 +1,5 @@
 import { MEMBER_IDS, MEMBERS, type MemberId, SCENARIOS, type ScenarioDef } from '$data';
-import { type Lattice, parseLattice } from '$engine';
+import { type Lattice, latticeOf, type Profile, parseLattice } from '$engine';
 
 /** Lab helpers (pure). U5 adds board painting and scenario export. */
 
@@ -22,9 +22,17 @@ export function resolveScenario(id: string): { def: ScenarioDef; unknown: string
   return { def: fallback, unknown: id };
 }
 
-/** Lattices for members a scenario leaves out (until the profile is wired in: start lattices). */
+/** Lattices from the start notebook (tests and Gallery fixtures; the app uses the profile's). */
 export function fallbackLattices(): Record<MemberId, Lattice> {
   return Object.fromEntries(
     MEMBER_IDS.map((m) => [m, parseLattice(MEMBERS[m].startLattice)]),
   ) as Record<MemberId, Lattice>;
+}
+
+/** Lattices for members a scenario leaves out: the ones in the player's notebook. */
+export function profileLattices(p: Profile): Record<MemberId, Lattice> {
+  return Object.fromEntries(MEMBER_IDS.map((m) => [m, latticeOf(p, m)])) as Record<
+    MemberId,
+    Lattice
+  >;
 }

@@ -1,13 +1,25 @@
 import { expect, test } from 'vitest';
-import { MEMBERS, START_COLLECTION } from '$data';
-import { inkUsed, type Lattice, parseLattice, serializeLattice, socketAt } from '$engine';
+import { MEMBER_IDS, MEMBERS, RUNE_IDS, START_COLLECTION } from '$data';
+import {
+  canPlace,
+  inkUsed,
+  isSocket,
+  type Lattice,
+  latticeOf,
+  newProfile,
+  parseLattice,
+  serializeLattice,
+  socketAt,
+} from '$engine';
 import {
   decideSocketTap,
   type EditContext,
+  editProfile,
   editSocket,
   freeCounter,
   inkLeft,
   NO_TOOL,
+  profileShelf,
   type ShelfTool,
   shelfSlots,
 } from '../../src/app/study';
@@ -157,4 +169,68 @@ test('shelfSlots: a full ink pot makes slots unaffordable but still selectable (
   const slots = shelfSlots(null, [l], l, 8);
   const oil = slots.find((x) => x.rune === 'oil');
   expect(oil).toMatchObject({ usable: true, affordable: false });
+});
+
+// ── Profile wrappers ──
+
+test('profileShelf: unknown runes are ??? and unusable', () => {
+  const p = newProfile();
+  const slots = profileShelf(p, 'draughtsman');
+  expect(slots).toHaveLength(14);
+  for (const s of slots) {
+    expect(s.known).toBe(p.collection[s.rune] > 0);
+    if (!s.known) expect(s).toMatchObject({ usable: false, reason: 'Not found yet' });
+  }
+  expect(slots.filter((s) => s.known)).toHaveLength(7);
+});
+
+test('profileShelf: free counts across both lattices', () => {
+  const p = newProfile();
+  const bySlot = (m: 'draughtsman' | 'stoker', r: string) =>
+    profileShelf(p, m).find((s) => s.rune === r);
+  // Bolt: one on each page, 2 owned: none free from either page's shelf.
+  expect(bySlot('draughtsman', 'bolt')).toMatchObject({ owned: 2, free: 0, usable: false });
+  expect(bySlot('stoker', 'bolt')).toMatchObject({ owned: 2, free: 0, usable: false });
+  // Placing the spare Ink on the Draughtsman is visible from the Stoker's shelf too.
+  const after = editProfile(p, 'draughtsman', { x: 2, y: 1 }, { kind: 'rune', rune: 'ink' }, false);
+  expect(after.changed).toBe(true);
+  const before = bySlot('stoker', 'ink')?.free ?? 0;
+  const next = profileShelf(after.profile, 'stoker').find((s) => s.rune === 'ink')?.free ?? 0;
+  expect(next).toBe(before - 1);
+});
+
+test('profile placement honours canPlace, with its reasons', () => {
+  const p = newProfile();
+  let checked = 0;
+  for (const m of MEMBER_IDS) {
+    const shape = latticeOf(p, m).shape;
+    for (let y = 0; y < shape.height; y++) {
+      for (let x = 0; x < shape.width; x++) {
+        for (const r of RUNE_IDS) {
+          const at = { x, y };
+          const edit = editProfile(p, m, at, { kind: 'rune', rune: r }, false);
+          const verdict = canPlace(p, m, at, r);
+          const placing = edit.decision.kind === 'place' || edit.decision.kind === 'replace';
+          const same = socketAt(latticeOf(p, m), at)?.rune === r;
+          if (!isSocket(shape, at) || same) continue; // holes and same-rune taps aren't placements
+          checked += 1;
+          if (placing) expect(verdict, `${m} ${x},${y} ${r}`).toBeNull();
+          else {
+            expect(verdict, `${m} ${x},${y} ${r}`).not.toBeNull();
+            expect(edit.decision.kind).toBe('reject');
+          }
+        }
+      }
+    }
+  }
+  expect(checked).toBeGreaterThan(100);
+});
+
+test('editProfile leaves the input profile untouched and only the edited member changes', () => {
+  const p = newProfile();
+  const snapshot = structuredClone(p);
+  const r = editProfile(p, 'draughtsman', { x: 2, y: 1 }, { kind: 'rune', rune: 'spark' }, false);
+  expect(p).toEqual(snapshot);
+  expect(r.profile.lattices.stoker).toBe(p.lattices.stoker);
+  expect(r.profile.lattices.draughtsman).toHaveLength(p.lattices.draughtsman.length + 1);
 });

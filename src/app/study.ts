@@ -1,12 +1,17 @@
-import { RUNE_IDS, RUNES, type RuneId } from '$data';
+import { MEMBER_IDS, type MemberId, RUNE_IDS, RUNES, type RuneId } from '$data';
 import {
+  available,
   type Coord,
+  canPlace,
   countRunes,
   inkCost,
   inkUsed,
   isSocket,
   type Lattice,
+  latticeOf,
+  type Profile,
   rotateSocket,
+  setMemberLattice,
   setSocket,
   socketAt,
 } from '$engine';
@@ -173,4 +178,60 @@ export function shelfSlots(
       reason: !known ? 'Not found yet' : f === 0 ? `No ${RUNES[rune].name} left` : null,
     };
   });
+}
+
+// ── Profile wrappers (the Study edits the saved profile) ──
+
+/** The edit context for one member of a profile: its ink capacity and what is left on the shelf. */
+export function profileContext(p: Profile, m: MemberId): EditContext {
+  return {
+    lattice: latticeOf(p, m),
+    capacity: p.inkCapacity[m],
+    free: (rune) => available(p, rune),
+  };
+}
+
+/** The 14 shelf slots for `m`'s page: owned counts come from the profile, placed counts from both lattices. */
+export function profileShelf(p: Profile, m: MemberId): ShelfSlot[] {
+  return shelfSlots(
+    p.collection,
+    MEMBER_IDS.map((id) => latticeOf(p, id)),
+    latticeOf(p, m),
+    p.inkCapacity[m],
+  );
+}
+
+export interface ProfileEdit extends Omit<EditResult, 'lattice'> {
+  profile: Profile;
+  /** The lattice changed (worth saving). */
+  changed: boolean;
+}
+
+/**
+ * One tap or long-press on member `m`'s socket, against the saved profile. The engine's `canPlace`
+ * has the last word: anything study.ts would place that the engine refuses is rejected with its reason.
+ */
+export function editProfile(
+  p: Profile,
+  m: MemberId,
+  at: Coord,
+  tool: ShelfTool,
+  longPress: boolean,
+): ProfileEdit {
+  const r = editSocket(profileContext(p, m), at, tool, longPress);
+  if (r.decision.kind === 'place' || r.decision.kind === 'replace') {
+    const reason = canPlace(p, m, at, r.decision.rune);
+    if (reason !== null) {
+      return {
+        profile: p,
+        tool,
+        decision: { kind: 'reject', reason },
+        message: reason,
+        changed: false,
+      };
+    }
+  }
+  const changed = ['place', 'replace', 'rotate', 'remove'].includes(r.decision.kind);
+  const { lattice, ...rest } = r;
+  return { ...rest, profile: changed ? setMemberLattice(p, m, lattice) : p, changed };
 }
