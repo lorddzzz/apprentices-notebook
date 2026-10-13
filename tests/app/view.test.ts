@@ -128,6 +128,8 @@ test('plates clear other layers', () => {
     plate: true,
     vent: false,
   });
+  v = project(v, { type: 'plateCrumbles', tiles: [at] });
+  expect(tile(v, 1, 1)?.plate).toBe(false);
 });
 
 test('ignite sets fire and oil on every tile', () => {

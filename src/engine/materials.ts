@@ -72,7 +72,7 @@ export function applySteam(ctx: Ctx, tiles: readonly Coord[]): void {
   if (doused.length) emit(ctx, { type: 'extinguish', tiles: doused });
 }
 
-/** Brass coats units; on a free tile it raises a plate that replaces every other layer. */
+/** Brass coats units; on a free tile it raises a plate (crumbles after `plateRounds`) that replaces every other layer. */
 export function applyBrass(ctx: Ctx, tiles: readonly Coord[]): void {
   const plates: Coord[] = [];
   for (const t of clip(ctx.s, tiles)) {
@@ -85,7 +85,15 @@ export function applyBrass(ctx: Ctx, tiles: readonly Coord[]): void {
     }
     const tile = tileAt(ctx.s, t);
     if (tile.plate) continue;
-    Object.assign(tile, { plate: true, oil: false, ink: false, steam: 0, fire: 0, vent: false });
+    Object.assign(tile, {
+      plate: true,
+      plateRounds: TUNING.plateRounds,
+      oil: false,
+      ink: false,
+      steam: 0,
+      fire: 0,
+      vent: false,
+    });
     plates.push(t);
   }
   if (plates.length) emit(ctx, { type: 'plates', tiles: plates });

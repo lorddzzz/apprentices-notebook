@@ -315,6 +315,7 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - **Charges belong to each Source rune** on the lattice, not to the rune type.
 - **Loot:** an ink reserve names one member and gives that member +2. The heart's 2 picks come from the same 3 offers. After the heart you must go home.
 - **Wipes and the codex:** a wipe loses the trip's loot, but interactions seen in the fight stay discovered. A downed member returns at 1 HP after a win.
+- **Brass plates from the rune crumble after 3 rounds; plates in a layout are permanent.** Prevents walling yourself in. (Lab/serialized boards keep a rune plate as a permanent `=`.)
 - **Walls are cut from v0.** Only plates, units and the board edge block. A training dummy exists for the Lab and tests only.
 
 ## 10. Open questions (next design rounds)
@@ -361,3 +362,4 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 | 2026-10-12 | v0 rune set (14), the Seam + 3 enemies, study = workbench with a sense of place, placeholder names | Final v0 design round |
 | 2026-10-13 | v0 rule defaults (§9.5): triggers see same-cast effects, ItB-style relative intents, inked = +1 damage taken, pick-1-of-3 loot | Needed to build v0. Proposals to be judged by playing. |
 | 2026-10-13 | Engine interpretations (§9.5): magnitude per rune (footprints, 3×3 Ink), steam shields occupants from projectiles, On Inked is a gate, inked +1 on every hit, wipes keep codex finds | The engine needed exact rules where §9.5 was silent. Judge by playing; numbers live in `src/data/`. |
+| 2026-10-13 | Rune-raised brass plates crumble after 3 rounds; layout plates are permanent | The fuzz bots found a member walling itself in (plates block movement and Bolts, rats wait forever). Duration is `TUNING.plateRounds`. |

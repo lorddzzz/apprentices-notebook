@@ -84,6 +84,8 @@ export interface Tile {
   steam: number;
   fire: number;
   plate: boolean;
+  /** Rounds until a rune-raised plate crumbles; 0 = permanent (layout terrain). */
+  plateRounds: number;
   vent: boolean;
 }
 /** `dir` is from the enemy's CURRENT position at resolve time. */

@@ -20,7 +20,7 @@ import type { Lattice, PlacedRune, Tile } from './types';
  * Board cell = `.` or [unit][mods][layers]:
  *   unit    D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy (first char only)
  *   mods    ! inked, & brass-coated (only after a unit)
- *   layers  o oil, i ink puddle, ~ steam, * fire (implies oil), = brass plate (alone), @ steam vent
+ *   layers  o oil, i ink puddle, ~ steam, * fire (implies oil), = brass plate (alone, permanent: rune-raised plates crumble), @ steam vent
  *
  * Lattice cell = `.` empty socket, `x` hole, or a rune token (`Bolt`, `Ink`, `OnInked`, `Amp`…)
  * with an arrow suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend).
@@ -48,7 +48,7 @@ function rows(ascii: string): string[][] {
 }
 
 export function emptyTile(): Tile {
-  return { oil: false, ink: false, steam: 0, fire: 0, plate: false, vent: false };
+  return { oil: false, ink: false, steam: 0, fire: 0, plate: false, plateRounds: 0, vent: false };
 }
 
 /** Inverse of `label`: "C4" → {x:2, y:3}. */

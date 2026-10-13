@@ -966,6 +966,7 @@ test(`fuzz: ${SEEDS} trips per bot, invariants on every action`, () => {
       'splash',
       'steam',
       'plates',
+      'plateCrumbles',
       'coated',
       'bump',
       'pushed',

@@ -64,15 +64,21 @@ function hazards(ctx: Ctx): void {
 
   const out: Coord[] = [];
   const faded: Coord[] = [];
+  const crumbled: Coord[] = [];
   s.tiles.forEach((t, i) => {
     if (t.fire > 0 && --t.fire === 0) {
       t.oil = false;
       out.push(tileCoord(i, s.width));
     }
     if (t.steam > 0 && --t.steam === 0) faded.push(tileCoord(i, s.width));
+    if (t.plate && t.plateRounds > 0 && --t.plateRounds === 0) {
+      t.plate = false;
+      crumbled.push(tileCoord(i, s.width));
+    }
   });
   if (out.length) emit(ctx, { type: 'fireOut', tiles: out });
   if (faded.length) emit(ctx, { type: 'steamFades', tiles: faded });
+  if (crumbled.length) emit(ctx, { type: 'plateCrumbles', tiles: crumbled });
 
   s.tiles.forEach((t, i) => {
     if (!t.vent || t.plate || t.steam > 0) return;

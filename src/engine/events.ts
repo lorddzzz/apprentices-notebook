@@ -62,6 +62,7 @@ export type GameEvent =
   | { type: 'miss'; source: string }
   | { type: 'fireOut'; tiles: Coord[] }
   | { type: 'steamFades'; tiles: Coord[] }
+  | { type: 'plateCrumbles'; tiles: Coord[] }
   | { type: 'vent'; at: Coord };
 
 export type EventLog = readonly GameEvent[];
@@ -177,6 +178,10 @@ export function describe(e: GameEvent): string {
       return `the fire at ${list(e.tiles)} burns out`;
     case 'steamFades':
       return `the steam at ${list(e.tiles)} fades`;
+    case 'plateCrumbles':
+      return e.tiles.length === 1
+        ? `the brass plate at ${list(e.tiles)} crumbles`
+        : `the brass plates at ${list(e.tiles)} crumble`;
     case 'vent':
       return `the vent at ${label(e.at)} puffs steam`;
   }

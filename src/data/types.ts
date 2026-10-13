@@ -133,6 +133,7 @@ export interface Tuning {
   oilSoakedBonus: number;
   fireRounds: number;
   steamRounds: number;
+  plateRounds: number;
   splashRange: number;
   splashRadius: number;
   echoDivisor: number;

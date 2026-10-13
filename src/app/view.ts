@@ -48,7 +48,14 @@ export function viewOf(s: BattleState): BoardView {
   return {
     width: s.width,
     height: s.height,
-    tiles: s.tiles.map((t) => ({ ...t })),
+    tiles: s.tiles.map(({ oil, ink, steam, fire, plate, vent }) => ({
+      oil,
+      ink,
+      steam,
+      fire,
+      plate,
+      vent,
+    })),
     units: s.units.map((u) => ({
       id: u.id,
       kind: u.kind,
@@ -222,6 +229,9 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       break;
     case 'steamFades':
       patchTiles(v, e.tiles, { steam: 0 });
+      break;
+    case 'plateCrumbles':
+      patchTiles(v, e.tiles, { plate: false });
       break;
     case 'vent':
       patchTiles(v, [e.at], { steam: TUNING.steamRounds });

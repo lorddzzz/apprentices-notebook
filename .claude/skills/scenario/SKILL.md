@@ -30,7 +30,7 @@ Board cell = `.` (floor) or `[unit][mods][layers]`:
 |---|---|
 | unit (first char) | `D` Draughtsman, `S` Stoker, `r` rat, `b` brass sentry, `f` familiar, `d` training dummy |
 | mods (after a unit) | `!` inked, `&` brass-coated |
-| layers | `o` oil, `i` ink puddle, `~` steam, `*` fire (implies oil), `=` brass plate (alone, no unit), `@` steam vent |
+| layers | `o` oil, `i` ink puddle, `~` steam, `*` fire (implies oil), `=` permanent brass plate (alone, no unit; rune-raised plates crumble after 3 rounds), `@` steam vent |
 
 Examples: `r` rat, `ro` rat on oil, `r!~` inked rat in steam, `r&` brass-coated rat, `*` burning oil, `@~` vent with steam, `=` plate. Each member token (`D`, `S`) may appear once.
 

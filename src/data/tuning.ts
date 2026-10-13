@@ -13,6 +13,7 @@ export const TUNING: Tuning = {
   oilSoakedBonus: 1,
   fireRounds: 2,
   steamRounds: 2,
+  plateRounds: 3,
   splashRange: 3,
   splashRadius: 1,
   echoDivisor: 2,

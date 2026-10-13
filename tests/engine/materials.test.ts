@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { TUNING } from '$data';
 import { footprint, label, parseLabel, tileAt } from '$engine';
 import { applyBrass, applyInk, applyOil, applySteam } from '$engine/materials';
 import { board, draft, unitAtLabel } from '../scenarios/harness';
@@ -72,6 +73,7 @@ test('brass plates rise on empty tiles and coat units', () => {
     steam: 0,
     fire: 0,
     plate: true,
+    plateRounds: TUNING.plateRounds,
     vent: false,
   });
   expect(unitAtLabel(r.state, 'A1').brass).toBe(true);

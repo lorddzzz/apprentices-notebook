@@ -149,6 +149,8 @@ const fixtures: [GameEvent, string][] = [
   [{ type: 'miss', source: 'Line' }, 'Line hits nothing'],
   [{ type: 'fireOut', tiles: [at(2, 0), at(3, 0)] }, 'the fire at C1, D1 burns out'],
   [{ type: 'steamFades', tiles: [at(2, 0)] }, 'the steam at C1 fades'],
+  [{ type: 'plateCrumbles', tiles: [at(3, 3)] }, 'the brass plate at D4 crumbles'],
+  [{ type: 'plateCrumbles', tiles: [at(3, 3), at(0, 1)] }, 'the brass plates at D4, A2 crumble'],
   [{ type: 'vent', at: at(2, 2) }, 'the vent at C3 puffs steam'],
 ];
 
@@ -196,6 +198,7 @@ test('describe covers every variant', () => {
     'miss',
     'fireOut',
     'steamFades',
+    'plateCrumbles',
     'vent',
   ];
   for (const t of all) expect(covered.has(t), t).toBe(true);

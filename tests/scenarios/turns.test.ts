@@ -9,7 +9,7 @@ import {
   parseLabel,
   tileAt,
 } from '$engine';
-import { act, board, expectLogIncludes, unitAtLabel } from './harness';
+import { act, board, cast, expectLogIncludes, unitAtLabel, withLattices } from './harness';
 
 /** The turn loop: intent resolution, hazards, round advance, enemy phase. */
 
@@ -170,6 +170,43 @@ describe('hazards', () => {
     const third = act(second.state, endTurn);
     expectLogIncludes(third.events, ['the steam at C1 fades', 'the vent at C1 puffs steam']);
     expect(tile(third.state, 'C1').steam).toBe(2);
+  });
+
+  test('a rune-raised brass plate crumbles at the end of the 3rd round', () => {
+    const s = withLattices('D . . . . .\n. . . . . d', { draughtsman: 'Bolt> Brass' });
+    const raised = cast(s, 'draughtsman', 'right');
+    expectLogIncludes(raised.events, ['a brass plate rises at F1']);
+    expect(tile(raised.state, 'F1')).toMatchObject({ plate: true, plateRounds: 3 });
+    const first = act(raised.state, endTurn);
+    expect(tile(first.state, 'F1').plate).toBe(true);
+    const second = act(first.state, endTurn);
+    expect(tile(second.state, 'F1').plate).toBe(true);
+    expect(
+      describeLog([...first.events, ...second.events]).some((l) => l.includes('crumble')),
+    ).toBe(false);
+    const third = act(second.state, endTurn);
+    expectLogIncludes(third.events, ['the brass plate at F1 crumbles']);
+    expect(tile(third.state, 'F1').plate).toBe(false);
+    expect(third.state.round).toBe(4);
+  });
+
+  test('a crumbled plate frees the tile again', () => {
+    const s = withLattices('D . . . . .\n. . . . . d', { draughtsman: 'Bolt> Brass' });
+    let state = cast(s, 'draughtsman', 'right').state;
+    for (let i = 0; i < 3; i++) state = act(state, endTurn).state;
+    const again = cast(state, 'draughtsman', 'right');
+    expectLogIncludes(again.events, ['a brass plate rises at F1']);
+  });
+
+  test('plates from a layout are permanent', () => {
+    let state = board('D d =');
+    expect(tile(state, 'C1')).toMatchObject({ plate: true, plateRounds: 0 });
+    for (let i = 0; i < 6; i++) {
+      const r = act(state, endTurn);
+      expect(describeLog(r.events).some((l) => l.includes('crumble'))).toBe(false);
+      state = r.state;
+    }
+    expect(tile(state, 'C1').plate).toBe(true);
   });
 
   test('a vent puts out fire on its tile', () => {
