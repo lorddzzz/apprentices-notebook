@@ -31,6 +31,7 @@ Personal project. Live at https://lorddzzz.github.io/apprentices-notebook/
 
 ## Workflow
 
+- Larger features follow a plan in `docs/plans/`, run by the `implement` skill (orchestrator + subagents).
 - Commit straight to `main` with short conventional-ish messages (`feat:`, `fix:`, `chore:`, `docs:`). A push deploys automatically after CI.
 - Run `pnpm check` before committing. A red CI run leaves the live site on the last good build.
 - Design decisions go in DESIGN.md (§11 log), with details in the feature's doc in `docs/design/` when it has one; tech decisions go in TECH.md (§7 log). Update them in the same commit as the change.

@@ -117,6 +117,7 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-13 | Silent `trace` event at the end of every non-echo cast (fired cells + `meaningful`); `describe` returns `null` for it, `describeLog` and playback drop it. Proof masks are written at the end of a trip fight by replaying `trip.actions` (`recordTripProof`); clusters compare in a canonical form invariant under rotation and translation (not mirroring) | Proof needs the exact cells that fired without touching the visible log; the replay is deterministic and short |
 | 2026-10-13 | Save **version 2**: Profile drops `research`, gains `solvents`, `vellum`, `bench {trials, known}`, `glyphs`, `proof` (≤ 300 masks per member), `idioms`; migration 1→2 turns research points (and pending research loot) into solvents round-robin. `parseSaveData` validates every new field, and a lattice Glyph must exist in `glyphs` | One migration for the whole slice |
 | 2026-10-13 | Built by an orchestrator session (Opus) with Sonnet/Haiku subagents in git worktrees, squash-merged per task with `pnpm check` after each merge. `.claude/launch.json` has a second dev server (`dev-alt`, port 5190) for parallel browser checks | Parallel waves on disjoint files kept main green throughout |
+| 2026-10-13 | The `implement` skill codifies orchestration: cheapest-fitting model per task, a tracked `docs/plans/<plan>-status.md`, and usage pacing by projected 5h use (narrow at 80%, wrap at 90%, hold at 96%) with auto-resume after the reset and a weekly guard | v0 lost agents to the limit and stopped too early; the research run worked but kept status untracked |
 
 ## 8. Repo & tooling
 
@@ -134,6 +135,6 @@ Nothing else. No backend, no analytics, no accounts.
 - `CLAUDE.md`: project rules (architecture, validation, workflow, Svelte 5 runes only).
 - `.claude/settings.json`: shared permissions and a PostToolUse hook that runs Biome format on edited files.
 - `.claude/launch.json`: `dev` server entry for the browser pane, plus `dev-alt` (port 5190) for a second session or agent.
-- `.claude/skills/`: `verify` (self-validation checklist), `scenario` (writing scenario tests), `design-round` (how to run a design round).
+- `.claude/skills/`: `verify` (self-validation checklist), `scenario` (writing scenario tests), `design-round` (how to run a design round), `implement` (orchestrating a plan with subagents and usage pacing).
 - `.mcp.json`: Svelte MCP (`https://mcp.svelte.dev/mcp`).
 - Built-in browser pane covers interactive checks; Playwright is not used yet.
