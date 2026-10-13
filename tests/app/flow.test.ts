@@ -13,13 +13,16 @@ import {
   editAndPersist,
   editLattice,
   importSave,
+  leaveDoorway,
   resolveScreen,
   type WipeSummary,
 } from '../../src/app/flow';
+import { GameStore } from '../../src/app/game.svelte';
 import type { Route } from '../../src/app/routes';
 import {
   loadSave,
   memoryBackend,
+  parseSaveText,
   SAVE_KEY,
   type SaveBackend,
   saveText,
@@ -206,4 +209,88 @@ test('importSave: accepts exported text, refuses anything else with a readable r
   expect(() => importSave('')).toThrow('Not a valid save');
   expect(() => importSave('{"version":0,"data":{"nope":true}}')).toThrow('Not a valid save');
   expect(() => importSave('{"version":99,"data":{}}')).toThrow(/newer/);
+});
+
+// ── a quiet doorway (plan S11) ──
+
+const inDoorway = (): SaveData => ({
+  ...save0(),
+  trip: {
+    ...startTrip(save0().profile, 1),
+    status: 'doorway',
+    charges: { draughtsman: { '0,1': 2 }, stoker: { '1,0': 4 } },
+  },
+});
+
+test('resolveScreen: the doorway is the Study in field mode, on the trip route', () => {
+  const trip = inDoorway().trip;
+  expect(resolveScreen('trip', trip, null)).toEqual({ screen: 'study', redirect: null });
+  expect(resolveScreen('study', trip, null)).toEqual({ screen: 'study', redirect: 'trip' });
+  expect(resolveScreen('codex', trip, null)).toEqual({ screen: 'codex', redirect: null });
+  expect(resolveScreen('bench', trip, null)).toEqual({ screen: 'study', redirect: 'trip' });
+});
+
+test('a reload in the doorway resumes it (save round trip, then the screen)', () => {
+  const b = memoryBackend();
+  writeSave(b, inDoorway());
+  const { save, recovered } = loadSave(b, 1);
+  expect(recovered).toBe(false);
+  expect(save.trip?.status).toBe('doorway');
+  expect(parseSaveText(saveText(save))).toEqual(save);
+  expect(resolveScreen('trip', save.trip, null).screen).toBe('study');
+  expect(new GameStore(b, () => 1).inDoorway).toBe(true);
+});
+
+test('doorway edits stay a draft: nothing is saved until Done, and a reload drops the draft', () => {
+  const writes: string[] = [];
+  let text: string | null = saveText(inDoorway());
+  const backend: SaveBackend = {
+    read: () => text,
+    write: (t) => {
+      writes.push(t);
+      text = t;
+    },
+    keepCorrupt: () => {},
+  };
+  const game = new GameStore(backend, () => 1);
+  const before = game.save.profile;
+  game.selectMember('draughtsman');
+  game.tapSocket({ x: 1, y: 1 }, true); // long-press removes the Ink
+  expect(socketAt(latticeOf(game.studyProfile, 'draughtsman'), { x: 1, y: 1 })).toBeNull();
+  expect(game.save.profile).toBe(before);
+  expect(writes).toHaveLength(0);
+
+  // reload: still in the doorway, with the banked pages
+  const again = new GameStore(backend, () => 2);
+  expect(again.inDoorway).toBe(true);
+  expect(socketAt(latticeOf(again.studyProfile, 'draughtsman'), { x: 1, y: 1 })).not.toBeNull();
+
+  // Done takes the draft: pages saved, trip on to the Crossroads (no picks left)
+  expect(game.finishDoorway()).toBeNull();
+  expect(game.save.trip?.status).toBe('crossroads');
+  expect(socketAt(latticeOf(game.save.profile, 'draughtsman'), { x: 1, y: 1 })).toBeNull();
+  expect(game.save.trip?.charges).toEqual({ draughtsman: { '0,1': 2 }, stoker: { '1,0': 4 } });
+  expect(writes).toHaveLength(1);
+  expect(game.inDoorway).toBe(false);
+});
+
+test('Done is refused while a page is not ready, and nothing changes', () => {
+  const save = inDoorway();
+  const lattices = structuredClone(save.profile.lattices);
+  lattices.draughtsman.push({ at: { x: 3, y: 1 }, rune: 'bolt', dir: 'right' });
+  // the third Bolt is not owned
+  expect(() => leaveDoorway(save, { ...save.profile, lattices })).toThrow(/not ready/);
+  expect(save.trip?.status).toBe('doorway');
+});
+
+test('Done returns to the loot when picks remain', () => {
+  const save = inDoorway();
+  const trip = {
+    ...(save.trip as Trip),
+    offers: [{ kind: 'vellum' as const, amount: 1 }],
+    picksLeft: 1,
+  };
+  const r = leaveDoorway({ ...save, trip }, save.profile);
+  expect(r.trip?.status).toBe('looting');
+  expect(resolveScreen('trip', r.trip, null).screen).toBe('loot');
 });

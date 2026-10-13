@@ -16,6 +16,7 @@ import {
   endBattle,
   goHome,
   importSave,
+  leaveDoorway,
   newDiscoveries,
   pushOnward,
   recordBattleAction,
@@ -26,7 +27,7 @@ import {
 } from './flow';
 import { go } from './router.svelte';
 import { loadSave, type SaveBackend, saveText, writeSave } from './save';
-import { NO_TOOL, noteIdioms, type ShelfTool } from './study';
+import { editProfile, NO_TOOL, noteIdioms, type ShelfTool } from './study';
 import { toast } from './toasts.svelte';
 
 /**
@@ -47,6 +48,11 @@ export class GameStore {
   /** Which member's notebook page the Study shows, and what the player holds. */
   member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
   tool = $state.raw<ShelfTool>(NO_TOOL);
+  /**
+   * The rewired profile while a quiet doorway is open (plan S11): edits stay here, unsaved, until
+   * Done. A reload in the doorway resumes it with the lattices as last banked.
+   */
+  private draft = $state.raw<Profile | null>(null);
 
   constructor(
     private readonly backend: SaveBackend,
@@ -61,6 +67,16 @@ export class GameStore {
     return this.save.profile;
   }
 
+  /** A quiet doorway is open: the Study is in field mode. */
+  get inDoorway(): boolean {
+    return this.save.trip?.status === 'doorway';
+  }
+
+  /** The profile the Study shows and edits: the doorway's draft while one is open, else the save's. */
+  get studyProfile(): Profile {
+    return this.inDoorway ? (this.draft ?? this.save.profile) : this.save.profile;
+  }
+
   selectMember(m: MemberId): void {
     this.member = m;
     this.tool = NO_TOOL;
@@ -72,6 +88,13 @@ export class GameStore {
 
   /** A tap (or long-press) on the current member's socket. Saves when the page changed. */
   tapSocket(at: Coord, longPress = false): void {
+    if (this.inDoorway) {
+      const r = editProfile(this.studyProfile, this.member, at, this.tool, longPress);
+      if (r.changed) this.draft = r.profile;
+      this.tool = r.tool;
+      if (r.message) toast(r.message);
+      return;
+    }
     const r = editAndPersist(this.backend, this.save, this.member, at, this.tool, longPress);
     this.save = r.save;
     this.tool = r.tool;
@@ -126,6 +149,7 @@ export class GameStore {
       return e instanceof Error ? e.message : 'Not a valid save';
     }
     this.dropBattle();
+    this.draft = null;
     this.commit(next);
     this.wipe = null;
     this.tool = NO_TOOL;
@@ -181,6 +205,18 @@ export class GameStore {
 
   take(index: number): void {
     this.commit(takeOffer(this.save, index));
+  }
+
+  /** Done in a quiet doorway: the draft becomes the lattices. Returns why not, or null. */
+  finishDoorway(): string | null {
+    try {
+      this.commit(leaveDoorway(this.save, this.studyProfile));
+    } catch (e) {
+      return e instanceof Error ? e.message : 'The doorway would not close';
+    }
+    this.draft = null;
+    this.tool = NO_TOOL;
+    return null;
   }
 
   pushOn(): void {

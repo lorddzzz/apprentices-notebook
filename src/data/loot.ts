@@ -48,6 +48,7 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       ink(3),
       ...seamSolvents(1),
       vellum(1),
+      { spec: { kind: 'doorway' }, weight: 1 },
     ],
   },
   heart: {

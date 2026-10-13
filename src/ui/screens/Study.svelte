@@ -1,13 +1,6 @@
 <script lang="ts">
   import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
-  import {
-    compiledFor,
-    describeSpell,
-    type GlyphId,
-    glyphLibrary,
-    latticeOf,
-    validateLoadout,
-  } from '$engine';
+  import { compiledFor, describeSpell, type GlyphId, glyphLibrary, latticeOf } from '$engine';
   import { benchUnlocked } from '../../app/bench';
   import {
     type FairState,
@@ -20,7 +13,7 @@
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
-  import { glyphSlots, NO_TOOL, profileShelf } from '../../app/study';
+  import { glyphSlots, loadoutBlocker, NO_TOOL, profileShelf } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import Button from '../components/common/Button.svelte';
   import Sheet from '../components/common/Sheet.svelte';
@@ -30,7 +23,10 @@
   import GlyphSheet from '../components/study/GlyphSheet.svelte';
   import StudyScene from '../components/study/StudyScene.svelte';
 
-  const profile = $derived(game.profile);
+  // In a quiet doorway the Study is the field editor: the banked collection only, no Bench, no
+  // Fair copy, and "Done" in place of the door. Edits live in a draft until Done.
+  const field = $derived(game.inDoorway);
+  const profile = $derived(game.studyProfile);
   const lattice = $derived(latticeOf(profile, game.member));
   const compiled = $derived(compiledFor(profile, game.member));
   const slots = $derived(profileShelf(profile, game.member));
@@ -48,7 +44,7 @@
     fair.cluster ? previewFairCopy(profile, game.member, fair.cluster) : null,
   );
   const chip = $derived(trimChip(preview, fair.lost));
-  const fairLive = $derived(fairMode && glow.size > 0);
+  const fairLive = $derived(!field && fairMode && glow.size > 0);
 
   function leaveFair(): void {
     fairMode = false;
@@ -84,17 +80,11 @@
   }
 
   // What stops the party leaving: the first problem with either lattice, in plain words.
-  const blocker = $derived.by(() => {
-    const issues = validateLoadout(profile);
-    for (const [id, list] of Object.entries(issues)) {
-      const first = list?.[0];
-      if (first) return `${MEMBERS[id as keyof typeof MEMBERS].name}: ${first.message}`;
-    }
-    return null;
-  });
+  const blocker = $derived(loadoutBlocker(profile));
   const doorCaption = $derived(
     blocker ?? `${ENCOUNTERS.length} rooms down to the heart of the Seam`,
   );
+  const doneCaption = $derived(blocker ?? 'Back to the spoils, with the new pages');
   // What each member carries out the door (shown on the confirm sheet).
   const carried = $derived(
     MEMBER_IDS.map((m) => ({
@@ -136,6 +126,15 @@
     toast('Save loaded');
   }
 
+  function finishField(): void {
+    const why = game.finishDoorway();
+    if (why) toast(why, 'warn');
+  }
+
+  function renameGlyph(id: string, name: string): string | null {
+    return field ? 'Rename it at home' : game.renameGlyph(id, name);
+  }
+
   function setOut(): void {
     const why = game.setOut();
     if (why) {
@@ -156,11 +155,29 @@
 </script>
 
 <div class="study" data-testid="study">
-  <StudyScene
-    oncodex={() => go('codex')}
-    onmenu={openMenu}
-    onbench={benchUnlocked(profile) ? () => go('bench') : null}
-  />
+  {#if field}
+    <header class="field" data-testid="field-header">
+      <div class="fwords">
+        <h1>A quiet doorway</h1>
+        <p>Rewire the pages with what you own. Spent charges stay spent.</p>
+      </div>
+      <button
+        type="button"
+        class="fcodex"
+        onclick={() => go('codex')}
+        data-testid="codex-button"
+        aria-label="Read the notebook (codex)"
+      >
+        Codex
+      </button>
+    </header>
+  {:else}
+    <StudyScene
+      oncodex={() => go('codex')}
+      onmenu={openMenu}
+      onbench={benchUnlocked(profile) ? () => go('bench') : null}
+    />
+  {/if}
 
   <div class="desk">
     <LatticeEditor
@@ -179,7 +196,7 @@
       glyphSlots={copies}
       onpeek={(id) => (peeked = id)}
       fair={{
-        available: glow.size > 0,
+        available: !field && glow.size > 0,
         active: fairLive,
         glow,
         selected,
@@ -221,24 +238,40 @@
   </div>
 
   <div class="doorway">
-    <button
-      type="button"
-      class="door"
-      disabled={blocker !== null}
-      onclick={() => (panel = 'door')}
-      data-testid="door"
-      aria-describedby="door-note"
-    >
-      <svg class="arch" width="28" height="36" viewBox="0 0 28 36" aria-hidden="true">
-        <path d="M3 35V14a11 11 0 0 1 22 0v21z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="2" />
-        <path d="M14 3v32M8.5 10v25M19.5 10v25" stroke="var(--wood-deep)" stroke-opacity="0.6" />
-        <circle cx="20.5" cy="23" r="1.8" fill="var(--lamp)" />
-      </svg>
-      <span class="words">
-        <span class="label">Set out into the Seam</span>
-        <span class="caption" id="door-note">{doorCaption}</span>
-      </span>
-    </button>
+    {#if field}
+      <button
+        type="button"
+        class="door done"
+        disabled={blocker !== null}
+        onclick={finishField}
+        data-testid="field-done"
+        aria-describedby="done-note"
+      >
+        <span class="words">
+          <span class="label">Done</span>
+          <span class="caption" id="done-note">{doneCaption}</span>
+        </span>
+      </button>
+    {:else}
+      <button
+        type="button"
+        class="door"
+        disabled={blocker !== null}
+        onclick={() => (panel = 'door')}
+        data-testid="door"
+        aria-describedby="door-note"
+      >
+        <svg class="arch" width="28" height="36" viewBox="0 0 28 36" aria-hidden="true">
+          <path d="M3 35V14a11 11 0 0 1 22 0v21z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="2" />
+          <path d="M14 3v32M8.5 10v25M19.5 10v25" stroke="var(--wood-deep)" stroke-opacity="0.6" />
+          <circle cx="20.5" cy="23" r="1.8" fill="var(--lamp)" />
+        </svg>
+        <span class="words">
+          <span class="label">Set out into the Seam</span>
+          <span class="caption" id="door-note">{doorCaption}</span>
+        </span>
+      </button>
+    {/if}
   </div>
 
   <FairCopySheet
@@ -250,7 +283,7 @@
   <GlyphSheet
     glyph={peeked ? (library[peeked] ?? null) : null}
     onclose={() => (peeked = null)}
-    onrename={(id, name) => game.renameGlyph(id, name)}
+    onrename={renameGlyph}
   />
 
   <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>
@@ -357,6 +390,43 @@
     justify-content: space-between;
     gap: var(--space-2);
     margin-top: var(--space-1);
+  }
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex: none;
+    min-height: 64px;
+    padding: var(--space-2) var(--space-3);
+    background: linear-gradient(#2c3a4b, #1f2a38);
+    border-bottom: 2px solid var(--wood-deep);
+    color: var(--parchment);
+  }
+  .fwords h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: normal;
+    font-style: italic;
+  }
+  .fwords p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    line-height: 1.25;
+    color: rgba(241, 230, 204, 0.75);
+  }
+  .fcodex {
+    flex: none;
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    border: 2px solid var(--wood-deep);
+    border-radius: var(--radius);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--parchment);
+    font-size: 14px;
+  }
+  .done {
+    justify-content: center;
   }
   .doorway {
     flex: none;

@@ -1,4 +1,4 @@
-import { IDIOMS, MEMBER_IDS, type MemberId, RUNE_IDS, RUNES, type RuneId } from '$data';
+import { IDIOMS, MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, type RuneId } from '$data';
 import {
   available,
   type Coord,
@@ -26,6 +26,7 @@ import {
   setSocket,
   socketAt,
   turnRight,
+  validateLoadout,
 } from '$engine';
 
 /** What the player is holding: a rune or a Fair copy from the shelf, the eraser, or nothing. */
@@ -371,4 +372,13 @@ export function noteIdioms(p: Profile): { profile: Profile; toasts: string[] } {
   const { profile, fresh } = recogniseIdioms(p);
   const names = fresh.map((id) => IDIOMS.find((i) => i.id === id)?.name ?? id);
   return { profile, toasts: names.map((n) => `Idiom recognised: ${n}`) };
+}
+
+/** What stops the party leaving the desk or a doorway: the first problem with either lattice, in plain words. */
+export function loadoutBlocker(p: Profile): string | null {
+  for (const [id, list] of Object.entries(validateLoadout(p))) {
+    const first = list?.[0];
+    if (first) return `${MEMBERS[id as MemberId].name}: ${first.message}`;
+  }
+  return null;
 }

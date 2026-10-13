@@ -50,6 +50,7 @@ import type {
   PlacedRune,
   Profile,
   SaveData,
+  Spell,
   SpellKey,
   Trip,
   TripRecap,
@@ -382,12 +383,14 @@ export function pickLoot(t: Trip, index: number): Trip {
   const picksLeft = t.picksLeft - 1;
   const done = picksLeft <= 0 || offers.length === 0;
   const heart = ENCOUNTERS[t.encounter]?.heart ?? false;
+  // A doorway costs the pick but is never banked: it opens field rewiring (plan S11).
+  const doorway = item.kind === 'doorway';
   return {
     ...t,
-    loot: [...t.loot, item],
+    loot: doorway ? t.loot : [...t.loot, item],
     offers: done ? [] : offers,
     picksLeft: done ? 0 : picksLeft,
-    status: done ? (heart ? 'cleared' : 'crossroads') : 'looting',
+    status: doorway ? 'doorway' : done ? (heart ? 'cleared' : 'crossroads') : 'looting',
   };
 }
 
@@ -414,18 +417,78 @@ export function returnHome(p: Profile, t: Trip): Profile {
   return { ...p, collection, inkCapacity, solvents, vellum };
 }
 
+/** What a Source is, for carrying its charges across a rewire: a rune, or a Spell Glyph. */
+const sourceType = (sp: Spell): string => (sp.glyph ? `glyph:${sp.glyph}` : `rune:${sp.source}`);
+
+/**
+ * Charges after rewiring (plan S12). A Source that stays on its cell keeps its count. The Sources
+ * that moved or are new take the remaining counts of same-type Sources (rune or Glyph, across both
+ * members) that no longer have a cell, highest first, never above their own maximum. With none
+ * left to take (a second owned copy) they start full. Nothing is ever refilled.
+ */
+function carryCharges(
+  before: Profile,
+  after: Profile,
+  t: Trip,
+): Record<MemberId, Record<SpellKey, number>> {
+  const next = perMember((): Record<SpellKey, number> => ({}));
+  const spare = new Map<string, number[]>(); // type → counts of Sources whose cell is gone
+  const olds = MEMBER_IDS.flatMap((m) =>
+    compiledFor(before, m).spells.map((sp) => ({
+      m,
+      sp,
+      type: sourceType(sp),
+      left: t.charges[m][sp.key] ?? sp.charges,
+    })),
+  );
+  const fresh = MEMBER_IDS.flatMap((m) =>
+    compiledFor(after, m).spells.map((sp) => ({ m, sp, type: sourceType(sp) })),
+  );
+  const stays = (o: { m: MemberId; sp: Spell; type: string }) =>
+    fresh.some((f) => f.m === o.m && f.sp.key === o.sp.key && f.type === o.type);
+  for (const o of olds) {
+    if (!stays(o)) spare.set(o.type, [...(spare.get(o.type) ?? []), o.left]);
+  }
+  for (const counts of spare.values()) counts.sort((a, b) => b - a);
+  const kept = new Map(olds.map((o) => [`${o.m}|${o.sp.key}|${o.type}`, o.left]));
+  // Biggest maximum first, so a Source with a Thrift gets the larger spare count.
+  const moved = fresh
+    .filter((f) => !kept.has(`${f.m}|${f.sp.key}|${f.type}`))
+    .sort((a, b) => b.sp.charges - a.sp.charges);
+  for (const f of fresh) {
+    const left = kept.get(`${f.m}|${f.sp.key}|${f.type}`);
+    if (left !== undefined) next[f.m][f.sp.key] = Math.min(left, f.sp.charges);
+  }
+  for (const f of moved) {
+    const left = spare.get(f.type)?.shift();
+    next[f.m][f.sp.key] = left === undefined ? f.sp.charges : Math.min(left, f.sp.charges);
+  }
+  return next;
+}
+
 /**
  * Leaves a quiet doorway (plan S11/S12): the profile takes the rewired lattices, and each Source
- * keeps the charges its rune (or Glyph) had before, so rewiring never refills a spell. The trip
- * goes back to looting if picks remain, else to the Crossroads. W0 stub.
+ * keeps the charges its rune (or Glyph) had before, so rewiring never refills a spell. Throws if
+ * the new loadout isn't ready. The trip goes back to looting if picks remain, else the Crossroads.
  */
 export function applyDoorway(
   p: Profile,
   t: Trip,
-  _lattices: Record<MemberId, Placed[]>,
+  lattices: Record<MemberId, Placed[]>,
 ): { profile: Profile; trip: Trip } {
   need(t, 'doorway');
-  return { profile: p, trip: { ...t, status: t.picksLeft > 0 ? 'looting' : 'crossroads' } };
+  const profile: Profile = { ...p, lattices: perMember((m) => lattices[m].map(copyRune)) };
+  const first = Object.values(validateLoadout(profile))[0]?.[0];
+  if (first) throw new Error(`Loadout is not ready: ${first.message}`);
+  const more = t.picksLeft > 0 && t.offers.length > 0;
+  const trip: Trip = {
+    ...t,
+    charges: carryCharges(p, profile, t),
+    offers: more ? t.offers : [],
+    picksLeft: more ? t.picksLeft : 0,
+    status: more ? 'looting' : 'crossroads',
+  };
+  return { profile, trip };
 }
 
 // ── Save data ───────────────────────────────────────────
@@ -493,6 +556,8 @@ function parseLoot(v: unknown): LootItem {
       return { kind: 'solvent', solvent: oneOf(SOLVENT_IDS, r.solvent) };
     case 'vellum':
       return { kind: 'vellum', amount: count(r.amount) };
+    case 'doorway':
+      return { kind: 'doorway' };
     default:
       return bad();
   }
@@ -675,6 +740,10 @@ function parseTrip(v: unknown): Trip {
   if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= ENCOUNTERS.length)) bad();
   if (trip.status === 'cleared' && !enc.heart) bad();
   if (trip.status === 'doorway' && enc.heart) bad();
+  // A doorway is never banked and never offered at the heart (plan S11).
+  if (trip.loot.some((i) => i.kind === 'doorway')) bad();
+  if (enc.heart && trip.offers.some((i) => i.kind === 'doorway')) bad();
+  if (trip.offers.filter((i) => i.kind === 'doorway').length > 1) bad();
   if (trip.status !== 'fight' && trip.actions.length > 0) bad();
   return trip;
 }

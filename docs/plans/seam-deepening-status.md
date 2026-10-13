@@ -29,7 +29,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | L1 | sonnet | M | merged | (see log) | ~6% | also edited tests/sim/fuzz.test.ts specFor (needed) |
 | C1 | sonnet | M | merged | (see log) | ~6% | also UnitToken.svelte + playback fixtures (accepted) |
 | C2 | haiku | S | running | | | started ~23:00, port 5192 |
-| R1 | sonnet | L | running | | | started ~22:57, port 5191 (manual pnpm dev) |
+| R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
 | S1 | sonnet | M | todo | | | after L1; merge after R1 |
 | D2 | haiku→sonnet | M | todo | | | all |
 | W4 | opus (me) | S | todo | | | |
@@ -91,10 +91,18 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - C1: visuals — stained oil = ink-blue hatch + ink drops; hot plate = orange fill, pulsing outline, heat waves, rounds in corner; etched = dark zigzag scratch; hot unit = fire tint + pulsing ring + flame badge; scalding steam = orange overlay + red heat ticks; pulse off under prefers-reduced-motion. Accepted.
 - C1: fx — pierced = danger pulse; heated/scalded = fire burst; cooled = steam burst; stained/etched = ink burst. Accepted.
 
+- R1: S12 refinement — a Source that stays on its own cell keeps its count first; only moved/new Sources take spare counts (highest first, pooled by type across both members). Else a no-op doorway swaps members' counts. Accepted.
+- R1: a carried count is capped at the new Source's max; among moved Sources the larger max (Thrift) takes the larger count. Accepted.
+- R1: a doorway as the final pick → Done goes to the Crossroads. Accepted.
+- R1: renaming a Glyph is refused in the doorway ("Rename it at home"). Accepted.
+- R1: saves with a doorway in `t.loot`, two in one offer, or one in the heart's offers are rejected. Accepted.
+- R1: a reload in the doorway resumes it but drops the unsaved draft; idiom recognition is skipped in the doorway. Accepted (note for player).
+
 ## Decisions and fixes made during the build
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
 ## Follow-ups and rough edges
+- tests/sim/fuzz.test.ts bots have no `case 'doorway'` (a bot that picks one spins to the 50-iteration guard). D2 must handle it.
 - Lab palette (Palette.svelte, app/lab.ts) can't paint stain/heat/etch/scald yet (scenario strings work). D2 may add.
 - Codex pages for Heat and Stain interactions not visually checked (W4).
 - Battle HUD/log title is still the depth title ("Three rats") while the Crossroads names the variant ("The lamplit landing"). Decide in W4: probably "The lamplit landing" as battle title (≈6 tests assert enc.title).

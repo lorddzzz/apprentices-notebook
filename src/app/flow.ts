@@ -2,6 +2,7 @@ import type { InteractionId, MemberId } from '$data';
 import {
   type Action,
   type ActionResult,
+  applyDoorway,
   type BattleState,
   beginEncounter,
   type Coord,
@@ -10,6 +11,7 @@ import {
   type GameEvent,
   type LootItem,
   nextTripSeed,
+  type Profile,
   pickLoot,
   pushOn,
   recordAction,
@@ -47,7 +49,8 @@ const TRIP_SCREEN: Record<Trip['status'], Screen> = {
   looting: 'loot',
   crossroads: 'crossroads',
   cleared: 'cleared',
-  doorway: 'loot', // R1: field rewiring
+  // A quiet doorway reuses the Study's lattice editor in field mode (plan S11).
+  doorway: 'study',
 };
 
 /**
@@ -171,6 +174,15 @@ export function endBattle(save: SaveData, battle: BattleState): BattleEnd {
 /** Takes offer `index` into the pending loot (the engine moves the trip on after the last pick). */
 export function takeOffer(save: SaveData, index: number): SaveData {
   return { ...save, trip: pickLoot(tripOf(save), index) };
+}
+
+/**
+ * Leaves a quiet doorway: the draft's lattices become the profile's (the collection and the rest of
+ * the profile are untouched) and the charges carry over by rune type. Throws if the loadout isn't ready.
+ */
+export function leaveDoorway(save: SaveData, draft: Profile): SaveData {
+  const r = applyDoorway(save.profile, tripOf(save), draft.lattices);
+  return { ...save, profile: r.profile, trip: r.trip };
 }
 
 export function pushOnward(save: SaveData): SaveData {
