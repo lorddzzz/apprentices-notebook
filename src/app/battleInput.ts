@@ -368,7 +368,12 @@ export function onCancel(s: BattleState, mode: InputMode): InputResult {
 
 /** End turn needs a second tap while someone could still act. */
 export function endTurnNeedsConfirm(s: BattleState): boolean {
-  return members(s).some(
-    (m) => m.hp > 0 && !m.acted && castableSpells(s, m.id).some((c) => c.usable),
-  );
+  return unspentCasters(s).length > 0;
+}
+
+/** Names of members who could still cast this turn. */
+export function unspentCasters(s: BattleState): string[] {
+  return members(s)
+    .filter((m) => m.hp > 0 && !m.acted && castableSpells(s, m.id).some((c) => c.usable))
+    .map((m) => m.name);
 }

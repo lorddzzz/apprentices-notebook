@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Highlight } from '../../../app/overlay';
   import { cellCenter, cellOrigin, chevron, pointsAttr } from './geometry';
+  import { TONE_COLOR } from './tones';
 
   interface Props {
     highlights: Highlight[];
@@ -16,7 +17,7 @@
       <circle cx={c.x} cy={c.y} r="15" fill="var(--reach)" stroke="var(--member-draughtsman)" stroke-width="3" />
     {:else if h.kind === 'aim'}
       {@const o = cellOrigin(h.at)}
-      <rect x={o.x + 3} y={o.y + 3} width="94" height="94" rx="6" fill="var(--reach)" opacity="0.65" />
+      <rect x={o.x + 3} y={o.y + 3} width="94" height="94" rx="6" fill="var(--reach)" opacity="0.4" />
       {#if h.chevron}
         <polyline
           points={pointsAttr(chevron(h.at, h.chevron))}
@@ -30,6 +31,22 @@
     {:else if h.kind === 'target'}
       {@const o = cellOrigin(h.at)}
       <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="none" stroke="var(--danger)" stroke-width="6" />
+    {:else if h.kind === 'effect'}
+      {@const o = cellOrigin(h.at)}
+      <rect
+        x={o.x + 9}
+        y={o.y + 9}
+        width="82"
+        height="82"
+        rx="10"
+        fill="none"
+        stroke={TONE_COLOR[h.tone]}
+        stroke-width="5"
+        stroke-dasharray="12 7"
+      />
+    {:else if h.kind === 'focus'}
+      {@const o = cellOrigin(h.at)}
+      <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="none" stroke="var(--select)" stroke-width="7" />
     {:else if h.kind === 'shove'}
       {@const c = cellCenter(h.at)}
       <circle cx={c.x} cy={c.y} r="45" fill="none" stroke="var(--select)" stroke-width="6" stroke-dasharray="14 8" />

@@ -127,6 +127,14 @@ const INTERACTION_OF: Partial<Record<GameEvent['type'], InteractionId>> = {
   diffuse: 'diffuse',
 };
 
+/** Plain material effects (not interactions): always named. */
+const MATERIAL_WORDS: [GameEvent['type'], string][] = [
+  ['puddle', 'ink pools'],
+  ['oiled', 'oil spreads'],
+  ['steam', 'steam rises'],
+  ['plates', 'brass plate rises'],
+];
+
 export interface Outcome {
   /** HP actually lost per unit (shield absorption excluded, overkill included). */
   damage: Record<string, number>;
@@ -193,14 +201,14 @@ export function previewSummary(
       parts.push(`${name(e.unit.id)} slides to ${label(e.to)}`);
     else parts.push(INTERACTION_WORDS[id]);
   }
+  for (const [type, words] of MATERIAL_WORDS) {
+    if (events.some((e) => e.type === type)) parts.push(words);
+  }
   if (!parts.some((p) => p !== '???')) {
     const lands = events.find((e) => e.type === 'lands' || e.type === 'stopped');
     if (lands?.type === 'stopped') parts.unshift(`stopped by ${lands.by} at ${label(lands.at)}`);
     else if (lands?.type === 'lands') parts.unshift(`lands at ${label(lands.at)}`);
-    if (parts.length === 0) {
-      const mats = events.filter((e) => ['puddle', 'oiled', 'steam', 'plates'].includes(e.type));
-      parts.push(mats.length ? 'leaves its mark' : 'no effect');
-    }
+    if (parts.length === 0) parts.push('no effect');
   }
   return `${actionLabel(before, action)}: ${parts.join(', ')}`;
 }
@@ -223,7 +231,9 @@ function memberHint(s: BattleState, m: MemberUnit): string {
   else if (!m.acted && spells.length && !canCast) acts.push('no charges left');
   if (canShove && !m.acted) acts.push('Shove');
   if (undo) acts.push('Undo move');
-  return `${m.name}: ${acts.join(', ') || 'nothing to do'}.`;
+  if (acts.length === 0) return `${m.name}: nothing to do.`;
+  const last = acts.pop();
+  return `${m.name}: ${acts.length ? `${acts.join(', ')} or ${last}` : last}.`;
 }
 
 function aimHint(s: BattleState, mode: Extract<InputMode, { kind: 'aim' }>): string {

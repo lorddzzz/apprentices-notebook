@@ -100,6 +100,10 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-13 | Engine layout: `Ctx` draft mutation inside one `structuredClone` per action; `src/data` imports engine types only | Public functions stay pure (previews = call and discard) while internals avoid copy-heavy code; no runtime cycle between data and engine |
 | 2026-10-13 | UI state: engine objects in `$state.raw` (structuredClone-safe); logic in plain .ts, reactive wrappers in .svelte.ts | `applyAction` clones its state; a deep `$state` proxy throws `DataCloneError`. Plain .ts logic is unit-testable without a DOM |
 | 2026-10-13 | Playback: UI projects events onto a view model, snaps to engine state at the end | Animation needs no rule code in the UI; any projection drift self-heals at the final snap |
+| 2026-10-13 | Battle input is a pure reducer (`app/battleInput.ts`: tap + mode → mode + action); previews call `applyAction` and discard; `overlayFor(state, mode)` derives every board highlight; `BattleSession` (`battle.svelte.ts`) only wires them to playback | All interaction logic is unit-tested without a DOM; the board can never show a preview the engine wouldn't produce |
+| 2026-10-13 | Projection drift guard: every Lab scenario (demo + 3 end turns) and every encounter (4 idle rounds) must project to the engine's final state | Catches a missing `project` case the moment an event type is added |
+| 2026-10-13 | A Bolt that hits a unit gets a flight trail from `aimPreview` (`castLead`), since the engine emits no `lands` event for it | Cheap, exact for player casts; echo recasts keep only the cast pulse |
+| 2026-10-13 | Lab keys the battle view by session and unit outros are local | Switching scenarios swaps the board instantly instead of leaving fading tokens behind |
 
 ## 8. Repo & tooling
 

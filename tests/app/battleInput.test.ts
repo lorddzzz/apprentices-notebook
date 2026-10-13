@@ -59,7 +59,7 @@ describe('battle input', () => {
     const aim = expectKind(onSpell(s, memberMode(s, 'draughtsman'), '0,0', known).mode, 'aim');
     expect(aim.aims).toHaveLength(2); // right and down from the corner
     const confirm = expectKind(onCell(s, aim, at('D1'), known).mode, 'confirm');
-    expect(confirm.preview.summary).toBe('Bolt right: dummy D1 −2 inked');
+    expect(confirm.preview.summary).toBe('Bolt right: dummy D1 −2 inked, ink pools');
     const r = onConfirm(s, confirm);
     expect(r.action).toEqual({
       type: 'cast',
@@ -163,7 +163,7 @@ describe('battle input', () => {
     const s = labBattle('ink-spark-detonation');
     const member = memberMode(s, 'draughtsman');
     expect(hintFor(IDLE, s).text).toMatch(/Tap a party member/);
-    expect(hintFor(member, s).text).toBe('Draughtsman: tap a dot to move, pick a spell.');
+    expect(hintFor(member, s).text).toBe('Draughtsman: tap a dot to move or pick a spell.');
     const aim = onSpell(s, member, '0,0', known).mode;
     expect(hintFor(aim, s).text).toMatch(/^Bolt: tap any tile/);
     const confirm = onCell(s, aim, at('D1'), known).mode;

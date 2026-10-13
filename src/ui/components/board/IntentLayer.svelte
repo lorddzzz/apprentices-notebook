@@ -33,8 +33,10 @@
       {#if layer === 'paths'}
         {#if arrow && base && target}
           {@const o = cellOrigin(target)}
-          <rect x={o.x + 2} y={o.y + 2} width="96" height="96" fill="var(--danger-tint)" />
-          <rect x={o.x + 2} y={o.y + 2} width="96" height="96" fill="url(#hatch)" />
+          {#if !d.blocked}
+            <rect x={o.x + 2} y={o.y + 2} width="96" height="96" fill="var(--danger-tint)" />
+            <rect x={o.x + 2} y={o.y + 2} width="96" height="96" fill="url(#hatch)" />
+          {/if}
           <line
             x1={arrow.tail.x}
             y1={arrow.tail.y}
@@ -43,6 +45,7 @@
             stroke="var(--danger)"
             stroke-width={d.emphasis === 'strong' ? 10 : 7}
             stroke-linecap="round"
+            stroke-dasharray={d.blocked ? '14 10' : undefined}
           />
           <polygon points={pointsAttr(arrow.head)} fill="var(--danger)" stroke="var(--danger)" stroke-width="3" stroke-linejoin="round" />
         {:else if minimal}

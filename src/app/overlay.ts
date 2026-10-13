@@ -14,6 +14,7 @@ import {
   unitAt,
 } from '$engine';
 import { type InputMode, selectedOf } from './battleInput';
+import type { Tone } from './fx';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
 export type Highlight =
@@ -21,7 +22,9 @@ export type Highlight =
   | { kind: 'aim'; at: Coord; chevron?: Dir } // a legal aim tile (chevron: next to the caster)
   | { kind: 'target'; at: Coord } // a tile the previewed action hits
   | { kind: 'path'; cells: Coord[] } // projectile / push path
-  | { kind: 'shove'; at: Coord }; // an adjacent unit that can be shoved
+  | { kind: 'shove'; at: Coord } // an adjacent unit that can be shoved
+  | { kind: 'effect'; at: Coord; tone: Tone } // a tile the previewed action changes (ink, oil, fire…)
+  | { kind: 'focus'; at: Coord }; // the tile being inspected
 
 export interface IntentDraw {
   from: Coord;
@@ -32,6 +35,8 @@ export interface IntentDraw {
   attack: AttackId;
   dir: Dir;
   emphasis: 'normal' | 'strong' | 'dim';
+  /** Stopped by steam or a plate before reaching anyone (drawn without the danger hatch). */
+  blocked?: boolean;
 }
 
 export interface Badge {
@@ -74,6 +79,7 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
   if (mode.kind === 'member' || mode.kind === 'inspect') {
     for (const at of mode.moves) highlights.push({ kind: 'reach', at });
   }
+  if (mode.kind === 'inspect') highlights.push({ kind: 'focus', at: mode.at });
   if ((mode.kind === 'aim' || mode.kind === 'confirm') && mode.spell !== null) {
     highlights.push(...aimTints(s, mode.unit, mode.spell));
   }
@@ -85,6 +91,7 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
     if (preview.path.length > 1) highlights.push({ kind: 'path', cells: preview.path });
     for (const at of preview.targets) highlights.push({ kind: 'target', at });
     const after = preview.result.state;
+    highlights.push(...tileEffects(s, after));
     for (const u of after.units) {
       const before = findUnit(s, u.id);
       const at = u.pos;
@@ -106,7 +113,10 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
     if (u.kind !== 'enemy' || u.hp <= 0 || !u.intent) continue;
     const p = intentPreview(intentState, u);
     if (!p) continue;
+    const end = p.path.at(-1);
+    const endTile = end ? intentState.tiles[end.y * intentState.width + end.x] : undefined;
     intents.push({
+      blocked: p.hit === null && !!endTile && (endTile.steam > 0 || endTile.plate),
       from: { ...u.pos },
       path: p.path,
       hit: p.hit,
@@ -117,6 +127,32 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
     });
   }
   return { highlights, intents, badges, ghosts, selected: selectedOf(mode) };
+}
+
+/** Tiles whose material layers the action changes, toned by the most notable new layer. */
+function tileEffects(before: BattleState, after: BattleState): Highlight[] {
+  const out: Highlight[] = [];
+  after.tiles.forEach((t, i) => {
+    const b = before.tiles[i];
+    if (!b) return;
+    const at = { x: i % after.width, y: Math.floor(i / after.width) };
+    const tone: Tone | null =
+      t.fire > b.fire
+        ? 'fire'
+        : t.plate && !b.plate
+          ? 'brass'
+          : t.steam > b.steam
+            ? 'steam'
+            : t.ink !== b.ink
+              ? 'ink'
+              : t.oil !== b.oil
+                ? 'oil'
+                : b.fire > 0 && t.fire === 0
+                  ? 'steam'
+                  : null;
+    if (tone) out.push({ kind: 'effect', at, tone });
+  });
+  return out;
 }
 
 /** Faint tint on every tile a spell could be aimed at (Bolt: each line, chevron at its start). */

@@ -58,6 +58,10 @@ test('aim mode tints each bolt line with a chevron at its start; preview badges'
   const badges = overlayFor(s, confirm).badges;
   expect(badges).toContainEqual({ at: at('C2'), kind: 'kill', text: '' });
   expect(badges).toContainEqual({ at: at('E2'), kind: 'damage', text: '−2' });
+  const effects = overlayFor(s, confirm).highlights.filter((h) => h.kind === 'effect');
+  expect(effects).toEqual(
+    ['C2', 'D2', 'E2', 'F2'].map((l) => ({ kind: 'effect', at: at(l), tone: 'fire' })),
+  );
 });
 
 test('inspecting an enemy emphasises its intent and dims the others', () => {
@@ -67,4 +71,13 @@ test('inspecting an enemy emphasises its intent and dims the others', () => {
   });
   const o = overlayFor(s, onCell(s, IDLE, at('A3'), INTERACTION_IDS).mode);
   expect(o.intents.map((d) => d.emphasis)).toEqual(['dim', 'strong']);
+  expect(o.highlights).toContainEqual({ kind: 'focus', at: at('A3') });
+});
+
+test('an attack stopped by steam is drawn as blocked', () => {
+  const s = labBattle('sentry-steam-block');
+  const [line] = overlayFor(s, IDLE).intents;
+  expect(line?.hit).toBeNull();
+  expect(line?.blocked).toBe(true);
+  expect(threatenedMembers(s)).toEqual([]);
 });

@@ -1,0 +1,203 @@
+import type { InteractionId } from '$data';
+import {
+  type Action,
+  type ActionResult,
+  applyAction,
+  type BattleState,
+  type GameEvent,
+  type SpellKey,
+  type UnitId,
+} from '$engine';
+import {
+  afterAction,
+  endTurnNeedsConfirm,
+  IDLE,
+  type InputMode,
+  type InputResult,
+  onCancel,
+  onCell,
+  onConfirm,
+  onMember,
+  onShove,
+  onSpell,
+  selectedOf,
+  unspentCasters,
+} from './battleInput';
+import { type Caption, hintFor, threatenedMembers } from './describe';
+import { castLead, type Fx } from './fx';
+import { EMPTY_OVERLAY, type Overlay, overlayFor } from './overlay';
+import { Playback } from './playback.svelte';
+import { toast } from './toasts.svelte';
+import { type BoardView, viewOf, withoutIntents } from './view';
+
+export type SessionMode = 'trip' | 'lab';
+
+export interface SessionOptions {
+  /** Interactions the player has recorded (preview wording hides the others). */
+  known: () => readonly InteractionId[];
+  onEvents?: (events: GameEvent[]) => void;
+  /** Play the creation events (enemies declaring intents) on start. */
+  intro?: boolean;
+}
+
+/** One battle being played: authoritative state, input mode, playback. Shared by trip and Lab. */
+export class BattleSession {
+  state: BattleState;
+  log: GameEvent[];
+  input: InputMode = $state.raw(IDLE);
+  /** End turn was tapped once while someone could still cast; any other input disarms it. */
+  armed = $state(false);
+  readonly playback = new Playback();
+  private run = $state(0);
+
+  readonly mode: SessionMode;
+  private readonly opts: SessionOptions;
+
+  constructor(init: ActionResult, mode: SessionMode, opts: SessionOptions) {
+    this.mode = mode;
+    this.opts = opts;
+    this.state = $state.raw(init.state);
+    this.log = $state.raw([...init.events]);
+    this.input = afterAction(init.state, IDLE);
+    if (opts.intro && init.events.length) {
+      void this.play(withoutIntents(viewOf(init.state)), init.events);
+    }
+  }
+
+  get busy(): boolean {
+    return this.playback.playing;
+  }
+
+  get view(): BoardView {
+    return this.playback.current?.view ?? viewOf(this.state);
+  }
+
+  get fx(): Fx[] {
+    return this.playback.current?.fx ?? [];
+  }
+
+  /** Changes on every playback step so effects restart. */
+  get fxKey(): number {
+    return this.run * 1000 + this.playback.index;
+  }
+
+  get overlay(): Overlay {
+    return this.busy ? EMPTY_OVERLAY : overlayFor(this.state, this.input);
+  }
+
+  /** Stays put during playback so the party strip and action bar don't jump. */
+  get selected(): UnitId | null {
+    return selectedOf(this.input);
+  }
+
+  get threatened(): string[] {
+    if (this.busy) return [];
+    // A pending shove or kill can take a member out of harm's way: read the preview.
+    const preview = this.input.kind === 'confirm' ? this.input.preview.result.state : this.state;
+    return threatenedMembers(preview);
+  }
+
+  get caption(): Caption {
+    const step = this.playback.current;
+    if (step) return { text: step.line, tone: 'event' };
+    if (this.armed) {
+      const who = unspentCasters(this.state).join(' and ');
+      return { text: `${who} can still cast. Tap End turn again to end the turn.`, tone: 'warn' };
+    }
+    return hintFor(this.input, this.state);
+  }
+
+  get over(): boolean {
+    return !this.busy && this.state.phase !== 'player';
+  }
+
+  // ── Input (any tap during playback skips it instead) ──
+
+  tapCell(at: { x: number; y: number }): void {
+    if (this.swallow()) return;
+    this.apply(onCell(this.state, this.input, at, this.opts.known()));
+  }
+
+  selectMember(id: UnitId): void {
+    if (this.swallow()) return;
+    this.apply(onMember(this.state, this.input, id));
+  }
+
+  chooseSpell(key: SpellKey): void {
+    if (this.swallow()) return;
+    this.apply(onSpell(this.state, this.input, key, this.opts.known()));
+  }
+
+  chooseShove(): void {
+    if (this.swallow()) return;
+    this.apply(onShove(this.state, this.input));
+  }
+
+  confirm(): void {
+    if (this.swallow()) return;
+    this.apply(onConfirm(this.state, this.input));
+  }
+
+  cancel(): void {
+    if (this.swallow()) return;
+    this.apply(onCancel(this.state, this.input));
+  }
+
+  undoMove(): void {
+    if (this.swallow()) return;
+    const unit = selectedOf(this.input);
+    if (unit) void this.dispatch({ type: 'undoMove', unit });
+  }
+
+  endTurn(): void {
+    if (this.swallow()) return;
+    if (!this.armed && endTurnNeedsConfirm(this.state)) {
+      this.armed = true;
+      return;
+    }
+    void this.dispatch({ type: 'endTurn' });
+  }
+
+  skip(): void {
+    this.playback.skip();
+  }
+
+  /** Applies an action, then animates its events from the previous board. */
+  async dispatch(action: Action): Promise<void> {
+    const prev = this.state;
+    let r: ActionResult;
+    try {
+      r = applyAction(prev, action);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : String(err), 'warn');
+      return;
+    }
+    this.armed = false;
+    this.state = r.state;
+    this.log = [...this.log, ...r.events];
+    this.input = afterAction(r.state, this.input);
+    this.opts.onEvents?.(r.events);
+    await this.play(viewOf(prev), r.events, castLead(prev, action, r.events));
+  }
+
+  dispose(): void {
+    this.playback.skip();
+  }
+
+  private play(start: BoardView, events: readonly GameEvent[], lead: Fx[] = []): Promise<void> {
+    this.run += 1;
+    return this.playback.play(start, events, lead);
+  }
+
+  private apply(r: InputResult): void {
+    this.armed = false;
+    this.input = r.mode;
+    if (r.action) void this.dispatch(r.action);
+  }
+
+  private swallow(): boolean {
+    if (!this.busy) return false;
+    this.skip();
+    return true;
+  }
+}

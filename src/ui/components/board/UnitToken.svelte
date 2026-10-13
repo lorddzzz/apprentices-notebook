@@ -27,7 +27,7 @@
   class="unit"
   style:opacity={dim ? 0.4 : undefined}
   style="transform: translate({unit.pos.x * CELL}px, {unit.pos.y * CELL}px)"
-  out:fade|global={{ duration: 220 }}
+  out:fade={{ duration: 220 }}
 >
   {#if selected}
     <circle cx="50" cy={CY} r="44" fill="var(--select)" opacity="0.4" />
