@@ -20,7 +20,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | W0 | opus (me) | M | merged | 88f115d | 5% | contracts, stubs, save v3, worktrees pruned |
-| P1 | haiku | S | running | | | started ~23:12, port 5191 |
+| P1 | haiku | S | partial | (see log) | ~2% | Lab intro only on demo: done. Bench pips: could not reproduce (render filled at 3/6) → W4 checks on the live build / full score |
 | D1 | haiku | S | merged | (see log) | ~2% | recipe hints rewritten by me (D1's named the ingredients) |
 | E1 | sonnet | M | merged | (see log) | ~6% | added Spell.pierce / SpellNode.pierced |
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
@@ -111,6 +111,8 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
 ## Follow-ups and rough edges
+- Bench empty pips not reproduced by P1 (filled at 3/6, `--m-ink` defined). W4: check the live site and a 6/6 or 0/6 score; ask the player for the exact screen if still unseen.
+- Lab `$effect` skips reloading when the same scenario is loaded, so `?demo=1` in-page does nothing (fresh load works). Pre-existing.
 - tests/sim/fuzz.test.ts bots have no `case 'doorway'` (a bot that picks one spins to the 50-iteration guard). D2 must handle it.
 - Lab palette (Palette.svelte, app/lab.ts) can't paint stain/heat/etch/scald yet (scenario strings work). D2 may add.
 - Codex pages for Heat and Stain interactions not visually checked (W4).

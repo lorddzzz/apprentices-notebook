@@ -86,7 +86,8 @@ export class LabStore {
     // The Lab is the workshop: every interaction is named in previews.
     this.session = new BattleSession(init, 'lab', {
       known: () => INTERACTION_IDS,
-      intro: true,
+      // The intro (enemies declaring their intents) plays only for a demo (S18).
+      intro: opts.demo === true,
       onAction: (before, action) => this.record(before, action),
     });
     this.scenario = def;

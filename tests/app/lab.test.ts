@@ -252,6 +252,18 @@ describe('LabStore', () => {
     );
   });
 
+  test('a plain visit shows the board without the intro', () => {
+    lab = new LabStore(new GameStore(memoryBackend(), () => 0));
+    lab.load('self-combo');
+    expect(lab.session?.busy).toBe(false);
+  });
+
+  test('demo=1 plays the intro', () => {
+    lab = new LabStore(new GameStore(memoryBackend(), () => 0));
+    lab.load('self-combo', { demo: true });
+    expect(lab.session?.busy).toBe(true);
+  });
+
   test('demo=1 plays the scenario actions into the log', async () => {
     lab = new LabStore(new GameStore(memoryBackend(), () => 0));
     lab.load('self-combo', { demo: true });
