@@ -14,6 +14,7 @@ import {
   SOLVENT_IDS,
   type SolventId,
   START_COLLECTION,
+  TUNING,
 } from '$data';
 import {
   type Action,
@@ -22,20 +23,26 @@ import {
   type BattleSpec,
   type BattleState,
   beginEncounter,
+  blockingAuras,
   boardOf,
   type Coord,
   canPlace,
   canUndoMove,
   castableSpells,
+  clustersOf,
   compiledFor,
+  compileGlyph,
   createBattle,
   createRng,
   DIRS,
   deriveSeed,
   describe as describeEvent,
   describeLog,
+  disconnected,
   finishEncounter,
   type GameEvent,
+  glyphLibrary,
+  inkUsed,
   isLegal,
   isSocket,
   key,
@@ -43,12 +50,15 @@ import {
   legalAims,
   legalMoves,
   type MemberUnit,
+  masksFrom,
   memberById,
   newProfile,
   type Profile,
   pickLoot,
+  provenCount,
   pushOn,
   type Rng,
+  recordProof,
   replay,
   returnHome,
   setMemberLattice,
@@ -82,7 +92,7 @@ const issues = new Map<string, { count: number; example: string }>();
 function flag(rule: string, example: string): void {
   const cur = issues.get(rule);
   if (cur) cur.count += 1;
-  else issues.set(rule, { count: 1, example: example.slice(0, 400) });
+  else issues.set(rule, { count: 1, example: example.slice(0, 3000) });
 }
 
 // ── Small helpers ───────────────────────────────────────
@@ -535,6 +545,138 @@ function randomLoadout(seed: number): Profile {
   return Object.keys(validateLoadout(p)).length === 0 ? p : newProfile();
 }
 
+// ── Glyph lattices through the real path ────────────────
+
+const glyphStats = { tried: 0, compiled: 0, castsCompared: 0 };
+
+/** Battle over an encounter board with the profile's compiled spells for the whole party. */
+function profileBattle(p: Profile, enc: number, seed: number): BattleState {
+  const e = ENCOUNTERS[enc % ENCOUNTERS.length];
+  if (!e) throw new Error('no encounter');
+  const party: BattleSpec['party'] = {};
+  for (const m of MEMBER_IDS) {
+    party[m] = { hp: MEMBERS[m].hp, spells: compiledFor(p, m).spells };
+  }
+  return createBattle({ title: e.title, board: e.layout, seed, party }).state;
+}
+
+/** Casts every legal aim of every spell of `m` (capped) and records the masks as full proof. */
+function proveByCasting(p: Profile, m: MemberId, enc: number, seed: number): Profile {
+  const state = profileBattle(p, enc, seed);
+  let out = p;
+  for (const c of castableSpells(state, m)) {
+    if (!c.usable) continue;
+    for (const aim of legalAims(state, m, c.spell.key).slice(0, 12)) {
+      const r = applyAction(state, { type: 'cast', unit: m, spell: c.spell.key, aim });
+      const masks = masksFrom(r.events, m);
+      for (let i = 0; i < TUNING.provenCasts && masks.length > 0; i++) {
+        out = recordProof(out, m, masks);
+      }
+    }
+  }
+  return out;
+}
+
+/** The log lines of every spell/aim both profiles share, cast on the same board. */
+function castLines(p: Profile, m: MemberId, enc: number, seed: number): Map<string, string[]> {
+  const state = profileBattle(p, enc, seed);
+  const out = new Map<string, string[]>();
+  for (const c of castableSpells(state, m)) {
+    if (!c.usable) continue;
+    for (const aim of legalAims(state, m, c.spell.key).slice(0, 6)) {
+      const r = applyAction(state, { type: 'cast', unit: m, spell: c.spell.key, aim });
+      out.set(`${c.spell.key}|${JSON.stringify(aim)}`, describeLog(r.events));
+    }
+  }
+  return out;
+}
+
+/**
+ * Picks a proven, unblocked cluster per member by random and Fair-Copies it. Every invariant is
+ * flagged, never thrown. Returns the profile with whatever compiled.
+ */
+function compileSome(p0: Profile, seed: number): Profile {
+  const rng = createRng(seed ^ 0x6c79);
+  let p = p0;
+  for (const m of MEMBER_IDS) {
+    const enc = rng.int(0, ENCOUNTERS.length - 1);
+    const where = `glyph seed ${seed} ${m} enc ${enc}`;
+    let proven: Profile;
+    let candidates: ReturnType<typeof clustersOf>;
+    try {
+      proven = proveByCasting(p, m, enc, seed);
+      const lib = glyphLibrary(proven);
+      const l = latticeOf(proven, m);
+      // Known engine gap (see research-loop.test.ts): a cell another spell also flows through
+      // (a side entry) is not safe to compile, so those clusters are left out here.
+      const spells = compiledFor(proven, m).spells;
+      const shared = (c: { cells: readonly Coord[] }): boolean =>
+        c.cells.some(
+          (cell) =>
+            spells.filter((sp) => sp.path.some((q) => q.at.x === cell.x && q.at.y === cell.y))
+              .length > 1,
+        );
+      candidates = clustersOf(l, lib).filter(
+        (c) =>
+          !shared(c) &&
+          disconnected(l, c, lib).length === 0 && // the player re-lays tails (plan P2)
+          c.cells.length >= TUNING.glyphMinCells &&
+          c.cells.length <= TUNING.glyphMaxCells &&
+          blockingAuras(l, c, lib).length === 0 &&
+          provenCount(
+            l,
+            c,
+            MEMBER_IDS.flatMap((id) => proven.proof[id] ?? []),
+          ) >= TUNING.provenCasts,
+      );
+    } catch (err) {
+      flag('proving or clustering threw', `${where}: ${String(err)}`);
+      continue;
+    }
+    if (candidates.length === 0) continue;
+    glyphStats.tried += 1;
+    const cluster = pick(rng, candidates);
+    const before = validateLoadout(proven);
+    const flatLines = castLines(proven, m, enc, seed);
+    let next: Profile;
+    try {
+      next = compileGlyph({ ...proven, vellum: proven.vellum + 2 }, m, cluster, 'Fuzzed');
+    } catch (err) {
+      flag('compileGlyph threw on a proven, unblocked cluster', `${where}: ${String(err)}`);
+      continue;
+    }
+    glyphStats.compiled += 1;
+    const after = validateLoadout(next);
+    if (Object.keys(before).length === 0 && Object.keys(after).length > 0) {
+      flag('valid loadout invalid after compileGlyph', `${where} ${JSON.stringify(after)}`);
+    }
+    for (const id of MEMBER_IDS) {
+      const used = inkUsed(latticeOf(next, id), glyphLibrary(next));
+      if (Object.keys(before).length === 0 && used > next.inkCapacity[id]) {
+        flag('inkUsed exceeds capacity after compileGlyph', `${where} ${id} ${used}`);
+      }
+    }
+    try {
+      const glyphLines = castLines(next, m, enc, seed);
+      for (const [k, lines] of flatLines) {
+        const g = glyphLines.get(k);
+        if (!g) continue;
+        glyphStats.castsCompared += 1;
+        if (JSON.stringify(g) !== JSON.stringify(lines)) {
+          flag(
+            'Glyph cast differs from the flat cast (identity)',
+            `${where} ${k}\nFLAT ${lines.join(' / ')}\nGLYPH ${g.join(' / ')}\nLAT ${JSON.stringify(latticeOf(proven, m).runes)}\nAFTER ${JSON.stringify(latticeOf(next, m).runes)}\nGDEF ${JSON.stringify(next.glyphs)}\nCL ${JSON.stringify(cluster)}`,
+          );
+        }
+      }
+    } catch (err) {
+      flag('casting the compiled lattice threw', `${where}: ${String(err)}`);
+    }
+    p = next;
+  }
+  return p;
+}
+
 // ── Stats ───────────────────────────────────────────────
 
 interface Tally {
@@ -766,6 +908,7 @@ function checkTripState(before: Trip | null, t: Trip, p: Profile, where: string)
 function runTrip(seed: number, bot: Bot, replayPick: { n: number }): void {
   const rng = createRng(seed * 2654435761 + BOT_KINDS.indexOf(bot) + 1);
   let p: Profile = seed % 2 === 0 ? newProfile() : randomLoadout(seed);
+  if (seed % 2 !== 0) p = compileSome(p, seed);
   const tt = tripTally(bot);
   tt.runs += 1;
 
@@ -994,8 +1137,28 @@ test(`fuzz: ${SEEDS} trips per bot, invariants on every action`, () => {
     lines.push('violations:');
     for (const [rule, v] of issues) lines.push(`  x${v.count} ${rule}\n      e.g. ${v.example}`);
   }
+  lines.push(
+    `glyphs: tried ${glyphStats.tried}, compiled ${glyphStats.compiled}, casts compared ${glyphStats.castsCompared}`,
+  );
   if (process.env.FUZZ_SEEDS) console.log(lines.join('\n'));
 
   const summary = [...issues.keys()].join('; ');
   expect(summary, summary).toBe('');
 }, 600_000);
+
+test('fuzz: random loadouts Fair-Copy cleanly (no battles, many seeds)', () => {
+  const before = glyphStats.compiled;
+  const seen = new Set(issues.keys());
+  for (let i = 0; i < 24; i++) {
+    const seed = 2001 + i * 2; // odd seeds get random loadouts
+    const p = compileSome(randomLoadout(seed), seed);
+    if (Object.keys(validateLoadout(p)).length > 0)
+      flag('compiled loadout invalid', `seed ${seed}`);
+  }
+  const fresh = [...issues.entries()]
+    .filter(([k]) => !seen.has(k))
+    .map(([k, v]) => `${k}: ${v.example}`)
+    .join('; ');
+  expect(fresh, fresh).toBe('');
+  expect(glyphStats.compiled - before).toBeGreaterThan(0);
+}, 60_000);
