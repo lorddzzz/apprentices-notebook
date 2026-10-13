@@ -3,7 +3,7 @@
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Merge F1, E3, L1 as they report. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**Next:** Merge L1, C1 as they report. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -27,7 +27,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | F1 | sonnet | M | merged | (see log) | ~7% | also touched run.ts compileGlyph + Study.svelte (3 lines), accepted |
 | E3 | sonnet | M | merged | (see log) | ~4% | merge seam with E1 Targets fixed by me |
 | L1 | sonnet | M | running | | | started 22:48, preview dev-alt2 (5191) |
-| C1 | sonnet | M | todo | | | after D1 |
+| C1 | sonnet | M | running | | | started ~22:53, preview dev-alt3 (5192); also owns glyphs.ts, view.ts, fx.ts, SteamLayer |
 | C2 | haiku | S | todo | | | after D1 |
 | R1 | sonnet | L | todo | | | after L1 |
 | S1 | sonnet | M | todo | | | after L1; merge after R1 |
@@ -42,6 +42,8 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:43 | 43 | 3h17m | 46 | narrow? (2.5%/min burst) | D1 merged; hold new spawns until rate settles |
 | 22:44 | 46 | 3h16m | 46 | normal (task budget: 46 + E1/F1 rest ~8 + E3 8 = 62) | E2 merged; spawn E3 |
 | 22:47 | 51 | 3h14m | 47 | normal | E1 merged + pushed; spawn L1 |
+| 22:49 | 58 | 3h11m | 48 | normal (budget) | E3 merged + pushed; no spawn |
+| 22:52 | 60 | 3h10m | 48 | normal | F1 merged + pushed; spawn C1 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
@@ -83,6 +85,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
 ## Follow-ups and rough edges
+- Port 5190 is held by a stale dev server from another session (cwd = main repo). Agents use dev-alt2 (5191) / dev-alt3 (5192).
 - (fixed) aimPreview follows Pierce; recipe.ts reads out all six new runes.
 - UI doesn't draw scalding steam, etched brass, stain or heat yet: C1 (BadgeLayer/TileLayer) must cover `scald`, `etched`, `stain`, `heat`; playback should animate `scalded`, `etched`, `heated`, `cooled`, `stained`, `pierced`.
 - Undo after walking onto a stain (needs `UndoRecord.stain`).
