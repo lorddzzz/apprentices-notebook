@@ -3,7 +3,7 @@
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Merge C2 and S1 as they report. Then HOLD for the 02:00Z reset (epoch 1791943200) unless usage leaves room for P1. After reset: P1 (Haiku S), D2 (fuzz must handle doorway), W4. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**Next:** Merge P1 when it reports, then HOLD for the 02:00Z reset (epoch 1791943200). After reset: D2 (Lab scenarios per new rune/interaction; fuzz bots use new runes, take doorways, play all variants; Lab palette for new tile states optional), then W4 (battle title = variant name?, docs DESIGN §11 + feature doc §0 + TECH §7, code review, verify whole loop, cleanup worktrees). Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -20,7 +20,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | W0 | opus (me) | M | merged | 88f115d | 5% | contracts, stubs, save v3, worktrees pruned |
-| P1 | haiku | S | todo | | | |
+| P1 | haiku | S | running | | | started ~23:12, port 5191 |
 | D1 | haiku | S | merged | (see log) | ~2% | recipe hints rewritten by me (D1's named the ingredients) |
 | E1 | sonnet | M | merged | (see log) | ~6% | added Spell.pierce / SpellNode.pierced |
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
@@ -48,6 +48,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:59 | 75 | 3h01m | 50 | normal→narrow (75 + R1 rest ~10 + C2 3 = 88) | C1 merged + pushed; spawn C2 |
 | 23:02 | 78 | 2h58m | 50 | narrow (78 + C2 2 + S1 8 = 88) | R1 merged + pushed; spawn S1 (told: smallest solution) |
 | 23:03 | 80 | 2h57m | 51 | narrow | C2 merged + pushed; no spawn until S1 reports |
+| 23:11 | 86 | 2h49m | 51 | narrow (86 + P1 3 = 89) | S1 merged + pushed; spawn P1; D2/W4 after reset |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
