@@ -1,4 +1,5 @@
 import {
+  type Aspect,
   CODEX,
   type CodexEntryDef,
   ENCOUNTERS,
@@ -13,6 +14,7 @@ import {
   type MemberId,
   RECIPES,
   RUNE_IDS,
+  RUNES,
   type RuneId,
   SOLVENT_IDS,
   type SolventId,
@@ -172,13 +174,28 @@ export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIss
 }
 
 export function codexView(p: Profile): { entry: CodexEntryDef; known: boolean }[] {
-  return CODEX.map((entry) => ({
-    entry,
-    known:
-      entry.kind === 'rune'
-        ? p.collection[entry.ref as RuneId] > 0
-        : p.interactions.includes(entry.ref as InteractionId),
-  }));
+  const owned = RUNE_IDS.filter((id) => p.collection[id] > 0);
+  return CODEX.map((entry) => {
+    let known: boolean;
+    switch (entry.kind) {
+      case 'rune':
+        known = p.collection[entry.ref as RuneId] > 0;
+        break;
+      case 'interaction':
+        known = p.interactions.includes(entry.ref as InteractionId);
+        break;
+      case 'recipe':
+        known = p.bench.known.includes(entry.ref);
+        break;
+      case 'idiom':
+        known = p.idioms.includes(entry.ref);
+        break;
+      case 'aspect':
+        known = owned.some((id) => RUNES[id].aspects.includes(entry.ref as Aspect));
+        break;
+    }
+    return { entry, known };
+  });
 }
 
 // ── Trip ────────────────────────────────────────────────

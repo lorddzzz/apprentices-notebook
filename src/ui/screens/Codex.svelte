@@ -1,12 +1,22 @@
 <script lang="ts">
-  import { codexView } from '$engine';
+  import { RECIPES } from '$data';
+  import { codexView, silhouettes } from '$engine';
   import { game } from '../../app/instance';
+  import CodexAspect from '../components/codex/CodexAspect.svelte';
   import CodexEntry from '../components/codex/CodexEntry.svelte';
+  import CodexIdiom from '../components/codex/CodexIdiom.svelte';
+  import CodexRecipe from '../components/codex/CodexRecipe.svelte';
   import BackLink from '../components/common/BackLink.svelte';
 
   const entries = $derived(codexView(game.profile));
   const runes = $derived(entries.filter((e) => e.entry.kind === 'rune'));
+  const recipes = $derived(entries.filter((e) => e.entry.kind === 'recipe'));
+  const idioms = $derived(entries.filter((e) => e.entry.kind === 'idiom'));
+  const aspects = $derived(entries.filter((e) => e.entry.kind === 'aspect'));
   const interactions = $derived(entries.filter((e) => e.entry.kind === 'interaction'));
+  const silhouetteOf = $derived(
+    new Map(silhouettes(RECIPES, game.profile.bench.known).map((s) => [s.recipe, s])),
+  );
   const known = $derived(entries.filter((e) => e.known).length);
   // Out on a trip the notebook opens from the road, and closes back onto it.
   const back = $derived(game.save.trip ? 'trip' : 'study');
@@ -25,6 +35,21 @@
     <h2>Runes</h2>
     {#each runes as { entry, known } (entry.id)}
       <CodexEntry {entry} {known} />
+    {/each}
+
+    <h2>Recipes</h2>
+    {#each recipes as { entry, known } (entry.id)}
+      <CodexRecipe {entry} {known} silhouette={silhouetteOf.get(entry.ref)} />
+    {/each}
+
+    <h2>Idioms</h2>
+    {#each idioms as { entry, known } (entry.id)}
+      <CodexIdiom {entry} {known} />
+    {/each}
+
+    <h2>Aspects</h2>
+    {#each aspects as { entry, known } (entry.id)}
+      <CodexAspect {entry} {known} />
     {/each}
 
     <h2>Interactions</h2>

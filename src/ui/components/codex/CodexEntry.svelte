@@ -1,6 +1,7 @@
 <script lang="ts">
   import { type CodexEntryDef, type InteractionId, RUNES, type RuneId } from '$data';
   import { FILLED_INTERACTIONS, INTERACTION_GLYPH } from '../../glyphs';
+  import AspectMark from '../AspectMark.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   interface Props {
@@ -58,6 +59,13 @@
   <div class="text">
     {#if known}
       <h3>{entry.title}</h3>
+      {#if rune}
+        <div class="marks">
+          {#each RUNES[rune].aspects as aspect (aspect)}
+            <AspectMark {aspect} size={18} />
+          {/each}
+        </div>
+      {/if}
       <p class="rule">{entry.text}</p>
       <p class="note">{entry.ownerNote}</p>
     {:else}
@@ -100,6 +108,11 @@
   }
   .unknown {
     min-height: 60px;
+  }
+  .marks {
+    display: flex;
+    gap: var(--space-1);
+    margin-top: 2px;
   }
   .rule {
     margin: 2px 0 0;
