@@ -3,7 +3,7 @@
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Merge R1 and C2 as they report. Then HOLD for the 02:00Z reset (epoch 1791943200). After reset: S1 (Sonnet M), P1 (Haiku S), then D2, W4. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**Next:** Merge C2 and S1 as they report. Then HOLD for the 02:00Z reset (epoch 1791943200) unless usage leaves room for P1. After reset: P1 (Haiku S), D2 (fuzz must handle doorway), W4. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -30,7 +30,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | C1 | sonnet | M | merged | (see log) | ~6% | also UnitToken.svelte + playback fixtures (accepted) |
 | C2 | haiku | S | running | | | started ~23:00, port 5192 |
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
-| S1 | sonnet | M | todo | | | after L1; merge after R1 |
+| S1 | sonnet | M | running | | | started ~23:02, port 5191 |
 | D2 | haiku→sonnet | M | todo | | | all |
 | W4 | opus (me) | S | todo | | | |
 
@@ -45,7 +45,8 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:49 | 58 | 3h11m | 48 | normal (budget) | E3 merged + pushed; no spawn |
 | 22:52 | 60 | 3h10m | 48 | normal | F1 merged + pushed; spawn C1 |
 | 22:56 | 66 | 3h07m | 49 | normal (66 + C1 rest 6 + R1 15 = 87) | L1 merged + pushed; spawn R1 |
-| 22:59 | 75 | 3h01m | 50 | normal→narrow (75 + R1 rest ~10 + C2 3 = 88) | C1 merged + pushed; spawn C2 only; S1/P1/D2/W4 after reset |
+| 22:59 | 75 | 3h01m | 50 | normal→narrow (75 + R1 rest ~10 + C2 3 = 88) | C1 merged + pushed; spawn C2 |
+| 23:02 | 78 | 2h58m | 50 | narrow (78 + C2 2 + S1 8 = 88) | R1 merged + pushed; spawn S1 (told: smallest solution) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
