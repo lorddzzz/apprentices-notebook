@@ -81,3 +81,15 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 17. **Situation:** the engine was complete (294 tests), but every test was hand-written, so a simple strategy could still break it, and nobody knew if the encounters are winnable.
     **Decision:** a haiku agent fuzzes full trips with a random bot and a greedy bot. It checks invariants and reports win rates per encounter. The fixes are decided afterwards.
     **Why:** this catches crashes and balance holes before you play.
+18. **Situation:** U4 (battle input, previews, playback integration) decides how the game feels in your hand.
+    **Decision:** gave it to opus instead of sonnet. It also has to report anything that felt awkward in play.
+    **Why:** UX judgement matters more here than in any other step.
+19. **Situation:** the session hit its usage limit. U4 (opus) was cut off before writing any files, and the fuzz agent (haiku) finished its harness but not its report.
+    **Decision:** I ran the fuzz harness myself and kept it as a regression test: 6 seeds in `pnpm check`, 200 seeds with `pnpm fuzz`. U4 restarts once the fix below lands.
+    **Why:** no work was lost, and the harness is worth keeping.
+20. **Situation:** the fuzz run (200 trips per bot) found no invariant violations, no illegal-action errors and no replay mismatches. It did find a **softlock**: a member walled in by its own Brass-rune plates means rats wait forever and Bolts can't get out.
+    **Decision:** plates raised by the Brass rune crumble after 3 rounds. Layout plates stay permanent.
+    **Why:** this answers DESIGN's open "does terrain decay?" question in the narrowest way, and it removes the softlock without adding a forfeit button.
+21. **Situation (balance flag):** a greedy bot that never dodges intents wins encounter 1 98% of the time, encounter 2 30%, encounter 3 24% and the heart 0%. Starting each encounter at full HP, it wins the heart 21% of the time. A random bot almost always wipes.
+    **Decision:** no tuning yet.
+    **Why:** the bot ignores telegraphs, shoves and Ward, which are exactly what a human uses. Your playtest should decide whether the familiar fight is too hard. If it is, the first knobs are rat count and party HP in `src/data/`.
