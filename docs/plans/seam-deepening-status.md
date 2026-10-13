@@ -3,7 +3,7 @@
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Review/merge wave 1 reports as they arrive (E1, E2, F1, D1 running). Then P1 (after F1 frees port 5190), L1, E3 (after E2), C1/C2 (after D1).
+**Next:** Merge F1, E3, L1 as they report. Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -25,8 +25,8 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | E1 | sonnet | M | merged | (see log) | ~6% | added Spell.pierce / SpellNode.pierced |
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
 | F1 | sonnet | M | running | | | started 22:40 |
-| E3 | sonnet | M | todo | | | after E2 |
-| L1 | sonnet | M | todo | | | |
+| E3 | sonnet | M | running | | | started 22:45 |
+| L1 | sonnet | M | running | | | started 22:48, preview dev-alt2 (5191) |
 | C1 | sonnet | M | todo | | | after D1 |
 | C2 | haiku | S | todo | | | after D1 |
 | R1 | sonnet | L | todo | | | after L1 |
@@ -41,6 +41,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:39 | 33 | 3h21m | 44 | normal | W0 merged; spawn E1 E2 F1 D1 |
 | 22:43 | 43 | 3h17m | 46 | narrow? (2.5%/min burst) | D1 merged; hold new spawns until rate settles |
 | 22:44 | 46 | 3h16m | 46 | normal (task budget: 46 + E1/F1 rest ~8 + E3 8 = 62) | E2 merged; spawn E3 |
+| 22:47 | 51 | 3h14m | 47 | normal | E1 merged + pushed; spawn L1 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
