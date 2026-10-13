@@ -209,6 +209,7 @@ export interface Tuning {
   steamRounds: number;
   plateRounds: number;
   heatRounds: number; // hot brass stays hot this many rounds (re-heating refreshes)
+  heatDamage: number; // hot brass (and Scald's cloud) hits each neighbour/occupant for this at the burn step
   splashRange: number;
   splashRadius: number;
   echoDivisor: number;

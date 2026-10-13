@@ -23,7 +23,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | P1 | haiku | S | todo | | | |
 | D1 | haiku | S | merged | (see log) | ~2% | recipe hints rewritten by me (D1's named the ingredients) |
 | E1 | sonnet | M | running | | | started 22:40 |
-| E2 | sonnet | M | running | | | started 22:40 |
+| E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
 | F1 | sonnet | M | running | | | started 22:40 |
 | E3 | sonnet | M | todo | | | after E2 |
 | L1 | sonnet | M | todo | | | |
@@ -40,6 +40,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 22:32 | 28 | 3h28m (01:59:59Z) | 44 | normal | start, W0 |
 | 22:39 | 33 | 3h21m | 44 | normal | W0 merged; spawn E1 E2 F1 D1 |
 | 22:43 | 43 | 3h17m | 46 | narrow? (2.5%/min burst) | D1 merged; hold new spawns until rate settles |
+| 22:44 | 46 | 3h16m | 46 | normal (task budget: 46 + E1/F1 rest ~8 + E3 8 = 62) | E2 merged; spawn E3 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
@@ -48,6 +49,16 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - D1: Heat interaction text folds the 2 rounds and 1 damage into one sentence. Accepted.
 - D1: all hints and owner notes written in the owner's voice by D1 (recipe hints rewritten by orchestrator). Player judges.
 
+- E2: heat is checked on ignite (refreshing) and at the start of each hazard step for cold brass next to fire; it does not refresh every round (else a 2-round fire gives 3 scalds). Accepted.
+- E2: re-heating hot brass is silent; only cold brass emits `heated`. Accepted.
+- E2: hot brass scalds after fire damage via dealDamage, source "Heated brass"; it does not detonate inked survivors (unlike fire). Accepted (ask player if detonation feels missing).
+- E2: scald order = hot sources in reading order, then victims; a unit beside two hot sources takes 2. Accepted.
+- E2: ink stains oil under a unit too, but not oil under steam. Accepted.
+- E2: a stain persists after being walked on (unlike a puddle); if both are on a tile the puddle fires first. Accepted.
+- E2: a move ending on a stain cannot be undone (UndoRecord can't record it). Accepted for now; follow-up.
+- E2: fire and a crumbling plate clear stain and heat silently. Accepted.
+
 ## Decisions and fixes made during the build
 
 ## Follow-ups and rough edges
+- Undo after walking onto a stain (needs `UndoRecord.stain`).

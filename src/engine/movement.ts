@@ -7,14 +7,25 @@ import { applyOil } from './materials';
 import { inBoard, reachable, tileAt, unitAt } from './queries';
 import type { EnemyUnit, MemberUnit, Unit } from './types';
 
-/** An ink puddle marks whoever ends a move on it (if not already inked) and is consumed. */
-export function settle(ctx: Ctx, unit: Unit): boolean {
+/**
+ * An ink puddle marks whoever ends a move on it (if not already inked) and is consumed. Stained
+ * oil marks too, and stays. Returns what inked the unit, if anything.
+ */
+export function settle(ctx: Ctx, unit: Unit): 'puddle' | 'stain' | null {
   const tile = tileAt(ctx.s, unit.pos);
-  if (!tile.ink || unit.inked) return false;
-  unit.inked = true;
-  tile.ink = false;
-  emit(ctx, { type: 'inked', unit: ref(unit), via: 'puddle' });
-  return true;
+  if (unit.inked) return null;
+  if (tile.ink) {
+    unit.inked = true;
+    tile.ink = false;
+    emit(ctx, { type: 'inked', unit: ref(unit), via: 'puddle' });
+    return 'puddle';
+  }
+  if (tile.stain) {
+    unit.inked = true;
+    emit(ctx, { type: 'inked', unit: ref(unit), via: 'stain' });
+    return 'stain';
+  }
+  return null;
 }
 
 /** Member move action (legality checked by the caller). */
@@ -25,8 +36,9 @@ export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   emit(ctx, { type: 'moved', unit: ref(m), to: { ...to }, path: reach.path });
   m.pos = { ...to };
   m.moved = true;
-  const puddle = settle(ctx, m);
-  m.undo = { from, puddle };
+  const inkedBy = settle(ctx, m);
+  // A stain stays sprung: walking into one can't be taken back.
+  m.undo = inkedBy === 'stain' ? null : { from, puddle: inkedBy === 'puddle' };
 }
 
 export function undoMove(ctx: Ctx, m: MemberUnit): void {

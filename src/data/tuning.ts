@@ -16,6 +16,7 @@ export const TUNING: Tuning = {
   steamRounds: 2,
   plateRounds: 3,
   heatRounds: 2,
+  heatDamage: 1,
   splashRange: 3,
   splashRadius: 1,
   echoDivisor: 2,

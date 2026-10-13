@@ -6,13 +6,14 @@ import {
   brassNet,
   clip,
   inBoard,
+  isAlive,
   isBrassTile,
   oilRegion,
   steamCloud,
   tileAt,
   unitAt,
 } from './queries';
-import type { CellKey, Unit } from './types';
+import type { CellKey, Tile, Unit } from './types';
 
 /**
  * Material runes and their chain reactions. Every apply takes target tiles, processes them in
@@ -26,6 +27,7 @@ export function applyInk(ctx: Ctx, tiles: readonly Coord[]): Unit[] {
   const s = ctx.s;
   const cloudDone = new Set<CellKey>();
   const pooled: Coord[] = [];
+  const stained: Coord[] = [];
   const marked: Unit[] = [];
   const mark = (c: Coord) => {
     const u = unitAt(s, c);
@@ -46,9 +48,62 @@ export function applyInk(ctx: Ctx, tiles: readonly Coord[]): Unit[] {
       tile.ink = true;
       pooled.push(t);
     }
+    // Ink landing on unlit oil (not under steam, where it diffuses instead) stains it.
+    if (!tile.steam && canStain(tile)) {
+      tile.stain = true;
+      stained.push(t);
+    }
   }
   if (pooled.length) emit(ctx, { type: 'puddle', tiles: pooled });
+  if (stained.length) emit(ctx, { type: 'stained', tiles: stained });
   return marked;
+}
+
+const canStain = (tile: Tile): boolean => tile.oil && tile.fire === 0 && !tile.stain && !tile.plate;
+
+/**
+ * Heats brass: plates on `tiles` and brass units in `units` get `TUNING.heatRounds` hot rounds
+ * (re-heating refreshes the count). Only what was cold is reported as `heated`. Non-brass tiles
+ * and units are ignored, so callers (fire, Kiln) can pass candidates freely.
+ */
+export function heatBrass(ctx: Ctx, tiles: readonly Coord[], units: readonly Unit[]): void {
+  const newTiles: Coord[] = [];
+  const newUnits: Unit[] = [];
+  for (const c of clip(ctx.s, tiles)) {
+    const tile = tileAt(ctx.s, c);
+    if (!tile.plate) continue;
+    if (tile.heat === 0) newTiles.push(c);
+    tile.heat = TUNING.heatRounds;
+  }
+  for (const u of units) {
+    if (!u.brass || !isAlive(u)) continue;
+    if (u.heat === 0) newUnits.push(u);
+    u.heat = TUNING.heatRounds;
+  }
+  if (newTiles.length || newUnits.length)
+    emit(ctx, { type: 'heated', tiles: newTiles, units: newUnits.map((u) => ref(u)) });
+}
+
+/**
+ * Fire heats the brass orthogonally next to it and the brass unit standing in it. With
+ * `refresh: false` brass that is already hot is left alone (the per-round check must not extend
+ * the count; only a new ignition does).
+ */
+export function heatNearFire(ctx: Ctx, fires: readonly Coord[], refresh: boolean): void {
+  const s = ctx.s;
+  const seen = new Set<CellKey>();
+  const tiles: Coord[] = [];
+  const units: Unit[] = [];
+  for (const f of fires) {
+    for (const c of [f, ...neighbors4(f)]) {
+      if (!inBoard(s, c) || seen.has(key(c))) continue;
+      seen.add(key(c));
+      const u = unitAt(s, c);
+      if (tileAt(s, c).plate && (refresh || tileAt(s, c).heat === 0)) tiles.push(c);
+      else if (u?.brass && (refresh || u.heat === 0)) units.push(u);
+    }
+  }
+  heatBrass(ctx, tiles, units);
 }
 
 /** Inks a unit that isn't yet; records it in `into`. */
@@ -163,6 +218,8 @@ export function applyBrass(ctx: Ctx, tiles: readonly Coord[]): void {
       steam: 0,
       fire: 0,
       vent: false,
+      stain: false,
+      heat: 0,
     });
     plates.push(t);
   }
@@ -230,9 +287,14 @@ export function ignite(ctx: Ctx, at: Coord): void {
       return t.oil && t.fire === 0 && t.steam > 0;
     }),
   );
-  for (const t of region) tileAt(s, t).fire = TUNING.fireRounds;
+  for (const t of region) {
+    const tile = tileAt(s, t);
+    tile.fire = TUNING.fireRounds;
+    tile.stain = false; // the oil burns, and the stain with it
+  }
   emit(ctx, { type: 'ignite', at: { ...at }, tiles: region });
   if (smothered.length) emit(ctx, { type: 'extinguish', tiles: smothered });
+  heatNearFire(ctx, region, true);
   for (const t of region) {
     const u = unitAt(s, t);
     if (u) burn(ctx, u);

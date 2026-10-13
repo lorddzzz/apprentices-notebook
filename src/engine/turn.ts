@@ -3,10 +3,10 @@ import { enemyPhase } from './ai';
 import { runEchoes } from './cast';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { burn, dealDamage } from './damage';
-import { byReadingOrder, type Coord, step } from './grid';
-import { applyInk } from './materials';
+import { byReadingOrder, type Coord, neighbors4, step } from './grid';
+import { applyInk, heatNearFire } from './materials';
 import { enemies, isAlive, livingUnits, members, tileAt, travel, unitAt } from './queries';
-import type { EnemyUnit } from './types';
+import type { EnemyUnit, Unit } from './types';
 
 /**
  * End of turn: telegraphed attacks resolve in intent order, hazards tick, the round advances, the
@@ -54,13 +54,56 @@ function tileCoord(i: number, width: number): Coord {
   return { x: i % width, y: Math.floor(i / width) };
 }
 
-/** Fire burns, then fire and steam age, then vents refill. */
+/** Scalding from hot brass: `heatDamage` to each orthogonal neighbour, normal damage path (inked +1 applies). */
+
+function scaldFromHeat(ctx: Ctx): void {
+  const s = ctx.s;
+  type Source = { at: Coord; unit: Unit | null };
+  const sources: Source[] = [
+    ...livingUnits(s)
+      .filter((u) => u.brass && u.heat > 0)
+      .map((u) => ({ at: u.pos, unit: u })),
+    ...s.tiles.flatMap((t, i) =>
+      t.plate && t.heat > 0 ? [{ at: tileCoord(i, s.width), unit: null }] : [],
+    ),
+  ].sort((a, b) => byReadingOrder(a.at, b.at));
+  for (const src of sources) {
+    if (src.unit && !isAlive(src.unit)) continue;
+    for (const n of neighbors4(src.at).sort(byReadingOrder)) {
+      const victim = unitAt(s, n);
+      if (victim && victim !== src.unit) dealDamage(ctx, victim, TUNING.heatDamage, 'Heated brass');
+    }
+  }
+}
+
+/** Hot brass counts down; whatever reaches 0 cools. */
+function coolBrass(ctx: Ctx): void {
+  const s = ctx.s;
+  const tiles: Coord[] = [];
+  const units: Unit[] = [];
+  s.tiles.forEach((t, i) => {
+    if (t.heat > 0 && --t.heat === 0) tiles.push(tileCoord(i, s.width));
+  });
+  for (const u of livingUnits(s)) if (u.heat > 0 && --u.heat === 0) units.push(u);
+  if (tiles.length || units.length)
+    emit(ctx, { type: 'cooled', tiles, units: units.map((u) => ref(u)) });
+}
+
+/** Fire burns, hot brass scalds, then heat, fire and steam age, then vents refill. */
 function hazards(ctx: Ctx): void {
   const s = ctx.s;
+  // Brass that came to rest beside burning oil since the ignition catches the heat now.
+  heatNearFire(
+    ctx,
+    s.tiles.flatMap((t, i) => (t.fire > 0 ? [tileCoord(i, s.width)] : [])),
+    false,
+  );
   const onFire = livingUnits(s)
     .filter((u) => tileAt(s, u.pos).fire > 0)
     .sort((a, b) => byReadingOrder(a.pos, b.pos));
   for (const u of onFire) if (isAlive(u)) burn(ctx, u);
+  scaldFromHeat(ctx);
+  coolBrass(ctx);
 
   const out: Coord[] = [];
   const faded: Coord[] = [];
@@ -68,11 +111,13 @@ function hazards(ctx: Ctx): void {
   s.tiles.forEach((t, i) => {
     if (t.fire > 0 && --t.fire === 0) {
       t.oil = false;
+      t.stain = false;
       out.push(tileCoord(i, s.width));
     }
     if (t.steam > 0 && --t.steam === 0) faded.push(tileCoord(i, s.width));
     if (t.plate && t.plateRounds > 0 && --t.plateRounds === 0) {
       t.plate = false;
+      t.heat = 0;
       crumbled.push(tileCoord(i, s.width));
     }
   });
