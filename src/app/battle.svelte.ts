@@ -180,6 +180,20 @@ export class BattleSession {
     await this.play(viewOf(prev), r.events, castLead(prev, action, r.events));
   }
 
+  /** Dev only: ends the fight at once (all enemies down, or the whole party). */
+  forceEnd(phase: 'won' | 'lost'): void {
+    this.skip();
+    const down = phase === 'won' ? 'enemy' : 'member';
+    const next: BattleState = {
+      ...this.state,
+      phase,
+      units: this.state.units.map((u) => (u.kind === down ? { ...u, hp: 0 } : u)),
+    };
+    this.state = next;
+    this.input = IDLE;
+    this.log = [...this.log, { type: phase }];
+  }
+
   dispose(): void {
     this.playback.skip();
   }

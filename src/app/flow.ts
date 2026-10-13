@@ -1,5 +1,21 @@
 import type { InteractionId, MemberId } from '$data';
-import type { Coord, LootItem, SaveData, Trip } from '$engine';
+import {
+  type ActionResult,
+  type BattleState,
+  beginEncounter,
+  type Coord,
+  discoveriesIn,
+  finishEncounter,
+  type GameEvent,
+  type LootItem,
+  nextTripSeed,
+  pickLoot,
+  pushOn,
+  returnHome,
+  type SaveData,
+  startTrip,
+  type Trip,
+} from '$engine';
 import type { Route } from './routes';
 import { parseSaveText, type SaveBackend, writeSave } from './save';
 import { editProfile, type ShelfTool, type SocketDecision } from './study';
@@ -98,4 +114,70 @@ export function editAndPersist(
 /** Pasted save text → SaveData. Throws a readable message when it isn't one. */
 export function importSave(text: string): SaveData {
   return parseSaveText(text.trim());
+}
+
+// ── Trip reducers (pure; the GameStore persists after each) ──
+
+/** The trip a save is on, or a readable error (a screen out of step with the save is a bug, not a crash). */
+function tripOf(save: SaveData): Trip {
+  if (!save.trip) throw new Error('The party is not out on a trip');
+  return save.trip;
+}
+
+/** A fresh trip from the study: advances the seed counter, full HP and charges. Throws if the loadout is not ready. */
+export function setOut(save: SaveData): SaveData {
+  if (save.trip) throw new Error('The party is already out');
+  const { seed, save: next } = nextTripSeed(save);
+  return { ...next, trip: startTrip(next.profile, seed) };
+}
+
+/** The current encounter's battle. The same save always gives the same fight (reload restarts it). */
+export function startBattle(save: SaveData): ActionResult {
+  return beginEncounter(save.profile, tripOf(save));
+}
+
+export interface BattleEnd {
+  save: SaveData;
+  outcome: 'won' | 'wiped';
+  /** Set when the trip ended; the Wiped screen reads it. */
+  wipe: WipeSummary | null;
+  /** Interactions this battle taught that the notebook did not have yet. */
+  learned: InteractionId[];
+}
+
+/** Closes a finished battle: won → looting, wiped → trip gone, pending loot lost, discoveries kept. */
+export function endBattle(save: SaveData, battle: BattleState): BattleEnd {
+  const trip = tripOf(save);
+  const r = finishEncounter(save.profile, trip, battle);
+  const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
+  const next: SaveData = { ...save, profile: r.profile, trip: r.trip };
+  const wipe: WipeSummary | null =
+    r.outcome === 'wiped' ? { encounter: battle.title, lost: [...trip.loot], learned } : null;
+  return { save: next, outcome: r.outcome, wipe, learned };
+}
+
+/** Takes offer `index` into the pending loot (the engine moves the trip on after the last pick). */
+export function takeOffer(save: SaveData, index: number): SaveData {
+  return { ...save, trip: pickLoot(tripOf(save), index) };
+}
+
+export function pushOnward(save: SaveData): SaveData {
+  return { ...save, trip: pushOn(tripOf(save)) };
+}
+
+/** Back to the study with the loot banked. */
+export function goHome(save: SaveData): SaveData {
+  return { ...save, profile: returnHome(save.profile, tripOf(save)), trip: null };
+}
+
+/**
+ * Interactions in `events` that deserve a "New in the notebook" toast: not in the notebook yet and
+ * not already toasted this trip.
+ */
+export function newDiscoveries(
+  events: readonly GameEvent[],
+  known: readonly InteractionId[],
+  toasted: readonly InteractionId[],
+): InteractionId[] {
+  return discoveriesIn(events).filter((d) => !known.includes(d) && !toasted.includes(d));
 }

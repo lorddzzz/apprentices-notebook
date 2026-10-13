@@ -1,4 +1,4 @@
-import { ATTACKS, type InteractionId, RUNES } from '$data';
+import { ATTACKS, CODEX, ENCOUNTERS, type InteractionId, MEMBERS, RUNES } from '$data';
 import {
   type Action,
   type Aim,
@@ -10,6 +10,7 @@ import {
   findUnit,
   type GameEvent,
   intentPreview,
+  type LootItem,
   label,
   legalMoves,
   livingUnits,
@@ -303,4 +304,39 @@ export function threatenedMembers(s: BattleState): string[] {
     if (victim?.kind === 'member' && !out.includes(victim.id)) out.push(victim.id);
   }
   return out;
+}
+
+// ── Expedition wording ──
+
+/** "Ignite" for the codex entry of an interaction. */
+export function interactionTitle(id: InteractionId): string {
+  return CODEX.find((e) => e.kind === 'interaction' && e.ref === id)?.title ?? id;
+}
+
+/** One line for a loot item: name, then what it does. */
+export function lootLine(item: LootItem): { title: string; text: string } {
+  switch (item.kind) {
+    case 'rune':
+      return { title: RUNES[item.rune].name, text: RUNES[item.rune].rule };
+    case 'ink':
+      return {
+        title: `+${item.amount} ink`,
+        text: `A bigger ink pot for the ${MEMBERS[item.member].name}.`,
+      };
+    case 'research':
+      return {
+        title: `Research ×${item.amount}`,
+        text: 'Notes for the workshop. Nothing to spend them on yet.',
+      };
+  }
+}
+
+/** A short label for a loot item where space is tight ("Bolt", "+2 ink"). */
+export function lootName(item: LootItem): string {
+  return lootLine(item).title;
+}
+
+/** "Three rats" for trip encounter `i`; the next one's title on the Push on button. */
+export function encounterTitle(i: number): string {
+  return ENCOUNTERS[i]?.title ?? 'The Seam';
 }
