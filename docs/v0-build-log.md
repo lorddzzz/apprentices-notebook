@@ -104,3 +104,9 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
 23. **Situation:** you asked me to watch usage. After U4, the 5-hour window was at 35%.
     **Decision:** reordered the remaining work to U6 (Study, Codex, saves), then U7 (the expedition, which makes v0 playable end to end), then U5 (Lab power tools). They run on sonnet, with opus held back for fixes. The plans and a resume file (`docs/v0-status.md`) are in the repo. Above 80% usage, agents wrap up and write state.
     **Why:** a playable game first; Lab tools are a bonus.
+24. **Situation:** U6 (Study, Codex, saves) landed. Its agent made several calls:
+    - The Study menu has Visit the Lab, Copy save, and Paste save. Paste uses a text box with a "Replace my save" button, because clipboard reads are unreliable on iOS.
+    - A corrupt save is kept as a backup and a new game starts, with a warning toast.
+    - The Lab uses your own lattices when a scenario doesn't define them.
+    **Decision:** accepted all of these. The Svelte autofixer crashes on `game.svelte.ts`, so that file is only typechecked and linted.
+    **Why:** this is the safest way to handle saves on iOS.
