@@ -15,6 +15,10 @@ const board: BoardView = {
     fire: 0,
     plate: false,
     vent: false,
+    stain: false,
+    heat: 0,
+    etched: false,
+    scald: false,
   })),
   units: [],
   round: 1,
@@ -44,6 +48,29 @@ test('damage → float "−3"', () => {
   };
   expect(fxFor(e, board)).toEqual([
     { kind: 'float', at: { x: 2, y: 1 }, text: '−3', tone: 'danger' },
+  ]);
+});
+
+test('seam events: pierced hits, heated and scalded burn, stained and etched ink', () => {
+  const a = { x: 1, y: 1 };
+  const b = { x: 2, y: 1 };
+  expect(fxFor({ type: 'pierced', source: 'Bolt', unit: ref(a) }, board)).toEqual([
+    { kind: 'pulse', at: a, tone: 'danger' },
+  ]);
+  expect(fxFor({ type: 'heated', tiles: [a], units: [ref(b)] }, board)).toEqual([
+    { kind: 'burst', cells: [a, b], tone: 'fire', stagger: 50 },
+  ]);
+  expect(fxFor({ type: 'cooled', tiles: [a], units: [] }, board)).toEqual([
+    { kind: 'burst', cells: [a], tone: 'steam', stagger: 0 },
+  ]);
+  expect(fxFor({ type: 'scalded', tiles: [a, b] }, board)).toEqual([
+    { kind: 'burst', cells: [a, b], tone: 'fire', stagger: 50 },
+  ]);
+  expect(fxFor({ type: 'stained', tiles: [a] }, board)).toEqual([
+    { kind: 'burst', cells: [a], tone: 'ink', stagger: 0 },
+  ]);
+  expect(fxFor({ type: 'etched', tiles: [a], units: [ref(b)] }, board)).toEqual([
+    { kind: 'burst', cells: [a, b], tone: 'ink', stagger: 0 },
   ]);
 });
 

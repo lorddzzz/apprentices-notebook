@@ -136,6 +136,10 @@ test('buildSteps: step i view = project of steps 0..i', () => {
       fire: 0,
       plate: false,
       vent: false,
+      stain: false,
+      heat: 0,
+      etched: false,
+      scald: false,
     })),
     units: [
       {
@@ -151,6 +155,8 @@ test('buildSteps: step i view = project of steps 0..i', () => {
         brass: false,
         oilSoaked: false,
         branded: false,
+        heat: 0,
+        etched: false,
         alive: true,
         intent: null,
       },

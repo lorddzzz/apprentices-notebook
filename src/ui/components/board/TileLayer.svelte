@@ -21,10 +21,19 @@
 
   {#if tile.oil}
     <rect x="1" y="1" width="98" height="98" fill="var(--m-oil-tint)" />
-    <g stroke="var(--m-oil)" stroke-width="3.5" stroke-linecap="round" opacity="0.75" fill="none">
+    <g stroke={tile.stain ? 'var(--m-ink)' : 'var(--m-oil)'} stroke-width="3.5" stroke-linecap="round" opacity="0.75" fill="none">
       <path d="M14 46 46 14" />
       <path d="M12 74 74 12" />
       <path d="M44 88 88 44" />
+    </g>
+  {/if}
+
+  {#if tile.oil && tile.stain}
+    <rect x="1" y="1" width="98" height="98" fill="var(--m-ink)" opacity="0.22" data-state="stain" />
+    <g fill="var(--m-ink)" opacity="0.85">
+      <path d="M80 20c-3 4-5 6-5 8.5a5 5 0 0 0 10 0c0-2.5-2-4.5-5-8.5z" />
+      <path d="M22 72c-2.2 3-3.6 4.4-3.6 6.2a3.6 3.6 0 0 0 7.2 0c0-1.8-1.4-3.2-3.6-6.2z" />
+      <circle cx="60" cy="84" r="3" />
     </g>
   {/if}
 
@@ -55,6 +64,23 @@
     </g>
   {/if}
 
+  {#if tile.plate && tile.etched}
+    <g data-state="etched" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M30 66 44 40 54 56 70 32" stroke="var(--parchment)" stroke-width="8" opacity="0.55" />
+      <path d="M30 66 44 40 54 56 70 32" stroke="var(--m-brass-dark)" stroke-width="4.5" />
+      <path d="M36 74 62 66M50 30 60 38" stroke="var(--m-brass-dark)" stroke-width="3" opacity="0.8" />
+    </g>
+  {/if}
+
+  {#if tile.plate && tile.heat > 0}
+    <g data-state="hot">
+      <rect x="8" y="8" width="84" height="84" rx="6" fill="var(--m-fire)" opacity="0.5" />
+      <rect x="5" y="5" width="90" height="90" rx="8" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
+      <path d="M26 28c-3-4 3-6 0-11M50 28c-3-4 3-6 0-11M74 28c-3-4 3-6 0-11" fill="none" stroke="var(--parchment)" stroke-width="4" stroke-linecap="round" opacity="0.85" />
+      <text x="93" y="95" text-anchor="end" font-size="24" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.heat}</text>
+    </g>
+  {/if}
+
   {#if tile.vent}
     <circle cx="50" cy="50" r="31" fill="var(--vent)" stroke="var(--ink)" stroke-width="4" />
     <g fill="var(--parchment)" opacity="0.8">
@@ -70,6 +96,22 @@
     transform-box: fill-box;
     transform-origin: 50% 100%;
     animation: flare 320ms ease-out both;
+  }
+  .glow {
+    animation: glow 1.4s ease-in-out infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glow {
+      animation: none;
+    }
+  }
+  @keyframes glow {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
   }
   @keyframes flare {
     from {

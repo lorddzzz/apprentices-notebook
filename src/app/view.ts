@@ -17,6 +17,10 @@ export interface TileView {
   fire: number;
   plate: boolean;
   vent: boolean;
+  stain: boolean;
+  heat: number;
+  etched: boolean;
+  scald: boolean;
 }
 
 export interface UnitView {
@@ -32,6 +36,8 @@ export interface UnitView {
   brass: boolean;
   oilSoaked: boolean;
   branded: boolean;
+  heat: number;
+  etched: boolean;
   alive: boolean;
   intent: Intent | null;
 }
@@ -49,13 +55,17 @@ export function viewOf(s: BattleState): BoardView {
   return {
     width: s.width,
     height: s.height,
-    tiles: s.tiles.map(({ oil, ink, steam, fire, plate, vent }) => ({
+    tiles: s.tiles.map(({ oil, ink, steam, fire, plate, vent, stain, heat, etched, scald }) => ({
       oil,
       ink,
       steam,
       fire,
       plate,
       vent,
+      stain,
+      heat,
+      etched,
+      scald,
     })),
     units: s.units.map((u) => ({
       id: u.id,
@@ -70,6 +80,8 @@ export function viewOf(s: BattleState): BoardView {
       brass: u.brass,
       oilSoaked: u.oilSoaked,
       branded: u.branded,
+      heat: u.heat,
+      etched: u.etched,
       alive: u.hp > 0,
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
     })),
@@ -97,6 +109,8 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
         brass: b.brass,
         oilSoaked: false,
         branded: b.branded,
+        heat: b.heat,
+        etched: b.etched,
         alive: true,
         intent: null,
       };
@@ -117,6 +131,8 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
       brass: def.brass || b.brass,
       oilSoaked: def.oilSoaked,
       branded: b.branded,
+      heat: b.heat,
+      etched: b.etched,
       alive: true,
       intent: null,
     };
@@ -225,25 +241,63 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       patchTiles(v, e.tiles, { steam: TUNING.steamRounds });
       break;
     case 'plates':
-      patchTiles(v, e.tiles, { plate: true, oil: false, ink: false, steam: 0, fire: 0 });
+      patchTiles(v, e.tiles, {
+        plate: true,
+        oil: false,
+        ink: false,
+        steam: 0,
+        fire: 0,
+        stain: false,
+        scald: false,
+      });
       break;
     case 'ignite':
-      patchTiles(v, e.tiles, { oil: true, fire: TUNING.fireRounds });
+      patchTiles(v, e.tiles, { oil: true, fire: TUNING.fireRounds, stain: false });
       break;
     case 'extinguish':
       patchTiles(v, e.tiles, { fire: 0 });
       break;
     case 'fireOut':
-      patchTiles(v, e.tiles, { fire: 0, oil: false });
+      patchTiles(v, e.tiles, { fire: 0, oil: false, stain: false });
       break;
     case 'steamFades':
-      patchTiles(v, e.tiles, { steam: 0 });
+      patchTiles(v, e.tiles, { steam: 0, scald: false });
       break;
     case 'plateCrumbles':
-      patchTiles(v, e.tiles, { plate: false });
+      patchTiles(v, e.tiles, { plate: false, heat: 0, etched: false });
       break;
     case 'vent':
       patchTiles(v, [e.at], { steam: TUNING.steamRounds });
+      break;
+    case 'heated':
+      patchTiles(v, e.tiles, { heat: TUNING.heatRounds });
+      for (const r of e.units) {
+        patchUnit(v, r.id, (u) => {
+          u.heat = TUNING.heatRounds;
+        });
+      }
+      break;
+    case 'cooled':
+      patchTiles(v, e.tiles, { heat: 0 });
+      for (const r of e.units) {
+        patchUnit(v, r.id, (u) => {
+          u.heat = 0;
+        });
+      }
+      break;
+    case 'scalded':
+      patchTiles(v, e.tiles, { steam: TUNING.steamRounds, scald: true });
+      break;
+    case 'stained':
+      patchTiles(v, e.tiles, { stain: true });
+      break;
+    case 'etched':
+      patchTiles(v, e.tiles, { etched: true });
+      for (const r of e.units) {
+        patchUnit(v, r.id, (u) => {
+          u.etched = true;
+        });
+      }
       break;
     case 'telegraph':
       patchUnit(v, e.unit.id, (u) => {

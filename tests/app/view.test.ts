@@ -27,6 +27,8 @@ function unit(id: string, kind: 'member' | 'enemy', pos: Coord, hp = 3): UnitVie
     brass: false,
     oilSoaked: false,
     branded: false,
+    heat: 0,
+    etched: false,
     alive: true,
     intent: null,
   };
@@ -43,6 +45,10 @@ function fixture(): BoardView {
       fire: 0,
       plate: false,
       vent: false,
+      stain: false,
+      heat: 0,
+      etched: false,
+      scald: false,
     })),
     units: [unit('draughtsman', 'member', { x: 0, y: 0 }), unit('rat-1', 'enemy', { x: 2, y: 1 })],
     round: 1,
@@ -128,6 +134,10 @@ test('plates clear other layers', () => {
     fire: 0,
     plate: true,
     vent: false,
+    stain: false,
+    heat: 0,
+    etched: false,
+    scald: false,
   });
   v = project(v, { type: 'plateCrumbles', tiles: [at] });
   expect(tile(v, 1, 1)?.plate).toBe(false);
@@ -192,7 +202,20 @@ test('viewOf copies a battle state', () => {
     title: 't',
     width: 1,
     height: 1,
-    tiles: [{ oil: true, ink: false, steam: 1, fire: 0, plate: false, vent: false }],
+    tiles: [
+      {
+        oil: true,
+        ink: false,
+        steam: 1,
+        fire: 0,
+        plate: false,
+        vent: false,
+        stain: true,
+        heat: 0,
+        etched: false,
+        scald: false,
+      },
+    ],
     units: [
       {
         kind: 'enemy',
@@ -207,6 +230,8 @@ test('viewOf copies a battle state', () => {
         brass: false,
         oilSoaked: false,
         branded: false,
+        heat: 2,
+        etched: true,
         intent: null,
       },
     ],
@@ -214,7 +239,7 @@ test('viewOf copies a battle state', () => {
     phase: 'player',
   } as unknown as BattleState;
   const v = viewOf(s);
-  expect(v.units[0]).toMatchObject({ alive: false, hp: 0, kind: 'enemy' });
+  expect(v.units[0]).toMatchObject({ alive: false, hp: 0, kind: 'enemy', heat: 2, etched: true });
   expect(v.tiles[0]).toEqual(s.tiles[0]);
   expect(v.tiles[0]).not.toBe(s.tiles[0]);
 });
@@ -250,4 +275,53 @@ test('viewOfSpec maps parseBoard tiles and units', () => {
 test('viewOfSpec ids match what the engine would assign', () => {
   const v = viewOfSpec(parseBoard('r . r\nS . d'));
   expect(v.units.map((u) => u.id)).toEqual(['rat-1', 'rat-2', 'stoker', 'dummy-1']);
+});
+
+test('stained, heated, cooled, scalded and etched project onto tiles and units', () => {
+  const at = { x: 1, y: 1 };
+  const plate = { x: 0, y: 2 };
+  const rat = ref('rat-1', { x: 2, y: 1 });
+  let v = project(fixture(), { type: 'oiled', tiles: [at] });
+  v = project(v, { type: 'stained', tiles: [at] });
+  expect(tile(v, 1, 1)).toMatchObject({ oil: true, stain: true });
+  v = project(v, { type: 'plates', tiles: [plate] });
+  v = project(v, { type: 'heated', tiles: [plate], units: [rat] });
+  expect(tile(v, 0, 2)?.heat).toBe(TUNING.heatRounds);
+  expect(unitOf(v, 'rat-1').heat).toBe(TUNING.heatRounds);
+  v = project(v, { type: 'etched', tiles: [plate], units: [rat] });
+  expect(tile(v, 0, 2)?.etched).toBe(true);
+  expect(unitOf(v, 'rat-1').etched).toBe(true);
+  v = project(v, { type: 'cooled', tiles: [plate], units: [rat] });
+  expect(tile(v, 0, 2)?.heat).toBe(0);
+  expect(unitOf(v, 'rat-1').heat).toBe(0);
+  // a crumbling plate takes its heat and etching with it
+  v = project(v, { type: 'heated', tiles: [plate], units: [] });
+  v = project(v, { type: 'plateCrumbles', tiles: [plate] });
+  expect(tile(v, 0, 2)).toMatchObject({ plate: false, heat: 0, etched: false });
+  v = project(v, { type: 'scalded', tiles: [{ x: 3, y: 0 }] });
+  expect(tile(v, 3, 0)).toMatchObject({ steam: TUNING.steamRounds, scald: true });
+  v = project(v, { type: 'steamFades', tiles: [{ x: 3, y: 0 }] });
+  expect(tile(v, 3, 0)).toMatchObject({ steam: 0, scald: false });
+});
+
+test('fire and washing away clear a stain', () => {
+  const at = { x: 1, y: 1 };
+  let v = project(project(fixture(), { type: 'oiled', tiles: [at] }), {
+    type: 'stained',
+    tiles: [at],
+  });
+  v = project(v, { type: 'ignite', at, tiles: [at] });
+  expect(tile(v, 1, 1)).toMatchObject({ fire: TUNING.fireRounds, stain: false });
+  v = project(v, { type: 'stained', tiles: [at] });
+  v = project(v, { type: 'fireOut', tiles: [at] });
+  expect(tile(v, 1, 1)).toMatchObject({ oil: false, stain: false });
+});
+
+test('viewOfSpec carries stain, heat, etching and scald', () => {
+  const v = viewOfSpec(parseBoard('$ s =^ =#\nD&^# . r'));
+  expect(tile(v, 0, 0)).toMatchObject({ oil: true, stain: true });
+  expect(tile(v, 1, 0)).toMatchObject({ steam: TUNING.steamRounds, scald: true });
+  expect(tile(v, 2, 0)).toMatchObject({ plate: true, heat: TUNING.heatRounds });
+  expect(tile(v, 3, 0)).toMatchObject({ plate: true, etched: true });
+  expect(unitOf(v, 'draughtsman')).toMatchObject({ heat: TUNING.heatRounds, etched: true });
 });

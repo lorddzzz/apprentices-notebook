@@ -57,6 +57,32 @@
     <circle cx="50" cy={CY} r="37" fill="none" stroke="var(--m-brass)" stroke-width="5" />
   {/if}
 
+  {#if unit.heat > 0}
+    <g data-trait="hot">
+      {#if unit.def === 'sentry'}
+        <rect x="18" y={CY - 32} width="64" height="64" rx="10" fill="var(--m-fire)" opacity="0.42" />
+        <rect x="14" y={CY - 36} width="72" height="72" rx="13" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
+      {:else}
+        <circle cx="50" cy={CY} r="32" fill="var(--m-fire)" opacity="0.35" />
+        <circle cx="50" cy={CY} r="40" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
+      {/if}
+      <path
+        d="M85 56c4 5 6 7 6 11a6 6 0 0 1-12 0c0-2 1-3 2.5-4.5 0 2 1 3 2 3 0-3-1-5 1.5-9.5z"
+        fill="var(--m-fire)"
+        stroke="var(--ink)"
+        stroke-width="2"
+        stroke-linejoin="round"
+      />
+    </g>
+  {/if}
+
+  {#if unit.etched}
+    <g data-trait="etched" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 27 22 35 14 42 23 49" stroke="var(--parchment)" stroke-width="8" opacity="0.7" />
+      <path d="M13 27 22 35 14 42 23 49" stroke="var(--m-brass-dark)" stroke-width="4" />
+    </g>
+  {/if}
+
   {#if unit.oilSoaked}
     <path
       d="M16 52c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
@@ -108,6 +134,22 @@
 </g>
 
 <style>
+  .glow {
+    animation: glow 1.4s ease-in-out infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glow {
+      animation: none;
+    }
+  }
+  @keyframes glow {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
+  }
   .unit {
     transition: transform 220ms ease;
     pointer-events: none;

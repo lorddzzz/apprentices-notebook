@@ -27,7 +27,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | F1 | sonnet | M | merged | (see log) | ~7% | also touched run.ts compileGlyph + Study.svelte (3 lines), accepted |
 | E3 | sonnet | M | merged | (see log) | ~4% | merge seam with E1 Targets fixed by me |
 | L1 | sonnet | M | merged | (see log) | ~6% | also edited tests/sim/fuzz.test.ts specFor (needed) |
-| C1 | sonnet | M | running | | | started ~22:53, preview dev-alt3 (5192); also owns glyphs.ts, view.ts, fx.ts, SteamLayer |
+| C1 | sonnet | M | merged | (see log) | ~6% | also UnitToken.svelte + playback fixtures (accepted) |
 | C2 | haiku | S | todo | | | after D1 |
 | R1 | sonnet | L | running | | | started ~22:57, port 5191 (manual pnpm dev) |
 | S1 | sonnet | M | todo | | | after L1; merge after R1 |
@@ -87,10 +87,15 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - L1: depth 1's new variants use oil and ink puddles, depth 2's steam (variety, same enemy counts). Accepted.
 - L1: Crossroads reads "Deeper: {name} (depth N of 4)". Accepted.
 
+- C1: visuals — stained oil = ink-blue hatch + ink drops; hot plate = orange fill, pulsing outline, heat waves, rounds in corner; etched = dark zigzag scratch; hot unit = fire tint + pulsing ring + flame badge; scalding steam = orange overlay + red heat ticks; pulse off under prefers-reduced-motion. Accepted.
+- C1: fx — pierced = danger pulse; heated/scalded = fire burst; cooled = steam burst; stained/etched = ink burst. Accepted.
+
 ## Decisions and fixes made during the build
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
 ## Follow-ups and rough edges
+- Lab palette (Palette.svelte, app/lab.ts) can't paint stain/heat/etch/scald yet (scenario strings work). D2 may add.
+- Codex pages for Heat and Stain interactions not visually checked (W4).
 - Battle HUD/log title is still the depth title ("Three rats") while the Crossroads names the variant ("The lamplit landing"). Decide in W4: probably "The lamplit landing" as battle title (≈6 tests assert enc.title).
 - `preview_start` by name runs from the MAIN repo root, so agents must run `pnpm dev --port N --strictPort` from their worktree. Put this in spawn prompts.
 - Port 5190 is held by a stale dev server from another session (cwd = main repo). Agents use dev-alt2 (5191) / dev-alt3 (5192).

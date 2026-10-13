@@ -107,6 +107,18 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'pulse', at: e.unit.at, tone: 'ink' }];
     case 'ignite':
       return [burst(e.tiles, 'fire', 50)];
+    case 'pierced':
+      return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
+    case 'heated':
+      return [burst([...e.tiles, ...e.units.map((u) => u.at)], 'fire', 50)];
+    case 'cooled':
+      return [burst([...e.tiles, ...e.units.map((u) => u.at)], 'steam')];
+    case 'scalded':
+      return [burst(e.tiles, 'fire', 50)];
+    case 'stained':
+      return [burst(e.tiles, 'ink')];
+    case 'etched':
+      return [burst([...e.tiles, ...e.units.map((u) => u.at)], 'ink')];
     case 'arc':
     case 'conduct':
       return [{ kind: 'zap', from: e.from, cells: e.tiles }];
