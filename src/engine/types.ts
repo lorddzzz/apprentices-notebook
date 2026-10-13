@@ -57,7 +57,7 @@ export interface LatticeShape {
 }
 export interface Lattice {
   shape: LatticeShape;
-  runes: readonly PlacedRune[];
+  runes: readonly Placed[];
 }
 
 /** A list of sibling nodes = a Fork's branches, left branch's nodes first. */
@@ -234,7 +234,7 @@ export interface FiredCell {
 export interface Profile {
   collection: Record<RuneId, number>; // owned counts
   inkCapacity: Record<MemberId, number>;
-  lattices: Record<MemberId, PlacedRune[]>; // shape comes from MEMBERS[m].shape
+  lattices: Record<MemberId, Placed[]>; // shape comes from MEMBERS[m].shape
   interactions: InteractionId[]; // codex: discovered interactions (runes: derived from collection)
   research: number; // A4 removes (migrates into solvents)
   solvents: Record<SolventId, number>;

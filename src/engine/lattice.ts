@@ -29,10 +29,12 @@ import type {
   LatticeIssue,
   LatticeShape,
   PathCell,
+  Placed,
   PlacedRune,
   Spell,
   SpellNode,
 } from './types';
+import { isGlyph } from './types';
 
 // ── Rune kinds ──────────────────────────────────────────
 
@@ -47,7 +49,7 @@ export function isSocket(shape: LatticeShape, at: Coord): boolean {
   return !shape.holes.some((h) => sameCoord(h, at));
 }
 
-export function socketAt(l: Lattice, at: Coord): PlacedRune | null {
+export function socketAt(l: Lattice, at: Coord): Placed | null {
   return l.runes.find((r) => sameCoord(r.at, at)) ?? null;
 }
 
@@ -56,7 +58,8 @@ export function socketAt(l: Lattice, at: Coord): PlacedRune | null {
 /** Flow walk from every Source rune. Pure and static: no battle state is involved. */
 export function compileLattice(l: Lattice, affinity: readonly MaterialId[]): CompiledLattice {
   const byKey = new Map<CellKey, PlacedRune>();
-  for (const r of l.runes) byKey.set(key(r.at), r);
+  // B1: a Glyph socket is an insulator for now, so it is left out of the rune map.
+  for (const r of l.runes) if (!isGlyph(r)) byKey.set(key(r.at), r);
   const runeAt = (at: Coord): PlacedRune | null =>
     isSocket(l.shape, at) ? (byKey.get(key(at)) ?? null) : null;
   const countAround = (at: Coord, rune: RuneId): number =>
@@ -73,7 +76,7 @@ export function compileLattice(l: Lattice, affinity: readonly MaterialId[]): Com
     }
   };
 
-  const sources = l.runes
+  const sources = [...byKey.values()]
     .filter((r) => isSource(r.rune))
     .sort((a, b) => byReadingOrder(a.at, b.at));
   for (const src of sources) {
@@ -194,13 +197,16 @@ export function inkCost(rune: RuneId): number {
   return TUNING.inkCost[RUNES[rune].family];
 }
 
+/** B1: a Glyph counts 1 ink until glyph costs exist. */
+export const placedInk = (p: Placed): number => (isGlyph(p) ? 1 : inkCost(p.rune));
+
 export function inkUsed(l: Lattice): number {
-  return l.runes.reduce((sum, r) => sum + inkCost(r.rune), 0);
+  return l.runes.reduce((sum, r) => sum + placedInk(r), 0);
 }
 
 export function countRunes(ls: readonly Lattice[]): Record<RuneId, number> {
   const counts = Object.fromEntries(RUNE_IDS.map((id) => [id, 0])) as Record<RuneId, number>;
-  for (const l of ls) for (const r of l.runes) counts[r.rune] += 1;
+  for (const l of ls) for (const r of l.runes) if (!isGlyph(r)) counts[r.rune] += 1; // B2 counts Glyph contents
   return counts;
 }
 
@@ -211,6 +217,16 @@ export function validateLattice(l: Lattice, capacity: number | null): LatticeIss
   const issues: LatticeIssue[] = [];
   const seen = new Set<CellKey>();
   for (const r of l.runes) {
+    if (isGlyph(r)) {
+      if (!isSocket(l.shape, r.at)) {
+        issues.push({ kind: 'socket', at: r.at, message: `Glyph ${r.glyph} is not on a socket` });
+      }
+      if (seen.has(key(r.at))) {
+        issues.push({ kind: 'overlap', at: r.at, message: `Glyph ${r.glyph} shares a socket` });
+      }
+      seen.add(key(r.at));
+      continue;
+    }
     const name = RUNES[r.rune].name;
     if (!isSocket(l.shape, r.at)) {
       issues.push({
@@ -257,6 +273,6 @@ export function setSocket(l: Lattice, at: Coord, rune: RuneId | null, dir?: Dir)
 /** Arrow runes turn a quarter clockwise (right → down → left → up); anything else is unchanged. */
 export function rotateSocket(l: Lattice, at: Coord): Lattice {
   const placed = socketAt(l, at);
-  if (!placed || !RUNES[placed.rune].arrow) return l;
+  if (!placed || isGlyph(placed) || !RUNES[placed.rune].arrow) return l;
   return setSocket(l, at, placed.rune, turnRight(placed.dir ?? 'right'));
 }

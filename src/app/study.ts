@@ -6,10 +6,12 @@ import {
   countRunes,
   inkCost,
   inkUsed,
+  isGlyph,
   isSocket,
   type Lattice,
   latticeOf,
   type Profile,
+  placedInk,
   rotateSocket,
   setMemberLattice,
   setSocket,
@@ -67,17 +69,17 @@ export function decideSocketTap(ctx: EditContext, at: Coord, tool: ShelfTool): S
 
   if (tool.kind === 'erase') return placed ? { kind: 'remove' } : { kind: 'ignore' };
 
-  if (tool.kind === 'rune' && placed?.rune !== tool.rune) {
+  if (tool.kind === 'rune' && (placed && !isGlyph(placed) ? placed.rune : null) !== tool.rune) {
     const rune = tool.rune;
     if (ctx.free(rune) === 0) return { kind: 'reject', reason: `No ${RUNES[rune].name} left` };
     const left = inkLeft(ctx.lattice, ctx.capacity);
-    const refund = placed ? inkCost(placed.rune) : 0;
+    const refund = placed ? placedInk(placed) : 0;
     if (left !== null && inkCost(rune) > left + refund) return inkReject(rune, left + refund);
     return placed ? { kind: 'replace', rune } : { kind: 'place', rune };
   }
 
   if (!placed) return { kind: 'ignore' };
-  return RUNES[placed.rune].arrow ? { kind: 'rotate' } : { kind: 'inspect' };
+  return !isGlyph(placed) && RUNES[placed.rune].arrow ? { kind: 'rotate' } : { kind: 'inspect' };
 }
 
 export function applyDecision(lattice: Lattice, at: Coord, d: SocketDecision): Lattice {

@@ -134,9 +134,9 @@ test('a placement is saved once; inspecting, rejecting and ignoring never write'
   expect(placed.changed).toBe(true);
   expect(writes).toHaveLength(1);
   expect(writes[0]).toBe(saveText(placed.save));
-  expect(socketAt(latticeOf(placed.save.profile, 'draughtsman'), { x: 2, y: 1 })?.rune).toBe(
-    'spark',
-  );
+  expect(socketAt(latticeOf(placed.save.profile, 'draughtsman'), { x: 2, y: 1 })).toMatchObject({
+    rune: 'spark',
+  });
 
   // inspect Ink (no tool): not saved
   editAndPersist(b, placed.save, 'draughtsman', { x: 1, y: 1 }, NO_TOOL, false);

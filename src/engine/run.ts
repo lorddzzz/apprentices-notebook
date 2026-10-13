@@ -37,13 +37,14 @@ import type {
   LatticeIssue,
   LootItem,
   PartyInit,
-  PlacedRune,
+  Placed,
   Profile,
   SaveData,
   SpellKey,
   Trip,
   TripStatus,
 } from './types';
+import { isGlyph } from './types';
 
 /**
  * Run layer: the profile (collection, ink, lattices, codex), the trip lifecycle and save data.
@@ -56,10 +57,12 @@ function perMember<T>(make: (m: MemberId) => T): Record<MemberId, T> {
   return Object.fromEntries(MEMBER_IDS.map((m) => [m, make(m)])) as Record<MemberId, T>;
 }
 
-const copyRune = (r: PlacedRune): PlacedRune =>
-  r.dir === undefined
-    ? { at: { ...r.at }, rune: r.rune }
-    : { at: { ...r.at }, rune: r.rune, dir: r.dir };
+const copyRune = (r: Placed): Placed =>
+  isGlyph(r)
+    ? { at: { ...r.at }, glyph: r.glyph, dir: r.dir }
+    : r.dir === undefined
+      ? { at: { ...r.at }, rune: r.rune }
+      : { at: { ...r.at }, rune: r.rune, dir: r.dir };
 
 // ── Profile ─────────────────────────────────────────────
 
@@ -105,7 +108,7 @@ function placedCount(p: Profile, rune: RuneId, except?: { m: MemberId; at: Coord
   let n = 0;
   for (const m of MEMBER_IDS) {
     for (const r of p.lattices[m]) {
-      if (r.rune !== rune) continue;
+      if (isGlyph(r) || r.rune !== rune) continue; // B2 counts Glyph contents
       if (except && except.m === m && except.at.x === r.at.x && except.at.y === r.at.y) continue;
       n += 1;
     }
@@ -142,6 +145,7 @@ export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIss
   for (const m of MEMBER_IDS) {
     const issues = validateLattice(lattices[m], p.inkCapacity[m]);
     for (const r of lattices[m].runes) {
+      if (isGlyph(r)) continue;
       if (counts[r.rune] > p.collection[r.rune]) {
         issues.push({
           kind: 'owned',
@@ -381,8 +385,11 @@ function parseCoord(v: unknown): Coord {
   return { x: r.x as number, y: r.y as number };
 }
 
-function parsePlaced(v: unknown): PlacedRune {
+function parsePlaced(v: unknown): Placed {
   const r = record(v);
+  if (r.glyph !== undefined) {
+    return { at: parseCoord(r.at), glyph: text(r.glyph), dir: oneOf(DIRS, r.dir) };
+  }
   const rune = oneOf(RUNE_IDS, r.rune);
   const at = parseCoord(r.at);
   return r.dir === undefined ? { at, rune } : { at, rune, dir: oneOf(DIRS, r.dir) };

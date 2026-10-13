@@ -5,6 +5,7 @@
     type Coord,
     inkCost,
     inkUsed,
+    isGlyph,
     key,
     type Lattice,
     type SpellKey,
@@ -61,14 +62,17 @@
     focusedSpell ? spellRecipe(focusedSpell, MEMBERS[member].affinity, known) : null,
   );
   const numbers = $derived(recipe ? stepNumbers(recipe) : new Map<string, number>());
-  const inspectedRune = $derived(inspected ? (socketAt(lattice, inspected)?.rune ?? null) : null);
+  const inspectedRune = $derived.by(() => {
+    const p = inspected ? socketAt(lattice, inspected) : null;
+    return p && !isGlyph(p) ? p.rune : null;
+  });
   const held = $derived(tool.kind === 'rune' ? tool.rune : null);
 
   function tap(at: Coord, longPress: boolean): void {
     const placed = socketAt(lattice, at);
     if (!longPress && tool.kind === 'none' && placed) {
       // Arrow runes turn on tap, so keep the spell list (it shows what the turn did).
-      inspected = placed && RUNES[placed.rune].arrow ? null : at;
+      inspected = placed && !isGlyph(placed) && RUNES[placed.rune].arrow ? null : at;
       const spell = compiled.spells.find((s) => s.key === key(at));
       if (spell) focus = spell.key;
     } else {

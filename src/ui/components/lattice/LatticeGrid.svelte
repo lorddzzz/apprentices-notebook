@@ -3,6 +3,7 @@
   import {
     type CompiledLattice,
     type Coord,
+    isGlyph,
     isSocket,
     key,
     type Lattice,
@@ -50,7 +51,7 @@
 
   const cellLabel = (at: Coord): string => {
     const placed = socketAt(lattice, at);
-    return `${label(at)}: ${placed ? RUNES[placed.rune].name : 'empty socket'}`;
+    return `${label(at)}: ${placed ? (isGlyph(placed) ? `Glyph ${placed.glyph}` : RUNES[placed.rune].name) : 'empty socket'}`;
   };
 </script>
 
@@ -75,7 +76,9 @@
           onclick={() => ontap(c.at)}
           {@attach longpress(() => onlongpress(c.at))}
         >
-          {#if c.placed}
+          {#if c.placed && isGlyph(c.placed)}
+            <span class="glyph-socket" aria-hidden="true">{c.placed.glyph.charAt(0).toUpperCase()}</span>
+          {:else if c.placed}
             <RuneGlyph rune={c.placed.rune} dir={c.placed.dir} dim={idle.has(c.k)} size={44} />
           {/if}
           {#if numbers.has(c.k)}
@@ -154,6 +157,10 @@
     color: var(--parchment);
     font: 700 11px var(--mono);
     pointer-events: none;
+  }
+  .glyph-socket {
+    font: 700 calc(var(--pitch) * 0.4) var(--mono);
+    color: var(--ink);
   }
   .socket :global(svg) {
     width: 82%;

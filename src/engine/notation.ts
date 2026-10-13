@@ -11,7 +11,7 @@ import {
   TUNING,
 } from '$data';
 import { type Coord, type Dir, label } from './grid';
-import type { Lattice, PlacedRune, Tile } from './types';
+import { isGlyph, type Lattice, type Placed, type Tile } from './types';
 
 /**
  * ASCII notation shared by tests, encounters and the Lab. Cells are whitespace-separated tokens,
@@ -209,7 +209,7 @@ export function parseLattice(ascii: string): Lattice {
   if (grid.length === 0) throw new Error('Empty lattice');
   const width = grid[0]?.length ?? 0;
   const holes: Coord[] = [];
-  const runes: PlacedRune[] = [];
+  const runes: Placed[] = [];
   grid.forEach((row, y) => {
     if (row.length !== width) {
       throw new Error(`Lattice row ${y + 1} has ${row.length} cells, expected ${width}`);
@@ -220,6 +220,15 @@ export function parseLattice(ascii: string): Lattice {
       if (token === '.') return;
       if (token === 'x') {
         holes.push(at);
+        return;
+      }
+      if (token.startsWith('G:')) {
+        const gdir = ARROW_CHARS[token.slice(-1)];
+        const glyph = token.slice(2, -1);
+        if (!gdir || glyph === '') {
+          throw new Error(`Glyph "${token}" needs an id and an arrow (G:id>) in cell ${where}`);
+        }
+        runes.push({ at, glyph, dir: gdir });
         return;
       }
       const plain = runeByToken(token);
@@ -250,7 +259,9 @@ export function serializeLattice(l: Lattice): string {
     const row: string[] = [];
     for (let x = 0; x < l.shape.width; x++) {
       const placed = l.runes.find((r) => r.at.x === x && r.at.y === y);
-      if (placed) {
+      if (placed && isGlyph(placed)) {
+        row.push(`G:${placed.glyph}${ARROW_SUFFIX[placed.dir]}`);
+      } else if (placed) {
         row.push(RUNES[placed.rune].token + (placed.dir ? ARROW_SUFFIX[placed.dir] : ''));
       } else if (l.shape.holes.some((h) => h.x === x && h.y === y)) {
         row.push('x');

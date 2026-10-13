@@ -7,6 +7,7 @@ import {
   inkCost,
   inkUsed,
   type Lattice,
+  type Placed,
   parseLattice,
   rotateSocket,
   type Spell,
@@ -45,6 +46,8 @@ const FORK_ORDER = `
   Bolt> Fork  .
   .     Spark .
 `;
+
+const runeName = (p: Placed): string => ('rune' in p ? p.rune : p.glyph);
 
 test('straight flow', () => {
   const s = only('Bolt> Ink Spark');
@@ -253,11 +256,11 @@ test('setSocket / rotateSocket are pure', () => {
 
   const ink = setSocket(withBolt, { x: 0, y: 1 }, 'ink', 'up');
   expect(socketAt(ink, { x: 0, y: 1 })).toEqual({ at: { x: 0, y: 1 }, rune: 'ink' }); // no arrow on Ink
-  expect(ink.runes.map((r) => r.rune)).toEqual(['bolt', 'ink']); // reading order
+  expect(ink.runes.map(runeName)).toEqual(['bolt', 'ink']); // reading order
 
   const replaced = setSocket(ink, { x: 0, y: 1 }, 'oil');
-  expect(replaced.runes.map((r) => r.rune)).toEqual(['bolt', 'oil']);
-  expect(setSocket(replaced, { x: 0, y: 1 }, null).runes.map((r) => r.rune)).toEqual(['bolt']);
+  expect(replaced.runes.map(runeName)).toEqual(['bolt', 'oil']);
+  expect(setSocket(replaced, { x: 0, y: 1 }, null).runes.map(runeName)).toEqual(['bolt']);
 
   expect(() => setSocket(l, { x: 0, y: 0 }, 'ink')).toThrow(/No socket/);
 

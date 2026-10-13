@@ -50,7 +50,7 @@ test('place on empty socket', () => {
   const c = ctx('Bolt> . .');
   const r = editSocket(c, { x: 1, y: 0 }, rune('ink'), false);
   expect(r.decision).toEqual({ kind: 'place', rune: 'ink' });
-  expect(socketAt(r.lattice, { x: 1, y: 0 })?.rune).toBe('ink');
+  expect(socketAt(r.lattice, { x: 1, y: 0 })).toMatchObject({ rune: 'ink' });
   expect(r.message).toBeNull();
 });
 
@@ -211,7 +211,8 @@ test('profile placement honours canPlace, with its reasons', () => {
           const edit = editProfile(p, m, at, { kind: 'rune', rune: r }, false);
           const verdict = canPlace(p, m, at, r);
           const placing = edit.decision.kind === 'place' || edit.decision.kind === 'replace';
-          const same = socketAt(latticeOf(p, m), at)?.rune === r;
+          const here = socketAt(latticeOf(p, m), at);
+          const same = here !== null && 'rune' in here && here.rune === r;
           if (!isSocket(shape, at) || same) continue; // holes and same-rune taps aren't placements
           checked += 1;
           if (placing) expect(verdict, `${m} ${x},${y} ${r}`).toBeNull();

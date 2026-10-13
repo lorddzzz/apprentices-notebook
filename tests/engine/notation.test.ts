@@ -95,3 +95,17 @@ test('member start lattices serialize back to their data text', () => {
     expect(serializeLattice(parseLattice(text))).toBe(text);
   }
 });
+
+test('a Glyph socket round-trips through lattice ASCII', () => {
+  const ascii = 'Bolt> G:cashing>   .\n.     G:fair-copy^ x';
+  const l = parseLattice(ascii);
+  expect(l.runes).toEqual([
+    { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
+    { at: { x: 1, y: 0 }, glyph: 'cashing', dir: 'right' },
+    { at: { x: 1, y: 1 }, glyph: 'fair-copy', dir: 'up' },
+  ]);
+  expect(serializeLattice(parseLattice(serializeLattice(l)))).toBe(serializeLattice(l));
+  expect(serializeLattice(l)).toBe('Bolt> G:cashing>   .\n.     G:fair-copy^ x');
+  expect(() => parseLattice('G:> .')).toThrow(/Glyph/);
+  expect(() => parseLattice('G:abc .')).toThrow(/Glyph/);
+});
