@@ -323,6 +323,7 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 **Before building v0:**
 - [x] Tech decisions (separate process, see [TECH.md](TECH.md))
 - [x] Project skeleton deployed to GitHub Pages and installed on the iPhone (see [TECH.md](TECH.md) §8). Next: build v0.
+- [x] v0 built and deployed (2026-10-13): engine, Study, Codex, the Seam expedition, Lab. Build decisions for review: [docs/v0-build-log.md](docs/v0-build-log.md). Next: the player plays v0.
 
 **Answer by playing v0** (no need to decide upfront):
 - [ ] Hybrid flow + aura: does it feel good?

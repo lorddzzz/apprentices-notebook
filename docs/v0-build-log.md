@@ -110,3 +110,24 @@ Format: **situation**, then the **decision** and **why**. Newest entries at the 
     - The Lab uses your own lattices when a scenario doesn't define them.
     **Decision:** accepted all of these. The Svelte autofixer crashes on `game.svelte.ts`, so that file is only typechecked and linted.
     **Why:** this is the safest way to handle saves on iOS.
+25. **Situation:** U7 (expedition flow) landed, so v0 is playable end to end and deployed. Its agent made several calls:
+    - A reload on the Wiped screen lands in the Study; the loot is already lost.
+    - The top bar shows "Depth n / 4".
+    - The door now reads "Set out into the Seam".
+    It also caught and fixed a bug where taking loot crashed.
+    **Decision:** accepted all of these. Feel note: on encounter 1's first turn the rats are too far away to declare intents (round 1 enemies don't move), so the opening turn shows no danger. Worth judging when you play.
+    **Why:** these are minor and reversible.
+26. **Situation:** usage was at 55%, with the Lab tools (U5) still unbuilt.
+    **Decision:** a haiku agent does a real playthrough first (no debug shortcuts). U5 waits for the remaining budget.
+    **Why:** bugs in the main loop matter more than Lab power tools.
+27. **Situation:** the haiku playthrough won encounter 1 in 4 rounds with no damage. It killed the familiar and two rats in encounter 2 before stopping. It reported "Study tabs swapped" as high severity.
+    **Decision:** I checked it myself and it isn't a bug: the data and `aria-selected` are right. The tester had admitted to misclicks. The real issue is that the unselected tab has a bright outline and looks selected, so that styling gets fixed. Along with U5 (Lab tools), a sonnet agent also fixes the Shove button looking active while aiming, the End-turn warning showing when nobody can act, the wording of the research-loot offer, and the cramped Lab layout.
+    **Why:** these are cheap fixes for real confusions.
+28. **Situation:** the tester accidentally fired a Bolt by tapping the aimed line a second time ("tap again to confirm"), which wasted a charge. Enemy intents (hatching, order badges) have no legend.
+    **Decision:** no change yet. Into the Breach uses the same double-tap, and the preview shows exactly what will happen.
+    **Why:** this is your call when you play. The options are confirm-button-only, or an "undo cast" (cheap, since the engine is pure).
+29. **Situation:** U5 (Lab tools) and the polish fixes landed. The agent couldn't reproduce two of the QA reports (the gold Shove outline, and a Lab title covering the board). It made the button state structural anyway and fixed what it could see (caption wrapping, HP text placement).
+    **Decision:** accepted.
+30. **Situation:** after all planned steps, the 5-hour usage window was at 70%.
+    **Decision:** stopped here instead of running an opus code-review pass. The next session can run `/code-review` if wanted.
+    **Why:** your 80% safety line. v0 is complete, green (442 tests) and deployed.

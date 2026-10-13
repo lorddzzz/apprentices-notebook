@@ -6,15 +6,11 @@ Updated by Claude whenever a step lands. If a session stops, a new one reads thi
 - Orchestration: opus for planning and hard steps, sonnet for well-defined steps, haiku for long validation. UI steps run one at a time on `main`, because they share the browser pane and port 5173. Engine work runs in worktrees.
 - Gate: `pnpm check` before every commit. `pnpm fuzz` runs the full bot fuzz.
 
-## Done
-- E1–E7 engine: types, data, notation, lattice compiler, battle core, casting, AI and turns, run layer, saves, replay.
-- Fuzz harness (`tests/sim/fuzz.test.ts`), and the fix for the brass-plate softlock it found.
-- U1 foundations, U2 board rendering, U3 lattice editor, U4 battle interaction in the Lab (`#/lab?scenario=<id>`), U6 Study + Codex + saves (Gallery: `#/gallery?part=glyphs|board|fx|lattice`).
+## Done (2026-10-13)
+- E1–E7 engine, the fuzz harness, and the fix for the brass-plate softlock.
+- U1–U7: Study (lattice editor, shelf, ink), Codex, saves (export/import), the Seam expedition (4 encounters, loot, crossroads, wipe), and the Lab (play, paint, lattices, copy as scenario). Gallery: `#/gallery`.
+- A haiku QA playthrough, plus polish fixes.
 
-## In progress
-- U7: expedition flow (sonnet; it checks usage itself and writes state here above 80%).
-
-## Left
-- U5 Lab tools (palette, copy as scenario).
-- Final validation: a haiku end-to-end browser playthrough at 375×812, then a review pass.
-- Update DESIGN §10 checkboxes, and update memory `project-rename.md` with the status.
+## Next
+- The player plays v0 and gives feedback on feel, UX and direction. Open feel questions are in `docs/v0-build-log.md` (entries 21, 22, 25, 28).
+- Optional: an opus `/code-review` pass over the v0 code.
