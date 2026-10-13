@@ -4,7 +4,7 @@ import { runEchoes } from './cast';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { burn, dealDamage } from './damage';
 import { byReadingOrder, type Coord, neighbors4, step } from './grid';
-import { applyInk, heatNearFire } from './materials';
+import { applyInk, heatNearFire, scaldInSteam } from './materials';
 import { enemies, isAlive, livingUnits, members, tileAt, travel, unitAt } from './queries';
 import type { EnemyUnit, Unit } from './types';
 
@@ -103,6 +103,7 @@ function hazards(ctx: Ctx): void {
     .sort((a, b) => byReadingOrder(a.pos, b.pos));
   for (const u of onFire) if (isAlive(u)) burn(ctx, u);
   scaldFromHeat(ctx);
+  scaldInSteam(ctx);
   coolBrass(ctx);
 
   const out: Coord[] = [];
@@ -114,7 +115,10 @@ function hazards(ctx: Ctx): void {
       t.stain = false;
       out.push(tileCoord(i, s.width));
     }
-    if (t.steam > 0 && --t.steam === 0) faded.push(tileCoord(i, s.width));
+    if (t.steam > 0 && --t.steam === 0) {
+      t.scald = false;
+      faded.push(tileCoord(i, s.width));
+    }
     if (t.plate && t.plateRounds > 0 && --t.plateRounds === 0) {
       t.plate = false;
       t.heat = 0;

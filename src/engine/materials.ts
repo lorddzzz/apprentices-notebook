@@ -1,7 +1,7 @@
 import { TUNING } from '$data';
 import { type Ctx, emit, ref } from './ctx';
-import { burn, sparkHit } from './damage';
-import { type Coord, key, neighbors4 } from './grid';
+import { burn, dealDamage, sparkHit } from './damage';
+import { byReadingOrder, type Coord, key, neighbors4 } from './grid';
 import {
   brassNet,
   clip,
@@ -13,7 +13,7 @@ import {
   tileAt,
   unitAt,
 } from './queries';
-import type { CellKey, Tile, Unit } from './types';
+import type { BattleState, CellKey, Tile, Unit } from './types';
 
 /**
  * Material runes and their chain reactions. Every apply takes target tiles, processes them in
@@ -190,7 +190,11 @@ export function applyOil(ctx: Ctx, tiles: readonly Coord[]): void {
 /** Steam clouds the tiles and puts out fire there (the oil stays). */
 export function applySteam(ctx: Ctx, tiles: readonly Coord[]): void {
   const clouded = clip(ctx.s, tiles).filter((t) => !tileAt(ctx.s, t).plate);
-  for (const t of clouded) tileAt(ctx.s, t).steam = TUNING.steamRounds;
+  for (const t of clouded) {
+    const tile = tileAt(ctx.s, t);
+    if (tile.steam === 0) tile.scald = false; // a fresh cloud is plain; old steam keeps its scald
+    tile.steam = TUNING.steamRounds;
+  }
   if (clouded.length) emit(ctx, { type: 'steam', tiles: clouded });
   const doused = clouded.filter((t) => tileAt(ctx.s, t).fire > 0);
   for (const t of doused) tileAt(ctx.s, t).fire = 0;
@@ -260,6 +264,8 @@ export function applySpark(ctx: Ctx, tiles: readonly Coord[], damage: number): v
         emit(ctx, { type: 'conduct', from: { ...t }, tiles: net });
         for (const c of others) spread(c);
       }
+      // Etched brass in the network carries the mark: inked units beside it are sparked too.
+      if (net.some((c) => isEtched(s, c))) for (const c of markedBeside(s, net)) spread(c);
     }
   };
   for (const t of clip(s, tiles)) spread(t);
@@ -310,4 +316,81 @@ export function spreadFire(ctx: Ctx): void {
     if (!tile.oil || tile.fire > 0 || tile.steam > 0) continue;
     if (neighbors4(t).some((n) => inBoard(s, n) && tileAt(s, n).fire > 0)) ignite(ctx, t);
   }
+}
+
+// ── Scald, Etch, Kiln (plan S7–S9) ──────────────────────
+
+/** Scald: Steam whose cloud scalds; fire in it is put out like any steam. Nothing on plates. */
+export function applyScald(ctx: Ctx, tiles: readonly Coord[]): void {
+  const s = ctx.s;
+  const clouded = clip(s, tiles).filter((t) => !tileAt(s, t).plate);
+  for (const t of clouded) {
+    const tile = tileAt(s, t);
+    tile.steam = TUNING.steamRounds;
+    tile.scald = true;
+  }
+  if (clouded.length) emit(ctx, { type: 'scalded', tiles: clouded });
+  const doused = clouded.filter((t) => tileAt(s, t).fire > 0);
+  for (const t of doused) tileAt(s, t).fire = 0;
+  if (doused.length) emit(ctx, { type: 'extinguish', tiles: doused });
+}
+
+/** Burn step: each unit standing in scalding steam takes `heatDamage` (normal damage path). */
+export function scaldInSteam(ctx: Ctx): void {
+  const s = ctx.s;
+  const victims = s.units
+    .filter((u) => isAlive(u) && tileAt(s, u.pos).steam > 0 && tileAt(s, u.pos).scald)
+    .sort((a, b) => byReadingOrder(a.pos, b.pos));
+  for (const u of victims) dealDamage(ctx, u, TUNING.heatDamage, 'Scald');
+}
+
+const isEtched = (s: BattleState, c: Coord): boolean =>
+  tileAt(s, c).plate ? tileAt(s, c).etched : unitAt(s, c)?.etched === true;
+
+/** Tiles of inked units standing on or orthogonally beside the network. */
+function markedBeside(s: BattleState, net: readonly Coord[]): Coord[] {
+  const seen = new Set<CellKey>();
+  const found: Coord[] = [];
+  for (const c of net) {
+    for (const n of [c, ...neighbors4(c)]) {
+      if (!inBoard(s, n) || seen.has(key(n))) continue;
+      seen.add(key(n));
+      if (unitAt(s, n)?.inked) found.push(n);
+    }
+  }
+  return found.sort(byReadingOrder);
+}
+
+/** Etch: inks like Ink (pools included), then etches the brass plates and brass units it touches. */
+export function applyEtch(ctx: Ctx, tiles: readonly Coord[]): void {
+  const s = ctx.s;
+  applyInk(ctx, tiles);
+  const newTiles: Coord[] = [];
+  const newUnits: Unit[] = [];
+  for (const c of clip(s, tiles)) {
+    const tile = tileAt(s, c);
+    const u = unitAt(s, c);
+    if (tile.plate) {
+      if (tile.etched) continue;
+      tile.etched = true;
+      newTiles.push(c);
+    } else if (u?.brass && !u.etched) {
+      u.etched = true;
+      newUnits.push(u);
+    }
+  }
+  if (newTiles.length || newUnits.length)
+    emit(ctx, { type: 'etched', tiles: newTiles, units: newUnits.map((u) => ref(u)) });
+}
+
+/** Kiln: Brass, and the plates it raises arrive hot. Coated units stay cold. */
+export function applyKiln(ctx: Ctx, tiles: readonly Coord[]): void {
+  const before = new Set(
+    clip(ctx.s, tiles)
+      .filter((c) => tileAt(ctx.s, c).plate)
+      .map(key),
+  );
+  applyBrass(ctx, tiles);
+  const raised = clip(ctx.s, tiles).filter((c) => tileAt(ctx.s, c).plate && !before.has(key(c)));
+  heatBrass(ctx, raised, []);
 }

@@ -79,3 +79,21 @@ test('affinity, area and triggers read out', () => {
   const kill = recipe('Bolt> OnKill Oil');
   expect(kill.steps[1]?.text).toMatch(/^Oil coats those tiles/);
 });
+
+test('seam runes: Pierce, On Ignite, Thrift, Scald, Etch and Kiln read out', () => {
+  const p = recipe('Bolt> Pierce Ink');
+  expect(p.source).toContain('passes through the first unit');
+  expect(p.steps[0]?.text).toContain('both units it hits');
+  expect(recipe('Splash> Pierce Ink').notes).toContain(
+    'Pierce: nothing to pass through, so it does nothing here.',
+  );
+  const ig = recipe('Bolt> Oil Spark OnIgnite Ink');
+  expect(ig.steps.map((s) => s.rune)).toEqual(['oil', 'spark', 'onIgnite', 'ink']);
+  expect(ig.steps[2]?.note).toBeNull();
+  expect(ig.steps[3]?.depth).toBe(1);
+  expect(recipe('Bolt> OnIgnite Ink').steps[0]?.note).toContain('chain stops');
+  expect(recipe('Thrift\nBolt>').notes).toContain('Thrift: +1 charge per trip.');
+  expect(recipe('Bolt> Scald').steps[0]?.text).toContain('takes 1 at the end of each round');
+  expect(recipe('Bolt> Etch').steps[0]?.text).toContain('etches any brass');
+  expect(recipe('Bolt> Kiln').steps[0]?.text).toContain('already hot');
+});

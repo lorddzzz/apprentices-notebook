@@ -25,7 +25,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | E1 | sonnet | M | merged | (see log) | ~6% | added Spell.pierce / SpellNode.pierced |
 | E2 | sonnet | M | merged | (see log) | ~4% | HEAT_DAMAGE moved to TUNING.heatDamage by me |
 | F1 | sonnet | M | running | | | started 22:40 |
-| E3 | sonnet | M | running | | | started 22:45 |
+| E3 | sonnet | M | merged | (see log) | ~4% | merge seam with E1 Targets fixed by me |
 | L1 | sonnet | M | running | | | started 22:48, preview dev-alt2 (5191) |
 | C1 | sonnet | M | todo | | | after D1 |
 | C2 | haiku | S | todo | | | after D1 |
@@ -66,8 +66,16 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - E1: Thrifts stack like Amplify (+1 each); a Glyph's inner Thrift counts too. Accepted (log as Proposal).
 - E1: `pierced` counts as meaningful for proof. Accepted.
 
+- E3: Scald emits `scalded` (not `steam`); steam/Fog over scalding steam refreshes and keeps it scalding; fresh steam on a dry tile is plain; vents always give plain steam. Accepted.
+- E3: Scald hits every living unit inside (allies too), reading order, source "Scald", before steam ages; once per round it lasts (2). Accepted.
+- E3: Etch inks exactly like Ink (puddles, diffuse, stains); plates aren't inked but are etched. Accepted.
+- E3: **Etch conduction reinterpreted**: units on a conducted net already take Spark, so when the net contains etched brass, every inked unit on or orthogonally beside a net tile is sparked as if hit directly. ASK PLAYER (feel).
+- E3: Etch etches only brass in its footprint; Kiln heats only the plates it raises (not units it coats, not existing plates). Accepted.
+
 ## Decisions and fixes made during the build
+- Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
 ## Follow-ups and rough edges
-- (fixed: aimPreview follows Pierce.) recipe.ts needs Pierce / On Ignite / Thrift text (orchestrator, after E3).
+- (fixed) aimPreview follows Pierce; recipe.ts reads out all six new runes.
+- UI doesn't draw scalding steam, etched brass, stain or heat yet: C1 (BadgeLayer/TileLayer) must cover `scald`, `etched`, `stain`, `heat`; playback should animate `scalded`, `etched`, `heated`, `cooled`, `stained`, `pierced`.
 - Undo after walking onto a stain (needs `UndoRecord.stain`).

@@ -6,10 +6,13 @@ import { type Coord, key, label, neighbors4, sameCoord, square } from './grid';
 import {
   applyBrand,
   applyBrass,
+  applyEtch,
   applyFog,
   applyInk,
+  applyKiln,
   applyMist,
   applyOil,
+  applyScald,
   applySmear,
   applySpark,
   applySteam,
@@ -298,9 +301,14 @@ function runNodes(
           applyBrand(ctx, footprint(ctx.s, at, m));
           break;
         case 'scald':
+          applyScald(ctx, footprint(ctx.s, at, m));
+          break;
         case 'etch':
+          applyEtch(ctx, footprint(ctx.s, at, m));
+          break;
         case 'kiln':
-          break; // E3
+          applyKiln(ctx, footprint(ctx.s, at, m));
+          break;
       }
       runNodes(ctx, node.next, targets, scale, ran, from);
     } else if (node.rune === 'onInked') {

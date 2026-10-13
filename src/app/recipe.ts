@@ -37,9 +37,13 @@ const rounds = (n: number) => `${n} ${n === 1 ? 'round' : 'rounds'}`;
 function sourceText(s: Spell): string {
   switch (s.source) {
     case 'bolt':
-      return `Bolt hits the first thing in line for ${s.magnitude} damage.`;
+      return s.pierce
+        ? `Bolt passes through the first unit in line and stops at the second, ${s.magnitude} damage to each (steam and plates still stop it).`
+        : `Bolt hits the first thing in line for ${s.magnitude} damage.`;
     case 'quill':
-      return `Quill hits the first thing in line for ${s.magnitude} damage and pools ink under it.`;
+      return s.pierce
+        ? `Quill passes through the first unit in line and stops at the second, ${s.magnitude} damage and a pool of ink under each.`
+        : `Quill hits the first thing in line for ${s.magnitude} damage and pools ink under it.`;
     case 'splash':
       return `Splash hits every unit in a 3×3 for ${s.magnitude} damage (allies too).`;
     case 'ward':
@@ -169,9 +173,20 @@ export function spellRecipe(
         text = `Brand marks the units on ${where}${boost} like Ink, but never pools on the floor; fire hits a branded unit for +2.`;
         break;
       case 'scald':
+        text = `Scald clouds ${where} for ${rounds(TUNING.steamRounds)}${boost}: it blocks shots, and every unit inside takes ${TUNING.heatDamage} at the end of each round.`;
+        if (layers.has('fire')) {
+          reactions.push(said('extinguish', 'it puts the fire out (the oil stays)', 'fire'));
+          layers.delete('fire');
+        }
+        layers.add('steam');
+        break;
       case 'etch':
+        text = `Etch marks ${where}${boost} like Ink and etches any brass there: Spark through etched brass sets off inked units beside it.`;
+        layers.add('ink');
+        break;
       case 'kiln':
-        text = `${RUNES[node.rune].name} on ${where}${boost}.`; // E3
+        text = `Kiln raises a brass plate on bare floor in ${where}${boost}, already hot: it hits each unit beside it for ${TUNING.heatDamage} at the end of the round, for ${rounds(TUNING.heatRounds)}.`;
+        layers.add('brass');
         break;
     }
     return { text, reactions };
@@ -186,7 +201,11 @@ export function spellRecipe(
     for (const node of nodes) {
       const n = steps.length + 1;
       if (node.kind === 'material') {
-        const { text, reactions } = material(node, target, layers);
+        const { text, reactions } = material(
+          node,
+          node.pierced ? 'both units it hits (the first one first)' : target,
+          layers,
+        );
         steps.push({ n, rune: node.rune, at: node.at, depth, text, reactions, note: null });
         walk(node.next, target, layers, depth);
       } else if (node.rune === 'onInked') {
@@ -203,6 +222,21 @@ export function spellRecipe(
           note,
         });
         walk(node.next, target, layers, depth + 1);
+      } else if (node.rune === 'onIgnite') {
+        steps.push({
+          n,
+          rune: node.rune,
+          at: node.at,
+          depth,
+          text: 'If this cast has lit oil, on every tile that caught fire (not the targets):',
+          reactions: [],
+          note:
+            layers.has('oil') || layers.has('fire')
+              ? null
+              : 'Nothing earlier lights oil: unless the floor is oiled, the chain stops here.',
+        });
+        // The burning tiles: oil and fire are there, whatever was laid on the targets.
+        walk(node.next, 'the burning tiles', new Set<Layer>(['oil', 'fire']), depth + 1);
       } else {
         steps.push({
           n,
@@ -227,6 +261,11 @@ export function spellRecipe(
     notes.push('A Fork runs one branch to the end, then the other: follow the numbers.');
   }
   if (spell.echo) notes.push('Echo: the whole spell repeats next turn at half strength.');
+  if (spell.path.some((c) => c.rune === 'pierce') && !spell.pierce) {
+    notes.push('Pierce: nothing to pass through, so it does nothing here.');
+  }
+  const thrift = spell.charges - RUNES[spell.source].charges;
+  if (thrift > 0) notes.push(`Thrift: +${thrift} ${thrift === 1 ? 'charge' : 'charges'} per trip.`);
   return { source: sourceText(spell), steps, notes };
 }
 
