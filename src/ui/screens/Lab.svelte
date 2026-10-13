@@ -54,7 +54,7 @@
 
     <Sheet open={menuOpen} title={scenario.title} onclose={() => (menuOpen = false)}>
       <p class="note">{scenario.note}</p>
-      <p class="hint">Lab battles never spend charges. Members without a scenario lattice use their starting lattice.</p>
+      <p class="hint">Lab battles never spend charges. Members without a scenario lattice use the one in your notebook.</p>
       <div class="menu">
         <Button label="Reset scenario" onclick={reset} testid="reset" />
         <a class="link" href={href('gallery', { part: 'board' })}>Gallery</a>

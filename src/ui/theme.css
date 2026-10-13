@@ -38,6 +38,12 @@
   --select: #e8b04a;
   --reach: rgba(47, 79, 111, 0.35);
 
+  /* the attic study */
+  --wall: #2e2420;
+  --wood: #6b4a2f;
+  --wood-dark: #4a3426;
+  --wood-deep: #2a1d15;
+
   --hand: "Snell Roundhand", "Segoe Script", "Bradley Hand", cursive;
   --mono: ui-monospace, Menlo, monospace;
   --tap: 44px;

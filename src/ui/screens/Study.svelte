@@ -1,72 +1,275 @@
 <script lang="ts">
+  import { MEMBERS } from '$data';
+  import { compiledFor, latticeOf, validateLoadout } from '$engine';
+  import { game } from '../../app/instance';
+  import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
+  import { profileShelf } from '../../app/study';
+  import { toast } from '../../app/toasts.svelte';
+  import Button from '../components/common/Button.svelte';
+  import Sheet from '../components/common/Sheet.svelte';
+  import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
+  import StudyScene from '../components/study/StudyScene.svelte';
+
+  const profile = $derived(game.profile);
+  const lattice = $derived(latticeOf(profile, game.member));
+  const compiled = $derived(compiledFor(profile, game.member));
+  const slots = $derived(profileShelf(profile, game.member));
+
+  // What stops the party leaving: the first problem with either lattice, in plain words.
+  const blocker = $derived.by(() => {
+    const issues = validateLoadout(profile);
+    for (const [id, list] of Object.entries(issues)) {
+      const first = list?.[0];
+      if (first) return `${MEMBERS[id as keyof typeof MEMBERS].name}: ${first.message}`;
+    }
+    return null;
+  });
+  // U7 wires the door; until then it stays shut.
+  const doorCaption = $derived(blocker ?? 'Expeditions arrive next');
+
+  type Panel = 'closed' | 'menu' | 'paste' | 'copy';
+  let panel = $state<Panel>('closed');
+  let pasted = $state('');
+  let copyText = $state('');
+
+  function openMenu(): void {
+    panel = 'menu';
+  }
+
+  async function copySave(): Promise<void> {
+    const text = game.exportText();
+    try {
+      await navigator.clipboard.writeText(text);
+      panel = 'closed';
+      toast('Save copied');
+    } catch {
+      // No clipboard access (some iOS contexts): show the text to select by hand.
+      copyText = text;
+      panel = 'copy';
+    }
+  }
+
+  function loadPasted(): void {
+    const err = game.importText(pasted);
+    if (err) {
+      toast(err, 'warn');
+      return;
+    }
+    pasted = '';
+    panel = 'closed';
+    toast('Save loaded');
+  }
+
+  const title = $derived(
+    panel === 'paste' ? 'Paste save' : panel === 'copy' ? 'Copy save' : 'The study',
+  );
 </script>
 
-<section>
-  <svg viewBox="0 0 375 812" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The study: a rainy window, a lamp and a desk">
-    <rect width="375" height="812" fill="var(--parchment)" />
-    <!-- window -->
-    <rect x="50" y="90" width="190" height="200" fill="var(--night)" stroke="var(--ink)" stroke-width="8" />
-    <path d="M145 90v200M50 190h190" stroke="var(--ink)" stroke-width="5" />
-    <g stroke="var(--parchment-dark)" stroke-width="2" stroke-linecap="round" opacity="0.8">
-      <path d="M70 110l-8 20M105 140l-8 20M135 105l-8 20M175 150l-8 20M205 115l-8 20M225 220l-8 20M85 230l-8 20M120 250l-8 20M190 245l-8 20" />
-    </g>
-    <!-- lamp -->
-    <circle cx="305" cy="170" r="46" fill="var(--lamp)" opacity="0.25" />
-    <circle cx="305" cy="170" r="22" fill="var(--lamp)" />
-    <path d="M305 110v38" stroke="var(--ink)" stroke-width="4" />
-    <!-- desk -->
-    <rect x="20" y="470" width="335" height="14" fill="var(--ink)" />
-    <rect x="40" y="484" width="14" height="190" fill="var(--ink)" />
-    <rect x="321" y="484" width="14" height="190" fill="var(--ink)" />
-    <!-- notebook + ink pot -->
-    <path d="M110 470l20-36h110l20 36z" fill="var(--parchment-dark)" stroke="var(--ink)" stroke-width="3" />
-    <path d="M185 434v36" stroke="var(--ink)" stroke-width="2" />
-    <rect x="290" y="440" width="28" height="30" rx="5" fill="var(--ink)" />
-  </svg>
+<div class="study" data-testid="study">
+  <StudyScene oncodex={() => go('codex')} onmenu={openMenu} />
 
-  <h1>The Study</h1>
-  <nav>
-    <a href={href('codex')}>Codex</a>
-    <a href={href('lab', { scenario: 'smoke' })}>Lab</a>
-  </nav>
-</section>
+  <div class="desk">
+    <LatticeEditor
+      {lattice}
+      {compiled}
+      capacity={profile.inkCapacity[game.member]}
+      {slots}
+      tool={game.tool}
+      ontool={(t) => game.setTool(t)}
+      onsocket={(at, longPress) => game.tapSocket(at, longPress)}
+      member={game.member}
+      onmember={(m) => game.selectMember(m)}
+      onreject={(reason) => toast(reason)}
+    />
+  </div>
+
+  <div class="doorway">
+    <button type="button" class="door" disabled data-testid="door" aria-describedby="door-note">
+      <svg class="arch" width="28" height="36" viewBox="0 0 28 36" aria-hidden="true">
+        <path d="M3 35V14a11 11 0 0 1 22 0v21z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="2" />
+        <path d="M14 3v32M8.5 10v25M19.5 10v25" stroke="var(--wood-deep)" stroke-opacity="0.6" />
+        <circle cx="20.5" cy="23" r="1.8" fill="var(--lamp)" />
+      </svg>
+      <span class="words">
+        <span class="label">Set out into the city</span>
+        <span class="caption" id="door-note">{doorCaption}</span>
+      </span>
+    </button>
+  </div>
+
+  <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>
+    {#if panel === 'menu'}
+      <div class="menu">
+        <a class="item tap" href={href('lab', { scenario: 'sandbox' })} data-testid="menu-lab">Visit the Lab</a>
+        <Button variant="quiet" label="Copy save" onclick={copySave} testid="copy-save" />
+        <Button
+          variant="quiet"
+          label="Paste save"
+          onclick={() => (panel = 'paste')}
+          testid="paste-save"
+        />
+      </div>
+      <p class="hint">
+        Your notebook lives in this browser. Copy the save somewhere safe: phones sometimes clear
+        site data.
+      </p>
+    {:else if panel === 'paste'}
+      <p class="hint">Paste a copied save here. It replaces the notebook you have now.</p>
+      <textarea
+        bind:value={pasted}
+        rows="5"
+        spellcheck="false"
+        autocapitalize="off"
+        placeholder="Paste save text"
+        aria-label="Save text"
+        data-testid="paste-text"
+      ></textarea>
+      <div class="row">
+        <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
+        <Button variant="danger" label="Replace my save" onclick={loadPasted} testid="paste-go" />
+      </div>
+    {:else if panel === 'copy'}
+      <p class="hint">Copying was blocked. Select the text below and copy it by hand.</p>
+      <textarea readonly rows="5" value={copyText} aria-label="Save text" data-testid="copy-text"
+      ></textarea>
+      <div class="row">
+        <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
+      </div>
+    {/if}
+  </Sheet>
+</div>
 
 <style>
-  section {
-    position: relative;
-    height: 100%;
-  }
-  svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-  h1 {
-    position: absolute;
-    top: var(--space-3);
-    left: var(--space-3);
-    margin: 0;
-    font-size: 22px;
-    font-weight: normal;
-    letter-spacing: 0.04em;
-  }
-  nav {
-    position: absolute;
-    left: var(--space-3);
-    right: var(--space-3);
-    bottom: calc(var(--space-4) + 20px);
+  .study {
     display: flex;
-    gap: var(--space-3);
+    flex-direction: column;
+    height: 100%;
+    /* the desk: dark planks lit from the lamp side */
+    background:
+      radial-gradient(ellipse at 65% 0%, rgba(232, 176, 74, 0.22), transparent 60%),
+      repeating-linear-gradient(90deg, transparent 0 58px, rgba(0, 0, 0, 0.18) 58px 59px),
+      linear-gradient(var(--wood-dark), #3a281c);
   }
-  nav a {
+  .desk {
     flex: 1;
-    padding: var(--space-3);
-    text-align: center;
-    text-decoration: none;
-    background: var(--ink);
+    min-height: 0;
+    padding: var(--space-2) var(--space-2) 0;
+  }
+  /* The editor is shared with the Lab; on the desk its parts become paper, ribbons and a slip of notes. */
+  .desk :global(.page) {
+    border: 0;
+    border-radius: 3px 8px 8px 3px;
+    background:
+      linear-gradient(90deg, rgba(139, 58, 43, 0.35) 0 2px, transparent 2px) 34px 0 / 100% 100% no-repeat,
+      repeating-linear-gradient(to bottom, transparent 0 27px, rgba(47, 79, 111, 0.12) 27px 28px),
+      var(--parchment);
+    box-shadow:
+      inset 8px 0 10px -8px rgba(43, 33, 24, 0.45),
+      0 4px 0 var(--parchment-deep),
+      0 8px 14px rgba(0, 0, 0, 0.45);
+  }
+  .desk :global(.mark:not(.on)) {
+    background: var(--parchment-dark);
+  }
+  /* the ink pot's count sits on a paper tag so it reads against the wood */
+  .desk :global(.pot) {
+    align-self: center;
+    min-height: 36px;
+    padding: 0 var(--space-2) 0 var(--space-1);
+    border-radius: 999px;
+    background: var(--parchment);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  .desk :global(.info) {
+    border-radius: var(--radius);
+    background: var(--parchment);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transform: rotate(-0.3deg);
+  }
+  .desk :global(.shelf) {
+    padding: 4px;
+    border-radius: var(--radius);
+    background: var(--wood);
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.5),
+      0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+  .doorway {
+    flex: none;
+    padding: var(--space-2) var(--space-2) calc(var(--space-2) + 14px);
+  }
+  .door {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 52px;
+    padding: 0 var(--space-3);
+    border: 2px solid var(--wood-deep);
+    border-radius: var(--radius);
+    background:
+      repeating-linear-gradient(90deg, transparent 0 44px, rgba(0, 0, 0, 0.3) 44px 45px),
+      linear-gradient(#37271c, #2a1d15);
     color: var(--parchment);
-    border-radius: 6px;
+    text-align: left;
+    box-shadow: 0 5px 0 -1px rgba(232, 176, 74, 0.55); /* lamplight under the door */
+  }
+  .door:disabled {
+    cursor: default;
+  }
+  .arch {
+    flex: none;
+  }
+  .words {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .label {
+    font-size: 17px;
+    font-style: italic;
+  }
+  .caption {
+    font-size: 12px;
+    color: rgba(241, 230, 204, 0.7);
+  }
+  .menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    font-size: 16px;
+    text-decoration: none;
+  }
+  .hint {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  textarea {
+    display: block;
+    width: 100%;
+    padding: var(--space-2);
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
+    font: 16px/1.3 var(--mono);
+    resize: none;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
   }
 </style>

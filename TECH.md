@@ -104,6 +104,9 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-13 | Projection drift guard: every Lab scenario (demo + 3 end turns) and every encounter (4 idle rounds) must project to the engine's final state | Catches a missing `project` case the moment an event type is added |
 | 2026-10-13 | A Bolt that hits a unit gets a flight trail from `aimPreview` (`castLead`), since the engine emits no `lands` event for it | Cheap, exact for player casts; echo recasts keep only the cast pulse |
 | 2026-10-13 | Lab keys the battle view by session and unit outros are local | Switching scenarios swaps the board instantly instead of leaving fading tokens behind |
+| 2026-10-13 | Persistence: `GameStore` (`game.svelte.ts`) holds the save in `$state.raw`; every lattice edit goes through pure `flow.editLattice` and one `writeSave` (only when the page changed); `loadSave(backend, now)` copies unreadable text to `<key>.corrupt` and starts a new game | The write path is unit-tested with a counting memory backend; a corrupt save is never lost |
+| 2026-10-13 | `study.ts` Profile wrappers call the engine's `canPlace` as the final say on placements | One rule source for what fits; a test checks study.ts and the engine agree on every rune and socket |
+| 2026-10-13 | Lab battles take members' lattices from the player's profile unless the scenario defines them | The Lab is the place to try the notebook you are building |
 
 ## 8. Repo & tooling
 

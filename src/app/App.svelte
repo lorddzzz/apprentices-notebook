@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Toasts from '../ui/components/common/Toasts.svelte';
   import Codex from '../ui/screens/Codex.svelte';
   import Combat from '../ui/screens/Combat.svelte';
@@ -6,20 +7,37 @@
   import Lab from '../ui/screens/Lab.svelte';
   import Study from '../ui/screens/Study.svelte';
   import { BUILD } from './build';
-  import { router } from './router.svelte';
+  import { resolveScreen } from './flow';
+  import { game } from './instance';
+  import { go, router } from './router.svelte';
+  import { toast } from './toasts.svelte';
+
+  const resolved = $derived(resolveScreen(router.route, game.save.trip, game.wipe));
+
+  onMount(() => {
+    if (game.recovered) {
+      toast('The saved notebook could not be read. Starting fresh; the old text is kept.', 'warn');
+    }
+  });
+
+  // The trip (or a pending wipe) decides the screen; rewrite the URL to match without piling up history.
+  $effect(() => {
+    if (resolved.redirect) go(resolved.redirect, undefined, { replace: true });
+  });
 </script>
 
 <main>
-  {#if router.route === 'study'}
+  {#if resolved.screen === 'study'}
     <Study />
-  {:else if router.route === 'trip'}
-    <Combat />
-  {:else if router.route === 'codex'}
+  {:else if resolved.screen === 'codex'}
     <Codex />
-  {:else if router.route === 'gallery'}
+  {:else if resolved.screen === 'gallery'}
     <Gallery />
-  {:else}
+  {:else if resolved.screen === 'lab'}
     <Lab />
+  {:else}
+    <!-- battle, loot, crossroads, cleared, wiped: U7 -->
+    <Combat />
   {/if}
   <Toasts />
   <span class="build">{BUILD}</span>
