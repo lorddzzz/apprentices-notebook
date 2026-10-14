@@ -75,9 +75,9 @@ describe('beginEncounter builds the chosen variant', () => {
 });
 
 describe('encounter 1 telegraphs on turn 1', () => {
-  test("the original layout opens with a rat's bite aimed at a member", () => {
-    const seed = seeds.find((s) => variantFor(startTrip(p, s), 0) === 0);
-    if (seed === undefined) throw new Error('no seed picks variant 0');
+  test.each([0, 1, 2])("layout %i opens with a rat's bite aimed at a member", (variant) => {
+    const seed = seeds.find((s) => variantFor(startTrip(p, s), 0) === variant);
+    if (seed === undefined) throw new Error(`no seed picks variant ${variant}`);
     const { state } = beginEncounter(p, startTrip(p, seed));
     const threats = state.units.filter(
       (u): u is EnemyUnit =>

@@ -7,6 +7,7 @@ const board = (rows: readonly string[]): string => rows.join('\n');
  * Crossroads names it. Enemy counts and the difficulty band are the same across a depth's
  * variants: only the shape of the room changes.
  */
+/** Depth 1: every board starts with a rat beside a member, so turn 1 already shows a bite coming. */
 const DEPTH_1: readonly EncounterVariant[] = [
   {
     name: 'The lamplit landing',
@@ -29,8 +30,8 @@ const DEPTH_1: readonly EncounterVariant[] = [
       '. . . . . .',
       '. i . . i .',
       '. . . . . .',
-      '. . r . . .',
       '. . . . . .',
+      'r . . . . .',
       'D . . . . S',
       '. . . . . .',
     ]),
@@ -42,8 +43,8 @@ const DEPTH_1: readonly EncounterVariant[] = [
       '. o o . . .',
       'r . . . . .',
       '. . . . o .',
-      '. . . . . r',
       '. . . . . .',
+      '. . . . r .',
       '. . D . S .',
       '. . . . . .',
     ]),
