@@ -4,6 +4,7 @@
   import {
     type CompiledLattice,
     type Coord,
+    describeSpell,
     type GlyphId,
     type GlyphLibrary,
     glyphCost,
@@ -17,6 +18,8 @@
   } from '$engine';
   import { spellRecipe, stepNumbers } from '../../../app/recipe';
   import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
+  import Pips from '../common/Pips.svelte';
+  import Sheet from '../common/Sheet.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
   import InkPot from './InkPot.svelte';
   import LatticeGrid from './LatticeGrid.svelte';
@@ -79,6 +82,8 @@
 
   let focus = $state<SpellKey | null>(null);
   let inspected = $state<Coord | null>(null);
+  // The full spell list and recipe live in a sheet so the board keeps the room.
+  let reading = $state(false);
 
   // A focus on a spell that no longer exists (rune removed, member switched) falls back to the first.
   const liveFocus = $derived(
@@ -135,11 +140,8 @@
     onmember(id);
   }
 
-  function toggleErase(): void {
-    pick(tool.kind === 'erase' ? { kind: 'none' } : { kind: 'erase' });
-  }
-
   const infoRune = $derived(held ?? inspectedRune);
+  const spellIndex = $derived(compiled.spells.findIndex((s) => s.key === liveFocus));
 </script>
 
 <div class="editor" data-testid="editor">
@@ -163,16 +165,6 @@
   </div>
 
   <div class="page">
-    <button
-      type="button"
-      class="erase"
-      class:on={tool.kind === 'erase'}
-      aria-pressed={tool.kind === 'erase'}
-      data-testid="erase"
-      onclick={toggleErase}
-    >
-      Erase
-    </button>
     {#if fair?.available}
       <button
         type="button"
@@ -203,15 +195,10 @@
   </div>
 
   <div class="info" data-testid="info">
-    {#if fairOn && fairinfo}
-      {#if fair?.chip}
-        <p class="chip" class:lost={fair.chip.lost} data-testid="fair-chip">{fair.chip.text}</p>
-      {/if}
-      {@render fairinfo()}
-    {:else if tool.kind === 'erase'}
-      <p class="line">Tap a rune to erase it. Holding a rune also lifts it.</p>
+    {#if tool.kind === 'erase'}
+      <p class="line pad">Tap a rune to erase it. Holding a rune also lifts it.</p>
     {:else if heldGlyph}
-      <p class="line">
+      <p class="line pad">
         <b>{heldGlyph.name}</b> · Fair copy · {pending} ink. Tap an empty socket. It takes its runes from your
         collection.
       </p>
@@ -224,47 +211,78 @@
           dir={inspectedGlyph.dir}
           size={36}
         />
-        <div>
+        <div class="grow">
           <p class="line">
             <b>{inspectedGlyphDef.name}</b> · {inspectedGlyphDef.kind} Fair copy · {glyphCost(inspectedGlyphDef)} ink
           </p>
-          <p class="rule">
-            {inspectedGlyphDef.cells.length} runes inside. Tap it to turn: the arrow is the way in.
-          </p>
-          <button
-            type="button"
-            class="peek"
-            data-testid="peek"
-            onclick={() => onpeek?.(inspectedGlyphDef.id)}
-          >
-            Look inside
-          </button>
+          <p class="rule">{inspectedGlyphDef.cells.length} runes inside. Tap it to turn.</p>
         </div>
+        <button
+          type="button"
+          class="peek"
+          data-testid="peek"
+          onclick={() => onpeek?.(inspectedGlyphDef.id)}
+        >
+          Look inside
+        </button>
       </div>
     {:else if infoRune}
       {@const def = RUNES[infoRune]}
       <div class="rune">
         <RuneGlyph rune={infoRune} dir={def.arrow ? 'right' : undefined} size={36} />
-        <div>
+        <div class="grow">
           <p class="line">
             <b>{def.name}</b> · {def.family} · {inkCost(infoRune)} ink
           </p>
-          <p class="rule">{def.rule}{def.arrow ? ' Tap it to turn.' : ''}</p>
+          <p class="rule clamp">{def.rule}{def.arrow ? ' Tap it to turn.' : ''}</p>
         </div>
       </div>
+    {:else if focusedSpell}
+      <button
+        type="button"
+        class="reading"
+        data-testid="reading"
+        aria-haspopup="dialog"
+        onclick={() => (reading = true)}
+      >
+        <RuneGlyph rune={focusedSpell.source} dir={focusedSpell.path[0]?.dir} size={30} />
+        <span class="grow">
+          <span class="summary">{describeSpell(focusedSpell)}</span>
+          <span class="more">
+            {#if compiled.spells.length > 1}Spell {spellIndex + 1} of {compiled.spells.length} · {/if}
+            {recipe && recipe.steps.length > 0
+              ? `${recipe.steps.length} ${recipe.steps.length === 1 ? 'step' : 'steps'} · tap to read`
+              : 'Tap to read'} &rsaquo;
+          </span>
+        </span>
+        <Pips value={focusedSpell.charges} max={focusedSpell.charges} tone="charge" />
+      </button>
     {:else}
-      <SpellList spells={compiled.spells} focus={liveFocus} {recipe} onfocus={(k) => (focus = k)} />
+      <p class="line pad soft">No spell yet. A Source rune (Bolt, Splash, Ward) starts the flow.</p>
     {/if}
   </div>
 
-  <RuneShelf {slots} {tool} onselect={pick} {onreject} glyphs={glyphSlots} />
+  {#if fairOn && fairinfo}
+    <div class="fairpanel">
+      {#if fair?.chip}
+        <p class="chip" class:lost={fair.chip.lost} data-testid="fair-chip">{fair.chip.text}</p>
+      {/if}
+      {@render fairinfo()}
+    </div>
+  {:else}
+    <RuneShelf {slots} {tool} onselect={pick} {onreject} glyphs={glyphSlots} erase />
+  {/if}
+
+  <Sheet open={reading} title="Spells on this page" onclose={() => (reading = false)}>
+    <SpellList spells={compiled.spells} focus={liveFocus} {recipe} onfocus={(k) => (focus = k)} />
+  </Sheet>
 </div>
 
 <style>
   .editor {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: 6px;
     height: 100%;
     min-height: 0;
   }
@@ -277,6 +295,7 @@
   }
   .grow {
     flex: 1;
+    min-width: 0;
   }
   .mark {
     position: relative;
@@ -318,10 +337,11 @@
     background: var(--parchment);
     opacity: 1;
   }
+  /* The board is the centrepiece: it takes every pixel the strip, shelf and door leave. */
   .page {
     position: relative;
     flex: 1;
-    min-height: 0;
+    min-height: 160px;
     display: grid;
     place-items: center;
     container-type: size;
@@ -333,25 +353,6 @@
   }
   .page > :global(.lattice) {
     place-self: center;
-  }
-  .erase {
-    position: absolute;
-    top: var(--space-1);
-    right: var(--space-1);
-    z-index: 1;
-    min-width: var(--tap);
-    min-height: var(--tap);
-    padding: 0 var(--space-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--parchment);
-    font-size: 14px;
-    cursor: pointer;
-  }
-  .erase.on {
-    background: var(--danger);
-    border-color: var(--danger);
-    color: var(--parchment);
   }
   .fair {
     position: absolute;
@@ -393,8 +394,8 @@
     opacity: 0.75;
   }
   .peek {
-    min-height: 36px;
-    margin-top: var(--space-1);
+    flex: none;
+    min-height: var(--tap);
     padding: 0 var(--space-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -402,28 +403,79 @@
     font-size: 14px;
     cursor: pointer;
   }
+  /* One compact strip under the board: what is held or inspected, else the focused spell. */
   .info {
     flex: none;
-    height: 168px;
-    overflow-y: auto;
+    height: 64px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
   }
   .rune {
     display: flex;
     gap: var(--space-2);
-    align-items: flex-start;
-    padding: var(--space-1) var(--space-2);
+    align-items: center;
+    height: 100%;
+    padding: 0 var(--space-2);
   }
   .line {
     margin: 0;
     font-size: 14px;
+    line-height: 1.25;
+  }
+  .pad {
+    padding: var(--space-2);
+  }
+  .soft {
+    color: var(--ink-soft);
   }
   .rule {
-    margin: 2px 0 0;
-    font-size: 13px;
+    margin: 1px 0 0;
+    font-size: 12.5px;
     line-height: 1.25;
     color: var(--ink-soft);
   }
-  .info > .line {
-    padding: var(--space-2);
+  .clamp {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  .reading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    height: 100%;
+    padding: 0 var(--space-2);
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .reading .grow {
+    display: flex;
+    flex-direction: column;
+  }
+  .summary {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .more {
+    font-size: 12px;
+    color: var(--f-source);
+  }
+  .fairpanel {
+    flex: none;
+    border: 1px solid var(--lamp);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
   }
 </style>

@@ -12,9 +12,15 @@
     onreject?: (reason: string) => void;
     /** The profile's Fair copies. The Fair copies tab shows only when there is one (plan P12). */
     glyphs?: GlyphSlot[];
+    /** Lead the shelf with the Erase tool (the lattice editor). */
+    erase?: boolean;
   }
 
-  let { slots, tool, onselect, onreject, glyphs = [] }: Props = $props();
+  let { slots, tool, onselect, onreject, glyphs = [], erase = false }: Props = $props();
+
+  // Unknown runes are the Codex's business; the shelf shows what can be inscribed.
+  const known = $derived(slots.filter((s) => s.known));
+  const erasing = $derived(tool.kind === 'erase');
 
   let picked = $state<'runes' | 'glyphs'>('runes');
   // The tab can't stay on a list that has emptied (a save was replaced).
@@ -38,6 +44,25 @@
     onselect(same ? { kind: 'none' } : { kind: 'rune', rune: slot.rune });
   }
 </script>
+
+{#snippet eraser()}
+  {#if erase}
+    <button
+      type="button"
+      class="slot eraser"
+      class:on={erasing}
+      aria-pressed={erasing}
+      data-testid="erase"
+      onclick={() => onselect(erasing ? { kind: 'none' } : { kind: 'erase' })}
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 15l9-9a2 2 0 0 1 3 0l3 3a2 2 0 0 1 0 3l-8 8H8z" />
+        <path d="M9 10l6 6M11 20h9" />
+      </svg>
+      <span class="ename">Erase</span>
+    </button>
+  {/if}
+{/snippet}
 
 {#if glyphs.length > 0}
   <div class="tabs" role="tablist" aria-label="Shelf">
@@ -69,6 +94,7 @@
 {#if tab === 'glyphs'}
   <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
   <div class="copies" data-testid="shelf" role="group" aria-label="Fair copies">
+    {@render eraser()}
     {#each glyphs as slot (slot.glyph.id)}
       {@const selected = tool.kind === 'glyph' && tool.glyph === slot.glyph.id}
       <button
@@ -101,43 +127,56 @@
 {:else}
 <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
 <div class="shelf" data-testid="shelf" role="group" aria-label="Rune shelf">
-  {#each slots as slot (slot.rune)}
+  {@render eraser()}
+  {#each known as slot (slot.rune)}
     {@const selected = tool.kind === 'rune' && tool.rune === slot.rune}
     <button
       type="button"
       class="slot"
       class:selected
-      class:spent={slot.known && !slot.usable}
-      class:unknown={!slot.known}
+      class:spent={!slot.usable}
       aria-pressed={selected}
-      aria-label={slot.known
-        ? `${RUNES[slot.rune].name}, ${slot.free === null ? 'unlimited' : `${slot.free} of ${slot.owned} left`}`
-        : 'Unknown rune'}
+      aria-label={`${RUNES[slot.rune].name}, ${slot.free === null ? 'unlimited' : `${slot.free} of ${slot.owned} left`}`}
       data-rune={slot.rune}
       onclick={() => tap(slot)}
     >
       <RuneGlyph
-        rune={slot.known ? slot.rune : null}
-        dir={slot.known && RUNES[slot.rune].arrow ? 'right' : undefined}
+        rune={slot.rune}
+        dir={RUNES[slot.rune].arrow ? 'right' : undefined}
         size={30}
-        dim={slot.known && !slot.usable}
+        dim={!slot.usable}
       />
-      {#if slot.known}
-        <span class="count" class:poor={slot.usable && !slot.affordable}>
-          <b>{slot.free === null ? '∞' : slot.free}</b>{#if slot.owned !== null}<small>/{slot.owned}</small>{/if}
-        </span>
-      {/if}
+      <span class="count" class:poor={slot.usable && !slot.affordable}>
+        <b>{slot.free === null ? '∞' : slot.free}</b>{#if slot.owned !== null}<small>/{slot.owned}</small>{/if}
+      </span>
     </button>
   {/each}
 </div>
 {/if}
 
 <style>
+  /* Two rows and a peek of the third, then it scrolls: the board above keeps the room. */
   .shelf {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     grid-auto-rows: 48px;
     gap: 2px;
+    max-height: 122px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+  .eraser {
+    gap: 1px;
+    color: var(--ink);
+  }
+  .eraser.on {
+    border-color: var(--danger);
+    background: var(--danger);
+    color: var(--parchment);
+  }
+  .ename {
+    font-size: 11px;
   }
   .tabs {
     display: flex;
@@ -168,9 +207,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: 48px;
     gap: 2px;
-    /* three rows like the rune shelf, then it scrolls */
-    max-height: 148px;
+    /* like the rune shelf: two rows and a peek, then it scrolls */
+    max-height: 122px;
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .copy {
     display: flex;
@@ -231,11 +271,6 @@
   .slot.selected {
     border: 2px solid var(--select);
     background: rgba(232, 176, 74, 0.35);
-  }
-  .slot.unknown {
-    cursor: default;
-    background: transparent;
-    border-style: dashed;
   }
   .slot:focus-visible {
     outline: 3px solid var(--select);
