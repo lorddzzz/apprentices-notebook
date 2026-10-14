@@ -2,8 +2,8 @@
 
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** holding for reset (resumes ~02:01 UTC, epoch 1791943260)
-**Next:** After the 02:00Z reset (epoch 1791943200): D2 (Lab scenarios per new rune/interaction; fuzz bots use new runes, take doorways, play all variants; Lab palette for new tile states optional), then W4 (battle title = variant name?, docs DESIGN §11 + feature doc §0 + TECH §7, code review, verify whole loop, cleanup worktrees). Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**State:** building (W4)
+**Next:** merge D2a/D2b, act on the review, battle title = variant name (after D2b: fuzz specFor uses enc.title), verify the loop at 375×812, push, status Done. Old plan: D2 (Lab scenarios per new rune/interaction; fuzz bots use new runes, take doorways, play all variants; Lab palette for new tile states optional), then W4 (battle title = variant name?, docs DESIGN §11 + feature doc §0 + TECH §7, code review, verify whole loop, cleanup worktrees). Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -31,8 +31,8 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | C2 | haiku | S | merged | (see log) | ~2% | aspects show the hint under the rule when unknown (no ??? there) |
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
 | S1 | sonnet | M | merged | (see log) | ~6% | |
-| D2 | haiku→sonnet | M | todo | | | all |
-| W4 | opus (me) | S | todo | | | |
+| D2 | haiku + sonnet | M | running | | | split: D2a scenarios (haiku), D2b fuzz (sonnet); started 02:02 |
+| W4 | opus (me) | S | running | da984fa (docs) | | docs done; Sonnet reviewer running (read-only) |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -50,6 +50,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 23:03 | 80 | 2h57m | 51 | narrow | C2 merged + pushed; no spawn until S1 reports |
 | 23:11 | 86 | 2h49m | 51 | narrow (86 + P1 3 = 89) | S1 merged + pushed; spawn P1; D2/W4 after reset |
 | 23:15 | 87 | 2h45m | 52 | narrow (87 + D2 8 = 95: no) | P1 merged + pushed; merged worktrees cleaned; HOLD |
+| 02:02 | 0 | 5h | 52 | normal | reset; spawn D2a, D2b, reviewer; docs written |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
