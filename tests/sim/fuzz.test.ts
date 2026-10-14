@@ -20,6 +20,7 @@ import {
   type Action,
   type ActionResult,
   applyAction,
+  applyDoorway,
   type BattleSpec,
   type BattleState,
   beginEncounter,
@@ -33,6 +34,7 @@ import {
   compiledFor,
   compileGlyph,
   createBattle,
+  createEncounterBattle,
   createRng,
   DIRS,
   deriveSeed,
@@ -54,6 +56,8 @@ import {
   memberById,
   newProfile,
   type Profile,
+  parseLabel,
+  parseSaveData,
   pickLoot,
   provenCount,
   pushOn,
@@ -65,11 +69,15 @@ import {
   setSocket,
   shoveDirs,
   startTrip,
+  step,
   type Trip,
+  tileAt,
   type Unit,
   validateLoadout,
   variantFor,
 } from '$engine';
+import { applyBrass, applyEtch, applyKiln, applyScald } from '$engine/materials';
+import { board, draft } from '../scenarios/harness';
 
 /**
  * Fuzz harness: random and greedy bots play whole trips over the pure engine. Every action is
@@ -78,7 +86,7 @@ import {
  */
 
 const MAX_ROUNDS = 60;
-const SEEDS = Number(process.env.FUZZ_SEEDS ?? 6);
+const SEEDS = Number(process.env.FUZZ_SEEDS ?? 8);
 const REPLAY_EVERY = 5; // replay-compare every Nth finished battle (cost)
 const STALL_ROUNDS = 20;
 // '@entry' modes start every trip at encounter (seed % 4) with a full party, so the deeper
@@ -90,10 +98,20 @@ const isRandom = (b: Bot): boolean => b.startsWith('random');
 // ── Issue log ───────────────────────────────────────────
 
 const issues = new Map<string, { count: number; example: string }>();
+/**
+ * Engine bugs the fuzz found but that are not fixed yet: counted and printed, never failing the
+ * run. Each needs a skipped repro test below; delete the entry (and un-skip the test) once fixed.
+ */
+const KNOWN_ENGINE_GAPS = new Set<string>([]);
+const knownGaps = new Map<string, { count: number; example: string }>();
 function flag(rule: string, example: string): void {
-  const cur = issues.get(rule);
-  if (cur) cur.count += 1;
-  else issues.set(rule, { count: 1, example: example.slice(0, 3000) });
+  const book = KNOWN_ENGINE_GAPS.has(rule) ? knownGaps : issues;
+  const cur = book.get(rule);
+  if (cur) {
+    cur.count += 1;
+    return;
+  }
+  book.set(rule, { count: 1, example: example.slice(0, 3000) });
 }
 
 // ── Small helpers ───────────────────────────────────────
@@ -126,7 +144,9 @@ function shuffle<T>(rng: Rng, xs: readonly T[]): T[] {
 function progressSig(s: BattleState): string {
   const units = s.units.map((u) => `${u.pos.x},${u.pos.y},${u.hp},${u.shield}`).join('|');
   let board = 0;
-  for (const t of s.tiles) board += t.steam + t.fire + (t.oil ? 1 : 0) + (t.ink ? 1 : 0);
+  for (const t of s.tiles) {
+    board += t.steam + t.fire + t.heat + (t.oil ? 1 : 0) + (t.ink ? 1 : 0) + (t.stain ? 1 : 0);
+  }
   return `${units}#${board}`;
 }
 
@@ -143,6 +163,11 @@ function checkState(s: BattleState, where: string): void {
       flag('hp outside [0, maxHp]', `${at} hp=${u.hp}/${u.maxHp}`);
     }
     if (u.shield < 0) flag('negative shield', `${at} shield=${u.shield}`);
+    if (!Number.isInteger(u.heat) || u.heat < 0 || u.heat > TUNING.heatRounds) {
+      flag('unit heat outside [0, heatRounds]', `${at} heat=${u.heat}`);
+    }
+    if (u.heat > 0 && !u.brass) flag('heat on a unit that is not brass', `${at} heat=${u.heat}`);
+    if (u.etched && !u.brass) flag('etched unit that is not brass', at);
     if (u.hp > 0) {
       const k = key(u.pos);
       const prev = seen.get(k);
@@ -165,6 +190,15 @@ function checkState(s: BattleState, where: string): void {
     if (t.plate && (t.oil || t.ink || t.steam > 0 || t.fire > 0)) {
       flag('brass plate shares its tile with another layer', at);
     }
+    if (!Number.isInteger(t.heat) || t.heat < 0 || t.heat > TUNING.heatRounds) {
+      flag('tile heat outside [0, heatRounds]', `${at} heat=${t.heat}`);
+    }
+    if (t.heat > 0 && !t.plate)
+      flag('heat on a tile that is not a brass plate', `${at} heat=${t.heat}`);
+    if (t.etched && !t.plate) flag('etched tile that is not a brass plate', at);
+    if (t.stain && !t.oil) flag('stain on a tile without oil', at);
+    if (t.stain && t.fire > 0) flag('stain on burning oil', at);
+    if (t.scald && t.steam <= 0) flag('scald on a tile without steam', at);
   });
   if (s.phase === 'won' && liveEnemies(s).length > 0) flag('won with enemies alive', where);
   if (s.phase === 'lost' && liveMembers(s).length > 0) flag('lost with members alive', where);
@@ -283,7 +317,7 @@ class Battle {
     checkState(r.state, where);
     checkPost(before, action, r, where);
     checkMonotone(before, r, where);
-    checkPaths(before, r.state, r.events, where);
+    checkPaths(before, r.events, where);
 
     this.state = r.state;
     this.events.push(...r.events);
@@ -462,12 +496,44 @@ interface BattleResult {
   discovered: InteractionId[];
 }
 
+/** A member with nothing to do but end the turn: no move, no usable cast with an aim, no shove. */
+function isBoxed(s: BattleState, id: string): boolean {
+  if (legalMoves(s, id).length > 0 || shoveDirs(s, id).length > 0) return false;
+  return !castableSpells(s, id).some((c) => c.usable && legalAims(s, id, c.spell.key).length > 0);
+}
+
+// Hot plates plus Kiln could wall the party in (plan §4). The party is "boxed" in a round when
+// every living member is; three such rounds in a row is a soft-lock candidate.
+const BOXED_ROUNDS = 3;
+const boxStats = { partyBoxedRounds: 0, longestRun: 0, withHotPlate: 0 };
+
+function watchBoxed(s: BattleState, run: { n: number }, label: string): void {
+  const live = liveMembers(s);
+  const hot = s.tiles.some((t) => t.plate && t.heat > 0);
+  if (s.phase !== 'player' || live.length === 0 || !live.every((m) => isBoxed(s, m.id))) {
+    run.n = 0;
+    return;
+  }
+  run.n += 1;
+  boxStats.partyBoxedRounds += 1;
+  if (hot) boxStats.withHotPlate += 1;
+  boxStats.longestRun = Math.max(boxStats.longestRun, run.n);
+  if (run.n >= BOXED_ROUNDS) {
+    flag(
+      `party boxed in for ${BOXED_ROUNDS} rounds with no legal action but endTurn`,
+      `${label} round ${s.round} hot plates ${hot}\n${boardOf(s)}`,
+    );
+  }
+}
+
 function playBattle(label: string, bot: Bot, start: ActionResult, rng: Rng): BattleResult {
   const b = new Battle(label, start);
   let sig = progressSig(b.state);
   let lastChange = b.state.round;
+  const boxed = { n: 0 };
   while (b.state.phase === 'player' && !b.broken) {
     if (b.state.round > MAX_ROUNDS) break;
+    watchBoxed(b.state, boxed, label);
     if (isRandom(bot)) randomTurn(b, rng);
     else greedyTurn(b);
     const next = progressSig(b.state);
@@ -484,7 +550,7 @@ function playBattle(label: string, bot: Bot, start: ActionResult, rng: Rng): Bat
   if ((outcome === 'capped' || outcome === 'stalled') && anomalies.length < 8) {
     const tail = describeLog(b.events.slice(-8)).join('\n      ');
     anomalies.push(
-      `${outcome} ${label} round ${b.state.round} (last change r${lastChange})\n${boardOf(b.state)}\n      ${tail}`,
+      `${outcome} ${label} round ${b.state.round} (last change r${lastChange}) charges ${JSON.stringify(liveMembers(b.state).map((m) => [m.name, m.hp, m.charges]))}\n${boardOf(b.state)}\n      ${tail}`,
     );
   }
   return {
@@ -545,6 +611,124 @@ function randomLoadout(seed: number): Profile {
     }
   }
   return Object.keys(validateLoadout(p)).length === 0 ? p : newProfile();
+}
+
+// ── Themed lattices (the loot and bench runes show up in real casts) ──
+
+/** `new`: Pierce, On Ignite, Thrift, Scald, Etch, Kiln among the usual. `kiln`: Kiln-heavy, with fire and brass around it. */
+type Theme = 'new' | 'kiln';
+const THEMES: Record<Theme, { sources: RuneId[]; chain: RuneId[]; auras: RuneId[] }> = {
+  new: {
+    sources: ['bolt', 'quill', 'bolt'],
+    chain: [
+      'pierce',
+      'onIgnite',
+      'scald',
+      'etch',
+      'kiln',
+      'ink',
+      'oil',
+      'spark',
+      'torch',
+      'brass',
+      'steam',
+      'bend',
+      'fork',
+      'onInked',
+    ],
+    auras: ['thrift', 'amplify', 'echo'],
+  },
+  kiln: {
+    sources: ['bolt', 'quill'],
+    chain: ['kiln', 'kiln', 'brass', 'oil', 'torch', 'spark', 'etch', 'scald', 'ink', 'pierce'],
+    auras: ['thrift'],
+  },
+};
+
+/** The profile with every rune owned in numbers (the new ones too) and ink to spare. */
+function richProfile(base: Profile): Profile {
+  const collection = { ...base.collection };
+  for (const r of RUNE_IDS) collection[r] = Math.max(collection[r], START_COLLECTION[r] + 3);
+  return { ...base, collection, inkCapacity: { draughtsman: 16, stoker: 16 } };
+}
+
+/**
+ * Lays chains on empty lattices from `p`'s collection: a Source with an arrow, then runes from the
+ * theme along it (turning when the way is blocked), and sometimes an aura beside the Source.
+ * Everything goes through `canPlace`, so the result respects ownership and ink.
+ */
+function fillThemed(p0: Profile, theme: Theme, rng: Rng): Profile {
+  const pool = THEMES[theme];
+  let p = p0;
+  for (const m of MEMBER_IDS) {
+    p = setMemberLattice(p, m, { shape: latticeOf(p, m).shape, runes: [] });
+  }
+  for (const m of MEMBER_IDS) {
+    const chains = rng.int(2, 3);
+    for (let c = 0; c < chains; c++) {
+      let lat = latticeOf(p, m);
+      const free = (at: Coord): boolean =>
+        isSocket(lat.shape, at) && !lat.runes.some((r) => sameTile(r.at, at));
+      const starts: Coord[] = [];
+      for (let y = 0; y < lat.shape.height; y++) {
+        for (let x = 0; x < lat.shape.width; x++) if (free({ x, y })) starts.push({ x, y });
+      }
+      if (starts.length === 0) break;
+      const at0 = pick(rng, starts);
+      const source = pick(rng, pool.sources);
+      if (canPlace(p, m, at0, source) !== null) continue;
+      let dir = pick(rng, DIRS);
+      lat = setSocket(lat, at0, source, dir);
+      p = setMemberLattice(p, m, lat);
+      let cur = at0;
+      const len = rng.int(2, 5);
+      for (let i = 0; i < len; i++) {
+        const options = [dir, ...shuffle(rng, DIRS)].map((d) => ({ d, to: step(cur, d) }));
+        const next = options.find((o) => free(o.to));
+        if (!next) break;
+        const rune = pick(rng, pool.chain);
+        if (canPlace(p, m, next.to, rune) !== null) continue;
+        const rdir = RUNES[rune].arrow ? pick(rng, [next.d, next.d, ...DIRS]) : undefined;
+        lat = setSocket(lat, next.to, rune, rdir);
+        p = setMemberLattice(p, m, lat);
+        cur = next.to;
+        dir = rdir ?? next.d;
+      }
+      if (rng.next() < 0.6) {
+        const spots = DIRS.map((d) => step(at0, d)).filter(free);
+        const aura = pick(rng, pool.auras);
+        const spot = spots.length > 0 ? pick(rng, spots) : null;
+        if (spot && canPlace(p, m, spot, aura) === null) {
+          lat = setSocket(lat, spot, aura);
+          p = setMemberLattice(p, m, lat);
+        }
+      }
+    }
+  }
+  return p;
+}
+
+const hasSpells = (p: Profile): boolean =>
+  MEMBER_IDS.every((m) => compiledFor(p, m).spells.length > 0);
+
+/** A valid themed loadout with a spell for every member, or null if the draw was unlucky. */
+function themedLoadout(base: Profile, theme: Theme, rng: Rng): Profile | null {
+  const p = fillThemed(richProfile(base), theme, rng);
+  return Object.keys(validateLoadout(p)).length === 0 && hasSpells(p) ? p : null;
+}
+
+/** How many compiled spells (all members) carry each rune: shows the new runes are really on the pages. */
+const runeCoverage = new Map<RuneId, number>();
+function noteCoverage(p: Profile): void {
+  for (const m of MEMBER_IDS) {
+    const compiled = compiledFor(p, m);
+    for (const sp of compiled.spells) {
+      const seen = new Set<RuneId>([sp.source, ...sp.path.map((c) => c.rune)]);
+      if (sp.pierce) seen.add('pierce');
+      for (const r of seen) bump(runeCoverage, r);
+    }
+    for (const t of compiled.auraTouches) bump(runeCoverage, t.aura);
+  }
 }
 
 // ── Glyph lattices through the real path ────────────────
@@ -840,12 +1024,7 @@ function checkMonotone(before: BattleState, r: ActionResult, where: string): voi
 }
 
 /** Walks in the log: no step crosses a living unit or a brass plate, and each move starts where the unit was. */
-function checkPaths(
-  before: BattleState,
-  after: BattleState,
-  events: readonly GameEvent[],
-  where: string,
-): void {
+function checkPaths(before: BattleState, events: readonly GameEvent[], where: string): void {
   const at = new Map<string, string>(); // tile key -> unit id (living units only)
   const tileOf = new Map<string, string>(); // unit id -> tile key
   for (const u of before.units) {
@@ -853,7 +1032,12 @@ function checkPaths(
     at.set(key(u.pos), u.id);
     tileOf.set(u.id, key(u.pos));
   }
-  const plate = (c: Coord) => after.tiles[c.y * after.width + c.x]?.plate === true;
+  const plates = new Set(
+    before.tiles.flatMap((t, i) =>
+      t.plate ? [`${i % before.width},${Math.floor(i / before.width)}`] : [],
+    ),
+  );
+  const plate = (c: Coord) => plates.has(key(c));
   const place = (id: string, to: Coord) => {
     const old = tileOf.get(id);
     if (old !== undefined) at.delete(old);
@@ -861,6 +1045,9 @@ function checkPaths(
     tileOf.set(id, key(to));
   };
   for (const e of events) {
+    // Plates come and go inside one action (Kiln raises one behind a walker; a plate crumbles).
+    if (e.type === 'plates') for (const c of e.tiles) plates.add(key(c));
+    else if (e.type === 'plateCrumbles') for (const c of e.tiles) plates.delete(key(c));
     if (e.type === 'moved') {
       if (tileOf.get(e.unit.id) !== key(e.unit.at))
         flag('move starts from the wrong tile', `${where} ${e.unit.id}`);
@@ -907,10 +1094,111 @@ function checkTripState(before: Trip | null, t: Trip, p: Profile, where: string)
   }
 }
 
-function runTrip(seed: number, bot: Bot, replayPick: { n: number }): void {
+type Kind = 'start' | 'random' | 'new' | 'kiln';
+const KINDS: readonly Kind[] = ['start', 'random', 'new', 'kiln'];
+
+/** The trip's starting profile: the real one, random runes (plus Fair Copies), or themed chains. */
+function profileFor(kind: Kind, seed: number): Profile {
+  if (kind === 'start') return newProfile();
+  if (kind === 'random') return compileSome(randomLoadout(seed), seed);
+  const rng = createRng(seed ^ 0x7e11);
+  for (let tries = 0; tries < 20; tries++) {
+    const p = themedLoadout(newProfile(), kind, rng);
+    if (p) return p;
+  }
+  flag('no themed loadout could be drawn', `seed ${seed} ${kind}`);
+  return newProfile();
+}
+
+/** Rewiring at a doorway: the banked collection only (no richProfile), or null if the draw is no good. */
+function rewired(p: Profile, rng: Rng): Profile | null {
+  const q = fillThemed(p, rng.next() < 0.5 ? 'new' : 'kiln', rng);
+  return Object.keys(validateLoadout(q)).length === 0 && hasSpells(q) ? q : null;
+}
+
+const sourceType = (sp: { glyph?: string; source: string }): string =>
+  sp.glyph ? `glyph:${sp.glyph}` : `rune:${sp.source}`;
+
+/** Remaining charges of every Source, grouped by rune (or Glyph) type, across both members. */
+function leftByType(p: Profile, t: Trip): Map<string, number[]> {
+  const out = new Map<string, number[]>();
+  for (const m of MEMBER_IDS) {
+    for (const sp of compiledFor(p, m).spells) {
+      const k = sourceType(sp);
+      out.set(k, [...(out.get(k) ?? []), t.charges[m][sp.key] ?? sp.charges]);
+    }
+  }
+  return out;
+}
+
+/** S12: leaving a doorway never refills a spell. Plus: the trip is otherwise untouched and moves on. */
+function checkDoorway(p: Profile, after: Profile, t: Trip, next: Trip, where: string): void {
+  if (next.status !== 'looting' && next.status !== 'crossroads') {
+    flag('trip still in the doorway after applyDoorway (soft-lock)', `${where} ${next.status}`);
+  }
+  if (next.status === 'looting' && (next.offers.length === 0 || next.picksLeft <= 0)) {
+    flag('doorway returned to looting with nothing to pick', where);
+  }
+  if (next.status === 'crossroads' && (next.offers.length > 0 || next.picksLeft !== 0)) {
+    flag('doorway went to the crossroads with picks pending', where);
+  }
+  const kept = (x: Trip) => JSON.stringify([x.hp, x.loot, x.encounter]);
+  if (kept(next) !== kept(t)) flag('doorway changed hp, loot or encounter', where);
+  if (JSON.stringify(after.collection) !== JSON.stringify(p.collection)) {
+    flag('doorway changed the collection', where);
+  }
+  for (const m of MEMBER_IDS) {
+    for (const sp of compiledFor(after, m).spells) {
+      const n = next.charges[m][sp.key];
+      if (n === undefined) {
+        flag('no charge entry for a rewired spell (would refill)', `${where} ${m} ${sp.key}`);
+      } else if (n < 0 || n > sp.charges) {
+        flag('rewired charges outside [0, max]', `${where} ${m} ${sp.key}=${n}/${sp.charges}`);
+      }
+    }
+  }
+  if (
+    MEMBER_IDS.some((m) =>
+      compiledFor(p, m).spells.some((sp) => (t.charges[m][sp.key] ?? sp.charges) < sp.charges),
+    )
+  ) {
+    doorwayStats.spent += 1;
+  }
+  const was = leftByType(p, t);
+  const now = leftByType(after, next);
+  for (const [type, counts] of now) {
+    const old = [...(was.get(type) ?? [])].sort((a, b) => b - a);
+    // Copies beyond the ones that were wired before start full: set the largest aside first.
+    const extra = Math.max(0, counts.length - old.length);
+    const rest = [...counts].sort((a, b) => b - a).slice(extra);
+    rest.forEach((n, i) => {
+      if (n > (old[i] ?? 0)) {
+        flag(
+          'charges refilled by a doorway (S12)',
+          `${where} ${type} before [${old}] after [${counts}]`,
+        );
+      }
+    });
+  }
+}
+
+/** The save written mid-trip must read back exactly (every status, the doorway included). */
+function checkSave(p: Profile, t: Trip, where: string): void {
+  const save = { profile: p, trip: t, seedCounter: 1, lastTrip: null };
+  try {
+    expect(parseSaveData(JSON.parse(JSON.stringify(save)))).toEqual(save);
+  } catch (err) {
+    flag(`save round trip failed in status ${t.status}`, `${where}: ${String(err).slice(0, 300)}`);
+  }
+}
+
+const doorwayStats = { offered: 0, injected: 0, taken: 0, rewired: 0, kept: 0, spent: 0 };
+const variantsSeen = new Map<string, number>();
+
+function runTrip(seed: number, bot: Bot, replayPick: { n: number }, kind: Kind): void {
   const rng = createRng(seed * 2654435761 + BOT_KINDS.indexOf(bot) + 1);
-  let p: Profile = seed % 2 === 0 ? newProfile() : randomLoadout(seed);
-  if (seed % 2 !== 0) p = compileSome(p, seed);
+  let p: Profile = profileFor(kind, seed);
+  noteCoverage(p);
   const tt = tripTally(bot);
   tt.runs += 1;
 
@@ -927,11 +1215,13 @@ function runTrip(seed: number, bot: Bot, replayPick: { n: number }): void {
   let guard = 0;
   while (trip && guard++ < 50) {
     const t: Trip = trip;
+    checkSave(p, t, `${bot}/${seed}/${kind} e${t.encounter}`);
     switch (t.status) {
       case 'fight': {
         const enc = ENCOUNTERS[t.encounter];
         if (!enc) break;
-        const label = `${bot}/${seed}/${enc.id}`;
+        bump(variantsSeen, `${t.encounter}|${variantFor(t, t.encounter)}`);
+        const label = `${bot}/${seed}/${kind}/${enc.id}`;
         const begun = beginEncounter(p, t);
         const spec = specFor(p, t);
         if (JSON.stringify(createBattle(spec).state) !== JSON.stringify(begun.state)) {
@@ -979,7 +1269,41 @@ function runTrip(seed: number, bot: Bot, replayPick: { n: number }): void {
           trip = null;
           break;
         }
-        trip = pickLoot(t, rng.int(0, t.offers.length - 1));
+        let offers = t.offers;
+        const heart = ENCOUNTERS[t.encounter]?.heart ?? false;
+        if (offers.some((o) => o.kind === 'doorway')) doorwayStats.offered += 1;
+        else if (!heart && rng.next() < 0.5) {
+          // Deep tables hold a doorway at weight 1, so force some (an offer holds at most one).
+          offers = [...offers.slice(0, -1), { kind: 'doorway' }];
+          doorwayStats.injected += 1;
+        }
+        const door = offers.findIndex((o) => o.kind === 'doorway');
+        const choice =
+          door >= 0 && (bot.startsWith('greedy') || rng.next() < 0.7)
+            ? door
+            : rng.int(0, offers.length - 1);
+        trip = pickLoot({ ...t, offers }, choice);
+        break;
+      }
+      case 'doorway': {
+        const where = `${bot}/${seed}/${kind} doorway e${t.encounter}`;
+        doorwayStats.taken += 1;
+        const q = rng.next() < 0.5 ? rewired(p, rng) : null;
+        if (q) doorwayStats.rewired += 1;
+        else doorwayStats.kept += 1;
+        let r: { profile: Profile; trip: Trip };
+        try {
+          r = applyDoorway(p, t, (q ?? p).lattices);
+        } catch (err) {
+          flag('applyDoorway threw on a valid loadout', `${where}: ${String(err)}`);
+          trip = null;
+          break;
+        }
+        checkDoorway(p, r.profile, t, r.trip, where);
+        noteCoverage(r.profile);
+        p = r.profile;
+        trip = r.trip;
+        checkTripState(null, trip, p, where);
         break;
       }
       case 'crossroads': {
@@ -1043,7 +1367,8 @@ test(`fuzz: ${SEEDS} trips per bot, invariants on every action`, () => {
   for (const bot of BOT_KINDS) {
     const replayPick = { n: 0 };
     for (let i = 0; i < SEEDS; i++) {
-      runTrip(1000 + i * 7919, bot, replayPick);
+      const seed = 1000 + i * 7919 + BOT_KINDS.indexOf(bot) * 104729; // a different seed per bot: more layouts
+      runTrip(seed, bot, replayPick, KINDS[i % KINDS.length] ?? 'start');
     }
   }
   // Illegal-action probes on a few fresh battles.
@@ -1129,6 +1454,12 @@ test(`fuzz: ${SEEDS} trips per bot, invariants on every action`, () => {
       'moveUndone',
       'shove',
       'lands',
+      'pierced',
+      'heated',
+      'cooled',
+      'scalded',
+      'stained',
+      'etched',
     ];
     lines.push(`${bot} events: ${keyTypes.map((k) => `${k}=${ev.get(k) ?? 0}`).join(' ')}`);
   }
@@ -1139,14 +1470,97 @@ test(`fuzz: ${SEEDS} trips per bot, invariants on every action`, () => {
     lines.push('violations:');
     for (const [rule, v] of issues) lines.push(`  x${v.count} ${rule}\n      e.g. ${v.example}`);
   }
+  for (const [rule, v] of knownGaps) {
+    lines.push(`known engine gap x${v.count} ${rule}\n      e.g. ${v.example}`);
+  }
   lines.push(
     `glyphs: tried ${glyphStats.tried}, compiled ${glyphStats.compiled}, casts compared ${glyphStats.castsCompared}`,
+  );
+  lines.push(
+    `doorways: offered ${doorwayStats.offered}, injected ${doorwayStats.injected}, taken ${doorwayStats.taken} (rewired ${doorwayStats.rewired}, kept ${doorwayStats.kept}; with a spent spell ${doorwayStats.spent})`,
+  );
+  lines.push(
+    `layouts played: ${ENCOUNTERS.flatMap((e, d) => e.variants.map((_, v) => `${d + 1}.${v}=${variantsSeen.get(`${d}|${v}`) ?? 0}`)).join(' ')}`,
+  );
+  lines.push(
+    `spells carrying each rune: ${[...runeCoverage.entries()].map(([r, n]) => `${r}=${n}`).join(' ')}`,
+  );
+  lines.push(
+    `boxed-in rounds: ${boxStats.partyBoxedRounds} (longest run ${boxStats.longestRun}, with a hot plate ${boxStats.withHotPlate})`,
   );
   if (process.env.FUZZ_SEEDS) console.log(lines.join('\n'));
 
   const summary = [...issues.keys()].join('; ');
   expect(summary, summary).toBe('');
+  // The run must really exercise the new content, not just allow it.
+  expect(doorwayStats.taken, 'doorways taken').toBeGreaterThan(0);
+  expect(doorwayStats.rewired, 'doorways rewired').toBeGreaterThan(0);
+  for (const r of NEW_RUNES) {
+    expect(runeCoverage.get(r) ?? 0, `spells carrying ${r}`).toBeGreaterThan(0);
+  }
+  const missing = ENCOUNTERS.flatMap((e, d) =>
+    e.variants.flatMap((_, v) => (variantsSeen.has(`${d}|${v}`) ? [] : [`${d + 1}.${v}`])),
+  );
+  expect(missing, `layouts never played by a trip: ${missing}`).toEqual([]);
 }, 600_000);
+
+const NEW_RUNES: readonly RuneId[] = ['pierce', 'onIgnite', 'thrift', 'scald', 'etch', 'kiln'];
+const THEMED_SEEDS = Number(process.env.THEMED_SEEDS ?? 3);
+
+test('fuzz: every layout under themed lattices (new runes, Kiln-heavy): no softlock, no cap', () => {
+  const seen = new Set(issues.keys());
+  const events = new Map<string, number>();
+  const outcomes = { won: 0, lost: 0, capped: 0, stalled: 0, broken: 0 };
+  let outOfAmmo = 0;
+  for (const [depth, enc] of ENCOUNTERS.entries()) {
+    for (const [vi, variant] of enc.variants.entries()) {
+      for (const theme of ['new', 'kiln'] as const) {
+        for (let seed = 1; seed <= THEMED_SEEDS; seed++) {
+          const p = themedLoadout(newProfile(), theme, createRng(seed * 977 + depth * 31 + vi));
+          if (!p) continue;
+          noteCoverage(p);
+          const party: BattleSpec['party'] = {};
+          for (const m of MEMBER_IDS) {
+            party[m] = {
+              hp: MEMBERS[m].hp,
+              spells: compiledFor(p, m).spells,
+              charges: chargesOf(p, m),
+            };
+          }
+          for (const bot of ['random', 'greedy'] as const) {
+            const label = `${theme}/${variant.name}/${bot}/${seed}`;
+            const start = createEncounterBattle(enc, party, seed, vi);
+            const res = playBattle(label, bot, start, createRng(seed * 7919 + depth * 31 + vi));
+            outcomes[res.outcome] += 1;
+            if (res.outcome === 'capped' || res.outcome === 'stalled') {
+              // Every charge spent with an enemy still standing is the bots' ammo stalemate (not a
+              // hot plate or a wall): counted, not failed. Anything else is a soft-lock.
+              const spent = liveMembers(res.battle.state).every((m) =>
+                Object.values(m.charges).every((n) => n <= 0),
+              );
+              if (spent) outOfAmmo += 1;
+              else flag(`themed fight ${res.outcome} (round cap) with charges left`, label);
+            }
+            for (const e of res.battle.events) bump(events, e.type);
+          }
+        }
+      }
+    }
+  }
+  if (process.env.FUZZ_SEEDS || process.env.THEMED_SEEDS) {
+    console.log(
+      `${anomalies.join('\n')}\nthemed layouts: ${JSON.stringify(outcomes)} (capped with every charge spent: ${outOfAmmo})\nevents: ${['pierced', 'heated', 'cooled', 'scalded', 'stained', 'etched', 'plates', 'plateCrumbles'].map((k) => `${k}=${events.get(k) ?? 0}`).join(' ')}\nboxed-in rounds ${boxStats.partyBoxedRounds} (longest ${boxStats.longestRun}, hot plate ${boxStats.withHotPlate})`,
+    );
+  }
+  const fresh = [...issues.entries()]
+    .filter(([k]) => !seen.has(k))
+    .map(([k, v]) => `${k}: ${v.example}`)
+    .join('; ');
+  expect(fresh, fresh).toBe('');
+  for (const e of ['pierced', 'heated', 'scalded', 'etched']) {
+    expect(events.get(e) ?? 0, `${e} events in themed fights`).toBeGreaterThan(0);
+  }
+}, 300_000);
 
 test('fuzz: random loadouts Fair-Copy cleanly (no battles, many seeds)', () => {
   const before = glyphStats.compiled;
@@ -1164,3 +1578,30 @@ test('fuzz: random loadouts Fair-Copy cleanly (no battles, many seeds)', () => {
   expect(fresh, fresh).toBe('');
   expect(glyphStats.compiled - before).toBeGreaterThan(0);
 }, 60_000);
+
+// ── Repros for the engine gaps the fuzz found (both fixed after the review) ──
+
+const cellsAt = (...labels: string[]) => labels.map(parseLabel);
+
+test('a plate raised on scalding steam drops the scald flag', () => {
+  // Fuzz: random bot, Bolt then Scald then Kiln down one line; the tile ends `=` with scald: true.
+  const lit = draft(board('D s .'), (ctx) => applyScald(ctx, cellsAt('B1')));
+  const r = draft(lit.state, (ctx) => applyKiln(ctx, cellsAt('B1')));
+  const t = tileAt(r.state, parseLabel('B1'));
+  expect(t.plate).toBe(true);
+  expect(t.steam).toBe(0);
+  expect(t.scald).toBe(false); // scald only belongs where steam > 0
+});
+
+test('a crumbled plate drops its etch', () => {
+  // Fuzz: Etch on a raised plate, the plate crumbles, the tile stays `etched: true` (a later plate
+  // raised there would start etched).
+  let s = draft(board('D . . . . . . r', { hp: { H1: 99 } }), (ctx) =>
+    applyBrass(ctx, cellsAt('B1')),
+  ).state;
+  s = draft(s, (ctx) => applyEtch(ctx, cellsAt('B1'))).state;
+  for (let i = 0; i < TUNING.plateRounds + 1; i++) s = applyAction(s, { type: 'endTurn' }).state;
+  const t = tileAt(s, parseLabel('B1'));
+  expect(t.plate).toBe(false);
+  expect(t.etched).toBe(false);
+});

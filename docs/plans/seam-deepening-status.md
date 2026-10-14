@@ -31,7 +31,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | C2 | haiku | S | merged | (see log) | ~2% | aspects show the hint under the rule when unknown (no ??? there) |
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
 | S1 | sonnet | M | merged | (see log) | ~6% | |
-| D2 | haiku + sonnet | M | D2a merged, D2b running | | | D2a: 8 Lab scenarios (pierce-through, on-ignite-blaze, thrift-charge, scald-cloud, etch-spark-network, kiln-plate, heat-brass, stain-shove) |
+| D2 | haiku + sonnet | M | merged | (see log) | ~10% | D2a: 8 Lab scenarios (pierce-through, on-ignite-blaze, thrift-charge, scald-cloud, etch-spark-network, kiln-plate, heat-brass, stain-shove) |
 | W4 | opus (me) | S | running | da984fa (docs) | | docs done; Sonnet reviewer running (read-only) |
 
 ## Usage log
@@ -115,7 +115,11 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - Review fixes (orchestrator): doorway charges now fall back to any Source with the same inner source rune (a spent Spell Glyph swapped for its loose Bolt no longer refills); Mist, new plates and vents clear a stale `scald`, and a crumbled or new plate clears `etched`; trip stats credit an echo to the cast that queued it (not by name).
 - Review notes not changed: On Ignite on a Fork's second branch also sees fires lit by the first branch (deterministic; "since the cast began" is the rule); the doorway draft could be bypassed by setProfile/fairCopy, but the UI gates them.
 
+- D2b: fuzz rotates four profile kinds, themed lattices put all six new runes on spells, invariants for heat/etch/stain/scald, bots take doorways (S12 per type, no soft-lock, save round-trip in every status), all 12 layouts played, Kiln box-in watcher (none found in 1190 themed fights). Its two engine gaps (scald on a new plate, etch on a crumbled plate) were the review's; fixed, repro tests now live.
+- Orchestrator (W4 loop check): depth 1's two new layouts opened with no threat; each now starts with a rat beside a member (test covers all three).
+
 ## Follow-ups and rough edges
+- A party with every charge spent can stalemate a lone rat out of reach (shove does no damage): fuzz counts these separately. Design question for the player (a way out?).
 - Bench empty pips not reproduced by P1 (filled at 3/6, `--m-ink` defined). W4: check the live site and a 6/6 or 0/6 score; ask the player for the exact screen if still unseen.
 - Lab `$effect` skips reloading when the same scenario is loaded, so `?demo=1` in-page does nothing (fresh load works). Pre-existing.
 - tests/sim/fuzz.test.ts bots have no `case 'doorway'` (a bot that picks one spins to the 50-iteration guard). D2 must handle it.
