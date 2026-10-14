@@ -309,7 +309,7 @@ test('a last trip with stats round-trips through the save text', () => {
   };
   const save: SaveData = {
     ...newSave(1),
-    lastTrip: { outcome: 'wiped', encounter: 1, stats },
+    lastTrip: { outcome: 'wiped', encounter: 1, place: 'The scullery', stats },
   };
   expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
 });

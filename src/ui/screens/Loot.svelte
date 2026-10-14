@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { encounterTitle } from '../../app/describe';
+  import { placeOf } from '$engine';
+  import { inSentence } from '../../app/describe';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
   import Button from '../components/common/Button.svelte';
@@ -23,7 +24,7 @@
 {#if trip}
   <section class="loot" data-testid="loot">
     <header>
-      <h1>Spoils of {encounterTitle(trip.encounter).toLowerCase()}</h1>
+      <h1>Spoils of {inSentence(placeOf(trip))}</h1>
       <p class="picks" data-testid="picks-left">
         {trip.picksLeft === 1 ? 'Take one.' : `Take ${trip.picksLeft}, one at a time.`}
       </p>

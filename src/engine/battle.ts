@@ -164,7 +164,8 @@ export function createEncounterBattle(
   variant = 0,
 ): ActionResult {
   const layout = enc.variants[variant]?.layout ?? enc.layout;
-  return createBattle({ title: enc.title, board: layout, seed, party });
+  const title = enc.variants[variant]?.name ?? enc.title;
+  return createBattle({ title, board: layout, seed, party });
 }
 
 // ── Actions ─────────────────────────────────────────────

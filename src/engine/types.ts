@@ -290,6 +290,7 @@ export interface TripStats {
 export interface TripRecap {
   outcome: 'returned' | 'wiped';
   encounter: number; // the deepest encounter index reached
+  place: string; // that room's name (its layout's place name)
   stats: TripStats;
 }
 /** doorway: rewiring in the field after picking a quiet doorway (plan S11). */

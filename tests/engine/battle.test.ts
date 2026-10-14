@@ -196,7 +196,7 @@ test('createEncounterBattle builds the first encounter', () => {
   const enc = ENCOUNTERS[0];
   if (!enc) throw new Error('no encounter');
   const { state, events } = createEncounterBattle(enc, { stoker: { hp: 5 } }, 42);
-  expect(events[0]).toEqual({ type: 'battleStart', title: enc.title });
+  expect(events[0]).toEqual({ type: 'battleStart', title: enc.variants[0]?.name });
   expect(state.units.filter((u) => u.kind === 'enemy')).toHaveLength(3);
   expect(state.units.find((u) => u.id === 'stoker')?.hp).toBe(5);
   expect([state.width, state.height]).toEqual([6, 8]);

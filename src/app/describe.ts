@@ -384,3 +384,8 @@ export function lootName(item: LootItem): string {
 export function encounterTitle(i: number): string {
   return ENCOUNTERS[i]?.title ?? 'The Seam';
 }
+
+/** "the flooded stair", "the Heart of the Seam": a place name inside a sentence. */
+export function inSentence(place: string): string {
+  return place.startsWith('The ') ? `the ${place.slice(4)}` : `the ${place}`;
+}

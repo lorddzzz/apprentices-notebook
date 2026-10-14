@@ -580,8 +580,13 @@ function specFor(p: Profile, t: Trip): BattleSpec {
       charges: { ...chargesOf(p, m), ...t.charges[m] },
     };
   }
-  const board = enc.variants[variantFor(t, t.encounter)]?.layout ?? enc.layout;
-  return { title: enc.title, board, seed: deriveSeed(t.seed, t.encounter), party };
+  const variant = enc.variants[variantFor(t, t.encounter)];
+  return {
+    title: variant?.name ?? enc.title,
+    board: variant?.layout ?? enc.layout,
+    seed: deriveSeed(t.seed, t.encounter),
+    party,
+  };
 }
 
 /** Randomised lattices (runes spread over the sockets) with a few extra copies owned. */

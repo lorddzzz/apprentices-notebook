@@ -15,6 +15,7 @@ import {
   newProfile,
   type Profile,
   pickLoot,
+  placeOf,
   pushOn,
   recordAction,
   returnHome,
@@ -68,7 +69,7 @@ describe('start', () => {
     const a = beginEncounter(p, startTrip(p, SEED));
     const b = beginEncounter(p, startTrip(p, SEED));
     expect(b).toEqual(a);
-    expect(describeLog(a.events)[0]).toBe('Encounter: Three rats');
+    expect(describeLog(a.events)[0]).toBe(`Encounter: ${placeOf(startTrip(p, SEED))}`);
     expect(a.state.rngState).toBe(deriveSeed(SEED, 0));
     const c = beginEncounter(p, startTrip(p, SEED + 1));
     expect(c.state.rngState).not.toBe(a.state.rngState);
@@ -254,7 +255,7 @@ describe('wipes, hp and charges', () => {
     expect(t.hp.stoker).toBe(3);
     expect(t.charges.draughtsman).toEqual({ '0,1': 1 });
     const next = beginEncounter(r.profile, t);
-    expect(next.state.title).toBe(ENCOUNTERS[1]?.title);
+    expect(next.state.title).toBe(placeOf(t));
     expect(memberById(next.state, 'stoker').hp).toBe(3);
     expect(memberById(next.state, 'stoker').maxHp).toBe(8);
     expect(memberById(next.state, 'draughtsman').charges).toEqual({ '0,1': 1 });

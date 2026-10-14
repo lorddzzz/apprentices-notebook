@@ -267,6 +267,12 @@ export function variantFor(t: Trip, encounter: number): number {
   return createRng(deriveSeed(t.seed, 2000 + encounter)).int(0, count - 1);
 }
 
+/** The name of the room this trip fights in at `encounter` (its layout's place name). */
+export function placeOf(t: Trip, encounter = t.encounter): string {
+  const enc = ENCOUNTERS[encounter];
+  return enc?.variants[variantFor(t, encounter)]?.name ?? enc?.title ?? 'The Seam';
+}
+
 /**
  * The current encounter's battle: the party enters with the trip's HP and charges, then the
  * trip's recorded actions are replayed (a reload resumes the fight). Throws if one is illegal.
@@ -802,6 +808,8 @@ function parseRecap(v: unknown): TripRecap {
   return {
     outcome: oneOf<TripRecap['outcome']>(['returned', 'wiped'], r.outcome),
     encounter: count(r.encounter),
+    // `place` came after the first v3 saves: fall back to the depth's title.
+    place: typeof r.place === 'string' ? r.place : (ENCOUNTERS[count(r.encounter)]?.title ?? ''),
     stats: parseStats(r.stats),
   };
 }

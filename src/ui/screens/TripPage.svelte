@@ -1,6 +1,5 @@
 <script lang="ts">
   import { MEMBERS } from '$data';
-  import { encounterTitle } from '../../app/describe';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
   import Button from '../components/common/Button.svelte';
@@ -15,7 +14,7 @@
     <header>
       <h1>{recap.outcome === 'returned' ? 'Home from the Seam.' : 'The trip, as it went.'}</h1>
       <p>
-        Deepest: {encounterTitle(recap.encounter)} · {recap.stats.fights}
+        Deepest: {recap.place} · {recap.stats.fights}
         {recap.stats.fights === 1 ? 'fight' : 'fights'} fought
       </p>
     </header>

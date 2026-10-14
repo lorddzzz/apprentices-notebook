@@ -17,6 +17,7 @@ import {
   nextTripSeed,
   type Profile,
   pickLoot,
+  placeOf,
   provenCount,
   pushOn,
   recordAction,
@@ -183,7 +184,7 @@ export function endBattle(
   const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
   const lastTrip: TripRecap | null =
     r.outcome === 'wiped'
-      ? { outcome: 'wiped', encounter: trip.encounter, stats: r.stats }
+      ? { outcome: 'wiped', encounter: trip.encounter, place: placeOf(trip), stats: r.stats }
       : save.lastTrip;
   const next: SaveData = { ...save, profile: r.profile, trip: r.trip, lastTrip };
   const wipe: WipeSummary | null =
@@ -215,6 +216,7 @@ export function goHome(save: SaveData): SaveData {
   const lastTrip: TripRecap = {
     outcome: 'returned',
     encounter: trip.encounter,
+    place: placeOf(trip),
     stats: trip.stats,
   };
   return { ...save, profile: returnHome(save.profile, trip), trip: null, lastTrip };

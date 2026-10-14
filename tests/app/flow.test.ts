@@ -5,6 +5,7 @@ import {
   masksFrom,
   newSave,
   parseLattice,
+  placeOf,
   recordProof,
   type SaveData,
   setMemberLattice,
@@ -342,7 +343,12 @@ test('returning home keeps the recap; the next trip clears it', () => {
   const trip = { ...(won.save.trip as Trip), status: 'crossroads' as const };
   const home = goHome({ ...won.save, trip });
   expect(home.trip).toBeNull();
-  expect(home.lastTrip).toEqual({ outcome: 'returned', encounter: 0, stats: trip.stats });
+  expect(home.lastTrip).toEqual({
+    outcome: 'returned',
+    encounter: 0,
+    place: placeOf(trip),
+    stats: trip.stats,
+  });
   expect(setOut(home).lastTrip).toBeNull();
 });
 
@@ -359,7 +365,12 @@ test('the store: Return home leaves the recap in the save, and leaving the page 
 });
 
 test('resolveScreen: the trip page shows the last trip, from home or from a wipe', () => {
-  const recap = { outcome: 'returned' as const, encounter: 1, stats: tripAt('fight').stats };
+  const recap = {
+    outcome: 'returned' as const,
+    encounter: 1,
+    place: 'The scullery',
+    stats: tripAt('fight').stats,
+  };
   expect(resolveScreen('trip-page', null, null, recap)).toEqual({
     screen: 'tripPage',
     redirect: null,
@@ -384,7 +395,10 @@ test('highlights: discovery first, a chain of 3+, and a chain of 2 is left out',
     discoveries: ['interaction:ignite'],
     biggestChain: { member: 'stoker' as const, spell: '1,0', name: 'Spark', reactions: 4 },
   };
-  const hs = tripHighlights({ outcome: 'returned', encounter: 0, stats }, save0().profile);
+  const hs = tripHighlights(
+    { outcome: 'returned', encounter: 0, place: 'The coal chute', stats },
+    save0().profile,
+  );
   expect(hs.map((h) => h.kind)).toEqual(['discovery', 'chain']);
   expect(hs[1]?.text).toContain('Stoker');
   expect(hs[1]?.text).toContain('4 reactions');
@@ -393,9 +407,12 @@ test('highlights: discovery first, a chain of 3+, and a chain of 2 is left out',
     discoveries: [],
     biggestChain: { ...stats.biggestChain, reactions: 2 },
   };
-  expect(tripHighlights({ outcome: 'wiped', encounter: 0, stats: small }, save0().profile)).toEqual(
-    [],
-  );
+  expect(
+    tripHighlights(
+      { outcome: 'wiped', encounter: 0, place: 'The coal chute', stats: small },
+      save0().profile,
+    ),
+  ).toEqual([]);
 });
 
 test('nearProof finds a pattern cast 3 or 4 times, and not one at 5 or at 2', () => {
@@ -418,7 +435,7 @@ test('nearProof finds a pattern cast 3 or 4 times, and not one at 5 or at 2', ()
   expect(nearProof(withCasts(2))).toBeNull();
   expect(nearProof(withCasts(5))).toBeNull();
   const hs = tripHighlights(
-    { outcome: 'returned', encounter: 0, stats: tripAt('fight').stats },
+    { outcome: 'returned', encounter: 0, place: 'The coal chute', stats: tripAt('fight').stats },
     withCasts(3),
   );
   expect(hs.map((h) => h.kind)).toEqual(['proof']);

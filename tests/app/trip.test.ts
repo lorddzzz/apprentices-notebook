@@ -5,7 +5,9 @@ import {
   type GameEvent,
   memberById,
   newSave,
+  placeOf,
   type SaveData,
+  type Trip,
   type UnitRef,
 } from '$engine';
 import {
@@ -70,7 +72,7 @@ test('startBattle is deterministic for a save: a reload restarts the same fight'
   const b = startBattle(JSON.parse(JSON.stringify(save)) as SaveData);
   expect(b.state).toEqual(a.state);
   expect(b.events).toEqual(a.events);
-  expect(a.state.title).toBe(ENCOUNTERS[0]?.title);
+  expect(a.state.title).toBe(placeOf(save.trip as Trip));
   expect(a.state.round).toBe(1);
 });
 
@@ -111,7 +113,7 @@ test('endBattle lost: the trip ends, the WipeSummary lists the lost loot and kee
   expect(end.outcome).toBe('wiped');
   expect(end.save.trip).toBeNull();
   expect(end.wipe).toEqual({
-    encounter: ENCOUNTERS[1]?.title,
+    encounter: placeOf(next.trip as Trip),
     lost: afterOne.trip?.loot,
     learned: ['conduct'],
   });

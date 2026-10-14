@@ -2,8 +2,8 @@
 
 Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building (W4)
-**Next:** merge D2a/D2b, act on the review, battle title = variant name (after D2b: fuzz specFor uses enc.title), verify the loop at 375×812, push, status Done. Old plan: D2 (Lab scenarios per new rune/interaction; fuzz bots use new runes, take doorways, play all variants; Lab palette for new tile states optional), then W4 (battle title = variant name?, docs DESIGN §11 + feature doc §0 + TECH §7, code review, verify whole loop, cleanup worktrees). Then P1 (port 5190 after F1), C1 + C2 (D1 merged), then R1 → S1 (after L1), D2, W4. Orchestrator follow-up: recipe.ts text for Pierce/On Ignite/Thrift + Scald/Etch/Kiln after E3.
+**State:** done (2026-10-14)
+**Next:** nothing in this plan. Wait for the player's playtest (questions in the hand-over); open follow-ups below.
 
 ## Contracts added in W0 (beyond the plan's §2)
 - `Tile.scald: boolean` (Scald's steam). Board notation: `$` stained oil, `s` scalding steam, `^` hot, `#` etched (brass unit or plate `=^#`).
@@ -32,7 +32,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
 | S1 | sonnet | M | merged | (see log) | ~6% | |
 | D2 | haiku + sonnet | M | merged | (see log) | ~10% | D2a: 8 Lab scenarios (pierce-through, on-ignite-blaze, thrift-charge, scald-cloud, etch-spark-network, kiln-plate, heat-brass, stain-shove) |
-| W4 | opus (me) | S | running | da984fa (docs) | | docs done; Sonnet reviewer running (read-only) |
+| W4 | opus (me) | S | done | (see log) | ~8% | docs, review (4 fixes), loop check, place names, depth-1 threat |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -51,6 +51,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | 23:11 | 86 | 2h49m | 51 | narrow (86 + P1 3 = 89) | S1 merged + pushed; spawn P1; D2/W4 after reset |
 | 23:15 | 87 | 2h45m | 52 | narrow (87 + D2 8 = 95: no) | P1 merged + pushed; merged worktrees cleaned; HOLD |
 | 02:02 | 0 | 5h | 52 | normal | reset; spawn D2a, D2b, reviewer; docs written |
+| ~04:45 | 40 | 2h17m | 57 | normal | D2 merged; W4 fixes; done. Peak 5h use: 87% (first window) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - D1: Thrift rule text doesn't say whether several Thrifts stack (plan silent). Ask player / leave stacking like Amplify.
@@ -125,7 +126,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 - tests/sim/fuzz.test.ts bots have no `case 'doorway'` (a bot that picks one spins to the 50-iteration guard). D2 must handle it.
 - Lab palette (Palette.svelte, app/lab.ts) can't paint stain/heat/etch/scald yet (scenario strings work). D2 may add.
 - Codex pages for Heat and Stain interactions not visually checked (W4).
-- Battle HUD/log title is still the depth title ("Three rats") while the Crossroads names the variant ("The lamplit landing"). Decide in W4: probably "The lamplit landing" as battle title (≈6 tests assert enc.title).
+- (fixed in W4) The room's place name is the battle title and is used by the loot screen, wipe summary and trip page (`placeOf`, `TripRecap.place`).
 - `preview_start` by name runs from the MAIN repo root, so agents must run `pnpm dev --port N --strictPort` from their worktree. Put this in spawn prompts.
 - Port 5190 is held by a stale dev server from another session (cwd = main repo). Agents use dev-alt2 (5191) / dev-alt3 (5192).
 - (fixed) aimPreview follows Pierce; recipe.ts reads out all six new runes.
