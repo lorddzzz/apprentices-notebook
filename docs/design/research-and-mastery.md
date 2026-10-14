@@ -31,7 +31,7 @@
 | Recipes again (P9) | Writing a known recipe again makes another copy for one solvent | Runes come in counts |
 | Old saves (P10) | Old research points became solvents round-robin Gallnut → Pitch → Cinder | They were promised as reagents |
 | Unlocks (P11) | Bench: from the first solvent (then it stays). Fair Copy: once anything is proven. The first compile of each idiom is free | §6.2 sequence |
-| Shelf (P12) | Two tabs: Runes (20, three rows of 7) and Fair copies | 20 runes no longer fit two rows |
+| Shelf (P12) | Two tabs: Runes (20, three rows of 7; 26 and four rows since the Seam deepening) and Fair copies | 20 runes no longer fit two rows |
 | Bench feel | Solvents seen before can be trialled at 0 count; a repeated attempt says "tried before"; Write in ink needs a fresh exact trial | Never punish curiosity; the commit stays deliberate |
 | Idioms | Matched as an ordered subsequence along one branch (`Bolt ▸ Ink ▸ On Inked ▸ Spark` is Cashing In); Undertaker = Source → On Kill → any Material | The §7 example must count; no rune is a "Reach-area" payload |
 | Bench runes | Quill 2 damage, 4 charges, pools ink under what it hits; Brand also inks, never pools, lasts the battle, +2 fire (the larger of branded/oil-soaked applies); Smear passes the mark one hop (allies too); Torch lights every oil tile in its footprint; Mist inks a whole touched cloud, then clears it | Drafts made concrete |
@@ -41,6 +41,10 @@
 | Glyphs on the page | Tapping a Glyph turns it (the arrow is the way in) and shows a card with "Look inside" (peek, rename); a placed Glyph tool is dropped after one placement; any placement that would push ink over capacity (an aura next to a Glyph adds +1) is refused | Same gestures as arrow runes |
 | Stranded runes (2026-10-14) | A Fair Copy slides the runes it would strand up to the Glyph's way out, keeping their shape; the old warning remains only when they can't fit. Behaviour must stay identical (the identity test covers it) | The player's pick: a fair copy should look tidier than the draft |
 | Idiom trim (2026-10-14) | While trimming, the selection shows the matched idiom and the cost; the trim that breaks the match fades the name and switches the cost from "free" to "1 vellum" | The player's pick: warn at the moment of the trim, not in the sheet |
+| Fair Copy tidy, built (2026-10-14, *Proposal*) | The block slides so its first rune sits on the exit cell; it moves only if every target cell is a free socket **and** the compiled spells behave exactly as before (catches multi-exit Forks and auras losing their touch). Auras don't move with the block. On the holed member pages it refuses more often | Never change a cast silently |
+| Trim chip, built (2026-10-14, *Proposal*) | "Cashing In · free" for an idiom's first compile, "· 1 vellum" after; the faded "no longer …" chip stays until the selection restarts | Free first compile (P11) |
+| Scald, Etch, Kiln, built (2026-10-14, *Proposal*) | **Scald**: Steam whose cloud is scalding; at the burn step every unit inside (allies too) takes 1; steam over a scalding tile keeps it scalding, vents give plain steam. **Etch**: inks like Ink (puddles, diffuses, stains) and etches brass in its footprint for the battle; when Spark conducts through a network with etched brass, every inked unit **on or beside** the network is sparked as if hit directly. **Kiln**: Brass whose new plates arrive hot (units it coats stay cold) | Etch as drafted added nothing (units on a network are already sparked), so its reach is one tile wider. *Ask the player* |
+| Owner's hints (2026-10-14, *Proposal*) | Every rune, interaction, recipe, aspect and idiom has a `hint`; it shows faded under `???` (aspects: under the dimmed rule). Torn-page recipes keep their torn sentence and get none. Recipe hints describe the effect, never the ingredients | Hint without naming |
 
 ## 1. The idea in one page
 
