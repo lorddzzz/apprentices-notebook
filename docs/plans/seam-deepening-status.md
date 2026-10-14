@@ -31,7 +31,7 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 | C2 | haiku | S | merged | (see log) | ~2% | aspects show the hint under the rule when unknown (no ??? there) |
 | R1 | sonnet | L | merged | (see log) | ~9% | fixed parseLoot rejecting doorway; doorway → `study` screen with draft profile |
 | S1 | sonnet | M | merged | (see log) | ~6% | |
-| D2 | haiku + sonnet | M | running | | | split: D2a scenarios (haiku), D2b fuzz (sonnet); started 02:02 |
+| D2 | haiku + sonnet | M | D2a merged, D2b running | | | D2a: 8 Lab scenarios (pierce-through, on-ignite-blaze, thrift-charge, scald-cloud, etch-spark-network, kiln-plate, heat-brass, stain-shove) |
 | W4 | opus (me) | S | running | da984fa (docs) | | docs done; Sonnet reviewer running (read-only) |
 
 ## Usage log
