@@ -263,3 +263,11 @@ test('kiln: plain Brass alone stays cold', () => {
   const cold = draft(board('D .'), (ctx) => applyBrass(ctx, cells('B1')));
   expect(at(cold.state, 'B1').heat).toBe(0);
 });
+
+test('a new plate starts plain: no stale scald or etch from what was there before (review)', () => {
+  const r = draft(board('D s .'), (ctx) => {
+    at(ctx.s, 'B1').etched = true; // left by an etched plate that crumbled
+    applyBrass(ctx, cells('B1'));
+  });
+  expect(at(r.state, 'B1')).toMatchObject({ plate: true, steam: 0, scald: false, etched: false });
+});

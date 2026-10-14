@@ -122,6 +122,7 @@ function hazards(ctx: Ctx): void {
     if (t.plate && t.plateRounds > 0 && --t.plateRounds === 0) {
       t.plate = false;
       t.heat = 0;
+      t.etched = false;
       crumbled.push(tileCoord(i, s.width));
     }
   });
@@ -134,6 +135,7 @@ function hazards(ctx: Ctx): void {
     const at = tileCoord(i, s.width);
     emit(ctx, { type: 'vent', at });
     t.steam = TUNING.steamRounds;
+    t.scald = false; // vents give plain steam
     if (t.fire > 0) {
       t.fire = 0;
       emit(ctx, { type: 'extinguish', tiles: [at] });

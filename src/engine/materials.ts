@@ -159,7 +159,7 @@ export function applyMist(ctx: Ctx, tiles: readonly Coord[]): void {
       const u = unitAt(s, c);
       if (u) markInked(ctx, u, []);
     }
-    for (const c of cloud) tileAt(s, c).steam = 0;
+    for (const c of cloud) Object.assign(tileAt(s, c), { steam: 0, scald: false });
     emit(ctx, { type: 'steamFades', tiles: cloud });
   }
 }
@@ -224,6 +224,8 @@ export function applyBrass(ctx: Ctx, tiles: readonly Coord[]): void {
       vent: false,
       stain: false,
       heat: 0,
+      etched: false,
+      scald: false,
     });
     plates.push(t);
   }

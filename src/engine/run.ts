@@ -422,9 +422,10 @@ const sourceType = (sp: Spell): string => (sp.glyph ? `glyph:${sp.glyph}` : `run
 
 /**
  * Charges after rewiring (plan S12). A Source that stays on its cell keeps its count. The Sources
- * that moved or are new take the remaining counts of same-type Sources (rune or Glyph, across both
- * members) that no longer have a cell, highest first, never above their own maximum. With none
- * left to take (a second owned copy) they start full. Nothing is ever refilled.
+ * that moved or are new take the remaining counts of Sources (across both members) that no longer
+ * have a cell: first of their own type (rune or Glyph), then of any Source with the same inner
+ * source rune (a Glyph swapped for its loose Bolt), highest first, never above their own maximum.
+ * With none left to take (a second owned copy) they start full. Nothing is ever refilled.
  */
 function carryCharges(
   before: Profile,
@@ -432,7 +433,6 @@ function carryCharges(
   t: Trip,
 ): Record<MemberId, Record<SpellKey, number>> {
   const next = perMember((): Record<SpellKey, number> => ({}));
-  const spare = new Map<string, number[]>(); // type → counts of Sources whose cell is gone
   const olds = MEMBER_IDS.flatMap((m) =>
     compiledFor(before, m).spells.map((sp) => ({
       m,
@@ -446,10 +446,8 @@ function carryCharges(
   );
   const stays = (o: { m: MemberId; sp: Spell; type: string }) =>
     fresh.some((f) => f.m === o.m && f.sp.key === o.sp.key && f.type === o.type);
-  for (const o of olds) {
-    if (!stays(o)) spare.set(o.type, [...(spare.get(o.type) ?? []), o.left]);
-  }
-  for (const counts of spare.values()) counts.sort((a, b) => b - a);
+  // Counts of Sources whose cell is gone, highest first.
+  const spare = olds.filter((o) => !stays(o)).sort((a, b) => b.left - a.left);
   const kept = new Map(olds.map((o) => [`${o.m}|${o.sp.key}|${o.type}`, o.left]));
   // Biggest maximum first, so a Source with a Thrift gets the larger spare count.
   const moved = fresh
@@ -459,10 +457,17 @@ function carryCharges(
     const left = kept.get(`${f.m}|${f.sp.key}|${f.type}`);
     if (left !== undefined) next[f.m][f.sp.key] = Math.min(left, f.sp.charges);
   }
-  for (const f of moved) {
-    const left = spare.get(f.type)?.shift();
-    next[f.m][f.sp.key] = left === undefined ? f.sp.charges : Math.min(left, f.sp.charges);
-  }
+  const take = (match: (o: (typeof spare)[number], f: (typeof moved)[number]) => boolean) => {
+    for (const f of moved) {
+      if (next[f.m][f.sp.key] !== undefined) continue;
+      const i = spare.findIndex((o) => match(o, f));
+      const [o] = i < 0 ? [] : spare.splice(i, 1);
+      if (o) next[f.m][f.sp.key] = Math.min(o.left, f.sp.charges);
+    }
+  };
+  take((o, f) => o.type === f.type);
+  take((o, f) => o.sp.source === f.sp.source);
+  for (const f of moved) next[f.m][f.sp.key] ??= f.sp.charges;
   return next;
 }
 

@@ -41,6 +41,7 @@ interface Segment {
   damage: number;
   kills: number;
   reactions: number;
+  queuesEcho: boolean;
 }
 
 const memberOf = (id: string): MemberId | null => MEMBER_IDS.find((m) => m === id) ?? null;
@@ -56,6 +57,7 @@ export function accumulateStats(stats: TripStats, log: EventLog, known: Profile)
   let biggest = stats.biggestChain ? { ...stats.biggestChain } : null;
   let proofCasts = stats.proofCasts;
   const keyOf = new Map<string, SpellKey>(); // `${member}|${name}` → the key a trace last gave it
+  const echoes = new Map<MemberId, SpellKey[]>(); // keys of casts whose echo is still to come, in order
 
   let seg: Segment | null = null;
   const close = (): void => {
@@ -66,6 +68,7 @@ export function accumulateStats(stats: TripStats, log: EventLog, known: Profile)
       t = { member: seg.member, spell: key, name: seg.name, casts: 0, damage: 0, kills: 0 };
       spells.push(t);
     }
+    if (seg.queuesEcho) echoes.set(seg.member, [...(echoes.get(seg.member) ?? []), key]);
     t.casts += 1;
     t.damage += seg.damage;
     t.kills += seg.kills;
@@ -89,10 +92,13 @@ export function accumulateStats(stats: TripStats, log: EventLog, known: Profile)
     if (e.type === 'cast') {
       const member = e.caster.member ? memberOf(e.caster.id) : null;
       if (member) {
-        seg = { member, name: e.spell, key: null, damage: 0, kills: 0, reactions: 0 };
+        // An echo has no trace: it belongs to the cast that queued it.
+        const key = e.echo ? (echoes.get(member)?.shift() ?? null) : null;
+        seg = { member, name: e.spell, key, damage: 0, kills: 0, reactions: 0, queuesEcho: false };
       }
     } else if (seg) {
-      if (e.type === 'damage' && !e.target.member) seg.damage += e.amount;
+      if (e.type === 'echoQueued') seg.queuesEcho = true;
+      else if (e.type === 'damage' && !e.target.member) seg.damage += e.amount;
       else if (e.type === 'died' && !e.unit.member) seg.kills += 1;
       else if (REACTIONS.has(e.type)) seg.reactions += 1;
     }

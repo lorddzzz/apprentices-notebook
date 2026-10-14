@@ -112,6 +112,9 @@ Plan: [seam-deepening-plan](seam-deepening-plan.md). Orchestrator: Opus main ses
 ## Decisions and fixes made during the build
 - Orchestrator: recipe.ts text for the six runes (Pierce source line + "both units", On Ignite branch on "the burning tiles", Thrift/Pierce notes, Scald/Etch/Kiln lines). TUNING.heatDamage added.
 
+- Review fixes (orchestrator): doorway charges now fall back to any Source with the same inner source rune (a spent Spell Glyph swapped for its loose Bolt no longer refills); Mist, new plates and vents clear a stale `scald`, and a crumbled or new plate clears `etched`; trip stats credit an echo to the cast that queued it (not by name).
+- Review notes not changed: On Ignite on a Fork's second branch also sees fires lit by the first branch (deterministic; "since the cast began" is the rule); the doorway draft could be bypassed by setProfile/fairCopy, but the UI gates them.
+
 ## Follow-ups and rough edges
 - Bench empty pips not reproduced by P1 (filled at 3/6, `--m-ink` defined). W4: check the live site and a 6/6 or 0/6 score; ask the player for the exact screen if still unseen.
 - Lab `$effect` skips reloading when the same scenario is loaded, so `?demo=1` in-page does nothing (fresh load works). Pre-existing.

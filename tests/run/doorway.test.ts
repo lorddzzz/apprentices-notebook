@@ -274,4 +274,33 @@ describe('charges follow the rune type (S12)', () => {
     expect(plain && r.trip.charges.draughtsman[plain.key]).toBe(5);
     expect(r.trip.charges.stoker).toEqual({ '1,0': 4 });
   });
+
+  test('swapping a spent Spell Glyph for its loose Bolt does not refill it (review)', () => {
+    const glyph: GlyphDef = {
+      id: 'g1',
+      name: 'Fire Bolt',
+      kind: 'spell',
+      cells: [
+        { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
+        { at: { x: 1, y: 0 }, rune: 'spark' },
+      ],
+      entry: { x: 0, y: 0 },
+      exits: [],
+      idiom: null,
+    };
+    const base = newProfile();
+    const p: Profile = {
+      ...base,
+      glyphs: [glyph],
+      lattices: {
+        draughtsman: [{ at: { x: 1, y: 1 }, glyph: 'g1', dir: 'right' }],
+        stoker: base.lattices.stoker,
+      },
+    };
+    const [g] = compiledFor(p, 'draughtsman').spells;
+    const charges = { draughtsman: { [g?.key ?? '']: 0 }, stoker: { '1,0': 4 } };
+    const r = applyDoorway(p, inDoorway(p, charges), { ...p.lattices, draughtsman: [bolt(0, 1)] });
+    expect(r.trip.charges.draughtsman).toEqual({ '0,1': 0 });
+    expect(r.trip.charges.stoker).toEqual({ '1,0': 4 });
+  });
 });
