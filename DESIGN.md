@@ -5,6 +5,8 @@
 >
 > **Feature docs:** a feature too big for one section gets its own file in [docs/design/](docs/design/README.md). This doc keeps its summary and a link, and the decision log (§11) stays here. Current: [Research and Mastery](docs/design/research-and-mastery.md) (§6.3).
 >
+> **What's next:** [docs/ROADMAP.md](docs/ROADMAP.md) holds the backlog, roadmap tracks and parked ideas (§10b here is the older, shorter list).
+>
 > Legend: **Decided** = player chose it · *Proposal* = Claude's suggestion, awaiting the player's reaction · *Open* = not discussed yet
 
 ## 1. Project frame
