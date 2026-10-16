@@ -18,6 +18,7 @@ import {
   fairTap,
   glowCells,
   NO_SELECTION,
+  openCellOf,
   previewFairCopy,
   trimChip,
 } from '../../src/app/faircopy';
@@ -326,5 +327,38 @@ describe('trim chip (S14)', () => {
     expect(again.lost ?? null).toBeNull();
     const plain = proven('Bolt> Oil Ink .');
     expect(trimChip(previewFairCopy(plain, M, selected(plain)), null)).toBeNull();
+  });
+});
+
+describe('leave a cell open (M21, M22)', () => {
+  test('only Material, Trigger and Shape runes can be left open', () => {
+    const p = proven(CHAIN);
+    const pv = previewFairCopy(p, M, selected(p));
+    expect(pv.chain.map((s) => s.openable)).toEqual([false, true, true, true]);
+  });
+
+  test('a step knows its cell in the Glyph frame (a Bend is a Shape cell, so it can be open)', () => {
+    const p = proven('Bolt> Ink Bendv . .\n. . OnInked . .\n. . Spark . .');
+    const pv = previewFairCopy(p, M, selected(p));
+    expect(pv.chain.map((s) => s.local)).toEqual(pv.chain.map((s) => s.at));
+    expect(pv.chain.map((s) => s.openable)).toEqual([false, true, true, true, true]);
+    expect(openCellOf(pv, c(2, 0))).toEqual(c(2, 0));
+  });
+
+  test('openCellOf is null for nothing, a Source, or a cell that is not in the selection', () => {
+    const p = proven(CHAIN);
+    const pv = previewFairCopy(p, M, selected(p));
+    expect(openCellOf(pv, null)).toBeNull();
+    expect(openCellOf(null, c(1, 0))).toBeNull();
+    expect(openCellOf(pv, c(0, 0))).toBeNull();
+    expect(openCellOf(pv, c(4, 0))).toBeNull();
+  });
+
+  test('the chosen cell goes to compileGlyph as params; none leaves the Glyph closed', () => {
+    const p = { ...proven(CHAIN), vellum: 5 };
+    const cluster = selected(p);
+    const open = openCellOf(previewFairCopy(p, M, cluster), c(2, 0));
+    expect(compileGlyph(p, M, cluster, 'Open', open).glyphs[0]?.params).toEqual(['2,0']);
+    expect(compileGlyph(p, M, cluster, 'Closed', null).glyphs[0]?.params).toEqual([]);
   });
 });

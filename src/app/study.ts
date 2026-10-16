@@ -1,5 +1,6 @@
 import { IDIOMS, MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, type RuneId } from '$data';
 import {
+  argIssue,
   available,
   type CellKey,
   type Coord,
@@ -18,6 +19,7 @@ import {
   inkUsed,
   isGlyph,
   isSocket,
+  key,
   type Lattice,
   latticeOf,
   type Placed,
@@ -27,6 +29,7 @@ import {
   recordOf,
   rotateSocket,
   setMemberLattice,
+  setOpenCells,
   setSocket,
   socketAt,
   type TierLevel,
@@ -150,9 +153,16 @@ const emptyGlyph: GlyphDef = {
 };
 
 /** Puts a Glyph socket on `at` (replacing whatever is there), pointing right until turned. */
-export function setGlyph(l: Lattice, at: Coord, glyph: GlyphId, dir: Dir = 'right'): Lattice {
+export function setGlyph(
+  l: Lattice,
+  at: Coord,
+  glyph: GlyphId,
+  dir: Dir = 'right',
+  args?: Readonly<Record<CellKey, GlyphArg>>,
+): Lattice {
   const rest = l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y);
-  const runes: Placed[] = [...rest, { at: { ...at }, glyph, dir }];
+  const socket: Placed = args ? { at: { ...at }, glyph, dir, args } : { at: { ...at }, glyph, dir };
+  const runes: Placed[] = [...rest, socket];
   runes.sort((a, b) => a.at.y - b.at.y || a.at.x - b.at.x);
   return { shape: l.shape, runes };
 }
@@ -168,7 +178,7 @@ export function applyDecision(lattice: Lattice, at: Coord, d: SocketDecision): L
     case 'rotate': {
       const placed = socketAt(lattice, at);
       return placed && isGlyph(placed)
-        ? setGlyph(lattice, at, placed.glyph, turnRight(placed.dir))
+        ? setGlyph(lattice, at, placed.glyph, turnRight(placed.dir), placed.args)
         : rotateSocket(lattice, at);
     }
     case 'remove':
@@ -316,7 +326,10 @@ export function glyphSlots(p: Profile, m: MemberId): GlyphSlot[] {
   return p.glyphs.map((saved) => {
     const glyph = lib[saved.id] ?? saved;
     const needs = new Map<RuneId, number>();
-    for (const rune of glyphRunes(glyph)) needs.set(rune, (needs.get(rune) ?? 0) + 1);
+    // An open cell whose default is used up can take another rune of its family (M25).
+    for (const rune of glyphRunes(glyph, fallbackArgs(p, glyph))) {
+      needs.set(rune, (needs.get(rune) ?? 0) + 1);
+    }
     const runesFree = [...needs].every(([rune, n]) => available(p, rune) >= n);
     const cost = glyphCost(glyph);
     return {
@@ -372,8 +385,12 @@ export function editProfile(
     const reason = canPlace(p, m, at, d.rune);
     if (reason !== null) return refuse(reason);
   }
+  // A Glyph with open cells goes down pre-filled (M25): its defaults, or the first rune of the
+  // family that is still free when a default is used up. The engine has the last word.
+  const args =
+    d.kind === 'placeGlyph' || d.kind === 'replaceGlyph' ? placementArgs(p, m, at, d.glyph) : {};
   if (d.kind === 'placeGlyph' || d.kind === 'replaceGlyph') {
-    const reason = canPlaceGlyph(p, m, at, d.glyph);
+    const reason = canPlaceGlyph(p, m, at, d.glyph, hasArgs(args) ? args : undefined);
     if (reason !== null) return refuse(reason);
   }
   const placing = ['place', 'replace', 'placeGlyph', 'replaceGlyph'].includes(d.kind);
@@ -382,12 +399,76 @@ export function editProfile(
   }
   const changed = CHANGING.includes(d.kind);
   const { lattice, ...rest } = r;
-  return { ...rest, profile: changed ? setMemberLattice(p, m, lattice) : p, changed };
+  const placed = hasArgs(args) ? stampArgs(lattice, at, args) : lattice;
+  return { ...rest, profile: changed ? setMemberLattice(p, m, placed) : p, changed };
+}
+
+const hasArgs = (args: Readonly<Record<CellKey, GlyphArg>>): boolean =>
+  Object.keys(args).length > 0;
+
+/** The lattice with `args` set on the Glyph socket at `at`. */
+function stampArgs(l: Lattice, at: Coord, args: Readonly<Record<CellKey, GlyphArg>>): Lattice {
+  return {
+    shape: l.shape,
+    runes: l.runes.map((r) => (isGlyph(r) && sameAt(r.at, at) ? { ...r, args: { ...args } } : r)),
+  };
+}
+
+const sameAt = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
+
+/** The profile with the socket at `at` of `m`'s page emptied (what is free for a placement there). */
+function withoutSocket(p: Profile, m: MemberId, at: Coord): Profile {
+  const l = latticeOf(p, m);
+  return setMemberLattice(p, m, {
+    shape: l.shape,
+    runes: l.runes.filter((r) => !sameAt(r.at, at)),
+  });
+}
+
+const argFor = (rune: RuneId, from: { dir?: Dir } | undefined): GlyphArg =>
+  RUNES[rune].arrow ? { rune, dir: from?.dir ?? 'right' } : { rune };
+
+/**
+ * The arguments a Glyph is placed with when none were chosen yet (M25): nothing while every default
+ * rune is free (a missing argument means the default, M21); for an open cell whose default is used
+ * up, the first rune of its family that is.
+ */
+function fallbackArgs(p: Profile, def: GlyphDef): Record<CellKey, GlyphArg> {
+  const args: Record<CellKey, GlyphArg> = {};
+  const needs = new Map<RuneId, number>();
+  for (const rune of glyphRunes(def)) needs.set(rune, (needs.get(rune) ?? 0) + 1);
+  for (const k of def.params) {
+    const cell = def.cells.find((c) => key(c.at) === k);
+    if (!cell || available(p, cell.rune) >= (needs.get(cell.rune) ?? 0)) continue;
+    const family = RUNES[cell.rune].family;
+    const pick = RUNE_IDS.find(
+      (r) =>
+        r !== cell.rune && RUNES[r].family === family && available(p, r) >= (needs.get(r) ?? 0) + 1,
+    );
+    if (!pick) continue;
+    needs.set(cell.rune, (needs.get(cell.rune) ?? 1) - 1);
+    needs.set(pick, (needs.get(pick) ?? 0) + 1);
+    args[k] = argFor(pick, cell);
+  }
+  return args;
+}
+
+/** What `glyph` would carry if placed on `at` of `m`'s page now (M25); empty when the defaults all fit. */
+export function placementArgs(
+  p: Profile,
+  m: MemberId,
+  at: Coord,
+  glyph: GlyphId,
+): Record<CellKey, GlyphArg> {
+  const def = glyphLibrary(p)[glyph];
+  return def && def.params.length > 0 ? fallbackArgs(withoutSocket(p, m, at), def) : {};
 }
 
 /**
- * Sets the arguments of the Glyph placed on `at` of `m`'s page (M25); an empty set clears them.
- * Throws when no Glyph is there. Task U4 adds the ownership and family checks (`canPlaceGlyph`).
+ * Sets the arguments of the Glyph placed on `at` of `m`'s page (M25); an empty set clears them. An
+ * argument that equals its default is dropped (a missing one means the default, M21). Throws when
+ * no Glyph is there, an argument isn't allowed (family, open cell) or the page can't hold it
+ * (runes owned, ink): the engine's `canPlaceGlyph` has the last word.
  */
 export function setGlyphArgs(
   p: Profile,
@@ -398,10 +479,71 @@ export function setGlyphArgs(
   const l = latticeOf(p, m);
   const placed = socketAt(l, at);
   if (!placed || !isGlyph(placed)) throw new Error('No Fair copy there');
+  const def = glyphLibrary(p)[placed.glyph];
+  if (!def) throw new Error('Unknown Fair copy');
+  const kept: Record<CellKey, GlyphArg> = {};
+  for (const [k, arg] of Object.entries(args)) {
+    const why = argIssue(def, k, arg);
+    if (why) throw new Error(`${def.name} ${why}`);
+    kept[k] = RUNES[arg.rune].arrow
+      ? { rune: arg.rune, dir: arg.dir ?? 'right' }
+      : { rune: arg.rune };
+  }
+  const reason = canPlaceGlyph(p, m, at, placed.glyph, hasArgs(kept) ? kept : undefined);
+  if (reason !== null) throw new Error(reason);
   const { args: _old, ...bare } = placed;
-  const next: Placed = Object.keys(args).length > 0 ? { ...bare, args: { ...args } } : bare;
+  const next: Placed = hasArgs(kept) ? { ...bare, args: kept } : bare;
   const runes = l.runes.map((r) => (r === placed ? next : r));
   return setMemberLattice(p, m, { shape: l.shape, runes });
+}
+
+export interface ArgOption {
+  rune: RuneId;
+  /** Copies this cell could take now: owned, not used elsewhere or by the Glyph's other cells. */
+  free: number;
+}
+
+/**
+ * The runes open cell `cell` of the Glyph on `at` can take (M21, M25): every owned rune of the
+ * default's family, with how many are still free for it given the Glyph's other cells (`args`).
+ */
+export function argOptions(
+  p: Profile,
+  m: MemberId,
+  at: Coord,
+  cell: CellKey,
+  args: Readonly<Record<CellKey, GlyphArg>>,
+): ArgOption[] {
+  const placed = socketAt(latticeOf(p, m), at);
+  const def = placed && isGlyph(placed) ? glyphLibrary(p)[placed.glyph] : undefined;
+  const slot = def?.cells.find((c) => key(c.at) === cell);
+  if (!def || !slot) return [];
+  const without = withoutSocket(p, m, at);
+  const others = glyphRunes({ ...def, cells: def.cells.filter((c) => key(c.at) !== cell) }, args);
+  const family = RUNES[slot.rune].family;
+  return RUNE_IDS.filter((r) => RUNES[r].family === family && p.collection[r] > 0).map((rune) => ({
+    rune,
+    free: Math.max(0, available(without, rune) - others.filter((x) => x === rune).length),
+  }));
+}
+
+/**
+ * Sets a Glyph's open cells (M20, M22) and drops the arguments that placed copies hold for cells
+ * that are no longer open, so a settings change never leaves a stale-argument issue on a page.
+ */
+export function setGlyphOpenCells(p: Profile, id: GlyphId, cells: readonly CellKey[]): Profile {
+  const next = setOpenCells(p, id, cells);
+  const keep = new Set(cells);
+  const lattices = { ...next.lattices };
+  for (const m of MEMBER_IDS) {
+    lattices[m] = next.lattices[m].map((r) => {
+      if (!isGlyph(r) || r.glyph !== id || !r.args) return r;
+      const rest = Object.fromEntries(Object.entries(r.args).filter(([k]) => keep.has(k)));
+      const { args: _old, ...bare } = r;
+      return Object.keys(rest).length > 0 ? { ...bare, args: rest } : bare;
+    });
+  }
+  return { ...next, lattices };
 }
 
 /** One rune the revision editor may use, and how many the inside may hold (M19: what is owned). */

@@ -3,6 +3,7 @@ import {
   blockingAuras,
   type Cluster,
   type Coord,
+  canBeOpen,
   clustersOf,
   type Dir,
   disconnected,
@@ -137,6 +138,10 @@ export interface ChainStep {
   at: Coord;
   rune: RuneId;
   dir?: Dir;
+  /** The rune's cell in the Glyph's own frame: what `compileGlyph` takes as the open cell (M22). */
+  local: Coord;
+  /** Material, Trigger and Shape runes can be left open for an argument; Sources and Auras can't (M21). */
+  openable: boolean;
 }
 
 export interface FairPreview {
@@ -171,11 +176,15 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
   const def = toGlyphDef(lattice, cluster, 'Fair copy', '__preview', lib);
   const { lattice: collapsed, slid } = tidyCollapse(lattice, cluster, def, lib);
 
+  // `def.cells` lists the cluster's runes in the same order (auras after), so index i is chain step i.
   const chain: ChainStep[] = [];
   for (const at of cluster.cells) {
     const r = lattice.runes.find((x) => sameCoord(x.at, at));
-    if (r && !isGlyph(r))
-      chain.push(r.dir ? { at, rune: r.rune, dir: r.dir } : { at, rune: r.rune });
+    const cell = def.cells[chain.length];
+    if (r && !isGlyph(r) && cell) {
+      const step = { at, rune: r.rune, local: cell.at, openable: canBeOpen(r.rune) };
+      chain.push(r.dir ? { ...step, dir: r.dir } : step);
+    }
   }
 
   const blocking: string[] = [];
@@ -210,4 +219,14 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
     costLine: free ? 'Fair-copy (free: idiom)' : `Fair-copy (${cost} vellum)`,
     canAfford,
   };
+}
+
+/**
+ * The local cell of the chain step at `open` (the Fair Copy sheet's tap, M22), or null when nothing
+ * is open or the step is gone or can't be open. Keeps a stale tap from reaching `compileGlyph`.
+ */
+export function openCellOf(preview: FairPreview | null, open: Coord | null): Coord | null {
+  if (!preview || !open) return null;
+  const step = preview.chain.find((s) => sameCoord(s.at, open));
+  return step?.openable ? step.local : null;
 }

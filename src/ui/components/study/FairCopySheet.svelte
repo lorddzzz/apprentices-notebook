@@ -1,7 +1,7 @@
 <script lang="ts">
   import { RUNES } from '$data';
-  import { label } from '$engine';
-  import type { FairPreview } from '../../../app/faircopy';
+  import { type Coord, label, sameCoord } from '$engine';
+  import { type FairPreview, openCellOf } from '../../../app/faircopy';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -11,14 +11,18 @@
     preview: FairPreview | null;
     vellum: number;
     onclose: () => void;
-    /** Does the Fair copy under this name. Returns why not, or null. */
-    onconfirm: (name: string) => string | null;
+    /** Does the Fair copy under this name, with `open` (a local cell) left open, if any. Returns why not, or null. */
+    onconfirm: (name: string, open: Coord | null) => string | null;
   }
 
   let { preview, vellum, onclose, onconfirm }: Props = $props();
 
   let typed = $state<string | null>(null);
   let error = $state<string | null>(null);
+  // The chain step (an outer cell) left open for an argument, if any (M22).
+  let openAt = $state<Coord | null>(null);
+  const openable = $derived(preview?.chain.filter((s) => s.openable) ?? []);
+  const openLocal = $derived(openCellOf(preview, openAt));
   // The idiom's name until the player types their own.
   const name = $derived(typed ?? preview?.suggestedName ?? '');
   const blocked = $derived((preview?.blocking.length ?? 0) > 0 || !preview?.canAfford);
@@ -26,13 +30,15 @@
   function close(): void {
     typed = null;
     error = null;
+    openAt = null;
     onclose();
   }
 
   function confirm(): void {
-    error = onconfirm(name);
+    error = onconfirm(name, openLocal);
     if (error === null) {
       typed = null;
+      openAt = null;
     }
   }
 </script>
@@ -56,6 +62,32 @@
         {preview.slides} {preview.slides === 1 ? 'rune slides' : 'runes slide'} up to meet the new
         socket.
       </p>
+    {/if}
+
+    {#if openable.length > 0}
+      <div class="open" data-testid="fair-open">
+        <p class="hint">
+          <b>Leave a cell open</b> (optional). Tap a rune whose place you want to choose each time
+          you put the Fair copy down.
+        </p>
+        <div class="picks">
+          {#each openable as step (`${step.at.x},${step.at.y}`)}
+            {@const on = openAt !== null && sameCoord(openAt, step.at)}
+            <button
+              type="button"
+              class="pick"
+              class:on
+              aria-pressed={on}
+              title={`${RUNES[step.rune].name} at ${label(step.at)}`}
+              data-testid="fair-open-pick"
+              onclick={() => (openAt = on ? null : step.at)}
+            >
+              <RuneGlyph rune={step.rune} dir={step.dir} size={30} />
+              {#if on}<span class="badge">( )</span>{/if}
+            </button>
+          {/each}
+        </div>
+      </div>
     {/if}
 
     <label class="field">
@@ -132,6 +164,46 @@
     margin-left: var(--space-2);
     font-size: 13px;
     color: var(--ink-soft);
+  }
+  .open {
+    margin: 0 0 var(--space-2);
+  }
+  .hint {
+    margin: 0 0 var(--space-1);
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--ink-soft);
+  }
+  .picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  .pick {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: var(--tap);
+    min-height: var(--tap);
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
+    cursor: pointer;
+  }
+  .pick.on {
+    border-color: var(--lamp);
+    background: rgba(232, 176, 74, 0.35);
+  }
+  .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    padding: 0 3px;
+    border-radius: 3px;
+    background: var(--parchment);
+    font: 700 11px var(--mono);
+    line-height: 14px;
   }
   .field {
     display: flex;

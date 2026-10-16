@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import { type Snippet, tick } from 'svelte';
   import { INTERACTION_IDS, type InteractionId, MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
   import {
     type CellKey,
@@ -86,6 +86,7 @@
     fair,
     fairinfo,
     onranking,
+    onargs,
     deadCells = new Set(),
   }: Props = $props();
 
@@ -112,6 +113,18 @@
     return p && isGlyph(p) ? p : null;
   });
   const inspectedGlyphDef = $derived(inspectedGlyph ? (glyphs[inspectedGlyph.glyph] ?? null) : null);
+  // The runes an open cell holds on the inspected Glyph, e.g. "Steam".
+  const argNames = $derived.by(() => {
+    const def = inspectedGlyphDef;
+    if (!def || def.params.length === 0) return '';
+    return def.params
+      .map((k) => {
+        const rune = inspectedGlyph?.args?.[k]?.rune ?? def.cells.find((c) => key(c.at) === k)?.rune;
+        return rune ? RUNES[rune].name : null;
+      })
+      .filter((n) => n !== null)
+      .join(', ');
+  });
   const held = $derived(tool.kind === 'rune' ? tool.rune : null);
   const heldGlyph = $derived(tool.kind === 'glyph' ? (glyphs[tool.glyph] ?? null) : null);
   const pending = $derived(
@@ -125,6 +138,10 @@
       return;
     }
     const placed = socketAt(lattice, at);
+    // Putting down a Glyph with open cells opens the argument picker once it has landed (M25).
+    const placing = !longPress && tool.kind === 'glyph' ? tool.glyph : null;
+    const hasOpen = placing !== null && (glyphs[placing]?.params.length ?? 0) > 0;
+    const was = placed && isGlyph(placed) ? placed.glyph : null;
     if (!longPress && tool.kind === 'none' && placed) {
       // Arrow runes turn on tap, so keep the spell list (it shows what the turn did).
       // A Glyph turns too, but stays inspected so its card can open the sheet.
@@ -135,6 +152,13 @@
       inspected = null;
     }
     onsocket(at, longPress);
+    if (hasOpen && placing !== was) void openArgsIfPlaced(at, placing);
+  }
+
+  async function openArgsIfPlaced(at: Coord, glyph: GlyphId | null): Promise<void> {
+    await tick();
+    const now = socketAt(lattice, at);
+    if (now && isGlyph(now) && now.glyph === glyph) onargs?.(at);
   }
 
   function pick(next: ShelfTool): void {
@@ -225,16 +249,31 @@
           <p class="line">
             <b>{inspectedGlyphDef.name}</b> · {inspectedGlyphDef.kind} Fair copy · {glyphCost(inspectedGlyphDef)} ink
           </p>
-          <p class="rule">{inspectedGlyphDef.cells.length} runes inside. Tap it to turn.</p>
+          <p class="rule">
+            {inspectedGlyphDef.cells.length} runes inside.
+            {#if argNames}Open: {argNames}.{:else}Tap it to turn.{/if}
+          </p>
         </div>
-        <button
-          type="button"
-          class="peek"
-          data-testid="peek"
-          onclick={() => onpeek?.(inspectedGlyphDef.id)}
-        >
-          Look inside
-        </button>
+        <div class="buttons">
+          {#if inspectedGlyphDef.params.length > 0}
+            <button
+              type="button"
+              class="peek"
+              data-testid="glyph-args"
+              onclick={() => inspected && onargs?.(inspected)}
+            >
+              Arguments
+            </button>
+          {/if}
+          <button
+            type="button"
+            class="peek"
+            data-testid="peek"
+            onclick={() => onpeek?.(inspectedGlyphDef.id)}
+          >
+            Look inside
+          </button>
+        </div>
       </div>
     {:else if infoRune}
       {@const def = RUNES[infoRune]}
@@ -284,7 +323,13 @@
   {/if}
 
   <Sheet open={reading} title="Spells on this page" onclose={() => (reading = false)}>
-    <SpellList spells={compiled.spells} focus={liveFocus} {recipe} onfocus={(k) => (focus = k)} />
+    <SpellList
+      spells={compiled.spells}
+      focus={liveFocus}
+      {recipe}
+      {member}
+      onfocus={(k) => (focus = k)}
+    />
   </Sheet>
 </div>
 
@@ -402,6 +447,18 @@
     color: var(--ink-soft);
     font-weight: 400;
     opacity: 0.75;
+  }
+  .buttons {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  /* Two stacked buttons must fit the 64px strip, so they are shorter than a full tap target. */
+  .buttons .peek {
+    min-height: 30px;
+    padding: 0 var(--space-2);
+    font-size: 13px;
   }
   .peek {
     flex: none;

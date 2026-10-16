@@ -1,7 +1,9 @@
 import { expect, test } from 'vitest';
-import { MEMBER_IDS, MEMBERS, RUNE_IDS, START_COLLECTION } from '$data';
+import { MEMBER_IDS, MEMBERS, RUNE_IDS, RUNES, START_COLLECTION } from '$data';
 import {
+  type CellKey,
   canPlace,
+  type GlyphArg,
   type GlyphDef,
   glyphCost,
   glyphLibrary,
@@ -17,6 +19,7 @@ import {
   socketAt,
 } from '$engine';
 import {
+  argOptions,
   decideSocketTap,
   type EditContext,
   editProfile,
@@ -26,8 +29,11 @@ import {
   inkLeft,
   NO_TOOL,
   noteIdioms,
+  placementArgs,
   profileShelf,
   type ShelfTool,
+  setGlyphArgs,
+  setGlyphOpenCells,
   shelfSlots,
 } from '../../src/app/study';
 
@@ -353,4 +359,109 @@ test('noteIdioms toasts a fresh idiom once', () => {
   const first = noteIdioms(p);
   expect(first.toasts).toEqual(['Idiom recognised: Cashing In']);
   expect(noteIdioms(first.profile).toasts).toEqual([]);
+});
+
+// ── Parameters (M21, M23, M25) ──
+
+const PARAM_DEF: GlyphDef = { ...GLYPH_DEF, params: ['1,0'] };
+const INK_ARG: Record<CellKey, GlyphArg> = { '1,0': { rune: 'steam' } };
+const D = 'draughtsman';
+const INK_ON_STOKER = [...parseLattice('. Ink .\n. . .\n. . .').runes];
+
+/** withGlyph() with the Ink cell left open, and `owned` runes added on top of one of each inner rune. */
+function withParamGlyph(owned: Partial<Record<keyof Profile['collection'], number>> = {}): Profile {
+  const p = withGlyph();
+  const collection = { ...p.collection };
+  for (const [r, n] of Object.entries(owned)) collection[r as keyof typeof collection] += n ?? 0;
+  return { ...p, collection, glyphs: [PARAM_DEF] };
+}
+
+const glyphAt = (p: Profile) => {
+  const g = socketAt(latticeOf(p, D), SPOT);
+  return g && 'glyph' in g ? g : null;
+};
+
+test('placement keeps the defaults while they are free: no args, identical to before (M25)', () => {
+  const p = withParamGlyph({ steam: 1 });
+  expect(placementArgs(p, D, SPOT, 'g1')).toEqual({});
+  const r = editProfile(p, D, SPOT, GLYPH_TOOL, false);
+  expect(r.changed).toBe(true);
+  expect(glyphAt(r.profile)?.args).toBeUndefined();
+});
+
+/** The Ink is used on the Stoker's page; of the Material runes only `keep` are owned (one each). */
+function inkTakenElsewhere(keep: readonly string[]): Profile {
+  const p = withParamGlyph();
+  const collection = { ...p.collection };
+  for (const r of RUNE_IDS) {
+    if (RUNES[r].family === 'material') collection[r] = keep.includes(r) ? 1 : 0;
+  }
+  return { ...p, collection, lattices: { ...p.lattices, stoker: INK_ON_STOKER } };
+}
+
+test('a used-up default is replaced by the first free rune of its family (M25)', () => {
+  const p = inkTakenElsewhere(['ink', 'steam', 'spark']);
+  expect(placementArgs(p, D, SPOT, 'g1')).toEqual({ '1,0': { rune: 'steam' } });
+  // The shelf agrees: the Fair copy is still usable.
+  expect(glyphSlots(p, D)[0]?.usable).toBe(true);
+  const r = editProfile(p, D, SPOT, GLYPH_TOOL, false);
+  expect(r.changed).toBe(true);
+  expect(glyphAt(r.profile)?.args).toEqual({ '1,0': { rune: 'steam' } });
+});
+
+test('with no free rune of the family the placement is refused as before', () => {
+  const p = inkTakenElsewhere(['ink', 'spark']);
+  expect(placementArgs(p, D, SPOT, 'g1')).toEqual({});
+  expect(glyphSlots(p, D)[0]?.usable).toBe(false);
+  const r = editProfile(p, D, SPOT, GLYPH_TOOL, false);
+  expect(r.changed).toBe(false);
+  expect(r.message).toBe('None left');
+});
+
+test('setGlyphArgs stores a family-matching rune; an empty set clears them', () => {
+  const placed = editProfile(withParamGlyph({ steam: 1 }), D, SPOT, GLYPH_TOOL, false).profile;
+  const set = setGlyphArgs(placed, D, SPOT, INK_ARG);
+  expect(glyphAt(set)?.args).toEqual(INK_ARG);
+  expect(glyphAt(setGlyphArgs(set, D, SPOT, {}))?.args).toBeUndefined();
+});
+
+test("setGlyphArgs keeps the engine's word: family, open cell, ownership", () => {
+  const placed = editProfile(withParamGlyph({ steam: 1 }), D, SPOT, GLYPH_TOOL, false).profile;
+  expect(() => setGlyphArgs(placed, D, SPOT, { '1,0': { rune: 'bolt' } })).toThrow(/material/i);
+  expect(() => setGlyphArgs(placed, D, SPOT, { '2,0': { rune: 'onKill' } })).toThrow(/not open/i);
+  expect(() => setGlyphArgs(placed, D, SPOT, { '9,9': { rune: 'steam' } })).toThrow(/no cell/i);
+  expect(() => setGlyphArgs(placed, D, { x: 0, y: 0 }, INK_ARG)).toThrow(/no fair copy/i);
+  const broke = { ...placed, collection: { ...placed.collection, steam: 0 } };
+  expect(() => setGlyphArgs(broke, D, SPOT, INK_ARG)).toThrow('None left');
+});
+
+test('argOptions lists the owned runes of the family with how many are free for the cell', () => {
+  const placed = editProfile(withParamGlyph({ steam: 2 }), D, SPOT, GLYPH_TOOL, false).profile;
+  const byRune = Object.fromEntries(
+    argOptions(placed, D, SPOT, '1,0', {}).map((o) => [o.rune, o.free]),
+  );
+  expect(Object.keys(byRune)).toContain('ink');
+  expect(Object.keys(byRune)).toContain('steam');
+  expect(Object.keys(byRune)).not.toContain('bolt');
+  expect(byRune.steam).toBe(placed.collection.steam);
+  expect(byRune.ink).toBe(placed.collection.ink);
+});
+
+test('turning a placed Glyph keeps its arguments', () => {
+  const placed = editProfile(withParamGlyph({ steam: 1 }), D, SPOT, GLYPH_TOOL, false).profile;
+  const withArg = setGlyphArgs(placed, D, SPOT, INK_ARG);
+  const turned = editProfile(withArg, D, SPOT, NO_TOOL, false);
+  expect(turned.decision.kind).toBe('rotate');
+  expect(glyphAt(turned.profile)?.args).toEqual(INK_ARG);
+});
+
+test('closing an open cell drops the arguments placed copies hold for it', () => {
+  const placed = editProfile(withParamGlyph({ steam: 1 }), D, SPOT, GLYPH_TOOL, false).profile;
+  const withArg = setGlyphArgs(placed, D, SPOT, INK_ARG);
+  const closed = setGlyphOpenCells(withArg, 'g1', []);
+  expect(closed.glyphs[0]?.params).toEqual([]);
+  expect(glyphAt(closed)?.args).toBeUndefined();
+  expect(glyphAt(setGlyphOpenCells(withArg, 'g1', ['1,0']))?.args).toEqual(INK_ARG);
+  // The engine's refusals pass through: a Source can't be open.
+  expect(() => setGlyphOpenCells(withArg, 'g1', ['0,0'])).toThrow();
 });
