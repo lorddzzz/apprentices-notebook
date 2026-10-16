@@ -3,7 +3,7 @@
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Wave 1 running (E1, E2, E3 started 21:32 UTC). If cut off: resume after the 22:10 reset, review partial branches, re-spawn with "continue from commit X".
+**Next:** C1 and U3 running. Then U2 (needs E3, unblocked), U1 (unblocked), C2 (after C1). Resume after the 22:10 reset if cut off.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -12,11 +12,11 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | E1 | sonnet | M | merged | (E1 merge commit) | ~7% | 31 tests; added `blocksUnits` to queries.ts (contract change, approved) |
 | E2 | sonnet | L | merged | (E2 merge commit) | ~8% | 18 scenario tests; edited turn.ts (burst intent), approved |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
-| C1 | sonnet | M | pending | | | needs E1, E2 |
+| C1 | sonnet | M | running | | | started 21:41 |
 | C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
 | U1 | sonnet | M | pending | | | needs E1, E2 |
 | U2 | sonnet | M | pending | | | needs E3 |
-| U3 | haiku | S | pending | | | needs E3 |
+| U3 | haiku | S | running | | | started 21:38 |
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
 | D1 | haiku | S | pending | | | needs C1, C2 |
@@ -30,6 +30,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | 21:25 | 69 | 45m | 22 | normal | W0 mid-way |
 | 21:31 | 73 | 39m | 23 | normal→narrow | W0 merged (~12%); start E1, E2, E3 anyway (reset before they finish) |
 | 21:37 | 84 | 33m | 24 | narrow→wrap | E3 merged; E1, E2 running; start U3 (smallest unblocked) |
+| 21:40 | 87 | 30m | 25 | wrap | E1, E2 merged; wave 1 done; start C1 (critical path) |
 
 ## W0 contract notes (for the agents)
 - `Intent = AttackIntent | SpecialIntent`; every reader narrows on `kind === 'attack'`. `telegraph` events carry any `Intent`; `attack` events an `AttackIntent`.
