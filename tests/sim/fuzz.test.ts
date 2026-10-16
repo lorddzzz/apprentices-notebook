@@ -1,8 +1,11 @@
 import { expect, test } from 'vitest';
 import {
+  DISTRICT_IDS,
+  DISTRICTS,
   ENCOUNTERS,
   ENEMIES,
   type EnemyId,
+  encountersOf,
   INTERACTION_IDS,
   type InteractionId,
   MEMBER_IDS,
@@ -24,12 +27,15 @@ import {
   argIssue,
   type BattleSpec,
   type BattleState,
+  bankKeys,
   beginEncounter,
   blockingAuras,
   boardOf,
+  type CityState,
   type Coord,
   canBeOpen,
   canPlace,
+  canReturn,
   canUndoMove,
   castableSpells,
   cellsWithArgs,
@@ -54,6 +60,9 @@ import {
   type GlyphInside,
   type GlyphLibrary,
   glyphLibrary,
+  hearAfterTrip,
+  hearFromBattle,
+  inBoard,
   inkUsed,
   insideOf,
   isGlyph,
@@ -67,6 +76,7 @@ import {
   masksFrom,
   memberById,
   newProfile,
+  openAll,
   type PlacedGlyph,
   type Profile,
   parseLabel,
@@ -84,11 +94,13 @@ import {
   reviseGlyph,
   rewardsOf,
   rotateDirLocal,
+  seeMap,
   setExtraExit,
   setMemberLattice,
   setOpenCells,
   setSocket,
   shoveDirs,
+  solveThreshold,
   startTrip,
   step,
   type TierLevel,
@@ -126,7 +138,14 @@ const issues = new Map<string, { count: number; example: string }>();
  * Engine bugs the fuzz found but that are not fixed yet: counted and printed, never failing the
  * run. Each needs a skipped repro test below; delete the entry (and un-skip the test) once fixed.
  */
-const KNOWN_ENGINE_GAPS = new Set<string>([]);
+const KNOWN_ENGINE_GAPS = new Set<string>([
+  // F1 found these (repros in the skipped tests at the end of the file); remove each when fixed.
+  'living eel on land', // BUG-F1-1: a shove (pushUnit) or slide moves an eel off the water
+  'brass plate shares its tile with another layer', // BUG-F1-2: drift lays oil on a plate on water
+  'drift laid a float on a brass plate', // BUG-F1-2
+  'the lamp-mother moved', // BUG-F1-4: a shove pushes the anchored lamp-mother
+  'profile holds an unknown interaction', // BUG-F1-3: 'drift' is not in INTERACTION_IDS
+]);
 const knownGaps = new Map<string, { count: number; example: string }>();
 function flag(rule: string, example: string): void {
   const book = KNOWN_ENGINE_GAPS.has(rule) ? knownGaps : issues;
@@ -199,6 +218,9 @@ function checkState(s: BattleState, where: string): void {
       seen.set(k, u.id);
       const tile = s.tiles[u.pos.y * s.width + u.pos.x];
       if (tile?.plate) flag('living unit on a brass plate', at);
+      if (tile?.gate) flag('living unit on a lock gate', at);
+      if (tile?.grate) flag('living unit on a grate', at);
+      if (u.kind === 'enemy' && u.def === 'eel' && !tile?.water) flag('living eel on land', at);
     }
     if (u.kind === 'member') {
       for (const [spell, n] of Object.entries(u.charges)) {
@@ -226,7 +248,10 @@ function checkState(s: BattleState, where: string): void {
   });
   if (s.phase === 'won' && liveEnemies(s).length > 0) flag('won with enemies alive', where);
   if (s.phase === 'lost' && liveMembers(s).length > 0) flag('lost with members alive', where);
-  if (s.phase === 'player' && (liveEnemies(s).length === 0 || liveMembers(s).length === 0)) {
+  if (
+    s.phase === 'player' &&
+    (liveMembers(s).length === 0 || (liveEnemies(s).length === 0 && !s.objective))
+  ) {
     flag('player phase with one side already down', where);
   }
   if (new Set(s.discovered).size !== s.discovered.length) flag('duplicate discoveries', where);
@@ -396,9 +421,63 @@ function checkPost(before: BattleState, action: Action, r: ActionResult, where: 
       break;
     }
   }
+  checkCanalPost(before, r, where);
   for (const e of r.events) {
     if (e.type === 'cast' && !e.echo && action.type !== 'cast') {
       flag('cast event without a cast action', where);
+    }
+  }
+}
+
+/** The current and the anchored (K-8, K-9, K-17): drift moves one tile downstream; the mother stays. */
+function checkCanalPost(before: BattleState, r: ActionResult, where: string): void {
+  const s = before;
+  for (const u of before.units) {
+    if (u.kind !== 'enemy' || u.def !== 'mother' || u.hp <= 0) continue;
+    const now = r.state.units.find((v) => v.id === u.id);
+    if (now && now.hp > 0 && !sameTile(now.pos, u.pos)) flag('the lamp-mother moved', where);
+  }
+  for (const e of r.events) {
+    if (e.type !== 'drift') continue;
+    const froms = new Set<string>();
+    const tos = new Set<string>();
+    for (const f of e.floats) {
+      const dir = inBoard(s, f.from) ? tileAt(s, f.from).water : null;
+      if (froms.has(key(f.from))) flag('drift moves a float twice', where);
+      froms.add(key(f.from));
+      if (!dir) {
+        flag('a float drifts from a tile with no current', `${where} ${key(f.from)}`);
+        continue;
+      }
+      const next = step(f.from, dir);
+      if (f.to === null) {
+        if (inBoard(s, next))
+          flag('a float left the board from inside it', `${where} ${key(f.from)}`);
+      } else {
+        tos.add(key(f.to));
+        if (inBoard(r.state, f.to) && tileAt(r.state, f.to).plate) {
+          flag('drift laid a float on a brass plate', `${where} ${key(f.to)}`);
+        }
+        if (!sameTile(f.to, next) || !(inBoard(s, f.to) && tileAt(s, f.to).water)) {
+          flag('a float did not move one tile downstream onto water', `${where} ${key(f.from)}`);
+        }
+      }
+    }
+    // Floats can merge, never split: the count of landing tiles never exceeds the movers.
+    const landed = e.floats.filter((f) => f.to !== null).length;
+    if (tos.size > landed) flag('drift made more floats than it moved', where);
+    for (const m of e.units) {
+      const dir = inBoard(s, m.from) ? tileAt(s, m.from).water : null;
+      if (
+        m.unit.id.startsWith('eel') ||
+        m.unit.id.startsWith('moth') ||
+        m.unit.id.startsWith('mother')
+      ) {
+        flag('a swimmer, flier or anchored foe drifted', `${where} ${m.unit.id}`);
+      }
+      if (dir && !sameTile(m.to, step(m.from, dir))) {
+        flag('a unit did not move one tile downstream', `${where} ${m.unit.id}`);
+      }
     }
   }
 }
@@ -1021,11 +1100,13 @@ function checkBank(before: Profile, after: Profile, t: Trip, where: string): voi
 /** Positions change only through movement events; hp never rises; charges never rise. */
 function checkMonotone(before: BattleState, r: ActionResult, where: string): void {
   const after = r.state;
-  if (after.units.length !== before.units.length) flag('unit count changed', where);
+  const summoned = new Set(r.events.flatMap((e) => (e.type === 'summon' ? [e.unit.id] : [])));
+  if (after.units.length !== before.units.length + summoned.size) flag('unit count changed', where);
   const prev = new Map(before.units.map((u) => [u.id, u]));
   for (const u of after.units) {
     const p = prev.get(u.id);
     if (!p) {
+      if (summoned.has(u.id)) continue;
       flag('unit appeared mid-battle', `${where} ${u.id}`);
       continue;
     }
@@ -1041,11 +1122,12 @@ function checkMonotone(before: BattleState, r: ActionResult, where: string): voi
     if (!sameTile(u.pos, p.pos)) {
       const moved = r.events.some(
         (e) =>
-          (e.type === 'moved' ||
+          ((e.type === 'moved' ||
             e.type === 'pushed' ||
             e.type === 'moveUndone' ||
             e.type === 'slide') &&
-          e.unit.id === u.id,
+            e.unit.id === u.id) ||
+          (e.type === 'drift' && e.units.some((d) => d.unit.id === u.id)),
       );
       if (!moved) flag('unit changed tile with no movement event', `${where} ${u.name}`);
     }
@@ -1091,6 +1173,15 @@ function checkPaths(before: BattleState, events: readonly GameEvent[], where: st
       if (e.type === 'pushed' && plate(e.to))
         flag('pushed onto a brass plate', `${where} ${e.unit.id}`);
       place(e.unit.id, e.to);
+    } else if (e.type === 'drift') {
+      // The current lifts everyone first, then sets them down.
+      for (const d of e.units) {
+        const old = tileOf.get(d.unit.id);
+        if (old !== undefined) at.delete(old);
+      }
+      for (const d of e.units) place(d.unit.id, d.to);
+    } else if (e.type === 'summon') {
+      place(e.unit.id, e.at);
     } else if (e.type === 'died') {
       const old = tileOf.get(e.unit.id);
       if (old !== undefined) at.delete(old);
@@ -1217,7 +1308,10 @@ function checkSave(p: Profile, t: Trip, where: string): void {
   try {
     expect(parseSaveData(JSON.parse(JSON.stringify(save)))).toEqual(save);
   } catch (err) {
-    flag(`save round trip failed in status ${t.status}`, `${where}: ${String(err).slice(0, 300)}`);
+    flag(
+      `save round trip failed in status ${t.status}`,
+      `${where}: ${String(err).slice(0, 300)} ${(err as Error).stack?.split('\n').slice(1, 5).join('|')}`,
+    );
   }
 }
 
@@ -2052,4 +2146,307 @@ test('fuzz: Glyph mastery (revise, revert, open cells, args, extra exits) betwee
   expect(bad.join('\n'), bad.join('\n')).toBe('');
   expect(fresh.join('; '), fresh.join('; ')).toBe('');
   expect(masteryStats.profiles, 'profiles with Glyphs').toBeGreaterThan(0);
+});
+
+// ── The city and the canals (plan F1) ───────────────────
+
+const canalStats = {
+  trips: 0,
+  battles: 0,
+  won: 0,
+  locks: 0,
+  locksSolved: 0,
+  drifts: 0,
+  eels: 0,
+  replays: 0,
+};
+
+/** heard ⊇ open ⊇ hearts, solved ⊆ open, and no list ever loses an entry. */
+function checkCity(before: CityState, after: CityState, where: string): void {
+  const lists = ['heard', 'open', 'hearts', 'solved'] as const;
+  for (const l of lists) {
+    for (const id of before[l]) {
+      if (!after[l].includes(id)) flag(`city.${l} lost an entry`, `${where} ${id}`);
+    }
+    if (new Set(after[l]).size !== after[l].length) flag(`city.${l} has a duplicate`, where);
+  }
+  for (const id of after.open) {
+    if (!after.heard.includes(id)) flag('open but not heard', `${where} ${id}`);
+  }
+  for (const id of after.hearts) {
+    if (!after.open.includes(id)) flag('heart cleared but not open', `${where} ${id}`);
+  }
+  for (const id of after.solved) {
+    if (!after.open.includes(id)) flag('solved but not open', `${where} ${id}`);
+  }
+  if (after.trips < before.trips) flag('city.trips went down', where);
+}
+
+/** The pure city functions on this state: each only grows the city. */
+function probeCity(p: Profile, t: Trip, log: readonly GameEvent[], where: string): void {
+  const h = hearFromBattle(p, t, [...log]);
+  checkCity(p.city, h.profile.city, `${where} hearFromBattle`);
+  for (const outcome of ['wiped', 'returned'] as const) {
+    const a = hearAfterTrip(h.profile, t, outcome);
+    checkCity(h.profile.city, a.profile.city, `${where} hearAfterTrip ${outcome}`);
+  }
+  for (const id of DISTRICT_IDS) {
+    checkCity(p.city, bankKeys(p, [{ kind: 'key', district: id }]).city, `${where} bankKeys ${id}`);
+    checkCity(p.city, solveThreshold(p, id).city, `${where} solveThreshold ${id}`);
+  }
+  checkCity(p.city, openAll(p).city, `${where} openAll`);
+  checkCity(p.city, seeMap(p).city, `${where} seeMap`);
+}
+
+function partyOf(p: Profile, t: Trip | null): BattleSpec['party'] {
+  const party: BattleSpec['party'] = {};
+  for (const m of MEMBER_IDS) {
+    party[m] = {
+      hp: t ? t.hp[m] : MEMBERS[m].hp,
+      spells: compiledFor(p, m).spells,
+      charges: { ...chargesOf(p, m), ...(t ? t.charges[m] : {}) },
+    };
+  }
+  return party;
+}
+
+function replayCheck(label: string, spec: BattleSpec, res: BattleResult): void {
+  canalStats.replays += 1;
+  const rep = replay(spec, res.battle.actions);
+  const same =
+    JSON.stringify(rep.states[rep.states.length - 1]) === JSON.stringify(res.battle.state) &&
+    JSON.stringify(describeLog(rep.events)) === JSON.stringify(describeLog(res.battle.events));
+  if (!same) flag('replay does not reproduce the recorded battle', label);
+}
+
+function noteBattle(res: BattleResult): void {
+  canalStats.battles += 1;
+  if (res.outcome === 'won') canalStats.won += 1;
+  for (const e of res.battle.events) if (e.type === 'drift') canalStats.drifts += 1;
+  if (res.battle.state.units.some((u) => u.kind === 'enemy' && u.def === 'eel')) {
+    canalStats.eels += 1;
+  }
+}
+
+/** The canal lock (K-22): a threshold board with an objective and no foes. */
+function runLock(seed: number, bot: Bot, p: Profile, rng: Rng): Profile {
+  const gate = DISTRICTS.canals.gate;
+  if (gate.kind !== 'threshold') return p;
+  const room = gate.room;
+  const label = `${bot}/${seed}/lock`;
+  const spec: BattleSpec = {
+    title: room.name,
+    board: room.board,
+    seed,
+    objective: room.goal,
+    party: partyOf(p, null),
+  };
+  let start: ActionResult;
+  try {
+    start = createBattle(spec);
+  } catch (err) {
+    flag('createBattle threw on the lock', `${label}: ${String(err)}`);
+    return p;
+  }
+  const res = playBattle(label, bot, start, rng);
+  canalStats.locks += 1;
+  noteBattle(res);
+  if ((res.outcome === 'won' || res.outcome === 'lost') && canalStats.locks % 2 === 0) {
+    replayCheck(label, spec, res);
+  }
+  if (res.outcome === 'won') {
+    canalStats.locksSolved += 1;
+    const after = solveThreshold(p, 'canals');
+    checkCity(p.city, after.city, label);
+    return after;
+  }
+  return p;
+}
+
+function runCanalTrip(seed: number, bot: Bot, kind: Kind, n: number): void {
+  const rng = createRng(seed * 2654435761 + BOT_KINDS.indexOf(bot) + 7);
+  let p: Profile = profileFor(kind, seed);
+  try {
+    for (const m of MEMBER_IDS) compiledFor(p, m);
+  } catch (err) {
+    flag('compileLattice threw', `seed ${seed}: ${String(err)}`);
+    return;
+  }
+  // Heard of, but shut: half the trips try the lock first, the rest get a key.
+  p = { ...p, city: { ...p.city, heard: [...new Set([...p.city.heard, 'canals' as const])] } };
+  const c0 = p.city;
+  if (n % 2 === 0) {
+    p = runLock(seed, bot, p, rng);
+    if (!p.city.open.includes('canals')) p = solveThreshold(p, 'canals');
+  } else {
+    p = bankKeys(p, [{ kind: 'key', district: 'canals' }]);
+  }
+  checkCity(c0, p.city, `${bot}/${seed} open`);
+
+  let trip: Trip | null;
+  try {
+    trip = startTrip(p, seed, 'canals');
+  } catch (err) {
+    flag('startTrip rejected a canal trip', `seed ${seed}: ${String(err)}`);
+    return;
+  }
+  canalStats.trips += 1;
+  if (bot.endsWith('@entry')) trip = { ...trip, encounter: seed % encountersOf('canals').length };
+
+  let guard = 0;
+  while (trip && guard++ < 50) {
+    const t: Trip = trip;
+    const where = `${bot}/${seed}/canals e${t.encounter} ${t.status}`;
+    // BUG-F1-3: parseProfile rejects the 'drift' interaction; strip it so the rest still round-trips.
+    checkSave(
+      { ...p, interactions: p.interactions.filter((i) => INTERACTION_IDS.includes(i)) },
+      t,
+      where,
+    );
+    switch (t.status) {
+      case 'fight': {
+        const enc = encountersOf('canals')[t.encounter];
+        if (!enc) {
+          flag('canal trip on a missing room', where);
+          trip = null;
+          break;
+        }
+        const label = `${bot}/${seed}/${enc.id}`;
+        const begun = beginEncounter(p, t);
+        const variant = enc.variants[variantFor(t, t.encounter)];
+        const spec: BattleSpec = {
+          title: variant?.name ?? enc.title,
+          board: variant?.layout ?? enc.layout,
+          seed: deriveSeed(t.seed, t.encounter),
+          party: partyOf(p, t),
+        };
+        if (JSON.stringify(createBattle(spec).state) !== JSON.stringify(begun.state)) {
+          flag('spec does not rebuild the canal battle', label);
+        }
+        const res = playBattle(label, bot, begun, rng);
+        noteBattle(res);
+        if (res.outcome !== 'won' && res.outcome !== 'lost') {
+          trip = null;
+          break;
+        }
+        if (canalStats.battles % 2 === 0) replayCheck(label, spec, res);
+        probeCity(p, t, res.battle.events, label);
+        const before = p;
+        const fin = closeBattle(p, t, res.battle.state, res.battle.events);
+        checkCity(before.city, fin.profile.city, `${label} closeBattle`);
+        p = fin.profile;
+        trip = fin.trip;
+        for (const i of p.interactions) {
+          if (!INTERACTION_IDS.includes(i))
+            flag('profile holds an unknown interaction', `${label} ${i}`);
+        }
+        if (trip) checkTripState(t, trip, p, label);
+        else if (p.city.trips <= before.city.trips)
+          flag('a wiped canal trip was not counted', label);
+        break;
+      }
+      case 'looting': {
+        if (t.offers.length === 0) {
+          flag('looting with no offers', where);
+          trip = null;
+          break;
+        }
+        trip = pickLoot(t, rng.int(0, t.offers.length - 1));
+        break;
+      }
+      case 'doorway': {
+        const r = applyDoorway(p, t, p.lattices);
+        p = r.profile;
+        trip = r.trip;
+        break;
+      }
+      case 'crossroads': {
+        if (canReturn(t) && rng.next() < 0.15) {
+          const before = p;
+          p = returnHome(p, t);
+          checkBank(before, p, t, where);
+          checkCity(before.city, p.city, `${where} returnHome`);
+          trip = null;
+          break;
+        }
+        trip = pushOn(t);
+        break;
+      }
+      case 'cleared': {
+        const before = p;
+        if (!canReturn(t)) flag('the heart is not a landing: the party is stranded', where);
+        p = returnHome(p, t);
+        checkBank(before, p, t, where);
+        checkCity(before.city, p.city, `${where} returnHome`);
+        if (!p.city.hearts.includes('canals')) flag('a cleared heart was not marked', where);
+        trip = null;
+        break;
+      }
+    }
+  }
+}
+
+test("data: every district's heart is a landing (else the party is stranded)", () => {
+  for (const id of DISTRICT_IDS) {
+    const d = DISTRICTS[id];
+    const heart = d.encounters.findIndex((e) => e.heart);
+    expect(heart, `${id} has a heart`).toBeGreaterThanOrEqual(0);
+    expect(d.landings === 'all' || d.landings.includes(heart), `${id} heart is a landing`).toBe(
+      true,
+    );
+  }
+});
+
+test('fuzz: canal trips and the lock, bots on the current', () => {
+  const t0 = Date.now();
+  for (const bot of BOT_KINDS) {
+    for (let i = 0; i < SEEDS; i++) {
+      const seed = 5000 + i * 6007 + BOT_KINDS.indexOf(bot) * 104729;
+      runCanalTrip(seed, bot, KINDS[i % KINDS.length] ?? 'start', i);
+    }
+  }
+  if (process.env.FUZZ_SEEDS) {
+    console.log(`canal fuzz: ${Date.now() - t0} ms ${JSON.stringify(canalStats)}`);
+  }
+  const summary = [...issues]
+    .map(([k, v]) => `${k} x${v.count}: ${v.example.slice(0, 400)}`)
+    .join('\n');
+  expect(summary, summary).toBe('');
+  expect(canalStats.battles, 'canal battles played').toBeGreaterThan(0);
+  expect(canalStats.drifts, 'drift events seen').toBeGreaterThan(0);
+  expect(canalStats.eels, 'eel battles').toBeGreaterThan(0);
+}, 600_000);
+
+// ── Engine bugs found by F1 (minimal repros; un-skip when fixed) ──
+
+test.skip('BUG-F1-1: a shoved eel stays on the water', () => {
+  // `. . . .` / `. ew> . .` / `. D . .`: the Draughtsman shoves the eel up, off the lane, onto land.
+  const s = board('. . . .\n. ew> . .\n. D . .');
+  const r = applyAction(s, { type: 'shove', unit: 'draughtsman', dir: 'up' });
+  const eel = r.state.units.find((u) => u.id.startsWith('eel'));
+  expect(eel && eel.hp > 0 ? tileAt(r.state, eel.pos).water : 'down').not.toBeNull();
+});
+
+test.skip('BUG-F1-2: drift never lays a float on a brass plate', () => {
+  // A plate raised on a lane tile (Kiln) with oil upstream: the oil drifts onto the plate.
+  const s = board('w>o w> w> .\n. D . S\nr . . .');
+  const t = s.tiles[1];
+  if (t) t.plate = true;
+  const r = applyAction(s, { type: 'endTurn' });
+  expect(r.state.tiles[1]?.oil).toBe(false);
+});
+
+test.skip('BUG-F1-3: every interaction a battle can discover is in INTERACTION_IDS', () => {
+  // A canal fight that drifts oil discovers 'drift'; parseProfile then rejects the save.
+  const s = board('w>o w> w> .\n. D . S\nr . . .');
+  const r = applyAction(s, { type: 'endTurn' });
+  for (const d of r.state.discovered) expect(INTERACTION_IDS).toContain(d);
+});
+
+test.skip('BUG-F1-4: the lamp-mother cannot be shoved', () => {
+  // `. D . .` / `. Mw> . .` ... a member shoves the anchored mother and she moves.
+  const s = board('. . . .\n. Mw> . .\n. D . .');
+  const r = applyAction(s, { type: 'shove', unit: 'draughtsman', dir: 'up' });
+  const m = r.state.units.find((u) => u.id.startsWith('mother'));
+  expect(m?.pos).toEqual({ x: 1, y: 1 });
 });

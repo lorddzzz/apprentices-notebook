@@ -3,7 +3,6 @@ import {
   CODEX,
   DISTRICTS,
   DRAFTS,
-  ENCOUNTERS,
   ENEMIES,
   type InteractionId,
   MEMBERS,
@@ -394,11 +393,6 @@ export function lootLine(item: LootItem): { title: string; text: string } {
 /** A short label for a loot item where space is tight ("Bolt", "+2 ink"). */
 export function lootName(item: LootItem): string {
   return lootLine(item).title;
-}
-
-/** "Three rats" for trip encounter `i`; the next one's title on the Push on button. */
-export function encounterTitle(i: number): string {
-  return ENCOUNTERS[i]?.title ?? 'The Seam';
 }
 
 /** "the flooded stair", "the Heart of the Seam": a place name inside a sentence. */

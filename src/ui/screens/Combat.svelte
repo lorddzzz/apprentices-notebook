@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ENCOUNTERS } from '$data';
+  import { encountersOf } from '$data';
   import { game } from '../../app/instance';
   import BattleView from '../components/battle/BattleView.svelte';
   import TopBar from '../components/battle/TopBar.svelte';
@@ -11,6 +11,7 @@
 
   const session = $derived(game.battle);
   const depth = $derived((game.save.trip?.encounter ?? 0) + 1);
+  const rooms = $derived(encountersOf(game.save.trip?.district ?? 'seam').length);
 </script>
 
 {#if session}
@@ -22,7 +23,7 @@
     >
       {#snippet top()}
         <TopBar title={session.state.title} round={session.state.round}>
-          <span class="depth">Depth {depth} / {ENCOUNTERS.length}</span>
+          <span class="depth">Depth {depth} / {rooms}</span>
         </TopBar>
       {/snippet}
     </BattleView>

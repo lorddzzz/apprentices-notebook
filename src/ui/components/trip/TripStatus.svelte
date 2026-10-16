@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
+  import { encountersOf, MEMBER_IDS, MEMBERS } from '$data';
   import { compiledFor, type Profile, type Trip } from '$engine';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -32,7 +32,7 @@
 
 <div class="status" class:large data-testid="trip-status">
   <p class="depth">
-    {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {ENCOUNTERS.length}
+    {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {encountersOf(trip.district).length}
     <span class="finds">· {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
   </p>
   {#each rows as r (r.id)}
