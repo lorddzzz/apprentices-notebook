@@ -2,8 +2,8 @@
 
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** holding for reset (resumes ~22:11 UTC)
-**Next:** (1) C2 back to its agent (or a fresh Sonnet from eb5bad3): Splash (range 3 Chebyshev, radius 1) lights fire beside the gate in one turn. Fix by layout only: 8 rows, party quay at y≤1, plate row with the grate at y=2, lane y=3–6, gate at y=7 (Splash footprint then ends at y=5). Fire lasts 2 rounds, so expect solutions like building a slick down the lane over turns and sparking it at the grate; one solution may own Splash. The brute force must include a Splash lattice. (2) Start U2 and U1. (3) Milestone A.
+**State:** building
+**Next:** C2 (rework: Splash-proof lock), U2 and U1 running since 22:12. Then milestone A (verify a canal trip from the map), then U4, D1, F1.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -13,9 +13,9 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | E2 | sonnet | L | merged | (E2 merge commit) | ~8% | 18 scenario tests; edited turn.ts (burst intent), approved |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | merged | (C1 merge commit) | ~8% | sim: rooms 1–3 100%, room 4 96%, heart 39% (34/55/31 by variant), 74/200 mother kills; sim adds ~20 s to the gate |
-| C2 | sonnet | S | review: not merged | worktree-agent-a6186d8b13a8e47a2 @ eb5bad3 | ~5% | Splash leak: send back (see Next) |
-| U1 | sonnet | M | pending | | | needs E1, E2 |
-| U2 | sonnet | M | pending | | | needs E3 |
+| C2 | sonnet | S | rework running | worktree-agent-a6186d8b13a8e47a2 @ eb5bad3 | ~5% | Splash leak: send back (see Next) |
+| U1 | sonnet | M | running | | | started 22:12, vite on 5195 |
+| U2 | sonnet | M | running | | | started 22:12, vite on 5194 |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
@@ -34,6 +34,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | 21:46 | 92 | 26m | 25 | wrap | U3 merged |
 | 21:57 | 96 | 13m | 26 | hold | C1 merged; start C2 (smallest unblocked) per pacing rule |
 | 22:06 | 100 | 4m | 27 | hold | C2 reported; Splash leak, not merged; stop until reset |
+| 22:12 | 0 | 5h | 27 | normal | window reset; C2 sent back; start U2, U1 |
 
 ## W0 contract notes (for the agents)
 - `Intent = AttackIntent | SpecialIntent`; every reader narrows on `kind === 'attack'`. `telegraph` events carry any `Intent`; `attack` events an `AttackIntent`.
