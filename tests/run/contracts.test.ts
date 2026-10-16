@@ -134,7 +134,7 @@ test('a player cast ends with a trace carrying spans', () => {
     aim: { kind: 'dir', dir: 'right' },
   });
   const trace = r.events.find((e) => e.type === 'trace');
-  expect(trace && 'spans' in trace ? trace.spans : null).toEqual([]);
+  expect(trace && 'spans' in trace ? trace.spans.length : 0).toBeGreaterThan(0); // E1: the source's span at least
 });
 
 test('closeBattle = recordTripCasts → finishEncounter, with no tier-ups yet', () => {

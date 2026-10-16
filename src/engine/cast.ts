@@ -1,7 +1,7 @@
 import { RUNES, TUNING } from '$data';
 import { type Ctx, emit, ref } from './ctx';
 import { dealDamage } from './damage';
-import { who } from './events';
+import { type NodeSpan, who } from './events';
 import { type Coord, key, label, neighbors4, sameCoord, square } from './grid';
 import {
   applyBrand,
@@ -37,6 +37,7 @@ import type {
   BattleState,
   EchoEntry,
   FiredCell,
+  GlyphId,
   MemberUnit,
   Spell,
   SpellNode,
@@ -106,9 +107,11 @@ export function castSpell(
   const outer = ctx.cast;
   const from = ctx.log.length;
   ctx.cast = { kills: [] };
+  const rec = recorderFor(ctx, spell, from);
   const targets = resolveSource(ctx, caster, spell, aim, scale);
+  rec.spans.push(sourceSpan(rec, spell, ctx.log.length));
   const ran: SpellNode[] = [];
-  runNodes(ctx, spell.nodes, targets, scale, ran, from);
+  runNodes(ctx, spell.nodes, targets, scale, ran, rec);
   if (spell.echo && !echo && isAlive(caster)) {
     const entry: EchoEntry = { caster: caster.id, spell: spell.key, aim: structuredClone(aim) };
     ctx.s.echoes.push(entry);
@@ -122,13 +125,58 @@ export function castSpell(
       spell: spell.key,
       cells: firedCells(spell, ran),
       meaningful: ctx.log.slice(from).some((e) => MEANINGFUL.has(e.type)),
-      spans: [], // task E1 fills these
+      spans: rec.spans,
     });
   }
 }
 
+/**
+ * Collects a cast's node spans (M2): offsets are into the log from its first effect event (`from`),
+ * and `glyphs` maps a Glyph socket to its id so inner nodes can name theirs.
+ */
+interface Recorder {
+  ctx: Ctx;
+  from: number;
+  spans: NodeSpan[];
+  glyphs: ReadonlyMap<string, GlyphId>;
+}
+
+function recorderFor(ctx: Ctx, spell: Spell, from: number): Recorder {
+  const glyphs = new Map<string, GlyphId>();
+  for (const c of spell.cells ?? []) if (c.glyph) glyphs.set(key(c.at), c.glyph);
+  return { ctx, from, spans: [], glyphs };
+}
+
+const coordCopy = (c: Coord): Coord => ({ x: c.x, y: c.y });
+
+/** The source's stretch: everything `resolveSource` logged, from the start of the cast to `to`. */
+function sourceSpan(rec: Recorder, spell: Spell, to: number): NodeSpan {
+  const inner = spell.glyph ? spell.path[0]?.inner : undefined;
+  return {
+    at: coordCopy(spell.at),
+    ...(inner && spell.glyph ? { inner: coordCopy(inner), glyph: spell.glyph } : {}),
+    from: 0,
+    to: to - rec.from,
+  };
+}
+
+/** A node's own stretch of the log, from log index `start` to now. */
+function nodeSpan(rec: Recorder, node: SpellNode, start: number): NodeSpan {
+  const glyph = node.inner ? rec.glyphs.get(key(node.at)) : undefined;
+  return {
+    at: coordCopy(node.at),
+    ...(node.inner ? { inner: coordCopy(node.inner) } : {}),
+    ...(glyph ? { glyph } : {}),
+    ...(node.viaInner && node.viaInner.length > 0
+      ? { viaInner: node.viaInner.map(coordCopy) }
+      : {}),
+    from: start - rec.from,
+    to: rec.ctx.log.length - rec.from,
+  };
+}
+
 /** Event types that make a cast count toward proof (plan P6). */
-const MEANINGFUL: ReadonlySet<string> = new Set([
+export const MEANINGFUL: ReadonlySet<string> = new Set([
   'damage',
   'shieldGained',
   'shieldAbsorbs',
@@ -263,11 +311,13 @@ function runNodes(
   targets: Targets,
   scale: Scale,
   ran: SpellNode[],
-  from: number,
+  rec: Recorder,
 ): void {
+  const from = rec.from;
   for (const node of nodes) {
     ran.push(node);
     const at = node.pierced ? targets.pierced : targets.base;
+    const begin = ctx.log.length;
     if (node.kind === 'material') {
       const m = scale(node.magnitude);
       switch (node.rune) {
@@ -311,23 +361,32 @@ function runNodes(
           applyKiln(ctx, footprint(ctx.s, at, m));
           break;
       }
-      runNodes(ctx, node.next, targets, scale, ran, from);
+      rec.spans.push(nodeSpan(rec, node, begin));
+      runNodes(ctx, node.next, targets, scale, ran, rec);
     } else if (node.rune === 'onInked') {
       const passed = at.some((t) => unitAt(ctx.s, t)?.inked === true);
       emit(ctx, { type: 'trigger', rune: 'onInked', passed });
-      if (passed) runNodes(ctx, node.next, targets, scale, ran, from);
+      rec.spans.push(nodeSpan(rec, node, begin));
+      if (passed) runNodes(ctx, node.next, targets, scale, ran, rec);
     } else if (node.rune === 'onIgnite') {
       const lit = ignitedSince(ctx, from);
       emit(ctx, { type: 'trigger', rune: 'onIgnite', passed: lit.length > 0 });
+      rec.spans.push(nodeSpan(rec, node, begin));
       // The rest of the flow lands on the new fire, not on the cast's targets.
-      if (lit.length) runNodes(ctx, node.next, same(lit), scale, ran, from);
+      if (lit.length) runNodes(ctx, node.next, same(lit), scale, ran, rec);
     } else {
       const victims = [...(ctx.cast?.kills ?? [])];
-      if (!victims.length) emit(ctx, { type: 'trigger', rune: 'onKill', passed: false });
+      if (!victims.length) {
+        emit(ctx, { type: 'trigger', rune: 'onKill', passed: false });
+        rec.spans.push(nodeSpan(rec, node, begin));
+      }
+      // One span per victim: each run of the flow is its own stretch (M4).
       for (const v of victims) {
+        const first = ctx.log.length;
         emit(ctx, { type: 'trigger', rune: 'onKill', passed: true, at: { ...v.at } });
+        rec.spans.push(nodeSpan(rec, node, first));
         const burst = clip(ctx.s, [v.at, ...neighbors4(v.at)]);
-        runNodes(ctx, node.next, same(burst), scale, ran, from);
+        runNodes(ctx, node.next, same(burst), scale, ran, rec);
       }
     }
   }
