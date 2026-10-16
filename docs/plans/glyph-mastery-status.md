@@ -18,7 +18,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U1 | sonnet | M | merged | 7b33b5e | ~5% | doorway read-only view not browser-checked |
 | U2 | haiku | S | merged | (after e54617e) | ~2% | 8-Glyph layout not checked (fixture has 3) |
 | U3 | sonnet | L | merged | e81523c | ~5% | browser-checked light only |
-| U6 | sonnet | M | partial | worktree-agent-a6be952565b18c96d @ 91a516d | ~3% so far | helpers + tests done (src/app/tripviews.ts); views not built. Resume the same agent: TripPage highlights + ledger notes, SpellList line, LatticeGrid dashed ring, draft icon, autofixer, 375×812 check |
+| U6 | sonnet | M | merged | c879b0b | ~6% total | draft icons not browser-checked; autofixer skipped on LatticeGrid/OfferCard/LootChips (class/CSS/icon only) |
 | U4 | sonnet | L | pending | | | |
 | U5 | sonnet | L | pending | | | |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
@@ -98,6 +98,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - U2: the Ranked link sits in its own row above the Fair copies grid; under-10 Glyphs sort by the same key after full-window rows; shelf tiles show two unlabelled marks (Economy, Reliability). Accepted
 - U6 (partial): SpellList should get a `member` prop from LatticeEditor instead of reading `game.member`/`game.save.lastTrip` (wrong in Gallery/Lab). Accepted: do it in U4 (owns LatticeEditor) or W4
 - U6: `tierUpLine` adds the extra-exit sentence at Reliability silver and the second-parameter sentence at gold, per `rewardsOf`. Accepted
+- U6: draft icon = a dashed page in OfferCard, ❦ in LootChips; ledger dead-cell notes and the SpellList line show only while the spell is wired as fought. Accepted
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
