@@ -3,7 +3,7 @@
 Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** holding for the reset (resumes ~17:11 UTC)
-**Next:** after the 17:10 UTC reset: merge C0/U2/D1 if not yet merged, then start U6, U4, U5 (U5 needs U3, merged), then F1, then W4.
+**Next:** after the 17:10 UTC reset: start U6, U4, U5 (all unblocked), then W4 (incl. the identity gap below).
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -22,7 +22,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U4 | sonnet | L | pending | | | |
 | U5 | sonnet | L | pending | | | |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
-| F1 | sonnet | M | pending | | | |
+| F1 | sonnet | M | merged | (after 57e28fa) | ~5% | started at 88% per the player's pacing call; finished inside the window |
 | W4 | opus | M | pending | | | |
 
 ## Usage log
@@ -100,6 +100,8 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - Orchestrator: W0 is delegated to an Opus agent instead of written in the main session, to keep the orchestrator's context lean for a two-window build.
 
 ## Follow-ups and rough edges
+- **Identity gap (pre-existing, found by F1):** `profileFor('random', 2)` in the fuzz: a compiled Glyph Bolt→Ink→Torch (no args) drops the outer tail after the Torch ("a brass plate rises at C3 / the brass at C3 heats up"); Draughtsman, encounter 3, aim up. The mastery fuzz skips flagged seeds. Investigate in W4 (maybe the known side-entry gap).
+- A targeted scenario for extra exit + Shape arg, and one for a Glyph beside a rune on the extra side (fuzz reaches them only by chance).
 - Payload Glyphs rarely earn Economy (harm-only: an Ink or Oil payload does no damage itself; bot p50 = 0). Reliability still works. Revisit after the playtest (separate thresholds or credit setup).
 - ESM cycle revision.ts → run.ts → drafts.ts → revision.ts (function-level only; harmless today).
 - The app has no dark theme; U1/U3 dark checks are moot.
