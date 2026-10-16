@@ -1,6 +1,6 @@
 # The City and its Districts
 
-> **Status: Decided** (design round of 2026-10-16, §0). Nothing built yet. Feeds [BL-22](../ROADMAP.md) (the map and the gates) and [BL-21](../ROADMAP.md) (the canals).
+> **Status: Decided** (two design rounds of 2026-10-16, §0: the map and gates, then the canals). Nothing built yet. Feeds [BL-22](../ROADMAP.md) (the map and the gates) and [BL-21](../ROADMAP.md) (the canals).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. The Seam, the first district: DESIGN.md §9.2. Trip rules: DESIGN.md §6.4.
 > **Out of scope on purpose:** aspects, recipes, loot tables, solvents and rune content. They wait for a rune-content rework once every core feature exists. Until then a new district reuses the current loot and runes.
 > Numbers and conditions are drafts, *tune by playing*.
@@ -33,6 +33,26 @@
 | Canals' guild | **The Lamplighters** (placeholder name) | They keep the oil lamps along the water |
 | Canals hearing trigger | Fire spreads across **3+ connected oil tiles** in one cast, in the Seam | Happens early, but you have to set it up |
 | Canals trip length | **5 rooms**, landings after rooms **1, 3 and 5** (the heart) | Two commitments of two rooms each |
+
+### Canals round (2026-10-16, BL-21)
+
+| Question | Decision | Why |
+|---|---|---|
+| The canal eel | **A water-bound lurker**: lives only in the lanes, swims fast along them, lunges at the quay beside its lane | You can see where it will be, so you plan around it |
+| The Lamplighters' warden | **The Snuffer**: puts out fire around it, and **leaves nothing** (the fire and its oil are gone) | A clear counter to fire builds: kill it first or work around it. The player passed on the walking lamp-post and on steam left behind |
+| Other foes | **Lamp-moths** (drawn to fire, burst into flame) and **oil-rats again**, now swimming | A fuse you didn't place, and a familiar face that ties the districts together |
+| The heart | **A first boss: the lamp-mother**, a great lantern on the water that calls moths out of the dark and snuffs the fire near her | The player wanted something big, not a harder room |
+| Rooms | **Wetter as you go**: one lane by a long quay at first, crossing lanes later, mostly water with islands at the heart | The current grows on you |
+| The canal lock | **One lit gate**: get burning oil to the wooden gate on the current. No enemies | It teaches the drift in one board, and several solutions work |
+
+**Defaults filled in by Claude** (*Proposal*, 2026-10-16, tune by playing; full rules in §5.4–§5.6):
+
+| Topic | Default | Why |
+|---|---|---|
+| How to hurt the lamp-mother | She snuffs fire in her 3×3 at round end, but fire **on her own tile** burns her during your turn first. She floats on water, so the way in is oil floated under her on the current, then lit | The boss tests the district's own rule |
+| Her pattern | Every round she calls one moth at a lit lamp; every third round she **flares** and every moth on the board bursts at once | Two telegraphs, one readable rhythm |
+| The lock's trick | The gate sits at the downstream end of a lane, behind brass plates, so nothing you cast reaches it directly. Only what floats does | Forces the current without forcing one lattice |
+| Bosses in general | One tile, lots of HP, telegraphed like everyone else | No new engine work for multi-tile units |
 
 ## 1. The sketch map (BL-22)
 
@@ -100,8 +120,9 @@ Every district is one data entry with these layers:
 | **Board rule** | One rule only this district has | None (the baseline) | **The current** (§5.1) |
 | **Guild** | Who holds it; its wardens and constructs form one faction | None (a borderland) | **The Lamplighters** |
 | **Trip shape** | Length, and a twist on push or return | 4 rooms, return after any room | **5 rooms, landings only** (§5.2) |
-| **Enemies** | 2–3 types of its own | Oil-rat, brass sentry, ink familiar | *Open* (BL-21 round): canal eels, Lamplighter wardens, … |
-| **Rooms** | 3 hand-placed layouts per depth, named, and a heart | Done | *Open* (BL-21) |
+| **Enemies** | 2–3 types of its own | Oil-rat, brass sentry, ink familiar | Canal eel, Snuffer, lamp-moth, plus swimming oil-rats (§5.4) |
+| **Rooms** | 3 hand-placed layouts per depth, named, and a heart | Done | Wetter as you go (§5.5) |
+| **Heart** | The last fight | A harder room | **A boss: the lamp-mother** (§5.6) |
 | **Uncanny touch** | How the city is wrong there | Streets overlap | **The canal runs uphill** |
 | **Hearing + gate** | §2, §3 | Open from the start | Fire along 3+ oil in the Seam → the lock |
 
@@ -125,6 +146,55 @@ Black water between slick quays, lamps on poles, barges that drift on their own.
 
 1. **Hear:** fire spreads across 3+ connected oil tiles in one cast, in the Seam. Back home, the owner's hand draws the canals: *"the black water climbs when lit."*
 2. **Enter:** the threshold room **the canal lock**. Oil goes in upstream, the current carries it to the lock gate, a spark lights it, and the gate burns open. It's the current in one board.
+
+**The lock board** (draft, the exact board is drawn in the plan):
+
+```
+. . ≈ . D .     ≈ = water lane, flowing down
+. . ≈ . . .     D S = the party, on the quay
+. . ≈ . S .     = = brass plates: nothing cast
+= = ≈ = = =         gets through to the gate
+. = ≈ = . .     G = the wooden gate, at the lane's end
+. = G = . .
+```
+
+- No enemies, full charges, free retries. You win when fire touches the gate.
+- Plates block every line from the quay, so the gate can be reached only by what floats down the lane. A Bolt aimed straight down the lane is the one leak. The plan closes it (for example, the gate opens only to fire, and the lane tile above it is a sluice that oil passes but casts can't target), and a solver test proves no direct cast opens it.
+- Several solutions: oil upstream then spark it as it passes the quay, light it first and let it burn down the lane (fire on oil drifts too), or Splash oil wide so it drifts as a slick.
+
+### 5.4 Enemies (*Proposal* numbers, tune by playing)
+
+| Enemy | Token | HP | Moves | Attack | Traits |
+|---|---|---|---|---|---|
+| **Canal eel** (vermin) | `e` | 3 | 4, **water tiles only**; it swims, so the current doesn't move it | **Lunge**: 2 to a unit orthogonally beside its tile | Wet: never oil-soaked, and fire can't burn on its tile unless oil floats there. Ink works |
+| **Snuffer** (Lamplighter warden) | `n` | 4 | 1 | **Pole**: 1 to an adjacent unit | At round end, puts out every fire in its 3×3. The fire **and its oil** are gone. A waxed coat: not oil-soaked |
+| **Lamp-moth** (vermin) | `m` | 1 | 3, flies (over water, ignores the current) | **Burst**, telegraphed on an adjacent member: it dies and leaves fire on its tile (lighting any oil there) and 1 to each unit next to it | Moves toward the nearest fire, else the nearest member. Killed by fire or Spark, it bursts too, so it's a fuse |
+| **Oil-rat** (Seam) | `r` | as now | as now; in water it drifts with the current | as now | Its oil trail on water floats away downstream |
+
+### 5.5 Rooms
+
+Five rooms, three named layouts each (the trip seed draws one), as in the Seam.
+
+| Room | Water | Foes | Layout names (*Proposal*) |
+|---|---|---|---|
+| 1 · landing after | One lane by a long quay | Eel + rats | The towpath, The coal wharf, The lamplit quay |
+| 2 | One lane, wider | + moths | The drowned arcade, The eel steps, The lock cottage |
+| 3 · landing after | Two lanes crossing, a bridge | + a Snuffer | The sluice, The crossing, The tanners' cut |
+| 4 | Two lanes, little quay | All four | The uphill reach, The lamp market, The siphon |
+| 5 · heart | Mostly water, islands | The lamp-mother, a Snuffer, moths | The lamp-mother's pool (three variants, same name) |
+
+Room 4's uphill reach is where the canal climbs: its lane flows *up* the screen.
+
+### 5.6 The heart: the lamp-mother
+
+A great lantern floating mid-pool, far bigger than the lamps on the quays. The moths come out of the dark toward her.
+
+- **One tile, 14 HP**, anchored on a water tile. She doesn't move and the current doesn't move her.
+- **Every round**, telegraphed: she calls one moth at one of the lit lamps around the pool (the lamp glows the round before).
+- **Every third round**, telegraphed: she **flares**, and every moth on the board bursts at once.
+- **At round end** she snuffs every fire in her 3×3, like a Snuffer.
+- **How to hurt her:** Bolt and Spark work as usual. Fire burns her only **on her own tile**: oil floated under her on the current, then lit in your turn, burns her before she snuffs it. Moths bursting next to her hurt her too, so herding them is a tactic.
+- One boss tile with lots of HP, and telegraphed like everyone else. Multi-tile bosses wait until a district needs one.
 
 ## 6. Later districts (sketch, not decided)
 

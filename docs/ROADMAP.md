@@ -62,8 +62,8 @@ A gold-Reliability / silver-Economy Glyph becomes a **permanent** atom (3 vellum
 Only the pairs ≋ϟ and ≋⟳ are free; the 7 later recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap, plus the Lance variant) don't fit in 8 aspects. Decide: add a ninth aspect (the feature doc floated *Light*, *Sound*), retag, or cut recipes. **Blocks BL-21's recipes.**
 
 #### BL-21 · Second district: the oil-lit canals
-`feature` `XL` · area: world, run, combat · status: needs-design · needs: BL-22 (the map and gates)
-Decided 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §5: Oil lean, the Lamplighters, **the current** (water lanes carry floating things one tile downstream each round), **landings** (return only after rooms 1, 3, 5), hear by fire along 3+ oil in the Seam, enter by the threshold room *the canal lock*. Still open (a design round): 2–3 enemy types, 3 layouts per depth, the heart fight, the lock's board, water and Spark. Reuses the current loot and runes; solvents and recipes stay in BL-24, aspects in BL-20, both pushed until the rune-content rework.
+`feature` `XL` · area: world, run, combat · status: ready · needs: BL-22 (the map and gates; the district itself can be built first, reachable from the door for testing)
+Designed 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §5: Oil lean, the Lamplighters, **the current** (water lanes carry floating things one tile downstream each round), **landings** (return only after rooms 1, 3, 5), hear by fire along 3+ oil in the Seam, enter by the threshold room *the canal lock*. Foes: canal eel, Snuffer, lamp-moth, swimming oil-rats; rooms wetter as you go; heart = the lamp-mother, the first boss. Needs a plan. Reuses the current loot and runes; solvents and recipes stay in BL-24, aspects in BL-20, both pushed until the rune-content rework.
 
 #### BL-22 · City map, hearing and gates
 `feature` `L` · area: world, study, run · status: ready · needs: —
@@ -121,7 +121,7 @@ Unscheduled. Anything here can be promoted when it earns it.
 | ID | Item | Type | Size | Area | Status | Notes |
 |---|---|---|---|---|---|---|
 | BL-60 | More Seam layouts (3 per depth now) | content | S | run | ready | Data + the fuzz plays them automatically. |
-| BL-61 | New enemy types: mutated vermin (canal eels, bathhouse slugs), constructs (steam golems) | content | M | world, combat | ready (design the traits) | Easiest inside BL-21. |
+| BL-61 | New enemy types: mutated vermin (bathhouse slugs), constructs (steam golems) | content | M | world, combat | ready (design the traits) | Canal eels, Snuffer and lamp-moths are designed in BL-21. The rest come with their districts. |
 | BL-62 | More loot offer kinds beyond runes / ink reserves / solvents / vellum / doorway | content | S | run | idea | "Lattice sockets" and "notebook pages" were considered and not chosen. |
 | BL-63 | Doorway variants or a second rare offer | content | S | run | idea | The quiet doorway landed well in BL-01; this is optional. |
 
@@ -183,7 +183,7 @@ Short list of decisions with no owner yet. Each links to the item that would set
 
 1. How should a party with no charges left be able to finish a fight? → BL-02 (parked)
 2. Ninth aspect, retag, or cut recipes? → BL-20
-3. ~~Which district comes second?~~ Decided 2026-10-16: the oil-lit canals ([city-and-districts.md](design/city-and-districts.md)). Their enemies and rooms → BL-21
+3. ~~Which district comes second?~~ Decided 2026-10-16: the oil-lit canals ([city-and-districts.md](design/city-and-districts.md)). Canals designed the same day (foes, rooms, the lamp-mother, the lock) → BL-21
 4. Max party size, and does a third member come before a second district? → BL-43
 5. Is Fire an element or a state; does terrain decay? → BL-55
 6. What does the game sound like, if anything? → BL-42
