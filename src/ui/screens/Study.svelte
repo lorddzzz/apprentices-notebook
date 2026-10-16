@@ -561,24 +561,6 @@
     font-size: 13px;
     color: var(--ink-soft);
   }
-  .first {
-    margin-top: 0;
-  }
-  .carry {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 15px;
-  }
-  .carry li {
-    display: flex;
-    flex-direction: column;
-    padding: 4px 0;
-  }
-  .carry span {
-    font-size: 14px;
-    color: var(--ink-soft);
-  }
   textarea {
     display: block;
     width: 100%;
