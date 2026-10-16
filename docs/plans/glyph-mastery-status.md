@@ -23,7 +23,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U5 | sonnet | L | pending | | | |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
 | F1 | sonnet | M | merged | (after 57e28fa) | ~5% | started at 88% per the player's pacing call; finished inside the window |
-| I1 | sonnet | S | running | | | identity gap fix (follow-up below) |
+| I1 | sonnet | S | merged | (after c879b0b) | ~3% | root cause in glyph.ts `disconnected()`; fuzz skip removed |
 | W4 | opus | M | pending | | | |
 
 ## Usage log
@@ -99,6 +99,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - U6 (partial): SpellList should get a `member` prop from LatticeEditor instead of reading `game.member`/`game.save.lastTrip` (wrong in Gallery/Lab). Accepted: do it in U4 (owns LatticeEditor) or W4
 - U6: `tierUpLine` adds the extra-exit sentence at Reliability silver and the second-parameter sentence at gold, per `rewardsOf`. Accepted
 - U6: draft icon = a dashed page in OfferCard, ❦ in LootChips; ledger dead-cell notes and the SpellList line show only while the spell is wired as fought. Accepted
+- I1: a tail the cluster's own spell loses counts as disconnected even if another spell still reaches it (the Fair Copy sheet warns; tidy tries to slide it). No new refusal; compile can still collapse with a warned, unslidable tail, as before. Accepted
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
@@ -106,7 +107,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - Orchestrator: W0 is delegated to an Opus agent instead of written in the main session, to keep the orchestrator's context lean for a two-window build.
 
 ## Follow-ups and rough edges
-- **Identity gap (pre-existing, found by F1):** `profileFor('random', 2)` in the fuzz: a compiled Glyph Bolt→Ink→Torch (no args) drops the outer tail after the Torch ("a brass plate rises at C3 / the brass at C3 heats up"); Draughtsman, encounter 3, aim up. The mastery fuzz skips flagged seeds. Investigate in W4 (maybe the known side-entry gap).
+- (fixed by I1) **Identity gap (pre-existing, found by F1):** `profileFor('random', 2)` in the fuzz: a compiled Glyph Bolt→Ink→Torch (no args) drops the outer tail after the Torch ("a brass plate rises at C3 / the brass at C3 heats up"); Draughtsman, encounter 3, aim up. The mastery fuzz skips flagged seeds. Investigate in W4 (maybe the known side-entry gap).
 - A targeted scenario for extra exit + Shape arg, and one for a Glyph beside a rune on the extra side (fuzz reaches them only by chance).
 - Payload Glyphs rarely earn Economy (harm-only: an Ink or Oil payload does no damage itself; bot p50 = 0). Reliability still works. Revisit after the playtest (separate thresholds or credit setup).
 - ESM cycle revision.ts → run.ts → drafts.ts → revision.ts (function-level only; harmless today).
