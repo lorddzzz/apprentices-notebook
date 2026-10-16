@@ -9,9 +9,9 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | W0 | opus | L | merged | 8720ca7 | ~30% (incl. planner) | 847 tests; contract additions listed below |
-| E1 | sonnet | L | pending | | | |
+| E1 | sonnet | L | merged | 5023fb5 | ~8% | 942 tests |
 | E2 | sonnet | M | merged | 696ff23 | ~5% | 906 tests; rewardsOf mocked in its tests |
-| E3 | sonnet | L | pending | | | |
+| E3 | sonnet | L | merged | (after 5023fb5) | ~8% | 971 tests |
 | E4 | sonnet | M | pending | | | |
 | E5 | haiku | S | merged | df5742c | ~2% | 853 tests |
 | C0 | sonnet | S | pending | | | |
@@ -32,6 +32,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | 2026-10-16 13:34 | 42 | 3h35m | 6 | normal (42 + wave 1 ≈ 83) | W0 merged; start E1, E3, E2, E5 |
 | 2026-10-16 13:43 | 59 | 3h27m | 8 | wrap by projection (~2%/min) | E5 merged; narrow nudges sent; no new spawns |
 | 2026-10-16 13:46 | 64 | 3h24m | 9 | wrap by projection (~1.2%/min, 2 agents) | E2 merged; E1, E3 running |
+| 2026-10-16 13:48 | 66 | 3h22m | 9 | normal (66 + 21 ≈ 87) | E1, E3 merged; start E4, U3, U1, C0 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - W0: version-record keys are `id@N`; an archived version must belong to a current Glyph and not repeat its current version (no orphan records). Accepted
@@ -53,6 +54,21 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - E2: `innerMeta` exits from its own walk; every step onto an empty cell is an exit (a revision can list more exits than its v1). Accepted
 - E2: on revise an open cell carries over only if the same cell still holds a rune of that family, at most `paramSlots`; the extra exit only if its side is still free. Accepted
 - E2: `revisionWarning` compares `validateLoadout` before/after (includes the lost discount); wording "Pushes the Stoker's page ink over" / "…over the Amplify you own". Accepted
+- E1: spans are per run, not per node: On Kill emits one trigger span per victim, each inner run its own spans (M4 sums runs). Accepted
+- E1: a node's `glyph` comes from `spell.cells`; a Spell Glyph's source `inner` from `spell.path[0]`. Accepted
+- E1: samples grouped by Glyph and socket; a Spell Glyph always samples; a Payload samples when any inner span exists (its own failing trigger gives a non-meaningful sample). Accepted
+- E1: outer-aura cost counted from the caster's lattice, as `placedInk`. Accepted
+- E1: `fired` = inner + viaInner cells + inner auras beside a fired cell; a trigger that ran but didn't open counts as fired. Accepted
+- E1: `innerFired` returns span cells only (no auras). Accepted
+- E1: `tierUps` one entry per metric with the new tier, economy first, even on a jump of two. Accepted
+- E1: `deadCells` covers every cell of `def.cells` (entry, auras, open cells included); records update only for current versions. Accepted
+- E1: `MEANINGFUL` exported from cast.ts. Accepted
+- E3: the compiler honours an arg only on a `params` cell of the default's family; else the default (stale saves never throw); `glyphRunes` follows the same filter. Accepted
+- E3: `validateLattice` flags args on missing, non-param, Source/Aura or wrong-family cells. Accepted
+- E3: an arrow arg without a direction takes the default's arrow, then right. Accepted
+- E3: notation `G:g1>[1,0:Smear]`, several args in local reading order, arrow suffix on arrow args. Accepted
+- E3: the extra exit hangs off the first `beyond`; skipped when it equals the main exit. Accepted
+- E3: Shape-family args can't keep identity once a tail exists (exit geometry changes); the shape-arg identity test runs on lone Spell Glyphs only. Accepted: a Shape arg is meant to change where the flow goes
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
