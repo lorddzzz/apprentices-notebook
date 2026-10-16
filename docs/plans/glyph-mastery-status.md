@@ -2,8 +2,8 @@
 
 Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** holding for the reset (resumes ~17:11 UTC)
-**Next:** after the 17:10 UTC reset: resume U6 (SendMessage to its agent, or re-spawn from 91a516d with the list in its row); start U4 and U5; then W4 (incl. the identity gap below).
+**State:** building (window 2)
+**Next:** U6 resumed, U4, U5 and I1 (identity gap fix) running; then W4.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -23,6 +23,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U5 | sonnet | L | pending | | | |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
 | F1 | sonnet | M | merged | (after 57e28fa) | ~5% | started at 88% per the player's pacing call; finished inside the window |
+| I1 | sonnet | S | running | | | identity gap fix (follow-up below) |
 | W4 | opus | M | pending | | | |
 
 ## Usage log
@@ -33,6 +34,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | 2026-10-16 13:43 | 59 | 3h27m | 8 | wrap by projection (~2%/min) | E5 merged; narrow nudges sent; no new spawns |
 | 2026-10-16 13:46 | 64 | 3h24m | 9 | wrap by projection (~1.2%/min, 2 agents) | E2 merged; E1, E3 running |
 | 2026-10-16 13:48 | 66 | 3h22m | 9 | normal (66 + 21 ≈ 87) | E1, E3 merged; start E4, U3, U1, C0 |
+| 2026-10-16 17:12 | 0 | 4h58m | 13 | normal | reset; resume U6; start U4, U5, I1 |
 | 2026-10-16 14:24 | 96 | 2h43m | 13 | hold | F1 merged (started at 88% per the player's call); U6 started at 94%, nudged at 96%, partial |
 | 2026-10-16 13:58 | 84 | 3h12m | 12 | narrow (84 + C0 + U2 + D1 ≈ 89) | E4, U3, U1 merged; wrap nudges to U1/C0; start U2, D1 (Haiku); then hold for the 17:10 UTC reset |
 
