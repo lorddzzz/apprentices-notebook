@@ -3,7 +3,7 @@
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** U4 (threshold screen) running. Then W4: full verify loop, code review, docs (DESIGN §6.7/§11, design doc §0, TECH §7, ROADMAP), clean up worktrees.
+**Next:** W4: code review (Sonnet reviewer), docs (DESIGN §6.7/§11, design doc §0, TECH §7, ROADMAP), full verify loop at 375×812, clean up worktrees.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -18,7 +18,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | U2 | sonnet | M | merged | (U2 merge commit) | ~6% | 8 tests; screenshots: Seam only, canals heard, Set out sheet. Old Study door sheet removed by me |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | done | c8d1686, f38c4e5 | ~4% | 375×812: Lab dev toggle → map (canals inked) → Set out → room 1 (lane, eel, Current) → Crossroads at room 2 (greyed Return, next landing named) → heart (boss header, lamps, summon line, moth arrives and telegraphs Burst, Snuffer drifts) |
-| U4 | sonnet | M | pending | | | needs C2, U1, U2 |
+| U4 | sonnet | M | merged | (U4 merge commit) | ~7% | 4 tests; real click through the win → "The gate burns" → map; solve saved at the win |
 | D1 | haiku | S | merged | (D1 merge commit) | ~2% | lock note, barred, eel/snuffer blurbs, drift codex + hint, landing line |
 | F1 | sonnet | M | merged | (F1 merge commit) | ~7% | canal trips + lock in the fuzz, city invariants; +4.4 s; found 4 engine bugs, fixed by me in the same commit |
 | W4 | opus | M | pending | | | |
@@ -85,6 +85,8 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - U1: the oil hatch hides the water arrows; consider drawing arrows above oil. Follow-up.
 - F1: pushing an eel off water or the lamp-mother at all bumps (Proposal). Accepted: the eel bumps into "the bank", the mother into "its moorings".
 - F1: drift treats a plate on a lane as land (the float stays). Accepted.
+- U4: the solve is written as soon as the lock battle is won (a reload before "Onward" keeps it). Accepted (sent back to fix).
+- U4: the banner "Burn the lock gate." is a literal in the screen; move it into `ThresholdDef` before a second threshold room. Follow-up.
 
 ## Decisions and fixes made during the build
 - F1 bugs fixed (me): (1) a shove or slide moved an eel onto land; (2) drift laid oil on a brass plate raised on a lane; (3) `'drift'` was missing from `INTERACTION_IDS`, so a canal win that discovered drift made the save unreadable (W0 miss); (4) a shove moved the anchored lamp-mother. Also: fliers (moths) never slide on oil (K-16). Repros un-skipped as regression tests in fuzz.test.ts.
