@@ -3,15 +3,15 @@
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** Wave 1: spawn E2 (canal foes, Sonnet), E1 (the current, Sonnet), E3 (city engine, Sonnet) in worktrees from W0's commit.
+**Next:** Wave 1 running (E1, E2, E3 started 21:32 UTC). If cut off: resume after the 22:10 reset, review partial branches, re-spawn with "continue from commit X".
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | W0 | opus (me) | L | merged | (this commit) | ~9% | contracts, stubs, save v5, fixtures, Seam identity gate |
-| E1 | sonnet | M | pending | | | |
-| E2 | sonnet | L | pending | | | |
-| E3 | sonnet | M | pending | | | |
+| E1 | sonnet | M | running | | | started 21:32 |
+| E2 | sonnet | L | running | | | started 21:32 |
+| E3 | sonnet | M | running | | | started 21:32 |
 | C1 | sonnet | M | pending | | | needs E1, E2 |
 | C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
 | U1 | sonnet | M | pending | | | needs E1, E2 |
@@ -28,6 +28,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 |---|---|---|---|---|---|
 | 21:15 | 61 | 54m | 21 | normal | baseline, start W0 |
 | 21:25 | 69 | 45m | 22 | normal | W0 mid-way |
+| 21:31 | 73 | 39m | 23 | normal→narrow | W0 merged (~12%); start E1, E2, E3 anyway (reset before they finish) |
 
 ## W0 contract notes (for the agents)
 - `Intent = AttackIntent | SpecialIntent`; every reader narrows on `kind === 'attack'`. `telegraph` events carry any `Intent`; `attack` events an `AttackIntent`.
