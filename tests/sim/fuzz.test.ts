@@ -21,18 +21,23 @@ import {
   type ActionResult,
   applyAction,
   applyDoorway,
+  argIssue,
   type BattleSpec,
   type BattleState,
   beginEncounter,
   blockingAuras,
   boardOf,
   type Coord,
+  canBeOpen,
   canPlace,
   canUndoMove,
   castableSpells,
+  cellsWithArgs,
+  closeBattle,
   clustersOf,
   compiledFor,
   compileGlyph,
+  compileLattice,
   createBattle,
   createEncounterBattle,
   createRng,
@@ -41,10 +46,17 @@ import {
   describe as describeEvent,
   describeLog,
   disconnected,
+  extraExitSides,
   finishEncounter,
   type GameEvent,
+  type GlyphArg,
+  type GlyphDef,
+  type GlyphInside,
+  type GlyphLibrary,
   glyphLibrary,
   inkUsed,
+  insideOf,
+  isGlyph,
   isLegal,
   isSocket,
   key,
@@ -55,6 +67,7 @@ import {
   masksFrom,
   memberById,
   newProfile,
+  type PlacedGlyph,
   type Profile,
   parseLabel,
   parseSaveData,
@@ -62,22 +75,33 @@ import {
   provenCount,
   pushOn,
   type Rng,
+  recordAction,
+  recordOf,
   recordProof,
   replay,
   returnHome,
+  revertGlyph,
+  reviseGlyph,
+  rewardsOf,
+  rotateDirLocal,
+  setExtraExit,
   setMemberLattice,
+  setOpenCells,
   setSocket,
   shoveDirs,
   startTrip,
   step,
+  type TierLevel,
   type Trip,
   tileAt,
   type Unit,
   validateLoadout,
   variantFor,
+  versionKey,
 } from '$engine';
 import { applyBrass, applyEtch, applyKiln, applyScald } from '$engine/materials';
 import { board, draft } from '../scenarios/harness';
+import { randomArg, randomValidInside } from './mastery-bot';
 
 /**
  * Fuzz harness: random and greedy bots play whole trips over the pure engine. Every action is
@@ -1609,4 +1633,432 @@ test('a crumbled plate drops its etch', () => {
   const t = tileAt(s, parseLabel('B1'));
   expect(t.plate).toBe(false);
   expect(t.etched).toBe(false);
+});
+
+// ── Glyph mastery: revise, revert, open cells, args and extra exits between trips (plan F1) ──
+
+const MASTERY_SEEDS = Number(process.env.MASTERY_SEEDS ?? 6);
+const MASTERY_STEPS = 5;
+
+const masteryStats = {
+  profiles: 0,
+  ops: new Map<string, number>(),
+  rejected: 0,
+  identityChecked: 0,
+  exitChecked: 0,
+  exitGrew: 0,
+  fights: 0,
+  castsRecorded: 0,
+  skippedSeeds: [] as string[],
+};
+
+const noGlyphExit = (p: Profile): Profile => ({
+  ...p,
+  glyphs: p.glyphs.map((g) => ({ ...g, extraExit: null })),
+});
+
+const pathKeys = (p: Profile, m: MemberId, lib: GlyphLibrary): Set<string> =>
+  new Set(
+    compileLattice(latticeOf(p, m), MEMBERS[m].affinity, lib).spells.flatMap((s) =>
+      s.path.map((c) => `${key(c.at)}|${c.inner ? key(c.inner) : ''}`),
+    ),
+  );
+
+/** Placed Glyphs in a member's lattice whose args are set. */
+const argedSockets = (p: Profile, m: MemberId) =>
+  latticeOf(p, m).runes.filter(
+    (r): r is PlacedGlyph => isGlyph(r) && Object.keys(r.args ?? {}).length > 0,
+  );
+
+/** M28(a): a Glyph with args behaves like the same Glyph with the args baked into its cells. */
+function bakedTwin(p: Profile, m: MemberId): Profile {
+  const base = noGlyphExit(p);
+  const extra: GlyphDef[] = [];
+  const runes = latticeOf(base, m).runes.map((r) => {
+    if (!isGlyph(r) || !r.args) return r;
+    const def = base.glyphs.find((g) => g.id === r.glyph);
+    if (!def) return r;
+    const id = `${def.id}#b${extra.length}`;
+    extra.push({ ...def, id, cells: cellsWithArgs(def, r.args), params: [] });
+    const { args: _args, ...bare } = r;
+    return { ...bare, glyph: id };
+  });
+  return setMemberLattice({ ...base, glyphs: [...base.glyphs, ...extra] }, m, {
+    shape: latticeOf(base, m).shape,
+    runes,
+  });
+}
+
+function runMastery(seed: number, start: Profile, bad: string[]): void {
+  const rng = createRng(seed * 7919 + 17);
+  let p = start;
+  let step = 0;
+  const where = (op: string) => `seed ${seed} step ${step} ${op}`;
+  const fail = (rule: string, w: string, extra = ''): void => {
+    if (bad.length < 30) bad.push(`${rule} @ ${w} ${extra}`.slice(0, 1500));
+  };
+  const owned = (q: Profile) => (r: RuneId) => q.collection[r] > 0;
+
+  /** Records stay in bounds and never go backwards between two profiles. */
+  const checkRecords = (a: Profile, b: Profile, w: string): void => {
+    for (const [k, rec] of Object.entries(a.glyphRecords)) {
+      const next = b.glyphRecords[k];
+      if (!next) {
+        fail('a record vanished', w, k);
+        continue;
+      }
+      if (next.casts < rec.casts) fail('casts fell', w, k);
+      if (next.best.economy < rec.best.economy || next.best.reliability < rec.best.reliability) {
+        fail('a best tier fell', w, k);
+      }
+    }
+    for (const [k, rec] of Object.entries(b.glyphRecords)) {
+      if (rec.recent.length > TUNING.tierWindow) fail('recent past the window', w, k);
+      if (rec.casts < rec.recent.length) fail('recent longer than casts', w, k);
+    }
+  };
+
+  /** What every profile must survive: compiling, validating, ink and arg reporting, M28(b). */
+  const checkProfile = (q: Profile, w: string): void => {
+    let reported: ReturnType<typeof validateLoadout> = {};
+    try {
+      reported = validateLoadout(q);
+    } catch (err) {
+      fail('validateLoadout threw', w, String(err));
+    }
+    const lib = glyphLibrary(q);
+    const bare: GlyphLibrary = Object.fromEntries(
+      Object.entries(lib).map(([id, g]) => [id, { ...g, extraExit: null }]),
+    );
+    for (const m of MEMBER_IDS) {
+      try {
+        compiledFor(q, m);
+        const used = inkUsed(latticeOf(q, m), lib);
+        if (used > q.inkCapacity[m] && !reported[m]?.some((i) => i.kind === 'ink')) {
+          fail('ink over capacity not reported', w, `${m} ${used}`);
+        }
+        const withExit = pathKeys(q, m, lib);
+        masteryStats.exitChecked += 1;
+        const without = pathKeys(q, m, bare);
+        for (const k of without) {
+          if (!withExit.has(k)) fail('extra exit lost a cell (M28b)', w, `${m} ${k}`);
+        }
+        if (withExit.size > without.size) masteryStats.exitGrew += 1;
+        const argReported = reported[m]?.some((i) => i.kind === 'arg') ?? false;
+        for (const r of latticeOf(q, m).runes) {
+          if (!isGlyph(r) || !r.args) continue;
+          const def = lib[r.glyph];
+          // A wrong-family arg on an open cell must be reported; a stale key is ignored quietly.
+          const wrong = Object.entries(r.args).some(
+            ([k, a]) => def?.params.includes(k) && argIssue(def, k, a) !== null,
+          );
+          if (wrong && !argReported) {
+            fail('a bad arg was not reported', w, `${m} ${JSON.stringify(r.args)}`);
+          }
+        }
+      } catch (err) {
+        fail('compile/ink check threw', w, `${m} ${String(err)}`);
+      }
+    }
+  };
+
+  const identity = (q: Profile, w: string): void => {
+    for (const m of MEMBER_IDS) {
+      if (argedSockets(q, m).length === 0) continue;
+      try {
+        const enc = rng.int(0, ENCOUNTERS.length - 1);
+        const a = castLines(noGlyphExit(q), m, enc, seed);
+        const b = castLines(bakedTwin(q, m), m, enc, seed);
+        masteryStats.identityChecked += 1;
+        if (JSON.stringify([...a]) !== JSON.stringify([...b])) {
+          fail('Glyph with args differs from its baked twin (M28a)', w, `${m} enc ${enc}`);
+        }
+      } catch (err) {
+        fail('identity check threw', w, String(err));
+      }
+    }
+  };
+
+  const withArgs = (q: Profile, m: MemberId, at: Coord, args: Record<string, GlyphArg>): Profile =>
+    setMemberLattice(q, m, {
+      shape: latticeOf(q, m).shape,
+      runes: latticeOf(q, m).runes.map((r) =>
+        isGlyph(r) && sameTile(r.at, at) ? { ...r, args } : r,
+      ),
+    });
+
+  const expectThrow = (what: string, w: string, f: () => unknown): void => {
+    try {
+      f();
+    } catch (err) {
+      if (!(err instanceof Error)) fail(`${what}: threw a non-Error`, w);
+      return;
+    }
+    fail(`${what}: should have thrown`, w);
+  };
+
+  const withBest = (q: Profile, g: GlyphDef, economy: TierLevel, reliability: TierLevel) => {
+    const rec = recordOf(q, g.id, g.version);
+    const best = {
+      economy: Math.max(rec.best.economy, economy) as TierLevel,
+      reliability: Math.max(rec.best.reliability, reliability) as TierLevel,
+    };
+    return {
+      ...q,
+      glyphRecords: { ...q.glyphRecords, [versionKey(g.id, g.version)]: { ...rec, best } },
+    };
+  };
+
+  const revertFrom = (p: Profile): Profile | null => {
+    const g = pick(rng, p.glyphs);
+    const old = p.glyphArchive.filter((a) => a.id === g.id);
+    if (old.length === 0) return null;
+    const w = where('revert');
+    const target = pick(rng, old);
+    const q = revertGlyph(p, g.id, target.version);
+    if (q.glyphs.find((x) => x.id === g.id)?.version !== target.version) {
+      fail('revert did not swap', w);
+    }
+    if (JSON.stringify(q.glyphRecords) !== JSON.stringify(p.glyphRecords)) {
+      fail('revert touched records', w);
+    }
+    if (q.glyphs.length !== p.glyphs.length || q.glyphArchive.length !== p.glyphArchive.length) {
+      fail('revert changed version counts', w);
+    }
+    expectThrow('revert to current', w, () => revertGlyph(q, g.id, target.version));
+    return q;
+  };
+
+  const ops: Record<string, () => Profile | null> = {
+    revise: () => {
+      const g = pick(rng, p.glyphs);
+      const inside = randomValidInside(insideOf(g), rng, owned(p));
+      if (!inside) return null;
+      const w = where('revise');
+      const q = reviseGlyph(p, g.id, inside);
+      const cur = q.glyphs.find((x) => x.id === g.id);
+      const top = Math.max(
+        g.version,
+        ...p.glyphArchive.filter((a) => a.id === g.id).map((a) => a.version),
+      );
+      if (cur?.version !== top + 1) fail('revision is not max + 1', w);
+      if (recordOf(q, g.id, top + 1).casts !== 0) fail('a new version starts with a record', w);
+      if (q.glyphArchive.length !== p.glyphArchive.length + 1) fail('old not archived', w);
+      if (
+        JSON.stringify(recordOf(q, g.id, g.version)) !==
+        JSON.stringify(recordOf(p, g.id, g.version))
+      ) {
+        fail('the old version lost its record', w);
+      }
+      if ((cur?.params.length ?? 0) > TUNING.paramSlots) fail('kept a second open cell (M20)', w);
+      if (glyphLibrary(q)[g.id]?.extraExit !== null) fail('fresh version has an extra exit', w);
+      const broken: GlyphInside = { ...inside, cells: inside.cells.slice(0, 2) };
+      expectThrow('revise with 2 cells', w, () => reviseGlyph(p, g.id, broken));
+      return q;
+    },
+    revert: () => {
+      // Nothing archived yet: revise first (the player has to have a version to go back to).
+      const hasOld = p.glyphs.some((x) => p.glyphArchive.some((a) => a.id === x.id));
+      return revertFrom(hasOld ? p : (ops.revise?.() ?? p));
+    },
+    exit: () => {
+      const w = where('exit');
+      const g = pick(rng, p.glyphs);
+      // Half the time earn silver first (as a trip would), so the side picker is reachable.
+      const base = rng.next() < 0.5 ? withBest(p, g, 0, rng.int(2, 3) as TierLevel) : p;
+      const silver = rewardsOf(recordOf(base, g.id, g.version)).extraExit;
+      const sides = extraExitSides(g);
+      if (silver && sides.length > 0) {
+        // Prefer a side whose outer cell holds a rune, so the extra branch has somewhere to go.
+        const lit = sides.filter((d) =>
+          MEMBER_IDS.some((m) =>
+            latticeOf(base, m).runes.some((r) => {
+              if (!isGlyph(r) || r.glyph !== g.id) return false;
+              const out = rotateDirLocal(d, r.dir);
+              const to = {
+                x: r.at.x + (out === 'right' ? 1 : out === 'left' ? -1 : 0),
+                y: r.at.y + (out === 'down' ? 1 : out === 'up' ? -1 : 0),
+              };
+              return latticeOf(base, m).runes.some((o) => sameTile(o.at, to));
+            }),
+          ),
+        );
+        const side =
+          rng.next() < 0.1 ? null : pick(rng, lit.length > 0 && rng.next() < 0.8 ? lit : sides);
+        const q = setExtraExit(base, g.id, side);
+        if (q.glyphs.find((x) => x.id === g.id)?.extraExit !== side) fail('exit not set', w);
+        return q;
+      }
+      if (!silver) expectThrow('extra exit below silver', w, () => setExtraExit(base, g.id, 'up'));
+      return null;
+    },
+    open: () => {
+      const g = pick(rng, p.glyphs);
+      const w = where('open');
+      const allowance = rewardsOf(recordOf(p, g.id, g.version)).params;
+      const cands = g.cells.filter((c) => canBeOpen(c.rune)).map((c) => key(c.at));
+      const chosen = shuffle(rng, cands).slice(0, Math.min(rng.int(0, allowance), cands.length));
+      const q = setOpenCells(p, g.id, chosen);
+      const got = q.glyphs.find((x) => x.id === g.id)?.params ?? [];
+      if (JSON.stringify([...got].sort()) !== JSON.stringify([...chosen].sort())) {
+        fail('open cells not set', w);
+      }
+      if (cands.length > allowance) {
+        expectThrow('too many open cells', w, () =>
+          setOpenCells(p, g.id, cands.slice(0, allowance + 1)),
+        );
+      }
+      const fixed = g.cells.find((c) => !canBeOpen(c.rune));
+      if (fixed)
+        expectThrow('open a Source or Aura', w, () => setOpenCells(p, g.id, [key(fixed.at)]));
+      return q;
+    },
+    args: () => {
+      const sockets = MEMBER_IDS.flatMap((m) =>
+        latticeOf(p, m)
+          .runes.filter(isGlyph)
+          .map((r) => ({ m, r })),
+      );
+      if (sockets.length === 0) return null;
+      const { m, r } = pick(rng, sockets);
+      let base = p;
+      let def = p.glyphs.find((g) => g.id === r.glyph);
+      if (!def) return null;
+      if (def.params.length === 0 && rng.next() < 0.7) {
+        // The player opens a cell first (free), then fills it at placement.
+        const cand = def.cells.filter((c) => canBeOpen(c.rune));
+        if (cand.length > 0) {
+          base = setOpenCells(p, def.id, [key(pick(rng, cand).at)]);
+          def = base.glyphs.find((g) => g.id === r.glyph) ?? def;
+        }
+      }
+      const args: Record<string, GlyphArg> = {};
+      // Open cells mostly; sometimes any cell (a stale key must be ignored, never crash).
+      for (const k of rng.next() < 0.7 ? def.params : def.cells.map((c) => key(c.at))) {
+        if (rng.next() < 0.2) continue;
+        const a = randomArg(rng, def, k, owned(p));
+        if (a) args[k] = a;
+      }
+      return withArgs(base, m, r.at, args);
+    },
+    force: () => {
+      // Silver or gold without the casts: exercises the reward paths (best tiers only rise).
+      const g = pick(rng, p.glyphs);
+      return withBest(p, g, rng.int(0, 3) as TierLevel, rng.int(0, 3) as TierLevel);
+    },
+    exitSides: () => {
+      const g = pick(rng, p.glyphs);
+      const w = where('exitSides');
+      const silver = withBest(p, g, 0, 2);
+      const taken = g.exits.find((e) => e.dir !== 'left');
+      if (taken)
+        expectThrow('extra exit on a taken side', w, () => setExtraExit(silver, g.id, taken.dir));
+      expectThrow('extra exit left', w, () => setExtraExit(silver, g.id, 'left'));
+      return null;
+    },
+  };
+  const names = [
+    ...['revise', 'revise', 'revert', 'revert', 'open', 'args', 'args', 'exit', 'exit', 'force'],
+    ...['force', 'exitSides'],
+  ];
+
+  for (step = 0; step < MASTERY_STEPS; step++) {
+    // Between trips: one to three seeded edits.
+    for (let i = rng.int(1, 3); i > 0; i--) {
+      const name = pick(rng, names);
+      let q: Profile | null = null;
+      try {
+        q = ops[name]?.() ?? null;
+      } catch (err) {
+        fail(`${name} threw on a valid request`, where(name), String(err));
+      }
+      if (!q) continue;
+      masteryStats.ops.set(name, (masteryStats.ops.get(name) ?? 0) + 1);
+      const w = where(name);
+      checkRecords(p, q, w);
+      checkProfile(q, w);
+      // A change that leaves ink or ownership problems is reported (checked above), not played.
+      if (Object.keys(validateLoadout(q)).length > 0) {
+        masteryStats.rejected += 1;
+        continue;
+      }
+      if (name === 'args' || name === 'open') identity(q, w);
+      p = q;
+    }
+
+    // The trip: up to three fights with the Glyphs as they stand; closeBattle writes the records.
+    let trip: Trip | null;
+    try {
+      trip = startTrip(p, seed * 100 + step);
+    } catch (err) {
+      fail('startTrip rejected a validated loadout', where('trip'), String(err));
+      continue;
+    }
+    trip = { ...trip, encounter: (seed + step) % ENCOUNTERS.length };
+    const bot: Bot = step % 2 === 0 ? 'random' : 'greedy';
+    for (let fights = 0; trip && fights < 3; fights++) {
+      if (trip.status !== 'fight') break;
+      const label = `mastery/${seed}/${step}/${fights}`;
+      const res = playBattle(label, bot, beginEncounter(p, trip), rng);
+      if (res.outcome !== 'won' && res.outcome !== 'lost') break;
+      masteryStats.fights += 1;
+      const acted = res.battle.actions.reduce<Trip>((acc, a) => recordAction(acc, a), trip);
+      let closed: ReturnType<typeof closeBattle>;
+      try {
+        closed = closeBattle(p, acted, res.battle.state, res.battle.events);
+      } catch (err) {
+        fail('closeBattle threw', label, String(err));
+        break;
+      }
+      checkRecords(p, closed.profile, label);
+      for (const g of closed.profile.glyphs) {
+        const was = recordOf(p, g.id, g.version).casts;
+        masteryStats.castsRecorded += recordOf(closed.profile, g.id, g.version).casts - was;
+      }
+      p = closed.profile;
+      trip = closed.trip;
+      if (trip?.status === 'looting') {
+        trip = pickLoot(
+          trip,
+          Math.max(
+            0,
+            trip.offers.findIndex((o) => o.kind !== 'doorway'),
+          ),
+        );
+      }
+      if (trip?.status === 'crossroads' && trip.encounter + 1 < ENCOUNTERS.length) {
+        trip = pushOn(trip);
+      } else if (trip?.status !== 'fight') break;
+    }
+  }
+}
+
+test('fuzz: Glyph mastery (revise, revert, open cells, args, extra exits) between trips', () => {
+  const t0 = Date.now();
+  const seen = new Set(issues.keys());
+  const bad: string[] = [];
+  let done = 0;
+  for (let seed = 1; done < MASTERY_SEEDS && seed < 60; seed++) {
+    const before = new Set(issues.keys());
+    const p = profileFor('random', seed);
+    // compileSome flags its own findings (shared with the first test); a flagged seed isn't ours to play.
+    const flagged = [...issues.keys()].filter((k) => !before.has(k));
+    for (const k of flagged) issues.delete(k);
+    if (flagged.length > 0) {
+      masteryStats.skippedSeeds.push(`${seed}: ${flagged.join('; ')}`);
+      continue;
+    }
+    if (p.glyphs.length === 0) continue;
+    done += 1;
+    masteryStats.profiles += 1;
+    runMastery(seed, p, bad);
+  }
+  const fresh = [...issues.keys()].filter((k) => !seen.has(k));
+  const ops = [...masteryStats.ops].map(([k, v]) => `${k} ${v}`).join(', ');
+  console.log(
+    `mastery fuzz: ${Date.now() - t0} ms, ${masteryStats.profiles} profiles, ops [${ops}], rejected ${masteryStats.rejected}, identity ${masteryStats.identityChecked}, exit ${masteryStats.exitChecked} (grew ${masteryStats.exitGrew}), fights ${masteryStats.fights}, casts recorded ${masteryStats.castsRecorded}, skipped seeds [${masteryStats.skippedSeeds.join(' | ')}]`,
+  );
+  expect(bad.join('\n'), bad.join('\n')).toBe('');
+  expect(fresh.join('; '), fresh.join('; ')).toBe('');
+  expect(masteryStats.profiles, 'profiles with Glyphs').toBeGreaterThan(0);
 });
