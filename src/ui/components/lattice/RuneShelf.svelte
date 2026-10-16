@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { RUNES } from '$data';
+  import { RUNES, TIER_MARKS } from '$data';
   import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -18,7 +18,7 @@
     onranking?: () => void;
   }
 
-  let { slots, tool, onselect, onreject, glyphs = [], erase = false }: Props = $props();
+  let { slots, tool, onselect, onreject, glyphs = [], erase = false, onranking }: Props = $props();
 
   // Unknown runes are the Codex's business; the shelf shows what can be inscribed.
   const known = $derived(slots.filter((s) => s.known));
@@ -94,6 +94,13 @@
 {/if}
 
 {#if tab === 'glyphs'}
+  {#if onranking}
+    <div class="ranked-row">
+      <button type="button" class="ranked" data-testid="ranked" onclick={() => onranking()}>
+        Ranked ›
+      </button>
+    </div>
+  {/if}
   <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
   <div class="copies" data-testid="shelf" role="group" aria-label="Fair copies">
     {@render eraser()}
@@ -122,6 +129,10 @@
           <small class:poor={slot.usable && !slot.affordable}>
             {slot.glyph.kind} · {slot.cost} ink · {slot.runesFree ? 'runes free' : 'runes in use'}
           </small>
+        </span>
+        <span class="badges" aria-hidden="true">
+          <span class="marks">{TIER_MARKS[slot.tiers.economy]}{TIER_MARKS[slot.tiers.reliability]}</span>
+          {#if slot.open > 0}<span class="open">( )</span>{/if}
         </span>
       </button>
     {/each}
@@ -203,6 +214,32 @@
   }
   .tab small {
     font: 11px var(--mono);
+  }
+  .ranked-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .ranked {
+    min-height: 24px;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    color: var(--parchment);
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .badges {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-left: auto;
+    font: 11px/1.15 var(--mono);
+    color: var(--ink);
+  }
+  .badges .open {
+    color: var(--ink-soft);
   }
   .copies {
     display: grid;
