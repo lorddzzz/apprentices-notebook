@@ -7,6 +7,7 @@
 | Feature | Doc | Status | Summary in DESIGN.md | Plan |
 |---|---|---|---|---|
 | Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Building**: Bench + Compile shipped 2026-10-13; stages C, D, G shipped 2026-10-16 | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md), [glyph-mastery-plan.md](../plans/glyph-mastery-plan.md) |
+| The city map, hearing, gates, and the oil-lit canals | [city-and-districts.md](city-and-districts.md) | **Decided** 2026-10-16 | §6.7 | — (BL-22, BL-21) |
 
 ## How a feature doc works
 

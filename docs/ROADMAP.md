@@ -61,13 +61,13 @@ A gold-Reliability / silver-Economy Glyph becomes a **permanent** atom (3 vellum
 `design` `S` · area: bench, world · status: needs-design · needs: —
 Only the pairs ≋ϟ and ≋⟳ are free; the 7 later recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap, plus the Lance variant) don't fit in 8 aspects. Decide: add a ninth aspect (the feature doc floated *Light*, *Sound*), retag, or cut recipes. **Blocks BL-21's recipes.**
 
-#### BL-21 · Second district
-`feature` `XL` · area: world, run, combat, bench · status: blocked · needs: BL-20, a design round (which district and what it feels like)
-Candidates from the setting: oil-lit canals, the ink-makers' quarter, the bathhouses, brass bridges, rooftops, a guild archive. Each district favours a material, has its own solvents, 2–3 new enemy types, 3 layouts per depth, a heart fight and a weird/uncanny tone. Reuse the Seam deepening scaffolding (layout variants, place names, trip page). Breaks into: design round → enemies and layouts → loot tables and solvents → recipes (BL-24).
+#### BL-21 · Second district: the oil-lit canals
+`feature` `XL` · area: world, run, combat · status: needs-design · needs: BL-22 (the map and gates)
+Decided 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §5: Oil lean, the Lamplighters, **the current** (water lanes carry floating things one tile downstream each round), **landings** (return only after rooms 1, 3, 5), hear by fire along 3+ oil in the Seam, enter by the threshold room *the canal lock*. Still open (a design round): 2–3 enemy types, 3 layouts per depth, the heart fight, the lock's board, water and Spark. Reuses the current loot and runes; solvents and recipes stay in BL-24, aspects in BL-20, both pushed until the rune-content rework.
 
-#### BL-22 · City map with `???` districts
-`feature` `M` · area: world, study · status: blocked · needs: BL-21 (can start with the Seam plus locked doors)
-The door becomes a map of districts; locked districts show as `???` with an owner's hint (pillar 4). Unlock conditions in data. DESIGN §6.7.
+#### BL-22 · City map, hearing and gates
+`feature` `L` · area: world, study, run · status: ready · needs: —
+Decided 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §1–§3: the owner's sketch map behind the door; district states unheard → heard → open → heart cleared; hearing by discovery or torn page (the owner draws it in) and by rumours after a trip; one gate per district in data: discovery, threshold room (a fixed goal board, free and retryable, played from the map) or key (deep loot offer, lost on a wipe). Can start with the Seam alone, then plug in the canals. Needs a plan.
 
 #### BL-24 · Recipes for the new solvents
 `content` `M` · area: bench · status: blocked · needs: BL-20, BL-21
@@ -183,7 +183,7 @@ Short list of decisions with no owner yet. Each links to the item that would set
 
 1. How should a party with no charges left be able to finish a fight? → BL-02 (parked)
 2. Ninth aspect, retag, or cut recipes? → BL-20
-3. Which district comes second, and what is its material and tone? → BL-21
+3. ~~Which district comes second?~~ Decided 2026-10-16: the oil-lit canals ([city-and-districts.md](design/city-and-districts.md)). Their enemies and rooms → BL-21
 4. Max party size, and does a third member come before a second district? → BL-43
 5. Is Fire an element or a state; does terrain decay? → BL-55
 6. What does the game sound like, if anything? → BL-42
