@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { ENCOUNTERS } from '$data';
-  import { variantFor } from '$engine';
+  import { DISTRICTS, encountersOf } from '$data';
+  import { canReturn, nextLanding, variantFor } from '$engine';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
   import Button from '../components/common/Button.svelte';
@@ -8,18 +8,22 @@
   import TripStatus from '../components/trip/TripStatus.svelte';
 
   const trip = $derived(game.save.trip);
+  const rooms = $derived(trip ? encountersOf(trip.district) : []);
   const next = $derived(trip ? trip.encounter + 1 : 0);
   const place = $derived(
     trip
-      ? (ENCOUNTERS[next]?.variants[variantFor(trip, next)]?.name ?? 'The Seam')
+      ? (rooms[next]?.variants[variantFor(trip, next)]?.name ?? DISTRICTS[trip.district].name)
       : 'The Seam',
   );
+  // Landings (K-4): a non-landing room has no Return home, and says where the next one is.
+  const landable = $derived(trip ? canReturn(trip) : true);
+  const afterRoom = $derived(trip && !landable ? nextLanding(trip) : null);
 </script>
 
 {#if trip}
   <section class="crossroads" data-testid="crossroads">
     <header>
-      <h1>The Seam goes on.</h1>
+      <h1>{trip.district === 'seam' ? 'The Seam goes on.' : 'Deeper still.'}</h1>
       <p>You are deeper than the lamplight reaches. Look at what you have left.</p>
     </header>
 
@@ -35,11 +39,22 @@
     <div class="choices">
       <Button onclick={() => game.pushOn()} testid="push">
         <span class="big">Push on</span>
-        <span class="sub">Deeper: {place} (depth {next + 1} of {ENCOUNTERS.length})</span>
+        <span class="sub">Deeper: {place} (depth {next + 1} of {rooms.length})</span>
       </Button>
-      <Button variant="quiet" onclick={() => game.returnHome()} testid="return">
+      <Button
+        variant="quiet"
+        disabled={!landable}
+        onclick={() => game.returnHome()}
+        testid="return"
+      >
         <span class="big">Return home</span>
-        <span class="sub">keep {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
+        {#if landable}
+          <span class="sub">keep {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
+        {:else}
+          <span class="sub" data-testid="no-landing"
+            >{afterRoom ? `No landing here. The next is after ${afterRoom}` : 'No landing here.'}</span
+          >
+        {/if}
       </Button>
       <a class="link" href={href('codex')}>Read the notebook</a>
     </div>

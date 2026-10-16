@@ -1,6 +1,15 @@
 import { describe, expect, test } from 'vitest';
-import type { Placed, Spell, SpellTally, TierUp } from '$engine';
-import { deadCellNotes, freshDeadCells, spellLine, tierUpLine } from '../../src/app/tripviews';
+import { DISTRICTS } from '$data';
+import type { Placed, Spell, SpellTally, TierUp, TripRecap } from '$engine';
+import {
+  deadCellNotes,
+  freshDeadCells,
+  heardHighlights,
+  heardVoice,
+  rumourLine,
+  spellLine,
+  tierUpLine,
+} from '../../src/app/tripviews';
 
 const up = (metric: TierUp['metric'], tier: TierUp['tier']): TierUp => ({
   glyph: 'g1',
@@ -66,5 +75,75 @@ describe('dead cells', () => {
     );
     const placed: Placed[] = [{ at: { x: 2, y: 1 }, rune: 'fork' }];
     expect(deadCellNotes(tally(), [cur], placed)).toEqual(['the Fork at C2 never fired']);
+  });
+});
+
+const recapWith = (heard: TripRecap['stats']['heard']): TripRecap => ({
+  district: 'canals',
+  outcome: 'returned',
+  encounter: 4,
+  place: 'The drowned arcade',
+  stats: {
+    fights: 5,
+    spells: [],
+    biggestChain: null,
+    discoveries: [],
+    proofCasts: 0,
+    elegance: [],
+    heard,
+  },
+});
+
+// A fixture table where the canals are heard by rumour only (no owner condition).
+const rumourTable = {
+  ...DISTRICTS,
+  canals: { ...DISTRICTS.canals, hear: [{ kind: 'trips', atLeast: 2, voice: 'rumour' }] },
+} as const;
+
+describe('heard on the trip page', () => {
+  test('an owner-voiced district is drawn on the map with its line', () => {
+    expect(heardVoice('canals')).toBe('owner');
+    expect(heardHighlights(recapWith(['canals']))).toEqual([
+      {
+        kind: 'heard',
+        title: 'A new page of the map',
+        text: `The owner drew The oil-lit canals on the map: “${DISTRICTS.canals.line}”`,
+      },
+    ]);
+  });
+
+  test('a rumour-voiced district reads as a rumour', () => {
+    expect(heardVoice('canals', rumourTable)).toBe('rumour');
+    expect(heardHighlights(recapWith(['canals']), rumourTable)[0]?.text).toBe(
+      'A rumour of The oil-lit canals',
+    );
+  });
+
+  test('one highlight per heard district, in order; none when nothing was heard', () => {
+    expect(heardHighlights(recapWith([]))).toEqual([]);
+    expect(heardHighlights(recapWith(['canals', 'seam']), rumourTable).map((h) => h.text)).toEqual([
+      'A rumour of The oil-lit canals',
+      'A rumour of The Seam',
+    ]);
+  });
+});
+
+describe('the rumour line at the Study window', () => {
+  test('a rumour-heard district gives one line', () => {
+    expect(rumourLine(recapWith(['canals']), rumourTable)).toBe('A rumour of The oil-lit canals');
+  });
+
+  test('an owner-heard district, no trip, or no heard list gives nothing', () => {
+    expect(rumourLine(recapWith(['canals']))).toBeNull();
+    expect(rumourLine(recapWith([]), rumourTable)).toBeNull();
+    expect(rumourLine(null)).toBeNull();
+  });
+
+  test('only the first rumour is shown', () => {
+    const table = {
+      ...rumourTable,
+      seam: { ...DISTRICTS.seam, hear: [{ kind: 'trips', atLeast: 1, voice: 'rumour' }] },
+    } as const;
+    expect(rumourLine(recapWith(['seam', 'canals']), table)).toBe('A rumour of The Seam');
   });
 });

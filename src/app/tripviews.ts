@@ -1,4 +1,11 @@
-import { RUNES, TIER_NAMES, TIER_UP_LINES } from '$data';
+import {
+  DISTRICTS,
+  type DistrictDef,
+  type DistrictId,
+  RUNES,
+  TIER_NAMES,
+  TIER_UP_LINES,
+} from '$data';
 import {
   type CellKey,
   key as cellKey,
@@ -8,6 +15,7 @@ import {
   type Spell,
   type SpellTally,
   type TierUp,
+  type TripRecap,
 } from '$engine';
 
 /** "Cashing In v2 reached silver Reliability. Pick its extra exit at the desk" (M16). */
@@ -69,4 +77,44 @@ export function deadCellNotes(
     const what = p && !isGlyph(p) ? RUNES[p.rune].name : 'rune';
     return `the ${what} at ${label({ x, y })} never fired`;
   });
+}
+
+/**
+ * A heard district's voice on the trip page (K-20). The recap keeps only the district id, so the
+ * voice comes from its hear list: a district with any owner condition was drawn by the owner.
+ */
+export function heardVoice(id: DistrictId, table: DistrictTable = DISTRICTS): 'owner' | 'rumour' {
+  return table[id].hear.some((c) => c.voice === 'owner') ? 'owner' : 'rumour';
+}
+
+type DistrictTable = Readonly<Record<DistrictId, DistrictDef>>;
+
+export interface HeardHighlight {
+  kind: 'heard';
+  title: string;
+  text: string;
+}
+
+/** One highlight per district heard on the trip: "The owner drew … on the map" or "A rumour of …" (K-20). */
+export function heardHighlights(
+  recap: TripRecap,
+  table: DistrictTable = DISTRICTS,
+): HeardHighlight[] {
+  return recap.stats.heard.map((id) => {
+    const d = table[id];
+    const text =
+      heardVoice(id, table) === 'owner'
+        ? `The owner drew ${d.name} on the map: “${d.line}”`
+        : `A rumour of ${d.name}`;
+    return { kind: 'heard', title: 'A new page of the map', text };
+  });
+}
+
+/** The one rumour line at the Study window: the first rumour-voiced district heard on the last trip. */
+export function rumourLine(
+  recap: TripRecap | null,
+  table: DistrictTable = DISTRICTS,
+): string | null {
+  const id = recap?.stats.heard.find((d) => heardVoice(d, table) === 'rumour');
+  return id ? `A rumour of ${table[id].name}` : null;
 }

@@ -16,7 +16,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
 | U1 | sonnet | M | pending | | | needs E1, E2 |
 | U2 | sonnet | M | pending | | | needs E3 |
-| U3 | haiku | S | running | | | started 21:38 |
+| U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
 | D1 | haiku | S | pending | | | needs C1, C2 |
@@ -66,6 +66,9 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - E2: the moth flies to the nearest fire (Manhattan) and may land on it, then burns and bursts; without fire it chases like a rat. Accepted.
 - E2: a burst lights the oil on its tile, then 1 ("Burst") to each orthogonal neighbour in reading order. Accepted.
 - E2: snuff clears fire, oil and stain only on tiles that burn. Accepted.
+- U3: the heard voice is inferred from the district's hear list (any owner condition = owner). Accepted.
+- U3: canal Crossroads heading "Deeper still."; trip page "Home from {district}." off the Seam. Accepted (D1 may reword).
+- U3: rumour line at the top of the Study window, small italic mono; both voices' highlights titled "A new page of the map". Accepted.
 
 ## Decisions and fixes made during the build
 - E2 merge fix (me): `resolveSpecial(ctx, e, intent)` now takes the telegraphed intent, so a summon lands at the lamp that glowed, not one re-derived at resolution. Contract change.
@@ -76,4 +79,6 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - W0: the Study door now goes to `#/map`; the stub map lists open districts with "Set out". The old "Set out?" sheet stays in Study.svelte, unreachable, for U2 to move.
 
 ## Follow-ups and rough edges
+- Preview ports 5190/5191 are held by dev servers running from the main checkout (they serve main, not a worktree). UI agents must start vite from their own worktree on their assigned port (`pnpm dev --port 519x --strictPort`) and stop it after.
+- StudyScene: full-file svelte-autofixer pass still owed (U3 checked only its change).
 - A Bolt stopped by a grate or gate still logs "stopped by the brass plate" (`stopped.by` is typed 'steam' | 'brass plate'). Widen the type and the wording in W4 or a fix task.

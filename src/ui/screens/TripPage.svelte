@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { MEMBERS } from '$data';
+  import { DISTRICTS, MEMBERS } from '$data';
   import { compiledFor } from '$engine';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
-  import { deadCellNotes, tierUpLine } from '../../app/tripviews';
+  import { deadCellNotes, heardHighlights, tierUpLine } from '../../app/tripviews';
   import Button from '../components/common/Button.svelte';
 
   const recap = $derived(game.save.lastTrip);
-  const highlights = $derived(recap ? tripHighlights(recap, game.profile) : []);
+  const highlights = $derived(
+    recap ? [...tripHighlights(recap, game.profile), ...heardHighlights(recap)] : [],
+  );
   const spells = $derived(recap?.stats.spells ?? []);
   const tierUps = $derived(recap?.stats.elegance ?? []);
   // Dead-cell notes show only while each spell is still wired as it was fought (M15).
@@ -21,7 +23,13 @@
 {#if recap}
   <section class="page" data-testid="trip-page">
     <header>
-      <h1>{recap.outcome === 'returned' ? 'Home from the Seam.' : 'The trip, as it went.'}</h1>
+      <h1>
+        {recap.outcome === 'returned'
+          ? recap.district === 'seam'
+            ? 'Home from the Seam.'
+            : `Home from ${DISTRICTS[recap.district].name}.`
+          : 'The trip, as it went.'}
+      </h1>
       <p>
         Deepest: {recap.place} · {recap.stats.fights}
         {recap.stats.fights === 1 ? 'fight' : 'fights'} fought
@@ -41,7 +49,7 @@
       {/if}
       {#if highlights.length}
         <ul class="highlights" data-testid="highlights">
-          {#each highlights as h (h.kind)}
+          {#each highlights as h (`${h.kind}|${h.title}|${h.text}`)}
             <li class="note {h.kind}">
               <h2>{h.title}</h2>
               <p>{h.text}</p>
