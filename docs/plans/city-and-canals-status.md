@@ -2,8 +2,8 @@
 
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building
-**Next:** after the 22:10 reset: start U2 (map) and U1 (board visuals), then C2 (lock). Then milestone A.
+**State:** holding for reset (resumes ~22:11 UTC)
+**Next:** after the 22:10 reset: check C2 (running or cut off: review its branch, re-spawn with "continue from commit X"); start U2 (map) and U1 (board visuals); then milestone A.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -13,7 +13,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | E2 | sonnet | L | merged | (E2 merge commit) | ~8% | 18 scenario tests; edited turn.ts (burst intent), approved |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | merged | (C1 merge commit) | ~8% | sim: rooms 1–3 100%, room 4 96%, heart 39% (34/55/31 by variant), 74/200 mother kills; sim adds ~20 s to the gate |
-| C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
+| C2 | sonnet | S | running | | | started 21:57 at 96% (may be cut off; resume from its last commit) |
 | U1 | sonnet | M | pending | | | needs E1, E2 |
 | U2 | sonnet | M | pending | | | needs E3 |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
@@ -31,6 +31,8 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | 21:31 | 73 | 39m | 23 | normal→narrow | W0 merged (~12%); start E1, E2, E3 anyway (reset before they finish) |
 | 21:37 | 84 | 33m | 24 | narrow→wrap | E3 merged; E1, E2 running; start U3 (smallest unblocked) |
 | 21:40 | 87 | 30m | 25 | wrap | E1, E2 merged; wave 1 done; start C1 (critical path) |
+| 21:46 | 92 | 26m | 25 | wrap | U3 merged |
+| 21:57 | 96 | 13m | 26 | hold | C1 merged; start C2 (smallest unblocked) per pacing rule |
 
 ## W0 contract notes (for the agents)
 - `Intent = AttackIntent | SpecialIntent`; every reader narrows on `kind === 'attack'`. `telegraph` events carry any `Intent`; `attack` events an `AttackIntent`.
