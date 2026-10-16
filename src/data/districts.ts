@@ -282,13 +282,17 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
       kind: 'threshold',
       room: {
         name: 'The canal lock',
-        // W0 placeholder; C2 draws the real board and proves it.
+        // The quay is two rows; plates wall it off and the grate stops a Bolt down the lane (K-10).
+        // Even a Splash (range 3, radius 1) from the quay ends above the lane's last two tiles, so
+        // only a slick the current has carried down can reach the gate.
         board: board([
           '. . wv . D .',
-          '. . wv . . .',
           '. . wv . S .',
-          '= = wv = = =',
-          '. = wvh = . .',
+          '= = wvh = = =',
+          '. = wv = . .',
+          '. = wv = . .',
+          '. = wv = . .',
+          '. = wv = . .',
           '. = g = . .',
         ]),
         goal: { happens: 'gateBurns' },

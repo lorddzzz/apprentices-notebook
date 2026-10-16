@@ -13,7 +13,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | E2 | sonnet | L | merged | (E2 merge commit) | ~8% | 18 scenario tests; edited turn.ts (burst intent), approved |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | merged | (C1 merge commit) | ~8% | sim: rooms 1–3 100%, room 4 96%, heart 39% (34/55/31 by variant), 74/200 mother kills; sim adds ~20 s to the gate |
-| C2 | sonnet | S | rework running | worktree-agent-a6186d8b13a8e47a2 @ eb5bad3 | ~5% | Splash leak: send back (see Next) |
+| C2 | sonnet | S | merged | (C2 merge commit) | ~7% | 8-row lock (quay rows 0–1, grate row 2, lane 3–6, gate 7); 3 drift solutions; brute force on 3 lattice sets incl. Splash finds no one-turn win |
 | U1 | sonnet | M | running | | | started 22:12, vite on 5195 |
 | U2 | sonnet | M | running | | | started 22:12, vite on 5194 |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
@@ -76,8 +76,11 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - C1: sim loadout = start collection + 2 oil, 1 spark, 2 splash wired into Splash/Oil/Spark chains (the plan's "Seam average deep-trip collection" was vague). Accepted.
 - C1: rooms lighter than the design table (room 3 no rat, room 4 one moth, heart one moth) to keep charges for the heart. Accepted for now, *tune by playing*; ask the player in the playtest.
 - C1: the start loadout alone can't clear room 3; the hearing gate (light 3 oil tiles) means the player already has an oil-spark chain. Accepted.
+- C2: the lock is a layout fix only (no rule beyond K-10/K-11): a Splash footprint can't reach beside the gate from the quay. Accepted.
+- C2: fire lasts 2 rounds, so lighting upstream and drifting doesn't reach the gate; the solutions build a connected slick down the lane over several turns and light it at the grate (solution 1 spends all 5 Bolt charges). Accepted; note for the design doc ("light then let it drift" is not a solution on this board). *Tune by playing*.
 
 ## Decisions and fixes made during the build
+- C2 review: the first lock (6 rows) leaked to Splash (range 3, radius 1) in one turn; sent back with an 8-row layout.
 - E2 merge fix (me): `resolveSpecial(ctx, e, intent)` now takes the telegraphed intent, so a summon lands at the lamp that glowed, not one re-derived at resolution. Contract change.
 - E2 contract change: `turn.ts` resolves a `burst` attack intent with `burstAt` (the moth dies bursting) instead of a plain hit.
 - E1 contract change: `queries.ts` gains `blocksUnits(tile) = plate || gate || grate`, used by `isOpen` and `travel`, so walks, pushes, slides and projectiles stop at gates and grates.
