@@ -3,7 +3,7 @@
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** C2 (rework: Splash-proof lock), U2 and U1 running since 22:12. Then milestone A (verify a canal trip from the map), then U4, D1, F1.
+**Next:** U1, U2, D1, F1 running. Merge as they land; after U1+U2: milestone A (verify a canal trip from the map), then U4 (threshold screen).
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -19,8 +19,8 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
-| D1 | haiku | S | pending | | | needs C1, C2 |
-| F1 | sonnet | M | pending | | | needs E1–E3, C1 |
+| D1 | haiku | S | running | | | started 22:20 |
+| F1 | sonnet | M | running | | | started 22:20 |
 | W4 | opus | M | pending | | | |
 
 ## Usage log
