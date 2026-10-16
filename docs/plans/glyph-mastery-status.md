@@ -20,7 +20,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U3 | sonnet | L | merged | e81523c | ~5% | browser-checked light only |
 | U6 | sonnet | M | merged | c879b0b | ~6% total | draft icons not browser-checked; autofixer skipped on LatticeGrid/OfferCard/LootChips (class/CSS/icon only) |
 | U4 | sonnet | L | pending | | | |
-| U5 | sonnet | L | pending | | | |
+| U5 | sonnet | L | merged | (after I1) | ~6% | browser-checked the Lamplighter and Collection fixes |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
 | F1 | sonnet | M | merged | (after 57e28fa) | ~5% | started at 88% per the player's pacing call; finished inside the window |
 | I1 | sonnet | S | merged | (after c879b0b) | ~3% | root cause in glyph.ts `disconnected()`; fuzz skip removed |
@@ -100,6 +100,8 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - U6: `tierUpLine` adds the extra-exit sentence at Reliability silver and the second-parameter sentence at gold, per `rewardsOf`. Accepted
 - U6: draft icon = a dashed page in OfferCard, ❦ in LootChips; ledger dead-cell notes and the SpellList line show only while the spell is wired as fought. Accepted
 - I1: a tail the cluster's own spell loses counts as disconnected even if another spell still reaches it (the Fair Copy sheet warns; tidy tries to slide it). No new refusal; compile can still collapse with a warned, unslidable tail, as before. Accepted
+- U5: the desk is one route with list and detail held in state; mended rows show note + reaction; ticks ○ → ✓/✗; before a run never-reached runes fade, after a run lit = fired; a run goes stale on edit or reset. Accepted
+- U5: "Copy into my notebook" only on a pass, disabled while any insideIssue remains ("Tidy the runes it never reaches"); "Start over" only when the page differs, with "Put back the owner's page?"; a failing run says "Not yet. Look at what fired and what didn't."; the editor's save reads "Keep"; a mended draft is read-only. Accepted
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
