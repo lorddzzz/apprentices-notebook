@@ -22,7 +22,7 @@ interface Candidate {
   path: Coord[];
 }
 
-function candidatesOf(s: BattleState, e: EnemyUnit, move: boolean): Candidate[] {
+export function candidatesOf(s: BattleState, e: EnemyUnit, move: boolean): Candidate[] {
   const stay: Candidate = { at: e.pos, path: [] };
   if (!move) return [stay];
   const walks = [...reachable(s, e, ENEMIES[e.def].move).values()].map((r) => ({
@@ -36,7 +36,7 @@ function candidatesOf(s: BattleState, e: EnemyUnit, move: boolean): Candidate[] 
 const MEMBER_RANK = new Map(MEMBER_IDS.map((id, i) => [id, i]));
 
 /** Nearest living member by walking distance; ties go to the earlier party member. */
-function nearestMember(s: BattleState, e: EnemyUnit): MemberUnit | null {
+export function nearestMember(s: BattleState, e: EnemyUnit): MemberUnit | null {
   const living = members(s)
     .filter(isAlive)
     .sort((a, b) => (MEMBER_RANK.get(a.def) ?? 0) - (MEMBER_RANK.get(b.def) ?? 0));
@@ -49,7 +49,7 @@ function nearestMember(s: BattleState, e: EnemyUnit): MemberUnit | null {
 }
 
 /** The candidate that gets closest to the target: (distance, path length, reading order). */
-function closestTo(s: BattleState, e: EnemyUnit, target: MemberUnit, cands: Candidate[]) {
+export function closestTo(s: BattleState, e: EnemyUnit, target: MemberUnit, cands: Candidate[]) {
   const field = distanceField(s, target.pos, e.id);
   const dist = (c: Candidate) => field.get(key(c.at)) ?? Number.POSITIVE_INFINITY;
   let best = cands[0];
@@ -92,9 +92,14 @@ function axisToward(from: Coord, to: Coord): Dir {
 }
 
 /** Bite direction: toward the target if it is adjacent, else the first adjacent member. */
-function adjacentDir(s: BattleState, e: EnemyUnit, target: MemberUnit): Dir | null {
+export function adjacentDir(s: BattleState, e: EnemyUnit, target: MemberUnit): Dir | null {
   const adjacent = DIRS.filter((d) => unitAt(s, step(e.pos, d))?.kind === 'member');
   return adjacent.find((d) => sameCoord(step(e.pos, d), target.pos)) ?? adjacent[0] ?? null;
+}
+
+/** The first direction (DIRS order) with a member beside the enemy. */
+export function firstAdjacentMember(s: BattleState, e: EnemyUnit): Dir | null {
+  return DIRS.find((d) => unitAt(s, step(e.pos, d))?.kind === 'member') ?? null;
 }
 
 function idle(ctx: Ctx, e: EnemyUnit): void {

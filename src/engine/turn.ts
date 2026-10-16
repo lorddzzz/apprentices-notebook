@@ -4,7 +4,7 @@ import { runEchoes } from './cast';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { burnGates, drift } from './current';
 import { burn, dealDamage } from './damage';
-import { resolveSpecial, snuffStep } from './foes';
+import { burstAt, resolveSpecial, snuffStep } from './foes';
 import { byReadingOrder, type Coord, neighbors4, step } from './grid';
 import { applyInk, heatNearFire, scaldInSteam } from './materials';
 import { enemies, isAlive, livingUnits, members, tileAt, travel, unitAt } from './queries';
@@ -20,10 +20,14 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   if (!intent) return;
   e.intent = null;
   if (intent.kind !== 'attack') {
-    resolveSpecial(ctx, e);
+    resolveSpecial(ctx, e, intent);
     return;
   }
   const att = ATTACKS[intent.attack];
+  if (att.id === 'burst') {
+    burstAt(ctx, e);
+    return;
+  }
   emit(ctx, { type: 'attack', unit: ref(e), intent: { ...intent }, verbs: att.verbs });
   if (att.kind === 'adjacent') {
     const victim = unitAt(ctx.s, step(e.pos, intent.dir));

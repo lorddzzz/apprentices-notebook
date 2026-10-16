@@ -10,7 +10,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 |---|---|---|---|---|---|---|
 | W0 | opus (me) | L | merged | (this commit) | ~9% | contracts, stubs, save v5, fixtures, Seam identity gate |
 | E1 | sonnet | M | merged | (E1 merge commit) | ~7% | 31 tests; added `blocksUnits` to queries.ts (contract change, approved) |
-| E2 | sonnet | L | running | | | started 21:32 |
+| E2 | sonnet | L | merged | (E2 merge commit) | ~8% | 18 scenario tests; edited turn.ts (burst intent), approved |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | pending | | | needs E1, E2 |
 | C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
@@ -57,8 +57,18 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - E1: a unit drifting onto an ink puddle or stain is not inked (no settle). Accepted for now; *tune by playing*.
 - E1: two units whose targets are each other's tiles both stay. Accepted.
 - E1: a unit may drift off water onto free land. Accepted (the design says units drift "if the tile is free").
+- E2: any moth death bursts (Bolt, bump, detonation too). Accepted (simplest; "a fuse").
+- E2: every lamp counts as lit; the mother calls at the lamp nearest a member (Manhattan, ties in reading order). Accepted.
+- E2: a summon is skipped at plan time (she waits) if the lamp is taken or 4 moths live; re-checked silently at resolution. Accepted.
+- E2: the flare is telegraphed every third round even with no moths on the board. Accepted.
+- E2: the eel swims any water without grate, gate, plate or unit, up to 4 tiles toward the water beside the nearest member, then lunges at an adjacent member. Accepted.
+- E2: the moth flies to the nearest fire (Manhattan) and may land on it, then burns and bursts; without fire it chases like a rat. Accepted.
+- E2: a burst lights the oil on its tile, then 1 ("Burst") to each orthogonal neighbour in reading order. Accepted.
+- E2: snuff clears fire, oil and stain only on tiles that burn. Accepted.
 
 ## Decisions and fixes made during the build
+- E2 merge fix (me): `resolveSpecial(ctx, e, intent)` now takes the telegraphed intent, so a summon lands at the lamp that glowed, not one re-derived at resolution. Contract change.
+- E2 contract change: `turn.ts` resolves a `burst` attack intent with `burstAt` (the moth dies bursting) instead of a plain hit.
 - E1 contract change: `queries.ts` gains `blocksUnits(tile) = plate || gate || grate`, used by `isOpen` and `travel`, so walks, pushes, slides and projectiles stop at gates and grates.
 - W0: the Seam's encounters stay in `encounters.ts`; `districts.ts` imports them (`DISTRICTS.seam.encounters === ENCOUNTERS`) instead of moving the code. Same effect, less churn.
 - W0: the lamp-mother's token is `M` (the design table didn't give one). Attack verbs: lunge, "swing its pole", burst.

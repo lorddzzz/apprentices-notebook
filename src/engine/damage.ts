@@ -1,5 +1,6 @@
-import { TUNING } from '$data';
+import { ENEMIES, TUNING } from '$data';
 import { type Ctx, emit, ref } from './ctx';
+import { burstAt } from './foes';
 import type { Unit } from './types';
 
 /** Fire's bonus on a branded unit (A2; belongs in TUNING once data/ is open to it). */
@@ -33,12 +34,13 @@ export function dealDamage(
   return true;
 }
 
-/** Dead units stay in `units` (hp 0) but leave the board. */
-export function kill(ctx: Ctx, unit: Unit): void {
+/** Dead units stay in `units` (hp 0) but leave the board. A dying moth bursts (K-16) unless `bursts` is false. */
+export function kill(ctx: Ctx, unit: Unit, bursts = true): void {
   emit(ctx, { type: 'died', unit: ref(unit) });
   ctx.cast?.kills.push({ unit: unit.id, at: { ...unit.pos } });
   if (unit.kind === 'enemy') unit.intent = null;
   else unit.undo = null;
+  if (bursts && unit.kind === 'enemy' && ENEMIES[unit.def].bursts) burstAt(ctx, unit);
 }
 
 /** The ink mark bursts: consumed first, so the detonation itself gets no inked bonus. */
