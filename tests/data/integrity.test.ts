@@ -118,7 +118,7 @@ test('codex has an entry per rune, interaction, recipe, idiom and aspect', () =>
   const expected =
     RUNE_IDS.length + INTERACTION_IDS.length + RECIPES.length + IDIOMS.length + ASPECT_IDS.length;
   expect(CODEX).toHaveLength(expected);
-  expect(CODEX).toHaveLength(55);
+  expect(CODEX).toHaveLength(56);
   for (const id of RUNE_IDS) expect(CODEX.some((c) => c.id === `rune:${id}`)).toBe(true);
   for (const id of INTERACTION_IDS)
     expect(CODEX.some((c) => c.id === `interaction:${id}`)).toBe(true);

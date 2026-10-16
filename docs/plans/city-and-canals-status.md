@@ -20,7 +20,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
 | D1 | haiku | S | merged | (D1 merge commit) | ~2% | lock note, barred, eel/snuffer blurbs, drift codex + hint, landing line |
-| F1 | sonnet | M | running | | | started 22:20 |
+| F1 | sonnet | M | merged | (F1 merge commit) | ~7% | canal trips + lock in the fuzz, city invariants; +4.4 s; found 4 engine bugs, fixed by me in the same commit |
 | W4 | opus | M | pending | | | |
 
 ## Usage log
@@ -83,8 +83,12 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - U1: the drift preview is a "Current" toggle (only on boards with water), not a press-and-hold; floats change in one step, units slide. Accepted; hold-to-peek is a follow-up if the toggle feels clumsy.
 - U1: `TileView.water/grate/gate/lamp` and `Overlay.marks/drift` are optional fields. Accepted.
 - U1: the oil hatch hides the water arrows; consider drawing arrows above oil. Follow-up.
+- F1: pushing an eel off water or the lamp-mother at all bumps (Proposal). Accepted: the eel bumps into "the bank", the mother into "its moorings".
+- F1: drift treats a plate on a lane as land (the float stays). Accepted.
 
 ## Decisions and fixes made during the build
+- F1 bugs fixed (me): (1) a shove or slide moved an eel onto land; (2) drift laid oil on a brass plate raised on a lane; (3) `'drift'` was missing from `INTERACTION_IDS`, so a canal win that discovered drift made the save unreadable (W0 miss); (4) a shove moved the anchored lamp-mother. Also: fliers (moths) never slide on oil (K-16). Repros un-skipped as regression tests in fuzz.test.ts.
+- Milestone A (me): trip headers said "Depth 1 / 4" on the canals (Seam room count); now per district. `encounterTitle` (unused) removed.
 - U2 merge (me): removed the old "Set out?" sheet from Study.svelte; the door now reads "Out into the city" / "The owner's map of the city".
 - C2 review: the first lock (6 rows) leaked to Splash (range 3, radius 1) in one turn; sent back with an 8-row layout.
 - E2 merge fix (me): `resolveSpecial(ctx, e, intent)` now takes the telegraphed intent, so a summon lands at the lamp that glowed, not one re-derived at resolution. Contract change.

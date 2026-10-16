@@ -5,7 +5,7 @@ import { who } from './events';
 import { type Coord, type Dir, key, step } from './grid';
 import { applyOil } from './materials';
 import { blocksUnits, inBoard, reachable, tileAt, unitAt } from './queries';
-import type { EnemyUnit, MemberUnit, Unit } from './types';
+import type { BattleState, EnemyUnit, MemberUnit, Unit } from './types';
 
 /**
  * An ink puddle marks whoever ends a move on it (if not already inked) and is consumed. Stained
@@ -64,6 +64,15 @@ export function shove(ctx: Ctx, m: MemberUnit, dir: Dir): void {
   pushUnit(ctx, target, dir);
 }
 
+/** Where a foe may not be moved to: an anchored one nowhere, a swimmer only along water (K-13). */
+function heldBack(s: BattleState, u: Unit, to: Coord): string | null {
+  if (u.kind !== 'enemy') return null;
+  const def = ENEMIES[u.def];
+  if (def.anchored) return 'its moorings';
+  if (def.habitat === 'water' && inBoard(s, to) && !tileAt(s, to).water) return 'the bank';
+  return null;
+}
+
 /** One tile away; a blocked push bumps (pushed unit and a blocking unit each take damage). */
 export function pushUnit(ctx: Ctx, u: Unit, dir: Dir): void {
   const s = ctx.s;
@@ -71,15 +80,17 @@ export function pushUnit(ctx: Ctx, u: Unit, dir: Dir): void {
   const blocker = inBoard(s, dest) ? unitAt(s, dest) : null;
   const into = !inBoard(s, dest)
     ? 'the edge'
-    : blocksUnits(tileAt(s, dest))
-      ? tileAt(s, dest).gate
-        ? 'a lock gate'
-        : tileAt(s, dest).grate
-          ? 'a grate'
-          : 'a brass plate'
-      : blocker
-        ? who(ref(blocker))
-        : null;
+    : heldBack(s, u, dest) !== null
+      ? heldBack(s, u, dest)
+      : blocksUnits(tileAt(s, dest))
+        ? tileAt(s, dest).gate
+          ? 'a lock gate'
+          : tileAt(s, dest).grate
+            ? 'a grate'
+            : 'a brass plate'
+        : blocker
+          ? who(ref(blocker))
+          : null;
   if (into !== null) {
     emit(ctx, { type: 'bump', unit: ref(u), into });
     dealDamage(ctx, u, TUNING.bumpDamage, 'Bump');
@@ -96,11 +107,14 @@ export function pushUnit(ctx: Ctx, u: Unit, dir: Dir): void {
 /** A unit on oil keeps going until it leaves the oil or something blocks it. No bump damage. */
 export function slide(ctx: Ctx, u: Unit, dir: Dir): void {
   const s = ctx.s;
+  // Fliers don't touch the oil (K-16).
+  if (u.kind === 'enemy' && ENEMIES[u.def].flies) return;
   const start = u.pos;
   const path: Coord[] = [];
   while (tileAt(s, u.pos).oil) {
     const nxt = step(u.pos, dir);
     if (!inBoard(s, nxt) || blocksUnits(tileAt(s, nxt)) || unitAt(s, nxt)) break;
+    if (heldBack(s, u, nxt) !== null) break;
     u.pos = nxt;
     path.push({ ...nxt });
   }

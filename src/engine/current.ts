@@ -36,7 +36,7 @@ function driftFloats(s: BattleState): DriftPreview['floats'] {
     const from = coordOf(s, i);
     const to = step(from, t.water);
     // Onto land the float stays where it is; off the board it is gone.
-    if (inBoard(s, to) && !tileAt(s, to).water) return;
+    if (inBoard(s, to) && (!tileAt(s, to).water || tileAt(s, to).plate)) return;
     const j = inBoard(s, to) ? to.y * s.width + to.x : -1;
     moves.push({ from, to: j < 0 ? null : to, i, j });
   });

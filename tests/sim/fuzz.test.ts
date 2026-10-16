@@ -138,14 +138,7 @@ const issues = new Map<string, { count: number; example: string }>();
  * Engine bugs the fuzz found but that are not fixed yet: counted and printed, never failing the
  * run. Each needs a skipped repro test below; delete the entry (and un-skip the test) once fixed.
  */
-const KNOWN_ENGINE_GAPS = new Set<string>([
-  // F1 found these (repros in the skipped tests at the end of the file); remove each when fixed.
-  'living eel on land', // BUG-F1-1: a shove (pushUnit) or slide moves an eel off the water
-  'brass plate shares its tile with another layer', // BUG-F1-2: drift lays oil on a plate on water
-  'drift laid a float on a brass plate', // BUG-F1-2
-  'the lamp-mother moved', // BUG-F1-4: a shove pushes the anchored lamp-mother
-  'profile holds an unknown interaction', // BUG-F1-3: 'drift' is not in INTERACTION_IDS
-]);
+const KNOWN_ENGINE_GAPS = new Set<string>([]);
 const knownGaps = new Map<string, { count: number; example: string }>();
 function flag(rule: string, example: string): void {
   const book = KNOWN_ENGINE_GAPS.has(rule) ? knownGaps : issues;
@@ -2297,12 +2290,7 @@ function runCanalTrip(seed: number, bot: Bot, kind: Kind, n: number): void {
   while (trip && guard++ < 50) {
     const t: Trip = trip;
     const where = `${bot}/${seed}/canals e${t.encounter} ${t.status}`;
-    // BUG-F1-3: parseProfile rejects the 'drift' interaction; strip it so the rest still round-trips.
-    checkSave(
-      { ...p, interactions: p.interactions.filter((i) => INTERACTION_IDS.includes(i)) },
-      t,
-      where,
-    );
+    checkSave(p, t, where);
     switch (t.status) {
       case 'fight': {
         const enc = encountersOf('canals')[t.encounter];
@@ -2417,9 +2405,9 @@ test('fuzz: canal trips and the lock, bots on the current', () => {
   expect(canalStats.eels, 'eel battles').toBeGreaterThan(0);
 }, 600_000);
 
-// ── Engine bugs found by F1 (minimal repros; un-skip when fixed) ──
+// ── Engine bugs found by F1 (fixed; kept as regressions) ──
 
-test.skip('BUG-F1-1: a shoved eel stays on the water', () => {
+test('BUG-F1-1: a shoved eel stays on the water', () => {
   // `. . . .` / `. ew> . .` / `. D . .`: the Draughtsman shoves the eel up, off the lane, onto land.
   const s = board('. . . .\n. ew> . .\n. D . .');
   const r = applyAction(s, { type: 'shove', unit: 'draughtsman', dir: 'up' });
@@ -2427,7 +2415,7 @@ test.skip('BUG-F1-1: a shoved eel stays on the water', () => {
   expect(eel && eel.hp > 0 ? tileAt(r.state, eel.pos).water : 'down').not.toBeNull();
 });
 
-test.skip('BUG-F1-2: drift never lays a float on a brass plate', () => {
+test('BUG-F1-2: drift never lays a float on a brass plate', () => {
   // A plate raised on a lane tile (Kiln) with oil upstream: the oil drifts onto the plate.
   const s = board('w>o w> w> .\n. D . S\nr . . .');
   const t = s.tiles[1];
@@ -2436,14 +2424,14 @@ test.skip('BUG-F1-2: drift never lays a float on a brass plate', () => {
   expect(r.state.tiles[1]?.oil).toBe(false);
 });
 
-test.skip('BUG-F1-3: every interaction a battle can discover is in INTERACTION_IDS', () => {
+test('BUG-F1-3: every interaction a battle can discover is in INTERACTION_IDS', () => {
   // A canal fight that drifts oil discovers 'drift'; parseProfile then rejects the save.
   const s = board('w>o w> w> .\n. D . S\nr . . .');
   const r = applyAction(s, { type: 'endTurn' });
   for (const d of r.state.discovered) expect(INTERACTION_IDS).toContain(d);
 });
 
-test.skip('BUG-F1-4: the lamp-mother cannot be shoved', () => {
+test('BUG-F1-4: the lamp-mother cannot be shoved', () => {
   // `. D . .` / `. Mw> . .` ... a member shoves the anchored mother and she moves.
   const s = board('. . . .\n. Mw> . .\n. D . .');
   const r = applyAction(s, { type: 'shove', unit: 'draughtsman', dir: 'up' });

@@ -14,6 +14,7 @@ export const INTERACTION_IDS: readonly InteractionId[] = [
   'diffuse',
   'heat',
   'stain',
+  'drift',
 ];
 
 const RUNE_NOTES: Record<RuneId, string> = {
