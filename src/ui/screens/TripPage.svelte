@@ -1,12 +1,21 @@
 <script lang="ts">
   import { MEMBERS } from '$data';
+  import { compiledFor } from '$engine';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
+  import { deadCellNotes, tierUpLine } from '../../app/tripviews';
   import Button from '../components/common/Button.svelte';
 
   const recap = $derived(game.save.lastTrip);
   const highlights = $derived(recap ? tripHighlights(recap, game.profile) : []);
   const spells = $derived(recap?.stats.spells ?? []);
+  const tierUps = $derived(recap?.stats.elegance ?? []);
+  // Dead-cell notes show only while each spell is still wired as it was fought (M15).
+  const notes = $derived(
+    spells.map((s) =>
+      deadCellNotes(s, compiledFor(game.profile, s.member).spells, game.profile.lattices[s.member]),
+    ),
+  );
 </script>
 
 {#if recap}
@@ -20,6 +29,16 @@
     </header>
 
     <div class="mid">
+      {#if tierUps.length}
+        <ul class="highlights" data-testid="tier-ups">
+          {#each tierUps as up (`${up.glyph}|${up.version}|${up.metric}|${up.tier}`)}
+            <li class="note tier">
+              <h2>A Glyph proved itself</h2>
+              <p>{tierUpLine(up)}</p>
+            </li>
+          {/each}
+        </ul>
+      {/if}
       {#if highlights.length}
         <ul class="highlights" data-testid="highlights">
           {#each highlights as h (h.kind)}
@@ -30,7 +49,9 @@
           {/each}
         </ul>
       {:else}
-        <p class="none" data-testid="no-highlights">Nothing stood out this time.</p>
+        {#if !tierUps.length}
+          <p class="none" data-testid="no-highlights">Nothing stood out this time.</p>
+        {/if}
       {/if}
 
       <details class="ledger" data-testid="ledger">
@@ -41,13 +62,16 @@
               <tr><th>Spell</th><th>Casts</th><th>Damage</th><th>Kills</th></tr>
             </thead>
             <tbody>
-              {#each spells as s (`${s.member}|${s.spell}`)}
+              {#each spells as s, i (`${s.member}|${s.spell}`)}
                 <tr>
                   <td>
                     <span class="who" style:color="var(--member-{s.member})"
                       >{MEMBERS[s.member].name}</span
                     >
                     {s.name}
+                    {#each notes[i] ?? [] as n (n)}
+                      <span class="dead" data-testid="dead-note">{n}</span>
+                    {/each}
                   </td>
                   <td>{s.casts}</td>
                   <td>{s.damage}</td>
@@ -157,6 +181,15 @@
     padding: 4px 0;
     text-align: right;
     border-top: 1px solid var(--line);
+  }
+  .dead {
+    display: block;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .note.tier {
+    border-left-color: var(--lamp);
   }
   .who {
     font: 12px var(--mono);

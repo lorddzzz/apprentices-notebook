@@ -47,6 +47,7 @@
     glyphs = {},
     glow = new Set(),
     selection = new Set(),
+    deadCells = new Set(),
     ontap,
     onlongpress,
   }: Props = $props();
@@ -85,6 +86,7 @@
           class:inspected={inspected !== null && key(inspected) === c.k}
           class:glow={glow.has(c.k)}
           class:picked={selection.has(c.k)}
+          class:dead={deadCells.has(c.k)}
           aria-label={cellLabel(c.at)}
           title={c.placed && idle.has(c.k) ? 'Does nothing yet' : undefined}
           data-at={c.k}
@@ -161,6 +163,15 @@
     border-color: var(--lamp);
     background: rgba(232, 176, 74, 0.28);
     box-shadow: 0 0 8px 1px rgba(232, 176, 74, 0.7);
+  }
+  .socket.dead::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border: 1.5px dashed var(--ink-soft);
+    border-radius: calc(var(--radius) + 4px);
+    opacity: 0.55;
+    pointer-events: none;
   }
   .socket.picked {
     border: 2.5px solid var(--select);

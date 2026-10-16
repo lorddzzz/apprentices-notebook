@@ -48,6 +48,11 @@
         <path d="M13 31V18a7 7 0 0 1 14 0v13z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="1.5" />
         <circle cx="23.5" cy="24.5" r="1.2" fill="var(--lamp)" />
       </svg>
+    {:else if item.kind === 'draft'}
+      <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="An owner's draft">
+        <path d="M8 5h19l5 5v25H8z" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 2.500" />
+        <path d="M13 15h14M13 21h14M13 27h8" stroke="var(--ink-soft)" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3" />
+      </svg>
     {:else}
       <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="Vellum">
         <rect x="7" y="5" width="26" height="30" rx="2" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2" />

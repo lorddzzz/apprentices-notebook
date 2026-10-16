@@ -1,6 +1,9 @@
 <script lang="ts">
+  import type { MemberId } from '$data';
   import { describeSpell, type Spell, type SpellKey } from '$engine';
+  import { game } from '../../../app/instance';
   import type { Recipe } from '../../../app/recipe';
+  import { spellLine } from '../../../app/tripviews';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -12,14 +15,24 @@
     /** The focused spell written out step by step. */
     recipe: Recipe | null;
     onfocus: (key: SpellKey) => void;
+    /** Whose lattice this is, for last trip's tallies (defaults to the Study's member). */
+    member?: MemberId;
   }
 
-  let { spells, charges, focus, recipe, onfocus }: Props = $props();
+  let { spells, charges, focus, recipe, onfocus, member }: Props = $props();
+
+  const tallies = $derived(
+    (game.save.lastTrip?.stats.spells ?? []).filter((t) => t.member === (member ?? game.member)),
+  );
 </script>
 
 <ul class="spells" data-testid="spells">
   {#each spells as s (s.key)}
     {@const open = focus === s.key && recipe !== null}
+    {@const line = spellLine(
+      tallies.find((t) => t.spell === s.key),
+      s,
+    )}
     <li>
       <button
         type="button"
@@ -33,6 +46,7 @@
         <span class="text">{open ? recipe.source : describeSpell(s)}</span>
         <Pips value={charges?.[s.key] ?? s.charges} max={s.charges} tone="charge" />
       </button>
+      {#if line}<p class="last" data-testid="last-trip">{line}</p>{/if}
       {#if open}
         <ol class="recipe" data-testid="recipe">
           {#each recipe.steps as st (st.n)}
@@ -85,6 +99,13 @@
     flex: 1;
     font-size: 14px;
     line-height: 1.25;
+  }
+  .last {
+    margin: 0;
+    padding: 0 var(--space-2) 2px calc(var(--space-2) + 36px);
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ink-faint);
   }
   .recipe {
     margin: 2px 0 var(--space-1);
