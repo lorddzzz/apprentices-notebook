@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { draftsLabel } from '../../../app/desk';
+  import { game } from '../../../app/instance';
+  import { href } from '../../../app/routes';
+
   interface Props {
     oncodex: () => void;
     onmenu: () => void;
@@ -7,6 +11,9 @@
   }
 
   let { oncodex, onmenu, onbench = null }: Props = $props();
+
+  // The owner's drafts: a link once any is banked (plan M36).
+  const drafts = $derived(draftsLabel(game.profile.drafts));
 
   // Rain streaks inside the window: [x, y, delay in ms]. Fixed so the scene never reshuffles.
   const DROPS: readonly (readonly [number, number, number])[] = [
@@ -68,6 +75,9 @@
   </svg>
 
   <h1>The Study</h1>
+  {#if drafts}
+    <a class="drafts" href={href('desk')} data-testid="drafts-link">{drafts}</a>
+  {/if}
 
   <div class="buttons">
     {#if onbench}
@@ -119,6 +129,31 @@
     color: var(--parchment);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
+  }
+  .drafts {
+    position: absolute;
+    left: 112px;
+    top: 54px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1.5px solid rgba(241, 230, 204, 0.45);
+    border-radius: 13px;
+    background: rgba(26, 18, 12, 0.55);
+    color: var(--parchment);
+    font: 12px var(--mono);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .drafts::after {
+    content: '';
+    position: absolute;
+    inset: -9px -6px;
+  }
+  .drafts:focus-visible {
+    outline: 3px solid var(--select);
+    outline-offset: 2px;
   }
   .buttons {
     position: absolute;
