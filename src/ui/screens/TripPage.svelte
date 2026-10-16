@@ -3,7 +3,7 @@
   import { compiledFor } from '$engine';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
-  import { deadCellNotes, heardHighlights, tierUpLine } from '../../app/tripviews';
+  import { deadCellNotes, heardHighlights, placeInText, tierUpLine } from '../../app/tripviews';
   import Button from '../components/common/Button.svelte';
 
   const recap = $derived(game.save.lastTrip);
@@ -27,7 +27,7 @@
         {recap.outcome === 'returned'
           ? recap.district === 'seam'
             ? 'Home from the Seam.'
-            : `Home from ${DISTRICTS[recap.district].name}.`
+            : `Home from ${placeInText(DISTRICTS[recap.district].name)}.`
           : 'The trip, as it went.'}
       </h1>
       <p>

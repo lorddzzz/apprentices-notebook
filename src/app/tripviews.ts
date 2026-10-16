@@ -95,6 +95,9 @@ export interface HeardHighlight {
   text: string;
 }
 
+/** A place name inside a sentence: "the oil-lit canals", not "The oil-lit canals". */
+export const placeInText = (name: string): string => name.replace(/^The /, 'the ');
+
 /** One highlight per district heard on the trip: "The owner drew … on the map" or "A rumour of …" (K-20). */
 export function heardHighlights(
   recap: TripRecap,
@@ -104,8 +107,8 @@ export function heardHighlights(
     const d = table[id];
     const text =
       heardVoice(id, table) === 'owner'
-        ? `The owner drew ${d.name} on the map: “${d.line}”`
-        : `A rumour of ${d.name}`;
+        ? `The owner drew ${placeInText(d.name)} on the map: “${d.line}”`
+        : `A rumour of ${placeInText(d.name)}`;
     return { kind: 'heard', title: 'A new page of the map', text };
   });
 }
@@ -116,5 +119,5 @@ export function rumourLine(
   table: DistrictTable = DISTRICTS,
 ): string | null {
   const id = recap?.stats.heard.find((d) => heardVoice(d, table) === 'rumour');
-  return id ? `A rumour of ${table[id].name}` : null;
+  return id ? `A rumour of ${placeInText(table[id].name)}` : null;
 }

@@ -5,6 +5,7 @@
   import { href } from '../../app/routes';
   import { planThreshold } from '../../app/threshold';
   import { threshold } from '../../app/threshold.svelte';
+  import { placeInText } from '../../app/tripviews';
   import BattleView from '../components/battle/BattleView.svelte';
   import Button from '../components/common/Button.svelte';
 
@@ -30,7 +31,7 @@
     <section class="moment" data-testid="threshold-solved">
       <h1>The gate burns</h1>
       <p class="line">"{gate.line}"</p>
-      <p class="owner">The way to {gate.name} is open.</p>
+      <p class="owner">The way to {placeInText(gate.name)} is open.</p>
       <Button label="Back to the map" onclick={leave} testid="threshold-map" />
     </section>
   {:else if session && room && (plan.ok || threshold.won)}

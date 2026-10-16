@@ -107,7 +107,7 @@ describe('heard on the trip page', () => {
       {
         kind: 'heard',
         title: 'A new page of the map',
-        text: `The owner drew The oil-lit canals on the map: “${DISTRICTS.canals.line}”`,
+        text: `The owner drew the oil-lit canals on the map: “${DISTRICTS.canals.line}”`,
       },
     ]);
   });
@@ -115,22 +115,22 @@ describe('heard on the trip page', () => {
   test('a rumour-voiced district reads as a rumour', () => {
     expect(heardVoice('canals', rumourTable)).toBe('rumour');
     expect(heardHighlights(recapWith(['canals']), rumourTable)[0]?.text).toBe(
-      'A rumour of The oil-lit canals',
+      'A rumour of the oil-lit canals',
     );
   });
 
   test('one highlight per heard district, in order; none when nothing was heard', () => {
     expect(heardHighlights(recapWith([]))).toEqual([]);
     expect(heardHighlights(recapWith(['canals', 'seam']), rumourTable).map((h) => h.text)).toEqual([
-      'A rumour of The oil-lit canals',
-      'A rumour of The Seam',
+      'A rumour of the oil-lit canals',
+      'A rumour of the Seam',
     ]);
   });
 });
 
 describe('the rumour line at the Study window', () => {
   test('a rumour-heard district gives one line', () => {
-    expect(rumourLine(recapWith(['canals']), rumourTable)).toBe('A rumour of The oil-lit canals');
+    expect(rumourLine(recapWith(['canals']), rumourTable)).toBe('A rumour of the oil-lit canals');
   });
 
   test('an owner-heard district, no trip, or no heard list gives nothing', () => {
@@ -144,6 +144,6 @@ describe('the rumour line at the Study window', () => {
       ...rumourTable,
       seam: { ...DISTRICTS.seam, hear: [{ kind: 'trips', atLeast: 1, voice: 'rumour' }] },
     } as const;
-    expect(rumourLine(recapWith(['seam', 'canals']), table)).toBe('A rumour of The Seam');
+    expect(rumourLine(recapWith(['seam', 'canals']), table)).toBe('A rumour of the Seam');
   });
 });
