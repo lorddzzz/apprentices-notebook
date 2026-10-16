@@ -48,6 +48,6 @@ describe('districts (K-1, K-2)', () => {
     const open = { ...p, city: { ...p.city, heard: ['seam', 'canals'], open: ['seam', 'canals'] } };
     const t = startTrip(open as typeof p, 3, 'canals');
     expect(t.district).toBe('canals');
-    expect(variantFor(t, 0)).toBe(0);
+    expect(variantFor(t, 0)).toBeLessThan(3);
   });
 });

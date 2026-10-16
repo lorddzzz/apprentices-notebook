@@ -3,7 +3,7 @@
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** C1 and U3 running. Then U2 (needs E3, unblocked), U1 (unblocked), C2 (after C1). Resume after the 22:10 reset if cut off.
+**Next:** after the 22:10 reset: start U2 (map) and U1 (board visuals), then C2 (lock). Then milestone A.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -12,7 +12,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | E1 | sonnet | M | merged | (E1 merge commit) | ~7% | 31 tests; added `blocksUnits` to queries.ts (contract change, approved) |
 | E2 | sonnet | L | merged | (E2 merge commit) | ~8% | 18 scenario tests; edited turn.ts (burst intent), approved |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
-| C1 | sonnet | M | running | | | started 21:41 |
+| C1 | sonnet | M | merged | (C1 merge commit) | ~8% | sim: rooms 1–3 100%, room 4 96%, heart 39% (34/55/31 by variant), 74/200 mother kills; sim adds ~20 s to the gate |
 | C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
 | U1 | sonnet | M | pending | | | needs E1, E2 |
 | U2 | sonnet | M | pending | | | needs E3 |
@@ -69,6 +69,9 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - U3: the heard voice is inferred from the district's hear list (any owner condition = owner). Accepted.
 - U3: canal Crossroads heading "Deeper still."; trip page "Home from {district}." off the Seam. Accepted (D1 may reword).
 - U3: rumour line at the top of the Study window, small italic mono; both voices' highlights titled "A new page of the map". Accepted.
+- C1: sim loadout = start collection + 2 oil, 1 spark, 2 splash wired into Splash/Oil/Spark chains (the plan's "Seam average deep-trip collection" was vague). Accepted.
+- C1: rooms lighter than the design table (room 3 no rat, room 4 one moth, heart one moth) to keep charges for the heart. Accepted for now, *tune by playing*; ask the player in the playtest.
+- C1: the start loadout alone can't clear room 3; the hearing gate (light 3 oil tiles) means the player already has an oil-spark chain. Accepted.
 
 ## Decisions and fixes made during the build
 - E2 merge fix (me): `resolveSpecial(ctx, e, intent)` now takes the telegraphed intent, so a summon lands at the lamp that glowed, not one re-derived at resolution. Contract change.
