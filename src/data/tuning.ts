@@ -29,7 +29,7 @@ export const TUNING: Tuning = {
   compileVellum: 1,
   killHarm: 1,
   tierWindow: 10,
-  economyTiers: [0.8, 1.2, 1.8], // placeholders until task C0 calibrates them
+  economyTiers: [0.7, 1.0, 1.3], // C0 bot windows p50/p75/p90 were 0.6/1.0/1.1; gold raised because tiers are best-ever
   reliabilityTiers: [0.7, 0.85, 0.95],
   deadAfterCasts: 5,
   paramSlots: 1,
