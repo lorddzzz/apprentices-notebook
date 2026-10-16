@@ -140,6 +140,29 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       }
       return [{ kind: 'trail', cells, tone: 'danger' }];
     }
+    // The canals (K-8 to K-17).
+    case 'drift':
+      return e.floats.length
+        ? [
+            burst(
+              e.floats.flatMap((f) => (f.to ? [f.to] : [])),
+              'oil',
+            ),
+          ]
+        : [];
+    case 'gateBurns':
+      return [
+        burst([e.at], 'fire'),
+        { kind: 'float', at: e.at, text: 'the gate burns', tone: 'fire' },
+      ];
+    case 'snuff':
+      return [burst(e.tiles, 'steam', 40)];
+    case 'burst':
+      return [burst([e.at], 'fire'), { kind: 'pulse', at: e.at, tone: 'fire' }];
+    case 'summon':
+      return [{ kind: 'pulse', at: e.at, tone: 'danger' }];
+    case 'flare':
+      return [{ kind: 'pulse', at: e.by.at, tone: 'fire' }];
     default:
       return [];
   }
