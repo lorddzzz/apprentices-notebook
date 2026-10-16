@@ -21,7 +21,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U6 | sonnet | M | pending | | | |
 | U4 | sonnet | L | pending | | | |
 | U5 | sonnet | L | pending | | | |
-| D1 | haiku | S | pending | | | |
+| D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
 | F1 | sonnet | M | pending | | | |
 | W4 | opus | M | pending | | | |
 
@@ -91,6 +91,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - U1: sheet title "Fair copy", name in the header; extra-exit arrow drawn outside the dashed box. Accepted
 - C0: calibration table (2400 bot trips, 8803 Glyph casts, non-overlapping 10-cast windows of harm ÷ base cost): overall n=674 p25 0.50 · p50 0.62 · p75 1.00 · p90 1.10; Spell n=571 0.60/0.68/1.03/1.13; Payload n=103 0.00/0.00/0.20/0.44. Run: `CALIBRATE=1 CALIBRATE_CAREERS=400 CALIBRATE_TRIPS=6 pnpm vitest run tests/sim/calibrate.test.ts --silent=false`. For TECH §7
 - Orchestrator: economyTiers set to 0.7 / 1.0 / 1.3 instead of C0's 0.6 / 1.0 / 1.1: tiers are best-ever, so a gold at the window p90 would come to most Glyphs just by casting a lot. *Proposal*, tune by playing
+- D1: `TIER_NAMES[0]` reads 'unproven'; draft hints reworded for Wet Work, Left Hand First, The Foundry Bell. Accepted
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
