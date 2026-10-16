@@ -263,3 +263,89 @@ describe("extra exit: a free Fork at the Glyph's first way out (M27)", () => {
     expect(withExtra.size).toBeGreaterThan(without.size);
   });
 });
+
+// ── The extra exit with arguments and neighbours (BL-89) ──
+
+describe('extra exit meets a Shape argument and its neighbours (M27, BL-89)', () => {
+  const sturdy = 'D . d . .';
+  const INK_AND_SPARK = [
+    'Draughtsman casts Bolt right',
+    'Bolt hits dummy at C1 for 2',
+    'dummy at C1 is inked',
+    'Spark hits dummy at C1 for 2 (inked +1)',
+    'the ink on dummy at C1 detonates',
+    'Detonation hits dummy at C1 for 2',
+  ];
+  // Bolt, Smear, then an open Bend at the way out; the extra exit leaves up.
+  const bender = glyph(
+    'b',
+    'spell',
+    [
+      { at: c(0, 0), rune: 'bolt', dir: 'right' },
+      { at: c(1, 0), rune: 'smear' },
+      { at: c(2, 0), rune: 'bend', dir: 'right' },
+    ],
+    { params: ['2,0'], extraExit: 'up' },
+  );
+  const lib = libOf(bender);
+  const page = (arg: string) => `Spark . .\nG:b>${arg} Oil .\n. . .`;
+
+  test('the default Bend leaves right into Oil, then the extra side lights it from above', () => {
+    expect(lines(page(''), lib, sturdy)).toEqual([
+      'Draughtsman casts Bolt right',
+      'Bolt hits dummy at C1 for 2',
+      'dummy at C1 is inked',
+      'oil coats C1',
+      'Spark hits dummy at C1 for 2 (inked +1)',
+      'the ink on dummy at C1 detonates',
+      'Detonation hits dummy at C1 for 2',
+      'oil at C1 ignites',
+      'Fire hits dummy at C1 for 1',
+    ]);
+  });
+
+  test('a Bend argument pointing into the extra side: one branch, the Oil is never reached', () => {
+    expect(lines(page('[2,0:Bend^]'), lib, sturdy)).toEqual(INK_AND_SPARK);
+    const [sp] = compile(page('[2,0:Bend^]'), lib).spells;
+    expect(sp?.nodes[0]?.next.map((n) => n.rune)).toEqual(['spark']); // the extra side adds nothing
+    expect(compile(page('[2,0:Bend^]'), lib).reached.sort()).toEqual(['0,0', '0,1']);
+  });
+
+  test('a Bend argument pointing away into an empty socket still leaves the extra side', () => {
+    expect(lines(page('[2,0:Bendv]'), lib, sturdy)).toEqual(INK_AND_SPARK);
+    // With no extra exit the same argument casts the Bolt and Smear alone.
+    const plain = libOf({ ...bender, extraExit: null });
+    expect(lines(page('[2,0:Bendv]'), plain, sturdy)).toEqual(INK_AND_SPARK.slice(0, 3));
+  });
+});
+
+describe('a Glyph beside a rune on its extra side (M27, BL-89)', () => {
+  const sturdy = 'D . d . .';
+  const smear = glyph('p', 'payload', [{ at: c(0, 0), rune: 'smear' }], { extraExit: 'down' });
+  const oiler = glyph('q', 'payload', [{ at: c(0, 0), rune: 'oil' }]);
+  const lib = libOf(smear, oiler);
+  const MAIN = [
+    'Draughtsman casts Bolt right',
+    'Bolt hits dummy at C1 for 2',
+    'dummy at C1 is inked',
+    'Spark hits dummy at C1 for 2 (inked +1)',
+    'the ink on dummy at C1 detonates',
+    'Detonation hits dummy at C1 for 2',
+  ];
+
+  test('the rune below is walked after the main branch: Spark first, then the Oil', () => {
+    expect(lines('Bolt> G:p> Spark\n. Oil .', lib, sturdy)).toEqual([...MAIN, 'oil coats C1']);
+    expect(
+      lines('Bolt> G:p> Spark\n. Oil .', libOf({ ...smear, extraExit: null }), sturdy),
+    ).toEqual(MAIN);
+  });
+
+  test('a Payload Glyph on the extra side is entered only when it faces the flow', () => {
+    // Facing right, its way in is from the left: flow coming down misses it.
+    expect(lines('Bolt> G:p> Spark\n. G:q> .', lib, sturdy)).toEqual(MAIN);
+    expect(compile('Bolt> G:p> Spark\n. G:q> .', lib).reached).not.toContain('1,1');
+    // Facing down, the flow from above is its way in, and it pours its Oil.
+    expect(lines('Bolt> G:p> Spark\n. G:qv .', lib, sturdy)).toEqual([...MAIN, 'oil coats C1']);
+    expect(compile('Bolt> G:p> Spark\n. G:qv .', lib).reached).toContain('1,1');
+  });
+});
