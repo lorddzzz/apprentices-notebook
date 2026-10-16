@@ -196,6 +196,7 @@ describe('the lock has no drift-free solution', () => {
       for (const order of [MEMBER_IDS, [...MEMBER_IDS].reverse()]) {
         expect(burnsInOneTurn(start, order), order.join(' then ')).toBeNull();
       }
-    });
+      // An exhaustive search: ~4 s locally, slower on CI.
+    }, 60_000);
   }
 });
