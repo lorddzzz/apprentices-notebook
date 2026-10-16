@@ -149,7 +149,7 @@
       {/if}
     {:else}
       <h1 class="title">The owner's drafts</h1>
-      <p class="hand lead">Pages he left half-finished. Make them work.</p>
+      <p class="hand lead">Pages the owner left half-finished. Make them work.</p>
       {#if rows.length === 0}
         <p class="faint" data-testid="desk-empty">None yet. The Seam gives them up now and then.</p>
       {/if}
