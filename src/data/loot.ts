@@ -10,6 +10,7 @@ const solvent = (id: SolventId, weight: number): LootEntry => ({
   spec: { kind: 'solvent', solvent: id },
   weight,
 });
+const draft = (weight: number): LootEntry => ({ spec: { kind: 'draft' }, weight });
 const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount: 1 }, weight });
 /** The three Seam solvents at one weight each (offers stay distinct per entry). */
 const seamSolvents = (weight: number): LootEntry[] =>
@@ -29,6 +30,7 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       rune('pierce', 1),
       ink(3),
       ...seamSolvents(1),
+      draft(1),
     ],
   },
   deep: {
@@ -49,6 +51,7 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       ...seamSolvents(1),
       vellum(1),
       { spec: { kind: 'doorway' }, weight: 1 },
+      draft(1),
     ],
   },
   heart: {
@@ -63,6 +66,7 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       ink(2),
       ...seamSolvents(1),
       vellum(1),
+      draft(1),
     ],
   },
 };
