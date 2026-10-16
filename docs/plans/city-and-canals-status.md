@@ -3,7 +3,7 @@
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** U1, U2, D1, F1 running. Merge as they land; after U1+U2: milestone A (verify a canal trip from the map), then U4 (threshold screen).
+**Next:** U4 (threshold screen) running. Then W4: full verify loop, code review, docs (DESIGN §6.7/§11, design doc §0, TECH §7, ROADMAP), clean up worktrees.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -17,7 +17,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | U1 | sonnet | M | merged | (U1 merge commit) | ~8% | 14 tests; screenshots room 2, heart (Lab), drift ghosts. Toggle only (no hold); floats change in one step |
 | U2 | sonnet | M | merged | (U2 merge commit) | ~6% | 8 tests; screenshots: Seam only, canals heard, Set out sheet. Old Study door sheet removed by me |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
-| A | opus (me) | S | pending | | | milestone A verify |
+| A | opus (me) | S | done | c8d1686, f38c4e5 | ~4% | 375×812: Lab dev toggle → map (canals inked) → Set out → room 1 (lane, eel, Current) → Crossroads at room 2 (greyed Return, next landing named) → heart (boss header, lamps, summon line, moth arrives and telegraphs Burst, Snuffer drifts) |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
 | D1 | haiku | S | merged | (D1 merge commit) | ~2% | lock note, barred, eel/snuffer blurbs, drift codex + hint, landing line |
 | F1 | sonnet | M | merged | (F1 merge commit) | ~7% | canal trips + lock in the fuzz, city invariants; +4.4 s; found 4 engine bugs, fixed by me in the same commit |
@@ -99,6 +99,8 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - W0: the Study door now goes to `#/map`; the stub map lists open districts with "Set out". The old "Set out?" sheet stays in Study.svelte, unreachable, for U2 to move.
 
 ## Follow-ups and rough edges
+- The lamp-mother effectively summons every other round: at plan time the moth she just called still stands on the lamp, so she waits (E2's plan-time check). *Tune by playing*: maybe let her pick the next-nearest free lamp.
+- Map: the Seam–canals ink line crosses the Seam's "Ink · The Notaries" caption. Cosmetic.
 - fx.ts: flashes for `gateBurns`, `snuff`, `burst`, `drift` (fire tone for gate and burst, steam for snuff); describe.ts threat text for summon/flare exists in W0, check it reads well. W4.
 - svelte-autofixer not run on U1's changed BattleBoard, TileLayer, UnitToken, IntentLayer, BattleView, DriftLayer. W4.
 - Preview ports 5190/5191 are held by dev servers running from the main checkout (they serve main, not a worktree). UI agents must start vite from their own worktree on their assigned port (`pnpm dev --port 519x --strictPort`) and stop it after.
