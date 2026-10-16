@@ -14,7 +14,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | E3 | sonnet | L | merged | (after 5023fb5) | ~8% | 971 tests |
 | E4 | sonnet | M | merged | 32d1cdf | ~5% | 1015 tests |
 | E5 | haiku | S | merged | df5742c | ~2% | 853 tests |
-| C0 | sonnet | S | pending | | | |
+| C0 | sonnet | S | merged | (after 7b33b5e) | ~3% | economyTiers 0.7/1.0/1.3 |
 | U1 | sonnet | M | merged | 7b33b5e | ~5% | doorway read-only view not browser-checked |
 | U2 | haiku | S | pending | | | |
 | U3 | sonnet | L | merged | e81523c | ~5% | browser-checked light only |
@@ -89,6 +89,8 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - U1: dead-cell line names the first dead cell in reading order; trigger line when a fired trigger's neighbour fired 0 times and nothing is dead yet; idle line when ≥ 1 cast in the window did nothing. Accepted
 - U1: form shows `◔ 1.2 ink · ◑ 90%` at a full window, else "n / 10"; average harm = lifetime harm ÷ casts of the current version; ink = base → base − discount. Accepted
 - U1: sheet title "Fair copy", name in the header; extra-exit arrow drawn outside the dashed box. Accepted
+- C0: calibration table (2400 bot trips, 8803 Glyph casts, non-overlapping 10-cast windows of harm ÷ base cost): overall n=674 p25 0.50 · p50 0.62 · p75 1.00 · p90 1.10; Spell n=571 0.60/0.68/1.03/1.13; Payload n=103 0.00/0.00/0.20/0.44. Run: `CALIBRATE=1 CALIBRATE_CAREERS=400 CALIBRATE_TRIPS=6 pnpm vitest run tests/sim/calibrate.test.ts --silent=false`. For TECH §7
+- Orchestrator: economyTiers set to 0.7 / 1.0 / 1.3 instead of C0's 0.6 / 1.0 / 1.1: tiers are best-ever, so a gold at the window p90 would come to most Glyphs just by casting a lot. *Proposal*, tune by playing
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
@@ -96,6 +98,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - Orchestrator: W0 is delegated to an Opus agent instead of written in the main session, to keep the orchestrator's context lean for a two-window build.
 
 ## Follow-ups and rough edges
+- Payload Glyphs rarely earn Economy (harm-only: an Ink or Oil payload does no damage itself; bot p50 = 0). Reliability still works. Revisit after the playtest (separate thresholds or credit setup).
 - ESM cycle revision.ts → run.ts → drafts.ts → revision.ts (function-level only; harmless today).
 - The app has no dark theme; U1/U3 dark checks are moot.
 - Revision canvas cap 7: a 7+-long Glyph line would be unrevisable; raise `revisionCanvasMax` (and E2's tests) if pages ever grow past 5×6.
