@@ -1,4 +1,12 @@
-import { type InteractionId, MEMBER_IDS, MEMBERS, type MemberId, RUNES, TUNING } from '$data';
+import {
+  type DistrictId,
+  type InteractionId,
+  MEMBER_IDS,
+  MEMBERS,
+  type MemberId,
+  RUNES,
+  TUNING,
+} from '$data';
 import {
   type Action,
   type ActionResult,
@@ -52,7 +60,9 @@ export type Screen =
   | 'gallery'
   | 'bench'
   | 'desk'
-  | 'tripPage';
+  | 'tripPage'
+  | 'map'
+  | 'threshold';
 
 const TRIP_SCREEN: Record<Trip['status'], Screen> = {
   fight: 'battle',
@@ -83,6 +93,9 @@ export function resolveScreen(
   if (route === 'bench' && !trip && !wipe) return { screen: 'bench', redirect: null };
   // So is the desk where the owner's drafts are mended (M36).
   if (route === 'desk' && !trip && !wipe) return { screen: 'desk', redirect: null };
+  // The map hangs behind the study door, and the threshold rooms are reached from it (K-22).
+  if (route === 'map' && !trip && !wipe) return { screen: 'map', redirect: null };
+  if (route === 'threshold' && !trip && !wipe) return { screen: 'threshold', redirect: null };
   const screen: Screen | null = trip ? TRIP_SCREEN[trip.status] : wipe ? 'wiped' : null;
   if (screen === null) return { screen: 'study', redirect: route === 'study' ? null : 'study' };
   return { screen, redirect: route === 'trip' ? null : 'trip' };
@@ -149,11 +162,11 @@ function tripOf(save: SaveData): Trip {
   return save.trip;
 }
 
-/** A fresh trip from the study: advances the seed counter, full HP and charges. Throws if the loadout is not ready. */
-export function setOut(save: SaveData): SaveData {
+/** A fresh trip into an open district: advances the seed counter, full HP and charges. Throws if the loadout is not ready. */
+export function setOut(save: SaveData, district: DistrictId = 'seam'): SaveData {
   if (save.trip) throw new Error('The party is already out');
   const { seed, save: next } = nextTripSeed(save);
-  return { ...next, trip: startTrip(next.profile, seed), lastTrip: null };
+  return { ...next, trip: startTrip(next.profile, seed, district), lastTrip: null };
 }
 
 /** The current encounter's battle. The same save always gives the same fight (reload restarts it). */
@@ -186,7 +199,13 @@ export function endBattle(
   const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
   const lastTrip: TripRecap | null =
     r.outcome === 'wiped'
-      ? { outcome: 'wiped', encounter: trip.encounter, place: placeOf(trip), stats: r.stats }
+      ? {
+          district: trip.district,
+          outcome: 'wiped',
+          encounter: trip.encounter,
+          place: placeOf(trip),
+          stats: r.stats,
+        }
       : save.lastTrip;
   const next: SaveData = { ...save, profile: r.profile, trip: r.trip, lastTrip };
   const wipe: WipeSummary | null =
@@ -212,16 +231,19 @@ export function pushOnward(save: SaveData): SaveData {
   return { ...save, trip: pushOn(tripOf(save)) };
 }
 
-/** Back to the study with the loot banked; the trip's recap is kept for the trip page. */
+/** Back to the study with the loot banked; the trip's recap (with rumours heard on return) is kept for the trip page. */
 export function goHome(save: SaveData): SaveData {
   const trip = tripOf(save);
+  const profile = returnHome(save.profile, trip);
+  const rumours = profile.city.heard.filter((d) => !save.profile.city.heard.includes(d));
   const lastTrip: TripRecap = {
+    district: trip.district,
     outcome: 'returned',
     encounter: trip.encounter,
     place: placeOf(trip),
-    stats: trip.stats,
+    stats: { ...trip.stats, heard: [...trip.stats.heard, ...rumours] },
   };
-  return { ...save, profile: returnHome(save.profile, trip), trip: null, lastTrip };
+  return { ...save, profile, trip: null, lastTrip };
 }
 
 /**

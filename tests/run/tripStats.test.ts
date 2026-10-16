@@ -183,6 +183,7 @@ const tallyOf = (stats: { spells: SpellTally[] }): SpellTally => {
   return t;
 };
 const tripOf = (stats: ReturnType<typeof accumulateStats>): TripRecap => ({
+  district: 'seam',
   outcome: 'returned',
   encounter: 0,
   place: 'test',

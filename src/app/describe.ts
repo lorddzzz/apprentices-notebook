@@ -1,6 +1,7 @@
 import {
   ATTACKS,
   CODEX,
+  DISTRICTS,
   DRAFTS,
   ENCOUNTERS,
   ENEMIES,
@@ -62,6 +63,9 @@ export function tileLine(tile: Tile, at: Coord): string {
 
 function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (!e.intent) return 'waiting';
+  if (e.intent.kind === 'summon')
+    return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
+  if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
   const verb = ATTACKS[e.intent.attack].verbs;
   const preview = intentPreview(s, e);
   const victim = preview?.hit ? unitAt(s, preview.hit) : null;
@@ -152,6 +156,7 @@ const INTERACTION_WORDS: Record<InteractionId, string> = {
   diffuse: 'ink diffuses',
   heat: 'brass heats',
   stain: 'oil stains',
+  drift: 'the current carries it',
 };
 const INTERACTION_OF: Partial<Record<GameEvent['type'], InteractionId>> = {
   ignite: 'ignite',
@@ -377,6 +382,11 @@ export function lootLine(item: LootItem): { title: string; text: string } {
       return {
         title: `An owner's draft: ${DRAFTS.find((d) => d.id === item.draft)?.name ?? 'a torn page'}`,
         text: 'A page the owner never got working. Mend it at the desk.',
+      };
+    case 'key':
+      return {
+        title: `A key to ${DISTRICTS[item.district].name}`,
+        text: 'Bring it home and the way opens.',
       };
   }
 }

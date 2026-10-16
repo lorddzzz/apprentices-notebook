@@ -21,6 +21,7 @@ export function emptyStats(): TripStats {
     discoveries: [],
     proofCasts: 0,
     elegance: [],
+    heard: [],
   };
 }
 
@@ -180,6 +181,7 @@ export function accumulateStats(
     discoveries,
     proofCasts,
     elegance: [...stats.elegance],
+    heard: [...stats.heard],
   };
 }
 

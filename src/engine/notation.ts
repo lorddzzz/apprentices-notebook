@@ -30,6 +30,8 @@ import {
  *           ^ hot, # etched (after a brass unit, or on a brass plate `=^#`)
  *   layers  o oil, i ink puddle, ~ steam, * fire (implies oil), = brass plate (alone, permanent: rune-raised plates crumble), @ steam vent
  *           $ stained oil (implies oil), s scalding steam (implies steam)
+ *           w + arrow water lane flowing that way (`w>`, `wv`; the arrow is part of the layer),
+ *           h grate (on water only), g wooden lock gate (alone), l lamp
  *
  * Lattice cell = `.` empty socket, `x` hole, or a rune token (`Bolt`, `Ink`, `OnInked`, `Amp`…)
  * with an arrow suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend).
@@ -74,6 +76,10 @@ export function emptyTile(): Tile {
     heat: 0,
     etched: false,
     scald: false,
+    water: null,
+    grate: false,
+    gate: false,
+    lamp: false,
   };
 }
 
@@ -85,6 +91,9 @@ export function parseLabel(text: string): Coord {
 }
 
 // ── Board ───────────────────────────────────────────────
+
+const ARROW_CHARS: Record<string, Dir> = { '>': 'right', '<': 'left', '^': 'up', v: 'down' };
+const ARROW_SUFFIX: Record<Dir, string> = { right: '>', left: '<', up: '^', down: 'v' };
 
 function unitFor(ch: string): { kind: 'member' | 'enemy'; def: MemberId | EnemyId } | null {
   for (const id of MEMBER_IDS) if (MEMBERS[id].token === ch) return { kind: 'member', def: id };
@@ -109,7 +118,8 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
   let layers = 0;
   let hot = false;
   let etched = false;
-  for (const ch of chars) {
+  for (let k = 0; k < chars.length; k++) {
+    const ch = chars[k] as string;
     switch (ch) {
       case '!':
       case '&':
@@ -152,6 +162,22 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
       case '@':
         tile.vent = true;
         break;
+      case 'w': {
+        const dir = ARROW_CHARS[chars[k + 1] ?? ''];
+        if (!dir) throw new Error(`Water needs an arrow in cell ${where} ("${token}")`);
+        tile.water = dir;
+        k++;
+        break;
+      }
+      case 'h':
+        tile.grate = true;
+        break;
+      case 'g':
+        tile.gate = true;
+        break;
+      case 'l':
+        tile.lamp = true;
+        break;
       default:
         throw new Error(`Unknown character "${ch}" in cell ${where} ("${token}")`);
     }
@@ -173,6 +199,15 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
       tile.heat = hot ? TUNING.heatRounds : 0;
       tile.etched = etched;
     }
+  }
+  if (tile.grate && !tile.water)
+    throw new Error(`A grate needs water in cell ${where} ("${token}")`);
+  if (tile.grate && unit)
+    throw new Error(`A unit cannot stand on a grate in cell ${where} ("${token}")`);
+  if (tile.gate) {
+    if (unit) throw new Error(`A unit cannot stand on a lock gate in cell ${where} ("${token}")`);
+    if (layers > 1)
+      throw new Error(`A lock gate cannot share a tile in cell ${where} ("${token}")`);
   }
   if (tile.plate) {
     if (unit) throw new Error(`A unit cannot stand on a brass plate in cell ${where} ("${token}")`);
@@ -225,6 +260,8 @@ function unitToken(u: BoardUnit): string {
 
 function layerToken(t: Tile): string {
   return (
+    (t.water ? `w${ARROW_SUFFIX[t.water]}` : '') +
+    (t.grate ? 'h' : '') +
     (t.oil && t.fire === 0 ? (t.stain ? '$' : 'o') : '') +
     (t.ink ? 'i' : '') +
     (t.steam > 0 ? (t.scald ? 's' : '~') : '') +
@@ -232,7 +269,9 @@ function layerToken(t: Tile): string {
     (t.plate ? '=' : '') +
     (t.plate && t.heat > 0 ? '^' : '') +
     (t.plate && t.etched ? '#' : '') +
-    (t.vent ? '@' : '')
+    (t.vent ? '@' : '') +
+    (t.gate ? 'g' : '') +
+    (t.lamp ? 'l' : '')
   );
 }
 
@@ -248,7 +287,7 @@ function padRows(grid: string[][]): string {
     .join('\n');
 }
 
-/** Canonical form: unit, mods (! & % ^ #), layers in order o/$ i ~/s * = ^ # @; columns padded to equal width. */
+/** Canonical form: unit, mods (! & % ^ #), layers in order w? h o/$ i ~/s * = ^ # @ g l; columns padded to equal width. */
 export function serializeBoard(spec: BoardSpec): string {
   const grid: string[][] = [];
   for (let y = 0; y < spec.height; y++) {
@@ -265,9 +304,6 @@ export function serializeBoard(spec: BoardSpec): string {
 }
 
 // ── Lattice ─────────────────────────────────────────────
-
-const ARROW_CHARS: Record<string, Dir> = { '>': 'right', '<': 'left', '^': 'up', v: 'down' };
-const ARROW_SUFFIX: Record<Dir, string> = { right: '>', left: '<', up: '^', down: 'v' };
 
 function runeByToken(token: string): RuneId | null {
   return RUNE_IDS.find((id) => RUNES[id].token === token) ?? null;

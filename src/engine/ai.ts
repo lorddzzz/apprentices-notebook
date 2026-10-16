@@ -1,5 +1,6 @@
 import { ATTACKS, ENEMIES, MEMBER_IDS } from '$data';
 import { type Ctx, emit, ref } from './ctx';
+import { foeAct } from './foes';
 import { byReadingOrder, type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
 import { enemyWalk } from './movement';
 import { distanceField, isAlive, members, reachable, travel, unitAt } from './queries';
@@ -105,6 +106,9 @@ function idle(ctx: Ctx, e: EnemyUnit): void {
 function act(ctx: Ctx, e: EnemyUnit, move: boolean, order: number): boolean {
   const def = ENEMIES[e.def];
   const attack = def.attack;
+  if (def.ai === 'lurker' || def.ai === 'moth' || def.ai === 'mother') {
+    return foeAct(ctx, e, move, order);
+  }
   const target = nearestMember(ctx.s, e);
   if (def.ai === 'idle' || !attack || !target) {
     idle(ctx, e);
@@ -128,11 +132,12 @@ function act(ctx: Ctx, e: EnemyUnit, move: boolean, order: number): boolean {
     idle(ctx, e);
     return false;
   }
-  e.intent = { attack, dir, order };
+  const intent = { kind: 'attack', attack, dir, order } as const;
+  e.intent = intent;
   emit(ctx, {
     type: 'telegraph',
     unit: ref(e),
-    intent: { ...e.intent },
+    intent: { ...intent },
     verb: ATTACKS[attack].verb,
   });
   return true;

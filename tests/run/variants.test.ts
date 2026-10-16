@@ -83,7 +83,7 @@ describe('encounter 1 telegraphs on turn 1', () => {
       (u): u is EnemyUnit =>
         u.kind === 'enemy' &&
         u.hp > 0 &&
-        u.intent !== null &&
+        u.intent?.kind === 'attack' &&
         unitAt(state, step(u.pos, u.intent.dir))?.kind === 'member',
     );
     expect(threats.length).toBeGreaterThanOrEqual(1);

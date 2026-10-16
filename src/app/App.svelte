@@ -10,7 +10,9 @@
   import Gallery from '../ui/screens/Gallery.svelte';
   import Lab from '../ui/screens/Lab.svelte';
   import Loot from '../ui/screens/Loot.svelte';
+  import CityMap from '../ui/screens/Map.svelte';
   import Study from '../ui/screens/Study.svelte';
+  import Threshold from '../ui/screens/Threshold.svelte';
   import TripPage from '../ui/screens/TripPage.svelte';
   import Wiped from '../ui/screens/Wiped.svelte';
   import { BUILD } from './build';
@@ -58,6 +60,10 @@
     <Wiped />
   {:else if resolved.screen === 'tripPage'}
     <TripPage />
+  {:else if resolved.screen === 'map'}
+    <CityMap />
+  {:else if resolved.screen === 'threshold'}
+    <Threshold />
   {/if}
   <Toasts />
   <span class="build">{BUILD}</span>

@@ -344,6 +344,7 @@ test('returning home keeps the recap; the next trip clears it', () => {
   const home = goHome({ ...won.save, trip });
   expect(home.trip).toBeNull();
   expect(home.lastTrip).toEqual({
+    district: 'seam',
     outcome: 'returned',
     encounter: 0,
     place: placeOf(trip),
@@ -366,6 +367,7 @@ test('the store: Return home leaves the recap in the save, and leaving the page 
 
 test('resolveScreen: the trip page shows the last trip, from home or from a wipe', () => {
   const recap = {
+    district: 'seam' as const,
     outcome: 'returned' as const,
     encounter: 1,
     place: 'The scullery',
@@ -396,7 +398,7 @@ test('highlights: discovery first, a chain of 3+, and a chain of 2 is left out',
     biggestChain: { member: 'stoker' as const, spell: '1,0', name: 'Spark', reactions: 4 },
   };
   const hs = tripHighlights(
-    { outcome: 'returned', encounter: 0, place: 'The coal chute', stats },
+    { district: 'seam', outcome: 'returned', encounter: 0, place: 'The coal chute', stats },
     save0().profile,
   );
   expect(hs.map((h) => h.kind)).toEqual(['discovery', 'chain']);
@@ -409,7 +411,7 @@ test('highlights: discovery first, a chain of 3+, and a chain of 2 is left out',
   };
   expect(
     tripHighlights(
-      { outcome: 'wiped', encounter: 0, place: 'The coal chute', stats: small },
+      { district: 'seam', outcome: 'wiped', encounter: 0, place: 'The coal chute', stats: small },
       save0().profile,
     ),
   ).toEqual([]);
@@ -435,7 +437,13 @@ test('nearProof finds a pattern cast 3 or 4 times, and not one at 5 or at 2', ()
   expect(nearProof(withCasts(2))).toBeNull();
   expect(nearProof(withCasts(5))).toBeNull();
   const hs = tripHighlights(
-    { outcome: 'returned', encounter: 0, place: 'The coal chute', stats: tripAt('fight').stats },
+    {
+      district: 'seam',
+      outcome: 'returned',
+      encounter: 0,
+      place: 'The coal chute',
+      stats: tripAt('fight').stats,
+    },
     withCasts(3),
   );
   expect(hs.map((h) => h.kind)).toEqual(['proof']);

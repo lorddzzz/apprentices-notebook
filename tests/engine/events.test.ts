@@ -6,7 +6,7 @@ const draughtsman: UnitRef = { id: 'draughtsman', name: 'Draughtsman', at: at(0,
 const stoker: UnitRef = { id: 'stoker', name: 'Stoker', at: at(4, 6), member: true };
 const rat: UnitRef = { id: 'rat-1', name: 'rat', at: at(2, 1), member: false };
 const sentry: UnitRef = { id: 'sentry-1', name: 'sentry', at: at(0, 0), member: false };
-const intent = { attack: 'line', dir: 'right', order: 1 } as const;
+const intent = { kind: 'attack', attack: 'line', dir: 'right', order: 1 } as const;
 
 const fixtures: [GameEvent, string][] = [
   [{ type: 'battleStart', title: 'Three rats' }, 'Encounter: Three rats'],

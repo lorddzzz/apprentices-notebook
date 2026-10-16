@@ -1,8 +1,8 @@
 <script lang="ts">
   import { MEMBER_IDS, MEMBERS, SCENARIOS } from '$data';
-  import { compileLattice } from '$engine';
+  import { compileLattice, openAll } from '$engine';
   import { IDLE } from '../../app/battleInput';
-  import { lab } from '../../app/instance';
+  import { game, lab } from '../../app/instance';
   import { labLocation, PALETTE } from '../../app/lab';
   import { overlayFor } from '../../app/overlay';
   import { go, router } from '../../app/router.svelte';
@@ -57,6 +57,12 @@
   );
   const lattice = $derived(lab.lattices[lab.member]);
   const compiled = $derived(compileLattice(lattice, MEMBERS[lab.member].affinity));
+  // Dev builds and `?dev` get the city shortcuts (K-24).
+  const devTools = $derived(
+    import.meta.env.DEV ||
+      router.params.has('dev') ||
+      new URLSearchParams(window.location.search).has('dev'),
+  );
 </script>
 
 <div class="lab" data-testid="lab">
@@ -141,6 +147,14 @@
         <Button variant="quiet" label="Copy board" onclick={() => run(() => void lab.copy('board'))} testid="copy-board" />
         <Button variant="quiet" label="Copy lattices" onclick={() => run(() => void lab.copy('lattices'))} testid="copy-lattices" />
         <Button variant="quiet" label="Copy as scenario" onclick={() => run(() => void lab.copy('scenario'))} testid="copy-scenario" />
+        {#if devTools}
+          <Button
+            variant="quiet"
+            label="Open every district"
+            onclick={() => run(() => void game.updateProfile(openAll))}
+            testid="open-all"
+          />
+        {/if}
         <a class="link" href={href('gallery', { part: 'board' })}>Gallery</a>
         <a class="link" href={href('study')}>Study</a>
       </div>

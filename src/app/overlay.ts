@@ -110,7 +110,8 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
   const intentState = preview?.result.state ?? s;
   const intents: IntentDraw[] = [];
   for (const u of intentState.units) {
-    if (u.kind !== 'enemy' || u.hp <= 0 || !u.intent) continue;
+    // Summon and flare marks are U1's (K-17).
+    if (u.kind !== 'enemy' || u.hp <= 0 || u.intent?.kind !== 'attack') continue;
     const p = intentPreview(intentState, u);
     if (!p) continue;
     const end = p.path.at(-1);

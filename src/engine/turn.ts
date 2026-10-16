@@ -2,7 +2,9 @@ import { ATTACKS, TUNING } from '$data';
 import { enemyPhase } from './ai';
 import { runEchoes } from './cast';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
+import { burnGates, drift } from './current';
 import { burn, dealDamage } from './damage';
+import { resolveSpecial, snuffStep } from './foes';
 import { byReadingOrder, type Coord, neighbors4, step } from './grid';
 import { applyInk, heatNearFire, scaldInSteam } from './materials';
 import { enemies, isAlive, livingUnits, members, tileAt, travel, unitAt } from './queries';
@@ -17,6 +19,10 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   const intent = e.intent;
   if (!intent) return;
   e.intent = null;
+  if (intent.kind !== 'attack') {
+    resolveSpecial(ctx, e);
+    return;
+  }
   const att = ATTACKS[intent.attack];
   emit(ctx, { type: 'attack', unit: ref(e), intent: { ...intent }, verbs: att.verbs });
   if (att.kind === 'adjacent') {
@@ -89,9 +95,13 @@ function coolBrass(ctx: Ctx): void {
     emit(ctx, { type: 'cooled', tiles, units: units.map((u) => ref(u)) });
 }
 
-/** Fire burns, hot brass scalds, then heat, fire and steam age, then vents refill. */
+/**
+ * The current drifts, fire burns, gates catch, hot brass scalds, then heat, fire and steam age,
+ * vents refill, and snuffers put fire out.
+ */
 function hazards(ctx: Ctx): void {
   const s = ctx.s;
+  drift(ctx);
   // Brass that came to rest beside burning oil since the ignition catches the heat now.
   heatNearFire(
     ctx,
@@ -102,6 +112,7 @@ function hazards(ctx: Ctx): void {
     .filter((u) => tileAt(s, u.pos).fire > 0)
     .sort((a, b) => byReadingOrder(a.pos, b.pos));
   for (const u of onFire) if (isAlive(u)) burn(ctx, u);
+  burnGates(ctx);
   scaldFromHeat(ctx);
   scaldInSteam(ctx);
   coolBrass(ctx);
@@ -141,6 +152,7 @@ function hazards(ctx: Ctx): void {
       emit(ctx, { type: 'extinguish', tiles: [at] });
     }
   });
+  snuffStep(ctx);
 }
 
 /** Legality (player phase) is checked by `isLegal` before this runs. */

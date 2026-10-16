@@ -36,7 +36,7 @@
   const intents = $derived<IntentDraw[]>(
     minimal
       ? living.flatMap((u) =>
-          u.intent
+          u.intent?.kind === 'attack'
             ? [
                 {
                   from: u.pos,

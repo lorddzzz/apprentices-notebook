@@ -1,0 +1,141 @@
+{
+  "version": 5,
+  "data": {
+    "profile": {
+      "collection": {
+        "bolt": 2,
+        "splash": 0,
+        "ward": 1,
+        "ink": 2,
+        "oil": 1,
+        "spark": 2,
+        "steam": 0,
+        "brass": 0,
+        "bend": 2,
+        "fork": 1,
+        "onInked": 0,
+        "onKill": 0,
+        "amplify": 0,
+        "echo": 0,
+        "quill": 0,
+        "smear": 0,
+        "torch": 0,
+        "fog": 0,
+        "mist": 0,
+        "brand": 0,
+        "pierce": 0,
+        "onIgnite": 0,
+        "thrift": 0,
+        "scald": 0,
+        "etch": 0,
+        "kiln": 0
+      },
+      "inkCapacity": {
+        "draughtsman": 8,
+        "stoker": 8
+      },
+      "lattices": {
+        "draughtsman": [
+          {
+            "at": {
+              "x": 0,
+              "y": 1
+            },
+            "rune": "bolt",
+            "dir": "right"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "ink"
+          }
+        ],
+        "stoker": [
+          {
+            "at": {
+              "x": 1,
+              "y": 0
+            },
+            "rune": "bolt",
+            "dir": "down"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "spark"
+          }
+        ]
+      },
+      "interactions": [],
+      "solvents": {
+        "chalk": 0,
+        "gallnut": 0,
+        "pitch": 0,
+        "cinder": 0,
+        "quicksilver": 0,
+        "fogJar": 0,
+        "rivet": 0,
+        "wax": 0
+      },
+      "vellum": 0,
+      "bench": {
+        "trials": [],
+        "known": []
+      },
+      "glyphs": [],
+      "proof": {
+        "draughtsman": [],
+        "stoker": []
+      },
+      "idioms": [],
+      "glyphArchive": [],
+      "glyphRecords": {},
+      "drafts": [],
+      "city": {
+        "heard": ["seam", "canals"],
+        "open": ["seam", "canals"],
+        "hearts": [],
+        "solved": [],
+        "trips": 3,
+        "fresh": []
+      }
+    },
+    "trip": {
+      "district": "canals",
+      "seed": 1234,
+      "encounter": 1,
+      "status": "fight",
+      "hp": {
+        "draughtsman": 6,
+        "stoker": 8
+      },
+      "charges": {
+        "draughtsman": {
+          "0,1": 5
+        },
+        "stoker": {
+          "1,0": 5
+        }
+      },
+      "loot": [],
+      "offers": [],
+      "picksLeft": 0,
+      "actions": [],
+      "stats": {
+        "fights": 0,
+        "spells": [],
+        "biggestChain": null,
+        "discoveries": [],
+        "proofCasts": 0,
+        "elegance": [],
+        "heard": []
+      }
+    },
+    "seedCounter": 4,
+    "lastTrip": null
+  }
+}

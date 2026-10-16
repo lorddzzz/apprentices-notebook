@@ -1,3 +1,4 @@
+import { objectiveMet } from './city';
 import type { GameEvent, UnitRef } from './events';
 import type { Coord } from './grid';
 import { enemies, isAlive, members } from './queries';
@@ -37,10 +38,11 @@ export function ref(u: Unit, at: Coord = u.pos): UnitRef {
   return { id: u.id, name: u.name, at: { ...at }, member: u.kind === 'member' };
 }
 
-/** Ends the battle when one side is gone. Returns true if the battle is (now) over. */
+/** Ends the battle when one side is gone (or the objective is met). Returns true if it is (now) over. */
 export function checkEnd(ctx: Ctx): boolean {
   if (ctx.s.phase !== 'player') return true;
-  if (!enemies(ctx.s).some(isAlive)) {
+  // A threshold room is won by its objective, never by an empty board (K-22).
+  if (ctx.s.objective ? objectiveMet(ctx.s, ctx.log) : !enemies(ctx.s).some(isAlive)) {
     ctx.s.phase = 'won';
     emit(ctx, { type: 'won' });
     return true;

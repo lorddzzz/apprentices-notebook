@@ -1,4 +1,14 @@
-export type Route = 'study' | 'trip' | 'trip-page' | 'codex' | 'lab' | 'gallery' | 'bench' | 'desk';
+export type Route =
+  | 'study'
+  | 'trip'
+  | 'trip-page'
+  | 'codex'
+  | 'lab'
+  | 'gallery'
+  | 'bench'
+  | 'desk'
+  | 'map'
+  | 'threshold';
 
 export const ROUTES: readonly Route[] = [
   'study',
@@ -9,6 +19,8 @@ export const ROUTES: readonly Route[] = [
   'gallery',
   'bench',
   'desk',
+  'map',
+  'threshold',
 ];
 
 export interface Location {

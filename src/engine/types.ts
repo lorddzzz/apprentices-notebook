@@ -1,6 +1,8 @@
 import type {
   AttackId,
   AuraRuneId,
+  DistrictId,
+  DraftGoal,
   DraftId,
   EnemyId,
   InteractionId,
@@ -162,13 +164,27 @@ export interface Tile {
   etched: boolean;
   /** The steam here is Scald's: it scalds whoever stands in it at the burn step (plan S7). Fades with the steam. */
   scald: boolean;
+  /** A water lane tile and its downstream direction (K-6); null on land. */
+  water: Dir | null;
+  /** On water: floats pass, units, movement and projectiles don't (K-10). */
+  grate: boolean;
+  /** A wooden lock gate: blocks like a plate, burns from adjacent fire (K-11). */
+  gate: boolean;
+  /** A lamp on a pole, where the lamp-mother calls moths (K-17). */
+  lamp: boolean;
 }
 /** `dir` is from the enemy's CURRENT position at resolve time. */
-export interface Intent {
+export interface AttackIntent {
+  kind: 'attack';
   attack: AttackId;
   dir: Dir;
   order: number;
 }
+/** A boss's special intents (K-17): call a moth at a lamp, or flare every moth. */
+export type SpecialIntent =
+  | { kind: 'summon'; at: Coord; order: number }
+  | { kind: 'flare'; order: number };
+export type Intent = AttackIntent | SpecialIntent;
 export type Aim =
   | { kind: 'dir'; dir: Dir } // Bolt
   | { kind: 'tile'; at: Coord } // Splash
@@ -231,6 +247,8 @@ export interface BattleState {
   discovered: InteractionId[]; // interactions seen in this battle (dedup, first-seen order)
   rngState: number;
   lab: boolean; // charges are not spent
+  /** A threshold room's goal (K-22): won when met, never by clearing the board. */
+  objective?: DraftGoal;
 }
 
 export type Action =
@@ -257,6 +275,7 @@ export interface BattleSpec {
   hp?: Readonly<Record<string, number>>; // by label, any unit
   intents?: Readonly<Record<string, Dir>>; // by label; if given, round-1 AI telegraph is skipped, unlisted enemies idle
   lab?: boolean;
+  objective?: DraftGoal;
 }
 
 // ── Run layer ───────────────────────────────────────────
@@ -266,7 +285,8 @@ export type LootItem =
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number }
   | { kind: 'doorway' } // never banked: picking it opens field rewiring (plan S11)
-  | { kind: 'draft'; draft: DraftId }; // an owner's draft, banked into `Profile.drafts` (M30)
+  | { kind: 'draft'; draft: DraftId } // an owner's draft, banked into `Profile.drafts` (M30)
+  | { kind: 'key'; district: DistrictId }; // opens `district` when banked (K-23)
 
 /** One cell that fired in a cast (proof masks; plan P7). `at` is the lattice cell. */
 export interface FiredCell {
@@ -296,6 +316,17 @@ export interface Profile {
   glyphRecords: Record<string, GlyphRecord>;
   /** Banked owner's drafts and their working copies (M34). */
   drafts: DraftCopy[];
+  city: CityState;
+}
+
+/** The map's ladder (K-19): heard ⊇ open ⊇ hearts. */
+export interface CityState {
+  heard: DistrictId[];
+  open: DistrictId[];
+  hearts: DistrictId[]; // heart cleared at least once
+  solved: DistrictId[]; // threshold room solved
+  trips: number; // finished trips (returned or wiped)
+  fresh: DistrictId[]; // heard since the map was last opened (drawn in new ink)
 }
 
 // ── Mastery (records, tiers, drafts) ────────────────────
@@ -351,9 +382,11 @@ export interface TripStats {
   discoveries: string[]; // codex ids first found on this trip, in order ('interaction:ignite', 'idiom:bonfire')
   proofCasts: number; // meaningful casts recorded toward proof
   elegance: TierUp[]; // tier-ups in the order they landed (M16)
+  heard: DistrictId[]; // districts heard of on this trip (K-20)
 }
 /** The last finished trip, kept for the trip page (plan S17) until the next trip starts. */
 export interface TripRecap {
+  district: DistrictId;
   outcome: 'returned' | 'wiped';
   encounter: number; // the deepest encounter index reached
   place: string; // that room's name (its layout's place name)
@@ -362,8 +395,9 @@ export interface TripRecap {
 /** doorway: rewiring in the field after picking a quiet doorway (plan S11). */
 export type TripStatus = 'fight' | 'looting' | 'crossroads' | 'cleared' | 'doorway';
 export interface Trip {
+  district: DistrictId;
   seed: number;
-  encounter: number; // index into ENCOUNTERS of the current/next fight
+  encounter: number; // index into `encountersOf(district)` of the current/next fight
   /** fight: go fight `encounter`; looting: pick from offers; crossroads: push or return; cleared: heart won, must return */
   status: TripStatus;
   hp: Record<MemberId, number>;

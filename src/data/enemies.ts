@@ -1,6 +1,15 @@
 import type { AttackDef, AttackId, EnemyDef, EnemyId } from './types';
 
-export const ENEMY_IDS: readonly EnemyId[] = ['rat', 'sentry', 'familiar', 'dummy'];
+export const ENEMY_IDS: readonly EnemyId[] = [
+  'rat',
+  'sentry',
+  'familiar',
+  'dummy',
+  'eel',
+  'snuffer',
+  'moth',
+  'mother',
+];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
   bite: {
@@ -33,7 +42,47 @@ export const ATTACKS: Record<AttackId, AttackDef> = {
     damage: 1,
     inks: true,
   },
+  lunge: {
+    id: 'lunge',
+    name: 'Lunge',
+    verb: 'lunge',
+    verbs: 'lunges',
+    kind: 'adjacent',
+    range: 1,
+    damage: 2,
+    inks: false,
+  },
+  pole: {
+    id: 'pole',
+    name: 'Pole',
+    verb: 'swing its pole',
+    verbs: 'swings its pole',
+    kind: 'adjacent',
+    range: 1,
+    damage: 1,
+    inks: false,
+  },
+  burst: {
+    id: 'burst',
+    name: 'Burst',
+    verb: 'burst',
+    verbs: 'bursts',
+    kind: 'adjacent',
+    range: 1,
+    damage: 1,
+    inks: false,
+  },
 };
+
+/** The K-13 trait defaults: a plain land-or-water foe. */
+const PLAIN = {
+  habitat: 'any',
+  flies: false,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+} as const;
 
 export const ENEMIES: Record<EnemyId, EnemyDef> = {
   rat: {
@@ -48,6 +97,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     oilSoaked: true,
     oilTrail: true,
     blurb: 'Oil-soaked and quick. Leaves a slick trail wherever it runs.',
+    ...PLAIN,
   },
   sentry: {
     id: 'sentry',
@@ -61,6 +111,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     oilSoaked: false,
     oilTrail: false,
     blurb: 'A brass automaton. Fires straight lines and conducts sparks.',
+    ...PLAIN,
   },
   familiar: {
     id: 'familiar',
@@ -74,6 +125,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     oilSoaked: false,
     oilTrail: false,
     blurb: "A previous owner's leftover spirit. Spits ink at short range.",
+    ...PLAIN,
   },
   dummy: {
     id: 'dummy',
@@ -87,5 +139,70 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     oilSoaked: false,
     oilTrail: false,
     blurb: 'A training dummy. Lab and tests only.',
+    ...PLAIN,
+  },
+  eel: {
+    id: 'eel',
+    name: 'eel',
+    token: 'e',
+    hp: 3,
+    move: 4,
+    attack: 'lunge',
+    ai: 'lurker',
+    brass: false,
+    oilSoaked: false,
+    oilTrail: false,
+    blurb: 'A canal eel. Swims the lanes and lunges at whoever stands beside the water.',
+    ...PLAIN,
+    habitat: 'water',
+  },
+  snuffer: {
+    id: 'snuffer',
+    name: 'snuffer',
+    token: 'n',
+    hp: 4,
+    move: 1,
+    attack: 'pole',
+    ai: 'chaser',
+    brass: false,
+    oilSoaked: false,
+    oilTrail: false,
+    blurb: 'A Lamplighter warden. Puts out every fire around it, oil and all.',
+    ...PLAIN,
+    snuffs: true,
+  },
+  moth: {
+    id: 'moth',
+    name: 'lamp-moth',
+    token: 'm',
+    hp: 1,
+    move: 3,
+    attack: 'burst',
+    ai: 'moth',
+    brass: false,
+    oilSoaked: false,
+    oilTrail: false,
+    blurb: 'Flies to fire. Bursts into flame beside you, or when it dies.',
+    ...PLAIN,
+    flies: true,
+    bursts: true,
+  },
+  mother: {
+    id: 'mother',
+    name: 'lamp-mother',
+    token: 'M',
+    hp: 14,
+    move: 0,
+    attack: null,
+    ai: 'mother',
+    brass: false,
+    oilSoaked: false,
+    oilTrail: false,
+    blurb: 'A great lantern floating mid-pool. Calls moths from the lamps and flares them all.',
+    ...PLAIN,
+    habitat: 'water',
+    anchored: true,
+    snuffs: true,
+    boss: true,
   },
 };

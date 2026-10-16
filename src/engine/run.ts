@@ -2,9 +2,12 @@ import {
   type Aspect,
   CODEX,
   type CodexEntryDef,
+  DISTRICT_IDS,
+  DISTRICTS,
+  type DistrictId,
   DRAFT_IDS,
   type DraftId,
-  ENCOUNTERS,
+  encountersOf,
   IDIOMS,
   INTERACTION_IDS,
   type InteractionId,
@@ -24,6 +27,7 @@ import {
   TUNING,
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
+import { bankKeys, canReturn, cityDefaults, hearAfterTrip, hearFromBattle, keyOffer } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
 import { bankDrafts, nextDraft } from './drafts';
 import type { EventLog } from './events';
@@ -109,6 +113,7 @@ export function newProfile(): Profile {
     interactions: [],
     ...researchDefaults(),
     ...masteryDefaults(),
+    city: cityDefaults(),
   };
 }
 
@@ -300,12 +305,14 @@ function need(t: Trip, ...allowed: TripStatus[]): void {
   }
 }
 
-/** A new trip with full HP and full charges. Throws if the loadout has issues. */
-export function startTrip(p: Profile, seed: number): Trip {
+/** A new trip into an open district with full HP and full charges. Throws if the loadout has issues. */
+export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam'): Trip {
   const issues = validateLoadout(p);
   const first = Object.values(issues)[0]?.[0];
   if (first) throw new Error(`Loadout is not ready: ${first.message}`);
+  if (!p.city.open.includes(district)) throw new Error(`${DISTRICTS[district].name} is not open`);
   return {
+    district,
     seed,
     encounter: 0,
     status: 'fight',
@@ -321,14 +328,19 @@ export function startTrip(p: Profile, seed: number): Trip {
 
 /** Which of the encounter's layouts this trip plays (plan S10): derived from the seed, never stored. */
 export function variantFor(t: Trip, encounter: number): number {
-  const count = ENCOUNTERS[encounter]?.variants.length ?? 1;
-  return createRng(deriveSeed(t.seed, 2000 + encounter)).int(0, count - 1);
+  const count = encountersOf(t.district)[encounter]?.variants.length ?? 1;
+  // The Seam keeps its original salt so old trips replay the same rooms (K-2).
+  const salt =
+    t.district === 'seam'
+      ? 2000 + encounter
+      : 3000 + 100 * DISTRICT_IDS.indexOf(t.district) + encounter;
+  return createRng(deriveSeed(t.seed, salt)).int(0, count - 1);
 }
 
 /** The name of the room this trip fights in at `encounter` (its layout's place name). */
 export function placeOf(t: Trip, encounter = t.encounter): string {
-  const enc = ENCOUNTERS[encounter];
-  return enc?.variants[variantFor(t, encounter)]?.name ?? enc?.title ?? 'The Seam';
+  const enc = encountersOf(t.district)[encounter];
+  return enc?.variants[variantFor(t, encounter)]?.name ?? enc?.title ?? DISTRICTS[t.district].name;
 }
 
 /**
@@ -337,7 +349,7 @@ export function placeOf(t: Trip, encounter = t.encounter): string {
  */
 export function beginEncounter(p: Profile, t: Trip): ActionResult {
   need(t, 'fight');
-  const enc = ENCOUNTERS[t.encounter];
+  const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
   const party: Partial<Record<MemberId, PartyInit>> = {};
   for (const m of MEMBER_IDS) {
@@ -373,6 +385,7 @@ export function recordAction(t: Trip, action: Action): Trip {
 /**
  * Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed.
  * A table's `draft` entry offers `draft` (from `nextDraft`); with none due it is left out of the pool.
+ * A `key` (from `keyOffer`, K-23) joins the end of the pool with its weight.
  */
 export function rollOffers(
   tripSeed: number,
@@ -380,11 +393,13 @@ export function rollOffers(
   table: LootTableId,
   members: readonly MemberId[] = MEMBER_IDS,
   draft: DraftId | null = null,
+  key: { district: DistrictId; weight: number } | null = null,
 ): LootItem[] {
   const rng = createRng(deriveSeed(tripSeed, 1000 + encounter));
   const pool: LootEntry[] = LOOT_TABLES[table].entries.filter(
     (e) => e.spec.kind !== 'draft' || draft !== null,
   );
+  if (key) pool.push({ spec: { kind: 'key', district: key.district }, weight: key.weight });
   const offers: LootItem[] = [];
   for (let n = 0; n < TUNING.offersPerWin && pool.length > 0; n++) {
     const [entry] = pool.splice(
@@ -402,7 +417,8 @@ export function rollOffers(
     else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
     else if (spec.kind === 'draft') {
       if (draft !== null) offers.push({ kind: 'draft', draft });
-    } else {
+    } else if (spec.kind === 'key') offers.push({ kind: 'key', district: spec.district });
+    else {
       const member = members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
       offers.push({ kind: 'ink', member, amount: TUNING.inkReserve });
     }
@@ -433,7 +449,7 @@ export function finishEncounter(
   const profile: Profile = { ...p, interactions };
   if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
 
-  const enc = ENCOUNTERS[t.encounter];
+  const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
   const trip: Trip = {
     ...t,
@@ -441,7 +457,14 @@ export function finishEncounter(
     hp: perMember((m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
     charges: perMember((m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
-    offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS, nextDraft(p, t, enc.loot)),
+    offers: rollOffers(
+      t.seed,
+      t.encounter,
+      enc.loot,
+      MEMBER_IDS,
+      nextDraft(p, t, enc.loot),
+      keyOffer(p, t, enc.loot),
+    ),
     picksLeft: enc.picks,
     actions: [],
     stats,
@@ -463,9 +486,20 @@ export function closeBattle(
   const recorded = recordTripCasts(p, t);
   const r = finishEncounter(recorded, t, b, log, p);
   const ups = tierUps(p, recorded);
-  if (ups.length === 0) return r;
-  const stats: TripStats = { ...r.stats, elegance: [...r.stats.elegance, ...ups] };
-  return { ...r, stats, trip: r.trip ? { ...r.trip, stats } : null };
+  // Hearing is kept on a wipe (K-20): owner conditions on this log, then rumours if the trip ended.
+  const owner = hearFromBattle(r.profile, t, log);
+  const after =
+    r.outcome === 'wiped'
+      ? hearAfterTrip(owner.profile, t, 'wiped')
+      : { profile: owner.profile, heard: [] };
+  const heard = [...owner.heard, ...after.heard];
+  if (ups.length === 0 && heard.length === 0 && after.profile === r.profile) return r;
+  const stats: TripStats = {
+    ...r.stats,
+    elegance: [...r.stats.elegance, ...ups],
+    heard: [...r.stats.heard, ...heard],
+  };
+  return { ...r, profile: after.profile, stats, trip: r.trip ? { ...r.trip, stats } : null };
 }
 
 /** Takes offer `index` into the pending loot. After the last pick the trip moves on. */
@@ -476,7 +510,7 @@ export function pickLoot(t: Trip, index: number): Trip {
   const offers = t.offers.filter((_, i) => i !== index);
   const picksLeft = t.picksLeft - 1;
   const done = picksLeft <= 0 || offers.length === 0;
-  const heart = ENCOUNTERS[t.encounter]?.heart ?? false;
+  const heart = encountersOf(t.district)[t.encounter]?.heart ?? false;
   // A doorway costs the pick but is never banked: it opens field rewiring (plan S11).
   const doorway = item.kind === 'doorway';
   return {
@@ -488,16 +522,21 @@ export function pickLoot(t: Trip, index: number): Trip {
   };
 }
 
-/** Deeper into the Seam: the next encounter becomes current. */
+/** Deeper into the district: the next encounter becomes current. */
 export function pushOn(t: Trip): Trip {
   need(t, 'crossroads');
-  if (t.encounter + 1 >= ENCOUNTERS.length) throw new Error('There is nothing deeper');
+  if (t.encounter + 1 >= encountersOf(t.district).length)
+    throw new Error('There is nothing deeper');
   return { ...t, encounter: t.encounter + 1, status: 'fight' };
 }
 
-/** Banks the trip's loot into the profile (drafts go to `Profile.drafts`, M30). */
+/**
+ * Banks the trip's loot into the profile (drafts go to `Profile.drafts`, M30; keys open their
+ * district, K-23), then the trip counts and rumours are heard (K-20). Throws away from a landing (K-4).
+ */
 export function returnHome(p: Profile, t: Trip): Profile {
   need(t, 'crossroads', 'cleared');
+  if (!canReturn(t)) throw new Error('There is no landing here');
   const collection = { ...p.collection };
   const inkCapacity = { ...p.inkCapacity };
   const solvents = { ...p.solvents };
@@ -508,7 +547,11 @@ export function returnHome(p: Profile, t: Trip): Profile {
     else if (item.kind === 'solvent') solvents[item.solvent] += 1;
     else if (item.kind === 'vellum') vellum += item.amount;
   }
-  return bankDrafts({ ...p, collection, inkCapacity, solvents, vellum }, t.loot);
+  const banked = bankKeys(
+    bankDrafts({ ...p, collection, inkCapacity, solvents, vellum }, t.loot),
+    t.loot,
+  );
+  return hearAfterTrip(banked, t, 'returned').profile;
 }
 
 /** What a Source is, for carrying its charges across a rewire: a rune, or a Spell Glyph. */
@@ -687,6 +730,8 @@ function parseLoot(v: unknown): LootItem {
       return { kind: 'doorway' };
     case 'draft':
       return { kind: 'draft', draft: oneOf(DRAFT_IDS, r.draft) };
+    case 'key':
+      return { kind: 'key', district: oneOf(DISTRICT_IDS, r.district) };
     default:
       return bad();
   }
@@ -812,7 +857,28 @@ function parseProfile(v: unknown): Profile {
     glyphArchive,
     glyphRecords,
     drafts,
+    city: parseCity(r.city),
   };
+}
+
+/** heard ⊇ open ⊇ hearts, solved ⊆ heard, fresh ⊆ heard, the Seam always open (K-19). */
+function parseCity(v: unknown): Profile['city'] {
+  const r = record(v);
+  const ids = (x: unknown) => unique(list(x).map((id) => oneOf(DISTRICT_IDS, id)));
+  const city = {
+    heard: ids(r.heard),
+    open: ids(r.open),
+    hearts: ids(r.hearts),
+    solved: ids(r.solved),
+    trips: count(r.trips),
+    fresh: ids(r.fresh),
+  };
+  const heard = new Set(city.heard);
+  if (!city.open.includes('seam')) bad();
+  if (city.open.some((d) => !heard.has(d)) || city.hearts.some((d) => !city.open.includes(d)))
+    bad();
+  if (city.solved.some((d) => !heard.has(d)) || city.fresh.some((d) => !heard.has(d))) bad();
+  return city;
 }
 
 function unique<T>(items: T[]): T[] {
@@ -913,10 +979,13 @@ function parseAction(v: unknown): Action {
 function parseTrip(v: unknown): Trip {
   const r = record(v);
   const encounter = count(r.encounter);
-  const enc = ENCOUNTERS[encounter] ?? bad();
+  const district = oneOf(DISTRICT_IDS, r.district);
+  const rooms = encountersOf(district);
+  const enc = rooms[encounter] ?? bad();
   const hp = record(r.hp);
   const charges = record(r.charges);
   const trip: Trip = {
+    district,
     seed: count(r.seed),
     encounter,
     status: oneOf<TripStatus>(['fight', 'looting', 'crossroads', 'cleared', 'doorway'], r.status),
@@ -933,7 +1002,8 @@ function parseTrip(v: unknown): Trip {
   };
   if (MEMBER_IDS.some((m) => trip.hp[m] < 1)) bad();
   if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
-  if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= ENCOUNTERS.length)) bad();
+  if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= rooms.length)) bad();
+  if ([...trip.loot, ...trip.offers].filter((i) => i.kind === 'key').length > 1) bad();
   if (trip.status === 'cleared' && !enc.heart) bad();
   if (trip.status === 'doorway' && enc.heart) bad();
   // A doorway is never banked and never offered at the heart (plan S11).
@@ -1004,16 +1074,22 @@ function parseStats(v: unknown): TripStats {
     discoveries: list(r.discoveries).map(text),
     proofCasts: count(r.proofCasts),
     elegance: list(r.elegance).map(parseTierUp),
+    heard: unique(list(r.heard).map((id) => oneOf(DISTRICT_IDS, id))),
   };
 }
 
 function parseRecap(v: unknown): TripRecap {
   const r = record(v);
+  const district = oneOf(DISTRICT_IDS, r.district);
   return {
+    district,
     outcome: oneOf<TripRecap['outcome']>(['returned', 'wiped'], r.outcome),
     encounter: count(r.encounter),
     // `place` came after the first v3 saves: fall back to the depth's title.
-    place: typeof r.place === 'string' ? r.place : (ENCOUNTERS[count(r.encounter)]?.title ?? ''),
+    place:
+      typeof r.place === 'string'
+        ? r.place
+        : (encountersOf(district)[count(r.encounter)]?.title ?? ''),
     stats: parseStats(r.stats),
   };
 }

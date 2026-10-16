@@ -23,8 +23,16 @@ export type AuraRuneId = 'amplify' | 'echo' | 'thrift';
 export type RuneId = SourceRuneId | MaterialRuneId | ShapeRuneId | TriggerRuneId | AuraRuneId;
 export type MaterialId = MaterialRuneId; // affinity talks about these
 export type MemberId = 'draughtsman' | 'stoker';
-export type EnemyId = 'rat' | 'sentry' | 'familiar' | 'dummy';
-export type AttackId = 'bite' | 'line' | 'spit';
+export type EnemyId =
+  | 'rat'
+  | 'sentry'
+  | 'familiar'
+  | 'dummy'
+  | 'eel'
+  | 'snuffer'
+  | 'moth'
+  | 'mother';
+export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 export type InteractionId =
   | 'ignite'
   | 'conduct'
@@ -34,7 +42,8 @@ export type InteractionId =
   | 'slide'
   | 'diffuse'
   | 'heat'
-  | 'stain';
+  | 'stain'
+  | 'drift';
 export type Rarity = 'common' | 'uncommon' | 'rare';
 /** The eight properties that tag runes, solvents, recipes and idioms (research grammar). */
 export type Aspect = 'reach' | 'mark' | 'slick' | 'heat' | 'charge' | 'vapor' | 'hold' | 'return';
@@ -123,7 +132,9 @@ export interface AttackDef {
   inks: boolean;
 }
 
-export type EnemyAi = 'chaser' | 'liner' | 'spitter' | 'idle';
+export type EnemyAi = 'chaser' | 'liner' | 'spitter' | 'idle' | 'lurker' | 'moth' | 'mother';
+/** Where a foe may stand (K-13). */
+export type Habitat = 'land' | 'water' | 'any';
 export interface EnemyDef {
   id: EnemyId;
   name: string; // lowercase: 'rat' | 'sentry' | 'familiar' | 'dummy'
@@ -136,6 +147,17 @@ export interface EnemyDef {
   oilSoaked: boolean;
   oilTrail: boolean;
   blurb: string;
+  habitat: Habitat;
+  /** Ignores water, drift and oil slides (K-16). */
+  flies: boolean;
+  /** Never moves and never drifts (K-17). */
+  anchored: boolean;
+  /** Puts out fire and its oil in its 3×3 after the burn step (K-15). */
+  snuffs: boolean;
+  /** Bursts on its intent and on death (K-16). */
+  bursts: boolean;
+  /** Shown by name with an HP bar in the battle header (K-18). */
+  boss: boolean;
 }
 
 export type LootTableId = 'shallow' | 'deep' | 'heart';
@@ -147,7 +169,7 @@ export interface EncounterVariant {
 export interface EncounterDef {
   id: string;
   title: string;
-  depth: number; // 1..4
+  depth: number; // 1-based room index in its district
   layout: string; // = variants[0].layout (the original board)
   variants: readonly EncounterVariant[];
   loot: LootTableId;
@@ -161,7 +183,8 @@ export type LootSpec =
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number }
   | { kind: 'doorway' } // a quiet doorway: rewire in the field (plan S11)
-  | { kind: 'draft' }; // the next owner's draft in story order, when one is due (M30)
+  | { kind: 'draft' } // the next owner's draft in story order, when one is due (M30)
+  | { kind: 'key'; district: DistrictId }; // never in a table: added by `keyOffer` (K-23)
 export interface LootEntry {
   spec: LootSpec;
   weight: number;
@@ -209,7 +232,8 @@ export type DraftEventType =
   | 'smear'
   | 'heated'
   | 'stained'
-  | 'pierced';
+  | 'pierced'
+  | 'gateBurns';
 /** What a draft's test must show, checked on the log and the final state (M32). Unit ids: 'dummy-1'. */
 export type DraftGoal =
   | { all: readonly DraftGoal[] }
@@ -279,4 +303,41 @@ export interface Tuning {
   paramSlots: number; // open cells a Glyph may have (M22)
   paramSlotsGold: number; // at Reliability gold
   revisionCanvasMax: number; // the revision canvas is at most this many cells a side (M18)
+}
+
+// ── The city and its districts (K-1, K-19 to K-23) ─────
+export type DistrictId = 'seam' | 'canals';
+/** How a district is heard of. `owner` ones are read off a battle log, `rumour` ones after a trip (K-20). */
+export type HearCondition = (
+  | { kind: 'ignite'; atLeast: number; district?: DistrictId } // one ignite of ≥ atLeast tiles
+  | { kind: 'discovered'; codex: string } // a codex id: 'interaction:arc'
+  | { kind: 'heart'; district: DistrictId }
+  | { kind: 'trips'; atLeast: number }
+) & { voice: 'owner' | 'rumour' };
+/** A district's threshold room: a puzzle battle with an objective, played from the map (K-22). */
+export interface ThresholdDef {
+  name: string;
+  board: string; // board ASCII, includes D and S
+  goal: DraftGoal;
+  note: string; // the owner's note on the page
+}
+/** How a heard district opens (K-21). */
+export type Gate =
+  | { kind: 'none' } // open from the start
+  | { kind: 'discovery' } // opens on hearing
+  | { kind: 'threshold'; room: ThresholdDef }
+  | { kind: 'key'; from: DistrictId; table: LootTableId; weight: number };
+export interface DistrictDef {
+  id: DistrictId;
+  name: string; // 'The oil-lit canals'
+  material: MaterialRuneId; // what the district is rich in, shown once heard
+  guild: string; // whose quarter it is, shown once heard
+  encounters: readonly EncounterDef[];
+  /** Encounter indices after which the party may return home (K-4). */
+  landings: 'all' | readonly number[];
+  hear: readonly HearCondition[]; // any one is enough; the Seam has none (heard from the start)
+  gate: Gate;
+  map: { x: number; y: number }; // node position on the sketch map, 0..100 of the page
+  line: string; // the owner's line once heard
+  barred: string; // how the way is barred, once heard and not open
 }

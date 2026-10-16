@@ -83,13 +83,13 @@ function v3Save(): string {
   });
 }
 
-test('the current save version is 4', () => {
-  expect(CURRENT_VERSION).toBe(4);
+test('the current save version is 5', () => {
+  expect(CURRENT_VERSION).toBe(5);
 });
 
 test('a v3 save migrates to v4: Glyph versions, empty records, archive and drafts, tally cells', () => {
   const env = parse(v3Save());
-  expect(env.version).toBe(4);
+  expect(env.version).toBe(5);
   const save = parseSaveData(env.data);
   expect(save.profile.glyphs[0]).toMatchObject({
     id: 'g1',
@@ -125,7 +125,8 @@ test('a v3 save with no trip and no last trip migrates too', () => {
 });
 
 test('the glyph mastery fixture is a valid v4 save', () => {
-  expect(parse(fixtureText).version).toBe(4);
+  expect((JSON.parse(fixtureText) as { version: number }).version).toBe(4);
+  expect(parse(fixtureText).version).toBe(5);
   const save = parseSaveText(fixtureText);
   expect(save.profile.glyphs.map((g) => `${g.id}@${g.version}`)).toEqual(['g1@2', 'g2@1', 'g3@1']);
   expect(save.profile.glyphArchive.map((g) => `${g.id}@${g.version}`)).toEqual(['g1@1']);
@@ -145,5 +146,39 @@ test('the glyph mastery fixture is a valid v4 save', () => {
 test('a v4 save round-trips through the save text unchanged', () => {
   const save = parseSaveText(fixtureText);
   expect(parseSaveText(saveText(save))).toEqual(save);
-  expect(JSON.parse(saveText(save))).toEqual(JSON.parse(fixtureText));
+  expect(JSON.parse(saveText(save))).toEqual(parse(fixtureText));
+});
+
+// ── Save v5 (the city, K-5) ──
+
+test('a v4 save migrates to v5: Seam trips and recaps, a Seam-only city', () => {
+  const save = parseSaveText(fixtureText);
+  expect(save.profile.city).toEqual({
+    heard: ['seam'],
+    open: ['seam'],
+    hearts: [],
+    solved: [],
+    trips: 0,
+    fresh: [],
+  });
+  expect(save.lastTrip?.district).toBe('seam');
+  expect(save.lastTrip?.stats.heard).toEqual([]);
+  const v4 = JSON.parse(fixtureText) as { data: Record<string, unknown> };
+  const withTrip = {
+    version: 4,
+    data: { ...v4.data, trip: { ...startTrip(save.profile, 2), district: undefined } },
+  };
+  const trip = parseSaveText(JSON.stringify(withTrip)).trip;
+  expect(trip?.district).toBe('seam');
+  expect(trip?.stats.heard).toEqual([]);
+});
+
+test('the city fixture is a valid v5 save on a canal trip', () => {
+  const text = readFileSync(new URL('../fixtures/city-save.json', import.meta.url), 'utf8');
+  expect((JSON.parse(text) as { version: number }).version).toBe(5);
+  const save = parseSaveText(text);
+  expect(save.profile.city.open).toEqual(['seam', 'canals']);
+  expect(save.trip?.district).toBe('canals');
+  expect(save.trip?.encounter).toBe(1);
+  expect(parseSaveText(saveText(save))).toEqual(save);
 });

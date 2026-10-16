@@ -120,6 +120,11 @@ const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNo
     text: 'Ink landing on oil stains the puddle. A unit that ends a move on a stained tile is inked. Fire burns the stain away with the oil.',
     ownerNote: 'A trap is only a puddle someone forgot to walk around.',
   },
+  drift: {
+    title: 'Drift',
+    text: 'At round end, whatever floats on a water lane moves one tile downstream: oil, fire on oil, ink. Units in the water drift too.',
+    ownerNote: 'Put it in upstream and wait.',
+  },
 };
 
 const INTERACTION_HINTS: Record<InteractionId, string> = {
@@ -132,6 +137,7 @@ const INTERACTION_HINTS: Record<InteractionId, string> = {
   diffuse: 'Ink dropped into a cloud does not stay in one place.',
   heat: 'Warm metal stays warm longer than you would think.',
   stain: 'Ink on a puddle does not stay on the surface.',
+  drift: 'The water does not stay still, and neither does what is on it.',
 };
 
 /** Recipes with a torn solvent get no hint (their torn sentence is the hint). */

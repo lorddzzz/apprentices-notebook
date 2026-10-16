@@ -152,3 +152,31 @@ test('stained oil, scalding steam, hot and etched brass round-trip', () => {
   expect(() => parseCell('r^', { x: 0, y: 0 })).toThrow('Only brass');
   expect(() => parseCell('o#', { x: 0, y: 0 })).toThrow('Only brass');
 });
+
+test('water, grates, gates and lamps (K-6)', () => {
+  const b = 'w> wv w< w^\new^ Mw> h? .\nwvh g l Sl';
+  expect(() => parseBoard(b)).toThrow('Unknown character "?"');
+  const ok = 'w> wv w< w^\new^ Mw> wvo* .\nwvh g l Sl\nD!w> b^ wvi .';
+  expect(tileAt(ok, 0, 0).water).toBe('right');
+  expect(tileAt(ok, 3, 0).water).toBe('up');
+  expect(tileAt(ok, 0, 1).water).toBe('up'); // an eel on water flowing up, not a hot eel
+  expect(parseBoard(ok).units.map((u) => u.def)).toEqual([
+    'eel',
+    'mother',
+    'stoker',
+    'draughtsman',
+    'sentry',
+  ]);
+  expect(tileAt(ok, 2, 1)).toMatchObject({ water: 'down', oil: true, fire: TUNING.fireRounds });
+  expect(tileAt(ok, 0, 2)).toMatchObject({ water: 'down', grate: true });
+  expect(tileAt(ok, 1, 2).gate).toBe(true);
+  expect(tileAt(ok, 2, 2).lamp).toBe(true);
+  expect(parseBoard(ok).units.find((u) => u.def === 'sentry')?.heat).toBeGreaterThan(0);
+  const spec = parseBoard(ok);
+  expect(parseBoard(serializeBoard(spec))).toEqual(spec);
+  expect(() => parseBoard('w')).toThrow('Water needs an arrow');
+  expect(() => parseBoard('h')).toThrow('A grate needs water');
+  expect(() => parseBoard('Dwvh')).toThrow('cannot stand on a grate');
+  expect(() => parseBoard('Dg')).toThrow('cannot stand on a lock gate');
+  expect(() => parseBoard('go')).toThrow('cannot share');
+});

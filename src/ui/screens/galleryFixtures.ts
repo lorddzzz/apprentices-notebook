@@ -29,9 +29,9 @@ export function showcaseView(): BoardView {
     dummy.hp = 9;
   }
   const sentry = by('sentry-1');
-  if (sentry) sentry.intent = { attack: 'line', dir: 'left', order: 1 };
+  if (sentry) sentry.intent = { kind: 'attack', attack: 'line', dir: 'left', order: 1 };
   const rat1 = by('rat-1');
-  if (rat1) rat1.intent = { attack: 'bite', dir: 'left', order: 2 };
+  if (rat1) rat1.intent = { kind: 'attack', attack: 'bite', dir: 'left', order: 2 };
   return v;
 }
 

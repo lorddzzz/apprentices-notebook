@@ -330,7 +330,7 @@
         type="button"
         class="door"
         disabled={blocker !== null}
-        onclick={() => (panel = 'door')}
+        onclick={() => go('map')}
         data-testid="door"
         aria-describedby="door-note"
       >

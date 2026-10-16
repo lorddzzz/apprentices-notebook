@@ -341,7 +341,7 @@ export function intentPreview(
   s: BattleState,
   enemy: EnemyUnit,
 ): { path: Coord[]; hit: Coord | null } | null {
-  if (!enemy.intent || !isAlive(enemy)) return null;
+  if (enemy.intent?.kind !== 'attack' || !isAlive(enemy)) return null;
   const att = ATTACKS[enemy.intent.attack];
   if (att.kind === 'adjacent') {
     const t = step(enemy.pos, enemy.intent.dir);

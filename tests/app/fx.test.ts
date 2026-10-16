@@ -100,7 +100,7 @@ test('attack trails follow the attack range and stop at the edge', () => {
   const sentry: GameEvent = {
     type: 'attack',
     unit: { id: 'sentry-1', name: 'sentry', at: { x: 0, y: 0 }, member: false },
-    intent: { attack: 'line', dir: 'right', order: 1 },
+    intent: { kind: 'attack', attack: 'line', dir: 'right', order: 1 },
     verbs: 'fires',
   };
   const [fx] = fxFor(sentry, board);

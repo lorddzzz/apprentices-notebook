@@ -114,8 +114,14 @@ function telegraphGiven(ctx: Ctx, intents: NonNullable<BattleSpec['intents']>): 
       continue;
     }
     if (!attack) throw new Error(`The ${e.name} at ${g.lbl} has no attack to telegraph`);
-    e.intent = { attack, dir: g.dir, order: ++order };
-    emit(ctx, { type: 'telegraph', unit: ref(e), intent: e.intent, verb: ATTACKS[attack].verb });
+    const intent = { kind: 'attack', attack, dir: g.dir, order: ++order } as const;
+    e.intent = intent;
+    emit(ctx, {
+      type: 'telegraph',
+      unit: ref(e),
+      intent: { ...intent },
+      verb: ATTACKS[attack].verb,
+    });
   }
   for (const { lbl } of given.values()) throw new Error(`Intent for ${lbl}: not an enemy`);
 }
@@ -141,6 +147,7 @@ export function createBattle(spec: BattleSpec): ActionResult {
     discovered: [],
     rngState: spec.seed >>> 0,
     lab: !!spec.lab,
+    ...(spec.objective ? { objective: spec.objective } : {}),
   };
   for (const [lbl, hp] of Object.entries(spec.hp ?? {})) {
     const u = unitAtLabel(state, lbl);

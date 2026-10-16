@@ -1,4 +1,4 @@
-import { type InteractionId, MEMBER_IDS, type MemberId } from '$data';
+import { type DistrictId, type InteractionId, MEMBER_IDS, type MemberId } from '$data';
 import {
   type ActionResult,
   type Cluster,
@@ -178,10 +178,10 @@ export class GameStore {
 
   // ── Trip ──
 
-  /** Leaves the study: the loadout is checked by the engine. Returns why not, or null. */
-  setOut(): string | null {
+  /** Leaves for an open district: the loadout is checked by the engine. Returns why not, or null. */
+  setOut(district: DistrictId = 'seam'): string | null {
     try {
-      this.commit(setOut(this.save));
+      this.commit(setOut(this.save, district));
     } catch (e) {
       return e instanceof Error ? e.message : 'The party cannot set out';
     }

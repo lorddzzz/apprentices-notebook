@@ -242,7 +242,8 @@ export function baseOf(s: BattleState, lattices: Record<MemberId, Lattice>): Lab
   const hp: Record<string, number> = {};
   for (const u of livingUnits(s)) if (u.hp !== defaultHp(u)) hp[label(u.pos)] = u.hp;
   const intents: Record<string, Dir> = {};
-  for (const e of enemies(s)) if (e.hp > 0 && e.intent) intents[label(e.pos)] = e.intent.dir;
+  for (const e of enemies(s))
+    if (e.hp > 0 && e.intent?.kind === 'attack') intents[label(e.pos)] = e.intent.dir;
   return { board: boardOf(s), lattices, hp, intents };
 }
 

@@ -1,5 +1,6 @@
 import { TUNING } from '$data';
 import { type Ctx, emit, ref } from './ctx';
+import { burnGates } from './current';
 import { burn, dealDamage, sparkHit } from './damage';
 import { byReadingOrder, type Coord, key, neighbors4 } from './grid';
 import {
@@ -303,6 +304,7 @@ export function ignite(ctx: Ctx, at: Coord): void {
   emit(ctx, { type: 'ignite', at: { ...at }, tiles: region });
   if (smothered.length) emit(ctx, { type: 'extinguish', tiles: smothered });
   heatNearFire(ctx, region, true);
+  burnGates(ctx);
   for (const t of region) {
     const u = unitAt(s, t);
     if (u) burn(ctx, u);

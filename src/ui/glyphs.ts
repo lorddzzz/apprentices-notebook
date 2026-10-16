@@ -76,6 +76,7 @@ export const INTERACTION_GLYPH: Record<InteractionId, string> = {
   heat: 'M12 9l5.2 3v6L12 21l-5.2-3v-6zM9.5 5.5c-1.5-1.2 1.5-2 0-4M14.5 5.5c-1.5-1.2 1.5-2 0-4',
   stain:
     'M12 3c-2 3-3.2 4.5-3.2 6.2a3.2 3.2 0 0 0 6.4 0C15.2 7.5 14 6 12 3zM3 17c0-2 4-3 9-3s9 1 9 3-4 3-9 3-9-1-9-3z',
+  drift: 'M3 8c3-2 6 2 9 0s6-2 9 0M3 14c3-2 6 2 9 0s6-2 9 0M14 18l4 2-4 2',
 };
 
 export const FILLED_INTERACTIONS: ReadonlySet<InteractionId> = new Set<InteractionId>(['detonate']);

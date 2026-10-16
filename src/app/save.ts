@@ -90,6 +90,22 @@ function migrateMastery(data: unknown): unknown {
   return { ...data, profile, trip: withStats(data.trip), lastTrip: withStats(data.lastTrip) };
 }
 
+/** Every save so far is Seam-only (K-5): trips and recaps belong to the Seam, the city is the Seam. */
+function migrateCity(data: unknown): unknown {
+  if (!isObject(data)) return data;
+  const seam = (v: unknown) =>
+    isObject(v)
+      ? { ...v, district: 'seam', stats: isObject(v.stats) ? { ...v.stats, heard: [] } : v.stats }
+      : v;
+  const profile = isObject(data.profile)
+    ? {
+        ...data.profile,
+        city: { heard: ['seam'], open: ['seam'], hearts: [], solved: [], trips: 0, fresh: [] },
+      }
+    : data.profile;
+  return { ...data, profile, trip: seam(data.trip), lastTrip: seam(data.lastTrip) };
+}
+
 export const migrations: Migration[] = [
   // 0 → 1: the trip records the current fight's actions.
   (data) => {
@@ -104,6 +120,8 @@ export const migrations: Migration[] = [
   migrateStats,
   // 3 → 4: Glyph versions, parameters and extra exits; records, the archive and drafts (M37).
   migrateMastery,
+  // 4 → 5: districts and the city (K-5).
+  migrateCity,
 ];
 
 export const CURRENT_VERSION = migrations.length;

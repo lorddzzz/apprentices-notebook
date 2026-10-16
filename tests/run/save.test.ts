@@ -14,7 +14,7 @@ import {
   type SaveData,
   startTrip,
 } from '$engine';
-import { CURRENT_VERSION, parse, serialize } from '../../src/app/save';
+import { CURRENT_VERSION, migrate, parse, serialize } from '../../src/app/save';
 
 const json = (v: unknown): unknown => JSON.parse(JSON.stringify(v));
 
@@ -44,9 +44,9 @@ test('SaveData round-trips through src/app/save serialize/parse at the current v
     seedCounter: 3,
     lastTrip: null,
   };
-  expect(CURRENT_VERSION).toBe(4);
+  expect(CURRENT_VERSION).toBe(5);
   const env = parse(serialize(save));
-  expect(env.version).toBe(4);
+  expect(env.version).toBe(5);
   expect(parseSaveData(env.data)).toEqual(save);
 
   const fresh = newSave(99);
@@ -298,6 +298,7 @@ test('a version 2 save with a live trip loads with empty stats and no last trip'
     discoveries: [],
     proofCasts: 0,
     elegance: [],
+    heard: [],
   });
   expect(parsed.lastTrip).toBeNull();
   // no trip at all also loads
@@ -326,21 +327,26 @@ test('a last trip with stats round-trips through the save text', () => {
     elegance: [
       { glyph: 'g1', name: 'Kindle', version: 2, metric: 'reliability' as const, tier: 2 as const },
     ],
+    heard: [],
   };
   const save: SaveData = {
     ...newSave(1),
-    lastTrip: { outcome: 'wiped', encounter: 1, place: 'The scullery', stats },
+    lastTrip: { district: 'seam', outcome: 'wiped', encounter: 1, place: 'The scullery', stats },
   };
   expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
 });
 
 // ── v4 (glyph mastery, plan M37) ──
 
-const v4 = (
-  JSON.parse(
-    readFileSync(new URL('../fixtures/glyph-mastery-save.json', import.meta.url), 'utf8'),
-  ) as { data: unknown }
-).data;
+/** The v4 fixture, migrated to the current version (its v4 fields unchanged). */
+const v4 = migrate({
+  version: 4,
+  data: (
+    JSON.parse(
+      readFileSync(new URL('../fixtures/glyph-mastery-save.json', import.meta.url), 'utf8'),
+    ) as { data: unknown }
+  ).data,
+}).data;
 
 test('parseSaveData rejects malformed v4 fields', () => {
   expect(() => parseSaveData(v4)).not.toThrow();

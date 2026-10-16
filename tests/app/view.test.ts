@@ -95,7 +95,7 @@ test('moved/pushed/slide update pos', () => {
 
 test('damage sets hp from hpLeft, died clears intent', () => {
   const v0 = fixture();
-  unitOf(v0, 'rat-1').intent = { attack: 'bite', dir: 'left', order: 1 };
+  unitOf(v0, 'rat-1').intent = { kind: 'attack', attack: 'bite', dir: 'left', order: 1 };
   const hit = project(v0, {
     type: 'damage',
     target: ref('rat-1', { x: 2, y: 1 }),
@@ -165,7 +165,12 @@ test('fireOut removes oil', () => {
 
 test('telegraph sets intent, attack clears it', () => {
   const r = ref('rat-1', { x: 2, y: 1 });
-  const intent = { attack: 'bite' as const, dir: 'left' as const, order: 1 };
+  const intent = {
+    kind: 'attack' as const,
+    attack: 'bite' as const,
+    dir: 'left' as const,
+    order: 1,
+  };
   const t = project(fixture(), { type: 'telegraph', unit: r, intent, verb: 'bite' });
   expect(unitOf(t, 'rat-1').intent).toEqual(intent);
   expect(unitOf(withoutIntents(t), 'rat-1').intent).toBeNull();

@@ -1,6 +1,6 @@
 import type { InteractionId, TriggerRuneId } from '$data';
 import { type Coord, type Dir, label } from './grid';
-import type { Aim, FiredCell, GlyphId, Intent, SpellKey, UnitId } from './types';
+import type { Aim, AttackIntent, FiredCell, GlyphId, Intent, SpellKey, UnitId } from './types';
 
 /** Snapshot of a unit at event time (animation + log text don't depend on later state). */
 export interface UnitRef {
@@ -77,7 +77,7 @@ export type GameEvent =
   | { type: 'trigger'; rune: TriggerRuneId; passed: boolean; at?: Coord }
   | { type: 'telegraph'; unit: UnitRef; intent: Intent; verb: string }
   | { type: 'idle'; unit: UnitRef }
-  | { type: 'attack'; unit: UnitRef; intent: Intent; verbs: string }
+  | { type: 'attack'; unit: UnitRef; intent: AttackIntent; verbs: string }
   | { type: 'miss'; source: string }
   | { type: 'fireOut'; tiles: Coord[] }
   | { type: 'steamFades'; tiles: Coord[] }
@@ -94,6 +94,22 @@ export type GameEvent =
   | { type: 'stained'; tiles: Coord[] }
   /** Etch marks brass (plan S8): plates on `tiles`, brass `units`. */
   | { type: 'etched'; tiles: Coord[]; units: UnitRef[] }
+  /** The current (K-8, K-9): floats and units moved one tile downstream; `to` null = off the board. */
+  | {
+      type: 'drift';
+      floats: { from: Coord; to: Coord | null }[];
+      units: { unit: UnitRef; from: Coord; to: Coord }[];
+    }
+  /** A wooden lock gate catches from adjacent fire and is gone (K-11). */
+  | { type: 'gateBurns'; at: Coord }
+  /** A snuffer (or the lamp-mother) puts out fire and its oil on `tiles` (K-15). */
+  | { type: 'snuff'; by: UnitRef; tiles: Coord[] }
+  /** A lamp-moth bursts at `at` (K-16). */
+  | { type: 'burst'; unit: UnitRef; at: Coord }
+  /** The lamp-mother calls `unit` at the lamp `at` (K-17). */
+  | { type: 'summon'; by: UnitRef; unit: UnitRef; at: Coord }
+  /** The lamp-mother flares: every moth bursts (K-17). */
+  | { type: 'flare'; by: UnitRef }
   /** Silent: the cells that fired in a player cast, for proof (plan P6/P7). Never shown or animated. */
   | {
       type: 'trace';
@@ -223,7 +239,11 @@ export function describe(e: GameEvent): string | null {
         ? `On Kill: bursts from ${label(e.at)}`
         : 'On Kill: nothing died, the chain stops';
     case 'telegraph':
-      return `${who(e.unit)} will ${e.verb} ${e.intent.dir}`;
+      return e.intent.kind === 'attack'
+        ? `${who(e.unit)} will ${e.verb} ${e.intent.dir}`
+        : e.intent.kind === 'summon'
+          ? `${who(e.unit)} will call a moth at ${label(e.intent.at)}`
+          : `${who(e.unit)} will flare`;
     case 'idle':
       return `${who(e.unit)} waits`;
     case 'attack':
@@ -252,6 +272,27 @@ export function describe(e: GameEvent): string | null {
       return `ink stains the oil at ${list(e.tiles)}`;
     case 'etched':
       return `a mark is etched into the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])}`;
+    case 'drift': {
+      const parts = [
+        ...e.floats.map((f) =>
+          f.to ? `${label(f.from)} → ${label(f.to)}` : `${label(f.from)} → away`,
+        ),
+      ];
+      const units = e.units.map((u) => `${who(u.unit)} drifts to ${label(u.to)}`);
+      return [parts.length ? `the current carries ${parts.join(', ')}` : '', ...units]
+        .filter((x) => x !== '')
+        .join('; ');
+    }
+    case 'gateBurns':
+      return `the lock gate at ${label(e.at)} burns`;
+    case 'snuff':
+      return `${who(e.by)} snuffs the fire at ${list(e.tiles)}`;
+    case 'burst':
+      return `${who(e.unit)} bursts`;
+    case 'summon':
+      return `${who(e.by)} calls ${who(e.unit)}`;
+    case 'flare':
+      return `${who(e.by)} flares`;
     case 'trace':
       return null;
   }
@@ -271,6 +312,7 @@ const DISCOVERY: Partial<Record<GameEvent['type'], InteractionId>> = {
   diffuse: 'diffuse',
   heated: 'heat',
   stained: 'stain',
+  drift: 'drift',
 };
 
 /** Interactions seen in an event log (dedup, first-seen order). */

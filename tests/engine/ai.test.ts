@@ -115,7 +115,13 @@ describe('dummy', () => {
 describe('intents', () => {
   test('intent order follows unit order', () => {
     const s = board('r D r');
-    expect(enemies(s).map((e) => [e.id, e.intent?.dir, e.intent?.order])).toEqual([
+    expect(
+      enemies(s).map((e) => [
+        e.id,
+        e.intent?.kind === 'attack' ? e.intent.dir : null,
+        e.intent?.order,
+      ]),
+    ).toEqual([
       ['rat-1', 'right', 1],
       ['rat-2', 'left', 2],
     ]);

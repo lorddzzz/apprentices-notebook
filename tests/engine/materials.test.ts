@@ -79,6 +79,10 @@ test('brass plates rise on empty tiles and coat units', () => {
     heat: 0,
     etched: false,
     scald: false,
+    water: null,
+    grate: false,
+    gate: false,
+    lamp: false,
   });
   expect(unitAtLabel(r.state, 'A1').brass).toBe(true);
   const one = draft(board('S . d'), (ctx) => applyBrass(ctx, cells('B1')));
