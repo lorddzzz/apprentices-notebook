@@ -3,7 +3,7 @@
 Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** holding for the reset (resumes ~17:11 UTC)
-**Next:** after the 17:10 UTC reset: start U6, U4, U5 (all unblocked), then W4 (incl. the identity gap below).
+**Next:** after the 17:10 UTC reset: resume U6 (SendMessage to its agent, or re-spawn from 91a516d with the list in its row); start U4 and U5; then W4 (incl. the identity gap below).
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -18,7 +18,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U1 | sonnet | M | merged | 7b33b5e | ~5% | doorway read-only view not browser-checked |
 | U2 | haiku | S | merged | (after e54617e) | ~2% | 8-Glyph layout not checked (fixture has 3) |
 | U3 | sonnet | L | merged | e81523c | ~5% | browser-checked light only |
-| U6 | sonnet | M | pending | | | |
+| U6 | sonnet | M | partial | worktree-agent-a6be952565b18c96d @ 91a516d | ~3% so far | helpers + tests done (src/app/tripviews.ts); views not built. Resume the same agent: TripPage highlights + ledger notes, SpellList line, LatticeGrid dashed ring, draft icon, autofixer, 375×812 check |
 | U4 | sonnet | L | pending | | | |
 | U5 | sonnet | L | pending | | | |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
@@ -33,6 +33,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | 2026-10-16 13:43 | 59 | 3h27m | 8 | wrap by projection (~2%/min) | E5 merged; narrow nudges sent; no new spawns |
 | 2026-10-16 13:46 | 64 | 3h24m | 9 | wrap by projection (~1.2%/min, 2 agents) | E2 merged; E1, E3 running |
 | 2026-10-16 13:48 | 66 | 3h22m | 9 | normal (66 + 21 ≈ 87) | E1, E3 merged; start E4, U3, U1, C0 |
+| 2026-10-16 14:24 | 96 | 2h43m | 13 | hold | F1 merged (started at 88% per the player's call); U6 started at 94%, nudged at 96%, partial |
 | 2026-10-16 13:58 | 84 | 3h12m | 12 | narrow (84 + C0 + U2 + D1 ≈ 89) | E4, U3, U1 merged; wrap nudges to U1/C0; start U2, D1 (Haiku); then hold for the 17:10 UTC reset |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
@@ -93,6 +94,8 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - Orchestrator: economyTiers set to 0.7 / 1.0 / 1.3 instead of C0's 0.6 / 1.0 / 1.1: tiers are best-ever, so a gold at the window p90 would come to most Glyphs just by casting a lot. *Proposal*, tune by playing
 - D1: `TIER_NAMES[0]` reads 'unproven'; draft hints reworded for Wet Work, Left Hand First, The Foundry Bell. Accepted
 - U2: the Ranked link sits in its own row above the Fair copies grid; under-10 Glyphs sort by the same key after full-window rows; shelf tiles show two unlabelled marks (Economy, Reliability). Accepted
+- U6 (partial): SpellList should get a `member` prop from LatticeEditor instead of reading `game.member`/`game.save.lastTrip` (wrong in Gallery/Lab). Accepted: do it in U4 (owns LatticeEditor) or W4
+- U6: `tierUpLine` adds the extra-exit sentence at Reliability silver and the second-parameter sentence at gold, per `rewardsOf`. Accepted
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
