@@ -1,6 +1,7 @@
 import {
   ATTACKS,
   CODEX,
+  DRAFTS,
   ENCOUNTERS,
   ENEMIES,
   type InteractionId,
@@ -371,6 +372,11 @@ export function lootLine(item: LootItem): { title: string; text: string } {
       return {
         title: 'A quiet doorway',
         text: 'Somewhere to sit and rewire your lattices before going on.',
+      };
+    case 'draft':
+      return {
+        title: `An owner's draft: ${DRAFTS.find((d) => d.id === item.draft)?.name ?? 'a torn page'}`,
+        text: 'A page the owner never got working. Mend it at the desk.',
       };
   }
 }

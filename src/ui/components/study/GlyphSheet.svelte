@@ -1,19 +1,44 @@
 <script lang="ts">
   import { IDIOMS } from '$data';
-  import { type GlyphDef, glyphCost } from '$engine';
+  import { type CellKey, type Dir, type GlyphDef, type GlyphId, glyphCost, type Profile } from '$engine';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
+  import GlyphProfiler from './GlyphProfiler.svelte';
+  import GlyphSettings from './GlyphSettings.svelte';
 
   interface Props {
-    /** The Glyph to look inside, or null (closed). */
+    /** The Glyph to look inside (the effective view of its current version), or null (closed). */
     glyph: GlyphDef | null;
+    /** Records, versions and settings are read from here. */
+    profile: Profile;
+    /** In a doorway the sheet is read-only (M12). */
+    readonly?: boolean;
     onclose: () => void;
     /** Renames (free). Returns why not, or null. */
     onrename: (id: string, name: string) => string | null;
+    /** Opens the revision editor ("Revise…", desk only); null hides it. */
+    onrevise?: ((id: GlyphId) => void) | null;
+    /** Reverts to an archived version. Returns why not, or null. */
+    onrevert: (id: GlyphId, version: number) => string | null;
+    /** Settings of the current version (M20). Return why not, or null. */
+    onopencells: (id: GlyphId, cells: CellKey[]) => string | null;
+    onextraexit: (id: GlyphId, dir: Dir | null) => string | null;
   }
 
-  let { glyph, onclose, onrename }: Props = $props();
+  let {
+    glyph,
+    profile,
+    readonly = false,
+    onclose,
+    onrename,
+    onrevert,
+    onopencells,
+    onextraexit,
+  }: Props = $props();
+
+  // The saved current version (settings live there; `glyph` is the effective view).
+  const saved = $derived(profile.glyphs.find((g) => g.id === glyph?.id) ?? glyph);
 
   let typed = $state<string | null>(null);
   let error = $state<string | null>(null);
@@ -68,6 +93,10 @@
       {/each}
     </div>
     <p class="hint">Inside, the way in always points right. The page turns the whole Glyph.</p>
+    {#if saved}
+      <GlyphProfiler glyph={saved} {profile} {readonly} {onrevert} />
+      <GlyphSettings glyph={saved} {profile} {readonly} {onopencells} {onextraexit} />
+    {/if}
     <label class="field">
       <span>Name</span>
       <input

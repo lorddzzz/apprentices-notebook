@@ -124,6 +124,7 @@ export function compileLattice(
     dir: Dir,
     via: readonly Coord[] = [],
     behindPierce = false,
+    viaInner: readonly Coord[] = [],
   ): SpellNode[] {
     const placed = f.runeAt(cell);
     if (!placed) return f.beyond(cell, dir, via, behindPierce);
@@ -134,19 +135,23 @@ export function compileLattice(
     f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
     f.cells.push(f.fired(cell, placed));
     const pierced = behindPierce || placed.rune === 'pierce';
-    const go = (d: Dir, v: readonly Coord[] = []): SpellNode[] =>
-      walkIn(f, step(cell, d), d, v, pierced);
-    const shaped = [...via, f.where(cell).at];
+    const go = (d: Dir, v: readonly Coord[] = [], vi: readonly Coord[] = []): SpellNode[] =>
+      walkIn(f, step(cell, d), d, v, pierced, vi);
+    const where = f.where(cell);
+    const shaped = [...via, where.at];
+    // Inside a Glyph, the local shape cells too (`viaInner`); crossing a frame starts afresh.
+    const shapedInner = where.inner ? [...viaInner, where.inner] : [];
+    const inner = where.inner && viaInner.length > 0 ? { viaInner } : {};
 
-    if (placed.rune === 'pierce') return go(dir, shaped);
+    if (placed.rune === 'pierce') return go(dir, shaped, shapedInner);
     if (placed.rune === 'bend') {
       const out = placed.dir ?? 'right';
-      return out === opposite(dir) ? [] : go(out, shaped);
+      return out === opposite(dir) ? [] : go(out, shaped, shapedInner);
     }
     if (placed.rune === 'fork') {
       // Left must walk first: it claims shared cells before the right branch.
-      const left = go(turnLeft(dir), shaped);
-      const right = go(turnRight(dir), shaped);
+      const left = go(turnLeft(dir), shaped, shapedInner);
+      const right = go(turnRight(dir), shaped, shapedInner);
       return [...left, ...right];
     }
     if (isMaterial(placed.rune)) {
@@ -156,8 +161,9 @@ export function compileLattice(
         {
           kind: 'material',
           rune: placed.rune,
-          ...f.where(cell),
+          ...where,
           via,
+          ...inner,
           amp,
           magnitude: def.base + amp + bonus,
           next: go(dir),
@@ -170,8 +176,9 @@ export function compileLattice(
         {
           kind: 'trigger',
           rune: placed.rune,
-          ...f.where(cell),
+          ...where,
           via,
+          ...inner,
           next: go(dir),
           ...(pierced ? { pierced: true as const } : {}),
         },

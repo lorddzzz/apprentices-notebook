@@ -97,7 +97,18 @@ function glyphFromFlat(
     const at = norm(localOf({ x: c.x - root.x, y: c.y - root.y }, dir));
     runes.push(r.dir ? { at, rune: r.rune, dir: localDir(r.dir, dir) } : { at, rune: r.rune });
   }
-  return { id, name: id, kind, cells: runes, entry: { x: 0, y: 0 }, exits: [], idiom: null };
+  return {
+    id,
+    name: id,
+    kind,
+    cells: runes,
+    entry: { x: 0, y: 0 },
+    exits: [],
+    idiom: null,
+    version: 1,
+    params: [],
+    extraExit: null,
+  };
 }
 
 const libOf = (...defs: GlyphDef[]): GlyphLibrary => Object.fromEntries(defs.map((d) => [d.id, d]));
@@ -271,6 +282,9 @@ describe('rotation', () => {
         entry: c(0, 0),
         exits: [],
         idiom: null,
+        version: 1,
+        params: [],
+        extraExit: null,
       };
       // Inner flow leaves up and down (local); the tails sit at the socket's neighbours.
       const compiled: Lattice = {

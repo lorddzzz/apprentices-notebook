@@ -14,6 +14,8 @@
     glyphs?: GlyphSlot[];
     /** Lead the shelf with the Erase tool (the lattice editor). */
     erase?: boolean;
+    /** Opens "Your Glyphs, ranked" from the Fair copies tab (task U2 adds the link). */
+    onranking?: () => void;
   }
 
   let { slots, tool, onselect, onreject, glyphs = [], erase = false }: Props = $props();

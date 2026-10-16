@@ -258,6 +258,9 @@ const GLYPH_DEF: GlyphDef = {
   entry: { x: 0, y: 0 },
   exits: [],
   idiom: 'cashingIn',
+  version: 1,
+  params: [],
+  extraExit: null,
 };
 
 /** A fresh profile owning one spare of each inner rune, holding the Glyph, with an empty page. */

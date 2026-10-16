@@ -242,6 +242,9 @@ describe('charges follow the rune type (S12)', () => {
       entry: { x: 0, y: 0 },
       exits: [],
       idiom: 'cashingIn',
+      version: 1,
+      params: [],
+      extraExit: null,
     };
     const base = newProfile();
     const collection = { ...base.collection };
@@ -287,6 +290,9 @@ describe('charges follow the rune type (S12)', () => {
       entry: { x: 0, y: 0 },
       exits: [],
       idiom: null,
+      version: 1,
+      params: [],
+      extraExit: null,
     };
     const base = newProfile();
     const p: Profile = {

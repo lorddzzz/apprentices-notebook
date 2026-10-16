@@ -1,6 +1,6 @@
 import type { InteractionId, TriggerRuneId } from '$data';
 import { type Coord, type Dir, label } from './grid';
-import type { Aim, FiredCell, Intent, SpellKey, UnitId } from './types';
+import type { Aim, FiredCell, GlyphId, Intent, SpellKey, UnitId } from './types';
 
 /** Snapshot of a unit at event time (animation + log text don't depend on later state). */
 export interface UnitRef {
@@ -8,6 +8,22 @@ export interface UnitRef {
   name: string;
   at: Coord;
   member: boolean;
+}
+
+/**
+ * The stretch of a cast's log one spell node owns (M2): its own effect, never its children's.
+ * `at` is the lattice cell (a Glyph's socket); inside a Glyph `inner` is the local cell and `glyph`
+ * its id; `viaInner` are the local shape cells walked to reach it. `from`/`to` are offsets into the
+ * log from the cast's first effect event (`to` exclusive). The source's span has no `inner` unless
+ * it is a Spell Glyph's.
+ */
+export interface NodeSpan {
+  at: Coord;
+  inner?: Coord;
+  glyph?: GlyphId;
+  viaInner?: Coord[];
+  from: number;
+  to: number;
 }
 
 /**
@@ -79,7 +95,15 @@ export type GameEvent =
   /** Etch marks brass (plan S8): plates on `tiles`, brass `units`. */
   | { type: 'etched'; tiles: Coord[]; units: UnitRef[] }
   /** Silent: the cells that fired in a player cast, for proof (plan P6/P7). Never shown or animated. */
-  | { type: 'trace'; caster: UnitRef; spell: SpellKey; cells: FiredCell[]; meaningful: boolean };
+  | {
+      type: 'trace';
+      caster: UnitRef;
+      spell: SpellKey;
+      cells: FiredCell[];
+      meaningful: boolean;
+      /** Who did what in this cast, node by node (M2). */
+      spans: NodeSpan[];
+    };
 
 /** Events with no log line and no animation. */
 export const isSilent = (e: GameEvent): boolean => e.type === 'trace';

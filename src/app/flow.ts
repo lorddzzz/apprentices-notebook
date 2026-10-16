@@ -6,9 +6,9 @@ import {
   type BattleState,
   beginEncounter,
   type Coord,
+  closeBattle,
   clustersOf,
   discoveriesIn,
-  finishEncounter,
   type GameEvent,
   glyphLibrary,
   isGlyph,
@@ -21,7 +21,6 @@ import {
   provenCount,
   pushOn,
   recordAction,
-  recordTripProof,
   returnHome,
   type SaveData,
   startTrip,
@@ -52,6 +51,7 @@ export type Screen =
   | 'lab'
   | 'gallery'
   | 'bench'
+  | 'desk'
   | 'tripPage';
 
 const TRIP_SCREEN: Record<Trip['status'], Screen> = {
@@ -81,6 +81,8 @@ export function resolveScreen(
   if (route === 'trip-page' && !trip && lastTrip) return { screen: 'tripPage', redirect: null };
   // The Bench is a room of the study: out on a trip (or with a wipe unread) it is closed.
   if (route === 'bench' && !trip && !wipe) return { screen: 'bench', redirect: null };
+  // So is the desk where the owner's drafts are mended (M36).
+  if (route === 'desk' && !trip && !wipe) return { screen: 'desk', redirect: null };
   const screen: Screen | null = trip ? TRIP_SCREEN[trip.status] : wipe ? 'wiped' : null;
   if (screen === null) return { screen: 'study', redirect: route === 'study' ? null : 'study' };
   return { screen, redirect: route === 'trip' ? null : 'trip' };
@@ -180,7 +182,7 @@ export function endBattle(
   log: readonly GameEvent[] = [],
 ): BattleEnd {
   const trip = tripOf(save);
-  const r = finishEncounter(recordTripProof(save.profile, trip), trip, battle, log);
+  const r = closeBattle(save.profile, trip, battle, log);
   const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
   const lastTrip: TripRecap | null =
     r.outcome === 'wiped'

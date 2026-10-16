@@ -122,6 +122,7 @@ export function castSpell(
       spell: spell.key,
       cells: firedCells(spell, ran),
       meaningful: ctx.log.slice(from).some((e) => MEANINGFUL.has(e.type)),
+      spans: [], // task E1 fills these
     });
   }
 }

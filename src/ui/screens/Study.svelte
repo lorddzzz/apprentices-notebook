@@ -1,6 +1,28 @@
 <script lang="ts">
   import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
-  import { compiledFor, describeSpell, type GlyphId, glyphLibrary, latticeOf } from '$engine';
+  import {
+    type CellKey,
+    type Coord,
+    compiledFor,
+    type Dir,
+    describeSpell,
+    type GlyphArg,
+    type GlyphId,
+    type GlyphInside,
+    glyphLibrary,
+    insideIssues,
+    insideOf,
+    isGlyph,
+    lastTripDeadCells,
+    latticeOf,
+    type Profile,
+    revertGlyph,
+    reviseGlyph,
+    revisionWarning,
+    setExtraExit,
+    setOpenCells,
+    socketAt,
+  } from '$engine';
   import { benchUnlocked } from '../../app/bench';
   import {
     type FairState,
@@ -13,14 +35,24 @@
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
-  import { glyphSlots, loadoutBlocker, NO_TOOL, profileShelf } from '../../app/study';
+  import {
+    glyphSlots,
+    loadoutBlocker,
+    NO_TOOL,
+    profileShelf,
+    revisionPalette,
+    setGlyphArgs,
+  } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import Button from '../components/common/Button.svelte';
   import Sheet from '../components/common/Sheet.svelte';
+  import ArgPicker from '../components/lattice/ArgPicker.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import FairCopySheet from '../components/study/FairCopySheet.svelte';
+  import GlyphRanking from '../components/study/GlyphRanking.svelte';
   import GlyphSheet from '../components/study/GlyphSheet.svelte';
+  import RevisionEditor from '../components/study/RevisionEditor.svelte';
   import StudyScene from '../components/study/StudyScene.svelte';
 
   // In a quiet doorway the Study is the field editor: the banked collection only, no Bench, no
@@ -67,15 +99,16 @@
     if (r.message) toast(r.message);
   }
 
-  function confirmFair(name: string): string | null {
+  function confirmFair(name: string, open: Coord | null = null): string | null {
     if (!fair.cluster) return 'Nothing is selected';
-    const why = game.fairCopy(fair.cluster, name);
+    const why = game.fairCopy(fair.cluster, name, open);
     if (why === null) leaveFair();
     return why;
   }
 
   function switchMember(m: typeof game.member): void {
     leaveFair();
+    argAt = null;
     game.selectMember(m);
   }
 
@@ -133,6 +166,43 @@
 
   function renameGlyph(id: string, name: string): string | null {
     return field ? 'Rename it at home' : game.renameGlyph(id, name);
+  }
+
+  // Glyph mastery: the ranked list, revisions, settings and arguments (plan M14–M26).
+  // Revisions, reverts and settings are for the desk; in a doorway the sheet is read-only.
+  let ranking = $state(false);
+  let revising = $state<GlyphId | null>(null);
+  let argAt = $state<Coord | null>(null);
+  const revisingDef = $derived(revising ? (profile.glyphs.find((g) => g.id === revising) ?? null) : null);
+  const argTarget = $derived.by(() => {
+    const placed = argAt ? socketAt(lattice, argAt) : null;
+    const def = placed && isGlyph(placed) ? library[placed.glyph] : undefined;
+    return argAt && placed && isGlyph(placed) && def
+      ? { at: argAt, glyph: def, args: placed.args ?? {} }
+      : null;
+  });
+  // Plain spells' cells that never fired on the last trip, while their paths still match (M15).
+  const deadCells = $derived(new Set(lastTripDeadCells(game.save.lastTrip, game.member, compiled)));
+
+  function atHome(change: (p: Profile) => Profile): string | null {
+    return field ? 'Only at home' : game.updateProfile(change);
+  }
+
+  function saveRevision(inside: GlyphInside): string | null {
+    const id = revising;
+    if (!id) return 'Nothing is being revised';
+    const why = atHome((p) => reviseGlyph(p, id, inside));
+    if (why === null) revising = null;
+    return why;
+  }
+
+  function applyArgs(args: Readonly<Record<CellKey, GlyphArg>>): string | null {
+    const at = argAt;
+    if (!at) return 'No Fair copy picked';
+    const member = game.member;
+    const why = game.updateProfile((p) => setGlyphArgs(p, member, at, args));
+    if (why === null) argAt = null;
+    return why;
   }
 
   function setOut(): void {
@@ -195,6 +265,9 @@
       glyphs={library}
       glyphSlots={copies}
       onpeek={(id) => (peeked = id)}
+      onranking={() => (ranking = true)}
+      onargs={(at) => (argAt = at)}
+      {deadCells}
       fair={{
         available: !field && glow.size > 0,
         active: fairLive,
@@ -282,8 +355,44 @@
   />
   <GlyphSheet
     glyph={peeked ? (library[peeked] ?? null) : null}
+    {profile}
+    readonly={field}
     onclose={() => (peeked = null)}
     onrename={renameGlyph}
+    onrevise={field
+      ? null
+      : (id) => {
+          peeked = null;
+          revising = id;
+        }}
+    onrevert={(id, version) => atHome((p) => revertGlyph(p, id, version))}
+    onopencells={(id, cells: CellKey[]) => atHome((p) => setOpenCells(p, id, cells))}
+    onextraexit={(id, dir: Dir | null) => atHome((p) => setExtraExit(p, id, dir))}
+  />
+  <GlyphRanking
+    open={ranking}
+    {profile}
+    onpick={(id) => {
+      ranking = false;
+      peeked = id;
+    }}
+    onclose={() => (ranking = false)}
+  />
+  <RevisionEditor
+    inside={revisingDef ? insideOf(revisingDef) : null}
+    title={revisingDef ? `Revise ${revisingDef.name}` : 'Revise'}
+    palette={revisionPalette(profile)}
+    issues={insideIssues}
+    warning={(inside) => (revising ? revisionWarning(profile, revising, inside) : null)}
+    onsave={saveRevision}
+    onclose={() => (revising = null)}
+  />
+  <ArgPicker
+    target={argTarget}
+    {profile}
+    member={game.member}
+    onapply={applyArgs}
+    onclose={() => (argAt = null)}
   />
 
   <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>

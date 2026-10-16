@@ -18,7 +18,18 @@ const def = (
   kind: GlyphDef['kind'],
   cells: PlacedRune[],
   entry = c(0, 0),
-): GlyphDef => ({ id, name: id, kind, cells, entry, exits: [], idiom: null });
+): GlyphDef => ({
+  id,
+  name: id,
+  kind,
+  cells,
+  entry,
+  exits: [],
+  idiom: null,
+  version: 1,
+  params: [],
+  extraExit: null,
+});
 
 const payload = def('p', 'payload', [
   { at: c(0, 0), rune: 'ink' },

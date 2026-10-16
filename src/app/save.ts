@@ -63,6 +63,33 @@ function migrateStats(data: unknown): unknown {
   return { ...data, trip, lastTrip: null };
 }
 
+const asList = (v: unknown, f: (x: unknown) => unknown): unknown =>
+  Array.isArray(v) ? v.map(f) : v;
+
+/** Plain-spell tallies gain their last-trip cells, the stats their tier-ups (M15, M16). */
+function masteryStats(stats: unknown): unknown {
+  if (!isObject(stats)) return stats;
+  const tally = (t: unknown) => (isObject(t) ? { ...t, cells: [], fired: [] } : t);
+  return { ...stats, spells: asList(stats.spells, tally), elegance: [] };
+}
+
+function migrateMastery(data: unknown): unknown {
+  if (!isObject(data)) return data;
+  const glyph = (g: unknown) =>
+    isObject(g) ? { ...g, version: 1, params: [], extraExit: null } : g;
+  const profile = isObject(data.profile)
+    ? {
+        ...data.profile,
+        glyphs: asList(data.profile.glyphs, glyph),
+        glyphArchive: [],
+        glyphRecords: {},
+        drafts: [],
+      }
+    : data.profile;
+  const withStats = (v: unknown) => (isObject(v) ? { ...v, stats: masteryStats(v.stats) } : v);
+  return { ...data, profile, trip: withStats(data.trip), lastTrip: withStats(data.lastTrip) };
+}
+
 export const migrations: Migration[] = [
   // 0 → 1: the trip records the current fight's actions.
   (data) => {
@@ -75,6 +102,8 @@ export const migrations: Migration[] = [
   migrateResearch,
   // 2 → 3: a live trip starts keeping stats (empty so far); no trip page to show yet.
   migrateStats,
+  // 3 → 4: Glyph versions, parameters and extra exits; records, the archive and drafts (M37).
+  migrateMastery,
 ];
 
 export const CURRENT_VERSION = migrations.length;

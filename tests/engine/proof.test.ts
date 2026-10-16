@@ -91,6 +91,9 @@ test('inside a Glyph the trace names the socket and the Glyph, once', () => {
       entry: c(0, 0),
       exits: [],
       idiom: null,
+      version: 1,
+      params: [],
+      extraExit: null,
     },
   };
   const spells = compileLattice(parseLattice('G:s> .'), [], lib).spells;

@@ -2,6 +2,8 @@ import {
   type Aspect,
   CODEX,
   type CodexEntryDef,
+  DRAFT_IDS,
+  type DraftId,
   ENCOUNTERS,
   IDIOMS,
   INTERACTION_IDS,
@@ -23,10 +25,13 @@ import {
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
+import { bankDrafts, nextDraft } from './drafts';
 import type { EventLog } from './events';
-import { type Coord, DIRS, label } from './grid';
+import { glyphRunes, withOpenCell } from './glyph';
+import { type Coord, DIRS, type Dir, label } from './grid';
 import { compileLattice, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
 import { parseLattice } from './notation';
+import { recordGlyphCasts, recordOf, rewardsOf, tierUps } from './profiler';
 import { masksFrom, matchIdioms, provenCount } from './proof';
 import { memberById } from './queries';
 import { type Attempt, trial, trialKey } from './research';
@@ -37,11 +42,17 @@ import type {
   ActionResult,
   Aim,
   BattleState,
+  CastSample,
+  CellKey,
   CompiledLattice,
+  DraftCopy,
   FiredCell,
+  GlyphArg,
   GlyphDef,
   GlyphId,
+  GlyphInside,
   GlyphLibrary,
+  GlyphRecord,
   Lattice,
   LatticeIssue,
   LootItem,
@@ -52,6 +63,9 @@ import type {
   SaveData,
   Spell,
   SpellKey,
+  SpellTally,
+  TierLevel,
+  TierUp,
   Trip,
   TripRecap,
   TripStats,
@@ -63,16 +77,24 @@ import { isGlyph } from './types';
  * Run layer: the profile (collection, ink, lattices, codex), the trip lifecycle and save data.
  * Everything here is pure: functions return new objects and never mutate their inputs.
  *
- *   startTrip → beginEncounter → (battle) → finishEncounter → pickLoot × picks → pushOn | returnHome
+ *   startTrip → beginEncounter → (battle) → closeBattle → pickLoot × picks → pushOn | returnHome
+ *
+ * `closeBattle` = `recordTripCasts` (proof and Glyph records, one replay) → `finishEncounter` →
+ * the trip's tier-ups (M7, M16).
  */
 
 function perMember<T>(make: (m: MemberId) => T): Record<MemberId, T> {
   return Object.fromEntries(MEMBER_IDS.map((m) => [m, make(m)])) as Record<MemberId, T>;
 }
 
+const copyArgs = (args: Readonly<Record<CellKey, GlyphArg>>): Record<CellKey, GlyphArg> =>
+  Object.fromEntries(Object.entries(args).map(([k, a]) => [k, { ...a }]));
+
 const copyRune = (r: Placed): Placed =>
   isGlyph(r)
-    ? { at: { ...r.at }, glyph: r.glyph, dir: r.dir }
+    ? r.args
+      ? { at: { ...r.at }, glyph: r.glyph, dir: r.dir, args: copyArgs(r.args) }
+      : { at: { ...r.at }, glyph: r.glyph, dir: r.dir }
     : r.dir === undefined
       ? { at: { ...r.at }, rune: r.rune }
       : { at: { ...r.at }, rune: r.rune, dir: r.dir };
@@ -86,7 +108,13 @@ export function newProfile(): Profile {
     lattices: perMember((m) => parseLattice(MEMBERS[m].startLattice).runes.map(copyRune)),
     interactions: [],
     ...researchDefaults(),
+    ...masteryDefaults(),
   };
+}
+
+/** The mastery fields of a fresh profile (save v4, M37). */
+export function masteryDefaults(): Pick<Profile, 'glyphArchive' | 'glyphRecords' | 'drafts'> {
+  return { glyphArchive: [], glyphRecords: {}, drafts: [] };
 }
 
 /** The research and compile fields of a fresh profile (save v2). */
@@ -108,9 +136,28 @@ export function latticeOf(p: Profile, m: MemberId): Lattice {
   return { shape: parseLattice(MEMBERS[m].shape).shape, runes: p.lattices[m].map(copyRune) };
 }
 
-/** The profile's Fair Copies by id, for compiling and costing lattices that hold Glyphs. */
-export function glyphLibrary(p: Pick<Profile, 'glyphs'>): GlyphLibrary {
-  return Object.fromEntries(p.glyphs.map((g) => [g.id, g]));
+/**
+ * A Glyph as its record's rewards make it (M12): the Economy discount, the extra exit only while
+ * Reliability silver holds, open cells cut to the allowance. Equal to `g` while nothing is earned.
+ */
+export function effectiveGlyph(g: GlyphDef, record: GlyphRecord): GlyphDef {
+  const r = rewardsOf(record);
+  return {
+    ...g,
+    extraExit: r.extraExit ? g.extraExit : null,
+    params: g.params.slice(0, r.params),
+    ...(r.discount > 0 ? { discount: r.discount } : {}),
+  };
+}
+
+/**
+ * The profile's Fair Copies by id, current versions, as their rewards make them (the effective
+ * view): for compiling and costing lattices that hold Glyphs. Save `p.glyphs`, never this.
+ */
+export function glyphLibrary(p: Pick<Profile, 'glyphs' | 'glyphRecords'>): GlyphLibrary {
+  return Object.fromEntries(
+    p.glyphs.map((g) => [g.id, effectiveGlyph(g, recordOf(p, g.id, g.version))]),
+  );
 }
 
 export function compiledFor(p: Profile, m: MemberId): CompiledLattice {
@@ -121,10 +168,11 @@ export function setMemberLattice(p: Profile, m: MemberId, l: Lattice): Profile {
   return { ...p, lattices: { ...p.lattices, [m]: l.runes.map(copyRune) } };
 }
 
-/** Runes a placed socket uses from the collection: itself, or a Glyph's inner runes (plan P1). */
+/** Runes a placed socket uses from the collection: itself, or a Glyph's inner runes and args (P1, M23). */
 function runesIn(p: Profile, r: Placed): RuneId[] {
   if (!isGlyph(r)) return [r.rune];
-  return (glyphLibrary(p)[r.glyph]?.cells ?? []).map((c) => c.rune);
+  const def = glyphLibrary(p)[r.glyph];
+  return def ? glyphRunes(def, r.args) : [];
 }
 
 function placedCount(p: Profile, rune: RuneId, except?: { m: MemberId; at: Coord }): number {
@@ -161,19 +209,29 @@ export function canPlace(p: Profile, m: MemberId, at: Coord, rune: RuneId): stri
   return null;
 }
 
-/** `canPlace` for a Glyph: every inner rune must be free, as if placed one by one (plan P1). */
-export function canPlaceGlyph(p: Profile, m: MemberId, at: Coord, glyph: GlyphId): string | null {
+/**
+ * `canPlace` for a Glyph: every inner rune (an argument in place of its open cell's default) must
+ * be free, as if placed one by one (plan P1, M23).
+ */
+export function canPlaceGlyph(
+  p: Profile,
+  m: MemberId,
+  at: Coord,
+  glyph: GlyphId,
+  args?: Readonly<Record<CellKey, GlyphArg>>,
+): string | null {
   const def = glyphLibrary(p)[glyph];
   if (!def) return 'Unknown Glyph';
   const l = latticeOf(p, m);
   if (!isSocket(l.shape, at)) return 'No socket here';
   const needs = new Map<RuneId, number>();
-  for (const c of def.cells) needs.set(c.rune, (needs.get(c.rune) ?? 0) + 1);
+  for (const rune of glyphRunes(def, args)) needs.set(rune, (needs.get(rune) ?? 0) + 1);
   for (const [rune, n] of needs) {
     if (p.collection[rune] - placedCount(p, rune, { m, at }) < n) return 'None left';
   }
   const runes = l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y);
-  const placed: Lattice = { shape: l.shape, runes: [...runes, { at, glyph, dir: 'right' }] };
+  const socket: Placed = args ? { at, glyph, dir: 'right', args } : { at, glyph, dir: 'right' };
+  const placed: Lattice = { shape: l.shape, runes: [...runes, socket] };
   if (inkUsed(placed, glyphLibrary(p)) > p.inkCapacity[m]) return 'Not enough ink';
   return null;
 }
@@ -312,15 +370,21 @@ export function recordAction(t: Trip, action: Action): Trip {
   return { ...t, actions: [...t.actions, structuredClone(action)] };
 }
 
-/** Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed. */
+/**
+ * Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed.
+ * A table's `draft` entry offers `draft` (from `nextDraft`); with none due it is left out of the pool.
+ */
 export function rollOffers(
   tripSeed: number,
   encounter: number,
   table: LootTableId,
   members: readonly MemberId[] = MEMBER_IDS,
+  draft: DraftId | null = null,
 ): LootItem[] {
   const rng = createRng(deriveSeed(tripSeed, 1000 + encounter));
-  const pool: LootEntry[] = [...LOOT_TABLES[table].entries];
+  const pool: LootEntry[] = LOOT_TABLES[table].entries.filter(
+    (e) => e.spec.kind !== 'draft' || draft !== null,
+  );
   const offers: LootItem[] = [];
   for (let n = 0; n < TUNING.offersPerWin && pool.length > 0; n++) {
     const [entry] = pool.splice(
@@ -336,7 +400,9 @@ export function rollOffers(
     else if (spec.kind === 'doorway') offers.push({ kind: 'doorway' });
     else if (spec.kind === 'solvent') offers.push({ kind: 'solvent', solvent: spec.solvent });
     else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
-    else {
+    else if (spec.kind === 'draft') {
+      if (draft !== null) offers.push({ kind: 'draft', draft });
+    } else {
       const member = members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
       offers.push({ kind: 'ink', member, amount: TUNING.inkReserve });
     }
@@ -358,7 +424,8 @@ export function finishEncounter(
 ): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
   need(t, 'fight');
   if (b.phase === 'player') throw new Error('The battle is not over');
-  const stats = accumulateStats(t.stats, log, p);
+  const fought = perMember((m) => compiledFor(p, m).spells);
+  const stats = accumulateStats(t.stats, log, p, fought);
   const interactions = [...p.interactions];
   for (const d of b.discovered) if (!interactions.includes(d)) interactions.push(d);
   const profile: Profile = { ...p, interactions };
@@ -372,12 +439,31 @@ export function finishEncounter(
     hp: perMember((m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
     charges: perMember((m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
-    offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS),
+    offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS, nextDraft(p, t, enc.loot)),
     picksLeft: enc.picks,
     actions: [],
     stats,
   };
   return { profile, trip, outcome: 'won', stats };
+}
+
+/**
+ * Closes a finished trip battle (M7, M16): one replay writes proof and Glyph records
+ * (`recordTripCasts`, win or wipe), then `finishEncounter`; the records' tier-ups go into the trip's
+ * stats. Lab, Bench and desk battles never come here.
+ */
+export function closeBattle(
+  p: Profile,
+  t: Trip,
+  b: BattleState,
+  log: EventLog = [],
+): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
+  const recorded = recordTripCasts(p, t);
+  const r = finishEncounter(recorded, t, b, log);
+  const ups = tierUps(p, recorded);
+  if (ups.length === 0) return r;
+  const stats: TripStats = { ...r.stats, elegance: [...r.stats.elegance, ...ups] };
+  return { ...r, stats, trip: r.trip ? { ...r.trip, stats } : null };
 }
 
 /** Takes offer `index` into the pending loot. After the last pick the trip moves on. */
@@ -407,7 +493,7 @@ export function pushOn(t: Trip): Trip {
   return { ...t, encounter: t.encounter + 1, status: 'fight' };
 }
 
-/** Banks the trip's loot into the profile. */
+/** Banks the trip's loot into the profile (drafts go to `Profile.drafts`, M30). */
 export function returnHome(p: Profile, t: Trip): Profile {
   need(t, 'crossroads', 'cleared');
   const collection = { ...p.collection };
@@ -420,7 +506,7 @@ export function returnHome(p: Profile, t: Trip): Profile {
     else if (item.kind === 'solvent') solvents[item.solvent] += 1;
     else if (item.kind === 'vellum') vellum += item.amount;
   }
-  return { ...p, collection, inkCapacity, solvents, vellum };
+  return bankDrafts({ ...p, collection, inkCapacity, solvents, vellum }, t.loot);
 }
 
 /** What a Source is, for carrying its charges across a rewire: a rune, or a Spell Glyph. */
@@ -504,7 +590,7 @@ export function applyDoorway(
 
 // ── Save data ───────────────────────────────────────────
 
-/** The save shape, version 3 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
+/** The save shape, version 4 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
 export function newSave(seed: number): SaveData {
   return { profile: newProfile(), trip: null, seedCounter: seed, lastTrip: null };
 }
@@ -546,10 +632,38 @@ function parseCoord(v: unknown): Coord {
   return { x: r.x as number, y: r.y as number };
 }
 
+const CELL_KEY = /^-?\d+,-?\d+$/;
+const VERSION_KEY = /^.+@[1-9]\d*$/;
+const TIERS: readonly TierLevel[] = [0, 1, 2, 3];
+
+function cellKey(v: unknown): CellKey {
+  return typeof v === 'string' && CELL_KEY.test(v) ? v : bad();
+}
+
+function bool(v: unknown): boolean {
+  return typeof v === 'boolean' ? v : bad();
+}
+
+function tier(v: unknown): TierLevel {
+  return TIERS.find((t) => t === v) ?? bad();
+}
+
+function parseArgs(v: unknown): Record<CellKey, GlyphArg> {
+  const r = record(v);
+  return Object.fromEntries(
+    Object.entries(r).map(([k, a]) => {
+      const x = record(a);
+      const rune = oneOf(RUNE_IDS, x.rune);
+      return [cellKey(k), x.dir === undefined ? { rune } : { rune, dir: oneOf(DIRS, x.dir) }];
+    }),
+  );
+}
+
 function parsePlaced(v: unknown): Placed {
   const r = record(v);
   if (r.glyph !== undefined) {
-    return { at: parseCoord(r.at), glyph: text(r.glyph), dir: oneOf(DIRS, r.dir) };
+    const placed = { at: parseCoord(r.at), glyph: text(r.glyph), dir: oneOf(DIRS, r.dir) };
+    return r.args === undefined ? placed : { ...placed, args: parseArgs(r.args) };
   }
   const rune = oneOf(RUNE_IDS, r.rune);
   const at = parseCoord(r.at);
@@ -569,9 +683,46 @@ function parseLoot(v: unknown): LootItem {
       return { kind: 'vellum', amount: count(r.amount) };
     case 'doorway':
       return { kind: 'doorway' };
+    case 'draft':
+      return { kind: 'draft', draft: oneOf(DRAFT_IDS, r.draft) };
     default:
       return bad();
   }
+}
+
+function parseSample(v: unknown): CastSample {
+  const r = record(v);
+  return { harm: count(r.harm), cost: count(r.cost), meaningful: bool(r.meaningful) };
+}
+
+function parseRecord(v: unknown): GlyphRecord {
+  const r = record(v);
+  const recent = list(r.recent).map(parseSample);
+  if (recent.length > TUNING.tierWindow) bad();
+  const best = record(r.best);
+  const fired = record(r.fired);
+  return {
+    casts: count(r.casts),
+    harm: count(r.harm),
+    meaningful: count(r.meaningful),
+    recent,
+    best: { economy: tier(best.economy), reliability: tier(best.reliability) },
+    fired: Object.fromEntries(Object.entries(fired).map(([k, n]) => [cellKey(k), count(n)])),
+  };
+}
+
+function parseInside(v: unknown): GlyphInside {
+  const r = record(v);
+  return {
+    kind: oneOf<'spell' | 'payload'>(['spell', 'payload'], r.kind),
+    cells: list(r.cells).map(parseRune),
+    entry: parseCoord(r.entry),
+  };
+}
+
+function parseDraftCopy(v: unknown): DraftCopy {
+  const r = record(v);
+  return { id: oneOf(DRAFT_IDS, r.id), inside: parseInside(r.inside), repaired: bool(r.repaired) };
 }
 
 function parseProfile(v: unknown): Profile {
@@ -608,16 +759,33 @@ function parseProfile(v: unknown): Profile {
   };
   const glyphs = list(r.glyphs).map(parseGlyphDef);
   if (new Set(glyphs.map((g) => g.id)).size !== glyphs.length) bad();
+  // Older versions: each of a current Glyph, never its current version, each version once.
+  const glyphArchive = list(r.glyphArchive).map(parseGlyphDef);
+  const versions = new Set(glyphs.map((g) => `${g.id}@${g.version}`));
+  for (const g of glyphArchive) {
+    const k = `${g.id}@${g.version}`;
+    if (!glyphs.some((c) => c.id === g.id) || versions.has(k)) bad();
+    versions.add(k);
+  }
+  const recordsRaw = record(r.glyphRecords);
+  const glyphRecords = Object.fromEntries(
+    Object.entries(recordsRaw).map(([k, rec]) => [
+      VERSION_KEY.test(k) ? k : bad(),
+      parseRecord(rec),
+    ]),
+  );
+  const library = glyphLibrary({ glyphs, glyphRecords });
   for (const m of MEMBER_IDS) {
     const shape = parseLattice(MEMBERS[m].shape).shape;
-    // Also rejects a lattice Glyph that is not in the library.
-    const structural = validateLattice(
-      { shape, runes: lattices[m] },
-      null,
-      glyphLibrary({ glyphs }),
+    // Also rejects a lattice Glyph that is not in the library. A stale argument (after a revision)
+    // is the page's issue to fix, not a broken save.
+    const structural = validateLattice({ shape, runes: lattices[m] }, null, library).filter(
+      (i) => i.kind !== 'arg',
     );
     if (structural.length > 0) bad();
   }
+  const drafts = list(r.drafts).map(parseDraftCopy);
+  if (new Set(drafts.map((d) => d.id)).size !== drafts.length) bad();
   const proofRaw = record(r.proof);
   const proof = perMember((m) => list(proofRaw[m]).map((mask) => list(mask).map(parseFired)));
   const idioms = unique(
@@ -639,6 +807,9 @@ function parseProfile(v: unknown): Profile {
     glyphs,
     proof,
     idioms,
+    glyphArchive,
+    glyphRecords,
+    drafts,
   };
 }
 
@@ -653,11 +824,18 @@ function parseRune(v: unknown): PlacedRune {
   return r.dir === undefined ? { at, rune } : { at, rune, dir: oneOf(DIRS, r.dir) };
 }
 
+/** A saved Glyph (never with a `discount`: that is the effective view's). */
 function parseGlyphDef(v: unknown): GlyphDef {
   const r = record(v);
   const cells = list(r.cells).map(parseRune);
   if (cells.length === 0) bad();
-  return {
+  const params = unique(list(r.params).map(cellKey));
+  for (const k of params) {
+    const cell = cells.find((c) => `${c.at.x},${c.at.y}` === k) ?? bad();
+    const family = RUNES[cell.rune].family;
+    if (family === 'source' || family === 'aura') bad();
+  }
+  const def: GlyphDef = {
     id: text(r.id),
     name: text(r.name),
     kind: oneOf<'spell' | 'payload'>(['spell', 'payload'], r.kind),
@@ -674,7 +852,12 @@ function parseGlyphDef(v: unknown): GlyphDef {
             IDIOMS.map((x) => x.id),
             r.idiom,
           ),
+    version: count(r.version) >= 1 ? count(r.version) : bad(),
+    params,
+    extraExit: r.extraExit === null ? null : oneOf<Dir>(['up', 'right', 'down'], r.extraExit),
   };
+  if (r.draft !== undefined) def.draft = oneOf(DRAFT_IDS, r.draft);
+  return def;
 }
 
 function parseFired(v: unknown): FiredCell {
@@ -753,6 +936,8 @@ function parseTrip(v: unknown): Trip {
   if (trip.status === 'doorway' && enc.heart) bad();
   // A doorway is never banked and never offered at the heart (plan S11).
   if (trip.loot.some((i) => i.kind === 'doorway')) bad();
+  // At most one draft a trip (M30).
+  if ([...trip.loot, ...trip.offers].filter((i) => i.kind === 'draft').length > 1) bad();
   if (enc.heart && trip.offers.some((i) => i.kind === 'doorway')) bad();
   if (trip.offers.filter((i) => i.kind === 'doorway').length > 1) bad();
   if (trip.status !== 'fight' && trip.actions.length > 0) bad();
@@ -770,22 +955,38 @@ export function parseSaveData(data: unknown): SaveData {
   };
 }
 
-/** W0: shape check only; S1 validates the fields it fills. */
+function parseTally(v: unknown): SpellTally {
+  const x = record(v);
+  return {
+    member: oneOf(MEMBER_IDS, x.member),
+    spell: text(x.spell),
+    name: text(x.name),
+    casts: count(x.casts),
+    damage: count(x.damage),
+    kills: count(x.kills),
+    cells: unique(list(x.cells).map(cellKey)),
+    fired: unique(list(x.fired).map(cellKey)),
+  };
+}
+
+function parseTierUp(v: unknown): TierUp {
+  const x = record(v);
+  const version = count(x.version);
+  if (version < 1) bad();
+  return {
+    glyph: text(x.glyph),
+    name: text(x.name),
+    version,
+    metric: oneOf<TierUp['metric']>(['economy', 'reliability'], x.metric),
+    tier: tier(x.tier),
+  };
+}
+
 function parseStats(v: unknown): TripStats {
   const r = record(v);
   return {
     fights: count(r.fights),
-    spells: list(r.spells).map((s) => {
-      const x = record(s);
-      return {
-        member: oneOf(MEMBER_IDS, x.member),
-        spell: text(x.spell),
-        name: text(x.name),
-        casts: count(x.casts),
-        damage: count(x.damage),
-        kills: count(x.kills),
-      };
-    }),
+    spells: list(r.spells).map(parseTally),
     biggestChain:
       r.biggestChain === null || r.biggestChain === undefined
         ? null
@@ -800,6 +1001,7 @@ function parseStats(v: unknown): TripStats {
           })(),
     discoveries: list(r.discoveries).map(text),
     proofCasts: count(r.proofCasts),
+    elegance: list(r.elegance).map(parseTierUp),
   };
 }
 
@@ -851,18 +1053,28 @@ export function recordProof(p: Profile, m: MemberId, masks: readonly FiredCell[]
 }
 
 /**
- * Writes proof for a trip's current fight, win or wipe (plan P7): the trip's actions replay
- * deterministically, so the full log's meaningful player casts come from `beginEncounter`.
- * A fight that no longer replays records nothing. Lab battles never reach this.
+ * Writes proof and Glyph records for a trip's current fight, win or wipe (plan P7, M7): the trip's
+ * actions replay deterministically, so the full log comes from `beginEncounter`, once. Records
+ * read the profile as at battle start and are written after. A fight that no longer replays
+ * records nothing. Lab, Bench and desk battles never reach this.
  */
-export function recordTripProof(p: Profile, t: Trip): Profile {
+export function recordTripCasts(p: Profile, t: Trip): Profile {
   let events: ActionResult['events'];
   try {
     events = beginEncounter(p, t).events;
   } catch {
     return p;
   }
-  return MEMBER_IDS.reduce((acc, m) => recordProof(acc, m, masksFrom(events, m)), p);
+  const proven = MEMBER_IDS.reduce((acc, m) => recordProof(acc, m, masksFrom(events, m)), p);
+  return { ...proven, glyphRecords: recordGlyphCasts(p, events).glyphRecords };
+}
+
+/** The old name of `recordTripCasts`. */
+export const recordTripProof = recordTripCasts;
+
+/** The first compile of an idiom is free; a repaired draft's Glyph doesn't use it up (P11, M33). */
+export function freeIdiomCompile(p: Pick<Profile, 'glyphs'>, idiom: string | null): boolean {
+  return idiom !== null && !p.glyphs.some((g) => g.idiom === idiom && g.draft === undefined);
 }
 
 /** Adds the idioms any member's lattice now contains to the codex; `fresh` are the new ones. */
@@ -875,8 +1087,17 @@ export function recogniseIdioms(p: Profile): { profile: Profile; fresh: string[]
     : { profile: { ...p, idioms: [...p.idioms, ...fresh] }, fresh };
 }
 
-/** Fair Copy: collapses the cluster in member m's lattice into a new Glyph (plan P2, P3, P11). */
-export function compileGlyph(p: Profile, m: MemberId, cluster: Cluster, name: string): Profile {
+/**
+ * Fair Copy: collapses the cluster in member m's lattice into a new Glyph v1 (plan P2, P3, P11).
+ * `open` is the one local cell left open for an argument, if any (M22, via `withOpenCell`).
+ */
+export function compileGlyph(
+  p: Profile,
+  m: MemberId,
+  cluster: Cluster,
+  name: string,
+  open: Coord | null = null,
+): Profile {
   const trimmed = name.trim();
   if (!trimmed) throw new Error('A Glyph needs a name');
   if (cluster.cells.length < TUNING.glyphMinCells || cluster.cells.length > TUNING.glyphMaxCells) {
@@ -900,8 +1121,8 @@ export function compileGlyph(p: Profile, m: MemberId, cluster: Cluster, name: st
   }
   let n = p.glyphs.length + 1;
   while (lib[`g${n}`]) n += 1;
-  const def = toGlyphDef(l, cluster, trimmed, `g${n}`, lib);
-  const free = def.idiom !== null && !p.glyphs.some((g) => g.idiom === def.idiom);
+  const def = withOpenCell(toGlyphDef(l, cluster, trimmed, `g${n}`, lib), open);
+  const free = freeIdiomCompile(p, def.idiom);
   const cost = free ? 0 : TUNING.compileVellum;
   if (p.vellum < cost) throw new Error('Not enough vellum');
   const glyphs = [...p.glyphs, def];

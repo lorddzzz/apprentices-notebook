@@ -110,10 +110,13 @@ export class GameStore {
     for (const line of toasts) toast(line);
   }
 
-  /** Fair Copy: collapses `cluster` on the current page into a named Glyph. Returns why not, or null. */
-  fairCopy(cluster: Cluster, name: string): string | null {
+  /**
+   * Fair Copy: collapses `cluster` on the current page into a named Glyph, with `open` (a local cell)
+   * left open for an argument (M22). Returns why not, or null.
+   */
+  fairCopy(cluster: Cluster, name: string, open: Coord | null = null): string | null {
     try {
-      this.setProfile(compileGlyph(this.save.profile, this.member, cluster, name));
+      this.setProfile(compileGlyph(this.save.profile, this.member, cluster, name, open));
     } catch (e) {
       return e instanceof Error ? e.message : 'The Fair copy failed';
     }
@@ -128,6 +131,23 @@ export class GameStore {
     } catch (e) {
       return e instanceof Error ? e.message : 'Could not rename';
     }
+    return null;
+  }
+
+  /**
+   * Applies a pure profile change to what the Study edits: the doorway's draft while one is open,
+   * else the save (written at once). Returns the change's error message, or null. Glyph mastery
+   * (revise, revert, open cells, extra exit, arguments) and the desk go through this.
+   */
+  updateProfile(change: (p: Profile) => Profile): string | null {
+    let next: Profile;
+    try {
+      next = change(this.studyProfile);
+    } catch (e) {
+      return e instanceof Error ? e.message : 'That did not work';
+    }
+    if (this.inDoorway) this.draft = next;
+    else this.setProfile(next);
     return null;
   }
 

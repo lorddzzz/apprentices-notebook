@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import { INTERACTION_IDS, type InteractionId, MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
   import {
+    type CellKey,
     type CompiledLattice,
     type Coord,
     describeSpell,
@@ -59,6 +60,12 @@
     };
     /** What the info panel shows while Fair copy mode is on. */
     fairinfo?: Snippet;
+    /** Opens "Your Glyphs, ranked" (the shelf's Fair copies tab). */
+    onranking?: () => void;
+    /** Opens the argument picker for the Glyph on `at` (placement, or its card's "Arguments"; task U4). */
+    onargs?: (at: Coord) => void;
+    /** Cells of plain spells that never fired on the last trip (M15), ringed on the page. */
+    deadCells?: ReadonlySet<CellKey>;
   }
 
   let {
@@ -78,6 +85,8 @@
     onpeek,
     fair,
     fairinfo,
+    onranking,
+    deadCells = new Set(),
   }: Props = $props();
 
   let focus = $state<SpellKey | null>(null);
@@ -189,6 +198,7 @@
       {glyphs}
       glow={fair?.glow}
       selection={fair?.selected}
+      {deadCells}
       ontap={(at) => tap(at, false)}
       onlongpress={(at) => tap(at, true)}
     />
@@ -270,7 +280,7 @@
       {@render fairinfo()}
     </div>
   {:else}
-    <RuneShelf {slots} {tool} onselect={pick} {onreject} glyphs={glyphSlots} erase />
+    <RuneShelf {slots} {tool} onselect={pick} {onreject} glyphs={glyphSlots} erase {onranking} />
   {/if}
 
   <Sheet open={reading} title="Spells on this page" onclose={() => (reading = false)}>

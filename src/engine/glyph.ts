@@ -1,9 +1,10 @@
-import { RUNES, TUNING } from '$data';
+import { RUNES, type RuneId, TUNING } from '$data';
 import type { Cluster } from './cluster';
 import { type Coord, DIRS, type Dir, key, sameCoord } from './grid';
 import { compileLattice } from './lattice';
 import type {
   CellKey,
+  GlyphArg,
   GlyphDef,
   GlyphLibrary,
   Lattice,
@@ -15,10 +16,35 @@ import { isGlyph } from './types';
 
 /** Glyphs (design research-and-mastery §4.4): cost, local-frame rotation and the Fair Copy collapse. */
 
-/** Ink for a placed Glyph before outer auras: max(1, Σ inner − floor(cells / 3)). */
-export function glyphCost(g: GlyphDef): number {
+/**
+ * Ink for a Glyph before outer auras and before its Economy discount: max(1, Σ inner − floor(cells / 3)).
+ * Ink is per family, so an argument costs what its default does (M23).
+ */
+export function baseGlyphCost(g: GlyphDef): number {
   const inner = g.cells.reduce((sum, c) => sum + TUNING.inkCost[RUNES[c.rune].family], 0);
   return Math.max(1, inner - Math.floor(g.cells.length / 3));
+}
+
+/** Ink for a placed Glyph before outer auras: the base cost less its Economy discount, at least 1. */
+export function glyphCost(g: GlyphDef): number {
+  const base = baseGlyphCost(g);
+  return Math.max(1, base - (g.discount ?? 0));
+}
+
+/**
+ * The runes a placed Glyph uses from the collection: its inner runes, an argument in place of an
+ * open cell's default (M23). W0 stub: ignores `args` (task E3).
+ */
+export function glyphRunes(def: GlyphDef, _args?: Readonly<Record<CellKey, GlyphArg>>): RuneId[] {
+  return def.cells.map((c) => c.rune);
+}
+
+/**
+ * The Glyph with `local` as its one open cell, or none (the Fair Copy sheet, M22). Throws when the
+ * cell can't be open (no rune there, or a Source or Aura). W0 stub: returns `def` (task E3).
+ */
+export function withOpenCell(def: GlyphDef, _local: Coord | null): GlyphDef {
+  return def;
 }
 
 /** Quarter turns clockwise that take local 'right' to `dir`. */
@@ -94,6 +120,9 @@ function provisionalGlyph(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary): G
     entry: { x: 0, y: 0 },
     exits: [],
     idiom: null,
+    version: 1,
+    params: [],
+    extraExit: null,
   };
 }
 

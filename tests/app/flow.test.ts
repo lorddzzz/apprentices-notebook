@@ -318,7 +318,7 @@ test('a won fight folds its whole log into the trip stats', () => {
   const end = endBattle(save, battle, fightLog());
   expect(end.outcome).toBe('won');
   expect(end.save.trip?.stats.fights).toBe(1);
-  expect(end.save.trip?.stats.spells).toEqual([
+  expect(end.save.trip?.stats.spells).toMatchObject([
     { member: 'draughtsman', spell: '0,0', name: 'Bolt', casts: 1, damage: 2, kills: 1 },
   ]);
   expect(end.save.lastTrip).toBeNull(); // the trip is still going

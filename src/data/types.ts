@@ -160,7 +160,8 @@ export type LootSpec =
   | { kind: 'ink' } // member chosen when rolled
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number }
-  | { kind: 'doorway' }; // a quiet doorway: rewire in the field (plan S11)
+  | { kind: 'doorway' } // a quiet doorway: rewire in the field (plan S11)
+  | { kind: 'draft' }; // the next owner's draft in story order, when one is due (M30)
 export interface LootEntry {
   spec: LootSpec;
   weight: number;
@@ -193,6 +194,54 @@ export interface ScenarioDef {
   expected: readonly string[]; // describeLog of all demo events concatenated
 }
 
+// ── The owner's drafts (M29–M36) ────────────────────────
+export type DraftId = string;
+/** Where the draft's one test cast is aimed: a direction, a tile by label ('C2'), or an ally. */
+export type DraftAim = { dir: Dir } | { tile: string } | { ally: MemberId };
+/** Event types a draft goal may ask for (M32). */
+export type DraftEventType =
+  | 'ignite'
+  | 'detonate'
+  | 'conduct'
+  | 'arc'
+  | 'extinguish'
+  | 'slide'
+  | 'smear'
+  | 'heated'
+  | 'stained'
+  | 'pierced';
+/** What a draft's test must show, checked on the log and the final state (M32). Unit ids: 'dummy-1'. */
+export type DraftGoal =
+  | { all: readonly DraftGoal[] }
+  | { happens: DraftEventType; atLeast?: number }
+  | { hurt: string; atLeast: number }
+  | { dies: string }
+  | { spared: string }
+  | { tile: string; has: 'fire' | 'oil' | 'ink' | 'steam' | 'plate' };
+/** The draft's test stage (M31): a Lab battle, one cast at `aim`, then optionally one idle enemy round. */
+export interface DraftTest {
+  board: string; // board ASCII; the caster is the Draughtsman `D`
+  aim: DraftAim;
+  endRound?: boolean;
+  hp?: Readonly<Record<string, number>>; // by cell label, like a scenario
+  goal: DraftGoal;
+}
+/** One of the owner's broken pages (M29). Fixes live in the tests only. */
+export interface DraftDef {
+  id: DraftId;
+  order: number; // story order, from 1
+  depth: LootTableId; // the shallowest table that can drop it
+  name: string;
+  kind: 'spell' | 'payload';
+  inside: string; // lattice ASCII in the Glyph's local frame (the owner's broken page)
+  entry: string; // the entry cell's label in `inside` ('A1'); flow enters it moving right
+  host?: string; // a Payload draft's host page, lattice ASCII with `G:draft>` where it sits
+  note: string; // the owner's note: what it should do
+  hint: string; // a codex-style nudge, shown on the desk
+  test: DraftTest;
+  reaction: string; // the owner's reaction once repaired
+}
+
 export interface Tuning {
   grid: { width: number; height: number };
   inkCost: Record<RuneFamily, number>;
@@ -221,4 +270,13 @@ export interface Tuning {
   provenCasts: number; // meaningful casts that prove a cluster
   proofMasksPerMember: number; // cap on stored cast masks
   compileVellum: number;
+  // Mastery (records, tiers, parameters, revisions)
+  killHarm: number; // harm per enemy death (M1)
+  tierWindow: number; // casts in a tier window (M10)
+  economyTiers: readonly [number, number, number]; // harm ÷ ink for bronze, silver, gold (M11)
+  reliabilityTiers: readonly [number, number, number]; // share of meaningful casts (M11)
+  deadAfterCasts: number; // casts of a version before a cell that never fired counts as dead (M13)
+  paramSlots: number; // open cells a Glyph may have (M22)
+  paramSlotsGold: number; // at Reliability gold
+  revisionCanvasMax: number; // the revision canvas is at most this many cells a side (M18)
 }

@@ -1,10 +1,26 @@
 import { MEMBER_IDS, type MemberId } from '$data';
 import { discoveriesIn, type EventLog, type GameEvent } from './events';
-import type { Profile, SpellKey, SpellTally, TripStats } from './types';
+import type {
+  CellKey,
+  CompiledLattice,
+  Profile,
+  Spell,
+  SpellKey,
+  SpellTally,
+  TripRecap,
+  TripStats,
+} from './types';
 
 /** A trip's stats before its first fight. */
 export function emptyStats(): TripStats {
-  return { fights: 0, spells: [], biggestChain: null, discoveries: [], proofCasts: 0 };
+  return {
+    fights: 0,
+    spells: [],
+    biggestChain: null,
+    discoveries: [],
+    proofCasts: 0,
+    elegance: [],
+  };
 }
 
 /** Event types that count as a chain reaction when they come from one cast (plan S16). */
@@ -50,10 +66,20 @@ const memberOf = (id: string): MemberId | null => MEMBER_IDS.find((m) => m === i
  * Folds one finished encounter's event log into the trip's stats (plan S16). `known` is the
  * profile as it was before this encounter, so first discoveries can be told apart. A cast owns
  * the events from its `cast` event to its `trace` (or, for an echo, to the next boundary);
- * damage to enemies and their deaths in that stretch are credited to its spell.
+ * damage to enemies and their deaths in that stretch are credited to its spell. `compiled` is each
+ * member's spells as fought (for each tally's `cells`, M15; task E5).
  */
-export function accumulateStats(stats: TripStats, log: EventLog, known: Profile): TripStats {
-  const spells: SpellTally[] = stats.spells.map((s) => ({ ...s }));
+export function accumulateStats(
+  stats: TripStats,
+  log: EventLog,
+  known: Profile,
+  _compiled: Partial<Record<MemberId, readonly Spell[]>> = {},
+): TripStats {
+  const spells: SpellTally[] = stats.spells.map((s) => ({
+    ...s,
+    cells: [...s.cells],
+    fired: [...s.fired],
+  }));
   let biggest = stats.biggestChain ? { ...stats.biggestChain } : null;
   let proofCasts = stats.proofCasts;
   const keyOf = new Map<string, SpellKey>(); // `${member}|${name}` → the key a trace last gave it
@@ -65,7 +91,16 @@ export function accumulateStats(stats: TripStats, log: EventLog, known: Profile)
     const key = seg.key ?? keyOf.get(`${seg.member}|${seg.name}`) ?? seg.name;
     let t = spells.find((s) => s.member === seg?.member && s.spell === key);
     if (!t) {
-      t = { member: seg.member, spell: key, name: seg.name, casts: 0, damage: 0, kills: 0 };
+      t = {
+        member: seg.member,
+        spell: key,
+        name: seg.name,
+        casts: 0,
+        damage: 0,
+        kills: 0,
+        cells: [],
+        fired: [],
+      };
       spells.push(t);
     }
     if (seg.queuesEcho) echoes.set(seg.member, [...(echoes.get(seg.member) ?? []), key]);
@@ -111,5 +146,24 @@ export function accumulateStats(stats: TripStats, log: EventLog, known: Profile)
     if (!known.interactions.includes(id) && !discoveries.includes(code)) discoveries.push(code);
   }
 
-  return { fights: stats.fights + 1, spells, biggestChain: biggest, discoveries, proofCasts };
+  return {
+    fights: stats.fights + 1,
+    spells,
+    biggestChain: biggest,
+    discoveries,
+    proofCasts,
+    elegance: [...stats.elegance],
+  };
+}
+
+/**
+ * Cells of member `m`'s plain spells that never fired on the last trip, while each spell's path still
+ * equals its tally's `cells` (M15): the Study's faint rings. W0 stub: none (task E5).
+ */
+export function lastTripDeadCells(
+  _recap: TripRecap | null,
+  _m: MemberId,
+  _compiled: CompiledLattice,
+): CellKey[] {
+  return [];
 }

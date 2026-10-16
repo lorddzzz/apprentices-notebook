@@ -320,7 +320,18 @@ export function toGlyphDef(
     idiom = firstIdiom(tree, rootIdx, inside);
     break;
   }
-  return { id, name, kind: cluster.kind, cells, entry: { x: 0, y: 0 }, exits, idiom };
+  return {
+    id,
+    name,
+    kind: cluster.kind,
+    cells,
+    entry: { x: 0, y: 0 },
+    exits,
+    idiom,
+    version: 1,
+    params: [],
+    extraExit: null,
+  };
 }
 
 /** The first idiom some root-to-leaf branch of the cluster matches. */

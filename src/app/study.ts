@@ -1,16 +1,19 @@
 import { IDIOMS, MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, type RuneId } from '$data';
 import {
   available,
+  type CellKey,
   type Coord,
   canPlace,
   canPlaceGlyph,
   countRunes,
   type Dir,
+  type GlyphArg,
   type GlyphDef,
   type GlyphId,
   type GlyphLibrary,
   glyphCost,
   glyphLibrary,
+  glyphRunes,
   inkCost,
   inkUsed,
   isGlyph,
@@ -21,10 +24,12 @@ import {
   type Profile,
   placedInk,
   recogniseIdioms,
+  recordOf,
   rotateSocket,
   setMemberLattice,
   setSocket,
   socketAt,
+  type TierLevel,
   turnRight,
   validateLoadout,
 } from '$engine';
@@ -80,7 +85,8 @@ export function freeCounter(
   // A placed Glyph holds its inner runes (plan P1).
   for (const l of lattices) {
     for (const r of l.runes) {
-      if (isGlyph(r)) for (const c of glyphs[r.glyph]?.cells ?? []) used[c.rune] += 1;
+      const def = isGlyph(r) ? glyphs[r.glyph] : undefined;
+      if (isGlyph(r) && def) for (const rune of glyphRunes(def, r.args)) used[rune] += 1;
     }
   }
   return (rune) => Math.max(0, owned[rune] - used[rune]);
@@ -138,6 +144,9 @@ const emptyGlyph: GlyphDef = {
   entry: { x: 0, y: 0 },
   exits: [],
   idiom: null,
+  version: 1,
+  params: [],
+  extraExit: null,
 };
 
 /** Puts a Glyph socket on `at` (replacing whatever is there), pointing right until turned. */
@@ -283,6 +292,7 @@ export function profileShelf(p: Profile, m: MemberId): ShelfSlot[] {
 }
 
 export interface GlyphSlot {
+  /** The current version as its rewards make it (the effective view). */
   glyph: GlyphDef;
   /** Ink the Glyph costs before outer auras. */
   cost: number;
@@ -293,18 +303,26 @@ export interface GlyphSlot {
   /** Could be dropped on an empty socket right now (enough ink as well). */
   affordable: boolean;
   reason: string | null;
+  /** The current version's best tiers (shelf marks, M14). */
+  tiers: { economy: TierLevel; reliability: TierLevel };
+  /** Open cells it takes arguments in ("( )" on the shelf, M21). */
+  open: number;
 }
 
 /** The Fair copies tab: the profile's Glyphs, and whether each can be placed on `m`'s page. */
 export function glyphSlots(p: Profile, m: MemberId): GlyphSlot[] {
-  const left = inkLeft(latticeOf(p, m), p.inkCapacity[m], glyphLibrary(p));
-  return p.glyphs.map((glyph) => {
+  const lib = glyphLibrary(p);
+  const left = inkLeft(latticeOf(p, m), p.inkCapacity[m], lib);
+  return p.glyphs.map((saved) => {
+    const glyph = lib[saved.id] ?? saved;
     const needs = new Map<RuneId, number>();
-    for (const c of glyph.cells) needs.set(c.rune, (needs.get(c.rune) ?? 0) + 1);
+    for (const rune of glyphRunes(glyph)) needs.set(rune, (needs.get(rune) ?? 0) + 1);
     const runesFree = [...needs].every(([rune, n]) => available(p, rune) >= n);
     const cost = glyphCost(glyph);
     return {
       glyph,
+      tiers: { ...recordOf(p, saved.id, saved.version).best },
+      open: glyph.params.length,
       cost,
       runesFree,
       usable: runesFree,
@@ -365,6 +383,40 @@ export function editProfile(
   const changed = CHANGING.includes(d.kind);
   const { lattice, ...rest } = r;
   return { ...rest, profile: changed ? setMemberLattice(p, m, lattice) : p, changed };
+}
+
+/**
+ * Sets the arguments of the Glyph placed on `at` of `m`'s page (M25); an empty set clears them.
+ * Throws when no Glyph is there. Task U4 adds the ownership and family checks (`canPlaceGlyph`).
+ */
+export function setGlyphArgs(
+  p: Profile,
+  m: MemberId,
+  at: Coord,
+  args: Readonly<Record<CellKey, GlyphArg>>,
+): Profile {
+  const l = latticeOf(p, m);
+  const placed = socketAt(l, at);
+  if (!placed || !isGlyph(placed)) throw new Error('No Fair copy there');
+  const { args: _old, ...bare } = placed;
+  const next: Placed = Object.keys(args).length > 0 ? { ...bare, args: { ...args } } : bare;
+  const runes = l.runes.map((r) => (r === placed ? next : r));
+  return setMemberLattice(p, m, { shape: l.shape, runes });
+}
+
+/** One rune the revision editor may use, and how many the inside may hold (M19: what is owned). */
+export interface PaletteSlot {
+  rune: RuneId;
+  /** null = no limit (a draft's own page runes, M34). */
+  count: number | null;
+}
+
+/** The revision editor's palette: every rune owned at least once, with the owned count (M19). */
+export function revisionPalette(p: Profile): PaletteSlot[] {
+  return RUNE_IDS.filter((r) => p.collection[r] > 0).map((rune) => ({
+    rune,
+    count: p.collection[rune],
+  }));
 }
 
 /** Writes any idiom the pages now contain into the codex; returns the toast lines for the new ones. */

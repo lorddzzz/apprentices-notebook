@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { ENCOUNTERS, RUNE_IDS } from '$data';
 import type { GlyphDef } from '$engine';
@@ -29,7 +30,7 @@ function poke(base: unknown, path: string, value: unknown): unknown {
   return root;
 }
 
-test('SaveData round-trips through src/app/save serialize/parse at version 2', () => {
+test('SaveData round-trips through src/app/save serialize/parse at the current version', () => {
   const profile = newProfile();
   const trip = startTrip(profile, 7);
   const b = structuredClone(beginEncounter(profile, trip).state);
@@ -43,9 +44,9 @@ test('SaveData round-trips through src/app/save serialize/parse at version 2', (
     seedCounter: 3,
     lastTrip: null,
   };
-  expect(CURRENT_VERSION).toBe(3);
+  expect(CURRENT_VERSION).toBe(4);
   const env = parse(serialize(save));
-  expect(env.version).toBe(3);
+  expect(env.version).toBe(4);
   expect(parseSaveData(env.data)).toEqual(save);
 
   const fresh = newSave(99);
@@ -149,7 +150,7 @@ test('a version 0 save migrates: its trip gets an empty action list', () => {
   const { actions: _, ...v0trip } = startTrip(save.profile, 1);
   const text = JSON.stringify({ version: 0, data: { ...save, trip: v0trip } });
   const env = parse(text);
-  expect(env.version).toBe(3);
+  expect(env.version).toBe(CURRENT_VERSION);
   expect(parseSaveData(env.data).trip?.actions).toEqual([]);
   expect(parseSaveData(parse(JSON.stringify({ version: 0, data: save })).data)).toEqual(save);
 });
@@ -184,7 +185,7 @@ function v1Save(): unknown {
 
 test('a version 1 save migrates: research becomes solvents round-robin', () => {
   const env = parse(JSON.stringify(v1Save()));
-  expect(env.version).toBe(3);
+  expect(env.version).toBe(CURRENT_VERSION);
   const parsed = parseSaveData(env.data);
   expect(parsed.profile.solvents).toMatchObject({ gallnut: 2, pitch: 1, cinder: 1, chalk: 0 });
   expect(parsed.profile.vellum).toBe(0);
@@ -215,6 +216,9 @@ test('parseSaveData rejects malformed v2 fields', () => {
     entry: { x: 0, y: 0 },
     exits: [],
     idiom: null,
+    version: 1,
+    params: [],
+    extraExit: null,
   };
   const withGlyph = poke(base, 'profile.glyphs', [glyph]);
   expect(parseSaveData(withGlyph).profile.glyphs).toEqual([glyph]);
@@ -254,6 +258,9 @@ test('v2 fields round-trip, and a lattice Glyph needs a library entry', () => {
     entry: { x: 0, y: 0 },
     exits: [{ from: { x: 0, y: 0 }, dir: 'right' }],
     idiom: null,
+    version: 1,
+    params: [],
+    extraExit: null,
   };
   const p = newProfile();
   const profile = {
@@ -290,6 +297,7 @@ test('a version 2 save with a live trip loads with empty stats and no last trip'
     biggestChain: null,
     discoveries: [],
     proofCasts: 0,
+    elegance: [],
   });
   expect(parsed.lastTrip).toBeNull();
   // no trip at all also loads
@@ -301,15 +309,119 @@ test('a last trip with stats round-trips through the save text', () => {
   const stats = {
     fights: 2,
     spells: [
-      { member: 'stoker' as const, spell: '1,0', name: 'Spark', casts: 3, damage: 6, kills: 1 },
+      {
+        member: 'stoker' as const,
+        spell: '1,0',
+        name: 'Spark',
+        casts: 3,
+        damage: 6,
+        kills: 1,
+        cells: ['1,0', '1,1', '1,2'],
+        fired: ['1,0', '1,1'],
+      },
     ],
     biggestChain: { member: 'stoker' as const, spell: '1,0', name: 'Spark', reactions: 3 },
     discoveries: ['interaction:ignite'],
     proofCasts: 2,
+    elegance: [
+      { glyph: 'g1', name: 'Kindle', version: 2, metric: 'reliability' as const, tier: 2 as const },
+    ],
   };
   const save: SaveData = {
     ...newSave(1),
     lastTrip: { outcome: 'wiped', encounter: 1, place: 'The scullery', stats },
   };
   expect(parseSaveData(parse(serialize(save)).data)).toEqual(save);
+});
+
+// ── v4 (glyph mastery, plan M37) ──
+
+const v4 = (
+  JSON.parse(
+    readFileSync(new URL('../fixtures/glyph-mastery-save.json', import.meta.url), 'utf8'),
+  ) as { data: unknown }
+).data;
+
+test('parseSaveData rejects malformed v4 fields', () => {
+  expect(() => parseSaveData(v4)).not.toThrow();
+  const g = 'profile.glyphs.1';
+  const glyph = (json(v4) as { profile: { glyphs: Record<string, unknown>[] } }).profile.glyphs[1];
+  const record = { casts: 1, harm: 1, meaningful: 1, recent: [], best: {}, fired: {} };
+  const sample = { harm: 1, cost: 1, meaningful: true };
+  const tally = { member: 'stoker', spell: '1,0', name: 'Bolt', casts: 1, damage: 1, kills: 0 };
+  const trip = startTrip(newProfile(), 1);
+  const cases: [string, unknown][] = [
+    [`${g}.version`, undefined],
+    [`${g}.version`, 0],
+    [`${g}.params`, undefined],
+    [`${g}.params`, ['9,9']], // no rune there
+    [`${g}.params`, ['nope']],
+    ['profile.glyphs.0.params', ['0,0']], // a Source can't be open
+    [`${g}.extraExit`, 'left'], // the way in
+    [`${g}.extraExit`, undefined],
+    [`${g}.draft`, 'nonsense'],
+    ['profile.glyphArchive', undefined],
+    ['profile.glyphArchive', [{ ...glyph, id: 'ghost' }]], // not a Glyph the profile has
+    ['profile.glyphArchive', [glyph]], // the current version again
+    ['profile.glyphRecords', undefined],
+    ['profile.glyphRecords', { g1: record }], // not "id@version"
+    ['profile.glyphRecords.g1@2.best', { economy: 4, reliability: 0 }],
+    ['profile.glyphRecords.g1@2.recent', Array.from({ length: 11 }, () => sample)],
+    ['profile.glyphRecords.g1@2.recent', [{ ...sample, meaningful: 'yes' }]],
+    ['profile.glyphRecords.g1@2.fired', { here: 1 }],
+    ['profile.glyphRecords.g1@2.harm', -1],
+    ['profile.drafts', undefined],
+    [
+      'profile.drafts',
+      [
+        {
+          id: 'nonsense',
+          inside: { kind: 'spell', cells: [], entry: { x: 0, y: 0 } },
+          repaired: false,
+        },
+      ],
+    ],
+    ['profile.drafts.0.repaired', 'yes'],
+    ['profile.drafts.0.inside.kind', 'wall'],
+    ['profile.drafts.1.id', 'lamplighter'], // twice
+    ['profile.lattices.draughtsman.2.args', { '1,0': { rune: 'nope' } }],
+    ['profile.lattices.draughtsman.2.args', { here: { rune: 'oil' } }],
+    ['lastTrip.stats.spells', [{ ...tally, cells: ['x'], fired: [] }]],
+    ['lastTrip.stats.spells', [tally]], // no cells or fired
+    ['lastTrip.stats.elegance', undefined],
+    ['lastTrip.stats.elegance', [{ glyph: 'g1', name: 'X', version: 1, metric: 'flair', tier: 1 }]],
+    [
+      'lastTrip.stats.elegance',
+      [{ glyph: 'g1', name: 'X', version: 0, metric: 'economy', tier: 1 }],
+    ],
+    ['trip', { ...trip, loot: [{ kind: 'draft', draft: 'nonsense' }] }],
+    [
+      'trip',
+      {
+        ...trip,
+        loot: [
+          { kind: 'draft', draft: 'lamplighter' },
+          { kind: 'draft', draft: 'collection' },
+        ],
+      },
+    ], // one draft a trip
+  ];
+  for (const [path, value] of cases) {
+    expect(() => parseSaveData(poke(v4, path, value)), path + JSON.stringify(value)).toThrow(
+      'Not a valid save',
+    );
+  }
+});
+
+test('a draft in the trip loot and an argument on a placed Glyph survive the save text', () => {
+  const trip = { ...startTrip(newProfile(), 1), loot: [{ kind: 'draft', draft: 'collection' }] };
+  const parsed = parseSaveData(poke(v4, 'trip', trip));
+  expect(parsed.trip?.loot).toEqual([{ kind: 'draft', draft: 'collection' }]);
+  expect(parseSaveData(parse(serialize(parsed)).data)).toEqual(parsed);
+});
+
+test('a stale argument on a placed Glyph is the page’s problem, not a broken save', () => {
+  // An argument for a cell that is not open (a revision dropped it) still loads.
+  const stale = poke(v4, 'profile.lattices.draughtsman.1.args', { '3,0': { rune: 'oil' } });
+  expect(() => parseSaveData(stale)).not.toThrow();
 });

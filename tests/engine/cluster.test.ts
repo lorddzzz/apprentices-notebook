@@ -110,6 +110,9 @@ describe('clustersOf', () => {
         entry: c(0, 0),
         exits: [],
         idiom: null,
+        version: 1,
+        params: [],
+        extraExit: null,
       },
     };
     for (const cl of clustersOf(l, lib)) expect(at(cl)).not.toContain('2,0');

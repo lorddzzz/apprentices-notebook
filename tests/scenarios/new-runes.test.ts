@@ -158,6 +158,9 @@ describe('pierce', () => {
       entry: { x: 0, y: 0 },
       exits: [],
       idiom: null,
+      version: 1,
+      params: [],
+      extraExit: null,
     };
     const l: Lattice = {
       shape: parseLattice(MEMBERS.draughtsman.shape).shape,
@@ -298,6 +301,9 @@ describe('thrift', () => {
       entry: { x: 0, y: 0 },
       exits: [],
       idiom: null,
+      version: 1,
+      params: [],
+      extraExit: null,
     };
     const shape = parseLattice(MEMBERS.draughtsman.shape).shape;
     const withThrift: Lattice = {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { RUNES } from '$data';
   import {
+    type CellKey,
     type CompiledLattice,
     type Coord,
     type GlyphLibrary,
@@ -31,6 +32,8 @@
     glow?: ReadonlySet<string>;
     /** Cells of the Fair copy selection (outlined). */
     selection?: ReadonlySet<string>;
+    /** Cells of plain spells that never fired on the last trip (M15; task U6 draws a dashed ring). */
+    deadCells?: ReadonlySet<CellKey>;
     ontap: (at: Coord) => void;
     onlongpress: (at: Coord) => void;
   }

@@ -1,6 +1,7 @@
 import type {
   AttackId,
   AuraRuneId,
+  DraftId,
   EnemyId,
   InteractionId,
   MaterialRuneId,
@@ -28,6 +29,13 @@ export interface PlacedGlyph {
   at: Coord;
   glyph: GlyphId;
   dir: Dir;
+  /** Arguments for the Glyph's open cells, by local cell key; a missing one means the default (M21). */
+  args?: Readonly<Record<CellKey, GlyphArg>>;
+}
+/** The rune an open cell takes on this placement (M21). `dir` only for arrow runes. */
+export interface GlyphArg {
+  rune: RuneId;
+  dir?: Dir;
 }
 /** What a lattice socket can hold. W0b switches `Lattice.runes` to this. */
 export type Placed = PlacedRune | PlacedGlyph;
@@ -47,7 +55,19 @@ export interface GlyphDef {
   entry: Coord;
   exits: readonly { from: Coord; dir: Dir }[]; // local; inner walk order
   idiom: string | null;
+  /** 1 on compile; a revision makes max + 1 (M17). The current version lives in `Profile.glyphs`. */
+  version: number;
+  /** Open cells (local cell keys) that take an argument at placement (M21). A setting, not the inside. */
+  params: readonly CellKey[];
+  /** The extra exit's local side (up, right or down), active only at Reliability silver (M26). */
+  extraExit: Dir | null;
+  /** Set when the Glyph came from repairing an owner's draft (M33). */
+  draft?: DraftId;
+  /** Ink off from the Economy tier. Only in the effective view (`glyphLibrary`), never saved. */
+  discount?: number;
 }
+/** What a revision edits: the inside, never the settings (M20). */
+export type GlyphInside = Pick<GlyphDef, 'kind' | 'cells' | 'entry'>;
 export type GlyphLibrary = Readonly<Record<GlyphId, GlyphDef>>;
 
 export interface LatticeShape {
@@ -71,6 +91,7 @@ export type SpellNode =
       next: readonly SpellNode[];
       inner?: Coord; // inside a Glyph: `at` is the Glyph's socket, `inner` the local cell
       via?: readonly Coord[]; // shape cells walked from the parent (or the source) to here
+      viaInner?: readonly Coord[]; // local shape cells of `via` walked inside the same Glyph
       pierced?: true; // downstream of a Pierce: acts on every unit the projectile passed (plan S1)
     }
   | {
@@ -80,6 +101,7 @@ export type SpellNode =
       next: readonly SpellNode[];
       inner?: Coord;
       via?: readonly Coord[];
+      viaInner?: readonly Coord[];
       pierced?: true;
     };
 
@@ -116,7 +138,7 @@ export interface CompiledLattice {
   auraTouches: AuraTouch[];
 }
 export interface LatticeIssue {
-  kind: 'ink' | 'owned' | 'socket' | 'arrow' | 'overlap';
+  kind: 'ink' | 'owned' | 'socket' | 'arrow' | 'overlap' | 'arg';
   at?: Coord;
   rune?: RuneId;
   message: string;
@@ -243,7 +265,8 @@ export type LootItem =
   | { kind: 'ink'; member: MemberId; amount: number }
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number }
-  | { kind: 'doorway' }; // never banked: picking it opens field rewiring (plan S11)
+  | { kind: 'doorway' } // never banked: picking it opens field rewiring (plan S11)
+  | { kind: 'draft'; draft: DraftId }; // an owner's draft, banked into `Profile.drafts` (M30)
 
 /** One cell that fired in a cast (proof masks; plan P7). `at` is the lattice cell. */
 export interface FiredCell {
@@ -267,6 +290,44 @@ export interface Profile {
   glyphs: GlyphDef[];
   proof: Record<MemberId, FiredCell[][]>; // cast masks, newest last, capped
   idioms: string[]; // recognised idiom ids (codex)
+  /** Older versions of Glyphs, with their own records (M17). Kept forever. */
+  glyphArchive: GlyphDef[];
+  /** Records per `versionKey(id, version)`; a missing one reads as empty (M8). */
+  glyphRecords: Record<string, GlyphRecord>;
+  /** Banked owner's drafts and their working copies (M34). */
+  drafts: DraftCopy[];
+}
+
+// ── Mastery (records, tiers, drafts) ────────────────────
+export type TierLevel = 0 | 1 | 2 | 3; // none, bronze, silver, gold
+/** One cast of a Glyph (one socket): its harm, its base cost plus outer auras, and whether it did anything (M8, M9). */
+export interface CastSample {
+  harm: number;
+  cost: number;
+  meaningful: boolean;
+}
+/** One Glyph version's record (M8). */
+export interface GlyphRecord {
+  casts: number; // lifetime
+  harm: number;
+  meaningful: number;
+  recent: readonly CastSample[]; // newest last, ≤ TUNING.tierWindow
+  best: { economy: TierLevel; reliability: TierLevel }; // never drops
+  fired: Readonly<Record<CellKey, number>>; // local cell → casts it fired in
+}
+/** A draft the player owns: the working copy of its inside, and whether it is repaired (M34). */
+export interface DraftCopy {
+  id: DraftId;
+  inside: GlyphInside;
+  repaired: boolean;
+}
+/** A tier a Glyph version reached during a trip (M16). */
+export interface TierUp {
+  glyph: GlyphId;
+  name: string;
+  version: number;
+  metric: 'economy' | 'reliability';
+  tier: TierLevel;
 }
 /** One spell's line in the trip ledger (plan S16). A spell is a member's source cell; `name` is for display. */
 export interface SpellTally {
@@ -276,6 +337,10 @@ export interface SpellTally {
   casts: number;
   damage: number;
   kills: number;
+  /** The spell's path cells when it was fought (a Glyph socket is one cell), last trip only (M15). */
+  cells: CellKey[];
+  /** The cells that fired in any of its casts (union of trace cells). */
+  fired: CellKey[];
 }
 /** What a trip did, accumulated at each `finishEncounter` from the event log (plan S16). */
 export interface TripStats {
@@ -285,6 +350,7 @@ export interface TripStats {
   biggestChain: { member: MemberId; spell: SpellKey; name: string; reactions: number } | null;
   discoveries: string[]; // codex ids first found on this trip, in order ('interaction:ignite', 'idiom:bonfire')
   proofCasts: number; // meaningful casts recorded toward proof
+  elegance: TierUp[]; // tier-ups in the order they landed (M16)
 }
 /** The last finished trip, kept for the trip page (plan S17) until the next trip starts. */
 export interface TripRecap {

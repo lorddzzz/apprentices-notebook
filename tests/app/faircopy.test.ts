@@ -184,6 +184,9 @@ describe('previewFairCopy', () => {
           entry: c(0, 0),
           exits: [],
           idiom: 'cashingIn',
+          version: 1,
+          params: [],
+          extraExit: null,
         },
       ],
     };
@@ -293,6 +296,9 @@ describe('trim chip (S14)', () => {
           entry: c(0, 0),
           exits: [],
           idiom: 'cashingIn',
+          version: 1,
+          params: [],
+          extraExit: null,
         },
       ],
     };

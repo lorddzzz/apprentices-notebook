@@ -23,7 +23,7 @@ describe('casts, damage and kills per spell', () => {
     const log = cast(s, 'draughtsman', 'right').events;
     const stats = accumulateStats(emptyStats(), log, profile());
     expect(stats.fights).toBe(1);
-    expect(stats.spells).toEqual([
+    expect(stats.spells).toMatchObject([
       { member: 'draughtsman', spell: '0,0', name: 'Bolt', casts: 1, damage: 2, kills: 1 },
     ]);
   });
@@ -72,7 +72,7 @@ describe('casts, damage and kills per spell', () => {
     const r2 = act(r1.state, { type: 'endTurn' });
     const stats = accumulateStats(emptyStats(), [...r1.events, ...r2.events], profile());
     // 2 + 1 for the cast, 1 + 1 for the half-strength echo
-    expect(stats.spells).toEqual([
+    expect(stats.spells).toMatchObject([
       { member: 'draughtsman', spell: '0,1', name: 'Bolt', casts: 2, damage: 5, kills: 0 },
     ]);
   });

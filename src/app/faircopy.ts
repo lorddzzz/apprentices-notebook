@@ -7,6 +7,7 @@ import {
   type Dir,
   disconnected,
   type FiredCell,
+  freeIdiomCompile,
   glyphLibrary,
   inkUsed,
   isGlyph,
@@ -189,7 +190,7 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
     );
   }
 
-  const free = def.idiom !== null && !p.glyphs.some((g) => g.idiom === def.idiom);
+  const free = freeIdiomCompile(p, def.idiom);
   const cost = free ? 0 : TUNING.compileVellum;
   const canAfford = p.vellum >= cost;
 

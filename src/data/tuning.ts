@@ -27,4 +27,12 @@ export const TUNING: Tuning = {
   provenCasts: 5,
   proofMasksPerMember: 300,
   compileVellum: 1,
+  killHarm: 1,
+  tierWindow: 10,
+  economyTiers: [0.8, 1.2, 1.8], // placeholders until task C0 calibrates them
+  reliabilityTiers: [0.7, 0.85, 0.95],
+  deadAfterCasts: 5,
+  paramSlots: 1,
+  paramSlotsGold: 2,
+  revisionCanvasMax: 7,
 };

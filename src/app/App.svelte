@@ -6,6 +6,7 @@
   import Codex from '../ui/screens/Codex.svelte';
   import Combat from '../ui/screens/Combat.svelte';
   import Crossroads from '../ui/screens/Crossroads.svelte';
+  import Desk from '../ui/screens/Desk.svelte';
   import Gallery from '../ui/screens/Gallery.svelte';
   import Lab from '../ui/screens/Lab.svelte';
   import Loot from '../ui/screens/Loot.svelte';
@@ -39,6 +40,8 @@
     <Codex />
   {:else if resolved.screen === 'bench'}
     <Bench />
+  {:else if resolved.screen === 'desk'}
+    <Desk />
   {:else if resolved.screen === 'gallery'}
     <Gallery />
   {:else if resolved.screen === 'lab'}
