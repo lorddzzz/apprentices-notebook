@@ -191,7 +191,7 @@ describe('grate (K-10)', () => {
     const s = withLattices('D w>h r', { draughtsman: 'Bolt>' });
     const r = cast(s, 'draughtsman', 'right');
     expect(r.lines.some((l) => l.includes('hits rat'))).toBe(false);
-    expect(r.lines.some((l) => l.includes('B1'))).toBe(true);
+    expect(r.lines).toContain('Bolt is stopped by the grate at B1');
   });
 
   test('a walk does not enter a grate and the path around is what is left', () => {

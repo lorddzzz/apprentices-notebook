@@ -7,7 +7,16 @@ import { burn, dealDamage } from './damage';
 import { burstAt, resolveSpecial, snuffStep } from './foes';
 import { byReadingOrder, type Coord, neighbors4, step } from './grid';
 import { applyInk, heatNearFire, scaldInSteam } from './materials';
-import { enemies, isAlive, livingUnits, members, tileAt, travel, unitAt } from './queries';
+import {
+  blockerName,
+  enemies,
+  isAlive,
+  livingUnits,
+  members,
+  tileAt,
+  travel,
+  unitAt,
+} from './queries';
 import type { EnemyUnit, Unit } from './types';
 
 /**
@@ -51,7 +60,13 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
       emit(ctx, { type: 'stopped', source: att.name, at, by: 'steam', path: r.path });
       break;
     case 'brass':
-      emit(ctx, { type: 'stopped', source: att.name, at, by: 'brass plate', path: r.path });
+      emit(ctx, {
+        type: 'stopped',
+        source: att.name,
+        at,
+        by: blockerName(tileAt(ctx.s, at)),
+        path: r.path,
+      });
       return;
     case 'end':
       emit(ctx, { type: 'lands', source: att.name, at, path: r.path });

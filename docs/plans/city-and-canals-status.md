@@ -94,4 +94,4 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 ## Follow-ups and rough edges
 - Preview ports 5190/5191 are held by dev servers running from the main checkout (they serve main, not a worktree). UI agents must start vite from their own worktree on their assigned port (`pnpm dev --port 519x --strictPort`) and stop it after.
 - StudyScene: full-file svelte-autofixer pass still owed (U3 checked only its change).
-- A Bolt stopped by a grate or gate still logs "stopped by the brass plate" (`stopped.by` is typed 'steam' | 'brass plate'). Widen the type and the wording in W4 or a fix task.
+- ~~A Bolt stopped by a grate or gate logs "brass plate"~~ fixed: `stopped.by` is 'steam' | Blocker ('brass plate' | 'lock gate' | 'grate'), from `blockerName(tile)`.

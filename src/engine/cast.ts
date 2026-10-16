@@ -19,6 +19,7 @@ import {
   applyTorch,
 } from './materials';
 import {
+  blockerName,
   boltRange,
   clip,
   findUnit,
@@ -266,7 +267,7 @@ function resolveSource(
             type: 'stopped',
             source: name,
             at: last.stop,
-            by: 'brass plate',
+            by: blockerName(tileAt(s, last.stop)),
             path: all,
           });
           break;

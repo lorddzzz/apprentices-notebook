@@ -85,6 +85,11 @@ export function memberById(s: BattleState, id: UnitId): MemberUnit {
 /** Plates, wooden gates and grates stop units, walks and projectiles (K-10, K-11). */
 export const blocksUnits = (t: Tile): boolean => t.plate || t.gate || t.grate;
 
+export type Blocker = 'brass plate' | 'lock gate' | 'grate';
+/** What a projectile stopped at on a `blocksUnits` tile, for the log. */
+export const blockerName = (t: Tile): Blocker =>
+  t.gate ? 'lock gate' : t.grate ? 'grate' : 'brass plate';
+
 /** Free to walk or be pushed onto: on the board, no plate, gate or grate, no living unit. */
 export function isOpen(s: BattleState, c: Coord, ignore?: UnitId): boolean {
   if (!inBoard(s, c) || blocksUnits(tileAt(s, c))) return false;

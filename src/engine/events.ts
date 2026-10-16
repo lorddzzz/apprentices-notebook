@@ -1,5 +1,6 @@
 import type { InteractionId, TriggerRuneId } from '$data';
 import { type Coord, type Dir, label } from './grid';
+import type { Blocker } from './queries';
 import type { Aim, AttackIntent, FiredCell, GlyphId, Intent, SpellKey, UnitId } from './types';
 
 /** Snapshot of a unit at event time (animation + log text don't depend on later state). */
@@ -46,7 +47,7 @@ export type GameEvent =
   | { type: 'echoQueued'; caster: UnitRef }
   | { type: 'echoFizzles'; caster: UnitRef }
   | { type: 'lands'; source: string; at: Coord; path: Coord[] }
-  | { type: 'stopped'; source: string; at: Coord; by: 'steam' | 'brass plate'; path: Coord[] }
+  | { type: 'stopped'; source: string; at: Coord; by: 'steam' | Blocker; path: Coord[] }
   | { type: 'splash'; center: Coord; tiles: Coord[] }
   | {
       type: 'damage';
