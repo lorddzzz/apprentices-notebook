@@ -1649,7 +1649,6 @@ const masteryStats = {
   exitGrew: 0,
   fights: 0,
   castsRecorded: 0,
-  skippedSeeds: [] as string[],
 };
 
 const noGlyphExit = (p: Profile): Profile => ({
@@ -2039,15 +2038,7 @@ test('fuzz: Glyph mastery (revise, revert, open cells, args, extra exits) betwee
   const bad: string[] = [];
   let done = 0;
   for (let seed = 1; done < MASTERY_SEEDS && seed < 60; seed++) {
-    const before = new Set(issues.keys());
-    const p = profileFor('random', seed);
-    // compileSome flags its own findings (shared with the first test); a flagged seed isn't ours to play.
-    const flagged = [...issues.keys()].filter((k) => !before.has(k));
-    for (const k of flagged) issues.delete(k);
-    if (flagged.length > 0) {
-      masteryStats.skippedSeeds.push(`${seed}: ${flagged.join('; ')}`);
-      continue;
-    }
+    const p = profileFor('random', seed); // compileSome flags its own findings: they fail via `fresh`
     if (p.glyphs.length === 0) continue;
     done += 1;
     masteryStats.profiles += 1;
@@ -2056,7 +2047,7 @@ test('fuzz: Glyph mastery (revise, revert, open cells, args, extra exits) betwee
   const fresh = [...issues.keys()].filter((k) => !seen.has(k));
   const ops = [...masteryStats.ops].map(([k, v]) => `${k} ${v}`).join(', ');
   console.log(
-    `mastery fuzz: ${Date.now() - t0} ms, ${masteryStats.profiles} profiles, ops [${ops}], rejected ${masteryStats.rejected}, identity ${masteryStats.identityChecked}, exit ${masteryStats.exitChecked} (grew ${masteryStats.exitGrew}), fights ${masteryStats.fights}, casts recorded ${masteryStats.castsRecorded}, skipped seeds [${masteryStats.skippedSeeds.join(' | ')}]`,
+    `mastery fuzz: ${Date.now() - t0} ms, ${masteryStats.profiles} profiles, ops [${ops}], rejected ${masteryStats.rejected}, identity ${masteryStats.identityChecked}, exit ${masteryStats.exitChecked} (grew ${masteryStats.exitGrew}), fights ${masteryStats.fights}, casts recorded ${masteryStats.castsRecorded}`,
   );
   expect(bad.join('\n'), bad.join('\n')).toBe('');
   expect(fresh.join('; '), fresh.join('; ')).toBe('');

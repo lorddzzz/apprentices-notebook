@@ -173,14 +173,37 @@ function provisionalGlyph(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary): G
   };
 }
 
-/** Runes outside the cluster that would no longer be reached after the collapse (plan P2). */
+/** Cells walked by the spells whose path satisfies `holds`: reached-ness per spell, not overall. */
+function walkedBy(l: Lattice, glyphs: GlyphLibrary, holds: (path: readonly Coord[]) => boolean) {
+  const out = new Set<CellKey>();
+  for (const spell of compileLattice(l, [], glyphs).spells) {
+    const cells = spell.path.map((p) => p.at);
+    if (holds(cells)) for (const at of cells) out.add(key(at));
+  }
+  return out;
+}
+
+/**
+ * Runes outside the cluster that would no longer be reached after the collapse (plan P2): reached
+ * before (by anyone), or by the cluster's own spell, and not reached after (by anyone, or by the
+ * spell that now runs through the Glyph). The own-spell test catches a tail another spell also
+ * enters from the side: it stays "reached", but the cluster's spell loses it.
+ */
 export function disconnected(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary = {}): Coord[] {
   const glyph = provisionalGlyph(l, cluster, glyphs);
   const library: GlyphLibrary = { ...glyphs, [glyph.id]: glyph };
+  const collapsed = fairCopy(l, cluster, glyph, glyphs);
+  const has = (path: readonly Coord[], at: Coord): boolean => path.some((c) => sameCoord(c, at));
+  const ownBefore = walkedBy(l, glyphs, (path) => cluster.cells.every((c) => has(path, c)));
+  const ownAfter = walkedBy(collapsed, library, (path) => has(path, cluster.root));
   const before = new Set(compileLattice(l, [], glyphs).reached);
-  const after = new Set(compileLattice(fairCopy(l, cluster, glyph, glyphs), [], library).reached);
+  const after = new Set(compileLattice(collapsed, [], library).reached);
   const inside = new Set<CellKey>([...cluster.cells, ...cluster.auras].map(key));
   return l.runes
     .map((r) => r.at)
-    .filter((at) => !inside.has(key(at)) && before.has(key(at)) && !after.has(key(at)));
+    .filter((at) => {
+      const k = key(at);
+      if (inside.has(k) || !before.has(k)) return false;
+      return !after.has(k) || (ownBefore.has(k) && !ownAfter.has(k));
+    });
 }

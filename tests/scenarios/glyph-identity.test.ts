@@ -768,3 +768,54 @@ describe('a fresh Fair Copy with one open cell and no args', () => {
     expect(n).toBeGreaterThanOrEqual(10);
   }, 120_000);
 });
+
+// ── A tail another spell also enters (fuzz: profileFor('random', 2)) ──
+
+describe('a tail that a second spell also enters from the side', () => {
+  // Bolt> Ink Torch Kiln, and a Ward pointing down onto the Kiln: the Kiln is still "reached" after
+  // the collapse (by the Ward), but the Bolt's own tail is cut at the Glyph's exit.
+  const flat = parseLattice('. . . Wardv\nBolt> Ink Torch Kiln');
+  const cluster: Cluster = {
+    root: c(0, 1),
+    cells: [c(0, 1), c(1, 1), c(2, 1)],
+    auras: [],
+    kind: 'spell',
+  };
+  const tail = (l: Lattice, glyphs: GlyphLibrary, source: string): string[] => {
+    const spell = compileLattice(l, [], glyphs).spells.find((s) => s.source === source);
+    const runes: string[] = [];
+    const walk = (nodes: readonly SpellNode[]): void => {
+      for (const n of nodes) {
+        runes.push(n.rune);
+        walk(n.next);
+      }
+    };
+    walk(spell?.nodes ?? []);
+    return runes;
+  };
+
+  test('disconnected names the Kiln even though the Ward still reaches it', () => {
+    expect(disconnected(flat, cluster)).toEqual([c(3, 1)]);
+    expect(sharingSpells(flat, cluster)).toEqual([]); // the shared cell is outside the cluster
+  });
+
+  test('the collapse does not slide the Kiln (the Ward would lose it) and the cast does change', () => {
+    const def = toGlyphDef(flat, cluster, 'Fuzzed', 'g1');
+    const tidy = tidyCollapse(flat, cluster, def);
+    expect(tidy.slid).toBe(0);
+    const library = libOf(def);
+    expect(tail(flat, {}, 'bolt')).toEqual(['ink', 'torch', 'kiln']);
+    expect(tail(tidy.lattice, library, 'bolt')).toEqual(['ink', 'torch']); // the Kiln is dropped
+    // The Ward is untouched: it still reaches the Kiln.
+    expect(tail(tidy.lattice, library, 'ward')).toEqual(['kiln']);
+  });
+
+  test('without the Ward the same cluster slides its tail up and keeps the cast', () => {
+    const alone = parseLattice('. . . .\nBolt> Ink Torch Kiln');
+    const def = toGlyphDef(alone, cluster, 'Fuzzed', 'g1');
+    expect(disconnected(alone, cluster)).toEqual([c(3, 1)]);
+    const tidy = tidyCollapse(alone, cluster, def);
+    expect(tidy.slid).toBe(1);
+    expect(tail(tidy.lattice, libOf(def), 'bolt')).toEqual(['ink', 'torch', 'kiln']);
+  });
+});
