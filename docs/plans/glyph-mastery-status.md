@@ -2,7 +2,7 @@
 
 Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building
+**State:** holding for the reset (resumes ~17:11 UTC)
 **Next:** after the 17:10 UTC reset: merge C0/U2/D1 if not yet merged, then start U6, U4, U5 (U5 needs U3, merged), then F1, then W4.
 
 ## Tasks
@@ -16,7 +16,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | E5 | haiku | S | merged | df5742c | ~2% | 853 tests |
 | C0 | sonnet | S | merged | (after 7b33b5e) | ~3% | economyTiers 0.7/1.0/1.3 |
 | U1 | sonnet | M | merged | 7b33b5e | ~5% | doorway read-only view not browser-checked |
-| U2 | haiku | S | pending | | | |
+| U2 | haiku | S | merged | (after e54617e) | ~2% | 8-Glyph layout not checked (fixture has 3) |
 | U3 | sonnet | L | merged | e81523c | ~5% | browser-checked light only |
 | U6 | sonnet | M | pending | | | |
 | U4 | sonnet | L | pending | | | |
@@ -92,6 +92,7 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - C0: calibration table (2400 bot trips, 8803 Glyph casts, non-overlapping 10-cast windows of harm ÷ base cost): overall n=674 p25 0.50 · p50 0.62 · p75 1.00 · p90 1.10; Spell n=571 0.60/0.68/1.03/1.13; Payload n=103 0.00/0.00/0.20/0.44. Run: `CALIBRATE=1 CALIBRATE_CAREERS=400 CALIBRATE_TRIPS=6 pnpm vitest run tests/sim/calibrate.test.ts --silent=false`. For TECH §7
 - Orchestrator: economyTiers set to 0.7 / 1.0 / 1.3 instead of C0's 0.6 / 1.0 / 1.1: tiers are best-ever, so a gold at the window p90 would come to most Glyphs just by casting a lot. *Proposal*, tune by playing
 - D1: `TIER_NAMES[0]` reads 'unproven'; draft hints reworded for Wet Work, Left Hand First, The Foundry Bell. Accepted
+- U2: the Ranked link sits in its own row above the Fair copies grid; under-10 Glyphs sort by the same key after full-window rows; shelf tiles show two unlabelled marks (Economy, Reliability). Accepted
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
