@@ -1,6 +1,6 @@
 # The City and its Districts
 
-> **Status: Decided** (two design rounds of 2026-10-16, §0: the map and gates, then the canals). Nothing built yet. Feeds [BL-22](../ROADMAP.md) (the map and the gates) and [BL-21](../ROADMAP.md) (the canals).
+> **Status: Decided** (two design rounds of 2026-10-16, §0: the map and gates, then the canals). Nothing built yet. Plan: [city-and-canals-plan.md](../plans/city-and-canals-plan.md). Feeds [BL-22](../ROADMAP.md) (the map and the gates) and [BL-21](../ROADMAP.md) (the canals).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. The Seam, the first district: DESIGN.md §9.2. Trip rules: DESIGN.md §6.4.
 > **Out of scope on purpose:** aspects, recipes, loot tables, solvents and rune content. They wait for a rune-content rework once every core feature exists. Until then a new district reuses the current loot and runes.
 > Numbers and conditions are drafts, *tune by playing*.

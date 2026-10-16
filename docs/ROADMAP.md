@@ -62,12 +62,12 @@ A gold-Reliability / silver-Economy Glyph becomes a **permanent** atom (3 vellum
 Only the pairs ≋ϟ and ≋⟳ are free; the 7 later recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap, plus the Lance variant) don't fit in 8 aspects. Decide: add a ninth aspect (the feature doc floated *Light*, *Sound*), retag, or cut recipes. **Blocks BL-21's recipes.**
 
 #### BL-21 · Second district: the oil-lit canals
-`feature` `XL` · area: world, run, combat · status: ready · needs: BL-22 (the map and gates; the district itself can be built first, reachable from the door for testing)
-Designed 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §5: Oil lean, the Lamplighters, **the current** (water lanes carry floating things one tile downstream each round), **landings** (return only after rooms 1, 3, 5), hear by fire along 3+ oil in the Seam, enter by the threshold room *the canal lock*. Foes: canal eel, Snuffer, lamp-moth, swimming oil-rats; rooms wetter as you go; heart = the lamp-mother, the first boss. Needs a plan. Reuses the current loot and runes; solvents and recipes stay in BL-24, aspects in BL-20, both pushed until the rune-content rework.
+`feature` `XL` · area: world, run, combat · status: ready · needs: —
+Planned with BL-22 in [city-and-canals-plan.md](plans/city-and-canals-plan.md) (canals playable at milestone A). Designed 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §5: Oil lean, the Lamplighters, **the current** (water lanes carry floating things one tile downstream each round), **landings** (return only after rooms 1, 3, 5), hear by fire along 3+ oil in the Seam, enter by the threshold room *the canal lock*. Foes: canal eel, Snuffer, lamp-moth, swimming oil-rats; rooms wetter as you go; heart = the lamp-mother, the first boss. Reuses the current loot and runes; solvents and recipes stay in BL-24, aspects in BL-20, both pushed until the rune-content rework.
 
 #### BL-22 · City map, hearing and gates
 `feature` `L` · area: world, study, run · status: ready · needs: —
-Decided 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §1–§3: the owner's sketch map behind the door; district states unheard → heard → open → heart cleared; hearing by discovery or torn page (the owner draws it in) and by rumours after a trip; one gate per district in data: discovery, threshold room (a fixed goal board, free and retryable, played from the map) or key (deep loot offer, lost on a wipe). Can start with the Seam alone, then plug in the canals. Needs a plan.
+Decided 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §1–§3: the owner's sketch map behind the door; district states unheard → heard → open → heart cleared; hearing by discovery or torn page (the owner draws it in) and by rumours after a trip; one gate per district in data: discovery, threshold room (a fixed goal board, free and retryable, played from the map) or key (deep loot offer, lost on a wipe). Planned with BL-21 in [city-and-canals-plan.md](plans/city-and-canals-plan.md).
 
 #### BL-24 · Recipes for the new solvents
 `content` `M` · area: bench · status: blocked · needs: BL-20, BL-21
