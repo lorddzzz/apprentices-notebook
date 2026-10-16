@@ -15,11 +15,11 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | C1 | sonnet | M | merged | (C1 merge commit) | ~8% | sim: rooms 1–3 100%, room 4 96%, heart 39% (34/55/31 by variant), 74/200 mother kills; sim adds ~20 s to the gate |
 | C2 | sonnet | S | merged | (C2 merge commit) | ~7% | 8-row lock (quay rows 0–1, grate row 2, lane 3–6, gate 7); 3 drift solutions; brute force on 3 lattice sets incl. Splash finds no one-turn win |
 | U1 | sonnet | M | running | | | started 22:12, vite on 5195 |
-| U2 | sonnet | M | running | | | started 22:12, vite on 5194 |
+| U2 | sonnet | M | merged | (U2 merge commit) | ~6% | 8 tests; screenshots: Seam only, canals heard, Set out sheet. Old Study door sheet removed by me |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
-| D1 | haiku | S | running | | | started 22:20 |
+| D1 | haiku | S | done, merging next | worktree-agent-ab567b0ff5ac3d7c9 @ d4d1677 | ~2% | |
 | F1 | sonnet | M | running | | | started 22:20 |
 | W4 | opus | M | pending | | | |
 
@@ -78,8 +78,11 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - C1: the start loadout alone can't clear room 3; the hearing gate (light 3 oil tiles) means the player already has an oil-spark chain. Accepted.
 - C2: the lock is a layout fix only (no rule beyond K-10/K-11): a Splash footprint can't reach beside the gate from the quay. Accepted.
 - C2: fire lasts 2 rounds, so lighting upstream and drifting doesn't reach the gate; the solutions build a connected slick down the lane over several turns and light it at the grate (solution 1 spends all 5 Bolt charges). Accepted; note for the design doc ("light then let it drift" is not a solution on this board). *Tune by playing*.
+- U2: a district node hangs below its `map` anchor (150px card), so `map.x` must stay within ~22–78 and nodes ≥ 20% apart vertically. Accepted; note for later districts.
+- U2: the map page is 1:2 and scrolls vertically on short phones. Accepted.
 
 ## Decisions and fixes made during the build
+- U2 merge (me): removed the old "Set out?" sheet from Study.svelte; the door now reads "Out into the city" / "The owner's map of the city".
 - C2 review: the first lock (6 rows) leaked to Splash (range 3, radius 1) in one turn; sent back with an 8-row layout.
 - E2 merge fix (me): `resolveSpecial(ctx, e, intent)` now takes the telegraphed intent, so a summon lands at the lamp that glowed, not one re-derived at resolution. Contract change.
 - E2 contract change: `turn.ts` resolves a `burst` attack intent with `burstAt` (the moth dies bursting) instead of a plain hit.

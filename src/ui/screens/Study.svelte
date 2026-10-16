@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { ENCOUNTERS, MEMBER_IDS, MEMBERS } from '$data';
   import {
     type CellKey,
     type Coord,
     compiledFor,
     type Dir,
-    describeSpell,
     type GlyphArg,
     type GlyphId,
     type GlyphInside,
@@ -115,18 +113,10 @@
   // What stops the party leaving: the first problem with either lattice, in plain words.
   const blocker = $derived(loadoutBlocker(profile));
   const doorCaption = $derived(
-    blocker ?? `${ENCOUNTERS.length} rooms down to the heart of the Seam`,
+    blocker ?? 'The owner\'s map of the city',
   );
   const doneCaption = $derived(blocker ?? 'Back to the spoils, with the new pages');
-  // What each member carries out the door (shown on the confirm sheet).
-  const carried = $derived(
-    MEMBER_IDS.map((m) => ({
-      name: MEMBERS[m].name,
-      spells: compiledFor(profile, m).spells.map((s) => `${describeSpell(s)} (${s.charges} charges)`),
-    })),
-  );
-
-  type Panel = 'closed' | 'menu' | 'paste' | 'copy' | 'door';
+  type Panel = 'closed' | 'menu' | 'paste' | 'copy';
   let panel = $state<Panel>('closed');
   let pasted = $state('');
   let copyText = $state('');
@@ -205,22 +195,12 @@
     return why;
   }
 
-  function setOut(): void {
-    const why = game.setOut();
-    if (why) {
-      panel = 'closed';
-      toast(why, 'warn');
-    }
-  }
-
   const title = $derived(
     panel === 'paste'
       ? 'Paste save'
       : panel === 'copy'
         ? 'Copy save'
-        : panel === 'door'
-          ? 'Set out?'
-          : 'The study',
+        : 'The study',
   );
 </script>
 
@@ -340,7 +320,7 @@
           <circle cx="20.5" cy="23" r="1.8" fill="var(--lamp)" />
         </svg>
         <span class="words">
-          <span class="label">Set out into the Seam</span>
+          <span class="label">Out into the city</span>
           <span class="caption" id="door-note">{doorCaption}</span>
         </span>
       </button>
@@ -396,24 +376,7 @@
   />
 
   <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>
-    {#if panel === 'door'}
-      <p class="hint first">
-        The party takes only what is inscribed. Charges do not come back until you return home, and
-        if everyone falls, whatever you found is lost.
-      </p>
-      <ul class="carry" data-testid="carry">
-        {#each carried as c (c.name)}
-          <li>
-            <strong>{c.name}</strong>
-            <span>{c.spells.join('; ') || 'no spells inscribed'}</span>
-          </li>
-        {/each}
-      </ul>
-      <div class="row">
-        <Button variant="quiet" label="Not yet" onclick={() => (panel = 'closed')} />
-        <Button label="Set out" onclick={setOut} testid="set-out" />
-      </div>
-    {:else if panel === 'menu'}
+    {#if panel === 'menu'}
       <div class="menu">
         <a class="item tap" href={href('lab', { scenario: 'sandbox' })} data-testid="menu-lab">Visit the Lab</a>
         <Button variant="quiet" label="Copy save" onclick={copySave} testid="copy-save" />
