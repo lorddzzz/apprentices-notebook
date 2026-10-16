@@ -14,10 +14,12 @@ import {
   parseLattice,
   recordTripCasts,
   recordTripProof,
+  reviseGlyph,
   rollOffers,
   type SpellNode,
   setMemberLattice,
   startTrip,
+  validateLoadout,
 } from '$engine';
 import { resolveScreen } from '../../src/app/flow';
 import { parseHash } from '../../src/app/routes';
@@ -90,17 +92,39 @@ test('a placed Glyph keeps its arguments through the profile, as a copy', () => 
 test('setGlyphArgs sets and clears the arguments of a placed Glyph', () => {
   const save = fixture();
   const at = { x: 1, y: 1 };
-  const set = setGlyphArgs(save.profile, 'draughtsman', at, { '1,0': { rune: 'oil' } });
+  const set = setGlyphArgs(save.profile, 'draughtsman', at, { '1,0': { rune: 'ink' } });
   expect(latticeOf(set, 'draughtsman').runes.find((r) => r.at.x === 1 && r.at.y === 1)).toEqual({
     at,
     glyph: 'g2',
     dir: 'right',
-    args: { '1,0': { rune: 'oil' } },
+    args: { '1,0': { rune: 'ink' } },
   });
+  // The default (Oil) isn't stored, so the cell follows the Glyph's next revision.
+  const pinned = setGlyphArgs(save.profile, 'draughtsman', at, { '1,0': { rune: 'oil' } });
+  const plain = latticeOf(pinned, 'draughtsman').runes.find((r) => r.at.x === 1 && r.at.y === 1);
+  expect(plain && 'args' in plain).toBe(false);
   const cleared = setGlyphArgs(set, 'draughtsman', at, {});
   const bare = latticeOf(cleared, 'draughtsman').runes.find((r) => r.at.x === 1 && r.at.y === 1);
   expect(bare && 'args' in bare).toBe(false);
   expect(() => setGlyphArgs(save.profile, 'draughtsman', { x: 4, y: 0 }, {})).toThrow();
+});
+
+test('a revision that closes an open cell drops the arguments pages held for it', () => {
+  const p = fixture().profile;
+  // Kindle's open cell 1,0 (Oil, a Material) becomes a Bend: the cell closes, Steam on the page goes.
+  const revised = reviseGlyph(p, 'g2', {
+    kind: 'payload',
+    entry: { x: 0, y: 0 },
+    cells: [
+      { at: { x: 0, y: 0 }, rune: 'ink' },
+      { at: { x: 1, y: 0 }, rune: 'bend', dir: 'right' },
+      { at: { x: 2, y: 0 }, rune: 'spark' },
+    ],
+  });
+  const placed = latticeOf(revised, 'draughtsman').runes.find((r) => r.at.x === 1 && r.at.y === 1);
+  expect(placed && 'args' in placed).toBe(false);
+  const issues = Object.values(validateLoadout(revised)).flat();
+  expect(issues.filter((i) => i?.kind === 'arg')).toEqual([]);
 });
 
 test('Fair copy slots carry the best tiers and the open cell count', () => {

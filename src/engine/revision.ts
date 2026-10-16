@@ -1,5 +1,6 @@
 import { IDIOMS, MEMBER_IDS, MEMBERS, RUNES, type RuneId, TUNING } from '$data';
 import { matchBranch } from './cluster';
+import { argIssue } from './glyph';
 import {
   type Coord,
   type Dir,
@@ -13,7 +14,7 @@ import {
 } from './grid';
 import { compileLattice } from './lattice';
 import { emptyRecord, recordOf, rewardsOf, versionKey } from './profiler';
-import { validateLoadout } from './run';
+import { glyphLibrary, validateLoadout } from './run';
 import type {
   CellKey,
   GlyphDef,
@@ -375,7 +376,7 @@ export function reviseGlyph(p: Profile, id: GlyphId, inside: GlyphInside): Profi
   if (inside.kind !== cur.kind) throw new Error("A Glyph can't change its kind");
   const issue = insideIssues(inside)[0];
   if (issue) throw new Error(issue.message);
-  return revised(p, id, inside);
+  return withoutStaleArgs(revised(p, id, inside), id);
 }
 
 /** Swaps the current version with archived `version`; both keep their records (M17). */
@@ -384,11 +385,34 @@ export function revertGlyph(p: Profile, id: GlyphId, version: number): Profile {
   if (cur.version === version) throw new Error(`Version ${version} is already the current one`);
   const old = p.glyphArchive.find((g) => g.id === id && g.version === version);
   if (!old) throw new Error(`No version ${version} of ${cur.name}`);
-  return {
+  const next = {
     ...p,
     glyphs: p.glyphs.map((g) => (g.id === id ? old : g)),
     glyphArchive: p.glyphArchive.map((g) => (g === old ? cur : g)),
   };
+  return withoutStaleArgs(next, id);
+}
+
+/**
+ * Drops the arguments placed copies of `id` hold for cells the (effective) current version no
+ * longer opens, or of the wrong family, so a revise or revert never leaves a page blocked by an
+ * argument the player has no picker for.
+ */
+function withoutStaleArgs(p: Profile, id: GlyphId): Profile {
+  const def = glyphLibrary(p)[id];
+  if (!def) return p;
+  const lattices = { ...p.lattices };
+  for (const m of MEMBER_IDS) {
+    lattices[m] = p.lattices[m].map((r) => {
+      if (!('glyph' in r) || r.glyph !== id || !r.args) return r;
+      const rest = Object.fromEntries(
+        Object.entries(r.args).filter(([k, arg]) => argIssue(def, k, arg) === null),
+      );
+      const { args: _old, ...bare } = r;
+      return Object.keys(rest).length > 0 ? { ...bare, args: rest } : bare;
+    });
+  }
+  return { ...p, lattices };
 }
 
 /** Every version of a Glyph, newest first. */

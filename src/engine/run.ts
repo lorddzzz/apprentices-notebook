@@ -421,10 +421,12 @@ export function finishEncounter(
   t: Trip,
   b: BattleState,
   log: EventLog = [],
+  foughtWith: Profile = p,
 ): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
   need(t, 'fight');
   if (b.phase === 'player') throw new Error('The battle is not over');
-  const fought = perMember((m) => compiledFor(p, m).spells);
+  // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
+  const fought = perMember((m) => compiledFor(foughtWith, m).spells);
   const stats = accumulateStats(t.stats, log, p, fought);
   const interactions = [...p.interactions];
   for (const d of b.discovered) if (!interactions.includes(d)) interactions.push(d);
@@ -459,7 +461,7 @@ export function closeBattle(
   log: EventLog = [],
 ): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
   const recorded = recordTripCasts(p, t);
-  const r = finishEncounter(recorded, t, b, log);
+  const r = finishEncounter(recorded, t, b, log, p);
   const ups = tierUps(p, recorded);
   if (ups.length === 0) return r;
   const stats: TripStats = { ...r.stats, elegance: [...r.stats.elegance, ...ups] };

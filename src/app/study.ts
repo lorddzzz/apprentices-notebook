@@ -485,9 +485,11 @@ export function setGlyphArgs(
   for (const [k, arg] of Object.entries(args)) {
     const why = argIssue(def, k, arg);
     if (why) throw new Error(`${def.name} ${why}`);
-    kept[k] = RUNES[arg.rune].arrow
-      ? { rune: arg.rune, dir: arg.dir ?? 'right' }
-      : { rune: arg.rune };
+    const dir = RUNES[arg.rune].arrow ? (arg.dir ?? 'right') : undefined;
+    // An argument equal to the default isn't stored, so the cell follows the Glyph's next revision.
+    const slot = def.cells.find((c) => key(c.at) === k);
+    if (slot && slot.rune === arg.rune && slot.dir === dir) continue;
+    kept[k] = dir ? { rune: arg.rune, dir } : { rune: arg.rune };
   }
   const reason = canPlaceGlyph(p, m, at, placed.glyph, hasArgs(kept) ? kept : undefined);
   if (reason !== null) throw new Error(reason);
