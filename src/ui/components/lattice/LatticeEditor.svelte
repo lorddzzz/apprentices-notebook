@@ -454,12 +454,6 @@
     flex-direction: column;
     gap: 2px;
   }
-  /* Two stacked buttons must fit the 64px strip, so they are shorter than a full tap target. */
-  .buttons .peek {
-    min-height: 30px;
-    padding: 0 var(--space-2);
-    font-size: 13px;
-  }
   .peek {
     flex: none;
     min-height: var(--tap);
@@ -469,6 +463,12 @@
     background: var(--parchment);
     font-size: 14px;
     cursor: pointer;
+  }
+  /* Two stacked buttons must fit the 64px strip, so they are shorter than a full tap target. */
+  .buttons .peek {
+    min-height: 30px;
+    padding: 0 var(--space-2);
+    font-size: 13px;
   }
   /* One compact strip under the board: what is held or inspected, else the focused spell. */
   .info {

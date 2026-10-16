@@ -20,7 +20,6 @@
     reviseGlyph,
     revisionWarning,
     setExtraExit,
-    setOpenCells,
     socketAt,
   } from '$engine';
   import { benchUnlocked } from '../../app/bench';
@@ -42,6 +41,7 @@
     profileShelf,
     revisionPalette,
     setGlyphArgs,
+    setGlyphOpenCells,
   } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import Button from '../components/common/Button.svelte';
@@ -366,7 +366,7 @@
           revising = id;
         }}
     onrevert={(id, version) => atHome((p) => revertGlyph(p, id, version))}
-    onopencells={(id, cells: CellKey[]) => atHome((p) => setOpenCells(p, id, cells))}
+    onopencells={(id, cells: CellKey[]) => atHome((p) => setGlyphOpenCells(p, id, cells))}
     onextraexit={(id, dir: Dir | null) => atHome((p) => setExtraExit(p, id, dir))}
   />
   <GlyphRanking
