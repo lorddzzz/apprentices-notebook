@@ -1,6 +1,6 @@
 # Research and Mastery: The Scholar's Press
 
-> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). Next: stage C (profiler + elegance) after the player has played the slice.
+> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G decided 2026-10-16** (§0, second table); building them together next.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
 > Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 
@@ -45,6 +45,19 @@
 | Trim chip, built (2026-10-14, *Proposal*) | "Cashing In · free" for an idiom's first compile, "· 1 vellum" after; the faded "no longer …" chip stays until the selection restarts | Free first compile (P11) |
 | Scald, Etch, Kiln, built (2026-10-14, *Proposal*) | **Scald**: Steam whose cloud is scalding; at the burn step every unit inside (allies too) takes 1; steam over a scalding tile keeps it scalding, vents give plain steam. **Etch**: inks like Ink (puddles, diffuses, stains) and etches brass in its footprint for the battle; when Spark conducts through a network with etched brass, every inked unit **on or beside** the network is sparked as if hit directly. **Kiln**: Brass whose new plates arrive hot (units it coats stay cold) | Etch as drafted added nothing (units on a network are already sparked), so its reach is one tile wider. *Ask the player* |
 | Owner's hints (2026-10-14, *Proposal*) | Every rune, interaction, recipe, aspect and idiom has a `hint`; it shows faded under `???` (aspects: under the dimmed rule). Torn-page recipes keep their torn sentence and get none. Recipe hints describe the effect, never the ingredients | Hint without naming |
+
+**Decided in the design round of 2026-10-16 (stages C, D and G, built together):**
+
+| Question | Decision | Why |
+|---|---|---|
+| Scope of the next build | **C + D + G together**: profiler and elegance, revisions, Glyph parameters, the owner's drafts. Footnotes (E) get their own round after this is played | Reliability gold's reward (a second parameter) needs D; drafts need the profiler and revisions |
+| Effect score (§4.9, §5.2) | **Harm only**: damage dealt to enemies plus kills. Marks, tiles and shields don't count | One plain number ("4.2 harm a cast"). Setup Glyphs still show in Reliability |
+| What a tier remembers | **Best form, kept**: a tier is the best that the last 10 casts have ever reached, and it never drops. The profiler also shows current form | Rewards change ink, so a tier that drops could break a page you already wrote |
+| Revisions (§4.8) | **New version, fresh record**: editing a Glyph's inside is free and needs no new proof; the new version earns its own tiers; reverting brings back the old version and its record | Optimising stays honest, experimenting costs nothing |
+| Plain spells in the profiler | **Last trip only**: plain spells show the last trip's casts and harm and mark cells that never fired; Glyphs keep a full record | Rewiring would wipe a long record anyway; dead cells are the teaching cue |
+| Reliability silver reward | **Kept: a free extra exit**. The player picks the extra side on the Glyph sheet and can change it for free | A new way to wire, not just a number |
+| How a draft is repaired (§4.7) | **A test at the desk**: each draft carries a small test stage and a goal from the owner's note; passing marks it repaired and shows the owner's reaction | A clear "it works" moment |
+| Draft difficulty | **Harder deeper**: one bug in shallow and mid drafts, two in heart drafts | A few minutes each, growing with depth |
 
 ## 1. The idea in one page
 
