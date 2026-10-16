@@ -8,6 +8,8 @@
 
 - **Sections** run from "what we'd do next" to "deliberately not doing": [1 Now](#1-now-top-priority) · [2 Roadmap](#2-roadmap-planned-tracks) · [3 Backlog](#3-backlog-ideas-ready-to-pick) · [4 Tech and tooling](#4-tech-and-tooling) · [5 Parked](#5-parked-cut-or-deferred) · [6 Open questions](#6-open-design-questions) · [7 Done log](#7-done-log).
 - **IDs** (`BL-nn`) are stable. Never renumber; move an item between sections instead. New items take the next free number.
+- **Finishing an item:** when it is done, it leaves its section and goes to the [Done log](#7-done-log) with the date. Done items appear in no other section.
+- **Playtests:** we do **not** create separate playtest tasks. The player playtests when it suits (right after an implementation, or later in a general play-through) and writes feedback, which becomes a new item or an add-on to an existing one. Do not add `playtest` items.
 - **Promoting an item:** design round → plan in `docs/plans/<name>-plan.md` → build with the `implement` skill → move the item to the [Done log](#7-done-log) with the date and the plan link, and update DESIGN.md §11 / TECH.md §7 in the same commit.
 - **Keep it honest:** when a playtest or a build changes the picture, edit this file in the same commit. Grep-friendly: `grep -n "area:.*bench" docs/ROADMAP.md`.
 
@@ -15,35 +17,17 @@
 
 | Field | Values |
 |---|---|
-| **Type** | `feature` · `content` (data/runes/enemies/layouts, mostly `src/data/`) · `design` (needs a decision first) · `balance` · `polish` (UX, visuals, feel) · `bug` · `tech` · `test` · `docs` · `playtest` (needs the player's hands) |
+| **Type** | `feature` · `content` (data/runes/enemies/layouts, mostly `src/data/`) · `design` (needs a decision first) · `balance` · `polish` (UX, visuals, feel) · `bug` · `tech` · `test` · `docs` |
 | **Size** | `XS` minutes, one edit · `S` one focused task (≈ ≤ 3 % of a 5h usage window) · `M` a few tasks, one plan wave (≈ 5–15 %) · `L` its own plan, orchestrated build (≈ 50–150 %; the whole Seam deepening, 14 tasks and 3 design rounds, was about 1.3 windows) · `XL` several plans over several sessions |
 | **Area** | `combat` · `lattice` · `runes` · `materials` · `bench` (research) · `compile` (Glyphs) · `mastery` · `run` (trips, loot, layouts) · `world` (districts, enemies, setting) · `party` · `study` (home UI) · `codex` · `lab` · `save` · `story` · `audio` · `tooling` · `docs` |
-| **Status** | `ready` (can start now) · `needs-design` · `needs-playtest` · `blocked` (by an ID) · `idea` (not looked at closely) |
+| **Status** | `ready` (can start now) · `needs-design` · `needs-playtest` · `blocked` (by an ID) · `idea` (not looked at closely) · `parked` (see §5) |
 | **Needs** | IDs or things that must come first |
 
 ---
 
 ## 1. Now (top priority)
 
-The Seam deepening (2026-10-14) has been built but not yet played. These are the loose ends around it, and they're cheap. **Proposal:** clear them in one short session before starting a big track.
-
-#### BL-01 · Playtest the Seam deepening
-`playtest` `S` · area: run, combat, bench, study · status: ready (player) · needs: —
-Play a few trips and report on **feel, UX and direction** (not bugs; those are ours). Things we want opinions on: do the three layouts per depth get noticed; does the quiet doorway feel like a find; Pierce / On Ignite / Thrift: fun or fiddly; are heated brass and stained oil readable on the board; is the trip page worth reading; is the lattice-first Study layout good on the phone; is the Bench fun for 15 minutes; does compiling a Glyph feel like a reward or a chore (hypotheses in the feature doc §10). Output: new items here and decisions in DESIGN.md.
-
-#### BL-02 · Out-of-charges stalemate
-`design` `S` · area: combat, run · status: needs-design · needs: BL-01 (does it come up in real play?)
-With every charge spent, a lone rat out of reach can never be killed (Shove does no damage). The fuzz bots count these separately. Options already on file (DESIGN §10b): charges per fight, a refill on each win, or a way out for the stranded party (a damaging Shove bump, a free basic attack, retreat). Then make the fuzz treat a stalemate as a failure.
-Refs: [seam-deepening-status](plans/seam-deepening-status.md) Follow-ups; DESIGN §10b.
-
-#### BL-03 · Settle Etch
-`design` `S` · area: runes, materials · status: needs-playtest · needs: BL-01
-The drafted Etch added nothing (units on a conducted network are already sparked), so the build widened it: when Spark conducts through a net with etched brass, every inked unit **on or beside** the net is sparked. Marked "ask the player". Keep, tune or redesign.
-Refs: feature doc §0 (Scald, Etch, Kiln row).
-
-#### BL-04 · Bench empty pips
-`bug` `XS` · area: bench, study · status: ready · needs: the exact screen from the player
-Reported as pips not filling; the agent could not reproduce it (renders filled at 3/6). Check 0/6 and 6/6 on the live build and ask for a screenshot if it is still there.
+Loose ends, and they're cheap. **Proposal:** clear them in one short session before starting a big track.
 
 #### BL-05 · Undo after walking onto a stain
 `bug` `S` · area: combat, lattice · status: ready · needs: —
@@ -64,7 +48,7 @@ Four tracks. Within a track the order matters; across tracks it doesn't. **Propo
 Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13.
 
 #### BL-10 · Stage C: profiler and elegance
-`feature` `M`–`L` · area: compile, mastery, study · status: ready (after BL-01) · needs: —
+`feature` `M`–`L` · area: compile, mastery, study · status: ready · needs: —
 Per-Glyph stats, dead cells, **Economy** and **Reliability** tiers (bronze/silver/gold) with rewards (−1 ink per Economy tier; a free exit port at Reliability silver), a "your Glyphs, ranked" list, and **revisions** (edit a Glyph's inside, versions, free revert). The "optimising is addictive" test. Needs a short design round to fix the "effect score" definition. Feature doc §4.8, §4.9, §5.2.
 
 #### BL-11 · Stage D: Glyph parameters
@@ -141,7 +125,7 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | blocked (BL-21) | "The solvent is the steering wheel". Feature doc §3.3. |
 | BL-54 | Footnote content for the other runes | content | M | mastery | blocked (BL-12) | After the first three. |
 | BL-55 | Fire: its own element or a state; terrain decay; final matrix | design | S | materials | idea | Open since v0 (DESIGN §6.5, §10). |
-| BL-56 | Balance pass: lattice sizes, ink costs, charges, enemy numbers | balance | S | combat, run | needs-playtest | Open checkboxes in DESIGN §10; do after BL-01. |
+| BL-56 | Balance pass: lattice sizes, ink costs, charges, enemy numbers | balance | S | combat, run | needs-playtest | Open checkboxes in DESIGN §10. Feedback from the player's play-throughs lands here as add-ons. |
 
 ### Content
 
@@ -150,7 +134,7 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-60 | More Seam layouts (3 per depth now) | content | S | run | ready | Data + the fuzz plays them automatically. |
 | BL-61 | New enemy types: mutated vermin (canal eels, bathhouse slugs), constructs (steam golems) | content | M | world, combat | ready (design the traits) | Easiest inside BL-21. |
 | BL-62 | More loot offer kinds beyond runes / ink reserves / solvents / vellum / doorway | content | S | run | idea | "Lattice sockets" and "notebook pages" were considered and not chosen. |
-| BL-63 | Doorway variants or a second rare offer | content | S | run | idea | Only if the doorway lands well in BL-01. |
+| BL-63 | Doorway variants or a second rare offer | content | S | run | idea | The quiet doorway landed well in BL-01; this is optional. |
 
 ### Study, Lab, Codex
 
@@ -186,6 +170,7 @@ Not planned. Each line says why, and what would bring it back.
 
 | Item | Why parked | Comes back if |
 |---|---|---|
+| BL-02 · Out-of-charges stalemate (a lone rat out of reach with every charge spent; options in DESIGN §10b; fuzz should count it as a failure) | Not seen in play; the player has never been stranded like this (2026-10-16) | A playtest reports a stranded fight. Then reopen it as an item with the options from DESIGN §10b |
 | Walls as terrain | Cut from v0; plates, units and the edge already block | A district needs a layout feature plates can't give |
 | Slippery brass | Cut for good 2026-10-14: plates can't be walked on, so nothing to act on | Never, barring a mechanic change |
 | Fusion with rune evolution; rune chronicles / slow projects | Rejected research directions; in git at `86e1b25` | The Scholar's Press fails playtests |
@@ -193,7 +178,7 @@ Not planned. Each line says why, and what would bring it back.
 | Member signature abilities | Wait until more affinities are explored | BL-43 or a second affinity pair plays well |
 | Permanent death | Likely no | Never planned |
 | Input alternatives: Confirm-only casting, undo for the last cast | The double tap works | The double tap misfires again |
-| Trip pacing alternatives: charges per fight, refill per win | Charges are fine for now | BL-02 picks one |
+| Trip pacing alternatives: charges per fight, refill per win | Charges are fine for now | BL-02 comes back and picks one |
 | Wipe penalty alternatives: keep one item on a wipe | Trips are cheap | Trips get longer or costlier |
 | Reserve settings: the notebook-pages world, the wandering study, the ink sea | Held for later districts or endgames | A late-game or New Game+ idea is needed |
 | A third elegance metric, *Reach* | Cut for scope | Reliability and Economy feel flat |
@@ -206,24 +191,24 @@ Not planned. Each line says why, and what would bring it back.
 
 Short list of decisions with no owner yet. Each links to the item that would settle it.
 
-1. How should a party with no charges left be able to finish a fight? → BL-02
-2. Is Etch's wider reach right? → BL-03
-3. Ninth aspect, retag, or cut recipes? → BL-20
-4. Which district comes second, and what is its material and tone? → BL-21
-5. Max party size, and does a third member come before a second district? → BL-43
-6. Is Fire an element or a state; does terrain decay? → BL-55
-7. What does the game sound like, if anything? → BL-42
-8. Does the player want more breadth (content volume) or more depth (mastery) next? → Section 2 intro
+1. How should a party with no charges left be able to finish a fight? → BL-02 (parked)
+2. Ninth aspect, retag, or cut recipes? → BL-20
+3. Which district comes second, and what is its material and tone? → BL-21
+4. Max party size, and does a third member come before a second district? → BL-43
+5. Is Fire an element or a state; does terrain decay? → BL-55
+6. What does the game sound like, if anything? → BL-42
+7. Does the player want more breadth (content volume) or more depth (mastery) next? → Section 2 intro
 
 ---
 
 ## 7. Done log
 
-Newest first. Link the plan or doc, not the commits.
+Newest first. Done items live here and nowhere else. Link the plan or doc, not the commits.
 
 | Date | What | Where |
 |---|---|---|
-| 2026-10-14 | Study layout reworked around the lattice board | DESIGN §11 (last row) |
+| 2026-10-16 | **Seam deepening playtest** (was BL-01): positive first impression on all points; Etch kept as is (was BL-03); Bench empty pips fine (was BL-04, closed); Thrift a real choice; stalemate parked as BL-02 | [DESIGN §11](../DESIGN.md) (last row) |
+| 2026-10-14 | Study layout reworked around the lattice board | [DESIGN §11](../DESIGN.md) (row before the last) |
 | 2026-10-14 | **Seam deepening**: Pierce, On Ignite, Thrift; Scald, Etch, Kiln; heated brass; stained oil; 3 layouts per depth; the quiet doorway; owner's hints; trip page; Fair Copy tidy; place names | [plan](plans/seam-deepening-plan.md), [status](plans/seam-deepening-status.md) |
 | 2026-10-13 | **Research slice**: Bench (distil), Fair Copy (compile), Glyphs, proof, idioms, 6 recipes, save v2 | [plan](plans/research-and-mastery-plan.md), [feature doc](design/research-and-mastery.md) |
 | 2026-10-13 | v0.1 legibility: numbered recipe, Fork order, unit traits, charges loosened | DESIGN §10 |
