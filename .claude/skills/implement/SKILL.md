@@ -67,8 +67,8 @@ The goal is to use the whole window **without losing undocumented work** when th
 |---|---|
 | **< 80% · Normal** | Full plan. Start any task that fits |
 | **80–90% · Narrow** | Start only S/M tasks whose estimated cost fits the headroom. Nudge running agents: no exploration, the smallest solution that meets acceptance, commit green checkpoints now. Keep the status file current after every event |
-| **90–96% · Wrap** | Start no new agent tasks. Tell running agents to finish the step they're on, commit what's green, and report status and remaining steps. Merge what arrives. You do only small, documented steps |
-| **≥ 96% · Hold** | Do nothing that can be lost. Commit and push the status file with an exact **Next** list. Schedule the resume (below) |
+| **90–96% · Wrap** | Keep one agent busy: when nothing is running, start the **smallest** unblocked task even if it will likely be cut off (a cut-off task is just restarted after the reset, the same as waiting). Commit the status file first. Merge what arrives |
+| **≥ 96% · Hold** | Send each running agent **one** nudge to finish its step, commit and report (best effort; if it's cut off, fine). Commit and push the status file with an exact **Next** list. Schedule the resume (below) |
 
 - **Budget by size.** Estimate a task's cost from the deltas logged for similar tasks (first build: S ≈ 3%, M ≈ 8%, L ≈ 15%; refine as you go). Start a task only if `projected + cost` stays under ~95%, **or** the reset comes before it would run out. Near the edge, pick something smaller rather than idling.
 - **Losing some work is fine.** What matters is that, before any step at 90%+, the previous step is committed and the status file says what comes next.
