@@ -150,8 +150,6 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-85 | Measure proof-replay cost at the end of long fights | test | XS | tooling | idea | Flagged as a risk in the research plan; check the fuzz timing. |
 | BL-86 | Dependency refresh (svelte, vite, vitest, biome, vite-plugin-pwa) | tech | S | tooling | idea | Versions were pinned 2026-10-12. Run `pnpm check` and the Lab. |
 | BL-88 | Revision canvas is capped at 7 × 7: fine while member pages are ≤ 5 × 6; a longer Glyph line would be unrevisable | tech | XS | compile | idea | Raise `revisionCanvasMax` (and the revision tests) if pages grow |
-| BL-89 | Targeted scenarios for the extra exit plus a Shape argument, and for a Glyph beside a rune on its extra side | test | S | compile | ready | The fuzz reaches these only by chance |
-| BL-90 | Revert a Glyph version warns about ink or ownership like Revise does | polish | XS | compile | ready | Today the page blocker appears only afterwards. Review follow-up, 2026-10-16 |
 | BL-87 | Worktree/preview friction for orchestrated builds (`preview_start` always runs in the main checkout; alt ports 5190–5192) | docs | XS | tooling | idea | Fold into the `implement` / `verify` skills. |
 
 ---
@@ -199,6 +197,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-16 | Glyph mastery review follow-ups: the revert confirm warns about ink, ownership and the Economy discount it loses or gains (was BL-90); targeted scenarios for the extra exit with a Bend argument and beside a rune or Glyph on its extra side (was BL-89) | `revertWarning` in `src/engine/revision.ts`, `tests/scenarios/params-and-exits.test.ts` |
 | 2026-10-16 | **Glyph mastery, stages C, D, G** (was BL-10, BL-11, BL-14): profiler and elegance tiers, ranked list, revisions with versions, Glyph parameters, the extra exit, five owner's drafts at the desk, last-trip dead cells for plain spells; a Fair Copy identity fix found by the new fuzz | [plan](plans/glyph-mastery-plan.md), [status](plans/glyph-mastery-status.md), [feature doc §0](design/research-and-mastery.md) |
 | 2026-10-16 | **Seam deepening playtest** (was BL-01): positive first impression on all points; Etch kept as is (was BL-03); Bench empty pips fine (was BL-04, closed); Thrift a real choice; stalemate parked as BL-02 | [DESIGN §11](../DESIGN.md) (last row) |
 | 2026-10-14 | Study layout reworked around the lattice board | [DESIGN §11](../DESIGN.md) (row before the last) |

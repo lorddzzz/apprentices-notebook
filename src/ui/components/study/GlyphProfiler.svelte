@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IDIOMS } from '$data';
-  import type { GlyphDef, GlyphId, Profile } from '$engine';
+  import { type GlyphDef, type GlyphId, type Profile, revertWarning } from '$engine';
   import { profilerView } from '../../../app/profiler';
   import Button from '../common/Button.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -31,6 +31,10 @@
   let showVersions = $state(false);
   let confirming = $state<number | null>(null);
   let error = $state<string | null>(null);
+  /** BL-90: the ink, ownership and discount note for the version being confirmed. */
+  const warning = $derived(
+    confirming === null ? null : revertWarning(profile, glyph.id, confirming),
+  );
 
   function revert(version: number): void {
     error = onrevert(glyph.id, version);
@@ -120,6 +124,9 @@
                   <Button variant="quiet" label="Cancel" onclick={() => (confirming = null)} />
                   <Button label="Revert" testid="glyph-revert-confirm" onclick={() => revert(v.version)} />
                 </span>
+                {#if warning}
+                  <p class="warn" role="status" data-testid="glyph-revert-warning">{warning}</p>
+                {/if}
               {:else}
                 <Button
                   variant="quiet"
@@ -307,6 +314,15 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1) var(--space-2);
+  }
+  .warn {
+    flex-basis: 100%;
+    margin: 0;
+    padding: var(--space-1) var(--space-2);
+    border: 1.5px solid var(--lamp);
+    border-radius: var(--radius);
+    background: rgba(232, 176, 74, 0.2);
+    font-size: 13px;
   }
   .err {
     font-size: 13px;

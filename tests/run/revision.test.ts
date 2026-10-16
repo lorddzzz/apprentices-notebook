@@ -26,6 +26,7 @@ import {
   parseLattice,
   recordOf,
   revertGlyph,
+  revertWarning,
   reviseGlyph,
   revisionCanvas,
   revisionWarning,
@@ -682,6 +683,80 @@ describe('revisionWarning', () => {
 
   test('a Glyph on no page warns nothing', () => {
     expect(revisionWarning(profileWith(defOf(CASHING)), 'g1', OTHER)).toBeNull();
+  });
+});
+
+// ── revertWarning (BL-90) ──
+
+describe('revertWarning', () => {
+  const HEAVY = spellInside(...CASHING.cells, rune('amplify', 1, 1));
+  /** v2 (HEAVY) is current, v1 (CASHING) archived, a copy on the Stoker's page. */
+  const twoVersions = (capacity: number, records: Record<string, GlyphRecord> = {}): Profile => {
+    const v2 = reviseGlyph(profileWith(defOf(CASHING)), 'g1', HEAVY);
+    return {
+      ...v2,
+      glyphRecords: { ...v2.glyphRecords, ...records },
+      inkCapacity: { ...v2.inkCapacity, stoker: capacity },
+      lattices: { ...v2.lattices, stoker: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }] },
+    };
+  };
+  const v1Ink = 5;
+
+  test('null when the revert fits and no discount changes', () => {
+    const p = twoVersions(20);
+    expect(revertWarning(p, 'g1', 1)).toBeNull();
+    // Refused reverts warn nothing: the confirm shows the refusal instead.
+    expect(revertWarning(p, 'g1', 2)).toBeNull();
+    expect(revertWarning(p, 'g1', 9)).toBeNull();
+    expect(revertWarning(p, 'nope', 1)).toBeNull();
+  });
+
+  test('names the page whose ink the old inside pushes over', () => {
+    // v1 is lighter, so going back to it fits; v2 forward from v1 does not.
+    const back = revertGlyph(twoVersions(20), 'g1', 1);
+    const tight = { ...back, inkCapacity: { ...back.inkCapacity, stoker: v1Ink } };
+    expect(validateLoadout(tight)).toEqual({});
+    expect(revertWarning(tight, 'g1', 2)).toBe("Pushes the Stoker's page ink over");
+  });
+
+  test('names the runes the old inside needs that you do not own', () => {
+    const back = revertGlyph(twoVersions(20), 'g1', 1);
+    const p = { ...back, collection: { ...back.collection, amplify: 0 } };
+    expect(validateLoadout(p)).toEqual({});
+    expect(revertWarning(p, 'g1', 2)).toBe("Pushes the Stoker's page over the Amplify you own");
+  });
+
+  test('losing the Economy discount is said, and so is the ink it costs', () => {
+    // v1 current with bronze Economy fits a page one ink short; v2 has no record.
+    const back = revertGlyph(twoVersions(20, { 'g1@1': best(1, 0) }), 'g1', 1);
+    const tight = { ...back, inkCapacity: { ...back.inkCapacity, stoker: v1Ink - 1 } };
+    expect(validateLoadout(tight)).toEqual({});
+    // Same inside both ways: only the record differs.
+    const same = {
+      ...tight,
+      glyphArchive: tight.glyphArchive.map((g) => ({ ...g, cells: CASHING.cells })),
+    };
+    expect(revertWarning(same, 'g1', 2)).toBe(
+      "Loses the 1-ink Economy discount; Pushes the Stoker's page ink over",
+    );
+  });
+
+  test('a gained or changed discount is said too, with no page blamed', () => {
+    expect(revertWarning(twoVersions(20, { 'g1@1': best(2, 0) }), 'g1', 1)).toBe(
+      'Gains a 2-ink Economy discount',
+    );
+    expect(
+      revertWarning(twoVersions(20, { 'g1@1': best(1, 0), 'g1@2': best(3, 0) }), 'g1', 1),
+    ).toBe('The Economy discount drops from 3 to 1 ink');
+    expect(
+      revertWarning(twoVersions(20, { 'g1@1': best(3, 0), 'g1@2': best(1, 0) }), 'g1', 1),
+    ).toBe('The Economy discount rises from 1 to 3 ink');
+  });
+
+  test('a page already over before the revert is not blamed on it', () => {
+    const p = twoVersions(2);
+    expect(validateLoadout(p).stoker?.some((i) => i.kind === 'ink')).toBe(true);
+    expect(revertWarning(p, 'g1', 1)).toBeNull();
   });
 });
 

@@ -471,19 +471,15 @@ export function setExtraExit(p: Profile, id: GlyphId, dir: Dir | null): Profile 
   return { ...p, glyphs: p.glyphs.map((g) => (g.id === id ? { ...g, extraExit: dir } : g)) };
 }
 
-/**
- * The warning the revision editor shows before saving (M19), e.g. "Pushes the Stoker's page ink
- * over", or null: the pages that hold this Glyph and would go over ink or past what is owned.
- */
-export function revisionWarning(p: Profile, id: GlyphId, inside: GlyphInside): string | null {
-  if (!p.glyphs.some((g) => g.id === id)) return null;
-  const before = validateLoadout(p);
-  const after = validateLoadout(revised(p, id, inside));
+/** The pages that hold a Glyph and go over ink or past what is owned from `before` to `after`. */
+function pageWarnings(before: Profile, after: Profile): string[] {
+  const was = validateLoadout(before);
+  const now = validateLoadout(after);
   const lines: string[] = [];
   for (const m of MEMBER_IDS) {
-    const had = before[m] ?? [];
+    const had = was[m] ?? [];
     const page = `the ${MEMBERS[m].name}'s page`;
-    const issues = (after[m] ?? []).filter((i) => i.kind === 'ink' || i.kind === 'owned');
+    const issues = (now[m] ?? []).filter((i) => i.kind === 'ink' || i.kind === 'owned');
     if (issues.some((i) => i.kind === 'ink') && !had.some((i) => i.kind === 'ink')) {
       lines.push(`Pushes ${page} ink over`);
     }
@@ -499,5 +495,44 @@ export function revisionWarning(p: Profile, id: GlyphId, inside: GlyphInside): s
     );
     if (owned.size > 0) lines.push(`Pushes ${page} over the ${[...owned].join(', ')} you own`);
   }
+  return lines;
+}
+
+/**
+ * The warning the revision editor shows before saving (M19), e.g. "Pushes the Stoker's page ink
+ * over", or null: the pages that hold this Glyph and would go over ink or past what is owned.
+ */
+export function revisionWarning(p: Profile, id: GlyphId, inside: GlyphInside): string | null {
+  if (!p.glyphs.some((g) => g.id === id)) return null;
+  const lines = pageWarnings(p, revised(p, id, inside));
+  return lines.length > 0 ? lines.join('; ') : null;
+}
+
+const inkOff = (n: number) => `${n}-ink Economy discount`;
+
+/**
+ * The warning the revert confirm shows (BL-90): the Economy discount the swap loses or gains (the
+ * records stay with their versions), then the pages that would go over ink or past what is owned.
+ * Null when nothing changes or the revert would be refused.
+ */
+export function revertWarning(p: Profile, id: GlyphId, version: number): string | null {
+  const cur = p.glyphs.find((g) => g.id === id);
+  const old = p.glyphArchive.find((g) => g.id === id && g.version === version);
+  if (!cur || !old || cur.version === version) return null;
+  const was = rewardsOf(recordOf(p, id, cur.version)).discount;
+  const now = rewardsOf(recordOf(p, id, version)).discount;
+  const lines: string[] = [];
+  if (now < was) {
+    lines.push(
+      now === 0
+        ? `Loses the ${inkOff(was)}`
+        : `The Economy discount drops from ${was} to ${now} ink`,
+    );
+  } else if (now > was) {
+    lines.push(
+      was === 0 ? `Gains a ${inkOff(now)}` : `The Economy discount rises from ${was} to ${now} ink`,
+    );
+  }
+  lines.push(...pageWarnings(p, revertGlyph(p, id, version)));
   return lines.length > 0 ? lines.join('; ') : null;
 }
