@@ -19,7 +19,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | pending | | | milestone A verify |
 | U4 | sonnet | M | pending | | | needs C2, U1, U2 |
-| D1 | haiku | S | done, merging next | worktree-agent-ab567b0ff5ac3d7c9 @ d4d1677 | ~2% | |
+| D1 | haiku | S | merged | (D1 merge commit) | ~2% | lock note, barred, eel/snuffer blurbs, drift codex + hint, landing line |
 | F1 | sonnet | M | running | | | started 22:20 |
 | W4 | opus | M | pending | | | |
 

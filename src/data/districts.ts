@@ -296,12 +296,12 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
           '. = g = . .',
         ]),
         goal: { happens: 'gateBurns' },
-        note: 'The lock gate is wood. Wood burns.',
+        note: 'The gate is only wood, and the water carries what is put in it.',
       },
     },
     map: { x: 30, y: 70 },
     line: 'the black water climbs when lit',
-    barred: 'A wooden lock gate bars the canal.',
+    barred: 'A wooden lock gate bars the way.',
   },
 };
 

@@ -122,7 +122,7 @@ const INTERACTIONS: Record<InteractionId, { title: string; text: string; ownerNo
   },
   drift: {
     title: 'Drift',
-    text: 'At round end, whatever floats on a water lane moves one tile downstream: oil, fire on oil, ink. Units in the water drift too.',
+    text: 'At round end, whatever floats on a water lane moves one tile downstream: oil, fire on oil, ink puddles and stains. A unit standing in the water drifts too, if the tile ahead is free. Swimmers, fliers and anchored foes stay put.',
     ownerNote: 'Put it in upstream and wait.',
   },
 };
@@ -137,7 +137,7 @@ const INTERACTION_HINTS: Record<InteractionId, string> = {
   diffuse: 'Ink dropped into a cloud does not stay in one place.',
   heat: 'Warm metal stays warm longer than you would think.',
   stain: 'Ink on a puddle does not stay on the surface.',
-  drift: 'The water does not stay still, and neither does what is on it.',
+  drift: 'Drop it upstream and come back later. The water has been busy.',
 };
 
 /** Recipes with a torn solvent get no hint (their torn sentence is the hint). */

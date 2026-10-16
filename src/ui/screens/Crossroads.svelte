@@ -52,7 +52,7 @@
           <span class="sub">keep {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
         {:else}
           <span class="sub" data-testid="no-landing"
-            >{afterRoom ? `No landing here. The next is after ${afterRoom}` : 'No landing here.'}</span
+            >{afterRoom ? `No landing here. The next landing is after ${afterRoom}.` : 'No landing here.'}</span
           >
         {/if}
       </Button>
