@@ -2,8 +2,8 @@
 
 Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building (window 2)
-**Next:** U6 resumed, U4, U5 and I1 (identity gap fix) running; then W4.
+**State:** done (2026-10-16)
+**Next:** the player's playtest. Follow-ups below and in ROADMAP (BL-57, BL-88, BL-89, BL-90).
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -19,12 +19,12 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 | U2 | haiku | S | merged | (after e54617e) | ~2% | 8-Glyph layout not checked (fixture has 3) |
 | U3 | sonnet | L | merged | e81523c | ~5% | browser-checked light only |
 | U6 | sonnet | M | merged | c879b0b | ~6% total | draft icons not browser-checked; autofixer skipped on LatticeGrid/OfferCard/LootChips (class/CSS/icon only) |
-| U4 | sonnet | L | pending | | | |
+| U4 | sonnet | L | merged | fddfa58 (+ 17b225e) | ~8% | orchestrator wired `setGlyphOpenCells` into Study and fixed a CSS-order lint warning |
 | U5 | sonnet | L | merged | (after I1) | ~6% | browser-checked the Lamplighter and Collection fixes |
 | D1 | haiku | S | merged | 95e7347 | ~1% | + orchestrator fix e54617e ("frees a Ink") |
 | F1 | sonnet | M | merged | (after 57e28fa) | ~5% | started at 88% per the player's pacing call; finished inside the window |
 | I1 | sonnet | S | merged | (after c879b0b) | ~3% | root cause in glyph.ts `disconnected()`; fuzz skip removed |
-| W4 | opus | M | pending | | | |
+| W4 | opus (me) + sonnet reviewer | M | done | 8129538 + docs | ~6% | browser loop at 375×812; review: 3 fixes (stale args after revise/revert, default args pinned, ledger cells after a tier-up), 2 follow-ups |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -102,6 +102,8 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - I1: a tail the cluster's own spell loses counts as disconnected even if another spell still reaches it (the Fair Copy sheet warns; tidy tries to slide it). No new refusal; compile can still collapse with a warned, unslidable tail, as before. Accepted
 - U5: the desk is one route with list and detail held in state; mended rows show note + reaction; ticks ○ → ✓/✗; before a run never-reached runes fade, after a run lit = fired; a run goes stale on edit or reset. Accepted
 - U5: "Copy into my notebook" only on a pass, disabled while any insideIssue remains ("Tidy the runes it never reaches"); "Start over" only when the page differs, with "Put back the owner's page?"; a failing run says "Not yet. Look at what fired and what didn't."; the editor's save reads "Keep"; a mended draft is read-only. Accepted
+- U4: the Fair Copy sheet lists only openable runes (Material, Trigger, Shape); a second tap clears; fallback args only for open cells whose default is used up; the shelf marks a Glyph usable if a fallback exists; the picker shows owned family runes with free counts; settings folded with a summary ("2 open · exit down"); the scoped card stacks two 30px buttons. Accepted
+- Review (W4): an argument equal to the default isn't stored (overrides U4's "kept"), so a cell follows the Glyph's next revision. Orchestrator call
 - W0 contract additions: `DraftDef.hint`; `DraftTest {board, aim, endRound?, hp?, goal}`; `canPlaceGlyph(p, m, at, glyph, args?)`; `accumulateStats(stats, log, known, compiled = {})`; `rollOffers(seed, enc, table, members, draft = null)` (null drops draft entries so rolls are unchanged); `revisionWarning` (revision.ts), `lastTripDeadCells` (tripStats.ts), `effectiveGlyph`/`masteryDefaults`/`freeIdiomCompile` (run.ts), `setGlyphArgs`/`revisionPalette`/`PaletteSlot` (study.ts), `game.updateProfile`, `game.fairCopy(…, open)`. profiler.ts and drafts.ts must never import run.ts (cycle). Span offsets start at the first event after `cast`; `to` exclusive. The save validator ignores `'arg'` issues so a stale arg never makes a save unloadable
 
 ## Decisions and fixes made during the build
@@ -109,6 +111,10 @@ Plan: [glyph-mastery-plan](glyph-mastery-plan.md). Orchestrator: Opus main sessi
 - Orchestrator: W0 is delegated to an Opus agent instead of written in the main session, to keep the orchestrator's context lean for a two-window build.
 
 ## Follow-ups and rough edges
+- Revert has no ink/ownership warning (revise does); the page blocker shows later. ROADMAP BL-90.
+- Desk: leaving a draft mid-playback and reopening it can show the old result as fresh (harmless).
+- Doorway read-only views of the sheet and settings were not browser-checked (logic only).
+- Ranked rows are buttons without an accessible name.
 - (fixed by I1) **Identity gap (pre-existing, found by F1):** `profileFor('random', 2)` in the fuzz: a compiled Glyph Bolt→Ink→Torch (no args) drops the outer tail after the Torch ("a brass plate rises at C3 / the brass at C3 heats up"); Draughtsman, encounter 3, aim up. The mastery fuzz skips flagged seeds. Investigate in W4 (maybe the known side-entry gap).
 - A targeted scenario for extra exit + Shape arg, and one for a Glyph beside a rune on the extra side (fuzz reaches them only by chance).
 - Payload Glyphs rarely earn Economy (harm-only: an Ink or Oil payload does no damage itself; bot p50 = 0). Reliability still works. Revisit after the playtest (separate thresholds or credit setup).

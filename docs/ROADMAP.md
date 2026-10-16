@@ -45,27 +45,15 @@ Four tracks. Within a track the order matters; across tracks it doesn't. **Propo
 
 ### Track M · Mastery (the Scholar's Press, stages C–G)
 
-Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13.
-
-#### BL-10 · Stage C: profiler and elegance
-`feature` `M`–`L` · area: compile, mastery, study · status: ready · needs: —
-Per-Glyph stats, dead cells, **Economy** and **Reliability** tiers (bronze/silver/gold) with rewards (−1 ink per Economy tier; a free exit port at Reliability silver), a "your Glyphs, ranked" list, and **revisions** (edit a Glyph's inside, versions, free revert). The "optimising is addictive" test. Needs a short design round to fix the "effect score" definition. Feature doc §4.8, §4.9, §5.2.
-
-#### BL-11 · Stage D: Glyph parameters
-`feature` `S`–`M` · area: compile, lattice · status: blocked · needs: BL-10
-Up to 2 open cells per Glyph with a family constraint (Material, Trigger, Shape; never a Source). Glyphs become functions. Feeds the Reliability-gold reward "a second parameter". Feature doc §4.5.
+Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13; stages C, D, G (profiler and elegance, parameters, the owner's drafts) shipped 2026-10-16.
 
 #### BL-12 · Stage E: footnotes
 `feature` `M` · area: mastery, runes · status: needs-design · needs: —
 Witness points from distinctive outcomes in the event log (Spark ignites oil, a Ward absorbs a lethal hit…); levels at 5 / 15 / 40; each level offers two exclusive small rule edits that change ink cost ±1; re-pick free at the desk; Glyphs snapshot footnotes at compile time. First slice: Bolt, Spark, Ink. The footnote *content* needs a design round per rune. Feature doc §5.1.
 
 #### BL-13 · Stage F: Crystallise and tier-2 recipes
-`feature` `M`–`L` · area: mastery, bench, compile · status: blocked · needs: BL-10, BL-12; mercury added to loot
+`feature` `M`–`L` · area: mastery, bench, compile · status: blocked · needs: BL-12; mercury added to loot
 A gold-Reliability / silver-Economy Glyph becomes a **permanent** atom (3 vellum + mercury): its two most frequent field aspects, can earn footnotes, can feed the Bench. Aspect-keyed tier-2 recipes are where crystals pay off. Feature doc §3.5, §5.3.
-
-#### BL-14 · Stage G: the owner's drafts
-`feature` `S`–`M` · area: compile, story, run · status: blocked · needs: BL-10
-Loot that is a half-working Glyph in the owner's hand, with a note of what it *meant* to do. Debug it with the profiler. The best mystery vehicle we have: someone else's code, read and repaired. Feature doc §4.7.
 
 ### Track W · World
 
@@ -88,7 +76,7 @@ The remaining tier-1 recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap; solvent
 ### Track R · Rivals
 
 #### BL-30 · Rival inscribers
-`feature` `XL` · area: combat, world, lattice · status: needs-design · needs: BL-21 (ideally), BL-10
+`feature` `XL` · area: combat, world, lattice · status: needs-design · needs: BL-21 (ideally)
 Enemies with lattices of their own whose chains are telegraphed too (Into the Breach for spell chains). The most distinctive idea in the design and the hardest: how an enemy lattice is authored, shown and previewed, and how AI picks casts deterministically. Do a design round and a small prototype in the Lab before committing. DESIGN §6.7.
 
 ### Track A · Atmosphere and party
@@ -98,7 +86,7 @@ Enemies with lattices of their own whose chains are telegraphed too (Into the Br
 The game, the apprentices, the city and the Seam are placeholders (DESIGN §9.4). Pick names once play suggests them.
 
 #### BL-41 · The mystery and lore text
-`content` `M` · area: story, codex · status: idea · needs: BL-14 (delivery), BL-21
+`content` `M` · area: story, codex · status: idea · needs: BL-21 (owner's drafts now exist as a delivery vehicle)
 Why the owner was expelled. Delivered through codex notes, owner's drafts, guild archives. Stays low priority until the core is fun; the hint lines and torn pages are the groundwork.
 
 #### BL-42 · Audio
@@ -125,6 +113,7 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | blocked (BL-21) | "The solvent is the steering wheel". Feature doc §3.3. |
 | BL-54 | Footnote content for the other runes | content | M | mastery | blocked (BL-12) | After the first three. |
 | BL-55 | Fire: its own element or a state; terrain decay; final matrix | design | S | materials | idea | Open since v0 (DESIGN §6.5, §10). |
+| BL-57 | Payload Glyphs rarely earn Economy: with harm-only scoring an Ink or Oil payload does no damage itself (bot p50 = 0) | balance | S | mastery | needs-playtest | Options: separate Payload thresholds, or credit the payoff a payload enables. Reliability still works for them. Plan follow-up, 2026-10-16 |
 | BL-56 | Balance pass: lattice sizes, ink costs, charges, enemy numbers | balance | S | combat, run | needs-playtest | Open checkboxes in DESIGN §10. Feedback from the player's play-throughs lands here as add-ons. |
 
 ### Content
@@ -160,6 +149,9 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-84 | Dev-only event-log panel | tech | S | tooling | idea | "Not doing yet" in TECH §4; the log mostly covers it. |
 | BL-85 | Measure proof-replay cost at the end of long fights | test | XS | tooling | idea | Flagged as a risk in the research plan; check the fuzz timing. |
 | BL-86 | Dependency refresh (svelte, vite, vitest, biome, vite-plugin-pwa) | tech | S | tooling | idea | Versions were pinned 2026-10-12. Run `pnpm check` and the Lab. |
+| BL-88 | Revision canvas is capped at 7 × 7: fine while member pages are ≤ 5 × 6; a longer Glyph line would be unrevisable | tech | XS | compile | idea | Raise `revisionCanvasMax` (and the revision tests) if pages grow |
+| BL-89 | Targeted scenarios for the extra exit plus a Shape argument, and for a Glyph beside a rune on its extra side | test | S | compile | ready | The fuzz reaches these only by chance |
+| BL-90 | Revert a Glyph version warns about ink or ownership like Revise does | polish | XS | compile | ready | Today the page blocker appears only afterwards. Review follow-up, 2026-10-16 |
 | BL-87 | Worktree/preview friction for orchestrated builds (`preview_start` always runs in the main checkout; alt ports 5190–5192) | docs | XS | tooling | idea | Fold into the `implement` / `verify` skills. |
 
 ---
@@ -207,6 +199,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-16 | **Glyph mastery, stages C, D, G** (was BL-10, BL-11, BL-14): profiler and elegance tiers, ranked list, revisions with versions, Glyph parameters, the extra exit, five owner's drafts at the desk, last-trip dead cells for plain spells; a Fair Copy identity fix found by the new fuzz | [plan](plans/glyph-mastery-plan.md), [status](plans/glyph-mastery-status.md), [feature doc §0](design/research-and-mastery.md) |
 | 2026-10-16 | **Seam deepening playtest** (was BL-01): positive first impression on all points; Etch kept as is (was BL-03); Bench empty pips fine (was BL-04, closed); Thrift a real choice; stalemate parked as BL-02 | [DESIGN §11](../DESIGN.md) (last row) |
 | 2026-10-14 | Study layout reworked around the lattice board | [DESIGN §11](../DESIGN.md) (row before the last) |
 | 2026-10-14 | **Seam deepening**: Pierce, On Ignite, Thrift; Scald, Etch, Kiln; heated brass; stained oil; 3 layouts per depth; the quiet doorway; owner's hints; trip page; Fair Copy tidy; place names | [plan](plans/seam-deepening-plan.md), [status](plans/seam-deepening-status.md) |

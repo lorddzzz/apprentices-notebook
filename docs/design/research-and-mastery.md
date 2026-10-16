@@ -1,6 +1,6 @@
 # Research and Mastery: The Scholar's Press
 
-> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G decided 2026-10-16** (§0, second table); building them together next.
+> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G shipped 2026-10-16** (§0, second and third tables; [plan](../plans/glyph-mastery-plan.md)). Next: footnotes (stage E) after the player has played them.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
 > Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 
@@ -58,6 +58,26 @@
 | Reliability silver reward | **Kept: a free extra exit**. The player picks the extra side on the Glyph sheet and can change it for free | A new way to wire, not just a number |
 | How a draft is repaired (§4.7) | **A test at the desk**: each draft carries a small test stage and a goal from the owner's note; passing marks it repaired and shows the owner's reaction | A clear "it works" moment |
 | Draft difficulty | **Harder deeper**: one bug in shallow and mid drafts, two in heart drafts | A few minutes each, growing with depth |
+
+**Build defaults for stages C, D and G** (*Proposal*, 2026-10-16, plan M1–M37 plus calls made while building; tune by playing). Full list: [glyph-mastery-plan.md](../plans/glyph-mastery-plan.md) §1 and the [status file](../plans/glyph-mastery-status.md).
+
+| Topic | Default | Why |
+|---|---|---|
+| Harm | Damage to enemies (before shields, overkill included) + 1 per kill, the same numbers as the trip ledger | One number everywhere |
+| Who gets credit | Each rune owns only its own effect, chain reactions inside it included, never its children's. A Spell Glyph is credited with its source; a Payload Glyph only with its own runes, one sample per socket per cast, and only when one of its runes ran | The record measures the pattern, not its neighbours |
+| What doesn't count | Echoes, and fire, scald or heat damage in later rounds. Lab, Bench and desk tests never write records | Fire from several casts merges; proof rules already work this way |
+| Economy | Σ harm ÷ Σ cost over the last 10 casts; cost = base ink (before the tier discount) + 1 per outer aura. Tiers **0.7 / 1.0 / 1.3** (bot trips gave p50/p75/p90 = 0.6/1.0/1.1; gold raised because tiers are best-ever) | A discount must not raise its own score |
+| Reliability | Share of the last 10 casts with a meaningful event inside the Glyph's own runes: 7 / 9 / 10 of 10 | Setup Glyphs still score |
+| Tiers | Need a full window of 10 casts; the best window ever, never drops. Rewards only matter at the desk, so nothing changes mid-fight | Decided: best form, kept |
+| Profiler | Casts, harm a cast, ink (base → discounted), current form, the inside with dead cells (0 fires after 5 casts) faded, and one suggestion line: a dead cell and the ink lifting it saves, a trigger that never opened, or idle casts | One readable sentence on a phone |
+| Ranked | Best Economy, then best Reliability, then current Economy; Glyphs under 10 casts below with "n / 10" | Competition with your past self |
+| Versions | Same id across versions; the current one is in the library, older ones archived with their records; Save makes max + 1; revert swaps. Open cells and the extra exit are settings, never a new version | Stable pages, honest records |
+| Revision editor | The inside's box plus a ring (≤ 7 × 7), entry pinned and locked for a Spell Glyph, 3–8 flow cells, every cell reached, Erase or long-press lifts. Save is disabled while anything is wrong or nothing changed; a warning names a page that would go over ink or ownership | Same limits as a Fair Copy |
+| Parameters | The Fair Copy sheet can leave one cell open (Material, Trigger or Shape); 2 at Reliability gold. The placed Glyph stores a rune per open cell, chosen at placement from owned runes of that family (default pre-filled) and changeable from the card's "Arguments". Ink is per family, so an argument costs what the default did | Decided in §4.5 |
+| Extra exit | At Reliability silver, pick a side (up, right or down, not one an exit uses). The flow leaves through the first exit, then through the extra side, main branch first like a Fork's left | A built-in Fork with one readable rule |
+| Drafts | Five drafts in story order (The Lamplighter, Collection, Wet Work, Left Hand First, The Foundry Bell), one per trip at most, only once you own a Glyph, gated by depth. The desk (`#/desk`, from the Study) runs each draft's 5×3 test with one cast; goals read as plain lines with ticks; a stranded rune shows as "never reached" but doesn't stop a test; passing on a clean page adds a Glyph you didn't have to prove and shows the owner's reaction | Decided: a test at the desk |
+| Plain spells | The last trip's casts and harm under each spell, and a faint dashed ring on cells that never fired, only while the spell is wired as it was fought | Decided: last trip only |
+| Fair Copy fix | A tail that the cluster's own spell would lose counts as stranded even if another spell still reaches it (found by the fuzz; before, the collapse dropped it silently) | Compiling must never change a cast without saying so |
 
 ## 1. The idea in one page
 
