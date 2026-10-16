@@ -25,7 +25,7 @@ export const METRIC_NAMES = { economy: 'Economy', reliability: 'Reliability' } a
 export const SUGGESTIONS = {
   deadCell: 'The {rune} on row {row} never fired in {casts} casts. Lifting it saves {ink} ink.',
   deadCellNoInk:
-    'The {rune} on row {row} never fired in {casts} casts. Lifting it saves no ink, frees a {rune}.',
+    'The {rune} on row {row} never fired in {casts} casts. Lifting it saves no ink but frees the rune.',
   closedTrigger: 'The {rune} ran but never opened.',
   idleCasts: '{idle} of the last {window} casts did nothing.',
 } as const;

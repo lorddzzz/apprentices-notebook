@@ -154,7 +154,7 @@ describe('suggestion', () => {
     const rec = record({ casts: 6, fired: { '0,0': 6, '1,0': 6 } });
     expect(baseGlyphCost(def)).toBe(baseGlyphCost({ ...def, cells: def.cells.slice(0, 2) }));
     expect(suggestionOf(def, rec)).toBe(
-      'The Ink on row 1 never fired in 6 casts. Lifting it saves no ink, frees a Ink.',
+      'The Ink on row 1 never fired in 6 casts. Lifting it saves no ink but frees the rune.',
     );
   });
 
