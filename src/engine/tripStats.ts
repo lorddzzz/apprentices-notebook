@@ -1,5 +1,6 @@
 import { MEMBER_IDS, type MemberId } from '$data';
 import { discoveriesIn, type EventLog, type GameEvent } from './events';
+import { key as cellKey } from './grid';
 import type {
   CellKey,
   CompiledLattice,
@@ -58,9 +59,21 @@ interface Segment {
   kills: number;
   reactions: number;
   queuesEcho: boolean;
+  fired: CellKey[]; // the cells of this cast's `trace` (none for an echo)
 }
 
 const memberOf = (id: string): MemberId | null => MEMBER_IDS.find((m) => m === id) ?? null;
+
+/** A spell's path cells as proof sees them, each once: a Glyph's inner cells are its socket (M15). */
+function pathCells(spell: Spell): CellKey[] {
+  const at = spell.cells
+    ? spell.cells.map((c) => cellKey(c.at))
+    : spell.path.map((p) => cellKey(p.at));
+  return [...new Set(at)];
+}
+
+const sameCells = (a: readonly CellKey[], b: readonly CellKey[]): boolean =>
+  a.length === b.length && a.every((c) => b.includes(c));
 
 /**
  * Folds one finished encounter's event log into the trip's stats (plan S16). `known` is the
@@ -73,7 +86,7 @@ export function accumulateStats(
   stats: TripStats,
   log: EventLog,
   known: Profile,
-  _compiled: Partial<Record<MemberId, readonly Spell[]>> = {},
+  compiled: Partial<Record<MemberId, readonly Spell[]>> = {},
 ): TripStats {
   const spells: SpellTally[] = stats.spells.map((s) => ({
     ...s,
@@ -103,6 +116,10 @@ export function accumulateStats(
       };
       spells.push(t);
     }
+    // The path as it was fought: the latest one wins (a doorway rewire changes it mid-trip).
+    const fought = compiled[seg.member]?.find((s) => s.key === key);
+    if (fought) t.cells = pathCells(fought);
+    for (const c of seg.fired) if (!t.fired.includes(c)) t.fired.push(c);
     if (seg.queuesEcho) echoes.set(seg.member, [...(echoes.get(seg.member) ?? []), key]);
     t.casts += 1;
     t.damage += seg.damage;
@@ -118,6 +135,7 @@ export function accumulateStats(
       if (e.meaningful) proofCasts += 1;
       if (seg && seg.member === e.caster.id) {
         seg.key = e.spell;
+        seg.fired = e.cells.map((c) => cellKey(c.at));
         keyOf.set(`${seg.member}|${seg.name}`, e.spell);
         close();
       }
@@ -129,7 +147,16 @@ export function accumulateStats(
       if (member) {
         // An echo has no trace: it belongs to the cast that queued it.
         const key = e.echo ? (echoes.get(member)?.shift() ?? null) : null;
-        seg = { member, name: e.spell, key, damage: 0, kills: 0, reactions: 0, queuesEcho: false };
+        seg = {
+          member,
+          name: e.spell,
+          key,
+          damage: 0,
+          kills: 0,
+          reactions: 0,
+          queuesEcho: false,
+          fired: [],
+        };
       }
     } else if (seg) {
       if (e.type === 'echoQueued') seg.queuesEcho = true;
@@ -158,12 +185,20 @@ export function accumulateStats(
 
 /**
  * Cells of member `m`'s plain spells that never fired on the last trip, while each spell's path still
- * equals its tally's `cells` (M15): the Study's faint rings. W0 stub: none (task E5).
+ * equals its tally's `cells` (M15): the Study's faint rings. `compiled` is `m`'s current lattice.
+ * A Spell Glyph's source is not a plain spell and gets none; a stale spell gets none.
  */
 export function lastTripDeadCells(
-  _recap: TripRecap | null,
-  _m: MemberId,
-  _compiled: CompiledLattice,
+  recap: TripRecap | null,
+  m: MemberId,
+  compiled: CompiledLattice,
 ): CellKey[] {
-  return [];
+  const dead: CellKey[] = [];
+  for (const t of recap?.stats.spells ?? []) {
+    if (t.member !== m) continue;
+    const now = compiled.spells.find((s) => s.key === t.spell);
+    if (!now || now.glyph || !sameCells(pathCells(now), t.cells)) continue;
+    for (const c of t.cells) if (!t.fired.includes(c) && !dead.includes(c)) dead.push(c);
+  }
+  return dead;
 }
