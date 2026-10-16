@@ -11,7 +11,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | W0 | opus (me) | L | merged | (this commit) | ~9% | contracts, stubs, save v5, fixtures, Seam identity gate |
 | E1 | sonnet | M | running | | | started 21:32 |
 | E2 | sonnet | L | running | | | started 21:32 |
-| E3 | sonnet | M | running | | | started 21:32 |
+| E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | pending | | | needs E1, E2 |
 | C2 | sonnet | S | pending | | | needs E1, E3; after C1 merges |
 | U1 | sonnet | M | pending | | | needs E1, E2 |
@@ -29,6 +29,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | 21:15 | 61 | 54m | 21 | normal | baseline, start W0 |
 | 21:25 | 69 | 45m | 22 | normal | W0 mid-way |
 | 21:31 | 73 | 39m | 23 | normal→narrow | W0 merged (~12%); start E1, E2, E3 anyway (reset before they finish) |
+| 21:37 | 84 | 33m | 24 | narrow→wrap | E3 merged; E1, E2 running; start U3 (smallest unblocked) |
 
 ## W0 contract notes (for the agents)
 - `Intent = AttackIntent | SpecialIntent`; every reader narrows on `kind === 'attack'`. `telegraph` events carry any `Intent`; `attack` events an `AttackIntent`.
@@ -40,6 +41,14 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - Seam identity gate: `tests/run/seam-identity.test.ts` against `tests/fixtures/seam-identity.json` (written from the commit before W0). Never regenerate it.
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- E3: `discovered` conditions read `interaction:<id>` from `p.interactions` and `idiom:<id>` from `p.idioms`; other codex ids never match. Accepted.
+- E3: owner-voiced conditions are checked only in `hearFromBattle` (`ignite`, `discovered`), rumour-voiced only in `hearAfterTrip` (`heart`, `trips`, `discovered`). Accepted.
+- E3: an `ignite` condition with `district` counts only in that district's battles, and only the largest single `ignite` counts (no summing). Accepted (matches K-20 "one ignite event").
+- E3: every trip counts (wiped or returned); a heart is marked only on a return with status `cleared` (also adds it to heard/open defensively). Accepted.
+- E3: `canReturn` = landings 'all' or the index listed, no special case for `cleared`. A heart not listed as a landing would strand the party: districts must list their heart (canals do). Accepted; add a data integrity check in F1/W4.
+- E3: `nextLanding` is null at a landing and when no later landing exists. Accepted.
+- E3: `keyOffer` takes the first matching district in `DISTRICT_IDS` order; any key already in loot/offers blocks another. Accepted.
+- E3: `bankKeys` adds the district to `heard` if missing, not to `fresh`; `solveThreshold`/`openAll` leave `fresh` alone. Accepted.
 
 ## Decisions and fixes made during the build
 - W0: the Seam's encounters stay in `encounters.ts`; `districts.ts` imports them (`DISTRICTS.seam.encounters === ENCOUNTERS`) instead of moving the code. Same effect, less churn.

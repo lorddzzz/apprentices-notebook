@@ -108,7 +108,7 @@ describe('picking a doorway', () => {
     expect(after.offers).toEqual([]);
     // nothing is banked for it
     const home = returnHome(newProfile(), { ...after, status: 'crossroads' });
-    expect(home).toEqual(newProfile());
+    expect(home).toEqual({ ...newProfile(), city: { ...newProfile().city, trips: 1 } });
   });
 
   test('with picks left the other offers wait', () => {
