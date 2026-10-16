@@ -31,20 +31,67 @@ export function glyphCost(g: GlyphDef): number {
   return Math.max(1, base - (g.discount ?? 0));
 }
 
+/** The families an open cell can have; a Source or an Aura never takes an argument (M21). */
+const PARAM_FAMILIES: readonly string[] = ['material', 'trigger', 'shape'];
+
+/** Whether a default rune could be left open (Material, Trigger or Shape). */
+export const canBeOpen = (rune: RuneId): boolean => PARAM_FAMILIES.includes(RUNES[rune].family);
+
+/**
+ * What is wrong with an argument for `def`'s cell `at`, or null when it is fine: the cell has to
+ * exist, be one of the Glyph's open cells, and the rune has to be of the default's family (M21).
+ */
+export function argIssue(def: GlyphDef, at: CellKey, arg: GlyphArg): string | null {
+  const cell = def.cells.find((c) => key(c.at) === at);
+  if (!cell) return `has no cell ${at}`;
+  if (!def.params.includes(at)) return `cell ${at} is not open`;
+  if (!canBeOpen(cell.rune)) return `cell ${at} cannot take an argument`;
+  const family = RUNES[cell.rune].family;
+  if (RUNES[arg.rune].family !== family) {
+    return `${RUNES[arg.rune].name} is not a ${family} rune, cell ${at} takes one`;
+  }
+  return null;
+}
+
+/**
+ * The Glyph's cells as one placement sees them: each open cell holds its argument in place of the
+ * default, an arrow argument starting at the default's arrow (or right). A bad or missing argument
+ * leaves the default, so the compiler never throws on a stale save (M21).
+ */
+export function cellsWithArgs(
+  def: GlyphDef,
+  args?: Readonly<Record<CellKey, GlyphArg>>,
+): readonly PlacedRune[] {
+  if (!args) return def.cells;
+  return def.cells.map((cell) => {
+    const k = key(cell.at);
+    const arg = args[k];
+    if (!arg || argIssue(def, k, arg) !== null) return cell;
+    if (!RUNES[arg.rune].arrow) return { at: cell.at, rune: arg.rune };
+    return { at: cell.at, rune: arg.rune, dir: arg.dir ?? cell.dir ?? 'right' };
+  });
+}
+
 /**
  * The runes a placed Glyph uses from the collection: its inner runes, an argument in place of an
- * open cell's default (M23). W0 stub: ignores `args` (task E3).
+ * open cell's default (M23).
  */
-export function glyphRunes(def: GlyphDef, _args?: Readonly<Record<CellKey, GlyphArg>>): RuneId[] {
-  return def.cells.map((c) => c.rune);
+export function glyphRunes(def: GlyphDef, args?: Readonly<Record<CellKey, GlyphArg>>): RuneId[] {
+  return cellsWithArgs(def, args).map((c) => c.rune);
 }
 
 /**
  * The Glyph with `local` as its one open cell, or none (the Fair Copy sheet, M22). Throws when the
- * cell can't be open (no rune there, or a Source or Aura). W0 stub: returns `def` (task E3).
+ * cell can't be open (no rune there, or a Source or Aura).
  */
-export function withOpenCell(def: GlyphDef, _local: Coord | null): GlyphDef {
-  return def;
+export function withOpenCell(def: GlyphDef, local: Coord | null): GlyphDef {
+  if (local === null) return { ...def, params: [] };
+  const cell = def.cells.find((c) => sameCoord(c.at, local));
+  if (!cell) throw new Error(`No rune at ${key(local)} to leave open`);
+  if (!canBeOpen(cell.rune)) {
+    throw new Error(`${RUNES[cell.rune].name} at ${key(local)} can't be left open`);
+  }
+  return { ...def, params: [key(local)] };
 }
 
 /** Quarter turns clockwise that take local 'right' to `dir`. */

@@ -9,7 +9,7 @@ import {
   type TriggerRuneId,
   TUNING,
 } from '$data';
-import { glyphCost, rotateDirLocal } from './glyph';
+import { argIssue, cellsWithArgs, glyphCost, rotateDirLocal } from './glyph';
 import {
   byReadingOrder,
   type Coord,
@@ -85,8 +85,8 @@ interface Frame {
   cells: FiredCell[];
 }
 
-const cellMap = (def: GlyphDef): Map<CellKey, PlacedRune> =>
-  new Map(def.cells.map((c) => [key(c.at), c]));
+const cellMap = (def: GlyphDef, args?: PlacedGlyph['args']): Map<CellKey, PlacedRune> =>
+  new Map(cellsWithArgs(def, args).map((c) => [key(c.at), c]));
 
 /** Compiles `l`; `glyphs` resolves Glyph sockets (default none: a Glyph then insulates). */
 export function compileLattice(
@@ -189,7 +189,9 @@ export function compileLattice(
 
   /** A Glyph's cells as a frame; leaving it continues the outer walk from the socket. */
   const innerFrame = (g: PlacedGlyph, def: GlyphDef, outer: Frame): Frame => {
-    const local = cellMap(def);
+    const local = cellMap(def, g.args);
+    // M27: the extra exit rides on the first time the walk leaves the Glyph.
+    let extraSpent = def.extraExit === null;
     const around = (at: Coord, rune: RuneId): number =>
       neighbors4(at).filter((n) => local.get(key(n))?.rune === rune).length;
     return {
@@ -202,7 +204,11 @@ export function compileLattice(
       outward: (d) => rotateDirLocal(d, g.dir),
       beyond: (_at, dir, via, pierced) => {
         const out = rotateDirLocal(dir, g.dir);
-        return walkIn(outer, step(g.at, out), out, via, pierced);
+        const main = walkIn(outer, step(g.at, out), out, via, pierced);
+        if (extraSpent || def.extraExit === null) return main;
+        extraSpent = true;
+        const side = rotateDirLocal(def.extraExit, g.dir);
+        return [...main, ...walkIn(outer, step(g.at, side), side, via, pierced)];
       },
       fired: () => ({ at: g.at, rune: null, glyph: g.glyph, dir: g.dir }),
       cells: outer.cells,
@@ -412,12 +418,20 @@ export function validateLattice(
         issues.push({ kind: 'overlap', at: r.at, message: `Glyph ${r.glyph} shares a socket` });
       }
       seen.add(key(r.at));
-      if (!glyphs[r.glyph]) {
+      const def = glyphs[r.glyph];
+      if (!def) {
         issues.push({
           kind: 'socket',
           at: r.at,
           message: `Glyph ${r.glyph} is not in the library`,
         });
+      } else {
+        for (const [cell, arg] of Object.entries(r.args ?? {})) {
+          const why = argIssue(def, cell, arg);
+          if (why) {
+            issues.push({ kind: 'arg', at: r.at, rune: arg.rune, message: `${def.name} ${why}` });
+          }
+        }
       }
       continue;
     }

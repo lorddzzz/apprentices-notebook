@@ -1,15 +1,19 @@
 import { expect, test } from 'vitest';
 import {
+  baseGlyphCost,
   compileLattice,
   type GlyphDef,
   type GlyphLibrary,
   glyphCost,
+  glyphRunes,
   inkUsed,
   type PlacedRune,
   parseLattice,
   placedInk,
   rotateLocal,
+  serializeLattice,
   validateLattice,
+  withOpenCell,
 } from '$engine';
 
 const c = (x: number, y: number) => ({ x, y });
@@ -195,4 +199,140 @@ test('existing callers keep working without a library', () => {
   expect(compileLattice(l, []).spells).toHaveLength(1);
   expect(inkUsed(l)).toBe(3);
   expect(validateLattice(l, 3)).toEqual([]);
+});
+
+// ── Parameters (E3, M21–M25) ──
+
+/** A payload Ink → OnInked → Spark with its first cell open (a Material). */
+const open = (id: string, params: string[], cells?: PlacedRune[]): GlyphDef => ({
+  ...def(id, 'payload', cells ?? [...payload.cells]),
+  params,
+});
+const openP = open('o', ['0,0']);
+
+test('baseGlyphCost ignores the Economy discount, glyphCost applies it and never drops below 1', () => {
+  expect(baseGlyphCost(payload)).toBe(3);
+  expect(glyphCost({ ...payload, discount: 1 })).toBe(2);
+  expect(baseGlyphCost({ ...payload, discount: 1 })).toBe(3);
+  expect(glyphCost({ ...payload, discount: 9 })).toBe(1);
+  const l = parseLattice('Bolt> G:o> .');
+  expect(inkUsed(l, { o: { ...openP, discount: 2 } })).toBe(2 + 1);
+});
+
+test('withOpenCell opens one Material, Trigger or Shape cell and clears with null', () => {
+  expect(withOpenCell(payload, c(0, 0)).params).toEqual(['0,0']);
+  expect(withOpenCell(payload, c(1, 0)).params).toEqual(['1,0']); // a Trigger
+  expect(withOpenCell(withOpenCell(payload, c(0, 0)), null).params).toEqual([]);
+  expect(withOpenCell(payload, c(0, 0)).cells).toBe(payload.cells); // the default stays in cells
+  expect(() => withOpenCell(payload, c(5, 5))).toThrow(/No rune/);
+  expect(() => withOpenCell(spell, c(0, 0))).toThrow(/open/); // a Source
+  const aura = def('a', 'spell', [
+    { at: c(0, 0), rune: 'bolt', dir: 'right' },
+    { at: c(0, 1), rune: 'amplify' },
+  ]);
+  expect(() => withOpenCell(aura, c(0, 1))).toThrow(/open/);
+  const bend = def('b', 'payload', [{ at: c(0, 0), rune: 'bend', dir: 'up' }]);
+  expect(withOpenCell(bend, c(0, 0)).params).toEqual(['0,0']);
+});
+
+test('glyphRunes: an argument stands in for the default; bad and closed arguments do not count', () => {
+  const same = ['ink', 'onInked', 'spark'];
+  expect(glyphRunes(openP)).toEqual(same);
+  expect(glyphRunes(openP, { '0,0': { rune: 'oil' } })).toEqual(['oil', 'onInked', 'spark']);
+  expect(glyphRunes(openP, { '0,0': { rune: 'spark' } })).toEqual(['spark', 'onInked', 'spark']);
+  expect(glyphRunes(openP, { '0,0': { rune: 'onKill' } })).toEqual(same);
+  expect(glyphRunes(openP, { '2,0': { rune: 'oil' } })).toEqual(same);
+  expect(glyphRunes(payload, { '0,0': { rune: 'oil' } })).toEqual(same);
+  expect(glyphRunes(openP, { '9,9': { rune: 'oil' } })).toEqual(same);
+});
+
+test('ink: an argument costs what the default does, because ink is per family', () => {
+  const plain = parseLattice('Bolt> G:o> .');
+  const withArg = parseLattice('Bolt> G:o>[0,0:Smear] .');
+  expect(inkUsed(withArg, { o: openP })).toBe(inkUsed(plain, { o: openP }));
+});
+
+test('args replace default cells in the compiled walk (and bad ones leave the default)', () => {
+  const first = (src: string, library: GlyphLibrary = { o: openP }) =>
+    compileLattice(parseLattice(src), [], library).spells[0]?.nodes[0];
+  expect(first('Bolt> G:o> .')?.rune).toBe('ink');
+  expect(first('Bolt> G:o>[0,0:Smear] .')?.rune).toBe('smear');
+  expect(first('Bolt> G:o>[0,0:Smear] .')?.next[0]).toMatchObject({ rune: 'onInked' });
+  // Wrong family, unknown slot and a closed cell all fall back to the default.
+  expect(first('Bolt> G:o>[0,0:OnKill] .')?.rune).toBe('ink');
+  expect(first('Bolt> G:o>[7,7:Smear] .')?.rune).toBe('ink');
+  expect(first('Bolt> G:p>[0,0:Smear] .', lib)?.rune).toBe('ink');
+});
+
+test('an arrow argument starts at the default arrow, or right, and turns when given', () => {
+  const bender = open(
+    'bd',
+    ['1,0'],
+    [
+      { at: c(0, 0), rune: 'ink' },
+      { at: c(1, 0), rune: 'bend', dir: 'down' },
+      { at: c(1, 1), rune: 'oil' },
+      { at: c(2, 0), rune: 'spark' },
+    ],
+  );
+  const runes = (args: string) => {
+    const [sp] = compileLattice(parseLattice(`Bolt> G:bd>${args} .`), [], { bd: bender }).spells;
+    const out: string[] = [];
+    let at = sp?.nodes;
+    while (at?.[0]) {
+      out.push(at[0].rune);
+      at = at[0].next;
+    }
+    return out.join();
+  };
+  expect(runes('')).toBe('ink,oil'); // the default Bend turns down
+  expect(runes('[1,0:Bend]')).toBe('ink,oil'); // an arrow arg without a turn keeps the default arrow
+  expect(runes('[1,0:Bend>]')).toBe('ink,spark');
+  expect(runes('[1,0:Pierce]')).toBe('ink,spark'); // straight on
+});
+
+test('validateLattice flags an arg of the wrong family or for an unknown or closed slot as arg', () => {
+  const lib2: GlyphLibrary = { o: openP };
+  const issues = (src: string) => validateLattice(parseLattice(`Bolt> ${src} .`), null, lib2);
+  expect(issues('G:o>[0,0:Smear]')).toEqual([]);
+  expect(issues('G:o>')).toEqual([]);
+  const wrong = issues('G:o>[0,0:OnKill]');
+  expect(wrong).toHaveLength(1);
+  expect(wrong[0]).toMatchObject({ kind: 'arg', at: c(1, 0), rune: 'onKill' });
+  expect(issues('G:o>[1,0:Smear]')[0]?.kind).toBe('arg'); // a cell of the Glyph that is not open
+  expect(issues('G:o>[9,9:Smear]')[0]?.kind).toBe('arg'); // not a cell at all
+  expect(issues('G:o>[0,0:Bolt>]')[0]?.kind).toBe('arg'); // a Source is nobody's argument
+  expect(issues('G:o>[0,0:Amp]')[0]?.kind).toBe('arg');
+});
+
+test('notation: Glyph arguments round-trip, arrows included', () => {
+  const ascii =
+    'Bolt> G:g1>[1,0:Smear] G:g2^[-1,2:Bend^][0,0:Ink] .\n. G:g3< G:fair-copy^[0,1:Fork] x';
+  const l = parseLattice(ascii);
+  expect(l.runes.find((r) => 'glyph' in r && r.glyph === 'g1')).toEqual({
+    at: c(1, 0),
+    glyph: 'g1',
+    dir: 'right',
+    args: { '1,0': { rune: 'smear' } },
+  });
+  expect(l.runes.find((r) => 'glyph' in r && r.glyph === 'g2')).toEqual({
+    at: c(2, 0),
+    glyph: 'g2',
+    dir: 'up',
+    args: { '-1,2': { rune: 'bend', dir: 'up' }, '0,0': { rune: 'ink' } },
+  });
+  expect('args' in (l.runes.find((r) => 'glyph' in r && r.glyph === 'g3') ?? {})).toBe(false);
+  const out = serializeLattice(l);
+  expect(out).toContain('G:g1>[1,0:Smear]');
+  expect(out).toContain('G:g2^[0,0:Ink][-1,2:Bend^]'); // reading order of the local cells
+  expect(parseLattice(out)).toEqual(l);
+  expect(serializeLattice(parseLattice(out))).toBe(out);
+});
+
+test('notation: bad Glyph arguments name the cell', () => {
+  expect(() => parseLattice('. G:g>[1,0:Nope]')).toThrow(/Nope.*B1/);
+  expect(() => parseLattice('. G:g>[1,0:Ink^]')).toThrow(/no arrow/);
+  expect(() => parseLattice('. G:g>[1;0:Ink]')).toThrow(/Bad Glyph argument/);
+  expect(() => parseLattice('. G:g>[1,0:Ink][1,0:Oil]')).toThrow(/twice/);
+  expect(() => parseLattice('. G:g[1,0:Ink]')).toThrow(/arrow/);
 });

@@ -10,8 +10,15 @@ import {
   type RuneId,
   TUNING,
 } from '$data';
-import { type Coord, type Dir, label } from './grid';
-import { isGlyph, type Lattice, type Placed, type Tile } from './types';
+import { type Coord, type Dir, label, parseKey } from './grid';
+import {
+  type GlyphArg,
+  isGlyph,
+  type Lattice,
+  type Placed,
+  type PlacedGlyph,
+  type Tile,
+} from './types';
 
 /**
  * ASCII notation shared by tests, encounters and the Lab. Cells are whitespace-separated tokens,
@@ -26,6 +33,8 @@ import { isGlyph, type Lattice, type Placed, type Tile } from './types';
  *
  * Lattice cell = `.` empty socket, `x` hole, or a rune token (`Bolt`, `Ink`, `OnInked`, `Amp`…)
  * with an arrow suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend).
+ * A Glyph is `G:id>` (the arrow is the way in), then one `[x,y:Rune]` per open-cell argument, `x,y`
+ * being the Glyph's local cell (`G:g1>[1,0:Smear]`, an arrow rune `[2,0:Bend^]`; no spaces).
  */
 
 export interface BoardUnit {
@@ -264,6 +273,54 @@ function runeByToken(token: string): RuneId | null {
   return RUNE_IDS.find((id) => RUNES[id].token === token) ?? null;
 }
 
+/** A rune token with its arrow suffix: `Smear`, `Bend^`. The arrow is optional here (see `GlyphArg`). */
+function parseRuneArg(text: string, where: string, token: string): GlyphArg {
+  const plain = runeByToken(text);
+  if (plain) return { rune: plain };
+  const dir = ARROW_CHARS[text.slice(-1)];
+  const arrowed = dir ? runeByToken(text.slice(0, -1)) : null;
+  if (!dir || !arrowed) throw new Error(`Unknown rune "${text}" in "${token}" in cell ${where}`);
+  if (!RUNES[arrowed].arrow) {
+    throw new Error(
+      `Rune "${RUNES[arrowed].token}" takes no arrow, got "${token}" in cell ${where}`,
+    );
+  }
+  return { rune: arrowed, dir };
+}
+
+/**
+ * `G:id>` with the way-in arrow, then optional arguments, one `[x,y:Rune]` per open cell, the
+ * cell being the Glyph's local `x,y` (`G:g1>[1,0:Smear][2,0:Bend^]`).
+ */
+function parseGlyphToken(token: string, at: Coord, where: string): PlacedGlyph {
+  const m = /^G:(.*?)((?:\[[^\]]*\])*)$/.exec(token);
+  const head = m?.[1] ?? '';
+  const gdir = ARROW_CHARS[head.slice(-1)];
+  const glyph = head.slice(0, -1);
+  if (!gdir || glyph === '') {
+    throw new Error(`Glyph "${token}" needs an id and an arrow (G:id>) in cell ${where}`);
+  }
+  const args: Record<string, GlyphArg> = {};
+  for (const group of (m?.[2] ?? '').match(/\[[^\]]*\]/g) ?? []) {
+    const arg = /^\[(-?\d+,-?\d+):(.+)\]$/.exec(group);
+    if (!arg?.[1] || !arg[2]) {
+      throw new Error(`Bad Glyph argument "${group}" (want [x,y:Rune]) in cell ${where}`);
+    }
+    if (args[arg[1]])
+      throw new Error(`Cell ${arg[1]} is given twice in "${token}" in cell ${where}`);
+    args[arg[1]] = parseRuneArg(arg[2], where, token);
+  }
+  return Object.keys(args).length > 0 ? { at, glyph, dir: gdir, args } : { at, glyph, dir: gdir };
+}
+
+function glyphToken(g: PlacedGlyph): string {
+  const args = Object.entries(g.args ?? {})
+    .map(([k, a]) => ({ at: parseKey(k), k, a }))
+    .sort((p, q) => p.at.y - q.at.y || p.at.x - q.at.x)
+    .map(({ k, a }) => `[${k}:${RUNES[a.rune].token}${a.dir ? ARROW_SUFFIX[a.dir] : ''}]`);
+  return `G:${g.glyph}${ARROW_SUFFIX[g.dir]}${args.join('')}`;
+}
+
 export function parseLattice(ascii: string): Lattice {
   const grid = rows(ascii);
   if (grid.length === 0) throw new Error('Empty lattice');
@@ -283,12 +340,7 @@ export function parseLattice(ascii: string): Lattice {
         return;
       }
       if (token.startsWith('G:')) {
-        const gdir = ARROW_CHARS[token.slice(-1)];
-        const glyph = token.slice(2, -1);
-        if (!gdir || glyph === '') {
-          throw new Error(`Glyph "${token}" needs an id and an arrow (G:id>) in cell ${where}`);
-        }
-        runes.push({ at, glyph, dir: gdir });
+        runes.push(parseGlyphToken(token, at, where));
         return;
       }
       const plain = runeByToken(token);
@@ -320,7 +372,7 @@ export function serializeLattice(l: Lattice): string {
     for (let x = 0; x < l.shape.width; x++) {
       const placed = l.runes.find((r) => r.at.x === x && r.at.y === y);
       if (placed && isGlyph(placed)) {
-        row.push(`G:${placed.glyph}${ARROW_SUFFIX[placed.dir]}`);
+        row.push(glyphToken(placed));
       } else if (placed) {
         row.push(RUNES[placed.rune].token + (placed.dir ? ARROW_SUFFIX[placed.dir] : ''));
       } else if (l.shape.holes.some((h) => h.x === x && h.y === y)) {
