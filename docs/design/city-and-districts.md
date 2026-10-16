@@ -1,6 +1,6 @@
 # The City and its Districts
 
-> **Status: Decided** (two design rounds of 2026-10-16, §0: the map and gates, then the canals). Nothing built yet. Plan: [city-and-canals-plan.md](../plans/city-and-canals-plan.md). Feeds [BL-22](../ROADMAP.md) (the map and the gates) and [BL-21](../ROADMAP.md) (the canals).
+> **Status: Built** (2026-10-17, BL-21 + BL-22; rules as built in §0 "Built", *tune by playing*). Designed in two rounds of 2026-10-16 (§0). Plan: [city-and-canals-plan.md](../plans/city-and-canals-plan.md), build log: [city-and-canals-status.md](../plans/city-and-canals-status.md).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. The Seam, the first district: DESIGN.md §9.2. Trip rules: DESIGN.md §6.4.
 > **Out of scope on purpose:** aspects, recipes, loot tables, solvents and rune content. They wait for a rune-content rework once every core feature exists. Until then a new district reuses the current loot and runes.
 > Numbers and conditions are drafts, *tune by playing*.
@@ -53,6 +53,25 @@
 | Her pattern | Every round she calls one moth at a lit lamp; every third round she **flares** and every moth on the board bursts at once | Two telegraphs, one readable rhythm |
 | The lock's trick | The gate sits at the downstream end of a lane, behind brass plates, so nothing you cast reaches it directly. Only what floats does | Forces the current without forcing one lattice |
 | Bosses in general | One tile, lots of HP, telegraphed like everyone else | No new engine work for multi-tile units |
+
+### Built (2026-10-17): rules the build settled (*Proposal*, tune by playing)
+
+The plan's K-1 to K-24 hold as written, with these calls made during the build:
+
+| Topic | As built | Why |
+|---|---|---|
+| **The lock's record (design change)** | A solved threshold shows on the map as a **burnt gate**, not as a codex entry | The codex has no "places" kind yet; the map already records it |
+| The lock board | 8 rows: the party's quay is rows 1–2, a row of brass plates with a **grate** on the lane, four open lane tiles, then the wooden gate. A brute-force test proves no single turn (Splash included) burns it | Splash (range 3) leaked the first, shorter board in one turn |
+| Fire on the current | Fire lasts 2 rounds, so lighting oil far upstream doesn't reach the gate. The lock is solved by **building a slick down the lane over a few turns** and lighting it at the grate (fire runs through connected oil) | Found while proving the lock; the design's "light it and let it drift" only works over short distances |
+| Grates and gates | A grate (on water) lets floats through but stops units, walks and shots; a wooden gate blocks like a plate and burns when fire is beside it | Closes the "Bolt down the lane" leak (§5.3) |
+| Drift details | One drift event a round; fire doesn't enter steam; a drifting unit isn't inked by a puddle it lands on; two units facing each other both stay; a unit may drift off the water onto free land; a plate on a lane stops floats; a drifted member loses its move-undo | Smallest rules that keep the current readable |
+| Foes | Every moth death bursts (Bolt and bumps too); every lamp counts as lit; the mother calls at the lamp nearest a member and waits if it is taken or 4 moths live; she telegraphs a flare every third round even with no moths; a shoved eel bumps "the bank", the mother "her moorings"; moths don't slide on oil | A fuse is a fuse; the cap and the flare are the brakes |
+| Hearing | Owner lines are read off battle logs (win or wipe), rumours after a trip; an `ignite` condition counts only the largest single ignite, in the named district; every trip counts toward `trips` | One ignite of 3+ tiles is what the design asked for |
+| Keys | At most one key per trip; a key banked also marks its district heard. (No district uses a key gate yet) | |
+| Landings | A district must list its heart as a landing, or a cleared heart strands the party (checked by the fuzz) | |
+| Canal rooms | Lighter than §5.5's table to leave charges for the heart: room 1 eel + rat, room 2 eel + moth + rat, room 3 eel + Snuffer + moth, room 4 all four (one moth), heart the mother + Snuffer + one moth. Bot sim: rooms 1–3 100 %, room 4 96 %, heart 39 % | Playtest will say whether they want more |
+| The map | A torn page; heard districts a smudge with the owner's line and how the way is barred; open ones inked; fresh ones in blue ink once; heart cleared ✦; solved lock = burnt gate. "Set out?" moved from the study to the map | §1 |
+| The drift preview | A "Current" toggle on boards with water (ghosts of where floats and units go), not a press-and-hold | Simplest first; hold-to-peek is a follow-up |
 
 ## 1. The sketch map (BL-22)
 

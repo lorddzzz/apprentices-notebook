@@ -2,8 +2,8 @@
 
 Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building
-**Next:** W4: code review (Sonnet reviewer), docs (DESIGN §6.7/§11, design doc §0, TECH §7, ROADMAP), full verify loop at 375×812, clean up worktrees.
+**State:** done (2026-10-17)
+**Next:** nothing in this plan. Follow-ups are BL-91 to BL-95 in the ROADMAP; the player's playtest decides the tuning ones.
 
 ## Tasks
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -21,7 +21,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | U4 | sonnet | M | merged | (U4 merge commit) | ~7% | 4 tests; real click through the win → "The gate burns" → map; solve saved at the win |
 | D1 | haiku | S | merged | (D1 merge commit) | ~2% | lock note, barred, eel/snuffer blurbs, drift codex + hint, landing line |
 | F1 | sonnet | M | merged | (F1 merge commit) | ~7% | canal trips + lock in the fuzz, city invariants; +4.4 s; found 4 engine bugs, fixed by me in the same commit |
-| W4 | opus | M | pending | | | |
+| W4 | opus (me) + sonnet reviewer | M | done | (this commit) | ~8% | review: no serious bugs; fixed the lock keeping a stale battle after a back gesture; docs; full loop at 375×812 |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -35,6 +35,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | 21:57 | 96 | 13m | 26 | hold | C1 merged; start C2 (smallest unblocked) per pacing rule |
 | 22:06 | 100 | 4m | 27 | hold | C2 reported; Splash leak, not merged; stop until reset |
 | 22:12 | 0 | 5h | 27 | normal | window reset; C2 sent back; start U2, U1 |
+| 22:30 | 17 | 4h50m | 29 | normal | wave 2/3 merging |
 
 ## W0 contract notes (for the agents)
 - `Intent = AttackIntent | SpecialIntent`; every reader narrows on `kind === 'attack'`. `telegraph` events carry any `Intent`; `attack` events an `AttackIntent`.
@@ -89,6 +90,8 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - U4: the banner "Burn the lock gate." is a literal in the screen; move it into `ThresholdDef` before a second threshold room. Follow-up.
 
 ## Decisions and fixes made during the build
+- W4 review fix (me): the lock screen forgets its battle when unmounted, so leaving by the back gesture and returning starts fresh with the current lattices (K-22).
+- W4 (me): place names read lower-case inside sentences ("the oil-lit canals"); fx flashes for the canal events; svelte-autofixer pass (Haiku) on the board, battle and study components.
 - F1 bugs fixed (me): (1) a shove or slide moved an eel onto land; (2) drift laid oil on a brass plate raised on a lane; (3) `'drift'` was missing from `INTERACTION_IDS`, so a canal win that discovered drift made the save unreadable (W0 miss); (4) a shove moved the anchored lamp-mother. Also: fliers (moths) never slide on oil (K-16). Repros un-skipped as regression tests in fuzz.test.ts.
 - Milestone A (me): trip headers said "Depth 1 / 4" on the canals (Seam room count); now per district. `encounterTitle` (unused) removed.
 - U2 merge (me): removed the old "Set out?" sheet from Study.svelte; the door now reads "Out into the city" / "The owner's map of the city".

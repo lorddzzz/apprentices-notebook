@@ -61,22 +61,14 @@ A gold-Reliability / silver-Economy Glyph becomes a **permanent** atom (3 vellum
 `design` `S` · area: bench, world · status: needs-design · needs: —
 Only the pairs ≋ϟ and ≋⟳ are free; the 7 later recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap, plus the Lance variant) don't fit in 8 aspects. Decide: add a ninth aspect (the feature doc floated *Light*, *Sound*), retag, or cut recipes. **Blocks BL-21's recipes.**
 
-#### BL-21 · Second district: the oil-lit canals
-`feature` `XL` · area: world, run, combat · status: ready · needs: —
-Planned with BL-22 in [city-and-canals-plan.md](plans/city-and-canals-plan.md) (canals playable at milestone A). Designed 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §5: Oil lean, the Lamplighters, **the current** (water lanes carry floating things one tile downstream each round), **landings** (return only after rooms 1, 3, 5), hear by fire along 3+ oil in the Seam, enter by the threshold room *the canal lock*. Foes: canal eel, Snuffer, lamp-moth, swimming oil-rats; rooms wetter as you go; heart = the lamp-mother, the first boss. Reuses the current loot and runes; solvents and recipes stay in BL-24, aspects in BL-20, both pushed until the rune-content rework.
-
-#### BL-22 · City map, hearing and gates
-`feature` `L` · area: world, study, run · status: ready · needs: —
-Decided 2026-10-16 in [city-and-districts.md](design/city-and-districts.md) §1–§3: the owner's sketch map behind the door; district states unheard → heard → open → heart cleared; hearing by discovery or torn page (the owner draws it in) and by rumours after a trip; one gate per district in data: discovery, threshold room (a fixed goal board, free and retryable, played from the map) or key (deep loot offer, lost on a wipe). Planned with BL-21 in [city-and-canals-plan.md](plans/city-and-canals-plan.md).
-
 #### BL-24 · Recipes for the new solvents
-`content` `M` · area: bench · status: blocked · needs: BL-20, BL-21
+`content` `M` · area: bench · status: blocked · needs: BL-20 (BL-21 done)
 The remaining tier-1 recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap; solvents Rivet, Quicksilver, Fog jar, Wax, Chalk), each with aspects read off its rule, a silhouette, hint and Lab scenario. The validity test catches aspect clashes. Feature doc §3.3.
 
 ### Track R · Rivals
 
 #### BL-30 · Rival inscribers
-`feature` `XL` · area: combat, world, lattice · status: needs-design · needs: BL-21 (ideally)
+`feature` `XL` · area: combat, world, lattice · status: needs-design · needs: — (BL-21 done)
 Enemies with lattices of their own whose chains are telegraphed too (Into the Breach for spell chains). The most distinctive idea in the design and the hardest: how an enemy lattice is authored, shown and previewed, and how AI picks casts deterministically. Do a design round and a small prototype in the Lab before committing. DESIGN §6.7.
 
 ### Track A · Atmosphere and party
@@ -86,7 +78,7 @@ Enemies with lattices of their own whose chains are telegraphed too (Into the Br
 The game, the apprentices, the city and the Seam are placeholders (DESIGN §9.4). Pick names once play suggests them.
 
 #### BL-41 · The mystery and lore text
-`content` `M` · area: story, codex · status: idea · needs: BL-21 (owner's drafts now exist as a delivery vehicle)
+`content` `M` · area: story, codex · status: idea · needs: — (BL-21 done; owner's drafts now exist as a delivery vehicle)
 Why the owner was expelled. Delivered through codex notes, owner's drafts, guild archives. Stays low priority until the core is fun; the hint lines and torn pages are the groundwork.
 
 #### BL-42 · Audio
@@ -110,7 +102,7 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-50 | Auras that reach diagonally | feature | M | lattice, mastery | needs-design | "Rune upgrade" from playtest 1. Could be a footnote reward (BL-12). |
 | BL-51 | Unbuilt runes from the family table: **Pull** (Source), **Wider**, **Bounce** (Shape), **When ally hit** (Trigger) | content | M each | runes | needs-design | Each needs aspects (check BL-20 first) and a rule that stays one sentence. |
 | BL-52 | More idioms (3 now) | content | S | compile | ready | Each is data in `idioms.ts` plus a Lab scenario. |
-| BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | blocked (BL-21) | "The solvent is the steering wheel". Feature doc §3.3. |
+| BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | ready (BL-21 done) | "The solvent is the steering wheel". Feature doc §3.3. |
 | BL-54 | Footnote content for the other runes | content | M | mastery | blocked (BL-12) | After the first three. |
 | BL-55 | Fire: its own element or a state; terrain decay; final matrix | design | S | materials | idea | Open since v0 (DESIGN §6.5, §10). |
 | BL-57 | Payload Glyphs rarely earn Economy: with harm-only scoring an Ink or Oil payload does no damage itself (bot p50 = 0) | balance | S | mastery | needs-playtest | Options: separate Payload thresholds, or credit the payoff a payload enables. Reliability still works for them. Plan follow-up, 2026-10-16 |
@@ -124,6 +116,11 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-61 | New enemy types: mutated vermin (bathhouse slugs), constructs (steam golems) | content | M | world, combat | ready (design the traits) | Canal eels, Snuffer and lamp-moths are designed in BL-21. The rest come with their districts. |
 | BL-62 | More loot offer kinds beyond runes / ink reserves / solvents / vellum / doorway | content | S | run | idea | "Lattice sockets" and "notebook pages" were considered and not chosen. |
 | BL-63 | Doorway variants or a second rare offer | content | S | run | idea | The quiet doorway landed well in BL-01; this is optional. |
+| BL-91 | The lamp-mother summons only every other round in practice (the moth she just called still stands on the lamp when she plans). Pick the next free lamp, or keep it | balance | XS | combat | needs-playtest | City build follow-up. |
+| BL-92 | Canal rooms tuning: lighter than the design table (bot heart win 39 %); harder middle rooms? | balance | S | run | needs-playtest | City build, C1. |
+| BL-93 | Drift preview as press-and-hold on a water tile (now a "Current" toggle); water arrows hidden under oil | polish | S | combat | needs-playtest | City build, U1. |
+| BL-94 | Threshold banner text into `ThresholdDef` data before a second threshold room | tech | XS | world | ready | City build, U4. |
+| BL-95 | Map: the ink line from the Seam crosses its "Ink · The Notaries" caption; node placement needs x in ~22–78 and 20 % vertical spacing | polish | XS | world | ready | City build, U2. |
 
 ### Study, Lab, Codex
 
@@ -197,6 +194,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-17 | The city map, hearing and gates (was BL-22) and the oil-lit canals (was BL-21): sketch map behind the door, hearing by owner and rumour, the canal lock threshold room, the current, landings, the eel, Snuffer, lamp-moths and the lamp-mother; save v5 | [city-and-canals-plan.md](plans/city-and-canals-plan.md), [status](plans/city-and-canals-status.md), [city-and-districts.md](design/city-and-districts.md) §0 "Built" |
 | 2026-10-16 | Glyph mastery review follow-ups: the revert confirm warns about ink, ownership and the Economy discount it loses or gains (was BL-90); targeted scenarios for the extra exit with a Bend argument and beside a rune or Glyph on its extra side (was BL-89) | `revertWarning` in `src/engine/revision.ts`, `tests/scenarios/params-and-exits.test.ts` |
 | 2026-10-16 | **Glyph mastery, stages C, D, G** (was BL-10, BL-11, BL-14): profiler and elegance tiers, ranked list, revisions with versions, Glyph parameters, the extra exit, five owner's drafts at the desk, last-trip dead cells for plain spells; a Fair Copy identity fix found by the new fuzz | [plan](plans/glyph-mastery-plan.md), [status](plans/glyph-mastery-status.md), [feature doc §0](design/research-and-mastery.md) |
 | 2026-10-16 | **Seam deepening playtest** (was BL-01): positive first impression on all points; Etch kept as is (was BL-03); Bench empty pips fine (was BL-04, closed); Thrift a real choice; stalemate parked as BL-02 | [DESIGN §11](../DESIGN.md) (last row) |

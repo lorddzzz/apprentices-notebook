@@ -20,6 +20,10 @@
     threshold.load(d);
   });
 
+  // However the screen is left (Leave, the back gesture), the room is forgotten: the next visit
+  // starts fresh with the current lattices (K-22).
+  $effect(() => () => threshold.leave());
+
   function leave(): void {
     threshold.leave();
     go('map');
