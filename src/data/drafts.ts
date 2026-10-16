@@ -4,7 +4,7 @@ import type { DraftDef } from './types';
  * The owner's drafts (M29): broken pages found in the Seam, in story order. Insides are lattice
  * ASCII in the Glyph's local frame (flow enters `entry` moving right); the engine shifts the entry
  * to (0,0). Fixes live in the tests only (tests/run/drafts.test.ts guards every page, board and goal).
- * Boards are 5 x 3 notation, the Draughtsman `D` at the left edge. Text fields: task D1 polishes them.
+ * Boards are 5 x 3 notation, the Draughtsman `D` at the left edge.
  */
 export const DRAFTS: readonly DraftDef[] = [
   {
@@ -51,7 +51,7 @@ export const DRAFTS: readonly DraftDef[] = [
     entry: 'A2',
     host: ['. . . . .', 'Bolt> G:draft> . . .', '. . . . .'].join('\n'),
     note: 'Mark, soak, light. One hand each. The fork does the sharing.',
-    hint: 'A rune that is never reached is not doing its job.',
+    hint: 'A rune the flow never reaches is only decoration.',
     test: {
       board: ['. . . . .', 'D . d . .', '. . . . .'].join('\n'),
       aim: { dir: 'right' },
@@ -68,7 +68,7 @@ export const DRAFTS: readonly DraftDef[] = [
     inside: ['.      Spark', 'Bolt>  Fork', '.      Oil'].join('\n'),
     entry: 'A2',
     note: 'Oil and the light together, so it never sees either coming.',
-    hint: 'A Fork takes its left branch first.',
+    hint: 'Forks have a favourite side. Ask which one goes first.',
     test: {
       board: ['. . . . .', 'D . d . .', '. . . . .'].join('\n'),
       aim: { dir: 'right' },
@@ -89,7 +89,7 @@ export const DRAFTS: readonly DraftDef[] = [
     ].join('\n'),
     entry: 'A2',
     note: 'Ring it once and the whole foundry hears. Every one that drops passes the spark along.',
-    hint: 'An Amplify only helps what it touches.',
+    hint: 'An Amplify only helps what it touches. A Bend only turns what runs into it.',
     test: {
       board: ['. . . . .', 'D . r r .', '. . . b .'].join('\n'),
       aim: { tile: 'C2' },

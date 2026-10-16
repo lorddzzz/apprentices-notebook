@@ -1,11 +1,11 @@
 import type { TierLevel } from '$engine/types';
 
 /**
- * Words for Glyph mastery (design research-and-mastery §4.9, plan M13–M16). Placeholders: task D1
- * writes the final text. `{…}` slots are filled by the profiler.
+ * Words for Glyph mastery (design research-and-mastery §4.9, plan M13–M16). `{…}` slots are filled
+ * by the profiler and must stay in the text; the profiler tests pin the exact wording.
  */
 export const TIER_NAMES: Readonly<Record<TierLevel, string>> = {
-  0: 'none',
+  0: 'unproven',
   1: 'bronze',
   2: 'silver',
   3: 'gold',
