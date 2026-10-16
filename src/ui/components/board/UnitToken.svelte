@@ -46,6 +46,24 @@
   {:else if unit.def === 'familiar'}
     <path d="M50 {CY - 32} 82 {CY} 50 {CY + 32} 18 {CY}z" fill="var(--enemy)" stroke="var(--m-ink)" stroke-width="3" stroke-linejoin="round" />
     <text x="50" y={CY + 10} text-anchor="middle" font-size="30" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>
+  {:else if unit.def === 'eel'}
+    <path d="M14 {CY + 6}q9-26 18-6t18 0 18-6 14 4q-6 22-18 14t-18 0-18 6z" fill="var(--m-ink)" stroke="var(--parchment)" stroke-width="3" stroke-linejoin="round" />
+    <circle cx="78" cy={CY - 2} r="3.5" fill="var(--parchment)" />
+    <text x="40" y={CY + 20} text-anchor="middle" font-size="22" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>
+  {:else if unit.def === 'snuffer'}
+    <path d="M50 {CY - 34} 80 {CY + 30} H20z" fill="var(--enemy)" stroke="var(--ink-soft)" stroke-width="4" stroke-linejoin="round" />
+    <circle cx="50" cy={CY - 34} r="6" fill="var(--parchment-deep)" stroke="var(--ink)" stroke-width="2" />
+    <text x="50" y={CY + 20} text-anchor="middle" font-size="32" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>
+  {:else if unit.def === 'moth'}
+    <path d="M50 {CY} 20 {CY - 24}Q10 {CY + 6} 50 {CY + 18}Q90 {CY + 6} 80 {CY - 24}z" fill="var(--lamp)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round" />
+    <circle cx="50" cy={CY + 2} r="8" fill="var(--ink)" />
+    <text x="50" y={CY + 11} text-anchor="middle" font-size="22" font-weight="bold" fill="var(--lamp)" font-family="Georgia, serif">{glyph}</text>
+  {:else if unit.def === 'mother'}
+    <circle cx="50" cy={CY} r="40" fill="var(--lamp)" opacity="0.35" class="glow" />
+    <circle cx="50" cy={CY} r="31" fill="var(--lamp)" stroke="var(--ink)" stroke-width="6" />
+    <path d="M50 {CY - 31}V{CY + 31}M19 {CY}H81" stroke="var(--ink)" stroke-width="3" opacity="0.55" />
+    <circle cx="50" cy={CY} r="15" fill="var(--parchment)" stroke="var(--ink)" stroke-width="3" />
+    <text x="50" y={CY + 9} text-anchor="middle" font-size="24" font-weight="bold" fill="var(--ink)" font-family="Georgia, serif">{glyph}</text>
   {:else}
     <g stroke="var(--ink-soft)" stroke-width="9" stroke-linecap="round">
       <path d="M50 {CY - 26}V{CY + 26}M30 {CY - 8}H70" />

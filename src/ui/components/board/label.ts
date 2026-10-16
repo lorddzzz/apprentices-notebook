@@ -23,6 +23,10 @@ export function cellLabel(view: BoardView, at: Coord): string {
   if (u) parts.push(unitPhrase(u));
   if (t) {
     if (t.plate) parts.push('brass plate');
+    if (t.water) parts.push(`water flowing ${t.water}`);
+    if (t.grate) parts.push('grate');
+    if (t.gate) parts.push('lock gate');
+    if (t.lamp) parts.push('lamp');
     if (t.vent) parts.push('steam vent');
     if (t.oil) parts.push('oil');
     if (t.ink) parts.push('ink');

@@ -1,14 +1,22 @@
 <script lang="ts">
   import type { Coord } from '$engine';
   import type { Fx } from '../../../app/fx';
-  import { EMPTY_OVERLAY, type IntentDraw, type Overlay } from '../../../app/overlay';
+  import {
+    EMPTY_OVERLAY,
+    type IntentDraw,
+    type IntentMark,
+    marksOf,
+    type Overlay,
+  } from '../../../app/overlay';
   import type { BoardView } from '../../../app/view';
   import BadgeLayer from './BadgeLayer.svelte';
+  import DriftLayer from './DriftLayer.svelte';
   import FxLayer from './FxLayer.svelte';
   import { boardViewBox, CELL } from './geometry';
   import HighlightLayer from './HighlightLayer.svelte';
   import IntentLayer from './IntentLayer.svelte';
   import { cellLabel } from './label';
+  import MarksLayer from './MarksLayer.svelte';
   import SteamLayer from './SteamLayer.svelte';
   import TileLayer from './TileLayer.svelte';
   import UnitToken from './UnitToken.svelte';
@@ -20,10 +28,12 @@
     fxKey?: number;
     /** Playback: draw intents as chevrons from the view instead of full paths from the overlay. */
     minimal?: boolean;
+    /** Show ghosts of where the current will carry floats and units next round. */
+    showDrift?: boolean;
     ontap: (at: Coord) => void;
   }
 
-  let { view, overlay = EMPTY_OVERLAY, fx = [], fxKey = 0, minimal = false, ontap }: Props =
+  let { view, overlay = EMPTY_OVERLAY, fx = [], fxKey = 0, minimal = false, showDrift = false, ontap }: Props =
     $props();
 
   const cells = $derived(
@@ -52,6 +62,13 @@
         )
       : overlay.intents,
   );
+
+  const marks = $derived<IntentMark[]>(minimal ? marksOf(view.units, null) : (overlay.marks ?? []));
+  const driftGhosts = $derived(showDrift && !minimal ? (overlay.drift ?? null) : null);
+  const ghosts = $derived([
+    ...overlay.ghosts,
+    ...(driftGhosts?.units.filter((g) => !overlay.ghosts.some((o) => o.unit === g.unit)) ?? []),
+  ]);
 
   const columns = $derived(Array.from({ length: view.width }, (_, x) => String.fromCharCode(65 + x)));
   const rows = $derived(Array.from({ length: view.height }, (_, y) => y + 1));
@@ -88,7 +105,9 @@
   {/each}
 
   <HighlightLayer highlights={overlay.highlights} />
+  {#if driftGhosts}<DriftLayer drift={driftGhosts} />{/if}
   <IntentLayer {intents} {minimal} layer="paths" />
+  <MarksLayer {marks} layer="under" />
 
   {#each living as unit (unit.id)}
     <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} />
@@ -96,7 +115,8 @@
 
   <SteamLayer {view} />
   <IntentLayer {intents} {minimal} layer="badges" />
-  <BadgeLayer badges={overlay.badges} ghosts={overlay.ghosts} />
+  <MarksLayer {marks} layer="badges" />
+  <BadgeLayer badges={overlay.badges} {ghosts} />
   <FxLayer {fx} {fxKey} width={view.width} height={view.height} />
 
   {#each cells as { at } (`${at.x},${at.y}`)}

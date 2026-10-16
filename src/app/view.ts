@@ -4,6 +4,7 @@ import type {
   BattleState,
   BoardSpec,
   Coord,
+  Dir,
   GameEvent,
   Intent,
   UnitId,
@@ -21,6 +22,11 @@ export interface TileView {
   heat: number;
   etched: boolean;
   scald: boolean;
+  /** The canal terrain (K-6); absent in hand-built views, which means none. */
+  water?: Dir | null;
+  grate?: boolean;
+  gate?: boolean;
+  lamp?: boolean;
 }
 
 export interface UnitView {
@@ -55,18 +61,39 @@ export function viewOf(s: BattleState): BoardView {
   return {
     width: s.width,
     height: s.height,
-    tiles: s.tiles.map(({ oil, ink, steam, fire, plate, vent, stain, heat, etched, scald }) => ({
-      oil,
-      ink,
-      steam,
-      fire,
-      plate,
-      vent,
-      stain,
-      heat,
-      etched,
-      scald,
-    })),
+    tiles: s.tiles.map(
+      ({
+        oil,
+        ink,
+        steam,
+        fire,
+        plate,
+        vent,
+        stain,
+        heat,
+        etched,
+        scald,
+        water,
+        grate,
+        gate,
+        lamp,
+      }) => ({
+        oil,
+        ink,
+        steam,
+        fire,
+        plate,
+        vent,
+        stain,
+        heat,
+        etched,
+        scald,
+        water,
+        grate,
+        gate,
+        lamp,
+      }),
+    ),
     units: s.units.map((u) => ({
       id: u.id,
       kind: u.kind,
@@ -170,6 +197,56 @@ function patchTiles(v: BoardView, cells: readonly Coord[], patch: Partial<TileVi
 function patchUnit(v: BoardView, id: UnitId, patch: (u: UnitView) => void): void {
   const u = v.units.find((x) => x.id === id);
   if (u) patch(u);
+}
+
+/** Lifts what floats on each source tile and sets it down downstream (the engine's merge rules). */
+function driftTiles(v: BoardView, floats: readonly { from: Coord; to: Coord | null }[]): void {
+  const at = (c: Coord): TileView | undefined => v.tiles[c.y * v.width + c.x];
+  const lifted = floats.map((f) => {
+    const t = at(f.from);
+    if (!t) return null;
+    const cargo = { oil: t.oil, fire: t.fire, stain: t.stain, ink: t.ink };
+    t.oil = false;
+    t.fire = 0;
+    t.stain = false;
+    t.ink = false;
+    return cargo;
+  });
+  floats.forEach((f, i) => {
+    const cargo = lifted[i];
+    const dest = f.to && at(f.to);
+    if (!cargo || !dest) return;
+    if (cargo.oil) {
+      const fire = dest.steam > 0 ? 0 : Math.max(dest.fire, cargo.fire);
+      dest.oil = true;
+      dest.fire = fire;
+      dest.stain = fire > 0 ? false : dest.stain || cargo.stain;
+    }
+    if (cargo.ink) dest.ink = true;
+  });
+}
+
+/** A foe called onto the board mid-playback (`summon`): ids are `<def>-<n>`. */
+function spawnedView(id: UnitId, pos: Coord): UnitView {
+  const def = ENEMIES[id.replace(/-\d+$/, '') as EnemyId] ?? ENEMIES.moth;
+  return {
+    id,
+    kind: 'enemy',
+    def: def.id,
+    name: def.name,
+    pos: { ...pos },
+    hp: def.hp,
+    maxHp: def.hp,
+    shield: 0,
+    inked: false,
+    brass: def.brass,
+    oilSoaked: def.oilSoaked,
+    branded: false,
+    heat: 0,
+    etched: false,
+    alive: true,
+    intent: null,
+  };
 }
 
 /**
@@ -298,6 +375,31 @@ export function project(view: BoardView, e: GameEvent): BoardView {
           u.etched = true;
         });
       }
+      break;
+    case 'drift':
+      driftTiles(v, e.floats);
+      for (const m of e.units) {
+        patchUnit(v, m.unit.id, (u) => {
+          u.pos = { ...m.to };
+        });
+      }
+      break;
+    case 'gateBurns':
+      patchTiles(v, [e.at], { gate: false });
+      break;
+    case 'snuff':
+      patchTiles(v, e.tiles, { fire: 0, oil: false, stain: false });
+      break;
+    case 'summon':
+      if (!v.units.some((u) => u.id === e.unit.id)) v.units.push(spawnedView(e.unit.id, e.at));
+      patchUnit(v, e.by.id, (u) => {
+        u.intent = null;
+      });
+      break;
+    case 'flare':
+      patchUnit(v, e.by.id, (u) => {
+        u.intent = null;
+      });
       break;
     case 'telegraph':
       patchUnit(v, e.unit.id, (u) => {

@@ -5,6 +5,7 @@
   import { actionLabel } from '../../../app/describe';
   import BattleBoard from '../board/BattleBoard.svelte';
   import ActionBar from './ActionBar.svelte';
+  import BossHeader from './BossHeader.svelte';
   import Caption from './Caption.svelte';
   import EndOverlay from './EndOverlay.svelte';
   import Footer from './Footer.svelte';
@@ -22,7 +23,9 @@
   let { session, top, continueLabel, oncontinue }: Props = $props();
 
   let logOpen = $state(false);
+  let showDrift = $state(false);
 
+  const view = $derived(session.view);
   const battle = $derived(session.state);
   const input = $derived(session.input);
   const busy = $derived(session.busy);
@@ -57,6 +60,7 @@
 
 <section class="battle">
   {@render top()}
+  <BossHeader units={view.units} />
 
   <div class="board-wrap">
     <BattleBoard
@@ -65,8 +69,21 @@
       fx={session.fx}
       fxKey={session.fxKey}
       minimal={busy}
+      {showDrift}
       ontap={(at) => session.tapCell(at)}
     />
+    {#if view.tiles.some((t) => t.water)}
+      <button
+        class="drift"
+        class:on={showDrift}
+        type="button"
+        aria-pressed={showDrift}
+        data-testid="drift-toggle"
+        onclick={() => (showDrift = !showDrift)}
+      >
+        Current
+      </button>
+    {/if}
     {#if session.over && (battle.phase === 'won' || battle.phase === 'lost')}
       <EndOverlay phase={battle.phase} label={continueLabel} {oncontinue} onlog={() => (logOpen = true)} />
     {/if}
@@ -114,6 +131,23 @@
     gap: 6px;
     height: 100%;
     padding: 0 var(--space-2) 16px;
+  }
+  .drift {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    z-index: 2;
+    min-height: 32px;
+    padding: 0 var(--space-2);
+    border: 2px solid var(--shield);
+    border-radius: 16px;
+    background: var(--parchment);
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .drift.on {
+    background: var(--shield);
+    color: #fff;
   }
   .board-wrap {
     position: relative;

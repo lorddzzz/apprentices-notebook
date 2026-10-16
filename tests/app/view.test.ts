@@ -9,6 +9,7 @@ import {
   withoutIntents,
 } from '../../src/app/view';
 import { TUNING } from '../../src/data';
+import { act, board } from '../scenarios/harness';
 
 const W = 4;
 const H = 3;
@@ -329,4 +330,127 @@ test('viewOfSpec carries stain, heat, etching and scald', () => {
   expect(tile(v, 2, 0)).toMatchObject({ plate: true, heat: TUNING.heatRounds });
   expect(tile(v, 3, 0)).toMatchObject({ plate: true, etched: true });
   expect(unitOf(v, 'draughtsman')).toMatchObject({ heat: TUNING.heatRounds, etched: true });
+});
+
+// ── The canals (U1) ──
+
+const endTurn = { type: 'endTurn' } as const;
+
+/** Replays a round's events onto the view of the state before it. */
+function replay(ascii: string): { played: BoardView; after: BoardView } {
+  const before = board(ascii);
+  const r = act(before, endTurn);
+  const played = r.events.reduce(project, viewOf(before));
+  return { played, after: viewOf(r.state) };
+}
+
+const living = (v: BoardView) =>
+  v.units
+    .filter((u) => u.alive)
+    .map((u) => [u.id, u.pos.x, u.pos.y])
+    .sort();
+
+test('viewOf and viewOfSpec carry the canal terrain', () => {
+  const ascii = '. w> hw> l\n. g . .\nD . . .';
+  const v = viewOf(board(ascii));
+  expect(v.tiles[1]).toMatchObject({ water: 'right', grate: false });
+  expect(v.tiles[2]).toMatchObject({ water: 'right', grate: true });
+  expect(v.tiles[3]?.lamp).toBe(true);
+  expect(v.tiles[5]?.gate).toBe(true);
+  const spec = viewOfSpec(parseBoard(ascii));
+  expect(spec.tiles.map((t) => [t.water, t.grate, t.gate, t.lamp])).toEqual(
+    v.tiles.map((t) => [t.water, t.grate, t.gate, t.lamp]),
+  );
+});
+
+test('drift slides a member with the current', () => {
+  const { played, after } = replay('. . . .\nD w> w> w>\n. . . .');
+  expect(living(played)).toEqual(living(after));
+});
+
+test('drift carries a float one tile and drops it past the end of the lane', () => {
+  const v0 = fixture();
+  Object.assign(tile(v0, 1, 1) ?? {}, { oil: true, fire: 2 });
+  Object.assign(tile(v0, 3, 1) ?? {}, { oil: true });
+  const v1 = project(v0, {
+    type: 'drift',
+    floats: [
+      { from: { x: 1, y: 1 }, to: { x: 2, y: 1 } },
+      { from: { x: 3, y: 1 }, to: null },
+    ],
+    units: [],
+  });
+  expect(tile(v1, 1, 1)).toMatchObject({ oil: false, fire: 0 });
+  expect(tile(v1, 2, 1)).toMatchObject({ oil: true, fire: 2 });
+  expect(tile(v1, 3, 1)?.oil).toBe(false);
+  expect(tile(v0, 1, 1)?.oil).toBe(true);
+});
+
+test('drift moves units named in the event', () => {
+  const v1 = project(fixture(), {
+    type: 'drift',
+    floats: [],
+    units: [{ unit: ref('rat-1', { x: 2, y: 1 }), from: { x: 2, y: 1 }, to: { x: 3, y: 1 } }],
+  });
+  expect(unitOf(v1, 'rat-1').pos).toEqual({ x: 3, y: 1 });
+});
+
+test('gateBurns removes the gate; snuff clears fire, oil and stain', () => {
+  const v0 = fixture();
+  Object.assign(tile(v0, 1, 0) ?? {}, { gate: true });
+  Object.assign(tile(v0, 2, 2) ?? {}, { oil: true, fire: 2, stain: true });
+  const v1 = project(v0, { type: 'gateBurns', at: { x: 1, y: 0 } });
+  expect(tile(v1, 1, 0)?.gate).toBe(false);
+  const v2 = project(v1, {
+    type: 'snuff',
+    by: ref('rat-1', { x: 2, y: 1 }),
+    tiles: [{ x: 2, y: 2 }],
+  });
+  expect(tile(v2, 2, 2)).toMatchObject({ oil: false, fire: 0, stain: false });
+});
+
+test('summon adds the called moth; its caller loses the intent', () => {
+  const v0 = fixture();
+  unitOf(v0, 'rat-1').intent = { kind: 'summon', at: { x: 0, y: 2 }, order: 1 };
+  const v1 = project(v0, {
+    type: 'summon',
+    by: ref('rat-1', { x: 2, y: 1 }),
+    unit: ref('moth-1', { x: 0, y: 2 }),
+    at: { x: 0, y: 2 },
+  });
+  expect(unitOf(v1, 'moth-1')).toMatchObject({
+    def: 'moth',
+    alive: true,
+    hp: 1,
+    pos: { x: 0, y: 2 },
+  });
+  expect(unitOf(v1, 'rat-1').intent).toBeNull();
+  expect(v0.units.some((u) => u.id === 'moth-1')).toBe(false);
+});
+
+test('three rounds of summon and flare replay to the engine state', () => {
+  const pool = `
+    l . . . . . . . . . . .
+    . . Mw> . . . . . . . m m
+    . . . . . . . . . . . .
+    D . . . . . . . . . . .
+  `;
+  let s = board(pool);
+  let v = viewOf(s);
+  for (let i = 0; i < 3; i++) {
+    const r = act(s, endTurn);
+    v = r.events.reduce(project, v);
+    s = r.state;
+  }
+  expect(living(v)).toEqual(living(viewOf(s)));
+  expect(v.units.filter((u) => u.alive && u.def === 'moth')).toHaveLength(0);
+});
+
+test('an eel and a current: the replayed round matches the engine', () => {
+  const { played, after } = replay(`
+    . . . . . .
+    D w> w> w> w> ew>
+    . . . . . .
+  `);
+  expect(living(played)).toEqual(living(after));
 });

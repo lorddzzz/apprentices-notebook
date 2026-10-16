@@ -1,10 +1,12 @@
-import type { AttackId } from '$data';
+import { type AttackId, ENEMIES, type EnemyId } from '$data';
 import {
   aimPreview,
   type BattleState,
   type Coord,
   type Dir,
+  driftPreview,
   findUnit,
+  type Intent,
   intentPreview,
   legalAims,
   type SpellKey,
@@ -53,9 +55,30 @@ export interface Ghost {
   def: string;
 }
 
+/** A boss's special intent (K-17): the lamp that glows, or every moth about to burst. */
+export type IntentMark =
+  | { kind: 'summon'; from: Coord; at: Coord; order: number; emphasis: IntentDraw['emphasis'] }
+  | {
+      kind: 'flare';
+      from: Coord;
+      targets: Coord[];
+      order: number;
+      emphasis: IntentDraw['emphasis'];
+    };
+
+/** Where the next drift will carry floats and units; the board shows it on request. */
+export interface DriftGhosts {
+  floats: { from: Coord; to: Coord | null }[];
+  units: Ghost[];
+}
+
 export interface Overlay {
   highlights: Highlight[];
   intents: IntentDraw[];
+  /** Optional so hand-built overlays (the gallery) need not list them. */
+  marks?: IntentMark[];
+  /** Null when the board has no water. */
+  drift?: DriftGhosts | null;
   badges: Badge[];
   ghosts: Ghost[];
   selected: UnitId | null;
@@ -64,6 +87,8 @@ export interface Overlay {
 export const EMPTY_OVERLAY: Overlay = {
   highlights: [],
   intents: [],
+  marks: [],
+  drift: null,
   badges: [],
   ghosts: [],
   selected: null,
@@ -110,7 +135,6 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
   const intentState = preview?.result.state ?? s;
   const intents: IntentDraw[] = [];
   for (const u of intentState.units) {
-    // Summon and flare marks are U1's (K-17).
     if (u.kind !== 'enemy' || u.hp <= 0 || u.intent?.kind !== 'attack') continue;
     const p = intentPreview(intentState, u);
     if (!p) continue;
@@ -127,7 +151,62 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
       emphasis: focus?.kind === 'enemy' ? (focus.id === u.id ? 'strong' : 'dim') : 'normal',
     });
   }
-  return { highlights, intents, badges, ghosts, selected: selectedOf(mode) };
+  const marks = marksOf(
+    intentState.units.map((u) => ({
+      kind: u.kind,
+      id: u.id,
+      def: u.def,
+      pos: u.pos,
+      intent: u.kind === 'enemy' ? u.intent : null,
+      alive: u.hp > 0,
+    })),
+    focus,
+  );
+  const drift = driftGhosts(intentState);
+  return { highlights, intents, marks, drift, badges, ghosts, selected: selectedOf(mode) };
+}
+
+interface MarkSource {
+  kind: 'member' | 'enemy';
+  id: UnitId;
+  def: string;
+  pos: Coord;
+  intent?: Intent | null;
+  alive: boolean;
+}
+
+/** Summon and flare marks of the living foes (K-17). Works on engine units and on playback views. */
+export function marksOf(
+  units: readonly MarkSource[],
+  focus?: { kind: string; id: UnitId } | null,
+): IntentMark[] {
+  const out: IntentMark[] = [];
+  for (const u of units) {
+    if (u.kind !== 'enemy' || !u.alive || !u.intent) continue;
+    const emphasis = focus?.kind === 'enemy' ? (focus.id === u.id ? 'strong' : 'dim') : 'normal';
+    const i = u.intent;
+    if (i.kind === 'summon')
+      out.push({ kind: 'summon', from: { ...u.pos }, at: { ...i.at }, order: i.order, emphasis });
+    else if (i.kind === 'flare') {
+      const targets = units
+        .filter((m) => m.kind === 'enemy' && m.alive && ENEMIES[m.def as EnemyId]?.bursts)
+        .map((m) => ({ ...m.pos }));
+      out.push({ kind: 'flare', from: { ...u.pos }, targets, order: i.order, emphasis });
+    }
+  }
+  return out;
+}
+
+/** Ghosts of the next drift, or null if the board has no water. */
+function driftGhosts(s: BattleState): DriftGhosts | null {
+  if (!s.tiles.some((t) => t.water)) return null;
+  const p = driftPreview(s);
+  const units: Ghost[] = [];
+  for (const m of p.units) {
+    const u = findUnit(s, m.unit);
+    if (u) units.push({ unit: u.id, at: { ...m.to }, kind: u.kind, def: u.def });
+  }
+  return { floats: p.floats, units };
 }
 
 /** Tiles whose material layers the action changes, toned by the most notable new layer. */

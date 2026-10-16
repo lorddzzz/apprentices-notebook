@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Coord } from '$engine';
+  import type { Coord, Dir } from '$engine';
   import type { TileView } from '../../../app/view';
   import { cellOrigin } from './geometry';
 
@@ -12,12 +12,27 @@
 
   const origin = $derived(cellOrigin(at));
   const FLAME = 'M12 3c3 4 5 6 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z';
+  const ARROW: Record<Dir, string> = {
+    right: 'M64 38 82 50 64 62',
+    left: 'M36 38 18 50 36 62',
+    down: 'M38 64 50 82 62 64',
+    up: 'M38 36 50 18 62 36',
+  };
   const BLOT =
     'M28 54C25 36 42 24 56 29C72 23 82 40 75 55C84 68 68 80 54 73C42 82 24 71 28 54Z';
 </script>
 
 <g transform="translate({origin.x} {origin.y})">
   <rect width="100" height="100" fill="var(--parchment)" stroke="var(--line)" stroke-width="1.5" />
+
+  {#if tile.water}
+    <rect x="1" y="1" width="98" height="98" fill="var(--shield)" opacity="0.3" data-state="water" />
+    <g fill="none" stroke="var(--shield)" stroke-width="3" stroke-linecap="round" opacity="0.55">
+      <path d="M12 30q9-8 19 0t19 0 19 0 19 0" />
+      <path d="M12 74q9-8 19 0t19 0 19 0 19 0" />
+    </g>
+    <path d={ARROW[tile.water]} fill="none" stroke="var(--ink-soft)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" />
+  {/if}
 
   {#if tile.oil}
     <rect x="1" y="1" width="98" height="98" fill="var(--m-oil-tint)" />
@@ -78,6 +93,30 @@
       <rect x="5" y="5" width="90" height="90" rx="8" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
       <path d="M26 28c-3-4 3-6 0-11M50 28c-3-4 3-6 0-11M74 28c-3-4 3-6 0-11" fill="none" stroke="var(--parchment)" stroke-width="4" stroke-linecap="round" opacity="0.85" />
       <text x="93" y="95" text-anchor="end" font-size="24" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.heat}</text>
+    </g>
+  {/if}
+
+  {#if tile.grate}
+    <g data-state="grate" stroke="var(--ink)" stroke-width="6" stroke-linecap="round">
+      <path d="M8 8v84M32 8v84M56 8v84M80 8v84" />
+    </g>
+    <rect x="6" y="40" width="88" height="8" rx="3" fill="var(--ink)" />
+  {/if}
+
+  {#if tile.gate}
+    <g data-state="gate">
+      <rect x="10" y="8" width="80" height="84" rx="5" fill="var(--wood)" stroke="var(--wood-dark)" stroke-width="5" />
+      <path d="M36 12v76M64 12v76" stroke="var(--wood-dark)" stroke-width="3" />
+      <rect x="10" y="30" width="80" height="9" fill="var(--wood-dark)" />
+      <rect x="10" y="62" width="80" height="9" fill="var(--wood-dark)" />
+    </g>
+  {/if}
+
+  {#if tile.lamp}
+    <g data-state="lamp">
+      <path d="M50 92V44" stroke="var(--wood-dark)" stroke-width="7" stroke-linecap="round" />
+      <circle cx="50" cy="32" r="19" fill="var(--lamp)" stroke="var(--ink)" stroke-width="4" />
+      <path d="M50 18v28M38 32h24" stroke="var(--ink)" stroke-width="2.5" opacity="0.6" />
     </g>
   {/if}
 

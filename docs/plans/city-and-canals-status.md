@@ -14,7 +14,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | merged | (C1 merge commit) | ~8% | sim: rooms 1–3 100%, room 4 96%, heart 39% (34/55/31 by variant), 74/200 mother kills; sim adds ~20 s to the gate |
 | C2 | sonnet | S | merged | (C2 merge commit) | ~7% | 8-row lock (quay rows 0–1, grate row 2, lane 3–6, gate 7); 3 drift solutions; brute force on 3 lattice sets incl. Splash finds no one-turn win |
-| U1 | sonnet | M | running | | | started 22:12, vite on 5195 |
+| U1 | sonnet | M | merged | (U1 merge commit) | ~8% | 14 tests; screenshots room 2, heart (Lab), drift ghosts. Toggle only (no hold); floats change in one step |
 | U2 | sonnet | M | merged | (U2 merge commit) | ~6% | 8 tests; screenshots: Seam only, canals heard, Set out sheet. Old Study door sheet removed by me |
 | U3 | haiku | S | merged | (U3 merge commit) | ~3% | 12 tests; browser-checked greyed Return only; trip page + rumour line unverified (milestone A) |
 | A | opus (me) | S | pending | | | milestone A verify |
@@ -80,6 +80,9 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - C2: fire lasts 2 rounds, so lighting upstream and drifting doesn't reach the gate; the solutions build a connected slick down the lane over several turns and light it at the grate (solution 1 spends all 5 Bolt charges). Accepted; note for the design doc ("light then let it drift" is not a solution on this board). *Tune by playing*.
 - U2: a district node hangs below its `map` anchor (150px card), so `map.x` must stay within ~22–78 and nodes ≥ 20% apart vertically. Accepted; note for later districts.
 - U2: the map page is 1:2 and scrolls vertically on short phones. Accepted.
+- U1: the drift preview is a "Current" toggle (only on boards with water), not a press-and-hold; floats change in one step, units slide. Accepted; hold-to-peek is a follow-up if the toggle feels clumsy.
+- U1: `TileView.water/grate/gate/lamp` and `Overlay.marks/drift` are optional fields. Accepted.
+- U1: the oil hatch hides the water arrows; consider drawing arrows above oil. Follow-up.
 
 ## Decisions and fixes made during the build
 - U2 merge (me): removed the old "Set out?" sheet from Study.svelte; the door now reads "Out into the city" / "The owner's map of the city".
@@ -92,6 +95,8 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - W0: the Study door now goes to `#/map`; the stub map lists open districts with "Set out". The old "Set out?" sheet stays in Study.svelte, unreachable, for U2 to move.
 
 ## Follow-ups and rough edges
+- fx.ts: flashes for `gateBurns`, `snuff`, `burst`, `drift` (fire tone for gate and burst, steam for snuff); describe.ts threat text for summon/flare exists in W0, check it reads well. W4.
+- svelte-autofixer not run on U1's changed BattleBoard, TileLayer, UnitToken, IntentLayer, BattleView, DriftLayer. W4.
 - Preview ports 5190/5191 are held by dev servers running from the main checkout (they serve main, not a worktree). UI agents must start vite from their own worktree on their assigned port (`pnpm dev --port 519x --strictPort`) and stop it after.
 - StudyScene: full-file svelte-autofixer pass still owed (U3 checked only its change).
 - ~~A Bolt stopped by a grate or gate logs "brass plate"~~ fixed: `stopped.by` is 'steam' | Blocker ('brass plate' | 'lock gate' | 'grate'), from `blockerName(tile)`.
