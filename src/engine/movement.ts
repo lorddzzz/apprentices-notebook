@@ -4,7 +4,7 @@ import { dealDamage } from './damage';
 import { who } from './events';
 import { type Coord, type Dir, key, step } from './grid';
 import { applyOil } from './materials';
-import { inBoard, reachable, tileAt, unitAt } from './queries';
+import { blocksUnits, inBoard, reachable, tileAt, unitAt } from './queries';
 import type { EnemyUnit, MemberUnit, Unit } from './types';
 
 /**
@@ -71,8 +71,12 @@ export function pushUnit(ctx: Ctx, u: Unit, dir: Dir): void {
   const blocker = inBoard(s, dest) ? unitAt(s, dest) : null;
   const into = !inBoard(s, dest)
     ? 'the edge'
-    : tileAt(s, dest).plate
-      ? 'a brass plate'
+    : blocksUnits(tileAt(s, dest))
+      ? tileAt(s, dest).gate
+        ? 'a lock gate'
+        : tileAt(s, dest).grate
+          ? 'a grate'
+          : 'a brass plate'
       : blocker
         ? who(ref(blocker))
         : null;
@@ -96,7 +100,7 @@ export function slide(ctx: Ctx, u: Unit, dir: Dir): void {
   const path: Coord[] = [];
   while (tileAt(s, u.pos).oil) {
     const nxt = step(u.pos, dir);
-    if (!inBoard(s, nxt) || tileAt(s, nxt).plate || unitAt(s, nxt)) break;
+    if (!inBoard(s, nxt) || blocksUnits(tileAt(s, nxt)) || unitAt(s, nxt)) break;
     u.pos = nxt;
     path.push({ ...nxt });
   }

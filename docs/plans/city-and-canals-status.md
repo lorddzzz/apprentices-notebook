@@ -9,7 +9,7 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | W0 | opus (me) | L | merged | (this commit) | ~9% | contracts, stubs, save v5, fixtures, Seam identity gate |
-| E1 | sonnet | M | running | | | started 21:32 |
+| E1 | sonnet | M | merged | (E1 merge commit) | ~7% | 31 tests; added `blocksUnits` to queries.ts (contract change, approved) |
 | E2 | sonnet | L | running | | | started 21:32 |
 | E3 | sonnet | M | merged | (E3 merge commit) | ~5% | 28 tests in tests/run/city.test.ts; touched doorway.test.ts (returnHome now counts a trip) |
 | C1 | sonnet | M | pending | | | needs E1, E2 |
@@ -50,9 +50,19 @@ Plan: [city-and-canals-plan](city-and-canals-plan.md). Orchestrator: Opus main s
 - E3: `keyOffer` takes the first matching district in `DISTRICT_IDS` order; any key already in loot/offers blocks another. Accepted.
 - E3: `bankKeys` adds the district to `heard` if missing, not to `fresh`; `solveThreshold`/`openAll` leave `fresh` alone. Accepted.
 
+- E1: one `drift` event per round carries floats and units; a unit's `ref.at` is the tile it left. Accepted.
+- E1: fire does not enter steam: a lit float drifting into steam goes out, the oil stays. Accepted (matches ignite's rule).
+- E1: a unit carried by the current loses its move-undo. Accepted.
+- E1: floats don't carry steam. Accepted.
+- E1: a unit drifting onto an ink puddle or stain is not inked (no settle). Accepted for now; *tune by playing*.
+- E1: two units whose targets are each other's tiles both stay. Accepted.
+- E1: a unit may drift off water onto free land. Accepted (the design says units drift "if the tile is free").
+
 ## Decisions and fixes made during the build
+- E1 contract change: `queries.ts` gains `blocksUnits(tile) = plate || gate || grate`, used by `isOpen` and `travel`, so walks, pushes, slides and projectiles stop at gates and grates.
 - W0: the Seam's encounters stay in `encounters.ts`; `districts.ts` imports them (`DISTRICTS.seam.encounters === ENCOUNTERS`) instead of moving the code. Same effect, less churn.
 - W0: the lamp-mother's token is `M` (the design table didn't give one). Attack verbs: lunge, "swing its pole", burst.
 - W0: the Study door now goes to `#/map`; the stub map lists open districts with "Set out". The old "Set out?" sheet stays in Study.svelte, unreachable, for U2 to move.
 
 ## Follow-ups and rough edges
+- A Bolt stopped by a grate or gate still logs "stopped by the brass plate" (`stopped.by` is typed 'steam' | 'brass plate'). Widen the type and the wording in W4 or a fix task.

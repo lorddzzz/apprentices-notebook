@@ -82,9 +82,12 @@ export function memberById(s: BattleState, id: UnitId): MemberUnit {
   return u;
 }
 
-/** Free to walk or be pushed onto: on the board, no plate, no living unit. */
+/** Plates, wooden gates and grates stop units, walks and projectiles (K-10, K-11). */
+export const blocksUnits = (t: Tile): boolean => t.plate || t.gate || t.grate;
+
+/** Free to walk or be pushed onto: on the board, no plate, gate or grate, no living unit. */
 export function isOpen(s: BattleState, c: Coord, ignore?: UnitId): boolean {
-  if (!inBoard(s, c) || tileAt(s, c).plate) return false;
+  if (!inBoard(s, c) || blocksUnits(tileAt(s, c))) return false;
   const u = unitAt(s, c);
   return u === null || u.id === ignore;
 }
@@ -173,7 +176,7 @@ export function travel(
     if (tileAt(s, nxt).steam > 0) return { reason: 'steam', path, stop: nxt };
     const u = unitAt(s, nxt);
     if (u && u.id !== ignore) return { reason: 'unit', path, stop: nxt, unit: u };
-    if (tileAt(s, nxt).plate) return { reason: 'brass', path, stop: nxt };
+    if (blocksUnits(tileAt(s, nxt))) return { reason: 'brass', path, stop: nxt };
   }
   const last = path[path.length - 1];
   return last ? { reason: 'end', path, stop: last } : { reason: 'none', path: [], stop: null };
