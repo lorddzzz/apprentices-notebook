@@ -1,5 +1,14 @@
 import { describe, expect, test } from 'vitest';
-import { DRAFT_IDS, DRAFTS, ENCOUNTERS, LOOT_TABLES, type LootTableId, RUNES } from '$data';
+import {
+  DRAFT_IDS,
+  DRAFTS,
+  type DraftDef,
+  type DraftTest,
+  ENCOUNTERS,
+  LOOT_TABLES,
+  type LootTableId,
+  RUNES,
+} from '$data';
 import {
   type BattleState,
   bankDrafts,
@@ -31,6 +40,13 @@ import {
   startTrip,
   type Trip,
 } from '$engine';
+
+/** Page 1's test (a folio's first page). */
+const first = (d: DraftDef): DraftTest => {
+  const page = d.pages[0];
+  if (!page) throw new Error(`${d.id} has no pages`);
+  return page.test;
+};
 
 /**
  * Task E4 (plan M29–M36): the owner's drafts. The fixes live here, never in the data: every page
@@ -105,7 +121,7 @@ const STUB_GLYPH: GlyphDef = {
 const owner = (): Profile => ({ ...newProfile(), glyphs: [STUB_GLYPH] });
 const owning = (...ids: string[]): Profile => ({
   ...owner(),
-  drafts: ids.map((id) => ({ id, inside: draftInside(draft(id)), repaired: false })),
+  drafts: ids.map((id) => ({ id, inside: draftInside(draft(id)), page: 0, repaired: false })),
 });
 const trip = (p: Profile, loot: LootItem[] = []): Trip => ({ ...startTrip(p, SEED), loot });
 
@@ -139,17 +155,19 @@ describe('the five pages', () => {
 
   test.each(DRAFTS.map((d) => d.id))("%s: the owner's page fails, the fix passes", (id) => {
     const d = draft(id);
-    const broken = draftTest(d, draftInside(d));
+    const broken = draftTest(d, first(d), draftInside(d));
     expect(broken.passed).toBe(false);
     expect(broken.goals.some((g) => !g.met)).toBe(true);
-    const mended = draftTest(d, fixed(id));
+    const mended = draftTest(d, first(d), fixed(id));
     expect(mended.passed).toBe(true);
     expect(mended.goals.every((g) => g.met)).toBe(true);
   });
 
   test('the test stage is deterministic', () => {
     const d = draft('foundry-bell');
-    expect(draftTest(d, fixed(d.id)).events).toEqual(draftTest(d, fixed(d.id)).events);
+    expect(draftTest(d, first(d), fixed(d.id)).events).toEqual(
+      draftTest(d, first(d), fixed(d.id)).events,
+    );
   });
 
   test('stranded pages are the intended first clue (1, 3, 5), the rest run clean', () => {
@@ -165,8 +183,8 @@ describe('the five pages', () => {
   test('the heart draft needs both fixes: each alone still fails', () => {
     const d = draft('foundry-bell');
     const base = draftInside(d);
-    const ampOnly = draftTest(d, AMP_FIX(base));
-    const bendOnly = draftTest(d, BEND_FIX(base));
+    const ampOnly = draftTest(d, first(d), AMP_FIX(base));
+    const bendOnly = draftTest(d, first(d), BEND_FIX(base));
     expect(ampOnly.passed).toBe(false);
     expect(bendOnly.passed).toBe(false);
     // Amplify alone kills the rats but the spark points at the ceiling; the Bend alone can't kill.
@@ -177,7 +195,7 @@ describe('the five pages', () => {
   test('a page the compiler cannot run just fails (no throw)', () => {
     const d = draft('lamplighter');
     const empty = { kind: d.kind, cells: [], entry: at(0, 0) };
-    const r = draftTest(d, empty);
+    const r = draftTest(d, first(d), empty);
     expect(r.passed).toBe(false);
     expect(r.events.length).toBeGreaterThan(0);
   });
@@ -261,7 +279,7 @@ describe('goals (M32)', () => {
 
   test('a run lists each goal line (an all is flattened) with its tick', () => {
     const d = draft('foundry-bell');
-    const r = draftTest(d, draftInside(d));
+    const r = draftTest(d, first(d), draftInside(d));
     expect(r.goals.map((g) => g.goal)).toEqual([
       { dies: 'rat-1' },
       { dies: 'rat-2' },
@@ -270,8 +288,8 @@ describe('goals (M32)', () => {
   });
 
   test('a Spell draft with endRound runs one idle enemy round', () => {
-    const d = { ...draft('collection'), test: { ...draft('collection').test, endRound: true } };
-    const r = draftTest(d, fixed('collection'));
+    const d = draft('collection');
+    const r = draftTest(d, { ...first(d), endRound: true }, fixed('collection'));
     expect(r.state.round).toBe(2);
     expect(r.passed).toBe(true);
   });
@@ -303,7 +321,7 @@ describe('nextDraft (M30)', () => {
   test('none once everything is owned (repaired or not)', () => {
     const all = owning(...DRAFT_IDS);
     expect(nextDraft(all, trip(all), 'heart')).toBeNull();
-    const done = { ...all, drafts: all.drafts.map((d) => ({ ...d, repaired: true })) };
+    const done = { ...all, drafts: all.drafts.map((d) => ({ ...d, page: 0, repaired: true })) };
     expect(nextDraft(done, trip(done), 'heart')).toBeNull();
   });
 
@@ -395,7 +413,7 @@ describe('banking (M30)', () => {
     };
     const back = returnHome(p, t);
     expect(back.drafts).toEqual([
-      { id: 'collection', inside: draftInside(draft('collection')), repaired: false },
+      { id: 'collection', inside: draftInside(draft('collection')), page: 0, repaired: false },
     ]);
     expect(back.vellum).toBe(p.vellum + 1);
   });
@@ -423,7 +441,7 @@ describe('repair (M33, M34)', () => {
   });
 
   test('refuses a failing page', () => {
-    expect(() => repairDraft(owning('collection'), 'collection')).toThrow(/fails its test/);
+    expect(() => repairDraft(owning('collection'), 'collection')).toThrow(/fails a test/);
   });
 
   test('refuses an invalid page (blocking issue), even one that would pass', () => {
@@ -444,7 +462,7 @@ describe('repair (M33, M34)', () => {
       ...fixed(d.id),
       cells: [...fixed(d.id).cells, { at: at(0, 2), rune: 'oil' }],
     };
-    expect(draftTest(d, stranded).passed).toBe(true);
+    expect(draftTest(d, first(d), stranded).passed).toBe(true);
     const issues = insideIssues(stranded);
     expect(issues.map((i) => [i.kind, i.blocking])).toEqual([['stranded', false]]);
     const p = editDraft(owning(d.id), d.id, stranded);
@@ -511,11 +529,11 @@ describe('editing a copy (M34)', () => {
     const p = owning(d.id);
     const edited = editDraft(p, d.id, fixed(d.id));
     expect(edited.drafts[0]?.inside).toEqual(fixed(d.id));
-    expect(draftTest(d, edited.drafts[0]?.inside as GlyphInside).passed).toBe(true);
+    expect(draftTest(d, first(d), edited.drafts[0]?.inside as GlyphInside).passed).toBe(true);
     expect(p.drafts[0]?.inside).toEqual(draftInside(d));
     const back = resetDraft(edited, d.id);
     expect(back.drafts[0]?.inside).toEqual(draftInside(d));
-    expect(draftTest(d, back.drafts[0]?.inside as GlyphInside).passed).toBe(false);
+    expect(draftTest(d, first(d), back.drafts[0]?.inside as GlyphInside).passed).toBe(false);
   });
 
   test('refusals: unknown, unowned, wrong kind, already mended', () => {

@@ -35,4 +35,5 @@ export const TUNING: Tuning = {
   paramSlots: 1,
   paramSlotsGold: 2,
   revisionCanvasMax: 7,
+  draftRewardTier: { reliability: 1 }, // a mended folio's Glyph starts at Reliability bronze (BL-14, F9)
 };

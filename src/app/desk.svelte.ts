@@ -1,4 +1,4 @@
-import type { DraftDef, DraftId } from '$data';
+import type { DraftDef, DraftId, DraftTest } from '$data';
 import {
   type DraftRun,
   draftById,
@@ -14,6 +14,13 @@ import { game } from './instance';
 import { Playback } from './playback.svelte';
 import { toast } from './toasts.svelte';
 import { type BoardView, viewOf } from './view';
+
+/** Page 1's test (W0 stand-in until U1's folio desk). */
+function firstTest(def: DraftDef): DraftTest {
+  const page = def.pages[0];
+  if (!page) throw new Error(`${def.name} has no pages`);
+  return page.test;
+}
 
 /** A finished test run, remembered with the page it ran on so an edit makes it stale. */
 export interface DeskRun {
@@ -45,7 +52,8 @@ export class DeskStore {
     const step = this.playback.current;
     if (step) return step.view;
     if (this.result && this.result.draft === def.id) return viewOf(this.result.run.state);
-    return this.start ?? viewOf(draftStage(def).state);
+    // W0: page 1's test only; U1 runs the whole folio (folioRun).
+    return this.start ?? viewOf(draftStage(def, firstTest(def)).state);
   }
 
   /** The result for this page, or null when none ran or the page changed since. */
@@ -65,8 +73,8 @@ export class DeskStore {
   async runTest(id: DraftId, inside: GlyphInside): Promise<void> {
     const def = draftById(id);
     if (!def || this.playing) return;
-    const stage = draftStage(def);
-    const run = draftTest(def, inside);
+    const stage = draftStage(def, firstTest(def));
+    const run = draftTest(def, firstTest(def), inside);
     this.result = null;
     this.start = viewOf(stage.state);
     await this.playback.play(this.start, run.events.slice(stage.events.length));

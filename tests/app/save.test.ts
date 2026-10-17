@@ -83,13 +83,13 @@ function v3Save(): string {
   });
 }
 
-test('the current save version is 5', () => {
-  expect(CURRENT_VERSION).toBe(5);
+test('the current save version is 6', () => {
+  expect(CURRENT_VERSION).toBe(6);
 });
 
 test('a v3 save migrates to v4: Glyph versions, empty records, archive and drafts, tally cells', () => {
   const env = parse(v3Save());
-  expect(env.version).toBe(5);
+  expect(env.version).toBe(6);
   const save = parseSaveData(env.data);
   expect(save.profile.glyphs[0]).toMatchObject({
     id: 'g1',
@@ -126,7 +126,7 @@ test('a v3 save with no trip and no last trip migrates too', () => {
 
 test('the glyph mastery fixture is a valid v4 save', () => {
   expect((JSON.parse(fixtureText) as { version: number }).version).toBe(4);
-  expect(parse(fixtureText).version).toBe(5);
+  expect(parse(fixtureText).version).toBe(6);
   const save = parseSaveText(fixtureText);
   expect(save.profile.glyphs.map((g) => `${g.id}@${g.version}`)).toEqual(['g1@2', 'g2@1', 'g3@1']);
   expect(save.profile.glyphArchive.map((g) => `${g.id}@${g.version}`)).toEqual(['g1@1']);

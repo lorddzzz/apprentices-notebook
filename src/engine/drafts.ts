@@ -4,8 +4,11 @@ import {
   type DraftDef,
   type DraftGoal,
   type DraftId,
+  type DraftTest,
   type LootTableId,
   MEMBERS,
+  RUNES,
+  type RuneId,
 } from '$data';
 import { applyAction, createBattle, isLegal } from './battle';
 import type { GameEvent } from './events';
@@ -19,6 +22,7 @@ import type {
   DraftCopy,
   GlyphDef,
   GlyphInside,
+  GlyphRecord,
   LootItem,
   PlacedRune,
   Profile,
@@ -28,8 +32,8 @@ import type {
 import { isGlyph } from './types';
 
 /**
- * The owner's drafts (design research-and-mastery §4.7, plan M29–M36): loot, the desk test,
- * repair. Never import `run.ts` here: run.ts imports this module (`nextDraft`, `bankDrafts`).
+ * The owner's drafts (design research-and-mastery §4.7, plan M29–M36), as folios (BL-14, folios
+ * plan F1–F19): loot, the tray, the test suite, turning pages, repair. Never import `run.ts` here: run.ts imports this module (`nextDraft`, `bankDrafts`).
  */
 
 /** One run of a draft's test stage (M31): the log, the final state, and each goal line's tick. */
@@ -105,9 +109,8 @@ function goalLines(goal: DraftGoal): DraftGoal[] {
   return 'all' in goal ? goal.all.flatMap(goalLines) : [goal];
 }
 
-/** Runs the test stage with `inside` compiled as the Draughtsman's (M31). Never throws on a bad page. */
-export function draftTest(d: DraftDef, inside: GlyphInside): DraftRun {
-  const t = d.test;
+/** Runs one test stage with `inside` compiled as the Draughtsman's (M31). Never throws on a bad page. */
+export function draftTest(d: DraftDef, t: DraftTest, inside: GlyphInside): DraftRun {
   let spells: Spell[] = [];
   try {
     spells = testSpells(d, inside);
@@ -189,6 +192,60 @@ export function checkGoal(
   }
 }
 
+/** The last page's index (0-based). */
+export const lastPage = (d: DraftDef): number => d.pages.length - 1;
+
+/** The parts a folio may use on page `page`: the owner's page runes plus the scraps of pages 0..page (F1). */
+export function trayCounts(d: DraftDef, page: number): Partial<Record<RuneId, number>> {
+  const tray: Partial<Record<RuneId, number>> = {};
+  const add = (r: RuneId, n: number) => {
+    tray[r] = (tray[r] ?? 0) + n;
+  };
+  for (const c of draftInside(d).cells) add(c.rune, 1);
+  for (const p of d.pages.slice(0, page + 1)) {
+    for (const [r, n] of Object.entries(p.scraps) as [RuneId, number][]) add(r, n);
+  }
+  return tray;
+}
+
+/** Why `inside` doesn't fit the tray of `page` (the first rune over its count), or null (F1). */
+export function trayIssue(d: DraftDef, page: number, inside: GlyphInside): string | null {
+  const tray = trayCounts(d, page);
+  const used: Partial<Record<RuneId, number>> = {};
+  for (const c of inside.cells) used[c.rune] = (used[c.rune] ?? 0) + 1;
+  for (const [r, n] of Object.entries(used) as [RuneId, number][]) {
+    const have = tray[r] ?? 0;
+    if (n > have) {
+      return have === 0
+        ? `The drawer has no ${RUNES[r].name}`
+        : `The drawer has no more ${RUNES[r].name}`;
+    }
+  }
+  return null;
+}
+
+/** Every unlocked test against one inside: tests 0..page, in page order (F4). */
+export interface FolioRun {
+  tests: DraftRun[];
+  passed: boolean;
+}
+
+/** Runs tests 0..`page` of the folio on `inside` (F4). Never throws on a bad page. */
+export function folioRun(d: DraftDef, page: number, inside: GlyphInside): FolioRun {
+  const tests = d.pages.slice(0, page + 1).map((p) => draftTest(d, p.test, inside));
+  return { tests, passed: tests.every((t) => t.passed) };
+}
+
+/** The record a mended folio's Glyph v1 starts with: bronze Reliability reached, window empty (F9). */
+export function draftRecord(): GlyphRecord {
+  throw new Error('TODO E1');
+}
+
+/** Turns to the next page once every unlocked test passes; keeps the working inside (F2, F7). */
+export function turnPage(_p: Profile, _id: DraftId): Profile {
+  throw new Error('TODO E1');
+}
+
 /** The draft a won fight's loot table may offer, or null (M30). */
 export function nextDraft(p: Profile, t: Trip, table: LootTableId): DraftId | null {
   if (p.glyphs.length === 0) return null;
@@ -207,7 +264,7 @@ export function bankDrafts(p: Profile, loot: readonly LootItem[]): Profile {
   for (const item of loot) {
     if (item.kind !== 'draft' || drafts.some((c) => c.id === item.draft)) continue;
     const d = draftById(item.draft);
-    if (d) drafts.push({ id: d.id, inside: draftInside(d), repaired: false });
+    if (d) drafts.push({ id: d.id, inside: draftInside(d), page: 0, repaired: false });
   }
   return drafts.length === p.drafts.length ? p : { ...p, drafts };
 }
@@ -227,9 +284,12 @@ export function repairDraft(p: Profile, id: DraftId): Profile {
   const d = need(id);
   const copy = copyOf(p, id);
   if (copy.repaired) throw new Error(`${d.name} is already mended`);
+  if (copy.page < lastPage(d)) throw new Error('There are more pages to mend');
   const issue = insideIssues(copy.inside)[0];
   if (issue) throw new Error(issue.message);
-  if (!draftTest(d, copy.inside).passed) throw new Error('The page still fails its test');
+  const tray = trayIssue(d, copy.page, copy.inside);
+  if (tray) throw new Error(tray);
+  if (!folioRun(d, copy.page, copy.inside).passed) throw new Error('The page still fails a test');
   const { exits, idiom } = innerMeta(copy.inside);
   let n = p.glyphs.length + 1;
   while (p.glyphs.some((g) => g.id === `g${n}`) || p.glyphArchive.some((g) => g.id === `g${n}`)) {
@@ -261,7 +321,7 @@ export function editDraft(p: Profile, id: DraftId, inside: GlyphInside): Profile
   return withCopy(p, { ...copy, inside: structuredClone(inside) });
 }
 
-/** "Start over": the working copy goes back to the owner's page. */
+/** "Start over": the working copy goes back to the owner's page; unlocked pages stay (F3). */
 export function resetDraft(p: Profile, id: DraftId): Profile {
   const d = need(id);
   const copy = copyOf(p, id);

@@ -106,6 +106,16 @@ function migrateCity(data: unknown): unknown {
   return { ...data, profile, trip: seam(data.trip), lastTrip: seam(data.lastTrip) };
 }
 
+/** 5 → 6: drafts become folios (BL-14, F16). W0 slot: each copy gets a page; E1 resets and rewards. */
+function migrateFolios(data: unknown): unknown {
+  if (!isObject(data) || !isObject(data.profile)) return data;
+  const copy = (c: unknown) => (isObject(c) ? { ...c, page: 0 } : c);
+  const drafts = Array.isArray(data.profile.drafts)
+    ? data.profile.drafts.map(copy)
+    : data.profile.drafts;
+  return { ...data, profile: { ...data.profile, drafts } };
+}
+
 export const migrations: Migration[] = [
   // 0 → 1: the trip records the current fight's actions.
   (data) => {
@@ -122,6 +132,8 @@ export const migrations: Migration[] = [
   migrateMastery,
   // 4 → 5: districts and the city (K-5).
   migrateCity,
+  // 5 → 6: the owner's drafts become folios (BL-14).
+  migrateFolios,
 ];
 
 export const CURRENT_VERSION = migrations.length;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DRAFTS } from '$data';
   import { draftInside, insideIssues } from '$engine';
-  import { cellMarks, deskRows, draftPalette, goalSentences } from '../../app/desk';
+  import { cellMarks, deskRows, goalSentences, trayPalette } from '../../app/desk';
   import { desk } from '../../app/desk.svelte';
   import { game } from '../../app/instance';
   import { sameInside } from '../../app/revision';
@@ -18,7 +18,8 @@
   const def = $derived(row?.def ?? null);
   const copy = $derived(row?.copy ?? null);
 
-  const lines = $derived(def ? goalSentences(def.test.goal) : []);
+  const page = $derived(def && copy ? def.pages[copy.page] : undefined);
+  const lines = $derived(page ? goalSentences(page.test.goal) : []);
   const result = $derived(def && copy ? desk.fresh(def.id, copy.inside) : null);
   const marks = $derived(copy ? cellMarks(copy.inside, result ? result.run.events : null) : {});
   const issues = $derived(copy ? insideIssues(copy.inside) : []);
@@ -72,7 +73,7 @@
           <p class="hand reaction" data-testid="draft-reaction">{def.reaction}</p>
           <p class="mended">Mended and copied into your notebook.</p>
         {:else}
-          <p class="hint" data-testid="draft-hint">{def.hint}</p>
+          <p class="hint" data-testid="draft-hint">{page?.hint}</p>
         {/if}
       </article>
 
@@ -171,7 +172,7 @@
   <RevisionEditor
     inside={editing && copy ? copy.inside : null}
     title={def ? `Edit ${def.name}` : 'Edit'}
-    palette={copy ? draftPalette(copy.inside, profile) : []}
+    palette={def && copy ? trayPalette(def, copy.page) : []}
     issues={insideIssues}
     saveLabel="Keep"
     lenient

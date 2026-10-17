@@ -1,14 +1,21 @@
 import { describe, expect, test } from 'vitest';
-import { DRAFTS } from '$data';
+import { DRAFTS, type DraftDef, type DraftTest } from '$data';
 import { draftInside, draftTest, type GlyphInside, key, newProfile } from '$engine';
 import {
   cellMarks,
   deskRows,
-  draftPalette,
   draftStage,
   draftsLabel,
   goalSentences,
+  trayPalette,
 } from '../../src/app/desk';
+
+/** Page 1's test (a folio's first page). */
+const first = (d: DraftDef): DraftTest => {
+  const page = d.pages[0];
+  if (!page) throw new Error(`${d.id} has no pages`);
+  return page.test;
+};
 
 const draft = (id: string) => {
   const d = DRAFTS.find((x) => x.id === id);
@@ -18,6 +25,7 @@ const draft = (id: string) => {
 const copyOf = (id: string, repaired = false) => ({
   id,
   inside: draftInside(draft(id)),
+  page: 0,
   repaired,
 });
 /** The Lamplighter's Bend turned the right way (the fix lives in tests/run/drafts.test.ts too). */
@@ -66,8 +74,8 @@ describe('goalSentences', () => {
 
   test('every draft has one line per goal the test checks', () => {
     for (const d of DRAFTS) {
-      const run = draftTest(d, draftInside(d));
-      expect(goalSentences(d.test.goal)).toHaveLength(run.goals.length);
+      const run = draftTest(d, first(d), draftInside(d));
+      expect(goalSentences(first(d).goal)).toHaveLength(run.goals.length);
     }
   });
 });
@@ -102,7 +110,7 @@ describe('the lit and faded cells', () => {
   test('after a failing run the entry is lit and the stranded rune is faded', () => {
     const d = draft('lamplighter');
     const inside = draftInside(d);
-    const run = draftTest(d, inside);
+    const run = draftTest(d, first(d), inside);
     expect(run.passed).toBe(false);
     const marks = cellMarks(inside, run.events);
     expect(marks[key({ x: 0, y: 0 })]).toBe('lit');
@@ -112,7 +120,7 @@ describe('the lit and faded cells', () => {
   test('after a passing run every rune of the Lamplighter is lit', () => {
     const d = draft('lamplighter');
     const inside = lamplighterFixed();
-    const run = draftTest(d, inside);
+    const run = draftTest(d, first(d), inside);
     expect(run.passed).toBe(true);
     const marks = cellMarks(inside, run.events);
     expect(Object.keys(marks)).toHaveLength(inside.cells.length);
@@ -121,25 +129,19 @@ describe('the lit and faded cells', () => {
 });
 
 describe('the editor palette and the stage', () => {
-  test('the palette holds the page runes and the owned runes, never counted', () => {
-    const inside = draftInside(draft('lamplighter'));
-    const p = { ...newProfile(), collection: { ...newProfile().collection, fork: 1, oil: 0 } };
-    const runes = draftPalette(inside, p).map((s) => s.rune);
-    expect(runes).toEqual(expect.arrayContaining(['bolt', 'bend', 'spark', 'fork']));
-    expect(draftPalette(inside, p).every((s) => s.count === null)).toBe(true);
-    expect(new Set(runes).size).toBe(runes.length);
-  });
-
-  test('a page rune the player does not own is still offered', () => {
-    const inside = draftInside(draft('collection'));
-    const bare = { ...newProfile(), collection: { ...newProfile().collection, onInked: 0 } };
-    expect(draftPalette(inside, bare).map((s) => s.rune)).toContain('onInked');
+  test('the palette is the tray: the page runes with their counts, nothing from the collection', () => {
+    const d = draft('lamplighter');
+    expect(trayPalette(d, 0)).toEqual([
+      { rune: 'bolt', count: 1 },
+      { rune: 'spark', count: 1 },
+      { rune: 'bend', count: 1 },
+    ]);
   });
 
   test("the stage's events are the start of the test's log", () => {
     for (const d of DRAFTS) {
-      const stage = draftStage(d);
-      const run = draftTest(d, draftInside(d));
+      const stage = draftStage(d, first(d));
+      const run = draftTest(d, first(d), draftInside(d));
       expect(run.events.slice(0, stage.events.length)).toEqual(stage.events);
       expect(run.events[stage.events.length]?.type).toBe('cast');
     }

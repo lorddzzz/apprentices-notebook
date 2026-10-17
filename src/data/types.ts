@@ -250,7 +250,14 @@ export interface DraftTest {
   hp?: Readonly<Record<string, number>>; // by cell label, like a scenario
   goal: DraftGoal;
 }
-/** One of the owner's broken pages (M29). Fixes live in the tests only. */
+/** One page of a folio (BL-14, plan F1, F7): the next fragment of the note, one test, its scraps. */
+export interface FolioPage {
+  note: string; // this page's fragment of the owner's note
+  hint: string; // a codex-style nudge for this page, shown on the desk
+  test: DraftTest;
+  scraps: Partial<Record<RuneId, number>>; // into the drawer when the page opens (page 1: on banking)
+}
+/** One of the owner's broken pages, as a folio of tests (M29, BL-14). Fixes live in the tests only. */
 export interface DraftDef {
   id: DraftId;
   order: number; // story order, from 1
@@ -260,10 +267,11 @@ export interface DraftDef {
   inside: string; // lattice ASCII in the Glyph's local frame (the owner's broken page)
   entry: string; // the entry cell's label in `inside` ('A1'); flow enters it moving right
   host?: string; // a Payload draft's host page, lattice ASCII with `G:draft>` where it sits
-  note: string; // the owner's note: what it should do
-  hint: string; // a codex-style nudge, shown on the desk
-  test: DraftTest;
+  note: string; // the cover line, shown in the desk list
+  pages: readonly FolioPage[]; // 2–4; tests accumulate (F4)
+  decoys: readonly RuneId[]; // drawer scraps the intended fix leaves unused (tests only, F13)
   reaction: string; // the owner's reaction once repaired
+  lore: string; // the owner's story page, shown once mended (F12)
 }
 
 export interface Tuning {
@@ -303,6 +311,7 @@ export interface Tuning {
   paramSlots: number; // open cells a Glyph may have (M22)
   paramSlotsGold: number; // at Reliability gold
   revisionCanvasMax: number; // the revision canvas is at most this many cells a side (M18)
+  draftRewardTier: { reliability: number }; // the best tier a mended folio's Glyph v1 starts with (BL-14, F9)
 }
 
 // ── The city and its districts (K-1, K-19 to K-23) ─────

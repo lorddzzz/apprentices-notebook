@@ -44,9 +44,9 @@ test('SaveData round-trips through src/app/save serialize/parse at the current v
     seedCounter: 3,
     lastTrip: null,
   };
-  expect(CURRENT_VERSION).toBe(5);
+  expect(CURRENT_VERSION).toBe(6);
   const env = parse(serialize(save));
-  expect(env.version).toBe(5);
+  expect(env.version).toBe(6);
   expect(parseSaveData(env.data)).toEqual(save);
 
   const fresh = newSave(99);

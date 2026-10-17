@@ -1,4 +1,12 @@
-import { DRAFTS, type DraftDef, type DraftGoal, RUNE_IDS, RUNES, type RuneId } from '$data';
+import {
+  DRAFTS,
+  type DraftDef,
+  type DraftGoal,
+  type DraftTest,
+  RUNE_IDS,
+  RUNES,
+  type RuneId,
+} from '$data';
 import {
   type ActionResult,
   type BattleSpec,
@@ -12,6 +20,7 @@ import {
   key,
   neighbors4,
   type Profile,
+  trayCounts,
 } from '$engine';
 import type { PaletteSlot } from './study';
 
@@ -106,28 +115,25 @@ export function cellMarks(
   return marks;
 }
 
-/**
- * The editor's palette for a draft (M34): its own page's runes and every owned rune, with no
- * counts, because ownership never blocks a test.
- */
-export function draftPalette(inside: GlyphInside, p: Profile): PaletteSlot[] {
-  const own = new Set<RuneId>(inside.cells.map((c) => c.rune));
-  return RUNE_IDS.filter((r) => own.has(r) || p.collection[r] > 0).map((rune) => ({
+/** The editor's palette for a folio (BL-14, F1): only the tray of `page`, with counts. */
+export function trayPalette(d: DraftDef, page: number): PaletteSlot[] {
+  const tray = trayCounts(d, page);
+  return RUNE_IDS.filter((r) => (tray[r] ?? 0) > 0).map((rune) => ({
     rune,
-    count: null,
+    count: tray[rune] ?? 0,
   }));
 }
 
-/** The test stage before the cast: the board and its creation events, for the playback's start. */
-export function draftStage(d: DraftDef): ActionResult {
+/** A test stage before the cast: the board and its creation events, for the playback's start. */
+export function draftStage(d: DraftDef, test: DraftTest): ActionResult {
   const spec: BattleSpec = {
     title: d.name,
-    board: d.test.board,
+    board: test.board,
     seed: 1,
     lab: true,
     party: { draughtsman: { spells: [] } },
     intents: {},
-    ...(d.test.hp ? { hp: d.test.hp } : {}),
+    ...(test.hp ? { hp: test.hp } : {}),
   };
   return createBattle(spec);
 }

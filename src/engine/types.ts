@@ -351,6 +351,8 @@ export interface GlyphRecord {
 export interface DraftCopy {
   id: DraftId;
   inside: GlyphInside;
+  /** The highest unlocked page, 0-based; pages never re-lock (BL-14, F3). */
+  page: number;
   repaired: boolean;
 }
 /** A tier a Glyph version reached during a trip (M16). */

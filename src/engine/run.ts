@@ -6,6 +6,7 @@ import {
   DISTRICTS,
   type DistrictId,
   DRAFT_IDS,
+  DRAFTS,
   type DraftId,
   encountersOf,
   IDIOMS,
@@ -769,7 +770,11 @@ function parseInside(v: unknown): GlyphInside {
 
 function parseDraftCopy(v: unknown): DraftCopy {
   const r = record(v);
-  return { id: oneOf(DRAFT_IDS, r.id), inside: parseInside(r.inside), repaired: bool(r.repaired) };
+  const id = oneOf(DRAFT_IDS, r.id);
+  const page = count(r.page);
+  const pages = DRAFTS.find((d) => d.id === id)?.pages.length ?? 1;
+  if (page >= pages) bad();
+  return { id, inside: parseInside(r.inside), page, repaired: bool(r.repaired) };
 }
 
 function parseProfile(v: unknown): Profile {
