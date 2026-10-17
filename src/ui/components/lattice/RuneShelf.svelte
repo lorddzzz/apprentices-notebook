@@ -1,5 +1,6 @@
 <script lang="ts">
   import { RUNES, TIER_MARKS } from '$data';
+  import { copyLabel, isOwnersHand } from '../../../app/owner';
   import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -112,7 +113,10 @@
         class:selected
         class:spent={!slot.usable}
         aria-pressed={selected}
-        aria-label={`${slot.glyph.name}, ${slot.glyph.kind} Fair copy, ${slot.cost} ink${slot.runesFree ? ', its runes are free' : ', some runes are in use'}`}
+        aria-label={copyLabel(
+          `${slot.glyph.name}, ${slot.glyph.kind} Fair copy, ${slot.cost} ink${slot.runesFree ? ', its runes are free' : ', some runes are in use'}`,
+          slot.glyph,
+        )}
         data-glyph={slot.glyph.id}
         onclick={() => tapGlyph(slot)}
       >
@@ -125,7 +129,14 @@
           dim={!slot.usable}
         />
         <span class="meta">
-          <b>{slot.glyph.name}</b>
+          <b
+            >{slot.glyph.name}
+            {#if isOwnersHand(slot.glyph)}
+              <svg class="quill" data-testid="owner-mark" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                <path d="M20 4c-8 0-13 4-14 12l-2 4M20 4c0 7-4 11-11 12M9 16h6" />
+              </svg>
+            {/if}</b
+          >
           <small class:poor={slot.usable && !slot.affordable}>
             {slot.glyph.kind} · {slot.cost} ink · {slot.runesFree ? 'runes free' : 'runes in use'}
           </small>
@@ -276,6 +287,10 @@
     flex-direction: column;
     min-width: 0;
     line-height: 1.15;
+  }
+  .quill {
+    vertical-align: -2px;
+    color: var(--ink-soft);
   }
   .meta b {
     overflow: hidden;

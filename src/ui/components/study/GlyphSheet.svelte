@@ -1,9 +1,11 @@
 <script lang="ts">
   import type { CellKey, Dir, GlyphDef, GlyphId, Profile } from '$engine';
+  import { ownerHeader } from '../../../app/owner';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
   import GlyphProfiler from './GlyphProfiler.svelte';
   import GlyphSettings from './GlyphSettings.svelte';
+  import OwnerPage from './OwnerPage.svelte';
 
   interface Props {
     /** The Glyph to look inside (the effective view of its current version), or null (closed). */
@@ -59,7 +61,10 @@
 <Sheet open={glyph !== null} title="Fair copy" onclose={close}>
   {#if glyph}
     {#if saved}
+      {@const hand = ownerHeader(saved)}
+      {#if hand}<p class="hand" data-testid="owner-header">{hand}</p>{/if}
       <GlyphProfiler glyph={saved} {profile} {readonly} {onrevert} {onrevise} />
+      <OwnerPage glyph={saved} />
       <GlyphSettings glyph={saved} {profile} {readonly} {onopencells} {onextraexit} />
     {/if}
     <label class="field">
@@ -83,6 +88,11 @@
 </Sheet>
 
 <style>
+  .hand {
+    margin: 0 0 var(--space-1);
+    font: italic 13px var(--hand);
+    color: var(--ink-soft);
+  }
   .field {
     display: flex;
     flex-direction: column;
