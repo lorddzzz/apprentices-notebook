@@ -1,14 +1,24 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import { DRAFTS, type DraftDef, type DraftTest } from '$data';
-import { draftInside, draftTest, type GlyphInside, key, newProfile } from '$engine';
+import { draftInside, draftTest, folioRun, type GlyphInside, key, trayCounts } from '$engine';
 import {
+  brokeFlags,
   cellMarks,
   deskRows,
   draftStage,
   draftsLabel,
+  drawerView,
   goalSentences,
+  noteFragments,
+  pageLabel,
+  playedTest,
+  scrapsLine,
+  testChips,
   trayPalette,
 } from '../../src/app/desk';
+import { parseSaveText, saveText } from '../../src/app/save';
+import { SOLUTIONS } from '../helpers/folio-solutions';
 
 /** Page 1's test (a folio's first page). */
 const first = (d: DraftDef): DraftTest => {
@@ -146,5 +156,134 @@ describe('the editor palette and the stage', () => {
       expect(run.events.slice(0, stage.events.length)).toEqual(stage.events);
       expect(run.events[stage.events.length]?.type).toBe('cast');
     }
+  });
+});
+
+describe('the folios fixture', () => {
+  test('is a valid v6 save: five folios at mixed pages, one mended with its Glyph', () => {
+    const text = readFileSync(new URL('../fixtures/folios-save.json', import.meta.url), 'utf8');
+    expect((JSON.parse(text) as { version: number }).version).toBe(6);
+    const save = parseSaveText(text);
+    const drafts = save.profile.drafts;
+    expect(drafts.map((c) => c.id).sort()).toEqual(DRAFTS.map((d) => d.id).sort());
+    expect(new Set(drafts.map((c) => c.page)).size).toBeGreaterThan(2);
+    const mended = drafts.filter((c) => c.repaired);
+    expect(mended.map((c) => c.id)).toEqual(['lamplighter']);
+    expect(save.profile.glyphs.some((g) => g.draft === 'lamplighter')).toBe(true);
+    expect(parseSaveText(saveText(save))).toEqual(save);
+  });
+});
+
+describe('the folio view', () => {
+  const at = (id: string, page: number, repaired = false) => ({
+    id,
+    inside: SOLUTIONS[id]?.[page] ?? draftInside(draft(id)),
+    page,
+    repaired,
+  });
+  const solution = (id: string, page: number): GlyphInside => {
+    const inside = SOLUTIONS[id]?.[page];
+    if (!inside) throw new Error(`no solution ${id} ${page}`);
+    return inside;
+  };
+
+  test('list rows say "page n / total" or "mended"', () => {
+    const d = draft('wet-work');
+    expect(pageLabel(d, at('wet-work', 0))).toBe(`page 1 / ${d.pages.length}`);
+    expect(pageLabel(d, at('wet-work', 1))).toBe(`page 2 / ${d.pages.length}`);
+    expect(pageLabel(d, at('wet-work', d.pages.length - 1, true))).toBe('mended');
+  });
+
+  test('note fragments grow with the page, and a mended folio shows them all', () => {
+    const d = draft('foundry-bell');
+    expect(noteFragments(d, at('foundry-bell', 0))).toEqual([d.pages[0]?.note]);
+    expect(noteFragments(d, at('foundry-bell', 2))).toHaveLength(3);
+    expect(noteFragments(d, at('foundry-bell', 3, true))).toHaveLength(d.pages.length);
+  });
+
+  test('the palette is the tray of the page and grows with the scraps', () => {
+    for (const d of DRAFTS) {
+      d.pages.forEach((_, p) => {
+        const tray = trayCounts(d, p);
+        const slots = trayPalette(d, p);
+        expect(slots.every((s) => s.count === tray[s.rune])).toBe(true);
+        expect(slots.reduce((n, s) => n + (s.count ?? 0), 0)).toBe(
+          Object.values(tray).reduce((n, c) => n + (c ?? 0), 0),
+        );
+      });
+    }
+  });
+
+  test('the drawer counts free runes and tags the latest page scraps as new', () => {
+    const d = draft('lamplighter');
+    const inside = solution('lamplighter', 1);
+    const chips = drawerView(d, 1, inside);
+    const total = chips.reduce((n, c) => n + c.total, 0);
+    expect(total).toBe(inside.cells.length);
+    expect(chips.every((c) => c.free === 0)).toBe(true);
+    const dropped = Object.keys(d.pages[1]?.scraps ?? {});
+    expect(
+      chips
+        .filter((c) => c.fresh)
+        .map((c) => c.rune)
+        .sort(),
+    ).toEqual(dropped.sort());
+    // Page 1's own scraps arrive with the folio, so nothing is new there.
+    expect(drawerView(d, 0, draftInside(d)).some((c) => c.fresh)).toBe(false);
+    // A page that uses fewer runes leaves them free.
+    const bare = drawerView(d, 1, { ...inside, cells: inside.cells.slice(0, 1) });
+    expect(bare.reduce((n, c) => n + c.free, 0)).toBe(total - 1);
+  });
+
+  test('the scraps line names what the page dropped', () => {
+    const d = draft('lamplighter');
+    expect(scrapsLine(d, 1)).toBe('+ Amplify');
+    expect(scrapsLine(d, 0)).toBe('+ Oil');
+    for (const f of DRAFTS) {
+      f.pages.forEach((p, i) => {
+        const kinds = Object.values(p.scraps).filter((n) => (n ?? 0) > 0).length;
+        const line = scrapsLine(f, i);
+        expect(line === null ? 0 : line.split(', ').length).toBe(kinds);
+      });
+    }
+  });
+
+  test('every unlocked test has one goal line per goal checked', () => {
+    for (const d of DRAFTS) {
+      d.pages.forEach((p, i) => {
+        const run = draftTest(d, p.test, solution(d.id, i));
+        expect(goalSentences(p.test.goal)).toHaveLength(run.goals.length);
+      });
+    }
+  });
+
+  test('a test that passed before and fails now reads "broke"; the first run never does', () => {
+    const d = draft('lamplighter');
+    const failing = folioRun(d, 0, draftInside(d));
+    expect(failing.passed).toBe(false);
+    expect(brokeFlags(null, failing)).toEqual([false]);
+    expect(brokeFlags([false], failing)).toEqual([false]);
+    expect(brokeFlags([true], failing)).toEqual([true]);
+    expect(testChips(1, failing, [true]).map((c) => c.state)).toEqual(['broke', 'idle']);
+  });
+
+  test('chips: pass, fail, and idle for tests not run yet', () => {
+    const d = draft('lamplighter');
+    const run = folioRun(d, 1, solution('lamplighter', 0));
+    expect(run.tests[0]?.passed).toBe(true);
+    expect(run.tests[1]?.passed).toBe(false);
+    expect(testChips(2, run, []).map((c) => c.state)).toEqual(['pass', 'fail', 'idle']);
+    expect(testChips(0, null, []).map((c) => c.state)).toEqual(['idle']);
+  });
+
+  test('the first failing test plays, else the newest', () => {
+    const d = draft('lamplighter');
+    expect(playedTest(folioRun(d, 0, draftInside(d)))).toBe(0);
+    expect(playedTest(folioRun(d, 1, solution('lamplighter', 0)))).toBe(1);
+    const done = folioRun(d, 1, solution('lamplighter', 1));
+    expect(done.passed).toBe(true);
+    expect(playedTest(done)).toBe(1);
+    // A regression on test 1 plays test 1 even though test 2 also fails.
+    expect(playedTest(folioRun(d, 1, draftInside(d)))).toBe(0);
   });
 });

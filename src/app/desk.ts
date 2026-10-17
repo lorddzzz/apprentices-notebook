@@ -13,13 +13,13 @@ import {
   type CellKey,
   createBattle,
   type DraftCopy,
+  type FolioRun,
   type GameEvent,
   type GlyphInside,
   innerFired,
   insideIssues,
   key,
   neighbors4,
-  type Profile,
   trayCounts,
 } from '$engine';
 import type { PaletteSlot } from './study';
@@ -136,4 +136,77 @@ export function draftStage(d: DraftDef, test: DraftTest): ActionResult {
     ...(test.hp ? { hp: test.hp } : {}),
   };
   return createBattle(spec);
+}
+
+/** The list row's page label (F18): "page 2 / 3", or "mended". */
+export function pageLabel(def: DraftDef, copy: DraftCopy): string {
+  return copy.repaired ? 'mended' : `page ${copy.page + 1} / ${def.pages.length}`;
+}
+
+/** The note fragments the folio has shown so far (a mended folio shows them all), oldest first. */
+export function noteFragments(def: DraftDef, copy: DraftCopy): string[] {
+  const shown = copy.repaired ? def.pages.length : copy.page + 1;
+  return def.pages.slice(0, shown).map((p) => p.note);
+}
+
+/** One chip of the drawer: a tray rune with how many are still free on the page. */
+export interface DrawerChip {
+  rune: RuneId;
+  free: number;
+  total: number;
+  /** A scrap the latest page just dropped. */
+  fresh: boolean;
+}
+
+/** The drawer for `page` with the runes `inside` already uses taken off the counts (F1, F7). */
+export function drawerView(d: DraftDef, page: number, inside: GlyphInside): DrawerChip[] {
+  const used: Partial<Record<RuneId, number>> = {};
+  for (const c of inside.cells) used[c.rune] = (used[c.rune] ?? 0) + 1;
+  const dropped = page > 0 ? (d.pages[page]?.scraps ?? {}) : {};
+  const tray = trayCounts(d, page);
+  return trayPalette(d, page).map(({ rune }) => {
+    const total = tray[rune] ?? 0;
+    return {
+      rune,
+      total,
+      free: Math.max(0, total - (used[rune] ?? 0)),
+      fresh: (dropped[rune] ?? 0) > 0,
+    };
+  });
+}
+
+/** The "+ Oil, + Amplify" line for the scraps page `page` dropped, or null (F7). */
+export function scrapsLine(d: DraftDef, page: number): string | null {
+  const scraps = d.pages[page]?.scraps ?? {};
+  const parts = RUNE_IDS.filter((r) => (scraps[r] ?? 0) > 0).map((r) => {
+    const n = scraps[r] ?? 0;
+    return `+ ${RUNES[r].name}${n > 1 ? ` ×${n}` : ''}`;
+  });
+  return parts.length > 0 ? parts.join(', ') : null;
+}
+
+export type ChipState = 'pass' | 'fail' | 'broke' | 'idle';
+
+/** A test that passed on the previous run and fails now (F6). Never saved. */
+export function brokeFlags(prev: readonly boolean[] | null, run: FolioRun): boolean[] {
+  return run.tests.map((t, i) => !t.passed && prev?.[i] === true);
+}
+
+/** The test chips: one per unlocked test, `idle` (○) until a run covers it. */
+export function testChips(
+  page: number,
+  run: FolioRun | null,
+  broke: readonly boolean[],
+): { n: number; state: ChipState }[] {
+  return Array.from({ length: page + 1 }, (_, i) => {
+    const t = run?.tests[i];
+    const state: ChipState = !t ? 'idle' : t.passed ? 'pass' : broke[i] ? 'broke' : 'fail';
+    return { n: i + 1, state };
+  });
+}
+
+/** The test whose board plays (F5): the first failing one, else the newest. */
+export function playedTest(run: FolioRun): number {
+  const failing = run.tests.findIndex((t) => !t.passed);
+  return failing >= 0 ? failing : run.tests.length - 1;
 }
