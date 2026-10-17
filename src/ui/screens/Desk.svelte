@@ -97,7 +97,7 @@
     {#if def && copy}
       <article class="torn" data-testid="draft-open">
         <h1>{def.name}</h1>
-        <p class="hand note" data-testid="draft-cover">{def.note}</p>
+        <!-- The cover line lives on the list row; open, the page fragments are the note. -->
         <div data-testid="draft-notes">
           {#each notes as n, i (i)}
             <p class="hand frag" class:newest={i === notes.length - 1}>{n}</p>
