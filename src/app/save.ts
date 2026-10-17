@@ -1,4 +1,14 @@
-import { emptyStats, newSave, parseSaveData, type SaveData } from '$engine';
+import { TUNING } from '$data';
+import {
+  draftById,
+  draftInside,
+  emptyRecord,
+  emptyStats,
+  newSave,
+  parseSaveData,
+  type SaveData,
+  versionKey,
+} from '$engine';
 
 export interface SaveEnvelope<T = unknown> {
   version: number;
@@ -106,14 +116,39 @@ function migrateCity(data: unknown): unknown {
   return { ...data, profile, trip: seam(data.trip), lastTrip: seam(data.lastTrip) };
 }
 
-/** 5 → 6: drafts become folios (BL-14, F16). W0 slot: each copy gets a page; E1 resets and rewards. */
+/**
+ * 5 → 6: drafts become folios (BL-14, F16). An unrepaired copy goes back to the new start on page
+ * 0; a mended one sits on its last page; every draft Glyph's v1 record gets the bronze reward.
+ * Reads content at migration time on purpose: the intent is "reset to the new folio".
+ */
 function migrateFolios(data: unknown): unknown {
   if (!isObject(data) || !isObject(data.profile)) return data;
-  const copy = (c: unknown) => (isObject(c) ? { ...c, page: 0 } : c);
-  const drafts = Array.isArray(data.profile.drafts)
-    ? data.profile.drafts.map(copy)
-    : data.profile.drafts;
-  return { ...data, profile: { ...data.profile, drafts } };
+  const profile = data.profile;
+  const copy = (c: unknown): unknown => {
+    if (!isObject(c) || typeof c.id !== 'string') return c;
+    const d = draftById(c.id);
+    if (!d) return c;
+    if (c.repaired === true) return { ...c, page: d.pages.length - 1 };
+    return { ...c, page: 0, inside: draftInside(d) };
+  };
+  const bronze = TUNING.draftRewardTier.reliability;
+  let glyphRecords: unknown = profile.glyphRecords;
+  if (Array.isArray(profile.glyphs) && isObject(glyphRecords)) {
+    const records: Record<string, unknown> = { ...glyphRecords };
+    for (const g of profile.glyphs) {
+      if (!isObject(g) || typeof g.id !== 'string' || typeof g.draft !== 'string') continue;
+      const key = versionKey(g.id, 1);
+      const old = isObject(records[key]) ? records[key] : emptyRecord();
+      const best = isObject(old.best) ? old.best : emptyRecord().best;
+      const was = typeof best.reliability === 'number' ? best.reliability : 0;
+      records[key] = { ...old, best: { ...best, reliability: Math.max(was, bronze) } };
+    }
+    glyphRecords = records;
+  }
+  return {
+    ...data,
+    profile: { ...profile, drafts: asList(profile.drafts, copy), glyphRecords },
+  };
 }
 
 export const migrations: Migration[] = [

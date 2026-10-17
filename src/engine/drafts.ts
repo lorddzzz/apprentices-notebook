@@ -9,12 +9,14 @@ import {
   MEMBERS,
   RUNES,
   type RuneId,
+  TUNING,
 } from '$data';
 import { applyAction, createBattle, isLegal } from './battle';
 import type { GameEvent } from './events';
 import type { Coord } from './grid';
 import { compileLattice } from './lattice';
 import { parseLabel, parseLattice } from './notation';
+import { emptyRecord, versionKey } from './profiler';
 import { innerMeta, insideIssues } from './revision';
 import type {
   Aim,
@@ -27,6 +29,7 @@ import type {
   PlacedRune,
   Profile,
   Spell,
+  TierLevel,
   Trip,
 } from './types';
 import { isGlyph } from './types';
@@ -238,12 +241,19 @@ export function folioRun(d: DraftDef, page: number, inside: GlyphInside): FolioR
 
 /** The record a mended folio's Glyph v1 starts with: bronze Reliability reached, window empty (F9). */
 export function draftRecord(): GlyphRecord {
-  throw new Error('TODO E1');
+  const record = emptyRecord();
+  const reliability = TUNING.draftRewardTier.reliability as TierLevel;
+  return { ...record, best: { ...record.best, reliability } };
 }
 
 /** Turns to the next page once every unlocked test passes; keeps the working inside (F2, F7). */
-export function turnPage(_p: Profile, _id: DraftId): Profile {
-  throw new Error('TODO E1');
+export function turnPage(p: Profile, id: DraftId): Profile {
+  const d = need(id);
+  const copy = copyOf(p, id);
+  if (copy.repaired) throw new Error(`${d.name} is already mended`);
+  if (copy.page >= lastPage(d)) throw new Error('This is the last page');
+  if (!folioRun(d, copy.page, copy.inside).passed) throw new Error('The page still fails a test');
+  return withCopy(p, { ...copy, page: copy.page + 1 });
 }
 
 /** The draft a won fight's loot table may offer, or null (M30). */
@@ -309,7 +319,11 @@ export function repairDraft(p: Profile, id: DraftId): Profile {
     draft: d.id,
   };
   const idioms = idiom && !p.idioms.includes(idiom) ? [...p.idioms, idiom] : p.idioms;
-  return withCopy({ ...p, glyphs: [...p.glyphs, glyph], idioms }, { ...copy, repaired: true });
+  const glyphRecords = { ...p.glyphRecords, [versionKey(glyph.id, 1)]: draftRecord() };
+  return withCopy(
+    { ...p, glyphs: [...p.glyphs, glyph], idioms, glyphRecords },
+    { ...copy, repaired: true },
+  );
 }
 
 /** Saves the working copy of a draft's inside (M34). The test and `repairDraft` judge it. */
@@ -318,6 +332,8 @@ export function editDraft(p: Profile, id: DraftId, inside: GlyphInside): Profile
   const copy = copyOf(p, id);
   if (copy.repaired) throw new Error(`${d.name} is already mended`);
   if (inside.kind !== d.kind) throw new Error('A draft keeps its kind');
+  const tray = trayIssue(d, copy.page, inside);
+  if (tray) throw new Error(tray);
   return withCopy(p, { ...copy, inside: structuredClone(inside) });
 }
 

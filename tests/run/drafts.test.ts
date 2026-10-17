@@ -18,6 +18,7 @@ import {
   createBattle,
   type Dir,
   draftInside,
+  draftRecord,
   draftTest,
   editDraft,
   finishEncounter,
@@ -122,6 +123,11 @@ const owner = (): Profile => ({ ...newProfile(), glyphs: [STUB_GLYPH] });
 const owning = (...ids: string[]): Profile => ({
   ...owner(),
   drafts: ids.map((id) => ({ id, inside: draftInside(draft(id)), page: 0, repaired: false })),
+});
+/** A copy holding `inside` as a save could (editDraft refuses runes outside the tray). */
+const holding = (p: Profile, id: string, inside: GlyphInside): Profile => ({
+  ...p,
+  drafts: p.drafts.map((c) => (c.id === id ? { ...c, inside } : c)),
 });
 const trip = (p: Profile, loot: LootItem[] = []): Trip => ({ ...startTrip(p, SEED), loot });
 
@@ -451,7 +457,7 @@ describe('repair (M33, M34)', () => {
       ...fixed(d.id),
       cells: [...fixed(d.id).cells, { at: at(1, 0), rune: 'ink' }],
     };
-    const p = editDraft(owning(d.id), d.id, bad);
+    const p = holding(owning(d.id), d.id, bad);
     expect(insideIssues(bad).some((i) => i.blocking)).toBe(true);
     expect(() => repairDraft(p, d.id)).toThrow(/share/);
   });
@@ -465,7 +471,7 @@ describe('repair (M33, M34)', () => {
     expect(draftTest(d, first(d), stranded).passed).toBe(true);
     const issues = insideIssues(stranded);
     expect(issues.map((i) => [i.kind, i.blocking])).toEqual([['stranded', false]]);
-    const p = editDraft(owning(d.id), d.id, stranded);
+    const p = holding(owning(d.id), d.id, stranded);
     expect(() => repairDraft(p, d.id)).toThrow(/never reached/);
   });
 
@@ -484,7 +490,7 @@ describe('repair (M33, M34)', () => {
     expect(glyph?.entry).toEqual(at(0, 0));
     expect(glyph?.cells).toEqual(fixed('collection').cells);
     expect(out.glyphs).toHaveLength(2);
-    expect(out.glyphRecords).toEqual(p.glyphRecords);
+    expect(out.glyphRecords).toEqual({ ...p.glyphRecords, 'g2@1': draftRecord() });
     expect(out.vellum).toBe(p.vellum);
     expect(out.drafts.find((d) => d.id === 'collection')?.repaired).toBe(true);
     expect(out.drafts.find((d) => d.id === 'lamplighter')?.repaired).toBe(false);

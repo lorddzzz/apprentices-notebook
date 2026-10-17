@@ -1,6 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { emptyStats, newSave, parseSaveData, startTrip, validateLoadout } from '$engine';
+import { DRAFTS, TUNING } from '$data';
+import {
+  draftInside,
+  emptyRecord,
+  emptyStats,
+  type GlyphDef,
+  newProfile,
+  newSave,
+  parseSaveData,
+  startTrip,
+  validateLoadout,
+} from '$engine';
 import {
   CURRENT_VERSION,
   type Migration,
@@ -181,4 +192,81 @@ test('the city fixture is a valid v5 save on a canal trip', () => {
   expect(save.trip?.district).toBe('canals');
   expect(save.trip?.encounter).toBe(1);
   expect(parseSaveText(saveText(save))).toEqual(save);
+});
+
+// ── Save v6 (folios, BL-14, F16) ──
+
+const folioGlyph = (id: string, draft?: string): GlyphDef => ({
+  id,
+  name: id,
+  kind: 'spell',
+  cells: [{ at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' }],
+  entry: { x: 0, y: 0 },
+  exits: [],
+  idiom: null,
+  version: 1,
+  params: [],
+  extraExit: null,
+  ...(draft ? { draft } : {}),
+});
+
+const v5Text = (profile: unknown): string =>
+  JSON.stringify({ version: 5, data: { ...newSave(3), profile } });
+
+test('a v5 save migrates to v6 folios: pages, reset starts, bronze for draft Glyphs', () => {
+  const [mine, other] = DRAFTS;
+  if (!mine || !other) throw new Error('no drafts');
+  const edited = {
+    ...draftInside(mine),
+    cells: [...draftInside(mine).cells, { at: { x: 3, y: 3 }, rune: 'ink' }], // collection runes
+  };
+  const profile = {
+    ...newProfile(),
+    glyphs: [folioGlyph('g1'), folioGlyph('g2', other.id)],
+    drafts: [
+      { id: mine.id, inside: edited, repaired: false },
+      { id: other.id, inside: edited, repaired: true },
+    ],
+  };
+  const save = parseSaveText(v5Text(profile));
+  const [unrepaired, repaired] = save.profile.drafts;
+  expect(unrepaired).toEqual({ id: mine.id, page: 0, repaired: false, inside: draftInside(mine) });
+  expect(repaired?.page).toBe(other.pages.length - 1);
+  expect(repaired?.repaired).toBe(true);
+  expect(repaired?.inside).toEqual(edited);
+  expect(save.profile.glyphRecords['g2@1']?.best.reliability).toBe(
+    TUNING.draftRewardTier.reliability,
+  );
+  expect(save.profile.glyphRecords['g1@1']).toBeUndefined();
+  expect(parseSaveText(saveText(save))).toEqual(save);
+});
+
+test('v6 migration: an unknown draft id passes through unchanged', () => {
+  const unknown = { id: 'gone-draft', inside: { kind: 'spell', cells: [] }, repaired: false };
+  const out = migrate({ version: 5, data: { profile: { drafts: [unknown] } } }).data as {
+    profile: { drafts: unknown[] };
+  };
+  expect(out.profile.drafts).toEqual([unknown]);
+});
+
+test('v6 migration raises a draft Glyph record to bronze but never lowers a tier', () => {
+  const other = DRAFTS[1];
+  if (!other) throw new Error('no drafts');
+  const rec = { ...emptyRecord(), casts: 4, best: { economy: 2, reliability: 3 } };
+  const base = { ...newProfile(), glyphs: [folioGlyph('g1', other.id)] };
+  const high = parseSaveText(v5Text({ ...base, glyphRecords: { 'g1@1': rec } }));
+  expect(high.profile.glyphRecords['g1@1']).toEqual(rec);
+
+  const zero = { ...rec, best: { economy: 0, reliability: 0 } };
+  const low = parseSaveText(v5Text({ ...base, glyphRecords: { 'g1@1': zero } }));
+  expect(low.profile.glyphRecords['g1@1']?.casts).toBe(4);
+  expect(low.profile.glyphRecords['g1@1']?.best).toEqual({
+    economy: 0,
+    reliability: TUNING.draftRewardTier.reliability,
+  });
+});
+
+test('v6 migration is defensive about odd data', () => {
+  expect(migrate({ version: 5, data: null }).data).toBeNull();
+  expect(migrate({ version: 5, data: { profile: 3 } }).data).toEqual({ profile: 3 });
 });
