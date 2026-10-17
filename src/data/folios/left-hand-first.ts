@@ -40,7 +40,7 @@ export const LEFT_HAND_FIRST: DraftDef = {
     },
     {
       note: 'Anyone standing in the puddle is in on it. Mark them and soak them, both.',
-      hint: 'One Amplify can feed two runes, if they share a corner.',
+      hint: 'One strengthening can feed two runes at once, if both touch it.',
       test: {
         board: ['. . . . .', '. . . . .', 'D . d . do', '. . . . .', '. . . . .'].join('\n'),
         aim: { dir: 'right' },
@@ -53,5 +53,5 @@ export const LEFT_HAND_FIRST: DraftDef = {
   decoys: ['steam'],
   reaction:
     'Left first. It says so on the Fork. I wrote it there myself, and then I folded it wrong.',
-  lore: "Placeholder (D1): the owner's page for Left Hand First. They wrote left-handed and the guild made them copy with the right. Every page they drafted for the examiners came out mirrored. One examiner kept them anyway. The owner never learned which one.",
+  lore: 'I write left-handed, and the guild spent two years trying to make me copy with the right. Every page I drafted for the examiners came out mirrored, and they took that as a sign of moral weakness. One examiner kept my papers anyway, folded very small, and never said why. I never learned which of us was the fool. It is a bad habit to have, and it is the only thing I brought out of the guild that they did not ask me to hand back.',
 };

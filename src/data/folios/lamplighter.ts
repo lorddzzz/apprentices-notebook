@@ -23,7 +23,7 @@ export const LAMPLIGHTER: DraftDef = {
     },
     {
       note: 'And if the street is dry, bring your own. Lay it down first. Fire first is no fire.',
-      hint: 'Flame needs something to catch, and it has to be there before the flame arrives. A little more force would not hurt.',
+      hint: 'Fire can only run where something was laid down for it before the spark came.',
       test: {
         board: ['. . . . .', 'D . . . d', '. . . . .'].join('\n'),
         aim: { dir: 'right' },
@@ -35,5 +35,5 @@ export const LAMPLIGHTER: DraftDef = {
   ],
   decoys: [],
   reaction: 'Down. It was always down. I drew it upside down on the tram.',
-  lore: 'The Lamplighters lit the lamps along the canals, and nobody paid them for the part where the lamps stayed lit. I trained beside a woman who carried her own oil in a flask and called it good manners. She said a spell that needs the street to be wet has a very short career. I drew this one on the tram, upside down, which tells you what sort of week it was. Keep the flask.',
+  lore: 'The Lamplighters kept the canal lamps going, and nobody paid them for the part where the lamps stayed lit. I learned my first useful trick beside one of them, a woman who carried her own oil in a flask and called it good manners. She said a spell that needs the street to be wet has a very short career. I drew this one on the tram, upside down, which tells you what sort of week it was. Keep the flask.',
 };

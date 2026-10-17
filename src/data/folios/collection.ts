@@ -23,7 +23,7 @@ export const COLLECTION: DraftDef = {
     },
     {
       note: 'Every one of them, mind. Yesterday there was only the one.',
-      hint: 'A bolt stops at the first thing it meets. Make it go on, and lay the mark before the rest of the chain. A bit more force in the right place pays twice.',
+      hint: 'A bolt stops at the first thing it meets, so the mark only lands on what it reaches.',
       test: {
         board: ['. . . . .', 'D . d d .', '. . . . .'].join('\n'),
         aim: { dir: 'right' },

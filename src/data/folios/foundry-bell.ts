@@ -18,11 +18,11 @@ export const FOUNDRY_BELL: DraftDef = {
     '.        .     .       Spark',
   ].join('\n'),
   entry: 'A2',
-  note: 'Ring it once and the whole foundry hears. Every one that drops passes the spark along.',
+  note: 'Ring it once and the whole foundry hears.',
   pages: [
     {
       note: 'Ring it once.',
-      hint: 'An Amplify only helps what it touches.',
+      hint: 'Only what it touches gets louder.',
       test: {
         board: ['. . . . .', 'D . r r .', '. . . . .'].join('\n'),
         aim: { tile: 'C2' },
@@ -32,7 +32,7 @@ export const FOUNDRY_BELL: DraftDef = {
     },
     {
       note: 'Every one that drops passes the spark along, and brass carries it further.',
-      hint: 'A Bend only turns what runs into it. The spark wants to be loud where it lands.',
+      hint: 'The spark wants to land somewhere loud, and only what runs into a turn gets turned.',
       test: {
         board: ['. . . . .', 'D . r b b', '. . . . .'].join('\n'),
         aim: { tile: 'C2' },
@@ -43,7 +43,7 @@ export const FOUNDRY_BELL: DraftDef = {
     },
     {
       note: 'Only the marked ones, mind. The ones watching keep their ears.',
-      hint: 'A mark that spreads by touch is choosier than a mark that spreads by ink.',
+      hint: 'Look at how far each mark travels, because some reach the ones watching too.',
       test: {
         board: ['. d . . .', 'D . r r d', '. . . b b', '. . . . .'].join('\n'),
         aim: { tile: 'C2' },
@@ -54,7 +54,7 @@ export const FOUNDRY_BELL: DraftDef = {
     },
     {
       note: 'Then the whole foundry hears it, down every rail.',
-      hint: 'Brass carries a spark anywhere. It carries a mark only if someone cut one into it.',
+      hint: 'Brass carries a spark anywhere, but a mark only rides brass that has been cut to take it.',
       test: {
         board: ['. d . . . . .', 'D . r r . d r!', '. . . b = = =', '. . . . . . .'].join('\n'),
         aim: { tile: 'C2' },
@@ -66,5 +66,5 @@ export const FOUNDRY_BELL: DraftDef = {
   ],
   decoys: ['brand', 'echo'],
   reaction: 'Loud in the wrong place and pointing at the ceiling. That is me in one sentence.',
-  lore: "Placeholder (D1): the owner's page for The Foundry Bell. The guild rang a bell in the foundry for every expulsion. The owner heard it once from the inside of the hall. They spent a year learning to ring it back. This page is the year.",
+  lore: 'The guild rang a bell in the foundry for every expulsion, so the whole city knew who had been cast out and when. I heard it once from inside the hall, the morning after my hearing, and I counted the strokes. There were more than I had been told to expect, and I still do not know whose they were. I spent a year learning to ring it back, loud enough that the foundry could not miss it, and this page is the year.',
 };
