@@ -29,10 +29,6 @@
 
 Loose ends, and they're cheap. **Proposal:** clear them in one short session before starting a big track.
 
-#### BL-05 · Undo after walking onto a stain
-`bug` `S` · area: combat, lattice · status: done 2026-10-17 · needs: —
-A move that ends on stained oil can now be undone: `UndoRecord.stain` lifts the ink, the stain stays. Scenario test in brass-and-stain.test.ts.
-
 #### BL-06 · Docs refresh
 `docs` `XS` · area: docs · status: ready · needs: —
 TECH.md header still says "2026-10-12"; DESIGN §10 still says "Next: the player plays v0" and leaves "do triggers see same-cast effects?" open although we ship "yes"; §10 checkbox state vs. what's built. Link this roadmap from CLAUDE.md and DESIGN.md.
@@ -194,6 +190,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-17 | Undo after walking onto a stain (was BL-05): `UndoRecord.stain` lifts the ink on undo, the stain stays; scenario in `tests/scenarios/brass-and-stain.test.ts` | DESIGN §11 |
 | 2026-10-17 | The city map, hearing and gates (was BL-22) and the oil-lit canals (was BL-21): sketch map behind the door, hearing by owner and rumour, the canal lock threshold room, the current, landings, the eel, Snuffer, lamp-moths and the lamp-mother; save v5 | [city-and-canals-plan.md](plans/city-and-canals-plan.md), [status](plans/city-and-canals-status.md), [city-and-districts.md](design/city-and-districts.md) §0 "Built" |
 | 2026-10-16 | Glyph mastery review follow-ups: the revert confirm warns about ink, ownership and the Economy discount it loses or gains (was BL-90); targeted scenarios for the extra exit with a Bend argument and beside a rune or Glyph on its extra side (was BL-89) | `revertWarning` in `src/engine/revision.ts`, `tests/scenarios/params-and-exits.test.ts` |
 | 2026-10-16 | **Glyph mastery, stages C, D, G** (was BL-10, BL-11, BL-14): profiler and elegance tiers, ranked list, revisions with versions, Glyph parameters, the extra exit, five owner's drafts at the desk, last-trip dead cells for plain spells; a Fair Copy identity fix found by the new fuzz | [plan](plans/glyph-mastery-plan.md), [status](plans/glyph-mastery-status.md), [feature doc §0](design/research-and-mastery.md) |
