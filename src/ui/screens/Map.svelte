@@ -61,7 +61,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    min-height: 100%;
+    box-sizing: border-box;
+    height: 100%;
     padding: var(--space-3);
     padding-top: calc(var(--space-3) + var(--safe-top));
     background: var(--wall);
@@ -89,8 +90,9 @@
   }
   .page {
     position: relative;
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    aspect-ratio: 1 / 2;
     background: var(--parchment);
     color: var(--ink);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
