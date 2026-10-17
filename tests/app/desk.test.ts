@@ -129,10 +129,11 @@ describe('the lit and faded cells', () => {
 });
 
 describe('the editor palette and the stage', () => {
-  test('the palette is the tray: the page runes with their counts, nothing from the collection', () => {
+  test("the palette is the tray: page runes and page 1's scraps, counted, nothing from the collection", () => {
     const d = draft('lamplighter');
     expect(trayPalette(d, 0)).toEqual([
       { rune: 'bolt', count: 1 },
+      { rune: 'oil', count: 1 },
       { rune: 'spark', count: 1 },
       { rune: 'bend', count: 1 },
     ]);

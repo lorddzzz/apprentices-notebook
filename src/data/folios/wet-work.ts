@@ -1,6 +1,11 @@
 import type { DraftDef } from '../types';
 
-/** Placeholder (W0): today's draft as page 1. C1/C2 rewrite it as a folio (plan §4). */
+/**
+ * Wet Work (deep, Payload in `Bolt> G:draft>`, 3 pages, no decoys; folios plan §4.3). The fixes
+ * live in tests/run/folios-deep.test.ts. Page 1 wires the stranded Spark in, page 2 follows the
+ * fire with a second Spark (On Ignite), page 3 needs more on the target without boosting the
+ * finishing Spark, which would also kill the bystander standing in the burning pool.
+ */
 export const WET_WORK: DraftDef = {
   id: 'wet-work',
   order: 3,
@@ -20,10 +25,33 @@ export const WET_WORK: DraftDef = {
         aim: { dir: 'right' },
         goal: { all: [{ happens: 'ignite' }, { happens: 'detonate' }] },
       },
-      scraps: {},
+      scraps: { bend: 1 },
+    },
+    {
+      note: 'If it runs off into a puddle, follow it. Whoever is standing in the puddle had it coming.',
+      hint: 'Fire runs along the oil on its own. Something can ride after it.',
+      test: {
+        board: ['. . . . . .', 'D . d o do do', '. . . . . .'].join('\n'),
+        aim: { dir: 'right' },
+        hp: { E2: 2, F2: 3 },
+        goal: { all: [{ happens: 'ignite' }, { dies: 'dummy-2' }, { spared: 'dummy-3' }] },
+      },
+      scraps: { onIgnite: 1, spark: 1 },
+    },
+    {
+      note: 'The big one first, and hard. The puddle gets the same as before, no more.',
+      hint: 'Whatever follows the fire hits everyone standing in it. Lean on the first hand.',
+      test: {
+        board: ['. . . . .', 'D . d . .', '. . . . .'].join('\n'),
+        aim: { dir: 'right' },
+        hp: { C2: 10 },
+        goal: { all: [{ happens: 'detonate' }, { dies: 'dummy-1' }] },
+      },
+      scraps: { amplify: 2 },
     },
   ],
   decoys: [],
-  reaction: 'One square. A whole evening, for one square.',
-  lore: "TODO: the owner's page (D1).",
+  reaction:
+    'One square, then a puddle, then a whole evening. The first hand was always the heavy one.',
+  lore: "Placeholder (D1): the owner's page for Wet Work. They took canal jobs that paid by the body, not the hour. The guild called it untidy. The owner called it thrift. Someone else in the canals was keeping count.",
 };

@@ -12,8 +12,8 @@ const draft = (id: string): DraftDef => {
 };
 
 describe('the tray (F1)', () => {
-  test("the owner's page runes, counted", () => {
-    expect(trayCounts(draft('lamplighter'), 0)).toEqual({ bolt: 1, bend: 1, spark: 1 });
+  test("the owner's page runes plus page 1's scraps, counted", () => {
+    expect(trayCounts(draft('lamplighter'), 0)).toEqual({ bolt: 1, bend: 1, spark: 1, oil: 1 });
   });
 
   test('scraps add up page by page', () => {
@@ -35,7 +35,7 @@ describe('the tray (F1)', () => {
     const d = draft('lamplighter');
     const start = draftInside(d);
     expect(trayIssue(d, 0, start)).toBeNull();
-    expect(trayIssue(d, 0, place([3, 3], 'oil')(start))).toBe('The drawer has no Oil');
+    expect(trayIssue(d, 0, place([3, 3], 'fork')(start))).toBe('The drawer has no Fork');
     expect(trayIssue(d, 0, place([3, 3], 'spark')(start))).toBe('The drawer has no more Spark');
   });
 });

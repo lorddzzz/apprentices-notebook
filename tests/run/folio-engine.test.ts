@@ -32,7 +32,11 @@ import { OLD_FIXES, patchCell, place } from '../helpers/folio';
 
 const INDEX = DRAFTS.findIndex((d) => d.id === 'lamplighter');
 const REAL = DRAFTS[INDEX] as DraftDef;
-const PAGE = REAL.pages[0] as DraftDef['pages'][number];
+/** The Lamplighter's first test with an empty drawer, so each test sets the scraps it needs. */
+const PAGE: DraftDef['pages'][number] = {
+  ...(REAL.pages[0] as DraftDef['pages'][number]),
+  scraps: {},
+};
 const IMPOSSIBLE: DraftDef['pages'][number] = {
   ...PAGE,
   test: { ...PAGE.test, goal: { hurt: 'dummy-1', atLeast: 999 } },
