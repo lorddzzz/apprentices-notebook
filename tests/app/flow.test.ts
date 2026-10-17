@@ -449,3 +449,14 @@ test('nearProof finds a pattern cast 3 or 4 times, and not one at 5 or at 2', ()
   expect(hs.map((h) => h.kind)).toEqual(['proof']);
   expect(hs[0]?.text).toContain('3 of 5');
 });
+
+test('reset throws the notebook away for a new game and saves it', () => {
+  const b = memoryBackend();
+  writeSave(b, inDoorway());
+  const game = new GameStore(b, () => 77);
+  expect(game.inDoorway).toBe(true);
+  game.reset();
+  expect(game.save).toEqual(newSave(77));
+  expect(parseSaveText(b.read() ?? '')).toEqual(newSave(77));
+  expect(game.inDoorway).toBe(false);
+});

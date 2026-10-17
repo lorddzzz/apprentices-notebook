@@ -116,7 +116,7 @@
     blocker ?? 'The owner\'s map of the city',
   );
   const doneCaption = $derived(blocker ?? 'Back to the spoils, with the new pages');
-  type Panel = 'closed' | 'menu' | 'paste' | 'copy';
+  type Panel = 'closed' | 'menu' | 'paste' | 'copy' | 'reset';
   let panel = $state<Panel>('closed');
   let pasted = $state('');
   let copyText = $state('');
@@ -147,6 +147,14 @@
     pasted = '';
     panel = 'closed';
     toast('Save loaded');
+  }
+
+  function resetAll(): void {
+    game.reset();
+    panel = 'closed';
+    // A full reload clears every screen's in-memory state too: the next visit is a first one.
+    go('study');
+    location.reload();
   }
 
   function finishField(): void {
@@ -200,7 +208,9 @@
       ? 'Paste save'
       : panel === 'copy'
         ? 'Copy save'
-        : 'The study',
+        : panel === 'reset'
+          ? 'Start over'
+          : 'The study',
   );
 </script>
 
@@ -386,6 +396,12 @@
           onclick={() => (panel = 'paste')}
           testid="paste-save"
         />
+        <Button
+          variant="quiet"
+          label="Start over"
+          onclick={() => (panel = 'reset')}
+          testid="reset-save"
+        />
       </div>
       <p class="hint">
         Your notebook lives in this browser. Copy the save somewhere safe: phones sometimes clear
@@ -405,6 +421,15 @@
       <div class="row">
         <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
         <Button variant="danger" label="Replace my save" onclick={loadPasted} testid="paste-go" />
+      </div>
+    {:else if panel === 'reset'}
+      <p class="hint">
+        This wipes the whole notebook (runes, glyphs, folios, trip) and begins a new game. Copy the
+        save first if you might want it back.
+      </p>
+      <div class="row">
+        <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
+        <Button variant="danger" label="Wipe everything" onclick={resetAll} testid="reset-go" />
       </div>
     {:else if panel === 'copy'}
       <p class="hint">Copying was blocked. Select the text below and copy it by hand.</p>

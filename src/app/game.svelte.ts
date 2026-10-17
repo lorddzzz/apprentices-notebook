@@ -5,6 +5,7 @@ import {
   type Coord,
   compileGlyph,
   type GameEvent,
+  newSave,
   type Profile,
   renameGlyph,
   type SaveData,
@@ -56,7 +57,7 @@ export class GameStore {
 
   constructor(
     private readonly backend: SaveBackend,
-    now: () => number,
+    private readonly now: () => number,
   ) {
     const loaded = loadSave(backend, now());
     this.save = loaded.save;
@@ -174,6 +175,17 @@ export class GameStore {
     this.wipe = null;
     this.tool = NO_TOOL;
     return null;
+  }
+
+  /** Throws the notebook away for a brand-new game (a fresh seed), as on a first visit. */
+  reset(): void {
+    this.dropBattle();
+    this.draft = null;
+    this.commit(newSave(this.now()));
+    this.wipe = null;
+    this.toasted = [];
+    this.member = MEMBER_IDS[0] ?? 'draughtsman';
+    this.tool = NO_TOOL;
   }
 
   // ── Trip ──
