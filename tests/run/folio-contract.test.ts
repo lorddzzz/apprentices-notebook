@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { DRAFTS, type DraftDef } from '$data';
-import { draftInside, folioRun, trayCounts, trayIssue } from '$engine';
+import { draftInside, folioRun, newSave, parseSaveData, trayCounts, trayIssue } from '$engine';
 import { OLD_FIXES, oneEditNeighbours, passesUpTo, place } from '../helpers/folio';
 
 /** W0 of the folios plan (BL-14): the tray, the suite run and the test helper, on the placeholders. */
@@ -66,5 +66,17 @@ describe('oneEditNeighbours', () => {
       expect(Math.abs(n.cells.length - start.cells.length)).toBeLessThanOrEqual(1);
     }
     expect(next.some((n) => n.cells.some((c) => c.rune === 'oil'))).toBe(true);
+  });
+});
+
+describe('parsing a copy (review fix)', () => {
+  test('a saved page past the end of the folio is clamped to its last page, not a rejected save', () => {
+    const save = newSave(7);
+    const d = draft('wet-work');
+    const drafts = [{ id: d.id, inside: draftInside(d), page: 9, repaired: false }];
+    const parsed = parseSaveData(
+      JSON.parse(JSON.stringify({ ...save, profile: { ...save.profile, drafts } })),
+    );
+    expect(parsed.profile.drafts[0]?.page).toBe(d.pages.length - 1);
   });
 });

@@ -1,6 +1,6 @@
 # Research and Mastery: The Scholar's Press
 
-> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G shipped 2026-10-16** (§0, second and third tables; [plan](../plans/glyph-mastery-plan.md)). **Drafts redesigned 2026-10-17** (§0, fourth table): folios with fixed trays and a growing test suite, to build before footnotes. Next after that: footnotes (stage E).
+> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G shipped 2026-10-16** (§0, second and third tables; [plan](../plans/glyph-mastery-plan.md)). **Drafts redesigned and built as folios 2026-10-17** (§0, fourth table and "Folios built"). Next: the player's playtest of the folios, then footnotes (stage E).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
 > Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 
@@ -91,7 +91,23 @@
 | Reward | **A Glyph that starts proven with a tier** (Reliability bronze, as if the owner had field-tested it) **and lore with the owner's mark** on the shelf | Worth more than a Glyph you could have compiled yourself |
 | The five drafts | **All five rebuilt** as folios (the first two are 2-page tutorials) | One consistent shape |
 
-Open, *tune by playing*: exact trays and decoys per folio, whether a bronze head start is too much, and how the record of a drafted Glyph starts (bronze reached, window empty).
+Open, *tune by playing*: exact trays and decoys per folio, and whether a bronze head start is too much.
+
+**Folios built** (*Proposal*, 2026-10-17, [folios plan](../plans/folios-plan.md) F1–F19 plus calls made while building; tune by playing):
+
+| Topic | Default | Why |
+|---|---|---|
+| Tray | The owner's page runes at their counts + the scraps of every unlocked page; the editor palette shows only the tray, with counts; lifting puts a rune back; an edit or repair over the tray is refused ("The drawer has no more Oil") | One closed set of parts |
+| Pages | One working page for the whole folio; `page` is the highest unlocked, never re-locks; Start over resets the inside only | The suite grows, the code stays |
+| Running | "Run the tests" runs every unlocked test; chips `1 ✓ 2 ✗ 3 ○`, goal ticks per test; one board plays (first failing, else newest); a chip shows its test's final state; "broke" marks a test that passed on the previous run this session | Regressions are the puzzle |
+| Turning | All unlocked tests pass → "Turn the page": the next fragment, "+ Spark, + On Ignite" and the new test shown before it runs; new scraps tagged "new" in the drawer | The new parts hint at the next fix |
+| Copy-in | Last page, every test passing, no issues, inside the tray → the Glyph v1 with `draft` set and a record at Reliability bronze, window empty (0 / 10); the reaction, then the lore | Decided: a head start, not a free reward |
+| Mark and lore | Draft Glyphs show a quill on their shelf tile, "in the owner's hand · <name>" on the sheet and a folded "The owner's page" with the lore; revisions keep the mark; reverting to v1 brings bronze back | Decided: the owner's mark |
+| The five folios | The Lamplighter 2 pages (5 runes), Collection 2 (6), Wet Work 3 (9), Left Hand First 3 (8, decoy Steam), The Foundry Bell 4 (10, decoys Brand and Echo). Each later page of the deep folios needs 2–4 edits, and each has a designed regression (a tempting fix that breaks an earlier test). The 2026-10-16 one-page fixes no longer mend any folio | Harder and richer than a minimal fix |
+| Drawer runes | A drawer may hold runes the player hasn't researched (Smear, Etch, Brand); using them at the desk unlocks nothing | The owner's drawer is the owner's |
+| Boards | Folio boards may hold pre-inked units (`r!`): brass carries a spark far, nothing inks that far | The heart's last page needed it |
+| Open folio | Shows the page fragments (they are the note); the cover line is only on the list row with "page 2 / 3" or "mended" | The cover repeated page 1 |
+| Save v6 | Unmended copies restart at page 1 from the new folio; mended ones stay mended (last page); every draft Glyph's v1 record is raised to bronze | Old work doesn't match the new folios |
 
 ## 1. The idea in one page
 

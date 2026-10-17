@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DRAFTS, RUNES } from '$data';
-  import { draftInside, folioRun, insideIssues, lastPage } from '$engine';
+  import { draftInside, insideIssues, lastPage } from '$engine';
   import {
     cellMarks,
     deskRows,
@@ -31,17 +31,22 @@
 
   const last = $derived(def ? lastPage(def) : 0);
   const fresh = $derived(def && copy ? desk.fresh(def.id, copy.inside) : null);
-  // A mended folio reads as all passing, whatever ran this session.
-  const run = $derived(
-    fresh?.run ?? (def && copy?.repaired ? folioRun(def, copy.page, copy.inside) : null),
-  );
+  // A mended folio reads as all passing and is never re-run: a page mended before save v6 can fail
+  // the rebuilt tests (F16 keeps its inside).
+  const run = $derived(copy?.repaired ? null : (fresh?.run ?? null));
   const broke = $derived(fresh?.broke ?? []);
   const sel = $derived(copy ? desk.selected(copy.page, run) : 0);
   const test = $derived(def ? def.pages[sel]?.test : undefined);
   const lines = $derived(test ? goalSentences(test.goal) : []);
   const shown = $derived(run?.tests[sel] ?? null);
   const marks = $derived(copy ? cellMarks(copy.inside, shown ? shown.events : null) : {});
-  const chips = $derived(copy ? testChips(copy.page, run, broke) : []);
+  const chips = $derived(
+    copy
+      ? copy.repaired
+        ? testChips(copy.page, null, []).map((c) => ({ ...c, state: 'pass' as const }))
+        : testChips(copy.page, run, broke)
+      : [],
+  );
   const issues = $derived(copy ? insideIssues(copy.inside) : []);
   const notes = $derived(def && copy ? noteFragments(def, copy) : []);
   const drawer = $derived(def && copy ? drawerView(def, copy.page, copy.inside) : []);

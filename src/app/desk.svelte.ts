@@ -42,6 +42,8 @@ export class DeskStore {
   private start = $state.raw<BoardView | null>(null);
   /** The previous run's pass flags in this desk session (F6). */
   private prev: boolean[] | null = null;
+  /** Bumped by each run and each `show`, so a playback that ends late can't write a stale result. */
+  private runs = 0;
 
   get playing(): boolean {
     return this.playback.playing;
@@ -75,6 +77,7 @@ export class DeskStore {
 
   show(id: DraftId | null): void {
     this.playback.skip();
+    this.runs += 1;
     this.open = id;
     this.result = null;
     this.start = null;
@@ -100,7 +103,10 @@ export class DeskStore {
     this.result = null;
     this.chosen = null;
     this.start = viewOf(stage.state);
+    const token = ++this.runs;
     await this.playback.play(this.start, played.events.slice(stage.events.length));
+    // Left the folio (or started another run) while it played: drop the result.
+    if (token !== this.runs || this.open !== id) return;
     this.prev = run.tests.map((t) => t.passed);
     this.result = { draft: id, page: pageKey(inside), run, broke };
   }
@@ -128,7 +134,11 @@ export class DeskStore {
   turn(id: DraftId): void {
     const err = this.game.updateProfile((p) => turnPage(p, id));
     if (err) toast(err, 'warn');
-    else this.chosen = null;
+    else {
+      // The new test hasn't run; the earlier results stay in `prev` for "broke".
+      this.result = null;
+      this.chosen = null;
+    }
   }
 
   /** "Copy into my notebook": the passing last page becomes a Glyph. */

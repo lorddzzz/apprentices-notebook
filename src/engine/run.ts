@@ -773,8 +773,13 @@ function parseDraftCopy(v: unknown): DraftCopy {
   const id = oneOf(DRAFT_IDS, r.id);
   const page = count(r.page);
   const pages = DRAFTS.find((d) => d.id === id)?.pages.length ?? 1;
-  if (page >= pages) bad();
-  return { id, inside: parseInside(r.inside), page, repaired: bool(r.repaired) };
+  // A folio that lost pages keeps the copy on its last one rather than rejecting the save.
+  return {
+    id,
+    inside: parseInside(r.inside),
+    page: Math.min(page, pages - 1),
+    repaired: bool(r.repaired),
+  };
 }
 
 function parseProfile(v: unknown): Profile {
