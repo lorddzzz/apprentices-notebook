@@ -41,7 +41,11 @@ Four tracks. Within a track the order matters; across tracks it doesn't. **Propo
 
 ### Track M · Mastery (the Scholar's Press, stages C–G)
 
-Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13; stages C, D, G (profiler and elegance, parameters, the owner's drafts) shipped 2026-10-16.
+Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13; stages C, D, G (profiler and elegance, parameters, the owner's drafts) shipped 2026-10-16; the drafts were redesigned as folios after the playtest (2026-10-17, BL-14).
+
+#### BL-14 · Folios: rebuild the owner's drafts
+`feature` `M`–`L` · area: mastery, desk · status: ready (needs a plan) · needs: —
+From the 2026-10-17 drafts round (feature doc §0, §4.7): each draft becomes a 2–4 page folio with a fixed tray (page runes + drawer scraps, counts, no collection), a test suite that grows a test per page and re-runs in full, 1–2 scraps per page, decoys in later folios, and a reward Glyph at Reliability bronze with the owner's mark and a lore page. All five drafts rewritten (harder, richer final shapes); save migration for banked drafts. **Before footnotes (BL-12).**
 
 #### BL-12 · Stage E: footnotes
 `feature` `M` · area: mastery, runes · status: needs-design · needs: —
@@ -190,6 +194,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-17 | Flow lines on the draft page and in the revision editor (playtest feedback): `insideFlow` walks a Glyph's inside in local cells for the same overlay as the board | `src/engine/revision.ts`, `FlowOverlay` `origin` |
 | 2026-10-17 | Undo after walking onto a stain (was BL-05): `UndoRecord.stain` lifts the ink on undo, the stain stays; scenario in `tests/scenarios/brass-and-stain.test.ts` | DESIGN §11 |
 | 2026-10-17 | The city map, hearing and gates (was BL-22) and the oil-lit canals (was BL-21): sketch map behind the door, hearing by owner and rumour, the canal lock threshold room, the current, landings, the eel, Snuffer, lamp-moths and the lamp-mother; save v5 | [city-and-canals-plan.md](plans/city-and-canals-plan.md), [status](plans/city-and-canals-status.md), [city-and-districts.md](design/city-and-districts.md) §0 "Built" |
 | 2026-10-16 | Glyph mastery review follow-ups: the revert confirm warns about ink, ownership and the Economy discount it loses or gains (was BL-90); targeted scenarios for the extra exit with a Bend argument and beside a rune or Glyph on its extra side (was BL-89) | `revertWarning` in `src/engine/revision.ts`, `tests/scenarios/params-and-exits.test.ts` |

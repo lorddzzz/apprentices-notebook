@@ -1,6 +1,6 @@
 # Research and Mastery: The Scholar's Press
 
-> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G shipped 2026-10-16** (§0, second and third tables; [plan](../plans/glyph-mastery-plan.md)). Next: footnotes (stage E) after the player has played them.
+> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G shipped 2026-10-16** (§0, second and third tables; [plan](../plans/glyph-mastery-plan.md)). **Drafts redesigned 2026-10-17** (§0, fourth table): folios with fixed trays and a growing test suite, to build before footnotes. Next after that: footnotes (stage E).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
 > Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 
@@ -78,6 +78,20 @@
 | Drafts | Five drafts in story order (The Lamplighter, Collection, Wet Work, Left Hand First, The Foundry Bell), one per trip at most, only once you own a Glyph, gated by depth. The desk (`#/desk`, from the Study) runs each draft's 5×3 test with one cast; goals read as plain lines with ticks; a stranded rune shows as "never reached" but doesn't stop a test; passing on a clean page adds a Glyph you didn't have to prove and shows the owner's reaction | Decided: a test at the desk |
 | Plain spells | The last trip's casts and harm under each spell, and a faint dashed ring on cells that never fired, only while the spell is wired as it was fought | Decided: last trip only |
 | Fair Copy fix | A tail that the cluster's own spell would lose counts as stranded even if another spell still reaches it (found by the fuzz; before, the collapse dropped it silently) | Compiling must never change a cast without saying so |
+
+**Decided in the drafts round of 2026-10-17** (after the first playtest of stage G). The player's feedback: the minimal fix gives a much simpler Glyph than their own Fair Copies; parts from an unlimited collection make it too easy; puzzles should be harder and pay more; a long draft could need several fixes, each passing part of a test. These answers **supersede** the 2026-10-16 rows "How a draft is repaired" and "Draft difficulty" above and the "Drafts" build default.
+
+| Question | Decision | Why |
+|---|---|---|
+| Parts | **A tray of scraps**: a draft can use only the runes on its page plus the loose runes in its drawer, with counts. Nothing from the collection | A defined puzzle; the parts hint at the shape of the answer |
+| Several bugs | **A folio with a growing test suite**: a draft has pages; page 1 has one test, passing it turns the page and adds the next test. **Every test runs on every attempt**, so a fix can break what already worked | Real debugging: regressions are the puzzle |
+| What a new page adds | **A test and 1–2 new scraps** in the drawer, plus the next fragment of the owner's note | The new parts hint at the next fix |
+| Red herrings | **Only in later folios**: the first folios use every scrap; deeper ones add 1–2 decoys | Teach with "use them all", then take the crutch away |
+| Length | **2 → 4 pages, rising** with depth: tutorial folios 2, middle 3, the heart folio 4 (≈ 10–20 min for the hardest) | Difficulty grows with the trip |
+| Reward | **A Glyph that starts proven with a tier** (Reliability bronze, as if the owner had field-tested it) **and lore with the owner's mark** on the shelf | Worth more than a Glyph you could have compiled yourself |
+| The five drafts | **All five rebuilt** as folios (the first two are 2-page tutorials) | One consistent shape |
+
+Open, *tune by playing*: exact trays and decoys per folio, whether a bronze head start is too much, and how the record of a drafted Glyph starts (bronze reached, window empty).
 
 ## 1. The idea in one page
 
@@ -291,7 +305,9 @@ Idioms are recognised on **aspect sequences**, not exact runes, so they generali
 Building an idiom anywhere (even in the Lab) prints *"Idiom recognised: Cashing In"* with an owner's note, fills a codex page, and makes it **free to compile once proven**. Idiom silhouettes are visible in the codex before discovery, as aspect shapes.
 
 ### 4.7 The owner's drafts (debugging as a puzzle)
-Some loot is **a half-working Glyph in the owner's hand**: it compiles, but has a bug (a Bend facing the wrong way, a trigger waiting on an event that never happens, a dead branch). The notebook's note says what it *meant* to do. Open it, find the bug with the profiler (§4.9), fix it, and it works, and you have a Glyph you didn't have to prove. This is the best mystery delivery vehicle: *someone else's code, read and repaired.*
+Some loot is **a half-working Glyph in the owner's hand**: it compiles, but has bugs (a Bend facing the wrong way, a trigger waiting on an event that never happens, a dead branch). The notebook's note says what it *meant* to do.
+
+**Folios (decided 2026-10-17, §0).** A draft is a folio of 2–4 pages. Each page adds a test (a small board and a goal from the next fragment of the note) and drops 1–2 scraps into the drawer. The page can only be mended with its own runes and the drawer's: no runes from the collection. Every test in the folio runs on every attempt, so a fix for page 3 can break page 1. Later folios hide a decoy or two in the drawer. Passing the last page gives the mended Glyph, already at Reliability bronze, with the owner's mark and a page of the owner's story. This is the best mystery delivery vehicle: *someone else's code, read and repaired.*
 
 ### 4.8 Refactoring and versions
 Open a Glyph at the desk: its inner lattice is an editable page with the same ink rules. Save as **v2**; old versions stay in the changelog, and **reverting is free**. Editing a Glyph that has been crystallised is not possible (it's an atom now); you can fork the source Glyph if you kept a copy.
