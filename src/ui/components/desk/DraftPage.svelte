@@ -1,7 +1,8 @@
 <script lang="ts">
   import { RUNES } from '$data';
-  import { type CellKey, type Coord, type GlyphInside, key, sameCoord } from '$engine';
+  import { type CellKey, type Coord, type GlyphInside, insideFlow, key, sameCoord } from '$engine';
   import type { CellMark } from '../../../app/desk';
+  import FlowOverlay from '../lattice/FlowOverlay.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   /** A draft's page, read-only: the runes on a small grid, fired cells lit and unreached ones faded. */
@@ -30,6 +31,7 @@
       y: box.y0 + Math.floor(i / box.width),
     })),
   );
+  const flow = $derived(insideFlow(inside));
   const placedAt = (at: Coord) => inside.cells.find((c) => sameCoord(c.at, at));
   const label = (at: Coord): string => {
     const placed = placedAt(at);
@@ -63,18 +65,29 @@
       {#if placed}<RuneGlyph rune={placed.rune} dir={placed.dir} size={40} />{/if}
     </div>
   {/each}
+  <FlowOverlay
+    compiled={flow}
+    focus={null}
+    cols={box.width}
+    rows={box.height}
+    origin={{ x: box.x0, y: box.y0 }}
+  />
 </div>
 
 <style>
+  /* No grid gap: the flow overlay maps one cell to one column, so cells keep their spacing as a margin. */
   .page {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(var(--cols), 48px);
-    grid-auto-rows: 48px;
+    grid-template-columns: repeat(var(--cols), 52px);
+    grid-auto-rows: 52px;
     justify-content: center;
-    gap: 4px;
+    width: max-content;
     max-width: 100%;
+    margin: 0 auto;
   }
   .cell {
+    margin: 2px;
     display: grid;
     place-items: center;
     border-radius: var(--radius);

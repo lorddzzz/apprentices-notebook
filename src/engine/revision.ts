@@ -1,4 +1,4 @@
-import { IDIOMS, MEMBER_IDS, MEMBERS, RUNES, type RuneId, TUNING } from '$data';
+import { type AuraRuneId, IDIOMS, MEMBER_IDS, MEMBERS, RUNES, type RuneId, TUNING } from '$data';
 import { matchBranch } from './cluster';
 import { argIssue } from './glyph';
 import {
@@ -6,6 +6,7 @@ import {
   type Dir,
   key,
   label,
+  neighbors4,
   opposite,
   sameCoord,
   step,
@@ -16,15 +17,19 @@ import { compileLattice } from './lattice';
 import { emptyRecord, recordOf, rewardsOf, versionKey } from './profiler';
 import { glyphLibrary, validateLoadout } from './run';
 import type {
+  AuraTouch,
   CellKey,
+  CompiledLattice,
   GlyphDef,
   GlyphId,
   GlyphInside,
   GlyphLibrary,
   GlyphRecord,
   Lattice,
+  PathCell,
   PlacedRune,
   Profile,
+  Spell,
 } from './types';
 
 /**
@@ -106,8 +111,13 @@ function probeDef(inside: GlyphInside): GlyphDef {
   };
 }
 
-/** Local cells the compiler's walk enters (the entry included) when the inside stands alone. */
-function reachedCells(inside: GlyphInside): Set<CellKey> {
+/**
+ * The inside's flow when it stands alone, in local cells: the compiler's walk with each path
+ * cell at its local coord (the probe socket faces right, so local directions read straight).
+ * Aura touches follow the outer board's rule: Echo and Thrift on the source, Amplify on the
+ * source and material cells.
+ */
+export function insideFlow(inside: GlyphInside): CompiledLattice {
   const def = probeDef(inside);
   const lib: GlyphLibrary = { [def.id]: def };
   const lattice: Lattice =
@@ -123,11 +133,32 @@ function reachedCells(inside: GlyphInside): Set<CellKey> {
             { at: { x: 1, y: 0 }, glyph: def.id, dir: 'right' },
           ],
         };
-  const out = new Set<CellKey>();
+  const local = cellMapOf(inside.cells);
+  const reached = new Set<CellKey>();
+  const touches = new Map<string, AuraTouch>();
+  const touch = (aura: AuraRuneId, to: Coord): void => {
+    for (const n of neighbors4(to)) {
+      if (local.get(key(n))?.rune !== aura) continue;
+      touches.set(`${key(n)}>${key(to)}`, { aura, from: n, to });
+    }
+  };
+  const spells: Spell[] = [];
   for (const spell of compileLattice(lattice, [], lib).spells) {
-    for (const cell of spell.path) if (cell.inner) out.add(key(cell.inner));
+    const path: PathCell[] = spell.path.flatMap((p) =>
+      p.inner ? [{ at: p.inner, rune: p.rune, dir: p.dir }] : [],
+    );
+    for (const p of path) {
+      reached.add(key(p.at));
+      const family = RUNES[p.rune].family;
+      if (family === 'source' || family === 'material') touch('amplify', p.at);
+    }
+    if (inside.kind === 'spell') {
+      touch('echo', inside.entry);
+      touch('thrift', inside.entry);
+    }
+    spells.push({ ...spell, key: key(inside.entry), at: inside.entry, path });
   }
-  return out;
+  return { spells, reached: [...reached], auraTouches: [...touches.values()] };
 }
 
 /** Every rule of M18 the inside breaks. A stranded cell or a lone aura is the only non-blocking kind (M34). */
@@ -215,7 +246,7 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
 
   // Reach is only meaningful once the way in works.
   if (entry && pinned && issues.every((i) => i.kind !== 'kind' && i.kind !== 'entry')) {
-    const reached = reachedCells(inside);
+    const reached = new Set(insideFlow(inside).reached);
     for (const c of inside.cells) {
       const family = familyOf(c.rune);
       if (family === 'source') continue;

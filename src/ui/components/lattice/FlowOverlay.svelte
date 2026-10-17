@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { CompiledLattice, SpellKey } from '$engine';
+  import type { CompiledLattice, Coord, SpellKey } from '$engine';
   import { key } from '$engine';
   import { arrowHead, auraLinks, flowSegments, linkLine } from '../../../app/flowGeometry';
 
@@ -8,9 +8,11 @@
     focus: SpellKey | null;
     cols: number;
     rows: number;
+    /** The cell drawn at the top-left (a Glyph's inside has local cells left of and above 0, 0). */
+    origin?: Coord;
   }
 
-  let { compiled, focus, cols, rows }: Props = $props();
+  let { compiled, focus, cols, rows, origin = { x: 0, y: 0 } }: Props = $props();
 
   // Trim so lines live in the gaps between the rune frames instead of under them.
   const TRIM = 0.33;
@@ -47,7 +49,7 @@
 
 <svg
   class="flow"
-  viewBox="0 0 {cols} {rows}"
+  viewBox="{origin.x} {origin.y} {cols} {rows}"
   preserveAspectRatio="none"
   aria-hidden="true"
   data-testid="flow"

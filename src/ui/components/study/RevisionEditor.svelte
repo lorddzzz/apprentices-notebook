@@ -1,6 +1,14 @@
 <script lang="ts">
   import { RUNES } from '$data';
-  import { type Coord, type GlyphInside, type InsideIssue, key, revisionCanvas, sameCoord } from '$engine';
+  import {
+    type Coord,
+    type GlyphInside,
+    type InsideIssue,
+    insideFlow,
+    key,
+    revisionCanvas,
+    sameCoord,
+  } from '$engine';
   import {
     canvasCells,
     insideInk,
@@ -14,6 +22,7 @@
   import { longpress } from '../../attach/longpress';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
+  import FlowOverlay from '../lattice/FlowOverlay.svelte';
   import RuneShelf from '../lattice/RuneShelf.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -71,6 +80,7 @@
   const slots = $derived(current ? paletteSlots(palette, current) : []);
   const canvas = $derived(current ? revisionCanvas(current) : null);
   const cells = $derived(current ? canvasCells(current) : []);
+  const flow = $derived(current ? insideFlow(current) : null);
 
   const worst = (at: Coord): InsideIssue | undefined => {
     const here = found.filter((i) => i.at && sameCoord(i.at, at));
@@ -154,6 +164,15 @@
               {#if entry}<span class="lock" aria-hidden="true">in</span>{/if}
             </button>
           {/each}
+          {#if flow}
+            <FlowOverlay
+              compiled={flow}
+              focus={null}
+              cols={canvas.width}
+              rows={canvas.height}
+              origin={canvas.origin}
+            />
+          {/if}
         </div>
       </div>
 
@@ -209,6 +228,7 @@
     justify-content: center;
   }
   .grid {
+    position: relative;
     --pitch: min(56px, calc(100cqw / var(--cols)));
     display: grid;
     grid-template-columns: repeat(var(--cols), var(--pitch));

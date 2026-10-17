@@ -17,6 +17,7 @@ import {
   glyphLibrary,
   glyphVersions,
   innerMeta,
+  insideFlow,
   insideIssues,
   insideOf,
   type Lattice,
@@ -289,6 +290,49 @@ describe('insideIssues', () => {
 
   test('every issue carries a readable message', () => {
     for (const m of messages(spellInside(rune('ink', 1, 0)))) expect(m.length).toBeGreaterThan(5);
+  });
+});
+
+describe('insideFlow', () => {
+  const walk = (inside: GlyphInside) =>
+    insideFlow(inside).spells.map((s) =>
+      s.path.map((p) => `${p.rune}@${p.at.x},${p.at.y}>${p.dir}`),
+    );
+
+  test('a Spell inside walks from its source in local cells', () => {
+    expect(walk(CASHING)).toEqual([
+      ['bolt@0,0>right', 'ink@1,0>right', 'onInked@2,0>right', 'spark@3,0>right'],
+    ]);
+  });
+
+  test('a Payload inside starts at its entry, with no outer cell in the path', () => {
+    const pay = payloadInside(rune('ink', 0, 0), rune('onInked', 1, 0), rune('spark', 2, 0));
+    expect(walk(pay)).toEqual([['ink@0,0>right', 'onInked@1,0>right', 'spark@2,0>right']]);
+  });
+
+  test('a Fork walks both branches with their local directions; stranded cells are not reached', () => {
+    const forked = spellInside(
+      rune('bolt', 0, 0, 'right'),
+      rune('fork', 1, 0),
+      rune('ink', 1, -1),
+      rune('oil', 1, 1),
+      rune('spark', 3, 3),
+    );
+    expect(walk(forked)).toEqual([
+      ['bolt@0,0>right', 'fork@1,0>right', 'ink@1,-1>up', 'oil@1,1>down'],
+    ]);
+    expect(insideFlow(forked).reached).not.toContain('3,3');
+  });
+
+  test('auras touch like on the board: Amplify on materials, Echo on the source', () => {
+    const glowing = spellInside(...CASHING.cells, rune('amplify', 1, 1), rune('echo', 0, 1));
+    expect(insideFlow(glowing).auraTouches).toEqual(
+      expect.arrayContaining([
+        { aura: 'amplify', from: c(1, 1), to: c(1, 0) },
+        { aura: 'echo', from: c(0, 1), to: c(0, 0) },
+      ]),
+    );
+    expect(insideFlow(glowing).auraTouches).toHaveLength(2);
   });
 });
 
