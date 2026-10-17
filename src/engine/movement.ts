@@ -37,8 +37,7 @@ export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   m.pos = { ...to };
   m.moved = true;
   const inkedBy = settle(ctx, m);
-  // A stain stays sprung: walking into one can't be taken back.
-  m.undo = inkedBy === 'stain' ? null : { from, puddle: inkedBy === 'puddle' };
+  m.undo = { from, puddle: inkedBy === 'puddle', stain: inkedBy === 'stain' };
 }
 
 export function undoMove(ctx: Ctx, m: MemberUnit): void {
@@ -47,6 +46,8 @@ export function undoMove(ctx: Ctx, m: MemberUnit): void {
   if (undo.puddle) {
     m.inked = false;
     tileAt(ctx.s, m.pos).ink = true;
+  } else if (undo.stain) {
+    m.inked = false;
   }
   emit(ctx, { type: 'moveUndone', unit: ref(m), to: { ...undo.from } });
   m.pos = { ...undo.from };

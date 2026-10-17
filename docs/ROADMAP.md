@@ -30,8 +30,8 @@
 Loose ends, and they're cheap. **Proposal:** clear them in one short session before starting a big track.
 
 #### BL-05 · Undo after walking onto a stain
-`bug` `S` · area: combat, lattice · status: ready · needs: —
-A move that ends on stained oil can't be undone, because `UndoRecord` has no stain field. Add it and a scenario test.
+`bug` `S` · area: combat, lattice · status: done 2026-10-17 · needs: —
+A move that ends on stained oil can now be undone: `UndoRecord.stain` lifts the ink, the stain stays. Scenario test in brass-and-stain.test.ts.
 
 #### BL-06 · Docs refresh
 `docs` `XS` · area: docs · status: ready · needs: —

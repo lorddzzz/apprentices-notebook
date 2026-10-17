@@ -122,11 +122,13 @@ test('the shove action onto a stain inks the target', () => {
   expect(r.lines).toContain('rat at C1 stops on stained oil and is inked');
 });
 
-test('a walk ending on a stain inks the walker, and the move can no longer be undone', () => {
+test('a walk ending on a stain inks the walker; undoing it un-inks and the stain stays', () => {
   const r = act(board('D . $ . d'), { type: 'move', unit: 'draughtsman', to: parseLabel('C1') });
   expect(r.lines.at(-1)).toBe('Draughtsman stops on stained oil and is inked');
   expect(unitAtLabel(r.state, 'C1').inked).toBe(true);
-  expect(() => act(r.state, { type: 'undoMove', unit: 'draughtsman' })).toThrow();
+  const back = act(r.state, { type: 'undoMove', unit: 'draughtsman' });
+  expect(unitAtLabel(back.state, 'A1').inked).toBe(false);
+  expect(cell(back.state, 'C1').stain).toBe(true);
 });
 
 test('walking past a stain does not ink', () => {

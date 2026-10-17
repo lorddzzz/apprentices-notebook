@@ -210,6 +210,7 @@ interface UnitBase {
 export interface UndoRecord {
   from: Coord;
   puddle: boolean; // the move consumed an ink puddle
+  stain: boolean; // the move ended on stained oil (the stain stays; the ink comes off)
 }
 export interface MemberUnit extends UnitBase {
   kind: 'member';
