@@ -12,7 +12,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 |---|---|---|---|---|---|---|
 | plan | opus agent | M | done | 859dbf9 | ~? | 457 lines, 42 Proposals |
 | W0 | opus (me) | M | merged | (this commit) | ~5% | contracts in `src/data/next/` and `src/engine/next/` (not the plan's runeModel.ts/model.ts names); W0b moves them in |
-| W0b | opus | L | waiting | | | deps W0 |
+| W0b | opus | L | running | worktree | | started 22:14 UTC |
 | W0c | sonnet | L | waiting | | | deps W0b; merged with it |
 | E1 | opus | L | waiting | | | |
 | E2 | sonnet | L | waiting | | | |
@@ -44,6 +44,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
 |---|---|---|---|---|---|
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
+| 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 
