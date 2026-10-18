@@ -35,6 +35,14 @@ TECH.md header still says "2026-10-12"; DESIGN §10 still says "Next: the player
 
 ---
 
+#### BL-99 · The Seam's map label
+`content` `XS` · area: world · status: ready · needs: —
+`districts.ts` tags the Seam "Ink · The Notaries". Since the districts round (2026-10-18) it is the owner's own drawing with no guild; the Notaries hold the ink-makers' quarter. Change the label (and the map caption).
+
+#### BL-98 · Rune content rework
+`design` `L`–`XL` · area: runes, bench, materials · status: needs-design · needs: —
+The player's verdict (2026-10-17): rune content is the weakest feature. The basic runes all build up a state that Spark then sets off, and Bench runes are sums of two runes in a flow. Problem and connected ideas: [rune-content.md](design/rune-content.md). Districts, rivals and the party were scoped first (2026-10-18, §7 there): runes belong to guild schools (verbs), must be counterable in rivals' hands, and feed across a party of 3. This would absorb or reshape BL-20, BL-24, BL-51, BL-52, BL-53, BL-55, BL-57 and the footnote content (BL-12, BL-54).
+
 ## 2. Roadmap (planned tracks)
 
 Four tracks. Within a track the order matters; across tracks it doesn't. **Proposal: Mastery first**, because Compile currently rewards only an ink saving and nothing grows with use, and a second district would sit on that thin layer. The player decides.
@@ -65,7 +73,7 @@ The remaining tier-1 recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap; solvent
 
 #### BL-30 · Rival inscribers
 `feature` `XL` · area: combat, world, lattice · status: needs-design · needs: — (BL-21 done)
-Enemies with lattices of their own whose chains are telegraphed too (Into the Breach for spell chains). The most distinctive idea in the design and the hardest: how an enemy lattice is authored, shown and previewed, and how AI picks casts deterministically. Do a design round and a small prototype in the Lab before committing. DESIGN §6.7.
+**Scoped 2026-10-18** ([rivals.md](design/rivals.md)): each guild's inscribers, the same runes plus one trick, break their chain, a page of their lattice as the reward. Enemies with lattices of their own whose chains are telegraphed too (Into the Breach for spell chains). The most distinctive idea in the design and the hardest: how an enemy lattice is authored, shown and previewed, and how AI picks casts deterministically. Do a design round and a small prototype in the Lab before committing. DESIGN §6.7.
 
 ### Track A · Atmosphere and party
 
@@ -81,8 +89,9 @@ Why the owner was expelled. Delivered through codex notes, owner's drafts, guild
 `feature` `M` · area: audio · status: needs-design · needs: —
 Decided "none in v0", never revisited. Needs a tone decision (rain, kettle, chime on a chain?), free assets or synthesis, and the iOS rules (a user gesture to unlock, mute switch, PWA behaviour).
 
-#### BL-43 · A third party member
-`feature` `L` · area: party, lattice · status: needs-design · needs: —
+#### BL-43 · The household: recruiting, picking 3, no lattice shapes
+`feature` `L`–`XL` · area: party, lattice · status: needs-design · needs: BL-98 (school leans)
+**Scoped 2026-10-18** ([party.md](design/party.md)): apprentices from districts and the door, pick 3 of many, school lean + habit + body, no fixed lattice shapes (ink only), board about 7×9.
 Max party size and recruitment are open (DESIGN §6.1). Each member is a lattice shape plus an affinity: a Steam or Brass member would explore the untouched affinities before any signature abilities (held back deliberately, playtest 1).
 
 ---

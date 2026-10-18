@@ -8,6 +8,9 @@
 |---|---|---|---|---|
 | Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Building**: Bench + Compile shipped 2026-10-13; stages C, D, G shipped 2026-10-16 | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md), [glyph-mastery-plan.md](../plans/glyph-mastery-plan.md) |
 | The city map, hearing, gates, and the oil-lit canals | [city-and-districts.md](city-and-districts.md) | **Decided** 2026-10-16 (map and gates; canals) | §6.7 | [city-and-canals-plan.md](../plans/city-and-canals-plan.md) |
+| Rune content rework | [rune-content.md](rune-content.md) | **Exploring** 2026-10-17 (problem defined; frame set 2026-10-18) | §6.3 | — |
+| Rival inscribers | [rivals.md](rivals.md) | **Exploring** (scoped 2026-10-18) | §6.7 | — |
+| The party (apprentices) | [party.md](party.md) | **Exploring** (scoped 2026-10-18) | §6.1 | — |
 
 ## How a feature doc works
 

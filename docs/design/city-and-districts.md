@@ -2,8 +2,50 @@
 
 > **Status: Built** (2026-10-17, BL-21 + BL-22; rules as built in §0 "Built", *tune by playing*). Designed in two rounds of 2026-10-16 (§0). Plan: [city-and-canals-plan.md](../plans/city-and-canals-plan.md), build log: [city-and-canals-status.md](../plans/city-and-canals-status.md).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. The Seam, the first district: DESIGN.md §9.2. Trip rules: DESIGN.md §6.4.
-> **Out of scope on purpose:** aspects, recipes, loot tables, solvents and rune content. They wait for a rune-content rework once every core feature exists. Until then a new district reuses the current loot and runes.
+> **Out of scope on purpose:** aspects, recipes, loot tables, solvents and rune content. They belong to the rune content rework ([rune-content.md](rune-content.md)). Since the 2026-10-18 scoping round (§0a), each district brings a guild school.
 > Numbers and conditions are drafts, *tune by playing*.
+
+## 0a. Scoping round: idioms and districts (2026-10-18)
+
+These answers set the frame for the rune content rework ([rune-content.md](rune-content.md) §7). They **replace** the out-of-scope note in the header for every district after the canals, and the canals get a school retrofitted.
+
+| Question | Decision | Why |
+|---|---|---|
+| What a district gives your notebook | **A guild's school**: a few runes, its solvents and its idioms. A district teaches a new way to cast, not just new foes | Runes get a home and a flavour, and the Bench a reason to travel |
+| What a school is | **A way of thinking, not a material**: each guild owns a verb or habit across materials (e.g. conditions, timing, areas, structure). Material leans stay on the boards | Fixes "every rune is a material" at the root |
+| Mixing schools | **Free**: any rune goes anywhere, **but each apprentice leans** toward one or two schools ([party.md](party.md)) | Cross-school combos are the discoveries; members give the pull |
+| City size | **A handful, then the truth: about 5–6 districts**, each deep (guild, rule, boss), ending at the guild that expelled the owner | A finite shape for runes, aspects and solvents to fill |
+| Idioms | **A guild's signature**: each guild casts in a recognisable style. You learn its idioms in its district (folios, archives, beating its inscribers), and rivals visibly cast them at you ([rivals.md](rivals.md)) | Idioms get a home, and rivals show them in use |
+| How districts differ | **In everything**: trip shape, foes, bosses, return paths, special drops and doors, and **a new terrain or state** that generic runes (verbs) find new uses for. Later districts may twist one material a little; that's spice, not the core | Old runes find new uses in new places |
+
+**City size, revised in the districts round below:** 7 districts, not 5–6.
+
+### Districts round: themes and schools (2026-10-18)
+
+| Question | Decision | Why |
+|---|---|---|
+| The owner's guild (the last district) | **The Cartographers.** They draw the city, and what they draw becomes true; that's why streets won't stay put. The owner was expelled for drawing a place that shouldn't exist: **the Seam**. The sketch map is in their hand | Ties the map, the uncanny city and the mystery into one thread |
+| Who holds the Seam | **No guild: it's the owner's own drawing.** Its runes are the owner's basics. The Notaries move to the ink quarter (the game's "Ink · The Notaries" label on the Seam changes) | The first district is the mystery itself |
+| The Lamplighters' school | **Timing**: fuses, delays, things that arrive later | It echoes the current: lay it now, it pays off later |
+| The Notaries' school | **Contracts**: conditions and consequences, triggers that watch the board, marks as debts collected later | The home of conditional magic, which the rune rework, rivals and party combos lean on |
+| The middle districts | **The bathhouses, the bridges and the bell foundry, all three.** The city grows to **7** | The player wanted all three |
+| Brass | **The foundry takes brass.** The bridges lean on **height** instead | Two brass districts would blur |
+| The bathhouses' school | **Areas**: filling, spreading, seeping to neighbours | A clear contrast to the single-target schools |
+| The bridges' boards | **Crumbling stone spans over a drop** (Claude's pick; the player liked all three options): the drop is terrain, and spans crack away into new gaps. Wind is left out because it copies the current | Structure matters most where there's somewhere to fall |
+| The Cartographers' boards | **Unfinished paper**: no material lean, half-drawn tiles that aren't there yet, streets redrawn mid-fight | Everything you've learned meets in one place |
+| Order | **No fixed order after the canals.** The map branches: you hear of several districts and choose which to open. The Cartographers come last | Choice on the map; and every guild school must stand on the Seam's basics alone |
+
+**The seven districts** (themes and schools; stages, rules, foes and bosses come in each district's own round):
+
+| # | District | Guild | Theme | Lean | School |
+|---|---|---|---|---|---|
+| 1 | **The Seam** | none (the owner's drawing) | Where the canals, the ink quarter and the bathhouses grind together wrongly; a canal runs uphill into a steam vent | all five | **The owner's basics**: plain materials, simple shapes, the first triggers |
+| 2 | **The oil-lit canals** (built) | the Lamplighters | Black water between slick quays; lamps kept lit by a guild that dislikes strangers; a canal that climbs a hill | Oil, water | **Timing**: fuses, delays, things that arrive later |
+| 3–6 (any order) | **The ink-makers' quarter** | the Notaries | Clerks who write things down so they become binding; ink vats, ledgers, seals | Ink | **Contracts**: conditions and consequences, triggers that watch the board, marks as debts |
+| | **The bathhouses** | (to name) | Steam halls bigger inside than out; people go in and don't come out the same | Steam | **Areas**: filling, spreading, seeping |
+| | **The bridges** | the bridge-wardens | Stone spans to places that aren't there, crumbling over a drop | Height (the drop) | **Structure**: plates, holding, displacement, the fall |
+| | **The bell foundry** | (to name; the Bellwrights?) | Bells cast to keep the city from drifting apart | Brass | **Resonance**: effects that ring through everything connected |
+| 7 | **The Cartographers' hall** | the Cartographers | The guild that draws the city into being, and expelled the owner | Unfinished paper | **The board itself**: moving terrain, swapping places, redrawing where things are |
 
 ## 0. Decided in the design round (2026-10-16)
 
@@ -215,17 +257,9 @@ A great lantern floating mid-pool, far bigger than the lamps on the quays. The m
 - **How to hurt her:** Bolt and Spark work as usual. Fire burns her only **on her own tile**: oil floated under her on the current, then lit in your turn, burns her before she snuffs it. Moths bursting next to her hurt her too, so herding them is a tactic.
 - One boss tile with lots of HP, and telegraphed like everyone else. Multi-tile bosses wait until a district needs one.
 
-## 6. Later districts (sketch, not decided)
+## 6. Later districts
 
-Each gets its own design round when its turn comes. Where they might sit in the gate mix:
-
-| District | Material | Likely gate | Note |
-|---|---|---|---|
-| Ink-makers' quarter | Ink | Key from the canals | Triggers-heavy |
-| The bathhouses | Steam | Rumour, then a threshold room | Rooms bigger inside |
-| Brass bridges | Brass | Key | Bridges to places that aren't there |
-| Rooftops | — | Discovery | A quick win now and then |
-| A guild archive | — | Threshold room, late | Rival inscribers (BL-30)? |
+Themes and schools are set in §0a (the seven districts). Stages, board rules, foes, bosses, gates and trip shapes come in each district's own design round. The 2026-10-16 sketches of the rooftops and a guild archive were dropped: rivals now live in every guild district ([rivals.md](rivals.md)).
 
 ## 7. Hypotheses to test by playing
 
