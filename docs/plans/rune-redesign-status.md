@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** W0 contracts (orchestrator), then W0b (Opus) → W0c (Sonnet).
+**Next:** W0b (Opus) cutover running → then W0c (Sonnet) from W0b's branch; merge the pair together.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -11,7 +11,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | ID | Model | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | plan | opus agent | M | done | 859dbf9 | ~? | 457 lines, 42 Proposals |
-| W0 | opus (me) | M | running | | | |
+| W0 | opus (me) | M | merged | (this commit) | ~5% | contracts in `src/data/next/` and `src/engine/next/` (not the plan's runeModel.ts/model.ts names); W0b moves them in |
 | W0b | opus | L | waiting | | | deps W0 |
 | W0c | sonnet | L | waiting | | | deps W0b; merged with it |
 | E1 | opus | L | waiting | | | |
@@ -48,5 +48,6 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 ## Proposals (from agents, not yet in DESIGN/TECH)
 
 ## Decisions and fixes made during the build
+- W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
