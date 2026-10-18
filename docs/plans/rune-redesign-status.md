@@ -21,7 +21,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E5 | sonnet | L | waiting | | | |
 | E6 | sonnet | L | waiting | | | |
 | L1 | sonnet | M | waiting | | | |
-| U4 | haiku | M | waiting | | | |
+| U4a | haiku | S | merged | 0554e60 | ~2% | art data only in `src/ui/runeArt.ts` (imports `$data/next/types`: fix at W0b merge). Wiring into RuneGlyph/Gallery = U4b after W0c |
 | E7 | sonnet | L | waiting | | | |
 | U1 | sonnet | L | waiting | | | |
 | U3 | sonnet | M | waiting | | | |
@@ -52,3 +52,4 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- Art to redraw later: margin (reads as P), strike (reads as T), coil (zigzag reads electric; want a spiral), brink, bind (weak knot), chalk, filings, quicksilver.
