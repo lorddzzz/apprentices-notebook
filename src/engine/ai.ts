@@ -108,7 +108,9 @@ function idle(ctx: Ctx, e: EnemyUnit): void {
 }
 
 /** Plans, walks and telegraphs one enemy. Returns true if it telegraphed an attack. */
-function act(ctx: Ctx, e: EnemyUnit, move: boolean, order: number): boolean {
+function act(ctx: Ctx, e: EnemyUnit, canMove: boolean, order: number): boolean {
+  // A held or shackled foe can't move by itself (Hold, Shackle).
+  const move = canMove && e.held === 0 && e.shackle === 0;
   const def = ENEMIES[e.def];
   const attack = def.attack;
   if (def.ai === 'lurker' || def.ai === 'moth' || def.ai === 'mother') {
@@ -155,6 +157,11 @@ export function enemyPhase(ctx: Ctx, opts: EnemyPhaseOptions): void {
     if (e.kind !== 'enemy' || !isAlive(e)) continue;
     e.intent = null;
     if (!members(ctx.s).some(isAlive)) return;
+    if (e.stunned) {
+      e.stunned = false; // a dropped elite loses its next action
+      idle(ctx, e);
+      continue;
+    }
     if (act(ctx, e, opts.move, order + 1)) order++;
   }
 }

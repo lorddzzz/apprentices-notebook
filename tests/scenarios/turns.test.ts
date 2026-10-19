@@ -32,7 +32,7 @@ describe('intents resolve', () => {
     expectLogIncludes(r.events, [
       'familiar at A1 spits right',
       'Spit hits Draughtsman for 1',
-      'ink lands on Draughtsman as mark',
+      'Draughtsman is marked',
     ]);
   });
 

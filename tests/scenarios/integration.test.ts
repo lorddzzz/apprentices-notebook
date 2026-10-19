@@ -55,7 +55,7 @@ test('a familiar spit lands Ink: a mark on whoever it hits (P11)', () => {
   expectLogIncludes(r.events, [
     'familiar at A1 spits right',
     'Spit hits Draughtsman for 1',
-    'ink lands on Draughtsman as mark',
+    'Draughtsman is marked',
   ]);
   expect(memberById(r.state, 'draughtsman').mark).toMatchObject({ deep: false, bound: null });
 });

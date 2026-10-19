@@ -43,7 +43,6 @@ import {
   turnRight,
   withOpenCell,
 } from '$engine';
-import { withSeams } from '$engine/resolve';
 import { cast } from './harness';
 
 /**
@@ -140,8 +139,7 @@ function battleWith(board: string, spells: Spell[], weak = false): BattleState {
 function castLog(state: BattleState, aim: Aim): string[] {
   const spell = state.units.find((u) => u.kind === 'member')?.spells[0];
   const what = JSON.stringify([spell?.source, spell?.sourceAuras, stepShape(spell?.first ?? null)]);
-  // E6 builds jars; until then a Seal's jar is a no-op so the log can still be compared.
-  const events = withSeams({ sealJar: () => {} }, () => cast(state, 'draughtsman', aim).events);
+  const events = cast(state, 'draughtsman', aim).events;
   return [...describeLog(events), what];
 }
 
