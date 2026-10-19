@@ -16,7 +16,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | W0c | sonnet | L | running | worktree (from W0b) | | started 00:43 UTC |
 | E1 | sonnet | L | running | worktree (from W0b) | | moved to Sonnet to save weekly usage; started 00:47 |
 | E2 | sonnet | L | running | worktree (from W0b) | | started 00:47 |
-| E3 | sonnet | M | running | worktree (from W0b) | | started 00:47 |
+| E3 | sonnet | M | done, not merged | worktree-agent-a7f0621bb86e37774 @ fdce332 | | 540 engine tests; 23 line rows. At merge: add `Layer.slid?`, Tuning keys sentenceTiles/holdRounds/levyShieldPerMark (now local consts) |
 | R1 | sonnet | M | waiting | | | |
 | E5 | sonnet | L | waiting | | | |
 | E6 | sonnet | L | waiting | | | |
@@ -49,6 +49,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - W0b contract changes: `Step` gains a `split` role (a Glyph's extra exit); `MemberDef.lean: Lean`; `PlacedRune`/`GlyphArg`/`FiredCell` runes are `RuneRef`; `compileLattice`/`inkOf` take default args; `Profile.footnotes` Partial; new `BattleSpec.edge`, `DistrictDef.edge`, `EnemyDef.elite` (`oilSoaked` removed); HearCondition `ignite`→`burst`, `discovered`→`named`; new gate `drawing` for unbuilt districts; codex kinds rune/method/idiom; `vent` event kept. Accepted.
+- E3: push lines are `shove:*` whoever pushes (a crush via Sentence reveals Shove's line); `slid` counts only tiles beyond the push (one slick under the target adds no slide); a dropped elite/member stays on the last solid tile; a flier on a drop edge is crushed as on a wall; a struck held unit still takes damage; Swap with a tile/self does nothing and Hold blocks it; Draw moves state and jar independently, a plate won't go under a unit, gifted Draw goes 2; Erase clears mark, cast collar, shackle, tile state and jar (a born collar stays); layout plates can be erased and drawn but never break by crush; `*:empty` lines dropped (area spells would spam them). Accepted.
 - W0b: `+` notation = 1 shield each; `$` shackle lasts 2 rounds; layout plate `=` never breaks; a cloud or plate that stops a Bolt becomes its target; Vat's 2×2 has the aimed tile top-left; gifted Splash/Vat = +1 range, not a bigger area; auras touch any path cell they sit beside; a shackled or held member can't move; vents puff only onto empty tiles; floats never displace a cloud; a moth lights its connected slick; rat trails land per tile; spit marks the unit or leaves a blot; unknown inventions insulate and are flagged; invention token `inv:name`. Accepted (tune by playing).
 
 ## Decisions and fixes made during the build
@@ -57,4 +58,5 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- **For E6 (from E3):** the enemy phase and members must skip a `stunned` unit's next action and clear the flag; `held` counts player-phase starts (decrement at player-phase start, not round end); enemy AI/movement must respect `held`; clear shields where `guardUntil <= round` at player-phase start.
 - Art to redraw later: margin (reads as P), strike (reads as T), coil (zigzag reads electric; want a spiral), brink, bind (weak knot), chalk, filings, quicksilver.
