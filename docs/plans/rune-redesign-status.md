@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building (W7)
-**Next:** W7: review findings (Sonnet reviewer running), status Done, push, confirm CI deploy. Then (when the 5h window has room; reset 10:40 UTC), then W7 (verify, review, docs, first push). **Player call (06:50, weekly 84%):** screens then ship; M1, S1, T1, K1, R2 wait until after the playtest. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
+**State:** done (2026-10-19): pushed; waiting on the player's playtest
+**Next:** the player's playtest. Held back by the player's call (weekly budget): M1, S1, T1, K1, R2 (ROADMAP BL-100). Then the follow-ups below.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -33,12 +33,12 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | U5 | sonnet | L | merged | (this commit) | ~12% | 2591 tests; touched run.ts (`knownSetOf`, `writeInvention`), inventions.ts (`partIssue`), lab Palette (`items`) |
 | U6 | sonnet | M | merged | (this commit) | ~8% | 2603 tests; 7 tabs; `compoundTable(p)` |
 | U7 | sonnet | M | merged | (this commit) | ~5% | 2597 tests; touched footnotes.ts (export `solventFor`), Study + StudyScene (Desk knob, `h1.crowded`) |
-| M1 | sonnet | M | waiting | | | |
-| S1 | haiku | S | waiting | | | |
-| T1 | sonnet | M | waiting | | | |
-| K1 | haiku | S | waiting | | | |
-| R2 | haiku | S | waiting | | | |
-| W7 | opus (me) | M | waiting | | | |
+| M1 | sonnet | M | deferred (BL-100) | | | |
+| S1 | haiku | S | deferred (BL-100) | | | |
+| T1 | sonnet | M | deferred (BL-100) | | | |
+| K1 | haiku | S | deferred (BL-100) | | | |
+| R2 | haiku | S | deferred (BL-100) | | | |
+| W7 | opus (me) + sonnet reviewer | M | done | (this commit) | ~6% | playthrough at 375×812; Sonnet review (no blockers; 7.5k-board fuzz in /tmp, 0 exceptions); fixed duplicate invention names and a downed caster's delayed actions |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -87,6 +87,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- Review (minor, not fixed): a dusk jar sealed by another dusk jar's rest can open the same dusk; units carried by the current fire no `entered` hook (jars floating under a unit do); a downed owner's dusk jar still opens (kept: jars are world objects); delayed Wick/Filings/Repeat drop the step's auras (Coil, Margin) and `woken` leaks into nested inventions; after the 500-event cap some loops keep mutating state; `ensureBattle`'s fallback isn't in a try; one `.corrupt` save slot.
 - U6: `Profile.found` so solvents stay known once found; witnessed lines on method/solvent pages; codex tab strip wraps to two rows; unknown runes still show `???` + the owner hint (design says blank frames: player's call).
 - W7 (orchestrator playthrough, fresh profile, 375×812): Study → map → Seam → fight: Bolt kill, masked blank preview, Fire + toast, enemy phase with rat oil trails, Spark on a slick → Pool → Flare-up. Fixed: named-result toasts now use codex titles (a burst and its compound both said "Pool"). The map still labels the Seam "Ink · The Notaries" (BL-99).
 - Footnote levels II–III have no variants (only 8 level-I).
