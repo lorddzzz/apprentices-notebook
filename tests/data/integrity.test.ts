@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest';
 import {
+  BURST_IDS,
   CODEX,
+  COMPOUND_IDS,
   DISTRICT_IDS,
   DISTRICTS,
   ENCOUNTERS,
@@ -61,7 +63,14 @@ test('the first evening knows the seven start runes (P35)', () => {
 });
 
 test('codex has an entry per rune, method and idiom', () => {
-  expect(CODEX).toHaveLength(RUNE_IDS.length + METHOD_IDS.length + IDIOMS.length);
+  expect(CODEX).toHaveLength(
+    RUNE_IDS.length +
+      COMPOUND_IDS.length +
+      BURST_IDS.length +
+      METHOD_IDS.length +
+      SOLVENT_IDS.length +
+      IDIOMS.length,
+  );
   expect(new Set(CODEX.map((e) => e.id)).size).toBe(CODEX.length);
   for (const id of RUNE_IDS) expect(CODEX.some((e) => e.id === `rune:${id}`)).toBe(true);
 });

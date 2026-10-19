@@ -25,7 +25,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E7 | sonnet | L | merged | (this commit) | ~10% | 1757 tests; touched resolve.ts (marginEcho), types.ts (BattleState.inventions, Flow.repeated, Scheduled.solvent), battle.ts, run.ts (beginEncounter passes inventionLibrary), scenario.ts, jars.ts, schedule.ts |
 | U1 | sonnet | L | running | worktree | | started 05:44 |
 | U3 | sonnet | M | waiting | | | |
-| C1 | haiku | M | waiting | | | |
+| C1 | haiku | M | merged | (this commit) | ~3% | codex 84 entries, 8 variants (only `shove-wall-soft` has behaviour); touched types.ts (codex kinds), run.ts codexView |
 | E8 | sonnet | M | running | worktree | | started 05:57 |
 | E9 | sonnet | S | waiting | | | |
 | U2 | sonnet | M | waiting | | | |
@@ -76,6 +76,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- C1: the other 7 footnote variants have text but no behaviour; LINES has no Bolt rows (no Bolt variants; shove:slick ×2 instead); the codex treats a solvent as known while `solvents[id] > 0` (needs a found-solvents record); compound/burst names and notes want the player's ear; `wax:cloud` still unstamped (E8).
 - **Playtest question:** `Bolt → Oil → Shove` on a lone rat doesn't slide (the engine only slides over slick the unit *enters*; E3 + R1 noted it). Design §1 row 3 reads as if it should slide to the end of the oil. Ask the player whether a unit pushed *from* a slick should slide.
 - The lines integrity test re-runs most suites inside one file (test count ~1.6k, check ~57 s wall). Simplify later (BL candidate).
 - Jars should drift with the current (Pitch / Lantern Walk): E8 or R2.

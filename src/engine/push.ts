@@ -1,4 +1,4 @@
-import { ENEMIES, type LineId, TUNING } from '$data';
+import { ENEMIES, type LineId, SHOVE_WALL_SOFT, TUNING, VARIANTS } from '$data';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
 import { type Coord, type Dir, sameCoord, step } from './grid';
@@ -12,6 +12,9 @@ export interface PushResult {
   crushed: string | 'wall' | 'plate' | null; // a UnitId, or what it hit
   dropped: boolean;
 }
+
+/** The text `ctx.footnotes` holds when the soft wall variant is written (footnoteTexts keeps texts). */
+const SOFT_WALL_TEXT = VARIANTS.find((v) => v.id === SHOVE_WALL_SOFT)?.text;
 
 /** Layers a pushed land unit slides across (design §4.2, §4.4). */
 const SLICK: ReadonlySet<Layer['id']> = new Set(['slick', 'pool', 'greaseFog']);
@@ -81,9 +84,11 @@ function crush(
   stop: Stop & { kind: 'crush' },
 ): void {
   const other = typeof stop.into === 'string' ? null : stop.into;
-  // Footnote proof (F1): any variant written for `shove:wall` drops the per-tile part of a wall
-  // crush. C1 replaces this with the real level-I variants' own checks.
-  const softWall = stop.line === 'shove:wall' && ctx.footnotes['shove:wall'] !== undefined;
+  // Footnote `shove-wall-soft` (P39): a wall crush skips the per-tile damage.
+  const softWall =
+    stop.line === 'shove:wall' &&
+    SOFT_WALL_TEXT !== undefined &&
+    ctx.footnotes['shove:wall'] === SOFT_WALL_TEXT;
   const damage = TUNING.crushBase + (softWall ? 0 : TUNING.crushPerTile * moved);
   const body = (): void => {
     emit(ctx, {

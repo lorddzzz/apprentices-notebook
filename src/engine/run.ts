@@ -274,6 +274,13 @@ export function codexView(p: Profile): { entry: CodexEntryDef; known: boolean }[
       case 'idiom':
         known = p.named.includes(`idiom:${entry.ref}`);
         break;
+      case 'compound':
+      case 'burst':
+        known = p.named.includes(entry.id);
+        break;
+      case 'solvent':
+        known = p.solvents[entry.ref as SolventId] > 0;
+        break;
     }
     return { entry, known };
   });

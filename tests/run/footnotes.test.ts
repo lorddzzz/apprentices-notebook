@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import type { LineId, VariantDef } from '$data';
+import { type LineId, SHOVE_WALL_SOFT, VARIANTS, type VariantDef } from '$data';
 import {
   awardFootnotePoints,
   footnoteLevel,
@@ -101,7 +101,7 @@ test('variant-changes-a-scenario-log', () => {
   };
   const plain = crushDamage({});
   const p = withSolvent(withPoints(profile(), 5), 'gallnut', 1);
-  const w = writeFootnote(p, 'shove', WALL, 't-soft', V);
+  const w = writeFootnote(p, 'shove', WALL, SHOVE_WALL_SOFT, VARIANTS);
   if ('error' in w) throw new Error(w.error);
-  expect(crushDamage(footnoteTexts(w.profile, V))).toBeLessThan(plain);
+  expect(crushDamage(footnoteTexts(w.profile, VARIANTS))).toBeLessThan(plain);
 });

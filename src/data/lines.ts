@@ -148,14 +148,14 @@ export const LINES: readonly LineDef[] = [
     subject: 'shove',
     meets: 'plate',
     district: 'seam',
-    text: 'A unit pushed into a plate is crushed for one more than the tiles it moved, and the plate loses a hit.',
+    text: 'A unit pushed into a plate is crushed for one more than the tiles it moved, and the plate breaks.',
   },
   {
     id: 'shove:wall',
     subject: 'shove',
     meets: 'wall',
     district: 'seam',
-    text: 'A Wall takes two crushes to break; the one that crushes against it is hurt all the same.',
+    text: 'A wall takes two crushes to break, and a unit crushed against it takes the full crush.',
   },
   {
     id: 'shove:unit',
@@ -318,7 +318,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'lift',
     meets: 'unit',
     district: 'inkQuarter',
-    text: 'Lift moves a mark, with whatever it holds, to a neighbour; it lasts no longer and does not spread again.',
+    text: 'Lift moves a mark, with whatever it holds, to a neighbour, and the mark keeps the spread history it already had.',
   },
   {
     id: 'wax:cloud',
@@ -370,13 +370,11 @@ export const LINES: readonly LineDef[] = [
     district: 'inkQuarter',
     text: 'Lift needs a mark to carry and a free unit next to the target along its heading; without both it does nothing.',
   },
-  // pending (L1): fired by the engine, text to be written by C1
   {
     id: 'fork:noHeading',
     subject: 'fork',
     meets: 'noHeading',
     district: 'seam',
-    text: '',
-    pending: true,
+    text: 'A Fork with no heading has no sides, so nothing on either branch happens.',
   },
 ];

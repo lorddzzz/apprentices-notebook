@@ -328,7 +328,7 @@ export interface LootTableDef {
 // ── Codex and Lab ───────────────────────────────────────
 export interface CodexEntryDef {
   id: string; // 'rune:bolt', 'idiom:bonfire'
-  kind: 'rune' | 'method' | 'idiom';
+  kind: 'rune' | 'method' | 'idiom' | 'compound' | 'burst' | 'solvent';
   ref: string;
   title: string;
   text: string; // the headline (D1)
