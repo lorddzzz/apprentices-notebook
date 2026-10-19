@@ -6,6 +6,7 @@ export * from './events';
 export * from './foes';
 export * from './glyph';
 export * from './grid';
+export * from './idioms';
 export * from './inventions';
 export * from './lattice';
 export * from './lines';

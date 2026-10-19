@@ -327,4 +327,13 @@ export const LINES: readonly LineDef[] = [
     district: 'inkQuarter',
     text: 'A wax mark never spreads, even in a cloud.',
   },
+  // pending (L1): fired by the engine, text to be written by C1
+  {
+    id: 'fork:noHeading',
+    subject: 'fork',
+    meets: 'noHeading',
+    district: 'seam',
+    text: '',
+    pending: true,
+  },
 ];

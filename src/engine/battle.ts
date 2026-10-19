@@ -14,6 +14,7 @@ import { castAction } from './cast';
 import { type Ctx, checkEnd, emit, ref, runDraft } from './ctx';
 import type { GameEvent } from './events';
 import { type Coord, label, step } from './grid';
+import { withIdioms } from './idioms';
 import { moveMember, shove, undoMove } from './movement';
 import { type BoardUnit, parseBoard, parseCell, parseLabel, serializeBoard } from './notation';
 import {
@@ -262,7 +263,7 @@ export function applyAction(state: BattleState, action: Action): ActionResult {
     if (action.type === 'cast' || action.type === 'shove') {
       for (const m of members(ctx.s)) m.undo = null;
     }
-    dispatch(ctx, action);
+    withIdioms(ctx, () => dispatch(ctx, action));
     if (action.type !== 'endTurn') checkEnd(ctx);
   });
 }

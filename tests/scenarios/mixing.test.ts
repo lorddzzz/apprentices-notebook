@@ -414,7 +414,7 @@ describe('wiring into the handler table and the fine print', () => {
     for (const b of BURSTS) expect(ids.has(`spark:${b.on}`), `spark:${b.on}`).toBe(true);
     expect(ids.has('spark:collar')).toBe(true);
     for (const l of LINES) {
-      expect(l.text.length, l.id).toBeGreaterThan(10);
+      if (!l.pending) expect(l.text.length, l.id).toBeGreaterThan(10);
       expect(l.id).toBe(`${l.subject}:${l.meets}`);
     }
     expect(new Set(LINES.map((l) => l.id)).size).toBe(LINES.length);

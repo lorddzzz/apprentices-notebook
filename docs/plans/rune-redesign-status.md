@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** L1 running (wrap zone, started at 90%). After the 05:40 UTC reset: E7 (critical), R1, U1 in parallel, then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** F1 running (wrap zone, 95%). After the 05:40 UTC reset (timer set): E7 (critical), R1, U1 in parallel; then C1, U3; then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -20,7 +20,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | R1 | sonnet | M | waiting | | | |
 | E5 | sonnet | L | merged | (this commit) | ~5% | 1069 tests; touched bursts.ts (markUnit→applyMark), lines.ts, actions tests (markSpent) |
 | E6 | sonnet | L | merged | (this commit) | ~6% | 1055 tests; touched movement.ts, turns/integration tests (spit line) |
-| L1 | sonnet | M | running | worktree | | started 01:36 in wrap zone |
+| L1 | sonnet | M | merged | (this commit) | ~5% | 1625 tests (the integrity file re-imports the scenario suites; a child vitest runs push/actions); 1 pending line (fork:noHeading); idiom hook = `withIdioms` in battle.ts `applyAction` |
 | U4a | haiku | S | merged | 0554e60 | ~2% | art data only in `src/ui/runeArt.ts` (imports `$data/next/types`: fix at W0b merge). Wiring into RuneGlyph/Gallery = U4b after W0c |
 | E7 | sonnet | L | waiting | | | |
 | U1 | sonnet | L | waiting | | | |
@@ -29,7 +29,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E8 | sonnet | M | waiting | | | |
 | E9 | sonnet | S | waiting | | | |
 | U2 | sonnet | M | waiting | | | |
-| F1 | sonnet | S | waiting | | | |
+| F1 | sonnet | S | running | worktree | | started 01:47 in wrap zone |
 | U5 | sonnet | L | waiting | | | |
 | U6 | sonnet | M | waiting | | | |
 | U7 | sonnet | M | waiting | | | |
@@ -46,12 +46,14 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 01:46 | 95 | 3h54m | 73 | wrap | L1 merged; start F1 (S) |
 | 2026-10-19 01:35 | 90 | 4h05m | 73 | wrap | E5 merged; start L1 (smallest critical) |
 | 2026-10-19 01:27 | 85 | 4h14m | 72 | narrow | E6 merged; start E5 |
 | 2026-10-19 01:16 | 79 | 4h24m | 71 | narrow | core merged; start E6 only |
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- L1: masking lives in `lines.ts` (no preview.ts); silent masked events leave no blank; `wax:cloud` is in a NOT_YET_STAMPED allowlist; Lantern Walk has only a negative test (jars don't drift yet), Redraft a synthetic log; Debt Collection reads the acting apprentice from the first `cast` in the log. Accepted. Follow-ups: widen `nameOnce` to `'idiom'`; let chemHarness record lines without the spy; a `released` event carrying the releaser's origin.
 - E5: release heading: hook heading or push dir, then from the hit's `from` tile to the bearer, then `bound.heading`; a killing hit doesn't release a `hit` mark (only `dies`, on the death tile); release depth capped at 3 nested, the 4th fizzles; a spread skips units that already hold a mark; `entered` spreads first, then releases `enters`; Lift doesn't re-spread, adds the new bearer to the lineage, and onto a marked unit is a no-op; Spark's own 1 damage releases a hit-bound mark before Detonation. `expireMark` exists for lifetimes. Accepted.
 - E6: shackle wears off at round end in `decayStates` (only `held` counts player-phase starts); a stunned foe loses its telegraphed attack; a stunned apprentice comes back with moved+acted true; a move that triggered a jar or stain can't be undone; a jar sealed onto any other jar crumbles it; dusk jars sealed during dusk wait for the next dusk; `nextRoundEnd` becomes `roundEnd` after the pass; `ownerTurn` entries run after `landed` resets; a move opens a jar only on arrival (pushes fire `entered` per tile). No `runes/auras.ts` needed. Accepted.
 - W0c: an older save (version < 7) shows "from an older edition", a corrupt v7 shows the old "could not be read"; known runes have no copy limit (ink and "not known" are the only refusals); `Profile.named` ids drive the "New in the notebook" toasts; the Bench entry appears once the household has a method, invention or solvent; Fair Copy has no idiom naming/free compile (P7); Lab palette gains `$` and `_`, `!` cycles none/mark/deep. No dark `--role-*` values (no dark theme). Accepted.
@@ -67,6 +69,8 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- The lines integrity test re-runs most suites inside one file (test count ~1.6k, check ~57 s wall). Simplify later (BL candidate).
+- Jars should drift with the current (Pitch / Lantern Walk): E8 or R2.
 - **For E7 (from E5):** Bind = land Ink as a plain mark, then `attachBound` (don't call `applyMark` twice; `applyMark` with `bound` also works on an unmarked unit); `attachBound` emits a second `marked` event; Lift calls `liftMark`; a real Bind-in-Bind test is E7's.
 - **For E7 (from E6):** Repeat must not schedule itself again (§6.4 limit 5): `runDetached`'s flow has no "from a repeat" flag yet. Nothing writes `Tile.hot` yet (Cinder, E8).
 - **For E5 (from E2):** `bursts.ts` `markUnit` sets the mark directly; swap its body for `applyMark`. E2 doesn't emit `markSpent` (spendMark is trivial); E5's should. `Mark` has no `rounds`, so a Deep mark doesn't fade after 2 rounds: add `Mark.rounds?` if P17 applies.

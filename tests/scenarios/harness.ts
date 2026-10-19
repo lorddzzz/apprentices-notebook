@@ -19,6 +19,7 @@ import {
   unitAt,
 } from '$engine';
 import { type Ctx, runDraft } from '$engine/ctx';
+import { feedLinesOut, recordLog } from './lines-registry';
 
 /**
  * Thin scenario harness. Parsing lives in the engine (`src/engine/notation.ts`); the legend is in
@@ -30,6 +31,9 @@ import { type Ctx, runDraft } from '$engine/ctx';
  */
 export { label, parseBoard, parseLabel, parseLattice } from '$engine';
 
+// Lines fired in this test file go to the integrity test's child run (see lines-registry.ts).
+feedLinesOut();
+
 function mismatch(expected: readonly string[], actual: readonly string[]): Error {
   return new Error(
     `Event log mismatch\n  expected:\n    ${expected.join('\n    ')}\n  actual:\n    ${actual.join('\n    ')}`,
@@ -38,12 +42,14 @@ function mismatch(expected: readonly string[], actual: readonly string[]): Error
 
 /** Throws with a readable diff when the log doesn't match the expected plain-English lines. */
 export function expectLog(log: EventLog, expected: readonly string[]): void {
+  recordLog(log);
   const actual = describeLog(log);
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw mismatch(expected, actual);
 }
 
 /** Passes when `lines` appear in the log as one contiguous run. */
 export function expectLogIncludes(log: EventLog, lines: readonly string[]): void {
+  recordLog(log);
   const actual = describeLog(log);
   for (let i = 0; i + lines.length <= actual.length; i++) {
     if (lines.every((line, j) => actual[i + j] === line)) return;
@@ -82,12 +88,14 @@ export function cast(state: BattleState, member: MemberId, aim: Dir | Aim, spell
 /** Applies one action (throws if illegal) and returns the log lines with it. */
 export function act(state: BattleState, action: Action): Step {
   const r = applyAction(state, action);
+  recordLog(r.events);
   return { ...r, lines: describeLog(r.events) };
 }
 
 /** Runs engine internals (push, landKind…) on a draft of `state`. */
 export function draft(state: BattleState, fn: (ctx: Ctx) => void): Step {
   const r = runDraft(state, fn);
+  recordLog(r.events);
   return { ...r, lines: describeLog(r.events) };
 }
 
