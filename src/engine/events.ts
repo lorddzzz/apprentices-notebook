@@ -76,7 +76,7 @@ export type GameEvent = (
       hpLeft: number;
     }
   | { type: 'shieldAbsorbs'; unit: UnitRef; absorbed: number; left: number }
-  | { type: 'shieldGained'; unit: UnitRef; amount: number }
+  | { type: 'shieldGained'; unit: UnitRef; amount: number; until?: number; total?: number }
   | { type: 'died'; unit: UnitRef }
   | { type: 'telegraph'; unit: UnitRef; intent: Intent; verb: string }
   | { type: 'idle'; unit: UnitRef }

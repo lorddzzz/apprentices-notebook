@@ -458,8 +458,8 @@ export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): Boa
       break;
     case 'shieldGained':
       patchUnit(v, e.unit.id, (u) => {
-        u.shield += e.amount;
-        u.guard = Math.max(u.guard ?? 0, v.round + 1);
+        u.shield = e.total ?? u.shield + e.amount;
+        u.guard = Math.max(u.guard ?? 0, e.until ?? v.round + 1);
       });
       break;
     case 'died':

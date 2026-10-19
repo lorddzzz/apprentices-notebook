@@ -46,7 +46,13 @@ export function gainShield(ctx: Ctx, unit: Unit, amount: number, until: number):
   if (amount <= 0 || unit.hp <= 0) return;
   unit.shield += amount;
   unit.guardUntil = Math.max(unit.guardUntil ?? 0, until);
-  emit(ctx, { type: 'shieldGained', unit: ref(unit), amount });
+  emit(ctx, {
+    type: 'shieldGained',
+    unit: ref(unit),
+    amount,
+    until: unit.guardUntil,
+    total: unit.shield,
+  });
 }
 
 /** Dead units stay in `units` (hp 0) but leave the board. A dying moth bursts (K-16) unless `bursts` is false. */

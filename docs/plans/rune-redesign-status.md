@@ -109,3 +109,11 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - **For E6 (from E2):** in `hazards()` call `roundEndChemistry(ctx)` first (replaces the fire-burn loop: Thunderhead, Brand cloud marks, Kettle, fire), then `decayStates(ctx)` (replaces `ageStates`); `burnGates` stays. `runScheduled` must skip `thunderhead` entries. Movement should call `stainMarks(ctx, unit)` after a move; `spitInk` can call `landKindFree`; `foes.ts` `lightSlick` could call `burstAt`. `Tile.hot` (Cinder) isn't decayed anywhere yet.
 - **For E6 (from E3):** the enemy phase and members must skip a `stunned` unit's next action and clear the flag; `held` counts player-phase starts (decrement at player-phase start, not round end); enemy AI/movement must respect `held`; clear shields where `guardUntil <= round` at player-phase start.
 - Art to redraw later: margin (reads as P), strike (reads as T), coil (zigzag reads electric; want a spiral), brink, bind (weak knot), chalk, filings, quicksilver.
+
+### Continuation checkpoint
+- 078c8fd: shared lifetime origin/Lab contracts and requested dual Claude/GPT model mapping; baseline and shared gate pass (90 suites / 2,607 tests).
+- T1 fuzz exposed repeated Guard shield drift (seed 37 and five others); shield events now carry total and expiry. Full check: 90 suites / 2,607 tests green.
+- M1 core checkpoint f1a6c7d green in its worktree; extending delayed trace metadata so deferred Glyph cells are not falsely shown as dead.
+- S1 authored ten replayable lessons (plus sandbox), with positive drifting Lantern Walk and invention export roundtrips; final check in progress.
+- Usage at 17:26 UTC: 36% 5-hour, 25% weekly. Keep new agents scoped under the player's model mapping.
+
