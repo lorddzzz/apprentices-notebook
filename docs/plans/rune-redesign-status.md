@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** W0b+W0c+E1+E2+E3 squashed into main (1035 tests). Start R1 (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** core on main @ 40a5b34 (1035 tests). E6 running. After E6 (or after the 05:40 UTC reset): R1 (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -19,7 +19,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E3 | sonnet | M | merged | worktree-agent-a7f0621bb86e37774 @ fdce332 | | 540 engine tests; 23 line rows. At merge: add `Layer.slid?`, Tuning keys sentenceTiles/holdRounds/levyShieldPerMark (now local consts) |
 | R1 | sonnet | M | waiting | | | |
 | E5 | sonnet | L | waiting | | | |
-| E6 | sonnet | L | waiting | | | |
+| E6 | sonnet | L | running | worktree | | started 01:17 UTC in the narrow zone (79%); told to commit small steps |
 | L1 | sonnet | M | waiting | | | |
 | U4a | haiku | S | merged | 0554e60 | ~2% | art data only in `src/ui/runeArt.ts` (imports `$data/next/types`: fix at W0b merge). Wiring into RuneGlyph/Gallery = U4b after W0c |
 | E7 | sonnet | L | waiting | | | |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 01:16 | 79 | 4h24m | 71 | narrow | core merged; start E6 only |
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
