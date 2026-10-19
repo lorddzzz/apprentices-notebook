@@ -21,6 +21,7 @@
     setExtraExit,
     socketAt,
   } from '$engine';
+  import { deskUnlocked } from '../../app/desk';
   import {
     type FairState,
     fairTap,
@@ -235,6 +236,7 @@
       oncodex={() => go('codex')}
       onmenu={openMenu}
       onbench={benchUnlocked(profile) ? () => go('bench') : null}
+      ondesk={deskUnlocked(profile) ? () => go('desk') : null}
     />
   {/if}
 

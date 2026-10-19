@@ -53,7 +53,7 @@ export function footnoteOffers(
 export type FootnoteError = 'notReached' | 'unknownVariant' | 'noSolvent';
 
 /** The district solvent the player holds most of (ties: first listed), or null when none. */
-function solventFor(p: Profile, line: LineId): SolventId | null {
+export function solventFor(p: Profile, line: LineId): SolventId | null {
   const district = LINES.find((l) => l.id === line)?.district;
   const own = SOLVENT_IDS.filter((s) => SOLVENTS[s].district === district && p.solvents[s] > 0);
   return own.reduce<SolventId | null>(

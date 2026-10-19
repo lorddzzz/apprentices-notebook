@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building
-**Next:** U7 running (wrap zone); U6 after the 10:40 UTC reset; then (when the 5h window has room; reset 10:40 UTC), then W7 (verify, review, docs, first push). **Player call (06:50, weekly 84%):** screens then ship; M1, S1, T1, K1, R2 wait until after the playtest. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
+**State:** holding for reset (5h 99%; resumes 10:41 UTC, timer set)
+**Next (after 10:41 UTC):** U6 codex; then (when the 5h window has room; reset 10:40 UTC), then W7 (verify, review, docs, first push). **Player call (06:50, weekly 84%):** screens then ship; M1, S1, T1, K1, R2 wait until after the playtest. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -32,7 +32,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | F1 | sonnet | S | merged | (this commit) | ~3% | 1631 tests; `applyAction(state, action, footnotes = {})`; proof branch in push.ts `crush()` for `shove:wall` |
 | U5 | sonnet | L | merged | (this commit) | ~12% | 2591 tests; touched run.ts (`knownSetOf`, `writeInvention`), inventions.ts (`partIssue`), lab Palette (`items`) |
 | U6 | sonnet | M | waiting | | | |
-| U7 | sonnet | M | running | worktree | | started 07:18 (may be cut off) |
+| U7 | sonnet | M | merged | (this commit) | ~5% | 2597 tests; touched footnotes.ts (export `solventFor`), Study + StudyScene (Desk knob, `h1.crowded`) |
 | M1 | sonnet | M | waiting | | | |
 | S1 | haiku | S | waiting | | | |
 | T1 | sonnet | M | waiting | | | |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 07:27 | 99 | 3h38m | 87 | hold | U7 merged; hold until reset |
 | 2026-10-19 07:17 | 95 | 3h48m | 86 | wrap | U5 merged; start U7 |
 | 2026-10-19 07:07 | 90 | 3h58m | 85 | wrap (U5 busy) | U2 merged; hold U6/U7 for the 10:40 reset |
 | 2026-10-19 06:51 | 78 | 4h14m | 84 | narrow / weekly guard: player chose screens then ship | U3 merged; start U5 |
@@ -86,6 +87,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- Footnote levels II–III have no variants (only 8 level-I).
 - U3: make `ShelfSlot.base/role/invention` required (revision.ts builds slots); pass `inventions` into `RuneGlyph` from Lab, Bench, Codex; merge `flowZones` (study.ts) into `app/flowGeometry.ts`; reword "Not known" → "X is not known yet". The spell caption shows an invention by its lowercase id ("impulse"): use the invention's name.
 - U1 proposals (event contract, not done): `crush` gets `at`/`dir` (projection guesses the worn plate); `jarSealed` gets `peek`; `held`/`shieldGained` get `rounds`; `playback.svelte.ts` `play()` accepts `end`.
 - Test runtime: two suites (lines integrity, projection drift) re-register the engine suites; `pnpm check` is ~66 s wall. Consider one shared log-collecting pass.

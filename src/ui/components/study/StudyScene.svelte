@@ -7,9 +7,11 @@
     onmenu: () => void;
     /** Set once the Bench is unlocked; null hides the entry. */
     onbench?: (() => void) | null;
+    /** Set once a rune has footnote points; null hides the entry. */
+    ondesk?: (() => void) | null;
   }
 
-  let { oncodex, onmenu, onbench = null }: Props = $props();
+  let { oncodex, onmenu, onbench = null, ondesk = null }: Props = $props();
 
   // A rumour heard on the last trip, shown while that trip is still the last one (K-20).
   const rumour = $derived(rumourLine(game.save.lastTrip));
@@ -73,7 +75,7 @@
     <ellipse cx="238" cy="43" rx="9" ry="3.2" fill="var(--lamp)" />
   </svg>
 
-  <h1>The Study</h1>
+  <h1 class:crowded={onbench && ondesk}>The Study</h1>
   {#if rumour}
     <p class="rumour" data-testid="rumour-line">{rumour}</p>
   {/if}
@@ -84,6 +86,14 @@
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
           <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />
           <path d="M7.5 15h9" />
+        </svg>
+      </button>
+    {/if}
+    {#if ondesk}
+      <button type="button" class="knob" aria-label="The footnote desk" data-testid="desk-button" onclick={ondesk}>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 4h10l4 4v12H5z" />
+          <path d="M14 4v5h5M8 13h8M8 17h5" />
         </svg>
       </button>
     {/if}
@@ -128,6 +138,10 @@
     color: var(--parchment);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
+  }
+  /* four knobs reach under the title, so it rides above them */
+  h1.crowded {
+    top: 4px;
   }
   .rumour {
     position: absolute;
