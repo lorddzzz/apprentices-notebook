@@ -288,3 +288,5 @@ Districts without their own method deepen the others through their solvents, the
 2. **Lab prototype 2: the Bench.** Conduct with Impulse, the test scene, fine print revealed in trials.
 3. **Lab prototype 3: Bind and spreading.** Recoil in a Brand cloud, a Spark storm across two apprentices.
 4. If they play well, move the decisions into DESIGN.md and the feature docs, and write a plan in `docs/plans/`.
+
+Continuation (2026-10-19): ten Lab lessons now replay the five example spells, Impulse and four idioms, including a real jar drifting into a foe (Lantern Walk). Lab exports carry invention definitions; they remain reproducible after edits.

@@ -31,6 +31,47 @@ test('scenario ids are unique and kebab-case', () => {
   expect(scenarioById('nope')).toBeNull();
 });
 
+test('redesign lessons cover the five spells, first invention and named idioms', () => {
+  const ids = [
+    'oil-then-spark',
+    'spark-then-oil',
+    'the-wall',
+    'brand-cloud',
+    'recoil',
+    'impulse',
+    'lantern-walk',
+    'long-drop',
+    'steam-room',
+    'peal',
+  ];
+  for (const id of ids) {
+    const def = scenarioById(id);
+    expect(def, id).not.toBeNull();
+    expect(def?.demo.length, id).toBeGreaterThan(0);
+    expect(def?.expected.length, id).toBeGreaterThan(0);
+  }
+  for (const [id, idiom] of [
+    ['the-wall', 'theWall'],
+    ['lantern-walk', 'lanternWalk'],
+    ['long-drop', 'longDrop'],
+    ['steam-room', 'steamRoom'],
+    ['peal', 'peal'],
+  ]) {
+    const def = scenarioById(id ?? '');
+    if (!def) throw new Error(`missing ${id}`);
+    expect(runScenario(def).state.named, id).toContain(`idiom:${idiom}`);
+  }
+});
+
+test('Recoil lesson spreads its bound action and releases each copy once', () => {
+  const def = scenarioById('recoil');
+  if (!def) throw new Error('missing Recoil');
+  const result = runScenario(def);
+  expect(result.events.filter((e) => e.type === 'markSpread')).toHaveLength(1);
+  expect(result.events.filter((e) => e.type === 'released')).toHaveLength(3);
+  expect(result.state.inventions['inv:recoil']?.name).toBe('Recoil');
+});
+
 test('scenarioBattle in lab mode: no charges spent, spells from the scenario lattices', () => {
   const def: ScenarioDef = {
     id: 'oil',

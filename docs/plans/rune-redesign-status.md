@@ -34,9 +34,9 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | U6 | sonnet | M | merged | (this commit) | ~8% | 2603 tests; 7 tabs; `compoundTable(p)` |
 | U7 | sonnet | M | merged | (this commit) | ~5% | 2597 tests; touched footnotes.ts (export `solventFor`), Study + StudyScene (Desk knob, `h1.crowded`) |
 | M1 | sonnet | M | running | | | |
-| S1 | haiku | S | running | | | |
+| S1 | inherited (lessons), 6.1 Sol low (Lab) | S | lessons merged; Lab authoring running | codex/rune-s1 @ 7dbe9e8 | | ten fixed-log lessons, Lantern Walk regression; merged gate 2,666 tests |
 | T1 | sonnet | M | running | | | |
-| K1 | haiku | S | deferred (BL-100) | | | |
+| K1 | 6 Luna medium | S | running | codex/rune-k1 | | audit obsolete systems; keep legitimate new Bench drafts/Redraft |
 | R2 | haiku | S | deferred (BL-100) | | | |
 | W7 | opus (me) + sonnet reviewer | M | done | (this commit) | ~6% | playthrough at 375×812; Sonnet review (no blockers; 7.5k-board fuzz in /tmp, 0 exceptions); fixed duplicate invention names and a downed caster's delayed actions |
 
@@ -116,4 +116,6 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - M1 core checkpoint f1a6c7d green in its worktree; extending delayed trace metadata so deferred Glyph cells are not falsely shown as dead.
 - S1 authored ten replayable lessons (plus sandbox), with positive drifting Lantern Walk and invention export roundtrips; final check in progress.
 - Usage at 17:26 UTC: 36% 5-hour, 25% weekly. Keep new agents scoped under the player's model mapping.
-
+- S1 lessons squash-merged after full green check (90 files / 2,666 tests). Remaining S1 authoring UI on codex/rune-lab.
+- T1 complete 09d6617 awaiting merge: 140 deterministic fuzz cases, real first-evening loop, calibrated room and full-trip bots; no encounter buff recommended.
+- Usage at 17:30 UTC: 63% 5-hour, 29% weekly. K1 assigned to 6 Luna medium; Lab S1 to 6.1 Sol low.

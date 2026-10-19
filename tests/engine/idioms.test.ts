@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { IDIOMS } from '$data';
-import { type BattleState, type GameEvent, parseLabel } from '$engine';
+import { type BattleState, type GameEvent, parseLabel, runScenario, scenarioById } from '$engine';
 import { type Ctx, emit, ref, withOrigin } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
 import { type IdiomHit, idiomPre, idiomsIn, withIdioms } from '$engine/idioms';
@@ -91,6 +91,21 @@ describe('goldens', () => {
     expect(named(r.events)).toEqual(['longDrop']);
   });
 
+  test('lantern-walk: a real Spark jar drifts twice and opens on a foe', () => {
+    const def = scenarioById('lantern-walk');
+    if (!def) throw new Error('missing Lantern Walk lesson');
+    const result = runScenario(def);
+    expect(result.events.filter((e) => e.type === 'drawn')).toHaveLength(2);
+    expect(result.events.find((e) => e.type === 'jarOpened')).toMatchObject({
+      at: at('D2'),
+      by: { id: 'dummy-1' },
+    });
+    expect(named(result.events)).toEqual(['lanternWalk']);
+    expect(result.events.find((e) => e.type === 'named' && e.id === 'lanternWalk')).toMatchObject({
+      origin: { caster: 'draughtsman', spell: '0,0', cast: 1 },
+    });
+  });
+
   test('a party member falling is not a Long Drop', () => {
     const r = act(board('D . w>'), (ctx) =>
       push(ctx, unitAtLabel(ctx.s, 'A1'), 'right', 2, ORIGIN),
@@ -178,9 +193,7 @@ describe('patterns without a live path yet', () => {
     expect(hits(log, s).map((h) => h.id)).toEqual(['redraft']);
   });
 
-  // Lantern Walk waits on jars that drift (they are still pinned where sealed): the pattern reads
-  // a Spark jar on water that opens on a foe, which no action can produce yet.
-  test('lantern-walk: not produced by any action yet', () => {
+  test('lantern-walk: opening a jar without a Spark jar on water is insufficient', () => {
     const open: GameEvent = { type: 'jarOpened', at: at('C1'), by: b };
     expect(hits([open], s)).toEqual([]);
   });
