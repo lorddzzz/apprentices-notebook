@@ -1,4 +1,5 @@
 import { ATTACKS, type CompoundId, RUNES, type StateId, TUNING } from '$data';
+import type { DraftOptions } from './ctx';
 import {
   byReadingOrder,
   type Coord,
@@ -12,7 +13,7 @@ import {
   sameCoord,
   step,
 } from './grid';
-import { aimTargets, whereIs } from './resolve';
+import { aimTargets, boltTravel, whereIs } from './resolve';
 import type {
   Aim,
   BattleState,
@@ -326,15 +327,16 @@ export function aimPreview(
   id: UnitId,
   spellKey: SpellKey,
   aim: Aim,
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
 ): { path: Coord[]; targets: Coord[] } {
   const m = findUnit(s, id);
   const spell = m?.kind === 'member' ? spellOf(m, spellKey) : null;
   if (!m || !spell) return { path: [], targets: [] };
   const path =
     spell.source === 'bolt' && aim.kind === 'dir'
-      ? travel(s, m.pos, aim.dir, boltRange(m), m.id).path
+      ? boltTravel(s, m, aim.dir, giftedIn(m, spell.source), footnotes).path
       : [];
-  const aimed = aimTargets(s, m, spell.source, aim, giftedIn(m, spell.source));
+  const aimed = aimTargets(s, m, spell.source, aim, giftedIn(m, spell.source), footnotes);
   const targets = aimed.targets.flatMap((t) => {
     const at = whereIs(s, t);
     return at ? [{ ...at }] : [];

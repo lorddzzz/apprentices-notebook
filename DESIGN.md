@@ -1,9 +1,9 @@
 # The Apprentice's Notebook — Design Doc
 
 > Working title. Living document: updated after every design round and playtest.
-> Last updated: 2026-10-18 (scoping rounds: districts as guild schools, rivals, the party). **v0 design complete.**
+> Last updated: 2026-10-19 (rune redesign and its implementation follow-through). **Rune redesign built.**
 >
-> **Feature docs:** a feature too big for one section gets its own file in [docs/design/](docs/design/README.md). This doc keeps its summary and a link, and the decision log (§11) stays here. Current: [Research and Mastery](docs/design/research-and-mastery.md) (§6.3).
+> **Feature docs:** a feature too big for one section gets its own file in [docs/design/](docs/design/README.md). This doc keeps its summary and a link, and the decision log (§11) stays here. Current: [Mix, Move, Invent](docs/design/rune-design-final.md) (§6.3). [Research and Mastery](docs/design/research-and-mastery.md) records the retained Glyph foundations and the retired research model.
 >
 > **What's next:** [docs/ROADMAP.md](docs/ROADMAP.md) holds the backlog, roadmap tracks and parked ideas (§10b here is the older, shorter list).
 >
@@ -109,7 +109,7 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
   - **The Bench invents:** a **method** (Conduct, Repeat, Margin, Bind, Lift) applied to runes you know makes a new rune, optionally flavoured by one of 14 district **solvents**. Compatibility and the headline are always shown; trials on a test scene run the real engine. *Impulse* = Conduct(Shove); *Recoil* = Bind(Ink, Shove, hit).
   - **Headline and fine print:** every rune has one always-true headline and fine-print lines (what it does on each state, compound, terrain or unit) revealed when **witnessed**. The preview never hints: unwitnessed results are blank, but party harm is always flagged.
   - **Knowledge, not copies:** a learned or invented rune belongs to the household; ink per apprentice is the only limit. Inventions cost their parts plus the method.
-  - **Mastery:** witnessed lines earn a rune **footnote** points; each level offers two variants of a line, written at the desk with a district solvent. **Glyphs** compile as before; **elegance** is meant to count a cast's whole life (lingering compounds, jars, bound marks: not built yet, see the plan's M1).
+  - **Mastery:** witnessed lines earn a rune **footnote** points; authored level-I lines offer two variants, written at the desk with a district solvent. **Glyphs** compile as before; **elegance** credits the cast's whole life, including lingering compounds, jars and bound marks, to the creating Glyph socket. Delayed tails count toward proof and fired-cell records without adding casts. Levels II–III are future content.
   - **Playable now:** the Seam and the canals. All 31 runes, 5 methods and 14 solvents work and are tested; the other five districts' pages are reachable only in the Lab until their own design rounds.
 - *History:* the aspect grammar and recipes ("The Scholar's Press", 2026-10-13) are in [research-and-mastery.md](docs/design/research-and-mastery.md) and git history.
 
@@ -431,3 +431,4 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 | 2026-10-19 | M1 complete: lifetime damage, deaths and chain credit follow the cast and exact Glyph socket. Stored tails count toward proof and fired-cell records when they execute, without adding another cast | Completes P7/P8 and fixes payload Economy credit |
 | 2026-10-19 | R2 places oil beside walls and a brass plate at every Seam depth, with a pushable land foe beside water in each canal room. Foe strength, loot weights and Conduct guarantee stay as calibrated | Terrain makes the new chemistry and drop rules usable without masking trip charge pressure |
 | 2026-10-19 | S1 complete: unrestricted Lab inventions use all methods, Bind events and solvents without changing the notebook; undo/reset/export preserve session libraries. User approved two Bolt unobstructed landing-distance footnotes (one tile farther/nearer), implementation in progress | Completes P2 Lab access; Bolt variants must preserve unit/blocker targeting |
+| 2026-10-19 | Level-I footnotes complete: all eight initial rows have their described effects; two player-approved Bolt variants move only an unobstructed landing one clear tile farther or one tile nearer, never onto the caster. Levels II–III stay later content | Ten variant rows preserve existing choices; first-unit and obstacle targeting are unchanged |

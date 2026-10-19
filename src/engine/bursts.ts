@@ -10,6 +10,7 @@ import {
 import { type Ctx, emit, ref, withLine } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
+import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, step } from './grid';
 import { applyMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
@@ -138,11 +139,18 @@ function ignite(
   const s = ctx.s;
   const net = oilNet(s, at);
   const tiles = net.length ? net : [at];
-  for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null);
+  const rounds = id === 'fire' && hasFootnote(ctx, 'spark-slick-long') ? 3 : TUNING.fireRounds;
+  for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null, rounds);
   const units = unitsNear(ctx, tiles, reachOf(flow));
   announce(ctx, id, at, tiles, units);
   burnGates(ctx);
-  hit(ctx, units, row.damage, source, at);
+  hit(
+    ctx,
+    units,
+    id === 'fire' && hasFootnote(ctx, 'spark-slick-hot') ? 3 : row.damage,
+    source,
+    at,
+  );
   if (marks) {
     for (const u of units) if (u.hp > 0 && !u.mark) markUnit(ctx, u, flow?.origin ?? null);
   }

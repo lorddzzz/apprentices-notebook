@@ -20,6 +20,7 @@ import {
 } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
+import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, neighbors4 } from './grid';
 import {
   blocksUnits,
@@ -138,7 +139,11 @@ function unitOn(ctx: Ctx, t: Target, at: Coord): Unit | null {
 /** A Pool soaks its 4 neighbours too: empty or blotted tiles there become slicks. */
 function soakNeighbours(ctx: Ctx, at: Coord, flow: Flow | null): void {
   const s = ctx.s;
-  for (const n of neighbors4(at).sort(byReadingOrder)) {
+  const neighbors = neighbors4(at);
+  if (hasFootnote(ctx, 'oil-slick-corners')) {
+    for (const x of [-1, 1]) for (const y of [-1, 1]) neighbors.push({ x: at.x + x, y: at.y + y });
+  }
+  for (const n of neighbors.sort(byReadingOrder)) {
     if (!inBoard(s, n)) continue;
     const t = tileAt(s, n);
     if (blocksUnits(t) || (t.state && t.state.id !== 'blot')) continue;
@@ -176,6 +181,9 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
   if (row) {
     withLine(ctx, line(kind, cur.id), () => {
       tile.state = newLayer(row.makes, kind, flow);
+      if (row.makes === 'pool' && hasFootnote(ctx, 'oil-slick-short') && tile.state.rounds > 0) {
+        tile.state.rounds -= 1;
+      }
       noteMet(ctx, row.makes);
       nameOnce(ctx, 'compound', row.makes);
       emit(ctx, { type: 'mixed', at: { ...at }, compound: row.makes });

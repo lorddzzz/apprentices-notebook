@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
-**State:** holding for five-hour reset (2026-10-19 22:14 UTC; 2026-10-20 00:14 Europe/Belgrade); weekly only 34%, automatic resume authorized.
-**Next:** resume after reset: inspect codex/rune-footnotes (095b50f is green seven-variant checkpoint; subsequent Bolt work may be partial), finish/merge Bolt variants and seven authored variants with pnpm check. Finish approved Svelte autofixer checks for LabInvention.svelte/SolventRow.svelte once exact-file approval arrives; Lab.svelte passed. Run final QA/build, update docs/ROADMAP, push and confirm CI, clean merged worktrees.
+**State:** implemented and verified (2026-10-19); waiting for explicit push approval because automatic approval review rejected the final main-branch push.
+**Next:** with player push approval, push main and confirm CI deployment, clean merged worktrees and pause the resume heartbeat. All implementation tasks are done; optional future work stays in BL-100. See [verification](rune-redesign-verification.md).
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -25,7 +25,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | E7 | sonnet | L | merged | (this commit) | ~10% | 1757 tests; touched resolve.ts (marginEcho), types.ts (BattleState.inventions, Flow.repeated, Scheduled.solvent), battle.ts, run.ts (beginEncounter passes inventionLibrary), scenario.ts, jars.ts, schedule.ts |
 | U1 | sonnet | L | merged | (this commit) | ~20% | 2497 tests (drift guard re-registers engine suites, ~65k runs); orchestrator fix: graphite `stateFades` clears the state in the projection |
 | U3 | sonnet | M | merged | (this commit) | ~12% | 2558 tests; screenshots in session tool-results (…1792390743308…, …749207…, …769467…, …772486…) |
-| C1 | haiku | M | merged | (this commit) | ~3% | codex 84 entries, 8 variants (only `shove-wall-soft` has behaviour); touched types.ts (codex kinds), run.ts codexView |
+| C1 | haiku | M | merged | (this commit) | ~3% | codex 84 entries; initial 8 variant rows completed below, plus 2 approved Bolt variants; touched types.ts (codex kinds), run.ts codexView |
 | E8 | sonnet | M | merged | (this commit) | ~8% | 1841 tests; touched inventions, types (Flow.woken/weaker, Scheduled.undo), schedule, jars, marks, hooks (solvents now before marks), mix, bursts, actions, turn (`driftWaiting`), tuning (`SOLVENT_TUNING`) |
 | E9 | sonnet | S | merged | (this commit) | ~5% | 2548 tests; new `engine/leans.ts`; `Flow.giftedAuras`, `Jar.seq`, `Layer.steepWide`; orchestrator excluded a hand-held test from the drift guard |
 | U2 | sonnet | M | merged | (this commit) | ~12% | 2571 tests; new `app/peek.ts`; touched BattleBoard (onhold), HighlightLayer, describe.ts, game/lab/threshold.svelte.ts (witnessed) |
@@ -38,11 +38,13 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | T1 | inherited | M | merged | codex/rune-t1 @ 09d6617 | | 140 fuzz cases, actual first evening, room/full-trip calibration; merged gate 2,811 tests |
 | K1 | 6 Luna medium | S | done | audit + parent cleanup | | no obsolete files; stale removed-rune comment fixed, LF pinned; full gate green |
 | R2 | 6 Luna medium | S | merged | codex/rune-r2 @ 55118e5 | | oil/wall + plate per Seam depth; pushable land foe beside water per canal room; merged gate 2,841 tests |
-| W7 | opus (me) + sonnet reviewer | M | done | (this commit) | ~6% | playthrough at 375×812; Sonnet review (no blockers; 7.5k-board fuzz in /tmp, 0 exceptions); fixed duplicate invention names and a downed caster's delayed actions |
+| W7 | Codex + 6.1 Sol low reviewer | M | verified; deployment pending approval | final continuation commit | | 94 suites / 2,909 tests; production build; phone Lab/demos; remote Svelte checks clean; two reviews no blockers |
+
+| C1/F1 completion | 6.1 Sol low | M | merged | codex/rune-footnotes @ 622a7db (includes 095b50f) | | 10 working level-I variants, 3 Bolt lines, previews/overlays agree |
 
 ## Resume notes (2026-10-19)
 - Player authorized executing the whole remaining plan, updating docs throughout, and agent workflow until the weekly limit.
-- Runtime offers GPT agents rather than the plan''s Claude models; use inherited available agents in isolated worktrees, with the same ownership and review gates.
+- Runtime mapping in the implementation skill: Opus → 6.1 Sol high; Sonnet → 6.1 Sol low (Light); Haiku → 6 Luna medium. First three agents kept inherited settings; later spawns used the requested mapping.
 - Baseline Codex usage: 1% of 5-hour window, 19% weekly (previous Claude usage log below is historical).
 
 ## Usage log
@@ -94,15 +96,19 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 ## Follow-ups and rough edges
 - Review (minor, not fixed): a dusk jar sealed by another dusk jar's rest can open the same dusk; units carried by the current fire no `entered` hook (jars floating under a unit do); a downed owner's dusk jar still opens (kept: jars are world objects); delayed Wick/Filings/Repeat drop the step's auras (Coil, Margin) and `woken` leaks into nested inventions; after the 500-event cap some loops keep mutating state; `ensureBattle`'s fallback isn't in a try; one `.corrupt` save slot.
 - U6: `Profile.found` so solvents stay known once found; witnessed lines on method/solvent pages; codex tab strip wraps to two rows; unknown runes still show `???` + the owner hint (design says blank frames: player's call).
-- W7 (orchestrator playthrough, fresh profile, 375×812): Study → map → Seam → fight: Bolt kill, masked blank preview, Fire + toast, enemy phase with rat oil trails, Spark on a slick → Pool → Flare-up. Fixed: named-result toasts now use codex titles (a burst and its compound both said "Pool"). The map still labels the Seam "Ink · The Notaries" (BL-99).
-- Footnote levels II–III have no variants (only 8 level-I).
+- W7 (orchestrator playthrough, fresh profile, 375×812): Study → map → Seam → fight: Bolt kill, masked blank preview, Fire + toast, enemy phase with rat oil trails, Spark on a slick → Pool → Flare-up. Fixed: named-result toasts now use codex titles (a burst and its compound both said "Pool"). The map label was subsequently fixed (BL-99, d64ac47).
+- Footnote levels II–III remain explicitly out of scope (plan §5); 10 level-I variants now have behavior.
 - U3: make `ShelfSlot.base/role/invention` required (revision.ts builds slots); pass `inventions` into `RuneGlyph` from Lab, Bench, Codex; merge `flowZones` (study.ts) into `app/flowGeometry.ts`; reword "Not known" → "X is not known yet". The spell caption shows an invention by its lowercase id ("impulse"): use the invention's name.
-- U1 proposals (event contract, not done): `crush` gets `at`/`dir` (projection guesses the worn plate); `jarSealed` gets `peek`; `held`/`shieldGained` get `rounds`; `playback.svelte.ts` `play()` accepts `end`.
+- U1 proposals (event contract, not done): `crush` gets `at`/`dir` (projection guesses the worn plate); `jarSealed` gets `peek`; `held` gets `rounds` (shield gains now carry total/expiry); `playback.svelte.ts` `play()` accepts `end`.
 - Test runtime: two suites (lines integrity, projection drift) re-register the engine suites; `pnpm check` is ~66 s wall. Consider one shared log-collecting pass.
-- C1: the other 7 footnote variants have text but no behaviour; LINES has no Bolt rows (no Bolt variants; shove:slick ×2 instead); the codex treats a solvent as known while `solvents[id] > 0` (needs a found-solvents record); compound/burst names and notes want the player's ear; `wax:cloud` still unstamped (E8).
+- C1/F1 completed: all eight initial variants have behavior; Bolt has three fine-print rows and two approved landing variants. Optional follow-up: the codex treats a solvent as known while `solvents[id] > 0` (needs a found-solvents record); compound/burst names and notes want the player's ear; `wax:cloud` still unstamped (E8).
 - **Playtest question:** `Bolt → Oil → Shove` on a lone rat doesn't slide (the engine only slides over slick the unit *enters*; E3 + R1 noted it). Design §1 row 3 reads as if it should slide to the end of the oil. Ask the player whether a unit pushed *from* a slick should slide.
 - The lines integrity test re-runs most suites inside one file (test count ~1.6k, check ~57 s wall). Simplify later (BL candidate).
-- Jars should drift with the current (Pitch / Lantern Walk): E8 or R2.
+- Jar drift and Lantern Walk are complete, including a positive replayable Lab lesson.
+
+## Historical build handoffs (completed by the original task merges)
+These notes are preserved as implementation history; they are not unfinished tasks.
+
 - **For E7 (from E5):** Bind = land Ink as a plain mark, then `attachBound` (don't call `applyMark` twice; `applyMark` with `bound` also works on an unmarked unit); `attachBound` emits a second `marked` event; Lift calls `liftMark`; a real Bind-in-Bind test is E7's.
 - **For E7 (from E6):** Repeat must not schedule itself again (§6.4 limit 5): `runDetached`'s flow has no "from a repeat" flag yet. Nothing writes `Tile.hot` yet (Cinder, E8).
 - **For E5 (from E2):** `bursts.ts` `markUnit` sets the mark directly; swap its body for `applyMark`. E2 doesn't emit `markSpent` (spendMark is trivial); E5's should. `Mark` has no `rounds`, so a Deep mark doesn't fade after 2 rounds: add `Mark.rounds?` if P17 applies.
@@ -110,7 +116,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - **For E6 (from E3):** the enemy phase and members must skip a `stunned` unit's next action and clear the flag; `held` counts player-phase starts (decrement at player-phase start, not round end); enemy AI/movement must respect `held`; clear shields where `guardUntil <= round` at player-phase start.
 - Art to redraw later: margin (reads as P), strike (reads as T), coil (zigzag reads electric; want a spiral), brink, bind (weak knot), chalk, filings, quicksilver.
 
-### Continuation checkpoint
+## Continuation event log (historical checkpoints)
 - 078c8fd: shared lifetime origin/Lab contracts and requested dual Claude/GPT model mapping; baseline and shared gate pass (90 suites / 2,607 tests).
 - T1 fuzz exposed repeated Guard shield drift (seed 37 and five others); shield events now carry total and expiry. Full check: 90 suites / 2,607 tests green.
 - M1 core checkpoint f1a6c7d green in its worktree; extending delayed trace metadata so deferred Glyph cells are not falsely shown as dead.
@@ -123,3 +129,8 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - Hold: Codex 97% five-hour /34%weekly; reset22:14UTC. No new agents. User approved two Bolt landing-distance variants and external Svelte source upload; auto-review narrowed upload permission to Lab.svelte only (passed noissues). An exact-file approval question is pending for LabInvention.svelte and SolventRow.svelte.
 - Final reviewer (6.1Sol low) found no blocking issues across M1/S1/T1/K1/R2 and seven authored variants. Phone375x812: Wall demo playback, Lab invention authoring sheet, compatible/disabled part choices, live headline and name field; scrollWidth=clientWidth=375, no consoleerrors.
 - Lab SolventRow now renders unlimited inventory as infinity symbol rather than JavaScript Infinity. Include this component in final local and remote checks.
+- Usage available again at17:46UTC (0%/0% reported). Both exact-file uploads explicitly approved by the player; all three changed Svelte components passed remote autofixer with zero issues. Existing class directives/lifecycle effects retained despite optional suggestions.
+- Footnotes branch622a7db reviewed: all eight authored variants + two approved Bolt landing variants, three Bolt lines; branch full gate2,905tests. Final delta reviewer found no blockers.
+- Final phone QA also exercised adding/selecting/placing a Lab invention and the expanded terrain palette; Recoil and Lantern Walk demos inspected without consoleerrors. Production build passed (bundle-size advisory only).
+- Final merged gate passes94files/2,909tests, zero type/lint/Svelte errors; production build passes. Both reviewer passes found no blockers. Verification report records exact coverage and deliberate later scope.
+- Final main push was rejected by automatic approval review: explicit authorization to mutate the external default branch is required. Local commit remains allowed; ask the player only for the concrete final push/deployment.

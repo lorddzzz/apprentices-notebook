@@ -35,9 +35,9 @@ TECH.md header still says "2026-10-12"; DESIGN §10 still says "Next: the player
 
 ---
 
-#### BL-100 · Rune redesign leftovers (after the playtest)
-`feature` `M`–`L` · area: runes, mastery, tests · status: ready · needs: the player's playtest
-The parts of [rune-redesign-plan.md](plans/rune-redesign-plan.md) held back on 2026-10-19 to save the weekly budget (the player's call): **M1** elegance across a cast's whole life (credit by `Origin`; absorbs BL-57), **S1** Lab scenarios for the new runes, **T1** fuzz bots and the first-evening integration test on the new model, **K1** dead-code sweep, **R2** Seam and canal boards re-tuned for crushes and drops. Also from the build ([status](plans/rune-redesign-status.md) "Follow-ups"): behaviour for 7 of the 8 footnote variants, levels II–III, Bolt fine-print rows; event contract additions (`crush` at/dir, `jarSealed` peek, `held` rounds); one shared log pass for the lines and projection guards (`pnpm check` ~70 s); redraw weak glyphs (margin, strike, coil, brink, bind, chalk, filings, quicksilver).
+#### BL-100 · Rune redesign polish and future content
+`feature` `M` · area: runes, mastery, tooling · status: ready · needs: —
+The planned M1/S1/T1/K1/R2 continuation and authored level-I behaviors are complete (see the Done log and [status](plans/rune-redesign-status.md)). Remaining optional work: footnote levels II–III and the other runes; richer event contracts (`crush` at/dir, `jarSealed` peek, `held` rounds); one shared log pass for the lines and projection guards; redraw weak glyphs (margin, strike, coil, brink, bind, chalk, filings, quicksilver). These are follow-ups, not unfinished tasks in the executed plan.
 
 ## 2. Roadmap (planned tracks)
 
@@ -96,9 +96,8 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-51 | Unbuilt runes from the family table: **Pull** (Source), **Wider**, **Bounce** (Shape), **When ally hit** (Trigger) | content | M each | runes | needs-design | Each needs aspects (check BL-20 first) and a rule that stays one sentence. |
 | BL-52 | More idioms (3 now) | content | S | compile | ready | Each is data in `idioms.ts` plus a Lab scenario. |
 | BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | ready (BL-21 done) | "The solvent is the steering wheel". Feature doc §3.3. |
-| BL-54 | Footnote content for the other runes | content | M | mastery | blocked (BL-12) | After the first three. |
+| BL-54 | Footnote content for the other runes | content | M | mastery | ready | Level I now covers Shove, Spark, Oil and Bolt; levels II–III remain future content. |
 | BL-55 | Fire: its own element or a state; terrain decay; final matrix | design | S | materials | idea | Open since v0 (DESIGN §6.5, §10). |
-| BL-57 | (absorbed by BL-100 M1) Payload Glyphs rarely earn Economy: with harm-only scoring an Ink or Oil payload does no damage itself (bot p50 = 0) | balance | S | mastery | needs-playtest | Options: separate Payload thresholds, or credit the payoff a payload enables. Reliability still works for them. Plan follow-up, 2026-10-16 |
 | BL-56 | Balance pass: lattice sizes, ink costs, charges, enemy numbers | balance | S | combat, run | needs-playtest | Open checkboxes in DESIGN §10. Feedback from the player's play-throughs lands here as add-ons. |
 
 ### Content
@@ -189,6 +188,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-19 | **Rune redesign continuation** (planned M1/S1/T1/K1/R2; closes BL-57): lifetime Glyph credit/proof, ten Lab lessons and unrestricted invention authoring, 140 deterministic invention/solvent fuzz cases, real first-evening integration, old-system audit and teaching terrain. All eight authored footnotes plus two approved Bolt variants work; remaining optional work stays in BL-100 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md) |
 | 2026-10-19 | The Seam's map label (was BL-99): "No guild: the owner's drawing" | `src/data/districts.ts` |
 | 2026-10-19 | **Rune redesign "Mix, Move, Invent"** (was BL-98; absorbs BL-12 footnotes, closes BL-13 Crystallise; folios retired): 31 runes in 7 roles, the five kinds with 10 compounds and 15 bursts, push/slide/crush/drop, jars, bound marks, the Bench with 5 methods and 14 solvents, fine print with blank previews, the footnote desk, the codex's compound table; save v7 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md), [rune-design-final.md](design/rune-design-final.md) §0 |
 | 2026-10-17 | Folios (was BL-14): the five owner's drafts as 2–4 page folios with fixed trays, a growing test suite with "broke", turning pages, decoys, the bronze reward, the owner's mark and lore; save v6 | [folios-plan.md](plans/folios-plan.md), [status](plans/folios-status.md), [research-and-mastery.md](design/research-and-mastery.md) §0 "Folios built" |

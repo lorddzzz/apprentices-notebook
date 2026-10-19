@@ -1,6 +1,6 @@
 # Rune Content Rework
 
-> **Status: Decided** (problem defined 2026-10-17; the connected systems were scoped 2026-10-18, see §7). Answered by [rune-design-final.md](rune-design-final.md), built 2026-10-19.
+> **Status: Answered and built** (2026-10-19). This is the historical problem frame, defined 2026-10-17 and scoped 2026-10-18 (§7). [rune-design-final.md](rune-design-final.md) is the current design; its implementation includes the formerly deferred mastery, Lab, integration, cleanup and encounter tasks.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 (runes), §6.5 (materials), §11. Related: [research-and-mastery.md](research-and-mastery.md) (aspects, Bench, Glyphs), [city-and-districts.md](city-and-districts.md), which held back "aspects, recipes, loot and solvents" **for this rework**. Roadmap: BL-98.
 
 ## 1. What the player said (2026-10-17)

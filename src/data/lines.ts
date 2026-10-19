@@ -15,6 +15,9 @@ const seam = (subject: LineSubject, meets: Meets, text: string): LineDef => ({
 });
 
 export const LINES: readonly LineDef[] = [
+  seam('bolt', 'cloud', 'A cloud stops Bolt on its tile, hiding any unit inside it.'),
+  seam('bolt', 'plate', 'A brass plate, grate or lock gate stops Bolt on its tile.'),
+  seam('bolt', 'empty', 'An unobstructed Bolt shot lands on the last tile its line reaches.'),
   // kinds (E2)
   // Mixing: the 16 rows of the compound table (design §4.2).
   seam('ink', 'mark', 'Ink on a marked unit makes a deep mark, which takes two sparks to clear.'),

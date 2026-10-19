@@ -1,7 +1,7 @@
 # The Apprentice's Notebook — Tech Decisions
 
 > Companion to [DESIGN.md](DESIGN.md). Design says *what* the game is; this file says *how* it's built.
-> Last updated: 2026-10-16 (Glyph mastery: stages C, D, G).
+> Last updated: 2026-10-19 (rune redesign, lifetime mastery, Lab and integration).
 
 ## 1. Constraints (from DESIGN.md §8)
 
@@ -162,3 +162,4 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-19 | T1 adds 140 seeded invention/solvent fuzz cases and real first-evening integration, with deterministic greedy calibration bots | All 140 agree with playback; added tests take about 2.7 seconds in isolation, below the 15-second budget |
 | 2026-10-19 | K1 audit found no remaining obsolete system files; legitimate Bench drafts, engine drafts and Redraft remain. `.gitattributes` pins text to LF so Windows checkout does not fail Biome | Removes a stale revision comment about retired runes; no active mechanics removed |
 | 2026-10-19 | `Step.glyph` survives stored clones. Silent `trace.continued` events merge by caster/spell/cast with their original trace; zero-range deferred spans carry local fired cells while harm follows Origin | Profiler, proof and trip ledger avoid extra samples/casts and false dead cells for jar tails |
+| 2026-10-19 | Bolt uses one footnote-aware travel helper for resolution, flight, preview and aim overlays. Three fine-print rows cover empty/cloud/solid obstacles; ten authored level-I variants map stored choices to behavior | Approved Bolt variants alter only unobstructed landings; final integrated gate: 94 files / 2,909 tests; production PWA build succeeds |

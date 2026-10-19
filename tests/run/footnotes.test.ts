@@ -105,3 +105,13 @@ test('variant-changes-a-scenario-log', () => {
   if ('error' in w) throw new Error(w.error);
   expect(crushDamage(footnoteTexts(w.profile, VARIANTS))).toBeLessThan(plain);
 });
+
+test.each(VARIANTS)('authored $id resolves from the profile to its exact context text', (v) => {
+  const p = newProfile();
+  const rune = v.line.split(':')[0] as 'shove' | 'spark' | 'oil';
+  const written: Profile = {
+    ...p,
+    footnotes: { [rune]: { points: 5, chosen: { [v.line]: v.id } } },
+  };
+  expect(footnoteTexts(written)).toEqual({ [v.line]: v.text });
+});

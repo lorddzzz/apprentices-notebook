@@ -1,4 +1,6 @@
 import { type SourceRuneId, TUNING } from '$data';
+import type { DraftOptions } from './ctx';
+import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, square } from './grid';
 import { clip, travel, unitAt } from './queries';
 import type { Aim, BattleState, Target, Unit } from './types';
@@ -64,6 +66,27 @@ function areaTargets(
   return { targets, headings };
 }
 
+/** Footnotes shift only an unobstructed landing; first-unit and blocker targeting stay fixed. */
+export function boltTravel(
+  s: BattleState,
+  caster: Unit,
+  dir: Dir,
+  gifted: boolean,
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
+) {
+  const r = travel(s, caster.pos, dir, TUNING.boltRange + (gifted ? 1 : 0), caster.id);
+  if (r.reason !== 'end') return r;
+  if (hasFootnote({ footnotes }, 'bolt-empty-far')) {
+    const extra = travel(s, r.stop, dir, 1, caster.id);
+    if (extra.reason === 'end') return { ...r, stop: extra.stop, path: [...r.path, ...extra.path] };
+  }
+  if (hasFootnote({ footnotes }, 'bolt-empty-near') && r.path.length > 1) {
+    const path = r.path.slice(0, -1);
+    return { ...r, stop: path[path.length - 1] as Coord, path };
+  }
+  return r;
+}
+
 /** Where a Source aims, and each target's heading (R2, R4, P21–P23). */
 export function aimTargets(
   s: BattleState,
@@ -71,13 +94,13 @@ export function aimTargets(
   source: SourceRuneId,
   aim: Aim,
   gifted: boolean,
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
 ): { targets: Target[]; headings: Map<string, Dir | null> } {
   const none = { targets: [], headings: new Map<string, Dir | null>() };
   switch (source) {
     case 'bolt': {
       if (aim.kind !== 'dir') return none;
-      const range = TUNING.boltRange + (gifted ? 1 : 0);
-      const r = travel(s, caster.pos, aim.dir, range, caster.id);
+      const r = boltTravel(s, caster, aim.dir, gifted, footnotes);
       if (r.reason === 'none') return none;
       // P21: no unit in the line → the last tile the line reached (a cloud or a blocker stops it).
       const t: Target =

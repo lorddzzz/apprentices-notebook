@@ -1,4 +1,4 @@
-import { isInvention, RUNES, type RuneRef, TUNING } from '$data';
+import { isInvention, RUNES, type RuneRef } from '$data';
 import { type Ctx, emit, fizzled, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
@@ -6,10 +6,10 @@ import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
 import { sameStateNet } from './networks';
-import { findUnit, giftedIn, travel, unitAt } from './queries';
+import { findUnit, giftedIn, unitAt } from './queries';
 import { handlerFor } from './runes';
 import { forkSide, jarFor, passes, seep, toll } from './runes/flow';
-import { aimTargets, whereIs } from './targets';
+import { aimTargets, boltTravel, whereIs } from './targets';
 import type {
   Aim,
   BattleState,
@@ -26,7 +26,7 @@ import type {
 } from './types';
 import { targetKey } from './types';
 
-export { aimTargets, whereIs };
+export { aimTargets, boltTravel, whereIs };
 
 /**
  * Spell resolution (design §3, plan §2.4). `resolveSpell` emits `cast`, aims, snapshots the board
@@ -333,25 +333,32 @@ function sourceSpan(spell: Spell, from: number, to: number): NodeSpan {
 /** The line's flight, for the log and its animation: where a Bolt lands or what stops it. */
 function flight(ctx: Ctx, caster: Unit, aim: Aim, gifted: boolean): void {
   if (aim.kind !== 'dir') return;
-  const range = TUNING.boltRange + (gifted ? 1 : 0);
-  const r = travel(ctx.s, caster.pos, aim.dir, range, caster.id);
+  const r = boltTravel(ctx.s, caster, aim.dir, gifted, ctx.footnotes);
   const name = RUNES.bolt.name;
   switch (r.reason) {
     case 'none':
       emit(ctx, { type: 'miss', source: name });
       return;
     case 'cloud':
-      emit(ctx, { type: 'stopped', source: name, at: r.stop, by: 'cloud', path: r.path });
+      withLine(ctx, 'bolt:cloud', () => {
+        emit(ctx, { type: 'stopped', source: name, at: r.stop, by: 'cloud', path: r.path });
+      });
       return;
     case 'blocked': {
       const t = ctx.s.tiles[r.stop.y * ctx.s.width + r.stop.x];
       const by = t?.terrain.gate ? 'lock gate' : t?.terrain.grate ? 'grate' : 'brass plate';
-      emit(ctx, { type: 'stopped', source: name, at: r.stop, by, path: r.path });
+      withLine(ctx, 'bolt:plate', () => {
+        emit(ctx, { type: 'stopped', source: name, at: r.stop, by, path: r.path });
+      });
       return;
     }
     case 'unit':
-    case 'end':
       emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
+      return;
+    case 'end':
+      withLine(ctx, 'bolt:empty', () => {
+        emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
+      });
       return;
   }
 }
@@ -380,7 +387,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
     // Span offsets count from the first effect event, right after `cast` (M2).
     const from = ctx.log.length;
     const gifted = giftedIn(caster, spell.source);
-    const { targets, headings } = aimTargets(s, caster, spell.source, aim, gifted);
+    const { targets, headings } = aimTargets(s, caster, spell.source, aim, gifted, ctx.footnotes);
     const first = targets[0];
     emit(ctx, {
       type: 'aimed',

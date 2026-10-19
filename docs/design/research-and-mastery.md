@@ -1,6 +1,6 @@
 # Research and Mastery: The Scholar's Press
 
-> **Status: Building.** Decided in the design round of 2026-10-13 (§0). **First slice shipped 2026-10-13:** Bench + Compile, see the [implementation plan](../plans/research-and-mastery-plan.md). **Stages C, D and G shipped 2026-10-16** (§0, second and third tables; [plan](../plans/glyph-mastery-plan.md)). **Drafts redesigned and built as folios 2026-10-17** (§0, fourth table and "Folios built"). Next: the player's playtest of the folios, then footnotes (stage E).
+> **Status: Historical foundations; superseded in part by [Mix, Move, Invent](rune-design-final.md), built 2026-10-19.** Bench + Compile shipped 2026-10-13; Glyph mastery, versions and parameters shipped 2026-10-16 and remain. Aspects, recipes and folios were retired by the rune redesign; its Bench, footnotes and lifetime elegance are the current rules. The original decisions and folio history below are preserved as history.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 and §11. Base rules: DESIGN.md §6.2 (flow rules), §6.3 (runes), §9.5 (v0 rule defaults).
 > Numbers and effects are drafts, to tune by playing. The alternatives explored before this choice (fusion and evolution, chronicles and slow projects, and standalone versions of the Bench and Compile) were removed after the decision. They are in git history at commit `86e1b25` (`docs/design-options/`).
 

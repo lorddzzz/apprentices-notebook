@@ -4,7 +4,7 @@ import { LINES, SHOVE_WALL_SOFT, VARIANTS } from '$data';
 test('footnote variants are level I, unique, and sit on written lines (P39)', () => {
   const ids = VARIANTS.map((v) => v.id);
   expect(new Set(ids).size).toBe(ids.length);
-  expect(VARIANTS).toHaveLength(8);
+  expect(VARIANTS).toHaveLength(10);
   for (const v of VARIANTS) {
     expect(v.level, v.id).toBe(1);
     expect(v.text.length, v.id).toBeGreaterThan(10);

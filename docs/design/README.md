@@ -8,8 +8,8 @@
 |---|---|---|---|---|
 | Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Superseded** 2026-10-19 by the rune design (aspects, recipes, folios gone; Glyphs and footnotes kept) | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md), [glyph-mastery-plan.md](../plans/glyph-mastery-plan.md) |
 | The city map, hearing, gates, and the oil-lit canals | [city-and-districts.md](city-and-districts.md) | **Decided** 2026-10-16 (map and gates; canals) | §6.7 | [city-and-canals-plan.md](../plans/city-and-canals-plan.md) |
-| Rune content rework | [rune-content.md](rune-content.md) | **Decided** 2026-10-18 (answered by the rune design below) | §6.3 | — |
-| Runes: Mix, Move, Invent | [rune-design-final.md](rune-design-final.md) | **Shipped** 2026-10-19 (Seam + canals playable) | §6.3, §6.5, §6.6 | [rune-redesign-plan.md](../plans/rune-redesign-plan.md) |
+| Rune content rework | [rune-content.md](rune-content.md) | **Answered and built** 2026-10-19 (historical problem frame) | §6.3 | — |
+| Runes: Mix, Move, Invent | [rune-design-final.md](rune-design-final.md) | **Shipped** 2026-10-19 (Seam + canals; planned mastery/Lab/testing/content continuation complete) | §6.3, §6.5, §6.6 | [rune-redesign-plan.md](../plans/rune-redesign-plan.md) |
 | Rival inscribers | [rivals.md](rivals.md) | **Exploring** (scoped 2026-10-18) | §6.7 | — |
 | The party (apprentices) | [party.md](party.md) | **Exploring** (scoped 2026-10-18) | §6.1 | — |
 

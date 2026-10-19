@@ -10,7 +10,14 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
+import type { Ctx } from './ctx';
 import type { Profile } from './types';
+
+/** Resolve authored variant ids while preserving the text-valued context contract. */
+export function hasFootnote(ctx: Pick<Ctx, 'footnotes'>, id: string): boolean {
+  const variant = VARIANTS.find((v) => v.id === id);
+  return variant !== undefined && ctx.footnotes[variant.line] === variant.text;
+}
 
 /** Footnotes (design §8, P39): pure functions on the profile. `variants` defaults to the content. */
 

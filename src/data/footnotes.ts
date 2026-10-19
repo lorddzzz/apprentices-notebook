@@ -2,14 +2,25 @@ import type { VariantDef } from './types';
 
 /**
  * Footnote variants (P39): level I, two per line for Shove (wall, slick), Spark (slick) and Oil
- * (slick). Only `shove-wall-soft` changes behaviour so far (push.ts reads it); the rest are
- * follow-ups. Bolt has no fine-print rows yet, so it has no variants.
+ * (slick), plus unobstructed Bolt landing distance.
  */
 
 /** The wall crush that skips the per-tile damage (push.ts resolves this id to its text). */
 export const SHOVE_WALL_SOFT = 'shove-wall-soft';
 
 export const VARIANTS: readonly VariantDef[] = [
+  {
+    id: 'bolt-empty-far',
+    line: 'bolt:empty',
+    level: 1,
+    text: 'An unobstructed Bolt shot lands one tile farther, if that tile is clear.',
+  },
+  {
+    id: 'bolt-empty-near',
+    line: 'bolt:empty',
+    level: 1,
+    text: 'An unobstructed Bolt shot lands one tile nearer, without landing on its caster.',
+  },
   {
     id: SHOVE_WALL_SOFT,
     line: 'shove:wall',

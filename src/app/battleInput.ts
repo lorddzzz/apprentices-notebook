@@ -206,7 +206,7 @@ export function previewOf(s: BattleState, action: Action, ctx: PreviewCtx = {}):
   let path: Coord[] = [];
   let targets: Coord[] = [];
   if (action.type === 'cast') {
-    const p = aimPreview(s, action.unit, action.spell, action.aim);
+    const p = aimPreview(s, action.unit, action.spell, action.aim, ctx.footnotes);
     const caster = findUnit(s, action.unit);
     const spell = caster?.kind === 'member' ? spellOf(caster, action.spell) : null;
     path = p.path.length && caster ? [{ ...caster.pos }, ...p.path] : [];

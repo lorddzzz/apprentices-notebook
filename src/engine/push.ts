@@ -1,6 +1,7 @@
-import { ENEMIES, type LineId, SHOVE_WALL_SOFT, TUNING, VARIANTS } from '$data';
+import { ENEMIES, type LineId, TUNING } from '$data';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
+import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, sameCoord, step } from './grid';
 import { notify } from './hooks';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
@@ -12,9 +13,6 @@ export interface PushResult {
   crushed: string | 'wall' | 'plate' | null; // a UnitId, or what it hit
   dropped: boolean;
 }
-
-/** The text `ctx.footnotes` holds when the soft wall variant is written (footnoteTexts keeps texts). */
-const SOFT_WALL_TEXT = VARIANTS.find((v) => v.id === SHOVE_WALL_SOFT)?.text;
 
 /** Layers a pushed land unit slides across (design §4.2, §4.4). */
 const SLICK: ReadonlySet<Layer['id']> = new Set(['slick', 'pool', 'greaseFog']);
@@ -85,11 +83,10 @@ function crush(
 ): void {
   const other = typeof stop.into === 'string' ? null : stop.into;
   // Footnote `shove-wall-soft` (P39): a wall crush skips the per-tile damage.
-  const softWall =
-    stop.line === 'shove:wall' &&
-    SOFT_WALL_TEXT !== undefined &&
-    ctx.footnotes['shove:wall'] === SOFT_WALL_TEXT;
-  const damage = TUNING.crushBase + (softWall ? 0 : TUNING.crushPerTile * moved);
+  const softWall = stop.line === 'shove:wall' && hasFootnote(ctx, 'shove-wall-soft');
+  const heavyWall = stop.line === 'shove:wall' && hasFootnote(ctx, 'shove-wall-heavy');
+  const damage =
+    TUNING.crushBase + (softWall ? 0 : TUNING.crushPerTile * moved) + (heavyWall ? 1 : 0);
   const body = (): void => {
     emit(ctx, {
       type: 'crush',
@@ -174,8 +171,8 @@ export function push(
       allowance--;
       const layer = tileAt(s, next).state as Layer | null;
       if (!flies(unit) && layer && SLICK.has(layer.id) && layer.slid !== s.round) {
-        layer.slid = s.round;
-        allowance = Math.max(allowance, 1);
+        if (!hasFootnote(ctx, 'shove-slick-again')) layer.slid = s.round;
+        allowance = Math.max(allowance, hasFootnote(ctx, 'shove-slick-far') ? 2 : 1);
       }
     }
     const slid = Math.max(0, path.length - tiles);

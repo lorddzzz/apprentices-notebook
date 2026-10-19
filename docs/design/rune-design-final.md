@@ -6,6 +6,8 @@
 
 ## 0. Decisions
 
+**Implementation follow-through completed 2026-10-19:** M1 lifetime mastery, S1 unrestricted Lab authoring and ten replayable lessons, T1 fuzz/first-evening integration, K1 cleanup and R2 teaching terrain are implemented. All eight initial level-I variants now change behavior. The player additionally approved two Bolt variants: an unobstructed shot lands one clear tile farther or one tile nearer (never on the caster); first-unit and obstacle targets stay fixed. Bolt has empty/cloud/solid-obstacle fine print. There are ten level-I variant rows; levels II–III and the other districts remain later work under plan §5.
+
 **Built 2026-10-19.** The player's calls at build time: the Seam and the canals are playable, the other five districts' runes, methods and solvents work but are reachable only in the Lab (plan P2); the folios are retired (P9); **board edges depend on the district**, walls in the Seam and the canals (P3). Every rule the build had to settle is a *Proposal* in the plan §1 (P1–P42) and in the status file's Proposals list (one block per task). The ones most likely to feel wrong, to judge by playing: P14–P16 (which layer a kind lands on, wash-out), P22 (headings), P33 (ink costs), P41 (blank previews), and that a unit only slides over oil it moves onto.
 
 The 22 decisions behind this design, from five rounds (2026-10-18), are logged with their reasons in [rune-design-synthesis.md](rune-design-synthesis.md) §3. Each of the ~60 ideas from the four proposals, and what became of it, is in its §2.
@@ -288,5 +290,3 @@ Districts without their own method deepen the others through their solvents, the
 2. **Lab prototype 2: the Bench.** Conduct with Impulse, the test scene, fine print revealed in trials.
 3. **Lab prototype 3: Bind and spreading.** Recoil in a Brand cloud, a Spark storm across two apprentices.
 4. If they play well, move the decisions into DESIGN.md and the feature docs, and write a plan in `docs/plans/`.
-
-Continuation (2026-10-19): ten Lab lessons now replay the five example spells, Impulse and four idioms, including a real jar drifting into a foe (Lantern Walk). Lab exports carry invention definitions; they remain reproducible after edits.

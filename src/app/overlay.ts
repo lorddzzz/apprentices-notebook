@@ -18,7 +18,7 @@ import {
   type UnitId,
   unitAt,
 } from '$engine';
-import { type InputMode, selectedOf } from './battleInput';
+import { type Footnotes, type InputMode, selectedOf } from './battleInput';
 import { layerTone, type Tone } from './fx';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
@@ -100,7 +100,7 @@ export const EMPTY_OVERLAY: Overlay = {
 };
 
 /** What the board highlights for the current input mode (and its preview, if any). */
-export function overlayFor(s: BattleState, mode: InputMode): Overlay {
+export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes = {}): Overlay {
   const highlights: Highlight[] = [];
   const badges: Badge[] = [];
   const ghosts: Ghost[] = [];
@@ -111,7 +111,7 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
   }
   if (mode.kind === 'inspect') highlights.push({ kind: 'focus', at: mode.at });
   if ((mode.kind === 'aim' || mode.kind === 'confirm') && mode.spell !== null) {
-    highlights.push(...aimTints(s, mode.unit, mode.spell));
+    highlights.push(...aimTints(s, mode.unit, mode.spell, footnotes));
   }
   if (mode.kind === 'shove') {
     const m = findUnit(s, mode.unit);
@@ -254,7 +254,12 @@ function tileEffects(before: BattleState, after: BattleState): Highlight[] {
 }
 
 /** Faint tint on every tile a spell could be aimed at (Bolt: each line, chevron at its start). */
-function aimTints(s: BattleState, unit: UnitId, spell: SpellKey): Highlight[] {
+function aimTints(
+  s: BattleState,
+  unit: UnitId,
+  spell: SpellKey,
+  footnotes: Footnotes,
+): Highlight[] {
   const out: Highlight[] = [];
   const seen = new Set<string>();
   const add = (h: Highlight & { at: Coord }): void => {
@@ -265,7 +270,7 @@ function aimTints(s: BattleState, unit: UnitId, spell: SpellKey): Highlight[] {
   };
   for (const aim of legalAims(s, unit, spell)) {
     if (aim.kind === 'dir') {
-      const { path } = aimPreview(s, unit, spell, aim);
+      const { path } = aimPreview(s, unit, spell, aim, footnotes);
       path.forEach((at, i) => {
         add(i === 0 ? { kind: 'aim', at, chevron: aim.dir } : { kind: 'aim', at });
       });
