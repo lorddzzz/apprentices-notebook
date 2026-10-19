@@ -47,8 +47,9 @@ export function noteMet(ctx: Ctx, m: Meets): void {
 
 /** Extra tiles a burst reaches: Coil on the step's touching auras (design §5.2). */
 export const reachOf = (flow: Flow | null): number =>
-  (flow?.auras.includes('coil') ? CHEMISTRY.coilReach : 0) +
-  (flow?.solvent ? (SOLVENT_RULES[flow.solvent]?.reach ?? 0) : 0);
+  (flow?.auras.includes('coil')
+    ? CHEMISTRY.coilReach + (flow.giftedAuras?.includes('coil') ? 1 : 0)
+    : 0) + (flow?.solvent ? (SOLVENT_RULES[flow.solvent]?.reach ?? 0) : 0);
 
 /** The heading of the target standing on `at` (a unit's, else the tile's), or null. */
 export function headingAt(ctx: Ctx, flow: Flow | null, at: Coord): Dir | null {

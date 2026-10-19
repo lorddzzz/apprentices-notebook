@@ -244,7 +244,11 @@ const EVENT_TYPES: GameEvent['type'][] = [
 ];
 
 // Tests that move a unit by hand inside a draft (no event says so), so no log could project it.
-const SETS_UP_BY_HAND = ['spreading (P29) > entering a cloud spreads the mark'];
+const SETS_UP_BY_HAND = [
+  'spreading (P29) > entering a cloud spreads the mark',
+  // holds a rat for 9 rounds by hand; the view only knows Hold's usual length
+  'Draughtsman: he keeps two jars > two jars cast in turn, then a third crumbles the oldest',
+];
 
 describe('projection drift guard over the engine suites', () => {
   test('every run the suites made projects to the engine state', () => {

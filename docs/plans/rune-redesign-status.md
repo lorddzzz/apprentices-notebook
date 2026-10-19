@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** U3, E9 running; next U2 (wire `viewOf(r.state)` as `buildSteps`' 5th arg, long-press jars/marks), then U5. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** U3 running; next U2 (wire `viewOf(r.state)` as `buildSteps`' 5th arg, long-press jars/marks), then U5. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -27,7 +27,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | U3 | sonnet | M | running | worktree | | started 06:10 |
 | C1 | haiku | M | merged | (this commit) | ~3% | codex 84 entries, 8 variants (only `shove-wall-soft` has behaviour); touched types.ts (codex kinds), run.ts codexView |
 | E8 | sonnet | M | merged | (this commit) | ~8% | 1841 tests; touched inventions, types (Flow.woken/weaker, Scheduled.undo), schedule, jars, marks, hooks (solvents now before marks), mix, bursts, actions, turn (`driftWaiting`), tuning (`SOLVENT_TUNING`) |
-| E9 | sonnet | S | waiting | | | |
+| E9 | sonnet | S | merged | (this commit) | ~5% | 2548 tests; new `engine/leans.ts`; `Flow.giftedAuras`, `Jar.seq`, `Layer.steepWide`; orchestrator excluded a hand-held test from the drift guard |
 | U2 | sonnet | M | waiting | | | |
 | F1 | sonnet | S | merged | (this commit) | ~3% | 1631 tests; `applyAction(state, action, footnotes = {})`; proof branch in push.ts `crush()` for `shove:wall` |
 | U5 | sonnet | L | waiting | | | |
@@ -46,7 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
-| 2026-10-19 06:35 | ? | | ~82 | | U1 merged |
+| 2026-10-19 06:40 | 73 | 4h19m | 83 | normal / weekly near guard | U1, E9 merged |
 | 2026-10-19 06:20 | 58 | 4h30m | 81 | normal / weekly near guard | E8 merged |
 | 2026-10-19 06:09 | 55 | 4h32m | 81 | normal / weekly near guard | C1 merged; start U3 |
 | 2026-10-19 06:00 | 42 | 4h41m | 79 | normal (weekly watch) | R1 merged |
@@ -60,6 +60,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- E9: Fork-ahead runs both roads (left then right) on the tile ahead, a unit killed by the left is skipped by the right; gifts apply by the rune's own school (Stoker gets no gift on Hold/Vat); gifted Afterglow +1 round, Steep spreads 2, Coil +1 reach. Accepted.
 - E8: solvent hooks fire at the flavoured invention only (no multiplying through nesting); Wick → owner's next turn start; Sand reverses onto the caster (Conduct) or the hitter (Bind), nobody → `sand:noTarget`; Wax melts on hit/entered when standing in fire; Filings re-rings once if on/next to brass; Graphite undoes tile states and unit positions only; Cinder heats the target's original tile, oil landing on a hot tile ignites; **all jars on water drift** (Lantern Walk), a step jar drifting under a unit opens (reuses `drawn what:'jar'`); Chalk +1 Conduct network and +1 burst reach; Fog jar's neighbours get push −1 / damage −1. Accepted. Follow-ups: a real "waiting thing drifts" event; scheduled Repeat/Wick/Filings run the bare part (a Bath salt Repeat doesn't widen again).
 - R1: lock goal = `{ all: [{ dies: 'rat-1' }, { happens: 'dropped' }] }` (a Spark kill mustn't open the canals); six loot tables (Seam ×3, canal ×3); the Seam heart's Conduct guarantee is table data (`guaranteed`); owned pages drop as 1 ink (incl. pages already in the trip's loot); a footnote "firing" = a consecutive run of events with the same line. Accepted. Note: the map's "burnt gate" drawing is now cosmetic (U follow-up).
 - E7: the invention library lives in `BattleState.inventions` (deterministic replays); Conduct reaches units on or beside the brass the target touches, none → `conduct:noTarget`; Repeat and Margin wait on the tile, not the unit; a Repeat under a Margin isn't echoed again; Bind never overwrites a mark that already holds something; Lift sends the mark one tile along the heading (to the caster for Swap); headlines append the solvent rule ("With <Solvent>, …"); parts run one nesting level deeper, a third level fizzles. Accepted.

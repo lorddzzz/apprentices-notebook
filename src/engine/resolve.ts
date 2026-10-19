@@ -4,6 +4,7 @@ import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
 import { marginEcho } from './inventions';
 import { sealJar } from './jars';
+import { giftedAuras } from './leans';
 import { sameStateNet } from './networks';
 import { findUnit, giftedIn, travel, unitAt } from './queries';
 import { handlerFor } from './runes';
@@ -137,6 +138,7 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         ...flow,
         gifted: giftedFor(findUnit(s, flow.caster), st.rune),
         auras: st.auras,
+        giftedAuras: giftedAuras(findUnit(s, flow.caster), st.auras),
       };
       const acted = new Set<UnitId>(); // P23: a unit is acted on once per Action
       for (const t of live) {
@@ -158,12 +160,18 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
     case 'fork': {
       const left = forkSide(s, live, flow.headings, 'left');
       const right = forkSide(s, live, flow.headings, 'right');
+      const ahead = flow.habit === 'forkAhead' ? forkSide(s, live, flow.headings, 'ahead') : null;
       if (left.blind > 0) {
         withLine(ctx, 'fork:noHeading', () => emit(ctx, { type: 'miss', source: 'Fork' }));
       }
       span();
       runStep(ctx, st.left, left.targets, { ...flow, headings: left.headings });
       runStep(ctx, st.right, right.targets, { ...flow, headings: right.headings });
+      if (ahead) {
+        // The Stoker's habit: both roads also run on the tile ahead, after left and right.
+        runStep(ctx, st.left, ahead.targets, { ...flow, headings: ahead.headings });
+        runStep(ctx, st.right, ahead.targets, { ...flow, headings: ahead.headings });
+      }
       return;
     }
     case 'shape': {

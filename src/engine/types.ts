@@ -179,6 +179,7 @@ export interface Layer {
   /** Aura flags read at decay: Afterglow (+1 round once), Steep (spreads each round). */
   afterglow?: true;
   steep?: true;
+  steepWide?: true; // a Steep-gifted caster's: it spreads two tiles a round
   /** A slick a unit slid over: the round it was used up in (no pinball, design §4.4). */
   slid?: number;
 }
@@ -196,6 +197,7 @@ export interface Jar {
   rest: Step | null; // what was wired after the Seal
   heading: Dir | null; // the sealing cast's heading (P32)
   origin: Origin;
+  seq?: number; // sealing order among the jars on the board: the lowest crumbles first (twoJars)
 }
 export interface Tile {
   terrain: Terrain;
@@ -292,6 +294,8 @@ export interface Flow {
   gifted: boolean; // the caster is gifted in the current rune's school (per step)
   solvent: SolventId | null; // inside a flavoured invention
   habit: HabitId | null;
+  /** Auras among the step's that the caster is gifted in (design §9): one step better. */
+  giftedAuras?: readonly AuraRuneId[];
   depth: number; // invention nesting guard (§6.4 limit 1)
   /** Running as a repeat coming due: it may not schedule another (§6.4 limit 5). */
   repeated?: boolean;

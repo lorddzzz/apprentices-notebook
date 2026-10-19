@@ -1,4 +1,5 @@
 import {
+  type AuraRuneId,
   CHEMISTRY,
   type CompoundId,
   type KindId,
@@ -100,8 +101,15 @@ function newLayer(id: Layered, kind: Plain, flow: Flow | null): Layer {
     layer.rounds += CHEMISTRY.giftRounds;
   }
   if (flow && isCompound(id)) {
-    if (flow.auras.includes('afterglow')) layer.afterglow = true;
-    if (flow.auras.includes('steep')) layer.steep = true;
+    const plus = (a: AuraRuneId): number => (flow.giftedAuras?.includes(a) ? 1 : 0);
+    if (flow.auras.includes('afterglow')) {
+      layer.afterglow = true;
+      if (layer.rounds > 0) layer.rounds += plus('afterglow'); // gifted: one more round again
+    }
+    if (flow.auras.includes('steep')) {
+      layer.steep = true;
+      if (plus('steep')) layer.steepWide = true;
+    }
   }
   if (flow?.lay && layer.rounds > 0) {
     layer.rounds = 0;
@@ -325,13 +333,22 @@ function spreadSteep(ctx: Ctx): void {
     const layer = tileAt(s, from).state;
     if (!layer) continue;
     const to: Coord[] = [];
-    for (const n of neighbors4(from).sort(byReadingOrder)) {
-      if (!inBoard(s, n)) continue;
-      const t = tileAt(s, n);
-      if (t.state || blocksUnits(t)) continue;
-      if (STANDS_UP.has(layer.id) && unitAt(s, n)) continue;
-      t.state = structuredClone(layer);
-      to.push(n);
+    // One tile a round; two when the caster is gifted in Steep (design §9).
+    let ring: Coord[] = [from];
+    for (let step = 0; step < (layer.steepWide ? 2 : 1); step++) {
+      const next: Coord[] = [];
+      for (const c of ring) {
+        for (const n of neighbors4(c).sort(byReadingOrder)) {
+          if (!inBoard(s, n)) continue;
+          const t = tileAt(s, n);
+          if (t.state || blocksUnits(t)) continue;
+          if (STANDS_UP.has(layer.id) && unitAt(s, n)) continue;
+          t.state = structuredClone(layer);
+          to.push(n);
+          next.push(n);
+        }
+      }
+      ring = next;
     }
     if (to.length)
       withOrigin(ctx, layer.origin, () => emit(ctx, { type: 'spreadState', from, to }));

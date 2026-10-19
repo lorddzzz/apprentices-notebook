@@ -2,6 +2,7 @@ import type { SolventId } from '$data';
 import { type Ctx, emit, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
 import type { Hook } from './hooks';
+import { jarLimit } from './leans';
 import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { runStep, snapshotOf } from './resolve';
 import type { Flow, Jar, Origin, Step, Target, UnitId } from './types';
@@ -51,25 +52,37 @@ export function runDetached(
   }
 }
 
-/** The owner's jar on the board, if any. */
-function jarOf(ctx: Ctx, owner: UnitId): Coord | null {
-  const i = ctx.s.tiles.findIndex((t) => t.jar?.owner === owner);
-  return i < 0 ? null : coordOf(ctx.s, i);
+/** The owner's jars on the board, oldest first. */
+function jarsOf(ctx: Ctx, owner: UnitId): Coord[] {
+  const out: { at: Coord; seq: number }[] = [];
+  ctx.s.tiles.forEach((t, i) => {
+    if (t.jar?.owner === owner) out.push({ at: coordOf(ctx.s, i), seq: t.jar.seq ?? 0 });
+  });
+  return out.sort((a, b) => a.seq - b.seq).map((j) => j.at);
 }
+
+const newestSeq = (ctx: Ctx): number => Math.max(0, ...ctx.s.tiles.map((t) => t.jar?.seq ?? 0));
 
 function crumble(ctx: Ctx, at: Coord): void {
   tileAt(ctx.s, at).jar = null;
   emit(ctx, { type: 'jarCrumbles', at: { ...at } });
 }
 
-/** Seals a jar on a tile: the owner's old jar crumbles empty, and so does any jar already there (J4, P32). */
+/**
+ * Seals a jar on a tile: the owner's oldest jar crumbles empty once they would keep more than
+ * `jarLimit` (one; two with the Draughtsman's habit), and so does any jar already there (J4, P32).
+ */
 export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
   const owner = findUnit(ctx.s, jar.owner);
   if (!owner) return;
-  const old = jarOf(ctx, jar.owner);
-  if (old) crumble(ctx, old);
+  // A jar of theirs already on this tile is replaced below, so it doesn't count against the limit.
+  const mine = jarsOf(ctx, jar.owner).filter((c) => c.x !== at.x || c.y !== at.y);
+  while (mine.length >= jarLimit(owner)) {
+    const old = mine.shift();
+    if (old) crumble(ctx, old);
+  }
   if (tileAt(ctx.s, at).jar) crumble(ctx, at);
-  tileAt(ctx.s, at).jar = structuredClone(jar);
+  tileAt(ctx.s, at).jar = { ...structuredClone(jar), seq: newestSeq(ctx) + 1 };
   emit(ctx, { type: 'jarSealed', at: { ...at }, owner: ref(owner), event: jar.event });
 }
 

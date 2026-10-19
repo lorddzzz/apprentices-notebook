@@ -27,7 +27,7 @@ function add(out: Aimed, seen: Set<string>, t: Target, heading: Dir | null, over
 }
 
 /**
- * Fork (R5, P24): one side of every target, relative to its own heading. A side off the board is
+ * Fork (R5, P24): one side of every target (`ahead` is the Stoker's habit, P36), relative to its own heading. A side off the board is
  * dropped, duplicates are dropped (first in order wins). `blind` counts targets with no heading:
  * they have no sides (the `fork:noHeading` line). A side keeps the heading of the target it
  * came from, so a Shove after a Fork still pushes along the spell's heading.
@@ -36,7 +36,7 @@ export function forkSide(
   s: BattleState,
   targets: readonly Target[],
   headings: ReadonlyMap<string, Dir | null>,
-  side: 'left' | 'right',
+  side: 'left' | 'right' | 'ahead',
 ): Aimed & { blind: number } {
   const out: Aimed & { blind: number } = { targets: [], headings: new Map(headings), blind: 0 };
   const seen = new Set<string>();
@@ -48,7 +48,9 @@ export function forkSide(
       out.blind++;
       continue;
     }
-    const to = step(at, side === 'left' ? turnLeft(heading) : turnRight(heading));
+    const way =
+      side === 'ahead' ? heading : side === 'left' ? turnLeft(heading) : turnRight(heading);
+    const to = step(at, way);
     if (inBoard(s, to)) add(out, seen, targetOn(s, to), heading, true);
   }
   return out;

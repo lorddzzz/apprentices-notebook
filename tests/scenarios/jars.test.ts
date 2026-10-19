@@ -134,9 +134,19 @@ describe('jars open at dusk', () => {
   });
 });
 
+/** Draughtsman without his habit: one jar (the two-jar habit has its own test in leans.test.ts). */
+const withoutHabit = (s: BattleState): BattleState => {
+  const c = structuredClone(s);
+  const d = unit(c, 'draughtsman');
+  if (d.kind === 'member') d.lean.habit = null;
+  return c;
+};
+
 describe('one jar per apprentice', () => {
   test('new-jar-crumbles-old', () => {
-    const start = withLattices('D . . .\n. . . .\n. . . r', { draughtsman: 'Bolt> Jar Guard' });
+    const start = withoutHabit(
+      withLattices('D . . .\n. . . .\n. . . r', { draughtsman: 'Bolt> Jar Guard' }),
+    );
     const first = cast(start, 'draughtsman', 'right');
     expect(jarAt(first.state, 'D1')).not.toBeNull();
     const next = endTurn(first.state).state;
@@ -151,7 +161,7 @@ describe('one jar per apprentice', () => {
 
   test('a jar sealed onto a jar replaces it', () => {
     const start = withLattices('D . . .\n. . . r', { draughtsman: 'Bolt> Jar Guard' });
-    const s = structuredClone(start);
+    const s = withoutHabit(start);
     const theirs: Jar = {
       owner: 'rat-1',
       event: 'step',
@@ -169,7 +179,9 @@ describe('one jar per apprentice', () => {
   });
 
   test('sealing again from another tile moves your jar', () => {
-    const start = withLattices('D . . .\n. . . r', { draughtsman: 'Bolt> Jar Guard' });
+    const start = withoutHabit(
+      withLattices('D . . .\n. . . r', { draughtsman: 'Bolt> Jar Guard' }),
+    );
     const sealed = cast(start, 'draughtsman', 'right');
     const s = sealed.state;
     const r = draft(s, (ctx) => {
