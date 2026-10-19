@@ -31,7 +31,7 @@
       onclick={() => onpick(s)}
     >
       <SolventIcon solvent={s} size={20} />
-      {SOLVENTS[s].name} <b>×{counts[s]}</b>
+      {SOLVENTS[s].name} <b>{Number.isFinite(counts[s]) ? `×${counts[s]}` : '∞'}</b>
     </button>
   {/each}
 </div>

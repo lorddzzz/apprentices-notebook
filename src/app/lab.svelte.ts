@@ -1,10 +1,11 @@
-import { MEMBER_IDS, type MemberId, type ScenarioDef } from '$data';
+import { type InventionDef, MEMBER_IDS, type MemberId, type ScenarioDef } from '$data';
 import {
   type Action,
   type BattleState,
   boardOf,
   createBattle,
   type GameEvent,
+  inventionLibrary,
   type Lattice,
   labSetLattice,
   livingUnits,
@@ -14,6 +15,7 @@ import {
 import { BattleSession } from './battle.svelte';
 import type { GameStore } from './game.svelte';
 import {
+  addLabInvention,
   applyEdits,
   baseOf,
   fallbackLattices,
@@ -82,7 +84,8 @@ export class LabStore {
         return [m, own !== undefined ? parseLattice(own) : mine[m]];
       }),
     ) as Record<MemberId, Lattice>;
-    const init = createBattle(scenarioSpec(def, { lab: true, lattices }));
+    const inventions = { ...inventionLibrary(this.game.profile), ...def.inventions };
+    const init = createBattle(scenarioSpec(def, { lab: true, lattices, inventions }));
     // The Lab is the workshop: every interaction is named in previews.
     this.session = new BattleSession(init, 'lab', {
       // The intro (enemies declaring their intents) plays only for a demo (S18).
@@ -223,12 +226,31 @@ export class LabStore {
     this.tool = tool;
   }
 
+  addInvention(def: InventionDef): boolean {
+    const session = this.session;
+    if (!session) return false;
+    const result = addLabInvention(session.state.inventions, def);
+    if (result.issue) {
+      toast(result.issue, 'warn');
+      return false;
+    }
+    this.checkpoint();
+    this.rebase({ ...session.state, inventions: result.inventions }, this.lattices);
+    toast(`${def.name} added to the Lab shelf`);
+    return true;
+  }
+
   /** Lattices mode: a tap or long-press on a socket of the current member's page. No limits on ink or runes. */
   editLattice(at: { x: number; y: number }, longPress = false): void {
     const session = this.session;
     if (!session) return;
     const lattice = this.lattices[this.member];
-    const r = editSocket({ lattice, capacity: null }, at, this.tool, longPress);
+    const r = editSocket(
+      { lattice, capacity: null, inventions: session.state.inventions },
+      at,
+      this.tool,
+      longPress,
+    );
     this.tool = r.tool;
     if (!['place', 'replace', 'rotate', 'remove'].includes(r.decision.kind)) return;
     let state = session.state;

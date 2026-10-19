@@ -15,11 +15,14 @@
   import Sheet from '../components/common/Sheet.svelte';
   import CopySheet from '../components/lab/CopySheet.svelte';
   import LabBar from '../components/lab/LabBar.svelte';
+  import LabInvention from '../components/lab/LabInvention.svelte';
   import Palette from '../components/lab/Palette.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
 
   const where = $derived(labLocation(router.params));
   let menuOpen = $state(false);
+  let inventOpen = $state(false);
+  const inventions = $derived(lab.session?.state.inventions ?? {});
 
   // The URL picks the scenario; unknown ids fall back to the sandbox (and the URL follows).
   $effect(() => {
@@ -48,10 +51,11 @@
 
   const paintName = $derived(PALETTE.find((p) => p.item === lab.palette)?.name ?? '');
   const slots = $derived(
-    shelfSlots(null, lab.lattices[lab.member], null, {}, {}, lab.member),
+    shelfSlots(null, lab.lattices[lab.member], null, {}, inventions, lab.member),
   );
   const lattice = $derived(lab.lattices[lab.member]);
-  const compiled = $derived(compileLattice(lattice, {}, {}, MEMBERS[lab.member].lean));
+  const compiled = $derived(compileLattice(lattice, {}, inventions, MEMBERS[lab.member].lean));
+
   // Dev builds and `?dev` get the city shortcuts (K-24).
   const devTools = $derived(
     import.meta.env.DEV ||
@@ -109,6 +113,7 @@
               <LatticeEditor
                 {lattice}
                 {compiled}
+                {inventions}
                 capacity={null}
                 {slots}
                 tool={lab.tool}
@@ -142,6 +147,7 @@
         <Button variant="quiet" label="Copy board" onclick={() => run(() => void lab.copy('board'))} testid="copy-board" />
         <Button variant="quiet" label="Copy lattices" onclick={() => run(() => void lab.copy('lattices'))} testid="copy-lattices" />
         <Button variant="quiet" label="Copy as scenario" onclick={() => run(() => void lab.copy('scenario'))} testid="copy-scenario" />
+        <Button variant="quiet" label="Invent for this Lab" onclick={() => run(() => (inventOpen = true))} testid="invent-lab" />
         {#if devTools}
           <Button
             variant="quiet"
@@ -155,6 +161,7 @@
       </div>
     </Sheet>
 
+    <LabInvention open={inventOpen} {inventions} onadd={(def) => lab.addInvention(def)} onclose={() => (inventOpen = false)} />
     <CopySheet out={lab.copyOut} onclose={() => lab.closeCopy()} />
   {/if}
 </div>
@@ -162,6 +169,9 @@
 <style>
   .lab {
     height: 100%;
+  }
+  .lab :global(.swatch[data-item^='{'] .g) {
+    font-size: 9px;
   }
   .workshop {
     display: flex;

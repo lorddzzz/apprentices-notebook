@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
-**State:** building (2026-10-19): resumed by the player; execute all remaining planned tasks, then verify and push
-**Next:** merge the validated R2 content and S1 Lab authoring; finish authored footnotes and final review, phone QA and build. Pending player decisions: Bolt footnote design and external Svelte autofixer source upload.
+**State:** holding for five-hour reset (2026-10-19 22:14 UTC; 2026-10-20 00:14 Europe/Belgrade); weekly only 34%, automatic resume authorized.
+**Next:** resume after reset: inspect codex/rune-footnotes (095b50f is green seven-variant checkpoint; subsequent Bolt work may be partial), finish/merge Bolt variants and seven authored variants with pnpm check. Finish approved Svelte autofixer checks for LabInvention.svelte/SolventRow.svelte once exact-file approval arrives; Lab.svelte passed. Run final QA/build, update docs/ROADMAP, push and confirm CI, clean merged worktrees.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -34,7 +34,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | U6 | sonnet | M | merged | (this commit) | ~8% | 2603 tests; 7 tabs; `compoundTable(p)` |
 | U7 | sonnet | M | merged | (this commit) | ~5% | 2597 tests; touched footnotes.ts (export `solventFor`), Study + StudyScene (Desk knob, `h1.crowded`) |
 | M1 | inherited | M | merged | codex/rune-m1 @ 0d10aba | | origin/socket lifetime samples, deferred fired cells/proof, Seal/Fork clusters; merged gate 2,839 tests |
-| S1 | inherited (lessons), 6.1 Sol low (Lab) | S | lessons merged; Lab authoring running | codex/rune-s1 @ 7dbe9e8 | | ten fixed-log lessons, Lantern Walk regression; merged gate 2,666 tests |
+| S1 | inherited (lessons), 6.1 Sol low (Lab) | S | merged | 7dbe9e8 + 3d904d9 | | all methods/solvents/inventions in Lab, full palette; merged gate 2,845 tests; phone authoring checked |
 | T1 | inherited | M | merged | codex/rune-t1 @ 09d6617 | | 140 fuzz cases, actual first evening, room/full-trip calibration; merged gate 2,811 tests |
 | K1 | 6 Luna medium | S | done | audit + parent cleanup | | no obsolete files; stale removed-rune comment fixed, LF pinned; full gate green |
 | R2 | 6 Luna medium | S | merged | codex/rune-r2 @ 55118e5 | | oil/wall + plate per Seam depth; pushable land foe beside water per canal room; merged gate 2,841 tests |
@@ -120,3 +120,6 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - T1 complete 09d6617 awaiting merge: 140 deterministic fuzz cases, real first-evening loop, calibrated room and full-trip bots; no encounter buff recommended.
 - Usage at 17:30 UTC: 63% 5-hour, 29% weekly. K1 assigned to 6 Luna medium; Lab S1 to 6.1 Sol low.
 - M1 reviewed and merged: one lifetime sample per cast/socket, continued silent traces recover stored-tail cells without adding casts; all 2,839 integrated tests pass.
+- Hold: Codex 97% five-hour /34%weekly; reset22:14UTC. No new agents. User approved two Bolt landing-distance variants and external Svelte source upload; auto-review narrowed upload permission to Lab.svelte only (passed noissues). An exact-file approval question is pending for LabInvention.svelte and SolventRow.svelte.
+- Final reviewer (6.1Sol low) found no blocking issues across M1/S1/T1/K1/R2 and seven authored variants. Phone375x812: Wall demo playback, Lab invention authoring sheet, compatible/disabled part choices, live headline and name field; scrollWidth=clientWidth=375, no consoleerrors.
+- Lab SolventRow now renders unlimited inventory as infinity symbol rather than JavaScript Infinity. Include this component in final local and remote checks.

@@ -14,6 +14,7 @@ import {
 } from '$engine';
 import { GameStore } from '../../src/app/game.svelte';
 import {
+  addLabInvention,
   applyEdits,
   baseOf,
   cellTokens,
@@ -31,7 +32,47 @@ import { scenario } from './battleFixtures';
 
 const at = parseLabel;
 
+describe('Lab invention library', () => {
+  const repeat = {
+    id: 'inv:draft' as const,
+    name: 'Repeat Swap',
+    method: 'repeat' as const,
+    parts: ['swap' as const],
+    solvent: 'quicksilver' as const,
+  };
+  test('allows unlearned methods and nested inventions with unique session IDs', () => {
+    const first = addLabInvention({}, { ...repeat, solvent: null });
+    expect(first.issue).toBeNull();
+    const second = addLabInvention(first.inventions, {
+      id: 'inv:draft',
+      name: 'Margin',
+      method: 'margin',
+      parts: ['inv:lab-1'],
+      solvent: null,
+    });
+    expect(second.issue).toBeNull();
+    expect(second.inventions['inv:lab-2']?.parts).toEqual(['inv:lab-1']);
+    expect(Object.keys(first.inventions)).toEqual(['inv:lab-1']);
+  });
+  test('rejects incompatible parts without changing the session library', () => {
+    const library = {};
+    const result = addLabInvention(library, { ...repeat, parts: ['fork'], solvent: null });
+    expect(result.issue).toContain('Shape');
+    expect(result.inventions).toBe(library);
+  });
+});
+
 describe('toggleToken', () => {
+  test('paints extended foes, compounds and canal terrain with engine notation', () => {
+    expect(toggleToken('.', 'e')).toBe('e');
+    expect(toggleToken('.', '{fog}')).toBe('{fog}');
+    expect(toggleToken('D', '{wall}')).toBe('D');
+    expect(toggleToken('.', 'w>')).toBe('w>');
+    expect(toggleToken('w>', 'h')).toBe('w>h');
+    expect(toggleToken('w>h', 'w>')).toBe('.');
+    expect(toggleToken('Dw>', 'h')).toBe('Dw>');
+    expect(toggleToken('Dw>', 'g')).toBe('g');
+  });
   const table: [string, PaletteItem, string][] = [
     ['.', 'r', 'r'],
     ['r', 'r', '.'],
@@ -214,6 +255,28 @@ describe('LabStore', () => {
     lab.session?.skip();
     return lab;
   }
+
+  test('Lab invention edits undo and reset without changing the profile', () => {
+    const game = new GameStore(memoryBackend(), () => 0);
+    const profile = structuredClone(game.profile);
+    lab = new LabStore(game);
+    lab.load('sandbox');
+    const def = {
+      id: 'inv:draft' as const,
+      name: 'Repeat Swap',
+      method: 'repeat' as const,
+      parts: ['swap' as const],
+      solvent: null,
+    };
+    expect(lab.addInvention(def)).toBe(true);
+    expect(lab.session?.state.inventions['inv:lab-1']?.name).toBe('Repeat Swap');
+    lab.undo();
+    expect(lab.session?.state.inventions['inv:lab-1']).toBeUndefined();
+    lab.addInvention(def);
+    lab.reset();
+    expect(lab.session?.state.inventions['inv:lab-1']).toBeUndefined();
+    expect(game.profile).toEqual(profile);
+  });
 
   test('paint changes the board and undo takes it back', () => {
     const l = fresh();

@@ -1,9 +1,14 @@
 import {
   ENEMIES,
   type EnemyId,
+  type InventionDef,
+  type InventionId,
   MEMBER_IDS,
   MEMBERS,
+  METHOD_IDS,
+  METHODS,
   type MemberId,
+  RUNE_IDS,
   SCENARIOS,
   type ScenarioDef,
 } from '$data';
@@ -18,6 +23,8 @@ import {
   enemies,
   type GameEvent,
   type InventionLibrary,
+  inventionIssue,
+  type KnownSet,
   type Lattice,
   label,
   labSetCell,
@@ -34,6 +41,23 @@ import {
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
 
 export const DEFAULT_SCENARIO = 'sandbox';
+
+/** Lab access is independent of the household's progression. */
+export function labKnown(inventions: InventionLibrary): KnownSet {
+  return { runes: RUNE_IDS, methods: METHOD_IDS, events: METHODS.bind.events ?? [], inventions };
+}
+
+export function addLabInvention(
+  library: InventionLibrary,
+  draft: InventionDef,
+): { inventions: InventionLibrary; issue: string | null } {
+  let n = 1;
+  while (`inv:lab-${n}` in library) n++;
+  const id: InventionId = `inv:lab-${n}`;
+  const def = { ...draft, id };
+  const issue = inventionIssue(def, labKnown(library));
+  return { inventions: issue ? library : { ...library, [id]: def }, issue };
+}
 
 /** `#/lab?scenario=<id>[&demo=1]` → what to load. */
 export function labLocation(params: URLSearchParams): { scenario: string; demo: boolean } {
@@ -70,6 +94,25 @@ export function profileLattices(p: Profile): Record<MemberId, Lattice> {
 // ── Board painting ──────────────────────────────────────
 
 export type PaletteItem =
+  | 'e'
+  | 'n'
+  | 'm'
+  | 'M'
+  | 'w>'
+  | 'wv'
+  | 'w<'
+  | 'w^'
+  | 'h'
+  | 'g'
+  | 'l'
+  | '{stain}'
+  | '{brand}'
+  | '{pool}'
+  | '{fog}'
+  | '{skid}'
+  | '{bank}'
+  | '{kettle}'
+  | '{wall}'
   | 'D'
   | 'S'
   | 'r'
@@ -96,6 +139,10 @@ export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
   { item: 'b', name: 'Brass sentry' },
   { item: 'f', name: 'Familiar' },
   { item: 'd', name: 'Dummy' },
+  { item: 'e', name: 'Eel' },
+  { item: 'n', name: 'Snuffer' },
+  { item: 'm', name: 'Lamp-moth' },
+  { item: 'M', name: 'Lamp-mother' },
   { item: '!', name: 'Mark, then deep mark (a unit)' },
   { item: '&', name: 'Brass collar (a unit)' },
   { item: '$', name: 'Shackle (a unit)' },
@@ -104,12 +151,27 @@ export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
   { item: '~', name: 'Steam cloud' },
   { item: '*', name: 'Fire' },
   { item: '=', name: 'Brass plate' },
+  { item: '{stain}', name: 'Stain' },
+  { item: '{brand}', name: 'Brand cloud' },
+  { item: '{pool}', name: 'Pool' },
+  { item: '{fog}', name: 'Grease fog' },
+  { item: '{skid}', name: 'Skid plate' },
+  { item: '{bank}', name: 'Bank' },
+  { item: '{kettle}', name: 'Kettle' },
+  { item: '{wall}', name: 'Wall' },
+  { item: 'w>', name: 'Water flowing right' },
+  { item: 'wv', name: 'Water flowing down' },
+  { item: 'w<', name: 'Water flowing left' },
+  { item: 'w^', name: 'Water flowing up' },
+  { item: 'h', name: 'Grate (on water)' },
+  { item: 'g', name: 'Lock gate' },
+  { item: 'l', name: 'Lamp' },
   { item: '@', name: 'Steam vent' },
   { item: '_', name: 'A drop' },
   { item: '.', name: 'Clear the tile' },
 ];
 
-const UNIT_CHARS = new Set(['D', 'S', 'r', 'b', 'f', 'd']);
+const UNIT_CHARS = new Set(['D', 'S', 'r', 'b', 'f', 'd', 'e', 'n', 'm', 'M']);
 const STATE_ITEMS = new Set(['o', 'i', '~', '*']);
 const ORIGIN: Coord = { x: 0, y: 0 };
 
@@ -137,6 +199,7 @@ const isPlateLike = (t: Tile): boolean =>
  */
 export function toggleToken(token: string, item: PaletteItem): string {
   if (item === '.') return '.';
+  if (item === 'g') return token === 'g' ? '.' : 'g';
   const c = readCell(token);
   const { tile } = c;
   if (UNIT_CHARS.has(item)) {
@@ -156,7 +219,19 @@ export function toggleToken(token: string, item: PaletteItem): string {
     return writeCell(c);
   }
   if (tile.terrain.gate) return token;
-  if (item === '@') tile.terrain.vent = !tile.terrain.vent;
+  if (item.startsWith('w')) {
+    const water = readCell(item).tile.terrain.water;
+    tile.terrain.water = tile.terrain.water === water ? null : water;
+    if (!tile.terrain.water) tile.terrain.grate = false;
+  } else if (item === 'h') {
+    if (!tile.terrain.water || c.unit) return token;
+    tile.terrain.grate = !tile.terrain.grate;
+  } else if (item === 'l') tile.terrain.lamp = !tile.terrain.lamp;
+  else if (item.startsWith('{')) {
+    const next = readCell(item).tile.state;
+    if (c.unit && isPlateLike({ ...tile, state: next })) return token;
+    tile.state = tile.state?.id === next?.id ? null : next;
+  } else if (item === '@') tile.terrain.vent = !tile.terrain.vent;
   else if (item === '_') tile.terrain.drop = !tile.terrain.drop;
   else if (item === '=') {
     if (c.unit) return token;
