@@ -1,4 +1,4 @@
-import { ATTACKS, type CompoundId, type StateId } from '$data';
+import { ATTACKS, type BurstId, type CompoundId, type PlainBurstId, type StateId } from '$data';
 import {
   type Action,
   aimPreview,
@@ -27,7 +27,11 @@ export type Tone =
 export type Fx =
   | { kind: 'trail'; cells: Coord[]; tone: Tone } // projectile / move path
   | { kind: 'burst'; cells: Coord[]; tone: Tone; stagger: number } // tiles flash in order (ms apart)
-  | { kind: 'zap'; from: Coord; cells: Coord[] } // arc / conduct zigzags from → each
+  | { kind: 'zap'; from: Coord; cells: Coord[]; tone?: Tone } // arc / conduct zigzags from → each
+  | { kind: 'slide'; cells: Coord[]; tone: Tone } // a push that slid: a trail with skid lines
+  | { kind: 'crush'; at: Coord; tone: Tone } // an impact star where a pushed unit hit something
+  | { kind: 'drop'; at: Coord } // a unit falls through an open side
+  | { kind: 'splat'; at: Coord; tone: Tone } // a detonation: droplets thrown outward
   | { kind: 'float'; at: Coord; text: string; tone: Tone } // "−3", "+2 shield"
   | { kind: 'pulse'; at: Coord; tone: Tone } // cast, detonate, coat
   | { kind: 'banner'; text: string }; // "Your turn", "Round 3"
@@ -57,6 +61,41 @@ const STATE_TONE: Record<StateId, Tone> = {
 export const layerTone = (id: StateId | CompoundId): Tone =>
   id in STATE_TONE ? STATE_TONE[id as StateId] : COMPOUND_TONE[id as CompoundId];
 
+/** Which base burst look a burst uses, and its tint. Page bursts reuse the nearest base look (design §4.3). */
+export function burstLook(id: BurstId): { base: PlainBurstId; tone: Tone } {
+  switch (id) {
+    case 'detonation':
+      return { base: 'detonation', tone: 'ink' };
+    case 'fire':
+      return { base: 'fire', tone: 'fire' };
+    case 'storm':
+      return { base: 'storm', tone: 'steam' };
+    case 'conduct':
+      return { base: 'conduct', tone: 'brass' };
+    case 'surge':
+      return { base: 'surge', tone: 'fire' };
+    case 'page:deepMark':
+      return { base: 'detonation', tone: 'ink' };
+    case 'page:shackle':
+      return { base: 'detonation', tone: 'brass' };
+    case 'page:stain':
+      return { base: 'fire', tone: 'ink' };
+    case 'page:pool':
+      return { base: 'fire', tone: 'oil' };
+    case 'page:brandCloud':
+      return { base: 'storm', tone: 'ink' };
+    case 'page:greaseFog':
+      return { base: 'storm', tone: 'oil' };
+    case 'page:bank':
+      return { base: 'storm', tone: 'steam' };
+    case 'page:kettle':
+      return { base: 'storm', tone: 'brass' };
+    case 'page:skidPlate':
+    case 'page:wall':
+      return { base: 'conduct', tone: 'brass' };
+  }
+}
+
 const burst = (cells: Coord[], tone: Tone, stagger = 0): Fx => ({
   kind: 'burst',
   cells,
@@ -84,14 +123,11 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       const from = posOf(e.unit.id) ?? e.unit.at;
       return [{ kind: 'trail', cells: [from, e.to], tone: e.unit.member ? 'member' : 'danger' }];
     }
-    case 'push':
-      return [
-        {
-          kind: 'trail',
-          cells: [e.unit.at, ...e.path],
-          tone: e.slid > 0 ? 'oil' : e.unit.member ? 'member' : 'danger',
-        },
-      ];
+    case 'push': {
+      const cells = [e.unit.at, ...e.path];
+      const tone = e.unit.member ? 'member' : 'danger';
+      return [e.slid > 0 ? { kind: 'slide', cells, tone: 'oil' } : { kind: 'trail', cells, tone }];
+    }
     case 'cast':
       return [{ kind: 'pulse', at: e.caster.at, tone: 'source' }];
     case 'lands':
@@ -127,17 +163,42 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [burst([e.at], 'steam')];
     case 'spreadState':
       return [burst(e.to, 'steam', 40)];
-    case 'burst':
-      return [
-        burst(e.tiles.length ? e.tiles : [e.at], e.burst === 'fire' ? 'fire' : 'spark', 50),
-        { kind: 'pulse', at: e.at, tone: e.burst === 'fire' ? 'fire' : 'spark' },
-      ];
+    case 'burst': {
+      const { base, tone } = burstLook(e.burst);
+      const page = e.burst.startsWith('page:');
+      const tiles = e.tiles.length ? e.tiles : [e.at];
+      const zapTone = page ? tone : 'spark';
+      const hit = e.units.map((u) => u.at);
+      switch (base) {
+        case 'detonation':
+          return [
+            { kind: 'splat', at: e.at, tone },
+            { kind: 'pulse', at: e.at, tone },
+          ];
+        case 'fire':
+          return [burst(tiles, tone, 50), { kind: 'pulse', at: e.at, tone }];
+        case 'storm':
+          return [burst(tiles, tone, 40), { kind: 'zap', from: e.at, cells: hit, tone: zapTone }];
+        case 'conduct':
+          return [burst(tiles, tone, 40), { kind: 'zap', from: e.at, cells: hit, tone: zapTone }];
+        case 'surge':
+          return [
+            burst(tiles, tone),
+            { kind: 'pulse', at: e.at, tone },
+            { kind: 'zap', from: e.at, cells: hit, tone: zapTone },
+          ];
+      }
+      return [];
+    }
     case 'crush':
-      return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
+      return [
+        { kind: 'crush', at: e.unit.at, tone: 'danger' },
+        ...(typeof e.into === 'string' ? [] : [{ kind: 'crush', at: e.into.at, tone: 'danger' }]),
+      ] as Fx[];
     case 'dropped':
       return [
-        { kind: 'pulse', at: e.at, tone: 'danger' },
-        { kind: 'float', at: e.at, text: 'drops', tone: 'danger' },
+        { kind: 'drop', at: e.at },
+        { kind: 'float', at: e.unit.at, text: 'drops', tone: 'danger' },
       ];
     case 'stunned':
       return [{ kind: 'float', at: e.unit.at, text: 'stunned', tone: 'danger' }];
@@ -166,7 +227,7 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [
         burst(
           e.units.map((u) => u.at),
-          'spark',
+          'brass',
           40,
         ),
       ];
@@ -174,6 +235,10 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'pulse', at: e.at, tone: 'source' }];
     case 'jarOpened':
       return [burst([e.at], 'source')];
+    case 'jarCrumbles':
+      return [{ kind: 'pulse', at: e.at, tone: 'steam' }];
+    case 'scheduled':
+      return [{ kind: 'pulse', at: e.at, tone: 'source' }];
     case 'fizzles':
       return [{ kind: 'banner', text: describe(e) ?? 'It fizzles' }];
     case 'vent':
@@ -222,8 +287,6 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'trace':
     case 'stateFades':
     case 'markSpent':
-    case 'jarCrumbles':
-    case 'scheduled':
     case 'repeated':
     case 'triggered':
     case 'named':

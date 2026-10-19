@@ -39,8 +39,12 @@ export function durationOf(e: GameEvent): number {
     case 'vent':
     case 'attack':
       return STEP_MS.normal;
+    // No position or no picture of their own: the events around them carry the beat.
     case 'trace':
     case 'named':
+    case 'markSpent':
+    case 'repeated':
+    case 'triggered':
       return STEP_MS.quiet;
     case 'round':
     case 'moveUndone':
@@ -61,12 +65,9 @@ export function durationOf(e: GameEvent): number {
     case 'stunned':
     case 'held':
     case 'erased':
-    case 'markSpent':
     case 'markLifted':
     case 'jarCrumbles':
     case 'scheduled':
-    case 'repeated':
-    case 'triggered':
       return STEP_MS.short;
     default: {
       const unhandled: never = e;

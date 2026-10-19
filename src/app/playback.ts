@@ -1,7 +1,7 @@
 import { describe, type GameEvent, isSilent } from '$engine';
 import { type Fx, fxFor } from './fx';
 import { durationOf, STEP_MS } from './timing';
-import { type BoardView, project } from './view';
+import { type BoardView, projectWith } from './view';
 
 export interface Step {
   event: GameEvent;
@@ -14,22 +14,25 @@ export interface Step {
 
 /**
  * One step per event. `scale` < 1 is reduced motion: shorter steps, no trails. `lead` adds effects
- * to the first step that the events alone can't show (a Bolt's flight when it hits a unit).
+ * to the first step that the events alone can't show (a Bolt's flight when it hits a unit). `end`
+ * is the view of the engine's final state: it fills in what an event doesn't carry (a sealed
+ * jar's contents peek) and may be left out.
  */
 export function buildSteps(
   start: BoardView,
   events: readonly GameEvent[],
   scale = 1,
   lead: readonly Fx[] = [],
+  end?: BoardView,
 ): Step[] {
   const steps: Step[] = [];
   let view = start;
   for (const [i, event] of events.entries()) {
     if (isSilent(event)) continue;
     const fx = [...fxFor(event, view), ...(i === 0 ? lead : [])].filter(
-      (f) => scale >= 1 || f.kind !== 'trail',
+      (f) => scale >= 1 || (f.kind !== 'trail' && f.kind !== 'slide'),
     );
-    view = project(view, event);
+    view = projectWith(view, event, end);
     steps.push({
       event,
       line: describe(event) ?? '',

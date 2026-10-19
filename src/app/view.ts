@@ -1,34 +1,49 @@
 import {
+  ACTIONS,
+  CHEMISTRY,
   type CompoundId,
   ENEMIES,
   type EnemyId,
   MEMBERS,
   type MemberId,
+  type RuneRef,
   type StateId,
   TUNING,
 } from '$data';
-import type {
-  BattlePhase,
-  BattleState,
-  BoardSpec,
-  Coord,
-  Dir,
-  GameEvent,
-  Intent,
-  Tile,
-  Unit,
-  UnitId,
+import {
+  type BattlePhase,
+  type BattleState,
+  type BoardSpec,
+  type Coord,
+  type Dir,
+  type GameEvent,
+  type Intent,
+  neighbors4,
+  type Step,
+  type Tile,
+  type Unit,
+  type UnitId,
 } from '$engine';
 
 /** A state or compound a tile can hold. */
 export type LayerId = StateId | CompoundId;
+
+/** A sealed jar as the board draws it: whose it is, when it opens, and a peek at what is inside. */
+export interface JarView {
+  owner: UnitId;
+  event: 'step' | 'dusk';
+  /** The first rune of what is sealed (the jar's contents peek); null when not known or empty. */
+  peek: RuneRef | null;
+}
 
 /** What the board draws. Events are projected onto it during playback; the engine state replaces it at the end. */
 export interface TileView {
   /** The one state or compound on the tile (design §4); `rounds` is how long it has left (0 = permanent). */
   state: LayerId | null;
   rounds: number;
-  jar: boolean;
+  /** Hits left on a plate, skid plate, kettle or wall before it breaks; 0 = none recorded (a layout plate). */
+  hits: number;
+  jar: JarView | null;
   vent: boolean;
   /** `_`: an open side (P3). */
   drop?: boolean;
@@ -50,12 +65,22 @@ export interface UnitView {
   hp: number;
   maxHp: number;
   shield: number;
+  /** The round whose player phase lifts the shield (Guard); null when none is running. */
+  guard: number | null;
   /** Ink on the unit (a mark, `!`), deep when it takes two Sparks to clear. */
   mark: MarkView;
+  /** The action a bound mark holds until its event (Bind); null for a plain mark. */
+  bound: RuneRef | null;
+  /** Marks spread from one source share a lineage; the projection numbers its own. */
+  lineage: number | null;
   /** Brass on the unit (a collar, `&`). */
   collar: boolean;
-  shackle: boolean;
-  held: boolean;
+  /** The brass was there from the start (a sentry): a shackle does not take it off. */
+  born: boolean;
+  /** Rounds a shackle has left (0 = none). */
+  shackle: number;
+  /** Rounds a hold has left (0 = none). */
+  held: number;
   stunned: boolean;
   alive: boolean;
   intent: Intent | null;
@@ -70,12 +95,34 @@ export interface BoardView {
   phase: BattlePhase;
 }
 
+/** The first rune of a step chain: what a jar's contents peek shows. */
+export function firstRune(step: Step | null): RuneRef | null {
+  if (!step) return null;
+  switch (step.role) {
+    case 'action':
+    case 'kind':
+    case 'trigger':
+    case 'shape':
+    case 'seal':
+      return step.rune;
+    case 'fork':
+      return firstRune(step.left) ?? firstRune(step.right);
+    case 'split':
+      for (const b of step.branches) {
+        const r = firstRune(b);
+        if (r) return r;
+      }
+      return null;
+  }
+}
+
 export function tileViewOf(t: Tile): TileView {
   const { water, grate, gate, lamp, vent, drop } = t.terrain;
   return {
     state: t.state?.id ?? null,
-    rounds: t.state?.rounds ?? 0,
-    jar: t.jar !== null,
+    rounds: t.state && !t.state.set ? t.state.rounds : 0,
+    hits: t.state?.hits ?? 0,
+    jar: t.jar ? { owner: t.jar.owner, event: t.jar.event, peek: firstRune(t.jar.rest) } : null,
     vent,
     drop,
     water,
@@ -101,10 +148,14 @@ export function viewOf(s: BattleState): BoardView {
       hp: u.hp,
       maxHp: u.maxHp,
       shield: u.shield,
+      guard: u.guardUntil,
       mark: markOf(u),
+      bound: u.mark?.bound?.action ?? null,
+      lineage: u.mark ? u.mark.lineage : null,
       collar: u.collar !== false,
-      shackle: u.shackle > 0,
-      held: u.held > 0,
+      born: u.collar === null,
+      shackle: u.shackle,
+      held: u.held,
       stunned: u.stunned,
       alive: u.hp > 0,
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
@@ -129,10 +180,14 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
         hp: def.hp,
         maxHp: def.hp,
         shield: b.shield,
+        guard: null,
         mark: b.mark,
+        bound: null,
+        lineage: b.mark ? 0 : null,
         collar: b.collar,
-        shackle: b.shackle,
-        held: false,
+        born: b.collar,
+        shackle: b.shackle ? TUNING.compoundRounds : 0,
+        held: 0,
         stunned: false,
         alive: true,
         intent: null,
@@ -141,6 +196,7 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
     const def = ENEMIES[b.def as EnemyId];
     const n = (counts.get(def.id) ?? 0) + 1;
     counts.set(def.id, n);
+    const collar = def.brass || b.collar;
     return {
       id: `${def.id}-${n}`,
       kind: 'enemy',
@@ -150,10 +206,14 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
       hp: def.hp,
       maxHp: def.hp,
       shield: b.shield,
+      guard: null,
       mark: b.mark,
-      collar: def.brass || b.collar,
-      shackle: b.shackle,
-      held: false,
+      bound: null,
+      lineage: b.mark ? 0 : null,
+      collar,
+      born: collar,
+      shackle: b.shackle ? TUNING.compoundRounds : 0,
+      held: 0,
       stunned: false,
       alive: true,
       intent: null,
@@ -176,16 +236,9 @@ export function withoutIntents(v: BoardView): BoardView {
 function cloneView(v: BoardView): BoardView {
   return {
     ...v,
-    tiles: v.tiles.map((t) => ({ ...t })),
+    tiles: v.tiles.map((t) => ({ ...t, jar: t.jar && { ...t.jar } })),
     units: v.units.map((u) => ({ ...u, pos: { ...u.pos }, intent: u.intent && { ...u.intent } })),
   };
-}
-
-function patchTiles(v: BoardView, cells: readonly Coord[], patch: Partial<TileView>): void {
-  for (const c of cells) {
-    const t = tileOf(v, c);
-    if (t) Object.assign(t, patch);
-  }
 }
 
 function tileOf(v: BoardView, c: Coord): TileView | undefined {
@@ -193,26 +246,52 @@ function tileOf(v: BoardView, c: Coord): TileView | undefined {
   return v.tiles[c.y * v.width + c.x];
 }
 
-/** How long a state put down lasts (P17); 0 = until changed. */
-function roundsFor(id: LayerId): number {
+function liveUnitAt(v: BoardView, c: Coord): UnitView | undefined {
+  return v.units.find((u) => u.alive && u.pos.x === c.x && u.pos.y === c.y);
+}
+
+/** How long a state put down lasts (P17) and how many hits it takes; the engine's `newLayer` without its flags. */
+function freshLayer(id: LayerId): { rounds: number; hits: number } {
   switch (id) {
     case 'blot':
     case 'slick':
-      return 0;
+      return { rounds: 0, hits: 0 };
     case 'cloud':
-      return TUNING.cloudRounds;
+      return { rounds: TUNING.cloudRounds, hits: 0 };
     case 'plate':
-      return TUNING.plateRounds;
+      return { rounds: TUNING.plateRounds, hits: CHEMISTRY.plateHits };
     case 'fire':
-      return TUNING.fireRounds;
+      return { rounds: TUNING.fireRounds, hits: 0 };
+    case 'bank':
+      return { rounds: TUNING.compoundRounds + CHEMISTRY.bankExtraRounds, hits: 0 };
+    case 'wall':
+      return { rounds: TUNING.compoundRounds, hits: CHEMISTRY.wallHits };
+    case 'skidPlate':
+    case 'kettle':
+      return { rounds: TUNING.compoundRounds, hits: CHEMISTRY.plateHits };
     default:
-      return TUNING.compoundRounds;
+      return { rounds: TUNING.compoundRounds, hits: 0 };
   }
 }
 
+/** Layers that stand up like a plate: no unit may share the tile. */
+export const STANDS_UP: ReadonlySet<LayerId> = new Set(['plate', 'skidPlate', 'kettle', 'wall']);
+
 /** Puts a state on tiles with the rounds a fresh one lasts, or clears them. */
-function setState(v: BoardView, cells: readonly Coord[], id: LayerId | null): void {
-  patchTiles(v, cells, { state: id, rounds: id ? roundsFor(id) : 0 });
+function setState(
+  v: BoardView,
+  cells: readonly Coord[],
+  id: LayerId | null,
+  rounds?: number,
+): void {
+  for (const c of cells) {
+    const t = tileOf(v, c);
+    if (!t) continue;
+    const fresh = id ? freshLayer(id) : { rounds: 0, hits: 0 };
+    t.state = id;
+    t.rounds = rounds ?? fresh.rounds;
+    t.hits = fresh.hits;
+  }
 }
 
 function patchUnit(v: BoardView, id: UnitId, patch: (u: UnitView) => void): void {
@@ -220,14 +299,21 @@ function patchUnit(v: BoardView, id: UnitId, patch: (u: UnitView) => void): void
   if (u) patch(u);
 }
 
+function clearMark(u: UnitView): void {
+  u.mark = null;
+  u.bound = null;
+  u.lineage = null;
+}
+
 /** Lifts what floats on each source tile and sets it down downstream (the engine's merge rules). */
 function driftTiles(v: BoardView, floats: readonly { from: Coord; to: Coord | null }[]): void {
   const lifted = floats.map((f) => {
     const t = tileOf(v, f.from);
     if (!t) return null;
-    const cargo = { state: t.state, rounds: t.rounds };
+    const cargo = { state: t.state, rounds: t.rounds, hits: t.hits };
     t.state = null;
     t.rounds = 0;
+    t.hits = 0;
     return cargo;
   });
   floats.forEach((f, i) => {
@@ -237,6 +323,7 @@ function driftTiles(v: BoardView, floats: readonly { from: Coord; to: Coord | nu
     if (dest.state === null || (cargo.state === 'fire' && dest.state === 'slick')) {
       dest.state = cargo.state;
       dest.rounds = cargo.rounds;
+      dest.hits = cargo.hits;
     }
   });
 }
@@ -253,22 +340,98 @@ function spawnedView(id: UnitId, pos: Coord): UnitView {
     hp: def.hp,
     maxHp: def.hp,
     shield: 0,
+    guard: null,
     mark: null,
+    bound: null,
+    lineage: null,
     collar: def.brass,
-    shackle: false,
-    held: false,
+    born: def.brass,
+    shackle: 0,
+    held: 0,
     stunned: false,
     alive: true,
     intent: null,
   };
 }
 
+/** A crush against a plate or wall wears it: the one plate beside the unit (the event has no heading). */
+function wearBesideUnit(v: BoardView, unit: Coord): void {
+  const plates = neighbors4(unit).flatMap((c) => {
+    const t = tileOf(v, c);
+    return t?.state && STANDS_UP.has(t.state) && t.hits > 0 ? [t] : [];
+  });
+  const plate = plates.length === 1 ? plates[0] : undefined;
+  if (plate && plate.hits > 1) plate.hits--;
+}
+
+/** Round-end decay as the engine logs it: a layer at its last round, a worn-out plate, a shackle's last round. */
+function fadeAt(v: BoardView, c: Coord): void {
+  const t = tileOf(v, c);
+  if (!t) return;
+  const shackled = liveUnitAt(v, c);
+  if (shackled && shackled.shackle > 0 && shackled.shackle <= 1) shackled.shackle = 0;
+  if (!t.state) return;
+  const worn = STANDS_UP.has(t.state) && t.hits > 0 && t.hits <= 1;
+  if (t.rounds === 1 || worn) setState(v, [c], null);
+}
+
+/** The burst's own changes to the board (the event names the tiles; the damage follows as its own events). */
+function burstEffects(v: BoardView, e: Extract<GameEvent, { type: 'burst' }>): void {
+  switch (e.burst) {
+    case 'fire':
+    case 'page:stain':
+    case 'page:pool':
+      setState(v, e.tiles.length ? e.tiles : [e.at], 'fire');
+      break;
+    case 'page:greaseFog':
+      for (const c of e.tiles) {
+        if (tileOf(v, c)?.state === 'greaseFog') {
+          setState(v, [c], 'fire', CHEMISTRY.flashoverFireRounds);
+        }
+      }
+      break;
+    case 'page:skidPlate':
+      setState(v, [e.at], null);
+      break;
+    case 'page:kettle':
+      setState(v, [e.at], 'cloud');
+      break;
+    case 'page:shackle': {
+      const u = liveUnitAt(v, e.at);
+      if (u) u.shackle = 0;
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+/** A new player phase: Guard lapses, Hold counts down, a stunned apprentice sits out. */
+function beginPlayerPhase(v: BoardView): void {
+  for (const u of v.units) {
+    if (!u.alive) continue;
+    if (u.guard !== null && u.guard <= v.round) {
+      u.shield = 0;
+      u.guard = null;
+    }
+    if (u.held > 0) u.held--;
+    if (u.kind === 'member' && u.stunned) u.stunned = false;
+  }
+}
+
+/** Mark lineage numbers the projection hands out itself (the engine's are not in the log). */
+const nextLineage = (v: BoardView): number =>
+  1 + Math.max(-1, ...v.units.map((u) => u.lineage ?? -1));
+
 /**
- * Applies one event to a copy of the view. Patches only what the event states explicitly;
- * silent counters (a cloud's rounds) catch up when the view snaps to the engine state at the end.
- * Every event in the union is named here, so a new one fails to compile until it is considered.
+ * Applies one event to a copy of the view. Patches what the event states, and what the engine does
+ * silently around it that the log makes certain (a burst's fire, a plate's wear, a hold's countdown);
+ * a few silent counters (a cloud's rounds with a gift) catch up when the view snaps to the engine
+ * state at the end. `end` is that final view: it supplies what an event doesn't carry, a sealed
+ * jar's contents peek. Every event in the union is named here, so a new one fails to compile until
+ * it is considered.
  */
-export function project(view: BoardView, e: GameEvent): BoardView {
+export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): BoardView {
   const v = cloneView(view);
   switch (e.type) {
     case 'moved':
@@ -296,11 +459,13 @@ export function project(view: BoardView, e: GameEvent): BoardView {
     case 'shieldGained':
       patchUnit(v, e.unit.id, (u) => {
         u.shield += e.amount;
+        u.guard = Math.max(u.guard ?? 0, v.round + 1);
       });
       break;
     case 'died':
       patchUnit(v, e.unit.id, (u) => {
         u.alive = false;
+        u.hp = 0;
         u.intent = null;
       });
       break;
@@ -309,7 +474,10 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       if (e.makes === 'mark') {
         if (unit) {
           patchUnit(v, unit.id, (u) => {
-            u.mark = u.mark ?? 'plain';
+            if (!u.mark) {
+              u.mark = 'plain';
+              u.lineage = nextLineage(v);
+            }
           });
         }
       } else if (e.makes === 'collar') {
@@ -329,9 +497,9 @@ export function project(view: BoardView, e: GameEvent): BoardView {
         patchUnit(v, unit.id, (u) => {
           if (e.compound === 'deepMark') u.mark = 'deep';
           else if (e.compound === 'shackle') {
-            u.mark = null;
-            u.collar = false;
-            u.shackle = true;
+            clearMark(u);
+            if (!u.born) u.collar = false;
+            u.shackle = TUNING.compoundRounds;
           }
         });
       } else {
@@ -339,47 +507,87 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       }
       break;
     }
-    case 'washed':
-      setState(v, [e.at], e.now);
+    case 'washed': {
+      // A wash on a unit is its own compound coming off: the event carries the unit's tile.
+      const u = liveUnitAt(v, e.at);
+      if (e.was === 'shackle') {
+        if (u) u.shackle = 0;
+      } else if (e.was === 'deepMark') {
+        if (u && u.mark === 'deep') u.mark = 'plain';
+      } else {
+        setState(v, [e.at], e.now);
+      }
       break;
+    }
     case 'stateFades':
-      setState(v, e.tiles, null);
+      // Graphite's undo removes a state outright; round-end fades only take what ran out.
+      if (e.line?.startsWith('graphite:')) setState(v, e.tiles, null);
+      else for (const c of e.tiles) fadeAt(v, c);
       break;
     case 'spreadState': {
-      const id = tileOf(v, e.from)?.state ?? null;
-      if (id) setState(v, e.to, id);
+      const from = tileOf(v, e.from);
+      if (from?.state) {
+        for (const c of e.to) {
+          const t = tileOf(v, c);
+          if (!t) continue;
+          t.state = from.state;
+          t.rounds = from.rounds;
+          t.hits = from.hits;
+        }
+      }
       break;
     }
     case 'marked':
       patchUnit(v, e.unit.id, (u) => {
+        const had = u.mark !== null;
         u.mark = e.deep ? 'deep' : 'plain';
+        if (!had) u.lineage = nextLineage(v);
+        if (e.bound !== null && u.bound !== e.bound) {
+          // Bind's carrier lands the mark first, then the whole lineage holds the action (D5).
+          const lineage = u.lineage;
+          for (const other of v.units) {
+            if (other.mark && other.lineage === lineage && other.bound === null) {
+              other.bound = e.bound;
+            }
+          }
+          u.bound = e.bound;
+        }
       });
       break;
     case 'collared':
       patchUnit(v, e.unit.id, (u) => {
         u.collar = true;
+        u.born = false; // only a unit's start puts brass on it without a cast
       });
       break;
-    case 'markSpread':
-      for (const r of e.to) {
-        patchUnit(v, r.id, (u) => {
-          u.mark = u.mark ?? 'plain';
-        });
+    case 'markSpread': {
+      const src = v.units.find((x) => x.id === e.from.id);
+      if (src?.mark) {
+        const { mark, bound, lineage } = src;
+        for (const r of e.to) {
+          patchUnit(v, r.id, (u) => {
+            u.mark = mark;
+            u.bound = bound;
+            u.lineage = lineage;
+          });
+        }
       }
       break;
+    }
     case 'markSpent':
-      patchUnit(v, e.unit.id, (u) => {
-        u.mark = null;
-      });
+      patchUnit(v, e.unit.id, clearMark);
       break;
     case 'markLifted': {
-      const mark = v.units.find((x) => x.id === e.from.id)?.mark ?? 'plain';
-      patchUnit(v, e.from.id, (u) => {
-        u.mark = null;
-      });
-      patchUnit(v, e.to.id, (u) => {
-        u.mark = mark;
-      });
+      const from = v.units.find((x) => x.id === e.from.id);
+      if (from?.mark) {
+        const { mark, bound, lineage } = from;
+        clearMark(from);
+        patchUnit(v, e.to.id, (u) => {
+          u.mark = mark;
+          u.bound = bound;
+          u.lineage = lineage;
+        });
+      }
       break;
     }
     case 'stunned':
@@ -389,7 +597,7 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       break;
     case 'held':
       patchUnit(v, e.unit.id, (u) => {
-        u.held = true;
+        if (u.held === 0) u.held = ACTIONS.holdRounds;
       });
       break;
     case 'swapped': {
@@ -398,12 +606,61 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       if (a && b) [a.pos, b.pos] = [b.pos, a.pos];
       break;
     }
-    case 'jarSealed':
-      patchTiles(v, [e.at], { jar: true });
+    case 'crush':
+      if (e.into === 'plate') wearBesideUnit(v, e.unit.at);
       break;
+    case 'drawn': {
+      const from = tileOf(v, e.from);
+      const to = tileOf(v, e.to);
+      if (!from || !to) break;
+      if (e.what === 'jar') {
+        to.jar = from.jar;
+        from.jar = null;
+      } else {
+        to.state = from.state;
+        to.rounds = from.rounds;
+        to.hits = from.hits;
+        from.state = null;
+        from.rounds = 0;
+        from.hits = 0;
+      }
+      break;
+    }
+    case 'erased': {
+      const t = tileOf(v, e.at);
+      const u = liveUnitAt(v, e.at);
+      if (e.what === 'mark' || e.what === 'deep mark') {
+        // Spent just before this event.
+      } else if (e.what === 'collar') {
+        if (u) u.collar = false;
+      } else if (e.what === 'shackle') {
+        if (u) u.shackle = 0;
+      } else if (e.what === 'jar') {
+        if (t) t.jar = null;
+      } else {
+        setState(v, [e.at], null);
+      }
+      break;
+    }
+    case 'jarSealed': {
+      const t = tileOf(v, e.at);
+      if (t) {
+        t.jar = {
+          owner: e.owner.id,
+          event: e.event,
+          peek: (end && tileOf(end, e.at)?.jar?.peek) || null,
+        };
+      }
+      break;
+    }
     case 'jarOpened':
-    case 'jarCrumbles':
-      patchTiles(v, [e.at], { jar: false });
+    case 'jarCrumbles': {
+      const t = tileOf(v, e.at);
+      if (t) t.jar = null;
+      break;
+    }
+    case 'burst':
+      burstEffects(v, e);
       break;
     case 'drift':
       driftTiles(v, e.floats);
@@ -413,9 +670,11 @@ export function project(view: BoardView, e: GameEvent): BoardView {
         });
       }
       break;
-    case 'gateBurns':
-      patchTiles(v, [e.at], { gate: false });
+    case 'gateBurns': {
+      const t = tileOf(v, e.at);
+      if (t) t.gate = false;
       break;
+    }
     case 'vent':
       setState(v, [e.at], 'cloud');
       break;
@@ -441,6 +700,11 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       });
       break;
     case 'idle':
+      patchUnit(v, e.unit.id, (u) => {
+        u.intent = null;
+        u.stunned = false;
+      });
+      break;
     case 'attack':
       patchUnit(v, e.unit.id, (u) => {
         u.intent = null;
@@ -456,7 +720,10 @@ export function project(view: BoardView, e: GameEvent): BoardView {
       v.phase = 'lost';
       break;
     case 'phase':
-      if (e.phase === 'player') v.phase = 'player';
+      if (e.phase === 'player') {
+        v.phase = 'player';
+        beginPlayerPhase(v);
+      }
       break;
     // Nothing to patch: the view catches up with the engine state at the end of the playback.
     case 'battleStart':
@@ -468,11 +735,7 @@ export function project(view: BoardView, e: GameEvent): BoardView {
     case 'foeBursts':
     case 'trace':
     case 'aimed':
-    case 'burst':
-    case 'crush':
     case 'dropped':
-    case 'drawn':
-    case 'erased':
     case 'released':
     case 'conducted':
     case 'scheduled':
@@ -488,3 +751,6 @@ export function project(view: BoardView, e: GameEvent): BoardView {
   }
   return v;
 }
+
+/** `projectWith` without a final view: the shape `reduce` wants. */
+export const project = (view: BoardView, e: GameEvent): BoardView => projectWith(view, e);

@@ -15,6 +15,7 @@
   import { boardViewBox, CELL } from './geometry';
   import HighlightLayer from './HighlightLayer.svelte';
   import IntentLayer from './IntentLayer.svelte';
+  import JarLayer from './JarLayer.svelte';
   import { cellLabel } from './label';
   import MarksLayer from './MarksLayer.svelte';
   import SteamLayer from './SteamLayer.svelte';
@@ -113,6 +114,7 @@
     <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} />
   {/each}
 
+  <JarLayer {view} />
   <SteamLayer {view} />
   <IntentLayer {intents} {minimal} layer="badges" />
   <MarksLayer {marks} layer="badges" />

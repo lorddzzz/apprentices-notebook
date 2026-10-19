@@ -2,6 +2,7 @@
   import { fade } from 'svelte/transition';
   import { ENEMIES, MEMBERS } from '$data';
   import type { UnitView } from '../../../app/view';
+  import { runePath } from './art';
   import { CELL } from './geometry';
 
   interface Props {
@@ -21,6 +22,9 @@
   const pipText = $derived(unit.maxHp > 8);
   const pipX = $derived(50 - (unit.maxHp * 11 - 3) / 2);
   const CY = 42;
+  // A shackle is a chain of brass links round the token; a bound mark shows the action it holds.
+  const LINKS = Array.from({ length: 12 }, (_, i) => i);
+  const heldArt = $derived(runePath(unit.bound));
 </script>
 
 <g
@@ -76,16 +80,21 @@
   {/if}
 
   {#if unit.shackle}
-    <circle
-      cx="50"
-      cy={CY}
-      r="42"
-      fill="none"
-      stroke="var(--m-brass-dark)"
-      stroke-width="6"
-      stroke-dasharray="7 6"
-      data-trait="shackle"
-    />
+    <g data-trait="shackle">
+      {#each LINKS as i (i)}
+        <rect
+          x={i % 2 === 0 ? -8 : -4}
+          y={i % 2 === 0 ? -42 - 3.5 : -42 - 6}
+          width={i % 2 === 0 ? 16 : 8}
+          height={i % 2 === 0 ? 7 : 12}
+          rx="3.5"
+          fill="none"
+          stroke="var(--m-brass-dark)"
+          stroke-width="3.5"
+          transform="translate(50 {CY}) rotate({i * 30})"
+        />
+      {/each}
+    </g>
   {/if}
 
   {#if unit.held}
@@ -105,15 +114,33 @@
 
   {#if unit.mark}
     <g data-trait={unit.mark === 'deep' ? 'deep-mark' : 'mark'}>
-      <path
-        d="M84 30c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
-        fill="var(--m-ink)"
-        stroke="var(--parchment)"
-        stroke-width="2.5"
-      />
       {#if unit.mark === 'deep'}
         <path
           d="M70 40c-4 5-6 7.5-6 11a6 6 0 0 0 12 0c0-3.5-2-6-6-11z"
+          fill="var(--m-ink)"
+          stroke="var(--parchment)"
+          stroke-width="2.5"
+        />
+      {/if}
+      {#if unit.bound}
+        <g data-trait="bound" data-bound={unit.bound}>
+          <path
+            d="M84 24c-8 10-13 15-13 22.5a13 13 0 0 0 26 0c0-7.5-5-12.5-13-22.5z"
+            fill="var(--m-ink)"
+            stroke="var(--parchment)"
+            stroke-width="3"
+          />
+          {#if heldArt}
+            <g transform="translate(75 36) scale(0.75)">
+              <path d={heldArt} fill="none" stroke="var(--parchment)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+            </g>
+          {:else}
+            <circle cx="84" cy="46" r="4" fill="var(--parchment)" />
+          {/if}
+        </g>
+      {:else}
+        <path
+          d="M84 30c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
           fill="var(--m-ink)"
           stroke="var(--parchment)"
           stroke-width="2.5"

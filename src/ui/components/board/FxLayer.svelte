@@ -19,6 +19,15 @@
   type Float = Extract<Fx, { kind: 'float' }>;
   const FLOAT_MS = 900;
 
+  // Droplets thrown outward by a detonation: eight directions, two distances.
+  const SPLAT = Array.from({ length: 8 }, (_, i) => {
+    const a = (i / 8) * Math.PI * 2;
+    const far = i % 2 === 0 ? 52 : 38;
+    return { dx: Math.round(Math.cos(a) * far), dy: Math.round(Math.sin(a) * far), r: far > 40 ? 7 : 5 };
+  });
+  // An impact star for a crush.
+  const STAR = 'M0-22 6-8 21-12 12 0 21 12 6 8 0 22-6 8-21 12-12 0-21-12-6-8z';
+
   // Floating numbers outlive the (short) playback step that produced them.
   let floats = $state.raw<{ id: number; f: Float }[]>([]);
   let nextId = 0;
@@ -61,6 +70,24 @@
           {@const c = cellCenter(f.cells[0])}
           <circle class="dot" cx={c.x} cy={c.y} r="16" style:--c={TONE_COLOR[f.tone]} />
         {/if}
+      {:else if f.kind === 'slide'}
+        {@const pts = pointsAttr(f.cells.map(cellCenter))}
+        <polyline class="trail" pathLength="1" points={pts} style:--c={TONE_COLOR[f.tone]} />
+        <polyline class="grooves" pathLength="1" points={pts} />
+      {:else if f.kind === 'crush'}
+        {@const c = cellCenter(f.at)}
+        <g transform="translate({c.x} {c.y}) scale(2.1)">
+          <path class="crush" d={STAR} style:--c={TONE_COLOR[f.tone]} />
+        </g>
+      {:else if f.kind === 'drop'}
+        {@const c = cellCenter(f.at)}
+        <circle class="hole" cx={c.x} cy={c.y} r="36" />
+        <circle class="ripple" cx={c.x} cy={c.y} r="30" />
+      {:else if f.kind === 'splat'}
+        {@const c = cellCenter(f.at)}
+        {#each SPLAT as d, k (k)}
+          <circle class="splat" cx={c.x} cy={c.y} r={d.r} style:--dx="{d.dx}px" style:--dy="{d.dy}px" style:--c={TONE_COLOR[f.tone]} />
+        {/each}
       {:else if f.kind === 'burst'}
         {#each f.cells as cell, j (`${cell.x},${cell.y}`)}
           {@const o = cellOrigin(cell)}
@@ -80,7 +107,7 @@
           {#if cell.x !== f.from.x || cell.y !== f.from.y}
             {@const pts = pointsAttr(zigzag(f.from, cell))}
             <polyline class="zap-outline" points={pts} style:animation-delay="{j * 25}ms" />
-            <polyline class="zap" points={pts} style:animation-delay="{j * 25}ms" />
+            <polyline class="zap" points={pts} style:animation-delay="{j * 25}ms" style:stroke={f.tone ? TONE_COLOR[f.tone] : undefined} />
           {/if}
         {/each}
       {:else if f.kind === 'pulse'}
@@ -133,6 +160,43 @@
   .zap {
     stroke: var(--m-spark);
     stroke-width: 8;
+  }
+  .grooves {
+    fill: none;
+    stroke: var(--parchment);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 0.05 0.07;
+    animation: draw 260ms ease-out both;
+  }
+  .crush {
+    fill: var(--c);
+    stroke: var(--ink);
+    stroke-width: 3;
+    stroke-linejoin: round;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: slam 380ms ease-out both;
+  }
+  .hole {
+    fill: var(--ink);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: swallow 420ms ease-in both;
+  }
+  .ripple {
+    fill: none;
+    stroke: var(--shield);
+    stroke-width: 6;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ring 500ms ease-out both;
+  }
+  .splat {
+    fill: var(--c);
+    stroke: var(--parchment);
+    stroke-width: 2;
+    animation: fling 420ms ease-out both;
   }
   .float {
     font: bold 38px var(--mono);
@@ -228,6 +292,40 @@
       opacity: 0;
     }
   }
+  @keyframes slam {
+    from {
+      transform: scale(0.3) rotate(-12deg);
+      opacity: 1;
+    }
+    40% {
+      transform: scale(1.15) rotate(0deg);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1) rotate(0deg);
+      opacity: 0;
+    }
+  }
+  @keyframes swallow {
+    from {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+    to {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+  @keyframes fling {
+    from {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+    to {
+      transform: translate(var(--dx), var(--dy));
+      opacity: 0;
+    }
+  }
   @keyframes banner {
     0% {
       opacity: 0;
@@ -243,6 +341,11 @@
 
   @media (prefers-reduced-motion: reduce) {
     .trail,
+    .grooves,
+    .crush,
+    .hole,
+    .ripple,
+    .splat,
     .burst,
     .zap,
     .zap-outline,

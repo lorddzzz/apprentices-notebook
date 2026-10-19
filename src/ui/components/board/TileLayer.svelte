@@ -1,11 +1,8 @@
 <script lang="ts">
   import type { Coord, Dir } from '$engine';
-  import { LAYER_NAME } from '../../../app/describe';
-  import { layerTone } from '../../../app/fx';
   import type { TileView } from '../../../app/view';
-  import { RUNE_ART } from '../../runeArt';
+  import { DROP, maxHits, PLATE_LIKE } from './art';
   import { cellOrigin } from './geometry';
-  import { TONE_COLOR } from './tones';
 
   interface Props {
     tile: TileView;
@@ -22,13 +19,16 @@
     down: 'M38 64 50 82 62 64',
     up: 'M38 36 50 18 62 36',
   };
-  // Compounds get a neutral labelled chip until the board view (U1) draws each one.
-  const PLAIN = ['blot', 'slick', 'cloud', 'plate', 'fire'];
-  const compound = $derived(tile.state !== null && !PLAIN.includes(tile.state) ? tile.state : null);
-  const compoundColor = $derived(compound ? TONE_COLOR[layerTone(compound)] : 'var(--ink-soft)');
-  const compoundWords = $derived(compound ? LAYER_NAME[compound].split(' ') : []);
   const BLOT =
     'M28 54C25 36 42 24 56 29C72 23 82 40 75 55C84 68 68 80 54 73C42 82 24 71 28 54Z';
+  // Clouds, brand clouds, grease fog and banks are drawn over the units by SteamLayer.
+  const LINGERING = ['stain', 'pool', 'skidPlate', 'kettle', 'wall'];
+  // Plates, skid plates, kettles and walls wear: pips for the hits left, a crack on a damaged wall.
+  const pips = $derived(tile.state && PLATE_LIKE.has(tile.state) ? tile.hits : 0);
+  const worn = $derived(tile.state === 'wall' && tile.hits > 0 && tile.hits < maxHits('wall'));
+  const timed = $derived(
+    tile.state !== null && LINGERING.includes(tile.state) && tile.rounds > 0 ? tile.rounds : 0,
+  );
 </script>
 
 <g transform="translate({origin.x} {origin.y})">
@@ -85,17 +85,90 @@
     </g>
   {/if}
 
-  {#if compound}
-    <g data-state={tile.state}>
-      <rect x="6" y="6" width="88" height="88" rx="10" fill={compoundColor} fill-opacity="0.22" stroke={compoundColor} stroke-width="4" stroke-dasharray="9 6" />
-      <text x="50" y="46" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--ink)" font-family="Georgia, serif">{compoundWords[0]}</text>
-      {#if compoundWords[1]}
-        <text x="50" y="68" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--ink)" font-family="Georgia, serif">{compoundWords[1]}</text>
-      {/if}
-      {#if tile.rounds > 0}
-        <text x="91" y="95" text-anchor="end" font-size="22" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.rounds}</text>
+  <!-- Stain: a blot ringed with a dashed line, a mark's drop pressed into it -->
+  {#if tile.state === 'stain'}
+    <g data-state="stain">
+      <path d={BLOT} fill="var(--m-ink)" opacity="0.85" />
+      <circle cx="20" cy="24" r="4" fill="var(--m-ink)" opacity="0.7" />
+      <circle cx="84" cy="80" r="3" fill="var(--m-ink)" opacity="0.7" />
+      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--m-ink)" stroke-width="3.5" stroke-dasharray="3 9" stroke-linecap="round" />
+      <path d={DROP} transform="translate(51 56) scale(1.1)" fill="var(--parchment)" opacity="0.92" />
+    </g>
+  {/if}
+
+  <!-- Pool: oil on the tile, rippling out to its neighbours -->
+  {#if tile.state === 'pool'}
+    <g data-state="pool">
+      <rect x="1" y="1" width="98" height="98" fill="var(--m-oil-tint)" />
+      <g stroke="var(--m-oil)" stroke-width="3" stroke-linecap="round" opacity="0.6" fill="none">
+        <path d="M14 46 46 14" />
+        <path d="M44 88 88 44" />
+      </g>
+      <g fill="none" stroke="var(--m-oil)" stroke-width="4.5" opacity="0.85">
+        <ellipse cx="50" cy="52" rx="14" ry="11" />
+        <ellipse cx="50" cy="52" rx="28" ry="22" stroke-dasharray="14 7" />
+        <ellipse cx="50" cy="52" rx="42" ry="34" stroke-dasharray="5 11" stroke-linecap="round" />
+      </g>
+      <path d="M50 42c-4 5-6 7-6 10a6 6 0 0 0 12 0c0-3-2-5-6-10z" fill="var(--m-oil)" />
+    </g>
+  {/if}
+
+  <!-- Skid plate: a plate tipped on grease, sheen lines trailing from it -->
+  {#if tile.state === 'skidPlate'}
+    <g data-state="skidPlate">
+      <g stroke="var(--m-oil)" stroke-width="4" stroke-linecap="round" opacity="0.8">
+        <path d="M6 70 22 54M2 88 28 62M78 94 96 76" />
+      </g>
+      <g transform="rotate(-6 50 50)">
+        <rect x="14" y="14" width="72" height="72" rx="6" fill="var(--m-brass)" stroke="var(--m-brass-dark)" stroke-width="4" />
+        <g fill="none" stroke="var(--m-brass-dark)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M34 36 52 50 34 64" />
+          <path d="M52 36 70 50 52 64" />
+        </g>
+      </g>
+    </g>
+  {/if}
+
+  <!-- Kettle: a hot plate with a kettle on it, steam from the spout -->
+  {#if tile.state === 'kettle'}
+    <g data-state="kettle">
+      <rect x="8" y="8" width="84" height="84" rx="6" fill="var(--m-brass)" stroke="var(--m-brass-dark)" stroke-width="4" />
+      <path d="M24 70c0-16 11-24 26-24s26 8 26 24c0 4-2 6-6 6H30c-4 0-6-2-6-6z" fill="var(--vent)" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round" />
+      <path d="M72 58l14-9 3 5-14 11z" fill="var(--vent)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" />
+      <path d="M27 58c-10-3-12-14-3-17" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" />
+      <circle cx="50" cy="43" r="4.5" fill="var(--ink)" />
+      <g fill="none" stroke="var(--m-steam)" stroke-width="4.5" stroke-linecap="round">
+        <path d="M90 44c-5-5 4-8-1-14" />
+        <path d="M44 34c-4-5 3-7-1-12M58 34c-4-5 3-7-1-12" />
+      </g>
+    </g>
+  {/if}
+
+  <!-- Wall: courses of brass bricks; a damaged wall shows its crack -->
+  {#if tile.state === 'wall'}
+    <g data-state="wall">
+      <rect x="5" y="12" width="90" height="76" rx="3" fill="var(--m-brass)" stroke="var(--m-brass-dark)" stroke-width="4.5" />
+      <g stroke="var(--m-brass-dark)" stroke-width="3.5" stroke-linecap="round">
+        <path d="M5 37H95M5 63H95" />
+        <path d="M50 12V37M28 37V63M72 37V63M50 63V88" />
+      </g>
+      {#if worn}
+        <path d="M46 12 55 31 41 47 57 66 47 88" fill="none" stroke="var(--parchment)" stroke-width="7" stroke-linejoin="round" />
+        <path d="M46 12 55 31 41 47 57 66 47 88" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" />
       {/if}
     </g>
+  {/if}
+
+  {#if pips > 0}
+    <g data-trait="hits" fill="var(--ink)" stroke="var(--parchment)" stroke-width="2.5">
+      {#each { length: pips } as _, i (i)}
+        <circle cx={14 + i * 14} cy="14" r="5.5" />
+      {/each}
+    </g>
+  {/if}
+
+  {#if timed > 0}
+    <text x="91" y="95" text-anchor="end" font-size="22" font-weight="bold" fill="var(--ink)" stroke="var(--parchment)" stroke-width="4" paint-order="stroke" font-family="var(--mono)">{timed}</text>
   {/if}
 
   {#if tile.grate}
@@ -135,12 +208,6 @@
     <g data-state="drop">
       <rect x="1" y="1" width="98" height="98" fill="var(--night)" opacity="0.6" />
       <rect x="9" y="9" width="82" height="82" fill="none" stroke="var(--parchment)" stroke-width="3" stroke-dasharray="10 8" opacity="0.7" />
-    </g>
-  {/if}
-
-  {#if tile.jar}
-    <g data-state="jar" transform="translate(6 56) scale(1.6)">
-      <path d={RUNE_ART.jar} fill="var(--lamp)" fill-opacity="0.85" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
     </g>
   {/if}
 </g>

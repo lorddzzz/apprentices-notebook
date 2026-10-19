@@ -40,9 +40,9 @@
   import SolventIcon from '../components/SolventIcon.svelte';
   import { METHOD_ART } from '../runeArt';
   import {
+    FX_DEMOS,
+    type FxDemo,
     GLYPH_SAMPLES,
-    OIL_CHAIN_BOARD,
-    OIL_CHAIN_EVENTS,
     SHOWCASE_OVERLAY,
     showcaseView,
   } from './galleryFixtures';
@@ -82,11 +82,18 @@
     if (result.message) toast(result.message);
   }
 
-  // fx part
-  const chainStart = viewOfSpec(parseBoard(OIL_CHAIN_BOARD));
-  const chainEnd = buildSteps(chainStart, OIL_CHAIN_EVENTS).at(-1)?.view ?? chainStart;
+  // fx part: the oil chain and a few more playable chains (slide and crush, storm, jar, drop)
+  const FIRST_DEMO = FX_DEMOS[0] as FxDemo;
+  const startOf = (d: FxDemo): BoardView => {
+    const v = viewOfSpec(parseBoard(d.board));
+    d.prepare?.(v);
+    return v;
+  };
+  let demo = $state.raw<FxDemo>(FIRST_DEMO);
+  let chainStart = $state.raw<BoardView>(startOf(FIRST_DEMO));
+  const chainEnd = $derived(buildSteps(chainStart, demo.events).at(-1)?.view ?? chainStart);
   const playback = new Playback();
-  let resting = $state.raw<BoardView>(chainStart);
+  let resting = $state.raw<BoardView>(startOf(FIRST_DEMO));
   let runId = $state(0);
   let lastLine = $state('Ready');
 
@@ -95,11 +102,20 @@
   const chainKey = $derived(runId * 1000 + playback.index);
   const chainLine = $derived(playback.current?.line ?? lastLine);
 
+  function pickDemo(d: FxDemo): void {
+    playback.skip();
+    demo = d;
+    chainStart = startOf(d);
+    resting = chainStart;
+    runId += 1;
+    lastLine = 'Ready';
+  }
+
   function playChain(): void {
     resting = chainStart;
     runId += 1;
     lastLine = 'Ready';
-    void playback.play(chainStart, OIL_CHAIN_EVENTS).then(() => {
+    void playback.play(chainStart, demo.events).then(() => {
       resting = chainEnd;
       lastLine = 'Done. Tap Play to replay.';
     });
@@ -226,7 +242,17 @@
     </div>
   {:else if part === 'fx'}
     <div class="row">
-      <Button label="Play oil chain" onclick={playChain} testid="play-chain" />
+      {#each FX_DEMOS as d (d.id)}
+        <Button
+          label={d.label}
+          variant={d.id === demo.id ? 'primary' : 'quiet'}
+          onclick={() => pickDemo(d)}
+          testid={`demo-${d.id}`}
+        />
+      {/each}
+    </div>
+    <div class="row">
+      <Button label={`Play ${demo.label.toLowerCase()}`} onclick={playChain} testid="play-chain" />
       <Button label="Reset" variant="quiet" onclick={resetChain} />
     </div>
     <p class="readout" data-testid="caption">{chainLine}</p>
@@ -317,7 +343,7 @@
     font-size: 14px;
   }
   .boardbox {
-    margin: 0 calc(-1 * var(--space-3));
+    margin: 0;
   }
   h1 {
     margin: 0;

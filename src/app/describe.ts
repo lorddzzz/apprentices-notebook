@@ -7,6 +7,7 @@ import {
   MEMBERS,
   METHODS,
   RUNES,
+  type RuneId,
   type SchoolId,
   SOLVENTS,
   type StateId,
@@ -22,6 +23,7 @@ import {
   findUnit,
   type GameEvent,
   intentPreview,
+  type Layer,
   type LootItem,
   label,
   legalMoves,
@@ -37,6 +39,7 @@ import {
   unitAt,
 } from '$engine';
 import type { InputMode } from './battleInput';
+import { firstRune } from './view';
 
 /** UI wording: captions, inspect lines, preview summaries. Plain functions, tested. */
 
@@ -69,13 +72,29 @@ export const LAYER_NAME: Record<StateId | CompoundId, string> = {
 
 const rounds = (n: number): string => `${n} ${n === 1 ? 'round' : 'rounds'}`;
 
+const runeName = (r: string): string =>
+  r.startsWith('inv:') ? r.slice(4) : (RUNES[r as RuneId]?.name ?? r);
+
+/** "wall (2 rounds, 1 hit left)": a layer with what is left of it. */
+function layerPhrase(layer: Layer): string {
+  const bits: string[] = [];
+  if (layer.rounds > 0 && !layer.set) bits.push(rounds(layer.rounds));
+  if (layer.hits !== undefined)
+    bits.push(`${layer.hits} ${layer.hits === 1 ? 'hit' : 'hits'} left`);
+  const name = LAYER_NAME[layer.id];
+  return bits.length ? `${name} (${bits.join(', ')})` : name;
+}
+
 export function tileLine(tile: Tile, at: Coord): string {
   const parts: string[] = [];
-  if (tile.state) {
-    const name = LAYER_NAME[tile.state.id];
-    parts.push(tile.state.rounds > 0 ? `${name} (${rounds(tile.state.rounds)})` : name);
+  if (tile.state) parts.push(layerPhrase(tile.state));
+  if (tile.jar) {
+    const first = firstRune(tile.jar.rest);
+    const owner = tile.jar.owner.replace(/^./, (c) => c.toUpperCase());
+    parts.push(
+      `${owner}'s jar (opens ${tile.jar.event === 'step' ? 'on a step' : 'at dusk'}${first ? `, starts with ${runeName(first)}` : ''})`,
+    );
   }
-  if (tile.jar) parts.push('sealed jar');
   if (tile.terrain.vent) parts.push('steam vent');
   if (tile.terrain.water) parts.push(`water flowing ${tile.terrain.water}`);
   if (tile.terrain.grate) parts.push('grate');
@@ -116,6 +135,8 @@ export interface TraitSource {
   shackle: boolean;
   held: boolean;
   stunned: boolean;
+  /** The action a bound mark holds (Bind). */
+  bound?: string | null;
 }
 
 export function traitSource(u: Unit): TraitSource {
@@ -127,6 +148,7 @@ export function traitSource(u: Unit): TraitSource {
     shackle: u.shackle > 0,
     held: u.held > 0,
     stunned: u.stunned,
+    bound: u.mark?.bound?.action ?? null,
   };
 }
 
@@ -136,8 +158,11 @@ export function traitSource(u: Unit): TraitSource {
  */
 export function unitTraits(u: TraitSource): string[] {
   const out: string[] = [];
-  if (u.mark === 'deep') out.push('deeply marked (two Sparks to clear)');
-  else if (u.mark === 'plain') out.push('marked (a Spark bursts it)');
+  if (u.mark) {
+    const bursts =
+      u.mark === 'deep' ? 'deeply marked (two Sparks to clear)' : 'marked (a Spark bursts it)';
+    out.push(u.bound ? `${bursts}, holding ${runeName(u.bound)} until its event` : bursts);
+  }
   if (u.shackle) out.push('shackled (cannot move)');
   else if (u.collar) out.push('collared (conducts Spark)');
   if (u.held) out.push('held in place');

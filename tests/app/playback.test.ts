@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import type { Coord, GameEvent, UnitRef } from '$engine';
 import { buildSteps, type Clock, Sequencer } from '../../src/app/playback';
 import { type BoardView, project } from '../../src/app/view';
+import { plainBoard, plainUnit } from './viewFixtures';
 
 function fakeClock() {
   let now = 0;
@@ -126,37 +127,9 @@ test('an empty run finishes immediately', () => {
 const ref = (id: string, at: Coord): UnitRef => ({ id, name: 'rat', at, member: false });
 
 test('buildSteps: step i view = project of steps 0..i', () => {
-  const start: BoardView = {
-    width: 3,
-    height: 1,
-    tiles: Array.from({ length: 3 }, () => ({
-      state: null,
-      rounds: 0,
-      jar: false,
-      vent: false,
-    })),
-    units: [
-      {
-        id: 'rat-1',
-        kind: 'enemy',
-        def: 'rat',
-        name: 'rat',
-        pos: { x: 0, y: 0 },
-        hp: 2,
-        maxHp: 2,
-        shield: 0,
-        mark: null,
-        collar: false,
-        shackle: false,
-        held: false,
-        stunned: false,
-        alive: true,
-        intent: null,
-      },
-    ],
-    round: 1,
-    phase: 'player',
-  };
+  const start: BoardView = plainBoard(3, 1, [
+    plainUnit({ id: 'rat-1', pos: { x: 0, y: 0 }, hp: 2, maxHp: 2 }),
+  ]);
   const events: GameEvent[] = [
     { type: 'landed', kind: 'oil', at: { x: 1, y: 0 }, makes: 'slick' },
     {
@@ -183,4 +156,56 @@ test('buildSteps: step i view = project of steps 0..i', () => {
     expect(s.view).toEqual(v);
     expect(s.line.length).toBeGreaterThan(0);
   });
+});
+
+test('buildSteps: silent events make no step; quiet ones make a step with no time', () => {
+  const start = plainBoard(3, 1, [plainUnit({ id: 'rat-1', pos: { x: 0, y: 0 } })]);
+  const rat = ref('rat-1', { x: 0, y: 0 });
+  const events: GameEvent[] = [
+    { type: 'named', what: 'compound', id: 'stain' },
+    { type: 'markSpent', unit: rat, released: false },
+    { type: 'repeated', action: 'strike' },
+    { type: 'damage', target: rat, amount: 1, source: 'Strike', bonus: [], hpLeft: 2 },
+  ];
+  const steps = buildSteps(start, events);
+  expect(steps.map((s) => s.event.type)).toEqual(['markSpent', 'repeated', 'damage']);
+  expect(steps.map((s) => s.ms)).toEqual([0, 0, 260]);
+});
+
+test('buildSteps: the final view fills in a sealed jar’s peek from the step it appears', () => {
+  const start = plainBoard(3, 1, [plainUnit({ id: 'stoker', pos: { x: 0, y: 0 } })]);
+  const end = plainBoard(3, 1, [plainUnit({ id: 'stoker', pos: { x: 0, y: 0 } })]);
+  const jar = { owner: 'stoker', event: 'step', peek: 'oil' } as const;
+  const sealed: GameEvent = {
+    type: 'jarSealed',
+    at: { x: 2, y: 0 },
+    owner: { id: 'stoker', name: 'Stoker', at: { x: 0, y: 0 }, member: true },
+    event: 'step',
+  };
+  const endTile = end.tiles[2];
+  if (endTile) endTile.jar = jar;
+  expect(buildSteps(start, [sealed])[0]?.view.tiles[2]?.jar).toEqual({ ...jar, peek: null });
+  expect(buildSteps(start, [sealed], 1, [], end)[0]?.view.tiles[2]?.jar).toEqual(jar);
+});
+
+test('buildSteps: a slide and a crush get their pictures and their beats', () => {
+  const start = plainBoard(5, 1, [plainUnit({ id: 'rat-1', pos: { x: 0, y: 0 } })]);
+  const at = ref('rat-1', { x: 0, y: 0 });
+  const events: GameEvent[] = [
+    {
+      type: 'push',
+      unit: at,
+      dir: 'right',
+      path: [
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+      slid: 1,
+    },
+    { type: 'crush', unit: ref('rat-1', { x: 2, y: 0 }), into: 'wall', damage: 3 },
+  ];
+  const steps = buildSteps(start, events);
+  expect(steps.map((s) => s.fx.map((f) => f.kind))).toEqual([['slide'], ['crush']]);
+  expect(steps.map((s) => s.ms)).toEqual([260, 420]);
+  expect(steps[0]?.view.units[0]?.pos).toEqual({ x: 2, y: 0 });
 });
