@@ -73,3 +73,6 @@ export const ACTIONS = {
   /** Levy: shield gained per mark spent. */
   levyShieldPerMark: 1,
 } as const;
+
+/** Footnotes (P39): points a rune needs for level I / II / III. */
+export const FOOTNOTES = { levels: [5, 15, 40] } as const;

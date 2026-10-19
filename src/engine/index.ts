@@ -4,6 +4,7 @@ export * from './cluster';
 export * from './current';
 export * from './events';
 export * from './foes';
+export * from './footnotes';
 export * from './glyph';
 export * from './grid';
 export * from './idioms';

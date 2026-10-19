@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** building
-**Next:** F1 running (wrap zone, 95%). After the 05:40 UTC reset (timer set): E7 (critical), R1, U1 in parallel; then C1, U3; then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
+**State:** holding for reset (resumes 05:41 UTC; 5h at 98%)
+**Next (after the 05:40 UTC reset):** 1) start E7 (inventions, critical), R1 (run layer: also plug `footnoteTexts(profile)` into the `applyAction` callers and `awardFootnotePoints` into `finishEncounter`), U1 (board view) in parallel; 2) then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3; then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -29,7 +29,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E8 | sonnet | M | waiting | | | |
 | E9 | sonnet | S | waiting | | | |
 | U2 | sonnet | M | waiting | | | |
-| F1 | sonnet | S | running | worktree | | started 01:47 in wrap zone |
+| F1 | sonnet | S | merged | (this commit) | ~3% | 1631 tests; `applyAction(state, action, footnotes = {})`; proof branch in push.ts `crush()` for `shove:wall` |
 | U5 | sonnet | L | waiting | | | |
 | U6 | sonnet | M | waiting | | | |
 | U7 | sonnet | M | waiting | | | |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 01:53 | 98 | 3h47m | 74 | hold | F1 merged; holding, timer to 05:41 UTC |
 | 2026-10-19 01:46 | 95 | 3h54m | 73 | wrap | L1 merged; start F1 (S) |
 | 2026-10-19 01:35 | 90 | 4h05m | 73 | wrap | E5 merged; start L1 (smallest critical) |
 | 2026-10-19 01:27 | 85 | 4h14m | 72 | narrow | E6 merged; start E5 |
@@ -53,6 +54,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- F1: footnote offers/write/texts take an optional `variants` arg (tests pass their own); errors `notReached`/`unknownVariant`/`noSolvent`; the district solvent held in greater number is spent. Proposal to decide in C1: `ctx.footnotes` should carry variant ids, not texts (text comparison is brittle).
 - L1: masking lives in `lines.ts` (no preview.ts); silent masked events leave no blank; `wax:cloud` is in a NOT_YET_STAMPED allowlist; Lantern Walk has only a negative test (jars don't drift yet), Redraft a synthetic log; Debt Collection reads the acting apprentice from the first `cast` in the log. Accepted. Follow-ups: widen `nameOnce` to `'idiom'`; let chemHarness record lines without the spy; a `released` event carrying the releaser's origin.
 - E5: release heading: hook heading or push dir, then from the hit's `from` tile to the bearer, then `bound.heading`; a killing hit doesn't release a `hit` mark (only `dies`, on the death tile); release depth capped at 3 nested, the 4th fizzles; a spread skips units that already hold a mark; `entered` spreads first, then releases `enters`; Lift doesn't re-spread, adds the new bearer to the lineage, and onto a marked unit is a no-op; Spark's own 1 damage releases a hit-bound mark before Detonation. `expireMark` exists for lifetimes. Accepted.
 - E6: shackle wears off at round end in `decayStates` (only `held` counts player-phase starts); a stunned foe loses its telegraphed attack; a stunned apprentice comes back with moved+acted true; a move that triggered a jar or stain can't be undone; a jar sealed onto any other jar crumbles it; dusk jars sealed during dusk wait for the next dusk; `nextRoundEnd` becomes `roundEnd` after the pass; `ownerTurn` entries run after `landed` resets; a move opens a jar only on arrival (pushes fire `entered` per tile). No `runes/auras.ts` needed. Accepted.

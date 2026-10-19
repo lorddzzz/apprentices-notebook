@@ -81,7 +81,10 @@ function crush(
   stop: Stop & { kind: 'crush' },
 ): void {
   const other = typeof stop.into === 'string' ? null : stop.into;
-  const damage = TUNING.crushBase + TUNING.crushPerTile * moved;
+  // Footnote proof (F1): any variant written for `shove:wall` drops the per-tile part of a wall
+  // crush. C1 replaces this with the real level-I variants' own checks.
+  const softWall = stop.line === 'shove:wall' && ctx.footnotes['shove:wall'] !== undefined;
+  const damage = TUNING.crushBase + (softWall ? 0 : TUNING.crushPerTile * moved);
   const body = (): void => {
     emit(ctx, {
       type: 'crush',

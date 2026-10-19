@@ -11,7 +11,7 @@ import {
 } from '$data';
 import { enemyPhase } from './ai';
 import { castAction } from './cast';
-import { type Ctx, checkEnd, emit, ref, runDraft } from './ctx';
+import { type Ctx, checkEnd, type DraftOptions, emit, ref, runDraft } from './ctx';
 import type { GameEvent } from './events';
 import { type Coord, label, step } from './grid';
 import { withIdioms } from './idioms';
@@ -255,17 +255,25 @@ function dispatch(ctx: Ctx, action: Action): void {
 }
 
 /** Pure: returns the next state and the events; throws IllegalActionError if not legal. */
-export function applyAction(state: BattleState, action: Action): ActionResult {
+export function applyAction(
+  state: BattleState,
+  action: Action,
+  footnotes: DraftOptions['footnotes'] = {},
+): ActionResult {
   const reason = isLegal(state, action);
   if (reason !== null) throw new IllegalActionError(reason);
-  return runDraft(state, (ctx) => {
-    // A cast or shove changes the board: no earlier move can be taken back after it.
-    if (action.type === 'cast' || action.type === 'shove') {
-      for (const m of members(ctx.s)) m.undo = null;
-    }
-    withIdioms(ctx, () => dispatch(ctx, action));
-    if (action.type !== 'endTurn') checkEnd(ctx);
-  });
+  return runDraft(
+    state,
+    (ctx) => {
+      // A cast or shove changes the board: no earlier move can be taken back after it.
+      if (action.type === 'cast' || action.type === 'shove') {
+        for (const m of members(ctx.s)) m.undo = null;
+      }
+      withIdioms(ctx, () => dispatch(ctx, action));
+      if (action.type !== 'endTurn') checkEnd(ctx);
+    },
+    { footnotes },
+  );
 }
 
 /** Creates the battle and applies each action. states[0] is the created battle. */
