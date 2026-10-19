@@ -129,6 +129,20 @@ describe('Repeat', () => {
     expect(count(after.events, 'repeated')).toBe(0);
   });
 
+  test("a downed caster's repeat lapses", () => {
+    const s = withLattices(
+      'D d . .\nS . . .',
+      { draughtsman: 'Bolt> inv:afterimage' },
+      { ...opts, hp: { B1: 9 } },
+    );
+    const now = cast(s, 'draughtsman', 'right');
+    const downed = structuredClone(now.state);
+    const d = downed.units.find((u) => u.id === 'draughtsman');
+    if (d) d.hp = 0;
+    const next = endTurn(downed);
+    expect(count(next.events, 'repeated')).toBe(0);
+  });
+
   test('repeat-cannot-reschedule', () => {
     const s = withLattices('D d . .', {}, opts);
     const flow = flowFor(s, { repeated: true });

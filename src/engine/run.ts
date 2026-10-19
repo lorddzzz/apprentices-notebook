@@ -226,7 +226,9 @@ export function writeInvention(
   if (issue) throw new Error(issue);
   if (!def.name.trim()) throw new Error('Give it a name');
   if (!INVENTION_ID.test(def.id)) throw new Error('That name cannot be written down');
-  if (p.inventions.some((d) => d.id === def.id)) throw new Error(`${def.name} is already written`);
+  const name = def.name.trim().toLowerCase();
+  if (p.inventions.some((d) => d.id === def.id || d.name.trim().toLowerCase() === name))
+    throw new Error(`${def.name} is already written`);
   const solvents = { ...p.solvents };
   if (def.solvent) {
     if (solvents[def.solvent] < 1) throw new Error('You have none of that solvent left');

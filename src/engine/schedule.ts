@@ -30,6 +30,9 @@ function run(ctx: Ctx, e: Scheduled): void {
     if (e.undo) undoBoard(ctx, e.undo);
     return;
   }
+  // A downed caster's delayed actions lapse (graphite undos above still restore the board).
+  const owner = ctx.s.units.find((u) => u.id === e.owner);
+  if (!owner || owner.hp <= 0) return;
   const at = whereIs(ctx.s, e.target);
   if (!at) return;
   const unit = e.target.kind === 'tile' ? unitAt(ctx.s, at) : null;

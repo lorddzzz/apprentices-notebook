@@ -98,7 +98,7 @@ const hold: Handler = (ctx, t, flow) => {
 const swap: Handler = (ctx, t, flow) => {
   const u = unitOf(ctx, t);
   const caster = unitById(ctx.s, flow.caster);
-  if (!u || u.id === caster.id) return;
+  if (!u || u.id === caster.id || caster.hp <= 0) return;
   const blocked = [caster, u].find((x) => x.held > 0);
   if (blocked) {
     withLine(ctx, 'swap:held', () => emit(ctx, { type: 'held', unit: ref(blocked) }));

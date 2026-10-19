@@ -9,6 +9,7 @@ import {
   type MethodId,
   RUNE_IDS,
   type RuneRef,
+  SOLVENTS,
   type SolventId,
 } from '$data';
 import {
@@ -165,7 +166,8 @@ export function defaultName(d: Draft, lib: InventionLibrary = {}): string {
   const parts = d.parts
     .filter((x): x is RuneRef => x !== null && x !== 'ink')
     .map((x) => nameOf(x, lib));
-  return [METHODS[d.method].name, ...parts].join(' ');
+  const flavour = d.solvent ? [`with ${SOLVENTS[d.solvent].name}`] : [];
+  return [METHODS[d.method].name, ...parts, ...flavour].join(' ');
 }
 
 /** `inv:` + the name in lower case, made unique among the household's inventions. */

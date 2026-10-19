@@ -188,6 +188,14 @@ describe('naming and writing', () => {
     expect(defaultName(bind)).toBe('Bind Shove');
   });
 
+  test('a flavoured default name says its solvent; a name already written is refused', () => {
+    const p = household({ solvents: { ...newProfile().solvents, mortar: 1 } });
+    expect(defaultName(setSolvent(impulse(), 'mortar'))).toBe('Conduct Shove with Mortar');
+    const plain = writeInvention(p, inventionToWrite(p, impulse(), 'Impulse') ?? fail());
+    const twin = inventionToWrite(plain, setSolvent(impulse(), 'mortar'), 'impulse') ?? fail();
+    expect(() => writeInvention(plain, twin)).toThrow('already written');
+  });
+
   test('a blank name takes the default, and ids are unique', () => {
     const p = household();
     const first = inventionToWrite(p, impulse(), '  ');
