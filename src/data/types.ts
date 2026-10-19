@@ -342,6 +342,7 @@ export interface ScenarioDef {
   title: string;
   note: string;
   board: string; // board ASCII
+  inventions?: Readonly<Record<InventionId, InventionDef>>;
   lattices?: Partial<Record<MemberId, string>>; // omitted member → Lab uses profile lattice; tests use none
   hp?: Readonly<Record<string, number>>; // by cell label 'C1'
   intents?: Readonly<Record<string, Dir>>; // by cell label; listed enemies telegraph this dir, others idle

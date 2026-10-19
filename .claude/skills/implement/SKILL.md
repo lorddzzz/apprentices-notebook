@@ -12,7 +12,7 @@ Templates for the status file, spawn prompts and nudge messages are in [template
 ## 0. Start or resume
 
 1. **Resuming?** Read `docs/plans/<plan>-status.md` first. Trust it over memory. Then run `git worktree list` and `git log --oneline -15`, and read the reports of any agents still running. Continue from **Next**.
-2. **No plan yet?** Spawn an **Opus** planner (`model: "opus"`, `subagent_type: "Plan"`) on the design doc. It writes `docs/plans/<feature>-plan.md` in the shape of [research-and-mastery-plan.md](../../../docs/plans/research-and-mastery-plan.md): team and models, the rules the plan settles (*Proposals*), contracts, then waves of tasks. Each task lists the files it **owns**, its model, its dependencies, its acceptance list and a size (S/M/L). Show the player a short summary and wait for their go before building.
+2. **No plan yet?** Spawn an **Opus-role** planner (Claude: `model: "opus"`, `subagent_type: "Plan"`; GPT: `model: "gpt-6.1-sol"`, reasoning `high`) on the design doc. It writes `docs/plans/<feature>-plan.md` in the shape of [research-and-mastery-plan.md](../../../docs/plans/research-and-mastery-plan.md): team and models, the rules the plan settles (*Proposals*), contracts, then waves of tasks. Each task lists the files it **owns**, its model, its dependencies, its acceptance list and a size (S/M/L). Show the player a short summary and wait for their go before building.
 3. **Read the plan**, not the whole design. Where the plan and the design disagree, the design wins: ask the player (`design-round`), or log the call in the autonomy log if they're away.
 4. **Create the status file** from the template, commit it, and add a one-line pointer to memory (`project` type) that names the file. Memory holds only the pointer.
 5. **Check usage** (§3) and record the baseline.
@@ -20,17 +20,19 @@ Templates for the status file, spawn prompts and nudge messages are in [template
 ## 1. Waves
 
 - **Wave 0 is your own work:** type contracts, stubs and shared data shapes that every later task codes against. Keep `pnpm check` green, commit, push. Parallel tasks are only safe once these exist.
-- **Each later task is one subagent:** `isolation: "worktree"`, `run_in_background: true`, using the task's model. Tasks in the same wave touch **disjoint files** and run in parallel. Start a task as soon as its dependencies are merged; don't wait for the whole wave.
+- **Each later task is one subagent:** `isolation: "worktree"`, `run_in_background: true`, using the task's model role and the active runtime mapping below. Tasks in the same wave touch **disjoint files** and run in parallel. Start a task as soon as its dependencies are merged; don't wait for the whole wave.
 - **Keep 2–4 agents running.** More than that burns usage faster than you can review it.
 - **Order of starts:** inside the usage budget, prefer tasks on the critical path, then the large ones (they need the most runway), then fillers.
 
 ### Model choice: the cheapest model that can do it
 
-| Model | Use for |
-|---|---|
-| **Opus** (`opus`) | Plans, cross-cutting refactors, hard algorithms, and tasks that failed twice on Sonnet. Wave 0 and merges stay with you |
-| **Sonnet** (`sonnet`) | Planned engine logic, Svelte screens, debugging, tests that need real reasoning, code review |
-| **Haiku** (`haiku`) | Work against a precise spec: data tables, codex text, SVG that follows existing art, scenario entries, list screens that copy a pattern. Also running tests, reading logs and CI output, collecting facts across files (`Explore`), and QA playthroughs |
+| Role | Claude option | GPT option | Use for |
+|---|---|---|---|
+| **Opus** | `opus` | **6.1 Sol High** (`gpt-6.1-sol`, reasoning `high`) | Plans, cross-cutting refactors, hard algorithms, and tasks that failed twice on Sonnet. Wave 0 and merges stay with you |
+| **Sonnet** | `sonnet` | **6.1 Sol Light** (`gpt-6.1-sol`, reasoning `low`) | Planned engine logic, Svelte screens, debugging, tests that need real reasoning, code review |
+| **Haiku** | `haiku` | **6 Luna Medium** (`gpt-6-luna`, reasoning `medium`) | Work against a precise spec: data tables, codex text, SVG that follows existing art, scenario entries, list screens that copy a pattern. Also running tests, reading logs and CI output, collecting facts across files (`Explore`), and QA playthroughs |
+
+Use the option for the active runtime: Claude models in Claude, GPT models in Codex. A plan naming Opus, Sonnet or Haiku names the corresponding role above. GPT “Light” maps to the API reasoning value `low`. For Codex model overrides, spawn with `fork_turns: "none"` and a standalone prompt containing the required context. This mapping applies to future spawns; do not restart an already running agent solely to change its model. The user selected this mapping on 2026-10-19.
 
 **Escalation:** a task that fails review twice moves up one model. Never escalate in advance. Start a fresh agent with the failed attempt's branch and your review notes.
 

@@ -126,6 +126,9 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
     if (!rec.landed.targets.includes(k)) rec.landed.targets.push(k);
   }
   const begin = ctx.log.length;
+  const glyph = st.inner ? rec.glyphs.get(key(st.at)) : undefined;
+  const stepOrigin: Origin = glyph ? { ...flow.origin, glyph, glyphAt: { ...st.at } } : flow.origin;
+  recorders.set(stepOrigin, rec);
   const span = (): void => {
     rec.spans.push(spanOf(ctx, rec, st, begin));
   };
@@ -136,6 +139,7 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
       const handler = handlerOf(st.rune);
       const here: Flow = {
         ...flow,
+        origin: stepOrigin,
         gifted: giftedFor(findUnit(s, flow.caster), st.rune),
         auras: st.auras,
         giftedAuras: giftedAuras(findUnit(s, flow.caster), st.auras),
@@ -150,8 +154,10 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           const u = unitAt(s, at);
           if (u && acted.has(u.id)) continue; // pushed onto this tile in this very step
         }
-        handler?.(ctx, t, here, st);
-        if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here); // Margin aura (E7)
+        withOrigin(ctx, stepOrigin, () => {
+          handler?.(ctx, t, here, st);
+          if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here);
+        });
       }
       span();
       runStep(ctx, st.next, live, flow);
@@ -199,7 +205,10 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
       const seal = seams.sealJar ?? sealJar;
       for (const t of live) {
         const at = whereIs(s, t);
-        if (at && st.rest) seal(ctx, at, jarFor(st.rune, st.rest, t, flow));
+        if (at && st.rest)
+          withOrigin(ctx, stepOrigin, () =>
+            seal(ctx, at, jarFor(st.rune, st.rest, t, { ...flow, origin: stepOrigin })),
+          );
       }
       span();
       return;
@@ -249,6 +258,12 @@ export const MEANINGFUL: ReadonlySet<string> = new Set([
   'erased',
   'jarSealed',
   'conducted',
+  'markSpread',
+  'released',
+  'spreadState',
+  'jarOpened',
+  'markSpent',
+  'scheduled',
 ]);
 
 /** The source, every step that ran and the shape cells walked to reach it, once each (plan P7). */
@@ -320,7 +335,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
     caster: caster.id,
     spell: spell.key,
     cast: s.castSeq,
-    ...(spell.glyph ? { glyph: spell.glyph } : {}),
+    ...(spell.glyph ? { glyph: spell.glyph, glyphAt: { ...spell.at } } : {}),
   };
   const snapshot = snapshotOf(s);
   const outer = ctx.cast;

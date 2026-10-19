@@ -98,13 +98,20 @@ export function idiomsIn(log: readonly GameEvent[], pre: IdiomPre, s: BattleStat
   }
 
   // Lantern Walk: a jar on water holding Spark opens on a foe.
-  const lantern = log.find(
-    (e) =>
+  const sparkJars = new Set(pre.sparkJars);
+  const lantern = log.find((e) => {
+    if (e.type === 'drawn' && e.what === 'jar') {
+      const from = `${e.from.x},${e.from.y}`;
+      if (sparkJars.delete(from)) sparkJars.add(`${e.to.x},${e.to.y}`);
+    }
+    if (e.type === 'jarCrumbles') sparkJars.delete(`${e.at.x},${e.at.y}`);
+    return (
       e.type === 'jarOpened' &&
       e.by !== null &&
       !e.by.member &&
-      pre.sparkJars.has(`${e.at.x},${e.at.y}`),
-  );
+      sparkJars.has(`${e.at.x},${e.at.y}`)
+    );
+  });
   if (lantern) hits.push(found('lanternWalk', lantern));
 
   // Debt Collection: a bound mark is released by another apprentice.

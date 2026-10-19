@@ -17,6 +17,7 @@ import {
   emptyTile,
   enemies,
   type GameEvent,
+  type InventionLibrary,
   type Lattice,
   label,
   labSetCell,
@@ -234,6 +235,7 @@ export interface LabBase {
   hp: Record<string, number>;
   /** By cell label: enemies that telegraph an attack, and where. */
   intents: Record<string, Dir>;
+  inventions?: InventionLibrary;
 }
 
 type Dir = 'up' | 'right' | 'down' | 'left';
@@ -247,7 +249,7 @@ export function baseOf(s: BattleState, lattices: Record<MemberId, Lattice>): Lab
   const intents: Record<string, Dir> = {};
   for (const e of enemies(s))
     if (e.hp > 0 && e.intent?.kind === 'attack') intents[label(e.pos)] = e.intent.dir;
-  return { board: boardOf(s), lattices, hp, intents };
+  return { board: boardOf(s), lattices, hp, intents, inventions: structuredClone(s.inventions) };
 }
 
 /** A scenario that replays `actions` from `base`; `expected` is the log of `events`. */
@@ -266,6 +268,9 @@ export function toScenarioDef(
     note: 'Exported from the Lab.',
     board: base.board,
     lattices,
+    ...(base.inventions && Object.keys(base.inventions).length
+      ? { inventions: base.inventions }
+      : {}),
     ...(Object.keys(base.hp).length ? { hp: base.hp } : {}),
     intents: base.intents,
     demo: actions,
@@ -285,7 +290,9 @@ function literal(v: unknown): string {
   if (typeof v === 'string') return quote(v);
   if (Array.isArray(v)) return `[${v.map(literal).join(', ')}]`;
   if (v !== null && typeof v === 'object') {
-    const body = Object.entries(v).map(([k, x]) => `${k}: ${literal(x)}`);
+    const body = Object.entries(v).map(
+      ([k, x]) => `${/^[A-Za-z_$][\w$]*$/.test(k) ? k : quote(k)}: ${literal(x)}`,
+    );
     return body.length ? `{ ${body.join(', ')} }` : '{}';
   }
   return String(v);
@@ -309,6 +316,7 @@ export function formatScenario(def: ScenarioDef): string {
     out.push(`${i}},`);
   }
   if (def.hp) out.push(`${i}hp: ${literal(def.hp)},`);
+  if (def.inventions) out.push(`${i}inventions: ${literal(def.inventions)},`);
   if (def.intents) out.push(`${i}intents: ${literal(def.intents)},`);
   const list = (name: string, items: readonly string[]): void => {
     if (items.length === 0) out.push(`${i}${name}: [],`);

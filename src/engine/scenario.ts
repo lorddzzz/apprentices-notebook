@@ -94,7 +94,7 @@ export function labSetLattice(
   member: MemberId,
   lattice: Lattice | string,
 ): BattleState {
-  const spells = spellsFor(member, lattice);
+  const spells = spellsFor(member, lattice, state.inventions);
   const s = structuredClone(state);
   const m = s.units.find((u) => u.kind === 'member' && u.def === member);
   if (m?.kind !== 'member') throw new Error(`${MEMBERS[member].name} is not on the board`);

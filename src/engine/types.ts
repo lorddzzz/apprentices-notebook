@@ -168,6 +168,8 @@ export interface Origin {
   spell: SpellKey;
   cast: number; // BattleState.castSeq at cast start
   glyph?: GlyphId;
+  /** Socket that made the object, disambiguating repeated uses of a payload Glyph. */
+  glyphAt?: Coord;
 }
 /** A state or compound on a tile. */
 export interface Layer {

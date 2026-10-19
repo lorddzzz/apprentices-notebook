@@ -1,9 +1,9 @@
 # Rune redesign build status (resume here)
 
-Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
+Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
-**State:** done (2026-10-19): pushed; waiting on the player's playtest
-**Next:** the player's playtest. Held back by the player's call (weekly budget): M1, S1, T1, K1, R2 (ROADMAP BL-100). Then the follow-ups below.
+**State:** building (2026-10-19): resumed by the player; execute all remaining planned tasks, then verify and push
+**Next:** M1 lifetime mastery, S1 Lab scenarios and T1 fuzz/integration in isolated worktrees; review/merge each with a green check, then K1 cleanup and R2 content calibration. Finish with W7 verification and updated docs. Explicitly out-of-scope content remains deferred.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -33,12 +33,17 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | U5 | sonnet | L | merged | (this commit) | ~12% | 2591 tests; touched run.ts (`knownSetOf`, `writeInvention`), inventions.ts (`partIssue`), lab Palette (`items`) |
 | U6 | sonnet | M | merged | (this commit) | ~8% | 2603 tests; 7 tabs; `compoundTable(p)` |
 | U7 | sonnet | M | merged | (this commit) | ~5% | 2597 tests; touched footnotes.ts (export `solventFor`), Study + StudyScene (Desk knob, `h1.crowded`) |
-| M1 | sonnet | M | deferred (BL-100) | | | |
-| S1 | haiku | S | deferred (BL-100) | | | |
-| T1 | sonnet | M | deferred (BL-100) | | | |
+| M1 | sonnet | M | running | | | |
+| S1 | haiku | S | running | | | |
+| T1 | sonnet | M | running | | | |
 | K1 | haiku | S | deferred (BL-100) | | | |
 | R2 | haiku | S | deferred (BL-100) | | | |
 | W7 | opus (me) + sonnet reviewer | M | done | (this commit) | ~6% | playthrough at 375×812; Sonnet review (no blockers; 7.5k-board fuzz in /tmp, 0 exceptions); fixed duplicate invention names and a downed caster's delayed actions |
+
+## Resume notes (2026-10-19)
+- Player authorized executing the whole remaining plan, updating docs throughout, and agent workflow until the weekly limit.
+- Runtime offers GPT agents rather than the plan''s Claude models; use inherited available agents in isolated worktrees, with the same ownership and review gates.
+- Baseline Codex usage: 1% of 5-hour window, 19% weekly (previous Claude usage log below is historical).
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
