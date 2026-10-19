@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
-**State:** implemented and verified (2026-10-19); waiting for explicit push approval because automatic approval review rejected the final main-branch push.
-**Next:** with player push approval, push main and confirm CI deployment. All implementation tasks are done; merged agent worktrees/branches are cleaned and the resume heartbeat is paused while awaiting approval. Optional future work stays in BL-100. See [verification](rune-redesign-verification.md).
+**State:** done (2026-10-19): all planned implementation is committed, verified and pushed to main with explicit player approval; deployment CI is being confirmed during closeout.
+**Next:** player playtest. Optional future work stays in ROADMAP BL-100. Agent worktrees/branches are cleaned; the resume heartbeat is paused. See [verification](rune-redesign-verification.md).
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -38,7 +38,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | T1 | inherited | M | merged | codex/rune-t1 @ 09d6617 | | 140 fuzz cases, actual first evening, room/full-trip calibration; merged gate 2,811 tests |
 | K1 | 6 Luna medium | S | done | audit + parent cleanup | | no obsolete files; stale removed-rune comment fixed, LF pinned; full gate green |
 | R2 | 6 Luna medium | S | merged | codex/rune-r2 @ 55118e5 | | oil/wall + plate per Seam depth; pushable land foe beside water per canal room; merged gate 2,841 tests |
-| W7 | Codex + 6.1 Sol low reviewer | M | verified; deployment pending approval | final continuation commit | | 94 suites / 2,909 tests; production build; phone Lab/demos; remote Svelte checks clean; two reviews no blockers |
+| W7 | Codex + 6.1 Sol low reviewer | M | done; pushed with approval | final continuation commit | | 94 suites / 2,909 tests; production build; phone Lab/demos; remote Svelte checks clean; two reviews no blockers |
 
 | C1/F1 completion | 6.1 Sol low | M | merged | codex/rune-footnotes @ 622a7db (includes 095b50f) | | 10 working level-I variants, 3 Bolt lines, previews/overlays agree |
 
@@ -135,3 +135,4 @@ These notes are preserved as implementation history; they are not unfinished tas
 - Final merged gate passes94files/2,909tests, zero type/lint/Svelte errors; production build passes. Both reviewer passes found no blockers. Verification report records exact coverage and deliberate later scope.
 - Final main push was rejected by automatic approval review: explicit authorization to mutate the external default branch is required. Local commit remains allowed; ask the player only for the concrete final push/deployment.
 - Closeout cleanup complete: only the main worktree remains, main dependencies preserved, viewport restored. Resume heartbeat paused while awaiting the explicit push/deployment answer; no scheduled polling remains active.
+- Player explicitly approved pushing to main and deploying. Push through82fa729 succeeded; the final closeout documentation is pushed under the same authorization. CI deployment confirmation is reported in the chat handoff.
