@@ -292,7 +292,7 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
     id: 'seam',
     name: 'The Seam',
     material: 'ink',
-    guild: 'The Notaries',
+    guild: "No guild: the owner's drawing",
     edge: 'wall',
     encounters: ENCOUNTERS,
     landings: 'all',

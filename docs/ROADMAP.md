@@ -35,10 +35,6 @@ TECH.md header still says "2026-10-12"; DESIGN §10 still says "Next: the player
 
 ---
 
-#### BL-99 · The Seam's map label
-`content` `XS` · area: world · status: ready · needs: —
-`districts.ts` tags the Seam "Ink · The Notaries". Since the districts round (2026-10-18) it is the owner's own drawing with no guild; the Notaries hold the ink-makers' quarter. Change the label (and the map caption).
-
 #### BL-100 · Rune redesign leftovers (after the playtest)
 `feature` `M`–`L` · area: runes, mastery, tests · status: ready · needs: the player's playtest
 The parts of [rune-redesign-plan.md](plans/rune-redesign-plan.md) held back on 2026-10-19 to save the weekly budget (the player's call): **M1** elegance across a cast's whole life (credit by `Origin`; absorbs BL-57), **S1** Lab scenarios for the new runes, **T1** fuzz bots and the first-evening integration test on the new model, **K1** dead-code sweep, **R2** Seam and canal boards re-tuned for crushes and drops. Also from the build ([status](plans/rune-redesign-status.md) "Follow-ups"): behaviour for 7 of the 8 footnote variants, levels II–III, Bolt fine-print rows; event contract additions (`crush` at/dir, `jarSealed` peek, `held` rounds); one shared log pass for the lines and projection guards (`pnpm check` ~70 s); redraw weak glyphs (margin, strike, coil, brink, bind, chalk, filings, quicksilver).
@@ -193,6 +189,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-19 | The Seam's map label (was BL-99): "No guild: the owner's drawing" | `src/data/districts.ts` |
 | 2026-10-19 | **Rune redesign "Mix, Move, Invent"** (was BL-98; absorbs BL-12 footnotes, closes BL-13 Crystallise; folios retired): 31 runes in 7 roles, the five kinds with 10 compounds and 15 bursts, push/slide/crush/drop, jars, bound marks, the Bench with 5 methods and 14 solvents, fine print with blank previews, the footnote desk, the codex's compound table; save v7 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md), [rune-design-final.md](design/rune-design-final.md) §0 |
 | 2026-10-17 | Folios (was BL-14): the five owner's drafts as 2–4 page folios with fixed trays, a growing test suite with "broke", turning pages, decoys, the bronze reward, the owner's mark and lore; save v6 | [folios-plan.md](plans/folios-plan.md), [status](plans/folios-status.md), [research-and-mastery.md](design/research-and-mastery.md) §0 "Folios built" |
 | 2026-10-17 | Flow lines on the draft page and in the revision editor (playtest feedback): `insideFlow` walks a Glyph's inside in local cells for the same overlay as the board | `src/engine/revision.ts`, `FlowOverlay` `origin` |
