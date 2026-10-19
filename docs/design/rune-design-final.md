@@ -1,10 +1,12 @@
 # Rune Design: Mix, Move, Invent
 
-> **Status: Proposal, final candidate** (2026-10-18). The hybrid of the four rune proposals, built in four decision rounds. The process, the idea ledger and the decision log are in [rune-design-synthesis.md](rune-design-synthesis.md). Not yet in DESIGN.md; no other file was changed.
+> **Status: Shipped** (built 2026-10-19; [DESIGN.md](../../DESIGN.md) §6.3, §6.5, §6.6; plan [rune-redesign-plan.md](../plans/rune-redesign-plan.md), build log and every builder's call in [rune-redesign-status.md](../plans/rune-redesign-status.md)). The hybrid of the four rune proposals, built in four decision rounds. The process, the idea ledger and the decision log are in [rune-design-synthesis.md](rune-design-synthesis.md).
 > Problem frame: [rune-content.md](rune-content.md) (P1–P7, G1–G7). Where each part comes from: **01** Loads and Jars, **02** Board Is the Spell, **03** Spatial, **04** Invention.
 > Numbers, names and fine-print lines are drafts, *tune by playing*. Rules marked *(default)* were picked by Claude and can be overturned.
 
 ## 0. Decisions
+
+**Built 2026-10-19.** The player's calls at build time: the Seam and the canals are playable, the other five districts' runes, methods and solvents work but are reachable only in the Lab (plan P2); the folios are retired (P9); **board edges depend on the district**, walls in the Seam and the canals (P3). Every rule the build had to settle is a *Proposal* in the plan §1 (P1–P42) and in the status file's Proposals list (one block per task). The ones most likely to feel wrong, to judge by playing: P14–P16 (which layer a kind lands on, wash-out), P22 (headings), P33 (ink costs), P41 (blank previews), and that a unit only slides over oil it moves onto.
 
 The 22 decisions behind this design, from five rounds (2026-10-18), are logged with their reasons in [rune-design-synthesis.md](rune-design-synthesis.md) §3. Each of the ~60 ideas from the four proposals, and what became of it, is in its §2.
 

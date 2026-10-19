@@ -39,9 +39,9 @@ TECH.md header still says "2026-10-12"; DESIGN §10 still says "Next: the player
 `content` `XS` · area: world · status: ready · needs: —
 `districts.ts` tags the Seam "Ink · The Notaries". Since the districts round (2026-10-18) it is the owner's own drawing with no guild; the Notaries hold the ink-makers' quarter. Change the label (and the map caption).
 
-#### BL-98 · Rune content rework
-`design` `L`–`XL` · area: runes, bench, materials · status: needs-design · needs: —
-The player's verdict (2026-10-17): rune content is the weakest feature. The basic runes all build up a state that Spark then sets off, and Bench runes are sums of two runes in a flow. Problem and connected ideas: [rune-content.md](design/rune-content.md). Districts, rivals and the party were scoped first (2026-10-18, §7 there): runes belong to guild schools (verbs), must be counterable in rivals' hands, and feed across a party of 3. This would absorb or reshape BL-20, BL-24, BL-51, BL-52, BL-53, BL-55, BL-57 and the footnote content (BL-12, BL-54).
+#### BL-100 · Rune redesign leftovers (after the playtest)
+`feature` `M`–`L` · area: runes, mastery, tests · status: ready · needs: the player's playtest
+The parts of [rune-redesign-plan.md](plans/rune-redesign-plan.md) held back on 2026-10-19 to save the weekly budget (the player's call): **M1** elegance across a cast's whole life (credit by `Origin`; absorbs BL-57), **S1** Lab scenarios for the new runes, **T1** fuzz bots and the first-evening integration test on the new model, **K1** dead-code sweep, **R2** Seam and canal boards re-tuned for crushes and drops. Also from the build ([status](plans/rune-redesign-status.md) "Follow-ups"): behaviour for 7 of the 8 footnote variants, levels II–III, Bolt fine-print rows; event contract additions (`crush` at/dir, `jarSealed` peek, `held` rounds); one shared log pass for the lines and projection guards (`pnpm check` ~70 s); redraw weak glyphs (margin, strike, coil, brink, bind, chalk, filings, quicksilver).
 
 ## 2. Roadmap (planned tracks)
 
@@ -50,14 +50,6 @@ Four tracks. Within a track the order matters; across tracks it doesn't. **Propo
 ### Track M · Mastery (the Scholar's Press, stages C–G)
 
 Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13; stages C, D, G (profiler and elegance, parameters, the owner's drafts) shipped 2026-10-16; the drafts were rebuilt as folios after the playtest (2026-10-17, was BL-14).
-
-#### BL-12 · Stage E: footnotes
-`feature` `M` · area: mastery, runes · status: needs-design · needs: —
-Witness points from distinctive outcomes in the event log (Spark ignites oil, a Ward absorbs a lethal hit…); levels at 5 / 15 / 40; each level offers two exclusive small rule edits that change ink cost ±1; re-pick free at the desk; Glyphs snapshot footnotes at compile time. First slice: Bolt, Spark, Ink. The footnote *content* needs a design round per rune. Feature doc §5.1.
-
-#### BL-13 · Stage F: Crystallise and tier-2 recipes
-`feature` `M`–`L` · area: mastery, bench, compile · status: blocked · needs: BL-12; mercury added to loot
-A gold-Reliability / silver-Economy Glyph becomes a **permanent** atom (3 vellum + mercury): its two most frequent field aspects, can earn footnotes, can feed the Bench. Aspect-keyed tier-2 recipes are where crystals pay off. Feature doc §3.5, §5.3.
 
 ### Track W · World
 
@@ -90,7 +82,7 @@ Why the owner was expelled. Delivered through codex notes, owner's drafts, guild
 Decided "none in v0", never revisited. Needs a tone decision (rain, kettle, chime on a chain?), free assets or synthesis, and the iOS rules (a user gesture to unlock, mute switch, PWA behaviour).
 
 #### BL-43 · The household: recruiting, picking 3, no lattice shapes
-`feature` `L`–`XL` · area: party, lattice · status: needs-design · needs: BL-98 (school leans)
+`feature` `L`–`XL` · area: party, lattice · status: needs-design · needs: — (school leans, habits and gifts built with the rune redesign)
 **Scoped 2026-10-18** ([party.md](design/party.md)): apprentices from districts and the door, pick 3 of many, school lean + habit + body, no fixed lattice shapes (ink only), board about 7×9.
 Max party size and recruitment are open (DESIGN §6.1). Each member is a lattice shape plus an affinity: a Steam or Brass member would explore the untouched affinities before any signature abilities (held back deliberately, playtest 1).
 
@@ -110,7 +102,7 @@ Unscheduled. Anything here can be promoted when it earns it.
 | BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | ready (BL-21 done) | "The solvent is the steering wheel". Feature doc §3.3. |
 | BL-54 | Footnote content for the other runes | content | M | mastery | blocked (BL-12) | After the first three. |
 | BL-55 | Fire: its own element or a state; terrain decay; final matrix | design | S | materials | idea | Open since v0 (DESIGN §6.5, §10). |
-| BL-57 | Payload Glyphs rarely earn Economy: with harm-only scoring an Ink or Oil payload does no damage itself (bot p50 = 0) | balance | S | mastery | needs-playtest | Options: separate Payload thresholds, or credit the payoff a payload enables. Reliability still works for them. Plan follow-up, 2026-10-16 |
+| BL-57 | (absorbed by BL-100 M1) Payload Glyphs rarely earn Economy: with harm-only scoring an Ink or Oil payload does no damage itself (bot p50 = 0) | balance | S | mastery | needs-playtest | Options: separate Payload thresholds, or credit the payoff a payload enables. Reliability still works for them. Plan follow-up, 2026-10-16 |
 | BL-56 | Balance pass: lattice sizes, ink costs, charges, enemy numbers | balance | S | combat, run | needs-playtest | Open checkboxes in DESIGN §10. Feedback from the player's play-throughs lands here as add-ons. |
 
 ### Content
@@ -201,6 +193,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-19 | **Rune redesign "Mix, Move, Invent"** (was BL-98; absorbs BL-12 footnotes, closes BL-13 Crystallise; folios retired): 31 runes in 7 roles, the five kinds with 10 compounds and 15 bursts, push/slide/crush/drop, jars, bound marks, the Bench with 5 methods and 14 solvents, fine print with blank previews, the footnote desk, the codex's compound table; save v7 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md), [rune-design-final.md](design/rune-design-final.md) §0 |
 | 2026-10-17 | Folios (was BL-14): the five owner's drafts as 2–4 page folios with fixed trays, a growing test suite with "broke", turning pages, decoys, the bronze reward, the owner's mark and lore; save v6 | [folios-plan.md](plans/folios-plan.md), [status](plans/folios-status.md), [research-and-mastery.md](design/research-and-mastery.md) §0 "Folios built" |
 | 2026-10-17 | Flow lines on the draft page and in the revision editor (playtest feedback): `insideFlow` walks a Glyph's inside in local cells for the same overlay as the board | `src/engine/revision.ts`, `FlowOverlay` `origin` |
 | 2026-10-17 | Undo after walking onto a stain (was BL-05): `UndoRecord.stain` lifts the ink on undo, the stain stays; scenario in `tests/scenarios/brass-and-stain.test.ts` | DESIGN §11 |

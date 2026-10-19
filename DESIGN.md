@@ -100,38 +100,21 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 - *Open (answer by playing):* do triggers see effects applied earlier in the same cast? If yes, Ink → … → On Inked always fires, which is a deliberate self-combo worth discovering. If no, you need a setup turn first.
 - **Starting values (tune by playing):** lattice sizes: the Draughtsman is wide (about 5×3) and the Stoker is tall (about 3×6), both with a few missing cells to give each shape character.
 - **Decided:** ink capacity grows through **ink reserves** found as loot.
+- **Changed (2026-10-19, §6.3):** the walk (straight flow, Bend, Fork, Glyph frames, auras beside the path) stays, but what it builds is a **sentence**: the Source aims and each rune acts on the target in wiring order. Fork's branches act on the tiles **left and right of the target**, triggers read the board **as the cast began**, a Seal puts the rest in a jar, and the example above is history (On Inked, Amplify and material magnitudes are gone).
 
-### 6.3 Runes
-- **Decided:** each rune follows one simple, fully documented rule.
-- **Decided:** in combat the lattice gives you **spells (cast chains) plus triggers that hook onto them and onto events.** Casting is the "program start", and triggers make it ripple outward.
-- **Decided: rune families** (examples are still drafts):
-
-| Family | Role | Examples (draft) |
-|---|---|---|
-| **Source** | A castable spell. The start of a flow. | Bolt (line), Splash (area), Ward (self/ally), Pull |
-| **Material** | Gives the flow a material | Spark, Oil, Steam, Brass, Ink |
-| **Shape** | Changes how it travels or lands | Pierce, Fork, Wider, Bounce |
-| **Trigger** | "When X → continue flow" | On hit inked, On kill, On ignite, When ally hit |
-| **Aura** | Buffs all touching paths (not on a path) | Amplify, Echo, Thrift (+1 charge) |
-
-- **Decided:** runes come from **expedition loot**, **desk research** (combine known runes), and **mastery** (frequently used runes evolve or branch). v0 covers loot only.
-- **Decided (2026-10-13): research and mastery follow "The Scholar's Press".** Full design: **[docs/design/research-and-mastery.md](docs/design/research-and-mastery.md)**. Implementation: [docs/plans/research-and-mastery-plan.md](docs/plans/research-and-mastery-plan.md). The shape:
-  - **Aspects** are the shared grammar: 8 properties (Reach, Mark, Slick, Heat, Charge, Vapor, Hold, Return). Every rune has two, **read off what its rule does**, and every pair is unique.
-  - **Distil (the Bench):** two known runes plus a **solvent** (research loot, one aspect each) make a new rune. Trials are free and play the real reaction. The answer is a **total-only resonance** (x / 6) plus one margin line, so you deduce it rather than look it up. Committing costs the solvent; the parents are kept. Undiscovered recipes show silhouettes, and some are torn pages in the owner's hand.
-  - **Compile (the Fair Copy):** a lattice pattern that has resolved 5 times **in expeditions** (not the Lab) can be compressed into a **Glyph**: one socket, cheaper in ink, optionally with parameters, refactorable in versions. **Outer auras reach every inner rune**, at +1 ink per touching aura. Proof survives a wipe.
-  - **Mastery:** atoms earn **footnotes** (witnessed outcomes unlock a choice of two small rule edits), and Glyphs earn **elegance** (Economy and Reliability tiers, shown in a profiler).
-  - **Crystallise:** a polished Glyph becomes a new atom with its own aspects, which can feed the Bench again. **Permanent**: the Glyph is gone for good.
-  - **First playable slice: Bench + Compile together** (six Seam recipes, three Seam solvents, Glyphs without parameters), **built 2026-10-13**.
-  - **Stages C, D, G built 2026-10-16:** a profiler and elegance tiers (harm a cast per ink, share of casts that did something; best 10-cast form, kept), revisions with versions, Glyph parameters (open cells filled at placement), the extra exit at Reliability silver, and the owner's drafts repaired at the desk. **Redesigned and built 2026-10-17:** drafts are multi-page folios with a fixed tray of parts and a growing test suite (feature doc §4.7). Footnotes and crystals follow.
-- **Decided (2026-10-14): three loot runes** (the parked "next runes"; plan: [seam-deepening-plan.md](docs/plans/seam-deepening-plan.md)):
-  - **Pierce** (Shape, ☍ Reach · ϟ Charge): a projectile passes through the first unit and stops at the second. Both get the rest of the flow, the first one first. Steam and plates still stop it, and it does nothing on area or self spells.
-  - **On Ignite** (Trigger, ♨ Heat · ⟳ Return): passes if this cast has lit oil so far. The rest of the flow lands **on every tile that just caught fire**, not on the cast's targets, so Spark → Oil → On Ignite → Ink marks everyone in the blaze.
-  - **Thrift** (Aura, ϟ Charge · ⟳ Return): +1 charge per trip to every spell it touches.
-- **Decided (2026-10-14): three more Seam recipes:** **Scald** (Spark + Steam + Cinder, ♨ ☁: a cloud that burns everyone inside each round), **Etch** (Ink + Brass + Gallnut, ◈ ϟ: a mark etched into brass; spark conducting through it sets off marks on everything it reaches), **Kiln** (Brass + Spark + Cinder, ♨ ▣: a plate that arrives already hot). Effects are drafts, see the [feature doc](docs/design/research-and-mastery.md) §3.3.
+### 6.3 Runes, the Bench and mastery ("Mix, Move, Invent")
+- **Decided and built (2026-10-19):** the rune model is **[rune-design-final.md](docs/design/rune-design-final.md)** (plan: [rune-redesign-plan.md](docs/plans/rune-redesign-plan.md)). It replaces aspects, recipes, the old Bench runes, Crystallise and the folios. Summary:
+  - **A spell is a sentence.** The Source only aims (Bolt, Splash, Touch, Vat); every rune after it acts on the target **in wiring order**. A unit target follows its unit after a push.
+  - **31 authored runes in 7 roles:** Source, Action (Strike, Shove, Guard, …), Kind (Ink, Oil, Steam, Brass, Spark: the only runes that land a state), Shape (Fork's sides, Bend, Seep, Lay, Toll), Trigger (read the board **as the cast began**: Tally, Brink, Unison), Seal (Jar, Fuse: the rest waits in a jar), Aura (Afterglow, Steep, Coil). 13 in the Seam, 3 per guild school.
+  - **The Bench invents:** a **method** (Conduct, Repeat, Margin, Bind, Lift) applied to runes you know makes a new rune, optionally flavoured by one of 14 district **solvents**. Compatibility and the headline are always shown; trials on a test scene run the real engine. *Impulse* = Conduct(Shove); *Recoil* = Bind(Ink, Shove, hit).
+  - **Headline and fine print:** every rune has one always-true headline and fine-print lines (what it does on each state, compound, terrain or unit) revealed when **witnessed**. The preview never hints: unwitnessed results are blank, but party harm is always flagged.
+  - **Knowledge, not copies:** a learned or invented rune belongs to the household; ink per apprentice is the only limit. Inventions cost their parts plus the method.
+  - **Mastery:** witnessed lines earn a rune **footnote** points; each level offers two variants of a line, written at the desk with a district solvent. **Glyphs** compile as before; **elegance** is meant to count a cast's whole life (lingering compounds, jars, bound marks: not built yet, see the plan's M1).
+  - **Playable now:** the Seam and the canals. All 31 runes, 5 methods and 14 solvents work and are tested; the other five districts' pages are reachable only in the Lab until their own design rounds.
+- *History:* the aspect grammar and recipes ("The Scholar's Press", 2026-10-13) are in [research-and-mastery.md](docs/design/research-and-mastery.md) and git history.
 
 ### 6.3b Loot (besides runes)
-- **Decided:** **ink reserves** (permanently raise ink capacity, which answers how ink grows) and **research materials** (reagents consumed at the desk to derive new runes). Research materials become typed: **solvents** (one per aspect), **vellum** (for compiling) and **mercury** (for crystallising) (§6.3).
-- Not chosen for now: lattice sockets as loot, notebook pages as loot.
+- **Decided:** **ink reserves**, **rune pages** (teach a rune of that district; a page you know drops as 1 ink), **method pages** (Conduct in the Seam's deep and heart rooms, guaranteed on the first heart; Repeat and Margin in the canals), **solvents** (two per district) and **vellum** (for compiling Glyphs).
 
 ### 6.4 Combat (expeditions)
 - **Decided:** turn-based, on a grid, with Into the Breach's readability.
@@ -147,30 +130,17 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 - **Decided (2026-10-14): alternate layouts.** Each depth of a district has several hand-placed layouts. The trip's seed draws one per depth, and the Crossroads names the next fight ("the flooded stair"), so you push on knowing a little.
 - **Decided (2026-10-14): the trip page.** Back home, a page sums up the trip: two or three highlights at the top (the biggest chain, first discoveries, a pattern nearly proven) and a folded ledger below (casts, damage and proof per spell).
 
-### 6.5 Materials & terrain
-- **Decided:** the materials palette is workshop stuff: **Ink, Oil, Steam, Spark, Brass**.
-- **Decided: interaction matrix** (starting draft, to be tuned by play):
-
-| | on **Oil** | on **Steam** | on **Brass** | on **Ink** |
-|---|---|---|---|---|
-| **Spark** | ignites → **Fire** (spreads along connected oil) | arcs to everything inside the cloud | conducts along connected brass | ignites the mark: burst damage, mark consumed |
-| **Fire** | spreads | is extinguished; makes more steam | heats brass → scalds adjacent | burns away the mark (same as Spark) |
-| **Steam** | — | — | condensation makes brass slippery? | diffuses ink: marks everyone in the cloud |
-| **Oil** | — | — | coats brass: slick | ink + oil = **smear**, mark spreads to neighbors |
-
-  - **Ink** = a *mark*. Inked targets are what many triggers look for ("On hit inked …").
-  - **Steam** = a cloud that blocks line of sight and conducts Spark.
-  - **Brass** = solid terrain and constructs. It conducts.
-  - **Oil** = slick tiles (pushed units slide) and fuel.
-- **Decided (2026-10-14): heated brass.** Fire next to a brass plate or brass unit heats it. Hot brass scalds every orthogonally adjacent unit for 1 at the end of the round, and cools after 2 rounds. **Slippery brass is cut**: plates can't be walked on, so it has nothing to act on.
-- **Decided (2026-10-14): stained oil** (the board's version of smear). Ink landing on oil stains the puddle, and a unit that ends its move in stained oil is inked. It's a trap you lay. The spreading mark stays the Bench rune *Smear*. Fire burns the stain away along with the oil.
-- *Open:* the final matrix, whether Fire counts as its own element or a state, and whether terrain decays over turns.
+### 6.5 The board: kinds, compounds, pushes
+- **Decided and built (2026-10-19):** see [rune-design-final.md](docs/design/rune-design-final.md) §4.
+  - **Five kinds** land on tiles or units: Ink (a mark, or a blot on an empty tile), Oil (a slick), Steam (a cloud), Brass (a plate, or a collar on a unit), Spark (1 damage and bursts what it lands on).
+  - **Lingering compounds** (no Spark, 2 rounds): Deep mark, Stain, Brand cloud, Shackle, Pool, Grease fog, Skid plate, Bank, Kettle, Wall. Each works while it lasts.
+  - **Bursts** (with Spark): Detonation, Fire (runs along connected oil), Storm (the connected cloud), Conduct (connected brass), Surge; plus a burst page of 10, one per compound.
+  - **Moving things:** a pushed unit slides on oil, is **crushed** against a wall, plate or unit (1 + 1 per tile moved), or **drops** into a canal or off an open side. **Board edges depend on the district:** walls in the Seam and the canals.
+  - **Marks travel connected steam**, with whatever action is bound into them; Spark travels brass and clouds; any other action travels brass only through a Conduct invention.
 
 ### 6.6 The codex (notebook)
-- **Decided:** a must-have. It fills in as you discover runes and interactions, and undiscovered entries appear as `???`.
-- **Decided:** the codex **is** the previous owner's notebook. Some entries are already written in their hand, half-finished or cryptic. Your discoveries complete them, which ties the codex to the mystery for free.
-- **Decided (2026-10-14): hints for `???`.** Every unknown entry carries one half-legible line in the owner's hand that hints without naming anything ("the black water does not like the kettle…").
-- *Open:* automatic vs. player-written entries.
+- **Decided:** the codex **is** the previous owner's notebook, filled in as you discover things.
+- **Decided (2026-10-19):** a rune's page shows its headline and its witnessed fine print (`fine print 3 / 7`); the compound table and the burst page are empty frames until you make each result, which is then **named in the owner's hand**. Idioms (Cashing In, Bonfire, The Wall, Lantern Walk, …) are named the first time a cast makes them. No `???` hints: unknown is blank.
 
 ### 6.7 Setting & mystery
 - **Decided:** **the city of guilds.** The study is a rented attic in a big, old, rain-soaked city of rival inscriber guilds. Expeditions go **out**: oil-lit canals, brass bridges, steam baths, the ink-makers' quarter, rooftops, forbidden guild archives.
@@ -455,3 +425,4 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 | 2026-10-18 | **Scoping round: rival inscribers.** Each guild's inscribers (elites, heart masters, named faces); the same runes plus one signature trick; the joy is breaking their chain; the reward is a page of their lattice. Details: [rivals.md](docs/design/rivals.md) | The player took the defaults, except one trick per rival over pure symmetry |
 | 2026-10-18 | **Scoping round: the party.** Found in districts and at the door; pick 3 of many; identity = school lean, a habit, a body; **fixed lattice shapes removed** (the page widens, ink only); spells feed each other; the notebook carries progress; board about 7×9. Supersedes the 2026-10-12 affinity and shape decisions. Details: [party.md](docs/design/party.md) | The player found fixed shapes limit exploration |
 | 2026-10-18 | **Districts round: themes and schools.** Seven districts: the Seam (no guild, the owner's drawing, the basics), the canals (Lamplighters, timing), the ink quarter (Notaries, contracts), the bathhouses (areas), the bridges (crumbling spans over a drop, structure), the bell foundry (brass, resonance), and last the Cartographers (unfinished paper, the board itself), who expelled the owner for drawing the Seam. No fixed order between the canals and the Cartographers. Details: [city-and-districts.md](docs/design/city-and-districts.md) §0a | The player wanted all three middle districts (7 instead of 5–6). Claude picked the bridges' boards, since the player liked every option |
+| 2026-10-19 | **Rune redesign built ("Mix, Move, Invent")**, from [rune-design-final.md](docs/design/rune-design-final.md) with the plan's 42 Proposals and the builders' calls ([rune-redesign-status.md](docs/plans/rune-redesign-status.md)). The player's calls: the Seam and the canals are playable, the other five districts' runes are Lab-only (P2); the five folios are retired (P9); **board edges depend on the district**, walls in the Seam and the canals (P3). Saves restart at v7. Aspects, recipes, the old Bench, Crystallise and the folios are gone | The player called rune content the weakest feature (BL-98); the four proposals were merged in five rounds and built in one pass, to be tuned by playing |

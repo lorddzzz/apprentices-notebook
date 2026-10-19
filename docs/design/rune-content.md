@@ -1,6 +1,6 @@
 # Rune Content Rework
 
-> **Status: Exploring** (problem defined 2026-10-17; the connected systems were scoped 2026-10-18, see §7). No rune design decided yet. The next step is a design round on new rune content to replace the current set.
+> **Status: Decided** (problem defined 2026-10-17; the connected systems were scoped 2026-10-18, see §7). Answered by [rune-design-final.md](rune-design-final.md), built 2026-10-19.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.3 (runes), §6.5 (materials), §11. Related: [research-and-mastery.md](research-and-mastery.md) (aspects, Bench, Glyphs), [city-and-districts.md](city-and-districts.md), which held back "aspects, recipes, loot and solvents" **for this rework**. Roadmap: BL-98.
 
 ## 1. What the player said (2026-10-17)
