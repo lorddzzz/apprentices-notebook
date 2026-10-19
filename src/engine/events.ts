@@ -103,6 +103,8 @@ export type GameEvent = (
   /** Silent: the cells that fired in a player cast, for proof (plan P6/P7). Never shown or animated. */
   | {
       type: 'trace';
+      /** More cells from stored flow; never a new cast or sample. */
+      continued?: true;
       caster: UnitRef;
       spell: SpellKey;
       cells: FiredCell[];

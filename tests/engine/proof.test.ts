@@ -7,7 +7,7 @@ import {
   masksFrom,
   parseLattice,
 } from '$engine';
-import { board, cast, withLattices } from '../scenarios/harness';
+import { act, board, cast, withLattices } from '../scenarios/harness';
 
 /**
  * Proof masks come from `trace` events (plan P6/P7). W0b: a cast's trace names its source; E1's
@@ -94,4 +94,26 @@ test('mask cells are plain data: clones survive structuredClone', () => {
   );
   const copy: FiredCell[] = structuredClone(t.cells);
   expect(copy).toEqual(t.cells);
+});
+
+test('later meaningful effects prove their original cast once, without proving a neighbour', () => {
+  const origin = { caster: 'draughtsman', spell: '0,0', cast: 1 };
+  const cells: FiredCell[] = [{ at: c(0, 0), rune: 'bolt', dir: 'right' }];
+  const first = { ...trace(cells, false), origin };
+  const next = { ...trace(cells, false), origin: { ...origin, cast: 2 } };
+  const effect: GameEvent = { type: 'held', unit: who, origin };
+  expect(masksFrom([first, next, effect, effect], 'draughtsman')).toEqual([cells]);
+});
+
+test('a Fuse tail joins its original proof mask and trip cast only after opening', () => {
+  const sealed = cast(
+    withLattices('D . d', { draughtsman: 'Bolt> Fuse Oil Spark' }),
+    'draughtsman',
+    'right',
+  );
+  expect(masksFrom(sealed.events, 'draughtsman')[0]?.map((c) => c.rune)).toEqual(['bolt', 'fuse']);
+  const dusk = act(sealed.state, { type: 'endTurn' });
+  const masks = masksFrom([...sealed.events, ...dusk.events], 'draughtsman');
+  expect(masks).toHaveLength(1);
+  expect(masks[0]?.map((c) => c.rune)).toEqual(['bolt', 'fuse', 'oil', 'spark']);
 });

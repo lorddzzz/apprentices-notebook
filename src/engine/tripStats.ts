@@ -1,6 +1,8 @@
 import { MEMBER_IDS, type MemberId } from '$data';
 import { type EventLog, type GameEvent, namedIn } from './events';
 import { key as cellKey } from './grid';
+import { castOriginKey } from './profiler';
+import { masksFrom } from './proof';
 import type {
   CellKey,
   CompiledLattice,
@@ -50,6 +52,7 @@ const BOUNDARY: ReadonlySet<GameEvent['type']> = new Set([
 interface Segment {
   member: MemberId;
   name: string;
+  origin?: string;
   key: SpellKey | null;
   damage: number;
   kills: number;
@@ -72,9 +75,8 @@ const sameCells = (a: readonly CellKey[], b: readonly CellKey[]): boolean =>
 
 /**
  * Folds one finished encounter's event log into the trip's stats (plan S16). `known` is the
- * profile as it was before this encounter, so first discoveries can be told apart. A cast owns
- * the events from its `cast` event to its `trace`;
- * damage to enemies and their deaths in that stretch are credited to its spell. `compiled` is each
+ * profile as it was before this encounter, so first discoveries can be told apart. Casts own
+ * all events with their origin, including effects released later in the fight. `compiled` is each
  * member's spells as fought (for each tally's `cells`, M15; task E5).
  */
 export function accumulateStats(
@@ -89,19 +91,67 @@ export function accumulateStats(
     fired: [...s.fired],
   }));
   let biggest = stats.biggestChain ? { ...stats.biggestChain } : null;
-  let proofCasts = stats.proofCasts;
+  const proofCasts =
+    stats.proofCasts + MEMBER_IDS.reduce((n, m) => n + masksFrom(log, m).length, 0);
   const keyOf = new Map<string, SpellKey>(); // `${member}|${name}` → the key a trace last gave it
 
+  const segments: Segment[] = [];
+  const origins = new Map<string, Segment>();
   let seg: Segment | null = null;
-  const close = (): void => {
-    if (!seg) return;
-    const key = seg.key ?? keyOf.get(`${seg.member}|${seg.name}`) ?? seg.name;
-    let t = spells.find((s) => s.member === seg?.member && s.spell === key);
+  // First recover casts and their traces, then attribute effects across the whole fight.
+  for (const e of log) {
+    if (e.type === 'trace') {
+      const owner = e.origin ? origins.get(castOriginKey(e.origin)) : seg;
+      if (owner && owner.member === e.caster.id) {
+        owner.key = e.spell;
+        for (const c of e.cells)
+          if (!owner.fired.includes(cellKey(c.at))) owner.fired.push(cellKey(c.at));
+        keyOf.set(`${owner.member}|${owner.name}`, e.spell);
+      }
+      seg = null;
+    } else if (e.type === 'cast') {
+      const member = e.caster.member ? memberOf(e.caster.id) : null;
+      seg = member
+        ? {
+            member,
+            name: e.spell,
+            key: e.origin?.spell ?? null,
+            origin: e.origin ? castOriginKey(e.origin) : undefined,
+            damage: 0,
+            kills: 0,
+            reactions: 0,
+            fired: [],
+          }
+        : null;
+      if (seg) {
+        segments.push(seg);
+        if (seg.origin) origins.set(seg.origin, seg);
+      }
+    } else if (BOUNDARY.has(e.type)) seg = null;
+  }
+  let legacy: Segment | null = null;
+  let castIndex = 0;
+  for (const e of log) {
+    if (e.type === 'cast') {
+      legacy = e.caster.member && memberOf(e.caster.id) ? (segments[castIndex++] ?? null) : null;
+      continue;
+    }
+    if (e.type === 'trace' || BOUNDARY.has(e.type)) legacy = null;
+    // An explicit origin always wins, including an enemy origin inside a player's cast.
+    const owner = e.origin ? origins.get(castOriginKey(e.origin)) : legacy;
+    if (!owner) continue;
+    if (e.type === 'damage' && !e.target.member) owner.damage += e.amount;
+    else if (e.type === 'died' && !e.unit.member) owner.kills += 1;
+    else if (REACTIONS.has(e.type)) owner.reactions += 1;
+  }
+  for (const segment of segments) {
+    const key = segment.key ?? keyOf.get(`${segment.member}|${segment.name}`) ?? segment.name;
+    let t = spells.find((s) => s.member === segment.member && s.spell === key);
     if (!t) {
       t = {
-        member: seg.member,
+        member: segment.member,
         spell: key,
-        name: seg.name,
+        name: segment.name,
         casts: 0,
         damage: 0,
         kills: 0,
@@ -110,43 +160,21 @@ export function accumulateStats(
       };
       spells.push(t);
     }
-    // The path as it was fought: the latest one wins (a doorway rewire changes it mid-trip).
-    const fought = compiled[seg.member]?.find((s) => s.key === key);
+    const fought = compiled[segment.member]?.find((s) => s.key === key);
     if (fought) t.cells = pathCells(fought);
-    for (const c of seg.fired) if (!t.fired.includes(c)) t.fired.push(c);
+    for (const c of segment.fired) if (!t.fired.includes(c)) t.fired.push(c);
     t.casts += 1;
-    t.damage += seg.damage;
-    t.kills += seg.kills;
-    if (seg.reactions > (biggest?.reactions ?? 0)) {
-      biggest = { member: seg.member, spell: key, name: seg.name, reactions: seg.reactions };
-    }
-    seg = null;
-  };
-
-  for (const e of log) {
-    if (e.type === 'trace') {
-      if (e.meaningful) proofCasts += 1;
-      if (seg && seg.member === e.caster.id) {
-        seg.key = e.spell;
-        seg.fired = e.cells.map((c) => cellKey(c.at));
-        keyOf.set(`${seg.member}|${seg.name}`, e.spell);
-        close();
-      }
-      continue;
-    }
-    if (BOUNDARY.has(e.type)) close();
-    if (e.type === 'cast') {
-      const member = e.caster.member ? memberOf(e.caster.id) : null;
-      if (member) {
-        seg = { member, name: e.spell, key: null, damage: 0, kills: 0, reactions: 0, fired: [] };
-      }
-    } else if (seg) {
-      if (e.type === 'damage' && !e.target.member) seg.damage += e.amount;
-      else if (e.type === 'died' && !e.unit.member) seg.kills += 1;
-      else if (REACTIONS.has(e.type)) seg.reactions += 1;
+    t.damage += segment.damage;
+    t.kills += segment.kills;
+    if (segment.reactions > (biggest?.reactions ?? 0)) {
+      biggest = {
+        member: segment.member,
+        spell: key,
+        name: segment.name,
+        reactions: segment.reactions,
+      };
     }
   }
-  close();
 
   const discoveries = [...stats.discoveries];
   for (const code of namedIn(log)) {

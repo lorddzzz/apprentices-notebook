@@ -1,14 +1,22 @@
 import { describe, expect, test } from 'vitest';
 import { TUNING } from '$data';
 import {
+  accumulateStats,
   type CastSample,
+  compileLattice,
   deadCells,
   economyOf,
   emptyRecord,
+  emptyStats,
   foldRecord,
   type GlyphDef,
   type GlyphRecord,
+  glyphSamples,
+  libraryOf,
+  newProfile,
   type Profile,
+  parseLattice,
+  recordGlyphCasts,
   recordOf,
   reliabilityOf,
   rewardsOf,
@@ -16,6 +24,8 @@ import {
   versionKey,
   windowTiers,
 } from '$engine';
+
+import { act, board, cast } from '../scenarios/harness';
 
 const c = (x: number, y: number) => ({ x, y });
 const s = (harm: number, cost: number, meaningful = true): CastSample => ({
@@ -195,5 +205,154 @@ describe('deadCells', () => {
     const r = fold(emptyRecord(), times(TUNING.deadAfterCasts, s(1, 1)), ['0,0', '1,0']);
     expect(deadCells(g, r)).toEqual([c(2, 0)]);
     expect(deadCells(g, foldRecord(r, s(1, 1), ['2,0']))).toEqual([]);
+  });
+});
+
+/** Real traces and stored objects: elegance follows their cast through the whole fight. */
+describe('lifetime elegance', () => {
+  const glyph = (id: string, text: string, kind: GlyphDef['kind'] = 'spell'): GlyphDef => ({
+    ...def(id),
+    kind,
+    cells: parseLattice(text).runes.flatMap((r) => ('glyph' in r ? [] : [r])),
+  });
+  const profileFor = (g: GlyphDef): Profile => ({ ...newProfile(), glyphs: [g] });
+
+  test('fuse-harm-credits-sealing-glyph', () => {
+    const g = glyph('fuse', 'Bolt> Fuse Oil Spark');
+    const spells = compileLattice(parseLattice('G:fuse>'), { fuse: g }).spells;
+    const sealed = cast(
+      board('D . d', { party: { draughtsman: { spells } } }),
+      'draughtsman',
+      'right',
+    );
+    const dusk = act(sealed.state, { type: 'endTurn' });
+    const events = [...sealed.events, ...dusk.events];
+    const damage = dusk.events.filter((e) => e.type === 'damage' && !e.target.member);
+    expect(damage.length).toBeGreaterThan(0);
+    expect(damage.every((e) => e.origin?.glyph === g.id)).toBe(true);
+    const sample = glyphSamples(events, profileFor(g))[0];
+    expect(sample?.sample.harm).toBe(
+      damage.reduce((n, e) => n + (e.type === 'damage' ? e.amount : 0), 0),
+    );
+    expect(sample?.sample.harm).toBeGreaterThan(0);
+    const ledger = accumulateStats(emptyStats(), events, profileFor(g));
+    expect(ledger.spells[0]?.damage).toBe(sample?.sample.harm);
+    expect(ledger.spells[0]?.casts).toBe(1);
+  });
+
+  test('bound-mark-harm-credits-binder', () => {
+    const g = glyph('binder', 'Bolt> inv:sting');
+    const inventions = libraryOf([
+      {
+        id: 'inv:sting',
+        name: 'Sting',
+        method: 'bind',
+        parts: ['ink', 'strike'],
+        event: 'hit',
+        solvent: null,
+      },
+    ]);
+    const spells = compileLattice(parseLattice('G:binder>'), { binder: g }, inventions).spells;
+    const start = board('D . d\n. . S', {
+      inventions,
+      party: {
+        draughtsman: { spells },
+        stoker: { spells: compileLattice(parseLattice('Touch> Strike')).spells },
+      },
+    });
+    const bound = cast(start, 'draughtsman', 'right');
+    const hit = cast(bound.state, 'stoker', { kind: 'tile', at: c(2, 0) });
+    const events = [...bound.events, ...hit.events];
+    const damage = hit.events.filter((e) => e.type === 'damage');
+    expect(damage.map((e) => e.origin?.caster).sort()).toEqual(['draughtsman', 'stoker']);
+    expect(glyphSamples(events, profileFor(g))[0]?.sample.harm).toBe(2);
+    expect(
+      accumulateStats(emptyStats(), events, profileFor(g)).spells.map((s) => s.damage),
+    ).toEqual([2, 2]);
+  });
+
+  test('payload-glyph-earns-economy', () => {
+    const g = glyph('payload', 'Fuse Oil Spark', 'payload');
+    const spells = compileLattice(parseLattice('Bolt> G:payload>'), { payload: g }).spells;
+    const sealed = cast(
+      board('D . d', { party: { draughtsman: { spells } } }),
+      'draughtsman',
+      'right',
+    );
+    const dusk = act(sealed.state, { type: 'endTurn' });
+    const events = [...sealed.events, ...dusk.events];
+    const sample = glyphSamples(events, profileFor(g))[0];
+    expect(sample?.sample.harm).toBeGreaterThan(0);
+    const p = Array.from({ length: TUNING.tierWindow }).reduce<Profile>(
+      (p) => recordGlyphCasts(p, events),
+      profileFor(g),
+    );
+    expect(recordOf(p, g.id, 1).harm).toBe((sample?.sample.harm ?? 0) * TUNING.tierWindow);
+    expect(economyOf(recordOf(p, g.id, 1).recent)).toBeGreaterThan(0);
+  });
+
+  test('two sockets of the same payload keep separate lifetime samples', () => {
+    const g = glyph('payload', 'Fuse Oil Spark', 'payload');
+    const spells = compileLattice(parseLattice('. G:payload^ .\nBolt> Fork .\n. G:payloadv .'), {
+      payload: g,
+    }).spells;
+    const sealed = cast(
+      board('. . d\nD . .\n. . d', { party: { draughtsman: { spells } } }),
+      'draughtsman',
+      'right',
+    );
+    const dusk = act(sealed.state, { type: 'endTurn' });
+    const events = [...sealed.events, ...dusk.events];
+    const samples = glyphSamples(events, profileFor(g));
+    expect(samples).toHaveLength(2);
+    expect(samples.every((s) => s.sample.harm > 0)).toBe(true);
+    const harm = dusk.events.reduce(
+      (n, e) => n + (e.type === 'damage' && !e.target.member ? e.amount : 0),
+      0,
+    );
+    expect(samples.reduce((n, s) => n + s.sample.harm, 0)).toBe(harm);
+  });
+
+  test('a payload first reached inside a jar earns one sample and no false dead cells', () => {
+    const g = glyph('later', 'Oil Spark Strike', 'payload');
+    const spells = compileLattice(parseLattice('Bolt> Fuse G:later>'), { later: g }).spells;
+    const sealed = cast(
+      board('D . d', { party: { draughtsman: { spells } } }),
+      'draughtsman',
+      'right',
+    );
+    expect(glyphSamples(sealed.events, profileFor(g))).toEqual([]);
+    const dusk = act(sealed.state, { type: 'endTurn' });
+    const events = [...sealed.events, ...dusk.events];
+    const samples = glyphSamples(events, profileFor(g));
+    expect(samples).toHaveLength(1);
+    expect(samples[0]?.sample.harm).toBeGreaterThan(0);
+    expect([...(samples[0]?.fired ?? [])].sort()).toEqual(['0,0', '1,0', '2,0']);
+    const p = Array.from({ length: TUNING.deadAfterCasts }).reduce<Profile>(
+      (p) => recordGlyphCasts(p, events),
+      profileFor(g),
+    );
+    expect(deadCells(g, recordOf(p, g.id, 1))).toEqual([]);
+    expect(accumulateStats(emptyStats(), events, profileFor(g)).proofCasts).toBe(1);
+  });
+
+  test('a different payload in the sealed tail receives its own harm', () => {
+    const sealer = {
+      ...glyph('sealer', 'Bolt> Fuse'),
+      exits: [{ from: c(1, 0), dir: 'right' as const }],
+    };
+    const later = glyph('later', 'Oil Spark Strike', 'payload');
+    const spells = compileLattice(parseLattice('G:sealer> G:later>'), { sealer, later }).spells;
+    const sealed = cast(
+      board('D . d', { party: { draughtsman: { spells } } }),
+      'draughtsman',
+      'right',
+    );
+    const dusk = act(sealed.state, { type: 'endTurn' });
+    const p = { ...newProfile(), glyphs: [sealer, later] };
+    const samples = glyphSamples([...sealed.events, ...dusk.events], p);
+    expect(samples.map((s) => s.glyph)).toEqual(['sealer', 'later']);
+    expect(samples[0]?.sample.harm).toBe(0);
+    expect(samples[1]?.sample.harm).toBeGreaterThan(0);
   });
 });

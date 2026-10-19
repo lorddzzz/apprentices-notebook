@@ -9,6 +9,8 @@ import {
   type GlyphId,
   type GlyphRecord,
   glyphVersions,
+  type InventionLibrary,
+  libraryOf,
   nameOf,
   type Profile,
   recordOf,
@@ -142,20 +144,24 @@ export function insideOfView(
 }
 
 /** What lifting `cell` would save in base ink (M13). */
-const savingWithout = (def: GlyphDef, cell: Coord): number =>
-  baseGlyphCost(def) -
-  baseGlyphCost({ ...def, cells: def.cells.filter((c) => key(c.at) !== key(cell)) });
+const savingWithout = (def: GlyphDef, cell: Coord, library: InventionLibrary): number =>
+  baseGlyphCost(def, library) -
+  baseGlyphCost({ ...def, cells: def.cells.filter((c) => key(c.at) !== key(cell)) }, library);
 
 /**
  * One line at a time (M13), in order: a dead cell (first in reading order); a trigger that ran but
  * whose neighbour never fired, which only shows before a cell can count as dead; idle casts.
  */
-export function suggestionOf(def: GlyphDef, record: GlyphRecord): string | null {
+export function suggestionOf(
+  def: GlyphDef,
+  record: GlyphRecord,
+  library: InventionLibrary = {},
+): string | null {
   const minY = Math.min(0, ...def.cells.map((c) => c.at.y));
   const dead = deadCells(def, record).sort(readingOrder)[0];
   const deadCell = dead && def.cells.find((c) => key(c.at) === key(dead));
   if (dead && deadCell) {
-    const saved = savingWithout(def, dead);
+    const saved = savingWithout(def, dead, library);
     return fill(saved > 0 ? SUGGESTIONS.deadCell : SUGGESTIONS.deadCellNoInk, {
       rune: nameOf(deadCell.rune),
       row: dead.y - minY + 1,
@@ -204,7 +210,8 @@ export function profilerView(p: Profile, def: GlyphDef): ProfilerView {
   const rewards = rewardsOf(record);
   const economy = tierView(record.best.economy);
   const reliability = tierView(record.best.reliability);
-  const base = baseGlyphCost(def);
+  const library = libraryOf(p.inventions ?? []);
+  const base = baseGlyphCost(def, library);
   const now = Math.max(1, base - rewards.discount);
   return {
     header: `${def.name} v${def.version} · Economy ${economy.mark} ${economy.name} · Reliability ${reliability.mark} ${reliability.name}`,
@@ -216,7 +223,7 @@ export function profilerView(p: Profile, def: GlyphDef): ProfilerView {
     inkText: now < base ? `${base} → ${now}` : `${base}`,
     form: formOf(record),
     inside: insideOfView(def, deadCells(def, record), rewards.extraExit),
-    suggestion: suggestionOf(def, record),
+    suggestion: suggestionOf(def, record, library),
     versions: versionRows(p, def.id),
   };
 }

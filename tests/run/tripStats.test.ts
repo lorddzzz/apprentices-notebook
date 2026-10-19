@@ -275,3 +275,27 @@ describe('a plain spell remembers its path and what fired', () => {
     expect(lastTripDeadCells(recap, 'draughtsman', current('. . .\n. . .'))).toEqual([]);
   });
 });
+
+test('delayed effects and chains stay with their origin across casts and phases', () => {
+  const first = { caster: 'draughtsman', spell: '0,0', cast: 1 };
+  const second = { caster: 'draughtsman', spell: '0,1', cast: 2 };
+  const one = castLog({ spell: '0,0' }).map((e) => ({ ...e, origin: first }));
+  const two = castLog({ spell: '0,1', damage: [1] }).map((e) => ({ ...e, origin: second }));
+  const delayed = castLog({ damage: [4], kills: 1, reactions: 3 })
+    .slice(1, -1)
+    .map((e) => ({ ...e, origin: first }));
+  const log: GameEvent[] = [
+    ...one,
+    ...two.slice(0, -1),
+    ...delayed,
+    ...two.slice(-1),
+    ...enemyBites,
+  ];
+  const stats = accumulateStats(emptyStats(), log, profile());
+  expect(stats.spells.map((s) => [s.spell, s.casts, s.damage, s.kills])).toEqual([
+    ['0,0', 1, 4, 1],
+    ['0,1', 1, 1, 0],
+  ]);
+  expect(stats.biggestChain).toMatchObject({ spell: '0,0', reactions: 3 });
+  expect(stats.proofCasts).toBe(2);
+});

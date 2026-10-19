@@ -42,6 +42,7 @@ function run(ctx: Ctx, e: Scheduled): void {
   const again = e.kind === 'repeat' || e.kind === 'margin' || e.kind === 'filings';
   if (again && typeof e.step === 'string') emit(ctx, { type: 'repeated', action: e.step });
   runDetached(ctx, stepOf(e), target, e.owner, e.origin, e.heading, {
+    trace: typeof e.step !== 'string',
     repeated: again,
     woken: e.kind === 'wick',
     solvent: e.solvent ?? null,

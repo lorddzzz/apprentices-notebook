@@ -4,7 +4,7 @@ import type { Coord, Dir } from './grid';
 import type { Hook } from './hooks';
 import { jarLimit } from './leans';
 import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
-import { runStep, snapshotOf } from './resolve';
+import { runContinuation, runStep, snapshotOf } from './resolve';
 import type { Flow, Jar, Origin, Step, Target, UnitId } from './types';
 import { targetKey } from './types';
 
@@ -26,7 +26,7 @@ export function runDetached(
   caster: UnitId,
   origin: Origin,
   heading: Dir | null,
-  extra: { repeated?: boolean; woken?: boolean; solvent?: SolventId | null } = {},
+  extra: { repeated?: boolean; woken?: boolean; solvent?: SolventId | null; trace?: boolean } = {},
 ): void {
   const unit = findUnit(ctx.s, caster);
   const flow: Flow = {
@@ -46,7 +46,9 @@ export function runDetached(
   const outer = ctx.cast;
   ctx.cast = { events: 0, capped: false };
   try {
-    withOrigin(ctx, origin, () => runStep(ctx, step, [target], flow));
+    withOrigin(ctx, origin, () =>
+      (extra.trace === false ? runStep : runContinuation)(ctx, step, [target], flow),
+    );
   } finally {
     ctx.cast = outer;
   }

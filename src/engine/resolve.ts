@@ -85,7 +85,7 @@ function recorderOf(ctx: Ctx, flow: Flow): Recorder {
 
 /** One step's own stretch of the log, from log index `begin` to now (M2). */
 function spanOf(ctx: Ctx, rec: Recorder, st: Step, begin: number): NodeSpan {
-  const glyph = st.inner ? rec.glyphs.get(key(st.at)) : undefined;
+  const glyph = st.inner ? (st.glyph ?? rec.glyphs.get(key(st.at))) : undefined;
   return {
     at: { ...st.at },
     ...(st.inner ? { inner: { ...st.inner } } : {}),
@@ -126,7 +126,7 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
     if (!rec.landed.targets.includes(k)) rec.landed.targets.push(k);
   }
   const begin = ctx.log.length;
-  const glyph = st.inner ? rec.glyphs.get(key(st.at)) : undefined;
+  const glyph = st.inner ? (st.glyph ?? rec.glyphs.get(key(st.at))) : undefined;
   const stepOrigin: Origin = glyph ? { ...flow.origin, glyph, glyphAt: { ...st.at } } : flow.origin;
   recorders.set(stepOrigin, rec);
   const span = (): void => {
@@ -219,6 +219,35 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
       return;
     }
   }
+}
+
+/** Record the cells reached when stored flow resumes, without creating another cast. */
+export function runContinuation(
+  ctx: Ctx,
+  st: Step | null,
+  targets: readonly Target[],
+  flow: Flow,
+): void {
+  if (!st) return;
+  const rec = recorderOf(ctx, flow);
+  const before = rec.ran.length;
+  const spanStart = rec.spans.length;
+  const from = ctx.log.length;
+  runStep(ctx, st, targets, flow);
+  const caster = findUnit(ctx.s, flow.caster);
+  const spell =
+    caster?.kind === 'member' ? caster.spells.find((s) => s.key === flow.origin.spell) : null;
+  if (!spell || !caster || rec.ran.length === before) return;
+  emit(ctx, {
+    type: 'trace',
+    continued: true,
+    caster: ref(caster),
+    spell: spell.key,
+    cells: firedCells(spell, rec.ran.slice(before)),
+    meaningful: ctx.log.slice(from).some((e) => MEANINGFUL.has(e.type)),
+    // Deferred harm is attributed by Origin; these spans only recover local fired cells.
+    spans: rec.spans.slice(spanStart).map((s) => ({ ...s, from: 0, to: 0 })),
+  });
 }
 
 /** "right" / "at C4" / "on himself": the aim as it reads in the log. */

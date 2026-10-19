@@ -2,6 +2,8 @@ import { type MemberId, TUNING } from '$data';
 import { type Cluster, cellToken, clustersOf, turnDir } from './cluster';
 import type { EventLog } from './events';
 import { type Coord, key, sameCoord } from './grid';
+import { castOriginKey } from './profiler';
+import { MEANINGFUL } from './resolve';
 import type { FiredCell, GlyphLibrary, Lattice } from './types';
 import { isGlyph } from './types';
 
@@ -9,11 +11,20 @@ import { isGlyph } from './types';
 
 /** The meaningful player casts of `member` in a log, as fired-cell masks. */
 export function masksFrom(events: EventLog, member: MemberId): FiredCell[][] {
-  const out: FiredCell[][] = [];
-  for (const e of events) {
-    if (e.type === 'trace' && e.meaningful && e.caster.id === member) out.push(e.cells);
-  }
-  return out;
+  const groups = new Map<string, { cells: FiredCell[]; meaningful: boolean }>();
+  const meaningful = new Set(
+    events.flatMap((e) => (e.origin && MEANINGFUL.has(e.type) ? [castOriginKey(e.origin)] : [])),
+  );
+  events.forEach((e, i) => {
+    if (e.type !== 'trace' || e.caster.id !== member) return;
+    const id = e.origin ? castOriginKey(e.origin) : `legacy:${i}`;
+    const group = groups.get(id) ?? { cells: [], meaningful: false };
+    for (const cell of e.cells)
+      if (!group.cells.some((c) => key(c.at) === key(cell.at))) group.cells.push(cell);
+    group.meaningful ||= e.meaningful || (!!e.origin && meaningful.has(id));
+    groups.set(id, group);
+  });
+  return [...groups.values()].filter((g) => g.meaningful).map((g) => g.cells);
 }
 
 interface Offset {

@@ -29,6 +29,7 @@ import type {
   CompiledLattice,
   FiredCell,
   GlyphDef,
+  GlyphId,
   GlyphLibrary,
   InventionLibrary,
   Lattice,
@@ -135,7 +136,7 @@ interface Frame {
   visited: Set<CellKey>;
   path: PathCell[];
   /** Fields that locate a step: the cell itself, or `at` = socket + `inner` = local cell. */
-  where(at: Coord): { at: Coord; inner?: Coord };
+  where(at: Coord): { at: Coord; inner?: Coord; glyph?: GlyphId };
   /** A direction in this frame as seen on the outer lattice. */
   outward(d: Dir): Dir;
   /** Flow stepped onto a cell holding no rune of this frame. */
@@ -257,7 +258,7 @@ export function compileLattice(
       aurasAround: (at) => [...aurasNear(localAt, at), ...aurasNear(runeAt, g.at)],
       visited: new Set(),
       path: outer.path,
-      where: (at) => ({ at: g.at, inner: at }),
+      where: (at) => ({ at: g.at, inner: at, glyph: def.id }),
       outward: (d) => rotateDirLocal(d, g.dir),
       beyond: (_at, dir, via) => {
         const out = rotateDirLocal(dir, g.dir);

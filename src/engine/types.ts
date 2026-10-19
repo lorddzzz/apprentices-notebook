@@ -95,6 +95,7 @@ export interface Lattice {
 interface StepBase {
   at: Coord; // lattice cell (a Glyph's socket)
   inner?: Coord; // inside a Glyph: the local cell
+  glyph?: GlyphId; // retained by stored steps after the original recorder is gone
   via?: readonly Coord[]; // shape cells walked to reach it (Bend)
   viaInner?: readonly Coord[];
 }

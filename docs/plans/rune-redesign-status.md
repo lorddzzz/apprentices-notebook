@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
 **State:** building (2026-10-19): resumed by the player; execute all remaining planned tasks, then verify and push
-**Next:** M1 lifetime mastery, S1 Lab scenarios and T1 fuzz/integration in isolated worktrees; review/merge each with a green check, then K1 cleanup and R2 content calibration. Finish with W7 verification and updated docs. Explicitly out-of-scope content remains deferred.
+**Next:** merge the validated R2 content and S1 Lab authoring; finish authored footnotes and final review, phone QA and build. Pending player decisions: Bolt footnote design and external Svelte autofixer source upload.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -33,7 +33,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | U5 | sonnet | L | merged | (this commit) | ~12% | 2591 tests; touched run.ts (`knownSetOf`, `writeInvention`), inventions.ts (`partIssue`), lab Palette (`items`) |
 | U6 | sonnet | M | merged | (this commit) | ~8% | 2603 tests; 7 tabs; `compoundTable(p)` |
 | U7 | sonnet | M | merged | (this commit) | ~5% | 2597 tests; touched footnotes.ts (export `solventFor`), Study + StudyScene (Desk knob, `h1.crowded`) |
-| M1 | sonnet | M | running | | | |
+| M1 | inherited | M | merged | codex/rune-m1 @ 0d10aba | | origin/socket lifetime samples, deferred fired cells/proof, Seal/Fork clusters; merged gate 2,839 tests |
 | S1 | inherited (lessons), 6.1 Sol low (Lab) | S | lessons merged; Lab authoring running | codex/rune-s1 @ 7dbe9e8 | | ten fixed-log lessons, Lantern Walk regression; merged gate 2,666 tests |
 | T1 | inherited | M | merged | codex/rune-t1 @ 09d6617 | | 140 fuzz cases, actual first evening, room/full-trip calibration; merged gate 2,811 tests |
 | K1 | 6 Luna medium | S | done | audit + parent cleanup | | no obsolete files; stale removed-rune comment fixed, LF pinned; full gate green |
@@ -119,3 +119,4 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - S1 lessons squash-merged after full green check (90 files / 2,666 tests). Remaining S1 authoring UI on codex/rune-lab.
 - T1 complete 09d6617 awaiting merge: 140 deterministic fuzz cases, real first-evening loop, calibrated room and full-trip bots; no encounter buff recommended.
 - Usage at 17:30 UTC: 63% 5-hour, 29% weekly. K1 assigned to 6 Luna medium; Lab S1 to 6.1 Sol low.
+- M1 reviewed and merged: one lifetime sample per cast/socket, continued silent traces recover stored-tail cells without adding casts; all 2,839 integrated tests pass.

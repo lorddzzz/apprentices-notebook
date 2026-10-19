@@ -321,3 +321,19 @@ describe('toGlyphDef', () => {
     expect(toGlyphDef(l, cl, 'x', 'g1').idiom).toBeNull();
   });
 });
+
+test('seals keep their stored tail and Fork branches in the cluster tree', () => {
+  const l = parseLattice('. Oil .\nBolt> Fork .\n. Fuse .\n. Spark .');
+  const all = clustersOf(l);
+  const whole = all.find((cl) => cl.kind === 'spell' && cl.cells.length === 5);
+  expect(whole).toBeDefined();
+  if (!whole) throw new Error('missing sealed Fork cluster');
+  expect(toGlyphDef(l, whole, 'Sealed fork', 'sealed').cells.map((r) => r.rune)).toEqual([
+    'bolt',
+    'fork',
+    'oil',
+    'fuse',
+    'spark',
+  ]);
+  expect(provenCount(l, whole, [cellsOf(l, whole)])).toBe(1);
+});

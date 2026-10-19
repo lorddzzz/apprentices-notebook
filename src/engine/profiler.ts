@@ -10,6 +10,8 @@ import type {
   GlyphDef,
   GlyphId,
   GlyphRecord,
+  InventionLibrary,
+  Origin,
   Profile,
   TierLevel,
   TierUp,
@@ -74,6 +76,9 @@ export function recordOf(
 const stretch = (events: EventLog, base: number, span: NodeSpan): readonly GameEvent[] =>
   events.slice(base + span.from, base + span.to);
 
+/** A cast's identity survives stored effects, copied origins and later player turns. */
+export const castOriginKey = (o: Origin): string => `${o.caster}|${o.spell}|${o.cast}`;
+
 /** Harm in a stretch (M1): damage to enemies plus `killHarm` per enemy death. */
 function harmIn(evs: readonly GameEvent[]): number {
   let harm = 0;
@@ -100,10 +105,10 @@ function outerAuras(p: Profile, caster: string, socket: Coord): number {
 }
 
 /** The cells that fired, plus every inner aura touching one of them (M8). */
-function withAuras(def: GlyphDef, cells: readonly Coord[]): CellKey[] {
+function withAuras(def: GlyphDef, cells: readonly Coord[], library: InventionLibrary): CellKey[] {
   const out = new Set<CellKey>(cells.map(key));
   for (const c of def.cells) {
-    if (roleOf(c.rune) !== 'aura') continue;
+    if (roleOf(c.rune, library) !== 'aura') continue;
     if (neighbors4(c.at).some((n) => out.has(key(n)))) out.add(key(c.at));
   }
   return [...out];
@@ -117,33 +122,71 @@ function withAuras(def: GlyphDef, cells: readonly Coord[]): CellKey[] {
  */
 export function glyphSamples(events: EventLog, p: Profile): GlyphCast[] {
   const out: GlyphCast[] = [];
-  let base = -1; // log index of the first effect event of the cast being read
+  const library = libraryOf(p.inventions ?? []);
+  type Trace = Extract<GameEvent, { type: 'trace' }>;
+  const groups = new Map<string, { trace: Trace; base: number }[]>();
+  let base = -1;
   events.forEach((e, i) => {
     if (e.type === 'cast') base = i + 1;
-    if (e.type !== 'trace' || base < 0) return;
-    const sockets = new Map<string, NodeSpan[]>();
-    for (const span of e.spans) {
-      if (!span.glyph) continue;
-      const k = `${span.glyph}|${key(span.at)}`;
-      sockets.set(k, [...(sockets.get(k) ?? []), span]);
-    }
-    for (const spans of sockets.values()) {
-      const [first] = spans;
+    if (e.type !== 'trace' || (base < 0 && !e.continued)) return;
+    const id = e.origin ? castOriginKey(e.origin) : `legacy:${i}`;
+    groups.set(id, [...(groups.get(id) ?? []), { trace: e, base }]);
+  });
+  for (const group of groups.values()) {
+    const e = group[0]?.trace;
+    if (!e) continue;
+    const sockets = new Map<string, { span: NodeSpan; base: number; continued: boolean }[]>();
+    for (const part of group)
+      for (const span of part.trace.spans) {
+        if (!span.glyph) continue;
+        const k = `${span.glyph}|${key(span.at)}`;
+        sockets.set(k, [
+          ...(sockets.get(k) ?? []),
+          { span, base: part.base, continued: !!part.trace.continued },
+        ]);
+      }
+    for (const parts of sockets.values()) {
+      const first = parts[0]?.span;
       const def = first?.glyph ? p.glyphs.find((g) => g.id === first.glyph) : undefined;
       if (!first || !def) continue;
-      const evs = spans.flatMap((s) => stretch(events, base, s));
+      const owned = new Set(
+        parts.flatMap((p) => (p.continued ? [] : stretch(events, p.base, p.span))),
+      );
+      if (e.origin) {
+        const cast = castOriginKey(e.origin);
+        for (const event of events) {
+          if (
+            event.origin?.glyph === def.id &&
+            castOriginKey(event.origin) === cast &&
+            (!event.origin.glyphAt || key(event.origin.glyphAt) === key(first.at))
+          )
+            owned.add(event);
+        }
+      }
+      const lifetime = [...owned].filter(
+        (event) =>
+          !event.origin ||
+          !e.origin ||
+          (castOriginKey(event.origin) === castOriginKey(e.origin) &&
+            (!event.origin.glyph || event.origin.glyph === def.id) &&
+            (!event.origin.glyphAt || key(event.origin.glyphAt) === key(first.at))),
+      );
       out.push({
         glyph: def.id,
         version: def.version,
         sample: {
-          harm: harmIn(evs),
-          cost: baseGlyphCost(def) + outerAuras(p, e.caster.id, first.at),
-          meaningful: evs.some((x) => MEANINGFUL.has(x.type)),
+          harm: harmIn(lifetime),
+          cost: baseGlyphCost(def, library) + outerAuras(p, e.caster.id, first.at),
+          meaningful: lifetime.some((x) => MEANINGFUL.has(x.type)),
         },
-        fired: withAuras(def, spans.flatMap(localCells)),
+        fired: withAuras(
+          def,
+          parts.flatMap((p) => localCells(p.span)),
+          library,
+        ),
       });
     }
-  });
+  }
   return out;
 }
 
