@@ -122,6 +122,24 @@ function slotIssue(
   return null;
 }
 
+/** Why `part` can't go in slot `slot` of `method` (the Bench greys it with this), or null if it can. */
+export function partIssue(
+  method: MethodId,
+  slot: number,
+  part: RuneRef,
+  known: KnownSet,
+): string | null {
+  const accepts = METHODS[method].slots[slot]?.accepts;
+  if (accepts === undefined) return `${METHODS[method].name} has no slot ${slot + 1}`;
+  const lib = known.inventions;
+  if (isInvention(part)) {
+    if (!lib[part]) return `${nameOf(part, lib)} is not one of your inventions`;
+  } else if (!known.runes.includes(part)) {
+    return `You don't know ${RUNES[part].name} yet`;
+  }
+  return slotIssue(method, accepts, part, lib);
+}
+
 /** Why a combination doesn't fit ("a Shape has nothing to store"), or null if it does. */
 export function inventionIssue(def: InventionDef, known: KnownSet): string | null {
   const method = METHODS[def.method as MethodId] as (typeof METHODS)[MethodId] | undefined;

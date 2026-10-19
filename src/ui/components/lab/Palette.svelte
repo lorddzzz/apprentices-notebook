@@ -4,16 +4,19 @@
   interface Props {
     selected: PaletteItem;
     onselect: (item: PaletteItem) => void;
+    /** Only these swatches (the Bench offers what the household has met); default: all. */
+    items?: readonly PaletteItem[];
   }
 
-  let { selected, onselect }: Props = $props();
+  let { selected, onselect, items }: Props = $props();
+  const shown = $derived(PALETTE.filter((p) => !items || items.includes(p.item)));
 
   const GLYPH: Partial<Record<PaletteItem, string>> = { '.': '⌫' };
 </script>
 
 <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
 <div class="palette" data-testid="palette" role="group" aria-label="Board palette">
-  {#each PALETTE as { item, name } (item)}
+  {#each shown as { item, name } (item)}
     <button
       type="button"
       class="swatch t-{item === '.' ? 'clear' : item.charCodeAt(0)}"

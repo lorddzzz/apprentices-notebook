@@ -1,4 +1,5 @@
 import {
+  BIND_EVENT_DISTRICT,
   type BindEvent,
   CODEX,
   type CodexEntryDef,
@@ -36,6 +37,7 @@ import { type EventLog, namedIn } from './events';
 import { awardFootnotePoints, footnoteTexts } from './footnotes';
 import { canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import { type Coord, DIRS, type Dir, label } from './grid';
+import { inventionIssue, type KnownSet } from './inventions';
 import {
   compileLattice,
   inkOf,
@@ -193,6 +195,46 @@ function runesIn(p: Profile, r: Placed): RuneRef[] {
 /** Whether the household knows a rune or has invented it (P34: knowledge, not copies). */
 export function knows(p: Profile, rune: RuneRef): boolean {
   return isInvention(rune) ? p.inventions.some((d) => d.id === rune) : p.known.includes(rune);
+}
+
+/**
+ * What the Bench may use (design §6.1): known runes, learned methods, the household's inventions,
+ * and the Bind events whose district is open (hit and enters come with Bind itself).
+ */
+export function knownSetOf(p: Profile): KnownSet {
+  const events = (Object.keys(BIND_EVENT_DISTRICT) as BindEvent[]).filter((e) => {
+    const d = BIND_EVENT_DISTRICT[e];
+    return p.methods.includes('bind') && (d === 'inkQuarter' || p.city.open.includes(d));
+  });
+  return { runes: p.known, methods: p.methods, events, inventions: inventionLibrary(p) };
+}
+
+/**
+ * Writes an invention into the household (design §6.1): refused with the reason when the
+ * combination doesn't fit or the name or id is taken; a flavoured one spends one of its solvent,
+ * a plain one is free. `trialLines` are the lines witnessed on the test scene (D4), banked now.
+ */
+export function writeInvention(
+  p: Profile,
+  def: InventionDef,
+  trialLines: readonly LineId[] = [],
+): Profile {
+  const issue = inventionIssue(def, knownSetOf(p));
+  if (issue) throw new Error(issue);
+  if (!def.name.trim()) throw new Error('Give it a name');
+  if (!INVENTION_ID.test(def.id)) throw new Error('That name cannot be written down');
+  if (p.inventions.some((d) => d.id === def.id)) throw new Error(`${def.name} is already written`);
+  const solvents = { ...p.solvents };
+  if (def.solvent) {
+    if (solvents[def.solvent] < 1) throw new Error('You have none of that solvent left');
+    solvents[def.solvent] -= 1;
+  }
+  return {
+    ...p,
+    inventions: [...p.inventions, { ...def, parts: [...def.parts] }],
+    solvents,
+    witnessed: withAll(p.witnessed, trialLines),
+  };
 }
 
 /**
