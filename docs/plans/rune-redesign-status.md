@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** U3 running; next U2 (wire `viewOf(r.state)` as `buildSteps`' 5th arg, long-press jars/marks), then U5. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** U3, U2 running. When both land, weekly will be ~86%: ask the player before the next wave (U5 Bench, U6 codex, U7 desk, M1; then W6/W7 and the first push). Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -28,7 +28,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | C1 | haiku | M | merged | (this commit) | ~3% | codex 84 entries, 8 variants (only `shove-wall-soft` has behaviour); touched types.ts (codex kinds), run.ts codexView |
 | E8 | sonnet | M | merged | (this commit) | ~8% | 1841 tests; touched inventions, types (Flow.woken/weaker, Scheduled.undo), schedule, jars, marks, hooks (solvents now before marks), mix, bursts, actions, turn (`driftWaiting`), tuning (`SOLVENT_TUNING`) |
 | E9 | sonnet | S | merged | (this commit) | ~5% | 2548 tests; new `engine/leans.ts`; `Flow.giftedAuras`, `Jar.seq`, `Layer.steepWide`; orchestrator excluded a hand-held test from the drift guard |
-| U2 | sonnet | M | waiting | | | |
+| U2 | sonnet | M | running | worktree | | started 06:44 |
 | F1 | sonnet | S | merged | (this commit) | ~3% | 1631 tests; `applyAction(state, action, footnotes = {})`; proof branch in push.ts `crush()` for `shove:wall` |
 | U5 | sonnet | L | waiting | | | |
 | U6 | sonnet | M | waiting | | | |
