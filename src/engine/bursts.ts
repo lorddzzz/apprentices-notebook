@@ -11,7 +11,7 @@ import { type Ctx, emit, ref, withLine } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
 import { byReadingOrder, type Coord, type Dir, step } from './grid';
-import { spendMark } from './marks';
+import { applyMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
 import { push } from './push';
 import { blocksUnits, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
@@ -60,12 +60,10 @@ export function headingAt(ctx: Ctx, flow: Flow | null, at: Coord): Dir | null {
 }
 
 /**
- * Puts a plain mark on a unit. Interim body: E5's `applyMark` replaces it (spreading through a
- * cloud, lineages); the event is the same.
+ * Puts a plain mark on a unit (it spreads through a cloud it stands in; see `marks.ts`).
  */
 export function markUnit(ctx: Ctx, unit: Unit, origin: Origin | null): void {
-  unit.mark = { deep: false, lineage: ctx.s.nextLineage++, bound: null, origin };
-  emit(ctx, { type: 'marked', unit: ref(unit), deep: false, bound: null });
+  applyMark(ctx, unit, { deep: false, bound: null, origin });
   noteMet(ctx, 'mark');
 }
 

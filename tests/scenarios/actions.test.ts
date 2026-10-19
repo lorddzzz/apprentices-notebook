@@ -196,14 +196,14 @@ test('erase-removes-mark-no-release: the mark goes and what it held is never rel
   const rat = find(s, 'rat-1');
   if (rat.mark) rat.mark.bound = { action: 'shove', event: 'hit', solvent: null, heading: 'right' };
   const r = run(s, 'erase', [unit('rat-1')], { heading: 'right' });
-  expectLog(r.events, ['the mark at B1 is erased']);
-  expect(r.events[0]).toMatchObject({ line: 'erase:mark' });
+  expectLog(r.events, ["rat at B1's mark is spent", 'the mark at B1 is erased']);
+  expect(r.events[1]).toMatchObject({ line: 'erase:mark' });
   expect(find(r.state, 'rat-1')).toMatchObject({ mark: null, pos: { x: 1, y: 0 } });
   expect(types(r.events)).not.toContain('released');
   expect(types(r.events)).not.toContain('push');
   // A deep mark clears in one erase.
   const deep = run(board('D r!!'), 'erase', [unit('rat-1')]);
-  expect(deep.events[0]).toMatchObject({ line: 'erase:deepMark' });
+  expect(deep.events[1]).toMatchObject({ line: 'erase:deepMark' });
   expect(find(deep.state, 'rat-1').mark).toBeNull();
 });
 
@@ -226,7 +226,8 @@ test('erase clears the tile too: a state, a jar, a collar and a shackle', () => 
 test('sentence-pushes-2: the mark is spent and the unit goes 2 tiles along the heading', () => {
   const r = run(board('D r! . . .'), 'sentence', [unit('rat-1')], { heading: 'right' });
   expect(find(r.state, 'rat-1')).toMatchObject({ mark: null, pos: { x: 3, y: 0 } });
-  expect(r.events[0]).toMatchObject({ type: 'push', dir: 'right' });
+  expect(r.events[0]).toMatchObject({ type: 'markSpent', released: false });
+  expect(r.events[1]).toMatchObject({ type: 'push', dir: 'right' });
   // Into a wall it is the same crush as any push: 1 + tiles moved.
   const wall = run(board('D r! . {wall}'), 'sentence', [unit('rat-1')], { heading: 'right' });
   expect(wall.events.find((e) => e.type === 'crush')).toMatchObject({ damage: 2 });

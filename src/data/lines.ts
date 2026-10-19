@@ -297,4 +297,34 @@ export const LINES: readonly LineDef[] = [
     district: 'cartographers',
     text: 'Erase removes a jar, and what was sealed in it never happens.',
   },
+
+  // marks (E5)
+  {
+    id: 'bind:cloud',
+    subject: 'bind',
+    meets: 'cloud',
+    district: 'inkQuarter',
+    text: 'A mark that lands in a cloud, or walks into one, spreads to every unit in the connected cloud, allies too, once per unit per fight.',
+  },
+  {
+    id: 'bind:mark',
+    subject: 'bind',
+    meets: 'mark',
+    district: 'inkQuarter',
+    text: 'A bound mark releases only on its event; it is spent before its action runs, and each copy releases once.',
+  },
+  {
+    id: 'lift:unit',
+    subject: 'lift',
+    meets: 'unit',
+    district: 'inkQuarter',
+    text: 'Lift moves a mark, with whatever it holds, to a neighbour; it lasts no longer and does not spread again.',
+  },
+  {
+    id: 'wax:cloud',
+    subject: 'wax',
+    meets: 'cloud',
+    district: 'inkQuarter',
+    text: 'A wax mark never spreads, even in a cloud.',
+  },
 ];
