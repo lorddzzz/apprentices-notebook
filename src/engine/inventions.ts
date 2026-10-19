@@ -4,6 +4,7 @@ import {
   type InventionDef,
   type InventionId,
   isInvention,
+  type LineId,
   METHODS,
   type MethodId,
   type PartAccepts,
@@ -15,7 +16,7 @@ import {
 } from '$data';
 import { reachOf, unitsNear } from './bursts';
 import { type Ctx, emit, withLine } from './ctx';
-import { type Coord, type Dir, step } from './grid';
+import { type Coord, type Dir, opposite, step } from './grid';
 import { inkOf, nameOf } from './lattice';
 import { attachBound, liftMark } from './marks';
 import { brassNet, isBrass } from './networks';
@@ -255,7 +256,12 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
     return [];
   }
   const units = unitsNear(ctx, net, 1 + reachOf(flow));
-  withLine(ctx, 'conduct:network', () => {
+  // A solvent that lengthens the reach (Chalk) signs the line it reached by.
+  const line: LineId =
+    flow.solvent && SOLVENT_RULES[flow.solvent]?.reach
+      ? `${flow.solvent}:network`
+      : 'conduct:network';
+  withLine(ctx, line, () => {
     emit(ctx, {
       type: 'conducted',
       action: part,
@@ -369,11 +375,21 @@ function lift(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   return [t];
 }
 
+/** The heading of `t` copied to the targets a solvent added, so they act the same way. */
+function withHeadings(flow: Flow, from: Target, to: readonly Target[]): Flow {
+  const heading = headingFor(flow, from);
+  const headings = new Map(flow.headings);
+  for (const x of to) if (!headings.has(targetKey(x))) headings.set(targetKey(x), heading);
+  return { ...flow, headings };
+}
+
 /**
  * Runs an invention on one target (the handler `handlerFor` gives an `inv:` rune). The invention's
  * parts run one level deeper than it; its solvent travels in `flow.solvent`, where the actions
- * read their bonuses, and the solvent's own hooks are applied here (E8 fills `SOLVENT_RULES`):
- * `widen` picks the targets, `onReach` runs on each unit or tile reached, `after` once per target.
+ * read their bonuses. The solvent's own hooks (`SOLVENT_RULES`, E8) apply at the invention that
+ * is flavoured, not at the ones nested inside it: `delay` waits a round, `reverse` turns the
+ * target back on the caster, `widen` picks the targets, `onReach` runs on each unit or tile
+ * reached, `after` once per target (`before` hands it a token).
  */
 export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): void {
   const def = ctx.s.inventions[id];
@@ -385,13 +401,50 @@ export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): 
     emit(ctx, { type: 'fizzles', reason: 'depth' });
     return;
   }
-  const inner: Flow = { ...flow, depth: flow.depth + 1, solvent: def.solvent ?? flow.solvent };
-  const rule = inner.solvent ? SOLVENT_RULES[inner.solvent] : undefined;
-  const targets = rule?.widen ? rule.widen(ctx.s, t, inner) : [t];
+  const own = def.solvent;
+  const rule = own ? SOLVENT_RULES[own] : undefined;
+  const inner: Flow = { ...flow, depth: flow.depth + 1, solvent: own ?? flow.solvent };
+  if (own && rule?.delay && !flow.woken) {
+    withLine(ctx, `${own}:unit`, () =>
+      schedule(ctx, {
+        when: 'ownerTurn',
+        owner: flow.caster,
+        step: id,
+        target: t,
+        heading: headingFor(flow, t),
+        origin: flow.origin,
+        kind: 'wick',
+        solvent: own,
+      }),
+    );
+    return;
+  }
+  let first = t;
+  let base = inner;
+  if (own && rule?.reverse && def.method !== 'bind') {
+    // Sand: the action turns back on whoever set it off.
+    const caster = findUnit(ctx.s, flow.caster);
+    if (!caster) return;
+    first = unitTarget(caster);
+    const heading = headingFor(flow, t);
+    const headings = new Map(inner.headings);
+    headings.set(targetKey(first), heading ? opposite(heading) : null);
+    base = { ...inner, headings };
+  }
+  const targets = rule?.widen ? rule.widen(ctx.s, first, base) : [first];
+  const added = targets.filter((x) => targetKey(x) !== targetKey(first));
+  const widened = withHeadings(base, first, added);
   for (const tt of targets) {
-    const reached = invoke(ctx, def, tt, inner);
-    for (const r of reached) rule?.onReach?.(ctx, r, inner);
-    rule?.after?.(ctx, tt, inner);
+    const extra = added.includes(tt);
+    const f: Flow = extra && rule?.weaker ? { ...widened, weaker: rule.weaker } : widened;
+    const go = (): void => {
+      const before = rule?.before?.(ctx, tt, f);
+      const reached = invoke(ctx, def, tt, f);
+      for (const r of reached) rule?.onReach?.(ctx, r, f);
+      rule?.after?.(ctx, tt, f, { inv: id, before });
+    };
+    if (extra && rule?.line) withLine(ctx, rule.line, go);
+    else go();
   }
 }
 

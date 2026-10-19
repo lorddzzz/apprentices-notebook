@@ -5,6 +5,7 @@ import type { Hook } from './hooks';
 import { cloudNet } from './networks';
 import { findUnit, isAlive, isCloud, tileAt, unitAt } from './queries';
 import { runStep, snapshotOf } from './resolve';
+import { turnBack } from './solvents';
 import type { Bound, Flow, Mark, Origin, Step, Target, Unit } from './types';
 import { targetKey } from './types';
 
@@ -85,7 +86,7 @@ export function expireMark(ctx: Ctx, unit: Unit): void {
 /** Copies the unit's mark to every unmarked, unreached unit in its connected cloud (P29). */
 export function spreadFrom(ctx: Ctx, unit: Unit): void {
   const mark = unit.mark;
-  if (!mark || mark.wax || !isAlive(unit)) return;
+  if (!mark || !isAlive(unit)) return;
   if (!isCloud(tileAt(ctx.s, unit.pos))) return;
   const reached = reachedOf(ctx, mark.lineage);
   const to: Unit[] = [];
@@ -95,6 +96,10 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
     to.push(u);
   }
   if (to.length === 0) return;
+  if (mark.wax) {
+    withLine(ctx, 'wax:cloud', () => emit(ctx, { type: 'miss', source: 'Wax mark spreading' }));
+    return;
+  }
   withLine(ctx, 'bind:cloud', () =>
     withOrigin(ctx, mark.origin, () => {
       for (const u of to) {
@@ -205,9 +210,17 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
       emit(ctx, { type: 'released', unit: ref(unit), action: bound.action });
       const target: Target =
         h.kind === 'died' ? { kind: 'tile', at: { ...unit.pos } } : { kind: 'unit', unit: unit.id };
+      // Sand turns the action back on whoever set it off.
+      const origin = mark.origin;
+      const heading = releaseHeading(h, unit.pos, bound);
+      const turned = turnBack(ctx, bound.solvent, h, heading);
+      if (turned === 'nobody') return;
       depths.set(ctx, depth + 1);
       try {
-        runBound(ctx, bound, target, mark.origin, releaseHeading(h, unit.pos, bound));
+        const go = (): void =>
+          runBound(ctx, bound, turned?.target ?? target, origin, turned ? turned.heading : heading);
+        if (turned) withLine(ctx, 'sand:unit', go);
+        else go();
       } finally {
         depths.set(ctx, depth);
       }

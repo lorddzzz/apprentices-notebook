@@ -295,10 +295,20 @@ export interface Flow {
   depth: number; // invention nesting guard (§6.4 limit 1)
   /** Running as a repeat coming due: it may not schedule another (§6.4 limit 5). */
   repeated?: boolean;
+  /** A Wick invention coming due: it has waited, so it acts now (E8). */
+  woken?: boolean;
+  /** Fog jar: how many steps weaker this reach is (push, damage; min 0) (E8). */
+  weaker?: number;
   auras: readonly AuraRef[]; // auras touching the current step
 }
 export const targetKey = (t: Target): string =>
   t.kind === 'unit' ? `u:${t.unit}` : `t:${t.at.x},${t.at.y}`;
+
+/** What Graphite puts back: tile states and where units stood (E8). */
+export interface BoardUndo {
+  tiles: { at: Coord; state: Layer | null }[];
+  units: { id: UnitId; pos: Coord }[];
+}
 
 /** A repeat, Wick, Graphite, Filings, Thunderhead or Pitch waiting for its moment (E6). */
 export interface Scheduled {
@@ -310,6 +320,8 @@ export interface Scheduled {
   origin: Origin;
   /** The flavour the scheduled run keeps (a flavoured Repeat repeats flavoured). */
   solvent?: SolventId | null;
+  /** Graphite: the board as it was before the invention; restored when the entry comes due. */
+  undo?: BoardUndo;
   kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch';
 }
 

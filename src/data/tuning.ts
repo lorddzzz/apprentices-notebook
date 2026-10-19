@@ -77,3 +77,15 @@ export const ACTIONS = {
 
 /** Footnotes (P39): points a rune needs for level I / II / III. */
 export const FOOTNOTES = { levels: [5, 15, 40] } as const;
+
+/** The solvents' numbers (design §6.3, P38). */
+export const SOLVENT_TUNING = {
+  /** Cinder: rounds a tile stays hot. */
+  hotRounds: 2,
+  /** Fog jar: steps weaker the neighbours are hit (push, damage; min 0). */
+  fogWeaker: 1,
+  /** Mortar: extra tiles every push goes. */
+  mortarPush: 1,
+  /** Chalk: extra tiles of network depth. */
+  chalkReach: 1,
+} as const;

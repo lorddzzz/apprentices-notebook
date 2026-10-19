@@ -330,9 +330,10 @@ describe('Lift', () => {
 });
 
 describe('solvent hook', () => {
+  const saved = { mortar: SOLVENT_RULES.mortar, gallnut: SOLVENT_RULES.gallnut };
   afterEach(() => {
-    delete SOLVENT_RULES.mortar;
-    delete SOLVENT_RULES.gallnut;
+    SOLVENT_RULES.mortar = saved.mortar;
+    SOLVENT_RULES.gallnut = saved.gallnut;
   });
 
   test('a flavoured invention runs its parts under flow.solvent', () => {

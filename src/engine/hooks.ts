@@ -12,9 +12,12 @@ export type Hook =
   | { kind: 'pushed'; unit: UnitId; dir: Dir }
   | { kind: 'died'; unit: UnitId };
 
-/** Static fan-out, no registration: the order is marks, then jars, then solvents. */
+/**
+ * Static fan-out, no registration: solvents first (Wax melts in fire before its mark could
+ * release), then marks, then jars.
+ */
 export function notify(ctx: Ctx, h: Hook): void {
+  solvents.onHook(ctx, h);
   marks.onHook(ctx, h);
   jars.onHook(ctx, h);
-  solvents.onHook(ctx, h);
 }

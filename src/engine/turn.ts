@@ -19,6 +19,7 @@ import {
   unitAt,
 } from './queries';
 import { runScheduled } from './schedule';
+import { driftWaiting } from './solvents';
 import type { EnemyUnit, Unit } from './types';
 
 /**
@@ -109,12 +110,13 @@ function coolTiles(ctx: Ctx): void {
 }
 
 /**
- * Dusk: the current drifts, dusk jars open, queued round-end entries run, the chemistry of the
+ * Dusk: the current drifts (and floats jars and Pitch waits with it), dusk jars open, queued round-end entries run, the chemistry of the
  * board plays out (storms, brand, kettles, fire), gates catch, then layers decay, vents refill,
  * and snuffers put fire out.
  */
 function hazards(ctx: Ctx): void {
   drift(ctx);
+  driftWaiting(ctx);
   openDuskJars(ctx);
   runScheduled(ctx, 'roundEnd');
   roundEndChemistry(ctx);

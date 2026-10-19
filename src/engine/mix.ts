@@ -31,6 +31,7 @@ import {
   tileAt,
   unitAt,
 } from './queries';
+import { catchIfHot } from './solvents';
 import type { Flow, Layer, Target, Unit } from './types';
 
 /**
@@ -220,7 +221,7 @@ function inkOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
     withLine(ctx, washLine('ink'), () => {
       u.shackle = 0;
       washUnit(ctx, 'ink', u, 'shackle');
-      markUnit(ctx, u, flow?.origin ?? null);
+      markUnit(ctx, u, flow?.origin ?? null, flow);
     });
   } else if (u.collar !== false) {
     withLine(ctx, line('ink', 'collar'), () => shackle(ctx, 'ink', u, flow));
@@ -237,7 +238,7 @@ function inkOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
       emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'deepMark' });
     });
   } else {
-    markUnit(ctx, u, flow?.origin ?? null);
+    markUnit(ctx, u, flow?.origin ?? null, flow);
   }
 }
 
@@ -307,6 +308,7 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
     return;
   }
   landOnTile(ctx, kind, at, flow);
+  if (kind === 'oil') catchIfHot(ctx, at, flow);
 }
 
 // ── The round ───────────────────────────────────────────

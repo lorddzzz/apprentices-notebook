@@ -28,12 +28,16 @@ function posOf(ctx: Ctx, t: Target): Coord | null {
 
 const headingOf = (flow: Flow, t: Target): Dir | null => flow.headings.get(targetKey(t)) ?? null;
 
-/** Extra tiles a push-gifted caster or a Mortar-like solvent adds (§9, §6.3). */
+/** Extra tiles a push-gifted caster or a Mortar-like solvent adds (§9, §6.3); Fog jar's reach takes some off. */
 function pushBonus(rune: ActionRuneId, flow: Flow): number {
   const gift = flow.gifted && RUNES[rune].gift === 'push' ? 1 : 0;
   const solvent = flow.solvent ? (SOLVENT_RULES[flow.solvent]?.pushBonus ?? 0) : 0;
-  return gift + solvent;
+  return gift + solvent - (flow.weaker ?? 0);
 }
+
+/** Mortar's longer pushes carry its line, so the log shows where the extra tile came from. */
+const solventLine = (flow: Flow): LineId | null =>
+  flow.solvent && SOLVENT_RULES[flow.solvent]?.pushBonus ? `${flow.solvent}:unit` : null;
 
 const roundBonus = (rune: ActionRuneId, flow: Flow): number =>
   flow.gifted && RUNES[rune].gift === 'round' ? 1 : 0;
@@ -52,8 +56,10 @@ const strike: Handler = (ctx, t, flow) => {
   const u = unitOf(ctx, t);
   if (!u) return;
   const caster = unitById(ctx.s, flow.caster);
+  const damage = TUNING.strikeDamage - (flow.weaker ?? 0);
+  if (damage <= 0) return;
   maybeLine(ctx, u.shield > 0 ? 'strike:shielded' : null, () => {
-    dealDamage(ctx, u, TUNING.strikeDamage, RUNES.strike.name, [], {
+    dealDamage(ctx, u, damage, RUNES.strike.name, [], {
       heading: headingOf(flow, t),
       at: { ...caster.pos },
     });
@@ -65,7 +71,8 @@ const shove: Handler = (ctx, t, flow) => {
   if (!u) return;
   const heading = headingOf(flow, t);
   if (!heading) return miss(ctx, 'shove', 'shove:noHeading');
-  push(ctx, u, heading, TUNING.shoveTiles + pushBonus('shove', flow), flow.origin);
+  const tiles = TUNING.shoveTiles + pushBonus('shove', flow);
+  maybeLine(ctx, solventLine(flow), () => push(ctx, u, heading, Math.max(0, tiles), flow.origin));
 };
 
 const guard: Handler = (ctx, t, flow) => {
@@ -142,7 +149,7 @@ const draw: Handler = (ctx, t, flow) => {
   const here = tileAt(ctx.s, at);
   if (!here.state && !here.jar) return;
   if (!heading) return miss(ctx, 'draw', 'draw:noHeading');
-  for (let i = 0; i < 1 + pushBonus('draw', flow); i++) {
+  for (let i = 0; i < Math.max(0, 1 + pushBonus('draw', flow)); i++) {
     const next = step(at, heading);
     if (!inBoard(ctx.s, next)) return miss(ctx, 'draw', 'draw:edge');
     if (!drawHop(ctx, at, next)) return;
@@ -188,7 +195,8 @@ const sentence: Handler = (ctx, t, flow) => {
   const heading = headingOf(flow, t);
   if (!heading) return miss(ctx, 'sentence', 'sentence:noHeading');
   spendMark(ctx, u); // spent before the push, never released (P31)
-  push(ctx, u, heading, ACTIONS.sentenceTiles + pushBonus('sentence', flow), flow.origin);
+  const tiles = ACTIONS.sentenceTiles + pushBonus('sentence', flow);
+  maybeLine(ctx, solventLine(flow), () => push(ctx, u, heading, Math.max(0, tiles), flow.origin));
 };
 
 const levy: Handler = (ctx, t, flow) => {

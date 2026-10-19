@@ -15,6 +15,7 @@ import { applyMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
 import { push } from './push';
 import { blocksUnits, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
+import { SOLVENT_RULES } from './solvents';
 import type { Flow, Layer, Mark, Origin, Unit } from './types';
 
 /**
@@ -46,7 +47,8 @@ export function noteMet(ctx: Ctx, m: Meets): void {
 
 /** Extra tiles a burst reaches: Coil on the step's touching auras (design §5.2). */
 export const reachOf = (flow: Flow | null): number =>
-  flow?.auras.includes('coil') ? CHEMISTRY.coilReach : 0;
+  (flow?.auras.includes('coil') ? CHEMISTRY.coilReach : 0) +
+  (flow?.solvent ? (SOLVENT_RULES[flow.solvent]?.reach ?? 0) : 0);
 
 /** The heading of the target standing on `at` (a unit's, else the tile's), or null. */
 export function headingAt(ctx: Ctx, flow: Flow | null, at: Coord): Dir | null {
@@ -62,8 +64,14 @@ export function headingAt(ctx: Ctx, flow: Flow | null, at: Coord): Dir | null {
 /**
  * Puts a plain mark on a unit (it spreads through a cloud it stands in; see `marks.ts`).
  */
-export function markUnit(ctx: Ctx, unit: Unit, origin: Origin | null): void {
-  applyMark(ctx, unit, { deep: false, bound: null, origin });
+export function markUnit(ctx: Ctx, unit: Unit, origin: Origin | null, flow?: Flow | null): void {
+  const wax = flow?.solvent ? SOLVENT_RULES[flow.solvent]?.noSpread : false;
+  applyMark(ctx, unit, {
+    deep: false,
+    bound: null,
+    origin,
+    ...(wax ? { wax: true as const } : {}),
+  });
   noteMet(ctx, 'mark');
 }
 

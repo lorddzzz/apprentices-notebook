@@ -15,7 +15,8 @@ import { targetKey } from './types';
 /**
  * Runs `step` for `caster` on a target with a flow of its own: a jar opening, a repeat coming due.
  * It has its own event cap; the outer cast's scope is restored afterwards. A repeat coming due
- * passes `repeated` (it can't schedule again, design §6.4 limit 5) and its flavour.
+ * passes `repeated` (it can't schedule again, design §6.4 limit 5) and its flavour; a Wick
+ * coming due passes `woken` (it has waited).
  */
 export function runDetached(
   ctx: Ctx,
@@ -24,7 +25,7 @@ export function runDetached(
   caster: UnitId,
   origin: Origin,
   heading: Dir | null,
-  extra: { repeated?: boolean; solvent?: SolventId | null } = {},
+  extra: { repeated?: boolean; woken?: boolean; solvent?: SolventId | null } = {},
 ): void {
   const unit = findUnit(ctx.s, caster);
   const flow: Flow = {
@@ -39,6 +40,7 @@ export function runDetached(
     depth: 0,
     auras: [],
     ...(extra.repeated ? { repeated: true } : {}),
+    ...(extra.woken ? { woken: true } : {}),
   };
   const outer = ctx.cast;
   ctx.cast = { events: 0, capped: false };

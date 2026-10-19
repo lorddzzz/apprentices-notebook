@@ -69,7 +69,7 @@ describe('lines fired by the suite (L1)', () => {
   }, 120_000);
 
   // Rows whose behaviour the engine doesn't stamp yet; delete the entry when it does.
-  const NOT_YET_STAMPED = ['wax:cloud']; // Wax solvent (solvents are not rebuilt yet)
+  const NOT_YET_STAMPED: string[] = [];
 
   test('every written row is fired by at least one test', () => {
     const unfired = LINES.filter((l) => !l.pending && !fired.has(l.id)).map((l) => l.id);
