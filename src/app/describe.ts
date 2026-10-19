@@ -1,5 +1,6 @@
 import {
   ATTACKS,
+  CODEX,
   type CompoundId,
   DISTRICTS,
   ENEMIES,
@@ -396,6 +397,8 @@ export function threatenedMembers(s: BattleState): string[] {
 
 /** "Stain", "Fire", "Bonfire": the title of a named result (`compound:stain`, `burst:fire`, `idiom:bonfire`). */
 export function namedTitle(id: string): string {
+  const entry = CODEX.find((c) => c.id === id);
+  if (entry) return entry.title;
   const [what = '', ref = ''] = id.split(':');
   if (what === 'idiom') return IDIOMS.find((i) => i.id === ref)?.name ?? ref;
   const plain = id.slice(what.length + 1).replace(/^page:/, '');
