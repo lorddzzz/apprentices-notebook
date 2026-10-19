@@ -37,7 +37,7 @@ const CANAL_1: readonly EncounterVariant[] = [
   {
     name: 'The towpath',
     layout: board([
-      '. . wv . . r',
+      '. r wv . . .',
       '. . wv . . .',
       '. . wv o . .',
       '. . wv . . .',
@@ -81,11 +81,11 @@ const CANAL_2: readonly EncounterVariant[] = [
     name: 'The drowned arcade',
     layout: board([
       '. m . . . .',
-      '. . . . . .',
+      '. . . . . r',
       'w> w> w> w> w> w>',
       'w> w> ew> w> w> w>',
       '. . . . . .',
-      '. o . . . r',
+      '. o . . . .',
       '. D . . S .',
       '. . . . . .',
     ]),
@@ -123,7 +123,7 @@ const CANAL_3: readonly EncounterVariant[] = [
   {
     name: 'The sluice',
     layout: board([
-      '. . wv . n .',
+      '. . wv n . .',
       '. . wv . . .',
       'w> w> wv w< w< w<',
       '. . ewv . . .',
@@ -170,7 +170,7 @@ const CANAL_4: readonly EncounterVariant[] = [
       '. . . w^ . .',
       'w< w< w< w^ w< w<',
       '. . . ew^ . .',
-      '. r . w^ . .',
+      '. . r w^ . .',
       '. . . w^ . m',
       '. D . w^ S .',
       '. . . w^ . .',
@@ -212,7 +212,7 @@ const CANAL_HEART: readonly EncounterVariant[] = [
       'l . . . . l',
       '. w> w> w> wv .',
       '. w^ m Mw> wv .',
-      '. w^ w> nwv wv .',
+      'n w^ w> wv wv .',
       '. w^ w< w< w< .',
       '. . . . . .',
       '. D . . S .',

@@ -40,7 +40,7 @@ const DEPTH_1: readonly EncounterVariant[] = [
     name: 'The coal chute',
     layout: board([
       '. . . r . .',
-      '. o o . . .',
+      'o o . . . =',
       'r . . . . .',
       '. . . . o .',
       '. . . . . .',
@@ -71,7 +71,7 @@ const DEPTH_2: readonly EncounterVariant[] = [
       '. . . r . .',
       '. i . . . .',
       '. . . . . f',
-      'o o . . . .',
+      'o o . . . =',
       '. . . . . .',
       'r . . . i .',
       '. D . . S .',
@@ -99,7 +99,7 @@ const DEPTH_3: readonly EncounterVariant[] = [
     layout: board([
       '. . b . . .',
       '. . . . . r',
-      '. o o o . .',
+      'o o o . . .',
       '. o . o . .',
       'r . . . . .',
       '. . = . . .',
@@ -141,7 +141,7 @@ const DEPTH_4: readonly EncounterVariant[] = [
     layout: board([
       'b . . f . b',
       '. = . . = .',
-      '. . @~ ~ . r',
+      '. = @~ ~ . r',
       'r o o . . .',
       '. . . . @~ .',
       '. = . . . .',

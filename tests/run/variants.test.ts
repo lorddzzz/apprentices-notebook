@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import { ENCOUNTERS } from '$data';
+import { DISTRICTS, ENCOUNTERS, ENEMIES, type EnemyId } from '$data';
 import {
   beginEncounter,
   type EnemyUnit,
+  neighbors4,
   newProfile,
   parseBoard,
   startTrip,
@@ -10,6 +11,49 @@ import {
   unitAt,
   variantFor,
 } from '$engine';
+
+function hasOilAgainstWall(layout: string): boolean {
+  const board = parseBoard(layout);
+  return board.tiles.some((tile, i) => {
+    if (tile.state?.id !== 'slick') return false;
+    const at = { x: i % board.width, y: Math.floor(i / board.width) };
+    return (
+      at.x === 0 ||
+      at.y === 0 ||
+      at.x === board.width - 1 ||
+      at.y === board.height - 1 ||
+      neighbors4(at).some(
+        (n) =>
+          n.x >= 0 &&
+          n.y >= 0 &&
+          n.x < board.width &&
+          n.y < board.height &&
+          board.tiles[n.y * board.width + n.x]?.state?.id === 'plate',
+      )
+    );
+  });
+}
+
+function hasPlate(layout: string): boolean {
+  return parseBoard(layout).tiles.some((tile) => tile.state?.id === 'plate');
+}
+
+function hasLandFoeBesideWater(layout: string): boolean {
+  const board = parseBoard(layout);
+  return board.units.some((unit) => {
+    if (unit.kind !== 'enemy') return false;
+    const foe = ENEMIES[unit.def as EnemyId];
+    if (foe.flies || foe.habitat === 'water') return false;
+    return neighbors4(unit.at).some(
+      (n) =>
+        n.x >= 0 &&
+        n.y >= 0 &&
+        n.x < board.width &&
+        n.y < board.height &&
+        board.tiles[n.y * board.width + n.x]?.terrain.water !== null,
+    );
+  });
+}
 
 /** Alternate Seam layouts (plan S10): derived from the trip seed, never stored. */
 
@@ -70,6 +114,30 @@ describe('beginEncounter builds the chosen variant', () => {
           .sort();
         expect(got, `seed ${seed} depth ${depth + 1}`).toEqual(want.sort());
       });
+    }
+  });
+});
+
+describe('encounter boards teach the district chemistry', () => {
+  test('every Seam depth offers oil beside an edge or plate and a brass plate', () => {
+    for (const encounter of DISTRICTS.seam.encounters) {
+      expect(
+        encounter.variants.some((variant) => hasOilAgainstWall(variant.layout)),
+        `${encounter.id} oil by wall`,
+      ).toBe(true);
+      expect(
+        encounter.variants.some((variant) => hasPlate(variant.layout)),
+        `${encounter.id} brass plate`,
+      ).toBe(true);
+    }
+  });
+
+  test('every canal room has land foes that can be pushed into water', () => {
+    for (const encounter of DISTRICTS.canals.encounters) {
+      expect(
+        encounter.variants.some((variant) => hasLandFoeBesideWater(variant.layout)),
+        `${encounter.id} shore foe`,
+      ).toBe(true);
     }
   });
 });
