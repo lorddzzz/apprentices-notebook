@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
-**State:** holding for reset (resumes 05:41 UTC; 5h at 98%)
-**Next (after the 05:40 UTC reset):** 1) start E7 (inventions, critical), R1 (run layer: also plug `footnoteTexts(profile)` into the `applyAction` callers and `awardFootnotePoints` into `finishEncounter`), U1 (board view) in parallel; 2) then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3; then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
+**State:** building
+**Next:** E7, R1, U1 running (started 05:44 UTC). Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3; then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -17,13 +17,13 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E1 | sonnet | L | merged | worktree-agent-ae1e7b0831f4ee754 @ 03ad3e5 | | 555 engine tests; seam `withSeams` + `tests/scenarios/fake-runes.ts`; edited glyph-identity test (wrap in withSeams; E6 can drop). At merge: `scenarioSpec` must pass `spec.edge` |
 | E2 | sonnet | L | merged | worktree-agent-a523e267400073b23 @ 0c7cb67 | | 49 kind lines; 15 burst rows; `CHEMISTRY` tuning |
 | E3 | sonnet | M | merged | worktree-agent-a7f0621bb86e37774 @ fdce332 | | 540 engine tests; 23 line rows. At merge: add `Layer.slid?`, Tuning keys sentenceTiles/holdRounds/levyShieldPerMark (now local consts) |
-| R1 | sonnet | M | waiting | | | |
+| R1 | sonnet | M | running | worktree | | started 05:44 |
 | E5 | sonnet | L | merged | (this commit) | ~5% | 1069 tests; touched bursts.ts (markUnit→applyMark), lines.ts, actions tests (markSpent) |
 | E6 | sonnet | L | merged | (this commit) | ~6% | 1055 tests; touched movement.ts, turns/integration tests (spit line) |
 | L1 | sonnet | M | merged | (this commit) | ~5% | 1625 tests (the integrity file re-imports the scenario suites; a child vitest runs push/actions); 1 pending line (fork:noHeading); idiom hook = `withIdioms` in battle.ts `applyAction` |
 | U4a | haiku | S | merged | 0554e60 | ~2% | art data only in `src/ui/runeArt.ts` (imports `$data/next/types`: fix at W0b merge). Wiring into RuneGlyph/Gallery = U4b after W0c |
-| E7 | sonnet | L | waiting | | | |
-| U1 | sonnet | L | waiting | | | |
+| E7 | sonnet | L | running | worktree | | started 05:44 |
+| U1 | sonnet | L | running | worktree | | started 05:44 |
 | U3 | sonnet | M | waiting | | | |
 | C1 | haiku | M | waiting | | | |
 | E8 | sonnet | M | waiting | | | |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 05:43 | 0 | 5h | 74 | normal (weekly watch: ~13% weekly per window) | reset; start E7, R1, U1 |
 | 2026-10-19 01:53 | 98 | 3h47m | 74 | hold | F1 merged; holding, timer to 05:41 UTC |
 | 2026-10-19 01:46 | 95 | 3h54m | 73 | wrap | L1 merged; start F1 (S) |
 | 2026-10-19 01:35 | 90 | 4h05m | 73 | wrap | E5 merged; start L1 (smallest critical) |
