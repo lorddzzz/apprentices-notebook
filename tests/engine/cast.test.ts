@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import {
-  type Aim,
+  aimTargets,
   applyAction,
   IllegalActionError,
   isLegal,
@@ -8,8 +8,13 @@ import {
   memberById,
   parseLabel,
 } from '$engine';
-import { runEchoes } from '$engine/cast';
-import { cast, draft, expectLog, unitAtLabel, withLattices } from '../scenarios/harness';
+import {
+  cast,
+  expectLog,
+  expectLogIncludes,
+  unitAtLabel,
+  withLattices,
+} from '../scenarios/harness';
 
 const boltRight = {
   type: 'cast',
@@ -72,77 +77,150 @@ test('legalAims: splash reaches chebyshev range 3', () => {
   expect(tiles).not.toContainEqual(parseLabel('E1'));
 });
 
-test('legalAims: ward targets self and orthogonally adjacent members', () => {
-  const s = withLattices('D S d', { draughtsman: 'Ward>' });
+test('legalAims: touch takes yourself or an adjacent tile, unit or not', () => {
+  const s = withLattices('. D S\n. . .', { draughtsman: 'Touch>' });
   expect(legalAims(s, 'draughtsman', '0,0')).toEqual([
-    { kind: 'ally', unit: 'draughtsman' },
-    { kind: 'ally', unit: 'stoker' },
+    { kind: 'self' },
+    { kind: 'tile', at: parseLabel('A1') },
+    { kind: 'tile', at: parseLabel('C1') },
+    { kind: 'tile', at: parseLabel('B2') },
   ]);
-  const apart = withLattices('D . S d', { draughtsman: 'Ward>' });
-  expect(legalAims(apart, 'draughtsman', '0,0')).toEqual([{ kind: 'ally', unit: 'draughtsman' }]);
 });
 
-test('echo queues an entry', () => {
-  const s = withLattices('D . d', { draughtsman: 'Echo .\nBolt> Spark' });
+// ── Resolution: aim, then the steps act in wiring order ──
+
+test('a cast logs who casts, where it aims and how the line flies, then a silent trace', () => {
+  const s = withLattices('D . r . S', { draughtsman: 'Bolt> Strike' });
   const r = cast(s, 'draughtsman', 'right');
   expectLog(r.events, [
     'Draughtsman casts Bolt right',
-    'Bolt hits dummy at C1 for 2',
-    'Spark hits dummy at C1 for 1',
-    "Echo: Draughtsman's spell will repeat next turn",
+    'bolt aims at rat-1',
+    'Bolt lands at C1',
+    'Strike hits rat at C1 for 2',
+    'rat at C1 dies',
+    'The party wins',
   ]);
-  expect(r.state.echoes).toEqual([
-    { caster: 'draughtsman', spell: '0,1', aim: { kind: 'dir', dir: 'right' } },
+  expect(r.events.map((e) => e.type)).toEqual([
+    'cast',
+    'aimed',
+    'lands',
+    'damage',
+    'died',
+    'trace',
+    'won',
+  ]);
+  const aimed = r.events.find((e) => e.type === 'aimed');
+  expect(aimed).toMatchObject({ targets: [{ kind: 'unit', unit: 'rat-1' }], heading: 'right' });
+});
+
+test('every event of a cast carries its origin; casts count up', () => {
+  const s = withLattices('D . r\nS . .', { draughtsman: 'Bolt>', stoker: 'Bolt>' });
+  const first = cast(s, 'draughtsman', 'right');
+  const origin = { caster: 'draughtsman', spell: '0,0', cast: 1 };
+  for (const e of first.events) expect(e.origin).toEqual(origin);
+  expect(first.state.castSeq).toBe(1);
+  const second = cast(first.state, 'stoker', 'right');
+  expect(second.events[0]?.origin).toMatchObject({ caster: 'stoker', cast: 2 });
+  // Unison's record of this player phase (P26): each cast and what it aimed at.
+  expect(second.state.landed).toEqual([
+    { caster: 'draughtsman', targets: ['u:rat-1'] },
+    { caster: 'stoker', targets: ['t:2,1'] },
   ]);
 });
 
-test('runEchoes recasts at half strength, once', () => {
-  const s = withLattices('D . d', { draughtsman: 'Echo .\nBolt> Spark' });
-  const queued = cast(s, 'draughtsman', 'right').state;
-  const r = draft(queued, (ctx) => runEchoes(ctx));
-  expectLog(r.events, [
-    "Echo: Draughtsman's Bolt repeats right at half strength",
-    'Bolt hits dummy at C1 for 1',
-    'Spark hits dummy at C1 for 1',
+test('bolt with no unit in its line aims at the last tile in range (P21), range 4', () => {
+  const s = withLattices('D . . . . r', { draughtsman: 'Bolt>' });
+  expectLog(cast(s, 'draughtsman', 'right').events, [
+    'Draughtsman casts Bolt right',
+    'bolt aims at E1',
+    'Bolt lands at E1',
   ]);
-  expect(r.state.echoes).toEqual([]);
-  expect(unitAtLabel(r.state, 'C1').hp).toBe(7);
-  expect(memberById(r.state, 'draughtsman').charges['0,1']).toBe(4);
 });
 
-test('echo fizzles when caster is down', () => {
-  const s = withLattices('D . d', { draughtsman: 'Echo .\nBolt> Spark' });
-  const queued = cast(s, 'draughtsman', 'right').state;
-  const r = draft(queued, (ctx) => {
-    memberById(ctx.s, 'draughtsman').hp = 0;
-    runEchoes(ctx);
-  });
-  expectLog(r.events, ["Echo: Draughtsman's spell fizzles"]);
-  expect(r.state.echoes).toEqual([]);
+test('a gifted Bolt reaches one tile further (P36: the Stoker is gifted in the Seam)', () => {
+  const s = withLattices('S . . . . .', { stoker: 'Bolt>' });
+  expectLogIncludes(cast(s, 'stoker', 'right').events, ['bolt aims at F1']);
 });
 
-test('echoed ward needs a living ally, not adjacency', () => {
-  const s = withLattices('D S . d', { draughtsman: 'Echo .\nWard> .' });
-  const aim: Aim = { kind: 'ally', unit: 'stoker' };
-  const queued = cast(s, 'draughtsman', aim).state;
-  const r = draft(queued, (ctx) => {
-    memberById(ctx.s, 'stoker').pos = parseLabel('C1');
-    runEchoes(ctx);
-  });
-  expectLog(r.events, [
-    "Echo: Draughtsman's Ward repeats on Stoker at half strength",
-    'Stoker gains a shield of 1',
+test('a cloud or a plate stops the line and is the target', () => {
+  const cloud = withLattices('D . ~ r', { draughtsman: 'Bolt>' });
+  expectLog(cast(cloud, 'draughtsman', 'right').events, [
+    'Draughtsman casts Bolt right',
+    'bolt aims at C1',
+    'Bolt is stopped by the cloud at C1',
   ]);
-  expect(memberById(r.state, 'stoker').shield).toBe(3);
+  const plate = withLattices('D = r', { draughtsman: 'Bolt>' });
+  expectLogIncludes(cast(plate, 'draughtsman', 'right').events, [
+    'bolt aims at B1',
+    'Bolt is stopped by the brass plate at B1',
+  ]);
 });
 
-test('discovered accumulates interactions from the cast', () => {
-  const s0 = withLattices('D . . d . .\n. . . . . .\n. . . S . .', {
-    draughtsman: 'Bolt> Ink',
-    stoker: 'Spark\nBolt^', // the flow leaves in the arrow's direction
-  });
-  const r1 = cast(s0, 'draughtsman', 'right');
-  expect(r1.state.discovered).toEqual([]);
-  const r2 = cast(r1.state, 'stoker', 'up');
-  expect(r2.state.discovered).toEqual(['detonate']);
+test('splash freezes its targets in reading order with headings from the centre (P22, P23)', () => {
+  const s = withLattices('D . . .\n. r . .\n. . . .', { draughtsman: 'Splash>' });
+  const aimed = cast(s, 'draughtsman', { kind: 'tile', at: parseLabel('C2') }).events.find(
+    (e) => e.type === 'aimed',
+  );
+  expect(
+    aimed?.type === 'aimed' && aimed.targets.map((t) => (t.kind === 'unit' ? t.unit : t.at)),
+  ).toEqual([
+    parseLabel('B1'),
+    parseLabel('C1'),
+    parseLabel('D1'),
+    'rat-1',
+    parseLabel('C2'),
+    parseLabel('D2'),
+    parseLabel('B3'),
+    parseLabel('C3'),
+    parseLabel('D3'),
+  ]);
+  const { headings } = aimTargets(
+    s,
+    unitAtLabel(s, 'A1'),
+    'splash',
+    { kind: 'tile', at: parseLabel('C2') },
+    false,
+  );
+  expect(headings.get('u:rat-1')).toBe('left'); // B2 is left of the centre
+  expect(headings.get('t:2,0')).toBe('up'); // C1 is above it
+  expect(headings.get('t:2,1')).toBe('right'); // the centre takes the caster's heading (A1 → C2)
+  expect(headings.get('t:3,2')).toBe('right'); // a diagonal too
+});
+
+test('touch on yourself heads where you last moved, else nowhere (P22)', () => {
+  const s = withLattices('D . .\n. . r', { draughtsman: 'Touch>' });
+  const still = aimTargets(s, unitAtLabel(s, 'A1'), 'touch', { kind: 'self' }, false);
+  expect(still.targets).toEqual([{ kind: 'unit', unit: 'draughtsman' }]);
+  expect(still.headings.get('u:draughtsman')).toBeNull();
+  const moved = applyAction(s, { type: 'move', unit: 'draughtsman', to: parseLabel('B1') });
+  const m = unitAtLabel(moved.state, 'B1');
+  expect(
+    aimTargets(moved.state, m, 'touch', { kind: 'self' }, false).headings.get('u:draughtsman'),
+  ).toBe('right');
+  const adjacent = aimTargets(
+    moved.state,
+    m,
+    'touch',
+    { kind: 'tile', at: parseLabel('B2') },
+    false,
+  );
+  expect(adjacent.targets).toEqual([{ kind: 'tile', at: parseLabel('B2') }]);
+  expect(adjacent.headings.get('t:1,1')).toBe('down');
+});
+
+test('vat aims the 2×2 whose top-left is the aimed tile', () => {
+  const s = withLattices('D . .\n. r .', { draughtsman: 'Vat>' });
+  const { targets } = aimTargets(
+    s,
+    unitAtLabel(s, 'A1'),
+    'vat',
+    { kind: 'tile', at: parseLabel('A1') },
+    false,
+  );
+  expect(targets).toEqual([
+    { kind: 'unit', unit: 'draughtsman' },
+    { kind: 'tile', at: parseLabel('B1') },
+    { kind: 'tile', at: parseLabel('A2') },
+    { kind: 'unit', unit: 'rat-1' },
+  ]);
 });

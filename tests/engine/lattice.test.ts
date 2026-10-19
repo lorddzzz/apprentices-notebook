@@ -1,46 +1,54 @@
 import { expect, test } from 'vitest';
-import { MEMBERS } from '$data';
+import { type InventionDef, MEMBERS } from '$data';
 import {
   compileLattice,
-  countRunes,
   describeSpell,
-  inkCost,
+  type GlyphDef,
+  inkOf,
   inkUsed,
   type Lattice,
+  libraryOf,
   type Placed,
   parseLattice,
   rotateSocket,
   type Spell,
-  type SpellNode,
+  type Step,
   serializeLattice,
   setSocket,
   socketAt,
+  stepsOf,
   validateLattice,
 } from '$engine';
 
-type Affinity = Parameters<typeof compileLattice>[1];
+const compile = (
+  ascii: string,
+  ...rest: Parameters<typeof compileLattice> extends [unknown, ...infer R] ? R : never
+) => compileLattice(parseLattice(ascii), ...rest);
 
-const compile = (ascii: string, affinity: Affinity = []) =>
-  compileLattice(parseLattice(ascii), affinity);
-
-const only = (ascii: string, affinity: Affinity = []): Spell => {
-  const [spell, ...rest] = compile(ascii, affinity).spells;
-  if (!spell || rest.length > 0) throw new Error('expected exactly one spell');
+const only = (
+  ascii: string,
+  ...rest: Parameters<typeof compileLattice> extends [unknown, ...infer R] ? R : never
+): Spell => {
+  const [spell, ...more] = compile(ascii, ...rest).spells;
+  if (!spell || more.length > 0) throw new Error('expected exactly one spell');
   return spell;
 };
 
-/** Compact node shape for assertions: `'ink'` or `{ ink: [...children] }`. */
-const shape = (nodes: readonly SpellNode[]): unknown[] =>
-  nodes.map((n) => (n.next.length > 0 ? { [n.rune]: shape(n.next) } : n.rune));
+/** Compact step shape: `'ink'`, `{ ink: next }`, `{ fork: [left, right] }`, `{ jar: rest }`. */
+const shape = (st: Step | null): unknown => {
+  if (!st) return null;
+  switch (st.role) {
+    case 'fork':
+      return { fork: [shape(st.left), shape(st.right)] };
+    case 'seal':
+      return { [st.rune]: shape(st.rest) };
+    case 'split':
+      return { split: st.branches.map(shape) };
+    default:
+      return st.next ? { [st.rune]: shape(st.next) } : st.rune;
+  }
+};
 
-const DRAUGHTSMAN = MEMBERS.draughtsman.affinity;
-const STOKER = MEMBERS.stoker.affinity;
-
-const DESIGN_EXAMPLE = `
-  Amp   .   .       .       .
-  Bolt> Ink Fork    .       .
-  .     .   Bend>   OnInked Spark
-`;
 const FORK_ORDER = `
   .     Oil   .
   Bolt> Fork  .
@@ -49,18 +57,21 @@ const FORK_ORDER = `
 
 const runeName = (p: Placed): string => ('rune' in p ? p.rune : p.glyph);
 
-test('straight flow', () => {
-  const s = only('Bolt> Ink Spark');
-  expect(shape(s.nodes)).toEqual([{ ink: ['spark'] }]);
+test('straight flow: each Action or Kind is a step', () => {
+  const s = only('Bolt> Ink Strike');
+  expect(shape(s.first)).toEqual({ ink: 'strike' });
+  expect(s.first).toMatchObject({ role: 'kind', at: { x: 1, y: 0 }, auras: [] });
+  expect(s.first?.role === 'kind' && s.first.next).toMatchObject({ role: 'action' });
   expect(s.key).toBe('0,0');
   expect(s.source).toBe('bolt');
   expect(s.charges).toBe(5);
-  expect(s.path.map((p) => p.rune)).toEqual(['bolt', 'ink', 'spark']);
+  expect(s.path.map((p) => p.rune)).toEqual(['bolt', 'ink', 'strike']);
 });
 
-test('bend uses absolute arrow', () => {
+test('bend uses its absolute arrow and leaves no step (R6), only a via cell', () => {
   const s = only('Bolt> Bendv\n.     Spark');
-  expect(shape(s.nodes)).toEqual(['spark']);
+  expect(shape(s.first)).toEqual('spark');
+  expect(s.first?.via).toEqual([{ x: 1, y: 0 }]);
   expect(s.path.map((p) => [p.rune, p.dir])).toEqual([
     ['bolt', 'right'],
     ['bend', 'right'],
@@ -70,29 +81,27 @@ test('bend uses absolute arrow', () => {
 
 test('bend pointing back stops', () => {
   const s = only('Bolt> Bend<');
-  expect(s.nodes).toEqual([]);
+  expect(s.first).toBeNull();
   expect(s.path.map((p) => p.rune)).toEqual(['bolt', 'bend']);
 });
 
-test('fork is relative to travel', () => {
-  // entering the fork travelling down: left is east
-  const s = only('Boltv .\nFork Ink');
-  expect(shape(s.nodes)).toEqual(['ink']);
+test('fork is a step with a left and a right branch, relative to travel', () => {
+  // entering the fork travelling down: left is east, right is west (off the page)
+  expect(shape(only('Boltv .\nFork Ink').first)).toEqual({ fork: ['ink', null] });
   // entering travelling right: left is north, right is south
-  expect(shape(only('. Ink\nBolt> Fork\n. Spark').nodes)).toEqual(['ink', 'spark']);
+  expect(shape(only('. Ink\nBolt> Fork\n. Spark').first)).toEqual({ fork: ['ink', 'spark'] });
+  expect(only(FORK_ORDER).first).toMatchObject({ role: 'fork', at: { x: 1, y: 1 } });
 });
 
-test('fork resolves left before right', () => {
-  const s = only(FORK_ORDER, DRAUGHTSMAN);
-  expect(shape(s.nodes)).toEqual(['oil', 'spark']);
-  // mirrored: Spark on top
-  const mirror = only('. Spark .\nBolt> Fork .\n. Oil .', DRAUGHTSMAN);
-  expect(shape(mirror.nodes)).toEqual(['spark', 'oil']);
+test('fork walks left before right', () => {
+  expect(shape(only(FORK_ORDER).first)).toEqual({ fork: ['oil', 'spark'] });
+  const mirror = only('. Spark .\nBolt> Fork .\n. Oil .');
+  expect(shape(mirror.first)).toEqual({ fork: ['spark', 'oil'] });
 });
 
 test('visited per cast stops loops', () => {
   const s = only('Bolt> Ink Bendv\n.     Bend^ Bend<');
-  expect(shape(s.nodes)).toEqual(['ink']);
+  expect(shape(s.first)).toEqual('ink');
   expect(s.path).toHaveLength(5);
 });
 
@@ -102,130 +111,115 @@ test('left branch claims shared cells first', () => {
     Bolt> Fork  Spark
     .     Bend> Bend^
   `);
-  expect(s.nodes).toHaveLength(1);
-  expect(s.nodes[0]?.at).toEqual({ x: 2, y: 1 });
+  expect(shape(s.first)).toEqual({ fork: ['spark', null] });
   expect(s.path.filter((p) => p.rune === 'spark')).toHaveLength(1);
 });
 
-test('sources share runes', () => {
+test('sources share runes; flow entering another Source stops', () => {
   const c = compile('Bolt> Ink Bolt<');
   expect(c.spells.map((s) => s.key)).toEqual(['0,0', '2,0']);
-  for (const s of c.spells) expect(shape(s.nodes)).toEqual(['ink']);
-  // flow entering another Source stops
-  const pair = compile('Bolt> Ward>');
+  for (const s of c.spells) expect(shape(s.first)).toEqual('ink');
+  const pair = compile('Bolt> Touch>');
   expect(pair.spells).toHaveLength(2);
-  expect(pair.spells[0]?.nodes).toEqual([]);
+  expect(pair.spells[0]?.first).toBeNull();
 });
 
 test('holes and the lattice edge end the flow', () => {
-  expect(only('Bolt> x Ink').nodes).toEqual([]);
-  expect(only('Bolt> Ink').nodes).toHaveLength(1);
-  expect(only('Bolt^ Ink').nodes).toEqual([]);
+  expect(only('Bolt> x Ink').first).toBeNull();
+  expect(only('Bolt> Ink').first).not.toBeNull();
+  expect(only('Bolt^ Ink').first).toBeNull();
 });
 
-test('auras insulate', () => {
-  const s = only('Bolt> Amp Spark');
-  expect(s.nodes).toEqual([]);
-  expect(s.magnitude).toBe(3);
-  expect(s.amp).toBe(1);
+test('triggers and shapes wrap the rest; a seal puts the rest in its jar', () => {
+  expect(shape(only('Bolt> Tally Spark').first)).toEqual({ tally: 'spark' });
+  expect(only('Bolt> Tally Spark').first).toMatchObject({ role: 'trigger', rune: 'tally' });
+  expect(shape(only('Splash> Seep Oil').first)).toEqual({ seep: 'oil' });
+  expect(only('Bolt> Lay Brass').first).toMatchObject({ role: 'shape', rune: 'lay' });
+  expect(shape(only('Bolt> Ink Jar Spark').first)).toEqual({ ink: { jar: 'spark' } });
+  expect(stepsOf(only('Bolt> Ink Fuse Spark').first).map((s) => s.role)).toEqual([
+    'kind',
+    'seal',
+    'kind',
+  ]);
 });
 
-test('amplify stacks', () => {
-  const spark = only('. Amp .\nBolt> Spark Amp');
-  expect(spark.nodes[0]).toMatchObject({ rune: 'spark', amp: 2, magnitude: 3 });
-  const src = only('Amp .\nBolt> Spark\nAmp .');
-  expect(src.amp).toBe(2);
-  expect(src.magnitude).toBe(4);
-  // Amplify beside shape or trigger runes does nothing
-  expect(only('. Amp .\nBolt> Bend> Spark').nodes[0]).toMatchObject({ magnitude: 1 });
-});
-
-test('affinity adds magnitude', () => {
-  const d = only(MEMBERS.draughtsman.startLattice, DRAUGHTSMAN);
-  expect(d.magnitude).toBe(2);
-  expect(d.nodes[0]).toMatchObject({ rune: 'ink', amp: 0, magnitude: 2 });
-  const s = only(MEMBERS.stoker.startLattice, STOKER);
-  expect(s.nodes[0]).toMatchObject({ rune: 'spark', magnitude: 2 });
-  // sources never get affinity
-  expect(s.magnitude).toBe(2);
-  // without affinity the same rune is base strength
-  expect(only(MEMBERS.stoker.startLattice).nodes[0]).toMatchObject({ magnitude: 1 });
-});
-
-test('echo only on source', () => {
-  expect(only('. Echo .\nBolt> Spark .').echo).toBe(false);
-  expect(only('Echo . .\nBolt> Spark .').echo).toBe(true);
-  expect(only('Echo . .\nBolt> Spark .\nEcho . .').echo).toBe(true);
-});
-
-test('triggers gate the rest', () => {
-  const s = only('Bolt> OnInked Spark');
-  expect(s.nodes).toHaveLength(1);
-  expect(s.nodes[0]).toMatchObject({ kind: 'trigger', rune: 'onInked' });
-  expect(shape(s.nodes)).toEqual([{ onInked: ['spark'] }]);
-  expect(shape(only('Bolt> OnKill Steam').nodes)).toEqual([{ onKill: ['steam'] }]);
+test('auras insulate and ride on the steps and the source they touch', () => {
+  const s = only('Bolt> Coil Spark');
+  expect(s.first).toBeNull();
+  const touched = only('. Afterglow .\nBolt> Oil Spark');
+  expect(touched.first).toMatchObject({ rune: 'oil', auras: ['afterglow'] });
+  expect(touched.first?.role === 'kind' && touched.first.next).toMatchObject({ auras: [] });
+  expect(only('Steep .\nBolt> Spark').sourceAuras).toEqual(['steep']);
 });
 
 test('reached cells and aura touches', () => {
-  const c = compile('Amp . .\nBolt> Ink Bendv\nEcho . Spark');
+  const c = compile('Coil . .\nBolt> Ink Bendv\nSteep . Spark');
   expect(c.reached).toEqual(['0,1', '1,1', '2,1', '2,2']);
-  expect(c.auraTouches).toEqual(
-    expect.arrayContaining([
-      { aura: 'amplify', from: { x: 0, y: 0 }, to: { x: 0, y: 1 } },
-      { aura: 'echo', from: { x: 0, y: 2 }, to: { x: 0, y: 1 } },
-    ]),
-  );
-  expect(c.auraTouches).toHaveLength(2);
+  expect(c.auraTouches).toEqual([
+    { aura: 'coil', from: { x: 0, y: 0 }, to: { x: 0, y: 1 } },
+    { aura: 'steep', from: { x: 0, y: 2 }, to: { x: 0, y: 1 } },
+  ]);
 });
 
 test('describeSpell', () => {
-  const d = only(MEMBERS.draughtsman.startLattice, DRAUGHTSMAN);
-  expect(describeSpell(d)).toBe('Bolt (2 damage) → Ink 3×3');
-  const s = only(MEMBERS.stoker.startLattice, STOKER);
-  expect(describeSpell(s)).toBe('Bolt (2 damage) → Spark (2 damage)');
-  expect(describeSpell(only(DESIGN_EXAMPLE, DRAUGHTSMAN))).toBe(
-    'Bolt (3 damage) → Ink 3×3 → if inked: Spark (1 damage)',
-  );
-  expect(describeSpell(only(FORK_ORDER, DRAUGHTSMAN))).toBe(
-    'Bolt (2 damage) → [Oil | Spark (1 damage)]',
-  );
-  expect(describeSpell(only('. Amp .\nBolt> Ink .', DRAUGHTSMAN))).toBe(
-    'Bolt (2 damage) → Ink 5×5',
-  );
-  expect(describeSpell(only('Echo .\nBolt> Spark'))).toBe(
-    'Bolt (2 damage) → Spark (1 damage) · echoes next turn at half strength',
-  );
-  expect(describeSpell(only('Splash>'))).toBe('Splash (1 damage, 3×3)');
-  expect(describeSpell(only('Ward> Steam'))).toBe('Ward (shield 2) → Steam');
-  expect(describeSpell(only('Bolt> OnKill'))).toBe(
-    'Bolt (2 damage) → on kill, from each victim: (nothing)',
-  );
-  expect(describeSpell(only('Bolt> OnKill Steam'))).toBe(
-    'Bolt (2 damage) → on kill, from each victim: Steam',
-  );
+  expect(describeSpell(only(MEMBERS.draughtsman.startLattice))).toBe('Bolt → Ink → Strike');
+  expect(describeSpell(only(FORK_ORDER))).toBe('Bolt → [left: Oil | right: Spark]');
+  expect(describeSpell(only('Bolt> Tally Spark'))).toBe('Bolt → if Tally: Spark');
+  expect(describeSpell(only('Bolt> Ink Jar Spark'))).toBe('Bolt → Ink → Jar: [Spark]');
+  expect(describeSpell(only('Touch>'))).toBe('Touch');
 });
 
-test('ink cost', () => {
-  expect(inkCost('amplify')).toBe(3);
-  expect(inkCost('bolt')).toBe(2);
-  expect(inkUsed(parseLattice(DESIGN_EXAMPLE))).toBe(11);
-  expect(inkUsed(parseLattice(MEMBERS.draughtsman.startLattice))).toBe(3);
-  const issues = validateLattice(parseLattice(DESIGN_EXAMPLE), 8);
-  expect(issues.map((i) => i.kind)).toEqual(['ink']);
-  expect(validateLattice(parseLattice(DESIGN_EXAMPLE), 11)).toEqual([]);
-  expect(validateLattice(parseLattice(DESIGN_EXAMPLE), null)).toEqual([]);
+test('ink per role, and 1 less on a trained school (P33)', () => {
+  expect(inkOf('bolt')).toBe(2);
+  expect(inkOf('strike')).toBe(2);
+  expect(inkOf('ink')).toBe(1);
+  expect(inkOf('fork')).toBe(1);
+  expect(inkOf('bend')).toBe(1);
+  expect(inkOf('tally')).toBe(1);
+  expect(inkOf('jar')).toBe(2);
+  expect(inkOf('coil')).toBe(3);
+  const stoker = MEMBERS.stoker.lean; // trained Seam
+  expect(inkOf('bolt', {}, stoker)).toBe(1);
+  expect(inkOf('ink', {}, stoker)).toBe(1); // min 1
+  expect(inkOf('jar', {}, stoker)).toBe(2); // Timing is not his
+  const draughtsman = MEMBERS.draughtsman.lean; // trained Timing
+  expect(inkOf('jar', {}, draughtsman)).toBe(1);
+  expect(inkUsed(parseLattice(MEMBERS.draughtsman.startLattice))).toBe(5);
+  expect(inkUsed(parseLattice(MEMBERS.stoker.startLattice), {}, {}, stoker)).toBe(3);
 });
 
-test('countRunes sums across lattices', () => {
-  const counts = countRunes([parseLattice('Bolt> Ink'), parseLattice('Bolt> Ink Ink')]);
-  expect(counts.bolt).toBe(2);
-  expect(counts.ink).toBe(3);
-  expect(counts.echo).toBe(0);
+test('an invention costs its parts plus its method and takes its method role', () => {
+  const recoil: InventionDef = {
+    id: 'inv:recoil',
+    name: 'Recoil',
+    method: 'bind',
+    parts: ['shove'],
+    event: 'hit',
+    solvent: null,
+  };
+  const lib = libraryOf([recoil]);
+  expect(inkOf('inv:recoil', lib)).toBe(2 + 2);
+  const s = only('Bolt> inv:recoil Spark', {}, lib);
+  expect(s.first).toMatchObject({ role: 'kind', rune: 'inv:recoil' });
+  // Unknown inventions insulate and are flagged.
+  expect(only('Bolt> inv:nope Spark').first).toBeNull();
+  expect(validateLattice(parseLattice('Bolt> inv:nope'), null).map((i) => i.kind)).toEqual([
+    'owned',
+  ]);
 });
 
-test('validateLattice flags structural problems', () => {
+test('a spell carries what it costs on the page, auras touching it included', () => {
+  expect(only('Bolt> Ink Strike').ink).toBe(5);
+  expect(only('Coil .\nBolt> Spark').ink).toBe(2 + 1 + 3);
+});
+
+test('validateLattice flags ink and structural problems', () => {
+  const l = parseLattice('Bolt> Ink Strike Coil');
+  expect(validateLattice(l, 7).map((i) => i.kind)).toEqual(['ink']);
+  expect(validateLattice(l, 8)).toEqual([]);
+  expect(validateLattice(l, null)).toEqual([]);
   const base = parseLattice('x .\n. .');
-  const kinds = (l: Lattice) => validateLattice(l, null).map((i) => i.kind);
+  const kinds = (x: Lattice) => validateLattice(x, null).map((i) => i.kind);
   expect(kinds({ ...base, runes: [{ at: { x: 0, y: 0 }, rune: 'ink' }] })).toEqual(['socket']);
   expect(kinds({ ...base, runes: [{ at: { x: 5, y: 0 }, rune: 'ink' }] })).toEqual(['socket']);
   expect(kinds({ ...base, runes: [{ at: { x: 1, y: 0 }, rune: 'bolt' }] })).toEqual(['arrow']);
@@ -240,6 +234,24 @@ test('validateLattice flags structural problems', () => {
     ],
   };
   expect(kinds(twice)).toEqual(['overlap']);
+});
+
+test('a Glyph extra exit compiles to a split step', () => {
+  const g: GlyphDef = {
+    id: 'g1',
+    name: 'Mark',
+    kind: 'payload',
+    cells: [{ at: { x: 0, y: 0 }, rune: 'ink' }],
+    entry: { x: 0, y: 0 },
+    exits: [{ from: { x: 0, y: 0 }, dir: 'right' }],
+    idiom: null,
+    version: 1,
+    params: [],
+    extraExit: 'down',
+  };
+  const s = only('Bolt> G:g1> Spark\n.     Strike .', { g1: g });
+  expect(shape(s.first)).toEqual({ ink: { split: ['spark', 'strike'] } });
+  expect(s.first).toMatchObject({ at: { x: 1, y: 0 }, inner: { x: 0, y: 0 } });
 });
 
 test('setSocket / rotateSocket are pure', () => {

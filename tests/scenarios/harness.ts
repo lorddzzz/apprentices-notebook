@@ -24,7 +24,8 @@ import { type Ctx, runDraft } from '$engine/ctx';
  * Thin scenario harness. Parsing lives in the engine (`src/engine/notation.ts`); the legend is in
  * that file's header and in `.claude/skills/scenario/SKILL.md`.
  *
- *   Board cell   `.` | [unit D S r b f d][mods ! &][layers o i ~ * = @]   e.g. `r!o`, `@~`, `*`, `=`
+ *   Board cell   `.` | [unit D S r b f d e n m M][mods ! !! & $ +][one state i o ~ = # * {stain}…][terrain w> h g l @ _]
+ *                e.g. `r!o`, `@~`, `*`, `=`, `b&+`, `{wall}`, `_`
  *   Lattice cell `.` socket, `x` hole, rune token + arrow iff arrow rune     e.g. `Bolt>`, `Bendv`, `Ink`
  */
 export { label, parseBoard, parseLabel, parseLattice } from '$engine';
@@ -61,7 +62,7 @@ export function board(ascii: string, opts: Partial<BattleSpec> = {}): BattleStat
   return createBattle({ title: 'test', seed: 1, board: ascii, ...opts }).state;
 }
 
-/** A battle whose members cast the given lattices (ASCII, compiled with member affinity). */
+/** A battle whose members cast the given lattices (ASCII, compiled with each member's lean). */
 export function withLattices(
   ascii: string,
   lattices: Partial<Record<MemberId, string>>,
@@ -84,7 +85,7 @@ export function act(state: BattleState, action: Action): Step {
   return { ...r, lines: describeLog(r.events) };
 }
 
-/** Runs engine internals (applySpark, pushUnit…) on a draft of `state`. */
+/** Runs engine internals (push, landKind…) on a draft of `state`. */
 export function draft(state: BattleState, fn: (ctx: Ctx) => void): Step {
   const r = runDraft(state, fn);
   return { ...r, lines: describeLog(r.events) };

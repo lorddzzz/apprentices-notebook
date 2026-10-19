@@ -1,9 +1,12 @@
-import { RUNES, type RuneId, TUNING } from '$data';
+import type { RuneRef } from '$data';
 import {
   baseGlyphCost,
   type Coord,
   type GlyphDef,
   type GlyphInside,
+  hasArrow,
+  inkOf,
+  nameOf,
   type PlacedRune,
   revisionCanvas,
   sameCoord,
@@ -37,8 +40,8 @@ const cellAt = (inside: GlyphInside, at: Coord): PlacedRune | undefined =>
   inside.cells.find((c) => sameCoord(c.at, at));
 
 /** How many of each rune the inside holds. */
-export function usedRunes(inside: GlyphInside): Partial<Record<RuneId, number>> {
-  const used: Partial<Record<RuneId, number>> = {};
+export function usedRunes(inside: GlyphInside): Partial<Record<RuneRef, number>> {
+  const used: Partial<Record<RuneRef, number>> = {};
   for (const c of inside.cells) used[c.rune] = (used[c.rune] ?? 0) + 1;
   return used;
 }
@@ -62,10 +65,10 @@ export function paletteSlots(palette: readonly PaletteSlot[], inside: GlyphInsid
       known: true,
       owned: count,
       free,
-      cost: TUNING.inkCost[RUNES[rune].family],
+      cost: inkOf(rune),
       usable: free !== 0,
       affordable: true,
-      reason: free === 0 ? `No ${RUNES[rune].name} left` : null,
+      reason: free === 0 ? `No ${nameOf(rune)} left` : null,
     };
   });
 }
@@ -87,7 +90,7 @@ export function liftCell(inside: GlyphInside, at: Coord): Edit {
 /** Turns an arrow rune a quarter to the right; nothing for the rest. */
 export function turnCell(inside: GlyphInside, at: Coord): Edit {
   const placed = cellAt(inside, at);
-  if (!placed || !RUNES[placed.rune].arrow) return kept(inside);
+  if (!placed || !hasArrow(placed.rune)) return kept(inside);
   if (locked(inside, at)) return kept(inside, "The Source's arrow is fixed to the right");
   const cells = inside.cells.map((c) =>
     c === placed ? { at: { ...c.at }, rune: c.rune, dir: turnRight(c.dir ?? 'right') } : copy(c),
@@ -99,19 +102,19 @@ export function turnCell(inside: GlyphInside, at: Coord): Edit {
 export function placeRune(
   inside: GlyphInside,
   at: Coord,
-  rune: RuneId,
+  rune: RuneRef,
   palette: readonly PaletteSlot[],
 ): Edit {
   const placed = cellAt(inside, at);
   if (locked(inside, at)) return kept(inside, ENTRY_STAYS);
   if (!canvasCells(inside).some((c) => sameCoord(c, at))) return kept(inside, 'Off the page');
   const slot = palette.find((s) => s.rune === rune);
-  if (!slot) return kept(inside, `You don't hold ${RUNES[rune].name}`);
+  if (!slot) return kept(inside, `You don't hold ${nameOf(rune)}`);
   const used = (usedRunes(inside)[rune] ?? 0) - (placed?.rune === rune ? 1 : 0);
   if (slot.count !== null && used >= slot.count) {
-    return kept(inside, `No ${RUNES[rune].name} left`);
+    return kept(inside, `No ${nameOf(rune)} left`);
   }
-  const dir = RUNES[rune].arrow ? (placed?.dir ?? 'right') : undefined;
+  const dir = hasArrow(rune) ? (placed?.dir ?? 'right') : undefined;
   const next: PlacedRune = dir ? { at: { ...at }, rune, dir } : { at: { ...at }, rune };
   const cells = [...inside.cells.filter((c) => c !== placed).map(copy), next];
   return kept(withCells(inside, cells));

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { type BattleState, describeLog, parseLabel, tileAt, unitAt } from '$engine';
-import { applySpark } from '$engine/materials';
+import { dealDamage } from '$engine/damage';
 import { act, board, draft, expectLog, expectLogIncludes } from './harness';
 
 /** The canal foes (K-13 to K-17): eel, Snuffer, lamp-moth, lamp-mother. */
@@ -44,7 +44,9 @@ describe('eel (K-14)', () => {
     expect(r.lines).toContain('eel at B2 lunges left');
     expect(r.lines).toContain('Lunge hits Draughtsman for 2');
     const eel = r.state.units.find((u) => u.def === 'eel');
-    expect(eel && tile(r.state, `${'ABCDEF'[eel.pos.x]}${eel.pos.y + 1}`).water).not.toBeNull();
+    expect(
+      eel && tile(r.state, `${'ABCDEF'[eel.pos.x]}${eel.pos.y + 1}`).terrain.water,
+    ).not.toBeNull();
   });
 
   test('a member two tiles from the water is not lunged at', () => {
@@ -80,21 +82,24 @@ describe('eel (K-14)', () => {
 });
 
 describe('Snuffer (K-15)', () => {
-  test('puts out fire and its oil in its 3x3, after the burn', () => {
-    const s = board(`
+  test('puts out fire in its 3x3, after the burn', () => {
+    const s = board(
+      `
       . . . . .
-      . n r*o . * o
+      . n r* . * o
       D . . . .
-    `);
+    `,
+      { hp: { C2: 1 } },
+    );
     const r = act(s, endTurn);
-    expectLogIncludes(r.events, ['Fire hits rat at C2 for 2 (oil-soaked +1)']);
+    expectLogIncludes(r.events, ['Fire hits rat at C2 for 1']);
     const lines = describeLog(r.events);
     const burnAt = lines.findIndex((l) => l.startsWith('Fire hits rat'));
     const snuffAt = lines.findIndex((l) => l.includes('snuffs'));
     expect(burnAt).toBeGreaterThanOrEqual(0);
     expect(snuffAt).toBeGreaterThan(burnAt);
-    expect(tile(r.state, 'C2')).toMatchObject({ fire: 0, oil: false });
-    expect(tile(r.state, 'E2')).toMatchObject({ fire: 1, oil: true }); // outside the 3x3
+    expect(tile(r.state, 'C2').state).toBeNull();
+    expect(tile(r.state, 'E2').state).toMatchObject({ id: 'fire', rounds: 1 }); // outside the 3x3
   });
 });
 
@@ -115,7 +120,7 @@ describe('lamp-moth (K-16)', () => {
     expectLogIncludes(r.events, ['lamp-moth at F1 moves to C1']);
   });
 
-  test('bursts on its intent: lights its oil, 1 to each neighbour, and dies', () => {
+  test('bursts on its intent: lights its slick, 1 to each neighbour, and dies', () => {
     const s = board(`
       . D .
       d mo r
@@ -125,7 +130,7 @@ describe('lamp-moth (K-16)', () => {
     expectLogIncludes(r.events, [
       'lamp-moth at B2 bursts',
       'lamp-moth at B2 dies',
-      'oil at B2 ignites',
+      'fire bursts at B2',
       'Burst hits Draughtsman for 1',
       'Burst hits dummy at A2 for 1',
       'Burst hits rat at C2 for 1',
@@ -151,8 +156,11 @@ describe('lamp-moth (K-16)', () => {
     ]);
   });
 
-  test('a moth killed by Spark bursts too', () => {
-    const r = draft(board('S m d'), (ctx) => applySpark(ctx, [parseLabel('B1')], 1));
+  test('a moth killed by a spell bursts too', () => {
+    const r = draft(board('S m d'), (ctx) => {
+      const moth = unitAt(ctx.s, parseLabel('B1'));
+      if (moth) dealDamage(ctx, moth, 1, 'Spark');
+    });
     expectLog(r.events, [
       'Spark hits lamp-moth at B1 for 1',
       'lamp-moth at B1 dies',
@@ -229,7 +237,7 @@ describe('lamp-mother (K-17)', () => {
     const snuff = lines.findIndex((l) => l.startsWith('lamp-mother at C2 snuffs'));
     expect(burn).toBeGreaterThanOrEqual(0);
     expect(snuff).toBeGreaterThan(burn);
-    expect(tile(r.state, 'C2')).toMatchObject({ fire: 0, oil: false });
+    expect(tile(r.state, 'C2').state).toBeNull();
     expect(unitAt(r.state, parseLabel('C2'))?.hp).toBe(13);
   });
 

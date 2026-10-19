@@ -1,14 +1,15 @@
 import {
   ATTACKS,
-  CODEX,
+  type CompoundId,
   DISTRICTS,
-  DRAFTS,
   ENEMIES,
-  type InteractionId,
+  IDIOMS,
   MEMBERS,
+  METHODS,
   RUNES,
+  type SchoolId,
   SOLVENTS,
-  TUNING,
+  type StateId,
 } from '$data';
 import {
   type Action,
@@ -47,16 +48,40 @@ export function shortName(u: Unit): string {
   return u.kind === 'member' ? u.name : `${u.name} ${label(u.pos)}`;
 }
 
+/** What a state or compound is called on the board and in the log. */
+export const LAYER_NAME: Record<StateId | CompoundId, string> = {
+  blot: 'ink blot',
+  slick: 'oil slick',
+  cloud: 'steam cloud',
+  plate: 'brass plate',
+  fire: 'fire',
+  deepMark: 'deep mark',
+  stain: 'stain',
+  brandCloud: 'brand cloud',
+  shackle: 'shackle',
+  pool: 'pool',
+  greaseFog: 'grease fog',
+  skidPlate: 'skid plate',
+  bank: 'bank',
+  kettle: 'kettle',
+  wall: 'wall',
+};
+
+const rounds = (n: number): string => `${n} ${n === 1 ? 'round' : 'rounds'}`;
+
 export function tileLine(tile: Tile, at: Coord): string {
-  const rounds = (n: number): string => `${n} ${n === 1 ? 'round' : 'rounds'}`;
   const parts: string[] = [];
-  if (tile.plate)
-    parts.push(tile.plateRounds > 0 ? `brass plate (${rounds(tile.plateRounds)})` : 'brass plate');
-  if (tile.vent) parts.push('steam vent');
-  if (tile.fire > 0) parts.push(`burning oil (${rounds(tile.fire)})`);
-  else if (tile.oil) parts.push('oil');
-  if (tile.ink) parts.push('ink puddle');
-  if (tile.steam > 0) parts.push(`steam (${rounds(tile.steam)})`);
+  if (tile.state) {
+    const name = LAYER_NAME[tile.state.id];
+    parts.push(tile.state.rounds > 0 ? `${name} (${rounds(tile.state.rounds)})` : name);
+  }
+  if (tile.jar) parts.push('sealed jar');
+  if (tile.terrain.vent) parts.push('steam vent');
+  if (tile.terrain.water) parts.push(`water flowing ${tile.terrain.water}`);
+  if (tile.terrain.grate) parts.push('grate');
+  if (tile.terrain.gate) parts.push('lock gate');
+  if (tile.terrain.lamp) parts.push('lamp');
+  if (tile.terrain.drop) parts.push('a drop');
   return `${label(at)}: ${parts.length ? parts.join(', ') : 'bare floor'}`;
 }
 
@@ -72,26 +97,59 @@ function intentPhrase(s: BattleState, e: EnemyUnit): string {
   return `${verb} ${e.intent.dir} (${ordinal(e.intent.order)})${target}`;
 }
 
+export const SCHOOL_NAME: Record<SchoolId, string> = {
+  seam: 'Seam',
+  timing: 'Timing',
+  contracts: 'Contracts',
+  areas: 'Areas',
+  structure: 'Structure',
+  resonance: 'Resonance',
+  board: 'Board',
+};
+
+/** What a unit carries that changes how spells treat it; works for engine units and board views. */
+export interface TraitSource {
+  kind: 'member' | 'enemy';
+  def: string;
+  mark: 'plain' | 'deep' | null;
+  collar: boolean;
+  shackle: boolean;
+  held: boolean;
+  stunned: boolean;
+}
+
+export function traitSource(u: Unit): TraitSource {
+  return {
+    kind: u.kind,
+    def: u.def,
+    mark: u.mark ? (u.mark.deep ? 'deep' : 'plain') : null,
+    collar: u.collar !== false,
+    shackle: u.shackle > 0,
+    held: u.held > 0,
+    stunned: u.stunned,
+  };
+}
+
 /**
- * What makes a unit special, with the effect spelled out: `oil-soaked (fire +1)`. Members list
- * their affinity. Inked and coated states count, since they change what spells do to it.
+ * What makes a unit special, with the effect spelled out: `marked (a Spark bursts it for 3)`.
+ * Members list their lean. Marks, collars and shackles count, since they change what spells do to it.
  */
-export function unitTraits(
-  u: Pick<Unit, 'kind' | 'def' | 'inked' | 'brass' | 'oilSoaked'> & { branded?: boolean },
-): string[] {
+export function unitTraits(u: TraitSource): string[] {
   const out: string[] = [];
-  if (u.inked) out.push(`inked (+${TUNING.inkedBonus} damage taken)`);
-  if (u.brass) out.push('brass (conducts spark)');
-  if (u.oilSoaked) out.push(`oil-soaked (fire +${TUNING.oilSoakedBonus})`);
-  if (u.branded) out.push(`branded (fire +${TUNING.brandedBonus})`);
+  if (u.mark === 'deep') out.push('deeply marked (two Sparks to clear)');
+  else if (u.mark === 'plain') out.push('marked (a Spark bursts it)');
+  if (u.shackle) out.push('shackled (cannot move)');
+  else if (u.collar) out.push('collared (conducts Spark)');
+  if (u.held) out.push('held in place');
+  if (u.stunned) out.push('stunned (skips its next action)');
   if (u.kind === 'enemy') {
     const def = ENEMIES[u.def as keyof typeof ENEMIES];
     if (def.oilTrail) out.push('leaves an oil trail');
     if (def.attack && ATTACKS[def.attack].inks) out.push('its spit inks');
   } else {
-    const aff = MEMBERS[u.def as keyof typeof MEMBERS].affinity;
-    if (aff.length)
-      out.push(`${aff.map((m) => RUNES[m].name).join(' and ')} runes +${TUNING.affinityBonus}`);
+    const lean = MEMBERS[u.def as keyof typeof MEMBERS].lean;
+    out.push(`trained in ${SCHOOL_NAME[lean.trained]}`);
+    if (lean.gifted) out.push(`gifted in ${SCHOOL_NAME[lean.gifted]}`);
   }
   return out;
 }
@@ -100,25 +158,21 @@ export function unitTraits(
 export function unitLine(s: BattleState, u: Unit): string {
   const bits = [shortName(u), `${u.hp}/${u.maxHp} HP`];
   if (u.shield > 0) bits.push(`shield ${u.shield}`);
-  bits.push(...unitTraits(u));
+  bits.push(...unitTraits(traitSource(u)));
   const tile = tileAt(s, u.pos);
-  if (tile.steam > 0) bits.push('in steam');
-  if (tile.fire > 0) bits.push('on fire');
-  else if (tile.oil) bits.push('on oil');
+  if (tile.state) bits.push(`in ${LAYER_NAME[tile.state.id]}`);
   if (u.kind === 'enemy') bits.push(intentPhrase(s, u));
   return bits.join(' · ');
 }
 
-export function aimText(s: BattleState, aim: Aim): string {
+export function aimText(aim: Aim): string {
   switch (aim.kind) {
     case 'dir':
       return aim.dir;
     case 'tile':
       return `at ${label(aim.at)}`;
-    case 'ally': {
-      const u = findUnit(s, aim.unit);
-      return `on ${u ? u.name : aim.unit}`;
-    }
+    case 'self':
+      return 'on yourself';
   }
 }
 
@@ -128,7 +182,7 @@ export function actionLabel(s: BattleState, a: Action): string {
     case 'cast': {
       const m = findUnit(s, a.unit);
       const spell = m?.kind === 'member' ? spellOf(m, a.spell) : null;
-      return `${spell ? RUNES[spell.source].name : 'Spell'} ${aimText(s, a.aim)}`;
+      return `${spell ? RUNES[spell.source].name : 'Spell'} ${aimText(a.aim)}`;
     }
     case 'shove': {
       const m = findUnit(s, a.unit);
@@ -144,71 +198,37 @@ export function actionLabel(s: BattleState, a: Action): string {
   }
 }
 
-/** How a known interaction reads in a preview; unknown ones stay `???` (pillar: find it by playing). */
-const INTERACTION_WORDS: Record<InteractionId, string> = {
-  ignite: 'oil ignites',
-  conduct: 'spark conducts',
-  arc: 'spark arcs',
-  detonate: 'ink detonates',
-  extinguish: 'fire doused',
-  slide: 'slides on oil',
-  diffuse: 'ink diffuses',
-  heat: 'brass heats',
-  stain: 'oil stains',
-  drift: 'the current carries it',
-};
-const INTERACTION_OF: Partial<Record<GameEvent['type'], InteractionId>> = {
-  ignite: 'ignite',
-  conduct: 'conduct',
-  arc: 'arc',
-  detonate: 'detonate',
-  extinguish: 'extinguish',
-  slide: 'slide',
-  diffuse: 'diffuse',
-  heated: 'heat',
-  stained: 'stain',
-};
-
-/** Plain material effects (not interactions): always named. */
-const MATERIAL_WORDS: [GameEvent['type'], string][] = [
-  ['puddle', 'ink pools'],
-  ['oiled', 'oil spreads'],
-  ['steam', 'steam rises'],
-  ['plates', 'brass plate rises'],
-];
-
 export interface Outcome {
   /** HP actually lost per unit (shield absorption excluded, overkill included). */
   damage: Record<string, number>;
   kills: string[];
   shields: Record<string, number>;
-  inked: string[];
+  marked: string[];
 }
 
 export function outcomeOf(events: readonly GameEvent[]): Outcome {
   const damage: Record<string, number> = {};
   const shields: Record<string, number> = {};
   const kills: string[] = [];
-  const inked: string[] = [];
+  const marked: string[] = [];
   for (const e of events) {
     if (e.type === 'damage') damage[e.target.id] = (damage[e.target.id] ?? 0) + e.amount;
     else if (e.type === 'shieldAbsorbs') damage[e.unit.id] = (damage[e.unit.id] ?? 0) - e.absorbed;
     else if (e.type === 'shieldGained') shields[e.unit.id] = (shields[e.unit.id] ?? 0) + e.amount;
     else if (e.type === 'died' && !kills.includes(e.unit.id)) kills.push(e.unit.id);
-    else if (e.type === 'inked' && !inked.includes(e.unit.id)) inked.push(e.unit.id);
+    else if (e.type === 'marked' && !marked.includes(e.unit.id)) marked.push(e.unit.id);
   }
-  return { damage, kills, shields, inked };
+  return { damage, kills, shields, marked };
 }
 
 /**
- * One line for the caption before confirming: `Bolt right: rat C2 −2 dies, oil ignites`.
- * Interaction names appear only once discovered; unknown ones read `???`.
+ * One line for the caption before confirming: `Bolt right: rat C2 −2 dies`. The masked preview
+ * (D2, U2) replaces this; for now it names damage, kills, shields, marks and pushes.
  */
 export function previewSummary(
   before: BattleState,
   action: Action,
   events: readonly GameEvent[],
-  known: readonly InteractionId[],
 ): string {
   const o = outcomeOf(events);
   const parts: string[] = [];
@@ -224,33 +244,22 @@ export function previewSummary(
     if (hurt !== undefined) bits.push(hurt > 0 ? `−${hurt}` : 'blocked');
     if (dies) bits.push(u.kind === 'member' ? 'is down' : 'dies');
     if (shield) bits.push(`+${shield} shield`);
-    if (o.inked.includes(u.id) && !dies) bits.push('inked');
+    if (o.marked.includes(u.id) && !dies) bits.push('marked');
     if (bits.length) parts.push(`${name(u.id)} ${bits.join(' ')}`);
   }
   for (const e of events) {
-    if (e.type === 'pushed' && !events.some((x) => x.type === 'slide' && x.unit.id === e.unit.id)) {
-      parts.push(`${name(e.unit.id)} to ${label(e.to)}`);
-    }
-    if (e.type === 'bump') parts.push(`bumps ${e.into}`);
+    if (e.type === 'push') parts.push(`${name(e.unit.id)} pushed ${e.dir}`);
   }
-  const seen = new Set<InteractionId>();
-  for (const e of events) {
-    const id = INTERACTION_OF[e.type];
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    if (!known.includes(id)) parts.push('???');
-    else if (id === 'slide' && e.type === 'slide')
-      parts.push(`${name(e.unit.id)} slides to ${label(e.to)}`);
-    else parts.push(INTERACTION_WORDS[id]);
-  }
-  for (const [type, words] of MATERIAL_WORDS) {
-    if (events.some((e) => e.type === type)) parts.push(words);
-  }
-  if (!parts.some((p) => p !== '???')) {
+  if (parts.length === 0) {
     const lands = events.find((e) => e.type === 'lands' || e.type === 'stopped');
-    if (lands?.type === 'stopped') parts.unshift(`stopped by ${lands.by} at ${label(lands.at)}`);
-    else if (lands?.type === 'lands') parts.unshift(`lands at ${label(lands.at)}`);
-    if (parts.length === 0) parts.push('no effect');
+    if (lands?.type === 'stopped') parts.push(`stopped by ${lands.by} at ${label(lands.at)}`);
+    else if (lands?.type === 'lands') parts.push(`lands at ${label(lands.at)}`);
+    else {
+      const aimed = events.find((e) => e.type === 'aimed');
+      const at = aimed?.type === 'aimed' ? aimed.targets : [];
+      const who = at.map((t) => (t.kind === 'unit' ? name(t.unit) : label(t.at)));
+      parts.push(who.length ? `aims at ${who.join(', ')}` : 'no effect');
+    }
   }
   return `${actionLabel(before, action)}: ${parts.join(', ')}`;
 }
@@ -285,12 +294,13 @@ function aimHint(s: BattleState, mode: Extract<InputMode, { kind: 'aim' }>): str
   const name = RUNES[spell.source].name;
   switch (spell.source) {
     case 'bolt':
-    case 'quill':
       return `${name}: tap any tile in a lit line to aim it that way.`;
     case 'splash':
       return `${name}: tap a tile within 3 to burst there (3×3, hits allies too).`;
-    case 'ward':
-      return `${name}: tap ${m?.name ?? 'the caster'} or an adjacent ally to shield.`;
+    case 'touch':
+      return `${name}: tap yourself or an adjacent tile.`;
+    case 'vat':
+      return `${name}: tap yourself or an adjacent tile to fill a vat there.`;
   }
 }
 
@@ -329,7 +339,7 @@ export function hintFor(mode: InputMode, s: BattleState): Caption {
       const u = unitAt(s, mode.at);
       const tile = tileAt(s, mode.at);
       const text = u
-        ? `${unitLine(s, u)}${tile.vent ? ' · on a vent' : ''}`
+        ? `${unitLine(s, u)}${tile.terrain.vent ? ' · on a vent' : ''}`
         : tileLine(tile, mode.at);
       return { text, tone: 'hint' };
     }
@@ -350,23 +360,32 @@ export function threatenedMembers(s: BattleState): string[] {
 
 // ── Expedition wording ──
 
-/** "Ignite" for the codex entry of an interaction. */
-export function interactionTitle(id: InteractionId): string {
-  return CODEX.find((e) => e.kind === 'interaction' && e.ref === id)?.title ?? id;
+/** "Stain", "Fire", "Bonfire": the title of a named result (`compound:stain`, `burst:fire`, `idiom:bonfire`). */
+export function namedTitle(id: string): string {
+  const [what = '', ref = ''] = id.split(':');
+  if (what === 'idiom') return IDIOMS.find((i) => i.id === ref)?.name ?? ref;
+  const plain = id.slice(what.length + 1).replace(/^page:/, '');
+  const spaced = plain.replace(/([A-Z])/g, ' $1').toLowerCase();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 /** One line for a loot item: name, then what it does. */
 export function lootLine(item: LootItem): { title: string; text: string } {
   switch (item.kind) {
     case 'rune':
-      return { title: RUNES[item.rune].name, text: RUNES[item.rune].rule };
+      return {
+        title: `${RUNES[item.rune].name}, a rune page`,
+        text: RUNES[item.rune].headline,
+      };
+    case 'method':
+      return { title: METHODS[item.method].name, text: METHODS[item.method].headline };
     case 'ink':
       return {
         title: `+${item.amount} ink`,
         text: `A bigger ink pot for the ${MEMBERS[item.member].name}.`,
       };
     case 'solvent':
-      return { title: SOLVENTS[item.solvent].name, text: SOLVENTS[item.solvent].blurb };
+      return { title: SOLVENTS[item.solvent].name, text: SOLVENTS[item.solvent].rule };
     case 'vellum':
       return {
         title: `Vellum ×${item.amount}`,
@@ -376,11 +395,6 @@ export function lootLine(item: LootItem): { title: string; text: string } {
       return {
         title: 'A quiet doorway',
         text: 'Somewhere to sit and rewire your lattices before going on.',
-      };
-    case 'draft':
-      return {
-        title: `An owner's draft: ${DRAFTS.find((d) => d.id === item.draft)?.name ?? 'a torn page'}`,
-        text: 'A page the owner never got working. Mend it at the desk.',
       };
     case 'key':
       return {

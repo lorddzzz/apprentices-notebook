@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { type CodexEntryDef, IDIOMS } from '$data';
-  import { idiomShape } from './shapes';
+  import type { CodexEntryDef } from '$data';
 
   interface Props {
     entry: CodexEntryDef;
@@ -9,7 +8,6 @@
 
   let { entry, known }: Props = $props();
 
-  const idiom = $derived(IDIOMS.find((i) => i.id === entry.ref));
   const initial = $derived(entry.title.charAt(0));
 </script>
 
@@ -42,9 +40,6 @@
       <h3 class="blank" aria-label="Not found yet">???</h3>
       {#if entry.hint}
         <p class="note faded">{entry.hint}</p>
-      {/if}
-      {#if idiom}
-        <p class="shape" data-testid="codex-silhouette">{idiomShape(idiom)}</p>
       {/if}
     {/if}
   </div>
@@ -81,13 +76,6 @@
     font-size: 20px;
     letter-spacing: 0.2em;
     color: var(--ink-faint);
-  }
-  .shape {
-    margin: 4px 0 0;
-    font-family: var(--hand);
-    font-size: 16px;
-    line-height: 1.25;
-    color: var(--ink-soft);
   }
   .rule {
     margin: 2px 0 0;

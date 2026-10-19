@@ -1,27 +1,220 @@
+import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
 
-export type RuneFamily = 'source' | 'material' | 'shape' | 'trigger' | 'aura';
-export type SourceRuneId = 'bolt' | 'splash' | 'ward' | 'quill';
-export type MaterialRuneId =
-  | 'ink'
-  | 'oil'
-  | 'spark'
-  | 'steam'
-  | 'brass'
-  | 'smear'
-  | 'torch'
-  | 'fog'
-  | 'mist'
-  | 'brand'
-  | 'scald'
-  | 'etch'
-  | 'kiln';
-export type ShapeRuneId = 'bend' | 'fork' | 'pierce';
-export type TriggerRuneId = 'onInked' | 'onKill' | 'onIgnite';
-export type AuraRuneId = 'amplify' | 'echo' | 'thrift';
-export type RuneId = SourceRuneId | MaterialRuneId | ShapeRuneId | TriggerRuneId | AuraRuneId;
-export type MaterialId = MaterialRuneId; // affinity talks about these
+/** Data types: the rune model ("Mix, Move, Invent", docs/design/rune-design-final.md) and content. */
+
+export type Role = 'source' | 'action' | 'kind' | 'shape' | 'trigger' | 'seal' | 'aura';
+export type SchoolId =
+  | 'seam'
+  | 'timing'
+  | 'contracts'
+  | 'areas'
+  | 'structure'
+  | 'resonance'
+  | 'board';
+export type DistrictId =
+  | 'seam'
+  | 'canals'
+  | 'inkQuarter'
+  | 'bathhouses'
+  | 'bridges'
+  | 'foundry'
+  | 'cartographers';
+/** What pushing a unit into the board edge does in a district (P3; Seam and canals: wall). */
+export type EdgeRule = 'wall' | 'drop';
+
+export type KindId = 'ink' | 'oil' | 'steam' | 'brass' | 'spark';
+export type SourceRuneId = 'bolt' | 'splash' | 'touch' | 'vat';
+export type ActionRuneId =
+  | 'strike'
+  | 'shove'
+  | 'guard'
+  | 'sentence'
+  | 'levy'
+  | 'hold'
+  | 'swap'
+  | 'draw'
+  | 'erase';
+export type ShapeRuneId = 'fork' | 'bend' | 'seep' | 'lay' | 'toll';
+export type TriggerRuneId = 'tally' | 'brink' | 'unison';
+export type SealRuneId = 'jar' | 'fuse';
+export type AuraRuneId = 'afterglow' | 'steep' | 'coil';
+/** The 31 authored runes. */
+export type RuneId =
+  | SourceRuneId
+  | ActionRuneId
+  | KindId
+  | ShapeRuneId
+  | TriggerRuneId
+  | SealRuneId
+  | AuraRuneId;
+export type InventionId = `inv:${string}`;
+/** Anything a lattice cell (or an invention's part) can name. */
+export type RuneRef = RuneId | InventionId;
+export const isInvention = (r: RuneRef): r is InventionId => r.startsWith('inv:');
+
+/** What being gifted in a rune's school adds to it (design §9): +1 tile pushed, +1 range/area, +1 round. */
+export type Gift = 'push' | 'tile' | 'round' | null;
+
+export interface RuneDef {
+  id: RuneId;
+  name: string; // 'Bolt'
+  token: string; // lattice ASCII token: 'Bolt'
+  role: Role;
+  school: SchoolId;
+  district: DistrictId; // where its page is found
+  headline: string; // D1: one sentence, always true, always shown
+  arrow: boolean; // sources and Bend carry an absolute, rotatable arrow
+  charges: number; // per trip, sources only; 0 otherwise
+  gift: Gift;
+}
+
+// ── Board chemistry (design §4) ─────────────────────────
+/** Plain states a tile can hold. `blot` = plain Ink on an empty tile (P13); `plate` = brass plate. */
+export type StateId = 'blot' | 'slick' | 'cloud' | 'plate' | 'fire';
+/** The 10 lingering compounds (design §4.2). Deep mark and Shackle live on units (P15). */
+export type CompoundId =
+  | 'deepMark'
+  | 'stain'
+  | 'brandCloud'
+  | 'shackle'
+  | 'pool'
+  | 'greaseFog'
+  | 'skidPlate'
+  | 'bank'
+  | 'kettle'
+  | 'wall';
+export type PlainBurstId = 'detonation' | 'fire' | 'storm' | 'conduct' | 'surge';
+/** The 5 bursts plus the burst page: Spark on each lingering compound (design §4.3). */
+export type BurstId = PlainBurstId | `page:${CompoundId}`;
+/** A kind landing on a plain state (or a unit's mark/collar) makes a compound. */
+export interface MixRow {
+  kind: Exclude<KindId, 'spark'>;
+  on: StateId | 'mark' | 'collar';
+  makes: CompoundId;
+}
+/** What Spark bursts on a layer. */
+export interface BurstRow {
+  on: StateId | CompoundId | 'mark';
+  burst: BurstId;
+  damage: number;
+}
+
+// ── The Bench (design §6) ───────────────────────────────
+export type MethodId = 'conduct' | 'repeat' | 'margin' | 'bind' | 'lift';
+export type BindEvent = 'hit' | 'enters' | 'pushed' | 'dies';
+/**
+ * What a method's part slot accepts (design §6.2, compatibility is visible): an Action that
+ * resolves at once, an Action that moves a unit, the carrier kind (Ink), any Action, or a
+ * Repeat invention.
+ */
+export type PartAccepts = 'instantAction' | 'movingAction' | 'carrier' | 'action' | 'repeat';
+export interface PartSlot {
+  accepts: PartAccepts;
+  label: string; // 'an Action', shown on the empty slot
+}
+export interface MethodDef {
+  id: MethodId;
+  name: string;
+  district: DistrictId; // where it's taught
+  ink: number; // added to the parts' sum (P33)
+  makes: Role;
+  slots: readonly PartSlot[];
+  /** Bind only: the events it can name (each needs its district; see BIND_EVENT_DISTRICT). */
+  events?: readonly BindEvent[];
+  /** Headline template: `{0}`, `{1}` = the parts' names, `{event}` = the Bind event phrase. */
+  headline: string;
+}
+export type SolventId =
+  | 'gallnut'
+  | 'cinder'
+  | 'pitch'
+  | 'wick'
+  | 'wax'
+  | 'sand'
+  | 'bathSalt'
+  | 'fogJar'
+  | 'mortar'
+  | 'chalk'
+  | 'rivet'
+  | 'filings'
+  | 'quicksilver'
+  | 'graphite';
+export interface SolventDef {
+  id: SolventId;
+  name: string;
+  district: DistrictId;
+  rule: string; // "Bends the invention so that …" (design §6.3)
+}
+/** A rune the household invented at the Bench. Its role, headline and ink are derived. */
+export interface InventionDef {
+  id: InventionId;
+  name: string; // the player's name for it
+  method: MethodId;
+  parts: readonly RuneRef[];
+  event?: BindEvent; // Bind only
+  solvent: SolventId | null;
+}
+
+// ── Fine print (design §2) ──────────────────────────────
+/** What a rune meets; a line is (subject, meets) → sentence (D8). */
+export type Meets =
+  | StateId
+  | CompoundId
+  | 'empty'
+  | 'mark'
+  | 'collar'
+  | 'minion'
+  | 'elite'
+  | 'member'
+  | 'shielded'
+  | 'held'
+  | 'jar'
+  | 'edge'
+  | 'water'
+  | 'drop'
+  | 'unit'
+  | 'noHeading'
+  | 'noTarget'
+  | 'network'
+  | 'compound'; // a kind landing on any compound without its own row (P16)
+export type LineSubject = RuneId | MethodId | SolventId;
+export type LineId = `${LineSubject}:${Meets}`;
+export interface LineDef {
+  id: LineId;
+  subject: LineSubject;
+  meets: Meets;
+  text: string; // one sentence, readable after one sighting (D8)
+  district: DistrictId; // where the thing it meets is found (footnote solvents, P39)
+  /** Fired by the engine but its text isn't written yet (C1 fills it). */
+  pending?: true;
+}
+/** A footnote variant of a line (design §8, P39). */
+export interface VariantDef {
+  id: string;
+  line: LineId;
+  level: 1 | 2 | 3;
+  text: string;
+}
+/** A notable pattern in a cast's whole-life log (design D7, §11). Matched in `engine/idioms.ts`. */
+export interface IdiomDef {
+  id: string;
+  name: string;
+  district: DistrictId;
+  rule: string; // what makes it, in one plain line
+  ownerNote: string;
+}
+
+// ── The party (design §9, P36) ──────────────────────────
+export type HabitId = 'forkAhead' | 'twoJars' | 'bindOnTile';
+export interface Lean {
+  trained: SchoolId; // its runes cost 1 ink less (min 1)
+  gifted: SchoolId | null; // its runes work one step better (RuneDef.gift)
+  habit: HabitId | null;
+}
+
+// ── Units and foes ──────────────────────────────────────
 export type MemberId = 'draughtsman' | 'stoker';
 export type EnemyId =
   | 'rat'
@@ -33,81 +226,6 @@ export type EnemyId =
   | 'moth'
   | 'mother';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
-export type InteractionId =
-  | 'ignite'
-  | 'conduct'
-  | 'arc'
-  | 'detonate'
-  | 'extinguish'
-  | 'slide'
-  | 'diffuse'
-  | 'heat'
-  | 'stain'
-  | 'drift';
-export type Rarity = 'common' | 'uncommon' | 'rare';
-/** The eight properties that tag runes, solvents, recipes and idioms (research grammar). */
-export type Aspect = 'reach' | 'mark' | 'slick' | 'heat' | 'charge' | 'vapor' | 'hold' | 'return';
-export type SolventId =
-  | 'chalk'
-  | 'gallnut'
-  | 'pitch'
-  | 'cinder'
-  | 'quicksilver'
-  | 'fogJar'
-  | 'rivet'
-  | 'wax';
-/** What "magnitude" means for this rune. footprint: radius = magnitude − 1 (Chebyshev square). */
-export type Scale = 'damage' | 'shield' | 'footprint' | 'none';
-
-export interface RuneDef {
-  id: RuneId;
-  name: string; // 'Bolt', 'On Inked'
-  token: string; // lattice ASCII token: 'Bolt', 'OnInked', 'Amp'
-  family: RuneFamily;
-  rule: string; // one-line rule (codex + tooltip)
-  arrow: boolean; // true for sources + bend (absolute, rotatable arrow)
-  base: number; // base magnitude (0 for shape/trigger/aura)
-  scale: Scale;
-  charges: number; // per trip, sources only; 0 otherwise
-  rarity: Rarity;
-  aspects: readonly [Aspect, Aspect];
-  origin: 'loot' | 'bench'; // bench = only made by distilling a recipe
-}
-
-export interface AspectDef {
-  id: Aspect;
-  name: string; // 'Reach'
-  glyph: string; // '☍'
-  solvent: SolventId;
-  margin: string; // the Bench's margin line when this aspect is the gap: 'nothing to carry it'
-}
-export interface SolventDef {
-  id: SolventId;
-  name: string; // 'Gallnut'
-  aspect: Aspect;
-  blurb: string;
-}
-export interface RecipeDef {
-  id: string; // = result rune id
-  result: RuneId;
-  left: RuneId;
-  right: RuneId;
-  solvent: SolventId;
-  /** A torn page: the owner's sentence with this slot torn out (null = plain silhouette). */
-  torn: 'left' | 'right' | 'solvent' | null;
-  ownerNote: string; // the owner's reaction once written
-}
-/** A step matches a node if every given field matches (aspects: the node's rune has any listed aspect). */
-export interface IdiomStep {
-  family?: RuneFamily;
-  aspects?: readonly Aspect[];
-}
-export interface IdiomDef {
-  id: string;
-  name: string;
-  steps: readonly IdiomStep[]; // matched along one root-to-leaf branch, skipping shapes
-  ownerNote: string;
-}
 
 export interface MemberDef {
   id: MemberId;
@@ -115,7 +233,7 @@ export interface MemberDef {
   token: string; // board token 'D' / 'S'
   hp: number;
   move: number;
-  affinity: readonly MaterialId[];
+  lean: Lean; // design §9, P36
   shape: string; // lattice ASCII: '.' socket, 'x' hole
   startLattice: string; // lattice ASCII, same dims/holes as shape
   blurb: string;
@@ -129,7 +247,7 @@ export interface AttackDef {
   kind: 'adjacent' | 'projectile';
   range: number; // 1, 99 (unlimited), 2
   damage: number;
-  inks: boolean;
+  inks: boolean; // lands Ink where it hits (spit)
 }
 
 export type EnemyAi = 'chaser' | 'liner' | 'spitter' | 'idle' | 'lurker' | 'moth' | 'mother';
@@ -143,16 +261,19 @@ export interface EnemyDef {
   move: number;
   attack: AttackId | null;
   ai: EnemyAi;
+  /** Born brass: starts with a layout collar (it conducts). */
   brass: boolean;
-  oilSoaked: boolean;
+  /** Leaves a slick on every tile it walks (rats). */
   oilTrail: boolean;
+  /** P20: elites take 4 and are stunned when dropped; minions are gone. */
+  elite: boolean;
   blurb: string;
   habitat: Habitat;
   /** Ignores water, drift and oil slides (K-16). */
   flies: boolean;
   /** Never moves and never drifts (K-17). */
   anchored: boolean;
-  /** Puts out fire and its oil in its 3×3 after the burn step (K-15). */
+  /** Puts out fire in its 3×3 after the burn step (K-15). */
   snuffs: boolean;
   /** Bursts on its intent and on death (K-16). */
   bursts: boolean;
@@ -160,6 +281,7 @@ export interface EnemyDef {
   boss: boolean;
 }
 
+// ── Encounters and loot ─────────────────────────────────
 export type LootTableId = 'shallow' | 'deep' | 'heart';
 /** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
 export interface EncounterVariant {
@@ -178,12 +300,12 @@ export interface EncounterDef {
 }
 
 export type LootSpec =
-  | { kind: 'rune'; rune: RuneId }
+  | { kind: 'rune'; rune: RuneId } // a rune page (P34)
+  | { kind: 'method'; method: MethodId } // a method page
   | { kind: 'ink' } // member chosen when rolled
   | { kind: 'solvent'; solvent: SolventId }
   | { kind: 'vellum'; amount: number }
   | { kind: 'doorway' } // a quiet doorway: rewire in the field (plan S11)
-  | { kind: 'draft' } // the next owner's draft in story order, when one is due (M30)
   | { kind: 'key'; district: DistrictId }; // never in a table: added by `keyOffer` (K-23)
 export interface LootEntry {
   spec: LootSpec;
@@ -194,14 +316,15 @@ export interface LootTableDef {
   entries: readonly LootEntry[];
 }
 
+// ── Codex and Lab ───────────────────────────────────────
 export interface CodexEntryDef {
-  id: string; // 'rune:bolt', 'interaction:ignite'
-  kind: 'rune' | 'interaction' | 'recipe' | 'idiom' | 'aspect';
-  ref: RuneId | InteractionId | Aspect | string; // recipe and idiom ids are strings
+  id: string; // 'rune:bolt', 'idiom:bonfire'
+  kind: 'rune' | 'method' | 'idiom';
+  ref: string;
   title: string;
-  text: string; // the rule
+  text: string; // the headline (D1)
   ownerNote: string; // previous owner's cryptic margin note
-  /** One line in the owner's voice shown under `???` while unknown (plan S15). Torn-page recipes have none. */
+  /** One line in the owner's voice shown under `???` while unknown (plan S15). */
   hint?: string;
 }
 
@@ -217,86 +340,46 @@ export interface ScenarioDef {
   expected: readonly string[]; // describeLog of all demo events concatenated
 }
 
-// ── The owner's drafts (M29–M36) ────────────────────────
-export type DraftId = string;
-/** Where the draft's one test cast is aimed: a direction, a tile by label ('C2'), or an ally. */
-export type DraftAim = { dir: Dir } | { tile: string } | { ally: MemberId };
-/** Event types a draft goal may ask for (M32). */
-export type DraftEventType =
-  | 'ignite'
-  | 'detonate'
-  | 'conduct'
-  | 'arc'
-  | 'extinguish'
-  | 'slide'
-  | 'smear'
-  | 'heated'
-  | 'stained'
-  | 'pierced'
-  | 'gateBurns';
-/** What a draft's test must show, checked on the log and the final state (M32). Unit ids: 'dummy-1'. */
-export type DraftGoal =
-  | { all: readonly DraftGoal[] }
-  | { happens: DraftEventType; atLeast?: number }
+// ── Goals (threshold rooms) ─────────────────────────────
+/** What a threshold room asks for, checked on the log and the final state (K-22). Unit ids: 'rat-1'. */
+export type Goal =
+  | { all: readonly Goal[] }
+  | { happens: GameEvent['type']; atLeast?: number }
   | { hurt: string; atLeast: number }
   | { dies: string }
   | { spared: string }
-  | { tile: string; has: 'fire' | 'oil' | 'ink' | 'steam' | 'plate' };
-/** The draft's test stage (M31): a Lab battle, one cast at `aim`, then optionally one idle enemy round. */
-export interface DraftTest {
-  board: string; // board ASCII; the caster is the Draughtsman `D`
-  aim: DraftAim;
-  endRound?: boolean;
-  hp?: Readonly<Record<string, number>>; // by cell label, like a scenario
-  goal: DraftGoal;
-}
-/** One page of a folio (BL-14, plan F1, F7): the next fragment of the note, one test, its scraps. */
-export interface FolioPage {
-  note: string; // this page's fragment of the owner's note
-  hint: string; // a codex-style nudge for this page, shown on the desk
-  test: DraftTest;
-  scraps: Partial<Record<RuneId, number>>; // into the drawer when the page opens (page 1: on banking)
-}
-/** One of the owner's broken pages, as a folio of tests (M29, BL-14). Fixes live in the tests only. */
-export interface DraftDef {
-  id: DraftId;
-  order: number; // story order, from 1
-  depth: LootTableId; // the shallowest table that can drop it
-  name: string;
-  kind: 'spell' | 'payload';
-  inside: string; // lattice ASCII in the Glyph's local frame (the owner's broken page)
-  entry: string; // the entry cell's label in `inside` ('A1'); flow enters it moving right
-  host?: string; // a Payload draft's host page, lattice ASCII with `G:draft>` where it sits
-  note: string; // the cover line, shown in the desk list
-  pages: readonly FolioPage[]; // 2–4; tests accumulate (F4)
-  decoys: readonly RuneId[]; // drawer scraps the intended fix leaves unused (tests only, F13)
-  reaction: string; // the owner's reaction once repaired
-  lore: string; // the owner's story page, shown once mended (F12)
-}
+  | { tile: string; has: StateId | CompoundId };
 
+// ── Tuning ──────────────────────────────────────────────
 export interface Tuning {
   grid: { width: number; height: number };
-  inkCost: Record<RuneFamily, number>;
+  /** P33: ink per role; trained runes cost 1 less (min 1). */
+  inkCost: Record<Role, number>;
   startInk: number;
   inkReserve: number;
-  affinityBonus: number;
-  inkedBonus: number;
-  detonateDamage: number;
-  bumpDamage: number;
-  fireDamage: number;
-  oilSoakedBonus: number;
-  brandedBonus: number; // fire bonus on a branded unit; replaces oilSoakedBonus (larger applies)
-  fireRounds: number;
-  steamRounds: number;
-  plateRounds: number;
-  heatRounds: number; // hot brass stays hot this many rounds (re-heating refreshes)
-  heatDamage: number; // hot brass (and Scald's cloud) hits each neighbour/occupant for this at the burn step
+  // Sources (R2, P21)
+  boltRange: number;
   splashRange: number;
   splashRadius: number;
-  echoDivisor: number;
+  vatRange: number;
+  // Actions and kinds (design §4, §5.1, P19, P27)
+  strikeDamage: number;
+  sparkDamage: number;
+  guardShield: number;
+  shoveTiles: number;
+  crushBase: number; // a pushed unit hitting something: base + per tile moved
+  crushPerTile: number;
+  crushStruck: number; // what it hit takes this
+  dropEliteDamage: number;
+  fireDamage: number; // a unit standing in fire at round end
+  // Durations (P17)
+  compoundRounds: number;
+  cloudRounds: number;
+  plateRounds: number;
+  fireRounds: number;
   reviveHp: number;
   offersPerWin: number;
-  // Research and compile
+  // Glyphs and proof
   glyphMinCells: number;
   glyphMaxCells: number;
   provenCasts: number; // meaningful casts that prove a cluster
@@ -311,15 +394,13 @@ export interface Tuning {
   paramSlots: number; // open cells a Glyph may have (M22)
   paramSlotsGold: number; // at Reliability gold
   revisionCanvasMax: number; // the revision canvas is at most this many cells a side (M18)
-  draftRewardTier: { reliability: number }; // the best tier a mended folio's Glyph v1 starts with (BL-14, F9)
 }
 
 // ── The city and its districts (K-1, K-19 to K-23) ─────
-export type DistrictId = 'seam' | 'canals';
 /** How a district is heard of. `owner` ones are read off a battle log, `rumour` ones after a trip (K-20). */
 export type HearCondition = (
-  | { kind: 'ignite'; atLeast: number; district?: DistrictId } // one ignite of ≥ atLeast tiles
-  | { kind: 'discovered'; codex: string } // a codex id: 'interaction:arc'
+  | { kind: 'burst'; burst: BurstId; atLeast: number; district?: DistrictId } // one burst of ≥ atLeast tiles
+  | { kind: 'named'; id: string } // a named result: 'compound:stain', 'idiom:bonfire'
   | { kind: 'heart'; district: DistrictId }
   | { kind: 'trips'; atLeast: number }
 ) & { voice: 'owner' | 'rumour' };
@@ -327,20 +408,22 @@ export type HearCondition = (
 export interface ThresholdDef {
   name: string;
   board: string; // board ASCII, includes D and S
-  goal: DraftGoal;
+  goal: Goal;
   note: string; // the owner's note on the page
 }
-/** How a heard district opens (K-21). */
+/** How a heard district opens (K-21). `drawing`: on the map, being drawn, never opens (P2). */
 export type Gate =
   | { kind: 'none' } // open from the start
   | { kind: 'discovery' } // opens on hearing
   | { kind: 'threshold'; room: ThresholdDef }
-  | { kind: 'key'; from: DistrictId; table: LootTableId; weight: number };
+  | { kind: 'key'; from: DistrictId; table: LootTableId; weight: number }
+  | { kind: 'drawing' };
 export interface DistrictDef {
   id: DistrictId;
   name: string; // 'The oil-lit canals'
-  material: MaterialRuneId; // what the district is rich in, shown once heard
+  material: KindId; // the kind the district is rich in, shown once heard
   guild: string; // whose quarter it is, shown once heard
+  edge: EdgeRule; // P3
   encounters: readonly EncounterDef[];
   /** Encounter indices after which the party may return home (K-4). */
   landings: 'all' | readonly number[];

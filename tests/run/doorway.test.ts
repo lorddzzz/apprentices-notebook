@@ -146,7 +146,8 @@ describe('picking a doorway', () => {
 
   test('a loadout that is not ready cannot be finished', () => {
     const p = newProfile();
-    const lattices = { ...p.lattices, draughtsman: [bolt(0, 1), bolt(1, 1), bolt(2, 1)] };
+    const unknown: Placed = { at: { x: 1, y: 1 }, rune: 'vat', dir: 'right' };
+    const lattices = { ...p.lattices, draughtsman: [bolt(0, 1), unknown] };
     expect(() => applyDoorway(p, inDoorway(p, START_CHARGES), lattices)).toThrow(/not ready/);
   });
 
@@ -195,7 +196,7 @@ describe('charges follow the rune type (S12)', () => {
 
   test('a second owned Bolt starts full, and nothing is refilled', () => {
     const base = newProfile();
-    const p: Profile = { ...base, collection: { ...base.collection, bolt: 3 } };
+    const p: Profile = base; // knowledge, not copies: a second Bolt needs nothing more
     const lattices = {
       ...p.lattices,
       draughtsman: [bolt(0, 0), ...p.lattices.draughtsman],
@@ -209,7 +210,7 @@ describe('charges follow the rune type (S12)', () => {
 
   test('removing a Bolt for good drops its count, and a later Bolt starts full', () => {
     const base = newProfile();
-    const p: Profile = { ...base, collection: { ...base.collection, bolt: 3 } };
+    const p: Profile = base; // knowledge, not copies: a second Bolt needs nothing more
     // doorway 1: take the Draughtsman's Bolt out
     const bare = {
       ...p.lattices,
@@ -236,23 +237,19 @@ describe('charges follow the rune type (S12)', () => {
       cells: [
         { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
         { at: { x: 1, y: 0 }, rune: 'ink' },
-        { at: { x: 2, y: 0 }, rune: 'onInked' },
+        { at: { x: 2, y: 0 }, rune: 'strike' },
         { at: { x: 3, y: 0 }, rune: 'spark' },
       ],
       entry: { x: 0, y: 0 },
       exits: [],
-      idiom: 'cashingIn',
+      idiom: null,
       version: 1,
       params: [],
       extraExit: null,
     };
     const base = newProfile();
-    const collection = { ...base.collection };
-    for (const c of glyph.cells) collection[c.rune] += 1;
-    collection.bolt += 1; // a plain Bolt for the Draughtsman besides the Stoker's and the Glyph's
     const p: Profile = {
       ...base,
-      collection,
       glyphs: [glyph],
       inkCapacity: { draughtsman: 14, stoker: 14 },
       lattices: {

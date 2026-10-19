@@ -1,12 +1,13 @@
-import { RUNES, type RuneId, TUNING } from '$data';
+import type { Lean, RuneRef } from '$data';
 import type { Cluster } from './cluster';
 import { type Coord, DIRS, type Dir, key, sameCoord } from './grid';
-import { compileLattice } from './lattice';
+import { compileLattice, hasArrow, inkOf, nameOf, roleOf } from './lattice';
 import type {
   CellKey,
   GlyphArg,
   GlyphDef,
   GlyphLibrary,
+  InventionLibrary,
   Lattice,
   Placed,
   PlacedGlyph,
@@ -18,37 +19,51 @@ import { isGlyph } from './types';
 
 /**
  * Ink for a Glyph before outer auras and before its Economy discount: max(1, Σ inner − floor(cells / 3)).
- * Ink is per family, so an argument costs what its default does (M23).
+ * Ink is per role, so an argument costs what its default does (M23); the lean prices each cell (P33).
  */
-export function baseGlyphCost(g: GlyphDef): number {
-  const inner = g.cells.reduce((sum, c) => sum + TUNING.inkCost[RUNES[c.rune].family], 0);
+export function baseGlyphCost(
+  g: GlyphDef,
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
+): number {
+  const inner = g.cells.reduce((sum, c) => sum + inkOf(c.rune, inventions, lean), 0);
   return Math.max(1, inner - Math.floor(g.cells.length / 3));
 }
 
 /** Ink for a placed Glyph before outer auras: the base cost less its Economy discount, at least 1. */
-export function glyphCost(g: GlyphDef): number {
-  const base = baseGlyphCost(g);
+export function glyphCost(
+  g: GlyphDef,
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
+): number {
+  const base = baseGlyphCost(g, inventions, lean);
   return Math.max(1, base - (g.discount ?? 0));
 }
 
-/** The families an open cell can have; a Source or an Aura never takes an argument (M21). */
-const PARAM_FAMILIES: readonly string[] = ['material', 'trigger', 'shape'];
+/** The roles an open cell can have (P7): a Kind or an Action. */
+const PARAM_ROLES: readonly string[] = ['kind', 'action'];
 
-/** Whether a default rune could be left open (Material, Trigger or Shape). */
-export const canBeOpen = (rune: RuneId): boolean => PARAM_FAMILIES.includes(RUNES[rune].family);
+/** Whether a default rune could be left open (a Kind or an Action). */
+export const canBeOpen = (rune: RuneRef, inventions: InventionLibrary = {}): boolean =>
+  PARAM_ROLES.includes(roleOf(rune, inventions) ?? '');
 
 /**
  * What is wrong with an argument for `def`'s cell `at`, or null when it is fine: the cell has to
- * exist, be one of the Glyph's open cells, and the rune has to be of the default's family (M21).
+ * exist, be one of the Glyph's open cells, and the rune has to be of the default's role (M21, P7).
  */
-export function argIssue(def: GlyphDef, at: CellKey, arg: GlyphArg): string | null {
+export function argIssue(
+  def: GlyphDef,
+  at: CellKey,
+  arg: GlyphArg,
+  inventions: InventionLibrary = {},
+): string | null {
   const cell = def.cells.find((c) => key(c.at) === at);
   if (!cell) return `has no cell ${at}`;
   if (!def.params.includes(at)) return `cell ${at} is not open`;
-  if (!canBeOpen(cell.rune)) return `cell ${at} cannot take an argument`;
-  const family = RUNES[cell.rune].family;
-  if (RUNES[arg.rune].family !== family) {
-    return `${RUNES[arg.rune].name} is not a ${family} rune, cell ${at} takes one`;
+  if (!canBeOpen(cell.rune, inventions)) return `cell ${at} cannot take an argument`;
+  const role = roleOf(cell.rune, inventions);
+  if (roleOf(arg.rune, inventions) !== role) {
+    return `${nameOf(arg.rune, inventions)} is not a ${role} rune, cell ${at} takes one`;
   }
   return null;
 }
@@ -61,22 +76,23 @@ export function argIssue(def: GlyphDef, at: CellKey, arg: GlyphArg): string | nu
 export function cellsWithArgs(
   def: GlyphDef,
   args?: Readonly<Record<CellKey, GlyphArg>>,
+  inventions: InventionLibrary = {},
 ): readonly PlacedRune[] {
   if (!args) return def.cells;
   return def.cells.map((cell) => {
     const k = key(cell.at);
     const arg = args[k];
-    if (!arg || argIssue(def, k, arg) !== null) return cell;
-    if (!RUNES[arg.rune].arrow) return { at: cell.at, rune: arg.rune };
+    if (!arg || argIssue(def, k, arg, inventions) !== null) return cell;
+    if (!hasArrow(arg.rune)) return { at: cell.at, rune: arg.rune };
     return { at: cell.at, rune: arg.rune, dir: arg.dir ?? cell.dir ?? 'right' };
   });
 }
 
 /**
- * The runes a placed Glyph uses from the collection: its inner runes, an argument in place of an
- * open cell's default (M23).
+ * The runes a placed Glyph uses: its inner runes, an argument in place of an open cell's
+ * default (M23).
  */
-export function glyphRunes(def: GlyphDef, args?: Readonly<Record<CellKey, GlyphArg>>): RuneId[] {
+export function glyphRunes(def: GlyphDef, args?: Readonly<Record<CellKey, GlyphArg>>): RuneRef[] {
   return cellsWithArgs(def, args).map((c) => c.rune);
 }
 
@@ -89,7 +105,7 @@ export function withOpenCell(def: GlyphDef, local: Coord | null): GlyphDef {
   const cell = def.cells.find((c) => sameCoord(c.at, local));
   if (!cell) throw new Error(`No rune at ${key(local)} to leave open`);
   if (!canBeOpen(cell.rune)) {
-    throw new Error(`${RUNES[cell.rune].name} at ${key(local)} can't be left open`);
+    throw new Error(`${nameOf(cell.rune)} at ${key(local)} can't be left open`);
   }
   return { ...def, params: [key(local)] };
 }
@@ -120,10 +136,10 @@ function unrotateDir(d: Dir, dir: Dir): Dir {
 
 function entryDir(l: Lattice, root: Coord, glyphs: GlyphLibrary): Dir {
   const rooted = l.runes.find((r) => sameCoord(r.at, root));
-  if (rooted && !isGlyph(rooted) && RUNES[rooted.rune].family === 'source') {
+  if (rooted && !isGlyph(rooted) && roleOf(rooted.rune) === 'source') {
     return rooted.dir ?? 'right';
   }
-  for (const spell of compileLattice(l, [], glyphs).spells) {
+  for (const spell of compileLattice(l, glyphs).spells) {
     const cell = spell.path.find((p) => p.inner === undefined && sameCoord(p.at, root));
     if (cell) return cell.dir;
   }
@@ -176,7 +192,7 @@ function provisionalGlyph(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary): G
 /** Cells walked by the spells whose path satisfies `holds`: reached-ness per spell, not overall. */
 function walkedBy(l: Lattice, glyphs: GlyphLibrary, holds: (path: readonly Coord[]) => boolean) {
   const out = new Set<CellKey>();
-  for (const spell of compileLattice(l, [], glyphs).spells) {
+  for (const spell of compileLattice(l, glyphs).spells) {
     const cells = spell.path.map((p) => p.at);
     if (holds(cells)) for (const at of cells) out.add(key(at));
   }
@@ -196,8 +212,8 @@ export function disconnected(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary 
   const has = (path: readonly Coord[], at: Coord): boolean => path.some((c) => sameCoord(c, at));
   const ownBefore = walkedBy(l, glyphs, (path) => cluster.cells.every((c) => has(path, c)));
   const ownAfter = walkedBy(collapsed, library, (path) => has(path, cluster.root));
-  const before = new Set(compileLattice(l, [], glyphs).reached);
-  const after = new Set(compileLattice(collapsed, [], library).reached);
+  const before = new Set(compileLattice(l, glyphs).reached);
+  const after = new Set(compileLattice(collapsed, library).reached);
   const inside = new Set<CellKey>([...cluster.cells, ...cluster.auras].map(key));
   return l.runes
     .map((r) => r.at)

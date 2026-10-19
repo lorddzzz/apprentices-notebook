@@ -26,19 +26,27 @@ describe('drift', () => {
     expect(draft(board('S w> d'), drift).events).toEqual([]);
   });
 
-  test('a lit float stopping in steam is put out', () => {
-    const s = draft(board('w>* w>o~ .\nS . d'), (ctx) => {
+  test('a float never displaces a cloud: it stays where it is', () => {
+    const s = draft(board('w>* w>~ .\nS . d'), (ctx) => {
       drift(ctx);
     });
-    const b1 = tileAt(s.state, parseLabel('B1'));
-    expect(b1.oil).toBe(true);
-    expect(b1.fire).toBe(0);
+    expect(tileAt(s.state, parseLabel('A1')).state?.id).toBe('fire');
+    expect(tileAt(s.state, parseLabel('B1')).state?.id).toBe('cloud');
+  });
+
+  test('a lit float joining a slick sets it alight; floats move as one layer', () => {
+    const s = draft(board('w>* w>o w>i\nS . d'), (ctx) => {
+      drift(ctx);
+    });
+    expect(tileAt(s.state, parseLabel('A1')).state).toBeNull();
+    expect(tileAt(s.state, parseLabel('B1')).state?.id).toBe('fire');
+    expect(tileAt(s.state, parseLabel('C1')).state?.id).toBe('slick');
   });
 });
 
 describe('burnGates', () => {
   test('burns every gate beside fire, in reading order, once', () => {
-    const r = draft(board('g *o g\nS . d'), burnGates);
+    const r = draft(board('g * g\nS . d'), burnGates);
     expect(r.events.map((e) => e.type)).toEqual(['gateBurns', 'gateBurns']);
     expect(draft(r.state, burnGates).events).toEqual([]);
   });

@@ -1,11 +1,10 @@
 import { expect, test } from 'vitest';
-import { INTERACTION_IDS } from '$data';
 import { scenarioBattle } from '$engine';
 import { IDLE, memberMode, onCell, onShove, onSpell } from '../../src/app/battleInput';
 import { threatenedMembers } from '../../src/app/describe';
 import { marksOf, overlayFor } from '../../src/app/overlay';
 import { act, board } from '../scenarios/harness';
-import { at, labBattle } from './battleFixtures';
+import { at, battleOf, CAST_BOARD, SHOVE_BOARD } from './battleFixtures';
 
 test('intents drawn for each enemy with order', () => {
   const s = scenarioBattle({
@@ -29,7 +28,7 @@ test('pending shove recomputes intents from the preview state', () => {
   expect(before?.hit).toEqual(at('E2'));
   expect(threatenedMembers(s)).toEqual(['draughtsman']);
   const shove = onShove(s, memberMode(s, 'stoker')).mode;
-  const confirm = onCell(s, shove, at('A2'), INTERACTION_IDS).mode;
+  const confirm = onCell(s, shove, at('A2')).mode;
   const after = overlayFor(s, confirm).intents[0];
   expect(after?.from).toEqual(at('A1'));
   expect(after?.hit).toBeNull();
@@ -37,32 +36,46 @@ test('pending shove recomputes intents from the preview state', () => {
 });
 
 test('ghost when a unit would move', () => {
-  const s = labBattle('shove-slide');
+  const s = battleOf(SHOVE_BOARD);
   const shove = onShove(s, memberMode(s, 'stoker')).mode;
-  const confirm = onCell(s, shove, at('B1'), INTERACTION_IDS).mode;
+  const confirm = onCell(s, shove, at('B1')).mode;
   const o = overlayFor(s, confirm);
-  expect(o.ghosts).toEqual([{ unit: 'rat-1', at: at('E1'), kind: 'enemy', def: 'rat' }]);
+  expect(o.ghosts).toEqual([{ unit: 'rat-1', at: at('C1'), kind: 'enemy', def: 'rat' }]);
   expect(o.highlights).toContainEqual({ kind: 'target', at: at('B1') });
   expect(o.selected).toBe('stoker');
 });
 
-test('aim mode tints each bolt line with a chevron at its start; preview badges', () => {
-  const s = labBattle('oil-chain');
-  const aim = onSpell(s, memberMode(s, 'stoker'), '0,0', INTERACTION_IDS).mode;
+test('aim mode tints each bolt line with a chevron at its start; the preview marks what it hits', () => {
+  const s = battleOf(CAST_BOARD);
+  const aim = onSpell(s, memberMode(s, 'draughtsman'), '0,1').mode;
   const o = overlayFor(s, aim);
   const chevrons = o.highlights.filter((h) => h.kind === 'aim' && h.chevron);
   expect(chevrons).toEqual([
-    { kind: 'aim', at: at('A1'), chevron: 'up' },
-    { kind: 'aim', at: at('B2'), chevron: 'right' },
+    { kind: 'aim', at: at('B1'), chevron: 'right' },
+    { kind: 'aim', at: at('A2'), chevron: 'down' },
   ]);
-  const confirm = onCell(s, aim, at('C2'), INTERACTION_IDS).mode;
-  const badges = overlayFor(s, confirm).badges;
-  expect(badges).toContainEqual({ at: at('C2'), kind: 'kill', text: '' });
-  expect(badges).toContainEqual({ at: at('E2'), kind: 'damage', text: '−2' });
-  const effects = overlayFor(s, confirm).highlights.filter((h) => h.kind === 'effect');
-  expect(effects).toEqual(
-    ['C2', 'D2', 'E2', 'F2'].map((l) => ({ kind: 'effect', at: at(l), tone: 'fire' })),
+  const confirm = onCell(s, aim, at('C1')).mode;
+  const preview = overlayFor(s, confirm);
+  expect(preview.highlights).toContainEqual({ kind: 'target', at: at('D1') });
+  expect(preview.badges.map((b) => b.at)).toEqual([at('D1')]);
+});
+
+test('a touch aims at yourself or a neighbour; a splash anywhere in range', () => {
+  const s = scenarioBattle(
+    {
+      board:
+        'S r . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. D . . . .',
+      lattices: { stoker: 'Touch> Strike' },
+    },
+    { lab: true },
   );
+  const aim = onSpell(s, memberMode(s, 'stoker'), '0,0').mode;
+  const aims = overlayFor(s, aim)
+    .highlights.filter((h) => h.kind === 'aim')
+    .map((h) => h.at);
+  expect(aims).toContainEqual(at('A1')); // yourself
+  expect(aims).toContainEqual(at('B1'));
+  expect(aims).toContainEqual(at('A2'));
 });
 
 test('inspecting an enemy emphasises its intent and dims the others', () => {
@@ -70,13 +83,16 @@ test('inspecting an enemy emphasises its intent and dims the others', () => {
     board: 'b . . .\n. . . D\nb . . .',
     intents: { A1: 'right', A3: 'right' },
   });
-  const o = overlayFor(s, onCell(s, IDLE, at('A3'), INTERACTION_IDS).mode);
+  const o = overlayFor(s, onCell(s, IDLE, at('A3')).mode);
   expect(o.intents.map((d) => d.emphasis)).toEqual(['dim', 'strong']);
   expect(o.highlights).toContainEqual({ kind: 'focus', at: at('A3') });
 });
 
-test('an attack stopped by steam is drawn as blocked', () => {
-  const s = labBattle('sentry-steam-block');
+test('an attack stopped by a cloud is drawn as blocked', () => {
+  const s = scenarioBattle({
+    board: 'b . ~ . D',
+    intents: { A1: 'right' },
+  });
   const [line] = overlayFor(s, IDLE).intents;
   expect(line?.hit).toBeNull();
   expect(line?.blocked).toBe(true);

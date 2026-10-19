@@ -1,11 +1,22 @@
-import { ATTACKS, ENEMIES } from '$data';
+import { ATTACKS, ENEMIES, TUNING } from '$data';
 import { adjacentDir, candidatesOf, closestTo, firstAdjacentMember, nearestMember } from './ai';
 import { type Ctx, emit, ref } from './ctx';
+import { burnGates } from './current';
 import { dealDamage, kill } from './damage';
 import { byReadingOrder, type Coord, DIRS, type Dir, key, neighbors4, step } from './grid';
-import { ignite } from './materials';
 import { enemyWalk } from './movement';
-import { enemies, inBoard, isAlive, members, tileAt, unitAt } from './queries';
+import {
+  coordOf,
+  enemies,
+  flood,
+  inBoard,
+  isAlive,
+  isFire,
+  isPlate,
+  members,
+  tileAt,
+  unitAt,
+} from './queries';
 import type { BattleState, EnemyUnit, Intent, SpecialIntent, Unit } from './types';
 
 /**
@@ -17,10 +28,6 @@ const MOTHS_AT_MOST = 4;
 const FLARE_EVERY = 3;
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-
-function tileCoord(i: number, width: number): Coord {
-  return { x: i % width, y: Math.floor(i / width) };
-}
 
 /** A fresh enemy unit (mirrors `spawnEnemy` in battle.ts) with the next free id for its def. */
 export function makeEnemy(s: BattleState, defId: EnemyUnit['def'], at: Coord): EnemyUnit {
@@ -37,19 +44,21 @@ export function makeEnemy(s: BattleState, defId: EnemyUnit['def'], at: Coord): E
     hp: def.hp,
     maxHp: def.hp,
     shield: 0,
-    inked: false,
-    brass: def.brass,
-    oilSoaked: def.oilSoaked,
-    branded: false,
-    heat: 0,
-    etched: false,
+    guardUntil: null,
+    mark: null,
+    collar: def.brass ? null : false,
+    shackle: 0,
+    held: 0,
+    stunned: false,
+    elite: def.elite,
+    lastMove: null,
     intent: null,
   };
 }
 
 // ── Snuffing ────────────────────────────────────────────
 
-/** Snuffers and the lamp-mother put out fire and its oil in their 3×3, last in `hazards` (K-15). */
+/** Snuffers and the lamp-mother put out the fire in their 3×3, last in `hazards` (K-15). */
 export function snuffStep(ctx: Ctx): void {
   const s = ctx.s;
   for (const e of enemies(s)) {
@@ -58,34 +67,49 @@ export function snuffStep(ctx: Ctx): void {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         const c = { x: e.pos.x + dx, y: e.pos.y + dy };
-        if (inBoard(s, c) && tileAt(s, c).fire > 0) tiles.push(c);
+        if (inBoard(s, c) && isFire(tileAt(s, c))) tiles.push(c);
       }
     }
     if (!tiles.length) continue;
     tiles.sort(byReadingOrder);
-    for (const c of tiles) {
-      const t = tileAt(s, c);
-      t.fire = 0;
-      t.oil = false;
-      t.stain = false;
-    }
+    for (const c of tiles) tileAt(s, c).state = null;
     emit(ctx, { type: 'snuff', by: ref(e), tiles });
   }
 }
 
 // ── Bursting ────────────────────────────────────────────
 
+/** A moth's flame lights the slick it bursts on, and the slick connected to it. */
+function lightSlick(ctx: Ctx, at: Coord): void {
+  const s = ctx.s;
+  const slick = flood(s, at, (c) => tileAt(s, c).state?.id === 'slick');
+  if (!slick.length) return;
+  for (const c of slick) {
+    tileAt(s, c).state = { id: 'fire', rounds: TUNING.fireRounds, origin: null };
+  }
+  const burning = slick.flatMap((c) => unitAt(s, c) ?? []);
+  emit(ctx, {
+    type: 'burst',
+    burst: 'fire',
+    at: { ...at },
+    tiles: slick,
+    units: burning.map((u) => ref(u)),
+  });
+  burnGates(ctx);
+  for (const u of burning) dealDamage(ctx, u, TUNING.fireDamage, 'Fire');
+}
+
 /**
- * A moth bursts: lights the oil on its tile, 1 to each orthogonal neighbour, dies; bursts chain
+ * A moth bursts: lights the slick on its tile, 1 to each orthogonal neighbour, dies; bursts chain
  * (K-16). Called by `kill` when a moth dies (it is already dead then) and for a burst on purpose.
  */
-export function burstAt(ctx: Ctx, unit: Unit): void {
-  emit(ctx, { type: 'burst', unit: ref(unit), at: { ...unit.pos } });
+export function foeBurst(ctx: Ctx, unit: Unit): void {
+  emit(ctx, { type: 'foeBursts', unit: ref(unit), at: { ...unit.pos } });
   if (unit.hp > 0) {
     unit.hp = 0;
     kill(ctx, unit, false);
   }
-  ignite(ctx, unit.pos);
+  lightSlick(ctx, unit.pos);
   for (const n of neighbors4(unit.pos).sort(byReadingOrder)) {
     const victim = inBoard(ctx.s, n) ? unitAt(ctx.s, n) : null;
     if (victim) dealDamage(ctx, victim, ATTACKS.burst.damage, ATTACKS.burst.name);
@@ -102,8 +126,8 @@ function summonLamp(s: BattleState): Coord | null {
   const living = members(s).filter(isAlive);
   let best: { at: Coord; d: number } | null = null;
   s.tiles.forEach((t, i) => {
-    if (!t.lamp) return;
-    const at = tileCoord(i, s.width);
+    if (!t.terrain.lamp) return;
+    const at = coordOf(s, i);
     const d = Math.min(...living.map((m) => manhattan(at, m.pos)));
     if (!best || d < best.d) best = { at, d };
   });
@@ -121,7 +145,7 @@ export function resolveSpecial(ctx: Ctx, e: EnemyUnit, intent: SpecialIntent): v
   if (intent.kind === 'flare') {
     emit(ctx, { type: 'flare', by: ref(e) });
     const moths = livingMoths(ctx.s).sort((a, b) => byReadingOrder(a.pos, b.pos));
-    for (const m of moths) if (isAlive(m)) burstAt(ctx, m);
+    for (const m of moths) if (isAlive(m)) foeBurst(ctx, m);
     return;
   }
   const at = intent.at;
@@ -160,7 +184,7 @@ function strikeAdjacent(ctx: Ctx, e: EnemyUnit, order: number, prefer: Unit | nu
 function swimmable(s: BattleState, c: Coord, self: string): boolean {
   if (!inBoard(s, c)) return false;
   const t = tileAt(s, c);
-  if (!t.water || t.grate || t.gate || t.plate) return false;
+  if (!t.terrain.water || t.terrain.grate || t.terrain.gate || isPlate(t)) return false;
   const u = unitAt(s, c);
   return u === null || u.id === self;
 }
@@ -211,8 +235,8 @@ function planEel(ctx: Ctx, e: EnemyUnit, move: boolean, order: number): boolean 
 function nearestFire(s: BattleState, from: Coord): Coord | null {
   let best: { at: Coord; d: number } | null = null;
   s.tiles.forEach((t, i) => {
-    if (t.fire <= 0) return;
-    const at = tileCoord(i, s.width);
+    if (!isFire(t)) return;
+    const at = coordOf(s, i);
     const d = manhattan(at, from);
     if (!best || d < best.d) best = { at, d };
   });

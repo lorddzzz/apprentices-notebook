@@ -1,4 +1,3 @@
-import type { InteractionId } from '$data';
 import {
   type Action,
   type ActionResult,
@@ -123,21 +122,19 @@ export function aimAt(s: BattleState, unit: UnitId, spell: SpellKey, at: Coord):
   const legal = legalAims(s, unit, spell);
   let aim: Aim | null = null;
   switch (sp.source) {
-    case 'bolt':
-    case 'quill': {
+    case 'bolt': {
       if (sameCoord(m.pos, at)) return null;
       if (at.x === m.pos.x) aim = { kind: 'dir', dir: at.y < m.pos.y ? 'up' : 'down' };
       else if (at.y === m.pos.y) aim = { kind: 'dir', dir: at.x < m.pos.x ? 'left' : 'right' };
       break;
     }
     case 'splash':
+    case 'vat':
       aim = { kind: 'tile', at: { ...at } };
       break;
-    case 'ward': {
-      const u = unitAt(s, at);
-      if (u?.kind === 'member') aim = { kind: 'ally', unit: u.id };
+    case 'touch':
+      aim = sameCoord(m.pos, at) ? { kind: 'self' } : { kind: 'tile', at: { ...at } };
       break;
-    }
   }
   return aim && legal.some((a) => sameAim(a, aim)) ? aim : null;
 }
@@ -158,11 +155,7 @@ function travelOf(before: BattleState, after: BattleState, id: UnitId): Coord[] 
 }
 
 /** Applies the action to a copy and reads off what would happen. */
-export function previewOf(
-  s: BattleState,
-  action: Action,
-  known: readonly InteractionId[],
-): Preview {
+export function previewOf(s: BattleState, action: Action): Preview {
   const result = applyAction(s, action);
   let path: Coord[] = [];
   let targets: Coord[] = [];
@@ -185,7 +178,7 @@ export function previewOf(
     path,
     targets,
     ...outcomeOf(result.events),
-    summary: previewSummary(s, action, result.events, known),
+    summary: previewSummary(s, action, result.events),
   };
 }
 
@@ -195,9 +188,8 @@ function toConfirm(
   spell: SpellKey | null,
   at: Coord,
   action: Action,
-  known: readonly InteractionId[],
 ): InputMode {
-  return { kind: 'confirm', unit, spell, at: { ...at }, preview: previewOf(s, action, known) };
+  return { kind: 'confirm', unit, spell, at: { ...at }, preview: previewOf(s, action) };
 }
 
 /** Tapping a living member always selects it (except as a legal aim, handled first). */
@@ -220,36 +212,29 @@ function tapAim(
   unit: UnitId,
   spell: SpellKey,
   at: Coord,
-  known: readonly InteractionId[],
   aims: Aim[],
 ): InputResult {
   const aim = aimAt(s, unit, spell, at);
-  if (aim) return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }, known));
+  if (aim) return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }));
   const caster = livingMember(s, unit);
   if (caster && sameCoord(caster.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
   if (other) return other;
   const sp = caster ? spellOf(caster, spell) : null;
   const why =
-    sp?.source === 'bolt' || sp?.source === 'quill'
+    sp?.source === 'bolt'
       ? `${label(at)} is not in a straight line.`
-      : sp?.source === 'splash'
-        ? `${label(at)} is out of range.`
-        : `${label(at)} has no ally to shield.`;
+      : sp?.source === 'touch'
+        ? `${label(at)} is not next to you.`
+        : `${label(at)} is out of range.`;
   return stay({ kind: 'aim', unit, spell, aims, note: why });
 }
 
-function tapShove(
-  s: BattleState,
-  unit: UnitId,
-  at: Coord,
-  known: readonly InteractionId[],
-  dirs: Dir[],
-): InputResult {
+function tapShove(s: BattleState, unit: UnitId, at: Coord, dirs: Dir[]): InputResult {
   const m = livingMember(s, unit);
   const dir = m ? dirs.find((d) => sameCoord(step(m.pos, d), at)) : undefined;
   if (m && dir) {
-    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }, known));
+    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }));
   }
   if (m && sameCoord(m.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
@@ -257,12 +242,7 @@ function tapShove(
   return stay({ kind: 'shove', unit, dirs, note: 'Only an adjacent unit can be shoved.' });
 }
 
-export function onCell(
-  s: BattleState,
-  mode: InputMode,
-  at: Coord,
-  known: readonly InteractionId[],
-): InputResult {
+export function onCell(s: BattleState, mode: InputMode, at: Coord): InputResult {
   if (s.phase !== 'player') return stay(IDLE);
   switch (mode.kind) {
     case 'idle':
@@ -286,17 +266,17 @@ export function onCell(
       return stay(inspect(s, at, unit));
     }
     case 'aim':
-      return tapAim(s, mode.unit, mode.spell, at, known, mode.aims);
+      return tapAim(s, mode.unit, mode.spell, at, mode.aims);
     case 'shove':
-      return tapShove(s, mode.unit, at, known, mode.dirs);
+      return tapShove(s, mode.unit, at, mode.dirs);
     case 'confirm': {
       if (mode.spell !== null) {
         // Only the tapped tile confirms: tapping further along a Bolt's line re-reads it instead.
         if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-        return tapAim(s, mode.unit, mode.spell, at, known, legalAims(s, mode.unit, mode.spell));
+        return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell));
       }
       if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-      return tapShove(s, mode.unit, at, known, shoveDirs(s, mode.unit));
+      return tapShove(s, mode.unit, at, shoveDirs(s, mode.unit));
     }
   }
 }
@@ -308,12 +288,7 @@ export function onMember(s: BattleState, mode: InputMode, id: UnitId): InputResu
 }
 
 /** Spell button. Pressing the active spell again steps back to the member. */
-export function onSpell(
-  s: BattleState,
-  mode: InputMode,
-  key: SpellKey,
-  known: readonly InteractionId[],
-): InputResult {
+export function onSpell(s: BattleState, mode: InputMode, key: SpellKey): InputResult {
   const unit = selectedOf(mode);
   if (!unit || s.phase !== 'player') return stay(mode);
   if ((mode.kind === 'aim' || mode.kind === 'confirm') && mode.spell === key) {
@@ -330,12 +305,8 @@ export function onSpell(
   const only = aims.length === 1 ? aims[0] : undefined;
   if (only) {
     const at =
-      only.kind === 'tile'
-        ? only.at
-        : only.kind === 'ally'
-          ? (findUnit(s, only.unit)?.pos ?? m.pos)
-          : step(m.pos, only.dir);
-    return stay(toConfirm(s, unit, key, at, { type: 'cast', unit, spell: key, aim: only }, known));
+      only.kind === 'tile' ? only.at : only.kind === 'self' ? m.pos : step(m.pos, only.dir);
+    return stay(toConfirm(s, unit, key, at, { type: 'cast', unit, spell: key, aim: only }));
   }
   return stay({ kind: 'aim', unit, spell: key, aims });
 }

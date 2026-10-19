@@ -1,16 +1,8 @@
-import { IDIOMS, type IdiomStep, RUNES, type RuneId, TUNING } from '$data';
+import { type RuneRef, TUNING } from '$data';
 import { disconnected, fairCopy, rotateDirLocal, rotateLocal } from './glyph';
 import { byReadingOrder, type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
-import { compileLattice, isSocket } from './lattice';
-import type {
-  CellKey,
-  GlyphDef,
-  GlyphLibrary,
-  Lattice,
-  PlacedRune,
-  Spell,
-  SpellNode,
-} from './types';
+import { compileLattice, isSocket, roleOf, stepChildren } from './lattice';
+import type { CellKey, GlyphDef, GlyphLibrary, Lattice, PlacedRune, Spell, Step } from './types';
 import { isGlyph } from './types';
 
 /** Clusters (design research-and-mastery §4.1): prefix-closed subtrees of a spell's flow tree. */
@@ -67,13 +59,11 @@ export function canonical(cells: readonly CanonCell[]): string {
 
 interface FlowCell {
   at: Coord;
-  rune: RuneId | null; // null: a Glyph socket
+  rune: RuneRef | null; // null: a Glyph socket
   dir?: Dir;
   parent: number;
   children: number[];
 }
-
-const isShape = (r: RuneId | null): boolean => r !== null && RUNES[r].family === 'shape';
 
 /** The cells a spell's flow touches on the way to a node, as a tree in walk order (root first). */
 function flowTree(spell: Spell, placedAt: ReadonlyMap<CellKey, PlacedRune | 'glyph'>): FlowCell[] {
@@ -91,15 +81,14 @@ function flowTree(spell: Spell, placedAt: ReadonlyMap<CellKey, PlacedRune | 'gly
     cells[parent]?.children.push(cells.length - 1);
     return cells.length - 1;
   };
-  const walk = (nodes: Spell['nodes'], parent: number): void => {
-    for (const node of nodes) {
-      let cur = parent;
-      for (const c of [...(node.via ?? []), node.at]) cur = add(c, cur);
-      walk(node.next, cur);
-    }
+  const walk = (st: Step | null, parent: number): void => {
+    if (!st) return;
+    let cur = parent;
+    for (const c of [...(st.via ?? []), st.at]) cur = add(c, cur);
+    for (const child of stepChildren(st)) walk(child, cur);
   };
   add(spell.at, -1);
-  walk(spell.nodes, 0);
+  walk(spell.first, 0);
   return cells;
 }
 
@@ -155,7 +144,7 @@ function aurasTouching(
  * Clusters that would hold a Glyph socket are skipped.
  */
 export function clustersOf(l: Lattice, glyphs: GlyphLibrary = {}): Cluster[] {
-  const compiled = compileLattice(l, [], glyphs);
+  const compiled = compileLattice(l, glyphs);
   const placedAt = placedMap(l);
   const out: Cluster[] = [];
   for (const spell of compiled.spells) {
@@ -163,7 +152,7 @@ export function clustersOf(l: Lattice, glyphs: GlyphLibrary = {}): Cluster[] {
     for (let r = 0; r < tree.length; r++) {
       const root = tree[r] as FlowCell;
       if (root.rune === null) continue;
-      const kind = RUNES[root.rune].family === 'source' ? 'spell' : 'payload';
+      const kind = roleOf(root.rune) === 'source' ? 'spell' : 'payload';
       for (const picked of subtreesFrom(tree, r)) {
         const cells = picked.map((i) => (tree[i] as FlowCell).at);
         out.push({
@@ -180,7 +169,7 @@ export function clustersOf(l: Lattice, glyphs: GlyphLibrary = {}): Cluster[] {
 
 /** Auras touching the cluster that also touch cells outside it: they block the Fair Copy (plan P3). */
 export function blockingAuras(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary = {}): Coord[] {
-  const touches = compileLattice(l, [], glyphs).auraTouches;
+  const touches = compileLattice(l, glyphs).auraTouches;
   const inside = new Set<CellKey>(cluster.cells.map(key));
   const out: Coord[] = [];
   for (const t of touches) {
@@ -201,7 +190,7 @@ export function sharingSpells(
   glyphs: GlyphLibrary = {},
 ): { cell: Coord; source: Coord }[] {
   const placedAt = placedMap(l);
-  const trees = compileLattice(l, [], glyphs).spells.map((spell) => ({
+  const trees = compileLattice(l, glyphs).spells.map((spell) => ({
     spell,
     tree: flowTree(spell, placedAt),
   }));
@@ -229,43 +218,15 @@ export function sharedCells(l: Lattice, cluster: Cluster, glyphs: GlyphLibrary =
   return cells.sort(byReadingOrder);
 }
 
-// ── Idioms ──────────────────────────────────────────────
-
-/** Ids of the idioms one branch (shapes already skipped, source first for spells) matches. */
-export function matchBranch(branch: readonly RuneId[]): string[] {
-  const fits = (r: RuneId, st: IdiomStep): boolean => {
-    const def = RUNES[r];
-    if (st.family !== undefined && def.family !== st.family) return false;
-    return st.aspects === undefined || st.aspects.some((a) => def.aspects.includes(a));
-  };
-  // An ordered subsequence: a source-first idiom must start at the source; the rest may skip runes.
-  return IDIOMS.filter((idiom) => {
-    const [first] = idiom.steps;
-    let from = 0;
-    for (const [k, st] of idiom.steps.entries()) {
-      if (k === 0 && first?.family === 'source') {
-        const head = branch[0];
-        if (head === undefined || !fits(head, st)) return false;
-        from = 1;
-        continue;
-      }
-      const hit = branch.findIndex((r, i) => i >= from && fits(r, st));
-      if (hit < 0) return false;
-      from = hit + 1;
-    }
-    return true;
-  }).map((i) => i.id);
-}
-
 // ── Glyph definition ────────────────────────────────────
 
 /** The direction flow travels when it enters the root: a Source's arrow, else the spell's path. */
 function entryDirOf(l: Lattice, root: Coord, glyphs: GlyphLibrary): Dir {
   const rooted = l.runes.find((r) => sameCoord(r.at, root));
-  if (rooted && !isGlyph(rooted) && RUNES[rooted.rune].family === 'source') {
+  if (rooted && !isGlyph(rooted) && roleOf(rooted.rune) === 'source') {
     return rooted.dir ?? 'right';
   }
-  for (const spell of compileLattice(l, [], glyphs).spells) {
+  for (const spell of compileLattice(l, glyphs).spells) {
     const cell = spell.path.find((p) => p.inner === undefined && sameCoord(p.at, root));
     if (cell) return cell.dir;
   }
@@ -303,8 +264,7 @@ export function toGlyphDef(
   const placedAt = placedMap(l);
   const inside = new Set<CellKey>(cluster.cells.map(key));
   const exits: GlyphDef['exits'][number][] = [];
-  let idiom: string | null = null;
-  for (const spell of compileLattice(l, [], glyphs).spells) {
+  for (const spell of compileLattice(l, glyphs).spells) {
     const tree = flowTree(spell, placedAt);
     const rootIdx = tree.findIndex((c) => sameCoord(c.at, cluster.root));
     if (rootIdx < 0 || !cluster.cells.every((c) => tree.some((t) => sameCoord(t.at, c)))) continue;
@@ -317,7 +277,6 @@ export function toGlyphDef(
         exits.push({ from: local(cell.at), dir: rotateDirLocal(d, back) });
       }
     }
-    idiom = firstIdiom(tree, rootIdx, inside);
     break;
   }
   return {
@@ -327,39 +286,39 @@ export function toGlyphDef(
     cells,
     entry: { x: 0, y: 0 },
     exits,
-    idiom,
+    idiom: null,
     version: 1,
     params: [],
     extraExit: null,
   };
 }
 
-/** The first idiom some root-to-leaf branch of the cluster matches. */
-function firstIdiom(tree: readonly FlowCell[], root: number, inside: ReadonlySet<CellKey>) {
-  const branches: RuneId[][] = [];
-  const walk = (i: number, so_far: RuneId[]): void => {
-    const cell = tree[i] as FlowCell;
-    const here = cell.rune !== null && !isShape(cell.rune) ? [...so_far, cell.rune] : so_far;
-    const next = cell.children.filter((c) => inside.has(key((tree[c] as FlowCell).at)));
-    if (next.length === 0) branches.push(here);
-    for (const c of next) walk(c, here);
-  };
-  walk(root, []);
-  const found = new Set(branches.flatMap(matchBranch));
-  return IDIOMS.find((i) => found.has(i.id))?.id ?? null;
-}
-
 // ── Fair Copy tidy (plan seam-deepening S13) ─────────────
+
+/** A step tree with its cells left out: what the flow does, not where it is on the page. */
+export function stepShape(st: Step | null): unknown {
+  if (!st) return null;
+  switch (st.role) {
+    case 'action':
+    case 'kind':
+      return [st.role, st.rune, st.auras, stepShape(st.next)];
+    case 'trigger':
+    case 'shape':
+      return [st.role, st.rune, stepShape(st.next)];
+    case 'seal':
+      return [st.role, st.rune, stepShape(st.rest)];
+    case 'fork':
+      return [st.role, stepShape(st.left), stepShape(st.right)];
+    case 'split':
+      return [st.role, st.branches.map(stepShape)];
+  }
+}
 
 /** What a spell does, with no coordinates: the cast cannot tell two lattices apart when these match. */
 function behaviourOf(l: Lattice, glyphs: GlyphLibrary): { sig: string; reached: Set<CellKey> } {
-  const nodes = (ns: readonly SpellNode[]): unknown[] =>
-    ns.map((n) =>
-      n.kind === 'material' ? [n.rune, n.amp, n.magnitude, nodes(n.next)] : [n.rune, nodes(n.next)],
-    );
-  const compiled = compileLattice(l, [], glyphs);
+  const compiled = compileLattice(l, glyphs);
   const spells = compiled.spells
-    .map((s) => [key(s.at), s.source, s.amp, s.magnitude, s.echo, s.charges, nodes(s.nodes)])
+    .map((s) => [key(s.at), s.source, s.charges, s.sourceAuras, stepShape(s.first)])
     .sort((a, b) => String(a[0]).localeCompare(String(b[0])));
   return { sig: JSON.stringify(spells), reached: new Set(compiled.reached) };
 }
@@ -377,7 +336,7 @@ function tidyOffset(
 ): Coord | null {
   const placedAt = placedMap(l);
   const inCluster = (c: Coord): boolean => cluster.cells.some((x) => sameCoord(x, c));
-  for (const spell of compileLattice(l, [], glyphs).spells) {
+  for (const spell of compileLattice(l, glyphs).spells) {
     const tree = flowTree(spell, placedAt);
     if (!cluster.cells.every((c) => tree.some((t) => sameCoord(t.at, c)))) continue;
     for (const cell of tree) {

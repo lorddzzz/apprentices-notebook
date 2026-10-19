@@ -71,53 +71,55 @@
     <path d="M50 {CY - 26}V{CY + 26}M30 {CY - 8}H70" stroke="var(--parchment-deep)" stroke-width="3" stroke-linecap="round" />
   {/if}
 
-  {#if unit.brass && unit.def !== 'sentry'}
-    <circle cx="50" cy={CY} r="37" fill="none" stroke="var(--m-brass)" stroke-width="5" />
+  {#if unit.collar && unit.def !== 'sentry'}
+    <circle cx="50" cy={CY} r="37" fill="none" stroke="var(--m-brass)" stroke-width="5" data-trait="collar" />
   {/if}
 
-  {#if unit.heat > 0}
-    <g data-trait="hot">
-      {#if unit.def === 'sentry'}
-        <rect x="18" y={CY - 32} width="64" height="64" rx="10" fill="var(--m-fire)" opacity="0.42" />
-        <rect x="14" y={CY - 36} width="72" height="72" rx="13" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
-      {:else}
-        <circle cx="50" cy={CY} r="32" fill="var(--m-fire)" opacity="0.35" />
-        <circle cx="50" cy={CY} r="40" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
-      {/if}
+  {#if unit.shackle}
+    <circle
+      cx="50"
+      cy={CY}
+      r="42"
+      fill="none"
+      stroke="var(--m-brass-dark)"
+      stroke-width="6"
+      stroke-dasharray="7 6"
+      data-trait="shackle"
+    />
+  {/if}
+
+  {#if unit.held}
+    <g data-trait="held" transform="translate(70 4)">
+      <rect x="0" y="9" width="22" height="16" rx="3" fill="var(--ink-soft)" stroke="var(--parchment)" stroke-width="2" />
+      <path d="M4 9V6a7 7 0 0 1 14 0v3" fill="none" stroke="var(--ink-soft)" stroke-width="4" />
+    </g>
+  {/if}
+
+  {#if unit.stunned}
+    <g data-trait="stunned" fill="var(--lamp)" stroke="var(--ink)" stroke-width="1.5">
+      <circle cx="34" cy="6" r="5" />
+      <circle cx="50" cy="2" r="5" />
+      <circle cx="66" cy="6" r="5" />
+    </g>
+  {/if}
+
+  {#if unit.mark}
+    <g data-trait={unit.mark === 'deep' ? 'deep-mark' : 'mark'}>
       <path
-        d="M85 56c4 5 6 7 6 11a6 6 0 0 1-12 0c0-2 1-3 2.5-4.5 0 2 1 3 2 3 0-3-1-5 1.5-9.5z"
-        fill="var(--m-fire)"
-        stroke="var(--ink)"
-        stroke-width="2"
-        stroke-linejoin="round"
+        d="M84 30c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
+        fill="var(--m-ink)"
+        stroke="var(--parchment)"
+        stroke-width="2.5"
       />
+      {#if unit.mark === 'deep'}
+        <path
+          d="M70 40c-4 5-6 7.5-6 11a6 6 0 0 0 12 0c0-3.5-2-6-6-11z"
+          fill="var(--m-ink)"
+          stroke="var(--parchment)"
+          stroke-width="2.5"
+        />
+      {/if}
     </g>
-  {/if}
-
-  {#if unit.etched}
-    <g data-trait="etched" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M13 27 22 35 14 42 23 49" stroke="var(--parchment)" stroke-width="8" opacity="0.7" />
-      <path d="M13 27 22 35 14 42 23 49" stroke="var(--m-brass-dark)" stroke-width="4" />
-    </g>
-  {/if}
-
-  {#if unit.oilSoaked}
-    <path
-      d="M16 52c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
-      fill="var(--m-oil)"
-      stroke="var(--parchment)"
-      stroke-width="2.5"
-      data-trait="oil-soaked"
-    />
-  {/if}
-
-  {#if unit.inked}
-    <path
-      d="M84 30c-5 7-8 10-8 14.5a8 8 0 0 0 16 0c0-4.5-3-7.5-8-14.5z"
-      fill="var(--m-ink)"
-      stroke="var(--parchment)"
-      stroke-width="2.5"
-    />
   {/if}
 
   {#if unit.shield > 0}

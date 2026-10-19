@@ -1,5 +1,5 @@
 import { MEMBER_IDS, type MemberId } from '$data';
-import { discoveriesIn, type EventLog, type GameEvent } from './events';
+import { type EventLog, type GameEvent, namedIn } from './events';
 import { key as cellKey } from './grid';
 import type {
   CellKey,
@@ -27,22 +27,17 @@ export function emptyStats(): TripStats {
 
 /** Event types that count as a chain reaction when they come from one cast (plan S16). */
 const REACTIONS: ReadonlySet<GameEvent['type']> = new Set([
-  'ignite',
-  'extinguish',
-  'conduct',
-  'arc',
-  'detonate',
-  'slide',
-  'diffuse',
-  'smear',
-  'heated',
-  'cooled',
-  'stained',
-  'scalded',
-  'etched',
+  'mixed',
+  'burst',
+  'crush',
+  'dropped',
+  'conducted',
+  'markSpread',
+  'released',
+  'spreadState',
 ]);
 
-/** Events that end a cast's stretch of the log (an echo has no trace to close it). */
+/** Events that end a cast's stretch of the log. */
 const BOUNDARY: ReadonlySet<GameEvent['type']> = new Set([
   'cast',
   'moved',
@@ -59,7 +54,6 @@ interface Segment {
   damage: number;
   kills: number;
   reactions: number;
-  queuesEcho: boolean;
   fired: CellKey[]; // the cells of this cast's `trace` (none for an echo)
 }
 
@@ -79,7 +73,7 @@ const sameCells = (a: readonly CellKey[], b: readonly CellKey[]): boolean =>
 /**
  * Folds one finished encounter's event log into the trip's stats (plan S16). `known` is the
  * profile as it was before this encounter, so first discoveries can be told apart. A cast owns
- * the events from its `cast` event to its `trace` (or, for an echo, to the next boundary);
+ * the events from its `cast` event to its `trace`;
  * damage to enemies and their deaths in that stretch are credited to its spell. `compiled` is each
  * member's spells as fought (for each tally's `cells`, M15; task E5).
  */
@@ -97,7 +91,6 @@ export function accumulateStats(
   let biggest = stats.biggestChain ? { ...stats.biggestChain } : null;
   let proofCasts = stats.proofCasts;
   const keyOf = new Map<string, SpellKey>(); // `${member}|${name}` → the key a trace last gave it
-  const echoes = new Map<MemberId, SpellKey[]>(); // keys of casts whose echo is still to come, in order
 
   let seg: Segment | null = null;
   const close = (): void => {
@@ -121,7 +114,6 @@ export function accumulateStats(
     const fought = compiled[seg.member]?.find((s) => s.key === key);
     if (fought) t.cells = pathCells(fought);
     for (const c of seg.fired) if (!t.fired.includes(c)) t.fired.push(c);
-    if (seg.queuesEcho) echoes.set(seg.member, [...(echoes.get(seg.member) ?? []), key]);
     t.casts += 1;
     t.damage += seg.damage;
     t.kills += seg.kills;
@@ -146,22 +138,10 @@ export function accumulateStats(
     if (e.type === 'cast') {
       const member = e.caster.member ? memberOf(e.caster.id) : null;
       if (member) {
-        // An echo has no trace: it belongs to the cast that queued it.
-        const key = e.echo ? (echoes.get(member)?.shift() ?? null) : null;
-        seg = {
-          member,
-          name: e.spell,
-          key,
-          damage: 0,
-          kills: 0,
-          reactions: 0,
-          queuesEcho: false,
-          fired: [],
-        };
+        seg = { member, name: e.spell, key: null, damage: 0, kills: 0, reactions: 0, fired: [] };
       }
     } else if (seg) {
-      if (e.type === 'echoQueued') seg.queuesEcho = true;
-      else if (e.type === 'damage' && !e.target.member) seg.damage += e.amount;
+      if (e.type === 'damage' && !e.target.member) seg.damage += e.amount;
       else if (e.type === 'died' && !e.unit.member) seg.kills += 1;
       else if (REACTIONS.has(e.type)) seg.reactions += 1;
     }
@@ -169,9 +149,8 @@ export function accumulateStats(
   close();
 
   const discoveries = [...stats.discoveries];
-  for (const id of discoveriesIn(log)) {
-    const code = `interaction:${id}`;
-    if (!known.interactions.includes(id) && !discoveries.includes(code)) discoveries.push(code);
+  for (const code of namedIn(log)) {
+    if (!known.named.includes(code) && !discoveries.includes(code)) discoveries.push(code);
   }
 
   return {

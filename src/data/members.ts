@@ -9,9 +9,11 @@ export const MEMBERS: Record<MemberId, MemberDef> = {
     token: 'D',
     hp: 6,
     move: 3,
-    affinity: ['ink'],
+    lean: { trained: 'timing', gifted: 'contracts', habit: 'twoJars' },
     shape: '. . . . .\n. . . . .\nx . . . x',
-    startLattice: ['.     .   . . .', 'Bolt> Ink . . .', 'x     .   . . x'].join('\n'),
+    startLattice: ['.     .   .      . .', 'Bolt> Ink Strike . .', 'x     .   .      . x'].join(
+      '\n',
+    ),
     blurb: 'Marks his targets in ink before anything else touches them.',
   },
   stoker: {
@@ -20,12 +22,12 @@ export const MEMBERS: Record<MemberId, MemberDef> = {
     token: 'S',
     hp: 8,
     move: 3,
-    affinity: ['spark', 'oil'],
+    lean: { trained: 'seam', gifted: 'seam', habit: 'forkAhead' },
     shape: 'x . x\n. . .\n. . .\n. . .\n. . .\nx . x',
     startLattice: [
       'x Boltv x',
+      '. Oil   .',
       '. Spark .',
-      '. .     .',
       '. .     .',
       '. .     .',
       'x .     x',

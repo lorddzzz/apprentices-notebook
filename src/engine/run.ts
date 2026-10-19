@@ -1,45 +1,50 @@
 import {
-  type Aspect,
+  type BindEvent,
   CODEX,
   type CodexEntryDef,
   DISTRICT_IDS,
   DISTRICTS,
   type DistrictId,
-  DRAFT_IDS,
-  DRAFTS,
-  type DraftId,
+  ENEMY_IDS,
   encountersOf,
-  IDIOMS,
-  INTERACTION_IDS,
-  type InteractionId,
+  type InventionDef,
+  isInvention,
+  type LineId,
   LOOT_TABLES,
   type LootEntry,
   type LootTableId,
   MEMBER_IDS,
   MEMBERS,
+  METHOD_IDS,
+  type Meets,
   type MemberId,
-  RECIPES,
   RUNE_IDS,
-  RUNES,
   type RuneId,
+  type RuneRef,
   SOLVENT_IDS,
   type SolventId,
-  START_COLLECTION,
+  START_KNOWN,
   TUNING,
 } from '$data';
 import { applyAction, createEncounterBattle } from './battle';
 import { bankKeys, canReturn, cityDefaults, hearAfterTrip, hearFromBattle, keyOffer } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
-import { bankDrafts, nextDraft } from './drafts';
-import type { EventLog } from './events';
-import { glyphRunes, withOpenCell } from './glyph';
+import { type EventLog, namedIn } from './events';
+import { canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import { type Coord, DIRS, type Dir, label } from './grid';
-import { compileLattice, inkCost, inkUsed, isSocket, validateLattice } from './lattice';
+import {
+  compileLattice,
+  inkOf,
+  inkUsed,
+  isSocket,
+  libraryOf,
+  nameOf,
+  validateLattice,
+} from './lattice';
 import { parseLattice } from './notation';
 import { recordGlyphCasts, recordOf, rewardsOf, tierUps } from './profiler';
-import { masksFrom, matchIdioms, provenCount } from './proof';
+import { masksFrom, provenCount } from './proof';
 import { memberById } from './queries';
-import { type Attempt, trial, trialKey } from './research';
 import { createRng, deriveSeed, pickWeighted } from './rng';
 import { accumulateStats, emptyStats } from './tripStats';
 import type {
@@ -50,14 +55,13 @@ import type {
   CastSample,
   CellKey,
   CompiledLattice,
-  DraftCopy,
   FiredCell,
   GlyphArg,
   GlyphDef,
   GlyphId,
-  GlyphInside,
   GlyphLibrary,
   GlyphRecord,
+  InventionLibrary,
   Lattice,
   LatticeIssue,
   LootItem,
@@ -79,8 +83,9 @@ import type {
 import { isGlyph } from './types';
 
 /**
- * Run layer: the profile (collection, ink, lattices, codex), the trip lifecycle and save data.
- * Everything here is pure: functions return new objects and never mutate their inputs.
+ * Run layer: the profile (what the household knows, ink, lattices, codex), the trip lifecycle and
+ * save data. Everything here is pure: functions return new objects and never mutate their inputs.
+ * R1 rebuilds this on Profile v7 (plan §2.8); W0b only moved it onto the new model.
  *
  *   startTrip → beginEncounter → (battle) → closeBattle → pickLoot × picks → pushOn | returnHome
  *
@@ -106,36 +111,31 @@ const copyRune = (r: Placed): Placed =>
 
 // ── Profile ─────────────────────────────────────────────
 
+/** A fresh notebook (Profile v7, P1, P35). */
 export function newProfile(): Profile {
   return {
-    collection: { ...START_COLLECTION },
+    known: [...START_KNOWN],
+    methods: [],
+    inventions: [],
+    solvents: Object.fromEntries(SOLVENT_IDS.map((id) => [id, 0])) as Record<SolventId, number>,
     inkCapacity: perMember(() => TUNING.startInk),
     lattices: perMember((m) => parseLattice(MEMBERS[m].startLattice).runes.map(copyRune)),
-    interactions: [],
-    ...researchDefaults(),
+    witnessed: [],
+    named: [],
+    met: [],
+    foesMet: [],
+    footnotes: {},
+    vellum: 0,
+    glyphs: [],
     ...masteryDefaults(),
+    proof: perMember(() => []),
     city: cityDefaults(),
   };
 }
 
-/** The mastery fields of a fresh profile (save v4, M37). */
-export function masteryDefaults(): Pick<Profile, 'glyphArchive' | 'glyphRecords' | 'drafts'> {
-  return { glyphArchive: [], glyphRecords: {}, drafts: [] };
-}
-
-/** The research and compile fields of a fresh profile (save v2). */
-export function researchDefaults(): Pick<
-  Profile,
-  'solvents' | 'vellum' | 'bench' | 'glyphs' | 'proof' | 'idioms'
-> {
-  return {
-    solvents: Object.fromEntries(SOLVENT_IDS.map((id) => [id, 0])) as Record<SolventId, number>,
-    vellum: 0,
-    bench: { trials: [], known: [] },
-    glyphs: [],
-    proof: perMember(() => []),
-    idioms: [],
-  };
+/** The mastery fields of a fresh profile (M37). */
+export function masteryDefaults(): Pick<Profile, 'glyphArchive' | 'glyphRecords'> {
+  return { glyphArchive: [], glyphRecords: {} };
 }
 
 export function latticeOf(p: Profile, m: MemberId): Lattice {
@@ -166,59 +166,51 @@ export function glyphLibrary(p: Pick<Profile, 'glyphs' | 'glyphRecords'>): Glyph
   );
 }
 
+/** The household's inventions by id. */
+export const inventionLibrary = (p: Pick<Profile, 'inventions'>): InventionLibrary =>
+  libraryOf(p.inventions);
+
 export function compiledFor(p: Profile, m: MemberId): CompiledLattice {
-  return compileLattice(latticeOf(p, m), MEMBERS[m].affinity, glyphLibrary(p));
+  return compileLattice(latticeOf(p, m), glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean);
 }
 
 export function setMemberLattice(p: Profile, m: MemberId, l: Lattice): Profile {
   return { ...p, lattices: { ...p.lattices, [m]: l.runes.map(copyRune) } };
 }
 
-/** Runes a placed socket uses from the collection: itself, or a Glyph's inner runes and args (P1, M23). */
-function runesIn(p: Profile, r: Placed): RuneId[] {
+/** Runes a placed socket uses: itself, or a Glyph's inner runes and args (M23). */
+function runesIn(p: Profile, r: Placed): RuneRef[] {
   if (!isGlyph(r)) return [r.rune];
   const def = glyphLibrary(p)[r.glyph];
   return def ? glyphRunes(def, r.args) : [];
 }
 
-function placedCount(p: Profile, rune: RuneId, except?: { m: MemberId; at: Coord }): number {
-  let n = 0;
-  for (const m of MEMBER_IDS) {
-    for (const r of p.lattices[m]) {
-      if (except && except.m === m && except.at.x === r.at.x && except.at.y === r.at.y) continue;
-      n += runesIn(p, r).filter((x) => x === rune).length;
-    }
-  }
-  return n;
-}
-
-/** Copies of `rune` that are owned and not yet placed in either lattice. */
-export function available(p: Profile, rune: RuneId): number {
-  return Math.max(0, p.collection[rune] - placedCount(p, rune));
+/** Whether the household knows a rune or has invented it (P34: knowledge, not copies). */
+export function knows(p: Profile, rune: RuneRef): boolean {
+  return isInvention(rune) ? p.inventions.some((d) => d.id === rune) : p.known.includes(rune);
 }
 
 /**
  * Null when `rune` can go on `at` of member `m`, else the reason. A socket that is already
  * occupied counts as free (placing replaces its rune).
  */
-export function canPlace(p: Profile, m: MemberId, at: Coord, rune: RuneId): string | null {
+export function canPlace(p: Profile, m: MemberId, at: Coord, rune: RuneRef): string | null {
   const l = latticeOf(p, m);
   if (!isSocket(l.shape, at)) return 'No socket here';
-  if (p.collection[rune] - placedCount(p, rune, { m, at }) <= 0) return 'None left';
+  if (!knows(p, rune)) return 'Not known';
   const without: Lattice = {
     shape: l.shape,
     runes: l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y),
   };
-  if (inkUsed(without, glyphLibrary(p)) + inkCost(rune) > p.inkCapacity[m]) {
+  const lib = inventionLibrary(p);
+  const lean = MEMBERS[m].lean;
+  if (inkUsed(without, glyphLibrary(p), lib, lean) + inkOf(rune, lib, lean) > p.inkCapacity[m]) {
     return 'Not enough ink';
   }
   return null;
 }
 
-/**
- * `canPlace` for a Glyph: every inner rune (an argument in place of its open cell's default) must
- * be free, as if placed one by one (plan P1, M23).
- */
+/** `canPlace` for a Glyph: every inner rune (an argument in place of its default) must be known (M23). */
 export function canPlaceGlyph(
   p: Profile,
   m: MemberId,
@@ -230,36 +222,31 @@ export function canPlaceGlyph(
   if (!def) return 'Unknown Glyph';
   const l = latticeOf(p, m);
   if (!isSocket(l.shape, at)) return 'No socket here';
-  const needs = new Map<RuneId, number>();
-  for (const rune of glyphRunes(def, args)) needs.set(rune, (needs.get(rune) ?? 0) + 1);
-  for (const [rune, n] of needs) {
-    if (p.collection[rune] - placedCount(p, rune, { m, at }) < n) return 'None left';
-  }
+  if (glyphRunes(def, args).some((r) => !knows(p, r))) return 'Not known';
   const runes = l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y);
   const socket: Placed = args ? { at, glyph, dir: 'right', args } : { at, glyph, dir: 'right' };
   const placed: Lattice = { shape: l.shape, runes: [...runes, socket] };
-  if (inkUsed(placed, glyphLibrary(p)) > p.inkCapacity[m]) return 'Not enough ink';
+  if (inkUsed(placed, glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean) > p.inkCapacity[m]) {
+    return 'Not enough ink';
+  }
   return null;
 }
 
-/** Issues per member (ink, structure, and runes used beyond what is owned). Empty object = ready. */
+/** Issues per member (ink, structure, and runes the household doesn't know). Empty object = ready. */
 export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIssue[]>> {
-  const lattices = perMember((m) => latticeOf(p, m));
-  const counts = Object.fromEntries(RUNE_IDS.map((id) => [id, 0])) as Record<RuneId, number>;
-  for (const m of MEMBER_IDS) {
-    for (const r of lattices[m].runes) for (const rune of runesIn(p, r)) counts[rune] += 1;
-  }
   const out: Partial<Record<MemberId, LatticeIssue[]>> = {};
+  const lib = inventionLibrary(p);
   for (const m of MEMBER_IDS) {
-    const issues = validateLattice(lattices[m], p.inkCapacity[m], glyphLibrary(p));
-    for (const r of lattices[m].runes) {
+    const l = latticeOf(p, m);
+    const issues = validateLattice(l, p.inkCapacity[m], glyphLibrary(p), lib, MEMBERS[m].lean);
+    for (const r of l.runes) {
       for (const rune of new Set(runesIn(p, r))) {
-        if (counts[rune] > p.collection[rune]) {
+        if (!knows(p, rune) && !issues.some((i) => i.kind === 'owned' && i.rune === rune)) {
           issues.push({
             kind: 'owned',
             at: r.at,
             rune,
-            message: `Uses ${counts[rune]} of ${rune}, owns ${p.collection[rune]}`,
+            message: `${nameOf(rune, lib)} is not known`,
           });
         }
       }
@@ -270,24 +257,17 @@ export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIss
 }
 
 export function codexView(p: Profile): { entry: CodexEntryDef; known: boolean }[] {
-  const owned = RUNE_IDS.filter((id) => p.collection[id] > 0);
   return CODEX.map((entry) => {
     let known: boolean;
     switch (entry.kind) {
       case 'rune':
-        known = p.collection[entry.ref as RuneId] > 0;
+        known = p.known.includes(entry.ref as RuneId);
         break;
-      case 'interaction':
-        known = p.interactions.includes(entry.ref as InteractionId);
-        break;
-      case 'recipe':
-        known = p.bench.known.includes(entry.ref);
+      case 'method':
+        known = p.methods.some((m) => m === entry.ref);
         break;
       case 'idiom':
-        known = p.idioms.includes(entry.ref);
-        break;
-      case 'aspect':
-        known = owned.some((id) => RUNES[id].aspects.includes(entry.ref as Aspect));
+        known = p.named.includes(`idiom:${entry.ref}`);
         break;
     }
     return { entry, known };
@@ -366,6 +346,7 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
     party,
     deriveSeed(t.seed, t.encounter),
     variantFor(t, t.encounter),
+    t.district,
   );
   let state = first.state;
   const events = [...first.events];
@@ -385,7 +366,6 @@ export function recordAction(t: Trip, action: Action): Trip {
 
 /**
  * Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed.
- * A table's `draft` entry offers `draft` (from `nextDraft`); with none due it is left out of the pool.
  * A `key` (from `keyOffer`, K-23) joins the end of the pool with its weight.
  */
 export function rollOffers(
@@ -393,13 +373,10 @@ export function rollOffers(
   encounter: number,
   table: LootTableId,
   members: readonly MemberId[] = MEMBER_IDS,
-  draft: DraftId | null = null,
   key: { district: DistrictId; weight: number } | null = null,
 ): LootItem[] {
   const rng = createRng(deriveSeed(tripSeed, 1000 + encounter));
-  const pool: LootEntry[] = LOOT_TABLES[table].entries.filter(
-    (e) => e.spec.kind !== 'draft' || draft !== null,
-  );
+  const pool: LootEntry[] = [...LOOT_TABLES[table].entries];
   if (key) pool.push({ spec: { kind: 'key', district: key.district }, weight: key.weight });
   const offers: LootItem[] = [];
   for (let n = 0; n < TUNING.offersPerWin && pool.length > 0; n++) {
@@ -413,12 +390,11 @@ export function rollOffers(
     if (!entry) break;
     const spec = entry.spec;
     if (spec.kind === 'rune') offers.push({ kind: 'rune', rune: spec.rune });
+    else if (spec.kind === 'method') offers.push({ kind: 'method', method: spec.method });
     else if (spec.kind === 'doorway') offers.push({ kind: 'doorway' });
     else if (spec.kind === 'solvent') offers.push({ kind: 'solvent', solvent: spec.solvent });
     else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
-    else if (spec.kind === 'draft') {
-      if (draft !== null) offers.push({ kind: 'draft', draft });
-    } else if (spec.kind === 'key') offers.push({ kind: 'key', district: spec.district });
+    else if (spec.kind === 'key') offers.push({ kind: 'key', district: spec.district });
     else {
       const member = members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
       offers.push({ kind: 'ink', member, amount: TUNING.inkReserve });
@@ -428,7 +404,7 @@ export function rollOffers(
 }
 
 /**
- * Closes a finished battle. Interactions seen are kept either way (knowledge isn't loot).
+ * Closes a finished battle. Named results are kept either way (knowledge isn't loot).
  * Won: HP and charges carry over (a downed member returns at 1 HP) and loot is offered.
  * Wiped: the trip ends and its pending loot is lost. `log` is the whole fight's event log; it
  * feeds the trip's stats, returned either way so a wipe can still show the trip page.
@@ -445,9 +421,9 @@ export function finishEncounter(
   // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
   const fought = perMember((m) => compiledFor(foughtWith, m).spells);
   const stats = accumulateStats(t.stats, log, p, fought);
-  const interactions = [...p.interactions];
-  for (const d of b.discovered) if (!interactions.includes(d)) interactions.push(d);
-  const profile: Profile = { ...p, interactions };
+  const named = [...p.named];
+  for (const id of namedIn(log)) if (!named.includes(id)) named.push(id);
+  const profile: Profile = { ...p, named };
   if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
 
   const enc = encountersOf(t.district)[t.encounter];
@@ -458,14 +434,7 @@ export function finishEncounter(
     hp: perMember((m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
     charges: perMember((m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
-    offers: rollOffers(
-      t.seed,
-      t.encounter,
-      enc.loot,
-      MEMBER_IDS,
-      nextDraft(p, t, enc.loot),
-      keyOffer(p, t, enc.loot),
-    ),
+    offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS, keyOffer(p, t, enc.loot)),
     picksLeft: enc.picks,
     actions: [],
     stats,
@@ -532,26 +501,25 @@ export function pushOn(t: Trip): Trip {
 }
 
 /**
- * Banks the trip's loot into the profile (drafts go to `Profile.drafts`, M30; keys open their
+ * Banks the trip's loot into the profile (rune and method pages teach, P34; keys open their
  * district, K-23), then the trip counts and rumours are heard (K-20). Throws away from a landing (K-4).
  */
 export function returnHome(p: Profile, t: Trip): Profile {
   need(t, 'crossroads', 'cleared');
   if (!canReturn(t)) throw new Error('There is no landing here');
-  const collection = { ...p.collection };
+  const known = [...p.known];
+  const methods = [...p.methods];
   const inkCapacity = { ...p.inkCapacity };
   const solvents = { ...p.solvents };
   let vellum = p.vellum;
   for (const item of t.loot) {
-    if (item.kind === 'rune') collection[item.rune] += 1;
+    if (item.kind === 'rune' && !known.includes(item.rune)) known.push(item.rune);
+    else if (item.kind === 'method' && !methods.includes(item.method)) methods.push(item.method);
     else if (item.kind === 'ink') inkCapacity[item.member] += item.amount;
     else if (item.kind === 'solvent') solvents[item.solvent] += 1;
     else if (item.kind === 'vellum') vellum += item.amount;
   }
-  const banked = bankKeys(
-    bankDrafts({ ...p, collection, inkCapacity, solvents, vellum }, t.loot),
-    t.loot,
-  );
+  const banked = bankKeys({ ...p, known, methods, inkCapacity, solvents, vellum }, t.loot);
   return hearAfterTrip(banked, t, 'returned').profile;
 }
 
@@ -587,7 +555,7 @@ function carryCharges(
   // Counts of Sources whose cell is gone, highest first.
   const spare = olds.filter((o) => !stays(o)).sort((a, b) => b.left - a.left);
   const kept = new Map(olds.map((o) => [`${o.m}|${o.sp.key}|${o.type}`, o.left]));
-  // Biggest maximum first, so a Source with a Thrift gets the larger spare count.
+  // Biggest maximum first, so the Source that holds more gets the larger spare count.
   const moved = fresh
     .filter((f) => !kept.has(`${f.m}|${f.sp.key}|${f.type}`))
     .sort((a, b) => b.sp.charges - a.sp.charges);
@@ -636,7 +604,7 @@ export function applyDoorway(
 
 // ── Save data ───────────────────────────────────────────
 
-/** The save shape, version 4 (see `src/app/save.ts`). Any later change to Profile/Trip needs a migration. */
+/** The save shape, version 7 (see `src/app/save.ts`, P1: older saves start fresh). */
 export function newSave(seed: number): SaveData {
   return { profile: newProfile(), trip: null, seedCounter: seed, lastTrip: null };
 }
@@ -680,7 +648,10 @@ function parseCoord(v: unknown): Coord {
 
 const CELL_KEY = /^-?\d+,-?\d+$/;
 const VERSION_KEY = /^.+@[1-9]\d*$/;
+const INVENTION_ID = /^inv:[^\s[\]]+$/;
+const LINE_ID = /^[A-Za-z]+:[A-Za-z]+$/;
 const TIERS: readonly TierLevel[] = [0, 1, 2, 3];
+const BIND_EVENTS: readonly BindEvent[] = ['hit', 'enters', 'pushed', 'dies'];
 
 function cellKey(v: unknown): CellKey {
   return typeof v === 'string' && CELL_KEY.test(v) ? v : bad();
@@ -694,12 +665,18 @@ function tier(v: unknown): TierLevel {
   return TIERS.find((t) => t === v) ?? bad();
 }
 
+/** An authored rune id or an invention id. */
+function runeRef(v: unknown): RuneRef {
+  if (typeof v === 'string' && INVENTION_ID.test(v)) return v as RuneRef;
+  return oneOf(RUNE_IDS, v);
+}
+
 function parseArgs(v: unknown): Record<CellKey, GlyphArg> {
   const r = record(v);
   return Object.fromEntries(
     Object.entries(r).map(([k, a]) => {
       const x = record(a);
-      const rune = oneOf(RUNE_IDS, x.rune);
+      const rune = runeRef(x.rune);
       return [cellKey(k), x.dir === undefined ? { rune } : { rune, dir: oneOf(DIRS, x.dir) }];
     }),
   );
@@ -711,9 +688,7 @@ function parsePlaced(v: unknown): Placed {
     const placed = { at: parseCoord(r.at), glyph: text(r.glyph), dir: oneOf(DIRS, r.dir) };
     return r.args === undefined ? placed : { ...placed, args: parseArgs(r.args) };
   }
-  const rune = oneOf(RUNE_IDS, r.rune);
-  const at = parseCoord(r.at);
-  return r.dir === undefined ? { at, rune } : { at, rune, dir: oneOf(DIRS, r.dir) };
+  return parseRune(r);
 }
 
 function parseLoot(v: unknown): LootItem {
@@ -721,6 +696,8 @@ function parseLoot(v: unknown): LootItem {
   switch (r.kind) {
     case 'rune':
       return { kind: 'rune', rune: oneOf(RUNE_IDS, r.rune) };
+    case 'method':
+      return { kind: 'method', method: oneOf(METHOD_IDS, r.method) };
     case 'ink':
       return { kind: 'ink', member: oneOf(MEMBER_IDS, r.member), amount: count(r.amount) };
     case 'solvent':
@@ -729,8 +706,6 @@ function parseLoot(v: unknown): LootItem {
       return { kind: 'vellum', amount: count(r.amount) };
     case 'doorway':
       return { kind: 'doorway' };
-    case 'draft':
-      return { kind: 'draft', draft: oneOf(DRAFT_IDS, r.draft) };
     case 'key':
       return { kind: 'key', district: oneOf(DISTRICT_IDS, r.district) };
     default:
@@ -759,61 +734,53 @@ function parseRecord(v: unknown): GlyphRecord {
   };
 }
 
-function parseInside(v: unknown): GlyphInside {
+function parseInvention(v: unknown): InventionDef {
   const r = record(v);
-  return {
-    kind: oneOf<'spell' | 'payload'>(['spell', 'payload'], r.kind),
-    cells: list(r.cells).map(parseRune),
-    entry: parseCoord(r.entry),
-  };
-}
-
-function parseDraftCopy(v: unknown): DraftCopy {
-  const r = record(v);
-  const id = oneOf(DRAFT_IDS, r.id);
-  const page = count(r.page);
-  const pages = DRAFTS.find((d) => d.id === id)?.pages.length ?? 1;
-  // A folio that lost pages keeps the copy on its last one rather than rejecting the save.
-  return {
+  const id =
+    typeof r.id === 'string' && INVENTION_ID.test(r.id) ? (r.id as `inv:${string}`) : bad();
+  const def: InventionDef = {
     id,
-    inside: parseInside(r.inside),
-    page: Math.min(page, pages - 1),
-    repaired: bool(r.repaired),
+    name: text(r.name),
+    method: oneOf(METHOD_IDS, r.method),
+    parts: list(r.parts).map(runeRef),
+    solvent: r.solvent === null ? null : oneOf(SOLVENT_IDS, r.solvent),
   };
+  if (r.event !== undefined) def.event = oneOf(BIND_EVENTS, r.event);
+  return def;
 }
 
+function lineId(v: unknown): LineId {
+  return typeof v === 'string' && LINE_ID.test(v) ? (v as LineId) : bad();
+}
+
+function parseFootnotes(v: unknown): Profile['footnotes'] {
+  const r = record(v);
+  const out: Profile['footnotes'] = {};
+  for (const [k, n] of Object.entries(r)) {
+    const x = record(n);
+    const chosen = record(x.chosen);
+    out[oneOf(RUNE_IDS, k)] = {
+      points: count(x.points),
+      chosen: Object.fromEntries(Object.entries(chosen).map(([l, t]) => [lineId(l), text(t)])),
+    };
+  }
+  return out;
+}
+
+/** Profile v7 (P1): every field is required; older saves are the app's to turn away (save.ts). */
 function parseProfile(v: unknown): Profile {
   const r = record(v);
-  const col = record(r.collection);
-  const collection = Object.fromEntries(
-    RUNE_IDS.map((id) => [id, col[id] === undefined ? 0 : count(col[id])]),
-  ) as Record<RuneId, number>;
   const cap = record(r.inkCapacity);
   const lat = record(r.lattices);
   const inkCapacity = perMember((m) => count(cap[m]));
   const lattices = perMember((m) => list(lat[m]).map(parsePlaced));
-  const interactions: InteractionId[] = [];
-  for (const i of list(r.interactions)) {
-    const id = oneOf(INTERACTION_IDS, i);
-    if (!interactions.includes(id)) interactions.push(id);
-  }
-  const sol = r.solvents === undefined ? {} : record(r.solvents);
+  const sol = record(r.solvents);
   for (const k of Object.keys(sol)) oneOf(SOLVENT_IDS, k);
   const solvents = Object.fromEntries(
     SOLVENT_IDS.map((id) => [id, sol[id] === undefined ? 0 : count(sol[id])]),
   ) as Record<SolventId, number>;
-  const benchRaw = record(r.bench);
-  const bench = {
-    trials: unique(list(benchRaw.trials).map(text)),
-    known: unique(
-      list(benchRaw.known).map((id) =>
-        oneOf(
-          RECIPES.map((x) => x.id),
-          id,
-        ),
-      ),
-    ),
-  };
+  const inventions = list(r.inventions).map(parseInvention);
+  if (new Set(inventions.map((d) => d.id)).size !== inventions.length) bad();
   const glyphs = list(r.glyphs).map(parseGlyphDef);
   if (new Set(glyphs.map((g) => g.id)).size !== glyphs.length) bad();
   // Older versions: each of a current Glyph, never its current version, each version once.
@@ -836,37 +803,33 @@ function parseProfile(v: unknown): Profile {
     const shape = parseLattice(MEMBERS[m].shape).shape;
     // Also rejects a lattice Glyph that is not in the library. A stale argument (after a revision)
     // is the page's issue to fix, not a broken save.
-    const structural = validateLattice({ shape, runes: lattices[m] }, null, library).filter(
-      (i) => i.kind !== 'arg',
-    );
+    const structural = validateLattice(
+      { shape, runes: lattices[m] },
+      null,
+      library,
+      libraryOf(inventions),
+    ).filter((i) => i.kind !== 'arg');
     if (structural.length > 0) bad();
   }
-  const drafts = list(r.drafts).map(parseDraftCopy);
-  if (new Set(drafts.map((d) => d.id)).size !== drafts.length) bad();
   const proofRaw = record(r.proof);
   const proof = perMember((m) => list(proofRaw[m]).map((mask) => list(mask).map(parseFired)));
-  const idioms = unique(
-    list(r.idioms).map((id) =>
-      oneOf(
-        IDIOMS.map((x) => x.id),
-        id,
-      ),
-    ),
-  );
   return {
-    collection,
+    known: unique(list(r.known).map((id) => oneOf(RUNE_IDS, id))),
+    methods: unique(list(r.methods).map((id) => oneOf(METHOD_IDS, id))),
+    inventions,
+    solvents,
     inkCapacity,
     lattices,
-    interactions,
-    solvents,
+    witnessed: unique(list(r.witnessed).map(lineId)),
+    named: unique(list(r.named).map(text)),
+    met: unique(list(r.met).map((m) => text(m) as Meets)),
+    foesMet: unique(list(r.foesMet).map((id) => oneOf(ENEMY_IDS, id))),
+    footnotes: parseFootnotes(r.footnotes),
     vellum: count(r.vellum),
-    bench,
     glyphs,
-    proof,
-    idioms,
     glyphArchive,
     glyphRecords,
-    drafts,
+    proof,
     city: parseCity(r.city),
   };
 }
@@ -897,7 +860,7 @@ function unique<T>(items: T[]): T[] {
 
 function parseRune(v: unknown): PlacedRune {
   const r = record(v);
-  const rune = oneOf(RUNE_IDS, r.rune);
+  const rune = runeRef(r.rune);
   const at = parseCoord(r.at);
   return r.dir === undefined ? { at, rune } : { at, rune, dir: oneOf(DIRS, r.dir) };
 }
@@ -910,10 +873,9 @@ function parseGlyphDef(v: unknown): GlyphDef {
   const params = unique(list(r.params).map(cellKey));
   for (const k of params) {
     const cell = cells.find((c) => `${c.at.x},${c.at.y}` === k) ?? bad();
-    const family = RUNES[cell.rune].family;
-    if (family === 'source' || family === 'aura') bad();
+    if (!isInvention(cell.rune) && !canBeOpen(cell.rune)) bad();
   }
-  const def: GlyphDef = {
+  return {
     id: text(r.id),
     name: text(r.name),
     kind: oneOf<'spell' | 'payload'>(['spell', 'payload'], r.kind),
@@ -923,26 +885,18 @@ function parseGlyphDef(v: unknown): GlyphDef {
       const x = record(e);
       return { from: parseCoord(x.from), dir: oneOf(DIRS, x.dir) };
     }),
-    idiom:
-      r.idiom === null
-        ? null
-        : oneOf(
-            IDIOMS.map((x) => x.id),
-            r.idiom,
-          ),
+    idiom: r.idiom === null ? null : text(r.idiom),
     version: count(r.version) >= 1 ? count(r.version) : bad(),
     params,
     extraExit: r.extraExit === null ? null : oneOf<Dir>(['up', 'right', 'down'], r.extraExit),
   };
-  if (r.draft !== undefined) def.draft = oneOf(DRAFT_IDS, r.draft);
-  return def;
 }
 
 function parseFired(v: unknown): FiredCell {
   const r = record(v);
   const fired: FiredCell = {
     at: parseCoord(r.at),
-    rune: r.rune === null ? null : oneOf(RUNE_IDS, r.rune),
+    rune: r.rune === null ? null : runeRef(r.rune),
   };
   if (r.glyph !== undefined) fired.glyph = text(r.glyph);
   if (r.dir !== undefined) fired.dir = oneOf(DIRS, r.dir);
@@ -960,8 +914,8 @@ function parseAim(v: unknown): Aim {
       return { kind: 'dir', dir: oneOf(DIRS, r.dir) };
     case 'tile':
       return { kind: 'tile', at: parseCoord(r.at) };
-    case 'ally':
-      return { kind: 'ally', unit: text(r.unit) };
+    case 'self':
+      return { kind: 'self' };
     default:
       return bad();
   }
@@ -1018,15 +972,13 @@ function parseTrip(v: unknown): Trip {
   if (trip.status === 'doorway' && enc.heart) bad();
   // A doorway is never banked and never offered at the heart (plan S11).
   if (trip.loot.some((i) => i.kind === 'doorway')) bad();
-  // At most one draft a trip (M30).
-  if ([...trip.loot, ...trip.offers].filter((i) => i.kind === 'draft').length > 1) bad();
   if (enc.heart && trip.offers.some((i) => i.kind === 'doorway')) bad();
   if (trip.offers.filter((i) => i.kind === 'doorway').length > 1) bad();
   if (trip.status !== 'fight' && trip.actions.length > 0) bad();
   return trip;
 }
 
-/** Validates and normalizes loaded save data (missing rune counts become 0). Throws "Not a valid save". */
+/** Validates and normalizes loaded save data. Throws "Not a valid save". */
 export function parseSaveData(data: unknown): SaveData {
   const r = record(data);
   return {
@@ -1095,44 +1047,12 @@ function parseRecap(v: unknown): TripRecap {
     district,
     outcome: oneOf<TripRecap['outcome']>(['returned', 'wiped'], r.outcome),
     encounter: count(r.encounter),
-    // `place` came after the first v3 saves: fall back to the depth's title.
-    place:
-      typeof r.place === 'string'
-        ? r.place
-        : (encountersOf(district)[count(r.encounter)]?.title ?? ''),
+    place: text(r.place),
     stats: parseStats(r.stats),
   };
 }
 
-// ── Research and compile (stubs: A4 distil, B2 proof and compile) ─────────
-
-/** Writes a recipe in ink: spends one solvent, adds one rune, marks it known (plan P9). Throws unless exact. */
-export function distil(p: Profile, attempt: Attempt): Profile {
-  const result = trial(attempt, RECIPES, []);
-  const recipe = result.score === 6 ? RECIPES.find((r) => r.id === result.recipe) : undefined;
-  if (!recipe) throw new Error('That is not a recipe');
-  if (p.solvents[attempt.solvent] < 1) throw new Error('No solvent left');
-  if (p.collection[attempt.left] < 1 || p.collection[attempt.right] < 1) {
-    throw new Error('A parent rune is missing');
-  }
-  const tried = recordTrial(p, attempt);
-  return {
-    ...tried,
-    solvents: { ...p.solvents, [attempt.solvent]: p.solvents[attempt.solvent] - 1 },
-    collection: { ...p.collection, [recipe.result]: p.collection[recipe.result] + 1 },
-    bench: {
-      ...tried.bench,
-      known: p.bench.known.includes(recipe.id) ? p.bench.known : [...p.bench.known, recipe.id],
-    },
-  };
-}
-
-/** Remembers a free trial so the bench can show it again (the key is added once). */
-export function recordTrial(p: Profile, attempt: Attempt): Profile {
-  const key = trialKey(attempt);
-  if (p.bench.trials.includes(key)) return p;
-  return { ...p, bench: { ...p.bench, trials: [...p.bench.trials, key] } };
-}
+// ── Proof and compile ───────────────────────────────────
 
 /** Appends cast masks to a member's proof, keeping the newest `TUNING.proofMasksPerMember`. */
 export function recordProof(p: Profile, m: MemberId, masks: readonly FiredCell[][]): Profile {
@@ -1144,7 +1064,7 @@ export function recordProof(p: Profile, m: MemberId, masks: readonly FiredCell[]
  * Writes proof and Glyph records for a trip's current fight, win or wipe (plan P7, M7): the trip's
  * actions replay deterministically, so the full log comes from `beginEncounter`, once. Records
  * read the profile as at battle start and are written after. A fight that no longer replays
- * records nothing. Lab, Bench and desk battles never reach this.
+ * records nothing. Lab and Bench battles never reach this.
  */
 export function recordTripCasts(p: Profile, t: Trip): Profile {
   let events: ActionResult['events'];
@@ -1157,27 +1077,10 @@ export function recordTripCasts(p: Profile, t: Trip): Profile {
   return { ...proven, glyphRecords: recordGlyphCasts(p, events).glyphRecords };
 }
 
-/** The old name of `recordTripCasts`. */
-export const recordTripProof = recordTripCasts;
-
-/** The first compile of an idiom is free; a repaired draft's Glyph doesn't use it up (P11, M33). */
-export function freeIdiomCompile(p: Pick<Profile, 'glyphs'>, idiom: string | null): boolean {
-  return idiom !== null && !p.glyphs.some((g) => g.idiom === idiom && g.draft === undefined);
-}
-
-/** Adds the idioms any member's lattice now contains to the codex; `fresh` are the new ones. */
-export function recogniseIdioms(p: Profile): { profile: Profile; fresh: string[] } {
-  const lib = glyphLibrary(p);
-  const found = new Set(MEMBER_IDS.flatMap((m) => matchIdioms(latticeOf(p, m), lib)));
-  const fresh = IDIOMS.filter((i) => found.has(i.id) && !p.idioms.includes(i.id)).map((i) => i.id);
-  return fresh.length === 0
-    ? { profile: p, fresh }
-    : { profile: { ...p, idioms: [...p.idioms, ...fresh] }, fresh };
-}
-
 /**
- * Fair Copy: collapses the cluster in member m's lattice into a new Glyph v1 (plan P2, P3, P11).
+ * Fair Copy: collapses the cluster in member m's lattice into a new Glyph v1 (plan P2, P3).
  * `open` is the one local cell left open for an argument, if any (M22, via `withOpenCell`).
+ * Every compile costs vellum: idioms are log patterns now (P7).
  */
 export function compileGlyph(
   p: Profile,
@@ -1198,25 +1101,23 @@ export function compileGlyph(
   const blocker = blockingAuras(l, cluster, lib)[0];
   if (blocker) {
     const aura = l.runes.find((r) => r.at.x === blocker.x && r.at.y === blocker.y);
-    const what = aura && !isGlyph(aura) ? RUNES[aura.rune].name : 'Aura';
+    const what = aura && !isGlyph(aura) ? nameOf(aura.rune, inventionLibrary(p)) : 'Aura';
     throw new Error(`The ${what} at ${label(blocker)} also powers runes outside the selection`);
   }
   const sharing = sharingSpells(l, cluster, lib)[0];
   if (sharing) {
     const other = l.runes.find((r) => r.at.x === sharing.source.x && r.at.y === sharing.source.y);
-    const what = other && !isGlyph(other) ? RUNES[other.rune].name : 'Glyph';
+    const what = other && !isGlyph(other) ? nameOf(other.rune, inventionLibrary(p)) : 'Glyph';
     throw new Error(`The ${what} at ${label(sharing.source)} also flows through this selection`);
   }
   let n = p.glyphs.length + 1;
   while (lib[`g${n}`]) n += 1;
   const def = withOpenCell(toGlyphDef(l, cluster, trimmed, `g${n}`, lib), open);
-  const free = freeIdiomCompile(p, def.idiom);
-  const cost = free ? 0 : TUNING.compileVellum;
+  const cost = TUNING.compileVellum;
   if (p.vellum < cost) throw new Error('Not enough vellum');
   const glyphs = [...p.glyphs, def];
   const collapsed = tidyCollapse(l, cluster, def, lib).lattice;
-  const idioms = def.idiom && !p.idioms.includes(def.idiom) ? [...p.idioms, def.idiom] : p.idioms;
-  return setMemberLattice({ ...p, glyphs, vellum: p.vellum - cost, idioms }, m, collapsed);
+  return setMemberLattice({ ...p, glyphs, vellum: p.vellum - cost }, m, collapsed);
 }
 
 export function renameGlyph(p: Profile, id: GlyphId, name: string): Profile {

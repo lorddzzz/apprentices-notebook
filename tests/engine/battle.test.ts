@@ -18,12 +18,11 @@ const bolt: Spell = {
   key: '0,0',
   at: { x: 0, y: 0 },
   source: 'bolt',
-  amp: 0,
-  magnitude: 2,
-  echo: false,
+  sourceAuras: [],
+  first: null,
   charges: 3,
-  nodes: [],
   path: [],
+  ink: 2,
 };
 
 test('createBattle spawns units in reading order with ids rat-1, rat-2', () => {
@@ -33,13 +32,15 @@ test('createBattle spawns units in reading order with ids rat-1, rat-2', () => {
   `);
   expect(s.units.map((u) => u.id)).toEqual(['rat-1', 'draughtsman', 'stoker', 'rat-2', 'dummy-1']);
   const [rat1, draughtsman, , rat2, dummy] = s.units;
-  expect(rat1).toMatchObject({ kind: 'enemy', hp: 2, maxHp: 2, oilSoaked: true, brass: false });
-  expect(rat2).toMatchObject({ brass: true, pos: { x: 1, y: 1 } });
-  expect(dummy).toMatchObject({ inked: true, hp: 12 });
+  expect(rat1).toMatchObject({ kind: 'enemy', hp: 2, maxHp: 2, elite: false, collar: false });
+  expect(rat2).toMatchObject({ collar: null, pos: { x: 1, y: 1 } });
+  expect(dummy).toMatchObject({ mark: { deep: false, bound: null }, hp: 12 });
   expect(draughtsman).toMatchObject({ kind: 'member', hp: 6, move: 3, moved: false, acted: false });
   expect(unitAtLabel(s, 'A2').name).toBe('Stoker');
-  expect(s).toMatchObject({ round: 1, phase: 'player', echoes: [], discovered: [], lab: false });
-  expect(board('b', { title: 't' }).units[0]?.brass).toBe(true);
+  expect(s).toMatchObject({ round: 1, phase: 'player', castSeq: 0, landed: [], lab: false });
+  // A sentry is born brass (a layout collar) and an elite (P20); members count as elites.
+  expect(board('b', { title: 't' }).units[0]).toMatchObject({ collar: null, elite: true });
+  expect(draughtsman?.elite).toBe(true);
 });
 
 test('party init sets hp, spells and default charges per spell key', () => {
@@ -155,25 +156,23 @@ test('a downed member and a finished battle refuse actions', () => {
   );
 });
 
-test('discovered accumulates interactions, deduplicated', () => {
-  const s = board('S r o o . . . d');
-  const first = act(s, { type: 'shove', unit: 'stoker', dir: 'right' });
-  expect(first.state.discovered).toEqual(['slide']);
-  expect(s.discovered).toEqual([]);
+test('the edge is a wall unless the spec says otherwise (P3)', () => {
+  expect(board('D').edge).toBe('wall');
+  expect(board('D', { edge: 'drop' }).edge).toBe('drop');
 });
 
 test('boardOf round-trips the board', () => {
   const ascii = `
     D  r!o *   @~ .
     b  r&  i   =  S
-    d& .   ~o  .  f
+    d& .   ~   .  f
   `;
   const s = board(ascii);
   expect(boardOf(s)).toBe(serializeBoard(parseBoard(ascii)));
   expect(boardOf(board(boardOf(s)))).toBe(boardOf(s));
   const shoved = act(s, { type: 'shove', unit: 'stoker', dir: 'down' });
   expect(shoved.lines).toContain('familiar at E3 dies');
-  expect(boardOf(shoved.state).split('\n')[2]?.split(/\s+/)).toEqual(['d&', '.', 'o~', '.', '.']);
+  expect(boardOf(shoved.state).split('\n')[2]?.split(/\s+/)).toEqual(['d&', '.', '~', '.', '.']);
 });
 
 test('replay returns every intermediate state and the whole log', () => {
@@ -206,12 +205,12 @@ test('labSetCell replaces tile and unit, keeping member spells', () => {
   const s = board('D r . d', { party: { draughtsman: { spells: [bolt] } } });
   const withRat = labSetCell(s, { x: 2, y: 0 }, 'r~');
   expect(unitAtLabel(withRat, 'C1').id).toBe('rat-2');
-  expect(withRat.tiles[2]?.steam).toBe(2);
+  expect(withRat.tiles[2]?.state?.id).toBe('cloud');
   expect(s.units).toHaveLength(3);
 
   const movedD = labSetCell(withRat, { x: 1, y: 0 }, 'D!');
   expect(movedD.units.map((u) => u.id)).toEqual(['dummy-1', 'rat-2', 'draughtsman']);
-  expect(unitAtLabel(movedD, 'B1')).toMatchObject({ inked: true, charges: { '0,0': 3 } });
+  expect(unitAtLabel(movedD, 'B1')).toMatchObject({ mark: { deep: false }, charges: { '0,0': 3 } });
   expect(boardOf(movedD)).toBe('. D! r~ d');
 
   expect(boardOf(labSetCell(movedD, { x: 2, y: 0 }, '.'))).toBe('. D! . d');

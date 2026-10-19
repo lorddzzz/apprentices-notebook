@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { MEMBERS, RUNE_IDS, RUNES, TUNING } from '$data';
+import { MEMBERS, RUNE_IDS, TUNING } from '$data';
 import {
   type Aim,
   type BattleState,
@@ -31,9 +31,11 @@ import {
   reviseGlyph,
   revisionCanvas,
   revisionWarning,
+  roleOf,
   type Spell,
   setExtraExit,
   setOpenCells,
+  stepShape,
   toGlyphDef,
   validateLoadout,
   versionKey,
@@ -71,11 +73,11 @@ const payloadInside = (...cells: PlacedRune[]): GlyphInside => ({
   entry: c(0, 0),
 });
 
-/** Bolt → Ink → On Inked → Spark: the Cashing In idiom. */
+/** Bolt → Ink → Tally → Spark. */
 const CASHING = spellInside(
   rune('bolt', 0, 0, 'right'),
   rune('ink', 1, 0),
-  rune('onInked', 2, 0),
+  rune('tally', 2, 0),
   rune('spark', 3, 0),
 );
 /** Bolt → Oil → Spark → Ink. */
@@ -113,7 +115,7 @@ function profileWith(def: GlyphDef, records: Record<string, GlyphRecord> = {}): 
   const p = newProfile();
   return {
     ...p,
-    collection: Object.fromEntries(RUNE_IDS.map((r) => [r, 6])) as Profile['collection'],
+    known: [...RUNE_IDS],
     glyphs: [def],
     glyphRecords: records,
   };
@@ -131,7 +133,7 @@ describe('insideIssues', () => {
     expect(insideIssues(CASHING)).toEqual([]);
     expect(insideIssues(OTHER)).toEqual([]);
     expect(
-      insideIssues(payloadInside(rune('ink', 0, 0), rune('onInked', 1, 0), rune('spark', 2, 0))),
+      insideIssues(payloadInside(rune('ink', 0, 0), rune('tally', 1, 0), rune('spark', 2, 0))),
     ).toEqual([]);
   });
 
@@ -139,7 +141,7 @@ describe('insideIssues', () => {
     const moved: GlyphInside = { ...CASHING, entry: c(1, 0) };
     const [issue] = only(moved, 'entry');
     expect(issue).toMatchObject({ kind: 'entry', at: c(1, 0), blocking: true });
-    const hollow = spellInside(rune('ink', 1, 0), rune('onInked', 2, 0), rune('spark', 3, 0));
+    const hollow = spellInside(rune('ink', 1, 0), rune('tally', 2, 0), rune('spark', 3, 0));
     expect(only(hollow, 'entry')[0]).toMatchObject({ at: c(0, 0), blocking: true });
     // The Source's arrow is fixed to the right.
     const turned = spellInside(
@@ -149,7 +151,7 @@ describe('insideIssues', () => {
   });
 
   test('kind: a Spell starts with a Source, a Payload with a rune that takes flow', () => {
-    const blind = spellInside(rune('ink', 0, 0), rune('onInked', 1, 0), rune('spark', 2, 0));
+    const blind = spellInside(rune('ink', 0, 0), rune('tally', 1, 0), rune('spark', 2, 0));
     expect(only(blind, 'kind')[0]).toMatchObject({ at: c(0, 0), blocking: true });
     const sourced = payloadInside(
       rune('bolt', 0, 0, 'right'),
@@ -157,7 +159,7 @@ describe('insideIssues', () => {
       rune('spark', 2, 0),
     );
     expect(only(sourced, 'kind')[0]).toMatchObject({ at: c(0, 0), blocking: true });
-    const auraed = payloadInside(rune('amplify', 0, 0), rune('ink', 1, 0), rune('spark', 2, 0));
+    const auraed = payloadInside(rune('coil', 0, 0), rune('ink', 1, 0), rune('spark', 2, 0));
     expect(only(auraed, 'kind')[0]).toMatchObject({ at: c(0, 0), blocking: true });
     // A broken way in doesn't also list every cell as stranded.
     expect(kinds(blind)).not.toContain('stranded');
@@ -170,7 +172,7 @@ describe('insideIssues', () => {
     ]);
     const inPayload = payloadInside(
       rune('ink', 0, 0),
-      rune('ward', 1, 0, 'right'),
+      rune('touch', 1, 0, 'right'),
       rune('spark', 2, 0),
     );
     expect(only(inPayload, 'source')[0]).toMatchObject({ at: c(1, 0), blocking: true });
@@ -187,9 +189,9 @@ describe('insideIssues', () => {
       rune('bolt', 0, 0, 'right'),
       rune('ink', 1, 0),
       rune('oil', 2, 0),
-      rune('amplify', 0, 1),
-      rune('amplify', 1, 1),
-      rune('amplify', 2, 1),
+      rune('coil', 0, 1),
+      rune('coil', 1, 1),
+      rune('coil', 2, 1),
     );
     expect(only(withAuras, 'size')).toHaveLength(0);
   });
@@ -222,11 +224,11 @@ describe('insideIssues', () => {
   });
 
   test('a lone aura is reported, and does not block a draft test', () => {
-    const lone = spellInside(...CASHING.cells, rune('amplify', 3, 3));
+    const lone = spellInside(...CASHING.cells, rune('coil', 3, 3));
     expect(insideIssues(lone)).toEqual([
       expect.objectContaining({ kind: 'aura', at: c(3, 3), blocking: false }),
     ]);
-    const touching = spellInside(...CASHING.cells, rune('amplify', 1, 1));
+    const touching = spellInside(...CASHING.cells, rune('coil', 1, 1));
     expect(insideIssues(touching)).toEqual([]);
   });
 
@@ -301,13 +303,13 @@ describe('insideFlow', () => {
 
   test('a Spell inside walks from its source in local cells', () => {
     expect(walk(CASHING)).toEqual([
-      ['bolt@0,0>right', 'ink@1,0>right', 'onInked@2,0>right', 'spark@3,0>right'],
+      ['bolt@0,0>right', 'ink@1,0>right', 'tally@2,0>right', 'spark@3,0>right'],
     ]);
   });
 
   test('a Payload inside starts at its entry, with no outer cell in the path', () => {
-    const pay = payloadInside(rune('ink', 0, 0), rune('onInked', 1, 0), rune('spark', 2, 0));
-    expect(walk(pay)).toEqual([['ink@0,0>right', 'onInked@1,0>right', 'spark@2,0>right']]);
+    const pay = payloadInside(rune('ink', 0, 0), rune('tally', 1, 0), rune('spark', 2, 0));
+    expect(walk(pay)).toEqual([['ink@0,0>right', 'tally@1,0>right', 'spark@2,0>right']]);
   });
 
   test('a Fork walks both branches with their local directions; stranded cells are not reached', () => {
@@ -324,12 +326,12 @@ describe('insideFlow', () => {
     expect(insideFlow(forked).reached).not.toContain('3,3');
   });
 
-  test('auras touch like on the board: Amplify on materials, Echo on the source', () => {
-    const glowing = spellInside(...CASHING.cells, rune('amplify', 1, 1), rune('echo', 0, 1));
+  test('auras touch like on the board: any path cell they sit beside', () => {
+    const glowing = spellInside(...CASHING.cells, rune('coil', 1, 1), rune('steep', 0, 1));
     expect(insideFlow(glowing).auraTouches).toEqual(
       expect.arrayContaining([
-        { aura: 'amplify', from: c(1, 1), to: c(1, 0) },
-        { aura: 'echo', from: c(0, 1), to: c(0, 0) },
+        { aura: 'coil', from: c(1, 1), to: c(1, 0) },
+        { aura: 'steep', from: c(0, 1), to: c(0, 0) },
       ]),
     );
     expect(insideFlow(glowing).auraTouches).toHaveLength(2);
@@ -339,7 +341,7 @@ describe('insideFlow', () => {
 describe('revisionCanvas', () => {
   test('the bounding box plus a ring of 1', () => {
     expect(revisionCanvas(CASHING)).toEqual({ origin: c(-1, -1), width: 6, height: 3 });
-    const up = spellInside(...CASHING.cells, rune('amplify', 1, -1), rune('amplify', 2, 1));
+    const up = spellInside(...CASHING.cells, rune('coil', 1, -1), rune('coil', 2, 1));
     expect(revisionCanvas(up)).toEqual({ origin: c(-1, -2), width: 6, height: 5 });
   });
 
@@ -373,15 +375,9 @@ describe('revisionCanvas', () => {
 // ── innerMeta ──
 
 describe('innerMeta', () => {
-  test('the idiom is recomputed from the inside', () => {
-    expect(innerMeta(CASHING).idiom).toBe('cashingIn');
+  test('no inside carries an idiom: idioms are log patterns now (P7)', () => {
+    expect(innerMeta(CASHING).idiom).toBeNull();
     expect(innerMeta(OTHER).idiom).toBeNull();
-    const bonfire = spellInside(
-      rune('splash', 0, 0, 'right'),
-      rune('oil', 1, 0),
-      rune('spark', 2, 0),
-    );
-    expect(innerMeta(bonfire).idiom).toBe('bonfire');
   });
 
   test('exits are where the flow leaves, in walk order (a Fork walks left first)', () => {
@@ -404,7 +400,7 @@ describe('innerMeta', () => {
   });
 
   test('agrees with a Fair Copy of the same cluster (exits and idiom)', () => {
-    const flat = parseLattice('. . . . . .\nBolt> Ink OnInked Spark Oil .\n. . . . . .');
+    const flat = parseLattice('. . . . . .\nBolt> Ink Tally Spark Oil .\n. . . . . .');
     const cluster = clustersOf(flat).find((k) => k.cells.length === 4 && k.kind === 'spell');
     if (!cluster) throw new Error('no cluster');
     const compiled = toGlyphDef(flat, cluster, 'Cashing', 'cx');
@@ -439,11 +435,10 @@ describe('versions', () => {
     expect(base.glyphArchive).toEqual([]);
   });
 
-  test('exits and idiom follow the new inside', () => {
+  test('exits follow the new inside', () => {
     const p = reviseGlyph(base, 'g1', OTHER);
+    expect(p.glyphs[0]?.exits).toEqual(innerMeta(OTHER).exits);
     expect(p.glyphs[0]?.idiom).toBeNull();
-    const back = reviseGlyph(p, 'g1', CASHING);
-    expect(back.glyphs[0]?.idiom).toBe('cashingIn');
   });
 
   test('revert swaps the versions back and both keep their records', () => {
@@ -528,15 +523,15 @@ describe('settings on revise', () => {
     const swapped = spellInside(
       rune('bolt', 0, 0, 'right'),
       rune('oil', 1, 0),
-      rune('onInked', 2, 0),
+      rune('tally', 2, 0),
       rune('spark', 3, 0),
     );
     expect(reviseGlyph(p, 'g1', swapped).glyphs[0]?.params).toEqual(['1,0']);
-    // Ink becomes a Trigger: the family changed, so it drops.
+    // Ink becomes an Action: the role changed, so it drops.
     const other = spellInside(
       rune('bolt', 0, 0, 'right'),
-      rune('onKill', 1, 0),
-      rune('onInked', 2, 0),
+      rune('shove', 1, 0),
+      rune('tally', 2, 0),
       rune('spark', 3, 0),
     );
     expect(reviseGlyph(p, 'g1', other).glyphs[0]?.params).toEqual([]);
@@ -579,11 +574,10 @@ describe('settings on revise', () => {
     expect(reviseGlyph(profileWith(up), 'g1', OTHER).glyphs[0]?.extraExit).toBe('up');
   });
 
-  test('name and draft origin survive a revision', () => {
-    const p = profileWith(defOf(CASHING, { name: 'Mine', draft: 'bentSpark' as never }));
+  test('the name survives a revision', () => {
+    const p = profileWith(defOf(CASHING, { name: 'Mine' }));
     const v2 = reviseGlyph(p, 'g1', OTHER).glyphs[0];
     expect(v2?.name).toBe('Mine');
-    expect(v2?.draft).toBe('bentSpark');
     expect(v2 && 'discount' in v2).toBe(false);
   });
 });
@@ -601,8 +595,8 @@ describe('setOpenCells', () => {
 
   test('refuses Source and Aura cells, empty cells, and an unknown Glyph', () => {
     expect(() => setOpenCells(p, 'g1', ['0,0'])).toThrow("Bolt can't be an open cell");
-    const aura = profileWith(defOf(spellInside(...CASHING.cells, rune('amplify', 1, 1))));
-    expect(() => setOpenCells(aura, 'g1', ['1,1'])).toThrow("Amplify can't be an open cell");
+    const aura = profileWith(defOf(spellInside(...CASHING.cells, rune('coil', 1, 1))));
+    expect(() => setOpenCells(aura, 'g1', ['1,1'])).toThrow("Coil can't be an open cell");
     expect(() => setOpenCells(p, 'g1', ['5,5'])).toThrow('No rune at 5,5');
     expect(() => setOpenCells(p, 'nope', [])).toThrow('No Glyph nope');
   });
@@ -611,7 +605,8 @@ describe('setOpenCells', () => {
     expect(() => setOpenCells(p, 'g1', ['1,0', '3,0'])).toThrow('Only one open cell');
     const gold = profileWith(defOf(CASHING), { 'g1@1': best(0, 3) });
     expect(setOpenCells(gold, 'g1', ['1,0', '3,0']).glyphs[0]?.params).toEqual(['1,0', '3,0']);
-    expect(() => setOpenCells(gold, 'g1', ['1,0', '2,0', '3,0'])).toThrow('Only 2 open cells');
+    const roomy = profileWith(defOf(OTHER), { 'g1@1': best(0, 3) });
+    expect(() => setOpenCells(roomy, 'g1', ['1,0', '2,0', '3,0'])).toThrow('Only 2 open cells');
     // The same cell twice is one cell.
     expect(setOpenCells(p, 'g1', ['1,0', '1,0']).glyphs[0]?.params).toEqual(['1,0']);
   });
@@ -681,11 +676,11 @@ describe('revisionWarning', () => {
     const p = profileWith(def, records);
     return {
       ...p,
-      inkCapacity: { ...p.inkCapacity, stoker: capacity },
-      lattices: { ...p.lattices, stoker: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }] },
+      inkCapacity: { ...p.inkCapacity, draughtsman: capacity },
+      lattices: { ...p.lattices, draughtsman: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }] },
     };
   };
-  const v1Ink = 5; // Bolt 2 + Ink 1 + On Inked 2 + Spark 1, less one for 4 cells
+  const v1Ink = 4; // Bolt 2 + Ink 1 + Tally 1 + Spark 1, less one for 4 cells
 
   test('null when the revision fits', () => {
     const p = placed(defOf(CASHING), v1Ink);
@@ -696,8 +691,8 @@ describe('revisionWarning', () => {
 
   test('names the page whose ink the new inside pushes over', () => {
     const p = placed(defOf(CASHING), v1Ink);
-    const heavier = spellInside(...CASHING.cells, rune('amplify', 1, 1));
-    expect(revisionWarning(p, 'g1', heavier)).toBe("Pushes the Stoker's page ink over");
+    const heavier = spellInside(...CASHING.cells, rune('coil', 1, 1));
+    expect(revisionWarning(p, 'g1', heavier)).toBe("Pushes the Draughtsman's page ink over");
     // Roomy enough: no warning.
     expect(revisionWarning(placed(defOf(CASHING), 20), 'g1', heavier)).toBeNull();
   });
@@ -705,23 +700,23 @@ describe('revisionWarning', () => {
   test('names the page when the new inside needs runes you do not own', () => {
     const p = {
       ...placed(defOf(CASHING), 20),
-      collection: { ...profileWith(defOf(CASHING)).collection, amplify: 0 },
+      known: profileWith(defOf(CASHING)).known.filter((r) => r !== 'coil'),
     };
-    const heavier = spellInside(...CASHING.cells, rune('amplify', 1, 1));
+    const heavier = spellInside(...CASHING.cells, rune('coil', 1, 1));
     expect(revisionWarning(p, 'g1', heavier)).toBe(
-      "Pushes the Stoker's page over the Amplify you own",
+      "Puts the Coil you don't know on the Draughtsman's page",
     );
   });
 
   test('the fresh record loses the Economy discount, and the warning says so', () => {
     const p = placed(defOf(CASHING), v1Ink - 1, { 'g1@1': best(1, 0) }); // fits only with 1 ink off
     expect(validateLoadout(p)).toEqual({});
-    expect(revisionWarning(p, 'g1', CASHING)).toBe("Pushes the Stoker's page ink over");
+    expect(revisionWarning(p, 'g1', CASHING)).toBe("Pushes the Draughtsman's page ink over");
   });
 
   test('a page already over before the revision is not blamed on it', () => {
     const p = placed(defOf(CASHING), 3);
-    expect(validateLoadout(p).stoker?.some((i) => i.kind === 'ink')).toBe(true);
+    expect(validateLoadout(p).draughtsman?.some((i) => i.kind === 'ink')).toBe(true);
     expect(revisionWarning(p, 'g1', CASHING)).toBeNull();
   });
 
@@ -733,18 +728,21 @@ describe('revisionWarning', () => {
 // ── revertWarning (BL-90) ──
 
 describe('revertWarning', () => {
-  const HEAVY = spellInside(...CASHING.cells, rune('amplify', 1, 1));
-  /** v2 (HEAVY) is current, v1 (CASHING) archived, a copy on the Stoker's page. */
+  const HEAVY = spellInside(...CASHING.cells, rune('coil', 1, 1));
+  /** v2 (HEAVY) is current, v1 (CASHING) archived, a copy on the Draughtsman's page. */
   const twoVersions = (capacity: number, records: Record<string, GlyphRecord> = {}): Profile => {
     const v2 = reviseGlyph(profileWith(defOf(CASHING)), 'g1', HEAVY);
     return {
       ...v2,
       glyphRecords: { ...v2.glyphRecords, ...records },
-      inkCapacity: { ...v2.inkCapacity, stoker: capacity },
-      lattices: { ...v2.lattices, stoker: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }] },
+      inkCapacity: { ...v2.inkCapacity, draughtsman: capacity },
+      lattices: {
+        ...v2.lattices,
+        draughtsman: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }],
+      },
     };
   };
-  const v1Ink = 5;
+  const v1Ink = 4;
 
   test('null when the revert fits and no discount changes', () => {
     const p = twoVersions(20);
@@ -758,22 +756,24 @@ describe('revertWarning', () => {
   test('names the page whose ink the old inside pushes over', () => {
     // v1 is lighter, so going back to it fits; v2 forward from v1 does not.
     const back = revertGlyph(twoVersions(20), 'g1', 1);
-    const tight = { ...back, inkCapacity: { ...back.inkCapacity, stoker: v1Ink } };
+    const tight = { ...back, inkCapacity: { ...back.inkCapacity, draughtsman: v1Ink } };
     expect(validateLoadout(tight)).toEqual({});
-    expect(revertWarning(tight, 'g1', 2)).toBe("Pushes the Stoker's page ink over");
+    expect(revertWarning(tight, 'g1', 2)).toBe("Pushes the Draughtsman's page ink over");
   });
 
   test('names the runes the old inside needs that you do not own', () => {
     const back = revertGlyph(twoVersions(20), 'g1', 1);
-    const p = { ...back, collection: { ...back.collection, amplify: 0 } };
+    const p = { ...back, known: back.known.filter((r) => r !== 'coil') };
     expect(validateLoadout(p)).toEqual({});
-    expect(revertWarning(p, 'g1', 2)).toBe("Pushes the Stoker's page over the Amplify you own");
+    expect(revertWarning(p, 'g1', 2)).toBe(
+      "Puts the Coil you don't know on the Draughtsman's page",
+    );
   });
 
   test('losing the Economy discount is said, and so is the ink it costs', () => {
     // v1 current with bronze Economy fits a page one ink short; v2 has no record.
     const back = revertGlyph(twoVersions(20, { 'g1@1': best(1, 0) }), 'g1', 1);
-    const tight = { ...back, inkCapacity: { ...back.inkCapacity, stoker: v1Ink - 1 } };
+    const tight = { ...back, inkCapacity: { ...back.inkCapacity, draughtsman: v1Ink - 1 } };
     expect(validateLoadout(tight)).toEqual({});
     // Same inside both ways: only the record differs.
     const same = {
@@ -781,7 +781,7 @@ describe('revertWarning', () => {
       glyphArchive: tight.glyphArchive.map((g) => ({ ...g, cells: CASHING.cells })),
     };
     expect(revertWarning(same, 'g1', 2)).toBe(
-      "Loses the 1-ink Economy discount; Pushes the Stoker's page ink over",
+      "Loses the 1-ink Economy discount; Pushes the Draughtsman's page ink over",
     );
   });
 
@@ -799,14 +799,14 @@ describe('revertWarning', () => {
 
   test('a page already over before the revert is not blamed on it', () => {
     const p = twoVersions(2);
-    expect(validateLoadout(p).stoker?.some((i) => i.kind === 'ink')).toBe(true);
+    expect(validateLoadout(p).draughtsman?.some((i) => i.kind === 'ink')).toBe(true);
     expect(revertWarning(p, 'g1', 1)).toBeNull();
   });
 });
 
 // ── Identity: a revised inside behaves like the same cells stamped flat ──
 
-const AFFINITY = MEMBERS.draughtsman.affinity;
+const LEAN = MEMBERS.draughtsman.lean;
 const ROOT = c(4, 4);
 const SHAPE = { width: 12, height: 9, holes: [] };
 const WORLD: Record<Dir, Coord> = {
@@ -851,14 +851,18 @@ function twins(inside: GlyphInside, glyphId: string): { flat: Lattice; glued: La
 const BOARDS = [
   'D . . d . .\n. . . . . .\n. . . S . .',
   'D . ro o d .\n. r . . . .\n. . . . . .',
-  'D . d . d .\n. r d . . .\n. . o~ . . .',
+  'D . d . d .\n. r d . . .\n. . ~ . . .',
 ];
 
 function battleWith(board: string, spells: Spell[]): BattleState {
   return createBattle({ title: 'test', seed: 1, board, party: { draughtsman: { spells } } }).state;
 }
-const castLog = (state: BattleState, aim: Aim): string[] =>
-  describeLog(cast(state, 'draughtsman', aim).events);
+/** The cast's log, then its spell's Step tree with the page coordinates left out. */
+function castLog(state: BattleState, aim: Aim): string[] {
+  const spell = state.units.find((u) => u.kind === 'member')?.spells[0];
+  const what = JSON.stringify([spell?.source, spell?.sourceAuras, stepShape(spell?.first ?? null)]);
+  return [...describeLog(cast(state, 'draughtsman', aim).events), what];
+}
 
 describe('identity: a revised inside casts what the same cells stamped flat cast', () => {
   const forked = spellInside(
@@ -866,14 +870,14 @@ describe('identity: a revised inside casts what the same cells stamped flat cast
     rune('fork', 1, 0),
     rune('ink', 1, -1),
     rune('oil', 1, 1),
-    rune('amplify', 0, -1),
+    rune('coil', 0, -1),
   );
   const bonfire = spellInside(
     rune('splash', 0, 0, 'right'),
     rune('oil', 1, 0),
     rune('spark', 2, 0),
   );
-  const payload = payloadInside(rune('ink', 0, 0), rune('onInked', 1, 0), rune('spark', 2, 0));
+  const payload = payloadInside(rune('ink', 0, 0), rune('tally', 1, 0), rune('spark', 2, 0));
   const bent = payloadInside(
     rune('ink', 0, 0),
     rune('bend', 1, 0, 'down'),
@@ -881,9 +885,9 @@ describe('identity: a revised inside casts what the same cells stamped flat cast
     rune('spark', 1, 2),
   );
   const cases: [string, GlyphInside, GlyphInside][] = [
-    ['Cashing In, from another inside', CASHING, OTHER],
-    ['a Fork with an inner Amplify', forked, CASHING],
-    ['Bonfire (Splash)', bonfire, CASHING],
+    ['a trigger, from another inside', CASHING, OTHER],
+    ['a Fork with an inner aura', forked, CASHING],
+    ['an area source (Splash)', bonfire, CASHING],
     [
       'a Payload',
       payload,
@@ -900,8 +904,8 @@ describe('identity: a revised inside casts what the same cells stamped flat cast
       if (!def) throw new Error('no glyph');
       expect(def.version).toBe(2);
       const { flat, glued } = twins(inside, 'g1');
-      const flatSpells = compileLattice(flat, AFFINITY).spells;
-      const gluedSpells = compileLattice(glued, AFFINITY, glyphLibrary(revised)).spells;
+      const flatSpells = compileLattice(flat, {}, {}, LEAN).spells;
+      const gluedSpells = compileLattice(glued, glyphLibrary(revised), {}, LEAN).spells;
       expect(flatSpells).toHaveLength(1);
       expect(gluedSpells).toHaveLength(1);
       const splash = inside.cells.some((x) => x.rune === 'splash');
@@ -919,7 +923,7 @@ describe('identity: a revised inside casts what the same cells stamped flat cast
     for (const [, inside] of cases) {
       expect(insideIssues(inside).filter((i) => i.kind === 'stranded')).toEqual([]);
       const { flat } = twins(inside, 'g1');
-      const reached = new Set(compileLattice(flat, AFFINITY).reached);
+      const reached = new Set(compileLattice(flat, {}, {}, LEAN).reached);
       for (const x of inside.cells) {
         if (['aura', 'source'].includes(RUNES_FAMILY(x.rune))) continue;
         expect(reached.has(`${ROOT.x + x.at.x},${ROOT.y + x.at.y}`)).toBe(true);
@@ -928,4 +932,4 @@ describe('identity: a revised inside casts what the same cells stamped flat cast
   });
 });
 
-const RUNES_FAMILY = (r: PlacedRune['rune']) => RUNES[r].family;
+const RUNES_FAMILY = (r: PlacedRune['rune']) => roleOf(r) ?? '';

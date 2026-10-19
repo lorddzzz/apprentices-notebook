@@ -8,7 +8,6 @@ import {
   placeOf,
   type SaveData,
   type Trip,
-  type UnitRef,
 } from '$engine';
 import {
   endBattle,
@@ -61,8 +60,8 @@ test('setOut writes a fight trip with full HP and charges, and advances the seed
 test('setOut refuses a second trip and an unready loadout', () => {
   expect(() => setOut(out())).toThrow(/already out/);
   const s = fresh();
-  // the lattice uses a Bolt the collection no longer has
-  const profile = { ...s.profile, collection: { ...s.profile.collection, bolt: 0 } };
+  // the lattice uses a Bolt the household no longer knows
+  const profile = { ...s.profile, known: s.profile.known.filter((r) => r !== 'bolt') };
   expect(() => setOut({ ...s, profile })).toThrow(/not ready/);
 });
 
@@ -82,22 +81,21 @@ test('startBattle needs a trip in the fight status', () => {
   expect(() => startBattle(looting)).toThrow(/looting/);
 });
 
-test('endBattle won: looting with offers, HP and charges carried, learned = only new interactions', () => {
+test('endBattle won: looting with offers, HP and charges carried, learned = only new named results', () => {
   const save = out();
   const battle = startBattle(save).state;
   const hurt: BattleState = {
     ...won(battle),
-    discovered: ['ignite', 'arc'],
     units: won(battle).units.map((u) =>
       u.kind === 'member' && u.def === 'stoker' ? { ...u, hp: 2 } : u,
     ),
   };
-  const known = { ...save, profile: { ...save.profile, interactions: ['ignite' as const] } };
-  const end = endBattle(known, hurt);
+  const known = { ...save, profile: { ...save.profile, named: ['burst:fire'] } };
+  const end = endBattle(known, hurt, named('burst:fire', 'compound:stain'));
   expect(end.outcome).toBe('won');
   expect(end.wipe).toBeNull();
-  expect(end.learned).toEqual(['arc']);
-  expect(end.save.profile.interactions).toEqual(['ignite', 'arc']);
+  expect(end.learned).toEqual(['compound:stain']);
+  expect(end.save.profile.named).toEqual(['burst:fire', 'compound:stain']);
   expect(end.save.trip?.status).toBe('looting');
   expect(end.save.trip?.offers).toHaveLength(3);
   expect(end.save.trip?.picksLeft).toBe(1);
@@ -109,18 +107,18 @@ test('endBattle lost: the trip ends, the WipeSummary lists the lost loot and kee
   const afterOne = clearEncounter(out()); // crossroads with one pending find
   const next = pushOnward(afterOne);
   const battle = startBattle(next).state;
-  const end = endBattle(next, { ...lost(battle), discovered: ['conduct'] });
+  const end = endBattle(next, lost(battle), named('idiom:bonfire'));
   expect(end.outcome).toBe('wiped');
   expect(end.save.trip).toBeNull();
   expect(end.wipe).toEqual({
     encounter: placeOf(next.trip as Trip),
     lost: afterOne.trip?.loot,
-    learned: ['conduct'],
+    learned: ['idiom:bonfire'],
   });
   expect(end.wipe?.lost).toHaveLength(1);
-  // knowledge is not loot; the collection is untouched
-  expect(end.save.profile.interactions).toEqual(['conduct']);
-  expect(end.save.profile.collection).toEqual(fresh().profile.collection);
+  // knowledge is not loot; the known runes are untouched
+  expect(end.save.profile.named).toEqual(['idiom:bonfire']);
+  expect(end.save.profile.known).toEqual(fresh().profile.known);
   expect(end.save.profile.inkCapacity).toEqual(fresh().profile.inkCapacity);
 });
 
@@ -148,7 +146,7 @@ test('takeOffer → crossroads; the heart takes two picks, then the trip is clea
   expect(() => pushOnward(done)).toThrow();
 });
 
-test('goHome banks the loot into the collection and clears the trip', () => {
+test('goHome banks the loot into the notebook and clears the trip', () => {
   const s = clearEncounter(out());
   const item = s.trip?.loot[0];
   expect(item).toBeDefined();
@@ -156,7 +154,10 @@ test('goHome banks the loot into the collection and clears the trip', () => {
   expect(home.trip).toBeNull();
   const before = fresh().profile;
   if (item?.kind === 'rune') {
-    expect(home.profile.collection[item.rune]).toBe(before.collection[item.rune] + 1);
+    // a rune page teaches the rune (a duplicate would be 1 ink)
+    expect(home.profile.known).toContain(item.rune);
+  } else if (item?.kind === 'method') {
+    expect(home.profile.methods).toContain(item.method);
   } else if (item?.kind === 'ink') {
     expect(home.profile.inkCapacity[item.member]).toBe(
       before.inkCapacity[item.member] + item.amount,
@@ -177,23 +178,18 @@ test('goHome and takeOffer need the right trip status', () => {
   expect(() => goHome(fresh())).toThrow(/not out/);
 });
 
-const ref: UnitRef = { id: 'u', name: 'x', at: { x: 0, y: 0 }, member: true };
-const ev = (...types: ('ignite' | 'arc' | 'conduct')[]): GameEvent[] =>
-  types.map(
-    (t): GameEvent =>
-      t === 'ignite'
-        ? { type: 'ignite', at: ref.at, tiles: [ref.at] }
-        : t === 'arc'
-          ? { type: 'arc', from: ref.at, tiles: [ref.at] }
-          : { type: 'conduct', from: ref.at, tiles: [ref.at] },
-  );
+const named = (...ids: string[]): GameEvent[] =>
+  ids.map((id): GameEvent => {
+    const [what = 'compound', ref = ''] = id.split(':');
+    return { type: 'named', what: what as 'compound' | 'burst' | 'idiom', id: ref };
+  });
 
 test('newDiscoveries dedups against the notebook and what was already toasted', () => {
-  const events = ev('ignite', 'ignite', 'arc', 'conduct');
-  expect(newDiscoveries(events, [], [])).toEqual(['ignite', 'arc', 'conduct']);
-  expect(newDiscoveries(events, ['ignite'], [])).toEqual(['arc', 'conduct']);
-  expect(newDiscoveries(events, ['ignite'], ['arc'])).toEqual(['conduct']);
-  expect(newDiscoveries(events, ['ignite', 'arc', 'conduct'], [])).toEqual([]);
+  const events = named('burst:fire', 'burst:fire', 'compound:stain', 'idiom:bonfire');
+  expect(newDiscoveries(events, [], [])).toEqual(['burst:fire', 'compound:stain', 'idiom:bonfire']);
+  expect(newDiscoveries(events, ['burst:fire'], [])).toEqual(['compound:stain', 'idiom:bonfire']);
+  expect(newDiscoveries(events, ['burst:fire'], ['compound:stain'])).toEqual(['idiom:bonfire']);
+  expect(newDiscoveries(events, ['burst:fire', 'compound:stain', 'idiom:bonfire'], [])).toEqual([]);
   expect(newDiscoveries([], [], [])).toEqual([]);
 });
 

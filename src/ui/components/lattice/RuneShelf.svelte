@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { RUNES, TIER_MARKS } from '$data';
-  import { copyLabel, isOwnersHand } from '../../../app/owner';
+  import { TIER_MARKS } from '$data';
+  import { hasArrow, nameOf } from '$engine';
   import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -113,10 +113,7 @@
         class:selected
         class:spent={!slot.usable}
         aria-pressed={selected}
-        aria-label={copyLabel(
-          `${slot.glyph.name}, ${slot.glyph.kind} Fair copy, ${slot.cost} ink${slot.runesFree ? ', its runes are free' : ', some runes are in use'}`,
-          slot.glyph,
-        )}
+        aria-label={`${slot.glyph.name}, ${slot.glyph.kind} Fair copy, ${slot.cost} ink`}
         data-glyph={slot.glyph.id}
         onclick={() => tapGlyph(slot)}
       >
@@ -129,16 +126,9 @@
           dim={!slot.usable}
         />
         <span class="meta">
-          <b
-            >{slot.glyph.name}
-            {#if isOwnersHand(slot.glyph)}
-              <svg class="quill" data-testid="owner-mark" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
-                <path d="M20 4c-8 0-13 4-14 12l-2 4M20 4c0 7-4 11-11 12M9 16h6" />
-              </svg>
-            {/if}</b
-          >
+          <b>{slot.glyph.name}</b>
           <small class:poor={slot.usable && !slot.affordable}>
-            {slot.glyph.kind} · {slot.cost} ink · {slot.runesFree ? 'runes free' : 'runes in use'}
+            {slot.glyph.kind} · {slot.cost} ink
           </small>
         </span>
         <span class="badges" aria-hidden="true">
@@ -160,18 +150,18 @@
       class:selected
       class:spent={!slot.usable}
       aria-pressed={selected}
-      aria-label={`${RUNES[slot.rune].name}, ${slot.free === null ? 'unlimited' : `${slot.free} of ${slot.owned} left`}`}
+      aria-label={`${nameOf(slot.rune)}, ${slot.cost} ink`}
       data-rune={slot.rune}
       onclick={() => tap(slot)}
     >
       <RuneGlyph
         rune={slot.rune}
-        dir={RUNES[slot.rune].arrow ? 'right' : undefined}
+        dir={hasArrow(slot.rune) ? 'right' : undefined}
         size={30}
         dim={!slot.usable}
       />
       <span class="count" class:poor={slot.usable && !slot.affordable}>
-        <b>{slot.free === null ? '∞' : slot.free}</b>{#if slot.owned !== null}<small>/{slot.owned}</small>{/if}
+        <b>{slot.cost}</b>
       </span>
     </button>
   {/each}
@@ -288,10 +278,6 @@
     min-width: 0;
     line-height: 1.15;
   }
-  .quill {
-    vertical-align: -2px;
-    color: var(--ink-soft);
-  }
   .meta b {
     overflow: hidden;
     font-size: 13px;
@@ -336,10 +322,6 @@
   }
   .count b {
     font-size: 13px;
-  }
-  .count small {
-    color: var(--ink-soft);
-    font-size: 10px;
   }
   .spent .count {
     opacity: 0.5;

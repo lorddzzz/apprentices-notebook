@@ -1,4 +1,4 @@
-import { type DistrictId, type InteractionId, MEMBER_IDS, type MemberId } from '$data';
+import { type DistrictId, MEMBER_IDS, type MemberId } from '$data';
 import {
   type ActionResult,
   type Cluster,
@@ -11,7 +11,7 @@ import {
   type SaveData,
 } from '$engine';
 import { BattleSession } from './battle.svelte';
-import { interactionTitle } from './describe';
+import { namedTitle } from './describe';
 import {
   editAndPersist,
   endBattle,
@@ -28,7 +28,7 @@ import {
 } from './flow';
 import { go } from './router.svelte';
 import { loadSave, type SaveBackend, saveText, writeSave } from './save';
-import { editProfile, NO_TOOL, noteIdioms, type ShelfTool } from './study';
+import { editProfile, NO_TOOL, type ShelfTool } from './study';
 import { toast } from './toasts.svelte';
 
 /**
@@ -40,12 +40,14 @@ export class GameStore {
   save = $state.raw<SaveData>() as SaveData;
   /** A wipe waiting to be read (set by the trip flow, cleared by `dismissWipe`). */
   wipe = $state.raw<WipeSummary | null>(null);
-  /** The save could not be read and was replaced by a new game (the old text is kept). App toasts it once. */
+  /** The save could not be used and was replaced by a new game (the old text is kept). App toasts it once. */
   recovered = $state(false);
+  /** ...because the notebook is from before this edition (P1). */
+  older = $state(false);
   /** The trip's live battle. Its actions are saved in the trip, so a reload replays the fight. */
   battle = $state.raw<BattleSession | null>(null);
-  /** Interactions already announced this trip (the toast shows once per discovery). */
-  private toasted: InteractionId[] = [];
+  /** Named results already announced this trip (the toast shows once per discovery). */
+  private toasted: string[] = [];
   /** Which member's notebook page the Study shows, and what the player holds. */
   member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
   tool = $state.raw<ShelfTool>(NO_TOOL);
@@ -62,6 +64,7 @@ export class GameStore {
     const loaded = loadSave(backend, now());
     this.save = loaded.save;
     this.recovered = loaded.recovered;
+    this.older = loaded.older;
   }
 
   get profile(): Profile {
@@ -100,15 +103,6 @@ export class GameStore {
     this.save = r.save;
     this.tool = r.tool;
     if (r.message) toast(r.message);
-    if (r.changed) this.recogniseIdioms();
-  }
-
-  /** A fresh idiom on either page goes into the codex, with a toast (design §4.6). */
-  private recogniseIdioms(): void {
-    const { profile, toasts } = noteIdioms(this.save.profile);
-    if (toasts.length === 0) return;
-    this.setProfile(profile);
-    for (const line of toasts) toast(line);
   }
 
   /**
@@ -218,7 +212,6 @@ export class GameStore {
       toast('This fight could not be resumed and starts over.', 'warn');
     }
     this.battle = new BattleSession(init, 'trip', {
-      known: () => this.save.profile.interactions,
       onEvents: (events) => this.announce(events),
       onAction: (_, action) => this.commit(recordBattleAction(this.save, action)),
       intro: trip.actions.length === 0,
@@ -285,10 +278,10 @@ export class GameStore {
   };
 
   private announce(events: GameEvent[]): void {
-    const fresh = newDiscoveries(events, this.save.profile.interactions, this.toasted);
+    const fresh = newDiscoveries(events, this.save.profile.named, this.toasted);
     for (const id of fresh) {
       this.toasted.push(id);
-      toast(`New in the notebook: ${interactionTitle(id)}`);
+      toast(`New in the notebook: ${namedTitle(id)}`);
     }
   }
 

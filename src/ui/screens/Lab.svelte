@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MEMBER_IDS, MEMBERS, SCENARIOS } from '$data';
+  import { MEMBERS, SCENARIOS } from '$data';
   import { compileLattice, openAll } from '$engine';
   import { IDLE } from '../../app/battleInput';
   import { game, lab } from '../../app/instance';
@@ -48,15 +48,10 @@
 
   const paintName = $derived(PALETTE.find((p) => p.item === lab.palette)?.name ?? '');
   const slots = $derived(
-    shelfSlots(
-      null,
-      MEMBER_IDS.map((m) => lab.lattices[m]),
-      lab.lattices[lab.member],
-      null,
-    ),
+    shelfSlots(null, lab.lattices[lab.member], null, {}, {}, lab.member),
   );
   const lattice = $derived(lab.lattices[lab.member]);
-  const compiled = $derived(compileLattice(lattice, MEMBERS[lab.member].affinity));
+  const compiled = $derived(compileLattice(lattice, {}, {}, MEMBERS[lab.member].lean));
   // Dev builds and `?dev` get the city shortcuts (K-24).
   const devTools = $derived(
     import.meta.env.DEV ||

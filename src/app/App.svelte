@@ -25,7 +25,12 @@
 
   onMount(() => {
     if (game.recovered) {
-      toast('The saved notebook could not be read. Starting fresh; the old text is kept.', 'warn');
+      toast(
+        game.older
+          ? 'This notebook is from an older edition. Starting a fresh one; the old text is kept.'
+          : 'The saved notebook could not be read. Starting fresh; the old text is kept.',
+        'warn',
+      );
     }
   });
 

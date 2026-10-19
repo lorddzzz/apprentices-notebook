@@ -28,6 +28,15 @@
   --f-trigger: #5b4a8a;
   --f-aura: #b07d1e;
 
+  /* rune roles (frame colours, see ROLE_COLOR in runeArt.ts) */
+  --role-source: #2f4f6f; /* ink-blue */
+  --role-action: #8b3a2b; /* rust */
+  --role-kind: #a8741a; /* ochre */
+  --role-shape: #4f5d6b; /* slate */
+  --role-trigger: #4f6b3a; /* moss */
+  --role-seal: #c98a14; /* lamp-amber */
+  --role-aura: #6a4a9a; /* violet */
+
   /* roles */
   --member-draughtsman: #2f4f6f;
   --member-stoker: #a2471f;

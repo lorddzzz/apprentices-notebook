@@ -1,12 +1,19 @@
-import { IDIOMS, MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, type RuneId } from '$data';
+import {
+  MEMBER_IDS,
+  MEMBERS,
+  type MemberId,
+  RUNE_IDS,
+  type RuneId,
+  type RuneRef,
+  SOLVENT_IDS,
+} from '$data';
 import {
   argIssue,
-  available,
   type CellKey,
   type Coord,
+  canBeOpen,
   canPlace,
   canPlaceGlyph,
-  countRunes,
   type Dir,
   type GlyphArg,
   type GlyphDef,
@@ -14,19 +21,23 @@ import {
   type GlyphLibrary,
   glyphCost,
   glyphLibrary,
-  glyphRunes,
-  inkCost,
+  hasArrow,
+  type InventionLibrary,
+  inkOf,
   inkUsed,
+  inventionLibrary,
   isGlyph,
   isSocket,
   key,
+  knows,
   type Lattice,
   latticeOf,
+  nameOf,
   type Placed,
   type Profile,
   placedInk,
-  recogniseIdioms,
   recordOf,
+  roleOf,
   rotateSocket,
   setMemberLattice,
   setOpenCells,
@@ -39,14 +50,14 @@ import {
 
 /** What the player is holding: a rune or a Fair copy from the shelf, the eraser, or nothing. */
 export type ShelfTool =
-  | { kind: 'rune'; rune: RuneId }
+  | { kind: 'rune'; rune: RuneRef }
   | { kind: 'glyph'; glyph: GlyphId }
   | { kind: 'erase' }
   | { kind: 'none' };
 
 export type SocketDecision =
-  | { kind: 'place'; rune: RuneId }
-  | { kind: 'replace'; rune: RuneId }
+  | { kind: 'place'; rune: RuneRef }
+  | { kind: 'replace'; rune: RuneRef }
   | { kind: 'placeGlyph'; glyph: GlyphId }
   | { kind: 'replaceGlyph'; glyph: GlyphId }
   | { kind: 'rotate' }
@@ -56,16 +67,21 @@ export type SocketDecision =
   | { kind: 'reject'; reason: string };
 
 /**
- * Everything a lattice edit needs. `capacity` null = unlimited ink (Lab);
- * `free(rune)` = copies still on the shelf, null = unlimited.
+ * Everything a lattice edit needs. `capacity` null = unlimited ink (Lab). Runes are knowledge,
+ * not copies (P34): a known rune can go on as many sockets as the ink allows.
  */
 export interface EditContext {
   lattice: Lattice;
   capacity: number | null;
-  free: (rune: RuneId) => number | null;
   /** The profile's Fair copies (ink for Glyph sockets). Default: none. */
   glyphs?: GlyphLibrary;
+  /** The household's inventions (their ink and role). Default: none. */
+  inventions?: InventionLibrary;
+  /** Whose page: the trained school makes its runes cheaper (P33). Default: nobody's. */
+  member?: MemberId;
 }
+
+const leanOf = (member: MemberId | undefined) => (member ? MEMBERS[member].lean : null);
 
 export const NO_TOOL: ShelfTool = { kind: 'none' };
 
@@ -73,32 +89,21 @@ export function inkLeft(
   lattice: Lattice,
   capacity: number | null,
   glyphs: GlyphLibrary = {},
+  inventions: InventionLibrary = {},
+  member?: MemberId,
 ): number | null {
-  return capacity === null ? null : capacity - inkUsed(lattice, glyphs);
+  return capacity === null ? null : capacity - inkUsed(lattice, glyphs, inventions, leanOf(member));
 }
 
-/** Shelf counter for one collection: owned minus what every lattice already holds. null owned = Lab (∞). */
-export function freeCounter(
-  owned: Readonly<Record<RuneId, number>> | null,
-  lattices: readonly Lattice[],
-  glyphs: GlyphLibrary = {},
-): (rune: RuneId) => number | null {
-  if (owned === null) return () => null;
-  const used = countRunes(lattices);
-  // A placed Glyph holds its inner runes (plan P1).
-  for (const l of lattices) {
-    for (const r of l.runes) {
-      const def = isGlyph(r) ? glyphs[r.glyph] : undefined;
-      if (isGlyph(r) && def) for (const rune of glyphRunes(def, r.args)) used[rune] += 1;
-    }
-  }
-  return (rune) => Math.max(0, owned[rune] - used[rune]);
-}
-
-function inkReject(rune: RuneId, left: number): SocketDecision {
+function inkReject(
+  rune: RuneRef,
+  cost: number,
+  left: number,
+  inv: InventionLibrary,
+): SocketDecision {
   return {
     kind: 'reject',
-    reason: `${RUNES[rune].name} needs ${inkCost(rune)} ink, ${Math.max(0, left)} left`,
+    reason: `${nameOf(rune, inv)} needs ${cost} ink, ${Math.max(0, left)} left`,
   };
 }
 
@@ -106,14 +111,16 @@ export function decideSocketTap(ctx: EditContext, at: Coord, tool: ShelfTool): S
   if (!isSocket(ctx.lattice.shape, at)) return { kind: 'ignore' };
   const placed = socketAt(ctx.lattice, at);
   const lib = ctx.glyphs ?? {};
+  const inv = ctx.inventions ?? {};
+  const lean = leanOf(ctx.member);
 
   if (tool.kind === 'erase') return placed ? { kind: 'remove' } : { kind: 'ignore' };
 
   if (tool.kind === 'glyph') {
     if (placed && isGlyph(placed) && placed.glyph === tool.glyph) return { kind: 'rotate' };
-    const refund = placed ? placedInk(placed, lib, ctx.lattice) : 0;
-    const left = inkLeft(ctx.lattice, ctx.capacity, lib);
-    const cost = glyphCost(lib[tool.glyph] ?? emptyGlyph);
+    const refund = placed ? placedInk(placed, lib, ctx.lattice, inv, lean) : 0;
+    const left = inkLeft(ctx.lattice, ctx.capacity, lib, inv, ctx.member);
+    const cost = glyphCost(lib[tool.glyph] ?? emptyGlyph, inv, lean);
     if (left !== null && cost > left + refund) {
       return {
         kind: 'reject',
@@ -127,16 +134,16 @@ export function decideSocketTap(ctx: EditContext, at: Coord, tool: ShelfTool): S
 
   if (tool.kind === 'rune' && (placed && !isGlyph(placed) ? placed.rune : null) !== tool.rune) {
     const rune = tool.rune;
-    if (ctx.free(rune) === 0) return { kind: 'reject', reason: `No ${RUNES[rune].name} left` };
-    const left = inkLeft(ctx.lattice, ctx.capacity, lib);
-    const refund = placed ? placedInk(placed, lib, ctx.lattice) : 0;
-    if (left !== null && inkCost(rune) > left + refund) return inkReject(rune, left + refund);
+    const left = inkLeft(ctx.lattice, ctx.capacity, lib, inv, ctx.member);
+    const refund = placed ? placedInk(placed, lib, ctx.lattice, inv, lean) : 0;
+    const cost = inkOf(rune, inv, lean);
+    if (left !== null && cost > left + refund) return inkReject(rune, cost, left + refund, inv);
     return placed ? { kind: 'replace', rune } : { kind: 'place', rune };
   }
 
   if (!placed) return { kind: 'ignore' };
   if (isGlyph(placed)) return { kind: 'rotate' };
-  return RUNES[placed.rune].arrow ? { kind: 'rotate' } : { kind: 'inspect' };
+  return hasArrow(placed.rune) ? { kind: 'rotate' } : { kind: 'inspect' };
 }
 
 const emptyGlyph: GlyphDef = {
@@ -188,18 +195,12 @@ export function applyDecision(lattice: Lattice, at: Coord, d: SocketDecision): L
   }
 }
 
-/** The shelf rune stays selected while copies remain; it drops itself when the last one is placed. */
-export function toolAfter(
-  tool: ShelfTool,
-  d: SocketDecision,
-  freeBefore: number | null,
-): ShelfTool {
+/** The shelf rune stays selected: a known rune has no copies to run out of (P34). */
+export function toolAfter(tool: ShelfTool, d: SocketDecision): ShelfTool {
   if (tool.kind === 'glyph') {
     return d.kind === 'placeGlyph' || d.kind === 'replaceGlyph' ? NO_TOOL : tool;
   }
-  if (tool.kind !== 'rune') return tool;
-  if (d.kind !== 'place' && d.kind !== 'replace') return tool;
-  return freeBefore !== null && freeBefore - 1 <= 0 ? NO_TOOL : tool;
+  return tool;
 }
 
 export interface EditResult {
@@ -222,24 +223,19 @@ export function editSocket(
       ? { kind: 'remove' }
       : { kind: 'ignore' }
     : decideSocketTap(ctx, at, tool);
-  const placing = decision.kind === 'place' || decision.kind === 'replace';
-  const free = placing && tool.kind === 'rune' ? ctx.free(tool.rune) : null;
   return {
     lattice: applyDecision(ctx.lattice, at, decision),
-    tool: longPress ? tool : toolAfter(tool, decision, free),
+    tool: longPress ? tool : toolAfter(tool, decision),
     decision,
     message: decision.kind === 'reject' ? decision.reason : null,
   };
 }
 
 export interface ShelfSlot {
-  rune: RuneId;
+  rune: RuneRef;
   known: boolean;
-  /** null = unlimited (Lab). */
-  owned: number | null;
-  free: number | null;
   cost: number;
-  /** Can be picked up: known and a copy is left. */
+  /** Can be picked up: known. */
   usable: boolean;
   /** Could be dropped on an empty socket right now (enough ink as well). */
   affordable: boolean;
@@ -247,57 +243,57 @@ export interface ShelfSlot {
 }
 
 /**
- * The 14 shelf slots in RUNE_IDS order. `owned` null = Lab (everything known, ∞).
- * `current` is the lattice being edited and must be one of `lattices`.
+ * The shelf slots: every rune in RUNE_IDS order, then the household's inventions. `known` null =
+ * Lab (everything known). `current` is the lattice being edited.
  */
 export function shelfSlots(
-  owned: Readonly<Record<RuneId, number>> | null,
-  lattices: readonly Lattice[],
+  known: readonly RuneId[] | null,
   current: Lattice,
   capacity: number | null,
   glyphs: GlyphLibrary = {},
+  inventions: InventionLibrary = {},
+  member?: MemberId,
 ): ShelfSlot[] {
-  const free = freeCounter(owned, lattices, glyphs);
-  const left = inkLeft(current, capacity, glyphs);
-  return RUNE_IDS.map((rune) => {
-    const own = owned === null ? null : owned[rune];
-    const known = own === null || own > 0;
-    const f = free(rune);
-    const cost = inkCost(rune);
-    const usable = known && f !== 0;
+  const left = inkLeft(current, capacity, glyphs, inventions, member);
+  const lean = leanOf(member);
+  const refs: RuneRef[] = [...RUNE_IDS, ...(Object.keys(inventions) as RuneRef[])];
+  return refs.map((rune) => {
+    const isKnown =
+      known === null || !RUNE_IDS.some((id) => id === rune) || known.some((id) => id === rune);
+    const cost = inkOf(rune, inventions, lean);
     return {
       rune,
-      known,
-      owned: own,
-      free: f,
+      known: isKnown,
       cost,
-      usable,
-      affordable: usable && (left === null || cost <= left),
-      reason: !known ? 'Not found yet' : f === 0 ? `No ${RUNES[rune].name} left` : null,
+      usable: isKnown,
+      affordable: isKnown && (left === null || cost <= left),
+      reason: isKnown ? null : 'Not found yet',
     };
   });
 }
 
 // ── Profile wrappers (the Study edits the saved profile) ──
 
-/** The edit context for one member of a profile: its ink capacity and what is left on the shelf. */
+/** The edit context for one member of a profile: its ink capacity, Fair copies and inventions. */
 export function profileContext(p: Profile, m: MemberId): EditContext {
   return {
     lattice: latticeOf(p, m),
     capacity: p.inkCapacity[m],
-    free: (rune) => available(p, rune),
     glyphs: glyphLibrary(p),
+    inventions: inventionLibrary(p),
+    member: m,
   };
 }
 
-/** The 20 shelf slots for `m`'s page: owned counts come from the profile, placed counts from both lattices. */
+/** The shelf slots for `m`'s page: known runes are usable, the rest read `???`. */
 export function profileShelf(p: Profile, m: MemberId): ShelfSlot[] {
   return shelfSlots(
-    p.collection,
-    MEMBER_IDS.map((id) => latticeOf(p, id)),
+    p.known,
     latticeOf(p, m),
     p.inkCapacity[m],
     glyphLibrary(p),
+    inventionLibrary(p),
+    m,
   );
 }
 
@@ -306,9 +302,7 @@ export interface GlyphSlot {
   glyph: GlyphDef;
   /** Ink the Glyph costs before outer auras. */
   cost: number;
-  /** Every inner rune is still on the shelf (plan P1). */
-  runesFree: boolean;
-  /** Could be picked up: its inner runes are free. */
+  /** Could be picked up: every inner rune is known. */
   usable: boolean;
   /** Could be dropped on an empty socket right now (enough ink as well). */
   affordable: boolean;
@@ -322,25 +316,21 @@ export interface GlyphSlot {
 /** The Fair copies tab: the profile's Glyphs, and whether each can be placed on `m`'s page. */
 export function glyphSlots(p: Profile, m: MemberId): GlyphSlot[] {
   const lib = glyphLibrary(p);
-  const left = inkLeft(latticeOf(p, m), p.inkCapacity[m], lib);
+  const inv = inventionLibrary(p);
+  const lean = MEMBERS[m].lean;
+  const left = inkLeft(latticeOf(p, m), p.inkCapacity[m], lib, inv, m);
   return p.glyphs.map((saved) => {
     const glyph = lib[saved.id] ?? saved;
-    const needs = new Map<RuneId, number>();
-    // An open cell whose default is used up can take another rune of its family (M25).
-    for (const rune of glyphRunes(glyph, fallbackArgs(p, glyph))) {
-      needs.set(rune, (needs.get(rune) ?? 0) + 1);
-    }
-    const runesFree = [...needs].every(([rune, n]) => available(p, rune) >= n);
-    const cost = glyphCost(glyph);
+    const cost = glyphCost(glyph, inv, lean);
+    const unknown = glyph.cells.some((c) => !knows(p, c.rune));
     return {
       glyph,
       tiers: { ...recordOf(p, saved.id, saved.version).best },
       open: glyph.params.length,
       cost,
-      runesFree,
-      usable: runesFree,
-      affordable: runesFree && (left === null || cost <= left),
-      reason: runesFree ? null : 'Some of its runes are in use elsewhere',
+      usable: !unknown,
+      affordable: !unknown && (left === null || cost <= left),
+      reason: unknown ? 'Some of its runes are not known' : null,
     };
   });
 }
@@ -385,90 +375,30 @@ export function editProfile(
     const reason = canPlace(p, m, at, d.rune);
     if (reason !== null) return refuse(reason);
   }
-  // A Glyph with open cells goes down pre-filled (M25): its defaults, or the first rune of the
-  // family that is still free when a default is used up. The engine has the last word.
-  const args =
-    d.kind === 'placeGlyph' || d.kind === 'replaceGlyph' ? placementArgs(p, m, at, d.glyph) : {};
   if (d.kind === 'placeGlyph' || d.kind === 'replaceGlyph') {
-    const reason = canPlaceGlyph(p, m, at, d.glyph, hasArgs(args) ? args : undefined);
+    const reason = canPlaceGlyph(p, m, at, d.glyph);
     if (reason !== null) return refuse(reason);
   }
   const placing = ['place', 'replace', 'placeGlyph', 'replaceGlyph'].includes(d.kind);
-  if (placing && inkUsed(r.lattice, glyphLibrary(p)) > p.inkCapacity[m]) {
+  if (
+    placing &&
+    inkUsed(r.lattice, glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean) > p.inkCapacity[m]
+  ) {
     return refuse('Not enough ink');
   }
   const changed = CHANGING.includes(d.kind);
   const { lattice, ...rest } = r;
-  const placed = hasArgs(args) ? stampArgs(lattice, at, args) : lattice;
-  return { ...rest, profile: changed ? setMemberLattice(p, m, placed) : p, changed };
+  return { ...rest, profile: changed ? setMemberLattice(p, m, lattice) : p, changed };
 }
 
 const hasArgs = (args: Readonly<Record<CellKey, GlyphArg>>): boolean =>
   Object.keys(args).length > 0;
 
-/** The lattice with `args` set on the Glyph socket at `at`. */
-function stampArgs(l: Lattice, at: Coord, args: Readonly<Record<CellKey, GlyphArg>>): Lattice {
-  return {
-    shape: l.shape,
-    runes: l.runes.map((r) => (isGlyph(r) && sameAt(r.at, at) ? { ...r, args: { ...args } } : r)),
-  };
-}
-
-const sameAt = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
-
-/** The profile with the socket at `at` of `m`'s page emptied (what is free for a placement there). */
-function withoutSocket(p: Profile, m: MemberId, at: Coord): Profile {
-  const l = latticeOf(p, m);
-  return setMemberLattice(p, m, {
-    shape: l.shape,
-    runes: l.runes.filter((r) => !sameAt(r.at, at)),
-  });
-}
-
-const argFor = (rune: RuneId, from: { dir?: Dir } | undefined): GlyphArg =>
-  RUNES[rune].arrow ? { rune, dir: from?.dir ?? 'right' } : { rune };
-
-/**
- * The arguments a Glyph is placed with when none were chosen yet (M25): nothing while every default
- * rune is free (a missing argument means the default, M21); for an open cell whose default is used
- * up, the first rune of its family that is.
- */
-function fallbackArgs(p: Profile, def: GlyphDef): Record<CellKey, GlyphArg> {
-  const args: Record<CellKey, GlyphArg> = {};
-  const needs = new Map<RuneId, number>();
-  for (const rune of glyphRunes(def)) needs.set(rune, (needs.get(rune) ?? 0) + 1);
-  for (const k of def.params) {
-    const cell = def.cells.find((c) => key(c.at) === k);
-    if (!cell || available(p, cell.rune) >= (needs.get(cell.rune) ?? 0)) continue;
-    const family = RUNES[cell.rune].family;
-    const pick = RUNE_IDS.find(
-      (r) =>
-        r !== cell.rune && RUNES[r].family === family && available(p, r) >= (needs.get(r) ?? 0) + 1,
-    );
-    if (!pick) continue;
-    needs.set(cell.rune, (needs.get(cell.rune) ?? 1) - 1);
-    needs.set(pick, (needs.get(pick) ?? 0) + 1);
-    args[k] = argFor(pick, cell);
-  }
-  return args;
-}
-
-/** What `glyph` would carry if placed on `at` of `m`'s page now (M25); empty when the defaults all fit. */
-export function placementArgs(
-  p: Profile,
-  m: MemberId,
-  at: Coord,
-  glyph: GlyphId,
-): Record<CellKey, GlyphArg> {
-  const def = glyphLibrary(p)[glyph];
-  return def && def.params.length > 0 ? fallbackArgs(withoutSocket(p, m, at), def) : {};
-}
-
 /**
  * Sets the arguments of the Glyph placed on `at` of `m`'s page (M25); an empty set clears them. An
  * argument that equals its default is dropped (a missing one means the default, M21). Throws when
- * no Glyph is there, an argument isn't allowed (family, open cell) or the page can't hold it
- * (runes owned, ink): the engine's `canPlaceGlyph` has the last word.
+ * no Glyph is there, an argument isn't allowed (role, open cell) or the page can't hold it
+ * (runes known, ink): the engine's `canPlaceGlyph` has the last word.
  */
 export function setGlyphArgs(
   p: Profile,
@@ -481,11 +411,12 @@ export function setGlyphArgs(
   if (!placed || !isGlyph(placed)) throw new Error('No Fair copy there');
   const def = glyphLibrary(p)[placed.glyph];
   if (!def) throw new Error('Unknown Fair copy');
+  const inv = inventionLibrary(p);
   const kept: Record<CellKey, GlyphArg> = {};
   for (const [k, arg] of Object.entries(args)) {
-    const why = argIssue(def, k, arg);
+    const why = argIssue(def, k, arg, inv);
     if (why) throw new Error(`${def.name} ${why}`);
-    const dir = RUNES[arg.rune].arrow ? (arg.dir ?? 'right') : undefined;
+    const dir = hasArrow(arg.rune) ? (arg.dir ?? 'right') : undefined;
     // An argument equal to the default isn't stored, so the cell follows the Glyph's next revision.
     const slot = def.cells.find((c) => key(c.at) === k);
     if (slot && slot.rune === arg.rune && slot.dir === dir) continue;
@@ -500,33 +431,23 @@ export function setGlyphArgs(
 }
 
 export interface ArgOption {
-  rune: RuneId;
-  /** Copies this cell could take now: owned, not used elsewhere or by the Glyph's other cells. */
-  free: number;
+  rune: RuneRef;
 }
 
 /**
- * The runes open cell `cell` of the Glyph on `at` can take (M21, M25): every owned rune of the
- * default's family, with how many are still free for it given the Glyph's other cells (`args`).
+ * The runes open cell `cell` of the Glyph on `at` can take (M21, P7): every known rune (or
+ * invention) with the default's role.
  */
-export function argOptions(
-  p: Profile,
-  m: MemberId,
-  at: Coord,
-  cell: CellKey,
-  args: Readonly<Record<CellKey, GlyphArg>>,
-): ArgOption[] {
+export function argOptions(p: Profile, m: MemberId, at: Coord, cell: CellKey): ArgOption[] {
   const placed = socketAt(latticeOf(p, m), at);
   const def = placed && isGlyph(placed) ? glyphLibrary(p)[placed.glyph] : undefined;
   const slot = def?.cells.find((c) => key(c.at) === cell);
   if (!def || !slot) return [];
-  const without = withoutSocket(p, m, at);
-  const others = glyphRunes({ ...def, cells: def.cells.filter((c) => key(c.at) !== cell) }, args);
-  const family = RUNES[slot.rune].family;
-  return RUNE_IDS.filter((r) => RUNES[r].family === family && p.collection[r] > 0).map((rune) => ({
-    rune,
-    free: Math.max(0, available(without, rune) - others.filter((x) => x === rune).length),
-  }));
+  const inv = inventionLibrary(p);
+  if (!canBeOpen(slot.rune, inv)) return [];
+  const role = roleOf(slot.rune, inv);
+  const refs: RuneRef[] = [...p.known, ...p.inventions.map((d) => d.id)];
+  return refs.filter((r) => roleOf(r, inv) === role).map((rune) => ({ rune }));
 }
 
 /**
@@ -548,26 +469,26 @@ export function setGlyphOpenCells(p: Profile, id: GlyphId, cells: readonly CellK
   return { ...next, lattices };
 }
 
-/** One rune the revision editor may use, and how many the inside may hold (M19: what is owned). */
+/** One rune the revision editor may use, and how many the inside may hold (null: no limit, P34). */
 export interface PaletteSlot {
-  rune: RuneId;
-  /** null = no limit (a draft's own page runes, M34). */
+  rune: RuneRef;
   count: number | null;
 }
 
-/** The revision editor's palette: every rune owned at least once, with the owned count (M19). */
+/** The revision editor's palette: every known rune and invention, without a limit (P34). */
 export function revisionPalette(p: Profile): PaletteSlot[] {
-  return RUNE_IDS.filter((r) => p.collection[r] > 0).map((rune) => ({
-    rune,
-    count: p.collection[rune],
-  }));
+  const refs: RuneRef[] = [
+    ...RUNE_IDS.filter((r) => p.known.includes(r)),
+    ...p.inventions.map((d) => d.id),
+  ];
+  return refs.map((rune) => ({ rune, count: null }));
 }
 
-/** Writes any idiom the pages now contain into the codex; returns the toast lines for the new ones. */
-export function noteIdioms(p: Profile): { profile: Profile; toasts: string[] } {
-  const { profile, fresh } = recogniseIdioms(p);
-  const names = fresh.map((id) => IDIOMS.find((i) => i.id === id)?.name ?? id);
-  return { profile, toasts: names.map((n) => `Idiom recognised: ${n}`) };
+/** The Bench shows in the Study once the household holds a method page, an invention or a solvent. */
+export function benchUnlocked(p: Profile): boolean {
+  return (
+    p.methods.length > 0 || p.inventions.length > 0 || SOLVENT_IDS.some((id) => p.solvents[id] > 0)
+  );
 }
 
 /** What stops the party leaving the desk or a doorway: the first problem with either lattice, in plain words. */

@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { draftsLabel } from '../../../app/desk';
   import { game } from '../../../app/instance';
-  import { href } from '../../../app/routes';
   import { rumourLine } from '../../../app/tripviews';
 
   interface Props {
@@ -13,8 +11,6 @@
 
   let { oncodex, onmenu, onbench = null }: Props = $props();
 
-  // The owner's drafts: a link once any is banked (plan M36).
-  const drafts = $derived(draftsLabel(game.profile.drafts));
   // A rumour heard on the last trip, shown while that trip is still the last one (K-20).
   const rumour = $derived(rumourLine(game.save.lastTrip));
 
@@ -81,9 +77,6 @@
   {#if rumour}
     <p class="rumour" data-testid="rumour-line">{rumour}</p>
   {/if}
-  {#if drafts}
-    <a class="drafts" href={href('desk')} data-testid="drafts-link">{drafts}</a>
-  {/if}
 
   <div class="buttons">
     {#if onbench}
@@ -145,31 +138,6 @@
     color: var(--parchment);
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
     white-space: nowrap;
-  }
-  .drafts {
-    position: absolute;
-    left: 112px;
-    top: 54px;
-    display: inline-flex;
-    align-items: center;
-    min-height: 26px;
-    padding: 0 10px;
-    border: 1.5px solid rgba(241, 230, 204, 0.45);
-    border-radius: 13px;
-    background: rgba(26, 18, 12, 0.55);
-    color: var(--parchment);
-    font: 12px var(--mono);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .drafts::after {
-    content: '';
-    position: absolute;
-    inset: -9px -6px;
-  }
-  .drafts:focus-visible {
-    outline: 3px solid var(--select);
-    outline-offset: 2px;
   }
   .buttons {
     position: absolute;

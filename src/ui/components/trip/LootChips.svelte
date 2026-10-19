@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { RUNES } from '$data';
   import type { LootItem } from '$engine';
   import { lootName } from '../../../app/describe';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -17,9 +18,9 @@
   {#each items as item, i (i)}
     <li class="chip" data-kind={item.kind}>
       {#if item.kind === 'rune'}
-        <RuneGlyph rune={item.rune} dir={item.rune === 'bolt' || item.rune === 'bend' ? 'right' : undefined} size={28} />
+        <RuneGlyph rune={item.rune} dir={RUNES[item.rune].arrow ? 'right' : undefined} size={28} />
       {:else}
-        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'solvent' ? '◍' : item.kind === 'draft' ? '❦' : '✎'}</span>
+        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'solvent' ? '◍' : item.kind === 'method' ? '❖' : '✎'}</span>
       {/if}
       <span class="name">{lootName(item)}</span>
     </li>

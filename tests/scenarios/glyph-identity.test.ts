@@ -30,27 +30,32 @@ import {
   provenCount,
   type Rng,
   recordProof,
+  roleOf,
   type Spell,
-  type SpellNode,
   setMemberLattice,
   sharingSpells,
   step,
+  stepShape,
+  stepsOf,
   tidyCollapse,
   toGlyphDef,
   turnLeft,
   turnRight,
   withOpenCell,
 } from '$engine';
+import { withSeams } from '$engine/resolve';
 import { cast } from './harness';
 
 /**
  * Design §9.4, the identity property: compiling a cluster into a Glyph never changes what a cast
  * does. Every case builds the flat lattice and the compiled one (Glyph in the entry socket, the
- * outside tail re-laid from the socket's exit neighbour) and compares the full battle log of the
- * cast on three boards.
+ * outside tail re-laid from the socket's exit neighbour) and compares, on three boards, the cast's
+ * aim log and its spell's Step tree with the page coordinates left out (W0b: the steps don't act
+ * yet; E1 makes the log carry their effects too).
  */
 
-const AFFINITY = MEMBERS.draughtsman.affinity;
+const LEAN = MEMBERS.draughtsman.lean;
+const flatCompile = (l: Lattice, glyphs: GlyphLibrary = {}) => compileLattice(l, glyphs, {}, LEAN);
 
 // ── Independent frame maths (the test does not reuse the engine's rotation) ──
 
@@ -131,8 +136,14 @@ function battleWith(board: string, spells: Spell[], weak = false): BattleState {
   return s;
 }
 
-const castLog = (state: BattleState, aim: Aim): string[] =>
-  describeLog(cast(state, 'draughtsman', aim).events);
+/** The cast's log, then what its spell does: the Step tree and the source's auras, coordinates left out. */
+function castLog(state: BattleState, aim: Aim): string[] {
+  const spell = state.units.find((u) => u.kind === 'member')?.spells[0];
+  const what = JSON.stringify([spell?.source, spell?.sourceAuras, stepShape(spell?.first ?? null)]);
+  // E6 builds jars; until then a Seal's jar is a no-op so the log can still be compared.
+  const events = withSeams({ sealJar: () => {} }, () => cast(state, 'draughtsman', aim).events);
+  return [...describeLog(events), what];
+}
 
 interface Board {
   ascii: string;
@@ -141,7 +152,7 @@ interface Board {
 const BOARDS: readonly Board[] = [
   { ascii: 'D . . d . .\n. . . . . .\n. . . S . .', tile: parseLabel('D1') },
   { ascii: 'D . ro o d .\n. r . . . .\n. . . . . .', tile: parseLabel('C1') },
-  { ascii: 'D . d . d .\n. r d . . .\n. . o~ . . .', tile: parseLabel('C1') },
+  { ascii: 'D . d . d .\n. r d . . .\n. . ~ . . .', tile: parseLabel('C1') },
 ];
 
 interface Case {
@@ -157,62 +168,69 @@ const c = (x: number, y: number): Coord => ({ x, y });
 
 const CASES: readonly Case[] = [
   {
-    name: 'idiom Cashing In (Bolt> Ink OnInked) with a Spark tail',
-    flat: '. . . . .\nBolt> Ink OnInked Spark .\n. . . . .',
+    name: 'a trigger in a Spell Glyph (Bolt> Ink Tally) with a Spark tail',
+    flat: '. . . . .\nBolt> Ink Tally Spark .\n. . . . .',
     compiled: '. . . . .\nG:ci> Spark . . .\n. . . . .',
     glyph: { id: 'ci', kind: 'spell', cells: [c(0, 1), c(1, 1), c(2, 1)], root: c(0, 1) },
-    mustInclude: 'inked',
+    mustInclude: '"tally"',
   },
   {
-    name: 'idiom Bonfire (Splash> Oil Spark)',
+    name: 'an area Spell Glyph (Splash> Oil Spark)',
     flat: '. . . . .\nSplash> Oil Spark . .\n. . . . .',
     compiled: '. . . . .\nG:bf> . . . .\n. . . . .',
     glyph: { id: 'bf', kind: 'spell', cells: [c(0, 1), c(1, 1), c(2, 1)], root: c(0, 1) },
     splash: true,
-    mustInclude: 'oil',
+    mustInclude: 'splash aims at',
   },
   {
-    name: 'idiom Undertaker (Bolt> OnKill Ink)',
-    flat: '. . . . .\nBolt> OnKill Ink . .\n. . . . .',
+    name: 'two Actions (Bolt> Strike Shove)',
+    flat: '. . . . .\nBolt> Strike Shove . .\n. . . . .',
     compiled: '. . . . .\nG:ut> . . . .\n. . . . .',
     glyph: { id: 'ut', kind: 'spell', cells: [c(0, 1), c(1, 1), c(2, 1)], root: c(0, 1) },
     weak: true,
-    mustInclude: 'dies',
+    mustInclude: '"shove"',
   },
   {
     name: 'a Fork exit leading to an outside tail',
     flat: '. Ink . . .\nBolt> Fork . . .\n. Spark . . .\n. Oil . . .',
     compiled: '. . . . .\nG:fk> . . . .\nSpark . . . .\nOil . . . .',
     glyph: { id: 'fk', kind: 'spell', cells: [c(0, 1), c(1, 1), c(1, 0)], root: c(0, 1) },
-    mustInclude: 'inked',
+    mustInclude: '"fork"',
   },
   {
     name: 'a trigger inside a payload Glyph, with a tail after it',
-    flat: '. . . . .\nBolt> Ink OnInked Spark Oil\n. . . . .',
+    flat: '. . . . .\nBolt> Ink Tally Spark Oil\n. . . . .',
     compiled: '. . . . .\nBolt> G:pt> Oil . .\n. . . . .',
     glyph: { id: 'pt', kind: 'payload', cells: [c(1, 1), c(2, 1), c(3, 1)], root: c(1, 1) },
-    mustInclude: 'inked',
+    mustInclude: '"tally"',
   },
   {
-    name: 'an inner Amplify',
-    flat: 'Amp Amp . . .\nBolt> Ink Spark . .\n. . . . .',
+    name: 'a seal inside a payload Glyph keeps the rest in its jar',
+    flat: '. . . . .\nBolt> Ink Jar Spark Oil\n. . . . .',
+    compiled: '. . . . .\nBolt> G:pj> Oil . .\n. . . . .',
+    glyph: { id: 'pj', kind: 'payload', cells: [c(1, 1), c(2, 1), c(3, 1)], root: c(1, 1) },
+    mustInclude: '"jar"',
+  },
+  {
+    name: 'an inner aura',
+    flat: 'Coil Coil . . .\nBolt> Ink Spark . .\n. . . . .',
     compiled: '. . . . .\nG:ia> Spark . . .\n. . . . .',
     glyph: { id: 'ia', kind: 'spell', cells: [c(0, 1), c(1, 1), c(0, 0), c(1, 0)], root: c(0, 1) },
-    mustInclude: 'Bolt hits',
+    mustInclude: '"coil"',
   },
   {
-    name: 'an outer Amplify (flat: the Amplify touches every inner cell)',
-    flat: 'Amp Amp . . .\nBolt> Ink Spark . .\n. . . . .',
-    compiled: 'Amp . . . .\nG:oa> Spark . . .\n. . . . .',
+    name: 'an outer aura (flat: the aura touches every inner cell)',
+    flat: 'Coil Coil . . .\nBolt> Ink Spark . .\n. . . . .',
+    compiled: 'Coil . . . .\nG:oa> Spark . . .\n. . . . .',
     glyph: { id: 'oa', kind: 'spell', cells: [c(0, 1), c(1, 1)], root: c(0, 1) },
-    mustInclude: 'Bolt hits',
+    mustInclude: '"coil"',
   },
   {
-    name: 'an outer Amplify on a payload Glyph',
-    flat: '. Amp Amp . .\nBolt> Ink Oil Spark .\n. . . . .',
-    compiled: '. Amp . . .\nBolt> G:pa> Spark . .\n. . . . .',
+    name: 'an outer aura on a payload Glyph',
+    flat: '. Afterglow Afterglow . .\nBolt> Ink Oil Spark .\n. . . . .',
+    compiled: '. Afterglow . . .\nBolt> G:pa> Spark . .\n. . . . .',
     glyph: { id: 'pa', kind: 'payload', cells: [c(1, 1), c(2, 1)], root: c(1, 1) },
-    mustInclude: 'inked',
+    mustInclude: '"afterglow"',
   },
 ];
 
@@ -229,8 +247,8 @@ describe('identity: a Glyph casts exactly what its flat cluster casts', () => {
         'right',
       );
       const library = libOf(def);
-      const flatSpells = compileLattice(flat, AFFINITY).spells;
-      const compiledSpells = compileLattice(parseLattice(k.compiled), AFFINITY, library).spells;
+      const flatSpells = flatCompile(flat).spells;
+      const compiledSpells = flatCompile(parseLattice(k.compiled), library).spells;
       expect(flatSpells).toHaveLength(1);
       expect(compiledSpells).toHaveLength(1);
 
@@ -249,13 +267,13 @@ describe('identity: a Glyph casts exactly what its flat cluster casts', () => {
 
 // ── All four rotations ──
 
-/** Local pattern (flow enters at 0,0 travelling right): Bolt, Fork, Ink up, Oil down, Amp over Bolt. */
+/** Local pattern (flow enters at 0,0 travelling right): Bolt, Fork, Ink up, Oil down, Coil over Bolt. */
 const PATTERN: PlacedRune[] = [
   { at: c(0, 0), rune: 'bolt', dir: 'right' },
   { at: c(1, 0), rune: 'fork' },
   { at: c(1, -1), rune: 'ink' },
   { at: c(1, 1), rune: 'oil' },
-  { at: c(0, -1), rune: 'amplify' },
+  { at: c(0, -1), rune: 'coil' },
 ];
 const ROOT = c(4, 4);
 const SHAPE = { width: 9, height: 9, holes: [] };
@@ -298,8 +316,8 @@ describe('rotation', () => {
           { at: at(c(0, 1), dir), rune: 'spark' },
         ],
       };
-      const fs = compileLattice(flat, AFFINITY).spells;
-      const cs = compileLattice(compiled, AFFINITY, libOf(def)).spells;
+      const fs = flatCompile(flat).spells;
+      const cs = flatCompile(compiled, libOf(def)).spells;
       expect(cs[0]?.path[0]?.dir).toBe(dir);
       expect(cs[0]?.glyph).toBe('rot');
       for (const b of BOARDS) {
@@ -308,12 +326,13 @@ describe('rotation', () => {
           castLog(battleWith(b.ascii, fs), aim),
         );
       }
-      const names = (nodes: readonly SpellNode[]): string[] =>
-        nodes.flatMap((n) => [n.rune, ...names(n.next)]);
-      expect(names(cs[0]?.nodes ?? [])).toEqual(names(fs[0]?.nodes ?? []));
-      // Amp over the Bolt reaches it in the local frame whatever the rotation.
-      expect(cs[0]?.magnitude).toBe(fs[0]?.magnitude);
-      expect(cs[0]?.magnitude).toBe(3);
+      const names = (sp: Spell | undefined): string[] =>
+        stepsOf(sp?.first ?? null).map((st) => ('rune' in st ? st.rune : st.role));
+      expect(names(cs[0])).toEqual(names(fs[0]));
+      expect(names(fs[0])).toEqual(['fork', 'ink', 'spark', 'oil', 'spark']);
+      // The Coil over the Bolt reaches it in the local frame whatever the rotation.
+      expect(cs[0]?.sourceAuras).toEqual(fs[0]?.sourceAuras);
+      expect(cs[0]?.sourceAuras).toEqual(['coil']);
     });
   }
 });
@@ -322,7 +341,7 @@ describe('rotation', () => {
 
 describe('fairCopy', () => {
   test('a payload cluster entered downward: the collapsed lattice casts the same log', () => {
-    const flat = parseLattice('Bolt> Bendv . .\n. Ink . .\n. OnInked . .\n. Spark . .\n. Oil . .');
+    const flat = parseLattice('Bolt> Bendv . .\n. Ink . .\n. Tally . .\n. Spark . .\n. Oil . .');
     const cluster: Cluster = {
       root: c(1, 1),
       cells: [c(1, 1), c(1, 2), c(1, 3)],
@@ -343,8 +362,8 @@ describe('fairCopy', () => {
       shape: folded.shape,
       runes: folded.runes.map((r) => ('rune' in r && r.rune === 'oil' ? { ...r, at: c(1, 2) } : r)),
     };
-    const fs = compileLattice(flat, AFFINITY).spells;
-    const cs = compileLattice(relaid, AFFINITY, libOf(def)).spells;
+    const fs = flatCompile(flat).spells;
+    const cs = flatCompile(relaid, libOf(def)).spells;
     for (const b of BOARDS) {
       const aim: Aim = { kind: 'dir', dir: 'right' };
       expect(castLog(battleWith(b.ascii, cs), aim)).toEqual(castLog(battleWith(b.ascii, fs), aim));
@@ -352,7 +371,7 @@ describe('fairCopy', () => {
   });
 
   test('a spell cluster takes the source arrow; its auras leave with it', () => {
-    const flat = parseLattice('Amp . . . .\nBoltv . . . .\nInk . . . .\nSpark . . . .');
+    const flat = parseLattice('Coil . . . .\nBoltv . . . .\nInk . . . .\nSpark . . . .');
     const cluster: Cluster = {
       root: c(0, 1),
       cells: [c(0, 1), c(0, 2)],
@@ -376,7 +395,7 @@ describe('fairCopy', () => {
 
   test('disconnected names the outside runes the collapse strands', () => {
     // After the collapse the Glyph's flow leaves at the socket's neighbour, not at the old tail.
-    const flat = parseLattice('Bolt> Ink OnInked Spark .');
+    const flat = parseLattice('Bolt> Ink Tally Spark .');
     const cluster: Cluster = {
       root: c(0, 0),
       cells: [c(0, 0), c(1, 0), c(2, 0)],
@@ -385,31 +404,32 @@ describe('fairCopy', () => {
     };
     expect(disconnected(flat, cluster)).toEqual([c(3, 0)]);
     // Nothing is stranded when the cluster already ends the flow.
-    const whole = parseLattice('Bolt> Ink OnInked . .');
+    const whole = parseLattice('Bolt> Ink Tally . .');
     expect(disconnected(whole, cluster)).toEqual([]);
   });
 });
 
 // ── Fuzz: a tidied Fair Copy (stranded runes slid up) casts what the flat lattice cast ──
 
-const SOURCES: RuneId[] = ['bolt', 'splash', 'quill'];
+const SOURCES: RuneId[] = ['bolt', 'splash', 'touch', 'vat'];
 const FLOW: RuneId[] = [
   'ink',
   'oil',
   'spark',
   'steam',
   'brass',
-  'smear',
-  'torch',
-  'fog',
-  'mist',
-  'brand',
-  'onInked',
-  'onKill',
+  'strike',
+  'shove',
+  'guard',
+  'tally',
+  'brink',
+  'seep',
+  'lay',
+  'jar',
   'bend',
   'fork',
 ];
-const AURAS: RuneId[] = ['amplify', 'echo'];
+const AURAS: RuneId[] = ['afterglow', 'steep', 'coil'];
 
 const pickOf = <T>(rng: Rng, xs: readonly T[]): T => xs[rng.int(0, xs.length - 1)] as T;
 
@@ -464,6 +484,7 @@ function randomLattice(rng: Rng, shape: Lattice['shape']): Lattice {
 }
 
 const AIMS: readonly Aim[] = [
+  { kind: 'self' },
   { kind: 'dir', dir: 'right' },
   { kind: 'dir', dir: 'down' },
   { kind: 'dir', dir: 'left' },
@@ -477,8 +498,8 @@ function sameCasts(
   library: GlyphLibrary,
   flatLibrary: GlyphLibrary = {},
 ): string | null {
-  const a = compileLattice(flat, AFFINITY, flatLibrary).spells;
-  const b = compileLattice(tidy, AFFINITY, library).spells;
+  const a = flatCompile(flat, flatLibrary).spells;
+  const b = flatCompile(tidy, library).spells;
   if (a.length !== b.length) return `spell count ${a.length} vs ${b.length}`;
   for (const [i, sa] of a.entries()) {
     const sb = b[i] as Spell;
@@ -512,7 +533,7 @@ describe('fuzz: a tidied Fair Copy keeps the cast (S13 identity)', () => {
       for (const m of MEMBER_IDS) {
         const lattice = randomLattice(rng, shapeOf(m));
         let p = setMemberLattice(newProfile(), m, lattice);
-        const masks = compileLattice(latticeOf(p, m), []).spells.map((sp) => [...(sp.cells ?? [])]);
+        const masks = compileLattice(latticeOf(p, m)).spells.map((sp) => [...(sp.cells ?? [])]);
         for (let i = 0; i < TUNING.provenCasts; i++) p = recordProof(p, m, masks);
         const l = latticeOf(p, m);
         const allMasks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
@@ -587,7 +608,7 @@ describe('fuzz: a tidied Fair Copy keeps the cast (S13 identity)', () => {
 
 const worldDir = (local: Dir, dir: Dir): Dir =>
   ORDER[(ORDER.indexOf(local) + ORDER.indexOf(dir)) % 4] as Dir;
-const runesOfFamily = (f: string): RuneId[] => RUNE_IDS.filter((id) => RUNES[id].family === f);
+const runesOfRole = (f: string): RuneId[] => RUNE_IDS.filter((id) => RUNES[id].role === f);
 const isGlyphSocket = (p: Placed): p is Extract<Placed, { glyph: string }> => 'glyph' in p;
 
 interface Compiled {
@@ -606,7 +627,7 @@ function* provenGlyphs(seeds: number, perPage: number): Generator<Compiled> {
     for (const m of MEMBER_IDS) {
       const lattice = randomLattice(rng, shapeOf(m));
       let p = setMemberLattice(newProfile(), m, lattice);
-      const masks = compileLattice(latticeOf(p, m), []).spells.map((sp) => [...(sp.cells ?? [])]);
+      const masks = compileLattice(latticeOf(p, m)).spells.map((sp) => [...(sp.cells ?? [])]);
       for (let i = 0; i < TUNING.provenCasts; i++) p = recordProof(p, m, masks);
       const l = latticeOf(p, m);
       const allMasks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
@@ -634,17 +655,14 @@ function* provenGlyphs(seeds: number, perPage: number): Generator<Compiled> {
   }
 }
 
-/** Random same-family arguments on up to two eligible cells; shapes only when `shapes`. */
-function randomArgs(rng: Rng, def: GlyphDef, shapes: boolean): Record<string, GlyphArg> {
-  const families = shapes ? ['material', 'trigger', 'shape'] : ['material', 'trigger'];
-  const eligible = def.cells.filter((c) => families.includes(RUNES[c.rune].family));
+/** Random same-role arguments (a Kind for a Kind, an Action for an Action, P7) on up to two cells. */
+function randomArgs(rng: Rng, def: GlyphDef): Record<string, GlyphArg> {
+  const roles = ['kind', 'action'];
+  const eligible = def.cells.filter((c) => roles.includes(roleOf(c.rune) ?? ''));
   const args: Record<string, GlyphArg> = {};
   for (let n = rng.int(1, 2); n > 0 && eligible.length > 0; n--) {
     const cell = eligible.splice(rng.int(0, eligible.length - 1), 1)[0] as PlacedRune;
-    const rune = pickOf(rng, runesOfFamily(RUNES[cell.rune].family));
-    args[`${cell.at.x},${cell.at.y}`] = RUNES[rune].arrow
-      ? { rune, dir: pickOf(rng, ORDER) }
-      : { rune };
+    args[`${cell.at.x},${cell.at.y}`] = { rune: pickOf(rng, runesOfRole(roleOf(cell.rune) ?? '')) };
   }
   return args;
 }
@@ -665,11 +683,11 @@ function stamped(l: Lattice, cluster: Cluster, dir: Dir, args: Record<string, Gl
 }
 
 describe('identity (M28a): a Glyph with arguments casts what the stamped flat cluster casts', () => {
-  test('material and trigger arguments, with the tail, over proven clusters', () => {
+  test('Kind and Action arguments, with the tail, over proven clusters', () => {
     let n = 0;
     for (const g of provenGlyphs(150, 2)) {
       const rng = createRng(n * 31 + 7);
-      const args = randomArgs(rng, g.def, false);
+      const args = randomArgs(rng, g.def);
       if (Object.keys(args).length === 0) continue;
       n += 1;
       const lib = { [g.def.id]: { ...g.def, params: Object.keys(args) } };
@@ -683,12 +701,12 @@ describe('identity (M28a): a Glyph with arguments casts what the stamped flat cl
     expect(n).toBeGreaterThanOrEqual(25);
   }, 120_000);
 
-  test('any family including shapes, on a lone Spell Glyph (no tail to re-lay)', () => {
+  test('on a lone Spell Glyph (no tail to re-lay)', () => {
     let n = 0;
     for (const g of provenGlyphs(150, 2)) {
       if (g.cluster.kind !== 'spell') continue;
       const rng = createRng(n * 17 + 3);
-      const args = randomArgs(rng, g.def, true);
+      const args = randomArgs(rng, g.def);
       if (Object.keys(args).length === 0) continue;
       n += 1;
       const lib = { [g.def.id]: { ...g.def, params: Object.keys(args) } };
@@ -725,9 +743,9 @@ describe('extra exit invariants (M28b) over proven clusters', () => {
           out.y >= g.compiled.shape.height ||
           g.compiled.shape.holes.some((h) => h.x === out.x && h.y === out.y) ||
           !there ||
-          (!isGlyphSocket(there) && ['aura', 'source'].includes(RUNES[there.rune].family));
-        const a = compileLattice(g.compiled, AFFINITY, withExtra);
-        const b = compileLattice(g.compiled, AFFINITY, without);
+          (!isGlyphSocket(there) && ['aura', 'source'].includes(roleOf(there.rune) ?? ''));
+        const a = flatCompile(g.compiled, withExtra);
+        const b = flatCompile(g.compiled, without);
         const reachedWithout = new Set(b.reached);
         const reachedWith = new Set(a.reached);
         if (onNothing) {
@@ -750,8 +768,8 @@ describe('a fresh Fair Copy with one open cell and no args', () => {
   test('behaves identically to the Glyph without the open cell', () => {
     let n = 0;
     for (const g of provenGlyphs(60, 1)) {
-      const open = ['material', 'trigger', 'shape'];
-      const cell = g.def.cells.find((c) => open.includes(RUNES[c.rune].family));
+      const open = ['kind', 'action'];
+      const cell = g.def.cells.find((c) => open.includes(roleOf(c.rune) ?? ''));
       if (!cell) continue;
       n += 1;
       const withCell = withOpenCell(g.def, cell.at);
@@ -772,9 +790,9 @@ describe('a fresh Fair Copy with one open cell and no args', () => {
 // ── A tail another spell also enters (fuzz: profileFor('random', 2)) ──
 
 describe('a tail that a second spell also enters from the side', () => {
-  // Bolt> Ink Torch Kiln, and a Ward pointing down onto the Kiln: the Kiln is still "reached" after
-  // the collapse (by the Ward), but the Bolt's own tail is cut at the Glyph's exit.
-  const flat = parseLattice('. . . Wardv\nBolt> Ink Torch Kiln');
+  // Bolt> Ink Oil Spark, and a Touch pointing down onto the Spark: the Spark is still "reached"
+  // after the collapse (by the Touch), but the Bolt's own tail is cut at the Glyph's exit.
+  const flat = parseLattice('. . . Touchv\nBolt> Ink Oil Spark');
   const cluster: Cluster = {
     root: c(0, 1),
     cells: [c(0, 1), c(1, 1), c(2, 1)],
@@ -782,40 +800,32 @@ describe('a tail that a second spell also enters from the side', () => {
     kind: 'spell',
   };
   const tail = (l: Lattice, glyphs: GlyphLibrary, source: string): string[] => {
-    const spell = compileLattice(l, [], glyphs).spells.find((s) => s.source === source);
-    const runes: string[] = [];
-    const walk = (nodes: readonly SpellNode[]): void => {
-      for (const n of nodes) {
-        runes.push(n.rune);
-        walk(n.next);
-      }
-    };
-    walk(spell?.nodes ?? []);
-    return runes;
+    const spell = compileLattice(l, glyphs).spells.find((s) => s.source === source);
+    return stepsOf(spell?.first ?? null).flatMap((st) => ('rune' in st ? [st.rune] : []));
   };
 
-  test('disconnected names the Kiln even though the Ward still reaches it', () => {
+  test('disconnected names the Spark even though the Touch still reaches it', () => {
     expect(disconnected(flat, cluster)).toEqual([c(3, 1)]);
     expect(sharingSpells(flat, cluster)).toEqual([]); // the shared cell is outside the cluster
   });
 
-  test('the collapse does not slide the Kiln (the Ward would lose it) and the cast does change', () => {
+  test('the collapse does not slide the Spark (the Touch would lose it) and the cast does change', () => {
     const def = toGlyphDef(flat, cluster, 'Fuzzed', 'g1');
     const tidy = tidyCollapse(flat, cluster, def);
     expect(tidy.slid).toBe(0);
     const library = libOf(def);
-    expect(tail(flat, {}, 'bolt')).toEqual(['ink', 'torch', 'kiln']);
-    expect(tail(tidy.lattice, library, 'bolt')).toEqual(['ink', 'torch']); // the Kiln is dropped
-    // The Ward is untouched: it still reaches the Kiln.
-    expect(tail(tidy.lattice, library, 'ward')).toEqual(['kiln']);
+    expect(tail(flat, {}, 'bolt')).toEqual(['ink', 'oil', 'spark']);
+    expect(tail(tidy.lattice, library, 'bolt')).toEqual(['ink', 'oil']); // the Spark is dropped
+    // The Touch is untouched: it still reaches the Spark.
+    expect(tail(tidy.lattice, library, 'touch')).toEqual(['spark']);
   });
 
-  test('without the Ward the same cluster slides its tail up and keeps the cast', () => {
-    const alone = parseLattice('. . . .\nBolt> Ink Torch Kiln');
+  test('without the Touch the same cluster slides its tail up and keeps the cast', () => {
+    const alone = parseLattice('. . . .\nBolt> Ink Oil Spark');
     const def = toGlyphDef(alone, cluster, 'Fuzzed', 'g1');
     expect(disconnected(alone, cluster)).toEqual([c(3, 1)]);
     const tidy = tidyCollapse(alone, cluster, def);
     expect(tidy.slid).toBe(1);
-    expect(tail(tidy.lattice, libOf(def), 'bolt')).toEqual(['ink', 'torch', 'kiln']);
+    expect(tail(tidy.lattice, libOf(def), 'bolt')).toEqual(['ink', 'oil', 'spark']);
   });
 });

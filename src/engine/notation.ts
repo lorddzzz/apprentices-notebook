@@ -1,13 +1,17 @@
 import {
+  type CompoundId,
   ENEMIES,
   ENEMY_IDS,
   type EnemyId,
+  isInvention,
   MEMBER_IDS,
   MEMBERS,
   type MemberId,
   RUNE_IDS,
   RUNES,
   type RuneId,
+  type RuneRef,
+  type StateId,
   TUNING,
 } from '$data';
 import { type Coord, type Dir, label, parseKey } from './grid';
@@ -15,6 +19,7 @@ import {
   type GlyphArg,
   isGlyph,
   type Lattice,
+  type Layer,
   type Placed,
   type PlacedGlyph,
   type Tile,
@@ -24,30 +29,29 @@ import {
  * ASCII notation shared by tests, encounters and the Lab. Cells are whitespace-separated tokens,
  * one row per line, blank lines ignored. Errors always name the cell label (A1 = top-left).
  *
- * Board cell = `.` or [unit][mods][layers]:
- *   unit    D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy (first char only)
- *   mods    ! inked, & brass-coated, % branded (only after a unit)
- *           ^ hot, # etched (after a brass unit, or on a brass plate `=^#`)
- *   layers  o oil, i ink puddle, ~ steam, * fire (implies oil), = brass plate (alone, permanent: rune-raised plates crumble), @ steam vent
- *           $ stained oil (implies oil), s scalding steam (implies steam)
- *           w + arrow water lane flowing that way (`w>`, `wv`; the arrow is part of the layer),
- *           h grate (on water only), g wooden lock gate (alone), l lamp
+ * Board cell = `.` or [unit][mods][terrain and state]:
+ *   unit     D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy, e eel, n snuffer,
+ *            m lamp-moth, M lamp-mother (first char only; elite or minion comes from the foe's data)
+ *   mods     ! mark, !! deep mark, & brass collar, $ shackle, + 1 shield each (`++` = 2); after a unit
+ *   state    one per tile: i blot, o slick, ~ cloud, = layout plate (permanent), # rune plate,
+ *            * fire, or a compound in braces: {stain} {brand} {pool} {fog} {skid} {bank} {kettle} {wall}
+ *   terrain  w + arrow water lane flowing that way (`w>`, `wv`), h grate (on water only),
+ *            g wooden lock gate (alone), l lamp, @ vent, _ the drop (an open side, P3)
  *
- * Lattice cell = `.` empty socket, `x` hole, or a rune token (`Bolt`, `Ink`, `OnInked`, `Amp`…)
- * with an arrow suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend).
+ * Lattice cell = `.` empty socket, `x` hole, a rune token (`Bolt`, `Ink`, `Fork`…) with an arrow
+ * suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend), or an invention `inv:name`.
  * A Glyph is `G:id>` (the arrow is the way in), then one `[x,y:Rune]` per open-cell argument, `x,y`
- * being the Glyph's local cell (`G:g1>[1,0:Smear]`, an arrow rune `[2,0:Bend^]`; no spaces).
+ * being the Glyph's local cell (`G:g1>[1,0:Oil]`, an arrow rune `[2,0:Bend^]`; no spaces).
  */
 
 export interface BoardUnit {
   kind: 'member' | 'enemy';
   def: MemberId | EnemyId;
   at: Coord;
-  inked: boolean;
-  brass: boolean;
-  branded: boolean;
-  heat: number;
-  etched: boolean;
+  mark: 'plain' | 'deep' | null;
+  collar: boolean; // a collar beyond a born-brass foe's own
+  shackle: boolean;
+  shield: number;
 }
 export interface BoardSpec {
   width: number;
@@ -65,21 +69,10 @@ function rows(ascii: string): string[][] {
 
 export function emptyTile(): Tile {
   return {
-    oil: false,
-    ink: false,
-    steam: 0,
-    fire: 0,
-    plate: false,
-    plateRounds: 0,
-    vent: false,
-    stain: false,
-    heat: 0,
-    etched: false,
-    scald: false,
-    water: null,
-    grate: false,
-    gate: false,
-    lamp: false,
+    terrain: { water: null, drop: false, vent: false, grate: false, gate: false, lamp: false },
+    state: null,
+    jar: null,
+    hot: 0,
   };
 }
 
@@ -95,6 +88,56 @@ export function parseLabel(text: string): Coord {
 const ARROW_CHARS: Record<string, Dir> = { '>': 'right', '<': 'left', '^': 'up', v: 'down' };
 const ARROW_SUFFIX: Record<Dir, string> = { right: '>', left: '<', up: '^', down: 'v' };
 
+/** Plain states by their character; `#` is a rune plate (it crumbles), `=` a layout one. */
+const STATE_CHARS: Readonly<Record<string, StateId>> = {
+  i: 'blot',
+  o: 'slick',
+  '~': 'cloud',
+  '=': 'plate',
+  '#': 'plate',
+  '*': 'fire',
+};
+/** Compounds by their brace name (Deep mark and Shackle live on units: `!!`, `$`). */
+const COMPOUND_NAMES: Readonly<Record<string, CompoundId>> = {
+  stain: 'stain',
+  brand: 'brandCloud',
+  pool: 'pool',
+  fog: 'greaseFog',
+  skid: 'skidPlate',
+  bank: 'bank',
+  kettle: 'kettle',
+  wall: 'wall',
+};
+const COMPOUND_TOKENS: Partial<Record<CompoundId, string>> = Object.fromEntries(
+  Object.entries(COMPOUND_NAMES).map(([name, id]) => [id, `{${name}}`]),
+);
+const PLATE_LIKE: readonly Layer['id'][] = ['plate', 'skidPlate', 'kettle', 'wall'];
+
+/** How long a state put down by a token lasts (P17); 0 = until changed. */
+function roundsOf(id: Layer['id']): number {
+  switch (id) {
+    case 'blot':
+    case 'slick':
+      return 0;
+    case 'cloud':
+      return TUNING.cloudRounds;
+    case 'plate':
+      return TUNING.plateRounds;
+    case 'fire':
+      return TUNING.fireRounds;
+    default:
+      return TUNING.compoundRounds;
+  }
+}
+
+/** A state as a board token puts it down; plates with their hits (P19). Layout plates never break. */
+function layerFor(id: Layer['id'], layout: boolean): Layer {
+  const layer: Layer = { id, rounds: layout ? 0 : roundsOf(id), origin: null };
+  if (id === 'wall') layer.hits = 2;
+  else if (PLATE_LIKE.includes(id) && !layout) layer.hits = 1;
+  return layer;
+}
+
 function unitFor(ch: string): { kind: 'member' | 'enemy'; def: MemberId | EnemyId } | null {
   for (const id of MEMBER_IDS) if (MEMBERS[id].token === ch) return { kind: 'member', def: id };
   for (const id of ENEMY_IDS) if (ENEMIES[id].token === ch) return { kind: 'enemy', def: id };
@@ -104,116 +147,88 @@ function unitFor(ch: string): { kind: 'member' | 'enemy'; def: MemberId | EnemyI
 export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUnit | null } {
   const where = label(at);
   const tile = emptyTile();
+  const terrain = tile.terrain;
   if (token === '.') return { tile, unit: null };
+  const bad = (why: string): Error => new Error(`${why} in cell ${where} ("${token}")`);
 
   const chars = [...token];
   let unit: BoardUnit | null = null;
   const first = chars[0];
   const found = first === undefined ? null : unitFor(first);
   if (found) {
-    unit = { ...found, at, inked: false, brass: false, branded: false, heat: 0, etched: false };
+    unit = { ...found, at, mark: null, collar: false, shackle: false, shield: 0 };
     chars.shift();
   }
 
-  let layers = 0;
-  let hot = false;
-  let etched = false;
+  let parts = 0;
+  const setState = (layer: Layer): void => {
+    if (tile.state) throw bad('A tile holds one state');
+    tile.state = layer;
+  };
   for (let k = 0; k < chars.length; k++) {
     const ch = chars[k] as string;
+    if ('!&$+'.includes(ch)) {
+      if (!unit) throw bad(`Modifier "${ch}" needs a unit`);
+      if (ch === '!') {
+        if (unit.mark) throw bad('A unit carries one mark');
+        unit.mark = chars[k + 1] === '!' ? 'deep' : 'plain';
+        if (unit.mark === 'deep') k++;
+      } else if (ch === '&') unit.collar = true;
+      else if (ch === '$') unit.shackle = true;
+      else unit.shield++;
+      continue;
+    }
+    parts++;
+    const state = STATE_CHARS[ch];
+    if (state) {
+      setState(layerFor(state, ch === '='));
+      continue;
+    }
     switch (ch) {
-      case '!':
-      case '&':
-      case '%':
-        if (!unit) throw new Error(`Modifier "${ch}" needs a unit in cell ${where} ("${token}")`);
-        if (ch === '!') unit.inked = true;
-        else if (ch === '&') unit.brass = true;
-        else unit.branded = true;
-        continue;
-      case '^':
-        hot = true;
-        continue;
-      case '#':
-        etched = true;
-        continue;
-      case '$':
-        tile.oil = true;
-        tile.stain = true;
+      case '{': {
+        const close = chars.indexOf('}', k);
+        const name = close < 0 ? '' : chars.slice(k + 1, close).join('');
+        const id = COMPOUND_NAMES[name];
+        if (!id) throw bad(`Unknown compound "{${name}}"`);
+        setState(layerFor(id, false));
+        k = close;
         break;
-      case 's':
-        tile.steam = TUNING.steamRounds;
-        tile.scald = true;
-        break;
-      case 'o':
-        tile.oil = true;
-        break;
-      case 'i':
-        tile.ink = true;
-        break;
-      case '~':
-        tile.steam = TUNING.steamRounds;
-        break;
-      case '*':
-        tile.oil = true;
-        tile.fire = TUNING.fireRounds;
-        break;
-      case '=':
-        tile.plate = true;
-        break;
-      case '@':
-        tile.vent = true;
-        break;
+      }
       case 'w': {
         const dir = ARROW_CHARS[chars[k + 1] ?? ''];
-        if (!dir) throw new Error(`Water needs an arrow in cell ${where} ("${token}")`);
-        tile.water = dir;
+        if (!dir) throw bad('Water needs an arrow');
+        terrain.water = dir;
         k++;
         break;
       }
       case 'h':
-        tile.grate = true;
+        terrain.grate = true;
         break;
       case 'g':
-        tile.gate = true;
+        terrain.gate = true;
         break;
       case 'l':
-        tile.lamp = true;
+        terrain.lamp = true;
+        break;
+      case '@':
+        terrain.vent = true;
+        break;
+      case '_':
+        terrain.drop = true;
         break;
       default:
-        throw new Error(`Unknown character "${ch}" in cell ${where} ("${token}")`);
+        throw bad(`Unknown character "${ch}"`);
     }
-    layers++;
   }
 
-  if (hot || etched) {
-    const brassUnit = unit
-      ? unit.brass || (unit.kind === 'enemy' && ENEMIES[unit.def as EnemyId].brass)
-      : false;
-    if (unit && !brassUnit)
-      throw new Error(`Only brass can be hot or etched in cell ${where} ("${token}")`);
-    if (!unit && !tile.plate)
-      throw new Error(`Only brass can be hot or etched in cell ${where} ("${token}")`);
-    if (unit) {
-      unit.heat = hot ? TUNING.heatRounds : 0;
-      unit.etched = etched;
-    } else {
-      tile.heat = hot ? TUNING.heatRounds : 0;
-      tile.etched = etched;
-    }
+  const plate = tile.state !== null && PLATE_LIKE.includes(tile.state.id);
+  if (terrain.grate && !terrain.water) throw bad('A grate needs water');
+  if (terrain.grate && unit) throw bad('A unit cannot stand on a grate');
+  if (terrain.gate) {
+    if (unit) throw bad('A unit cannot stand on a lock gate');
+    if (parts > 1) throw bad('A lock gate cannot share a tile');
   }
-  if (tile.grate && !tile.water)
-    throw new Error(`A grate needs water in cell ${where} ("${token}")`);
-  if (tile.grate && unit)
-    throw new Error(`A unit cannot stand on a grate in cell ${where} ("${token}")`);
-  if (tile.gate) {
-    if (unit) throw new Error(`A unit cannot stand on a lock gate in cell ${where} ("${token}")`);
-    if (layers > 1)
-      throw new Error(`A lock gate cannot share a tile in cell ${where} ("${token}")`);
-  }
-  if (tile.plate) {
-    if (unit) throw new Error(`A unit cannot stand on a brass plate in cell ${where} ("${token}")`);
-    if (layers > 1)
-      throw new Error(`A brass plate cannot share a tile in cell ${where} ("${token}")`);
-  }
+  if (plate && unit) throw bad('A unit cannot stand on a plate');
   return { tile, unit };
 }
 
@@ -250,28 +265,29 @@ function unitToken(u: BoardUnit): string {
     u.kind === 'member' ? MEMBERS[u.def as MemberId].token : ENEMIES[u.def as EnemyId].token;
   return (
     base +
-    (u.inked ? '!' : '') +
-    (u.brass ? '&' : '') +
-    (u.branded ? '%' : '') +
-    (u.heat > 0 ? '^' : '') +
-    (u.etched ? '#' : '')
+    (u.mark === 'deep' ? '!!' : u.mark === 'plain' ? '!' : '') +
+    (u.collar ? '&' : '') +
+    (u.shackle ? '$' : '') +
+    '+'.repeat(u.shield)
   );
 }
 
+function stateToken(l: Layer): string {
+  if (l.id === 'plate') return l.rounds === 0 && l.hits === undefined ? '=' : '#';
+  const plain = Object.entries(STATE_CHARS).find(([, id]) => id === l.id)?.[0];
+  return plain ?? COMPOUND_TOKENS[l.id as CompoundId] ?? '';
+}
+
 function layerToken(t: Tile): string {
+  const g = t.terrain;
   return (
-    (t.water ? `w${ARROW_SUFFIX[t.water]}` : '') +
-    (t.grate ? 'h' : '') +
-    (t.oil && t.fire === 0 ? (t.stain ? '$' : 'o') : '') +
-    (t.ink ? 'i' : '') +
-    (t.steam > 0 ? (t.scald ? 's' : '~') : '') +
-    (t.fire > 0 ? '*' : '') +
-    (t.plate ? '=' : '') +
-    (t.plate && t.heat > 0 ? '^' : '') +
-    (t.plate && t.etched ? '#' : '') +
-    (t.vent ? '@' : '') +
-    (t.gate ? 'g' : '') +
-    (t.lamp ? 'l' : '')
+    (g.water ? `w${ARROW_SUFFIX[g.water]}` : '') +
+    (g.grate ? 'h' : '') +
+    (g.drop ? '_' : '') +
+    (t.state ? stateToken(t.state) : '') +
+    (g.vent ? '@' : '') +
+    (g.gate ? 'g' : '') +
+    (g.lamp ? 'l' : '')
   );
 }
 
@@ -287,7 +303,7 @@ function padRows(grid: string[][]): string {
     .join('\n');
 }
 
-/** Canonical form: unit, mods (! & % ^ #), layers in order w? h o/$ i ~/s * = ^ # @ g l; columns padded to equal width. */
+/** Canonical form: unit, mods (!/!! & $ +…), then w? h _ state @ g l; columns padded to equal width. */
 export function serializeBoard(spec: BoardSpec): string {
   const grid: string[][] = [];
   for (let y = 0; y < spec.height; y++) {
@@ -305,28 +321,33 @@ export function serializeBoard(spec: BoardSpec): string {
 
 // ── Lattice ─────────────────────────────────────────────
 
-function runeByToken(token: string): RuneId | null {
+const INVENTION_TOKEN = /^inv:[A-Za-z0-9_-]+$/;
+
+function runeByToken(token: string): RuneRef | null {
+  if (INVENTION_TOKEN.test(token)) return token as RuneRef;
   return RUNE_IDS.find((id) => RUNES[id].token === token) ?? null;
 }
 
-/** A rune token with its arrow suffix: `Smear`, `Bend^`. The arrow is optional here (see `GlyphArg`). */
+const isArrowRune = (r: RuneRef): r is RuneId => !isInvention(r) && RUNES[r].arrow;
+/** The lattice token of a rune or an invention. */
+export const tokenOf = (r: RuneRef): string => (isInvention(r) ? r : RUNES[r].token);
+
+/** A rune token with its arrow suffix: `Oil`, `Bend^`. The arrow is optional here (see `GlyphArg`). */
 function parseRuneArg(text: string, where: string, token: string): GlyphArg {
   const plain = runeByToken(text);
   if (plain) return { rune: plain };
   const dir = ARROW_CHARS[text.slice(-1)];
   const arrowed = dir ? runeByToken(text.slice(0, -1)) : null;
   if (!dir || !arrowed) throw new Error(`Unknown rune "${text}" in "${token}" in cell ${where}`);
-  if (!RUNES[arrowed].arrow) {
-    throw new Error(
-      `Rune "${RUNES[arrowed].token}" takes no arrow, got "${token}" in cell ${where}`,
-    );
+  if (!isArrowRune(arrowed)) {
+    throw new Error(`Rune "${tokenOf(arrowed)}" takes no arrow, got "${token}" in cell ${where}`);
   }
   return { rune: arrowed, dir };
 }
 
 /**
  * `G:id>` with the way-in arrow, then optional arguments, one `[x,y:Rune]` per open cell, the
- * cell being the Glyph's local `x,y` (`G:g1>[1,0:Smear][2,0:Bend^]`).
+ * cell being the Glyph's local `x,y` (`G:g1>[1,0:Oil][2,0:Bend^]`).
  */
 function parseGlyphToken(token: string, at: Coord, where: string): PlacedGlyph {
   const m = /^G:(.*?)((?:\[[^\]]*\])*)$/.exec(token);
@@ -353,7 +374,7 @@ function glyphToken(g: PlacedGlyph): string {
   const args = Object.entries(g.args ?? {})
     .map(([k, a]) => ({ at: parseKey(k), k, a }))
     .sort((p, q) => p.at.y - q.at.y || p.at.x - q.at.x)
-    .map(({ k, a }) => `[${k}:${RUNES[a.rune].token}${a.dir ? ARROW_SUFFIX[a.dir] : ''}]`);
+    .map(({ k, a }) => `[${k}:${tokenOf(a.rune)}${a.dir ? ARROW_SUFFIX[a.dir] : ''}]`);
   return `G:${g.glyph}${ARROW_SUFFIX[g.dir]}${args.join('')}`;
 }
 
@@ -381,7 +402,7 @@ export function parseLattice(ascii: string): Lattice {
       }
       const plain = runeByToken(token);
       if (plain) {
-        if (RUNES[plain].arrow) {
+        if (isArrowRune(plain)) {
           throw new Error(`Rune "${token}" needs an arrow (> < ^ v) in cell ${where}`);
         }
         runes.push({ at, rune: plain });
@@ -390,9 +411,9 @@ export function parseLattice(ascii: string): Lattice {
       const dir = ARROW_CHARS[token.slice(-1)];
       const arrowed = dir ? runeByToken(token.slice(0, -1)) : null;
       if (!dir || !arrowed) throw new Error(`Unknown lattice token "${token}" in cell ${where}`);
-      if (!RUNES[arrowed].arrow) {
+      if (!isArrowRune(arrowed)) {
         throw new Error(
-          `Rune "${RUNES[arrowed].token}" takes no arrow, got "${token}" in cell ${where}`,
+          `Rune "${tokenOf(arrowed)}" takes no arrow, got "${token}" in cell ${where}`,
         );
       }
       runes.push({ at, rune: arrowed, dir });
@@ -410,7 +431,7 @@ export function serializeLattice(l: Lattice): string {
       if (placed && isGlyph(placed)) {
         row.push(glyphToken(placed));
       } else if (placed) {
-        row.push(RUNES[placed.rune].token + (placed.dir ? ARROW_SUFFIX[placed.dir] : ''));
+        row.push(tokenOf(placed.rune) + (placed.dir ? ARROW_SUFFIX[placed.dir] : ''));
       } else if (l.shape.holes.some((h) => h.x === x && h.y === y)) {
         row.push('x');
       } else {

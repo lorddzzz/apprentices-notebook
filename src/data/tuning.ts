@@ -2,24 +2,26 @@ import type { Tuning } from './types';
 
 export const TUNING: Tuning = {
   grid: { width: 6, height: 8 },
-  inkCost: { source: 2, material: 1, shape: 1, trigger: 2, aura: 3 },
+  inkCost: { source: 2, action: 2, kind: 1, shape: 1, trigger: 1, seal: 2, aura: 3 },
   startInk: 8,
   inkReserve: 2,
-  affinityBonus: 1,
-  inkedBonus: 1,
-  detonateDamage: 2,
-  bumpDamage: 1,
-  fireDamage: 1,
-  oilSoakedBonus: 1,
-  brandedBonus: 2,
-  fireRounds: 2,
-  steamRounds: 2,
-  plateRounds: 3,
-  heatRounds: 2,
-  heatDamage: 1,
+  boltRange: 4,
   splashRange: 3,
   splashRadius: 1,
-  echoDivisor: 2,
+  vatRange: 1,
+  strikeDamage: 2,
+  sparkDamage: 1,
+  guardShield: 2,
+  shoveTiles: 1,
+  crushBase: 1,
+  crushPerTile: 1,
+  crushStruck: 1,
+  dropEliteDamage: 4,
+  fireDamage: 1,
+  compoundRounds: 2,
+  cloudRounds: 2,
+  plateRounds: 3,
+  fireRounds: 2,
   reviveHp: 1,
   offersPerWin: 3,
   glyphMinCells: 3,
@@ -35,5 +37,39 @@ export const TUNING: Tuning = {
   paramSlots: 1,
   paramSlotsGold: 2,
   revisionCanvasMax: 7,
-  draftRewardTier: { reliability: 1 }, // a mended folio's Glyph starts at Reliability bronze (BL-14, F9)
 };
+
+/** Board chemistry numbers beyond `TUNING` (E2, design §4, P17–P19). Tune by playing. */
+export const CHEMISTRY = {
+  /** Gifted Steam and Brass last this many rounds longer (P36 `round`). */
+  giftRounds: 1,
+  /** Bank: a cloud that lasts this many rounds longer than a compound (design §4.2). */
+  bankExtraRounds: 2,
+  /** Wall: hits before it breaks; plates, skid plates and kettles take one. */
+  wallHits: 2,
+  plateHits: 1,
+  /** Kettle: damage to each unit beside it at round end. */
+  kettleHeat: 1,
+  /** Surge: the arc to the nearest other unit. */
+  arcDamage: 1,
+  /** Flashover: how long a burning fog tile burns. */
+  flashoverFireRounds: 1,
+  /** Brand cloud storm: a marked unit is hit this many times. */
+  markedStormHits: 2,
+  /** Shackle snap: tiles the unit is thrown along the heading. */
+  shackleThrow: 1,
+  /** Wall ring: tiles everyone touching it is pushed away. */
+  wallPush: 1,
+  /** Coil: extra tiles a burst reaches. */
+  coilReach: 1,
+} as const;
+
+/** The authored Actions' numbers (design §5, P27–P28). */
+export const ACTIONS = {
+  /** Sentence pushes its marked target this many tiles. */
+  sentenceTiles: 2,
+  /** Hold lasts until the caster's next turn: player-phase starts. */
+  holdRounds: 1,
+  /** Levy: shield gained per mark spent. */
+  levyShieldPerMark: 1,
+} as const;

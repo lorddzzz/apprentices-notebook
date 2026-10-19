@@ -1,9 +1,8 @@
 import { ENEMIES } from '$data';
 import { type Ctx, emit, ref } from './ctx';
 import { type Coord, neighbors4, step } from './grid';
-import { spreadFire } from './materials';
-import { blocksUnits, inBoard, isAlive, tileAt, unitAt } from './queries';
-import type { BattleState, Unit, UnitId } from './types';
+import { blocksUnits, coordOf, inBoard, isAlive, isFire, isPlate, tileAt, unitAt } from './queries';
+import type { BattleState, Layer, Unit, UnitId } from './types';
 
 /**
  * The current (K-6 to K-12): water lanes carry what floats one tile downstream at round end, and
@@ -16,10 +15,9 @@ export interface DriftPreview {
   units: { unit: UnitId; from: Coord; to: Coord }[];
 }
 
-const coordOf = (s: BattleState, i: number): Coord => ({
-  x: i % s.width,
-  y: Math.floor(i / s.width),
-});
+/** What floats on a lane and drifts with it: slicks, fire on them, blots and stains. */
+const FLOATS: ReadonlySet<Layer['id']> = new Set(['slick', 'fire', 'blot', 'stain']);
+const floats = (l: Layer | null): l is Layer => !!l && FLOATS.has(l.id);
 
 /** Eels swim, moths fly, the lamp-mother is anchored: none of them is carried (K-9). */
 function carried(u: Unit): boolean {
@@ -32,11 +30,14 @@ function carried(u: Unit): boolean {
 function driftFloats(s: BattleState): DriftPreview['floats'] {
   const moves: { from: Coord; to: Coord | null; i: number; j: number }[] = [];
   s.tiles.forEach((t, i) => {
-    if (!t.water || !(t.oil || t.ink)) return;
+    if (!t.terrain.water || !floats(t.state)) return;
     const from = coordOf(s, i);
-    const to = step(from, t.water);
+    const to = step(from, t.terrain.water);
     // Onto land the float stays where it is; off the board it is gone.
-    if (inBoard(s, to) && (!tileAt(s, to).water || tileAt(s, to).plate)) return;
+    if (inBoard(s, to) && (!tileAt(s, to).terrain.water || isPlate(tileAt(s, to)))) return;
+    // A float never displaces a cloud or another state that doesn't drift.
+    const there = inBoard(s, to) ? tileAt(s, to).state : null;
+    if (there && !floats(there)) return;
     const j = inBoard(s, to) ? to.y * s.width + to.x : -1;
     moves.push({ from, to: j < 0 ? null : to, i, j });
   });
@@ -44,39 +45,31 @@ function driftFloats(s: BattleState): DriftPreview['floats'] {
   const lifted = moves.map((m) => {
     const t = s.tiles[m.i];
     if (!t) throw new Error('drift: no tile');
-    const cargo = { oil: t.oil, fire: t.fire, stain: t.stain, ink: t.ink };
-    t.oil = false;
-    t.fire = 0;
-    t.stain = false;
-    t.ink = false;
+    const cargo = t.state;
+    t.state = null;
     return cargo;
   });
   moves.forEach((m, n) => {
     const cargo = lifted[n];
     const dest = m.j < 0 ? undefined : s.tiles[m.j];
     if (!cargo || !dest) return;
-    if (cargo.oil) {
-      // Fire does not enter steam; a lit float joining unlit oil lights it.
-      const fire = dest.steam > 0 ? 0 : Math.max(dest.fire, cargo.fire);
-      dest.oil = true;
-      dest.fire = fire;
-      dest.stain = fire > 0 ? false : dest.stain || cargo.stain;
-    }
-    if (cargo.ink) dest.ink = true;
+    // A float joins what floats there (fire wins); it never displaces a cloud or another state.
+    if (dest.state === null) dest.state = cargo;
+    else if (floats(dest.state) && cargo.id === 'fire') dest.state = cargo;
   });
   return moves.map((m) => ({ from: m.from, to: m.to }));
 }
 
 /** Units in water step downstream, downstream-most first (K-9). */
 function driftUnits(s: BattleState): { unit: Unit; from: Coord; to: Coord }[] {
-  const movers = s.units.filter((u) => isAlive(u) && carried(u) && tileAt(s, u.pos).water);
+  const movers = s.units.filter((u) => isAlive(u) && carried(u) && tileAt(s, u.pos).terrain.water);
   const done = new Map<UnitId, Coord | null>();
   const busy = new Set<UnitId>();
   const starts = new Map(movers.map((u) => [u.id, { ...u.pos }]));
   const resolve = (u: Unit): void => {
     if (done.has(u.id)) return;
     busy.add(u.id);
-    const dir = tileAt(s, u.pos).water;
+    const dir = tileAt(s, u.pos).terrain.water;
     const to = dir ? step(u.pos, dir) : u.pos;
     let target: Coord | null = null;
     if (inBoard(s, to) && !blocksUnits(tileAt(s, to))) {
@@ -110,17 +103,16 @@ export function drift(ctx: Ctx): void {
       units: units.map((m) => ({ unit: ref(m.unit, m.from), from: m.from, to: m.to })),
     });
   }
-  spreadFire(ctx);
 }
 
 /** Gates next to fire burn (K-11). Called after the burn step and after any `ignite`. */
 export function burnGates(ctx: Ctx): void {
   const s = ctx.s;
   s.tiles.forEach((t, i) => {
-    if (!t.gate) return;
+    if (!t.terrain.gate) return;
     const at = coordOf(s, i);
-    if (!neighbors4(at).some((n) => inBoard(s, n) && tileAt(s, n).fire > 0)) return;
-    t.gate = false;
+    if (!neighbors4(at).some((n) => inBoard(s, n) && isFire(tileAt(s, n)))) return;
+    t.terrain.gate = false;
     emit(ctx, { type: 'gateBurns', at });
   });
 }

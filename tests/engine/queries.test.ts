@@ -2,12 +2,13 @@ import { expect, test } from 'vitest';
 import type { SourceRuneId } from '$data';
 import {
   aimPreview,
-  brassNet,
+  blocksUnits,
   canUndoMove,
   castableSpells,
   distanceField,
-  footprint,
   intentPreview,
+  isCloud,
+  isPlate,
   key,
   label,
   legalAims,
@@ -16,7 +17,7 @@ import {
   reachable,
   type Spell,
   shoveDirs,
-  steamCloud,
+  tileAt,
   travel,
   unitAt,
 } from '$engine';
@@ -30,19 +31,18 @@ function spell(source: SourceRuneId, k = '0,0'): Spell {
     key: k,
     at: at(0, 0),
     source,
-    amp: 0,
-    magnitude: 2,
-    echo: false,
+    sourceAuras: [],
+    first: null,
     charges: 2,
-    nodes: [],
     path: [],
+    ink: 2,
   };
 }
 
-test('travel stops at steam before unit', () => {
+test('travel stops at a cloud before the unit in it', () => {
   const s = board('D . r~ .');
   const r = travel(s, at(0, 0), 'right', 6);
-  expect(r.reason).toBe('steam');
+  expect(r.reason).toBe('cloud');
   expect(labels(r.path)).toEqual(['B1', 'C1']);
 });
 
@@ -52,11 +52,11 @@ test('travel stops at unit, plate, end; none when first tile off-board', () => {
   expect(hit.reason).toBe('unit');
   expect(hit.reason === 'unit' && hit.unit.id).toBe('rat-1');
   expect(hit.stop && label(hit.stop)).toBe('C1');
-  expect(travel(s, at(2, 0), 'right', 6)).toMatchObject({ reason: 'brass', stop: at(4, 0) });
+  expect(travel(s, at(2, 0), 'right', 6)).toMatchObject({ reason: 'blocked', stop: at(4, 0) });
   expect(travel(s, at(4, 0), 'right', 6)).toMatchObject({ reason: 'end', stop: at(5, 0) });
   expect(travel(s, at(0, 0), 'left', 6)).toEqual({ reason: 'none', path: [], stop: null });
   expect(travel(s, at(0, 0), 'right', 1)).toMatchObject({ reason: 'end', stop: at(1, 0) });
-  expect(travel(s, at(1, 0), 'right', 6, 'rat-1')).toMatchObject({ reason: 'brass' });
+  expect(travel(s, at(1, 0), 'right', 6, 'rat-1')).toMatchObject({ reason: 'blocked' });
 });
 
 test('reachable ≤3, not through units or plates, BFS path in DIRS order', () => {
@@ -80,33 +80,14 @@ test('reachable ≤3, not through units or plates, BFS path in DIRS order', () =
   ]);
 });
 
-test('steamCloud / brassNet floods orthogonally', () => {
-  const s = board(`
-    ~ ~ . ~
-    . ~ . .
-    ~ . = b
-    . . r& =
-  `);
-  expect(labels(steamCloud(s, at(1, 1)))).toEqual(['A1', 'B1', 'B2']);
-  expect(labels(steamCloud(s, at(0, 2)))).toEqual(['A3']);
-  expect(steamCloud(s, at(2, 0))).toEqual([]);
-  expect(labels(brassNet(s, at(2, 2)))).toEqual(['C3', 'D3', 'C4', 'D4']);
-});
-
-test('footprint radius from magnitude, clipped and merged', () => {
-  const s = board('. . . .\n. . . .\n. . . .\n. . . .');
-  expect(labels(footprint(s, [at(1, 1)], 1))).toEqual(['B2']);
-  expect(footprint(s, [at(1, 1)], 2)).toHaveLength(9);
-  expect(labels(footprint(s, [at(0, 0)], 2))).toEqual(['A1', 'B1', 'A2', 'B2']);
-  expect(labels(footprint(s, [at(0, 0), at(1, 0)], 2))).toEqual([
-    'A1',
-    'B1',
-    'C1',
-    'A2',
-    'B2',
-    'C2',
-  ]);
-  expect(footprint(s, [at(1, 1)], 3)).toHaveLength(16);
+test('plates and clouds are states: plate-like compounds block, cloud-like ones hide', () => {
+  const s = board('= # {wall} {skid} {kettle} ~ {bank} {fog} {brand} o g');
+  const t = (x: number) => tileAt(s, at(x, 0));
+  expect([0, 1, 2, 3, 4].map((x) => isPlate(t(x)))).toEqual([true, true, true, true, true]);
+  expect([5, 6, 7, 8].map((x) => isCloud(t(x)))).toEqual([true, true, true, true]);
+  expect(isPlate(t(9)) || isCloud(t(9))).toBe(false);
+  expect(blocksUnits(t(10))).toBe(true); // a lock gate
+  expect(blocksUnits(t(5))).toBe(false); // a cloud hides but doesn't block a walk
 });
 
 test('distanceField walks around blockers; self tile counts as open', () => {
@@ -117,9 +98,11 @@ test('distanceField walks around blockers; self tile counts as open', () => {
   expect(distanceField(s, at(0, 0)).has('2,0')).toBe(false);
 });
 
-test('legalAims: bolt dirs on board, splash range 3, ward self + adjacent members', () => {
+test('legalAims: bolt dirs on board, splash range 3, touch self + adjacent tiles, vat range 1', () => {
   const party = {
-    draughtsman: { spells: [spell('bolt'), spell('splash', '1,0'), spell('ward', '2,0')] },
+    draughtsman: {
+      spells: [spell('bolt'), spell('splash', '1,0'), spell('touch', '2,0'), spell('vat', '3,0')],
+    },
   };
   const s = board(
     `
@@ -140,9 +123,11 @@ test('legalAims: bolt dirs on board, splash range 3, ward self + adjacent member
   expect(splash).toContainEqual({ kind: 'tile', at: at(3, 3) });
   expect(splash).not.toContainEqual({ kind: 'tile', at: at(4, 0) });
   expect(legalAims(s, 'draughtsman', '2,0')).toEqual([
-    { kind: 'ally', unit: 'draughtsman' },
-    { kind: 'ally', unit: 'stoker' },
+    { kind: 'self' },
+    { kind: 'tile', at: at(1, 0) },
+    { kind: 'tile', at: at(0, 1) },
   ]);
+  expect(legalAims(s, 'draughtsman', '3,0')).toHaveLength(4);
   expect(legalAims(s, 'draughtsman', '9,9')).toEqual([]);
   expect(legalAims(s, 'stoker', '0,0')).toEqual([]);
 });

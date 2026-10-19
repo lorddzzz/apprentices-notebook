@@ -23,7 +23,10 @@ describe('rat (chaser)', () => {
     const r = endTurn('r . . . .\n. . . . .\n. . . . D');
     expectLogIncludes(r.events, [
       'rat at A1 moves to D1',
-      'oil coats A1, B1, C1, D1',
+      'oil lands at A1 as slick',
+      'oil lands at B1 as slick',
+      'oil lands at C1 as slick',
+      'oil lands at D1 as slick',
       'rat at D1 waits',
     ]);
   });
@@ -32,7 +35,8 @@ describe('rat (chaser)', () => {
     const r = endTurn('r . D');
     expectLogIncludes(r.events, [
       'rat at A1 moves to B1',
-      'oil coats A1, B1',
+      'oil lands at A1 as slick',
+      'oil lands at B1 as slick',
       'rat at B1 will bite right',
     ]);
   });
@@ -46,7 +50,8 @@ describe('rat (chaser)', () => {
     const r = endTurn('S . r . D');
     expectLogIncludes(r.events, [
       'rat at C1 moves to D1',
-      'oil coats C1, D1',
+      'oil lands at C1 as slick',
+      'oil lands at D1 as slick',
       'rat at D1 will bite right',
     ]);
   });
@@ -56,7 +61,10 @@ describe('rat (chaser)', () => {
     const r = endTurn('r . .\n. . .\n. . D');
     expectLogIncludes(r.events, [
       'rat at A1 moves to C2',
-      'oil coats A1, B1, C1, C2',
+      'oil lands at A1 as slick',
+      'oil lands at B1 as slick',
+      'oil lands at C1 as slick',
+      'oil lands at C2 as slick',
       'rat at C2 will bite down',
     ]);
   });
@@ -65,7 +73,10 @@ describe('rat (chaser)', () => {
     const r = endTurn('r = D\n. . .\n. . .');
     expectLogIncludes(r.events, [
       'rat at A1 moves to C2',
-      'oil coats A1, A2, B2, C2',
+      'oil lands at A1 as slick',
+      'oil lands at A2 as slick',
+      'oil lands at B2 as slick',
+      'oil lands at C2 as slick',
       'rat at C2 will bite up',
     ]);
   });

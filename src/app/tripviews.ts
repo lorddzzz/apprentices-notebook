@@ -1,16 +1,10 @@
-import {
-  DISTRICTS,
-  type DistrictDef,
-  type DistrictId,
-  RUNES,
-  TIER_NAMES,
-  TIER_UP_LINES,
-} from '$data';
+import { DISTRICTS, type DistrictDef, type DistrictId, TIER_NAMES, TIER_UP_LINES } from '$data';
 import {
   type CellKey,
   key as cellKey,
   isGlyph,
   label,
+  nameOf,
   type Placed,
   type Spell,
   type SpellTally,
@@ -74,7 +68,7 @@ export function deadCellNotes(
   return dead.map((k) => {
     const [x = 0, y = 0] = k.split(',').map(Number);
     const p = placed.find((r) => r.at.x === x && r.at.y === y);
-    const what = p && !isGlyph(p) ? RUNES[p.rune].name : 'rune';
+    const what = p && !isGlyph(p) ? nameOf(p.rune) : 'rune';
     return `the ${what} at ${label({ x, y })} never fired`;
   });
 }

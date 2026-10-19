@@ -1,4 +1,4 @@
-import type { MethodId, Role, RuneId, SolventId } from '$data/next/types';
+import type { MethodId, Role, RuneId, SolventId } from '$data';
 
 /**
  * Path data for the rune redesign (docs/plans/rune-redesign-plan.md, U4a). Same style as
@@ -50,6 +50,9 @@ export const RUNE_ART: Record<RuneId, string> = {
 
 /** Runes drawn filled as well as stroked. */
 export const FILLED_ART: ReadonlySet<RuneId> = new Set<RuneId>(['ink', 'spark']);
+
+/** Runes whose drawing points right at dir 'right' and must turn with the rune's arrow. */
+export const DIRECTIONAL_ART: ReadonlySet<RuneId> = new Set<RuneId>(['bolt', 'touch', 'bend']);
 
 /** Method marks (design §6.2), same box and stroke. */
 export const METHOD_ART: Record<MethodId, string> = {

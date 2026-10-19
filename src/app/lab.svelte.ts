@@ -1,4 +1,4 @@
-import { INTERACTION_IDS, MEMBER_IDS, type MemberId, type ScenarioDef } from '$data';
+import { MEMBER_IDS, type MemberId, type ScenarioDef } from '$data';
 import {
   type Action,
   type BattleState,
@@ -85,7 +85,6 @@ export class LabStore {
     const init = createBattle(scenarioSpec(def, { lab: true, lattices }));
     // The Lab is the workshop: every interaction is named in previews.
     this.session = new BattleSession(init, 'lab', {
-      known: () => INTERACTION_IDS,
       // The intro (enemies declaring their intents) plays only for a demo (S18).
       intro: opts.demo === true,
       onAction: (before, action) => this.record(before, action),
@@ -227,7 +226,7 @@ export class LabStore {
     const session = this.session;
     if (!session) return;
     const lattice = this.lattices[this.member];
-    const r = editSocket({ lattice, capacity: null, free: () => null }, at, this.tool, longPress);
+    const r = editSocket({ lattice, capacity: null }, at, this.tool, longPress);
     this.tool = r.tool;
     if (!['place', 'replace', 'rotate', 'remove'].includes(r.decision.kind)) return;
     let state = session.state;

@@ -34,7 +34,7 @@ const def = (id: string, version = 1): GlyphDef => ({
   kind: 'payload',
   cells: [
     { at: c(0, 0), rune: 'ink' },
-    { at: c(1, 0), rune: 'onInked' },
+    { at: c(1, 0), rune: 'tally' },
     { at: c(2, 0), rune: 'spark' },
   ],
   entry: c(0, 0),

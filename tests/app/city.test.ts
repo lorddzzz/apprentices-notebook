@@ -45,8 +45,12 @@ describe('sketch map helpers', () => {
     expect(mapNode(seeMap(p), 'canals')?.fresh).toBe(false);
   });
 
-  test('openAll opens every district', () => {
-    expect(mapNodes(openAll(newProfile())).every((n) => n.state === 'open')).toBe(true);
+  test('openAll hears every district and opens the two playable ones (P2)', () => {
+    const nodes = mapNodes(openAll(newProfile()));
+    expect(nodes).toHaveLength(7);
+    expect(nodes.filter((n) => n.state === 'open').map((n) => n.id)).toEqual(['seam', 'canals']);
+    // the five others are heard and drawn, but barred
+    expect(nodes.filter((n) => n.state === 'heard').every((n) => n.barred !== '')).toBe(true);
   });
 
   test('nodeTag joins material and guild', () => {

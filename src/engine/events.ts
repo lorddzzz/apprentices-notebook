@@ -1,7 +1,26 @@
-import type { InteractionId, TriggerRuneId } from '$data';
+import type {
+  BurstId,
+  CompoundId,
+  KindId,
+  RuneRef,
+  SourceRuneId,
+  StateId,
+  TriggerRuneId,
+} from '$data';
 import { type Coord, type Dir, label } from './grid';
 import type { Blocker } from './queries';
-import type { Aim, AttackIntent, FiredCell, GlyphId, Intent, SpellKey, UnitId } from './types';
+import type {
+  Aim,
+  AttackIntent,
+  EventMeta,
+  FiredCell,
+  GlyphId,
+  Intent,
+  Scheduled,
+  SpellKey,
+  Target,
+  UnitId,
+} from './types';
 
 /** Snapshot of a unit at event time (animation + log text don't depend on later state). */
 export interface UnitRef {
@@ -12,7 +31,7 @@ export interface UnitRef {
 }
 
 /**
- * The stretch of a cast's log one spell node owns (M2): its own effect, never its children's.
+ * The stretch of a cast's log one step owns (M2): its own effect, never its children's.
  * `at` is the lattice cell (a Glyph's socket); inside a Glyph `inner` is the local cell and `glyph`
  * its id; `viaInner` are the local shape cells walked to reach it. `from`/`to` are offsets into the
  * log from the cast's first effect event (`to` exclusive). The source's span has no `inner` unless
@@ -27,11 +46,15 @@ export interface NodeSpan {
   to: number;
 }
 
+/** What stopped a line: a cloud, or a blocking tile. */
+export type LineStop = 'cloud' | Blocker;
+
 /**
- * Everything that happens in the game is a GameEvent. The UI animates the log;
- * tests assert on it.
+ * Everything that happens in the game is a GameEvent. The UI animates the log; tests assert on
+ * it. Every event may carry the fine-print line that caused it and the cast whose board object
+ * did (`EventMeta`, plan §2.6).
  */
-export type GameEvent =
+export type GameEvent = (
   | { type: 'battleStart'; title: string }
   | { type: 'round'; round: number }
   | { type: 'phase'; phase: 'resolve' | 'enemy' | 'player' }
@@ -39,16 +62,11 @@ export type GameEvent =
   | { type: 'lost' }
   | { type: 'moved'; unit: UnitRef; to: Coord; path: Coord[] }
   | { type: 'moveUndone'; unit: UnitRef; to: Coord }
+  /** The basic shove action (P12); the push itself follows as `push` / `crush`. */
   | { type: 'shove'; by: UnitRef; target: UnitRef; dir: Dir }
-  | { type: 'pushed'; unit: UnitRef; to: Coord }
-  | { type: 'bump'; unit: UnitRef; into: string } // 'the edge' | 'a brass plate' | who(other)
-  | { type: 'slide'; unit: UnitRef; to: Coord; path: Coord[] }
-  | { type: 'cast'; caster: UnitRef; spell: string; aim: Aim; aimText: string; echo: boolean }
-  | { type: 'echoQueued'; caster: UnitRef }
-  | { type: 'echoFizzles'; caster: UnitRef }
+  | { type: 'cast'; caster: UnitRef; spell: string; aim: Aim; aimText: string }
   | { type: 'lands'; source: string; at: Coord; path: Coord[] }
-  | { type: 'stopped'; source: string; at: Coord; by: 'steam' | Blocker; path: Coord[] }
-  | { type: 'splash'; center: Coord; tiles: Coord[] }
+  | { type: 'stopped'; source: string; at: Coord; by: LineStop; path: Coord[] }
   | {
       type: 'damage';
       target: UnitRef;
@@ -60,41 +78,10 @@ export type GameEvent =
   | { type: 'shieldAbsorbs'; unit: UnitRef; absorbed: number; left: number }
   | { type: 'shieldGained'; unit: UnitRef; amount: number }
   | { type: 'died'; unit: UnitRef }
-  | { type: 'inked'; unit: UnitRef; via: 'mark' | 'puddle' | 'stain' }
-  | { type: 'smear'; from: UnitRef; to: UnitRef[] }
-  | { type: 'mist'; tiles: Coord[] }
-  | { type: 'branded'; unit: UnitRef }
-  | { type: 'puddle'; tiles: Coord[] }
-  | { type: 'diffuse'; at: Coord; tiles: Coord[] }
-  | { type: 'oiled'; tiles: Coord[] }
-  | { type: 'steam'; tiles: Coord[] }
-  | { type: 'plates'; tiles: Coord[] }
-  | { type: 'coated'; unit: UnitRef }
-  | { type: 'detonate'; unit: UnitRef }
-  | { type: 'ignite'; at: Coord; tiles: Coord[] } // tiles = whole lit region incl. `at`, reading order
-  | { type: 'extinguish'; tiles: Coord[] }
-  | { type: 'arc'; from: Coord; tiles: Coord[] }
-  | { type: 'conduct'; from: Coord; tiles: Coord[] }
-  | { type: 'trigger'; rune: TriggerRuneId; passed: boolean; at?: Coord }
   | { type: 'telegraph'; unit: UnitRef; intent: Intent; verb: string }
   | { type: 'idle'; unit: UnitRef }
   | { type: 'attack'; unit: UnitRef; intent: AttackIntent; verbs: string }
   | { type: 'miss'; source: string }
-  | { type: 'fireOut'; tiles: Coord[] }
-  | { type: 'steamFades'; tiles: Coord[] }
-  | { type: 'plateCrumbles'; tiles: Coord[] }
-  | { type: 'vent'; at: Coord }
-  /** Pierce: the projectile passes through `unit` and flies on (plan S1). */
-  | { type: 'pierced'; source: string; unit: UnitRef }
-  /** Fire heats brass (plan S5): plates on `tiles`, brass `units`. Re-heating emits it again. */
-  | { type: 'heated'; tiles: Coord[]; units: UnitRef[] }
-  | { type: 'cooled'; tiles: Coord[]; units: UnitRef[] }
-  /** Scald's cloud (plan S7): steam on `tiles` that scalds whoever stands in it. */
-  | { type: 'scalded'; tiles: Coord[] }
-  /** Ink lands on unlit oil and stains it (plan S6). */
-  | { type: 'stained'; tiles: Coord[] }
-  /** Etch marks brass (plan S8): plates on `tiles`, brass `units`. */
-  | { type: 'etched'; tiles: Coord[]; units: UnitRef[] }
   /** The current (K-8, K-9): floats and units moved one tile downstream; `to` null = off the board. */
   | {
       type: 'drift';
@@ -103,10 +90,12 @@ export type GameEvent =
     }
   /** A wooden lock gate catches from adjacent fire and is gone (K-11). */
   | { type: 'gateBurns'; at: Coord }
-  /** A snuffer (or the lamp-mother) puts out fire and its oil on `tiles` (K-15). */
+  /** A vent puffs a cloud onto its empty tile at round end. */
+  | { type: 'vent'; at: Coord }
+  /** A snuffer (or the lamp-mother) puts out the fire on `tiles` (K-15). */
   | { type: 'snuff'; by: UnitRef; tiles: Coord[] }
   /** A lamp-moth bursts at `at` (K-16). */
-  | { type: 'burst'; unit: UnitRef; at: Coord }
+  | { type: 'foeBursts'; unit: UnitRef; at: Coord }
   /** The lamp-mother calls `unit` at the lamp `at` (K-17). */
   | { type: 'summon'; by: UnitRef; unit: UnitRef; at: Coord }
   /** The lamp-mother flares: every moth bursts (K-17). */
@@ -118,12 +107,53 @@ export type GameEvent =
       spell: SpellKey;
       cells: FiredCell[];
       meaningful: boolean;
-      /** Who did what in this cast, node by node (M2). */
+      /** Who did what in this cast, step by step (M2). */
       spans: NodeSpan[];
-    };
+    }
+  // ── The rune redesign (plan §2.7) ──
+  | { type: 'aimed'; source: SourceRuneId; targets: Target[]; heading: Dir | null }
+  | {
+      type: 'landed';
+      kind: KindId;
+      at: Coord;
+      unit?: UnitRef;
+      makes: StateId | CompoundId | 'mark' | 'collar';
+    }
+  | { type: 'mixed'; at: Coord; unit?: UnitRef; compound: CompoundId }
+  | { type: 'washed'; at: Coord; was: CompoundId; now: StateId }
+  | { type: 'burst'; burst: BurstId; at: Coord; tiles: Coord[]; units: UnitRef[] }
+  | { type: 'stateFades'; tiles: Coord[] }
+  | { type: 'spreadState'; from: Coord; to: Coord[] }
+  | { type: 'push'; unit: UnitRef; dir: Dir; path: Coord[]; slid: number }
+  | { type: 'crush'; unit: UnitRef; into: UnitRef | 'wall' | 'plate'; damage: number }
+  | { type: 'dropped'; unit: UnitRef; at: Coord; elite: boolean }
+  | { type: 'stunned'; unit: UnitRef }
+  | { type: 'held'; unit: UnitRef }
+  | { type: 'swapped'; a: UnitRef; b: UnitRef }
+  | { type: 'drawn'; from: Coord; to: Coord; what: string }
+  | { type: 'erased'; at: Coord; what: string }
+  | { type: 'marked'; unit: UnitRef; deep: boolean; bound: RuneRef | null }
+  | { type: 'collared'; unit: UnitRef }
+  | { type: 'markSpread'; from: UnitRef; to: UnitRef[] }
+  | { type: 'markSpent'; unit: UnitRef; released: boolean }
+  | { type: 'markLifted'; from: UnitRef; to: UnitRef }
+  | { type: 'released'; unit: UnitRef; action: RuneRef }
+  | { type: 'conducted'; action: RuneRef; units: UnitRef[] }
+  | { type: 'jarSealed'; at: Coord; owner: UnitRef; event: 'step' | 'dusk' }
+  | { type: 'jarOpened'; at: Coord; by: UnitRef | null }
+  | { type: 'jarCrumbles'; at: Coord }
+  | { type: 'scheduled'; kind: Scheduled['kind']; at: Coord }
+  | { type: 'repeated'; action: RuneRef }
+  | { type: 'triggered'; rune: TriggerRuneId; passed: boolean }
+  /** The per-cast effect cap was hit (plan §4): the rest of the chain fizzles. */
+  | { type: 'fizzles'; reason: 'cap' | 'depth' }
+  /** Silent: a compound, burst or idiom happened for the first time this fight (D7). */
+  | { type: 'named'; what: 'compound' | 'burst' | 'idiom'; id: string }
+) &
+  EventMeta;
 
 /** Events with no log line and no animation. */
-export const isSilent = (e: GameEvent): boolean => e.type === 'trace';
+export const isSilent = (e: GameEvent): boolean => e.type === 'trace' || e.type === 'named';
 
 export type EventLog = readonly GameEvent[];
 
@@ -133,6 +163,9 @@ export function who(r: UnitRef): string {
 }
 
 const list = (tiles: readonly Coord[]): string => tiles.map(label).join(', ');
+const nameOf = (r: RuneRef): string => (r.startsWith('inv:') ? r.slice(4) : r);
+const spaced = (id: string): string => id.replace(/([A-Z])/g, ' $1').toLowerCase();
+const targetText = (t: Target): string => (t.kind === 'unit' ? t.unit : label(t.at));
 
 /** One plain-English line per event (null for silent events): the format scenario tests compare against. */
 export function describe(e: GameEvent): string | null {
@@ -157,26 +190,12 @@ export function describe(e: GameEvent): string | null {
       return `${who(e.unit)} steps back to ${label(e.to)}`;
     case 'shove':
       return `${who(e.by)} shoves ${who(e.target)} ${e.dir}`;
-    case 'pushed':
-      return `${who(e.unit)} is pushed to ${label(e.to)}`;
-    case 'bump':
-      return `${who(e.unit)} bumps into ${e.into}`;
-    case 'slide':
-      return `${who(e.unit)} slides across the oil to ${label(e.to)}`;
     case 'cast':
-      return e.echo
-        ? `Echo: ${who(e.caster)}'s ${e.spell} repeats ${e.aimText} at half strength`
-        : `${who(e.caster)} casts ${e.spell} ${e.aimText}`;
-    case 'echoQueued':
-      return `Echo: ${who(e.caster)}'s spell will repeat next turn`;
-    case 'echoFizzles':
-      return `Echo: ${who(e.caster)}'s spell fizzles`;
+      return `${who(e.caster)} casts ${e.spell} ${e.aimText}`;
     case 'lands':
       return `${e.source} lands at ${label(e.at)}`;
     case 'stopped':
       return `${e.source} is stopped by the ${e.by} at ${label(e.at)}`;
-    case 'splash':
-      return `Splash bursts at ${label(e.center)}`;
     case 'damage':
       return `${e.source} hits ${who(e.target)} for ${e.amount}${
         e.bonus.length ? ` (${e.bonus.join(', ')})` : ''
@@ -187,58 +206,6 @@ export function describe(e: GameEvent): string | null {
       return `${who(e.unit)} gains a shield of ${e.amount}`;
     case 'died':
       return e.unit.member ? `${e.unit.name} is down` : `${who(e.unit)} dies`;
-    case 'inked':
-      return e.via === 'mark'
-        ? `${who(e.unit)} is inked`
-        : e.via === 'stain'
-          ? `${who(e.unit)} stops on stained oil and is inked`
-          : `${who(e.unit)} steps in ink and is inked`;
-    case 'smear':
-      return `the ink on ${who(e.from)} smears to ${e.to.map(who).join(', ')}`;
-    case 'mist':
-      return `mist drifts through the steam at ${list(e.tiles)}`;
-    case 'branded':
-      return `${who(e.unit)} is branded`;
-    case 'puddle':
-      return `ink pools at ${list(e.tiles)}`;
-    case 'diffuse':
-      return `ink diffuses through the steam at ${label(e.at)}`;
-    case 'oiled':
-      return `oil coats ${list(e.tiles)}`;
-    case 'steam':
-      return `steam rises at ${list(e.tiles)}`;
-    case 'plates':
-      return e.tiles.length === 1
-        ? `a brass plate rises at ${list(e.tiles)}`
-        : `brass plates rise at ${list(e.tiles)}`;
-    case 'coated':
-      return `${who(e.unit)} is coated in brass`;
-    case 'detonate':
-      return `the ink on ${who(e.unit)} detonates`;
-    case 'ignite': {
-      const rest = e.tiles.filter((t) => t.x !== e.at.x || t.y !== e.at.y);
-      return `oil at ${label(e.at)} ignites${rest.length ? `, fire spreads to ${list(rest)}` : ''}`;
-    }
-    case 'extinguish':
-      return `steam puts out the fire at ${list(e.tiles)}`;
-    case 'arc':
-      return `Spark arcs through the steam from ${label(e.from)} (${e.tiles.length} tiles)`;
-    case 'conduct':
-      return `Spark conducts through the brass from ${label(e.from)} (${e.tiles.length} tiles)`;
-    case 'trigger':
-      if (e.rune === 'onInked') {
-        return e.passed
-          ? 'On Inked: a target is inked'
-          : 'On Inked: no inked target, the chain stops';
-      }
-      if (e.rune === 'onIgnite') {
-        return e.passed
-          ? 'On Ignite: the flow follows the fire'
-          : 'On Ignite: nothing caught fire, the chain stops';
-      }
-      return e.passed && e.at
-        ? `On Kill: bursts from ${label(e.at)}`
-        : 'On Kill: nothing died, the chain stops';
     case 'telegraph':
       return e.intent.kind === 'attack'
         ? `${who(e.unit)} will ${e.verb} ${e.intent.dir}`
@@ -251,28 +218,6 @@ export function describe(e: GameEvent): string | null {
       return `${who(e.unit)} ${e.verbs} ${e.intent.dir}`;
     case 'miss':
       return `${e.source} hits nothing`;
-    case 'fireOut':
-      return `the fire at ${list(e.tiles)} burns out`;
-    case 'steamFades':
-      return `the steam at ${list(e.tiles)} fades`;
-    case 'plateCrumbles':
-      return e.tiles.length === 1
-        ? `the brass plate at ${list(e.tiles)} crumbles`
-        : `the brass plates at ${list(e.tiles)} crumble`;
-    case 'vent':
-      return `the vent at ${label(e.at)} puffs steam`;
-    case 'pierced':
-      return `${e.source} passes through ${who(e.unit)}`;
-    case 'heated':
-      return `the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])} heats up`;
-    case 'cooled':
-      return `the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])} cools`;
-    case 'scalded':
-      return `scalding steam rises at ${list(e.tiles)}`;
-    case 'stained':
-      return `ink stains the oil at ${list(e.tiles)}`;
-    case 'etched':
-      return `a mark is etched into the brass at ${list([...e.tiles, ...e.units.map((u) => u.at)])}`;
     case 'drift': {
       const parts = [
         ...e.floats.map((f) =>
@@ -286,15 +231,77 @@ export function describe(e: GameEvent): string | null {
     }
     case 'gateBurns':
       return `the lock gate at ${label(e.at)} burns`;
+    case 'vent':
+      return `the vent at ${label(e.at)} puffs steam`;
     case 'snuff':
       return `${who(e.by)} snuffs the fire at ${list(e.tiles)}`;
-    case 'burst':
+    case 'foeBursts':
       return `${who(e.unit)} bursts`;
     case 'summon':
       return `${who(e.by)} calls ${who(e.unit)}`;
     case 'flare':
       return `${who(e.by)} flares`;
     case 'trace':
+      return null;
+    case 'aimed':
+      return `${e.source} aims at ${e.targets.map(targetText).join(', ') || 'nothing'}`;
+    case 'landed':
+      return `${e.kind} lands ${e.unit ? `on ${who(e.unit)}` : `at ${label(e.at)}`} as ${spaced(e.makes)}`;
+    case 'mixed':
+      return `${e.unit ? who(e.unit) : label(e.at)}: ${spaced(e.compound)}`;
+    case 'washed':
+      return `the ${spaced(e.was)} at ${label(e.at)} washes out to ${e.now}`;
+    case 'burst':
+      return `${spaced(e.burst.replace('page:', ''))} bursts at ${label(e.at)}${e.units.length ? `, hitting ${e.units.map(who).join(', ')}` : ''}`;
+    case 'stateFades':
+      return `the board fades at ${list(e.tiles)}`;
+    case 'spreadState':
+      return `it spreads from ${label(e.from)} to ${list(e.to)}`;
+    case 'push':
+      return `${who(e.unit)} is pushed ${e.dir} to ${label(e.path[e.path.length - 1] ?? e.unit.at)}${e.slid ? ` (slides ${e.slid})` : ''}`;
+    case 'crush':
+      return `${who(e.unit)} is crushed against ${typeof e.into === 'string' ? `the ${e.into}` : who(e.into)} for ${e.damage}`;
+    case 'dropped':
+      return `${who(e.unit)} drops at ${label(e.at)}`;
+    case 'stunned':
+      return `${who(e.unit)} is stunned`;
+    case 'held':
+      return `${who(e.unit)} is held`;
+    case 'swapped':
+      return `${who(e.a)} and ${who(e.b)} swap places`;
+    case 'drawn':
+      return `the ${e.what} is drawn from ${label(e.from)} to ${label(e.to)}`;
+    case 'erased':
+      return `the ${e.what} at ${label(e.at)} is erased`;
+    case 'marked':
+      return `${who(e.unit)} is ${e.deep ? 'deeply ' : ''}marked${e.bound ? ` (holding ${nameOf(e.bound)})` : ''}`;
+    case 'collared':
+      return `${who(e.unit)} is collared in brass`;
+    case 'markSpread':
+      return `the mark spreads from ${who(e.from)} to ${e.to.map(who).join(', ')}`;
+    case 'markSpent':
+      return `${who(e.unit)}'s mark is spent${e.released ? ' and released' : ''}`;
+    case 'markLifted':
+      return `the mark moves from ${who(e.from)} to ${who(e.to)}`;
+    case 'released':
+      return `${who(e.unit)}'s mark releases ${nameOf(e.action)}`;
+    case 'conducted':
+      return `${nameOf(e.action)} travels the brass to ${e.units.map(who).join(', ') || 'no one'}`;
+    case 'jarSealed':
+      return `${who(e.owner)} seals a jar at ${label(e.at)} (opens ${e.event === 'step' ? 'on a step' : 'at dusk'})`;
+    case 'jarOpened':
+      return `the jar at ${label(e.at)} opens${e.by ? ` under ${who(e.by)}` : ''}`;
+    case 'jarCrumbles':
+      return `the jar at ${label(e.at)} crumbles empty`;
+    case 'scheduled':
+      return `${e.kind} waits at ${label(e.at)}`;
+    case 'repeated':
+      return `${nameOf(e.action)} happens again`;
+    case 'triggered':
+      return `${e.rune}: ${e.passed ? 'the rest happens' : 'the chain stops'}`;
+    case 'fizzles':
+      return e.reason === 'cap' ? 'the chain runs too long and fizzles' : 'the nesting fizzles';
+    case 'named':
       return null;
   }
 }
@@ -303,25 +310,13 @@ export function describeLog(log: EventLog): string[] {
   return log.flatMap((e) => describe(e) ?? []);
 }
 
-const DISCOVERY: Partial<Record<GameEvent['type'], InteractionId>> = {
-  ignite: 'ignite',
-  conduct: 'conduct',
-  arc: 'arc',
-  detonate: 'detonate',
-  extinguish: 'extinguish',
-  slide: 'slide',
-  diffuse: 'diffuse',
-  heated: 'heat',
-  stained: 'stain',
-  drift: 'drift',
-};
-
-/** Interactions seen in an event log (dedup, first-seen order). */
-export function discoveriesIn(events: EventLog): InteractionId[] {
-  const seen: InteractionId[] = [];
+/** Named results in a log ('compound:stain', 'burst:fire', 'idiom:bonfire'), first-seen order (D7). */
+export function namedIn(events: EventLog): string[] {
+  const seen: string[] = [];
   for (const e of events) {
-    const id = DISCOVERY[e.type];
-    if (id && !seen.includes(id)) seen.push(id);
+    if (e.type !== 'named') continue;
+    const id = `${e.what}:${e.id}`;
+    if (!seen.includes(id)) seen.push(id);
   }
   return seen;
 }

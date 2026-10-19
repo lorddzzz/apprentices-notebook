@@ -1,0 +1,300 @@
+import type { LineDef, LineSubject, Meets } from './types';
+
+/**
+ * Every fine-print line (D1, D8, P4). Tasks append rows in their own `// <task>` block; C1 writes
+ * the text of `pending` rows. The integrity test (L1) checks rows and fired lines both ways.
+ */
+
+/** A Seam row; `subject:meets` is the id. */
+const seam = (subject: LineSubject, meets: Meets, text: string): LineDef => ({
+  id: `${subject}:${meets}`,
+  subject,
+  meets,
+  text,
+  district: 'seam',
+});
+
+export const LINES: readonly LineDef[] = [
+  // kinds (E2)
+  // Mixing: the 16 rows of the compound table (design §4.2).
+  seam('ink', 'mark', 'Ink on a marked unit makes a deep mark, which takes two sparks to clear.'),
+  seam(
+    'ink',
+    'slick',
+    'Ink on a slick makes a stain: any unit that ends its move there is marked.',
+  ),
+  seam(
+    'ink',
+    'cloud',
+    'Ink on a cloud makes a brand cloud, which marks every unit inside at round end.',
+  ),
+  seam(
+    'ink',
+    'collar',
+    'Ink on a collared unit makes a shackle: it cannot move by itself for a while.',
+  ),
+  seam('oil', 'blot', 'Oil on a blot makes a stain.'),
+  seam('oil', 'slick', 'Oil on a slick makes a pool: slick on the tile and its four neighbours.'),
+  seam('oil', 'cloud', 'Oil on a cloud makes grease fog, a cloud in which pushed units slide.'),
+  seam('oil', 'plate', 'Oil on a plate makes a skid plate, which slides when shoved.'),
+  seam('steam', 'blot', 'Steam on a blot makes a brand cloud.'),
+  seam('steam', 'slick', 'Steam on a slick makes grease fog.'),
+  seam('steam', 'cloud', 'Steam on a cloud makes a bank, a thick cloud that lasts longer.'),
+  seam(
+    'steam',
+    'plate',
+    'Steam on a plate makes a kettle, a hot plate that scalds the units beside it.',
+  ),
+  seam('brass', 'mark', 'Brass on a marked unit makes a shackle that replaces the mark.'),
+  seam('brass', 'slick', 'Brass on a slick makes a skid plate.'),
+  seam('brass', 'cloud', 'Brass on a cloud makes a kettle.'),
+  seam('brass', 'plate', 'Brass on a plate makes a wall, which takes two hits to break.'),
+  // On a compound: washed out, and only the new kind is left (P16).
+  seam('ink', 'compound', 'Ink on a compound washes it out and leaves only ink.'),
+  seam('oil', 'compound', 'Oil on a compound washes it out and leaves only oil.'),
+  seam('steam', 'compound', 'Steam on a compound washes it out and leaves only a cloud.'),
+  seam('brass', 'compound', 'Brass on a compound washes it out and leaves only a plate.'),
+  // What a compound does while it lingers.
+  seam('ink', 'stain', 'A stain marks a unit that ends its move on it.'),
+  seam('ink', 'brandCloud', 'A brand cloud marks every unmarked unit inside it at round end.'),
+  seam('steam', 'kettle', 'A kettle scalds each unit beside it for 1 at round end.'),
+  // Kinds meeting a state they cannot mix with.
+  seam('ink', 'blot', 'Ink on a blot adds nothing: the tile is already inked.'),
+  seam('ink', 'plate', 'Ink slides off brass and leaves no mark.'),
+  seam('brass', 'blot', 'Brass on a blot replaces it with a plate.'),
+  seam('oil', 'fire', 'Oil on a fire feeds it for another burn.'),
+  seam('ink', 'fire', 'Ink on a fire puts it out and leaves a blot.'),
+  seam('steam', 'fire', 'Steam on a fire puts it out and leaves a cloud.'),
+  seam('brass', 'fire', 'Brass on a fire puts it out and leaves a plate.'),
+  // Bursts: Spark on each layer (design §4.3), then the burst page.
+  seam(
+    'spark',
+    'mark',
+    'Spark on a marked unit detonates the mark: 3 damage, and the mark is spent.',
+  ),
+  seam(
+    'spark',
+    'slick',
+    'Spark on oil lights it: 2 damage now, the fire runs along all the connected oil, and it burns for 2 rounds.',
+  ),
+  seam(
+    'spark',
+    'cloud',
+    'Spark on a cloud makes a storm: 2 damage to every unit in the connected cloud.',
+  ),
+  seam(
+    'spark',
+    'plate',
+    'Spark on brass conducts: 2 damage to every unit on or touching the connected brass.',
+  ),
+  seam(
+    'spark',
+    'collar',
+    'Spark on a collared unit conducts through its brass as through a plate.',
+  ),
+  seam(
+    'spark',
+    'fire',
+    'Spark on a fire surges: 3 damage to the unit in it, and an arc of 1 to the nearest other unit.',
+  ),
+  seam('spark', 'deepMark', 'Spark on a deep mark hits for 3 and leaves a plain mark.'),
+  seam('spark', 'stain', 'Spark on a stain makes Inkfire: fire that marks whoever it hits.'),
+  seam('spark', 'brandCloud', 'Spark on a brand cloud makes a storm that hits marked units twice.'),
+  seam(
+    'spark',
+    'shackle',
+    'Spark on a shackle snaps it: 3 damage, and the unit is thrown one tile.',
+  ),
+  seam('spark', 'pool', 'Spark on a pool sets all of it alight at once for 3 damage.'),
+  seam(
+    'spark',
+    'greaseFog',
+    'Spark on grease fog is a flashover: a storm, then every fog tile burns for a round.',
+  ),
+  seam(
+    'spark',
+    'skidPlate',
+    'Spark on a skid plate shoots it along the heading into the first unit: 3 damage and a push.',
+  ),
+  seam('spark', 'noHeading', 'Spark on a skid plate with no heading only breaks the plate.'),
+  seam('spark', 'bank', 'Spark on a bank is a thunderhead: a storm now, and again at round end.'),
+  seam(
+    'spark',
+    'kettle',
+    'Spark on a kettle blows it: 2 damage to the units beside it, and it leaves steam.',
+  ),
+  seam(
+    'spark',
+    'wall',
+    'Spark on a wall makes it ring: everyone touching it takes 1 and is pushed one tile away.',
+  ),
+  // actions (E3)
+  {
+    id: 'shove:noHeading',
+    subject: 'shove',
+    meets: 'noHeading',
+    district: 'seam',
+    text: 'Shove needs a way to point: a Touch on yourself that has not moved gives it none, and nothing is pushed.',
+  },
+  {
+    id: 'shove:slick',
+    subject: 'shove',
+    meets: 'slick',
+    district: 'seam',
+    text: 'A pushed unit that lands on fresh oil slides on until it leaves it, and every tile it slid counts toward a crush; the oil it slid over is used up for the round.',
+  },
+  {
+    id: 'shove:plate',
+    subject: 'shove',
+    meets: 'plate',
+    district: 'seam',
+    text: 'A unit pushed into a plate is crushed for one more than the tiles it moved, and the plate loses a hit.',
+  },
+  {
+    id: 'shove:wall',
+    subject: 'shove',
+    meets: 'wall',
+    district: 'seam',
+    text: 'A Wall takes two crushes to break; the one that crushes against it is hurt all the same.',
+  },
+  {
+    id: 'shove:unit',
+    subject: 'shove',
+    meets: 'unit',
+    district: 'seam',
+    text: 'A unit pushed into another is crushed for one more than the tiles it moved, and the one it hit takes 1.',
+  },
+  {
+    id: 'shove:edge',
+    subject: 'shove',
+    meets: 'edge',
+    district: 'seam',
+    text: 'The edge of the board is a wall here: a unit pushed against it is crushed.',
+  },
+  {
+    id: 'shove:water',
+    subject: 'shove',
+    meets: 'water',
+    district: 'canals',
+    text: 'A land unit pushed into canal water drops: a minion is gone, an elite takes 4 and loses its next action. Swimmers and fliers are safe.',
+  },
+  {
+    id: 'shove:drop',
+    subject: 'shove',
+    meets: 'drop',
+    district: 'bridges',
+    text: 'A unit pushed over a drop falls: a minion is gone, an elite takes 4 and loses its next action.',
+  },
+  {
+    id: 'shove:held',
+    subject: 'shove',
+    meets: 'held',
+    district: 'bridges',
+    text: 'A held unit does not move when pushed, and takes no crush.',
+  },
+  {
+    id: 'strike:shielded',
+    subject: 'strike',
+    meets: 'shielded',
+    district: 'seam',
+    text: 'A shield takes the blow first, but the unit has still been hit.',
+  },
+  {
+    id: 'guard:shielded',
+    subject: 'guard',
+    meets: 'shielded',
+    district: 'seam',
+    text: 'Guard on a unit that already has a shield adds to it.',
+  },
+  {
+    id: 'hold:held',
+    subject: 'hold',
+    meets: 'held',
+    district: 'bridges',
+    text: 'Holding a unit that is already held does not stack; it only keeps the longer hold.',
+  },
+  {
+    id: 'swap:held',
+    subject: 'swap',
+    meets: 'held',
+    district: 'cartographers',
+    text: 'A held unit will not change tiles, not even to trade places.',
+  },
+  {
+    id: 'sentence:unit',
+    subject: 'sentence',
+    meets: 'unit',
+    district: 'inkQuarter',
+    text: 'A unit with no mark has nothing to spend: Sentence does nothing to it.',
+  },
+  {
+    id: 'sentence:noHeading',
+    subject: 'sentence',
+    meets: 'noHeading',
+    district: 'inkQuarter',
+    text: 'Without a heading the mark cannot be spent to push, so it stays.',
+  },
+  {
+    id: 'draw:noHeading',
+    subject: 'draw',
+    meets: 'noHeading',
+    district: 'cartographers',
+    text: 'Draw needs a heading to pull along; without one nothing moves.',
+  },
+  {
+    id: 'draw:edge',
+    subject: 'draw',
+    meets: 'edge',
+    district: 'cartographers',
+    text: 'Nothing can be drawn off the edge of the board.',
+  },
+  {
+    id: 'draw:unit',
+    subject: 'draw',
+    meets: 'unit',
+    district: 'cartographers',
+    text: 'A plate cannot be drawn under a unit, so it stays where it is.',
+  },
+  {
+    id: 'draw:jar',
+    subject: 'draw',
+    meets: 'jar',
+    district: 'cartographers',
+    text: 'A jar can be drawn to the next tile; it keeps its owner and what is sealed in it.',
+  },
+  {
+    id: 'erase:mark',
+    subject: 'erase',
+    meets: 'mark',
+    district: 'cartographers',
+    text: 'Erase lifts a mark off; whatever the mark held is lost, never released.',
+  },
+  {
+    id: 'erase:deepMark',
+    subject: 'erase',
+    meets: 'deepMark',
+    district: 'cartographers',
+    text: 'Erase clears a deep mark in one go, where a Spark would need two.',
+  },
+  {
+    id: 'erase:collar',
+    subject: 'erase',
+    meets: 'collar',
+    district: 'cartographers',
+    text: 'Erase takes off a cast brass collar; a born one is part of the creature.',
+  },
+  {
+    id: 'erase:shackle',
+    subject: 'erase',
+    meets: 'shackle',
+    district: 'cartographers',
+    text: 'Erase frees a shackled unit.',
+  },
+  {
+    id: 'erase:jar',
+    subject: 'erase',
+    meets: 'jar',
+    district: 'cartographers',
+    text: 'Erase removes a jar, and what was sealed in it never happens.',
+  },
+];

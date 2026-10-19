@@ -1,37 +1,95 @@
+import type { LineId } from '$data';
 import { objectiveMet } from './city';
 import type { GameEvent, UnitRef } from './events';
 import type { Coord } from './grid';
 import { enemies, isAlive, members } from './queries';
-import type { ActionResult, BattleState, Unit, UnitId } from './types';
+import type { ActionResult, BattleState, EventMeta, Origin, Unit } from './types';
 
 /**
  * Engine internals mutate one draft per action. `runDraft` clones the input once, effect helpers
- * change `ctx.s` and append to `ctx.log`, and the public API returns the draft as the new state.
+ * change `ctx.s` and append to `ctx.log` through `emit`, and the public API returns the draft as
+ * the new state.
  */
 
-export interface Kill {
-  unit: UnitId;
-  at: Coord;
-}
-/** Per-cast scratch: deaths so far (On Kill reads it). */
+/** Effects one cast may cause before the rest fizzles (plan §4: chains stay finite). */
+export const CAST_EVENT_CAP = 500;
+
 export interface CastScope {
-  kills: Kill[];
+  events: number; // effects emitted in this cast so far
+  capped: boolean;
 }
+/**
+ * One action's draft: the state, the log, and the meta every emitted event is stamped with.
+ * `meta` is set only through `withLine` / `withOrigin`, never assigned directly.
+ */
 export interface Ctx {
   s: BattleState;
   log: GameEvent[];
   cast: CastScope | null;
+  meta: EventMeta;
+  /** Footnote variants written for lines: read by the handlers that own those lines (F1). */
+  footnotes: Readonly<Partial<Record<LineId, string>>>;
 }
 
-export function runDraft(state: BattleState, fn: (ctx: Ctx) => void): ActionResult {
-  const ctx: Ctx = { s: structuredClone(state), log: [], cast: null };
+export interface DraftOptions {
+  footnotes?: Readonly<Partial<Record<LineId, string>>>;
+}
+
+export function runDraft(
+  state: BattleState,
+  fn: (ctx: Ctx) => void,
+  opts: DraftOptions = {},
+): ActionResult {
+  const ctx: Ctx = {
+    s: structuredClone(state),
+    log: [],
+    cast: null,
+    meta: {},
+    footnotes: opts.footnotes ?? {},
+  };
   fn(ctx);
   return { state: ctx.s, events: ctx.log };
 }
 
+/** Appends an event stamped with the current line and origin; inside a cast, counts toward the cap. */
 export function emit(ctx: Ctx, e: GameEvent): void {
-  ctx.log.push(e);
+  const c = ctx.cast;
+  if (c) {
+    if (c.capped) return;
+    if (c.events >= CAST_EVENT_CAP) {
+      c.capped = true;
+      ctx.log.push({ type: 'fizzles', reason: 'cap' });
+      return;
+    }
+    c.events++;
+  }
+  const line = e.line ?? ctx.meta.line;
+  const origin = e.origin ?? ctx.meta.origin;
+  ctx.log.push({
+    ...e,
+    ...(line ? { line } : {}),
+    ...(origin ? { origin } : {}),
+  });
 }
+
+/** True once the cast hit the cap: callers stop walking the chain. */
+export const fizzled = (ctx: Ctx): boolean => ctx.cast?.capped ?? false;
+
+function withMeta<T>(ctx: Ctx, patch: EventMeta, fn: () => T): T {
+  const prev = ctx.meta;
+  ctx.meta = { ...prev, ...patch };
+  try {
+    return fn();
+  } finally {
+    ctx.meta = prev;
+  }
+}
+
+/** Every non-headline behaviour runs inside one: its events carry the line (D1, D8). */
+export const withLine = <T>(ctx: Ctx, line: LineId, fn: () => T): T => withMeta(ctx, { line }, fn);
+/** Events caused by a board object carry the cast that made it (P8). */
+export const withOrigin = <T>(ctx: Ctx, origin: Origin | null, fn: () => T): T =>
+  origin ? withMeta(ctx, { origin }, fn) : fn();
 
 /** Snapshot for an event; `at` defaults to the unit's current tile. */
 export function ref(u: Unit, at: Coord = u.pos): UnitRef {

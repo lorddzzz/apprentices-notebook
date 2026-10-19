@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { IDIOMS } from '$data/next/idioms';
-import { METHOD_IDS, METHODS } from '$data/next/methods';
-import { RUNE_IDS, RUNES } from '$data/next/runes';
-import { SOLVENT_IDS, SOLVENTS } from '$data/next/solvents';
-import type { Role } from '$data/next/types';
-import { CAST_EVENT_CAP, type Ctx, emit, withLine, withOrigin } from '$engine/next/ctx';
-import type { BattleState } from '$engine/next/model';
+import { IDIOMS } from '$data/idioms';
+import { METHOD_IDS, METHODS } from '$data/methods';
+import { RUNE_IDS, RUNES } from '$data/runes';
+import { SOLVENT_IDS, SOLVENTS } from '$data/solvents';
+import type { Role } from '$data/types';
+import { CAST_EVENT_CAP, type Ctx, emit, withLine, withOrigin } from '$engine/ctx';
+import type { BattleState } from '$engine/types';
 
 describe('rune redesign contracts (W0)', () => {
   it('has the 31 authored runes with the design §5.3 role counts', () => {

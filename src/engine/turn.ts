@@ -1,16 +1,16 @@
 import { ATTACKS, TUNING } from '$data';
 import { enemyPhase } from './ai';
-import { runEchoes } from './cast';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { burnGates, drift } from './current';
-import { burn, dealDamage } from './damage';
-import { burstAt, resolveSpecial, snuffStep } from './foes';
-import { byReadingOrder, type Coord, neighbors4, step } from './grid';
-import { applyInk, heatNearFire, scaldInSteam } from './materials';
+import { dealDamage } from './damage';
+import { foeBurst, resolveSpecial, snuffStep } from './foes';
+import { byReadingOrder, type Coord, step } from './grid';
 import {
   blockerName,
+  coordOf,
   enemies,
   isAlive,
+  isFire,
   livingUnits,
   members,
   tileAt,
@@ -21,8 +21,23 @@ import type { EnemyUnit, Unit } from './types';
 
 /**
  * End of turn: telegraphed attacks resolve in intent order, hazards tick, the round advances, the
- * enemies move and telegraph, and the party's next turn begins (echoes fire first).
+ * enemies move and telegraph, and the party's next turn begins. E6 rebuilds the round order
+ * (jars at dusk, round-end chemistry, decay, Steep, Afterglow, scheduled repeats).
  */
+
+/** A spit lands Ink where it hits (P11: a foe's Kind). Interim: a blot on an empty tile; E2 mixes. */
+function spitInk(ctx: Ctx, at: Coord, victim: Unit | null): void {
+  if (victim) {
+    if (victim.mark || !isAlive(victim)) return;
+    victim.mark = { deep: false, lineage: ctx.s.nextLineage++, bound: null, origin: null };
+    emit(ctx, { type: 'landed', kind: 'ink', at: { ...at }, unit: ref(victim), makes: 'mark' });
+    return;
+  }
+  const t = tileAt(ctx.s, at);
+  if (t.state !== null) return;
+  t.state = { id: 'blot', rounds: 0, origin: null };
+  emit(ctx, { type: 'landed', kind: 'ink', at: { ...at }, makes: 'blot' });
+}
 
 function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   const intent = e.intent;
@@ -34,13 +49,14 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   }
   const att = ATTACKS[intent.attack];
   if (att.id === 'burst') {
-    burstAt(ctx, e);
+    foeBurst(ctx, e);
     return;
   }
   emit(ctx, { type: 'attack', unit: ref(e), intent: { ...intent }, verbs: att.verbs });
   if (att.kind === 'adjacent') {
     const victim = unitAt(ctx.s, step(e.pos, intent.dir));
-    if (victim) dealDamage(ctx, victim, att.damage, att.name);
+    if (victim)
+      dealDamage(ctx, victim, att.damage, att.name, [], { heading: intent.dir, at: e.pos });
     else emit(ctx, { type: 'miss', source: att.name });
     return;
   }
@@ -52,14 +68,14 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   const at = { ...r.stop };
   switch (r.reason) {
     case 'unit': {
-      dealDamage(ctx, r.unit, att.damage, att.name);
-      if (att.inks && isAlive(r.unit)) applyInk(ctx, [at]);
+      dealDamage(ctx, r.unit, att.damage, att.name, [], { heading: intent.dir, at: e.pos });
+      if (att.inks) spitInk(ctx, at, r.unit);
       return;
     }
-    case 'steam':
-      emit(ctx, { type: 'stopped', source: att.name, at, by: 'steam', path: r.path });
-      break;
-    case 'brass':
+    case 'cloud':
+      emit(ctx, { type: 'stopped', source: att.name, at, by: 'cloud', path: r.path });
+      return;
+    case 'blocked':
       emit(ctx, {
         type: 'stopped',
         source: att.name,
@@ -70,107 +86,50 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
       return;
     case 'end':
       emit(ctx, { type: 'lands', source: att.name, at, path: r.path });
-      break;
-  }
-  if (att.inks) applyInk(ctx, [at]);
-}
-
-function tileCoord(i: number, width: number): Coord {
-  return { x: i % width, y: Math.floor(i / width) };
-}
-
-/** Scalding from hot brass: `heatDamage` to each orthogonal neighbour, normal damage path (inked +1 applies). */
-
-function scaldFromHeat(ctx: Ctx): void {
-  const s = ctx.s;
-  type Source = { at: Coord; unit: Unit | null };
-  const sources: Source[] = [
-    ...livingUnits(s)
-      .filter((u) => u.brass && u.heat > 0)
-      .map((u) => ({ at: u.pos, unit: u })),
-    ...s.tiles.flatMap((t, i) =>
-      t.plate && t.heat > 0 ? [{ at: tileCoord(i, s.width), unit: null }] : [],
-    ),
-  ].sort((a, b) => byReadingOrder(a.at, b.at));
-  for (const src of sources) {
-    if (src.unit && !isAlive(src.unit)) continue;
-    for (const n of neighbors4(src.at).sort(byReadingOrder)) {
-      const victim = unitAt(s, n);
-      if (victim && victim !== src.unit) dealDamage(ctx, victim, TUNING.heatDamage, 'Heated brass');
-    }
+      if (att.inks) spitInk(ctx, at, null);
+      return;
   }
 }
 
-/** Hot brass counts down; whatever reaches 0 cools. */
-function coolBrass(ctx: Ctx): void {
+/** Layers with a lifetime count down; whatever reaches 0 fades (interim for E2's `decayStates`). */
+function ageStates(ctx: Ctx): void {
   const s = ctx.s;
-  const tiles: Coord[] = [];
-  const units: Unit[] = [];
+  const faded: Coord[] = [];
   s.tiles.forEach((t, i) => {
-    if (t.heat > 0 && --t.heat === 0) tiles.push(tileCoord(i, s.width));
+    const l = t.state;
+    if (!l || l.rounds === 0 || l.set) return;
+    l.rounds--;
+    if (l.rounds > 0) return;
+    t.state = null;
+    faded.push(coordOf(s, i));
   });
-  for (const u of livingUnits(s)) if (u.heat > 0 && --u.heat === 0) units.push(u);
-  if (tiles.length || units.length)
-    emit(ctx, { type: 'cooled', tiles, units: units.map((u) => ref(u)) });
+  if (faded.length) emit(ctx, { type: 'stateFades', tiles: faded });
+}
+
+/** A vent puffs a cloud onto its tile when nothing lies there (K-7). */
+function vents(ctx: Ctx): void {
+  const s = ctx.s;
+  s.tiles.forEach((t, i) => {
+    if (!t.terrain.vent || t.state !== null) return;
+    emit(ctx, { type: 'vent', at: coordOf(s, i) });
+    t.state = { id: 'cloud', rounds: TUNING.cloudRounds, origin: null };
+  });
 }
 
 /**
- * The current drifts, fire burns, gates catch, hot brass scalds, then heat, fire and steam age,
- * vents refill, and snuffers put fire out.
+ * The current drifts, fire burns, gates catch, then states age, vents refill, and snuffers put
+ * fire out.
  */
 function hazards(ctx: Ctx): void {
   const s = ctx.s;
   drift(ctx);
-  // Brass that came to rest beside burning oil since the ignition catches the heat now.
-  heatNearFire(
-    ctx,
-    s.tiles.flatMap((t, i) => (t.fire > 0 ? [tileCoord(i, s.width)] : [])),
-    false,
-  );
   const onFire = livingUnits(s)
-    .filter((u) => tileAt(s, u.pos).fire > 0)
+    .filter((u) => isFire(tileAt(s, u.pos)))
     .sort((a, b) => byReadingOrder(a.pos, b.pos));
-  for (const u of onFire) if (isAlive(u)) burn(ctx, u);
+  for (const u of onFire) if (isAlive(u)) dealDamage(ctx, u, TUNING.fireDamage, 'Fire');
   burnGates(ctx);
-  scaldFromHeat(ctx);
-  scaldInSteam(ctx);
-  coolBrass(ctx);
-
-  const out: Coord[] = [];
-  const faded: Coord[] = [];
-  const crumbled: Coord[] = [];
-  s.tiles.forEach((t, i) => {
-    if (t.fire > 0 && --t.fire === 0) {
-      t.oil = false;
-      t.stain = false;
-      out.push(tileCoord(i, s.width));
-    }
-    if (t.steam > 0 && --t.steam === 0) {
-      t.scald = false;
-      faded.push(tileCoord(i, s.width));
-    }
-    if (t.plate && t.plateRounds > 0 && --t.plateRounds === 0) {
-      t.plate = false;
-      t.heat = 0;
-      t.etched = false;
-      crumbled.push(tileCoord(i, s.width));
-    }
-  });
-  if (out.length) emit(ctx, { type: 'fireOut', tiles: out });
-  if (faded.length) emit(ctx, { type: 'steamFades', tiles: faded });
-  if (crumbled.length) emit(ctx, { type: 'plateCrumbles', tiles: crumbled });
-
-  s.tiles.forEach((t, i) => {
-    if (!t.vent || t.plate || t.steam > 0) return;
-    const at = tileCoord(i, s.width);
-    emit(ctx, { type: 'vent', at });
-    t.steam = TUNING.steamRounds;
-    t.scald = false; // vents give plain steam
-    if (t.fire > 0) {
-      t.fire = 0;
-      emit(ctx, { type: 'extinguish', tiles: [at] });
-    }
-  });
+  ageStates(ctx);
+  vents(ctx);
   snuffStep(ctx);
 }
 
@@ -200,7 +159,8 @@ export function endTurnAction(ctx: Ctx): void {
     m.moved = false;
     m.acted = false;
     m.undo = null;
+    m.lastMove = null;
   }
-  runEchoes(ctx);
+  s.landed = [];
   checkEnd(ctx);
 }

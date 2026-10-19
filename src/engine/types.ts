@@ -1,16 +1,25 @@
 import type {
   AttackId,
   AuraRuneId,
+  BindEvent,
+  CompoundId,
   DistrictId,
-  DraftGoal,
-  DraftId,
+  EdgeRule,
   EnemyId,
-  InteractionId,
-  MaterialRuneId,
+  Goal,
+  HabitId,
+  InventionDef,
+  Lean,
+  LineId,
+  Meets,
   MemberId,
+  MethodId,
   RuneId,
+  RuneRef,
+  SealRuneId,
   SolventId,
   SourceRuneId,
+  StateId,
   TriggerRuneId,
 } from '$data';
 import type { GameEvent } from './events';
@@ -23,8 +32,8 @@ export type UnitId = string; // MemberId for members; `${enemyId}-${n}` (n from 
 // ── Lattice ─────────────────────────────────────────────
 export interface PlacedRune {
   at: Coord;
-  rune: RuneId;
-  dir?: Dir; // iff RUNES[rune].arrow
+  rune: RuneRef; // an authored rune or a household invention
+  dir?: Dir; // iff the rune is an arrow rune (sources, Bend)
 }
 /** A compiled Glyph sitting in one socket. Its arrow is the way in (plan P4). */
 export interface PlacedGlyph {
@@ -34,12 +43,12 @@ export interface PlacedGlyph {
   /** Arguments for the Glyph's open cells, by local cell key; a missing one means the default (M21). */
   args?: Readonly<Record<CellKey, GlyphArg>>;
 }
-/** The rune an open cell takes on this placement (M21). `dir` only for arrow runes. */
+/** The rune an open cell takes on this placement (M21, P7: a Kind or an Action). */
 export interface GlyphArg {
-  rune: RuneId;
+  rune: RuneRef;
   dir?: Dir;
 }
-/** What a lattice socket can hold. W0b switches `Lattice.runes` to this. */
+/** What a lattice socket can hold. */
 export type Placed = PlacedRune | PlacedGlyph;
 export const isGlyph = (p: Placed): p is PlacedGlyph => 'glyph' in p;
 
@@ -56,6 +65,7 @@ export interface GlyphDef {
   cells: readonly PlacedRune[];
   entry: Coord;
   exits: readonly { from: Coord; dir: Dir }[]; // local; inner walk order
+  /** Idioms are log patterns now (P7): always null on new Glyphs. */
   idiom: string | null;
   /** 1 on compile; a revision makes max + 1 (M17). The current version lives in `Profile.glyphs`. */
   version: number;
@@ -63,14 +73,13 @@ export interface GlyphDef {
   params: readonly CellKey[];
   /** The extra exit's local side (up, right or down), active only at Reliability silver (M26). */
   extraExit: Dir | null;
-  /** Set when the Glyph came from repairing an owner's draft (M33). */
-  draft?: DraftId;
   /** Ink off from the Economy tier. Only in the effective view (`glyphLibrary`), never saved. */
   discount?: number;
 }
 /** What a revision edits: the inside, never the settings (M20). */
 export type GlyphInside = Pick<GlyphDef, 'kind' | 'cells' | 'entry'>;
 export type GlyphLibrary = Readonly<Record<GlyphId, GlyphDef>>;
+export type InventionLibrary = Readonly<Record<`inv:${string}`, InventionDef>>;
 
 export interface LatticeShape {
   width: number;
@@ -82,54 +91,60 @@ export interface Lattice {
   runes: readonly Placed[];
 }
 
-/** A list of sibling nodes = a Fork's branches, left branch's nodes first. */
-export type SpellNode =
-  | {
-      kind: 'material';
-      rune: MaterialRuneId;
-      at: Coord;
-      amp: number;
-      magnitude: number;
-      next: readonly SpellNode[];
-      inner?: Coord; // inside a Glyph: `at` is the Glyph's socket, `inner` the local cell
-      via?: readonly Coord[]; // shape cells walked from the parent (or the source) to here
-      viaInner?: readonly Coord[]; // local shape cells of `via` walked inside the same Glyph
-      pierced?: true; // downstream of a Pierce: acts on every unit the projectile passed (plan S1)
-    }
-  | {
-      kind: 'trigger';
-      rune: TriggerRuneId;
-      at: Coord;
-      next: readonly SpellNode[];
-      inner?: Coord;
-      via?: readonly Coord[];
-      viaInner?: readonly Coord[];
-      pierced?: true;
-    };
+// ── Spells and steps (plan §2.3) ────────────────────────
+interface StepBase {
+  at: Coord; // lattice cell (a Glyph's socket)
+  inner?: Coord; // inside a Glyph: the local cell
+  via?: readonly Coord[]; // shape cells walked to reach it (Bend)
+  viaInner?: readonly Coord[];
+}
+/** Margin inventions are auras too. */
+export type AuraRef = AuraRuneId | `inv:${string}`;
+/** One wired rune after the Source. Bend leaves no step (R6). */
+export type Step =
+  | (StepBase & {
+      role: 'action' | 'kind';
+      rune: RuneRef;
+      auras: readonly AuraRef[];
+      next: Step | null;
+    })
+  | (StepBase & { role: 'trigger'; rune: TriggerRuneId; next: Step | null })
+  | (StepBase & { role: 'shape'; rune: 'seep' | 'lay' | 'toll'; next: Step | null })
+  | (StepBase & { role: 'fork'; left: Step | null; right: Step | null })
+  | (StepBase & { role: 'seal'; rune: SealRuneId; rest: Step | null }) // J1: the rest goes in the jar
+  /**
+   * A Glyph's extra exit (M27): the flow leaves the Glyph twice, and both continuations act on
+   * the same targets, in order. `at` is the Glyph's socket.
+   */
+  | (StepBase & { role: 'split'; branches: readonly Step[] });
 
 export interface PathCell {
   at: Coord;
-  rune: RuneId;
+  rune: RuneRef;
   dir: Dir; // travel direction on entry (source: its arrow)
   inner?: Coord; // inside a Glyph: `at` is the socket, `inner` the local cell
 }
 export interface AuraTouch {
-  aura: AuraRuneId;
+  aura: AuraRef;
   from: Coord; // aura cell
   to: Coord; // touched path/source cell
+}
+/** One cell that fired in a cast (proof masks; plan P7). `at` is the lattice cell. */
+export interface FiredCell {
+  at: Coord;
+  rune: RuneRef | null; // null for a Glyph socket
+  glyph?: GlyphId;
+  dir?: Dir;
 }
 export interface Spell {
   key: SpellKey;
   at: Coord;
   source: SourceRuneId;
-  amp: number;
-  magnitude: number; // base + amp (sources get no affinity)
-  echo: boolean; // an Echo touches the source cell
-  charges: number; // max charges per trip (RUNES[source].charges)
-  nodes: readonly SpellNode[];
+  sourceAuras: readonly AuraRef[]; // auras touching the source cell
+  first: Step | null;
+  charges: number;
   path: readonly PathCell[]; // every cell the flow entered, in walk order (for highlighting)
-  /** A Pierce is on the path of a line spell (Bolt, Quill): the projectile passes the first unit (plan S1). */
-  pierce?: true;
+  ink: number; // what it costs on the page (P33)
   glyph?: GlyphId; // set when the source is a Spell Glyph (`source` is then its inner source)
   /** Every cell the flow entered as proof sees it (a Glyph's inner cells collapse to its socket). */
   cells?: readonly FiredCell[];
@@ -142,37 +157,53 @@ export interface CompiledLattice {
 export interface LatticeIssue {
   kind: 'ink' | 'owned' | 'socket' | 'arrow' | 'overlap' | 'arg';
   at?: Coord;
-  rune?: RuneId;
+  rune?: RuneRef;
   message: string;
 }
 
-// ── Battle ──────────────────────────────────────────────
-export interface Tile {
-  oil: boolean;
-  ink: boolean;
-  steam: number;
-  fire: number;
-  plate: boolean;
-  /** Rounds until a rune-raised plate crumbles; 0 = permanent (layout terrain). */
-  plateRounds: number;
-  vent: boolean;
-  /** Unlit oil with ink in it: a unit that ends a move here is inked (plan S6). Goes with the oil. */
-  stain: boolean;
-  /** Rounds a brass plate stays hot (plan S5); 0 = cold. */
-  heat: number;
-  /** A brass plate etched by Etch, for the battle (plan S8). */
-  etched: boolean;
-  /** The steam here is Scald's: it scalds whoever stands in it at the burn step (plan S7). Fades with the steam. */
-  scald: boolean;
-  /** A water lane tile and its downstream direction (K-6); null on land. */
-  water: Dir | null;
-  /** On water: floats pass, units, movement and projectiles don't (K-10). */
-  grate: boolean;
-  /** A wooden lock gate: blocks like a plate, burns from adjacent fire (K-11). */
-  gate: boolean;
-  /** A lamp on a pole, where the lamp-mother calls moths (K-17). */
-  lamp: boolean;
+// ── Board (plan §2.2) ───────────────────────────────────
+/** Which cast made a board object; every event it later causes carries it (P8, lifetime elegance). */
+export interface Origin {
+  caster: UnitId;
+  spell: SpellKey;
+  cast: number; // BattleState.castSeq at cast start
+  glyph?: GlyphId;
 }
+/** A state or compound on a tile. */
+export interface Layer {
+  id: StateId | CompoundId;
+  rounds: number; // rounds left; 0 = permanent (layout plate, or set by Lay)
+  origin: Origin | null;
+  hits?: number; // plates and Walls: hits left before it breaks
+  set?: true; // Lay: permanent until broken
+  /** Aura flags read at decay: Afterglow (+1 round once), Steep (spreads each round). */
+  afterglow?: true;
+  steep?: true;
+  /** A slick a unit slid over: the round it was used up in (no pinball, design §4.4). */
+  slid?: number;
+}
+export interface Terrain {
+  water: Dir | null; // canal lane and its current (K-6)
+  drop: boolean; // `_`: an open side; a pushed land unit drops (P3)
+  vent: boolean; // puffs a cloud when its tile is empty at round end
+  grate: boolean; // on water: floats pass, units, movement and projectiles don't (K-10)
+  gate: boolean; // a wooden lock gate: blocks like a plate, burns from adjacent fire (K-11)
+  lamp: boolean; // where the lamp-mother calls moths (K-17)
+}
+export interface Jar {
+  owner: UnitId;
+  event: 'step' | 'dusk'; // Jar opens on a step, Fuse at round end
+  rest: Step | null; // what was wired after the Seal
+  heading: Dir | null; // the sealing cast's heading (P32)
+  origin: Origin;
+}
+export interface Tile {
+  terrain: Terrain;
+  state: Layer | null;
+  jar: Jar | null;
+  hot: number; // Cinder: rounds left; oil here catches fire
+}
+
 /** `dir` is from the enemy's CURRENT position at resolve time. */
 export interface AttackIntent {
   kind: 'attack';
@@ -185,11 +216,21 @@ export type SpecialIntent =
   | { kind: 'summon'; at: Coord; order: number }
   | { kind: 'flare'; order: number };
 export type Intent = AttackIntent | SpecialIntent;
-export type Aim =
-  | { kind: 'dir'; dir: Dir } // Bolt
-  | { kind: 'tile'; at: Coord } // Splash
-  | { kind: 'ally'; unit: UnitId }; // Ward
 
+/** What a bound mark holds (Bind). */
+export interface Bound {
+  action: RuneRef;
+  event: BindEvent;
+  solvent: SolventId | null;
+  heading: Dir | null; // the binding cast's heading, the fallback release heading (P30)
+}
+export interface Mark {
+  deep: boolean; // Deep mark: takes two Sparks to clear
+  lineage: number; // spread copies share one lineage (§6.4 limit 3)
+  bound: Bound | null;
+  origin: Origin | null;
+  wax?: true; // Wax solvent: never spreads, fire melts it unspent
+}
 interface UnitBase {
   id: UnitId;
   name: string;
@@ -197,20 +238,17 @@ interface UnitBase {
   hp: number;
   maxHp: number;
   shield: number;
-  inked: boolean;
-  brass: boolean;
-  oilSoaked: boolean;
-  /** Burned into the unit by Brand: fire hits it for +2. */
-  branded: boolean;
-  /** Rounds a brass unit stays hot (plan S5); 0 = cold. */
-  heat: number;
-  /** Brass etched by Etch, for the battle (plan S8). */
-  etched: boolean;
+  guardUntil: number | null; // round at whose player phase start Guard's shield ends (P27)
+  mark: Mark | null;
+  collar: Origin | null | false; // false = none; null = layout (born brass)
+  shackle: number; // rounds left; 0 = none
+  held: number; // Hold/Rivet: rounds left
+  stunned: boolean; // skips its next action (dropped elite)
+  elite: boolean; // members count as elites (P19)
+  lastMove: Dir | null; // this turn, for Touch-self headings (P22)
 }
 export interface UndoRecord {
   from: Coord;
-  puddle: boolean; // the move consumed an ink puddle
-  stain: boolean; // the move ended on stained oil (the stain stays; the ink comes off)
 }
 export interface MemberUnit extends UnitBase {
   kind: 'member';
@@ -221,6 +259,7 @@ export interface MemberUnit extends UnitBase {
   undo: UndoRecord | null;
   spells: Spell[];
   charges: Record<SpellKey, number>;
+  lean: Lean;
 }
 export interface EnemyUnit extends UnitBase {
   kind: 'enemy';
@@ -230,26 +269,78 @@ export interface EnemyUnit extends UnitBase {
 /** hp 0 = dead/down: stays in the array, ignored by all board queries. */
 export type Unit = MemberUnit | EnemyUnit;
 
-export interface EchoEntry {
-  caster: UnitId;
-  spell: SpellKey;
-  aim: Aim;
+// ── Resolution (plan §2.4) ──────────────────────────────
+export type Target = { kind: 'unit'; unit: UnitId } | { kind: 'tile'; at: Coord };
+export type Aim =
+  | { kind: 'dir'; dir: Dir } // Bolt
+  | { kind: 'tile'; at: Coord } // Splash, Vat; Touch on an adjacent unit or tile
+  | { kind: 'self' }; // Touch on yourself
+/** The board as it stood when the cast began (R8); triggers read only this. */
+export interface Snapshot {
+  tiles: readonly Tile[];
+  units: readonly Unit[];
+  landed: BattleState['landed'];
 }
+/** What flows down a spell's steps. */
+export interface Flow {
+  caster: UnitId;
+  origin: Origin;
+  snapshot: Snapshot;
+  /** The heading for a target (R4, P22): Bolt's aim, Touch's direction, area: centre outward. */
+  headings: ReadonlyMap<string, Dir | null>; // by targetKey
+  lay: boolean; // a Lay upstream: what lands sets for good
+  gifted: boolean; // the caster is gifted in the current rune's school (per step)
+  solvent: SolventId | null; // inside a flavoured invention
+  habit: HabitId | null;
+  depth: number; // invention nesting guard (§6.4 limit 1)
+  auras: readonly AuraRef[]; // auras touching the current step
+}
+export const targetKey = (t: Target): string =>
+  t.kind === 'unit' ? `u:${t.unit}` : `t:${t.at.x},${t.at.y}`;
+
+/** A repeat, Wick, Graphite, Filings, Thunderhead or Pitch waiting for its moment (E6). */
+export interface Scheduled {
+  when: 'ownerTurn' | 'roundEnd' | 'nextRoundEnd';
+  owner: UnitId;
+  step: Step | RuneRef;
+  target: Target;
+  heading: Dir | null;
+  origin: Origin;
+  kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch';
+}
+
+// ── Battle ──────────────────────────────────────────────
 export type BattlePhase = 'player' | 'won' | 'lost';
 export interface BattleState {
   title: string;
   width: number;
   height: number;
+  edge: EdgeRule; // the district's edge (P3)
   tiles: Tile[]; // row-major, index y*width+x
   units: Unit[]; // creation order = board reading order (members and enemies interleaved)
   round: number;
   phase: BattlePhase;
-  echoes: EchoEntry[];
-  discovered: InteractionId[]; // interactions seen in this battle (dedup, first-seen order)
   rngState: number;
   lab: boolean; // charges are not spent
   /** A threshold room's goal (K-22): won when met, never by clearing the board. */
-  objective?: DraftGoal;
+  objective?: Goal;
+  castSeq: number; // casts so far this battle (Origin.cast)
+  /** Mark lineages: who each has reached, once per fight (§6.4 limit 3). */
+  lineages: Record<number, { reached: UnitId[] }>;
+  nextLineage: number;
+  scheduled: Scheduled[];
+  /** This player phase's casts and every target they touched (Unison, P26). */
+  landed: { caster: UnitId; targets: string[] }[];
+  /** Things met this battle, for `Profile.met` (the Bench palette, P37). */
+  met: Meets[];
+  /** Compounds, bursts and idioms already named this battle (D7). */
+  named: string[];
+}
+
+/** The fine-print line that caused an event, and the cast whose board object did (§2.6). */
+export interface EventMeta {
+  line?: LineId;
+  origin?: Origin;
 }
 
 export type Action =
@@ -272,51 +363,44 @@ export interface BattleSpec {
   title: string;
   board: string;
   seed: number;
+  edge?: EdgeRule; // default 'wall' (P3)
   party?: Partial<Record<MemberId, PartyInit>>; // member tokens on the board are spawned; this overrides hp/spells/charges
   hp?: Readonly<Record<string, number>>; // by label, any unit
   intents?: Readonly<Record<string, Dir>>; // by label; if given, round-1 AI telegraph is skipped, unlisted enemies idle
   lab?: boolean;
-  objective?: DraftGoal;
+  objective?: Goal;
 }
 
-// ── Run layer ───────────────────────────────────────────
+// ── Run layer (plan §2.8; R1 rebuilds it) ───────────────
 export type LootItem =
   | { kind: 'rune'; rune: RuneId }
-  | { kind: 'ink'; member: MemberId; amount: number }
+  | { kind: 'method'; method: MethodId }
   | { kind: 'solvent'; solvent: SolventId }
+  | { kind: 'ink'; member: MemberId; amount: number }
   | { kind: 'vellum'; amount: number }
   | { kind: 'doorway' } // never banked: picking it opens field rewiring (plan S11)
-  | { kind: 'draft'; draft: DraftId } // an owner's draft, banked into `Profile.drafts` (M30)
   | { kind: 'key'; district: DistrictId }; // opens `district` when banked (K-23)
 
-/** One cell that fired in a cast (proof masks; plan P7). `at` is the lattice cell. */
-export interface FiredCell {
-  at: Coord;
-  rune: RuneId | null; // null for a Glyph socket
-  glyph?: GlyphId;
-  dir?: Dir;
-}
-
+/** Profile v7 (P1): knowledge, not copies (P34). */
 export interface Profile {
-  collection: Record<RuneId, number>; // owned counts
+  known: RuneId[];
+  methods: MethodId[];
+  inventions: InventionDef[];
+  solvents: Record<SolventId, number>;
   inkCapacity: Record<MemberId, number>;
   lattices: Record<MemberId, Placed[]>; // shape comes from MEMBERS[m].shape
-  interactions: InteractionId[]; // codex: discovered interactions (runes: derived from collection)
-  solvents: Record<SolventId, number>;
+  witnessed: LineId[];
+  named: string[]; // named results: 'compound:stain', 'burst:fire', 'idiom:bonfire' (D7)
+  met: Meets[];
+  foesMet: EnemyId[];
+  footnotes: Partial<Record<RuneId, { points: number; chosen: Partial<Record<LineId, string>> }>>;
   vellum: number;
-  bench: {
-    trials: string[]; // trial keys "left+right+solvent" (parents sorted)
-    known: string[]; // recipe ids written in ink
-  };
   glyphs: GlyphDef[];
-  proof: Record<MemberId, FiredCell[][]>; // cast masks, newest last, capped
-  idioms: string[]; // recognised idiom ids (codex)
   /** Older versions of Glyphs, with their own records (M17). Kept forever. */
   glyphArchive: GlyphDef[];
   /** Records per `versionKey(id, version)`; a missing one reads as empty (M8). */
   glyphRecords: Record<string, GlyphRecord>;
-  /** Banked owner's drafts and their working copies (M34). */
-  drafts: DraftCopy[];
+  proof: Record<MemberId, FiredCell[][]>; // cast masks, newest last, capped
   city: CityState;
 }
 
@@ -330,7 +414,7 @@ export interface CityState {
   fresh: DistrictId[]; // heard since the map was last opened (drawn in new ink)
 }
 
-// ── Mastery (records, tiers, drafts) ────────────────────
+// ── Mastery (records, tiers) ────────────────────────────
 export type TierLevel = 0 | 1 | 2 | 3; // none, bronze, silver, gold
 /** One cast of a Glyph (one socket): its harm, its base cost plus outer auras, and whether it did anything (M8, M9). */
 export interface CastSample {
@@ -346,14 +430,6 @@ export interface GlyphRecord {
   recent: readonly CastSample[]; // newest last, ≤ TUNING.tierWindow
   best: { economy: TierLevel; reliability: TierLevel }; // never drops
   fired: Readonly<Record<CellKey, number>>; // local cell → casts it fired in
-}
-/** A draft the player owns: the working copy of its inside, and whether it is repaired (M34). */
-export interface DraftCopy {
-  id: DraftId;
-  inside: GlyphInside;
-  /** The highest unlocked page, 0-based; pages never re-lock (BL-14, F3). */
-  page: number;
-  repaired: boolean;
 }
 /** A tier a Glyph version reached during a trip (M16). */
 export interface TierUp {
@@ -380,9 +456,9 @@ export interface SpellTally {
 export interface TripStats {
   fights: number; // encounters finished (won or lost)
   spells: SpellTally[]; // first-cast order
-  /** The cast with the most reaction events (ignite, conduct, arc, detonate, …). */
+  /** The cast with the most reaction events (mixes, bursts, crushes, drops, …). */
   biggestChain: { member: MemberId; spell: SpellKey; name: string; reactions: number } | null;
-  discoveries: string[]; // codex ids first found on this trip, in order ('interaction:ignite', 'idiom:bonfire')
+  discoveries: string[]; // codex ids first found on this trip, in order ('compound:stain', 'idiom:bonfire')
   proofCasts: number; // meaningful casts recorded toward proof
   elegance: TierUp[]; // tier-ups in the order they landed (M16)
   heard: DistrictId[]; // districts heard of on this trip (K-20)

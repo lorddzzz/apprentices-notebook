@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'vitest';
-import { SCENARIOS } from '$data';
+import { SCENARIOS, type ScenarioDef } from '$data';
 import {
   applyAction,
   boardOf,
@@ -38,20 +38,26 @@ describe('toggleToken', () => {
     ['r', 'b', 'b'],
     ['r!', 'f', 'f'],
     ['ro', '!', 'r!o'],
-    ['r!o', '!', 'ro'],
+    ['r!o', '!', 'r!!o'],
+    ['r!!o', '!', 'ro'],
     ['o', '*', '*'],
-    ['*', '*', 'o'],
+    ['*', '*', '.'],
     ['ro', '.', '.'],
     ['.', 'o', 'o'],
     ['o', 'o', '.'],
-    ['o', '~', 'o~'],
-    ['~o', 'i', 'oi~'],
+    ['o', '~', '~'],
+    ['~', 'i', 'i'],
     ['=', 'o', 'o'],
     ['=', '=', '.'],
     ['.', '=', '='],
     ['=', 'D', 'D'],
-    ['*', 'o', '*'],
+    ['*', 'o', 'o'],
     ['r', '&', 'r&'],
+    ['r&', '&', 'r'],
+    ['r', '$', 'r$'],
+    ['~', '@', '~@'],
+    ['~@', '@', '~'],
+    ['.', '_', '_'],
   ];
   for (const [token, item, want] of table) {
     test(`${token} + ${item} → ${want}`, () => {
@@ -62,6 +68,7 @@ describe('toggleToken', () => {
   test('a modifier without a unit is ignored, and a plate refuses a unit', () => {
     expect(toggleToken('.', '!')).toBe('.');
     expect(toggleToken('o', '&')).toBe('o');
+    expect(toggleToken('o', '$')).toBe('o');
     expect(toggleToken('r', '=')).toBe('r');
   });
 
@@ -101,7 +108,7 @@ describe('painting', () => {
     const next = applyEdits(hurt, edits);
     const same = next.units.find((u) => u.id === dummy.id);
     expect(same?.hp).toBe(5);
-    expect(next.tiles[dummy.pos.y * next.width + dummy.pos.x]?.oil).toBe(true);
+    expect(next.tiles[dummy.pos.y * next.width + dummy.pos.x]?.state?.id).toBe('slick');
   });
 
   test('paletteEdits is empty when nothing would change', () => {
@@ -113,7 +120,7 @@ describe('painting', () => {
 
 describe('baseOf', () => {
   test('records hp and intents by label', () => {
-    const def = scenario('sentry-steam-block');
+    const def = { board: 'b . ~ . D', intents: { A1: 'right' } } as const;
     const init = createBattle(scenarioSpec(def, { lab: true, lattices: fallbackLattices() })).state;
     const hurt = {
       ...init,
@@ -126,9 +133,20 @@ describe('baseOf', () => {
   });
 });
 
+/** A small scenario of our own: the Stoker bolts a rat. Runes have no effects yet, so only the aim shows. */
+const CHAIN: ScenarioDef = {
+  id: 'chain',
+  title: 'Chain',
+  note: 'A bolt along a row.',
+  board:
+    'S . r . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. . . . . .\n. D . . . .',
+  lattices: { stoker: 'Bolt> Oil Spark' },
+  demo: [{ type: 'cast', unit: 'stoker', spell: '0,0', aim: { kind: 'dir', dir: 'right' } }],
+  expected: [],
+};
+
 describe('toScenarioDef round-trips', () => {
-  function exportAfterDemo(id: string) {
-    const def = scenario(id);
+  function exportAfterDemo(def: ScenarioDef) {
     const lattices = Object.fromEntries(
       Object.entries(fallbackLattices()).map(([m, l]) => {
         const own = def.lattices?.[m as keyof typeof def.lattices];
@@ -144,18 +162,18 @@ describe('toScenarioDef round-trips', () => {
       state = r.state;
       events.push(...r.events);
     }
-    return { def, exported: toScenarioDef(`lab-${id}`, base, def.demo, events), final: state };
+    return { def, exported: toScenarioDef(`lab-${def.id}`, base, def.demo, events), final: state };
   }
 
-  test('oil-chain: the export replays to its own expected lines', () => {
-    const { def, exported } = exportAfterDemo('oil-chain');
-    expect(exported.expected).toEqual(def.expected);
+  test('chain: the export replays to its own expected lines', () => {
+    const { exported } = exportAfterDemo(CHAIN);
+    expect(exported.expected.length).toBeGreaterThan(0);
     expect(runScenario(exported).lines).toEqual(exported.expected);
   });
 
-  for (const def of SCENARIOS) {
+  for (const def of [...SCENARIOS, CHAIN]) {
     test(`${def.id}: replay of the export matches`, () => {
-      const { exported, final } = exportAfterDemo(def.id);
+      const { exported, final } = exportAfterDemo(def);
       const again = runScenario(exported);
       expect(again.lines).toEqual(exported.expected);
       expect(boardOf(again.state)).toBe(boardOf(final));
@@ -163,11 +181,11 @@ describe('toScenarioDef round-trips', () => {
   }
 
   test('formatScenario output contains board and lattices as template strings', () => {
-    const { exported } = exportAfterDemo('oil-chain');
+    const { exported } = exportAfterDemo(CHAIN);
     const text = formatScenario(exported);
     expect(text).toMatch(/board: `\n/);
     expect(text).toMatch(/lattices: \{\n\s+draughtsman: `/);
-    expect(text).toContain("id: 'lab-oil-chain'");
+    expect(text).toContain("id: 'lab-chain'");
     expect(text).toMatch(/expected: \[\n/);
     expect(text).toContain("type: 'cast'");
     expect(describeLog([])).toEqual([]);
@@ -177,8 +195,8 @@ describe('toScenarioDef round-trips', () => {
 describe('labLocation', () => {
   test('defaults to the sandbox, reads demo', () => {
     expect(labLocation(new URLSearchParams(''))).toEqual({ scenario: 'sandbox', demo: false });
-    expect(labLocation(new URLSearchParams('scenario=self-combo&demo=1'))).toEqual({
-      scenario: 'self-combo',
+    expect(labLocation(new URLSearchParams('scenario=sandbox&demo=1'))).toEqual({
+      scenario: 'sandbox',
       demo: true,
     });
   });
@@ -254,26 +272,14 @@ describe('LabStore', () => {
 
   test('a plain visit shows the board without the intro', () => {
     lab = new LabStore(new GameStore(memoryBackend(), () => 0));
-    lab.load('self-combo');
+    lab.load('sandbox');
     expect(lab.session?.busy).toBe(false);
   });
 
-  test('demo=1 plays the intro', () => {
+  test('an unknown scenario falls back to the sandbox and says so', () => {
     lab = new LabStore(new GameStore(memoryBackend(), () => 0));
-    lab.load('self-combo', { demo: true });
-    expect(lab.session?.busy).toBe(true);
-  });
-
-  test('demo=1 plays the scenario actions into the log', async () => {
-    lab = new LabStore(new GameStore(memoryBackend(), () => 0));
-    lab.load('self-combo', { demo: true });
-    const session = lab.session;
-    for (let i = 0; i < 40 && session?.state.round === 1 && session.log.length < 20; i++) {
-      session?.skip();
-      await new Promise((r) => setTimeout(r, 0));
-    }
-    const lines = describeLog(session?.log ?? []);
-    expect(lines.at(-1)).toMatch(/Detonation hits dummy at C1 for 2/);
+    expect(lab.load('self-combo')).toBe('self-combo');
+    expect(lab.scenario?.id).toBe('sandbox');
   });
 });
 

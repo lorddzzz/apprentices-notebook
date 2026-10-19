@@ -23,19 +23,16 @@ function drawn(v: BoardView) {
       pos: u.pos,
       hp: u.hp,
       alive: u.alive,
-      inked: u.inked,
+      mark: u.mark,
       shield: u.shield,
-      brass: u.brass,
-      branded: u.branded,
+      collar: u.collar,
+      shackle: u.shackle,
       intent: u.alive ? u.intent : null,
     })),
     tiles: v.tiles.map((t) => ({
-      oil: t.oil,
-      ink: t.ink,
-      plate: t.plate,
+      state: t.state,
+      jar: t.jar,
       vent: t.vent,
-      steam: t.steam > 0,
-      fire: t.fire > 0,
     })),
     round: v.round,
     phase: v.phase,
@@ -89,16 +86,20 @@ describe('projection matches engine state', () => {
     });
   }
 
-  test('bench runes: smear, mist, brand, quill, torch', () => {
+  test('casts of each source rune: the projection follows the log', () => {
     const lab = { lab: true } as const;
     const cases: Array<[string, Record<string, string>, Action]> = [
-      ['D . r r\n. . r .', { draughtsman: 'Bolt> Smear' }, castRight('draughtsman')],
-      ['D . r', { draughtsman: 'Bolt> Brand' }, castRight('draughtsman')],
-      ['D . r', { draughtsman: 'Quill>' }, castRight('draughtsman')],
-      ['S . . o o r', { stoker: 'Bolt> Torch' }, castRight('stoker')],
+      ['D . r r\n. . r .', { draughtsman: 'Bolt> Ink' }, castRight('draughtsman')],
+      ['D . r', { draughtsman: 'Bolt> Strike' }, castRight('draughtsman')],
+      ['S . . o o r', { stoker: 'Bolt> Spark' }, castRight('stoker')],
       [
         '. r~ r~\n. . .\nS . .',
-        { stoker: 'Splash> Mist' },
+        { stoker: 'Splash> Oil' },
+        { type: 'cast', unit: 'stoker', spell: 'A1', aim: { kind: 'tile', at: { x: 1, y: 0 } } },
+      ],
+      [
+        'S r .',
+        { stoker: 'Touch> Strike' },
         { type: 'cast', unit: 'stoker', spell: 'A1', aim: { kind: 'tile', at: { x: 1, y: 0 } } },
       ],
     ];

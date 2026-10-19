@@ -25,12 +25,15 @@ import {
   type Trip,
 } from '$engine';
 
+/** One fire burst covering `n` tiles (the canals are heard from a 3-tile one in the Seam). */
 const ignite = (n: number): EventLog => [
   {
-    type: 'ignite',
-    at: [0, 0],
-    tiles: Array.from({ length: n }, (_, i) => [i, 0]),
-  } as unknown as EventLog[number],
+    type: 'burst',
+    burst: 'fire',
+    at: { x: 0, y: 0 },
+    tiles: Array.from({ length: n }, (_, i) => ({ x: i, y: 0 })),
+    units: [],
+  },
 ];
 
 const withCanals = (p: Profile): Profile => ({
@@ -50,7 +53,7 @@ const holds = (p: Profile) => {
 };
 
 describe('hearing from a battle (K-20)', () => {
-  test('one ignite of 3 tiles in the Seam hears the canals and marks them fresh', () => {
+  test('one fire of 3 tiles in the Seam hears the canals and marks them fresh', () => {
     const p = newProfile();
     const r = hearFromBattle(p, startTrip(p, 1), ignite(3));
     expect(r.heard).toEqual(['canals']);
@@ -60,14 +63,14 @@ describe('hearing from a battle (K-20)', () => {
     holds(r.profile);
   });
 
-  test('2 tiles do not, and several small ignites do not add up', () => {
+  test('2 tiles do not, and several small fires do not add up', () => {
     const p = newProfile();
     const t = startTrip(p, 1);
     expect(hearFromBattle(p, t, ignite(2)).heard).toEqual([]);
     expect(hearFromBattle(p, t, [...ignite(2), ...ignite(2)]).profile).toBe(p);
   });
 
-  test('an ignite in a canal battle does not hear anything', () => {
+  test('a fire in a canal battle does not hear anything', () => {
     const p = withCanals(newProfile());
     const t = startTrip(p, 1, 'canals');
     expect(hearFromBattle(p, t, ignite(5)).heard).toEqual([]);
@@ -117,14 +120,14 @@ describe('hearing from a battle (K-20)', () => {
     holds(r.profile);
   });
 
-  test('a discovered condition reads the codex', () => {
+  test('a named condition reads the named results (D7)', () => {
     const table = fixture({
-      hear: [{ kind: 'discovered', codex: 'interaction:arc', voice: 'owner' }],
+      hear: [{ kind: 'named', id: 'burst:storm', voice: 'owner' }],
     });
     const p = newProfile();
     const t = startTrip(p, 1);
     expect(hearFromBattle(p, t, [], table).heard).toEqual([]);
-    const learnt = { ...p, interactions: [...p.interactions, 'arc' as const] };
+    const learnt = { ...p, named: [...p.named, 'burst:storm'] };
     expect(hearFromBattle(learnt, t, [], table).heard).toEqual(['canals']);
   });
 });
@@ -314,10 +317,10 @@ describe('thresholds, the map and the dev toggle', () => {
     expect(seeMap(seen)).toBe(seen);
   });
 
-  test('openAll hears and opens every district; defaults are Seam-only', () => {
+  test('openAll hears every district and opens the ones with rooms; defaults are Seam-only', () => {
     expect(cityDefaults().open).toEqual(['seam']);
     const all = openAll(newProfile());
-    expect(all.city.heard).toEqual(['seam', 'canals']);
+    expect(all.city.heard).toHaveLength(7);
     expect(all.city.open).toEqual(['seam', 'canals']);
     expect(openAll(all).city).toEqual(all.city);
   });

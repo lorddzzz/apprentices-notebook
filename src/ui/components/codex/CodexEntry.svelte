@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { type CodexEntryDef, type InteractionId, RUNES, type RuneId } from '$data';
-  import { FILLED_INTERACTIONS, INTERACTION_GLYPH } from '../../glyphs';
-  import AspectMark from '../AspectMark.svelte';
+  import { type CodexEntryDef, type MethodId, RUNES, type RuneId } from '$data';
+  import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   interface Props {
@@ -12,17 +11,15 @@
   let { entry, known }: Props = $props();
 
   const rune = $derived(entry.kind === 'rune' ? (entry.ref as RuneId) : null);
-  const interaction = $derived(
-    entry.kind === 'interaction' ? (entry.ref as InteractionId) : null,
-  );
+  const method = $derived(entry.kind === 'method' ? (entry.ref as MethodId) : null);
 </script>
 
 <article class="entry" class:unknown={!known} data-testid="codex-entry" data-known={known} data-id={entry.id}>
   <div class="mark">
-    {#if entry.kind === 'rune'}
+    {#if rune}
       <RuneGlyph
         rune={known ? rune : null}
-        dir={known && rune && RUNES[rune].arrow ? 'right' : undefined}
+        dir={known && RUNES[rune].arrow ? 'right' : undefined}
         size={44}
       />
     {:else}
@@ -36,12 +33,11 @@
           stroke-width="2"
           stroke-dasharray={known ? undefined : '4 3'}
         />
-        {#if known && interaction}
-          {@const filled = FILLED_INTERACTIONS.has(interaction)}
+        {#if known && method}
           <g transform="translate(20 20) scale(0.68) translate(-12 -12)">
             <path
-              d={INTERACTION_GLYPH[interaction]}
-              fill={filled ? 'currentColor' : 'none'}
+              d={METHOD_ART[method]}
+              fill="none"
               stroke="currentColor"
               stroke-width="2"
               stroke-linecap="round"
@@ -59,15 +55,8 @@
   <div class="text">
     {#if known}
       <h3>{entry.title}</h3>
-      {#if rune}
-        <div class="marks">
-          {#each RUNES[rune].aspects as aspect (aspect)}
-            <AspectMark {aspect} size={18} />
-          {/each}
-        </div>
-      {/if}
       <p class="rule">{entry.text}</p>
-      <p class="note">{entry.ownerNote}</p>
+      {#if entry.ownerNote}<p class="note">{entry.ownerNote}</p>{/if}
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>
       {#if entry.hint}
@@ -111,11 +100,6 @@
   }
   .unknown {
     min-height: 60px;
-  }
-  .marks {
-    display: flex;
-    gap: var(--space-1);
-    margin-top: 2px;
   }
   .rule {
     margin: 2px 0 0;

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { RUNES } from '$data';
-  import { type Coord, label, sameCoord } from '$engine';
+  import { type Coord, label, nameOf, sameCoord } from '$engine';
   import { type FairPreview, openCellOf } from '../../../app/faircopy';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
@@ -23,8 +22,7 @@
   let openAt = $state<Coord | null>(null);
   const openable = $derived(preview?.chain.filter((s) => s.openable) ?? []);
   const openLocal = $derived(openCellOf(preview, openAt));
-  // The idiom's name until the player types their own.
-  const name = $derived(typed ?? preview?.suggestedName ?? '');
+  const name = $derived(typed ?? '');
   const blocked = $derived((preview?.blocking.length ?? 0) > 0 || !preview?.canAfford);
 
   function close(): void {
@@ -47,7 +45,7 @@
   {#if preview}
     <ol class="chain" data-testid="fair-chain" aria-label="The selected runes in order">
       {#each preview.chain as step (`${step.at.x},${step.at.y}`)}
-        <li title={`${RUNES[step.rune].name} at ${label(step.at)}`}>
+        <li title={`${nameOf(step.rune)} at ${label(step.at)}`}>
           <RuneGlyph rune={step.rune} dir={step.dir} size={34} />
         </li>
       {/each}
@@ -78,7 +76,7 @@
               class="pick"
               class:on
               aria-pressed={on}
-              title={`${RUNES[step.rune].name} at ${label(step.at)}`}
+              title={`${nameOf(step.rune)} at ${label(step.at)}`}
               data-testid="fair-open-pick"
               onclick={() => (openAt = on ? null : step.at)}
             >

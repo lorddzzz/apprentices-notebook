@@ -1,6 +1,5 @@
-import { type AuraRuneId, IDIOMS, MEMBER_IDS, MEMBERS, RUNES, type RuneId, TUNING } from '$data';
-import { matchBranch } from './cluster';
-import { argIssue } from './glyph';
+import { MEMBER_IDS, MEMBERS, type RuneRef, TUNING } from '$data';
+import { argIssue, canBeOpen } from './glyph';
 import {
   type Coord,
   type Dir,
@@ -13,7 +12,7 @@ import {
   turnLeft,
   turnRight,
 } from './grid';
-import { compileLattice } from './lattice';
+import { compileLattice, hasArrow, nameOf, roleOf } from './lattice';
 import { emptyRecord, recordOf, rewardsOf, versionKey } from './profiler';
 import { glyphLibrary, validateLoadout } from './run';
 import type {
@@ -70,7 +69,7 @@ export function insideOf(def: GlyphDef): GlyphInside {
   return { kind: def.kind, cells: def.cells, entry: def.entry };
 }
 
-const familyOf = (r: RuneId) => RUNES[r].family;
+const roleIn = (r: RuneRef) => roleOf(r);
 
 /** One axis of the canvas: the box plus a ring of 1 while that fits, else the box from its first cell. */
 function axis(min: number, max: number): { origin: number; size: number } {
@@ -136,25 +135,21 @@ export function insideFlow(inside: GlyphInside): CompiledLattice {
   const local = cellMapOf(inside.cells);
   const reached = new Set<CellKey>();
   const touches = new Map<string, AuraTouch>();
-  const touch = (aura: AuraRuneId, to: Coord): void => {
+  const touch = (to: Coord): void => {
     for (const n of neighbors4(to)) {
-      if (local.get(key(n))?.rune !== aura) continue;
-      touches.set(`${key(n)}>${key(to)}`, { aura, from: n, to });
+      const c = local.get(key(n));
+      if (!c || roleIn(c.rune) !== 'aura') continue;
+      touches.set(`${key(n)}>${key(to)}`, { aura: c.rune as AuraTouch['aura'], from: n, to });
     }
   };
   const spells: Spell[] = [];
-  for (const spell of compileLattice(lattice, [], lib).spells) {
+  for (const spell of compileLattice(lattice, lib).spells) {
     const path: PathCell[] = spell.path.flatMap((p) =>
       p.inner ? [{ at: p.inner, rune: p.rune, dir: p.dir }] : [],
     );
     for (const p of path) {
       reached.add(key(p.at));
-      const family = RUNES[p.rune].family;
-      if (family === 'source' || family === 'material') touch('amplify', p.at);
-    }
-    if (inside.kind === 'spell') {
-      touch('echo', inside.entry);
-      touch('thrift', inside.entry);
+      touch(p.at);
     }
     spells.push({ ...spell, key: key(inside.entry), at: inside.entry, path });
   }
@@ -172,11 +167,11 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
   for (const c of inside.cells) {
     if (seen.has(key(c.at))) add('overlap', `Two runes share ${label(c.at)}`, true, c.at);
     seen.add(key(c.at));
-    const name = RUNES[c.rune].name;
-    if (RUNES[c.rune].arrow !== (c.dir !== undefined)) {
+    const name = nameOf(c.rune);
+    if (hasArrow(c.rune) !== (c.dir !== undefined)) {
       add(
         'arrow',
-        RUNES[c.rune].arrow ? `${name} needs an arrow` : `${name} takes no arrow`,
+        hasArrow(c.rune) ? `${name} needs an arrow` : `${name} takes no arrow`,
         true,
         c.at,
       );
@@ -191,7 +186,7 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
   if (!entry) {
     add('entry', 'Nothing stands at the entry', true, inside.entry);
   } else {
-    const family = familyOf(entry.rune);
+    const family = roleIn(entry.rune);
     if (spell && family !== 'source')
       add('kind', 'A Spell Glyph starts with a Source', true, entry.at);
     if (!spell && (family === 'source' || family === 'aura')) {
@@ -207,7 +202,7 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
     }
   }
   for (const c of inside.cells) {
-    if (c === entry || familyOf(c.rune) !== 'source') continue;
+    if (c === entry || roleIn(c.rune) !== 'source') continue;
     add(
       'source',
       spell ? 'A Spell Glyph holds only one Source' : 'A Payload holds no Source',
@@ -216,9 +211,7 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
     );
   }
 
-  const flow = new Set(
-    inside.cells.filter((c) => familyOf(c.rune) !== 'aura').map((c) => key(c.at)),
-  );
+  const flow = new Set(inside.cells.filter((c) => roleIn(c.rune) !== 'aura').map((c) => key(c.at)));
   if (flow.size < TUNING.glyphMinCells || flow.size > TUNING.glyphMaxCells) {
     add(
       'size',
@@ -248,9 +241,9 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
   if (entry && pinned && issues.every((i) => i.kind !== 'kind' && i.kind !== 'entry')) {
     const reached = new Set(insideFlow(inside).reached);
     for (const c of inside.cells) {
-      const family = familyOf(c.rune);
+      const family = roleIn(c.rune);
       if (family === 'source') continue;
-      const name = RUNES[c.rune].name;
+      const name = nameOf(c.rune);
       if (family === 'aura') {
         const touches = [
           { x: c.at.x, y: c.at.y - 1 },
@@ -268,25 +261,19 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
   return issues;
 }
 
-interface Walk {
-  exits: GlyphDef['exits'][number][];
-  branches: RuneId[][];
-}
-
 /**
- * The inner walk once more, for the exits and the idiom: the same rules as the compiler (Pierce,
- * Bend, Fork left first, insulators) with nothing outside, so every step onto an empty cell is a way out.
+ * The inner walk once more, for the exits: the same rules as the compiler (Bend, Fork left first,
+ * insulators) with nothing outside, so every step onto an empty cell is a way out.
  */
-function walkInside(inside: GlyphInside): Walk {
+function walkInside(inside: GlyphInside): GlyphDef['exits'][number][] {
   const cells = cellMapOf(inside.cells);
-  const exits: Walk['exits'] = [];
-  const branches: RuneId[][] = [];
+  const exits: GlyphDef['exits'][number][] = [];
   const visited = new Set<CellKey>();
   const entry = cells.get(key(inside.entry));
-  if (!entry) return { exits, branches };
+  if (!entry) return exits;
 
   // Returns whether `at` was newly entered.
-  const visit = (at: Coord, dir: Dir, from: Coord, runes: RuneId[]): boolean => {
+  const visit = (at: Coord, dir: Dir, from: Coord): boolean => {
     const placed = cells.get(key(at));
     if (!placed) {
       if (!exits.some((e) => sameCoord(e.from, from) && e.dir === dir)) {
@@ -294,44 +281,37 @@ function walkInside(inside: GlyphInside): Walk {
       }
       return false;
     }
-    const family = familyOf(placed.rune);
-    if (visited.has(key(at)) || family === 'aura' || family === 'source') return false;
+    const role = roleIn(placed.rune);
+    if (visited.has(key(at)) || role === null || role === 'aura' || role === 'source') return false;
     visited.add(key(at));
-    const here = family === 'shape' ? runes : [...runes, placed.rune];
-    const go = (d: Dir): boolean => visit(step(at, d), d, at, here);
-    let next: boolean[];
-    if (placed.rune === 'pierce') next = [go(dir)];
-    else if (placed.rune === 'bend') {
+    const go = (d: Dir): boolean => visit(step(at, d), d, at);
+    if (placed.rune === 'bend') {
       const out = placed.dir ?? 'right';
-      next = out === opposite(dir) ? [] : [go(out)];
-    } else if (placed.rune === 'fork') next = [go(turnLeft(dir)), go(turnRight(dir))];
-    else next = [go(dir)];
-    if (!next.some(Boolean)) branches.push(here);
+      if (out !== opposite(dir)) go(out);
+    } else if (placed.rune === 'fork') {
+      go(turnLeft(dir));
+      go(turnRight(dir));
+    } else go(dir);
     return true;
   };
 
   if (inside.kind === 'spell') {
-    if (familyOf(entry.rune) === 'source') {
+    if (roleIn(entry.rune) === 'source') {
       visited.add(key(inside.entry));
-      if (!visit(step(inside.entry, 'right'), 'right', inside.entry, [entry.rune])) {
-        branches.push([entry.rune]);
-      }
+      visit(step(inside.entry, 'right'), 'right', inside.entry);
     }
   } else {
-    visit(inside.entry, 'right', { x: inside.entry.x - 1, y: inside.entry.y }, []);
+    visit(inside.entry, 'right', { x: inside.entry.x - 1, y: inside.entry.y });
   }
-  return { exits, branches };
+  return exits;
 }
 
-/** The exits and idiom an inside has (recomputed on every revision, M18). */
+/** The exits an inside has (recomputed on every revision, M18). Idioms are log patterns now (P7). */
 export function innerMeta(inside: GlyphInside): {
   exits: GlyphDef['exits'];
   idiom: string | null;
 } {
-  const walk = walkInside(inside);
-  const found = new Set(walk.branches.flatMap(matchBranch));
-  const idiom = IDIOMS.find((i) => found.has(i.id))?.id ?? null;
-  return { exits: walk.exits, idiom };
+  return { exits: walkInside(inside), idiom: null };
 }
 
 // ── Versions ────────────────────────────────────────────
@@ -364,8 +344,7 @@ function carriedParams(old: GlyphDef, cells: readonly PlacedRune[]): CellKey[] {
       const was = before.get(k);
       const now = after.get(k);
       if (!was || !now) return false;
-      const family = familyOf(now.rune);
-      return family === familyOf(was.rune) && family !== 'source' && family !== 'aura';
+      return roleIn(now.rune) === roleIn(was.rune) && canBeOpen(now.rune);
     })
     .slice(0, TUNING.paramSlots);
 }
@@ -469,10 +448,7 @@ export function setOpenCells(p: Profile, id: GlyphId, cells: readonly CellKey[])
   for (const k of open) {
     const cell = at.get(k);
     if (!cell) throw new Error(`No rune at ${k} to open`);
-    const family = familyOf(cell.rune);
-    if (family === 'source' || family === 'aura') {
-      throw new Error(`${RUNES[cell.rune].name} can't be an open cell`);
-    }
+    if (!canBeOpen(cell.rune)) throw new Error(`${nameOf(cell.rune)} can't be an open cell`);
   }
   if (open.length > allowance) {
     throw new Error(
@@ -522,9 +498,9 @@ function pageWarnings(before: Profile, after: Profile): string[] {
             i.rune &&
             !had.some((h) => h.kind === 'owned' && h.rune === i.rune),
         )
-        .map((i) => RUNES[i.rune as RuneId].name),
+        .map((i) => nameOf(i.rune as RuneRef)),
     );
-    if (owned.size > 0) lines.push(`Pushes ${page} over the ${[...owned].join(', ')} you own`);
+    if (owned.size > 0) lines.push(`Puts the ${[...owned].join(', ')} you don't know on ${page}`);
   }
   return lines;
 }

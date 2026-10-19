@@ -2,16 +2,16 @@ import { type GameEvent, parseBoard, type UnitRef } from '$engine';
 import type { Overlay } from '../../app/overlay';
 import { type BoardView, viewOfSpec } from '../../app/view';
 
-/** Every tile layer and unit type in one 6 × 8 board (A1 top-left). */
+/** Every tile state, three compounds, the drop, and every unit type in one 6 × 8 board (A1 top-left). */
 export const SHOWCASE_BOARD = `
-D  .   o  ro  i   @
-.  oi  .  *   *   .
-o  S*  i  ~   b   ~
-.  .   =  =   d   .
-.  r!o .  f~  .   .
-.  .   @~ .   r&  .
-.  .   .  .   .   .
-.  .   .  .   .   .
+D  .       o  ro   i       @
+.  {stain} .  *    *       .
+o  S*      i  ~    b       ~
+.  .       =  =    d       .
+.  r!o     .  f~   {brand} .
+.  .       @~ {pool} r&    _
+.  r!!     .  .    .       .
+.  .       .  .    .       .
 `;
 
 export function showcaseView(): BoardView {
@@ -32,6 +32,8 @@ export function showcaseView(): BoardView {
   if (sentry) sentry.intent = { kind: 'attack', attack: 'line', dir: 'left', order: 1 };
   const rat1 = by('rat-1');
   if (rat1) rat1.intent = { kind: 'attack', attack: 'bite', dir: 'left', order: 2 };
+  const jarred = v.tiles[3 * v.width + 0];
+  if (jarred) jarred.jar = true;
   return v;
 }
 
@@ -92,7 +94,7 @@ export const GLYPH_SAMPLES: readonly { name: string; kind: 'spell' | 'payload' }
   { name: 'Bonfire', kind: 'payload' },
 ];
 
-/** S2 "oil-chain" from the engine plan. */
+/** The oil chain board for the playback demo. */
 export const OIL_CHAIN_BOARD = `
 . . . . . d
 S . ro o ro o
@@ -109,7 +111,7 @@ const stoker = ref('stoker', 'Stoker', 0, 1, true);
 const rat1 = ref('rat-1', 'rat', 2, 1);
 const rat2 = ref('rat-2', 'rat', 4, 1);
 
-/** The expected S2 lines, as events. */
+/** A chain for the playback demo: a Bolt kills the first rat, a Spark lights the oil, the fire runs on. */
 export const OIL_CHAIN_EVENTS: GameEvent[] = [
   {
     type: 'cast',
@@ -117,20 +119,28 @@ export const OIL_CHAIN_EVENTS: GameEvent[] = [
     spell: 'Bolt',
     aim: { kind: 'dir', dir: 'right' },
     aimText: 'right',
-    echo: false,
+  },
+  {
+    type: 'aimed',
+    source: 'bolt',
+    targets: [{ kind: 'unit', unit: 'rat-1' }],
+    heading: 'right',
   },
   { type: 'damage', target: rat1, amount: 2, source: 'Bolt', bonus: [], hpLeft: 0 },
   { type: 'died', unit: rat1 },
+  { type: 'landed', kind: 'spark', at: { x: 2, y: 1 }, makes: 'fire' },
   {
-    type: 'ignite',
-    at: { x: 2, y: 1 },
-    tiles: [
-      { x: 2, y: 1 },
+    type: 'spreadState',
+    from: { x: 2, y: 1 },
+    to: [
       { x: 3, y: 1 },
       { x: 4, y: 1 },
       { x: 5, y: 1 },
     ],
   },
-  { type: 'damage', target: rat2, amount: 2, source: 'Fire', bonus: ['oil-soaked +1'], hpLeft: 0 },
+  { type: 'damage', target: rat2, amount: 1, source: 'Fire', bonus: [], hpLeft: 1 },
+  { type: 'push', unit: rat2, dir: 'right', path: [{ x: 5, y: 1 }], slid: 1 },
+  { type: 'crush', unit: rat2, into: 'wall', damage: 2 },
+  { type: 'damage', target: rat2, amount: 2, source: 'Crush', bonus: [], hpLeft: 0 },
   { type: 'died', unit: rat2 },
 ];

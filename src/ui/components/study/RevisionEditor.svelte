@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { RUNES } from '$data';
   import {
     type Coord,
     type GlyphInside,
     type InsideIssue,
     insideFlow,
     key,
+    nameOf,
     revisionCanvas,
     sameCoord,
   } from '$engine';
@@ -126,7 +126,7 @@
     const placed = placedAt(at);
     const issue = worst(at);
     const what = placed
-      ? `${RUNES[placed.rune].name}${placed.dir ? ` ${placed.dir}` : ''}`
+      ? `${nameOf(placed.rune)}${placed.dir ? ` ${placed.dir}` : ''}`
       : 'empty cell';
     return `${what}${current && sameCoord(at, current.entry) ? ', the entry' : ''}${issue ? `, ${issue.message}` : ''}`;
   };

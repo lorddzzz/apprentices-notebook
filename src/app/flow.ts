@@ -1,12 +1,4 @@
-import {
-  type DistrictId,
-  type InteractionId,
-  MEMBER_IDS,
-  MEMBERS,
-  type MemberId,
-  RUNES,
-  TUNING,
-} from '$data';
+import { type DistrictId, MEMBER_IDS, MEMBERS, type MemberId, TUNING } from '$data';
 import {
   type Action,
   type ActionResult,
@@ -16,12 +8,13 @@ import {
   type Coord,
   closeBattle,
   clustersOf,
-  discoveriesIn,
   type GameEvent,
   glyphLibrary,
   isGlyph,
   type LootItem,
   latticeOf,
+  namedIn,
+  nameOf,
   nextTripSeed,
   type Profile,
   pickLoot,
@@ -35,7 +28,7 @@ import {
   type Trip,
   type TripRecap,
 } from '$engine';
-import { interactionTitle } from './describe';
+import { namedTitle } from './describe';
 import { allMasks } from './faircopy';
 import type { Route } from './routes';
 import { parseSaveText, type SaveBackend, writeSave } from './save';
@@ -45,7 +38,7 @@ import { editProfile, type ShelfTool, type SocketDecision } from './study';
 export interface WipeSummary {
   encounter: string;
   lost: LootItem[];
-  learned: InteractionId[];
+  learned: string[];
 }
 
 export type Screen =
@@ -91,7 +84,7 @@ export function resolveScreen(
   if (route === 'trip-page' && !trip && lastTrip) return { screen: 'tripPage', redirect: null };
   // The Bench is a room of the study: out on a trip (or with a wipe unread) it is closed.
   if (route === 'bench' && !trip && !wipe) return { screen: 'bench', redirect: null };
-  // So is the desk where the owner's drafts are mended (M36).
+  // So is the footnote desk.
   if (route === 'desk' && !trip && !wipe) return { screen: 'desk', redirect: null };
   // The map hangs behind the study door, and the threshold rooms are reached from it (K-22).
   if (route === 'map' && !trip && !wipe) return { screen: 'map', redirect: null };
@@ -184,8 +177,8 @@ export interface BattleEnd {
   outcome: 'won' | 'wiped';
   /** Set when the trip ended; the Wiped screen reads it. */
   wipe: WipeSummary | null;
-  /** Interactions this battle taught that the notebook did not have yet. */
-  learned: InteractionId[];
+  /** Named results (D7) this battle taught that the notebook did not have yet. */
+  learned: string[];
 }
 
 /** Closes a finished battle: won → looting, wiped → trip gone, pending loot lost, discoveries kept. */
@@ -196,7 +189,7 @@ export function endBattle(
 ): BattleEnd {
   const trip = tripOf(save);
   const r = closeBattle(save.profile, trip, battle, log);
-  const learned = battle.discovered.filter((d) => !save.profile.interactions.includes(d));
+  const learned = namedIn(log).filter((d) => !save.profile.named.includes(d));
   const lastTrip: TripRecap | null =
     r.outcome === 'wiped'
       ? {
@@ -247,15 +240,15 @@ export function goHome(save: SaveData): SaveData {
 }
 
 /**
- * Interactions in `events` that deserve a "New in the notebook" toast: not in the notebook yet and
- * not already toasted this trip.
+ * Named results in `events` that deserve a "New in the notebook" toast: not in the notebook yet
+ * and not already toasted this trip.
  */
 export function newDiscoveries(
   events: readonly GameEvent[],
-  known: readonly InteractionId[],
-  toasted: readonly InteractionId[],
-): InteractionId[] {
-  return discoveriesIn(events).filter((d) => !known.includes(d) && !toasted.includes(d));
+  known: readonly string[],
+  toasted: readonly string[],
+): string[] {
+  return namedIn(events).filter((d) => !known.includes(d) && !toasted.includes(d));
 }
 
 // ── The trip page (plan S17) ──
@@ -282,7 +275,7 @@ export function nearProof(p: Profile): { member: MemberId; runes: string[]; cast
       }
       const runes = c.cells.flatMap((at) => {
         const placed = lattice.runes.find((r) => r.at.x === at.x && r.at.y === at.y);
-        return placed && !isGlyph(placed) ? [RUNES[placed.rune].name] : [];
+        return placed && !isGlyph(placed) ? [nameOf(placed.rune)] : [];
       });
       best = { member: m, runes, casts, size: c.cells.length };
     }
@@ -294,12 +287,11 @@ export function nearProof(p: Profile): { member: MemberId; runes: string[]; cast
 export function tripHighlights(recap: TripRecap, profile: Profile): Highlight[] {
   const out: Highlight[] = [];
   const first = recap.stats.discoveries[0];
-  if (first?.startsWith('interaction:')) {
-    const id = first.slice('interaction:'.length) as InteractionId;
+  if (first) {
     out.push({
       kind: 'discovery',
       title: 'A first for the notebook',
-      text: `${interactionTitle(id)} was seen for the first time.`,
+      text: `${namedTitle(first)} was seen for the first time.`,
     });
   }
   const chain = recap.stats.biggestChain;

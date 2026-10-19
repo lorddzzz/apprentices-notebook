@@ -7,7 +7,7 @@ import type { ActionResult, BattleSpec, BattleState, Lattice, PartyInit, Spell }
 
 /**
  * Lab and scenario battles: a board plus per-member lattices (ASCII), compiled with each member's
- * affinity. Scenario lattices win; `opts.lattices` (the profile's, in the Lab) fill the rest.
+ * lean. Scenario lattices win; `opts.lattices` (the profile's, in the Lab) fill the rest.
  */
 
 export type ScenarioSpec =
@@ -22,7 +22,7 @@ export interface ScenarioOptions {
 
 export function spellsFor(member: MemberId, lattice: Lattice | string): Spell[] {
   const l = typeof lattice === 'string' ? parseLattice(lattice) : lattice;
-  return compileLattice(l, MEMBERS[member].affinity).spells;
+  return compileLattice(l, {}, {}, MEMBERS[member].lean).spells;
 }
 
 /** The BattleSpec a scenario stands for (use `createBattle` on it for the creation events). */
@@ -41,6 +41,7 @@ export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): Bat
   };
   if (def.hp) spec.hp = def.hp;
   if (def.intents) spec.intents = def.intents;
+  if ('edge' in def && def.edge) spec.edge = def.edge;
   return spec;
 }
 

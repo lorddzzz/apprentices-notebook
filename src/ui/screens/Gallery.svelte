@@ -1,15 +1,15 @@
 <script lang="ts">
   import {
-    ASPECT_IDS,
-    ASPECTS,
     MEMBER_IDS,
     MEMBERS,
+    METHOD_IDS,
+    METHODS,
     type MemberId,
     RUNE_IDS,
     RUNES,
     SOLVENT_IDS,
     SOLVENTS,
-    START_COLLECTION,
+    START_KNOWN,
     TUNING,
   } from '$data';
   import {
@@ -25,10 +25,9 @@
   import { Playback } from '../../app/playback.svelte';
   import { router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
-  import { editSocket, freeCounter, NO_TOOL, type ShelfTool, shelfSlots } from '../../app/study';
+  import { editSocket, NO_TOOL, type ShelfTool, shelfSlots } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import { type BoardView, viewOfSpec } from '../../app/view';
-  import AspectMark from '../components/AspectMark.svelte';
   import BattleBoard from '../components/board/BattleBoard.svelte';
   import { boardViewBox } from '../components/board/geometry';
   import { cellLabel } from '../components/board/label';
@@ -39,7 +38,7 @@
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import SolventIcon from '../components/SolventIcon.svelte';
-  import { SOLVENT_GLYPH } from '../glyphs';
+  import { METHOD_ART } from '../runeArt';
   import {
     GLYPH_SAMPLES,
     OIL_CHAIN_BOARD,
@@ -47,9 +46,6 @@
     SHOWCASE_OVERLAY,
     showcaseView,
   } from './galleryFixtures';
-
-  const BENCH_RUNES = RUNE_IDS.filter((id) => RUNES[id].origin === 'bench');
-  const SHOWN_SOLVENTS = SOLVENT_IDS.filter((id) => SOLVENT_GLYPH[id]);
 
   const DIR_LIST: Dir[] = ['up', 'right', 'down', 'left'];
   const part = $derived(router.params.get('part') ?? 'glyphs');
@@ -66,7 +62,7 @@
     return `${w} / ${h}`;
   };
 
-  // lattice part: fully interactive, per-member lattices over one shared collection
+  // lattice part: fully interactive, per-member lattices over the first evening's knowledge
   const startLattices = (): Record<MemberId, Lattice> => ({
     draughtsman: parseLattice(MEMBERS.draughtsman.startLattice),
     stoker: parseLattice(MEMBERS.stoker.startLattice),
@@ -76,17 +72,11 @@
   let tool = $state.raw<ShelfTool>(NO_TOOL);
 
   const lattice = $derived(lattices[member]);
-  const compiled = $derived(compileLattice(lattice, MEMBERS[member].affinity));
-  const all = $derived(MEMBER_IDS.map((id) => lattices[id]));
-  const slots = $derived(shelfSlots(START_COLLECTION, all, lattice, TUNING.startInk));
+  const compiled = $derived(compileLattice(lattice, {}, {}, MEMBERS[member].lean));
+  const slots = $derived(shelfSlots(START_KNOWN, lattice, TUNING.startInk, {}, {}, member));
 
   function editAt(at: Coord, longPress: boolean): void {
-    const result = editSocket(
-      { lattice, capacity: TUNING.startInk, free: freeCounter(START_COLLECTION, all) },
-      at,
-      tool,
-      longPress,
-    );
+    const result = editSocket({ lattice, capacity: TUNING.startInk, member }, at, tool, longPress);
     lattices = { ...lattices, [member]: result.lattice };
     tool = result.tool;
     if (result.message) toast(result.message);
@@ -143,13 +133,13 @@
 
   <div class="body" class:fill={part === 'lattice'}>
   {#if part === 'glyphs'}
-    <h2>Runes</h2>
+    <h2>Runes ({RUNE_IDS.length})</h2>
     <ul class="runes" data-testid="glyphs">
       {#each RUNE_IDS as id (id)}
         <li>
           <RuneGlyph rune={id} dir={RUNES[id].arrow ? 'right' : undefined} size={56} />
           <span class="name">{RUNES[id].name}</span>
-          <span class="family">{RUNES[id].family}</span>
+          <span class="family">{RUNES[id].role}</span>
         </li>
       {/each}
       <li>
@@ -159,31 +149,29 @@
       </li>
     </ul>
 
-    <h2>Bench runes</h2>
-    <ul class="runes" data-testid="bench-glyphs">
-      {#each BENCH_RUNES as id (id)}
+    <h2>Methods ({METHOD_IDS.length})</h2>
+    <ul class="runes" data-testid="methods">
+      {#each METHOD_IDS as id (id)}
         <li>
-          <RuneGlyph rune={id} dir={RUNES[id].arrow ? 'right' : undefined} size={56} />
-          <span class="name">{RUNES[id].name}</span>
-          <span class="family">{RUNES[id].family}</span>
+          <svg width="56" height="56" viewBox="0 0 24 24" role="img" aria-label={METHODS[id].name}>
+            <path
+              d={METHOD_ART[id]}
+              fill="none"
+              stroke="var(--ink)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="name">{METHODS[id].name}</span>
+          <span class="family">{METHODS[id].makes}</span>
         </li>
       {/each}
     </ul>
 
-    <h2>Aspects</h2>
-    <ul class="runes" data-testid="aspects">
-      {#each ASPECT_IDS as a (a)}
-        <li>
-          <AspectMark aspect={a} size={40} />
-          <span class="name">{ASPECTS[a].name}</span>
-          <span class="family">{SOLVENTS[ASPECTS[a].solvent].name}</span>
-        </li>
-      {/each}
-    </ul>
-
-    <h2>Solvents</h2>
+    <h2>Solvents ({SOLVENT_IDS.length})</h2>
     <div class="row" data-testid="solvents">
-      {#each SHOWN_SOLVENTS as s (s)}
+      {#each SOLVENT_IDS as s (s)}
         <div class="solvent">
           <SolventIcon solvent={s} size={40} />
           <span class="name">{SOLVENTS[s].name}</span>
@@ -203,7 +191,7 @@
     </div>
 
     <h2>Arrow runes, four ways</h2>
-    {#each ['bolt', 'bend'] as const as id (id)}
+    {#each ['bolt', 'touch', 'bend'] as const as id (id)}
       <div class="row">
         <span class="label">{RUNES[id].name}</span>
         {#each DIR_LIST as d (d)}

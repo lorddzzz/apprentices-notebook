@@ -1,4 +1,3 @@
-import type { InteractionId } from '$data';
 import {
   type Action,
   type ActionResult,
@@ -33,8 +32,6 @@ import { type BoardView, viewOf, withoutIntents } from './view';
 export type SessionMode = 'trip' | 'lab';
 
 export interface SessionOptions {
-  /** Interactions the player has recorded (preview wording hides the others). */
-  known: () => readonly InteractionId[];
   onEvents?: (events: GameEvent[]) => void;
   /** Play the creation events (enemies declaring intents) on start. */
   intro?: boolean;
@@ -117,7 +114,7 @@ export class BattleSession {
 
   tapCell(at: { x: number; y: number }): void {
     if (this.swallow()) return;
-    this.apply(onCell(this.state, this.input, at, this.opts.known()));
+    this.apply(onCell(this.state, this.input, at));
   }
 
   selectMember(id: UnitId): void {
@@ -127,7 +124,7 @@ export class BattleSession {
 
   chooseSpell(key: SpellKey): void {
     if (this.swallow()) return;
-    this.apply(onSpell(this.state, this.input, key, this.opts.known()));
+    this.apply(onSpell(this.state, this.input, key));
   }
 
   chooseShove(): void {

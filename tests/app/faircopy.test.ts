@@ -20,7 +20,6 @@ import {
   NO_SELECTION,
   openCellOf,
   previewFairCopy,
-  trimChip,
 } from '../../src/app/faircopy';
 
 const M = 'draughtsman';
@@ -43,7 +42,7 @@ function proven(ascii: string, casts = TUNING.provenCasts): Profile {
   return p;
 }
 
-const CHAIN = 'Bolt> Ink OnInked Spark .';
+const CHAIN = 'Bolt> Ink Tally Spark .';
 
 function selected(p: Profile, at = c(1, 0)): Cluster {
   const r = fairTap(p, M, NO_SELECTION, at);
@@ -76,7 +75,7 @@ describe('glow and select', () => {
   });
 
   test('tapping an unproven cell selects nothing and says why', () => {
-    const p = proven('Bolt> Ink OnInked Spark Oil', 0);
+    const p = proven('Bolt> Ink Tally Spark Oil', 0);
     const r = fairTap(p, M, NO_SELECTION, c(1, 0));
     expect(r.state.cluster).toBeNull();
     expect(r.message).toMatch(/proven/i);
@@ -113,67 +112,53 @@ describe('previewFairCopy', () => {
   test('ink before and after, with the cells saved', () => {
     const p = proven(CHAIN);
     const pv = previewFairCopy(p, M, selected(p));
-    expect(pv.chain.map((s) => s.rune)).toEqual(['bolt', 'ink', 'onInked', 'spark']);
+    expect(pv.chain.map((s) => s.rune)).toEqual(['bolt', 'ink', 'tally', 'spark']);
     expect(pv.chain[0]?.dir).toBe('right');
     expect(pv.inkAfter).toBe(pv.inkBefore - Math.floor(4 / 3));
   });
 
   test('outside runes the collapse strands are listed by name when they cannot slide', () => {
     // The exit cell (A2, below the socket) is a hole: nothing moves, the warning lists the pair.
-    const p = proven('Bolt> Ink Bendv . .\nx . OnInked . .\n. . Spark . .');
+    const p = proven('Bolt> Ink Bendv . .\nx . Tally . .\n. . Spark . .');
     const bend = fairTap(p, M, { cluster: selected(p) }, c(2, 2)).state;
     const trimmed = fairTap(p, M, bend, c(2, 1)).state.cluster;
     if (!trimmed) throw new Error('no trim');
     const pv = previewFairCopy(p, M, trimmed);
     expect(pv.slides).toBe(0);
     expect(pv.disconnected).toEqual([
-      { at: c(2, 1), name: 'On Inked' },
+      { at: c(2, 1), name: 'Tally' },
       { at: c(2, 2), name: 'Spark' },
     ]);
     expect(previewFairCopy(p, M, selected(p)).disconnected).toEqual([]);
   });
   test('an aura touching the cluster and a cell outside it blocks, naming it (P3)', () => {
-    const p = proven('Bolt> Ink Bendv . .\n. Amp Spark . .');
+    const p = proven('Bolt> Ink Bendv . .\n. Coil Spark . .');
     const whole = selected(p);
-    expect(previewFairCopy(p, M, whole).blocking).toEqual([]); // Amp touches Ink and Spark: both inside
+    expect(previewFairCopy(p, M, whole).blocking).toEqual([]); // Coil touches Ink and Spark: both inside
     const trimmed = fairTap(p, M, { cluster: whole }, c(2, 1)).state.cluster;
     if (!trimmed) throw new Error('no trim');
     expect(previewFairCopy(p, M, trimmed).blocking).toEqual([
-      'The Amplify at B2 also powers runes outside the selection',
+      'The Coil at B2 also powers runes outside the selection',
     ]);
   });
 
   test('a second spell entering from the side blocks, naming its source', () => {
-    const p = proven('Bolt> Ink OnInked Spark .\n. Bolt^ . . .');
+    const p = proven('Bolt> Ink Tally Spark .\n. Bolt^ . . .');
     const pv = previewFairCopy(p, M, selected(p));
     expect(pv.blocking).toEqual(['The Bolt at B2 also flows through this selection']);
   });
 
-  test('an idiom names the Glyph and makes the first compile free', () => {
-    const p = proven('Bolt> Ink OnInked Spark .');
-    const pv = previewFairCopy(p, M, selected(p));
-    expect(pv.idiom).toBe('cashingIn');
-    expect(pv.suggestedName).toBe('Cashing In');
-    expect(pv.free).toBe(true);
-    expect(pv.costLine).toBe('Fair-copy (free: idiom)');
-    expect(pv.canAfford).toBe(true);
-  });
-
-  test('no idiom: empty name, 1 vellum, affordability follows the vellum', () => {
+  test('a Fair copy costs a vellum; affordability follows the vellum', () => {
     const base = proven('Bolt> Oil Ink .');
     const none = previewFairCopy(base, M, selected(base));
-    expect(none.idiom).toBeNull();
-    expect(none.suggestedName).toBe('');
     expect(none.costLine).toBe('Fair-copy (1 vellum)');
     expect(none.canAfford).toBe(false);
     const rich = { ...base, vellum: 1 };
     expect(previewFairCopy(rich, M, selected(rich)).canAfford).toBe(true);
   });
 
-  test('a second Glyph of the same idiom is not free', () => {
-    const p = proven('Bolt> Ink OnInked Spark .');
-    const first = previewFairCopy(p, M, selected(p));
-    expect(first.free).toBe(true);
+  test('the same pattern costs a vellum every time: idioms are log patterns now (P7)', () => {
+    const p = proven('Bolt> Ink Tally Spark .');
     const owned: Profile = {
       ...p,
       glyphs: [
@@ -184,14 +169,15 @@ describe('previewFairCopy', () => {
           cells: [],
           entry: c(0, 0),
           exits: [],
-          idiom: 'cashingIn',
+          idiom: null,
           version: 1,
           params: [],
           extraExit: null,
         },
       ],
     };
-    expect(previewFairCopy(owned, M, selected(owned)).free).toBe(false);
+    expect(previewFairCopy(p, M, selected(p)).costLine).toBe('Fair-copy (1 vellum)');
+    expect(previewFairCopy(owned, M, selected(owned)).costLine).toBe('Fair-copy (1 vellum)');
   });
 });
 
@@ -218,7 +204,7 @@ describe('tidy: stranded runes slide up (S13)', () => {
   });
 
   test('a block keeps its relative positions and arrows', () => {
-    const p = { ...proven('Bolt> Ink OnInked Bendv .\n. . . Oil .\n. . . Spark .'), vellum: 1 };
+    const p = { ...proven('Bolt> Ink Tally Bendv .\n. . . Oil .\n. . . Spark .'), vellum: 1 };
     const cl = trimmedBy(p, [c(3, 2), c(3, 1), c(3, 0)]);
     expect(cl.cells).toHaveLength(3);
     const pv = previewFairCopy(p, M, cl);
@@ -232,36 +218,36 @@ describe('tidy: stranded runes slide up (S13)', () => {
 
   test('a turn out of the cluster still lands on the exit cell', () => {
     // Flow leaves downward from the Bend: the socket's neighbour below it, A2.
-    const p = { ...proven('Bolt> Ink Bendv . .\n. . OnInked . .'), vellum: 1 };
+    const p = { ...proven('Bolt> Ink Bendv . .\n. . Tally . .'), vellum: 1 };
     const cl = trimmedBy(p, [c(2, 1)]);
     expect(cl.cells).toHaveLength(3);
     expect(previewFairCopy(p, M, cl).slides).toBe(1);
     const next = compileGlyph(p, M, cl, 'Turn');
-    expect(at(next, 0, 1)).toMatchObject({ rune: 'onInked' });
+    expect(at(next, 0, 1)).toMatchObject({ rune: 'tally' });
     expect(at(next, 2, 1)).toBeUndefined();
   });
 
   test('nothing slides when a target cell is a hole', () => {
     // The Draughtsman's page has holes at A3 and E3; the exit cell below the socket is A3.
-    const p = { ...proven('. . . . .\nBolt> Ink Bendv . .\n. . OnInked . .'), vellum: 1 };
+    const p = { ...proven('. . . . .\nBolt> Ink Bendv . .\n. . Tally . .'), vellum: 1 };
     const cl = trimmedBy(p, [c(2, 2)], c(1, 1));
     expect(cl.cells).toHaveLength(3);
     const pv = previewFairCopy(p, M, cl);
     expect(pv.slides).toBe(0);
-    expect(pv.disconnected.map((d) => d.name)).toEqual(['On Inked']);
+    expect(pv.disconnected.map((d) => d.name)).toEqual(['Tally']);
     const next = compileGlyph(p, M, cl, 'Held');
-    expect(at(next, 2, 2)).toMatchObject({ rune: 'onInked' });
+    expect(at(next, 2, 2)).toMatchObject({ rune: 'tally' });
   });
 
   test('nothing slides when a target cell is occupied', () => {
-    const p = { ...proven('Bolt> Ink Bendv . .\nOil . OnInked . .\n. . Spark . .'), vellum: 1 };
+    const p = { ...proven('Bolt> Ink Bendv . .\nOil . Tally . .\n. . Spark . .'), vellum: 1 };
     const cl = trimmedBy(p, [c(2, 2), c(2, 1)]);
     const pv = previewFairCopy(p, M, cl);
     expect(pv.slides).toBe(0);
     expect(pv.disconnected).toHaveLength(2);
     const next = compileGlyph(p, M, cl, 'Held');
     expect(at(next, 0, 1)).toMatchObject({ rune: 'oil' });
-    expect(at(next, 2, 1)).toMatchObject({ rune: 'onInked' });
+    expect(at(next, 2, 1)).toMatchObject({ rune: 'tally' });
   });
 
   test('nothing slides when the exit cell is outside the lattice', () => {
@@ -275,74 +261,20 @@ describe('tidy: stranded runes slide up (S13)', () => {
   });
 });
 
-describe('trim chip (S14)', () => {
-  test('shows the matched idiom and its cost while selected', () => {
-    const p = proven(CHAIN);
-    const state = { cluster: selected(p) };
-    expect(trimChip(previewFairCopy(p, M, state.cluster), null)).toEqual({
-      text: 'Cashing In \u00b7 free',
-      lost: false,
-    });
-  });
-
-  test('says 1 vellum once the first Cashing In exists', () => {
-    const p: Profile = {
-      ...proven(CHAIN),
-      glyphs: [
-        {
-          id: 'g1',
-          name: 'x',
-          kind: 'spell',
-          cells: [],
-          entry: c(0, 0),
-          exits: [],
-          idiom: 'cashingIn',
-          version: 1,
-          params: [],
-          extraExit: null,
-        },
-      ],
-    };
-    expect(trimChip(previewFairCopy(p, M, selected(p)), null)?.text).toBe(
-      'Cashing In \u00b7 1 vellum',
-    );
-  });
-
-  test('trimming Cashing In by one fades the chip to "no longer ..."', () => {
-    const p = proven(CHAIN);
-    const r = fairTap(p, M, { cluster: selected(p) }, c(3, 0));
-    expect(r.state.lost).toBe('Cashing In');
-    const cluster = r.state.cluster;
-    if (!cluster) throw new Error('no trim');
-    expect(trimChip(previewFairCopy(p, M, cluster), r.state.lost)).toEqual({
-      text: 'no longer Cashing In \u00b7 1 vellum',
-      lost: true,
-    });
-  });
-
-  test('a fresh selection forgets what was lost; a pattern with no idiom has no chip', () => {
-    const p = proven(CHAIN);
-    const trimmed = fairTap(p, M, { cluster: selected(p) }, c(3, 0)).state;
-    const again = fairTap(p, M, trimmed, c(3, 0)).state; // the Spark, now outside: starts over
-    expect(again.lost ?? null).toBeNull();
-    const plain = proven('Bolt> Oil Ink .');
-    expect(trimChip(previewFairCopy(plain, M, selected(plain)), null)).toBeNull();
-  });
-});
-
 describe('leave a cell open (M21, M22)', () => {
-  test('only Material, Trigger and Shape runes can be left open', () => {
+  test('only Kind and Action runes can be left open', () => {
     const p = proven(CHAIN);
     const pv = previewFairCopy(p, M, selected(p));
-    expect(pv.chain.map((s) => s.openable)).toEqual([false, true, true, true]);
+    expect(pv.chain.map((s) => s.openable)).toEqual([false, true, false, true]);
   });
 
-  test('a step knows its cell in the Glyph frame (a Bend is a Shape cell, so it can be open)', () => {
-    const p = proven('Bolt> Ink Bendv . .\n. . OnInked . .\n. . Spark . .');
+  test('a step knows its cell in the Glyph frame (a Bend is a Shape cell, so it cannot be open)', () => {
+    const p = proven('Bolt> Ink Bendv . .\n. . Tally . .\n. . Spark . .');
     const pv = previewFairCopy(p, M, selected(p));
     expect(pv.chain.map((s) => s.local)).toEqual(pv.chain.map((s) => s.at));
-    expect(pv.chain.map((s) => s.openable)).toEqual([false, true, true, true, true]);
-    expect(openCellOf(pv, c(2, 0))).toEqual(c(2, 0));
+    expect(pv.chain.map((s) => s.openable)).toEqual([false, true, false, false, true]);
+    expect(openCellOf(pv, c(1, 0))).toEqual(c(1, 0));
+    expect(openCellOf(pv, c(2, 0))).toBeNull(); // the Bend
   });
 
   test('openCellOf is null for nothing, a Source, or a cell that is not in the selection', () => {
@@ -357,8 +289,8 @@ describe('leave a cell open (M21, M22)', () => {
   test('the chosen cell goes to compileGlyph as params; none leaves the Glyph closed', () => {
     const p = { ...proven(CHAIN), vellum: 5 };
     const cluster = selected(p);
-    const open = openCellOf(previewFairCopy(p, M, cluster), c(2, 0));
-    expect(compileGlyph(p, M, cluster, 'Open', open).glyphs[0]?.params).toEqual(['2,0']);
+    const open = openCellOf(previewFairCopy(p, M, cluster), c(3, 0));
+    expect(compileGlyph(p, M, cluster, 'Open', open).glyphs[0]?.params).toEqual(['3,0']);
     expect(compileGlyph(p, M, cluster, 'Closed', null).glyphs[0]?.params).toEqual([]);
   });
 });

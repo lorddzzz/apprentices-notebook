@@ -1,12 +1,12 @@
 import {
-  type AuraRuneId,
-  type MaterialId,
-  type MaterialRuneId,
-  RUNE_IDS,
+  type InventionDef,
+  isInvention,
+  type Lean,
+  METHODS,
+  type Role,
   RUNES,
-  type RuneId,
+  type RuneRef,
   type SourceRuneId,
-  type TriggerRuneId,
   TUNING,
 } from '$data';
 import { argIssue, cellsWithArgs, glyphCost, rotateDirLocal } from './glyph';
@@ -23,12 +23,14 @@ import {
   turnRight,
 } from './grid';
 import type {
+  AuraRef,
   AuraTouch,
   CellKey,
   CompiledLattice,
   FiredCell,
   GlyphDef,
   GlyphLibrary,
+  InventionLibrary,
   Lattice,
   LatticeIssue,
   LatticeShape,
@@ -37,15 +39,54 @@ import type {
   PlacedGlyph,
   PlacedRune,
   Spell,
-  SpellNode,
+  Step,
 } from './types';
 import { isGlyph } from './types';
 
-// ── Rune kinds ──────────────────────────────────────────
+// ── Roles ───────────────────────────────────────────────
 
-const isSource = (r: RuneId): r is SourceRuneId => RUNES[r].family === 'source';
-const isMaterial = (r: RuneId): r is MaterialRuneId => RUNES[r].family === 'material';
-const isTrigger = (r: RuneId): r is TriggerRuneId => RUNES[r].family === 'trigger';
+/** A rune's role, or an invention's (its method's, design §6.2). null: an unknown invention. */
+export function roleOf(ref: RuneRef, inventions: InventionLibrary = {}): Role | null {
+  if (!isInvention(ref)) return RUNES[ref].role;
+  const def = inventions[ref];
+  return def ? METHODS[def.method].makes : null;
+}
+
+/** The household's inventions by id. */
+export const libraryOf = (defs: readonly InventionDef[]): InventionLibrary =>
+  Object.fromEntries(defs.map((d) => [d.id, d]));
+
+/** Whether a lattice cell's rune carries an arrow (sources and Bend; inventions never do). */
+export const hasArrow = (ref: RuneRef): boolean => !isInvention(ref) && RUNES[ref].arrow;
+
+/** The display name of a rune or an invention. */
+export function nameOf(ref: RuneRef, inventions: InventionLibrary = {}): string {
+  if (!isInvention(ref)) return RUNES[ref].name;
+  return inventions[ref]?.name ?? ref.slice(4);
+}
+
+const isSourceRef = (r: RuneRef): r is SourceRuneId =>
+  !isInvention(r) && RUNES[r].role === 'source';
+
+/** The steps directly below a step, in order (Fork: left first). */
+export function stepChildren(st: Step): Step[] {
+  switch (st.role) {
+    case 'fork':
+      return [st.left, st.right].filter((x): x is Step => x !== null);
+    case 'seal':
+      return st.rest ? [st.rest] : [];
+    case 'split':
+      return [...st.branches];
+    default:
+      return st.next ? [st.next] : [];
+  }
+}
+
+/** Every step of a tree, depth-first, parents before children (Fork: left branch first). */
+export function stepsOf(first: Step | null): Step[] {
+  if (!first) return [];
+  return [first, ...stepChildren(first).flatMap(stepsOf)];
+}
 
 // ── Lattice access ──────────────────────────────────────
 
@@ -58,6 +99,28 @@ export function socketAt(l: Lattice, at: Coord): Placed | null {
   return l.runes.find((r) => sameCoord(r.at, at)) ?? null;
 }
 
+// ── Ink (P33) ───────────────────────────────────────────
+
+/**
+ * Ink one rune costs on the page: its role's cost, 1 less when the apprentice is trained in its
+ * school (min 1). An invention costs its parts plus its method; a solvent adds nothing.
+ */
+export function inkOf(
+  ref: RuneRef,
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
+): number {
+  if (isInvention(ref)) {
+    const def = inventions[ref];
+    if (!def) return 1;
+    const parts = def.parts.reduce((sum, p) => sum + inkOf(p, inventions, lean), 0);
+    return parts + METHODS[def.method].ink;
+  }
+  const r = RUNES[ref];
+  const base = TUNING.inkCost[r.role];
+  return lean && lean.trained === r.school ? Math.max(1, base - 1) : base;
+}
+
 // ── Compiler ────────────────────────────────────────────
 
 /**
@@ -67,32 +130,41 @@ export function socketAt(l: Lattice, at: Coord): Placed | null {
  */
 interface Frame {
   runeAt(at: Coord): PlacedRune | null;
-  /** Orthogonal neighbours of `at` holding `rune` in this frame. */
-  around(at: Coord, rune: RuneId): number;
+  /** Auras orthogonally next to `at` (inside a Glyph: its own, then the ones touching its socket). */
+  aurasAround(at: Coord): AuraRef[];
   visited: Set<CellKey>;
   path: PathCell[];
-  /** Fields that locate a node: the cell itself, or `at` = socket + `inner` = local cell. */
+  /** Fields that locate a step: the cell itself, or `at` = socket + `inner` = local cell. */
   where(at: Coord): { at: Coord; inner?: Coord };
-  /** Outer Amplify bonus every Source and Material in this frame receives (0 outside a Glyph). */
-  bonus: number;
   /** A direction in this frame as seen on the outer lattice. */
   outward(d: Dir): Dir;
   /** Flow stepped onto a cell holding no rune of this frame. */
-  beyond(at: Coord, dir: Dir, via: readonly Coord[], pierced: boolean): SpellNode[];
+  beyond(at: Coord, dir: Dir, via: readonly Coord[]): Step | null;
   /** The cell as proof records it. */
   fired(at: Coord, placed: PlacedRune): FiredCell;
   /** Every cell entered, for `Spell.cells`. */
   cells: FiredCell[];
 }
 
-const cellMap = (def: GlyphDef, args?: PlacedGlyph['args']): Map<CellKey, PlacedRune> =>
-  new Map(cellsWithArgs(def, args).map((c) => [key(c.at), c]));
+const cellMap = (
+  def: GlyphDef,
+  args: PlacedGlyph['args'],
+  inventions: InventionLibrary,
+): Map<CellKey, PlacedRune> =>
+  new Map(cellsWithArgs(def, args, inventions).map((c) => [key(c.at), c]));
 
-/** Compiles `l`; `glyphs` resolves Glyph sockets (default none: a Glyph then insulates). */
+/**
+ * Compiles `l` into spells (plan §2.3): from each Source the flow walks the page, each Action or
+ * Kind becoming a step, Fork a two-sided step (left walked first, it claims shared cells), Bend
+ * turning the walk without a step, Seep/Lay/Toll and triggers wrapping the rest, a Seal putting
+ * the rest in a jar. Auras and Sources insulate. `glyphs` resolves Glyph sockets (a Glyph not in
+ * it insulates); `inventions` gives inventions their role; `lean` prices the ink.
+ */
 export function compileLattice(
   l: Lattice,
-  affinity: readonly MaterialId[],
   glyphs: GlyphLibrary = {},
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
 ): CompiledLattice {
   const byKey = new Map<CellKey, PlacedRune>();
   const glyphAt = new Map<CellKey, PlacedGlyph>();
@@ -104,17 +176,22 @@ export function compileLattice(
     isSocket(l.shape, at) ? (byKey.get(key(at)) ?? null) : null;
   const glyphIn = (at: Coord): PlacedGlyph | null =>
     isSocket(l.shape, at) ? (glyphAt.get(key(at)) ?? null) : null;
-  const countAround = (at: Coord, rune: RuneId): number =>
-    neighbors4(at).filter((n) => runeAt(n)?.rune === rune).length;
+  const role = (r: RuneRef): Role | null => roleOf(r, inventions);
+  const aurasNear = (look: (c: Coord) => PlacedRune | null, at: Coord): AuraRef[] =>
+    neighbors4(at).flatMap((n) => {
+      const p = look(n);
+      return p && role(p.rune) === 'aura' ? [p.rune as AuraRef] : [];
+    });
 
   const spells: Spell[] = [];
   const reached = new Set<CellKey>();
   const touches = new Map<string, AuraTouch>();
 
-  const touch = (aura: AuraRuneId, to: Coord): void => {
+  const touch = (to: Coord): void => {
     for (const n of neighbors4(to)) {
-      if (runeAt(n)?.rune !== aura) continue;
-      touches.set(`${key(n)}>${key(to)}`, { aura, from: n, to });
+      const p = runeAt(n);
+      if (!p || role(p.rune) !== 'aura') continue;
+      touches.set(`${key(n)}>${key(to)}`, { aura: p.rune as AuraRef, from: n, to });
     }
   };
 
@@ -123,92 +200,74 @@ export function compileLattice(
     cell: Coord,
     dir: Dir,
     via: readonly Coord[] = [],
-    behindPierce = false,
     viaInner: readonly Coord[] = [],
-  ): SpellNode[] {
+  ): Step | null {
     const placed = f.runeAt(cell);
-    if (!placed) return f.beyond(cell, dir, via, behindPierce);
-    if (f.visited.has(key(cell))) return [];
-    const def = RUNES[placed.rune];
-    if (def.family === 'aura' || def.family === 'source') return []; // insulators
+    if (!placed) return f.beyond(cell, dir, via);
+    if (f.visited.has(key(cell))) return null;
+    const r = role(placed.rune);
+    if (r === null || r === 'aura' || r === 'source') return null; // insulators
     f.visited.add(key(cell));
     f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
     f.cells.push(f.fired(cell, placed));
-    const pierced = behindPierce || placed.rune === 'pierce';
-    const go = (d: Dir, v: readonly Coord[] = [], vi: readonly Coord[] = []): SpellNode[] =>
-      walkIn(f, step(cell, d), d, v, pierced, vi);
     const where = f.where(cell);
-    const shaped = [...via, where.at];
-    // Inside a Glyph, the local shape cells too (`viaInner`); crossing a frame starts afresh.
-    const shapedInner = where.inner ? [...viaInner, where.inner] : [];
-    const inner = where.inner && viaInner.length > 0 ? { viaInner } : {};
+    const base = {
+      ...where,
+      ...(via.length > 0 ? { via } : {}),
+      ...(where.inner && viaInner.length > 0 ? { viaInner } : {}),
+    };
+    const go = (d: Dir): Step | null => walkIn(f, step(cell, d), d);
 
-    if (placed.rune === 'pierce') return go(dir, shaped, shapedInner);
     if (placed.rune === 'bend') {
       const out = placed.dir ?? 'right';
-      return out === opposite(dir) ? [] : go(out, shaped, shapedInner);
+      if (out === opposite(dir)) return null;
+      // Inside a Glyph, the local shape cells too (`viaInner`); crossing a frame starts afresh.
+      const shapedInner = where.inner ? [...viaInner, where.inner] : [];
+      return walkIn(f, step(cell, out), out, [...via, where.at], shapedInner);
     }
     if (placed.rune === 'fork') {
       // Left must walk first: it claims shared cells before the right branch.
-      const left = go(turnLeft(dir), shaped, shapedInner);
-      const right = go(turnRight(dir), shaped, shapedInner);
-      return [...left, ...right];
+      const left = go(turnLeft(dir));
+      const right = go(turnRight(dir));
+      return { ...base, role: 'fork', left, right };
     }
-    if (isMaterial(placed.rune)) {
-      const amp = f.around(cell, 'amplify') + f.bonus;
-      const bonus = affinity.includes(placed.rune) ? TUNING.affinityBonus : 0;
-      return [
-        {
-          kind: 'material',
-          rune: placed.rune,
-          ...where,
-          via,
-          ...inner,
-          amp,
-          magnitude: def.base + amp + bonus,
-          next: go(dir),
-          ...(pierced ? { pierced: true as const } : {}),
-        },
-      ];
+    if (placed.rune === 'seep' || placed.rune === 'lay' || placed.rune === 'toll') {
+      return { ...base, role: 'shape', rune: placed.rune, next: go(dir) };
     }
-    if (isTrigger(placed.rune)) {
-      return [
-        {
-          kind: 'trigger',
-          rune: placed.rune,
-          ...where,
-          via,
-          ...inner,
-          next: go(dir),
-          ...(pierced ? { pierced: true as const } : {}),
-        },
-      ];
+    if (placed.rune === 'tally' || placed.rune === 'brink' || placed.rune === 'unison') {
+      return { ...base, role: 'trigger', rune: placed.rune, next: go(dir) };
     }
-    return [];
+    if (placed.rune === 'jar' || placed.rune === 'fuse') {
+      return { ...base, role: 'seal', rune: placed.rune, rest: go(dir) };
+    }
+    if (r === 'action' || r === 'kind') {
+      return { ...base, role: r, rune: placed.rune, auras: f.aurasAround(cell), next: go(dir) };
+    }
+    return null;
   }
 
   /** A Glyph's cells as a frame; leaving it continues the outer walk from the socket. */
   const innerFrame = (g: PlacedGlyph, def: GlyphDef, outer: Frame): Frame => {
-    const local = cellMap(def, g.args);
+    const local = cellMap(def, g.args, inventions);
+    const localAt = (at: Coord): PlacedRune | null => local.get(key(at)) ?? null;
     // M27: the extra exit rides on the first time the walk leaves the Glyph.
     let extraSpent = def.extraExit === null;
-    const around = (at: Coord, rune: RuneId): number =>
-      neighbors4(at).filter((n) => local.get(key(n))?.rune === rune).length;
     return {
-      runeAt: (at) => local.get(key(at)) ?? null,
-      around,
+      runeAt: localAt,
+      aurasAround: (at) => [...aurasNear(localAt, at), ...aurasNear(runeAt, g.at)],
       visited: new Set(),
       path: outer.path,
       where: (at) => ({ at: g.at, inner: at }),
-      bonus: countAround(g.at, 'amplify'),
       outward: (d) => rotateDirLocal(d, g.dir),
-      beyond: (_at, dir, via, pierced) => {
+      beyond: (_at, dir, via) => {
         const out = rotateDirLocal(dir, g.dir);
-        const main = walkIn(outer, step(g.at, out), out, via, pierced);
+        const main = walkIn(outer, step(g.at, out), out, via);
         if (extraSpent || def.extraExit === null) return main;
         extraSpent = true;
-        const side = rotateDirLocal(def.extraExit, g.dir);
-        return [...main, ...walkIn(outer, step(g.at, side), side, via, pierced)];
+        const sideDir = rotateDirLocal(def.extraExit, g.dir);
+        const side = walkIn(outer, step(g.at, sideDir), sideDir, via);
+        if (!main || !side) return main ?? side;
+        return { at: g.at, role: 'split', branches: [main, side] };
       },
       fired: () => ({ at: g.at, rune: null, glyph: g.glyph, dir: g.dir }),
       cells: outer.cells,
@@ -219,30 +278,50 @@ export function compileLattice(
   const outerFrame = (visited: Set<CellKey>, path: PathCell[], cells: FiredCell[]): Frame => {
     const frame: Frame = {
       runeAt,
-      around: countAround,
+      aurasAround: (at) => aurasNear(runeAt, at),
       visited,
       path,
       where: (at) => ({ at }),
-      bonus: 0,
       outward: (d) => d,
       fired: (at, placed) =>
         placed.dir ? { at, rune: placed.rune, dir: placed.dir } : { at, rune: placed.rune },
       cells,
-      beyond: (at, dir, via, pierced) => {
+      beyond: (at, dir, via) => {
         const g = glyphIn(at);
         const def = g ? glyphs[g.glyph] : undefined;
-        if (!g || !def || def.kind !== 'payload' || dir !== g.dir) return [];
-        if (visited.has(key(at)) || !cellMap(def).has(key(def.entry))) return [];
+        if (!g || !def || def.kind !== 'payload' || dir !== g.dir) return null;
+        if (visited.has(key(at)) || !cellMap(def, undefined, inventions).has(key(def.entry)))
+          return null;
         visited.add(key(at));
-        return walkIn(innerFrame(g, def, frame), def.entry, 'right', via, pierced);
+        return walkIn(innerFrame(g, def, frame), def.entry, 'right', via);
       },
     };
     return frame;
   };
 
+  /** What the spell costs on the page: each cell it walked once (a Glyph socket as the Glyph), plus touching auras. */
+  function spellInk(path: readonly PathCell[], auraCells: readonly Coord[]): number {
+    const seen = new Set<CellKey>();
+    let ink = 0;
+    for (const p of path) {
+      if (seen.has(key(p.at))) continue;
+      seen.add(key(p.at));
+      const g = glyphIn(p.at);
+      ink += g ? placedInk(g, glyphs, l, inventions, lean) : inkOf(p.rune, inventions, lean);
+    }
+    for (const a of auraCells) {
+      const p = runeAt(a);
+      if (p && !seen.has(key(a))) {
+        seen.add(key(a));
+        ink += inkOf(p.rune, inventions, lean);
+      }
+    }
+    return ink;
+  }
+
   /** Plain Sources and Spell Glyph sockets, in reading order of their socket. */
   const origins: { at: Coord; glyph: PlacedGlyph | null }[] = [];
-  for (const r of byKey.values()) if (isSource(r.rune)) origins.push({ at: r.at, glyph: null });
+  for (const r of byKey.values()) if (isSourceRef(r.rune)) origins.push({ at: r.at, glyph: null });
   for (const g of glyphAt.values()) {
     if (isSocket(l.shape, g.at) && glyphs[g.glyph]?.kind === 'spell') {
       origins.push({ at: g.at, glyph: g });
@@ -257,70 +336,56 @@ export function compileLattice(
       ? glyphSpell(origin.glyph, outer)
       : plainSpell(byKey.get(key(origin.at)), outer);
     if (!spell) continue;
-    spells.push(spell);
-    touch('echo', origin.at);
-    touch('thrift', origin.at);
+    const before = touches.size;
     for (const cell of path) {
       reached.add(key(cell.at));
-      // Amplify only matters on the source and on material cells; a socket stands for its inner ones.
-      if (isSource(cell.rune) || isMaterial(cell.rune)) touch('amplify', cell.at);
+      touch(cell.at);
     }
-  }
-
-  /** Pierce only means something to a line spell; on Splash and Ward it does nothing. */
-  function pierceOf(source: SourceRuneId, path: readonly PathCell[]): { pierce?: true } {
-    const line = source === 'bolt' || source === 'quill';
-    return line && path.some((p) => p.rune === 'pierce') ? { pierce: true } : {};
+    const auraCells = [...touches.values()].slice(before).map((t) => t.from);
+    spells.push({ ...spell, ink: spellInk(path, auraCells) });
   }
 
   function plainSpell(src: PlacedRune | undefined, outer: Frame): Spell | null {
-    if (!src || !isSource(src.rune)) return null;
+    if (!src || !isSourceRef(src.rune)) return null;
     const sourceRune = src.rune;
     const srcDir = src.dir ?? 'right';
     outer.path.push({ at: src.at, rune: sourceRune, dir: srcDir });
     outer.cells.push(outer.fired(src.at, src));
-    const nodes = walkIn(outer, step(src.at, srcDir), srcDir);
-    const amp = countAround(src.at, 'amplify');
+    const first = walkIn(outer, step(src.at, srcDir), srcDir);
     return {
       key: key(src.at),
       at: src.at,
       source: sourceRune,
-      amp,
-      magnitude: RUNES[sourceRune].base + amp,
-      echo: countAround(src.at, 'echo') > 0,
-      charges: RUNES[sourceRune].charges + countAround(src.at, 'thrift'),
-      nodes,
+      sourceAuras: outer.aurasAround(src.at),
+      first,
+      charges: RUNES[sourceRune].charges,
       path: outer.path,
+      ink: 0,
       cells: outer.cells,
-      ...pierceOf(sourceRune, outer.path),
     };
   }
 
   function glyphSpell(g: PlacedGlyph, outer: Frame): Spell | null {
     const def = glyphs[g.glyph];
-    const src = def ? cellMap(def).get(key(def.entry)) : undefined;
-    if (!def || !src || !isSource(src.rune)) return null;
+    const src = def ? cellMap(def, undefined, inventions).get(key(def.entry)) : undefined;
+    if (!def || !src || !isSourceRef(src.rune)) return null;
     const sourceRune = src.rune;
     const inner = innerFrame(g, def, outer);
     inner.visited.add(key(def.entry));
     outer.path.push({ ...inner.where(def.entry), rune: sourceRune, dir: g.dir });
     outer.cells.push(inner.fired(def.entry, src));
-    const nodes = walkIn(inner, step(def.entry, 'right'), 'right');
-    const amp = inner.around(def.entry, 'amplify') + inner.bonus;
+    const first = walkIn(inner, step(def.entry, 'right'), 'right');
     return {
       key: key(g.at),
       at: g.at,
       source: sourceRune,
-      amp,
-      magnitude: RUNES[sourceRune].base + amp,
-      echo: inner.around(def.entry, 'echo') > 0 || countAround(g.at, 'echo') > 0,
-      charges:
-        RUNES[sourceRune].charges + inner.around(def.entry, 'thrift') + countAround(g.at, 'thrift'),
-      nodes,
+      sourceAuras: inner.aurasAround(def.entry),
+      first,
+      charges: RUNES[sourceRune].charges,
       path: outer.path,
+      ink: 0,
       cells: outer.cells,
       glyph: g.glyph,
-      ...pierceOf(sourceRune, outer.path),
     };
   }
 
@@ -329,83 +394,76 @@ export function compileLattice(
 
 // ── Descriptions ────────────────────────────────────────
 
-function describeNode(node: SpellNode): string {
-  if (node.kind === 'trigger') {
-    const inner = describeNodes(node.next) || '(nothing)';
-    if (node.rune === 'onInked') return `if inked: ${inner}`;
-    if (node.rune === 'onIgnite') return `if it ignites, on the fire: ${inner}`;
-    return `on kill, from each victim: ${inner}`;
-  }
-  const head =
-    node.rune === 'spark'
-      ? `Spark (${node.magnitude} damage)`
-      : node.magnitude <= 1
-        ? RUNES[node.rune].name
-        : `${RUNES[node.rune].name} ${2 * node.magnitude - 1}×${2 * node.magnitude - 1}`;
-  return node.next.length > 0 ? `${head} → ${describeNodes(node.next)}` : head;
-}
-
-function describeNodes(nodes: readonly SpellNode[]): string {
-  if (nodes.length === 0) return '';
-  if (nodes.length === 1 && nodes[0]) return describeNode(nodes[0]);
-  return `[${nodes.map(describeNode).join(' | ')}]`;
-}
-
-function describeSource(s: Spell): string {
-  switch (s.source) {
-    case 'bolt':
-      return `Bolt (${s.magnitude} damage${s.pierce ? ', pierces' : ''})`;
-    case 'quill':
-      return `Quill (${s.magnitude} damage, pools ink${s.pierce ? ', pierces' : ''})`;
-    case 'splash':
-      return `Splash (${s.magnitude} damage, 3×3)`;
-    case 'ward':
-      return `Ward (shield ${s.magnitude})`;
+function describeStep(st: Step | null, inventions: InventionLibrary): string {
+  if (!st) return '';
+  const rest = (n: Step | null): string => {
+    const text = describeStep(n, inventions);
+    return text ? ` → ${text}` : '';
+  };
+  switch (st.role) {
+    case 'action':
+    case 'kind':
+      return `${nameOf(st.rune, inventions)}${rest(st.next)}`;
+    case 'trigger':
+      return `if ${RUNES[st.rune].name}: ${describeStep(st.next, inventions) || '(nothing)'}`;
+    case 'shape':
+      return `${RUNES[st.rune].name}${rest(st.next)}`;
+    case 'seal':
+      return `${RUNES[st.rune].name}: [${describeStep(st.rest, inventions)}]`;
+    case 'fork':
+      return `[left: ${describeStep(st.left, inventions) || '—'} | right: ${describeStep(st.right, inventions) || '—'}]`;
+    case 'split':
+      return `[${st.branches.map((b) => describeStep(b, inventions)).join(' | ')}]`;
   }
 }
 
-export function describeSpell(s: Spell): string {
-  const chain = s.nodes.length > 0 ? ` → ${describeNodes(s.nodes)}` : '';
-  const echo = s.echo ? ' · echoes next turn at half strength' : '';
-  return `${describeSource(s)}${chain}${echo}`;
+export function describeSpell(s: Spell, inventions: InventionLibrary = {}): string {
+  const chain = describeStep(s.first, inventions);
+  return `${RUNES[s.source].name}${chain ? ` → ${chain}` : ''}`;
 }
 
-// ── Ink ─────────────────────────────────────────────────
-
-export function inkCost(rune: RuneId): number {
-  return TUNING.inkCost[RUNES[rune].family];
-}
+// ── Ink on the page ─────────────────────────────────────
 
 /**
  * Ink one socket costs. A Glyph is its `glyphCost` (1 if its id is unknown) plus 1 for every aura
  * rune orthogonally next to its socket, which needs `l`; without it only the Glyph itself counts.
  */
-export function placedInk(p: Placed, glyphs: GlyphLibrary = {}, l?: Lattice): number {
-  if (!isGlyph(p)) return inkCost(p.rune);
+export function placedInk(
+  p: Placed,
+  glyphs: GlyphLibrary = {},
+  l?: Lattice,
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
+): number {
+  if (!isGlyph(p)) return inkOf(p.rune, inventions, lean);
   const def = glyphs[p.glyph];
-  const auras = l ? neighbors4(p.at).filter((n) => isAura(socketAt(l, n))).length : 0;
-  return (def ? glyphCost(def) : 1) + auras;
+  const auras = l
+    ? neighbors4(p.at).filter((n) => {
+        const q = socketAt(l, n);
+        return !!q && !isGlyph(q) && roleOf(q.rune, inventions) === 'aura';
+      }).length
+    : 0;
+  return (def ? glyphCost(def, inventions, lean) : 1) + auras;
 }
 
-const isAura = (p: Placed | null): boolean => !!p && !isGlyph(p) && RUNES[p.rune].family === 'aura';
-
-export function inkUsed(l: Lattice, glyphs: GlyphLibrary = {}): number {
-  return l.runes.reduce((sum, r) => sum + placedInk(r, glyphs, l), 0);
-}
-
-export function countRunes(ls: readonly Lattice[]): Record<RuneId, number> {
-  const counts = Object.fromEntries(RUNE_IDS.map((id) => [id, 0])) as Record<RuneId, number>;
-  for (const l of ls) for (const r of l.runes) if (!isGlyph(r)) counts[r.rune] += 1; // B2 counts Glyph contents
-  return counts;
+export function inkUsed(
+  l: Lattice,
+  glyphs: GlyphLibrary = {},
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
+): number {
+  return l.runes.reduce((sum, r) => sum + placedInk(r, glyphs, l, inventions, lean), 0);
 }
 
 // ── Validation ──────────────────────────────────────────
 
-/** Structural checks for one lattice. `capacity` null = unlimited (Lab). Ownership is checked in run.ts. */
+/** Structural checks for one lattice. `capacity` null = unlimited (Lab). Knowledge is checked in run.ts. */
 export function validateLattice(
   l: Lattice,
   capacity: number | null,
   glyphs: GlyphLibrary = {},
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
 ): LatticeIssue[] {
   const issues: LatticeIssue[] = [];
   const seen = new Set<CellKey>();
@@ -427,7 +485,7 @@ export function validateLattice(
         });
       } else {
         for (const [cell, arg] of Object.entries(r.args ?? {})) {
-          const why = argIssue(def, cell, arg);
+          const why = argIssue(def, cell, arg, inventions);
           if (why) {
             issues.push({ kind: 'arg', at: r.at, rune: arg.rune, message: `${def.name} ${why}` });
           }
@@ -435,7 +493,10 @@ export function validateLattice(
       }
       continue;
     }
-    const name = RUNES[r.rune].name;
+    const name = nameOf(r.rune, inventions);
+    if (isInvention(r.rune) && !inventions[r.rune]) {
+      issues.push({ kind: 'owned', at: r.at, rune: r.rune, message: `${name} is not invented` });
+    }
     if (!isSocket(l.shape, r.at)) {
       issues.push({
         kind: 'socket',
@@ -448,16 +509,16 @@ export function validateLattice(
       issues.push({ kind: 'overlap', at: r.at, rune: r.rune, message: `${name} shares a socket` });
     }
     seen.add(key(r.at));
-    if (RUNES[r.rune].arrow !== (r.dir !== undefined)) {
+    if (hasArrow(r.rune) !== (r.dir !== undefined)) {
       issues.push({
         kind: 'arrow',
         at: r.at,
         rune: r.rune,
-        message: RUNES[r.rune].arrow ? `${name} needs an arrow` : `${name} takes no arrow`,
+        message: hasArrow(r.rune) ? `${name} needs an arrow` : `${name} takes no arrow`,
       });
     }
   }
-  const used = inkUsed(l, glyphs);
+  const used = inkUsed(l, glyphs, inventions, lean);
   if (capacity !== null && used > capacity) {
     issues.push({ kind: 'ink', message: `Needs ${used} ink, only ${capacity} available` });
   }
@@ -467,11 +528,11 @@ export function validateLattice(
 // ── Editing ─────────────────────────────────────────────
 
 /** Returns a new lattice with `at` set to `rune` (or cleared when null). Throws if `at` is not a socket. */
-export function setSocket(l: Lattice, at: Coord, rune: RuneId | null, dir?: Dir): Lattice {
+export function setSocket(l: Lattice, at: Coord, rune: RuneRef | null, dir?: Dir): Lattice {
   if (!isSocket(l.shape, at)) throw new Error(`No socket at ${key(at)}`);
   const rest = l.runes.filter((r) => !sameCoord(r.at, at));
   if (rune === null) return { shape: l.shape, runes: rest };
-  const placed: PlacedRune = RUNES[rune].arrow
+  const placed: PlacedRune = hasArrow(rune)
     ? { at: { ...at }, rune, dir: dir ?? 'right' }
     : { at: { ...at }, rune };
   const runes = [...rest, placed].sort((a, b) => byReadingOrder(a.at, b.at));
@@ -481,6 +542,6 @@ export function setSocket(l: Lattice, at: Coord, rune: RuneId | null, dir?: Dir)
 /** Arrow runes turn a quarter clockwise (right → down → left → up); anything else is unchanged. */
 export function rotateSocket(l: Lattice, at: Coord): Lattice {
   const placed = socketAt(l, at);
-  if (!placed || isGlyph(placed) || !RUNES[placed.rune].arrow) return l;
+  if (!placed || isGlyph(placed) || !hasArrow(placed.rune)) return l;
   return setSocket(l, at, placed.rune, turnRight(placed.dir ?? 'right'));
 }

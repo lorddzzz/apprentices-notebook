@@ -1,14 +1,15 @@
 import { expect, test } from 'vitest';
+import { TUNING } from '$data';
 import { type BattleState, type Coord, type GameEvent, parseBoard, type UnitRef } from '$engine';
 import {
   type BoardView,
   project,
+  type TileView,
   type UnitView,
   viewOf,
   viewOfSpec,
   withoutIntents,
 } from '../../src/app/view';
-import { TUNING } from '../../src/data';
 import { act, board } from '../scenarios/harness';
 
 const W = 4;
@@ -24,33 +25,23 @@ function unit(id: string, kind: 'member' | 'enemy', pos: Coord, hp = 3): UnitVie
     hp,
     maxHp: hp,
     shield: 0,
-    inked: false,
-    brass: false,
-    oilSoaked: false,
-    branded: false,
-    heat: 0,
-    etched: false,
+    mark: null,
+    collar: false,
+    shackle: false,
+    held: false,
+    stunned: false,
     alive: true,
     intent: null,
   };
 }
 
+const bare = (): TileView => ({ state: null, rounds: 0, jar: false, vent: false });
+
 function fixture(): BoardView {
   return {
     width: W,
     height: H,
-    tiles: Array.from({ length: W * H }, () => ({
-      oil: false,
-      ink: false,
-      steam: 0,
-      fire: 0,
-      plate: false,
-      vent: false,
-      stain: false,
-      heat: 0,
-      etched: false,
-      scald: false,
-    })),
+    tiles: Array.from({ length: W * H }, bare),
     units: [unit('draughtsman', 'member', { x: 0, y: 0 }), unit('rat-1', 'enemy', { x: 2, y: 1 })],
     round: 1,
     phase: 'player',
@@ -66,7 +57,7 @@ const ref = (id: string, at: Coord): UnitRef => ({
 const tile = (v: BoardView, x: number, y: number) => v.tiles[y * v.width + x];
 const unitOf = (v: BoardView, id: string) => v.units.find((u) => u.id === id) as UnitView;
 
-test('moved/pushed/slide update pos', () => {
+test('moved and push update pos', () => {
   const v0 = fixture();
   const to = { x: 1, y: 0 };
   const moved = project(v0, {
@@ -77,19 +68,22 @@ test('moved/pushed/slide update pos', () => {
   });
   expect(unitOf(moved, 'draughtsman').pos).toEqual(to);
   const pushed = project(v0, {
-    type: 'pushed',
+    type: 'push',
     unit: ref('rat-1', { x: 2, y: 1 }),
-    to: { x: 3, y: 1 },
+    dir: 'right',
+    path: [{ x: 3, y: 1 }],
+    slid: 0,
   });
   expect(unitOf(pushed, 'rat-1').pos).toEqual({ x: 3, y: 1 });
   const slid = project(v0, {
-    type: 'slide',
+    type: 'push',
     unit: ref('rat-1', { x: 2, y: 1 }),
-    to: { x: 0, y: 1 },
+    dir: 'left',
     path: [
       { x: 1, y: 1 },
       { x: 0, y: 1 },
     ],
+    slid: 2,
   });
   expect(unitOf(slid, 'rat-1').pos).toEqual({ x: 0, y: 1 });
 });
@@ -111,57 +105,122 @@ test('damage sets hp from hpLeft, died clears intent', () => {
   expect(unitOf(dead, 'rat-1').intent).toBeNull();
 });
 
-test('puddle then inked-via-puddle clears the tile', () => {
-  const at = { x: 2, y: 1 };
-  const v1 = project(fixture(), { type: 'puddle', tiles: [at] });
-  expect(tile(v1, 2, 1)?.ink).toBe(true);
-  const v2 = project(v1, { type: 'inked', unit: ref('rat-1', at), via: 'puddle' });
-  expect(tile(v2, 2, 1)?.ink).toBe(false);
-  expect(unitOf(v2, 'rat-1').inked).toBe(true);
-});
-
-test('plates clear other layers', () => {
-  let v = fixture();
+test('landed puts a state on the tile, a mark or a collar on the unit', () => {
   const at = { x: 1, y: 1 };
-  v = project(v, { type: 'oiled', tiles: [at] });
-  v = project(v, { type: 'puddle', tiles: [at] });
-  v = project(v, { type: 'steam', tiles: [at] });
-  expect(tile(v, 1, 1)).toMatchObject({ oil: true, ink: true, steam: TUNING.steamRounds });
-  v = project(v, { type: 'plates', tiles: [at] });
-  expect(tile(v, 1, 1)).toEqual({
-    oil: false,
-    ink: false,
-    steam: 0,
-    fire: 0,
-    plate: true,
-    vent: false,
-    stain: false,
-    heat: 0,
-    etched: false,
-    scald: false,
+  const slick = project(fixture(), { type: 'landed', kind: 'oil', at, makes: 'slick' });
+  expect(tile(slick, 1, 1)).toMatchObject({ state: 'slick', rounds: 0 });
+  const cloud = project(fixture(), { type: 'landed', kind: 'steam', at, makes: 'cloud' });
+  expect(tile(cloud, 1, 1)).toMatchObject({ state: 'cloud', rounds: TUNING.cloudRounds });
+  const marked = project(fixture(), {
+    type: 'landed',
+    kind: 'ink',
+    at: { x: 2, y: 1 },
+    unit: ref('rat-1', { x: 2, y: 1 }),
+    makes: 'mark',
   });
-  v = project(v, { type: 'plateCrumbles', tiles: [at] });
-  expect(tile(v, 1, 1)?.plate).toBe(false);
+  expect(unitOf(marked, 'rat-1').mark).toBe('plain');
+  expect(tile(marked, 2, 1)?.state).toBeNull();
+  const collared = project(fixture(), {
+    type: 'landed',
+    kind: 'brass',
+    at: { x: 2, y: 1 },
+    unit: ref('rat-1', { x: 2, y: 1 }),
+    makes: 'collar',
+  });
+  expect(unitOf(collared, 'rat-1').collar).toBe(true);
 });
 
-test('ignite sets fire and oil on every tile', () => {
-  const tiles = [
-    { x: 0, y: 2 },
-    { x: 1, y: 2 },
-    { x: 2, y: 2 },
+test('mixed makes a compound on a tile, or a deep mark and a shackle on a unit', () => {
+  const at = { x: 1, y: 1 };
+  const stain = project(fixture(), { type: 'mixed', at, compound: 'stain' });
+  expect(tile(stain, 1, 1)).toMatchObject({ state: 'stain', rounds: TUNING.compoundRounds });
+  const rat = ref('rat-1', { x: 2, y: 1 });
+  const deep = project(fixture(), { type: 'mixed', at: rat.at, unit: rat, compound: 'deepMark' });
+  expect(unitOf(deep, 'rat-1').mark).toBe('deep');
+  const shackled = project(deep, { type: 'mixed', at: rat.at, unit: rat, compound: 'shackle' });
+  expect(unitOf(shackled, 'rat-1')).toMatchObject({ mark: null, collar: false, shackle: true });
+});
+
+test('washed, fades and spreadState rewrite tiles', () => {
+  const at = { x: 1, y: 1 };
+  let v = project(fixture(), { type: 'mixed', at, compound: 'pool' });
+  v = project(v, { type: 'washed', at, was: 'pool', now: 'cloud' });
+  expect(tile(v, 1, 1)?.state).toBe('cloud');
+  v = project(v, {
+    type: 'spreadState',
+    from: at,
+    to: [
+      { x: 2, y: 1 },
+      { x: 3, y: 1 },
+    ],
+  });
+  expect(tile(v, 2, 1)?.state).toBe('cloud');
+  expect(tile(v, 3, 1)?.state).toBe('cloud');
+  v = project(v, { type: 'stateFades', tiles: [at, { x: 2, y: 1 }] });
+  expect(tile(v, 1, 1)?.state).toBeNull();
+  expect(tile(v, 2, 1)?.state).toBeNull();
+  expect(tile(v, 3, 1)?.state).toBe('cloud');
+});
+
+test('marks spread, are spent and move', () => {
+  const rat = ref('rat-1', { x: 2, y: 1 });
+  const hero = ref('draughtsman', { x: 0, y: 0 });
+  let v = project(fixture(), { type: 'marked', unit: rat, deep: true, bound: null });
+  expect(unitOf(v, 'rat-1').mark).toBe('deep');
+  v = project(v, { type: 'markLifted', from: rat, to: hero });
+  expect(unitOf(v, 'rat-1').mark).toBeNull();
+  expect(unitOf(v, 'draughtsman').mark).toBe('deep');
+  v = project(v, { type: 'markSpread', from: hero, to: [rat] });
+  expect(unitOf(v, 'rat-1').mark).toBe('plain');
+  v = project(v, { type: 'markSpent', unit: rat, released: false });
+  expect(unitOf(v, 'rat-1').mark).toBeNull();
+  v = project(v, { type: 'collared', unit: rat });
+  expect(unitOf(v, 'rat-1').collar).toBe(true);
+});
+
+test('stunned, held and swapped', () => {
+  const rat = ref('rat-1', { x: 2, y: 1 });
+  const hero = ref('draughtsman', { x: 0, y: 0 });
+  let v = project(fixture(), { type: 'stunned', unit: rat });
+  v = project(v, { type: 'held', unit: hero });
+  expect(unitOf(v, 'rat-1').stunned).toBe(true);
+  expect(unitOf(v, 'draughtsman').held).toBe(true);
+  v = project(v, { type: 'swapped', a: hero, b: rat });
+  expect(unitOf(v, 'draughtsman').pos).toEqual({ x: 2, y: 1 });
+  expect(unitOf(v, 'rat-1').pos).toEqual({ x: 0, y: 0 });
+});
+
+test('jars appear when sealed and go when opened or crumbled', () => {
+  const at = { x: 3, y: 2 };
+  const hero = ref('draughtsman', { x: 0, y: 0 });
+  let v = project(fixture(), { type: 'jarSealed', at, owner: hero, event: 'step' });
+  expect(tile(v, 3, 2)?.jar).toBe(true);
+  v = project(v, { type: 'jarOpened', at, by: null });
+  expect(tile(v, 3, 2)?.jar).toBe(false);
+  v = project(v, { type: 'jarSealed', at, owner: hero, event: 'dusk' });
+  v = project(v, { type: 'jarCrumbles', at });
+  expect(tile(v, 3, 2)?.jar).toBe(false);
+});
+
+test('events that only flash leave the board as it was', () => {
+  const rat = ref('rat-1', { x: 2, y: 1 });
+  const v0 = fixture();
+  const quiet: GameEvent[] = [
+    { type: 'aimed', source: 'bolt', targets: [{ kind: 'unit', unit: 'rat-1' }], heading: 'right' },
+    { type: 'burst', burst: 'fire', at: rat.at, tiles: [rat.at], units: [rat] },
+    { type: 'crush', unit: rat, into: 'wall', damage: 2 },
+    { type: 'dropped', unit: rat, at: rat.at, elite: false },
+    { type: 'drawn', from: rat.at, to: { x: 1, y: 1 }, what: 'cloud' },
+    { type: 'erased', at: rat.at, what: 'mark' },
+    { type: 'released', unit: rat, action: 'strike' },
+    { type: 'conducted', action: 'strike', units: [rat] },
+    { type: 'scheduled', kind: 'repeat', at: rat.at },
+    { type: 'repeated', action: 'strike' },
+    { type: 'triggered', rune: 'tally', passed: false },
+    { type: 'fizzles', reason: 'cap' },
+    { type: 'named', what: 'compound', id: 'stain' },
   ];
-  const v = project(fixture(), { type: 'ignite', at: tiles[0] as Coord, tiles });
-  for (const t of tiles) {
-    expect(tile(v, t.x, t.y)).toMatchObject({ oil: true, fire: TUNING.fireRounds });
-  }
-  expect(tile(v, 3, 2)?.fire).toBe(0);
-});
-
-test('fireOut removes oil', () => {
-  const tiles = [{ x: 0, y: 2 }];
-  const lit = project(fixture(), { type: 'ignite', at: tiles[0] as Coord, tiles });
-  const out = project(lit, { type: 'fireOut', tiles });
-  expect(tile(out, 0, 2)).toMatchObject({ oil: false, fire: 0 });
+  for (const e of quiet) expect(project(v0, e), e.type).toEqual(v0);
 });
 
 test('telegraph sets intent, attack clears it', () => {
@@ -195,7 +254,7 @@ test('project never mutates its input', () => {
   const frozen = JSON.stringify(v0);
   const events: GameEvent[] = [
     { type: 'moved', unit: ref('draughtsman', { x: 0, y: 0 }), to: { x: 1, y: 0 }, path: [] },
-    { type: 'ignite', at: { x: 0, y: 0 }, tiles: [{ x: 0, y: 0 }] },
+    { type: 'landed', kind: 'oil', at: { x: 0, y: 0 }, makes: 'slick' },
     { type: 'died', unit: ref('rat-1', { x: 2, y: 1 }) },
     { type: 'round', round: 2 },
   ];
@@ -210,16 +269,10 @@ test('viewOf copies a battle state', () => {
     height: 1,
     tiles: [
       {
-        oil: true,
-        ink: false,
-        steam: 1,
-        fire: 0,
-        plate: false,
-        vent: false,
-        stain: true,
-        heat: 0,
-        etched: false,
-        scald: false,
+        terrain: { water: null, drop: false, vent: true, grate: false, gate: false, lamp: false },
+        state: { id: 'cloud', rounds: 2, origin: null },
+        jar: null,
+        hot: 0,
       },
     ],
     units: [
@@ -232,12 +285,14 @@ test('viewOf copies a battle state', () => {
         hp: 0,
         maxHp: 2,
         shield: 0,
-        inked: false,
-        brass: false,
-        oilSoaked: false,
-        branded: false,
-        heat: 2,
-        etched: true,
+        guardUntil: null,
+        mark: { deep: true, lineage: 1, bound: null, origin: null },
+        collar: null,
+        shackle: 0,
+        held: 1,
+        stunned: true,
+        elite: false,
+        lastMove: null,
         intent: null,
       },
     ],
@@ -245,9 +300,17 @@ test('viewOf copies a battle state', () => {
     phase: 'player',
   } as unknown as BattleState;
   const v = viewOf(s);
-  expect(v.units[0]).toMatchObject({ alive: false, hp: 0, kind: 'enemy', heat: 2, etched: true });
-  expect(v.tiles[0]).toEqual(s.tiles[0]);
-  expect(v.tiles[0]).not.toBe(s.tiles[0]);
+  expect(v.units[0]).toMatchObject({
+    alive: false,
+    hp: 0,
+    kind: 'enemy',
+    mark: 'deep',
+    collar: true, // null = born brass (a layout collar)
+    shackle: false,
+    held: true,
+    stunned: true,
+  });
+  expect(v.tiles[0]).toMatchObject({ state: 'cloud', rounds: 2, vent: true, jar: false });
 });
 
 test('viewOfSpec maps parseBoard tiles and units', () => {
@@ -261,75 +324,39 @@ test('viewOfSpec maps parseBoard tiles and units', () => {
     kind: 'enemy',
     def: 'rat',
     pos: { x: 2, y: 0 },
-    inked: true,
-    oilSoaked: true,
-    branded: false,
+    mark: 'plain',
     hp: 2,
     maxHp: 2,
     alive: true,
     intent: null,
   });
-  expect(tile(v, 2, 0)).toMatchObject({ oil: true, ink: false });
-  expect(tile(v, 1, 1)).toMatchObject({ vent: true, steam: TUNING.steamRounds });
-  expect(tile(v, 2, 1)).toMatchObject({ oil: true, fire: TUNING.fireRounds });
+  expect(tile(v, 2, 0)).toMatchObject({ state: 'slick' });
+  expect(tile(v, 1, 1)).toMatchObject({ vent: true, state: 'cloud', rounds: TUNING.cloudRounds });
+  expect(tile(v, 2, 1)).toMatchObject({ state: 'fire', rounds: TUNING.fireRounds });
   expect(unitOf(v, 'rat-2').pos).toEqual({ x: 2, y: 2 });
   const sentry = unitOf(v, 'sentry-1');
-  expect(sentry).toMatchObject({ brass: true, hp: 5 });
+  expect(sentry).toMatchObject({ collar: true, hp: 5 });
   expect(unitOf(v, 'draughtsman')).toMatchObject({ kind: 'member', hp: 6, name: 'Draughtsman' });
+});
+
+test('viewOfSpec carries compounds, plates, the drop and unit mods', () => {
+  const v = viewOfSpec(parseBoard('{stain} {brand} = _\nD!!&$++ . r$ .'));
+  expect(tile(v, 0, 0)).toMatchObject({ state: 'stain', rounds: TUNING.compoundRounds });
+  expect(tile(v, 1, 0)).toMatchObject({ state: 'brandCloud' });
+  expect(tile(v, 2, 0)).toMatchObject({ state: 'plate', rounds: 0 });
+  expect(tile(v, 3, 0)?.drop).toBe(true);
+  expect(unitOf(v, 'draughtsman')).toMatchObject({
+    mark: 'deep',
+    collar: true,
+    shackle: true,
+    shield: 2,
+  });
+  expect(unitOf(v, 'rat-1')).toMatchObject({ shackle: true, mark: null });
 });
 
 test('viewOfSpec ids match what the engine would assign', () => {
   const v = viewOfSpec(parseBoard('r . r\nS . d'));
   expect(v.units.map((u) => u.id)).toEqual(['rat-1', 'rat-2', 'stoker', 'dummy-1']);
-});
-
-test('stained, heated, cooled, scalded and etched project onto tiles and units', () => {
-  const at = { x: 1, y: 1 };
-  const plate = { x: 0, y: 2 };
-  const rat = ref('rat-1', { x: 2, y: 1 });
-  let v = project(fixture(), { type: 'oiled', tiles: [at] });
-  v = project(v, { type: 'stained', tiles: [at] });
-  expect(tile(v, 1, 1)).toMatchObject({ oil: true, stain: true });
-  v = project(v, { type: 'plates', tiles: [plate] });
-  v = project(v, { type: 'heated', tiles: [plate], units: [rat] });
-  expect(tile(v, 0, 2)?.heat).toBe(TUNING.heatRounds);
-  expect(unitOf(v, 'rat-1').heat).toBe(TUNING.heatRounds);
-  v = project(v, { type: 'etched', tiles: [plate], units: [rat] });
-  expect(tile(v, 0, 2)?.etched).toBe(true);
-  expect(unitOf(v, 'rat-1').etched).toBe(true);
-  v = project(v, { type: 'cooled', tiles: [plate], units: [rat] });
-  expect(tile(v, 0, 2)?.heat).toBe(0);
-  expect(unitOf(v, 'rat-1').heat).toBe(0);
-  // a crumbling plate takes its heat and etching with it
-  v = project(v, { type: 'heated', tiles: [plate], units: [] });
-  v = project(v, { type: 'plateCrumbles', tiles: [plate] });
-  expect(tile(v, 0, 2)).toMatchObject({ plate: false, heat: 0, etched: false });
-  v = project(v, { type: 'scalded', tiles: [{ x: 3, y: 0 }] });
-  expect(tile(v, 3, 0)).toMatchObject({ steam: TUNING.steamRounds, scald: true });
-  v = project(v, { type: 'steamFades', tiles: [{ x: 3, y: 0 }] });
-  expect(tile(v, 3, 0)).toMatchObject({ steam: 0, scald: false });
-});
-
-test('fire and washing away clear a stain', () => {
-  const at = { x: 1, y: 1 };
-  let v = project(project(fixture(), { type: 'oiled', tiles: [at] }), {
-    type: 'stained',
-    tiles: [at],
-  });
-  v = project(v, { type: 'ignite', at, tiles: [at] });
-  expect(tile(v, 1, 1)).toMatchObject({ fire: TUNING.fireRounds, stain: false });
-  v = project(v, { type: 'stained', tiles: [at] });
-  v = project(v, { type: 'fireOut', tiles: [at] });
-  expect(tile(v, 1, 1)).toMatchObject({ oil: false, stain: false });
-});
-
-test('viewOfSpec carries stain, heat, etching and scald', () => {
-  const v = viewOfSpec(parseBoard('$ s =^ =#\nD&^# . r'));
-  expect(tile(v, 0, 0)).toMatchObject({ oil: true, stain: true });
-  expect(tile(v, 1, 0)).toMatchObject({ steam: TUNING.steamRounds, scald: true });
-  expect(tile(v, 2, 0)).toMatchObject({ plate: true, heat: TUNING.heatRounds });
-  expect(tile(v, 3, 0)).toMatchObject({ plate: true, etched: true });
-  expect(unitOf(v, 'draughtsman')).toMatchObject({ heat: TUNING.heatRounds, etched: true });
 });
 
 // ── The canals (U1) ──
@@ -370,8 +397,8 @@ test('drift slides a member with the current', () => {
 
 test('drift carries a float one tile and drops it past the end of the lane', () => {
   const v0 = fixture();
-  Object.assign(tile(v0, 1, 1) ?? {}, { oil: true, fire: 2 });
-  Object.assign(tile(v0, 3, 1) ?? {}, { oil: true });
+  Object.assign(tile(v0, 1, 1) ?? {}, { state: 'fire', rounds: 2 });
+  Object.assign(tile(v0, 3, 1) ?? {}, { state: 'slick' });
   const v1 = project(v0, {
     type: 'drift',
     floats: [
@@ -380,10 +407,10 @@ test('drift carries a float one tile and drops it past the end of the lane', () 
     ],
     units: [],
   });
-  expect(tile(v1, 1, 1)).toMatchObject({ oil: false, fire: 0 });
-  expect(tile(v1, 2, 1)).toMatchObject({ oil: true, fire: 2 });
-  expect(tile(v1, 3, 1)?.oil).toBe(false);
-  expect(tile(v0, 1, 1)?.oil).toBe(true);
+  expect(tile(v1, 1, 1)).toMatchObject({ state: null, rounds: 0 });
+  expect(tile(v1, 2, 1)).toMatchObject({ state: 'fire', rounds: 2 });
+  expect(tile(v1, 3, 1)?.state).toBeNull();
+  expect(tile(v0, 1, 1)?.state).toBe('fire');
 });
 
 test('drift moves units named in the event', () => {
@@ -395,18 +422,28 @@ test('drift moves units named in the event', () => {
   expect(unitOf(v1, 'rat-1').pos).toEqual({ x: 3, y: 1 });
 });
 
-test('gateBurns removes the gate; snuff clears fire, oil and stain', () => {
+test('gateBurns removes the gate; snuff clears fire only', () => {
   const v0 = fixture();
   Object.assign(tile(v0, 1, 0) ?? {}, { gate: true });
-  Object.assign(tile(v0, 2, 2) ?? {}, { oil: true, fire: 2, stain: true });
+  Object.assign(tile(v0, 2, 2) ?? {}, { state: 'fire', rounds: 2 });
+  Object.assign(tile(v0, 3, 2) ?? {}, { state: 'slick' });
   const v1 = project(v0, { type: 'gateBurns', at: { x: 1, y: 0 } });
   expect(tile(v1, 1, 0)?.gate).toBe(false);
   const v2 = project(v1, {
     type: 'snuff',
     by: ref('rat-1', { x: 2, y: 1 }),
-    tiles: [{ x: 2, y: 2 }],
+    tiles: [
+      { x: 2, y: 2 },
+      { x: 3, y: 2 },
+    ],
   });
-  expect(tile(v2, 2, 2)).toMatchObject({ oil: false, fire: 0, stain: false });
+  expect(tile(v2, 2, 2)).toMatchObject({ state: null, rounds: 0 });
+  expect(tile(v2, 3, 2)?.state).toBe('slick');
+});
+
+test('vent puffs a cloud', () => {
+  const v = project(fixture(), { type: 'vent', at: { x: 1, y: 1 } });
+  expect(tile(v, 1, 1)).toMatchObject({ state: 'cloud', rounds: TUNING.cloudRounds });
 });
 
 test('summon adds the called moth; its caller loses the intent', () => {

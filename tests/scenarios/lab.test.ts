@@ -27,12 +27,20 @@ test('scenario ids are unique and kebab-case', () => {
   const ids = SCENARIOS.map((s) => s.id);
   expect(new Set(ids).size).toBe(ids.length);
   for (const id of ids) expect(id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
-  expect(scenarioById('oil-chain')?.title).toBe('Oil chain');
+  expect(scenarioById('sandbox')?.title).toBe('Sandbox');
   expect(scenarioById('nope')).toBeNull();
 });
 
 test('scenarioBattle in lab mode: no charges spent, spells from the scenario lattices', () => {
-  const def = scenarioById('oil-chain') as ScenarioDef;
+  const def: ScenarioDef = {
+    id: 'oil',
+    title: 'Oil',
+    note: '',
+    board: 'S . d',
+    lattices: { stoker: 'Bolt> Oil Spark' },
+    demo: [],
+    expected: [],
+  };
   const s = scenarioBattle(def, { lab: true });
   expect(s.lab).toBe(true);
   expect(s.phase).toBe('player');
@@ -48,25 +56,27 @@ test('scenarioBattle falls back to the given (profile) lattices for omitted memb
     lab: true,
     lattices: { draughtsman: parseLattice('Bolt> Ink') },
   });
-  expect(describeSpell(memberById(s, 'draughtsman').spells[0] ?? fail())).toBe(
-    'Bolt (2 damage) → Ink 3×3',
-  );
+  expect(describeSpell(memberById(s, 'draughtsman').spells[0] ?? fail())).toBe('Bolt → Ink');
 });
 
 test('labSetLattice recompiles spells and refills charges', () => {
   const s = scenarioBattle({ title: 'lab', board: 'D . d', lattices: { draughtsman: 'Bolt>' } });
   const spent = cast(s, 'draughtsman', 'right').state;
   expect(memberById(spent, 'draughtsman').charges['0,0']).toBe(4);
-  const next = labSetLattice(spent, 'draughtsman', 'Amp .\nBolt> Spark');
+  const next = labSetLattice(spent, 'draughtsman', 'Coil .\nBolt> Spark');
   const m = memberById(next, 'draughtsman');
-  expect(m.spells.map(describeSpell)).toEqual(['Bolt (3 damage) → Spark (1 damage)']);
+  expect(m.spells.map((sp) => describeSpell(sp))).toEqual(['Bolt → Spark']);
+  expect(m.spells[0]?.sourceAuras).toEqual(['coil']);
   expect(m.charges).toEqual({ '0,1': 5 });
   expect(memberById(spent, 'draughtsman').spells).toHaveLength(1); // input untouched
   expect(memberById(spent, 'draughtsman').spells[0]?.key).toBe('0,0');
 });
 
 test('UI contract: castableSpells, aimPreview path, labSetCell errors', () => {
-  const s = scenarioBattle(scenarioById('steam-arc') as ScenarioDef, { lab: true });
+  const s = scenarioBattle(
+    { title: 'lab', board: 'D . ~ . d', lattices: { draughtsman: 'Bolt> Spark' } },
+    { lab: true },
+  );
   const [entry] = castableSpells(s, 'draughtsman');
   expect(entry?.charges).toBe(5);
   expect(entry?.usable).toBe(true);
@@ -75,7 +85,7 @@ test('UI contract: castableSpells, aimPreview path, labSetCell errors', () => {
     path: [parseLabel('B1'), parseLabel('C1')],
     targets: [parseLabel('C1')],
   });
-  expect(() => labSetCell(s, parseLabel('B1'), 'r=')).toThrow(/brass plate.*B1/);
+  expect(() => labSetCell(s, parseLabel('B1'), 'r=')).toThrow(/plate.*B1/);
   expect(() => labSetCell(s, parseLabel('B1'), 'q')).toThrow(/Unknown character "q" in cell B1/);
 });
 

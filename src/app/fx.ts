@@ -1,9 +1,10 @@
-import { ATTACKS } from '$data';
+import { ATTACKS, type CompoundId, type StateId } from '$data';
 import {
   type Action,
   aimPreview,
   type BattleState,
   type Coord,
+  describe,
   findUnit,
   type GameEvent,
   inBounds,
@@ -31,6 +32,31 @@ export type Fx =
   | { kind: 'pulse'; at: Coord; tone: Tone } // cast, detonate, coat
   | { kind: 'banner'; text: string }; // "Your turn", "Round 3"
 
+export const COMPOUND_TONE: Record<CompoundId, Tone> = {
+  deepMark: 'ink',
+  stain: 'ink',
+  brandCloud: 'steam',
+  shackle: 'brass',
+  pool: 'oil',
+  greaseFog: 'steam',
+  skidPlate: 'brass',
+  bank: 'steam',
+  kettle: 'brass',
+  wall: 'brass',
+};
+
+const STATE_TONE: Record<StateId, Tone> = {
+  blot: 'ink',
+  slick: 'oil',
+  cloud: 'steam',
+  plate: 'brass',
+  fire: 'fire',
+};
+
+/** The colour family of a state or compound. */
+export const layerTone = (id: StateId | CompoundId): Tone =>
+  id in STATE_TONE ? STATE_TONE[id as StateId] : COMPOUND_TONE[id as CompoundId];
+
 const burst = (cells: Coord[], tone: Tone, stagger = 0): Fx => ({
   kind: 'burst',
   cells,
@@ -54,20 +80,33 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'banner', text: 'The party is wiped out' }];
     case 'moved':
       return [{ kind: 'trail', cells: e.path, tone: e.unit.member ? 'member' : 'danger' }];
-    case 'moveUndone':
-    case 'pushed': {
+    case 'moveUndone': {
       const from = posOf(e.unit.id) ?? e.unit.at;
       return [{ kind: 'trail', cells: [from, e.to], tone: e.unit.member ? 'member' : 'danger' }];
     }
-    case 'slide':
-      return [{ kind: 'trail', cells: e.path, tone: 'oil' }];
+    case 'push':
+      return [
+        {
+          kind: 'trail',
+          cells: [e.unit.at, ...e.path],
+          tone: e.slid > 0 ? 'oil' : e.unit.member ? 'member' : 'danger',
+        },
+      ];
     case 'cast':
       return [{ kind: 'pulse', at: e.caster.at, tone: 'source' }];
     case 'lands':
     case 'stopped':
       return [{ kind: 'trail', cells: e.path, tone: 'source' }];
-    case 'splash':
-      return [burst(e.tiles, 'source')];
+    case 'aimed':
+      return [
+        burst(
+          e.targets.flatMap((t) => {
+            const at = t.kind === 'tile' ? t.at : posOf(t.unit);
+            return at ? [at] : [];
+          }),
+          'source',
+        ),
+      ];
     case 'damage':
       return [{ kind: 'float', at: e.target.at, text: `−${e.amount}`, tone: 'danger' }];
     case 'shieldAbsorbs':
@@ -76,57 +115,69 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'float', at: e.unit.at, text: `+${e.amount} shield`, tone: 'shield' }];
     case 'died':
       return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
-    case 'inked':
-      return [burst([e.unit.at], 'ink')];
-    case 'smear':
+    case 'landed':
+      return [e.unit ? { kind: 'pulse', at: e.unit.at, tone: e.kind } : burst([e.at], e.kind)];
+    case 'mixed':
+      return [
+        e.unit
+          ? { kind: 'pulse', at: e.unit.at, tone: COMPOUND_TONE[e.compound] }
+          : burst([e.at], COMPOUND_TONE[e.compound]),
+      ];
+    case 'washed':
+      return [burst([e.at], 'steam')];
+    case 'spreadState':
+      return [burst(e.to, 'steam', 40)];
+    case 'burst':
+      return [
+        burst(e.tiles.length ? e.tiles : [e.at], e.burst === 'fire' ? 'fire' : 'spark', 50),
+        { kind: 'pulse', at: e.at, tone: e.burst === 'fire' ? 'fire' : 'spark' },
+      ];
+    case 'crush':
+      return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
+    case 'dropped':
+      return [
+        { kind: 'pulse', at: e.at, tone: 'danger' },
+        { kind: 'float', at: e.at, text: 'drops', tone: 'danger' },
+      ];
+    case 'stunned':
+      return [{ kind: 'float', at: e.unit.at, text: 'stunned', tone: 'danger' }];
+    case 'held':
+      return [{ kind: 'float', at: e.unit.at, text: 'held', tone: 'shield' }];
+    case 'swapped':
+      return [
+        { kind: 'trail', cells: [e.a.at, e.b.at], tone: 'member' },
+        { kind: 'trail', cells: [e.b.at, e.a.at], tone: 'member' },
+      ];
+    case 'drawn':
+      return [{ kind: 'trail', cells: [e.from, e.to], tone: 'source' }];
+    case 'erased':
+      return [{ kind: 'pulse', at: e.at, tone: 'steam' }];
+    case 'marked':
+      return [{ kind: 'pulse', at: e.unit.at, tone: 'ink' }];
+    case 'collared':
+      return [{ kind: 'pulse', at: e.unit.at, tone: 'brass' }];
+    case 'markSpread':
+      return [burst([e.from.at, ...e.to.map((u) => u.at)], 'ink', 50)];
+    case 'markLifted':
+      return [{ kind: 'trail', cells: [e.from.at, e.to.at], tone: 'ink' }];
+    case 'released':
+      return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
+    case 'conducted':
       return [
         burst(
-          e.to.map((u) => u.at),
-          'ink',
+          e.units.map((u) => u.at),
+          'spark',
+          40,
         ),
       ];
-    case 'mist':
-      return [burst(e.tiles, 'steam')];
-    case 'branded':
-      return [{ kind: 'pulse', at: e.unit.at, tone: 'fire' }];
-    case 'puddle':
-    case 'diffuse':
-      return [burst(e.tiles, 'ink')];
-    case 'oiled':
-      return [burst(e.tiles, 'oil')];
-    case 'steam':
-    case 'extinguish':
-      return [burst(e.tiles, 'steam')];
+    case 'jarSealed':
+      return [{ kind: 'pulse', at: e.at, tone: 'source' }];
+    case 'jarOpened':
+      return [burst([e.at], 'source')];
+    case 'fizzles':
+      return [{ kind: 'banner', text: describe(e) ?? 'It fizzles' }];
     case 'vent':
       return [burst([e.at], 'steam')];
-    case 'plates':
-      return [burst(e.tiles, 'brass')];
-    case 'coated':
-      return [{ kind: 'pulse', at: e.unit.at, tone: 'brass' }];
-    case 'detonate':
-      return [{ kind: 'pulse', at: e.unit.at, tone: 'ink' }];
-    case 'ignite':
-      return [burst(e.tiles, 'fire', 50)];
-    case 'pierced':
-      return [{ kind: 'pulse', at: e.unit.at, tone: 'danger' }];
-    case 'heated':
-      return [burst([...e.tiles, ...e.units.map((u) => u.at)], 'fire', 50)];
-    case 'cooled':
-      return [burst([...e.tiles, ...e.units.map((u) => u.at)], 'steam')];
-    case 'scalded':
-      return [burst(e.tiles, 'fire', 50)];
-    case 'stained':
-      return [burst(e.tiles, 'ink')];
-    case 'etched':
-      return [burst([...e.tiles, ...e.units.map((u) => u.at)], 'ink')];
-    case 'arc':
-    case 'conduct':
-      return [{ kind: 'zap', from: e.from, cells: e.tiles }];
-    case 'trigger': {
-      if (!e.at) return [];
-      const text = e.passed ? (e.rune === 'onInked' ? 'if inked ✓' : 'on kill ✓') : '✗';
-      return [{ kind: 'float', at: e.at, text, tone: 'spark' }];
-    }
     case 'attack': {
       const range = ATTACKS[e.intent.attack].range;
       const cells: Coord[] = [e.unit.at];
@@ -157,14 +208,31 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       ];
     case 'snuff':
       return [burst(e.tiles, 'steam', 40)];
-    case 'burst':
+    case 'foeBursts':
       return [burst([e.at], 'fire'), { kind: 'pulse', at: e.at, tone: 'fire' }];
     case 'summon':
       return [{ kind: 'pulse', at: e.at, tone: 'danger' }];
     case 'flare':
       return [{ kind: 'pulse', at: e.by.at, tone: 'fire' }];
-    default:
+    // Silent or nothing to draw: the board catches up from the state.
+    case 'shove':
+    case 'miss':
+    case 'idle':
+    case 'telegraph':
+    case 'trace':
+    case 'stateFades':
+    case 'markSpent':
+    case 'jarCrumbles':
+    case 'scheduled':
+    case 'repeated':
+    case 'triggered':
+    case 'named':
       return [];
+    default: {
+      const unhandled: never = e;
+      void unhandled;
+      return [];
+    }
   }
 }
 

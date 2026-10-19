@@ -1,4 +1,4 @@
-import { ATTACKS, TUNING } from '$data';
+import { ATTACKS, type CompoundId, RUNES, type StateId, TUNING } from '$data';
 import {
   byReadingOrder,
   type Coord,
@@ -10,9 +10,9 @@ import {
   neighbors4,
   parseKey,
   sameCoord,
-  square,
   step,
 } from './grid';
+import { aimTargets, whereIs } from './resolve';
 import type {
   Aim,
   BattleState,
@@ -41,6 +41,10 @@ export function tileAt(s: BattleState, c: Coord): Tile {
   const t = inBoard(s, c) ? s.tiles[c.y * s.width + c.x] : undefined;
   if (!t) throw new Error(`No tile at ${c.x},${c.y}`);
   return t;
+}
+
+export function coordOf(s: BattleState, i: number): Coord {
+  return { x: i % s.width, y: Math.floor(i / s.width) };
 }
 
 export function isAlive(u: Unit): boolean {
@@ -82,24 +86,32 @@ export function memberById(s: BattleState, id: UnitId): MemberUnit {
   return u;
 }
 
+// ── Tile states ─────────────────────────────────────────
+
+type LayerId = StateId | CompoundId;
+/** States and compounds that stand up like a plate: they block units, walks and lines. */
+const PLATES: ReadonlySet<LayerId> = new Set(['plate', 'skidPlate', 'kettle', 'wall']);
+/** States and compounds that are a cloud: they block sight and lines (design §4.1). */
+const CLOUDS: ReadonlySet<LayerId> = new Set(['cloud', 'brandCloud', 'greaseFog', 'bank']);
+
+export const hasState = (t: Tile, id: LayerId): boolean => t.state?.id === id;
+export const isPlate = (t: Tile): boolean => !!t.state && PLATES.has(t.state.id);
+export const isCloud = (t: Tile): boolean => !!t.state && CLOUDS.has(t.state.id);
+export const isFire = (t: Tile): boolean => t.state?.id === 'fire';
+
 /** Plates, wooden gates and grates stop units, walks and projectiles (K-10, K-11). */
-export const blocksUnits = (t: Tile): boolean => t.plate || t.gate || t.grate;
+export const blocksUnits = (t: Tile): boolean => isPlate(t) || t.terrain.gate || t.terrain.grate;
 
 export type Blocker = 'brass plate' | 'lock gate' | 'grate';
 /** What a projectile stopped at on a `blocksUnits` tile, for the log. */
 export const blockerName = (t: Tile): Blocker =>
-  t.gate ? 'lock gate' : t.grate ? 'grate' : 'brass plate';
+  t.terrain.gate ? 'lock gate' : t.terrain.grate ? 'grate' : 'brass plate';
 
 /** Free to walk or be pushed onto: on the board, no plate, gate or grate, no living unit. */
 export function isOpen(s: BattleState, c: Coord, ignore?: UnitId): boolean {
   if (!inBoard(s, c) || blocksUnits(tileAt(s, c))) return false;
   const u = unitAt(s, c);
   return u === null || u.id === ignore;
-}
-
-/** A plate, or a tile holding a living brass unit (sentry or brass-coated). */
-export function isBrassTile(s: BattleState, c: Coord): boolean {
-  return tileAt(s, c).plate || unitAt(s, c)?.brass === true;
 }
 
 const sorted = (cs: Coord[]): Coord[] => [...cs].sort(byReadingOrder);
@@ -110,17 +122,6 @@ export function clip(s: BattleState, cs: readonly Coord[]): Coord[] {
   for (const c of cs) if (inBoard(s, c) && !seen.has(key(c))) seen.set(key(c), { ...c });
   return sorted([...seen.values()]);
 }
-
-/** Material footprint: union of Chebyshev squares of radius magnitude − 1 around each target. */
-export function footprint(s: BattleState, targets: readonly Coord[], magnitude: number): Coord[] {
-  const r = Math.max(0, magnitude - 1);
-  return clip(
-    s,
-    targets.flatMap((t) => square(t, r)),
-  );
-}
-
-// ── Floods ──────────────────────────────────────────────
 
 /** Orthogonal flood from `start` over tiles matching `pass`; reading order. */
 export function flood(s: BattleState, start: Coord, pass: (c: Coord) => boolean): Coord[] {
@@ -140,30 +141,14 @@ export function flood(s: BattleState, start: Coord, pass: (c: Coord) => boolean)
   return sorted(out);
 }
 
-export function steamCloud(s: BattleState, start: Coord): Coord[] {
-  return flood(s, start, (c) => tileAt(s, c).steam > 0);
-}
-
-export function brassNet(s: BattleState, start: Coord): Coord[] {
-  return flood(s, start, (c) => isBrassTile(s, c));
-}
-
-/** Unlit, steam-free oil connected to `start`: what one ignition sets on fire. */
-export function oilRegion(s: BattleState, start: Coord): Coord[] {
-  return flood(s, start, (c) => {
-    const t = tileAt(s, c);
-    return t.oil && t.fire === 0 && t.steam === 0;
-  });
-}
-
 // ── Projectiles ─────────────────────────────────────────
 
 export type Travel =
   | { reason: 'none'; path: Coord[]; stop: null }
-  | { reason: 'steam' | 'brass' | 'end'; path: Coord[]; stop: Coord }
+  | { reason: 'cloud' | 'blocked' | 'end'; path: Coord[]; stop: Coord }
   | { reason: 'unit'; path: Coord[]; stop: Coord; unit: Unit };
 
-/** A projectile's flight. Steam is checked first: a unit inside a cloud is shielded. */
+/** A line's flight. A cloud is checked first: a unit inside a cloud is hidden. */
 export function travel(
   s: BattleState,
   from: Coord,
@@ -178,17 +163,23 @@ export function travel(
     if (!inBoard(s, nxt)) break;
     path.push(nxt);
     cur = nxt;
-    if (tileAt(s, nxt).steam > 0) return { reason: 'steam', path, stop: nxt };
+    if (isCloud(tileAt(s, nxt))) return { reason: 'cloud', path, stop: nxt };
     const u = unitAt(s, nxt);
     if (u && u.id !== ignore) return { reason: 'unit', path, stop: nxt, unit: u };
-    if (blocksUnits(tileAt(s, nxt))) return { reason: 'brass', path, stop: nxt };
+    if (blocksUnits(tileAt(s, nxt))) return { reason: 'blocked', path, stop: nxt };
   }
   const last = path[path.length - 1];
   return last ? { reason: 'end', path, stop: last } : { reason: 'none', path: [], stop: null };
 }
 
-export function boltRange(s: BattleState): number {
-  return Math.max(s.width, s.height);
+/** The caster is gifted in a rune's school: its gift applies (design §9, P36). */
+export function giftedIn(u: Unit, rune: keyof typeof RUNES): boolean {
+  return u.kind === 'member' && u.lean.gifted === RUNES[rune].school;
+}
+
+/** Bolt's range for this caster: 4, +1 when gifted (P21, P36). */
+export function boltRange(u: Unit): number {
+  return TUNING.boltRange + (giftedIn(u, 'bolt') ? 1 : 0);
 }
 
 // ── Movement ────────────────────────────────────────────
@@ -243,10 +234,13 @@ function activeMember(s: BattleState, id: UnitId): MemberUnit | null {
   return u && u.kind === 'member' && isAlive(u) && playerTurn(s) ? u : null;
 }
 
+/** Can this member move by itself now? A Shackle or a Hold keeps it in place. */
+const canWalk = (m: MemberUnit): boolean => m.shackle === 0 && m.held === 0;
+
 /** Tiles the member can move to now, reading order. [] if it already moved. */
 export function legalMoves(s: BattleState, id: UnitId): Coord[] {
   const m = activeMember(s, id);
-  if (!m || m.moved) return [];
+  if (!m || m.moved || !canWalk(m)) return [];
   return sorted([...reachable(s, m, m.move).keys()].map(parseKey));
 }
 
@@ -280,6 +274,14 @@ export function castableSpells(
   });
 }
 
+const allTiles = (s: BattleState): Coord[] => s.tiles.map((_, i) => coordOf(s, i));
+
+/** Splash and Vat range for this caster: +1 when gifted (P36). */
+function areaRange(u: Unit, source: 'splash' | 'vat'): number {
+  const base = source === 'splash' ? TUNING.splashRange : TUNING.vatRange;
+  return base + (giftedIn(u, source) ? 1 : 0);
+}
+
 /** Every aim the spell accepts from the member's current tile. */
 export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[] {
   const m = findUnit(s, id);
@@ -288,19 +290,22 @@ export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[]
   if (!spell) return [];
   switch (spell.source) {
     case 'bolt':
-    case 'quill':
       return DIRS.filter((d) => inBoard(s, step(m.pos, d))).map((dir) => ({ kind: 'dir', dir }));
     case 'splash':
-      return s.tiles
-        .map((_, i) => ({ x: i % s.width, y: Math.floor(i / s.width) }))
-        .filter((c) => chebyshev(m.pos, c) <= TUNING.splashRange)
+    case 'vat': {
+      const range = areaRange(m, spell.source);
+      return allTiles(s)
+        .filter((c) => chebyshev(m.pos, c) <= range)
         .map((at) => ({ kind: 'tile', at }));
-    case 'ward': {
-      const allies = DIRS.map((d) => unitAt(s, step(m.pos, d))).filter(
-        (u): u is Unit => u?.kind === 'member',
-      );
-      return [m, ...allies].map((u) => ({ kind: 'ally', unit: u.id }));
     }
+    case 'touch':
+      return [
+        { kind: 'self' },
+        ...DIRS.map((d) => step(m.pos, d))
+          .filter((c) => inBoard(s, c))
+          .sort(byReadingOrder)
+          .map((at): Aim => ({ kind: 'tile', at })),
+      ];
   }
 }
 
@@ -310,12 +315,12 @@ export function sameAim(a: Aim, b: Aim): boolean {
       return b.kind === 'dir' && a.dir === b.dir;
     case 'tile':
       return b.kind === 'tile' && sameCoord(a.at, b.at);
-    case 'ally':
-      return b.kind === 'ally' && a.unit === b.unit;
+    case 'self':
+      return b.kind === 'self';
   }
 }
 
-/** Projectile path and the tiles the source effect lands on (what later runes apply to). */
+/** Where the spell aims from here: the line's path and the tiles of its targets (for the overlay). */
 export function aimPreview(
   s: BattleState,
   id: UnitId,
@@ -325,23 +330,16 @@ export function aimPreview(
   const m = findUnit(s, id);
   const spell = m?.kind === 'member' ? spellOf(m, spellKey) : null;
   if (!m || !spell) return { path: [], targets: [] };
-  if ((spell.source === 'bolt' || spell.source === 'quill') && aim.kind === 'dir') {
-    const r = travel(s, m.pos, aim.dir, boltRange(s), m.id);
-    if (r.reason === 'unit' && spell.pierce) {
-      // Pierce: the flight goes on past the first unit (see cast.ts).
-      const on = travel(s, r.stop, aim.dir, boltRange(s), m.id);
-      return { path: [...r.path, ...on.path], targets: on.stop ? [r.stop, on.stop] : [r.stop] };
-    }
-    return { path: r.path, targets: r.stop ? [r.stop] : [] };
-  }
-  if (spell.source === 'splash' && aim.kind === 'tile') {
-    return { path: [], targets: clip(s, square(aim.at, TUNING.splashRadius)) };
-  }
-  if (spell.source === 'ward' && aim.kind === 'ally') {
-    const ally = findUnit(s, aim.unit);
-    return { path: [], targets: ally && isAlive(ally) ? [{ ...ally.pos }] : [] };
-  }
-  return { path: [], targets: [] };
+  const path =
+    spell.source === 'bolt' && aim.kind === 'dir'
+      ? travel(s, m.pos, aim.dir, boltRange(m), m.id).path
+      : [];
+  const aimed = aimTargets(s, m, spell.source, aim, giftedIn(m, spell.source));
+  const targets = aimed.targets.flatMap((t) => {
+    const at = whereIs(s, t);
+    return at ? [{ ...at }] : [];
+  });
+  return { path, targets };
 }
 
 /** Danger overlay: where a telegraphed attack travels and which tile it would hit now. */

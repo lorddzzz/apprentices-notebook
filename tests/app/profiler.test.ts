@@ -22,12 +22,7 @@ const GLYPH: GlyphDef = {
   id: 'g1',
   name: 'Cashing In',
   kind: 'spell',
-  cells: [
-    cell(0, 0, 'bolt', 'right'),
-    cell(1, 0, 'ink'),
-    cell(2, 0, 'onInked'),
-    cell(3, 0, 'spark'),
-  ],
+  cells: [cell(0, 0, 'bolt', 'right'), cell(1, 0, 'ink'), cell(2, 0, 'tally'), cell(3, 0, 'spark')],
   entry: { x: 0, y: 0 },
   exits: [],
   idiom: null,
@@ -160,7 +155,7 @@ describe('suggestion', () => {
 
   test('a trigger that ran but never opened is named before a cell can count as dead', () => {
     const early = record({ casts: 3, fired: { '0,0': 3, '1,0': 3, '2,0': 3 } });
-    expect(suggestionOf(GLYPH, early)).toBe('The On Inked ran but never opened.');
+    expect(suggestionOf(GLYPH, early)).toBe('The Tally ran but never opened.');
     // Five casts on, the cell behind it is dead and that line wins.
     const later = record({ casts: 5, fired: { '0,0': 5, '1,0': 5, '2,0': 5 } });
     expect(suggestionOf(GLYPH, later)).toMatch(/^The Spark on row 1 never fired in 5 casts/);

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SOLVENTS, type SolventId } from '$data';
-  import { FILLED_SOLVENTS, SOLVENT_GLYPH } from '../glyphs';
+  import { FILLED_SOLVENT_ART, SOLVENT_ART } from '../runeArt';
 
   interface Props {
     solvent: SolventId;
@@ -8,8 +8,6 @@
   }
 
   let { solvent, size = 24 }: Props = $props();
-
-  const path = $derived(SOLVENT_GLYPH[solvent] ?? null);
 </script>
 
 <svg
@@ -21,18 +19,14 @@
   aria-label={SOLVENTS[solvent].name}
   style:color="var(--ink)"
 >
-  {#if path}
-    <path
-      d={path}
-      fill={FILLED_SOLVENTS.has(solvent) ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-  {:else}
-    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3" />
-  {/if}
+  <path
+    d={SOLVENT_ART[solvent]}
+    fill={FILLED_SOLVENT_ART.has(solvent) ? 'currentColor' : 'none'}
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
 </svg>
 
 <style>

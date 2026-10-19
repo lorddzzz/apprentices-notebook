@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { RUNES } from '$data';
   import {
     type CellKey,
     canBeOpen,
@@ -8,9 +7,11 @@
     type GlyphDef,
     type GlyphId,
     key,
+    nameOf,
     type Profile,
     recordOf,
     rewardsOf,
+    roleOf,
   } from '$engine';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -103,7 +104,7 @@
               class:on
               aria-pressed={on}
               disabled={readonly || (!on && full && rewards.params > 1)}
-              title={`${RUNES[c.rune].name} (${RUNES[c.rune].family})`}
+              title={`${nameOf(c.rune)} (${roleOf(c.rune) ?? 'rune'})`}
               data-testid="glyph-open-toggle"
               data-cell={k}
               onclick={() => toggle(k)}

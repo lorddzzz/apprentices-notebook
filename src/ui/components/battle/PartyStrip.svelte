@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { MEMBERS, RUNES, TUNING } from '$data';
   import type { MemberUnit, UnitId } from '$engine';
+  import { SCHOOL_NAME } from '../../../app/describe';
   import Pips from '../common/Pips.svelte';
 
   interface Props {
@@ -36,15 +36,18 @@
       <span class="row">
         <span class="dot"></span>
         <span class="name">{m.name}</span>
-        <span class="aff" title="Affinity: these runes are +{TUNING.affinityBonus} stronger">
-          {MEMBERS[m.def].affinity.map((a) => RUNES[a].name.toLowerCase()).join('·')}+{TUNING.affinityBonus}
+        <span class="aff" title="Trained: its runes cost 1 ink less. Gifted: its runes work a step better.">
+          {SCHOOL_NAME[m.lean.trained].toLowerCase()}{m.lean.gifted && m.lean.gifted !== m.lean.trained
+            ? ` / ${SCHOOL_NAME[m.lean.gifted].toLowerCase()}`
+            : ''}
         </span>
         {#if danger}<span class="danger" title="An attack is aimed here">!</span>{/if}
       </span>
       <span class="row small">
         <Pips value={m.hp} max={m.maxHp} />
         {#if m.shield > 0}<span class="shield">◈{m.shield}</span>{/if}
-        {#if m.inked}<span class="inked" title="Inked">●</span>{/if}
+        {#if m.mark}<span class="inked" title={m.mark.deep ? 'Deeply marked' : 'Marked'}>●</span>{/if}
+        {#if m.collar !== false}<span class="collar" title="Collared in brass">○</span>{/if}
         <span class="ticks">
           <span class:used={m.moved}>move</span>
           <span class:used={m.acted}>act</span>
@@ -126,6 +129,10 @@
   .shield {
     color: var(--shield);
     font-family: var(--mono);
+  }
+  .collar {
+    color: var(--m-brass-dark);
+    font-size: 13px;
   }
   .inked {
     color: var(--m-ink);

@@ -1,38 +1,49 @@
 import { expect, test } from 'vitest';
-import { INTERACTION_IDS } from '$data';
-import { type Action, applyAction } from '$engine';
+import { type Action, scenarioBattle } from '$engine';
 import { previewOf } from '../../src/app/battleInput';
-import { labBattle, scenario } from './battleFixtures';
+import { battleOf, CAST_BOARD, SHOVE_BOARD } from './battleFixtures';
 
-test('S1 second cast preview: dummy −8 total (3+3+2)', () => {
-  const def = scenario('ink-spark-detonation');
-  const [first, second] = def.demo as [Action, Action];
-  const s = applyAction(labBattle(def.id), first).state;
-  const p = previewOf(s, second, INTERACTION_IDS);
-  expect(p.damage['dummy-1']).toBe(8);
+const boltRight: Action = {
+  type: 'cast',
+  unit: 'draughtsman',
+  spell: '0,1',
+  aim: { kind: 'dir', dir: 'right' },
+};
+
+test('a Bolt that hits a unit previews its landing and marks the target tile', () => {
+  const p = previewOf(battleOf(CAST_BOARD), boltRight);
+  expect(p.damage).toEqual({ 'dummy-1': 2 });
   expect(p.kills).toEqual([]);
-  expect(p.summary).toBe('Bolt up: dummy D1 −8, ink detonates');
+  expect(p.summary).toBe('Bolt right: dummy D1 −2 marked');
+  expect(p.targets).toEqual([{ x: 3, y: 0 }]);
+  expect(p.path.length).toBeGreaterThan(1);
 });
 
-test('S2 preview lists both rat kills', () => {
-  const def = scenario('oil-chain');
-  const p = previewOf(labBattle(def.id), def.demo[0] as Action, INTERACTION_IDS);
-  expect(p.kills).toEqual(['rat-1', 'rat-2']);
-  expect(p.summary).toBe('Bolt right: rat C2 −2 dies, rat E2 −2 dies, oil ignites');
-  expect(p.targets).toHaveLength(1);
+test('a touch reads as what it does to the unit it aims at', () => {
+  const s = scenarioBattle(
+    { board: SHOVE_BOARD, lattices: { stoker: 'Touch> Strike' } },
+    { lab: true },
+  );
+  const p = previewOf(s, {
+    type: 'cast',
+    unit: 'stoker',
+    spell: '0,0',
+    aim: { kind: 'tile', at: { x: 1, y: 0 } },
+  });
+  expect(p.summary).toBe('Touch at B1: rat B1 −2 dies');
+  expect(p.targets).toEqual([{ x: 1, y: 0 }]);
+});
+
+test('a shove previews the pushed unit', () => {
+  const s = battleOf(SHOVE_BOARD);
+  const p = previewOf(s, { type: 'shove', unit: 'stoker', dir: 'right' });
+  expect(p.targets).toEqual([{ x: 1, y: 0 }]);
+  expect(p.summary).toMatch(/^Shove rat right: /);
 });
 
 test('preview never changes the session state', () => {
-  const def = scenario('oil-chain');
-  const s = labBattle(def.id);
+  const s = battleOf(CAST_BOARD);
   const snapshot = structuredClone(s);
-  previewOf(s, def.demo[0] as Action, INTERACTION_IDS);
+  previewOf(s, boltRight);
   expect(s).toEqual(snapshot);
-});
-
-test('summary hides unknown interaction names', () => {
-  const def = scenario('oil-chain');
-  const p = previewOf(labBattle(def.id), def.demo[0] as Action, []);
-  expect(p.summary).not.toMatch(/ignite/);
-  expect(p.summary).toMatch(/\?\?\?/);
 });

@@ -11,7 +11,7 @@ import {
 
 const compile = (ascii: string) => {
   const lattice = parseLattice(ascii);
-  return { lattice, compiled: compileLattice(lattice, []) };
+  return { lattice, compiled: compileLattice(lattice) };
 };
 const pairs = (segs: ReturnType<typeof flowSegments>) =>
   segs.map((s) => `${s.from.x},${s.from.y}>${s.to.x},${s.to.y}`);
@@ -46,18 +46,18 @@ test('focus marks only the chosen spell as strong', () => {
 });
 
 test('aura touches link the aura to touched cells only', () => {
-  const { compiled } = compile('Amp . .\nBolt> Ink Oil\n. . Amp');
+  const { compiled } = compile('Coil . .\nBolt> Ink Oil\n. . Coil');
   const links = auraLinks(compiled.auraTouches).map(
     (l) => `${l.from.x},${l.from.y}>${l.to.x},${l.to.y}`,
   );
-  // First Amp touches the Bolt (below it); the corner Amp touches Oil (above it).
+  // First Coil touches the Bolt (below it); the corner Coil touches Oil (above it).
   expect(links.sort()).toEqual(['0,0>0,1', '2,2>2,1']);
 });
 
 test('unreached runes are idle; auras that touch something are not', () => {
-  const { lattice, compiled } = compile('Bolt> Ink . Spark\nAmp . . Oil\n. . Echo .');
+  const { lattice, compiled } = compile('Bolt> Ink . Spark\nCoil . . Oil\n. . Steep .');
   const idle = [...idleCells(lattice, compiled)].sort();
-  // Spark and Oil sit past a gap; Echo touches nothing. Amp touches the Bolt.
+  // Spark and Oil sit past a gap; Steep touches nothing. Coil touches the Bolt.
   expect(idle).toEqual(['2,2', '3,0', '3,1']);
 });
 

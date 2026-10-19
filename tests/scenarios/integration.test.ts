@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ENCOUNTERS, SCENARIOS } from '$data';
+import { ENCOUNTERS } from '$data';
 import {
   type Action,
   applyAction,
@@ -15,75 +15,20 @@ import {
   memberById,
   newProfile,
   replay,
-  runScenario,
   startTrip,
-  unitById,
 } from '$engine';
-import { act, cast, expectLog, expectLogIncludes, withLattices } from './harness';
+import { act, board, expectLogIncludes } from './harness';
 
-/** Cross-module checks: echo over a turn, wards vs. sentries, replay and reproducibility. */
+/** Cross-module checks: sentries vs. clouds, shields, replay and reproducibility. */
 
-test('echo: the spell repeats next turn at half strength (S8)', () => {
-  const s0 = withLattices('D . d', { draughtsman: 'Echo .\nBolt> Spark' });
-  const r1 = cast(s0, 'draughtsman', 'right');
-  expectLog(r1.events, [
-    'Draughtsman casts Bolt right',
-    'Bolt hits dummy at C1 for 2',
-    'Spark hits dummy at C1 for 1',
-    "Echo: Draughtsman's spell will repeat next turn",
-  ]);
-  const r2 = act(r1.state, { type: 'endTurn' });
-  expectLog(r2.events, [
-    'Enemies act',
-    'Round 2',
-    'Enemies move',
-    'dummy at C1 waits',
-    'Your turn',
-    "Echo: Draughtsman's Bolt repeats right at half strength",
-    'Bolt hits dummy at C1 for 1',
-    'Spark hits dummy at C1 for 1',
-  ]);
-  const d = memberById(r2.state, 'draughtsman');
-  expect(d.charges['0,1']).toBe(4);
-  expect(unitById(r2.state, 'dummy-1').hp).toBe(7);
-});
-
-test('ward-cloak: a warded Stoker under Steam is safe from the sentry (S13)', () => {
-  const s0 = withLattices('b . S D', { draughtsman: 'Ward> Steam' }, { intents: { A1: 'right' } });
-  const r1 = cast(s0, 'draughtsman', { kind: 'ally', unit: 'stoker' });
-  expectLog(r1.events, [
-    'Draughtsman casts Ward on Stoker',
-    'Stoker gains a shield of 2',
-    'steam rises at C1',
-  ]);
-  const r2 = act(r1.state, { type: 'endTurn' });
-  expectLogIncludes(r2.events, [
-    'Enemies act',
-    'sentry at A1 fires right',
-    'Line is stopped by the steam at C1',
-  ]);
-  expect(memberById(r2.state, 'stoker').hp).toBe(8);
-  expect(memberById(r2.state, 'stoker').shield).toBe(2);
-});
-
-test('sentry-steam-block: steam stops the line, and without it the line hits (S10)', () => {
-  const blocked = createBattle({
-    title: 't',
-    seed: 1,
-    board: 'b . ~ . D',
-    intents: { A1: 'right' },
-  }).state;
+test('sentry-cloud-block: a cloud stops the line, and without it the line hits (S10)', () => {
+  const blocked = board('b . ~ . D', { intents: { A1: 'right' } });
   expectLogIncludes(act(blocked, { type: 'endTurn' }).events, [
     'Enemies act',
     'sentry at A1 fires right',
-    'Line is stopped by the steam at C1',
+    'Line is stopped by the cloud at C1',
   ]);
-  const open = createBattle({
-    title: 't',
-    seed: 1,
-    board: 'b . . . D',
-    intents: { A1: 'right' },
-  }).state;
+  const open = board('b . . . D', { intents: { A1: 'right' } });
   expectLogIncludes(act(open, { type: 'endTurn' }).events, [
     'Enemies act',
     'sentry at A1 fires right',
@@ -92,17 +37,27 @@ test('sentry-steam-block: steam stops the line, and without it the line hits (S1
 });
 
 test('shield absorbs a bite', () => {
-  const s0 = withLattices('r S D', { draughtsman: 'Ward>' }, { intents: { A1: 'right' } });
-  const r1 = cast(s0, 'draughtsman', { kind: 'ally', unit: 'stoker' });
-  const r2 = act(r1.state, { type: 'endTurn' });
-  expectLogIncludes(r2.events, [
+  const s0 = board('r S++ D', { intents: { A1: 'right' } });
+  const r = act(s0, { type: 'endTurn' });
+  expectLogIncludes(r.events, [
     'rat at A1 bites right',
     'Bite hits Stoker for 1',
     "Stoker's shield absorbs 1 (1 left)",
   ]);
-  const stoker = memberById(r2.state, 'stoker');
+  const stoker = memberById(r.state, 'stoker');
   expect(stoker.hp).toBe(8);
   expect(stoker.shield).toBe(1);
+});
+
+test('a familiar spit lands Ink: a mark on whoever it hits (P11)', () => {
+  const s0 = board('f . D', { intents: { A1: 'right' } });
+  const r = act(s0, { type: 'endTurn' });
+  expectLogIncludes(r.events, [
+    'familiar at A1 spits right',
+    'Spit hits Draughtsman for 1',
+    'ink lands on Draughtsman as mark',
+  ]);
+  expect(memberById(r.state, 'draughtsman').mark).toMatchObject({ deep: false, bound: null });
 });
 
 function specFor(index: number): BattleSpec {
@@ -187,13 +142,4 @@ test('encounter 1 with an idle party for 3 rounds is reproducible', () => {
   expect(b.lines).toEqual(a.lines);
   expect(b.s).toEqual(a.s);
   expect(a.lines.filter((l) => l === 'Enemies act').length).toBeGreaterThan(1);
-});
-
-test('Lab scenarios added in this step replay to expected', () => {
-  for (const id of ['echo', 'sentry-steam-block', 'ward-cloak']) {
-    const def = SCENARIOS.find((s) => s.id === id);
-    if (!def) throw new Error(`missing scenario ${id}`);
-    expect(def.expected.length).toBeGreaterThan(0);
-    expectLog(runScenario(def).events, def.expected);
-  }
 });

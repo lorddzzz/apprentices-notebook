@@ -3,11 +3,12 @@ import {
   DISTRICTS,
   type DistrictDef,
   type DistrictId,
+  type Goal,
   type HearCondition,
   type LootTableId,
 } from '$data';
-import { checkGoal } from './drafts';
-import type { EventLog } from './events';
+import type { EventLog, GameEvent } from './events';
+import { parseLabel } from './notation';
 import { placeOf } from './run';
 import type { BattleState, CityState, LootItem, Profile, Trip } from './types';
 
@@ -61,10 +62,7 @@ function hearWhere(
   return heard.length ? { profile: { ...p, city }, heard } : { profile: p, heard };
 }
 
-const discovered = (p: Profile, codex: string): boolean =>
-  codex.startsWith('idiom:')
-    ? p.idioms.includes(codex.slice(6))
-    : p.interactions.some((i) => `interaction:${i}` === codex);
+const named = (p: Profile, id: string): boolean => p.named.includes(id);
 
 /**
  * Owner hearing, read off a finished trip battle's log, win or wipe (K-20). `heard` lists the
@@ -76,15 +74,19 @@ export function hearFromBattle(
   log: EventLog,
   table: DistrictTable = DISTRICTS,
 ): { profile: Profile; heard: DistrictId[] } {
-  const biggest = log.reduce((m, e) => (e.type === 'ignite' ? Math.max(m, e.tiles.length) : m), 0);
+  const biggest = (burst: string): number =>
+    log.reduce(
+      (m, e) => (e.type === 'burst' && e.burst === burst ? Math.max(m, e.tiles.length) : m),
+      0,
+    );
   return hearWhere(
     p,
     'owner',
     (c) =>
-      (c.kind === 'ignite' &&
+      (c.kind === 'burst' &&
         (c.district === undefined || c.district === t.district) &&
-        biggest >= c.atLeast) ||
-      (c.kind === 'discovered' && discovered(p, c.codex)),
+        biggest(c.burst) >= c.atLeast) ||
+      (c.kind === 'named' && named(p, c.id)),
     table,
   );
 }
@@ -111,7 +113,7 @@ export function hearAfterTrip(
     (c) =>
       (c.kind === 'heart' && city.hearts.includes(c.district)) ||
       (c.kind === 'trips' && city.trips >= c.atLeast) ||
-      (c.kind === 'discovered' && discovered(p, c.codex)),
+      (c.kind === 'named' && named(p, c.id)),
     table,
   );
 }
@@ -164,6 +166,30 @@ export function bankKeys(p: Profile, loot: readonly LootItem[]): Profile {
   return city === p.city ? p : { ...p, city };
 }
 
+/** One goal against a log and the final state (K-22). */
+export function checkGoal(goal: Goal, events: readonly GameEvent[], state: BattleState): boolean {
+  if ('all' in goal) return goal.all.every((g) => checkGoal(g, events, state));
+  if ('happens' in goal) {
+    return events.filter((e) => e.type === goal.happens).length >= (goal.atLeast ?? 1);
+  }
+  if ('hurt' in goal) {
+    let total = 0;
+    for (const e of events) if (e.type === 'damage' && e.target.id === goal.hurt) total += e.amount;
+    return total >= goal.atLeast;
+  }
+  const unit = (id: string) => state.units.find((u) => u.id === id);
+  if ('dies' in goal) {
+    const u = unit(goal.dies);
+    return events.some((e) => e.type === 'died' && e.unit.id === goal.dies) || (!!u && u.hp <= 0);
+  }
+  if ('spared' in goal) {
+    const u = unit(goal.spared);
+    return !!u && u.hp > 0 && !events.some((e) => e.type === 'died' && e.unit.id === goal.spared);
+  }
+  const at = parseLabel(goal.tile);
+  return state.tiles[at.y * state.width + at.x]?.state?.id === goal.has;
+}
+
 /** A threshold battle's objective, checked on an action's log and the state (K-22). */
 export function objectiveMet(state: BattleState, log: EventLog): boolean {
   return state.objective ? checkGoal(state.objective, log, state) : false;
@@ -196,7 +222,7 @@ export function openAll(p: Profile): Profile {
     city: {
       ...c,
       heard: DISTRICT_IDS.reduce(add, c.heard),
-      open: DISTRICT_IDS.reduce(add, c.open),
+      open: DISTRICT_IDS.filter((id) => DISTRICTS[id].gate.kind !== 'drawing').reduce(add, c.open),
     },
   };
 }

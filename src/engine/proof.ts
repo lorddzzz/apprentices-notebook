@@ -1,9 +1,8 @@
-import { IDIOMS, type MemberId, type RuneId, TUNING } from '$data';
-import { type Cluster, cellToken, clustersOf, matchBranch, turnDir } from './cluster';
+import { type MemberId, TUNING } from '$data';
+import { type Cluster, cellToken, clustersOf, turnDir } from './cluster';
 import type { EventLog } from './events';
 import { type Coord, key, sameCoord } from './grid';
-import { compileLattice } from './lattice';
-import type { FiredCell, GlyphLibrary, Lattice, SpellNode } from './types';
+import type { FiredCell, GlyphLibrary, Lattice } from './types';
 import { isGlyph } from './types';
 
 /** Proof (design research-and-mastery §4.2, plan P6/P7): cast masks from trace events. */
@@ -93,23 +92,4 @@ export function maximalProven(
     if (countIn(l, c, index, TUNING.provenCasts) >= TUNING.provenCasts) return c;
   }
   return null;
-}
-
-// ── Idioms ──────────────────────────────────────────────
-
-/** Root-to-leaf branches of a spell's nodes with the source first (shapes are never nodes). */
-function branchesOf(source: RuneId, nodes: readonly SpellNode[]): RuneId[][] {
-  if (nodes.length === 0) return [[source]];
-  return nodes.flatMap((n) => branchesOf(n.rune, n.next).map((b) => [source, ...b]));
-}
-
-/** Ids of the idioms the lattice's spells contain. */
-export function matchIdioms(l: Lattice, glyphs: GlyphLibrary = {}): string[] {
-  const found = new Set<string>();
-  for (const spell of compileLattice(l, [], glyphs).spells) {
-    for (const branch of branchesOf(spell.source, spell.nodes)) {
-      for (const id of matchBranch(branch)) found.add(id);
-    }
-  }
-  return IDIOMS.filter((i) => found.has(i.id)).map((i) => i.id);
 }

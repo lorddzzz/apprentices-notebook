@@ -40,7 +40,6 @@ export class ThresholdStore {
       thresholdStart(this.game.profile, plan.room),
       'lab',
       {
-        known: () => this.game.profile.interactions,
         onEvents: () => this.settle(session),
       },
     );

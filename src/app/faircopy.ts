@@ -1,4 +1,4 @@
-import { IDIOMS, MEMBER_IDS, type MemberId, RUNES, type RuneId, TUNING } from '$data';
+import { MEMBER_IDS, MEMBERS, type MemberId, type RuneRef, TUNING } from '$data';
 import {
   blockingAuras,
   type Cluster,
@@ -8,14 +8,15 @@ import {
   type Dir,
   disconnected,
   type FiredCell,
-  freeIdiomCompile,
   glyphLibrary,
   inkUsed,
+  inventionLibrary,
   isGlyph,
   key,
   label,
   latticeOf,
   maximalProven,
+  nameOf,
   type Profile,
   provenCount,
   sameCoord,
@@ -57,8 +58,6 @@ export function fairCopyUnlocked(p: Profile): boolean {
 
 export interface FairState {
   cluster: Cluster | null;
-  /** The idiom a trim broke (its name), until the selection starts over (seam-deepening S14). */
-  lost?: string | null;
 }
 
 export const NO_SELECTION: FairState = { cluster: null };
@@ -67,12 +66,6 @@ export interface FairTap {
   state: FairState;
   /** A hint for the player (toast), or null. */
   message: string | null;
-}
-
-/** The name of the idiom a cluster would be compiled as, or null. */
-function idiomNameOf(p: Profile, m: MemberId, cluster: Cluster): string | null {
-  const id = toGlyphDef(latticeOf(p, m), cluster, 'Fair copy', '__idiom', glyphLibrary(p)).idiom;
-  return IDIOMS.find((i) => i.id === id)?.name ?? null;
 }
 
 const sameCells = (a: readonly Coord[], b: readonly Coord[]): boolean =>
@@ -95,13 +88,7 @@ export function fairTap(p: Profile, m: MemberId, state: FairState, at: Coord): F
       (c) => sameCoord(c.root, sel.root) && sameCells(c.cells, rest),
     );
     if (smaller) {
-      // A trim that breaks the idiom match remembers which one (the chip says "no longer ...").
-      const kept = idiomNameOf(p, m, smaller);
-      const was = idiomNameOf(p, m, sel);
-      return {
-        state: { cluster: smaller, lost: kept ? null : (was ?? state.lost ?? null) },
-        message: null,
-      };
+      return { state: { cluster: smaller }, message: null };
     }
     if (rest.length < TUNING.glyphMinCells) {
       return { state, message: `A Fair copy needs at least ${TUNING.glyphMinCells} runes` };
@@ -113,34 +100,13 @@ export function fairTap(p: Profile, m: MemberId, state: FairState, at: Coord): F
   return { state: sel ? state : NO_SELECTION, message: 'Not proven yet: cast it in 5 fights' };
 }
 
-export interface TrimChip {
-  /** "Cashing In · free", or "no longer Cashing In · 1 vellum" after a trim broke the match. */
-  text: string;
-  lost: boolean;
-}
-
-/** The idiom the selection matches and what compiling it costs, for the trim-mode chip (S14). */
-export function trimChip(
-  preview: FairPreview | null,
-  lost: string | null | undefined,
-): TrimChip | null {
-  if (!preview) return null;
-  if (preview.idiom) {
-    const cost = preview.free ? 'free' : `${TUNING.compileVellum} vellum`;
-    return { text: `${preview.suggestedName} \u00b7 ${cost}`, lost: false };
-  }
-  return lost
-    ? { text: `no longer ${lost} \u00b7 ${TUNING.compileVellum} vellum`, lost: true }
-    : null;
-}
-
 export interface ChainStep {
   at: Coord;
-  rune: RuneId;
+  rune: RuneRef;
   dir?: Dir;
   /** The rune's cell in the Glyph's own frame: what `compileGlyph` takes as the open cell (M22). */
   local: Coord;
-  /** Material, Trigger and Shape runes can be left open for an argument; Sources and Auras can't (M21). */
+  /** Kind and Action runes can be left open for an argument; Sources and Auras can't (M21). */
   openable: boolean;
 }
 
@@ -155,18 +121,14 @@ export interface FairPreview {
   slides: number;
   /** Why the Fair copy cannot go ahead (plan P3, a second spell, vellum). Empty = ready. */
   blocking: string[];
-  /** The idiom's name, or '' when the selection matches none. */
-  suggestedName: string;
-  idiom: string | null;
-  free: boolean;
-  /** "Fair-copy (1 vellum)" or "Fair-copy (free: idiom)". */
+  /** "Fair-copy (1 vellum)". */
   costLine: string;
   canAfford: boolean;
 }
 
 const runeNameAt = (p: Profile, m: MemberId, at: Coord): string => {
   const r = latticeOf(p, m).runes.find((x) => sameCoord(x.at, at));
-  return r && !isGlyph(r) ? RUNES[r.rune].name : 'Glyph';
+  return r && !isGlyph(r) ? nameOf(r.rune) : 'Glyph';
 };
 
 /** What the Fair copy would do to member `m`'s page, without doing it. */
@@ -182,7 +144,12 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
     const r = lattice.runes.find((x) => sameCoord(x.at, at));
     const cell = def.cells[chain.length];
     if (r && !isGlyph(r) && cell) {
-      const step = { at, rune: r.rune, local: cell.at, openable: canBeOpen(r.rune) };
+      const step = {
+        at,
+        rune: r.rune,
+        local: cell.at,
+        openable: canBeOpen(r.rune, inventionLibrary(p)),
+      };
       chain.push(r.dir ? { ...step, dir: r.dir } : step);
     }
   }
@@ -199,24 +166,20 @@ export function previewFairCopy(p: Profile, m: MemberId, cluster: Cluster): Fair
     );
   }
 
-  const free = freeIdiomCompile(p, def.idiom);
-  const cost = free ? 0 : TUNING.compileVellum;
+  const cost = TUNING.compileVellum;
   const canAfford = p.vellum >= cost;
 
   return {
     chain,
-    inkBefore: inkUsed(lattice, lib),
-    inkAfter: inkUsed(collapsed, { ...lib, [def.id]: def }),
+    inkBefore: inkUsed(lattice, lib, inventionLibrary(p), MEMBERS[m].lean),
+    inkAfter: inkUsed(collapsed, { ...lib, [def.id]: def }, inventionLibrary(p), MEMBERS[m].lean),
     disconnected:
       slid > 0
         ? []
         : disconnected(lattice, cluster, lib).map((at) => ({ at, name: runeNameAt(p, m, at) })),
     slides: slid,
     blocking,
-    suggestedName: IDIOMS.find((i) => i.id === def.idiom)?.name ?? '',
-    idiom: def.idiom,
-    free,
-    costLine: free ? 'Fair-copy (free: idiom)' : `Fair-copy (${cost} vellum)`,
+    costLine: `Fair-copy (${cost} vellum)`,
     canAfford,
   };
 }

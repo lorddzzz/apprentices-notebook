@@ -10,9 +10,11 @@ import {
 import {
   type Action,
   type BattleState,
+  type BoardUnit,
   boardOf,
   type Coord,
   describeLog,
+  emptyTile,
   enemies,
   type GameEvent,
   type Lattice,
@@ -23,7 +25,9 @@ import {
   type Profile,
   parseCell,
   parseLattice,
+  serializeBoard,
   serializeLattice,
+  type Tile,
 } from '$engine';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
@@ -73,15 +77,17 @@ export type PaletteItem =
   | 'd'
   | '!'
   | '&'
+  | '$'
   | 'o'
   | 'i'
   | '~'
   | '*'
   | '='
   | '@'
+  | '_'
   | '.';
 
-/** Palette order: units, unit modifiers, tile layers, then the eraser. */
+/** Palette order: units, unit modifiers, tile states, terrain, then the eraser. */
 export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
   { item: 'D', name: 'Draughtsman' },
   { item: 'S', name: 'Stoker' },
@@ -89,78 +95,76 @@ export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
   { item: 'b', name: 'Brass sentry' },
   { item: 'f', name: 'Familiar' },
   { item: 'd', name: 'Dummy' },
-  { item: '!', name: 'Inked (a unit)' },
-  { item: '&', name: 'Brass-coated (a unit)' },
-  { item: 'o', name: 'Oil' },
-  { item: 'i', name: 'Ink puddle' },
-  { item: '~', name: 'Steam' },
-  { item: '*', name: 'Fire (on oil)' },
+  { item: '!', name: 'Mark, then deep mark (a unit)' },
+  { item: '&', name: 'Brass collar (a unit)' },
+  { item: '$', name: 'Shackle (a unit)' },
+  { item: 'o', name: 'Oil slick' },
+  { item: 'i', name: 'Ink blot' },
+  { item: '~', name: 'Steam cloud' },
+  { item: '*', name: 'Fire' },
   { item: '=', name: 'Brass plate' },
   { item: '@', name: 'Steam vent' },
+  { item: '_', name: 'A drop' },
   { item: '.', name: 'Clear the tile' },
 ];
 
 const UNIT_CHARS = new Set(['D', 'S', 'r', 'b', 'f', 'd']);
-const LAYER_ORDER = ['o', 'i', '~', '*', '=', '@'] as const;
+const STATE_ITEMS = new Set(['o', 'i', '~', '*']);
+const ORIGIN: Coord = { x: 0, y: 0 };
 
 interface Cell {
-  unit: string;
-  mods: Set<string>;
-  layers: Set<string>;
+  tile: Tile;
+  unit: BoardUnit | null;
 }
 
-function readToken(token: string): Cell {
-  const chars = [...token];
-  const first = chars[0];
-  const unit = first !== undefined && UNIT_CHARS.has(first) ? first : '';
-  if (unit) chars.shift();
-  const cell: Cell = { unit, mods: new Set(), layers: new Set() };
-  for (const ch of chars) (ch === '!' || ch === '&' ? cell.mods : cell.layers).add(ch);
-  return cell;
+const readCell = (token: string): Cell => parseCell(token, ORIGIN);
+
+/** The canonical token of a cell, through the engine's own writer (so it always parses). */
+function writeCell(c: Cell): string {
+  return serializeBoard({ width: 1, height: 1, tiles: [c.tile], units: c.unit ? [c.unit] : [] });
 }
 
-function writeToken(c: Cell): string {
-  const text =
-    c.unit +
-    (c.unit && c.mods.has('!') ? '!' : '') +
-    (c.unit && c.mods.has('&') ? '&' : '') +
-    LAYER_ORDER.filter((l) => c.layers.has(l)).join('');
-  return text === '' ? '.' : text;
-}
+const isPlateLike = (t: Tile): boolean =>
+  t.state !== null && ['plate', 'skidPlate', 'kettle', 'wall'].includes(t.state.id);
 
 /**
  * One palette tap on a cell token. A unit replaces the unit; the same unit again removes it. `!`
- * and `&` toggle on a unit and do nothing without one. Layers toggle; fire implies oil (so `*`
- * replaces `o`, and removing fire leaves the oil); a plate stands alone and is replaced by
- * anything else. `.` clears the cell.
+ * cycles none → mark → deep mark → none; `&` and `$` toggle on a unit and do nothing without
+ * one. A tile holds one state: painting another replaces it, the same again removes it; a plate
+ * stands alone, so it is refused under a unit and replaced when a unit is placed. `@` and `_`
+ * toggle terrain. `.` clears the cell.
  */
 export function toggleToken(token: string, item: PaletteItem): string {
   if (item === '.') return '.';
-  const c = readToken(token);
+  const c = readCell(token);
+  const { tile } = c;
   if (UNIT_CHARS.has(item)) {
-    c.layers.delete('=');
-    c.mods.clear();
-    c.unit = c.unit === item ? '' : item;
-    return writeToken(c);
+    if (tile.terrain.grate || tile.terrain.gate) return token;
+    const placed = readCell(item).unit;
+    c.unit = c.unit?.def === placed?.def ? null : placed;
+    if (isPlateLike(tile)) tile.state = null;
+    return writeCell(c);
   }
-  if (item === '!' || item === '&') {
-    if (!c.unit) return token;
-    if (!c.mods.delete(item)) c.mods.add(item);
-    return writeToken(c);
+  if (item === '!' || item === '&' || item === '$') {
+    const unit = c.unit;
+    if (!unit) return token;
+    if (item === '!')
+      unit.mark = unit.mark === null ? 'plain' : unit.mark === 'plain' ? 'deep' : null;
+    else if (item === '&') unit.collar = !unit.collar;
+    else unit.shackle = !unit.shackle;
+    return writeCell(c);
   }
-  if (item === '=') return c.unit ? token : c.layers.has('=') ? '.' : '=';
-  c.layers.delete('=');
-  if (item === '*') {
-    const burning = c.layers.delete('*');
-    c.layers.delete('o');
-    c.layers.add(burning ? 'o' : '*');
-  } else if (item === 'o') {
-    if (c.layers.has('*')) return token;
-    if (!c.layers.delete('o')) c.layers.add('o');
-  } else if (!c.layers.delete(item)) {
-    c.layers.add(item);
+  if (tile.terrain.gate) return token;
+  if (item === '@') tile.terrain.vent = !tile.terrain.vent;
+  else if (item === '_') tile.terrain.drop = !tile.terrain.drop;
+  else if (item === '=') {
+    if (c.unit) return token;
+    tile.state = tile.state?.id === 'plate' ? null : readCell('=').tile.state;
+  } else if (STATE_ITEMS.has(item)) {
+    const next = readCell(item).tile.state;
+    tile.state = tile.state?.id === next?.id ? null : next;
   }
-  return writeToken(c);
+  return writeCell(c);
 }
 
 /** Why a palette tap changed nothing (for a toast). */
@@ -168,11 +172,10 @@ export function whyNoEdit(item: PaletteItem): string {
   switch (item) {
     case '!':
     case '&':
+    case '$':
       return 'Put a unit on the tile first';
     case '=':
       return 'A plate cannot sit under a unit';
-    case 'o':
-      return 'Fire already burns on oil';
     default:
       return 'Nothing to change there';
   }
@@ -217,8 +220,8 @@ export function applyEdits(s: BattleState, edits: readonly CellEdit[]): BattleSt
 }
 
 const unitPart = (token: string): string => {
-  const c = readToken(token);
-  return c.unit + [...c.mods].sort().join('');
+  const unit = readCell(token).unit;
+  return unit ? serializeBoard({ width: 1, height: 1, tiles: [emptyTile()], units: [unit] }) : '';
 };
 
 // ── Export as a scenario ────────────────────────────────

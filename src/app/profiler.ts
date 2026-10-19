@@ -1,4 +1,4 @@
-import { RUNES, SUGGESTIONS, TIER_MARKS, TIER_NAMES, TUNING } from '$data';
+import { SUGGESTIONS, TIER_MARKS, TIER_NAMES, TUNING } from '$data';
 import {
   baseGlyphCost,
   type Coord,
@@ -9,10 +9,12 @@ import {
   type GlyphId,
   type GlyphRecord,
   glyphVersions,
+  nameOf,
   type Profile,
   recordOf,
   reliabilityOf,
   rewardsOf,
+  roleOf,
   type TierLevel,
   windowTiers,
 } from '$engine';
@@ -155,7 +157,7 @@ export function suggestionOf(def: GlyphDef, record: GlyphRecord): string | null 
   if (dead && deadCell) {
     const saved = savingWithout(def, dead);
     return fill(saved > 0 ? SUGGESTIONS.deadCell : SUGGESTIONS.deadCellNoInk, {
-      rune: RUNES[deadCell.rune].name,
+      rune: nameOf(deadCell.rune),
       row: dead.y - minY + 1,
       casts: record.casts,
       ink: saved,
@@ -166,16 +168,16 @@ export function suggestionOf(def: GlyphDef, record: GlyphRecord): string | null 
     .sort((a, b) => readingOrder(a.at, b.at))
     .find(
       (t) =>
-        RUNES[t.rune].family === 'trigger' &&
+        roleOf(t.rune) === 'trigger' &&
         fired(t.at) > 0 &&
         def.cells.some(
           (n) =>
             Math.abs(n.at.x - t.at.x) + Math.abs(n.at.y - t.at.y) === 1 &&
-            RUNES[n.rune].family !== 'aura' &&
+            roleOf(n.rune) !== 'aura' &&
             fired(n.at) === 0,
         ),
     );
-  if (closed) return fill(SUGGESTIONS.closedTrigger, { rune: RUNES[closed.rune].name });
+  if (closed) return fill(SUGGESTIONS.closedTrigger, { rune: nameOf(closed.rune) });
   const idle = record.recent.filter((s) => !s.meaningful).length;
   return idle > 0 ? fill(SUGGESTIONS.idleCasts, { idle, window: record.recent.length }) : null;
 }

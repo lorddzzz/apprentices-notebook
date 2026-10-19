@@ -1,12 +1,15 @@
 <script lang="ts">
-  import { type MemberId, RUNES } from '$data';
+  import type { MemberId } from '$data';
   import {
     type CellKey,
     type Coord,
     type GlyphArg,
     type GlyphDef,
+    hasArrow,
     key,
+    nameOf,
     type Profile,
+    roleOf,
     turnRight,
   } from '$engine';
   import { argOptions } from '../../../app/study';
@@ -21,7 +24,7 @@
   interface Props {
     /** The placed Glyph (effective view) and its current arguments; null = closed. */
     target: { at: Coord; glyph: GlyphDef; args: Readonly<Record<CellKey, GlyphArg>> } | null;
-    /** What is owned and free is read from here (canPlaceGlyph with args). */
+    /** What is known is read from here (canPlaceGlyph with args). */
     profile: Profile;
     member: MemberId;
     /** Applies the arguments; returns why not, or null (then the picker closes). */
@@ -52,12 +55,12 @@
   const chosen = $derived(Object.fromEntries(rows.map((r) => [r.k, r.arg])));
 
   function options(k: CellKey): ReturnType<typeof argOptions> {
-    return target ? argOptions(profile, member, target.at, k, chosen) : [];
+    return target ? argOptions(profile, member, target.at, k) : [];
   }
 
   function pick(k: CellKey, rune: GlyphArg['rune'], dir?: GlyphArg['dir']): void {
     error = null;
-    edits[k] = RUNES[rune].arrow ? { rune, dir: dir ?? 'right' } : { rune };
+    edits[k] = hasArrow(rune) ? { rune, dir: dir ?? 'right' } : { rune };
   }
 
   $effect(() => {
@@ -87,14 +90,14 @@
   {#if target}
     <div data-testid="arg-picker">
       <p class="intro">
-        <b>{target.glyph.name}</b> takes {rows.length === 1 ? 'one rune' : `${rows.length} runes`} from
-        your collection. Ink stays the same.
+        <b>{target.glyph.name}</b> takes {rows.length === 1 ? 'one rune' : `${rows.length} runes`} you
+        know. Ink stays the same.
       </p>
       {#each rows as row (row.k)}
         <section class="cell" data-testid="arg-cell" data-cell={row.k}>
           <p class="title">
-            Rune {row.position} of {target.glyph.cells.length} · {RUNES[row.cell.rune].family}
-            <span class="soft">(default {RUNES[row.cell.rune].name})</span>
+            Rune {row.position} of {target.glyph.cells.length} · {roleOf(row.cell.rune) ?? 'rune'}
+            <span class="soft">(default {nameOf(row.cell.rune)})</span>
           </p>
           <div class="runes">
             {#each options(row.k) as o (o.rune)}
@@ -104,22 +107,20 @@
                 class="rune"
                 class:on
                 aria-pressed={on}
-                disabled={!on && o.free === 0}
-                title={o.free === 0 && !on ? `No ${RUNES[o.rune].name} left` : RUNES[o.rune].name}
+                title={nameOf(o.rune)}
                 data-testid="arg-rune"
                 data-rune={o.rune}
                 onclick={() => pick(row.k, o.rune, row.arg.dir ?? row.cell.dir)}
               >
                 <RuneGlyph
                   rune={o.rune}
-                  dir={RUNES[o.rune].arrow ? (on ? row.arg.dir : (row.cell.dir ?? 'right')) : undefined}
+                  dir={hasArrow(o.rune) ? (on ? row.arg.dir : (row.cell.dir ?? 'right')) : undefined}
                   size={32}
                 />
-                <span class="count">{o.free}</span>
               </button>
             {/each}
           </div>
-          {#if RUNES[row.arg.rune].arrow}
+          {#if hasArrow(row.arg.rune)}
             <div class="turn">
               <Button
                 variant="quiet"
@@ -182,17 +183,6 @@
   .rune.on {
     border-color: var(--lamp);
     background: rgba(232, 176, 74, 0.35);
-  }
-  .rune:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-  .count {
-    position: absolute;
-    right: 2px;
-    bottom: 0;
-    font: 11px var(--mono);
-    color: var(--ink-soft);
   }
   .turn {
     display: flex;

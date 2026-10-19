@@ -130,16 +130,10 @@ test('buildSteps: step i view = project of steps 0..i', () => {
     width: 3,
     height: 1,
     tiles: Array.from({ length: 3 }, () => ({
-      oil: false,
-      ink: false,
-      steam: 0,
-      fire: 0,
-      plate: false,
+      state: null,
+      rounds: 0,
+      jar: false,
       vent: false,
-      stain: false,
-      heat: 0,
-      etched: false,
-      scald: false,
     })),
     units: [
       {
@@ -151,12 +145,11 @@ test('buildSteps: step i view = project of steps 0..i', () => {
         hp: 2,
         maxHp: 2,
         shield: 0,
-        inked: false,
-        brass: false,
-        oilSoaked: false,
-        branded: false,
-        heat: 0,
-        etched: false,
+        mark: null,
+        collar: false,
+        shackle: false,
+        held: false,
+        stunned: false,
         alive: true,
         intent: null,
       },
@@ -165,7 +158,7 @@ test('buildSteps: step i view = project of steps 0..i', () => {
     phase: 'player',
   };
   const events: GameEvent[] = [
-    { type: 'oiled', tiles: [{ x: 1, y: 0 }] },
+    { type: 'landed', kind: 'oil', at: { x: 1, y: 0 }, makes: 'slick' },
     {
       type: 'moved',
       unit: ref('rat-1', { x: 0, y: 0 }),

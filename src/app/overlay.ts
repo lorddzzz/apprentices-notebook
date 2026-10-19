@@ -8,6 +8,8 @@ import {
   findUnit,
   type Intent,
   intentPreview,
+  isCloud,
+  isPlate,
   legalAims,
   type SpellKey,
   sameCoord,
@@ -16,7 +18,7 @@ import {
   unitAt,
 } from '$engine';
 import { type InputMode, selectedOf } from './battleInput';
-import type { Tone } from './fx';
+import { layerTone, type Tone } from './fx';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
 export type Highlight =
@@ -141,7 +143,7 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
     const end = p.path.at(-1);
     const endTile = end ? intentState.tiles[end.y * intentState.width + end.x] : undefined;
     intents.push({
-      blocked: p.hit === null && !!endTile && (endTile.steam > 0 || endTile.plate),
+      blocked: p.hit === null && !!endTile && (isCloud(endTile) || isPlate(endTile)),
       from: { ...u.pos },
       path: p.path,
       hit: p.hit,
@@ -199,7 +201,7 @@ export function marksOf(
 
 /** Ghosts of the next drift, or null if the board has no water. */
 function driftGhosts(s: BattleState): DriftGhosts | null {
-  if (!s.tiles.some((t) => t.water)) return null;
+  if (!s.tiles.some((t) => t.terrain.water)) return null;
   const p = driftPreview(s);
   const units: Ghost[] = [];
   for (const m of p.units) {
@@ -209,28 +211,17 @@ function driftGhosts(s: BattleState): DriftGhosts | null {
   return { floats: p.floats, units };
 }
 
-/** Tiles whose material layers the action changes, toned by the most notable new layer. */
+/** Tiles whose state the action changes, toned by the new state (or by what was there, when it clears). */
 function tileEffects(before: BattleState, after: BattleState): Highlight[] {
   const out: Highlight[] = [];
   after.tiles.forEach((t, i) => {
     const b = before.tiles[i];
     if (!b) return;
     const at = { x: i % after.width, y: Math.floor(i / after.width) };
-    const tone: Tone | null =
-      t.fire > b.fire
-        ? 'fire'
-        : t.plate && !b.plate
-          ? 'brass'
-          : t.steam > b.steam
-            ? 'steam'
-            : t.ink !== b.ink
-              ? 'ink'
-              : t.oil !== b.oil
-                ? 'oil'
-                : b.fire > 0 && t.fire === 0
-                  ? 'steam'
-                  : null;
-    if (tone) out.push({ kind: 'effect', at, tone });
+    const now = t.state?.id ?? null;
+    const was = b.state?.id ?? null;
+    if (now === was) return;
+    out.push({ kind: 'effect', at, tone: now ? layerTone(now) : 'steam' });
   });
   return out;
 }
@@ -254,7 +245,7 @@ function aimTints(s: BattleState, unit: UnitId, spell: SpellKey): Highlight[] {
     } else if (aim.kind === 'tile') {
       add({ kind: 'aim', at: aim.at });
     } else {
-      const u = findUnit(s, aim.unit);
+      const u = findUnit(s, unit);
       if (u) add({ kind: 'aim', at: u.pos });
     }
   }

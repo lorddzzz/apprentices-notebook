@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { METHOD_IDS } from '$data/next/methods';
-import { RUNE_IDS } from '$data/next/runes';
-import { SOLVENT_IDS } from '$data/next/solvents';
-import { FILLED_ART, METHOD_ART, ROLE_COLOR, RUNE_ART, SOLVENT_ART } from '$ui/runeArt';
+import { METHOD_IDS, RUNE_IDS, RUNES, SOLVENT_IDS } from '$data';
+import {
+  DIRECTIONAL_ART,
+  FILLED_ART,
+  METHOD_ART,
+  ROLE_COLOR,
+  RUNE_ART,
+  SOLVENT_ART,
+} from '$ui/runeArt';
 
 const ARITY: Record<string, number> = {
   M: 2,
@@ -118,5 +124,16 @@ describe('rune art', () => {
       ['action', 'aura', 'kind', 'seal', 'shape', 'source', 'trigger'].sort(),
     );
     for (const value of Object.values(ROLE_COLOR)) expect(value).toMatch(/^--role-[a-z]+$/);
+  });
+
+  it('defines every role colour in the global stylesheet', () => {
+    const css = readFileSync(new URL('../../src/ui/theme.css', import.meta.url), 'utf8');
+    for (const value of Object.values(ROLE_COLOR)) {
+      expect(css, value).toMatch(new RegExp(`${value}:\\s*#[0-9a-f]{6}`, 'i'));
+    }
+  });
+
+  it('turns the directional runes with their arrow', () => {
+    for (const id of DIRECTIONAL_ART) expect(RUNES[id].arrow, id).toBe(true);
   });
 });

@@ -1,4 +1,12 @@
-import { ENEMIES, type EnemyId, MEMBERS, type MemberId, TUNING } from '$data';
+import {
+  type CompoundId,
+  ENEMIES,
+  type EnemyId,
+  MEMBERS,
+  type MemberId,
+  type StateId,
+  TUNING,
+} from '$data';
 import type {
   BattlePhase,
   BattleState,
@@ -7,27 +15,31 @@ import type {
   Dir,
   GameEvent,
   Intent,
+  Tile,
+  Unit,
   UnitId,
 } from '$engine';
 
+/** A state or compound a tile can hold. */
+export type LayerId = StateId | CompoundId;
+
 /** What the board draws. Events are projected onto it during playback; the engine state replaces it at the end. */
 export interface TileView {
-  oil: boolean;
-  ink: boolean;
-  steam: number;
-  fire: number;
-  plate: boolean;
+  /** The one state or compound on the tile (design §4); `rounds` is how long it has left (0 = permanent). */
+  state: LayerId | null;
+  rounds: number;
+  jar: boolean;
   vent: boolean;
-  stain: boolean;
-  heat: number;
-  etched: boolean;
-  scald: boolean;
+  /** `_`: an open side (P3). */
+  drop?: boolean;
   /** The canal terrain (K-6); absent in hand-built views, which means none. */
   water?: Dir | null;
   grate?: boolean;
   gate?: boolean;
   lamp?: boolean;
 }
+
+export type MarkView = 'plain' | 'deep' | null;
 
 export interface UnitView {
   id: UnitId;
@@ -38,12 +50,13 @@ export interface UnitView {
   hp: number;
   maxHp: number;
   shield: number;
-  inked: boolean;
-  brass: boolean;
-  oilSoaked: boolean;
-  branded: boolean;
-  heat: number;
-  etched: boolean;
+  /** Ink on the unit (a mark, `!`), deep when it takes two Sparks to clear. */
+  mark: MarkView;
+  /** Brass on the unit (a collar, `&`). */
+  collar: boolean;
+  shackle: boolean;
+  held: boolean;
+  stunned: boolean;
   alive: boolean;
   intent: Intent | null;
 }
@@ -57,43 +70,28 @@ export interface BoardView {
   phase: BattlePhase;
 }
 
+export function tileViewOf(t: Tile): TileView {
+  const { water, grate, gate, lamp, vent, drop } = t.terrain;
+  return {
+    state: t.state?.id ?? null,
+    rounds: t.state?.rounds ?? 0,
+    jar: t.jar !== null,
+    vent,
+    drop,
+    water,
+    grate,
+    gate,
+    lamp,
+  };
+}
+
+const markOf = (u: Unit): MarkView => (u.mark ? (u.mark.deep ? 'deep' : 'plain') : null);
+
 export function viewOf(s: BattleState): BoardView {
   return {
     width: s.width,
     height: s.height,
-    tiles: s.tiles.map(
-      ({
-        oil,
-        ink,
-        steam,
-        fire,
-        plate,
-        vent,
-        stain,
-        heat,
-        etched,
-        scald,
-        water,
-        grate,
-        gate,
-        lamp,
-      }) => ({
-        oil,
-        ink,
-        steam,
-        fire,
-        plate,
-        vent,
-        stain,
-        heat,
-        etched,
-        scald,
-        water,
-        grate,
-        gate,
-        lamp,
-      }),
-    ),
+    tiles: s.tiles.map(tileViewOf),
     units: s.units.map((u) => ({
       id: u.id,
       kind: u.kind,
@@ -103,12 +101,11 @@ export function viewOf(s: BattleState): BoardView {
       hp: u.hp,
       maxHp: u.maxHp,
       shield: u.shield,
-      inked: u.inked,
-      brass: u.brass,
-      oilSoaked: u.oilSoaked,
-      branded: u.branded,
-      heat: u.heat,
-      etched: u.etched,
+      mark: markOf(u),
+      collar: u.collar !== false,
+      shackle: u.shackle > 0,
+      held: u.held > 0,
+      stunned: u.stunned,
       alive: u.hp > 0,
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
     })),
@@ -131,13 +128,12 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
         pos: { ...b.at },
         hp: def.hp,
         maxHp: def.hp,
-        shield: 0,
-        inked: b.inked,
-        brass: b.brass,
-        oilSoaked: false,
-        branded: b.branded,
-        heat: b.heat,
-        etched: b.etched,
+        shield: b.shield,
+        mark: b.mark,
+        collar: b.collar,
+        shackle: b.shackle,
+        held: false,
+        stunned: false,
         alive: true,
         intent: null,
       };
@@ -153,13 +149,12 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
       pos: { ...b.at },
       hp: def.hp,
       maxHp: def.hp,
-      shield: 0,
-      inked: b.inked,
-      brass: def.brass || b.brass,
-      oilSoaked: def.oilSoaked,
-      branded: b.branded,
-      heat: b.heat,
-      etched: b.etched,
+      shield: b.shield,
+      mark: b.mark,
+      collar: def.brass || b.collar,
+      shackle: b.shackle,
+      held: false,
+      stunned: false,
       alive: true,
       intent: null,
     };
@@ -167,7 +162,7 @@ export function viewOfSpec(spec: BoardSpec): BoardView {
   return {
     width: spec.width,
     height: spec.height,
-    tiles: spec.tiles.map((t) => ({ ...t })),
+    tiles: spec.tiles.map(tileViewOf),
     units,
     round: 1,
     phase: 'player',
@@ -188,10 +183,36 @@ function cloneView(v: BoardView): BoardView {
 
 function patchTiles(v: BoardView, cells: readonly Coord[], patch: Partial<TileView>): void {
   for (const c of cells) {
-    if (c.x < 0 || c.y < 0 || c.x >= v.width || c.y >= v.height) continue;
-    const t = v.tiles[c.y * v.width + c.x];
+    const t = tileOf(v, c);
     if (t) Object.assign(t, patch);
   }
+}
+
+function tileOf(v: BoardView, c: Coord): TileView | undefined {
+  if (c.x < 0 || c.y < 0 || c.x >= v.width || c.y >= v.height) return undefined;
+  return v.tiles[c.y * v.width + c.x];
+}
+
+/** How long a state put down lasts (P17); 0 = until changed. */
+function roundsFor(id: LayerId): number {
+  switch (id) {
+    case 'blot':
+    case 'slick':
+      return 0;
+    case 'cloud':
+      return TUNING.cloudRounds;
+    case 'plate':
+      return TUNING.plateRounds;
+    case 'fire':
+      return TUNING.fireRounds;
+    default:
+      return TUNING.compoundRounds;
+  }
+}
+
+/** Puts a state on tiles with the rounds a fresh one lasts, or clears them. */
+function setState(v: BoardView, cells: readonly Coord[], id: LayerId | null): void {
+  patchTiles(v, cells, { state: id, rounds: id ? roundsFor(id) : 0 });
 }
 
 function patchUnit(v: BoardView, id: UnitId, patch: (u: UnitView) => void): void {
@@ -201,28 +222,22 @@ function patchUnit(v: BoardView, id: UnitId, patch: (u: UnitView) => void): void
 
 /** Lifts what floats on each source tile and sets it down downstream (the engine's merge rules). */
 function driftTiles(v: BoardView, floats: readonly { from: Coord; to: Coord | null }[]): void {
-  const at = (c: Coord): TileView | undefined => v.tiles[c.y * v.width + c.x];
   const lifted = floats.map((f) => {
-    const t = at(f.from);
+    const t = tileOf(v, f.from);
     if (!t) return null;
-    const cargo = { oil: t.oil, fire: t.fire, stain: t.stain, ink: t.ink };
-    t.oil = false;
-    t.fire = 0;
-    t.stain = false;
-    t.ink = false;
+    const cargo = { state: t.state, rounds: t.rounds };
+    t.state = null;
+    t.rounds = 0;
     return cargo;
   });
   floats.forEach((f, i) => {
     const cargo = lifted[i];
-    const dest = f.to && at(f.to);
-    if (!cargo || !dest) return;
-    if (cargo.oil) {
-      const fire = dest.steam > 0 ? 0 : Math.max(dest.fire, cargo.fire);
-      dest.oil = true;
-      dest.fire = fire;
-      dest.stain = fire > 0 ? false : dest.stain || cargo.stain;
+    const dest = f.to && tileOf(v, f.to);
+    if (!cargo?.state || !dest) return;
+    if (dest.state === null || (cargo.state === 'fire' && dest.state === 'slick')) {
+      dest.state = cargo.state;
+      dest.rounds = cargo.rounds;
     }
-    if (cargo.ink) dest.ink = true;
   });
 }
 
@@ -238,12 +253,11 @@ function spawnedView(id: UnitId, pos: Coord): UnitView {
     hp: def.hp,
     maxHp: def.hp,
     shield: 0,
-    inked: false,
-    brass: def.brass,
-    oilSoaked: def.oilSoaked,
-    branded: false,
-    heat: 0,
-    etched: false,
+    mark: null,
+    collar: def.brass,
+    shackle: false,
+    held: false,
+    stunned: false,
     alive: true,
     intent: null,
   };
@@ -251,17 +265,22 @@ function spawnedView(id: UnitId, pos: Coord): UnitView {
 
 /**
  * Applies one event to a copy of the view. Patches only what the event states explicitly;
- * silent counters (steam 2→1) catch up when the view snaps to the engine state at the end.
+ * silent counters (a cloud's rounds) catch up when the view snaps to the engine state at the end.
+ * Every event in the union is named here, so a new one fails to compile until it is considered.
  */
 export function project(view: BoardView, e: GameEvent): BoardView {
   const v = cloneView(view);
   switch (e.type) {
     case 'moved':
     case 'moveUndone':
-    case 'pushed':
-    case 'slide':
       patchUnit(v, e.unit.id, (u) => {
         u.pos = { ...e.to };
+      });
+      break;
+    case 'push':
+      patchUnit(v, e.unit.id, (u) => {
+        const last = e.path[e.path.length - 1];
+        if (last) u.pos = { ...last };
       });
       break;
     case 'damage':
@@ -285,96 +304,106 @@ export function project(view: BoardView, e: GameEvent): BoardView {
         u.intent = null;
       });
       break;
-    case 'inked': {
-      const u = v.units.find((x) => x.id === e.unit.id);
-      if (u) {
-        u.inked = true;
-        if (e.via === 'puddle') patchTiles(v, [u.pos], { ink: false });
+    case 'landed': {
+      const unit = e.unit;
+      if (e.makes === 'mark') {
+        if (unit) {
+          patchUnit(v, unit.id, (u) => {
+            u.mark = u.mark ?? 'plain';
+          });
+        }
+      } else if (e.makes === 'collar') {
+        if (unit) {
+          patchUnit(v, unit.id, (u) => {
+            u.collar = true;
+          });
+        }
+      } else {
+        setState(v, [e.at], e.makes);
       }
       break;
     }
-    case 'branded':
+    case 'mixed': {
+      const unit = e.unit;
+      if (unit) {
+        patchUnit(v, unit.id, (u) => {
+          if (e.compound === 'deepMark') u.mark = 'deep';
+          else if (e.compound === 'shackle') {
+            u.mark = null;
+            u.collar = false;
+            u.shackle = true;
+          }
+        });
+      } else {
+        setState(v, [e.at], e.compound);
+      }
+      break;
+    }
+    case 'washed':
+      setState(v, [e.at], e.now);
+      break;
+    case 'stateFades':
+      setState(v, e.tiles, null);
+      break;
+    case 'spreadState': {
+      const id = tileOf(v, e.from)?.state ?? null;
+      if (id) setState(v, e.to, id);
+      break;
+    }
+    case 'marked':
       patchUnit(v, e.unit.id, (u) => {
-        u.branded = true;
+        u.mark = e.deep ? 'deep' : 'plain';
       });
       break;
-    case 'detonate':
+    case 'collared':
       patchUnit(v, e.unit.id, (u) => {
-        u.inked = false;
+        u.collar = true;
       });
       break;
-    case 'coated':
-      patchUnit(v, e.unit.id, (u) => {
-        u.brass = true;
-      });
-      break;
-    case 'puddle':
-      patchTiles(v, e.tiles, { ink: true });
-      break;
-    case 'oiled':
-      patchTiles(v, e.tiles, { oil: true });
-      break;
-    case 'steam':
-      patchTiles(v, e.tiles, { steam: TUNING.steamRounds });
-      break;
-    case 'plates':
-      patchTiles(v, e.tiles, {
-        plate: true,
-        oil: false,
-        ink: false,
-        steam: 0,
-        fire: 0,
-        stain: false,
-        scald: false,
-      });
-      break;
-    case 'ignite':
-      patchTiles(v, e.tiles, { oil: true, fire: TUNING.fireRounds, stain: false });
-      break;
-    case 'extinguish':
-      patchTiles(v, e.tiles, { fire: 0 });
-      break;
-    case 'fireOut':
-      patchTiles(v, e.tiles, { fire: 0, oil: false, stain: false });
-      break;
-    case 'steamFades':
-      patchTiles(v, e.tiles, { steam: 0, scald: false });
-      break;
-    case 'plateCrumbles':
-      patchTiles(v, e.tiles, { plate: false, heat: 0, etched: false });
-      break;
-    case 'vent':
-      patchTiles(v, [e.at], { steam: TUNING.steamRounds });
-      break;
-    case 'heated':
-      patchTiles(v, e.tiles, { heat: TUNING.heatRounds });
-      for (const r of e.units) {
+    case 'markSpread':
+      for (const r of e.to) {
         patchUnit(v, r.id, (u) => {
-          u.heat = TUNING.heatRounds;
+          u.mark = u.mark ?? 'plain';
         });
       }
       break;
-    case 'cooled':
-      patchTiles(v, e.tiles, { heat: 0 });
-      for (const r of e.units) {
-        patchUnit(v, r.id, (u) => {
-          u.heat = 0;
-        });
-      }
+    case 'markSpent':
+      patchUnit(v, e.unit.id, (u) => {
+        u.mark = null;
+      });
       break;
-    case 'scalded':
-      patchTiles(v, e.tiles, { steam: TUNING.steamRounds, scald: true });
+    case 'markLifted': {
+      const mark = v.units.find((x) => x.id === e.from.id)?.mark ?? 'plain';
+      patchUnit(v, e.from.id, (u) => {
+        u.mark = null;
+      });
+      patchUnit(v, e.to.id, (u) => {
+        u.mark = mark;
+      });
       break;
-    case 'stained':
-      patchTiles(v, e.tiles, { stain: true });
+    }
+    case 'stunned':
+      patchUnit(v, e.unit.id, (u) => {
+        u.stunned = true;
+      });
       break;
-    case 'etched':
-      patchTiles(v, e.tiles, { etched: true });
-      for (const r of e.units) {
-        patchUnit(v, r.id, (u) => {
-          u.etched = true;
-        });
-      }
+    case 'held':
+      patchUnit(v, e.unit.id, (u) => {
+        u.held = true;
+      });
+      break;
+    case 'swapped': {
+      const a = v.units.find((x) => x.id === e.a.id);
+      const b = v.units.find((x) => x.id === e.b.id);
+      if (a && b) [a.pos, b.pos] = [b.pos, a.pos];
+      break;
+    }
+    case 'jarSealed':
+      patchTiles(v, [e.at], { jar: true });
+      break;
+    case 'jarOpened':
+    case 'jarCrumbles':
+      patchTiles(v, [e.at], { jar: false });
       break;
     case 'drift':
       driftTiles(v, e.floats);
@@ -387,8 +416,13 @@ export function project(view: BoardView, e: GameEvent): BoardView {
     case 'gateBurns':
       patchTiles(v, [e.at], { gate: false });
       break;
+    case 'vent':
+      setState(v, [e.at], 'cloud');
+      break;
     case 'snuff':
-      patchTiles(v, e.tiles, { fire: 0, oil: false, stain: false });
+      for (const c of e.tiles) {
+        if (tileOf(v, c)?.state === 'fire') setState(v, [c], null);
+      }
       break;
     case 'summon':
       if (!v.units.some((u) => u.id === e.unit.id)) v.units.push(spawnedView(e.unit.id, e.at));
@@ -424,8 +458,33 @@ export function project(view: BoardView, e: GameEvent): BoardView {
     case 'phase':
       if (e.phase === 'player') v.phase = 'player';
       break;
-    default:
+    // Nothing to patch: the view catches up with the engine state at the end of the playback.
+    case 'battleStart':
+    case 'shove':
+    case 'cast':
+    case 'lands':
+    case 'stopped':
+    case 'miss':
+    case 'foeBursts':
+    case 'trace':
+    case 'aimed':
+    case 'burst':
+    case 'crush':
+    case 'dropped':
+    case 'drawn':
+    case 'erased':
+    case 'released':
+    case 'conducted':
+    case 'scheduled':
+    case 'repeated':
+    case 'triggered':
+    case 'fizzles':
+    case 'named':
       break;
+    default: {
+      const unhandled: never = e;
+      void unhandled;
+    }
   }
   return v;
 }

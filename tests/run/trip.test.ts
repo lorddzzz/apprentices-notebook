@@ -8,6 +8,7 @@ import {
   deriveSeed,
   describeLog,
   finishEncounter,
+  type GameEvent,
   type LootItem,
   latticeOf,
   legalMoves,
@@ -27,6 +28,11 @@ import {
 } from '$engine';
 
 const SEED = 12345;
+const NAMED: GameEvent[] = [
+  { type: 'named', what: 'burst', id: 'fire' },
+  { type: 'named', what: 'compound', id: 'stain' },
+  { type: 'named', what: 'burst', id: 'fire' },
+];
 
 function fought(b: BattleState, phase: 'won' | 'lost'): BattleState {
   const s = structuredClone(b);
@@ -60,7 +66,7 @@ describe('start', () => {
 
   test('startTrip refuses a bad loadout', () => {
     const p = newProfile();
-    const l = setSocket(latticeOf(p, 'stoker'), { x: 1, y: 3 }, 'echo');
+    const l = setSocket(latticeOf(p, 'stoker'), { x: 1, y: 3 }, 'coil'); // not known
     expect(() => startTrip(setMemberLattice(p, 'stoker', l), SEED)).toThrow(/not ready/);
   });
 
@@ -149,10 +155,12 @@ describe('loot', () => {
       expect(t.status).toBe('fight');
       expect(t.encounter).toBe(i + 1);
     }
-    expect(p.collection).toEqual(p0.collection); // nothing banked yet
+    expect(p.known).toEqual(p0.known); // nothing banked yet
     const home = returnHome(p, { ...t, status: 'crossroads' });
-    const total = (q: Profile) => Object.values(q.collection).reduce((a, b) => a + b, 0);
-    expect(total(home) - total(p0)).toBe(picked.filter((o) => o.kind === 'rune').length);
+    const pages = new Set(picked.flatMap((o) => (o.kind === 'rune' ? [o.rune] : [])));
+    expect(home.known.length - p0.known.length).toBe(
+      [...pages].filter((r) => !p0.known.includes(r)).length,
+    );
     const inkGain = Object.values(home.inkCapacity).reduce((a, b) => a + b, 0) - 16;
     expect(inkGain).toBe(picked.filter((o) => o.kind === 'ink').length * 2);
     const solvents = Object.values(home.solvents).reduce((a, b) => a + b, 0);
@@ -168,8 +176,10 @@ describe('loot', () => {
       ...startTrip(p, SEED),
       status: 'crossroads',
       loot: [
-        { kind: 'rune', rune: 'echo' },
-        { kind: 'rune', rune: 'echo' },
+        { kind: 'rune', rune: 'vat' },
+        { kind: 'rune', rune: 'vat' },
+        { kind: 'rune', rune: 'bolt' },
+        { kind: 'method', method: 'conduct' },
         { kind: 'ink', member: 'stoker', amount: 2 },
         { kind: 'solvent', solvent: 'pitch' },
         { kind: 'solvent', solvent: 'pitch' },
@@ -177,11 +187,14 @@ describe('loot', () => {
       ],
     };
     const home = returnHome(p, t);
-    expect(home.collection.echo).toBe(2);
+    // A page teaches once (P34); a known rune's page adds nothing here (R1 turns it into ink).
+    expect(home.known.filter((r) => r === 'vat')).toEqual(['vat']);
+    expect(home.known.filter((r) => r === 'bolt')).toEqual(['bolt']);
+    expect(home.methods).toEqual(['conduct']);
     expect(home.inkCapacity).toEqual({ draughtsman: 8, stoker: 10 });
     expect(home.solvents.pitch).toBe(2);
     expect(home.vellum).toBe(3);
-    expect(p.collection.echo).toBe(0);
+    expect(p.known).not.toContain('vat');
   });
 
   test('heart gives 2 picks then cleared', () => {
@@ -206,34 +219,32 @@ describe('loot', () => {
 });
 
 describe('wipes, hp and charges', () => {
-  test('wipe loses loot but keeps codex discoveries', () => {
+  test('wipe loses loot but keeps named results', () => {
     const p = newProfile();
     const t: Trip = {
       ...startTrip(p, SEED),
       loot: [
-        { kind: 'rune', rune: 'echo' },
+        { kind: 'rune', rune: 'vat' },
         { kind: 'solvent', solvent: 'cinder' },
         { kind: 'vellum', amount: 1 },
       ],
     };
     const b = fought(beginEncounter(p, t).state, 'lost');
-    b.discovered = ['ignite', 'arc'];
-    const r = finishEncounter(p, t, b);
+    const r = finishEncounter(p, t, b, NAMED);
     expect(r.outcome).toBe('wiped');
     expect(r.trip).toBeNull();
-    expect(r.profile.interactions).toEqual(['ignite', 'arc']);
-    expect(r.profile.collection.echo).toBe(0);
+    expect(r.profile.named).toEqual(['burst:fire', 'compound:stain']);
+    expect(r.profile.known).not.toContain('vat');
     expect(r.profile.solvents).toEqual(p.solvents);
     expect(r.profile.vellum).toBe(0);
-    expect(p.interactions).toEqual([]);
+    expect(p.named).toEqual([]);
   });
 
-  test('wins keep discoveries too, without duplicates', () => {
-    const p = { ...newProfile(), interactions: ['arc' as const] };
-    const r = win(p, startTrip(p, SEED), (b) => {
-      b.discovered = ['ignite', 'arc'];
-    });
-    expect(r.profile.interactions).toEqual(['arc', 'ignite']);
+  test('wins keep named results too, without duplicates', () => {
+    const p = { ...newProfile(), named: ['compound:stain'] };
+    const t = startTrip(p, SEED);
+    const r = finishEncounter(p, t, fought(beginEncounter(p, t).state, 'won'), NAMED);
+    expect(r.profile.named).toEqual(['compound:stain', 'burst:fire']);
   });
 
   test('downed member returns at 1 HP after a win', () => {

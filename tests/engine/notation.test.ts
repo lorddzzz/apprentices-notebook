@@ -8,11 +8,12 @@ const tileAt = (ascii: string, x: number, y: number) => {
   if (!t) throw new Error('no tile');
   return t;
 };
+const at = { x: 0, y: 0 };
 
-test('parses units, mods and layers', () => {
+test('parses units, mods and states', () => {
   const b = parseBoard(`
     r!o  *  @~
-    =    r& D
+    =    r& D++
   `);
   expect(b.width).toBe(3);
   expect(b.height).toBe(2);
@@ -21,48 +22,85 @@ test('parses units, mods and layers', () => {
       kind: 'enemy',
       def: 'rat',
       at: { x: 0, y: 0 },
-      inked: true,
-      brass: false,
-      branded: false,
-      heat: 0,
-      etched: false,
+      mark: 'plain',
+      collar: false,
+      shackle: false,
+      shield: 0,
     },
     {
       kind: 'enemy',
       def: 'rat',
       at: { x: 1, y: 1 },
-      inked: false,
-      brass: true,
-      branded: false,
-      heat: 0,
-      etched: false,
+      mark: null,
+      collar: true,
+      shackle: false,
+      shield: 0,
     },
     {
       kind: 'member',
       def: 'draughtsman',
       at: { x: 2, y: 1 },
-      inked: false,
-      brass: false,
-      branded: false,
-      heat: 0,
-      etched: false,
+      mark: null,
+      collar: false,
+      shackle: false,
+      shield: 2,
     },
   ]);
-  expect(b.tiles[0]).toMatchObject({ oil: true, fire: 0 });
-  expect(b.tiles[1]).toMatchObject({ oil: true, fire: TUNING.fireRounds });
-  expect(b.tiles[2]).toMatchObject({ vent: true, steam: TUNING.steamRounds, oil: false });
-  expect(b.tiles[3]).toMatchObject({ plate: true, oil: false });
-  expect(parseCell('i', { x: 0, y: 0 }).tile.ink).toBe(true);
-  expect(parseCell('r!%', { x: 0, y: 0 }).unit).toMatchObject({ inked: true, branded: true });
-  expect(serializeBoard(parseBoard('r!&% .'))).toBe('r!&% .');
+  expect(b.tiles[0]?.state).toEqual({ id: 'slick', rounds: 0, origin: null });
+  expect(b.tiles[1]?.state).toEqual({ id: 'fire', rounds: TUNING.fireRounds, origin: null });
+  expect(b.tiles[2]).toMatchObject({
+    terrain: { vent: true },
+    state: { id: 'cloud', rounds: TUNING.cloudRounds },
+  });
+  // A layout plate is permanent and never breaks; a rune plate crumbles and takes one hit.
+  expect(b.tiles[3]?.state).toEqual({ id: 'plate', rounds: 0, origin: null });
+  expect(parseCell('#', at).tile.state).toEqual({
+    id: 'plate',
+    rounds: TUNING.plateRounds,
+    origin: null,
+    hits: 1,
+  });
+  expect(parseCell('i', at).tile.state?.id).toBe('blot');
+  expect(parseCell('r!!', at).unit?.mark).toBe('deep');
+  expect(parseCell('r$', at).unit?.shackle).toBe(true);
 });
 
-test('rejects unknown chars / unit on plate / mod without unit / duplicate member', () => {
+test('parses the eight tile compounds in braces', () => {
+  const names = {
+    stain: 'stain',
+    brand: 'brandCloud',
+    pool: 'pool',
+    fog: 'greaseFog',
+    skid: 'skidPlate',
+    bank: 'bank',
+    kettle: 'kettle',
+    wall: 'wall',
+  } as const;
+  for (const [token, id] of Object.entries(names)) {
+    const layer = parseCell(`{${token}}`, at).tile.state;
+    expect(layer).toMatchObject({ id, rounds: TUNING.compoundRounds });
+  }
+  expect(parseCell('{wall}', at).tile.state?.hits).toBe(2);
+  expect(parseCell('{skid}', at).tile.state?.hits).toBe(1);
+  expect(parseCell('r{stain}', at).unit?.def).toBe('rat');
+  expect(() => parseCell('r{wall}', at)).toThrow(/cannot stand on a plate/);
+  expect(() => parseCell('{mud}', at)).toThrow(/Unknown compound "\{mud\}"/);
+});
+
+test('the drop `_` is terrain (P3)', () => {
+  expect(parseCell('_', at).tile.terrain.drop).toBe(true);
+  expect(parseCell('r_', at).unit?.def).toBe('rat');
+  expect(serializeBoard(parseBoard('r_ _o .'))).toBe('r_ _o .');
+});
+
+test('rejects unknown chars / two states / unit on plate / mod without unit / duplicate member', () => {
   expect(() => parseBoard('. . z')).toThrow(/"z".*C1/);
   expect(() => parseBoard('.\n. r=')).toThrow(/plate.*B2/);
   expect(() => parseBoard('. .\n. . !')).toThrow(/needs a unit.*C2/);
   expect(() => parseBoard('D . .\n. . D')).toThrow(/Duplicate.*C2/);
-  expect(() => parseBoard('. =o')).toThrow(/plate.*B1/);
+  expect(() => parseBoard('. =o')).toThrow(/one state.*B1/);
+  expect(() => parseBoard('o~')).toThrow(/one state/);
+  expect(() => parseBoard('r!!!')).toThrow(/one mark/);
   expect(() => parseBoard('')).toThrow(/Empty/);
 });
 
@@ -70,52 +108,70 @@ test('pads short rows with floor', () => {
   const b = parseBoard('r . .\nD');
   expect(b.width).toBe(3);
   expect(b.tiles).toHaveLength(6);
-  expect(tileAt('r . .\nD', 2, 1)).toMatchObject({ oil: false, plate: false });
+  expect(tileAt('r . .\nD', 2, 1).state).toBeNull();
   expect(b.units).toHaveLength(2);
 });
 
-test('serializeBoard round-trips', () => {
+test('serializeBoard round-trips every token', () => {
   const ascii = `
-    b&  .  f!o
-    @~  *  =
-    S   i  r!~
+    b&   .        f!o     d!!$+  r++
+    ~@   *        =       #      i
+    S    {stain}  {brand} {pool} {fog}
+    .    {skid}   {bank}  {kettle} {wall}
+    w>o  wvh      g       l      _
   `;
   const once = parseBoard(ascii);
   const text = serializeBoard(once);
   expect(parseBoard(text)).toEqual(once);
   expect(serializeBoard(parseBoard(text))).toBe(text);
-  // canonical layer order is o i ~ * = @, so a vent with steam is written `~@`
-  expect(text).toBe('b& . f!o\n~@ * =\nS  i r!~');
+  // canonical order: unit, mods, then w h _ state @ g l
+  expect(serializeBoard(parseBoard('@~ _o wvh'))).toBe('~@ _o wvh');
+  expect(serializeBoard(parseBoard('@~'))).toBe('~@');
 });
 
 test('parses lattice tokens and arrows', () => {
   const l = parseLattice(`
     Bolt> Bendv x
-    Ink   .    Amp
+    Ink   .    Coil
   `);
   expect(l.shape).toEqual({ width: 3, height: 2, holes: [{ x: 2, y: 0 }] });
   expect(l.runes).toEqual([
     { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
     { at: { x: 1, y: 0 }, rune: 'bend', dir: 'down' },
     { at: { x: 0, y: 1 }, rune: 'ink' },
-    { at: { x: 2, y: 1 }, rune: 'amplify' },
+    { at: { x: 2, y: 1 }, rune: 'coil' },
   ]);
-  const dirs = parseLattice('Bolt< Splash^ Wardv').runes.map((r) => r.dir);
-  expect(dirs).toEqual(['left', 'up', 'down']);
+  const dirs = parseLattice('Bolt< Splash^ Touchv Vat>').runes.map((r) => r.dir);
+  expect(dirs).toEqual(['left', 'up', 'down', 'right']);
+});
+
+test('every one of the 31 rune tokens and an invention round-trip', () => {
+  const l = parseLattice(
+    [
+      'Bolt>  Splash> Touch>  Vat>   Strike Shove Guard Sentence',
+      'Levy   Hold    Swap    Draw   Erase  Ink   Oil   Steam',
+      'Brass  Spark   Fork    Bendv  Seep   Lay   Toll  Tally',
+      'Brink  Unison  Jar     Fuse   Afterglow Steep Coil inv:recoil',
+    ].join('\n'),
+  );
+  expect(new Set(l.runes.map((r) => ('rune' in r ? r.rune : ''))).size).toBe(32);
+  expect(l.runes.at(-1)).toEqual({ at: { x: 7, y: 3 }, rune: 'inv:recoil' });
+  expect(parseLattice(serializeLattice(l))).toEqual(l);
 });
 
 test('rejects arrow on Ink / missing arrow on Bolt / unknown token / ragged rows', () => {
   expect(() => parseLattice('. Ink>')).toThrow(/no arrow.*B1/);
   expect(() => parseLattice('.\nBolt')).toThrow(/needs an arrow.*A2/);
   expect(() => parseLattice('. Zap')).toThrow(/Unknown.*B1/);
+  expect(() => parseLattice('. inv:x>')).toThrow(/no arrow/);
   expect(() => parseLattice('. .\n.')).toThrow(/row 2/);
 });
 
 test('serializeLattice round-trips', () => {
-  const l = parseLattice('Bolt> Ink x\n. OnInked Bendv\nAmp Echo Fork');
+  const l = parseLattice('Bolt> Ink x\n. Tally Bendv\nCoil Jar Fork');
   const text = serializeLattice(l);
   expect(parseLattice(text)).toEqual(l);
-  expect(text).toBe('Bolt> Ink     x\n.     OnInked Bendv\nAmp   Echo    Fork');
+  expect(text).toBe('Bolt> Ink   x\n.     Tally Bendv\nCoil  Jar   Fork');
 });
 
 test('member start lattices serialize back to their data text', () => {
@@ -137,29 +193,17 @@ test('a Glyph socket round-trips through lattice ASCII', () => {
   expect(serializeLattice(l)).toBe('Bolt> G:cashing>   .\n.     G:fair-copy^ x');
   expect(() => parseLattice('G:> .')).toThrow(/Glyph/);
   expect(() => parseLattice('G:abc .')).toThrow(/Glyph/);
-});
-
-test('stained oil, scalding steam, hot and etched brass round-trip', () => {
-  const ascii = 'b^# =^ =#\n$ s r&^';
-  const b = parseBoard(ascii);
-  expect(b.units[0]).toMatchObject({ def: 'sentry', heat: TUNING.heatRounds, etched: true });
-  expect(b.tiles[1]).toMatchObject({ plate: true, heat: TUNING.heatRounds, etched: false });
-  expect(b.tiles[2]).toMatchObject({ plate: true, heat: 0, etched: true });
-  expect(b.tiles[3]).toMatchObject({ oil: true, stain: true });
-  expect(b.tiles[4]).toMatchObject({ steam: TUNING.steamRounds, scald: true });
-  expect(b.units[1]).toMatchObject({ brass: true, heat: TUNING.heatRounds });
-  expect(parseBoard(serializeBoard(b))).toEqual(b);
-  expect(() => parseCell('r^', { x: 0, y: 0 })).toThrow('Only brass');
-  expect(() => parseCell('o#', { x: 0, y: 0 })).toThrow('Only brass');
+  const args = parseLattice('G:g1>[1,0:Oil][2,0:Bend^]');
+  expect(serializeLattice(args)).toBe('G:g1>[1,0:Oil][2,0:Bend^]');
 });
 
 test('water, grates, gates and lamps (K-6)', () => {
   const b = 'w> wv w< w^\new^ Mw> h? .\nwvh g l Sl';
   expect(() => parseBoard(b)).toThrow('Unknown character "?"');
-  const ok = 'w> wv w< w^\new^ Mw> wvo* .\nwvh g l Sl\nD!w> b^ wvi .';
-  expect(tileAt(ok, 0, 0).water).toBe('right');
-  expect(tileAt(ok, 3, 0).water).toBe('up');
-  expect(tileAt(ok, 0, 1).water).toBe('up'); // an eel on water flowing up, not a hot eel
+  const ok = 'w> wv w< w^\new^ Mw> wv* .\nwvh g l Sl\nD!w> b wvi .';
+  expect(tileAt(ok, 0, 0).terrain.water).toBe('right');
+  expect(tileAt(ok, 3, 0).terrain.water).toBe('up');
+  expect(tileAt(ok, 0, 1).terrain.water).toBe('up');
   expect(parseBoard(ok).units.map((u) => u.def)).toEqual([
     'eel',
     'mother',
@@ -167,11 +211,13 @@ test('water, grates, gates and lamps (K-6)', () => {
     'draughtsman',
     'sentry',
   ]);
-  expect(tileAt(ok, 2, 1)).toMatchObject({ water: 'down', oil: true, fire: TUNING.fireRounds });
-  expect(tileAt(ok, 0, 2)).toMatchObject({ water: 'down', grate: true });
-  expect(tileAt(ok, 1, 2).gate).toBe(true);
-  expect(tileAt(ok, 2, 2).lamp).toBe(true);
-  expect(parseBoard(ok).units.find((u) => u.def === 'sentry')?.heat).toBeGreaterThan(0);
+  expect(tileAt(ok, 2, 1)).toMatchObject({
+    terrain: { water: 'down' },
+    state: { id: 'fire', rounds: TUNING.fireRounds },
+  });
+  expect(tileAt(ok, 0, 2).terrain).toMatchObject({ water: 'down', grate: true });
+  expect(tileAt(ok, 1, 2).terrain.gate).toBe(true);
+  expect(tileAt(ok, 2, 2).terrain.lamp).toBe(true);
   const spec = parseBoard(ok);
   expect(parseBoard(serializeBoard(spec))).toEqual(spec);
   expect(() => parseBoard('w')).toThrow('Water needs an arrow');

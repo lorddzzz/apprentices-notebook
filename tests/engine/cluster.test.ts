@@ -9,7 +9,6 @@ import {
   createRng,
   type FiredCell,
   type Lattice,
-  matchIdioms,
   maximalProven,
   parseLattice,
   provenCount,
@@ -49,7 +48,7 @@ const mirrored = (cells: readonly CanonCell[]): FiredCell[] =>
     return out;
   });
 
-const CHAIN = parseLattice('Bolt> Ink OnInked Spark');
+const CHAIN = parseLattice('Bolt> Ink Tally Spark');
 const FORK = parseLattice('. Ink .\nBolt> Fork .\n. Oil .');
 
 describe('clustersOf', () => {
@@ -71,7 +70,7 @@ describe('clustersOf', () => {
   });
 
   test('sizes stay within the Glyph bounds and every cluster is prefix-closed from its root', () => {
-    const l = parseLattice('Bolt> Fork Ink OnInked Spark\n. Oil Fork . Brass');
+    const l = parseLattice('Bolt> Fork Ink Tally Spark\n. Oil Fork . Brass');
     for (const cl of clustersOf(l)) {
       expect(cl.cells.length).toBeGreaterThanOrEqual(TUNING.glyphMinCells);
       expect(cl.cells.length).toBeLessThanOrEqual(TUNING.glyphMaxCells);
@@ -91,12 +90,13 @@ describe('clustersOf', () => {
   });
 
   test('every aura touching the cluster comes with it', () => {
-    const l = parseLattice('Amp . . .\nBolt> Ink OnInked Spark\n. . Amp .');
+    const l = parseLattice('Coil . . .\nBolt> Ink Tally Spark\n. . Coil .');
     const [first, second, third] = clustersOf(l);
-    expect(first?.auras).toEqual([c(0, 0)]); // Amp above the Bolt (nothing powers OnInked)
-    expect(second?.auras).toEqual([c(0, 0)]);
+    // An aura touches any path cell now, the Tally too.
+    expect(first?.auras).toEqual([c(0, 0), c(2, 2)]);
+    expect(second?.auras).toEqual([c(0, 0), c(2, 2)]);
     expect(third?.root).toEqual(c(1, 1));
-    expect(third?.auras).toEqual([]);
+    expect(third?.auras).toEqual([c(2, 2)]);
   });
 
   test('a Glyph socket is never inside a cluster', () => {
@@ -185,7 +185,7 @@ describe('provenCount', () => {
   });
 
   test('a pattern proven elsewhere counts when rebuilt in another lattice', () => {
-    const other = parseLattice('. . . .\nBolt> Ink OnInked Spark');
+    const other = parseLattice('. . . .\nBolt> Ink Tally Spark');
     const theirs = clustersOf(other).filter((x) => x.cells.length === 4)[0];
     if (!theirs) throw new Error('no cluster');
     expect(provenCount(other, theirs, [moved(cells, 0, 3, 3)])).toBe(1);
@@ -193,7 +193,7 @@ describe('provenCount', () => {
 
   test('heredity (property): a prefix-closed sub-cluster is at least as proven as the cluster', () => {
     const rng = createRng(2024);
-    const l = parseLattice('. Ink OnInked .\nBolt> Fork Spark .\n. Oil Brass .');
+    const l = parseLattice('. Ink Tally .\nBolt> Fork Spark .\n. Oil Brass .');
     const all = clustersOf(l);
     const pool = all.flatMap((x) => cellsOf(l, x));
     for (let round = 0; round < 25; round++) {
@@ -242,8 +242,8 @@ describe('maximalProven', () => {
 
 describe('blockingAuras', () => {
   test('an aura that also powers a cell outside the cluster blocks', () => {
-    const l = parseLattice('Bolt> Ink Bendv\n. Amp Spark');
-    // Amp at B2 touches Ink (inside) and Spark (outside the 3-cell cluster).
+    const l = parseLattice('Bolt> Ink Bendv\n. Coil Spark');
+    // Coil at B2 touches Ink (inside) and Spark (outside the 3-cell cluster).
     const cl = clustersOf(l).find((x) => x.cells.length === 3 && x.root.x === 0);
     if (!cl) throw new Error('no cluster');
     expect(cl.auras).toEqual([c(1, 1)]);
@@ -251,7 +251,7 @@ describe('blockingAuras', () => {
   });
 
   test('an aura that touches only the cluster does not', () => {
-    const l = parseLattice('Amp . . .\nBolt> Ink OnInked Spark');
+    const l = parseLattice('Coil . . .\nBolt> Ink Tally Spark');
     const cl = clustersOf(l)[0];
     if (!cl) throw new Error('no cluster');
     expect(blockingAuras(l, cl)).toEqual([]);
@@ -260,7 +260,7 @@ describe('blockingAuras', () => {
 
 describe('sharedCells', () => {
   test('another spell flowing into a cluster cell shares it', () => {
-    const l = parseLattice('Bolt> Ink OnInked Spark\n. Bolt^ . .');
+    const l = parseLattice('Bolt> Ink Tally Spark\n. Bolt^ . .');
     const cl = clustersOf(l).find((x) => x.cells.length === 3 && x.root.x === 0);
     if (!cl) throw new Error('no cluster');
     expect(sharedCells(l, cl)).toEqual([c(1, 0)]);
@@ -268,7 +268,7 @@ describe('sharedCells', () => {
   });
 
   test('a lone spell shares nothing', () => {
-    const l = parseLattice('Bolt> Ink OnInked Spark');
+    const l = parseLattice('Bolt> Ink Tally Spark');
     const cl = clustersOf(l)[0];
     if (!cl) throw new Error('no cluster');
     expect(sharedCells(l, cl)).toEqual([]);
@@ -277,7 +277,7 @@ describe('sharedCells', () => {
 
 describe('toGlyphDef', () => {
   test('a Spell Glyph rotates its entry to local right, entry at the origin', () => {
-    const l = parseLattice('Boltv\nInk\nOnInked\nSpark'.replace(/\n/g, '\n'));
+    const l = parseLattice('Boltv\nInk\nTally \nSpark'.replace(/\n/g, '\n'));
     const cl = clustersOf(l).find((x) => x.cells.length === 4 && x.kind === 'spell');
     if (!cl) throw new Error('no cluster');
     const def = toGlyphDef(l, cl, 'Down', 'g1');
@@ -285,7 +285,7 @@ describe('toGlyphDef', () => {
     expect(def.cells).toEqual([
       { at: c(0, 0), rune: 'bolt', dir: 'right' },
       { at: c(1, 0), rune: 'ink' },
-      { at: c(2, 0), rune: 'onInked' },
+      { at: c(2, 0), rune: 'tally' },
       { at: c(3, 0), rune: 'spark' },
     ]);
   });
@@ -298,11 +298,11 @@ describe('toGlyphDef', () => {
   });
 
   test('auras travel into the Glyph, in the local frame', () => {
-    const l = parseLattice('Amp . . .\nBolt> Ink OnInked Spark');
+    const l = parseLattice('Coil . . .\nBolt> Ink Tally Spark');
     const cl = clustersOf(l)[0];
     if (!cl) throw new Error('no cluster');
-    const def = toGlyphDef(l, cl, 'Amped', 'g1');
-    expect(def.cells).toContainEqual({ at: c(0, -1), rune: 'amplify' });
+    const def = toGlyphDef(l, cl, 'Coiled', 'g1');
+    expect(def.cells).toContainEqual({ at: c(0, -1), rune: 'coil' });
   });
 
   test('a payload cluster enters along its travel direction', () => {
@@ -310,47 +310,14 @@ describe('toGlyphDef', () => {
     if (!cl) throw new Error('no cluster');
     const def = toGlyphDef(CHAIN, cl, 'Mark', 'g1');
     expect(def.kind).toBe('payload');
-    expect(def.cells.map((x) => x.rune)).toEqual(['ink', 'onInked', 'spark']);
+    expect(def.cells.map((x) => x.rune)).toEqual(['ink', 'tally', 'spark']);
     expect(def.cells[1]?.at).toEqual(c(1, 0));
   });
 
-  test('carries the first matching idiom, or null', () => {
-    const l = parseLattice('Bolt> OnInked Spark');
+  test('carries no idiom: idioms are log patterns now (P7)', () => {
+    const l = parseLattice('Bolt> Tally Spark');
     const cl = clustersOf(l)[0];
     if (!cl) throw new Error('no cluster');
-    expect(toGlyphDef(l, cl, 'x', 'g1').idiom).toBe('cashingIn');
-    const dull = parseLattice('Bolt> Ink Oil Spark');
-    const plain = clustersOf(dull)[0];
-    if (!plain) throw new Error('no cluster');
-    expect(toGlyphDef(dull, plain, 'x', 'g1').idiom).toBeNull();
-  });
-});
-
-describe('matchIdioms', () => {
-  test('Cashing In: a Source, then a Mark trigger, then a Heat or Charge payload', () => {
-    expect(matchIdioms(parseLattice('Bolt> OnInked Spark'))).toEqual(['cashingIn']);
-  });
-
-  test('an ordered subsequence: other runes may sit between the steps, the order may not change', () => {
-    expect(matchIdioms(parseLattice('Bolt> Bendv\n. OnInked\n. Spark'))).toEqual(['cashingIn']);
-    expect(matchIdioms(parseLattice('Bolt> Ink OnInked Spark'))).toEqual(['cashingIn']);
-    expect(matchIdioms(parseLattice('Bolt> Spark OnInked'))).toEqual([]);
-    expect(matchIdioms(parseLattice('Bolt> Ink Spark'))).toEqual([]);
-  });
-
-  test('Bonfire: a reach-vapor source, then Slick, then Heat', () => {
-    expect(matchIdioms(parseLattice('Splash> Oil Spark'))).toEqual(['bonfire']);
-    expect(matchIdioms(parseLattice('Bolt> Oil Spark'))).toEqual([]);
-  });
-
-  test('Undertaker: any Source, a Vapor-return trigger, then a material', () => {
-    expect(matchIdioms(parseLattice('Bolt> OnKill Oil'))).toEqual(['undertaker']);
-  });
-
-  test('a branch of a Fork can match on its own', () => {
-    expect(matchIdioms(parseLattice('. Ink .\nBolt> Fork .\n. Oil .'))).toEqual([]);
-    expect(matchIdioms(parseLattice('. Spark .\n. OnInked .\nBolt> Fork .\n. Ink .'))).toEqual([
-      'cashingIn',
-    ]);
+    expect(toGlyphDef(l, cl, 'x', 'g1').idiom).toBeNull();
   });
 });

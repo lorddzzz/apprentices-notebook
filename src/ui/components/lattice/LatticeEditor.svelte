@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type Snippet, tick } from 'svelte';
-  import { INTERACTION_IDS, type InteractionId, MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
+  import { isInvention, MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
   import {
     type CellKey,
     type CompiledLattice,
@@ -9,15 +9,18 @@
     type GlyphId,
     type GlyphLibrary,
     glyphCost,
-    inkCost,
+    hasArrow,
+    type InventionLibrary,
+    inkOf,
     inkUsed,
     isGlyph,
     key,
     type Lattice,
+    nameOf,
+    roleOf,
     type SpellKey,
     socketAt,
   } from '$engine';
-  import { spellRecipe, stepNumbers } from '../../../app/recipe';
   import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
   import Pips from '../common/Pips.svelte';
   import Sheet from '../common/Sheet.svelte';
@@ -40,8 +43,8 @@
     onmember: (member: MemberId) => void;
     /** Why a shelf slot can't be picked up. */
     onreject?: (reason: string) => void;
-    /** Interactions the recipe may name (the rest are hinted at). Default: all (Lab). */
-    known?: readonly InteractionId[];
+    /** The household's inventions (their ink and role). Default: none (Lab). */
+    inventions?: InventionLibrary;
     /** The profile's Fair copies (Glyph sockets, ink, the shelf tab). Default: none (Lab). */
     glyphs?: GlyphLibrary;
     glyphSlots?: GlyphSlot[];
@@ -53,8 +56,6 @@
       active: boolean;
       glow: ReadonlySet<string>;
       selected: ReadonlySet<string>;
-      /** The idiom the selection matches and its cost, or what a trim just broke. */
-      chip?: { text: string; lost: boolean } | null;
       ontoggle: () => void;
       ontap: (at: Coord) => void;
     };
@@ -79,7 +80,7 @@
     member,
     onmember,
     onreject,
-    known = INTERACTION_IDS,
+    inventions = {},
     glyphs = {},
     glyphSlots = [],
     onpeek,
@@ -100,10 +101,7 @@
     compiled.spells.some((s) => s.key === focus) ? focus : (compiled.spells[0]?.key ?? null),
   );
   const focusedSpell = $derived(compiled.spells.find((s) => s.key === liveFocus) ?? null);
-  const recipe = $derived(
-    focusedSpell ? spellRecipe(focusedSpell, MEMBERS[member].affinity, known) : null,
-  );
-  const numbers = $derived(recipe ? stepNumbers(recipe) : new Map<string, number>());
+  const lean = $derived(MEMBERS[member].lean);
   const inspectedRune = $derived.by(() => {
     const p = inspected ? socketAt(lattice, inspected) : null;
     return p && !isGlyph(p) ? p.rune : null;
@@ -120,7 +118,7 @@
     return def.params
       .map((k) => {
         const rune = inspectedGlyph?.args?.[k]?.rune ?? def.cells.find((c) => key(c.at) === k)?.rune;
-        return rune ? RUNES[rune].name : null;
+        return rune ? nameOf(rune, inventions) : null;
       })
       .filter((n) => n !== null)
       .join(', ');
@@ -128,7 +126,11 @@
   const held = $derived(tool.kind === 'rune' ? tool.rune : null);
   const heldGlyph = $derived(tool.kind === 'glyph' ? (glyphs[tool.glyph] ?? null) : null);
   const pending = $derived(
-    held ? inkCost(held) : heldGlyph ? glyphCost(heldGlyph) : 0,
+    held
+      ? inkOf(held, inventions, lean)
+      : heldGlyph
+        ? glyphCost(heldGlyph, inventions, lean)
+        : 0,
   );
   const fairOn = $derived(fair?.active === true);
 
@@ -145,7 +147,7 @@
     if (!longPress && tool.kind === 'none' && placed) {
       // Arrow runes turn on tap, so keep the spell list (it shows what the turn did).
       // A Glyph turns too, but stays inspected so its card can open the sheet.
-      inspected = !isGlyph(placed) && RUNES[placed.rune].arrow ? null : at;
+      inspected = !isGlyph(placed) && hasArrow(placed.rune) ? null : at;
       const spell = compiled.spells.find((s) => s.key === key(at));
       if (spell) focus = spell.key;
     } else {
@@ -194,7 +196,7 @@
       </button>
     {/each}
     <span class="grow"></span>
-    <InkPot used={inkUsed(lattice, glyphs)} {capacity} {pending} />
+    <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
   </div>
 
   <div class="page">
@@ -217,7 +219,6 @@
       {lattice}
       {compiled}
       focus={liveFocus}
-      {numbers}
       {inspected}
       {glyphs}
       glow={fair?.glow}
@@ -233,8 +234,7 @@
       <p class="line pad">Tap a rune to erase it. Holding a rune also lifts it.</p>
     {:else if heldGlyph}
       <p class="line pad">
-        <b>{heldGlyph.name}</b> · Fair copy · {pending} ink. Tap an empty socket. It takes its runes from your
-        collection.
+        <b>{heldGlyph.name}</b> · Fair copy · {pending} ink. Tap an empty socket.
       </p>
     {:else if inspectedGlyph && inspectedGlyphDef}
       <div class="rune">
@@ -247,7 +247,7 @@
         />
         <div class="grow">
           <p class="line">
-            <b>{inspectedGlyphDef.name}</b> · {inspectedGlyphDef.kind} Fair copy · {glyphCost(inspectedGlyphDef)} ink
+            <b>{inspectedGlyphDef.name}</b> · {inspectedGlyphDef.kind} Fair copy · {glyphCost(inspectedGlyphDef, inventions, lean)} ink
           </p>
           <p class="rule">
             {inspectedGlyphDef.cells.length} runes inside.
@@ -276,14 +276,16 @@
         </div>
       </div>
     {:else if infoRune}
-      {@const def = RUNES[infoRune]}
+      {@const arrow = hasArrow(infoRune)}
       <div class="rune">
-        <RuneGlyph rune={infoRune} dir={def.arrow ? 'right' : undefined} size={36} />
+        <RuneGlyph rune={infoRune} dir={arrow ? 'right' : undefined} size={36} />
         <div class="grow">
           <p class="line">
-            <b>{def.name}</b> · {def.family} · {inkCost(infoRune)} ink
+            <b>{nameOf(infoRune, inventions)}</b> · {roleOf(infoRune, inventions) ?? 'rune'} · {inkOf(infoRune, inventions, lean)} ink
           </p>
-          <p class="rule clamp">{def.rule}{def.arrow ? ' Tap it to turn.' : ''}</p>
+          <p class="rule clamp">
+            {isInvention(infoRune) ? 'A rune the household invented.' : RUNES[infoRune].headline}{arrow ? ' Tap it to turn.' : ''}
+          </p>
         </div>
       </div>
     {:else if focusedSpell}
@@ -299,23 +301,18 @@
           <span class="summary">{describeSpell(focusedSpell)}</span>
           <span class="more">
             {#if compiled.spells.length > 1}Spell {spellIndex + 1} of {compiled.spells.length} · {/if}
-            {recipe && recipe.steps.length > 0
-              ? `${recipe.steps.length} ${recipe.steps.length === 1 ? 'step' : 'steps'} · tap to read`
-              : 'Tap to read'} &rsaquo;
+            Tap to read &rsaquo;
           </span>
         </span>
         <Pips value={focusedSpell.charges} max={focusedSpell.charges} tone="charge" />
       </button>
     {:else}
-      <p class="line pad soft">No spell yet. A Source rune (Bolt, Splash, Ward) starts the flow.</p>
+      <p class="line pad soft">No spell yet. A Source rune (Bolt, Splash, Touch, Vat) starts the flow.</p>
     {/if}
   </div>
 
   {#if fairOn && fairinfo}
     <div class="fairpanel">
-      {#if fair?.chip}
-        <p class="chip" class:lost={fair.chip.lost} data-testid="fair-chip">{fair.chip.text}</p>
-      {/if}
       {@render fairinfo()}
     </div>
   {:else}
@@ -326,7 +323,6 @@
     <SpellList
       spells={compiled.spells}
       focus={liveFocus}
-      {recipe}
       {member}
       onfocus={(k) => (focus = k)}
     />
@@ -426,27 +422,6 @@
     background: var(--lamp);
     border-color: var(--ink);
     font-weight: 700;
-  }
-  .chip {
-    display: inline-block;
-    margin: var(--space-1) var(--space-2) 0;
-    padding: 2px var(--space-2);
-    border: 1px solid var(--lamp);
-    border-radius: 999px;
-    background: rgba(232, 176, 74, 0.35);
-    font-size: 13px;
-    font-weight: 700;
-    transition:
-      opacity 0.3s,
-      background 0.3s;
-  }
-  .chip.lost {
-    border-style: dashed;
-    border-color: var(--ink-soft);
-    background: transparent;
-    color: var(--ink-soft);
-    font-weight: 400;
-    opacity: 0.75;
   }
   .buttons {
     flex: none;

@@ -11,34 +11,67 @@ export function durationOf(e: GameEvent): number {
       return e.phase === 'player' ? STEP_MS.banner : STEP_MS.quiet;
     case 'won':
     case 'lost':
-    case 'splash':
-    case 'detonate':
-    case 'ignite':
-    case 'arc':
-    case 'conduct':
+    case 'burst':
+    case 'crush':
+    case 'dropped':
+    case 'fizzles':
       return STEP_MS.big;
     case 'moved':
-    case 'pushed':
-    case 'slide':
+    case 'push':
     case 'lands':
     case 'stopped':
+    case 'aimed':
     case 'damage':
     case 'died':
-    case 'inked':
-    case 'puddle':
-    case 'diffuse':
-    case 'oiled':
-    case 'steam':
+    case 'landed':
+    case 'mixed':
+    case 'washed':
+    case 'spreadState':
+    case 'swapped':
+    case 'drawn':
+    case 'marked':
+    case 'collared':
+    case 'markSpread':
+    case 'released':
+    case 'conducted':
+    case 'jarSealed':
+    case 'jarOpened':
     case 'vent':
-    case 'plates':
-    case 'coated':
-    case 'smear':
-    case 'mist':
-    case 'branded':
-    case 'extinguish':
     case 'attack':
       return STEP_MS.normal;
-    default:
+    case 'trace':
+    case 'named':
+      return STEP_MS.quiet;
+    case 'round':
+    case 'moveUndone':
+    case 'shove':
+    case 'cast':
+    case 'shieldAbsorbs':
+    case 'shieldGained':
+    case 'telegraph':
+    case 'idle':
+    case 'miss':
+    case 'drift':
+    case 'gateBurns':
+    case 'snuff':
+    case 'foeBursts':
+    case 'summon':
+    case 'flare':
+    case 'stateFades':
+    case 'stunned':
+    case 'held':
+    case 'erased':
+    case 'markSpent':
+    case 'markLifted':
+    case 'jarCrumbles':
+    case 'scheduled':
+    case 'repeated':
+    case 'triggered':
       return STEP_MS.short;
+    default: {
+      const unhandled: never = e;
+      void unhandled;
+      return STEP_MS.short;
+    }
   }
 }

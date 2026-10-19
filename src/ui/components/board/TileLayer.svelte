@@ -1,7 +1,11 @@
 <script lang="ts">
   import type { Coord, Dir } from '$engine';
+  import { LAYER_NAME } from '../../../app/describe';
+  import { layerTone } from '../../../app/fx';
   import type { TileView } from '../../../app/view';
+  import { RUNE_ART } from '../../runeArt';
   import { cellOrigin } from './geometry';
+  import { TONE_COLOR } from './tones';
 
   interface Props {
     tile: TileView;
@@ -18,6 +22,11 @@
     down: 'M38 64 50 82 62 64',
     up: 'M38 36 50 18 62 36',
   };
+  // Compounds get a neutral labelled chip until the board view (U1) draws each one.
+  const PLAIN = ['blot', 'slick', 'cloud', 'plate', 'fire'];
+  const compound = $derived(tile.state !== null && !PLAIN.includes(tile.state) ? tile.state : null);
+  const compoundColor = $derived(compound ? TONE_COLOR[layerTone(compound)] : 'var(--ink-soft)');
+  const compoundWords = $derived(compound ? LAYER_NAME[compound].split(' ') : []);
   const BLOT =
     'M28 54C25 36 42 24 56 29C72 23 82 40 75 55C84 68 68 80 54 73C42 82 24 71 28 54Z';
 </script>
@@ -34,65 +43,58 @@
     <path d={ARROW[tile.water]} fill="none" stroke="var(--ink-soft)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" />
   {/if}
 
-  {#if tile.oil}
-    <rect x="1" y="1" width="98" height="98" fill="var(--m-oil-tint)" />
-    <g stroke={tile.stain ? 'var(--m-ink)' : 'var(--m-oil)'} stroke-width="3.5" stroke-linecap="round" opacity="0.75" fill="none">
+  {#if tile.state === 'slick'}
+    <rect x="1" y="1" width="98" height="98" fill="var(--m-oil-tint)" data-state="slick" />
+    <g stroke="var(--m-oil)" stroke-width="3.5" stroke-linecap="round" opacity="0.75" fill="none">
       <path d="M14 46 46 14" />
       <path d="M12 74 74 12" />
       <path d="M44 88 88 44" />
     </g>
   {/if}
 
-  {#if tile.oil && tile.stain}
-    <rect x="1" y="1" width="98" height="98" fill="var(--m-ink)" opacity="0.22" data-state="stain" />
-    <g fill="var(--m-ink)" opacity="0.85">
-      <path d="M80 20c-3 4-5 6-5 8.5a5 5 0 0 0 10 0c0-2.5-2-4.5-5-8.5z" />
-      <path d="M22 72c-2.2 3-3.6 4.4-3.6 6.2a3.6 3.6 0 0 0 7.2 0c0-1.8-1.4-3.2-3.6-6.2z" />
-      <circle cx="60" cy="84" r="3" />
+  {#if tile.state === 'blot'}
+    <g data-state="blot">
+      <path d={BLOT} fill="var(--m-ink)" opacity="0.8" />
+      <circle cx="22" cy="26" r="4" fill="var(--m-ink)" opacity="0.7" />
+      <circle cx="82" cy="80" r="3" fill="var(--m-ink)" opacity="0.7" />
     </g>
   {/if}
 
-  {#if tile.ink}
-    <path d={BLOT} fill="var(--m-ink)" opacity="0.8" />
-    <circle cx="22" cy="26" r="4" fill="var(--m-ink)" opacity="0.7" />
-    <circle cx="82" cy="80" r="3" fill="var(--m-ink)" opacity="0.7" />
-  {/if}
-
-  {#if tile.fire > 0}
-    <rect x="1" y="1" width="98" height="98" fill="var(--m-fire-tint)" />
+  {#if tile.state === 'fire'}
+    <rect x="1" y="1" width="98" height="98" fill="var(--m-fire-tint)" data-state="fire" />
     <g class="flames" fill="var(--m-fire)" stroke="var(--ink)" stroke-width="1.2" stroke-linejoin="round">
       <path d={FLAME} transform="translate(8 34) scale(2.4)" />
       <path d={FLAME} transform="translate(44 14) scale(2.9)" />
       <path d={FLAME} transform="translate(56 48) scale(1.9)" />
     </g>
-    <text x="93" y="95" text-anchor="end" font-size="24" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.fire}</text>
+    {#if tile.rounds > 0}
+      <text x="93" y="95" text-anchor="end" font-size="24" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.rounds}</text>
+    {/if}
   {/if}
 
-  {#if tile.plate}
-    <rect x="8" y="8" width="84" height="84" rx="6" fill="var(--m-brass)" stroke="var(--m-brass-dark)" stroke-width="4" />
-    <rect x="20" y="20" width="60" height="60" rx="3" fill="none" stroke="var(--m-brass-dark)" stroke-width="2" opacity="0.6" />
-    <g fill="var(--m-brass-dark)">
-      <circle cx="17" cy="17" r="4" />
-      <circle cx="83" cy="17" r="4" />
-      <circle cx="17" cy="83" r="4" />
-      <circle cx="83" cy="83" r="4" />
+  {#if tile.state === 'plate'}
+    <g data-state="plate">
+      <rect x="8" y="8" width="84" height="84" rx="6" fill="var(--m-brass)" stroke="var(--m-brass-dark)" stroke-width="4" />
+      <rect x="20" y="20" width="60" height="60" rx="3" fill="none" stroke="var(--m-brass-dark)" stroke-width="2" opacity="0.6" />
+      <g fill="var(--m-brass-dark)">
+        <circle cx="17" cy="17" r="4" />
+        <circle cx="83" cy="17" r="4" />
+        <circle cx="17" cy="83" r="4" />
+        <circle cx="83" cy="83" r="4" />
+      </g>
     </g>
   {/if}
 
-  {#if tile.plate && tile.etched}
-    <g data-state="etched" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M30 66 44 40 54 56 70 32" stroke="var(--parchment)" stroke-width="8" opacity="0.55" />
-      <path d="M30 66 44 40 54 56 70 32" stroke="var(--m-brass-dark)" stroke-width="4.5" />
-      <path d="M36 74 62 66M50 30 60 38" stroke="var(--m-brass-dark)" stroke-width="3" opacity="0.8" />
-    </g>
-  {/if}
-
-  {#if tile.plate && tile.heat > 0}
-    <g data-state="hot">
-      <rect x="8" y="8" width="84" height="84" rx="6" fill="var(--m-fire)" opacity="0.5" />
-      <rect x="5" y="5" width="90" height="90" rx="8" fill="none" stroke="var(--m-fire)" stroke-width="5" class="glow" />
-      <path d="M26 28c-3-4 3-6 0-11M50 28c-3-4 3-6 0-11M74 28c-3-4 3-6 0-11" fill="none" stroke="var(--parchment)" stroke-width="4" stroke-linecap="round" opacity="0.85" />
-      <text x="93" y="95" text-anchor="end" font-size="24" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.heat}</text>
+  {#if compound}
+    <g data-state={tile.state}>
+      <rect x="6" y="6" width="88" height="88" rx="10" fill={compoundColor} fill-opacity="0.22" stroke={compoundColor} stroke-width="4" stroke-dasharray="9 6" />
+      <text x="50" y="46" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--ink)" font-family="Georgia, serif">{compoundWords[0]}</text>
+      {#if compoundWords[1]}
+        <text x="50" y="68" text-anchor="middle" font-size="19" font-weight="bold" fill="var(--ink)" font-family="Georgia, serif">{compoundWords[1]}</text>
+      {/if}
+      {#if tile.rounds > 0}
+        <text x="91" y="95" text-anchor="end" font-size="22" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.rounds}</text>
+      {/if}
     </g>
   {/if}
 
@@ -128,6 +130,19 @@
       <rect x="30" y="58" width="40" height="6" rx="3" />
     </g>
   {/if}
+
+  {#if tile.drop}
+    <g data-state="drop">
+      <rect x="1" y="1" width="98" height="98" fill="var(--night)" opacity="0.6" />
+      <rect x="9" y="9" width="82" height="82" fill="none" stroke="var(--parchment)" stroke-width="3" stroke-dasharray="10 8" opacity="0.7" />
+    </g>
+  {/if}
+
+  {#if tile.jar}
+    <g data-state="jar" transform="translate(6 56) scale(1.6)">
+      <path d={RUNE_ART.jar} fill="var(--lamp)" fill-opacity="0.85" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  {/if}
 </g>
 
 <style>
@@ -135,22 +150,6 @@
     transform-box: fill-box;
     transform-origin: 50% 100%;
     animation: flare 320ms ease-out both;
-  }
-  .glow {
-    animation: glow 1.4s ease-in-out infinite alternate;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .glow {
-      animation: none;
-    }
-  }
-  @keyframes glow {
-    from {
-      opacity: 0.55;
-    }
-    to {
-      opacity: 1;
-    }
   }
   @keyframes flare {
     from {

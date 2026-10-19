@@ -10,6 +10,7 @@
     glyphLibrary,
     insideIssues,
     insideOf,
+    inventionLibrary,
     isGlyph,
     lastTripDeadCells,
     latticeOf,
@@ -20,19 +21,18 @@
     setExtraExit,
     socketAt,
   } from '$engine';
-  import { benchUnlocked } from '../../app/bench';
   import {
     type FairState,
     fairTap,
     glowCells,
     NO_SELECTION,
     previewFairCopy,
-    trimChip,
   } from '../../app/faircopy';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
   import {
+    benchUnlocked,
     glyphSlots,
     loadoutBlocker,
     NO_TOOL,
@@ -73,7 +73,6 @@
   const preview = $derived(
     fair.cluster ? previewFairCopy(profile, game.member, fair.cluster) : null,
   );
-  const chip = $derived(trimChip(preview, fair.lost));
   const fairLive = $derived(!field && fairMode && glow.size > 0);
 
   function leaveFair(): void {
@@ -251,7 +250,7 @@
       member={game.member}
       onmember={switchMember}
       onreject={(reason) => toast(reason)}
-      known={profile.interactions}
+      inventions={inventionLibrary(profile)}
       glyphs={library}
       glyphSlots={copies}
       onpeek={(id) => (peeked = id)}
@@ -263,7 +262,6 @@
         active: fairLive,
         glow,
         selected,
-        chip,
         ontoggle: toggleFair,
         ontap: tapFair,
       }}

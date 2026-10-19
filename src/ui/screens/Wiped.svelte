@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { interactionTitle } from '../../app/describe';
+  import { namedTitle } from '../../app/describe';
   import { game } from '../../app/instance';
   import Button from '../components/common/Button.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
@@ -29,7 +29,7 @@
         {#if wipe.learned.length}
           <ul class="learned" data-testid="learned">
             {#each wipe.learned as id (id)}
-              <li class="chip">{interactionTitle(id)}</li>
+              <li class="chip">{namedTitle(id)}</li>
             {/each}
           </ul>
         {:else}

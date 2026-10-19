@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { RUNES } from '$data';
   import {
     type CellKey,
     type CompiledLattice,
@@ -10,6 +9,7 @@
     key,
     type Lattice,
     label,
+    nameOf,
     type SpellKey,
     socketAt,
   } from '$engine';
@@ -65,7 +65,7 @@
 
   const cellLabel = (at: Coord): string => {
     const placed = socketAt(lattice, at);
-    return `${label(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : RUNES[placed.rune].name) : 'empty socket'}`;
+    return `${label(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : nameOf(placed.rune)) : 'empty socket'}`;
   };
 </script>
 

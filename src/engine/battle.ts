@@ -1,8 +1,18 @@
-import { ATTACKS, ENEMIES, type EncounterDef, type EnemyId, MEMBERS, type MemberId } from '$data';
+import {
+  ATTACKS,
+  DISTRICTS,
+  type DistrictId,
+  ENEMIES,
+  type EncounterDef,
+  type EnemyId,
+  MEMBERS,
+  type MemberId,
+  TUNING,
+} from '$data';
 import { enemyPhase } from './ai';
 import { castAction } from './cast';
 import { type Ctx, checkEnd, emit, ref, runDraft } from './ctx';
-import { discoveriesIn, type GameEvent } from './events';
+import type { GameEvent } from './events';
 import { type Coord, label, step } from './grid';
 import { moveMember, shove, undoMove } from './movement';
 import { type BoardUnit, parseBoard, parseCell, parseLabel, serializeBoard } from './notation';
@@ -44,6 +54,20 @@ export class IllegalActionError extends Error {
 
 // ── Creation ────────────────────────────────────────────
 
+/** The unit-layer fields a board token sets (notation's mods). */
+function boardMods(b: BoardUnit) {
+  return {
+    shield: b.shield,
+    guardUntil: null,
+    mark:
+      b.mark === null ? null : { deep: b.mark === 'deep', lineage: 0, bound: null, origin: null },
+    collar: b.collar ? null : (false as const),
+    shackle: b.shackle ? TUNING.compoundRounds : 0,
+    held: 0,
+    stunned: false,
+  };
+}
+
 function spawnMember(b: BoardUnit, init: PartyInit = {}): MemberUnit {
   const def = MEMBERS[b.def as MemberId];
   const spells = init.spells ?? [];
@@ -56,19 +80,16 @@ function spawnMember(b: BoardUnit, init: PartyInit = {}): MemberUnit {
     pos: { ...b.at },
     hp,
     maxHp: Math.max(def.hp, hp),
-    shield: 0,
-    inked: b.inked,
-    brass: b.brass,
-    oilSoaked: false,
-    branded: b.branded,
-    heat: b.heat,
-    etched: b.etched,
+    ...boardMods(b),
+    elite: true,
+    lastMove: null,
     move: def.move,
     moved: false,
     acted: false,
     undo: null,
     spells,
     charges: init.charges ?? Object.fromEntries(spells.map((sp) => [sp.key, sp.charges])),
+    lean: { ...def.lean },
   };
 }
 
@@ -82,13 +103,10 @@ function spawnEnemy(b: BoardUnit, n: number): EnemyUnit {
     pos: { ...b.at },
     hp: def.hp,
     maxHp: def.hp,
-    shield: 0,
-    inked: b.inked,
-    brass: def.brass || b.brass,
-    oilSoaked: def.oilSoaked,
-    branded: b.branded,
-    heat: b.heat,
-    etched: b.etched,
+    ...boardMods(b),
+    collar: b.collar || def.brass ? null : false,
+    elite: def.elite,
+    lastMove: null,
     intent: null,
   };
 }
@@ -142,13 +160,21 @@ export function createBattle(spec: BattleSpec): ActionResult {
     tiles: board.tiles,
     units,
     round: 1,
+    edge: spec.edge ?? 'wall',
     phase: 'player',
-    echoes: [],
-    discovered: [],
     rngState: spec.seed >>> 0,
     lab: !!spec.lab,
     ...(spec.objective ? { objective: spec.objective } : {}),
+    castSeq: 0,
+    lineages: {},
+    nextLineage: 1,
+    scheduled: [],
+    landed: [],
+    met: [],
+    named: [],
   };
+  // Board marks get their own lineages, in reading order (§6.4 limit 3).
+  for (const u of state.units) if (u.mark) u.mark.lineage = state.nextLineage++;
   for (const [lbl, hp] of Object.entries(spec.hp ?? {})) {
     const u = unitAtLabel(state, lbl);
     u.hp = hp;
@@ -169,10 +195,11 @@ export function createEncounterBattle(
   party: Partial<Record<MemberId, PartyInit>>,
   seed: number,
   variant = 0,
+  district: DistrictId = 'seam',
 ): ActionResult {
   const layout = enc.variants[variant]?.layout ?? enc.layout;
   const title = enc.variants[variant]?.name ?? enc.title;
-  return createBattle({ title, board: layout, seed, party });
+  return createBattle({ title, board: layout, seed, party, edge: DISTRICTS[district].edge });
 }
 
 // ── Actions ─────────────────────────────────────────────
@@ -236,8 +263,6 @@ export function applyAction(state: BattleState, action: Action): ActionResult {
       for (const m of members(ctx.s)) m.undo = null;
     }
     dispatch(ctx, action);
-    const found = discoveriesIn(ctx.log).filter((d) => !ctx.s.discovered.includes(d));
-    ctx.s.discovered.push(...found);
     if (action.type !== 'endTurn') checkEnd(ctx);
   });
 }
@@ -268,11 +293,10 @@ function toBoardUnit(u: Unit): BoardUnit {
     kind: u.kind,
     def: u.def,
     at: { ...u.pos },
-    inked: u.inked,
-    brass: u.brass && !innateBrass,
-    branded: u.branded,
-    heat: u.heat,
-    etched: u.etched,
+    mark: u.mark === null ? null : u.mark.deep ? 'deep' : 'plain',
+    collar: u.collar !== false && !(innateBrass && u.collar === null),
+    shackle: u.shackle > 0,
+    shield: u.shield,
   };
 }
 

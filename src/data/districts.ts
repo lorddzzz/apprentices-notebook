@@ -255,6 +255,35 @@ const CANAL_ROOMS: readonly EncounterDef[] = [
   room('canal-pool', "The lamp-mother's pool", 5, CANAL_HEART, 'heart', true),
 ];
 
+/**
+ * A district on the map that is heard of but still being drawn (P2): no rooms, never opens. Its
+ * runes, methods and solvents are reachable only in the Lab. R1 writes their lines.
+ */
+function drawn(
+  id: DistrictId,
+  name: string,
+  material: DistrictDef['material'],
+  guild: string,
+  map: DistrictDef['map'],
+): Partial<Record<DistrictId, DistrictDef>> {
+  return {
+    [id]: {
+      id,
+      name,
+      material,
+      guild,
+      edge: 'wall',
+      encounters: [],
+      landings: 'all',
+      hear: [],
+      gate: { kind: 'drawing' },
+      map,
+      line: 'heard of, being drawn',
+      barred: 'The page is still being drawn.',
+    },
+  };
+}
+
 /** The city, district by district (K-1). The Seam's rooms are `ENCOUNTERS`, unchanged. */
 export const DISTRICTS: Record<DistrictId, DistrictDef> = {
   seam: {
@@ -262,6 +291,7 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
     name: 'The Seam',
     material: 'ink',
     guild: 'The Notaries',
+    edge: 'wall',
     encounters: ENCOUNTERS,
     landings: 'all',
     hear: [],
@@ -275,9 +305,10 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
     name: 'The oil-lit canals',
     material: 'oil',
     guild: 'The Lamplighters',
+    edge: 'wall',
     encounters: CANAL_ROOMS,
     landings: [0, 2, 4],
-    hear: [{ kind: 'ignite', atLeast: 3, district: 'seam', voice: 'owner' }],
+    hear: [{ kind: 'burst', burst: 'fire', atLeast: 3, district: 'seam', voice: 'owner' }],
     gate: {
       kind: 'threshold',
       room: {
@@ -303,9 +334,27 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
     line: 'the black water climbs when lit',
     barred: 'A wooden lock gate bars the way.',
   },
-};
+  ...drawn('inkQuarter', "The ink-makers' quarter", 'ink', 'The Notaries', { x: 70, y: 30 }),
+  ...drawn('bathhouses', 'The bathhouses', 'steam', 'The bath-keepers', { x: 75, y: 65 }),
+  ...drawn('bridges', 'The bridges', 'brass', 'The bridge-wardens', { x: 20, y: 35 }),
+  ...drawn('foundry', 'The bell foundry', 'spark', 'The founders', { x: 55, y: 15 }),
+  ...drawn('cartographers', "The Cartographers' hall", 'ink', 'The Cartographers', {
+    x: 85,
+    y: 45,
+  }),
+} as Record<DistrictId, DistrictDef>;
 
-export const DISTRICT_IDS: readonly DistrictId[] = ['seam', 'canals'];
+export const DISTRICT_IDS: readonly DistrictId[] = [
+  'seam',
+  'canals',
+  'inkQuarter',
+  'bathhouses',
+  'bridges',
+  'foundry',
+  'cartographers',
+];
+/** The districts with rooms this build (P2). */
+export const PLAYABLE_DISTRICTS: readonly DistrictId[] = ['seam', 'canals'];
 
 /** A district's rooms in order (K-2). */
 export function encountersOf(district: DistrictId): readonly EncounterDef[] {

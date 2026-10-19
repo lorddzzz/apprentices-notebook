@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Integration branch `rune-int`** (worktree `.claude/worktrees/rune-int`) = W0b + stubs + E1 + E3 + E2 + fixes @ 0682ff1, 706 engine tests green. **Next:** when W0c reports, merge `rune-int` into W0c's branch, get `pnpm check` green, squash to main. Was: W0c running on top of W0b's branch; E1, E2, E3 running on top of W0b's branch (`worktree-agent-acf3bae867e3e905f` @ 6922d1c, which adds handler stubs). Merge W0b+W0c to main together, then E1→E2→E3 (merge main into each first). Then R1 (touches app/save.ts, needs W0c), then W2.
+**Next:** W0b+W0c+E1+E2+E3 squashed into main (1035 tests). Start R1 (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -12,11 +12,11 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 |---|---|---|---|---|---|---|
 | plan | opus agent | M | done | 859dbf9 | ~? | 457 lines, 42 Proposals |
 | W0 | opus (me) | M | merged | (this commit) | ~5% | contracts in `src/data/next/` and `src/engine/next/` (not the plan's runeModel.ts/model.ts names); W0b moves them in |
-| W0b | opus | L | done, not merged | worktree-agent-acf3bae867e3e905f @ 046f9af (+ 6922d1c orchestrator handler stubs) | ~74% of a 5h window, ~10% weekly | 513 engine tests; app/ui red until W0c |
-| W0c | sonnet | L | running | worktree (from W0b) | | started 00:43 UTC |
-| E1 | sonnet | L | done, not merged | worktree-agent-ae1e7b0831f4ee754 @ 03ad3e5 | | 555 engine tests; seam `withSeams` + `tests/scenarios/fake-runes.ts`; edited glyph-identity test (wrap in withSeams; E6 can drop). At merge: `scenarioSpec` must pass `spec.edge` |
-| E2 | sonnet | L | done, integrated | worktree-agent-a523e267400073b23 @ 0c7cb67 | | 49 kind lines; 15 burst rows; `CHEMISTRY` tuning |
-| E3 | sonnet | M | done, not merged | worktree-agent-a7f0621bb86e37774 @ fdce332 | | 540 engine tests; 23 line rows. At merge: add `Layer.slid?`, Tuning keys sentenceTiles/holdRounds/levyShieldPerMark (now local consts) |
+| W0b | opus | L | merged (with W0c, E1–E3) | worktree-agent-acf3bae867e3e905f @ 046f9af (+ 6922d1c orchestrator handler stubs) | ~74% of a 5h window, ~10% weekly | 513 engine tests; app/ui red until W0c |
+| W0c | sonnet | L | merged | (this commit) | ~25% 5h | 842 tests on its own; screenshots in session tool-results |
+| E1 | sonnet | L | merged | worktree-agent-ae1e7b0831f4ee754 @ 03ad3e5 | | 555 engine tests; seam `withSeams` + `tests/scenarios/fake-runes.ts`; edited glyph-identity test (wrap in withSeams; E6 can drop). At merge: `scenarioSpec` must pass `spec.edge` |
+| E2 | sonnet | L | merged | worktree-agent-a523e267400073b23 @ 0c7cb67 | | 49 kind lines; 15 burst rows; `CHEMISTRY` tuning |
+| E3 | sonnet | M | merged | worktree-agent-a7f0621bb86e37774 @ fdce332 | | 540 engine tests; 23 line rows. At merge: add `Layer.slid?`, Tuning keys sentenceTiles/holdRounds/levyShieldPerMark (now local consts) |
 | R1 | sonnet | M | waiting | | | |
 | E5 | sonnet | L | waiting | | | |
 | E6 | sonnet | L | waiting | | | |
@@ -49,6 +49,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- W0c: an older save (version < 7) shows "from an older edition", a corrupt v7 shows the old "could not be read"; known runes have no copy limit (ink and "not known" are the only refusals); `Profile.named` ids drive the "New in the notebook" toasts; the Bench entry appears once the household has a method, invention or solvent; Fair Copy has no idiom naming/free compile (P7); Lab palette gains `$` and `_`, `!` cycles none/mark/deep. No dark `--role-*` values (no dark theme). Accepted.
 - W0b contract changes: `Step` gains a `split` role (a Glyph's extra exit); `MemberDef.lean: Lean`; `PlacedRune`/`GlyphArg`/`FiredCell` runes are `RuneRef`; `compileLattice`/`inkOf` take default args; `Profile.footnotes` Partial; new `BattleSpec.edge`, `DistrictDef.edge`, `EnemyDef.elite` (`oilSoaked` removed); HearCondition `ignite`→`burst`, `discovered`→`named`; new gate `drawing` for unbuilt districts; codex kinds rune/method/idiom; `vent` event kept. Accepted.
 - E2: fire ignites all connected oil (slick, pool, stain) at once, 2 per unit on it; Pool = centre + slicks on its 4 empty neighbours, bursts for 3; Inkfire marks every unmarked unit it hits; Kettle blows 2 to adjacent units and leaves a cloud; Wall rings 1 and pushes touching units 1 away, the Wall stays; Skid plate is spent, hits the first unit in line for 3 and pushes it 1 (no heading: just breaks); Thunderhead = `Scheduled{thunderhead}`, fizzles if the cloud is gone; Brand storm hits a marked unit twice as two hits; Surge 3 + 1 to the nearest other unit; Spark on a collared unit conducts; a shackle keeps a born collar, replaces cast collars and marks; Ink on a Deep mark/Shackle washes it, Brass on a Shackle collars; Ink on a blot or plate misses, Brass on a blot makes a plate; Oil feeds fire, Ink/Steam/Brass put it out leaving their plain state; Coil +1 tile on area bursts; gifted Steam/Brass +1 round, Bank lasts 4; Lay doesn't apply to unit compounds; Steep spreads only to empty open tiles and not for Lay'd layers. Accepted.
 - E1: Brink counts a board edge only when `edge === 'drop'` (canal water and `_` always, incl. the target's own tile); triggers filter per target, one `triggered` event per step (passed if any target passed); Tally counts mark, collar, shackle, state/compound and jar on target+tile at the snapshot; Fork sides keep their source target's heading, both computed before either branch runs, off-board sides dropped; an Action step skips a tile target that now holds a unit already acted on in that step (Kinds not skipped); a Seal with nothing after it seals nothing, Splash seals one jar per target; a step with no live targets stops quietly; Unison matches exact target keys, `s.landed` includes Seep/Fork neighbours; depth guard fizzles at depth > 1 (E7's `runInvention` must increment depth). Accepted.

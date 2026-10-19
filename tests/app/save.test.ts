@@ -1,50 +1,56 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { DRAFTS, TUNING } from '$data';
-import {
-  draftInside,
-  emptyRecord,
-  emptyStats,
-  type GlyphDef,
-  newProfile,
-  newSave,
-  parseSaveData,
-  startTrip,
-  validateLoadout,
-} from '$engine';
+import { newProfile, newSave, startTrip, validateLoadout } from '$engine';
 import {
   CURRENT_VERSION,
-  type Migration,
+  loadSave,
   memoryBackend,
-  migrate,
+  OLDER_EDITION,
+  OlderEditionError,
   parse,
   parseSaveText,
+  SAVE_KEY,
   saveText,
   serialize,
 } from '../../src/app/save';
 
-const steps: Migration[] = [
-  (d) => ({ ...(d as object), ink: 10 }), // v0 → v1
-  (d) => ({ ...(d as { ink: number }), ink: (d as { ink: number }).ink * 2 }), // v1 → v2
-];
+// ── The save format (P1) ──
 
-test('round-trips through text', () => {
-  const text = serialize({ name: 'a' }, 2);
-  expect(parse(text, steps)).toEqual({ version: 2, data: { name: 'a' } });
+test('the current save version is 7', () => {
+  expect(CURRENT_VERSION).toBe(7);
+  expect(JSON.parse(saveText(newSave(1))).version).toBe(7);
 });
 
-test('old saves are migrated step by step', () => {
-  const old = serialize({ name: 'a' }, 0);
-  expect(parse(old, steps)).toEqual({ version: 2, data: { name: 'a', ink: 20 } });
-  expect(migrate({ version: 1, data: { ink: 5 } }, steps)).toEqual({
-    version: 2,
-    data: { ink: 10 },
-  });
+test('round-trips through text', () => {
+  const text = serialize({ name: 'a' });
+  expect(parse(text)).toEqual({ version: 7, data: { name: 'a' } });
 });
 
 test('rejects garbage and saves from the future', () => {
-  expect(() => parse('{"nope":1}', steps)).toThrow(/valid/);
-  expect(() => parse(serialize({}, 9), steps)).toThrow(/newer/);
+  expect(() => parse('{"nope":1}')).toThrow('Not a valid save');
+  expect(() => parse(serialize({}, 9))).toThrow(/newer/);
+  expect(() => parseSaveText('hello')).toThrow('Not a valid save');
+  expect(() => parseSaveText(serialize({ profile: 1 }))).toThrow('Not a valid save');
+});
+
+test('any older save is turned away with the older-edition notice, no migration', () => {
+  expect(OLDER_EDITION).toBe('This notebook is from an older edition');
+  for (const version of [0, 1, 4, 6]) {
+    expect(() => parse(serialize({}, version))).toThrow(OLDER_EDITION);
+    expect(() => parseSaveText(serialize(newSave(1), version))).toThrow(OlderEditionError);
+  }
+});
+
+test('a fresh notebook round-trips unchanged and is ready to set out with', () => {
+  const save = newSave(11);
+  expect(parseSaveText(saveText(save))).toEqual(save);
+  expect(validateLoadout(save.profile)).toEqual({});
+  expect(save.profile.known).toEqual(newProfile().known);
+});
+
+test('a save with a live trip round-trips', () => {
+  const base = newSave(3);
+  const save = { ...base, trip: startTrip(base.profile, 5) };
+  expect(parseSaveText(saveText(save))).toEqual(save);
 });
 
 test('memoryBackend round-trips', () => {
@@ -55,218 +61,23 @@ test('memoryBackend round-trips', () => {
   expect(memoryBackend('seed').read()).toBe('seed');
 });
 
-// ── Save v4 (glyph mastery, plan M37) ──
-
-const fixtureText = readFileSync(
-  new URL('../fixtures/glyph-mastery-save.json', import.meta.url),
-  'utf8',
-);
-
-/** A v3 save as the game wrote it before glyph mastery: a Glyph, a live trip and a last trip with tallies. */
-function v3Save(): string {
-  const glyph = {
-    id: 'g1',
-    name: 'Strike',
-    kind: 'spell',
-    cells: [
-      { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
-      { at: { x: 1, y: 0 }, rune: 'ink' },
-      { at: { x: 2, y: 0 }, rune: 'spark' },
-    ],
-    entry: { x: 0, y: 0 },
-    exits: [],
-    idiom: null,
-  };
-  const save = newSave(3);
-  const { glyphArchive: _a, glyphRecords: _r, drafts: _d, ...profile } = save.profile;
-  const tally = { member: 'stoker', spell: '1,0', name: 'Spark', casts: 2, damage: 3, kills: 1 };
-  const { elegance: _e, ...stats } = emptyStats();
-  const trip = { ...startTrip(save.profile, 5), stats: { ...stats, spells: [tally] } };
-  const lastTrip = {
-    outcome: 'returned',
-    encounter: 1,
-    place: 'The scullery',
-    stats: { ...stats, fights: 2, spells: [tally] },
-  };
-  return JSON.stringify({
-    version: 3,
-    data: { ...save, profile: { ...profile, glyphs: [glyph] }, trip, lastTrip },
-  });
-}
-
-test('the current save version is 6', () => {
-  expect(CURRENT_VERSION).toBe(6);
+test('the local backend key is namespaced', () => {
+  expect(SAVE_KEY).toBe('apprentices-notebook:save');
 });
 
-test('a v3 save migrates to v4: Glyph versions, empty records, archive and drafts, tally cells', () => {
-  const env = parse(v3Save());
-  expect(env.version).toBe(6);
-  const save = parseSaveData(env.data);
-  expect(save.profile.glyphs[0]).toMatchObject({
-    id: 'g1',
-    version: 1,
-    params: [],
-    extraExit: null,
-  });
-  expect(save.profile.glyphArchive).toEqual([]);
-  expect(save.profile.glyphRecords).toEqual({});
-  expect(save.profile.drafts).toEqual([]);
-  for (const stats of [save.trip?.stats, save.lastTrip?.stats]) {
-    expect(stats?.elegance).toEqual([]);
-    expect(stats?.spells).toEqual([
-      {
-        member: 'stoker',
-        spell: '1,0',
-        name: 'Spark',
-        casts: 2,
-        damage: 3,
-        kills: 1,
-        cells: [],
-        fired: [],
-      },
-    ]);
-  }
+// ── loadSave: an older edition starts fresh ──
+
+test('loadSave: a v6 notebook is kept aside and a fresh one begins', () => {
+  const text = serialize({ profile: { collection: {} } }, 6);
+  const b = memoryBackend(text);
+  expect(loadSave(b, 4)).toEqual({ save: newSave(4), recovered: true, older: true });
+  expect(b.corrupt).toBe(text);
 });
 
-test('a v3 save with no trip and no last trip migrates too', () => {
-  const save = newSave(9);
-  const { glyphArchive: _a, glyphRecords: _r, drafts: _d, ...profile } = save.profile;
-  const text = JSON.stringify({ version: 3, data: { ...save, profile } });
-  expect(parseSaveData(parse(text).data)).toEqual(save);
-});
-
-test('the glyph mastery fixture is a valid v4 save', () => {
-  expect((JSON.parse(fixtureText) as { version: number }).version).toBe(4);
-  expect(parse(fixtureText).version).toBe(6);
-  const save = parseSaveText(fixtureText);
-  expect(save.profile.glyphs.map((g) => `${g.id}@${g.version}`)).toEqual(['g1@2', 'g2@1', 'g3@1']);
-  expect(save.profile.glyphArchive.map((g) => `${g.id}@${g.version}`)).toEqual(['g1@1']);
-  expect(save.profile.glyphRecords['g1@2']?.best).toEqual({ economy: 2, reliability: 3 });
-  expect(save.profile.glyphs[1]?.params).toEqual(['1,0']);
-  expect(save.profile.drafts.map((d) => [d.id, d.repaired])).toEqual([
-    ['lamplighter', true],
-    ['collection', false],
-  ]);
-  const placed = save.profile.lattices.draughtsman.find((r) => 'glyph' in r && r.glyph === 'g2');
-  expect(placed).toMatchObject({ args: { '1,0': { rune: 'steam' } } });
-  expect(save.lastTrip?.stats.elegance).toHaveLength(1);
-  // The fixture's pages are ready to set out with.
-  expect(validateLoadout(save.profile)).toEqual({});
-});
-
-test('a v4 save round-trips through the save text unchanged', () => {
-  const save = parseSaveText(fixtureText);
-  expect(parseSaveText(saveText(save))).toEqual(save);
-  expect(JSON.parse(saveText(save))).toEqual(parse(fixtureText));
-});
-
-// ── Save v5 (the city, K-5) ──
-
-test('a v4 save migrates to v5: Seam trips and recaps, a Seam-only city', () => {
-  const save = parseSaveText(fixtureText);
-  expect(save.profile.city).toEqual({
-    heard: ['seam'],
-    open: ['seam'],
-    hearts: [],
-    solved: [],
-    trips: 0,
-    fresh: [],
-  });
-  expect(save.lastTrip?.district).toBe('seam');
-  expect(save.lastTrip?.stats.heard).toEqual([]);
-  const v4 = JSON.parse(fixtureText) as { data: Record<string, unknown> };
-  const withTrip = {
-    version: 4,
-    data: { ...v4.data, trip: { ...startTrip(save.profile, 2), district: undefined } },
-  };
-  const trip = parseSaveText(JSON.stringify(withTrip)).trip;
-  expect(trip?.district).toBe('seam');
-  expect(trip?.stats.heard).toEqual([]);
-});
-
-test('the city fixture is a valid v5 save on a canal trip', () => {
-  const text = readFileSync(new URL('../fixtures/city-save.json', import.meta.url), 'utf8');
-  expect((JSON.parse(text) as { version: number }).version).toBe(5);
-  const save = parseSaveText(text);
-  expect(save.profile.city.open).toEqual(['seam', 'canals']);
-  expect(save.trip?.district).toBe('canals');
-  expect(save.trip?.encounter).toBe(1);
-  expect(parseSaveText(saveText(save))).toEqual(save);
-});
-
-// ── Save v6 (folios, BL-14, F16) ──
-
-const folioGlyph = (id: string, draft?: string): GlyphDef => ({
-  id,
-  name: id,
-  kind: 'spell',
-  cells: [{ at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' }],
-  entry: { x: 0, y: 0 },
-  exits: [],
-  idiom: null,
-  version: 1,
-  params: [],
-  extraExit: null,
-  ...(draft ? { draft } : {}),
-});
-
-const v5Text = (profile: unknown): string =>
-  JSON.stringify({ version: 5, data: { ...newSave(3), profile } });
-
-test('a v5 save migrates to v6 folios: pages, reset starts, bronze for draft Glyphs', () => {
-  const [mine, other] = DRAFTS;
-  if (!mine || !other) throw new Error('no drafts');
-  const edited = {
-    ...draftInside(mine),
-    cells: [...draftInside(mine).cells, { at: { x: 3, y: 3 }, rune: 'ink' }], // collection runes
-  };
-  const profile = {
-    ...newProfile(),
-    glyphs: [folioGlyph('g1'), folioGlyph('g2', other.id)],
-    drafts: [
-      { id: mine.id, inside: edited, repaired: false },
-      { id: other.id, inside: edited, repaired: true },
-    ],
-  };
-  const save = parseSaveText(v5Text(profile));
-  const [unrepaired, repaired] = save.profile.drafts;
-  expect(unrepaired).toEqual({ id: mine.id, page: 0, repaired: false, inside: draftInside(mine) });
-  expect(repaired?.page).toBe(other.pages.length - 1);
-  expect(repaired?.repaired).toBe(true);
-  expect(repaired?.inside).toEqual(edited);
-  expect(save.profile.glyphRecords['g2@1']?.best.reliability).toBe(
-    TUNING.draftRewardTier.reliability,
-  );
-  expect(save.profile.glyphRecords['g1@1']).toBeUndefined();
-  expect(parseSaveText(saveText(save))).toEqual(save);
-});
-
-test('v6 migration: an unknown draft id passes through unchanged', () => {
-  const unknown = { id: 'gone-draft', inside: { kind: 'spell', cells: [] }, repaired: false };
-  const out = migrate({ version: 5, data: { profile: { drafts: [unknown] } } }).data as {
-    profile: { drafts: unknown[] };
-  };
-  expect(out.profile.drafts).toEqual([unknown]);
-});
-
-test('v6 migration raises a draft Glyph record to bronze but never lowers a tier', () => {
-  const other = DRAFTS[1];
-  if (!other) throw new Error('no drafts');
-  const rec = { ...emptyRecord(), casts: 4, best: { economy: 2, reliability: 3 } };
-  const base = { ...newProfile(), glyphs: [folioGlyph('g1', other.id)] };
-  const high = parseSaveText(v5Text({ ...base, glyphRecords: { 'g1@1': rec } }));
-  expect(high.profile.glyphRecords['g1@1']).toEqual(rec);
-
-  const zero = { ...rec, best: { economy: 0, reliability: 0 } };
-  const low = parseSaveText(v5Text({ ...base, glyphRecords: { 'g1@1': zero } }));
-  expect(low.profile.glyphRecords['g1@1']?.casts).toBe(4);
-  expect(low.profile.glyphRecords['g1@1']?.best).toEqual({
-    economy: 0,
-    reliability: TUNING.draftRewardTier.reliability,
-  });
-});
-
-test('v6 migration is defensive about odd data', () => {
-  expect(migrate({ version: 5, data: null }).data).toBeNull();
-  expect(migrate({ version: 5, data: { profile: 3 } }).data).toEqual({ profile: 3 });
+test('loadSave: unreadable text is kept aside too, but is not blamed on an older edition', () => {
+  const b = memoryBackend('{"version":7,"data":{"profile":42}}');
+  const r = loadSave(b, 4);
+  expect(r.recovered).toBe(true);
+  expect(r.older).toBe(false);
+  expect(b.corrupt).toBe('{"version":7,"data":{"profile":42}}');
 });

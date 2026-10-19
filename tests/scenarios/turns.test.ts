@@ -9,7 +9,7 @@ import {
   parseLabel,
   tileAt,
 } from '$engine';
-import { act, board, cast, expectLogIncludes, unitAtLabel, withLattices } from './harness';
+import { act, board, expectLogIncludes, unitAtLabel } from './harness';
 
 /** The turn loop: intent resolution, hazards, round advance, enemy phase. */
 
@@ -32,26 +32,24 @@ describe('intents resolve', () => {
     expectLogIncludes(r.events, [
       'familiar at A1 spits right',
       'Spit hits Draughtsman for 1',
-      'Draughtsman is inked',
+      'ink lands on Draughtsman as mark',
     ]);
   });
 
-  test('spit that lands on empty floor leaves a puddle', () => {
+  test('spit that lands on empty floor leaves a blot (P13)', () => {
     const r = act(board('f . . . D', { intents: { A1: 'right' } }), endTurn);
     expectLogIncludes(r.events, [
       'familiar at A1 spits right',
       'Spit lands at C1',
-      'ink pools at C1',
+      'ink lands at C1 as blot',
     ]);
   });
 
-  test('spit into steam diffuses through the cloud', () => {
+  test('spit into a cloud is stopped by it (what Ink does to the cloud is E2s)', () => {
     const r = act(board('f . ~ r~ . D', { intents: { A1: 'right' } }), endTurn);
     expectLogIncludes(r.events, [
       'familiar at A1 spits right',
-      'Spit is stopped by the steam at C1',
-      'ink diffuses through the steam at C1',
-      'rat at D1 is inked',
+      'Spit is stopped by the cloud at C1',
     ]);
   });
 
@@ -75,7 +73,7 @@ describe('intents resolve', () => {
     expectLogIncludes(r.events, [
       'Enemies act',
       'sentry at A1 fires right',
-      'Line is stopped by the steam at C1',
+      'Line is stopped by the cloud at C1',
     ]);
     expect(unitAtLabel(r.state, 'E1').hp).toBe(6);
   });
@@ -134,86 +132,79 @@ describe('hazards', () => {
   test('fire burns for 2 rounds', () => {
     const first = act(board('D . d*'), endTurn);
     expectLogIncludes(first.events, ['Enemies act', 'Fire hits dummy at C1 for 1']);
-    expect(tile(first.state, 'C1').fire).toBe(1);
+    expect(tile(first.state, 'C1').state).toMatchObject({ id: 'fire', rounds: 1 });
     const second = act(first.state, endTurn);
-    expectLogIncludes(second.events, ['Fire hits dummy at C1 for 1', 'the fire at C1 burns out']);
-    expect(tile(second.state, 'C1').fire).toBe(0);
-    expect(tile(second.state, 'C1').oil).toBe(false);
+    expectLogIncludes(second.events, ['Fire hits dummy at C1 for 1', 'the board fades at C1']);
+    expect(tile(second.state, 'C1').state).toBeNull();
   });
 
   test('fire that kills the last enemy wins the battle', () => {
-    const r = act(board('D . r*'), endTurn);
-    expectLogIncludes(r.events, [
-      'Fire hits rat at C1 for 2 (oil-soaked +1)',
-      'rat at C1 dies',
-      'The party wins',
-    ]);
+    const r = act(board('D . r*', { hp: { C1: 1 } }), endTurn);
+    expectLogIncludes(r.events, ['Fire hits rat at C1 for 1', 'rat at C1 dies', 'The party wins']);
     expect(r.state.phase).toBe('won');
     expect(describeLog(r.events)).not.toContain('Round 2');
   });
 
-  test('steam lasts 2 rounds', () => {
+  test('a cloud lasts 2 rounds', () => {
     const first = act(board('D d ~'), endTurn);
     expect(describeLog(first.events).some((l) => l.includes('fades'))).toBe(false);
-    expect(tile(first.state, 'C1').steam).toBe(1);
+    expect(tile(first.state, 'C1').state).toMatchObject({ id: 'cloud', rounds: 1 });
     const second = act(first.state, endTurn);
-    expectLogIncludes(second.events, ['the steam at C1 fades']);
-    expect(tile(second.state, 'C1').steam).toBe(0);
+    expectLogIncludes(second.events, ['the board fades at C1']);
+    expect(tile(second.state, 'C1').state).toBeNull();
   });
 
-  test('vent refills steam', () => {
+  test('a vent refills its empty tile with a cloud', () => {
     const first = act(board('D d @'), endTurn);
     expectLogIncludes(first.events, ['the vent at C1 puffs steam']);
-    expect(tile(first.state, 'C1').steam).toBe(2);
+    expect(tile(first.state, 'C1').state).toMatchObject({ id: 'cloud', rounds: 2 });
     const second = act(first.state, endTurn);
     expect(describeLog(second.events)).not.toContain('the vent at C1 puffs steam');
     const third = act(second.state, endTurn);
-    expectLogIncludes(third.events, ['the steam at C1 fades', 'the vent at C1 puffs steam']);
-    expect(tile(third.state, 'C1').steam).toBe(2);
+    expectLogIncludes(third.events, ['the board fades at C1', 'the vent at C1 puffs steam']);
+    expect(tile(third.state, 'C1').state).toMatchObject({ id: 'cloud', rounds: 2 });
   });
 
-  test('a rune-raised brass plate crumbles at the end of the 3rd round', () => {
-    const s = withLattices('D . . . . .\n. . . . . d', { draughtsman: 'Bolt> Brass' });
-    const raised = cast(s, 'draughtsman', 'right');
-    expectLogIncludes(raised.events, ['a brass plate rises at F1']);
-    expect(tile(raised.state, 'F1')).toMatchObject({ plate: true, plateRounds: 3 });
-    const first = act(raised.state, endTurn);
-    expect(tile(first.state, 'F1').plate).toBe(true);
+  test('a vent waits while its tile holds another state', () => {
+    const first = act(board('D d *@'), endTurn);
+    expect(describeLog(first.events)).not.toContain('the vent at C1 puffs steam');
     const second = act(first.state, endTurn);
-    expect(tile(second.state, 'F1').plate).toBe(true);
-    expect(
-      describeLog([...first.events, ...second.events]).some((l) => l.includes('crumble')),
-    ).toBe(false);
-    const third = act(second.state, endTurn);
-    expectLogIncludes(third.events, ['the brass plate at F1 crumbles']);
-    expect(tile(third.state, 'F1').plate).toBe(false);
-    expect(third.state.round).toBe(4);
+    expectLogIncludes(second.events, ['the board fades at C1', 'the vent at C1 puffs steam']);
   });
 
-  test('a crumbled plate frees the tile again', () => {
-    const s = withLattices('D . . . . .\n. . . . . d', { draughtsman: 'Bolt> Brass' });
-    let state = cast(s, 'draughtsman', 'right').state;
-    for (let i = 0; i < 3; i++) state = act(state, endTurn).state;
-    const again = cast(state, 'draughtsman', 'right');
-    expectLogIncludes(again.events, ['a brass plate rises at F1']);
+  test('a rune plate crumbles at the end of the 3rd round and frees the tile (P17)', () => {
+    const s = board('D . #\n. . d');
+    expect(tile(s, 'C1').state).toMatchObject({ id: 'plate', rounds: 3, hits: 1 });
+    const first = act(s, endTurn);
+    const second = act(first.state, endTurn);
+    expect(tile(second.state, 'C1').state?.id).toBe('plate');
+    expect(describeLog([...first.events, ...second.events]).some((l) => l.includes('fades'))).toBe(
+      false,
+    );
+    const third = act(second.state, endTurn);
+    expectLogIncludes(third.events, ['the board fades at C1']);
+    expect(tile(third.state, 'C1').state).toBeNull();
+    expect(third.state.round).toBe(4);
+    expect(() =>
+      act(third.state, { type: 'move', unit: 'draughtsman', to: parseLabel('C1') }),
+    ).not.toThrow();
   });
 
   test('plates from a layout are permanent', () => {
     let state = board('D d =');
-    expect(tile(state, 'C1')).toMatchObject({ plate: true, plateRounds: 0 });
+    expect(tile(state, 'C1').state).toMatchObject({ id: 'plate', rounds: 0 });
     for (let i = 0; i < 6; i++) {
       const r = act(state, endTurn);
-      expect(describeLog(r.events).some((l) => l.includes('crumble'))).toBe(false);
+      expect(describeLog(r.events).some((l) => l.includes('fades'))).toBe(false);
       state = r.state;
     }
-    expect(tile(state, 'C1').plate).toBe(true);
+    expect(tile(state, 'C1').state?.id).toBe('plate');
   });
 
-  test('a vent puts out fire on its tile', () => {
-    const r = act(board('D d *@'), endTurn);
-    expectLogIncludes(r.events, ['the vent at C1 puffs steam', 'steam puts out the fire at C1']);
-    expect(tile(r.state, 'C1').fire).toBe(0);
-    expect(tile(r.state, 'C1').oil).toBe(true);
+  test('a slick and a blot last until changed', () => {
+    let state = board('D d o i');
+    for (let i = 0; i < 4; i++) state = act(state, endTurn).state;
+    expect([tile(state, 'C1').state?.id, tile(state, 'D1').state?.id]).toEqual(['slick', 'blot']);
   });
 });
 
@@ -258,20 +249,6 @@ describe('the round', () => {
     const lost = act(board('r D', { hp: { B1: 1 } }), endTurn).state;
     expect(lost.phase).toBe('lost');
     expect(() => applyAction(lost, endTurn)).toThrow(IllegalActionError);
-  });
-
-  test('an enemy killed by its own oil trail ends the battle in the enemy phase', () => {
-    // The rat's trail touches the fire at A2, ignites under it, and burns it to death.
-    const r = act(board('r . D\n* . .', { hp: { A1: 1 } }), endTurn);
-    expectLogIncludes(r.events, [
-      'rat at A1 moves to B1',
-      'oil coats A1, B1',
-      'oil at A1 ignites, fire spreads to B1',
-      'Fire hits rat at B1 for 2 (oil-soaked +1)',
-      'rat at B1 dies',
-      'The party wins',
-    ]);
-    expect(r.state.phase).toBe('won');
   });
 
   test('applyAction never mutates the input', () => {

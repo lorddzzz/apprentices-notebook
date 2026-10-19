@@ -1,8 +1,9 @@
-import { MEMBER_IDS, RUNES, TUNING } from '$data';
-import { MEANINGFUL } from './cast';
+import { MEMBER_IDS, TUNING } from '$data';
 import type { EventLog, GameEvent, NodeSpan } from './events';
 import { baseGlyphCost } from './glyph';
 import { type Coord, key, neighbors4 } from './grid';
+import { libraryOf, roleOf } from './lattice';
+import { MEANINGFUL } from './resolve';
 import type {
   CastSample,
   CellKey,
@@ -93,7 +94,8 @@ function outerAuras(p: Profile, caster: string, socket: Coord): number {
   const member = MEMBER_IDS.find((m) => m === caster);
   const runes = member ? (p.lattices?.[member] ?? []) : [];
   const near = new Set(neighbors4(socket).map(key));
-  return runes.filter((r) => !isGlyph(r) && RUNES[r.rune].family === 'aura' && near.has(key(r.at)))
+  const lib = libraryOf(p.inventions ?? []);
+  return runes.filter((r) => !isGlyph(r) && roleOf(r.rune, lib) === 'aura' && near.has(key(r.at)))
     .length;
 }
 
@@ -101,7 +103,7 @@ function outerAuras(p: Profile, caster: string, socket: Coord): number {
 function withAuras(def: GlyphDef, cells: readonly Coord[]): CellKey[] {
   const out = new Set<CellKey>(cells.map(key));
   for (const c of def.cells) {
-    if (RUNES[c.rune].family !== 'aura') continue;
+    if (roleOf(c.rune) !== 'aura') continue;
     if (neighbors4(c.at).some((n) => out.has(key(n)))) out.add(key(c.at));
   }
   return [...out];
