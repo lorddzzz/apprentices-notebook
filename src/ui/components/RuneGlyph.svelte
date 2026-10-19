@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { isInvention, type MethodId, type Role, RUNES, type RuneRef } from '$data';
-  import type { Dir } from '$engine';
+  import { isInvention, METHODS, type MethodId, type Role, RUNES, type RuneRef } from '$data';
+  import type { Dir, InventionLibrary } from '$engine';
   import { DIRECTIONAL_ART, FILLED_ART, METHOD_ART, ROLE_COLOR, RUNE_ART } from '../runeArt';
 
   interface Props {
@@ -15,6 +15,8 @@
     /** For an invention (`inv:…`): its method (the art) and the role it makes (the frame). */
     method?: MethodId;
     role?: Role;
+    /** The household's inventions: an invention found here is drawn as its method mark over its first part. */
+    inventions?: InventionLibrary;
   }
 
   let {
@@ -27,16 +29,39 @@
     glyphKind = 'spell',
     method,
     role,
+    inventions = {},
   }: Props = $props();
 
   const DEG: Record<Dir, number> = { up: 0, right: 90, down: 180, left: 270 };
 
   const invented = $derived(rune !== null && isInvention(rune));
   const def = $derived(rune && !isInvention(rune) ? RUNES[rune] : null);
-  const frameRole = $derived<Role | null>(def ? def.role : invented ? (role ?? 'action') : null);
+  const made = $derived(rune && isInvention(rune) ? (inventions[rune] ?? null) : null);
+  const madeMethod = $derived<MethodId | null>(method ?? made?.method ?? null);
+  // The first part, following nested inventions down to the rune at the bottom (bounded).
+  const firstPart = $derived.by(() => {
+    let part = made?.parts[0];
+    for (let i = 0; i < 4 && part && isInvention(part); i++) part = inventions[part]?.parts[0];
+    return part && !isInvention(part) ? part : null;
+  });
+  const frameRole = $derived<Role | null>(
+    def
+      ? def.role
+      : invented
+        ? (role ?? (made ? METHODS[made.method].makes : 'action'))
+        : null,
+  );
   const frameColor = $derived(frameRole ? `var(${ROLE_COLOR[frameRole]})` : 'var(--ink-faint)');
+  // An invention with a known first part: that part's art, the method as a badge on top.
+  const stacked = $derived(firstPart !== null && madeMethod !== null);
   const art = $derived(
-    def ? RUNE_ART[def.id] : method ? METHOD_ART[method] : null,
+    def
+      ? RUNE_ART[def.id]
+      : firstPart
+        ? RUNE_ART[firstPart]
+        : madeMethod
+          ? METHOD_ART[madeMethod]
+          : null,
   );
   const glyphFrame = $derived(glyphKind === 'payload' ? 'var(--role-shape)' : 'var(--role-source)');
   const notch = $derived(
@@ -45,7 +70,9 @@
   const glyphTurn = $derived(
     def && dir && DIRECTIONAL_ART.has(def.id) ? DEG[dir] - 90 : 0,
   );
-  const inventionName = $derived(rune && invented ? rune.slice(4) : '');
+  const inventionName = $derived(
+    rune && invented ? (made?.name ?? rune.slice(4)) : '',
+  );
   const label = $derived(
     glyphName
       ? `${glyphName} Glyph${dir ? ` ${dir}` : ''}`
@@ -122,7 +149,7 @@
     {/if}
 
     {#if art}
-      <g transform="translate(20 20) rotate({glyphTurn}) scale(0.7) translate(-12 -12)">
+      <g transform="translate(20 20) rotate({glyphTurn}) scale({stacked ? 0.58 : 0.7}) translate(-12 -12)">
         <path
           d={art}
           fill={def && FILLED_ART.has(def.id) ? 'currentColor' : 'none'}
@@ -134,6 +161,22 @@
       </g>
     {:else}
       <text x="20" y="26.5" text-anchor="middle" font-size="18" fill="currentColor" font-family="var(--hand)">{initial}</text>
+    {/if}
+
+    {#if stacked && madeMethod}
+      <g data-method={madeMethod}>
+        <circle cx="30" cy="30" r="8.5" fill="var(--parchment)" stroke={frameColor} stroke-width="1.8" />
+        <g transform="translate(30 30) scale(0.42) translate(-12 -12)">
+          <path
+            d={METHOD_ART[madeMethod]}
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </g>
+      </g>
     {/if}
   {/if}
 </svg>

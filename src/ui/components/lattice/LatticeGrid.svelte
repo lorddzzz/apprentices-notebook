@@ -4,6 +4,7 @@
     type CompiledLattice,
     type Coord,
     type GlyphLibrary,
+    type InventionLibrary,
     isGlyph,
     isSocket,
     key,
@@ -26,6 +27,8 @@
     numbers?: ReadonlyMap<string, number>;
     /** Socket the player is inspecting (ringed). */
     inspected?: Coord | null;
+    /** The household's inventions, for drawing them (method over first part). */
+    inventions?: InventionLibrary;
     /** The page's Fair copies, for drawing Glyph sockets. */
     glyphs?: GlyphLibrary;
     /** Cells of proven clusters (they glow). */
@@ -44,6 +47,7 @@
     focus,
     numbers = new Map(),
     inspected = null,
+    inventions = {},
     glyphs = {},
     glow = new Set(),
     selection = new Set(),
@@ -65,7 +69,7 @@
 
   const cellLabel = (at: Coord): string => {
     const placed = socketAt(lattice, at);
-    return `${label(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : nameOf(placed.rune)) : 'empty socket'}`;
+    return `${label(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : nameOf(placed.rune, inventions)) : 'empty socket'}`;
   };
 </script>
 
@@ -102,7 +106,7 @@
               size={44}
             />
           {:else if c.placed}
-            <RuneGlyph rune={c.placed.rune} dir={c.placed.dir} dim={idle.has(c.k)} size={44} />
+            <RuneGlyph rune={c.placed.rune} {inventions} dir={c.placed.dir} dim={idle.has(c.k)} size={44} />
           {/if}
           {#if numbers.has(c.k)}
             <span class="step" data-testid="step-{c.k}">{numbers.get(c.k)}</span>

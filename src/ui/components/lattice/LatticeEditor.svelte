@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type Snippet, tick } from 'svelte';
-  import { isInvention, MEMBER_IDS, MEMBERS, type MemberId, RUNES } from '$data';
+  import { type LineId, MEMBER_IDS, MEMBERS, type MemberId, type RuneRef } from '$data';
   import {
     type CellKey,
     type CompiledLattice,
@@ -17,11 +17,10 @@
     key,
     type Lattice,
     nameOf,
-    roleOf,
     type SpellKey,
     socketAt,
   } from '$engine';
-  import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
+  import { detailOf, type GlyphSlot, type ShelfSlot, type ShelfTool } from '../../../app/study';
   import Pips from '../common/Pips.svelte';
   import Sheet from '../common/Sheet.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -45,6 +44,8 @@
     onreject?: (reason: string) => void;
     /** The household's inventions (their ink and role). Default: none (Lab). */
     inventions?: InventionLibrary;
+    /** The lines this household has seen, for "fine print n / m". Default: hidden (Lab). */
+    witnessed?: readonly LineId[];
     /** The profile's Fair copies (Glyph sockets, ink, the shelf tab). Default: none (Lab). */
     glyphs?: GlyphLibrary;
     glyphSlots?: GlyphSlot[];
@@ -81,6 +82,7 @@
     onmember,
     onreject,
     inventions = {},
+    witnessed,
     glyphs = {},
     glyphSlots = [],
     onpeek,
@@ -93,6 +95,8 @@
 
   let focus = $state<SpellKey | null>(null);
   let inspected = $state<Coord | null>(null);
+  // A shelf item held down (or an inspected rune): its headline and fine print show in the strip.
+  let detail = $state<RuneRef | null>(null);
   // The full spell list and recipe live in a sheet so the board keeps the room.
   let reading = $state(false);
 
@@ -139,6 +143,7 @@
       fair.ontap(at);
       return;
     }
+    detail = null;
     const placed = socketAt(lattice, at);
     // Putting down a Glyph with open cells opens the argument picker once it has landed (M25).
     const placing = !longPress && tool.kind === 'glyph' ? tool.glyph : null;
@@ -165,6 +170,7 @@
 
   function pick(next: ShelfTool): void {
     inspected = null;
+    detail = null;
     if (fair?.active) fair.ontoggle();
     ontool(next);
   }
@@ -175,7 +181,10 @@
     onmember(id);
   }
 
-  const infoRune = $derived(held ?? inspectedRune);
+  const infoRune = $derived(detail ?? held ?? inspectedRune);
+  const infoDetail = $derived(infoRune ? detailOf(infoRune, witnessed ?? [], inventions) : null);
+  const infoBase = $derived(infoRune ? inkOf(infoRune, inventions) : 0);
+  const infoCost = $derived(infoRune ? inkOf(infoRune, inventions, lean) : 0);
   const spellIndex = $derived(compiled.spells.findIndex((s) => s.key === liveFocus));
 </script>
 
@@ -220,6 +229,7 @@
       {compiled}
       focus={liveFocus}
       {inspected}
+      {inventions}
       {glyphs}
       glow={fair?.glow}
       selection={fair?.selected}
@@ -275,17 +285,24 @@
           </button>
         </div>
       </div>
-    {:else if infoRune}
+    {:else if infoRune && infoDetail}
       {@const arrow = hasArrow(infoRune)}
-      <div class="rune">
-        <RuneGlyph rune={infoRune} dir={arrow ? 'right' : undefined} size={36} />
+      <div class="rune" data-testid="rune-detail">
+        <RuneGlyph rune={infoRune} {inventions} dir={arrow ? 'right' : undefined} size={36} />
         <div class="grow">
-          <p class="line">
-            <b>{nameOf(infoRune, inventions)}</b> · {roleOf(infoRune, inventions) ?? 'rune'} · {inkOf(infoRune, inventions, lean)} ink
+          <p class="line head">
+            <span class="title">
+              <b>{infoDetail.name}</b> · {infoDetail.role ?? 'rune'} ·
+              {#if infoBase > infoCost}<s>{infoBase}</s>{/if}
+              {infoCost} ink
+            </span>
+            {#if witnessed}
+              <span class="fine" data-testid="fine-print">
+                fine print {infoDetail.finePrint.witnessed} / {infoDetail.finePrint.total}
+              </span>
+            {/if}
           </p>
-          <p class="rule clamp">
-            {isInvention(infoRune) ? 'A rune the household invented.' : RUNES[infoRune].headline}{arrow ? ' Tap it to turn.' : ''}
-          </p>
+          <p class="rule clamp">{infoDetail.headline}{arrow ? ' Tap it to turn.' : ''}</p>
         </div>
       </div>
     {:else if focusedSpell}
@@ -316,7 +333,20 @@
       {@render fairinfo()}
     </div>
   {:else}
-    <RuneShelf {slots} {tool} onselect={pick} {onreject} glyphs={glyphSlots} erase {onranking} />
+    <RuneShelf
+      {slots}
+      {tool}
+      onselect={pick}
+      {onreject}
+      glyphs={glyphSlots}
+      {inventions}
+      ondetail={(r) => {
+        inspected = null;
+        detail = r;
+      }}
+      erase
+      {onranking}
+    />
   {/if}
 
   <Sheet open={reading} title="Spells on this page" onclose={() => (reading = false)}>
@@ -472,6 +502,23 @@
   .soft {
     color: var(--ink-soft);
   }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-1);
+    align-items: baseline;
+  }
+  .title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fine {
+    flex: none;
+    font: 11px var(--mono);
+    color: var(--ink-soft);
+  }
   .rule {
     margin: 1px 0 0;
     font-size: 12.5px;
@@ -482,8 +529,8 @@
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
   .reading {
     display: flex;

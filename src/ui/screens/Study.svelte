@@ -251,6 +251,7 @@
       onmember={switchMember}
       onreject={(reason) => toast(reason)}
       inventions={inventionLibrary(profile)}
+      witnessed={profile.witnessed}
       glyphs={library}
       glyphSlots={copies}
       onpeek={(id) => (peeked = id)}
@@ -370,6 +371,7 @@
     inside={revisingDef ? insideOf(revisingDef) : null}
     title={revisingDef ? `Revise ${revisingDef.name}` : 'Revise'}
     palette={revisionPalette(profile)}
+    inventions={inventionLibrary(profile)}
     issues={insideIssues}
     warning={(inside) => (revising ? revisionWarning(profile, revising, inside) : null)}
     onsave={saveRevision}

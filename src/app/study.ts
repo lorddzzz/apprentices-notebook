@@ -1,8 +1,13 @@
 import {
+  isInvention,
+  LINES,
+  type LineId,
   MEMBER_IDS,
   MEMBERS,
   type MemberId,
+  type Role,
   RUNE_IDS,
+  RUNES,
   type RuneId,
   type RuneRef,
   SOLVENT_IDS,
@@ -10,6 +15,7 @@ import {
 import {
   argIssue,
   type CellKey,
+  type CompiledLattice,
   type Coord,
   canBeOpen,
   canPlace,
@@ -22,6 +28,7 @@ import {
   glyphCost,
   glyphLibrary,
   hasArrow,
+  headlineOf,
   type InventionLibrary,
   inkOf,
   inkUsed,
@@ -39,6 +46,8 @@ import {
   recordOf,
   roleOf,
   rotateSocket,
+  type SpellKey,
+  type Step,
   setMemberLattice,
   setOpenCells,
   setSocket,
@@ -77,11 +86,19 @@ export interface EditContext {
   glyphs?: GlyphLibrary;
   /** The household's inventions (their ink and role). Default: none. */
   inventions?: InventionLibrary;
+  /** The runes the household knows (P34); a rune outside it is refused. Default: all (Lab). */
+  known?: readonly RuneId[] | null;
   /** Whose page: the trained school makes its runes cheaper (P33). Default: nobody's. */
   member?: MemberId;
 }
 
 const leanOf = (member: MemberId | undefined) => (member ? MEMBERS[member].lean : null);
+
+/** Known runes only; an invention is known once the household has made it (it is in the library). */
+function runeKnown(ctx: EditContext, rune: RuneRef): boolean {
+  if (isInvention(rune)) return ctx.inventions === undefined || rune in ctx.inventions;
+  return !ctx.known || ctx.known.includes(rune);
+}
 
 export const NO_TOOL: ShelfTool = { kind: 'none' };
 
@@ -130,6 +147,10 @@ export function decideSocketTap(ctx: EditContext, at: Coord, tool: ShelfTool): S
     return placed
       ? { kind: 'replaceGlyph', glyph: tool.glyph }
       : { kind: 'placeGlyph', glyph: tool.glyph };
+  }
+
+  if (tool.kind === 'rune' && !runeKnown(ctx, tool.rune)) {
+    return { kind: 'reject', reason: 'Not known' };
   }
 
   if (tool.kind === 'rune' && (placed && !isGlyph(placed) ? placed.rune : null) !== tool.rune) {
@@ -234,7 +255,13 @@ export function editSocket(
 export interface ShelfSlot {
   rune: RuneRef;
   known: boolean;
+  /** What it costs this apprentice (the trained discount taken off). */
   cost: number;
+  /** What it costs untrained; above `cost` when the school's discount applies (P33). */
+  base?: number;
+  role?: Role | null;
+  /** An invention of the household rather than an authored rune. */
+  invention?: boolean;
   /** Can be picked up: known. */
   usable: boolean;
   /** Could be dropped on an empty socket right now (enough ink as well). */
@@ -265,11 +292,134 @@ export function shelfSlots(
       rune,
       known: isKnown,
       cost,
+      base: inkOf(rune, inventions),
+      role: roleOf(rune, inventions),
+      invention: isInvention(rune),
       usable: isKnown,
       affordable: isKnown && (left === null || cost <= left),
       reason: isKnown ? null : 'Not found yet',
     };
   });
+}
+
+export const ROLE_ORDER: readonly Role[] = [
+  'source',
+  'action',
+  'kind',
+  'shape',
+  'trigger',
+  'seal',
+  'aura',
+];
+
+export interface ShelfGroup {
+  role: Role;
+  slots: ShelfSlot[];
+}
+
+const isMade = (s: ShelfSlot): boolean => s.invention ?? isInvention(s.rune);
+const slotRole = (s: ShelfSlot): Role | null =>
+  s.role !== undefined ? s.role : isInvention(s.rune) ? null : RUNES[s.rune].role;
+
+/** The Runes tab: the known authored runes grouped by role, in the design's role order (§5.3). */
+export function shelfGroups(slots: readonly ShelfSlot[]): ShelfGroup[] {
+  return ROLE_ORDER.map((role) => ({
+    role,
+    slots: slots.filter((s) => s.known && !isMade(s) && slotRole(s) === role),
+  })).filter((g) => g.slots.length > 0);
+}
+
+/** The Inventions tab: the household's inventions, in the order they were made. */
+export const inventionSlots = (slots: readonly ShelfSlot[]): ShelfSlot[] => slots.filter(isMade);
+
+/** The words on a long-press (or details tap) of a shelf item. */
+export interface RuneDetail {
+  name: string;
+  role: Role | null;
+  headline: string;
+  /** Rows of fine print about it (an invention: about its method), and how many were witnessed. */
+  finePrint: FinePrint;
+}
+
+export interface FinePrint {
+  witnessed: number;
+  total: number;
+}
+
+/** The fine-print rows a rune or an invention's method owns, against the lines this household has seen. */
+export function finePrint(
+  witnessed: readonly LineId[],
+  ref: RuneRef,
+  inventions: InventionLibrary = {},
+): FinePrint {
+  const subject = isInvention(ref) ? inventions[ref]?.method : ref;
+  const rows = LINES.filter((l) => l.subject === subject);
+  return { total: rows.length, witnessed: rows.filter((l) => witnessed.includes(l.id)).length };
+}
+
+export function detailOf(
+  ref: RuneRef,
+  witnessed: readonly LineId[],
+  inventions: InventionLibrary = {},
+): RuneDetail {
+  const def = isInvention(ref) ? inventions[ref] : undefined;
+  return {
+    name: nameOf(ref, inventions),
+    role: roleOf(ref, inventions),
+    headline: isInvention(ref)
+      ? def
+        ? headlineOf(def, inventions)
+        : 'Not one of your inventions.'
+      : RUNES[ref].headline,
+    finePrint: finePrint(witnessed, ref, inventions),
+  };
+}
+
+// ── The flow on the page: Fork sides and Seal splits ──
+
+export type ForkSide = 'left' | 'right';
+
+/** How one cell of a spell's flow reads on the page. */
+export interface FlowZone {
+  /** The nearest Fork branch it hangs on, or null on the trunk. */
+  side: ForkSide | null;
+  /** After a Seal: it happens later, in the jar (P3, R5). */
+  sealed: boolean;
+}
+
+/**
+ * For each cell the flow of `spell` enters (outer lattice cells; a Glyph's inside is its socket),
+ * which Fork branch it is on and whether a Seal has split it off in time. Bend cells ride with the
+ * step they lead to. The Source and the trunk read null / false.
+ */
+export function flowZones(compiled: CompiledLattice): Map<SpellKey, Map<CellKey, FlowZone>> {
+  const out = new Map<SpellKey, Map<CellKey, FlowZone>>();
+  for (const spell of compiled.spells) {
+    const zones = new Map<CellKey, FlowZone>();
+    const mark = (st: Step, zone: FlowZone): void => {
+      const here = key(st.at);
+      // A cell reached twice (a Glyph's inside) keeps its first reading.
+      if (!zones.has(here)) zones.set(here, zone);
+      for (const v of st.via ?? []) if (!zones.has(key(v))) zones.set(key(v), zone);
+      switch (st.role) {
+        case 'fork':
+          if (st.left) mark(st.left, { ...zone, side: 'left' });
+          if (st.right) mark(st.right, { ...zone, side: 'right' });
+          break;
+        case 'seal':
+          if (st.rest) mark(st.rest, { ...zone, sealed: true });
+          break;
+        case 'split':
+          for (const b of st.branches) mark(b, zone);
+          break;
+        default:
+          if (st.next) mark(st.next, zone);
+      }
+    };
+    if (spell.first) mark(spell.first, { side: null, sealed: false });
+    out.set(spell.key, zones);
+  }
+  return out;
 }
 
 // ── Profile wrappers (the Study edits the saved profile) ──
@@ -281,6 +431,7 @@ export function profileContext(p: Profile, m: MemberId): EditContext {
     capacity: p.inkCapacity[m],
     glyphs: glyphLibrary(p),
     inventions: inventionLibrary(p),
+    known: p.known,
     member: m,
   };
 }

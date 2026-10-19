@@ -1,16 +1,29 @@
 import { expect, test } from 'vitest';
-import { MEMBER_IDS, MEMBERS, RUNE_IDS, START_KNOWN } from '$data';
+import {
+  type InventionDef,
+  LINES,
+  type LineId,
+  MEMBER_IDS,
+  MEMBERS,
+  RUNE_IDS,
+  RUNES,
+  type RuneRef,
+  START_KNOWN,
+} from '$data';
 import {
   type CellKey,
   canPlace,
+  compileLattice,
   type GlyphArg,
   type GlyphDef,
   glyphCost,
   glyphLibrary,
+  headlineOf,
   inkUsed,
   isSocket,
   type Lattice,
   latticeOf,
+  libraryOf,
   newProfile,
   type Profile,
   parseLattice,
@@ -21,17 +34,22 @@ import {
   argOptions,
   benchUnlocked,
   decideSocketTap,
+  detailOf,
   type EditContext,
   editProfile,
   editSocket,
+  finePrint,
+  flowZones,
   glyphSlots,
   inkLeft,
+  inventionSlots,
   NO_TOOL,
   profileShelf,
   revisionPalette,
   type ShelfTool,
   setGlyphArgs,
   setGlyphOpenCells,
+  shelfGroups,
   shelfSlots,
 } from '../../src/app/study';
 
@@ -414,4 +432,154 @@ test('closing an open cell drops the arguments placed copies hold for it', () =>
   expect(glyphAt(setGlyphOpenCells(withArg, 'g1', ['1,0']))?.args).toEqual(STEAM_ARG);
   // The engine's refusals pass through: a Source can't be open.
   expect(() => setGlyphOpenCells(withArg, 'g1', ['0,0'])).toThrow();
+});
+
+// ── U3: shelf tabs, invention placement, fine print, flow zones ──
+
+const IMPULSE: InventionDef = {
+  id: 'inv:impulse',
+  name: 'Impulse',
+  method: 'conduct',
+  parts: ['shove'],
+  solvent: null,
+};
+const LIB = libraryOf([IMPULSE]);
+const withImpulse = (): Profile => ({ ...newProfile(), inventions: [IMPULSE] });
+const useRune = (rune: RuneRef): ShelfTool => ({ kind: 'rune', rune });
+
+test('shelfGroups: known runes by role, in the design order, unknown ones left out', () => {
+  const groups = shelfGroups(profileShelf(newProfile(), 'draughtsman'));
+  expect(groups[0]).toMatchObject({ role: 'source' });
+  expect(groups[0]?.slots.map((s) => s.rune)).toEqual(['bolt']);
+  expect(groups.flatMap((g) => g.slots)).toHaveLength(START_KNOWN.length);
+  for (const g of groups) for (const s of g.slots) expect(s.role).toBe(g.role);
+  // learning a Shape opens its own group, after the Kinds
+  const learned = { ...newProfile(), known: [...newProfile().known, 'fork' as const] };
+  const roles = shelfGroups(profileShelf(learned, 'draughtsman')).map((g) => g.role);
+  expect(roles.indexOf('shape')).toBe(roles.indexOf('kind') + 1);
+});
+
+test('inventionSlots: the household inventions, with their role and cost', () => {
+  const slots = profileShelf(withImpulse(), 'draughtsman');
+  const made = inventionSlots(slots);
+  expect(made.map((s) => s.rune)).toEqual(['inv:impulse']);
+  expect(made[0]).toMatchObject({ known: true, usable: true, role: 'action', invention: true });
+  // Σ parts + method (P33): Shove 2 + Conduct 2
+  expect(made[0]?.cost).toBe(4);
+  const grouped = shelfGroups(slots).flatMap((g) => g.slots.map((s) => s.rune));
+  expect(grouped).not.toContain('inv:impulse');
+});
+
+test('trained discount: the school pays one less and the shelf keeps the full price to strike through', () => {
+  const p = withImpulse();
+  const stoker = profileShelf(p, 'stoker'); // trained in the Seam
+  const drawer = profileShelf(p, 'draughtsman'); // trained in Timing
+  const by = (slots: typeof stoker, r: string) => slots.find((s) => s.rune === r);
+  expect(by(stoker, 'bolt')).toMatchObject({ base: 2, cost: 1 });
+  expect(by(drawer, 'bolt')).toMatchObject({ base: 2, cost: 2 });
+  // an invention made of Seam runes is cheaper for the Seam's apprentice
+  expect(by(stoker, 'inv:impulse')).toMatchObject({ base: 4, cost: 3 });
+  expect(by(drawer, 'inv:impulse')).toMatchObject({ base: 4, cost: 4 });
+  // a rune cannot go below 1
+  expect(by(stoker, 'ink')).toMatchObject({ base: 1, cost: 1 });
+});
+
+test('the ink pot counts the discounted price as runes are placed', () => {
+  let p = withImpulse();
+  const lean = MEMBERS.stoker.lean;
+  const before = inkUsed(latticeOf(p, 'stoker'), {}, LIB, lean);
+  const at = { x: 1, y: 5 };
+  expect(socketAt(latticeOf(p, 'stoker'), at)).toBeNull();
+  p = editProfile(p, 'stoker', at, useRune('inv:impulse'), false).profile;
+  expect(inkUsed(latticeOf(p, 'stoker'), {}, LIB, lean)).toBe(before + 3);
+  expect(inkLeft(latticeOf(p, 'stoker'), p.inkCapacity.stoker, {}, LIB, 'stoker')).toBe(
+    p.inkCapacity.stoker - before - 3,
+  );
+});
+
+test('an invention goes on a socket like a rune, and again (knowledge, not copies)', () => {
+  let p = { ...withImpulse(), inkCapacity: { ...newProfile().inkCapacity, stoker: 99 } };
+  for (const at of [
+    { x: 1, y: 5 },
+    { x: 2, y: 4 },
+  ]) {
+    const r = editProfile(p, 'stoker', at, useRune('inv:impulse'), false);
+    expect(r.decision).toEqual({ kind: 'place', rune: 'inv:impulse' });
+    p = r.profile;
+    expect(socketAt(latticeOf(p, 'stoker'), at)).toMatchObject({ rune: 'inv:impulse' });
+  }
+});
+
+test('refused only for ink or "not known"', () => {
+  const at = { x: 1, y: 5 };
+  // ink: an invention that does not fit the pot
+  const p = { ...withImpulse(), inkCapacity: { ...newProfile().inkCapacity, stoker: 0 } };
+  const poor = editProfile(p, 'stoker', at, useRune('inv:impulse'), false);
+  expect(poor.changed).toBe(false);
+  expect(poor.message).toMatch(/ink/i);
+  // not known: a rune the household has not found, and an invention it never made
+  const none = editProfile(newProfile(), 'stoker', at, useRune('coil'), false);
+  expect(none.decision).toMatchObject({ kind: 'reject' });
+  expect(none.message).toMatch(/not known/i);
+  const ghost = editProfile(newProfile(), 'stoker', at, useRune('inv:ghost'), false);
+  expect(ghost.message).toMatch(/not known/i);
+  // and nothing else stops a known rune on an empty socket
+  const ok = editProfile(newProfile(), 'stoker', at, useRune('ink'), false);
+  expect(ok.changed).toBe(true);
+});
+
+test('fine print n / m: witnessed rows over the rune’s rows; an invention reads its method', () => {
+  const rows = LINES.filter((l) => l.subject === 'ink');
+  expect(rows.length).toBeGreaterThan(3);
+  const seen = [rows[0]?.id, rows[1]?.id, 'oil:slick'].filter((x): x is LineId => x !== undefined);
+  expect(finePrint(seen, 'ink')).toEqual({ witnessed: 2, total: rows.length });
+  expect(finePrint([], 'ink')).toEqual({ witnessed: 0, total: rows.length });
+  const conduct = LINES.filter((l) => l.subject === 'conduct');
+  expect(conduct.length).toBeGreaterThan(0);
+  const first = conduct[0]?.id;
+  expect(finePrint(first ? [first] : [], 'inv:impulse', LIB)).toEqual({
+    witnessed: first ? 1 : 0,
+    total: conduct.length,
+  });
+  // an invention nobody knows has no rows
+  expect(finePrint([], 'inv:ghost', LIB).total).toBe(0);
+});
+
+test('detailOf: the headline of a rune and of an invention, with its fine print', () => {
+  const rune = detailOf('shove', [], LIB);
+  expect(rune).toMatchObject({ name: 'Shove', role: 'action', headline: RUNES.shove.headline });
+  const made = detailOf('inv:impulse', [], LIB);
+  expect(made).toMatchObject({
+    name: 'Impulse',
+    role: 'action',
+    headline: headlineOf(IMPULSE, LIB),
+  });
+  expect(made.headline).toContain('Shove');
+});
+
+test('flowZones: Fork sides, and everything after a Seal is in the jar', () => {
+  const fork = compileLattice(parseLattice('. Ink .\nBolt> Fork .\n. Spark .'));
+  const zones = flowZones(fork).get('0,1');
+  expect(zones?.get('1,0')).toEqual({ side: 'left', sealed: false });
+  expect(zones?.get('1,2')).toEqual({ side: 'right', sealed: false });
+  expect(zones?.get('1,1')).toEqual({ side: null, sealed: false });
+
+  const jar = compileLattice(parseLattice('Bolt> Ink Jar Spark Oil'));
+  const z = flowZones(jar).get('0,0');
+  expect(z?.get('1,0')?.sealed).toBe(false);
+  expect(z?.get('2,0')?.sealed).toBe(false); // the Jar itself is the split
+  expect(z?.get('3,0')?.sealed).toBe(true);
+  expect(z?.get('4,0')?.sealed).toBe(true);
+});
+
+test('flowZones: a Seal inside a branch seals only that branch', () => {
+  const l = compileLattice(
+    parseLattice('. . . . . .\nSpark Jar Ink Fork Oil Ink\n. . . Bolt^ . .'),
+  );
+  const z = flowZones(l).get('3,2');
+  expect(z?.get('2,1')).toEqual({ side: 'left', sealed: false });
+  expect(z?.get('1,1')).toEqual({ side: 'left', sealed: false });
+  expect(z?.get('0,1')).toEqual({ side: 'left', sealed: true });
+  expect(z?.get('4,1')).toEqual({ side: 'right', sealed: false });
+  expect(z?.get('5,1')).toEqual({ side: 'right', sealed: false });
 });

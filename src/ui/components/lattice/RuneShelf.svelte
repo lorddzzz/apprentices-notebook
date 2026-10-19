@@ -1,7 +1,15 @@
 <script lang="ts">
-  import { TIER_MARKS } from '$data';
-  import { hasArrow, nameOf } from '$engine';
-  import type { GlyphSlot, ShelfSlot, ShelfTool } from '../../../app/study';
+  import { type Role, type RuneRef, TIER_MARKS } from '$data';
+  import { hasArrow, type InventionLibrary, nameOf } from '$engine';
+  import {
+    type GlyphSlot,
+    inventionSlots,
+    type ShelfSlot,
+    type ShelfTool,
+    shelfGroups,
+  } from '../../../app/study';
+  import { longpress } from '../../attach/longpress';
+  import { ROLE_COLOR } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   interface Props {
@@ -15,19 +23,43 @@
     glyphs?: GlyphSlot[];
     /** Lead the shelf with the Erase tool (the lattice editor). */
     erase?: boolean;
+    /** The household's inventions: drawn as their method over their first part. */
+    inventions?: InventionLibrary;
+    /** A long-press on a rune or an invention: show its headline and fine print. */
+    ondetail?: (rune: RuneRef) => void;
     /** Opens "Your Glyphs, ranked" from the Fair copies tab (task U2 adds the link). */
     onranking?: () => void;
   }
 
-  let { slots, tool, onselect, onreject, glyphs = [], erase = false, onranking }: Props = $props();
+  let {
+    slots,
+    tool,
+    onselect,
+    onreject,
+    glyphs = [],
+    inventions = {},
+    ondetail,
+    erase = false,
+    onranking,
+  }: Props = $props();
 
   // Unknown runes are the Codex's business; the shelf shows what can be inscribed.
-  const known = $derived(slots.filter((s) => s.known));
+  const groups = $derived(shelfGroups(slots));
+  const made = $derived(inventionSlots(slots));
   const erasing = $derived(tool.kind === 'erase');
+  const roleName = (r: Role): string => r.charAt(0).toUpperCase() + r.slice(1);
 
-  let picked = $state<'runes' | 'glyphs'>('runes');
+  type Tab = 'runes' | 'inventions' | 'glyphs';
+  let picked = $state<Tab>('runes');
   // The tab can't stay on a list that has emptied (a save was replaced).
-  const tab = $derived(glyphs.length === 0 ? 'runes' : picked);
+  const tab = $derived<Tab>(
+    picked === 'glyphs' && glyphs.length === 0
+      ? 'runes'
+      : picked === 'inventions' && made.length === 0
+        ? 'runes'
+        : picked,
+  );
+  const tabbed = $derived(glyphs.length > 0 || made.length > 0);
 
   function tapGlyph(slot: GlyphSlot): void {
     if (!slot.usable) {
@@ -67,7 +99,14 @@
   {/if}
 {/snippet}
 
-{#if glyphs.length > 0}
+{#snippet cost(slot: ShelfSlot)}
+  {#if slot.base !== undefined && slot.base > slot.cost}
+    <s class="was" title="Trained: one ink less">{slot.base}</s>
+  {/if}
+  <b>{slot.cost}</b>
+{/snippet}
+
+{#if tabbed}
   <div class="tabs" role="tablist" aria-label="Shelf">
     <button
       type="button"
@@ -80,6 +119,20 @@
     >
       Runes
     </button>
+    {#if made.length > 0}
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        class:on={tab === 'inventions'}
+        aria-selected={tab === 'inventions'}
+        data-testid="tab-inventions"
+        onclick={() => (picked = 'inventions')}
+      >
+        Inventions <small>{made.length}</small>
+      </button>
+    {/if}
+    {#if glyphs.length > 0}
     <button
       type="button"
       role="tab"
@@ -91,10 +144,38 @@
     >
       Fair copies <small>{glyphs.length}</small>
     </button>
+    {/if}
   </div>
 {/if}
 
-{#if tab === 'glyphs'}
+{#if tab === 'inventions'}
+  <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
+  <div class="copies" data-testid="shelf" role="group" aria-label="Inventions">
+    {@render eraser()}
+    {#each made as slot (slot.rune)}
+      {@const selected = tool.kind === 'rune' && tool.rune === slot.rune}
+      <button
+        type="button"
+        class="copy"
+        class:selected
+        class:spent={!slot.usable}
+        aria-pressed={selected}
+        aria-label={`${nameOf(slot.rune, inventions)}, invention, ${slot.cost} ink`}
+        data-rune={slot.rune}
+        onclick={() => tap(slot)}
+        {@attach longpress(() => ondetail?.(slot.rune))}
+      >
+        <RuneGlyph rune={slot.rune} {inventions} size={34} dim={!slot.usable} />
+        <span class="meta">
+          <b>{nameOf(slot.rune, inventions)}</b>
+          <small class:poor={slot.usable && !slot.affordable}>
+            {slot.role} · {@render cost(slot)} ink
+          </small>
+        </span>
+      </button>
+    {/each}
+  </div>
+{:else if tab === 'glyphs'}
   {#if onranking}
     <div class="ranked-row">
       <button type="button" class="ranked" data-testid="ranked" onclick={() => onranking()}>
@@ -141,29 +222,35 @@
 {:else}
 <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
 <div class="shelf" data-testid="shelf" role="group" aria-label="Rune shelf">
-  {@render eraser()}
-  {#each known as slot (slot.rune)}
-    {@const selected = tool.kind === 'rune' && tool.rune === slot.rune}
-    <button
-      type="button"
-      class="slot"
-      class:selected
-      class:spent={!slot.usable}
-      aria-pressed={selected}
-      aria-label={`${nameOf(slot.rune)}, ${slot.cost} ink`}
-      data-rune={slot.rune}
-      onclick={() => tap(slot)}
-    >
-      <RuneGlyph
-        rune={slot.rune}
-        dir={hasArrow(slot.rune) ? 'right' : undefined}
-        size={30}
-        dim={!slot.usable}
-      />
-      <span class="count" class:poor={slot.usable && !slot.affordable}>
-        <b>{slot.cost}</b>
-      </span>
-    </button>
+  {#each groups as group, i (group.role)}
+    <span class="role" style:--dot="var({ROLE_COLOR[group.role]})" data-role-head={group.role}>
+      {roleName(group.role)}
+    </span>
+    {#if i === 0}{@render eraser()}{/if}
+    {#each group.slots as slot (slot.rune)}
+      {@const selected = tool.kind === 'rune' && tool.rune === slot.rune}
+      <button
+        type="button"
+        class="slot"
+        class:selected
+        class:spent={!slot.usable}
+        aria-pressed={selected}
+        aria-label={`${nameOf(slot.rune)}, ${slot.cost} ink`}
+        data-rune={slot.rune}
+        onclick={() => tap(slot)}
+        {@attach longpress(() => ondetail?.(slot.rune))}
+      >
+        <RuneGlyph
+          rune={slot.rune}
+          dir={hasArrow(slot.rune) ? 'right' : undefined}
+          size={30}
+          dim={!slot.usable}
+        />
+        <span class="count" class:poor={slot.usable && !slot.affordable}>
+          {@render cost(slot)}
+        </span>
+      </button>
+    {/each}
   {/each}
 </div>
 {/if}
@@ -173,12 +260,37 @@
   .shelf {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-auto-rows: 48px;
+    grid-auto-rows: auto;
     gap: 2px;
-    max-height: 122px;
+    max-height: 150px;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: none;
+  }
+  .role {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    grid-column: 1 / -1;
+    font: 700 11px/14px var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--parchment);
+  }
+  .role::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--dot);
+    border: 1px solid var(--parchment);
+  }
+  .was {
+    margin-right: 3px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    text-decoration-thickness: 1.5px;
   }
   .eraser {
     gap: 1px;

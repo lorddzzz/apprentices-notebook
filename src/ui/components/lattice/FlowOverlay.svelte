@@ -2,6 +2,7 @@
   import type { CompiledLattice, Coord, SpellKey } from '$engine';
   import { key } from '$engine';
   import { arrowHead, auraLinks, flowSegments, linkLine } from '../../../app/flowGeometry';
+  import { type FlowZone, flowZones } from '../../../app/study';
 
   interface Props {
     compiled: CompiledLattice;
@@ -29,13 +30,49 @@
     })),
   });
 
+  // Fork sides and Seal splits (R5, J1): which branch each cell hangs on, and what is in the jar.
+  const zones = $derived(flowZones(compiled));
+  const forks = $derived(
+    new Set(
+      compiled.spells.flatMap((s) =>
+        s.path.filter((c) => c.rune === 'fork' && !c.inner).map((c) => `${s.key}:${key(c.at)}`),
+      ),
+    ),
+  );
+  const seals = $derived(
+    new Set(
+      compiled.spells.flatMap((s) =>
+        s.path
+          .filter((c) => (c.rune === 'jar' || c.rune === 'fuse') && !c.inner)
+          .map((c) => `${s.key}:${key(c.at)}`),
+      ),
+    ),
+  );
+  const NONE: FlowZone = { side: null, sealed: false };
+
   const segments = $derived(
     flowSegments(outer, focus)
       // faint segments first so the focused spell always draws on top
       .sort((a, b) => Number(a.focused) - Number(b.focused))
       .map((s) => {
         const line = linkLine(s.from, s.to, TRIM);
-        return { ...s, line, head: arrowHead(line, s.dir), id: `${s.spell}:${key(s.to)}` };
+        const zone = zones.get(s.spell)?.get(key(s.to)) ?? NONE;
+        const mid = { x: (line.x1 + line.x2) / 2, y: (line.y1 + line.y2) / 2 };
+        const vertical = line.x1 === line.x2;
+        return {
+          ...s,
+          line,
+          zone,
+          mid,
+          // a Fork's first segment into each branch is lettered; a Seal's outgoing one is ticked
+          letter: forks.has(`${s.spell}:${key(s.from)}`) && zone.side ? zone.side : null,
+          split: seals.has(`${s.spell}:${key(s.from)}`),
+          tick: vertical
+            ? { x1: mid.x - 0.16, y1: mid.y, x2: mid.x + 0.16, y2: mid.y }
+            : { x1: mid.x, y1: mid.y - 0.16, x2: mid.x, y2: mid.y + 0.16 },
+          head: arrowHead(line, s.dir),
+          id: `${s.spell}:${key(s.to)}`,
+        };
       }),
   );
   const auras = $derived(
@@ -59,9 +96,26 @@
     <line x1={a.line.x1} y1={a.line.y1} x2={a.line.x2} y2={a.line.y2} class="aura" />
   {/each}
   {#each segments as s (s.id)}
-    <g class="seg" class:faint={!s.focused}>
+    <g
+      class="seg"
+      class:faint={!s.focused}
+      class:left={s.zone.side === 'left'}
+      class:right={s.zone.side === 'right'}
+      class:sealed={s.zone.sealed}
+      data-side={s.zone.side}
+      data-sealed={s.zone.sealed}
+    >
       <line x1={s.line.x1} y1={s.line.y1} x2={s.line.x2} y2={s.line.y2} />
       <polygon points={s.head} />
+      {#if s.split}
+        <line class="tick" x1={s.tick.x1} y1={s.tick.y1} x2={s.tick.x2} y2={s.tick.y2} />
+      {/if}
+      {#if s.letter}
+        <circle class="tag" cx={s.mid.x} cy={s.mid.y} r="0.14" />
+        <text class="letter" x={s.mid.x} y={s.mid.y + 0.07} text-anchor="middle">
+          {s.letter === 'left' ? 'L' : 'R'}
+        </text>
+      {/if}
     </g>
   {/each}
 </svg>
@@ -87,6 +141,48 @@
     stroke-width: 1;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
+  }
+  /* Two branches, two colours: left blue, right moss. After a Seal everything is amber and dashed. */
+  .seg.left line,
+  .seg.left polygon {
+    stroke: var(--role-source);
+  }
+  .seg.right line,
+  .seg.right polygon {
+    stroke: var(--role-trigger);
+  }
+  .seg.left polygon {
+    fill: var(--role-source);
+  }
+  .seg.right polygon {
+    fill: var(--role-trigger);
+  }
+  .seg.sealed line {
+    stroke: var(--role-seal);
+    stroke-dasharray: 6 4;
+  }
+  .seg.sealed polygon {
+    fill: var(--role-seal);
+    stroke: var(--role-seal);
+  }
+  .seg line.tick {
+    stroke: var(--role-seal);
+    stroke-width: 4;
+    stroke-dasharray: none;
+  }
+  .seg .tag {
+    fill: var(--parchment);
+    stroke: var(--role-source);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .seg.right .tag {
+    stroke: var(--role-trigger);
+  }
+  .letter {
+    font: 700 0.2px var(--mono);
+    fill: var(--ink);
+    stroke: none;
   }
   .seg.faint line,
   .seg.faint polygon {

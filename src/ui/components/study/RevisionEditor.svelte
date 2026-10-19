@@ -3,6 +3,7 @@
     type Coord,
     type GlyphInside,
     type InsideIssue,
+    type InventionLibrary,
     insideFlow,
     key,
     nameOf,
@@ -36,6 +37,8 @@
     title: string;
     /** Runes the inside may use, with how many (null = no limit). */
     palette: readonly PaletteSlot[];
+    /** The household's inventions, for drawing and naming them. Default: none. */
+    inventions?: InventionLibrary;
     /** Live issues for the working copy (insideIssues, or the desk's view of it). */
     issues: (inside: GlyphInside) => readonly InsideIssue[];
     /** A warning to show before saving (M19: a page pushed over its ink), or null. */
@@ -56,6 +59,7 @@
     inside,
     title,
     palette,
+    inventions = {},
     issues,
     warning,
     saveLabel = 'Save',
@@ -126,7 +130,7 @@
     const placed = placedAt(at);
     const issue = worst(at);
     const what = placed
-      ? `${nameOf(placed.rune)}${placed.dir ? ` ${placed.dir}` : ''}`
+      ? `${nameOf(placed.rune, inventions)}${placed.dir ? ` ${placed.dir}` : ''}`
       : 'empty cell';
     return `${what}${current && sameCoord(at, current.entry) ? ', the entry' : ''}${issue ? `, ${issue.message}` : ''}`;
   };
@@ -159,7 +163,7 @@
               {@attach longpress(() => lift(at))}
             >
               {#if placed}
-                <RuneGlyph rune={placed.rune} dir={placed.dir} size={44} />
+                <RuneGlyph rune={placed.rune} {inventions} dir={placed.dir} size={44} />
               {/if}
               {#if entry}<span class="lock" aria-hidden="true">in</span>{/if}
             </button>
@@ -178,7 +182,7 @@
 
       <p class="rule">Tap to place the held rune. Tap an arrow to turn it. Hold a rune, or use Erase, to lift it.</p>
 
-      <RuneShelf {slots} {tool} onselect={(t) => (tool = t)} onreject={(r) => toast(r)} erase />
+      <RuneShelf {slots} {inventions} {tool} onselect={(t) => (tool = t)} onreject={(r) => toast(r)} erase />
 
       {#if found.length > 0}
         <ul class="issues" data-testid="revision-issues">

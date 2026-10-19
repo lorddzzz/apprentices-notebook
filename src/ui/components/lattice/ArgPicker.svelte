@@ -6,6 +6,7 @@
     type GlyphArg,
     type GlyphDef,
     hasArrow,
+    inventionLibrary,
     key,
     nameOf,
     type Profile,
@@ -33,6 +34,7 @@
   }
 
   let { target, profile, member, onapply, onclose }: Props = $props();
+  const library = $derived(inventionLibrary(profile));
 
   // Edits on top of what the Glyph holds; cleared when the picker closes or applies.
   let edits = $state<Record<CellKey, GlyphArg>>({});
@@ -107,13 +109,14 @@
                 class="rune"
                 class:on
                 aria-pressed={on}
-                title={nameOf(o.rune)}
+                title={nameOf(o.rune, library)}
                 data-testid="arg-rune"
                 data-rune={o.rune}
                 onclick={() => pick(row.k, o.rune, row.arg.dir ?? row.cell.dir)}
               >
                 <RuneGlyph
                   rune={o.rune}
+                  inventions={library}
                   dir={hasArrow(o.rune) ? (on ? row.arg.dir : (row.cell.dir ?? 'right')) : undefined}
                   size={32}
                 />
