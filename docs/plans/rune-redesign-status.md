@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
 **State:** implemented and verified (2026-10-19); waiting for explicit push approval because automatic approval review rejected the final main-branch push.
-**Next:** with player push approval, push main and confirm CI deployment, clean merged worktrees and pause the resume heartbeat. All implementation tasks are done; optional future work stays in BL-100. See [verification](rune-redesign-verification.md).
+**Next:** with player push approval, push main and confirm CI deployment. All implementation tasks are done; merged agent worktrees/branches are cleaned and the resume heartbeat is paused while awaiting approval. Optional future work stays in BL-100. See [verification](rune-redesign-verification.md).
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -134,3 +134,4 @@ These notes are preserved as implementation history; they are not unfinished tas
 - Final phone QA also exercised adding/selecting/placing a Lab invention and the expanded terrain palette; Recoil and Lantern Walk demos inspected without consoleerrors. Production build passed (bundle-size advisory only).
 - Final merged gate passes94files/2,909tests, zero type/lint/Svelte errors; production build passes. Both reviewer passes found no blockers. Verification report records exact coverage and deliberate later scope.
 - Final main push was rejected by automatic approval review: explicit authorization to mutate the external default branch is required. Local commit remains allowed; ask the player only for the concrete final push/deployment.
+- Closeout cleanup complete: only the main worktree remains, main dependencies preserved, viewport restored. Resume heartbeat paused while awaiting the explicit push/deployment answer; no scheduled polling remains active.
