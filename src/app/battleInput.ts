@@ -1,3 +1,4 @@
+import type { LineId } from '$data';
 import {
   type Action,
   type ActionResult,
@@ -24,6 +25,9 @@ import {
   unitAt,
 } from '$engine';
 import { type Outcome, outcomeOf, previewSummary } from './describe';
+
+/** The footnote variants the household wrote, by line: the engine reads them (F1). */
+export type Footnotes = Partial<Record<LineId, string>>;
 
 /**
  * The battle input state machine: taps in, a new mode (and maybe an action) out. Pure; the
@@ -155,8 +159,8 @@ function travelOf(before: BattleState, after: BattleState, id: UnitId): Coord[] 
 }
 
 /** Applies the action to a copy and reads off what would happen. */
-export function previewOf(s: BattleState, action: Action): Preview {
-  const result = applyAction(s, action);
+export function previewOf(s: BattleState, action: Action, footnotes: Footnotes = {}): Preview {
+  const result = applyAction(s, action, footnotes);
   let path: Coord[] = [];
   let targets: Coord[] = [];
   if (action.type === 'cast') {
@@ -188,8 +192,15 @@ function toConfirm(
   spell: SpellKey | null,
   at: Coord,
   action: Action,
+  footnotes: Footnotes,
 ): InputMode {
-  return { kind: 'confirm', unit, spell, at: { ...at }, preview: previewOf(s, action) };
+  return {
+    kind: 'confirm',
+    unit,
+    spell,
+    at: { ...at },
+    preview: previewOf(s, action, footnotes),
+  };
 }
 
 /** Tapping a living member always selects it (except as a legal aim, handled first). */
@@ -213,9 +224,11 @@ function tapAim(
   spell: SpellKey,
   at: Coord,
   aims: Aim[],
+  footnotes: Footnotes,
 ): InputResult {
   const aim = aimAt(s, unit, spell, at);
-  if (aim) return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }));
+  if (aim)
+    return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }, footnotes));
   const caster = livingMember(s, unit);
   if (caster && sameCoord(caster.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
@@ -230,11 +243,17 @@ function tapAim(
   return stay({ kind: 'aim', unit, spell, aims, note: why });
 }
 
-function tapShove(s: BattleState, unit: UnitId, at: Coord, dirs: Dir[]): InputResult {
+function tapShove(
+  s: BattleState,
+  unit: UnitId,
+  at: Coord,
+  dirs: Dir[],
+  footnotes: Footnotes,
+): InputResult {
   const m = livingMember(s, unit);
   const dir = m ? dirs.find((d) => sameCoord(step(m.pos, d), at)) : undefined;
   if (m && dir) {
-    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }));
+    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }, footnotes));
   }
   if (m && sameCoord(m.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
@@ -242,7 +261,12 @@ function tapShove(s: BattleState, unit: UnitId, at: Coord, dirs: Dir[]): InputRe
   return stay({ kind: 'shove', unit, dirs, note: 'Only an adjacent unit can be shoved.' });
 }
 
-export function onCell(s: BattleState, mode: InputMode, at: Coord): InputResult {
+export function onCell(
+  s: BattleState,
+  mode: InputMode,
+  at: Coord,
+  footnotes: Footnotes = {},
+): InputResult {
   if (s.phase !== 'player') return stay(IDLE);
   switch (mode.kind) {
     case 'idle':
@@ -266,17 +290,17 @@ export function onCell(s: BattleState, mode: InputMode, at: Coord): InputResult 
       return stay(inspect(s, at, unit));
     }
     case 'aim':
-      return tapAim(s, mode.unit, mode.spell, at, mode.aims);
+      return tapAim(s, mode.unit, mode.spell, at, mode.aims, footnotes);
     case 'shove':
-      return tapShove(s, mode.unit, at, mode.dirs);
+      return tapShove(s, mode.unit, at, mode.dirs, footnotes);
     case 'confirm': {
       if (mode.spell !== null) {
         // Only the tapped tile confirms: tapping further along a Bolt's line re-reads it instead.
         if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-        return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell));
+        return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell), footnotes);
       }
       if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-      return tapShove(s, mode.unit, at, shoveDirs(s, mode.unit));
+      return tapShove(s, mode.unit, at, shoveDirs(s, mode.unit), footnotes);
     }
   }
 }
@@ -288,7 +312,12 @@ export function onMember(s: BattleState, mode: InputMode, id: UnitId): InputResu
 }
 
 /** Spell button. Pressing the active spell again steps back to the member. */
-export function onSpell(s: BattleState, mode: InputMode, key: SpellKey): InputResult {
+export function onSpell(
+  s: BattleState,
+  mode: InputMode,
+  key: SpellKey,
+  footnotes: Footnotes = {},
+): InputResult {
   const unit = selectedOf(mode);
   if (!unit || s.phase !== 'player') return stay(mode);
   if ((mode.kind === 'aim' || mode.kind === 'confirm') && mode.spell === key) {
@@ -306,7 +335,9 @@ export function onSpell(s: BattleState, mode: InputMode, key: SpellKey): InputRe
   if (only) {
     const at =
       only.kind === 'tile' ? only.at : only.kind === 'self' ? m.pos : step(m.pos, only.dir);
-    return stay(toConfirm(s, unit, key, at, { type: 'cast', unit, spell: key, aim: only }));
+    return stay(
+      toConfirm(s, unit, key, at, { type: 'cast', unit, spell: key, aim: only }, footnotes),
+    );
   }
   return stay({ kind: 'aim', unit, spell: key, aims });
 }

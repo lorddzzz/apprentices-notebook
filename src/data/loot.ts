@@ -16,8 +16,11 @@ const solvent = (id: SolventId, weight: number): LootEntry => ({
 const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount: 1 }, weight });
 
 /**
- * P35: Seam loot teaches Splash, Touch, Steam, Brass, Fork and Bend; the Conduct page drops in the
- * deep and heart tables. R1 tunes the weights and adds the canals' tables.
+ * Typed loot (P34, P35): rune and method pages teach what the household doesn't know (a page it
+ * already has drops as 1 ink, see `rollOffers`). The Seam teaches Splash, Touch, Steam, Brass, Fork
+ * and Bend; its deep and heart tables hold the Conduct page, and the first heart clear always offers
+ * it. The canals teach their school (Jar, Fuse, Afterglow), their methods (Repeat, Margin) and
+ * their solvents (Pitch, Wick).
  */
 export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
   shallow: {
@@ -57,6 +60,45 @@ export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
       ink(2),
       solvent('gallnut', 1),
       solvent('cinder', 1),
+      vellum(1),
+    ],
+    guaranteed: { kind: 'method', method: 'conduct' },
+  },
+  canalShallow: {
+    id: 'canalShallow',
+    entries: [
+      rune('jar', 3),
+      rune('fuse', 3),
+      rune('afterglow', 2),
+      ink(3),
+      solvent('pitch', 1),
+      solvent('wick', 1),
+    ],
+  },
+  canalDeep: {
+    id: 'canalDeep',
+    entries: [
+      rune('jar', 2),
+      rune('fuse', 2),
+      rune('afterglow', 2),
+      method('repeat', 2),
+      method('margin', 2),
+      ink(3),
+      solvent('pitch', 1),
+      solvent('wick', 1),
+      vellum(1),
+      { spec: { kind: 'doorway' }, weight: 1 },
+    ],
+  },
+  canalHeart: {
+    id: 'canalHeart',
+    entries: [
+      method('repeat', 3),
+      method('margin', 3),
+      rune('afterglow', 2),
+      ink(2),
+      solvent('pitch', 1),
+      solvent('wick', 1),
       vellum(1),
     ],
   },

@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** R1, U1, E8 running. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** U1, E8 running. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -17,7 +17,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E1 | sonnet | L | merged | worktree-agent-ae1e7b0831f4ee754 @ 03ad3e5 | | 555 engine tests; seam `withSeams` + `tests/scenarios/fake-runes.ts`; edited glyph-identity test (wrap in withSeams; E6 can drop). At merge: `scenarioSpec` must pass `spec.edge` |
 | E2 | sonnet | L | merged | worktree-agent-a523e267400073b23 @ 0c7cb67 | | 49 kind lines; 15 burst rows; `CHEMISTRY` tuning |
 | E3 | sonnet | M | merged | worktree-agent-a7f0621bb86e37774 @ fdce332 | | 540 engine tests; 23 line rows. At merge: add `Layer.slid?`, Tuning keys sentenceTiles/holdRounds/levyShieldPerMark (now local consts) |
-| R1 | sonnet | M | running | worktree | | started 05:44 |
+| R1 | sonnet | M | merged | (this commit) | ~8% | 1786 tests; touched data/types.ts (LootTableId, guaranteed, duplicateInk), tuning, game.svelte.ts, Threshold.svelte, battleInput/battle.svelte.ts (footnotes). No browser check (5-server cap) |
 | E5 | sonnet | L | merged | (this commit) | ~5% | 1069 tests; touched bursts.ts (markUnit→applyMark), lines.ts, actions tests (markSpent) |
 | E6 | sonnet | L | merged | (this commit) | ~6% | 1055 tests; touched movement.ts, turns/integration tests (spit line) |
 | L1 | sonnet | M | merged | (this commit) | ~5% | 1625 tests (the integrity file re-imports the scenario suites; a child vitest runs push/actions); 1 pending line (fork:noHeading); idiom hook = `withIdioms` in battle.ts `applyAction` |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 06:00 | 42 | 4h41m | 79 | normal (weekly watch) | R1 merged |
 | 2026-10-19 05:54 | 34 | 4h46m | 78 | normal (weekly rising ~0.3%/min) | E7 merged; start E8 only |
 | 2026-10-19 05:43 | 0 | 5h | 74 | normal (weekly watch: ~13% weekly per window) | reset; start E7, R1, U1 |
 | 2026-10-19 01:53 | 98 | 3h47m | 74 | hold | F1 merged; holding, timer to 05:41 UTC |
@@ -56,6 +57,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- R1: lock goal = `{ all: [{ dies: 'rat-1' }, { happens: 'dropped' }] }` (a Spark kill mustn't open the canals); six loot tables (Seam ×3, canal ×3); the Seam heart's Conduct guarantee is table data (`guaranteed`); owned pages drop as 1 ink (incl. pages already in the trip's loot); a footnote "firing" = a consecutive run of events with the same line. Accepted. Note: the map's "burnt gate" drawing is now cosmetic (U follow-up).
 - E7: the invention library lives in `BattleState.inventions` (deterministic replays); Conduct reaches units on or beside the brass the target touches, none → `conduct:noTarget`; Repeat and Margin wait on the tile, not the unit; a Repeat under a Margin isn't echoed again; Bind never overwrites a mark that already holds something; Lift sends the mark one tile along the heading (to the caster for Swap); headlines append the solvent rule ("With <Solvent>, …"); parts run one nesting level deeper, a third level fizzles. Accepted.
 - F1: footnote offers/write/texts take an optional `variants` arg (tests pass their own); errors `notReached`/`unknownVariant`/`noSolvent`; the district solvent held in greater number is spent. Proposal to decide in C1: `ctx.footnotes` should carry variant ids, not texts (text comparison is brittle).
 - L1: masking lives in `lines.ts` (no preview.ts); silent masked events leave no blank; `wax:cloud` is in a NOT_YET_STAMPED allowlist; Lantern Walk has only a negative test (jars don't drift yet), Redraft a synthetic log; Debt Collection reads the acting apprentice from the first `cast` in the log. Accepted. Follow-ups: widen `nameOnce` to `'idiom'`; let chemHarness record lines without the spy; a `released` event carrying the releaser's origin.
@@ -74,6 +76,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
 ## Follow-ups and rough edges
+- **Playtest question:** `Bolt → Oil → Shove` on a lone rat doesn't slide (the engine only slides over slick the unit *enters*; E3 + R1 noted it). Design §1 row 3 reads as if it should slide to the end of the oil. Ask the player whether a unit pushed *from* a slick should slide.
 - The lines integrity test re-runs most suites inside one file (test count ~1.6k, check ~57 s wall). Simplify later (BL candidate).
 - Jars should drift with the current (Pitch / Lantern Walk): E8 or R2.
 - **For E7 (from E5):** Bind = land Ink as a plain mark, then `attachBound` (don't call `applyMark` twice; `applyMark` with `bound` also works on an unmarked unit); `attachBound` emits a second `marked` event; Lift calls `liftMark`; a real Bind-in-Bind test is E7's.

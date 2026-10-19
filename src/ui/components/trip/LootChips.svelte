@@ -2,7 +2,9 @@
   import { RUNES } from '$data';
   import type { LootItem } from '$engine';
   import { lootName } from '../../../app/describe';
+  import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
+  import SolventIcon from '../SolventIcon.svelte';
 
   interface Props {
     items: readonly LootItem[];
@@ -19,8 +21,16 @@
     <li class="chip" data-kind={item.kind}>
       {#if item.kind === 'rune'}
         <RuneGlyph rune={item.rune} dir={RUNES[item.rune].arrow ? 'right' : undefined} size={28} />
+      {:else if item.kind === 'solvent'}
+        <span class="icon"><SolventIcon solvent={item.solvent} size={22} /></span>
+      {:else if item.kind === 'method'}
+        <span class="icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="A method page">
+            <path d={METHOD_ART[item.method]} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
       {:else}
-        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'solvent' ? '◍' : item.kind === 'method' ? '❖' : '✎'}</span>
+        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'key' ? '⚷' : '✎'}</span>
       {/if}
       <span class="name">{lootName(item)}</span>
     </li>

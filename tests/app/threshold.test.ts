@@ -1,12 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { DISTRICTS } from '$data';
-import { boardOf, memberById, newProfile, type Profile, parseLattice } from '$engine';
+import { applyAction, boardOf, memberById, newProfile, type Profile, parseLattice } from '$engine';
 import { GameStore } from '../../src/app/game.svelte';
 import { memoryBackend } from '../../src/app/save';
 import { planThreshold, thresholdOutcome, thresholdStart } from '../../src/app/threshold';
 import { ThresholdStore } from '../../src/app/threshold.svelte';
 
 const OIL_D = ['.     .   . . .', 'Bolt> Oil . . .', 'x     .   . . x'].join('\n');
+const SHOVE_D = ['.     .   .     . .', 'Bolt> Oil Shove . .', 'x     .   .     . x'].join('\n');
 const SPARK_S = ['x Boltv x', '. Spark .', '. .     .', '. .     .', '. .     .', 'x .     x'].join(
   '\n',
 );
@@ -57,9 +58,43 @@ describe('threshold screen logic', () => {
     expect(after.city.solved).toContain('canals');
   });
 
-  // Runes have no effects yet (E1-E3): the eel-rat cannot be shoved off the lock until they land.
-  // R1's `threshold-solvable` test plays the intended lattice (Bolt, Oil, Shove) end to end.
-  test.todo('playing the intended lattice wins the lock and opens the canals');
+  test('threshold-solvable: Bolt, Oil, Shove drops the lock-keeper rat and opens the canals', () => {
+    const p = heardCanals();
+    const solving: Profile = {
+      ...p,
+      lattices: { ...p.lattices, draughtsman: [...parseLattice(SHOVE_D).runes] },
+    };
+    const start = thresholdStart(solving, gate.room).state;
+    const spell = memberById(start, 'draughtsman').spells[0];
+    if (!spell) throw new Error('the Draughtsman has no spell');
+    const r = applyAction(start, {
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: spell.key,
+      aim: { kind: 'dir', dir: 'right' },
+    });
+    expect(r.events.map((e) => e.type)).toEqual(expect.arrayContaining(['dropped', 'died', 'won']));
+    expect(r.state.phase).toBe('won');
+    const opened = thresholdOutcome(solving, 'canals', r.state);
+    expect(opened.city.open).toContain('canals');
+    expect(opened.city.solved).toContain('canals');
+  });
+
+  test('a fire only kills the rat: the room stays shut', () => {
+    const p = heardCanals(); // Bolt, Oil, Spark on the Draughtsman
+    const start = thresholdStart(p, gate.room).state;
+    const spell = memberById(start, 'draughtsman').spells[0];
+    if (!spell) throw new Error('the Draughtsman has no spell');
+    const r = applyAction(start, {
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: spell.key,
+      aim: { kind: 'dir', dir: 'right' },
+    });
+    expect(r.events.some((e) => e.type === 'dropped')).toBe(false);
+    expect(r.state.phase).toBe('player');
+    expect(thresholdOutcome(p, 'canals', r.state)).toBe(p);
+  });
 
   test('the store: retry restarts and leave writes nothing', () => {
     const game = new GameStore(memoryBackend(), () => 0);

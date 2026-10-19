@@ -282,7 +282,14 @@ export interface EnemyDef {
 }
 
 // ── Encounters and loot ─────────────────────────────────
-export type LootTableId = 'shallow' | 'deep' | 'heart';
+/** The Seam's three tables, then the canals' three (P35: each district teaches its own pages). */
+export type LootTableId =
+  | 'shallow'
+  | 'deep'
+  | 'heart'
+  | 'canalShallow'
+  | 'canalDeep'
+  | 'canalHeart';
 /** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
 export interface EncounterVariant {
   name: string; // a short place name: 'The drainage cut'
@@ -314,6 +321,8 @@ export interface LootEntry {
 export interface LootTableDef {
   id: LootTableId;
   entries: readonly LootEntry[];
+  /** Offered at the top of the table until the household has it (P35: Conduct at the first heart clear). */
+  guaranteed?: LootSpec;
 }
 
 // ── Codex and Lab ───────────────────────────────────────
@@ -379,6 +388,7 @@ export interface Tuning {
   fireRounds: number;
   reviveHp: number;
   offersPerWin: number;
+  duplicateInk: number; // a rune or method page the household already has drops as this much ink (P34)
   // Glyphs and proof
   glyphMinCells: number;
   glyphMaxCells: number;

@@ -10,6 +10,7 @@ import {
 import {
   afterAction,
   endTurnNeedsConfirm,
+  type Footnotes,
   IDLE,
   type InputMode,
   type InputResult,
@@ -33,6 +34,8 @@ export type SessionMode = 'trip' | 'lab';
 
 export interface SessionOptions {
   onEvents?: (events: GameEvent[]) => void;
+  /** The footnotes the household wrote (`footnoteTexts`): the engine reads them for their lines. */
+  footnotes?: Footnotes;
   /** Play the creation events (enemies declaring intents) on start. */
   intro?: boolean;
   /** Called with the state and log just before an action took effect (the Lab's undo and export). */
@@ -61,6 +64,10 @@ export class BattleSession {
     if (opts.intro && init.events.length) {
       void this.play(withoutIntents(viewOf(init.state)), init.events);
     }
+  }
+
+  private get footnotes(): Footnotes {
+    return this.opts.footnotes ?? {};
   }
 
   get busy(): boolean {
@@ -114,7 +121,7 @@ export class BattleSession {
 
   tapCell(at: { x: number; y: number }): void {
     if (this.swallow()) return;
-    this.apply(onCell(this.state, this.input, at));
+    this.apply(onCell(this.state, this.input, at, this.footnotes));
   }
 
   selectMember(id: UnitId): void {
@@ -124,7 +131,7 @@ export class BattleSession {
 
   chooseSpell(key: SpellKey): void {
     if (this.swallow()) return;
-    this.apply(onSpell(this.state, this.input, key));
+    this.apply(onSpell(this.state, this.input, key, this.footnotes));
   }
 
   chooseShove(): void {
@@ -166,7 +173,7 @@ export class BattleSession {
     const prev = this.state;
     let r: ActionResult;
     try {
-      r = applyAction(prev, action);
+      r = applyAction(prev, action, this.footnotes);
     } catch (err) {
       toast(err instanceof Error ? err.message : String(err), 'warn');
       return;

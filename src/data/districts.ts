@@ -28,8 +28,8 @@ function room(
  * The oil-lit canals (design §5.5): three named boards for each of rooms 1–4 and three heart
  * variants (same name), as in the Seam. Water grows with depth: one lane by a long quay, a wider
  * lane, two lanes with a bridge, two lanes and little quay (room 4 climbs), then a pool. Foes per
- * room stay the same across its variants. Rooms 1–2 loot `shallow`, 3–4 `deep`, the heart `heart`
- * (K-3).
+ * room stay the same across its variants. Rooms 1–2 loot `canalShallow`, 3–4 `canalDeep`, the
+ * heart `canalHeart` (K-3, P35).
  */
 
 /** Room 1: an eel on the water beside a member (turn 1 shows a lunge) and two rats. */
@@ -248,11 +248,11 @@ const CANAL_HEART: readonly EncounterVariant[] = [
 ];
 
 const CANAL_ROOMS: readonly EncounterDef[] = [
-  room('canal-towpath', 'The towpath', 1, CANAL_1, 'shallow'),
-  room('canal-arcade', 'The drowned arcade', 2, CANAL_2, 'shallow'),
-  room('canal-sluice', 'The sluice', 3, CANAL_3, 'deep'),
-  room('canal-reach', 'The uphill reach', 4, CANAL_4, 'deep'),
-  room('canal-pool', "The lamp-mother's pool", 5, CANAL_HEART, 'heart', true),
+  room('canal-towpath', 'The towpath', 1, CANAL_1, 'canalShallow'),
+  room('canal-arcade', 'The drowned arcade', 2, CANAL_2, 'canalShallow'),
+  room('canal-sluice', 'The sluice', 3, CANAL_3, 'canalDeep'),
+  room('canal-reach', 'The uphill reach', 4, CANAL_4, 'canalDeep'),
+  room('canal-pool', "The lamp-mother's pool", 5, CANAL_HEART, 'canalHeart', true),
 ];
 
 /**
@@ -265,6 +265,8 @@ function drawn(
   material: DistrictDef['material'],
   guild: string,
   map: DistrictDef['map'],
+  line: string,
+  hear: DistrictDef['hear'],
 ): Partial<Record<DistrictId, DistrictDef>> {
   return {
     [id]: {
@@ -275,10 +277,10 @@ function drawn(
       edge: 'wall',
       encounters: [],
       landings: 'all',
-      hear: [],
+      hear,
       gate: { kind: 'drawing' },
       map,
-      line: 'heard of, being drawn',
+      line,
       barred: 'The page is still being drawn.',
     },
   };
@@ -313,35 +315,88 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
       kind: 'threshold',
       room: {
         name: 'The canal lock',
-        // The quay is two rows; plates wall it off and the grate stops a Bolt down the lane (K-10).
-        // Even a Splash (range 3, radius 1) from the quay ends above the lane's last two tiles, so
-        // only a slick the current has carried down can reach the gate.
+        // The lock-keeper's rat sits on the sill with plates either side and the canal at its back
+        // (P10). A shove along the row drops it in the water; a fire or a strike only kills it,
+        // so the goal asks for the drop as well. `Bolt> Oil Shove` is the intended page.
         board: board([
-          '. . wv . D .',
-          '. . wv . S .',
-          '= = wvh = = =',
-          '. = wv = . .',
-          '. = wv = . .',
-          '. = wv = . .',
-          '. = wv = . .',
-          '. = g = . .',
+          '. . . . wv .',
+          '. S . . wv .',
+          '. . . = wv .',
+          'D . . r wv .',
+          '. . . = wv .',
+          '. . . . wv .',
+          '. . . . wv .',
+          '. . . . wv .',
         ]),
-        goal: { happens: 'gateBurns' },
-        note: 'The gate is only wood, and the water carries what is put in it.',
+        goal: { all: [{ dies: 'rat-1' }, { happens: 'dropped' }] },
+        note: 'The rat on the sill keeps the lock shut. The water takes whatever is pushed into it.',
       },
     },
     map: { x: 30, y: 70 },
     line: 'the black water climbs when lit',
-    barred: 'A wooden lock gate bars the way.',
+    barred: "The lock-keeper's rat holds the lock.",
   },
-  ...drawn('inkQuarter', "The ink-makers' quarter", 'ink', 'The Notaries', { x: 70, y: 30 }),
-  ...drawn('bathhouses', 'The bathhouses', 'steam', 'The bath-keepers', { x: 75, y: 65 }),
-  ...drawn('bridges', 'The bridges', 'brass', 'The bridge-wardens', { x: 20, y: 35 }),
-  ...drawn('foundry', 'The bell foundry', 'spark', 'The founders', { x: 55, y: 15 }),
-  ...drawn('cartographers', "The Cartographers' hall", 'ink', 'The Cartographers', {
-    x: 85,
-    y: 45,
-  }),
+  // Heard of, being drawn (P2): each is heard once, from a named result or from the city's talk.
+  ...drawn(
+    'inkQuarter',
+    "The ink-makers' quarter",
+    'ink',
+    'The Notaries',
+    { x: 70, y: 30 },
+    'marks that keep what they are owed',
+    [
+      { kind: 'named', id: 'compound:deepMark', voice: 'owner' },
+      { kind: 'trips', atLeast: 3, voice: 'rumour' },
+    ],
+  ),
+  ...drawn(
+    'bathhouses',
+    'The bathhouses',
+    'steam',
+    'The bath-keepers',
+    { x: 75, y: 65 },
+    'one fog over the whole house',
+    [
+      { kind: 'named', id: 'compound:greaseFog', voice: 'owner' },
+      { kind: 'trips', atLeast: 4, voice: 'rumour' },
+    ],
+  ),
+  ...drawn(
+    'bridges',
+    'The bridges',
+    'brass',
+    'The bridge-wardens',
+    { x: 20, y: 35 },
+    'the edge is a door too',
+    [
+      { kind: 'named', id: 'idiom:theWall', voice: 'owner' },
+      { kind: 'trips', atLeast: 5, voice: 'rumour' },
+    ],
+  ),
+  ...drawn(
+    'foundry',
+    'The bell foundry',
+    'spark',
+    'The founders',
+    { x: 55, y: 15 },
+    'one bang, heard three tiles away',
+    [
+      { kind: 'named', id: 'burst:conduct', voice: 'owner' },
+      { kind: 'trips', atLeast: 6, voice: 'rumour' },
+    ],
+  ),
+  ...drawn(
+    'cartographers',
+    "The Cartographers' hall",
+    'ink',
+    'The Cartographers',
+    { x: 85, y: 45 },
+    'the paper keeps changing under the pen',
+    [
+      { kind: 'heart', district: 'canals', voice: 'rumour' },
+      { kind: 'trips', atLeast: 8, voice: 'rumour' },
+    ],
+  ),
 } as Record<DistrictId, DistrictDef>;
 
 export const DISTRICT_IDS: readonly DistrictId[] = [

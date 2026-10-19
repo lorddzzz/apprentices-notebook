@@ -51,7 +51,7 @@
               Retry
             </button>
           </div>
-          <p class="goal" data-testid="threshold-goal"><b>Burn the lock gate.</b> {room.note}</p>
+          <p class="goal" data-testid="threshold-goal"><b>Drop the rat in the canal.</b> {room.note}</p>
         </header>
       {/snippet}
       <BattleView

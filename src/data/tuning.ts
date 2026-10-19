@@ -24,6 +24,7 @@ export const TUNING: Tuning = {
   fireRounds: 2,
   reviveHp: 1,
   offersPerWin: 3,
+  duplicateInk: 1,
   glyphMinCells: 3,
   glyphMaxCells: 8,
   provenCasts: 5,

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { CODEX, IDIOMS, METHOD_IDS, RUNE_IDS, START_KNOWN, TUNING } from '$data';
+import { CODEX, IDIOMS, MEMBERS, METHOD_IDS, RUNE_IDS, START_KNOWN, TUNING } from '$data';
 import {
   canPlace,
   codexView,
@@ -118,4 +118,23 @@ test('codexView: runes known by knowledge, methods once learnt, idioms once name
   expect(known(v2, `idiom:${idiom}`)).toBe(true);
   expect(v2.filter((v) => v.entry.kind === 'rune')).toHaveLength(RUNE_IDS.length);
   expect(v2.filter((v) => v.entry.kind === 'method')).toHaveLength(METHOD_IDS.length);
+});
+
+test('leans and habits are data (P36)', () => {
+  expect(MEMBERS.stoker.lean).toEqual({ trained: 'seam', gifted: 'seam', habit: 'forkAhead' });
+  expect(MEMBERS.draughtsman.lean).toEqual({
+    trained: 'timing',
+    gifted: 'contracts',
+    habit: 'twoJars',
+  });
+});
+
+test('the start pages are the ones P35 names, and they fit each ink pot', () => {
+  const p = newProfile();
+  expect(MEMBERS.draughtsman.startLattice).toContain('Bolt> Ink Strike');
+  expect(MEMBERS.stoker.startLattice).toContain('Oil');
+  for (const m of ['draughtsman', 'stoker'] as const) {
+    const used = inkUsed(latticeOf(p, m), {}, {}, MEMBERS[m].lean);
+    expect(used).toBeLessThanOrEqual(p.inkCapacity[m]);
+  }
 });

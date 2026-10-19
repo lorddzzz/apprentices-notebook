@@ -4,6 +4,7 @@ import {
   type Cluster,
   type Coord,
   compileGlyph,
+  footnoteTexts,
   type GameEvent,
   newSave,
   type Profile,
@@ -214,6 +215,7 @@ export class GameStore {
     this.battle = new BattleSession(init, 'trip', {
       onEvents: (events) => this.announce(events),
       onAction: (_, action) => this.commit(recordBattleAction(this.save, action)),
+      footnotes: footnoteTexts(this.save.profile),
       intro: trip.actions.length === 0,
     });
   }

@@ -6,18 +6,21 @@ import {
   DISTRICTS,
   type DistrictId,
   ENEMY_IDS,
+  type EnemyId,
   encountersOf,
   type InventionDef,
   isInvention,
   type LineId,
   LOOT_TABLES,
   type LootEntry,
+  type LootSpec,
   type LootTableId,
   MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   type Meets,
   type MemberId,
+  type MethodId,
   RUNE_IDS,
   type RuneId,
   type RuneRef,
@@ -30,6 +33,7 @@ import { applyAction, createEncounterBattle } from './battle';
 import { bankKeys, canReturn, cityDefaults, hearAfterTrip, hearFromBattle, keyOffer } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
 import { type EventLog, namedIn } from './events';
+import { awardFootnotePoints, footnoteTexts } from './footnotes';
 import { canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import { type Coord, DIRS, type Dir, label } from './grid';
 import {
@@ -41,11 +45,12 @@ import {
   nameOf,
   validateLattice,
 } from './lattice';
+import { witnessedIn } from './lines';
 import { parseLattice } from './notation';
 import { recordGlyphCasts, recordOf, rewardsOf, tierUps } from './profiler';
 import { masksFrom, provenCount } from './proof';
 import { memberById } from './queries';
-import { createRng, deriveSeed, pickWeighted } from './rng';
+import { createRng, deriveSeed, pickWeighted, type Rng } from './rng';
 import { accumulateStats, emptyStats } from './tripStats';
 import type {
   Action,
@@ -351,8 +356,9 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
   );
   let state = first.state;
   const events = [...first.events];
+  const footnotes = footnoteTexts(p);
   for (const a of t.actions) {
-    const r = applyAction(state, a);
+    const r = applyAction(state, a, footnotes);
     state = r.state;
     events.push(...r.events);
   }
@@ -365,9 +371,49 @@ export function recordAction(t: Trip, action: Action): Trip {
   return { ...t, actions: [...t.actions, structuredClone(action)] };
 }
 
+/** What the household already has: a page of it drops as ink (P34). */
+export interface Owned {
+  known: readonly RuneId[];
+  methods: readonly MethodId[];
+}
+
+const NOTHING_OWNED: Owned = { known: [], methods: [] };
+
+const hasPage = (owned: Owned, spec: LootSpec): boolean =>
+  (spec.kind === 'rune' && owned.known.includes(spec.rune)) ||
+  (spec.kind === 'method' && owned.methods.includes(spec.method));
+
+const samePage = (a: LootSpec, b: LootSpec): boolean =>
+  (a.kind === 'rune' && b.kind === 'rune' && a.rune === b.rune) ||
+  (a.kind === 'method' && b.kind === 'method' && a.method === b.method);
+
+function offerOf(spec: LootSpec, rng: Rng, members: readonly MemberId[], owned: Owned): LootItem {
+  const member = (): MemberId =>
+    members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
+  if (hasPage(owned, spec)) return { kind: 'ink', member: member(), amount: TUNING.duplicateInk };
+  switch (spec.kind) {
+    case 'rune':
+      return { kind: 'rune', rune: spec.rune };
+    case 'method':
+      return { kind: 'method', method: spec.method };
+    case 'doorway':
+      return { kind: 'doorway' };
+    case 'solvent':
+      return { kind: 'solvent', solvent: spec.solvent };
+    case 'vellum':
+      return { kind: 'vellum', amount: spec.amount };
+    case 'key':
+      return { kind: 'key', district: spec.district };
+    case 'ink':
+      return { kind: 'ink', member: member(), amount: TUNING.inkReserve };
+  }
+}
+
 /**
  * Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed.
- * A `key` (from `keyOffer`, K-23) joins the end of the pool with its weight.
+ * A `key` (from `keyOffer`, K-23) joins the end of the pool with its weight. A table's
+ * `guaranteed` page is offered first while the household lacks it (P35); a rune or method page it
+ * already has (`owned`) is offered as `duplicateInk` instead (P34).
  */
 export function rollOffers(
   tripSeed: number,
@@ -375,12 +421,19 @@ export function rollOffers(
   table: LootTableId,
   members: readonly MemberId[] = MEMBER_IDS,
   key: { district: DistrictId; weight: number } | null = null,
+  owned: Owned = NOTHING_OWNED,
 ): LootItem[] {
   const rng = createRng(deriveSeed(tripSeed, 1000 + encounter));
-  const pool: LootEntry[] = [...LOOT_TABLES[table].entries];
-  if (key) pool.push({ spec: { kind: 'key', district: key.district }, weight: key.weight });
+  const def = LOOT_TABLES[table];
   const offers: LootItem[] = [];
-  for (let n = 0; n < TUNING.offersPerWin && pool.length > 0; n++) {
+  let pool: LootEntry[] = [...def.entries];
+  if (key) pool.push({ spec: { kind: 'key', district: key.district }, weight: key.weight });
+  const must = def.guaranteed;
+  if (must && !hasPage(owned, must)) {
+    offers.push(offerOf(must, rng, members, owned));
+    pool = pool.filter((e) => !samePage(e.spec, must));
+  }
+  while (offers.length < TUNING.offersPerWin && pool.length > 0) {
     const [entry] = pool.splice(
       pickWeighted(
         rng,
@@ -389,19 +442,103 @@ export function rollOffers(
       1,
     );
     if (!entry) break;
-    const spec = entry.spec;
-    if (spec.kind === 'rune') offers.push({ kind: 'rune', rune: spec.rune });
-    else if (spec.kind === 'method') offers.push({ kind: 'method', method: spec.method });
-    else if (spec.kind === 'doorway') offers.push({ kind: 'doorway' });
-    else if (spec.kind === 'solvent') offers.push({ kind: 'solvent', solvent: spec.solvent });
-    else if (spec.kind === 'vellum') offers.push({ kind: 'vellum', amount: spec.amount });
-    else if (spec.kind === 'key') offers.push({ kind: 'key', district: spec.district });
-    else {
-      const member = members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
-      offers.push({ kind: 'ink', member, amount: TUNING.inkReserve });
-    }
+    offers.push(offerOf(entry.spec, rng, members, owned));
   }
   return offers;
+}
+
+/** The pages the household has, plus the ones already in the trip's loot (a second copy is ink). */
+const ownedBy = (p: Profile, t: Trip): Owned => ({
+  known: [...p.known, ...t.loot.flatMap((i) => (i.kind === 'rune' ? [i.rune] : []))],
+  methods: [...p.methods, ...t.loot.flatMap((i) => (i.kind === 'method' ? [i.method] : []))],
+});
+
+/**
+ * Each firing of a line in a log (P39): a run of events stamped with the same line is one firing,
+ * so a crush and the damage it deals count once, and two crushes in a row count twice only when
+ * something else happened between them.
+ */
+export function firedLines(log: EventLog): LineId[] {
+  const out: LineId[] = [];
+  let last: LineId | undefined;
+  for (const e of log) {
+    if (!e.line) continue;
+    if (e.line !== last) out.push(e.line);
+    last = e.line;
+  }
+  return out;
+}
+
+/** What a fight showed the household: terrain, states, compounds and kinds of foe (the Bench palette, P37). */
+export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: EnemyId[] } {
+  const met = new Set<Meets>();
+  const foes = new Set<EnemyId>();
+  for (const u of b.units) {
+    if (u.kind !== 'enemy') continue;
+    foes.add(u.def);
+    met.add(u.elite ? 'elite' : 'minion');
+  }
+  for (const t of b.tiles) {
+    if (t.terrain.water) met.add('water');
+    if (t.terrain.drop) met.add('drop');
+    if (t.state) met.add(t.state.id);
+    if (t.jar) met.add('jar');
+  }
+  for (const e of log) {
+    switch (e.type) {
+      case 'landed':
+        met.add(e.makes);
+        break;
+      case 'mixed':
+        met.add(e.compound);
+        break;
+      case 'washed':
+        met.add(e.was);
+        met.add(e.now);
+        break;
+      case 'marked':
+        met.add('mark');
+        break;
+      case 'collared':
+        met.add('collar');
+        break;
+      case 'shieldGained':
+        met.add('shielded');
+        break;
+      case 'held':
+        met.add('held');
+        break;
+      case 'jarSealed':
+        met.add('jar');
+        break;
+      case 'dropped':
+        met.add('drop');
+        break;
+    }
+  }
+  for (const id of witnessedIn(log)) met.add(id.slice(id.indexOf(':') + 1) as Meets);
+  return { met: [...met], foes: [...foes] };
+}
+
+const withAll = <T>(have: readonly T[], more: readonly T[]): T[] => [
+  ...new Set([...have, ...more]),
+];
+
+/**
+ * What a finished trip fight teaches the household, won or lost (D7, D4, P39, P37): named results,
+ * the lines that fired (witnessed), a footnote point per firing for the runes it knows, and what
+ * the fight met.
+ */
+export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profile {
+  const seen = metIn(b, log);
+  const learned: Profile = {
+    ...p,
+    named: withAll(p.named, namedIn(log)),
+    witnessed: withAll(p.witnessed, witnessedIn(log)),
+    met: withAll(p.met, seen.met),
+    foesMet: withAll(p.foesMet, seen.foes),
+  };
+  return awardFootnotePoints(learned, firedLines(log));
 }
 
 /**
@@ -422,9 +559,7 @@ export function finishEncounter(
   // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
   const fought = perMember((m) => compiledFor(foughtWith, m).spells);
   const stats = accumulateStats(t.stats, log, p, fought);
-  const named = [...p.named];
-  for (const id of namedIn(log)) if (!named.includes(id)) named.push(id);
-  const profile: Profile = { ...p, named };
+  const profile = learnFromFight(p, b, log);
   if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
 
   const enc = encountersOf(t.district)[t.encounter];
@@ -435,7 +570,14 @@ export function finishEncounter(
     hp: perMember((m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
     charges: perMember((m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
-    offers: rollOffers(t.seed, t.encounter, enc.loot, MEMBER_IDS, keyOffer(p, t, enc.loot)),
+    offers: rollOffers(
+      t.seed,
+      t.encounter,
+      enc.loot,
+      MEMBER_IDS,
+      keyOffer(p, t, enc.loot),
+      ownedBy(p, t),
+    ),
     picksLeft: enc.picks,
     actions: [],
     stats,

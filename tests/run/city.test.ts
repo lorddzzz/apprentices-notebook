@@ -41,8 +41,14 @@ const withCanals = (p: Profile): Profile => ({
   city: { ...p.city, heard: ['seam', 'canals'], open: ['seam', 'canals'] },
 });
 
+/** The real city, but only the canals hear by the given conditions (the drawn districts hear nothing). */
 const fixture = (canals: Partial<DistrictDef>): Record<DistrictId, DistrictDef> => ({
-  ...DISTRICTS,
+  ...(Object.fromEntries(
+    Object.entries(DISTRICTS).map(([id, d]) => [
+      id,
+      d.gate.kind === 'drawing' ? { ...d, hear: [] } : d,
+    ]),
+  ) as Record<DistrictId, DistrictDef>),
   canals: { ...DISTRICTS.canals, ...canals },
 });
 
