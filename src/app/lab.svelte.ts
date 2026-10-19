@@ -87,6 +87,8 @@ export class LabStore {
     this.session = new BattleSession(init, 'lab', {
       // The intro (enemies declaring their intents) plays only for a demo (S18).
       intro: opts.demo === true,
+      // The Lab previews like a trip: only what the household has witnessed is described.
+      witnessed: this.game.profile.witnessed,
       onAction: (before, action) => this.record(before, action),
     });
     this.scenario = def;

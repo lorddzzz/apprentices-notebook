@@ -10,10 +10,12 @@ import {
   castableSpells,
   type Dir,
   findUnit,
+  type GameEvent,
   label,
   legalAims,
   legalMoves,
   type MemberUnit,
+  maskPreview,
   members,
   type SpellKey,
   sameAim,
@@ -23,6 +25,7 @@ import {
   step,
   type UnitId,
   unitAt,
+  witnessedIn,
 } from '$engine';
 import { type Outcome, outcomeOf, previewSummary } from './describe';
 
@@ -34,13 +37,31 @@ export type Footnotes = Partial<Record<LineId, string>>;
  * expensive engine calls (legal moves, previews) run here, on the tap, never in templates.
  */
 
+/** What the engine calls need besides the state: the footnotes written, and the lines witnessed. */
+export interface PreviewCtx {
+  footnotes?: Footnotes;
+  /** The lines the player has seen fire (D2). Null or left out: nothing is masked. */
+  witnessed?: ReadonlySet<LineId> | null;
+}
+
 export interface Preview extends Outcome {
   action: Action;
   /** `applyAction` on the current state, discarded unless confirmed. */
   result: ActionResult;
   /** Projectile line (cast) or the shoved unit's travel (shove). */
   path: Coord[];
+  /** Tiles the action hits (a Vat's whole 2×2). */
   targets: Coord[];
+  /** The events the preview may describe: unwitnessed lines are left out (P41). */
+  shown: GameEvent[];
+  /** Landing tiles of masked events: drawn blank, with no text (D2). */
+  blanks: Coord[];
+  /** Party members hurt by the action, masked or not (D3). */
+  hurt: UnitId[];
+  /** Something unwitnessed would happen: the resulting state must not be drawn from. */
+  masked: boolean;
+  /** "Stoker will be hurt", or null when the party is safe (D3, P42). */
+  warning: string | null;
   summary: string;
 }
 
@@ -158,31 +179,68 @@ function travelOf(before: BattleState, after: BattleState, id: UnitId): Coord[] 
   return path;
 }
 
-/** Applies the action to a copy and reads off what would happen. */
-export function previewOf(s: BattleState, action: Action, footnotes: Footnotes = {}): Preview {
-  const result = applyAction(s, action, footnotes);
+/** The 2×2 a Vat aimed at `at` covers (top-left anchor), clipped to the board. */
+function vatFootprint(s: BattleState, at: Coord): Coord[] {
+  return [at, { x: at.x + 1, y: at.y }, { x: at.x, y: at.y + 1 }, { x: at.x + 1, y: at.y + 1 }]
+    .filter((c) => c.x >= 0 && c.y >= 0 && c.x < s.width && c.y < s.height)
+    .map((c) => ({ ...c }));
+}
+
+/** "Stoker will be hurt", "Stoker and Draughtsman will be hurt". The amount and cause stay unsaid. */
+export function hurtWarning(s: BattleState, hurt: readonly UnitId[]): string | null {
+  const names = hurt.flatMap((id) => findUnit(s, id)?.name ?? []);
+  if (names.length === 0) return null;
+  return `${names.join(' and ')} will be hurt`;
+}
+
+/**
+ * Applies the action to a copy and reads off what would happen. The engine runs in full, but
+ * only the witnessed part is described (D2/P41); party harm always shows (D3/P42).
+ */
+export function previewOf(s: BattleState, action: Action, ctx: PreviewCtx = {}): Preview {
+  const result = applyAction(s, action, ctx.footnotes ?? {});
+  const party = members(s).map((m) => m.id);
+  const seen = ctx.witnessed ?? new Set(witnessedIn(result.events));
+  const { shown, blanks, hurt } = maskPreview(result.events, seen, party);
+  const masked = shown.length < result.events.length;
   let path: Coord[] = [];
   let targets: Coord[] = [];
   if (action.type === 'cast') {
     const p = aimPreview(s, action.unit, action.spell, action.aim);
     const caster = findUnit(s, action.unit);
+    const spell = caster?.kind === 'member' ? spellOf(caster, action.spell) : null;
     path = p.path.length && caster ? [{ ...caster.pos }, ...p.path] : [];
-    targets = p.targets;
+    targets =
+      spell?.source === 'vat' && action.aim.kind === 'tile'
+        ? vatFootprint(s, action.aim.at)
+        : p.targets;
   } else if (action.type === 'shove') {
     const m = findUnit(s, action.unit);
     const target = m ? unitAt(s, step(m.pos, action.dir)) : null;
     if (target) {
       targets = [{ ...target.pos }];
-      path = travelOf(s, result.state, target.id);
+      const pushed = shown.find((e) => e.type === 'push' && e.unit.id === target.id);
+      path = !masked
+        ? travelOf(s, result.state, target.id)
+        : pushed?.type === 'push' && pushed.path.length
+          ? [{ ...target.pos }, ...pushed.path.map((c) => ({ ...c }))]
+          : [];
     }
   }
+  const warning = hurtWarning(s, hurt);
+  const base = previewSummary(s, action, shown, masked);
   return {
     action,
     result,
     path,
     targets,
-    ...outcomeOf(result.events),
-    summary: previewSummary(s, action, result.events),
+    shown,
+    blanks,
+    hurt,
+    masked,
+    warning,
+    ...outcomeOf(shown),
+    summary: warning ? `${base}. ${warning}` : base,
   };
 }
 
@@ -192,14 +250,14 @@ function toConfirm(
   spell: SpellKey | null,
   at: Coord,
   action: Action,
-  footnotes: Footnotes,
+  ctx: PreviewCtx,
 ): InputMode {
   return {
     kind: 'confirm',
     unit,
     spell,
     at: { ...at },
-    preview: previewOf(s, action, footnotes),
+    preview: previewOf(s, action, ctx),
   };
 }
 
@@ -224,11 +282,10 @@ function tapAim(
   spell: SpellKey,
   at: Coord,
   aims: Aim[],
-  footnotes: Footnotes,
+  ctx: PreviewCtx,
 ): InputResult {
   const aim = aimAt(s, unit, spell, at);
-  if (aim)
-    return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }, footnotes));
+  if (aim) return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }, ctx));
   const caster = livingMember(s, unit);
   if (caster && sameCoord(caster.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
@@ -248,12 +305,12 @@ function tapShove(
   unit: UnitId,
   at: Coord,
   dirs: Dir[],
-  footnotes: Footnotes,
+  ctx: PreviewCtx,
 ): InputResult {
   const m = livingMember(s, unit);
   const dir = m ? dirs.find((d) => sameCoord(step(m.pos, d), at)) : undefined;
   if (m && dir) {
-    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }, footnotes));
+    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }, ctx));
   }
   if (m && sameCoord(m.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
@@ -265,7 +322,7 @@ export function onCell(
   s: BattleState,
   mode: InputMode,
   at: Coord,
-  footnotes: Footnotes = {},
+  ctx: PreviewCtx = {},
 ): InputResult {
   if (s.phase !== 'player') return stay(IDLE);
   switch (mode.kind) {
@@ -290,17 +347,17 @@ export function onCell(
       return stay(inspect(s, at, unit));
     }
     case 'aim':
-      return tapAim(s, mode.unit, mode.spell, at, mode.aims, footnotes);
+      return tapAim(s, mode.unit, mode.spell, at, mode.aims, ctx);
     case 'shove':
-      return tapShove(s, mode.unit, at, mode.dirs, footnotes);
+      return tapShove(s, mode.unit, at, mode.dirs, ctx);
     case 'confirm': {
       if (mode.spell !== null) {
         // Only the tapped tile confirms: tapping further along a Bolt's line re-reads it instead.
         if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-        return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell), footnotes);
+        return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell), ctx);
       }
       if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-      return tapShove(s, mode.unit, at, shoveDirs(s, mode.unit), footnotes);
+      return tapShove(s, mode.unit, at, shoveDirs(s, mode.unit), ctx);
     }
   }
 }
@@ -316,7 +373,7 @@ export function onSpell(
   s: BattleState,
   mode: InputMode,
   key: SpellKey,
-  footnotes: Footnotes = {},
+  ctx: PreviewCtx = {},
 ): InputResult {
   const unit = selectedOf(mode);
   if (!unit || s.phase !== 'player') return stay(mode);
@@ -335,9 +392,7 @@ export function onSpell(
   if (only) {
     const at =
       only.kind === 'tile' ? only.at : only.kind === 'self' ? m.pos : step(m.pos, only.dir);
-    return stay(
-      toConfirm(s, unit, key, at, { type: 'cast', unit, spell: key, aim: only }, footnotes),
-    );
+    return stay(toConfirm(s, unit, key, at, { type: 'cast', unit, spell: key, aim: only }, ctx));
   }
   return stay({ kind: 'aim', unit, spell: key, aims });
 }

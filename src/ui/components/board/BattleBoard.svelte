@@ -32,10 +32,49 @@
     /** Show ghosts of where the current will carry floats and units next round. */
     showDrift?: boolean;
     ontap: (at: Coord) => void;
+    /** Press and hold on a tile (J3: read out a jar or a mark). The tap that ends the hold is swallowed. */
+    onhold?: (at: Coord) => void;
   }
 
-  let { view, overlay = EMPTY_OVERLAY, fx = [], fxKey = 0, minimal = false, showDrift = false, ontap }: Props =
-    $props();
+  let {
+    view,
+    overlay = EMPTY_OVERLAY,
+    fx = [],
+    fxKey = 0,
+    minimal = false,
+    showDrift = false,
+    ontap,
+    onhold,
+  }: Props = $props();
+
+  const HOLD_MS = 450;
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
+  let held = false;
+
+  function startHold(at: Coord): void {
+    held = false;
+    cancelHold();
+    if (!onhold) return;
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      held = true;
+      onhold(at);
+    }, HOLD_MS);
+  }
+
+  function cancelHold(): void {
+    if (holdTimer !== null) clearTimeout(holdTimer);
+    holdTimer = null;
+  }
+
+  function tapped(at: Coord): void {
+    cancelHold();
+    if (held) {
+      held = false;
+      return;
+    }
+    ontap(at);
+  }
 
   const cells = $derived(
     Array.from({ length: view.width * view.height }, (_, i) => ({
@@ -132,7 +171,14 @@
       role="button"
       tabindex="0"
       aria-label={cellLabel(view, at)}
-      onclick={() => ontap(at)}
+      onclick={() => tapped(at)}
+      onpointerdown={() => startHold(at)}
+      onpointerup={cancelHold}
+      onpointerleave={cancelHold}
+      onpointercancel={cancelHold}
+      oncontextmenu={(e) => {
+        if (onhold) e.preventDefault();
+      }}
       onkeydown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();

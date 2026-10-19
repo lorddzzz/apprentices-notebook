@@ -56,6 +56,8 @@
   const confirmLabel = $derived(
     input.kind === 'confirm' ? actionLabel(battle, input.preview.action) : '',
   );
+  // D3, P42: the confirm button says so when the party would be hurt.
+  const hurtsParty = $derived(input.kind === 'confirm' && input.preview.hurt.length > 0);
 </script>
 
 <section class="battle">
@@ -71,6 +73,7 @@
       minimal={busy}
       {showDrift}
       ontap={(at) => session.tapCell(at)}
+      onhold={(at) => session.holdCell(at)}
     />
     {#if view.tiles.some((t) => t.water)}
       <button
@@ -114,6 +117,7 @@
     {right}
     armed={session.armed}
     {confirmLabel}
+    {hurtsParty}
     onlog={() => (logOpen = true)}
     oncancel={() => session.cancel()}
     onconfirm={() => session.confirm()}

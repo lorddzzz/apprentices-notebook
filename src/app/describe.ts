@@ -247,13 +247,15 @@ export function outcomeOf(events: readonly GameEvent[]): Outcome {
 }
 
 /**
- * One line for the caption before confirming: `Bolt right: rat C2 −2 dies`. The masked preview
- * (D2, U2) replaces this; for now it names damage, kills, shields, marks and pushes.
+ * One line for the caption before confirming: `Bolt right: rat C2 −2 dies`. It names damage,
+ * kills, shields, marks and pushes of the events given (the witnessed part, D2); `masked` says
+ * some events were left out.
  */
 export function previewSummary(
   before: BattleState,
   action: Action,
   events: readonly GameEvent[],
+  masked = false,
 ): string {
   const o = outcomeOf(events);
   const parts: string[] = [];
@@ -283,10 +285,14 @@ export function previewSummary(
       const aimed = events.find((e) => e.type === 'aimed');
       const at = aimed?.type === 'aimed' ? aimed.targets : [];
       const who = at.map((t) => (t.kind === 'unit' ? name(t.unit) : label(t.at)));
-      parts.push(who.length ? `aims at ${who.join(', ')}` : 'no effect');
+      if (who.length) parts.push(`aims at ${who.join(', ')}`);
+      // A masked preview never says "no effect": that would hint at what the blank holds (D2).
+      else if (!masked) parts.push('no effect');
     }
   }
-  return `${actionLabel(before, action)}: ${parts.join(', ')}`;
+  return parts.length
+    ? `${actionLabel(before, action)}: ${parts.join(', ')}`
+    : actionLabel(before, action);
 }
 
 // ── Captions ────────────────────────────────────────────
@@ -325,7 +331,7 @@ function aimHint(s: BattleState, mode: Extract<InputMode, { kind: 'aim' }>): str
     case 'touch':
       return `${name}: tap yourself or an adjacent tile.`;
     case 'vat':
-      return `${name}: tap yourself or an adjacent tile to fill a vat there.`;
+      return `${name}: tap a tile within 1 for the top-left corner of a 2×2.`;
   }
 }
 
@@ -359,7 +365,10 @@ export function hintFor(mode: InputMode, s: BattleState): Caption {
     case 'shove':
       return withNote('Shove: tap an adjacent unit to push it one tile.');
     case 'confirm':
-      return { text: `${mode.preview.summary}. Tap again or Confirm.`, tone: 'hint' };
+      return {
+        text: `${mode.preview.summary}. Tap again or Confirm.`,
+        tone: mode.preview.warning ? 'warn' : 'hint',
+      };
     case 'inspect': {
       const u = unitAt(s, mode.at);
       const tile = tileAt(s, mode.at);

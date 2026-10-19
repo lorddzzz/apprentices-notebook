@@ -216,6 +216,7 @@ export class GameStore {
       onEvents: (events) => this.announce(events),
       onAction: (_, action) => this.commit(recordBattleAction(this.save, action)),
       footnotes: footnoteTexts(this.save.profile),
+      witnessed: this.save.profile.witnessed,
       intro: trip.actions.length === 0,
     });
   }

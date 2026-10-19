@@ -47,6 +47,26 @@
     {:else if h.kind === 'focus'}
       {@const o = cellOrigin(h.at)}
       <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="none" stroke="var(--select)" stroke-width="7" />
+    {:else if h.kind === 'blank'}
+      <!-- An unwitnessed line lands here: the same dotted tile whatever it is, with no text (D2). -->
+      {@const o = cellOrigin(h.at)}
+      <rect
+        data-state="blank"
+        x={o.x + 12}
+        y={o.y + 12}
+        width="76"
+        height="76"
+        rx="12"
+        fill="none"
+        stroke="var(--ink)"
+        stroke-width="6"
+        stroke-linecap="round"
+        stroke-dasharray="0.1 13"
+      />
+    {:else if h.kind === 'hurt'}
+      <!-- A party member the previewed action would hurt (D3). -->
+      {@const c = cellCenter(h.at)}
+      <circle data-state="hurt" cx={c.x} cy={c.y - 6} r="44" fill="var(--danger)" fill-opacity="0.18" stroke="var(--danger)" stroke-width="7" />
     {:else if h.kind === 'shove'}
       {@const c = cellCenter(h.at)}
       <circle cx={c.x} cy={c.y} r="45" fill="none" stroke="var(--select)" stroke-width="6" stroke-dasharray="14 8" />

@@ -6,6 +6,7 @@ import {
   type Dir,
   driftPreview,
   findUnit,
+  type GameEvent,
   type Intent,
   intentPreview,
   isCloud,
@@ -28,7 +29,9 @@ export type Highlight =
   | { kind: 'path'; cells: Coord[] } // projectile / push path
   | { kind: 'shove'; at: Coord } // an adjacent unit that can be shoved
   | { kind: 'effect'; at: Coord; tone: Tone } // a tile the previewed action changes (ink, oil, fire…)
-  | { kind: 'focus'; at: Coord }; // the tile being inspected
+  | { kind: 'focus'; at: Coord } // the tile being inspected
+  | { kind: 'blank'; at: Coord } // where an unwitnessed line lands: a dotted outline, no text (D2)
+  | { kind: 'hurt'; at: Coord }; // a party member the preview hurts: a red ring (D3)
 
 export interface IntentDraw {
   from: Coord;
@@ -118,23 +121,33 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
     if (preview.path.length > 1) highlights.push({ kind: 'path', cells: preview.path });
     for (const at of preview.targets) highlights.push({ kind: 'target', at });
     const after = preview.result.state;
-    highlights.push(...tileEffects(s, after));
+    // A masked preview never draws from the resulting state: what changed there may be unwitnessed.
+    const blankKeys = new Set(preview.blanks.map((b) => `${b.x},${b.y}`));
+    highlights.push(
+      ...tileEffects(s, after).filter((h) => !('at' in h) || !blankKeys.has(`${h.at.x},${h.at.y}`)),
+    );
+    for (const at of preview.blanks) highlights.push({ kind: 'blank', at });
+    for (const id of preview.hurt) {
+      const m = findUnit(s, id);
+      if (m) highlights.push({ kind: 'hurt', at: { ...m.pos } });
+    }
+    if (preview.masked) ghosts.push(...shownGhosts(s, preview.shown));
     for (const u of after.units) {
       const before = findUnit(s, u.id);
-      const at = u.pos;
+      const at = preview.masked && before ? before.pos : u.pos;
       const hurt = preview.damage[u.id];
       if (preview.kills.includes(u.id)) badges.push({ at, kind: 'kill', text: '' });
       if (hurt !== undefined && hurt > 0) badges.push({ at, kind: 'damage', text: `−${hurt}` });
       const shield = preview.shields[u.id];
       if (shield) badges.push({ at, kind: 'shield', text: `+${shield}` });
-      if (before && u.hp > 0 && !sameCoord(before.pos, u.pos)) {
+      if (!preview.masked && before && u.hp > 0 && !sameCoord(before.pos, u.pos)) {
         ghosts.push({ unit: u.id, at: { ...u.pos }, kind: u.kind, def: u.def });
       }
     }
   }
 
   const focus = mode.kind === 'inspect' ? unitAt(s, mode.at) : null;
-  const intentState = preview?.result.state ?? s;
+  const intentState = preview && !preview.masked ? preview.result.state : s;
   const intents: IntentDraw[] = [];
   for (const u of intentState.units) {
     if (u.kind !== 'enemy' || u.hp <= 0 || u.intent?.kind !== 'attack') continue;
@@ -166,6 +179,20 @@ export function overlayFor(s: BattleState, mode: InputMode): Overlay {
   );
   const drift = driftGhosts(intentState);
   return { highlights, intents, marks, drift, badges, ghosts, selected: selectedOf(mode) };
+}
+
+/** Ghosts of units a witnessed push moves, for a preview that also holds unwitnessed events. */
+function shownGhosts(s: BattleState, shown: readonly GameEvent[]): Ghost[] {
+  const out: Ghost[] = [];
+  for (const e of shown) {
+    if (e.type !== 'push' || e.path.length === 0) continue;
+    const u = findUnit(s, e.unit.id);
+    const to = e.path[e.path.length - 1];
+    if (u && to && u.hp > 0 && !out.some((g) => g.unit === u.id)) {
+      out.push({ unit: u.id, at: { ...to }, kind: u.kind, def: u.def });
+    }
+  }
+  return out;
 }
 
 interface MarkSource {

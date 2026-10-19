@@ -41,6 +41,7 @@ export class ThresholdStore {
       'lab',
       {
         onEvents: () => this.settle(session),
+        witnessed: this.game.profile.witnessed,
       },
     );
     this.session = session;

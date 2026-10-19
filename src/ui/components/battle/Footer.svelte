@@ -8,6 +8,8 @@
     right: 'end' | 'confirm' | 'confirm-wait' | 'skip' | 'none';
     armed: boolean;
     confirmLabel: string;
+    /** The previewed action would hurt the party: say so beside the confirm button (D3). */
+    hurtsParty?: boolean;
     onlog: () => void;
     oncancel: () => void;
     onconfirm: () => void;
@@ -20,6 +22,7 @@
     right,
     armed,
     confirmLabel,
+    hurtsParty = false,
     onlog,
     oncancel,
     onconfirm,
@@ -38,8 +41,16 @@
   </div>
   <div class="right">
     {#if right === 'confirm' || right === 'confirm-wait'}
+      {#if right === 'confirm' && hurtsParty}
+        <span class="hurt" data-testid="hurt-warning">Your party will be hurt</span>
+      {/if}
       <Button
-        label={right === 'confirm' ? `Confirm ${confirmLabel}` : 'Pick a target'}
+        label={right === 'confirm'
+          ? hurtsParty
+            ? 'Confirm anyway'
+            : `Confirm ${confirmLabel}`
+          : 'Pick a target'}
+        variant={right === 'confirm' && hurtsParty ? 'danger' : 'primary'}
         disabled={right === 'confirm-wait'}
         onclick={onconfirm}
         testid="confirm"
@@ -68,8 +79,20 @@
   }
   .right {
     display: flex;
+    align-items: center;
+    gap: var(--space-2);
     justify-content: flex-end;
     min-width: 0;
+  }
+  .hurt {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 96px;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1.15;
+    color: var(--danger);
+    text-align: right;
   }
   .right :global(.btn) {
     max-width: 100%;
