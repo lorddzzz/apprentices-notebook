@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** U1, E8 running. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** U1, E8, U3 running. Weekly 81%: at ~85% ask the player before the next wave. Priority if budget runs short: U2, U5 (play-critical), then U6, U7, E9; M1, S1, T1, K1, R2 can wait for after the playtest. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -24,7 +24,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | U4a | haiku | S | merged | 0554e60 | ~2% | art data only in `src/ui/runeArt.ts` (imports `$data/next/types`: fix at W0b merge). Wiring into RuneGlyph/Gallery = U4b after W0c |
 | E7 | sonnet | L | merged | (this commit) | ~10% | 1757 tests; touched resolve.ts (marginEcho), types.ts (BattleState.inventions, Flow.repeated, Scheduled.solvent), battle.ts, run.ts (beginEncounter passes inventionLibrary), scenario.ts, jars.ts, schedule.ts |
 | U1 | sonnet | L | running | worktree | | started 05:44 |
-| U3 | sonnet | M | waiting | | | |
+| U3 | sonnet | M | running | worktree | | started 06:10 |
 | C1 | haiku | M | merged | (this commit) | ~3% | codex 84 entries, 8 variants (only `shove-wall-soft` has behaviour); touched types.ts (codex kinds), run.ts codexView |
 | E8 | sonnet | M | running | worktree | | started 05:57 |
 | E9 | sonnet | S | waiting | | | |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 06:09 | 55 | 4h32m | 81 | normal / weekly near guard | C1 merged; start U3 |
 | 2026-10-19 06:00 | 42 | 4h41m | 79 | normal (weekly watch) | R1 merged |
 | 2026-10-19 05:54 | 34 | 4h46m | 78 | normal (weekly rising ~0.3%/min) | E7 merged; start E8 only |
 | 2026-10-19 05:43 | 0 | 5h | 74 | normal (weekly watch: ~13% weekly per window) | reset; start E7, R1, U1 |
