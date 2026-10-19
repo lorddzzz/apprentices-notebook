@@ -3,7 +3,7 @@
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main session. Updated on every event and committed with every merge.
 
 **State:** building
-**Next:** E7, R1, U1 running (started 05:44 UTC). Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3; then (run layer), then W2: E5 marks, E6 jars+rounds, L1 lines. Weekly watch: ask the player before a new wave above ~85% weekly.
+**Next:** R1, U1, E8 running. Then C1 (fine-print text + codex + 8 variants; replace F1's `shove:wall` proof branch with the real variant), U3, E9, then U2, U5, U6, U7, M1, then W6. Weekly watch: ask the player before a new wave above ~85% weekly.
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -22,11 +22,11 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | E6 | sonnet | L | merged | (this commit) | ~6% | 1055 tests; touched movement.ts, turns/integration tests (spit line) |
 | L1 | sonnet | M | merged | (this commit) | ~5% | 1625 tests (the integrity file re-imports the scenario suites; a child vitest runs push/actions); 1 pending line (fork:noHeading); idiom hook = `withIdioms` in battle.ts `applyAction` |
 | U4a | haiku | S | merged | 0554e60 | ~2% | art data only in `src/ui/runeArt.ts` (imports `$data/next/types`: fix at W0b merge). Wiring into RuneGlyph/Gallery = U4b after W0c |
-| E7 | sonnet | L | running | worktree | | started 05:44 |
+| E7 | sonnet | L | merged | (this commit) | ~10% | 1757 tests; touched resolve.ts (marginEcho), types.ts (BattleState.inventions, Flow.repeated, Scheduled.solvent), battle.ts, run.ts (beginEncounter passes inventionLibrary), scenario.ts, jars.ts, schedule.ts |
 | U1 | sonnet | L | running | worktree | | started 05:44 |
 | U3 | sonnet | M | waiting | | | |
 | C1 | haiku | M | waiting | | | |
-| E8 | sonnet | M | waiting | | | |
+| E8 | sonnet | M | running | worktree | | started 05:57 |
 | E9 | sonnet | S | waiting | | | |
 | U2 | sonnet | M | waiting | | | |
 | F1 | sonnet | S | merged | (this commit) | ~3% | 1631 tests; `applyAction(state, action, footnotes = {})`; proof branch in push.ts `crush()` for `shove:wall` |
@@ -46,6 +46,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-18 21:51 | 11 | 2h49m | 49 | normal | baseline; plan agent started |
 | 2026-10-18 22:13 | 26 | 2h27m | 51 | normal | plan + W0 done (~15%); start W0b |
 | 2026-10-19 00:41 | 0 | 5h | 61 | normal (weekly watch) | 5h limit hit during W0b, reset; start W0c, E1, E2, E3 |
+| 2026-10-19 05:54 | 34 | 4h46m | 78 | normal (weekly rising ~0.3%/min) | E7 merged; start E8 only |
 | 2026-10-19 05:43 | 0 | 5h | 74 | normal (weekly watch: ~13% weekly per window) | reset; start E7, R1, U1 |
 | 2026-10-19 01:53 | 98 | 3h47m | 74 | hold | F1 merged; holding, timer to 05:41 UTC |
 | 2026-10-19 01:46 | 95 | 3h54m | 73 | wrap | L1 merged; start F1 (S) |
@@ -55,6 +56,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Opus main sessi
 | 2026-10-19 01:01 | 59 | 4h39m | 68 | narrow (5h) / weekly watch | E1, E2, E3 done (~15% 5h each); W0c running; no new spawns until it lands |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- E7: the invention library lives in `BattleState.inventions` (deterministic replays); Conduct reaches units on or beside the brass the target touches, none → `conduct:noTarget`; Repeat and Margin wait on the tile, not the unit; a Repeat under a Margin isn't echoed again; Bind never overwrites a mark that already holds something; Lift sends the mark one tile along the heading (to the caster for Swap); headlines append the solvent rule ("With <Solvent>, …"); parts run one nesting level deeper, a third level fizzles. Accepted.
 - F1: footnote offers/write/texts take an optional `variants` arg (tests pass their own); errors `notReached`/`unknownVariant`/`noSolvent`; the district solvent held in greater number is spent. Proposal to decide in C1: `ctx.footnotes` should carry variant ids, not texts (text comparison is brittle).
 - L1: masking lives in `lines.ts` (no preview.ts); silent masked events leave no blank; `wax:cloud` is in a NOT_YET_STAMPED allowlist; Lantern Walk has only a negative test (jars don't drift yet), Redraft a synthetic log; Debt Collection reads the acting apprentice from the first `cast` in the log. Accepted. Follow-ups: widen `nameOnce` to `'idiom'`; let chemHarness record lines without the spy; a `released` event carrying the releaser's origin.
 - E5: release heading: hook heading or push dir, then from the hit's `from` tile to the bearer, then `bound.heading`; a killing hit doesn't release a `hit` mark (only `dies`, on the death tile); release depth capped at 3 nested, the 4th fizzles; a spread skips units that already hold a mark; `entered` spreads first, then releases `enters`; Lift doesn't re-spread, adds the new bearer to the lineage, and onto a marked unit is a no-op; Spark's own 1 damage releases a hit-bound mark before Detonation. `expireMark` exists for lifetimes. Accepted.

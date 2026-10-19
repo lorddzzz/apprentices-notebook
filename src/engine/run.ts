@@ -347,6 +347,7 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
     deriveSeed(t.seed, t.encounter),
     variantFor(t, t.encounter),
     t.district,
+    inventionLibrary(p),
   );
   let state = first.state;
   const events = [...first.events];

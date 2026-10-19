@@ -33,7 +33,10 @@ function run(ctx: Ctx, e: Scheduled): void {
   if ((e.kind === 'repeat' || e.kind === 'margin') && typeof e.step === 'string') {
     emit(ctx, { type: 'repeated', action: e.step });
   }
-  runDetached(ctx, stepOf(e), target, e.owner, e.origin, e.heading);
+  runDetached(ctx, stepOf(e), target, e.owner, e.origin, e.heading, {
+    repeated: e.kind === 'repeat' || e.kind === 'margin',
+    solvent: e.solvent ?? null,
+  });
 }
 
 /**

@@ -39,6 +39,7 @@ import type {
   BattleSpec,
   BattleState,
   EnemyUnit,
+  InventionLibrary,
   MemberUnit,
   PartyInit,
   Unit,
@@ -170,6 +171,7 @@ export function createBattle(spec: BattleSpec): ActionResult {
     lineages: {},
     nextLineage: 1,
     scheduled: [],
+    inventions: spec.inventions ?? {},
     landed: [],
     met: [],
     named: [],
@@ -197,10 +199,18 @@ export function createEncounterBattle(
   seed: number,
   variant = 0,
   district: DistrictId = 'seam',
+  inventions: InventionLibrary = {},
 ): ActionResult {
   const layout = enc.variants[variant]?.layout ?? enc.layout;
   const title = enc.variants[variant]?.name ?? enc.title;
-  return createBattle({ title, board: layout, seed, party, edge: DISTRICTS[district].edge });
+  return createBattle({
+    title,
+    board: layout,
+    seed,
+    party,
+    edge: DISTRICTS[district].edge,
+    inventions,
+  });
 }
 
 // ── Actions ─────────────────────────────────────────────

@@ -293,6 +293,8 @@ export interface Flow {
   solvent: SolventId | null; // inside a flavoured invention
   habit: HabitId | null;
   depth: number; // invention nesting guard (§6.4 limit 1)
+  /** Running as a repeat coming due: it may not schedule another (§6.4 limit 5). */
+  repeated?: boolean;
   auras: readonly AuraRef[]; // auras touching the current step
 }
 export const targetKey = (t: Target): string =>
@@ -306,6 +308,8 @@ export interface Scheduled {
   target: Target;
   heading: Dir | null;
   origin: Origin;
+  /** The flavour the scheduled run keeps (a flavoured Repeat repeats flavoured). */
+  solvent?: SolventId | null;
   kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch';
 }
 
@@ -329,6 +333,8 @@ export interface BattleState {
   lineages: Record<number, { reached: UnitId[] }>;
   nextLineage: number;
   scheduled: Scheduled[];
+  /** The household's inventions, so a Conduct, Bind or Repeat can be run from its id (E7). */
+  inventions: InventionLibrary;
   /** This player phase's casts and every target they touched (Unison, P26). */
   landed: { caster: UnitId; targets: string[] }[];
   /** Things met this battle, for `Profile.met` (the Bench palette, P37). */
@@ -369,6 +375,7 @@ export interface BattleSpec {
   intents?: Readonly<Record<string, Dir>>; // by label; if given, round-1 AI telegraph is skipped, unlisted enemies idle
   lab?: boolean;
   objective?: Goal;
+  inventions?: InventionLibrary; // the household's inventions (default none)
 }
 
 // ── Run layer (plan §2.8; R1 rebuilds it) ───────────────

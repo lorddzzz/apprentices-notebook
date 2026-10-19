@@ -2,6 +2,7 @@ import { isInvention, RUNES, type RuneRef, TUNING } from '$data';
 import { type Ctx, emit, fizzled, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
+import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { sameStateNet } from './networks';
 import { findUnit, giftedIn, travel, unitAt } from './queries';
@@ -148,6 +149,7 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           if (u && acted.has(u.id)) continue; // pushed onto this tile in this very step
         }
         handler?.(ctx, t, here, st);
+        if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here); // Margin aura (E7)
       }
       span();
       runStep(ctx, st.next, live, flow);

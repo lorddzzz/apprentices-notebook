@@ -1,3 +1,4 @@
+import type { SolventId } from '$data';
 import { type Ctx, emit, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
 import type { Hook } from './hooks';
@@ -13,7 +14,8 @@ import { targetKey } from './types';
 
 /**
  * Runs `step` for `caster` on a target with a flow of its own: a jar opening, a repeat coming due.
- * It has its own event cap; the outer cast's scope is restored afterwards.
+ * It has its own event cap; the outer cast's scope is restored afterwards. A repeat coming due
+ * passes `repeated` (it can't schedule again, design §6.4 limit 5) and its flavour.
  */
 export function runDetached(
   ctx: Ctx,
@@ -22,6 +24,7 @@ export function runDetached(
   caster: UnitId,
   origin: Origin,
   heading: Dir | null,
+  extra: { repeated?: boolean; solvent?: SolventId | null } = {},
 ): void {
   const unit = findUnit(ctx.s, caster);
   const flow: Flow = {
@@ -31,10 +34,11 @@ export function runDetached(
     headings: new Map([[targetKey(target), heading]]),
     lay: false,
     gifted: false,
-    solvent: null,
+    solvent: extra.solvent ?? null,
     habit: unit?.kind === 'member' ? unit.lean.habit : null,
     depth: 0,
     auras: [],
+    ...(extra.repeated ? { repeated: true } : {}),
   };
   const outer = ctx.cast;
   ctx.cast = { events: 0, capped: false };

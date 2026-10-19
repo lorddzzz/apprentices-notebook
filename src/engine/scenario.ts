@@ -3,7 +3,15 @@ import { applyAction, createBattle } from './battle';
 import { describeLog, type GameEvent } from './events';
 import { compileLattice } from './lattice';
 import { parseLattice } from './notation';
-import type { ActionResult, BattleSpec, BattleState, Lattice, PartyInit, Spell } from './types';
+import type {
+  ActionResult,
+  BattleSpec,
+  BattleState,
+  InventionLibrary,
+  Lattice,
+  PartyInit,
+  Spell,
+} from './types';
 
 /**
  * Lab and scenario battles: a board plus per-member lattices (ASCII), compiled with each member's
@@ -17,20 +25,27 @@ export type ScenarioSpec =
 export interface ScenarioOptions {
   lab?: boolean; // charges are not spent
   seed?: number;
+  inventions?: InventionLibrary; // the household's inventions (compiled in, and run from the battle)
   lattices?: Partial<Record<MemberId, Lattice>>; // fallback for members the scenario leaves out
 }
 
-export function spellsFor(member: MemberId, lattice: Lattice | string): Spell[] {
+export function spellsFor(
+  member: MemberId,
+  lattice: Lattice | string,
+  inventions: InventionLibrary = {},
+): Spell[] {
   const l = typeof lattice === 'string' ? parseLattice(lattice) : lattice;
-  return compileLattice(l, {}, {}, MEMBERS[member].lean).spells;
+  return compileLattice(l, {}, inventions, MEMBERS[member].lean).spells;
 }
 
 /** The BattleSpec a scenario stands for (use `createBattle` on it for the creation events). */
 export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): BattleSpec {
   const party: Partial<Record<MemberId, PartyInit>> = { ...('party' in def ? def.party : {}) };
+  const inventions = opts.inventions ?? ('inventions' in def ? def.inventions : undefined);
   for (const m of MEMBER_IDS) {
     const lattice = def.lattices?.[m] ?? opts.lattices?.[m];
-    if (lattice !== undefined) party[m] = { ...party[m], spells: spellsFor(m, lattice) };
+    if (lattice !== undefined)
+      party[m] = { ...party[m], spells: spellsFor(m, lattice, inventions) };
   }
   const spec: BattleSpec = {
     title: def.title ?? 'Lab',
@@ -39,6 +54,7 @@ export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): Bat
     party,
     lab: opts.lab ?? ('lab' in def ? def.lab : false),
   };
+  if (inventions) spec.inventions = inventions;
   if (def.hp) spec.hp = def.hp;
   if (def.intents) spec.intents = def.intents;
   if ('edge' in def && def.edge) spec.edge = def.edge;

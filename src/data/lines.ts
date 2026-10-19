@@ -327,6 +327,49 @@ export const LINES: readonly LineDef[] = [
     district: 'inkQuarter',
     text: 'A wax mark never spreads, even in a cloud.',
   },
+  // methods (E7)
+  {
+    id: 'conduct:network',
+    subject: 'conduct',
+    meets: 'network',
+    district: 'seam',
+    text: 'Conduct reaches every unit standing on or beside the connected brass the target touches, once each; a Coil reaches one tile further.',
+  },
+  {
+    id: 'conduct:noTarget',
+    subject: 'conduct',
+    meets: 'noTarget',
+    district: 'seam',
+    text: 'Conduct needs brass under or beside its target; with none to travel along it does nothing.',
+  },
+  {
+    id: 'repeat:empty',
+    subject: 'repeat',
+    meets: 'empty',
+    district: 'canals',
+    text: 'A repeat waits on its tile, not on the unit: if the target has gone, it acts on whoever stands there next turn.',
+  },
+  {
+    id: 'margin:empty',
+    subject: 'margin',
+    meets: 'empty',
+    district: 'canals',
+    text: "A margin's echo waits on the tile, not on the unit: if the target has moved on, it acts on whoever stands there next turn.",
+  },
+  {
+    id: 'bind:empty',
+    subject: 'bind',
+    meets: 'empty',
+    district: 'inkQuarter',
+    text: 'Bind on a tile with no one standing there leaves only a blot; nothing is bound.',
+  },
+  {
+    id: 'lift:noTarget',
+    subject: 'lift',
+    meets: 'noTarget',
+    district: 'inkQuarter',
+    text: 'Lift needs a mark to carry and a free unit next to the target along its heading; without both it does nothing.',
+  },
   // pending (L1): fired by the engine, text to be written by C1
   {
     id: 'fork:noHeading',
