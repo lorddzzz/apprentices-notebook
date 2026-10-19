@@ -3,6 +3,7 @@ import {
   type BindEvent,
   CODEX,
   type CodexEntryDef,
+  type CompoundId,
   DISTRICT_IDS,
   DISTRICTS,
   type DistrictId,
@@ -11,6 +12,8 @@ import {
   encountersOf,
   type InventionDef,
   isInvention,
+  LINES,
+  type LineDef,
   type LineId,
   LOOT_TABLES,
   type LootEntry,
@@ -303,29 +306,48 @@ export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIss
   return out;
 }
 
-export function codexView(p: Profile): { entry: CodexEntryDef; known: boolean }[] {
-  return CODEX.map((entry) => {
-    let known: boolean;
-    switch (entry.kind) {
-      case 'rune':
-        known = p.known.includes(entry.ref as RuneId);
-        break;
-      case 'method':
-        known = p.methods.some((m) => m === entry.ref);
-        break;
-      case 'idiom':
-        known = p.named.includes(`idiom:${entry.ref}`);
-        break;
-      case 'compound':
-      case 'burst':
-        known = p.named.includes(entry.id);
-        break;
-      case 'solvent':
-        known = p.solvents[entry.ref as SolventId] > 0;
-        break;
-    }
-    return { entry, known };
-  });
+/** One codex page. A rune page also carries its fine print: the lines witnessed, and how many exist. */
+export interface CodexRow {
+  entry: CodexEntryDef;
+  known: boolean;
+  fine?: { seen: LineDef[]; total: number };
+}
+
+export function codexView(p: Profile): CodexRow[] {
+  return CODEX.map((entry) => ({ entry, known: isKnown(p, entry), ...fineOf(p, entry) }));
+}
+
+function isKnown(p: Profile, entry: CodexEntryDef): boolean {
+  if (entry.kind === 'rune') return p.known.includes(entry.ref as RuneId);
+  if (entry.kind === 'method') return p.methods.some((m) => m === entry.ref);
+  if (entry.kind === 'idiom') return p.named.includes(`idiom:${entry.ref}`);
+  // "Known" is having some in hand; the profile does not track solvents ever found.
+  if (entry.kind === 'solvent') return p.solvents[entry.ref as SolventId] > 0;
+  return p.named.includes(entry.id); // compound, burst (D7)
+}
+
+/** A rune's fine print. Unwitnessed lines are never listed (D1: no hints), only counted. */
+function fineOf(p: Profile, entry: CodexEntryDef): Pick<CodexRow, 'fine'> {
+  if (entry.kind !== 'rune') return {};
+  const own = LINES.filter((l) => l.subject === entry.ref);
+  const seen = isKnown(p, entry) ? own.filter((l) => p.witnessed.includes(l.id)) : [];
+  return { fine: { seen, total: own.length } };
+}
+
+/** Design §4.2: rows and columns Ink, Oil, Steam, Brass; the upper triangle holds the ten compounds. */
+const COMPOUND_GRID: readonly (readonly (CompoundId | null)[])[] = [
+  ['deepMark', 'stain', 'brandCloud', 'shackle'],
+  [null, 'pool', 'greaseFog', 'skidPlate'],
+  [null, null, 'bank', 'kettle'],
+  [null, null, null, 'wall'],
+];
+
+/** The compound table as a 4×4 grid; a cell is null below the diagonal, else its page (known once named). */
+export function compoundTable(p: Profile): (CodexRow | null)[][] {
+  const rows = codexView(p);
+  return COMPOUND_GRID.map((line) =>
+    line.map((c) => (c ? (rows.find((r) => r.entry.id === `compound:${c}`) ?? null) : null)),
+  );
 }
 
 // ── Trip ────────────────────────────────────────────────

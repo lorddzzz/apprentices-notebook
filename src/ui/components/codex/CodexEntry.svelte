@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { type CodexEntryDef, type MethodId, RUNES, type RuneId } from '$data';
+  import { type CodexEntryDef, type LineDef, type MethodId, RUNES, type RuneId } from '$data';
   import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   interface Props {
     entry: CodexEntryDef;
     known: boolean;
+    /** A rune page's fine print: the witnessed lines and how many exist (D1). */
+    fine?: { seen: LineDef[]; total: number };
   }
 
-  let { entry, known }: Props = $props();
+  let { entry, known, fine }: Props = $props();
 
   const rune = $derived(entry.kind === 'rune' ? (entry.ref as RuneId) : null);
   const method = $derived(entry.kind === 'method' ? (entry.ref as MethodId) : null);
@@ -56,6 +58,12 @@
     {#if known}
       <h3>{entry.title}</h3>
       <p class="rule">{entry.text}</p>
+      {#if fine && fine.total > 0}
+        <p class="fine" data-testid="fine-count">fine print {fine.seen.length} / {fine.total}</p>
+        {#each fine.seen as line (line.id)}
+          <p class="line" data-testid="fine-line">{line.text}</p>
+        {/each}
+      {/if}
       {#if entry.ownerNote}<p class="note">{entry.ownerNote}</p>{/if}
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>
@@ -104,6 +112,21 @@
   .rule {
     margin: 2px 0 0;
     font-size: 14px;
+    line-height: 1.3;
+    color: var(--ink-soft);
+  }
+  .fine {
+    margin: 4px 0 0;
+    font: 700 11px var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .line {
+    margin: 2px 0 0;
+    padding-left: var(--space-2);
+    border-left: 2px solid var(--line);
+    font-size: 13px;
     line-height: 1.3;
     color: var(--ink-soft);
   }
