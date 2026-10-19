@@ -113,8 +113,7 @@ function probeDef(inside: GlyphInside): GlyphDef {
 /**
  * The inside's flow when it stands alone, in local cells: the compiler's walk with each path
  * cell at its local coord (the probe socket faces right, so local directions read straight).
- * Aura touches follow the outer board's rule: Echo and Thrift on the source, Amplify on the
- * source and material cells.
+ * Aura touches follow the outer board's rules for sources and path cells.
  */
 export function insideFlow(inside: GlyphInside): CompiledLattice {
   const def = probeDef(inside);

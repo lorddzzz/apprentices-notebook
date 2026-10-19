@@ -36,7 +36,7 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 | M1 | sonnet | M | running | | | |
 | S1 | inherited (lessons), 6.1 Sol low (Lab) | S | lessons merged; Lab authoring running | codex/rune-s1 @ 7dbe9e8 | | ten fixed-log lessons, Lantern Walk regression; merged gate 2,666 tests |
 | T1 | inherited | M | merged | codex/rune-t1 @ 09d6617 | | 140 fuzz cases, actual first evening, room/full-trip calibration; merged gate 2,811 tests |
-| K1 | 6 Luna medium | S | audited; final cleanup check pending | codex/rune-k1 | | no obsolete files; parent removes stale revision comment and pins LF for Windows checks |
+| K1 | 6 Luna medium | S | done | audit + parent cleanup | | no obsolete files; stale removed-rune comment fixed, LF pinned; full gate green |
 | R2 | 6 Luna medium | S | running | codex/rune-r2 | | no enemy buffs; teach oil/wall/plate and water opportunities |
 | W7 | opus (me) + sonnet reviewer | M | done | (this commit) | ~6% | playthrough at 375×812; Sonnet review (no blockers; 7.5k-board fuzz in /tmp, 0 exceptions); fixed duplicate invention names and a downed caster's delayed actions |
 
