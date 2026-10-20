@@ -40,11 +40,10 @@ A battle's edge is `'wall'` unless the spec says `edge: 'drop'` (P3).
 Lattice cell: `.` empty socket, `x` hole, a rune token, or an invention `inv:name`. Arrow runes (sources and Bend) carry an arrow suffix `>` right, `<` left, `^` up, `v` down; every other rune has none.
 Tokens (31 runes, design §5): sources `Bolt> Splash> Touch> Vat>`; actions `Strike Shove Guard Sentence Levy Hold Swap Draw Erase`; kinds `Ink Oil Steam Brass Spark`; shapes `Fork Bendv Seep Lay Toll`; triggers `Tally Brink Unison`; seals `Jar Fuse`; auras `Afterglow Steep Coil`. E.g. `Bolt> Oil Spark . .`. A Glyph is `G:id>` plus `[x,y:Rune]` arguments.
 
-When you add a token, update `src/engine/notation.ts` (header comment), `tests/scenarios/harness.ts` and this legend.
+When you add a token, update `src/engine/notation.ts` (header comment), `tests/scenarios/harness.ts` and this legend. During an `implement` task, change only owned files; report any required updates outside that ownership to the orchestrator.
 
 ## Rules of thumb
 
 - One test per rule, plus a few whole-chain tests (the fun combos). Name tests after the combo: `the-wall`, `oil-then-spark`.
 - A combo found in the Lab can become a test: the Lab uses the same board format and `#/lab?scenario=<name>` deep link.
 - Expected logs are plain English so a failing diff is readable by the player too.
-- Never use `Math.random()`; always the seeded RNG.
