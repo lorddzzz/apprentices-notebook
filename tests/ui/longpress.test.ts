@@ -81,3 +81,17 @@ test('cleanup removes the listeners', () => {
   vi.advanceTimersByTime(600);
   expect(cb).not.toHaveBeenCalled();
 });
+
+test('moving across the slop consumes the following click', () => {
+  const el = new EventTarget();
+  const cb = vi.fn();
+  bindLongpress(el, cb);
+  el.dispatchEvent(pointer('pointerdown'));
+  el.dispatchEvent(pointer('pointermove', 10, 0));
+  el.dispatchEvent(pointer('pointerup', 10, 0));
+  vi.advanceTimersByTime(500);
+  const click = new Event('click', { cancelable: true });
+  el.dispatchEvent(click);
+  expect(click.defaultPrevented).toBe(true);
+  expect(cb).not.toHaveBeenCalled();
+});

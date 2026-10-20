@@ -13,7 +13,7 @@ Plan: [growing-pages-plan.md](growing-pages-plan.md). Updated on every integrati
 | E1 | Strong / gpt-6.1-sol / high | L | partial; held | codex/growing-engine / 2e777b7 | | Compiler/cluster green; migration/cast/clone pending |
 | N1 | Medium / gpt-6.1-sol / medium | M | integrated checkpoint; work-budget review pending | source 6baf398 + root inherited-key fix | | Main gate 2990 tests |
 | E2 | Medium / gpt-6.1-sol / medium | M | green branch; held | codex/growing-notation / 198958c | | 2993 tests; do not expose old revision UI before U2 |
-| V1 | Medium / gpt-6.1-sol / medium | L | partial; held | codex/growing-viewport / c08cb74 | | 2959 tests; phone preview still required |
+| V1 | Medium / gpt-6.1-sol / medium | L | merged | source codex/growing-viewport / 89ead19 | | 3013 tests; root375×812 browser checks pass |
 | A1/U1/U2/R1/Q1/F1 | Per plan | L | pending | | | Dependencies per plan |
 
 ## Usage log
@@ -65,3 +65,5 @@ V1 review caught pending gesture surviving sessionKey changes; agent asked to fi
 
 ## Resume 2026-10-20 21:49 UTC
 Usage reset confirmed: five-hour0%, weekly14%, next reset1792550960. Existing engine/viewport/notation agents resumed on preserved worktrees; main clean at3bcc67b. One-time continuation fired successfully. Previous-window burn rate discarded.
+
+V1 finalhandoff89ead19 reviewed. Proposals:4px minimum Fit markers with4px CSS inset;1pixel visualbucket dedup; exact markerhit navigation avoids subpixel coordinate error. No placements omitted from state/edit mode. Root phone verification and screenshots in growing-pages-verification.md. N1 combinedscenario-budget review assigned beforecompletion; E1 migration/cast/clone completion stillrunning.

@@ -133,6 +133,8 @@ Nothing else. No backend, no analytics, no accounts.
 
 | 2026-10-20 | **Growing pages W0/N1 (build in progress):** explicit growing shapes use signed stable coordinates and disposable sparse framing; fixed ASCII keeps its holes. Separate lattice labels/keys leave battle notation unchanged. Growing text uses `@lattice 1 growing` with one signed coordinate/token per occupied cell. External import policy is 8 MiB UTF-8, depth 64, collection 32,768, aggregate fields/slots and tokens 100,000, work 1,000,000; measured desktop proxies and frozen v7 baselines live in `tests/fixtures/growing-pages/` | No bounds-area allocation or coordinate rebasing; import safeguards remain separate from ink. Save v8 migration and growing editors are still pending, tracked in the growing-pages status file |
 
+| 2026-10-20 | **Growing viewport V1:** session-keyed in-memory anchor/offset/pitch transforms, bounded edit windows and sparse Fit miniatures. One surface owns tap/hold/pan/capture/cancellation; overview navigates without edits. Subpixel markers retain exact cell identity through hit testing; no camera state is saved or added to undo | Keeps editing targets60px, preserves work position across edits/erasure, and avoids bounds-sized DOM/SVG surfaces. Game editor integration remains pending |
+
 ## 8. Repo & tooling
 
 **Versions (pinned by caret, checked 2026-10-12):** svelte 5.57, vite 8.3, @sveltejs/vite-plugin-svelte 7.3, typescript 6 (see log), svelte-check 4.7, vitest 5, @biomejs/biome 2.5, vite-plugin-pwa 2.0, @vite-pwa/assets-generator 2.0, workbox-window 7.4.

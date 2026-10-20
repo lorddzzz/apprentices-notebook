@@ -46,7 +46,10 @@ export function bindLongpress(
   const onMove = (e: Event): void => {
     if (timer === null) return;
     const p = e as unknown as PointerLike;
-    if (Math.hypot(p.clientX - startX, p.clientY - startY) > slop) clear();
+    if (Math.hypot(p.clientX - startX, p.clientY - startY) >= slop) {
+      clear();
+      swallowClick = true;
+    }
   };
   const onClick = (e: Event): void => {
     if (!swallowClick) return;
@@ -61,6 +64,7 @@ export function bindLongpress(
   el.addEventListener('pointerup', clear);
   el.addEventListener('pointercancel', clear);
   el.addEventListener('pointerleave', clear);
+  el.addEventListener('lostpointercapture', clear);
   el.addEventListener('click', onClick, true);
   el.addEventListener('contextmenu', onContext);
   return () => {
@@ -70,6 +74,7 @@ export function bindLongpress(
     el.removeEventListener('pointerup', clear);
     el.removeEventListener('pointercancel', clear);
     el.removeEventListener('pointerleave', clear);
+    el.removeEventListener('lostpointercapture', clear);
     el.removeEventListener('click', onClick, true);
     el.removeEventListener('contextmenu', onContext);
   };

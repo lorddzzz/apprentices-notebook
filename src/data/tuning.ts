@@ -5,6 +5,8 @@ export const PAPER = {
   margin: 1,
   emptyRadius: 2,
   editPitch: 60,
+  fitMarkerSize: 4,
+  fitInset: 4,
   minTarget: 44,
   dragThreshold: 10,
   holdDelay: 450,
