@@ -1,5 +1,16 @@
 import type { Tuning } from './types';
 
+/** Growing-paper layout proposals, independent of gameplay ink and Glyph size rules. */
+export const PAPER = {
+  margin: 1,
+  emptyRadius: 2,
+  editPitch: 60,
+  minTarget: 44,
+  dragThreshold: 10,
+  holdDelay: 450,
+  overscan: 1,
+} as const;
+
 export const TUNING: Tuning = {
   grid: { width: 6, height: 8 },
   inkCost: { source: 2, action: 2, kind: 1, shape: 1, trigger: 1, seal: 2, aura: 3 },

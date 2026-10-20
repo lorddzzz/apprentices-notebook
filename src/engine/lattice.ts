@@ -14,6 +14,7 @@ import {
   byReadingOrder,
   type Coord,
   type Dir,
+  isLatticeCoord,
   key,
   neighbors4,
   opposite,
@@ -92,6 +93,8 @@ export function stepsOf(first: Step | null): Step[] {
 // ── Lattice access ──────────────────────────────────────
 
 export function isSocket(shape: LatticeShape, at: Coord): boolean {
+  if (!isLatticeCoord(at)) return false;
+  if (shape.kind === 'growing') return true;
   if (at.x < 0 || at.y < 0 || at.x >= shape.width || at.y >= shape.height) return false;
   return !shape.holes.some((h) => sameCoord(h, at));
 }

@@ -58,6 +58,42 @@ export function parseKey(k: string): Coord {
   return { x, y };
 }
 
+/** Arithmetic headroom for translated/rotated local frames and sparse bounds; not an ink budget. */
+export const MAX_LATTICE_COORD = Math.floor(Number.MAX_SAFE_INTEGER / 4);
+
+export function isLatticeCoord(value: unknown): value is Coord {
+  if (typeof value !== 'object' || value === null) return false;
+  const c = value as Partial<Coord>;
+  return (
+    Number.isSafeInteger(c.x) &&
+    Number.isSafeInteger(c.y) &&
+    Math.abs(c.x as number) <= MAX_LATTICE_COORD &&
+    Math.abs(c.y as number) <= MAX_LATTICE_COORD
+  );
+}
+
+/** Canonical signed decimal keys only; rejects whitespace, exponent notation and negative zero. */
+export function parseLatticeKey(value: string): Coord {
+  if (!/^(?:0|-?[1-9]\d*),(?:0|-?[1-9]\d*)$/.test(value)) {
+    throw new Error(`Bad lattice coordinate key: ${value}`);
+  }
+  const [x, y] = value.split(',').map(Number);
+  const at = { x, y };
+  if (!isLatticeCoord(at)) throw new Error(`Bad lattice coordinate key: ${value}`);
+  return at;
+}
+
+/** Page labels preserve A1..Z1, extend to AA1, and expose signed coordinates explicitly. */
+export function latticeLabel(at: Coord): string {
+  if (!isLatticeCoord(at)) throw new Error('Invalid lattice coordinate');
+  if (at.x < 0 || at.y < 0) return `(${at.x},${at.y})`;
+  let column = '';
+  for (let n = at.x + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+    column = String.fromCharCode(65 + ((n - 1) % 26)) + column;
+  }
+  return `${column}${at.y + 1}`;
+}
+
 /** Reading order: rows top to bottom, then columns left to right. */
 export function byReadingOrder(a: Coord, b: Coord): number {
   return a.y - b.y || a.x - b.x;

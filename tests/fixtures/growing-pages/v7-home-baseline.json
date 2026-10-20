@@ -1,0 +1,551 @@
+{
+  "decoded": {
+    "profile": {
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
+      "methods": [],
+      "inventions": [],
+      "solvents": {
+        "gallnut": 0,
+        "cinder": 0,
+        "pitch": 0,
+        "wick": 0,
+        "wax": 0,
+        "sand": 0,
+        "bathSalt": 0,
+        "fogJar": 0,
+        "mortar": 0,
+        "chalk": 0,
+        "rivet": 0,
+        "filings": 0,
+        "quicksilver": 0,
+        "graphite": 0
+      },
+      "inkCapacity": {
+        "draughtsman": 100,
+        "stoker": 100
+      },
+      "lattices": {
+        "draughtsman": [
+          {
+            "at": {
+              "x": 0,
+              "y": 1
+            },
+            "glyph": "g1",
+            "dir": "right",
+            "args": {
+              "1,0": {
+                "rune": "oil"
+              }
+            }
+          },
+          {
+            "at": {
+              "x": 4,
+              "y": 0
+            },
+            "rune": "bolt",
+            "dir": "down"
+          },
+          {
+            "at": {
+              "x": 4,
+              "y": 1
+            },
+            "rune": "ink"
+          }
+        ],
+        "stoker": [
+          {
+            "at": {
+              "x": 1,
+              "y": 0
+            },
+            "rune": "bolt",
+            "dir": "down"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "oil"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 2
+            },
+            "rune": "spark"
+          }
+        ]
+      },
+      "witnessed": [],
+      "named": [],
+      "met": [],
+      "foesMet": [],
+      "footnotes": {},
+      "vellum": 0,
+      "glyphs": [
+        {
+          "id": "g1",
+          "name": "Kindle",
+          "kind": "spell",
+          "cells": [
+            {
+              "at": {
+                "x": 0,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "ink"
+            },
+            {
+              "at": {
+                "x": 2,
+                "y": 0
+              },
+              "rune": "strike"
+            }
+          ],
+          "entry": {
+            "x": 0,
+            "y": 0
+          },
+          "exits": [
+            {
+              "from": {
+                "x": 2,
+                "y": 0
+              },
+              "dir": "right"
+            }
+          ],
+          "idiom": null,
+          "version": 2,
+          "params": ["1,0"],
+          "extraExit": "up"
+        }
+      ],
+      "glyphArchive": [
+        {
+          "id": "g1",
+          "name": "Kindle",
+          "kind": "spell",
+          "cells": [
+            {
+              "at": {
+                "x": 0,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "ink"
+            },
+            {
+              "at": {
+                "x": 2,
+                "y": 0
+              },
+              "rune": "strike"
+            }
+          ],
+          "entry": {
+            "x": 0,
+            "y": 0
+          },
+          "exits": [
+            {
+              "from": {
+                "x": 2,
+                "y": 0
+              },
+              "dir": "right"
+            }
+          ],
+          "idiom": null,
+          "version": 1,
+          "params": [],
+          "extraExit": null
+        }
+      ],
+      "glyphRecords": {
+        "g1@1": {
+          "casts": 3,
+          "harm": 6,
+          "meaningful": 2,
+          "recent": [],
+          "best": {
+            "economy": 0,
+            "reliability": 0
+          },
+          "fired": {
+            "0,0": 3,
+            "1,0": 2
+          }
+        },
+        "g1@2": {
+          "casts": 12,
+          "harm": 24,
+          "meaningful": 12,
+          "recent": [
+            {
+              "harm": 2,
+              "cost": 2,
+              "meaningful": true
+            }
+          ],
+          "best": {
+            "economy": 2,
+            "reliability": 3
+          },
+          "fired": {
+            "0,0": 12,
+            "1,0": 12,
+            "2,0": 10
+          }
+        }
+      },
+      "proof": {
+        "draughtsman": [
+          [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": null,
+              "glyph": "g1",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 4,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            }
+          ]
+        ],
+        "stoker": []
+      },
+      "city": {
+        "heard": ["seam"],
+        "open": ["seam"],
+        "hearts": [],
+        "solved": [],
+        "trips": 0,
+        "fresh": []
+      }
+    },
+    "trip": null,
+    "seedCounter": 103,
+    "lastTrip": {
+      "district": "seam",
+      "outcome": "returned",
+      "encounter": 1,
+      "place": "The scullery",
+      "stats": {
+        "fights": 2,
+        "spells": [
+          {
+            "member": "draughtsman",
+            "spell": "0,1",
+            "name": "Kindle",
+            "casts": 2,
+            "damage": 4,
+            "kills": 1,
+            "cells": ["0,1"],
+            "fired": ["0,1"]
+          }
+        ],
+        "biggestChain": {
+          "member": "draughtsman",
+          "spell": "0,1",
+          "name": "Kindle",
+          "reactions": 2
+        },
+        "discoveries": [],
+        "proofCasts": 2,
+        "elegance": [],
+        "heard": []
+      }
+    }
+  },
+  "compiled": {
+    "draughtsman": {
+      "spells": [
+        {
+          "key": "4,0",
+          "at": {
+            "x": 4,
+            "y": 0
+          },
+          "source": "bolt",
+          "sourceAuras": [],
+          "first": {
+            "at": {
+              "x": 4,
+              "y": 1
+            },
+            "role": "kind",
+            "rune": "ink",
+            "auras": [],
+            "next": null
+          },
+          "charges": 5,
+          "path": [
+            {
+              "at": {
+                "x": 4,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 4,
+                "y": 1
+              },
+              "rune": "ink",
+              "dir": "down"
+            }
+          ],
+          "ink": 3,
+          "cells": [
+            {
+              "at": {
+                "x": 4,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 4,
+                "y": 1
+              },
+              "rune": "ink"
+            }
+          ]
+        },
+        {
+          "key": "0,1",
+          "at": {
+            "x": 0,
+            "y": 1
+          },
+          "source": "bolt",
+          "sourceAuras": [],
+          "first": {
+            "at": {
+              "x": 0,
+              "y": 1
+            },
+            "inner": {
+              "x": 1,
+              "y": 0
+            },
+            "glyph": "g1",
+            "role": "kind",
+            "rune": "oil",
+            "auras": [],
+            "next": {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "inner": {
+                "x": 2,
+                "y": 0
+              },
+              "glyph": "g1",
+              "role": "action",
+              "rune": "strike",
+              "auras": [],
+              "next": null
+            }
+          },
+          "charges": 5,
+          "path": [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "inner": {
+                "x": 0,
+                "y": 0
+              },
+              "glyph": "g1",
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "inner": {
+                "x": 1,
+                "y": 0
+              },
+              "glyph": "g1",
+              "rune": "oil",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "inner": {
+                "x": 2,
+                "y": 0
+              },
+              "glyph": "g1",
+              "rune": "strike",
+              "dir": "right"
+            }
+          ],
+          "ink": 2,
+          "cells": [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": null,
+              "glyph": "g1",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": null,
+              "glyph": "g1",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": null,
+              "glyph": "g1",
+              "dir": "right"
+            }
+          ],
+          "glyph": "g1"
+        }
+      ],
+      "reached": ["4,0", "4,1", "0,1"],
+      "auraTouches": []
+    },
+    "stoker": {
+      "spells": [
+        {
+          "key": "1,0",
+          "at": {
+            "x": 1,
+            "y": 0
+          },
+          "source": "bolt",
+          "sourceAuras": [],
+          "first": {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "role": "kind",
+            "rune": "oil",
+            "auras": [],
+            "next": {
+              "at": {
+                "x": 1,
+                "y": 2
+              },
+              "role": "kind",
+              "rune": "spark",
+              "auras": [],
+              "next": null
+            }
+          },
+          "charges": 5,
+          "path": [
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "oil",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 2
+              },
+              "rune": "spark",
+              "dir": "down"
+            }
+          ],
+          "ink": 3,
+          "cells": [
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "oil"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 2
+              },
+              "rune": "spark"
+            }
+          ]
+        }
+      ],
+      "reached": ["1,0", "1,1", "1,2"],
+      "auraTouches": []
+    }
+  },
+  "replay": null
+}

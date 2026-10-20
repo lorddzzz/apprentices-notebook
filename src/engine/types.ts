@@ -81,11 +81,22 @@ export type GlyphInside = Pick<GlyphDef, 'kind' | 'cells' | 'entry'>;
 export type GlyphLibrary = Readonly<Record<GlyphId, GlyphDef>>;
 export type InventionLibrary = Readonly<Record<`inv:${string}`, InventionDef>>;
 
-export interface LatticeShape {
+export interface FixedLatticeShape {
+  /** Existing ASCII/scenario shapes omit the discriminant. */
+  kind?: 'fixed';
   width: number;
   height: number;
   holes: readonly Coord[];
 }
+/** Derived framing only: every valid lattice coordinate is writable. */
+export interface GrowingLatticeShape {
+  kind: 'growing';
+  origin: Coord;
+  width: number;
+  height: number;
+  holes: readonly [];
+}
+export type LatticeShape = FixedLatticeShape | GrowingLatticeShape;
 export interface Lattice {
   shape: LatticeShape;
   runes: readonly Placed[];

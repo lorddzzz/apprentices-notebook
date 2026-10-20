@@ -1,0 +1,117 @@
+{
+  "runtime": "v24.19.0",
+  "platform": "win32",
+  "note": "Desktop proxy, not phone timing; one cold sample per length.",
+  "rows": [
+    {
+      "n": 64,
+      "bounds": 0.03,
+      "compile": 0.31,
+      "steps": 0.39,
+      "clusters": 1.83,
+      "clusterCount": 357
+    },
+    {
+      "n": 256,
+      "bounds": 0.02,
+      "compile": 0.76,
+      "steps": 2.48,
+      "clusters": 10.22,
+      "clusterCount": 1509
+    },
+    {
+      "n": 512,
+      "bounds": 0.06,
+      "compile": 1.41,
+      "steps": 5.13,
+      "clusters": 33.92,
+      "clusterCount": 3045
+    },
+    {
+      "n": 1024,
+      "bounds": 0.09,
+      "compile": 2.72,
+      "steps": 12.74,
+      "clusters": 129.97,
+      "clusterCount": 6117
+    },
+    {
+      "n": 2048,
+      "bounds": 0.08,
+      "compile": 3.65,
+      "steps": 57.74,
+      "clusters": 521.54,
+      "clusterCount": 12261
+    },
+    {
+      "n": 4096,
+      "bounds": 0.2,
+      "compile": 11.36,
+      "steps": "RangeError"
+    },
+    {
+      "n": 8192,
+      "bounds": 0.38,
+      "compile": "RangeError",
+      "steps": "RangeError"
+    },
+    {
+      "n": 16384,
+      "bounds": 0.78,
+      "compile": "RangeError",
+      "steps": "RangeError"
+    },
+    {
+      "n": 32768,
+      "bounds": 1.47,
+      "compile": "RangeError",
+      "steps": "RangeError"
+    }
+  ],
+  "forkRows": [
+    {
+      "branches": 16,
+      "cells": 98,
+      "compile": 1.38,
+      "steps": 0.4,
+      "clusters": 3.51,
+      "clusterCount": 1182
+    },
+    {
+      "branches": 64,
+      "cells": 386,
+      "compile": 0.96,
+      "steps": 1.13,
+      "clusters": 33.81,
+      "clusterCount": 4878
+    },
+    {
+      "branches": 128,
+      "cells": 770,
+      "compile": 1.87,
+      "steps": 2.7,
+      "clusters": 128.21,
+      "clusterCount": 9806
+    },
+    {
+      "branches": 256,
+      "cells": 1538,
+      "compile": 4.14,
+      "steps": 4.92,
+      "clusters": 485.37,
+      "clusterCount": 19662
+    },
+    {
+      "branches": 512,
+      "cells": 3074,
+      "compile": 5.79,
+      "steps": 18.01
+    },
+    {
+      "branches": 1024,
+      "cells": 6146,
+      "compile": "RangeError",
+      "steps": "RangeError"
+    }
+  ]
+}
