@@ -40,6 +40,8 @@ A battle's edge is `'wall'` unless the spec says `edge: 'drop'` (P3).
 Lattice cell: `.` empty socket, `x` hole, a rune token, or an invention `inv:name`. Arrow runes (sources and Bend) carry an arrow suffix `>` right, `<` left, `^` up, `v` down; every other rune has none.
 Tokens (31 runes, design §5): sources `Bolt> Splash> Touch> Vat>`; actions `Strike Shove Guard Sentence Levy Hold Swap Draw Erase`; kinds `Ink Oil Steam Brass Spark`; shapes `Fork Bendv Seep Lay Toll`; triggers `Tally Brink Unison`; seals `Jar Fuse`; auras `Afterglow Steep Coil`. E.g. `Bolt> Oil Spark . .`. A Glyph is `G:id>` plus `[x,y:Rune]` arguments.
 
+Growing lattices use a sparse form: first line `@lattice 1 growing`, then one `x,y token` entry per occupied cell (for example `-2,0 Bolt>`). Coordinates and Glyph argument keys are canonical signed decimal integers: no `+`, leading zeros, negative zero or exponent notation. Entries may arrive in any order; export sorts by row then column. Header alone is an empty growing page. Sparse entries cannot be `.` or `x`; fixed ASCII and battle board text keep their existing meaning. Optional Glyph/invention libraries validate references. Imports reject duplicates and resource excess without cropping.
+
 When you add a token, update `src/engine/notation.ts` (header comment), `tests/scenarios/harness.ts` and this legend. During an `implement` task, change only owned files; report any required updates outside that ownership to the orchestrator.
 
 ## Rules of thumb

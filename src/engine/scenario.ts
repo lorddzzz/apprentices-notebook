@@ -1,6 +1,7 @@
 import { MEMBER_IDS, MEMBERS, type MemberId, SCENARIOS, type ScenarioDef } from '$data';
 import { applyAction, createBattle } from './battle';
 import { describeLog, type GameEvent } from './events';
+import { assertImportStructure } from './importPolicy';
 import { compileLattice } from './lattice';
 import { parseLattice } from './notation';
 import type {
@@ -34,12 +35,14 @@ export function spellsFor(
   lattice: Lattice | string,
   inventions: InventionLibrary = {},
 ): Spell[] {
-  const l = typeof lattice === 'string' ? parseLattice(lattice) : lattice;
+  const l = typeof lattice === 'string' ? parseLattice(lattice, { inventions }) : lattice;
   return compileLattice(l, {}, inventions, MEMBERS[member].lean).spells;
 }
 
 /** The BattleSpec a scenario stands for (use `createBattle` on it for the creation events). */
 export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): BattleSpec {
+  assertImportStructure(def);
+  assertImportStructure(opts);
   const party: Partial<Record<MemberId, PartyInit>> = { ...('party' in def ? def.party : {}) };
   const inventions = opts.inventions ?? ('inventions' in def ? def.inventions : undefined);
   for (const m of MEMBER_IDS) {
