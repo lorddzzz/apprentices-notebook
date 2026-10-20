@@ -1,7 +1,12 @@
 import { expect, test } from 'vitest';
 import {
+  type GlyphDef,
+  type GlyphLibrary,
   growingLattice,
   IMPORT_POLICY,
+  labSetLattice,
+  type PlacedRune,
+  parseBoard,
   parseLattice,
   ResourceLimitError,
   scenarioBattle,
@@ -47,7 +52,9 @@ test('rejects duplicate cells, unsupported versions and unresolved references', 
 });
 test('rejects input before excessive sparse work', () => {
   expect(() =>
-    parseLattice(`${header}\n${'0,0 Ink\n'.repeat(IMPORT_POLICY.maxCollectionEntries + 1)}`),
+    parseLattice(
+      `${header}\n${Array.from({ length: IMPORT_POLICY.maxCollectionEntries + 1 }, (_, x) => `${x},0 Ink`).join('\n')}`,
+    ),
   ).toThrow(ResourceLimitError);
   expect(() => parseLattice(' '.repeat(IMPORT_POLICY.maxBytes + 1))).toThrow(ResourceLimitError);
 });
@@ -67,4 +74,144 @@ test('scenario compiles the sparse text with its signed Source identity', () => 
       },
     ],
   });
+});
+
+function argumentGlyph(id = 'g'): GlyphDef {
+  return {
+    id,
+    name: 'Argument',
+    kind: 'payload',
+    version: 1,
+    cells: [
+      { at: { x: 0, y: 0 }, rune: 'ink' },
+      { at: { x: 1, y: 0 }, rune: 'strike' },
+    ],
+    entry: { x: 0, y: 0 },
+    exits: [],
+    idiom: null,
+    params: ['0,0'],
+    extraExit: null,
+  };
+}
+
+test('indexed argument validation keeps missing-cell, open-cell and rune-family checks', () => {
+  const glyphs = { g: argumentGlyph() };
+  expect(parseLattice('G:g>[0,0:Oil]', { glyphs }).runes).toMatchObject([
+    { args: { '0,0': { rune: 'oil' } } },
+  ]);
+  expect(() => parseLattice('G:g>[2,0:Oil]', { glyphs })).toThrow(/has no cell/);
+  expect(() => parseLattice('G:g>[1,0:Strike]', { glyphs })).toThrow(/not open/);
+  expect(() => parseLattice('G:g>[0,0:Strike]', { glyphs })).toThrow(/not a kind/);
+});
+
+test('many placements index a referenced library once, rather than rescanning per argument', () => {
+  const def = argumentGlyph();
+  const cells = Array.from(
+    { length: IMPORT_POLICY.maxCollectionEntries },
+    (_, x): PlacedRune => ({ at: { x, y: 0 }, rune: 'ink' }),
+  );
+  let scans = 0;
+  Object.defineProperty(cells, Symbol.iterator, {
+    value: function* () {
+      scans++;
+      for (const cell of cells.values()) yield cell;
+    },
+  });
+  def.cells = cells;
+  def.params = [`${cells.length - 1},0`];
+  const entry = `G:g>[${cells.length - 1},0:Oil]`;
+  const text = [header, ...Array.from({ length: 1000 }, (_, x) => `${x},0 ${entry}`)].join('\n');
+  expect(parseLattice(text, { glyphs: { g: def } }).runes).toHaveLength(1000);
+  expect(scans).toBe(1);
+});
+
+test('referenced indexes share the aggregate entry budget and refuse before constructing an excessive index', () => {
+  let secondScans = 0;
+  const cell: PlacedRune = { at: { x: 0, y: 0 }, rune: 'ink' };
+  const count = IMPORT_POLICY.maxCollectionEntries;
+  const cells: PlacedRune[] = Array.from({ length: count }, () => cell);
+  const secondCells = [...cells];
+  Object.defineProperty(secondCells, Symbol.iterator, {
+    value: function* () {
+      secondScans++;
+      for (const c of secondCells.values()) yield c;
+    },
+  });
+  const first = {
+    ...argumentGlyph('first'),
+    cells,
+    params: Array.from({ length: count }, () => '0,0'),
+  };
+  // Two placements and two arguments consume four entries; the remaining slots index libraries.
+  const remaining = IMPORT_POLICY.maxTotalEntries - count * 3 - 4;
+  const second = {
+    ...argumentGlyph('second'),
+    cells: secondCells,
+    params: Array.from({ length: remaining }, () => '0,0'),
+  };
+  const text = `${header}\n0,0 G:first>[0,0:Oil]\n1,0 G:second>[0,0:Oil]`;
+  expect(parseLattice(text, { glyphs: { first, second } }).runes).toHaveLength(2);
+  expect(secondScans).toBe(1);
+  secondScans = 0;
+  const excessive = { ...second, params: [...second.params, '0,0'] };
+  expect(() => parseLattice(text, { glyphs: { first, second: excessive } })).toThrow(
+    expect.objectContaining({ resource: 'entries', limit: IMPORT_POLICY.maxTotalEntries }),
+  );
+  expect(secondScans).toBe(0);
+});
+
+test('the exact occupied-plus-argument token budget is accepted and one extra argument is refused', () => {
+  const placements = IMPORT_POLICY.maxCollectionEntries;
+  const extras = IMPORT_POLICY.maxTokens - placements * 3;
+  const lines = Array.from(
+    { length: placements },
+    (_, x) => `${x},0 G:g>[0,0:Oil][1,0:Ink]${x < extras ? '[2,0:Oil]' : ''}`,
+  );
+  const text = [header, ...lines].join('\n');
+  expect(parseLattice(text).runes).toHaveLength(placements);
+  lines[extras] += '[2,0:Oil]';
+  expect(() => parseLattice([header, ...lines].join('\n'))).toThrow(
+    expect.objectContaining({ resource: 'tokens', limit: IMPORT_POLICY.maxTokens }),
+  );
+});
+
+test('dense storage and padded-board area are bounded before rectangular construction', () => {
+  expect(parseLattice('. '.repeat(IMPORT_POLICY.maxCollectionEntries)).shape.width).toBe(
+    IMPORT_POLICY.maxCollectionEntries,
+  );
+  expect(() => parseLattice('. '.repeat(IMPORT_POLICY.maxCollectionEntries + 1))).toThrow(
+    ResourceLimitError,
+  );
+  expect(parseBoard('. '.repeat(IMPORT_POLICY.maxCollectionEntries)).tiles).toHaveLength(
+    IMPORT_POLICY.maxCollectionEntries,
+  );
+  // Only 400 tokens, but padding these short rows would produce 40,000 board cells.
+  const uneven = `${'. '.repeat(200)}\n${'.\n'.repeat(200)}`;
+  expect(() => parseBoard(uneven)).toThrow(expect.objectContaining({ resource: 'collection' }));
+});
+
+test('resource refusal leaves the current Lab battle and supplied libraries untouched', () => {
+  const battle = scenarioBattle({ board: 'D . r', lattices: { draughtsman: 'Bolt> Ink' } });
+  const before = structuredClone(battle);
+  const glyphs: GlyphLibrary = { g: argumentGlyph() };
+  const definitions = structuredClone(glyphs);
+  const excessive = `${header}\n${Array.from({ length: IMPORT_POLICY.maxCollectionEntries + 1 }, (_, x) => `${x},0 Ink`).join('\n')}`;
+  expect(() => labSetLattice(battle, 'draughtsman', excessive)).toThrow(ResourceLimitError);
+  expect(battle).toEqual(before);
+  expect(() => parseLattice('G:g>[0,0:Strike]', { glyphs })).toThrow();
+  expect(glyphs).toEqual(definitions);
+  expect(() =>
+    scenarioBattle({ board: 'D S r', lattices: { draughtsman: 'Bolt> Ink', stoker: excessive } }),
+  ).toThrow(ResourceLimitError);
+  expect(scenarioBattle({ board: 'D . r', lattices: { draughtsman: 'Bolt> Ink' } })).toEqual(
+    battle,
+  );
+});
+
+test('text work limit is inclusive, with refusal before token parsing above it', () => {
+  const token = `inv:${'a'.repeat(IMPORT_POLICY.maxWork - 4)}`;
+  expect(parseLattice(`${header}\n0,0 ${token}`).runes).toHaveLength(1);
+  expect(() => parseLattice(`${header}\n0,0 ${token}a`)).toThrow(
+    expect.objectContaining({ resource: 'work', limit: IMPORT_POLICY.maxWork }),
+  );
 });

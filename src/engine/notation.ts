@@ -16,10 +16,16 @@ import {
 } from '$data';
 import { argIssue } from './glyph';
 import { type Coord, type Dir, key, label, latticeLabel, parseKey, parseLatticeKey } from './grid';
-import { assertImportText, importBudget, SPARSE_LATTICE_HEADER } from './importPolicy';
+import {
+  assertImportText,
+  type ImportBudget,
+  importBudget,
+  SPARSE_LATTICE_HEADER,
+} from './importPolicy';
 import { growingLattice } from './page';
 import {
   type GlyphArg,
+  type GlyphDef,
   type GlyphLibrary,
   type InventionLibrary,
   isGlyph,
@@ -27,6 +33,7 @@ import {
   type Layer,
   type Placed,
   type PlacedGlyph,
+  type PlacedRune,
   type Tile,
 } from './types';
 
@@ -65,11 +72,27 @@ export interface BoardSpec {
   units: BoardUnit[]; // reading order
 }
 
-function rows(ascii: string): string[][] {
-  return ascii
-    .split('\n')
-    .filter((l) => l.trim() !== '')
-    .map((l) => l.trim().split(/\s+/));
+function* contentLines(ascii: string): Generator<string> {
+  for (const match of ascii.matchAll(/[^\r\n]+/g)) {
+    const line = match[0].trim();
+    if (line) yield line;
+  }
+}
+
+/** Bound token storage before allocating rows, including short rows on padded boards. */
+function rows(ascii: string, budget: ImportBudget): string[][] {
+  const grid: string[][] = [];
+  let count = 0;
+  for (const line of contentLines(ascii)) {
+    const row: string[] = [];
+    for (const match of line.matchAll(/\S+/g)) {
+      budget.collection(++count);
+      budget.spend('tokens');
+      row.push(match[0]);
+    }
+    grid.push(row);
+  }
+  return grid;
 }
 
 export function emptyTile(): Tile {
@@ -240,19 +263,21 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
 export function parseBoard(ascii: string): BoardSpec {
   assertImportText(ascii);
   const budget = importBudget();
-  const grid = rows(ascii);
+  const grid = rows(ascii, budget);
   budget.collection(grid.length);
   if (grid.length === 0) throw new Error('Empty board');
   const width = grid.reduce((w, r) => Math.max(w, r.length), 0);
   budget.collection(width * grid.length);
-  budget.spend('tokens', width * grid.length);
+  budget.spend('work', width * grid.length);
   const tiles: Tile[] = [];
   const units: BoardUnit[] = [];
   const members = new Set<string>();
   grid.forEach((row, y) => {
     for (let x = 0; x < width; x++) {
       const at = { x, y };
-      const { tile, unit } = parseCell(row[x] ?? '.', at);
+      const token = row[x] ?? '.';
+      budget.spend('work', token.length);
+      const { tile, unit } = parseCell(token, at);
       tiles.push(tile);
       if (unit) {
         if (unit.kind === 'member') {
@@ -359,8 +384,13 @@ function parseRuneArg(text: string, where: string, token: string): GlyphArg {
  * `G:id>` with the way-in arrow, then optional arguments, one `[x,y:Rune]` per open cell, the
  * cell being the Glyph's local `x,y` (`G:g1>[1,0:Oil][2,0:Bend^]`).
  */
-function parseGlyphToken(token: string, at: Coord, where: string): PlacedGlyph {
-  const m = /^G:(.*?)((?:\[[^\]]*\])*)$/.exec(token);
+function parseGlyphToken(
+  token: string,
+  at: Coord,
+  where: string,
+  budget: ImportBudget,
+): PlacedGlyph {
+  const m = /^G:([A-Za-z0-9_-]+[><^v])((?:\[[^[\]]*\])*)$/.exec(token);
   const head = m?.[1] ?? '';
   const gdir = ARROW_CHARS[head.slice(-1)];
   const glyph = head.slice(0, -1);
@@ -368,9 +398,12 @@ function parseGlyphToken(token: string, at: Coord, where: string): PlacedGlyph {
     throw new Error(`Glyph "${token}" needs an id and an arrow (G:id>) in cell ${where}`);
   }
   const args: Record<string, GlyphArg> = {};
-  const budget = importBudget();
-  budget.collection((m?.[2] ?? '').split('[').length - 1);
-  for (const group of (m?.[2] ?? '').match(/\[[^\]]*\]/g) ?? []) {
+  let count = 0;
+  for (const match of (m?.[2] ?? '').matchAll(/\[[^\]]*\]/g)) {
+    const group = match[0];
+    budget.collection(++count);
+    budget.spend('tokens');
+    budget.spend('entries');
     const arg = /^\[(-?\d+,-?\d+):(.+)\]$/.exec(group);
     if (!arg?.[1] || !arg[2]) {
       throw new Error(`Bad Glyph argument "${group}" (want [x,y:Rune]) in cell ${where}`);
@@ -396,7 +429,19 @@ export interface LatticeLibraries {
   inventions?: InventionLibrary;
 }
 
-function parsePlacement(token: string, at: Coord, libraries: LatticeLibraries): Placed {
+interface GlyphIndex {
+  cells: ReadonlyMap<string, PlacedRune>;
+  params: ReadonlySet<string>;
+}
+
+function parsePlacement(
+  token: string,
+  at: Coord,
+  libraries: LatticeLibraries,
+  budget: ImportBudget,
+  indexes: Map<GlyphDef, GlyphIndex>,
+): Placed {
+  budget.spend('work', token.length);
   const where = latticeLabel(at);
   const checkRune = (rune: RuneRef): void => {
     if (isInvention(rune) && libraries.inventions && !Object.hasOwn(libraries.inventions, rune)) {
@@ -404,16 +449,41 @@ function parsePlacement(token: string, at: Coord, libraries: LatticeLibraries): 
     }
   };
   if (token.startsWith('G:')) {
-    const placed = parseGlyphToken(token, at, where);
+    const placed = parseGlyphToken(token, at, where, budget);
     const def =
       libraries.glyphs && Object.hasOwn(libraries.glyphs, placed.glyph)
         ? libraries.glyphs[placed.glyph]
         : undefined;
     if (libraries.glyphs && !def)
       throw new Error(`Unknown Glyph "${placed.glyph}" in cell ${where}`);
+    let index = def ? indexes.get(def) : undefined;
+    if (def && placed.args && !index) {
+      budget.collection(def.cells.length);
+      budget.collection(def.params.length);
+      budget.spend('entries', def.cells.length + def.params.length);
+      budget.spend('work', def.cells.length + def.params.length);
+      const cells = new Map<string, PlacedRune>();
+      for (const cell of def.cells) {
+        const k = key(cell.at);
+        // Match argIssue's first-cell lookup, even for an invalid supplied library.
+        if (!cells.has(k)) cells.set(k, cell);
+      }
+      index = { cells, params: new Set(def.params) };
+      indexes.set(def, index);
+    }
     for (const [k, arg] of Object.entries(placed.args ?? {})) {
+      budget.spend('work');
       checkRune(arg.rune);
-      const issue = def ? argIssue(def, k, arg, libraries.inventions) : null;
+      const cell = index?.cells.get(k);
+      const issue =
+        def && index
+          ? argIssue(
+              { ...def, cells: cell ? [cell] : [], params: index.params.has(k) ? [k] : [] },
+              k,
+              arg,
+              libraries.inventions,
+            )
+          : null;
       if (issue) throw new Error(`Glyph ${placed.glyph} ${issue} in cell ${where}`);
     }
     return placed;
@@ -429,31 +499,28 @@ function parsePlacement(token: string, at: Coord, libraries: LatticeLibraries): 
 export function parseLattice(ascii: string, libraries: LatticeLibraries = {}): Lattice {
   assertImportText(ascii);
   const budget = importBudget();
-  const lines = ascii
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean);
-  const first = lines[0];
+  const lines = contentLines(ascii);
+  const first = lines.next().value;
+  const indexes = new Map<GlyphDef, GlyphIndex>();
   if (first?.startsWith('@lattice')) {
     if (first !== SPARSE_LATTICE_HEADER) throw new Error('Unsupported lattice header');
-    budget.collection(lines.length - 1);
     const runes: Placed[] = [];
     const seen = new Set<string>();
-    for (const line of lines.slice(1)) {
+    for (const line of lines) {
+      budget.collection(runes.length + 1);
       budget.spend('entries');
+      budget.spend('tokens');
       const match = /^(\S+)\s+(\S+)$/.exec(line);
       if (!match?.[1] || !match[2]) throw new Error(`Bad sparse lattice entry "${line}"`);
       const at = parseLatticeKey(match[1]);
       const k = key(at);
       if (seen.has(k)) throw new Error(`Duplicate lattice coordinate ${k}`);
       seen.add(k);
-      budget.spend('tokens', match[2].split('[').length - 1);
-      budget.spend('work', match[2].length);
-      runes.push(parsePlacement(match[2], at, libraries));
+      runes.push(parsePlacement(match[2], at, libraries, budget, indexes));
     }
     return growingLattice(runes);
   }
-  const grid = rows(ascii);
+  const grid = rows(ascii, budget);
   if (grid.length === 0) throw new Error('Empty lattice');
   const width = grid[0]?.length ?? 0;
   budget.collection(width * grid.length);
@@ -468,9 +535,8 @@ export function parseLattice(ascii: string, libraries: LatticeLibraries = {}): L
       if (token === '.') return;
       if (token === 'x') holes.push(at);
       else {
-        budget.spend('tokens', token.split('[').length - 1);
-        budget.spend('work', token.length);
-        runes.push(parsePlacement(token, at, libraries));
+        budget.spend('entries');
+        runes.push(parsePlacement(token, at, libraries, budget, indexes));
       }
     });
   });
