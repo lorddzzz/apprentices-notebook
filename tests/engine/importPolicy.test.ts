@@ -10,7 +10,7 @@ import {
 test('UTF-8 limits count astral and replacement characters without an encoded allocation', () => {
   for (const text of ['abc', 'č', '漢', '😀', '\ud800']) {
     const bytes = new TextEncoder().encode(text).length;
-    expect(() => assertImportText(text, bytes)).not.toThrow();
+    expect(assertImportText(text, bytes)).toBe(bytes);
     expect(() => assertImportText(text, bytes - 1)).toThrow(ResourceLimitError);
   }
   expect(() => assertImportText('a'.repeat(IMPORT_POLICY.maxBytes))).not.toThrow();
@@ -50,4 +50,18 @@ test('iterative structure preflight counts arrays/fields and protects nesting', 
   aggregate[0]?.push(0);
   expect(() => assertImportStructure(aggregate)).toThrow(ResourceLimitError);
   expect(new ResourceLimitError('work', 10).kind).toBe('resource-limit');
+});
+
+test('one import budget counts UTF-8 across fields and keys, with an inclusive byte boundary', () => {
+  const budget = importBudget();
+  budget.text('a'.repeat(IMPORT_POLICY.maxBytes - 4));
+  budget.text('\u{1f600}');
+  expect(() => budget.text('a')).toThrow(
+    expect.objectContaining({ resource: 'bytes', limit: IMPORT_POLICY.maxBytes }),
+  );
+  const fields = { a: 'x'.repeat(IMPORT_POLICY.maxBytes - 3), b: 'y' };
+  expect(() => assertImportStructure(fields)).not.toThrow();
+  expect(() => assertImportStructure({ ...fields, b: 'yy' })).toThrow(
+    expect.objectContaining({ resource: 'bytes' }),
+  );
 });

@@ -26,7 +26,7 @@ export class ResourceLimitError extends Error {
 }
 
 /** UTF-8 byte count without allocating an encoded copy; unpaired surrogates encode as U+FFFD. */
-export function assertImportText(text: string, maxBytes = IMPORT_POLICY.maxBytes): void {
+export function assertImportText(text: string, maxBytes = IMPORT_POLICY.maxBytes): number {
   let bytes = 0;
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
@@ -43,9 +43,12 @@ export function assertImportText(text: string, maxBytes = IMPORT_POLICY.maxBytes
     } else bytes += 3;
     if (bytes > maxBytes) throw new ResourceLimitError('bytes', maxBytes);
   }
+  return bytes;
 }
 
 export interface ImportBudget {
+  /** Count UTF-8 across every text field in one import, without concatenating it. */
+  text(text: string): void;
   /** Consume aggregate slots/tokens or algorithm operations before doing the work. */
   spend(resource: 'entries' | 'tokens' | 'work', amount?: number): void;
   collection(length: number): void;
@@ -53,12 +56,23 @@ export interface ImportBudget {
 
 export function importBudget(): ImportBudget {
   const used = { entries: 0, tokens: 0, work: 0 };
+  let bytes = 0;
   const limits = {
     entries: IMPORT_POLICY.maxTotalEntries,
     tokens: IMPORT_POLICY.maxTokens,
     work: IMPORT_POLICY.maxWork,
   };
   return {
+    text(text) {
+      try {
+        bytes += assertImportText(text, IMPORT_POLICY.maxBytes - bytes);
+      } catch (error) {
+        if (error instanceof ResourceLimitError && error.resource === 'bytes') {
+          throw new ResourceLimitError('bytes', IMPORT_POLICY.maxBytes);
+        }
+        throw error;
+      }
+    },
     spend(resource, amount = 1) {
       if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('Invalid import work count');
       if (amount > limits[resource] - used[resource]) {
@@ -80,7 +94,9 @@ export function assertImportStructure(root: unknown, budget = importBudget()): v
   const pending: { value: unknown; depth: number }[] = [{ value: root, depth: 0 }];
   while (pending.length) {
     const current = pending.pop();
-    if (!current || current.value === null || typeof current.value !== 'object') continue;
+    if (!current) continue;
+    if (typeof current.value === 'string') budget.text(current.value);
+    if (current.value === null || typeof current.value !== 'object') continue;
     if (current.depth > IMPORT_POLICY.maxDepth) {
       throw new ResourceLimitError('depth', IMPORT_POLICY.maxDepth);
     }
@@ -88,6 +104,7 @@ export function assertImportStructure(root: unknown, budget = importBudget()): v
     let length = 0;
     for (const k in current.value) {
       if (!Object.hasOwn(current.value, k)) continue;
+      budget.text(k);
       length++;
       budget.collection(length);
       budget.spend('entries');

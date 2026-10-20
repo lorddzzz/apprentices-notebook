@@ -1,9 +1,9 @@
 import { MEMBER_IDS, MEMBERS, type MemberId, SCENARIOS, type ScenarioDef } from '$data';
 import { applyAction, createBattle } from './battle';
 import { describeLog, type GameEvent } from './events';
-import { assertImportStructure } from './importPolicy';
+import { assertImportStructure, importBudget } from './importPolicy';
 import { compileLattice } from './lattice';
-import { parseLattice } from './notation';
+import { parseBoard, parseLattice } from './notation';
 import type {
   ActionResult,
   BattleSpec,
@@ -41,14 +41,24 @@ export function spellsFor(
 
 /** The BattleSpec a scenario stands for (use `createBattle` on it for the creation events). */
 export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): BattleSpec {
-  assertImportStructure(def);
-  assertImportStructure(opts);
+  const budget = importBudget();
+  assertImportStructure(def, budget);
+  // Options are trusted engine context; profile fallback pages are not external imports.
+  parseBoard(def.board, budget);
   const party: Partial<Record<MemberId, PartyInit>> = { ...('party' in def ? def.party : {}) };
   const inventions = opts.inventions ?? ('inventions' in def ? def.inventions : undefined);
+  const lattices: Partial<Record<MemberId, Lattice>> = {};
   for (const m of MEMBER_IDS) {
     const lattice = def.lattices?.[m] ?? opts.lattices?.[m];
-    if (lattice !== undefined)
-      party[m] = { ...party[m], spells: spellsFor(m, lattice, inventions) };
+    if (lattice !== undefined) {
+      lattices[m] =
+        typeof lattice === 'string' ? parseLattice(lattice, { inventions }, budget) : lattice;
+    }
+  }
+  // Finish validation of every external page before compiling any of them.
+  for (const m of MEMBER_IDS) {
+    const lattice = lattices[m];
+    if (lattice) party[m] = { ...party[m], spells: spellsFor(m, lattice, inventions) };
   }
   const spec: BattleSpec = {
     title: def.title ?? 'Lab',

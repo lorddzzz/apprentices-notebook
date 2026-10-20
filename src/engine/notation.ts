@@ -260,9 +260,8 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
   return { tile, unit };
 }
 
-export function parseBoard(ascii: string): BoardSpec {
+export function parseBoard(ascii: string, budget: ImportBudget = importBudget()): BoardSpec {
   assertImportText(ascii);
-  const budget = importBudget();
   const grid = rows(ascii, budget);
   budget.collection(grid.length);
   if (grid.length === 0) throw new Error('Empty board');
@@ -496,9 +495,12 @@ function parsePlacement(
   return { at, ...arg };
 }
 
-export function parseLattice(ascii: string, libraries: LatticeLibraries = {}): Lattice {
+export function parseLattice(
+  ascii: string,
+  libraries: LatticeLibraries = {},
+  budget: ImportBudget = importBudget(),
+): Lattice {
   assertImportText(ascii);
-  const budget = importBudget();
   const lines = contentLines(ascii);
   const first = lines.next().value;
   const indexes = new Map<GlyphDef, GlyphIndex>();

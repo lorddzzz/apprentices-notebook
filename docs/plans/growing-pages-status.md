@@ -11,7 +11,7 @@ Plan: [growing-pages-plan.md](growing-pages-plan.md). Updated on every integrati
 |---|---|---|---|---|---|---|
 | W0 | Strong / gpt-6.1-sol / high | L | merged | main 4f7db53 / source da41107 | 17% shared window | Contracts/fixtures reviewed; 2939 tests green on task branch |
 | E1 | Strong / gpt-6.1-sol / high | L | partial; held | codex/growing-engine / 2e777b7 | | Compiler/cluster green; migration/cast/clone pending |
-| N1 | Medium / gpt-6.1-sol / medium | M | integrated; scenario aggregate follow-up running | source 6baf398 + root inherited-key fix | | Main gate 2990 tests |
+| N1 | Medium / gpt-6.1-sol / medium | M | merged; complete | source 6baf398 + root inherited-key fix | | Main gate 2990 tests |
 | E2 | Medium / gpt-6.1-sol / medium | M | green branch; held | codex/growing-notation / 198958c | | 2993 tests; do not expose old revision UI before U2 |
 | V1 | Medium / gpt-6.1-sol / medium | L | merged | source codex/growing-viewport / 89ead19 | | 3013 tests; root375×812 browser checks pass |
 | A1/U1/U2/R1/Q1/F1 | Per plan | L | pending | | | Dependencies per plan |
@@ -69,3 +69,5 @@ Usage reset confirmed: five-hour0%, weekly14%, next reset1792550960. Existing en
 V1 finalhandoff89ead19 reviewed. Proposals:4px minimum Fit markers with4px CSS inset;1pixel visualbucket dedup; exact markerhit navigation avoids subpixel coordinate error. No placements omitted from state/edit mode. Root phone verification and screenshots in growing-pages-verification.md. N1 combinedscenario-budget review assigned beforecompletion; E1 migration/cast/clone completion stillrunning.
 
 N1 work safeguards0e7f8f1 integrated; main check3034tests. Referenced Glyphs indexedonce perimport, aggregatecells/params andtoken/work budgets chargedbeforelookup/indexconstruction. Boundarytests include100k tokens, maxWork and aggregatefields. Scenario-wide sharedtext/tokenbudget follow-up is inprogress on notationbranch. V1 merged80ce36f with phoneevidence; no gameeditoractivation yet.
+
+N1 complete: scenarioaggregate sourcesa5d7183+e88ea67 integrated,3046tests green. One sharedbudget covers external scenario strings/keys, board and lattice tokens/indexwork, before compilation. Typed internal ScenarioOptions fallback pages bypass externalstructurelimits; regression accepts32768signedplacements beyond importedaggregatebudget. No duplicate textcharging. Source0e7f8f1 alreadyintegrateda1fef3a. E1 finalgate pending; no newtasks started while projectedburn is high.

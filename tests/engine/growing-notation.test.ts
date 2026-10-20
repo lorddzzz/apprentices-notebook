@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import {
+  assertImportStructure,
   type GlyphDef,
   type GlyphLibrary,
   growingLattice,
@@ -10,6 +11,7 @@ import {
   parseLattice,
   ResourceLimitError,
   scenarioBattle,
+  scenarioSpec,
   serializeLattice,
 } from '$engine';
 
@@ -214,4 +216,69 @@ test('text work limit is inclusive, with refusal before token parsing above it',
   expect(() => parseLattice(`${header}\n0,0 ${token}a`)).toThrow(
     expect.objectContaining({ resource: 'work', limit: IMPORT_POLICY.maxWork }),
   );
+});
+
+test('scenario imports share the byte limit across both lattices, including field names', () => {
+  const fixed = ['board', 'D S r', 'lattices', 'draughtsman', 'stoker', header, header].join(
+    '',
+  ).length;
+  const firstPadding = Math.floor((IMPORT_POLICY.maxBytes - fixed) / 2);
+  const secondPadding = IMPORT_POLICY.maxBytes - fixed - firstPadding;
+  const def = {
+    board: 'D S r',
+    lattices: {
+      draughtsman: header + '\n'.repeat(firstPadding),
+      stoker: header + '\n'.repeat(secondPadding),
+    },
+  };
+  expect(scenarioBattle(def).units).toHaveLength(3);
+  const excessive = { ...def, lattices: { ...def.lattices, stoker: `${def.lattices.stoker}\n` } };
+  // Both pages fit individually; their combined scenario is one byte beyond its allowance.
+  expect(parseLattice(excessive.lattices.draughtsman).runes).toEqual([]);
+  expect(parseLattice(excessive.lattices.stoker).runes).toEqual([]);
+  expect(() => scenarioBattle(excessive)).toThrow(
+    expect.objectContaining({ resource: 'bytes', limit: IMPORT_POLICY.maxBytes }),
+  );
+});
+
+test('scenario budget combines board tokens with both pages before compilation', () => {
+  const count = 20000;
+  const page = (extras: number): string =>
+    [
+      header,
+      ...Array.from(
+        { length: count },
+        (_, x) => `${x},0 G:g>[0,0:Oil]${x < extras ? '[1,0:Ink]' : ''}`,
+      ),
+    ].join('\n');
+  // Six board tokens plus 99,995 page tokens exceed the token limit, while entries still fit.
+  const first = page(0);
+  const second = page(count - 5);
+  expect(parseLattice(first).runes).toHaveLength(count);
+  expect(parseLattice(second).runes).toHaveLength(count);
+  expect(() =>
+    scenarioSpec({ board: 'D S . . . r', lattices: { draughtsman: first, stoker: second } }),
+  ).toThrow(expect.objectContaining({ resource: 'tokens' }));
+});
+
+test('trusted profile fallback pages can exceed external aggregate import budgets', () => {
+  const runes: PlacedRune[] = Array.from(
+    { length: IMPORT_POLICY.maxCollectionEntries },
+    (_, x) => ({
+      at: { x: x - 16000, y: -2 },
+      rune: 'ink',
+    }),
+  );
+  const page = growingLattice(runes);
+  const options = { lattices: { draughtsman: page }, seed: 17, lab: true };
+  // The occupied entries fit a collection, but their coordinate fields exceed external aggregate limits.
+  expect(() => assertImportStructure(options)).toThrow(
+    expect.objectContaining({ resource: 'entries' }),
+  );
+  const spec = scenarioSpec({ board: 'D . r' }, options);
+  expect(spec.party?.draughtsman?.spells).toEqual([]);
+  expect(spec).toMatchObject({ seed: 17, lab: true });
+  expect(options.lattices.draughtsman).toBe(page);
+  expect(page.runes).toBe(runes);
+  expect(page.runes).toHaveLength(IMPORT_POLICY.maxCollectionEntries);
 });
