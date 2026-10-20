@@ -80,8 +80,9 @@ describe('placing and replacing', () => {
     expect(usedRunes(i).oil).toBe(3);
   });
 
-  test('refuses off the canvas', () => {
-    expect(placeRune(spell, { x: 5, y: 0 }, 'ink', palette).message).toBe('Off the page');
+  test('accepts signed cells beyond the old canvas and rejects unsafe coordinates', () => {
+    expect(placeRune(spell, { x: 1000000, y: -1000000 }, 'ink', palette).message).toBeNull();
+    expect(placeRune(spell, { x: Infinity, y: 0 }, 'ink', palette).message).toMatch(/coordinate/);
   });
 });
 
@@ -144,7 +145,7 @@ describe('tapping with a tool', () => {
 });
 
 describe('the canvas and the palette', () => {
-  test('the canvas follows the inside and stays within 7 x 7', () => {
+  test('the bounded compatibility canvas follows the inside', () => {
     const cells = canvasCells(spell);
     expect(cells).toHaveLength(5 * 3);
     expect(cells[0]).toEqual({ x: -1, y: -1 });

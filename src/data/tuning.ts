@@ -50,7 +50,6 @@ export const TUNING: Tuning = {
   deadAfterCasts: 5,
   paramSlots: 1,
   paramSlotsGold: 2,
-  revisionCanvasMax: 7,
 };
 
 /** Board chemistry numbers beyond `TUNING` (E2, design §4, P17–P19). Tune by playing. */

@@ -1,11 +1,15 @@
 import type { RuneRef } from '$data';
 import {
   baseGlyphCost,
+  type CellBounds,
   type Coord,
+  cellsInWindow,
   type GlyphDef,
   type GlyphInside,
   hasArrow,
   inkOf,
+  isLatticeCoord,
+  key,
   nameOf,
   type PlacedRune,
   revisionCanvas,
@@ -46,13 +50,18 @@ export function usedRunes(inside: GlyphInside): Partial<Record<RuneRef, number>>
   return used;
 }
 
-/** The cells of the canvas the player may tap, row by row (M18). */
-export function canvasCells(inside: GlyphInside): Coord[] {
-  const { origin, width, height } = revisionCanvas(inside);
-  return Array.from({ length: width * height }, (_, i) => ({
-    x: origin.x + (i % width),
-    y: origin.y + Math.floor(i / width),
-  }));
+/** Compatibility for the old editor. New views pass their bounded visible window explicitly. */
+export function canvasCells(inside: GlyphInside, window?: CellBounds, maxCells = 4096): Coord[] {
+  if (window) return [...cellsInWindow(window, maxCells)];
+  const bounds = revisionCanvas(inside);
+  if (bounds.width <= maxCells && bounds.height <= Math.floor(maxCells / bounds.width)) {
+    return [...cellsInWindow(bounds, maxCells)];
+  }
+  return [
+    ...new Map(
+      [inside.entry, ...inside.cells.map((c) => c.at)].map((at) => [key(at), at]),
+    ).values(),
+  ];
 }
 
 /** The palette as shelf slots: `free` is what the inside may still add (null = no limit). */
@@ -107,7 +116,7 @@ export function placeRune(
 ): Edit {
   const placed = cellAt(inside, at);
   if (locked(inside, at)) return kept(inside, ENTRY_STAYS);
-  if (!canvasCells(inside).some((c) => sameCoord(c, at))) return kept(inside, 'Off the page');
+  if (!isLatticeCoord(at)) return kept(inside, 'Invalid lattice coordinate');
   const slot = palette.find((s) => s.rune === rune);
   if (!slot) return kept(inside, `You don't hold ${nameOf(rune)}`);
   const used = (usedRunes(inside)[rune] ?? 0) - (placed?.rune === rune ? 1 : 0);

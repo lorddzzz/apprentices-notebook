@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { MEMBERS, RUNE_IDS, TUNING } from '$data';
+import { MEMBERS, RUNE_IDS } from '$data';
 import {
   type Aim,
   type BattleState,
@@ -249,20 +249,6 @@ describe('insideIssues', () => {
     expect(only(bareSource, 'arrow')[0]).toMatchObject({ at: c(0, 0), blocking: true });
   });
 
-  test('the canvas: cells that fall off the 7 × 7 page', () => {
-    const wide = spellInside(
-      rune('bolt', 0, 0, 'right'),
-      ...[1, 2, 3, 4, 5, 6, 7].map((x) => rune('ink', x, 0)),
-    );
-    // 8 cells in a row are 8 wide: past the cap, the ring goes first, then cells fall off.
-    expect(only(wide, 'canvas')[0]).toMatchObject({ at: c(7, 0), blocking: true });
-    const fits = spellInside(
-      rune('bolt', 0, 0, 'right'),
-      ...[1, 2, 3, 4, 5, 6].map((x) => rune('ink', x, 0)),
-    );
-    expect(only(fits, 'canvas')).toEqual([]);
-  });
-
   test('overlapping cells', () => {
     const doubled = spellInside(...CASHING.cells, rune('oil', 3, 0));
     expect(only(doubled, 'overlap')[0]).toMatchObject({ at: c(3, 0), blocking: true });
@@ -278,7 +264,7 @@ describe('insideIssues', () => {
       spellInside(...CASHING.cells, rune('oil', 3, 0)),
       spellInside(
         rune('bolt', 0, 0, 'right'),
-        ...[1, 2, 3, 4, 5, 6, 7].map((x) => rune('ink', x, 0)),
+        ...[1, 2, 3, 4, 5, 6, 7, 8].map((x) => rune('ink', x, 0)),
       ),
     ];
     for (const inside of every) {
@@ -350,17 +336,17 @@ describe('revisionCanvas', () => {
       rune('bolt', 0, 0, 'right'),
       ...[1, 2, 3, 4, 5].map((x) => rune('ink', x, 0)),
     );
-    expect(revisionCanvas(six)).toEqual({ origin: c(0, -1), width: 7, height: 3 });
+    expect(revisionCanvas(six)).toEqual({ origin: c(-1, -1), width: 8, height: 3 });
     const seven = spellInside(
       rune('bolt', 0, 0, 'right'),
       ...[1, 2, 3, 4, 5, 6].map((x) => rune('ink', x, 0)),
     );
-    expect(revisionCanvas(seven).width).toBe(TUNING.revisionCanvasMax);
+    expect(revisionCanvas(seven).width).toBe(9);
     const tall = spellInside(
       rune('bolt', 0, 0, 'right'),
       ...[1, 2, 3, 4, 5, 6, 7].map((y) => rune('ink', 0, y)),
     );
-    expect(revisionCanvas(tall).height).toBe(TUNING.revisionCanvasMax);
+    expect(revisionCanvas(tall).height).toBe(10);
   });
 
   test('an empty inside still has the entry and its ring', () => {

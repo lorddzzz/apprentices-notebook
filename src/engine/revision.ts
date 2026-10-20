@@ -3,8 +3,9 @@ import { argIssue, canBeOpen } from './glyph';
 import {
   type Coord,
   type Dir,
+  isLatticeCoord,
   key,
-  label,
+  latticeLabel as label,
   neighbors4,
   opposite,
   sameCoord,
@@ -13,6 +14,7 @@ import {
   turnRight,
 } from './grid';
 import { compileLattice, hasArrow, nameOf, roleOf } from './lattice';
+import { pageBounds } from './page';
 import { emptyRecord, recordOf, rewardsOf, versionKey } from './profiler';
 import { glyphLibrary, validateLoadout } from './run';
 import type {
@@ -41,7 +43,16 @@ import type {
 
 /** Why an inside can't be saved (M18). Not `blocking` = a draft's test may still run (M34). */
 export interface InsideIssue {
-  kind: 'entry' | 'kind' | 'source' | 'size' | 'stranded' | 'aura' | 'arrow' | 'canvas' | 'overlap';
+  kind:
+    | 'entry'
+    | 'kind'
+    | 'source'
+    | 'size'
+    | 'stranded'
+    | 'aura'
+    | 'arrow'
+    | 'coordinate'
+    | 'overlap';
   at?: Coord; // local cell
   message: string;
   blocking: boolean;
@@ -71,24 +82,14 @@ export function insideOf(def: GlyphDef): GlyphInside {
 
 const roleIn = (r: RuneRef) => roleOf(r);
 
-/** One axis of the canvas: the box plus a ring of 1 while that fits, else the box from its first cell. */
-function axis(min: number, max: number): { origin: number; size: number } {
-  const span = max - min + 1;
-  return span + 2 <= TUNING.revisionCanvasMax
-    ? { origin: min - 1, size: span + 2 }
-    : { origin: min, size: TUNING.revisionCanvasMax };
-}
-
-/**
- * The editor's canvas: the bounding box of the cells (and the pinned entry) plus a ring of 1,
- * capped at 7 × 7. Past the cap the ring goes first, then cells fall off the page (a `canvas` issue).
- */
+/** Sparse bounds only: never allocates the rectangle or changes local coordinates. */
 export function revisionCanvas(inside: GlyphInside): RevisionCanvas {
-  const xs = [inside.entry.x, ...inside.cells.map((c) => c.at.x)];
-  const ys = [inside.entry.y, ...inside.cells.map((c) => c.at.y)];
-  const x = axis(Math.min(...xs), Math.max(...xs));
-  const y = axis(Math.min(...ys), Math.max(...ys));
-  return { origin: { x: x.origin, y: y.origin }, width: x.size, height: y.size };
+  return pageBounds(
+    (function* () {
+      yield inside.entry;
+      for (const cell of inside.cells) yield cell.at;
+    })(),
+  );
 }
 
 const cellMapOf = (cells: readonly PlacedRune[]): Map<CellKey, PlacedRune> =>
@@ -161,6 +162,10 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
   const add = (kind: InsideIssue['kind'], message: string, blocking: boolean, at?: Coord): void => {
     issues.push(at ? { kind, at: { ...at }, message, blocking } : { kind, message, blocking });
   };
+  if (!isLatticeCoord(inside.entry) || inside.cells.some((c) => !isLatticeCoord(c.at))) {
+    add('coordinate', 'Invalid lattice coordinate', true);
+    return issues;
+  }
   const spell = inside.kind === 'spell';
   const seen = new Set<CellKey>();
   for (const c of inside.cells) {
@@ -219,23 +224,6 @@ export function insideIssues(inside: GlyphInside): InsideIssue[] {
     );
   }
 
-  const canvas = revisionCanvas(inside);
-  const off = inside.cells.find(
-    (c) =>
-      c.at.x < canvas.origin.x ||
-      c.at.y < canvas.origin.y ||
-      c.at.x >= canvas.origin.x + canvas.width ||
-      c.at.y >= canvas.origin.y + canvas.height,
-  );
-  if (off) {
-    add(
-      'canvas',
-      `Doesn't fit the ${TUNING.revisionCanvasMax} × ${TUNING.revisionCanvasMax} page`,
-      true,
-      off.at,
-    );
-  }
-
   // Reach is only meaningful once the way in works.
   if (entry && pinned && issues.every((i) => i.kind !== 'kind' && i.kind !== 'entry')) {
     const reached = new Set(insideFlow(inside).reached);
@@ -271,36 +259,46 @@ function walkInside(inside: GlyphInside): GlyphDef['exits'][number][] {
   const entry = cells.get(key(inside.entry));
   if (!entry) return exits;
 
-  // Returns whether `at` was newly entered.
-  const visit = (at: Coord, dir: Dir, from: Coord): boolean => {
+  const pending: { at: Coord; dir: Dir; from: Coord }[] = [];
+  if (inside.kind === 'spell') {
+    if (roleIn(entry.rune) === 'source') {
+      visited.add(key(inside.entry));
+      pending.push({ at: step(inside.entry, 'right'), dir: 'right', from: inside.entry });
+    }
+  } else {
+    pending.push({
+      at: inside.entry,
+      dir: 'right',
+      from: { x: inside.entry.x - 1, y: inside.entry.y },
+    });
+  }
+  const exitKeys = new Set<string>();
+  while (pending.length) {
+    const current = pending.pop();
+    if (!current) continue;
+    const { at, dir, from } = current;
     const placed = cells.get(key(at));
     if (!placed) {
-      if (!exits.some((e) => sameCoord(e.from, from) && e.dir === dir)) {
+      const exitKey = `${key(from)}:${dir}`;
+      if (!exitKeys.has(exitKey)) {
+        exitKeys.add(exitKey);
         exits.push({ from: { ...from }, dir });
       }
-      return false;
+      continue;
     }
     const role = roleIn(placed.rune);
-    if (visited.has(key(at)) || role === null || role === 'aura' || role === 'source') return false;
+    if (visited.has(key(at)) || role === null || role === 'aura' || role === 'source') continue;
     visited.add(key(at));
-    const go = (d: Dir): boolean => visit(step(at, d), d, at);
+    const go = (out: Dir): void => {
+      pending.push({ at: step(at, out), dir: out, from: at });
+    };
     if (placed.rune === 'bend') {
       const out = placed.dir ?? 'right';
       if (out !== opposite(dir)) go(out);
     } else if (placed.rune === 'fork') {
-      go(turnLeft(dir));
       go(turnRight(dir));
+      go(turnLeft(dir));
     } else go(dir);
-    return true;
-  };
-
-  if (inside.kind === 'spell') {
-    if (roleIn(entry.rune) === 'source') {
-      visited.add(key(inside.entry));
-      visit(step(inside.entry, 'right'), 'right', inside.entry);
-    }
-  } else {
-    visit(inside.entry, 'right', { x: inside.entry.x - 1, y: inside.entry.y });
   }
   return exits;
 }

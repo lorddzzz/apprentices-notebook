@@ -404,7 +404,6 @@ export interface Tuning {
   deadAfterCasts: number; // casts of a version before a cell that never fired counts as dead (M13)
   paramSlots: number; // open cells a Glyph may have (M22)
   paramSlotsGold: number; // at Reliability gold
-  revisionCanvasMax: number; // the revision canvas is at most this many cells a side (M18)
 }
 
 // ── The city and its districts (K-1, K-19 to K-23) ─────
