@@ -1,184 +1,155 @@
 # Roadmap and backlog
 
-> The one place for everything we *could* work on. Not a commitment: the player picks what's next, and a picked item gets a design round (`design-round` skill) and/or a plan in [docs/plans/](plans/) before it is built.
-> Created 2026-10-15 from a full read of DESIGN.md, TECH.md, the feature doc and the plan status files. **Proposals are marked as such; the player has not yet ranked this list.**
-> Related: [DESIGN.md](../DESIGN.md) (the *what*, decision log §11) · [TECH.md](../TECH.md) (the *how*, §7) · [research-and-mastery.md](design/research-and-mastery.md) (feature doc for stages C–G).
+> Updated 2026-10-20 after the rune redesign audit. This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
 
-- **Sections** run from "what we'd do next" to "deliberately not doing": [1 Now](#1-now-top-priority) · [2 Roadmap](#2-roadmap-planned-tracks) · [3 Backlog](#3-backlog-ideas-ready-to-pick) · [4 Tech and tooling](#4-tech-and-tooling) · [5 Parked](#5-parked-cut-or-deferred) · [6 Open questions](#6-open-design-questions) · [7 Done log](#7-done-log).
-- **IDs** (`BL-nn`) are stable. Never renumber; move an item between sections instead. New items take the next free number.
-- **Finishing an item:** when it is done, it leaves its section and goes to the [Done log](#7-done-log) with the date. Done items appear in no other section.
-- **Playtests:** we do **not** create separate playtest tasks. The player playtests when it suits (right after an implementation, or later in a general play-through) and writes feedback, which becomes a new item or an add-on to an existing one. Do not add `playtest` items.
-- **Promoting an item:** design round → plan in `docs/plans/<name>-plan.md` → build with the `implement` skill → move the item to the [Done log](#7-done-log) with the date and the plan link, and update DESIGN.md §11 / TECH.md §7 in the same commit.
-- **Keep it honest:** when a playtest or a build changes the picture, edit this file in the same commit. Grep-friendly: `grep -n "area:.*bench" docs/ROADMAP.md`.
+- IDs are stable: move entries, never renumber. New IDs start after BL-123.
+- Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Tracks](#2-roadmap-planned-tracks), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
+- An item gets a focused design round when needed, then an implementation plan. Update design/technical decisions with the build and move completed work to the Done log.
+- No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
+- Types: feature, content, design, balance, polish, bug, tech, test, docs. Sizes: XS (one edit), S (focused task), M (several related tasks), L (own plan), XL (several plans). Estimates are scope, not promises about model usage.
+- Status: ready, needs-design, needs-feedback, investigate, idea, blocked, parked. An investigation must reproduce the issue before changing rules. Table Area fields remain searchable.
 
-### Metadata legend
+## 1. Now: correctness and plan leftovers
 
-| Field | Values |
-|---|---|
-| **Type** | `feature` · `content` (data/runes/enemies/layouts, mostly `src/data/`) · `design` (needs a decision first) · `balance` · `polish` (UX, visuals, feel) · `bug` · `tech` · `test` · `docs` |
-| **Size** | `XS` minutes, one edit · `S` one focused task (≈ ≤ 3 % of a 5h usage window) · `M` a few tasks, one plan wave (≈ 5–15 %) · `L` its own plan, orchestrated build (≈ 50–150 %; the whole Seam deepening, 14 tasks and 3 design rounds, was about 1.3 windows) · `XL` several plans over several sessions |
-| **Area** | `combat` · `lattice` · `runes` · `materials` · `bench` (research) · `compile` (Glyphs) · `mastery` · `run` (trips, loot, layouts) · `world` (districts, enemies, setting) · `party` · `study` (home UI) · `codex` · `lab` · `save` · `story` · `audio` · `tooling` · `docs` |
-| **Status** | `ready` (can start now) · `needs-design` · `needs-playtest` · `blocked` (by an ID) · `idea` (not looked at closely) · `parked` (see §5) |
-| **Needs** | IDs or things that must come first |
+**Suggested order, not a ranking chosen by the player:** investigate event/state correctness first (BL-106/107), then delayed and arrival rules (BL-105/108). Bench parity and persistent discovery are small player-visible follow-ups. Free lattice pages can proceed independently before recruitment.
 
----
+| ID | Work | Type / size | Area | Status / dependencies | Concrete scope |
+|---|---|---|---|---|---|
+| BL-101 | Fine-print coverage audit and missing content | content / M | runes, codex | ready | 100 registered lines versus P4's stated 132. Inventory actual missing behavior by rune; add useful sentences with firing scenarios. Do not promise 6–8 lines per rune or fabricate rows to hit a quota. Extend toward 220 as districts add terrain. |
+| BL-102 | Bench scene parity with encountered content | feature / M | bench | ready | Support met canal foes, water/current, vents and compounds; update subject counting and painting. Preserve discovery gates and the three-subject limit. Add a reusable authored trial lattice for nested inventions if the generated trial cannot demonstrate them. |
+| BL-104 | Keep solvent discoveries after spending them | bug / S | codex, save | ready | Record found solvents separately from inventory; retain pages at zero stock. Method/solvent pages should expose their witnessed fine print. Define existing-v7 inference from stock/inventions/witnessing. |
+| BL-105 | Preserve intended delayed invention context | bug / M | runes | investigate | Regress Coil/Margin on Repeat/Wick/Filings and nested Wick wake flags. Decide whether repeated flavored actions retain widening; preserve one-shot scheduling and lifetime attribution. |
+| BL-106 | Dusk jar replacement timing | bug / S | combat | investigate | Snapshot jar identities, not just coordinates, so a replacement jar waits until next dusk. Reproduce using a jar tail replacing a later queued dusk jar. |
+| BL-107 | Stop state mutation when a cast fizzles at the cap | bug / M | combat | investigate | Audit helper loops and detached continuations after the 500-event cap; require termination and projected/final state agreement. |
+| BL-108 | Current arrival hooks and playback agreement | bug / M | combat | investigate | Define/reproduce arrival into stains, marks, fire and step jars for carried units/cargo. Include history/origin of delayed effects and exemptions for water/flying/anchored foes. |
+| BL-119 | Canal lock map illustration | polish / XS | world | ready | Replace the cosmetic burnt wooden gate with an opened rat-guarded lock; current puzzle teaches a drop, not burning a gate. |
 
-## 1. Now (top priority)
+## 2. Roadmap: planned tracks
 
-Loose ends, and they're cheap. **Proposal:** clear them in one short session before starting a big track.
+The redesign supplies depth already. The next substantial choice is **freer builds/party**, **another district**, or **rivals**. They can be developed separately. New district builds reuse existing school runes, methods and solvents, currently Lab-only.
 
-#### BL-06 · Docs refresh
-`docs` `XS` · area: docs · status: ready · needs: —
-TECH.md header still says "2026-10-12"; DESIGN §10 still says "Next: the player plays v0" and leaves "do triggers see same-cast effects?" open although we ship "yes"; §10 checkbox state vs. what's built. Link this roadmap from CLAUDE.md and DESIGN.md.
+### Track P · Apprentices and freer lattices
 
----
+| ID | Work | Type / size | Area | Status / dependencies | Scope |
+|---|---|---|---|---|---|
+| BL-103 | Lattice pages grow with the wiring | feature / M–L | lattice, save | needs-design | Deliver the accepted no-fixed-shape decision: automatic page growth, ink as the budget, phone pan/fit, import validation and revision/proof compatibility. Current shapes still come from member definitions. Can ship for two apprentices before recruitment. |
+| BL-43 | The household and three-member expeditions | feature / XL | party, world | needs-design; BL-103 before full delivery | [Party design](design/party.md): recruit in districts and at the door, select 3 from a household, larger portrait boards around 7×9, individual bodies/basic actions. Keep existing trained/gifted leans and Fork-ahead/two-jar habits. Design the third habit, recruitment pacing, trio selection and room scaling. Ink is currently per apprentice. |
 
-#### BL-100 · Rune redesign polish and future content
-`feature` `M` · area: runes, mastery, tooling · status: ready · needs: —
-The planned M1/S1/T1/K1/R2 continuation and authored level-I behaviors are complete (see the Done log and [status](plans/rune-redesign-status.md)). Remaining optional work: footnote levels II–III and the other runes; richer event contracts (`crush` at/dir, `jarSealed` peek, `held` rounds); one shared log pass for the lines and projection guards; redraw weak glyphs (margin, strike, coil, brink, bind, chalk, filings, quicksilver). These are follow-ups, not unfinished tasks in the executed plan.
+### Track W · Districts and progression
 
-## 2. Roadmap (planned tracks)
+Every district round specifies hearing/gate, route/return rhythm, terrain and edge behavior, teaching rooms, enemies/heart, rune/method/solvent drops and fine-print/idiom scenarios. The four middle districts branch after the canals; no fixed order is chosen. The Cartographers are last. See [city design](design/city-and-districts.md) and rune design §11.
 
-Four tracks. Within a track the order matters; across tracks it doesn't. **Proposal: Mastery first**, because Compile currently rewards only an ink saving and nothing grows with use, and a second district would sit on that thin layer. The player decides.
+| ID | District / school | Type / size | Area | Status / dependencies | Deliverable |
+|---|---|---|---|---|---|
+| BL-113 | Ink-makers' quarter / Contracts | feature / L | world, run | needs-design | Notaries; Sentence, Levy, Tally; unlock Bind/Lift and hit/enters events; Wax/Sand; teach mark debts and Debt Collection. Author encounters, not another recipe system. |
+| BL-114 | Bathhouses / Areas | feature / L | world, run | needs-design | Vat, Seep, Steep; Bath salt/Fog jar; connected-cloud setups and Steam Room. Pick distinctive terrain and foes; avoid merely making every room larger. |
+| BL-115 | Bridges / Structure | feature / L | world, run | needs-design | Crumbling spans over drops, Hold/Brink/Lay, Bind pushed event, Mortar/Chalk and Long Drop. Decide span collapse, safe member/elite behavior and edge policy. |
+| BL-116 | Bell foundry / Resonance | feature / L | world, run | needs-design | Toll/Coil/Unison, Rivet/Filings, Peal; brass networks, bells and a new board rule. Differentiate its networks from early Conduct. |
+| BL-117 | Cartographers' hall / Board | feature / XL | world, run, story | needs-design; finale after middle districts | Swap/Draw/Erase, Bind dies event, Quicksilver/Graphite, Redraft; unfinished paper, redrawn streets, the owner's guild and the Seam's origin. Erase's paper behavior belongs here. |
 
-### Track M · Mastery (the Scholar's Press, stages C–G)
+### Track R · Rival inscribers and recovered pages
 
-Designed in [research-and-mastery.md](design/research-and-mastery.md); stages A + B (Bench and Compile) shipped 2026-10-13; stages C, D, G (profiler and elegance, parameters, the owner's drafts) shipped 2026-10-16; the drafts were rebuilt as folios after the playtest (2026-10-17, was BL-14).
+| ID | Work | Type / size | Area | Status / dependencies | Scope |
+|---|---|---|---|---|---|
+| BL-30 | Rival inscribers | feature / XL | combat, world | needs-design | [Rival design](design/rivals.md): same rune rules plus a signature trick; telegraph locked aims and readable short chains. Prototype one in the Lab, including deterministic cast priorities, starved-chain fallback, witnesses and lifetime credit. Then add named guild elites/masters. |
+| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | needs-design; BL-30 reward contract | Successor to retired folios: bring home a rival spell as a studyable Glyph or a repair challenge. Decide proof, ownership, reward and lore delivery. Reuse current runes; do not resurrect old folios unchanged. |
 
-### Track W · World
+### Track M · Mastery expansion
 
-#### BL-20 · Aspect set: a ninth aspect, or retag
-`design` `S` · area: bench, world · status: needs-design · needs: —
-Only the pairs ≋ϟ and ≋⟳ are free; the 7 later recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap, plus the Lance variant) don't fit in 8 aspects. Decide: add a ninth aspect (the feature doc floated *Light*, *Sound*), retag, or cut recipes. **Blocks BL-21's recipes.**
+| ID | Work | Type / size | Area | Status / dependencies | Scope |
+|---|---|---|---|---|---|
+| BL-54 | More footnote choices | content / M per batch | mastery | needs-design | Current: five level-I line pairs / ten variants across Bolt, Shove, Spark and Oil. Add other runes, then levels II–III and invention footnotes; define invention points/identity first. Prefer decisions that change builds over straight numerical upgrades. |
 
-#### BL-24 · Recipes for the new solvents
-`content` `M` · area: bench · status: blocked · needs: BL-20 (BL-21 done)
-The remaining tier-1 recipes (Arc, Coil, Bulwark, Ricochet, Canon, Reap; solvents Rivet, Quicksilver, Fog jar, Wax, Chalk), each with aspects read off its rule, a silhouette, hint and Lab scenario. The validity test catches aspect clashes. Feature doc §3.3.
+### Track A · Atmosphere
 
-### Track R · Rivals
+| ID | Work | Type / size | Area | Status | Scope |
+|---|---|---|---|---|---|
+| BL-40 | Real names | design / S | story | ready | Title, apprentices, city and Seam remain placeholders. |
+| BL-41 | Owner's mystery and lore delivery | content / M | story, codex | needs-design | The owner drew the Seam and was expelled by the Cartographers: the premise is chosen. Develop how players uncover it through notebook notes, discoveries, guild archives and recovered rival pages; folios no longer deliver lore. |
+| BL-42 | Audio | feature / M | audio | needs-design | Tone, free assets or synthesis, mute/reduced distractions and iOS gesture/PWA behavior. |
 
-#### BL-30 · Rival inscribers
-`feature` `XL` · area: combat, world, lattice · status: needs-design · needs: — (BL-21 done)
-**Scoped 2026-10-18** ([rivals.md](design/rivals.md)): each guild's inscribers, the same runes plus one trick, break their chain, a page of their lattice as the reward. Enemies with lattices of their own whose chains are telegraphed too (Into the Breach for spell chains). The most distinctive idea in the design and the hardest: how an enemy lattice is authored, shown and previewed, and how AI picks casts deterministically. Do a design round and a small prototype in the Lab before committing. DESIGN §6.7.
+## 3. Backlog: ideas ready to pick
 
-### Track A · Atmosphere and party
+| ID | Work | Type / size | Area | Status | Scope |
+|---|---|---|---|---|---|
+| BL-100 | Rune art and editor polish | polish / M | runes, study | ready | Redraw margin, strike, coil, brink, bind, chalk, filings, quicksilver. Audit invention names/art in every shelf/caption and optional shelf metadata/duplicated flow geometry. Implementation leftovers now have their own IDs above and in §4. |
+| BL-50 | Diagonal aura reach | feature / M | lattice, mastery | needs-design | Possible footnote choice after aura-specific rules and readable overlays are designed. |
+| BL-51 | Additional runes beyond the 31 | content / M each | runes | idea | New Source/Shape/Trigger behavior only if it adds something current methods and wiring cannot express. Pull/hop as personal basic actions belong to BL-43 first. No aspect assignment needed. |
+| BL-52 | More idioms (nine now) | content / S each | runes, codex | ready | Add recognizable event patterns in idioms.ts and a replayable Lab example; these are named achievements of a cast, not compile recipes or free Glyphs. |
+| BL-56 | Attrition and build balance | balance / M | combat, run | needs-feedback | Separate isolated room strength from full-trip charge exhaustion. Baseline: starter bots clear fresh Seam rooms but full trips exhaust charges around depth 3. Review Strike versus Spark/crush, ink costs, leans and rewards. Decide whether pushing FROM oil should start a slide; currently only entering oil extends it. |
+| BL-60 | More Seam layouts | content / S | run | ready | Three per depth now; vary network, jar and push opportunities rather than enemy HP alone. |
+| BL-61 | Additional enemy behaviors | content / M | world, combat | needs-design | Slugs/constructs or enemies that erase marks, move jars or break networks are proposals. Tie each to its district and one clear telegraph. Eel/Snuffer/moth/mother already exist. |
+| BL-62 | More loot offer kinds | content / S | run | idea | Current offers: rune/method pages, ink, solvents, vellum and doorway (key support exists). Avoid redundant currencies; recovered pages depend on BL-118. |
+| BL-63 | Doorway variants / second rare offer | content / S | run | idea | Optional breaks in trip pacing with a clear cost in foregone loot. |
+| BL-91 | Lamp-mother summoning cadence | balance / XS | combat | needs-feedback | The last summoned moth occupies the preferred lamp, often making calls every other round. Decide next-free-lamp versus current rhythm. |
+| BL-92 | Canal room tuning | balance / S | run | needs-feedback | Recalibrate with current runes/charges before using the old 39% heart result; room and full-trip metrics differ. |
+| BL-93 | Current preview and arrows | polish / S | combat | needs-feedback | Current toggle exists; consider hold-to-peek and water arrows readable under oil/jars. |
+| BL-94 | Threshold copy as district data | tech / XS | world | ready | Move banner copy into ThresholdDef before the next threshold room. |
+| BL-95 | Map label/path spacing | polish / XS | world | ready | Recheck paths against the renamed Seam caption and expanding heard districts. |
+| BL-71 | Reload the same Lab demo in-page | bug / XS | lab | investigate | Check the unchanged-id effect with ?demo=1; add a replay/reset path if still reproducible. |
+| BL-73 | iPad / desktop layout verification | test / S | study, combat | idea | Cover larger screens and portrait/landscape; phone remains primary. |
+| BL-74 | Player annotations in the notebook | feature / M | codex | idea | Automatic witnessed fine print is settled. Optional personal notes/bookmarks are a new feature, not an unresolved automatic-versus-written rule. |
+| BL-75 | Accessibility | polish / M | study, combat | idea | Material patterns, color-blind readability, tap targets and motion reduction. |
 
-#### BL-40 · Real names
-`design` `S` · area: story · status: ready · needs: —
-The game, the apprentices, the city and the Seam are placeholders (DESIGN §9.4). Pick names once play suggests them.
+New possibilities arising from the shipped systems (all **proposals**):
 
-#### BL-41 · The mystery and lore text
-`content` `M` · area: story, codex · status: idea · needs: — (BL-21 done; owner's drafts now exist as a delivery vehicle)
-Why the owner was expelled. Delivered through codex notes, owner's drafts, guild archives. Stays low priority until the core is fun; the hint lines and torn pages are the groundwork.
-
-#### BL-42 · Audio
-`feature` `M` · area: audio · status: needs-design · needs: —
-Decided "none in v0", never revisited. Needs a tone decision (rain, kettle, chime on a chain?), free assets or synthesis, and the iOS rules (a user gesture to unlock, mute switch, PWA behaviour).
-
-#### BL-43 · The household: recruiting, picking 3, no lattice shapes
-`feature` `L`–`XL` · area: party, lattice · status: needs-design · needs: — (school leans, habits and gifts built with the rune redesign)
-**Scoped 2026-10-18** ([party.md](design/party.md)): apprentices from districts and the door, pick 3 of many, school lean + habit + body, no fixed lattice shapes (ink only), board about 7×9.
-Max party size and recruitment are open (DESIGN §6.1). Each member is a lattice shape plus an affinity: a Steam or Brass member would explore the untouched affinities before any signature abilities (held back deliberately, playtest 1).
-
----
-
-## 3. Backlog (ideas ready to pick)
-
-Unscheduled. Anything here can be promoted when it earns it.
-
-### Runes and rules
-
-| ID | Item | Type | Size | Area | Status | Notes |
-|---|---|---|---|---|---|---|
-| BL-50 | Auras that reach diagonally | feature | M | lattice, mastery | needs-design | "Rune upgrade" from playtest 1. Could be a footnote reward (BL-12). |
-| BL-51 | Unbuilt runes from the family table: **Pull** (Source), **Wider**, **Bounce** (Shape), **When ally hit** (Trigger) | content | M each | runes | needs-design | Each needs aspects (check BL-20 first) and a rule that stays one sentence. |
-| BL-52 | More idioms (3 now) | content | S | compile | ready | Each is data in `idioms.ts` plus a Lab scenario. |
-| BL-53 | Alternate-solvent recipes: **Thunderhead** (Spark + Steam + Fog jar) next to Arc | content | S | bench | ready (BL-21 done) | "The solvent is the steering wheel". Feature doc §3.3. |
-| BL-54 | Footnote content for the other runes | content | M | mastery | ready | Level I now covers Shove, Spark, Oil and Bolt; levels II–III remain future content. |
-| BL-55 | Fire: its own element or a state; terrain decay; final matrix | design | S | materials | idea | Open since v0 (DESIGN §6.5, §10). |
-| BL-56 | Balance pass: lattice sizes, ink costs, charges, enemy numbers | balance | S | combat, run | needs-playtest | Open checkboxes in DESIGN §10. Feedback from the player's play-throughs lands here as add-ons. |
-
-### Content
-
-| ID | Item | Type | Size | Area | Status | Notes |
-|---|---|---|---|---|---|---|
-| BL-60 | More Seam layouts (3 per depth now) | content | S | run | ready | Data + the fuzz plays them automatically. |
-| BL-61 | New enemy types: mutated vermin (bathhouse slugs), constructs (steam golems) | content | M | world, combat | ready (design the traits) | Canal eels, Snuffer and lamp-moths are designed in BL-21. The rest come with their districts. |
-| BL-62 | More loot offer kinds beyond runes / ink reserves / solvents / vellum / doorway | content | S | run | idea | "Lattice sockets" and "notebook pages" were considered and not chosen. |
-| BL-63 | Doorway variants or a second rare offer | content | S | run | idea | The quiet doorway landed well in BL-01; this is optional. |
-| BL-91 | The lamp-mother summons only every other round in practice (the moth she just called still stands on the lamp when she plans). Pick the next free lamp, or keep it | balance | XS | combat | needs-playtest | City build follow-up. |
-| BL-92 | Canal rooms tuning: lighter than the design table (bot heart win 39 %); harder middle rooms? | balance | S | run | needs-playtest | City build, C1. |
-| BL-93 | Drift preview as press-and-hold on a water tile (now a "Current" toggle); water arrows hidden under oil | polish | S | combat | needs-playtest | City build, U1. |
-| BL-94 | Threshold banner text into `ThresholdDef` data before a second threshold room | tech | XS | world | ready | City build, U4. |
-| BL-95 | Map: the ink line from the Seam crosses its "Ink · The Notaries" caption; node placement needs x in ~22–78 and 20 % vertical spacing | polish | XS | world | ready | City build, U2. |
-
-### Study, Lab, Codex
-
-| ID | Item | Type | Size | Area | Status | Notes |
-|---|---|---|---|---|---|---|
-| BL-96 | Folio goal lines name units by id ("dummy-2 dies", "dummy-3 is left standing"); say "the second dummy" or mark them on the board | polish | XS | desk | ready | Folios build, final check. |
-| BL-97 | The 4-page folio's note gets long on a phone: fold fragments older than the newest two behind "earlier notes" if playtests find it heavy | polish | XS | desk | needs-playtest | Folios build, U1. |
-| BL-70 | Lab palette can't paint stain, heat, etch, scald | polish | S | lab | ready | Scenario strings work; only the palette lacks them. |
-| BL-71 | Lab: loading the same scenario again with `?demo=1` in-page does nothing | bug | XS | lab | ready | The `$effect` skips an unchanged id. Pre-existing. |
-| BL-72 | Visually check the Codex pages for Heat and Stain | test | XS | codex | ready | Never checked at 375×812. |
-| BL-73 | iPad / desktop layout check | test | S | study, combat | idea | Promised in DESIGN §7; only 375×812 is verified. |
-| BL-74 | Codex entries: automatic vs player-written | design | S | codex | idea | Open since v0 (DESIGN §6.6). |
-| BL-75 | Accessibility pass (colour-blind safe materials, tap sizes, more reduced-motion) | polish | M | study, combat | idea | Reduced-motion is already honoured for the new pulses. |
-
----
+| ID | Work | Type / size | Area | Status | Scope |
+|---|---|---|---|---|---|
+| BL-120 | Save a fight situation as a Lab experiment | feature / M | lab, combat | idea | Recreate a surprising chain with terrain, inventions and footnotes intact; provide a shareable scenario using existing import/export, without awarding progression. |
+| BL-121 | Trace the lifetime of a cast | feature / M | combat, mastery | idea | Tap an origin in the trip/fight ledger to see its jar, mark, repeat and later damage. Turn existing lifetime credit into an explanation players can inspect. |
+| BL-122 | Invention notebook organization | polish / M | bench, codex | idea | Favorites, school/method filters and duplicate-build comparison as the invention shelf grows. |
 
 ## 4. Tech and tooling
 
-| ID | Item | Type | Size | Area | Status | Notes |
-|---|---|---|---|---|---|---|
-| BL-80 | Playwright smoke test on the built app (load, start a trip, one cast) | test | M | tooling | idea | Browser checks are manual (browser pane) today; TECH §8 "Playwright not used yet". |
-| BL-81 | Prove a red CI run really blocks the deploy | test | XS | tooling | ready | Skipped at setup (TECH §7, 2026-10-12). Push a failing test on a branch. |
-| BL-82 | Save safety beyond copy/paste: export to a file / share sheet, a "back up your notebook" nudge | feature | S | save | idea | iOS can evict site data; today only the text backup in the Study menu protects a save. |
-| BL-83 | TypeScript 7 | tech | XS | tooling | blocked (svelte-check support) | Pinned to ^6 (TECH §7). |
-| BL-84 | Dev-only event-log panel | tech | S | tooling | idea | "Not doing yet" in TECH §4; the log mostly covers it. |
-| BL-85 | Measure proof-replay cost at the end of long fights | test | XS | tooling | idea | Flagged as a risk in the research plan; check the fuzz timing. |
-| BL-86 | Dependency refresh (svelte, vite, vitest, biome, vite-plugin-pwa) | tech | S | tooling | idea | Versions were pinned 2026-10-12. Run `pnpm check` and the Lab. |
-| BL-88 | Revision canvas is capped at 7 × 7: fine while member pages are ≤ 5 × 6; a longer Glyph line would be unrevisable | tech | XS | compile | idea | Raise `revisionCanvasMax` (and the revision tests) if pages grow |
-| BL-87 | Worktree/preview friction for orchestrated builds (`preview_start` always runs in the main checkout; alt ports 5190–5192) | docs | XS | tooling | idea | Fold into the `implement` / `verify` skills. |
+| ID | Work | Type / size | Area | Status | Scope |
+|---|---|---|---|---|---|
+| BL-109 | Authoritative event contracts | tech / M | combat | ready | crush at/dir, jarSealed contents, held duration; reduce projection guesses. Consider dedicated waiting-drift and release-origin events. Preserve masked-preview non-disclosure. |
+| BL-110 | Shared scenario-log verification | tech / M | tooling | ready | Stop re-registering most engine suites for both line integrity and projection drift. Keep equivalent coverage and the mocked-suite isolation. |
+| BL-111 | Production bundle cost | tech / S | tooling | ready | Measure what drives the >500 kB advisory; evaluate lazy-loading Lab/Gallery/content while retaining offline play. |
+| BL-112 | Save/battle fallback resilience | tech / S | save | ready | Guard ensureBattle's fallback; define recovery for multiple corrupt saves. Pair with backup/export work when useful. |
+| BL-80 | Built-app browser smoke tests | test / M | tooling | idea | Load, trip, cast, Bench and save reload; deterministic fixtures. |
+| BL-81 | Verify red CI blocks deployment | test / XS | tooling | ready | Use a disposable branch/workflow check; never deliberately break main. |
+| BL-82 | File/share-sheet notebook backup | feature / S | save | idea | File export/import and an occasional backup nudge beyond text copy/paste. |
+| BL-83 | TypeScript 7 | tech / XS | tooling | blocked | Recheck supported Svelte tooling before changing the current ^6 range. |
+| BL-84 | Development event inspector | tech / S | tooling | idea | Filter by cast origin, line and delayed object; useful for BL-105–109. |
+| BL-85 | Long-fight proof/replay cost | test / S | tooling | idea | Measure lifetime traces and proof after large jar/mark networks; optimize only observed costs. |
+| BL-86 | Dependency refresh | tech / S | tooling | idea | Check installed versions first; verify offline build, typecheck and tests after upgrades. |
+| BL-88 | Revision canvas growth | tech / S | mastery | needs-design | Current cap 7×7; align growth/viewport/validation with BL-103 instead of only raising a constant. |
+| BL-87 | Build workflow documentation | docs / XS | tooling | idea | Refresh preview/worktree instructions when that workflow is used again. |
+| BL-123 | Stable footnote and Bind-event contracts | tech / S | mastery, save | ready | Use variant IDs rather than display-text comparisons in runtime context; store learned Bind events explicitly instead of deriving them from open districts before more gates/rewards ship. |
 
----
+## 5. Parked, cut or deferred
 
-## 5. Parked (cut or deferred)
-
-Not planned. Each line says why, and what would bring it back.
-
-| Item | Why parked | Comes back if |
-|---|---|---|
-| BL-02 · Out-of-charges stalemate (a lone rat out of reach with every charge spent; options in DESIGN §10b; fuzz should count it as a failure) | Not seen in play; the player has never been stranded like this (2026-10-16) | A playtest reports a stranded fight. Then reopen it as an item with the options from DESIGN §10b |
-| Walls as terrain | Cut from v0; plates, units and the edge already block | A district needs a layout feature plates can't give |
-| Slippery brass | Cut for good 2026-10-14: plates can't be walked on, so nothing to act on | Never, barring a mechanic change |
-| Fusion with rune evolution; rune chronicles / slow projects | Rejected research directions; in git at `86e1b25` | The Scholar's Press fails playtests |
-| Lattice sockets and notebook pages as loot | Not chosen in the loot round | Ink reserves feel too thin |
-| Member signature abilities | Wait until more affinities are explored | BL-43 or a second affinity pair plays well |
-| Permanent death | Likely no | Never planned |
-| Input alternatives: Confirm-only casting, undo for the last cast | The double tap works | The double tap misfires again |
-| Trip pacing alternatives: charges per fight, refill per win | Charges are fine for now | BL-02 comes back and picks one |
-| Wipe penalty alternatives: keep one item on a wipe | Trips are cheap | Trips get longer or costlier |
-| Reserve settings: the notebook-pages world, the wandering study, the ink sea | Held for later districts or endgames | A late-game or New Game+ idea is needed |
-| A third elegance metric, *Reach* | Cut for scope | Reliability and Economy feel flat |
-| Aspects beyond eight (*Light*, *Sound*) | Closed for learnability | BL-20 decides otherwise |
-| Echo and Splash as cut candidates | They stayed in v0 | Never mind unless one is dead weight |
-
----
+| ID / item | Reason / reopening condition |
+|---|---|
+| BL-02 · Out-of-charges stalemate | Historically parked until a player reports being stranded. BL-56 covers measured attrition; reopen escape/refill rules if needed. |
+| BL-20 · Ninth aspect / retagging | Superseded: aspects are removed. No dependency on future content. |
+| BL-24 · Recipes for solvents | Superseded: methods plus one solvent rule replace authored recipes. |
+| BL-53 · Alternate-solvent Thunderhead recipe | Superseded: Thunderhead is Spark on Bank; solvent variants come from applying solvents to inventions. |
+| BL-55 · Fire as element/state; terrain decay | Resolved by redesign: fire is a tile state; durations/decay exist. Numerical tuning is BL-56. |
+| BL-70 · Lab palette for Heat/Stain/Etch/Scald | Superseded old chemistry; current Lab palette expanded in S1. Bench omissions are BL-102. |
+| BL-72 · Heat/Stain codex page check | Superseded old page set; current compound/burst UI has prior phone verification. |
+| BL-96, BL-97 · Folio labels/long notes | Retired with the old folios. BL-118 must design its own readable goals/notes. |
+| Walls as separate terrain / slippery brass | No current need for walls beyond plates/edges; slippery brass was cut. Revisit only for a district requiring it. |
+| Permanent death | Not planned; recruitment doesn't imply losing notebook progress. |
+| Fusion/evolution, slow rune projects | Rejected research directions, recoverable from history if needed. |
+| Alternate cast input / charge refills / wipe penalties | Revisit from concrete feedback about miscasts, attrition or trip length. |
+| Extra elegance metric Reach | Cut for scope; only reconsider if Economy/Reliability leave a clear gap. |
+| Reserve settings | Notebook-pages world, wandering study and ink sea remain potential late-game ideas. |
 
 ## 6. Open design questions
 
-Short list of decisions with no owner yet. Each links to the item that would settle it.
-
-1. How should a party with no charges left be able to finish a fight? → BL-02 (parked)
-2. Ninth aspect, retag, or cut recipes? → BL-20
-3. ~~Which district comes second?~~ Decided 2026-10-16: the oil-lit canals ([city-and-districts.md](design/city-and-districts.md)). Canals designed the same day (foes, rooms, the lamp-mother, the lock) → BL-21
-4. Max party size, and does a third member come before a second district? → BL-43
-5. Is Fire an element or a state; does terrain decay? → BL-55
-6. What does the game sound like, if anything? → BL-42
-7. Does the player want more breadth (content volume) or more depth (mastery) next? → Section 2 intro
+1. Next substantial track: freer lattice/household, a middle district, or rival prototype? No old “mastery must come first” dependency remains.
+2. Which middle district should be built first, and what teaches its school using only Seam basics? BL-113–116.
+3. Growing page controls, trio selection, recruitment and personal actions? BL-103/43. Party size is already scoped as 3 of many.
+4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
+5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
+6. Rival aim is locked in the final rune design; choose readable telegraphs, fallback details and reward format. BL-30/118.
+7. Which footnote changes create interesting alternatives? BL-54. How should invention progression be identified?
+8. What audio fits the notebook and rainy city? BL-42.
 
 ---
 
@@ -188,6 +159,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-20 | **Current design/roadmap refresh** (closes BL-06): current summaries reconciled with the rune engine; old aspect/recipe/folio tasks retired; actual coverage gaps and future party/district/rival work split into actionable items | [audit](plans/rune-redesign-audit.md) |
 | 2026-10-19 | **Rune redesign continuation** (planned M1/S1/T1/K1/R2; closes BL-57): lifetime Glyph credit/proof, ten Lab lessons and unrestricted invention authoring, 140 deterministic invention/solvent fuzz cases, real first-evening integration, old-system audit and teaching terrain. All eight authored footnotes plus two approved Bolt variants work; remaining optional work stays in BL-100 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md) |
 | 2026-10-19 | The Seam's map label (was BL-99): "No guild: the owner's drawing" | `src/data/districts.ts` |
 | 2026-10-19 | **Rune redesign "Mix, Move, Invent"** (was BL-98; absorbs BL-12 footnotes, closes BL-13 Crystallise; folios retired): 31 runes in 7 roles, the five kinds with 10 compounds and 15 bursts, push/slide/crush/drop, jars, bound marks, the Bench with 5 methods and 14 solvents, fine print with blank previews, the footnote desk, the codex's compound table; save v7 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md), [rune-design-final.md](design/rune-design-final.md) §0 |

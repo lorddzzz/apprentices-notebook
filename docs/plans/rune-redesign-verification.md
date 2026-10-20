@@ -1,6 +1,6 @@
 # Rune redesign continuation verification
 
-Verified on 2026-10-19. Scope: remaining M1, S1, T1, K1, R2 tasks and completion of authored level-I footnotes, including the player's two additional Bolt variants.
+Verified on 2026-10-19. The later [2026-10-20 source audit](rune-redesign-audit.md) records coverage gaps that these checks did not establish: fine-print breadth and Bench parity. The results below remain the original verification report. Scope: remaining M1, S1, T1, K1, R2 tasks and completion of authored level-I footnotes, including the player's two additional Bolt variants.
 
 ## Automated checks
 

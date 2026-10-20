@@ -1,7 +1,13 @@
 # The Party: Apprentices
 
 > **Status: Exploring** (scoped 2026-10-18; the main decisions are in §0, and the full design comes later). Roadmap: BL-43.
-> Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.1, §6.2 and §11. **Supersedes** the 2026-10-12 decisions "members differ by material affinity and lattice shape" and "each lattice is a small grid shaped by its member". Related: [city-and-districts.md](city-and-districts.md) (guild schools), [rivals.md](rivals.md), [rune-content.md](rune-content.md) §7.
+> Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.1, §6.2 and §11. **Supersedes** the 2026-10-12 decisions "members differ by material affinity and lattice shape" and "each lattice is a small grid shaped by its member". Related: [city-and-districts.md](city-and-districts.md) (guild schools), [rivals.md](rivals.md), [current rune rules](rune-design-final.md) §9.
+
+## Current implementation boundary (2026-10-20)
+
+Two apprentices remain playable. Both move 3 and share basic Shove. The Draughtsman has 6 HP, trained Timing, gifted Contracts and the two-jars habit; the Stoker has 8 HP, trained/gifted Seam and Fork-ahead. Training discounts school runes by 1 ink (minimum 1); gifts improve the rune's declared range, push or duration. Ink is currently per apprentice, with household reserve upgrades increasing both allowances.
+
+**Fixed shapes still exist:** the editor reconstructs sockets from each member definition. Growing pages are an accepted design not delivered by the rune build (BL-103). Recruitment, selection of three, larger rooms and personal basic actions remain BL-43. No new recruit needs an aspect pair or a material affinity.
 
 ## 0. Decided in the scoping round (2026-10-18)
 
@@ -19,7 +25,7 @@
 ## 1. What stays open (for the full design)
 
 - How many apprentices exist in total, and which come from which district (*Proposal*: about one per guild district plus two or three at the door).
-- What happens to the Draughtsman and the Stoker: which school each leans to, and their habits and bodies.
-- Is ink per apprentice or shared by the household?
+- How the existing pair fits recruitment/trio balance; their current leans and habits are already implemented above.
+- Whether recruitment changes the current per-apprentice ink economy; current rule is settled until that round.
 - Where the trio is chosen (at the map before a trip), and whether a doorway can swap one.
 - Habits and basic actions, one apprentice at a time.

@@ -2,20 +2,20 @@
 
 > **Status: Built** (2026-10-17, BL-21 + BL-22; rules as built in §0 "Built", *tune by playing*). Designed in two rounds of 2026-10-16 (§0). Plan: [city-and-canals-plan.md](../plans/city-and-canals-plan.md), build log: [city-and-canals-status.md](../plans/city-and-canals-status.md).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. The Seam, the first district: DESIGN.md §9.2. Trip rules: DESIGN.md §6.4.
-> **Out of scope on purpose:** aspects, recipes, loot tables, solvents and rune content. They belong to the rune content rework ([rune-content.md](rune-content.md)). Since the 2026-10-18 scoping round (§0a), each district brings a guild school.
+> **Current rune integration (2026-10-20):** [Mix, Move, Invent](rune-design-final.md) defines the schools, runes, methods and two solvents per district. Aspects and recipes are retired. The Seam and canals are playable; the other five are heard-only drawings with Lab-only content until their own builds (BL-113–117).
 > Numbers and conditions are drafts, *tune by playing*.
 
 ## 0a. Scoping round: idioms and districts (2026-10-18)
 
-These answers set the frame for the rune content rework ([rune-content.md](rune-content.md) §7). They **replace** the out-of-scope note in the header for every district after the canals, and the canals get a school retrofitted.
+These answers set the frame for the shipped rune design ([rune-design-final.md](rune-design-final.md) §11). They **replace** the out-of-scope note in the header for every district after the canals, and the canals get a school retrofitted.
 
 | Question | Decision | Why |
 |---|---|---|
 | What a district gives your notebook | **A guild's school**: a few runes, its solvents and its idioms. A district teaches a new way to cast, not just new foes | Runes get a home and a flavour, and the Bench a reason to travel |
 | What a school is | **A way of thinking, not a material**: each guild owns a verb or habit across materials (e.g. conditions, timing, areas, structure). Material leans stay on the boards | Fixes "every rune is a material" at the root |
 | Mixing schools | **Free**: any rune goes anywhere, **but each apprentice leans** toward one or two schools ([party.md](party.md)) | Cross-school combos are the discoveries; members give the pull |
-| City size | **A handful, then the truth: about 5–6 districts**, each deep (guild, rule, boss), ending at the guild that expelled the owner | A finite shape for runes, aspects and solvents to fill |
-| Idioms | **A guild's signature**: each guild casts in a recognisable style. You learn its idioms in its district (folios, archives, beating its inscribers), and rivals visibly cast them at you ([rivals.md](rivals.md)) | Idioms get a home, and rivals show them in use |
+| City size | **A handful, then the truth: about 5–6 districts**, each deep (guild, rule, boss), ending at the guild that expelled the owner | A finite shape for runes, methods and solvents to fill |
+| Idioms | **A guild's signature**: each guild casts in a recognisable style. You name its idioms by performing or witnessing their event patterns; archives and recovered rival pages are future ways to learn spells, and rivals visibly cast them at you ([rivals.md](rivals.md)) | Idioms get a home, and rivals show them in use |
 | How districts differ | **In everything**: trip shape, foes, bosses, return paths, special drops and doors, and **a new terrain or state** that generic runes (verbs) find new uses for. Later districts may twist one material a little; that's spice, not the core | Old runes find new uses in new places |
 
 **City size, revised in the districts round below:** 7 districts, not 5–6.
@@ -96,7 +96,9 @@ These answers set the frame for the rune content rework ([rune-content.md](rune-
 | The lock's trick | The gate sits at the downstream end of a lane, behind brass plates, so nothing you cast reaches it directly. Only what floats does | Forces the current without forcing one lattice |
 | Bosses in general | One tile, lots of HP, telegraphed like everyone else | No new engine work for multi-tile units |
 
-### Built (2026-10-17): rules the build settled (*Proposal*, tune by playing)
+### Historical city build decisions (2026-10-17)
+
+This table records the original city build. The rune redesign replaced its lock puzzle and ignite terminology; current rules below take precedence.
 
 The plan's K-1 to K-24 hold as written, with these calls made during the build:
 
@@ -143,7 +145,7 @@ The door ("Set out into the city") opens a page torn from the owner's notebook. 
 
 A district is **heard** when one of its hearing conditions is met. Conditions live in data, one or more per district:
 
-- **The owner draws it in.** A discovery (an interaction, a pattern proven, a draft solved) or a torn page found as loot. A short moment back home: the owner's hand inks the district on the map, with their line.
+- **The owner draws it in.** A named result (compound, burst or idiom) or another explicitly authored condition. Recipe torn pages and solved folios no longer exist. A short moment back home: the owner's hand inks the district on the map, with their line.
 - **A rumour at home.** After a trip that meets a condition (a heart cleared, a number of trips, a district visited), a line at the attic window: a passer-by, a note under the door, a bell from the canal. It names the place, and the district is drawn.
 
 What you hear about mid-trip shows up when you get home, even after a wipe.
@@ -155,14 +157,14 @@ Each district has **one gate**, set in data:
 | Gate | How it opens | When to use it |
 |---|---|---|
 | **Discovery** | Hearing it opens it | The first few districts, and now and then later for a quick win |
-| **Threshold room** (spell) | Solve one hand-made board at its door | When a district has a mechanic worth teaching (the canal lock teaches the current) |
+| **Threshold room** (spell) | Solve one hand-made board at its door | When a district has a mechanic worth teaching (the current canal lock teaches pushing a foe into water) |
 | **Key** | Bring a key home from a trip | When a district should pull you deep into another one |
 
 ### 3.1 Threshold rooms
 
-- One fixed board (no seed). Its goal is not "kill everything" but **a mark to reach**: light the lock gate, put a spark through the bell, ink the warden's seal.
+- One fixed board (no seed). Its goal is not "kill everything" but **a mark to reach**: drop the lock-keeper's rat, put a spark through the bell, ink the warden's seal.
 - You play it with your current lattices, full charges, from the map. There are no enemies, or only harmless ones that block or drift.
-- Fail and you just retry. Solve it once and the district is open for good. The room gets a codex entry.
+- Fail and you just retry. Solve it once and the district is open for good. The map records the solved threshold; no places entry is added to the codex. The old burnt-gate illustration still needs updating for the rat puzzle (BL-119).
 - The room teaches the district's board rule. A build that can't solve it yet is a reason to go back to the desk.
 
 ### 3.2 Keys
@@ -179,7 +181,7 @@ Every district is one data entry with these layers:
 |---|---|---|---|
 | **Material lean** | More of its material on boards, enemies with its trait | Mixed, all five | **Oil** |
 | **Board rule** | One rule only this district has | None (the baseline) | **The current** (§5.1) |
-| **Guild** | Who holds it; its wardens and constructs form one faction | None (a borderland) | **The Lamplighters** |
+| **Guild** | Who holds it; its wardens and constructs form one faction | None (the owner's drawing) | **The Lamplighters** |
 | **Trip shape** | Length, and a twist on push or return | 4 rooms, return after any room | **5 rooms, landings only** (§5.2) |
 | **Enemies** | 2–3 types of its own | Oil-rat, brass sentry, ink familiar | Canal eel, Snuffer, lamp-moth, plus swimming oil-rats (§5.4) |
 | **Rooms** | 3 hand-placed layouts per depth, named, and a heart | Done | Wetter as you go (§5.5) |
@@ -194,9 +196,9 @@ Black water between slick quays, lamps on poles, barges that drift on their own.
 ### 5.1 The current
 
 - Boards have **water lanes**: rows or columns of water tiles, each with a downstream direction (drawn as faint arrows).
-- At **round end** (after the enemies act), everything floating moves **one tile downstream**: oil, fire on oil, ink puddles and stains. Units standing in water drift one tile too, if the tile is free. Anything that flows off the board is gone.
+- At **round end** (after the enemies act), everything floating moves **one tile downstream**: slicks, fire, blots and stains. Jars also drift on water; Pitch carries waiting invention effects with the current. Units standing in water drift one tile too, if the tile is free. Floating states that flow off the board are gone; units drift only to free on-board tiles, with swimmer/flier/anchored exceptions.
 - So you lay oil upstream this turn and it arrives under the eel next turn. Burning oil is a slow fireball.
-- *Open:* does water conduct Spark? Default **no**: water is only a carrier, and that keeps the matrix small. Does fire on water go out once it leaves the oil? Default **yes**.
+- **Current rule:** water alone does not conduct Spark; oil/fire and other floating states supply their own behavior. Units pushed into water use drop rules (minions die; members/elites take 4 and are stunned), except swimmers and fliers. The Seam and canal board edges are walls. Current-arrival hook consistency remains an investigation (BL-108).
 
 ### 5.2 Landings
 
@@ -206,30 +208,17 @@ Black water between slick quays, lamps on poles, barges that drift on their own.
 ### 5.3 How they open
 
 1. **Hear:** fire spreads across 3+ connected oil tiles in one cast, in the Seam. Back home, the owner's hand draws the canals: *"the black water climbs when lit."*
-2. **Enter:** the threshold room **the canal lock**. Oil goes in upstream, the current carries it to the lock gate, a spark lights it, and the gate burns open. It's the current in one board.
+2. **Enter:** the free, retryable threshold room **the canal lock**. Shove the lock-keeper's rat from the sill into canal water. The goal requires both its death and a `dropped` event, so killing it with Strike or Spark alone cannot open the district.
 
-**The lock board** (draft, the exact board is drawn in the plan):
-
-```
-. . ≈ . D .     ≈ = water lane, flowing down
-. . ≈ . . .     D S = the party, on the quay
-. . ≈ . S .     = = brass plates: nothing cast
-= = ≈ = = =         gets through to the gate
-. = ≈ = . .     G = the wooden gate, at the lane's end
-. = G = . .
-```
-
-- No enemies, full charges, free retries. You win when fire touches the gate.
-- Plates block every line from the quay, so the gate can be reached only by what floats down the lane. A Bolt aimed straight down the lane is the one leak. The plan closes it (for example, the gate opens only to fire, and the lane tile above it is a sluice that oil passes but casts can't target), and a solver test proves no direct cast opens it.
-- Several solutions: oil upstream then spark it as it passes the quay, light it first and let it burn down the lane (fire on oil drifts too), or Splash oil wide so it drifts as a slick.
+The current board has a rat beside water, permanent plates above and below the sill, and the two apprentices on the quay. `Bolt → Oil → Shove` is the intended starter solution; the shove supplies the drop. Full charges, no carried HP cost, and no trip loot/attrition. The old wooden gate / floating-fire puzzle was replaced by the rune redesign (P10 and R1); current lesson content teaches the current separately.
 
 ### 5.4 Enemies (*Proposal* numbers, tune by playing)
 
 | Enemy | Token | HP | Moves | Attack | Traits |
 |---|---|---|---|---|---|
-| **Canal eel** (vermin) | `e` | 3 | 4, **water tiles only**; it swims, so the current doesn't move it | **Lunge**: 2 to a unit orthogonally beside its tile | Wet: never oil-soaked, and fire can't burn on its tile unless oil floats there. Ink works |
-| **Snuffer** (Lamplighter warden) | `n` | 4 | 1 | **Pole**: 1 to an adjacent unit | At round end, puts out every fire in its 3×3. The fire **and its oil** are gone. A waxed coat: not oil-soaked |
-| **Lamp-moth** (vermin) | `m` | 1 | 3, flies (over water, ignores the current) | **Burst**, telegraphed on an adjacent member: it dies and leaves fire on its tile (lighting any oil there) and 1 to each unit next to it | Moves toward the nearest fire, else the nearest member. Killed by fire or Spark, it bursts too, so it's a fuse |
+| **Canal eel** (vermin) | `e` | 3 | 4, **water tiles only**; it swims, so the current doesn't move it | **Lunge**: 2 to a unit orthogonally beside its tile | Water-bound swimmer; exempt from water drops and current drift. Ink works; Oil lands on its tile |
+| **Snuffer** (Lamplighter warden) | `n` | 4 | 1 | **Pole**: 1 to an adjacent unit | At round end, puts out every fire in its 3×3. The fire **and its oil** are gone. Elite |
+| **Lamp-moth** (vermin) | `m` | 1 | 3, flies (over water, ignores the current) | **Burst**, telegraphed on an adjacent member: it dies and leaves fire on its tile (lighting any oil there) and 1 to each unit next to it | Moves toward the nearest fire, else the nearest member. Other kills burst it too, so it's a fuse; dropping a minion does not cause its death burst |
 | **Oil-rat** (Seam) | `r` | as now | as now; in water it drifts with the current | as now | Its oil trail on water floats away downstream |
 
 ### 5.5 Rooms
@@ -259,7 +248,7 @@ A great lantern floating mid-pool, far bigger than the lamps on the quays. The m
 
 ## 6. Later districts
 
-Themes and schools are set in §0a (the seven districts). Stages, board rules, foes, bosses, gates and trip shapes come in each district's own design round. The 2026-10-16 sketches of the rooftops and a guild archive were dropped: rivals now live in every guild district ([rivals.md](rivals.md)).
+Themes and schools are set in §0a (the seven districts); runes, methods and solvents already work in the Lab. No encounters or opening gates exist for the five drawings yet. Their placeholder map material labels are not final terrain design (bridges are height, foundry brass, Cartographers unfinished paper). Stages, board rules, foes, bosses, gates and trip shapes come in each district's own design round. The 2026-10-16 sketches of the rooftops and a guild archive were dropped: rivals now live in every guild district ([rivals.md](rivals.md)).
 
 ## 7. Hypotheses to test by playing
 

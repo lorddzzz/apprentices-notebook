@@ -6,11 +6,15 @@
 
 ## 0. Decisions
 
-**Implementation follow-through completed 2026-10-19:** M1 lifetime mastery, S1 unrestricted Lab authoring and ten replayable lessons, T1 fuzz/first-evening integration, K1 cleanup and R2 teaching terrain are implemented. All eight initial level-I variants now change behavior. The player additionally approved two Bolt variants: an unobstructed shot lands one clear tile farther or one tile nearer (never on the caster); first-unit and obstacle targets stay fixed. Bolt has empty/cloud/solid-obstacle fine print. There are ten level-I variant rows; levels II–III and the other districts remain later work under plan §5.
+**Implementation follow-through completed 2026-10-19:** M1 lifetime mastery, S1 unrestricted Lab authoring and ten replayable lessons, T1 fuzz/first-evening integration, K1 cleanup and R2 teaching terrain are implemented. All eight initial level-I variants now change behavior. See the [2026-10-20 audit](../plans/rune-redesign-audit.md) for coverage gaps and the maintained roadmap IDs. The player additionally approved two Bolt variants: an unobstructed shot lands one clear tile farther or one tile nearer (never on the caster); first-unit and obstacle targets stay fixed. Bolt has empty/cloud/solid-obstacle fine print. There are ten level-I variant rows; levels II–III and the other districts remain later work under plan §5.
 
 **Built 2026-10-19.** The player's calls at build time: the Seam and the canals are playable, the other five districts' runes, methods and solvents work but are reachable only in the Lab (plan P2); the folios are retired (P9); **board edges depend on the district**, walls in the Seam and the canals (P3). Every rule the build had to settle is a *Proposal* in the plan §1 (P1–P42) and in the status file's Proposals list (one block per task). The ones most likely to feel wrong, to judge by playing: P14–P16 (which layer a kind lands on, wash-out), P22 (headings), P33 (ink costs), P41 (blank previews), and that a unit only slides over oil it moves onto.
 
 The 22 decisions behind this design, from five rounds (2026-10-18), are logged with their reasons in [rune-design-synthesis.md](rune-design-synthesis.md) §3. Each of the ~60 ideas from the four proposals, and what became of it, is in its §2.
+
+### Current coverage and accepted later work (audited 2026-10-20)
+
+The rule tables describe the shipped rune engine; district/recruitment/rival sections also describe intended future content. The fine-print registry currently has **100** rows, below plan P4's stated 132; missing coverage needs a behavior audit (BL-101). The Bench still lacks met canal enemies and terrain (BL-102), while the Lab exposes the full content. Solvent pages currently depend on stock rather than permanent discovery (BL-104). Growing lattice pages, three-member parties, rivals, later terrain such as unfinished paper and higher/invention footnotes are **not built**. See the [audit](../plans/rune-redesign-audit.md) for concrete evidence and other known rough edges.
 
 ## 1. The idea in one page
 
@@ -30,13 +34,13 @@ Every rune has one **headline** you can always read. What it does on each thing 
 |---|---|
 | `Bolt → Oil → Spark` | The target's tile is oiled, then the spark lights it: **Fire**. |
 | `Bolt → Spark → Oil` | A spark hits the target, then its tile is oiled. Same runes, different spell. |
-| `Bolt → Oil → Shove` | The tile is oiled and the foe is shoved: it slides to the end of the oil and **is crushed** against the wall behind. |
+| `Bolt → Oil → Shove` | The departure tile is oiled and the foe is shoved. It slides farther only if it **enters oil already ahead**, and is crushed if the push then hits a wall. Oiling its starting tile alone does not extend the slide. |
 | `Splash → Ink → Steam` | A **Brand cloud** settles over the 3×3 and marks whoever is inside. It lingers. The next apprentice's `Bolt → Spark` bursts it into a storm that hits marked foes twice. |
 | `Bolt → Recoil` *(an invention)* into the Brand cloud | The recoil mark spreads through the cloud to everyone inside. Now the storm's every hit **shoves** someone, into each other and into the walls. |
 
 ## 2. The discovery rules
 
-- **D1 · Headline and fine print** (01). Every authored rune has a headline (one sentence, always true, always shown) and **6–8 fine-print lines**: what it does on each state, compound, terrain or unit type. A line is revealed when it **fires and is witnessed**: in a fight, in a Bench trial, or when a foe uses it on you.
+- **D1 · Headline and fine print** (01). Every authored rune has a headline (one sentence, always true, always shown) and a growing set of fine-print lines (6–8 per rune is the long-term design target, not current coverage): what it does on each state, compound, terrain or unit type. A line is revealed when it **fires and is witnessed**: in a fight, in a Bench trial, or when a foe uses it on you.
 - **D2 · The preview never hints** (01). It describes only what you've witnessed. Where an unwitnessed line will apply, it draws the landing and leaves the result blank, with no `?`.
 - **D3 · The harm warning.** The preview **always** warns when your own party will be hurt, even by an unwitnessed line: the apprentice shows as hurt and the reason stays blank.
 - **D4 · The Bench is the safe place to check** (04). The test scene runs the real engine on terrain and foes you've met. What you witness there counts.
@@ -65,7 +69,7 @@ A tile holds **one state or compound**, plus a unit and a jar. A unit can carry 
 
 | Kind | Lands as |
 |---|---|
-| Ink | a **mark** on the unit, or a **stain** on an empty tile |
+| Ink | a **mark** on the unit, or a **blot** on an empty tile (distinct from the Ink+Oil compound Stain) |
 | Oil | a **slick** tile: pushed units slide until they leave it; it's fuel |
 | Steam | a **cloud**: blocks sight and lines; joins touching clouds |
 | Brass | a **plate** on an empty tile (blocks, conducts); a **collar** on a unit (it conducts) |
@@ -97,8 +101,8 @@ And the **burst page**: Spark landing on each lingering compound bursts it in it
 ### 4.4 Moving things (03)
 
 - **Crush.** A unit pushed into a wall, plate or unit takes **1 + 1 per tile it moved** in that push, and what it hit takes 1. *(numbers default)*
-- **Slide.** A pushed unit on oil slides until it leaves the oil, and the tiles slid count toward a crush. Oil a unit slid over is used up that round (no pinball). *(03's guard)*
-- **Drop.** A unit pushed off an edge or into a canal: a minion is gone; an elite takes 4 and loses its next action.
+- **Slide.** A pushed unit that enters slick or grease fog continues sliding, and the tiles slid count toward a crush. Oil a unit slid over is used up that round (no pinball). *(03's guard)*
+- **Drop.** A unit pushed onto drop terrain or into a canal (or off a district edge explicitly marked as a drop): a minion is gone; an elite takes 4 and loses its next action.
 - **Networks.** Spark travels connected brass (Conduct) and connected clouds (Storm). Marks travel connected steam, with what they carry (D5). Any other action travels a network only if a **Conduct** invention sends it (§6).
 
 ## 5. The runes
@@ -153,7 +157,7 @@ And the **burst page**: Spark landing on each lingering compound bursts it in it
 | Source | 4 | Where the spell aims, how wide |
 | Action | 9 | What happens to a unit or tile: hit, push, shield, hold, spend marks, swap, move, erase |
 | Kind | 5 | The board's chemistry (the only "apply a state" runes) |
-| Shape | 6 | Where the rest acts: sides, neighbours, connected tiles, set for good (and Bend on the page) |
+| Shape | 5 | Where the rest acts: sides, neighbours, connected tiles, set for good (and Bend on the page) |
 | Trigger | 3 | Whether the rest happens: the board's history, an edge, the party's order |
 | Seal | 2 | When the rest happens: on a step, at dusk |
 | Aura | 3 | Longer, spreading, further |
@@ -228,7 +232,7 @@ A lingering compound waits **in the open** (for time, or for Spark). A jar waits
 - **Ink per apprentice.** Each apprentice has their own ink allowance; household upgrades raise everyone's. An invention costs the sum of its parts plus its method's cost (Bind +2, Conduct +2, Repeat +2, Margin +1, Lift +1). *(default)*
 - **Trip charges stay.** Sources carry charges per trip; going home refills them.
 - **Rewire** freely at home and at occasional safe places; never in battle.
-- **Footnotes** (01). Witnessed lines earn a rune points. At each level (I–III) it offers **two variants of a line you know**. You write one at the desk with a solvent from the district where that line was found. Inventions earn footnotes too.
+- **Footnotes.** In trip fights, witnessed line firings of known authored runes earn points (one per consecutive firing run, not per affected tile). Levels unlock at 5/15/40 points. Current content: five level-I pairs / ten variants on Bolt, Shove, Spark and Oil. First write of a line costs one solvent from that line's district; switching its variant is free. Footnotes apply wherever the rune is used, including inside Glyphs. Levels II–III, other runes and invention footnotes are future content (BL-54); Bench trials reveal lines but award no points.
 - **Glyphs** compile as now. **Elegance** counts what a cast did over its whole life: lingering compounds, jars and bound marks count toward the cast that made them (fixes BL-57).
 - **Crystallise goes** (round 5): inventions already re-enter research, so it has no job left.
 - **Defeat** ends the trip and loses unbanked loot, never anything learned.
@@ -237,10 +241,10 @@ A lingering compound waits **in the open** (for time, or for Spark). A jar waits
 
 - **Casting order is the combo.** One apprentice leaves a lingering compound, a jar or a bound mark; the next one bursts it, shoves a foe into it, or lands on the same target (Unison).
 - **Leans** (decision 18): every apprentice is **trained** in one school (its runes cost them 1 ink less), and some are also **gifted** in one (its runes work one step better: +1 tile, +1 round or +1 push). The Seam counts as a school.
-- **Habits** bend one headline: *her Forks act on the tile ahead too*; *he keeps two jars*; *her Bind marks can be left on an empty tile for the next unit to pick up* (04's rated scene).
-- **Bodies and basic actions** (pull, swap, hop) work with the board: hop onto your own jar to open it early, pull a foe through grease fog.
+- **Habits** bend one headline (first two built; Bind-on-empty-tile is a future third-apprentice proposal): *her Forks act on the tile ahead too*; *he keeps two jars*; *her Bind marks can be left on an empty tile for the next unit to pick up* (04's rated scene).
+- **Future bodies and personal basic actions** (pull, swap, hop; current pair both have basic Shove) work with the board: hop onto your own jar to open it early, pull a foe through grease fog.
 
-## 10. Rivals
+## 10. Rivals (future; BL-30)
 
 - **Same runes, plus one trick**: an invention you don't have yet, or a habit.
 - **Telegraph** the path, the landing and each rune's effect. Their aim is **locked** when shown.
@@ -281,10 +285,12 @@ Districts without their own method deepen the others through their solvents, the
 - Strike 2 vs Spark 1: is the safe hit worth its ink?
 - The burst page's ten results and each district's terrain.
 - The solvents' rules (§6.3) and which ones are fun.
-- How much fine print to write before the first prototype (220 lines is the long-term size).
+- Which missing fine-print behaviors to author next, and how far to expand with new district terrain (220 lines is the long-term target).
 - Whether the Seam's Conduct makes the foundry feel late.
 
-## 14. Next steps
+## 14. Historical prototype sequence (skipped)
+
+The player explicitly skipped these prototypes and authorized the full build, completed 2026-10-19. This is the original sequence, not an outstanding implementation checklist. Current work is in [ROADMAP.md](../ROADMAP.md).
 
 1. **Lab prototype 1: the Seam.** Sources only aim, wiring order, the five kinds, 6 compounds, Shove with slide and crush. Question: *do I find things, and do I want more?*
 2. **Lab prototype 2: the Bench.** Conduct with Impulse, the test scene, fine print revealed in trials.

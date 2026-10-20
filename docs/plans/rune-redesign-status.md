@@ -2,8 +2,8 @@
 
 Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main session (resumed from the Opus build). Updated on every event and committed with every merge.
 
-**State:** done (2026-10-19): all planned implementation is committed, verified and pushed to main with explicit player approval; deployment CI is being confirmed during closeout.
-**Next:** player playtest. Optional future work stays in ROADMAP BL-100. Agent worktrees/branches are cleaned; the resume heartbeat is paused. See [verification](rune-redesign-verification.md).
+**State:** task set delivered (2026-10-19), verified and pushed to main with explicit player approval. The 2026-10-20 audit found fine-print and Bench coverage gaps; see the linked audit and current roadmap. Deployment confirmation in the original closeout is historical.
+**Next:** player feedback and selected follow-ups. The [2026-10-20 audit](rune-redesign-audit.md) records plan gaps and reconciles older follow-up notes; actionable work is split across ROADMAP BL-100–123, BL-43 and BL-54. The historical “all planned implementation” closeout below refers to merged task delivery, not proof of complete fine-print/Bench coverage. Agent worktrees/branches are cleaned; the resume heartbeat is paused. See [verification](rune-redesign-verification.md).
 
 **Player calls (2026-10-19):** P2 Seam + canals playable, the rest Lab-only (accepted). P9 folios retired (accepted). P3 changed: edges depend on the district; wall in the Seam and the canals, later districts decide in their own rounds. No push until W6 (P40).
 
@@ -93,7 +93,9 @@ Plan: [rune-redesign-plan](rune-redesign-plan.md). Orchestrator: Codex main sess
 - Orchestrator added `src/engine/runes/{actions,kinds,index}.ts` stubs on W0b's branch (6922d1c) so E1/E2/E3 own disjoint files.
 - W0: Bind makes a **Kind** (it lands a mark); `PartAccepts` gained `'action'` for Bind's second slot; Margin's slot takes a Repeat invention. Gifts per rune: Bolt/Splash/Vat/Steep/Coil tile, Shove/Sentence/Draw push, Guard/Steam/Brass/Afterglow/Hold round; Touch has 6 charges. `Scheduled.kind` gained `margin` and `pitch`. The foe's old `burst` event must be renamed (`foeBursts`) since `burst` is now the Spark burst.
 
-## Follow-ups and rough edges
+## Follow-ups and rough edges (historical closeout notes)
+
+**2026-10-20:** use the [audit](rune-redesign-audit.md) and current roadmap for live status. Wax stamping and Lab palette/authoring are complete; the Bench still needs parity. Some observations below are unresolved investigations, not reproduced bugs.
 - Review (minor, not fixed): a dusk jar sealed by another dusk jar's rest can open the same dusk; units carried by the current fire no `entered` hook (jars floating under a unit do); a downed owner's dusk jar still opens (kept: jars are world objects); delayed Wick/Filings/Repeat drop the step's auras (Coil, Margin) and `woken` leaks into nested inventions; after the 500-event cap some loops keep mutating state; `ensureBattle`'s fallback isn't in a try; one `.corrupt` save slot.
 - U6: `Profile.found` so solvents stay known once found; witnessed lines on method/solvent pages; codex tab strip wraps to two rows; unknown runes still show `???` + the owner hint (design says blank frames: player's call).
 - W7 (orchestrator playthrough, fresh profile, 375×812): Study → map → Seam → fight: Bolt kill, masked blank preview, Fire + toast, enemy phase with rat oil trails, Spark on a slick → Pool → Flare-up. Fixed: named-result toasts now use codex titles (a burst and its compound both said "Pool"). The map label was subsequently fixed (BL-99, d64ac47).

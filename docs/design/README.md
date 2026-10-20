@@ -7,11 +7,17 @@
 | Feature | Doc | Status | Summary in DESIGN.md | Plan |
 |---|---|---|---|---|
 | Desk research + mastery ("The Scholar's Press") | [research-and-mastery.md](research-and-mastery.md) | **Superseded** 2026-10-19 by the rune design (aspects, recipes, folios gone; Glyphs and footnotes kept) | §6.3 | [research-and-mastery-plan.md](../plans/research-and-mastery-plan.md), [glyph-mastery-plan.md](../plans/glyph-mastery-plan.md) |
-| The city map, hearing, gates, and the oil-lit canals | [city-and-districts.md](city-and-districts.md) | **Decided** 2026-10-16 (map and gates; canals) | §6.7 | [city-and-canals-plan.md](../plans/city-and-canals-plan.md) |
+| The city map, hearing, gates, and the oil-lit canals | [city-and-districts.md](city-and-districts.md) | **Built** Seam + canals; current lock updated for runes; five later districts scoped | §6.7 | [city-and-canals-plan.md](../plans/city-and-canals-plan.md) |
 | Rune content rework | [rune-content.md](rune-content.md) | **Answered and built** 2026-10-19 (historical problem frame) | §6.3 | — |
 | Runes: Mix, Move, Invent | [rune-design-final.md](rune-design-final.md) | **Shipped** 2026-10-19 (Seam + canals; planned mastery/Lab/testing/content continuation complete) | §6.3, §6.5, §6.6 | [rune-redesign-plan.md](../plans/rune-redesign-plan.md) |
-| Rival inscribers | [rivals.md](rivals.md) | **Exploring** (scoped 2026-10-18) | §6.7 | — |
-| The party (apprentices) | [party.md](party.md) | **Exploring** (scoped 2026-10-18) | §6.1 | — |
+| Rival inscribers | [rivals.md](rivals.md) | **Exploring**; locked aim chosen, rewards unbuilt | §6.7 | — |
+| The party (apprentices) | [party.md](party.md) | **Partly built** leans/habits; growing pages and recruitment unbuilt | §6.1 | — |
+
+## Current references and historical material
+
+Current gameplay authority: DESIGN.md §6 and rune-design-final.md. City, party and rivals describe both the shipped boundary and explicitly marked future design. The [2026-10-20 audit](../plans/rune-redesign-audit.md) tracks plan deviations; the [roadmap](../ROADMAP.md) owns actionable work.
+
+Research-and-mastery, rune-content, proposals 01–04 and rune-design-synthesis preserve foundations, problem framing and decision history. Their old aspects, recipes, folios, affinities and same-cast trigger rules must not be used as current specifications. Historical prototype sections and chronological decision logs are also preserved.
 
 ## How a feature doc works
 

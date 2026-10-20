@@ -1,7 +1,7 @@
 # The Apprentice's Notebook — Design Doc
 
 > Working title. Living document: updated after every design round and playtest.
-> Last updated: 2026-10-19 (rune redesign and its implementation follow-through). **Rune redesign built.**
+> Last updated: 2026-10-20 (current rules and post-redesign roadmap audit). **Rune redesign built.**
 >
 > **Feature docs:** a feature too big for one section gets its own file in [docs/design/](docs/design/README.md). This doc keeps its summary and a link, and the decision log (§11) stays here. Current: [Mix, Move, Invent](docs/design/rune-design-final.md) (§6.3). [Research and Mastery](docs/design/research-and-mastery.md) records the retained Glyph foundations and the retired research model.
 >
@@ -41,7 +41,7 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 ```
         ┌──────────────── THE STUDY (home) ────────────────┐
         │  rewire lattices (ink budget)                    │
-        │  research new runes at the desk                  │
+        │  invent at the Bench; write footnotes at the desk                  │
         │  read / fill the codex                           │
         │  heal, restore spell charges                     │
         └───────────────┬──────────────────────▲───────────┘
@@ -60,47 +60,23 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 1. **Build like code.** Runes are small, honest rules. Wiring them makes programs that do surprising things.
 2. **Fair danger.** Enemies show their intent. When you lose, you can see why.
 3. **The world reacts.** Materials and terrain interact, so a chain reaction plays out on the map, not just in the numbers.
-4. **The unknown is visible.** `???` entries in the codex and empty sockets keep pulling you forward.
+4. **The unknown is visible.** Blank compound/burst frames and unwitnessed fine print keep pulling you forward.
 5. **Home is cozy.** The study is a calm place to tinker between dangerous trips.
 
 ## 6. Systems
 
 ### 6.1 Party
-- **Decided:** a small party. Each member has their **own lattice**. Prototype v0 has **2 members**.
-- **Decided:** members differ by **material affinity** (cheaper or stronger with one material) and by **lattice shape** (a different socket layout). Each role is explained through **lore and personality**, not classic RPG classes.
-- **Decided (v0 pair):**
-  - **The Draughtsman.** Ink affinity. A wide, shallow lattice (many short paths), so it's good at marking, setup, and support triggers.
-  - **The Stoker.** Spark/Oil affinity. A long, narrow lattice (few, long chains), so it's good at big cascading payoffs.
-- *Open:* max party size, recruitment, permanent death (likely no).
-- **Decided (2026-10-18, scoping; supersedes affinity and shape above): the household.** Apprentices are found in guild districts and turn up at the attic door. **Pick 3 of many** for a trip. Each one is defined by a **school lean** (replaces material affinity), **a habit** (one passive rule that bends how their lattice reads) and **a body** (HP, move, a personal basic action instead of Shove). **No lattice shapes:** a page widens as needed and ink is the only limit. Spells **feed each other** across casts in a turn. **The notebook carries progress**: apprentices don't level. Board about **7×9**. Details: [party.md](docs/design/party.md).
+- **Built:** two apprentices, each with their own lattice and ink budget; no character levels. The household shares learned runes, inventions and Glyphs.
+- **Built:** the Draughtsman (6 HP, move 3) is trained in Timing, gifted in Contracts and keeps two jars. The Stoker (8 HP, move 3) is trained and gifted in the Seam; his Forks also act on the tile ahead. Trained runes cost 1 less ink, minimum 1; gifted runes gain their specified range, push or duration bonus.
+- **Accepted future design:** recruit in districts and at the attic door, **pick 3 of many**, and give each apprentice a body/basic action and a habit. Board around 7×9, subject to portrait layout. Recruitment, third apprentice and personal actions are not built. [Party design](docs/design/party.md), BL-43.
+- **Implementation gap:** fixed member lattice shapes still exist. The accepted growing-page design is BL-103 and can ship before recruitment.
 
 ### 6.2 Rune lattice
-- **Decided:** each character's lattice is a **small grid** of sockets. The member's shape determines which cells exist. *(Superseded 2026-10-18: no member shapes; the page widens as needed, ink only. [party.md](docs/design/party.md))*
-- **Decided:** rewiring is free and unlimited in the study, and possible at **rare safe spots** during an expedition.
-- **Decided:** **ink is a build budget only.** Each inscribed rune costs ink, and capacity grows slowly. Ink is *not* spent in combat.
-- **Decided (hypothesis, test in v0): hybrid reading.**
-  - **Flow:** *source* runes (the spells) emit energy that flows into adjacent runes. The path it travels is the spell's chain, and forks split the spell.
-  - **Auras:** one rune family doesn't sit on the path. Instead it buffs **every path it touches**, so one well-placed aura can power two spells. This creates the placement puzzle.
-- **Decided: flow rules v0** (hypothesis, test by playing):
-  1. A **Source** rune has an arrow and can be rotated. When cast, energy leaves through the arrow into the neighboring cell.
-  2. Energy travels **straight**. Each rune it enters applies its effect and passes the energy on in the same direction.
-  3. **Shape** runes can redirect: *Bend* turns 90°, and *Fork* splits left and right (both branches continue).
-  4. Flow **stops** at an empty socket, the lattice edge, or a cell already visited this cast, so there are no infinite loops.
-  5. A **Trigger** on the path makes everything *after* it conditional. "On hit inked → Spark → Fork" fires only if the spell hit an inked target.
-  6. **Auras** are insulators. Energy never enters them, but they modify every path cell orthogonally adjacent to them.
-  7. Reading order is shown visually, so you can always trace what a spell will do. A preview panel describes the resulting spell in plain words.
-- *Example:*
-  ```
-    [Amplify]   .       .         .         .
-    [BOLT>]   [Ink]   [Fork]      .         .
-      .         .     [Bend→]  [OnInked]  [Spark]
-  ```
-  BOLT fires right → Ink → Fork. Fork splits: the up branch hits an empty cell and stops. The down branch hits Bend, turns right → OnInked → Spark, which fires only if the target is inked. Amplify touches BOLT, so it boosts it.
-  Result: *"Ink bolt. If the target is inked, it also sparks (detonating the mark)."*
-- *Open (answer by playing):* do triggers see effects applied earlier in the same cast? If yes, Ink → … → On Inked always fires, which is a deliberate self-combo worth discovering. If no, you need a setup turn first.
-- **Starting values (tune by playing):** lattice sizes: the Draughtsman is wide (about 5×3) and the Stoker is tall (about 3×6), both with a few missing cells to give each shape character.
-- **Decided:** ink capacity grows through **ink reserves** found as loot.
-- **Changed (2026-10-19, §6.3):** the walk (straight flow, Bend, Fork, Glyph frames, auras beside the path) stays, but what it builds is a **sentence**: the Source aims and each rune acts on the target in wiring order. Fork's branches act on the tiles **left and right of the target**, triggers read the board **as the cast began**, a Seal puts the rest in a jar, and the example above is history (On Inked, Amplify and material magnitudes are gone).
+- **Built:** a Source's arrow starts a path. Energy travels straight, Bend turns the path, Fork splits it, and empty cells/edges/revisited cells stop it. Auras insulate their cells and modify orthogonally touching path cells.
+- **Built:** the Source only aims; later runes act in wiring order. A unit target follows the unit after movement. Fork branches act left and right of the target relative to the spell heading, left first. Triggers read the board at **cast start**; same-cast setup cannot satisfy them. Seals store the remaining path in a jar.
+- **Example:** `Bolt → Oil → Spark` oils the target tile, then ignites it. `Bolt → Spark → Oil` sparks first, then lays oil. To slide a foe into a wall, place oil **ahead of it** before pushing: only entering slick/grease fog extends a push.
+- **Built:** rewiring is free at home and at a rare quiet doorway, never during battle. Ink is a build budget, not a combat currency; loot reserves increase each apprentice's allowance. Learned runes have no copy limit.
+- **Accepted future design:** the page grows as needed and ink alone limits the build. Current editor sockets are still fixed by member definitions; BL-103 covers growth and its phone controls. Fair Copy, revision, open Kind/Action cells and extra exits remain available through Glyph mastery.
 
 ### 6.3 Runes, the Bench and mastery ("Mix, Move, Invent")
 - **Decided and built (2026-10-19):** the rune model is **[rune-design-final.md](docs/design/rune-design-final.md)** (plan: [rune-redesign-plan.md](docs/plans/rune-redesign-plan.md)). It replaces aspects, recipes, the old Bench runes, Crystallise and the folios. Summary:
@@ -140,7 +116,7 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 
 ### 6.6 The codex (notebook)
 - **Decided:** the codex **is** the previous owner's notebook, filled in as you discover things.
-- **Decided (2026-10-19):** a rune's page shows its headline and its witnessed fine print (`fine print 3 / 7`); the compound table and the burst page are empty frames until you make each result, which is then **named in the owner's hand**. Idioms (Cashing In, Bonfire, The Wall, Lantern Walk, …) are named the first time a cast makes them. No `???` hints: unknown is blank.
+- **Decided (2026-10-19):** a rune's page shows its headline and its witnessed fine print (`fine print 3 / 7`); the compound table and the burst page are empty frames until you make each result, which is then **named in the owner's hand**. Idioms (Cashing In, Bonfire, The Wall, Lantern Walk, …) are named the first time a cast makes them. Compound/burst entries are blank frames until named. **Remaining mismatch:** unknown rune entries still use `???` and owner hints; the intended presentation needs a deliberate follow-up (BL-101).
 
 ### 6.7 Setting & mystery
 - **Decided:** **the city of guilds.** The study is a rented attic in a big, old, rain-soaked city of rival inscriber guilds. Expeditions go **out**: oil-lit canals, brass bridges, steam baths, the ink-makers' quarter, rooftops, forbidden guild archives.
@@ -149,12 +125,12 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
   - Mystery seed: the owner was expelled from a guild. Why?
 - **Rejected:** *the Works* (an underground workshop). It felt too underground and confined. The player wants to go *out*, with sky, scale, and variety.
 - Reserve ideas: the notebook-pages world, the wandering study, the ink sea.
-- **Decided: guilds are rivals *and* sources of knowledge.** Each guild specializes in a material and guards its secrets. Their wardens and constructs are some of your enemies, and their archives and workshops hold runes and research materials.
-- **Decided: map = a district map with paths.** The city map shows districts. Each district is a short chain of encounters leading toward its heart (push or return after each one). New districts unlock over time, and locked districts show as `???`.
+- **Decided: guilds are rivals *and* sources of knowledge.** Each guild specializes in a school of spellcraft and guards its secrets. Their wardens and constructs are some of your enemies, and their archives and workshops hold runes and research materials.
+- **Decided: map = a district map with paths.** The city map shows districts. Each district is a short chain of encounters leading toward its heart (push or return after each one). Unheard districts stay blank; heard districts show their gate or that the page is still being drawn.
 - **Built (2026-10-17):** the sketch map, hearing, the canal lock and the oil-lit canals (BL-21, BL-22).
 - **Decided (2026-10-16): the city and its districts**, in [city-and-districts.md](docs/design/city-and-districts.md). The door opens on the **owner's sketch map**. Districts are drawn in only once you **hear** of them (the owner inks one in after a discovery, or a rumour reaches the attic). Each heard district has one **gate**: a discovery, a **threshold room** (a hand-made board you solve with your own lattice), or a **key** (a loot pick deep in another district, lost on a wipe). A district has four flavor layers: a material lean, one board rule, a guild, and its own trip shape. **The second district is the oil-lit canals**: Oil, the Lamplighters, **the current** (water carries what floats one tile downstream each round), and **landings** (you can go home only every other room). You hear of them by running fire along oil in the Seam, and you enter by solving the canal lock. Their foes are the **canal eel** (a water-bound lurker), the **Snuffer** (the Lamplighters' warden, puts out fire and leaves nothing), **lamp-moths** (drawn to fire, burst into flame) and swimming oil-rats. Rooms get wetter as you go, and the heart is a first boss, **the lamp-mother**, who calls moths and snuffs fire near her. You burn her with oil floated under her on the current.
 - **Decided (2026-10-18, scoping): districts are guild schools.** **Seven districts** (revised the same day): the Seam (the owner's own drawing, the basics), the oil-lit canals (the Lamplighters, *timing*), then in any order the ink-makers' quarter (the Notaries, *contracts*), the bathhouses (*areas*), the bridges (crumbling spans over a drop, *structure*) and the bell foundry (brass, *resonance*), and last the **Cartographers' hall**: the guild that draws the city into being and expelled the owner for drawing the Seam (*the board itself*). Each district brings its guild's **school** (a few runes, its solvents, its idioms), and a school is **a way of thinking, not a material** (timing, conditions, areas, structure…). Runes mix freely, but apprentices lean toward schools. **Idioms are guild signatures.** Districts vary in everything (trip shape, foes, bosses, return paths, drops and doors) and add a **new terrain or state** that generic runes find new uses for. Details: [city-and-districts.md](docs/design/city-and-districts.md) §0a.
-- **Decided (2026-10-18, scoping): rival inscribers** are each guild's inscribers (elites, the heart's master, a few named faces). They use **the same runes plus one signature trick**, you win by **breaking their telegraphed chains**, and beating one gives **a page of their lattice** (their idiom, and a spell as a folio or Glyph). Details: [rivals.md](docs/design/rivals.md).
+- **Decided (2026-10-18, scoping): rival inscribers** are each guild's inscribers (elites, the heart's master, a few named faces). They use **the same runes plus one signature trick**, you win by **breaking their telegraphed chains**, and beating one gives **a page of their lattice** (their idiom, and a recovered spell page whose repair/Glyph format is still to be designed). Details: [rivals.md](docs/design/rivals.md).
 - **Decided: tone = weird and uncanny.** A city that's slightly wrong: streets that don't stay put, guilds doing strange things to reality, and the further from home, the stranger it gets.
 - **Decided: enemies:**
   - **Guild constructs:** brass sentries, steam golems, ink familiars.
@@ -180,7 +156,9 @@ You inherit a cluttered arcane study and the half-finished notebook of its previ
 - Saves are local for now.
 - Stack, rendering, architecture, and deploy: **decided in [TECH.md](TECH.md).**
 
-## 9. Prototype v0: intended scope (draft)
+## 9. Historical prototype v0 (superseded rules)
+
+This section preserves the original prototype specification, not the current rune rules. Ward, Echo, affinities, same-cast triggers and the old materials below were replaced on 2026-10-19. Use §6 and the current rune design for play; the Seam setting and placeholder names remain relevant.
 
 The goal is to prove that **lattice wiring + material chain reactions on a telegraphed grid** is fun. Nothing else.
 
@@ -317,43 +295,19 @@ The doc leaves these details open, so v0 picks a default for each. Every number 
 - **Brass plates from the rune crumble after 3 rounds; plates in a layout are permanent.** Prevents walling yourself in. (Lab/serialized boards keep a rune plate as a permanent `=`.)
 - **Walls are cut from v0.** Only plates, units and the board edge block. A training dummy exists for the Lab and tests only.
 
-## 10. Open questions (next design rounds)
+## 10. Current follow-ups
 
-**Before building v0:**
-- [x] Tech decisions (separate process, see [TECH.md](TECH.md))
-- [x] Project skeleton deployed to GitHub Pages and installed on the iPhone (see [TECH.md](TECH.md) §8). Next: build v0.
-- [x] v0 built and deployed (2026-10-13): engine, Study, Codex, the Seam expedition, Lab. Build decisions for review: [docs/v0-build-log.md](docs/v0-build-log.md). Next: the player plays v0.
+[ROADMAP.md](docs/ROADMAP.md) is the authoritative task list; [the rune audit](docs/plans/rune-redesign-audit.md) separates plan gaps, known rough edges and deliberate later scope.
 
-**v0.1 legibility (decided 2026-10-13, from the first playtest):** the player could not tell how runes in one spell connect, how spark meets brass and steam, or what makes a unit special. The rules stay as they are; the game shows them.
-- [x] **Recipe:** the Study numbers every path rune in resolution order and writes the spell out as steps, naming the reactions it causes ("② Spark hits it → the oil ignites: fire"). Unknown interactions stay unnamed until discovered.
-- [x] **Fork:** keeps its meaning (both branches act on the same targets, left finishes first). The lattice shows the order on the branches (①/②), so it is never hidden. Since "left" is relative to the flow (it can be the right-hand side on screen), the recipe says "follow the numbers" instead of naming sides.
-- [x] **Unit traits:** the tap readout spells out each trait with its effect ("oil-soaked (fire +1)", "leaves an oil trail", "brass (conducts spark)", "its spit inks"), oil-soaked units carry an oil-drop badge (brass units already look brass), and the party strip shows each member's affinity ("spark·oil+1").
-- [x] **Charges** loosened to Bolt 5, Splash 3, Ward 3.
+- **Implemented:** core rune redesign, lifetime Glyph mastery, Lab authoring/lessons, two playable districts and level-I variants on four runes.
+- **Leftovers:** fine-print coverage (100 rows against plan P4's stated 132), Bench parity with met canal content, persistent solvent discovery, and accepted growing lattice pages.
+- **Investigate:** delayed aura/solvent context, dusk replacement timing, state changes after the event cap and current arrival hooks.
+- **Future design:** recruitment and trio selection, the five remaining playable districts, rivals/recovered spell pages, higher footnotes and atmosphere. Old aspect capacity, recipe content, Fire's category and same-cast trigger questions are resolved.
+- **Tune by playing:** build/charge attrition, Strike versus Spark/crush, oil departure sliding and blank previews. No standalone playtest tasks are required.
 
-**Answer by playing v0** (no need to decide upfront):
-- [x] Hybrid flow + aura: does it feel good? **Yes** (playtest 1). Upgraded auras could later reach diagonally too (§10b).
-- [ ] Do triggers see same-cast effects? (§6.2)
-- [ ] Lattice sizes, ink costs, charge counts, enemy numbers
-- [ ] Final interaction matrix details (Fire as element or state, terrain decay)
+## 10b. Parked directions
 
-**Post-v0:**
-- [x] Desk research + mastery direction: **The Scholar's Press** (decided 2026-10-13, §6.3, [feature doc](docs/design/research-and-mastery.md)).
-- [x] Bench + Compile slice built (2026-10-13, [plan](docs/plans/research-and-mastery-plan.md)). Next: the player plays it (hypotheses in the feature doc §10).
-- [x] **Seam deepening** (decided and built 2026-10-14, [plan](docs/plans/seam-deepening-plan.md), [build log](docs/plans/seam-deepening-status.md)): slice polish, Pierce / On Ignite / Thrift, Scald / Etch / Kiln, alternate layouts, owner's hints, the quiet doorway, heated brass, stained oil, the trip page.
-- [ ] District map, guild content, rival inscribers, the mystery, audio, real names (full list in §10b)
-
-## 10b. Parked (cut or deferred; come back to these)
-
-Nothing here is planned yet. The next feature gets its own plan before any of it is built.
-
-- **Rune upgrades:** auras that also reach diagonally (from playtest 1).
-- **Materials and terrain cut from v0:** walls, and slippery brass (cut for good on 2026-10-14). Smear, heated brass and stained oil are in the Seam deepening plan.
-- **Research directions not chosen:** fusion with rune evolution, and rune chronicles with slow projects. They were removed from the docs; git history has them at `86e1b25`.
-- **Systems:** the district map, guild content, rival inscribers (their chains telegraphed too), the mystery and lore, audio, real names.
-- **Members:** signature abilities beyond lattice, affinity and HP. Held back until more affinities are explored (playtest 1).
-- **Input alternatives**, if the double tap ever misfires again: Confirm-only casting, or an undo for the last cast.
-- **Trip pacing alternatives**, if charges become a problem again: charges per fight, or a refill on each win.
-- **Wipe penalty alternatives**, if trips become longer or costlier: keep one item on a wipe.
+See ROADMAP §5 for the maintained parked list. Old folios, aspects, recipes, material affinities and Crystallise are retired. Input alternatives, charge refills and wipe penalties can be reopened by concrete feedback; reserve settings and an extra elegance metric remain optional ideas.
 
 ## 11. Decision log
 
@@ -432,3 +386,4 @@ Nothing here is planned yet. The next feature gets its own plan before any of it
 | 2026-10-19 | R2 places oil beside walls and a brass plate at every Seam depth, with a pushable land foe beside water in each canal room. Foe strength, loot weights and Conduct guarantee stay as calibrated | Terrain makes the new chemistry and drop rules usable without masking trip charge pressure |
 | 2026-10-19 | S1 complete: unrestricted Lab inventions use all methods, Bind events and solvents without changing the notebook; undo/reset/export preserve session libraries. User approved two Bolt unobstructed landing-distance footnotes (one tile farther/nearer), implementation in progress | Completes P2 Lab access; Bolt variants must preserve unit/blocker targeting |
 | 2026-10-19 | Level-I footnotes complete: all eight initial rows have their described effects; two player-approved Bolt variants move only an unobstructed landing one clear tile farther or one tile nearer, never onto the caster. Levels II–III stay later content | Ten variant rows preserve existing choices; first-unit and obstacle targeting are unchanged |
+| 2026-10-20 | **Post-redesign documentation audit:** current summaries distinguish implemented rules from accepted future party/world design; 100 fine-print rows and incomplete Bench palette recorded as plan gaps, fixed lattice shapes as accepted-design debt. Roadmap split into correctness, growing pages/household, five district builds, rivals/recovered pages and mastery. Historical proposals/logs preserved. [Audit](docs/plans/rune-redesign-audit.md) | Documentation reconciliation; no gameplay rule changes or new feature approvals |
