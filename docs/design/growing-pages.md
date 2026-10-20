@@ -1,6 +1,6 @@
 # Growing lattice pages
 
-> **Status: Decided** (design round 2026-10-20; not implemented). Roadmap: BL-103, including BL-88's revision growth. Implementation plan: not written yet.
+> **Status: Decided** (design round 2026-10-20; not implemented). Roadmap: BL-103, including BL-88's revision growth. Implementation plan: [growing-pages-plan.md](../plans/growing-pages-plan.md).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.2 and §11. Builds on [party.md](party.md) §0's removal of fixed member shapes. Current rune rules: [rune-design-final.md](rune-design-final.md).
 
 ## 0. Decisions (2026-10-20)

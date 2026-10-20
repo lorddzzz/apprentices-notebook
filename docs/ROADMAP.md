@@ -35,7 +35,7 @@ The redesign supplies depth already. The next substantial choice is **freer buil
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-103 | Lattice pages grow with the wiring | feature / M–L | lattice, save | ready; needs implementation plan | [Growing pages design](design/growing-pages.md): automatic growth in all directions, ink as the budget, readable editing with pan/Fit, growing Glyph revisions (includes BL-88), import validation and existing wiring/proof/charge compatibility. Current shapes still come from member definitions. Can ship for two apprentices before recruitment. |
+| BL-103 | Lattice pages grow with the wiring | feature / M–L | lattice, save | ready; implementation planned | [Design](design/growing-pages.md), [implementation plan](plans/growing-pages-plan.md): automatic growth in all directions, ink as the budget, readable editing with pan/Fit, growing Glyph revisions (includes BL-88), import validation and existing wiring/proof/charge compatibility. Current shapes still come from member definitions. Can ship for two apprentices before recruitment. |
 | BL-43 | The household and three-member expeditions | feature / XL | party, world | needs-design; BL-103 before full delivery | [Party design](design/party.md): recruit in districts and at the door, select 3 from a household, larger portrait boards around 7×9, individual bodies/basic actions. Keep existing trained/gifted leans and Fork-ahead/two-jar habits. Design the third habit, recruitment pacing, trio selection and room scaling. Ink is currently per apprentice. |
 
 ### Track W · Districts and progression

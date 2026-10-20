@@ -12,7 +12,7 @@
 | Runes: Mix, Move, Invent | [rune-design-final.md](rune-design-final.md) | **Shipped** 2026-10-19 (Seam + canals; planned mastery/Lab/testing/content continuation complete) | §6.3, §6.5, §6.6 | [rune-redesign-plan.md](../plans/rune-redesign-plan.md) |
 | Rival inscribers | [rivals.md](rivals.md) | **Exploring**; locked aim chosen, rewards unbuilt | §6.7 | — |
 | The party (apprentices) | [party.md](party.md) | **Partly built** leans/habits; growing pages and recruitment unbuilt | §6.1 | — |
-| Growing lattice pages | [growing-pages.md](growing-pages.md) | **Decided** 2026-10-20; automatic growth, phone pan/Fit and Glyph revision growth unbuilt | §6.2 | — |
+| Growing lattice pages | [growing-pages.md](growing-pages.md) | **Decided** 2026-10-20; automatic growth, phone pan/Fit and Glyph revision growth unbuilt | §6.2 | [growing-pages-plan.md](../plans/growing-pages-plan.md) |
 
 ## Current references and historical material
 
