@@ -7,7 +7,7 @@
 
 Two apprentices remain playable. Both move 3 and share basic Shove. The Draughtsman has 6 HP, trained Timing, gifted Contracts and the two-jars habit; the Stoker has 8 HP, trained/gifted Seam and Fork-ahead. Training discounts school runes by 1 ink (minimum 1); gifts improve the rune's declared range, push or duration. Ink is currently per apprentice, with household reserve upgrades increasing both allowances.
 
-**Fixed shapes still exist:** the editor reconstructs sockets from each member definition. Growing pages are an accepted design not delivered by the rune build (BL-103). Recruitment, selection of three, larger rooms and personal basic actions remain BL-43. No new recruit needs an aspect pair or a material affinity.
+**Fixed shapes still exist:** the editor reconstructs sockets from each member definition. Growing pages are decided but not delivered (BL-103): automatic growth in all directions, phone pan/Fit and the same freedom in Glyph revision. Details: [growing-pages.md](growing-pages.md). Recruitment, selection of three, larger rooms and personal basic actions remain BL-43. No new recruit needs an aspect pair or a material affinity.
 
 ## 0. Decided in the scoping round (2026-10-18)
 
