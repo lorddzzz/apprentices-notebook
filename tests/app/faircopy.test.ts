@@ -118,8 +118,8 @@ describe('previewFairCopy', () => {
   });
 
   test('outside runes the collapse strands are listed by name when they cannot slide', () => {
-    // The exit cell (A2, below the socket) is a hole: nothing moves, the warning lists the pair.
-    const p = proven('Bolt> Ink Bendv . .\nx . Tally . .\n. . Spark . .');
+    // The exit cell below the socket is occupied: nothing moves, the warning lists the pair.
+    const p = proven('Bolt> Ink Bendv . .\nOil . Tally . .\n. . Spark . .');
     const bend = fairTap(p, M, { cluster: selected(p) }, c(2, 2)).state;
     const trimmed = fairTap(p, M, bend, c(2, 1)).state.cluster;
     if (!trimmed) throw new Error('no trim');
@@ -227,16 +227,17 @@ describe('tidy: stranded runes slide up (S13)', () => {
     expect(at(next, 2, 1)).toBeUndefined();
   });
 
-  test('nothing slides when a target cell is a hole', () => {
-    // The Draughtsman's page has holes at A3 and E3; the exit cell below the socket is A3.
+  test('a target in a former member hole is writable', () => {
+    // The exit cell below the socket is the former hole A3.
     const p = { ...proven('. . . . .\nBolt> Ink Bendv . .\n. . Tally . .'), vellum: 1 };
     const cl = trimmedBy(p, [c(2, 2)], c(1, 1));
     expect(cl.cells).toHaveLength(3);
     const pv = previewFairCopy(p, M, cl);
-    expect(pv.slides).toBe(0);
-    expect(pv.disconnected.map((d) => d.name)).toEqual(['Tally']);
+    expect(pv.slides).toBe(1);
+    expect(pv.disconnected).toEqual([]);
     const next = compileGlyph(p, M, cl, 'Held');
-    expect(at(next, 2, 2)).toMatchObject({ rune: 'tally' });
+    expect(at(next, 0, 2)).toMatchObject({ rune: 'tally' });
+    expect(at(next, 2, 2)).toBeUndefined();
   });
 
   test('nothing slides when a target cell is occupied', () => {
@@ -250,14 +251,17 @@ describe('tidy: stranded runes slide up (S13)', () => {
     expect(at(next, 2, 1)).toMatchObject({ rune: 'tally' });
   });
 
-  test('nothing slides when the exit cell is outside the lattice', () => {
-    // Flow leaves to the left of a socket on the left edge: there is no cell to land on.
+  test('an exit left of the former page keeps its signed coordinate', () => {
+    // Flow leaves to the left of a socket on the old edge, into signed growing paper.
     const p = { ...proven('. Spark Bend< . .\nBolt> Ink Bend^ . .'), vellum: 1 };
     const cl = trimmedBy(p, [c(1, 0)]);
     expect(cl.cells).toHaveLength(4);
     const pv = previewFairCopy(p, M, cl);
-    expect(pv.slides).toBe(0);
-    expect(pv.disconnected).toEqual([{ at: c(1, 0), name: 'Spark' }]);
+    expect(pv.slides).toBe(1);
+    expect(pv.disconnected).toEqual([]);
+    const next = compileGlyph(p, M, cl, 'Left');
+    expect(at(next, -1, 1)).toMatchObject({ rune: 'spark' });
+    expect(at(next, 1, 0)).toBeUndefined();
   });
 });
 

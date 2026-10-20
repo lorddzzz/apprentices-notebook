@@ -1,4 +1,5 @@
 import type { SolventId } from '$data';
+import { cloneData } from './clone';
 import { type Ctx, emit, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
 import type { Hook } from './hooks';
@@ -84,7 +85,7 @@ export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
     if (old) crumble(ctx, old);
   }
   if (tileAt(ctx.s, at).jar) crumble(ctx, at);
-  tileAt(ctx.s, at).jar = { ...structuredClone(jar), seq: newestSeq(ctx) + 1 };
+  tileAt(ctx.s, at).jar = { ...cloneData(jar), seq: newestSeq(ctx) + 1 };
   emit(ctx, { type: 'jarSealed', at: { ...at }, owner: ref(owner), event: jar.event });
 }
 

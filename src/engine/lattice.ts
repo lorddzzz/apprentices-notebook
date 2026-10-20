@@ -23,6 +23,7 @@ import {
   turnLeft,
   turnRight,
 } from './grid';
+import type { ImportBudget } from './importPolicy';
 import type {
   AuraRef,
   AuraTouch,
@@ -86,8 +87,19 @@ export function stepChildren(st: Step): Step[] {
 
 /** Every step of a tree, depth-first, parents before children (Fork: left branch first). */
 export function stepsOf(first: Step | null): Step[] {
-  if (!first) return [];
-  return [first, ...stepChildren(first).flatMap(stepsOf)];
+  const out: Step[] = [];
+  const pending = first ? [first] : [];
+  while (pending.length) {
+    const st = pending.pop();
+    if (!st) continue;
+    out.push(st);
+    const children = stepChildren(st);
+    for (let i = children.length - 1; i >= 0; i--) {
+      const child = children[i];
+      if (child) pending.push(child);
+    }
+  }
+  return out;
 }
 
 // ── Lattice access ──────────────────────────────────────
@@ -132,6 +144,26 @@ export function inkOf(
  * The same rune rules run in both; only lookup, adjacency, labelling and "what is past the edge"
  * differ.
  */
+interface Trail {
+  at: Coord;
+  previous: Trail | null;
+  length: number;
+}
+const appendTrail = (previous: Trail | null, at: Coord): Trail => ({
+  at,
+  previous,
+  length: (previous?.length ?? 0) + 1,
+});
+function trailCoords(trail: Trail): Coord[] {
+  const out: Coord[] = Array(trail.length);
+  let current: Trail | null = trail;
+  for (let i = trail.length - 1; current; i--) {
+    out[i] = current.at;
+    current = current.previous;
+  }
+  return out;
+}
+
 interface Frame {
   runeAt(at: Coord): PlacedRune | null;
   /** Auras orthogonally next to `at` (inside a Glyph: its own, then the ones touching its socket). */
@@ -143,7 +175,7 @@ interface Frame {
   /** A direction in this frame as seen on the outer lattice. */
   outward(d: Dir): Dir;
   /** Flow stepped onto a cell holding no rune of this frame. */
-  beyond(at: Coord, dir: Dir, via: readonly Coord[]): Step | null;
+  beyond(at: Coord, dir: Dir, via: Trail | null, assign: (st: Step | null) => void): void;
   /** The cell as proof records it. */
   fired(at: Coord, placed: PlacedRune): FiredCell;
   /** Every cell entered, for `Spell.cells`. */
@@ -199,55 +231,103 @@ export function compileLattice(
     }
   };
 
-  function walkIn(
+  // Jobs replace the JavaScript call stack. Push right before left to preserve cell claiming.
+  const pending: (() => void)[] = [];
+  function queueWalk(
     f: Frame,
     cell: Coord,
     dir: Dir,
-    via: readonly Coord[] = [],
-    viaInner: readonly Coord[] = [],
-  ): Step | null {
-    const placed = f.runeAt(cell);
-    if (!placed) return f.beyond(cell, dir, via);
-    if (f.visited.has(key(cell))) return null;
-    const r = role(placed.rune);
-    if (r === null || r === 'aura' || r === 'source') return null; // insulators
-    f.visited.add(key(cell));
-    f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
-    f.cells.push(f.fired(cell, placed));
-    const where = f.where(cell);
-    const base = {
-      ...where,
-      ...(via.length > 0 ? { via } : {}),
-      ...(where.inner && viaInner.length > 0 ? { viaInner } : {}),
-    };
-    const go = (d: Dir): Step | null => walkIn(f, step(cell, d), d);
-
-    if (placed.rune === 'bend') {
-      const out = placed.dir ?? 'right';
-      if (out === opposite(dir)) return null;
-      // Inside a Glyph, the local shape cells too (`viaInner`); crossing a frame starts afresh.
-      const shapedInner = where.inner ? [...viaInner, where.inner] : [];
-      return walkIn(f, step(cell, out), out, [...via, where.at], shapedInner);
-    }
-    if (placed.rune === 'fork') {
-      // Left must walk first: it claims shared cells before the right branch.
-      const left = go(turnLeft(dir));
-      const right = go(turnRight(dir));
-      return { ...base, role: 'fork', left, right };
-    }
-    if (placed.rune === 'seep' || placed.rune === 'lay' || placed.rune === 'toll') {
-      return { ...base, role: 'shape', rune: placed.rune, next: go(dir) };
-    }
-    if (placed.rune === 'tally' || placed.rune === 'brink' || placed.rune === 'unison') {
-      return { ...base, role: 'trigger', rune: placed.rune, next: go(dir) };
-    }
-    if (placed.rune === 'jar' || placed.rune === 'fuse') {
-      return { ...base, role: 'seal', rune: placed.rune, rest: go(dir) };
-    }
-    if (r === 'action' || r === 'kind') {
-      return { ...base, role: r, rune: placed.rune, auras: f.aurasAround(cell), next: go(dir) };
-    }
-    return null;
+    assign: (st: Step | null) => void,
+    via: Trail | null = null,
+    viaInner: Trail | null = null,
+  ): void {
+    pending.push(() => {
+      const placed = f.runeAt(cell);
+      if (!placed) {
+        f.beyond(cell, dir, via, assign);
+        return;
+      }
+      if (f.visited.has(key(cell))) {
+        assign(null);
+        return;
+      }
+      const r = role(placed.rune);
+      if (r === null || r === 'aura' || r === 'source') {
+        assign(null);
+        return;
+      }
+      f.visited.add(key(cell));
+      f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
+      f.cells.push(f.fired(cell, placed));
+      const where = f.where(cell);
+      const go = (d: Dir, set: (st: Step | null) => void): void =>
+        queueWalk(f, step(cell, d), d, set);
+      if (placed.rune === 'bend') {
+        const out = placed.dir ?? 'right';
+        if (out === opposite(dir)) {
+          assign(null);
+          return;
+        }
+        queueWalk(
+          f,
+          step(cell, out),
+          out,
+          assign,
+          appendTrail(via, where.at),
+          where.inner ? appendTrail(viaInner, where.inner) : null,
+        );
+        return;
+      }
+      const base = {
+        ...where,
+        ...(via ? { via: trailCoords(via) } : {}),
+        ...(where.inner && viaInner ? { viaInner: trailCoords(viaInner) } : {}),
+      };
+      if (placed.rune === 'fork') {
+        const st: Step = { ...base, role: 'fork', left: null, right: null };
+        assign(st);
+        go(turnRight(dir), (child) => {
+          st.right = child;
+        });
+        go(turnLeft(dir), (child) => {
+          st.left = child;
+        });
+        return;
+      }
+      let st: Step;
+      if (placed.rune === 'seep' || placed.rune === 'lay' || placed.rune === 'toll')
+        st = { ...base, role: 'shape', rune: placed.rune, next: null };
+      else if (placed.rune === 'tally' || placed.rune === 'brink' || placed.rune === 'unison')
+        st = { ...base, role: 'trigger', rune: placed.rune, next: null };
+      else if (placed.rune === 'jar' || placed.rune === 'fuse')
+        st = { ...base, role: 'seal', rune: placed.rune, rest: null };
+      else if (r === 'action' || r === 'kind')
+        st = { ...base, role: r, rune: placed.rune, auras: f.aurasAround(cell), next: null };
+      else {
+        assign(null);
+        return;
+      }
+      assign(st);
+      if (st.role === 'seal') {
+        const seal = st;
+        go(dir, (child) => {
+          seal.rest = child;
+        });
+      } else if ('next' in st) {
+        const next = st;
+        go(dir, (child) => {
+          next.next = child;
+        });
+      }
+    });
+  }
+  function walkIn(f: Frame, cell: Coord, dir: Dir): Step | null {
+    let result: Step | null = null;
+    queueWalk(f, cell, dir, (st) => {
+      result = st;
+    });
+    while (pending.length) pending.pop()?.();
+    return result;
   }
 
   /** A Glyph's cells as a frame; leaving it continues the outer walk from the socket. */
@@ -263,15 +343,41 @@ export function compileLattice(
       path: outer.path,
       where: (at) => ({ at: g.at, inner: at, glyph: def.id }),
       outward: (d) => rotateDirLocal(d, g.dir),
-      beyond: (_at, dir, via) => {
+      beyond: (_at, dir, via, assign) => {
         const out = rotateDirLocal(dir, g.dir);
-        const main = walkIn(outer, step(g.at, out), out, via);
-        if (extraSpent || def.extraExit === null) return main;
-        extraSpent = true;
-        const sideDir = rotateDirLocal(def.extraExit, g.dir);
-        const side = walkIn(outer, step(g.at, sideDir), sideDir, via);
-        if (!main || !side) return main ?? side;
-        return { at: g.at, role: 'split', branches: [main, side] };
+        let main: Step | null = null;
+        pending.push(() => {
+          if (extraSpent || def.extraExit === null) {
+            assign(main);
+            return;
+          }
+          extraSpent = true;
+          const sideDir = rotateDirLocal(def.extraExit, g.dir);
+          let side: Step | null = null;
+          pending.push(() => {
+            assign(
+              main && side ? { at: g.at, role: 'split', branches: [main, side] } : (main ?? side),
+            );
+          });
+          queueWalk(
+            outer,
+            step(g.at, sideDir),
+            sideDir,
+            (st) => {
+              side = st;
+            },
+            via,
+          );
+        });
+        queueWalk(
+          outer,
+          step(g.at, out),
+          out,
+          (st) => {
+            main = st;
+          },
+          via,
+        );
       },
       fired: () => ({ at: g.at, rune: null, glyph: g.glyph, dir: g.dir }),
       cells: outer.cells,
@@ -290,14 +396,19 @@ export function compileLattice(
       fired: (at, placed) =>
         placed.dir ? { at, rune: placed.rune, dir: placed.dir } : { at, rune: placed.rune },
       cells,
-      beyond: (at, dir, via) => {
+      beyond: (at, dir, via, assign) => {
         const g = glyphIn(at);
         const def = g ? glyphs[g.glyph] : undefined;
-        if (!g || !def || def.kind !== 'payload' || dir !== g.dir) return null;
-        if (visited.has(key(at)) || !cellMap(def, undefined, inventions).has(key(def.entry)))
-          return null;
+        if (!g || !def || def.kind !== 'payload' || dir !== g.dir) {
+          assign(null);
+          return;
+        }
+        if (visited.has(key(at)) || !cellMap(def, undefined, inventions).has(key(def.entry))) {
+          assign(null);
+          return;
+        }
         visited.add(key(at));
-        return walkIn(innerFrame(g, def, frame), def.entry, 'right', via);
+        queueWalk(innerFrame(g, def, frame), def.entry, 'right', assign, via);
       },
     };
     return frame;
@@ -399,26 +510,44 @@ export function compileLattice(
 // ── Descriptions ────────────────────────────────────────
 
 function describeStep(st: Step | null, inventions: InventionLibrary): string {
-  if (!st) return '';
-  const rest = (n: Step | null): string => {
-    const text = describeStep(n, inventions);
-    return text ? ` → ${text}` : '';
-  };
-  switch (st.role) {
-    case 'action':
-    case 'kind':
-      return `${nameOf(st.rune, inventions)}${rest(st.next)}`;
-    case 'trigger':
-      return `if ${RUNES[st.rune].name}: ${describeStep(st.next, inventions) || '(nothing)'}`;
-    case 'shape':
-      return `${RUNES[st.rune].name}${rest(st.next)}`;
-    case 'seal':
-      return `${RUNES[st.rune].name}: [${describeStep(st.rest, inventions)}]`;
-    case 'fork':
-      return `[left: ${describeStep(st.left, inventions) || '—'} | right: ${describeStep(st.right, inventions) || '—'}]`;
-    case 'split':
-      return `[${st.branches.map((b) => describeStep(b, inventions)).join(' | ')}]`;
+  const pending: (Step | string | null)[] = [st];
+  const text: string[] = [];
+  while (pending.length) {
+    const item = pending.pop();
+    if (!item) continue;
+    if (typeof item === 'string') {
+      text.push(item);
+      continue;
+    }
+    switch (item.role) {
+      case 'action':
+      case 'kind':
+      case 'shape':
+        text.push(nameOf(item.rune, inventions));
+        if (item.next) pending.push(item.next, ' → ');
+        break;
+      case 'trigger':
+        text.push(`if ${RUNES[item.rune].name}: `);
+        pending.push(item.next ?? '(nothing)');
+        break;
+      case 'seal':
+        text.push(`${RUNES[item.rune].name}: [`);
+        pending.push(']', item.rest);
+        break;
+      case 'fork':
+        text.push('[left: ');
+        pending.push(']', item.right ?? '—', ' | right: ', item.left ?? '—');
+        break;
+      case 'split':
+        text.push('[');
+        pending.push(']');
+        for (let i = item.branches.length - 1; i >= 0; i--) {
+          pending.push(item.branches[i] ?? null);
+          if (i > 0) pending.push(' | ');
+        }
+    }
   }
+  return text.join('');
 }
 
 export function describeSpell(s: Spell, inventions: InventionLibrary = {}): string {
@@ -468,10 +597,12 @@ export function validateLattice(
   glyphs: GlyphLibrary = {},
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
+  budget?: ImportBudget,
 ): LatticeIssue[] {
   const issues: LatticeIssue[] = [];
   const seen = new Set<CellKey>();
   for (const r of l.runes) {
+    budget?.spend('work');
     if (isGlyph(r)) {
       if (!isSocket(l.shape, r.at)) {
         issues.push({ kind: 'socket', at: r.at, message: `Glyph ${r.glyph} is not on a socket` });
@@ -480,7 +611,7 @@ export function validateLattice(
         issues.push({ kind: 'overlap', at: r.at, message: `Glyph ${r.glyph} shares a socket` });
       }
       seen.add(key(r.at));
-      const def = glyphs[r.glyph];
+      const def = Object.hasOwn(glyphs, r.glyph) ? glyphs[r.glyph] : undefined;
       if (!def) {
         issues.push({
           kind: 'socket',
@@ -489,6 +620,7 @@ export function validateLattice(
         });
       } else {
         for (const [cell, arg] of Object.entries(r.args ?? {})) {
+          budget?.spend('work', def.cells.length + def.params.length);
           const why = argIssue(def, cell, arg, inventions);
           if (why) {
             issues.push({ kind: 'arg', at: r.at, rune: arg.rune, message: `${def.name} ${why}` });
@@ -522,7 +654,7 @@ export function validateLattice(
       });
     }
   }
-  const used = inkUsed(l, glyphs, inventions, lean);
+  const used = capacity === null ? 0 : inkUsed(l, glyphs, inventions, lean);
   if (capacity !== null && used > capacity) {
     issues.push({ kind: 'ink', message: `Needs ${used} ink, only ${capacity} available` });
   }

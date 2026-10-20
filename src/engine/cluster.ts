@@ -81,14 +81,21 @@ function flowTree(spell: Spell, placedAt: ReadonlyMap<CellKey, PlacedRune | 'gly
     cells[parent]?.children.push(cells.length - 1);
     return cells.length - 1;
   };
-  const walk = (st: Step | null, parent: number): void => {
-    if (!st) return;
-    let cur = parent;
-    for (const c of [...(st.via ?? []), st.at]) cur = add(c, cur);
-    for (const child of stepChildren(st)) walk(child, cur);
-  };
   add(spell.at, -1);
-  walk(spell.first, 0);
+  const pending: { st: Step; parent: number }[] = spell.first
+    ? [{ st: spell.first, parent: 0 }]
+    : [];
+  while (pending.length) {
+    const job = pending.pop();
+    if (!job) continue;
+    let cur = job.parent;
+    for (const c of [...(job.st.via ?? []), job.st.at]) cur = add(c, cur);
+    const children = stepChildren(job.st);
+    for (let i = children.length - 1; i >= 0; i--) {
+      const st = children[i];
+      if (st) pending.push({ st, parent: cur });
+    }
+  }
   return cells;
 }
 
@@ -98,29 +105,28 @@ function placedMap(l: Lattice): Map<CellKey, PlacedRune | 'glyph'> {
 
 /** Every prefix-closed subset of the tree below `root` that holds the root, 3..8 cells. */
 function subtreesFrom(cells: readonly FlowCell[], root: number): number[][] {
-  const order: number[] = [];
-  const visit = (i: number): void => {
-    order.push(i);
-    for (const c of cells[i]?.children ?? []) visit(c);
-  };
-  visit(root);
   const out: number[][] = [];
-  const rec = (at: number, chosen: number[], inside: Set<number>): void => {
-    if (at === order.length) {
-      if (chosen.length >= TUNING.glyphMinCells) out.push(chosen);
-      return;
-    }
-    const i = order[at] as number;
-    const cell = cells[i] as FlowCell;
-    if (chosen.length < TUNING.glyphMaxCells && cell.rune !== null && inside.has(cell.parent)) {
-      inside.add(i);
-      rec(at + 1, [...chosen, i], inside);
-      inside.delete(i);
-    }
-    rec(at + 1, chosen, inside);
-  };
   const first = cells[root];
-  if (first && first.rune !== null) rec(1, [root], new Set([root]));
+  if (!first || first.rune === null) return out;
+  const pending = [{ chosen: [root], frontier: [...first.children] }];
+  while (pending.length) {
+    const job = pending.pop();
+    if (!job) continue;
+    if (!job.frontier.length || job.chosen.length === TUNING.glyphMaxCells) {
+      if (job.chosen.length >= TUNING.glyphMinCells) out.push(job.chosen);
+      continue;
+    }
+    const [i, ...rest] = job.frontier;
+    if (i === undefined) continue;
+    const cell = cells[i];
+    // Excluding a parent prunes all its descendants in constant time.
+    pending.push({ chosen: job.chosen, frontier: rest });
+    if (cell && cell.rune !== null)
+      pending.push({
+        chosen: [...job.chosen, i],
+        frontier: [...cell.children, ...rest],
+      });
+  }
   return out;
 }
 
@@ -146,6 +152,13 @@ function aurasTouching(
 export function clustersOf(l: Lattice, glyphs: GlyphLibrary = {}): Cluster[] {
   const compiled = compileLattice(l, glyphs);
   const placedAt = placedMap(l);
+  const touching = new Map<CellKey, number[]>();
+  compiled.auraTouches.forEach((t, i) => {
+    const k = key(t.to);
+    const indices = touching.get(k) ?? [];
+    indices.push(i);
+    touching.set(k, indices);
+  });
   const out: Cluster[] = [];
   for (const spell of compiled.spells) {
     const tree = flowTree(spell, placedAt);
@@ -158,7 +171,13 @@ export function clustersOf(l: Lattice, glyphs: GlyphLibrary = {}): Cluster[] {
         out.push({
           root: { ...root.at },
           cells,
-          auras: aurasTouching(compiled.auraTouches, cells),
+          auras: aurasTouching(
+            cells
+              .flatMap((c) => touching.get(key(c)) ?? [])
+              .sort((a, b) => a - b)
+              .flatMap((i) => compiled.auraTouches[i] ?? []),
+            cells,
+          ),
           kind,
         });
       }
@@ -298,20 +317,40 @@ export function toGlyphDef(
 /** A step tree with its cells left out: what the flow does, not where it is on the page. */
 export function stepShape(st: Step | null): unknown {
   if (!st) return null;
-  switch (st.role) {
-    case 'action':
-    case 'kind':
-      return [st.role, st.rune, st.auras, stepShape(st.next)];
-    case 'trigger':
-    case 'shape':
-      return [st.role, st.rune, stepShape(st.next)];
-    case 'seal':
-      return [st.role, st.rune, stepShape(st.rest)];
-    case 'fork':
-      return [st.role, stepShape(st.left), stepShape(st.right)];
-    case 'split':
-      return [st.role, st.branches.map(stepShape)];
+  // A flat prefix encoding keeps both traversal and JSON signatures independent of tree depth.
+  const out: unknown[] = [];
+  const pending: (Step | null)[] = [st];
+  while (pending.length) {
+    const item = pending.pop();
+    if (!item) {
+      out.push(null);
+      continue;
+    }
+    switch (item.role) {
+      case 'action':
+      case 'kind':
+        out.push([item.role, item.rune, item.auras]);
+        pending.push(item.next);
+        break;
+      case 'shape':
+      case 'trigger':
+        out.push([item.role, item.rune]);
+        pending.push(item.next);
+        break;
+      case 'seal':
+        out.push([item.role, item.rune]);
+        pending.push(item.rest);
+        break;
+      case 'fork':
+        out.push(['fork']);
+        pending.push(item.right, item.left);
+        break;
+      case 'split':
+        out.push(['split', item.branches.length]);
+        for (let i = item.branches.length - 1; i >= 0; i--) pending.push(item.branches[i] ?? null);
+    }
   }
+  return out;
 }
 
 /** What a spell does, with no coordinates: the cast cannot tell two lattices apart when these match. */

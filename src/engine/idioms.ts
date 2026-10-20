@@ -1,5 +1,6 @@
 import { type Ctx, emit } from './ctx';
 import type { GameEvent } from './events';
+import { stepsOf } from './lattice';
 import { livingUnits } from './queries';
 import type { BattleState, Origin, Step, UnitId } from './types';
 
@@ -35,18 +36,7 @@ export interface IdiomHit {
 }
 
 function holdsSpark(step: Step | null): boolean {
-  if (!step) return false;
-  if (step.role === 'kind' && step.rune === 'spark') return true;
-  switch (step.role) {
-    case 'fork':
-      return holdsSpark(step.left) || holdsSpark(step.right);
-    case 'split':
-      return step.branches.some(holdsSpark);
-    case 'seal':
-      return holdsSpark(step.rest);
-    default:
-      return holdsSpark(step.next);
-  }
+  return stepsOf(step).some((st) => st.role === 'kind' && st.rune === 'spark');
 }
 
 export function idiomPre(s: BattleState): IdiomPre {

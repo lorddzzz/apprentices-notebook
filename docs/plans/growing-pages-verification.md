@@ -23,3 +23,9 @@ Svelte MCP autofixer unavailable. Official Svelte documentation plus project che
 ## Pending
 
 Study/doorway/Lab/revision integrated phone playthrough, save/reload, proof/Fair Copy, Glyph save/revert, full cross-feature regressions, independent review, final check/build and deployed feature SHA are not yet verified.
+
+## Engine/save integration (E1)
+
+Main gate:3101tests passed. Frozen v7 home/mid-fight/doorway decoded data, compiled spells and replay match their captured baselines; migrated data reloads as v8. Long quiet casts and deferred Jar continuations preserve Source identity without stack overflow.
+
+The cold-load resource-refusal panel was checked in an isolated fake-backend harness at375×812: readable text, no horizontal overflow or console errors, backup button222×55. Download succeeded and retained8388609bytes, matching the fake oversized original. [Screenshot](growing-pages-evidence/e1-resource-refusal.jpg). The fake harness was removed; ordinary player storage was untouched.

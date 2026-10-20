@@ -174,9 +174,19 @@ test('a placement is saved once; inspecting, rejecting and ignoring never write'
   );
   expect(rejected.message).toBe('Not known');
   expect(rejected.save).toBe(placed.save);
-  // hole: not saved
-  editAndPersist(b, placed.save, 'draughtsman', { x: 0, y: 2 }, rune('ink'), false);
+  // Invalid coordinates remain ignored.
+  editAndPersist(b, placed.save, 'draughtsman', { x: 0.5, y: 2 }, rune('ink'), false);
   expect(writes).toHaveLength(1);
+  // Former holes are writable and save exactly once without moving the existing Source.
+  const grown = editAndPersist(b, placed.save, 'draughtsman', { x: 0, y: 2 }, rune('ink'), false);
+  expect(grown.changed).toBe(true);
+  expect(writes).toHaveLength(2);
+  expect(grown.save.profile.lattices.draughtsman).toContainEqual({
+    at: { x: 0, y: 1 },
+    rune: 'bolt',
+    dir: 'right',
+  });
+  expect(grown.save.profile.proof).toEqual(placed.save.profile.proof);
 });
 
 test('a rotate and a long-press removal each write; the other member and the trip are untouched', () => {

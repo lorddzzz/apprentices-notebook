@@ -4,6 +4,7 @@ import {
   compileLattice,
   describeSpell,
   type GlyphDef,
+  growingLattice,
   inkOf,
   inkUsed,
   type Lattice,
@@ -19,6 +20,7 @@ import {
   stepsOf,
   validateLattice,
 } from '$engine';
+import { forkPage, straightPage } from '../fixtures/growing-pages/pages';
 
 const compile = (
   ascii: string,
@@ -288,4 +290,49 @@ test('setSocket / rotateSocket are pure', () => {
   expect(socketAt(withBolt, { x: 1, y: 0 })?.dir).toBe('right');
   expect(rotateSocket(ink, { x: 0, y: 1 })).toBe(ink); // Ink has no arrow
   expect(rotateSocket(ink, { x: 1, y: 1 })).toBe(ink); // empty socket
+});
+
+test('long accepted paths compile, walk and describe without the JavaScript call stack', () => {
+  const length = 16_384;
+  const compiled = compileLattice(growingLattice(straightPage(length)));
+  const spell = compiled.spells[0];
+  if (!spell) throw new Error('expected spell');
+  expect(spell.key).toBe('0,0');
+  expect(spell.path).toHaveLength(length);
+  expect(compiled.reached).toHaveLength(length);
+  const steps = stepsOf(spell.first);
+  expect(steps).toHaveLength(length - 1);
+  expect(steps.at(-1)?.at).toEqual({ x: length - 1, y: 0 });
+  expect(describeSpell(spell).split(' → ')).toHaveLength(length);
+});
+
+test('a long Fork and Bend comb preserves depth-first branch order', () => {
+  const branches = 1_400;
+  const runes = forkPage(branches);
+  const compiled = compileLattice(growingLattice(runes));
+  const spell = compiled.spells[0];
+  if (!spell) throw new Error('expected spell');
+  expect(spell.path).toHaveLength(runes.length);
+  expect(
+    stepsOf(spell.first)
+      .slice(0, 4)
+      .map((st) => st.at),
+  ).toEqual([
+    { x: 1, y: 0 },
+    { x: 1, y: -1 },
+    { x: 1, y: -2 },
+    { x: 3, y: 0 },
+  ]);
+  expect(stepsOf(spell.first)).toHaveLength(branches * 3 + 1);
+});
+
+test('long consecutive Bend paths retain via cells without repeatedly copying their prefix', () => {
+  const runes: Placed[] = [{ at: { x: 0, y: 0 }, rune: 'touch', dir: 'right' }];
+  for (let x = 1; x <= 16_384; x++) runes.push({ at: { x, y: 0 }, rune: 'bend', dir: 'right' });
+  runes.push({ at: { x: 16_385, y: 0 }, rune: 'guard' });
+  const spell = compileLattice(growingLattice(runes)).spells[0];
+  expect(spell?.path).toHaveLength(16_386);
+  expect(spell?.first?.via).toHaveLength(16_384);
+  expect(spell?.first?.via?.[0]).toEqual({ x: 1, y: 0 });
+  expect(spell?.first?.via?.at(-1)).toEqual({ x: 16_384, y: 0 });
 });

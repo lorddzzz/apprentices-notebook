@@ -10,7 +10,7 @@ Plan: [growing-pages-plan.md](growing-pages-plan.md). Updated on every integrati
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | W0 | Strong / gpt-6.1-sol / high | L | merged | main 4f7db53 / source da41107 | 17% shared window | Contracts/fixtures reviewed; 2939 tests green on task branch |
-| E1 | Strong / gpt-6.1-sol / high | L | partial; held | codex/growing-engine / 2e777b7 | | Compiler/cluster green; migration/cast/clone pending |
+| E1 | Strong / gpt-6.1-sol / high | L | merged | source codex/growing-engine / aad3c83 | | Main3101tests; migration and runtime traversal complete |
 | N1 | Medium / gpt-6.1-sol / medium | M | merged; complete | source 6baf398 + root inherited-key fix | | Main gate 2990 tests |
 | E2 | Medium / gpt-6.1-sol / medium | M | green branch; held | codex/growing-notation / 198958c | | 2993 tests; do not expose old revision UI before U2 |
 | V1 | Medium / gpt-6.1-sol / medium | L | merged | source codex/growing-viewport / 89ead19 | | 3013 tests; root375×812 browser checks pass |
@@ -71,3 +71,5 @@ V1 finalhandoff89ead19 reviewed. Proposals:4px minimum Fit markers with4px CSS i
 N1 work safeguards0e7f8f1 integrated; main check3034tests. Referenced Glyphs indexedonce perimport, aggregatecells/params andtoken/work budgets chargedbeforelookup/indexconstruction. Boundarytests include100k tokens, maxWork and aggregatefields. Scenario-wide sharedtext/tokenbudget follow-up is inprogress on notationbranch. V1 merged80ce36f with phoneevidence; no gameeditoractivation yet.
 
 N1 complete: scenarioaggregate sourcesa5d7183+e88ea67 integrated,3046tests green. One sharedbudget covers external scenario strings/keys, board and lattice tokens/indexwork, before compilation. Typed internal ScenarioOptions fallback pages bypass externalstructurelimits; regression accepts32768signedplacements beyond importedaggregatebudget. No duplicate textcharging. Source0e7f8f1 alreadyintegrateda1fef3a. E1 finalgate pending; no newtasks started while projectedburn is high.
+
+E1 reviewedandintegrated fromaad3c83 (traversale03a4ee/2e777b7); maincheck3101tests passed. v8signedpages + frozenvalidatedv7decoder preservefixtures/replay, historicalrecordkeys syntax-only. Battlecoordinates remainbounded. Iterativecompiler/resolve/descriptions/clusterwalk+boundedcandidateenumeration andgraph-safecloning supportlongcasts/Jars; linkedBendhistory avoidsprefixcopying. Resourcecoldload retainsoriginaltext, blocksordinarywrites andoffersdownload; root375×812 screenshot e1-resource-refusal.jpg, nooverflow/errors,222×55button. Downloadconfirmed8388609bytes matchingfakebackend. NO PUSH ofE1untilU1 replacesoldarea-renderer. A1mustfixrecursiveflowZones andLab/sessionintegration next.

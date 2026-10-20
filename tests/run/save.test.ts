@@ -68,7 +68,7 @@ test('nextTripSeed is deterministic and advances the counter', () => {
   expect(nextTripSeed(a.save).seed).not.toBe(a.seed);
 });
 
-test('parseSaveData rejects garbage and malformed v7 fields', () => {
+test('parseSaveData rejects garbage and malformed current fields', () => {
   for (const junk of [null, 5, 'x', [], {}, { profile: 1 }]) {
     expect(() => parseSaveData(junk)).toThrow('Not a valid save');
   }
@@ -89,7 +89,6 @@ test('parseSaveData rejects garbage and malformed v7 fields', () => {
     ['profile.footnotes', { zap: { points: 1, chosen: {} } }],
     ['profile.inkCapacity.stoker', undefined],
     ['profile.collection', undefined], // fine: ignored
-    [stoker, [{ at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' }]], // a hole
     [stoker, [{ at: { x: 1, y: 1 }, rune: 'nope' }]],
     [stoker, [{ at: { x: 1, y: 1 }, rune: 'bolt' }]], // arrow missing
     ['trip', { seed: 1, encounter: 9, status: 'fight' }],

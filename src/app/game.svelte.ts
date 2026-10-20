@@ -45,6 +45,9 @@ export class GameStore {
   recovered = $state(false);
   /** ...because the notebook is from before this edition (P1). */
   older = $state(false);
+  /** A resource refusal keeps the original save in place until an explicit replacement. */
+  refusal = $state<string | null>(null);
+  private retainedText: string | null = null;
   /** The trip's live battle. Its actions are saved in the trip, so a reload replays the fight. */
   battle = $state.raw<BattleSession | null>(null);
   /** Named results already announced this trip (the toast shows once per discovery). */
@@ -66,6 +69,8 @@ export class GameStore {
     this.save = loaded.save;
     this.recovered = loaded.recovered;
     this.older = loaded.older;
+    this.refusal = loaded.refused?.message ?? null;
+    this.retainedText = loaded.refused?.text ?? null;
   }
 
   get profile(): Profile {
@@ -93,6 +98,7 @@ export class GameStore {
 
   /** A tap (or long-press) on the current member's socket. Saves when the page changed. */
   tapSocket(at: Coord, longPress = false): void {
+    if (this.refusal) return;
     if (this.inDoorway) {
       const r = editProfile(this.studyProfile, this.member, at, this.tool, longPress);
       if (r.changed) this.draft = r.profile;
@@ -136,6 +142,7 @@ export class GameStore {
    * (revise, revert, open cells, extra exit, arguments) and the desk go through this.
    */
   updateProfile(change: (p: Profile) => Profile): string | null {
+    if (this.refusal) return this.refusal;
     let next: Profile;
     try {
       next = change(this.studyProfile);
@@ -153,7 +160,7 @@ export class GameStore {
   }
 
   exportText(): string {
-    return saveText(this.save);
+    return this.retainedText ?? saveText(this.save);
   }
 
   /** Replaces the save with pasted text. Returns null on success, else why it was refused (save unchanged). */
@@ -166,6 +173,8 @@ export class GameStore {
     }
     this.dropBattle();
     this.draft = null;
+    this.refusal = null;
+    this.retainedText = null;
     this.commit(next);
     this.wipe = null;
     this.tool = NO_TOOL;
@@ -176,6 +185,8 @@ export class GameStore {
   reset(): void {
     this.dropBattle();
     this.draft = null;
+    this.refusal = null;
+    this.retainedText = null;
     this.commit(newSave(this.now()));
     this.wipe = null;
     this.toasted = [];
@@ -187,6 +198,7 @@ export class GameStore {
 
   /** Leaves for an open district: the loadout is checked by the engine. Returns why not, or null. */
   setOut(district: DistrictId = 'seam'): string | null {
+    if (this.refusal) return this.refusal;
     try {
       this.commit(setOut(this.save, district));
     } catch (e) {
@@ -202,7 +214,7 @@ export class GameStore {
   /** Status `fight` with no live battle (fresh trip, push on, or a reload) → the encounter starts. */
   ensureBattle(): void {
     const trip = this.save.trip;
-    if (this.battle || trip?.status !== 'fight') return;
+    if (this.refusal || this.battle || trip?.status !== 'fight') return;
     let init: ActionResult;
     try {
       init = startBattle(this.save);
@@ -294,6 +306,7 @@ export class GameStore {
   }
 
   private commit(save: SaveData): void {
+    if (this.refusal) return;
     this.save = save;
     try {
       writeSave(this.backend, save);

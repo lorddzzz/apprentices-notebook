@@ -1,4 +1,5 @@
 import { ENEMIES } from '$data';
+import { cloneData } from './clone';
 import { type Ctx, emit, ref } from './ctx';
 import { type Coord, neighbors4, step } from './grid';
 import { blocksUnits, coordOf, inBoard, isAlive, isFire, isPlate, tileAt, unitAt } from './queries';
@@ -119,7 +120,7 @@ export function burnGates(ctx: Ctx): void {
 
 /** What the next `drift` would move, without moving it. */
 export function driftPreview(state: BattleState): DriftPreview {
-  const s = structuredClone(state);
+  const s = cloneData(state);
   const floats = driftFloats(s);
   const units = driftUnits(s).map((m) => ({ unit: m.unit.id, from: m.from, to: m.to }));
   return { floats, units };

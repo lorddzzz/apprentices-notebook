@@ -20,6 +20,7 @@ import {
   type GlyphLibrary,
   glyphLibrary,
   glyphRunes,
+  isSocket,
   type Lattice,
   latticeOf,
   newProfile,
@@ -735,11 +736,7 @@ describe('extra exit invariants (M28b) over proven clusters', () => {
         const out = step(g.socket.at, world);
         const there = g.compiled.runes.find((r) => r.at.x === out.x && r.at.y === out.y);
         const onNothing =
-          out.x < 0 ||
-          out.y < 0 ||
-          out.x >= g.compiled.shape.width ||
-          out.y >= g.compiled.shape.height ||
-          g.compiled.shape.holes.some((h) => h.x === out.x && h.y === out.y) ||
+          !isSocket(g.compiled.shape, out) ||
           !there ||
           (!isGlyphSocket(there) && ['aura', 'source'].includes(roleOf(there.rune) ?? ''));
         const a = flatCompile(g.compiled, withExtra);

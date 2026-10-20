@@ -1,5 +1,6 @@
 import type { LineId } from '$data';
 import { objectiveMet } from './city';
+import { cloneData } from './clone';
 import type { GameEvent, UnitRef } from './events';
 import type { Coord } from './grid';
 import { enemies, isAlive, members } from './queries';
@@ -41,7 +42,7 @@ export function runDraft(
   opts: DraftOptions = {},
 ): ActionResult {
   const ctx: Ctx = {
-    s: structuredClone(state),
+    s: cloneData(state),
     log: [],
     cast: null,
     meta: {},

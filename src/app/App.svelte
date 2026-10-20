@@ -34,14 +34,30 @@
     }
   });
 
+  function downloadRetainedSave(): void {
+    const url = URL.createObjectURL(new Blob([game.exportText()], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'apprentices-notebook.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   // The trip (or a pending wipe) decides the screen; rewrite the URL to match without piling up history.
   $effect(() => {
-    if (resolved.redirect) go(resolved.redirect, undefined, { replace: true });
+    if (!game.refusal && resolved.redirect) go(resolved.redirect, undefined, { replace: true });
   });
 </script>
 
 <main>
-  {#if resolved.screen === 'study'}
+  {#if game.refusal}
+    <section class="refusal" aria-labelledby="refusal-title">
+      <h1 id="refusal-title">Your notebook is safe</h1>
+      <p>This notebook is too large for this edition to open. Your saved text has been kept in place.</p>
+      <p>{game.refusal}</p>
+      <button type="button" class="tap" onclick={downloadRetainedSave}>Download saved notebook</button>
+    </section>
+  {:else if resolved.screen === 'study'}
     <Study />
   {:else if resolved.screen === 'codex'}
     <Codex />
@@ -81,6 +97,18 @@
     padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
     background: var(--parchment);
     overflow: hidden;
+  }
+  .refusal {
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--space-4);
+    overflow-wrap: anywhere;
+  }
+  .refusal button {
+    min-height: 44px;
+    max-width: 100%;
+    margin-top: var(--space-3);
+    padding: var(--space-3);
   }
   .build {
     position: absolute;

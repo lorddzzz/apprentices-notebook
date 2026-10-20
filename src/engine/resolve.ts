@@ -1,4 +1,5 @@
 import { isInvention, RUNES, type RuneRef } from '$data';
+import { cloneData } from './clone';
 import { type Ctx, emit, fizzled, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
@@ -111,112 +112,125 @@ const giftedFor = (caster: Unit | null, rune: RuneRef): boolean =>
  * ends the branch; a Seal hands everything after it to a jar. Earlier effects always stay.
  */
 export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], flow: Flow): void {
-  if (!st || fizzled(ctx)) return;
-  if (flow.depth > NEST_LIMIT) {
-    emit(ctx, { type: 'fizzles', reason: 'depth' });
-    return;
-  }
-  const s = ctx.s;
-  const live = targets.filter((t) => whereIs(s, t) !== null);
-  if (live.length === 0) return; // nothing left to act on
-  const rec = recorderOf(ctx, flow);
-  rec.ran.push(st);
-  for (const t of live) {
-    const k = targetKey(t);
-    if (!rec.landed.targets.includes(k)) rec.landed.targets.push(k);
-  }
-  const begin = ctx.log.length;
-  const glyph = st.inner ? (st.glyph ?? rec.glyphs.get(key(st.at))) : undefined;
-  const stepOrigin: Origin = glyph ? { ...flow.origin, glyph, glyphAt: { ...st.at } } : flow.origin;
-  recorders.set(stepOrigin, rec);
-  const span = (): void => {
-    rec.spans.push(spanOf(ctx, rec, st, begin));
+  const pending: { step: Step; targets: readonly Target[]; flow: Flow }[] = [];
+  const queue = (step: Step | null, targets: readonly Target[], flow: Flow): void => {
+    if (step) pending.push({ step, targets, flow });
   };
+  queue(st, targets, flow);
+  while (pending.length && !fizzled(ctx)) {
+    const job = pending.pop();
+    if (job) one(job.step, job.targets, job.flow);
+  }
+  function one(st: Step, targets: readonly Target[], flow: Flow): void {
+    if (!st || fizzled(ctx)) return;
+    if (flow.depth > NEST_LIMIT) {
+      emit(ctx, { type: 'fizzles', reason: 'depth' });
+      return;
+    }
+    const s = ctx.s;
+    const live = targets.filter((t) => whereIs(s, t) !== null);
+    if (live.length === 0) return; // nothing left to act on
+    const rec = recorderOf(ctx, flow);
+    rec.ran.push(st);
+    for (const t of live) {
+      const k = targetKey(t);
+      if (!rec.landed.targets.includes(k)) rec.landed.targets.push(k);
+    }
+    const begin = ctx.log.length;
+    const glyph = st.inner ? (st.glyph ?? rec.glyphs.get(key(st.at))) : undefined;
+    const stepOrigin: Origin = glyph
+      ? { ...flow.origin, glyph, glyphAt: { ...st.at } }
+      : flow.origin;
+    recorders.set(stepOrigin, rec);
+    const span = (): void => {
+      rec.spans.push(spanOf(ctx, rec, st, begin));
+    };
 
-  switch (st.role) {
-    case 'action':
-    case 'kind': {
-      const handler = handlerOf(st.rune);
-      const here: Flow = {
-        ...flow,
-        origin: stepOrigin,
-        gifted: giftedFor(findUnit(s, flow.caster), st.rune),
-        auras: st.auras,
-        giftedAuras: giftedAuras(findUnit(s, flow.caster), st.auras),
-      };
-      const acted = new Set<UnitId>(); // P23: a unit is acted on once per Action
-      for (const t of live) {
-        if (fizzled(ctx)) return;
-        const at = whereIs(s, t);
-        if (!at) continue; // died under an earlier target's hit
-        if (t.kind === 'unit') acted.add(t.unit);
-        else if (st.role === 'action') {
-          const u = unitAt(s, at);
-          if (u && acted.has(u.id)) continue; // pushed onto this tile in this very step
+    switch (st.role) {
+      case 'action':
+      case 'kind': {
+        const handler = handlerOf(st.rune);
+        const here: Flow = {
+          ...flow,
+          origin: stepOrigin,
+          gifted: giftedFor(findUnit(s, flow.caster), st.rune),
+          auras: st.auras,
+          giftedAuras: giftedAuras(findUnit(s, flow.caster), st.auras),
+        };
+        const acted = new Set<UnitId>(); // P23: a unit is acted on once per Action
+        for (const t of live) {
+          if (fizzled(ctx)) return;
+          const at = whereIs(s, t);
+          if (!at) continue; // died under an earlier target's hit
+          if (t.kind === 'unit') acted.add(t.unit);
+          else if (st.role === 'action') {
+            const u = unitAt(s, at);
+            if (u && acted.has(u.id)) continue; // pushed onto this tile in this very step
+          }
+          withOrigin(ctx, stepOrigin, () => {
+            handler?.(ctx, t, here, st);
+            if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here);
+          });
         }
-        withOrigin(ctx, stepOrigin, () => {
-          handler?.(ctx, t, here, st);
-          if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here);
-        });
-      }
-      span();
-      runStep(ctx, st.next, live, flow);
-      return;
-    }
-    case 'fork': {
-      const left = forkSide(s, live, flow.headings, 'left');
-      const right = forkSide(s, live, flow.headings, 'right');
-      const ahead = flow.habit === 'forkAhead' ? forkSide(s, live, flow.headings, 'ahead') : null;
-      if (left.blind > 0) {
-        withLine(ctx, 'fork:noHeading', () => emit(ctx, { type: 'miss', source: 'Fork' }));
-      }
-      span();
-      runStep(ctx, st.left, left.targets, { ...flow, headings: left.headings });
-      runStep(ctx, st.right, right.targets, { ...flow, headings: right.headings });
-      if (ahead) {
-        // The Stoker's habit: both roads also run on the tile ahead, after left and right.
-        runStep(ctx, st.left, ahead.targets, { ...flow, headings: ahead.headings });
-        runStep(ctx, st.right, ahead.targets, { ...flow, headings: ahead.headings });
-      }
-      return;
-    }
-    case 'shape': {
-      if (st.rune === 'lay') {
         span();
-        runStep(ctx, st.next, live, { ...flow, lay: true });
+        queue(st.next, live, flow);
         return;
       }
-      const aimed =
-        st.rune === 'seep'
-          ? seep(s, live, flow.headings)
-          : toll(s, live, flow.headings, seams.sameStateNet ?? sameStateNet);
-      span();
-      runStep(ctx, st.next, aimed.targets, { ...flow, headings: aimed.headings });
-      return;
-    }
-    case 'trigger': {
-      const through = live.filter((t) => passes(s, st.rune, t, flow));
-      emit(ctx, { type: 'triggered', rune: st.rune, passed: through.length > 0 });
-      span();
-      runStep(ctx, st.next, through, flow);
-      return;
-    }
-    case 'seal': {
-      const seal = seams.sealJar ?? sealJar;
-      for (const t of live) {
-        const at = whereIs(s, t);
-        if (at && st.rest)
-          withOrigin(ctx, stepOrigin, () =>
-            seal(ctx, at, jarFor(st.rune, st.rest, t, { ...flow, origin: stepOrigin })),
-          );
+      case 'fork': {
+        const left = forkSide(s, live, flow.headings, 'left');
+        const right = forkSide(s, live, flow.headings, 'right');
+        const ahead = flow.habit === 'forkAhead' ? forkSide(s, live, flow.headings, 'ahead') : null;
+        if (left.blind > 0) {
+          withLine(ctx, 'fork:noHeading', () => emit(ctx, { type: 'miss', source: 'Fork' }));
+        }
+        span();
+        if (ahead) {
+          // LIFO: ahead runs after the ordinary left and right branches.
+          queue(st.right, ahead.targets, { ...flow, headings: ahead.headings });
+          queue(st.left, ahead.targets, { ...flow, headings: ahead.headings });
+        }
+        queue(st.right, right.targets, { ...flow, headings: right.headings });
+        queue(st.left, left.targets, { ...flow, headings: left.headings });
+        return;
       }
-      span();
-      return;
-    }
-    case 'split': {
-      span();
-      for (const branch of st.branches) runStep(ctx, branch, live, flow);
-      return;
+      case 'shape': {
+        if (st.rune === 'lay') {
+          span();
+          queue(st.next, live, { ...flow, lay: true });
+          return;
+        }
+        const aimed =
+          st.rune === 'seep'
+            ? seep(s, live, flow.headings)
+            : toll(s, live, flow.headings, seams.sameStateNet ?? sameStateNet);
+        span();
+        queue(st.next, aimed.targets, { ...flow, headings: aimed.headings });
+        return;
+      }
+      case 'trigger': {
+        const through = live.filter((t) => passes(s, st.rune, t, flow));
+        emit(ctx, { type: 'triggered', rune: st.rune, passed: through.length > 0 });
+        span();
+        queue(st.next, through, flow);
+        return;
+      }
+      case 'seal': {
+        const seal = seams.sealJar ?? sealJar;
+        for (const t of live) {
+          const at = whereIs(s, t);
+          if (at && st.rest)
+            withOrigin(ctx, stepOrigin, () =>
+              seal(ctx, at, jarFor(st.rune, st.rest, t, { ...flow, origin: stepOrigin })),
+            );
+        }
+        span();
+        return;
+      }
+      case 'split': {
+        span();
+        for (let i = st.branches.length - 1; i >= 0; i--) queue(st.branches[i] ?? null, live, flow);
+        return;
+      }
     }
   }
 }
@@ -264,7 +278,7 @@ function aimText(aim: Aim): string {
 
 /** The board as it stands, deep-copied (R8, P25). */
 export function snapshotOf(s: BattleState): Snapshot {
-  return structuredClone({ tiles: s.tiles, units: s.units, landed: s.landed });
+  return cloneData({ tiles: s.tiles, units: s.units, landed: s.landed });
 }
 
 /** Event types that make a cast count toward proof (plan P6). */
@@ -381,7 +395,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       type: 'cast',
       caster: ref(caster),
       spell: RUNES[spell.source].name,
-      aim: structuredClone(aim),
+      aim: cloneData(aim),
       aimText: aimText(aim),
     });
     // Span offsets count from the first effect event, right after `cast` (M2).
@@ -392,7 +406,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
     emit(ctx, {
       type: 'aimed',
       source: spell.source,
-      targets: structuredClone(targets),
+      targets: cloneData(targets),
       heading: first ? (headings.get(targetKey(first)) ?? null) : null,
     });
     if (spell.source === 'bolt') flight(ctx, caster, aim, gifted);

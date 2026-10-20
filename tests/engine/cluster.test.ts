@@ -6,8 +6,10 @@ import {
   type Cluster,
   canonical,
   clustersOf,
+  compileLattice,
   createRng,
   type FiredCell,
+  growingLattice,
   type Lattice,
   maximalProven,
   parseLattice,
@@ -16,7 +18,8 @@ import {
   sharingSpells,
   toGlyphDef,
 } from '$engine';
-import { turnDir } from '../../src/engine/cluster';
+import { stepShape, turnDir } from '../../src/engine/cluster';
+import { straightPage } from '../fixtures/growing-pages/pages';
 
 const c = (x: number, y: number) => ({ x, y });
 const at = (cl: Cluster) => cl.cells.map((p) => `${p.x},${p.y}`).join(' ');
@@ -336,4 +339,22 @@ test('seals keep their stored tail and Fork branches in the cluster tree', () =>
     'spark',
   ]);
   expect(provenCount(l, whole, [cellsOf(l, whole)])).toBe(1);
+});
+
+test('long pages enumerate only bounded Fair Copy candidates and serialize behavior signatures', () => {
+  const length = 8_192;
+  const lattice = growingLattice(straightPage(length));
+  const clusters = clustersOf(lattice);
+  // One prefix of each size 3..8 at every root that has enough remaining cells.
+  expect(clusters).toHaveLength(6 * length - 27);
+  expect(clusters[0]?.cells).toHaveLength(8);
+  expect(clusters.at(-1)?.cells).toEqual([
+    { x: length - 3, y: 0 },
+    { x: length - 2, y: 0 },
+    { x: length - 1, y: 0 },
+  ]);
+  const first = compileLattice(lattice).spells[0]?.first ?? null;
+  const signature = JSON.stringify(stepShape(first));
+  expect(signature).toContain('kind');
+  expect(signature).toContain('ink');
 });

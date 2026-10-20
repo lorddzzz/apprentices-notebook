@@ -11,6 +11,7 @@ import {
 } from '$data';
 import { enemyPhase } from './ai';
 import { castAction } from './cast';
+import { cloneData } from './clone';
 import { type Ctx, checkEnd, type DraftOptions, emit, ref, runDraft } from './ctx';
 import type { GameEvent } from './events';
 import { type Coord, label, step } from './grid';
@@ -336,7 +337,7 @@ export function boardOf(s: BattleState): string {
 export function labSetCell(state: BattleState, at: Coord, token: string): BattleState {
   if (!inBoard(state, at)) throw new Error(`${label(at)} is off the board`);
   const { tile, unit } = parseCell(token, at);
-  const s = structuredClone(state);
+  const s = cloneData(state);
   s.tiles[at.y * s.width + at.x] = tile;
   const old = unitAt(s, at);
   const kept = s.units.filter((u) => u !== old && !(unit?.kind === 'member' && u.id === unit.def));

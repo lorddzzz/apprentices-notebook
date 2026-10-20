@@ -37,6 +37,7 @@ import {
   serializeLattice,
   type Tile,
 } from '$engine';
+import { cloneData } from '$engine/clone';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
 
@@ -285,7 +286,7 @@ export function applyEdits(s: BattleState, edits: readonly CellEdit[]): BattleSt
   for (const { at, token } of edits) {
     const here = cellTokens(next)[at.y]?.[at.x] ?? '.';
     if (unitPart(here) === unitPart(token)) {
-      const clone = structuredClone(next);
+      const clone = cloneData(next);
       clone.tiles[at.y * clone.width + at.x] = parseCell(token, at).tile;
       next = clone;
     } else {

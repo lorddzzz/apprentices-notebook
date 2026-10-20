@@ -1,4 +1,5 @@
 import type { BindEvent } from '$data';
+import { cloneData } from './clone';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { type Coord, type Dir, sameCoord } from './grid';
 import type { Hook } from './hooks';
@@ -37,7 +38,7 @@ function reach(ctx: Ctx, lineage: number, unit: Unit): void {
 export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): void {
   if (unit.mark) spendMark(ctx, unit); // replaced: spent, never released (limit 6)
   const lineage = mark.lineage ?? ctx.s.nextLineage++;
-  unit.mark = { ...mark, bound: mark.bound ? structuredClone(mark.bound) : null, lineage };
+  unit.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null, lineage };
   reach(ctx, lineage, unit);
   withOrigin(ctx, mark.origin, () =>
     emit(ctx, {
@@ -59,7 +60,7 @@ export function attachBound(ctx: Ctx, unit: Unit, bound: Bound): void {
   if (!mark) return;
   for (const u of ctx.s.units) {
     if (u.mark && u.mark.lineage === mark.lineage && !u.mark.bound) {
-      u.mark.bound = structuredClone(bound);
+      u.mark.bound = cloneData(bound);
     }
   }
   withOrigin(ctx, mark.origin, () =>
@@ -103,7 +104,7 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
   withLine(ctx, 'bind:cloud', () =>
     withOrigin(ctx, mark.origin, () => {
       for (const u of to) {
-        u.mark = { ...mark, bound: mark.bound ? structuredClone(mark.bound) : null };
+        u.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null };
         reached.push(u.id);
       }
       emit(ctx, { type: 'markSpread', from: ref(unit), to: to.map((u) => ref(u)) });

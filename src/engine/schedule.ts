@@ -1,3 +1,4 @@
+import { cloneData } from './clone';
 import { type Ctx, emit } from './ctx';
 import { runDetached } from './jars';
 import { unitAt } from './queries';
@@ -13,7 +14,7 @@ import type { Scheduled, Step, UnitId } from './types';
  */
 
 export function schedule(ctx: Ctx, s: Scheduled): void {
-  ctx.s.scheduled.push(structuredClone(s));
+  ctx.s.scheduled.push(cloneData(s));
   const at = whereIs(ctx.s, s.target);
   if (at) emit(ctx, { type: 'scheduled', kind: s.kind, at });
 }

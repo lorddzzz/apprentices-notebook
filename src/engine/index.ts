@@ -1,5 +1,6 @@
 export * from './battle';
 export * from './city';
+export * from './clone';
 export * from './cluster';
 export * from './current';
 export * from './events';

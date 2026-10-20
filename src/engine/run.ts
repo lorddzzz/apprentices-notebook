@@ -39,10 +39,20 @@ import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } 
 import { type EventLog, namedIn } from './events';
 import { awardFootnotePoints, footnoteTexts } from './footnotes';
 import { canBeOpen, glyphRunes, withOpenCell } from './glyph';
-import { type Coord, DIRS, type Dir, label } from './grid';
+import {
+  type Coord,
+  DIRS,
+  type Dir,
+  isLatticeCoord,
+  key,
+  latticeLabel as label,
+  parseLatticeKey,
+} from './grid';
+import { assertImportStructure, type ImportBudget, importBudget } from './importPolicy';
 import { inventionIssue, type KnownSet } from './inventions';
 import {
   compileLattice,
+  hasArrow,
   inkOf,
   inkUsed,
   isSocket,
@@ -51,7 +61,8 @@ import {
   validateLattice,
 } from './lattice';
 import { witnessedIn } from './lines';
-import { parseLattice } from './notation';
+import { parseBoard, parseLattice } from './notation';
+import { growingLattice } from './page';
 import { recordGlyphCasts, recordOf, rewardsOf, tierUps } from './profiler';
 import { masksFrom, provenCount } from './proof';
 import { memberById } from './queries';
@@ -121,7 +132,7 @@ const copyRune = (r: Placed): Placed =>
 
 // ── Profile ─────────────────────────────────────────────
 
-/** A fresh notebook (Profile v7, P1, P35). */
+/** A fresh notebook; page placements retain their original coordinate identities. */
 export function newProfile(): Profile {
   return {
     known: [...START_KNOWN],
@@ -149,7 +160,7 @@ export function masteryDefaults(): Pick<Profile, 'glyphArchive' | 'glyphRecords'
 }
 
 export function latticeOf(p: Profile, m: MemberId): Lattice {
-  return { shape: parseLattice(MEMBERS[m].shape).shape, runes: p.lattices[m].map(copyRune) };
+  return growingLattice(p.lattices[m].map(copyRune));
 }
 
 /**
@@ -820,7 +831,7 @@ export function applyDoorway(
 
 // ── Save data ───────────────────────────────────────────
 
-/** The save shape, version 7 (see `src/app/save.ts`, P1: older saves start fresh). */
+/** Sparse save data; version dispatch and edition recovery belong to the app save boundary. */
 export function newSave(seed: number): SaveData {
   return { profile: newProfile(), trip: null, seedCounter: seed, lastTrip: null };
 }
@@ -841,7 +852,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
 function count(v: unknown): number {
-  return typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : bad();
+  return typeof v === 'number' && Number.isSafeInteger(v) && v >= 0 ? v : bad();
 }
 
 function oneOf<T extends string>(list: readonly T[], v: unknown): T {
@@ -856,13 +867,24 @@ function record(v: unknown): Record<string, unknown> {
   return isRecord(v) ? v : bad();
 }
 
-function parseCoord(v: unknown): Coord {
+function pageCoord(v: unknown): Coord {
   const r = record(v);
-  if (!Number.isInteger(r.x) || !Number.isInteger(r.y)) return bad();
+  if (!isLatticeCoord(r)) return bad();
   return { x: r.x as number, y: r.y as number };
 }
 
-const CELL_KEY = /^-?\d+,-?\d+$/;
+function boardCoord(v: unknown): Coord {
+  const r = record(v);
+  if (
+    !Number.isSafeInteger(r.x) ||
+    !Number.isSafeInteger(r.y) ||
+    (r.x as number) < 0 ||
+    (r.y as number) < 0
+  )
+    return bad();
+  return { x: r.x as number, y: r.y as number };
+}
+
 const VERSION_KEY = /^.+@[1-9]\d*$/;
 const INVENTION_ID = /^inv:[^\s[\]]+$/;
 const LINE_ID = /^[A-Za-z]+:[A-Za-z]+$/;
@@ -870,7 +892,13 @@ const TIERS: readonly TierLevel[] = [0, 1, 2, 3];
 const BIND_EVENTS: readonly BindEvent[] = ['hit', 'enters', 'pushed', 'dies'];
 
 function cellKey(v: unknown): CellKey {
-  return typeof v === 'string' && CELL_KEY.test(v) ? v : bad();
+  if (typeof v !== 'string') return bad();
+  try {
+    parseLatticeKey(v);
+  } catch {
+    return bad();
+  }
+  return v;
 }
 
 function bool(v: unknown): boolean {
@@ -901,7 +929,7 @@ function parseArgs(v: unknown): Record<CellKey, GlyphArg> {
 function parsePlaced(v: unknown): Placed {
   const r = record(v);
   if (r.glyph !== undefined) {
-    const placed = { at: parseCoord(r.at), glyph: text(r.glyph), dir: oneOf(DIRS, r.dir) };
+    const placed = { at: pageCoord(r.at), glyph: text(r.glyph), dir: oneOf(DIRS, r.dir) };
     return r.args === undefined ? placed : { ...placed, args: parseArgs(r.args) };
   }
   return parseRune(r);
@@ -983,8 +1011,8 @@ function parseFootnotes(v: unknown): Profile['footnotes'] {
   return out;
 }
 
-/** Profile v7 (P1): every field is required; older saves are the app's to turn away (save.ts). */
-function parseProfile(v: unknown): Profile {
+/** Current sparse profile: every field is required. */
+function parseProfile(v: unknown, budget: ImportBudget): Profile {
   const r = record(v);
   const cap = record(r.inkCapacity);
   const lat = record(r.lattices);
@@ -997,14 +1025,16 @@ function parseProfile(v: unknown): Profile {
   ) as Record<SolventId, number>;
   const inventions = list(r.inventions).map(parseInvention);
   if (new Set(inventions.map((d) => d.id)).size !== inventions.length) bad();
-  const glyphs = list(r.glyphs).map(parseGlyphDef);
+  const glyphs = list(r.glyphs).map((g) => parseGlyphDef(g, budget));
   if (new Set(glyphs.map((g) => g.id)).size !== glyphs.length) bad();
   // Older versions: each of a current Glyph, never its current version, each version once.
-  const glyphArchive = list(r.glyphArchive).map(parseGlyphDef);
+  const glyphArchive = list(r.glyphArchive).map((g) => parseGlyphDef(g, budget));
   const versions = new Set(glyphs.map((g) => `${g.id}@${g.version}`));
+  const currentIds = new Set(glyphs.map((g) => g.id));
   for (const g of glyphArchive) {
+    budget.spend('work');
     const k = `${g.id}@${g.version}`;
-    if (!glyphs.some((c) => c.id === g.id) || versions.has(k)) bad();
+    if (!currentIds.has(g.id) || versions.has(k)) bad();
     versions.add(k);
   }
   const recordsRaw = record(r.glyphRecords);
@@ -1016,7 +1046,7 @@ function parseProfile(v: unknown): Profile {
   );
   const library = glyphLibrary({ glyphs, glyphRecords });
   for (const m of MEMBER_IDS) {
-    const shape = parseLattice(MEMBERS[m].shape).shape;
+    const shape = growingLattice(lattices[m]).shape;
     // Also rejects a lattice Glyph that is not in the library. A stale argument (after a revision)
     // is the page's issue to fix, not a broken save.
     const structural = validateLattice(
@@ -1024,6 +1054,8 @@ function parseProfile(v: unknown): Profile {
       null,
       library,
       libraryOf(inventions),
+      null,
+      budget,
     ).filter((i) => i.kind !== 'arg');
     if (structural.length > 0) bad();
   }
@@ -1077,18 +1109,20 @@ function unique<T>(items: T[]): T[] {
 function parseRune(v: unknown): PlacedRune {
   const r = record(v);
   const rune = runeRef(r.rune);
-  const at = parseCoord(r.at);
+  const at = pageCoord(r.at);
   return r.dir === undefined ? { at, rune } : { at, rune, dir: oneOf(DIRS, r.dir) };
 }
 
 /** A saved Glyph (never with a `discount`: that is the effective view's). */
-function parseGlyphDef(v: unknown): GlyphDef {
+function parseGlyphDef(v: unknown, budget: ImportBudget): GlyphDef {
   const r = record(v);
   const cells = list(r.cells).map(parseRune);
   if (cells.length === 0) bad();
   const params = unique(list(r.params).map(cellKey));
+  budget.spend('work', cells.length + params.length);
+  const byKey = new Map(cells.map((c) => [key(c.at), c]));
   for (const k of params) {
-    const cell = cells.find((c) => `${c.at.x},${c.at.y}` === k) ?? bad();
+    const cell = byKey.get(k) ?? bad();
     if (!isInvention(cell.rune) && !canBeOpen(cell.rune)) bad();
   }
   return {
@@ -1096,10 +1130,10 @@ function parseGlyphDef(v: unknown): GlyphDef {
     name: text(r.name),
     kind: oneOf<'spell' | 'payload'>(['spell', 'payload'], r.kind),
     cells,
-    entry: parseCoord(r.entry),
+    entry: pageCoord(r.entry),
     exits: list(r.exits).map((e) => {
       const x = record(e);
-      return { from: parseCoord(x.from), dir: oneOf(DIRS, x.dir) };
+      return { from: pageCoord(x.from), dir: oneOf(DIRS, x.dir) };
     }),
     idiom: r.idiom === null ? null : text(r.idiom),
     version: count(r.version) >= 1 ? count(r.version) : bad(),
@@ -1111,7 +1145,7 @@ function parseGlyphDef(v: unknown): GlyphDef {
 function parseFired(v: unknown): FiredCell {
   const r = record(v);
   const fired: FiredCell = {
-    at: parseCoord(r.at),
+    at: pageCoord(r.at),
     rune: r.rune === null ? null : runeRef(r.rune),
   };
   if (r.glyph !== undefined) fired.glyph = text(r.glyph);
@@ -1129,7 +1163,7 @@ function parseAim(v: unknown): Aim {
     case 'dir':
       return { kind: 'dir', dir: oneOf(DIRS, r.dir) };
     case 'tile':
-      return { kind: 'tile', at: parseCoord(r.at) };
+      return { kind: 'tile', at: boardCoord(r.at) };
     case 'self':
       return { kind: 'self' };
     default:
@@ -1141,11 +1175,11 @@ function parseAction(v: unknown): Action {
   const r = record(v);
   switch (r.type) {
     case 'move':
-      return { type: 'move', unit: text(r.unit), to: parseCoord(r.to) };
+      return { type: 'move', unit: text(r.unit), to: boardCoord(r.to) };
     case 'undoMove':
       return { type: 'undoMove', unit: text(r.unit) };
     case 'cast':
-      return { type: 'cast', unit: text(r.unit), spell: text(r.spell), aim: parseAim(r.aim) };
+      return { type: 'cast', unit: text(r.unit), spell: cellKey(r.spell), aim: parseAim(r.aim) };
     case 'shove':
       return { type: 'shove', unit: text(r.unit), dir: oneOf(DIRS, r.dir) };
     case 'endTurn':
@@ -1172,7 +1206,7 @@ function parseTrip(v: unknown): Trip {
     hp: perMember((m) => count(hp[m])),
     charges: perMember((m) => {
       const c = record(charges[m]);
-      return Object.fromEntries(Object.entries(c).map(([k, n]) => [k, count(n)]));
+      return Object.fromEntries(Object.entries(c).map(([k, n]) => [cellKey(k), count(n)]));
     }),
     loot: list(r.loot).map(parseLoot),
     offers: list(r.offers).map(parseLoot),
@@ -1195,21 +1229,24 @@ function parseTrip(v: unknown): Trip {
 }
 
 /** Validates and normalizes loaded save data. Throws "Not a valid save". */
-export function parseSaveData(data: unknown): SaveData {
+export function parseSaveData(data: unknown, budget: ImportBudget = importBudget()): SaveData {
+  assertImportStructure(data, budget);
   const r = record(data);
-  return {
-    profile: parseProfile(r.profile),
+  const save: SaveData = {
+    profile: parseProfile(r.profile, budget),
     trip: r.trip === null || r.trip === undefined ? null : parseTrip(r.trip),
     seedCounter: count(r.seedCounter),
     lastTrip: r.lastTrip === null || r.lastTrip === undefined ? null : parseRecap(r.lastTrip),
   };
+  validateSaveReferences(save, budget);
+  return save;
 }
 
 function parseTally(v: unknown): SpellTally {
   const x = record(v);
   return {
     member: oneOf(MEMBER_IDS, x.member),
-    spell: text(x.spell),
+    spell: cellKey(x.spell),
     name: text(x.name),
     casts: count(x.casts),
     damage: count(x.damage),
@@ -1244,7 +1281,7 @@ function parseStats(v: unknown): TripStats {
             const c = record(r.biggestChain);
             return {
               member: oneOf(MEMBER_IDS, c.member),
-              spell: text(c.spell),
+              spell: cellKey(c.spell),
               name: text(c.name),
               reactions: count(c.reactions),
             };
@@ -1341,4 +1378,101 @@ export function renameGlyph(p: Profile, id: GlyphId, name: string): Profile {
   if (!trimmed) throw new Error('A Glyph needs a name');
   if (!p.glyphs.some((g) => g.id === id)) throw new Error(`No Glyph ${id}`);
   return { ...p, glyphs: p.glyphs.map((g) => (g.id === id ? { ...g, name: trimmed } : g)) };
+}
+
+/** Referential checks are separate from decoding, and run before any compilation or ink walk. */
+export function validateSaveReferences(save: SaveData, budget: ImportBudget, legacy = false): void {
+  const p = save.profile;
+  const inventions = libraryOf(p.inventions);
+  const rune = (ref: RuneRef): void => {
+    budget.spend('work');
+    if (isInvention(ref) && !inventions[ref]) bad();
+  };
+  // Iterative topological walk rejects cycles before ink or compiler helpers follow inventions.
+  const done = new Set<RuneRef>();
+  const active = new Set<RuneRef>();
+  for (const def of p.inventions) {
+    const pending = [{ ref: def.id as RuneRef, exit: false }];
+    while (pending.length) {
+      budget.spend('work');
+      const item = pending.pop();
+      if (!item) continue;
+      if (item.exit) {
+        active.delete(item.ref);
+        done.add(item.ref);
+        continue;
+      }
+      rune(item.ref);
+      if (!isInvention(item.ref) || done.has(item.ref)) continue;
+      if (active.has(item.ref)) bad();
+      active.add(item.ref);
+      pending.push({ ref: item.ref, exit: true });
+      for (const part of inventions[item.ref]?.parts ?? [])
+        pending.push({ ref: part, exit: false });
+    }
+  }
+  const defs = [...p.glyphs, ...p.glyphArchive];
+  for (const g of defs) {
+    budget.spend('work', g.cells.length + g.exits.length + g.params.length + 1);
+    const cells = new Set<CellKey>();
+    for (const c of g.cells) {
+      rune(c.rune);
+      if (!isLatticeCoord(c.at)) bad();
+      if (cells.has(key(c.at)) || hasArrow(c.rune) !== (c.dir !== undefined)) bad();
+      cells.add(key(c.at));
+    }
+    if (!legacy && (!cells.has(key(g.entry)) || g.exits.some((e) => !cells.has(key(e.from)))))
+      bad();
+  }
+  for (const [k, rec] of Object.entries(p.glyphRecords)) {
+    budget.spend('work', Object.keys(rec.fired).length + 1);
+    if (!VERSION_KEY.test(k) || !Number.isSafeInteger(Number(k.slice(k.lastIndexOf('@') + 1))))
+      bad();
+    for (const local of Object.keys(rec.fired)) cellKey(local);
+  }
+  for (const m of MEMBER_IDS) {
+    budget.spend('work', p.lattices[m].length);
+    for (const placed of p.lattices[m]) {
+      if (!isLatticeCoord(placed.at)) bad();
+      if (isGlyph(placed)) for (const arg of Object.values(placed.args ?? {})) rune(arg.rune);
+      else rune(placed.rune);
+    }
+    for (const mask of p.proof[m])
+      for (const fired of mask) {
+        budget.spend('work');
+        if (!isLatticeCoord(fired.at)) bad();
+        if (fired.rune) rune(fired.rune);
+      }
+  }
+  const t = save.trip;
+  if (!t) return;
+  const enc = encountersOf(t.district)[t.encounter] ?? bad();
+  const variant = enc.variants[variantFor(t, t.encounter)] ?? bad();
+  const board = parseBoard(variant.layout);
+  const onBoard = (at: Coord): void => {
+    if (
+      !Number.isSafeInteger(at.x) ||
+      !Number.isSafeInteger(at.y) ||
+      at.x < 0 ||
+      at.y < 0 ||
+      at.x >= board.width ||
+      at.y >= board.height
+    )
+      bad();
+  };
+  for (const m of MEMBER_IDS)
+    for (const k of Object.keys(t.charges[m])) {
+      budget.spend('work');
+      cellKey(k);
+    }
+  for (const action of t.actions) {
+    budget.spend('work');
+    if (action.type === 'endTurn') continue;
+    oneOf(MEMBER_IDS, action.unit);
+    if (action.type === 'move') onBoard(action.to);
+    if (action.type === 'cast') {
+      cellKey(action.spell);
+      if (action.aim.kind === 'tile') onBoard(action.aim.at);
+    }
+  }
 }

@@ -15,14 +15,14 @@ import {
 
 // ── The save format (P1) ──
 
-test('the current save version is 7', () => {
-  expect(CURRENT_VERSION).toBe(7);
-  expect(JSON.parse(saveText(newSave(1))).version).toBe(7);
+test('the current save version is 8', () => {
+  expect(CURRENT_VERSION).toBe(8);
+  expect(JSON.parse(saveText(newSave(1))).version).toBe(8);
 });
 
 test('round-trips through text', () => {
   const text = serialize({ name: 'a' });
-  expect(parse(text)).toEqual({ version: 7, data: { name: 'a' } });
+  expect(parse(text)).toEqual({ version: 8, data: { name: 'a' } });
 });
 
 test('rejects garbage and saves from the future', () => {
@@ -32,7 +32,7 @@ test('rejects garbage and saves from the future', () => {
   expect(() => parseSaveText(serialize({ profile: 1 }))).toThrow('Not a valid save');
 });
 
-test('any older save is turned away with the older-edition notice, no migration', () => {
+test('pre-v7 saves retain the older-edition notice', () => {
   expect(OLDER_EDITION).toBe('This notebook is from an older edition');
   for (const version of [0, 1, 4, 6]) {
     expect(() => parse(serialize({}, version))).toThrow(OLDER_EDITION);

@@ -1,5 +1,6 @@
 import { MEMBER_IDS, MEMBERS, type MemberId, SCENARIOS, type ScenarioDef } from '$data';
 import { applyAction, createBattle } from './battle';
+import { cloneData } from './clone';
 import { describeLog, type GameEvent } from './events';
 import { assertImportStructure, importBudget } from './importPolicy';
 import { compileLattice } from './lattice';
@@ -108,7 +109,7 @@ export function labSetLattice(
   lattice: Lattice | string,
 ): BattleState {
   const spells = spellsFor(member, lattice, state.inventions);
-  const s = structuredClone(state);
+  const s = cloneData(state);
   const m = s.units.find((u) => u.kind === 'member' && u.def === member);
   if (m?.kind !== 'member') throw new Error(`${MEMBERS[member].name} is not on the board`);
   m.spells = spells;

@@ -1,12 +1,19 @@
-import { newSave, parseSaveData, type SaveData } from '$engine';
+import {
+  assertImportText,
+  newSave,
+  parseSaveData,
+  ResourceLimitError,
+  type SaveData,
+} from '$engine';
+import { parseLegacyV7 } from '$engine/legacyV7';
 
 export interface SaveEnvelope<T = unknown> {
   version: number;
   data: T;
 }
 
-/** The save format (P1): version 7. No migrations; an older save starts a fresh notebook. */
-export const CURRENT_VERSION = 7;
+/** v8 adds signed growing pages. v7 has an explicit identity-preserving decoder. */
+export const CURRENT_VERSION = 8;
 
 export const SAVE_KEY = 'apprentices-notebook:save';
 
@@ -30,17 +37,18 @@ export function serialize(data: unknown, version = CURRENT_VERSION): string {
  * newer version", or `OlderEditionError` for anything before version 7.
  */
 export function parse(text: string): SaveEnvelope {
+  assertImportText(text);
   const raw: unknown = JSON.parse(text);
   if (
     typeof raw !== 'object' ||
     raw === null ||
-    typeof (raw as SaveEnvelope).version !== 'number' ||
+    !Number.isSafeInteger((raw as SaveEnvelope).version) ||
     !('data' in raw)
   ) {
     throw new Error('Not a valid save');
   }
   const env = raw as SaveEnvelope;
-  if (env.version < CURRENT_VERSION) throw new OlderEditionError();
+  if (env.version < 7) throw new OlderEditionError();
   if (env.version > CURRENT_VERSION) throw new Error('Save is from a newer version');
   return env;
 }
@@ -89,7 +97,7 @@ export function parseSaveText(text: string): SaveData {
   } catch (e) {
     throw e instanceof SyntaxError ? new Error('Not a valid save') : e;
   }
-  return parseSaveData(env.data);
+  return env.version === 7 ? parseLegacyV7(env.data) : parseSaveData(env.data);
 }
 
 export function saveText(save: SaveData): string {
@@ -102,6 +110,8 @@ export interface Loaded {
   recovered: boolean;
   /** Why, when it is because the notebook is from before this edition (P1). */
   older: boolean;
+  /** Supported data exceeded an input resource limit. Keep it in place and block ordinary writes. */
+  refused?: { message: string; text: string };
 }
 
 /**
@@ -120,6 +130,13 @@ export function loadSave(backend: SaveBackend, now: number): Loaded {
   try {
     return { save: parseSaveText(text), recovered: false, older: false };
   } catch (e) {
+    if (e instanceof ResourceLimitError)
+      return {
+        save: newSave(now),
+        recovered: false,
+        older: false,
+        refused: { message: e.message, text },
+      };
     try {
       backend.keepCorrupt(text);
     } catch {

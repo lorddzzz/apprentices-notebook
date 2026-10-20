@@ -47,8 +47,9 @@ test('knowledge, not copies (P34): a known rune can go anywhere, as often as ink
 test('canPlace reasons', () => {
   const p = newProfile();
   expect(canPlace(p, 'draughtsman', { x: 4, y: 0 }, 'shove')).toBeNull();
-  expect(canPlace(p, 'draughtsman', { x: 0, y: 2 }, 'shove')).toBe('No socket here'); // hole
-  expect(canPlace(p, 'draughtsman', { x: 9, y: 9 }, 'shove')).toBe('No socket here');
+  expect(canPlace(p, 'draughtsman', { x: 0, y: 2 }, 'shove')).toBeNull(); // former hole
+  expect(canPlace(p, 'draughtsman', { x: -9, y: 9 }, 'shove')).toBeNull();
+  expect(canPlace(p, 'draughtsman', { x: 0.5, y: 2 }, 'shove')).toBe('No socket here');
   expect(canPlace(p, 'draughtsman', { x: 4, y: 0 }, 'bend')).toBe('Not known');
   // 8 ink: Bolt 2 + Ink 1 + Strike 2 = 5; a Guard (2) fits, then nothing more than 1.
   expect(inkUsed(latticeOf(p, 'draughtsman'))).toBe(5);

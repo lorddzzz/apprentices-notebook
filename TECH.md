@@ -135,6 +135,8 @@ Nothing else. No backend, no analytics, no accounts.
 
 | 2026-10-20 | **Growing viewport V1:** session-keyed in-memory anchor/offset/pitch transforms, bounded edit windows and sparse Fit miniatures. One surface owns tap/hold/pan/capture/cancellation; overview navigates without edits. Subpixel markers retain exact cell identity through hit testing; no camera state is saved or added to undo | Keeps editing targets60px, preserves work position across edits/erasure, and avoids bounds-sized DOM/SVG surfaces. Game editor integration remains pending |
 
+| 2026-10-21 | **Growing engine E1:** save v8 keeps sparse placements; a frozen v7 decoder validates historical member geometry and preserves keys, proof, records and replay. Resource refusal retains text and blocks ordinary writes with an export panel. Compiler/resolver/tree traversal and engine cloning use explicit work stacks; Bend history is linked until materialized | Signed page identity survives above/left growth without changing battle coordinate validation. Deep accepted spells no longer rely on the JavaScript call stack; existing game editor must be replaced before deployment |
+
 ## 8. Repo & tooling
 
 **Versions (pinned by caret, checked 2026-10-12):** svelte 5.57, vite 8.3, @sveltejs/vite-plugin-svelte 7.3, typescript 6 (see log), svelte-check 4.7, vitest 5, @biomejs/biome 2.5, vite-plugin-pwa 2.0, @vite-pwa/assets-generator 2.0, workbox-window 7.4.
