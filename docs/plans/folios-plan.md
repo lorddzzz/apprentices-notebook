@@ -7,7 +7,7 @@
 > 4. The last two folios hide a decoy or two in the drawer. The final shapes are bigger than a quick fix: forks, triggers and auras, about 5 to 12 runes.
 > 5. The reward is a Glyph that starts at Reliability bronze and carries the owner's mark, plus a page of the owner's story you can read again.
 
-Design: [research-and-mastery.md](../design/research-and-mastery.md) §0 (the table "Decided in the drafts round of 2026-10-17", which supersedes the 2026-10-16 rows on drafts) and §4.7. Roadmap: BL-14. If this plan and the design disagree, the design wins and the orchestrator asks the player. Project rules: [CLAUDE.md](../../CLAUDE.md). Run it with the `implement` skill. Status: [folios-status.md](folios-status.md).
+Design: [research-and-mastery.md](../design/research-and-mastery.md) §0 (the table "Decided in the drafts round of 2026-10-17", which supersedes the 2026-10-16 rows on drafts) and §4.7. Roadmap: BL-14. If this plan and the design disagree, the design wins and the orchestrator asks the player. Project rules: [AGENTS.md](../../AGENTS.md). Run it with the `implement` skill. Status: [folios-status.md](folios-status.md).
 
 **Scope**
 

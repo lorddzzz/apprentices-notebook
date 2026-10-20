@@ -1,6 +1,6 @@
 # Seam deepening: implementation plan
 
-Design: [DESIGN.md](../../DESIGN.md) §6.3–§6.6 and §11 (rows of 2026-10-14), and [research-and-mastery.md](../design/research-and-mastery.md) §0 and §3.3. Where this plan and the design disagree, the design wins and the orchestrator asks. Project rules: [CLAUDE.md](../../CLAUDE.md). Run with the `implement` skill.
+Design: [DESIGN.md](../../DESIGN.md) §6.3–§6.6 and §11 (rows of 2026-10-14), and [research-and-mastery.md](../design/research-and-mastery.md) §0 and §3.3. Where this plan and the design disagree, the design wins and the orchestrator asks. Project rules: [AGENTS.md](../../AGENTS.md). Run with the `implement` skill.
 
 **Scope** (backlog items 1–13 and 17, decided in three design rounds on 2026-10-14). There are no new districts or new screens beyond the trip page.
 

@@ -1,6 +1,6 @@
 # Rune redesign ("Mix, Move, Invent"): implementation plan
 
-Design: [docs/design/rune-design-final.md](../design/rune-design-final.md) (the authority; where this plan and the design disagree, the design wins and the orchestrator asks). Decisions behind it: [rune-design-synthesis.md](../design/rune-design-synthesis.md) §3. Problem frame: [rune-content.md](../design/rune-content.md). Project rules: [CLAUDE.md](../../CLAUDE.md).
+Design: [docs/design/rune-design-final.md](../design/rune-design-final.md) (the authority; where this plan and the design disagree, the design wins and the orchestrator asks). Decisions behind it: [rune-design-synthesis.md](../design/rune-design-synthesis.md) §3. Problem frame: [rune-content.md](../design/rune-content.md). Project rules: [AGENTS.md](../../AGENTS.md).
 
 **Scope:** the whole design in one build, replacing the rune / material / aspect / recipe model: 31 authored runes, the board chemistry (5 kinds, 10 lingering compounds, 5 bursts, the 10-entry burst page), push / slide / crush / drop, networks, jars, the resolution pipeline (R1–R9), fine print with witnessing and the blank preview (D1–D8), the Bench as methods + parts + solvent (5 methods, 14 solvents), per-apprentice ink with leans and habits, footnotes, lifetime elegance, a fresh save.
 

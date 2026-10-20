@@ -34,7 +34,7 @@ Plan: [<plan>](<plan>.md). Updated on every event and committed with every merge
 ```
 You are implementing task <ID> of docs/plans/<plan>.md in The Apprentice's Notebook.
 First: your worktree may predate main. Run `git merge --ff-only main` (report if it fails).
-Read: CLAUDE.md, the plan's shared contracts and task <ID>, and design doc sections <§…>. Nothing else unless needed.
+Read: AGENTS.md, the plan's shared contracts and task <ID>, and design doc sections <§…>. Nothing else unless needed.
 You own (create or edit only these): <files>. Read anything else.
 Contract: <types/signatures on main; report problems without changing them>.
 For Wave 0 instead: define <owned contracts> and report interfaces, invariants, and integration risks.

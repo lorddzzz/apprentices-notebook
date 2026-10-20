@@ -144,7 +144,7 @@ Nothing else. No backend, no analytics, no accounts.
 **PWA:** `vite-plugin-pwa`, `autoUpdate`, Workbox precache of the whole app; manifest scope and start URL are `/apprentices-notebook/`; iOS meta tags and safe-area CSS in `index.html` / `theme.css`.
 
 **AI setup:**
-- `CLAUDE.md`: project rules (architecture, validation, workflow, Svelte 5 runes only).
+- `AGENTS.md`: project rules (architecture, validation, workflow, Svelte 5 runes only).
 - `.claude/settings.json`: shared permissions and a PostToolUse hook that runs Biome format on edited files.
 - `.claude/launch.json`: `dev` server entry for the browser pane, plus `dev-alt` (port 5190) for a second session or agent.
 - `.claude/skills/`: `verify` (self-validation checklist), `scenario` (writing scenario tests), `design-round` (how to run a design round), `implement` (orchestrating a plan with subagents and usage pacing).

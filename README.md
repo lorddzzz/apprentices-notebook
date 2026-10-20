@@ -23,4 +23,4 @@ pnpm check    # typecheck + lint + test (the gate CI runs)
 pnpm build    # production build to dist/
 ```
 
-See [DESIGN.md](DESIGN.md) for the game design, [TECH.md](TECH.md) for the tech decisions and [CLAUDE.md](CLAUDE.md) for the working rules.
+See [DESIGN.md](DESIGN.md) for the game design, [TECH.md](TECH.md) for the tech decisions and [AGENTS.md](AGENTS.md) for the working rules.

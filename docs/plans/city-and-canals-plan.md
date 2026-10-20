@@ -1,6 +1,6 @@
 # The city and the canals: implementation plan
 
-Design: [city-and-districts.md](../design/city-and-districts.md) §0 (all three tables), §1–§5. Roadmap: BL-22 (map, hearing, gates) and BL-21 (the oil-lit canals). Where this plan and the design disagree, the design wins and the orchestrator asks. Project rules: [CLAUDE.md](../../CLAUDE.md). Run with the `implement` skill.
+Design: [city-and-districts.md](../design/city-and-districts.md) §0 (all three tables), §1–§5. Roadmap: BL-22 (map, hearing, gates) and BL-21 (the oil-lit canals). Where this plan and the design disagree, the design wins and the orchestrator asks. Project rules: [AGENTS.md](../../AGENTS.md). Run with the `implement` skill.
 
 **Order:** the canals are playable early. After Wave 2 (**milestone A**), you can open the canals from a dev toggle and play them end to end from the map: the current, the four foes, landings, and the lamp-mother. Wave 3 (**milestone B**) adds the real way in (hearing, the canal lock), keys and rumours, text, the fuzz and the wrap-up.
 

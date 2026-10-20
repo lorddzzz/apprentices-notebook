@@ -1,6 +1,6 @@
 # Glyph mastery (stages C, D, G): implementation plan
 
-Design: [research-and-mastery.md](../design/research-and-mastery.md) §0 (both tables; the second, of 2026-10-16, decides this build), §4.5, §4.7–§4.9, §5.2, §7 "Glyph sheet / Profiler", §9. Roadmap: BL-10, BL-11, BL-14. Where this plan and the design disagree, the design wins and the orchestrator asks. Project rules: [CLAUDE.md](../../CLAUDE.md). Run with the `implement` skill.
+Design: [research-and-mastery.md](../design/research-and-mastery.md) §0 (both tables; the second, of 2026-10-16, decides this build), §4.5, §4.7–§4.9, §5.2, §7 "Glyph sheet / Profiler", §9. Roadmap: BL-10, BL-11, BL-14. Where this plan and the design disagree, the design wins and the orchestrator asks. Project rules: [AGENTS.md](../../AGENTS.md). Run with the `implement` skill.
 
 **Scope**
 

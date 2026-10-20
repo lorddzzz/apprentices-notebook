@@ -1,6 +1,6 @@
 # Research and Mastery, first slice (Bench + Compile): implementation plan
 
-Design: [docs/design/research-and-mastery.md](../design/research-and-mastery.md) (the *what*; where this plan and the design disagree, the design wins and the orchestrator asks). Summary: [DESIGN.md](../../DESIGN.md) §6.3. Project rules: [CLAUDE.md](../../CLAUDE.md).
+Design: [docs/design/research-and-mastery.md](../design/research-and-mastery.md) (the *what*; where this plan and the design disagree, the design wins and the orchestrator asks). Summary: [DESIGN.md](../../DESIGN.md) §6.3. Project rules: [AGENTS.md](../../AGENTS.md).
 
 **Slice scope** (design §11, stages A + B, decided to ship together):
 - **A. Aspects + Bench:** 8 aspects on every rune, 6 new runes from the six Seam recipes, 3 Seam solvents, trial and commit, resonance and margin lines, silhouettes, 3 torn pages, typed research loot.
@@ -32,7 +32,7 @@ Design: [docs/design/research-and-mastery.md](../design/research-and-mastery.md)
 Every spawn prompt is standalone and contains:
 ```
 You are implementing task <ID> of docs/plans/research-and-mastery-plan.md in The Apprentice's Notebook.
-Read first: CLAUDE.md, the plan's §0–§2 and task <ID>, and design doc sections <§…>.
+Read first: AGENTS.md, the plan's §0–§2 and task <ID>, and design doc sections <§…>.
 You own these files (create or edit only these): <list>. Read anything else.
 Contract (already on main, do not change it; ask in your report if it is wrong): <types/signatures>.
 Done when: <acceptance list>. Run `pnpm check` until green. For .svelte files, run the Svelte MCP
