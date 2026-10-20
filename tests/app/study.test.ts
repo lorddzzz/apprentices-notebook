@@ -18,6 +18,7 @@ import {
   type GlyphDef,
   glyphCost,
   glyphLibrary,
+  growingLattice,
   headlineOf,
   inkUsed,
   isSocket,
@@ -27,6 +28,7 @@ import {
   newProfile,
   type Profile,
   parseLattice,
+  type Step,
   serializeLattice,
   socketAt,
 } from '$engine';
@@ -582,4 +584,40 @@ test('flowZones: a Seal inside a branch seals only that branch', () => {
   expect(z?.get('0,1')).toEqual({ side: 'left', sealed: true });
   expect(z?.get('4,1')).toEqual({ side: 'right', sealed: false });
   expect(z?.get('5,1')).toEqual({ side: 'right', sealed: false });
+});
+
+test('flowZones traverses a long growing chain without recursive stack growth', () => {
+  const runes = Array.from({ length: 20000 }, (_, x) => ({
+    at: { x: x - 10000, y: -1 },
+    rune: 'ink' as const,
+  }));
+  const lattice = growingLattice([
+    { at: { x: -10001, y: -1 }, rune: 'bolt', dir: 'right' },
+    ...runes,
+  ]);
+  const zones = flowZones(compileLattice(lattice)).get('-10001,-1');
+  expect(zones?.size).toBe(20000);
+  expect(zones?.get('9999,-1')).toEqual({ side: null, sealed: false });
+});
+
+test('flowZones preserves first split branch and sealed reading for repeated Glyph sockets', () => {
+  const leaf: Step = {
+    at: { x: -2, y: 0 },
+    via: [{ x: -3, y: 0 }],
+    role: 'kind',
+    rune: 'ink',
+    auras: [],
+    next: null,
+  };
+  const first: Step = {
+    at: { x: 0, y: 0 },
+    role: 'split',
+    branches: [{ at: { x: -1, y: 0 }, role: 'seal', rune: 'jar', rest: leaf }, leaf],
+  };
+  const compiled = compileLattice(parseLattice('Bolt> Ink'));
+  const spell = compiled.spells[0];
+  if (!spell) throw new Error('missing spell');
+  const zones = flowZones({ ...compiled, spells: [{ ...spell, first }] }).get('0,0');
+  expect(zones?.get('-2,0')).toEqual({ side: null, sealed: true });
+  expect(zones?.get('-3,0')).toEqual({ side: null, sealed: true });
 });

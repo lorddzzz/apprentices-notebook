@@ -27,10 +27,13 @@ import {
   takeOffer,
   type WipeSummary,
 } from './flow';
+import { forgetView } from './latticeViewport';
 import { go } from './router.svelte';
 import { loadSave, type SaveBackend, saveText, writeSave } from './save';
-import { editProfile, NO_TOOL, type ShelfTool } from './study';
+import { editProfile, NO_TOOL, pageSessionKey, type ShelfTool } from './study';
 import { toast } from './toasts.svelte';
+
+let nextEditorSession = 0;
 
 /**
  * The player's game: the save (profile, trip), the Study's page state and persistence.
@@ -60,6 +63,26 @@ export class GameStore {
    * Done. A reload in the doorway resumes it with the lattices as last banked.
    */
   private draft = $state.raw<Profile | null>(null);
+  private editorSession = $state(++nextEditorSession);
+  private readonly latticeViews = new Set<string>();
+
+  /** Home and each doorway have separate cameras; edits and member switches keep their keys. */
+  latticeSessionKey(member: MemberId = this.member): string {
+    const trip = this.save.trip;
+    const session =
+      this.inDoorway && trip
+        ? `${this.editorSession}:${trip.seed}:${trip.encounter}`
+        : this.editorSession;
+    const key = pageSessionKey(this.inDoorway ? 'doorway' : 'study', member, session);
+    this.latticeViews.add(key);
+    return key;
+  }
+
+  private resetLatticeSession(): void {
+    for (const key of this.latticeViews) forgetView(key);
+    this.latticeViews.clear();
+    this.editorSession = ++nextEditorSession;
+  }
 
   constructor(
     private readonly backend: SaveBackend,
@@ -176,6 +199,7 @@ export class GameStore {
     this.refusal = null;
     this.retainedText = null;
     this.commit(next);
+    this.resetLatticeSession();
     this.wipe = null;
     this.tool = NO_TOOL;
     return null;
@@ -188,6 +212,7 @@ export class GameStore {
     this.refusal = null;
     this.retainedText = null;
     this.commit(newSave(this.now()));
+    this.resetLatticeSession();
     this.wipe = null;
     this.toasted = [];
     this.member = MEMBER_IDS[0] ?? 'draughtsman';

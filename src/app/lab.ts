@@ -36,6 +36,7 @@ import {
   serializeBoard,
   serializeLattice,
   type Tile,
+  toGrowingLattice,
 } from '$engine';
 import { cloneData } from '$engine/clone';
 
@@ -80,16 +81,15 @@ export function resolveScenario(id: string): { def: ScenarioDef; unknown: string
 /** Lattices from the start notebook (tests and Gallery fixtures; the app uses the profile's). */
 export function fallbackLattices(): Record<MemberId, Lattice> {
   return Object.fromEntries(
-    MEMBER_IDS.map((m) => [m, parseLattice(MEMBERS[m].startLattice)]),
+    MEMBER_IDS.map((m) => [m, toGrowingLattice(parseLattice(MEMBERS[m].startLattice))]),
   ) as Record<MemberId, Lattice>;
 }
 
 /** Lattices for members a scenario leaves out: the ones in the player's notebook. */
 export function profileLattices(p: Profile): Record<MemberId, Lattice> {
-  return Object.fromEntries(MEMBER_IDS.map((m) => [m, latticeOf(p, m)])) as Record<
-    MemberId,
-    Lattice
-  >;
+  return Object.fromEntries(
+    MEMBER_IDS.map((m) => [m, toGrowingLattice(latticeOf(p, m))]),
+  ) as Record<MemberId, Lattice>;
 }
 
 // ── Board painting ──────────────────────────────────────

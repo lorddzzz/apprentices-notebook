@@ -27,6 +27,7 @@ import {
   type GlyphLibrary,
   glyphCost,
   glyphLibrary,
+  growingLattice,
   hasArrow,
   headlineOf,
   type InventionLibrary,
@@ -101,6 +102,18 @@ function runeKnown(ctx: EditContext, rune: RuneRef): boolean {
 }
 
 export const NO_TOOL: ShelfTool = { kind: 'none' };
+
+/** View identity is separate from saved paper and edits; reset/import owners advance the session. */
+export function pageSessionKey(
+  context: 'study' | 'doorway' | 'lab',
+  member: MemberId,
+  session: number | string = 0,
+): string {
+  return `${context}:${session}:${member}`;
+}
+
+const framed = (lattice: Lattice): Lattice =>
+  lattice.shape.kind === 'growing' ? growingLattice(lattice.runes) : lattice;
 
 export function inkLeft(
   lattice: Lattice,
@@ -192,14 +205,14 @@ export function setGlyph(
   const socket: Placed = args ? { at: { ...at }, glyph, dir, args } : { at: { ...at }, glyph, dir };
   const runes: Placed[] = [...rest, socket];
   runes.sort((a, b) => a.at.y - b.at.y || a.at.x - b.at.x);
-  return { shape: l.shape, runes };
+  return framed({ shape: l.shape, runes });
 }
 
 export function applyDecision(lattice: Lattice, at: Coord, d: SocketDecision): Lattice {
   switch (d.kind) {
     case 'place':
     case 'replace':
-      return setSocket(lattice, at, d.rune);
+      return framed(setSocket(lattice, at, d.rune));
     case 'placeGlyph':
     case 'replaceGlyph':
       return setGlyph(lattice, at, d.glyph);
@@ -207,10 +220,10 @@ export function applyDecision(lattice: Lattice, at: Coord, d: SocketDecision): L
       const placed = socketAt(lattice, at);
       return placed && isGlyph(placed)
         ? setGlyph(lattice, at, placed.glyph, turnRight(placed.dir), placed.args)
-        : rotateSocket(lattice, at);
+        : framed(rotateSocket(lattice, at));
     }
     case 'remove':
-      return setSocket(lattice, at, null);
+      return framed(setSocket(lattice, at, null));
     default:
       return lattice;
   }
@@ -396,27 +409,35 @@ export function flowZones(compiled: CompiledLattice): Map<SpellKey, Map<CellKey,
   const out = new Map<SpellKey, Map<CellKey, FlowZone>>();
   for (const spell of compiled.spells) {
     const zones = new Map<CellKey, FlowZone>();
-    const mark = (st: Step, zone: FlowZone): void => {
+    const pending: { st: Step; zone: FlowZone }[] = spell.first
+      ? [{ st: spell.first, zone: { side: null, sealed: false } }]
+      : [];
+    while (pending.length) {
+      const current = pending.pop();
+      if (!current) continue;
+      const { st, zone } = current;
       const here = key(st.at);
       // A cell reached twice (a Glyph's inside) keeps its first reading.
       if (!zones.has(here)) zones.set(here, zone);
       for (const v of st.via ?? []) if (!zones.has(key(v))) zones.set(key(v), zone);
       switch (st.role) {
         case 'fork':
-          if (st.left) mark(st.left, { ...zone, side: 'left' });
-          if (st.right) mark(st.right, { ...zone, side: 'right' });
+          if (st.right) pending.push({ st: st.right, zone: { ...zone, side: 'right' } });
+          if (st.left) pending.push({ st: st.left, zone: { ...zone, side: 'left' } });
           break;
         case 'seal':
-          if (st.rest) mark(st.rest, { ...zone, sealed: true });
+          if (st.rest) pending.push({ st: st.rest, zone: { ...zone, sealed: true } });
           break;
         case 'split':
-          for (const b of st.branches) mark(b, zone);
+          for (let i = st.branches.length - 1; i >= 0; i--) {
+            const branch = st.branches[i];
+            if (branch) pending.push({ st: branch, zone });
+          }
           break;
         default:
-          if (st.next) mark(st.next, zone);
+          if (st.next) pending.push({ st: st.next, zone });
       }
-    };
-    if (spell.first) mark(spell.first, { side: null, sealed: false });
+    }
     out.set(spell.key, zones);
   }
   return out;

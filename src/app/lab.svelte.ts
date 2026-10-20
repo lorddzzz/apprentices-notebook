@@ -11,6 +11,7 @@ import {
   livingUnits,
   parseLattice,
   scenarioSpec,
+  toGrowingLattice,
 } from '$engine';
 import { BattleSession } from './battle.svelte';
 import type { GameStore } from './game.svelte';
@@ -29,7 +30,8 @@ import {
   toScenarioDef,
   whyNoEdit,
 } from './lab';
-import { editSocket, NO_TOOL, type ShelfTool } from './study';
+import { forgetView } from './latticeViewport';
+import { editSocket, NO_TOOL, pageSessionKey, type ShelfTool } from './study';
 import { toast } from './toasts.svelte';
 
 export type LabMode = 'play' | 'board' | 'lattices';
@@ -46,6 +48,7 @@ interface Snapshot {
 }
 
 const HISTORY_LIMIT = 60;
+let nextLatticeSession = 0;
 
 /**
  * The Lab: free play on any scenario (charges never spent), painting the board, editing lattices
@@ -66,6 +69,12 @@ export class LabStore {
   /** Text the clipboard refused, shown for copying by hand. */
   copyOut = $state.raw<{ title: string; text: string } | null>(null);
   undoDepth = $state(0);
+  private latticeSession = $state(++nextLatticeSession);
+
+  /** Stable through edits/undo/member switches; a load/reset starts a new viewport session. */
+  latticeSessionKey(member: MemberId = this.member): string {
+    return pageSessionKey('lab', member, this.latticeSession);
+  }
 
   private base: LabBase | null = null;
   /** Actions played since `base`, and where the log stood then (the scenario's `demo` and `expected`). */
@@ -81,12 +90,14 @@ export class LabStore {
     const lattices = Object.fromEntries(
       MEMBER_IDS.map((m) => {
         const own = def.lattices?.[m];
-        return [m, own !== undefined ? parseLattice(own) : mine[m]];
+        return [m, own !== undefined ? toGrowingLattice(parseLattice(own)) : mine[m]];
       }),
     ) as Record<MemberId, Lattice>;
     const inventions = { ...inventionLibrary(this.game.profile), ...def.inventions };
     const init = createBattle(scenarioSpec(def, { lab: true, lattices, inventions }));
     // The Lab is the workshop: every interaction is named in previews.
+    for (const member of MEMBER_IDS) forgetView(this.latticeSessionKey(member));
+    this.latticeSession = ++nextLatticeSession;
     this.session = new BattleSession(init, 'lab', {
       // The intro (enemies declaring their intents) plays only for a demo (S18).
       intro: opts.demo === true,

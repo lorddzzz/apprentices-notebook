@@ -29,3 +29,7 @@ Study/doorway/Lab/revision integrated phone playthrough, save/reload, proof/Fair
 Main gate:3101tests passed. Frozen v7 home/mid-fight/doorway decoded data, compiled spells and replay match their captured baselines; migrated data reloads as v8. Long quiet casts and deferred Jar continuations preserve Source identity without stack overflow.
 
 The cold-load resource-refusal panel was checked in an isolated fake-backend harness at375×812: readable text, no horizontal overflow or console errors, backup button222×55. Download succeeded and retained8388609bytes, matching the fake oversized original. [Screenshot](growing-pages-evidence/e1-resource-refusal.jpg). The fake harness was removed; ordinary player storage was untouched.
+
+## Manual-resume checkpoint
+
+Combined `pnpm check` passed:103files,3113tests, no Svelte errors/warnings or lint errors. Production `pnpm build` passed, with Vite's533kB main-chunk size advisory. A1 has signed Lab cast/action+edit undo/reset/export tests and20kflow-zone coverage. These are pre-UI-integration checks; U1/U2/R1/Q1/F1 remain pending. The integration is preserved on a checkpoint branch and is not deployed to the live game.

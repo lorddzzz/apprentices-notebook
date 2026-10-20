@@ -298,3 +298,12 @@ describe('leave a cell open (M21, M22)', () => {
     expect(compileGlyph(p, M, cluster, 'Closed', null).glyphs[0]?.params).toEqual([]);
   });
 });
+
+test('Fair Copy blocking text names a second Source on signed paper', () => {
+  const p = proven(
+    '@lattice 1 growing\n-2,-1 Bolt>\n-1,-1 Ink\n0,-1 Tally\n1,-1 Spark\n-1,0 Bolt^',
+  );
+  expect(previewFairCopy(p, M, selected(p, c(-1, -1))).blocking).toEqual([
+    'The Bolt at (-1,0) also flows through this selection',
+  ]);
+});

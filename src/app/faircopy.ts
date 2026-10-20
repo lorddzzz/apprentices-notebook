@@ -13,7 +13,7 @@ import {
   inventionLibrary,
   isGlyph,
   key,
-  label,
+  latticeLabel as label,
   latticeOf,
   maximalProven,
   nameOf,

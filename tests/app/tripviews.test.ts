@@ -147,3 +147,19 @@ describe('the rumour line at the Study window', () => {
     expect(rumourLine(recapWith(['seam', 'canals']), table)).toBe('A rumour of the Seam');
   });
 });
+
+test('dead-cell notes use signed and multi-letter lattice labels', () => {
+  const cells = ['0,1', '-3,-2', '26,0'];
+  const current = spell(cells);
+  const row = tally({ cells, fired: ['0,1'] });
+  expect(
+    deadCellNotes(
+      row,
+      [current],
+      [
+        { at: { x: -3, y: -2 }, rune: 'ink' },
+        { at: { x: 26, y: 0 }, rune: 'spark' },
+      ],
+    ),
+  ).toEqual(['the Ink at (-3,-2) never fired', 'the Spark at AA1 never fired']);
+});

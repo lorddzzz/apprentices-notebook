@@ -137,6 +137,8 @@ Nothing else. No backend, no analytics, no accounts.
 
 | 2026-10-21 | **Growing engine E1:** save v8 keeps sparse placements; a frozen v7 decoder validates historical member geometry and preserves keys, proof, records and replay. Resource refusal retains text and blocks ordinary writes with an export panel. Compiler/resolver/tree traversal and engine cloning use explicit work stacks; Bend history is linked until materialized | Signed page identity survives above/left growth without changing battle coordinate validation. Deep accepted spells no longer rely on the JavaScript call stack; existing game editor must be replaced before deployment |
 
+| 2026-10-21 | **Growing app A1:** Lab working pages convert to growing paper; sparse exports, battle snapshots and undo preserve coordinates. Stable editor session keys separate members and home/doorway/Lab, renewing only at explicit import/reset/load boundaries; no navigation in save or undo. Flow-zone traversal is iterative | UI integration can preserve camera position across ordinary edits while reset/import starts fresh. A 20,000-cell flow-zone regression and signed Lab cast/undo/replay checks pass |
+
 ## 8. Repo & tooling
 
 **Versions (pinned by caret, checked 2026-10-12):** svelte 5.57, vite 8.3, @sveltejs/vite-plugin-svelte 7.3, typescript 6 (see log), svelte-check 4.7, vitest 5, @biomejs/biome 2.5, vite-plugin-pwa 2.0, @vite-pwa/assets-generator 2.0, workbox-window 7.4.

@@ -1,78 +1,61 @@
 # Growing pages build status (resume here)
 
-Plan: [growing-pages-plan.md](growing-pages-plan.md). Updated on every integration.
+Plan: [growing-pages-plan.md](growing-pages-plan.md). Design: [growing-pages.md](../design/growing-pages.md).
 
-**State:** building
-**Reset:** 1792550960 (2026-10-21 04:49:20 Belgrade); prior one-time heartbeat fired successfully; no future continuation scheduled
-**Next:** A1 app/session integration running. Then U1 ordinary editor, U2 revision UI, R1/Q1/F1. Do not push E1/E2 until renderer replacement is ready.
+**State:** holding for manual resume; feature incomplete.
+**Reset:** 1792550960 =2026-10-21 04:49:20 Belgrade. Actual usage89%, weekly27%; projected burn triggered Hold.
+**Resume preference:** user explicitly declined further scheduled continuations. No future automation is authorized or scheduled. The authorized one-time heartbeat already fired.
+**Next:** recheck usage on manual resume, then U1 ordinary editor integration, U2 revision UI, R1 regressions, Q1 phone verification and F1 review/docs/deployment. Do not deploy the current engine against the old full-area renderer.
 
-## Tasks
-| ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
-|---|---|---|---|---|---|---|
-| W0 | Strong / gpt-6.1-sol / high | L | merged | main 4f7db53 / source da41107 | 17% shared window | Contracts/fixtures reviewed; 2939 tests green on task branch |
-| E1 | Strong / gpt-6.1-sol / high | L | merged | source codex/growing-engine / aad3c83 | | Main3101tests; migration and runtime traversal complete |
-| N1 | Medium / gpt-6.1-sol / medium | M | merged; complete | source 6baf398 + root inherited-key fix | | Main gate 2990 tests |
-| E2 | Medium / gpt-6.1-sol / medium | M | merged | source codex/growing-notation / 198958c | | Main3104tests; U2 viewport integration pending |
-| V1 | Medium / gpt-6.1-sol / medium | L | merged | source codex/growing-viewport / 89ead19 | | 3013 tests; root375×812 browser checks pass |
-| A1 | Medium / gpt-6.1-sol / medium | M | running | codex/growing-app | | Lab/session integration plus iterative flowZones |
-| U1/U2/R1/Q1/F1 | Per plan | L | pending | | | Dependencies per plan |
+## Current integration
 
-## Usage log
-| Time | 5h % | reset epoch | weekly % | zone | action |
-|---|---|---|---|---|---|
-| Start 2026-10-20 | 30 | 1792532859 | 5 | Normal | Begin W0 |
+Local `main` contains W0, E1, E2, N1, V1 and A1. A checked backup will be pushed to `codex/growing-pages-checkpoint`, not remote main. Remote main remainsa1fef3a (viewport/import contracts only). Main push automatically deploys; the checkpoint branch does not trigger deployment.
 
-## Proposals (build defaults; not player decisions)
-P1–P9 from plan are starting proposals. W0 settles exact contracts and measured import budgets before dependent work.
+| Task | State | Source branch/commit | Evidence |
+|---|---|---|---|
+| W0 | merged | codex/growing-w0 / da41107; main4f7db53 | Sparse contracts, frozen v7 fixtures, measurement;2939tests |
+| E1 | merged | codex/growing-engine / aad3c83; traversal2e777b7/e03a4ee; main03a64d1 | Migration/runtime/clone; main3101tests; refusal phone screenshot |
+| E2 | merged | codex/growing-notation /198958c; mainfa4fb6d | Uncapped revision with3–8flowcells retained; main3104tests |
+| N1 | merged |6baf398,0e7f8f1,a5d7183,e88ea67; main3bcc67b,a1fef3a,2db0428 | Sparse grammar and combined external budgets; main3046tests before E1 |
+| V1 | merged | codex/growing-viewport /89ead19; main80ce36f | Phone375×812 harness checks and screenshots;3013tests |
+| A1 | merged | codex/growing-app /46f5056 | Combined 103 files / 3113 tests and production build pass |
+| U1/U2/R1/Q1/F1 | pending | | Full acceptance in plan still required |
 
-## Decisions and fixes made during the build
-Available: shell, subagents, browser automation, usage tool. Svelte MCP availability to be checked. No implementation yet exposed.
+## Exact continuation contracts
 
-## Follow-ups and rough edges
-Full plan acceptance, phone screenshots, review, checks/build and deployed commit verification remain required.
+- U1 owns `LatticeGrid.svelte`, `LatticeEditor.svelte`, `FlowOverlay.svelte`, `FairCopySheet.svelte` and explicitly `Study.svelte`/`Lab.svelte` for session wiring. Replace all full-area rendering before deployment. FlowOverlay must filter offscreen segments/auras against its bounded window, not mount every segment of a long path. Preserve proof/Fair Copy/dead-cell/inspected/step/flow state and labels.
+- Both `game.latticeSessionKey(member?)` and `lab.latticeSessionKey(member?)` default to current member and expose reactive, stable keys. U1 passes them through editor/grid into viewport. Game import/reset renew keys only on success; doorway context includes trip seed/encounter. Lab load/reset renews keys and clears old caches. Edits/member/mode/undo preserve keys. `pageSessionKey(context,member,session=0)` is the pure helper.
+- V1 `LatticeViewport` props: `sessionKey`, `occupied:readonly Coord[]`, `onCellTap`, `onCellHold`, `cell:Snippet<[Coord]>`, optional `overlay:Snippet<[CellBounds]>`, optional `cellLabel`. Viewport owns positioning, buttons, capture/tap/hold/pan, keyboard and overview navigation. Cell snippets contain noninteractive nominal60×60 content; use an inner wrapper for state classes/title. Overlay is in an aligned wrapper sized bounds×pitch. `forgetView(sessionKey)` handles explicit reset boundaries; `editCell(at,size)` navigates known miniature cells precisely.
+- U2 replaces revision's legacy `canvasCells` UI consumer with the same viewport, preserving entry/issues/palette/Save/Reset/Cancel and checking grown Glyph read-only/profile/settings displays. Temporary `canvasCells(inside,window?,maxCells=4096)` never gates placement; large compatibility fallback is occupied cells only. Do not mistake it for final UI.
+- E1 graph-safe clone and iterative compiler/resolver/descriptions/cluster traversals are merged. A1 made app `flowZones` iterative, with20kchain regression. Historical Glyph fired keys are syntax-validated without requiring membership in a later definition. Battle coordinates retain bounded nonnegative semantics.
+- R1 must fulfill all plan cases: fixed/growing event identity, proof/Fair Copy, signed Glyph args/version/revert, quiet doorway distinct spent charges and pending picks, compatibility/resource boundaries and long accepted paths. Engine/helper tests are not a substitute for this cross-feature pass.
+- Final independent review must stress aggregate execution work (many Glyph placements, malformed/large insides, reused/deep invention graphs), not only byte/token counters; no live geometry cap may be introduced. This is pending acceptance coverage, not a verified failure.
+- Final F1: available review tool or Medium reviewer, resolve material findings, `pnpm check`+build, complete375×812 loop/screenshots, DESIGN/feature status+TECH+ROADMAP, pushmain and verify that actual SHA deployed. BL-103/BL-88 remain incomplete; BL-43 remains separate.
 
-## W0 review in progress
-Baseline: `pnpm check` passed all 2,909 tests. Sandbox default TEMP caused worker ENOENT; set TEMP/TMP to repository node_modules/.growing-tmp. Git and dev server require escalated execution because .git and sockets are restricted. Browser preview reachable, viewport capability supports 375×812. Svelte MCP unavailable; official Svelte snippet documentation consulted.
+## Accepted build Proposals (not player decisions)
 
-Contracts under review: fixed optional-kind shapes versus explicit growing shapes; signed canonical page keys and separate page labels; arithmetic headroom ±floor(MAX_SAFE_INTEGER/4). `pageBounds`, `growingLattice`, `toGrowingLattice`, `cellsInWindow` remain sparse. Battle label/parser contracts remain separate.
+P1: optional-kind fixed shapes retain ASCII holes; explicit growing shapes have signed origin and disposable sparse framing. Legal coordinates are finite safe integers within±floor(MAX_SAFE_INTEGER/4), leaving arithmetic headroom. No rebasing of placements/Source keys.
+P2–P5: one-cell logical margin, empty5×5 centered0,60px edit pitch/44px minimum targets,10px drag threshold/450ms hold, stable camera through ordinary edits/erasure, explicit Fit/Edit scale and navigation-only overview tap. Oversized initial pages center a real reading-order occupied cell instead of empty midpoint. Fit has4px inset/minimum markers,1CSS-pixel visual buckets; editing retains every placement and marker hits preserve exact world coordinates.
+P6: camera state is session-keyed memory, absent from saves and undo.
+P7: v8 sparse save layout with explicit frozen, validated v7 decoder; pre-v7 remains older edition and future versions remain distinct errors. Migration preserves frozen decoded/compiler/replay evidence.
+P8: `@lattice 1 growing` followed by canonical `x,y TOKEN` entries in reading order; header alone is empty. Dense ASCII remains fixed. Lattice labels extend AA columns and use explicit signed(x,y); battle labels unchanged.
+P9: external safeguards8MiB UTF-8, depth64, collection32768, aggregate fields/slots100000, tokens100000, explicitwork1000000. Referenced Glyph indexes are charged/cached; scenario shares budgets across external definition/board/pages before compilation. Typed internal fallback pages bypass external structure budgets. Resource refusal preserves original storage and offers download; manual failed imports remain unchanged.
 
-Measurement: Windows Node24 desktop proxy, not phone timings. Existing straight-chain `stepsOf` overflows at 4,096; compiler at 8,192. Fair Copy is quadratic (2,048 cells ~522 ms). E1 explicitly owns iterative traversal repairs including resolve.ts and necessary query consumers, in addition to planned files. No hidden playable geometry limit is approved.
+## Evidence and tools
 
-Proposed external safeguards accepted for W0 handoff: 8 MiB UTF-8; depth 64; collection 32,768; aggregate fields/slots 100,000; tokens 100,000; explicit work 1,000,000. These are external import safeguards, distinct from live paper and ink. Final boundary/atomic-refusal evidence remains E1/N1/R1 work.
+[Verification report](growing-pages-verification.md) records completed V1/E1 phone checks and pending integrated flows. Screenshots in `growing-pages-evidence/`. No Study/doorway/Lab/revision integrated phone verification yet. Svelte MCP unavailable; official documentation and project checks used, autofixer not run. Root IAB works; subagent browser inventory is empty, so root must perform live browser checks.
 
-### W0 viewport/gesture handoff (reviewed)
-V1/U1/U2 share in-memory state keyed by caller `sessionKey`. Proposed transform: `{ anchor: Coord, offset: {x,y} CSS pixels, pitch, mode: 'edit'|'fit' }`; screen(world) = offset + (world-anchor)*pitch. Anchor avoids huge absolute CSS translations. Viewport props: `sessionKey`, `occupied`, `onCellTap`, `onCellHold`, cell snippet and optional overlay snippet over bounded CellBounds. The viewport owns cell positioning, keyboard activation, pointer mapping and overview navigation; render snippets do not own competing gestures. Controller callbacks: pan delta, tap point, hold point, cancellation. Names may be refined jointly before V1; semantics cannot change. Fit/edit controls remain outside transformed surface. All cancel/blur/context/unmount paths clear gestures; completed hold or pan consumes following pointer click.
+Baseline2909tests. Desktop-proxy measurements/immutable v7 fixtures: `tests/fixtures/growing-pages/README.md`. Original steps traversal overflowed4096cells and compiler8192; replacement regressions cover16384+cells and deferred casts. Measurements are not physical phone timings.
 
-### Frozen compatibility fixtures
-W0 captures enriched v7 home, mid-fight and doorway JSON with decoded/compiler/replay expectations. Review caught a generator initially named `.test.ts`; generator removed and read-only comparisons added so checks cannot rewrite expectations.
+## Worktree and command notes
 
-## Usage hold checkpoint (2026-10-20)
-Usage rose from 47% to 65% in approximately four minutes while three agents worked. Projected burn exceeded the implement skill's 95% Hold threshold before reset, so checkpoint-only instructions were sent to every agent. No new implementation task may start until usage is rechecked after reset (1792532859 = 2026-10-20 21:47:39 UTC / 23:47:39 Belgrade).
+All task worktrees remain under `.claude/worktrees/`: growing-engine, growing-notation, growing-viewport, growing-app, growing-w0. Source checkpoints are preserved; don't delete unmerged work. E1 `.claude/e1-partial/` drafts are obsolete after aad3c83—do not restore them.
 
-Automatic approval review rejected an hourly continuation heartbeat: implementation authorization alone did not explicitly authorize recurring future autonomous execution. The user explicitly answered Yes to scheduling continuation. One-time heartbeat continue-growing-pages-implementation was subsequently created for 23:49 Belgrade, 2026-10-20 (COUNT=1). No recurring autonomous execution was authorized.
+Windows checks need TEMP/TMP=C:/Repos/apprentices-notebook/node_modules/.growing-tmp. In worktrees prepend main node_modules/.bin to PATH and set pnpm_config_verify_deps_before_run=false; never pnpm install. Git .git writes and preview networking require escalated tools. Reserve5173 for root,5190 for one UI task. Root5173 server was stopped. Old subagent previews5190/5191 may still run in their own contexts; restart only as needed. Temporary V1 harness is ignored `.viewport-check.local`; E1 harness removed.
 
-N1 source checkpoint 6baf398 passed 2,990 tests on its branch and is integrating. Remaining resource review: optional supplied Glyph library arg validation uses linear cell scans not charged to maxWork; address/verify after reset before marking full acceptance complete.
-V1 review caught pending gesture surviving sessionKey changes; agent asked to fix before checkpoint. Phone preview still pending. Editors are not integrated/exposed.
+## Usage/pacing history
 
-## Exact continuation and locations
-- E1 worktree `.claude/worktrees/growing-engine`, branch `codex/growing-engine`, commit `2e777b7`: 2948 tests green. Read `.claude/e1-partial/NEXT.txt` there; unreviewed decoder drafts are `run.ts.txt` and `legacyV7.ts.txt` in that same directory. Merge latest main into branch before reconciling drafts; do not overwrite new notation imports blindly. Resolve/casting, graph-safe cloning, v7→v8 migration, signed profile activation and resource-refusal UI remain. Additional pure engine traversal/clone consumers granted to E1; report any app clone changes first. Long consecutive Bend history copying may remain quadratic.
-- N1 main: 2990 tests green after root fixed inherited Glyph-name acceptance with Object.hasOwn and regression for toString/constructor/__proto__. Optional library cell-scan work charging still needs review. Source branch contains E2 too; do not squash the entire branch onto main as N1 again.
-- E2 source `198958c` (parent N1 `6baf398`): 2993 tests green. Geometry cap removed; independent Glyph invariants retained; iterative exits. Keep on branch until new UI contracts are ready. `canvasCells(inside, window?: CellBounds, maxCells=4096)` is temporary compatibility; U2 removes the old UI consumer. Placement does not enumerate it.
-- V1 worktree `.claude/worktrees/growing-viewport`, commit `c08cb74`: 2959 tests, no Svelte warnings/lint issues. Still needs standalone harness/browser at5190, 375×812, screenshots and resulting fixes BEFORE complete handoff. Session-switch teardown and Fit-resize refit fixed. Props: sessionKey, occupied, onCellTap, onCellHold, cell:Snippet<[Coord]>, overlay?:Snippet<[CellBounds]>, cellLabel?. Button wrappers own gestures/keyboard; snippets noninteractive nominal60×60. `forgetView(sessionKey)` handles explicit resets/import boundaries.
-- After complete E1/N1/V1 contracts, run A1; U1 owns Study.svelte/Lab.svelte session-key wiring explicitly. A1 should add Lab reset/load session generation. U2 follows U1 for shared components. Then R1/Q1/F1, full docs, check/build, independent review and actual deployed SHA.
-- Preview server was launched outside sandbox on5173 (exec session66132); browser tab closed and viewport restored. Reuse server if alive or restart with require_escalated. No implementation phone screenshots yet. Svelte MCP unavailable; official docs consulted. Do not claim UI verification.
-- W0 main4f7db53 CI run39499279954 succeeded including deployment. Final feature deployment is still pending.
-- Final usage reading before checkpoint: 84% five-hour,13% weekly, same reset. Hold is based on projected burn. Automatic continuation explicitly authorized by user and created as one-time heartbeat at23:49 Belgrade.
+First window30→84%, reset2026-10-20 23:47:39Belgrade; checkpointed W0/N1 and branches. User authorized one-time23:49continuation, which fired. Second window started0%/weekly14%;3-agent bursts projected Hold, then concurrency reduced to one for A1. Latest89%/weekly27%; finish only current integration checks/commit and preserve remote checkpoint. User declined any further scheduled continuations; manual resume only.
 
-## Resume 2026-10-20 21:49 UTC
-Usage reset confirmed: five-hour0%, weekly14%, next reset1792550960. Existing engine/viewport/notation agents resumed on preserved worktrees; main clean at3bcc67b. One-time continuation fired successfully. Previous-window burn rate discarded.
-
-V1 finalhandoff89ead19 reviewed. Proposals:4px minimum Fit markers with4px CSS inset;1pixel visualbucket dedup; exact markerhit navigation avoids subpixel coordinate error. No placements omitted from state/edit mode. Root phone verification and screenshots in growing-pages-verification.md. N1 combinedscenario-budget review assigned beforecompletion; E1 migration/cast/clone completion stillrunning.
-
-N1 work safeguards0e7f8f1 integrated; main check3034tests. Referenced Glyphs indexedonce perimport, aggregatecells/params andtoken/work budgets chargedbeforelookup/indexconstruction. Boundarytests include100k tokens, maxWork and aggregatefields. Scenario-wide sharedtext/tokenbudget follow-up is inprogress on notationbranch. V1 merged80ce36f with phoneevidence; no gameeditoractivation yet.
-
-N1 complete: scenarioaggregate sourcesa5d7183+e88ea67 integrated,3046tests green. One sharedbudget covers external scenario strings/keys, board and lattice tokens/indexwork, before compilation. Typed internal ScenarioOptions fallback pages bypass externalstructurelimits; regression accepts32768signedplacements beyond importedaggregatebudget. No duplicate textcharging. Source0e7f8f1 alreadyintegrateda1fef3a. E1 finalgate pending; no newtasks started while projectedburn is high.
-
-E1 reviewedandintegrated fromaad3c83 (traversale03a4ee/2e777b7); maincheck3101tests passed. v8signedpages + frozenvalidatedv7decoder preservefixtures/replay, historicalrecordkeys syntax-only. Battlecoordinates remainbounded. Iterativecompiler/resolve/descriptions/clusterwalk+boundedcandidateenumeration andgraph-safecloning supportlongcasts/Jars; linkedBendhistory avoidsprefixcopying. Resourcecoldload retainsoriginaltext, blocksordinarywrites andoffersdownload; root375×812 screenshot e1-resource-refusal.jpg, nooverflow/errors,222×55button. Downloadconfirmed8388609bytes matchingfakebackend. NO PUSH ofE1untilU1 replacesoldarea-renderer. A1mustfixrecursiveflowZones andLab/sessionintegration next.
-
-E2 source198958c integratedafterE1; main3104tests passed. Revisionframinguncapped; signedissue labels, independent3–8flowcell rule, entry/arrow/aura/reachability/version/record rules retained. RuntimeUIstillold untilU2. Usage70%at22:07UTC, settledlatestburn1point/2.4min projects~83% (Narrow); A1Medium8pointestimate fitsbelow95 and resumedalone. Futuretaskstarts requirefreshusagecheck; no more three-agentburst planned.
+## Final checkpoint verification
+Combined pnpm check passed: 103 files / 3,113 tests, zero Svelte errors/warnings, lint clean. pnpm build passed; Vite reports the existing size advisory for the 533kB minified main chunk. No integrated game UI or final feature deployment is claimed. A1 is fully merged; remaining work starts at U1. Remote backup branch codex/growing-pages-checkpoint will receive this commit; do not push local main until U1 eliminates full-area rendering. No future continuation scheduled.

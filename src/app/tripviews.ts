@@ -3,7 +3,7 @@ import {
   type CellKey,
   key as cellKey,
   isGlyph,
-  label,
+  latticeLabel as label,
   nameOf,
   type Placed,
   type Spell,
