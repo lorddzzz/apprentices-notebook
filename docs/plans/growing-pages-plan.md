@@ -2,7 +2,7 @@
 
 Design: [growing-pages.md](../design/growing-pages.md), especially §0–§4. Roadmap: **BL-103**, including **BL-88**. Project rules: [AGENTS.md](../../AGENTS.md). Execute with the [implement skill](../../.claude/skills/implement/SKILL.md). Where this plan conflicts with the accepted design, the design wins.
 
-**State: plan only.** This document authorizes no implementation, status-file creation, build delegation, implementation commit or deployment. On the player's go, the orchestrator first creates and commits `docs/plans/growing-pages-status.md` using the skill's template, records usage and the contract decisions below, then starts W0. No status file is needed for this planning round.
+**State: implementation complete; final acceptance in progress.** The player authorized implementation and manual continuations. [Build status](growing-pages-status.md) records the checked integrations; [verification](growing-pages-verification.md) records phone evidence and remaining delivery checks. The contracts and acceptance criteria below remain the reference.
 
 ## 1. Scope and settled rules
 

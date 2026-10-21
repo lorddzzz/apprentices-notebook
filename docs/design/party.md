@@ -3,11 +3,11 @@
 > **Status: Exploring** (scoped 2026-10-18; the main decisions are in §0, and the full design comes later). Roadmap: BL-43.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.1, §6.2 and §11. **Supersedes** the 2026-10-12 decisions "members differ by material affinity and lattice shape" and "each lattice is a small grid shaped by its member". Related: [city-and-districts.md](city-and-districts.md) (guild schools), [rivals.md](rivals.md), [current rune rules](rune-design-final.md) §9.
 
-## Current implementation boundary (2026-10-20)
+## Current implementation boundary (2026-10-21)
 
 Two apprentices remain playable. Both move 3 and share basic Shove. The Draughtsman has 6 HP, trained Timing, gifted Contracts and the two-jars habit; the Stoker has 8 HP, trained/gifted Seam and Fork-ahead. Training discounts school runes by 1 ink (minimum 1); gifts improve the rune's declared range, push or duration. Ink is currently per apprentice, with household reserve upgrades increasing both allowances.
 
-**Fixed shapes still exist:** the editor reconstructs sockets from each member definition. Growing pages are decided but not delivered (BL-103): automatic growth in all directions, phone pan/Fit and the same freedom in Glyph revision. Details: [growing-pages.md](growing-pages.md). Recruitment, selection of three, larger rooms and personal basic actions remain BL-43. No new recruit needs an aspect pair or a material affinity.
+**Growing pages are built (BL-103/88):** both apprentices use paper that grows in all directions, phone pan/Fit and the same freedom in Glyph revision. Fixed geometry remains available for authored scenario layouts. Details: [growing-pages.md](growing-pages.md). Recruitment, selection of three, larger rooms and personal basic actions remain BL-43. No new recruit needs an aspect pair or a material affinity.
 
 ## 0. Decided in the scoping round (2026-10-18)
 

@@ -1,7 +1,7 @@
 # The Apprentice's Notebook — Tech Decisions
 
 > Companion to [DESIGN.md](DESIGN.md). Design says *what* the game is; this file says *how* it's built.
-> Last updated: 2026-10-19 (rune redesign, lifetime mastery, Lab and integration).
+> Last updated: 2026-10-21 (growing paper, save migration, sparse notation and shared viewport).
 
 ## 1. Constraints (from DESIGN.md §8)
 
@@ -173,3 +173,6 @@ Nothing else. No backend, no analytics, no accounts.
 | 2026-10-19 | Bolt uses one footnote-aware travel helper for resolution, flight, preview and aim overlays. Three fine-print rows cover empty/cloud/solid obstacles; ten authored level-I variants map stored choices to behavior | Approved Bolt variants alter only unobstructed landings; final integrated gate: 94 files / 2,909 tests; production PWA build succeeds |
 | 2026-10-21 | Growing-page resource validation prices invention graphs iteratively with one memoized pricer per operation, checks safe integer ink totals and uses indexed placement neighbors. External validation charges aggregate Glyph body expansion even without arguments; arithmetic overflow is a distinct resource refusal | Admitted deep dependency chains must not overflow the stack or amplify repeated work; refusal retains the original save |
 | 2026-10-21 | Ordinary and revision lattice editors share one sparse viewport and pointer owner; signed world coordinates map to bounded visible cells and local SVG windows. Session keys retain camera state through edits/member switches and reset it on document load/import or revision Reset. Glyph profile geometry uses actual local entry/exits in a readable internal scroller | Paper navigation must not edit wiring, rebase identity or shrink phone editing targets; grown Glyphs remain readable |
+| 2026-10-21 | Explicit growing shapes use stable signed safe integers within ±floor(MAX_SAFE_INTEGER/4); bounds are derived framing only. Fixed ASCII scenarios retain their geometry. Lattice labels use spreadsheet columns or explicit signed coordinates; battle labels stay bounded | Growing left/up must not rebase Source, proof or local Glyph identities |
+| 2026-10-21 | Save v8 preserves sparse placements; frozen validated legacyV7 decoding migrates v7 while older/future editions keep distinct errors. Iterative compiler, resolver, clone and traversal consumers handle accepted long paths. Growing text uses @lattice 1 growing with canonical x,y TOKEN lines | Old live trips and distant sparse pages must roundtrip without rectangular allocation or identity drift |
+| 2026-10-21 | External input budgets: 8MiB UTF-8, depth64, collection32768, aggregate entries/tokens100000 each, work1000000; scenario components share one budget. Geometry adds no gameplay cap. Resource refusal keeps original storage and exposes a backup; invalid manual imports are atomic | Protect phone work/memory without cropping or silently replacing existing notebooks |

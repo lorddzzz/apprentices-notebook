@@ -2,9 +2,9 @@
 
 Plan: [growing-pages-plan.md](growing-pages-plan.md). Design: [growing-pages.md](../design/growing-pages.md).
 
-**State:** building; feature incomplete, at usage checkpoint awaiting manual resume.
-**Reset:** 1792576202 =2026-10-21 11:50:02 Belgrade. Latest usage87%, weekly41%; projected burn triggered Hold.
-**Resume preference:** user explicitly declined further scheduled continuations. No future automation is authorized or scheduled. The authorized one-time heartbeat already fired.
+**State:** building; implementation complete, independent QA and final review/delivery in progress.
+**Reset:** 1792620535 (current five-hour window); baseline0% at17:08UTC, latest29% at17:22UTC, weekly46%. User actual-usage policy supersedes forecast Hold.
+**Resume preference:** current user policy allows continuation after reset if needed, replacing the earlier manual-only preference. Use actual usage: smaller tasks near85% used; stop starting work when idle above90% used. No continuation currently scheduled.
 **Next:** Q1 independent phone QA, F1 review/docs/check/build and deployed-SHA verification. All implementation tasks U1/U2/resource/R1 are integrated; do not deploy before full acceptance.
 
 ## Current integration
@@ -93,3 +93,9 @@ Manual resume authorized. Fresh five-hour baseline0%, weekly42%, reset1792620535
 ## U2 integration and pacing clarification
 
 U2 sourcec210d76 reviewed and phone-verified on5191: sharedviewport, Reset/open freshsessions, stableordinaryedits, long/negativeinside, independent3–8limit,Savev3/revertv2records/reload,Cancel,pinnedentry,read-onlyscrollmarkers. Onlyfourownedfileschanged; source3180tests/108files. Rootmergingwithfullgate. Usage27%weekly46%17:19UTC; last11%17:13 impliesprojected107%Hold. Useraskedwhethertooverrideforecastandcontinuewithactualheadroom; answerpending. Untilanswer,currentU2integrationonly;noQ1/F1start. Noautomation.
+
+## User pacing policy (supersedes earlier Hold/manual-only notes)
+
+2026-10-21: user explicitly instructs continuing while actual remaining usage is at least15% (used<=85%). Near that threshold start only smaller tasks; when idle withremaining<10% (used>90%), stop starting work. At that stop, schedule continuation after the reset. This authorizes future scheduled continuations if needed and overrides the earlier forecast-Hold/manual-only preference. No continuation has been scheduled in this window because work remains active with~70% headroom. Latest freshforecastalso returned Normal afterU2merge(29% at17:22UTC).
+
+U2 is integrated as7ee23e6 and backed up remotely. Q1 independent QA is running in growing-q1, artifacts/report-only ownership; root5173 nowrestartedat7ee23e6(session44619). RootpreparesF1docs whileQAworks. Next: Q1report→independentMediumcodereview→materialfixes→finalcheck/build→pushmainandverifyactualSHAdeployment→mergedsourcecleanup. Remote main stilla1fef3a.

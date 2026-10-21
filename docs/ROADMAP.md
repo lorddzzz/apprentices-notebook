@@ -1,6 +1,6 @@
 # Roadmap and backlog
 
-> Updated 2026-10-20 after the rune redesign audit and BL-103 design round. This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
@@ -35,8 +35,7 @@ The redesign supplies depth already. The next substantial choice is **freer buil
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-103 | Lattice pages grow with the wiring | feature / M–L | lattice, save | building; checkpoints recorded | [Design](design/growing-pages.md), [implementation plan](plans/growing-pages-plan.md): automatic growth in all directions, ink as the budget, readable editing with pan/Fit, growing Glyph revisions (includes BL-88), import validation and existing wiring/proof/charge compatibility. [Build status](plans/growing-pages-status.md): contracts and notation checkpointed; save migration and editor integration pending. Current active shapes still come from member definitions. Can ship for two apprentices before recruitment. |
-| BL-43 | The household and three-member expeditions | feature / XL | party, world | needs-design; BL-103 before full delivery | [Party design](design/party.md): recruit in districts and at the door, select 3 from a household, larger portrait boards around 7×9, individual bodies/basic actions. Keep existing trained/gifted leans and Fork-ahead/two-jar habits. Design the third habit, recruitment pacing, trio selection and room scaling. Ink is currently per apprentice. |
+| BL-43 | The household and three-member expeditions | feature / XL | party, world | needs-design; growing pages built | [Party design](design/party.md): recruit in districts and at the door, select 3 from a household, larger portrait boards around 7×9, individual bodies/basic actions. Keep existing trained/gifted leans and Fork-ahead/two-jar habits. Design the third habit, recruitment pacing, trio selection and room scaling. Ink is currently per apprentice. |
 
 ### Track W · Districts and progression
 
@@ -117,7 +116,6 @@ New possibilities arising from the shipped systems (all **proposals**):
 | BL-84 | Development event inspector | tech / S | tooling | idea | Filter by cast origin, line and delayed object; useful for BL-105–109. |
 | BL-85 | Long-fight proof/replay cost | test / S | tooling | idea | Measure lifetime traces and proof after large jar/mark networks; optimize only observed costs. |
 | BL-86 | Dependency refresh | tech / S | tooling | idea | Check installed versions first; verify offline build, typecheck and tests after upgrades. |
-| BL-88 | Revision canvas growth | tech / S | mastery | ready; delivered with BL-103 | [Growing pages design](design/growing-pages.md): replace the current 7×7 cap with the same growing paper and phone controls; preserve Glyph validity and version records. |
 | BL-87 | Build workflow documentation | docs / XS | tooling | idea | Refresh preview/worktree instructions when that workflow is used again. |
 | BL-123 | Stable footnote and Bind-event contracts | tech / S | mastery, save | ready | Use variant IDs rather than display-text comparisons in runtime context; store learned Bind events explicitly instead of deriving them from open districts before more gates/rewards ship. |
 
@@ -144,7 +142,7 @@ New possibilities arising from the shipped systems (all **proposals**):
 
 1. Next substantial track: freer lattice/household, a middle district, or rival prototype? No old “mastery must come first” dependency remains.
 2. Which middle district should be built first, and what teaches its school using only Seam basics? BL-113–116.
-3. Trio selection, recruitment and personal actions? BL-43. Party size is already scoped as 3 of many; growing page controls are decided in [BL-103's design](design/growing-pages.md), pending implementation.
+3. Trio selection, recruitment and personal actions? BL-43. Party size is already scoped as 3 of many; growing page controls are built; recruitment and trio selection still need design.
 4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
 5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
 6. Rival aim is locked in the final rune design; choose readable telegraphs, fallback details and reward format. BL-30/118.
@@ -159,6 +157,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-10-21 | **Growing lattice pages** (closes BL-103/BL-88): automatic growth in all directions, former holes writable, readable pan/Fit in Study/doorway/Lab and Glyph revision, v7→v8 notebook migration and sparse imports. Ink and the independent 3–8 Glyph flow-cell rule remain the budgets | [design](design/growing-pages.md), [plan](plans/growing-pages-plan.md), [verification](plans/growing-pages-verification.md) |
 | 2026-10-20 | **Current design/roadmap refresh** (closes BL-06): current summaries reconciled with the rune engine; old aspect/recipe/folio tasks retired; actual coverage gaps and future party/district/rival work split into actionable items | [audit](plans/rune-redesign-audit.md) |
 | 2026-10-19 | **Rune redesign continuation** (planned M1/S1/T1/K1/R2; closes BL-57): lifetime Glyph credit/proof, ten Lab lessons and unrestricted invention authoring, 140 deterministic invention/solvent fuzz cases, real first-evening integration, old-system audit and teaching terrain. All eight authored footnotes plus two approved Bolt variants work; remaining optional work stays in BL-100 | [plan](plans/rune-redesign-plan.md), [status](plans/rune-redesign-status.md) |
 | 2026-10-19 | The Seam's map label (was BL-99): "No guild: the owner's drawing" | `src/data/districts.ts` |

@@ -1,6 +1,6 @@
 # Growing lattice pages
 
-> **Status: Decided** (design round 2026-10-20; not implemented). Roadmap: BL-103, including BL-88's revision growth. Implementation plan: [growing-pages-plan.md](../plans/growing-pages-plan.md).
+> **Status: Built** (2026-10-21; design round 2026-10-20). Roadmap: BL-103, including BL-88's revision growth. Implementation plan: [growing-pages-plan.md](../plans/growing-pages-plan.md). [Verification](../plans/growing-pages-verification.md).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.2 and §11. Builds on [party.md](party.md) §0's removal of fixed member shapes. Current rune rules: [rune-design-final.md](rune-design-final.md).
 
 ## 0. Decisions (2026-10-20)
@@ -13,6 +13,14 @@
 | Does revision use the same paper? | **Decided:** yes, Glyph insides grow too; remove the separate 7×7 canvas limit | Compiling makes a spell portable without adding a small-grid constraint |
 | Does an edit move my work? | **Proposal — tune by playing:** preserve the working area's screen position during growth and erasure; do not automatically refit | Avoid chasing the rune just edited |
 | How do I leave Fit? | **Proposal — tune by playing:** tap a region to return to editing scale there; retain an explicit way back to editing scale too | An overview should help navigate a large page |
+
+### Built defaults (2026-10-21)
+
+Study, quiet doorway, Lab and revision share growing paper. Existing saves migrate without moving placements or changing Source charges, proof, Glyph versions or records. Revision keeps the pinned entry and its independent 3–8 flow-cell rule. Fixed authored scenarios retain their holes and bounds.
+
+The following remain **Proposal defaults to tune by playing**, not new player decisions: one blank cell around wiring, an empty 5×5 starting patch, 60px editing pitch with at least 44px targets, a 10px drag threshold and 450ms hold. Ordinary edits and erasure preserve the working view; explicit Fit ignores empty regions previously visited. Tiny overview targets navigate before editing. Long read-only Glyph insides scroll within their sheet instead of shrinking all runes.
+
+Build Proposals P1 and P6–P9 were accepted: stable signed coordinates, camera state in memory only, a v7→v8 save migration, sparse growing-page text, and explicit import resource budgets. These protect existing work and reject excessive imports without cropping. Their numeric and serialization contracts are recorded in TECH.md and the build status; they add no playable width, height or area budget.
 
 ## 1. Writing and growth
 
