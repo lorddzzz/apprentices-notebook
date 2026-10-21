@@ -43,3 +43,7 @@ A sparse two-million-cell-span page used two overview visual markers; tapping it
 Screenshots: [signed growth](growing-pages-evidence/u1-top-left.jpg), [sparse Fit](growing-pages-evidence/u1-distant-fit.jpg), [doorway growth](growing-pages-evidence/u1-doorway-growth.jpg). Lab's integrated lattice controls render at375×812 without horizontal overflow; its full cast/undo/export loop and member-camera checks remain pending. Revision UI, independent review and final integrated acceptance/deployment remain pending. Svelte MCP autofixer unavailable.
 
 Lab follow-up: signed Ink(-1,-2) placement survived switching Stoker→Draughtsman, with the surviving Source rectangle exactly unchanged and paper scrollTop0. [Phone screenshot](growing-pages-evidence/u1-lab.jpg). This verifies member-camera retention; Lab cast/undo/export acceptance remains pending.
+
+## Current combined checkpoint
+
+After U1, engine resource fixes and R1 integration: pnpmcheck passes108files/3178tests, zero Svelte errors/warnings and clean lint. Production build passes with the existing>500kBchunk advisory. R1 adds real-cast/event identity coverage across fixed/growing geometry, signed proof/Fair Copy, version/arg/revert semantics, distinct doorway charges/pending loot/next cast, v7 replay, long sparse inputs and hostile resource boundaries. This remains a local/checkpoint-branch build; U2/revision UI, full independent phone QA/review and final feature deployment remain unfinished.

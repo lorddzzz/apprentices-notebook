@@ -2,14 +2,14 @@
 
 Plan: [growing-pages-plan.md](growing-pages-plan.md). Design: [growing-pages.md](../design/growing-pages.md).
 
-**State:** building; feature incomplete.
-**Reset:** 1792576202 =2026-10-21 11:50:02 Belgrade. Latest usage85%, weekly41%; projected burn triggered Hold.
+**State:** building; feature incomplete, at usage checkpoint awaiting manual resume.
+**Reset:** 1792576202 =2026-10-21 11:50:02 Belgrade. Latest usage87%, weekly41%; projected burn triggered Hold.
 **Resume preference:** user explicitly declined further scheduled continuations. No future automation is authorized or scheduled. The authorized one-time heartbeat already fired.
-**Next:** finish checked U1/resource/R1 integrations, then pause for manual resume. U2 revision UI is next after resume; Q1/F1, final documentation, build and deployment verification remain. No deployment before U2/full acceptance.
+**Next:** U2 revision UI after manual resume; Q1/F1, final documentation, build and deployment verification remain. U1/resource/R1 are integrated. No deployment before U2/full acceptance.
 
 ## Current integration
 
-Local `main` contains W0, E1, E2, N1, V1 and A1. A checked backup will be pushed to `codex/growing-pages-checkpoint`, not remote main. Remote main remainsa1fef3a (viewport/import contracts only). Main push automatically deploys; the checkpoint branch does not trigger deployment.
+Local `main` contains W0, E1, E2, N1, V1, A1, U1, the resource fix and R1. A checked backup will be pushed to `codex/growing-pages-checkpoint`, not remote main. Remote main remainsa1fef3a (viewport/import contracts only). Main push automatically deploys; the checkpoint branch does not trigger deployment.
 
 | Task | State | Source branch/commit | Evidence |
 |---|---|---|---|
@@ -19,9 +19,9 @@ Local `main` contains W0, E1, E2, N1, V1 and A1. A checked backup will be pushed
 | N1 | merged |6baf398,0e7f8f1,a5d7183,e88ea67; main3bcc67b,a1fef3a,2db0428 | Sparse grammar and combined external budgets; main3046tests before E1 |
 | V1 | merged | codex/growing-viewport /89ead19; main80ce36f | Phone375×812 harness checks and screenshots;3013tests |
 | A1 | merged | codex/growing-app /46f5056 | Combined 103 files / 3113 tests and production build pass |
-| U1 | integrating | codex/growing-u1 / a318244 | Source3121tests; integrated phone evidence in verification report |
+| U1 | merged | codex/growing-u1 / a318244; mainf379960 | Main3121tests; integrated phone evidence in verification report |
 | U2/Q1/F1 | pending | | Revision UI and full acceptance still required |
-| R1 | ready to integrate | codex/growing-r1 /7731432 | Source3170tests/107files; depends49c6ab5 |
+| R1 | merged | codex/growing-r1 /7731432 | Combined main3178tests/108files; enginefix49c6ab5 merged as43e6708 |
 
 ## Exact continuation contracts
 
@@ -72,3 +72,15 @@ U1 sourcea318244 reviewed and squash-integrated: ordinary Study/doorway/Lab/Gall
 ## Engine resource fix integration
 
 Source49c6ab5 resolves R1 findings: iterative memoized invention pricing handles admitted2500-deep dependency chains; shared placement lookups avoid four linear aura-neighbor scans per Glyph; imported bare/argument Glyph expansion shares work budgets; unsafe ink arithmetic is a resource refusal. The cycle predicate is iterative; runtime invention nesting/movement mechanics stay unchanged. Source gate3137tests/104files. U1 integrated asf379960, root gate3121tests/104files. Final regression source7731432 follows this engine fix.
+
+## Exact Next actions after this checkpoint
+
+1. Manual resume only. Recheck usage/status/worktrees, then use ONE Medium agent for U2 (avoid another multi-agent burst: usage20→76% in about10minutes during the prior burst). Create a new isolated worktree from checked current main, with RevisionEditor.svelte, GlyphProfiler.svelte, app/profiler.ts and its tests; transfer shared viewport/FlowOverlay ownership as U1 is now merged. Preserve E2 rules (3–8flowcells) and existing version/reward policy. Full task acceptance is in the plan.
+2. Root IAB works; subagent inventory is empty. Root must perform live375×812 revision long x7/negative/Fit/Save/Reset/Cancel/revert and full-loop screenshots. Existing U1 preview5190 belongs to growing-u1; old main5173 is stopped. Browser test tab closed after clean console; viewport override reset. Isolated UI fixture saves remain ignored undernode_modules/.growing-phone (home,empty,distant,doorway,proven,revision-long,revision-negative), import via actual Menu/Paste save controls. Never mutate browser storage directly.
+3. Q1: complete integrated Study/doorway/Lab/revision phone acceptance, including right/bottom extension, wide secondspell, hold/lift, edge drag, empty page, Lab actualcast/undo/reset/export. Existing root U1 screenshots cover signedtop/left,Fit,doorway,Labmembercamera. Full report distinguishes pending checks. Independent browser QA cannot be claimed from screenshots alone; use available tooling honestly.
+4. F1: independent Medium code review (stress aggregate execution work/arithmetic too), fix material findings, update DESIGN§11/feature§0/TECH/ROADMAP/README and Proposals, final pnpmcheck+build, integrated phone loop, pushmain then verify actual pushed SHA deployed. BL103/BL88 still incomplete and BL43 separate. Do not deploy this partial feature.
+5. Preserve all source worktrees/commits until final cleanup. growing-engine49c6ab5, growing-u1a318244 and growing-r17731432 are clean completed sources; no active agents remain. Ignore obsolete growing-engine/.claude/e1-partial drafts. Checkpoint branch is backup only; remote main remainsa1fef3a.
+
+## Current checkpoint validation (supersedes earlier checkpoint)
+
+Combined main pnpmcheck passed108files/3178tests, zero Svelte errors/warnings, lintclean. Production build passed (existing>500kBchunk advisory). U1f379960 +enginefix43e6708 +R1source7731432 are integrated; remote backup codex/growing-pages-checkpoint will receive this checked commit. Remote main is intentionally unchanged. Usage87%/weekly41% last measured; projectedHold, no new tasks/automation. Next manual work is U2 followed by Q1/F1 and final deployment. Current source tests and phone evidence are preserved; full feature completion is not claimed.
