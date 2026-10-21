@@ -10,6 +10,7 @@ import {
   revertGlyph,
   versionKey,
 } from '$engine';
+import { editCell, framePage, renderedCells, worldToScreen } from '../../src/app/latticeViewport';
 import {
   formOf,
   insideOfView,
@@ -172,6 +173,47 @@ describe('inside view', () => {
       dead: true,
     });
     expect(view.exits).toEqual([{ col: 1, row: 1, dir: 'left', extra: false }]);
+  });
+
+  test.each([1_000_000, -1_000_000])(
+    'admitted sparse insides at %i use bounded navigation and readable local cells',
+    (x) => {
+      const def: GlyphDef = {
+        ...GLYPH,
+        cells: [cell(0, 0, 'bolt', 'right'), cell(x, 0, 'ink'), cell(x + 1, 0, 'strike')],
+        exits: [{ from: { x: x + 1, y: 0 }, dir: 'right' }],
+      };
+      const inside = insideOfView(def, [], false);
+      expect(inside.viewport).toBe(true);
+      expect(inside.cells.map((c) => c.key)).toEqual(['0,0', `${x},0`, `${x + 1},0`]);
+      const occupied = def.cells.map((c) => c.at);
+      const size = { width: 327, height: 260 };
+      const fit = framePage(occupied, size, true);
+      expect(renderedCells(fit, size, occupied)).toEqual(
+        expect.arrayContaining([
+          { x: 0, y: 0 },
+          { x, y: 0 },
+        ]),
+      );
+      // Selecting the far region recovers both distinct neighbours at readable scale.
+      const reading = editCell({ x, y: 0 }, size);
+      expect(reading.pitch).toBeGreaterThanOrEqual(44);
+      expect(
+        worldToScreen(reading, { x: x + 1, y: 0 }).x - worldToScreen(reading, { x, y: 0 }).x,
+      ).toBe(reading.pitch);
+      const visible = renderedCells(reading, size, occupied);
+      expect(visible).toEqual(
+        expect.arrayContaining([
+          { x, y: 0 },
+          { x: x + 1, y: 0 },
+        ]),
+      );
+      expect(visible.length).toBeLessThan(100);
+    },
+  );
+
+  test('ordinary connected insides retain the compact read-only display', () => {
+    expect(insideOfView(GLYPH, [], false).viewport).toBe(false);
   });
 
   test('nothing is dead before five casts', () => {

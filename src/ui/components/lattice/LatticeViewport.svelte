@@ -9,6 +9,7 @@
 
   interface Props {
     sessionKey: string;
+    readonly?: boolean;
     occupied: readonly Coord[];
     onCellTap: (at: Coord) => void;
     onCellHold: (at: Coord) => void;
@@ -16,7 +17,7 @@
     overlay?: Snippet<[CellBounds]>;
     cellLabel?: (at: Coord) => string;
   }
-  let { sessionKey, occupied, onCellTap, onCellHold, cell, overlay, cellLabel = latticeLabel }: Props = $props();
+  let { sessionKey, readonly = false, occupied, onCellTap, onCellHold, cell, overlay, cellLabel = latticeLabel }: Props = $props();
   let surface = $state<HTMLDivElement>();
   let width = $state(0);
   let height = $state(0);
@@ -54,7 +55,7 @@
       update(editCell(at, size));
 
     }
-    else onCellTap(at);
+    else if (!readonly) onCellTap(at);
   }
   const gestures = latticePan({
     onPan: delta => update(panView(view, delta)),
@@ -63,15 +64,15 @@
       const at = hit && surface?.contains(hit) && hit.dataset.at ? parseLatticeKey(hit.dataset.at) : screenToCell(view, point(client));
       activate(at);
     },
-    onHold: client => { if (view.mode === 'edit') onCellHold(screenToCell(view, point(client))); },
+    onHold: client => { if (!readonly && view.mode === 'edit') onCellHold(screenToCell(view, point(client))); },
   });
 </script>
 
 <div class="paper-viewport" data-testid="lattice-viewport" data-mode={view.mode}>
   <div class="paper-controls">
     <button type="button" onclick={() => update(framePage(occupied, size, true))}>Fit</button>
-    <button type="button" onclick={() => update(editAt(view, { x: width / 2, y: height / 2 }, size))}>Edit scale</button>
-    {#if view.mode === 'fit'}<span>Tap a region to edit</span>{/if}
+    <button type="button" onclick={() => update(editAt(view, { x: width / 2, y: height / 2 }, size))}>{readonly ? 'Read scale' : 'Edit scale'}</button>
+    {#if view.mode === 'fit'}<span>Tap a region to {readonly ? 'read' : 'edit'}</span>{/if}
   </div>
   {#key sessionKey}
   <div class="paper-surface" bind:this={surface} {@attach measure} {@attach gestures}>

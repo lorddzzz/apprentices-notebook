@@ -1,8 +1,9 @@
 <script lang="ts">
   import { IDIOMS } from '$data';
-  import { type GlyphDef, type GlyphId, type Profile, revertWarning } from '$engine';
+  import { type Coord, type GlyphDef, type GlyphId, key, latticeLabel, nameOf, type Profile, revertWarning } from '$engine';
   import { profilerView } from '../../../app/profiler';
   import Button from '../common/Button.svelte';
+  import LatticeViewport from '../lattice/LatticeViewport.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   /**
@@ -25,6 +26,28 @@
   let { glyph, profile, readonly, onrevert, onrevise = null }: Props = $props();
 
   const view = $derived(profilerView(profile, glyph));
+  const profilerId = $props.id();
+  const occupied = $derived(glyph.cells.map(c => c.at));
+  const insideCells = $derived(new Map(view.inside.cells.map(c => [c.key, c])));
+  const insideExits = $derived.by(() => {
+    const grouped = new Map<string, typeof view.inside.exits>();
+    for (const exit of view.inside.exits) {
+      const at = {
+        x: exit.col - view.inside.entry.col + glyph.entry.x,
+        y: exit.row - view.inside.entry.row + glyph.entry.y,
+      };
+      const k = key(at);
+      const existing = grouped.get(k);
+      if (existing) existing.push(exit);
+      else grouped.set(k, [exit]);
+    }
+    return grouped;
+  });
+  const noop = () => {};
+  function insideLabel(at: Coord): string {
+    const c = insideCells.get(key(at));
+    return `${latticeLabel(at)} (${key(at)}): ${c ? nameOf(c.rune) : 'empty paper'}`;
+  }
   const idiomName = $derived(IDIOMS.find((i) => i.id === glyph.idiom)?.name ?? null);
   const ARROW = { up: '↑', right: '→', down: '↓', left: '←' } as const;
 
@@ -49,6 +72,27 @@
   </p>
 
   <div class="body">
+    {#if view.inside.viewport}
+      <div class="inside-viewport" data-testid="glyph-inside">
+        <LatticeViewport sessionKey={`${profilerId}:${glyph.id}:${glyph.version}`} {occupied} readonly
+          onCellTap={noop} onCellHold={noop}
+          cellLabel={insideLabel}>
+          {#snippet cell(at)}
+            {@const c = insideCells.get(key(at))}
+            {#if c}
+              <span class="cell readable" class:entry={c.entry} class:dead={c.dead} data-cell={c.key}>
+                <RuneGlyph rune={c.rune} dir={c.dir} size={34} />
+                {#if c.entry}<span class="entry-label">in</span>{/if}
+                {#if c.open}<span class="open" data-testid="glyph-open-cell">( )</span>{/if}
+                {#each insideExits.get(c.key) ?? [] as exit, i (i)}
+                  <span class="local-exit {exit.dir}" data-testid={exit.extra ? 'glyph-extra-exit' : 'glyph-exit'} title={exit.extra ? 'Extra exit' : 'Exit'}>{ARROW[exit.dir]}</span>
+                {/each}
+              </span>
+            {/if}
+          {/snippet}
+        </LatticeViewport>
+      </div>
+    {:else}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex: keyboard focus lets the inside scroll with arrow keys. -->
     <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll long insides. -->
     <section class="inside-scroll" tabindex="0" aria-label="Glyph inside; scroll to see all runes">
@@ -81,6 +125,7 @@
       {/each}
     </div>
     </section>
+    {/if}
 
     <dl class="stats">
       <div><dt>Casts</dt><dd>{view.casts}</dd></div>
@@ -184,6 +229,29 @@
     align-items: center;
     gap: var(--space-2) var(--space-3);
   }
+  .inside-viewport {
+    width: 100%;
+    min-width: 0;
+    --lattice-surface-height: 260px;
+    --lattice-surface-min-height: 260px;
+  }
+  .readable {
+    width: 44px;
+    height: 44px;
+    margin: 8px;
+  }
+  .entry-label, .local-exit {
+    position: absolute;
+    z-index: 1;
+    font: 700 12px/14px var(--mono);
+    background: var(--parchment);
+  }
+  .entry-label { left: 0; top: 0; }
+  .local-exit { color: var(--lamp); }
+  .local-exit.up { top: 0; }
+  .local-exit.down { bottom: 0; }
+  .local-exit.right { right: 0; }
+  .local-exit.left { left: 0; }
   .inside-scroll {
     flex: 0 1 auto;
     min-width: 0;

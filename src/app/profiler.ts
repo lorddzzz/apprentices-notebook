@@ -67,6 +67,8 @@ export interface InsideCell {
 export interface InsideView {
   cols: number;
   rows: number;
+  /** Large or sparse bounds use bounded camera rendering, never CSS grid tracks. */
+  viewport: boolean;
   cells: InsideCell[];
   entry: { col: number; row: number };
   exits: { col: number; row: number; dir: Dir; extra: boolean }[];
@@ -138,6 +140,7 @@ export function insideOfView(
   return {
     cols: bounds.width,
     rows: bounds.height,
+    viewport: bounds.width > 12 || bounds.height > 12,
     entry: position(def.entry),
     exits,
     cells: def.cells.map((c) => ({
