@@ -264,7 +264,38 @@ export function compileLattice(
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
 ): CompiledLattice {
-  const price = inkPricer(inventions, lean);
+  return compile(l, glyphs, inventions, lean);
+}
+
+/** Walk the same control flow without retaining expanded paths or steps before accepting input. */
+export function assertCompilationWork(
+  l: Lattice,
+  glyphs: GlyphLibrary,
+  inventions: InventionLibrary,
+  budget: ImportBudget,
+): void {
+  compile(l, glyphs, inventions, null, budget);
+}
+
+function compile(
+  l: Lattice,
+  glyphs: GlyphLibrary,
+  inventions: InventionLibrary,
+  lean: Lean | null,
+  budget?: ImportBudget,
+): CompiledLattice {
+  budget?.spend('work', l.runes.length);
+  const shape = l.shape;
+  const holes = new Set<CellKey>();
+  if (shape.kind !== 'growing') {
+    budget?.spend('work', shape.holes.length);
+    for (const hole of shape.holes) holes.add(key(hole));
+  }
+  const socket = (at: Coord): boolean =>
+    isLatticeCoord(at) &&
+    (shape.kind === 'growing' ||
+      (at.x >= 0 && at.y >= 0 && at.x < shape.width && at.y < shape.height && !holes.has(key(at))));
+  const price = inkPricer(inventions, lean, budget);
   const lookup = placementLookup(l);
   const byKey = new Map<CellKey, PlacedRune>();
   const glyphAt = new Map<CellKey, PlacedGlyph>();
@@ -273,9 +304,16 @@ export function compileLattice(
     else byKey.set(key(r.at), r);
   }
   const runeAt = (at: Coord): PlacedRune | null =>
-    isSocket(l.shape, at) ? (byKey.get(key(at)) ?? null) : null;
+    socket(at) ? (byKey.get(key(at)) ?? null) : null;
   const glyphIn = (at: Coord): PlacedGlyph | null =>
-    isSocket(l.shape, at) ? (glyphAt.get(key(at)) ?? null) : null;
+    socket(at) ? (glyphAt.get(key(at)) ?? null) : null;
+  const mappedCells = (def: GlyphDef, args?: PlacedGlyph['args']) => {
+    budget?.spend('work', def.cells.length);
+    if (budget)
+      for (const _arg of Object.keys(args ?? {}))
+        budget.spend('work', def.cells.length + def.params.length);
+    return cellMap(def, args, inventions);
+  };
   const role = (r: RuneRef): Role | null => roleOf(r, inventions);
   const aurasNear = (look: (c: Coord) => PlacedRune | null, at: Coord): AuraRef[] =>
     neighbors4(at).flatMap((n) => {
@@ -291,8 +329,35 @@ export function compileLattice(
     for (const n of neighbors4(to)) {
       const p = runeAt(n);
       if (!p || role(p.rune) !== 'aura') continue;
-      touches.set(`${key(n)}>${key(to)}`, { aura: p.rune as AuraRef, from: n, to });
+      const id = `${key(n)}>${key(to)}`;
+      if (budget && !touches.has(id) && !priced.has(key(n))) {
+        priced.add(key(n));
+        price(p.rune);
+      }
+      touches.set(id, { aura: p.rune as AuraRef, from: n, to });
     }
+  };
+
+  let priced = new Set<CellKey>();
+  const record = (f: Frame, at: Coord, placed: PlacedRune, dir: Dir): void => {
+    if (!budget) {
+      f.path.push({ ...f.where(at), rune: placed.rune, dir: f.outward(dir) });
+      f.cells.push(f.fired(at, placed));
+      return;
+    }
+    // Two retained entries, plus repeated body pricing at each Glyph socket per spell.
+    budget.spend('work', 2);
+    const outerAt = f.where(at).at;
+    const g = glyphIn(outerAt);
+    if (!priced.has(key(outerAt))) {
+      priced.add(key(outerAt));
+      const def = g ? glyphs[g.glyph] : undefined;
+      if (def) {
+        budget.spend('work', def.cells.length);
+        for (const cell of def.cells) price(cell.rune);
+      } else price(placed.rune);
+    }
+    touch(outerAt);
   };
 
   // Jobs replace the JavaScript call stack. Push right before left to preserve cell claiming.
@@ -305,7 +370,10 @@ export function compileLattice(
     via: Trail | null = null,
     viaInner: Trail | null = null,
   ): void {
+    // In preflight, queued jobs still traverse every branch but never link retained step trees.
+    if (budget) assign = () => {};
     pending.push(() => {
+      budget?.spend('work');
       const placed = f.runeAt(cell);
       if (!placed) {
         f.beyond(cell, dir, via, assign);
@@ -321,8 +389,7 @@ export function compileLattice(
         return;
       }
       f.visited.add(key(cell));
-      f.path.push({ ...f.where(cell), rune: placed.rune, dir: f.outward(dir) });
-      f.cells.push(f.fired(cell, placed));
+      record(f, cell, placed, dir);
       const where = f.where(cell);
       const go = (d: Dir, set: (st: Step | null) => void): void =>
         queueWalk(f, step(cell, d), d, set);
@@ -342,10 +409,12 @@ export function compileLattice(
         );
         return;
       }
+      // Bends share linked trails while walking; real steps copy both coordinate trails.
+      budget?.spend('work', (via?.length ?? 0) + (where.inner ? (viaInner?.length ?? 0) : 0));
       const base = {
         ...where,
-        ...(via ? { via: trailCoords(via) } : {}),
-        ...(where.inner && viaInner ? { viaInner: trailCoords(viaInner) } : {}),
+        ...(!budget && via ? { via: trailCoords(via) } : {}),
+        ...(!budget && where.inner && viaInner ? { viaInner: trailCoords(viaInner) } : {}),
       };
       if (placed.rune === 'fork') {
         const st: Step = { ...base, role: 'fork', left: null, right: null };
@@ -396,7 +465,7 @@ export function compileLattice(
 
   /** A Glyph's cells as a frame; leaving it continues the outer walk from the socket. */
   const innerFrame = (g: PlacedGlyph, def: GlyphDef, outer: Frame): Frame => {
-    const local = cellMap(def, g.args, inventions);
+    const local = mappedCells(def, g.args);
     const localAt = (at: Coord): PlacedRune | null => local.get(key(at)) ?? null;
     // M27: the extra exit rides on the first time the walk leaves the Glyph.
     let extraSpent = def.extraExit === null;
@@ -467,7 +536,7 @@ export function compileLattice(
           assign(null);
           return;
         }
-        if (visited.has(key(at)) || !cellMap(def, undefined, inventions).has(key(def.entry))) {
+        if (visited.has(key(at)) || !mappedCells(def).has(key(def.entry))) {
           assign(null);
           return;
         }
@@ -505,18 +574,24 @@ export function compileLattice(
   const origins: { at: Coord; glyph: PlacedGlyph | null }[] = [];
   for (const r of byKey.values()) if (isSourceRef(r.rune)) origins.push({ at: r.at, glyph: null });
   for (const g of glyphAt.values()) {
-    if (isSocket(l.shape, g.at) && glyphs[g.glyph]?.kind === 'spell') {
+    if (socket(g.at) && glyphs[g.glyph]?.kind === 'spell') {
       origins.push({ at: g.at, glyph: g });
     }
   }
   origins.sort((a, b) => byReadingOrder(a.at, b.at));
 
   for (const origin of origins) {
+    priced = new Set();
     const path: PathCell[] = [];
     const outer = outerFrame(new Set([key(origin.at)]), path, []);
     const spell = origin.glyph
       ? glyphSpell(origin.glyph, outer)
       : plainSpell(byKey.get(key(origin.at)), outer);
+    if (budget) {
+      // The materializing pass snapshots the accumulated aura touches once per origin.
+      budget.spend('work', touches.size);
+      continue;
+    }
     if (!spell) continue;
     const before = touches.size;
     for (const cell of path) {
@@ -531,8 +606,7 @@ export function compileLattice(
     if (!src || !isSourceRef(src.rune)) return null;
     const sourceRune = src.rune;
     const srcDir = src.dir ?? 'right';
-    outer.path.push({ at: src.at, rune: sourceRune, dir: srcDir });
-    outer.cells.push(outer.fired(src.at, src));
+    record(outer, src.at, src, srcDir);
     const first = walkIn(outer, step(src.at, srcDir), srcDir);
     return {
       key: key(src.at),
@@ -549,13 +623,12 @@ export function compileLattice(
 
   function glyphSpell(g: PlacedGlyph, outer: Frame): Spell | null {
     const def = glyphs[g.glyph];
-    const src = def ? cellMap(def, undefined, inventions).get(key(def.entry)) : undefined;
+    const src = def ? mappedCells(def).get(key(def.entry)) : undefined;
     if (!def || !src || !isSourceRef(src.rune)) return null;
     const sourceRune = src.rune;
     const inner = innerFrame(g, def, outer);
     inner.visited.add(key(def.entry));
-    outer.path.push({ ...inner.where(def.entry), rune: sourceRune, dir: g.dir });
-    outer.cells.push(inner.fired(def.entry, src));
+    record(inner, def.entry, src, 'right');
     const first = walkIn(inner, step(def.entry, 'right'), 'right');
     return {
       key: key(g.at),

@@ -103,3 +103,9 @@ U2 is integrated as7ee23e6 and backed up remotely. Q1 independent QA is running 
 ## Final review fixes
 
 P1: plain Source fan-in bypassed aggregate import work. compile_guard task owns lattice/run/scenario and focusedtests in growing-compile-fix; allocation-free traversal/trail preflight finalgatepending. P2: accepted sparseGlyph exceededCSSgridlimits; originalU2author b030a0c nowreviewed/phone-verified andintegrating. Read-onlyrenderProposal: compact40pxscrolling forbounds<=12cellsperaxis; largeradmittedgeometryusesboundedreadonlyviewport60pxReadscale/Fit, no gameplaygeometrycap. Bothfindingsreceiveindependentfollow-upreview. Q1independentphonecheckscomplete; authorwritingreport/checkpoint. Latestactual64%,weekly52%; continueactivefixesunderuserpolicy.
+
+## Compilation resource fix integrated
+
+Sourceb2e50245 passes3198tests/110files. assertCompilationWork uses the actual compiler walker in allocation-free preflight mode, sharing importwork across save/scenario memberpages and accounting for repeated plain/Glyph traversal, Bendvia/viaInner copying, auras and pricing; fixedholesindexedonce. Trustedlive/typedfallback unchanged. IndependentMediumfollow-upreviewpassesP1/P2, rerunning8compilation/refusal and21profilertests. Rootreviewedlastsmallchargedholeindexchange. UIresourcefixmain d07ef6a passed3183tests/108files; enginefixmaincombinedgaterunningnext. Q1independentphoneallkeyflowscompleted, reportcheckpointarriving.
+
+P1 combinedmain gate passed3201tests/110files, typecheck/Svelte/lintclean. Manualphoneimportrefusalverifiedwithoriginalnotebookpreserved, screenshotf1-compilation-refusal.jpg. Q1source8747afb nowready(report+14inspectedphoneJPEGs), source3180tests; nextintegrateQAartifacts, finalizecleanstatus/docs,build/push/CIactualSHA/liveverify. Bothmaterialfixesresolved; no furthermaterialreviewfindings.

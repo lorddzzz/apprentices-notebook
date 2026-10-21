@@ -57,6 +57,7 @@ import {
 import { inventionIssue, type KnownSet } from './inventions';
 import {
   addInk,
+  assertCompilationWork,
   compileLattice,
   hasArrow,
   InkCostOverflowError,
@@ -1491,6 +1492,8 @@ function validateSaveReferencesUnchecked(
         if (fired.rune) rune(fired.rune);
       }
   }
+  const glyphs = glyphLibrary(p);
+  for (const m of MEMBER_IDS) assertCompilationWork(latticeOf(p, m), glyphs, inventions, budget);
   const t = save.trip;
   if (!t) return;
   const enc = encountersOf(t.district)[t.encounter] ?? bad();

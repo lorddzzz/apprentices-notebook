@@ -3,7 +3,7 @@ import { applyAction, createBattle } from './battle';
 import { cloneData } from './clone';
 import { describeLog, type GameEvent } from './events';
 import { assertImportStructure, importBudget } from './importPolicy';
-import { compileLattice } from './lattice';
+import { assertCompilationWork, compileLattice } from './lattice';
 import { parseBoard, parseLattice } from './notation';
 import type {
   ActionResult,
@@ -36,7 +36,9 @@ export function spellsFor(
   lattice: Lattice | string,
   inventions: InventionLibrary = {},
 ): Spell[] {
-  const l = typeof lattice === 'string' ? parseLattice(lattice, { inventions }) : lattice;
+  const budget = typeof lattice === 'string' ? importBudget() : undefined;
+  const l = typeof lattice === 'string' ? parseLattice(lattice, { inventions }, budget) : lattice;
+  if (budget) assertCompilationWork(l, {}, inventions, budget);
   return compileLattice(l, {}, inventions, MEMBERS[member].lean).spells;
 }
 
@@ -56,7 +58,13 @@ export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): Bat
         typeof lattice === 'string' ? parseLattice(lattice, { inventions }, budget) : lattice;
     }
   }
-  // Finish validation of every external page before compiling any of them.
+  // Finish preflight of every external page before retaining any compiled output.
+  for (const m of MEMBER_IDS) {
+    const lattice = lattices[m];
+    if (lattice && def.lattices?.[m] !== undefined)
+      assertCompilationWork(lattice, {}, inventions ?? {}, budget);
+  }
+  // Trusted fallback pages have no external work limit.
   for (const m of MEMBER_IDS) {
     const lattice = lattices[m];
     if (lattice) party[m] = { ...party[m], spells: spellsFor(m, lattice, inventions) };
