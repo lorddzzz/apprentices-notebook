@@ -17,7 +17,7 @@ import {
 import { reachOf, unitsNear } from './bursts';
 import { type Ctx, emit, withLine } from './ctx';
 import { type Coord, type Dir, opposite, step } from './grid';
-import { inkOf, nameOf } from './lattice';
+import { addInk, inkPricer, nameOf } from './lattice';
 import { attachBound, liftMark } from './marks';
 import { brassNet, isBrass } from './networks';
 import { findUnit, giftedIn, isAlive, unitAt } from './queries';
@@ -93,10 +93,18 @@ function moves(ref: RuneRef, lib: InventionLibrary, hops = 0): boolean {
 }
 
 /** Whether `ref` is `id` or has it somewhere inside. */
-function contains(ref: RuneRef, id: InventionId, lib: InventionLibrary, hops = 0): boolean {
-  if (ref === id) return true;
-  const d = defOf(ref, lib);
-  return !!d && hops < 8 && d.parts.some((p) => contains(p, id, lib, hops + 1));
+function contains(ref: RuneRef, id: InventionId, lib: InventionLibrary): boolean {
+  const pending = [ref];
+  const seen = new Set<RuneRef>();
+  while (pending.length) {
+    const part = pending.pop();
+    if (part === undefined) continue;
+    if (part === id) return true;
+    if (seen.has(part)) continue;
+    seen.add(part);
+    for (const nested of defOf(part, lib)?.parts ?? []) pending.push(nested);
+  }
+  return false;
 }
 
 function slotIssue(
@@ -206,7 +214,8 @@ export function headlineOf(def: InventionDef, lib: InventionLibrary): string {
 
 /** Σ the parts' ink (nested ones included) + the method's; a solvent adds none (P33). */
 export function inventionInk(def: InventionDef, lib: InventionLibrary): number {
-  return def.parts.reduce((sum, p) => sum + inkOf(p, lib), 0) + METHODS[def.method].ink;
+  const price = inkPricer(lib);
+  return def.parts.reduce((sum, p) => addInk(sum, price(p)), METHODS[def.method].ink);
 }
 
 // ── Running ─────────────────────────────────────────────

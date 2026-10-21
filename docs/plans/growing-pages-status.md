@@ -68,3 +68,7 @@ Manual resumeauthorized. Usage reset1%, weekly28%; reset1792576202. Newworktrees
 ## U1 checkpoint 2026-10-21 05:06UTC
 
 U1 sourcea318244 reviewed and squash-integrated: ordinary Study/doorway/Lab/Gallery use shared sparse viewport; bounded local-coordinate flow overlay; resize/focus-scroll/Fair Copy header regressions fixed. Source gate3121tests/104files. Root phone evidence and remaining limits recorded in verification report. Engine resource fix49c6ab5 and R1 regression handoff are arriving; integrate those next after gates. U2 is NOT started. Usage76%,weekly40%, reset1792576202 (11:50:02Belgrade);20% at04:56→76%05:06 projects Hold. No new tasks; checkpoint current work and pause for manual resume, no automation.
+
+## Engine resource fix integration
+
+Source49c6ab5 resolves R1 findings: iterative memoized invention pricing handles admitted2500-deep dependency chains; shared placement lookups avoid four linear aura-neighbor scans per Glyph; imported bare/argument Glyph expansion shares work budgets; unsafe ink arithmetic is a resource refusal. The cycle predicate is iterative; runtime invention nesting/movement mechanics stay unchanged. Source gate3137tests/104files. U1 integrated asf379960, root gate3121tests/104files. Final regression source7731432 follows this engine fix.

@@ -1,7 +1,15 @@
 import type { Lean, RuneRef } from '$data';
 import type { Cluster } from './cluster';
 import { type Coord, DIRS, type Dir, key, sameCoord } from './grid';
-import { compileLattice, hasArrow, inkOf, nameOf, roleOf } from './lattice';
+import {
+  addInk,
+  compileLattice,
+  hasArrow,
+  type InkPrice,
+  inkPricer,
+  nameOf,
+  roleOf,
+} from './lattice';
 import type {
   CellKey,
   GlyphArg,
@@ -25,8 +33,9 @@ export function baseGlyphCost(
   g: GlyphDef,
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
+  price: InkPrice = inkPricer(inventions, lean),
 ): number {
-  const inner = g.cells.reduce((sum, c) => sum + inkOf(c.rune, inventions, lean), 0);
+  const inner = g.cells.reduce((sum, c) => addInk(sum, price(c.rune)), 0);
   return Math.max(1, inner - Math.floor(g.cells.length / 3));
 }
 
@@ -35,8 +44,9 @@ export function glyphCost(
   g: GlyphDef,
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
+  price: InkPrice = inkPricer(inventions, lean),
 ): number {
-  const base = baseGlyphCost(g, inventions, lean);
+  const base = baseGlyphCost(g, inventions, lean, price);
   return Math.max(1, base - (g.discount ?? 0));
 }
 

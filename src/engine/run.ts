@@ -38,7 +38,7 @@ import { bankKeys, canReturn, cityDefaults, hearAfterTrip, hearFromBattle, keyOf
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
 import { type EventLog, namedIn } from './events';
 import { awardFootnotePoints, footnoteTexts } from './footnotes';
-import { canBeOpen, glyphRunes, withOpenCell } from './glyph';
+import { baseGlyphCost, canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import {
   type Coord,
   DIRS,
@@ -48,16 +48,25 @@ import {
   latticeLabel as label,
   parseLatticeKey,
 } from './grid';
-import { assertImportStructure, type ImportBudget, importBudget } from './importPolicy';
+import {
+  assertImportStructure,
+  type ImportBudget,
+  importBudget,
+  ResourceLimitError,
+} from './importPolicy';
 import { inventionIssue, type KnownSet } from './inventions';
 import {
+  addInk,
   compileLattice,
   hasArrow,
+  InkCostOverflowError,
   inkOf,
+  inkPricer,
   inkUsed,
   isSocket,
   libraryOf,
   nameOf,
+  roleOf,
   validateLattice,
 } from './lattice';
 import { witnessedIn } from './lines';
@@ -1382,8 +1391,24 @@ export function renameGlyph(p: Profile, id: GlyphId, name: string): Profile {
 
 /** Referential checks are separate from decoding, and run before any compilation or ink walk. */
 export function validateSaveReferences(save: SaveData, budget: ImportBudget, legacy = false): void {
+  try {
+    validateSaveReferencesUnchecked(save, budget, legacy);
+  } catch (error) {
+    if (error instanceof InkCostOverflowError)
+      throw new ResourceLimitError('arithmetic', Number.MAX_SAFE_INTEGER);
+    throw error;
+  }
+}
+
+function validateSaveReferencesUnchecked(
+  save: SaveData,
+  budget: ImportBudget,
+  legacy: boolean,
+): void {
   const p = save.profile;
+  budget.spend('work', p.inventions.length);
   const inventions = libraryOf(p.inventions);
+  const price = inkPricer(inventions, null, budget);
   const rune = (ref: RuneRef): void => {
     budget.spend('work');
     if (isInvention(ref) && !inventions[ref]) bad();
@@ -1411,7 +1436,9 @@ export function validateSaveReferences(save: SaveData, budget: ImportBudget, leg
         pending.push({ ref: part, exit: false });
     }
   }
+  for (const def of p.inventions) price(def.id);
   const defs = [...p.glyphs, ...p.glyphArchive];
+  const glyphCosts = new Map<string, number>();
   for (const g of defs) {
     budget.spend('work', g.cells.length + g.exits.length + g.params.length + 1);
     const cells = new Set<CellKey>();
@@ -1423,6 +1450,8 @@ export function validateSaveReferences(save: SaveData, budget: ImportBudget, leg
     }
     if (!legacy && (!cells.has(key(g.entry)) || g.exits.some((e) => !cells.has(key(e.from)))))
       bad();
+    const cost = baseGlyphCost(g, inventions, null, price);
+    if (!glyphCosts.has(g.id)) glyphCosts.set(g.id, cost);
   }
   for (const [k, rec] of Object.entries(p.glyphRecords)) {
     budget.spend('work', Object.keys(rec.fired).length + 1);
@@ -1432,10 +1461,28 @@ export function validateSaveReferences(save: SaveData, budget: ImportBudget, leg
   }
   for (const m of MEMBER_IDS) {
     budget.spend('work', p.lattices[m].length);
+    const placedAt = new Map(p.lattices[m].map((r) => [key(r.at), r]));
+    let totalInk = 0;
     for (const placed of p.lattices[m]) {
       if (!isLatticeCoord(placed.at)) bad();
-      if (isGlyph(placed)) for (const arg of Object.values(placed.args ?? {})) rune(arg.rune);
-      else rune(placed.rune);
+      if (isGlyph(placed)) {
+        for (const arg of Object.values(placed.args ?? {})) rune(arg.rune);
+        totalInk = addInk(totalInk, glyphCosts.get(placed.glyph) ?? 1);
+        for (const n of [
+          { x: placed.at.x - 1, y: placed.at.y },
+          { x: placed.at.x + 1, y: placed.at.y },
+          { x: placed.at.x, y: placed.at.y - 1 },
+          { x: placed.at.x, y: placed.at.y + 1 },
+        ]) {
+          budget.spend('work');
+          const neighbor = placedAt.get(key(n));
+          if (neighbor && !isGlyph(neighbor) && roleOf(neighbor.rune, inventions) === 'aura')
+            totalInk = addInk(totalInk, 1);
+        }
+      } else {
+        rune(placed.rune);
+        totalInk = addInk(totalInk, price(placed.rune));
+      }
     }
     for (const mask of p.proof[m])
       for (const fired of mask) {

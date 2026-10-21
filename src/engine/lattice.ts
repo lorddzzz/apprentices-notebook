@@ -115,26 +115,88 @@ export function socketAt(l: Lattice, at: Coord): Placed | null {
   return l.runes.find((r) => sameCoord(r.at, at)) ?? null;
 }
 
+/** The first placement at a socket, matching socketAt without repeated page scans. */
+function placementLookup(l: Lattice): (at: Coord) => Placed | null {
+  const placed = new Map<CellKey, Placed>();
+  for (const rune of l.runes) if (!placed.has(key(rune.at))) placed.set(key(rune.at), rune);
+  return (at) => placed.get(key(at)) ?? null;
+}
+
 // ── Ink (P33) ───────────────────────────────────────────
 
 /**
  * Ink one rune costs on the page: its role's cost, 1 less when the apprentice is trained in its
  * school (min 1). An invention costs its parts plus its method; a solvent adds nothing.
  */
+export class InkCostOverflowError extends Error {
+  constructor() {
+    super('This wiring costs more ink than can be counted safely');
+    this.name = 'InkCostOverflowError';
+  }
+}
+
+export function addInk(a: number, b: number): number {
+  const sum = a + b;
+  if (!Number.isSafeInteger(sum) || sum < 0) throw new InkCostOverflowError();
+  return sum;
+}
+
+export type InkPrice = (ref: RuneRef) => number;
+
+/** One pricing operation shares its cache; repeated dependencies are paid each time, evaluated once. */
+export function inkPricer(
+  inventions: InventionLibrary = {},
+  lean: Lean | null = null,
+  budget?: ImportBudget,
+): InkPrice {
+  const costs = new Map<RuneRef, number>();
+  return (ref) => {
+    const active = new Set<RuneRef>();
+    const pending = [{ ref, finish: false }];
+    while (pending.length) {
+      budget?.spend('work');
+      const job = pending.pop();
+      if (!job || costs.has(job.ref)) continue;
+      if (!isInvention(job.ref)) {
+        const rune = RUNES[job.ref];
+        const base = TUNING.inkCost[rune.role];
+        costs.set(job.ref, lean && lean.trained === rune.school ? Math.max(1, base - 1) : base);
+        continue;
+      }
+      const def = inventions[job.ref];
+      if (!def) {
+        costs.set(job.ref, 1);
+        continue;
+      }
+      if (job.finish) {
+        let cost = METHODS[def.method].ink;
+        for (const part of def.parts) {
+          budget?.spend('work');
+          cost = addInk(cost, costs.get(part) ?? 1);
+        }
+        costs.set(job.ref, cost);
+        active.delete(job.ref);
+        continue;
+      }
+      if (active.has(job.ref)) throw new Error('An invention cannot contain itself');
+      active.add(job.ref);
+      pending.push({ ref: job.ref, finish: true });
+      for (let i = def.parts.length - 1; i >= 0; i--) {
+        budget?.spend('work');
+        const part = def.parts[i];
+        if (part !== undefined) pending.push({ ref: part, finish: false });
+      }
+    }
+    return costs.get(ref) ?? 1;
+  };
+}
+
 export function inkOf(
   ref: RuneRef,
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
 ): number {
-  if (isInvention(ref)) {
-    const def = inventions[ref];
-    if (!def) return 1;
-    const parts = def.parts.reduce((sum, p) => sum + inkOf(p, inventions, lean), 0);
-    return parts + METHODS[def.method].ink;
-  }
-  const r = RUNES[ref];
-  const base = TUNING.inkCost[r.role];
-  return lean && lean.trained === r.school ? Math.max(1, base - 1) : base;
+  return inkPricer(inventions, lean)(ref);
 }
 
 // ── Compiler ────────────────────────────────────────────
@@ -202,6 +264,8 @@ export function compileLattice(
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
 ): CompiledLattice {
+  const price = inkPricer(inventions, lean);
+  const lookup = placementLookup(l);
   const byKey = new Map<CellKey, PlacedRune>();
   const glyphAt = new Map<CellKey, PlacedGlyph>();
   for (const r of l.runes) {
@@ -422,13 +486,16 @@ export function compileLattice(
       if (seen.has(key(p.at))) continue;
       seen.add(key(p.at));
       const g = glyphIn(p.at);
-      ink += g ? placedInk(g, glyphs, l, inventions, lean) : inkOf(p.rune, inventions, lean);
+      ink = addInk(
+        ink,
+        g ? placedInk(g, glyphs, l, inventions, lean, price, lookup) : price(p.rune),
+      );
     }
     for (const a of auraCells) {
       const p = runeAt(a);
       if (p && !seen.has(key(a))) {
         seen.add(key(a));
-        ink += inkOf(p.rune, inventions, lean);
+        ink = addInk(ink, price(p.rune));
       }
     }
     return ink;
@@ -567,16 +634,18 @@ export function placedInk(
   l?: Lattice,
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
+  price: InkPrice = inkPricer(inventions, lean),
+  lookup?: (at: Coord) => Placed | null,
 ): number {
-  if (!isGlyph(p)) return inkOf(p.rune, inventions, lean);
+  if (!isGlyph(p)) return price(p.rune);
   const def = glyphs[p.glyph];
   const auras = l
     ? neighbors4(p.at).filter((n) => {
-        const q = socketAt(l, n);
+        const q = lookup ? lookup(n) : socketAt(l, n);
         return !!q && !isGlyph(q) && roleOf(q.rune, inventions) === 'aura';
       }).length
     : 0;
-  return (def ? glyphCost(def, inventions, lean) : 1) + auras;
+  return addInk(def ? glyphCost(def, inventions, lean, price) : 1, auras);
 }
 
 export function inkUsed(
@@ -585,7 +654,12 @@ export function inkUsed(
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
 ): number {
-  return l.runes.reduce((sum, r) => sum + placedInk(r, glyphs, l, inventions, lean), 0);
+  const price = inkPricer(inventions, lean);
+  const lookup = placementLookup(l);
+  return l.runes.reduce(
+    (sum, r) => addInk(sum, placedInk(r, glyphs, l, inventions, lean, price, lookup)),
+    0,
+  );
 }
 
 // ── Validation ──────────────────────────────────────────
@@ -619,6 +693,8 @@ export function validateLattice(
           message: `Glyph ${r.glyph} is not in the library`,
         });
       } else {
+        // A supplied body is indexed/walked once per socket when this imported page compiles.
+        budget?.spend('work', def.cells.length);
         for (const [cell, arg] of Object.entries(r.args ?? {})) {
           budget?.spend('work', def.cells.length + def.params.length);
           const why = argIssue(def, cell, arg, inventions);

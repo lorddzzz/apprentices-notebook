@@ -8,7 +8,14 @@ export const IMPORT_POLICY = {
   maxWork: 1_000_000,
 } as const;
 
-export type ImportResource = 'bytes' | 'depth' | 'collection' | 'entries' | 'tokens' | 'work';
+export type ImportResource =
+  | 'bytes'
+  | 'depth'
+  | 'collection'
+  | 'entries'
+  | 'tokens'
+  | 'work'
+  | 'arithmetic';
 
 /** Supported but too expensive to import. Callers must retain the original save/text. */
 export class ResourceLimitError extends Error {
