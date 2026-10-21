@@ -84,3 +84,7 @@ Source49c6ab5 resolves R1 findings: iterative memoized invention pricing handles
 ## Current checkpoint validation (supersedes earlier checkpoint)
 
 Combined main pnpmcheck passed108files/3178tests, zero Svelte errors/warnings, lintclean. Production build passed (existing>500kBchunk advisory). U1f379960 +enginefix43e6708 +R1source7731432 are integrated; remote backup codex/growing-pages-checkpoint will receive this checked commit. Remote main is intentionally unchanged. Usage87%/weekly41% last measured; projectedHold, no new tasks/automation. Next manual work is U2 followed by Q1/F1 and final deployment. Current source tests and phone evidence are preserved; full feature completion is not claimed.
+
+## Manual resume 2026-10-21 17:08UTC
+
+Manual resume authorized. Fresh five-hour baseline0%, weekly42%, reset1792620535. Main clean at92619b5 with all completed sources preserved. Resume U2 with one Medium agent; root handles browser QA. Next: integrate revision viewport and read-only Glyph geometry, then Q1/F1 review/docs/full checks/deploy. No future scheduled continuation authorized.
