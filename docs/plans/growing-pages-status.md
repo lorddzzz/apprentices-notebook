@@ -2,10 +2,10 @@
 
 Plan: [growing-pages-plan.md](growing-pages-plan.md). Design: [growing-pages.md](../design/growing-pages.md).
 
-**State:** holding for manual resume; feature incomplete.
+**State:** building; feature incomplete.
 **Reset:** 1792550960 =2026-10-21 04:49:20 Belgrade. Actual usage89%, weekly27%; projected burn triggered Hold.
 **Resume preference:** user explicitly declined further scheduled continuations. No future automation is authorized or scheduled. The authorized one-time heartbeat already fired.
-**Next:** recheck usage on manual resume, then U1 ordinary editor integration, U2 revision UI, R1 regressions, Q1 phone verification and F1 review/docs/deployment. Do not deploy the current engine against the old full-area renderer.
+**Next:** U1 ordinary editor and R1 regressions running; then U2 revision UI and Q1/F1. No deployment before full-area renderer replacement.
 
 ## Current integration
 
@@ -59,3 +59,6 @@ First window30→84%, reset2026-10-20 23:47:39Belgrade; checkpointed W0/N1 and b
 
 ## Final checkpoint verification
 Combined pnpm check passed: 103 files / 3,113 tests, zero Svelte errors/warnings, lint clean. pnpm build passed; Vite reports the existing size advisory for the 533kB minified main chunk. No integrated game UI or final feature deployment is claimed. A1 is fully merged; remaining work starts at U1. Remote backup branch codex/growing-pages-checkpoint will receive this commit; do not push local main until U1 eliminates full-area rendering. No future continuation scheduled.
+
+## Manual resume 2026-10-21
+Manual resumeauthorized. Usage reset1%, weekly28%; reset1792576202. Newworktrees growing-u1 andgrowing-r1 frombbfcbe1; U1/R1assigned toexistingMediumagents withdisjointownership. U1additionallyowns flowGeometry.ts boundedoverlayhelpers, viewportcontainerCSS, Gallerysessionwiring. Rootbrowseravailable; phonefixtureexports generatedunderignorednode_modules/.growing-phone forUIimports only. No futureautomationauthorized.
