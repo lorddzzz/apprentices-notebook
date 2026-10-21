@@ -30,6 +30,7 @@
   import SpellList from './SpellList.svelte';
 
   interface Props {
+    sessionKey: string;
     lattice: Lattice;
     compiled: CompiledLattice;
     /** null = unlimited ink (Lab). */
@@ -71,6 +72,7 @@
   }
 
   let {
+    sessionKey,
     lattice,
     compiled,
     capacity,
@@ -208,7 +210,7 @@
     <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
   </div>
 
-  <div class="page">
+  <div class="page" style:--lattice-controls-reserve={fair ? '110px' : '0px'}>
     {#if fair?.available}
       <button
         type="button"
@@ -225,6 +227,7 @@
       </button>
     {/if}
     <LatticeGrid
+      {sessionKey}
       {lattice}
       {compiled}
       focus={liveFocus}
@@ -423,9 +426,9 @@
     position: relative;
     flex: 1;
     min-height: 160px;
-    display: grid;
-    place-items: center;
-    container-type: size;
+    display: flex;
+    flex-direction: column;
+    overflow: clip;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background:
@@ -433,12 +436,12 @@
       var(--parchment-dark);
   }
   .page > :global(.lattice) {
-    place-self: center;
+    flex: 1;
   }
   .fair {
     position: absolute;
-    bottom: var(--space-1);
-    left: var(--space-1);
+    top: 0.4rem;
+    right: var(--space-1);
     z-index: 1;
     min-height: var(--tap);
     padding: 0 var(--space-2);
@@ -568,3 +571,5 @@
     background: var(--parchment-dark);
   }
 </style>
+
+

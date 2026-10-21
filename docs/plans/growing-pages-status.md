@@ -3,9 +3,9 @@
 Plan: [growing-pages-plan.md](growing-pages-plan.md). Design: [growing-pages.md](../design/growing-pages.md).
 
 **State:** building; feature incomplete.
-**Reset:** 1792550960 =2026-10-21 04:49:20 Belgrade. Actual usage89%, weekly27%; projected burn triggered Hold.
+**Reset:** 1792576202 =2026-10-21 11:50:02 Belgrade. Latest usage85%, weekly41%; projected burn triggered Hold.
 **Resume preference:** user explicitly declined further scheduled continuations. No future automation is authorized or scheduled. The authorized one-time heartbeat already fired.
-**Next:** U1 ordinary editor and R1 regressions running; then U2 revision UI and Q1/F1. No deployment before full-area renderer replacement.
+**Next:** finish checked U1/resource/R1 integrations, then pause for manual resume. U2 revision UI is next after resume; Q1/F1, final documentation, build and deployment verification remain. No deployment before U2/full acceptance.
 
 ## Current integration
 
@@ -19,7 +19,9 @@ Local `main` contains W0, E1, E2, N1, V1 and A1. A checked backup will be pushed
 | N1 | merged |6baf398,0e7f8f1,a5d7183,e88ea67; main3bcc67b,a1fef3a,2db0428 | Sparse grammar and combined external budgets; main3046tests before E1 |
 | V1 | merged | codex/growing-viewport /89ead19; main80ce36f | Phone375×812 harness checks and screenshots;3013tests |
 | A1 | merged | codex/growing-app /46f5056 | Combined 103 files / 3113 tests and production build pass |
-| U1/U2/R1/Q1/F1 | pending | | Full acceptance in plan still required |
+| U1 | integrating | codex/growing-u1 / a318244 | Source3121tests; integrated phone evidence in verification report |
+| U2/Q1/F1 | pending | | Revision UI and full acceptance still required |
+| R1 | ready to integrate | codex/growing-r1 /7731432 | Source3170tests/107files; depends49c6ab5 |
 
 ## Exact continuation contracts
 
@@ -43,7 +45,7 @@ P9: external safeguards8MiB UTF-8, depth64, collection32768, aggregate fields/sl
 
 ## Evidence and tools
 
-[Verification report](growing-pages-verification.md) records completed V1/E1 phone checks and pending integrated flows. Screenshots in `growing-pages-evidence/`. No Study/doorway/Lab/revision integrated phone verification yet. Svelte MCP unavailable; official documentation and project checks used, autofixer not run. Root IAB works; subagent browser inventory is empty, so root must perform live browser checks.
+[Verification report](growing-pages-verification.md) records completed V1/E1 phone checks and pending integrated flows. Screenshots in `growing-pages-evidence/`. Study, doorway, sparse Fit and initial Lab/member-camera checks completed in this resume; revision and complete end-to-end acceptance remain pending. Svelte MCP unavailable; official documentation and project checks used, autofixer not run. Root IAB works; subagent browser inventory is empty, so root must perform live browser checks.
 
 Baseline2909tests. Desktop-proxy measurements/immutable v7 fixtures: `tests/fixtures/growing-pages/README.md`. Original steps traversal overflowed4096cells and compiler8192; replacement regressions cover16384+cells and deferred casts. Measurements are not physical phone timings.
 
@@ -62,3 +64,7 @@ Combined pnpm check passed: 103 files / 3,113 tests, zero Svelte errors/warnings
 
 ## Manual resume 2026-10-21
 Manual resumeauthorized. Usage reset1%, weekly28%; reset1792576202. Newworktrees growing-u1 andgrowing-r1 frombbfcbe1; U1/R1assigned toexistingMediumagents withdisjointownership. U1additionallyowns flowGeometry.ts boundedoverlayhelpers, viewportcontainerCSS, Gallerysessionwiring. Rootbrowseravailable; phonefixtureexports generatedunderignorednode_modules/.growing-phone forUIimports only. No futureautomationauthorized.
+
+## U1 checkpoint 2026-10-21 05:06UTC
+
+U1 sourcea318244 reviewed and squash-integrated: ordinary Study/doorway/Lab/Gallery use shared sparse viewport; bounded local-coordinate flow overlay; resize/focus-scroll/Fair Copy header regressions fixed. Source gate3121tests/104files. Root phone evidence and remaining limits recorded in verification report. Engine resource fix49c6ab5 and R1 regression handoff are arriving; integrate those next after gates. U2 is NOT started. Usage76%,weekly40%, reset1792576202 (11:50:02Belgrade);20% at04:56→76%05:06 projects Hold. No new tasks; checkpoint current work and pause for manual resume, no automation.

@@ -12,13 +12,21 @@ export interface ViewTransform {
   pitch: number;
   mode: 'edit' | 'fit';
 }
-const sessions = new Map<string, ViewTransform>();
+const sessions = new Map<string, { view: ViewTransform; size?: ViewSize }>();
 const clamp = (n: number): number => Math.max(-MAX_LATTICE_COORD, Math.min(MAX_LATTICE_COORD, n));
 export function worldToScreen(view: ViewTransform, at: Coord): Coord {
   return {
     x: (at.x - view.anchor.x) * view.pitch + view.offset.x,
     y: (at.y - view.anchor.y) * view.pitch + view.offset.y,
   };
+}
+/** Overscan and partially clipped targets remain pointer accessible but never attract Tab focus. */
+export function cellTabStop(view: ViewTransform, at: Coord, size: ViewSize): boolean {
+  const p = worldToScreen(view, at);
+  const target = view.mode === 'fit' ? Math.max(PAPER.fitMarkerSize, view.pitch) : view.pitch;
+  const x = p.x + (view.pitch - target) / 2;
+  const y = p.y + (view.pitch - target) / 2;
+  return x >= 0 && y >= 0 && x + target <= size.width && y + target <= size.height;
 }
 export function screenToCell(view: ViewTransform, point: Coord): Coord {
   return {
@@ -88,6 +96,12 @@ export function panView(view: ViewTransform, delta: Coord): ViewTransform {
     },
   };
 }
+export function resizeView(view: ViewTransform, previous: ViewSize, size: ViewSize): ViewTransform {
+  return panView(view, {
+    x: (size.width - previous.width) / 2,
+    y: (size.height - previous.height) / 2,
+  });
+}
 export function visibleWindow(view: ViewTransform, size: ViewSize): CellBounds {
   const a = screenToCell(view, { x: 0, y: 0 });
   const b = screenToCell(view, { x: size.width, y: size.height });
@@ -127,10 +141,16 @@ export function sessionView(
   cells: readonly Coord[],
   size: ViewSize,
 ): ViewTransform {
-  return sessions.get(sessionKey) ?? framePage(cells, size);
+  const saved = sessions.get(sessionKey);
+  if (!saved) return framePage(cells, size);
+  if (!saved.size || (saved.size.width === size.width && saved.size.height === size.height))
+    return saved.view;
+  return saved.view.mode === 'fit'
+    ? framePage(cells, size, true)
+    : resizeView(saved.view, saved.size, size);
 }
-export function rememberView(sessionKey: string, view: ViewTransform): void {
-  sessions.set(sessionKey, view);
+export function rememberView(sessionKey: string, view: ViewTransform, size?: ViewSize): void {
+  sessions.set(sessionKey, { view, size });
 }
 /** Call only for explicit reset/import/new-session boundaries, never for edits. */
 export function forgetView(sessionKey: string): void {

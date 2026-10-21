@@ -4,7 +4,7 @@
   import { PAPER } from '$data/tuning';
   import { type Coord, key, latticeLabel, parseLatticeKey } from '$engine';
   import { type CellBounds, pageBounds } from '$engine/page';
-  import { editAt, editCell, framePage, panView, rememberView, renderedCells, screenToCell, sessionView, type ViewTransform, visibleWindow, worldToScreen } from '../../../app/latticeViewport';
+  import { cellTabStop, editAt, editCell, framePage, panView, rememberView, renderedCells, resizeView, screenToCell, sessionView, type ViewTransform, visibleWindow, worldToScreen } from '../../../app/latticeViewport';
   import { latticePan } from '../../attach/latticePan';
 
   interface Props {
@@ -26,7 +26,7 @@
   const cells = $derived(renderedCells(view, size, occupied));
   const bounds = $derived(view.mode === 'fit' ? pageBounds(occupied) : visibleWindow(view, size));
   const origin = $derived(worldToScreen(view, bounds.origin));
-  function update(next: ViewTransform): void { view = next; rememberView(sessionKey, next); }
+  function update(next: ViewTransform): void { view = next; rememberView(sessionKey, next, size); }
   $effect(() => {
     if (width > 0 && height > 0 && loadedKey !== sessionKey) {
       view = untrack(() => sessionView(sessionKey, occupied, size));
@@ -36,8 +36,10 @@
   const measure: Attachment<HTMLElement> = el => {
     const observer = new ResizeObserver(([entry]) => {
       if (!entry) return;
+      const previous = { width, height };
       width = entry.contentRect.width; height = entry.contentRect.height;
-      if (view.mode === 'fit') update(framePage(occupied, { width, height }, true));
+      if (previous.width > 0 && previous.height > 0 && loadedKey === sessionKey)
+        update(view.mode === 'fit' ? framePage(occupied, { width, height }, true) : resizeView(view, previous, { width, height }));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -76,7 +78,7 @@
     {#each cells as at (key(at))}
       {@const p = worldToScreen(view, at)}
       {@const marker = view.mode === 'fit' && view.pitch < PAPER.fitMarkerSize}
-      <button type="button" class="paper-cell" class:overview-marker={marker} data-at={key(at)} aria-label={cellLabel(at)}
+      <button type="button" class="paper-cell" class:overview-marker={marker} data-at={key(at)} aria-label={cellLabel(at)} tabindex={cellTabStop(view, at, size) ? 0 : -1}
         style:left={`${p.x + (marker ? (view.pitch - PAPER.fitMarkerSize) / 2 : 0)}px`} style:top={`${p.y + (marker ? (view.pitch - PAPER.fitMarkerSize) / 2 : 0)}px`} style:width={`${marker ? PAPER.fitMarkerSize : view.pitch}px`} style:height={`${marker ? PAPER.fitMarkerSize : view.pitch}px`}
         onclick={e => { if (e.detail === 0) activate(at); }}>
         <span class="paper-content" style:transform={`scale(${view.pitch / PAPER.editPitch})`}>
@@ -95,11 +97,11 @@
 </div>
 
 <style>
-  .paper-viewport { width: 100%; min-width: 0; }
-  .paper-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding-block: 0.4rem; }
+  .paper-viewport { width: 100%; min-width: 0; min-height: 0; height: var(--lattice-viewport-height, auto); display: flex; flex-direction: column; }
+  .paper-controls { flex: none; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding-block: 0.4rem; padding-right: var(--lattice-controls-reserve, 0px); box-sizing: border-box; }
   .paper-controls button { min-height: 44px; }
   .paper-controls span { font-size: 0.8rem; }
-  .paper-surface { position: relative; width: 100%; height: min(52vh, 420px); min-height: 240px; overflow: hidden; touch-action: none; user-select: none; background: var(--paper, #f3ead6); }
+  .paper-surface { position: relative; width: 100%; height: var(--lattice-surface-height, min(52vh, 420px)); min-height: var(--lattice-surface-min-height, 240px); flex: var(--lattice-surface-flex, none); overflow: clip; touch-action: none; user-select: none; background: var(--paper, #f3ead6); }
   .paper-cell { position: absolute; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; overflow: hidden; }
   .overview-marker { background: currentColor; border-radius: 50%; }
 
@@ -108,10 +110,5 @@
   .overview-marker .paper-content { visibility: hidden; }
   .paper-overlay { position: absolute; pointer-events: none; }
 </style>
-
-
-
-
-
 
 

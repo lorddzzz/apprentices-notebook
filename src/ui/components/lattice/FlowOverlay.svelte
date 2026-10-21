@@ -1,7 +1,8 @@
 <script lang="ts">
+  import type { Attachment } from 'svelte/attachments';
   import type { CompiledLattice, Coord, SpellKey } from '$engine';
   import { key } from '$engine';
-  import { arrowHead, auraLinks, flowSegments, linkLine } from '../../../app/flowGeometry';
+  import { arrowHead, auraLinks, flowSegments, linkLine, localCell, windowLinks } from '../../../app/flowGeometry';
   import { type FlowZone, flowZones } from '../../../app/study';
 
   interface Props {
@@ -14,6 +15,16 @@
   }
 
   let { compiled, focus, cols, rows, origin = { x: 0, y: 0 } }: Props = $props();
+
+  let pixels = $state({ width: 0, height: 0 });
+  const window = $derived({ origin, width: cols, height: rows });
+  const measure: Attachment<SVGSVGElement> = el => {
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) pixels = { width: entry.contentRect.width, height: entry.contentRect.height };
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  };
 
   // Trim so lines live in the gaps between the rune frames instead of under them.
   const TRIM = 0.33;
@@ -50,12 +61,12 @@
   );
   const NONE: FlowZone = { side: null, sealed: false };
 
+  const allSegments = $derived(flowSegments(outer, focus).sort((a, b) => Number(a.focused) - Number(b.focused)));
   const segments = $derived(
-    flowSegments(outer, focus)
-      // faint segments first so the focused spell always draws on top
+    windowLinks(allSegments, window, pixels)
       .sort((a, b) => Number(a.focused) - Number(b.focused))
       .map((s) => {
-        const line = linkLine(s.from, s.to, TRIM);
+        const line = linkLine(localCell(s.from, origin), localCell(s.to, origin), TRIM);
         const zone = zones.get(s.spell)?.get(key(s.to)) ?? NONE;
         const mid = { x: (line.x1 + line.x2) / 2, y: (line.y1 + line.y2) / 2 };
         const vertical = line.x1 === line.x2;
@@ -75,10 +86,12 @@
         };
       }),
   );
+  const allAuras = $derived(auraLinks(compiled.auraTouches));
   const auras = $derived(
-    auraLinks(compiled.auraTouches).map((l) => ({
+    windowLinks(allAuras, window, pixels).map((l) => ({
       ...l,
-      line: linkLine(l.from, l.to, 0.3),
+      at: localCell(l.to, origin),
+      line: linkLine(localCell(l.from, origin), localCell(l.to, origin), 0.3),
       id: `${key(l.from)}>${key(l.to)}`,
     })),
   );
@@ -86,13 +99,14 @@
 
 <svg
   class="flow"
-  viewBox="{origin.x} {origin.y} {cols} {rows}"
+  viewBox="0 0 {cols} {rows}"
   preserveAspectRatio="none"
   aria-hidden="true"
   data-testid="flow"
+  {@attach measure}
 >
   {#each auras as a (a.id)}
-    <circle cx={a.to.x + 0.5} cy={a.to.y + 0.5} r="0.47" class="glow" />
+    <circle cx={a.at.x + 0.5} cy={a.at.y + 0.5} r="0.47" class="glow" />
     <line x1={a.line.x1} y1={a.line.y1} x2={a.line.x2} y2={a.line.y2} class="aura" />
   {/each}
   {#each segments as s (s.id)}
@@ -203,3 +217,4 @@
     opacity: 0.2;
   }
 </style>
+

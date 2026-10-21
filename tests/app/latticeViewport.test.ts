@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  cellTabStop,
   editAt,
   editCell,
   forgetView,
@@ -7,6 +8,7 @@ import {
   panView,
   rememberView,
   renderedCells,
+  resizeView,
   screenToCell,
   sessionView,
   visibleWindow,
@@ -126,4 +128,53 @@ test('known miniature and keyboard targets avoid subpixel coordinate loss', () =
     x: (size.width - PAPER.editPitch) / 2,
     y: (size.height - PAPER.editPitch) / 2,
   });
+});
+
+test('edit resize keeps the working world centre on screen rather than stale desktop offsets', () => {
+  const desktop = { width: 1280, height: 700 };
+  const phone = { width: 359, height: 300 };
+  const view = panView(framePage([{ x: -20, y: 30 }], desktop), { x: 120, y: -60 });
+  const centre = screenToCell(view, { x: desktop.width / 2, y: desktop.height / 2 });
+  const resized = resizeView(view, desktop, phone);
+  expect(screenToCell(resized, { x: phone.width / 2, y: phone.height / 2 })).toEqual(centre);
+  expect(resized.pitch).toBe(PAPER.editPitch);
+  expect(resizeView(resized, phone, desktop)).toEqual(view);
+  rememberView('resized-session', view, desktop);
+  expect(sessionView('resized-session', [], phone)).toEqual(resized);
+  forgetView('resized-session');
+});
+
+test('restoring Fit at a new viewport size recomputes framing without mutating work', () => {
+  const occupied = [
+    { x: -1000, y: -1000 },
+    { x: 1000, y: 1000 },
+  ];
+  const desktop = { width: 1280, height: 700 };
+  const view = framePage(occupied, desktop, true);
+  rememberView('fit-resize', view, desktop);
+  expect(sessionView('fit-resize', occupied, size)).toEqual(framePage(occupied, size, true));
+  forgetView('fit-resize');
+});
+
+test('overscan and partial cells do not attract focus outside the camera viewport', () => {
+  const view = {
+    anchor: { x: 0, y: 0 },
+    offset: { x: -10, y: -10 },
+    pitch: PAPER.editPitch,
+    mode: 'edit' as const,
+  };
+  expect(cellTabStop(view, { x: 0, y: 0 }, size)).toBe(false);
+  expect(cellTabStop(view, { x: -1, y: -1 }, size)).toBe(false);
+  expect(cellTabStop(view, { x: 1, y: 1 }, size)).toBe(true);
+  expect(cellTabStop(view, { x: 6, y: 1 }, size)).toBe(false);
+  expect(cellTabStop(view, { x: 1, y: 5 }, size)).toBe(false);
+  const fit = framePage(
+    [
+      { x: -1000000, y: 0 },
+      { x: 1000000, y: 0 },
+    ],
+    size,
+    true,
+  );
+  expect(cellTabStop(fit, { x: -1000000, y: 0 }, size)).toBe(true);
 });

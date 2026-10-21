@@ -6,20 +6,21 @@
     type GlyphLibrary,
     type InventionLibrary,
     isGlyph,
-    isSocket,
+
     key,
     type Lattice,
-    label,
+    latticeLabel,
     nameOf,
     type SpellKey,
-    socketAt,
+
   } from '$engine';
   import { focusedCells, idleCells } from '../../../app/flowGeometry';
-  import { longpress } from '../../attach/longpress';
   import RuneGlyph from '../RuneGlyph.svelte';
   import FlowOverlay from './FlowOverlay.svelte';
+  import LatticeViewport from './LatticeViewport.svelte';
 
   interface Props {
+    sessionKey: string;
     lattice: Lattice;
     compiled: CompiledLattice;
     focus: SpellKey | null;
@@ -42,6 +43,7 @@
   }
 
   let {
+    sessionKey,
     lattice,
     compiled,
     focus,
@@ -56,94 +58,59 @@
     onlongpress,
   }: Props = $props();
 
-  const cols = $derived(lattice.shape.width);
-  const rows = $derived(lattice.shape.height);
-  const cells = $derived(
-    Array.from({ length: cols * rows }, (_, i) => {
-      const at = { x: i % cols, y: Math.floor(i / cols) };
-      return { at, k: key(at), socket: isSocket(lattice.shape, at), placed: socketAt(lattice, at) };
-    }),
-  );
+  const placements = $derived(new Map(lattice.runes.map(rune => [key(rune.at), rune])));
+  const occupied = $derived(lattice.runes.map(rune => rune.at));
   const idle = $derived(idleCells(lattice, compiled));
   const lit = $derived(focusedCells(compiled, focus));
 
   const cellLabel = (at: Coord): string => {
-    const placed = socketAt(lattice, at);
-    return `${label(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : nameOf(placed.rune, inventions)) : 'empty socket'}`;
+    const placed = placements.get(key(at));
+    return `${latticeLabel(at)}: ${placed ? (isGlyph(placed) ? `${glyphs[placed.glyph]?.name ?? placed.glyph} Glyph` : nameOf(placed.rune, inventions)) : 'empty socket'}`;
   };
 </script>
 
-<div
-  class="lattice"
-  data-testid="lattice"
-  style:--cols={cols}
-  style:--rows={rows}
->
-  <div class="cells">
-    {#each cells as c (c.k)}
-      {#if c.socket}
-        <button
-          type="button"
-          class="socket"
-          class:filled={c.placed !== null}
-          class:lit={lit.has(c.k)}
-          class:inspected={inspected !== null && key(inspected) === c.k}
-          class:glow={glow.has(c.k)}
-          class:picked={selection.has(c.k)}
-          class:dead={deadCells.has(c.k)}
-          aria-label={cellLabel(c.at)}
-          title={c.placed && idle.has(c.k) ? 'Does nothing yet' : undefined}
-          data-at={c.k}
-          onclick={() => ontap(c.at)}
-          {@attach longpress(() => onlongpress(c.at))}
-        >
-          {#if c.placed && isGlyph(c.placed)}
-            <RuneGlyph
-              rune={null}
-              dir={c.placed.dir}
-              glyphName={glyphs[c.placed.glyph]?.name ?? c.placed.glyph}
-              glyphKind={glyphs[c.placed.glyph]?.kind ?? 'spell'}
-              size={44}
-            />
-          {:else if c.placed}
-            <RuneGlyph rune={c.placed.rune} {inventions} dir={c.placed.dir} dim={idle.has(c.k)} size={44} />
-          {/if}
-          {#if numbers.has(c.k)}
-            <span class="step" data-testid="step-{c.k}">{numbers.get(c.k)}</span>
-          {/if}
-        </button>
-      {:else}
-        <span class="hole" aria-hidden="true"></span>
-      {/if}
-    {/each}
-  </div>
-  <FlowOverlay {compiled} {focus} {cols} {rows} />
+<div class="lattice" data-testid="lattice">
+  <LatticeViewport {sessionKey} {occupied} onCellTap={ontap} onCellHold={onlongpress} {cellLabel}>
+    {#snippet cell(at)}
+      {@const k = key(at)}
+      {@const placed = placements.get(k)}
+      <span class="socket" class:filled={placed !== undefined} class:lit={lit.has(k)}
+        class:inspected={inspected !== null && key(inspected) === k} class:glow={glow.has(k)}
+        class:picked={selection.has(k)} class:dead={deadCells.has(k)}
+        title={placed && idle.has(k) ? 'Does nothing yet' : undefined}>
+        {#if placed && isGlyph(placed)}
+          <RuneGlyph rune={null} dir={placed.dir} glyphName={glyphs[placed.glyph]?.name ?? placed.glyph}
+            glyphKind={glyphs[placed.glyph]?.kind ?? 'spell'} size={44} />
+        {:else if placed}
+          <RuneGlyph rune={placed.rune} {inventions} dir={placed.dir} dim={idle.has(k)} size={44} />
+        {/if}
+        {#if numbers.has(k)}<span class="step" data-testid="step-{k}">{numbers.get(k)}</span>{/if}
+      </span>
+    {/snippet}
+    {#snippet overlay(bounds)}
+      <FlowOverlay {compiled} {focus} cols={bounds.width} rows={bounds.height} origin={bounds.origin} />
+    {/snippet}
+  </LatticeViewport>
 </div>
-
 <style>
   .lattice {
-    --pitch: min(
-      68px,
-      calc(100cqh / var(--rows)),
-      calc(100cqw / var(--cols))
-    );
-    position: relative;
-    width: calc(var(--cols) * var(--pitch));
-    height: calc(var(--rows) * var(--pitch));
-  }
-  .cells {
-    display: grid;
-    grid-template-columns: repeat(var(--cols), var(--pitch));
-    grid-auto-rows: var(--pitch);
-  }
-  .hole {
-    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    --lattice-viewport-height: 100%;
+    --lattice-surface-height: auto;
+    --lattice-surface-min-height: 0px;
+    --lattice-surface-flex: 1;
   }
   .socket {
     position: relative;
     display: grid;
     place-items: center;
-    margin: calc(var(--pitch) * 0.13);
+    width: 44px;
+    height: 44px;
+    margin: 8px;
+    box-sizing: border-box;
     padding: 0;
     border: 1.5px dashed var(--ink-faint);
     border-radius: var(--radius);
@@ -152,7 +119,7 @@
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
-    touch-action: manipulation;
+
   }
   .socket.filled {
     border-style: solid;
@@ -186,7 +153,7 @@
     outline: 3px solid var(--select);
     outline-offset: 1px;
   }
-  .socket:focus-visible {
+  .lattice :global(.paper-cell:focus-visible .socket) {
     outline: 3px solid var(--select);
     outline-offset: 1px;
   }

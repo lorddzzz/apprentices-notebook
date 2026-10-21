@@ -19,6 +19,7 @@
     type Lattice,
     parseBoard,
     parseLattice,
+    toGrowingLattice,
   } from '$engine';
   import { EMPTY_OVERLAY } from '../../app/overlay';
   import { buildSteps } from '../../app/playback';
@@ -64,8 +65,8 @@
 
   // lattice part: fully interactive, per-member lattices over the first evening's knowledge
   const startLattices = (): Record<MemberId, Lattice> => ({
-    draughtsman: parseLattice(MEMBERS.draughtsman.startLattice),
-    stoker: parseLattice(MEMBERS.stoker.startLattice),
+    draughtsman: toGrowingLattice(parseLattice(MEMBERS.draughtsman.startLattice)),
+    stoker: toGrowingLattice(parseLattice(MEMBERS.stoker.startLattice)),
   });
   let lattices = $state.raw<Record<MemberId, Lattice>>(startLattices());
   let member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
@@ -268,6 +269,7 @@
     </div>
   {:else if part === 'lattice'}
     <LatticeEditor
+      sessionKey={`gallery:${part}:${member}`}
       {lattice}
       {compiled}
       capacity={TUNING.startInk}

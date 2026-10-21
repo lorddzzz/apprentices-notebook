@@ -82,3 +82,47 @@ export function arrowHead(line: Line, dir: Dir, size = 0.09): string {
 export function auraLinks(touches: readonly AuraTouch[]): { from: Coord; to: Coord }[] {
   return touches.map((t) => ({ from: t.from, to: t.to }));
 }
+
+export interface FlowWindow {
+  origin: Coord;
+  width: number;
+  height: number;
+}
+
+/** Subtract integer anchors before computing centres, including at numeric coordinate edges. */
+export function localCell(at: Coord, origin: Coord): Coord {
+  return { x: at.x - origin.x, y: at.y - origin.y };
+}
+
+/** Clip sparse links before mounting SVG elements. Tiny Fit links share a visual pixel only. */
+export function windowLinks<T extends { from: Coord; to: Coord }>(
+  links: readonly T[],
+  window: FlowWindow,
+  pixels?: { width: number; height: number },
+): T[] {
+  if (pixels && (pixels.width <= 0 || pixels.height <= 0)) return [];
+  const pitch = pixels ? Math.min(pixels.width / window.width, pixels.height / window.height) : 1;
+  const buckets = new Map<string, T>();
+  const visible = new Map<string, T>();
+  for (const link of links) {
+    const from = localCell(link.from, window.origin);
+    const to = localCell(link.to, window.origin);
+    if (
+      Math.max(from.x, to.x) < -1 ||
+      Math.max(from.y, to.y) < -1 ||
+      Math.min(from.x, to.x) > window.width ||
+      Math.min(from.y, to.y) > window.height
+    )
+      continue;
+    if (pitch < 1 && pixels) {
+      const x = Math.floor(
+        Math.max(0, Math.min(Math.ceil(pixels.width) - 1, ((from.x + to.x + 1) / 2) * pitch)),
+      );
+      const y = Math.floor(
+        Math.max(0, Math.min(Math.ceil(pixels.height) - 1, ((from.y + to.y + 1) / 2) * pitch)),
+      );
+      buckets.set(`${x},${y}`, link);
+    } else visible.set(`${from.x},${from.y}>${to.x},${to.y}`, link);
+  }
+  return pitch < 1 ? [...buckets.values()] : [...visible.values()];
+}

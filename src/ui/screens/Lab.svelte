@@ -111,6 +111,7 @@
           {:else}
             <div class="desk">
               <LatticeEditor
+                sessionKey={lab.latticeSessionKey()}
                 {lattice}
                 {compiled}
                 {inventions}

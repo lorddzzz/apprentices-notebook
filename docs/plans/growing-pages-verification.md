@@ -33,3 +33,13 @@ The cold-load resource-refusal panel was checked in an isolated fake-backend har
 ## Manual-resume checkpoint
 
 Combined `pnpm check` passed:103files,3113tests, no Svelte errors/warnings or lint errors. Production `pnpm build` passed, with Vite's533kB main-chunk size advisory. A1 has signed Lab cast/action+edit undo/reset/export tests and20kflow-zone coverage. These are pre-UI-integration checks; U1/U2/R1/Q1/F1 remain pending. The integration is preserved on a checkpoint branch and is not deployed to the live game.
+
+## Ordinary editor integration (U1, current resume)
+
+On preview5190 at375×812, Study and doorway use60px sockets with visible ink/shelf controls and no horizontal overflow. Armed-tool dragging did not place/rotate; negative top/left placements preserve the surviving Source's exact screen position. Partial clipped cell taps address the correct signed coordinate without programmatic scrolling; Enter activates once. Erasing a proven Source removes Fair Copy availability without moving the paper. These checks found and fixed resize-camera drift, overflow-focus scrolling and conditional-header layout shift.
+
+A sparse two-million-cell-span page used two overview visual markers; tapping its left marker returned exactly to(-1000000,-10) at edit scale without editing. Fair Copy dragging selected nothing, tapping the proven signed Source selected its three-cell cluster, and naming/fair-copying succeeded with signed selection labels. Doorway growth kept the surviving Glyph anchor fixed; Done retained a pending Vellum pick and distinct spent charges (4/5,2/5,1/5), which survived reload and return home.
+
+Screenshots: [signed growth](growing-pages-evidence/u1-top-left.jpg), [sparse Fit](growing-pages-evidence/u1-distant-fit.jpg), [doorway growth](growing-pages-evidence/u1-doorway-growth.jpg). Lab's integrated lattice controls render at375×812 without horizontal overflow; its full cast/undo/export loop and member-camera checks remain pending. Revision UI, independent review and final integrated acceptance/deployment remain pending. Svelte MCP autofixer unavailable.
+
+Lab follow-up: signed Ink(-1,-2) placement survived switching Stoker→Draughtsman, with the surviving Source rectangle exactly unchanged and paper scrollTop0. [Phone screenshot](growing-pages-evidence/u1-lab.jpg). This verifies member-camera retention; Lab cast/undo/export acceptance remains pending.

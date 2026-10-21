@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type Coord, label, nameOf, sameCoord } from '$engine';
+  import { type Coord, latticeLabel, nameOf, sameCoord } from '$engine';
   import { type FairPreview, openCellOf } from '../../../app/faircopy';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
@@ -45,7 +45,7 @@
   {#if preview}
     <ol class="chain" data-testid="fair-chain" aria-label="The selected runes in order">
       {#each preview.chain as step (`${step.at.x},${step.at.y}`)}
-        <li title={`${nameOf(step.rune)} at ${label(step.at)}`}>
+        <li title={`${nameOf(step.rune)} at ${latticeLabel(step.at)}`}>
           <RuneGlyph rune={step.rune} dir={step.dir} size={34} />
         </li>
       {/each}
@@ -76,7 +76,7 @@
               class="pick"
               class:on
               aria-pressed={on}
-              title={`${nameOf(step.rune)} at ${label(step.at)}`}
+              title={`${nameOf(step.rune)} at ${latticeLabel(step.at)}`}
               data-testid="fair-open-pick"
               onclick={() => (openAt = on ? null : step.at)}
             >
@@ -108,7 +108,7 @@
     {#if preview.disconnected.length > 0}
       <p class="warn" data-testid="fair-warn">
         After the collapse these no longer connect, so you will re-lay them next to the new socket:
-        {preview.disconnected.map((d) => `${d.name} at ${label(d.at)}`).join(', ')}.
+        {preview.disconnected.map((d) => `${d.name} at ${latticeLabel(d.at)}`).join(', ')}.
       </p>
     {/if}
     {#if !preview.canAfford}

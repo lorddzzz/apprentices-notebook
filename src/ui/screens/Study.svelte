@@ -242,6 +242,7 @@
 
   <div class="desk">
     <LatticeEditor
+      sessionKey={game.latticeSessionKey()}
       {lattice}
       {compiled}
       capacity={profile.inkCapacity[game.member]}
