@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import {
     type Coord,
     type GlyphInside,
@@ -7,11 +8,9 @@
     insideFlow,
     key,
     nameOf,
-    revisionCanvas,
     sameCoord,
   } from '$engine';
   import {
-    canvasCells,
     insideInk,
     liftCell,
     paletteSlots,
@@ -20,10 +19,10 @@
   } from '../../../app/revision';
   import { NO_TOOL, type PaletteSlot, type ShelfTool } from '../../../app/study';
   import { toast } from '../../../app/toasts.svelte';
-  import { longpress } from '../../attach/longpress';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
   import FlowOverlay from '../lattice/FlowOverlay.svelte';
+  import LatticeViewport from '../lattice/LatticeViewport.svelte';
   import RuneShelf from '../lattice/RuneShelf.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -82,8 +81,20 @@
   const inkBefore = $derived(inside ? insideInk(inside) : 0);
   const inkAfter = $derived(current ? insideInk(current) : 0);
   const slots = $derived(current ? paletteSlots(palette, current) : []);
-  const canvas = $derived(current ? revisionCanvas(current) : null);
-  const cells = $derived(current ? canvasCells(current) : []);
+  const editorId = $props.id();
+  let session = $state(0);
+  const occupied = $derived(current ? [current.entry, ...current.cells.map(c => c.at)] : []);
+  $effect(() => {
+    const opened = inside;
+    untrack(() => {
+      if (opened) {
+        session += 1;
+        edited = null;
+        refused = null;
+        tool = NO_TOOL;
+      }
+    });
+  });
   const flow = $derived(current ? insideFlow(current) : null);
 
   const worst = (at: Coord): InsideIssue | undefined => {
@@ -109,6 +120,7 @@
   function reset(): void {
     edited = null;
     refused = null;
+    session += 1;
   }
 
   function leave(): void {
@@ -137,50 +149,36 @@
 </script>
 
 <Sheet open={inside !== null} {title} onclose={leave}>
-  {#if current && canvas}
+  {#if current}
     <div class="editor" data-testid="revision-editor">
       <p class="ink" data-testid="revision-ink">
         Ink {inkBefore} &rarr; <b class:up={inkAfter > inkBefore}>{inkAfter}</b>
         <small>before any discount</small>
       </p>
 
-      <div class="pad" style:--cols={canvas.width} style:--rows={canvas.height}>
-        <div class="grid" data-testid="revision-canvas">
-          {#each cells as at (key(at))}
+      <div class="pad" data-testid="revision-canvas">
+        <LatticeViewport sessionKey={`${editorId}:revision:${session}`} {occupied} onCellTap={tap} onCellHold={lift} {cellLabel}>
+          {#snippet cell(at)}
             {@const placed = placedAt(at)}
             {@const issue = worst(at)}
             {@const entry = sameCoord(at, current.entry)}
-            <button
-              type="button"
-              class="cell"
-              class:filled={placed !== undefined}
-              class:entry
-              class:blocking={issue?.blocking === true}
-              class:soft={issue !== undefined && !issue.blocking}
-              aria-label={cellLabel(at)}
-              data-at={key(at)}
-              onclick={() => tap(at)}
-              {@attach longpress(() => lift(at))}
-            >
+            <span class="cell" class:filled={placed !== undefined} class:entry
+              class:blocking={issue?.blocking === true} class:soft={issue !== undefined && !issue.blocking}>
               {#if placed}
                 <RuneGlyph rune={placed.rune} {inventions} dir={placed.dir} size={44} />
               {/if}
               {#if entry}<span class="lock" aria-hidden="true">in</span>{/if}
-            </button>
-          {/each}
-          {#if flow}
-            <FlowOverlay
-              compiled={flow}
-              focus={null}
-              cols={canvas.width}
-              rows={canvas.height}
-              origin={canvas.origin}
-            />
-          {/if}
-        </div>
+            </span>
+          {/snippet}
+          {#snippet overlay(bounds)}
+            {#if flow}
+              <FlowOverlay compiled={flow} focus={null} cols={bounds.width} rows={bounds.height} origin={bounds.origin} />
+            {/if}
+          {/snippet}
+        </LatticeViewport>
       </div>
 
-      <p class="rule">Tap to place the held rune. Tap an arrow to turn it. Hold a rune, or use Erase, to lift it.</p>
+      <p class="rule">Tap to place the held rune. Tap an arrow to turn it. Hold a rune, or use Erase, to lift it. Drag to pan the paper.</p>
 
       <RuneShelf {slots} {inventions} {tool} onselect={(t) => (tool = t)} onreject={(r) => toast(r)} erase />
 
@@ -227,22 +225,18 @@
     color: var(--danger);
   }
   .pad {
-    container-type: inline-size;
-    display: flex;
-    justify-content: center;
-  }
-  .grid {
-    position: relative;
-    --pitch: min(56px, calc(100cqw / var(--cols)));
-    display: grid;
-    grid-template-columns: repeat(var(--cols), var(--pitch));
-    grid-auto-rows: var(--pitch);
+    min-width: 0;
+    --lattice-surface-height: 260px;
+    --lattice-surface-min-height: 260px;
   }
   .cell {
     position: relative;
     display: grid;
     place-items: center;
-    margin: calc(var(--pitch) * 0.08);
+    width: 44px;
+    height: 44px;
+    margin: 8px;
+    box-sizing: border-box;
     padding: 0;
     border: 1.5px dashed var(--ink-faint);
     border-radius: var(--radius);
@@ -251,7 +245,6 @@
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
-    touch-action: manipulation;
   }
   .cell.filled {
     border-style: solid;

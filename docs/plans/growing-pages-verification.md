@@ -47,3 +47,20 @@ Lab follow-up: signed Ink(-1,-2) placement survived switching Stoker→Draughtsm
 ## Current combined checkpoint
 
 After U1, engine resource fixes and R1 integration: pnpmcheck passes108files/3178tests, zero Svelte errors/warnings and clean lint. Production build passes with the existing>500kBchunk advisory. R1 adds real-cast/event identity coverage across fixed/growing geometry, signed proof/Fair Copy, version/arg/revert semantics, distinct doorway charges/pending loot/next cast, v7 replay, long sparse inputs and hostile resource boundaries. This remains a local/checkpoint-branch build; U2/revision UI, full independent phone QA/review and final feature deployment remain unfinished.
+
+## Resume4 ordinary-editor acceptance (root browser)
+
+Integrated main92619b5 at375×812:
+- Imported an empty page; controls, free paper and shelf fit without horizontal overflow. Placed Source(0,0), dragged from it with Bolt armed180px left/120px up: no rotation/placement; panned again to writable right/bottom margin. Built a second Bolt→Ink→Strike at(6,5)–(8,5), beyond the old right/bottom bounds.
+- Held Strike(8,5)600ms: exactly one lift, ink7→5, Source(6,5) rectangle stayed exactlyx157.5/y363.890625. Fit showed both distant spells; tapping G6 returned to60px edit target and unchanged ink/Source.
+- Lab sandbox: added Ink/Strike and unused Oil(-1,0). Undo removed only the Oil edit; re-added it. Copy lattices and Copy as scenario contain @lattice1growing and exact signed/world coordinates, including(-1,0),(6,5),(7,5), with no blank rectangle.
+- Actual Lab Bolt-up cast hit the steam cloud at B5 and produced brand cloud; log records the cast/stopping cloud, unlimited charges stay5/5. Undo restored original steam cloud. Reset removed Lab-only edits; returning Study retained precisely its original three placements, proving notebook isolation.
+- Screenshots inspected: q1-right-bottom.jpg, q1-two-spell-fit.jpg and q1-lab-cast.jpg in growing-pages-evidence. Existing unit/scenario tests cover parsing/export roundtrip beyond this visible export check.
+
+Revision integration and independent phone QA/review remain pending at this point.
+
+## Revision UI (U2)
+
+Sourcec210d76 verified at375×812 onrootpreview5191. A valid eight-cell inside throughlocalx7 has60px targets; Fit shows its entire flow, tappingx7 returns to edit scale and makesblankx8 writable. Adding a ninth flow cell yields the independent3–8flowcells issue and disablesSave; Reset restores the original without a version. ReplacingInk(6,0)withOil enablesSave; armedtool drag overOil does notedit. Save createdexactlyv3 with0casts; profilerVersions retainedv2's12casts. Revert restoredv2 and its silver/goldrecords throughreload.
+
+Negative bent inside showsaligned flow through(-2,-1),(-1,-1),(0,-1). Erase onpinnedentry(0,0) leavesSourceunchanged and reportsentry-stays; validnegativeedit enablesSave,Canceldiscardsit. Longread-onlyinside scrollswithin sheet at40pxcells withoutdocumentoverflow, withnormalexit anchoredtoterminalcell. Controls/issues/palette/footerremainreachable in sheet. No consoleerrors; SvelteMCPautofixer unavailable. Screenshots:u2-long-fit.jpg,u2-long-edit.jpg,u2-negative.jpg,u2-version-v3.jpg.

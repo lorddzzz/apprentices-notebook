@@ -49,16 +49,16 @@
   </p>
 
   <div class="body">
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex: keyboard focus lets the inside scroll with arrow keys. -->
+    <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll long insides. -->
+    <section class="inside-scroll" tabindex="0" aria-label="Glyph inside; scroll to see all runes">
     <div
       class="inside"
-      class:up={view.inside.extraExit === 'up'}
-      class:down={view.inside.extraExit === 'down'}
-      class:right={view.inside.extraExit === 'right'}
       data-testid="glyph-inside"
       style:--cols={view.inside.cols}
       style:--rows={view.inside.rows}
     >
-      <span class="door" aria-hidden="true">in</span>
+      <span class="door" style:grid-column={view.inside.entry.col} style:grid-row={view.inside.entry.row} aria-hidden="true">in</span>
       {#each view.inside.cells as c (c.key)}
         <span
           class="cell"
@@ -73,12 +73,14 @@
           {#if c.open}<span class="open" data-testid="glyph-open-cell">( )</span>{/if}
         </span>
       {/each}
-      {#if view.inside.extraExit}
-        <span class="exit {view.inside.extraExit}" data-testid="glyph-extra-exit" title="Extra exit">
-          {ARROW[view.inside.extraExit]}
+      {#each view.inside.exits as exit, i (i)}
+        <span class="exit {exit.dir}" style:grid-column={exit.col} style:grid-row={exit.row}
+          data-testid={exit.extra ? 'glyph-extra-exit' : 'glyph-exit'} title={exit.extra ? 'Extra exit' : 'Exit'}>
+          {ARROW[exit.dir]}
         </span>
-      {/if}
+      {/each}
     </div>
+    </section>
 
     <dl class="stats">
       <div><dt>Casts</dt><dd>{view.casts}</dd></div>
@@ -182,58 +184,46 @@
     align-items: center;
     gap: var(--space-2) var(--space-3);
   }
+  .inside-scroll {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: auto;
+    padding: 24px;
+    box-sizing: border-box;
+  }
   .inside {
     position: relative;
     display: grid;
     grid-template-columns: repeat(var(--cols), 40px);
-    grid-auto-rows: 40px;
+    grid-template-rows: repeat(var(--rows), 40px);
     gap: 2px;
     width: max-content;
-    max-width: 100%;
-    margin: 0 0 0 24px;
     padding: var(--space-1);
     border: 1px dashed var(--line);
     border-radius: var(--radius);
     background: var(--parchment-dark);
   }
-  .inside.up {
-    margin-top: 22px;
-  }
-  .inside.down {
-    margin-bottom: 22px;
-  }
-  .inside.right {
-    margin-right: 22px;
+  .door, .exit {
+    position: relative;
+    align-self: center;
+    justify-self: center;
+    z-index: 1;
+    pointer-events: none;
   }
   .door {
-    position: absolute;
-    left: -22px;
-    top: 50%;
-    translate: 0 -50%;
+    translate: -30px 0;
     font: 12px var(--mono);
     color: var(--ink-soft);
   }
   .exit {
-    position: absolute;
-    font: 700 20px var(--mono);
-    line-height: 1;
+    font: 700 20px/1 var(--mono);
     color: var(--lamp);
   }
-  .exit.up {
-    top: -22px;
-    left: 50%;
-    translate: -50% 0;
-  }
-  .exit.down {
-    bottom: -22px;
-    left: 50%;
-    translate: -50% 0;
-  }
-  .exit.right {
-    right: -20px;
-    top: 50%;
-    translate: 0 -50%;
-  }
+  .exit.up { translate: 0 -28px; }
+  .exit.down { translate: 0 28px; }
+  .exit.right { translate: 28px 0; }
+  .exit.left { translate: -28px 0; }
   .cell {
     position: relative;
     display: grid;

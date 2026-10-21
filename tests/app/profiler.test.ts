@@ -10,7 +10,13 @@ import {
   revertGlyph,
   versionKey,
 } from '$engine';
-import { formOf, profilerView, suggestionOf, versionRows } from '../../src/app/profiler';
+import {
+  formOf,
+  insideOfView,
+  profilerView,
+  suggestionOf,
+  versionRows,
+} from '../../src/app/profiler';
 
 const cell = (x: number, y: number, rune: GlyphDef['cells'][number]['rune'], dir?: 'right') => ({
   at: { x, y },
@@ -121,6 +127,51 @@ describe('inside view', () => {
     expect(v.extraExit).toBeNull();
     const silver = record({ ...rec, best: { economy: 0, reliability: 2 } });
     expect(profilerView(profileWith(def, silver), def).inside.extraExit).toBe('up');
+  });
+
+  test('long insides preserve every cell and anchor exits to their actual terminal cell', () => {
+    const def: GlyphDef = {
+      ...GLYPH,
+      cells: Array.from({ length: 8 }, (_, x) =>
+        cell(x, 0, x === 0 ? 'bolt' : 'ink', x === 0 ? 'right' : undefined),
+      ),
+      exits: [{ from: { x: 7, y: 0 }, dir: 'right' }],
+      extraExit: 'up',
+    };
+    const view = insideOfView(def, [], true);
+    expect([view.cols, view.rows]).toEqual([8, 1]);
+    expect(view.cells).toHaveLength(8);
+    expect(view.cells[7]).toMatchObject({ key: '7,0', col: 8, row: 1 });
+    expect(view.entry).toEqual({ col: 1, row: 1 });
+    expect(view.exits).toEqual([
+      { col: 8, row: 1, dir: 'right', extra: false },
+      { col: 8, row: 1, dir: 'up', extra: true },
+    ]);
+    expect(insideOfView(def, [], false).exits).toHaveLength(1);
+  });
+
+  test('negative locals keep identity and place the entry at its actual row', () => {
+    const def: GlyphDef = {
+      ...GLYPH,
+      cells: [
+        cell(0, 0, 'bolt', 'right'),
+        cell(1, 0, 'bend', 'right'),
+        cell(1, -1, 'ink'),
+        cell(-1, -1, 'spark'),
+      ],
+      params: ['-1,-1'],
+      exits: [{ from: { x: -1, y: -1 }, dir: 'left' }],
+    };
+    const view = insideOfView(def, [{ x: -1, y: -1 }], false);
+    expect([view.cols, view.rows]).toEqual([3, 2]);
+    expect(view.entry).toEqual({ col: 2, row: 2 });
+    expect(view.cells.find((c) => c.key === '-1,-1')).toMatchObject({
+      col: 1,
+      row: 1,
+      open: true,
+      dead: true,
+    });
+    expect(view.exits).toEqual([{ col: 1, row: 1, dir: 'left', extra: false }]);
   });
 
   test('nothing is dead before five casts', () => {

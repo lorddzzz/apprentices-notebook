@@ -20,6 +20,7 @@ import {
   type TierLevel,
   windowTiers,
 } from '$engine';
+import { pageBounds } from '$engine/page';
 
 /** The profiler's view-model (plan M8–M13, U1): everything the Glyph sheet shows, as plain data. */
 
@@ -67,6 +68,8 @@ export interface InsideView {
   cols: number;
   rows: number;
   cells: InsideCell[];
+  entry: { col: number; row: number };
+  exits: { col: number; row: number; dir: Dir; extra: boolean }[];
   /** The active extra exit's local side, or null (none or not yet earned). */
   extraExit: Dir | null;
 }
@@ -120,21 +123,28 @@ export function insideOfView(
   dead: readonly Coord[],
   extraActive: boolean,
 ): InsideView {
-  const xs = def.cells.map((c) => c.at.x);
-  const ys = def.cells.map((c) => c.at.y);
-  const minX = Math.min(0, ...xs);
-  const minY = Math.min(0, ...ys);
+  const bounds = pageBounds([def.entry, ...def.cells.map((c) => c.at)], 0);
+  const position = (at: Coord) => ({
+    col: at.x - bounds.origin.x + 1,
+    row: at.y - bounds.origin.y + 1,
+  });
+  const exits = def.exits.map((exit) => ({ ...position(exit.from), dir: exit.dir, extra: false }));
+  const firstExit = def.exits[0];
+  if (extraActive && def.extraExit && firstExit) {
+    exits.push({ ...position(firstExit.from), dir: def.extraExit, extra: true });
+  }
   const deadKeys = new Set(dead.map(key));
   const open = new Set(def.params);
   return {
-    cols: Math.max(0, ...xs) - minX + 1,
-    rows: Math.max(0, ...ys) - minY + 1,
+    cols: bounds.width,
+    rows: bounds.height,
+    entry: position(def.entry),
+    exits,
     cells: def.cells.map((c) => ({
       key: key(c.at),
       rune: c.rune,
       dir: c.dir,
-      col: c.at.x - minX + 1,
-      row: c.at.y - minY + 1,
+      ...position(c.at),
       entry: c.at.x === def.entry.x && c.at.y === def.entry.y,
       dead: deadKeys.has(key(c.at)),
       open: open.has(key(c.at)),

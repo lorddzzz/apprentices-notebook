@@ -5,7 +5,7 @@ Plan: [growing-pages-plan.md](growing-pages-plan.md). Design: [growing-pages.md]
 **State:** building; feature incomplete, at usage checkpoint awaiting manual resume.
 **Reset:** 1792576202 =2026-10-21 11:50:02 Belgrade. Latest usage87%, weekly41%; projected burn triggered Hold.
 **Resume preference:** user explicitly declined further scheduled continuations. No future automation is authorized or scheduled. The authorized one-time heartbeat already fired.
-**Next:** U2 revision UI after manual resume; Q1/F1, final documentation, build and deployment verification remain. U1/resource/R1 are integrated. No deployment before U2/full acceptance.
+**Next:** Q1 independent phone QA, F1 review/docs/check/build and deployed-SHA verification. All implementation tasks U1/U2/resource/R1 are integrated; do not deploy before full acceptance.
 
 ## Current integration
 
@@ -20,7 +20,8 @@ Local `main` contains W0, E1, E2, N1, V1, A1, U1, the resource fix and R1. A che
 | V1 | merged | codex/growing-viewport /89ead19; main80ce36f | Phone375×812 harness checks and screenshots;3013tests |
 | A1 | merged | codex/growing-app /46f5056 | Combined 103 files / 3113 tests and production build pass |
 | U1 | merged | codex/growing-u1 / a318244; mainf379960 | Main3121tests; integrated phone evidence in verification report |
-| U2/Q1/F1 | pending | | Revision UI and full acceptance still required |
+| U2 | merged | codex/growing-u2 /c210d76 | Main3180tests/108files; long/negative/save/revert phone evidence |
+| Q1/F1 | pending | | Independent phone QA/review/docs/deploy remain |
 | R1 | merged | codex/growing-r1 /7731432 | Combined main3178tests/108files; enginefix49c6ab5 merged as43e6708 |
 
 ## Exact continuation contracts
@@ -88,3 +89,7 @@ Combined main pnpmcheck passed108files/3178tests, zero Svelte errors/warnings, l
 ## Manual resume 2026-10-21 17:08UTC
 
 Manual resume authorized. Fresh five-hour baseline0%, weekly42%, reset1792620535. Main clean at92619b5 with all completed sources preserved. Resume U2 with one Medium agent; root handles browser QA. Next: integrate revision viewport and read-only Glyph geometry, then Q1/F1 review/docs/full checks/deploy. No future scheduled continuation authorized.
+
+## U2 integration and pacing clarification
+
+U2 sourcec210d76 reviewed and phone-verified on5191: sharedviewport, Reset/open freshsessions, stableordinaryedits, long/negativeinside, independent3–8limit,Savev3/revertv2records/reload,Cancel,pinnedentry,read-onlyscrollmarkers. Onlyfourownedfileschanged; source3180tests/108files. Rootmergingwithfullgate. Usage27%weekly46%17:19UTC; last11%17:13 impliesprojected107%Hold. Useraskedwhethertooverrideforecastandcontinuewithactualheadroom; answerpending. Untilanswer,currentU2integrationonly;noQ1/F1start. Noautomation.
