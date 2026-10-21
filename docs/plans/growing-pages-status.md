@@ -48,3 +48,7 @@ The implementation crossed four manual windows. Earlier projected Hold checkpoin
 ## Source preservation and cleanup
 
 All source commits and task handoffs are recorded above. Integrated task checkouts under.claude/worktrees/growing-* may be removed after live verification. Only these task paths/branches are eligible; unrelated work is untouched. Obsolete growing-engine/.claude/e1-partial drafts must not be restored. The remote codex/growing-pages-checkpoint branch is a recoverable backup of checked progress.
+
+## Deployment runner timeout
+
+Final delivery7b29c77 passed local3201tests/build, but CIrun39647071718 refused deployment because the existing24-battle Seam calibration took5.85s on the hosted runner and exceededVitest's5s default. All3200other tests passed; no assertion failed. Give only that deterministic multi-battle test15s, keeping every40-round/outcome assertion and the rest of the suite's timeouts. Finalgate/push/actualSHAverification follows; do not mark live delivery complete until that succeeds. Currentactualusage90%; this is the already-active small delivery correction, no new feature task.

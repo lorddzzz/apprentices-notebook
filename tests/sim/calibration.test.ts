@@ -41,7 +41,7 @@ test('Seam calibration bots terminate within forty rounds across every variant',
   expect(rows.every((r) => r.rounds.every((round) => round <= 41))).toBe(true);
   expect(rows.reduce((sum, r) => sum + r.won + r.lost + r.timedOut, 0)).toBe(24);
   if (process.env.CALIBRATE_SEAM) console.log(JSON.stringify(rows));
-});
+}, 15_000);
 
 test('starter trip calibration includes HP and charge attrition', () => {
   const trips = [7, 42].map((seed) => {
