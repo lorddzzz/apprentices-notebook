@@ -1,0 +1,13 @@
+# Growing pages Q1 — independent phone QA
+
+Focused exploratory QA ran on the local frozen build `7ee23e6` at a simulated 375×812 viewport. This was an independent pass over key phone flows, not a full acceptance rerun; no new user-facing bug was found.
+
+Study stayed within a 375px document width. With Ink armed, dragging from the filled Bolt panned the paper without placing another rune. Fit showed the two markers at ±1,000,000; tapping a marker navigated to its sparse cluster without editing it. Fair Copy drag panned, while a tap selected the proven three-rune cluster. A 650ms hold lifted the Bolt cleanly. Switching Draughtsman/Stoker preserved the Stoker camera anchor. The doorway route accepted Oil at `(-1,0)` and completed back to Study.
+
+In Lab, placing Oil at G1 raised usage from 4 to 5; Undo removed it and returned usage to 4. Reset scenario restored the original lattice and 4-ink count. Copy Lattices and Copy as scenario produced exports containing the negative coordinate and growing glyph data.
+
+For the valid grown-revision check, I opened Kindle v2 (8 cells), panned to `(6,0)`, replaced Ink with Oil, and saved. The ranked list showed Kindle v3; the cell remained 60×60, the page stayed 375px wide, and Save was enabled. Final browser console: 0 errors.
+
+Evidence (all 375×812): [empty Study](growing-pages-evidence/q1-independent-study-empty.jpg), [armed drag](growing-pages-evidence/q1-independent-study-drag-pan.jpg), [sparse Fit](growing-pages-evidence/q1-independent-distant-fit.jpg), [Fit navigation](growing-pages-evidence/q1-independent-fit-navigation.jpg), [Fair Copy](growing-pages-evidence/q1-independent-faircopy-selection.jpg), [member camera](growing-pages-evidence/q1-independent-member-camera.jpg), [doorway entry](growing-pages-evidence/q1-independent-doorway-entry.jpg), [doorway growth](growing-pages-evidence/q1-independent-doorway-growth.jpg), [Lab Play](growing-pages-evidence/q1-independent-lab-play.jpg), [Lab lattice](growing-pages-evidence/q1-independent-lab-lattice-copy.jpg), [Lab reset](growing-pages-evidence/q1-independent-lab-reset.jpg), [revision opened](growing-pages-evidence/q1-independent-revision-open.jpg), [Oil edit](growing-pages-evidence/q1-independent-revision-oil-before-save.jpg), [saved v3](growing-pages-evidence/q1-independent-revision-v3.jpg).
+
+Limits: browser-driven viewport and pointer only; no physical iPhone Safari, installed-PWA, safe-area, hardware multitouch, or native long-press verification. The aggregate `plainSource` compilation guard in the engine and bounded profiler for accepted million-gap glyphs in the UI were outside this independent pass; they subsequently passed separate code review and root phone verification, recorded in the main verification report.
