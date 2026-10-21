@@ -1,6 +1,14 @@
 # Growing pages verification
 
-Implementation remains in progress. This report distinguishes completed checks from pending acceptance.
+Implementation, phone QA and independent code review are complete. The historical checkpoints below preserve their original scope; later sections resolve their pending items. Final combined gate: 110 files / 3,201 tests, zero Svelte errors/warnings and clean lint. Production build passed with the existing bundle-size advisory. Exact-commit CI/deployment is the final delivery gate, recorded in the final handoff.
+
+## Acceptance rollup
+
+Root and [independent Q1](growing-pages-q1.md) checks used 375×812 browser viewports. Study, quiet doorway, Lab and revision cover signed growth/all original edges, former holes (engine), disconnected spells, armed drag, hold/lift, Fair Copy selection, Fit without edits, distant markers, erasure without jumps, member cameras, Lab cast/undo/reset/exports, long and negative revisions, Save/Reset/Cancel, pinned entry, version/revert and reload. Meaningful engine/scenario tests assert real cast events, proof, distinct spent charges/pending picks, Glyph args/records/rewards and frozen v7 replay.
+
+Independent Medium review found two material resource/rendering issues. Aggregate compilation now preflights the actual control flow without retaining expanded output; the oversized fan-in import is refused atomically on the phone. Large sparse read-only Glyphs now use bounded paper; exact million-gap runes remain readable at60px with no enormous CSS surface. Both fixes passed focused follow-up review; no material findings remain.
+
+Physical iPhone Safari, installed-PWA, safe-area notches and hardware multitouch were unavailable. Svelte MCP/autofixer was unavailable; official docs and project checks were used. The production bundle retains its existing size advisory. These are the remaining verification limits, not known gameplay failures.
 
 ## Shared viewport (V1)
 
@@ -20,9 +28,9 @@ Screenshots inspected:
 
 Svelte MCP autofixer unavailable. Official Svelte documentation plus project checks used. V1 branch check:99files/3013tests, zero Svelte errors/warnings, lint clean.
 
-## Pending
+## Earlier pending checklist (resolved by subsequent sections)
 
-Study/doorway/Lab/revision integrated phone playthrough, save/reload, proof/Fair Copy, Glyph save/revert, full cross-feature regressions, independent review, final check/build and deployed feature SHA are not yet verified.
+At this earlier checkpoint, integrated Study/doorway/Lab/revision phone flows and final delivery were still pending. Their subsequent evidence is recorded below and in the acceptance rollup; the final handoff identifies the actual deployed commit.
 
 ## Engine/save integration (E1)
 

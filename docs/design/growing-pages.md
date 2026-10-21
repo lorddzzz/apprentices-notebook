@@ -18,7 +18,7 @@
 
 Study, quiet doorway, Lab and revision share growing paper. Existing saves migrate without moving placements or changing Source charges, proof, Glyph versions or records. Revision keeps the pinned entry and its independent 3–8 flow-cell rule. Fixed authored scenarios retain their holes and bounds.
 
-The following remain **Proposal defaults to tune by playing**, not new player decisions: one blank cell around wiring, an empty 5×5 starting patch, 60px editing pitch with at least 44px targets, a 10px drag threshold and 450ms hold. Ordinary edits and erasure preserve the working view; explicit Fit ignores empty regions previously visited. Tiny overview targets navigate before editing. Long read-only Glyph insides scroll within their sheet instead of shrinking all runes.
+The following remain **Proposal defaults to tune by playing**, not new player decisions: one blank cell around wiring, an empty 5×5 starting patch, 60px editing pitch with at least 44px targets, a 10px drag threshold and 450ms hold. Ordinary edits and erasure preserve the working view; explicit Fit ignores empty regions previously visited. Tiny overview targets navigate before editing. Compact read-only Glyph insides scroll within their sheet instead of shrinking all runes; larger or sparse imported insides use the same bounded paper for read-only navigation.
 
 Build Proposals P1 and P6–P9 were accepted: stable signed coordinates, camera state in memory only, a v7→v8 save migration, sparse growing-page text, and explicit import resource budgets. These protect existing work and reject excessive imports without cropping. Their numeric and serialization contracts are recorded in TECH.md and the build status; they add no playable width, height or area budget.
 

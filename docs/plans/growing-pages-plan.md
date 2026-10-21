@@ -2,7 +2,7 @@
 
 Design: [growing-pages.md](../design/growing-pages.md), especially §0–§4. Roadmap: **BL-103**, including **BL-88**. Project rules: [AGENTS.md](../../AGENTS.md). Execute with the [implement skill](../../.claude/skills/implement/SKILL.md). Where this plan conflicts with the accepted design, the design wins.
 
-**State: implementation complete; final acceptance in progress.** The player authorized implementation and manual continuations. [Build status](growing-pages-status.md) records the checked integrations; [verification](growing-pages-verification.md) records phone evidence and remaining delivery checks. The contracts and acceptance criteria below remain the reference.
+**State: implemented and verified locally; final commit ready for deployment verification.** The player authorized implementation and manual continuations. [Build status](growing-pages-status.md) records the checked integrations; [verification](growing-pages-verification.md) records phone evidence and remaining delivery checks. The contracts and acceptance criteria below remain the reference.
 
 ## 1. Scope and settled rules
 
