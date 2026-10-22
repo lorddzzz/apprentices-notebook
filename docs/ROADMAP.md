@@ -1,11 +1,11 @@
 # Roadmap and backlog
 
-> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges and bell foundry design rounds (BL-43, BL-113, BL-114, BL-115, BL-116); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges bell foundry and canals-revisit design rounds (BL-43, BL-113, BL-114, BL-115, BL-116, BL-124); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
 
-- IDs are stable: move entries, never renumber. New IDs start after BL-123.
+- IDs are stable: move entries, never renumber. New IDs start after BL-124.
 - Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Tracks](#2-roadmap-planned-tracks), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
 - An item gets a focused design round when needed, then an implementation plan. Update design/technical decisions with the build and move completed work to the Done log.
 - No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
@@ -62,6 +62,12 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 |---|---|---|---|---|---|
 | BL-54 | More footnote choices | content / M per batch | mastery | needs-design | Current: five level-I line pairs / ten variants across Bolt, Shove, Spark and Oil. Add other runes, then levels II–III and invention footnotes; define invention points/identity first. Prefer decisions that change builds over straight numerical upgrades. |
 
+### Track C · Canals revisit
+
+| ID | Work | Type / size | Area | Status / dependencies | Scope |
+|---|---|---|---|---|---|
+| BL-124 | Canals revisit for the household | feature / L | world, run, party | **design decided 2026-10-22** ([§5b](design/city-and-districts.md)); needs BL-43 build (recruit offers, start points); rival needs BL-30 | Recruit offer at the second landing; Lamplighter rival elite in room 4 carrying the wardens' pass (the key); optional barge cargo in rooms 2 and 4; lamp-ledger lore; re-lay rooms with 4+ start points and per-room sizes; BL-91 cadence. Also covers BL-119's lock illustration. |
+
 ### Track A · Atmosphere
 
 | ID | Work | Type / size | Area | Status | Scope |
@@ -83,7 +89,7 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | BL-61 | Additional enemy behaviors | content / M | world, combat | needs-design | Slugs/constructs or enemies that erase marks, move jars or break networks are proposals. Tie each to its district and one clear telegraph. Eel/Snuffer/moth/mother already exist. |
 | BL-62 | More loot offer kinds | content / S | run | idea | Current offers: rune/method pages, ink, solvents, vellum and doorway (key support exists). Avoid redundant currencies; recovered pages depend on BL-118. |
 | BL-63 | Doorway variants / second rare offer | content / S | run | idea | Optional breaks in trip pacing with a clear cost in foregone loot. |
-| BL-91 | Lamp-mother summoning cadence | balance / XS | combat | needs-feedback | The last summoned moth occupies the preferred lamp, often making calls every other round. Decide next-free-lamp versus current rhythm. |
+| BL-91 | Lamp-mother summoning cadence | balance / XS | combat | ready (decided 2026-10-22: nearest free lit lamp, every round) | The last summoned moth occupies the preferred lamp, often making calls every other round. [Canals §5b](design/city-and-districts.md) chose the designed every-round call at the nearest free lamp; confirm by playing. |
 | BL-92 | Canal room tuning | balance / S | run | needs-feedback | Recalibrate with current runes/charges before using the old 39% heart result; room and full-trip metrics differ. |
 | BL-93 | Current preview and arrows | polish / S | combat | needs-feedback | Current toggle exists; consider hold-to-peek and water arrows readable under oil/jars. |
 | BL-94 | Threshold copy as district data | tech / XS | world | ready | Move banner copy into ThresholdDef before the next threshold room. |

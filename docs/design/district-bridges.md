@@ -39,7 +39,7 @@
 
 ## 2. Still open
 
-- **Does the "out of the room" fall also replace the canals' drop** (member takes 4, stunned)? Proposal: bridges only for now; unify later if both feel right (*tune by playing*).
+- **Resolved (2026-10-22):** the "out of the room" fall is bridges-only; the canals keep the old drop (member takes 4, stunned), see [city-and-districts.md](city-and-districts.md) §5b.
 - Rune and solvent placement, Structure fine-print lines and the Long Drop scenario (BL-101); the Bind *pushed* event page.
 - The Chief Warden's lattice, locked-aim telegraph, starved-chain fallback and right-of-way presentation (BL-30).
 - Layouts (three per depth, sound and crumbling variants), fog and crack art, mason's-ledger texts, and how a cracked section is shown on a phone-sized board.
