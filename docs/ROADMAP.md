@@ -1,11 +1,11 @@
 # Roadmap and backlog
 
-> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges bell foundry, canals-revisit and Seam-revisit design rounds (BL-43, BL-113, BL-114, BL-115, BL-116, BL-124, BL-125); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges bell foundry, canals-revisit, Seam-revisit and Cartographers design rounds (BL-43, BL-113, BL-114, BL-115, BL-116, BL-124, BL-125, BL-117, BL-126); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
 
-- IDs are stable: move entries, never renumber. New IDs start after BL-125.
+- IDs are stable: move entries, never renumber. New IDs start after BL-126.
 - Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Tracks](#2-roadmap-planned-tracks), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
 - An item gets a focused design round when needed, then an implementation plan. Update design/technical decisions with the build and move completed work to the Done log.
 - No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
@@ -47,14 +47,14 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | BL-114 | Bathhouses / Areas | feature / L | world, run | **design decided 2026-10-22**; the Bath-Steward needs BL-30; build plan not written | [Grand thermae](design/district-bathhouses.md): boil-over gauge, rising heat and cold plunge, the steam's people, the dome gate. Vat, Seep, Steep; Bath salt/Fog jar; Steam Room. |
 | BL-115 | Bridges / Structure | feature / L | world, run | **design decided 2026-10-22**; the Chief Warden needs BL-30; build plan not written | [Arches in the fog](design/district-bridges.md): piers and cuts, falls remove an apprentice for the room, choose-your-span trip, the first key (from the canals), the keystone heart. Hold/Brink/Lay, Bind pushed event, Mortar/Chalk, Long Drop. |
 | BL-116 | Bell foundry / Resonance | feature / L | world, run | **design decided 2026-10-22**; the Carillonneur needs BL-30; build plan not written | [Carillon towers](design/district-bell-foundry.md): sympathetic bells by tone (not Conduct), a peal across the trip with great-bell puzzles, the ringers' staff, the far-bell gate. Toll/Coil/Unison, Rivet/Filings, Peal. |
-| BL-117 | Cartographers' hall / Board | feature / XL | world, run, story | needs-design; finale after middle districts | Swap/Draw/Erase, Bind dies event, Quicksilver/Graphite, Redraft; unfinished paper, redrawn streets, the owner's guild and the Seam's origin. Erase's paper behavior belongs here. |
+| BL-117 | Cartographers' hall / Board | feature / XL | world, run, story | **design decided 2026-10-22**; the Registrar needs BL-30; the five-page hearing needs BL-118; build plan not written | [The academy](design/district-cartographers.md): pencil and ink, the guild's hands, the long gauntlet, the Registrar, the redraft gate, the Seam as a bad join. Swap/Draw/Erase, Bind dies, Quicksilver/Graphite, Redraft. |
 
 ### Track R · Rival inscribers and recovered pages
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
 | BL-30 | Rival inscribers | feature / XL | combat, world | **core design decided 2026-10-22**; prototype/default validation and build plan pending | [Rival design](design/rivals.md): recognisable routines, locked aims, pre-shown avoidable fallback; first Lamplighter has the long wick (spend a later turn opening his jar remotely). Proposed kit: jar of Oil/Spark plus Oil/Shove. Validate aim geometry, fallback, deterministic routine and phone readability in the Lab before a roster. |
-| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | **format/access decided 2026-10-22**; proposed economy/proof rules need validation; BL-30 | Intact annotated spell as a free Bench trial copy; field use/adaptation requires owned parts; personal trick excluded. Proposed defaults: permanent knowledge on encounter victory, no free Glyph proof, no duplicate page reward. Validate trial isolation, witnesses and lifetime credit. See [rivals](design/rivals.md) §3. |
+| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | **format/access decided 2026-10-22**; proposed economy/proof rules need validation; BL-30 | Intact annotated spell as a free Bench trial copy; field use/adaptation requires owned parts; personal trick excluded. Proposed defaults: permanent knowledge on encounter victory, no free Glyph proof, no duplicate page reward. Validate trial isolation, witnesses and lifetime credit. The five pages (four masters and the Lamplighter) are the Cartographers' hearing. See [rivals](design/rivals.md) §3. |
 
 ### Track M · Mastery expansion
 
@@ -73,6 +73,12 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
 | BL-125 | The Seam grows | feature / L | world, run, story | **design decided 2026-10-22** ([district-seam.md](design/district-seam.md)); lower Seam needs the opened districts to exist | Replace the plain heart with the Marginalia (five hands); re-lay base rooms with 4+ start points and per-room sizes; make the five hearing events reachable and reconcile the placeholder triggers in `src/data/districts.ts` with each district doc; lower Seam floors per opened district with one terrain-piece intrusion each; the sealed owner's door; margin notes that answer. |
+
+### Track E · The ending
+
+| ID | Work | Type / size | Area | Status / dependencies | Scope |
+|---|---|---|---|---|---|
+| BL-126 | The Seam becomes yours (ending and sandbox) | feature / L | story, world | needs-design; after BL-117 and BL-125 | After the Registrar, the owner's door opens and hands you the pen; the Seam becomes the player's to ink your own district into. Decide what drawing a district means, what it costs, whether it feeds the notebook, and the Seam's drift once the join is mended or kept. See [district-cartographers.md](design/district-cartographers.md) §0 and §3. |
 
 ### Track A · Atmosphere
 

@@ -45,7 +45,7 @@ These answers set the frame for the shipped rune design ([rune-design-final.md](
 | | **The bathhouses** | (to name) | Steam halls bigger inside than out; people go in and don't come out the same | Steam | **Areas**: filling, spreading, seeping |
 | | **The bridges** | the bridge-wardens | Stone spans to places that aren't there, crumbling over a drop | Height (the drop) | **Structure**: plates, holding, displacement, the fall |
 | | **The bell foundry** | (to name; the Bellwrights?) | Bells cast to keep the city from drifting apart | Brass | **Resonance**: effects that ring through everything connected |
-| 7 | **The Cartographers' hall** | the Cartographers | The guild that draws the city into being, and expelled the owner | Unfinished paper | **The board itself**: moving terrain, swapping places, redrawing where things are |
+| 7 | **The Cartographers' hall** (designed 2026-10-22: [the academy](district-cartographers.md)) | the Cartographers | The guild that draws the city into being, and expelled the owner | Unfinished paper | **The board itself**: moving terrain, swapping places, redrawing where things are |
 
 ## 0. Decided in the design round (2026-10-16)
 
@@ -266,7 +266,7 @@ The canals are built; this revisit brings them up to the standard of the four ne
 
 ## 6. Later districts
 
-**Designed so far (2026-10-22; the canals revisited in §5b, the Seam in [district-seam.md](district-seam.md)):** the ink-makers' quarter, in [district-ink-makers.md](district-ink-makers.md), the bathhouses, in [district-bathhouses.md](district-bathhouses.md), the bridges, in [district-bridges.md](district-bridges.md), and the bell foundry, in [district-bell-foundry.md](district-bell-foundry.md). The Cartographers' hall remains open.
+**Designed so far (2026-10-22; the canals revisited in §5b, the Seam in [district-seam.md](district-seam.md)):** the ink-makers' quarter, in [district-ink-makers.md](district-ink-makers.md), the bathhouses, in [district-bathhouses.md](district-bathhouses.md), the bridges, in [district-bridges.md](district-bridges.md), and the bell foundry, in [district-bell-foundry.md](district-bell-foundry.md). and the Cartographers' hall, in [district-cartographers.md](district-cartographers.md). **All seven districts now have a design.**
 
 Themes and schools are set in §0a (the seven districts); runes, methods and solvents already work in the Lab. No encounters or opening gates exist for the five drawings yet. Their placeholder map material labels are not final terrain design (bridges are height, foundry brass, Cartographers unfinished paper). Stages, board rules, foes, bosses, gates and trip shapes come in each district's own design round. The 2026-10-16 sketches of the rooftops and a guild archive were dropped: rivals now live in every guild district ([rivals.md](rivals.md)).
 
