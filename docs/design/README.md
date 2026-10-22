@@ -16,6 +16,7 @@
 | The bathhouses (the grand thermae) | [district-bathhouses.md](district-bathhouses.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
 | The bridges (the arches in the fog) | [district-bridges.md](district-bridges.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
 | The bell foundry (the carillon towers) | [district-bell-foundry.md](district-bell-foundry.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
+| The Seam, revisited (the owner's drawing) | [district-seam.md](district-seam.md) | **Decided** 2026-10-22; base Seam built, growth unbuilt | §6.7 | — |
 | Growing lattice pages | [growing-pages.md](growing-pages.md) | **Built** 2026-10-21; automatic growth, phone pan/Fit and Glyph revision growth | §6.2 | [growing-pages-plan.md](../plans/growing-pages-plan.md) |
 
 ## Current references and historical material

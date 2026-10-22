@@ -1,11 +1,11 @@
 # Roadmap and backlog
 
-> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges bell foundry and canals-revisit design rounds (BL-43, BL-113, BL-114, BL-115, BL-116, BL-124); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges bell foundry, canals-revisit and Seam-revisit design rounds (BL-43, BL-113, BL-114, BL-115, BL-116, BL-124, BL-125); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
 
-- IDs are stable: move entries, never renumber. New IDs start after BL-124.
+- IDs are stable: move entries, never renumber. New IDs start after BL-125.
 - Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Tracks](#2-roadmap-planned-tracks), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
 - An item gets a focused design round when needed, then an implementation plan. Update design/technical decisions with the build and move completed work to the Done log.
 - No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
@@ -67,6 +67,12 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
 | BL-124 | Canals revisit for the household | feature / L | world, run, party | **design decided 2026-10-22** ([§5b](design/city-and-districts.md)); needs BL-43 build (recruit offers, start points); rival needs BL-30 | Recruit offer at the second landing; Lamplighter rival elite in room 4 carrying the wardens' pass (the key); optional barge cargo in rooms 2 and 4; lamp-ledger lore; re-lay rooms with 4+ start points and per-room sizes; BL-91 cadence. Also covers BL-119's lock illustration. |
+
+### Track S · The Seam revisit
+
+| ID | Work | Type / size | Area | Status / dependencies | Scope |
+|---|---|---|---|---|---|
+| BL-125 | The Seam grows | feature / L | world, run, story | **design decided 2026-10-22** ([district-seam.md](design/district-seam.md)); lower Seam needs the opened districts to exist | Replace the plain heart with the Marginalia (five hands); re-lay base rooms with 4+ start points and per-room sizes; make the five hearing events reachable and reconcile the placeholder triggers in `src/data/districts.ts` with each district doc; lower Seam floors per opened district with one terrain-piece intrusion each; the sealed owner's door; margin notes that answer. |
 
 ### Track A · Atmosphere
 
