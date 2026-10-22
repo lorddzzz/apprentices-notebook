@@ -1,6 +1,6 @@
 # Roadmap and backlog
 
-> Updated 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-22 after the household and ink-makers design rounds (BL-43, BL-113); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
@@ -43,7 +43,7 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 
 | ID | District / school | Type / size | Area | Status / dependencies | Deliverable |
 |---|---|---|---|---|---|
-| BL-113 | Ink-makers' quarter / Contracts | feature / L | world, run | needs-design | Notaries; Sentence, Levy, Tally; unlock Bind/Lift and hit/enters events; Wax/Sand; teach mark debts and Debt Collection. Author encounters, not another recipe system. |
+| BL-113 | Ink-makers' quarter / Contracts | feature / L | world, run | **design decided 2026-10-22**; postmaster needs BL-30; build plan not written | [Dead-letter office](design/district-ink-makers.md): writs, offers with terms, the postal staff, the postmaster, the return-to-sender gate. Notaries; Sentence, Levy, Tally; Bind/Lift; Wax/Sand; Debt Collection. Author encounters, not another recipe system. |
 | BL-114 | Bathhouses / Areas | feature / L | world, run | needs-design | Vat, Seep, Steep; Bath salt/Fog jar; connected-cloud setups and Steam Room. Pick distinctive terrain and foes; avoid merely making every room larger. |
 | BL-115 | Bridges / Structure | feature / L | world, run | needs-design | Crumbling spans over drops, Hold/Brink/Lay, Bind pushed event, Mortar/Chalk and Long Drop. Decide span collapse, safe member/elite behavior and edge policy. |
 | BL-116 | Bell foundry / Resonance | feature / L | world, run | needs-design | Toll/Coil/Unison, Rivet/Filings, Peal; brass networks, bells and a new board rule. Differentiate its networks from early Conduct. |

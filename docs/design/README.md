@@ -12,6 +12,7 @@
 | Runes: Mix, Move, Invent | [rune-design-final.md](rune-design-final.md) | **Shipped** 2026-10-19 (Seam + canals; planned mastery/Lab/testing/content continuation complete) | §6.3, §6.5, §6.6 | [rune-redesign-plan.md](../plans/rune-redesign-plan.md) |
 | Rival inscribers | [rivals.md](rivals.md) | **Exploring**; locked aim chosen, rewards unbuilt | §6.7 | — |
 | The party (apprentices) | [party.md](party.md) | **Systems decided** 2026-10-22 (household, recruiting, trio, start points); only leans/habits and growing pages built | §6.1 | — |
+| The ink-makers' quarter (dead-letter office) | [district-ink-makers.md](district-ink-makers.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
 | Growing lattice pages | [growing-pages.md](growing-pages.md) | **Built** 2026-10-21; automatic growth, phone pan/Fit and Glyph revision growth | §6.2 | [growing-pages-plan.md](../plans/growing-pages-plan.md) |
 
 ## Current references and historical material
