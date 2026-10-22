@@ -10,7 +10,7 @@
 | The city map, hearing, gates, and the oil-lit canals | [city-and-districts.md](city-and-districts.md) | **Built** Seam + canals; current lock updated for runes; five later districts scoped | §6.7 | [city-and-canals-plan.md](../plans/city-and-canals-plan.md) |
 | Rune content rework | [rune-content.md](rune-content.md) | **Answered and built** 2026-10-19 (historical problem frame) | §6.3 | — |
 | Runes: Mix, Move, Invent | [rune-design-final.md](rune-design-final.md) | **Shipped** 2026-10-19 (Seam + canals; planned mastery/Lab/testing/content continuation complete) | §6.3, §6.5, §6.6 | [rune-redesign-plan.md](../plans/rune-redesign-plan.md) |
-| Rival inscribers | [rivals.md](rivals.md) | **Exploring**; locked aim chosen, rewards unbuilt | §6.7 | — |
+| Rival inscribers | [rivals.md](rivals.md) | **Core direction decided** 2026-10-22; long-wick Lamplighter and Bench trial copies; prototype defaults unvalidated, unbuilt | §6.7 | — |
 | The party (apprentices) | [party.md](party.md) | **Systems decided** 2026-10-22 (household, recruiting, trio, start points); only leans/habits and growing pages built | §6.1 | — |
 | The ink-makers' quarter (dead-letter office) | [district-ink-makers.md](district-ink-makers.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
 | The bathhouses (the grand thermae) | [district-bathhouses.md](district-bathhouses.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |

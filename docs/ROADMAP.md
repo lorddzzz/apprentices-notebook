@@ -53,8 +53,8 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-30 | Rival inscribers | feature / XL | combat, world | needs-design | [Rival design](design/rivals.md): same rune rules plus a signature trick; telegraph locked aims and readable short chains. Prototype one in the Lab, including deterministic cast priorities, starved-chain fallback, witnesses and lifetime credit. Then add named guild elites/masters. |
-| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | needs-design; BL-30 reward contract | Successor to retired folios: bring home a rival spell as a studyable Glyph or a repair challenge. Decide proof, ownership, reward and lore delivery. Reuse current runes; do not resurrect old folios unchanged. |
+| BL-30 | Rival inscribers | feature / XL | combat, world | **core design decided 2026-10-22**; prototype/default validation and build plan pending | [Rival design](design/rivals.md): recognisable routines, locked aims, pre-shown avoidable fallback; first Lamplighter has the long wick (spend a later turn opening his jar remotely). Proposed kit: jar of Oil/Spark plus Oil/Shove. Validate aim geometry, fallback, deterministic routine and phone readability in the Lab before a roster. |
+| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | **format/access decided 2026-10-22**; proposed economy/proof rules need validation; BL-30 | Intact annotated spell as a free Bench trial copy; field use/adaptation requires owned parts; personal trick excluded. Proposed defaults: permanent knowledge on encounter victory, no free Glyph proof, no duplicate page reward. Validate trial isolation, witnesses and lifetime credit. See [rivals](design/rivals.md) §3. |
 
 ### Track M · Mastery expansion
 
@@ -157,7 +157,7 @@ New possibilities arising from the shipped systems (all **proposals**):
 3. Household systems are decided (BL-43, party.md §0b). Still open: habit rules, door-arrival milestones and the build plan; individual apprentices are designed per district.
 4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
 5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
-6. Rival aim is locked in the final rune design; choose readable telegraphs, fallback details and reward format. BL-30/118.
+6. Rival core design and trial-copy rewards are decided; validate proposed aim/fallback, long-wick routine and page economy in the Lab, then author other rivals with their districts. BL-30/118.
 7. Which footnote changes create interesting alternatives? BL-54. How should invention progression be identified?
 8. What audio fits the notebook and rainy city? BL-42.
 

@@ -248,8 +248,10 @@ A lingering compound waits **in the open** (for time, or for Spark). A jar waits
 
 - **Same runes, plus one trick**: an invention you don't have yet, or a habit.
 - **Telegraph** the path, the landing and each rune's effect. Their aim is **locked** when shown.
-- **Breaking a chain:** move the target, starve a trigger, break the network, burst their compound early, open their jar on an empty tile, Erase or Transfer their marks. A chain stops where it breaks; what already happened stays. A rival whose chain is fully starved makes a plain strike instead.
-- **They teach.** What they cast on you reveals fine print. If you know the method and parts, you can **rebuild their invention** at the Bench before you've beaten them. Beating one gives a page of their lattice.
+- **Breaking a chain:** move the target, starve a trigger, break the network, burst their compound early, open their jar on an empty tile, Erase or Transfer their marks. A chain stops where it breaks; what already happened stays. A rival whose chain is fully starved may make a **pre-shown, avoidable nearby plain strike, without chasing or choosing a new target** (2026-10-22).
+- **Their style** (2026-10-22): recognisable routines with responses to disrupted setups; changed plans appear in later telegraphs, never as a replacement for a locked aim.
+- **First signature** (2026-10-22): the canal Lamplighter's **long wick** spends a later, telegraphed turn opening his existing jar from afar.
+- **They teach.** What they cast on you reveals fine print. If you know the method and parts, you can **rebuild their invention** at the Bench before you've beaten them. Beating one gives their **intact annotated spell as a Bench trial copy**, explaining the technique and its author (2026-10-22). Field use and adaptations require owning the parts; personal tricks are not granted. Banking/proof and operational defaults are proposals in [rivals.md](rivals.md).
 
 ## 11. The districts
 
