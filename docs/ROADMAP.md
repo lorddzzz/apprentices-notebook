@@ -35,7 +35,7 @@ The redesign supplies depth already. The next substantial choice is **freer buil
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-43 | The household and three-member expeditions | feature / XL | party, world | **systems decided 2026-10-22**; apprentices designed with districts; build plan not written | [Party design](design/party.md) §0b: 8–9 apprentices, own page each, uniform ink, recruit loot offers and milestone door arrivals, the third from the canals, trio picked from a household shelf, 1–3 allowed, shared basic-action menu, per-room boards with 4+ random start points. Remaining: action menu and habit rules, door milestones, room re-laying, household UI, save migration, then a plan. |
+| BL-43 | The household and three-member expeditions | feature / XL | party, world | **systems decided 2026-10-22**; apprentices designed with districts; build plan not written | [Party design](design/party.md) §0b: 8–9 apprentices, own page each, uniform ink, recruit loot offers and milestone door arrivals, the third from the canals, trio picked from a household shelf, 1–3 allowed, one story-fitting basic action each (shareable), per-room boards with 4+ random start points. Remaining: which basic actions exist (decided per apprentice), habit rules, door milestones, room re-laying, household UI, save migration, then a plan. |
 
 ### Track W · Districts and progression
 
@@ -142,7 +142,7 @@ New possibilities arising from the shipped systems (all **proposals**):
 
 1. Next substantial track: freer lattice/household, a middle district, or rival prototype? No old “mastery must come first” dependency remains.
 2. Which middle district should be built first, and what teaches its school using only Seam basics? BL-113–116.
-3. Household systems are decided (BL-43, party.md §0b). Still open: the basic-action menu, habit rules, door-arrival milestones and the build plan; individual apprentices are designed per district.
+3. Household systems are decided (BL-43, party.md §0b). Still open: habit rules, door-arrival milestones and the build plan; individual apprentices are designed per district.
 4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
 5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
 6. Rival aim is locked in the final rune design; choose readable telegraphs, fallback details and reward format. BL-30/118.
