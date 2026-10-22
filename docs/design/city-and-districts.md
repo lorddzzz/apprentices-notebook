@@ -248,7 +248,7 @@ A great lantern floating mid-pool, far bigger than the lamps on the quays. The m
 
 ## 6. Later districts
 
-**Designed so far (2026-10-22):** the ink-makers' quarter, in [district-ink-makers.md](district-ink-makers.md), and the bathhouses, in [district-bathhouses.md](district-bathhouses.md). The others below remain open.
+**Designed so far (2026-10-22):** the ink-makers' quarter, in [district-ink-makers.md](district-ink-makers.md), the bathhouses, in [district-bathhouses.md](district-bathhouses.md), and the bridges, in [district-bridges.md](district-bridges.md). The others below remain open.
 
 Themes and schools are set in §0a (the seven districts); runes, methods and solvents already work in the Lab. No encounters or opening gates exist for the five drawings yet. Their placeholder map material labels are not final terrain design (bridges are height, foundry brass, Cartographers unfinished paper). Stages, board rules, foes, bosses, gates and trip shapes come in each district's own design round. The 2026-10-16 sketches of the rooftops and a guild archive were dropped: rivals now live in every guild district ([rivals.md](rivals.md)).
 

@@ -14,6 +14,7 @@
 | The party (apprentices) | [party.md](party.md) | **Systems decided** 2026-10-22 (household, recruiting, trio, start points); only leans/habits and growing pages built | §6.1 | — |
 | The ink-makers' quarter (dead-letter office) | [district-ink-makers.md](district-ink-makers.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
 | The bathhouses (the grand thermae) | [district-bathhouses.md](district-bathhouses.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
+| The bridges (the arches in the fog) | [district-bridges.md](district-bridges.md) | **Decided** 2026-10-22; unbuilt | §6.7 | — |
 | Growing lattice pages | [growing-pages.md](growing-pages.md) | **Built** 2026-10-21; automatic growth, phone pan/Fit and Glyph revision growth | §6.2 | [growing-pages-plan.md](../plans/growing-pages-plan.md) |
 
 ## Current references and historical material
