@@ -1,13 +1,25 @@
-import { ENEMIES } from '$data';
+import { ENEMIES, type HarmKind } from '$data';
 import { type Ctx, emit, ref } from './ctx';
 import { foeBurst } from './foes';
 import type { Coord, Dir } from './grid';
+import { guardHarm } from './harm';
 import { notify } from './hooks';
+import { findUnit } from './queries';
 import type { Unit } from './types';
+
+/** Where a hit came from, and (AH P14) what kind of harm it is, for wards and harm guards. */
+export interface HitFrom {
+  heading: Dir | null;
+  at: Coord | null;
+  harm?: HarmKind;
+  /** Set on a redirected hit: it is not guarded again. */
+  unguarded?: true;
+}
 
 /**
  * Damage: shield first, then HP. The log line shows the amount before the shield; a fully
- * shielded hit is still a hit (P27). Returns true if the hit killed the unit.
+ * shielded hit is still a hit (P27). A harm guard may cancel it first (`unharmed`: not a hit) or
+ * send it to another unit (AH harm guards). Returns true if the hit killed the unit.
  */
 export function dealDamage(
   ctx: Ctx,
@@ -15,9 +27,33 @@ export function dealDamage(
   base: number,
   source: string,
   extra: readonly string[] = [],
-  from: { heading: Dir | null; at: Coord | null } = { heading: null, at: null },
+  from: HitFrom = { heading: null, at: null },
 ): boolean {
   if (unit.hp <= 0) return false;
+  if (!from.unguarded) {
+    const v = guardHarm(ctx, {
+      kind: 'hit',
+      unit: unit.id,
+      amount: base,
+      source,
+      harm: from.harm ?? null,
+    });
+    if (v.kind === 'cancel') {
+      emit(ctx, {
+        type: 'unharmed',
+        unit: ref(unit),
+        source,
+        harm: from.harm ?? null,
+        ...(v.line ? { line: v.line } : {}),
+        ...(v.habit ? { habit: v.habit } : {}),
+      });
+      return false;
+    }
+    if (v.kind === 'redirect') {
+      const to = findUnit(ctx.s, v.to);
+      return to ? dealDamage(ctx, to, base, source, extra, { ...from, unguarded: true }) : false;
+    }
+  }
   const amount = base;
   const absorbed = Math.min(unit.shield, amount);
   unit.shield -= absorbed;

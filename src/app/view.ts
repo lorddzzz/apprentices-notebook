@@ -728,6 +728,10 @@ export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): Boa
     // Nothing to patch: the view catches up with the engine state at the end of the playback.
     case 'battleStart':
     case 'shove':
+    case 'pull':
+    case 'hop':
+    case 'swapWith':
+    case 'unharmed':
     case 'cast':
     case 'lands':
     case 'stopped':

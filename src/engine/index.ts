@@ -1,3 +1,4 @@
+export * from './basicActions';
 export * from './battle';
 export * from './city';
 export * from './clone';
@@ -8,6 +9,8 @@ export * from './foes';
 export * from './footnotes';
 export * from './glyph';
 export * from './grid';
+export * from './habits';
+export * from './harm';
 export * from './household';
 export * from './idioms';
 export * from './importPolicy';

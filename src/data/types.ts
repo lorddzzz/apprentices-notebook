@@ -2,6 +2,7 @@ import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
 import type { ApprenticeId } from './apprentices';
+import type { RECRUIT_HABITS } from './recruits';
 
 /** Data types: the rune model ("Mix, Move, Invent", docs/design/rune-design-final.md) and content. */
 
@@ -179,8 +180,13 @@ export type Meets =
   | 'noHeading'
   | 'noTarget'
   | 'network'
+  | 'flier' // a flying unit (AH: a pulled flier never falls)
   | 'compound'; // a kind landing on any compound without its own row (P16)
-export type LineSubject = RuneId | MethodId | SolventId;
+/**
+ * A rune, method or solvent; a habit's fine print (AH P11); or a basic action's (`pull`, `hop`;
+ * Swap and Shove use their runes' lines, AH P7). Only rune subjects earn footnote points.
+ */
+export type LineSubject = RuneId | MethodId | SolventId | HabitId | 'pull' | 'hop';
 export type LineId = `${LineSubject}:${Meets}`;
 export interface LineDef {
   id: LineId;
@@ -188,7 +194,10 @@ export interface LineDef {
   meets: Meets;
   text: string; // one sentence, readable after one sighting (D8)
   district: DistrictId; // where the thing it meets is found (footnote solvents, P39)
-  /** Fired by the engine but its text isn't written yet (C1 fills it). */
+  /**
+   * Not live yet: fired by the engine with no text (C1 writes it), or written but not fired yet
+   * (AH rows: the task that fires it drops the flag).
+   */
   pending?: true;
 }
 /** A footnote variant of a line (design §8, P39). */
@@ -208,8 +217,30 @@ export interface IdiomDef {
 }
 
 // ── The party (design §9, P36; household: docs/design/party.md §0b–§2) ──
-/** Habit ids (party.md §1). AH adds the seven new ones (AH P10) and reserves `mender` for EN. */
-export type HabitId = 'forkAhead' | 'twoJars';
+/** The seven recruits' habit ids, derived from RC's table so the two can't drift (AH P10). */
+export type RecruitHabitId = (typeof RECRUIT_HABITS)[keyof typeof RECRUIT_HABITS];
+/**
+ * Habit ids (party.md §1, AH P10): the pair's two plus the recruits' seven. `mender` is reserved
+ * for the ending plan (EN builds it); no other habit may take that id.
+ */
+export type HabitId = 'forkAhead' | 'twoJars' | RecruitHabitId;
+/** What a ward or harm guard reads off a hit (AH P14). Only steam is tagged so far. */
+export type HarmKind = 'steam';
+/**
+ * The one field a habit bends (AH P9). The engine reads it through `habitRule(unit)`; an absent
+ * field means the habit leaves that rule alone.
+ */
+export interface HabitRule {
+  jarLimit?: number; // jars kept at once (twoJars: 2)
+  forkAhead?: true; // Fork also acts on the tile ahead
+  fuseOnStep?: true; // her own Fuse jars also open on a step (her arrival only)
+  tallyMarkWeight?: number; // what one mark counts in her Tally
+  wards?: readonly HarmKind[]; // harm that never hurts her (not a hit)
+  holdExtra?: number; // extra units each Hold she lands also holds
+  unisonReach?: number; // how far from the target another cast may land for her Unison
+  touchReach?: number; // how far her Touch aims in a straight line
+  eraseRestores?: true; // her Erase on an empty target puts back what the last Erase took
+}
 /** A unit's lean as the engine reads it: the apprentice's schools plus their habit. */
 export interface Lean {
   trained: SchoolId; // its runes cost 1 ink less (min 1)
@@ -223,6 +254,8 @@ export interface HabitDef {
   kind: 'lattice' | 'body';
   /** The rune the habit bends; a household without it shows the dormant flag (HC P12). */
   leansOn: RuneId | null;
+  /** The rule it bends (AH P9): only the one field. */
+  rule: HabitRule;
 }
 /** The four basic actions (party.md §1). Only `shove` is built; AH adds the other three. */
 export type BasicActionId = 'shove' | 'pull' | 'hop' | 'swap';
@@ -328,6 +361,8 @@ export interface EnemyDef {
   bursts: boolean;
   /** Shown by name with an HP bar in the battle header (K-18). */
   boss: boolean;
+  /** A rival's one trick (AH P9, RV): any habit; its rule applies to this foe like a member's. */
+  trick?: HabitId;
 }
 
 // ── Encounters and loot ─────────────────────────────────

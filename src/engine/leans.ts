@@ -1,10 +1,10 @@
 import type { AuraRuneId } from '$data';
+import { habitRule } from './habits';
 import { giftedIn } from './queries';
 import type { Unit } from './types';
 
-/** How many jars a unit keeps at once: one, two with the Draughtsman's habit (P36, J4). */
-export const jarLimit = (u: Unit): number =>
-  u.kind === 'member' && u.lean.habit === 'twoJars' ? 2 : 1;
+/** How many jars a unit keeps at once: one, or what its habit says (`twoJars`: two; P36, J4). */
+export const jarLimit = (u: Unit): number => habitRule(u).jarLimit ?? 1;
 
 const isAura = (a: unknown): a is AuraRuneId => a === 'afterglow' || a === 'steep' || a === 'coil';
 

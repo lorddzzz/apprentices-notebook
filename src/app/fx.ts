@@ -281,6 +281,10 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'pulse', at: e.by.at, tone: 'fire' }];
     // Silent or nothing to draw: the board catches up from the state.
     case 'shove':
+    case 'pull':
+    case 'hop':
+    case 'swapWith':
+    case 'unharmed':
     case 'miss':
     case 'idle':
     case 'telegraph':

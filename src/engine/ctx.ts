@@ -1,4 +1,4 @@
-import type { LineId, VariantDef } from '$data';
+import type { HabitId, LineId, VariantDef } from '$data';
 import { objectiveMet } from './city';
 import { cloneData } from './clone';
 import type { GameEvent, UnitRef } from './events';
@@ -76,10 +76,12 @@ export function emit(ctx: Ctx, e: GameEvent): void {
   }
   const line = e.line ?? ctx.meta.line;
   const origin = e.origin ?? ctx.meta.origin;
+  const habit = e.habit ?? ctx.meta.habit;
   ctx.log.push({
     ...e,
     ...(line ? { line } : {}),
     ...(origin ? { origin } : {}),
+    ...(habit ? { habit } : {}),
   });
 }
 
@@ -98,6 +100,9 @@ function withMeta<T>(ctx: Ctx, patch: EventMeta, fn: () => T): T {
 
 /** Every non-headline behaviour runs inside one: its events carry the line (D1, D8). */
 export const withLine = <T>(ctx: Ctx, line: LineId, fn: () => T): T => withMeta(ctx, { line }, fn);
+/** A habit's headline effect runs inside one: its events carry the habit (AH P11). */
+export const withHabit = <T>(ctx: Ctx, habit: HabitId, fn: () => T): T =>
+  withMeta(ctx, { habit }, fn);
 /** Events caused by a board object carry the cast that made it (P8). */
 export const withOrigin = <T>(ctx: Ctx, origin: Origin | null, fn: () => T): T =>
   origin ? withMeta(ctx, { origin }, fn) : fn();

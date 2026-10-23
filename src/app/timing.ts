@@ -49,6 +49,10 @@ export function durationOf(e: GameEvent): number {
     case 'round':
     case 'moveUndone':
     case 'shove':
+    case 'pull':
+    case 'hop':
+    case 'swapWith':
+    case 'unharmed':
     case 'cast':
     case 'shieldAbsorbs':
     case 'shieldGained':

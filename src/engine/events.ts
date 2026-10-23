@@ -1,6 +1,7 @@
 import type {
   BurstId,
   CompoundId,
+  HarmKind,
   KindId,
   RuneRef,
   SourceRuneId,
@@ -79,6 +80,13 @@ export type GameEvent = (
   | { type: 'moveUndone'; unit: UnitRef; to: Coord }
   /** The basic shove action (P12); the push itself follows as `push` / `crush`. */
   | { type: 'shove'; by: UnitRef; target: UnitRef; dir: Dir }
+  /**
+   * AH's basic actions (P1): the announcement only; the move follows as a relocation event (FD-7)
+   * with cause `pull`, `hop` or `swap`. Nothing emits these until AH-1.
+   */
+  | { type: 'pull'; by: UnitRef; target: UnitRef; dir: Dir }
+  | { type: 'hop'; unit: UnitRef; dir: Dir }
+  | { type: 'swapWith'; by: UnitRef; target: UnitRef; dir: Dir }
   | { type: 'cast'; caster: UnitRef; spell: string; aim: Aim; aimText: string }
   | { type: 'lands'; source: string; at: Coord; path: Coord[] }
   | { type: 'stopped'; source: string; at: Coord; by: LineStop; path: Coord[] }
@@ -90,6 +98,8 @@ export type GameEvent = (
       bonus: string[];
       hpLeft: number;
     }
+  /** A guard cancelled a hit (AH P14): no damage, and it is not a hit (no `hit` hook). */
+  | { type: 'unharmed'; unit: UnitRef; source: string; harm: HarmKind | null }
   | { type: 'shieldAbsorbs'; unit: UnitRef; absorbed: number; left: number }
   | { type: 'shieldGained'; unit: UnitRef; amount: number; until?: number; total?: number }
   | { type: 'died'; unit: UnitRef }
@@ -207,6 +217,12 @@ export function describe(e: GameEvent): string | null {
       return `${who(e.unit)} steps back to ${label(e.to)}`;
     case 'shove':
       return `${who(e.by)} shoves ${who(e.target)} ${e.dir}`;
+    case 'pull':
+      return `${who(e.by)} pulls ${who(e.target)}`;
+    case 'hop':
+      return `${who(e.unit)} hops ${e.dir}`;
+    case 'swapWith':
+      return `${who(e.by)} swaps with ${who(e.target)}`;
     case 'cast':
       return `${who(e.caster)} casts ${e.spell} ${e.aimText}`;
     case 'lands':
@@ -217,6 +233,8 @@ export function describe(e: GameEvent): string | null {
       return `${e.source} hits ${who(e.target)} for ${e.amount}${
         e.bonus.length ? ` (${e.bonus.join(', ')})` : ''
       }`;
+    case 'unharmed':
+      return `${e.source} leaves ${who(e.unit)} unharmed`;
     case 'shieldAbsorbs':
       return `${who(e.unit)}'s shield absorbs ${e.absorbed} (${e.left} left)`;
     case 'shieldGained':

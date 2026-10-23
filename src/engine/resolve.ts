@@ -3,6 +3,7 @@ import { cloneData } from './clone';
 import { type Ctx, emit, fizzled, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
+import { ruleOf } from './habits';
 import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
@@ -179,7 +180,9 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
       case 'fork': {
         const left = forkSide(s, live, flow.headings, 'left');
         const right = forkSide(s, live, flow.headings, 'right');
-        const ahead = flow.habit === 'forkAhead' ? forkSide(s, live, flow.headings, 'ahead') : null;
+        const ahead = ruleOf(flow.habit).forkAhead
+          ? forkSide(s, live, flow.headings, 'ahead')
+          : null;
         if (left.blind > 0) {
           withLine(ctx, 'fork:noHeading', () => emit(ctx, { type: 'miss', source: 'Fork' }));
         }

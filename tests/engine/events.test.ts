@@ -30,6 +30,17 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   moveUndone: [
     [{ type: 'moveUndone', unit: draughtsman, to: at(0, 0) }, 'Draughtsman steps back to A1'],
   ],
+  pull: [[{ type: 'pull', by: stoker, target: rat, dir: 'left' }, 'Stoker pulls rat at C2']],
+  hop: [[{ type: 'hop', unit: stoker, dir: 'right' }, 'Stoker hops right']],
+  swapWith: [
+    [{ type: 'swapWith', by: stoker, target: rat, dir: 'right' }, 'Stoker swaps with rat at C2'],
+  ],
+  unharmed: [
+    [
+      { type: 'unharmed', unit: stoker, source: 'Storm', harm: 'steam' },
+      'Storm leaves Stoker unharmed',
+    ],
+  ],
   shove: [
     [{ type: 'shove', by: stoker, target: rat, dir: 'right' }, 'Stoker shoves rat at C2 right'],
   ],

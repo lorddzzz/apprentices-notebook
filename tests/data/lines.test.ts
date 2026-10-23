@@ -50,10 +50,10 @@ describe('lines integrity (L1)', () => {
     for (const l of LINES) expect(l.id, l.id).toBe(`${l.subject}:${l.meets}`);
   });
 
-  test('pending rows have no text, written rows have a sentence', () => {
+  test('written rows have a sentence; pending rows have none or a final one (AH)', () => {
     for (const l of LINES) {
-      if (l.pending) expect(l.text, l.id).toBe('');
-      else expect(l.text.length, l.id).toBeGreaterThan(10);
+      if (l.pending && l.text === '') continue;
+      expect(l.text.length, l.id).toBeGreaterThan(10);
     }
   });
 });

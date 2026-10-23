@@ -1,4 +1,4 @@
-import type { MemberId } from '$data';
+import type { BasicActionId, HabitId, MemberId } from '$data';
 import {
   type Action,
   type Aim,
@@ -11,6 +11,7 @@ import {
   type EventLog,
   type GameEvent,
   memberById,
+  type PartyInit,
   parseLabel,
   type ScenarioOptions,
   type SpellKey,
@@ -63,18 +64,50 @@ export interface Step {
   lines: string[];
 }
 
-/** A battle built from ASCII (fixed seed). `opts` can add hp/intents/party/lab. */
-export function board(ascii: string, opts: Partial<BattleSpec> = {}): BattleState {
-  return createBattle({ title: 'test', seed: 1, board: ascii, ...opts }).state;
+/** A fielded apprentice's kit override (AH Lab kits): any action, any habit (null = none). */
+export interface Kit {
+  action?: BasicActionId;
+  habit?: HabitId | null;
+}
+export type Kits = Partial<Record<MemberId, Kit>>;
+/** Harness options on top of the spec: `kits` gives any member any action and habit. */
+export interface KitOptions {
+  kits?: Kits;
+}
+
+function withKits<T extends Partial<BattleSpec>>(opts: T, kits: Kits | undefined): T {
+  if (!kits) return opts;
+  const party: Partial<Record<MemberId, PartyInit>> = { ...opts.party };
+  for (const [m, kit] of Object.entries(kits) as [MemberId, Kit][])
+    party[m] = { ...party[m], ...kit };
+  return { ...opts, party };
+}
+
+/** Until `spawnMember` reads `PartyInit.habit` (AH-1), the harness sets the kit's habit itself. */
+function applyKits(s: BattleState, kits: Kits | undefined): BattleState {
+  for (const [m, kit] of Object.entries(kits ?? {}) as [MemberId, Kit][]) {
+    const u = s.units.find((x) => x.kind === 'member' && x.def === m);
+    if (u?.kind === 'member' && kit.habit !== undefined) u.lean.habit = kit.habit;
+  }
+  return s;
+}
+
+/** A battle built from ASCII (fixed seed). `opts` can add hp/intents/party/lab and kits. */
+export function board(ascii: string, opts: Partial<BattleSpec> & KitOptions = {}): BattleState {
+  const { kits, ...spec } = opts;
+  const s = createBattle({ title: 'test', seed: 1, board: ascii, ...withKits(spec, kits) }).state;
+  return applyKits(s, kits);
 }
 
 /** A battle whose members cast the given lattices (ASCII, compiled with each member's lean). */
 export function withLattices(
   ascii: string,
   lattices: Partial<Record<MemberId, string>>,
-  opts: Partial<BattleSpec> & ScenarioOptions = {},
+  opts: Partial<BattleSpec> & ScenarioOptions & KitOptions = {},
 ): BattleState {
-  return scenarioBattle({ title: 'test', ...opts, board: ascii, lattices }, opts);
+  const { kits, ...rest } = opts;
+  const spec = withKits(rest, kits);
+  return applyKits(scenarioBattle({ title: 'test', ...spec, board: ascii, lattices }, spec), kits);
 }
 
 /** Casts a member's spell (default: its first) with a direction or a full aim. */

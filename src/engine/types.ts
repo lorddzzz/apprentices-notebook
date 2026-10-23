@@ -2,6 +2,7 @@ import type {
   ApprenticeId,
   AttackId,
   AuraRuneId,
+  BasicActionId,
   BindEvent,
   CompoundId,
   DistrictId,
@@ -396,12 +397,33 @@ export interface BattleState {
   met: Meets[];
   /** Compounds, bursts and idioms already named this battle (D7). */
   named: string[];
+  /** What the last Erase that removed anything took (AH P18); absent or null = nothing yet. */
+  erased?: ErasedRecord | null;
+}
+
+/** One thing an Erase removed, with its own origin kept (AH P18: a restore keeps the elegance). */
+export type ErasedPart =
+  | { kind: 'state'; at: Coord; layer: Layer }
+  | { kind: 'jar'; at: Coord; jar: Jar }
+  | { kind: 'mark'; unit: UnitId; mark: Mark }
+  | { kind: 'collar'; unit: UnitId; collar: Origin | null }
+  | { kind: 'shackle'; unit: UnitId; rounds: number };
+/**
+ * The last Erase that removed anything (AH P18), whoever cast it: per target, what it took. A
+ * newer Erase that removes something replaces it; a restore consumes the target's entry.
+ */
+export interface ErasedRecord {
+  by: UnitId;
+  cast: number; // BattleState.castSeq of that Erase
+  entries: readonly { target: Target; parts: readonly ErasedPart[] }[];
 }
 
 /** The fine-print line that caused an event, and the cast whose board object did (§2.6). */
 export interface EventMeta {
   line?: LineId;
   origin?: Origin;
+  /** The habit whose headline caused it (AH P11): shown in previews, never masked. */
+  habit?: HabitId;
 }
 
 export type Action =
@@ -410,6 +432,16 @@ export type Action =
   | { type: 'cast'; unit: UnitId; spell: SpellKey; aim: Aim }
   | { type: 'shove'; unit: UnitId; dir: Dir }
   | { type: 'endTurn' };
+/**
+ * The three new basic actions (AH P1), shaped like `shove`. Not in `Action` yet: AH-1 adds them
+ * together with their `isLegal`/`dispatch` branches and the saved-action parser.
+ */
+export type BasicActionType = Exclude<BasicActionId, 'shove'>;
+export interface BasicAction {
+  type: BasicActionType;
+  unit: UnitId;
+  dir: Dir;
+}
 export interface ActionResult {
   state: BattleState;
   events: GameEvent[];
@@ -419,6 +451,12 @@ export interface PartyInit {
   hp?: number;
   spells?: Spell[];
   charges?: Record<SpellKey, number>;
+  /**
+   * Lab/test kit overrides (AH): any action or habit for this apprentice (null = no habit).
+   * `spawnMember` honours them from AH-1 on; until then the scenario harness applies `kits`.
+   */
+  action?: BasicActionId;
+  habit?: HabitId | null;
 }
 export interface BattleSpec {
   title: string;
