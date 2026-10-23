@@ -29,7 +29,7 @@ test('a rich v9 save (Glyph versions, records, args, proof, recap) round-trips t
   const envelope = fixture('v9-home') as { version: number; data: SaveData };
   const text = JSON.stringify(envelope);
   const save = parseSaveText(text);
-  expect(save).toEqual(envelope.data);
+  expect(save).toEqual({ ...envelope.data, profile: { ...envelope.data.profile, bindEvents: [] } });
   expect(compiledFor(save.profile, 'draughtsman').spells.length).toBeGreaterThan(0);
   const backend = memoryBackend(text);
   expect(loadSave(backend, 99)).toMatchObject({ save, recovered: false, older: false });
@@ -217,7 +217,10 @@ test('record-local keys remain identity-bearing data through a v9 reload', () =>
   if (!record) throw new Error('expected record');
   record.fired = { ...record.fired, '-500,600': 3 };
   const migrated = parseSaveText(serialize(envelope.data));
-  expect(migrated).toEqual(envelope.data);
+  expect(migrated).toEqual({
+    ...envelope.data,
+    profile: { ...envelope.data.profile, bindEvents: [] },
+  });
   expect(parseSaveText(saveText(migrated))).toEqual(migrated);
 });
 

@@ -120,6 +120,7 @@ export function newProfile(): Profile {
   let p: Profile = {
     known: [...START_KNOWN],
     methods: [],
+    bindEvents: [],
     inventions: [],
     solvents: Object.fromEntries(SOLVENT_IDS.map((id) => [id, 0])) as Record<SolventId, number>,
     household: emptyHousehold(),
@@ -215,15 +216,23 @@ export function knows(p: Profile, rune: RuneRef): boolean {
   return isInvention(rune) ? p.inventions.some((d) => d.id === rune) : p.known.includes(rune);
 }
 
+/** Today's rule for which Bind events a profile has (P14); fills saves lacking the field. */
+function inferBindEvent(p: Profile, e: BindEvent): boolean {
+  const d = BIND_EVENT_DISTRICT[e];
+  return p.methods.includes('bind') && (d === 'inkQuarter' || p.city.open.includes(d));
+}
+
+/** Stores one learned Bind event on the profile; idempotent (P14). */
+export function grantBindEvent(p: Profile, event: BindEvent): Profile {
+  return p.bindEvents.includes(event) ? p : { ...p, bindEvents: [...p.bindEvents, event] };
+}
+
 /**
  * What the Bench may use (design §6.1): known runes, learned methods, the household's inventions,
- * and the Bind events whose district is open (hit and enters come with Bind itself).
+ * and the Bind events stored on the profile (plus those today's rule infers, until HC's reset).
  */
 export function knownSetOf(p: Profile): KnownSet {
-  const events = (Object.keys(BIND_EVENT_DISTRICT) as BindEvent[]).filter((e) => {
-    const d = BIND_EVENT_DISTRICT[e];
-    return p.methods.includes('bind') && (d === 'inkQuarter' || p.city.open.includes(d));
-  });
+  const events = BIND_EVENTS.filter((e) => p.bindEvents.includes(e) || inferBindEvent(p, e));
   return { runes: p.known, methods: p.methods, events, inventions: inventionLibrary(p) };
 }
 
@@ -600,9 +609,10 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
   const proof = byMember(household, r.proof, (x) =>
     list(x).map((mask) => list(mask).map(parseFired)),
   );
-  return {
+  const base = {
     known: unique(list(r.known).map((id) => oneOf(RUNE_IDS, id))),
     methods: unique(list(r.methods).map((id) => oneOf(METHOD_IDS, id))),
+    bindEvents: [] as BindEvent[],
     inventions,
     solvents,
     household,
@@ -620,6 +630,12 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     proof,
     city: parseCity(r.city),
   };
+  // Saves lacking the field get today's rule (P14).
+  const bindEvents =
+    r.bindEvents === undefined
+      ? BIND_EVENTS.filter((e) => inferBindEvent(base, e))
+      : unique(list(r.bindEvents).map((e) => oneOf(BIND_EVENTS, e)));
+  return { ...base, bindEvents };
 }
 
 /** Joined apprentices (unique, registry ids, at least one); slots hold members, never twice. */

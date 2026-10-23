@@ -358,6 +358,7 @@
   "profile": {
     "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
     "methods": [],
+    "bindEvents": [],
     "inventions": [],
     "solvents": {
       "gallnut": 0,
@@ -413,6 +414,7 @@
     "profile": {
       "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
       "methods": [],
+      "bindEvents": [],
       "inventions": [],
       "solvents": {
         "gallnut": 0,

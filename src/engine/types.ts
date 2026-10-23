@@ -469,6 +469,8 @@ export interface Household {
 export interface Profile {
   known: RuneId[];
   methods: MethodId[];
+  /** Learned Bind events (P14); Bind grants hit and enters, rewards grant the rest. */
+  bindEvents: BindEvent[];
   inventions: InventionDef[];
   solvents: Record<SolventId, number>;
   household: Household;

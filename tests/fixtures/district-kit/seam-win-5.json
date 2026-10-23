@@ -2358,6 +2358,7 @@
   "profile": {
     "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "touch", "fork", "brass"],
     "methods": ["conduct"],
+    "bindEvents": [],
     "inventions": [],
     "solvents": {
       "gallnut": 0,
@@ -2549,6 +2550,7 @@
         "brass"
       ],
       "methods": ["conduct"],
+      "bindEvents": [],
       "inventions": [],
       "solvents": {
         "gallnut": 0,

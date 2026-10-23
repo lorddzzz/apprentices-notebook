@@ -3471,6 +3471,7 @@
   "profile": {
     "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "jar", "afterglow"],
     "methods": ["margin"],
+    "bindEvents": [],
     "inventions": [],
     "solvents": {
       "gallnut": 0,
@@ -3658,6 +3659,7 @@
     "profile": {
       "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "jar", "afterglow"],
       "methods": ["margin"],
+      "bindEvents": [],
       "inventions": [],
       "solvents": {
         "gallnut": 0,
