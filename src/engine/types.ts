@@ -24,8 +24,11 @@ import type {
   StateId,
   TriggerRuneId,
 } from '$data';
+import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
+import type { Json } from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
+import type { ObjectRef } from './rivals/types';
 
 export type CellKey = string; // "x,y"
 export type SpellKey = CellKey; // the source rune's lattice cell
@@ -242,6 +245,24 @@ export type SpecialIntent =
   | { kind: 'summon'; at: Coord; order: number }
   | { kind: 'flare'; order: number };
 export type Intent = AttackIntent | SpecialIntent;
+/**
+ * A rival's intents (rivals plan P2, RV-W0). `aim` is the Source's locked native aim; `fallback` is
+ * the starved-chain strike tile fixed at planning (null = none). RV-2 joins these into `Intent`
+ * when it teaches every switch site (`turn.ts`, `describe.ts`, `events.ts`, `overlay.ts`).
+ */
+export type RivalIntent =
+  | { kind: 'cast'; spell: RivalSpellId; aim: Aim; fallback: Coord | null; order: number }
+  | {
+      kind: 'trick';
+      trick: TrickId;
+      /** The object the order is locked to (the wick's jar): named by id, never by tile. */
+      lock: ObjectRef | null;
+      data: Json;
+      fallback: Coord | null;
+      order: number;
+    }
+  /** Plain approach and strike once the spells are dry; never a fallback. */
+  | { kind: 'rivalStrike'; dir: Dir; order: number };
 
 /** What a bound mark holds (Bind). */
 export interface Bound {
@@ -528,6 +549,8 @@ export interface Profile {
   glyphRecords: Record<string, GlyphRecord>;
   proof: Partial<Record<ApprenticeId, FiredCell[][]>>; // cast masks, newest last, capped
   city: CityState;
+  /** Recovered rival pages (rivals P11): absent reads as none; RV-15 banks and parses them. */
+  pages?: RivalPageId[];
 }
 
 /** The map's ladder (K-19): heard ⊇ open ⊇ hearts. */

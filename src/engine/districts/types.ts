@@ -12,6 +12,7 @@ import type { Ctx } from '../ctx';
 import type { EventLog, UnitRef } from '../events';
 import type { Coord, Dir } from '../grid';
 import type { BoardSpec } from '../notation';
+import type { Telegraph } from '../rivals/types';
 import type {
   Action,
   BattleState,
@@ -49,16 +50,8 @@ export type TripShapeId = KitId;
 /** Runtime entered-tiles values for district causes (FD-0's `ArrivalCauses`, namespaced keys). */
 export type KitCauses = { readonly [C in ArrivalCause & KitId]?: ArrivalCauses[C] };
 
-// ── RV placeholder ──────────────────────────────────────
-// RV-W0: replace with RV's telegraph `draw` descriptor
-/** What a telegraphed step shows before it acts (RV P10's draw shape, generic UI). */
-export interface Telegraph {
-  label: string;
-  tiles: readonly Coord[];
-  units: readonly UnitId[];
-  sequence?: readonly [number, number];
-  countdown?: number;
-}
+// ── Telegraph (RV P10's `draw` descriptor, RV-W0) ───────
+export type { Telegraph };
 
 // ── Round-end board rules (P8, P9; DK-3) ────────────────
 /**
