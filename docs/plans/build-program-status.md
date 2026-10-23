@@ -6,7 +6,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 **Reset:** window resets 2026-10-24 01:50 UTC; a session-only wake-up is scheduled for 01:52 UTC (if the session closed, resume manually from this file).
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. Ready: AH-1 (FD-3, FD-7, HC-4 merged), FN-1, FD-4, FD-6, DK-3, DK-4, DK-5a, DK-6, HC-5, RC-1, AH-2, AH-3, RV-1. (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
+1. Collect RV-1. Ready: AH-1 (FD-3, FD-7, HC-4 merged), FN-1, FD-4, FD-6, DK-3, DK-4, DK-5a, DK-6, HC-5, RC-1, AH-2, AH-3, RV-1. (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
 2. Ready now: FD-4, FD-6, DK-3, DK-4, DK-5a, DK-6, HC-5, RC-1, AH-2, AH-3, RV-1. Also after HC-4: DK-5a, DK-6, HC-5, HC-8 (after HC-6).
 
 ## Tasks
@@ -28,6 +28,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FD-5 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-afcd1e3ae9ba5d520 @ 763ab5a | shared | `sealJar` takes ids from `nextJar` (absent → past highest id/seq); `seq = id`; `openDuskJars` opens only (tile, id) pairs it found, so a replacement waits for the next dusk. BL-106 cases flipped. Golden unchanged |
 | FD-7 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a6c480f346a519217 @ 479100d | shared | `moved`/`push`/`swapped` carry `RelocationFields` (`swapped` = {unit, with}); `drift.units: RelocationFields[]`; `crush.at/dir`, `held.rounds`, `jarSealed.id/peek`; `relocations(e)` drives `projectWith`; guesses removed (`end` param gone from projectWith/buildSteps/playback.play/BattleController.play); `firstRune` in engine/jars. Golden re-recorded with a deep-equal proof script. **AH-1:** emit the action event then a relocation event with its cause, add to `relocations()`, give fx/timing a case. `moveUndone` not yet on RelocationFields |
 | FN-2 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ab982da4e109763e3 @ 5137380 | shared | `returnHome` (trip/crossroads) adds banked solvents to `solventsFound` (only gain site); `isKnown` reads it. Golden re-recorded (+`solventsFound` only, script-checked) |
+| RV-1 | Medium / Sonnet 5.5 / high | S | running | worktree | | rival units, token L; started at 92% |
 | RC-W0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ace64eca89eca4392 @ cc83bcf | shared | `data/recruits.ts`: `Beat`, `RecruitFound`, `RecruitDef extends ApprenticeDef` (found, beat, runes), `RecruitPlacement`, `RecruitPages` ({runes} or {any}), `RECRUIT_HABITS`, empty `RECRUITS`; `engine/recruits.ts` stubs + `RecruitLootItem`, `RecruitsState`, `EMPTY_RECRUITS`. `Profile.recruits` not added yet (RC-6). Habit ids for AH: runaway `fuseOnStep`, notary `markTwice`, towel-bearer `steamproof`, warden `holdTwo`, tuner `nearUnison`, Copyist `longTouch`, exile `restoreErase`. RC-1 blocked on AH-W0 (`HabitId` closed). **DK-R1 → DK-7:** run contributors every roll; `must` after the table's `guaranteed`, `extra` after the three normal offers; `{kind:'recruit'}` round-trips in save parsing |
 | FD-9 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a8aba70dffdb3a7e3 @ dfd1904 | shared | `Profile.bindEvents` (inferred on load when absent), `grantBindEvent(p, e)` idempotent; `knownSetOf` = stored ∪ old district rule until something grants events. Golden re-recorded (+`bindEvents: []` only). BR/CG call `grantBindEvent` for *pushed*/*dies* |
 | HC-3 | Medium / Sonnet 5.5 / high | M | merged (partial by design) | worktree-agent-a21bdc1e0b9451570 @ 1598f0e | shared | `startLayout(layout)` in `data/encounters.ts` turns D/S into P and pads to 4 points; integrity test runs `checkRoom` on all 27 rooms + the lock. Data strings unchanged. **HC-4 must** use `startLayout(variant.layout)` + `placeParty` in `beginEncounter`, then bake the `P`s into the data and delete `startLayout` (orchestrator: required, not optional) |
@@ -59,6 +60,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 21:38 | 77 | 4h11 | 41 | Narrow | merge RV-W0; narrow nudges to FD-3, FN-0; wake-up scheduled 01:52 UTC (session-only cron) |
 | 21:48 | 80 | 4h02 | 42 | Narrow | merge FD-3 (with a test fix); spawn FD-5 (S) |
 | 21:57 | 84 | 3h53 | 42 | Narrow | merge FN-0 (golden conflict resolved), FD-5; spawn FD-7, FN-2 |
+| 22:20 | 92 | 3h30 | 43 | Wrap | merge FN-2, FD-7; phone check of walk + cast playback OK; spawn RV-1 (S) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RV-W0: DK adds `rivals?: RivalDef[]` to `DistrictKitData` and spreads `RivalModule` into `DistrictModule` (→ DK-9/RV-14); `RIVAL_TOKENS` joins the token uniqueness test (→ DK-4 or DK-17); TECH §7 row at RV finish. Accepted.
