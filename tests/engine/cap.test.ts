@@ -135,8 +135,9 @@ describe('the event cap (BL-107)', () => {
 
   // FD-6 (P11): a detached run (a jar opening) started inside a capped cast does not start.
   // Today the push's event is cut but the rat still moves, opens the jar, and the jar's run gets
-  // a fresh cap of its own, so events are logged after `fizzles`.
-  it.fails('FD-6: nothing but the trace is logged after the cast fizzles', () => {
+  // a fresh cap of its own, so events are logged after `fizzles`. Passes since FD-3: an arrival
+  // stops at the cap (P4's `cap` reason), so this jar never opens; FD-6 makes it hold in general.
+  it('FD-6: nothing but the trace is logged after the cast fizzles', () => {
     const s = pushOntoJar();
     const full = castWithCap(s, UNCAPPED).events;
     expect(full.some((e) => e.type === 'jarOpened')).toBe(true);

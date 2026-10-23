@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import type { ActionRuneId } from '$data';
 import { type BattleState, type Dir, type GameEvent, parseLabel } from '$engine';
 import type { Ctx } from '$engine/ctx';
-import type { Hook } from '$engine/hooks';
+import type { NotifiedHook } from '$engine/hooks';
 import { snapshotOf } from '$engine/resolve';
 import { ACTION_HANDLERS } from '$engine/runes/actions';
 import { type Flow, type Step, type Target, targetKey, type Unit } from '$engine/types';
@@ -14,13 +14,12 @@ vi.mock('$engine/hooks', async (original) => {
   const real = await original<typeof import('$engine/hooks')>();
   return {
     ...real,
-    notify: (ctx: Ctx, h: Hook) => {
+    notify: (ctx: Ctx, h: NotifiedHook) => {
       hooks.seen.push(h);
       real.notify(ctx, h);
     },
   };
 });
-
 const STEP: Step = { at: { x: 1, y: 0 }, role: 'action', rune: 'strike', auras: [], next: null };
 const unit = (id: string): Target => ({ kind: 'unit', unit: id });
 const tile = (lbl: string): Target => ({ kind: 'tile', at: parseLabel(lbl) });
@@ -138,10 +137,8 @@ test('swap-with-caster: the target and the caster trade places', () => {
   expectLog(r.events, ['Draughtsman and rat at C1 swap places']);
   expect(find(r.state, 'draughtsman').pos).toEqual({ x: 2, y: 0 });
   expect(find(r.state, 'rat-1').pos).toEqual({ x: 0, y: 0 });
-  expect(hooks.seen).toEqual([
-    { kind: 'entered', unit: 'draughtsman', at: { x: 2, y: 0 } },
-    { kind: 'entered', unit: 'rat-1', at: { x: 0, y: 0 } },
-  ]);
+  // One simultaneous relocation through the arrival pipeline (FD-3): no per-tile notifications.
+  expect(hooks.seen).toEqual([]);
   // A held unit, or a held caster, stays put.
   const s = board('D . r');
   const rat = find(s, 'rat-1');
@@ -163,9 +160,14 @@ test('draw-moves-jar: a jar goes one tile along the heading and keeps its owner'
   expect(r.events[0]).toMatchObject({ line: 'draw:jar' });
   expect(r.state.tiles[1]?.jar).toBeNull();
   expect(r.state.tiles[2]?.jar).toMatchObject({ owner: 'draughtsman' });
-  // Gifted: two tiles.
+  // Gifted: two tiles, under the rat on D1: a step-jar arriving under a unit opens on it (P6).
   const far = run(s, 'draw', [tile('B1')], { heading: 'right', flow: { gifted: true } });
-  expect(far.state.tiles[3]?.jar).toMatchObject({ owner: 'draughtsman' });
+  expectLog(far.events, [
+    'the jar is drawn from B1 to C1',
+    'the jar is drawn from C1 to D1',
+    'the jar at D1 opens under rat at D1',
+  ]);
+  expect(far.state.tiles[3]?.jar).toBeNull();
   // Onto a tile that already has a jar: it stays.
   const full = structuredClone(s);
   const next = full.tiles[2];

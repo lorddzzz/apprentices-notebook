@@ -1,8 +1,8 @@
-import { ENEMIES } from '$data';
+import { objectArrives, relocateAll, unitTraits } from './arrival';
 import { cloneData } from './clone';
 import { type Ctx, emit, ref } from './ctx';
-import { type Coord, neighbors4, step } from './grid';
-import { blocksUnits, coordOf, inBoard, isAlive, isFire, isPlate, tileAt, unitAt } from './queries';
+import { type Coord, neighbors4, sameCoord, step } from './grid';
+import { blocksUnits, coordOf, inBoard, isAlive, isFire, isPlate, tileAt } from './queries';
 import type { BattleState, Layer, Unit, UnitId } from './types';
 
 /**
@@ -20,15 +20,15 @@ export interface DriftPreview {
 const FLOATS: ReadonlySet<Layer['id']> = new Set(['slick', 'fire', 'blot', 'stain']);
 const floats = (l: Layer | null): l is Layer => !!l && FLOATS.has(l.id);
 
-/** Eels swim, moths fly, the lamp-mother is anchored: none of them is carried (K-9). */
-function carried(u: Unit): boolean {
-  if (u.kind !== 'enemy') return true;
-  const def = ENEMIES[u.def];
-  return def.habitat !== 'water' && !def.flies && !def.anchored;
-}
+/** Eels swim, moths fly, the lamp-mother is anchored: none of them is carried (K-9, P5). */
+const carried = (u: Unit): boolean =>
+  !unitTraits(u).some((t) => t === 'flies' || t === 'swims' || t === 'anchored');
+
+/** A float that moved; `placed` is the state that came to rest on `to` (it may be lost). */
+type FloatMove = DriftPreview['floats'][number] & { placed: Layer['id'] | null };
 
 /** Moves the floats of `s` one tile; returns what moved (reading order of the sources). */
-function driftFloats(s: BattleState): DriftPreview['floats'] {
+function driftFloats(s: BattleState): FloatMove[] {
   const moves: { from: Coord; to: Coord | null; i: number; j: number }[] = [];
   s.tiles.forEach((t, i) => {
     if (!t.terrain.water || !floats(t.state)) return;
@@ -50,23 +50,38 @@ function driftFloats(s: BattleState): DriftPreview['floats'] {
     t.state = null;
     return cargo;
   });
-  moves.forEach((m, n) => {
+  return moves.map((m, n) => {
     const cargo = lifted[n];
     const dest = m.j < 0 ? undefined : s.tiles[m.j];
-    if (!cargo || !dest) return;
+    let placed: Layer['id'] | null = null;
     // A float joins what floats there (fire wins); it never displaces a cloud or another state.
-    if (dest.state === null) dest.state = cargo;
-    else if (floats(dest.state) && cargo.id === 'fire') dest.state = cargo;
+    if (cargo && dest && (dest.state === null || (floats(dest.state) && cargo.id === 'fire'))) {
+      dest.state = cargo;
+      placed = cargo.id;
+    }
+    return { from: m.from, to: m.to, placed };
   });
-  return moves.map((m) => ({ from: m.from, to: m.to }));
 }
 
-/** Units in water step downstream, downstream-most first (K-9). */
-function driftUnits(s: BattleState): { unit: Unit; from: Coord; to: Coord }[] {
+/** A unit the current carries one tile. */
+interface UnitDrift {
+  unit: Unit;
+  from: Coord;
+  to: Coord;
+}
+
+/**
+ * Plans the units in water stepping downstream, downstream-most first (K-9); moves nothing.
+ * Returns the moves in the order they resolve (who was in the way goes first) and in unit order.
+ */
+function driftUnits(s: BattleState): { resolved: UnitDrift[]; ordered: UnitDrift[] } {
   const movers = s.units.filter((u) => isAlive(u) && carried(u) && tileAt(s, u.pos).terrain.water);
+  const planned = new Map<UnitId, Coord>(movers.map((u) => [u.id, { ...u.pos }]));
+  const occupied = (c: Coord): Unit | null =>
+    s.units.find((u) => isAlive(u) && sameCoord(planned.get(u.id) ?? u.pos, c)) ?? null;
   const done = new Map<UnitId, Coord | null>();
   const busy = new Set<UnitId>();
-  const starts = new Map(movers.map((u) => [u.id, { ...u.pos }]));
+  const resolved: UnitDrift[] = [];
   const resolve = (u: Unit): void => {
     if (done.has(u.id)) return;
     busy.add(u.id);
@@ -74,36 +89,50 @@ function driftUnits(s: BattleState): { unit: Unit; from: Coord; to: Coord }[] {
     const to = dir ? step(u.pos, dir) : u.pos;
     let target: Coord | null = null;
     if (inBoard(s, to) && !blocksUnits(tileAt(s, to))) {
-      const blocker = unitAt(s, to);
+      const blocker = occupied(to);
       // Whoever stands in the way goes first; a cycle (a swap) stays put.
       if (blocker && movers.includes(blocker) && !busy.has(blocker.id)) resolve(blocker);
-      if (!unitAt(s, to)) target = to;
+      if (!occupied(to)) target = to;
     }
-    if (target) u.pos = { ...target };
+    if (target) {
+      planned.set(u.id, { ...target });
+      resolved.push({ unit: u, from: { ...u.pos }, to: { ...target } });
+    }
     done.set(u.id, target);
     busy.delete(u.id);
   };
   for (const u of movers) resolve(u);
-  return movers.flatMap((u) => {
-    const to = done.get(u.id);
-    const from = starts.get(u.id);
-    return to && from ? [{ unit: u, from, to: { ...to } }] : [];
-  });
+  const ordered = movers.flatMap((u) => resolved.filter((m) => m.unit.id === u.id));
+  return { resolved, ordered };
 }
 
-/** The drift step, first in `hazards` (K-8, K-9): floats, then units in water. */
+/**
+ * The drift step, first in `hazards` (K-8, K-9): floats, then units in water. Floats arrive as
+ * objects; carried units are lifted and set down together, then arrive in the order the drift
+ * resolved (P4, P7): a step-jar, a cloud or Bind *enters* answers, a stain does not (city §5).
+ */
 export function drift(ctx: Ctx): void {
   const s = ctx.s;
   const floats = driftFloats(s);
-  const units = driftUnits(s);
-  for (const m of units) if (m.unit.kind === 'member') m.unit.undo = null;
-  if (floats.length || units.length) {
+  const { resolved, ordered } = driftUnits(s);
+  for (const m of ordered) if (m.unit.kind === 'member') m.unit.undo = null;
+  if (floats.length || ordered.length) {
     emit(ctx, {
       type: 'drift',
       floats: floats.map((f) => ({ from: { ...f.from }, to: f.to && { ...f.to } })),
-      units: units.map((m) => ({ unit: ref(m.unit, m.from), from: m.from, to: m.to })),
+      units: ordered.map((m) => ({ unit: ref(m.unit, m.from), from: m.from, to: m.to })),
     });
   }
+  for (const f of floats) {
+    if (f.to && f.placed) {
+      objectArrives(ctx, { kind: 'state', state: f.placed }, f.to, {
+        cause: 'drift',
+        origin: null,
+      });
+    }
+  }
+  const moves = resolved.map((m) => ({ unit: m.unit.id, from: m.from, to: m.to, path: [m.to] }));
+  if (moves.length) relocateAll(ctx, moves, 'drift', null);
 }
 
 /** Gates next to fire burn (K-11). Called after the burn step and after any `ignite`. */
@@ -121,7 +150,7 @@ export function burnGates(ctx: Ctx): void {
 /** What the next `drift` would move, without moving it. */
 export function driftPreview(state: BattleState): DriftPreview {
   const s = cloneData(state);
-  const floats = driftFloats(s);
-  const units = driftUnits(s).map((m) => ({ unit: m.unit.id, from: m.from, to: m.to }));
+  const floats = driftFloats(s).map((f) => ({ from: f.from, to: f.to }));
+  const units = driftUnits(s).ordered.map((m) => ({ unit: m.unit.id, from: m.from, to: m.to }));
   return { floats, units };
 }

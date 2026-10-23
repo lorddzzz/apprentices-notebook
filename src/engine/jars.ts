@@ -2,7 +2,6 @@ import type { SolventId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
-import type { Hook } from './hooks';
 import { jarLimit } from './leans';
 import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
@@ -89,7 +88,10 @@ export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
   emit(ctx, { type: 'jarSealed', at: { ...at }, owner: ref(owner), event: jar.event });
 }
 
-/** Opens the jar on a tile (it is used up): its rest runs on the unit standing there, else the tile. */
+/**
+ * Opens the jar on a tile (it is used up): its rest runs on the unit standing there, else the tile.
+ * A step onto a step-jar opens it through the arrival pipeline's `stepJar` hook (J5, arrival.ts).
+ */
 export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null): void {
   const tile = tileAt(ctx.s, at);
   const jar = tile.jar;
@@ -104,16 +106,6 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null): void {
     ? { kind: 'unit', unit: opener.id }
     : { kind: 'tile', at: { ...at } };
   runDetached(ctx, jar.rest, target, jar.owner, jar.origin, jar.heading);
-}
-
-/** A unit entering a tile opens its step-jar, whoever owns it (J5). */
-export function onHook(ctx: Ctx, h: Hook): void {
-  if (h.kind !== 'entered') return;
-  const jar = tileAt(ctx.s, h.at).jar;
-  if (jar?.event !== 'step') return;
-  const unit = findUnit(ctx.s, h.unit);
-  if (!unit || !isAlive(unit)) return;
-  openJar(ctx, h.at, h.unit);
 }
 
 /** Dusk: every dusk-jar opens, in reading order. Jars sealed while this runs wait for the next dusk. */

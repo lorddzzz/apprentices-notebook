@@ -28,9 +28,10 @@ import { board, draft } from '../scenarios/harness';
  * (cause) × what answers an arrival (hook) × the unit's exemption trait, run through the engine's
  * own movers. Each cell records whether the hook answered.
  *
- * Plain cases are today's behaviour that the P-rules keep. `it.fails` cases assert the P-rule
- * outcome and fail on today's code: FD-3 flips each to a plain `it` as it lands (the reviewed test
- * diff the plan asks for). `it.todo` lists causes and rules that don't exist yet.
+ * Plain cells are FD-1's recording that the P-rules keep. A `rules` cell is one FD-3's arrival
+ * pipeline changed to follow a P-rule: the row still shows what it answered before (`was`), and the
+ * test asserts the rule (the reviewed test diff the plan asks for). `it.todo` lists causes and
+ * rules that don't exist yet.
  *
  * AH, DK and the districts add their causes and hooks as rows here.
  */
@@ -422,7 +423,10 @@ function cell(cause: Cause, trait: Trait, hook: HookId): boolean | null {
 
 /** y = the hook answers, n = it doesn't, - = not applicable (the hook can't be rigged). */
 type Today = 'y' | 'n' | '-';
-/** A cell where today's code disagrees with a P-rule: what the rule expects, and which rule. */
+/**
+ * A cell the pipeline (FD-3) changed to follow a P-rule: what it answers now, and which rule. The
+ * row's `today` keeps the value FD-1 recorded before it, so the change stays visible.
+ */
 interface Rule {
   expect: 'y' | 'n';
   rule: string;
@@ -430,6 +434,7 @@ interface Rule {
 type Row = {
   cause: Cause;
   trait: Trait;
+  /** FD-1's recording; a cell with a `rules` entry now answers the rule's value instead. */
   today: Record<HookId, Today>;
   rules?: Partial<Record<HookId, Rule>>;
 };
@@ -442,7 +447,7 @@ const row = (s: string): Record<HookId, Today> => {
 
 const P1_STAIN: Rule = {
   expect: 'y',
-  rule: 'P1: every arrival stains (push and Swap never call stainMarks today)',
+  rule: 'P1: every arrival stains (push and Swap never called stainMarks before FD-3)',
 };
 const P5_FLIER_STAIN: Rule = { expect: 'n', rule: 'P5: fliers skip ground hooks (stain)' };
 const P6_DRAW_JAR: Rule = {
@@ -547,11 +552,8 @@ describe('arrival matrix (FD-1): cause × hook × trait', () => {
         }
         if (rule.expect === today)
           throw new Error(`${r.cause} × ${r.trait} × ${hook}: rule agrees`);
-        // Today's result first, so a change that isn't the P-rule's still shows up as a diff.
-        it(`${hook}: today ${today}`, () => {
-          expect(word(cell(r.cause, r.trait, hook))).toBe(today);
-        });
-        it.fails(`${hook}: ${rule.expect} by ${rule.rule}`, () => {
+        // FD-3 made the P-rule true: the cell was `today` before the pipeline.
+        it(`${hook}: ${rule.expect} by ${rule.rule} (was ${today})`, () => {
           expect(word(cell(r.cause, r.trait, hook))).toBe(rule.expect);
         });
       }
@@ -560,18 +562,8 @@ describe('arrival matrix (FD-1): cause × hook × trait', () => {
 });
 
 describe('arrival matrix: movers that disagree with the P-rules outside the hook cells', () => {
-  it('today: the Swap rune moves an anchored lamp-mother', () => {
-    const s = board(ROWS('D M . .'));
-    const r = draft(s, (ctx) => {
-      const u = unitAt(ctx.s, at('B1'));
-      if (!u) throw new Error('no lamp-mother');
-      const t: Target = { kind: 'unit', unit: u.id };
-      runAction(ctx, 'swap', t, null);
-    });
-    expect(r.events.some((e) => e.type === 'swapped')).toBe(true);
-  });
-
-  it.fails('P5 and party §1: an anchored unit is never swapped (it never moves)', () => {
+  // FD-3 (was: the Swap rune moved an anchored lamp-mother). It now misses.
+  it('P5 and party §1: an anchored unit is never swapped (it never moves)', () => {
     const s = board(ROWS('D M . .'));
     const r = draft(s, (ctx) => {
       const u = unitAt(ctx.s, at('B1'));
@@ -580,6 +572,38 @@ describe('arrival matrix: movers that disagree with the P-rules outside the hook
       runAction(ctx, 'swap', t, null);
     });
     expect(r.events.some((e) => e.type === 'swapped')).toBe(false);
+    expect(r.events).toMatchObject([{ type: 'miss', source: 'Swap' }]);
+    expect(unitAt(r.state, at('B1'))).toMatchObject({ def: 'mother' });
+  });
+
+  it('P4: a walk a step-jar holds does not go on to stain (FD-3 default)', () => {
+    // The jar on B1 holds a Hold: the rat walking onto B1 is held there. The stain hook runs after
+    // the jar, and the hold interrupted the arrival (before FD-3, walk stained it anyway).
+    const s = structuredClone(board(ROWS('r . . .')));
+    const t = tileAt(s, at('B1'));
+    t.state = layer('stain');
+    t.jar = jar('step');
+    t.jar.rest = { role: 'action', rune: 'hold', auras: [], next: null, at: { x: 0, y: 0 } };
+    const r = draft(s, (ctx) => {
+      const u = unitAt(ctx.s, at('A1'));
+      if (u?.kind !== 'enemy') throw new Error('no rat');
+      enemyWalk(ctx, u, [at('B1')]);
+    });
+    expect(r.events.some((e) => e.type === 'jarOpened')).toBe(true);
+    expect(r.events.some((e) => e.type === 'held')).toBe(true);
+    expect(r.events.some((e) => e.type === 'marked')).toBe(false);
+  });
+
+  it('a push through a stain stains only on the landing (FD-3 default: stain answers the landing)', () => {
+    const s = structuredClone(board(ROWS('r . . .')));
+    tileAt(s, at('B1')).state = layer('stain');
+    tileAt(s, at('C1')).state = layer('stain');
+    const r = draft(s, (ctx) => {
+      const u = unitAt(ctx.s, at('A1'));
+      if (!u) throw new Error('no rat');
+      push(ctx, u, 'right', 2, null);
+    });
+    expect(r.events.filter((e) => e.type === 'marked')).toHaveLength(1);
   });
 
   it('fliers, swimmers and the anchored are never carried by the current (K-9, P5)', () => {
@@ -605,12 +629,6 @@ describe('arrival matrix: causes and rules that do not exist yet', () => {
   it.todo('runaway (party §0d): her Fuse jars also open when she steps onto them');
   it.todo(
     'fire (P8, Q1): no arrival effect; a later "entering fire burns at once" is one hook entry',
-  );
-  it.todo(
-    'interruption (P4): a hook that kills, moves or holds the unit stops the remaining hooks of that arrival (walk runs stainMarks even after a step-jar moved the walker)',
-  );
-  it.todo(
-    "push through a stain (P1 + P2): stain on the first tile entered, or the landing only? (FD-3 sets the stain hook's `answers`)",
   );
   it.todo(
     'habits (AH), writ tiles and district terrain (DK): registered hooks run after the core ones (P3)',

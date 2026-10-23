@@ -1,8 +1,7 @@
 import { ENEMIES, TUNING } from '$data';
+import { arrive, relocateAll } from './arrival';
 import { type Ctx, emit, ref } from './ctx';
 import { type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
-import { notify } from './hooks';
-import { stainMarks } from './mix';
 import { push } from './push';
 import { reachable, tileAt, unitAt } from './queries';
 import type { EnemyUnit, MemberUnit } from './types';
@@ -15,27 +14,31 @@ function lastStepDir(from: Coord, path: readonly Coord[]): Dir | null {
   return DIRS.find((d) => sameCoord(step(before, d), end)) ?? null;
 }
 
-/** Member move action (legality checked by the caller). */
+/** Member move action (legality checked by the caller). A walk enters only its landing (P2). */
 export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   const reach = reachable(ctx.s, m, m.move).get(key(to));
   if (!reach) throw new Error(`${m.name} can't reach ${to.x},${to.y}`);
   const from = m.pos;
   emit(ctx, { type: 'moved', unit: ref(m), to: { ...to }, path: reach.path });
-  m.pos = { ...to };
   m.moved = true;
   m.lastMove = lastStepDir(from, reach.path);
   m.undo = { from };
   const seen = ctx.log.length;
-  notify(ctx, { kind: 'entered', unit: m.id, at: { ...to } });
-  stainMarks(ctx, m);
+  arrive(ctx, m.id, reach.path, { cause: 'walk', origin: null, landing: true });
   if (ctx.log.length > seen) m.undo = null; // a jar or a stain answered: the step is final
 }
 
+/** Takes a walk back: a placement, not an arrival (it is only possible when nothing answered). */
 export function undoMove(ctx: Ctx, m: MemberUnit): void {
   const undo = m.undo;
   if (!undo) throw new Error(`${m.name} has no move to undo`);
   emit(ctx, { type: 'moveUndone', unit: ref(m), to: { ...undo.from } });
-  m.pos = { ...undo.from };
+  relocateAll(
+    ctx,
+    [{ unit: m.id, from: { ...m.pos }, to: { ...undo.from }, path: [{ ...undo.from }] }],
+    'restore',
+    null,
+  );
   m.moved = false;
   m.lastMove = null;
   m.undo = null;
@@ -65,13 +68,9 @@ function leaveSlick(ctx: Ctx, tiles: readonly Coord[]): void {
 export function enemyWalk(ctx: Ctx, e: EnemyUnit, path: readonly Coord[]): void {
   const end = path[path.length - 1];
   if (!end) return;
-  const start = e.pos;
+  const start = { ...e.pos };
   emit(ctx, { type: 'moved', unit: ref(e), to: { ...end }, path: path.map((c) => ({ ...c })) });
-  e.pos = { ...end };
   e.lastMove = lastStepDir(start, path);
   if (ENEMIES[e.def].oilTrail) leaveSlick(ctx, [start, ...path]);
-  if (e.hp > 0) {
-    notify(ctx, { kind: 'entered', unit: e.id, at: { ...end } });
-    stainMarks(ctx, e);
-  }
+  arrive(ctx, e.id, path, { cause: 'walk', origin: null, landing: true });
 }

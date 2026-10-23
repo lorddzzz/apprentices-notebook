@@ -7,9 +7,9 @@ import {
   parseLabel,
   type Unit,
 } from '$engine';
+import { arrive } from '$engine/arrival';
 import type { Ctx } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
-import { notify } from '$engine/hooks';
 import { applyMark, expireMark, liftMark, spendMark } from '$engine/marks';
 import { landKind } from '$engine/mix';
 import { push } from '$engine/push';
@@ -64,7 +64,7 @@ describe('spreading (P29)', () => {
     // rat-2's copy is spent; the lineage has reached rat-2 already, so it is not copied again.
     const again = run(first.state, (ctx) => {
       spendMark(ctx, find(ctx.s, 'rat-2'));
-      notify(ctx, { kind: 'entered', unit: 'rat-1', at: { x: 0, y: 1 } });
+      arrive(ctx, 'rat-1', [{ x: 0, y: 1 }], { cause: 'push', origin: null, landing: true });
     });
     expect(marked(again.state).sort()).toEqual(['rat-1', 'rat-3']);
     expect(count(again.events, 'markSpread')).toBe(0);
@@ -76,8 +76,7 @@ describe('spreading (P29)', () => {
     expect(marked(outside.state)).toEqual(['rat-1']);
     const r = run(outside.state, (ctx) => {
       const rat = find(ctx.s, 'rat-1');
-      rat.pos = { x: 2, y: 1 };
-      notify(ctx, { kind: 'entered', unit: rat.id, at: { x: 2, y: 1 } });
+      arrive(ctx, rat.id, [{ x: 2, y: 1 }], { cause: 'push', origin: null, landing: true });
     });
     expect(count(r.events, 'markSpread')).toBe(1);
     expect(marked(r.state)).toHaveLength(3);
@@ -160,7 +159,7 @@ describe('release (limit 2, P30, P31)', () => {
     const s = board('D . . .\nr . . .');
     const e = run(s, (ctx) => {
       mark1(ctx, bound('guard', 'enters'));
-      notify(ctx, { kind: 'entered', unit: 'rat-1', at: { x: 0, y: 1 } });
+      arrive(ctx, 'rat-1', [{ x: 0, y: 1 }], { cause: 'push', origin: null, landing: true });
     });
     expect(count(e.events, 'released')).toBe(1);
     const d = run(s, (ctx) => {

@@ -1,11 +1,12 @@
-import { ENEMIES, type LineId, TUNING } from '$data';
+import { type LineId, TUNING } from '$data';
+import { arrive, hasTrait } from './arrival';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
 import { hasFootnote } from './footnotes';
-import { type Coord, type Dir, sameCoord, step } from './grid';
+import { type Coord, type Dir, step } from './grid';
 import { notify } from './hooks';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
-import type { Layer, Origin, Tile, Unit } from './types';
+import type { BattleState, Layer, Origin, Tile, Unit } from './types';
 
 export interface PushResult {
   moved: number;
@@ -14,21 +15,23 @@ export interface PushResult {
   dropped: boolean;
 }
 
+/** Push options. `crush: false` stops short of what is in the way without a crush (AH's Pull). */
+export interface PushOptions {
+  crush?: boolean;
+}
+
 /** Layers a pushed land unit slides across (design §4.2, §4.4). */
 const SLICK: ReadonlySet<Layer['id']> = new Set(['slick', 'pool', 'greaseFog']);
 
-const flies = (u: Unit): boolean => u.kind === 'enemy' && ENEMIES[u.def].flies;
-const swims = (u: Unit): boolean => u.kind === 'enemy' && ENEMIES[u.def].habitat === 'water';
+const flies = (u: Unit): boolean => hasTrait(u, 'flies');
+const swims = (u: Unit): boolean => hasTrait(u, 'swims');
 
 /** An anchored foe never moves; a swimmer can't be pushed out of the water (K-13). */
-function heldBack(u: Unit, toWater: boolean): boolean {
-  if (u.kind !== 'enemy') return false;
-  const def = ENEMIES[u.def];
-  return def.anchored || (def.habitat === 'water' && !toWater);
-}
+const heldBack = (u: Unit, toWater: boolean): boolean =>
+  hasTrait(u, 'anchored') || (swims(u) && !toWater);
 
 /** What stopped the push: something to crush against, or a fall. */
-type Stop =
+export type Stop =
   | { kind: 'crush'; into: Unit | 'wall' | 'plate'; line: LineId | null; at: Coord }
   | { kind: 'drop'; line: LineId; at: Coord };
 
@@ -123,6 +126,41 @@ function fall(ctx: Ctx, unit: Unit, dir: Dir, stop: Stop & { kind: 'drop' }): vo
   });
 }
 
+/** Where a push would take a unit, without moving it or using up a slick. */
+export interface PushPlan {
+  /** Tiles entered in order; the tail past `tiles` is the slide. */
+  path: Coord[];
+  slid: number;
+  /** What ends it early: a crush or a drop (null: it went the whole way). */
+  stop: Stop | null;
+  /** Fresh slicks it slides on, used up for the round when the push happens (no pinball). */
+  slicks: Layer[];
+}
+
+/** Plans a push (P3, P19, P28): pure, so previews and AH's Pull can read it. */
+export function planPush(ctx: Ctx, unit: Unit, dir: Dir, tiles: number): PushPlan {
+  const s: BattleState = ctx.s;
+  const path: Coord[] = [];
+  const slicks: Layer[] = [];
+  let at = { ...unit.pos };
+  let allowance = tiles;
+  let stop: Stop | null = null;
+  while (allowance > 0) {
+    const next = step(at, dir);
+    stop = stopAt(ctx, unit, at, next);
+    if (stop) break;
+    at = next;
+    path.push(next);
+    allowance--;
+    const layer = tileAt(s, next).state as Layer | null;
+    if (!flies(unit) && layer && SLICK.has(layer.id) && layer.slid !== s.round) {
+      slicks.push(layer);
+      allowance = Math.max(allowance, hasFootnote(ctx, 'shove-slick-far') ? 2 : 1);
+    }
+  }
+  return { path, slid: Math.max(0, path.length - tiles), stop, slicks };
+}
+
 /**
  * Push along a heading (design §4.4, P3, P19, P28). The unit steps `tiles` tiles and slides on
  * while it stands on a fresh slick; a slick it slid over is used up for the round (no pinball).
@@ -136,6 +174,7 @@ export function push(
   dir: Dir,
   tiles: number,
   origin: Origin | null,
+  opts: PushOptions = {},
 ): PushResult {
   return withOrigin(ctx, origin, () => {
     const s = ctx.s;
@@ -158,24 +197,8 @@ export function push(
 
     // Plan the walk first so the log reads push, then crush or drop.
     const start = { ...unit.pos };
-    const path: Coord[] = [];
-    let at = start;
-    let allowance = tiles;
-    let stop: Stop | null = null;
-    while (allowance > 0) {
-      const next = step(at, dir);
-      stop = stopAt(ctx, unit, at, next);
-      if (stop) break;
-      at = next;
-      path.push(next);
-      allowance--;
-      const layer = tileAt(s, next).state as Layer | null;
-      if (!flies(unit) && layer && SLICK.has(layer.id) && layer.slid !== s.round) {
-        if (!hasFootnote(ctx, 'shove-slick-again')) layer.slid = s.round;
-        allowance = Math.max(allowance, hasFootnote(ctx, 'shove-slick-far') ? 2 : 1);
-      }
-    }
-    const slid = Math.max(0, path.length - tiles);
+    const { path, slid, stop, slicks } = planPush(ctx, unit, dir, tiles);
+    if (!hasFootnote(ctx, 'shove-slick-again')) for (const l of slicks) l.slid = s.round;
 
     if (path.length) {
       const body = (): void => {
@@ -185,18 +208,26 @@ export function push(
       else body();
       if (unit.kind === 'member') unit.undo = null;
     }
-    for (const c of path) {
-      unit.pos = { ...c };
-      notify(ctx, { kind: 'entered', unit: unit.id, at: { ...c } });
-      // A jar or bound mark may have killed or moved it: the push ends there.
-      if (unit.hp <= 0 || !sameCoord(unit.pos, c)) {
+    // The pushed tiles, then the slide; each tile entered answers (P2). A hook that kills, moves
+    // or holds the unit ends the push there (P4).
+    const pushed = path.slice(0, tiles);
+    const slide = path.slice(tiles);
+    const legs = [
+      { tiles: pushed, cause: 'push' as const, landing: slide.length === 0 },
+      { tiles: slide, cause: 'slide' as const, landing: true },
+    ];
+    for (const leg of legs) {
+      if (!leg.tiles.length) continue;
+      const r = arrive(ctx, unit.id, leg.tiles, { cause: leg.cause, origin, landing: leg.landing });
+      if (r.interrupted) {
         return { moved: path.length, end: { ...unit.pos }, crushed: null, dropped: false };
       }
     }
 
     let crushed: PushResult['crushed'] = null;
     let dropped = false;
-    if (stop?.kind === 'crush') {
+    // With `crush: false` it stops short of what is in the way.
+    if (stop?.kind === 'crush' && opts.crush !== false) {
       crush(ctx, unit, dir, path.length, stop);
       crushed = typeof stop.into === 'string' ? stop.into : stop.into.id;
     } else if (stop?.kind === 'drop') {

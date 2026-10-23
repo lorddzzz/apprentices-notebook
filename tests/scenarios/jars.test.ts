@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { type BattleState, type Coord, type Jar, parseLabel, tileAt, unitAt } from '$engine';
+import { arrive } from '$engine/arrival';
 import type { Ctx } from '$engine/ctx';
-import { notify } from '$engine/hooks';
 import { sealJar } from '$engine/jars';
 import { act, cast, draft, expectLogIncludes, withLattices } from './harness';
 
@@ -98,8 +98,7 @@ describe('jars open on a step', () => {
     const rat = unit(s, 'rat-1');
     const opened = draft(s, (ctx: Ctx) => {
       const r = unit(ctx.s, 'rat-1');
-      r.pos = at('D1');
-      notify(ctx, { kind: 'entered', unit: r.id, at: at('D1') });
+      arrive(ctx, r.id, [at('D1')], { cause: 'push', origin: null, landing: true });
     });
     expectLogIncludes(opened.events, [
       'the jar at D1 opens under rat at D1',

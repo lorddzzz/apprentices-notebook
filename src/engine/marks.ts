@@ -229,11 +229,13 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
   );
 }
 
-/** Spreads a mark whose bearer enters a cloud, then releases it if it waits for that. */
+/**
+ * Releases a bound mark on its event. `entered` comes from the arrival pipeline's `bindEnters`
+ * hook, which runs after `markSpread` (arrival.ts).
+ */
 export function onHook(ctx: Ctx, h: Hook): void {
   const unit = findUnit(ctx.s, h.unit);
   if (!unit?.mark) return;
-  if (h.kind === 'entered') spreadFrom(ctx, unit);
   if (unit.mark.bound?.event !== EVENT_OF[h.kind]) return;
   if (h.kind !== 'died' && !isAlive(unit)) return; // a killing blow: the dies event takes it
   release(ctx, unit, h);

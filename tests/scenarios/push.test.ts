@@ -1,19 +1,32 @@
 import { expect, test, vi } from 'vitest';
 import type { BattleState, Dir, GameEvent } from '$engine';
 import type { Ctx } from '$engine/ctx';
-import type { Hook } from '$engine/hooks';
+import type { NotifiedHook } from '$engine/hooks';
 import { push } from '$engine/push';
 import { board, draft, expectLog, unitAtLabel } from './harness';
 
-/** Push, slide, crush and drop (design §4.4, plan P3, P19, P28). Every hook the engine fires is recorded. */
+/**
+ * Push, slide, crush and drop (design §4.4, plan P3, P19, P28). Every hook the engine fires is
+ * recorded, and so is every arrival (FD-3: entered tiles go through the arrival pipeline).
+ */
 const hooks = vi.hoisted(() => ({ seen: [] as unknown[] }));
 vi.mock('$engine/hooks', async (original) => {
   const real = await original<typeof import('$engine/hooks')>();
   return {
     ...real,
-    notify: (ctx: Ctx, h: Hook) => {
+    notify: (ctx: Ctx, h: NotifiedHook) => {
       hooks.seen.push(h);
       real.notify(ctx, h);
+    },
+  };
+});
+vi.mock('$engine/arrival', async (original) => {
+  const real = await original<typeof import('$engine/arrival')>();
+  return {
+    ...real,
+    arrive: (...a: Parameters<typeof real.arrive>) => {
+      hooks.seen.push({ kind: 'arrive', unit: a[1], entered: a[2], cause: a[3].cause });
+      return real.arrive(...a);
     },
   };
 });
@@ -169,13 +182,20 @@ test('hold-blocks-push: a held unit does not move and takes no crush', () => {
   expect(hooks.seen).toEqual([]);
 });
 
-test('hooks: pushed once, entered for each tile, then hit and died from the crush', () => {
+test('hooks: pushed once, one arrival entering each tile, then hit and died from the crush', () => {
   hooks.seen.length = 0;
   pushAt(board('D r . . {wall}'), 'B1', 'right', 3);
   expect(hooks.seen).toEqual([
     { kind: 'pushed', unit: 'rat-1', dir: 'right' },
-    { kind: 'entered', unit: 'rat-1', at: { x: 2, y: 0 } },
-    { kind: 'entered', unit: 'rat-1', at: { x: 3, y: 0 } },
+    {
+      kind: 'arrive',
+      unit: 'rat-1',
+      entered: [
+        { x: 2, y: 0 },
+        { x: 3, y: 0 },
+      ],
+      cause: 'push',
+    },
     { kind: 'hit', unit: 'rat-1', heading: 'right', from: null },
     { kind: 'died', unit: 'rat-1' },
   ]);

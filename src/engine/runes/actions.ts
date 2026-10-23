@@ -1,14 +1,14 @@
 import { ACTIONS, type ActionRuneId, type LineId, RUNES, TUNING } from '$data';
+import { hasTrait, objectArrives, relocateAll } from '../arrival';
 import { type Ctx, emit, ref, withLine } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
 import { type Coord, type Dir, step } from '../grid';
-import { notify } from '../hooks';
 import { spendMark } from '../marks';
 import { push } from '../push';
 import { inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
 import type { Handler } from '../resolve';
 import { SOLVENT_RULES } from '../solvents';
-import { type Flow, type Target, targetKey, type Unit } from '../types';
+import { type Flow, type Layer, type Target, targetKey, type Unit } from '../types';
 
 // Numbers the design fixes (§5.2) that have no TUNING key yet: Sentence's push, Hold's duration,
 // Levy's shield per mark. Move them into TUNING when types.ts gains the keys.
@@ -104,22 +104,40 @@ const swap: Handler = (ctx, t, flow) => {
     withLine(ctx, 'swap:held', () => emit(ctx, { type: 'held', unit: ref(blocked) }));
     return;
   }
+  // An anchored unit never moves (P5, party §1); the Swap rune still trades places with fliers.
+  if (hasTrait(u, 'anchored') || hasTrait(caster, 'anchored')) {
+    emit(ctx, { type: 'miss', source: RUNES.swap.name });
+    return;
+  }
   emit(ctx, { type: 'swapped', a: ref(caster), b: ref(u) });
-  const at = { ...caster.pos };
-  caster.pos = { ...u.pos };
-  u.pos = at;
-  notify(ctx, { kind: 'entered', unit: caster.id, at: { ...caster.pos } });
-  if (u.hp > 0) notify(ctx, { kind: 'entered', unit: u.id, at: { ...u.pos } });
+  const a = { ...caster.pos };
+  const b = { ...u.pos };
+  // Both are lifted and set down, then arrive: the caster first, then the target (P4).
+  relocateAll(
+    ctx,
+    [
+      { unit: caster.id, from: a, to: b, path: [b] },
+      { unit: u.id, from: b, to: a, path: [a] },
+    ],
+    'swap',
+    flow.origin,
+  );
 };
 
 const spaced = (id: string): string => id.replace(/([A-Z])/g, ' $1').toLowerCase();
 
-/** One hop of Draw: the tile's state and jar go to `to` if it will take them. Returns true if anything moved. */
-function drawHop(ctx: Ctx, from: Coord, to: Coord): boolean {
+/** What one hop of Draw moved (null: nothing). */
+interface Hop {
+  state: Layer['id'] | null;
+  jar: boolean;
+}
+
+/** One hop of Draw: the tile's state and jar go to `to` if it will take them. */
+function drawHop(ctx: Ctx, from: Coord, to: Coord): Hop | null {
   const s = ctx.s;
   const src = tileAt(s, from);
   const dst = tileAt(s, to);
-  let moved = false;
+  const moved: Hop = { state: null, jar: false };
   if (src.state && dst.state === null) {
     const standing = isPlate(src) && unitAt(s, to);
     if (standing) {
@@ -128,7 +146,7 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord): boolean {
       emit(ctx, { type: 'drawn', from: { ...from }, to: { ...to }, what: spaced(src.state.id) });
       dst.state = src.state;
       src.state = null;
-      moved = true;
+      moved.state = dst.state.id;
     }
   }
   if (src.jar && dst.jar === null) {
@@ -137,9 +155,9 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord): boolean {
     );
     dst.jar = src.jar;
     src.jar = null;
-    moved = true;
+    moved.jar = true;
   }
-  return moved;
+  return moved.state || moved.jar ? moved : null;
 }
 
 const draw: Handler = (ctx, t, flow) => {
@@ -149,12 +167,24 @@ const draw: Handler = (ctx, t, flow) => {
   const here = tileAt(ctx.s, at);
   if (!here.state && !here.jar) return;
   if (!heading) return miss(ctx, 'draw', 'draw:noHeading');
+  // Where the drawn state and jar came to rest: they arrive there once, after the hops (P2, P6).
+  let state: { id: Layer['id']; at: Coord } | null = null;
+  let jarAt: Coord | null = null;
   for (let i = 0; i < Math.max(0, 1 + pushBonus('draw', flow)); i++) {
     const next = step(at, heading);
-    if (!inBoard(ctx.s, next)) return miss(ctx, 'draw', 'draw:edge');
-    if (!drawHop(ctx, at, next)) return;
+    if (!inBoard(ctx.s, next)) {
+      miss(ctx, 'draw', 'draw:edge');
+      break;
+    }
+    const hop = drawHop(ctx, at, next);
+    if (!hop) break;
+    if (hop.state) state = { id: hop.state, at: next };
+    if (hop.jar) jarAt = next;
     at = next;
   }
+  const opts = { cause: 'draw', origin: flow.origin } as const;
+  if (state) objectArrives(ctx, { kind: 'state', state: state.id }, state.at, opts);
+  if (jarAt && tileAt(ctx.s, jarAt).jar) objectArrives(ctx, { kind: 'jar' }, jarAt, opts);
 };
 
 const erase: Handler = (ctx, t) => {

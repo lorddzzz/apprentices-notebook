@@ -1,17 +1,18 @@
 import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId } from '$data';
+import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import {
   byReadingOrder,
   type Coord,
   type Dir,
+  key,
   neighbors4,
   opposite,
   sameCoord,
   step,
 } from './grid';
 import type { Hook } from './hooks';
-import { openJar } from './jars';
 import { spendMark } from './marks';
 import { cloudNet, isBrass, oilNet } from './networks';
 import {
@@ -22,7 +23,6 @@ import {
   isAlive,
   isCloud,
   isFire,
-  isOpen,
   isPlate,
   tileAt,
   unitAt,
@@ -157,34 +157,45 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
       }
       if (gone.length) emit(ctx, { type: 'stateFades', tiles: gone });
 
-      // Lift every unit that moved, then set each back; one whose home is taken goes to a free tile.
+      // Lift every unit that moved, then set each back; one whose home is taken goes to a free
+      // tile. Planned first, then placed together: a restore is not an arrival (P2).
       const movers = undo.units.flatMap(({ id, pos }) => {
         const u = findUnit(s, id);
         return u && isAlive(u) && !sameCoord(u.pos, pos)
-          ? [{ u, from: { ...u.pos }, home: pos }]
+          ? [{ u, from: { ...u.pos }, home: pos, to: { ...u.pos } }]
           : [];
       });
-      for (const m of movers) m.u.pos = { x: -1, y: -1 };
-      const place = (u: Unit, c: Coord): boolean => {
-        if (!inBoard(s, c) || unitAt(s, c) || blocksUnits(tileAt(s, c))) return false;
-        u.pos = { ...c };
+      const lifted = new Set(movers.map((m) => m.u.id));
+      const taken = new Set(
+        s.units.filter((u) => isAlive(u) && !lifted.has(u.id)).map((u) => key(u.pos)),
+      );
+      const place = (m: (typeof movers)[number], c: Coord): boolean => {
+        if (!inBoard(s, c) || taken.has(key(c)) || blocksUnits(tileAt(s, c))) return false;
+        taken.add(key(c));
+        m.to = { ...c };
         return true;
       };
-      const stuck = movers.filter((m) => !place(m.u, m.home));
+      const stuck = movers.filter((m) => !place(m, m.home));
       for (const m of stuck) {
-        if (!place(m.u, m.from)) {
+        if (!place(m, m.from)) {
           const free = s.tiles
             .map((_, i) => coordOf(s, i))
-            .find((c) => isOpen(s, c) && !unitAt(s, c));
-          if (free) place(m.u, free);
+            .find((c) => !taken.has(key(c)) && !blocksUnits(tileAt(s, c)));
+          if (free) place(m, free);
         }
       }
       for (const m of movers) {
         if (m.u.kind === 'member') m.u.undo = null;
-        if (!sameCoord(m.u.pos, m.from)) {
-          emit(ctx, { type: 'moveUndone', unit: ref(m.u, m.from), to: { ...m.u.pos } });
+        if (!sameCoord(m.to, m.from)) {
+          emit(ctx, { type: 'moveUndone', unit: ref(m.u, m.from), to: { ...m.to } });
         }
       }
+      relocateAll(
+        ctx,
+        movers.map((m) => ({ unit: m.u.id, from: m.from, to: m.to, path: [m.to] })),
+        'restore',
+        origin,
+      );
     }),
   );
 }
@@ -236,9 +247,10 @@ export function driftWaiting(ctx: Ctx): void {
     );
     landed.push(m.to);
   });
+  // A jar floating under a standing unit opens on it (Lantern Walk, P6).
   for (const at of landed) {
-    const jar = tileAt(s, at).jar;
-    if (jar?.event === 'step' && unitAt(s, at)) openJar(ctx, at);
+    if (tileAt(s, at).jar)
+      objectArrives(ctx, { kind: 'jar' }, at, { cause: 'drift', origin: null });
   }
   for (const e of s.scheduled) {
     if (e.solvent !== 'pitch' || e.target.kind !== 'tile') continue;
