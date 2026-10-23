@@ -1,0 +1,468 @@
+{
+  "district": "canals",
+  "seed": 1,
+  "options": { "idle": true },
+  "rooms": [
+    {
+      "encounter": 0,
+      "variant": 2,
+      "place": "The lamplit quay",
+      "actions": [
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" }
+      ],
+      "events": [
+        { "type": "battleStart", "title": "The lamplit quay" },
+        { "type": "round", "round": 1 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "idle",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false }
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
+          "verb": "lunge"
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
+          "verbs": "lunges"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
+          "amount": 2,
+          "source": "Lunge",
+          "bonus": [],
+          "hpLeft": 6
+        },
+        { "type": "round", "round": 2 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "moved",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false },
+          "to": { "x": 1, "y": 2 },
+          "path": [{ "x": 1, "y": 0 }, { "x": 1, "y": 1 }, { "x": 1, "y": 2 }]
+        },
+        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 1 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 2 }, "makes": "slick" },
+        {
+          "type": "idle",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 2 }, "member": false }
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
+          "verb": "lunge"
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
+          "verbs": "lunges"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
+          "amount": 2,
+          "source": "Lunge",
+          "bonus": [],
+          "hpLeft": 4
+        },
+        { "type": "round", "round": 3 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "moved",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 2 }, "member": false },
+          "to": { "x": 1, "y": 5 },
+          "path": [{ "x": 1, "y": 3 }, { "x": 1, "y": 4 }, { "x": 1, "y": 5 }]
+        },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 3 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 4 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 5 }, "makes": "slick" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
+          "verb": "lunge"
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 5
+        },
+        {
+          "type": "attack",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
+          "verbs": "lunges"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
+          "amount": 2,
+          "source": "Lunge",
+          "bonus": [],
+          "hpLeft": 2
+        },
+        { "type": "round", "round": 4 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
+          "verb": "lunge"
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 4
+        },
+        {
+          "type": "attack",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
+          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
+          "verbs": "lunges"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
+          "amount": 2,
+          "source": "Lunge",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true }
+        },
+        { "type": "round", "round": 5 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 3
+        },
+        { "type": "round", "round": 6 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 2
+        },
+        { "type": "round", "round": 7 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 1
+        },
+        { "type": "round", "round": 8 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 5 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 6 },
+            "member": true
+          }
+        },
+        { "type": "lost" }
+      ],
+      "phase": "lost",
+      "outcome": "wiped",
+      "offers": [],
+      "picked": [],
+      "stats": {
+        "fights": 1,
+        "spells": [],
+        "biggestChain": null,
+        "discoveries": [],
+        "proofCasts": 0,
+        "elegance": [],
+        "heard": []
+      }
+    }
+  ],
+  "outcome": "wiped",
+  "profile": {
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
+    "methods": [],
+    "inventions": [],
+    "solvents": {
+      "gallnut": 0,
+      "cinder": 0,
+      "pitch": 0,
+      "wick": 0,
+      "wax": 0,
+      "sand": 0,
+      "bathSalt": 0,
+      "fogJar": 0,
+      "mortar": 0,
+      "chalk": 0,
+      "rivet": 0,
+      "filings": 0,
+      "quicksilver": 0,
+      "graphite": 0
+    },
+    "inkCapacity": { "draughtsman": 8, "stoker": 8 },
+    "lattices": {
+      "draughtsman": [
+        { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
+        { "at": { "x": 1, "y": 1 }, "rune": "ink" },
+        { "at": { "x": 2, "y": 1 }, "rune": "strike" }
+      ],
+      "stoker": [
+        { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
+        { "at": { "x": 1, "y": 1 }, "rune": "oil" },
+        { "at": { "x": 1, "y": 2 }, "rune": "spark" }
+      ]
+    },
+    "witnessed": [],
+    "named": [],
+    "met": ["minion", "elite", "slick", "water"],
+    "foesMet": ["rat", "eel"],
+    "footnotes": {},
+    "vellum": 0,
+    "glyphs": [],
+    "glyphArchive": [],
+    "glyphRecords": {},
+    "proof": { "draughtsman": [], "stoker": [] },
+    "city": {
+      "heard": ["seam", "canals"],
+      "open": ["seam", "canals"],
+      "hearts": [],
+      "solved": [],
+      "trips": 1,
+      "fresh": []
+    }
+  },
+  "trip": null,
+  "save": {
+    "profile": {
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
+      "methods": [],
+      "inventions": [],
+      "solvents": {
+        "gallnut": 0,
+        "cinder": 0,
+        "pitch": 0,
+        "wick": 0,
+        "wax": 0,
+        "sand": 0,
+        "bathSalt": 0,
+        "fogJar": 0,
+        "mortar": 0,
+        "chalk": 0,
+        "rivet": 0,
+        "filings": 0,
+        "quicksilver": 0,
+        "graphite": 0
+      },
+      "inkCapacity": { "draughtsman": 8, "stoker": 8 },
+      "lattices": {
+        "draughtsman": [
+          { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
+          { "at": { "x": 1, "y": 1 }, "rune": "ink" },
+          { "at": { "x": 2, "y": 1 }, "rune": "strike" }
+        ],
+        "stoker": [
+          { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
+          { "at": { "x": 1, "y": 1 }, "rune": "oil" },
+          { "at": { "x": 1, "y": 2 }, "rune": "spark" }
+        ]
+      },
+      "witnessed": [],
+      "named": [],
+      "met": ["minion", "elite", "slick", "water"],
+      "foesMet": ["rat", "eel"],
+      "footnotes": {},
+      "vellum": 0,
+      "glyphs": [],
+      "glyphArchive": [],
+      "glyphRecords": {},
+      "proof": { "draughtsman": [], "stoker": [] },
+      "city": {
+        "heard": ["seam", "canals"],
+        "open": ["seam", "canals"],
+        "hearts": [],
+        "solved": [],
+        "trips": 1,
+        "fresh": []
+      }
+    },
+    "trip": null,
+    "seedCounter": 1,
+    "lastTrip": null
+  }
+}

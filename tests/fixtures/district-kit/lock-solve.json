@@ -1,0 +1,143 @@
+{
+  "kind": "solve",
+  "events": [
+    { "type": "battleStart", "title": "The canal lock" },
+    { "type": "round", "round": 1 },
+    { "type": "phase", "phase": "enemy" },
+    {
+      "type": "idle",
+      "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 3 }, "member": false }
+    },
+    { "type": "phase", "phase": "player" },
+    {
+      "type": "cast",
+      "caster": {
+        "id": "draughtsman",
+        "name": "Draughtsman",
+        "at": { "x": 0, "y": 3 },
+        "member": true
+      },
+      "spell": "Bolt",
+      "aim": { "kind": "dir", "dir": "right" },
+      "aimText": "right",
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "aimed",
+      "source": "bolt",
+      "targets": [{ "kind": "unit", "unit": "rat-1" }],
+      "heading": "right",
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "lands",
+      "source": "Bolt",
+      "at": { "x": 3, "y": 3 },
+      "path": [{ "x": 1, "y": 3 }, { "x": 2, "y": 3 }, { "x": 3, "y": 3 }],
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "landed",
+      "kind": "oil",
+      "at": { "x": 3, "y": 3 },
+      "makes": "slick",
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "dropped",
+      "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 3 }, "member": false },
+      "at": { "x": 4, "y": 3 },
+      "elite": false,
+      "line": "shove:water",
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "died",
+      "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 3 }, "member": false },
+      "line": "shove:water",
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "trace",
+      "caster": {
+        "id": "draughtsman",
+        "name": "Draughtsman",
+        "at": { "x": 0, "y": 3 },
+        "member": true
+      },
+      "spell": "0,1",
+      "cells": [
+        { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
+        { "at": { "x": 1, "y": 1 }, "rune": "oil" },
+        { "at": { "x": 2, "y": 1 }, "rune": "shove" }
+      ],
+      "meaningful": true,
+      "spans": [
+        { "at": { "x": 0, "y": 1 }, "from": 0, "to": 2 },
+        { "at": { "x": 1, "y": 1 }, "from": 2, "to": 3 },
+        { "at": { "x": 2, "y": 1 }, "from": 3, "to": 5 }
+      ],
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    {
+      "type": "named",
+      "what": "idiom",
+      "id": "longDrop",
+      "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
+    },
+    { "type": "won" }
+  ],
+  "phase": "won",
+  "board": ". . . . wv .\n. S . . wv .\n. . . = wv .\nD . . o wv .\n. . . = wv .\n. . . . wv .\n. . . . wv .\n. . . . wv .",
+  "profile": {
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
+    "methods": [],
+    "inventions": [],
+    "solvents": {
+      "gallnut": 0,
+      "cinder": 0,
+      "pitch": 0,
+      "wick": 0,
+      "wax": 0,
+      "sand": 0,
+      "bathSalt": 0,
+      "fogJar": 0,
+      "mortar": 0,
+      "chalk": 0,
+      "rivet": 0,
+      "filings": 0,
+      "quicksilver": 0,
+      "graphite": 0
+    },
+    "inkCapacity": { "draughtsman": 8, "stoker": 8 },
+    "lattices": {
+      "draughtsman": [
+        { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
+        { "at": { "x": 1, "y": 1 }, "rune": "oil" },
+        { "at": { "x": 2, "y": 1 }, "rune": "shove" }
+      ],
+      "stoker": [
+        { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
+        { "at": { "x": 1, "y": 1 }, "rune": "spark" }
+      ]
+    },
+    "witnessed": [],
+    "named": [],
+    "met": [],
+    "foesMet": [],
+    "footnotes": {},
+    "vellum": 0,
+    "glyphs": [],
+    "glyphArchive": [],
+    "glyphRecords": {},
+    "proof": { "draughtsman": [], "stoker": [] },
+    "city": {
+      "heard": ["seam", "canals"],
+      "open": ["seam", "canals"],
+      "hearts": [],
+      "solved": ["canals"],
+      "trips": 0,
+      "fresh": []
+    }
+  }
+}
