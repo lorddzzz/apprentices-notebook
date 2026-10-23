@@ -43,6 +43,7 @@
 | Re-laying | Every base room is re-laid with at least four start points drawn from the trip seed and a size chosen for the place (tight and cluttered early), per the household round |
 | Hearing setups | Each of the five hearing events (fire on 3+ oil, cross-apprentice Ink debt, Storm on 3 units, The Wall, conducted burst on 3 units) must be **reachable with the starting basics in at least two base rooms**, with a `???` hint in the owner's voice. The older placeholder triggers in `src/data/districts.ts` (deep mark, grease fog, the Wall, Conduct) are replaced by those in each district doc |
 | Lower floors | Floors appear in the order you opened the districts (canals first), one room each with three layouts, up to five floors (canals, quarter, thermae, bridges, foundry). No heart on a floor; the lowest ends at the door |
+| What an intrusion brings (decided 2026-10-23, the player's pick) | **Its own piece rules, made gentler:** a lane drifts, bells ring by tone, writs and vents work; a span that falls drops an apprentice with the canals' survivable drop (4 and stunned) instead of out of the room. Never a district-wide rule (gauge, heat, pencil hand), hearing, rival or footnote |
 | Intrusion loot | An intrusion never drops its district's own runes, methods or solvents (previews only); floors give ordinary basics-tier loot scaled for three |
 | The Cartographers | They are not a floor; clearing their hall opens the sealed door |
 | Small parties | The lower Seam is tuned for three; fewer is a pure challenge, as elsewhere |

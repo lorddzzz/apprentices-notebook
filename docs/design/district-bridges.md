@@ -18,7 +18,7 @@
 | Falling: apprentices | **An apprentice who falls is out of the room until its end**, and is hauled back at 1 HP when the room is won (the same as a downed member). A collapse that drops the whole party is a wipe | A fall is a real sacrifice, and the collapse is telegraphed by cracks so you can walk off |
 | Falling: foes | As built: a dropped minion is gone; an elite takes 4 and loses its next action | Keeps the existing drop rule for foes |
 | Trip shape | **Choose your span.** After each room you pick one of two spans: a **sound long** span (more foes, solid floor) or a **crumbling short** one (fewer foes, few piers, better loot). **Return is free after any room** | A route-and-risk choice that is different from the other districts' pacing |
-| Trip length | **Five rooms and the heart**, so four span choices before the heart | A long span network with variety in the choices |
+| Trip length | **Four rooms and the heart** (five fights, four span choices). *Clarified 2026-10-23 (the player's pick): the earlier "five rooms and the heart" contradicted "four span choices"* | A long span network with variety in the choices |
 | Foes | **The wardens' staff:** the **Warden** (holds a unit in place with a chalk circle, so you can't walk off a crumbling span), the **Gargoyle** (flies, immune to drops, grabs an apprentice and carries it toward the edge; its target is telegraphed) and the **Mason** (rebuilds a fallen tile or lays a new pier each round, so protect it or hunt it) | All three act on piers and drops |
 | Heart | **The Chief Warden, a rival on the keystone** ([rivals.md](rivals.md)). Signature trick: **right of way:** he can't be pushed or held and can't fall while the keystone stands. He fights from the great arch's keystone, which is his pier: crush and burst it to bring him down, and felling him brings the bridge down | The most dramatic finale; the district's rule is the boss |
 | Hearing | **Perform The Wall** in the Seam: a slide that ends in a crush (a named idiom). The owner's hand inks in the bridges with a line about stone that holds because it was pushed against | Uses an idiom and teaches push and crush, which the district runs on |
@@ -28,6 +28,7 @@
 
 | Topic | Default |
 |---|---|
+| What breaks the link | **Span stones wear** (decided 2026-10-23, the player's pick): span tiles carry stone (2 on sound spans, 1 on crumbling); crushes and non-fire bursts wear it, and a worn-through tile breaks the link. Piers never wear. Replaces the sketch's "pushed pier-stone" | The design named crushes and bursts but no breakable object |
 | Collapse timing | A section cut from every pier is marked cracked at once and falls at the end of that round, after the enemies act. Telegraphed foe actions are fixed beforehand, so foes don't dodge. The cutter must move off, or sacrifice |
 | Edge policy | Bridge rooms' edges are drops; the Seam and canals keep their walls and water. The drop-edge flag already exists (`EdgeRule`) |
 | The two spans | Each room has a "sound" and a "crumbling" variant; the trip seed chooses the layouts. Crumbling spans have fewer piers and the Mason is rarer |

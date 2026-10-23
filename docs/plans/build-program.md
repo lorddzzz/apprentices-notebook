@@ -39,8 +39,8 @@ Not planned yet: **BL-126** (the ending sandbox) needs a design round first; atm
 | Rooms: `P` start points, `checkRoom`, sizes 5–7 × 6–9, party 1–3 | HC-2, HC-3, HC-4 |
 | District module, files, round-end rule slots, pieces, trip shape (return policy, choices, checkpoint, trip state, room bonus goals), out of the room, offer kinds, hearing kinds, stand-in hearts, intrusion spec, generic Crossroads/Loot/board/Lab/Bench/threshold/map | DK-1, DK-3, DK-4, DK-5a/b, DK-6, DK-7, DK-8, DK-9, DK-10, DK-11–16; template district DK-18 |
 | Rivals: engine (RV-1–6), authoring API (RV-11–14, after the Lab playtest gate RV-G1), recovered pages and `pagesHeld` (RV-15–20) | RV |
-| Recruit offer, preconditions, guarantees | RC (plan in progress) |
-| Habit and action mechanics | AH (plan in progress) |
+| Recruit offer, preconditions, guarantees | RC-W0, RC-2, RC-3, RC-4 (placement per district through `DistrictDef.recruit`) |
+| Habit and action mechanics, the harm guard | AH-W0, AH-1 to AH-4 |
 | Footnote batch: plan §6 template (audit, author, player review gate, build in `src/data/footnotes/<district>.ts` with `fourCombos` tests) | FN §6 |
 
 ## 2. What a plan looks like
@@ -65,6 +65,35 @@ Plans state **goals**, not keystrokes. Aim for roughly 120–220 lines. Use thes
 - Keep engine purity, the event log, seeded randomness and data-in-`src/data/` (AGENTS.md).
 - Report back in under ~300 words: the plan's shape (waves, task count, size), Redefines proposals, cross-plan assumptions, and open questions.
 
-## 4. Planning status (2026-10-23, paused at the usage limit)
+## 4. Reconciliation (2026-10-23)
 
-Drafted, not yet reconciled or approved: FD, HC, AH, RC, RV, DK, FN, CN, SM, CG (and any of IQ, BH, BR, BF present in this folder). Still to do: finish IQ/BH/BR/BF if missing; reconciliation pass (alias `FD-W0` = FD-0 and `DK-W0` = DK-1; DK-0/DK-2 run before HC-1/HC-4; RC follows AH-P10 habit ids; RV's prose deps → FD-3, FD-5, FD-7, DK-3, HC-1, FN-8; FN's "FD (BL-123)" → FD-8/FD-9; collect consumer requests to DK: RC DK-R1, CN R1–R3, CG, SM); one question round with the player on the Redefines; then rewrite ROADMAP §2 with the execution order, dependency graph and statuses.
+All 14 plans are drafted and reconciled. Their `State:` lines still say *Drafted*; the roadmap §2 holds the live status.
+
+**Aliases.** `FD-W0` means FD-0 (with FD-3 for the arrival pipeline itself, FD-7 for event contracts); `DK-W0` means DK-1 (contracts) plus DK-2 (the `run.ts` split). Other prefixes use their own `<prefix>-W0` task.
+
+**Orchestrator calls.**
+- **DK-0 and DK-2 run first**, before HC-1/HC-4, RC and FD touch the trip flow (HC plan §8 updated).
+- **One lore registry** (`Profile.papers`) is DK's (DK §9); IQ-14, CN-9, BH, BR and CG consume it. It is also BL-41's delivery channel.
+- **One harm guard registry** is AH-W0's (AH plan, orchestrator additions); BH, IQ and RV-11 register guards.
+- RC uses AH's habit ids (AH P10). CN owns the canals' Timing footnote batch, including the Lamplighter's note on Jar (RV-20 points at it). Every consumer request to DK is in DK §9 with the task that owns it.
+- **Foe and piece tokens** come from DK-1's token registry; the district plans' letters are placeholders until then.
+
+**The player's picks** (DESIGN §11, last row): one household ink allowance (HC P6); margins on 2–3 chosen lines per rune (FN P1); the Lab lists only the household on a normal save (RC P14 over HC P16); no player gate for footnote variants (every `*-FG`/`FN-G1`/`CN-G1`/`BR-G1`/`CG-G3` is an orchestrator review); the bridges are four rooms and the heart with span stones that wear (BR); rival casts reveal lines but earn no points (RV Q1); lower-Seam intrusions keep their piece rules with the canals' survivable drop (SM P9, DK Q1, BR's floor).
+
+**Defaults taken without a question** (the plans' proposals; veto any):
+
+| Plan | Default |
+|---|---|
+| FD | Pushed or pulled into fire burns at round end, as now; Repeat/Margin echoes keep the auras their first cast touched; a unit carried by the current is a real arrival (opens step-jars, spreads marks, triggers Bind *enters*; stains stay exempt); Draw opens a step-jar it moves under a unit |
+| HC | One apprentice going out sees a single quiet "going alone" line; the ink reserve keeps its size; slot 3 appears only with three in the household |
+| AH | Hop and long Touch cannot pass over anything that blocks units (plates, Walls, Kettles, gates, grates); Flashover (fire) burns the towel-bearer; the warden's second Hold may catch an ally (first unit beside the target: ahead, left, right, behind); the erased student remembers the last Erase for the whole fight |
+| RC | "A proven invention" is one proven over 5 trip casts; a door note may come on the evening of a wipe; a recruit revealed only by an unbanked page is hidden again if the page is lost; at most one door note per homecoming |
+| RV | Copy to the Study stays (the copy still needs owned parts and ink) |
+| DK | Once the Cartographers' doorway is reached, Set out defaults to starting there, with room 1 one tap away |
+| SM | The lower Seam is its own trip; the owner's hearing hints live on the Seam's margin sheet on the map; margins answer per page |
+| CN | Waiting is enough to moor the barge; the Lamplighter replaces the Snuffer in room 4; the wardens' pass is always offered after room 4 when its conditions hold; the barge is a bystander crate unit |
+| IQ | A term cannot be broken on purpose; standing orders may mark apprentices; the clock collects foes' marks too; the postmaster's note sits on Sentence at level II; Lift's page is in the heart's loot |
+| BH | The gauge never falls on its own; the dissolved bather ignores single hits inside a cloud and takes area bursts |
+| BR | The keystone has 6 HP; the Chief Warden is hittable but only falls once it breaks; the Long Drop also counts a foe dropped with a cut span |
+| BF | A tone rings at most once per round (the hum rule, a counter-toll); allied great bells hurt foes only; the far-bell gate gets a loose rat so a party without Shove can still strike the bell; great-bell puzzles need only Seam runes and Brass |
+| CG | Erase on pencil under a foe erases it; a circle is held by the nearest guild hand; Draw does not move bare pencil; rooms 1–3 each guarantee one unowned Board treasure in the order Erase, Draw, Swap, *dies*, Quicksilver, Graphite |

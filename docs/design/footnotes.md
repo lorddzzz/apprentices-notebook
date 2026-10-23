@@ -19,6 +19,8 @@
 | Content pacing | **Seam basics first, then each district brings its own.** One pass writes levels I and II and the capstones for the Seam's 13 runes and the five methods. Each district's build then ships its 3 runes and its 2 solvents in the same shape, plus its rival's unique note | The player's pick. The household can always master what it already holds; every district build adds a complete slice |
 | Pacing of points | **8 / 25 / 60 points** for levels I / II / III of a rune (slower than the built 5 / 15 / 40). Methods and solvents use about **5 / 15 / 36** because they fire less often (*tune by playing*) | The player's pick. Level III is a rare badge for a favourite rune; most runes will sit at I or II |
 | Where to re-pick | **At home only.** Writing and re-picking happen at the desk; the quiet doorway stays about rewiring | The player's pick. A footnote is preparation; the doorway is a find about the lattice |
+| Margin width (build planning, 2026-10-23) | **Margins on 2–3 chosen lines per rune** (3 for Spark and Ink), plus the capstone; other witnessed lines carry no slot (the player's pick) | 62 Seam lines alone would mean ~250 variants; chosen lines that change how you wire are the point |
+| Who picks the variants | **Claude authors and chooses the variant pairs; the player judges them by playing** (no review gate, the player's call 2026-10-23) | Keeps content passes moving; the playtest is the review |
 | After a wipe | **Points are kept** (as built: `learnFromFight` awards them won or lost). Practice on the Bench or in the Lab awards none | Knowledge isn't loot; no grinding on the test scene |
 
 ## 1. Rules

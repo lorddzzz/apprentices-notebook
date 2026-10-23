@@ -77,7 +77,7 @@
 | ID | Goal | Owned area | Role | Size | Depends on | Acceptance |
 |---|---|---|---|---|---|---|
 | **Wave 0: contracts** | | | | | | |
-| FN-0 | Types, per-kind thresholds, Profile shape, batch registry, test harness stubs | `data/types.ts`, `data/tuning.ts`, `data/footnotes/index.ts`, `engine/types.ts`, `tests/scenarios/footnoteHarness.ts` | Strong | M | FD (BL-123), HC (save reset) | Contract types compile; existing tests green with old behaviour behind the new shape; handoff names invariants |
+| FN-0 | Types, per-kind thresholds, Profile shape, batch registry, test harness stubs | `data/types.ts`, `data/tuning.ts`, `data/footnotes/index.ts`, `engine/types.ts`, `tests/scenarios/footnoteHarness.ts` | Strong | M | FD-8, FD-9, HC-1 | Contract types compile; existing tests green with old behaviour behind the new shape; handoff names invariants |
 | FN-1A | BL-101 audit for the Seam subjects: missing behaviour per rune, method and Seam solvent; candidate margin lines (P1); per-district gaps listed for later batches | `docs/plans/footnotes-audit.md` | Strong | M | none (starts at once) | Table of real behaviours without rows, each with a one-line firing case; no quota-filling |
 | **Wave 1: the system** | | | | | | |
 | FN-1 | Points for every subject (P2), levels per kind, slot and capstone openness, write and re-pick with 1/2/both costs (P3), independence (P11), rival gating | `engine/footnotes.ts` | Strong | M | FN-0 | Unit tests: thresholds per kind, no double count per run, Bench/Lab award none, costs, free re-pick, capstone without a witnessed line |
@@ -87,7 +87,7 @@
 | FN-5 | Codex margin column (read-only) on rune, method and solvent pages; method and solvent pages list their witnessed fine print | `engine/run.ts` (`codexView`, `fineOf`), `ui/screens/Codex.svelte`, `ui/components/codex/` | Medium | M | FN-1, FN-2 | Codex test; phone check on the road and at home |
 | FN-6 | Owner's hand: `lineTextFor` in Bench new lines, inspect and preview captions; Bench trials apply written footnotes (P6) | `app/bench.ts`, `app/describe.ts`, `app/peek.ts` | Medium | S | FN-1, FN-3 | A written variant reads as written wherever its line is shown; Bench awards no points |
 | FN-7 | Lab variant toggle (any authored variant on/off, rival notes included) | `app/lab.ts`, `lab.svelte.ts`, Lab panel | Fast | S | FN-3 | Lab trial with a toggled variant shows its effect |
-| FN-8 | Rival-note slot hook: third option in a named slot, hidden until `holdsPage`, same level and cost, credit line in the margin | `engine/footnotes.ts`, `app/desk.ts`, margin component | Medium | S | FN-1, FN-4, RV (pages contract) | Fixture rival note: hidden, then offered, then credited |
+| FN-8 | Rival-note slot hook: third option in a named slot, hidden until `holdsPage`, same level and cost, credit line in the margin | `engine/footnotes.ts`, `app/desk.ts`, margin component | Medium | S | FN-1, FN-4, RV-W0 | Fixture rival note: hidden, then offered, then credited |
 | **Wave 2: lines and the aura capstone** | | | | | | |
 | FN-9 | Add the audited Seam lines with firing scenarios: sources and shapes (Splash, Touch, Fork, Bend, Strike, Guard) | `data/lines.ts`, the stamping engine sites | Medium | M | FN-1A | Each new row fires in a scenario; lines integrity test green |
 | FN-10 | Audited lines for methods and Seam solvents | same | Medium | S | FN-1A | as FN-9 |
@@ -96,7 +96,7 @@
 | **Wave 3: Seam content (author, review, build)** | | | | | | |
 | FN-A1 | Draft the Seam rune margins: margin lines per rune, level I and II pairs (with a spare opinion where two compete), 13 capstone pairs | `docs/design/footnotes-content/seam.md` | Strong | M | FN-1A | Every pair is two reasonable opinions; all 4 combinations read sensibly; design guidance §1 followed |
 | FN-A2 | Draft the five methods and Gallnut, Cinder | same file | Strong | S | FN-1A | as FN-A1 |
-| FN-G1 | **Player review gate** (design-round): the player picks between opinions, in small rounds; approved text becomes the spec | doc above, DESIGN §11 row | orchestrator | S | FN-A1, FN-A2 | Every batch below has approved text |
+| FN-G1 | **Orchestrator review gate** (the player delegated footnote variant choice, 2026-10-23): the player picks between opinions, in small rounds; approved text becomes the spec | doc above, DESIGN §11 row | orchestrator | S | FN-A1, FN-A2 | Every batch below has approved text |
 | FN-C1 | Bolt and Shove (pilot of the template): level I second lines, level II | `data/footnotes/seam-runes.ts`, `push.ts`, cast/target sites | Medium | M | FN-G1, FN-3, FN-9 | `fourCombos` scenario per margin line |
 | FN-C2 | Spark (3 margin lines) | same, `bursts.ts` | Medium | M | FN-C1 | as FN-C1 |
 | FN-C3 | Ink and Oil | same, `mix.ts`, `marks.ts` | Medium | M | FN-C1 | as FN-C1 |
@@ -114,7 +114,7 @@ Each district plan (CN, IQ, BH, BR, BF, CG) adds one batch task set in this shap
 
 1. **Audit** its 3 runes and 2 solvents against its terrain (FN-1A's method; gaps listed there). Add missing lines with firing scenarios first.
 2. **Author** a draft in `docs/design/footnotes-content/<district>.md`: per rune 2 margin lines × level I and II pairs and a capstone pair (an aura's diagonal capstone already exists, P7); per solvent 1 margin line and a capstone pair; the rival's note (rune, slot, text in the rival's voice, lore credit line).
-3. **Player review gate** (design-round), as FN-G1.
+3. **Orchestrator review gate** (the player delegated footnote variant choice, 2026-10-23), as FN-G1.
 4. **Build** in `src/data/footnotes/<district>.ts` (registered in the index), effect hooks in the district's own engine module where possible, `fourCombos` per margin line and one scenario per capstone and the rival note, under `tests/scenarios/footnotes/<district>.test.ts`.
 5. **Check** the margin on a phone (375×812) and the lines integrity test.
 
@@ -137,7 +137,7 @@ Typical size: audit S, author S–M, build 2–3 M tasks.
 
 ## 9. Execution notes
 
-- Critical path: FD (BL-123) and HC reset → FN-0 → FN-1 → FN-4 / FN-3 → FN-C1 → the remaining content. FN-1A starts immediately and runs beside Wave 0–1, so authoring (FN-A1/A2) and the review gate can finish before the system does.
+- Critical path: FD-8/FD-9 and HC-1 (save reset) → FN-0 → FN-1 → FN-4 / FN-3 → FN-C1 → the remaining content. FN-1A starts immediately and runs beside Wave 0–1, so authoring (FN-A1/A2) and the review gate can finish before the system does.
 - Parallel: FN-2, FN-3, FN-5, FN-6, FN-7 after FN-1; FN-9/FN-10 beside the UI; FN-11/12 beside content; FN-C2–C5 in parallel after the pilot FN-C1 (they touch different engine files, except `mix.ts` for C3/C4: run those two in sequence).
 - District batches can start once FN-1, FN-3 and FN-C1 (the pilot that proves the template) are merged.
 - Rough size: 27 tasks; system ~1 L of work (FN-0–FN-8, FN-11–12), audit and lines ~1 M+S, Seam content ~9 M after the gate.

@@ -1,91 +1,119 @@
 # Roadmap and backlog
 
-> Updated 2026-10-23 after the roster and footnotes rounds and a design consistency pass (Cartographers' return rule, runaway habit, starter-page preconditions; DESIGN §11); on 2026-10-22 after the household, ink-makers, bathhouses, bridges, bell foundry, canals-revisit, Seam-revisit and Cartographers design rounds (BL-43, BL-113–117, BL-124–126); on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-23: **every decided design now has an implementation plan**, ordered in §2 (the build program). Earlier the same day: the roster and footnotes rounds and a design consistency pass; on 2026-10-22 the household and district rounds; on 2026-10-21 the growing-pages build.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
 
-- IDs are stable: move entries, never renumber. New IDs start after BL-126.
-- Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Tracks](#2-roadmap-planned-tracks), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
-- An item gets a focused design round when needed, then an implementation plan. Update design/technical decisions with the build and move completed work to the Done log.
+- IDs are stable: move entries, never renumber. New IDs start after BL-131 (BL-127 district kit, BL-128 foundations, BL-129–131 the household split of BL-43).
+- Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Build program](#2-build-program-order-of-execution), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
+- An item gets a focused design round when needed, then an implementation plan. Items a plan absorbed point at it ("→ FD-6"); they leave this doc when that task merges. Update design/technical decisions with the build and move completed work to the Done log.
 - No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
 - Types: feature, content, design, balance, polish, bug, tech, test, docs. Sizes: XS (one edit), S (focused task), M (several related tasks), L (own plan), XL (several plans). Estimates are scope, not promises about model usage.
 - Status: ready, needs-design, needs-feedback, investigate, idea, blocked, parked. An investigation must reproduce the issue before changing rules. Table Area fields remain searchable.
 
 ## 1. Now: correctness and plan leftovers
 
-**Suggested order, not a ranking chosen by the player:** investigate event/state correctness first (BL-106/107), then delayed and arrival rules (BL-105/108). Bench parity and persistent discovery are small player-visible follow-ups.
+Every item here is now inside a plan (§2), noted in its status; they run in Stage 0–1.
 
 | ID | Work | Type / size | Area | Status / dependencies | Concrete scope |
 |---|---|---|---|---|---|
-| BL-101 | Fine-print coverage audit and missing content | content / M | runes, codex | ready | 100 registered lines versus P4's stated 132. Inventory actual missing behavior by rune; add useful sentences with firing scenarios. Do not promise 6–8 lines per rune or fabricate rows to hit a quota. Extend toward 220 as districts add terrain. |
-| BL-102 | Bench scene parity with encountered content | feature / M | bench | ready | Support met canal foes, water/current, vents and compounds; update subject counting and painting. Preserve discovery gates and the three-subject limit. Add a reusable authored trial lattice for nested inventions if the generated trial cannot demonstrate them. |
-| BL-104 | Keep solvent discoveries after spending them | bug / S | codex, save | ready | Record found solvents separately from inventory; retain pages at zero stock. Method/solvent pages should expose their witnessed fine print. Define existing-v7 inference from stock/inventions/witnessing. |
-| BL-105 | Preserve intended delayed invention context | bug / M | runes | investigate | Regress Coil/Margin on Repeat/Wick/Filings and nested Wick wake flags. Decide whether repeated flavored actions retain widening; preserve one-shot scheduling and lifetime attribution. |
-| BL-106 | Dusk jar replacement timing | bug / S | combat | investigate | Snapshot jar identities, not just coordinates, so a replacement jar waits until next dusk. Reproduce using a jar tail replacing a later queued dusk jar. |
-| BL-107 | Stop state mutation when a cast fizzles at the cap | bug / M | combat | investigate | Audit helper loops and detached continuations after the 500-event cap; require termination and projected/final state agreement. |
-| BL-108 | Current arrival hooks and playback agreement | bug / M | combat | investigate | Define/reproduce arrival into stains, marks, fire and step jars for carried units/cargo. Include history/origin of delayed effects and exemptions for water/flying/anchored foes. |
-| BL-119 | Canal lock map illustration | polish / XS | world | ready | Replace the cosmetic burnt wooden gate with an opened rat-guarded lock; current puzzle teaches a drop, not burning a gate. Can ship alone or with BL-124. |
+| BL-101 | Fine-print coverage audit and missing content | content / M | runes, codex | ready **→ FN-1A, FN-9, FN-10** | 100 registered lines versus P4's stated 132. Inventory actual missing behavior by rune; add useful sentences with firing scenarios. Do not promise 6–8 lines per rune or fabricate rows to hit a quota. Extend toward 220 as districts add terrain. |
+| BL-102 | Bench scene parity with encountered content | feature / M | bench | ready **→ DK-14** | Support met canal foes, water/current, vents and compounds; update subject counting and painting. Preserve discovery gates and the three-subject limit. Add a reusable authored trial lattice for nested inventions if the generated trial cannot demonstrate them. |
+| BL-104 | Keep solvent discoveries after spending them | bug / S | codex, save | ready **→ FN (solvent discovery)** | Record found solvents separately from inventory; retain pages at zero stock. Method/solvent pages should expose their witnessed fine print. Define existing-v7 inference from stock/inventions/witnessing. |
+| BL-105 | Preserve intended delayed invention context | bug / M | runes | investigate **→ FD-2, FD-4** | Regress Coil/Margin on Repeat/Wick/Filings and nested Wick wake flags. Decide whether repeated flavored actions retain widening; preserve one-shot scheduling and lifetime attribution. |
+| BL-106 | Dusk jar replacement timing | bug / S | combat | investigate **→ FD-2, FD-5** | Snapshot jar identities, not just coordinates, so a replacement jar waits until next dusk. Reproduce using a jar tail replacing a later queued dusk jar. |
+| BL-107 | Stop state mutation when a cast fizzles at the cap | bug / M | combat | investigate **→ FD-2, FD-6** | Audit helper loops and detached continuations after the 500-event cap; require termination and projected/final state agreement. |
+| BL-108 | Current arrival hooks and playback agreement | bug / M | combat | investigate **→ FD-1, FD-3** | Define/reproduce arrival into stains, marks, fire and step jars for carried units/cargo. Include history/origin of delayed effects and exemptions for water/flying/anchored foes. |
+| BL-119 | Canal lock map illustration | polish / XS | world | ready **→ CN-11** | Replace the cosmetic burnt wooden gate with an opened rat-guarded lock; current puzzle teaches a drop, not burning a gate. Can ship alone or with BL-124. |
 
-## 2. Roadmap: planned tracks
+## 2. Build program: order of execution
 
-The redesign supplies depth already. The next substantial choice is **freer builds/party**, **another district**, or **rivals**. They can be developed separately. New district builds reuse existing school runes, methods and solvents, currently Lab-only.
+Every decided design now has an implementation plan (2026-10-23). [build-program.md](plans/build-program.md) is the boundary map (which plan owns which system), the reconciliation notes and the defaults taken for the player to veto. Each plan is executed with the `implement` skill and gets its own `<plan>-status.md` when it starts. Task IDs carry the plan's prefix (`DK-2`, `HC-4`), so dependencies below point at real tasks.
 
-### Track P · Apprentices and freer lattices
+**Plan status:** *planned* (reconciled, not started) · *ready* (every dependency merged) · *building* · *gate* (waiting on a playtest) · *done*. A **gate** is a player playtest named in the plan; work past a gate waits for it, everything else keeps going.
 
-| ID | Work | Type / size | Area | Status / dependencies | Scope |
-|---|---|---|---|---|---|
-| BL-43 | The household and three-member expeditions | feature / XL | party, world | **design complete 2026-10-23**; build plan not written | [Party design](design/party.md) §0b–§2: nine apprentices (pair + runaway, notary, towel-bearer, warden, tuner, Copyist, erased student), four basic actions (Shove, Pull, Hop, Swap; Pull/Hop/Swap new), lattice-or-body habits (seven new habits), recruit loot offers, two milestone door arrivals, household shelf, per-room boards with 4+ start points, incompatible saves cleared (no migration); every apprentice is hidden until their preconditions are met (habit or school rune, every starter-page rune, plus story beat), with guaranteed precondition pages so it cannot soft-lock; the runaway's habit is on Fuse; a taken recruit is trip loot; threshold rooms use the shelf's trip slots (party.md §0d). Needs a plan, then build with the first districts: runaway at the canals (BL-124) before the rest. |
+### 2.1 Stages
 
-### Track W · Districts and progression
+Stages are an order, not barriers: a task starts as soon as the tasks it depends on are merged, so stages overlap. The critical path runs through the platform (DK, FD, HC, RV) to the first district.
 
-Every district round specifies hearing/gate, route/return rhythm, terrain and edge behavior, teaching rooms, enemies/heart, rune/method/solvent drops and fine-print/idiom scenarios. The four middle districts branch after the canals; no fixed order is chosen. The Cartographers are last. See [city design](design/city-and-districts.md) and rune design §11.
+| Stage | What gets built | Tasks | Ends with |
+|---|---|---|---|
+| **0 · Groundwork** | Golden event-log baseline and the behaviour-neutral split of the trip flow out of `run.ts`; foundations contracts, the movement × hook test matrix and the bug repros; household types; the fine-print audit | DK-0, DK-2 · FD-0, FD-1, FD-2, FD-8, FD-9, FD-10 · HC-W0 · FN-1A | Everything after can edit disjoint files |
+| **1 · Platform core** | The arrival pipeline and correctness fixes; the district kit's contracts and hooks; the household profile, save reset (v9), start points and party of 1–3; the rival engine with the Lamplighter in the Lab; the footnote system | FD-3–FD-7, FD-11 · DK-1, DK-3–DK-10 · HC-1–HC-6 · RV-W0–RV-10 · FN-0–FN-12 | **Gate RV-G1**: the Lamplighter Lab playtest |
+| **2 · Platform complete** | Kit screens and the port proof; the household shelf; Pull, Hop, Swap and the seven habits; recruits, hidden-until-ready and door arrivals; the rival authoring API and recovered pages; the Seam footnote content | DK-11–DK-18 · HC-7–HC-9 · AH (all) · RC (all) · RV-11–RV-20 · FN-A1–FN-C9 | **Gates**: household (HC), actions (AH), recruits (RC), footnote thresholds (FN-P1) |
+| **3 · Revisits** | The canals at the new standard (runaway, the Lamplighter in room 4, barge cargo, re-laid rooms, Timing footnotes); the Seam's Marginalia, re-laid rooms and reachable hearings; the lower Seam with the canal floor | CN (all) · SM Waves 1–2 | **Gates**: CN-P1, SM G1, SM G2. First playable trio |
+| **4 · Middle districts** | The ink-makers' quarter, the bathhouses, the bridges and the bell foundry, **in any order and in parallel** (each owns its files). Each ships first on a scripted stand-in heart, then its real rival after RV-14, then its footnote batch and its lower-Seam floor | IQ · BH · BR (needs CN-8, the wardens' pass) · BF | Each district's playtest gates; four real masters = four recovered pages |
+| **5 · The Cartographers' hall** | Pencil and ink, the guild's hands, free return then the final run, the Registrar, the five-page hearing, the owner's door | CG (all), SM-10 (the sealed door) · SM Wave 3 (answering margins) | **Gates** CG-G1, CG-G2, CG-G4 |
+| **6 · The ending** | The Seam becomes yours | BL-126: design round first, then a plan | |
 
-| ID | District / school | Type / size | Area | Status / dependencies | Deliverable |
-|---|---|---|---|---|---|
-| BL-113 | Ink-makers' quarter / Contracts | feature / L | world, run | **design decided 2026-10-22**; postmaster needs BL-30; build plan not written | [Dead-letter office](design/district-ink-makers.md): writs, offers with terms, the postal staff, the postmaster, the return-to-sender gate. Notaries; Sentence, Levy, Tally; Bind/Lift; Wax/Sand; Debt Collection. Author encounters, not another recipe system. |
-| BL-114 | Bathhouses / Areas | feature / L | world, run | **design decided 2026-10-22**; the Bath-Steward needs BL-30; build plan not written | [Grand thermae](design/district-bathhouses.md): boil-over gauge, rising heat and cold plunge, the steam's people, the dome gate. Vat, Seep, Steep; Bath salt/Fog jar; Steam Room. |
-| BL-115 | Bridges / Structure | feature / L | world, run | **design decided 2026-10-22**; the Chief Warden needs BL-30; build plan not written | [Arches in the fog](design/district-bridges.md): piers and cuts, falls remove an apprentice for the room, choose-your-span trip, the first key (from the canals), the keystone heart. Hold/Brink/Lay, Bind pushed event, Mortar/Chalk, Long Drop. |
-| BL-116 | Bell foundry / Resonance | feature / L | world, run | **design decided 2026-10-22**; the Carillonneur needs BL-30; build plan not written | [Carillon towers](design/district-bell-foundry.md): sympathetic bells by tone (not Conduct), a peal across the trip with great-bell puzzles, the ringers' staff, the far-bell gate. Toll/Coil/Unison, Rivet/Filings, Peal. |
-| BL-117 | Cartographers' hall / Board | feature / XL | world, run, story | **design decided 2026-10-22, trip shape revised 2026-10-23**; the Registrar needs BL-30; the five-page hearing needs BL-118 and real rival hearts in BL-113–116; build plan not written | [The academy](design/district-cartographers.md): pencil and ink, the guild's hands, free return after rooms 1–3 (Board pages, Bind dies, Quicksilver/Graphite drop there), the doorway as the point of no return, the final run to the Registrar, the hall remembering the doorway, the redraft gate (any build), the Seam as a bad join. Redraft idiom. Stand-in hearts award no page, so the hall needs all four masters as real rivals. |
+### 2.2 Dependencies between plans
 
-### Track R · Rival inscribers and recovered pages
+```mermaid
+flowchart LR
+  FD[FD foundations] --> DK[DK district kit]
+  FD --> AH[AH actions + habits]
+  FD --> RV[RV rivals + pages]
+  DK0[DK-0/DK-2 run.ts split] --> HC[HC household core]
+  DK0 --> DK
+  HC --> AH
+  HC --> RC[RC recruitment]
+  DK --> RC
+  HC --> FN[FN footnotes]
+  FD --> FN
+  DK --> RV
+  RV -- RV-G1 Lab playtest --> RVAPI[RV-11–14 rival API]
+  DK --> CN[CN canals revisit]
+  HC --> CN
+  RC --> CN
+  AH --> CN
+  RV --> CN
+  FN --> CN
+  DK --> SM[SM the Seam grows]
+  HC --> SM
+  RC --> SM
+  CN -- canal floor --> SM
+  DK --> IQ[IQ ink quarter]
+  DK --> BH[BH bathhouses]
+  DK --> BR[BR bridges]
+  DK --> BF[BF foundry]
+  CN -- wardens' pass --> BR
+  RVAPI --> IQ & BH & BR & BF
+  AH -- harm guard --> BH
+  IQ & BH & BR & BF -- four rival pages --> CG[CG Cartographers]
+  CN -- Lamplighter page --> CG
+  SM -- sealed door --> CG
+  CG --> END[BL-126 ending: needs design]
+```
 
-| ID | Work | Type / size | Area | Status / dependencies | Scope |
-|---|---|---|---|---|---|
-| BL-30 | Rival inscribers | feature / XL | combat, world | **core design decided 2026-10-22**; prototype/default validation and build plan pending | [Rival design](design/rivals.md): recognisable routines, locked aims, pre-shown avoidable fallback; first Lamplighter has the long wick (spend a later turn opening his jar remotely). Proposed kit: jar of Oil/Spark plus Oil/Shove. Validate aim geometry, fallback, deterministic routine and phone readability in the Lab before a roster. |
-| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | **format/access decided 2026-10-22**; proposed economy/proof rules need validation; BL-30 | Intact annotated spell as a free Bench trial copy; field use/adaptation requires owned parts; personal trick excluded. Proposed defaults: permanent knowledge on encounter victory, no free Glyph proof, no duplicate page reward. Validate trial isolation, witnesses and lifetime credit. The five pages (four masters and the Lamplighter) are the Cartographers' hearing. Each page also carries one unique footnote variant ([footnotes](design/footnotes.md), 2026-10-23). See [rivals](design/rivals.md) §3. |
+### 2.3 Plans
 
-### Track M · Mastery expansion
+| Roadmap | Plan | Status | Size (tasks) | Needs before it starts | Unlocks | Gates |
+|---|---|---|---|---|---|---|
+| BL-128 | [Foundations](plans/foundations-plan.md) (FD): arrival pipeline, event contracts, BL-105–109, BL-112, BL-123 | **planned**, Stage 0 can start | ~2 L (12) | — | AH (FD-3, FD-7), DK-3/DK-4, RV-2/RV-3, FN-0 (FD-8/9), BR/CG Bind events (FD-9) | — |
+| BL-127 | [District kit](plans/district-kit-plan.md) (DK): district modules, trip shape, rules, pieces, offers, hearing, out of the room, stand-ins, Bench parity (BL-102), thresholds (BL-94), map (BL-95), lore registry | **planned**, DK-0/DK-2 start first | ~L (20) | DK-0/2 none; DK-3/4 need FD-3; DK-5a/6 HC-W0; DK-7 RC-W0; DK-8/9 RV-W0 | every district plan (after DK-17), RC-4, RV-14 | — |
+| BL-43 → BL-129 | [Household core](plans/household-core-plan.md) (HC): roster, save v9, shelf, slots, start points, party 1–3, shared ink | **planned** | L–XL (10) | DK-2 for HC-1/HC-4 | AH, RC, FN-0, RV-15, CN, SM | HC playtest |
+| BL-43 → BL-130 | [Actions and habits](plans/actions-habits-plan.md) (AH): Pull, Hop, Swap, seven habits, harm guard | **planned** | L (9) | HC-W0, FD-3, FD-7 | RC go-live of each recruit, CN (runaway), BH (towel-bearer) | AH Lab playtest |
+| BL-43 → BL-131 | [Recruitment](plans/recruitment-plan.md) (RC): seven apprentices, recruit offer, hidden until ready, door arrivals | **planned** | M–L (10) | HC-W0, DK-1 | CN-6, each district's recruit placement | RC playtest |
+| BL-30, BL-118 | [Rivals and recovered pages](plans/rivals-plan.md) (RV) | **planned** | XL (21) | DK-1, FD-7, FD-5; RV-15 needs HC-1 | CN-7, every real district heart (RV-14), the five-page hearing (RV-15) | **RV-G1** Lamplighter Lab playtest |
+| BL-54, BL-101, BL-104, BL-50 | [Footnotes](plans/footnotes-plan.md) (FN): system, audit, solvent discovery, diagonal capstone, Seam content | **planned**, FN-1A can start | system L + ~9 M content (27) | FD-8, FD-9, HC-1 | every district's footnote batch (after FN-C1) | FN-P1 thresholds |
+| BL-124, BL-91, BL-119 | [Canals revisit](plans/canals-revisit-plan.md) (CN) | **planned** | L (20) | DK-17, HC-2, RC-4, AH-1/AH-4; CN-7 needs RV-G1 | BR's key gate (CN-8), SM's canal floor, the Lamplighter's page | CN-P1 |
+| BL-125 | [The Seam grows](plans/seam-grows-plan.md) (SM) | **planned** | L (16) | DK-17, DK-8, DK-9, HC-3, RC-3 | lower-Seam floors for each district, the sealed door CG opens | SM G1, G2, G3 (answer texts) |
+| BL-113 | [Ink-makers' quarter](plans/ink-quarter-plan.md) (IQ) | **planned** | L + 2–3 M (33 rows) | DK-17, FD-3, HC-2; the postmaster RV-14 | the postmaster's page; Bind and Lift for the household | IQ-G1, IQ-G2 |
+| BL-114 | [Bathhouses](plans/bathhouses-plan.md) (BH) | **planned** | XL (26) | DK-17, AH-W0 (harm guard); the Steward RV-14 | the Steward's page | BH-G1 |
+| BL-115 | [Bridges](plans/bridges-plan.md) (BR) | **planned** | L + batch (22) | DK-17, FD-9, CN-8 (key); the Chief Warden RV-14 | the Chief Warden's page; Bind *pushed* | BR-G2 |
+| BL-116 | [Bell foundry](plans/foundry-plan.md) (BF) | **planned** | L–XL (28) | DK-17; the Carillonneur RV-14 | the Carillonneur's page | BF-G1 |
+| BL-117 | [Cartographers' hall](plans/cartographers-plan.md) (CG) | **planned** | L (21) | DK-17, FD-9, RV-14, RV-15; a campaign needs all four masters real | the owner's door (SM-10), the exile's Board pages, BL-126 | CG-G1, CG-G2, CG-G4 |
+| BL-126 | The Seam becomes yours (ending and sandbox) | **needs-design** | — | BL-117 and BL-125 built | — | — |
 
-| ID | Work | Type / size | Area | Status / dependencies | Scope |
-|---|---|---|---|---|---|
-| BL-54 | Footnote levels, capstones and method/solvent margins | feature + content / L, then M per batch | mastery | **design decided 2026-10-23**; build plan not written; content passes need BL-101 | [Footnotes](design/footnotes.md): levels I–II are line slots (4 variants per line), III a rune capstone (2 per rune), methods and solvents have their own margins, cost scales with level, thresholds 8/25/60 (methods/solvents 5/15/36), empty margins for locked slots, home-only re-picking, rival unique notes. Build the system (per-subject points, slots, capstones, margin UI, cost), then write the Seam's 13 runes and five methods, then each district's batch. |
+**Next action:** start Stage 0 with the `implement` skill. DK-0/DK-2, FD-0–FD-2, HC-W0 and FN-1A are independent and can run in parallel.
 
-### Track C · Canals revisit
-
-| ID | Work | Type / size | Area | Status / dependencies | Scope |
-|---|---|---|---|---|---|
-| BL-124 | Canals revisit for the household | feature / L | world, run, party | **design decided 2026-10-22** ([§5b](design/city-and-districts.md)); needs BL-43 build (recruit offers, start points); rival needs BL-30 | Recruit offer at the second landing (runaway hidden until Fuse and Touch are learned; Fuse guaranteed in rooms 1–3); Lamplighter rival elite in room 4 carrying the wardens' pass (the key); optional barge cargo in rooms 2 and 4; lamp-ledger lore; re-lay rooms with 4+ start points and per-room sizes; BL-91 cadence. Also covers BL-119's lock illustration. |
-
-### Track S · The Seam revisit
-
-| ID | Work | Type / size | Area | Status / dependencies | Scope |
-|---|---|---|---|---|---|
-| BL-125 | The Seam grows | feature / L | world, run, story | **design decided 2026-10-22** ([district-seam.md](design/district-seam.md)); lower Seam needs the opened districts to exist | Replace the plain heart with the Marginalia (five hands); re-lay base rooms with 4+ start points and per-room sizes; make the five hearing events reachable and reconcile the placeholder triggers in `src/data/districts.ts` with each district doc; lower Seam floors per opened district with one terrain-piece intrusion each; the sealed owner's door; margin notes that answer. |
-
-### Track E · The ending
-
-| ID | Work | Type / size | Area | Status / dependencies | Scope |
-|---|---|---|---|---|---|
-| BL-126 | The Seam becomes yours (ending and sandbox) | feature / L | story, world | needs-design; after BL-117 and BL-125 | After the Registrar, the owner's door opens and hands you the pen; the Seam becomes the player's to ink your own district into. Decide what drawing a district means, what it costs, whether it feeds the notebook, and the Seam's drift once the join is mended or kept. See [district-cartographers.md](design/district-cartographers.md) §0 and §3. |
-
-### Track A · Atmosphere
+### 2.4 Atmosphere (outside the program)
 
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
 | BL-40 | Real names | design / S | story | ready | Title, apprentices, city and Seam remain placeholders. |
-| BL-41 | Owner's mystery and lore delivery | content / M | story, codex | needs-design | The owner drew the Seam and was expelled by the Cartographers: the premise is chosen. Develop how players uncover it through notebook notes, discoveries, guild archives and recovered rival pages; folios no longer deliver lore. |
+| BL-41 | Owner's mystery and lore delivery | content / M | story, codex | needs-design | The premise is chosen and every district's lore thread is planned; the delivery channel is DK's lore registry (`Profile.papers`) plus SM's answering margins. What's left is the overall pacing and the texts beyond each district's own. |
 | BL-42 | Audio | feature / M | audio | needs-design | Tone, free assets or synthesis, mute/reduced distractions and iOS gesture/PWA behavior. |
 
 ## 3. Backlog: ideas ready to pick
@@ -93,7 +121,7 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
 | BL-100 | Rune art and editor polish | polish / M | runes, study | ready | Redraw margin, strike, coil, brink, bind, chalk, filings, quicksilver. Audit invention names/art in every shelf/caption and optional shelf metadata/duplicated flow geometry. Implementation leftovers now have their own IDs above and in §4. |
-| BL-50 | Diagonal aura reach | feature / M | lattice, mastery | **decided as an aura capstone 2026-10-23**; needs BL-54 and readable overlays | One of each aura's two capstones (Afterglow, Steep, Coil: also acts through diagonally touching cells); design the overlay in the same build. [Footnotes](design/footnotes.md) §1. |
+| BL-50 | Diagonal aura reach | feature / M | lattice, mastery | **decided as an aura capstone 2026-10-23**; needs BL-54 and readable overlays **→ FN-11, FN-12** | One of each aura's two capstones (Afterglow, Steep, Coil: also acts through diagonally touching cells); design the overlay in the same build. [Footnotes](design/footnotes.md) §1. |
 | BL-51 | Additional runes beyond the 31 | content / M each | runes | idea | New Source/Shape/Trigger behavior only if it adds something current methods and wiring cannot express. Pull/hop as personal basic actions belong to BL-43 first. No aspect assignment needed. |
 | BL-52 | More idioms (nine now) | content / S each | runes, codex | ready | Add recognizable event patterns in idioms.ts and a replayable Lab example; these are named achievements of a cast, not compile recipes or free Glyphs. |
 | BL-56 | Attrition and build balance | balance / M | combat, run | needs-feedback | Separate isolated room strength from full-trip charge exhaustion. Baseline: starter bots clear fresh Seam rooms but full trips exhaust charges around depth 3. Review Strike versus Spark/crush, ink costs, leans and rewards. Decide whether pushing FROM oil should start a slide; currently only entering oil extends it. |
@@ -101,11 +129,11 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | BL-61 | Additional enemy behaviors | content / M | world, combat | needs-design | Slugs/constructs or enemies that erase marks, move jars or break networks are proposals. Tie each to its district and one clear telegraph. Eel/Snuffer/moth/mother already exist. |
 | BL-62 | More loot offer kinds | content / S | run | idea | Current offers: rune/method pages, ink, solvents, vellum and doorway (key support exists). Avoid redundant currencies; recovered pages depend on BL-118. |
 | BL-63 | Doorway variants / second rare offer | content / S | run | idea | Optional breaks in trip pacing with a clear cost in foregone loot. |
-| BL-91 | Lamp-mother summoning cadence | balance / XS | combat | ready (decided 2026-10-22: nearest free lit lamp, every round) | The last summoned moth occupies the preferred lamp, often making calls every other round. [Canals §5b](design/city-and-districts.md) chose the designed every-round call at the nearest free lamp; confirm by playing. |
-| BL-92 | Canal room tuning | balance / S | run | needs-feedback | Recalibrate with current runes/charges before using the old 39% heart result; room and full-trip metrics differ. |
+| BL-91 | Lamp-mother summoning cadence | balance / XS | combat | ready (decided 2026-10-22: nearest free lit lamp, every round) **→ CN-1** | The last summoned moth occupies the preferred lamp, often making calls every other round. [Canals §5b](design/city-and-districts.md) chose the designed every-round call at the nearest free lamp; confirm by playing. |
+| BL-92 | Canal room tuning | balance / S | run | needs-feedback **→ CN-13** | Recalibrate with current runes/charges before using the old 39% heart result; room and full-trip metrics differ. |
 | BL-93 | Current preview and arrows | polish / S | combat | needs-feedback | Current toggle exists; consider hold-to-peek and water arrows readable under oil/jars. |
-| BL-94 | Threshold copy as district data | tech / XS | world | ready | Move banner copy into ThresholdDef before the next threshold room. |
-| BL-95 | Map label/path spacing | polish / XS | world | ready | Recheck paths against the renamed Seam caption and expanding heard districts. |
+| BL-94 | Threshold copy as district data | tech / XS | world | ready **→ DK-15** | Move banner copy into ThresholdDef before the next threshold room. |
+| BL-95 | Map label/path spacing | polish / XS | world | ready **→ DK-16** | Recheck paths against the renamed Seam caption and expanding heard districts. |
 | BL-71 | Reload the same Lab demo in-page | bug / XS | lab | investigate | Check the unchanged-id effect with ?demo=1; add a replay/reset path if still reproducible. |
 | BL-73 | iPad / desktop layout verification | test / S | study, combat | idea | Cover larger screens and portrait/landscape; phone remains primary. |
 | BL-74 | Player annotations in the notebook | feature / M | codex | idea | Automatic witnessed fine print is settled. Optional personal notes/bookmarks are a new feature, not an unresolved automatic-versus-written rule. |
@@ -123,10 +151,10 @@ New possibilities arising from the shipped systems (all **proposals**):
 
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
-| BL-109 | Authoritative event contracts | tech / M | combat | ready | crush at/dir, jarSealed contents, held duration; reduce projection guesses. Consider dedicated waiting-drift and release-origin events. Preserve masked-preview non-disclosure. |
+| BL-109 | Authoritative event contracts | tech / M | combat | ready **→ FD-7** | crush at/dir, jarSealed contents, held duration; reduce projection guesses. Consider dedicated waiting-drift and release-origin events. Preserve masked-preview non-disclosure. |
 | BL-110 | Shared scenario-log verification | tech / M | tooling | ready | Stop re-registering most engine suites for both line integrity and projection drift. Keep equivalent coverage and the mocked-suite isolation. |
 | BL-111 | Production bundle cost | tech / S | tooling | ready | Measure what drives the >500 kB advisory; evaluate lazy-loading Lab/Gallery/content while retaining offline play. |
-| BL-112 | Save/battle fallback resilience | tech / S | save | ready | Guard ensureBattle's fallback; define recovery for multiple corrupt saves. Pair with backup/export work when useful. |
+| BL-112 | Save/battle fallback resilience | tech / S | save | ready **→ FD-10** | Guard ensureBattle's fallback; define recovery for multiple corrupt saves. Pair with backup/export work when useful. |
 | BL-80 | Built-app browser smoke tests | test / M | tooling | idea | Load, trip, cast, Bench and save reload; deterministic fixtures. |
 | BL-81 | Verify red CI blocks deployment | test / XS | tooling | ready | Use a disposable branch/workflow check; never deliberately break main. |
 | BL-82 | File/share-sheet notebook backup | feature / S | save | idea | File export/import and an occasional backup nudge beyond text copy/paste. |
@@ -135,7 +163,7 @@ New possibilities arising from the shipped systems (all **proposals**):
 | BL-85 | Long-fight proof/replay cost | test / S | tooling | idea | Measure lifetime traces and proof after large jar/mark networks; optimize only observed costs. |
 | BL-86 | Dependency refresh | tech / S | tooling | idea | Check installed versions first; verify offline build, typecheck and tests after upgrades. |
 | BL-87 | Build workflow documentation | docs / XS | tooling | idea | Refresh preview/worktree instructions when that workflow is used again. |
-| BL-123 | Stable footnote and Bind-event contracts | tech / S | mastery, save | ready | Use variant IDs rather than display-text comparisons in runtime context; store learned Bind events explicitly instead of deriving them from open districts before more gates/rewards ship. |
+| BL-123 | Stable footnote and Bind-event contracts | tech / S | mastery, save | ready **→ FD-8, FD-9** | Use variant IDs rather than display-text comparisons in runtime context; store learned Bind events explicitly instead of deriving them from open districts before more gates/rewards ship. |
 
 ## 5. Parked, cut or deferred
 
@@ -158,14 +186,12 @@ New possibilities arising from the shipped systems (all **proposals**):
 
 ## 6. Open design questions
 
-1. Next substantial track: freer lattice/household, a middle district, or rival prototype? No old “mastery must come first” dependency remains.
-2. Which middle district should be built first, and what teaches its school using only Seam basics? BL-113–116.
-3. Household and all nine apprentices are designed (BL-43, party.md §0c–§2). Still open: the build plan and numbers (*tune by playing*).
-4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
-5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
-6. Rival core design and trial-copy rewards are decided; validate proposed aim/fallback, long-wick routine and page economy in the Lab, then author other rivals with their districts. BL-30/118.
-7. Footnote system and invention progression are decided (BL-54, footnotes.md). Open: the exact variants, capstones and threshold tuning, authored in content passes.
-8. What audio fits the notebook and rainy city? BL-42.
+1. **The ending (BL-126):** what "ink your own district" means, what it costs, whether it feeds the notebook, and whether the join is mended. Needs a design round before CG finishes.
+2. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
+3. What audio fits the notebook and rainy city? BL-42.
+4. Playtest gates will raise feel questions per plan (§2.3 "Gates"); record the answers against the plan's status file.
+
+Answered on 2026-10-23 by the build-planning rounds (DESIGN §11, last row): next track (all of them, in the §2 order), the first middle district (any order, in parallel), household numbers (in HC/AH/RC as *Proposals*), delayed aura scope (FD default: echoes keep their auras), rival validation (RV-G1), footnote variants (Claude chooses, the player judges by playing). The smaller defaults the plans took are listed in [build-program.md](plans/build-program.md) §4 for veto.
 
 ---
 

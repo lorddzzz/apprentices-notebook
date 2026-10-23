@@ -99,7 +99,7 @@
 | **Wave 4: footnote batch** (FN §6) | | | | | | |
 | CG-F1 | Audit Swap, Draw, Erase, Quicksilver, Graphite against pencil, blank and outlines; add missing lines with firing scenarios | `src/data/lines.ts`, engine module | Strong | S | CG-3, FN-1 | No row without a firing case |
 | CG-F2 | Author `docs/design/footnotes-content/cartographers.md`: two margin lines × level I/II pairs and a capstone pair per rune, one line and a capstone pair per solvent, the Registrar's note (default on Erase) | that file | Strong | M | CG-F1, CG-15 | Every pair two reasonable opinions; all four combinations read |
-| **CG-G3** | **Player review gate** (design-round) | doc | orchestrator | S | CG-F2 | Approved text |
+| **CG-G3** | **Orchestrator review gate** (the player delegated footnote variant choice, 2026-10-23) | doc | orchestrator | S | CG-F2 | Approved text |
 | CG-F3 | Build the Swap, Draw and Erase batch | `src/data/footnotes/cartographers.ts`, engine module hooks | Medium | M | CG-G3, FN-1 | `fourCombos` per margin line, one scenario per capstone |
 | CG-F4 | Build Quicksilver, Graphite and the Registrar's note | same | Medium | M | CG-F3, FN-8, RV-20 | As CG-F3; note hidden until his page is held |
 | **Wave 5: proof** | | | | | | |

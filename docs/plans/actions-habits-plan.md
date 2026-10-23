@@ -103,3 +103,8 @@
 - **Parallel files:** AH-2 (`runes/flow.ts`, `targets.ts`, `queries.ts`) and AH-3 (`runes/actions.ts`) are disjoint; AH-4 owns `damage.ts`/`bursts.ts` tags. AH-5 and AH-6 both edit `battleInput.ts`, `overlay.ts` and `describe.ts`: run them in sequence. AH-1's `push.ts` and `run.ts` edits are small and must wait for FD-3 and HC-4.
 - **Cross-plan:** RC can build its entries against AH-W0's ids; BH can call the boil-over hook once AH-4 lands; RV reads `habitOf` and `BASIC_ACTIONS`.
 - **Size:** 9 tasks plus a gate: 7 M (W0 included) and 2 L (AH-1, AH-5); roughly an L build, most of it in previews and the scenario suite.
+
+## Orchestrator additions (2026-10-23 reconciliation)
+
+- **Harm guard registry (AH-W0, consumed by BH, IQ, RV-11):** the `harm` option on damage becomes a small registry of guards that may pass, cancel or relocate a hit, a push or a mark before it applies. AH registers the towel-bearer's `steamproof` guard; BH registers the dissolved bather and the boil-over cause; IQ the forwarding writ; RV-11's `beforeHarm` (the Bath-Steward) is a guard too. Land it in AH-W0 so it exists before RV-G1.
+- **Bells (BF request):** Shove at a bell strikes it; Pull, Hop and Swap at a bell are illegal.

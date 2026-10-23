@@ -99,5 +99,5 @@
 
 - **Critical path:** HC-W0 → HC-1 → HC-4 → HC-7 → HC-9 → playtest. HC-2 runs beside HC-1; HC-3 and HC-6 run beside HC-4; HC-5 and HC-8 beside HC-7.
 - **Parallel files:** HC-1 and HC-4 both edit `run.ts`; run them in sequence (or split by section with the orchestrator merging). HC-3 owns layouts only; HC-5 owns only the lock board.
-- **Cross-plan order:** land HC-1/HC-4 before DK's `run.ts` work and before RC's offers; AH can start after HC-W0 (it reads `MemberUnit.action`), CN/SM re-lay rooms after HC-2's `checkRoom` exists.
+- **Cross-plan order (orchestrator, 2026-10-23):** DK-0 (golden baseline) and DK-2 (the behaviour-neutral split of the trip flow out of `run.ts` into `src/engine/trip/`) land **first**; HC-1/HC-4 then edit the split files, and land before DK's other trip work and RC's offers; AH can start after HC-W0 (it reads `MemberUnit.action`), CN/SM re-lay rooms after HC-2's `checkRoom` exists.
 - **Size:** 10 tasks plus a gate: 1 S, 6 M (W0 included), 3 L; roughly an L–XL build, most of it the `run.ts` and test-fixture refactor.

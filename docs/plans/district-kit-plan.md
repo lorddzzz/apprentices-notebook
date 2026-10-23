@@ -139,3 +139,31 @@ No **Redefines**: every proposal implements a decided rule or fills a gap the de
 - **Sequencing request to the orchestrator:** schedule DK-2 (the `run.ts` split) before HC, RC and FD start editing the trip flow; it is mechanical and short.
 - **District plans start after DK-17;** they can use DK-18's fixture as their template. Until a district build lands, its stub stays `gate: 'drawing'`.
 - **Size:** 20 tasks: 5 S, 15 M; about one L-plan of work, mostly Strong in Waves 0–1.
+
+## 9. Requests from consumer plans (reconciled by the orchestrator, 2026-10-23)
+
+Accepted into DK unless marked otherwise. Each lands in the named task; DK-1 carries every new type or field so consumers can write against it from Wave 0.
+
+| From | Request | Lands in |
+|---|---|---|
+| RC | **DK-R1:** a hook on every offer roll that can return a guaranteed page and extra offers; `DistrictDef.recruit` and `recruitPages` fields | DK-1 (types), DK-7 (roll hook) |
+| CG, BF | Per-room guaranteed offers in `offersFor`; a bonus reward may write trip state with no offer card | DK-5b, DK-7 |
+| CN | The key placed by room and guaranteed when its conditions hold (`{ kind: 'key', from: 'canals', afterRoom: 4 }`) | DK-7 |
+| CG, BR | One shared `bindEvent` offer kind (the *pushed* and *dies* pages) granting through FD-9 | DK-7 |
+| CN | A **bystander** unit flag (barge crate): ignored by `checkEnd`, foe targeting and kill credit | DK-6 (unit states) |
+| CG | Void (blank-paper) piece semantics: a push onto it removes the unit out of the room; how out-of-the-room units interact with Graphite | DK-4, DK-6 |
+| CG, BF | Piece triggers fired by runes and actions: Erase and Draw act on pieces; `onStruck` from damage, push, Spark and a basic Shove at a piece; an enemy-level `onStruck` for foes like the Clapper | DK-4 |
+| BF | Piece data (tone, muffled, rung) cloned and serialised with the battle; `roomSetup.boardEdits` may place pieces at authored tiles after the start-point draw | DK-4, DK-5b |
+| BF, BH | `Goal` kinds reading piece state and rule state set during the fight (bell rung, gauge level) | DK-5b |
+| BH, BF | District modules register foe AIs, traits and intent kinds; DK-9's registered steps also serve ordinary foes (ring, retune), not only stand-ins | DK-1, DK-9 |
+| CG | Stand-ins may own a round-end step and an erasable object | DK-9 |
+| SM | The Marginalia's five hands run on DK-9's script runner | DK-9 |
+| SM, CG | Hearing kinds read the event's origin (only an apprentice's cast hears a district); the lower Seam counts as the Seam; `pages` takes a set filter (the Registrar's page never counts toward the five); `burstUnits` counts units reached, not damaged (BH); each district writes its own hearing text | DK-8 |
+| SM | `IntrusionSpec` follows SM-0's floor format; `hearAfterTrip` never marks a heart for the lower Seam; DK-16 gives a stair slot under the Seam node | DK-10, DK-8, DK-16 |
+| CN, BH, IQ | **One lore registry** (`Profile.papers`, Crossroads/loot card, codex "Papers" page, `rooms[i].lore`) for lamp-ledgers, bather's ledgers, mason's ledgers, the letters to the owner and the registry. DK owns it (this also gives BL-41 its delivery channel); IQ-14 consumes it instead of building its own | DK-5b (data), DK-11/DK-12 (cards) |
+| BH | The rule preview's meter is a generic strip in the board frame (fits beside a 7×9 board at 375 px) | DK-13 |
+| BF | The "Next round" preview supports generic outlines and pulse marks | DK-13 |
+| all | **Token registry:** each district declares its foe and piece tokens; an integrity test fails on a collision across districts (BH proposes `h a k H`) | DK-1 |
+| IQ | Pieces with `aiAvoid` and data-driven `exempt` flags; offer kinds that roll extra cards, guarantee while lacking, raise `picksLeft` and flag trip loot as held; a battle HUD banner slot (the clock writ); home-note text on `hear` entries; `Goal` variants `{ happens, unit }` and `noneDowned` | DK-4, DK-7, DK-13, DK-8, DK-5b |
+| IQ, BH | Foe behaviour registry open to ordinary district foes (IQ's D2, the largest gap) | DK-1, DK-9 (as above) |
+| BH, IQ | **Harm guard** (pass, cancel or relocate a hit, a push or a mark: the towel-bearer, the dissolved bather, the Steward, IQ's forwarding writ) | **Not DK:** owned by AH-W0 (the `harm` option on damage gains a guard registry); RV-11's `beforeHarm` consumes it |

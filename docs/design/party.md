@@ -69,6 +69,8 @@ Found while reconciling every design doc before the build plans. Where this tabl
 | Where a Seam precondition is guaranteed | **In the base Seam's deeper rooms**, while some recruit still waits for it, as Conduct is today; school runes stay guaranteed in their own district (*Proposal*, Claude's call) | Rune pages teach a rune of their own district (DESIGN §6.3b) |
 | A recruit and a wipe | **A recruit you take is trip loot**: they join the household when you get home, are lost on a wipe, and are offered again on a later trip (*Proposal*, Claude's call) | Matches every other offer; the trio is fixed for the trip, so they never fight before joining |
 | Threshold rooms | **Played by whoever is in the shelf's trip slots (1–3)**, on the board's authored start points (*Proposal*, Claude's call) | The canal lock was built for the named pair; with a household someone has to stand on the quay |
+| Ink (build planning, 2026-10-23) | **One household ink allowance** for every page; an ink reserve keeps its size and raises everyone (the player's pick). **Redefines** the built rule that a reserve raises one apprentice | Uniform ink (§0b) means one number; benching someone never wastes ink |
+| The Lab's roster (build planning, 2026-10-23) | **On a normal save the Lab lists only apprentices in the household**; tests and a dev toggle field anyone (the player's pick). Refines §1 "Lab and tests may field any apprentice" | Hidden until ready: the Lab must not spoil a recruit |
 
 ## 1. Rules
 

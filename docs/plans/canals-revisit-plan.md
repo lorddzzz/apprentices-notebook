@@ -19,7 +19,7 @@
 | Lamp-ledger leaves found at the landings (the lamps mark the drawing) | §5b "Lore thread" |
 | The map's solved-gate art: an opened, rat-free lock instead of the burnt wooden gate (BL-119) | city §3.1, ROADMAP BL-119 |
 | Bench parity entries for canal content (the registry is DK-14's) | DK-14, BL-102 |
-| The Timing footnote batch through FN §6: audit, author, player review, build, phone check | footnotes §0 "Content pacing", FN §6 |
+| The Timing footnote batch through FN §6: audit, author, orchestrator review, build, phone check | footnotes §0 "Content pacing", FN §6 |
 | Calibration with the bots: per-room and full-trip, room 4 and the heart against BL-92's old 39% | BL-92 |
 
 **Kept as built (§5b "What stays"):** the current, landings after rooms 1, 3, 5, the eel, Snuffer, lamp-moth, lamp-mother (one tile, 14 HP, anchored, snuffs her 3×3, burnt only on her own tile), the lock threshold and the fire-on-3-oil hearing; the old drop in water (a member takes 4 and is stunned, a minion is gone).
@@ -102,7 +102,7 @@
 | **Wave 3: the Timing footnote batch (FN §6)** | | | | | | |
 | CN-F1 | Audit Jar, Fuse, Afterglow, Pitch, Wick against the current and jars (P12); add honest lines with firing scenarios | `src/data/lines.ts` (canals block), stamping sites in `jars.ts`/`schedule.ts`/`lattice.ts`, `docs/plans/footnotes-audit.md` (canals section) | Strong | M | FN-1A, FD-3, FD-8 | Every new row fires in a scenario; no filler rows; lines integrity test green |
 | CN-F2 | Author `docs/design/footnotes-content/canals.md` (P11) and the five ledger leaves (P9) | that file | Strong | M | CN-F1 | Every pair is two reasonable opinions, all four combinations read; the note in the Lamplighter's voice with its credit line |
-| **CN-G1** | **Player review gate** (design-round): the Timing batch and the ledger texts | doc above | orchestrator | S | CN-F2 | Approved text is the spec; DESIGN §11 row drafted |
+| **CN-G1** | **Orchestrator review gate** (the player delegated footnote variant choice, 2026-10-23): the Timing batch and the ledger texts | doc above | orchestrator | S | CN-F2 | Approved text is the spec; DESIGN §11 row drafted |
 | CN-F3 | Build Jar and Fuse margins and capstones | `src/data/footnotes/canals.ts`, hooks in the canal module or `jars.ts` | Medium | M | CN-G1, FN-1, FN-3, FN-C1 | `fourCombos` per margin line, one scenario per capstone |
 | CN-F4 | Build Afterglow (second capstone), Pitch and Wick | same file, `lattice.ts`/`solvents.ts` hooks | Medium | M | CN-F3, FN-11 | as CN-F3; Afterglow's diagonal capstone untouched |
 | CN-F5 | The Lamplighter's note on Jar: variant, scenario, hidden until his page is held | same file | Fast | S | CN-F3, FN-8, RV-20 | Hidden without the page, offered at level II with it, credited in the margin; phone check of the Jar margin |
