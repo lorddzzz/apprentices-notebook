@@ -30,7 +30,7 @@ import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
 import type { Json } from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
-import type { ObjectRef } from './rivals/types';
+import type { ObjectRef, RivalState } from './rivals/types';
 
 export type CellKey = string; // "x,y"
 export type SpellKey = CellKey; // the source rune's lattice cell
@@ -314,6 +314,8 @@ export interface EnemyUnit extends UnitBase {
   kind: 'enemy';
   def: EnemyId;
   intent: Intent | null;
+  /** Rival units only (RV-1): compiled kit, charges, trick state. */
+  rival?: RivalState;
 }
 /** hp 0 = dead/down: stays in the array, ignored by all board queries. */
 export type Unit = MemberUnit | EnemyUnit;

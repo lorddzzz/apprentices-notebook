@@ -9,6 +9,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'snuffer',
   'moth',
   'mother',
+  'lamplighter',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
@@ -204,5 +205,20 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     anchored: true,
     snuffs: true,
     boss: true,
+  },
+  // A rival (rivals plan P1): the unit's numbers live in `RIVALS`; this is the board-facing shell.
+  lamplighter: {
+    id: 'lamplighter',
+    name: 'lamplighter',
+    token: 'L',
+    hp: 6,
+    move: 1,
+    attack: 'bite',
+    ai: 'idle',
+    brass: false,
+    oilTrail: false,
+    elite: true,
+    blurb: 'A rival apprentice of the canals.',
+    ...PLAIN,
   },
 };

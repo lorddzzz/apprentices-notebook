@@ -338,7 +338,8 @@ export type EnemyId =
   | 'eel'
   | 'snuffer'
   | 'moth'
-  | 'mother';
+  | 'mother'
+  | 'lamplighter';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 
 /**

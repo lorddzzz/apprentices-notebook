@@ -10,6 +10,7 @@ import {
   type MemberId,
   TUNING,
 } from '$data';
+import { RIVALS, type RivalDef, type RivalId } from '$data/rivals';
 import { enemyPhase } from './ai';
 import { castAction } from './cast';
 import { cloneData } from './clone';
@@ -34,6 +35,7 @@ import {
   spellOf,
   unitAt,
 } from './queries';
+import { spawnRival } from './rivals/unit';
 import { deriveSeed } from './rng';
 import { placeParty, START_SALT } from './rooms';
 import { endTurnAction } from './turn';
@@ -114,6 +116,9 @@ function spawnEnemy(b: BoardUnit, n: number): EnemyUnit {
     elite: def.elite,
     lastMove: null,
     intent: null,
+    ...(RIVALS[def.id as RivalId]
+      ? { rival: spawnRival(RIVALS[def.id as RivalId] as RivalDef) }
+      : {}),
   };
 }
 

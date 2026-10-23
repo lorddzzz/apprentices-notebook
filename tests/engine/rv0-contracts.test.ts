@@ -41,7 +41,9 @@ describe('RV-W0 contracts', () => {
   test('L is claimed for the Lamplighter and collides with no foe, roster, district or board char', () => {
     expect(RIVAL_TOKENS.map((t) => t.token)).toEqual(['L']);
     const builtIn = [
-      ...Object.values(ENEMIES).map((e) => e.token),
+      ...Object.values(ENEMIES)
+        .filter((e) => e.id !== 'lamplighter') // the rival's own shell (RV-1)
+        .map((e) => e.token),
       ...Object.values(APPRENTICES).map((a) => a.token),
       ...'DSRNBWTCE', // the household roster letters (HC P3)
       ...'Piow~=#*hgl@_{!&$+>^v<.', // board notation characters
@@ -49,7 +51,7 @@ describe('RV-W0 contracts', () => {
     expect(tokenCollisions([...DISTRICT_TOKENS, ...RIVAL_TOKENS], [...new Set(builtIn)])).toEqual(
       [],
     );
-    expect(() => parseBoard('L')).toThrow(); // not parsed until RV-1
+    expect(parseBoard('L').units[0]?.def).toBe('lamplighter');
   });
 
   test('the proposed kit lattices compile as ordinary spells', () => {
@@ -59,7 +61,7 @@ describe('RV-W0 contracts', () => {
   });
 
   test('no rival, page or held page exists yet', () => {
-    expect(RIVALS).toEqual({});
+    expect(Object.keys(RIVALS)).toEqual(['lamplighter']); // the RV-1 fixture
     expect(RIVAL_PAGES).toEqual({});
     expect(pagesHeld({})).toEqual([]);
     expect(holdsPage({ pages: ['lamplighter:lantern'] }, 'lamplighter:lantern')).toBe(true);

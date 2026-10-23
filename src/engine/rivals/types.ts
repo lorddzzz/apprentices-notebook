@@ -76,6 +76,8 @@ export interface RivalState {
   objects: TrickObject[];
   /** Objects named by the shown intent (the long wick's jar). */
   locked: ObjectRef[];
+  /** A scenario's pinned intent (RV-1): RV-2 resolves it in place of planning. */
+  pinned?: RivalIntent;
 }
 
 // ── Planning (P4, P5) ───────────────────────────────────
