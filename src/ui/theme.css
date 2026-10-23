@@ -38,8 +38,21 @@
   --role-aura: #6a4a9a; /* violet */
 
   /* roles */
-  --member-draughtsman: #2f4f6f;
-  --member-stoker: #a2471f;
+  --member-draughtsman: var(--hue-slate);
+  --member-stoker: var(--hue-rust);
+
+  /* apprentice hues (HC P13): ink on parchment, each >= 4.5:1 against --parchment */
+  --hue-slate: #2f4f6f;
+  --hue-rust: #a2471f;
+  --hue-amber: #8f5a00;
+  --hue-moss: #44651f;
+  --hue-teal: #17625c;
+  --hue-plum: #7b3a6c;
+  --hue-rose: #a8324c;
+  --hue-ochre: #6b6412;
+  --hue-indigo: #4a3f94;
+  --hue-gilt: #6e5200; /* the owner's */
+  --token-fill: var(--parchment);
   --enemy: #2b2118;
   --danger: #b3261e;
   --danger-tint: rgba(179, 38, 30, 0.16);
@@ -67,6 +80,21 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* Dark surfaces (no dark mode ships yet): the same hues lifted to >= 4.5:1 against --night. */
+:root[data-theme="dark"] {
+  --hue-slate: #8fb2d6;
+  --hue-rust: #e8946a;
+  --hue-amber: #e8aa4a;
+  --hue-moss: #9bcb72;
+  --hue-teal: #5cc7bc;
+  --hue-plum: #cf92c0;
+  --hue-rose: #f08fa3;
+  --hue-ochre: #d4cb5c;
+  --hue-indigo: #aaa3f4;
+  --hue-gilt: #ecd067;
+  --token-fill: var(--night);
 }
 
 *,

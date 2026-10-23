@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { DISTRICTS, MEMBERS } from '$data';
+  import { APPRENTICES, DISTRICTS, MEMBERS } from '$data';
   import { compiledFor, pageOf } from '$engine';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
   import { deadCellNotes, heardHighlights, placeInText, tierUpLine } from '../../app/tripviews';
+  import ApprenticeToken from '../components/common/ApprenticeToken.svelte';
   import Button from '../components/common/Button.svelte';
 
   const recap = $derived(game.save.lastTrip);
@@ -73,8 +74,9 @@
               {#each spells as s, i (`${s.member}|${s.spell}`)}
                 <tr>
                   <td>
-                    <span class="who" style:color="var(--member-{s.member})"
-                      >{MEMBERS[s.member].name}</span
+                    <span class="who" style:color="var(--hue-{APPRENTICES[s.member].look.hue})"
+                      ><ApprenticeToken def={APPRENTICES[s.member]} size="ledger"
+                      /> {MEMBERS[s.member].name}</span
                     >
                     {s.name}
                     {#each notes[i] ?? [] as n (n)}

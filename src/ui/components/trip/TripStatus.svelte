@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { encountersOf, MEMBER_IDS, MEMBERS } from '$data';
+  import { APPRENTICES, encountersOf, MEMBER_IDS, MEMBERS } from '$data';
   import { compiledFor, type Profile, type Trip } from '$engine';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -36,8 +37,8 @@
     <span class="finds">· {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
   </p>
   {#each rows as r (r.id)}
-    <div class="row" style:--c="var(--member-{r.id})" data-member={r.id}>
-      <span class="who"><span class="dot"></span>{r.name}</span>
+    <div class="row" data-member={r.id}>
+      <span class="who"><ApprenticeToken def={APPRENTICES[r.id]} size="strip" />{r.name}</span>
       <span class="hp"><Pips value={r.hp} max={r.maxHp} /><span class="num">{r.hp}/{r.maxHp}</span></span>
       <span class="spells">
         {#each r.spells as s (s.key)}
@@ -74,7 +75,7 @@
   }
   .row {
     display: grid;
-    grid-template-columns: 104px auto 1fr;
+    grid-template-columns: 128px auto 1fr;
     grid-template-areas: 'who hp spells';
     align-items: center;
     gap: var(--space-2);
@@ -91,13 +92,6 @@
     gap: 6px;
     min-width: 0;
     white-space: nowrap;
-  }
-  .dot {
-    width: 10px;
-    height: 10px;
-    flex: none;
-    border-radius: 50%;
-    background: var(--c);
   }
   .hp {
     grid-area: hp;

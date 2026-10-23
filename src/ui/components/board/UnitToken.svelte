@@ -1,7 +1,8 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-  import { ENEMIES, MEMBERS } from '$data';
+  import { APPRENTICES, ENEMIES } from '$data';
   import type { UnitView } from '../../../app/view';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import { runePath } from './art';
   import { CELL } from './geometry';
 
@@ -15,10 +16,10 @@
 
   const glyph = $derived(
     unit.kind === 'member'
-      ? MEMBERS[unit.def as keyof typeof MEMBERS].token
+      ? APPRENTICES[unit.def as keyof typeof APPRENTICES].token
       : ENEMIES[unit.def as keyof typeof ENEMIES].token,
   );
-  const memberColor = $derived(`var(--member-${unit.def})`);
+  const apprentice = $derived(unit.kind === 'member' ? APPRENTICES[unit.def as keyof typeof APPRENTICES] : null);
   const pipText = $derived(unit.maxHp > 8);
   const pipX = $derived(50 - (unit.maxHp * 11 - 3) / 2);
   const CY = 42;
@@ -38,9 +39,8 @@
     <circle cx="50" cy={CY} r="42" fill="none" stroke="var(--select)" stroke-width="5" />
   {/if}
 
-  {#if unit.kind === 'member'}
-    <circle cx="50" cy={CY} r="32" fill="var(--parchment)" stroke={memberColor} stroke-width="7" />
-    <text x="50" y={CY + 13} text-anchor="middle" font-size="38" font-weight="bold" fill={memberColor} font-family="Georgia, serif">{glyph}</text>
+  {#if apprentice}
+    <ApprenticeToken def={apprentice} size="board" x={0} y={CY - 50} />
   {:else if unit.def === 'rat'}
     <circle cx="50" cy={CY} r="27" fill="var(--enemy)" />
     <text x="50" y={CY + 11} text-anchor="middle" font-size="34" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>

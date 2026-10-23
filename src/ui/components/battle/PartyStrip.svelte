@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { APPRENTICES } from '$data';
   import type { MemberUnit, UnitId } from '$engine';
   import { SCHOOL_NAME } from '../../../app/describe';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
 
   interface Props {
@@ -28,13 +30,13 @@
       class="chip-btn"
       class:selected={selected === m.id}
       class:down={m.hp <= 0}
-      style:--c="var(--member-{m.def})"
+      style:--c="var(--hue-{APPRENTICES[m.def].look.hue})"
       aria-pressed={selected === m.id}
       aria-label="{m.name}, {m.hp} of {m.maxHp} HP, {status(m)}{danger ? ', in danger' : ''}"
       onclick={() => onselect(m.id)}
     >
       <span class="row">
-        <span class="dot"></span>
+        <ApprenticeToken def={APPRENTICES[m.def]} size={18} />
         <span class="name">{m.name}</span>
         <span class="aff" title="Trained: its runes cost 1 ink less. Gifted: its runes work a step better.">
           {SCHOOL_NAME[m.lean.trained].toLowerCase()}{m.lean.gifted && m.lean.gifted !== m.lean.trained
@@ -97,22 +99,17 @@
   .small {
     font-size: 11px;
   }
-  .dot {
-    width: 10px;
-    height: 10px;
-    flex: none;
-    border-radius: 50%;
-    background: var(--c);
-  }
   .aff {
     font-size: 11px;
     color: var(--ink-soft);
     white-space: nowrap;
-  }
-  .name {
-    font-size: 14px;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .name {
+    flex: none;
+    font-size: 14px;
     white-space: nowrap;
   }
   .danger {

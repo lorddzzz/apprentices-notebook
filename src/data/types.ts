@@ -269,7 +269,9 @@ export type ApprenticeHue =
   | 'plum'
   | 'rose'
   | 'ochre'
-  | 'indigo';
+  | 'indigo'
+  /** The owner's (EN): the tenth, never offered as a recruit. */
+  | 'gilt';
 /** Token shapes, so colour is never the only cue (HC P13). */
 export type TokenShape =
   | 'circle'
@@ -280,7 +282,9 @@ export type TokenShape =
   | 'pentagon'
   | 'star'
   | 'cross'
-  | 'drop';
+  | 'drop'
+  /** The owner's. */
+  | 'ring';
 /** One apprentice's kit (party.md §0b): body, action, lean, habit, starter page, look. */
 export interface ApprenticeDef<Id extends string = ApprenticeId> {
   id: Id;
