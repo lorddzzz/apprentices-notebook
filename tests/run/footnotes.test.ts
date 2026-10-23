@@ -2,9 +2,9 @@ import { expect, test } from 'vitest';
 import { type LineId, SHOVE_WALL_SOFT, VARIANTS, type VariantDef } from '$data';
 import {
   awardFootnotePoints,
+  footnoteIds,
   footnoteLevel,
   footnoteOffers,
-  footnoteTexts,
   newProfile,
   type Profile,
   writeFootnote,
@@ -59,7 +59,7 @@ test("writing spends one solvent of the line's district once; re-picking is free
   if ('error' in again) throw new Error(again.error);
   expect(again.profile.solvents.gallnut).toBe(1);
   expect(again.profile.footnotes.shove?.chosen[WALL]).toBe('t-hard');
-  expect(footnoteTexts(again.profile, V)).toEqual({ [WALL]: 'A wall crush hurts more.' });
+  expect(footnoteIds(again.profile, V)).toEqual({ [WALL]: 't-hard' });
 });
 
 test('the solvent held in greater number is spent', () => {
@@ -103,15 +103,33 @@ test('variant-changes-a-scenario-log', () => {
   const p = withSolvent(withPoints(profile(), 5), 'gallnut', 1);
   const w = writeFootnote(p, 'shove', WALL, SHOVE_WALL_SOFT, VARIANTS);
   if ('error' in w) throw new Error(w.error);
-  expect(crushDamage(footnoteTexts(w.profile, VARIANTS))).toBeLessThan(plain);
+  expect(crushDamage(footnoteIds(w.profile, VARIANTS))).toBeLessThan(plain);
 });
 
-test.each(VARIANTS)('authored $id resolves from the profile to its exact context text', (v) => {
+test.each(VARIANTS)('authored $id resolves from the profile to its context id', (v) => {
   const p = newProfile();
   const rune = v.line.split(':')[0] as 'shove' | 'spark' | 'oil';
   const written: Profile = {
     ...p,
     footnotes: { [rune]: { points: 5, chosen: { [v.line]: v.id } } },
   };
-  expect(footnoteTexts(written)).toEqual({ [v.line]: v.text });
+  expect(footnoteIds(written)).toEqual({ [v.line]: v.id });
+});
+
+test('a variant text can be reworded without changing behaviour', () => {
+  const reworded = VARIANTS.map((v) =>
+    v.id === SHOVE_WALL_SOFT ? { ...v, text: 'Walls forgive, in other words.' } : v,
+  );
+  const p = withSolvent(withPoints(profile(), 5), 'gallnut', 1);
+  const w = writeFootnote(p, 'shove', WALL, SHOVE_WALL_SOFT, VARIANTS);
+  if ('error' in w) throw new Error(w.error);
+  const crush = (ids: ReturnType<typeof footnoteIds>) =>
+    runDraft(
+      board('D r . . {wall}'),
+      (ctx) => {
+        push(ctx, unitAtLabel(ctx.s, 'B1'), 'right', 3, null);
+      },
+      { footnotes: ids },
+    ).events.filter((e) => e.type === 'crush');
+  expect(crush(footnoteIds(w.profile, reworded))).toEqual(crush(footnoteIds(w.profile, VARIANTS)));
 });

@@ -4,7 +4,7 @@ import {
   type Cluster,
   type Coord,
   compileGlyph,
-  footnoteTexts,
+  footnoteIds,
   type GameEvent,
   newSave,
   type Profile,
@@ -260,7 +260,7 @@ export class GameStore {
     this.battle = new BattleSession(init, 'trip', {
       onEvents: (events) => this.announce(events),
       onAction: (_, action) => this.commit(recordBattleAction(this.save, action)),
-      footnotes: footnoteTexts(this.save.profile),
+      footnotes: footnoteIds(this.save.profile),
       witnessed: this.save.profile.witnessed,
       intro: trip.actions.length === 0,
     });

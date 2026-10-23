@@ -10,13 +10,13 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
-import type { Ctx } from './ctx';
+import type { Ctx, FootnoteIds, FootnoteVariantId } from './ctx';
 import type { Profile } from './types';
 
-/** Resolve authored variant ids while preserving the text-valued context contract. */
-export function hasFootnote(ctx: Pick<Ctx, 'footnotes'>, id: string): boolean {
+/** True when the household chose this variant for its line. Handlers name ids, never text. */
+export function hasFootnote(ctx: Pick<Ctx, 'footnotes'>, id: FootnoteVariantId): boolean {
   const variant = VARIANTS.find((v) => v.id === id);
-  return variant !== undefined && ctx.footnotes[variant.line] === variant.text;
+  return variant !== undefined && ctx.footnotes[variant.line] === id;
 }
 
 /** Footnotes (design §8, P39): pure functions on the profile. `variants` defaults to the content. */
@@ -93,16 +93,12 @@ export function writeFootnote(
   return { profile: { ...p, solvents, footnotes: { ...p.footnotes, [rune]: entry } } };
 }
 
-/** What `ctx.footnotes` holds: each written line's variant text. */
-export function footnoteTexts(
-  p: Profile,
-  variants: readonly VariantDef[] = VARIANTS,
-): Partial<Record<LineId, string>> {
-  const out: Partial<Record<LineId, string>> = {};
+/** What `ctx.footnotes` holds: each written line's variant id (known variants only). */
+export function footnoteIds(p: Profile, variants: readonly VariantDef[] = VARIANTS): FootnoteIds {
+  const out: Partial<Record<LineId, FootnoteVariantId>> = {};
   for (const entry of Object.values(p.footnotes)) {
     for (const [line, id] of Object.entries(entry?.chosen ?? {}) as [LineId, string][]) {
-      const v = variants.find((x) => x.id === id && x.line === line);
-      if (v) out[line] = v.text;
+      if (variants.some((x) => x.id === id && x.line === line)) out[line] = id;
     }
   }
   return out;

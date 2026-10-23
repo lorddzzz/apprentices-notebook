@@ -38,7 +38,7 @@ export type SessionMode = 'trip' | 'lab';
 
 export interface SessionOptions {
   onEvents?: (events: GameEvent[]) => void;
-  /** The footnotes the household wrote (`footnoteTexts`): the engine reads them for their lines. */
+  /** The footnotes the household wrote (`footnoteIds`): the engine reads them for their lines. */
   footnotes?: Footnotes;
   /**
    * The lines the household has witnessed (`Profile.witnessed`): the preview describes only

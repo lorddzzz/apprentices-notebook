@@ -7,7 +7,7 @@ import {
   type MemberId,
 } from '$data';
 import { applyAction, createEncounterBattle } from '../battle';
-import { footnoteTexts } from '../footnotes';
+import { footnoteIds } from '../footnotes';
 import { deriveSeed } from '../rng';
 import { compiledFor, inventionLibrary, validateLoadout } from '../run';
 import { emptyStats } from '../tripStats';
@@ -67,7 +67,7 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
   );
   let state = first.state;
   const events = [...first.events];
-  const footnotes = footnoteTexts(p);
+  const footnotes = footnoteIds(p);
   for (const a of t.actions) {
     const r = applyAction(state, a, footnotes);
     state = r.state;

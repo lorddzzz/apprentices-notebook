@@ -15,11 +15,9 @@ import type { ActionResult, BattleState, EventMeta, Origin, Unit } from './types
 /** Effects one cast may cause before the rest fizzles (plan §4: chains stay finite). */
 export const CAST_EVENT_CAP = 500;
 
-/** The footnote context as handlers read it today: line → the chosen variant's text. */
-export type FootnoteTexts = Readonly<Partial<Record<LineId, string>>>;
 /** A footnote variant's stable id (`VariantDef.id`), what the profile stores (P13). */
 export type FootnoteVariantId = VariantDef['id'];
-/** The context FD-8 switches to: line → chosen variant id, so a variant's text can change freely. */
+/** The footnote context: line → chosen variant id, so a variant's text can change freely (P13). */
 export type FootnoteIds = Readonly<Partial<Record<LineId, FootnoteVariantId>>>;
 
 export interface CastScope {
@@ -36,13 +34,13 @@ export interface Ctx {
   cast: CastScope | null;
   meta: EventMeta;
   /** Footnote variants written for lines: read by the handlers that own those lines (F1). */
-  footnotes: FootnoteTexts;
+  footnotes: FootnoteIds;
   /** Events one cast may emit before it fizzles; absent = `CAST_EVENT_CAP` (P11: tests cut chains). */
   eventCap?: number;
 }
 
 export interface DraftOptions {
-  footnotes?: FootnoteTexts;
+  footnotes?: FootnoteIds;
   /** Overrides `CAST_EVENT_CAP` for this draft (tests only). */
   eventCap?: number;
 }

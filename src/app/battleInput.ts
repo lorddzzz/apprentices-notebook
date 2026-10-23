@@ -30,7 +30,7 @@ import {
 import { type Outcome, outcomeOf, previewSummary } from './describe';
 
 /** The footnote variants the household wrote, by line: the engine reads them (F1). */
-export type Footnotes = Partial<Record<LineId, string>>;
+export type Footnotes = import('$engine/ctx').FootnoteIds;
 
 /**
  * The battle input state machine: taps in, a new mode (and maybe an action) out. Pure; the
