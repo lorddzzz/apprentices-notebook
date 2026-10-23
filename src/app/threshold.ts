@@ -1,11 +1,4 @@
-import {
-  DISTRICT_IDS,
-  DISTRICTS,
-  type DistrictId,
-  MEMBER_IDS,
-  type MemberId,
-  type ThresholdDef,
-} from '$data';
+import { DISTRICT_IDS, DISTRICTS, type DistrictId, type MemberId, type ThresholdDef } from '$data';
 import {
   type ActionResult,
   type BattleState,
@@ -15,6 +8,7 @@ import {
   type PartyInit,
   type Profile,
   solveThreshold,
+  tripParty,
 } from '$engine';
 
 /** A threshold room's battle (K-22) is not a trip: one fixed seed, so Retry replays the same start. */
@@ -37,14 +31,18 @@ export function planThreshold(p: Profile, d: string | null): ThresholdPlan {
   const state = districtState(p, id);
   if (state === 'unheard') return { ok: false, why: 'You have not heard of this place yet.' };
   if (def.gate.kind !== 'threshold') return { ok: false, why: `${def.name} has no barred way.` };
+  if (tripParty(p).length === 0) {
+    return { ok: false, why: 'No one is slotted. Slot an apprentice in the study first.' };
+  }
   if (state === 'open') return { ok: false, why: `${def.name} is already open.` };
   return { ok: true, district: id, name: def.name, room: def.gate.room, line: def.line };
 }
 
 /** The room's opening state: the current lattices, full HP and full charges. */
 export function thresholdStart(p: Profile, room: ThresholdDef): ActionResult {
+  const lineup = tripParty(p);
   const party: Partial<Record<MemberId, PartyInit>> = {};
-  for (const m of MEMBER_IDS) {
+  for (const m of lineup) {
     const spells = compiledFor(p, m).spells;
     party[m] = { spells, charges: Object.fromEntries(spells.map((s) => [s.key, s.charges])) };
   }
@@ -54,6 +52,8 @@ export function thresholdStart(p: Profile, room: ThresholdDef): ActionResult {
     seed: THRESHOLD_SEED,
     objective: room.goal,
     party,
+    lineup,
+    startSeed: THRESHOLD_SEED,
   });
 }
 

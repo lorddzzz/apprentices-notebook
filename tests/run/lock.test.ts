@@ -12,7 +12,13 @@ if (gate.kind !== 'threshold') throw new Error('the canals have a threshold');
 const LOCK = gate.room;
 
 const start = () =>
-  createBattle({ title: LOCK.name, board: LOCK.board, seed: 1, objective: LOCK.goal }).state;
+  createBattle({
+    title: LOCK.name,
+    board: LOCK.board,
+    seed: 1,
+    objective: LOCK.goal,
+    lineup: ['draughtsman', 'stoker'],
+  }).state;
 
 describe('the canal lock', () => {
   test('one rat on the sill, canal water at its back, the party on the near bank', () => {

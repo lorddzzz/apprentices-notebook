@@ -316,13 +316,13 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
       room: {
         name: 'The canal lock',
         // The lock-keeper's rat sits on the sill with plates either side and the canal at its back
-        // (P10). A shove along the row drops it in the water; a fire or a strike only kills it,
+        // (P10). Four `P`: three along the row, one a step above it. A shove along the row drops it in the water; a fire or a strike only kills it,
         // so the goal asks for the drop as well. `Bolt> Oil Shove` is the intended page.
         board: board([
           '. . . . wv .',
-          '. S . . wv .',
-          '. . . = wv .',
-          'D . . r wv .',
+          '. . . . wv .',
+          '. P . = wv .',
+          'P P P r wv .',
           '. . . = wv .',
           '. . . . wv .',
           '. . . . wv .',

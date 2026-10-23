@@ -5,8 +5,10 @@
     { "type": "round", "round": 1 },
     { "type": "phase", "phase": "enemy" },
     {
-      "type": "idle",
-      "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 3 }, "member": false }
+      "type": "telegraph",
+      "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 3 }, "member": false },
+      "intent": { "kind": "attack", "attack": "bite", "dir": "left", "order": 1 },
+      "verb": "bite"
     },
     { "type": "phase", "phase": "player" },
     {
@@ -14,7 +16,7 @@
       "caster": {
         "id": "draughtsman",
         "name": "Draughtsman",
-        "at": { "x": 0, "y": 3 },
+        "at": { "x": 2, "y": 3 },
         "member": true
       },
       "spell": "Bolt",
@@ -33,7 +35,7 @@
       "type": "lands",
       "source": "Bolt",
       "at": { "x": 3, "y": 3 },
-      "path": [{ "x": 1, "y": 3 }, { "x": 2, "y": 3 }, { "x": 3, "y": 3 }],
+      "path": [{ "x": 3, "y": 3 }],
       "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
     },
     {
@@ -48,7 +50,7 @@
       "caster": {
         "id": "draughtsman",
         "name": "Draughtsman",
-        "at": { "x": 0, "y": 3 },
+        "at": { "x": 2, "y": 3 },
         "member": true
       },
       "spell": "0,1",
@@ -65,7 +67,7 @@
     }
   ],
   "phase": "player",
-  "board": ". . . .  wv .\n. S . .  wv .\n. . . =  wv .\nD . . ro wv .\n. . . =  wv .\n. . . .  wv .\n. . . .  wv .\n. . . .  wv .",
+  "board": ". . . .  wv .\n. . . .  wv .\n. . . =  wv .\nS . D ro wv .\n. . . =  wv .\n. . . .  wv .\n. . . .  wv .\n. . . .  wv .",
   "profile": {
     "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
     "methods": [],

@@ -1,6 +1,17 @@
 import { describe, expect, test } from 'vitest';
 import { DISTRICTS } from '$data';
-import { applyAction, boardOf, memberById, newProfile, type Profile, parseLattice } from '$engine';
+import {
+  applyAction,
+  boardOf,
+  compiledFor,
+  createBattle,
+  memberById,
+  newProfile,
+  type Profile,
+  parseBoard,
+  parseLattice,
+  tripParty,
+} from '$engine';
 import { GameStore } from '../../src/app/game.svelte';
 import { memoryBackend } from '../../src/app/save';
 import { planThreshold, thresholdOutcome, thresholdStart } from '../../src/app/threshold';
@@ -114,5 +125,66 @@ describe('threshold screen logic', () => {
     expect(store.won).toBe(false);
     expect(store.solved).toBe(false);
     expect(game.profile).toBe(before);
+  });
+
+  test('no one slotted: the room is blocked with a message', () => {
+    const p = heardCanals();
+    const empty: Profile = { ...p, household: { ...p.household, slots: [null, null, null] } };
+    const plan = planThreshold(empty, 'canals');
+    expect(plan.ok).toBe(false);
+    expect(plan.ok === false && plan.why).toMatch(/slotted/);
+  });
+
+  test('threshold-start-points: one apprentice solves the lock from each of the four spots', () => {
+    const solving: Profile = {
+      ...heardCanals(),
+      lattices: { ...heardCanals().lattices, draughtsman: [...parseLattice(SHOVE_D).runes] },
+    };
+    const solo: Profile = {
+      ...solving,
+      household: { ...solving.household, slots: ['draughtsman', null, null] },
+    };
+    expect(tripParty(solo)).toEqual(['draughtsman']);
+    expect(parseBoard(gate.room.board).starts).toHaveLength(4);
+    const spells = compiledFor(solo, 'draughtsman').spells;
+    const seen = new Set<string>();
+    for (let seed = 0; seed < 60; seed++) {
+      let state = createBattle({
+        title: 'lock',
+        board: gate.room.board,
+        seed: 1,
+        objective: gate.room.goal,
+        party: {
+          draughtsman: {
+            spells,
+            charges: Object.fromEntries(spells.map((s) => [s.key, s.charges])),
+          },
+        },
+        lineup: ['draughtsman'],
+        startSeed: seed,
+      }).state;
+      const at = memberById(state, 'draughtsman').pos;
+      seen.add(`${at.x},${at.y}`);
+      if (at.x !== 2 || at.y !== 3) {
+        state = applyAction(state, { type: 'move', unit: 'draughtsman', to: { x: 2, y: 3 } }).state;
+      }
+      const spell = memberById(state, 'draughtsman').spells[0];
+      if (!spell) throw new Error('no spell');
+      const r = applyAction(state, {
+        type: 'cast',
+        unit: 'draughtsman',
+        spell: spell.key,
+        aim: { kind: 'dir', dir: 'right' },
+      });
+      expect(r.state.phase, `from ${at.x},${at.y}`).toBe('won');
+    }
+    expect(seen.size).toBe(4);
+  });
+
+  test('Retry places the party on the same spots', () => {
+    const solo: Profile = { ...heardCanals() };
+    const a = memberById(thresholdStart(solo, gate.room).state, 'draughtsman').pos;
+    const b = memberById(thresholdStart(solo, gate.room).state, 'draughtsman').pos;
+    expect(a).toEqual(b);
   });
 });
