@@ -24,5 +24,6 @@ export * from './revision';
 export * from './rng';
 export * from './run';
 export * from './scenario';
+export * from './trip';
 export * from './tripStats';
 export * from './types';

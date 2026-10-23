@@ -9,7 +9,7 @@ import {
 } from '$data';
 import type { EventLog, GameEvent } from './events';
 import { parseLabel } from './notation';
-import { placeOf } from './run';
+import { placeOf } from './trip/place';
 import type { BattleState, CityState, LootItem, Profile, Trip } from './types';
 
 /**

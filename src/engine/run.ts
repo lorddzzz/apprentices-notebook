@@ -5,26 +5,18 @@ import {
   type CodexEntryDef,
   type CompoundId,
   DISTRICT_IDS,
-  DISTRICTS,
-  type DistrictId,
   ENEMY_IDS,
-  type EnemyId,
   encountersOf,
   type InventionDef,
   isInvention,
   LINES,
   type LineDef,
   type LineId,
-  LOOT_TABLES,
-  type LootEntry,
-  type LootSpec,
-  type LootTableId,
   MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   type Meets,
   type MemberId,
-  type MethodId,
   RUNE_IDS,
   type RuneId,
   type RuneRef,
@@ -33,11 +25,8 @@ import {
   START_KNOWN,
   TUNING,
 } from '$data';
-import { applyAction, createEncounterBattle } from './battle';
-import { bankKeys, canReturn, cityDefaults, hearAfterTrip, hearFromBattle, keyOffer } from './city';
+import { cityDefaults } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
-import { type EventLog, namedIn } from './events';
-import { awardFootnotePoints, footnoteTexts } from './footnotes';
 import { baseGlyphCost, canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import {
   type Coord,
@@ -70,19 +59,16 @@ import {
   roleOf,
   validateLattice,
 } from './lattice';
-import { witnessedIn } from './lines';
 import { parseBoard, parseLattice } from './notation';
 import { growingLattice } from './page';
-import { recordGlyphCasts, recordOf, rewardsOf, tierUps } from './profiler';
-import { masksFrom, provenCount } from './proof';
-import { memberById } from './queries';
-import { createRng, deriveSeed, pickWeighted, type Rng } from './rng';
-import { accumulateStats, emptyStats } from './tripStats';
+import { recordOf, rewardsOf } from './profiler';
+import { provenCount } from './proof';
+import { deriveSeed } from './rng';
+import { variantFor } from './trip/place';
+import { copyRune, perMember, withAll } from './trip/shared';
 import type {
   Action,
-  ActionResult,
   Aim,
-  BattleState,
   CastSample,
   CellKey,
   CompiledLattice,
@@ -96,13 +82,10 @@ import type {
   Lattice,
   LatticeIssue,
   LootItem,
-  PartyInit,
   Placed,
   PlacedRune,
   Profile,
   SaveData,
-  Spell,
-  SpellKey,
   SpellTally,
   TierLevel,
   TierUp,
@@ -114,8 +97,8 @@ import type {
 import { isGlyph } from './types';
 
 /**
- * Run layer: the profile (what the household knows, ink, lattices, codex), the trip lifecycle and
- * save data. Everything here is pure: functions return new objects and never mutate their inputs.
+ * Run layer: the profile (what the household knows, ink, lattices, codex) and save data; the trip
+ * lifecycle lives in `./trip/`. Everything here is pure: functions return new objects and never mutate their inputs.
  * R1 rebuilds this on Profile v7 (plan §2.8); W0b only moved it onto the new model.
  *
  *   startTrip → beginEncounter → (battle) → closeBattle → pickLoot × picks → pushOn | returnHome
@@ -123,22 +106,6 @@ import { isGlyph } from './types';
  * `closeBattle` = `recordTripCasts` (proof and Glyph records, one replay) → `finishEncounter` →
  * the trip's tier-ups (M7, M16).
  */
-
-function perMember<T>(make: (m: MemberId) => T): Record<MemberId, T> {
-  return Object.fromEntries(MEMBER_IDS.map((m) => [m, make(m)])) as Record<MemberId, T>;
-}
-
-const copyArgs = (args: Readonly<Record<CellKey, GlyphArg>>): Record<CellKey, GlyphArg> =>
-  Object.fromEntries(Object.entries(args).map(([k, a]) => [k, { ...a }]));
-
-const copyRune = (r: Placed): Placed =>
-  isGlyph(r)
-    ? r.args
-      ? { at: { ...r.at }, glyph: r.glyph, dir: r.dir, args: copyArgs(r.args) }
-      : { at: { ...r.at }, glyph: r.glyph, dir: r.dir }
-    : r.dir === undefined
-      ? { at: { ...r.at }, rune: r.rune }
-      : { at: { ...r.at }, rune: r.rune, dir: r.dir };
 
 // ── Profile ─────────────────────────────────────────────
 
@@ -374,471 +341,6 @@ export function compoundTable(p: Profile): (CodexRow | null)[][] {
 }
 
 // ── Trip ────────────────────────────────────────────────
-
-function chargesOf(p: Profile, m: MemberId): Record<SpellKey, number> {
-  return Object.fromEntries(compiledFor(p, m).spells.map((sp) => [sp.key, sp.charges]));
-}
-
-function need(t: Trip, ...allowed: TripStatus[]): void {
-  if (!allowed.includes(t.status)) {
-    throw new Error(`Trip is "${t.status}", expected ${allowed.map((s) => `"${s}"`).join(' or ')}`);
-  }
-}
-
-/** A new trip into an open district with full HP and full charges. Throws if the loadout has issues. */
-export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam'): Trip {
-  const issues = validateLoadout(p);
-  const first = Object.values(issues)[0]?.[0];
-  if (first) throw new Error(`Loadout is not ready: ${first.message}`);
-  if (!p.city.open.includes(district)) throw new Error(`${DISTRICTS[district].name} is not open`);
-  return {
-    district,
-    seed,
-    encounter: 0,
-    status: 'fight',
-    hp: perMember((m) => MEMBERS[m].hp),
-    charges: perMember((m) => chargesOf(p, m)),
-    loot: [],
-    offers: [],
-    picksLeft: 0,
-    actions: [],
-    stats: emptyStats(),
-  };
-}
-
-/** Which of the encounter's layouts this trip plays (plan S10): derived from the seed, never stored. */
-export function variantFor(t: Trip, encounter: number): number {
-  const count = encountersOf(t.district)[encounter]?.variants.length ?? 1;
-  // The Seam keeps its original salt so old trips replay the same rooms (K-2).
-  const salt =
-    t.district === 'seam'
-      ? 2000 + encounter
-      : 3000 + 100 * DISTRICT_IDS.indexOf(t.district) + encounter;
-  return createRng(deriveSeed(t.seed, salt)).int(0, count - 1);
-}
-
-/** The name of the room this trip fights in at `encounter` (its layout's place name). */
-export function placeOf(t: Trip, encounter = t.encounter): string {
-  const enc = encountersOf(t.district)[encounter];
-  return enc?.variants[variantFor(t, encounter)]?.name ?? enc?.title ?? DISTRICTS[t.district].name;
-}
-
-/**
- * The current encounter's battle: the party enters with the trip's HP and charges, then the
- * trip's recorded actions are replayed (a reload resumes the fight). Throws if one is illegal.
- */
-export function beginEncounter(p: Profile, t: Trip): ActionResult {
-  need(t, 'fight');
-  const enc = encountersOf(t.district)[t.encounter];
-  if (!enc) throw new Error(`No encounter ${t.encounter}`);
-  const party: Partial<Record<MemberId, PartyInit>> = {};
-  for (const m of MEMBER_IDS) {
-    const spells = compiledFor(p, m).spells;
-    party[m] = {
-      hp: t.hp[m],
-      spells,
-      charges: { ...chargesOf(p, m), ...t.charges[m] },
-    };
-  }
-  const first = createEncounterBattle(
-    enc,
-    party,
-    deriveSeed(t.seed, t.encounter),
-    variantFor(t, t.encounter),
-    t.district,
-    inventionLibrary(p),
-  );
-  let state = first.state;
-  const events = [...first.events];
-  const footnotes = footnoteTexts(p);
-  for (const a of t.actions) {
-    const r = applyAction(state, a, footnotes);
-    state = r.state;
-    events.push(...r.events);
-  }
-  return { state, events };
-}
-
-/** Remembers a battle action so a reload can replay the fight up to here. */
-export function recordAction(t: Trip, action: Action): Trip {
-  need(t, 'fight');
-  return { ...t, actions: [...t.actions, structuredClone(action)] };
-}
-
-/** What the household already has: a page of it drops as ink (P34). */
-export interface Owned {
-  known: readonly RuneId[];
-  methods: readonly MethodId[];
-}
-
-const NOTHING_OWNED: Owned = { known: [], methods: [] };
-
-const hasPage = (owned: Owned, spec: LootSpec): boolean =>
-  (spec.kind === 'rune' && owned.known.includes(spec.rune)) ||
-  (spec.kind === 'method' && owned.methods.includes(spec.method));
-
-const samePage = (a: LootSpec, b: LootSpec): boolean =>
-  (a.kind === 'rune' && b.kind === 'rune' && a.rune === b.rune) ||
-  (a.kind === 'method' && b.kind === 'method' && a.method === b.method);
-
-function offerOf(spec: LootSpec, rng: Rng, members: readonly MemberId[], owned: Owned): LootItem {
-  const member = (): MemberId =>
-    members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
-  if (hasPage(owned, spec)) return { kind: 'ink', member: member(), amount: TUNING.duplicateInk };
-  switch (spec.kind) {
-    case 'rune':
-      return { kind: 'rune', rune: spec.rune };
-    case 'method':
-      return { kind: 'method', method: spec.method };
-    case 'doorway':
-      return { kind: 'doorway' };
-    case 'solvent':
-      return { kind: 'solvent', solvent: spec.solvent };
-    case 'vellum':
-      return { kind: 'vellum', amount: spec.amount };
-    case 'key':
-      return { kind: 'key', district: spec.district };
-    case 'ink':
-      return { kind: 'ink', member: member(), amount: TUNING.inkReserve };
-  }
-}
-
-/**
- * Loot offers for a won encounter: distinct table entries, weighted, same result for the same seed.
- * A `key` (from `keyOffer`, K-23) joins the end of the pool with its weight. A table's
- * `guaranteed` page is offered first while the household lacks it (P35); a rune or method page it
- * already has (`owned`) is offered as `duplicateInk` instead (P34).
- */
-export function rollOffers(
-  tripSeed: number,
-  encounter: number,
-  table: LootTableId,
-  members: readonly MemberId[] = MEMBER_IDS,
-  key: { district: DistrictId; weight: number } | null = null,
-  owned: Owned = NOTHING_OWNED,
-): LootItem[] {
-  const rng = createRng(deriveSeed(tripSeed, 1000 + encounter));
-  const def = LOOT_TABLES[table];
-  const offers: LootItem[] = [];
-  let pool: LootEntry[] = [...def.entries];
-  if (key) pool.push({ spec: { kind: 'key', district: key.district }, weight: key.weight });
-  const must = def.guaranteed;
-  if (must && !hasPage(owned, must)) {
-    offers.push(offerOf(must, rng, members, owned));
-    pool = pool.filter((e) => !samePage(e.spec, must));
-  }
-  while (offers.length < TUNING.offersPerWin && pool.length > 0) {
-    const [entry] = pool.splice(
-      pickWeighted(
-        rng,
-        pool.map((e) => e.weight),
-      ),
-      1,
-    );
-    if (!entry) break;
-    offers.push(offerOf(entry.spec, rng, members, owned));
-  }
-  return offers;
-}
-
-/** The pages the household has, plus the ones already in the trip's loot (a second copy is ink). */
-const ownedBy = (p: Profile, t: Trip): Owned => ({
-  known: [...p.known, ...t.loot.flatMap((i) => (i.kind === 'rune' ? [i.rune] : []))],
-  methods: [...p.methods, ...t.loot.flatMap((i) => (i.kind === 'method' ? [i.method] : []))],
-});
-
-/**
- * Each firing of a line in a log (P39): a run of events stamped with the same line is one firing,
- * so a crush and the damage it deals count once, and two crushes in a row count twice only when
- * something else happened between them.
- */
-export function firedLines(log: EventLog): LineId[] {
-  const out: LineId[] = [];
-  let last: LineId | undefined;
-  for (const e of log) {
-    if (!e.line) continue;
-    if (e.line !== last) out.push(e.line);
-    last = e.line;
-  }
-  return out;
-}
-
-/** What a fight showed the household: terrain, states, compounds and kinds of foe (the Bench palette, P37). */
-export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: EnemyId[] } {
-  const met = new Set<Meets>();
-  const foes = new Set<EnemyId>();
-  for (const u of b.units) {
-    if (u.kind !== 'enemy') continue;
-    foes.add(u.def);
-    met.add(u.elite ? 'elite' : 'minion');
-  }
-  for (const t of b.tiles) {
-    if (t.terrain.water) met.add('water');
-    if (t.terrain.drop) met.add('drop');
-    if (t.state) met.add(t.state.id);
-    if (t.jar) met.add('jar');
-  }
-  for (const e of log) {
-    switch (e.type) {
-      case 'landed':
-        met.add(e.makes);
-        break;
-      case 'mixed':
-        met.add(e.compound);
-        break;
-      case 'washed':
-        met.add(e.was);
-        met.add(e.now);
-        break;
-      case 'marked':
-        met.add('mark');
-        break;
-      case 'collared':
-        met.add('collar');
-        break;
-      case 'shieldGained':
-        met.add('shielded');
-        break;
-      case 'held':
-        met.add('held');
-        break;
-      case 'jarSealed':
-        met.add('jar');
-        break;
-      case 'dropped':
-        met.add('drop');
-        break;
-    }
-  }
-  for (const id of witnessedIn(log)) met.add(id.slice(id.indexOf(':') + 1) as Meets);
-  return { met: [...met], foes: [...foes] };
-}
-
-const withAll = <T>(have: readonly T[], more: readonly T[]): T[] => [
-  ...new Set([...have, ...more]),
-];
-
-/**
- * What a finished trip fight teaches the household, won or lost (D7, D4, P39, P37): named results,
- * the lines that fired (witnessed), a footnote point per firing for the runes it knows, and what
- * the fight met.
- */
-export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profile {
-  const seen = metIn(b, log);
-  const learned: Profile = {
-    ...p,
-    named: withAll(p.named, namedIn(log)),
-    witnessed: withAll(p.witnessed, witnessedIn(log)),
-    met: withAll(p.met, seen.met),
-    foesMet: withAll(p.foesMet, seen.foes),
-  };
-  return awardFootnotePoints(learned, firedLines(log));
-}
-
-/**
- * Closes a finished battle. Named results are kept either way (knowledge isn't loot).
- * Won: HP and charges carry over (a downed member returns at 1 HP) and loot is offered.
- * Wiped: the trip ends and its pending loot is lost. `log` is the whole fight's event log; it
- * feeds the trip's stats, returned either way so a wipe can still show the trip page.
- */
-export function finishEncounter(
-  p: Profile,
-  t: Trip,
-  b: BattleState,
-  log: EventLog = [],
-  foughtWith: Profile = p,
-): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
-  need(t, 'fight');
-  if (b.phase === 'player') throw new Error('The battle is not over');
-  // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
-  const fought = perMember((m) => compiledFor(foughtWith, m).spells);
-  const stats = accumulateStats(t.stats, log, p, fought);
-  const profile = learnFromFight(p, b, log);
-  if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
-
-  const enc = encountersOf(t.district)[t.encounter];
-  if (!enc) throw new Error(`No encounter ${t.encounter}`);
-  const trip: Trip = {
-    ...t,
-    status: 'looting',
-    hp: perMember((m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
-    charges: perMember((m) => ({ ...memberById(b, m).charges })),
-    loot: [...t.loot],
-    offers: rollOffers(
-      t.seed,
-      t.encounter,
-      enc.loot,
-      MEMBER_IDS,
-      keyOffer(p, t, enc.loot),
-      ownedBy(p, t),
-    ),
-    picksLeft: enc.picks,
-    actions: [],
-    stats,
-  };
-  return { profile, trip, outcome: 'won', stats };
-}
-
-/**
- * Closes a finished trip battle (M7, M16): one replay writes proof and Glyph records
- * (`recordTripCasts`, win or wipe), then `finishEncounter`; the records' tier-ups go into the trip's
- * stats. Lab, Bench and desk battles never come here.
- */
-export function closeBattle(
-  p: Profile,
-  t: Trip,
-  b: BattleState,
-  log: EventLog = [],
-): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
-  const recorded = recordTripCasts(p, t);
-  const r = finishEncounter(recorded, t, b, log, p);
-  const ups = tierUps(p, recorded);
-  // Hearing is kept on a wipe (K-20): owner conditions on this log, then rumours if the trip ended.
-  const owner = hearFromBattle(r.profile, t, log);
-  const after =
-    r.outcome === 'wiped'
-      ? hearAfterTrip(owner.profile, t, 'wiped')
-      : { profile: owner.profile, heard: [] };
-  const heard = [...owner.heard, ...after.heard];
-  if (ups.length === 0 && heard.length === 0 && after.profile === r.profile) return r;
-  const stats: TripStats = {
-    ...r.stats,
-    elegance: [...r.stats.elegance, ...ups],
-    heard: [...r.stats.heard, ...heard],
-  };
-  return { ...r, profile: after.profile, stats, trip: r.trip ? { ...r.trip, stats } : null };
-}
-
-/** Takes offer `index` into the pending loot. After the last pick the trip moves on. */
-export function pickLoot(t: Trip, index: number): Trip {
-  need(t, 'looting');
-  const item = t.offers[index];
-  if (!item) throw new Error(`No offer ${index}`);
-  const offers = t.offers.filter((_, i) => i !== index);
-  const picksLeft = t.picksLeft - 1;
-  const done = picksLeft <= 0 || offers.length === 0;
-  const heart = encountersOf(t.district)[t.encounter]?.heart ?? false;
-  // A doorway costs the pick but is never banked: it opens field rewiring (plan S11).
-  const doorway = item.kind === 'doorway';
-  return {
-    ...t,
-    loot: doorway ? t.loot : [...t.loot, item],
-    offers: done ? [] : offers,
-    picksLeft: done ? 0 : picksLeft,
-    status: doorway ? 'doorway' : done ? (heart ? 'cleared' : 'crossroads') : 'looting',
-  };
-}
-
-/** Deeper into the district: the next encounter becomes current. */
-export function pushOn(t: Trip): Trip {
-  need(t, 'crossroads');
-  if (t.encounter + 1 >= encountersOf(t.district).length)
-    throw new Error('There is nothing deeper');
-  return { ...t, encounter: t.encounter + 1, status: 'fight' };
-}
-
-/**
- * Banks the trip's loot into the profile (rune and method pages teach, P34; keys open their
- * district, K-23), then the trip counts and rumours are heard (K-20). Throws away from a landing (K-4).
- */
-export function returnHome(p: Profile, t: Trip): Profile {
-  need(t, 'crossroads', 'cleared');
-  if (!canReturn(t)) throw new Error('There is no landing here');
-  const known = [...p.known];
-  const methods = [...p.methods];
-  const inkCapacity = { ...p.inkCapacity };
-  const solvents = { ...p.solvents };
-  let vellum = p.vellum;
-  for (const item of t.loot) {
-    if (item.kind === 'rune' && !known.includes(item.rune)) known.push(item.rune);
-    else if (item.kind === 'method' && !methods.includes(item.method)) methods.push(item.method);
-    else if (item.kind === 'ink') inkCapacity[item.member] += item.amount;
-    else if (item.kind === 'solvent') solvents[item.solvent] += 1;
-    else if (item.kind === 'vellum') vellum += item.amount;
-  }
-  const banked = bankKeys({ ...p, known, methods, inkCapacity, solvents, vellum }, t.loot);
-  return hearAfterTrip(banked, t, 'returned').profile;
-}
-
-/** What a Source is, for carrying its charges across a rewire: a rune, or a Spell Glyph. */
-const sourceType = (sp: Spell): string => (sp.glyph ? `glyph:${sp.glyph}` : `rune:${sp.source}`);
-
-/**
- * Charges after rewiring (plan S12). A Source that stays on its cell keeps its count. The Sources
- * that moved or are new take the remaining counts of Sources (across both members) that no longer
- * have a cell: first of their own type (rune or Glyph), then of any Source with the same inner
- * source rune (a Glyph swapped for its loose Bolt), highest first, never above their own maximum.
- * With none left to take (a second owned copy) they start full. Nothing is ever refilled.
- */
-function carryCharges(
-  before: Profile,
-  after: Profile,
-  t: Trip,
-): Record<MemberId, Record<SpellKey, number>> {
-  const next = perMember((): Record<SpellKey, number> => ({}));
-  const olds = MEMBER_IDS.flatMap((m) =>
-    compiledFor(before, m).spells.map((sp) => ({
-      m,
-      sp,
-      type: sourceType(sp),
-      left: t.charges[m][sp.key] ?? sp.charges,
-    })),
-  );
-  const fresh = MEMBER_IDS.flatMap((m) =>
-    compiledFor(after, m).spells.map((sp) => ({ m, sp, type: sourceType(sp) })),
-  );
-  const stays = (o: { m: MemberId; sp: Spell; type: string }) =>
-    fresh.some((f) => f.m === o.m && f.sp.key === o.sp.key && f.type === o.type);
-  // Counts of Sources whose cell is gone, highest first.
-  const spare = olds.filter((o) => !stays(o)).sort((a, b) => b.left - a.left);
-  const kept = new Map(olds.map((o) => [`${o.m}|${o.sp.key}|${o.type}`, o.left]));
-  // Biggest maximum first, so the Source that holds more gets the larger spare count.
-  const moved = fresh
-    .filter((f) => !kept.has(`${f.m}|${f.sp.key}|${f.type}`))
-    .sort((a, b) => b.sp.charges - a.sp.charges);
-  for (const f of fresh) {
-    const left = kept.get(`${f.m}|${f.sp.key}|${f.type}`);
-    if (left !== undefined) next[f.m][f.sp.key] = Math.min(left, f.sp.charges);
-  }
-  const take = (match: (o: (typeof spare)[number], f: (typeof moved)[number]) => boolean) => {
-    for (const f of moved) {
-      if (next[f.m][f.sp.key] !== undefined) continue;
-      const i = spare.findIndex((o) => match(o, f));
-      const [o] = i < 0 ? [] : spare.splice(i, 1);
-      if (o) next[f.m][f.sp.key] = Math.min(o.left, f.sp.charges);
-    }
-  };
-  take((o, f) => o.type === f.type);
-  take((o, f) => o.sp.source === f.sp.source);
-  for (const f of moved) next[f.m][f.sp.key] ??= f.sp.charges;
-  return next;
-}
-
-/**
- * Leaves a quiet doorway (plan S11/S12): the profile takes the rewired lattices, and each Source
- * keeps the charges its rune (or Glyph) had before, so rewiring never refills a spell. Throws if
- * the new loadout isn't ready. The trip goes back to looting if picks remain, else the Crossroads.
- */
-export function applyDoorway(
-  p: Profile,
-  t: Trip,
-  lattices: Record<MemberId, Placed[]>,
-): { profile: Profile; trip: Trip } {
-  need(t, 'doorway');
-  const profile: Profile = { ...p, lattices: perMember((m) => lattices[m].map(copyRune)) };
-  const first = Object.values(validateLoadout(profile))[0]?.[0];
-  if (first) throw new Error(`Loadout is not ready: ${first.message}`);
-  const more = t.picksLeft > 0 && t.offers.length > 0;
-  const trip: Trip = {
-    ...t,
-    charges: carryCharges(p, profile, t),
-    offers: more ? t.offers : [],
-    picksLeft: more ? t.picksLeft : 0,
-    status: more ? 'looting' : 'crossroads',
-  };
-  return { profile, trip };
-}
-
 // ── Save data ───────────────────────────────────────────
 
 /** Sparse save data; version dispatch and edition recovery belong to the app save boundary. */
@@ -1321,23 +823,6 @@ function parseRecap(v: unknown): TripRecap {
 export function recordProof(p: Profile, m: MemberId, masks: readonly FiredCell[][]): Profile {
   const proof = [...(p.proof[m] ?? []), ...masks.map((c) => c.map((f) => ({ ...f })))];
   return { ...p, proof: { ...p.proof, [m]: proof.slice(-TUNING.proofMasksPerMember) } };
-}
-
-/**
- * Writes proof and Glyph records for a trip's current fight, win or wipe (plan P7, M7): the trip's
- * actions replay deterministically, so the full log comes from `beginEncounter`, once. Records
- * read the profile as at battle start and are written after. A fight that no longer replays
- * records nothing. Lab and Bench battles never reach this.
- */
-export function recordTripCasts(p: Profile, t: Trip): Profile {
-  let events: ActionResult['events'];
-  try {
-    events = beginEncounter(p, t).events;
-  } catch {
-    return p;
-  }
-  const proven = MEMBER_IDS.reduce((acc, m) => recordProof(acc, m, masksFrom(events, m)), p);
-  return { ...proven, glyphRecords: recordGlyphCasts(p, events).glyphRecords };
 }
 
 /**
