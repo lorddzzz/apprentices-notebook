@@ -5,7 +5,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 **State:** building (Stage 0)
 **Reset:** 5h window resets 2026-10-23 20:50 UTC; resume manually by reading this file.
 **Next:**
-1. Collect reports from HC-1, HC-3; review, squash-merge, push.
+1. Collect HC-1's report (or, if cut off by the limit, its last green commit on `worktree-agent-a5add137d20a7edb1`); review, squash-merge, push.
 2. Ready: FD-1 (arrival matrix), FD-2 (repros) — test files only; RV-W0, RC-W0 (contracts). After HC-1: FD-9 (`run.ts`), then FN-0. After HC-1+HC-3: HC-4. HC-6 (tokens, hue) after HC-W0 is ready.
 3. If usage holds at ≥96%: send checkpoint nudges, wait for the 20:50 UTC reset.
 
@@ -34,6 +34,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 18:17 | 71 | 2h33 | 27 | Narrow (~0.4%/min) | merge FD-10, DK-1, DK-2; spawn HC-1, HC-2, FD-8 |
 | 18:28 | 84 | 2h22 | 29 | Narrow→Wrap (~1.2%/min) | merge FD-8; narrow nudges to HC-1, HC-2 |
 | 18:32 | 85 | 2h18 | 29 | Narrow | merge HC-2; spawn HC-3 (smallest critical-path task) |
+| 18:46 | 92 | 2h04 | 30 | Wrap | merge HC-3; one agent (HC-1) running, no new spawns |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - HC-2: salt applied once in `startSeedFor` (`deriveSeed(trip.seed, START_SALT + encounter)`); default `startSeed` = `deriveSeed(seed, START_SALT)`; a smaller party takes the leading spots of the same shuffle; `P` allowed on water/drop tiles; size/count problems have `cell: null`. Accepted.
