@@ -35,7 +35,7 @@ The redesign supplies depth already. The next substantial choice is **freer buil
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-43 | The household and three-member expeditions | feature / XL | party, world | **design complete 2026-10-23**; build plan not written | [Party design](design/party.md) §0b–§2: nine apprentices (pair + runaway, notary, towel-bearer, warden, tuner, Copyist, erased student), four basic actions (Shove, Pull, Hop, Swap; Pull/Hop/Swap new), lattice-or-body habits (seven new habits), recruit loot offers, two milestone door arrivals, household shelf, per-room boards with 4+ start points, incompatible saves cleared (no migration). Needs a plan, then build with the first districts: runaway at the canals (BL-124) before the rest. |
+| BL-43 | The household and three-member expeditions | feature / XL | party, world | **design complete 2026-10-23**; build plan not written | [Party design](design/party.md) §0b–§2: nine apprentices (pair + runaway, notary, towel-bearer, warden, tuner, Copyist, erased student), four basic actions (Shove, Pull, Hop, Swap; Pull/Hop/Swap new), lattice-or-body habits (seven new habits), recruit loot offers, two milestone door arrivals, household shelf, per-room boards with 4+ start points, incompatible saves cleared (no migration); every apprentice is hidden until their preconditions are met (rune learned plus story beat), with a guaranteed precondition page so it cannot soft-lock. Needs a plan, then build with the first districts: runaway at the canals (BL-124) before the rest. |
 
 ### Track W · Districts and progression
 

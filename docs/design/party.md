@@ -52,6 +52,7 @@ This round settled everything §0b left open: the four basic actions, the habit 
 |---|---|---|
 | Basic actions | **Four: Shove, Pull, Hop, Swap.** Rules in §1. Each is shared by two or three apprentices | Each opens a different board trick; none heals or damages by itself, so the lattice stays the source of power |
 | Habit rule | **A habit changes one thing: how her lattice reads, or one rule about how the board treats her body.** Guidelines in §1 | The player chose room for body habits over lattice-only; the guidelines keep both previewable and testable |
+| Hidden until ready | **Every apprentice is invisible until all preconditions are met** (the rune their habit leans on or a rune of their school, plus their story beat); the page-guarantee mechanism keeps it from soft-locking. Details in §1 and §2 | The player's call: no locked slots or hints; a revealed person is useful at once |
 | Door arrivals | **Two**, each answering a notebook milestone tied to a school you hold and carrying that school's lean. A: after the first witnessed idiom, a Seam-school generalist. B: late, a Board-school exile. Details in §2 | "Someone has read your work"; never idle, never a tease for a school you cannot yet use |
 | Household total | **Nine**: the pair, the canals' runaway, four middle-district recruits, two door arrivals. The Cartographers' hall adds none. A tenth after the ending is **parked** | Matches §0b's 8–9 |
 | Copy page from… | **Not now.** Each recruit's starter page is enough; revisit if a tenth arrives | Nothing in a nine-person roster needs it |
@@ -72,10 +73,20 @@ All four use the **uncharged cast slot** (move + one cast per turn is unchanged)
 
 ### Habits
 
-- A **lattice habit** bends one headline of one rune or role, **only on that apprentice's own page and casts**. It is dormant (shown "needs Tally" on her card, not hidden) when the rune is not yet owned.
+- A **lattice habit** bends one headline of one rune or role, **only on that apprentice's own page and casts**. Because nobody appears before their rune is owned ("Hidden until ready" below), a habit is never dormant.
 - A **body habit** is one rule about how the board treats her body, never a stat. It never covers the other two apprentices.
 - A habit **never adds damage, ink or a free cast**, never scales with party size, has a one-sentence name on the card, and is **shown in the preview** when it changes a landing. Every habit ships with a scenario test (see the `scenario` skill) and its fine print is witnessed like a rune's.
 - A foe-side equivalent (a rival's trick) can use the same hook, so habits double as the rivals' "one trick" ([rivals.md](rivals.md)).
+
+### Hidden until ready (decided 2026-10-23)
+
+**Every apprentice stays completely hidden until all of their preconditions are met:** no offer, no landmark person, no silhouette on the shelf, no codex entry, no `???`. The player never sees a locked slot or a hint that someone is missing. The moment the last precondition is met, the next chance to meet them (the next qualifying landing for a district recruit, the next return home for a door arrival) shows them as if they had always been there. Preconditions are checked when the loot or the home screen is generated, so a rune learned in room 2 can bring an offer in room 4 of the same trip.
+
+- **Rune precondition:** the household owns the rune their habit leans on. For a body habit, it owns **at least one rune of their trained school**, so their starter page can grow into the school at once.
+- **Visibility is one-way:** runes cannot be unlearned, so a revealed apprentice never disappears; an offer that was declined stays offered (§0b).
+- **No soft-locks:** each precondition rune is **guaranteed** through the existing `guaranteed` page mechanism (`src/data/loot.ts`, `engine/run.ts`): while the household lacks it and the district's recruit is not yet in the household, the district's deep rooms offer that rune page first, as method pages already do. Authors place the guarantee no later than the room before the recruit's landmark.
+- **Door arrivals** follow the same rule (§2 lists them).
+- **Lab and tests** may field any apprentice regardless, as the Lab already unlocks every rune; the preconditions apply to campaign saves only.
 
 ### The household shelf and trio
 
@@ -104,11 +115,23 @@ Seven new people. Every school has someone trained in it; the Cartographers' sch
 | C | **The Copyist** | Door arrival A | 6 / 3 | **Hop** | Seam / Seam | **Her Touch reaches two tiles away** (lattice) | `Touch → Ink → Strike` | A student who has been copying pamphlets about your notebook |
 | E | **Erased student** | Door arrival B | 6 / 3 | **Hop** | Board / Board | **Her Erase can restore what the last Erase removed** (lattice) | `Bolt → Oil → Draw` | A guild student rubbed from the register; a grumpy Cartographer in exile |
 
-Action tally: Shove 3 (Draughtsman, Stoker, warden), Pull 2 (runaway, towel-bearer), Swap 2 (notary, tuner), Hop 2 (Copyist, exile). **Starter pages use only Seam runes** (the exile alone knows Board runes, since she arrives only after you hold them), so a recruit is useful in the room where she joins. A school habit (Tally, Hold, Unison) is dormant until the household owns the rune. *Proposal:* the Jar page is learnable before the canals' second landing, so the runaway's habit works at once; otherwise her card shows it dormant like the others.
+Action tally: Shove 3 (Draughtsman, Stoker, warden), Pull 2 (runaway, towel-bearer), Swap 2 (notary, tuner), Hop 2 (Copyist, exile). **Starter pages use only Seam runes** (the exile alone knows Board runes, since she arrives only after you hold them), so a recruit is useful in the room where she joins. Nobody joins before the rune their habit leans on is learned (next section).
+
+### When each appears (all hidden until then)
+
+| Who | Preconditions (all must hold) |
+|---|---|
+| Lamp-pole runaway | Canals' second landing reached; **Jar** learned |
+| Junior notary | Ink-makers' quarter heard and entered; **Tally** learned |
+| Towel-bearer | Bathhouses entered; **at least one Areas rune** (Vat, Seep or Steep) learned |
+| Defector warden | Bridges entered; **Hold** learned |
+| Tuner | Bell foundry entered; **Unison** learned |
+| The Copyist | The runaway has joined (Seam stays a duo until then, §0b); first idiom witnessed |
+| Erased student | All three Board pages learned (Swap, Draw, Erase); a proven invention |
 
 ### How they join
 
-- **Loot offers** (runaway, notary, towel-bearer, warden, tuner): "someone joins you", a fixed authored person at a landmark room in their district, offered again on later trips until taken (§0b). Taking it costs that pick. The runaway is the first, at the canals' second landing ([city-and-districts.md](city-and-districts.md) §5b). The others are met after the canals, in any order; no fixed order is chosen.
+- **Loot offers** (runaway, notary, towel-bearer, warden, tuner): "someone joins you", a fixed authored person at a landmark room in their district, hidden until their preconditions are met, then offered again on later trips until taken (§0b). Taking it costs that pick. The runaway is the first, at the canals' second landing ([city-and-districts.md](city-and-districts.md) §5b). The others are met after the canals, in any order; no fixed order is chosen, and a district's recruit may therefore appear on a later trip than the one where you first visit.
 - **Door arrival A, the Copyist:** knocks after you have **witnessed your first idiom, once the household already holds the runaway** (so the Seam stays a duo until the canals and the third member is always the canals', §0b). A note under the attic door, then a tap to welcome her.
 - **Door arrival B, the exile:** knocks once you **hold all three Board pages and have a proven invention** (*Proposal*; a Glyph at its top tier is an alternative, tune by playing). It follows the hall, not the ending, so it is the household's last arrival until the ending.
 - **A tenth** (an arrival after the Seam becomes yours, BL-126) is **parked**, not designed.
