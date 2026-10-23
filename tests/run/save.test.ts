@@ -203,7 +203,7 @@ test('v7 fields round-trip, and a lattice Glyph needs a library entry', () => {
     named: ['compound:stain'],
     met: ['slick' as const, 'elite' as const],
     foesMet: ['rat' as const],
-    footnotes: { shove: { points: 4, chosen: { 'shove:edge': 'A' } } },
+    footnotes: { shove: { points: 4, slots: { 'shove:edge@1': 'A' } } },
     vellum: 2,
     glyphs: [glyph],
     proof: {

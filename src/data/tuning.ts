@@ -1,4 +1,4 @@
-import type { Tuning } from './types';
+import type { FootnoteKind, Tuning } from './types';
 
 /** Growing-paper layout proposals, independent of gameplay ink and Glyph size rules. */
 export const PAPER = {
@@ -87,8 +87,16 @@ export const ACTIONS = {
   levyShieldPerMark: 1,
 } as const;
 
-/** Footnotes (P39): points a rune needs for level I / II / III. */
-export const FOOTNOTES = { levels: [5, 15, 40] } as const;
+/**
+ * Footnotes (P39, footnotes.md §1): points a subject needs for level I / II / III, per kind.
+ * Runes keep the built 5 / 15 / 40 until FN-1 moves them to the decided 8 / 25 / 60 with its
+ * threshold tests; methods and solvents earn no points before FN-1.
+ */
+export const FOOTNOTES: {
+  readonly levels: Readonly<Record<FootnoteKind, readonly [number, number, number]>>;
+} = {
+  levels: { rune: [5, 15, 40], method: [5, 15, 36], solvent: [5, 15, 36] },
+};
 
 /** The solvents' numbers (design §6.3, P38). */
 export const SOLVENT_TUNING = {

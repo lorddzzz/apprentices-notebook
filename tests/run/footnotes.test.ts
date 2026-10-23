@@ -1,5 +1,12 @@
 import { expect, test } from 'vitest';
-import { type LineId, SHOVE_WALL_SOFT, VARIANTS, type VariantDef } from '$data';
+import {
+  footnoteKeyOf,
+  type LineId,
+  SHOVE_WALL_SOFT,
+  slotKey,
+  VARIANTS,
+  type VariantDef,
+} from '$data';
 import {
   awardFootnotePoints,
   footnoteIds,
@@ -9,17 +16,27 @@ import {
   type Profile,
   writeFootnote,
 } from '$engine';
-import { runDraft } from '$engine/ctx';
+import { type FootnoteIds, runDraft } from '$engine/ctx';
 import { push } from '$engine/push';
 import { board, unitAtLabel } from '../scenarios/harness';
 
-// Test-only variants: C1 owns the real ones in data/footnotes.ts.
-const V: VariantDef[] = [
-  { id: 't-soft', line: 'shove:wall', level: 1, text: 'A wall crush ignores distance.' },
-  { id: 't-hard', line: 'shove:wall', level: 1, text: 'A wall crush hurts more.' },
-  { id: 't-l2', line: 'shove:wall', level: 2, text: 'Second level.' },
-];
 const WALL: LineId = 'shove:wall';
+// Test-only variants: the real ones live in data/footnotes/.
+const V: VariantDef[] = [
+  {
+    id: 't-soft',
+    subject: 'shove',
+    slot: { line: WALL, level: 1 },
+    text: 'A wall crush ignores distance.',
+  },
+  {
+    id: 't-hard',
+    subject: 'shove',
+    slot: { line: WALL, level: 1 },
+    text: 'A wall crush hurts more.',
+  },
+  { id: 't-l2', subject: 'shove', slot: { line: WALL, level: 2 }, text: 'Second level.' },
+];
 
 function profile(over: Partial<Profile> = {}): Profile {
   const p = newProfile();
@@ -58,8 +75,8 @@ test("writing spends one solvent of the line's district once; re-picking is free
   const again = writeFootnote(first.profile, 'shove', WALL, 't-hard', V);
   if ('error' in again) throw new Error(again.error);
   expect(again.profile.solvents.gallnut).toBe(1);
-  expect(again.profile.footnotes.shove?.chosen[WALL]).toBe('t-hard');
-  expect(footnoteIds(again.profile, V)).toEqual({ [WALL]: 't-hard' });
+  expect(again.profile.footnotes.shove?.slots[slotKey(WALL, 1)]).toBe('t-hard');
+  expect(footnoteIds(again.profile, V)).toEqual({ [slotKey(WALL, 1)]: 't-hard' });
 });
 
 test('the solvent held in greater number is spent', () => {
@@ -86,7 +103,7 @@ test('errors: not reached, unknown variant, no solvent', () => {
 });
 
 test('variant-changes-a-scenario-log', () => {
-  const crushDamage = (footnotes: Partial<Record<LineId, string>>): number => {
+  const crushDamage = (footnotes: FootnoteIds): number => {
     const r = runDraft(
       board('D r . . {wall}'),
       (ctx) => {
@@ -108,12 +125,12 @@ test('variant-changes-a-scenario-log', () => {
 
 test.each(VARIANTS)('authored $id resolves from the profile to its context id', (v) => {
   const p = newProfile();
-  const rune = v.line.split(':')[0] as 'shove' | 'spark' | 'oil';
+  const key = footnoteKeyOf(v);
   const written: Profile = {
     ...p,
-    footnotes: { [rune]: { points: 5, chosen: { [v.line]: v.id } } },
+    footnotes: { [v.subject]: { points: 5, slots: { [key]: v.id } } },
   };
-  expect(footnoteIds(written)).toEqual({ [v.line]: v.id });
+  expect(footnoteIds(written)).toEqual({ [key]: v.id });
 });
 
 test('a variant text can be reworded without changing behaviour', () => {

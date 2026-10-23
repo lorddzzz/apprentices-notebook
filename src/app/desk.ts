@@ -5,9 +5,12 @@ import {
   RUNE_IDS,
   RUNES,
   type RuneId,
+  type SlotKey,
   SOLVENT_IDS,
   SOLVENTS,
   type SolventId,
+  slotKey,
+  type VariantDef,
 } from '$data';
 import {
   type FootnoteError,
@@ -39,21 +42,24 @@ export interface RuneRow {
   open: number;
 }
 
+const slotOf = (v: { slot: VariantDef['slot'] }): SlotKey[] =>
+  'line' in v.slot ? [slotKey(v.slot.line, v.slot.level)] : [];
+
 /** Known runes that have points, most points first. */
 export function deskRows(p: Profile): RuneRow[] {
   return RUNE_IDS.filter((r) => p.known.includes(r) && footnotePoints(p, r) > 0)
     .map((rune) => {
       const points = footnotePoints(p, rune);
-      const next = FOOTNOTES.levels.find((t) => points < t);
-      const lines = new Set(footnoteOffers(p, rune).map((v) => v.line));
-      const written = p.footnotes[rune]?.chosen ?? {};
+      const next = FOOTNOTES.levels.rune.find((t) => points < t);
+      const slots = new Set(footnoteOffers(p, rune).flatMap(slotOf));
+      const written = p.footnotes[rune]?.slots ?? {};
       return {
         rune,
         name: RUNES[rune].name,
         points,
         level: footnoteLevel(p, rune),
         toNext: next === undefined ? null : next - points,
-        open: [...lines].filter((l) => written[l] === undefined).length,
+        open: [...slots].filter((k) => written[k] === undefined).length,
       };
     })
     .sort((a, b) => b.points - a.points);
@@ -88,15 +94,17 @@ export function needsText(line: LineId): string {
 
 /** The lines of one rune with their variants, in the order the offers list them. */
 export function offerViews(p: Profile, rune: RuneId): OfferView[] {
-  const chosen = p.footnotes[rune]?.chosen ?? {};
-  const byLine = new Map<LineId, VariantView[]>();
+  const chosen = p.footnotes[rune]?.slots ?? {};
+  const bySlot = new Map<SlotKey, { line: LineId; variants: VariantView[] }>();
   for (const v of footnoteOffers(p, rune)) {
-    const list = byLine.get(v.line) ?? [];
-    list.push({ id: v.id, text: v.text, chosen: chosen[v.line] === v.id });
-    byLine.set(v.line, list);
+    if (!('line' in v.slot)) continue;
+    const key = slotKey(v.slot.line, v.slot.level);
+    const entry = bySlot.get(key) ?? { line: v.slot.line, variants: [] };
+    entry.variants.push({ id: v.id, text: v.text, chosen: chosen[key] === v.id });
+    bySlot.set(key, entry);
   }
-  return [...byLine].map(([line, variants]) => {
-    const written = chosen[line] !== undefined;
+  return [...bySlot].map(([key, { line, variants }]) => {
+    const written = chosen[key] !== undefined;
     const s = written ? null : solventFor(p, line);
     return {
       line,

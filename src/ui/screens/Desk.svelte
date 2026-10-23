@@ -47,7 +47,7 @@
                 {:else}
                   <p class="none">
                     {row.level === 0
-                      ? `No footnote yet. The first level opens at ${FOOTNOTES.levels[0]} points.`
+                      ? `No footnote yet. The first level opens at ${FOOTNOTES.levels.rune[0]} points.`
                       : 'No line of this rune has been witnessed yet. Watch one play out.'}
                   </p>
                 {/each}

@@ -8,6 +8,7 @@ import type {
   DistrictId,
   EdgeRule,
   EnemyId,
+  FootnoteSubject,
   Goal,
   HabitId,
   InventionDef,
@@ -19,6 +20,7 @@ import type {
   RuneId,
   RuneRef,
   SealRuneId,
+  SlotKey,
   SolventId,
   SourceRuneId,
   StateId,
@@ -521,6 +523,13 @@ export interface Household {
   slots: TripSlots;
 }
 
+/** One subject's margin: its points, the written line slots and the capstone (variant ids). */
+export interface FootnoteEntry {
+  points: number;
+  slots: Partial<Record<SlotKey, string>>;
+  capstone?: string;
+}
+
 /**
  * Profile v9 (HC-1): knowledge, not copies (P34). Per-apprentice records are keyed by exactly the
  * household's members; read them through `latticeOf`/`proofOf`, which throw on a missing entry.
@@ -540,7 +549,10 @@ export interface Profile {
   named: string[]; // named results: 'compound:stain', 'burst:fire', 'idiom:bonfire' (D7)
   met: Meets[];
   foesMet: EnemyId[];
-  footnotes: Partial<Record<RuneId, { points: number; chosen: Partial<Record<LineId, string>> }>>;
+  /** Footnotes per subject, household-wide (FN §4). Habits and basic actions never have one. */
+  footnotes: Partial<Record<FootnoteSubject, FootnoteEntry>>;
+  /** Every solvent the household has ever held, in first-found order (BL-104; FN-2 records gains). */
+  solventsFound: SolventId[];
   vellum: number;
   glyphs: GlyphDef[];
   /** Older versions of Glyphs, with their own records (M17). Kept forever. */

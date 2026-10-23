@@ -3320,10 +3320,11 @@
     ],
     "foesMet": ["rat", "eel", "moth", "snuffer", "mother"],
     "footnotes": {
-      "spark": { "points": 5, "chosen": {} },
-      "ink": { "points": 1, "chosen": {} },
-      "shove": { "points": 4, "chosen": {} }
+      "spark": { "points": 5, "slots": {} },
+      "ink": { "points": 1, "slots": {} },
+      "shove": { "points": 4, "slots": {} }
     },
+    "solventsFound": [],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -3505,10 +3506,11 @@
       ],
       "foesMet": ["rat", "eel", "moth", "snuffer", "mother"],
       "footnotes": {
-        "spark": { "points": 5, "chosen": {} },
-        "ink": { "points": 1, "chosen": {} },
-        "shove": { "points": 4, "chosen": {} }
+        "spark": { "points": 5, "slots": {} },
+        "ink": { "points": 1, "slots": {} },
+        "shove": { "points": 4, "slots": {} }
       },
+      "solventsFound": [],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],

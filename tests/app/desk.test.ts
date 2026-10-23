@@ -10,7 +10,7 @@ const withShove = (over: Partial<Profile> = {}): Profile => {
     ...base,
     known: [...new Set([...base.known, 'shove' as const])],
     witnessed: ['shove:wall', 'shove:slick'],
-    footnotes: { shove: { points: 5, chosen: {} } },
+    footnotes: { shove: { points: 5, slots: {} } },
     solvents: { ...base.solvents, gallnut: 2, cinder: 1 },
     ...over,
   };
@@ -26,9 +26,9 @@ describe('the rune list', () => {
   test('a row carries level, points to the next level and unwritten offers', () => {
     const [row] = deskRows(withShove());
     expect(row).toMatchObject({ rune: 'shove', points: 5, level: 1, toNext: 10, open: 2 });
-    const top = deskRows(withShove({ footnotes: { shove: { points: 40, chosen: {} } } }))[0];
+    const top = deskRows(withShove({ footnotes: { shove: { points: 40, slots: {} } } }))[0];
     expect(top).toMatchObject({ level: 3, toNext: null });
-    const below = deskRows(withShove({ footnotes: { shove: { points: 3, chosen: {} } } }))[0];
+    const below = deskRows(withShove({ footnotes: { shove: { points: 3, slots: {} } } }))[0];
     expect(below).toMatchObject({ level: 0, toNext: 2, open: 0 });
   });
 });
@@ -49,7 +49,7 @@ describe('writing', () => {
     const first = writeAt(withShove(), 'shove', 'shove:wall', 'shove-wall-soft');
     if ('error' in first) throw new Error(first.error);
     expect(first.profile.solvents.gallnut).toBe(1);
-    expect(first.profile.footnotes.shove?.chosen['shove:wall']).toBe('shove-wall-soft');
+    expect(first.profile.footnotes.shove?.slots['shove:wall@1']).toBe('shove-wall-soft');
     const view = offerViews(first.profile, 'shove').find((o) => o.line === 'shove:wall');
     expect(view?.written).toBe(true);
     expect(view?.spend).toBeNull();
@@ -58,7 +58,7 @@ describe('writing', () => {
     const again = writeAt(first.profile, 'shove', 'shove:wall', 'shove-wall-heavy');
     if ('error' in again) throw new Error(again.error);
     expect(again.profile.solvents.gallnut).toBe(1);
-    expect(again.profile.footnotes.shove?.chosen['shove:wall']).toBe('shove-wall-heavy');
+    expect(again.profile.footnotes.shove?.slots['shove:wall@1']).toBe('shove-wall-heavy');
   });
 
   test('without a district solvent it says what is needed and spends nothing', () => {
@@ -72,7 +72,7 @@ describe('writing', () => {
   });
 
   test('a variant above the reached level offers nothing and is refused', () => {
-    const p = withShove({ footnotes: { shove: { points: 2, chosen: {} } } });
+    const p = withShove({ footnotes: { shove: { points: 2, slots: {} } } });
     expect(offerViews(p, 'shove')).toEqual([]);
     expect(writeAt(p, 'shove', 'shove:wall', 'shove-wall-soft')).toHaveProperty('error');
   });

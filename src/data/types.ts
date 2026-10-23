@@ -181,10 +181,13 @@ export type Meets =
   | 'noTarget'
   | 'network'
   | 'flier' // a flying unit (AH: a pulled flier never falls)
+  | 'spread' // a mark spreading to its neighbours (FN-1A A1: `ink:spread`)
+  | 'shot' // a foe's line shot or spit (FN-1A A1: `steam:shot`, `brass:shot`)
+  | 'limit' // a refusal at a rule's limit (FN-1A A1: Margin's limit of 5)
   | 'compound'; // a kind landing on any compound without its own row (P16)
 /**
  * A rune, method or solvent; a habit's fine print (AH P11); or a basic action's (`pull`, `hop`;
- * Swap and Shove use their runes' lines, AH P7). Only rune subjects earn footnote points.
+ * Swap and Shove use their runes' lines, AH P7). Only a `FootnoteSubject` has a margin and points.
  */
 export type LineSubject = RuneId | MethodId | SolventId | HabitId | 'pull' | 'hop';
 export type LineId = `${LineSubject}:${Meets}`;
@@ -200,12 +203,35 @@ export interface LineDef {
    */
   pending?: true;
 }
-/** A footnote variant of a line (design §8, P39). */
+// ── Footnotes (footnotes.md, plan FN §4) ────────────────
+/** What has a margin: a rune, a method or a solvent. Habits and basic actions never do (AH). */
+export type FootnoteSubject = RuneId | MethodId | SolventId;
+/** Picks the thresholds a subject uses (`FOOTNOTES.levels`). */
+export type FootnoteKind = 'rune' | 'method' | 'solvent';
+/** A line slot's level; level III is the subject's capstone, not a slot. */
+export type SlotLevel = 1 | 2;
+/** One line slot of a subject's margin: `shove:wall@1` (a wide string: `${LineId}@…` is too big a union). */
+export type SlotKey = `${string}:${string}@${SlotLevel}`;
+/** A subject's capstone place in the footnote context: `shove@cap`. */
+export type CapstoneKey = `${string}@cap`;
+/** Where a written variant sits: a line slot or a capstone (one variant per key). */
+export type FootnoteKey = SlotKey | CapstoneKey;
+/** A rival's id (RV, BL-118). A plain string until RV-W0 names the rivals. */
+export type RivalId = string;
+/** The place a variant fills: a line slot (level I or II) or the subject's capstone (level III). */
+export type VariantSlot = { line: LineId; level: SlotLevel } | { capstone: true };
+/**
+ * A footnote variant (v2). `id` is stable once shipped (FD P13); the text can change freely.
+ * A line slot's `line` has `subject` as its subject. A rival note (`rival`) is a third option in
+ * its slot, hidden until the rival's page is held; `credit` is the margin's lore line.
+ */
 export interface VariantDef {
   id: string;
-  line: LineId;
-  level: 1 | 2 | 3;
+  subject: FootnoteSubject;
+  slot: VariantSlot;
   text: string;
+  rival?: RivalId;
+  credit?: string;
 }
 /** A notable pattern in a cast's whole-life log (design D7, §11). Matched in `engine/idioms.ts`. */
 export interface IdiomDef {

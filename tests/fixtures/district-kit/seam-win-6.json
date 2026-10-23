@@ -2546,11 +2546,12 @@
     ],
     "foesMet": ["rat", "familiar", "sentry"],
     "footnotes": {
-      "spark": { "points": 5, "chosen": {} },
-      "bolt": { "points": 1, "chosen": {} },
-      "oil": { "points": 1, "chosen": {} },
-      "shove": { "points": 8, "chosen": {} }
+      "spark": { "points": 5, "slots": {} },
+      "bolt": { "points": 1, "slots": {} },
+      "oil": { "points": 1, "slots": {} },
+      "shove": { "points": 8, "slots": {} }
     },
+    "solventsFound": [],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -2746,11 +2747,12 @@
       ],
       "foesMet": ["rat", "familiar", "sentry"],
       "footnotes": {
-        "spark": { "points": 5, "chosen": {} },
-        "bolt": { "points": 1, "chosen": {} },
-        "oil": { "points": 1, "chosen": {} },
-        "shove": { "points": 8, "chosen": {} }
+        "spark": { "points": 5, "slots": {} },
+        "bolt": { "points": 1, "slots": {} },
+        "oil": { "points": 1, "slots": {} },
+        "shove": { "points": 8, "slots": {} }
       },
+      "solventsFound": [],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],

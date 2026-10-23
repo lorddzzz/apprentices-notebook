@@ -3090,7 +3090,8 @@
     "named": ["burst:fire", "burst:surge", "burst:detonation", "idiom:cashingIn", "idiom:longDrop"],
     "met": ["minion", "elite", "water", "slick", "fire", "mark", "drop", "unit"],
     "foesMet": ["rat", "eel", "moth", "snuffer", "mother"],
-    "footnotes": { "spark": { "points": 6, "chosen": {} }, "shove": { "points": 3, "chosen": {} } },
+    "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 3, "slots": {} } },
+    "solventsFound": [],
     "vellum": 1,
     "glyphs": [],
     "glyphArchive": [],
@@ -3265,10 +3266,8 @@
       ],
       "met": ["minion", "elite", "water", "slick", "fire", "mark", "drop", "unit"],
       "foesMet": ["rat", "eel", "moth", "snuffer", "mother"],
-      "footnotes": {
-        "spark": { "points": 6, "chosen": {} },
-        "shove": { "points": 3, "chosen": {} }
-      },
+      "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 3, "slots": {} } },
+      "solventsFound": [],
       "vellum": 1,
       "glyphs": [],
       "glyphArchive": [],

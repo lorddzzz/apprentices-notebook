@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { VARIANTS } from '$data';
+import { footnoteKeyOf, VARIANTS } from '$data';
 import { aimPreview, memberById } from '$engine';
 import { burstAt } from '$engine/bursts';
 import { type Ctx, runDraft } from '$engine/ctx';
@@ -12,7 +12,7 @@ import { board, cast, unitAtLabel, withLattices } from './harness';
 function run(ascii: string, id: string, fn: (ctx: Ctx) => void) {
   const v = VARIANTS.find((v) => v.id === id);
   if (!v) throw new Error(id);
-  return runDraft(board(ascii), fn, { footnotes: { [v.line]: v.id } });
+  return runDraft(board(ascii), fn, { footnotes: { [footnoteKeyOf(v)]: v.id } });
 }
 
 test('heavy wall adds one crush damage', () => {
@@ -79,7 +79,7 @@ test.each([
 ])('unobstructed Bolt %s agrees across aim, flight and preview', (id, x) => {
   const s = withLattices('D . . . . . .', { draughtsman: 'Bolt> Oil' });
   const v = VARIANTS.find((v) => v.id === id);
-  const footnotes = v ? { [v.line]: v.id } : {};
+  const footnotes = v ? { [footnoteKeyOf(v)]: v.id } : {};
   const aim = { kind: 'dir', dir: 'right' } as const;
   const preview = aimPreview(s, 'draughtsman', '0,0', aim, footnotes);
   const r = runDraft(
@@ -112,7 +112,7 @@ test.each(['bolt-empty-far', 'bolt-empty-near'])(
     for (const token of ['d', '~', '=', 'g', 'w>h']) {
       const s = withLattices(`D . ${token} . . .`, { draughtsman: 'Bolt> Oil' });
       const aim = { kind: 'dir', dir: 'right' } as const;
-      expect(aimPreview(s, 'draughtsman', '0,0', aim, { [v.line]: v.id })).toEqual(
+      expect(aimPreview(s, 'draughtsman', '0,0', aim, { [footnoteKeyOf(v)]: v.id })).toEqual(
         aimPreview(s, 'draughtsman', '0,0', aim),
       );
     }
@@ -125,8 +125,13 @@ test('far Bolt respects an occupied or blocked extra tile and clamps at board ed
   for (const tail of ['d', '~', '=', 'g', 'w>h', '']) {
     const s = withLattices(`D . . . . ${tail}`, { draughtsman: 'Bolt> Oil' });
     expect(
-      aimPreview(s, 'draughtsman', '0,0', { kind: 'dir', dir: 'right' }, { [v.line]: v.id })
-        .targets,
+      aimPreview(
+        s,
+        'draughtsman',
+        '0,0',
+        { kind: 'dir', dir: 'right' },
+        { [footnoteKeyOf(v)]: v.id },
+      ).targets,
     ).toEqual([{ x: 4, y: 0 }]);
   }
 });
@@ -136,7 +141,8 @@ test('near Bolt on a one-tile ray never lands on its caster', () => {
   if (!v) throw new Error('missing variant');
   const s = withLattices('D .', { draughtsman: 'Bolt> Oil' });
   expect(
-    aimPreview(s, 'draughtsman', '0,0', { kind: 'dir', dir: 'right' }, { [v.line]: v.id }).targets,
+    aimPreview(s, 'draughtsman', '0,0', { kind: 'dir', dir: 'right' }, { [footnoteKeyOf(v)]: v.id })
+      .targets,
   ).toEqual([{ x: 1, y: 0 }]);
 });
 

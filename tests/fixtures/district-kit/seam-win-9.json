@@ -2326,7 +2326,8 @@
     "named": ["burst:fire", "burst:conduct", "idiom:bonfire", "idiom:theWall"],
     "met": ["minion", "slick", "plate", "fire", "mark", "blot", "elite", "edge", "cloud", "collar"],
     "foesMet": ["rat", "familiar", "sentry"],
-    "footnotes": { "spark": { "points": 6, "chosen": {} }, "shove": { "points": 5, "chosen": {} } },
+    "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 5, "slots": {} } },
+    "solventsFound": [],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -2499,10 +2500,8 @@
         "collar"
       ],
       "foesMet": ["rat", "familiar", "sentry"],
-      "footnotes": {
-        "spark": { "points": 6, "chosen": {} },
-        "shove": { "points": 5, "chosen": {} }
-      },
+      "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 5, "slots": {} } },
+      "solventsFound": [],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],

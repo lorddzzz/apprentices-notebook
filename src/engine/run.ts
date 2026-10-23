@@ -9,6 +9,7 @@ import {
   DISTRICT_IDS,
   ENEMY_IDS,
   encountersOf,
+  type FootnoteSubject,
   type InventionDef,
   isInvention,
   LINES,
@@ -21,6 +22,7 @@ import {
   RUNE_IDS,
   type RuneId,
   type RuneRef,
+  type SlotKey,
   SOLVENT_IDS,
   type SolventId,
   START_KNOWN,
@@ -76,6 +78,7 @@ import type {
   CellKey,
   CompiledLattice,
   FiredCell,
+  FootnoteEntry,
   GlyphArg,
   GlyphDef,
   GlyphId,
@@ -131,6 +134,7 @@ export function newProfile(): Profile {
     met: [],
     foesMet: [],
     footnotes: {},
+    solventsFound: [],
     vellum: 0,
     glyphs: [],
     ...masteryDefaults(),
@@ -548,18 +552,39 @@ function lineId(v: unknown): LineId {
   return typeof v === 'string' && LINE_ID.test(v) ? (v as LineId) : bad();
 }
 
+const SLOT_KEY = /^[A-Za-z]+:[A-Za-z]+@[12]$/;
+const FOOTNOTE_SUBJECTS: readonly FootnoteSubject[] = [...RUNE_IDS, ...METHOD_IDS, ...SOLVENT_IDS];
+
+/** FN-0 shape (`slots`, `capstone`); a pre-FN entry's `chosen` lines become level I slots (P12). */
 function parseFootnotes(v: unknown): Profile['footnotes'] {
   const r = record(v);
   const out: Profile['footnotes'] = {};
   for (const [k, n] of Object.entries(r)) {
     const x = record(n);
-    const chosen = record(x.chosen);
-    out[oneOf(RUNE_IDS, k)] = {
-      points: count(x.points),
-      chosen: Object.fromEntries(Object.entries(chosen).map(([l, t]) => [lineId(l), text(t)])),
-    };
+    const slots: Partial<Record<SlotKey, string>> = {};
+    if (x.slots === undefined) {
+      for (const [l, t] of Object.entries(record(x.chosen))) slots[`${lineId(l)}@1`] = text(t);
+    } else {
+      for (const [s, t] of Object.entries(record(x.slots))) {
+        slots[SLOT_KEY.test(s) ? (s as SlotKey) : bad()] = text(t);
+      }
+    }
+    const entry: FootnoteEntry = { points: count(x.points), slots };
+    if (x.capstone !== undefined) entry.capstone = text(x.capstone);
+    out[oneOf(FOOTNOTE_SUBJECTS, k)] = entry;
   }
   return out;
+}
+
+/** Saves before BL-104 lack the list: found = held now or flavouring an invention (P12). */
+function parseSolventsFound(
+  v: unknown,
+  solvents: Record<SolventId, number>,
+  inventions: readonly InventionDef[],
+): SolventId[] {
+  if (v !== undefined) return unique(list(v).map((id) => oneOf(SOLVENT_IDS, id)));
+  const used = new Set(inventions.map((d) => d.solvent));
+  return SOLVENT_IDS.filter((s) => solvents[s] > 0 || used.has(s));
 }
 
 /** Current sparse profile: every field is required. */
@@ -626,6 +651,7 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     met: unique(list(r.met).map((m) => text(m) as Meets)),
     foesMet: unique(list(r.foesMet).map((id) => oneOf(ENEMY_IDS, id))),
     footnotes: parseFootnotes(r.footnotes),
+    solventsFound: parseSolventsFound(r.solventsFound, solvents, inventions),
     vellum: count(r.vellum),
     glyphs,
     glyphArchive,

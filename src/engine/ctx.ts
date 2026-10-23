@@ -1,4 +1,4 @@
-import type { HabitId, LineId, VariantDef } from '$data';
+import type { FootnoteKey, HabitId, LineId, VariantDef } from '$data';
 import { objectiveMet } from './city';
 import { cloneData } from './clone';
 import type { GameEvent, UnitRef } from './events';
@@ -17,8 +17,11 @@ export const CAST_EVENT_CAP = 500;
 
 /** A footnote variant's stable id (`VariantDef.id`), what the profile stores (P13). */
 export type FootnoteVariantId = VariantDef['id'];
-/** The footnote context: line → chosen variant id, so a variant's text can change freely (P13). */
-export type FootnoteIds = Readonly<Partial<Record<LineId, FootnoteVariantId>>>;
+/**
+ * The footnote context: slot or capstone key (`footnoteKeyOf`) → written variant id, so a line can
+ * hold a level I and a level II variant and a variant's text can change freely (P13, FN-0).
+ */
+export type FootnoteIds = Readonly<Partial<Record<FootnoteKey, FootnoteVariantId>>>;
 
 export interface CastScope {
   events: number; // effects emitted in this cast so far
