@@ -14,7 +14,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | DK-0 | Medium / Sonnet 5.5 / high | S | running | worktree | | golden baseline |
 | FD-0 | Strong / Opus 5.5 / medium | S | running | worktree | | arrival + event contract types |
 | HC-W0 | Strong / Opus 5.5 / medium | M | running | worktree | | household contracts; new engine files only (no `run.ts`, `engine/types.ts`) |
-| FN-1A | Strong / Opus 5.5 / medium | M | running | worktree | | fine-print audit doc |
+| FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | ~3% | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -22,6 +22,10 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 17:42 | 38 | 3h08 | 23 | Normal | baseline; spawn DK-0, FD-0, HC-W0, FN-1A |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- FN-1A A1: new `Meets` values (`spread`, `shot`, Margin's limit refusal) instead of bending existing ones (shipped IDs never change). Accepted.
+- FN-1A A2: wrong text is fixed by editing the row, not adding a second one. Accepted.
+- FN-1A A3: Cinder vs a rat's oil trail over a hot tile (doesn't catch; the line says "now or later"): rule choice. **Ask player** at the next design round; default until then = fix the text to match the engine.
+- FN-1A A4: keep near-always lines (`splash:unit`, `fork:unit`, `oil:empty`) as the honest home for heading/duration rules. Accepted.
 
 ## Decisions and fixes made during the build
 - One program-wide status file instead of per-plan files (orchestrator, 2026-10-23).
