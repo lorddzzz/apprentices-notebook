@@ -662,7 +662,7 @@ describe('revisionWarning', () => {
     const p = profileWith(def, records);
     return {
       ...p,
-      inkCapacity: { ...p.inkCapacity, draughtsman: capacity },
+      ink: capacity,
       lattices: { ...p.lattices, draughtsman: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }] },
     };
   };
@@ -721,7 +721,7 @@ describe('revertWarning', () => {
     return {
       ...v2,
       glyphRecords: { ...v2.glyphRecords, ...records },
-      inkCapacity: { ...v2.inkCapacity, draughtsman: capacity },
+      ink: capacity,
       lattices: {
         ...v2.lattices,
         draughtsman: [{ at: c(1, 2), glyph: 'g1', dir: 'right' as Dir }],
@@ -742,7 +742,7 @@ describe('revertWarning', () => {
   test('names the page whose ink the old inside pushes over', () => {
     // v1 is lighter, so going back to it fits; v2 forward from v1 does not.
     const back = revertGlyph(twoVersions(20), 'g1', 1);
-    const tight = { ...back, inkCapacity: { ...back.inkCapacity, draughtsman: v1Ink } };
+    const tight = { ...back, ink: v1Ink };
     expect(validateLoadout(tight)).toEqual({});
     expect(revertWarning(tight, 'g1', 2)).toBe("Pushes the Draughtsman's page ink over");
   });
@@ -759,7 +759,7 @@ describe('revertWarning', () => {
   test('losing the Economy discount is said, and so is the ink it costs', () => {
     // v1 current with bronze Economy fits a page one ink short; v2 has no record.
     const back = revertGlyph(twoVersions(20, { 'g1@1': best(1, 0) }), 'g1', 1);
-    const tight = { ...back, inkCapacity: { ...back.inkCapacity, draughtsman: v1Ink - 1 } };
+    const tight = { ...back, ink: v1Ink - 1 };
     expect(validateLoadout(tight)).toEqual({});
     // Same inside both ways: only the record differs.
     const same = {

@@ -419,7 +419,7 @@ export function lootLine(item: LootItem): { title: string; text: string } {
     case 'ink':
       return {
         title: `+${item.amount} ink`,
-        text: `A bigger ink pot for the ${MEMBERS[item.member].name}.`,
+        text: 'A bigger ink pot for every page in the household.',
       };
     case 'solvent':
       return { title: SOLVENTS[item.solvent].name, text: SOLVENTS[item.solvent].rule };

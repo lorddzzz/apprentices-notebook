@@ -1139,7 +1139,7 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "member": "stoker", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "method", "method": "conduct" },
         { "kind": "solvent", "solvent": "cinder" }
       ],
@@ -2351,7 +2351,8 @@
       "quicksilver": 0,
       "graphite": 0
     },
-    "inkCapacity": { "draughtsman": 8, "stoker": 10 },
+    "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
+    "ink": 10,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2473,7 +2474,7 @@
     "loot": [
       { "kind": "rune", "rune": "fork" },
       { "kind": "rune", "rune": "bend" },
-      { "kind": "ink", "member": "stoker", "amount": 2 },
+      { "kind": "ink", "amount": 2 },
       { "kind": "method", "method": "conduct" },
       { "kind": "solvent", "solvent": "cinder" }
     ],
@@ -2532,7 +2533,11 @@
         "quicksilver": 0,
         "graphite": 0
       },
-      "inkCapacity": { "draughtsman": 8, "stoker": 10 },
+      "household": {
+        "members": ["draughtsman", "stoker"],
+        "slots": ["draughtsman", "stoker", null]
+      },
+      "ink": 10,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2654,7 +2659,7 @@
       "loot": [
         { "kind": "rune", "rune": "fork" },
         { "kind": "rune", "rune": "bend" },
-        { "kind": "ink", "member": "stoker", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "method", "method": "conduct" },
         { "kind": "solvent", "solvent": "cinder" }
       ],

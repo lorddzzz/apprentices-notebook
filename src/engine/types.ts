@@ -1,4 +1,5 @@
 import type {
+  ApprenticeId,
   AttackId,
   AuraRuneId,
   BindEvent,
@@ -444,19 +445,36 @@ export type LootItem =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'method'; method: MethodId }
   | { kind: 'solvent'; solvent: SolventId }
-  | { kind: 'ink'; member: MemberId; amount: number }
+  | { kind: 'ink'; amount: number } // raises the household's one allowance (HC P6)
   | { kind: 'vellum'; amount: number }
   | { kind: 'doorway' } // never banked: picking it opens field rewiring (plan S11)
   | { kind: 'key'; district: DistrictId }; // opens `district` when banked (K-23)
 
-/** Profile v7 (P1): knowledge, not copies (P34). */
+/** A trip slot, left to right on the shelf. */
+export type SlotIndex = 0 | 1 | 2;
+export type TripSlots = [ApprenticeId | null, ApprenticeId | null, ApprenticeId | null];
+
+/** The household (HC plan §4, party.md §0b): who has joined and the three trip slots. */
+export interface Household {
+  /** Everyone who has joined, in join order (the pair first on a fresh save). */
+  members: ApprenticeId[];
+  /** A fresh save: the pair in slots 0 and 1 (HC P8). Never a duplicate, never an outsider. */
+  slots: TripSlots;
+}
+
+/**
+ * Profile v9 (HC-1): knowledge, not copies (P34). Per-apprentice records are keyed by exactly the
+ * household's members; read them through `latticeOf`/`proofOf`, which throw on a missing entry.
+ */
 export interface Profile {
   known: RuneId[];
   methods: MethodId[];
   inventions: InventionDef[];
   solvents: Record<SolventId, number>;
-  inkCapacity: Record<MemberId, number>;
-  lattices: Record<MemberId, Placed[]>; // shape comes from MEMBERS[m].shape
+  household: Household;
+  /** One ink allowance for every apprentice's page (HC P6). */
+  ink: number;
+  lattices: Partial<Record<ApprenticeId, Placed[]>>;
   witnessed: LineId[];
   named: string[]; // named results: 'compound:stain', 'burst:fire', 'idiom:bonfire' (D7)
   met: Meets[];
@@ -468,7 +486,7 @@ export interface Profile {
   glyphArchive: GlyphDef[];
   /** Records per `versionKey(id, version)`; a missing one reads as empty (M8). */
   glyphRecords: Record<string, GlyphRecord>;
-  proof: Record<MemberId, FiredCell[][]>; // cast masks, newest last, capped
+  proof: Partial<Record<ApprenticeId, FiredCell[][]>>; // cast masks, newest last, capped
   city: CityState;
 }
 

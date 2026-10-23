@@ -13,6 +13,7 @@ import {
   inventionIssue,
   libraryOf,
   newSave,
+  pageOf,
   ResourceLimitError,
 } from '$engine';
 import { loadSave, memoryBackend, parseSaveText, saveText } from '../../src/app/save';
@@ -170,7 +171,7 @@ test('256 ordinary eight-cell Glyphs remain admissible and compile independently
     dir: 'right',
   }));
   const restored = parseSaveText(saveText(save));
-  const lattice = growingLattice(restored.profile.lattices.draughtsman);
+  const lattice = growingLattice(pageOf(restored.profile, 'draughtsman'));
   const def = restored.profile.glyphs[0];
   if (!def) throw new Error('expected Glyph');
   // A per-Glyph linear neighbor search would throw instead of hiding quadratic work in timing.

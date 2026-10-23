@@ -17,7 +17,7 @@
   let { item, selected, onselect, testid }: Props = $props();
 
   const line = $derived(lootLine(item));
-  const tint = $derived(item.kind === 'ink' ? `var(--member-${item.member})` : 'var(--ink-faint)');
+  const tint = 'var(--ink-faint)';
 </script>
 
 <button

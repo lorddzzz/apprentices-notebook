@@ -250,7 +250,7 @@ test('importSave: accepts exported text, refuses anything else with a readable r
   expect(importSave(`  ${saveText(s)}\n`)).toEqual(s);
   expect(() => importSave('hello')).toThrow('Not a valid save');
   expect(() => importSave('')).toThrow('Not a valid save');
-  expect(() => importSave('{"version":7,"data":{"nope":true}}')).toThrow('Not a valid save');
+  expect(() => importSave('{"version":9,"data":{"nope":true}}')).toThrow('Not a valid save');
   expect(() => importSave('{"version":6,"data":{}}')).toThrow(
     'This notebook is from an older edition',
   );
@@ -323,7 +323,7 @@ test('doorway edits stay a draft: nothing is saved until Done, and a reload drop
 test('Done is refused while a page is not ready, and nothing changes', () => {
   const save = inDoorway();
   const lattices = structuredClone(save.profile.lattices);
-  lattices.draughtsman.push({ at: { x: 3, y: 1 }, rune: 'splash', dir: 'right' });
+  lattices.draughtsman?.push({ at: { x: 3, y: 1 }, rune: 'splash', dir: 'right' });
   // Splash is not known yet
   expect(() => leaveDoorway(save, { ...save.profile, lattices })).toThrow(/not ready/);
   expect(save.trip?.status).toBe('doorway');

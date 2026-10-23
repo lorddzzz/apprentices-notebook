@@ -178,7 +178,8 @@ export interface ThresholdRecord {
 /** The notebook the lock is tried with: the canals heard but still barred. */
 export function lockProfile(kind: ThresholdRecord['kind']): Profile {
   const p = baseProfile(true);
-  const draughtsman = kind === 'solve' ? parseLattice(SHOVE_D).runes : p.lattices.draughtsman;
+  const draughtsman =
+    kind === 'solve' ? parseLattice(SHOVE_D).runes : (p.lattices.draughtsman ?? []);
   return {
     ...p,
     lattices: { ...p.lattices, draughtsman: [...draughtsman] },

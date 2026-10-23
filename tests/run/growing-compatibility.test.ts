@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { type InventionDef, RUNE_IDS } from '$data';
 import {
@@ -13,13 +12,12 @@ import {
   latticeOf,
   memberById,
   newSave,
-  parseLattice,
+  pageOf,
   pickLoot,
   pushOn,
   ResourceLimitError,
   type SaveData,
   serializeLattice,
-  setMemberLattice,
   startTrip,
 } from '$engine';
 import { parseSaveText, saveText } from '../../src/app/save';
@@ -32,7 +30,7 @@ test.each(['rune', 'glyph'] as const)(
     save.profile = {
       ...save.profile,
       known: [...RUNE_IDS],
-      inkCapacity: { draughtsman: 100, stoker: 100 },
+      ink: 100,
       lattices: {
         draughtsman: [
           { at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' },
@@ -93,7 +91,7 @@ test.each(['rune', 'glyph'] as const)(
     expect(noEdit.trip.charges.draughtsman).toEqual({ '0,0': 1, '0,3': 3 });
     const moved = applyDoorway(save.profile, save.trip, {
       ...save.profile.lattices,
-      draughtsman: save.profile.lattices.draughtsman.map((rune) =>
+      draughtsman: pageOf(save.profile, 'draughtsman').map((rune) =>
         rune.at.y === 3 ? { ...rune, at: { x: rune.at.x - 6, y: -4 } } : rune,
       ),
     });
@@ -120,31 +118,6 @@ test.each(['rune', 'glyph'] as const)(
     ).toBe(true);
   },
 );
-
-test('v7 live replay survives growing text export and v8 reload without changing events or identities', () => {
-  const raw = readFileSync(
-    new URL('../fixtures/growing-pages/v7-mid-fight.json', import.meta.url),
-    'utf8',
-  );
-  const save = parseSaveText(raw);
-  if (!save.trip) throw new Error('missing fixture trip');
-  const original = beginEncounter(save.profile, save.trip);
-  const proof = structuredClone(save.profile.proof);
-  const records = structuredClone(save.profile.glyphRecords);
-  for (const member of ['draughtsman', 'stoker'] as const) {
-    save.profile = setMemberLattice(
-      save.profile,
-      member,
-      parseLattice(serializeLattice(latticeOf(save.profile, member))),
-    );
-  }
-  const reloaded = parseSaveText(saveText(save));
-  if (!reloaded.trip) throw new Error('missing reloaded trip');
-  expect(beginEncounter(reloaded.profile, reloaded.trip)).toEqual(original);
-  expect(reloaded.profile.proof).toEqual(proof);
-  expect(reloaded.profile.glyphRecords).toEqual(records);
-  expect(reloaded.trip.charges).toEqual(save.trip.charges);
-});
 
 test('long accepted signed paths compile and reload without stack overflow or changing Source keys', () => {
   const save = newSave(1);
@@ -208,7 +181,7 @@ test('admitted deep invention dependencies can be compiled without recursive ink
   expect(() => compiledFor(admitted.profile, 'draughtsman')).not.toThrow();
   expect(
     inkUsed(
-      growingLattice(admitted.profile.lattices.draughtsman),
+      growingLattice(pageOf(admitted.profile, 'draughtsman')),
       {},
       Object.fromEntries(admitted.profile.inventions.map((def) => [def.id, def])),
     ),

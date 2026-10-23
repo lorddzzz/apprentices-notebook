@@ -1,4 +1,6 @@
 import {
+  APPRENTICE_IDS,
+  type ApprenticeId,
   BIND_EVENT_DISTRICT,
   type BindEvent,
   CODEX,
@@ -37,6 +39,7 @@ import {
   latticeLabel as label,
   parseLatticeKey,
 } from './grid';
+import { emptyHousehold, FOUNDERS, joinHousehold, setSlot } from './household';
 import {
   assertImportStructure,
   type ImportBudget,
@@ -59,7 +62,7 @@ import {
   roleOf,
   validateLattice,
 } from './lattice';
-import { parseBoard, parseLattice } from './notation';
+import { parseBoard } from './notation';
 import { growingLattice } from './page';
 import { recordOf, rewardsOf } from './profiler';
 import { provenCount } from './proof';
@@ -78,6 +81,7 @@ import type {
   GlyphId,
   GlyphLibrary,
   GlyphRecord,
+  Household,
   InventionLibrary,
   Lattice,
   LatticeIssue,
@@ -86,11 +90,13 @@ import type {
   PlacedRune,
   Profile,
   SaveData,
+  SlotIndex,
   SpellTally,
   TierLevel,
   TierUp,
   Trip,
   TripRecap,
+  TripSlots,
   TripStats,
   TripStatus,
 } from './types';
@@ -111,13 +117,14 @@ import { isGlyph } from './types';
 
 /** A fresh notebook; page placements retain their original coordinate identities. */
 export function newProfile(): Profile {
-  return {
+  let p: Profile = {
     known: [...START_KNOWN],
     methods: [],
     inventions: [],
     solvents: Object.fromEntries(SOLVENT_IDS.map((id) => [id, 0])) as Record<SolventId, number>,
-    inkCapacity: perMember(() => TUNING.startInk),
-    lattices: perMember((m) => parseLattice(MEMBERS[m].startLattice).runes.map(copyRune)),
+    household: emptyHousehold(),
+    ink: TUNING.startInk,
+    lattices: {},
     witnessed: [],
     named: [],
     met: [],
@@ -126,9 +133,14 @@ export function newProfile(): Profile {
     vellum: 0,
     glyphs: [],
     ...masteryDefaults(),
-    proof: perMember(() => []),
+    proof: {},
     city: cityDefaults(),
   };
+  // The pair joins, then takes slots 1 and 2 (HC P8).
+  FOUNDERS.forEach((id, i) => {
+    p = setSlot(joinHousehold(p, id), i as SlotIndex, id);
+  });
+  return p;
 }
 
 /** The mastery fields of a fresh profile (M37). */
@@ -136,8 +148,22 @@ export function masteryDefaults(): Pick<Profile, 'glyphArchive' | 'glyphRecords'
   return { glyphArchive: [], glyphRecords: {} };
 }
 
+/** An apprentice's saved page. Throws for someone outside the household (HC P1). */
+export function pageOf(p: Pick<Profile, 'lattices'>, m: ApprenticeId): Placed[] {
+  const page = p.lattices[m];
+  if (!page) throw new Error(`${m} is not in the household`);
+  return page;
+}
+
+/** An apprentice's proof masks. Throws for someone outside the household (HC P1). */
+export function proofOf(p: Pick<Profile, 'proof'>, m: ApprenticeId): FiredCell[][] {
+  const proof = p.proof[m];
+  if (!proof) throw new Error(`${m} is not in the household`);
+  return proof;
+}
+
 export function latticeOf(p: Profile, m: MemberId): Lattice {
-  return growingLattice(p.lattices[m].map(copyRune));
+  return growingLattice(pageOf(p, m).map(copyRune));
 }
 
 /**
@@ -173,6 +199,7 @@ export function compiledFor(p: Profile, m: MemberId): CompiledLattice {
 }
 
 export function setMemberLattice(p: Profile, m: MemberId, l: Lattice): Profile {
+  pageOf(p, m);
   return { ...p, lattices: { ...p.lattices, [m]: l.runes.map(copyRune) } };
 }
 
@@ -244,7 +271,7 @@ export function canPlace(p: Profile, m: MemberId, at: Coord, rune: RuneRef): str
   };
   const lib = inventionLibrary(p);
   const lean = MEMBERS[m].lean;
-  if (inkUsed(without, glyphLibrary(p), lib, lean) + inkOf(rune, lib, lean) > p.inkCapacity[m]) {
+  if (inkUsed(without, glyphLibrary(p), lib, lean) + inkOf(rune, lib, lean) > p.ink) {
     return 'Not enough ink';
   }
   return null;
@@ -266,7 +293,7 @@ export function canPlaceGlyph(
   const runes = l.runes.filter((r) => r.at.x !== at.x || r.at.y !== at.y);
   const socket: Placed = args ? { at, glyph, dir: 'right', args } : { at, glyph, dir: 'right' };
   const placed: Lattice = { shape: l.shape, runes: [...runes, socket] };
-  if (inkUsed(placed, glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean) > p.inkCapacity[m]) {
+  if (inkUsed(placed, glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean) > p.ink) {
     return 'Not enough ink';
   }
   return null;
@@ -276,9 +303,9 @@ export function canPlaceGlyph(
 export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIssue[]>> {
   const out: Partial<Record<MemberId, LatticeIssue[]>> = {};
   const lib = inventionLibrary(p);
-  for (const m of MEMBER_IDS) {
+  for (const m of p.household.members) {
     const l = latticeOf(p, m);
-    const issues = validateLattice(l, p.inkCapacity[m], glyphLibrary(p), lib, MEMBERS[m].lean);
+    const issues = validateLattice(l, p.ink, glyphLibrary(p), lib, MEMBERS[m].lean);
     for (const r of l.runes) {
       for (const rune of new Set(runesIn(p, r))) {
         if (!knows(p, rune) && !issues.some((i) => i.kind === 'owned' && i.rune === rune)) {
@@ -455,7 +482,7 @@ function parseLoot(v: unknown): LootItem {
     case 'method':
       return { kind: 'method', method: oneOf(METHOD_IDS, r.method) };
     case 'ink':
-      return { kind: 'ink', member: oneOf(MEMBER_IDS, r.member), amount: count(r.amount) };
+      return { kind: 'ink', amount: count(r.amount) };
     case 'solvent':
       return { kind: 'solvent', solvent: oneOf(SOLVENT_IDS, r.solvent) };
     case 'vellum':
@@ -526,10 +553,8 @@ function parseFootnotes(v: unknown): Profile['footnotes'] {
 /** Current sparse profile: every field is required. */
 function parseProfile(v: unknown, budget: ImportBudget): Profile {
   const r = record(v);
-  const cap = record(r.inkCapacity);
-  const lat = record(r.lattices);
-  const inkCapacity = perMember((m) => count(cap[m]));
-  const lattices = perMember((m) => list(lat[m]).map(parsePlaced));
+  const household = parseHousehold(r.household);
+  const lattices = byMember(household, r.lattices, (x) => list(x).map(parsePlaced));
   const sol = record(r.solvents);
   for (const k of Object.keys(sol)) oneOf(SOLVENT_IDS, k);
   const solvents = Object.fromEntries(
@@ -557,12 +582,13 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     ]),
   );
   const library = glyphLibrary({ glyphs, glyphRecords });
-  for (const m of MEMBER_IDS) {
-    const shape = growingLattice(lattices[m]).shape;
+  for (const m of household.members) {
+    const page = pageOf({ lattices }, m);
+    const shape = growingLattice(page).shape;
     // Also rejects a lattice Glyph that is not in the library. A stale argument (after a revision)
     // is the page's issue to fix, not a broken save.
     const structural = validateLattice(
-      { shape, runes: lattices[m] },
+      { shape, runes: page },
       null,
       library,
       libraryOf(inventions),
@@ -571,14 +597,16 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     ).filter((i) => i.kind !== 'arg');
     if (structural.length > 0) bad();
   }
-  const proofRaw = record(r.proof);
-  const proof = perMember((m) => list(proofRaw[m]).map((mask) => list(mask).map(parseFired)));
+  const proof = byMember(household, r.proof, (x) =>
+    list(x).map((mask) => list(mask).map(parseFired)),
+  );
   return {
     known: unique(list(r.known).map((id) => oneOf(RUNE_IDS, id))),
     methods: unique(list(r.methods).map((id) => oneOf(METHOD_IDS, id))),
     inventions,
     solvents,
-    inkCapacity,
+    household,
+    ink: count(r.ink),
     lattices,
     witnessed: unique(list(r.witnessed).map(lineId)),
     named: unique(list(r.named).map(text)),
@@ -592,6 +620,32 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     proof,
     city: parseCity(r.city),
   };
+}
+
+/** Joined apprentices (unique, registry ids, at least one); slots hold members, never twice. */
+function parseHousehold(v: unknown): Household {
+  const r = record(v);
+  const members = list(r.members).map((id) => oneOf(APPRENTICE_IDS, id));
+  if (members.length === 0 || unique(members).length !== members.length) bad();
+  const raw = list(r.slots);
+  if (raw.length !== 3) bad();
+  const slots = raw.map((s) => (s === null ? null : oneOf(members, s))) as TripSlots;
+  const filled = slots.filter((s) => s !== null);
+  if (unique(filled).length !== filled.length) bad();
+  return { members, slots };
+}
+
+/** A per-apprentice record keyed by exactly the household's members. */
+function byMember<T>(
+  household: Household,
+  v: unknown,
+  parse: (x: unknown) => T,
+): Partial<Record<ApprenticeId, T>> {
+  const r = record(v);
+  if (Object.keys(r).length !== household.members.length) bad();
+  return Object.fromEntries(
+    household.members.map((m) => [m, Object.hasOwn(r, m) ? parse(r[m]) : bad()]),
+  );
 }
 
 /** heard ⊇ open ⊇ hearts, solved ⊆ heard, fresh ⊆ heard, the Seam always open (K-19). */
@@ -821,7 +875,7 @@ function parseRecap(v: unknown): TripRecap {
 
 /** Appends cast masks to a member's proof, keeping the newest `TUNING.proofMasksPerMember`. */
 export function recordProof(p: Profile, m: MemberId, masks: readonly FiredCell[][]): Profile {
-  const proof = [...(p.proof[m] ?? []), ...masks.map((c) => c.map((f) => ({ ...f })))];
+  const proof = [...proofOf(p, m), ...masks.map((c) => c.map((f) => ({ ...f })))];
   return { ...p, proof: { ...p.proof, [m]: proof.slice(-TUNING.proofMasksPerMember) } };
 }
 
@@ -844,7 +898,7 @@ export function compileGlyph(
   }
   const lib = glyphLibrary(p);
   const l = latticeOf(p, m);
-  const masks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
+  const masks = p.household.members.flatMap((id) => proofOf(p, id));
   if (provenCount(l, cluster, masks) < TUNING.provenCasts) throw new Error('Not proven yet');
   const blocker = blockingAuras(l, cluster, lib)[0];
   if (blocker) {
@@ -876,9 +930,9 @@ export function renameGlyph(p: Profile, id: GlyphId, name: string): Profile {
 }
 
 /** Referential checks are separate from decoding, and run before any compilation or ink walk. */
-export function validateSaveReferences(save: SaveData, budget: ImportBudget, legacy = false): void {
+export function validateSaveReferences(save: SaveData, budget: ImportBudget): void {
   try {
-    validateSaveReferencesUnchecked(save, budget, legacy);
+    validateSaveReferencesUnchecked(save, budget);
   } catch (error) {
     if (error instanceof InkCostOverflowError)
       throw new ResourceLimitError('arithmetic', Number.MAX_SAFE_INTEGER);
@@ -886,11 +940,7 @@ export function validateSaveReferences(save: SaveData, budget: ImportBudget, leg
   }
 }
 
-function validateSaveReferencesUnchecked(
-  save: SaveData,
-  budget: ImportBudget,
-  legacy: boolean,
-): void {
+function validateSaveReferencesUnchecked(save: SaveData, budget: ImportBudget): void {
   const p = save.profile;
   budget.spend('work', p.inventions.length);
   const inventions = libraryOf(p.inventions);
@@ -934,8 +984,7 @@ function validateSaveReferencesUnchecked(
       if (cells.has(key(c.at)) || hasArrow(c.rune) !== (c.dir !== undefined)) bad();
       cells.add(key(c.at));
     }
-    if (!legacy && (!cells.has(key(g.entry)) || g.exits.some((e) => !cells.has(key(e.from)))))
-      bad();
+    if (!cells.has(key(g.entry)) || g.exits.some((e) => !cells.has(key(e.from)))) bad();
     const cost = baseGlyphCost(g, inventions, null, price);
     if (!glyphCosts.has(g.id)) glyphCosts.set(g.id, cost);
   }
@@ -945,11 +994,12 @@ function validateSaveReferencesUnchecked(
       bad();
     for (const local of Object.keys(rec.fired)) cellKey(local);
   }
-  for (const m of MEMBER_IDS) {
-    budget.spend('work', p.lattices[m].length);
-    const placedAt = new Map(p.lattices[m].map((r) => [key(r.at), r]));
+  for (const m of p.household.members) {
+    const page = pageOf(p, m);
+    budget.spend('work', page.length);
+    const placedAt = new Map(page.map((r) => [key(r.at), r]));
     let totalInk = 0;
-    for (const placed of p.lattices[m]) {
+    for (const placed of page) {
       if (!isLatticeCoord(placed.at)) bad();
       if (isGlyph(placed)) {
         for (const arg of Object.values(placed.args ?? {})) rune(arg.rune);
@@ -970,7 +1020,7 @@ function validateSaveReferencesUnchecked(
         totalInk = addInk(totalInk, price(placed.rune));
       }
     }
-    for (const mask of p.proof[m])
+    for (const mask of proofOf(p, m))
       for (const fired of mask) {
         budget.spend('work');
         if (!isLatticeCoord(fired.at)) bad();
@@ -978,7 +1028,8 @@ function validateSaveReferencesUnchecked(
       }
   }
   const glyphs = glyphLibrary(p);
-  for (const m of MEMBER_IDS) assertCompilationWork(latticeOf(p, m), glyphs, inventions, budget);
+  for (const m of p.household.members)
+    assertCompilationWork(latticeOf(p, m), glyphs, inventions, budget);
   const t = save.trip;
   if (!t) return;
   const enc = encountersOf(t.district)[t.encounter] ?? bad();

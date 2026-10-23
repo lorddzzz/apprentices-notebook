@@ -377,7 +377,7 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "member": "stoker", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "solvent", "solvent": "cinder" },
         { "kind": "rune", "rune": "bend" }
       ],
@@ -2512,7 +2512,8 @@
       "quicksilver": 0,
       "graphite": 0
     },
-    "inkCapacity": { "draughtsman": 8, "stoker": 8 },
+    "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
+    "ink": 8,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2654,7 +2655,11 @@
         "quicksilver": 0,
         "graphite": 0
       },
-      "inkCapacity": { "draughtsman": 8, "stoker": 8 },
+      "household": {
+        "members": ["draughtsman", "stoker"],
+        "slots": ["draughtsman", "stoker", null]
+      },
+      "ink": 8,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },

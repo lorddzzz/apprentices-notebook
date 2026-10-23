@@ -8,6 +8,7 @@ export * from './foes';
 export * from './footnotes';
 export * from './glyph';
 export * from './grid';
+export * from './household';
 export * from './idioms';
 export * from './importPolicy';
 export * from './inventions';

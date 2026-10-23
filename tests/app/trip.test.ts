@@ -119,7 +119,7 @@ test('endBattle lost: the trip ends, the WipeSummary lists the lost loot and kee
   // knowledge is not loot; the known runes are untouched
   expect(end.save.profile.named).toEqual(['idiom:bonfire']);
   expect(end.save.profile.known).toEqual(fresh().profile.known);
-  expect(end.save.profile.inkCapacity).toEqual(fresh().profile.inkCapacity);
+  expect(end.save.profile.ink).toEqual(fresh().profile.ink);
 });
 
 test('takeOffer → crossroads; the heart takes two picks, then the trip is cleared', () => {
@@ -159,9 +159,7 @@ test('goHome banks the loot into the notebook and clears the trip', () => {
   } else if (item?.kind === 'method') {
     expect(home.profile.methods).toContain(item.method);
   } else if (item?.kind === 'ink') {
-    expect(home.profile.inkCapacity[item.member]).toBe(
-      before.inkCapacity[item.member] + item.amount,
-    );
+    expect(home.profile.ink).toBe(before.ink + item.amount);
   } else if (item?.kind === 'solvent') {
     expect(home.profile.solvents[item.solvent]).toBe(before.solvents[item.solvent] + 1);
   } else {

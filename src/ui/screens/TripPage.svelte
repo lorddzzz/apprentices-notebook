@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DISTRICTS, MEMBERS } from '$data';
-  import { compiledFor } from '$engine';
+  import { compiledFor, pageOf } from '$engine';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
   import { deadCellNotes, heardHighlights, placeInText, tierUpLine } from '../../app/tripviews';
@@ -15,7 +15,7 @@
   // Dead-cell notes show only while each spell is still wired as it was fought (M15).
   const notes = $derived(
     spells.map((s) =>
-      deadCellNotes(s, compiledFor(game.profile, s.member).spells, game.profile.lattices[s.member]),
+      deadCellNotes(s, compiledFor(game.profile, s.member).spells, pageOf(game.profile, s.member)),
     ),
   );
 </script>

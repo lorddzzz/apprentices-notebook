@@ -245,7 +245,7 @@
       sessionKey={game.latticeSessionKey()}
       {lattice}
       {compiled}
-      capacity={profile.inkCapacity[game.member]}
+      capacity={profile.ink}
       {slots}
       tool={game.tool}
       ontool={(t) => game.setTool(t)}

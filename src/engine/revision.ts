@@ -1,4 +1,4 @@
-import { MEMBER_IDS, MEMBERS, type RuneRef, TUNING } from '$data';
+import { MEMBERS, type RuneRef, TUNING } from '$data';
 import { argIssue, canBeOpen } from './glyph';
 import {
   type Coord,
@@ -16,7 +16,7 @@ import {
 import { compileLattice, hasArrow, nameOf, roleOf } from './lattice';
 import { pageBounds } from './page';
 import { emptyRecord, recordOf, rewardsOf, versionKey } from './profiler';
-import { glyphLibrary, validateLoadout } from './run';
+import { glyphLibrary, pageOf, validateLoadout } from './run';
 import type {
   AuraTouch,
   CellKey,
@@ -409,8 +409,8 @@ function withoutStaleArgs(p: Profile, id: GlyphId): Profile {
   const def = glyphLibrary(p)[id];
   if (!def) return p;
   const lattices = { ...p.lattices };
-  for (const m of MEMBER_IDS) {
-    lattices[m] = p.lattices[m].map((r) => {
+  for (const m of p.household.members) {
+    lattices[m] = pageOf(p, m).map((r) => {
       if (!('glyph' in r) || r.glyph !== id || !r.args) return r;
       const rest = Object.fromEntries(
         Object.entries(r.args).filter(([k, arg]) => argIssue(def, k, arg) === null),
@@ -480,7 +480,7 @@ function pageWarnings(before: Profile, after: Profile): string[] {
   const was = validateLoadout(before);
   const now = validateLoadout(after);
   const lines: string[] = [];
-  for (const m of MEMBER_IDS) {
+  for (const m of after.household.members) {
     const had = was[m] ?? [];
     const page = `the ${MEMBERS[m].name}'s page`;
     const issues = (now[m] ?? []).filter((i) => i.kind === 'ink' || i.kind === 'owned');

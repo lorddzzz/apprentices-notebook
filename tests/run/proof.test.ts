@@ -12,6 +12,7 @@ import {
   newProfile,
   type Profile,
   parseLattice,
+  proofOf,
   provenCount,
   recordProof,
   renameGlyph,
@@ -60,7 +61,7 @@ describe('recordProof', () => {
     const a = recordProof(p, 'draughtsman', [[{ at: c(0, 0), rune: 'bolt', dir: 'right' }]]);
     const b = recordProof(a, 'draughtsman', [[{ at: c(1, 0), rune: 'ink' }]]);
     expect(p.proof.draughtsman).toEqual([]);
-    expect(b.proof.draughtsman.map((m) => m[0]?.rune)).toEqual(['bolt', 'ink']);
+    expect(proofOf(b, 'draughtsman').map((m) => m[0]?.rune)).toEqual(['bolt', 'ink']);
     expect(b.proof.stoker).toEqual([]);
   });
 
@@ -70,8 +71,8 @@ describe('recordProof', () => {
     ]);
     const p = recordProof(newProfile(), 'stoker', many);
     expect(p.proof.stoker).toHaveLength(TUNING.proofMasksPerMember);
-    expect(p.proof.stoker[0]?.[0]?.at.x).toBe(5);
-    expect(p.proof.stoker.at(-1)?.[0]?.at.x).toBe(TUNING.proofMasksPerMember + 4);
+    expect(proofOf(p, 'stoker')[0]?.[0]?.at.x).toBe(5);
+    expect(proofOf(p, 'stoker').at(-1)?.[0]?.at.x).toBe(TUNING.proofMasksPerMember + 4);
   });
 });
 
@@ -81,10 +82,10 @@ describe('the fifth cast proves a cluster', () => {
     const cluster = big(p, 4);
     for (let i = 1; i < TUNING.provenCasts; i++) {
       p = recordProof(p, 'draughtsman', [mask]);
-      expect(provenCount(latticeOf(p, 'draughtsman'), cluster, p.proof.draughtsman)).toBe(i);
+      expect(provenCount(latticeOf(p, 'draughtsman'), cluster, proofOf(p, 'draughtsman'))).toBe(i);
     }
     p = recordProof(p, 'draughtsman', [mask]);
-    expect(provenCount(latticeOf(p, 'draughtsman'), cluster, p.proof.draughtsman)).toBe(
+    expect(provenCount(latticeOf(p, 'draughtsman'), cluster, proofOf(p, 'draughtsman'))).toBe(
       TUNING.provenCasts,
     );
   });

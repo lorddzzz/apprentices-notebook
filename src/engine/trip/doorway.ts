@@ -1,6 +1,6 @@
 import { MEMBER_IDS, type MemberId } from '$data';
-import { compiledFor, validateLoadout } from '../run';
-import type { Placed, Profile, Spell, SpellKey, Trip } from '../types';
+import { compiledFor, pageOf, validateLoadout } from '../run';
+import type { Profile, Spell, SpellKey, Trip } from '../types';
 import { copyRune, need, perMember } from './shared';
 
 /** What a Source is, for carrying its charges across a rewire: a rune, or a Spell Glyph. */
@@ -65,10 +65,11 @@ function carryCharges(
 export function applyDoorway(
   p: Profile,
   t: Trip,
-  lattices: Record<MemberId, Placed[]>,
+  lattices: Profile['lattices'],
 ): { profile: Profile; trip: Trip } {
   need(t, 'doorway');
-  const profile: Profile = { ...p, lattices: perMember((m) => lattices[m].map(copyRune)) };
+  const copied = p.household.members.map((m) => [m, pageOf({ lattices }, m).map(copyRune)]);
+  const profile: Profile = { ...p, lattices: Object.fromEntries(copied) };
   const first = Object.values(validateLoadout(profile))[0]?.[0];
   if (first) throw new Error(`Loadout is not ready: ${first.message}`);
   const more = t.picksLeft > 0 && t.offers.length > 0;

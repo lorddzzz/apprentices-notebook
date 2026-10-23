@@ -2,12 +2,11 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 0)
+**State:** building (Stage 0 → 1)
 **Reset:** 5h window resets 2026-10-23 20:50 UTC; resume manually by reading this file.
 **Next:**
-1. Collect HC-1's report (or, if cut off by the limit, its last green commit on `worktree-agent-a5add137d20a7edb1`); review, squash-merge, push.
-2. Ready: FD-1 (arrival matrix), FD-2 (repros) — test files only; RV-W0, RC-W0 (contracts). After HC-1: FD-9 (`run.ts`), then FN-0. After HC-1+HC-3: HC-4. HC-6 (tokens, hue) after HC-W0 is ready.
-3. If usage holds at ≥96%: send checkpoint nudges, wait for the 20:50 UTC reset.
+1. Stage 0 is done except FD-1, FD-2, FD-9 (FD-9 now unblocked: `run.ts` free). Start HC-4 (critical path: HC-1+HC-2+HC-3 merged), FD-1, FD-9.
+2. Then: FN-0 (needs FD-9), HC-6 (tokens), RV-W0, RC-W0, AH-W0, FD-2. DK-3/DK-4 after FD-3; DK-5a/DK-6 ready (HC-W0 merged).
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -15,7 +14,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | DK-0 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a45dca724bc1d7c9f @ 3826907 | shared | 14 fixtures (596 KB): 6 Seam, 6 canal trips, lock solve/fire; replays stored actions (not the bot); re-record `RECORD_GOLDEN=1 pnpm vitest run tests/run/golden.test.ts`. DK-2 must keep reachable: run.ts `startTrip`, `beginEncounter`, `variantFor`, `placeOf`, `closeBattle`, `pickLoot`, `pushOn`, `returnHome`, `parseSaveData`, `newProfile`, `parseLattice`; app `thresholdStart`/`thresholdOutcome`; battle `applyAction`, `boardOf`, `memberById` |
 | DK-1 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a1bbe60c878733ab7 @ 177eac0 | shared | `engine/districts/` {types, registry `buildKit` (duplicates throw), api stubs, index `DISTRICT_MODULES`/`KIT`, seam}; `data/districts/index.ts` (kit data types, `DistrictKitData` beside legacy `DistrictDef` until DK-17); `ui/districts/index.ts`. **Import `$data/districts/index`** (old `data/districts.ts` shadows the folder until DK-17). Fields owed: DK-3 `BattleState.rules`, DK-4 `Tile.piece`, DK-6 `Unit.out`/`bystander` + `outOfRoom` event, DK-7 `LootItem`→`KitLootItem`, DK-5a/b `Trip.kit`, `city.checkpoints`, `Profile.papers`. Placeholders left: `Telegraph` (RV-W0), `RecruitPlacement`/`RecruitPages` (RC-W0). Orchestrator replaced FD placeholders with `$engine/arrival` at merge |
 | FD-10 | Fast / Haiku 5.5 / high | S | merged | worktree-agent-a32ab5a8f351b9aff @ 2021644 | shared | `ensureBattle` second failure → `abandonFight()` (trip closed as wiped, Study, warn toast); `addCorrupt`/`readCorrupt`, `CORRUPT_KEEP = 3`, key `apprentices-notebook:save.corrupt` now a JSON array (legacy raw value = one entry). HC-1's save reset should reuse `addCorrupt` (keep-before-replace) |
-| HC-1 | Strong / Opus 5.5 / medium | L | running | worktree | | profile + save v9; may re-record golden end saves only (logs identical) |
+| HC-1 | Strong / Opus 5.5 / medium | L | merged | worktree-agent-a5add137d20a7edb1 @ 80ccb0f | shared | Profile v9: `household {members, slots}`, `ink`, `lattices`/`proof` partial by member; `pageOf`/`proofOf` throw for outsiders; `joinHousehold`/`inHousehold`/`setSlot(p, slot, id, trip?)`/`tripParty`/`FOUNDERS`/`emptyHousehold` exported from `$engine`; save v9 only (older → `OlderEditionError`, kept aside); `legacyV7.ts` removed. Golden re-recorded: logs/outcomes identical, only ink `member` and profile shape changed. **HC-4 owes:** trip hp/charges parsing, `perMember`, `rollOffers` default and `action.unit` checks still on `MEMBER_IDS`; `validateLoadout` to narrow to the party. One-line edits in OfferCard/Study/TripPage .svelte (autofixer not run: Svelte MCP down; browser check folded into HC-7/HC-9) |
 | HC-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a9efb421e68e7f94b @ ae9d883 | shared | `P` token (may share with state/water; not unit/plate/gate/grate); `BoardSpec.starts`; `checkRoom`, `placeParty`, `startSeedFor`, `MAX_PARTY = 3` in `$engine/rooms` (not in `$engine` index); `BattleSpec.lineup`/`startSeed` optional. HC-4: `createBattle({…, lineup, startSeed: startSeedFor(trip, encounter)})`; a lineup on a board with apprentice tokens throws, so HC-3 first |
 | HC-3 | Medium / Sonnet 5.5 / high | M | merged (partial by design) | worktree-agent-a21bdc1e0b9451570 @ 1598f0e | shared | `startLayout(layout)` in `data/encounters.ts` turns D/S into P and pads to 4 points; integrity test runs `checkRoom` on all 27 rooms + the lock. Data strings unchanged. **HC-4 must** use `startLayout(variant.layout)` + `placeParty` in `beginEncounter`, then bake the `P`s into the data and delete `startLayout` (orchestrator: required, not optional) |
 | FD-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a05163adbb243d5ff @ 9148efe | shared | `Ctx.footnotes: FootnoteIds`; `footnoteIds(profile, variants?)` replaces `footnoteTexts` (unknown ids skipped); `hasFootnote` compares ids. Touched `trip/start.ts` (one line) |
@@ -35,8 +34,10 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 18:28 | 84 | 2h22 | 29 | Narrow→Wrap (~1.2%/min) | merge FD-8; narrow nudges to HC-1, HC-2 |
 | 18:32 | 85 | 2h18 | 29 | Narrow | merge HC-2; spawn HC-3 (smallest critical-path task) |
 | 18:46 | 92 | 2h04 | 30 | Wrap | merge HC-3; one agent (HC-1) running, no new spawns |
+| 19:00 | — | — | — | Wrap | merge HC-1 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- HC-1: `setSlot` refuses when a trip is passed; `offerOf` still burns the old member draw so seeds roll the same offers (drop when a reroll is fine); a saved household needs ≥1 member and lattices/proof keys equal to the members; `FOUNDERS` lives in `engine/household.ts`; ink offer text "A bigger ink pot for every page in the household." Accepted.
 - HC-2: salt applied once in `startSeedFor` (`deriveSeed(trip.seed, START_SALT + encounter)`); default `startSeed` = `deriveSeed(seed, START_SALT)`; a smaller party takes the leading spots of the same shuffle; `P` allowed on water/drop tiles; size/count problems have `cell: null`. Accepted.
 - FD-8: `footnoteTexts` removed; a removed variant on an old save is ignored, not an error. Accepted.
 - DK-2: `recordTripCasts` in `trip/finish.ts`; leaf `place.ts` breaks the city→run import; explicit re-exports keep helpers private. Accepted.

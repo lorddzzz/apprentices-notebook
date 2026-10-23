@@ -5,19 +5,24 @@ import {
   ResourceLimitError,
   type SaveData,
 } from '$engine';
-import { parseLegacyV7 } from '$engine/legacyV7';
 
 export interface SaveEnvelope<T = unknown> {
   version: number;
   data: T;
 }
 
-/** v8 adds signed growing pages. v7 has an explicit identity-preserving decoder. */
-export const CURRENT_VERSION = 8;
+/**
+ * v9 is the household (HC P7). Anything older is cleared, not migrated (party.md §0c): it takes
+ * the older-edition path, so the text is kept aside and a new notebook starts.
+ */
+export const CURRENT_VERSION = 9;
+
+/** The oldest version this build reads. */
+export const OLDEST_READABLE = 9;
 
 export const SAVE_KEY = 'apprentices-notebook:save';
 
-/** What the player reads when a save from before the rune redesign turns up. */
+/** What the player reads when a save from an earlier edition (before v9) turns up. */
 export const OLDER_EDITION = 'This notebook is from an older edition';
 
 /** A save from an earlier edition of the game: it cannot be read, and is kept aside. */
@@ -34,7 +39,7 @@ export function serialize(data: unknown, version = CURRENT_VERSION): string {
 
 /**
  * Text form used for export/import and localStorage. Throws "Not a valid save", "Save is from a
- * newer version", or `OlderEditionError` for anything before version 7.
+ * newer version", or `OlderEditionError` for anything before `OLDEST_READABLE`.
  */
 export function parse(text: string): SaveEnvelope {
   assertImportText(text);
@@ -48,7 +53,7 @@ export function parse(text: string): SaveEnvelope {
     throw new Error('Not a valid save');
   }
   const env = raw as SaveEnvelope;
-  if (env.version < 7) throw new OlderEditionError();
+  if (env.version < OLDEST_READABLE) throw new OlderEditionError();
   if (env.version > CURRENT_VERSION) throw new Error('Save is from a newer version');
   return env;
 }
@@ -126,7 +131,7 @@ export function parseSaveText(text: string): SaveData {
   } catch (e) {
     throw e instanceof SyntaxError ? new Error('Not a valid save') : e;
   }
-  return env.version === 7 ? parseLegacyV7(env.data) : parseSaveData(env.data);
+  return parseSaveData(env.data);
 }
 
 export function saveText(save: SaveData): string {

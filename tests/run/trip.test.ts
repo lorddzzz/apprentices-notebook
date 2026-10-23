@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { ENCOUNTERS, MEMBER_IDS, type MemberId, TUNING } from '$data';
+import { ENCOUNTERS, MEMBER_IDS, TUNING } from '$data';
 import {
   type Action,
   applyAction,
@@ -114,16 +114,16 @@ describe('loot', () => {
     expect(rollOffers(SEED, 2, 'deep', MEMBER_IDS)).toHaveLength(3);
   });
 
-  test('ink offer names a member and +2', () => {
-    const seen = new Set<MemberId>();
+  test('an ink offer is +2 for the household and names no one (HC P6)', () => {
+    let seen = 0;
     for (let seed = 0; seed < 300; seed++) {
       for (const o of rollOffers(seed, 0, 'shallow', MEMBER_IDS)) {
         if (o.kind !== 'ink') continue;
-        expect(o.amount).toBe(2);
-        seen.add(o.member);
+        expect(o).toEqual({ kind: 'ink', amount: 2 });
+        seen += 1;
       }
     }
-    expect(seen.size).toBe(2);
+    expect(seen).toBeGreaterThan(0);
   });
 
   test('every table offers three entries with positive amounts', () => {
@@ -161,7 +161,7 @@ describe('loot', () => {
     expect(home.known.length - p0.known.length).toBe(
       [...pages].filter((r) => !p0.known.includes(r)).length,
     );
-    const inkGain = Object.values(home.inkCapacity).reduce((a, b) => a + b, 0) - 16;
+    const inkGain = home.ink - p0.ink;
     expect(inkGain).toBe(picked.filter((o) => o.kind === 'ink').length * 2);
     const solvents = Object.values(home.solvents).reduce((a, b) => a + b, 0);
     expect(solvents).toBe(picked.filter((o) => o.kind === 'solvent').length);
@@ -180,7 +180,7 @@ describe('loot', () => {
         { kind: 'rune', rune: 'vat' },
         { kind: 'rune', rune: 'bolt' },
         { kind: 'method', method: 'conduct' },
-        { kind: 'ink', member: 'stoker', amount: 2 },
+        { kind: 'ink', amount: 2 },
         { kind: 'solvent', solvent: 'pitch' },
         { kind: 'solvent', solvent: 'pitch' },
         { kind: 'vellum', amount: 3 },
@@ -191,7 +191,7 @@ describe('loot', () => {
     expect(home.known.filter((r) => r === 'vat')).toEqual(['vat']);
     expect(home.known.filter((r) => r === 'bolt')).toEqual(['bolt']);
     expect(home.methods).toEqual(['conduct']);
-    expect(home.inkCapacity).toEqual({ draughtsman: 8, stoker: 10 });
+    expect(home.ink).toBe(10);
     expect(home.solvents.pitch).toBe(2);
     expect(home.vellum).toBe(3);
     expect(p.known).not.toContain('vat');

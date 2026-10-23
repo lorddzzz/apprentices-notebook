@@ -301,7 +301,7 @@ function withGlyph(ink = 8): Profile {
     ...p,
     known: [...p.known, 'tally', 'steam', 'coil'],
     glyphs: [GLYPH_DEF],
-    inkCapacity: { ...p.inkCapacity, draughtsman: ink },
+    ink: ink,
     lattices: { ...p.lattices, draughtsman: [] },
   };
 }
@@ -359,9 +359,7 @@ test('ink counts the Glyph and its outer aura (+1)', () => {
   const p = editProfile(withGlyph(cost + 1), 'draughtsman', SPOT, GLYPH_TOOL, false).profile;
   const lib = glyphLibrary(p);
   expect(inkUsed(latticeOf(p, 'draughtsman'), lib, {}, LEAN)).toBe(cost);
-  expect(
-    inkLeft(latticeOf(p, 'draughtsman'), p.inkCapacity.draughtsman, lib, {}, 'draughtsman'),
-  ).toBe(1);
+  expect(inkLeft(latticeOf(p, 'draughtsman'), p.ink, lib, {}, 'draughtsman')).toBe(1);
   // A Coil next to the Glyph costs its own 3 ink plus the Glyph's +1: it does not fit in 1.
   const aura = editProfile(p, 'draughtsman', { x: 2, y: 1 }, { kind: 'rune', rune: 'coil' }, false);
   expect(aura.changed).toBe(false);
@@ -494,13 +492,11 @@ test('the ink pot counts the discounted price as runes are placed', () => {
   expect(socketAt(latticeOf(p, 'stoker'), at)).toBeNull();
   p = editProfile(p, 'stoker', at, useRune('inv:impulse'), false).profile;
   expect(inkUsed(latticeOf(p, 'stoker'), {}, LIB, lean)).toBe(before + 3);
-  expect(inkLeft(latticeOf(p, 'stoker'), p.inkCapacity.stoker, {}, LIB, 'stoker')).toBe(
-    p.inkCapacity.stoker - before - 3,
-  );
+  expect(inkLeft(latticeOf(p, 'stoker'), p.ink, {}, LIB, 'stoker')).toBe(p.ink - before - 3);
 });
 
 test('an invention goes on a socket like a rune, and again (knowledge, not copies)', () => {
-  let p = { ...withImpulse(), inkCapacity: { ...newProfile().inkCapacity, stoker: 99 } };
+  let p = { ...withImpulse(), ink: 99 };
   for (const at of [
     { x: 1, y: 5 },
     { x: 2, y: 4 },
@@ -515,7 +511,7 @@ test('an invention goes on a socket like a rune, and again (knowledge, not copie
 test('refused only for ink or "not known"', () => {
   const at = { x: 1, y: 5 };
   // ink: an invention that does not fit the pot
-  const p = { ...withImpulse(), inkCapacity: { ...newProfile().inkCapacity, stoker: 0 } };
+  const p = { ...withImpulse(), ink: 0 };
   const poor = editProfile(p, 'stoker', at, useRune('inv:impulse'), false);
   expect(poor.changed).toBe(false);
   expect(poor.message).toMatch(/ink/i);

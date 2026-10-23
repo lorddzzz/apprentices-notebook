@@ -8,6 +8,7 @@ import {
   newProfile,
   type Placed,
   type Profile,
+  pageOf,
   parseSaveData,
   pickLoot,
   returnHome,
@@ -171,7 +172,7 @@ describe('charges follow the rune type (S12)', () => {
       ...p.lattices,
       draughtsman: [
         bolt(0, 0),
-        ...p.lattices.draughtsman.filter((r) => !('rune' in r && r.rune === 'bolt')),
+        ...pageOf(p, 'draughtsman').filter((r) => !('rune' in r && r.rune === 'bolt')),
       ],
     };
     const r = applyDoorway(p, inDoorway(p, START_CHARGES), lattices);
@@ -184,8 +185,8 @@ describe('charges follow the rune type (S12)', () => {
   test('a Bolt can move to the other member and still carries its count', () => {
     const p = newProfile();
     const lattices = {
-      draughtsman: p.lattices.draughtsman.filter((r) => !('rune' in r && r.rune === 'bolt')),
-      stoker: [...p.lattices.stoker, bolt(0, 3)],
+      draughtsman: pageOf(p, 'draughtsman').filter((r) => !('rune' in r && r.rune === 'bolt')),
+      stoker: [...pageOf(p, 'stoker'), bolt(0, 3)],
     };
     const r = applyDoorway(p, inDoorway(p, START_CHARGES), lattices);
     const spent = Object.values(r.trip.charges.stoker).sort();
@@ -199,7 +200,7 @@ describe('charges follow the rune type (S12)', () => {
     const p: Profile = base; // knowledge, not copies: a second Bolt needs nothing more
     const lattices = {
       ...p.lattices,
-      draughtsman: [bolt(0, 0), ...p.lattices.draughtsman],
+      draughtsman: [bolt(0, 0), ...(p.lattices.draughtsman ?? [])],
     };
     const r = applyDoorway(p, inDoorway(p, START_CHARGES), lattices);
     const left = MEMBER_IDS.flatMap((m) => Object.values(r.trip.charges[m])).sort();
@@ -214,7 +215,7 @@ describe('charges follow the rune type (S12)', () => {
     // doorway 1: take the Draughtsman's Bolt out
     const bare = {
       ...p.lattices,
-      draughtsman: p.lattices.draughtsman.filter((r) => !('rune' in r && r.rune === 'bolt')),
+      draughtsman: pageOf(p, 'draughtsman').filter((r) => !('rune' in r && r.rune === 'bolt')),
     };
     const one = applyDoorway(p, inDoorway(p, START_CHARGES), bare);
     expect(one.trip.charges.draughtsman).toEqual({});
@@ -251,7 +252,7 @@ describe('charges follow the rune type (S12)', () => {
     const p: Profile = {
       ...base,
       glyphs: [glyph],
-      inkCapacity: { draughtsman: 14, stoker: 14 },
+      ink: 14,
       lattices: {
         draughtsman: [{ at: { x: 1, y: 1 }, glyph: 'g1', dir: 'right' }],
         stoker: base.lattices.stoker,

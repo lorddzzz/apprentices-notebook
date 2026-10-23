@@ -40,16 +40,16 @@ export function returnHome(p: Profile, t: Trip): Profile {
   if (!canReturn(t)) throw new Error('There is no landing here');
   const known = [...p.known];
   const methods = [...p.methods];
-  const inkCapacity = { ...p.inkCapacity };
+  let ink = p.ink;
   const solvents = { ...p.solvents };
   let vellum = p.vellum;
   for (const item of t.loot) {
     if (item.kind === 'rune' && !known.includes(item.rune)) known.push(item.rune);
     else if (item.kind === 'method' && !methods.includes(item.method)) methods.push(item.method);
-    else if (item.kind === 'ink') inkCapacity[item.member] += item.amount;
+    else if (item.kind === 'ink') ink += item.amount;
     else if (item.kind === 'solvent') solvents[item.solvent] += 1;
     else if (item.kind === 'vellum') vellum += item.amount;
   }
-  const banked = bankKeys({ ...p, known, methods, inkCapacity, solvents, vellum }, t.loot);
+  const banked = bankKeys({ ...p, known, methods, ink, solvents, vellum }, t.loot);
   return hearAfterTrip(banked, t, 'returned').profile;
 }

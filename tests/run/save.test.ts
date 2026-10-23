@@ -87,7 +87,17 @@ test('parseSaveData rejects garbage and malformed current fields', () => {
     ['profile.witnessed', ['not a line']],
     ['profile.foesMet', ['dragon']],
     ['profile.footnotes', { zap: { points: 1, chosen: {} } }],
-    ['profile.inkCapacity.stoker', undefined],
+    ['profile.ink', undefined],
+    ['profile.ink', -1],
+    ['profile.household', undefined],
+    ['profile.household.members', []],
+    ['profile.household.members', ['draughtsman', 'draughtsman', 'stoker']],
+    ['profile.household.members', ['draughtsman', 'ghost']],
+    ['profile.household.members', ['draughtsman']], // the Stoker's page is left over
+    ['profile.household.slots', ['stoker', 'stoker', null]],
+    ['profile.household.slots', ['draughtsman', null]],
+    ['profile.lattices.stoker', undefined],
+    ['profile.proof.stoker', undefined],
     ['profile.collection', undefined], // fine: ignored
     [stoker, [{ at: { x: 1, y: 1 }, rune: 'nope' }]],
     [stoker, [{ at: { x: 1, y: 1 }, rune: 'bolt' }]], // arrow missing

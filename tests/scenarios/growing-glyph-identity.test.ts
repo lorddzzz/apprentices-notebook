@@ -18,6 +18,7 @@ import {
   newSave,
   type PlacedRune,
   type Profile,
+  pageOf,
   recordGlyphCasts,
   recordOf,
   revertGlyph,
@@ -68,7 +69,7 @@ function household(def: GlyphDef): Profile {
     known: [...RUNE_IDS],
     glyphs: [def],
     glyphRecords: { 'g1@1': emptyRecord() },
-    inkCapacity: { draughtsman: 1000, stoker: 1000 },
+    ink: 1000,
   };
 }
 function reload(profile: Profile): Profile {
@@ -157,7 +158,7 @@ test('signed open cells, args, fired counts and active rewards keep their versio
   expect(revised.glyphs[0]?.extraExit).toBe('up');
   expect(glyphLibrary(revised).g1?.extraExit).toBeNull();
   expect(glyphLibrary(revised).g1?.discount ?? 0).toBe(0);
-  expect(revised.lattices.draughtsman[0]).toMatchObject({
+  expect(pageOf(revised, 'draughtsman')[0]).toMatchObject({
     at: { x: -10, y: 5 },
     args: { '-1,-1': { rune: 'ink' } },
   });
@@ -191,7 +192,7 @@ test('signed open cells, args, fired counts and active rewards keep their versio
   const back = reload(revertGlyph(recorded, 'g1', 1));
   expect(back.glyphs[0]).toEqual(original.glyphs[0]);
   expect(back.glyphRecords).toEqual(recorded.glyphRecords);
-  expect(back.lattices.draughtsman[0]).toEqual(original.lattices.draughtsman[0]);
+  expect(pageOf(back, 'draughtsman')[0]).toEqual(pageOf(original, 'draughtsman')[0]);
   expect(glyphLibrary(back).g1?.extraExit).toBe('up');
   expect(glyphLibrary(back).g1?.discount).toBe(1);
   expect(innerFired(castPage(back).events, 'g1')).toContain('-1,-1');

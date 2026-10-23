@@ -1,5 +1,7 @@
 # Frozen growing-page compatibility evidence
 
+> **Save v9 (HC-1, 2026-10-23):** v7 and v8 saves are now cleared, not migrated, so the `v7-*` envelopes, their baselines and `legacyV7.ts` are gone. `v9-home.json` is the old `v7-home` data in the v9 shape (household, one ink allowance), kept as a rich save for round-trip and validation tests. The history below describes the removed files.
+
 The `v7-*.json` envelopes were captured on 2026-10-20 using the unmodified v7 profile/save reconstruction and compiler. Each matching `-baseline.json` freezes the old decoded data, both members' compiled spells and (for the mid-fight fixture) the exact replayed battle state and events. The test suite reads these files and never regenerates them.
 
 All three saves include current/archive Glyph versions, independent version records, open cells, a placed argument, exit settings, proof masks and a last-trip recap/tally. Mid-fight and doorway saves preserve distinct spent counts on two Draughtsman Sources and a Stoker Source. The doorway has one pending pick; the mid-fight action spends a charge when replayed. `pages.ts` supplies empty, distant signed, straight-chain and branching fixtures without a dense representation.

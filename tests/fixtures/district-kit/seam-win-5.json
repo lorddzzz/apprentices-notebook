@@ -786,7 +786,7 @@
       "offers": [
         { "kind": "rune", "rune": "fork" },
         { "kind": "rune", "rune": "bend" },
-        { "kind": "ink", "member": "stoker", "amount": 1 }
+        { "kind": "ink", "amount": 1 }
       ],
       "picked": [0],
       "stats": {
@@ -2318,8 +2318,8 @@
       "outcome": "won",
       "offers": [
         { "kind": "method", "method": "conduct" },
-        { "kind": "ink", "member": "draughtsman", "amount": 2 },
-        { "kind": "ink", "member": "stoker", "amount": 1 }
+        { "kind": "ink", "amount": 2 },
+        { "kind": "ink", "amount": 1 }
       ],
       "picked": [0, 0],
       "stats": {
@@ -2375,7 +2375,8 @@
       "quicksilver": 0,
       "graphite": 0
     },
-    "inkCapacity": { "draughtsman": 10, "stoker": 8 },
+    "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
+    "ink": 10,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2497,7 +2498,7 @@
       { "kind": "rune", "rune": "fork" },
       { "kind": "rune", "rune": "brass" },
       { "kind": "method", "method": "conduct" },
-      { "kind": "ink", "member": "draughtsman", "amount": 2 }
+      { "kind": "ink", "amount": 2 }
     ],
     "offers": [],
     "picksLeft": 0,
@@ -2565,7 +2566,11 @@
         "quicksilver": 0,
         "graphite": 0
       },
-      "inkCapacity": { "draughtsman": 10, "stoker": 8 },
+      "household": {
+        "members": ["draughtsman", "stoker"],
+        "slots": ["draughtsman", "stoker", null]
+      },
+      "ink": 10,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2687,7 +2692,7 @@
         { "kind": "rune", "rune": "fork" },
         { "kind": "rune", "rune": "brass" },
         { "kind": "method", "method": "conduct" },
-        { "kind": "ink", "member": "draughtsman", "amount": 2 }
+        { "kind": "ink", "amount": 2 }
       ],
       "offers": [],
       "picksLeft": 0,

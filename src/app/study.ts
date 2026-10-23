@@ -2,7 +2,6 @@ import {
   isInvention,
   LINES,
   type LineId,
-  MEMBER_IDS,
   MEMBERS,
   type MemberId,
   type Role,
@@ -43,6 +42,7 @@ import {
   nameOf,
   type Placed,
   type Profile,
+  pageOf,
   placedInk,
   recordOf,
   roleOf,
@@ -449,7 +449,7 @@ export function flowZones(compiled: CompiledLattice): Map<SpellKey, Map<CellKey,
 export function profileContext(p: Profile, m: MemberId): EditContext {
   return {
     lattice: latticeOf(p, m),
-    capacity: p.inkCapacity[m],
+    capacity: p.ink,
     glyphs: glyphLibrary(p),
     inventions: inventionLibrary(p),
     known: p.known,
@@ -459,14 +459,7 @@ export function profileContext(p: Profile, m: MemberId): EditContext {
 
 /** The shelf slots for `m`'s page: known runes are usable, the rest read `???`. */
 export function profileShelf(p: Profile, m: MemberId): ShelfSlot[] {
-  return shelfSlots(
-    p.known,
-    latticeOf(p, m),
-    p.inkCapacity[m],
-    glyphLibrary(p),
-    inventionLibrary(p),
-    m,
-  );
+  return shelfSlots(p.known, latticeOf(p, m), p.ink, glyphLibrary(p), inventionLibrary(p), m);
 }
 
 export interface GlyphSlot {
@@ -490,7 +483,7 @@ export function glyphSlots(p: Profile, m: MemberId): GlyphSlot[] {
   const lib = glyphLibrary(p);
   const inv = inventionLibrary(p);
   const lean = MEMBERS[m].lean;
-  const left = inkLeft(latticeOf(p, m), p.inkCapacity[m], lib, inv, m);
+  const left = inkLeft(latticeOf(p, m), p.ink, lib, inv, m);
   return p.glyphs.map((saved) => {
     const glyph = lib[saved.id] ?? saved;
     const cost = glyphCost(glyph, inv, lean);
@@ -554,7 +547,7 @@ export function editProfile(
   const placing = ['place', 'replace', 'placeGlyph', 'replaceGlyph'].includes(d.kind);
   if (
     placing &&
-    inkUsed(r.lattice, glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean) > p.inkCapacity[m]
+    inkUsed(r.lattice, glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean) > p.ink
   ) {
     return refuse('Not enough ink');
   }
@@ -630,8 +623,8 @@ export function setGlyphOpenCells(p: Profile, id: GlyphId, cells: readonly CellK
   const next = setOpenCells(p, id, cells);
   const keep = new Set(cells);
   const lattices = { ...next.lattices };
-  for (const m of MEMBER_IDS) {
-    lattices[m] = next.lattices[m].map((r) => {
+  for (const m of next.household.members) {
+    lattices[m] = pageOf(next, m).map((r) => {
       if (!isGlyph(r) || r.glyph !== id || !r.args) return r;
       const rest = Object.fromEntries(Object.entries(r.args).filter(([k]) => keep.has(k)));
       const { args: _old, ...bare } = r;

@@ -30,9 +30,13 @@ const samePage = (a: LootSpec, b: LootSpec): boolean =>
   (a.kind === 'method' && b.kind === 'method' && a.method === b.method);
 
 function offerOf(spec: LootSpec, rng: Rng, members: readonly MemberId[], owned: Owned): LootItem {
-  const member = (): MemberId =>
-    members[rng.int(0, members.length - 1)] ?? MEMBER_IDS[0] ?? 'draughtsman';
-  if (hasPage(owned, spec)) return { kind: 'ink', member: member(), amount: TUNING.duplicateInk };
+  // Ink is one household allowance (HC P6). The draw that once named a member stays, so a seed
+  // still rolls the offers it always did.
+  const ink = (amount: number): LootItem => {
+    rng.int(0, members.length - 1);
+    return { kind: 'ink', amount };
+  };
+  if (hasPage(owned, spec)) return ink(TUNING.duplicateInk);
   switch (spec.kind) {
     case 'rune':
       return { kind: 'rune', rune: spec.rune };
@@ -47,7 +51,7 @@ function offerOf(spec: LootSpec, rng: Rng, members: readonly MemberId[], owned: 
     case 'key':
       return { kind: 'key', district: spec.district };
     case 'ink':
-      return { kind: 'ink', member: member(), amount: TUNING.inkReserve };
+      return ink(TUNING.inkReserve);
   }
 }
 

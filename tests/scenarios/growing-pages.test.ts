@@ -15,7 +15,9 @@ import {
   newProfile,
   newSave,
   type Profile,
+  pageOf,
   parseLattice,
+  proofOf,
   provenCount,
   recordProof,
   serializeLattice,
@@ -100,7 +102,7 @@ for (const member of MEMBER_IDS) {
       ]);
       const save = newSave(7);
       save.profile = setMemberLattice(
-        { ...save.profile, known: [...RUNE_IDS], inkCapacity: { draughtsman: 100, stoker: 100 } },
+        { ...save.profile, known: [...RUNE_IDS], ink: 100 },
         member,
         page,
       );
@@ -135,7 +137,7 @@ test('real casts prove a translated negative Fair Copy; reveal framing does not 
     ...newProfile(),
     known: [...RUNE_IDS],
     vellum: 2,
-    inkCapacity: { draughtsman: 100, stoker: 100 },
+    ink: 100,
   };
   for (let i = 0; i < TUNING.provenCasts; i++) {
     const result = play(fixed, '0,0');
@@ -151,12 +153,12 @@ test('real casts prove a translated negative Fair Copy; reveal framing does not 
     (candidate) => candidate.kind === 'spell' && candidate.cells.length === 3,
   );
   if (!cluster) throw new Error('missing three-cell entry cluster');
-  expect(provenCount(negative, cluster, profile.proof.draughtsman)).toBe(TUNING.provenCasts);
+  expect(provenCount(negative, cluster, proofOf(profile, 'draughtsman'))).toBe(TUNING.provenCasts);
   const framed: Lattice = {
     ...negative,
     shape: { kind: 'growing', origin: { x: -500, y: -500 }, width: 1001, height: 1001, holes: [] },
   };
-  expect(provenCount(framed, cluster, profile.proof.draughtsman)).toBe(TUNING.provenCasts);
+  expect(provenCount(framed, cluster, proofOf(profile, 'draughtsman'))).toBe(TUNING.provenCasts);
   const def = toGlyphDef(negative, cluster, 'Negative turn', 'probe');
   const tidy = tidyCollapse(negative, cluster, def);
   expect(tidy.slid).toBeGreaterThan(0);
@@ -169,7 +171,7 @@ test('real casts prove a translated negative Fair Copy; reveal framing does not 
   expect(collision.lattice.runes).toContainEqual({ at: { x: -5, y: -3 }, rune: 'oil' });
   const copied = compileGlyph(profile, 'draughtsman', cluster, 'Negative turn');
   expect(
-    copied.lattices.draughtsman.some(
+    pageOf(copied, 'draughtsman').some(
       (placed) => 'glyph' in placed && placed.at.x === -5 && placed.at.y === -4,
     ),
   ).toBe(true);

@@ -19,7 +19,7 @@ test('new profile (v7) knows the first evening and its lattices are valid (P35)'
   expect(p.known).toEqual([...START_KNOWN]);
   expect(p.methods).toEqual([]);
   expect(p.inventions).toEqual([]);
-  expect(p.inkCapacity).toEqual({ draughtsman: TUNING.startInk, stoker: TUNING.startInk });
+  expect(p.ink).toBe(TUNING.startInk);
   expect([p.witnessed, p.named, p.met, p.foesMet]).toEqual([[], [], [], []]);
   expect(p.vellum).toBe(0);
   expect(validateLoadout(p)).toEqual({});
@@ -84,7 +84,7 @@ test('validateLoadout reports unknown runes and over-spent ink without mutating'
   expect(issues.stoker?.find((i) => i.kind === 'owned')?.message).toBe('Coil is not known');
   expect(latticeOf(p, 'stoker').runes).toHaveLength(3);
 
-  const poor = { ...p, inkCapacity: { ...p.inkCapacity, stoker: 1 } };
+  const poor = { ...p, ink: 1 };
   expect(validateLoadout(poor).stoker?.some((i) => i.kind === 'ink')).toBe(true);
 });
 
@@ -136,6 +136,6 @@ test('the start pages are the ones P35 names, and they fit each ink pot', () => 
   expect(MEMBERS.stoker.startLattice).toContain('Oil');
   for (const m of ['draughtsman', 'stoker'] as const) {
     const used = inkUsed(latticeOf(p, m), {}, {}, MEMBERS[m].lean);
-    expect(used).toBeLessThanOrEqual(p.inkCapacity[m]);
+    expect(used).toBeLessThanOrEqual(p.ink);
   }
 });

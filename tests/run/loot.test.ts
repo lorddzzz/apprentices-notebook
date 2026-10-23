@@ -122,7 +122,6 @@ describe('knowledge, not copies (P34)', () => {
       if (o?.kind !== 'rune') continue;
       expect(d?.kind).toBe('ink');
       if (d?.kind === 'ink') {
-        expect(MEMBER_IDS).toContain(d.member);
         seen.add(d.amount);
       }
     }

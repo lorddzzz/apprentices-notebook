@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
-import { MEMBERS } from '$data';
 import {
-  beginEncounter,
   canPlace,
   compiledFor,
   growingLattice,
@@ -10,6 +8,7 @@ import {
   latticeOf,
   MAX_LATTICE_COORD,
   newSave,
+  pageOf,
   parseSaveData,
   ResourceLimitError,
   type SaveData,
@@ -26,47 +25,21 @@ function fixture(name: string): unknown {
   );
 }
 
-test.each(['home', 'mid-fight', 'doorway'])(
-  'v7 %s migrates with exactly the frozen spells, identities and replay',
-  (name) => {
-    const envelope = fixture(`v7-${name}`);
-    const text = JSON.stringify(envelope);
-    const save = parseSaveText(text);
-    expect({
-      decoded: save,
-      compiled: {
-        draughtsman: compiledFor(save.profile, 'draughtsman'),
-        stoker: compiledFor(save.profile, 'stoker'),
-      },
-      replay: save.trip?.status === 'fight' ? beginEncounter(save.profile, save.trip) : null,
-    }).toEqual(fixture(`v7-${name}-baseline`));
-    const backend = memoryBackend(text);
-    expect(loadSave(backend, 99)).toMatchObject({ save, recovered: false, older: false });
-    expect(backend.read()).toBe(text);
-    expect(backend.corrupt).toBeNull();
-    expect(parseSaveText(saveText(save))).toEqual(save);
-  },
-);
-
-test('the v7 decoder uses frozen geometry independently of current member data', () => {
-  const old = MEMBERS.stoker.shape;
-  try {
-    MEMBERS.stoker.shape = '.';
-    expect(() => parseSaveText(JSON.stringify(fixture('v7-home')))).not.toThrow();
-    const save = newSave(1);
-    save.profile.lattices.stoker = [{ at: { x: 0, y: 0 }, rune: 'bolt', dir: 'right' }];
-    expect(() => parseSaveText(serialize(save, 7))).toThrow('Not a valid save');
-    expect(parseSaveText(serialize(save, 8)).profile.lattices.stoker).toEqual(
-      save.profile.lattices.stoker,
-    );
-  } finally {
-    MEMBERS.stoker.shape = old;
-  }
+test('a rich v9 save (Glyph versions, records, args, proof, recap) round-trips through text', () => {
+  const envelope = fixture('v9-home') as { version: number; data: SaveData };
+  const text = JSON.stringify(envelope);
+  const save = parseSaveText(text);
+  expect(save).toEqual(envelope.data);
+  expect(compiledFor(save.profile, 'draughtsman').spells.length).toBeGreaterThan(0);
+  const backend = memoryBackend(text);
+  expect(loadSave(backend, 99)).toMatchObject({ save, recovered: false, older: false });
+  expect(backend.corrupt).toBeNull();
+  expect(parseSaveText(saveText(save))).toEqual(save);
 });
 
 test('growing profile pages have signed coordinates and former holes without changing placement identity', () => {
   let save = newSave(1);
-  save = { ...save, profile: { ...save.profile, inkCapacity: { draughtsman: 100, stoker: 100 } } };
+  save = { ...save, profile: { ...save.profile, ink: 100 } };
   for (const at of [
     { x: -2, y: 0 },
     { x: 1, y: -2 },
@@ -105,13 +78,13 @@ describe('malformed coordinate identities are rejected atomically', () => {
     'rejects coordinate %s',
     (x) => {
       const save = newSave(1);
-      save.profile.lattices.stoker[0] = { at: { x, y: 0 }, rune: 'ink' };
+      pageOf(save.profile, 'stoker')[0] = { at: { x, y: 0 }, rune: 'ink' };
       expect(() => parseSaveData(save)).toThrow('Not a valid save');
     },
   );
   test('rejects duplicate placements and inherited Glyph references', () => {
     const save = newSave(1);
-    const first = save.profile.lattices.stoker[0];
+    const first = pageOf(save.profile, 'stoker')[0];
     if (!first) throw new Error('expected starting rune');
     save.profile.lattices.stoker = [first, first];
     expect(() => parseSaveData(save)).toThrow('Not a valid save');
@@ -238,23 +211,23 @@ test('valid saves at the byte boundary decode; one extra byte refuses before par
   expect(() => parseSaveText(`${text} `)).toThrow(ResourceLimitError);
 });
 
-test('historical record-local keys remain identity-bearing data through migration and v8 reload', () => {
-  const envelope = fixture('v7-home') as { data: SaveData };
+test('record-local keys remain identity-bearing data through a v9 reload', () => {
+  const envelope = fixture('v9-home') as { data: SaveData };
   const record = Object.values(envelope.data.profile.glyphRecords)[0];
   if (!record) throw new Error('expected record');
   record.fired = { ...record.fired, '-500,600': 3 };
-  const migrated = parseSaveText(serialize(envelope.data, 7));
+  const migrated = parseSaveText(serialize(envelope.data));
   expect(migrated).toEqual(envelope.data);
   expect(parseSaveText(saveText(migrated))).toEqual(migrated);
 });
 
 test('Glyph cells, exits, args and record-local keys validate without moving or partially installing them', () => {
   const edit = (mutate: (save: SaveData) => void): void => {
-    const envelope = fixture('v7-home') as { data: SaveData };
+    const envelope = fixture('v9-home') as { data: SaveData };
     mutate(envelope.data);
     const original = memoryBackend(saveText(newSave(9)));
     const game = new GameStore(original, () => 10);
-    expect(game.importText(serialize(envelope.data, 8))).toBe('Not a valid save');
+    expect(game.importText(serialize(envelope.data))).toBe('Not a valid save');
     expect(parseSaveText(original.read() ?? '')).toEqual(newSave(9));
   };
   edit((s) => {
@@ -291,10 +264,10 @@ test('Glyph cells, exits, args and record-local keys validate without moving or 
   });
 });
 
-test.each([7, 8])('v%s rejects duplicate Glyph cells as malformed identities', (version) => {
-  const envelope = fixture('v7-home') as { data: SaveData };
+test('v9 rejects duplicate Glyph cells as malformed identities', () => {
+  const envelope = fixture('v9-home') as { data: SaveData };
   const g = envelope.data.profile.glyphs[0];
   if (!g?.cells[0]) throw new Error('expected Glyph');
   g.cells = [...g.cells, g.cells[0]];
-  expect(() => parseSaveText(serialize(envelope.data, version))).toThrow('Not a valid save');
+  expect(() => parseSaveText(serialize(envelope.data))).toThrow('Not a valid save');
 });

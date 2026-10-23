@@ -210,7 +210,7 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "member": "draughtsman", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "rune", "rune": "jar" },
         { "kind": "rune", "rune": "fuse" }
       ],
@@ -1215,7 +1215,7 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "member": "stoker", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "method", "method": "margin" },
         { "kind": "solvent", "solvent": "wick" }
       ],
@@ -1860,7 +1860,7 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "member": "stoker", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "method", "method": "margin" },
         { "kind": "solvent", "solvent": "pitch" }
       ],
@@ -3311,9 +3311,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "member": "draughtsman", "amount": 1 },
+        { "kind": "ink", "amount": 1 },
         { "kind": "vellum", "amount": 1 },
-        { "kind": "ink", "member": "draughtsman", "amount": 2 }
+        { "kind": "ink", "amount": 2 }
       ],
       "picked": [0, 0],
       "stats": {
@@ -3375,7 +3375,8 @@
       "quicksilver": 0,
       "graphite": 0
     },
-    "inkCapacity": { "draughtsman": 11, "stoker": 12 },
+    "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
+    "ink": 15,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3477,11 +3478,11 @@
     "hp": { "draughtsman": 2, "stoker": 3 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
-      { "kind": "ink", "member": "draughtsman", "amount": 2 },
+      { "kind": "ink", "amount": 2 },
       { "kind": "rune", "rune": "afterglow" },
-      { "kind": "ink", "member": "stoker", "amount": 2 },
-      { "kind": "ink", "member": "stoker", "amount": 2 },
-      { "kind": "ink", "member": "draughtsman", "amount": 1 },
+      { "kind": "ink", "amount": 2 },
+      { "kind": "ink", "amount": 2 },
+      { "kind": "ink", "amount": 1 },
       { "kind": "vellum", "amount": 1 }
     ],
     "offers": [],
@@ -3545,7 +3546,11 @@
         "quicksilver": 0,
         "graphite": 0
       },
-      "inkCapacity": { "draughtsman": 11, "stoker": 12 },
+      "household": {
+        "members": ["draughtsman", "stoker"],
+        "slots": ["draughtsman", "stoker", null]
+      },
+      "ink": 15,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3656,11 +3661,11 @@
       "hp": { "draughtsman": 2, "stoker": 3 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
-        { "kind": "ink", "member": "draughtsman", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
         { "kind": "rune", "rune": "afterglow" },
-        { "kind": "ink", "member": "stoker", "amount": 2 },
-        { "kind": "ink", "member": "stoker", "amount": 2 },
-        { "kind": "ink", "member": "draughtsman", "amount": 1 },
+        { "kind": "ink", "amount": 2 },
+        { "kind": "ink", "amount": 2 },
+        { "kind": "ink", "amount": 1 },
         { "kind": "vellum", "amount": 1 }
       ],
       "offers": [],
