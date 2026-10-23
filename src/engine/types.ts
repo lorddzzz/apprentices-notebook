@@ -430,6 +430,13 @@ export interface BattleSpec {
   lab?: boolean;
   objective?: Goal;
   inventions?: InventionLibrary; // the household's inventions (default none)
+  /**
+   * HC P3/P4: the party (1–3, slot order) placed on the board's start points (`P`). Absent: the
+   * board's own apprentice tokens are the party (tests, Lab).
+   */
+  lineup?: readonly MemberId[];
+  /** The start-point draw's seed (`startSeedFor`); default `deriveSeed(seed, START_SALT)`. */
+  startSeed?: number;
 }
 
 // ── Run layer (plan §2.8; R1 rebuilds it) ───────────────

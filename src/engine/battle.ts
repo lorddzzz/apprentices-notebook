@@ -33,6 +33,8 @@ import {
   spellOf,
   unitAt,
 } from './queries';
+import { deriveSeed } from './rng';
+import { placeParty, START_SALT } from './rooms';
 import { endTurnAction } from './turn';
 import type {
   Action,
@@ -148,7 +150,10 @@ function telegraphGiven(ctx: Ctx, intents: NonNullable<BattleSpec['intents']>): 
 }
 
 export function createBattle(spec: BattleSpec): ActionResult {
-  const board = parseBoard(spec.board);
+  const parsed = parseBoard(spec.board);
+  const board = spec.lineup
+    ? placeParty(parsed, spec.lineup, spec.startSeed ?? deriveSeed(spec.seed, START_SALT))
+    : parsed;
   const counts = new Map<EnemyId, number>();
   const units: Unit[] = board.units.map((b) => {
     if (b.kind === 'member') return spawnMember(b, spec.party?.[b.def as MemberId]);

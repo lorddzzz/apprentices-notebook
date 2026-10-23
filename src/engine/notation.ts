@@ -44,6 +44,8 @@ import {
  * Board cell = `.` or [unit][mods][terrain and state]:
  *   unit     D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy, e eel, n snuffer,
  *            m lamp-moth, M lamp-mother (first char only; elite or minion comes from the foe's data)
+ *   start    P a start point (HC P3): where the party may be placed; never with a unit, plate,
+ *            gate or grate. Written first, in the unit's place (`P`, `P~`, `Pw>`)
  *   mods     ! mark, !! deep mark, & brass collar, $ shackle, + 1 shield each (`++` = 2); after a unit
  *   state    one per tile: i blot, o slick, ~ cloud, = layout plate (permanent), # rune plate,
  *            * fire, or a compound in braces: {stain} {brand} {pool} {fog} {skid} {bank} {kettle} {wall}
@@ -70,6 +72,7 @@ export interface BoardSpec {
   height: number;
   tiles: Tile[];
   units: BoardUnit[]; // reading order
+  starts: Coord[]; // start points (`P`), reading order
 }
 
 function* contentLines(ascii: string): Generator<string> {
@@ -172,11 +175,17 @@ function unitFor(ch: string): { kind: 'member' | 'enemy'; def: MemberId | EnemyI
   return null;
 }
 
-export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUnit | null } {
+export interface ParsedCell {
+  tile: Tile;
+  unit: BoardUnit | null;
+  start: boolean; // a `P` start point
+}
+
+export function parseCell(token: string, at: Coord): ParsedCell {
   const where = label(at);
   const tile = emptyTile();
   const terrain = tile.terrain;
-  if (token === '.') return { tile, unit: null };
+  if (token === '.') return { tile, unit: null, start: false };
   const bad = (why: string): Error => new Error(`${why} in cell ${where} ("${token}")`);
 
   const chars = [...token];
@@ -189,6 +198,7 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
   }
 
   let parts = 0;
+  let start = false;
   const setState = (layer: Layer): void => {
     if (tile.state) throw bad('A tile holds one state');
     tile.state = layer;
@@ -204,6 +214,11 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
       } else if (ch === '&') unit.collar = true;
       else if (ch === '$') unit.shackle = true;
       else unit.shield++;
+      continue;
+    }
+    if (ch === 'P') {
+      if (start) throw bad('A tile holds one start point');
+      start = true;
       continue;
     }
     parts++;
@@ -257,7 +272,13 @@ export function parseCell(token: string, at: Coord): { tile: Tile; unit: BoardUn
     if (parts > 1) throw bad('A lock gate cannot share a tile');
   }
   if (plate && unit) throw bad('A unit cannot stand on a plate');
-  return { tile, unit };
+  if (start) {
+    if (unit) throw bad('A start point cannot hold a unit');
+    if (plate) throw bad('A start point cannot sit on a plate');
+    if (terrain.gate) throw bad('A start point cannot sit on a lock gate');
+    if (terrain.grate) throw bad('A start point cannot sit on a grate');
+  }
+  return { tile, unit, start };
 }
 
 export function parseBoard(ascii: string, budget: ImportBudget = importBudget()): BoardSpec {
@@ -270,14 +291,16 @@ export function parseBoard(ascii: string, budget: ImportBudget = importBudget())
   budget.spend('work', width * grid.length);
   const tiles: Tile[] = [];
   const units: BoardUnit[] = [];
+  const starts: Coord[] = [];
   const members = new Set<string>();
   grid.forEach((row, y) => {
     for (let x = 0; x < width; x++) {
       const at = { x, y };
       const token = row[x] ?? '.';
       budget.spend('work', token.length);
-      const { tile, unit } = parseCell(token, at);
+      const { tile, unit, start } = parseCell(token, at);
       tiles.push(tile);
+      if (start) starts.push(at);
       if (unit) {
         if (unit.kind === 'member') {
           if (members.has(unit.def)) {
@@ -291,7 +314,7 @@ export function parseBoard(ascii: string, budget: ImportBudget = importBudget())
       }
     }
   });
-  return { width, height: grid.length, tiles, units };
+  return { width, height: grid.length, tiles, units, starts };
 }
 
 function unitToken(u: BoardUnit): string {
@@ -337,15 +360,16 @@ function padRows(grid: string[][]): string {
     .join('\n');
 }
 
-/** Canonical form: unit, mods (!/!! & $ +…), then w? h _ state @ g l; columns padded to equal width. */
-export function serializeBoard(spec: BoardSpec): string {
+/** Canonical form: unit or P, mods (!/!! & $ +…), then w? h _ state @ g l; columns padded. */
+export function serializeBoard(spec: Omit<BoardSpec, 'starts'> & { starts?: Coord[] }): string {
   const grid: string[][] = [];
   for (let y = 0; y < spec.height; y++) {
     const row: string[] = [];
     for (let x = 0; x < spec.width; x++) {
       const tile = spec.tiles[y * spec.width + x];
       const unit = spec.units.find((u) => u.at.x === x && u.at.y === y);
-      const text = (unit ? unitToken(unit) : '') + (tile ? layerToken(tile) : '');
+      const start = spec.starts?.some((c) => c.x === x && c.y === y);
+      const text = (unit ? unitToken(unit) : start ? 'P' : '') + (tile ? layerToken(tile) : '');
       row.push(text === '' ? '.' : text);
     }
     grid.push(row);
