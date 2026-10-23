@@ -6,8 +6,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 **Reset:** new 5h window from 20:51 UTC 2026-10-23 (ends ~01:50 UTC); resume manually by reading this file.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. Collect HC-4, AH-W0, HC-6 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
-2. Ready: FD-3 (arrival pipeline; after HC-4 if it touches `battle.ts`/`turn.ts` movers — check overlap), RV-W0; after AH-W0: FN-0; after HC-4: DK-5a, DK-6, HC-5, HC-8 (after HC-6).
+1. Collect HC-4, AH-W0, HC-6, FD-3 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
+2. Ready: RV-W0; after AH-W0: FN-0; after HC-4: DK-5a, DK-6, HC-5, HC-8 (after HC-6).
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -22,6 +22,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FD-1 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aab1c4f14a71ad3b3 @ ee9dcf2 | shared | 30 rows (cause × trait) × 8 hooks; disagreements as `it` (today) + `it.fails` (P-rule) for FD-3 to flip: push/slide/swap × stain (P1), foe walk stains a flier (P5), drift × stepJar/markSpread/bindEnters/Wax (P7), Draw × stepJar (P6), Swap rune moves an anchored unit (P5); 10 todo (pull, hop, basic Swap, return/carry, cargo, runaway Fuse, fire Q1, P4 interruption, stain on push-through, registered hooks) |
 | FD-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a6a636af9c3bbb893 @ 0dbfe91 | shared | all three reproduce as `it.fails` (33): BL-105 Coil on Repeat/Wick/Filings + nested Wick (→ FD-4; Margin cases don't reproduce, kept as regressions); BL-106 replacement dusk jar + reused seq (→ FD-5); BL-107 cap cuts leave board ≠ log, push onto step-jar logs after `fizzles` (→ FD-6). Cap test drives `castAction` with a hand-built `Ctx` |
 | HC-6 | Medium / Sonnet 5.5 / high | M | running | worktree | | tokens, nine hues + owner's tenth |
+| FD-3 | Strong / Opus 5.5 / medium | L | running | worktree | | arrival pipeline, every mover onto it |
 | RC-W0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ace64eca89eca4392 @ cc83bcf | shared | `data/recruits.ts`: `Beat`, `RecruitFound`, `RecruitDef extends ApprenticeDef` (found, beat, runes), `RecruitPlacement`, `RecruitPages` ({runes} or {any}), `RECRUIT_HABITS`, empty `RECRUITS`; `engine/recruits.ts` stubs + `RecruitLootItem`, `RecruitsState`, `EMPTY_RECRUITS`. `Profile.recruits` not added yet (RC-6). Habit ids for AH: runaway `fuseOnStep`, notary `markTwice`, towel-bearer `steamproof`, warden `holdTwo`, tuner `nearUnison`, Copyist `longTouch`, exile `restoreErase`. RC-1 blocked on AH-W0 (`HabitId` closed). **DK-R1 → DK-7:** run contributors every roll; `must` after the table's `guaranteed`, `extra` after the three normal offers; `{kind:'recruit'}` round-trips in save parsing |
 | FD-9 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a8aba70dffdb3a7e3 @ dfd1904 | shared | `Profile.bindEvents` (inferred on load when absent), `grantBindEvent(p, e)` idempotent; `knownSetOf` = stored ∪ old district rule until something grants events. Golden re-recorded (+`bindEvents: []` only). BR/CG call `grantBindEvent` for *pushed*/*dies* |
 | HC-3 | Medium / Sonnet 5.5 / high | M | merged (partial by design) | worktree-agent-a21bdc1e0b9451570 @ 1598f0e | shared | `startLayout(layout)` in `data/encounters.ts` turns D/S into P and pads to 4 points; integrity test runs `checkRoom` on all 27 rooms + the lock. Data strings unchanged. **HC-4 must** use `startLayout(variant.layout)` + `placeParty` in `beginEncounter`, then bake the `P`s into the data and delete `startLayout` (orchestrator: required, not optional) |
@@ -46,6 +47,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 19:10 | 95 | 1h49 | 30 | Wrap | merge FD-9; spawn RC-W0 (S) |
 | 19:18 | 98 | 1h41 | 31 | Hold | merge RC-W0; hold for the 20:50 reset |
 | 20:51 | 0 | 5h | 31 | Normal | new window; spawn HC-4, AH-W0, FD-1, FD-2 |
+| 21:09 | 33 | 4h41 | 35 | Normal (~1.6%/min) | merge FD-2; spawn HC-6 |
+| 21:18 | 43 | 4h32 | 37 | Normal | merge FD-1; spawn FD-3 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RC-W0: AH-W0 derives or checks `HabitId` against `RECRUIT_HABITS`. Accepted (pass to AH-W0).
