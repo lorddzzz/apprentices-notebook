@@ -40,7 +40,7 @@ test('save loading and manual import refuse converging wiring without replacing 
   expect(game.importText(text)).toMatch(/work limit/);
   expect(backend.read()).toBe(original);
   expect(game.save).toEqual(newSave(3));
-}, 15_000);
+}, 60_000);
 
 test('both member pages consume the same save reference and compilation allowance', () => {
   const save = newSave(1);

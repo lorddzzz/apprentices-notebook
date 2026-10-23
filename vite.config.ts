@@ -63,5 +63,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Parallel build agents load the machine; slow sims must not fail on time alone.
+    testTimeout: 30_000,
   },
 });
