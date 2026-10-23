@@ -18,9 +18,11 @@ import {
   RUNES,
   SOLVENT_IDS,
   START_KNOWN,
+  startLayout,
   TUNING,
 } from '$data';
 import { parseBoard, parseLattice } from '$engine';
+import { checkRoom } from '$engine/rooms';
 
 test('31 runes, unique tokens', () => {
   expect(RUNE_IDS).toHaveLength(31);
@@ -180,5 +182,23 @@ test('member start lattices match their shape (dims + holes)', () => {
     const start = parseLattice(MEMBERS[id].startLattice);
     expect(start.shape, id).toEqual(shape);
     expect(start.runes.length, id).toBeGreaterThan(0);
+  }
+});
+
+test('every room and threshold layout passes checkRoom in its start-point form', () => {
+  const rooms: [string, string][] = [];
+  for (const e of Object.values(ENCOUNTERS)) {
+    for (const v of e.variants) rooms.push([`${e.id}/${v.name}`, v.layout]);
+  }
+  for (const d of DISTRICT_IDS) {
+    for (const e of DISTRICTS[d].encounters) {
+      for (const v of e.variants) rooms.push([`${d}/${e.id}/${v.name}`, v.layout]);
+    }
+    const gate = DISTRICTS[d].gate;
+    if (gate.kind === 'threshold') rooms.push([`${d}/threshold`, gate.room.board]);
+  }
+  expect(rooms.length).toBeGreaterThanOrEqual(27);
+  for (const [name, layout] of rooms) {
+    expect(checkRoom(startLayout(layout)), name).toEqual([]);
   }
 });

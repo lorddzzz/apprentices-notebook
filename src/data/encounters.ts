@@ -223,3 +223,52 @@ export const ENCOUNTERS: readonly EncounterDef[] = BASE.map((e) => ({
   ...e,
   layout: e.variants[0]?.layout ?? '',
 }));
+
+const MIN_STARTS = 4;
+const isFoeOrOther = (tok: string): boolean => /^[A-Za-z]/.test(tok) && !/^[wh]/.test(tok);
+
+/**
+ * The `P` form of a room layout (HC-3): the apprentice tokens `D`/`S` become start points and
+ * plain tiles are added until there are four, nearest the pair first, never beside a foe or
+ * other token, and not touching each other. The rooms keep their `D`/`S` strings until HC-4
+ * places a lineup; it then reads `startLayout(layout)` instead, with no data edit.
+ */
+export function startLayout(layout: string): string {
+  const rows = layout.split('\n').map((r) => r.trim().split(/\s+/));
+  const at = (x: number, y: number): string => rows[y]?.[x] ?? '';
+  const starts: [number, number][] = [];
+  rows.forEach((row, y) => {
+    row.forEach((tok, x) => {
+      if (tok === 'D' || tok === 'S') {
+        row[x] = 'P';
+        starts.push([x, y]);
+      }
+    });
+  });
+  const near = (x: number, y: number, pred: (t: string) => boolean): boolean => {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && pred(at(x + dx, y + dy))) return true;
+    }
+    return false;
+  };
+  const cx = starts.reduce((s, p) => s + p[0], 0) / (starts.length || 1);
+  const cy = starts.reduce((s, p) => s + p[1], 0) / (starts.length || 1);
+  const free: [number, number][] = [];
+  rows.forEach((row, y) => {
+    row.forEach((tok, x) => {
+      if (tok === '.' && !near(x, y, isFoeOrOther)) free.push([x, y]);
+    });
+  });
+  free.sort((a, b) => Math.hypot(a[0] - cx, a[1] - cy) - Math.hypot(b[0] - cx, b[1] - cy));
+  // First spread out (no touching points), then, if the room is crowded, allow touching.
+  for (const spread of [true, false]) {
+    for (const [x, y] of free) {
+      if (starts.length >= MIN_STARTS) break;
+      const row = rows[y];
+      if (!row || row[x] === 'P' || (spread && near(x, y, (t) => t === 'P'))) continue;
+      row[x] = 'P';
+      starts.push([x, y]);
+    }
+  }
+  return rows.map((r) => r.join(' ')).join('\n');
+}
