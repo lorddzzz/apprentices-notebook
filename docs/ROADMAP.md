@@ -41,11 +41,11 @@ Stages are an order, not barriers: a task starts as soon as the tasks it depends
 |---|---|---|---|
 | **0 · Groundwork** | Golden event-log baseline and the behaviour-neutral split of the trip flow out of `run.ts`; foundations contracts, the movement × hook test matrix and the bug repros; household types; the fine-print audit | DK-0, DK-2 · FD-0, FD-1, FD-2, FD-8, FD-9, FD-10 · HC-W0 · FN-1A | Everything after can edit disjoint files |
 | **1 · Platform core** | The arrival pipeline and correctness fixes; the district kit's contracts and hooks; the household profile, save reset (v9), start points and party of 1–3; the rival engine with the Lamplighter in the Lab; the footnote system | FD-3–FD-7, FD-11 · DK-1, DK-3–DK-10 · HC-1–HC-6 · RV-W0–RV-10 · FN-0–FN-12 | **Gate RV-G1**: the Lamplighter Lab playtest |
-| **2 · Platform complete** | Kit screens and the port proof; the household shelf; Pull, Hop, Swap and the seven habits; recruits, hidden-until-ready and door arrivals; the rival authoring API and recovered pages; the Seam footnote content | DK-11–DK-18 · HC-7–HC-9 · AH (all) · RC (all) · RV-11–RV-20 · FN-A1–FN-C9 | **Gates**: household (HC), actions (AH), recruits (RC), footnote thresholds (FN-P1) |
+| **2 · Platform complete** | Kit screens and the port proof; the household shelf; Pull, Hop, Swap and the seven habits; recruits, hidden-until-ready and door arrivals; the rival authoring API and recovered pages; the Seam footnote content; the bot made reusable for the ending's generator | DK-11–DK-18 · HC-7–HC-9 · AH (all) · RC (all) · RV-11–RV-20 · FN-A1–FN-C9 · EN-0 | **Gates**: household (HC), actions (AH), recruits (RC), footnote thresholds (FN-P1) |
 | **3 · Revisits** | The canals at the new standard (runaway, the Lamplighter in room 4, barge cargo, re-laid rooms, Timing footnotes); the Seam's Marginalia, re-laid rooms and reachable hearings; the lower Seam with the canal floor | CN (all) · SM Waves 1–2 | **Gates**: CN-P1, SM G1, SM G2. First playable trio |
 | **4 · Middle districts** | The ink-makers' quarter, the bathhouses, the bridges and the bell foundry, **in any order and in parallel** (each owns its files). Each ships first on a scripted stand-in heart, then its real rival after RV-14, then its footnote batch and its lower-Seam floor | IQ · BH · BR (needs CN-8, the wardens' pass) · BF | Each district's playtest gates; four real masters = four recovered pages |
 | **5 · The Cartographers' hall** | Pencil and ink, the guild's hands, free return then the final run, the Registrar, the five-page hearing, the owner's door | CG (all), SM-10 (the sealed door) · SM Wave 3 (answering margins) | **Gates** CG-G1, CG-G2, CG-G4 |
-| **6 · The ending** | The Seam becomes yours | BL-126: design round first, then a plan | |
+| **6 · The ending** | The generator spike can run as soon as the kit's port proof lands (Stage 2–3) to de-risk early; then the drawing table, each district's heart frame as it lands, the owner and the handover | EN-S1 → **EN-G0**, then EN Waves 2–5 | The credits; the sandbox open |
 
 ### 2.2 Dependencies between plans
 
@@ -83,7 +83,10 @@ flowchart LR
   IQ & BH & BR & BF -- four rival pages --> CG[CG Cartographers]
   CN -- Lamplighter page --> CG
   SM -- sealed door --> CG
-  CG --> END[BL-126 ending: needs design]
+  CG --> END[EN the ending]
+  SM --> END
+  DK --> END
+  RC --> END
 ```
 
 ### 2.3 Plans
@@ -104,7 +107,7 @@ flowchart LR
 | BL-115 | [Bridges](plans/bridges-plan.md) (BR) | **planned** | L + batch (22) | DK-17, FD-9, CN-8 (key); the Chief Warden RV-14 | the Chief Warden's page; Bind *pushed* | BR-G2 |
 | BL-116 | [Bell foundry](plans/foundry-plan.md) (BF) | **planned** | L–XL (28) | DK-17; the Carillonneur RV-14 | the Carillonneur's page | BF-G1 |
 | BL-117 | [Cartographers' hall](plans/cartographers-plan.md) (CG) | **planned** | L (21) | DK-17, FD-9, RV-14, RV-15; a campaign needs all four masters real | the owner's door (SM-10), the exile's Board pages, BL-126 | CG-G1, CG-G2, CG-G4 |
-| BL-126 | The Seam becomes yours (ending and sandbox) | **needs-design** | — | BL-117 and BL-125 built | — | — |
+| BL-126 | [The ending](plans/ending-plan.md) (EN): the handover, the owner as the tenth apprentice, credits, the drawing table and pen, generated rooms with a bot test, drawn districts on the map — design [ending.md](design/ending.md) | **planned**; EN-0 (bot to `src/engine/sim/`) runs early, beside Stage 2 | L (24) | the generator spike EN-S1 needs DK-17 and EN-0; the full table needs SM-11, CG's door, RV-15, FN-1 and each district's heart frame | the credits; the sandbox | **EN-G0** generator go/no-go, playtest, campaign gate |
 
 **Next action:** start Stage 0 with the `implement` skill. DK-0/DK-2, FD-0–FD-2, HC-W0 and FN-1A are independent and can run in parallel.
 
@@ -113,7 +116,7 @@ flowchart LR
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
 | BL-40 | Real names | design / S | story | ready | Title, apprentices, city and Seam remain placeholders. |
-| BL-41 | Owner's mystery and lore delivery | content / M | story, codex | needs-design | The premise is chosen and every district's lore thread is planned; the delivery channel is DK's lore registry (`Profile.papers`) plus SM's answering margins. What's left is the overall pacing and the texts beyond each district's own. |
+| BL-41 | Owner's mystery and lore delivery | content / M | story, codex | **covered by the plans** | The channel is DK's lore registry (`Profile.papers`, DK §9) plus SM's answering margins; each district plan writes its own thread (CN lamp-ledgers, IQ letters, BH bather's ledger, BR mason's ledgers, BF the Seam's missing bell, CG the registry and the owner's desk) and EN writes the handover. Remaining: a read-through of the whole thread once the texts exist. |
 | BL-42 | Audio | feature / M | audio | needs-design | Tone, free assets or synthesis, mute/reduced distractions and iOS gesture/PWA behavior. |
 
 ## 3. Backlog: ideas ready to pick
@@ -126,7 +129,7 @@ flowchart LR
 | BL-52 | More idioms (nine now) | content / S each | runes, codex | ready | Add recognizable event patterns in idioms.ts and a replayable Lab example; these are named achievements of a cast, not compile recipes or free Glyphs. |
 | BL-56 | Attrition and build balance | balance / M | combat, run | needs-feedback | Separate isolated room strength from full-trip charge exhaustion. Baseline: starter bots clear fresh Seam rooms but full trips exhaust charges around depth 3. Review Strike versus Spark/crush, ink costs, leans and rewards. Decide whether pushing FROM oil should start a slide; currently only entering oil extends it. |
 | BL-60 | More Seam layouts | content / S | run | ready | Three per depth now; vary network, jar and push opportunities rather than enemy HP alone. |
-| BL-61 | Additional enemy behaviors | content / M | world, combat | needs-design | Slugs/constructs or enemies that erase marks, move jars or break networks are proposals. Tie each to its district and one clear telegraph. Eel/Snuffer/moth/mother already exist. |
+| BL-61 | Additional enemy behaviors | content / M | world, combat | **covered by the district plans** | Every district plan now designs its foes (IQ, BH, BR, BF, CG staff; CN's Lamplighter; SM's Marginalia), each with one telegraph. Reopen only for a foe a playtest asks for. |
 | BL-62 | More loot offer kinds | content / S | run | idea | Current offers: rune/method pages, ink, solvents, vellum and doorway (key support exists). Avoid redundant currencies; recovered pages depend on BL-118. |
 | BL-63 | Doorway variants / second rare offer | content / S | run | idea | Optional breaks in trip pacing with a clear cost in foregone loot. |
 | BL-91 | Lamp-mother summoning cadence | balance / XS | combat | ready (decided 2026-10-22: nearest free lit lamp, every round) **→ CN-1** | The last summoned moth occupies the preferred lamp, often making calls every other round. [Canals §5b](design/city-and-districts.md) chose the designed every-round call at the nearest free lamp; confirm by playing. |
@@ -186,7 +189,6 @@ New possibilities arising from the shipped systems (all **proposals**):
 
 ## 6. Open design questions
 
-1. **The ending (BL-126):** what "ink your own district" means, what it costs, whether it feeds the notebook, and whether the join is mended. Needs a design round before CG finishes.
 2. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
 3. What audio fits the notebook and rainy city? BL-42.
 4. Playtest gates will raise feel questions per plan (§2.3 "Gates"); record the answers against the plan's status file.

@@ -55,5 +55,4 @@
 - The Registrar's lattice, circle telegraph, starved-chain fallback and how the circles read on a phone-sized board (BL-30).
 - The recovered-rival-page format and how five pages read as one city plan (BL-118), and the redraft threshold board.
 - Room layouts and sizes (three per depth), the academy's art, the benches that draw on you, the registry and the owner's desk, the Surveyor/Eraser/Tracer numbers.
-- The late-game sandbox the ending opens (BL-126): what "ink your own district" means, what it costs and whether it feeds the notebook.
-- The Seam's drift after the ending: whether the join is mended, or stays as the player's page.
+- **Resolved 2026-10-23 ([ending.md](ending.md)):** the sandbox is the drawing table (three drawn districts, a pen that grows with mastery, real trips), and the Seam stays as the player's page with drawn districts inked in below it.

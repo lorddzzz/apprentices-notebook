@@ -150,7 +150,7 @@ The starting seven (Bolt, Strike, Shove, Guard, Ink, Oil, Spark) are always owne
 - **Loot offers** (runaway, notary, towel-bearer, warden, tuner): "someone joins you", a fixed authored person at a landmark room in their district, hidden until their preconditions are met, then offered again on later trips until taken (§0b). Taking it costs that pick; like other loot they join when you get home and are lost on a wipe (§0d). The runaway is the first, at the canals' second landing ([city-and-districts.md](city-and-districts.md) §5b). The others are met after the canals, in any order; no fixed order is chosen, and a district's recruit may therefore appear on a later trip than the one where you first visit.
 - **Door arrival A, the Copyist:** knocks after you have **witnessed your first idiom, once the household already holds the runaway** (so the Seam stays a duo until the canals and the third member is always the canals', §0b). A note under the attic door, then a tap to welcome her.
 - **Door arrival B, the exile:** knocks once you **hold all three Board pages and have a proven invention** (*Proposal*; a Glyph at its top tier is an alternative, tune by playing). The Board pages bank from the hall's first three rooms (revised 2026-10-23, [district-cartographers.md](district-cartographers.md) §0), so she can join before the final run and face the Registrar with you. She is the household's last arrival until the ending.
-- **A tenth** (an arrival after the Seam becomes yours, BL-126) is **parked**, not designed.
+- **The tenth is the owner** (decided 2026-10-23, [ending.md](ending.md) §1.2): they join at the handover past the sealed door, with Pull, a Seam/Board lean and the *mender* habit. No preconditions, no offer.
 
 ### Reading the roster as a trio
 
@@ -166,5 +166,5 @@ Not exhaustive, but each pair has a story:
 
 - **Numbers:** HP, move and every habit's strength are *tune by playing*; Pull/Hop/Swap edge cases (flying foes, plates, cuts) are authored with BL-108's arrival rules.
 - **Real names, portraits and token art** (BL-40); an actual hat for the Towel-bearer is a polish question.
-- **The tenth arrival after the ending** (BL-126) and whether the household changes after the Seam becomes yours.
+- **Resolved 2026-10-23:** the tenth arrival is the owner ([ending.md](ending.md)); the household otherwise stays as it is after the ending.
 - **Engine hooks** for the new habits and the three new actions are specified in the build plan (BL-43), not here.

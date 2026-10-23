@@ -56,4 +56,4 @@
 - The lower floors' layouts and how each intrusion is drawn; the sealed door's art and map presentation.
 - **Resolved (2026-10-22, [district-cartographers.md](district-cartographers.md) §2):** the Seam is a bad join in the city's drawing; the owner went into it to hold it; beyond the door the owner hands you the pen and the Seam becomes yours. The owner's name and face are still open.
 - Whether a duo arriving at the lower Seam should be warned by the map; how floors are labelled by district on the sketch map.
-- **Resolved:** nobody erases the Seam; it drifts because a join has no anchors, and the guild fears it will tear (they are custodians). Whether the join is mended after the ending is open.
+- **Resolved:** nobody erases the Seam; it drifts because a join has no anchors, and the guild fears it will tear (they are custodians). After the ending it becomes the player's page, with drawn districts inked in below it ([ending.md](ending.md), 2026-10-23).

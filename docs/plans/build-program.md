@@ -22,8 +22,9 @@ Each plan is one file `docs/plans/<name>-plan.md`, executed later with the [impl
 | BR | `bridges-plan.md` | BL-115 | district-bridges.md | Piers and falls, span choice, the wardens' staff, the Chief Warden on the keystone, the key gate, its floor and batch |
 | BF | `foundry-plan.md` | BL-116 | district-bell-foundry.md | Sympathetic bells by tone, the peal across the trip, the ringers' staff, the Carillonneur, the far-bell gate, its floor and batch |
 | CG | `cartographers-plan.md` | BL-117 | district-cartographers.md | Pencil and ink, the guild's hands, drawn-in reinforcements, free-then-no-return with the doorway checkpoint, the Registrar, the five-page hearing, the redraft gate, the opening of the owner's door |
+| EN | `ending-plan.md` | BL-126 | ending.md | The handover past the owner's door, the owner as the tenth apprentice, credits, the drawing table and pen, drawn districts on the map, the room generator with its guardrails and bot test, drawn-district hearts and loot |
 
-Not planned yet: **BL-126** (the ending sandbox) needs a design round first; atmosphere items (BL-40–42) stay in the roadmap.
+Atmosphere items (BL-40–42) stay in the roadmap outside the program.
 
 ### Ownership rules between plans
 
@@ -80,6 +81,8 @@ All 14 plans are drafted and reconciled. Their `State:` lines still say *Drafted
 
 **The player's picks** (DESIGN §11, last row): one household ink allowance (HC P6); margins on 2–3 chosen lines per rune (FN P1); the Lab lists only the household on a normal save (RC P14 over HC P16); no player gate for footnote variants (every `*-FG`/`FN-G1`/`CN-G1`/`BR-G1`/`CG-G3` is an orchestrator review); the bridges are four rooms and the heart with span stones that wear (BR); rival casts reveal lines but earn no points (RV Q1); lower-Seam intrusions keep their piece rules with the canals' survivable drop (SM P9, DK Q1, BR's floor).
 
+**The ending plan (EN, added 2026-10-23 after the ending round).** Its requests are in DK §9 (DK-E1–E6, heart frames). Other plans take these small additions when they run: every district registers its trip shape and its heart frame (CN, SM, IQ, BH, BR, BF, CG; BF also offers its great-bell locks as reusable pieces); HC-6 defines a **tenth hue and token shape** for the owner (O); AH reserves the habit id `mender` (EN builds it); RV-15 banks a rival's page only in its home district; **EN-0** (the bot moved to `src/engine/sim/` and made party-generic) is scheduled early, beside Stage 2, because the generator and the calibration tests both need it. EN P20 overrides SM P11: the owner's door is visited from the map, not from the lower Seam's Crossroads.
+
 **Defaults taken without a question** (the plans' proposals; veto any):
 
 | Plan | Default |
@@ -96,4 +99,5 @@ All 14 plans are drafted and reconciled. Their `State:` lines still say *Drafted
 | BH | The gauge never falls on its own; the dissolved bather ignores single hits inside a cloud and takes area bursts |
 | BR | The keystone has 6 HP; the Chief Warden is hittable but only falls once it breaks; the Long Drop also counts a foe dropped with a cut span |
 | BF | A tone rings at most once per round (the hum rule, a counter-toll); allied great bells hurt foes only; the far-bell gate gets a loose rat so a party without Shove can still strike the bell; great-bell puzzles need only Seam runes and Brass |
+| EN | The pen is rescaled (EN P6: 1 per heart, 1 per four rune pages, 1 per level-III capstone) so it limits drawings; the bot tests a generated room at fresh HP; a master beaten only as a stand-in can still be drawn; the owner brings Splash and Steam if the household lacks them; if the generator spike fails its gate (EN-G0), Plan B checks rooms at home against the slotted household and keeps a pool (a **Redefines**, taken to the player only then) |
 | CG | Erase on pencil under a foe erases it; a circle is held by the nearest guild hand; Draw does not move bare pencil; rooms 1–3 each guarantee one unowned Board treasure in the order Erase, Draw, Swap, *dies*, Quicksilver, Graphite |
