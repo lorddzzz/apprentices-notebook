@@ -12,7 +12,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
 |---|---|---|---|---|---|---|
 | DK-0 | Medium / Sonnet 5.5 / high | S | running | worktree | | golden baseline |
-| FD-0 | Strong / Opus 5.5 / medium | S | running | worktree | | arrival + event contract types |
+| FD-0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ad62c68dd4db72616 @ 34b97a0 | shared | `engine/arrival.ts`: `ArrivalCauses` (cause → `'each'`/`'landing'`, extended by module augmentation), `PlacementCause` (`restore`/`spawn`), `UnitTraits` (flies/swims/anchored), `ArrivalHook` {id, answers, subjects, causes?, exceptCauses?, exempt?, run → `'go'`/`'stop'`}, core hooks solvent/markSpread/bindEnters/stepJar/stain + empty `fire`; `RelocationFields` (unemitted); `Jar.id`, `SealedContext`, `BattleState.nextJar`; `Ctx.eventCap`. Risks: augmenting plans also add a runtime entered-tiles list; `nextJar`/`context` optional (FD-4/5 handle old saves); FD-7 moves moved/push/swapped/drift at once (view.ts, fx.ts switch on them); `eventCap` not yet threaded through `battle.ts` (FD-2/FD-6) |
 | HC-W0 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-abb1dc27aa7a53596 @ b4e2727 | shared | `ApprenticeDef`/`APPRENTICES`/`APPRENTICE_IDS`/`isApprenticeId`/`leanOf` in `data/apprentices.ts` (members.ts removed; `MEMBERS`/`MEMBER_IDS`/`MemberId` kept as deprecated views); `HABITS` (twoJars, forkAhead); `RECRUITS = {}` (entries `as const satisfies Record<string, ApprenticeDef<string>>`, avoid circular key type); stubs in `engine/household.ts`, `engine/rooms.ts` (`ROOM_LIMITS`, `START_SALT = 6000`), not re-exported from `$engine`. Risk: once RC adds entries `MEMBER_IDS` spans the registry, so `run.ts` loops must use the household first (HC-1/HC-4) |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
@@ -23,6 +23,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 17:52 | 58 | 2h57 | 25 | Narrow (burn ~2%/min with 4 agents) | merge FN-1A; no new spawns until the three running agents report |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- FD-0: causes/traits extended by module augmentation of `$engine/arrival`; hooks filter with `causes` + `exceptCauses`; hooks return `'go'`/`'stop'`; new cause `draw` (P6); placement causes `restore`/`spawn`; `InterruptReason` includes `cap`. All accepted (TECH §7 at FD finish).
 - HC-W0: habit id `bindOnTile` removed (unused). Accepted.
 - HC-W0: pair `leansOn` = Jar (Draughtsman), Fork (Stoker); HC-7 must exempt the starting pair from the dormant flag (P12). Accepted, passed to HC-7.
 - HC-W0: pair hues named `slate` (Draughtsman), `rust` (Stoker). Accepted.

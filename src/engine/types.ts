@@ -212,7 +212,15 @@ export interface Jar {
   heading: Dir | null; // the sealing cast's heading (P32)
   origin: Origin;
   seq?: number; // sealing order among the jars on the board: the lowest crumbles first (twoJars)
+  /**
+   * Monotonic identity from `BattleState.nextJar` (foundations P10): never reused in a battle,
+   * so dusk can open exactly the jars it snapshotted. Absent until FD-5 assigns it.
+   */
+  id?: JarId;
+  /** What the sealing step carried, restored when the jar runs (P9). Absent until FD-4. */
+  context?: SealedContext;
 }
+export type JarId = number;
 export interface Tile {
   terrain: Terrain;
   state: Layer | null;
@@ -322,6 +330,18 @@ export interface Flow {
 export const targetKey = (t: Target): string =>
   t.kind === 'unit' ? `u:${t.unit}` : `t:${t.at.x},${t.at.y}`;
 
+/**
+ * The part of a `Flow` a delayed run keeps from the moment it was sealed (foundations P9): a jar's
+ * rest or a scheduled entry runs with these instead of starting bare. `woken` and `repeated` are
+ * not part of it: they belong to the run coming due (limit 5, nested Wick waits its own round).
+ */
+export interface SealedContext {
+  auras: readonly AuraRef[];
+  giftedAuras?: readonly AuraRuneId[];
+  weaker?: number;
+  habit: HabitId | null;
+}
+
 /** What Graphite puts back: tile states and where units stood (E8). */
 export interface BoardUndo {
   tiles: { at: Coord; state: Layer | null }[];
@@ -340,6 +360,8 @@ export interface Scheduled {
   solvent?: SolventId | null;
   /** Graphite: the board as it was before the invention; restored when the entry comes due. */
   undo?: BoardUndo;
+  /** The sealing step's auras, gifted auras, weakness and habit (P9). Absent until FD-4. */
+  context?: SealedContext;
   kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch';
 }
 
@@ -359,6 +381,8 @@ export interface BattleState {
   /** A threshold room's goal (K-22): won when met, never by clearing the board. */
   objective?: Goal;
   castSeq: number; // casts so far this battle (Origin.cast)
+  /** The next `Jar.id` to hand out (P10); absent reads as 1. Only ever grows. */
+  nextJar?: JarId;
   /** Mark lineages: who each has reached, once per fight (§6.4 limit 3). */
   lineages: Record<number, { reached: UnitId[] }>;
   nextLineage: number;

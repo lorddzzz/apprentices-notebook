@@ -7,6 +7,7 @@ import type {
   StateId,
   TriggerRuneId,
 } from '$data';
+import type { ArrivalCause, PlacementCause } from './arrival';
 import { type Coord, type Dir, label } from './grid';
 import type { Blocker } from './queries';
 import type {
@@ -44,6 +45,20 @@ export interface NodeSpan {
   viaInner?: Coord[];
   from: number;
   to: number;
+}
+
+/**
+ * The one shape every relocation event will share (foundations P12): `moved`, `push`, `swapped`,
+ * `drift` and AH/DK's new ones, so playback projects a new cause without new code. FD-7 moves the
+ * existing events onto it; until then nothing emits it.
+ */
+export interface RelocationFields {
+  unit: UnitRef;
+  from: Coord;
+  to: Coord;
+  /** Tiles entered in order, `to` last. */
+  path: Coord[];
+  cause: ArrivalCause | PlacementCause;
 }
 
 /** What stopped a line: a cloud, or a blocking tile. */
