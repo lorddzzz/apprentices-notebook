@@ -4,8 +4,9 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 
 **State:** building (Stage 1)
 **Reset:** new 5h window from 20:51 UTC 2026-10-23 (ends ~01:50 UTC); resume manually by reading this file.
+**Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. Collect HC-4, AH-W0, FD-1, FD-2 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
+1. Collect HC-4, AH-W0, FD-1 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
 2. Then: FN-0 (after AH-W0: both touch `data/types.ts`), HC-6, RV-W0, FD-3 (after FD-1) → DK-3/DK-4, DK-5a/DK-6 (after HC-4), HC-5.
 
 ## Tasks
