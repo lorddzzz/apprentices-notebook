@@ -1,6 +1,7 @@
 import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
+import type { ApprenticeId } from './apprentices';
 
 /** Data types: the rune model ("Mix, Move, Invent", docs/design/rune-design-final.md) and content. */
 
@@ -206,16 +207,66 @@ export interface IdiomDef {
   ownerNote: string;
 }
 
-// ── The party (design §9, P36) ──────────────────────────
-export type HabitId = 'forkAhead' | 'twoJars' | 'bindOnTile';
+// ── The party (design §9, P36; household: docs/design/party.md §0b–§2) ──
+/** Habit ids (party.md §1). AH adds the seven new ones (AH P10) and reserves `mender` for EN. */
+export type HabitId = 'forkAhead' | 'twoJars';
+/** A unit's lean as the engine reads it: the apprentice's schools plus their habit. */
 export interface Lean {
   trained: SchoolId; // its runes cost 1 ink less (min 1)
   gifted: SchoolId | null; // its runes work one step better (RuneDef.gift)
   habit: HabitId | null;
 }
+/** One habit (party.md §1): a lattice habit bends one headline; a body habit, one board rule. */
+export interface HabitDef {
+  id: HabitId;
+  line: string; // the one-sentence name on the card
+  kind: 'lattice' | 'body';
+  /** The rune the habit bends; a household without it shows the dormant flag (HC P12). */
+  leansOn: RuneId | null;
+}
+/** The four basic actions (party.md §1). Only `shove` is built; AH adds the other three. */
+export type BasicActionId = 'shove' | 'pull' | 'hop' | 'swap';
+/** Named token colours (HC P13). HC-6 maps each to theme values and adds the owner's tenth. */
+export type ApprenticeHue =
+  | 'slate'
+  | 'rust'
+  | 'amber'
+  | 'moss'
+  | 'teal'
+  | 'plum'
+  | 'rose'
+  | 'ochre'
+  | 'indigo';
+/** Token shapes, so colour is never the only cue (HC P13). */
+export type TokenShape =
+  | 'circle'
+  | 'square'
+  | 'triangle'
+  | 'diamond'
+  | 'hexagon'
+  | 'pentagon'
+  | 'star'
+  | 'cross'
+  | 'drop';
+/** One apprentice's kit (party.md §0b): body, action, lean, habit, starter page, look. */
+export interface ApprenticeDef<Id extends string = ApprenticeId> {
+  id: Id;
+  name: string;
+  token: string; // board token, one unique letter: 'D'
+  look: { hue: ApprenticeHue; shape: TokenShape };
+  hp: number;
+  move: number;
+  action: BasicActionId;
+  lean: { trained: SchoolId; gifted: SchoolId | null };
+  habit: HabitId | null;
+  /** Lattice ASCII of the page they arrive with (read by `parseLattice`). */
+  starterPage: string;
+  blurb: string;
+}
 
 // ── Units and foes ──────────────────────────────────────
-export type MemberId = 'draughtsman' | 'stoker';
+/** @deprecated HC P2: a party unit's id; prefer `ApprenticeId` in new code. */
+export type MemberId = ApprenticeId;
 export type EnemyId =
   | 'rat'
   | 'sentry'
@@ -227,16 +278,14 @@ export type EnemyId =
   | 'mother';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 
-export interface MemberDef {
-  id: MemberId;
-  name: string;
-  token: string; // board token 'D' / 'S'
-  hp: number;
-  move: number;
-  lean: Lean; // design §9, P36
-  shape: string; // lattice ASCII: '.' socket, 'x' hole
-  startLattice: string; // lattice ASCII, same dims/holes as shape
-  blurb: string;
+/**
+ * @deprecated The pre-household view of an apprentice (`MEMBERS`): the registry entry with the
+ * engine's `Lean` (habit included) and `startLattice` (= `starterPage`). Prefer `APPRENTICES`.
+ */
+export interface MemberDef extends Omit<ApprenticeDef, 'lean'> {
+  lean: Lean;
+  startLattice: string;
+  shape: string; // the starter page's fixed geometry: '.' socket, 'x' hole (tests and fixtures)
 }
 
 export interface AttackDef {

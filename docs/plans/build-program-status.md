@@ -13,7 +13,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 |---|---|---|---|---|---|---|
 | DK-0 | Medium / Sonnet 5.5 / high | S | running | worktree | | golden baseline |
 | FD-0 | Strong / Opus 5.5 / medium | S | running | worktree | | arrival + event contract types |
-| HC-W0 | Strong / Opus 5.5 / medium | M | running | worktree | | household contracts; new engine files only (no `run.ts`, `engine/types.ts`) |
+| HC-W0 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-abb1dc27aa7a53596 @ b4e2727 | shared | `ApprenticeDef`/`APPRENTICES`/`APPRENTICE_IDS`/`isApprenticeId`/`leanOf` in `data/apprentices.ts` (members.ts removed; `MEMBERS`/`MEMBER_IDS`/`MemberId` kept as deprecated views); `HABITS` (twoJars, forkAhead); `RECRUITS = {}` (entries `as const satisfies Record<string, ApprenticeDef<string>>`, avoid circular key type); stubs in `engine/household.ts`, `engine/rooms.ts` (`ROOM_LIMITS`, `START_SALT = 6000`), not re-exported from `$engine`. Risk: once RC adds entries `MEMBER_IDS` spans the registry, so `run.ts` loops must use the household first (HC-1/HC-4) |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -23,6 +23,9 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 17:52 | 58 | 2h57 | 25 | Narrow (burn ~2%/min with 4 agents) | merge FN-1A; no new spawns until the three running agents report |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
+- HC-W0: habit id `bindOnTile` removed (unused). Accepted.
+- HC-W0: pair `leansOn` = Jar (Draughtsman), Fork (Stoker); HC-7 must exempt the starting pair from the dormant flag (P12). Accepted, passed to HC-7.
+- HC-W0: pair hues named `slate` (Draughtsman), `rust` (Stoker). Accepted.
 - FN-1A A1: new `Meets` values (`spread`, `shot`, Margin's limit refusal) instead of bending existing ones (shipped IDs never change). Accepted.
 - FN-1A A2: wrong text is fixed by editing the row, not adding a second one. Accepted.
 - FN-1A A3: Cinder vs a rat's oil trail over a hot tile (doesn't catch; the line says "now or later"): rule choice. **Ask player** at the next design round; default until then = fix the text to match the engine.
@@ -32,3 +35,4 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - One program-wide status file instead of per-plan files (orchestrator, 2026-10-23).
 
 ## Follow-ups and rough edges
+- `tests/sim/calibration.test.ts` (Seam bots, 15 s timeout) times out under load while agents run `pnpm check` in parallel; passes alone in 10 s. Rerun alone before treating as a failure.
