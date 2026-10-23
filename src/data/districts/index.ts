@@ -1,6 +1,6 @@
 import type { KitId, KitLootSpec, KitLootTableId, PieceId, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
-import type { ApprenticeId } from '../apprentices';
+import type { RecruitPages, RecruitPlacement } from '../recruits';
 import type {
   BurstId,
   DistrictId,
@@ -10,7 +10,6 @@ import type {
   Goal,
   HearCondition,
   KindId,
-  RuneId,
 } from '../types';
 import { SEAM_KIT } from './seam';
 
@@ -105,17 +104,8 @@ export interface ThresholdSpec {
   /** Map illustration key once solved (the canals' burnt gate). */
   solvedArt: string;
 }
-// RC-W0: replace with RC's RecruitPlacement / RecruitPages
-/** DK-R1: where a recruit can be met, and the pages their arrival guarantees. */
-export interface RecruitPlacement {
-  apprentice: ApprenticeId;
-  room: number;
-}
-export interface RecruitPages {
-  for: ApprenticeId;
-  runes: readonly RuneId[] | 'any';
-  rooms: readonly number[];
-}
+/** DK-R1: where a recruit can be met, and the pages their arrival guarantees (RC owns them). */
+export type { RecruitPages, RecruitPlacement } from '../recruits';
 /** A district's lower-Seam contribution (DK-10; SM-0 owns the floor format it must pass). */
 export interface IntrusionSpec {
   district: DistrictId;
