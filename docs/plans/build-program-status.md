@@ -3,7 +3,7 @@
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
 **State:** building (Stage 1)
-**Reset:** new 5h window from 20:51 UTC 2026-10-23 (ends ~01:50 UTC); resume manually by reading this file.
+**Reset:** window resets 2026-10-24 01:50 UTC; a session-only wake-up is scheduled for 01:52 UTC (if the session closed, resume manually from this file).
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
 1. Collect FD-3, FN-0 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
@@ -52,6 +52,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 21:09 | 33 | 4h41 | 35 | Normal (~1.6%/min) | merge FD-2; spawn HC-6 |
 | 21:18 | 43 | 4h32 | 37 | Normal | merge FD-1; spawn FD-3 |
 | 21:27 | 56 | 4h23 | 38 | Normal | merge AH-W0, HC-6; spawn FN-0, RV-W0 |
+| 21:30 | 67 | 4h20 | 40 | Normal (~1.4%/min) | merge HC-4 |
+| 21:38 | 77 | 4h11 | 41 | Narrow | merge RV-W0; narrow nudges to FD-3, FN-0; wake-up scheduled 01:52 UTC (session-only cron) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RV-W0: DK adds `rivals?: RivalDef[]` to `DistrictKitData` and spreads `RivalModule` into `DistrictModule` (→ DK-9/RV-14); `RIVAL_TOKENS` joins the token uniqueness test (→ DK-4 or DK-17); TECH §7 row at RV finish. Accepted.
