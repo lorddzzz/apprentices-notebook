@@ -354,8 +354,7 @@ function isKnown(p: Profile, entry: CodexEntryDef): boolean {
   if (entry.kind === 'rune') return p.known.includes(entry.ref as RuneId);
   if (entry.kind === 'method') return p.methods.some((m) => m === entry.ref);
   if (entry.kind === 'idiom') return p.named.includes(`idiom:${entry.ref}`);
-  // "Known" is having some in hand; the profile does not track solvents ever found.
-  if (entry.kind === 'solvent') return p.solvents[entry.ref as SolventId] > 0;
+  if (entry.kind === 'solvent') return p.solventsFound.includes(entry.ref as SolventId);
   return p.named.includes(entry.id); // compound, burst (D7)
 }
 

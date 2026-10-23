@@ -42,14 +42,17 @@ export function returnHome(p: Profile, t: Trip): Profile {
   const methods = [...p.methods];
   let ink = p.ink;
   const solvents = { ...p.solvents };
+  const solventsFound = [...p.solventsFound];
   let vellum = p.vellum;
   for (const item of t.loot) {
     if (item.kind === 'rune' && !known.includes(item.rune)) known.push(item.rune);
     else if (item.kind === 'method' && !methods.includes(item.method)) methods.push(item.method);
     else if (item.kind === 'ink') ink += item.amount;
-    else if (item.kind === 'solvent') solvents[item.solvent] += 1;
-    else if (item.kind === 'vellum') vellum += item.amount;
+    else if (item.kind === 'solvent') {
+      solvents[item.solvent] += 1;
+      if (!solventsFound.includes(item.solvent)) solventsFound.push(item.solvent);
+    } else if (item.kind === 'vellum') vellum += item.amount;
   }
-  const banked = bankKeys({ ...p, known, methods, ink, solvents, vellum }, t.loot);
+  const banked = bankKeys({ ...p, known, methods, ink, solvents, solventsFound, vellum }, t.loot);
   return hearAfterTrip(banked, t, 'returned').profile;
 }

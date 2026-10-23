@@ -12,6 +12,7 @@ import {
 } from '$data';
 import {
   beginEncounter,
+  codexView,
   finishEncounter,
   type LootItem,
   newProfile,
@@ -167,6 +168,22 @@ describe('knowledge, not copies (P34)', () => {
     expect(home.known.filter((r) => r === 'splash')).toHaveLength(1);
     expect(home.known.filter((r) => r === 'bolt')).toHaveLength(1);
     expect(home.methods).toEqual(['conduct']);
+  });
+
+  test('a solvent found and spent to zero keeps its page', () => {
+    const p = newProfile();
+    const t: Trip = {
+      ...startTrip(p, 9),
+      status: 'crossroads',
+      loot: [{ kind: 'solvent', solvent: 'gallnut' }],
+    };
+    const home = returnHome(p, t);
+    expect(home.solventsFound).toEqual(['gallnut']);
+    const spent = { ...home, solvents: { ...home.solvents, gallnut: 0 } };
+    const row = codexView(spent).find(
+      (r) => r.entry.kind === 'solvent' && r.entry.ref === 'gallnut',
+    );
+    expect(row?.known).toBe(true);
   });
 });
 

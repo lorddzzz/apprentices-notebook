@@ -3324,7 +3324,7 @@
       "ink": { "points": 1, "slots": {} },
       "shove": { "points": 4, "slots": {} }
     },
-    "solventsFound": [],
+    "solventsFound": ["pitch"],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -3510,7 +3510,7 @@
         "ink": { "points": 1, "slots": {} },
         "shove": { "points": 4, "slots": {} }
       },
-      "solventsFound": [],
+      "solventsFound": ["pitch"],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],
