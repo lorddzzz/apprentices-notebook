@@ -5,8 +5,9 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 **State:** building (Stage 0)
 **Reset:** 5h window resets 2026-10-23 20:50 UTC; resume manually by reading this file.
 **Next:**
-1. Collect reports from HC-1, HC-2, FD-8; review, squash-merge, push.
-2. Ready: FD-1 (arrival matrix), FD-2 (repros) — test files only. After HC-1: FD-9 (`run.ts`), FN-0 (after FD-9 too). After HC-2: HC-3. After HC-1+HC-2: HC-4. RV-W0 and RC-W0 (contracts) are ready now.
+1. Collect reports from HC-1, HC-3; review, squash-merge, push.
+2. Ready: FD-1 (arrival matrix), FD-2 (repros) — test files only; RV-W0, RC-W0 (contracts). After HC-1: FD-9 (`run.ts`), then FN-0. After HC-1+HC-3: HC-4. HC-6 (tokens, hue) after HC-W0 is ready.
+3. If usage holds at ≥96%: send checkpoint nudges, wait for the 20:50 UTC reset.
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -16,6 +17,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FD-10 | Fast / Haiku 5.5 / high | S | merged | worktree-agent-a32ab5a8f351b9aff @ 2021644 | shared | `ensureBattle` second failure → `abandonFight()` (trip closed as wiped, Study, warn toast); `addCorrupt`/`readCorrupt`, `CORRUPT_KEEP = 3`, key `apprentices-notebook:save.corrupt` now a JSON array (legacy raw value = one entry). HC-1's save reset should reuse `addCorrupt` (keep-before-replace) |
 | HC-1 | Strong / Opus 5.5 / medium | L | running | worktree | | profile + save v9; may re-record golden end saves only (logs identical) |
 | HC-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a9efb421e68e7f94b @ ae9d883 | shared | `P` token (may share with state/water; not unit/plate/gate/grate); `BoardSpec.starts`; `checkRoom`, `placeParty`, `startSeedFor`, `MAX_PARTY = 3` in `$engine/rooms` (not in `$engine` index); `BattleSpec.lineup`/`startSeed` optional. HC-4: `createBattle({…, lineup, startSeed: startSeedFor(trip, encounter)})`; a lineup on a board with apprentice tokens throws, so HC-3 first |
+| HC-3 | Medium / Sonnet 5.5 / high | M | running | worktree | | rooms to `P`, behaviour unchanged until HC-4 |
 | FD-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a05163adbb243d5ff @ 9148efe | shared | `Ctx.footnotes: FootnoteIds`; `footnoteIds(profile, variants?)` replaces `footnoteTexts` (unknown ids skipped); `hasFootnote` compares ids. Touched `trip/start.ts` (one line) |
 | DK-2 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a83761a444c02f1fd @ ccf9e52 | shared | `engine/trip/`: place (`variantFor`, `placeOf`; leaf), shared (`need`, `perMember`, `copyRune`, `withAll`; not public), start (`startTrip`, `beginEncounter`, `recordAction`, `chargesOf`; **HC-4 here**), offers (`rollOffers`, `ownedBy`; DK-7/RC), finish (`closeBattle`, `finishEncounter`, `learnFromFight`, `recordTripCasts`), crossroads (`pickLoot`, `pushOn`, `returnHome`), doorway; explicit re-exports. `run.ts` = profile/save core (**HC-1 here**). No city/run/trip cycle |
 | FD-0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ad62c68dd4db72616 @ 34b97a0 | shared | `engine/arrival.ts`: `ArrivalCauses` (cause → `'each'`/`'landing'`, extended by module augmentation), `PlacementCause` (`restore`/`spawn`), `UnitTraits` (flies/swims/anchored), `ArrivalHook` {id, answers, subjects, causes?, exceptCauses?, exempt?, run → `'go'`/`'stop'`}, core hooks solvent/markSpread/bindEnters/stepJar/stain + empty `fire`; `RelocationFields` (unemitted); `Jar.id`, `SealedContext`, `BattleState.nextJar`; `Ctx.eventCap`. Risks: augmenting plans also add a runtime entered-tiles list; `nextJar`/`context` optional (FD-4/5 handle old saves); FD-7 moves moved/push/swapped/drift at once (view.ts, fx.ts switch on them); `eventCap` not yet threaded through `battle.ts` (FD-2/FD-6) |
@@ -30,6 +32,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 17:58 | 60 | 2h51 | 25 | Normal | merge HC-W0; spawn DK-1, FD-10 |
 | 18:04 | 66 | 2h46 | 26 | Narrow (~1%/min) | merge FD-0, DK-0; spawn DK-2 (critical path) |
 | 18:17 | 71 | 2h33 | 27 | Narrow (~0.4%/min) | merge FD-10, DK-1, DK-2; spawn HC-1, HC-2, FD-8 |
+| 18:28 | 84 | 2h22 | 29 | Narrow→Wrap (~1.2%/min) | merge FD-8; narrow nudges to HC-1, HC-2 |
+| 18:32 | 85 | 2h18 | 29 | Narrow | merge HC-2; spawn HC-3 (smallest critical-path task) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - HC-2: salt applied once in `startSeedFor` (`deriveSeed(trip.seed, START_SALT + encounter)`); default `startSeed` = `deriveSeed(seed, START_SALT)`; a smaller party takes the leading spots of the same shuffle; `P` allowed on water/drop tiles; size/count problems have `cell: null`. Accepted.
