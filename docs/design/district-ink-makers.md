@@ -1,6 +1,6 @@
 # The ink-makers' quarter: the dead-letter office
 
-> **Status: Decided** (design rounds 2026-10-22; not built). Roadmap: BL-113. Part of the one-district-at-a-time design pass; the other districts and the individual apprentices follow ([party.md](party.md) §0b says apprentices are designed once every district has its design).
+> **Status: Decided** (design rounds 2026-10-22; not built). Roadmap: BL-113. Part of the one-district-at-a-time design pass; the apprentices are designed in [party.md](party.md) §2.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. Frame: [city-and-districts.md](city-and-districts.md) (layers in §4; this district is #3–6 of the seven). School and runes: [rune-design-final.md](rune-design-final.md) §11. Rival rules: [rivals.md](rivals.md).
 > Names are placeholders until BL-40. Numbers are *tune by playing*.
 
@@ -38,7 +38,7 @@
 
 ## 2. Still open
 
-- Exact rune/offer placement (which room offers Sentence, Levy, Tally, Bind and the solvents), the fine-print lines for Contracts and the Debt Collection idiom scenario (BL-101).
+- Exact rune/offer placement (which room offers Sentence, Levy, Tally, Bind and the solvents, and whether the **Lift** method page comes with a term like Bind or in ordinary offers), the fine-print lines for Contracts and the Debt Collection idiom scenario (BL-101).
 - The postmaster's lattice, locked-aim telegraph and starved-chain fallback (BL-30), and the clock-writ UI.
 - New terrain art, the ten-plus room layouts (three per depth, as elsewhere) and the Letters-to-the-owner texts.
 - How terms are saved in a trip (the engine needs a "term" object with a condition, a stake and a deadline).

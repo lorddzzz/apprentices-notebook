@@ -232,7 +232,7 @@ A lingering compound waits **in the open** (for time, or for Spark). A jar waits
 - **Ink per apprentice.** Each apprentice has their own ink allowance; household upgrades raise everyone's. An invention costs the sum of its parts plus its method's cost (Bind +2, Conduct +2, Repeat +2, Margin +1, Lift +1). *(default)*
 - **Trip charges stay.** Sources carry charges per trip; going home refills them.
 - **Rewire** freely at home and at occasional safe places; never in battle.
-- **Footnotes.** In trip fights, witnessed line firings of known authored runes earn points (one per consecutive firing run, not per affected tile). Levels unlock at 5/15/40 points. Current content: five level-I pairs / ten variants on Bolt, Shove, Spark and Oil. First write of a line costs one solvent from that line's district; switching its variant is free. Footnotes apply wherever the rune is used, including inside Glyphs. Levels II–III, other runes and the methods' and solvents' margins are decided in [footnotes.md](footnotes.md) (2026-10-23: levels I–II are line slots, III a rune capstone, thresholds 8/25/60, built content still level I only; BL-54); Bench trials reveal lines but award no points.
+- **Footnotes.** In trip fights, witnessed line firings of known authored runes earn points (one per consecutive firing run, not per affected tile). Footnotes apply wherever the rune is used, including inside Glyphs; Bench trials reveal lines but award no points. **Built today:** levels unlock at 5/15/40 points; five level-I pairs / ten variants on Bolt, Shove, Spark and Oil; the first write of a line costs one solvent from that line's district and switching its variant is free. **Decided 2026-10-23, unbuilt** ([footnotes.md](footnotes.md), BL-54): levels I–II are line slots and III a rune capstone; thresholds become 8/25/60 (methods and solvents 5/15/36); writing costs 1 / 2 / one of each of the district's two solvents by level; re-picking is free and happens at home only; methods and solvents get their own margins.
 - **Glyphs** compile as now. **Elegance** counts what a cast did over its whole life: lingering compounds, jars and bound marks count toward the cast that made them (fixes BL-57).
 - **Crystallise goes** (round 5): inventions already re-enter research, so it has no job left.
 - **Defeat** ends the trip and loses unbanked loot, never anything learned.
@@ -240,9 +240,9 @@ A lingering compound waits **in the open** (for time, or for Spark). A jar waits
 ## 9. The party
 
 - **Casting order is the combo.** One apprentice leaves a lingering compound, a jar or a bound mark; the next one bursts it, shoves a foe into it, or lands on the same target (Unison).
-- **Leans** (decision 18): every apprentice is **trained** in one school (its runes cost them 1 ink less), and some are also **gifted** in one (its runes work one step better: +1 tile, +1 round or +1 push). The Seam counts as a school.
-- **Habits** bend one headline (first two built; Bind-on-empty-tile is a future third-apprentice proposal): *her Forks act on the tile ahead too*; *he keeps two jars*; *her Bind marks can be left on an empty tile for the next unit to pick up* (04's rated scene).
-- **Bodies and personal basic actions** (decided 2026-10-23: Shove, Pull, Hop, Swap; current pair both have Shove, see [party.md](party.md) §1) work with the board: hop onto your own jar to open it early, pull a foe through grease fog.
+- **Leans** (decision 18): every apprentice is **trained** in one school (its runes cost them 1 ink less) and **gifted** in one (its runes work one step better: +1 tile, +1 round or +1 push). The Seam counts as a school.
+- **Habits** bend one headline or one rule about the apprentice's body. Two are built: the Stoker's *Forks act on the tile ahead too*; the Draughtsman *keeps two jars*. The other seven are designed in [party.md](party.md) §2 (2026-10-23). *04's Bind-on-empty-tile habit was not used in the roster.*
+- **Bodies and personal basic actions** (decided 2026-10-23: Shove, Pull, Hop, Swap; current pair both have Shove, see [party.md](party.md) §1) work with the board: hop onto your own jar to open it, pull a foe through grease fog.
 
 ## 10. Rivals (future; BL-30)
 

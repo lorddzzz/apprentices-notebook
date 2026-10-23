@@ -1,6 +1,6 @@
 # The bridges: the arches in the fog
 
-> **Status: Decided** (design rounds 2026-10-22; not built). Roadmap: BL-115. Part of the one-district-at-a-time design pass ([district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md) came first); individual apprentices are designed after every district ([party.md](party.md) §0b).
+> **Status: Decided** (design rounds 2026-10-22; not built). Roadmap: BL-115. Part of the one-district-at-a-time design pass ([district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md) came first); the apprentices are designed in [party.md](party.md) §2.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. Frame: [city-and-districts.md](city-and-districts.md) (layers in §4; keys in §3.2). School and runes: [rune-design-final.md](rune-design-final.md) §5.2 and §11. Rival rules: [rivals.md](rivals.md).
 > Names are placeholders until BL-40. Numbers are *tune by playing*.
 

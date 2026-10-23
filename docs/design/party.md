@@ -1,6 +1,6 @@
 # The Party: Apprentices
 
-> **Status: Designed** (scoped 2026-10-18; household systems 2026-10-22 in §0b; **basic actions, habit rules, door arrivals and all nine apprentices 2026-10-23 in §0c, §1 and §2**). Not built beyond the current two. Roadmap: BL-43.
+> **Status: Designed** (scoped 2026-10-18; household systems 2026-10-22 in §0b; **basic actions, habit rules, door arrivals and all nine apprentices 2026-10-23 in §0c, §1 and §2**; consistency fixes 2026-10-23 in §0d). Not built beyond the current two. Roadmap: BL-43.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.1, §6.2 and §11. **Supersedes** the 2026-10-12 decisions "members differ by material affinity and lattice shape" and "each lattice is a small grid shaped by its member". Related: [city-and-districts.md](city-and-districts.md) (guild schools), [rivals.md](rivals.md), [current rune rules](rune-design-final.md) §9.
 
 ## Current implementation boundary (2026-10-21)
@@ -29,7 +29,7 @@ This round fixed the **systems**: how many, how recruited, how picked, how deplo
 
 | Question | Decision | Why |
 |---|---|---|
-| Household size | **About 8–9 in all**: the current two, about one found per middle district (four), and two or three door arrivals (*Proposal*: the Cartographers add none; tune by playing) | Every pick of three is a real choice, and each apprentice can still be authored with care |
+| Household size | **About 8–9 in all**: the current two, about one found per middle district (four), and two or three door arrivals (*Proposal*: the Cartographers add none; tune by playing). §0c settles it at nine, counting the canals' runaway | Every pick of three is a real choice, and each apprentice can still be authored with care |
 | Lattice pages | **Each apprentice keeps their own page, forever.** Swapping the trio never means rewiring; a recruit arrives with a working starter page. A "copy page from…" helper is a later polish idea, not decided | Wiring is part of who they are; keeps their lean and habit tied to their lattice |
 | Recruiting in a district | **A loot offer you can pick** ("someone joins you", like the quiet doorway). Taking it costs that pick. Each district's recruit is a fixed, authored apprentice at a landmark room; **if declined, they are offered again on later trips** until taken (*Proposal*: one per district) | Fits the existing offer system and keeps recruiting a real choice against runes and ink, without losing anyone for good |
 | Recruiting at the door | **Free arrivals at home, triggered by notebook milestones** (first idiom witnessed, a Glyph reaching a tier, a proven invention…). Someone has heard of your work. Exact milestones are decided per apprentice | The notebook carries growth; arrivals recognise what the player built |
@@ -58,6 +58,18 @@ This round settled everything §0b left open: the four basic actions, the habit 
 | Copy page from… | **Not now.** Each recruit's starter page is enough; revisit if a tenth arrives | Nothing in a nine-person roster needs it |
 | Saves | **A household roster is a breaking save change: incompatible saves are cleared, not migrated** (the player's call). A fresh save starts with the pair and an empty bench | No migration code; the project is still pre-release |
 
+## 0d. Consistency fixes (2026-10-23)
+
+Found while reconciling every design doc before the build plans. Where this table differs from §0b or §0c, this table wins.
+
+| Question | Decision | Why |
+|---|---|---|
+| The runaway's habit | **Her Fuse jars also open when she steps onto them** (body). Her precondition and the canals' guaranteed page switch from Jar to **Fuse** (the player's pick) | A step-jar already opens when any unit enters it, her included, so the old wording changed nothing for Jar; only the dusk-jar (Fuse) can open early |
+| Runes on a starter page | **Every rune on a recruit's starter page is one more precondition**, with the same no-soft-lock guarantee (the player's pick). Pages stay as designed | §0b says a starter page uses runes the household already owns, but Touch, Splash, Steam and Brass are not in a new notebook and come only from Seam loot |
+| Where a Seam precondition is guaranteed | **In the base Seam's deeper rooms**, while some recruit still waits for it, as Conduct is today; school runes stay guaranteed in their own district (*Proposal*, Claude's call) | Rune pages teach a rune of their own district (DESIGN §6.3b) |
+| A recruit and a wipe | **A recruit you take is trip loot**: they join the household when you get home, are lost on a wipe, and are offered again on a later trip (*Proposal*, Claude's call) | Matches every other offer; the trio is fixed for the trip, so they never fight before joining |
+| Threshold rooms | **Played by whoever is in the shelf's trip slots (1–3)**, on the board's authored start points (*Proposal*, Claude's call) | The canal lock was built for the named pair; with a household someone has to stand on the quay |
+
 ## 1. Rules
 
 ### Basic actions
@@ -67,7 +79,7 @@ All four use the **uncharged cast slot** (move + one cast per turn is unchanged)
 | Action | Rule |
 |---|---|
 | **Shove** | Built: push an adjacent unit 1 tile along the heading |
-| **Pull** | Hooks a unit **2 tiles away in a straight line**: it moves 1 tile toward the caster and stops adjacent. It slides on oil like any push, is blocked (no crush) by anything in the way, and a pulled unit that reaches fire, a jar or a plate triggers it as an arrival (BL-108). A foe adjacent already is not pulled |
+| **Pull** | Hooks a unit **2 tiles away in a straight line**: it moves 1 tile toward the caster and stops adjacent. It slides on oil like any push, is blocked (no crush) by anything in the way, and a pulled unit that reaches fire, a stain or a jar triggers it as an arrival (BL-108). A foe adjacent already is not pulled |
 | **Hop** | Leap to a **free tile exactly 2 away in a straight line**, over a unit, jar or cut. Cannot cross a wall; lands as an arrival on that tile. Spends the action, not the move |
 | **Swap** | Trade places with an **adjacent unit**, ally or foe (not anchored or flying foes). Both land as arrivals, so swapping a foe onto a wet tile or an ally out of a telegraph is the point, and swapping a frail body next to a foe is the risk |
 
@@ -82,9 +94,9 @@ All four use the **uncharged cast slot** (move + one cast per turn is unchanged)
 
 **Every apprentice stays completely hidden until all of their preconditions are met:** no offer, no landmark person, no silhouette on the shelf, no codex entry, no `???`. The player never sees a locked slot or a hint that someone is missing. The moment the last precondition is met, the next chance to meet them (the next qualifying landing for a district recruit, the next return home for a door arrival) shows them as if they had always been there. Preconditions are checked when the loot or the home screen is generated, so a rune learned in room 2 can bring an offer in room 4 of the same trip.
 
-- **Rune precondition:** the household owns the rune their habit leans on. For a body habit, it owns **at least one rune of their trained school**, so their starter page can grow into the school at once.
+- **Rune precondition:** the household owns the rune their habit leans on. For a body habit, it owns **at least one rune of their trained school**, so their starter page can grow into the school at once. It also owns **every rune on their starter page** (§0d), so the page works the moment they join.
 - **Visibility is one-way:** runes cannot be unlearned, so a revealed apprentice never disappears; an offer that was declined stays offered (§0b).
-- **No soft-locks:** each precondition rune is **guaranteed** through the existing `guaranteed` page mechanism (`src/data/loot.ts`, `engine/run.ts`): while the household lacks it and the district's recruit is not yet in the household, the district's deep rooms offer that rune page first, as method pages already do. Authors place the guarantee no later than the room before the recruit's landmark.
+- **No soft-locks:** each precondition rune is **guaranteed** through the existing `guaranteed` page mechanism (`src/data/loot.ts`, `engine/run.ts`): while the household lacks it and the district's recruit is not yet in the household, the district's deep rooms offer that rune page first, as method pages already do. Authors place the guarantee no later than the room before the recruit's landmark. A Seam rune a recruit needs (Touch, Splash, Steam, Brass) is guaranteed in the base Seam's deeper rooms instead (§0d).
 - **Door arrivals** follow the same rule (§2 lists them).
 - **Lab and tests** may field any apprentice regardless, as the Lab already unlocks every rune; the preconditions apply to campaign saves only.
 
@@ -107,9 +119,9 @@ Seven new people. Every school has someone trained in it; the Cartographers' sch
 |---|---|---|---|---|---|---|---|---|
 | D | The Draughtsman | start | 6 / 3 | Shove | Timing / Contracts | Keeps **two jars** (lattice) | `Bolt → Ink → Strike` | built |
 | S | The Stoker | start | 8 / 3 | Shove | Seam / Seam | Forks also act on **the tile ahead** (lattice) | `Bolt → Oil → Spark` | built |
-| R | **Lamp-pole runaway** | Canals, second landing (loot offer) | 6 / 3 | **Pull** (the hooked pole) | Timing / Seam | **Stepping onto her own jar opens it early** (body) | `Touch → Oil → Spark` | A Lamplighter's apprentice who ran off with the pole |
+| R | **Lamp-pole runaway** | Canals, second landing (loot offer) | 6 / 3 | **Pull** (the hooked pole) | Timing / Seam | **Her Fuse jars also open when she steps onto them** (body; revised §0d) | `Touch → Oil → Spark` | A Lamplighter's apprentice who ran off with the pole |
 | N | **Junior notary** | Ink-makers' quarter (loot offer) | 6 / 3 | **Swap** ("exchange desks") | Contracts / Seam | **A mark on the target counts as two things for her Tally** (lattice): one mark from an earlier apprentice's cast is enough to open it | `Splash → Ink → Steam` | A clerk who stamps things true |
-| B | **Towel-bearer** | Bathhouses (loot offer) | 9 / 2 | **Pull** (the towel rope) | Areas / Seam | **Steam never hurts her, and the boil-over skips her** (body) | `Splash → Steam` | Big, calm, steam-soaked; holds the cloud while foes boil in it |
+| B | **Towel-bearer** | Bathhouses (loot offer) | 9 / 2 | **Pull** (the towel rope) | Areas / Seam | **Steam never hurts her, and the boil-over skips her** (body; *Proposal* reading: Storm bursts, Kettles and the boil-over deal her no damage) | `Splash → Steam` | Big, calm, steam-soaked; holds the cloud while foes boil in it |
 | W | **Defector warden** | Bridges (loot offer) | 7 / 3 | **Shove** | Structure / Seam | **Her Hold also holds one other adjacent unit** (lattice) | `Bolt → Shove → Strike` | Left the keystone watch; brings the wardens' chalk to your side |
 | T | **Tuner** | Bell foundry (loot offer) | 6 / 3 | **Swap** | Resonance / Seam | **Her Unison also counts a cast landing on a tile adjacent to the target** (lattice) | `Bolt → Brass → Strike` | Listens for what is slightly out of tune |
 | C | **The Copyist** | Door arrival A | 6 / 3 | **Hop** | Seam / Seam | **Her Touch reaches two tiles away** (lattice) | `Touch → Ink → Strike` | A student who has been copying pamphlets about your notebook |
@@ -121,19 +133,21 @@ Action tally: Shove 3 (Draughtsman, Stoker, warden), Pull 2 (runaway, towel-bear
 
 | Who | Preconditions (all must hold) |
 |---|---|
-| Lamp-pole runaway | Canals' second landing reached; **Jar** learned |
-| Junior notary | Ink-makers' quarter heard and entered; **Tally** learned |
-| Towel-bearer | Bathhouses entered; **at least one Areas rune** (Vat, Seep or Steep) learned |
-| Defector warden | Bridges entered; **Hold** learned |
-| Tuner | Bell foundry entered; **Unison** learned |
-| The Copyist | The runaway has joined (Seam stays a duo until then, §0b); first idiom witnessed |
-| Erased student | All three Board pages learned (Swap, Draw, Erase); a proven invention |
+| Lamp-pole runaway | Canals' second landing reached; **Fuse** learned (§0d); starter page: Touch |
+| Junior notary | Ink-makers' quarter heard and entered; **Tally** learned; starter page: Splash, Steam |
+| Towel-bearer | Bathhouses entered; **at least one Areas rune** (Vat, Seep or Steep) learned; starter page: Splash, Steam |
+| Defector warden | Bridges entered; **Hold** learned (her starter page uses starting runes only) |
+| Tuner | Bell foundry entered; **Unison** learned; starter page: Brass |
+| The Copyist | The runaway has joined (Seam stays a duo until then, §0b); first idiom witnessed; **Touch** learned (her habit and her starter page) |
+| Erased student | All three Board pages learned (Swap, Draw, Erase; Draw is on her starter page); a proven invention |
+
+The starting seven (Bolt, Strike, Shove, Guard, Ink, Oil, Spark) are always owned, so only the runes named here are extra preconditions.
 
 ### How they join
 
-- **Loot offers** (runaway, notary, towel-bearer, warden, tuner): "someone joins you", a fixed authored person at a landmark room in their district, hidden until their preconditions are met, then offered again on later trips until taken (§0b). Taking it costs that pick. The runaway is the first, at the canals' second landing ([city-and-districts.md](city-and-districts.md) §5b). The others are met after the canals, in any order; no fixed order is chosen, and a district's recruit may therefore appear on a later trip than the one where you first visit.
+- **Loot offers** (runaway, notary, towel-bearer, warden, tuner): "someone joins you", a fixed authored person at a landmark room in their district, hidden until their preconditions are met, then offered again on later trips until taken (§0b). Taking it costs that pick; like other loot they join when you get home and are lost on a wipe (§0d). The runaway is the first, at the canals' second landing ([city-and-districts.md](city-and-districts.md) §5b). The others are met after the canals, in any order; no fixed order is chosen, and a district's recruit may therefore appear on a later trip than the one where you first visit.
 - **Door arrival A, the Copyist:** knocks after you have **witnessed your first idiom, once the household already holds the runaway** (so the Seam stays a duo until the canals and the third member is always the canals', §0b). A note under the attic door, then a tap to welcome her.
-- **Door arrival B, the exile:** knocks once you **hold all three Board pages and have a proven invention** (*Proposal*; a Glyph at its top tier is an alternative, tune by playing). It follows the hall, not the ending, so it is the household's last arrival until the ending.
+- **Door arrival B, the exile:** knocks once you **hold all three Board pages and have a proven invention** (*Proposal*; a Glyph at its top tier is an alternative, tune by playing). The Board pages bank from the hall's first three rooms (revised 2026-10-23, [district-cartographers.md](district-cartographers.md) §0), so she can join before the final run and face the Registrar with you. She is the household's last arrival until the ending.
 - **A tenth** (an arrival after the Seam becomes yours, BL-126) is **parked**, not designed.
 
 ### Reading the roster as a trio

@@ -1,6 +1,6 @@
 # The Seam, revisited: the owner's drawing
 
-> **Status: Decided** (revisit round 2026-10-22; the base Seam is built, everything below that differs from it is unbuilt). Roadmap: BL-125. Part of the design pass: [district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md), [district-bridges.md](district-bridges.md), [district-bell-foundry.md](district-bell-foundry.md) and the canals revisit ([city-and-districts.md](city-and-districts.md) §5b) came first; individual apprentices are designed next ([party.md](party.md) §0b).
+> **Status: Decided** (revisit round 2026-10-22; the base Seam is built, everything below that differs from it is unbuilt). Roadmap: BL-125. Part of the design pass: [district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md), [district-bridges.md](district-bridges.md), [district-bell-foundry.md](district-bell-foundry.md) and the canals revisit ([city-and-districts.md](city-and-districts.md) §5b) came first; the apprentices are designed in [party.md](party.md) §2.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. The original v0 spec stays in DESIGN.md §9.2 as history. Runes and idioms: [rune-design-final.md](rune-design-final.md) §5.1 and §11.
 > Names are placeholders until BL-40. Numbers are *tune by playing*.
 

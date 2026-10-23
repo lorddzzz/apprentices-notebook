@@ -1,6 +1,6 @@
 # Roadmap and backlog
 
-> Updated 2026-10-22 after the household, ink-makers, bathhouses, bridges bell foundry, canals-revisit, Seam-revisit and Cartographers design rounds (BL-43, BL-113, BL-114, BL-115, BL-116, BL-124, BL-125, BL-117, BL-126); earlier on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
+> Updated 2026-10-23 after the roster and footnotes rounds and a design consistency pass (Cartographers' return rule, runaway habit, starter-page preconditions; DESIGN §11); on 2026-10-22 after the household, ink-makers, bathhouses, bridges, bell foundry, canals-revisit, Seam-revisit and Cartographers design rounds (BL-43, BL-113–117, BL-124–126); on 2026-10-21 after the growing-pages build (BL-103/BL-88). This is a menu, not a commitment. The player picks the next work; proposed features are not approved designs.
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
@@ -14,7 +14,7 @@
 
 ## 1. Now: correctness and plan leftovers
 
-**Suggested order, not a ranking chosen by the player:** investigate event/state correctness first (BL-106/107), then delayed and arrival rules (BL-105/108). Bench parity and persistent discovery are small player-visible follow-ups. Free lattice pages can proceed independently before recruitment.
+**Suggested order, not a ranking chosen by the player:** investigate event/state correctness first (BL-106/107), then delayed and arrival rules (BL-105/108). Bench parity and persistent discovery are small player-visible follow-ups.
 
 | ID | Work | Type / size | Area | Status / dependencies | Concrete scope |
 |---|---|---|---|---|---|
@@ -25,7 +25,7 @@
 | BL-106 | Dusk jar replacement timing | bug / S | combat | investigate | Snapshot jar identities, not just coordinates, so a replacement jar waits until next dusk. Reproduce using a jar tail replacing a later queued dusk jar. |
 | BL-107 | Stop state mutation when a cast fizzles at the cap | bug / M | combat | investigate | Audit helper loops and detached continuations after the 500-event cap; require termination and projected/final state agreement. |
 | BL-108 | Current arrival hooks and playback agreement | bug / M | combat | investigate | Define/reproduce arrival into stains, marks, fire and step jars for carried units/cargo. Include history/origin of delayed effects and exemptions for water/flying/anchored foes. |
-| BL-119 | Canal lock map illustration | polish / XS | world | ready | Replace the cosmetic burnt wooden gate with an opened rat-guarded lock; current puzzle teaches a drop, not burning a gate. |
+| BL-119 | Canal lock map illustration | polish / XS | world | ready | Replace the cosmetic burnt wooden gate with an opened rat-guarded lock; current puzzle teaches a drop, not burning a gate. Can ship alone or with BL-124. |
 
 ## 2. Roadmap: planned tracks
 
@@ -35,7 +35,7 @@ The redesign supplies depth already. The next substantial choice is **freer buil
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-43 | The household and three-member expeditions | feature / XL | party, world | **design complete 2026-10-23**; build plan not written | [Party design](design/party.md) §0b–§2: nine apprentices (pair + runaway, notary, towel-bearer, warden, tuner, Copyist, erased student), four basic actions (Shove, Pull, Hop, Swap; Pull/Hop/Swap new), lattice-or-body habits (seven new habits), recruit loot offers, two milestone door arrivals, household shelf, per-room boards with 4+ start points, incompatible saves cleared (no migration); every apprentice is hidden until their preconditions are met (rune learned plus story beat), with a guaranteed precondition page so it cannot soft-lock. Needs a plan, then build with the first districts: runaway at the canals (BL-124) before the rest. |
+| BL-43 | The household and three-member expeditions | feature / XL | party, world | **design complete 2026-10-23**; build plan not written | [Party design](design/party.md) §0b–§2: nine apprentices (pair + runaway, notary, towel-bearer, warden, tuner, Copyist, erased student), four basic actions (Shove, Pull, Hop, Swap; Pull/Hop/Swap new), lattice-or-body habits (seven new habits), recruit loot offers, two milestone door arrivals, household shelf, per-room boards with 4+ start points, incompatible saves cleared (no migration); every apprentice is hidden until their preconditions are met (habit or school rune, every starter-page rune, plus story beat), with guaranteed precondition pages so it cannot soft-lock; the runaway's habit is on Fuse; a taken recruit is trip loot; threshold rooms use the shelf's trip slots (party.md §0d). Needs a plan, then build with the first districts: runaway at the canals (BL-124) before the rest. |
 
 ### Track W · Districts and progression
 
@@ -47,7 +47,7 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | BL-114 | Bathhouses / Areas | feature / L | world, run | **design decided 2026-10-22**; the Bath-Steward needs BL-30; build plan not written | [Grand thermae](design/district-bathhouses.md): boil-over gauge, rising heat and cold plunge, the steam's people, the dome gate. Vat, Seep, Steep; Bath salt/Fog jar; Steam Room. |
 | BL-115 | Bridges / Structure | feature / L | world, run | **design decided 2026-10-22**; the Chief Warden needs BL-30; build plan not written | [Arches in the fog](design/district-bridges.md): piers and cuts, falls remove an apprentice for the room, choose-your-span trip, the first key (from the canals), the keystone heart. Hold/Brink/Lay, Bind pushed event, Mortar/Chalk, Long Drop. |
 | BL-116 | Bell foundry / Resonance | feature / L | world, run | **design decided 2026-10-22**; the Carillonneur needs BL-30; build plan not written | [Carillon towers](design/district-bell-foundry.md): sympathetic bells by tone (not Conduct), a peal across the trip with great-bell puzzles, the ringers' staff, the far-bell gate. Toll/Coil/Unison, Rivet/Filings, Peal. |
-| BL-117 | Cartographers' hall / Board | feature / XL | world, run, story | **design decided 2026-10-22**; the Registrar needs BL-30; the five-page hearing needs BL-118; build plan not written | [The academy](design/district-cartographers.md): pencil and ink, the guild's hands, the long gauntlet, the Registrar, the redraft gate, the Seam as a bad join. Swap/Draw/Erase, Bind dies, Quicksilver/Graphite, Redraft. |
+| BL-117 | Cartographers' hall / Board | feature / XL | world, run, story | **design decided 2026-10-22, trip shape revised 2026-10-23**; the Registrar needs BL-30; the five-page hearing needs BL-118 and real rival hearts in BL-113–116; build plan not written | [The academy](design/district-cartographers.md): pencil and ink, the guild's hands, free return after rooms 1–3 (Board pages, Bind dies, Quicksilver/Graphite drop there), the doorway as the point of no return, the final run to the Registrar, the hall remembering the doorway, the redraft gate (any build), the Seam as a bad join. Redraft idiom. Stand-in hearts award no page, so the hall needs all four masters as real rivals. |
 
 ### Track R · Rival inscribers and recovered pages
 
@@ -66,7 +66,7 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-124 | Canals revisit for the household | feature / L | world, run, party | **design decided 2026-10-22** ([§5b](design/city-and-districts.md)); needs BL-43 build (recruit offers, start points); rival needs BL-30 | Recruit offer at the second landing; Lamplighter rival elite in room 4 carrying the wardens' pass (the key); optional barge cargo in rooms 2 and 4; lamp-ledger lore; re-lay rooms with 4+ start points and per-room sizes; BL-91 cadence. Also covers BL-119's lock illustration. |
+| BL-124 | Canals revisit for the household | feature / L | world, run, party | **design decided 2026-10-22** ([§5b](design/city-and-districts.md)); needs BL-43 build (recruit offers, start points); rival needs BL-30 | Recruit offer at the second landing (runaway hidden until Fuse and Touch are learned; Fuse guaranteed in rooms 1–3); Lamplighter rival elite in room 4 carrying the wardens' pass (the key); optional barge cargo in rooms 2 and 4; lamp-ledger lore; re-lay rooms with 4+ start points and per-room sizes; BL-91 cadence. Also covers BL-119's lock illustration. |
 
 ### Track S · The Seam revisit
 

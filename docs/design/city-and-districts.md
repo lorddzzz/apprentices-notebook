@@ -45,7 +45,7 @@ These answers set the frame for the shipped rune design ([rune-design-final.md](
 | | **The bathhouses** | (to name) | Steam halls bigger inside than out; people go in and don't come out the same | Steam | **Areas**: filling, spreading, seeping |
 | | **The bridges** | the bridge-wardens | Stone spans to places that aren't there, crumbling over a drop | Height (the drop) | **Structure**: plates, holding, displacement, the fall |
 | | **The bell foundry** | (to name; the Bellwrights?) | Bells cast to keep the city from drifting apart | Brass | **Resonance**: effects that ring through everything connected |
-| 7 | **The Cartographers' hall** (designed 2026-10-22: [the academy](district-cartographers.md)) | the Cartographers | The guild that draws the city into being, and expelled the owner | Unfinished paper | **The board itself**: moving terrain, swapping places, redrawing where things are |
+| 7 | **The Cartographers' hall** (designed 2026-10-22, trip shape revised 2026-10-23: [the academy](district-cartographers.md)) | the Cartographers | The guild that draws the city into being, and expelled the owner | Unfinished paper | **The board itself**: moving terrain, swapping places, redrawing where things are |
 
 ## 0. Decided in the design round (2026-10-16)
 
@@ -163,7 +163,7 @@ Each district has **one gate**, set in data:
 ### 3.1 Threshold rooms
 
 - One fixed board (no seed). Its goal is not "kill everything" but **a mark to reach**: drop the lock-keeper's rat, put a spark through the bell, ink the warden's seal.
-- You play it with your current lattices, full charges, from the map. There are no enemies, or only harmless ones that block or drift.
+- You play it with your current lattices, full charges, from the map. There are no enemies, or only harmless ones that block or drift. With the household, whoever sits in the shelf's trip slots (1–3) plays it, on the board's authored start points ([party.md](party.md) §0d, *Proposal*).
 - Fail and you just retry. Solve it once and the district is open for good. The map records the solved threshold; no places entry is added to the codex. The old burnt-gate illustration still needs updating for the rat puzzle (BL-119).
 - The room teaches the district's board rule. A build that can't solve it yet is a reason to go back to the desk.
 
@@ -252,7 +252,7 @@ The canals are built; this revisit brings them up to the standard of the four ne
 
 | Topic | Decision | Why |
 |---|---|---|
-| The third apprentice | **Waits at the second landing** (after room 3), beside a lamp, as a pickable "someone joins you" offer among that landing's loot; offered again on later trips until taken ([party.md](party.md) §0b). They are **the lamp-pole runaway** (Pull, stepping onto her own jar opens it early), see [party.md](party.md) §2. **She is hidden until the Jar page is learned**, and a Jar page is guaranteed in the canals' first three rooms until it is | The safe middle stop is a natural place to meet someone, after two rooms of commitment |
+| The third apprentice | **Waits at the second landing** (after room 3), beside a lamp, as a pickable "someone joins you" offer among that landing's loot; offered again on later trips until taken ([party.md](party.md) §0b). They are **the lamp-pole runaway** (Pull; her Fuse jars also open when she steps onto them), see [party.md](party.md) §2. **She is hidden until the Fuse page is learned** (and Touch, for her starter page), and a Fuse page is guaranteed in the canals' first three rooms until it is. *Jar changed to Fuse 2026-10-23 ([party.md](party.md) §0d): a step-jar already opens under her* | The safe middle stop is a natural place to meet someone, after two rooms of commitment |
 | A rival | **A Lamplighter inscriber as a deeper-room elite in room 4**, with locked aims; the lamp-mother stays the heart. **First rival to prototype in the Lab (BL-30)**. The rivals round (2026-10-22) chooses **the long wick**: spend a later, telegraphed turn opening his existing jar from afar. Proposed kit: `Bolt → Jar → Oil → Spark` and `Bolt → Oil → Shove`, refining the earlier Jar-and-Fuse sketch. See [rivals.md](rivals.md) §2 | Every guild district gets a rival; the canals were the only one without. Existing Timing runes support the first prototype |
 | Lore thread | **The lamps mark the drawing:** the Lamplighters light the lamps where the Cartographers' drawing meets the real city, so a street stays put wherever a lamp burns. The Seam has no lamps either, which is why it drifts, and why the owner's own sketch must be kept lit. Pieces are lamp-ledgers found at the landings (BL-41). Echoes the foundry's "the Seam has no bell" | Ties the canals to the final district and to the owner's Seam |
 | The key | **The wardens' pass is the Lamplighter rival's burden:** a loot offer after room 4 (taken instead of a rune, lost on a wipe, banked at home), only once the bridges are heard; at most one key per trip. The existing map hint "carried far down the canal" stays. Until the rival exists, the offer follows room 4 without the fight | The first key gets a face, and room 4 becomes the deep-loot room |
@@ -266,7 +266,7 @@ The canals are built; this revisit brings them up to the standard of the four ne
 
 ## 6. Later districts
 
-**Designed so far (2026-10-22; the canals revisited in §5b, the Seam in [district-seam.md](district-seam.md)):** the ink-makers' quarter, in [district-ink-makers.md](district-ink-makers.md), the bathhouses, in [district-bathhouses.md](district-bathhouses.md), the bridges, in [district-bridges.md](district-bridges.md), and the bell foundry, in [district-bell-foundry.md](district-bell-foundry.md). and the Cartographers' hall, in [district-cartographers.md](district-cartographers.md). **All seven districts now have a design.**
+**Designed so far (2026-10-22; the canals revisited in §5b, the Seam in [district-seam.md](district-seam.md)):** the ink-makers' quarter, in [district-ink-makers.md](district-ink-makers.md), the bathhouses, in [district-bathhouses.md](district-bathhouses.md), the bridges, in [district-bridges.md](district-bridges.md), the bell foundry, in [district-bell-foundry.md](district-bell-foundry.md), and the Cartographers' hall, in [district-cartographers.md](district-cartographers.md). **All seven districts now have a design.**
 
 Themes and schools are set in §0a (the seven districts); runes, methods and solvents already work in the Lab. No encounters or opening gates exist for the five drawings yet. Their placeholder map material labels are not final terrain design (bridges are height, foundry brass, Cartographers unfinished paper). Stages, board rules, foes, bosses, gates and trip shapes come in each district's own design round. The 2026-10-16 sketches of the rooftops and a guild archive were dropped: rivals now live in every guild district ([rivals.md](rivals.md)).
 
