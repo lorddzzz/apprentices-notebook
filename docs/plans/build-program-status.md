@@ -2,11 +2,11 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** holding for reset (Stage 0 done except FD-1/FD-2; Stage 1 started)
-**Reset:** 5h window resets 2026-10-23 20:50 UTC (22:50 local); resume manually (`/implement` resume) by reading this file. No agents running.
+**State:** building (Stage 1)
+**Reset:** new 5h window from 20:51 UTC 2026-10-23 (ends ~01:50 UTC); resume manually by reading this file.
 **Next:**
-1. Check usage, then start in parallel: **HC-4** (Strong, L; critical path: party 1–3 in `engine/trip/`, wire `startLayout` + `placeParty` + `startSeedFor` in `beginEncounter`, bake `P` into room data and delete `startLayout`, finish the `MEMBER_IDS` → party moves HC-1 left), **FN-0** (Strong, M), **AH-W0** (Strong, M; derive/check `HabitId` against `RECRUIT_HABITS`, reserve `mender`), **FD-1** (Strong, M; test only).
-2. Then: FD-2, HC-6, RV-W0 (needs FD-W0 ✓, DK-W0 ✓), DK-5a/DK-6 (watch file overlap with HC-4 in `engine/trip/`: run DK-5a after HC-4), FD-3 → DK-3/DK-4.
+1. Collect HC-4, AH-W0, FD-1, FD-2 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
+2. Then: FN-0 (after AH-W0: both touch `data/types.ts`), HC-6, RV-W0, FD-3 (after FD-1) → DK-3/DK-4, DK-5a/DK-6 (after HC-4), HC-5.
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -16,6 +16,10 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FD-10 | Fast / Haiku 5.5 / high | S | merged | worktree-agent-a32ab5a8f351b9aff @ 2021644 | shared | `ensureBattle` second failure → `abandonFight()` (trip closed as wiped, Study, warn toast); `addCorrupt`/`readCorrupt`, `CORRUPT_KEEP = 3`, key `apprentices-notebook:save.corrupt` now a JSON array (legacy raw value = one entry). HC-1's save reset should reuse `addCorrupt` (keep-before-replace) |
 | HC-1 | Strong / Opus 5.5 / medium | L | merged | worktree-agent-a5add137d20a7edb1 @ 80ccb0f | shared | Profile v9: `household {members, slots}`, `ink`, `lattices`/`proof` partial by member; `pageOf`/`proofOf` throw for outsiders; `joinHousehold`/`inHousehold`/`setSlot(p, slot, id, trip?)`/`tripParty`/`FOUNDERS`/`emptyHousehold` exported from `$engine`; save v9 only (older → `OlderEditionError`, kept aside); `legacyV7.ts` removed. Golden re-recorded: logs/outcomes identical, only ink `member` and profile shape changed. **HC-4 owes:** trip hp/charges parsing, `perMember`, `rollOffers` default and `action.unit` checks still on `MEMBER_IDS`; `validateLoadout` to narrow to the party. One-line edits in OfferCard/Study/TripPage .svelte (autofixer not run: Svelte MCP down; browser check folded into HC-7/HC-9) |
 | HC-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a9efb421e68e7f94b @ ae9d883 | shared | `P` token (may share with state/water; not unit/plate/gate/grate); `BoardSpec.starts`; `checkRoom`, `placeParty`, `startSeedFor`, `MAX_PARTY = 3` in `$engine/rooms` (not in `$engine` index); `BattleSpec.lineup`/`startSeed` optional. HC-4: `createBattle({…, lineup, startSeed: startSeedFor(trip, encounter)})`; a lineup on a board with apprentice tokens throws, so HC-3 first |
+| HC-4 | Strong / Opus 5.5 / medium | L | running | worktree | | party 1–3 in trips; bake `P`, drop `startLayout` |
+| AH-W0 | Strong / Opus 5.5 / medium | M | running | worktree | | actions + habits contracts |
+| FD-1 | Strong / Opus 5.5 / medium | M | running | worktree | | arrival matrix test |
+| FD-2 | Strong / Opus 5.5 / medium | M | running | worktree | | delayed/cap repros |
 | RC-W0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ace64eca89eca4392 @ cc83bcf | shared | `data/recruits.ts`: `Beat`, `RecruitFound`, `RecruitDef extends ApprenticeDef` (found, beat, runes), `RecruitPlacement`, `RecruitPages` ({runes} or {any}), `RECRUIT_HABITS`, empty `RECRUITS`; `engine/recruits.ts` stubs + `RecruitLootItem`, `RecruitsState`, `EMPTY_RECRUITS`. `Profile.recruits` not added yet (RC-6). Habit ids for AH: runaway `fuseOnStep`, notary `markTwice`, towel-bearer `steamproof`, warden `holdTwo`, tuner `nearUnison`, Copyist `longTouch`, exile `restoreErase`. RC-1 blocked on AH-W0 (`HabitId` closed). **DK-R1 → DK-7:** run contributors every roll; `must` after the table's `guaranteed`, `extra` after the three normal offers; `{kind:'recruit'}` round-trips in save parsing |
 | FD-9 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a8aba70dffdb3a7e3 @ dfd1904 | shared | `Profile.bindEvents` (inferred on load when absent), `grantBindEvent(p, e)` idempotent; `knownSetOf` = stored ∪ old district rule until something grants events. Golden re-recorded (+`bindEvents: []` only). BR/CG call `grantBindEvent` for *pushed*/*dies* |
 | HC-3 | Medium / Sonnet 5.5 / high | M | merged (partial by design) | worktree-agent-a21bdc1e0b9451570 @ 1598f0e | shared | `startLayout(layout)` in `data/encounters.ts` turns D/S into P and pads to 4 points; integrity test runs `checkRoom` on all 27 rooms + the lock. Data strings unchanged. **HC-4 must** use `startLayout(variant.layout)` + `placeParty` in `beginEncounter`, then bake the `P`s into the data and delete `startLayout` (orchestrator: required, not optional) |
@@ -39,6 +43,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 19:00 | 93 | 2h00 | 30 | Wrap | merge HC-1; spawn FD-9 (smallest) |
 | 19:10 | 95 | 1h49 | 30 | Wrap | merge FD-9; spawn RC-W0 (S) |
 | 19:18 | 98 | 1h41 | 31 | Hold | merge RC-W0; hold for the 20:50 reset |
+| 20:51 | 0 | 5h | 31 | Normal | new window; spawn HC-4, AH-W0, FD-1, FD-2 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RC-W0: AH-W0 derives or checks `HabitId` against `RECRUIT_HABITS`. Accepted (pass to AH-W0).
