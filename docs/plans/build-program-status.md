@@ -2,12 +2,13 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1)
+**State:** holding for reset (Stage 1 in progress)
 **Reset:** window resets 2026-10-24 01:50 UTC; a session-only wake-up is scheduled for 01:52 UTC (if the session closed, resume manually from this file).
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. Ready: RV-2, AH-1 (FD-3, FD-7, HC-4 merged), FN-1, FD-4, FD-6, DK-3, DK-4, DK-5a, DK-6, HC-5, RC-1, AH-2, AH-3, RV-1. (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
-2. Ready now: FD-4, FD-6, DK-3, DK-4, DK-5a, DK-6, HC-5, RC-1, AH-2, AH-3, RV-1. Also after HC-4: DK-5a, DK-6, HC-5, HC-8 (after HC-6).
+1. On wake-up (01:52 UTC): check usage; no agents are running. Start in parallel, watching file overlap: **AH-1** (Strong, L; Pull/Hop/Swap; FD-3, FD-7, HC-4 merged; also adds `MemberUnit.action`, `BasicAction` into `Action`, shove gate → `u.action`), **RV-2** (rival turn: join `RivalIntent` into `Intent`; add `BattleSpec.pins`), **FN-1** (thresholds 8/25/60, costs, re-pick), **DK-5a** (trip shape return side; after HC-4 ✓).
+2. Then: DK-3, DK-4 (pieces/rules; FD-3 ✓), DK-6, FD-4, FD-6, RC-1, AH-2, AH-3, HC-7/HC-8 (UI). Watch: AH-1 and RV-2 both touch `battle.ts`/`turn.ts`; run them on disjoint sections or in sequence.
+3. Player rule for this next window: once usage passes 70%, wrap up the session (status, ROADMAP, commit, push, remove merged worktrees) and write a continuation prompt instead of scheduling another wake-up.
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -63,6 +64,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 21:57 | 84 | 3h53 | 42 | Narrow | merge FN-0 (golden conflict resolved), FD-5; spawn FD-7, FN-2 |
 | 22:20 | 92 | 3h30 | 43 | Wrap | merge FN-2, FD-7; phone check of walk + cast playback OK; spawn RV-1 (S) |
 | 22:33 | 94 | 3h17 | 43 | Wrap | merge RV-1; spawn HC-5 (S) |
+| 22:49 | 96 | 3h01 | 44 | Hold | merge HC-5; hold until the 01:50 reset (wake-up scheduled 01:52 UTC) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RV-W0: DK adds `rivals?: RivalDef[]` to `DistrictKitData` and spreads `RivalModule` into `DistrictModule` (→ DK-9/RV-14); `RIVAL_TOKENS` joins the token uniqueness test (→ DK-4 or DK-17); TECH §7 row at RV finish. Accepted.
