@@ -6,8 +6,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 **Reset:** new 5h window from 20:51 UTC 2026-10-23 (ends ~01:50 UTC); resume manually by reading this file.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. Collect HC-4, AH-W0, HC-6, FD-3 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
-2. Ready: RV-W0; after AH-W0: FN-0; after HC-4: DK-5a, DK-6, HC-5, HC-8 (after HC-6).
+1. Collect HC-4, FD-3, FN-0, RV-W0 (HC-4 and AH-W0 both edit `engine/types.ts`, in different interfaces: merge carefully).
+2. Next: after FN-0: FN-1, FN-2; after RV-W0: RV-1..; after FD-3: DK-3/DK-4, FD-4..7, AH-1 (also needs HC-4, FD-7); RC-1 (after AH-W0 ✓) is ready; after HC-4: DK-5a, DK-6, HC-5, HC-8 (after HC-6).
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -23,6 +23,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FD-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a6a636af9c3bbb893 @ 0dbfe91 | shared | all three reproduce as `it.fails` (33): BL-105 Coil on Repeat/Wick/Filings + nested Wick (→ FD-4; Margin cases don't reproduce, kept as regressions); BL-106 replacement dusk jar + reused seq (→ FD-5); BL-107 cap cuts leave board ≠ log, push onto step-jar logs after `fizzles` (→ FD-6). Cap test drives `castAction` with a hand-built `Ctx` |
 | HC-6 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-aecd4adc191918776 @ d062a7a | shared | `ApprenticeToken.svelte` (def + size board/strip/ledger); hues slate/rust (pair), amber, moss, teal, plum, rose, ochre, indigo + owner `gilt` (ring); contrast ≥4.66 light and dark; `--member-*` alias `--hue-*`. Strip: 18px token, full name, affinity ellipsizes ("timin…"). Verified 375×812 (Lab, trip board, spoils, ledger); autofixer not run (Svelte MCP down); dark hues only under `[data-theme=dark]` (no dark mode ships) |
 | FD-3 | Strong / Opus 5.5 / medium | L | running | worktree | | arrival pipeline, every mover onto it |
+| FN-0 | Strong / Opus 5.5 / medium | M | running | worktree | | footnote contracts |
+| RV-W0 | Strong / Opus 5.5 / medium | M | running | worktree | | rival contracts, token L |
 | RC-W0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ace64eca89eca4392 @ cc83bcf | shared | `data/recruits.ts`: `Beat`, `RecruitFound`, `RecruitDef extends ApprenticeDef` (found, beat, runes), `RecruitPlacement`, `RecruitPages` ({runes} or {any}), `RECRUIT_HABITS`, empty `RECRUITS`; `engine/recruits.ts` stubs + `RecruitLootItem`, `RecruitsState`, `EMPTY_RECRUITS`. `Profile.recruits` not added yet (RC-6). Habit ids for AH: runaway `fuseOnStep`, notary `markTwice`, towel-bearer `steamproof`, warden `holdTwo`, tuner `nearUnison`, Copyist `longTouch`, exile `restoreErase`. RC-1 blocked on AH-W0 (`HabitId` closed). **DK-R1 → DK-7:** run contributors every roll; `must` after the table's `guaranteed`, `extra` after the three normal offers; `{kind:'recruit'}` round-trips in save parsing |
 | FD-9 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a8aba70dffdb3a7e3 @ dfd1904 | shared | `Profile.bindEvents` (inferred on load when absent), `grantBindEvent(p, e)` idempotent; `knownSetOf` = stored ∪ old district rule until something grants events. Golden re-recorded (+`bindEvents: []` only). BR/CG call `grantBindEvent` for *pushed*/*dies* |
 | HC-3 | Medium / Sonnet 5.5 / high | M | merged (partial by design) | worktree-agent-a21bdc1e0b9451570 @ 1598f0e | shared | `startLayout(layout)` in `data/encounters.ts` turns D/S into P and pads to 4 points; integrity test runs `checkRoom` on all 27 rooms + the lock. Data strings unchanged. **HC-4 must** use `startLayout(variant.layout)` + `placeParty` in `beginEncounter`, then bake the `P`s into the data and delete `startLayout` (orchestrator: required, not optional) |
@@ -49,6 +51,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 20:51 | 0 | 5h | 31 | Normal | new window; spawn HC-4, AH-W0, FD-1, FD-2 |
 | 21:09 | 33 | 4h41 | 35 | Normal (~1.6%/min) | merge FD-2; spawn HC-6 |
 | 21:18 | 43 | 4h32 | 37 | Normal | merge FD-1; spawn FD-3 |
+| 21:27 | 56 | 4h23 | 38 | Normal | merge AH-W0, HC-6; spawn FN-0, RV-W0 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-W0: basic actions stay out of `Action` until AH-1; harm verdict redirect kept but revisit when IQ uses it. Accepted. `MemberUnit.action` goes to AH-1 (HC-4 is already large).
