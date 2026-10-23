@@ -8,6 +8,7 @@ import {
   type GameEvent,
   newSave,
   type Profile,
+  placeOf,
   renameGlyph,
   type SaveData,
 } from '$engine';
@@ -246,7 +247,14 @@ export class GameStore {
     } catch {
       // The recorded fight no longer replays (rules changed in an update): start it over.
       this.commit({ ...this.save, trip: { ...trip, actions: [] } });
-      init = startBattle(this.save);
+      try {
+        init = startBattle(this.save);
+      } catch {
+        // Failed twice: the trip closes as an abandoned fight and the party goes home.
+        this.abandonFight();
+        toast('This fight could not be resumed, so the party came home.', 'warn');
+        return;
+      }
       toast('This fight could not be resumed and starts over.', 'warn');
     }
     this.battle = new BattleSession(init, 'trip', {
@@ -256,6 +264,28 @@ export class GameStore {
       witnessed: this.save.profile.witnessed,
       intro: trip.actions.length === 0,
     });
+  }
+
+  /** Closes the trip as a wiped one (its unbanked loot is lost, discoveries kept) and returns home. */
+  private abandonFight(): void {
+    const trip = this.save.trip;
+    this.dropBattle();
+    if (trip) {
+      this.commit({
+        ...this.save,
+        trip: null,
+        lastTrip: {
+          district: trip.district,
+          outcome: 'wiped',
+          encounter: trip.encounter,
+          place: placeOf(trip),
+          stats: trip.stats,
+        },
+      });
+    }
+    this.wipe = null;
+    this.toasted = [];
+    go('study', undefined, { replace: true });
   }
 
   /** After the won/lost overlay: closes the encounter into the save (loot offers, or a wipe). */

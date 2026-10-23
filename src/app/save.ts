@@ -57,33 +57,62 @@ export function parse(text: string): SaveEnvelope {
 export interface SaveBackend {
   read(): string | null;
   write(text: string): void;
-  /** Keeps unreadable save text somewhere safe before it is replaced (`<key>.corrupt`). */
+  /** Keeps unreadable save text somewhere safe before it is replaced (the last `CORRUPT_KEEP`). */
   keepCorrupt(text: string): void;
 }
 
+/** How many unreadable save texts are kept aside; the oldest is dropped first. */
+export const CORRUPT_KEEP = 3;
+
+/** The kept texts with `text` added as the newest (oldest first, at most `CORRUPT_KEEP`). */
+export function addCorrupt(kept: readonly string[], text: string): string[] {
+  return [...kept, text].slice(-CORRUPT_KEEP);
+}
+
+/** The list stored under the corrupt key. A single raw text from an older build counts as one entry. */
+export function readCorrupt(raw: string | null): string[] {
+  if (raw === null) return [];
+  try {
+    const list: unknown = JSON.parse(raw);
+    if (Array.isArray(list) && list.every((t) => typeof t === 'string'))
+      return list.slice(-CORRUPT_KEEP);
+  } catch {
+    // not a list: a raw text from an older build
+  }
+  return [raw];
+}
+
 export function localBackend(key = SAVE_KEY): SaveBackend {
+  const corruptKey = `${key}.corrupt`;
   return {
     read: () => localStorage.getItem(key),
     write: (text) => localStorage.setItem(key, text),
-    keepCorrupt: (text) => localStorage.setItem(`${key}.corrupt`, text),
+    keepCorrupt: (text) => {
+      const kept = readCorrupt(localStorage.getItem(corruptKey));
+      localStorage.setItem(corruptKey, JSON.stringify(addCorrupt(kept, text)));
+    },
   };
 }
 
 export interface MemoryBackend extends SaveBackend {
   /** The last corrupt text kept, for tests. */
   corrupt: string | null;
+  /** Every kept corrupt text, oldest first, for tests. */
+  corruptTexts: string[];
 }
 
 export function memoryBackend(initial: string | null = null): MemoryBackend {
   let text = initial;
   const backend: MemoryBackend = {
     corrupt: null,
+    corruptTexts: [],
     read: () => text,
     write: (t) => {
       text = t;
     },
     keepCorrupt: (t) => {
       backend.corrupt = t;
+      backend.corruptTexts = addCorrupt(backend.corruptTexts, t);
     },
   };
   return backend;
