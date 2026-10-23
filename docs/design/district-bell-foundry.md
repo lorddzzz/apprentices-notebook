@@ -33,7 +33,7 @@
 | Unison, Peal | Unison (an apprentice's cast landed on this target this turn) and Peal (one burst tolled across 3+ tiles) are the school's signature plays; the rung great bells and the Great Peal use the same ring rule |
 | Foe numbers | Sized like the canals' foes at build time; the Tuner is the priority target |
 | Rival dependency | The Carillonneur is built after the **Lab rival prototype (BL-30)**; until then the district may ship with a scripted stand-in heart, decided in the build plan |
-| Door recruit | None designed here ([party.md](party.md) §0b) |
+| Apprentice | **The tuner** (Swap, her Unison also counts a cast landing beside the target), a loot offer at a landmark room ([party.md](party.md) §2) |
 
 ## 2. Still open
 

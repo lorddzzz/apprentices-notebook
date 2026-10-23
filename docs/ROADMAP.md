@@ -35,7 +35,7 @@ The redesign supplies depth already. The next substantial choice is **freer buil
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-43 | The household and three-member expeditions | feature / XL | party, world | **systems decided 2026-10-22**; apprentices designed with districts; build plan not written | [Party design](design/party.md) §0b: 8–9 apprentices, own page each, uniform ink, recruit loot offers and milestone door arrivals, the third from the canals, trio picked from a household shelf, 1–3 allowed, one story-fitting basic action each (shareable), per-room boards with 4+ random start points. Remaining: which basic actions exist (decided per apprentice), habit rules, door milestones, room re-laying, household UI, save migration, then a plan. |
+| BL-43 | The household and three-member expeditions | feature / XL | party, world | **design complete 2026-10-23**; build plan not written | [Party design](design/party.md) §0b–§2: nine apprentices (pair + runaway, notary, towel-bearer, warden, tuner, Copyist, erased student), four basic actions (Shove, Pull, Hop, Swap; Pull/Hop/Swap new), lattice-or-body habits (seven new habits), recruit loot offers, two milestone door arrivals, household shelf, per-room boards with 4+ start points, incompatible saves cleared (no migration). Needs a plan, then build with the first districts: runaway at the canals (BL-124) before the rest. |
 
 ### Track W · Districts and progression
 
@@ -160,7 +160,7 @@ New possibilities arising from the shipped systems (all **proposals**):
 
 1. Next substantial track: freer lattice/household, a middle district, or rival prototype? No old “mastery must come first” dependency remains.
 2. Which middle district should be built first, and what teaches its school using only Seam basics? BL-113–116.
-3. Household systems are decided (BL-43, party.md §0b). Still open: habit rules, door-arrival milestones and the build plan; individual apprentices are designed per district.
+3. Household and all nine apprentices are designed (BL-43, party.md §0c–§2). Still open: the build plan and numbers (*tune by playing*).
 4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
 5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
 6. Rival core design and trial-copy rewards are decided; validate proposed aim/fallback, long-wick routine and page economy in the Lab, then author other rivals with their districts. BL-30/118.

@@ -34,7 +34,7 @@
 | Foe numbers | Sized like the canals' foes at build time. The dissolved bather is solid and killable when it steps out; the boilerman is a priority target |
 | Rival dependency | The Bath-Steward is built after the **Lab rival prototype (BL-30)**; until then the district may ship with a scripted stand-in heart, decided in the build plan |
 | Idiom | Steam Room (one compound over 6+ tiles) is the district's signature; with boil-over, a Steam Room is also a bomb |
-| Door recruit | None designed here ([party.md](party.md) §0b) |
+| Apprentice | **The towel-bearer** (Pull, steam never hurts her and the boil-over skips her), a loot offer at a landmark room ([party.md](party.md) §2) |
 
 ## 2. Still open
 

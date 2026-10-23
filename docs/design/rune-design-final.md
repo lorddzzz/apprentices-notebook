@@ -242,7 +242,7 @@ A lingering compound waits **in the open** (for time, or for Spark). A jar waits
 - **Casting order is the combo.** One apprentice leaves a lingering compound, a jar or a bound mark; the next one bursts it, shoves a foe into it, or lands on the same target (Unison).
 - **Leans** (decision 18): every apprentice is **trained** in one school (its runes cost them 1 ink less), and some are also **gifted** in one (its runes work one step better: +1 tile, +1 round or +1 push). The Seam counts as a school.
 - **Habits** bend one headline (first two built; Bind-on-empty-tile is a future third-apprentice proposal): *her Forks act on the tile ahead too*; *he keeps two jars*; *her Bind marks can be left on an empty tile for the next unit to pick up* (04's rated scene).
-- **Future bodies and personal basic actions** (pull, swap, hop; current pair both have basic Shove) work with the board: hop onto your own jar to open it early, pull a foe through grease fog.
+- **Bodies and personal basic actions** (decided 2026-10-23: Shove, Pull, Hop, Swap; current pair both have Shove, see [party.md](party.md) §1) work with the board: hop onto your own jar to open it early, pull a foe through grease fog.
 
 ## 10. Rivals (future; BL-30)
 

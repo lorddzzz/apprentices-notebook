@@ -35,7 +35,7 @@
 | The key offer | Only after the bridges are heard; at most one key per trip; offered in the canals' deeper rooms; never again once banked |
 | Foe numbers | Sized like the canals' foes at build time; the Gargoyle is the district's only flier |
 | Rival dependency | The Chief Warden is built after the **Lab rival prototype (BL-30)**; until then the district may ship with a scripted stand-in heart, decided in the build plan |
-| Door recruit | None designed here ([party.md](party.md) §0b) |
+| Apprentice | **The defector warden** (Shove, Hold also holds one other adjacent unit), a loot offer at a landmark room ([party.md](party.md) §2) |
 
 ## 2. Still open
 

@@ -34,7 +34,7 @@
 | Foe numbers | Sized between the canals' foes and the heart bosses; the Eraser is the priority target; reinforcements arrive as pencil one round before they ink in |
 | Treasures | The school's pages (Swap, Draw, Erase), the Bind *dies* method page, Quicksilver and Graphite come in the hall's ordinary offers, since the hall is the last district; Redraft is the district's named idiom |
 | Small parties | A gauntlet for fewer than three is a pure challenge, as elsewhere |
-| Apprentices | None found here ([party.md](party.md) §0b); a door arrival may follow the ending |
+| Apprentices | None found here. **Door arrival B, the erased student**, a Board-school exile, knocks once you hold all three Board pages and have a proven invention ([party.md](party.md) §2) |
 | Rival dependency | The Registrar is built after the **Lab rival prototype (BL-30)**; until then the hall may ship with a scripted stand-in, decided in the build plan |
 
 ## 2. How every earlier lore thread resolves

@@ -34,7 +34,7 @@
 | Terms | Examples: "clear the next room within N rounds or the page is taken back"; "start the next room with one of you marked"; "stake 2 ink from this trip for a second page". The player always sees reward, condition and penalty first; a term can be refused |
 | Rival dependency | The postmaster is built after the **Lab rival prototype (BL-30)**. Until then the district may ship with a scripted stand-in heart, a decision for the build plan |
 | Recovered page | Beating the postmaster follows the BL-118 reward format once that exists |
-| Door recruit | None designed here. Apprentices are designed after every district ([party.md](party.md) §0b) |
+| Apprentice | **The junior notary** (Swap, a mark counts as two things for her Tally), a loot offer at a landmark room ([party.md](party.md) §2) |
 
 ## 2. Still open
 

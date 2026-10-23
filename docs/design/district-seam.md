@@ -47,7 +47,7 @@
 | The Cartographers | They are not a floor; clearing their hall opens the sealed door |
 | Small parties | The lower Seam is tuned for three; fewer is a pure challenge, as elsewhere |
 | Margin answers | A second note variant on each page, chosen by mastery or proof; bounded, authored text |
-| Door recruit | None designed here ([party.md](party.md) §0b) |
+| Apprentices | None found here. **Door arrival A, the Copyist**, a Seam-school generalist, knocks after your first witnessed idiom once the runaway has joined ([party.md](party.md) §2) |
 
 ## 2. Still open
 
