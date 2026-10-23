@@ -120,7 +120,13 @@ export function drift(ctx: Ctx): void {
     emit(ctx, {
       type: 'drift',
       floats: floats.map((f) => ({ from: { ...f.from }, to: f.to && { ...f.to } })),
-      units: ordered.map((m) => ({ unit: ref(m.unit, m.from), from: m.from, to: m.to })),
+      units: ordered.map((m) => ({
+        unit: ref(m.unit, m.from),
+        from: { ...m.from },
+        to: { ...m.to },
+        path: [{ ...m.to }],
+        cause: 'drift' as const,
+      })),
     });
   }
   for (const f of floats) {

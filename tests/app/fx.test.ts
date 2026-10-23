@@ -10,6 +10,16 @@ import { plainBoard, plainUnit } from './viewFixtures';
 const board: BoardView = plainBoard(6, 8, [], { state: 'slick' });
 const ref = (at: Coord): UnitRef => ({ id: 'rat-1', name: 'rat', at, member: false });
 const a = { x: 1, y: 1 };
+const push = (unit: UnitRef, to: Coord, slid: number): GameEvent => ({
+  type: 'push',
+  unit,
+  from: unit.at,
+  to,
+  path: [to],
+  cause: 'push',
+  dir: 'right',
+  slid,
+});
 const b = { x: 2, y: 1 };
 
 test('a fire burst → staggered fire burst over all tiles', () => {
@@ -84,19 +94,21 @@ test('kinds and mixes flash their tile or pulse their unit', () => {
 
 describe('moving things', () => {
   test('a plain push is a trail, a push that slid is a slide', () => {
-    expect(fxFor({ type: 'push', unit: ref(a), dir: 'right', path: [b], slid: 0 }, board)).toEqual([
+    expect(fxFor(push(ref(a), b, 0), board)).toEqual([
       { kind: 'trail', cells: [a, b], tone: 'danger' },
     ]);
-    expect(fxFor({ type: 'push', unit: ref(a), dir: 'right', path: [b], slid: 1 }, board)).toEqual([
+    expect(fxFor(push(ref(a), b, 1), board)).toEqual([
       { kind: 'slide', cells: [a, b], tone: 'oil' },
     ]);
   });
 
   test('a crush stars the pushed unit, and what it hit when that is a unit', () => {
-    expect(fxFor({ type: 'crush', unit: ref(a), into: 'wall', damage: 2 }, board)).toEqual([
-      { kind: 'crush', at: a, tone: 'danger' },
-    ]);
-    expect(fxFor({ type: 'crush', unit: ref(a), into: ref(b), damage: 2 }, board)).toEqual([
+    expect(
+      fxFor({ type: 'crush', unit: ref(a), into: 'wall', damage: 2, at: b, dir: 'right' }, board),
+    ).toEqual([{ kind: 'crush', at: a, tone: 'danger' }]);
+    expect(
+      fxFor({ type: 'crush', unit: ref(a), into: ref(b), damage: 2, at: b, dir: 'right' }, board),
+    ).toEqual([
       { kind: 'crush', at: a, tone: 'danger' },
       { kind: 'crush', at: b, tone: 'danger' },
     ]);
@@ -212,8 +224,15 @@ test('phase player → banner, phase enemy → 0 ms', () => {
 
 test('reduced motion halves durations and drops trails and slides', () => {
   const events: GameEvent[] = [
-    { type: 'moved', unit: ref({ x: 0, y: 0 }), to: { x: 1, y: 0 }, path: [{ x: 1, y: 0 }] },
-    { type: 'push', unit: ref(a), dir: 'right', path: [b], slid: 1 },
+    {
+      type: 'moved',
+      unit: ref({ x: 0, y: 0 }),
+      from: { x: 0, y: 0 },
+      to: { x: 1, y: 0 },
+      path: [{ x: 1, y: 0 }],
+      cause: 'walk',
+    },
+    push(ref(a), b, 1),
     {
       type: 'burst',
       burst: 'fire',
@@ -257,7 +276,7 @@ const SAMPLES = {
   phase: { type: 'phase', phase: 'player' },
   won: { type: 'won' },
   lost: { type: 'lost' },
-  moved: { type: 'moved', unit: stoker, to: a, path: [a] },
+  moved: { type: 'moved', unit: stoker, from: b, to: a, path: [a], cause: 'walk' },
   moveUndone: { type: 'moveUndone', unit: stoker, to: a },
   shove: { type: 'shove', by: stoker, target: rat, dir: 'right' },
   pull: { type: 'pull', by: stoker, target: rat, dir: 'left' },
@@ -290,12 +309,20 @@ const SAMPLES = {
   burst: { type: 'burst', burst: 'storm', at: a, tiles: [a], units: [rat] },
   stateFades: { type: 'stateFades', tiles: [a] },
   spreadState: { type: 'spreadState', from: a, to: [b] },
-  push: { type: 'push', unit: rat, dir: 'right', path: [b], slid: 0 },
-  crush: { type: 'crush', unit: rat, into: 'wall', damage: 2 },
+  push: push(rat, b, 0),
+  crush: { type: 'crush', unit: rat, into: 'wall', damage: 2, at: b, dir: 'right' },
   dropped: { type: 'dropped', unit: rat, at: a, elite: false },
   stunned: { type: 'stunned', unit: rat },
-  held: { type: 'held', unit: rat },
-  swapped: { type: 'swapped', a: stoker, b: rat },
+  held: { type: 'held', unit: rat, rounds: 1 },
+  swapped: {
+    type: 'swapped',
+    unit: stoker,
+    with: rat,
+    from: stoker.at,
+    to: rat.at,
+    path: [rat.at],
+    cause: 'swap',
+  },
   drawn: { type: 'drawn', from: a, to: b, what: 'cloud' },
   erased: { type: 'erased', at: a, what: 'cloud' },
   marked: { type: 'marked', unit: rat, deep: false, bound: null },
@@ -305,7 +332,7 @@ const SAMPLES = {
   markLifted: { type: 'markLifted', from: rat, to: stoker },
   released: { type: 'released', unit: rat, action: 'shove' },
   conducted: { type: 'conducted', action: 'strike', units: [rat] },
-  jarSealed: { type: 'jarSealed', at: a, owner: stoker, event: 'step' },
+  jarSealed: { type: 'jarSealed', at: a, owner: stoker, event: 'step', id: 1, peek: null },
   jarOpened: { type: 'jarOpened', at: a, by: rat },
   jarCrumbles: { type: 'jarCrumbles', at: a },
   scheduled: { type: 'scheduled', kind: 'repeat', at: a },

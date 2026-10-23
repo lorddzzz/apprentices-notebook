@@ -18,6 +18,7 @@ import type {
   FiredCell,
   GlyphId,
   Intent,
+  JarId,
   Scheduled,
   SpellKey,
   Target,
@@ -62,6 +63,21 @@ export interface RelocationFields {
   cause: ArrivalCause | PlacementCause;
 }
 
+/** Every unit move an event states, in the order it happens: the one projection for any cause. */
+export function relocations(e: GameEvent): RelocationFields[] {
+  switch (e.type) {
+    case 'moved':
+    case 'push':
+      return [e];
+    case 'swapped':
+      return [e, { unit: e.with, from: e.to, to: e.from, path: [{ ...e.from }], cause: e.cause }];
+    case 'drift':
+      return e.units;
+    default:
+      return [];
+  }
+}
+
 /** What stopped a line: a cloud, or a blocking tile. */
 export type LineStop = 'cloud' | Blocker;
 
@@ -76,7 +92,7 @@ export type GameEvent = (
   | { type: 'phase'; phase: 'resolve' | 'enemy' | 'player' }
   | { type: 'won' }
   | { type: 'lost' }
-  | { type: 'moved'; unit: UnitRef; to: Coord; path: Coord[] }
+  | ({ type: 'moved' } & RelocationFields)
   | { type: 'moveUndone'; unit: UnitRef; to: Coord }
   /** The basic shove action (P12); the push itself follows as `push` / `crush`. */
   | { type: 'shove'; by: UnitRef; target: UnitRef; dir: Dir }
@@ -111,7 +127,7 @@ export type GameEvent = (
   | {
       type: 'drift';
       floats: { from: Coord; to: Coord | null }[];
-      units: { unit: UnitRef; from: Coord; to: Coord }[];
+      units: RelocationFields[];
     }
   /** A wooden lock gate catches from adjacent fire and is gone (K-11). */
   | { type: 'gateBurns'; at: Coord }
@@ -151,12 +167,22 @@ export type GameEvent = (
   | { type: 'burst'; burst: BurstId; at: Coord; tiles: Coord[]; units: UnitRef[] }
   | { type: 'stateFades'; tiles: Coord[] }
   | { type: 'spreadState'; from: Coord; to: Coord[] }
-  | { type: 'push'; unit: UnitRef; dir: Dir; path: Coord[]; slid: number }
-  | { type: 'crush'; unit: UnitRef; into: UnitRef | 'wall' | 'plate'; damage: number }
+  | ({ type: 'push'; dir: Dir; slid: number } & RelocationFields)
+  /** `at` is the tile struck (the plate, wall or unit), `dir` the heading of the push. */
+  | {
+      type: 'crush';
+      unit: UnitRef;
+      into: UnitRef | 'wall' | 'plate';
+      damage: number;
+      at: Coord;
+      dir: Dir;
+    }
   | { type: 'dropped'; unit: UnitRef; at: Coord; elite: boolean }
   | { type: 'stunned'; unit: UnitRef }
-  | { type: 'held'; unit: UnitRef }
-  | { type: 'swapped'; a: UnitRef; b: UnitRef }
+  /** `rounds` is how long the unit is held after this (Hold's bonus included). */
+  | { type: 'held'; unit: UnitRef; rounds: number }
+  /** `unit` and `with` trade places: `unit` goes from -> to, `with` goes to -> from. */
+  | ({ type: 'swapped'; with: UnitRef } & RelocationFields)
   | { type: 'drawn'; from: Coord; to: Coord; what: string }
   | { type: 'erased'; at: Coord; what: string }
   | { type: 'marked'; unit: UnitRef; deep: boolean; bound: RuneRef | null }
@@ -166,7 +192,15 @@ export type GameEvent = (
   | { type: 'markLifted'; from: UnitRef; to: UnitRef }
   | { type: 'released'; unit: UnitRef; action: RuneRef }
   | { type: 'conducted'; action: RuneRef; units: UnitRef[] }
-  | { type: 'jarSealed'; at: Coord; owner: UnitRef; event: 'step' | 'dusk' }
+  /** `peek` is the first rune of what is sealed, the one thing the board shows of a jar. */
+  | {
+      type: 'jarSealed';
+      at: Coord;
+      owner: UnitRef;
+      event: 'step' | 'dusk';
+      id: JarId;
+      peek: RuneRef | null;
+    }
   | { type: 'jarOpened'; at: Coord; by: UnitRef | null }
   | { type: 'jarCrumbles'; at: Coord }
   | { type: 'scheduled'; kind: Scheduled['kind']; at: Coord }
@@ -303,7 +337,7 @@ export function describe(e: GameEvent): string | null {
     case 'held':
       return `${who(e.unit)} is held`;
     case 'swapped':
-      return `${who(e.a)} and ${who(e.b)} swap places`;
+      return `${who(e.unit)} and ${who(e.with)} swap places`;
     case 'drawn':
       return `the ${e.what} is drawn from ${label(e.from)} to ${label(e.to)}`;
     case 'erased':

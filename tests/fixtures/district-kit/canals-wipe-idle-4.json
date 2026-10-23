@@ -39,8 +39,10 @@
         {
           "type": "moved",
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 0 }, "member": false },
+          "from": { "x": 1, "y": 0 },
           "to": { "x": 1, "y": 3 },
-          "path": [{ "x": 1, "y": 1 }, { "x": 1, "y": 2 }, { "x": 1, "y": 3 }]
+          "path": [{ "x": 1, "y": 1 }, { "x": 1, "y": 2 }, { "x": 1, "y": 3 }],
+          "cause": "walk"
         },
         { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 0 }, "makes": "slick" },
         { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 1 }, "makes": "slick" },
@@ -55,8 +57,10 @@
         {
           "type": "moved",
           "unit": { "id": "eel-1", "name": "eel", "at": { "x": 2, "y": 6 }, "member": false },
+          "from": { "x": 2, "y": 6 },
           "to": { "x": 2, "y": 4 },
-          "path": [{ "x": 2, "y": 5 }, { "x": 2, "y": 4 }]
+          "path": [{ "x": 2, "y": 5 }, { "x": 2, "y": 4 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -191,8 +195,10 @@
         {
           "type": "moved",
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 3 }, "member": false },
+          "from": { "x": 1, "y": 3 },
           "to": { "x": 4, "y": 3 },
-          "path": [{ "x": 2, "y": 3 }, { "x": 3, "y": 3 }, { "x": 4, "y": 3 }]
+          "path": [{ "x": 2, "y": 3 }, { "x": 3, "y": 3 }, { "x": 4, "y": 3 }],
+          "cause": "walk"
         },
         { "type": "landed", "kind": "oil", "at": { "x": 2, "y": 3 }, "makes": "slick" },
         { "type": "landed", "kind": "oil", "at": { "x": 3, "y": 3 }, "makes": "slick" },
@@ -217,8 +223,10 @@
         {
           "type": "moved",
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 3 }, "member": false },
+          "from": { "x": 4, "y": 3 },
           "to": { "x": 4, "y": 5 },
-          "path": [{ "x": 4, "y": 4 }, { "x": 4, "y": 5 }]
+          "path": [{ "x": 4, "y": 4 }, { "x": 4, "y": 5 }],
+          "cause": "walk"
         },
         { "type": "landed", "kind": "oil", "at": { "x": 4, "y": 4 }, "makes": "slick" },
         { "type": "landed", "kind": "oil", "at": { "x": 4, "y": 5 }, "makes": "slick" },

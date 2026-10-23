@@ -327,7 +327,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
       if (!u) return;
       withLine(ctx, 'rivet:unit', () => {
         u.held = Math.max(u.held, ACTIONS.holdRounds);
-        emit(ctx, { type: 'held', unit: ref(u) });
+        emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
       });
     },
   },

@@ -73,7 +73,7 @@ export class BattleSession {
     this.log = $state.raw([...init.events]);
     this.input = afterAction(init.state, IDLE);
     if (opts.intro && init.events.length) {
-      void this.play(withoutIntents(viewOf(init.state)), init.events, [], viewOf(init.state));
+      void this.play(withoutIntents(viewOf(init.state)), init.events);
     }
   }
 
@@ -208,7 +208,7 @@ export class BattleSession {
     this.log = [...this.log, ...r.events];
     this.input = afterAction(r.state, this.input);
     this.opts.onEvents?.(r.events);
-    await this.play(viewOf(prev), r.events, castLead(prev, action, r.events), viewOf(r.state));
+    await this.play(viewOf(prev), r.events, castLead(prev, action, r.events));
   }
 
   /** Lab: swaps in an edited or earlier state (and log); the input and playback reset. */
@@ -239,14 +239,9 @@ export class BattleSession {
     this.playback.skip();
   }
 
-  private play(
-    start: BoardView,
-    events: readonly GameEvent[],
-    lead: Fx[] = [],
-    end?: BoardView,
-  ): Promise<void> {
+  private play(start: BoardView, events: readonly GameEvent[], lead: Fx[] = []): Promise<void> {
     this.run += 1;
-    return this.playback.play(start, events, lead, end);
+    return this.playback.play(start, events, lead);
   }
 
   private apply(r: InputResult): void {

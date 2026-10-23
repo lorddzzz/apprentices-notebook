@@ -20,7 +20,7 @@ const SEED = 12345;
 const unit = { id: 'rat-1', name: 'rat', at: { x: 0, y: 0 }, member: false };
 
 /** An event stamped with a fine-print line, as the engine does. */
-const stamped = (line: GameEvent['line']): GameEvent => ({ type: 'held', unit, line });
+const stamped = (line: GameEvent['line']): GameEvent => ({ type: 'held', unit, rounds: 1, line });
 
 const over = (b: BattleState, phase: 'won' | 'lost'): BattleState => ({
   ...b,

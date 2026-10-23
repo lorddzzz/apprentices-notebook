@@ -135,8 +135,10 @@ test('buildSteps: step i view = project of steps 0..i', () => {
     {
       type: 'moved',
       unit: ref('rat-1', { x: 0, y: 0 }),
+      from: { x: 0, y: 0 },
       to: { x: 1, y: 0 },
       path: [{ x: 1, y: 0 }],
+      cause: 'walk',
     },
     {
       type: 'damage',
@@ -174,18 +176,16 @@ test('buildSteps: silent events make no step; quiet ones make a step with no tim
 
 test('buildSteps: the final view fills in a sealed jar’s peek from the step it appears', () => {
   const start = plainBoard(3, 1, [plainUnit({ id: 'stoker', pos: { x: 0, y: 0 } })]);
-  const end = plainBoard(3, 1, [plainUnit({ id: 'stoker', pos: { x: 0, y: 0 } })]);
   const jar = { owner: 'stoker', event: 'step', peek: 'oil' } as const;
   const sealed: GameEvent = {
     type: 'jarSealed',
     at: { x: 2, y: 0 },
     owner: { id: 'stoker', name: 'Stoker', at: { x: 0, y: 0 }, member: true },
     event: 'step',
+    id: 1,
+    peek: 'oil',
   };
-  const endTile = end.tiles[2];
-  if (endTile) endTile.jar = jar;
-  expect(buildSteps(start, [sealed])[0]?.view.tiles[2]?.jar).toEqual({ ...jar, peek: null });
-  expect(buildSteps(start, [sealed], 1, [], end)[0]?.view.tiles[2]?.jar).toEqual(jar);
+  expect(buildSteps(start, [sealed])[0]?.view.tiles[2]?.jar).toEqual(jar);
 });
 
 test('buildSteps: a slide and a crush get their pictures and their beats', () => {
@@ -195,6 +195,9 @@ test('buildSteps: a slide and a crush get their pictures and their beats', () =>
     {
       type: 'push',
       unit: at,
+      from: { x: 0, y: 0 },
+      to: { x: 2, y: 0 },
+      cause: 'push',
       dir: 'right',
       path: [
         { x: 1, y: 0 },
@@ -202,7 +205,14 @@ test('buildSteps: a slide and a crush get their pictures and their beats', () =>
       ],
       slid: 1,
     },
-    { type: 'crush', unit: ref('rat-1', { x: 2, y: 0 }), into: 'wall', damage: 3 },
+    {
+      type: 'crush',
+      unit: ref('rat-1', { x: 2, y: 0 }),
+      into: 'wall',
+      damage: 3,
+      at: { x: 3, y: 0 },
+      dir: 'right',
+    },
   ];
   const steps = buildSteps(start, events);
   expect(steps.map((s) => s.fx.map((f) => f.kind))).toEqual([['slide'], ['crush']]);

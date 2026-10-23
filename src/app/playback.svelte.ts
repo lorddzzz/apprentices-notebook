@@ -24,14 +24,9 @@ export class Playback {
   }
 
   /** Resolves when the steps finish or are skipped. */
-  play(
-    start: BoardView,
-    events: readonly GameEvent[],
-    lead: readonly Fx[] = [],
-    end?: BoardView,
-  ): Promise<void> {
+  play(start: BoardView, events: readonly GameEvent[], lead: readonly Fx[] = []): Promise<void> {
     this.seq.skip();
-    const steps = buildSteps(start, events, prefersReducedMotion.current ? 0.5 : 1, lead, end);
+    const steps = buildSteps(start, events, prefersReducedMotion.current ? 0.5 : 1, lead);
     if (steps.length === 0) return Promise.resolve();
     this.steps = steps;
     return new Promise((resolve) => {

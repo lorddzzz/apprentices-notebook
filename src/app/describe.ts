@@ -22,6 +22,7 @@ import {
   castableSpells,
   type EnemyUnit,
   findUnit,
+  firstRune,
   type GameEvent,
   intentPreview,
   type Layer,
@@ -40,7 +41,6 @@ import {
   unitAt,
 } from '$engine';
 import type { InputMode } from './battleInput';
-import { firstRune } from './view';
 
 /** UI wording: captions, inspect lines, preview summaries. Plain functions, tested. */
 

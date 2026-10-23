@@ -101,7 +101,7 @@ test('later meaningful effects prove their original cast once, without proving a
   const cells: FiredCell[] = [{ at: c(0, 0), rune: 'bolt', dir: 'right' }];
   const first = { ...trace(cells, false), origin };
   const next = { ...trace(cells, false), origin: { ...origin, cast: 2 } };
-  const effect: GameEvent = { type: 'held', unit: who, origin };
+  const effect: GameEvent = { type: 'held', unit: who, rounds: 1, origin };
   expect(masksFrom([first, next, effect, effect], 'draughtsman')).toEqual([cells]);
 });
 

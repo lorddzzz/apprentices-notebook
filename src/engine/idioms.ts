@@ -132,7 +132,7 @@ export function idiomsIn(log: readonly GameEvent[], pre: IdiomPre, s: BattleStat
 
   // Redraft: Draw or Swap moves something onto a tile that a later burst goes off on.
   for (const [i, e] of log.entries()) {
-    const to = e.type === 'drawn' ? [e.to] : e.type === 'swapped' ? [e.a.at, e.b.at] : null;
+    const to = e.type === 'drawn' ? [e.to] : e.type === 'swapped' ? [e.from, e.to] : null;
     if (!to) continue;
     const boom = log
       .slice(i + 1)

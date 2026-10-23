@@ -61,14 +61,14 @@ function drawn(v: BoardView) {
 
 function projected(start: BoardView, events: readonly GameEvent[], end: BattleState) {
   const want = viewOf(end);
-  const last = buildSteps(start, events, 1, [], want).at(-1)?.view ?? start;
+  const last = buildSteps(start, events, 1, []).at(-1)?.view ?? start;
   return { got: drawn(last), want: drawn(want) };
 }
 
 /** The same without the playback's effects and lines: all the guard needs, for the many runs below. */
 function projectedFast(start: BoardView, events: readonly GameEvent[], end: BattleState) {
   const want = viewOf(end);
-  const last = events.reduce((v, e) => (isSilent(e) ? v : projectWith(v, e, want)), start);
+  const last = events.reduce((v, e) => (isSilent(e) ? v : projectWith(v, e)), start);
   return { got: drawn(last), want: drawn(want) };
 }
 

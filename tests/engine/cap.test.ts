@@ -61,7 +61,7 @@ function drifting(s: BattleState): number[] {
   for (let cap = 0; cap <= length; cap++) {
     const r = castWithCap(s, cap);
     const want = viewOf(r.state);
-    const got = r.events.reduce((v, e) => (isSilent(e) ? v : projectWith(v, e, want)), viewOf(s));
+    const got = r.events.reduce((v, e) => (isSilent(e) ? v : projectWith(v, e)), viewOf(s));
     if (JSON.stringify(drawn(got)) !== JSON.stringify(drawn(want))) out.push(cap);
   }
   return out;
@@ -118,7 +118,7 @@ describe('the event cap (BL-107)', () => {
     if (!s) throw new Error(name);
     const r = castWithCap(s, UNCAPPED);
     const want = viewOf(r.state);
-    const got = r.events.reduce((v, e) => (isSilent(e) ? v : projectWith(v, e, want)), viewOf(s));
+    const got = r.events.reduce((v, e) => (isSilent(e) ? v : projectWith(v, e)), viewOf(s));
     expect(drawn(got)).toEqual(drawn(want));
   });
 

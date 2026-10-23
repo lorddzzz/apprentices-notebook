@@ -96,6 +96,8 @@ function crush(
       unit: ref(unit),
       into: other ? ref(other) : (stop.into as 'wall' | 'plate'),
       damage,
+      at: { ...stop.at },
+      dir,
     });
     dealDamage(ctx, unit, damage, 'Crush', [], { heading: dir, at: null });
     if (other) {
@@ -186,7 +188,9 @@ export function push(
     });
     if (unit.hp <= 0 || tiles <= 0) return unmoved();
     const blockedByHold = (): PushResult => {
-      withLine(ctx, 'shove:held', () => emit(ctx, { type: 'held', unit: ref(unit) }));
+      withLine(ctx, 'shove:held', () =>
+        emit(ctx, { type: 'held', unit: ref(unit), rounds: unit.held }),
+      );
       return unmoved();
     };
     if (unit.held > 0) return blockedByHold();
@@ -200,9 +204,19 @@ export function push(
     const { path, slid, stop, slicks } = planPush(ctx, unit, dir, tiles);
     if (!hasFootnote(ctx, 'shove-slick-again')) for (const l of slicks) l.slid = s.round;
 
-    if (path.length) {
+    const end = path[path.length - 1];
+    if (end) {
       const body = (): void => {
-        emit(ctx, { type: 'push', unit: ref(unit, start), dir, path, slid });
+        emit(ctx, {
+          type: 'push',
+          unit: ref(unit, start),
+          from: start,
+          to: { ...end },
+          cause: 'push',
+          dir,
+          path,
+          slid,
+        });
       };
       if (slid > 0) withLine(ctx, 'shove:slick', body);
       else body();

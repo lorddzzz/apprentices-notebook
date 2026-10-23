@@ -15,6 +15,7 @@ export * from './household';
 export * from './idioms';
 export * from './importPolicy';
 export * from './inventions';
+export { firstRune } from './jars';
 export * from './lattice';
 export * from './lines';
 export * from './networks';

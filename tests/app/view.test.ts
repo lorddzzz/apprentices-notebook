@@ -3,6 +3,7 @@ import { ACTIONS, type BurstId, TUNING } from '$data';
 import {
   type BattleState,
   type Coord,
+  firstRune,
   type GameEvent,
   parseBoard,
   type Step,
@@ -12,7 +13,6 @@ import {
 import { tileLine, unitTraits } from '../../src/app/describe';
 import {
   type BoardView,
-  firstRune,
   project,
   projectWith,
   type TileView,
@@ -59,13 +59,18 @@ test('moved and push update pos', () => {
   const moved = project(v0, {
     type: 'moved',
     unit: ref('draughtsman', { x: 0, y: 0 }),
+    from: { x: 0, y: 0 },
     to,
     path: [to],
+    cause: 'walk',
   });
   expect(unitOf(moved, 'draughtsman').pos).toEqual(to);
   const pushed = project(v0, {
     type: 'push',
     unit: ref('rat-1', { x: 2, y: 1 }),
+    from: { x: 2, y: 1 },
+    to: { x: 3, y: 1 },
+    cause: 'push',
     dir: 'right',
     path: [{ x: 3, y: 1 }],
     slid: 0,
@@ -74,6 +79,9 @@ test('moved and push update pos', () => {
   const slid = project(v0, {
     type: 'push',
     unit: ref('rat-1', { x: 2, y: 1 }),
+    from: { x: 2, y: 1 },
+    to: { x: 0, y: 1 },
+    cause: 'push',
     dir: 'left',
     path: [
       { x: 1, y: 1 },
@@ -195,10 +203,18 @@ test('stunned, held and swapped', () => {
   const rat = ref('rat-1', { x: 2, y: 1 });
   const hero = ref('draughtsman', { x: 0, y: 0 });
   let v = project(fixture(), { type: 'stunned', unit: rat });
-  v = project(v, { type: 'held', unit: hero });
+  v = project(v, { type: 'held', unit: hero, rounds: ACTIONS.holdRounds });
   expect(unitOf(v, 'rat-1').stunned).toBe(true);
   expect(unitOf(v, 'draughtsman').held).toBe(ACTIONS.holdRounds);
-  v = project(v, { type: 'swapped', a: hero, b: rat });
+  v = project(v, {
+    type: 'swapped',
+    unit: hero,
+    with: rat,
+    from: hero.at,
+    to: rat.at,
+    path: [rat.at],
+    cause: 'swap',
+  });
   expect(unitOf(v, 'draughtsman').pos).toEqual({ x: 2, y: 1 });
   expect(unitOf(v, 'rat-1').pos).toEqual({ x: 0, y: 0 });
 });
@@ -206,11 +222,18 @@ test('stunned, held and swapped', () => {
 test('jars appear when sealed and go when opened or crumbled', () => {
   const at = { x: 3, y: 2 };
   const hero = ref('draughtsman', { x: 0, y: 0 });
-  let v = project(fixture(), { type: 'jarSealed', at, owner: hero, event: 'step' });
+  let v = project(fixture(), {
+    type: 'jarSealed',
+    at,
+    owner: hero,
+    event: 'step',
+    id: 1,
+    peek: null,
+  });
   expect(tile(v, 3, 2)?.jar).toEqual({ owner: 'draughtsman', event: 'step', peek: null });
   v = project(v, { type: 'jarOpened', at, by: null });
   expect(tile(v, 3, 2)?.jar).toBeNull();
-  v = project(v, { type: 'jarSealed', at, owner: hero, event: 'dusk' });
+  v = project(v, { type: 'jarSealed', at, owner: hero, event: 'dusk', id: 2, peek: null });
   v = project(v, { type: 'jarCrumbles', at });
   expect(tile(v, 3, 2)?.jar).toBeNull();
 });
@@ -221,7 +244,7 @@ test('events that only flash leave the board as it was', () => {
   const quiet: GameEvent[] = [
     { type: 'aimed', source: 'bolt', targets: [{ kind: 'unit', unit: 'rat-1' }], heading: 'right' },
     { type: 'burst', burst: 'storm', at: rat.at, tiles: [rat.at], units: [rat] },
-    { type: 'crush', unit: rat, into: 'wall', damage: 2 },
+    { type: 'crush', unit: rat, into: 'wall', damage: 2, at: A(3, 1), dir: 'right' },
     { type: 'dropped', unit: rat, at: rat.at, elite: false },
     { type: 'erased', at: rat.at, what: 'mark' },
     { type: 'released', unit: rat, action: 'strike' },
@@ -265,7 +288,14 @@ test('project never mutates its input', () => {
   const v0 = fixture();
   const frozen = JSON.stringify(v0);
   const events: GameEvent[] = [
-    { type: 'moved', unit: ref('draughtsman', { x: 0, y: 0 }), to: { x: 1, y: 0 }, path: [] },
+    {
+      type: 'moved',
+      unit: ref('draughtsman', { x: 0, y: 0 }),
+      from: { x: 0, y: 0 },
+      to: { x: 1, y: 0 },
+      path: [],
+      cause: 'walk',
+    },
     { type: 'landed', kind: 'oil', at: { x: 0, y: 0 }, makes: 'slick' },
     { type: 'died', unit: ref('rat-1', { x: 2, y: 1 }) },
     { type: 'round', round: 2 },
@@ -431,7 +461,15 @@ test('drift moves units named in the event', () => {
   const v1 = project(fixture(), {
     type: 'drift',
     floats: [],
-    units: [{ unit: ref('rat-1', { x: 2, y: 1 }), from: { x: 2, y: 1 }, to: { x: 3, y: 1 } }],
+    units: [
+      {
+        unit: ref('rat-1', { x: 2, y: 1 }),
+        from: { x: 2, y: 1 },
+        to: { x: 3, y: 1 },
+        path: [{ x: 3, y: 1 }],
+        cause: 'drift',
+      },
+    ],
   });
   expect(unitOf(v1, 'rat-1').pos).toEqual({ x: 3, y: 1 });
 });
@@ -517,12 +555,16 @@ const ratRef = (x: number, y: number): UnitRef => ref('rat-1', A(x, y));
 
 test('a sealed jar remembers its owner, its trigger and a peek at what is inside', () => {
   const hero = ref('draughtsman', A(0, 0));
-  const sealed: GameEvent = { type: 'jarSealed', at: A(3, 2), owner: hero, event: 'dusk' };
-  const peeked = fixture();
-  setTile(peeked, 3, 2, { jar: { owner: 'draughtsman', event: 'dusk', peek: 'oil' } });
-  const v = projectWith(fixture(), sealed, peeked);
+  const sealed: GameEvent = {
+    type: 'jarSealed',
+    at: A(3, 2),
+    owner: hero,
+    event: 'dusk',
+    id: 1,
+    peek: 'oil',
+  };
+  const v = projectWith(fixture(), sealed);
   expect(tile(v, 3, 2)?.jar).toEqual({ owner: 'draughtsman', event: 'dusk', peek: 'oil' });
-  expect(tile(project(fixture(), sealed), 3, 2)?.jar?.peek).toBeNull();
 });
 
 test('firstRune walks a sealed chain to its first rune', () => {
@@ -673,7 +715,14 @@ describe('bursts change the board the way the engine does', () => {
 describe('plates wear', () => {
   test('a crush wears the one plate beside the unit; the last hit is left to the fade', () => {
     const v0 = setTile(fixture(), 3, 1, { state: 'wall', rounds: 2, hits: 2 });
-    const crush: GameEvent = { type: 'crush', unit: ratRef(2, 1), into: 'plate', damage: 2 };
+    const crush: GameEvent = {
+      type: 'crush',
+      unit: ratRef(2, 1),
+      into: 'plate',
+      damage: 2,
+      at: A(3, 1),
+      dir: 'right',
+    };
     const once = project(v0, crush);
     expect(tile(once, 3, 1)?.hits).toBe(1);
     const twice = project(once, crush);
@@ -682,19 +731,33 @@ describe('plates wear', () => {
     expect(tile(gone, 3, 1)).toMatchObject({ state: null, hits: 0 });
   });
 
-  test('two plates beside the unit are left to the final snap', () => {
+  test('only the plate the event names is worn', () => {
     const v0 = setTile(setTile(fixture(), 3, 1, { state: 'plate', hits: 2 }), 1, 1, {
       state: 'plate',
       hits: 2,
     });
-    const v = project(v0, { type: 'crush', unit: ratRef(2, 1), into: 'plate', damage: 2 });
-    expect(tile(v, 3, 1)?.hits).toBe(2);
+    const v = project(v0, {
+      type: 'crush',
+      unit: ratRef(2, 1),
+      into: 'plate',
+      damage: 2,
+      at: A(3, 1),
+      dir: 'right',
+    });
+    expect(tile(v, 3, 1)?.hits).toBe(1);
     expect(tile(v, 1, 1)?.hits).toBe(2);
   });
 
   test('a layout plate (no hits) is never worn', () => {
     const v0 = setTile(fixture(), 3, 1, { state: 'plate', rounds: 0, hits: 0 });
-    const v = project(v0, { type: 'crush', unit: ratRef(2, 1), into: 'plate', damage: 2 });
+    const v = project(v0, {
+      type: 'crush',
+      unit: ratRef(2, 1),
+      into: 'plate',
+      damage: 2,
+      at: A(3, 1),
+      dir: 'right',
+    });
     expect(tile(v, 3, 1)).toMatchObject({ state: 'plate', hits: 0 });
   });
 });
@@ -785,7 +848,7 @@ describe('a new player phase', () => {
   test('a hold that is already running is not extended by a second event', () => {
     const v0 = fixture();
     unitOf(v0, 'rat-1').held = 3;
-    const v = project(v0, { type: 'held', unit: ratRef(2, 1) });
+    const v = project(v0, { type: 'held', unit: ratRef(2, 1), rounds: ACTIONS.holdRounds });
     expect(unitOf(v, 'rat-1').held).toBe(3);
   });
 });

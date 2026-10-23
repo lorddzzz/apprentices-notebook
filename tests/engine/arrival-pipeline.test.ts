@@ -148,7 +148,15 @@ describe('relocateAll', () => {
       // The mover's relocation event first, so playback follows (projection guard).
       const [a, b] = ctx.s.units;
       if (!a || !b) throw new Error('no rats');
-      emit(ctx, { type: 'swapped', a: ref(a), b: ref(b) });
+      emit(ctx, {
+        type: 'swapped',
+        unit: ref(a),
+        with: ref(b),
+        from: { ...a.pos },
+        to: { ...b.pos },
+        path: [{ ...b.pos }],
+        cause: 'swap',
+      });
       relocateAll(
         ctx,
         [

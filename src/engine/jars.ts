@@ -1,4 +1,4 @@
-import type { SolventId } from '$data';
+import type { RuneRef, SolventId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
@@ -7,6 +7,27 @@ import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
 import type { Flow, Jar, Origin, Step, Target, UnitId } from './types';
 import { targetKey } from './types';
+
+/** The first rune of a step chain: what a jar's contents peek shows. */
+export function firstRune(step: Step | null): RuneRef | null {
+  if (!step) return null;
+  switch (step.role) {
+    case 'action':
+    case 'kind':
+    case 'trigger':
+    case 'shape':
+    case 'seal':
+      return step.rune;
+    case 'fork':
+      return firstRune(step.left) ?? firstRune(step.right);
+    case 'split':
+      for (const b of step.branches) {
+        const r = firstRune(b);
+        if (r) return r;
+      }
+      return null;
+  }
+}
 
 /**
  * Jars (design §7, plan P32): one per owner, opened by a step onto their tile or at dusk. What a
@@ -93,7 +114,14 @@ export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
   if (tileAt(ctx.s, at).jar) crumble(ctx, at);
   const id = takeJarId(ctx);
   tileAt(ctx.s, at).jar = { ...cloneData(jar), id, seq: id };
-  emit(ctx, { type: 'jarSealed', at: { ...at }, owner: ref(owner), event: jar.event });
+  emit(ctx, {
+    type: 'jarSealed',
+    at: { ...at },
+    owner: ref(owner),
+    event: jar.event,
+    id,
+    peek: firstRune(jar.rest),
+  });
 }
 
 /**

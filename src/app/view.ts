@@ -1,5 +1,4 @@
 import {
-  ACTIONS,
   CHEMISTRY,
   type CompoundId,
   ENEMIES,
@@ -16,10 +15,10 @@ import {
   type BoardSpec,
   type Coord,
   type Dir,
+  firstRune,
   type GameEvent,
   type Intent,
-  neighbors4,
-  type Step,
+  relocations,
   type Tile,
   type Unit,
   type UnitId,
@@ -93,27 +92,6 @@ export interface BoardView {
   units: UnitView[];
   round: number;
   phase: BattlePhase;
-}
-
-/** The first rune of a step chain: what a jar's contents peek shows. */
-export function firstRune(step: Step | null): RuneRef | null {
-  if (!step) return null;
-  switch (step.role) {
-    case 'action':
-    case 'kind':
-    case 'trigger':
-    case 'shape':
-    case 'seal':
-      return step.rune;
-    case 'fork':
-      return firstRune(step.left) ?? firstRune(step.right);
-    case 'split':
-      for (const b of step.branches) {
-        const r = firstRune(b);
-        if (r) return r;
-      }
-      return null;
-  }
 }
 
 export function tileViewOf(t: Tile): TileView {
@@ -354,14 +332,10 @@ function spawnedView(id: UnitId, pos: Coord): UnitView {
   };
 }
 
-/** A crush against a plate or wall wears it: the one plate beside the unit (the event has no heading). */
-function wearBesideUnit(v: BoardView, unit: Coord): void {
-  const plates = neighbors4(unit).flatMap((c) => {
-    const t = tileOf(v, c);
-    return t?.state && STANDS_UP.has(t.state) && t.hits > 0 ? [t] : [];
-  });
-  const plate = plates.length === 1 ? plates[0] : undefined;
-  if (plate && plate.hits > 1) plate.hits--;
+/** A crush against a plate wears it. */
+function wearPlateAt(v: BoardView, at: Coord): void {
+  const t = tileOf(v, at);
+  if (t?.state && STANDS_UP.has(t.state) && t.hits > 1) t.hits--;
 }
 
 /** Round-end decay as the engine logs it: a layer at its last round, a worn-out plate, a shackle's last round. */
@@ -425,25 +399,28 @@ const nextLineage = (v: BoardView): number =>
 
 /**
  * Applies one event to a copy of the view. Patches what the event states, and what the engine does
- * silently around it that the log makes certain (a burst's fire, a plate's wear, a hold's countdown);
+ * silently around it that the log makes certain (a burst's fire, a hold's countdown);
  * a few silent counters (a cloud's rounds with a gift) catch up when the view snaps to the engine
- * state at the end. `end` is that final view: it supplies what an event doesn't carry, a sealed
- * jar's contents peek. Every event in the union is named here, so a new one fails to compile until
+ * state at the end. Every event in the union is named here, so a new one fails to compile until
  * it is considered.
  */
-export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): BoardView {
+export function projectWith(view: BoardView, e: GameEvent): BoardView {
   const v = cloneView(view);
   switch (e.type) {
     case 'moved':
+    case 'push':
+    case 'swapped':
+    case 'drift':
+      for (const r of relocations(e)) {
+        patchUnit(v, r.unit.id, (u) => {
+          u.pos = { ...r.to };
+        });
+      }
+      if (e.type === 'drift') driftTiles(v, e.floats);
+      break;
     case 'moveUndone':
       patchUnit(v, e.unit.id, (u) => {
         u.pos = { ...e.to };
-      });
-      break;
-    case 'push':
-      patchUnit(v, e.unit.id, (u) => {
-        const last = e.path[e.path.length - 1];
-        if (last) u.pos = { ...last };
       });
       break;
     case 'damage':
@@ -597,17 +574,11 @@ export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): Boa
       break;
     case 'held':
       patchUnit(v, e.unit.id, (u) => {
-        if (u.held === 0) u.held = ACTIONS.holdRounds;
+        u.held = Math.max(u.held, e.rounds);
       });
       break;
-    case 'swapped': {
-      const a = v.units.find((x) => x.id === e.a.id);
-      const b = v.units.find((x) => x.id === e.b.id);
-      if (a && b) [a.pos, b.pos] = [b.pos, a.pos];
-      break;
-    }
     case 'crush':
-      if (e.into === 'plate') wearBesideUnit(v, e.unit.at);
+      if (e.into === 'plate') wearPlateAt(v, e.at);
       break;
     case 'drawn': {
       const from = tileOf(v, e.from);
@@ -648,7 +619,7 @@ export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): Boa
         t.jar = {
           owner: e.owner.id,
           event: e.event,
-          peek: (end && tileOf(end, e.at)?.jar?.peek) || null,
+          peek: e.peek,
         };
       }
       break;
@@ -661,14 +632,6 @@ export function projectWith(view: BoardView, e: GameEvent, end?: BoardView): Boa
     }
     case 'burst':
       burstEffects(v, e);
-      break;
-    case 'drift':
-      driftTiles(v, e.floats);
-      for (const m of e.units) {
-        patchUnit(v, m.unit.id, (u) => {
-          u.pos = { ...m.to };
-        });
-      }
       break;
     case 'gateBurns': {
       const t = tileOf(v, e.at);

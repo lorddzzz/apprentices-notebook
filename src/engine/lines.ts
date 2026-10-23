@@ -35,7 +35,7 @@ function landingOf(e: GameEvent): Coord | null {
     case 'conducted':
       return null;
     case 'swapped':
-      return e.b.at;
+      return e.with.at;
     case 'damage':
     case 'crush':
     case 'stunned':

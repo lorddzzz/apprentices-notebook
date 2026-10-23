@@ -19,7 +19,14 @@ export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   const reach = reachable(ctx.s, m, m.move).get(key(to));
   if (!reach) throw new Error(`${m.name} can't reach ${to.x},${to.y}`);
   const from = m.pos;
-  emit(ctx, { type: 'moved', unit: ref(m), to: { ...to }, path: reach.path });
+  emit(ctx, {
+    type: 'moved',
+    unit: ref(m),
+    from: { ...from },
+    to: { ...to },
+    path: reach.path,
+    cause: 'walk',
+  });
   m.moved = true;
   m.lastMove = lastStepDir(from, reach.path);
   m.undo = { from };
@@ -69,7 +76,14 @@ export function enemyWalk(ctx: Ctx, e: EnemyUnit, path: readonly Coord[]): void 
   const end = path[path.length - 1];
   if (!end) return;
   const start = { ...e.pos };
-  emit(ctx, { type: 'moved', unit: ref(e), to: { ...end }, path: path.map((c) => ({ ...c })) });
+  emit(ctx, {
+    type: 'moved',
+    unit: ref(e),
+    from: start,
+    to: { ...end },
+    path: path.map((c) => ({ ...c })),
+    cause: 'walk',
+  });
   e.lastMove = lastStepDir(start, path);
   if (ENEMIES[e.def].oilTrail) leaveSlick(ctx, [start, ...path]);
   arrive(ctx, e.id, path, { cause: 'walk', origin: null, landing: true });

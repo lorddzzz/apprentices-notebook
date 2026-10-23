@@ -22,10 +22,27 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   lost: [[{ type: 'lost' }, 'The party is wiped out']],
   moved: [
     [
-      { type: 'moved', unit: stoker, to: at(1, 6), path: [at(3, 6), at(2, 6), at(1, 6)] },
+      {
+        type: 'moved',
+        unit: stoker,
+        from: stoker.at,
+        to: at(1, 6),
+        path: [at(3, 6), at(2, 6), at(1, 6)],
+        cause: 'walk',
+      },
       'Stoker moves to B7',
     ],
-    [{ type: 'moved', unit: rat, to: at(3, 1), path: [at(3, 1)] }, 'rat at C2 moves to D2'],
+    [
+      {
+        type: 'moved',
+        unit: rat,
+        from: rat.at,
+        to: at(3, 1),
+        path: [at(3, 1)],
+        cause: 'walk',
+      },
+      'rat at C2 moves to D2',
+    ],
   ],
   moveUndone: [
     [{ type: 'moveUndone', unit: draughtsman, to: at(0, 0) }, 'Draughtsman steps back to A1'],
@@ -95,7 +112,7 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
       {
         type: 'drift',
         floats: [{ from: at(0, 0), to: at(1, 0) }],
-        units: [{ unit: rat, from: at(2, 1), to: at(3, 1) }],
+        units: [{ unit: rat, from: at(2, 1), to: at(3, 1), path: [at(3, 1)], cause: 'drift' }],
       },
       'the current carries A1 → B1; rat at C2 drifts to D2',
     ],
@@ -155,24 +172,46 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   ],
   push: [
     [
-      { type: 'push', unit: rat, dir: 'right', path: [at(3, 1), at(4, 1)], slid: 1 },
+      {
+        type: 'push',
+        unit: rat,
+        from: rat.at,
+        to: at(4, 1),
+        path: [at(3, 1), at(4, 1)],
+        cause: 'push',
+        dir: 'right',
+        slid: 1,
+      },
       'rat at C2 is pushed right to E2 (slides 1)',
     ],
   ],
   crush: [
     [
-      { type: 'crush', unit: rat, into: 'wall', damage: 2 },
+      { type: 'crush', unit: rat, into: 'wall', damage: 2, at: at(5, 1), dir: 'right' },
       'rat at C2 is crushed against the wall for 2',
     ],
     [
-      { type: 'crush', unit: rat, into: sentry, damage: 1 },
+      { type: 'crush', unit: rat, into: sentry, damage: 1, at: at(5, 1), dir: 'right' },
       'rat at C2 is crushed against sentry at A1 for 1',
     ],
   ],
   dropped: [[{ type: 'dropped', unit: rat, at: at(2, 2), elite: false }, 'rat at C2 drops at C3']],
   stunned: [[{ type: 'stunned', unit: sentry }, 'sentry at A1 is stunned']],
-  held: [[{ type: 'held', unit: rat }, 'rat at C2 is held']],
-  swapped: [[{ type: 'swapped', a: stoker, b: rat }, 'Stoker and rat at C2 swap places']],
+  held: [[{ type: 'held', unit: rat, rounds: 1 }, 'rat at C2 is held']],
+  swapped: [
+    [
+      {
+        type: 'swapped',
+        unit: stoker,
+        with: rat,
+        from: stoker.at,
+        to: rat.at,
+        path: [rat.at],
+        cause: 'swap',
+      },
+      'Stoker and rat at C2 swap places',
+    ],
+  ],
   drawn: [
     [
       { type: 'drawn', from: at(0, 0), to: at(1, 0), what: 'slick' },
@@ -209,7 +248,7 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   ],
   jarSealed: [
     [
-      { type: 'jarSealed', at: at(1, 1), owner: draughtsman, event: 'dusk' },
+      { type: 'jarSealed', at: at(1, 1), owner: draughtsman, event: 'dusk', id: 1, peek: null },
       'Draughtsman seals a jar at B2 (opens at dusk)',
     ],
   ],

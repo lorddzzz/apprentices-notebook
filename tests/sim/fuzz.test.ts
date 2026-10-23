@@ -151,7 +151,7 @@ for (let seed = 1; seed <= METHOD_IDS.length * SOLVENT_IDS.length * 2; seed++) {
           expect(result.events.length).toBeLessThanOrEqual(CAST_EVENT_CAP + 4);
         const want = viewOf(result.state);
         const projected = result.events.reduce(
-          (v, e) => (isSilent(e) ? v : projectWith(v, e, want)),
+          (v, e) => (isSilent(e) ? v : projectWith(v, e)),
           before,
         );
         expect(visible(projected)).toEqual(visible(want));

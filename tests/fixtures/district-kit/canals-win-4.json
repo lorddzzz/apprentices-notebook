@@ -111,8 +111,10 @@
             "at": { "x": 4, "y": 6 },
             "member": true
           },
+          "from": { "x": 4, "y": 6 },
           "to": { "x": 2, "y": 5 },
-          "path": [{ "x": 4, "y": 5 }, { "x": 3, "y": 5 }, { "x": 2, "y": 5 }]
+          "path": [{ "x": 4, "y": 5 }, { "x": 3, "y": 5 }, { "x": 2, "y": 5 }],
+          "cause": "walk"
         },
         {
           "type": "cast",
@@ -204,8 +206,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
+          "from": { "x": 1, "y": 4 },
           "to": { "x": 1, "y": 6 },
-          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 6 }]
+          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 6 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         { "type": "round", "round": 2 },
@@ -459,14 +463,18 @@
             "at": { "x": 2, "y": 2 },
             "member": true
           },
+          "from": { "x": 2, "y": 2 },
           "to": { "x": 1, "y": 1 },
-          "path": [{ "x": 2, "y": 1 }, { "x": 1, "y": 1 }]
+          "path": [{ "x": 2, "y": 1 }, { "x": 1, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 6 }, "member": true },
+          "from": { "x": 4, "y": 6 },
           "to": { "x": 4, "y": 4 },
-          "path": [{ "x": 4, "y": 5 }, { "x": 4, "y": 4 }]
+          "path": [{ "x": 4, "y": 5 }, { "x": 4, "y": 4 }],
+          "cause": "walk"
         },
         {
           "type": "cast",
@@ -568,7 +576,9 @@
                 "member": true
               },
               "from": { "x": 4, "y": 4 },
-              "to": { "x": 3, "y": 4 }
+              "to": { "x": 3, "y": 4 },
+              "path": [{ "x": 3, "y": 4 }],
+              "cause": "drift"
             }
           ]
         },
@@ -582,8 +592,10 @@
             "at": { "x": 0, "y": 1 },
             "member": false
           },
+          "from": { "x": 0, "y": 1 },
           "to": { "x": 2, "y": 2 },
-          "path": [{ "x": 0, "y": 2 }, { "x": 1, "y": 2 }, { "x": 2, "y": 2 }]
+          "path": [{ "x": 0, "y": 2 }, { "x": 1, "y": 2 }, { "x": 2, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "idle",
@@ -598,8 +610,10 @@
             "at": { "x": 1, "y": 1 },
             "member": true
           },
+          "from": { "x": 1, "y": 1 },
           "to": { "x": 2, "y": 0 },
-          "path": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }]
+          "path": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "cast",
@@ -804,8 +818,10 @@
             "at": { "x": 3, "y": 6 },
             "member": true
           },
+          "from": { "x": 3, "y": 6 },
           "to": { "x": 5, "y": 5 },
-          "path": [{ "x": 3, "y": 5 }, { "x": 4, "y": 5 }, { "x": 5, "y": 5 }]
+          "path": [{ "x": 3, "y": 5 }, { "x": 4, "y": 5 }, { "x": 5, "y": 5 }],
+          "cause": "walk"
         },
         {
           "type": "cast",
@@ -906,8 +922,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 6 }, "member": true },
+          "from": { "x": 0, "y": 6 },
           "to": { "x": 0, "y": 4 },
-          "path": [{ "x": 0, "y": 5 }, { "x": 0, "y": 4 }]
+          "path": [{ "x": 0, "y": 5 }, { "x": 0, "y": 4 }],
+          "cause": "walk"
         },
         {
           "type": "cast",
@@ -1012,8 +1030,10 @@
             "at": { "x": 4, "y": 0 },
             "member": false
           },
+          "from": { "x": 4, "y": 0 },
           "to": { "x": 5, "y": 0 },
-          "path": [{ "x": 5, "y": 0 }]
+          "path": [{ "x": 5, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "idle",
@@ -1033,14 +1053,18 @@
             "at": { "x": 5, "y": 5 },
             "member": true
           },
+          "from": { "x": 5, "y": 5 },
           "to": { "x": 5, "y": 2 },
-          "path": [{ "x": 5, "y": 4 }, { "x": 5, "y": 3 }, { "x": 5, "y": 2 }]
+          "path": [{ "x": 5, "y": 4 }, { "x": 5, "y": 3 }, { "x": 5, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "from": { "x": 0, "y": 4 },
           "to": { "x": 0, "y": 1 },
-          "path": [{ "x": 0, "y": 3 }, { "x": 0, "y": 2 }, { "x": 0, "y": 1 }]
+          "path": [{ "x": 0, "y": 3 }, { "x": 0, "y": 2 }, { "x": 0, "y": 1 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -1059,8 +1083,10 @@
             "at": { "x": 5, "y": 0 },
             "member": false
           },
+          "from": { "x": 5, "y": 0 },
           "to": { "x": 5, "y": 1 },
-          "path": [{ "x": 5, "y": 1 }]
+          "path": [{ "x": 5, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -1082,8 +1108,10 @@
             "at": { "x": 5, "y": 2 },
             "member": true
           },
+          "from": { "x": 5, "y": 2 },
           "to": { "x": 4, "y": 1 },
-          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 1 }]
+          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -1111,6 +1139,8 @@
           },
           "into": "wall",
           "damage": 1,
+          "at": { "x": 6, "y": 1 },
+          "dir": "right",
           "line": "shove:edge"
         },
         {
@@ -1130,8 +1160,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 1 }, "member": true },
+          "from": { "x": 0, "y": 1 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
+          "path": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -1186,6 +1218,8 @@
           },
           "into": "wall",
           "damage": 1,
+          "at": { "x": 6, "y": 1 },
+          "dir": "right",
           "line": "shove:edge"
         },
         {
@@ -1210,8 +1244,10 @@
             "at": { "x": 4, "y": 1 },
             "member": true
           },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 5, "y": 0 },
-          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }]
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "cast",
@@ -1413,8 +1449,10 @@
             "at": { "x": 5, "y": 3 },
             "member": true
           },
+          "from": { "x": 5, "y": 3 },
           "to": { "x": 4, "y": 3 },
-          "path": [{ "x": 4, "y": 3 }]
+          "path": [{ "x": 4, "y": 3 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -1431,7 +1469,9 @@
           "type": "crush",
           "unit": { "id": "eel-1", "name": "eel", "at": { "x": 3, "y": 3 }, "member": false },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 2, "y": 3 },
+          "dir": "left"
         },
         {
           "type": "damage",
@@ -1531,8 +1571,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "from": { "x": 0, "y": 4 },
           "to": { "x": 2, "y": 3 },
-          "path": [{ "x": 0, "y": 3 }, { "x": 1, "y": 3 }, { "x": 2, "y": 3 }]
+          "path": [{ "x": 0, "y": 3 }, { "x": 1, "y": 3 }, { "x": 2, "y": 3 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         { "type": "round", "round": 2 },
@@ -1545,8 +1587,10 @@
             "at": { "x": 1, "y": 0 },
             "member": false
           },
+          "from": { "x": 1, "y": 0 },
           "to": { "x": 2, "y": 0 },
-          "path": [{ "x": 2, "y": 0 }]
+          "path": [{ "x": 2, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "idle",
@@ -1571,8 +1615,10 @@
             "at": { "x": 5, "y": 5 },
             "member": false
           },
+          "from": { "x": 5, "y": 5 },
           "to": { "x": 3, "y": 4 },
-          "path": [{ "x": 5, "y": 4 }, { "x": 4, "y": 4 }, { "x": 3, "y": 4 }]
+          "path": [{ "x": 5, "y": 4 }, { "x": 4, "y": 4 }, { "x": 3, "y": 4 }],
+          "cause": "walk"
         },
         {
           "type": "idle",
@@ -1594,7 +1640,9 @@
           "type": "crush",
           "unit": { "id": "eel-1", "name": "eel", "at": { "x": 3, "y": 3 }, "member": false },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 2, "y": 3 },
+          "dir": "left"
         },
         {
           "type": "damage",
@@ -1612,8 +1660,10 @@
             "at": { "x": 4, "y": 3 },
             "member": true
           },
+          "from": { "x": 4, "y": 3 },
           "to": { "x": 3, "y": 2 },
-          "path": [{ "x": 4, "y": 2 }, { "x": 3, "y": 2 }]
+          "path": [{ "x": 4, "y": 2 }, { "x": 3, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -1625,7 +1675,9 @@
           "type": "crush",
           "unit": { "id": "eel-1", "name": "eel", "at": { "x": 3, "y": 3 }, "member": false },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 4, "y": 3 },
+          "dir": "right"
         },
         {
           "type": "damage",
@@ -1642,8 +1694,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 3 }, "member": true },
+          "from": { "x": 2, "y": 3 },
           "to": { "x": 2, "y": 1 },
-          "path": [{ "x": 2, "y": 2 }, { "x": 2, "y": 1 }]
+          "path": [{ "x": 2, "y": 2 }, { "x": 2, "y": 1 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -1658,7 +1712,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 2 },
-              "to": { "x": 3, "y": 1 }
+              "to": { "x": 3, "y": 1 },
+              "path": [{ "x": 3, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -1684,8 +1740,10 @@
             "at": { "x": 3, "y": 4 },
             "member": false
           },
+          "from": { "x": 3, "y": 4 },
           "to": { "x": 3, "y": 2 },
-          "path": [{ "x": 3, "y": 3 }, { "x": 3, "y": 2 }]
+          "path": [{ "x": 3, "y": 3 }, { "x": 3, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -1707,8 +1765,10 @@
             "at": { "x": 3, "y": 1 },
             "member": true
           },
+          "from": { "x": 3, "y": 1 },
           "to": { "x": 3, "y": 0 },
-          "path": [{ "x": 3, "y": 0 }]
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -1731,6 +1791,8 @@
           },
           "into": "wall",
           "damage": 1,
+          "at": { "x": 2, "y": -1 },
+          "dir": "up",
           "line": "shove:edge"
         },
         {
@@ -1750,8 +1812,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
           "to": { "x": 1, "y": 0 },
-          "path": [{ "x": 1, "y": 1 }, { "x": 1, "y": 0 }]
+          "path": [{ "x": 1, "y": 1 }, { "x": 1, "y": 0 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -1802,8 +1866,10 @@
             "at": { "x": 3, "y": 0 },
             "member": true
           },
+          "from": { "x": 3, "y": 0 },
           "to": { "x": 2, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }, { "x": 2, "y": 1 }]
+          "path": [{ "x": 3, "y": 1 }, { "x": 2, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -1831,6 +1897,8 @@
           },
           "into": "wall",
           "damage": 1,
+          "at": { "x": 2, "y": -1 },
+          "dir": "up",
           "line": "shove:edge"
         },
         {
@@ -2019,8 +2087,10 @@
             "at": { "x": 1, "y": 6 },
             "member": true
           },
+          "from": { "x": 1, "y": 6 },
           "to": { "x": 1, "y": 3 },
-          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }, { "x": 1, "y": 3 }]
+          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }, { "x": 1, "y": 3 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2048,6 +2118,8 @@
           },
           "into": "wall",
           "damage": 1,
+          "at": { "x": -1, "y": 3 },
+          "dir": "left",
           "line": "shove:edge"
         },
         {
@@ -2067,8 +2139,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
           "to": { "x": 4, "y": 2 },
-          "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }, { "x": 4, "y": 2 }]
+          "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2090,7 +2164,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 2, "y": 2 },
+          "dir": "left"
         },
         {
           "type": "damage",
@@ -2134,7 +2210,9 @@
                 "member": true
               },
               "from": { "x": 4, "y": 2 },
-              "to": { "x": 4, "y": 3 }
+              "to": { "x": 4, "y": 3 },
+              "path": [{ "x": 4, "y": 3 }],
+              "cause": "drift"
             },
             {
               "unit": {
@@ -2144,7 +2222,9 @@
                 "member": true
               },
               "from": { "x": 1, "y": 3 },
-              "to": { "x": 1, "y": 2 }
+              "to": { "x": 1, "y": 2 },
+              "path": [{ "x": 1, "y": 2 }],
+              "cause": "drift"
             }
           ]
         },
@@ -2180,8 +2260,10 @@
             "at": { "x": 0, "y": 3 },
             "member": false
           },
+          "from": { "x": 0, "y": 3 },
           "to": { "x": 0, "y": 2 },
-          "path": [{ "x": 0, "y": 2 }]
+          "path": [{ "x": 0, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -2202,8 +2284,10 @@
             "at": { "x": 0, "y": 7 },
             "member": false
           },
+          "from": { "x": 0, "y": 7 },
           "to": { "x": 0, "y": 4 },
-          "path": [{ "x": 0, "y": 6 }, { "x": 0, "y": 5 }, { "x": 0, "y": 4 }]
+          "path": [{ "x": 0, "y": 6 }, { "x": 0, "y": 5 }, { "x": 0, "y": 4 }],
+          "cause": "walk"
         },
         {
           "type": "idle",
@@ -2241,6 +2325,8 @@
             "member": false
           },
           "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "right",
           "line": "shove:unit"
         },
         {
@@ -2328,14 +2414,18 @@
             "at": { "x": 1, "y": 2 },
             "member": true
           },
+          "from": { "x": 1, "y": 2 },
           "to": { "x": 0, "y": 1 },
-          "path": [{ "x": 1, "y": 1 }, { "x": 0, "y": 1 }]
+          "path": [{ "x": 1, "y": 1 }, { "x": 0, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 3 }, "member": true },
+          "from": { "x": 4, "y": 3 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 1 }, { "x": 3, "y": 1 }]
+          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 1 }, { "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2357,7 +2447,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -2413,7 +2505,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 1 },
-              "to": { "x": 4, "y": 1 }
+              "to": { "x": 4, "y": 1 },
+              "path": [{ "x": 4, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -2449,8 +2543,10 @@
             "at": { "x": 0, "y": 4 },
             "member": false
           },
+          "from": { "x": 0, "y": 4 },
           "to": { "x": 1, "y": 2 },
-          "path": [{ "x": 0, "y": 3 }, { "x": 1, "y": 3 }, { "x": 1, "y": 2 }]
+          "path": [{ "x": 0, "y": 3 }, { "x": 1, "y": 3 }, { "x": 1, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "idle",
@@ -2476,8 +2572,10 @@
             "at": { "x": 0, "y": 1 },
             "member": true
           },
+          "from": { "x": 0, "y": 1 },
           "to": { "x": 2, "y": 2 },
-          "path": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 2, "y": 2 }]
+          "path": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 2, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2510,6 +2608,8 @@
             "member": false
           },
           "damage": 1,
+          "at": { "x": 0, "y": 2 },
+          "dir": "left",
           "line": "shove:unit"
         },
         {
@@ -2592,8 +2692,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }]
+          "path": [{ "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2615,7 +2717,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -2678,7 +2782,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 1 },
-              "to": { "x": 4, "y": 1 }
+              "to": { "x": 4, "y": 1 },
+              "path": [{ "x": 4, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -2703,8 +2809,10 @@
             "at": { "x": 0, "y": 2 },
             "member": false
           },
+          "from": { "x": 0, "y": 2 },
           "to": { "x": 1, "y": 2 },
-          "path": [{ "x": 1, "y": 2 }]
+          "path": [{ "x": 1, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -2743,7 +2851,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "right"
         },
         {
           "type": "damage",
@@ -2766,14 +2876,18 @@
             "at": { "x": 2, "y": 2 },
             "member": true
           },
+          "from": { "x": 2, "y": 2 },
           "to": { "x": 1, "y": 1 },
-          "path": [{ "x": 2, "y": 1 }, { "x": 1, "y": 1 }]
+          "path": [{ "x": 2, "y": 1 }, { "x": 1, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }]
+          "path": [{ "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2795,7 +2909,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -2851,7 +2967,9 @@
                 "member": false
               },
               "from": { "x": 1, "y": 2 },
-              "to": { "x": 1, "y": 1 }
+              "to": { "x": 1, "y": 1 },
+              "path": [{ "x": 1, "y": 1 }],
+              "cause": "drift"
             },
             {
               "unit": {
@@ -2861,7 +2979,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 1 },
-              "to": { "x": 4, "y": 1 }
+              "to": { "x": 4, "y": 1 },
+              "path": [{ "x": 4, "y": 1 }],
+              "cause": "drift"
             },
             {
               "unit": {
@@ -2871,7 +2991,9 @@
                 "member": true
               },
               "from": { "x": 1, "y": 1 },
-              "to": { "x": 2, "y": 1 }
+              "to": { "x": 2, "y": 1 },
+              "path": [{ "x": 2, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -2905,8 +3027,10 @@
             "at": { "x": 5, "y": 0 },
             "member": false
           },
+          "from": { "x": 5, "y": 0 },
           "to": { "x": 4, "y": 0 },
-          "path": [{ "x": 4, "y": 0 }]
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -2928,8 +3052,10 @@
             "at": { "x": 2, "y": 1 },
             "member": true
           },
+          "from": { "x": 2, "y": 1 },
           "to": { "x": 1, "y": 0 },
-          "path": [{ "x": 2, "y": 0 }, { "x": 1, "y": 0 }]
+          "path": [{ "x": 2, "y": 0 }, { "x": 1, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -2987,8 +3113,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }]
+          "path": [{ "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -3010,7 +3138,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -3052,7 +3182,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 1 },
-              "to": { "x": 4, "y": 1 }
+              "to": { "x": 4, "y": 1 },
+              "path": [{ "x": 4, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -3078,8 +3210,10 @@
             "at": { "x": 1, "y": 0 },
             "member": true
           },
+          "from": { "x": 1, "y": 0 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 3, "y": 1 }]
+          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -3106,7 +3240,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -3124,8 +3260,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 4, "y": 2 },
-          "path": [{ "x": 4, "y": 2 }]
+          "path": [{ "x": 4, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -3147,7 +3285,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 2, "y": 2 },
+          "dir": "left"
         },
         {
           "type": "damage",
@@ -3184,7 +3324,9 @@
                 "member": true
               },
               "from": { "x": 4, "y": 2 },
-              "to": { "x": 4, "y": 3 }
+              "to": { "x": 4, "y": 3 },
+              "path": [{ "x": 4, "y": 3 }],
+              "cause": "drift"
             },
             {
               "unit": {
@@ -3194,7 +3336,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 1 },
-              "to": { "x": 4, "y": 1 }
+              "to": { "x": 4, "y": 1 },
+              "path": [{ "x": 4, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -3220,8 +3364,10 @@
             "at": { "x": 4, "y": 1 },
             "member": true
           },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }]
+          "path": [{ "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -3248,7 +3394,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -3266,8 +3414,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 3 }, "member": true },
+          "from": { "x": 4, "y": 3 },
           "to": { "x": 2, "y": 2 },
-          "path": [{ "x": 3, "y": 3 }, { "x": 2, "y": 3 }, { "x": 2, "y": 2 }]
+          "path": [{ "x": 3, "y": 3 }, { "x": 2, "y": 3 }, { "x": 2, "y": 2 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -3289,7 +3439,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "right"
         },
         {
           "type": "damage",
@@ -3333,7 +3485,9 @@
                 "member": true
               },
               "from": { "x": 3, "y": 1 },
-              "to": { "x": 4, "y": 1 }
+              "to": { "x": 4, "y": 1 },
+              "path": [{ "x": 4, "y": 1 }],
+              "cause": "drift"
             }
           ]
         },
@@ -3356,8 +3510,10 @@
             "at": { "x": 5, "y": 0 },
             "member": false
           },
+          "from": { "x": 5, "y": 0 },
           "to": { "x": 4, "y": 0 },
-          "path": [{ "x": 4, "y": 0 }]
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
         },
         {
           "type": "telegraph",
@@ -3379,8 +3535,10 @@
             "at": { "x": 4, "y": 1 },
             "member": true
           },
+          "from": { "x": 4, "y": 1 },
           "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }]
+          "path": [{ "x": 3, "y": 1 }],
+          "cause": "walk"
         },
         {
           "type": "shove",
@@ -3407,7 +3565,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 3, "y": 3 },
+          "dir": "down"
         },
         {
           "type": "damage",
@@ -3442,7 +3602,9 @@
             "member": false
           },
           "into": "wall",
-          "damage": 1
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "right"
         },
         {
           "type": "damage",
@@ -3469,8 +3631,10 @@
         {
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 2 }, "member": true },
+          "from": { "x": 2, "y": 2 },
           "to": { "x": 3, "y": 0 },
-          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }]
+          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+          "cause": "walk"
         },
         { "type": "phase", "phase": "resolve" },
         {

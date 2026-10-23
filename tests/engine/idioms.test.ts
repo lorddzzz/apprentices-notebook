@@ -170,6 +170,16 @@ describe('patterns without a live path yet', () => {
   const s = board('D r . .');
   const a = ref(unitAtLabel(s, 'A1'));
   const b = ref(unitAtLabel(s, 'B1'));
+  const swapped = (x: typeof a, y: typeof b, origin?: GameEvent['origin']): GameEvent => ({
+    type: 'swapped',
+    unit: x,
+    with: y,
+    from: x.at,
+    to: y.at,
+    path: [y.at],
+    cause: 'swap',
+    origin,
+  });
   const burst = (tiles: string[]): GameEvent => ({
     type: 'burst',
     burst: 'fire',
@@ -179,10 +189,10 @@ describe('patterns without a live path yet', () => {
   });
 
   test('redraft: a Swap lands something where a later burst goes off', () => {
-    const log: GameEvent[] = [{ type: 'swapped', a, b, origin: ORIGIN }, burst(['A1'])];
+    const log: GameEvent[] = [swapped(a, b, ORIGIN), burst(['A1'])];
     expect(hits(log, s)).toEqual([{ id: 'redraft', origin: ORIGIN }]);
-    expect(hits([burst(['A1']), { type: 'swapped', a, b }], s)).toEqual([]);
-    expect(hits([{ type: 'swapped', a, b }, burst(['D1'])], s)).toEqual([]);
+    expect(hits([burst(['A1']), swapped(a, b)], s)).toEqual([]);
+    expect(hits([swapped(a, b), burst(['D1'])], s)).toEqual([]);
   });
 
   test('redraft: a Draw counts too', () => {

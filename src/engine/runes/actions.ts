@@ -91,7 +91,7 @@ const hold: Handler = (ctx, t, flow) => {
   const rounds = ACTIONS.holdRounds + roundBonus('hold', flow);
   maybeLine(ctx, u.held > 0 ? 'hold:held' : null, () => {
     u.held = Math.max(u.held, rounds);
-    emit(ctx, { type: 'held', unit: ref(u) });
+    emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
   });
 };
 
@@ -101,7 +101,9 @@ const swap: Handler = (ctx, t, flow) => {
   if (!u || u.id === caster.id || caster.hp <= 0) return;
   const blocked = [caster, u].find((x) => x.held > 0);
   if (blocked) {
-    withLine(ctx, 'swap:held', () => emit(ctx, { type: 'held', unit: ref(blocked) }));
+    withLine(ctx, 'swap:held', () =>
+      emit(ctx, { type: 'held', unit: ref(blocked), rounds: blocked.held }),
+    );
     return;
   }
   // An anchored unit never moves (P5, party §1); the Swap rune still trades places with fliers.
@@ -109,9 +111,17 @@ const swap: Handler = (ctx, t, flow) => {
     emit(ctx, { type: 'miss', source: RUNES.swap.name });
     return;
   }
-  emit(ctx, { type: 'swapped', a: ref(caster), b: ref(u) });
   const a = { ...caster.pos };
   const b = { ...u.pos };
+  emit(ctx, {
+    type: 'swapped',
+    unit: ref(caster),
+    with: ref(u),
+    from: a,
+    to: b,
+    path: [{ ...b }],
+    cause: 'swap',
+  });
   // Both are lifted and set down, then arrive: the caster first, then the target (P4).
   relocateAll(
     ctx,

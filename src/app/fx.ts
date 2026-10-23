@@ -206,8 +206,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'float', at: e.unit.at, text: 'held', tone: 'shield' }];
     case 'swapped':
       return [
-        { kind: 'trail', cells: [e.a.at, e.b.at], tone: 'member' },
-        { kind: 'trail', cells: [e.b.at, e.a.at], tone: 'member' },
+        { kind: 'trail', cells: [e.from, e.to], tone: 'member' },
+        { kind: 'trail', cells: [e.to, e.from], tone: 'member' },
       ];
     case 'drawn':
       return [{ kind: 'trail', cells: [e.from, e.to], tone: 'source' }];

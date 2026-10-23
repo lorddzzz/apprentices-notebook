@@ -14,16 +14,13 @@ export interface Step {
 
 /**
  * One step per event. `scale` < 1 is reduced motion: shorter steps, no trails. `lead` adds effects
- * to the first step that the events alone can't show (a Bolt's flight when it hits a unit). `end`
- * is the view of the engine's final state: it fills in what an event doesn't carry (a sealed
- * jar's contents peek) and may be left out.
+ * to the first step that the events alone can't show (a Bolt's flight when it hits a unit).
  */
 export function buildSteps(
   start: BoardView,
   events: readonly GameEvent[],
   scale = 1,
   lead: readonly Fx[] = [],
-  end?: BoardView,
 ): Step[] {
   const steps: Step[] = [];
   let view = start;
@@ -32,7 +29,7 @@ export function buildSteps(
     const fx = [...fxFor(event, view), ...(i === 0 ? lead : [])].filter(
       (f) => scale >= 1 || (f.kind !== 'trail' && f.kind !== 'slide'),
     );
-    view = projectWith(view, event, end);
+    view = projectWith(view, event);
     steps.push({
       event,
       line: describe(event) ?? '',
