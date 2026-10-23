@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import { DISTRICTS, ENCOUNTERS, ENEMIES, type EnemyId } from '$data';
 import {
   beginEncounter,
-  type EnemyUnit,
   neighbors4,
   newProfile,
   parseBoard,
@@ -107,12 +106,17 @@ describe('beginEncounter builds the chosen variant', () => {
       const t0 = startTrip(p, seed);
       ENCOUNTERS.forEach((enc, depth) => {
         const t = { ...t0, encounter: depth };
-        const layout = enc.variants[variantFor(t, depth)]?.layout ?? '';
-        const want = parseBoard(layout).units.map((u) => `${u.def}@${u.at.x},${u.at.y}`);
-        const got = beginEncounter(p, t)
-          .state.units.map((u) => `${u.def}@${u.pos.x},${u.pos.y}`)
-          .sort();
-        expect(got, `seed ${seed} depth ${depth + 1}`).toEqual(want.sort());
+        const board = parseBoard(enc.variants[variantFor(t, depth)]?.layout ?? '');
+        const want = board.units.map((u) => `${u.def}@${u.at.x},${u.at.y}`);
+        const units = beginEncounter(p, t).state.units;
+        const foes = units
+          .filter((u) => u.kind === 'enemy')
+          .map((u) => `${u.def}@${u.pos.x},${u.pos.y}`);
+        expect(foes.sort(), `seed ${seed} depth ${depth + 1}`).toEqual(want.sort());
+        // The party stands on the room's start points (HC P4).
+        const starts = board.starts.map((c) => `${c.x},${c.y}`);
+        for (const m of units.filter((u) => u.kind === 'member'))
+          expect(starts, `seed ${seed} depth ${depth + 1}`).toContain(`${m.pos.x},${m.pos.y}`);
       });
     }
   });
@@ -143,19 +147,23 @@ describe('encounter boards teach the district chemistry', () => {
 });
 
 describe('encounter 1 telegraphs on turn 1', () => {
-  test.each([0, 1, 2])("layout %i opens with a rat's bite aimed at a member", (variant) => {
-    const seed = seeds.find((s) => variantFor(startTrip(p, s), 0) === variant);
-    if (seed === undefined) throw new Error(`no seed picks variant ${variant}`);
-    const { state } = beginEncounter(p, startTrip(p, seed));
-    const threats = state.units.filter(
-      (u): u is EnemyUnit =>
-        u.kind === 'enemy' &&
-        u.hp > 0 &&
-        u.intent?.kind === 'attack' &&
-        unitAt(state, step(u.pos, u.intent.dir))?.kind === 'member',
-    );
-    expect(threats.length).toBeGreaterThanOrEqual(1);
-    expect(state.round).toBe(1);
-    expect(state.phase).toBe('player');
+  // HC P9: with drawn start points the turn-1 bite is best effort; CN/SM restore it when they
+  // re-lay the rooms. Every layout still shows it for some draws.
+  test.each([0, 1, 2])("layout %i opens with a rat's bite for some start draws", (variant) => {
+    const picks = seeds.filter((s) => variantFor(startTrip(p, s), 0) === variant);
+    if (picks.length === 0) throw new Error(`no seed picks variant ${variant}`);
+    const bites = picks.filter((seed) => {
+      const { state } = beginEncounter(p, startTrip(p, seed));
+      expect(state.round).toBe(1);
+      expect(state.phase).toBe('player');
+      return state.units.some(
+        (u) =>
+          u.kind === 'enemy' &&
+          u.hp > 0 &&
+          u.intent?.kind === 'attack' &&
+          unitAt(state, step(u.pos, u.intent.dir))?.kind === 'member',
+      );
+    });
+    expect(bites.length).toBeGreaterThanOrEqual(1);
   });
 });

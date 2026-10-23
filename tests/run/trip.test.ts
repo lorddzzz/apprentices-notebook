@@ -80,7 +80,7 @@ describe('start', () => {
     const c = beginEncounter(p, startTrip(p, SEED + 1));
     expect(c.state.rngState).not.toBe(a.state.rngState);
     const members = a.state.units.filter((u) => u.kind === 'member');
-    expect(members.map((m) => m.id)).toEqual(['draughtsman', 'stoker']);
+    expect(members.map((m) => m.id).sort()).toEqual(['draughtsman', 'stoker']);
   });
 
   test('beginEncounter does not change its inputs', () => {

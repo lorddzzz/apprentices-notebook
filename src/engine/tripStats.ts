@@ -1,4 +1,4 @@
-import { MEMBER_IDS, type MemberId } from '$data';
+import { APPRENTICE_IDS, isApprenticeId, type MemberId } from '$data';
 import { type EventLog, type GameEvent, namedIn } from './events';
 import { key as cellKey } from './grid';
 import { castOriginKey } from './profiler';
@@ -60,7 +60,7 @@ interface Segment {
   fired: CellKey[]; // the cells of this cast's `trace` (none for an echo)
 }
 
-const memberOf = (id: string): MemberId | null => MEMBER_IDS.find((m) => m === id) ?? null;
+const memberOf = (id: string): MemberId | null => (isApprenticeId(id) ? id : null);
 
 /** A spell's path cells as proof sees them, each once: a Glyph's inner cells are its socket (M15). */
 function pathCells(spell: Spell): CellKey[] {
@@ -92,7 +92,7 @@ export function accumulateStats(
   }));
   let biggest = stats.biggestChain ? { ...stats.biggestChain } : null;
   const proofCasts =
-    stats.proofCasts + MEMBER_IDS.reduce((n, m) => n + masksFrom(log, m).length, 0);
+    stats.proofCasts + APPRENTICE_IDS.reduce((n, m) => n + masksFrom(log, m).length, 0);
   const keyOf = new Map<string, SpellKey>(); // `${member}|${name}` → the key a trace last gave it
 
   const segments: Segment[] = [];

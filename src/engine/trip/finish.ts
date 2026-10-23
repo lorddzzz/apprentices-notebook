@@ -1,4 +1,4 @@
-import { type EnemyId, encountersOf, type LineId, MEMBER_IDS, type Meets, TUNING } from '$data';
+import { type EnemyId, encountersOf, type LineId, type Meets, TUNING } from '$data';
 import { hearAfterTrip, hearFromBattle, keyOffer } from '../city';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints } from '../footnotes';
@@ -99,8 +99,8 @@ export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profi
 
 /**
  * Closes a finished battle. Named results are kept either way (knowledge isn't loot).
- * Won: HP and charges carry over (a downed member returns at 1 HP) and loot is offered.
- * Wiped: the trip ends and its pending loot is lost. `log` is the whole fight's event log; it
+ * Won: HP and charges carry over for the party (a downed member returns at 1 HP) and loot is
+ * offered. Wiped (every party member down): the trip ends and its pending loot is lost. `log` is the whole fight's event log; it
  * feeds the trip's stats, returned either way so a wipe can still show the trip page.
  */
 export function finishEncounter(
@@ -113,7 +113,7 @@ export function finishEncounter(
   need(t, 'fight');
   if (b.phase === 'player') throw new Error('The battle is not over');
   // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
-  const fought = perMember((m) => compiledFor(foughtWith, m).spells);
+  const fought = perMember(t.party, (m) => compiledFor(foughtWith, m).spells);
   const stats = accumulateStats(t.stats, log, p, fought);
   const profile = learnFromFight(p, b, log);
   if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
@@ -123,14 +123,14 @@ export function finishEncounter(
   const trip: Trip = {
     ...t,
     status: 'looting',
-    hp: perMember((m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
-    charges: perMember((m) => ({ ...memberById(b, m).charges })),
+    hp: perMember(t.party, (m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
+    charges: perMember(t.party, (m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
     offers: rollOffers(
       t.seed,
       t.encounter,
       enc.loot,
-      MEMBER_IDS,
+      t.party,
       keyOffer(p, t, enc.loot),
       ownedBy(p, t),
     ),
@@ -184,6 +184,6 @@ export function recordTripCasts(p: Profile, t: Trip): Profile {
   } catch {
     return p;
   }
-  const proven = MEMBER_IDS.reduce((acc, m) => recordProof(acc, m, masksFrom(events, m)), p);
+  const proven = t.party.reduce((acc, m) => recordProof(acc, m, masksFrom(events, m)), p);
   return { ...proven, glyphRecords: recordGlyphCasts(p, events).glyphRecords };
 }

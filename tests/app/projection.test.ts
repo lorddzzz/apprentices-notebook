@@ -108,7 +108,12 @@ describe('projection matches engine state', () => {
 
   for (const enc of ENCOUNTERS) {
     test(`encounter ${enc.id}, idle party for 4 rounds`, () => {
-      const created = createBattle({ title: enc.title, board: enc.layout, seed: 7 });
+      const created = createBattle({
+        title: enc.title,
+        board: enc.layout,
+        seed: 7,
+        lineup: ['draughtsman', 'stoker'],
+      });
       let s = created.state;
       const actions: Action[] = [];
       for (let i = 0; i < 4 && s.phase === 'player'; i++) {

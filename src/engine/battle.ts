@@ -1,4 +1,5 @@
 import {
+  APPRENTICES,
   ATTACKS,
   DISTRICTS,
   type DistrictId,
@@ -206,6 +207,9 @@ export function createEncounterBattle(
   variant = 0,
   district: DistrictId = 'seam',
   inventions: InventionLibrary = {},
+  place: { lineup: readonly MemberId[]; startSeed?: number } = {
+    lineup: Object.keys(party) as MemberId[],
+  },
 ): ActionResult {
   const layout = enc.variants[variant]?.layout ?? enc.layout;
   const title = enc.variants[variant]?.name ?? enc.title;
@@ -216,6 +220,8 @@ export function createEncounterBattle(
     party,
     edge: DISTRICTS[district].edge,
     inventions,
+    lineup: place.lineup,
+    ...(place.startSeed === undefined ? {} : { startSeed: place.startSeed }),
   });
 }
 
@@ -238,6 +244,8 @@ export function isLegal(s: BattleState, action: Action): string | null {
     case 'undoMove':
       return canUndoMove(s, u.id) ? null : `${u.name} has no move to undo`;
     case 'shove':
+      // HC P14: only an apprentice whose basic action is Shove can shove.
+      if (APPRENTICES[u.def].action !== 'shove') return `${u.name} can't shove`;
       if (u.acted) return `${u.name} has already acted`;
       return unitAt(s, step(u.pos, action.dir)) ? null : `Nothing to shove ${action.dir}`;
     case 'cast': {

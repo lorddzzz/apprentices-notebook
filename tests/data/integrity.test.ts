@@ -18,7 +18,6 @@ import {
   RUNES,
   SOLVENT_IDS,
   START_KNOWN,
-  startLayout,
   TUNING,
 } from '$data';
 import { parseBoard, parseLattice } from '$engine';
@@ -144,12 +143,15 @@ test('dummy never in encounter layouts', () => {
   }
 });
 
-test('encounter layouts parse to 6x8 with D and S', () => {
+test('encounter layouts parse to 6x8 with start points and no fixed apprentice (HC P9)', () => {
   for (const v of VARIANTS) {
     const b = parseBoard(v.layout);
     expect([b.width, b.height], v.label).toEqual([TUNING.grid.width, TUNING.grid.height]);
-    const members = b.units.filter((u) => u.kind === 'member').map((u) => u.def);
-    expect(members.sort(), v.label).toEqual(['draughtsman', 'stoker']);
+    expect(
+      b.units.filter((u) => u.kind === 'member'),
+      v.label,
+    ).toEqual([]);
+    expect(b.starts.length, v.label).toBeGreaterThanOrEqual(4);
   }
 });
 
@@ -185,7 +187,7 @@ test('member start lattices match their shape (dims + holes)', () => {
   }
 });
 
-test('every room and threshold layout passes checkRoom in its start-point form', () => {
+test('every room layout passes checkRoom: start points (P) only, no apprentice tokens', () => {
   const rooms: [string, string][] = [];
   for (const e of Object.values(ENCOUNTERS)) {
     for (const v of e.variants) rooms.push([`${e.id}/${v.name}`, v.layout]);
@@ -194,11 +196,10 @@ test('every room and threshold layout passes checkRoom in its start-point form',
     for (const e of DISTRICTS[d].encounters) {
       for (const v of e.variants) rooms.push([`${d}/${e.id}/${v.name}`, v.layout]);
     }
-    const gate = DISTRICTS[d].gate;
-    if (gate.kind === 'threshold') rooms.push([`${d}/threshold`, gate.room.board]);
   }
   expect(rooms.length).toBeGreaterThanOrEqual(27);
   for (const [name, layout] of rooms) {
-    expect(checkRoom(startLayout(layout)), name).toEqual([]);
+    expect(checkRoom(layout), name).toEqual([]);
   }
+  // The canal lock still fields the pair on fixed tiles until HC-5 lays its start points (P10).
 });

@@ -1,27 +1,28 @@
-import {
-  DISTRICTS,
-  type DistrictId,
-  encountersOf,
-  MEMBER_IDS,
-  MEMBERS,
-  type MemberId,
-} from '$data';
+import { APPRENTICES, type ApprenticeId, DISTRICTS, type DistrictId, encountersOf } from '$data';
 import { applyAction, createEncounterBattle } from '../battle';
 import { footnoteIds } from '../footnotes';
+import { tripParty } from '../household';
 import { deriveSeed } from '../rng';
+import { startSeedFor } from '../rooms';
 import { compiledFor, inventionLibrary, validateLoadout } from '../run';
 import { emptyStats } from '../tripStats';
 import type { Action, ActionResult, PartyInit, Profile, SpellKey, Trip } from '../types';
 import { variantFor } from './place';
-import { need, perMember } from './shared';
+import { chargesLeftOf, hpOf, need, perMember } from './shared';
 
-export function chargesOf(p: Profile, m: MemberId): Record<SpellKey, number> {
+export function chargesOf(p: Profile, m: ApprenticeId): Record<SpellKey, number> {
   return Object.fromEntries(compiledFor(p, m).spells.map((sp) => [sp.key, sp.charges]));
 }
 
-/** A new trip into an open district with full HP and full charges. Throws if the loadout has issues. */
+/**
+ * A new trip into an open district with the slotted apprentices (1–3, slot order, HC-4) at full
+ * HP and full charges. Only their pages are checked; the bench may hold an unfinished one.
+ * Throws with nobody slotted or a party page that has issues.
+ */
 export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam'): Trip {
-  const issues = validateLoadout(p);
+  const party = tripParty(p);
+  if (party.length === 0) throw new Error('Nobody is in a trip slot');
+  const issues = validateLoadout(p, party);
   const first = Object.values(issues)[0]?.[0];
   if (first) throw new Error(`Loadout is not ready: ${first.message}`);
   if (!p.city.open.includes(district)) throw new Error(`${DISTRICTS[district].name} is not open`);
@@ -30,8 +31,9 @@ export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam
     seed,
     encounter: 0,
     status: 'fight',
-    hp: perMember((m) => MEMBERS[m].hp),
-    charges: perMember((m) => chargesOf(p, m)),
+    party,
+    hp: perMember(party, (m) => APPRENTICES[m].hp),
+    charges: perMember(party, (m) => chargesOf(p, m)),
     loot: [],
     offers: [],
     picksLeft: 0,
@@ -41,22 +43,22 @@ export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam
 }
 
 /**
- * The current encounter's battle: the party enters with the trip's HP and charges, then the
- * trip's recorded actions are replayed (a reload resumes the fight). Throws if one is illegal.
+ * The current encounter's battle: the party enters with the trip's HP and charges on start points
+ * drawn from the trip seed (`startSeedFor`, HC P4), then the trip's recorded actions are replayed
+ * (a reload resumes the fight). Throws if one is illegal.
  */
 export function beginEncounter(p: Profile, t: Trip): ActionResult {
   need(t, 'fight');
   const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
-  const party: Partial<Record<MemberId, PartyInit>> = {};
-  for (const m of MEMBER_IDS) {
-    const spells = compiledFor(p, m).spells;
-    party[m] = {
-      hp: t.hp[m],
-      spells,
-      charges: { ...chargesOf(p, m), ...t.charges[m] },
-    };
-  }
+  const party = perMember(
+    t.party,
+    (m): PartyInit => ({
+      hp: hpOf(t, m),
+      spells: compiledFor(p, m).spells,
+      charges: { ...chargesOf(p, m), ...chargesLeftOf(t, m) },
+    }),
+  );
   const first = createEncounterBattle(
     enc,
     party,
@@ -64,6 +66,7 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
     variantFor(t, t.encounter),
     t.district,
     inventionLibrary(p),
+    { lineup: t.party, startSeed: startSeedFor(t, t.encounter) },
   );
   let state = first.state;
   const events = [...first.events];

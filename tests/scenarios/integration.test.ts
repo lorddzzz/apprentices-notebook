@@ -68,6 +68,7 @@ function specFor(index: number): BattleSpec {
     title: enc.title,
     board: enc.layout,
     seed: 42,
+    lineup: ['draughtsman', 'stoker'],
     party: {
       draughtsman: { spells: compiledFor(p, 'draughtsman').spells },
       stoker: { spells: compiledFor(p, 'stoker').spells },

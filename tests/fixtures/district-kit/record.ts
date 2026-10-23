@@ -1,4 +1,4 @@
-import { DISTRICTS, type DistrictId, MEMBER_IDS } from '$data';
+import { DISTRICTS, type DistrictId } from '$data';
 import {
   type Action,
   applyAction,
@@ -95,7 +95,7 @@ function idleFight(initial: BattleState, maxRounds = 40) {
 export function tripStart(p: Profile, district: DistrictId, seed: number, startHp?: number): Trip {
   const t = startTrip(p, seed, district);
   if (startHp === undefined) return t;
-  return { ...t, hp: Object.fromEntries(MEMBER_IDS.map((m) => [m, startHp])) as Trip['hp'] };
+  return { ...t, hp: Object.fromEntries(t.party.map((m) => [m, startHp])) };
 }
 
 /** Drives a whole trip with the greedy bot, picking the first offer, until it returns or wipes. */

@@ -4,12 +4,12 @@ import {
   type LootEntry,
   type LootSpec,
   type LootTableId,
-  MEMBER_IDS,
   type MemberId,
   type MethodId,
   type RuneId,
   TUNING,
 } from '$data';
+import { FOUNDERS } from '../household';
 import { createRng, deriveSeed, pickWeighted, type Rng } from '../rng';
 import type { LootItem, Profile, Trip } from '../types';
 
@@ -31,7 +31,8 @@ const samePage = (a: LootSpec, b: LootSpec): boolean =>
 
 function offerOf(spec: LootSpec, rng: Rng, members: readonly MemberId[], owned: Owned): LootItem {
   // Ink is one household allowance (HC P6). The draw that once named a member stays, so a seed
-  // still rolls the offers it always did.
+  // still rolls the offers it always did; `rng.int` takes one draw whatever the range, so the
+  // offers never depend on the party's size (no scaling, party.md §0b).
   const ink = (amount: number): LootItem => {
     rng.int(0, members.length - 1);
     return { kind: 'ink', amount };
@@ -65,7 +66,7 @@ export function rollOffers(
   tripSeed: number,
   encounter: number,
   table: LootTableId,
-  members: readonly MemberId[] = MEMBER_IDS,
+  members: readonly MemberId[] = FOUNDERS,
   key: { district: DistrictId; weight: number } | null = null,
   owned: Owned = NOTHING_OWNED,
 ): LootItem[] {

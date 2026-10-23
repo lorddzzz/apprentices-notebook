@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { APPRENTICES, encountersOf, MEMBER_IDS, MEMBERS } from '$data';
+  import { APPRENTICES, encountersOf, MEMBERS } from '$data';
   import { compiledFor, type Profile, type Trip } from '$engine';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
@@ -15,10 +15,10 @@
   let { trip, profile, large = false }: Props = $props();
 
   const rows = $derived(
-    MEMBER_IDS.map((m) => ({
+    trip.party.map((m) => ({
       id: m,
       name: MEMBERS[m].name,
-      hp: trip.hp[m],
+      hp: trip.hp[m] ?? 0,
       maxHp: MEMBERS[m].hp,
       spells: compiledFor(profile, m).spells.map((s) => ({
         key: s.key,

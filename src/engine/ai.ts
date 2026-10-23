@@ -1,4 +1,4 @@
-import { ATTACKS, ENEMIES, MEMBER_IDS } from '$data';
+import { APPRENTICE_IDS, ATTACKS, ENEMIES } from '$data';
 import { type Ctx, emit, ref } from './ctx';
 import { foeAct } from './foes';
 import { byReadingOrder, type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
@@ -33,9 +33,10 @@ export function candidatesOf(s: BattleState, e: EnemyUnit, move: boolean): Candi
   return [stay, ...walks];
 }
 
-const MEMBER_RANK = new Map(MEMBER_IDS.map((id, i) => [id, i]));
+/** Registry order (HC P15): stable and seed-independent, whoever is in the party. */
+const MEMBER_RANK = new Map(APPRENTICE_IDS.map((id, i) => [id, i]));
 
-/** Nearest living member by walking distance; ties go to the earlier party member. */
+/** Nearest living member by walking distance; ties go to the one earlier in the registry. */
 export function nearestMember(s: BattleState, e: EnemyUnit): MemberUnit | null {
   const living = members(s)
     .filter(isAlive)

@@ -189,7 +189,7 @@ describe('charges follow the rune type (S12)', () => {
       stoker: [...pageOf(p, 'stoker'), bolt(0, 3)],
     };
     const r = applyDoorway(p, inDoorway(p, START_CHARGES), lattices);
-    const spent = Object.values(r.trip.charges.stoker).sort();
+    const spent = Object.values(r.trip.charges.stoker ?? {}).sort();
     // the Stoker holds the 4 and the 2 (the Draughtsman has no source left)
     expect(spent).toEqual([2, 4]);
     expect(r.trip.charges.draughtsman).toEqual({});
@@ -203,9 +203,9 @@ describe('charges follow the rune type (S12)', () => {
       draughtsman: [bolt(0, 0), ...(p.lattices.draughtsman ?? [])],
     };
     const r = applyDoorway(p, inDoorway(p, START_CHARGES), lattices);
-    const left = MEMBER_IDS.flatMap((m) => Object.values(r.trip.charges[m])).sort();
+    const left = r.trip.party.flatMap((m) => Object.values(r.trip.charges[m] ?? {})).sort();
     expect(left).toEqual([2, 4, 5]);
-    const spells = MEMBER_IDS.flatMap((m) => compiledFor(r.profile, m).spells);
+    const spells = r.trip.party.flatMap((m) => compiledFor(r.profile, m).spells);
     expect(spells).toHaveLength(3);
   });
 
@@ -270,9 +270,9 @@ describe('charges follow the rune type (S12)', () => {
     const spells = compiledFor(r.profile, 'draughtsman').spells;
     const glyphSpell = spells.find((s) => s.glyph === 'g1');
     const plain = spells.find((s) => !s.glyph);
-    expect(glyphSpell && r.trip.charges.draughtsman[glyphSpell.key]).toBe(2);
+    expect(glyphSpell && r.trip.charges.draughtsman?.[glyphSpell.key]).toBe(2);
     // a new plain Bolt: the Stoker's 4 stays with the Stoker's Bolt, this one starts full
-    expect(plain && r.trip.charges.draughtsman[plain.key]).toBe(5);
+    expect(plain && r.trip.charges.draughtsman?.[plain.key]).toBe(5);
     expect(r.trip.charges.stoker).toEqual({ '1,0': 4 });
   });
 

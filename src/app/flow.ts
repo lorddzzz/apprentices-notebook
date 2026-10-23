@@ -1,4 +1,4 @@
-import { type DistrictId, MEMBER_IDS, MEMBERS, type MemberId, TUNING } from '$data';
+import { type DistrictId, MEMBERS, type MemberId, TUNING } from '$data';
 import {
   type Action,
   type ActionResult,
@@ -264,7 +264,7 @@ export function nearProof(p: Profile): { member: MemberId; runes: string[]; cast
   const masks = allMasks(p);
   const lib = glyphLibrary(p);
   let best: { member: MemberId; runes: string[]; casts: number; size: number } | null = null;
-  for (const m of MEMBER_IDS) {
+  for (const m of p.household.members) {
     const lattice = latticeOf(p, m);
     for (const c of clustersOf(lattice, lib)) {
       if (c.cells.length < 2) continue;

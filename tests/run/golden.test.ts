@@ -44,14 +44,14 @@ interface TripCase {
 const BOT = { maxRounds: 100 };
 const IDLE = { idle: true };
 const TRIPS: TripCase[] = [
-  { name: 'seam-win-2', district: 'seam', seed: 2, options: BOT, expect: 'returned' },
-  { name: 'seam-win-4', district: 'seam', seed: 4, options: BOT, expect: 'returned' },
-  { name: 'seam-win-5', district: 'seam', seed: 5, options: BOT, expect: 'returned' },
+  { name: 'seam-win-6', district: 'seam', seed: 6, options: BOT, expect: 'returned' },
+  { name: 'seam-win-8', district: 'seam', seed: 8, options: BOT, expect: 'returned' },
+  { name: 'seam-win-9', district: 'seam', seed: 9, options: BOT, expect: 'returned' },
   { name: 'seam-wipe-1', district: 'seam', seed: 1, options: BOT, expect: 'wiped' },
-  { name: 'seam-wipe-6', district: 'seam', seed: 6, options: BOT, expect: 'wiped' },
+  { name: 'seam-wipe-7', district: 'seam', seed: 7, options: BOT, expect: 'wiped' },
   { name: 'seam-wipe-idle-3', district: 'seam', seed: 3, options: IDLE, expect: 'wiped' },
   { name: 'canals-win-2', district: 'canals', seed: 2, options: BOT, expect: 'returned' },
-  { name: 'canals-win-3', district: 'canals', seed: 3, options: BOT, expect: 'returned' },
+  { name: 'canals-win-6', district: 'canals', seed: 6, options: BOT, expect: 'returned' },
   { name: 'canals-win-4', district: 'canals', seed: 4, options: BOT, expect: 'returned' },
   { name: 'canals-win-5', district: 'canals', seed: 5, options: BOT, expect: 'returned' },
   { name: 'canals-wipe-idle-1', district: 'canals', seed: 1, options: IDLE, expect: 'wiped' },

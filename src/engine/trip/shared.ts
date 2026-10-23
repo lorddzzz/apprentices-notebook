@@ -1,9 +1,27 @@
-import { MEMBER_IDS, type MemberId } from '$data';
-import type { CellKey, GlyphArg, Placed, Trip, TripStatus } from '../types';
+import type { ApprenticeId } from '$data';
+import type { CellKey, GlyphArg, Placed, SpellKey, Trip, TripStatus } from '../types';
 import { isGlyph } from '../types';
 
-export function perMember<T>(make: (m: MemberId) => T): Record<MemberId, T> {
-  return Object.fromEntries(MEMBER_IDS.map((m) => [m, make(m)])) as Record<MemberId, T>;
+/** A record keyed by exactly the given apprentices (a trip's party), in their order. */
+export function perMember<T>(
+  party: readonly ApprenticeId[],
+  make: (m: ApprenticeId) => T,
+): Partial<Record<ApprenticeId, T>> {
+  return Object.fromEntries(party.map((m) => [m, make(m)]));
+}
+
+/** A party member's trip HP. Throws for someone who did not set out (HC P1). */
+export function hpOf(t: Pick<Trip, 'hp'>, m: ApprenticeId): number {
+  const hp = t.hp[m];
+  if (hp === undefined) throw new Error(`${m} is not on this trip`);
+  return hp;
+}
+
+/** A party member's charges left, by spell. Throws for someone who did not set out. */
+export function chargesLeftOf(t: Pick<Trip, 'charges'>, m: ApprenticeId): Record<SpellKey, number> {
+  const c = t.charges[m];
+  if (!c) throw new Error(`${m} is not on this trip`);
+  return c;
 }
 
 const copyArgs = (args: Readonly<Record<CellKey, GlyphArg>>): Record<CellKey, GlyphArg> =>

@@ -1,6 +1,6 @@
 {
   "district": "seam",
-  "seed": 2,
+  "seed": 8,
   "options": { "maxRounds": 100 },
   "rooms": [
     {
@@ -8,16 +8,17 @@
       "variant": 1,
       "place": "The drainage cut",
       "actions": [
+        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 5 } },
         {
           "type": "cast",
           "unit": "draughtsman",
           "spell": "0,1",
-          "aim": { "kind": "dir", "dir": "up" }
+          "aim": { "kind": "dir", "dir": "left" }
         },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 0, "y": 3 } },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 0, "y": 3 } },
         { "type": "cast", "unit": "stoker", "spell": "1,0", "aim": { "kind": "dir", "dir": "up" } },
         { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 3 } },
         {
           "type": "cast",
           "unit": "draughtsman",
@@ -45,23 +46,34 @@
         },
         { "type": "phase", "phase": "player" },
         {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 2, "y": 6 },
+            "member": true
+          },
+          "to": { "x": 1, "y": 5 },
+          "path": [{ "x": 2, "y": 5 }, { "x": 1, "y": 5 }]
+        },
+        {
           "type": "cast",
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 6 },
+            "at": { "x": 1, "y": 5 },
             "member": true
           },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "up" },
-          "aimText": "up",
+          "aim": { "kind": "dir", "dir": "left" },
+          "aimText": "left",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "aimed",
           "source": "bolt",
           "targets": [{ "kind": "unit", "unit": "rat-3" }],
-          "heading": "up",
+          "heading": "left",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
@@ -97,7 +109,7 @@
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 6 },
+            "at": { "x": 1, "y": 5 },
             "member": true
           },
           "spell": "0,1",
@@ -116,24 +128,13 @@
         },
         {
           "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 0, "y": 6 },
-            "member": true
-          },
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 6 }, "member": true },
           "to": { "x": 0, "y": 3 },
           "path": [{ "x": 0, "y": 5 }, { "x": 0, "y": 4 }, { "x": 0, "y": 3 }]
         },
         {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 6 }, "member": true },
-          "to": { "x": 5, "y": 3 },
-          "path": [{ "x": 5, "y": 5 }, { "x": 5, "y": 4 }, { "x": 5, "y": 3 }]
-        },
-        {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 3 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 3 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "up" },
           "aimText": "up",
@@ -142,27 +143,27 @@
         {
           "type": "aimed",
           "source": "bolt",
-          "targets": [{ "kind": "unit", "unit": "rat-2" }],
+          "targets": [{ "kind": "unit", "unit": "rat-1" }],
           "heading": "up",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 5, "y": 0 },
-          "path": [{ "x": 5, "y": 2 }, { "x": 5, "y": 1 }, { "x": 5, "y": 0 }],
+          "at": { "x": 0, "y": 0 },
+          "path": [{ "x": 0, "y": 2 }, { "x": 0, "y": 1 }, { "x": 0, "y": 0 }],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "landed",
           "kind": "oil",
-          "at": { "x": 5, "y": 0 },
+          "at": { "x": 0, "y": 0 },
           "makes": "slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-2", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false },
           "amount": 1,
           "source": "Spark",
           "bonus": [],
@@ -179,15 +180,15 @@
         {
           "type": "burst",
           "burst": "fire",
-          "at": { "x": 5, "y": 0 },
-          "tiles": [{ "x": 5, "y": 0 }],
-          "units": [{ "id": "rat-2", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false }],
+          "at": { "x": 0, "y": 0 },
+          "tiles": [{ "x": 0, "y": 0 }],
+          "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false }],
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-2", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false },
           "amount": 2,
           "source": "Fire",
           "bonus": [],
@@ -197,13 +198,13 @@
         },
         {
           "type": "died",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false },
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 3 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 3 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -223,26 +224,36 @@
         { "type": "phase", "phase": "enemy" },
         {
           "type": "moved",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false },
-          "to": { "x": 0, "y": 2 },
-          "path": [{ "x": 0, "y": 1 }, { "x": 0, "y": 2 }]
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 3, "y": 0 }, { "x": 2, "y": 0 }]
         },
-        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 0 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 1 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 2 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 5, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 4, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 3, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 2, "y": 0 }, "makes": "slick" },
         {
-          "type": "telegraph",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false },
-          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
-          "verb": "bite"
+          "type": "idle",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 2, "y": 0 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 5 },
+            "member": true
+          },
+          "to": { "x": 2, "y": 3 },
+          "path": [{ "x": 1, "y": 4 }, { "x": 1, "y": 3 }, { "x": 2, "y": 3 }]
+        },
         {
           "type": "cast",
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 3 },
+            "at": { "x": 2, "y": 3 },
             "member": true
           },
           "spell": "Bolt",
@@ -253,27 +264,27 @@
         {
           "type": "aimed",
           "source": "bolt",
-          "targets": [{ "kind": "unit", "unit": "rat-1" }],
+          "targets": [{ "kind": "unit", "unit": "rat-2" }],
           "heading": "up",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 0, "y": 2 },
-          "path": [{ "x": 0, "y": 2 }],
+          "at": { "x": 2, "y": 0 },
+          "path": [{ "x": 2, "y": 2 }, { "x": 2, "y": 1 }, { "x": 2, "y": 0 }],
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
           "type": "marked",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false },
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 2, "y": 0 }, "member": false },
           "deep": false,
           "bound": null,
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false },
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 2, "y": 0 }, "member": false },
           "amount": 2,
           "source": "Strike",
           "bonus": [],
@@ -282,7 +293,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false },
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 2, "y": 0 }, "member": false },
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
@@ -290,7 +301,7 @@
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 3 },
+            "at": { "x": 2, "y": 3 },
             "member": true
           },
           "spell": "0,1",
@@ -312,9 +323,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "rune", "rune": "fork" },
-        { "kind": "rune", "rune": "steam" },
-        { "kind": "rune", "rune": "touch" }
+        { "kind": "rune", "rune": "brass" },
+        { "kind": "solvent", "solvent": "gallnut" },
+        { "kind": "solvent", "solvent": "cinder" }
       ],
       "picked": [0],
       "stats": {
@@ -350,41 +361,42 @@
     },
     {
       "encounter": 1,
-      "variant": 1,
-      "place": "The scullery",
+      "variant": 0,
+      "place": "The oil cellar",
       "actions": [
-        { "type": "move", "unit": "draughtsman", "to": { "x": 0, "y": 4 } },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 3 } },
         {
           "type": "cast",
           "unit": "draughtsman",
           "spell": "0,1",
-          "aim": { "kind": "dir", "dir": "down" }
+          "aim": { "kind": "dir", "dir": "up" }
         },
-        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 4 } },
-        { "type": "cast", "unit": "stoker", "spell": "1,0", "aim": { "kind": "dir", "dir": "up" } },
+        { "type": "move", "unit": "stoker", "to": { "x": 1, "y": 4 } },
+        {
+          "type": "cast",
+          "unit": "stoker",
+          "spell": "1,0",
+          "aim": { "kind": "dir", "dir": "left" }
+        },
         { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 2 } },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 2 } },
         {
           "type": "cast",
           "unit": "draughtsman",
           "spell": "0,1",
-          "aim": { "kind": "dir", "dir": "right" }
+          "aim": { "kind": "dir", "dir": "left" }
         }
       ],
       "events": [
-        { "type": "battleStart", "title": "The scullery" },
+        { "type": "battleStart", "title": "The oil cellar" },
         { "type": "round", "round": 1 },
         { "type": "phase", "phase": "enemy" },
-        {
-          "type": "idle",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 0 }, "member": false }
-        },
         {
           "type": "telegraph",
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 5, "y": 2 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 1 },
@@ -392,7 +404,11 @@
         },
         {
           "type": "idle",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false }
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 1 }, "member": false }
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         {
@@ -400,49 +416,49 @@
           "unit": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 1, "y": 6 },
+            "at": { "x": 4, "y": 6 },
             "member": true
           },
-          "to": { "x": 0, "y": 4 },
-          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }, { "x": 0, "y": 4 }]
+          "to": { "x": 4, "y": 3 },
+          "path": [{ "x": 4, "y": 5 }, { "x": 4, "y": 4 }, { "x": 4, "y": 3 }]
         },
         {
           "type": "cast",
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 4 },
+            "at": { "x": 4, "y": 3 },
             "member": true
           },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "down" },
-          "aimText": "down",
+          "aim": { "kind": "dir", "dir": "up" },
+          "aimText": "up",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "aimed",
           "source": "bolt",
-          "targets": [{ "kind": "unit", "unit": "rat-2" }],
-          "heading": "down",
+          "targets": [{ "kind": "unit", "unit": "rat-1" }],
+          "heading": "up",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 0, "y": 5 },
-          "path": [{ "x": 0, "y": 5 }],
+          "at": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 1 }],
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "marked",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false },
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 1 }, "member": false },
           "deep": false,
           "bound": null,
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false },
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 1 }, "member": false },
           "amount": 2,
           "source": "Strike",
           "bonus": [],
@@ -451,7 +467,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false },
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 1 }, "member": false },
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
@@ -459,7 +475,7 @@
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 4 },
+            "at": { "x": 4, "y": 3 },
             "member": true
           },
           "spell": "0,1",
@@ -478,42 +494,42 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 6 }, "member": true },
-          "to": { "x": 3, "y": 4 },
-          "path": [{ "x": 4, "y": 5 }, { "x": 4, "y": 4 }, { "x": 3, "y": 4 }]
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
+          "to": { "x": 1, "y": 4 },
+          "path": [{ "x": 2, "y": 5 }, { "x": 2, "y": 4 }, { "x": 1, "y": 4 }]
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "up" },
-          "aimText": "up",
+          "aim": { "kind": "dir", "dir": "left" },
+          "aimText": "left",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "aimed",
           "source": "bolt",
-          "targets": [{ "kind": "unit", "unit": "rat-1" }],
-          "heading": "up",
+          "targets": [{ "kind": "unit", "unit": "rat-2" }],
+          "heading": "left",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 3, "y": 0 },
-          "path": [{ "x": 3, "y": 3 }, { "x": 3, "y": 2 }, { "x": 3, "y": 1 }, { "x": 3, "y": 0 }],
+          "at": { "x": 0, "y": 4 },
+          "path": [{ "x": 0, "y": 4 }],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "landed",
           "kind": "oil",
-          "at": { "x": 3, "y": 0 },
+          "at": { "x": 0, "y": 4 },
           "makes": "slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 0 }, "member": false },
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
           "amount": 1,
           "source": "Spark",
           "bonus": [],
@@ -530,15 +546,15 @@
         {
           "type": "burst",
           "burst": "fire",
-          "at": { "x": 3, "y": 0 },
-          "tiles": [{ "x": 3, "y": 0 }],
-          "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 0 }, "member": false }],
+          "at": { "x": 0, "y": 4 },
+          "tiles": [{ "x": 0, "y": 4 }],
+          "units": [{ "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false }],
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 0 }, "member": false },
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
           "amount": 2,
           "source": "Fire",
           "bonus": [],
@@ -548,13 +564,13 @@
         },
         {
           "type": "died",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 3, "y": 0 }, "member": false },
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -575,19 +591,20 @@
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 5, "y": 2 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 1 },
           "verbs": "spits"
         },
         {
-          "type": "stopped",
+          "type": "lands",
           "source": "Spit",
-          "at": { "x": 5, "y": 3 },
-          "by": "brass plate",
-          "path": [{ "x": 5, "y": 3 }]
+          "at": { "x": 1, "y": 2 },
+          "path": [{ "x": 1, "y": 1 }, { "x": 1, "y": 2 }]
         },
+        { "type": "named", "what": "compound", "id": "stain", "line": "ink:slick" },
+        { "type": "mixed", "at": { "x": 1, "y": 2 }, "compound": "stain", "line": "ink:slick" },
         { "type": "round", "round": 2 },
         { "type": "phase", "phase": "enemy" },
         {
@@ -595,18 +612,30 @@
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 5, "y": 2 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
-          "to": { "x": 3, "y": 2 },
-          "path": [{ "x": 4, "y": 2 }, { "x": 3, "y": 2 }]
+          "to": { "x": 1, "y": 2 },
+          "path": [{ "x": 1, "y": 1 }, { "x": 1, "y": 2 }]
+        },
+        {
+          "type": "marked",
+          "unit": {
+            "id": "familiar-1",
+            "name": "familiar",
+            "at": { "x": 1, "y": 2 },
+            "member": false
+          },
+          "deep": false,
+          "bound": null,
+          "line": "ink:stain"
         },
         {
           "type": "telegraph",
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 2 },
+            "at": { "x": 1, "y": 2 },
             "member": false
           },
           "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 1 },
@@ -618,49 +647,57 @@
           "unit": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 4 },
+            "at": { "x": 4, "y": 3 },
             "member": true
           },
-          "to": { "x": 1, "y": 2 },
-          "path": [{ "x": 0, "y": 3 }, { "x": 0, "y": 2 }, { "x": 1, "y": 2 }]
+          "to": { "x": 2, "y": 2 },
+          "path": [{ "x": 4, "y": 2 }, { "x": 3, "y": 2 }, { "x": 2, "y": 2 }]
         },
         {
           "type": "cast",
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 1, "y": 2 },
+            "at": { "x": 2, "y": 2 },
             "member": true
           },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "right" },
-          "aimText": "right",
+          "aim": { "kind": "dir", "dir": "left" },
+          "aimText": "left",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
           "type": "aimed",
           "source": "bolt",
           "targets": [{ "kind": "unit", "unit": "familiar-1" }],
-          "heading": "right",
+          "heading": "left",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 3, "y": 2 },
-          "path": [{ "x": 2, "y": 2 }, { "x": 3, "y": 2 }],
+          "at": { "x": 1, "y": 2 },
+          "path": [{ "x": 1, "y": 2 }],
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
-          "type": "marked",
+          "type": "named",
+          "what": "compound",
+          "id": "deepMark",
+          "line": "ink:mark",
+          "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 1, "y": 2 },
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 2 },
+            "at": { "x": 1, "y": 2 },
             "member": false
           },
-          "deep": false,
-          "bound": null,
+          "compound": "deepMark",
+          "line": "ink:mark",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
         {
@@ -668,7 +705,7 @@
           "target": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 2 },
+            "at": { "x": 1, "y": 2 },
             "member": false
           },
           "amount": 2,
@@ -682,7 +719,7 @@
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 2 },
+            "at": { "x": 1, "y": 2 },
             "member": false
           },
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
@@ -692,7 +729,7 @@
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 1, "y": 2 },
+            "at": { "x": 2, "y": 2 },
             "member": true
           },
           "spell": "0,1",
@@ -704,8 +741,8 @@
           "meaningful": true,
           "spans": [
             { "at": { "x": 0, "y": 1 }, "from": 0, "to": 2 },
-            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 3 },
-            { "at": { "x": 2, "y": 1 }, "from": 3, "to": 5 }
+            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 4 },
+            { "at": { "x": 2, "y": 1 }, "from": 4, "to": 6 }
           ],
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 3 }
         },
@@ -714,9 +751,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "rune", "rune": "bend" },
-        { "kind": "rune", "rune": "brass" },
-        { "kind": "rune", "rune": "steam" }
+        { "kind": "ink", "amount": 2 },
+        { "kind": "ink", "amount": 1 },
+        { "kind": "rune", "rune": "bend" }
       ],
       "picked": [0],
       "stats": {
@@ -744,53 +781,52 @@
           }
         ],
         "biggestChain": { "member": "stoker", "spell": "1,0", "name": "Bolt", "reactions": 1 },
-        "discoveries": ["burst:fire"],
+        "discoveries": ["burst:fire", "compound:stain", "compound:deepMark"],
         "proofCasts": 6,
         "elegance": [],
-        "heard": []
+        "heard": ["inkQuarter"]
       }
     },
     {
       "encounter": 2,
-      "variant": 1,
-      "place": "The brass gallery",
+      "variant": 0,
+      "place": "The sentry post",
       "actions": [
-        { "type": "move", "unit": "draughtsman", "to": { "x": 0, "y": 4 } },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 4 } },
         {
           "type": "cast",
           "unit": "draughtsman",
           "spell": "0,1",
-          "aim": { "kind": "dir", "dir": "down" }
+          "aim": { "kind": "dir", "dir": "left" }
         },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 4 } },
-        { "type": "cast", "unit": "stoker", "spell": "1,0", "aim": { "kind": "dir", "dir": "up" } },
-        { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 0, "y": 3 } },
-        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
         {
           "type": "cast",
           "unit": "stoker",
           "spell": "1,0",
-          "aim": { "kind": "dir", "dir": "left" }
-        }
+          "aim": { "kind": "dir", "dir": "right" }
+        },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" }
       ],
       "events": [
-        { "type": "battleStart", "title": "The brass gallery" },
+        { "type": "battleStart", "title": "The sentry post" },
         { "type": "round", "round": 1 },
         { "type": "phase", "phase": "enemy" },
         {
-          "type": "idle",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 0 }, "member": false }
-        },
-        {
           "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 5, "y": 2 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "left", "order": 1 },
           "verb": "fire"
         },
         {
           "type": "idle",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false }
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false }
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         {
@@ -801,46 +837,46 @@
             "at": { "x": 1, "y": 6 },
             "member": true
           },
-          "to": { "x": 0, "y": 4 },
-          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }, { "x": 0, "y": 4 }]
+          "to": { "x": 1, "y": 4 },
+          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }]
         },
         {
           "type": "cast",
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 4 },
+            "at": { "x": 1, "y": 4 },
             "member": true
           },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "down" },
-          "aimText": "down",
+          "aim": { "kind": "dir", "dir": "left" },
+          "aimText": "left",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "aimed",
           "source": "bolt",
           "targets": [{ "kind": "unit", "unit": "rat-2" }],
-          "heading": "down",
+          "heading": "left",
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 0, "y": 5 },
-          "path": [{ "x": 0, "y": 5 }],
+          "at": { "x": 0, "y": 4 },
+          "path": [{ "x": 0, "y": 4 }],
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "marked",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false },
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
           "deep": false,
           "bound": null,
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false },
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
           "amount": 2,
           "source": "Strike",
           "bonus": [],
@@ -849,7 +885,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 5 }, "member": false },
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
@@ -857,7 +893,7 @@
           "caster": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 4 },
+            "at": { "x": 1, "y": 4 },
             "member": true
           },
           "spell": "0,1",
@@ -875,37 +911,31 @@
           "origin": { "caster": "draughtsman", "spell": "0,1", "cast": 1 }
         },
         {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 6 }, "member": true },
-          "to": { "x": 5, "y": 4 },
-          "path": [{ "x": 5, "y": 6 }, { "x": 5, "y": 5 }, { "x": 5, "y": 4 }]
-        },
-        {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 0 }, "member": true },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "up" },
-          "aimText": "up",
+          "aim": { "kind": "dir", "dir": "right" },
+          "aimText": "right",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "aimed",
           "source": "bolt",
           "targets": [{ "kind": "unit", "unit": "sentry-1" }],
-          "heading": "up",
+          "heading": "right",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 5, "y": 2 },
-          "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }],
+          "at": { "x": 2, "y": 0 },
+          "path": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "landed",
           "kind": "oil",
-          "at": { "x": 5, "y": 2 },
+          "at": { "x": 2, "y": 0 },
           "makes": "slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
@@ -914,7 +944,7 @@
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 5, "y": 2 },
+            "at": { "x": 2, "y": 0 },
             "member": false
           },
           "amount": 1,
@@ -933,10 +963,10 @@
         {
           "type": "burst",
           "burst": "conduct",
-          "at": { "x": 5, "y": 2 },
-          "tiles": [{ "x": 5, "y": 2 }],
+          "at": { "x": 2, "y": 0 },
+          "tiles": [{ "x": 2, "y": 0 }],
           "units": [
-            { "id": "sentry-1", "name": "sentry", "at": { "x": 5, "y": 2 }, "member": false }
+            { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false }
           ],
           "line": "spark:collar",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
@@ -946,7 +976,7 @@
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 5, "y": 2 },
+            "at": { "x": 2, "y": 0 },
             "member": false
           },
           "amount": 2,
@@ -966,10 +996,10 @@
         {
           "type": "burst",
           "burst": "fire",
-          "at": { "x": 5, "y": 2 },
-          "tiles": [{ "x": 5, "y": 2 }],
+          "at": { "x": 2, "y": 0 },
+          "tiles": [{ "x": 2, "y": 0 }],
           "units": [
-            { "id": "sentry-1", "name": "sentry", "at": { "x": 5, "y": 2 }, "member": false }
+            { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false }
           ],
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
@@ -979,7 +1009,7 @@
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 5, "y": 2 },
+            "at": { "x": 2, "y": 0 },
             "member": false
           },
           "amount": 2,
@@ -991,13 +1021,13 @@
         },
         {
           "type": "died",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 5, "y": 2 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 0 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -1012,22 +1042,29 @@
           ],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 0 }, "member": true },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }]
+        },
         { "type": "phase", "phase": "resolve" },
         { "type": "round", "round": 2 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "moved",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 0 }, "member": false },
-          "to": { "x": 0, "y": 2 },
-          "path": [{ "x": 1, "y": 1 }, { "x": 0, "y": 1 }, { "x": 0, "y": 2 }]
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 4, "y": 0 }]
         },
-        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 0 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 1 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 1 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 2 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 5, "y": 1 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 5, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 4, "y": 0 }, "makes": "slick" },
         {
-          "type": "idle",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false }
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "left", "order": 1 },
+          "verb": "bite"
         },
         { "type": "phase", "phase": "player" },
         {
@@ -1035,113 +1072,54 @@
           "unit": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 0, "y": 4 },
+            "at": { "x": 1, "y": 4 },
             "member": true
           },
-          "to": { "x": 0, "y": 3 },
-          "path": [{ "x": 0, "y": 3 }]
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 1, "y": 3 }, { "x": 1, "y": 2 }, { "x": 1, "y": 1 }]
         },
         {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
-          "to": { "x": 4, "y": 2 },
-          "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }, { "x": 4, "y": 2 }]
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 0 }, "member": false },
+          "dir": "right"
         },
         {
-          "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
-          "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "left" },
-          "aimText": "left",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
+          "type": "push",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 4, "y": 0 }, "member": false },
+          "dir": "right",
+          "path": [{ "x": 5, "y": 0 }],
+          "slid": 0
         },
         {
-          "type": "aimed",
-          "source": "bolt",
-          "targets": [{ "kind": "tile", "at": { "x": 1, "y": 2 } }],
-          "heading": "left",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
-        },
-        {
-          "type": "stopped",
-          "source": "Bolt",
-          "at": { "x": 1, "y": 2 },
-          "by": "brass plate",
-          "path": [{ "x": 3, "y": 2 }, { "x": 2, "y": 2 }, { "x": 1, "y": 2 }],
-          "line": "bolt:plate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
-        },
-        {
-          "type": "named",
-          "what": "compound",
-          "id": "skidPlate",
-          "line": "oil:plate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
-        },
-        {
-          "type": "mixed",
-          "at": { "x": 1, "y": 2 },
-          "compound": "skidPlate",
-          "line": "oil:plate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
-        },
-        {
-          "type": "named",
-          "what": "burst",
-          "id": "page:skidPlate",
-          "line": "spark:skidPlate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
-        },
-        {
-          "type": "burst",
-          "burst": "page:skidPlate",
-          "at": { "x": 1, "y": 2 },
-          "tiles": [{ "x": 0, "y": 2 }],
-          "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false }],
-          "line": "spark:skidPlate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
+          "type": "crush",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "into": "wall",
+          "damage": 2,
+          "line": "shove:edge"
         },
         {
           "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false },
-          "amount": 3,
-          "source": "Skid plate",
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "amount": 2,
+          "source": "Crush",
           "bonus": [],
           "hpLeft": 0,
-          "line": "spark:skidPlate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
+          "line": "shove:edge"
         },
         {
           "type": "died",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 2 }, "member": false },
-          "line": "spark:skidPlate",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
-        },
-        {
-          "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
-          "spell": "1,0",
-          "cells": [
-            { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
-            { "at": { "x": 1, "y": 1 }, "rune": "oil" },
-            { "at": { "x": 1, "y": 2 }, "rune": "spark" }
-          ],
-          "meaningful": true,
-          "spans": [
-            { "at": { "x": 1, "y": 0 }, "from": 0, "to": 2 },
-            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 4 },
-            { "at": { "x": 1, "y": 2 }, "from": 4, "to": 8 }
-          ],
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 3 }
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 0 }, "member": false },
+          "line": "shove:edge"
         },
         { "type": "won" }
       ],
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "ink", "amount": 2 },
-        { "kind": "method", "method": "conduct" },
-        { "kind": "solvent", "solvent": "cinder" }
+        { "kind": "solvent", "solvent": "cinder" },
+        { "kind": "rune", "rune": "splash" },
+        { "kind": "ink", "amount": 2 }
       ],
       "picked": [0],
       "stats": {
@@ -1161,100 +1139,94 @@
             "member": "stoker",
             "spell": "1,0",
             "name": "Bolt",
-            "casts": 4,
-            "damage": 14,
-            "kills": 4,
+            "casts": 3,
+            "damage": 11,
+            "kills": 3,
             "cells": ["1,0", "1,1", "1,2"],
             "fired": ["1,0", "1,1", "1,2"]
           }
         ],
         "biggestChain": { "member": "stoker", "spell": "1,0", "name": "Bolt", "reactions": 2 },
-        "discoveries": [
-          "burst:fire",
-          "burst:conduct",
-          "compound:skidPlate",
-          "burst:page:skidPlate"
-        ],
-        "proofCasts": 9,
+        "discoveries": ["burst:fire", "compound:stain", "compound:deepMark", "burst:conduct"],
+        "proofCasts": 8,
         "elegance": [],
-        "heard": ["foundry"]
+        "heard": ["inkQuarter", "foundry"]
       }
     },
     {
       "encounter": 3,
-      "variant": 0,
-      "place": "Heart of the Seam",
+      "variant": 1,
+      "place": "The furnace hall",
       "actions": [
-        { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 3 } },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 5 } },
-        { "type": "cast", "unit": "stoker", "spell": "1,0", "aim": { "kind": "dir", "dir": "up" } },
-        { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 1 } },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 4 } },
         { "type": "shove", "unit": "draughtsman", "dir": "left" },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 2 } },
+        {
+          "type": "cast",
+          "unit": "stoker",
+          "spell": "1,0",
+          "aim": { "kind": "dir", "dir": "right" }
+        },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 0 } },
         { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
-        { "type": "shove", "unit": "draughtsman", "dir": "right" },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 1 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 1 } },
+        {
+          "type": "cast",
+          "unit": "stoker",
+          "spell": "1,0",
+          "aim": { "kind": "dir", "dir": "down" }
+        },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "up" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 0, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 1, "y": 1 } },
         { "type": "shove", "unit": "stoker", "dir": "up" },
         { "type": "endTurn" },
-        { "type": "shove", "unit": "draughtsman", "dir": "right" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 0, "y": 1 } },
         { "type": "shove", "unit": "stoker", "dir": "up" },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 2 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 0 } },
         { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
-        { "type": "shove", "unit": "draughtsman", "dir": "right" },
-        { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 1 } },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 1 } },
         { "type": "shove", "unit": "draughtsman", "dir": "up" },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
         { "type": "endTurn" },
-        { "type": "shove", "unit": "draughtsman", "dir": "up" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
-        { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 1 } },
-        { "type": "shove", "unit": "draughtsman", "dir": "up" },
-        { "type": "endTurn" },
-        { "type": "shove", "unit": "draughtsman", "dir": "up" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
-        { "type": "endTurn" },
-        { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 1 } },
         { "type": "shove", "unit": "draughtsman", "dir": "up" }
       ],
       "events": [
-        { "type": "battleStart", "title": "Heart of the Seam" },
+        { "type": "battleStart", "title": "The furnace hall" },
         { "type": "round", "round": 1 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 0, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
           "verb": "fire"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false }
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "up", "order": 2 },
+          "verb": "fire"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false }
         },
         {
           "type": "telegraph",
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 0 },
+            "at": { "x": 4, "y": 5 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 2 },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 3 },
           "verb": "spit"
-        },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 3 },
-          "verb": "fire"
-        },
-        {
-          "type": "idle",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 2 }, "member": false }
-        },
-        {
-          "type": "idle",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         {
@@ -1262,50 +1234,71 @@
           "unit": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 2, "y": 6 },
+            "at": { "x": 1, "y": 6 },
             "member": true
           },
-          "to": { "x": 2, "y": 3 },
-          "path": [{ "x": 2, "y": 5 }, { "x": 2, "y": 4 }, { "x": 2, "y": 3 }]
+          "to": { "x": 1, "y": 4 },
+          "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }]
         },
         {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
-          "to": { "x": 5, "y": 5 },
-          "path": [{ "x": 3, "y": 5 }, { "x": 4, "y": 5 }, { "x": 5, "y": 5 }]
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 4 },
+            "member": true
+          },
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "into": "wall",
+          "damage": 1,
+          "line": "shove:edge"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 1,
+          "line": "shove:edge"
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 5 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 1 }, "member": true },
           "spell": "Bolt",
-          "aim": { "kind": "dir", "dir": "up" },
-          "aimText": "up",
+          "aim": { "kind": "dir", "dir": "right" },
+          "aimText": "right",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
         {
           "type": "aimed",
           "source": "bolt",
           "targets": [{ "kind": "unit", "unit": "rat-1" }],
-          "heading": "up",
+          "heading": "right",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 5, "y": 2 },
-          "path": [{ "x": 5, "y": 4 }, { "x": 5, "y": 3 }, { "x": 5, "y": 2 }],
+          "at": { "x": 5, "y": 1 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 5, "y": 1 }],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
         {
           "type": "landed",
           "kind": "oil",
-          "at": { "x": 5, "y": 2 },
+          "at": { "x": 5, "y": 1 },
           "makes": "slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 2 }, "member": false },
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
           "amount": 1,
           "source": "Spark",
           "bonus": [],
@@ -1322,15 +1315,15 @@
         {
           "type": "burst",
           "burst": "fire",
-          "at": { "x": 5, "y": 2 },
-          "tiles": [{ "x": 5, "y": 2 }],
-          "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 2 }, "member": false }],
+          "at": { "x": 5, "y": 1 },
+          "tiles": [{ "x": 5, "y": 1 }],
+          "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false }],
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
         {
           "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 2 }, "member": false },
+          "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
           "amount": 2,
           "source": "Fire",
           "bonus": [],
@@ -1340,13 +1333,13 @@
         },
         {
           "type": "died",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 2 }, "member": false },
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
           "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 5 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 1 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -1361,231 +1354,505 @@
           ],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
         },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 1 }, "member": true },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }, { "x": 2, "y": 0 }]
+        },
         { "type": "phase", "phase": "resolve" },
         {
           "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 0, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
           "verbs": "fires"
         },
         {
           "type": "damage",
-          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 4 },
+            "member": true
+          },
           "amount": 2,
           "source": "Line",
           "bonus": [],
-          "hpLeft": 0
+          "hpLeft": 4
         },
         {
-          "type": "died",
-          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false }
+          "type": "attack",
+          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "up", "order": 2 },
+          "verbs": "fires"
+        },
+        {
+          "type": "lands",
+          "source": "Line",
+          "at": { "x": 5, "y": 0 },
+          "path": [{ "x": 5, "y": 2 }, { "x": 5, "y": 1 }, { "x": 5, "y": 0 }]
         },
         {
           "type": "attack",
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 0 },
+            "at": { "x": 4, "y": 5 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 2 },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 3 },
           "verbs": "spits"
         },
         {
           "type": "stopped",
           "source": "Spit",
-          "at": { "x": 3, "y": 2 },
-          "by": "cloud",
-          "path": [{ "x": 3, "y": 1 }, { "x": 3, "y": 2 }]
+          "at": { "x": 2, "y": 5 },
+          "by": "brass plate",
+          "path": [{ "x": 3, "y": 5 }, { "x": 2, "y": 5 }]
+        },
+        { "type": "round", "round": 2 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
+          "verb": "fire"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 3 }, "member": false },
+          "to": { "x": 4, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }]
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 4, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "left", "order": 2 },
+          "verb": "fire"
+        },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "right", "order": 3 },
+          "verb": "bite"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "familiar-1",
+            "name": "familiar",
+            "at": { "x": 4, "y": 5 },
+            "member": false
+          },
+          "to": { "x": 3, "y": 4 },
+          "path": [{ "x": 4, "y": 4 }, { "x": 3, "y": 4 }]
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "familiar-1",
+            "name": "familiar",
+            "at": { "x": 3, "y": 4 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 4 },
+          "verb": "spit"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 4 },
+            "member": true
+          },
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "into": "wall",
+          "damage": 1,
+          "line": "shove:edge"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 0,
+          "line": "shove:edge"
+        },
+        {
+          "type": "died",
+          "unit": { "id": "rat-2", "name": "rat", "at": { "x": 0, "y": 4 }, "member": false },
+          "line": "shove:edge"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 4 },
+            "member": true
+          },
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 1, "y": 3 }, { "x": 1, "y": 2 }, { "x": 1, "y": 1 }]
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 4, "y": 1 }]
+        },
+        {
+          "type": "cast",
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "spell": "Bolt",
+          "aim": { "kind": "dir", "dir": "down" },
+          "aimText": "down",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "aimed",
+          "source": "bolt",
+          "targets": [{ "kind": "unit", "unit": "sentry-2" }],
+          "heading": "down",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "lands",
+          "source": "Bolt",
+          "at": { "x": 4, "y": 3 },
+          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 3 }],
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 4, "y": 3 },
+          "makes": "slick",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "sentry-2",
+            "name": "sentry",
+            "at": { "x": 4, "y": 3 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 4,
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "named",
+          "what": "burst",
+          "id": "conduct",
+          "line": "spark:collar",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "burst",
+          "burst": "conduct",
+          "at": { "x": 4, "y": 3 },
+          "tiles": [{ "x": 4, "y": 3 }],
+          "units": [
+            { "id": "sentry-2", "name": "sentry", "at": { "x": 4, "y": 3 }, "member": false }
+          ],
+          "line": "spark:collar",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "sentry-2",
+            "name": "sentry",
+            "at": { "x": 4, "y": 3 },
+            "member": false
+          },
+          "amount": 2,
+          "source": "Conduct",
+          "bonus": [],
+          "hpLeft": 2,
+          "line": "spark:collar",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "burst",
+          "burst": "fire",
+          "at": { "x": 4, "y": 3 },
+          "tiles": [{ "x": 4, "y": 3 }],
+          "units": [
+            { "id": "sentry-2", "name": "sentry", "at": { "x": 4, "y": 3 }, "member": false }
+          ],
+          "line": "spark:slick",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "sentry-2",
+            "name": "sentry",
+            "at": { "x": 4, "y": 3 },
+            "member": false
+          },
+          "amount": 2,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 0,
+          "line": "spark:slick",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "died",
+          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 4, "y": 3 }, "member": false },
+          "line": "spark:slick",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        {
+          "type": "trace",
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "spell": "1,0",
+          "cells": [
+            { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
+            { "at": { "x": 1, "y": 1 }, "rune": "oil" },
+            { "at": { "x": 1, "y": 2 }, "rune": "spark" }
+          ],
+          "meaningful": true,
+          "spans": [
+            { "at": { "x": 1, "y": 0 }, "from": 0, "to": 2 },
+            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 3 },
+            { "at": { "x": 1, "y": 2 }, "from": 3, "to": 10 }
+          ],
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
+          "verbs": "fires"
+        },
+        {
+          "type": "lands",
+          "source": "Line",
+          "at": { "x": 5, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }]
         },
         {
           "type": "attack",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 3 },
+          "unit": {
+            "id": "familiar-1",
+            "name": "familiar",
+            "at": { "x": 3, "y": 4 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 4 },
+          "verbs": "spits"
+        },
+        {
+          "type": "lands",
+          "source": "Spit",
+          "at": { "x": 1, "y": 4 },
+          "path": [{ "x": 2, "y": 4 }, { "x": 1, "y": 4 }]
+        },
+        { "type": "landed", "kind": "ink", "at": { "x": 1, "y": 4 }, "makes": "blot" },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 5, "y": 1 }, { "x": 0, "y": 2 }, { "x": 4, "y": 4 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 2 } },
+        { "type": "vent", "at": { "x": 4, "y": 4 } },
+        { "type": "round", "round": 3 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
+          "verb": "fire"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "familiar-1",
+            "name": "familiar",
+            "at": { "x": 3, "y": 4 },
+            "member": false
+          },
+          "to": { "x": 4, "y": 3 },
+          "path": [{ "x": 3, "y": 3 }, { "x": 4, "y": 3 }]
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "familiar-1",
+            "name": "familiar",
+            "at": { "x": 4, "y": 3 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "up", "order": 2 },
+          "verb": "spit"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "sentry-1",
+            "name": "sentry",
+            "at": { "x": 1, "y": 0 },
+            "member": false
+          },
+          "dir": "up"
+        },
+        {
+          "type": "crush",
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "into": "wall",
+          "damage": 1,
+          "line": "shove:edge"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "sentry-1",
+            "name": "sentry",
+            "at": { "x": 1, "y": 0 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 4,
+          "line": "shove:edge"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 1 },
+            "member": true
+          },
+          "to": { "x": 0, "y": 0 },
+          "path": [{ "x": 0, "y": 1 }, { "x": 0, "y": 0 }]
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 1 }, "member": true },
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 3, "y": 1 }, { "x": 2, "y": 1 }, { "x": 1, "y": 1 }]
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "target": {
+            "id": "sentry-1",
+            "name": "sentry",
+            "at": { "x": 1, "y": 0 },
+            "member": false
+          },
+          "dir": "up"
+        },
+        {
+          "type": "crush",
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "into": "wall",
+          "damage": 1,
+          "line": "shove:edge"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "sentry-1",
+            "name": "sentry",
+            "at": { "x": 1, "y": 0 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 3,
+          "line": "shove:edge"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
           "verbs": "fires"
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 5 }, "member": true },
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
           "amount": 2,
           "source": "Line",
           "bonus": [],
           "hpLeft": 6
         },
-        { "type": "round", "round": 2 },
-        { "type": "phase", "phase": "enemy" },
         {
-          "type": "moved",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 0, "y": 0 }, "member": false },
-          "to": { "x": 1, "y": 0 },
-          "path": [{ "x": 1, "y": 0 }]
-        },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verb": "fire"
-        },
-        {
-          "type": "moved",
+          "type": "attack",
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 3, "y": 0 },
+            "at": { "x": 4, "y": 3 },
             "member": false
           },
-          "to": { "x": 2, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }, { "x": 2, "y": 1 }]
+          "intent": { "kind": "attack", "attack": "spit", "dir": "up", "order": 2 },
+          "verbs": "spits"
         },
         {
-          "type": "telegraph",
-          "unit": {
-            "id": "familiar-1",
-            "name": "familiar",
-            "at": { "x": 2, "y": 1 },
-            "member": false
-          },
-          "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 2 },
-          "verb": "spit"
+          "type": "lands",
+          "source": "Spit",
+          "at": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 2 }, { "x": 4, "y": 1 }]
         },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 3 },
-          "verb": "fire"
-        },
-        { "type": "phase", "phase": "player" },
-        {
-          "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 2, "y": 3 },
-            "member": true
-          },
-          "to": { "x": 3, "y": 1 },
-          "path": [{ "x": 2, "y": 2 }, { "x": 3, "y": 2 }, { "x": 3, "y": 1 }]
-        },
-        {
-          "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 3, "y": 1 },
-            "member": true
-          },
-          "target": {
-            "id": "familiar-1",
-            "name": "familiar",
-            "at": { "x": 2, "y": 1 },
-            "member": false
-          },
-          "dir": "left"
-        },
-        {
-          "type": "crush",
-          "unit": {
-            "id": "familiar-1",
-            "name": "familiar",
-            "at": { "x": 2, "y": 1 },
-            "member": false
-          },
-          "into": "plate",
-          "damage": 1,
-          "line": "shove:plate"
-        },
+        { "type": "landed", "kind": "ink", "at": { "x": 4, "y": 1 }, "makes": "blot" },
         {
           "type": "damage",
           "target": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 2, "y": 1 },
+            "at": { "x": 4, "y": 3 },
             "member": false
           },
           "amount": 1,
-          "source": "Crush",
+          "source": "Fire",
           "bonus": [],
           "hpLeft": 0,
-          "line": "shove:plate"
+          "line": "spark:slick",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "died",
           "unit": {
             "id": "familiar-1",
             "name": "familiar",
-            "at": { "x": 2, "y": 1 },
+            "at": { "x": 4, "y": 3 },
             "member": false
           },
-          "line": "shove:plate"
-        },
-        {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 5 }, "member": true },
-          "to": { "x": 5, "y": 2 },
-          "path": [{ "x": 5, "y": 4 }, { "x": 5, "y": 3 }, { "x": 5, "y": 2 }]
-        },
-        { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verbs": "fires"
-        },
-        {
-          "type": "stopped",
-          "source": "Line",
-          "at": { "x": 1, "y": 1 },
-          "by": "brass plate",
-          "path": [{ "x": 1, "y": 1 }]
-        },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 3 },
-          "verbs": "fires"
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 2 }, "member": true },
-          "amount": 2,
-          "source": "Line",
-          "bonus": [],
-          "hpLeft": 4
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 2 }, "member": true },
-          "amount": 1,
-          "source": "Fire",
-          "bonus": [],
-          "hpLeft": 3,
           "line": "spark:slick",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 1 }
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
-        {
-          "type": "stateFades",
-          "tiles": [{ "x": 2, "y": 2 }, { "x": 3, "y": 2 }, { "x": 5, "y": 2 }, { "x": 4, "y": 4 }]
-        },
-        { "type": "vent", "at": { "x": 2, "y": 2 } },
-        { "type": "vent", "at": { "x": 4, "y": 4 } },
-        { "type": "round", "round": 3 },
+        { "type": "stateFades", "tiles": [{ "x": 4, "y": 3 }] },
+        { "type": "round", "round": 4 },
         { "type": "phase", "phase": "enemy" },
         {
-          "type": "moved",
+          "type": "telegraph",
           "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
-          "to": { "x": 2, "y": 0 },
-          "path": [{ "x": 2, "y": 0 }]
-        },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
           "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verb": "fire"
-        },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 2 },
           "verb": "fire"
         },
         { "type": "phase", "phase": "player" },
@@ -1594,69 +1861,26 @@
           "unit": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 3, "y": 1 },
+            "at": { "x": 0, "y": 0 },
             "member": true
           },
-          "to": { "x": 4, "y": 0 },
-          "path": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          "to": { "x": 0, "y": 1 },
+          "path": [{ "x": 0, "y": 1 }]
         },
         {
           "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 4, "y": 0 },
-            "member": true
-          },
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
           "target": {
-            "id": "sentry-2",
+            "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "dir": "right"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 4,
-          "line": "shove:edge"
-        },
-        {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 2 }, "member": true },
-          "to": { "x": 5, "y": 1 },
-          "path": [{ "x": 5, "y": 1 }]
-        },
-        {
-          "type": "shove",
-          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "dir": "up"
         },
         {
           "type": "crush",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "into": "wall",
           "damage": 1,
           "line": "shove:edge"
@@ -1664,89 +1888,9 @@
         {
           "type": "damage",
           "target": {
-            "id": "sentry-2",
+            "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 3,
-          "line": "shove:edge"
-        },
-        { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verbs": "fires"
-        },
-        {
-          "type": "stopped",
-          "source": "Line",
-          "at": { "x": 2, "y": 2 },
-          "by": "cloud",
-          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }]
-        },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 2 },
-          "verbs": "fires"
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
-          "amount": 2,
-          "source": "Line",
-          "bonus": [],
-          "hpLeft": 1
-        },
-        { "type": "round", "round": 4 },
-        { "type": "phase", "phase": "enemy" },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
-          "verb": "fire"
-        },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 2 },
-          "verb": "fire"
-        },
-        { "type": "phase", "phase": "player" },
-        {
-          "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 4, "y": 0 },
-            "member": true
-          },
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "dir": "right"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "amount": 1,
@@ -1757,187 +1901,39 @@
         },
         {
           "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 4, "y": 0 },
-            "member": true
-          },
-          "to": { "x": 3, "y": 0 },
-          "path": [{ "x": 3, "y": 0 }]
-        },
-        {
-          "type": "shove",
-          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "dir": "up"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
-          "to": { "x": 5, "y": 2 },
-          "path": [{ "x": 5, "y": 2 }]
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 0 }]
         },
         { "type": "phase", "phase": "resolve" },
         {
           "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
           "verbs": "fires"
         },
         {
-          "type": "damage",
-          "target": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 3, "y": 0 },
-            "member": true
-          },
-          "amount": 2,
+          "type": "lands",
           "source": "Line",
-          "bonus": [],
-          "hpLeft": 4
+          "at": { "x": 1, "y": 7 },
+          "path": [
+            { "x": 1, "y": 1 },
+            { "x": 1, "y": 2 },
+            { "x": 1, "y": 3 },
+            { "x": 1, "y": 4 },
+            { "x": 1, "y": 5 },
+            { "x": 1, "y": 6 },
+            { "x": 1, "y": 7 }
+          ]
         },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 2 },
-          "verbs": "fires"
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 2 }, "member": true },
-          "amount": 2,
-          "source": "Line",
-          "bonus": [],
-          "hpLeft": 0
-        },
-        {
-          "type": "died",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 2 }, "member": true }
-        },
-        { "type": "stateFades", "tiles": [{ "x": 2, "y": 2 }, { "x": 4, "y": 4 }] },
-        { "type": "vent", "at": { "x": 2, "y": 2 } },
+        { "type": "stateFades", "tiles": [{ "x": 0, "y": 2 }, { "x": 4, "y": 4 }] },
+        { "type": "vent", "at": { "x": 0, "y": 2 } },
         { "type": "vent", "at": { "x": 4, "y": 4 } },
         { "type": "round", "round": 5 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
-          "verb": "fire"
-        },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "left", "order": 2 },
-          "verb": "fire"
-        },
-        { "type": "phase", "phase": "player" },
-        {
-          "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 3, "y": 0 },
-            "member": true
-          },
-          "to": { "x": 4, "y": 0 },
-          "path": [{ "x": 4, "y": 0 }]
-        },
-        {
-          "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 4, "y": 0 },
-            "member": true
-          },
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "dir": "right"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-2",
-            "name": "sentry",
-            "at": { "x": 5, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 0,
-          "line": "shove:edge"
-        },
-        {
-          "type": "died",
-          "unit": { "id": "sentry-2", "name": "sentry", "at": { "x": 5, "y": 0 }, "member": false },
-          "line": "shove:edge"
-        },
-        { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
-          "verbs": "fires"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 4, "y": 0 },
-            "member": true
-          },
-          "amount": 2,
-          "source": "Line",
-          "bonus": [],
-          "hpLeft": 2
-        },
-        { "type": "round", "round": 6 },
-        { "type": "phase", "phase": "enemy" },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
           "verb": "fire"
         },
@@ -1947,31 +1943,31 @@
           "unit": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 4, "y": 0 },
+            "at": { "x": 0, "y": 1 },
             "member": true
           },
-          "to": { "x": 2, "y": 1 },
-          "path": [{ "x": 3, "y": 0 }, { "x": 3, "y": 1 }, { "x": 2, "y": 1 }]
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 1, "y": 1 }]
         },
         {
           "type": "shove",
           "by": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
+            "at": { "x": 1, "y": 1 },
             "member": true
           },
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 2, "y": 0 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "dir": "up"
         },
         {
           "type": "crush",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "into": "wall",
           "damage": 1,
           "line": "shove:edge"
@@ -1981,213 +1977,7 @@
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 2, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 4,
-          "line": "shove:edge"
-        },
-        { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
-          "verbs": "fires"
-        },
-        {
-          "type": "lands",
-          "source": "Line",
-          "at": { "x": 5, "y": 0 },
-          "path": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }]
-        },
-        { "type": "stateFades", "tiles": [{ "x": 2, "y": 2 }, { "x": 4, "y": 4 }] },
-        { "type": "vent", "at": { "x": 2, "y": 2 } },
-        { "type": "vent", "at": { "x": 4, "y": 4 } },
-        { "type": "round", "round": 7 },
-        { "type": "phase", "phase": "enemy" },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verb": "fire"
-        },
-        { "type": "phase", "phase": "player" },
-        {
-          "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
-            "member": true
-          },
-          "target": {
-            "id": "sentry-1",
-            "name": "sentry",
-            "at": { "x": 2, "y": 0 },
-            "member": false
-          },
-          "dir": "up"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-1",
-            "name": "sentry",
-            "at": { "x": 2, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 3,
-          "line": "shove:edge"
-        },
-        {
-          "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
-            "member": true
-          },
-          "to": { "x": 3, "y": 0 },
-          "path": [{ "x": 3, "y": 1 }, { "x": 3, "y": 0 }]
-        },
-        { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verbs": "fires"
-        },
-        {
-          "type": "stopped",
-          "source": "Line",
-          "at": { "x": 2, "y": 2 },
-          "by": "cloud",
-          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }]
-        },
-        { "type": "round", "round": 8 },
-        { "type": "phase", "phase": "enemy" },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
-          "verb": "fire"
-        },
-        { "type": "phase", "phase": "player" },
-        {
-          "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 3, "y": 0 },
-            "member": true
-          },
-          "to": { "x": 2, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }, { "x": 2, "y": 1 }]
-        },
-        {
-          "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
-            "member": true
-          },
-          "target": {
-            "id": "sentry-1",
-            "name": "sentry",
-            "at": { "x": 2, "y": 0 },
-            "member": false
-          },
-          "dir": "up"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-1",
-            "name": "sentry",
-            "at": { "x": 2, "y": 0 },
-            "member": false
-          },
-          "amount": 1,
-          "source": "Crush",
-          "bonus": [],
-          "hpLeft": 2,
-          "line": "shove:edge"
-        },
-        { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
-          "verbs": "fires"
-        },
-        {
-          "type": "lands",
-          "source": "Line",
-          "at": { "x": 5, "y": 0 },
-          "path": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }]
-        },
-        { "type": "stateFades", "tiles": [{ "x": 2, "y": 2 }, { "x": 4, "y": 4 }] },
-        { "type": "vent", "at": { "x": 2, "y": 2 } },
-        { "type": "vent", "at": { "x": 4, "y": 4 } },
-        { "type": "round", "round": 9 },
-        { "type": "phase", "phase": "enemy" },
-        {
-          "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
-          "verb": "fire"
-        },
-        { "type": "phase", "phase": "player" },
-        {
-          "type": "shove",
-          "by": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
-            "member": true
-          },
-          "target": {
-            "id": "sentry-1",
-            "name": "sentry",
-            "at": { "x": 2, "y": 0 },
-            "member": false
-          },
-          "dir": "up"
-        },
-        {
-          "type": "crush",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "into": "wall",
-          "damage": 1,
-          "line": "shove:edge"
-        },
-        {
-          "type": "damage",
-          "target": {
-            "id": "sentry-1",
-            "name": "sentry",
-            "at": { "x": 2, "y": 0 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "amount": 1,
@@ -2198,68 +1988,53 @@
         },
         {
           "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
-            "member": true
-          },
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
           "to": { "x": 3, "y": 0 },
-          "path": [{ "x": 3, "y": 1 }, { "x": 3, "y": 0 }]
+          "path": [{ "x": 3, "y": 0 }]
         },
         { "type": "phase", "phase": "resolve" },
         {
           "type": "attack",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
-          "intent": { "kind": "attack", "attack": "line", "dir": "down", "order": 1 },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
+          "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
           "verbs": "fires"
         },
         {
-          "type": "stopped",
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "amount": 2,
           "source": "Line",
-          "at": { "x": 2, "y": 2 },
-          "by": "cloud",
-          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }]
+          "bonus": [],
+          "hpLeft": 4
         },
-        { "type": "round", "round": 10 },
+        { "type": "round", "round": 6 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "intent": { "kind": "attack", "attack": "line", "dir": "right", "order": 1 },
           "verb": "fire"
         },
         { "type": "phase", "phase": "player" },
         {
-          "type": "moved",
-          "unit": {
-            "id": "draughtsman",
-            "name": "Draughtsman",
-            "at": { "x": 3, "y": 0 },
-            "member": true
-          },
-          "to": { "x": 2, "y": 1 },
-          "path": [{ "x": 3, "y": 1 }, { "x": 2, "y": 1 }]
-        },
-        {
           "type": "shove",
           "by": {
             "id": "draughtsman",
             "name": "Draughtsman",
-            "at": { "x": 2, "y": 1 },
+            "at": { "x": 1, "y": 1 },
             "member": true
           },
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 2, "y": 0 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "dir": "up"
         },
         {
           "type": "crush",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "into": "wall",
           "damage": 1,
           "line": "shove:edge"
@@ -2269,7 +2044,7 @@
           "target": {
             "id": "sentry-1",
             "name": "sentry",
-            "at": { "x": 2, "y": 0 },
+            "at": { "x": 1, "y": 0 },
             "member": false
           },
           "amount": 1,
@@ -2280,7 +2055,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 2, "y": 0 }, "member": false },
+          "unit": { "id": "sentry-1", "name": "sentry", "at": { "x": 1, "y": 0 }, "member": false },
           "line": "shove:edge"
         },
         { "type": "won" }
@@ -2289,7 +2064,7 @@
       "outcome": "won",
       "offers": [
         { "kind": "method", "method": "conduct" },
-        { "kind": "solvent", "solvent": "cinder" },
+        { "kind": "ink", "amount": 2 },
         { "kind": "solvent", "solvent": "gallnut" }
       ],
       "picked": [0, 0],
@@ -2311,28 +2086,23 @@
             "spell": "1,0",
             "name": "Bolt",
             "casts": 5,
-            "damage": 17,
-            "kills": 5,
+            "damage": 20,
+            "kills": 6,
             "cells": ["1,0", "1,1", "1,2"],
             "fired": ["1,0", "1,1", "1,2"]
           }
         ],
         "biggestChain": { "member": "stoker", "spell": "1,0", "name": "Bolt", "reactions": 2 },
-        "discoveries": [
-          "burst:fire",
-          "burst:conduct",
-          "compound:skidPlate",
-          "burst:page:skidPlate"
-        ],
+        "discoveries": ["burst:fire", "compound:stain", "compound:deepMark", "burst:conduct"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["foundry"]
+        "heard": ["inkQuarter", "foundry"]
       }
     }
   ],
   "outcome": "returned",
   "profile": {
-    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fork", "bend"],
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "brass"],
     "methods": ["conduct"],
     "bindEvents": [],
     "inventions": [],
@@ -2353,7 +2123,7 @@
       "graphite": 0
     },
     "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
-    "ink": 10,
+    "ink": 12,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2368,33 +2138,32 @@
     },
     "witnessed": [
       "spark:slick",
+      "ink:slick",
+      "ink:stain",
+      "ink:mark",
       "spark:collar",
-      "bolt:plate",
-      "oil:plate",
-      "spark:skidPlate",
-      "shove:plate",
       "shove:edge"
     ],
-    "named": ["burst:fire", "burst:conduct", "compound:skidPlate", "burst:page:skidPlate"],
+    "named": ["burst:fire", "compound:stain", "compound:deepMark", "burst:conduct"],
     "met": [
       "minion",
-      "slick",
       "fire",
+      "slick",
       "blot",
       "mark",
-      "plate",
+      "stain",
+      "deepMark",
       "elite",
-      "skidPlate",
+      "plate",
       "collar",
-      "cloud",
-      "edge"
+      "edge",
+      "cloud"
     ],
     "foesMet": ["rat", "familiar", "sentry"],
     "footnotes": {
-      "spark": { "points": 7, "chosen": {} },
-      "bolt": { "points": 1, "chosen": {} },
-      "oil": { "points": 1, "chosen": {} },
-      "shove": { "points": 2, "chosen": {} }
+      "spark": { "points": 8, "chosen": {} },
+      "ink": { "points": 3, "chosen": {} },
+      "shove": { "points": 5, "chosen": {} }
     },
     "vellum": 0,
     "glyphs": [],
@@ -2457,27 +2226,28 @@
       ]
     },
     "city": {
-      "heard": ["seam", "canals", "foundry"],
+      "heard": ["seam", "canals", "inkQuarter", "foundry"],
       "open": ["seam", "canals"],
       "hearts": ["seam"],
       "solved": [],
       "trips": 1,
-      "fresh": ["foundry"]
+      "fresh": ["inkQuarter", "foundry"]
     }
   },
   "trip": {
     "district": "seam",
-    "seed": 2,
+    "seed": 8,
     "encounter": 3,
     "status": "cleared",
-    "hp": { "draughtsman": 2, "stoker": 1 },
+    "party": ["draughtsman", "stoker"],
+    "hp": { "draughtsman": 4, "stoker": 4 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
-      { "kind": "rune", "rune": "fork" },
-      { "kind": "rune", "rune": "bend" },
+      { "kind": "rune", "rune": "brass" },
       { "kind": "ink", "amount": 2 },
+      { "kind": "solvent", "solvent": "cinder" },
       { "kind": "method", "method": "conduct" },
-      { "kind": "solvent", "solvent": "cinder" }
+      { "kind": "ink", "amount": 2 }
     ],
     "offers": [],
     "picksLeft": 0,
@@ -2500,22 +2270,22 @@
           "spell": "1,0",
           "name": "Bolt",
           "casts": 5,
-          "damage": 17,
-          "kills": 5,
+          "damage": 20,
+          "kills": 6,
           "cells": ["1,0", "1,1", "1,2"],
           "fired": ["1,0", "1,1", "1,2"]
         }
       ],
       "biggestChain": { "member": "stoker", "spell": "1,0", "name": "Bolt", "reactions": 2 },
-      "discoveries": ["burst:fire", "burst:conduct", "compound:skidPlate", "burst:page:skidPlate"],
+      "discoveries": ["burst:fire", "compound:stain", "compound:deepMark", "burst:conduct"],
       "proofCasts": 10,
       "elegance": [],
-      "heard": ["foundry"]
+      "heard": ["inkQuarter", "foundry"]
     }
   },
   "save": {
     "profile": {
-      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fork", "bend"],
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "brass"],
       "methods": ["conduct"],
       "bindEvents": [],
       "inventions": [],
@@ -2539,7 +2309,7 @@
         "members": ["draughtsman", "stoker"],
         "slots": ["draughtsman", "stoker", null]
       },
-      "ink": 10,
+      "ink": 12,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2554,33 +2324,32 @@
       },
       "witnessed": [
         "spark:slick",
+        "ink:slick",
+        "ink:stain",
+        "ink:mark",
         "spark:collar",
-        "bolt:plate",
-        "oil:plate",
-        "spark:skidPlate",
-        "shove:plate",
         "shove:edge"
       ],
-      "named": ["burst:fire", "burst:conduct", "compound:skidPlate", "burst:page:skidPlate"],
+      "named": ["burst:fire", "compound:stain", "compound:deepMark", "burst:conduct"],
       "met": [
         "minion",
-        "slick",
         "fire",
+        "slick",
         "blot",
         "mark",
-        "plate",
+        "stain",
+        "deepMark",
         "elite",
-        "skidPlate",
+        "plate",
         "collar",
-        "cloud",
-        "edge"
+        "edge",
+        "cloud"
       ],
       "foesMet": ["rat", "familiar", "sentry"],
       "footnotes": {
-        "spark": { "points": 7, "chosen": {} },
-        "bolt": { "points": 1, "chosen": {} },
-        "oil": { "points": 1, "chosen": {} },
-        "shove": { "points": 2, "chosen": {} }
+        "spark": { "points": 8, "chosen": {} },
+        "ink": { "points": 3, "chosen": {} },
+        "shove": { "points": 5, "chosen": {} }
       },
       "vellum": 0,
       "glyphs": [],
@@ -2643,27 +2412,28 @@
         ]
       },
       "city": {
-        "heard": ["seam", "canals", "foundry"],
+        "heard": ["seam", "canals", "inkQuarter", "foundry"],
         "open": ["seam", "canals"],
         "hearts": ["seam"],
         "solved": [],
         "trips": 1,
-        "fresh": ["foundry"]
+        "fresh": ["inkQuarter", "foundry"]
       }
     },
     "trip": {
       "district": "seam",
-      "seed": 2,
+      "seed": 8,
       "encounter": 3,
       "status": "cleared",
-      "hp": { "draughtsman": 2, "stoker": 1 },
+      "party": ["draughtsman", "stoker"],
+      "hp": { "draughtsman": 4, "stoker": 4 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
-        { "kind": "rune", "rune": "fork" },
-        { "kind": "rune", "rune": "bend" },
+        { "kind": "rune", "rune": "brass" },
         { "kind": "ink", "amount": 2 },
+        { "kind": "solvent", "solvent": "cinder" },
         { "kind": "method", "method": "conduct" },
-        { "kind": "solvent", "solvent": "cinder" }
+        { "kind": "ink", "amount": 2 }
       ],
       "offers": [],
       "picksLeft": 0,
@@ -2686,25 +2456,20 @@
             "spell": "1,0",
             "name": "Bolt",
             "casts": 5,
-            "damage": 17,
-            "kills": 5,
+            "damage": 20,
+            "kills": 6,
             "cells": ["1,0", "1,1", "1,2"],
             "fired": ["1,0", "1,1", "1,2"]
           }
         ],
         "biggestChain": { "member": "stoker", "spell": "1,0", "name": "Bolt", "reactions": 2 },
-        "discoveries": [
-          "burst:fire",
-          "burst:conduct",
-          "compound:skidPlate",
-          "burst:page:skidPlate"
-        ],
+        "discoveries": ["burst:fire", "compound:stain", "compound:deepMark", "burst:conduct"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["foundry"]
+        "heard": ["inkQuarter", "foundry"]
       }
     },
-    "seedCounter": 2,
+    "seedCounter": 8,
     "lastTrip": null
   }
 }

@@ -15,6 +15,13 @@
         { "type": "endTurn" },
         { "type": "endTurn" },
         { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
+        { "type": "endTurn" },
         { "type": "endTurn" }
       ],
       "events": [
@@ -26,70 +33,254 @@
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false }
         },
         {
-          "type": "telegraph",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
-          "verb": "lunge"
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         { "type": "phase", "phase": "resolve" },
-        {
-          "type": "attack",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
-          "verbs": "lunges"
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
-          "amount": 2,
-          "source": "Lunge",
-          "bonus": [],
-          "hpLeft": 6
-        },
         { "type": "round", "round": 2 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "moved",
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 0 }, "member": false },
-          "to": { "x": 1, "y": 2 },
-          "path": [{ "x": 1, "y": 0 }, { "x": 1, "y": 1 }, { "x": 1, "y": 2 }]
+          "to": { "x": 0, "y": 3 },
+          "path": [{ "x": 0, "y": 1 }, { "x": 0, "y": 2 }, { "x": 0, "y": 3 }]
         },
         { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 0 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 0 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 1 }, "makes": "slick" },
-        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 2 }, "makes": "slick" },
-        {
-          "type": "idle",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 2 }, "member": false }
-        },
+        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 1 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 2 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 0, "y": 3 }, "makes": "slick" },
         {
           "type": "telegraph",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
-          "verb": "lunge"
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         { "type": "phase", "phase": "resolve" },
         {
           "type": "attack",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 1 },
-          "verbs": "lunges"
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
-          "amount": 2,
-          "source": "Lunge",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
           "bonus": [],
-          "hpLeft": 4
+          "hpLeft": 7
         },
         { "type": "round", "round": 3 },
         { "type": "phase", "phase": "enemy" },
         {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 6
+        },
+        { "type": "round", "round": 4 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 5
+        },
+        { "type": "round", "round": 5 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 4
+        },
+        { "type": "round", "round": 6 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 3
+        },
+        { "type": "round", "round": 7 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 2
+        },
+        { "type": "round", "round": 8 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 1
+        },
+        { "type": "round", "round": 9 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verb": "bite"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "attack",
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
+          "intent": { "kind": "attack", "attack": "bite", "dir": "down", "order": 1 },
+          "verbs": "bites"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true },
+          "amount": 1,
+          "source": "Bite",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 0, "y": 4 }, "member": true }
+        },
+        { "type": "round", "round": 10 },
+        { "type": "phase", "phase": "enemy" },
+        {
           "type": "moved",
-          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 1, "y": 2 }, "member": false },
+          "unit": { "id": "rat-1", "name": "rat", "at": { "x": 0, "y": 3 }, "member": false },
           "to": { "x": 1, "y": 5 },
           "path": [{ "x": 1, "y": 3 }, { "x": 1, "y": 4 }, { "x": 1, "y": 5 }]
         },
@@ -103,10 +294,8 @@
           "verb": "bite"
         },
         {
-          "type": "telegraph",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
-          "verb": "lunge"
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         { "type": "phase", "phase": "resolve" },
@@ -129,21 +318,7 @@
           "bonus": [],
           "hpLeft": 5
         },
-        {
-          "type": "attack",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
-          "verbs": "lunges"
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
-          "amount": 2,
-          "source": "Lunge",
-          "bonus": [],
-          "hpLeft": 2
-        },
-        { "type": "round", "round": 4 },
+        { "type": "round", "round": 11 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
@@ -152,10 +327,8 @@
           "verb": "bite"
         },
         {
-          "type": "telegraph",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
-          "verb": "lunge"
+          "type": "idle",
+          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         { "type": "phase", "phase": "resolve" },
@@ -178,25 +351,7 @@
           "bonus": [],
           "hpLeft": 4
         },
-        {
-          "type": "attack",
-          "unit": { "id": "eel-1", "name": "eel", "at": { "x": 4, "y": 6 }, "member": false },
-          "intent": { "kind": "attack", "attack": "lunge", "dir": "left", "order": 2 },
-          "verbs": "lunges"
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true },
-          "amount": 2,
-          "source": "Lunge",
-          "bonus": [],
-          "hpLeft": 0
-        },
-        {
-          "type": "died",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 6 }, "member": true }
-        },
-        { "type": "round", "round": 5 },
+        { "type": "round", "round": 12 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
@@ -229,7 +384,7 @@
           "bonus": [],
           "hpLeft": 3
         },
-        { "type": "round", "round": 6 },
+        { "type": "round", "round": 13 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
@@ -262,7 +417,7 @@
           "bonus": [],
           "hpLeft": 2
         },
-        { "type": "round", "round": 7 },
+        { "type": "round", "round": 14 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",
@@ -295,7 +450,7 @@
           "bonus": [],
           "hpLeft": 1
         },
-        { "type": "round", "round": 8 },
+        { "type": "round", "round": 15 },
         { "type": "phase", "phase": "enemy" },
         {
           "type": "telegraph",

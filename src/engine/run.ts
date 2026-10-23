@@ -14,7 +14,6 @@ import {
   LINES,
   type LineDef,
   type LineId,
-  MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   type Meets,
@@ -67,8 +66,9 @@ import { growingLattice } from './page';
 import { recordOf, rewardsOf } from './profiler';
 import { provenCount } from './proof';
 import { deriveSeed } from './rng';
+import { MAX_PARTY } from './rooms';
 import { variantFor } from './trip/place';
-import { copyRune, perMember, withAll } from './trip/shared';
+import { chargesLeftOf, copyRune, hpOf, perMember, withAll } from './trip/shared';
 import type {
   Action,
   Aim,
@@ -309,10 +309,13 @@ export function canPlaceGlyph(
 }
 
 /** Issues per member (ink, structure, and runes the household doesn't know). Empty object = ready. */
-export function validateLoadout(p: Profile): Partial<Record<MemberId, LatticeIssue[]>> {
+export function validateLoadout(
+  p: Profile,
+  who: readonly ApprenticeId[] = p.household.members,
+): Partial<Record<MemberId, LatticeIssue[]>> {
   const out: Partial<Record<MemberId, LatticeIssue[]>> = {};
   const lib = inventionLibrary(p);
-  for (const m of p.household.members) {
+  for (const m of who) {
     const l = latticeOf(p, m);
     const issues = validateLattice(l, p.ink, glyphLibrary(p), lib, MEMBERS[m].lean);
     for (const r of l.runes) {
@@ -688,6 +691,10 @@ function unique<T>(items: T[]): T[] {
   return [...new Set(items)];
 }
 
+/** The record has exactly these keys (any order). */
+const sameKeys = (r: Record<string, unknown>, ids: readonly string[]): boolean =>
+  Object.keys(r).length === ids.length && ids.every((id) => Object.hasOwn(r, id));
+
 function parseRune(v: unknown): PlacedRune {
   const r = record(v);
   const rune = runeRef(r.rune);
@@ -778,15 +785,20 @@ function parseTrip(v: unknown): Trip {
   const district = oneOf(DISTRICT_IDS, r.district);
   const rooms = encountersOf(district);
   const enc = rooms[encounter] ?? bad();
+  const party = list(r.party).map((m) => oneOf(APPRENTICE_IDS, m));
+  if (party.length < 1 || party.length > MAX_PARTY || unique(party).length !== party.length) bad();
   const hp = record(r.hp);
   const charges = record(r.charges);
+  // Keyed by the party exactly: no one else's hp or charges ride along.
+  if (!sameKeys(hp, party) || !sameKeys(charges, party)) bad();
   const trip: Trip = {
     district,
     seed: count(r.seed),
     encounter,
     status: oneOf<TripStatus>(['fight', 'looting', 'crossroads', 'cleared', 'doorway'], r.status),
-    hp: perMember((m) => count(hp[m])),
-    charges: perMember((m) => {
+    party,
+    hp: perMember(party, (m) => count(hp[m])),
+    charges: perMember(party, (m) => {
       const c = record(charges[m]);
       return Object.fromEntries(Object.entries(c).map(([k, n]) => [cellKey(k), count(n)]));
     }),
@@ -796,7 +808,7 @@ function parseTrip(v: unknown): Trip {
     actions: list(r.actions).map(parseAction),
     stats: parseStats(r.stats),
   };
-  if (MEMBER_IDS.some((m) => trip.hp[m] < 1)) bad();
+  if (party.some((m) => hpOf(trip, m) < 1)) bad();
   if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
   if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= rooms.length)) bad();
   if ([...trip.loot, ...trip.offers].filter((i) => i.kind === 'key').length > 1) bad();
@@ -827,7 +839,7 @@ export function parseSaveData(data: unknown, budget: ImportBudget = importBudget
 function parseTally(v: unknown): SpellTally {
   const x = record(v);
   return {
-    member: oneOf(MEMBER_IDS, x.member),
+    member: oneOf(APPRENTICE_IDS, x.member),
     spell: cellKey(x.spell),
     name: text(x.name),
     casts: count(x.casts),
@@ -862,7 +874,7 @@ function parseStats(v: unknown): TripStats {
         : (() => {
             const c = record(r.biggestChain);
             return {
-              member: oneOf(MEMBER_IDS, c.member),
+              member: oneOf(APPRENTICE_IDS, c.member),
               spell: cellKey(c.spell),
               name: text(c.name),
               reactions: count(c.reactions),
@@ -1062,15 +1074,17 @@ function validateSaveReferencesUnchecked(save: SaveData, budget: ImportBudget): 
     )
       bad();
   };
-  for (const m of MEMBER_IDS)
-    for (const k of Object.keys(t.charges[m])) {
+  // Who set out must still be in the household (their pages are what the fight replays).
+  for (const m of t.party) if (!p.household.members.includes(m)) bad();
+  for (const m of t.party)
+    for (const k of Object.keys(chargesLeftOf(t, m))) {
       budget.spend('work');
       cellKey(k);
     }
   for (const action of t.actions) {
     budget.spend('work');
     if (action.type === 'endTurn') continue;
-    oneOf(MEMBER_IDS, action.unit);
+    oneOf(t.party, action.unit);
     if (action.type === 'move') onBoard(action.to);
     if (action.type === 'cast') {
       cellKey(action.spell);

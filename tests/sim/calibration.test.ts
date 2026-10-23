@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { ENCOUNTERS, MEMBER_IDS } from '$data';
-import { compiledFor, createBattle, memberById, newProfile, newSave } from '$engine';
+import { ENCOUNTERS } from '$data';
+import { compiledFor, createBattle, FOUNDERS, memberById, newProfile, newSave } from '$engine';
 import { endBattle, pushOnward, setOut, startBattle, takeOffer } from '../../src/app/flow';
 import { botFight } from './bot';
 
@@ -15,8 +15,9 @@ function calibrateSeam(seeds = [7, 42]) {
             title: encounter.title,
             board: variant.layout,
             seed,
+            lineup: FOUNDERS,
             party: Object.fromEntries(
-              MEMBER_IDS.map((id) => [id, { spells: compiledFor(p, id).spells }]),
+              FOUNDERS.map((id) => [id, { spells: compiledFor(p, id).spells }]),
             ),
           }).state,
         ),
@@ -29,7 +30,7 @@ function calibrateSeam(seeds = [7, 42]) {
         lost: results.filter((r) => r.state.phase === 'lost').length,
         timedOut: results.filter((r) => r.state.phase === 'player').length,
         rounds: results.map((r) => r.state.round),
-        hp: results.map((r) => MEMBER_IDS.reduce((sum, id) => sum + memberById(r.state, id).hp, 0)),
+        hp: results.map((r) => FOUNDERS.reduce((sum, id) => sum + memberById(r.state, id).hp, 0)),
       };
     }),
   );
@@ -53,8 +54,8 @@ test('starter trip calibration includes HP and charge attrition', () => {
         depth: save.trip.encounter + 1,
         phase: fight.state.phase,
         round: fight.state.round,
-        hp: MEMBER_IDS.map((id) => memberById(fight.state, id).hp),
-        charges: MEMBER_IDS.map((id) => memberById(fight.state, id).charges),
+        hp: save.trip.party.map((id) => memberById(fight.state, id).hp),
+        charges: save.trip.party.map((id) => memberById(fight.state, id).charges),
       });
       if (fight.state.phase !== 'won') break;
       save = endBattle(save, fight.state, fight.events).save;

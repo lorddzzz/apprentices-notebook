@@ -605,8 +605,11 @@ export interface Trip {
   encounter: number; // index into `encountersOf(district)` of the current/next fight
   /** fight: go fight `encounter`; looting: pick from offers; crossroads: push or return; cleared: heart won, must return */
   status: TripStatus;
-  hp: Record<MemberId, number>;
-  charges: Record<MemberId, Record<SpellKey, number>>;
+  /** Who set out (1–3, slot order), fixed at `startTrip` (HC-4). A wipe is all of them down. */
+  party: ApprenticeId[];
+  /** Keyed by `party` exactly: read through `hpOf`/`chargesLeftOf`, which throw for an outsider. */
+  hp: Partial<Record<ApprenticeId, number>>;
+  charges: Partial<Record<ApprenticeId, Record<SpellKey, number>>>;
   loot: LootItem[]; // pending, banked on return, lost on wipe
   offers: LootItem[];
   picksLeft: number;
