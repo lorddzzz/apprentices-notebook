@@ -93,13 +93,13 @@ flowchart LR
 
 | Roadmap | Plan | Status | Size (tasks) | Needs before it starts | Unlocks | Gates |
 |---|---|---|---|---|---|---|
-| BL-128 | [Foundations](plans/foundations-plan.md) (FD): arrival pipeline, event contracts, BL-105–109, BL-112, BL-123 | **planned**, Stage 0 can start | ~2 L (12) | — | AH (FD-3, FD-7), DK-3/DK-4, RV-2/RV-3, FN-0 (FD-8/9), BR/CG Bind events (FD-9) | — |
-| BL-127 | [District kit](plans/district-kit-plan.md) (DK): district modules, trip shape, rules, pieces, offers, hearing, out of the room, stand-ins, Bench parity (BL-102), thresholds (BL-94), map (BL-95), lore registry | **planned**, DK-0/DK-2 start first | ~L (20) | DK-0/2 none; DK-3/4 need FD-3; DK-5a/6 HC-W0; DK-7 RC-W0; DK-8/9 RV-W0 | every district plan (after DK-17), RC-4, RV-14 | — |
-| BL-43 → BL-129 | [Household core](plans/household-core-plan.md) (HC): roster, save v9, shelf, slots, start points, party 1–3, shared ink | **planned** | L–XL (10) | DK-2 for HC-1/HC-4 | AH, RC, FN-0, RV-15, CN, SM | HC playtest |
+| BL-128 | [Foundations](plans/foundations-plan.md) (FD): arrival pipeline, event contracts, BL-105–109, BL-112, BL-123 | **building** ([status](plans/build-program-status.md)) | ~2 L (12) | — | AH (FD-3, FD-7), DK-3/DK-4, RV-2/RV-3, FN-0 (FD-8/9), BR/CG Bind events (FD-9) | — |
+| BL-127 | [District kit](plans/district-kit-plan.md) (DK): district modules, trip shape, rules, pieces, offers, hearing, out of the room, stand-ins, Bench parity (BL-102), thresholds (BL-94), map (BL-95), lore registry | **building** ([status](plans/build-program-status.md)) | ~L (20) | DK-0/2 none; DK-3/4 need FD-3; DK-5a/6 HC-W0; DK-7 RC-W0; DK-8/9 RV-W0 | every district plan (after DK-17), RC-4, RV-14 | — |
+| BL-43 → BL-129 | [Household core](plans/household-core-plan.md) (HC): roster, save v9, shelf, slots, start points, party 1–3, shared ink | **building** | L–XL (10) | DK-2 for HC-1/HC-4 | AH, RC, FN-0, RV-15, CN, SM | HC playtest |
 | BL-43 → BL-130 | [Actions and habits](plans/actions-habits-plan.md) (AH): Pull, Hop, Swap, seven habits, harm guard | **planned** | L (9) | HC-W0, FD-3, FD-7 | RC go-live of each recruit, CN (runaway), BH (towel-bearer) | AH Lab playtest |
-| BL-43 → BL-131 | [Recruitment](plans/recruitment-plan.md) (RC): seven apprentices, recruit offer, hidden until ready, door arrivals | **planned** | M–L (10) | HC-W0, DK-1 | CN-6, each district's recruit placement | RC playtest |
+| BL-43 → BL-131 | [Recruitment](plans/recruitment-plan.md) (RC): seven apprentices, recruit offer, hidden until ready, door arrivals | **building** (RC-W0 done) | M–L (10) | HC-W0, DK-1 | CN-6, each district's recruit placement | RC playtest |
 | BL-30, BL-118 | [Rivals and recovered pages](plans/rivals-plan.md) (RV) | **planned** | XL (21) | DK-1, FD-7, FD-5; RV-15 needs HC-1 | CN-7, every real district heart (RV-14), the five-page hearing (RV-15) | **RV-G1** Lamplighter Lab playtest |
-| BL-54, BL-101, BL-104, BL-50 | [Footnotes](plans/footnotes-plan.md) (FN): system, audit, solvent discovery, diagonal capstone, Seam content | **planned**, FN-1A can start | system L + ~9 M content (27) | FD-8, FD-9, HC-1 | every district's footnote batch (after FN-C1) | FN-P1 thresholds |
+| BL-54, BL-101, BL-104, BL-50 | [Footnotes](plans/footnotes-plan.md) (FN): system, audit, solvent discovery, diagonal capstone, Seam content | **building** (FN-1A done) | system L + ~9 M content (27) | FD-8, FD-9, HC-1 | every district's footnote batch (after FN-C1) | FN-P1 thresholds |
 | BL-124, BL-91, BL-119 | [Canals revisit](plans/canals-revisit-plan.md) (CN) | **planned** | L (20) | DK-17, HC-2, RC-4, AH-1/AH-4; CN-7 needs RV-G1 | BR's key gate (CN-8), SM's canal floor, the Lamplighter's page | CN-P1 |
 | BL-125 | [The Seam grows](plans/seam-grows-plan.md) (SM) | **planned** | L (16) | DK-17, DK-8, DK-9, HC-3, RC-3 | lower-Seam floors for each district, the sealed door CG opens | SM G1, G2, G3 (answer texts) |
 | BL-113 | [Ink-makers' quarter](plans/ink-quarter-plan.md) (IQ) | **planned** | L + 2–3 M (33 rows) | DK-17, FD-3, HC-2; the postmaster RV-14 | the postmaster's page; Bind and Lift for the household | IQ-G1, IQ-G2 |
@@ -109,7 +109,7 @@ flowchart LR
 | BL-117 | [Cartographers' hall](plans/cartographers-plan.md) (CG) | **planned** | L (21) | DK-17, FD-9, RV-14, RV-15; a campaign needs all four masters real | the owner's door (SM-10), the exile's Board pages, BL-126 | CG-G1, CG-G2, CG-G4 |
 | BL-126 | [The ending](plans/ending-plan.md) (EN): the handover, the owner as the tenth apprentice, credits, the drawing table and pen, generated rooms with a bot test, drawn districts on the map — design [ending.md](design/ending.md) | **planned**; EN-0 (bot to `src/engine/sim/`) runs early, beside Stage 2 | L (24) | the generator spike EN-S1 needs DK-17 and EN-0; the full table needs SM-11, CG's door, RV-15, FN-1 and each district's heart frame | the credits; the sandbox | **EN-G0** generator go/no-go, playtest, campaign gate |
 
-**Next action:** start Stage 0 with the `implement` skill. DK-0/DK-2, FD-0–FD-2, HC-W0 and FN-1A are independent and can run in parallel.
+**Next action:** the program is building; live task state is in [build-program-status.md](plans/build-program-status.md).
 
 ### 2.4 Atmosphere (outside the program)
 

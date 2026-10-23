@@ -2,11 +2,11 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 0 → 1)
-**Reset:** 5h window resets 2026-10-23 20:50 UTC; resume manually by reading this file.
+**State:** holding for reset (Stage 0 done except FD-1/FD-2; Stage 1 started)
+**Reset:** 5h window resets 2026-10-23 20:50 UTC (22:50 local); resume manually (`/implement` resume) by reading this file. No agents running.
 **Next:**
-1. After the 20:50 UTC reset: start HC-4 (critical path: HC-1+HC-2+HC-3 merged; must also bake `P` into room data), FD-1, FN-0 (FD-8, FD-9, HC-1 merged).
-2. Then: FN-0 (needs FD-9), HC-6 (tokens), RV-W0, RC-W0, AH-W0, FD-2. DK-3/DK-4 after FD-3; DK-5a/DK-6 ready (HC-W0 merged).
+1. Check usage, then start in parallel: **HC-4** (Strong, L; critical path: party 1–3 in `engine/trip/`, wire `startLayout` + `placeParty` + `startSeedFor` in `beginEncounter`, bake `P` into room data and delete `startLayout`, finish the `MEMBER_IDS` → party moves HC-1 left), **FN-0** (Strong, M), **AH-W0** (Strong, M; derive/check `HabitId` against `RECRUIT_HABITS`, reserve `mender`), **FD-1** (Strong, M; test only).
+2. Then: FD-2, HC-6, RV-W0 (needs FD-W0 ✓, DK-W0 ✓), DK-5a/DK-6 (watch file overlap with HC-4 in `engine/trip/`: run DK-5a after HC-4), FD-3 → DK-3/DK-4.
 
 ## Tasks
 | ID | Role / model / effort | Size | Status | Branch / commit | Usage Δ | Notes |
@@ -38,6 +38,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 18:46 | 92 | 2h04 | 30 | Wrap | merge HC-3; one agent (HC-1) running, no new spawns |
 | 19:00 | 93 | 2h00 | 30 | Wrap | merge HC-1; spawn FD-9 (smallest) |
 | 19:10 | 95 | 1h49 | 30 | Wrap | merge FD-9; spawn RC-W0 (S) |
+| 19:18 | 98 | 1h41 | 31 | Hold | merge RC-W0; hold for the 20:50 reset |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RC-W0: AH-W0 derives or checks `HabitId` against `RECRUIT_HABITS`. Accepted (pass to AH-W0).
