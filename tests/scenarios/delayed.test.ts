@@ -141,7 +141,7 @@ describe('BL-106: dusk opens the jars it found (FD-5, P10)', () => {
     return draft(set.state, (ctx) => openDuskJars(ctx));
   }
 
-  it.fails('replacement-jar: a jar sealed at dusk waits for the next dusk', () => {
+  it('replacement-jar: a jar sealed at dusk waits for the next dusk', () => {
     const dusk = duskWithReplacement();
     expectLog(dusk.events, [
       'the jar at B1 opens under rat at B1',
@@ -154,7 +154,7 @@ describe('BL-106: dusk opens the jars it found (FD-5, P10)', () => {
 
   // Today `newestSeq` is the board's max + 1: after the newest jar opens, the next one reuses
   // its number (here 2).
-  it.fails('jar-ids-never-reused: a jar sealed after the newest opened gets a new id', () => {
+  it('jar-ids-never-reused: a jar sealed after the newest opened gets a new id', () => {
     const start = withLattices('D . . .\n. . . .\n. . . .', {});
     let opened: Jar | null = null;
     const r = draft(start, (ctx) => {

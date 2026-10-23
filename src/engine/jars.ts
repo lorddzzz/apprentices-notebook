@@ -63,7 +63,14 @@ function jarsOf(ctx: Ctx, owner: UnitId): Coord[] {
   return out.sort((a, b) => a.seq - b.seq).map((j) => j.at);
 }
 
-const newestSeq = (ctx: Ctx): number => Math.max(0, ...ctx.s.tiles.map((t) => t.jar?.seq ?? 0));
+/** The next jar id (P10): the battle's counter, or past every jar on an old save's board. */
+function takeJarId(ctx: Ctx): number {
+  const id =
+    ctx.s.nextJar ??
+    Math.max(0, ...ctx.s.tiles.map((t) => Math.max(t.jar?.id ?? 0, t.jar?.seq ?? 0))) + 1;
+  ctx.s.nextJar = id + 1;
+  return id;
+}
 
 function crumble(ctx: Ctx, at: Coord): void {
   tileAt(ctx.s, at).jar = null;
@@ -84,7 +91,8 @@ export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
     if (old) crumble(ctx, old);
   }
   if (tileAt(ctx.s, at).jar) crumble(ctx, at);
-  tileAt(ctx.s, at).jar = { ...cloneData(jar), seq: newestSeq(ctx) + 1 };
+  const id = takeJarId(ctx);
+  tileAt(ctx.s, at).jar = { ...cloneData(jar), id, seq: id };
   emit(ctx, { type: 'jarSealed', at: { ...at }, owner: ref(owner), event: jar.event });
 }
 
@@ -110,9 +118,12 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null): void {
 
 /** Dusk: every dusk-jar opens, in reading order. Jars sealed while this runs wait for the next dusk. */
 export function openDuskJars(ctx: Ctx): void {
-  const due: Coord[] = [];
+  const due: { at: Coord; id: number | undefined }[] = [];
   ctx.s.tiles.forEach((t, i) => {
-    if (t.jar?.event === 'dusk') due.push(coordOf(ctx.s, i));
+    if (t.jar?.event === 'dusk') due.push({ at: coordOf(ctx.s, i), id: t.jar.id });
   });
-  for (const at of due) if (tileAt(ctx.s, at).jar?.event === 'dusk') openJar(ctx, at);
+  for (const { at, id } of due) {
+    const jar = tileAt(ctx.s, at).jar;
+    if (jar?.event === 'dusk' && jar.id === id) openJar(ctx, at);
+  }
 }
