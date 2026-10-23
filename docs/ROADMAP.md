@@ -54,13 +54,13 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
 | BL-30 | Rival inscribers | feature / XL | combat, world | **core design decided 2026-10-22**; prototype/default validation and build plan pending | [Rival design](design/rivals.md): recognisable routines, locked aims, pre-shown avoidable fallback; first Lamplighter has the long wick (spend a later turn opening his jar remotely). Proposed kit: jar of Oil/Spark plus Oil/Shove. Validate aim geometry, fallback, deterministic routine and phone readability in the Lab before a roster. |
-| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | **format/access decided 2026-10-22**; proposed economy/proof rules need validation; BL-30 | Intact annotated spell as a free Bench trial copy; field use/adaptation requires owned parts; personal trick excluded. Proposed defaults: permanent knowledge on encounter victory, no free Glyph proof, no duplicate page reward. Validate trial isolation, witnesses and lifetime credit. The five pages (four masters and the Lamplighter) are the Cartographers' hearing. See [rivals](design/rivals.md) §3. |
+| BL-118 | Recovered rival lattice pages | feature / M–L | mastery, story | **format/access decided 2026-10-22**; proposed economy/proof rules need validation; BL-30 | Intact annotated spell as a free Bench trial copy; field use/adaptation requires owned parts; personal trick excluded. Proposed defaults: permanent knowledge on encounter victory, no free Glyph proof, no duplicate page reward. Validate trial isolation, witnesses and lifetime credit. The five pages (four masters and the Lamplighter) are the Cartographers' hearing. Each page also carries one unique footnote variant ([footnotes](design/footnotes.md), 2026-10-23). See [rivals](design/rivals.md) §3. |
 
 ### Track M · Mastery expansion
 
 | ID | Work | Type / size | Area | Status / dependencies | Scope |
 |---|---|---|---|---|---|
-| BL-54 | More footnote choices | content / M per batch | mastery | needs-design | Current: five level-I line pairs / ten variants across Bolt, Shove, Spark and Oil. Add other runes, then levels II–III and invention footnotes; define invention points/identity first. Prefer decisions that change builds over straight numerical upgrades. |
+| BL-54 | Footnote levels, capstones and method/solvent margins | feature + content / L, then M per batch | mastery | **design decided 2026-10-23**; build plan not written; content passes need BL-101 | [Footnotes](design/footnotes.md): levels I–II are line slots (4 variants per line), III a rune capstone (2 per rune), methods and solvents have their own margins, cost scales with level, thresholds 8/25/60 (methods/solvents 5/15/36), empty margins for locked slots, home-only re-picking, rival unique notes. Build the system (per-subject points, slots, capstones, margin UI, cost), then write the Seam's 13 runes and five methods, then each district's batch. |
 
 ### Track C · Canals revisit
 
@@ -93,7 +93,7 @@ Every district round specifies hearing/gate, route/return rhythm, terrain and ed
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
 | BL-100 | Rune art and editor polish | polish / M | runes, study | ready | Redraw margin, strike, coil, brink, bind, chalk, filings, quicksilver. Audit invention names/art in every shelf/caption and optional shelf metadata/duplicated flow geometry. Implementation leftovers now have their own IDs above and in §4. |
-| BL-50 | Diagonal aura reach | feature / M | lattice, mastery | needs-design | Possible footnote choice after aura-specific rules and readable overlays are designed. |
+| BL-50 | Diagonal aura reach | feature / M | lattice, mastery | **decided as an aura capstone 2026-10-23**; needs BL-54 and readable overlays | One of each aura's two capstones (Afterglow, Steep, Coil: also acts through diagonally touching cells); design the overlay in the same build. [Footnotes](design/footnotes.md) §1. |
 | BL-51 | Additional runes beyond the 31 | content / M each | runes | idea | New Source/Shape/Trigger behavior only if it adds something current methods and wiring cannot express. Pull/hop as personal basic actions belong to BL-43 first. No aspect assignment needed. |
 | BL-52 | More idioms (nine now) | content / S each | runes, codex | ready | Add recognizable event patterns in idioms.ts and a replayable Lab example; these are named achievements of a cast, not compile recipes or free Glyphs. |
 | BL-56 | Attrition and build balance | balance / M | combat, run | needs-feedback | Separate isolated room strength from full-trip charge exhaustion. Baseline: starter bots clear fresh Seam rooms but full trips exhaust charges around depth 3. Review Strike versus Spark/crush, ink costs, leans and rewards. Decide whether pushing FROM oil should start a slide; currently only entering oil extends it. |
@@ -164,7 +164,7 @@ New possibilities arising from the shipped systems (all **proposals**):
 4. Preserve auras/solvent scope across delayed and nested inventions in which exact cases? BL-105.
 5. Should departure from oil also start sliding? Keep current rule pending a decision. BL-56.
 6. Rival core design and trial-copy rewards are decided; validate proposed aim/fallback, long-wick routine and page economy in the Lab, then author other rivals with their districts. BL-30/118.
-7. Which footnote changes create interesting alternatives? BL-54. How should invention progression be identified?
+7. Footnote system and invention progression are decided (BL-54, footnotes.md). Open: the exact variants, capstones and threshold tuning, authored in content passes.
 8. What audio fits the notebook and rainy city? BL-42.
 
 ---
