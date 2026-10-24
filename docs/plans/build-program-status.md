@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: HC-8, RV-6 (+ planner crumble fix), DK-8 (12:28).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: HC-8, RV-6 (12:28).
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -67,7 +67,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-4 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a0b96c7d5aba90a57 @ b419c7a | shared | `desk.ts` `deskRows`/`deskGroups` (runes, methods, solvents with points), `marginOf(p, subject, opts)` (filled/open/locked frames + capstone; threshold, missing, variants, spends, blocked text), costs from `footnoteCost`, rival notes when `holdsRivalPage` (credit line ready for FN-8), `writeAt(…, {atHome})` refuses `ROAD_REFUSAL` (P10); `DeskStore.atHome = save.trip === null`. UI `Desk.svelte` + `desk/SubjectEntry`, `MarginColumn`, `MarginFrame` (RuneEntry/OfferCard removed). Verified 375×812 (locked/open/filled-after-write; scratchpad fn4/). Not checked: locked II/capstone frame (no content). Autofixer not run (unavailable) |
 | HC-8 | Medium / Sonnet 5.5 / high | M | running | worktree (12:28) | | Combat/Lab any size + party |
 | RV-6 | Medium / Sonnet 5.5 / high | S | running | worktree (12:28) | | rivalPreview + placeObjectNear crumble fix |
-| DK-8 | Medium / Sonnet 5.5 / high | M | running | worktree (12:28) | | hearing kinds |
+| DK-8 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-ae608f9e50c03688e @ 76ab299 | shared | `engine/hearing.ts` `HEARING_KINDS` registry (burst, named, heart, trips + crossDebt, burstUnits, conducted, performed, pages), `conditionHolds` (district filter except `heart`), `hearOf`, `actorsOf` (credit an apprentice's act: origin, or following her cast/Shove in the same phase); `crossDebt` splits by `round`; `city.ts` `hearFromBattle`/`hearAfterTrip` use the registry; new `data/districts/{inkQuarter,bathhouses,bridges,foundry,cartographers}.ts` with `hear` only (crossDebt, burstUnits(storm,3), performed(theWall), conducted(3) Seam-scoped; hall `pages(5, except registrar)`). 37 tests. Golden: 8 trip fixtures re-recorded, diff verified by orchestrator = only `heard`/`fresh`. **DK-17:** delete old `hear` lists in `data/districts.ts`; `app/tripviews.ts` `heardVoice` should call `hearOf` (hall shows "a rumour") |
 | FN-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ae6ef13811cede131 @ 07d94ae | shared | engine side already existed (FN-1/FN-4); `desk.ts` `rivalPagesHeld(profile)` (any held page of that rival with a non-null note); `marginOf`/`writeAt` fall back to it when no `holdsRivalPage` given; store passes it on write; credit fallback "<Rival>'s hand.". 3 tests `tests/app/desk-rival-note.test.ts`. No shipped rival variant yet (RV-20 authors `lamplighter:wick`). Follow-ups: `VariantDef.rival` should use `$data/rivals` `RivalId`; `rivalNoteVisible` by variant id |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
@@ -107,6 +107,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 12:47 | 59 | 4h13 | 74 | Wrap by projection (~1.1%/min) | merge FN-8, DK-8; no new spawns |
 | 12:25 | 34 | 4h35 | 71 | Normal (~0.3%/min) | merge FN-4, RV-5, DK-5b |
 | 12:16 | 32 | 4h43 | 71 | Normal (~1.9%/min) | merge RC-4 |
 | 12:01 | 4 | 4h58 | 67 | Normal | wake-up #1; spawn RC-4, RV-5, DK-5b, FN-4 |
@@ -169,6 +170,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - FN-4: Desk rows still need ≥1 point (a zero-point subject with authored margins stays hidden) — **ask player** at the next design round; default: keep. Port collisions between UI agents: give each UI agent its own port (5190–5193). Accepted.
 
 - RV-5: wick opening deals ~4 damage (spark + burst), two thirds of the Draughtsman's HP — tune at RV-G1; in play he plans right after the lantern lands, so a lantern under you is wicked at once (design §2 assumes "you step away" first) — note for the RV-G1 playtest. Accepted as playtest items.
+
+- DK-8: kept the four `trips` rumours as a fallback (docs only name placeholder triggers); `burstUnits`/`conducted` count every unit reached, apprentices included (as planned) — **ask player** whether friendly fire should hear; default keep. Accepted.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.

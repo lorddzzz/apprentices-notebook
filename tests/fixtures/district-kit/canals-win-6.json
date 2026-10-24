@@ -337,7 +337,7 @@
         "discoveries": ["burst:fire", "compound:deepMark"],
         "proofCasts": 3,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     {
@@ -736,7 +736,7 @@
         "discoveries": ["burst:fire", "compound:deepMark"],
         "proofCasts": 6,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     {
@@ -1226,7 +1226,7 @@
         "discoveries": ["burst:fire", "compound:deepMark"],
         "proofCasts": 8,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     {
@@ -2050,7 +2050,7 @@
         "discoveries": ["burst:fire", "compound:deepMark", "burst:surge"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     {
@@ -3411,7 +3411,7 @@
         "discoveries": ["burst:fire", "compound:deepMark", "burst:surge", "idiom:longDrop"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     }
   ],
@@ -3540,12 +3540,12 @@
       ]
     },
     "city": {
-      "heard": ["seam", "canals", "inkQuarter", "cartographers"],
+      "heard": ["seam", "canals"],
       "open": ["seam", "canals"],
       "hearts": ["canals"],
       "solved": [],
       "trips": 1,
-      "fresh": ["inkQuarter", "cartographers"]
+      "fresh": []
     }
   },
   "trip": {
@@ -3595,7 +3595,7 @@
       "discoveries": ["burst:fire", "compound:deepMark", "burst:surge", "idiom:longDrop"],
       "proofCasts": 10,
       "elegance": [],
-      "heard": ["inkQuarter"]
+      "heard": []
     }
   },
   "save": {
@@ -3726,12 +3726,12 @@
         ]
       },
       "city": {
-        "heard": ["seam", "canals", "inkQuarter", "cartographers"],
+        "heard": ["seam", "canals"],
         "open": ["seam", "canals"],
         "hearts": ["canals"],
         "solved": [],
         "trips": 1,
-        "fresh": ["inkQuarter", "cartographers"]
+        "fresh": []
       }
     },
     "trip": {
@@ -3781,7 +3781,7 @@
         "discoveries": ["burst:fire", "compound:deepMark", "burst:surge", "idiom:longDrop"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     "seedCounter": 6,

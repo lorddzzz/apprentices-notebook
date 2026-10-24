@@ -2562,7 +2562,7 @@
         "discoveries": ["burst:fire", "burst:conduct", "compound:deepMark"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["inkQuarter", "foundry"]
+        "heard": []
       }
     }
   ],
@@ -2686,12 +2686,12 @@
       ]
     },
     "city": {
-      "heard": ["seam", "canals", "inkQuarter", "foundry"],
+      "heard": ["seam", "canals"],
       "open": ["seam", "canals"],
       "hearts": [],
       "solved": [],
       "trips": 1,
-      "fresh": ["inkQuarter", "foundry"]
+      "fresh": []
     }
   },
   "trip": null,
@@ -2818,12 +2818,12 @@
         ]
       },
       "city": {
-        "heard": ["seam", "canals", "inkQuarter", "foundry"],
+        "heard": ["seam", "canals"],
         "open": ["seam", "canals"],
         "hearts": [],
         "solved": [],
         "trips": 1,
-        "fresh": ["inkQuarter", "foundry"]
+        "fresh": []
       }
     },
     "trip": null,

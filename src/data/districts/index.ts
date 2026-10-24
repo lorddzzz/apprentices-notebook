@@ -11,7 +11,12 @@ import type {
   HearCondition,
   KindId,
 } from '../types';
+import { BATHHOUSES_KIT } from './bathhouses';
+import { BRIDGES_KIT } from './bridges';
 import { CANALS_KIT } from './canals';
+import { CARTOGRAPHERS_KIT } from './cartographers';
+import { FOUNDRY_KIT } from './foundry';
+import { INK_QUARTER_KIT } from './inkQuarter';
 import { SEAM_KIT } from './seam';
 
 /**
@@ -194,6 +199,11 @@ export type DistrictKitData = { id: DistrictId } & Partial<Omit<DistrictData, 'i
 export const DISTRICT_KIT: Readonly<Partial<Record<DistrictId, DistrictKitData>>> = {
   seam: SEAM_KIT,
   canals: CANALS_KIT,
+  inkQuarter: INK_QUARTER_KIT,
+  bathhouses: BATHHOUSES_KIT,
+  bridges: BRIDGES_KIT,
+  foundry: FOUNDRY_KIT,
+  cartographers: CARTOGRAPHERS_KIT,
 };
 
 /** Every token the districts claim, for the collision check. */

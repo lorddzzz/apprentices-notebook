@@ -3426,12 +3426,12 @@
       ]
     },
     "city": {
-      "heard": ["seam", "canals", "cartographers"],
+      "heard": ["seam", "canals"],
       "open": ["seam", "canals"],
       "hearts": ["canals"],
       "solved": [],
       "trips": 1,
-      "fresh": ["cartographers"]
+      "fresh": []
     }
   },
   "trip": {
@@ -3590,12 +3590,12 @@
         ]
       },
       "city": {
-        "heard": ["seam", "canals", "cartographers"],
+        "heard": ["seam", "canals"],
         "open": ["seam", "canals"],
         "hearts": ["canals"],
         "solved": [],
         "trips": 1,
-        "fresh": ["cartographers"]
+        "fresh": []
       }
     },
     "trip": {

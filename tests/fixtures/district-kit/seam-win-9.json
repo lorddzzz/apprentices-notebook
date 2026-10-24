@@ -2372,7 +2372,7 @@
         "discoveries": ["burst:fire", "burst:conduct", "idiom:bonfire", "idiom:theWall"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["bridges", "foundry"]
+        "heard": ["bridges"]
       }
     }
   ],
@@ -2479,12 +2479,12 @@
       ]
     },
     "city": {
-      "heard": ["seam", "canals", "bridges", "foundry"],
+      "heard": ["seam", "canals", "bridges"],
       "open": ["seam", "canals"],
       "hearts": ["seam"],
       "solved": [],
       "trips": 1,
-      "fresh": ["bridges", "foundry"]
+      "fresh": ["bridges"]
     }
   },
   "trip": {
@@ -2533,7 +2533,7 @@
       "discoveries": ["burst:fire", "burst:conduct", "idiom:bonfire", "idiom:theWall"],
       "proofCasts": 10,
       "elegance": [],
-      "heard": ["bridges", "foundry"]
+      "heard": ["bridges"]
     }
   },
   "save": {
@@ -2653,12 +2653,12 @@
         ]
       },
       "city": {
-        "heard": ["seam", "canals", "bridges", "foundry"],
+        "heard": ["seam", "canals", "bridges"],
         "open": ["seam", "canals"],
         "hearts": ["seam"],
         "solved": [],
         "trips": 1,
-        "fresh": ["bridges", "foundry"]
+        "fresh": ["bridges"]
       }
     },
     "trip": {
@@ -2707,7 +2707,7 @@
         "discoveries": ["burst:fire", "burst:conduct", "idiom:bonfire", "idiom:theWall"],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["bridges", "foundry"]
+        "heard": ["bridges"]
       }
     },
     "seedCounter": 9,

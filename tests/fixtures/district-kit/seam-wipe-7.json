@@ -793,7 +793,7 @@
         "discoveries": ["burst:fire", "compound:stain", "compound:deepMark"],
         "proofCasts": 6,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     {
@@ -1410,7 +1410,7 @@
         ],
         "proofCasts": 9,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     },
     {
@@ -2628,7 +2628,7 @@
         ],
         "proofCasts": 10,
         "elegance": [],
-        "heard": ["inkQuarter"]
+        "heard": []
       }
     }
   ],
@@ -2776,12 +2776,12 @@
       ]
     },
     "city": {
-      "heard": ["seam", "canals", "inkQuarter"],
+      "heard": ["seam", "canals"],
       "open": ["seam", "canals"],
       "hearts": [],
       "solved": [],
       "trips": 1,
-      "fresh": ["inkQuarter"]
+      "fresh": []
     }
   },
   "trip": null,
@@ -2932,12 +2932,12 @@
         ]
       },
       "city": {
-        "heard": ["seam", "canals", "inkQuarter"],
+        "heard": ["seam", "canals"],
         "open": ["seam", "canals"],
         "hearts": [],
         "solved": [],
         "trips": 1,
-        "fresh": ["inkQuarter"]
+        "fresh": []
       }
     },
     "trip": null,

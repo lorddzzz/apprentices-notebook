@@ -80,11 +80,20 @@ describe('the city this build (P2, P3)', () => {
   test('a drawn district is heard from its named result or its rumour, and never opens', () => {
     const p = newProfile();
     const t = startTrip(p, 1);
-    const log: EventLog = [{ type: 'named', what: 'compound', id: 'greaseFog' }];
+    const stoker = { id: 'stoker', name: 'Stoker', at: { x: 0, y: 0 }, member: true };
+    const log: EventLog = [
+      { type: 'cast', caster: stoker, spell: 'a', aim: { kind: 'self' }, aimText: '' },
+      {
+        type: 'named',
+        what: 'idiom',
+        id: 'theWall',
+        origin: { caster: 'stoker', spell: 'a', cast: 1 },
+      },
+    ];
     const heard = hearFromBattle({ ...p, named: namedIn(log) }, t, log);
-    expect(heard.heard).toEqual(['bathhouses']);
+    expect(heard.heard).toEqual(['bridges']);
     expect(heard.profile.city.open).toEqual(['seam']);
-    expect(districtState(heard.profile, 'bathhouses')).toBe('heard');
+    expect(districtState(heard.profile, 'bridges')).toBe('heard');
     let q = p;
     for (let i = 0; i < 3; i++) q = hearAfterTrip(q, t, 'returned').profile;
     expect(q.city.heard).toContain('inkQuarter');

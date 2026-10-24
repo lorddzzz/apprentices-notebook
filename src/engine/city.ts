@@ -3,12 +3,12 @@ import {
   DISTRICTS,
   type DistrictDef,
   type DistrictId,
-  type HearCondition,
   type LootTableId,
 } from '$data';
-import type { KitGoal } from '$data/districts/index';
+import type { KitGoal, KitHearCondition } from '$data/districts/index';
 import type { Json } from './districts/types';
 import type { EventLog, GameEvent } from './events';
+import { conditionHolds, type HearScene, hearOf } from './hearing';
 import { parseLabel } from './notation';
 import { placeOf } from './trip/place';
 import { returnCheck } from './trip/ret';
@@ -46,29 +46,34 @@ function hear(city: CityState, id: DistrictId, table: DistrictTable): CityState 
   };
 }
 
-/** Hears every not-yet-heard district with a `voice` condition that `holds`. */
+/** Hears every not-yet-heard district with a `voice` condition that `holds` (the hearing registry). */
 function hearWhere(
   p: Profile,
-  voice: HearCondition['voice'],
-  holds: (c: HearCondition) => boolean,
+  voice: KitHearCondition['voice'],
+  scene: Omit<HearScene, 'profile'>,
   table: DistrictTable,
 ): { profile: Profile; heard: DistrictId[] } {
   let city = p.city;
   const heard: DistrictId[] = [];
   for (const id of DISTRICT_IDS) {
     if (city.heard.includes(id)) continue;
-    if (!table[id].hear.some((c) => c.voice === voice && holds(c))) continue;
+    if (
+      !hearOf(id, table).some(
+        (c) => c.voice === voice && conditionHolds(c, { ...scene, profile: p }),
+      )
+    ) {
+      continue;
+    }
     city = hear(city, id, table);
     heard.push(id);
   }
   return heard.length ? { profile: { ...p, city }, heard } : { profile: p, heard };
 }
 
-const named = (p: Profile, id: string): boolean => p.named.includes(id);
-
 /**
  * Owner hearing, read off a finished trip battle's log, win or wipe (K-20). `heard` lists the
- * districts newly heard (they also go into `city.fresh`; a `discovery` gate opens them).
+ * districts newly heard (they also go into `city.fresh`; a `discovery` gate opens them). The
+ * kinds are the hearing registry's (`hearing.ts`).
  */
 export function hearFromBattle(
   p: Profile,
@@ -76,21 +81,7 @@ export function hearFromBattle(
   log: EventLog,
   table: DistrictTable = DISTRICTS,
 ): { profile: Profile; heard: DistrictId[] } {
-  const biggest = (burst: string): number =>
-    log.reduce(
-      (m, e) => (e.type === 'burst' && e.burst === burst ? Math.max(m, e.tiles.length) : m),
-      0,
-    );
-  return hearWhere(
-    p,
-    'owner',
-    (c) =>
-      (c.kind === 'burst' &&
-        (c.district === undefined || c.district === t.district) &&
-        biggest(c.burst) >= c.atLeast) ||
-      (c.kind === 'named' && named(p, c.id)),
-    table,
-  );
+  return hearWhere(p, 'owner', { district: t.district, party: t.party, log }, table);
 }
 
 /**
@@ -112,10 +103,7 @@ export function hearAfterTrip(
   return hearWhere(
     { ...p, city },
     'rumour',
-    (c) =>
-      (c.kind === 'heart' && city.hearts.includes(c.district)) ||
-      (c.kind === 'trips' && city.trips >= c.atLeast) ||
-      (c.kind === 'named' && named(p, c.id)),
+    { district: t.district, party: t.party, log: [] },
     table,
   );
 }
