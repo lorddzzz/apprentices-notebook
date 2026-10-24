@@ -64,10 +64,12 @@
   };
 
   // lattice part: fully interactive, per-member lattices over the first evening's knowledge
-  const startLattices = (): Record<MemberId, Lattice> => ({
+  // The gallery shows the founding pair only (MEMBER_IDS), so the recruits are cast away.
+  const startLattices = (): Record<MemberId, Lattice> =>
+    ({
     draughtsman: toGrowingLattice(parseLattice(MEMBERS.draughtsman.startLattice)),
     stoker: toGrowingLattice(parseLattice(MEMBERS.stoker.startLattice)),
-  });
+  }) as Record<MemberId, Lattice>;
   let lattices = $state.raw<Record<MemberId, Lattice>>(startLattices());
   let member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
   let tool = $state.raw<ShelfTool>(NO_TOOL);

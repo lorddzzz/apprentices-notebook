@@ -58,8 +58,11 @@ export const leanOf = (id: ApprenticeId): Lean => {
   return { trained: a.lean.trained, gifted: a.lean.gifted, habit: a.habit };
 };
 
-/** @deprecated Every registry id; HC-1/HC-4 move callers to the household or the trip party. */
-export const MEMBER_IDS: readonly ApprenticeId[] = APPRENTICE_IDS;
+/**
+ * @deprecated The founding pair only (RC-1): old loops over "every member" must not pick up the
+ * recruits. `MEMBERS` still resolves every id. HC-1/HC-4 move callers to the household or trip party.
+ */
+export const MEMBER_IDS: readonly ApprenticeId[] = Object.keys(PAIR) as ApprenticeId[];
 
 /** A page's fixed geometry: every token a socket, holes kept. */
 const shapeOf = (page: string): string =>

@@ -23,7 +23,7 @@ const heartIndex = ENCOUNTERS.findIndex((e) => e.heart);
 /** A trip that has just picked a doorway (status "doorway") with `charges` left on each spell. */
 function inDoorway(
   p: Profile,
-  charges: Record<MemberId, Record<string, number>>,
+  charges: Partial<Record<MemberId, Record<string, number>>>,
   more: { offers: LootItem[]; picksLeft: number } = { offers: [], picksLeft: 0 },
 ): Trip {
   return { ...startTrip(p, 7), status: 'doorway', charges, ...more };

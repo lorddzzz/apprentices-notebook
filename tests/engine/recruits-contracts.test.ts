@@ -4,8 +4,8 @@ import type { KitLootItem } from '$engine/districts/types';
 import { EMPTY_RECRUITS, isReady, type RecruitLootItem } from '$engine/recruits';
 
 describe('recruitment contracts (RC-W0)', () => {
-  it('starts with no recruits and an empty note list', () => {
-    expect(Object.keys(RECRUITS)).toEqual([]);
+  it('fills the seven recruits and starts with an empty note list', () => {
+    expect(Object.keys(RECRUITS)).toHaveLength(7);
     expect(EMPTY_RECRUITS.notes).toEqual([]);
   });
 
