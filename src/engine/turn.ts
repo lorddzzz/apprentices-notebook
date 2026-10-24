@@ -22,6 +22,7 @@ import {
 import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
 import { BOARD_RULES, runRuleSlot } from './rules';
 import { runScheduled } from './schedule';
+import { actStep } from './standIn';
 import type { AttackIntent, EnemyUnit, Unit } from './types';
 
 /**
@@ -50,6 +51,10 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   }
   if (intent.kind === 'cast' || intent.kind === 'trick') {
     resolveRivalIntent(ctx, e, intent);
+    return;
+  }
+  if (intent.kind === 'step') {
+    actStep(ctx, e, intent);
     return;
   }
   if (intent.kind === 'summon' || intent.kind === 'flare') {

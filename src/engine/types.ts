@@ -33,12 +33,13 @@ import type {
   KitLootItem,
   OutCause,
   RuleStates,
+  StepId,
   TilePiece,
   TripKitState,
 } from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
-import type { ObjectRef, RivalState } from './rivals/types';
+import type { ObjectRef, RivalState, Telegraph } from './rivals/types';
 
 export type CellKey = string; // "x,y"
 export type SpellKey = CellKey; // the source rune's lattice cell
@@ -256,7 +257,14 @@ export interface AttackIntent {
 export type SpecialIntent =
   | { kind: 'summon'; at: Coord; order: number }
   | { kind: 'flare'; order: number };
-export type Intent = AttackIntent | SpecialIntent | RivalIntent;
+/** A scripted step (DK-9, P14): a stand-in heart's or district foe's telegraph, acted on next. */
+export interface StepIntent {
+  kind: 'step';
+  step: StepId;
+  telegraph: Telegraph;
+  order: number;
+}
+export type Intent = AttackIntent | SpecialIntent | RivalIntent | StepIntent;
 /**
  * A rival's intents (rivals plan P2, RV-W0; joined into `Intent` by RV-2). `aim` is the Source's
  * locked native aim; `fallback` is the starved-chain strike tile fixed at planning (null = none).

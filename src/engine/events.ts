@@ -251,6 +251,8 @@ function telegraphText(e: Extract<GameEvent, { type: 'telegraph' }>): string {
       return `${who(e.unit)} will call a moth at ${label(i.at)}`;
     case 'flare':
       return `${who(e.unit)} will flare`;
+    case 'step':
+      return `${who(e.unit)} will ${e.verb}`;
     case 'cast':
     case 'trick':
       return `${who(e.unit)} will ${e.verb}${i.fallback ? `, or strike ${label(i.fallback)}` : ''}`;

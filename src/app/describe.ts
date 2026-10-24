@@ -40,6 +40,7 @@ import {
   type Unit,
   unitAt,
 } from '$engine';
+import { KIT } from '$engine/districts/kit';
 import { dryStrikeIntent, rivalVerb } from '$engine/rivals/resolve';
 import type { InputMode } from './battleInput';
 
@@ -111,6 +112,8 @@ function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (e.intent.kind === 'summon')
     return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
+  if (e.intent.kind === 'step')
+    return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'cast' || e.intent.kind === 'trick') {
     const fallback = e.intent.fallback ? `, or strikes ${label(e.intent.fallback)}` : '';
     return `will ${rivalVerb(e, e.intent)}${fallback} (${ordinal(e.intent.order)})`;

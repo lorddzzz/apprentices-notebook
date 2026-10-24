@@ -1,3 +1,4 @@
+import type { EnemyScript } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
@@ -394,6 +395,8 @@ export interface EnemyDef {
   boss: boolean;
   /** A rival's one trick (AH P9, RV): any habit; its rule applies to this foe like a member's. */
   trick?: HabitId;
+  /** A scripted foe (DK-9, P14): registered steps cycled by round; `standIn` marks a heart that gives no page. */
+  script?: EnemyScript;
 }
 
 // ── Encounters and loot ─────────────────────────────────

@@ -5,6 +5,7 @@ import { byReadingOrder, type Coord, DIRS, type Dir, key, sameCoord, step } from
 import { enemyWalk } from './movement';
 import { distanceField, isAlive, members, reachable, travel, unitAt } from './queries';
 import { rivalAct } from './rivals/resolve';
+import { scriptAct } from './standIn';
 import type { BattleState, EnemyUnit, MemberUnit } from './types';
 
 /**
@@ -115,6 +116,7 @@ function act(ctx: Ctx, e: EnemyUnit, canMove: boolean, order: number): boolean {
   const move = canMove && e.held === 0 && e.shackle === 0;
   if (e.rival) return rivalAct(ctx, e, order, move);
   const def = ENEMIES[e.def];
+  if (def.script) return scriptAct(ctx, e, order);
   const attack = def.attack;
   if (def.ai === 'lurker' || def.ai === 'moth' || def.ai === 'mother') {
     return foeAct(ctx, e, move, order);
