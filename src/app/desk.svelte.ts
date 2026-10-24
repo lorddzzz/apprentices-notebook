@@ -1,5 +1,5 @@
 import type { FootnoteSubject } from '$data';
-import { writeAt } from './desk';
+import { rivalPagesHeld, writeAt } from './desk';
 import type { GameStore } from './game.svelte';
 import { toast } from './toasts.svelte';
 
@@ -23,7 +23,10 @@ export class DeskStore {
   }
 
   write(subject: FootnoteSubject, variantId: string): void {
-    const r = writeAt(this.profile, subject, variantId, { atHome: this.atHome });
+    const r = writeAt(this.profile, subject, variantId, {
+      atHome: this.atHome,
+      holdsRivalPage: rivalPagesHeld(this.profile),
+    });
     if ('error' in r) {
       toast(r.error, 'warn');
       return;

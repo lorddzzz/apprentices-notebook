@@ -18,6 +18,7 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
+import { RIVAL_PAGES, RIVALS } from '$data/rivals';
 import {
   type FootnoteError,
   type FootnoteOpts,
@@ -32,7 +33,24 @@ import {
   slotsOf,
   writeFootnote,
 } from '$engine';
+import { holdsPage } from '$engine/rivals';
 import { lineText } from './bench';
+
+/**
+ * Rival notes (footnotes §1, FN-8): a rival's note is a third option in its named slot, shown only
+ * while the household holds that rival's page. The Desk store and the views default to this.
+ */
+export const rivalPagesHeld =
+  (p: Pick<Profile, 'pages'>): NonNullable<FootnoteOpts['holdsRivalPage']> =>
+  (rival) =>
+    Object.values(RIVAL_PAGES).some(
+      (page) => page?.rival === rival && page.note !== null && holdsPage(p, page.id),
+    );
+
+const withPages = (p: Profile, opts: FootnoteOpts): FootnoteOpts => ({
+  ...opts,
+  holdsRivalPage: opts.holdsRivalPage ?? rivalPagesHeld(p),
+});
 
 /**
  * The footnote desk (design §8, footnotes.md §1, plan FN-4): pure views and the write reducer the
@@ -200,7 +218,11 @@ function frameOf(p: Profile, subject: FootnoteSubject, slot: SlotView): FrameVie
       id: v.id,
       text: v.text,
       chosen: slot.written === v.id,
-      credit: v.rival === undefined ? null : (v.credit ?? null),
+      credit:
+        v.rival === undefined
+          ? null
+          : (v.credit ??
+            `${Object.values(RIVALS).find((r) => r?.id === v.rival)?.name ?? 'A rival'}'s hand.`),
     }),
   );
   return {
@@ -223,7 +245,7 @@ export function marginOf(
 ): MarginView {
   const lines: LineMargin[] = [];
   let capstone: FrameView | null = null;
-  for (const slot of slotsOf(p, subject, opts)) {
+  for (const slot of slotsOf(p, subject, withPages(p, opts))) {
     const frame = frameOf(p, subject, slot);
     if (slot.line === null) {
       capstone = frame;
@@ -262,7 +284,8 @@ export function writeAt(
   variantId: string,
   ctx: WriteContext,
 ): { profile: Profile } | { error: string } {
-  const { atHome, ...opts } = ctx;
+  const { atHome, ...rest } = ctx;
+  const opts = withPages(p, rest);
   if (!atHome) return { error: ROAD_REFUSAL };
   const v = (opts.variants ?? VARIANTS).find((x) => x.id === variantId);
   if (!v || v.subject !== subject) return { error: 'There is no such footnote.' };

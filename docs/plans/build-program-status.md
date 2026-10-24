@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: HC-8, RV-6 (+ planner crumble fix), DK-8, FN-8 (12:28).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: HC-8, RV-6 (+ planner crumble fix), DK-8 (12:28).
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -68,7 +68,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | HC-8 | Medium / Sonnet 5.5 / high | M | running | worktree (12:28) | | Combat/Lab any size + party |
 | RV-6 | Medium / Sonnet 5.5 / high | S | running | worktree (12:28) | | rivalPreview + placeObjectNear crumble fix |
 | DK-8 | Medium / Sonnet 5.5 / high | M | running | worktree (12:28) | | hearing kinds |
-| FN-8 | Medium / Sonnet 5.5 / high | S | running | worktree (12:28) | | rival-note slot |
+| FN-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ae6ef13811cede131 @ 07d94ae | shared | engine side already existed (FN-1/FN-4); `desk.ts` `rivalPagesHeld(profile)` (any held page of that rival with a non-null note); `marginOf`/`writeAt` fall back to it when no `holdsRivalPage` given; store passes it on write; credit fallback "<Rival>'s hand.". 3 tests `tests/app/desk-rival-note.test.ts`. No shipped rival variant yet (RV-20 authors `lamplighter:wick`). Follow-ups: `VariantDef.rival` should use `$data/rivals` `RivalId`; `rivalNoteVisible` by variant id |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
