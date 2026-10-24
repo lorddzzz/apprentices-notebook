@@ -68,6 +68,7 @@ import { parseBoard } from './notation';
 import { growingLattice } from './page';
 import { recordOf, rewardsOf } from './profiler';
 import { provenCount } from './proof';
+import { parseRecruits } from './recruits';
 import { deriveSeed } from './rng';
 import { MAX_PARTY } from './rooms';
 import { overLimit, parseLootItem } from './trip/offerKinds';
@@ -654,6 +655,7 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     footnotes: parseFootnotes(r.footnotes),
     solventsFound: parseSolventsFound(r.solventsFound, solvents, inventions),
     papers: parsePapers(r.papers),
+    ...(r.recruits === undefined ? {} : { recruits: parseRecruits(r.recruits, household.members) }),
     vellum: count(r.vellum),
     glyphs,
     glyphArchive,

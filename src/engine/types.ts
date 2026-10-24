@@ -597,6 +597,8 @@ export interface Profile {
   city: CityState;
   /** Found papers (lore registry, DK §9), in found order; banked at once, so a wipe keeps them. */
   papers: PaperId[];
+  /** Door arrivals' notes under the attic door (recruitment P3): absent reads as none. */
+  recruits?: { notes: ApprenticeId[] };
   /** Recovered rival pages (rivals P11): absent reads as none; RV-15 banks and parses them. */
   pages?: RivalPageId[];
 }

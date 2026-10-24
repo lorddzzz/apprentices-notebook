@@ -20,7 +20,7 @@ import type { Profile, Trip } from './types';
 
 /**
  * Recruitment (docs/plans/recruitment-plan.md §4). RC-2 builds the precondition check, RC-3 the
- * guaranteed pages, RC-4 the recruit offer; the RC-6 stubs throw until their task lands.
+ * guaranteed pages, RC-4 the recruit offer, RC-6 the door arrivals.
  */
 
 /** The recruit offer card (P7); matches DK-1's `KitLootItem` member, banked via `joinHousehold`. */
@@ -29,10 +29,10 @@ export interface RecruitLootItem {
   apprentice: ApprenticeId;
 }
 
-/** `Profile.recruits` (RC-6 adds it to `Profile` in engine/types.ts; parsed with an empty default). */
+/** `Profile.recruits` (absent reads as none, so older saves and fresh notebooks need no field). */
 export interface RecruitsState {
   /** Door arrivals written under the attic door, oldest first; each stays until welcomed (P3). */
-  notes: readonly ApprenticeId[];
+  notes: ApprenticeId[];
 }
 export const EMPTY_RECRUITS: RecruitsState = { notes: [] };
 
@@ -47,10 +47,6 @@ export interface ReadyCtx {
   trip?: Trip;
   atLandmark?: boolean;
 }
-
-const todo = (what: string): never => {
-  throw new Error(`recruits: ${what} is not built yet (RC-W0 stub)`);
-};
 
 type RecruitId = keyof typeof RECRUITS;
 
@@ -274,15 +270,80 @@ export function provenInvention(p: Profile): InventionDef | null {
     ) ?? null
   );
 }
-/** RC-6: at most one ready door arrival to write as a note this homecoming (P3). */
-export function doorArrivals(_p: Profile): ApprenticeId | null {
-  return todo('doorArrivals');
+/** Door arrivals in knock order (P3, P5): door A (the Copyist) before door B (the exile). */
+const DOOR_IDS: readonly RecruitId[] = byCity(
+  RECRUIT_IDS.filter((id) => 'door' in RECRUITS[id].found),
+) as RecruitId[];
+
+const notesOf = (p: Profile): readonly ApprenticeId[] => p.recruits?.notes ?? [];
+
+/**
+ * RC-6 (P3, P4): the first door arrival whose beats and runes hold, not yet in the household nor
+ * holding a note. Pure: `knockAtDoor` writes it. The Copyist's `joined: runaway` beat keeps her
+ * behind the runaway.
+ */
+export function doorArrivals(p: Profile): ApprenticeId | null {
+  const held = notesOf(p);
+  return DOOR_IDS.find((id) => !inHousehold(p, id) && !held.includes(id) && isReady(p, id)) ?? null;
 }
-/** RC-6: removes the note and calls `joinHousehold`; idempotent. */
-export function welcome(_p: Profile, _id: ApprenticeId): Profile {
-  return todo('welcome');
+
+/**
+ * RC-6 (P3): at home (after banking a return or a wipe, and on load) writes at most one ready
+ * arrival under the door. Nothing when a district recruit joined this homecoming (`recruitJoined`),
+ * so each newcomer gets her own evening. A written note latches: it stays until welcomed.
+ */
+export function knockAtDoor(p: Profile, recruitJoined = false): Profile {
+  if (recruitJoined) return p;
+  const id = doorArrivals(p);
+  return id ? { ...p, recruits: { notes: [...notesOf(p), id] } } : p;
 }
+
+/** Whether a homecoming (`before` → `after`) brought someone new into the household. */
+export const someoneJoined = (before: Profile, after: Profile): boolean =>
+  after.household.members.some((m) => !before.household.members.includes(m));
+
+/**
+ * RC-6: removes her note and calls `joinHousehold` (bench, starter page). Idempotent: welcoming
+ * someone already in the household changes nothing. Throws when there is no note for her.
+ */
+export function welcome(p: Profile, id: ApprenticeId): Profile {
+  if (inHousehold(p, id) && !notesOf(p).includes(id)) return p;
+  if (!notesOf(p).includes(id)) throw new Error(`No note under the door from ${String(id)}`);
+  const notes = notesOf(p).filter((n) => n !== id);
+  return joinHousehold({ ...p, recruits: { notes } }, id);
+}
+
 /** RC-6: in the household or holding a note: the only reveal test UI may use (§1). */
-export function isRevealed(_p: Profile, _id: ApprenticeId): boolean {
-  return todo('isRevealed');
+export function isRevealed(p: Profile, id: ApprenticeId): boolean {
+  return inHousehold(p, id) || notesOf(p).includes(id);
+}
+
+/**
+ * The milestone a note names (P12): the Copyist's is the first named idiom's key (`idiom:bonfire`,
+ * for `namedTitle`), the exile's the proven invention's own name; null for anyone else.
+ */
+export function noteMilestone(p: Profile, id: ApprenticeId): string | null {
+  const found = recruitDef(id).found;
+  if (!('door' in found)) return null;
+  if (found.door === 'A') {
+    return p.named.find((n) => n.startsWith('idiom:')) ?? null;
+  }
+  return provenInvention(p)?.name ?? null;
+}
+
+const badSave = (): never => {
+  throw new Error('Not a valid save');
+};
+
+/**
+ * `Profile.recruits` from a save: absent reads as none. Notes are door arrivals, each once, none
+ * already in the household.
+ */
+export function parseRecruits(v: unknown, household: readonly ApprenticeId[]): RecruitsState {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return badSave();
+  const r = v as Record<string, unknown>;
+  if (Object.keys(r).some((k) => k !== 'notes') || !Array.isArray(r.notes)) return badSave();
+  const notes = r.notes.map((n) => DOOR_IDS.find((id) => id === n) ?? badSave());
+  if (new Set(notes).size !== notes.length || notes.some((n) => household.includes(n))) badSave();
+  return { notes };
 }

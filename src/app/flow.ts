@@ -28,6 +28,7 @@ import {
   type Trip,
   type TripRecap,
 } from '$engine';
+import { knockAtDoor, someoneJoined } from '$engine/recruits';
 import { namedTitle } from './describe';
 import { allMasks } from './faircopy';
 import type { Route } from './routes';
@@ -144,7 +145,17 @@ export function editAndPersist(
 
 /** Pasted save text → SaveData. Throws a readable message when it isn't one. */
 export function importSave(text: string): SaveData {
-  return parseSaveText(text.trim());
+  return settleAtDoor(parseSaveText(text.trim()));
+}
+
+/**
+ * On load: a save at home gets the door arrival a homecoming would have written (recruitment P3).
+ * Out on a trip (or a fresh notebook with no one ready) it comes back unchanged.
+ */
+export function settleAtDoor(save: SaveData): SaveData {
+  if (save.trip) return save;
+  const profile = knockAtDoor(save.profile);
+  return profile === save.profile ? save : { ...save, profile };
 }
 
 // ── Trip reducers (pure; the GameStore persists after each) ──
@@ -200,7 +211,9 @@ export function endBattle(
           stats: r.stats,
         }
       : save.lastTrip;
-  const next: SaveData = { ...save, profile: r.profile, trip: r.trip, lastTrip };
+  // A wipe sends the party home: a door arrival may knock (recruitment P3).
+  const profile = r.outcome === 'wiped' ? knockAtDoor(r.profile) : r.profile;
+  const next: SaveData = { ...save, profile, trip: r.trip, lastTrip };
   const wipe: WipeSummary | null =
     r.outcome === 'wiped' ? { encounter: battle.title, lost: [...trip.loot], learned } : null;
   return { save: next, outcome: r.outcome, wipe, learned };
@@ -227,7 +240,9 @@ export function pushOnward(save: SaveData): SaveData {
 /** Back to the study with the loot banked; the trip's recap (with rumours heard on return) is kept for the trip page. */
 export function goHome(save: SaveData): SaveData {
   const trip = tripOf(save);
-  const profile = returnHome(save.profile, trip);
+  const banked = returnHome(save.profile, trip);
+  // One newcomer per homecoming: no note on the evening a district recruit joined (P3).
+  const profile = knockAtDoor(banked, someoneJoined(save.profile, banked));
   const rumours = profile.city.heard.filter((d) => !save.profile.city.heard.includes(d));
   const lastTrip: TripRecap = {
     district: trip.district,

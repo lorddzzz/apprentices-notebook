@@ -26,6 +26,7 @@ import {
   newDiscoveries,
   pushOnward,
   recordBattleAction,
+  settleAtDoor,
   startBattle,
   takeOffer,
   type WipeSummary,
@@ -101,7 +102,7 @@ export class GameStore {
     private readonly now: () => number,
   ) {
     const loaded = loadSave(backend, now());
-    this.save = loaded.save;
+    this.save = settleAtDoor(loaded.save);
     this.recovered = loaded.recovered;
     this.older = loaded.older;
     this.refusal = loaded.refused?.message ?? null;
