@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 17:01 UTC (wake-up #2 of 2, the last). Running: DK-12, RV-16, RC-8 (18:02).
+**State:** building (Stage 1). Woke at 17:01 UTC (wake-up #2 of 2, the last). Running: DK-12, RV-16 (18:02).
 **Reset:** 5h window resets 2026-10-24 22:00 UTC. Session rule (player, 2026-10-24): both wake-ups used; at this window's end wrap up without a timer and write a continuation prompt for a new session.
 **Weekly guard (player, 2026-10-24 17:30):** ignore the weekly limit unless it exceeds 97%; pace by the 5h limit only.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
@@ -83,7 +83,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | DK-13 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a06ff60ca876ec2b0 @ 2ff36a5 | shared | view.ts `TileView.piece`, `UnitView.out`, `inSlotOrder`; overlay.ts `Overlay.next` (replaces `drift`: `rulePreview` shapes + unit ghosts), `Overlay.steps`/`stepsOf`; `pieceArtFor` in ui/districts; board layers PieceLayer/PieceGlyph (fallback diamond), RulePreviewLayer (replaces DriftLayer: float/tile/outline/pulse), RuleMeter, StepLayer; BattleView "Next round" toggle (`next-toggle`), meters always on, strip by trip slots (`slots` prop); PartyStrip out member disabled/hatched "out of the room". 14 tests `tests/app/district-board.test.ts`. Phone-checked with a temp dev fixture (removed; scratchpad dk13/). Follow-ups: Lab piece palette; Lab/Combat pass `slots`; describe.ts "out of the room" wording; event animations / `DISTRICT_UI.overlay` unwired |
 | DK-12 | Medium / Sonnet 5.5 / high | S | running | worktree (18:02) | | offer cards incl. recruit + paper note |
 | RV-16 | Medium / Sonnet 5.5 / high | S | running | worktree (18:02) | | rival cast credit |
-| RC-8 | Medium / Sonnet 5.5 / high | S | running | worktree (18:02) | | Codex household tab |
+| RC-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a8afa9df3a114b95a @ d6058d0 | shared | Codex "Household" tab (last): `app/codexHousehold.ts` `householdRows(p)` (`isRevealed`, registry order, `cardOf` + "where met": "Here from the start" / "Met in <district>" / "Came by a note under the attic door"), `codex/CodexHousehold.svelte` (token, name, where met, blurb, body, action, habit + `HabitFinePrint`); outside `codexView` (count unchanged). 4 tests `tests/app/codex.test.ts`. Phone-checked (scratchpad rc8/). Uses `isRevealed` (shows an unwelcomed note-holder) where plan P13 says joined only — **ask player**; default keep. Placeholder copy |
 | HC-9 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-ace881886a2718c50 @ 0292b8f | shared | §6 checks pass; `tests/sim/household-sweep.test.ts` (24 tests; full sweep with `HOUSEHOLD_SWEEP=1`); `bot.ts` optional `order`; win rates per room (20 seeds × 27): Draughtsman alone 94% (Heart 30%, furnace hall 55%, pool v2 45%), Stoker alone 100%, pair drawn 540/540 = fixed 540/540, pair + runaway 100%. Whole bot trips stall from attrition (pair 15 cleared / 17 stalled of 40). Verification file `household-core-verification.md`; DESIGN §6.1/§6.4/§11, TECH §7, ROADMAP BL-129 updated by orchestrator. **HC plan done; HC playtest gate open.** Bugs: strip follows drawn order (DK-13 fixed via `slots`; Combat falls back to `tripParty`), "Lamp-pole runaway" overlaps HP pips in the ledger, Study "Fit"/"Edit scale" look unstyled, lone notary/towel-bearer stall rooms with the bot |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
@@ -123,6 +123,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 18:21 | 72 | 3h39 | 88 | Wrap by projection (~0.7%/min) | merge HC-9 (HC plan done; DESIGN/TECH/ROADMAP updated), RC-8; no new spawns |
 | 18:00 | 57 | 4h00 | 86 | Normal (~0.35%/min) | merge DK-13, RV-15 (conflict with RC-6 resolved); spawn DK-12, RV-16, RC-8 |
 | 17:46 | 52 | 4h14 | 85 | Hold by projection (~1.9%/min, spin-up) | merge RC-6; reduce-scope nudges to HC-9, RV-15, DK-13; no new spawns |
 | 17:28 | 27 | 4h33 | 82 | Normal | merge DK-11, DK-PAPERS, AH-7; player: weekly guard → 97% |

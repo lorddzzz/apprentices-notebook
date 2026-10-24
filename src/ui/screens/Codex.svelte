@@ -2,10 +2,12 @@
   import { type FootnoteSubject, type LineId, METHODS } from '$data';
   import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf } from '$engine';
   import { lineTextFor } from '../../app/bench';
+  import { householdRows } from '../../app/codexHousehold';
   import { marginOf } from '../../app/desk';
   import { game } from '../../app/instance';
   import CodexEntry from '../components/codex/CodexEntry.svelte';
   import CodexGrid from '../components/codex/CodexGrid.svelte';
+  import CodexHousehold from '../components/codex/CodexHousehold.svelte';
   import CodexIdiom from '../components/codex/CodexIdiom.svelte';
   import BackLink from '../components/common/BackLink.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
@@ -18,6 +20,7 @@
     ['methods', 'Methods'],
     ['solvents', 'Solvents'],
     ['idioms', 'Idioms'],
+    ['household', 'Household'],
   ] as const;
   type Tab = (typeof TABS)[number][0];
   let tab = $state<Tab>('runes');
@@ -29,6 +32,8 @@
   const table = $derived(compoundTable(game.profile).flat());
   const lib = $derived(inventionLibrary(game.profile));
   const made = $derived(game.profile.inventions);
+  // Outside `entries`, so the count above never hints at anyone unmet (recruitment P13).
+  const household = $derived(householdRows(game.profile));
   const known = $derived(entries.filter((e) => e.known).length);
   // Out on a trip the notebook opens from the road, and closes back onto it.
   const lineText = (id: LineId) => lineTextFor(game.profile, id);
@@ -93,6 +98,11 @@
     {:else if tab === 'solvents'}
       {#each of('solvent') as row (row.entry.id)}
         {@render page(row)}
+      {/each}
+    {:else if tab === 'household'}
+      <p class="lead">Everyone who works under this roof.</p>
+      {#each household as row (row.card.def.id)}
+        <CodexHousehold {row} />
       {/each}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}
