@@ -151,7 +151,7 @@ test('parseSaveData refuses trip states that could not move on', () => {
   for (const t of bad) expect(() => parseSaveData(raw(t))).toThrow('Not a valid save');
 });
 
-test('recorded battle actions survive the save data, a Touch on yourself included', () => {
+test('recorded battle actions survive the save data, a Touch on yourself and AH-1 basic actions included', () => {
   const save = newSave(1);
   const trip: Trip = {
     ...startTrip(save.profile, 1),
@@ -160,6 +160,9 @@ test('recorded battle actions survive the save data, a Touch on yourself include
       { type: 'cast', unit: 'stoker', spell: '0,0', aim: { kind: 'tile', at: { x: 2, y: 2 } } },
       { type: 'cast', unit: 'stoker', spell: '1,0', aim: { kind: 'self' } },
       { type: 'shove', unit: 'draughtsman', dir: 'left' },
+      { type: 'pull', unit: 'draughtsman', dir: 'up' },
+      { type: 'hop', unit: 'stoker', dir: 'right' },
+      { type: 'swap', unit: 'stoker', dir: 'down' },
       { type: 'undoMove', unit: 'draughtsman' },
       { type: 'endTurn' },
     ],

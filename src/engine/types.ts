@@ -308,6 +308,8 @@ export interface MemberUnit extends UnitBase {
   spells: Spell[];
   charges: Record<SpellKey, number>;
   lean: Lean;
+  /** Her basic action (HC P14): the registry's, or a Lab/test kit's (AH). */
+  action: BasicActionId;
 }
 export interface EnemyUnit extends UnitBase {
   kind: 'enemy';
@@ -455,11 +457,9 @@ export type Action =
   | { type: 'undoMove'; unit: UnitId }
   | { type: 'cast'; unit: UnitId; spell: SpellKey; aim: Aim }
   | { type: 'shove'; unit: UnitId; dir: Dir }
+  | BasicAction
   | { type: 'endTurn' };
-/**
- * The three new basic actions (AH P1), shaped like `shove`. Not in `Action` yet: AH-1 adds them
- * together with their `isLegal`/`dispatch` branches and the saved-action parser.
- */
+/** The three new basic actions (AH P1), shaped like `shove`: `dir` points from the caster. */
 export type BasicActionType = Exclude<BasicActionId, 'shove'>;
 export interface BasicAction {
   type: BasicActionType;

@@ -13,6 +13,7 @@ import {
   type Unit,
   unitAt,
 } from '$engine';
+import { BASIC_ACTIONS } from '$engine/basicActions';
 import type { Ctx } from '$engine/ctx';
 import { drift } from '$engine/current';
 import { enemyWalk, moveMember } from '$engine/movement';
@@ -223,6 +224,7 @@ interface Rig {
   subject: string; // label of the subject at the start
   hookAt: string; // the tile the hook's thing waits on (or, for objects, the destination)
   src?: string; // objects only: where the object starts
+  hp?: number; // the subject's hp, so a released Strike doesn't kill it before it moves
   run: (ctx: Ctx, u: Unit) => void;
 }
 
@@ -235,6 +237,9 @@ const walkFoe = (path: string[]) => (ctx: Ctx, u: Unit) => {
   if (u.kind !== 'enemy') throw new Error('not a foe');
   enemyWalk(ctx, u, path.map(at));
 };
+/** The Draughtsman's basic action toward the right (the kit is not checked: `apply` runs it). */
+const basic = (a: 'pull' | 'hop' | 'swap') => (ctx: Ctx) =>
+  BASIC_ACTIONS[a].apply(ctx, 'draughtsman', 'right');
 const pushRight = (tiles: number) => (ctx: Ctx, u: Unit) => {
   push(ctx, u, 'right', tiles, null);
 };
@@ -247,6 +252,10 @@ type Cause =
   | 'push through'
   | 'slide'
   | 'swap'
+  | 'pull'
+  | 'hop'
+  | 'hop over'
+  | 'basic swap'
   | 'drift'
   | 'restore'
   | 'draw (object)'
@@ -329,6 +338,20 @@ const CAUSES: Record<Cause, Partial<Record<Trait, Rig>>> = {
       } satisfies Rig,
     ]),
   ),
+  // AH-1: the Draughtsman on A1 pulls the subject on C1 one tile, onto B1.
+  pull: {
+    land: { ascii: ROWS('D . r .'), subject: 'C1', hookAt: 'B1', hp: 5, run: basic('pull') },
+    flier: { ascii: ROWS('D . m .'), subject: 'C1', hookAt: 'B1', hp: 5, run: basic('pull') },
+    swimmer: { ascii: ROWS('Dw> w> ew> w>'), subject: 'C1', hookAt: 'B1', run: basic('pull') },
+  },
+  // AH-1: the Draughtsman hops from A1 to C1 (she is the subject); `hop over` rigs B1, under the arc.
+  hop: { land: { ascii: ROWS('D . . .'), subject: 'A1', hookAt: 'C1', run: basic('hop') } },
+  'hop over': { land: { ascii: ROWS('D . . .'), subject: 'A1', hookAt: 'B1', run: basic('hop') } },
+  // AH-1: the Draughtsman's basic Swap with the subject on B1: it lands on A1. Fliers, swimmers
+  // off water and the anchored are refused (legality, below).
+  'basic swap': {
+    land: { ascii: ROWS('D r . .'), subject: 'B1', hookAt: 'A1', run: basic('swap') },
+  },
   // The current carries a land unit off the end of its lane onto B1 (fliers, swimmers and the
   // anchored are never carried, K-9).
   drift: {
@@ -400,6 +423,7 @@ function cell(cause: Cause, trait: Trait, hook: HookId): boolean | null {
   const s = structuredClone(board(rig.ascii));
   const subject = unitAt(s, at(rig.subject));
   if (!subject) throw new Error(`no subject at ${rig.subject}`);
+  if (rig.hp) subject.hp = subject.maxHp = rig.hp;
   if (rig.src) {
     if (!rigObject(s, hook, subject, at(rig.src), at(rig.hookAt), cause === 'drift (object)')) {
       return null;
@@ -487,6 +511,16 @@ const MATRIX: readonly Row[] = [
   { cause: 'swap', trait: 'land', today: row('y n n y y n y n'), rules: { stain: P1_STAIN } },
   { cause: 'swap', trait: 'flier', today: row('y n n y y n y n') },
   { cause: 'swap', trait: 'swimmer', today: row('y n n y y n y n'), rules: { stain: P1_STAIN } },
+  // AH-1: Pull is a push of one tile without a crush (P4): every tile it enters answers, stains
+  // land units and swimmers (P1, fliers skip it, P5), and a Bind *pushed* answers the pull.
+  { cause: 'pull', trait: 'land', today: row('y n y y y y y n') },
+  { cause: 'pull', trait: 'flier', today: row('y n n y y y y n') },
+  { cause: 'pull', trait: 'swimmer', today: row('y n y y y y y n') },
+  // AH-1: Hop enters only its landing (P2); under the arc only Bind *enters* answers, on landing.
+  { cause: 'hop', trait: 'land', today: row('y n y y y n y n') },
+  { cause: 'hop over', trait: 'land', today: row('n n n n y n n n') },
+  // AH-1: the basic Swap lands like the Swap rune (landing only, caster then target, P4).
+  { cause: 'basic swap', trait: 'land', today: row('y n y y y n y n') },
   {
     cause: 'drift',
     trait: 'land',
@@ -614,16 +648,27 @@ describe('arrival matrix: movers that disagree with the P-rules outside the hook
   });
 });
 
+describe('arrival matrix: AH-1 basic actions outside the hook cells', () => {
+  it('Pull, Hop and the basic Swap never move an anchored unit, a flier or a swimmer off water', () => {
+    const s = board(ROWS('D . M .'));
+    expect(BASIC_ACTIONS.pull.check(s, 'draughtsman', 'right')).toMatch(/can't be moved/);
+    const swaps = board(ROWS('D M . .', 'm S ew> .'));
+    expect(BASIC_ACTIONS.swap.check(swaps, 'draughtsman', 'right')).toMatch(/can't be swapped/);
+    expect(BASIC_ACTIONS.swap.check(swaps, 'stoker', 'left')).toMatch(/can't be swapped/);
+    expect(BASIC_ACTIONS.swap.check(swaps, 'stoker', 'right')).toMatch(/can't stand there/);
+  });
+
+  it('the basic Swap lands the caster first, then the target (P4)', () => {
+    const s = structuredClone(board(ROWS('D r . .')));
+    tileAt(s, at('A1')).state = layer('stain');
+    tileAt(s, at('B1')).state = layer('stain');
+    const r = draft(s, (ctx) => BASIC_ACTIONS.swap.apply(ctx, 'draughtsman', 'right'));
+    const marked = r.events.flatMap((e) => (e.type === 'marked' ? [e.unit.id] : []));
+    expect(marked).toEqual(['draughtsman', 'rat-1']);
+  });
+});
+
 describe('arrival matrix: causes and rules that do not exist yet', () => {
-  it.todo(
-    'pull (AH): enters every tile moved through (P2); stains land units (P1); Bind pushed? (AH decides)',
-  );
-  it.todo(
-    'hop (AH): landing only (P2): hopping over a step-jar does not open it, landing on one does',
-  );
-  it.todo(
-    'basic Swap and a foe swap (AH): landing only, caster then target (P4); fliers and anchored foes cannot be swapped (party §1)',
-  );
   it.todo('return to sender (IQ), gargoyle carry (BR): landing only (P2)');
   it.todo('barge cargo and board pieces (DK, CN): object arrivals through objectArrives (P6)');
   it.todo('runaway (party §0d): her Fuse jars also open when she steps onto them');

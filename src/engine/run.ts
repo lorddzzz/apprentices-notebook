@@ -797,7 +797,10 @@ function parseAction(v: unknown): Action {
     case 'cast':
       return { type: 'cast', unit: text(r.unit), spell: cellKey(r.spell), aim: parseAim(r.aim) };
     case 'shove':
-      return { type: 'shove', unit: text(r.unit), dir: oneOf(DIRS, r.dir) };
+    case 'pull':
+    case 'hop':
+    case 'swap':
+      return { type: r.type, unit: text(r.unit), dir: oneOf(DIRS, r.dir) };
     case 'endTurn':
       return { type: 'endTurn' };
     default:

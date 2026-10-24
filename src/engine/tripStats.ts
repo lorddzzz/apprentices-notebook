@@ -45,6 +45,9 @@ const BOUNDARY: ReadonlySet<GameEvent['type']> = new Set([
   'moved',
   'moveUndone',
   'shove',
+  'pull',
+  'hop',
+  'swapWith',
   'phase',
   'round',
 ]);

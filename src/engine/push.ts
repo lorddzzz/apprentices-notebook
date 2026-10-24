@@ -15,9 +15,13 @@ export interface PushResult {
   dropped: boolean;
 }
 
-/** Push options. `crush: false` stops short of what is in the way without a crush (AH's Pull). */
+/**
+ * Push options. `crush: false` stops short of what is in the way without a crush; `as: 'pull'` is
+ * AH's Pull (P4): cause `pull`, its own fine print, and a miss when it can't move at all.
+ */
 export interface PushOptions {
   crush?: boolean;
+  as?: 'pull';
 }
 
 /** Layers a pushed land unit slides across (design §4.2, §4.4). */
@@ -112,8 +116,8 @@ function crush(
 }
 
 /** A fall: a minion is gone (no death-burst); an elite or member takes 4 and is stunned (P19). */
-function fall(ctx: Ctx, unit: Unit, dir: Dir, stop: Stop & { kind: 'drop' }): void {
-  withLine(ctx, stop.line, () => {
+function fall(ctx: Ctx, unit: Unit, dir: Dir, stop: Stop & { kind: 'drop' }, pull: boolean): void {
+  withLine(ctx, pull ? 'pull:drop' : stop.line, () => {
     emit(ctx, { type: 'dropped', unit: ref(unit), at: { ...stop.at }, elite: unit.elite });
     if (!unit.elite) {
       unit.hp = 0;
@@ -187,8 +191,10 @@ export function push(
       dropped: false,
     });
     if (unit.hp <= 0 || tiles <= 0) return unmoved();
+    const pull = opts.as === 'pull';
+    const cause = pull ? ('pull' as const) : ('push' as const);
     const blockedByHold = (): PushResult => {
-      withLine(ctx, 'shove:held', () =>
+      withLine(ctx, pull ? 'pull:held' : 'shove:held', () =>
         emit(ctx, { type: 'held', unit: ref(unit), rounds: unit.held }),
       );
       return unmoved();
@@ -212,13 +218,17 @@ export function push(
           unit: ref(unit, start),
           from: start,
           to: { ...end },
-          cause: 'push',
+          cause,
           dir,
           path,
           slid,
         });
       };
-      if (slid > 0) withLine(ctx, 'shove:slick', body);
+      const t = tileAt(s, end);
+      const overFall = flies(unit) && (t.terrain.water !== null || t.terrain.drop);
+      const line: LineId | null =
+        slid > 0 ? 'shove:slick' : pull && overFall && !swims(unit) ? 'pull:flier' : null;
+      if (line) withLine(ctx, line, body);
       else body();
       if (unit.kind === 'member') unit.undo = null;
     }
@@ -227,7 +237,7 @@ export function push(
     const pushed = path.slice(0, tiles);
     const slide = path.slice(tiles);
     const legs = [
-      { tiles: pushed, cause: 'push' as const, landing: slide.length === 0 },
+      { tiles: pushed, cause, landing: slide.length === 0 },
       { tiles: slide, cause: 'slide' as const, landing: true },
     ];
     for (const leg of legs) {
@@ -244,8 +254,12 @@ export function push(
     if (stop?.kind === 'crush' && opts.crush !== false) {
       crush(ctx, unit, dir, path.length, stop);
       crushed = typeof stop.into === 'string' ? stop.into : stop.into.id;
+    } else if (stop?.kind === 'crush' && pull && path.length === 0) {
+      // Pull (P4): a blocking tile in between, or a swimmer that won't leave the water.
+      const why: LineId = stop.into === 'plate' ? 'pull:plate' : 'pull:water';
+      withLine(ctx, why, () => emit(ctx, { type: 'miss', source: 'Pull' }));
     } else if (stop?.kind === 'drop') {
-      fall(ctx, unit, dir, stop);
+      fall(ctx, unit, dir, stop, pull);
       dropped = true;
     }
     return { moved: path.length, end: { ...unit.pos }, crushed, dropped };

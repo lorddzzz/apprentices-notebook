@@ -95,7 +95,9 @@ describe('AH-W0 contracts: fine print', () => {
     const ah = LINES.filter((l) => subjects.has(l.subject));
     expect(ah.length).toBeGreaterThanOrEqual(18);
     for (const l of ah) {
-      expect(l.pending, l.id).toBe(true);
+      // AH-1 fires the Pull and Hop rows; the habit rows wait for AH-2–AH-4.
+      const fired = l.subject === 'pull' || l.subject === 'hop';
+      expect(l.pending, l.id).toBe(fired ? undefined : true);
       expect(l.text.length, l.id).toBeGreaterThan(10);
     }
     expectTypeOf<'pull' | 'hop' | HabitId>().toMatchTypeOf<LineSubject>();
@@ -109,15 +111,12 @@ describe('AH-W0 contracts: fine print', () => {
 });
 
 describe('AH-W0 contracts: basic actions and harm', () => {
-  it('registers Shove and stubs the other three', () => {
+  it('registers all four basic actions (AH-1 built Pull, Hop and Swap)', () => {
     const s = board('D S r');
     expect(basicDirs(s, 'stoker')).toEqual(['right', 'left']);
-    for (const a of ['pull', 'hop', 'swap'] as const) {
-      expect(BASIC_ACTIONS[a].dirs(s, 'stoker')).toEqual([]);
-      expect(() => draft(s, (ctx) => BASIC_ACTIONS[a].apply(ctx, 'stoker', 'right'))).toThrow(
-        /AH-1/,
-      );
-    }
+    expect(BASIC_ACTIONS.pull.dirs(s, 'stoker')).toEqual([]);
+    expect(BASIC_ACTIONS.hop.dirs(s, 'stoker')).toEqual([]);
+    expect(BASIC_ACTIONS.swap.dirs(s, 'stoker')).toEqual(['right', 'left']);
   });
 
   it('reachOver passes over a unit, not over a plate or off the board (P3)', () => {

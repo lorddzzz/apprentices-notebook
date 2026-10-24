@@ -479,7 +479,7 @@ export const LINES: readonly LineDef[] = [
     district: 'cartographers',
     text: 'Graphite undoes the states the invention landed and the moves it made, a round later.',
   },
-  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them
+  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop)
   {
     id: 'fuseOnStep:jar',
     subject: 'fuseOnStep',
@@ -574,7 +574,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'plate',
     district: 'seam',
     text: 'A blocking tile in between leaves the pulled unit where it is, with no crush.',
-    pending: true,
   },
   {
     id: 'pull:held',
@@ -582,7 +581,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'held',
     district: 'seam',
     text: 'A held unit cannot be pulled.',
-    pending: true,
   },
   {
     id: 'pull:water',
@@ -590,7 +588,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'water',
     district: 'seam',
     text: 'A swimmer will not be pulled out of the water.',
-    pending: true,
   },
   {
     id: 'pull:drop',
@@ -598,7 +595,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'drop',
     district: 'seam',
     text: 'A land unit pulled onto canal water or an open side falls, as if shoved.',
-    pending: true,
   },
   {
     id: 'pull:flier',
@@ -606,7 +602,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'flier',
     district: 'seam',
     text: 'A flier pulled over water or an open side never falls.',
-    pending: true,
   },
   {
     id: 'hop:jar',
@@ -614,7 +609,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'jar',
     district: 'seam',
     text: 'Hopping onto a jar opens it; hopping over one does not.',
-    pending: true,
   },
   {
     id: 'hop:water',
@@ -622,7 +616,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'water',
     district: 'seam',
     text: 'A Hop clears canal water or an open side in between.',
-    pending: true,
   },
   // pending (L1): fired by the engine, text to be written by C1
   {

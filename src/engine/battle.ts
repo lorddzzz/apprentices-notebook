@@ -1,5 +1,4 @@
 import {
-  APPRENTICES,
   ATTACKS,
   DISTRICTS,
   type DistrictId,
@@ -12,13 +11,14 @@ import {
 } from '$data';
 import { RIVALS, type RivalDef, type RivalId } from '$data/rivals';
 import { enemyPhase } from './ai';
+import { BASIC_ACTIONS } from './basicActions';
 import { castAction } from './cast';
 import { cloneData } from './clone';
 import { type Ctx, checkEnd, type DraftOptions, emit, ref, runDraft } from './ctx';
 import type { GameEvent } from './events';
-import { type Coord, label, step } from './grid';
+import { type Coord, label } from './grid';
 import { withIdioms } from './idioms';
-import { moveMember, shove, undoMove } from './movement';
+import { moveMember, undoMove } from './movement';
 import { type BoardUnit, parseBoard, parseCell, parseLabel, serializeBoard } from './notation';
 import {
   canUndoMove,
@@ -98,7 +98,8 @@ function spawnMember(b: BoardUnit, init: PartyInit = {}): MemberUnit {
     undo: null,
     spells,
     charges: init.charges ?? Object.fromEntries(spells.map((sp) => [sp.key, sp.charges])),
-    lean: { ...def.lean },
+    lean: { ...def.lean, ...(init.habit === undefined ? {} : { habit: init.habit }) },
+    action: init.action ?? def.action,
   };
 }
 
@@ -268,10 +269,13 @@ export function isLegal(s: BattleState, action: Action): string | null {
     case 'undoMove':
       return canUndoMove(s, u.id) ? null : `${u.name} has no move to undo`;
     case 'shove':
-      // HC P14: only an apprentice whose basic action is Shove can shove.
-      if (APPRENTICES[u.def].action !== 'shove') return `${u.name} can't shove`;
+    case 'pull':
+    case 'hop':
+    case 'swap':
+      // HC P14, AH P1: an apprentice takes only her own basic action.
+      if (u.action !== action.type) return `${u.name} can't ${action.type}`;
       if (u.acted) return `${u.name} has already acted`;
-      return unitAt(s, step(u.pos, action.dir)) ? null : `Nothing to shove ${action.dir}`;
+      return BASIC_ACTIONS[action.type].check(s, u.id, action.dir);
     case 'cast': {
       if (u.acted) return `${u.name} has already acted`;
       if (!spellOf(u, action.spell)) return `${u.name} has no spell at ${action.spell}`;
@@ -291,7 +295,10 @@ function dispatch(ctx: Ctx, action: Action): void {
       undoMove(ctx, memberById(ctx.s, action.unit));
       break;
     case 'shove':
-      shove(ctx, memberById(ctx.s, action.unit), action.dir);
+    case 'pull':
+    case 'hop':
+    case 'swap':
+      BASIC_ACTIONS[action.type].apply(ctx, action.unit, action.dir);
       break;
     case 'cast':
       castAction(ctx, action);
@@ -313,8 +320,8 @@ export function applyAction(
   return runDraft(
     state,
     (ctx) => {
-      // A cast or shove changes the board: no earlier move can be taken back after it.
-      if (action.type === 'cast' || action.type === 'shove') {
+      // A cast or basic action changes the board: no earlier move can be taken back after it.
+      if (action.type !== 'move' && action.type !== 'undoMove' && action.type !== 'endTurn') {
         for (const m of members(ctx.s)) m.undo = null;
       }
       withIdioms(ctx, () => dispatch(ctx, action));
@@ -381,7 +388,15 @@ export function labSetCell(state: BattleState, at: Coord, token: string): Battle
   const prev = unit?.kind === 'member' ? s.units.find((u) => u.id === unit.def) : undefined;
   s.units = kept;
   if (unit?.kind === 'member') {
-    const init = prev?.kind === 'member' ? { spells: prev.spells, charges: prev.charges } : {};
+    const init: PartyInit =
+      prev?.kind === 'member'
+        ? {
+            spells: prev.spells,
+            charges: prev.charges,
+            action: prev.action,
+            habit: prev.lean.habit,
+          }
+        : {};
     s.units.push(spawnMember(unit, init));
   } else if (unit) {
     const ids = s.units

@@ -349,7 +349,7 @@ export function describe(e: GameEvent): string | null {
     case 'spreadState':
       return `it spreads from ${label(e.from)} to ${list(e.to)}`;
     case 'push':
-      return `${who(e.unit)} is pushed ${e.dir} to ${label(e.path[e.path.length - 1] ?? e.unit.at)}${e.slid ? ` (slides ${e.slid})` : ''}`;
+      return `${who(e.unit)} is ${e.cause === 'pull' ? 'pulled' : 'pushed'} ${e.dir} to ${label(e.path[e.path.length - 1] ?? e.unit.at)}${e.slid ? ` (slides ${e.slid})` : ''}`;
     case 'crush':
       return `${who(e.unit)} is crushed against ${typeof e.into === 'string' ? `the ${e.into}` : who(e.into)} for ${e.damage}`;
     case 'dropped':

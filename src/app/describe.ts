@@ -223,6 +223,12 @@ export function actionLabel(s: BattleState, a: Action): string {
       const t = m ? unitAt(s, step(m.pos, a.dir)) : null;
       return t ? `Shove ${t.name} ${a.dir}` : `Shove ${a.dir}`;
     }
+    case 'pull':
+      return `Pull ${a.dir}`;
+    case 'hop':
+      return `Hop ${a.dir}`;
+    case 'swap':
+      return `Swap ${a.dir}`;
     case 'move':
       return `Move to ${label(a.to)}`;
     case 'undoMove':
