@@ -14,13 +14,13 @@ import {
   TUNING,
 } from '$data';
 import { DISTRICT_KIT, type RecruitPages, type RecruitPlacement } from '$data/districts/index';
-import { inHousehold } from './household';
+import { inHousehold, joinHousehold } from './household';
 import { parseLattice } from './notation';
 import type { Profile, Trip } from './types';
 
 /**
  * Recruitment (docs/plans/recruitment-plan.md §4). RC-2 builds the precondition check, RC-3 the
- * guaranteed pages; the RC-6 stubs throw until their task lands.
+ * guaranteed pages, RC-4 the recruit offer; the RC-6 stubs throw until their task lands.
  */
 
 /** The recruit offer card (P7); matches DK-1's `KitLootItem` member, banked via `joinHousehold`. */
@@ -239,6 +239,30 @@ export function guaranteesFor(
   const rune = districtPage(p, trip, room, owned, pages) ?? seamPage(p, trip, room, owned, kit);
   return rune ? { kind: 'rune', rune } : null;
 }
+/**
+ * RC-4 (P7): the recruit cards for this room: each person the trip's district places here, ready
+ * at her landmark (trip loot counts as owned), not yet in the household nor in the trip's loot.
+ * Computed on every roll, so a declined or wiped card comes back on a later trip. `kit` defaults
+ * to the districts' data (tests pass fixtures).
+ */
+export function recruitOffers(
+  p: Profile,
+  trip: Trip,
+  room: number,
+  kit: RecruitKit = DISTRICT_KIT,
+): RecruitLootItem[] {
+  const placed = kit[trip.district]?.recruit ?? [];
+  return placed
+    .filter((r) => r.room === room && isRecruitId(r.apprentice))
+    .filter((r) => !inHousehold(p, r.apprentice) && !inTripLoot(r.apprentice, trip))
+    .filter((r) => isReady(p, r.apprentice, { trip, atLandmark: true }))
+    .map((r) => ({ kind: 'recruit', apprentice: r.apprentice }));
+}
+
+/** RC-4: she comes home with the trip and joins the household, on the bench with her page. */
+export const bankRecruit = (p: Profile, item: RecruitLootItem): Profile =>
+  joinHousehold(p, item.apprentice);
+
 /** RC-2: the first household invention proven in `TUNING.provenCasts` masks (P4), for the note (P12). */
 export function provenInvention(p: Profile): InventionDef | null {
   const masks = Object.values(p.proof).filter((m) => m !== undefined);

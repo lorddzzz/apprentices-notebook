@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: RC-4, RV-5, DK-5b, FN-4 (12:03).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: RV-5, DK-5b, FN-4 (12:03).
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -61,7 +61,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-6 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a5397baf44a75ce39 @ d95ee48 | shared | `bench.ts` `lineTextFor(profile, line)` (base text + written I/II variant texts), `trialFootnotes(profile)`; Bench sessions get `{footnotes}` (bench.svelte.ts), new-lines list uses `lineTextFor` (Bench.svelte, one expression; browser check folded into the session's final phone check). describe/peek untouched (they don't render line text). Bench awards no points (checked via profile). **FN-9/10:** Codex margin should use `lineTextFor`; export `FootnoteIds` type from `$engine` |
 | FN-7 | Fast / Haiku 5.5 / high | S | merged | worktree-agent-a51fa75f95559460b @ 3f8156b | shared | `lab.ts` `switchVariant` (one per slot), `labFootnotes`, `variantGroups` (all VARIANTS by subject incl. rival notes); `lab.svelte.ts` `variantsOn`, `toggleVariant` reseats the battle keeping board/log; `LabVariants.svelte` sheet from the Lab menu "Footnote variants (n on)"; Copy as scenario warns toggles aren't copied. 8 tests `tests/app/lab-variants.test.ts`. **Phone check and autofixer NOT run** → orchestrator on wake-up (with FN-6's Bench line) |
 | DK-9 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a86907c19cf093665 @ c5960b3 | ~4% | `standIn.ts`: `stepOf` (`script.steps[(round-1) % n]` looked up in `KIT.steps`), `scriptAct` (plan telegraph, set `StepIntent`, emit `telegraph`; else idle), `actStep` at resolve (no-op if down), `awardsPage(unit)` false for `standIn`; `EnemyDef.script?: EnemyScript`; `StepIntent` (`kind:'step'`, carries `Telegraph`) in `Intent`; one dispatch line in ai.ts and turn.ts; `telegraphText`/describe cases. 4 tests `tests/scenarios/stand-in.test.ts`. Golden unchanged. **RV-15:** gate page banking on `awardsPage`; **RV-6/DK UI:** draw `Telegraph.tiles` for `step` |
-| RC-4 | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | recruit offer kind |
+| RC-4 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb5bae7ca41c1555 @ fd6c6e1 | shared | `recruitOffers(p, trip, room, kit)`: her card only when placed in this district+room, not in household/loot, `isReady(…, {trip, atLandmark:true})` (loot pages count); nothing stored, so declined/wiped cards return next trip. Real recruit kind in `recruits/offers.ts`: `roll` after the normal three, costs the pick; banks via `bankRecruit` → `joinHousehold` (bench + page); no `onWipe` (lost); one per apprentice; parse refuses unknown ids and extra fields; `recruitOffersWith(kit)` for fixtures. 11 tests `tests/run/recruit-offer.test.ts`. Golden unchanged. **RC-5** places the runaway (re-record golden then), **RC-7** card UI |
 | RV-5 | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | the Lamplighter data |
 | DK-5b | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | trip shape, state side |
 | FN-4 | Medium / Sonnet 5.5 / high | M | running | worktree (12:03) | | Desk margin column |
@@ -103,6 +103,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 12:16 | 32 | 4h43 | 71 | Normal (~1.9%/min) | merge RC-4 |
 | 12:01 | 4 | 4h58 | 67 | Normal | wake-up #1; spawn RC-4, RV-5, DK-5b, FN-4 |
 | 08:57 | 94 | 3h03 | 66 | Wrap→Hold | merge DK-9; hold for the 12:00 reset (nothing S ready) |
 | 08:44 | 90 | 3h21 | 66 | Wrap (idle) | Lab phone check; spawn DK-9 (smallest-unblocked rule) |
@@ -157,6 +158,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - RC-3: Seam pages only for recruits whose district places them (P9; otherwise five golden trips changed); a district still in `city.fresh` gets no Seam guarantee yet (keeps first trips as before; the bot never opens the map, so RC-9's bot policy must account for it); city order = `DISTRICT_IDS`, door A then B last; Seam rooms found by table (`deep`/`heart`). Accepted.
 
 - FN-7: toggles in-memory only (no save field); toggling keeps the current board/log rather than resetting. Follow-up: optional `footnotes` on `ScenarioDef` + harness so Copy as scenario keeps the set. Accepted.
+
+- RC-4: recruit save cards should accept only the seven recruits, not founders — parsing accepts any registry apprentice for now because DK-7's offer-kinds test uses `stoker`; tighten when that test changes (follow-up). Accepted.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.
