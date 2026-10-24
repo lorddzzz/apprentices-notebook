@@ -2,12 +2,12 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. **Holding for the 12:00 UTC reset** (wake-up #1 at 12:01, session-only cron). Running: none. On wake-up: Next 2. FN-7's Lab sheet phone-checked by the orchestrator 08:42 (fits 375, toggles, slot exclusivity); FN-6's Bench line not browser-checked (identical text when nothing is written). Wake-up #1 scheduled 12:01 UTC (session-only cron).
-**Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: RC-4, RV-5, DK-5b, FN-4 (12:03).
+**Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
 1. ~~Finish DK-4~~ (merged 2026-10-24). Was: **Finish DK-4** from branch `worktree-agent-ac35c09fb4243a694` @ b55e0ed (worktree `.claude/worktrees/agent-ac35c09fb4243a694`, kept): rebase onto main. It conflicts with DK-3 in `arrival.ts`, `districts/index.ts`, `turn.ts`, `types.ts` — both fixed the same import loop (DK-3: lazy `arrivalHooks()`; DK-4: `KIT`/`DISTRICT_MODULES` moved to leaf `districts/kit.ts`); keep both (they're compatible), keep DK-3's `roundEnd` and add DK-4's single `piecesTurnEnd(ctx)` call after it; DK-4 also filters district arrival hooks to tiles holding their piece. Then its remaining steps: token-collision test (kit piece tokens vs `DISTRICT_TOKENS`, `RIVAL_TOKENS`, compound names); wire solidity into `queries.ts` (`pieceBlocksUnits`/`pieceBlocksShots`); call sites `hitPiece` (attack end/blocked, landings), `strikePiece` (spark, push crush both tiles, shove); `export * from './pieces'` in `engine/index.ts`; scenario skill legend + harness comment for `{piece}`.
-2. Ready (watch file overlap): FN-4, FN-5, FN-8 (after FN-4), DK-5b, DK-8, HC-8 (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
+2. Ready (watch file overlap): FN-5, FN-8 (after FN-4), DK-8 (city.ts, after DK-5b), RV-6 (S), AH-5/AH-6 (app/ battle input/overlay), DK-11 (after DK-5b), HC-8 (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
 3. Then FD-11 (phone check of push/drift/jar playback), HC-9, and the first gates: RV-G1 (Lamplighter Lab playtest), HC/AH/RC playtests.
 
 ## Tasks
@@ -61,6 +61,10 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-6 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a5397baf44a75ce39 @ d95ee48 | shared | `bench.ts` `lineTextFor(profile, line)` (base text + written I/II variant texts), `trialFootnotes(profile)`; Bench sessions get `{footnotes}` (bench.svelte.ts), new-lines list uses `lineTextFor` (Bench.svelte, one expression; browser check folded into the session's final phone check). describe/peek untouched (they don't render line text). Bench awards no points (checked via profile). **FN-9/10:** Codex margin should use `lineTextFor`; export `FootnoteIds` type from `$engine` |
 | FN-7 | Fast / Haiku 5.5 / high | S | merged | worktree-agent-a51fa75f95559460b @ 3f8156b | shared | `lab.ts` `switchVariant` (one per slot), `labFootnotes`, `variantGroups` (all VARIANTS by subject incl. rival notes); `lab.svelte.ts` `variantsOn`, `toggleVariant` reseats the battle keeping board/log; `LabVariants.svelte` sheet from the Lab menu "Footnote variants (n on)"; Copy as scenario warns toggles aren't copied. 8 tests `tests/app/lab-variants.test.ts`. **Phone check and autofixer NOT run** → orchestrator on wake-up (with FN-6's Bench line) |
 | DK-9 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a86907c19cf093665 @ c5960b3 | ~4% | `standIn.ts`: `stepOf` (`script.steps[(round-1) % n]` looked up in `KIT.steps`), `scriptAct` (plan telegraph, set `StepIntent`, emit `telegraph`; else idle), `actStep` at resolve (no-op if down), `awardsPage(unit)` false for `standIn`; `EnemyDef.script?: EnemyScript`; `StepIntent` (`kind:'step'`, carries `Telegraph`) in `Intent`; one dispatch line in ai.ts and turn.ts; `telegraphText`/describe cases. 4 tests `tests/scenarios/stand-in.test.ts`. Golden unchanged. **RV-15:** gate page banking on `awardsPage`; **RV-6/DK UI:** draw `Telegraph.tiles` for `step` |
+| RC-4 | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | recruit offer kind |
+| RV-5 | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | the Lamplighter data |
+| DK-5b | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | trip shape, state side |
+| FN-4 | Medium / Sonnet 5.5 / high | M | running | worktree (12:03) | | Desk margin column |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -99,6 +103,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 12:01 | 4 | 4h58 | 67 | Normal | wake-up #1; spawn RC-4, RV-5, DK-5b, FN-4 |
 | 08:57 | 94 | 3h03 | 66 | Wrap→Hold | merge DK-9; hold for the 12:00 reset (nothing S ready) |
 | 08:44 | 90 | 3h21 | 66 | Wrap (idle) | Lab phone check; spawn DK-9 (smallest-unblocked rule) |
 | 08:38 | 88 | 3h22 | 66 | Wrap (no agents) | merge FN-7, FD-6 |
