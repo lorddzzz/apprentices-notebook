@@ -14,6 +14,7 @@ export function durationOf(e: GameEvent): number {
     case 'burst':
     case 'crush':
     case 'dropped':
+    case 'outOfRoom':
     case 'fizzles':
       return STEP_MS.big;
     case 'moved':

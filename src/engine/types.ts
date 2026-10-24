@@ -31,6 +31,7 @@ import type {
   CityCheckpoints,
   Json,
   KitLootItem,
+  OutCause,
   RuleStates,
   TilePiece,
   TripKitState,
@@ -303,6 +304,10 @@ interface UnitBase {
   stunned: boolean; // skips its next action (dropped elite)
   elite: boolean; // members count as elites (P19)
   lastMove: Dir | null; // this turn, for Touch-self headings (P22)
+  /** Out of the room (P11, `removeFromRoom`): off the board until the room ends; absent = in it. */
+  out?: OutCause | null;
+  /** Ignored by `checkEnd` (the barge crate, CN §9). */
+  bystander?: true;
 }
 export interface UndoRecord {
   from: Coord;

@@ -197,6 +197,13 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   ],
   dropped: [[{ type: 'dropped', unit: rat, at: at(2, 2), elite: false }, 'rat at C2 drops at C3']],
   stunned: [[{ type: 'stunned', unit: sentry }, 'sentry at A1 is stunned']],
+  outOfRoom: [
+    [{ type: 'outOfRoom', unit: sentry, cause: 'fell' }, 'sentry at A1 falls out of the room'],
+    [
+      { type: 'outOfRoom', unit: sentry, cause: 'erased' },
+      'sentry at A1 is erased out of the room',
+    ],
+  ],
   held: [[{ type: 'held', unit: rat, rounds: 1 }, 'rat at C2 is held']],
   swapped: [
     [

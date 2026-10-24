@@ -195,6 +195,16 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
         { kind: 'crush', at: e.unit.at, tone: 'danger' },
         ...(typeof e.into === 'string' ? [] : [{ kind: 'crush', at: e.into.at, tone: 'danger' }]),
       ] as Fx[];
+    case 'outOfRoom':
+      return [
+        { kind: 'drop', at: e.unit.at },
+        {
+          kind: 'float',
+          at: e.unit.at,
+          text: e.cause === 'fell' ? 'falls' : 'erased',
+          tone: 'danger',
+        },
+      ];
     case 'dropped':
       return [
         { kind: 'drop', at: e.at },

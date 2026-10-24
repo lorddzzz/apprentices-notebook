@@ -119,11 +119,16 @@ export function ref(u: Unit, at: Coord = u.pos): UnitRef {
 export function checkEnd(ctx: Ctx): boolean {
   if (ctx.s.phase !== 'player') return true;
   // A threshold room is won by its objective, never by an empty board (K-22).
-  if (ctx.s.objective ? objectiveMet(ctx.s, ctx.log) : !enemies(ctx.s).some(isAlive)) {
+  if (
+    ctx.s.objective
+      ? objectiveMet(ctx.s, ctx.log)
+      : !enemies(ctx.s).some((u) => isAlive(u) && !u.bystander)
+  ) {
     ctx.s.phase = 'won';
     emit(ctx, { type: 'won' });
     return true;
   }
+  // Lost when no member is alive and in the room (P11): a member out of it can't hold the room.
   if (!members(ctx.s).some(isAlive)) {
     ctx.s.phase = 'lost';
     emit(ctx, { type: 'lost' });

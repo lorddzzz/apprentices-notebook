@@ -313,6 +313,7 @@ const SAMPLES = {
   crush: { type: 'crush', unit: rat, into: 'wall', damage: 2, at: b, dir: 'right' },
   dropped: { type: 'dropped', unit: rat, at: a, elite: false },
   stunned: { type: 'stunned', unit: rat },
+  outOfRoom: { type: 'outOfRoom', unit: rat, cause: 'fell' },
   held: { type: 'held', unit: rat, rounds: 1 },
   swapped: {
     type: 'swapped',

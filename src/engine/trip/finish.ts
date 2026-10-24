@@ -118,7 +118,11 @@ export function finishEncounter(
   const trip: Trip = {
     ...t,
     status: 'looting',
-    hp: perMember(t.party, (m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
+    // A member out of the room is hauled back at 1 HP, like a downed one (P11).
+    hp: perMember(t.party, (m) => {
+      const u = memberById(b, m);
+      return u.out ? TUNING.reviveHp : Math.max(TUNING.reviveHp, u.hp);
+    }),
     charges: perMember(t.party, (m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
     offers: rollOffers(t.seed, t.encounter, enc.loot, t.party, null, ownedBy(p, t), {

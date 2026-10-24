@@ -135,7 +135,7 @@ export function viewOf(s: BattleState): BoardView {
       shackle: u.shackle,
       held: u.held,
       stunned: u.stunned,
-      alive: u.hp > 0,
+      alive: u.hp > 0 && !u.out,
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
     })),
     round: s.round,
@@ -443,6 +443,13 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
       patchUnit(v, e.unit.id, (u) => {
         u.alive = false;
         u.hp = 0;
+        u.intent = null;
+      });
+      break;
+    case 'outOfRoom':
+      // Off the board until the room ends (P11); a minion's `died` follows.
+      patchUnit(v, e.unit.id, (u) => {
+        u.alive = false;
         u.intent = null;
       });
       break;

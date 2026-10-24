@@ -50,8 +50,9 @@ export function coordOf(s: BattleState, i: number): Coord {
   return { x: i % s.width, y: Math.floor(i / s.width) };
 }
 
+/** Alive and in the room: a unit out of the room (P11) is off the board for every query. */
 export function isAlive(u: Unit): boolean {
-  return u.hp > 0;
+  return u.hp > 0 && !u.out;
 }
 
 export function livingUnits(s: BattleState): Unit[] {

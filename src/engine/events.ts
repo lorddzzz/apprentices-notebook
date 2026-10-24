@@ -9,6 +9,7 @@ import type {
   TriggerRuneId,
 } from '$data';
 import type { ArrivalCause, PlacementCause } from './arrival';
+import type { OutOfRoomEvent } from './districts/types';
 import { type Coord, type Dir, label } from './grid';
 import type { Blocker } from './queries';
 import type { LockLost, RivalEvent } from './rivals/types';
@@ -180,6 +181,8 @@ export type GameEvent = (
     }
   | { type: 'dropped'; unit: UnitRef; at: Coord; elite: boolean }
   | { type: 'stunned'; unit: UnitRef }
+  /** A unit leaves the room (P11): a fall or an erase. */
+  | OutOfRoomEvent
   /** `rounds` is how long the unit is held after this (Hold's bonus included). */
   | { type: 'held'; unit: UnitRef; rounds: number }
   /** `unit` and `with` trade places: `unit` goes from -> to, `with` goes to -> from. */
@@ -356,6 +359,8 @@ export function describe(e: GameEvent): string | null {
       return `${who(e.unit)} drops at ${label(e.at)}`;
     case 'stunned':
       return `${who(e.unit)} is stunned`;
+    case 'outOfRoom':
+      return `${who(e.unit)} ${e.cause === 'fell' ? 'falls' : 'is erased'} out of the room`;
     case 'held':
       return `${who(e.unit)} is held`;
     case 'swapped':
