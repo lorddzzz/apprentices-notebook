@@ -2,12 +2,12 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: none. Wake-up #2 (last) scheduled 17:01 UTC, session-only cron.
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: FD-11 (13:55, Wrap filler; may be cut — resume from its worktree's last commit). Wake-up #2 (last) scheduled 17:01 UTC, session-only cron.
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
 1. ~~Finish DK-4~~ (merged 2026-10-24). Was: **Finish DK-4** from branch `worktree-agent-ac35c09fb4243a694` @ b55e0ed (worktree `.claude/worktrees/agent-ac35c09fb4243a694`, kept): rebase onto main. It conflicts with DK-3 in `arrival.ts`, `districts/index.ts`, `turn.ts`, `types.ts` — both fixed the same import loop (DK-3: lazy `arrivalHooks()`; DK-4: `KIT`/`DISTRICT_MODULES` moved to leaf `districts/kit.ts`); keep both (they're compatible), keep DK-3's `roundEnd` and add DK-4's single `piecesTurnEnd(ctx)` call after it; DK-4 also filters district arrival hooks to tiles holding their piece. Then its remaining steps: token-collision test (kit piece tokens vs `DISTRICT_TOKENS`, `RIVAL_TOKENS`, compound names); wire solidity into `queries.ts` (`pieceBlocksUnits`/`pieceBlocksShots`); call sites `hitPiece` (attack end/blocked, landings), `strikePiece` (spark, push crush both tiles, shove); `export * from './pieces'` in `engine/index.ts`; scenario skill legend + harness comment for `{piece}`.
-2. Ready (watch file overlap): AH-7 (lab.ts, scenarios, bot/fuzz), DK-11 (Crossroads/SetOut), HC-9 (sweep; after AH-6 lands is fine), FD-11 (fixed-scenario sweep + phone check), papers registry (DK §9, new task owning run.ts) (DK §9, new task owning run.ts) (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
+2. Ready (watch file overlap): AH-7 (lab.ts, scenarios, bot/fuzz), DK-11 (Crossroads/SetOut), HC-9 (sweep), papers registry (DK §9, new task owning run.ts) (DK §9, new task owning run.ts) (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
 3. Then FD-11 (phone check of push/drift/jar playback), HC-9, and the first gates: RV-G1 (Lamplighter Lab playtest), HC/AH/RC playtests.
 
 ## Tasks
@@ -73,6 +73,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FIX-tokens | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-afdb5045b1fe5c071 @ 2b8ab23 | ~2% | `notation.ts` `unitFor` and `scenario.ts` lattice loops use `APPRENTICE_IDS` (`MemberId` already aliases `ApprenticeId`); round-trip test with `R` in `tests/engine/notation.test.ts` |
 | FN-5 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-acc828b476f12b9d0 @ 8d84a41 | ~6% | `run.ts` `fineOf` exported, covers methods and solvents (witnessed lines, "n / total"); `codex/CodexMargin.svelte` read-only on `marginOf` (filled text, "Open: written at the desk, at home.", "At N points, M more."); `CodexEntry` takes `margin`/`lineText` (fine print via `lineTextFor`); Codex passes both for runes/methods/solvents. Tests `tests/app/codex-margin.test.ts`. Phone-checked at home and on the road. Filled frames repeat the written text (deliberate, covers the capstone) — revisit if noisy |
 | AH-6 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a3fa86e9d24a46882 @ ffda771 | ~9% | `habitFinePrint(profile, habit)` → `{seen, unseen}` (witnessed lines listed, rest counted, `pending` skipped); `common/HabitFinePrint.svelte` in `ApprenticeFull` and the Lab Lattices tab; `Preview.habits` (`HabitMark[]`) from `describe.ts` `habitMarks` → summary chip ("· Steam never hurts"); overlay star badge on the habit tile, calm shield for `unharmed` (no red ring), long-Touch far aims tinted, runaway's own Fuse jars in walk/Hop reach badged; `--habit` colour in theme.css. 11 tests. Phone-checked (scratchpad ah6/); fuse-jar badge unit-tested only. Follow-up: hide "Dormant" once the habit has witnessed lines |
+| FD-11 | Medium / Sonnet 5.5 / high | M | running | worktree (13:55) | | fixed-scenario sweep + playback phone check |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -111,6 +112,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 13:55 | 88 | 3h05 | 78 | Wrap (idle) | spawn FD-11 (smallest-unblocked rule) |
 | 13:53 | 88 | 3h07 | 78 | Wrap | merge AH-6 |
 | 13:29 | 79 | 3h31 | 77 | Narrow | spawn AH-6; wake-up #2 (last) set 17:01 UTC |
 | 13:27 | 79 | 3h33 | 77 | Narrow | merge AH-5, FN-5 |
