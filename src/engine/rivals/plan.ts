@@ -117,9 +117,18 @@ interface Detail {
   dropped: UnitId[];
   /** Effect events that named an apprentice (inked, marked, pushed, hurt…). */
   partyTouched: number;
+  /** His own jars (standing before the cast) that crumbled: a re-laid lantern, a thrown-away trap. */
+  ownCrumbled: number;
 }
 const details = new WeakMap<Outcome, Detail>();
-const EMPTY: Detail = { madeAt: [], moves: [], ownJars: [], dropped: [], partyTouched: 0 };
+const EMPTY: Detail = {
+  madeAt: [],
+  moves: [],
+  ownJars: [],
+  dropped: [],
+  partyTouched: 0,
+  ownCrumbled: 0,
+};
 const detailOf = (o: Outcome): Detail => details.get(o) ?? EMPTY;
 
 function jarIdsOf(s: BattleState): Map<string, JarId> {
@@ -139,6 +148,9 @@ function ownStepJars(s: BattleState, owner: UnitId): Coord[] {
   });
   return out;
 }
+
+const ownedJarAt = (s: BattleState, at: Coord, owner: UnitId): boolean =>
+  inBoard(s, at) && tileAt(s, at).jar?.owner === owner;
 
 const isMemberRef = (v: unknown): boolean =>
   typeof v === 'object' && v !== null && 'member' in v && v.member === true;
@@ -160,6 +172,7 @@ export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): 
     ownJars: ownStepJars(before, self),
     dropped: [],
     partyTouched: 0,
+    ownCrumbled: 0,
   };
   const jars = jarIdsOf(before);
   const harm = (id: UnitId, member: boolean, n: number) => {
@@ -178,7 +191,8 @@ export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): 
     } else if (e.type === 'jarOpened') {
       const id = jars.get(key(e.at));
       if (id !== undefined) opened.push({ kind: 'jar', id });
-    } else if (e.type === 'dropped') d.dropped.push(e.unit.id);
+    } else if (e.type === 'jarCrumbles' && ownedJarAt(before, e.at, self)) d.ownCrumbled++;
+    else if (e.type === 'dropped') d.dropped.push(e.unit.id);
     for (const r of relocations(e)) {
       entered.push(...r.path.map((c) => ({ ...c })));
       d.moves.push({ unit: r.unit.id, member: r.unit.member, path: r.path });
@@ -218,7 +232,8 @@ export function simulate(
 // ── Goals (P5) ──────────────────────────────────────────
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-const clean = (o: Outcome) => o.effect && o.selfHarm === 0;
+/** An effective action that costs him nothing: no self-harm, and none of his own live objects crumble. */
+const clean = (o: Outcome) => o.effect && o.selfHarm === 0 && detailOf(o).ownCrumbled === 0;
 const net = (o: Outcome) => o.partyHarm - o.allyHarm;
 
 function hazardTiles(s: BattleState): Coord[] {

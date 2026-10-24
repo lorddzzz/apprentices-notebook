@@ -5,10 +5,12 @@ import {
   compileLattice,
   type EnemyUnit,
   type GameEvent,
+  type Jar,
   parseLabel,
   parseLattice,
   tileAt,
 } from '$engine';
+import { planRival } from '$engine/rivals/plan';
 import { act, board, expectLogIncludes } from './harness';
 
 /**
@@ -164,5 +166,35 @@ describe('without a jar he lays a trap', () => {
       kind: 'cast',
       spell: 'lantern',
     });
+  });
+});
+
+describe('he keeps the jar he holds', () => {
+  const jarFor = (owner: string, id: number): Jar => ({
+    owner,
+    event: 'step',
+    rest: { role: 'action', rune: 'strike', at: { x: 0, y: 0 }, auras: [], next: null },
+    heading: null,
+    origin: { caster: owner, spell: 'lantern', cast: 0 },
+    id,
+    seq: id,
+  });
+
+  test('a lantern that would crumble his own is never planned; he does not re-lay', () => {
+    // His jar waits at A3, far from the party. A lantern at E1 is within reach of Draughtsman,
+    // but laying it would crumble the jar he holds (one jar at a time).
+    const s = structuredClone(board('L . . . D\n. . . . .\n. . . . .'));
+    tileAt(s, at('A3')).jar = jarFor(rivalOf(s).id, 1);
+    s.nextJar = 2;
+    const plan = planRival(s, rivalOf(s).id, true);
+    expect(plan?.intent).not.toMatchObject({ kind: 'cast', spell: 'lantern' });
+
+    // The board was telegraphed before the jar was laid: clear it so the next enemy phase re-plans.
+    rivalOf(s).intent = null;
+    const first = act(s, endTurn);
+    expect(rivalOf(first.state).intent).not.toMatchObject({ kind: 'cast', spell: 'lantern' });
+    const second = act(first.state, endTurn);
+    expect(second.events.some((e) => e.type === 'jarCrumbles')).toBe(false);
+    expect(jarAt(second.state, 'A3')?.id).toBe(1);
   });
 });
