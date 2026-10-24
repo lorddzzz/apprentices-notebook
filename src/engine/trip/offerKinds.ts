@@ -1,10 +1,4 @@
-import {
-  DISTRICT_IDS,
-  type LootTableId,
-  METHOD_IDS,
-  RUNE_IDS,
-  SOLVENT_IDS,
-} from '$data';
+import { DISTRICT_IDS, type LootTableId, METHOD_IDS, RUNE_IDS, SOLVENT_IDS } from '$data';
 import { bankKeys, keyOffer } from '../city';
 import { KIT } from '../districts/kit';
 import type {
