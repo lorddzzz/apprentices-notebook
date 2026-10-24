@@ -1,6 +1,9 @@
 import {
   type ApprenticeId,
   type Beat,
+  DISTRICT_IDS,
+  type DistrictId,
+  encountersOf,
   type InventionDef,
   isInvention,
   type LootSpec,
@@ -10,13 +13,14 @@ import {
   START_KNOWN,
   TUNING,
 } from '$data';
+import { DISTRICT_KIT, type RecruitPages, type RecruitPlacement } from '$data/districts/index';
 import { inHousehold } from './household';
 import { parseLattice } from './notation';
 import type { Profile, Trip } from './types';
 
 /**
- * Recruitment (docs/plans/recruitment-plan.md §4). RC-2 builds the precondition check;
- * the RC-3/6 stubs throw until their task lands.
+ * Recruitment (docs/plans/recruitment-plan.md §4). RC-2 builds the precondition check, RC-3 the
+ * guaranteed pages; the RC-6 stubs throw until their task lands.
  */
 
 /** The recruit offer card (P7); matches DK-1's `KitLootItem` member, banked via `joinHousehold`. */
@@ -129,9 +133,111 @@ export function waitingFor(p: Profile, trip?: Trip): readonly ApprenticeId[] {
     return r.beat.every((b) => beatHolds(p, id, b, { ...(trip ? { trip } : {}) }));
   });
 }
-/** RC-3: at most one missing precondition page for this roll (P5, P6), after the table's own. */
-export function guaranteesFor(_p: Profile, _trip: Trip, _room: number): LootSpec | null {
-  return todo('guaranteesFor');
+/** The Seam's own precondition pages (§0d), guaranteed in its deep and heart rooms (P6). */
+const SEAM_PAGES: readonly RuneId[] = ['touch', 'splash', 'steam', 'brass'];
+const SEAM_DEEP_TABLES: readonly string[] = ['deep', 'heart'];
+
+/** P5's priority: the recruit placed earliest in the city (district order), door arrivals last. */
+function cityRank(id: ApprenticeId): number {
+  const found = recruitDef(id).found;
+  return 'district' in found
+    ? DISTRICT_IDS.indexOf(found.district)
+    : DISTRICT_IDS.length + (found.door === 'A' ? 0 : 1);
+}
+
+const byCity = (ids: readonly ApprenticeId[]): ApprenticeId[] =>
+  [...ids].sort((a, b) => cityRank(a) - cityRank(b));
+
+/** The first missing rune of a page line: any of `all` unowned, or the first of `any` if none is owned. */
+function firstMissing(
+  owned: ReadonlySet<RuneId>,
+  all: readonly RuneId[],
+  any: readonly RuneId[] = [],
+): RuneId | null {
+  const missing = all.find((x) => !owned.has(x));
+  if (missing) return missing;
+  return any.length > 0 && !any.some((x) => owned.has(x)) ? (any[0] ?? null) : null;
+}
+
+const pageLine = (pages: RecruitPages): { all: readonly RuneId[]; any?: readonly RuneId[] } =>
+  'runes' in pages ? { all: pages.runes } : { all: [], any: pages.any };
+
+/** The placement data guarantees read: each district's `recruit` and `recruitPages` (P8). */
+export type RecruitKit = Readonly<
+  Partial<
+    Record<
+      DistrictId,
+      { recruit?: readonly RecruitPlacement[]; recruitPages?: readonly RecruitPages[] }
+    >
+  >
+>;
+
+/** District pages: the trip's district places them in this room for a waiting recruit (P8). */
+function districtPage(
+  p: Profile,
+  trip: Trip,
+  room: number,
+  owned: ReadonlySet<RuneId>,
+  pages: readonly RecruitPages[],
+) {
+  const waiting = waitingFor(p, trip);
+  const lines = pages.filter((l) => l.rooms.includes(room) && waiting.includes(l.for));
+  for (const id of byCity(lines.map((l) => l.for))) {
+    for (const l of lines.filter((x) => x.for === id)) {
+      const { all, any } = pageLine(l);
+      const rune = firstMissing(owned, all, any);
+      if (rune) return rune;
+    }
+  }
+  return null;
+}
+
+/** Seam pages: the first heard recruit's missing Seam rune, in the Seam's deep and heart rooms (P6). */
+function seamPage(
+  p: Profile,
+  trip: Trip,
+  room: number,
+  owned: ReadonlySet<RuneId>,
+  kit: RecruitKit,
+) {
+  const table = encountersOf(trip.district)[room]?.loot;
+  if (trip.district !== 'seam' || !table || !SEAM_DEEP_TABLES.includes(table)) return null;
+  const isSeam = (x: RuneId): boolean => SEAM_PAGES.includes(x);
+  // A district recruit counts once her district places her (P9: unplaced is never shown) and the
+  // map has shown her district (not `city.fresh`, e.g. heard on this very trip), so a fresh
+  // notebook's first trips roll as before (P6). Door arrivals have no placement.
+  const settled = (id: ApprenticeId): boolean => {
+    const found = recruitDef(id).found;
+    if (!('district' in found)) return true;
+    const placed = kit[found.district]?.recruit?.some((r) => r.apprentice === id) ?? false;
+    return placed && !p.city.fresh.includes(found.district);
+  };
+  for (const id of byCity(waitingFor(p, trip).filter(settled))) {
+    const { all, any } = preconditionsOf(id).runes;
+    const rune = firstMissing(owned, all.filter(isSeam), any?.filter(isSeam));
+    if (rune) return rune;
+  }
+  return null;
+}
+
+/**
+ * RC-3: at most one missing precondition page for this roll (P5, P6), offered after the table's own
+ * guarantee. District pages in the rooms a district places them; Seam pages in the Seam's deep and
+ * heart rooms while a heard and placed recruit (or a door arrival whose beats hold) lacks them; a
+ * district still in `city.fresh` counts once the map has shown it. Nothing once she joined, her
+ * card is in the trip's loot, or the page is owned (known or in the trip's loot). `kit` defaults to
+ * the districts' data (tests pass fixtures).
+ */
+export function guaranteesFor(
+  p: Profile,
+  trip: Trip,
+  room: number,
+  kit: RecruitKit = DISTRICT_KIT,
+): LootSpec | null {
+  const owned = ownedRunes(p, trip);
+  const pages = kit[trip.district]?.recruitPages ?? [];
+  const rune = districtPage(p, trip, room, owned, pages) ?? seamPage(p, trip, room, owned, kit);
+  return rune ? { kind: 'rune', rune } : null;
 }
 /** RC-2: the first household invention proven in `TUNING.provenCasts` masks (P4), for the note (P12). */
 export function provenInvention(p: Profile): InventionDef | null {

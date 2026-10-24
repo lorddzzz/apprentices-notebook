@@ -1,5 +1,4 @@
 import {
-  APPRENTICE_IDS,
   DISTRICT_IDS,
   type LootTableId,
   METHOD_IDS,
@@ -15,6 +14,7 @@ import type {
   OfferKind,
   OfferKindId,
 } from '../districts/types';
+import { RECRUIT_OFFERS } from '../recruits/offers';
 import type { Profile, Trip } from '../types';
 
 /**
@@ -143,30 +143,12 @@ const KEY_KIND: OfferKind<ItemOf<'key'>> = {
   card: 'key',
 };
 
-/**
- * `recruit` until RC-3 registers its own (replace this line in `OFFER_SOURCES`): saves round-trip
- * and the limit holds; banking does nothing yet, since nothing offers a recruit before RC-3.
- */
-export const RECRUIT_SAVE_ONLY: OfferKind<ItemOf<'recruit'>> = {
-  id: 'recruit',
-  onPick: addToLoot,
-  onBank: (p) => p,
-  limitPerTrip: 1,
-  limitKey: (i) => i.apprentice,
-  parse(raw) {
-    const r = fieldsOf(raw, 'recruit');
-    const apprentice = r && idOf(APPRENTICE_IDS, r.apprentice);
-    return apprentice ? { kind: 'recruit', apprentice } : null;
-  },
-  card: 'recruit',
-};
-
 export const CORE_OFFERS: OfferSource = {
   kinds: [RUNE_KIND, METHOD_KIND, INK_KIND, SOLVENT_KIND, VELLUM_KIND, DOORWAY_KIND, KEY_KIND],
 };
 
 /** Every non-district source, one line each (RC, and any later core owner). */
-export const OFFER_SOURCES: readonly OfferSource[] = [CORE_OFFERS, { kinds: [RECRUIT_SAVE_ONLY] }];
+export const OFFER_SOURCES: readonly OfferSource[] = [CORE_OFFERS, RECRUIT_OFFERS];
 
 /** One registry from sources; a duplicate kind id throws (the registry's integrity check). */
 export function buildOfferRegistry(sources: readonly OfferSource[]): OfferRegistry {
