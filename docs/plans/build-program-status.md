@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: RV-5, DK-5b, FN-4 (12:03).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: RV-5, DK-5b (12:03).
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -64,7 +64,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | RC-4 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb5bae7ca41c1555 @ fd6c6e1 | shared | `recruitOffers(p, trip, room, kit)`: her card only when placed in this district+room, not in household/loot, `isReady(…, {trip, atLandmark:true})` (loot pages count); nothing stored, so declined/wiped cards return next trip. Real recruit kind in `recruits/offers.ts`: `roll` after the normal three, costs the pick; banks via `bankRecruit` → `joinHousehold` (bench + page); no `onWipe` (lost); one per apprentice; parse refuses unknown ids and extra fields; `recruitOffersWith(kit)` for fixtures. 11 tests `tests/run/recruit-offer.test.ts`. Golden unchanged. **RC-5** places the runaway (re-record golden then), **RC-7** card UI |
 | RV-5 | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | the Lamplighter data |
 | DK-5b | Strong / Opus 5.5 / medium | M | running | worktree (12:03) | | trip shape, state side |
-| FN-4 | Medium / Sonnet 5.5 / high | M | running | worktree (12:03) | | Desk margin column |
+| FN-4 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a0b96c7d5aba90a57 @ b419c7a | shared | `desk.ts` `deskRows`/`deskGroups` (runes, methods, solvents with points), `marginOf(p, subject, opts)` (filled/open/locked frames + capstone; threshold, missing, variants, spends, blocked text), costs from `footnoteCost`, rival notes when `holdsRivalPage` (credit line ready for FN-8), `writeAt(…, {atHome})` refuses `ROAD_REFUSAL` (P10); `DeskStore.atHome = save.trip === null`. UI `Desk.svelte` + `desk/SubjectEntry`, `MarginColumn`, `MarginFrame` (RuneEntry/OfferCard removed). Verified 375×812 (locked/open/filled-after-write; scratchpad fn4/). Not checked: locked II/capstone frame (no content). Autofixer not run (unavailable) |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -160,6 +160,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - FN-7: toggles in-memory only (no save field); toggling keeps the current board/log rather than resetting. Follow-up: optional `footnotes` on `ScenarioDef` + harness so Copy as scenario keeps the set. Accepted.
 
 - RC-4: recruit save cards should accept only the seven recruits, not founders — parsing accepts any registry apprentice for now because DK-7's offer-kinds test uses `stoker`; tighten when that test changes (follow-up). Accepted.
+
+- FN-4: Desk rows still need ≥1 point (a zero-point subject with authored margins stays hidden) — **ask player** at the next design round; default: keep. Port collisions between UI agents: give each UI agent its own port (5190–5193). Accepted.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.

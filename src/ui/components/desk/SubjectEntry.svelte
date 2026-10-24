@@ -1,9 +1,12 @@
 <script lang="ts">
-  import type { RuneRow } from '../../../app/desk';
+  import type { MethodId, RuneId, SolventId } from '$data';
+  import type { SubjectRow } from '../../../app/desk';
+  import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
+  import SolventIcon from '../SolventIcon.svelte';
 
   interface Props {
-    row: RuneRow;
+    row: SubjectRow;
     open: boolean;
     ontoggle: () => void;
   }
@@ -17,10 +20,27 @@
   class="entry"
   class:open
   aria-expanded={open}
-  data-testid="desk-rune-{row.rune}"
+  data-testid="desk-subject-{row.subject}"
   onclick={ontoggle}
 >
-  <RuneGlyph rune={row.rune} size={40} />
+  <span class="glyph">
+    {#if row.kind === 'rune'}
+      <RuneGlyph rune={row.subject as RuneId} size={40} />
+    {:else if row.kind === 'solvent'}
+      <SolventIcon solvent={row.subject as SolventId} size={36} />
+    {:else}
+      <svg width="36" height="36" viewBox="0 0 24 24" role="img" aria-label={row.name}>
+        <path
+          d={METHOD_ART[row.subject as MethodId]}
+          fill="none"
+          stroke="var(--ink)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    {/if}
+  </span>
   <span class="body">
     <span class="name">{row.name}</span>
     <span class="pips" role="img" aria-label="Level {row.level} of 3">
@@ -33,7 +53,7 @@
     </span>
   </span>
   {#if row.open > 0}
-    <span class="mark" data-testid="desk-offer-{row.rune}">{row.open} to write</span>
+    <span class="mark" data-testid="desk-open-{row.subject}">{row.open} to write</span>
   {/if}
 </button>
 
@@ -56,6 +76,13 @@
   .open {
     border-color: var(--ink);
     background: #f6e3b4;
+  }
+  .glyph {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
   }
   .body {
     flex: 1;
