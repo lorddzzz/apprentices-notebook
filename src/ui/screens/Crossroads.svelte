@@ -1,29 +1,20 @@
 <script lang="ts">
-  import { DISTRICTS, encountersOf } from '$data';
-  import { canReturn, nextLanding, variantFor } from '$engine';
+  import { crossroadsView } from '../../app/crossroads';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
-  import Button from '../components/common/Button.svelte';
+  import CrossroadsChoices from '../components/trip/CrossroadsChoices.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
   import TripStatus from '../components/trip/TripStatus.svelte';
 
   const trip = $derived(game.save.trip);
-  const rooms = $derived(trip ? encountersOf(trip.district) : []);
-  const next = $derived(trip ? trip.encounter + 1 : 0);
-  const place = $derived(
-    trip
-      ? (rooms[next]?.variants[variantFor(trip, next)]?.name ?? DISTRICTS[trip.district].name)
-      : 'The Seam',
-  );
-  // Landings (K-4): a non-landing room has no Return home, and says where the next one is.
-  const landable = $derived(trip ? canReturn(trip) : true);
-  const afterRoom = $derived(trip && !landable ? nextLanding(trip) : null);
+  // The district module names the ways on; the Seam and the canals get push and return (P4).
+  const view = $derived(trip ? crossroadsView(trip) : null);
 </script>
 
-{#if trip}
+{#if trip && view}
   <section class="crossroads" data-testid="crossroads">
     <header>
-      <h1>{trip.district === 'seam' ? 'The Seam goes on.' : 'Deeper still.'}</h1>
+      <h1>{view.heading}</h1>
       <p>You are deeper than the lamplight reaches. Look at what you have left.</p>
     </header>
 
@@ -37,25 +28,11 @@
     </div>
 
     <div class="choices">
-      <Button onclick={() => game.pushOn()} testid="push">
-        <span class="big">Push on</span>
-        <span class="sub">Deeper: {place} (depth {next + 1} of {rooms.length})</span>
-      </Button>
-      <Button
-        variant="quiet"
-        disabled={!landable}
-        onclick={() => game.returnHome()}
-        testid="return"
-      >
-        <span class="big">Return home</span>
-        {#if landable}
-          <span class="sub">keep {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
-        {:else}
-          <span class="sub" data-testid="no-landing"
-            >{afterRoom ? `No landing here. The next landing is after ${afterRoom}.` : 'No landing here.'}</span
-          >
-        {/if}
-      </Button>
+      <CrossroadsChoices
+        {view}
+        onway={(id) => (id === 'push' ? game.pushOn() : game.chooseWay(id))}
+        onhome={() => game.returnHome()}
+      />
       <a class="link" href={href('codex')}>Read the notebook</a>
     </div>
   </section>
@@ -100,19 +77,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-  }
-  .choices :global(.btn) {
-    flex-direction: column;
-    gap: 0;
-    min-height: 60px;
-    width: 100%;
-  }
-  .big {
-    font-size: 19px;
-  }
-  .sub {
-    font-size: 13px;
-    opacity: 0.85;
   }
   .link {
     display: inline-flex;

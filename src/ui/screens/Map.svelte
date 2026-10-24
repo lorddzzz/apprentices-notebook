@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { DistrictId } from '$data';
   import { seeMap } from '$engine';
+  import type { StartAt } from '$engine/districts/types';
   import { mapNodes, mapPaths } from '../../app/city';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
@@ -18,9 +19,9 @@
     if (game.profile.city.fresh.length) game.updateProfile(seeMap);
   });
 
-  function setOut(): void {
+  function setOut(at: StartAt): void {
     if (!target) return;
-    const why = game.setOut(target);
+    const why = game.setOut(target, at);
     target = null;
     if (why) toast(why, 'warn');
   }
@@ -50,6 +51,7 @@
   </div>
   <SetOutSheet
     open={target !== null}
+    district={target}
     profile={game.profile}
     onclose={() => (target = null)}
     onsetout={setOut}

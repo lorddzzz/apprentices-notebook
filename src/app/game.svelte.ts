@@ -13,7 +13,9 @@ import {
   type SaveData,
   type SlotIndex,
 } from '$engine';
+import type { StartAt } from '$engine/districts/types';
 import { BattleSession } from './battle.svelte';
+import { chooseWay, setOutAt } from './crossroads';
 import { namedTitle } from './describe';
 import {
   editAndPersist,
@@ -24,7 +26,6 @@ import {
   newDiscoveries,
   pushOnward,
   recordBattleAction,
-  setOut,
   startBattle,
   takeOffer,
   type WipeSummary,
@@ -254,11 +255,14 @@ export class GameStore {
 
   // ── Trip ──
 
-  /** Leaves for an open district: the loadout is checked by the engine. Returns why not, or null. */
-  setOut(district: DistrictId = 'seam'): string | null {
+  /**
+   * Leaves for an open district: the loadout is checked by the engine. `at: 'checkpoint'` starts
+   * past the doorway the city remembers (DK-11). Returns why not, or null.
+   */
+  setOut(district: DistrictId = 'seam', at: StartAt = 'start'): string | null {
     if (this.refusal) return this.refusal;
     try {
-      this.commit(setOut(this.save, district));
+      this.commit(setOutAt(this.save, district, at));
     } catch (e) {
       return e instanceof Error ? e.message : 'The party cannot set out';
     }
@@ -348,6 +352,11 @@ export class GameStore {
 
   pushOn(): void {
     this.commit(pushOnward(this.save));
+  }
+
+  /** A way on from the Crossroads the district module named (span choice, the doorway; DK-11). */
+  chooseWay(id: string): void {
+    this.commit(chooseWay(this.save, id));
   }
 
   returnHome(): void {
