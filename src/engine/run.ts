@@ -29,6 +29,7 @@ import {
   TUNING,
 } from '$data';
 import type { PaperId } from '$data/districts/index';
+import { RIVALS, type RivalId, type RivalPageId } from '$data/rivals';
 import { cityDefaults } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
 import { baseGlyphCost, canBeOpen, glyphRunes, withOpenCell } from './glyph';
@@ -140,6 +141,7 @@ export function newProfile(): Profile {
     footnotes: {},
     solventsFound: [],
     papers: [],
+    pages: [],
     vellum: 0,
     glyphs: [],
     ...masteryDefaults(),
@@ -580,6 +582,21 @@ function parsePapers(v: unknown): PaperId[] {
   return unique(list(v).map(paperId));
 }
 
+/** Saves before the rival pages lack the list (none held). Ids stay even if a rival's page is cut later. */
+function parsePages(v: unknown): RivalPageId[] {
+  if (v === undefined) return [];
+  return unique(list(v).map(rivalPageId));
+}
+
+/** `rival:spell`, the rival a real one. */
+function rivalPageId(v: unknown): RivalPageId {
+  const id = text(v);
+  const at = id.indexOf(':');
+  if (at < 0 || at === id.length - 1) bad();
+  oneOf(Object.keys(RIVALS) as RivalId[], id.slice(0, at));
+  return id as RivalPageId;
+}
+
 /** `district:name`, the district a registry id. */
 function paperId(v: unknown): PaperId {
   const id = text(v);
@@ -656,6 +673,7 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     solventsFound: parseSolventsFound(r.solventsFound, solvents, inventions),
     papers: parsePapers(r.papers),
     ...(r.recruits === undefined ? {} : { recruits: parseRecruits(r.recruits, household.members) }),
+    pages: parsePages(r.pages),
     vellum: count(r.vellum),
     glyphs,
     glyphArchive,

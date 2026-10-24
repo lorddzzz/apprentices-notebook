@@ -7,7 +7,9 @@ import { findPaper } from '../papers';
 import { recordGlyphCasts, tierUps } from '../profiler';
 import { masksFrom } from '../proof';
 import { memberById } from '../queries';
+import { bankPages } from '../rivals/pages';
 import { compiledFor, recordProof } from '../run';
+import { awardsPage } from '../standIn';
 import { accumulateStats } from '../tripStats';
 import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../types';
 import { wipeLoot } from './offerKinds';
@@ -115,7 +117,7 @@ export function finishEncounter(
   const learned = learnFromFight(p, b, log);
   if (b.phase === 'lost') return { profile: learned, trip: null, outcome: 'wiped', stats };
   // The room's paper is filed at once, so a later wipe keeps it (lore registry, DK §9).
-  const profile = findPaper(learned, t.district, t.encounter);
+  const profile = bankPages(findPaper(learned, t.district, t.encounter), b, t.district, awardsPage);
 
   const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);

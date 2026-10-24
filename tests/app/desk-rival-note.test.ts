@@ -18,7 +18,7 @@ const FIXTURE: VariantDef[] = [
   variant('wick', { rival: 'lamplighter' }),
 ];
 
-const profile = (pages?: Profile['pages']): Profile => {
+const profile = (pages: Profile['pages'] = []): Profile => {
   const base = newProfile();
   return {
     ...base,

@@ -31,7 +31,7 @@ test('a rich v9 save (Glyph versions, records, args, proof, recap) round-trips t
   const save = parseSaveText(text);
   expect(save).toEqual({
     ...envelope.data,
-    profile: { ...envelope.data.profile, bindEvents: [], papers: [] },
+    profile: { ...envelope.data.profile, bindEvents: [], papers: [], pages: [] },
   });
   expect(compiledFor(save.profile, 'draughtsman').spells.length).toBeGreaterThan(0);
   const backend = memoryBackend(text);
@@ -222,7 +222,7 @@ test('record-local keys remain identity-bearing data through a v9 reload', () =>
   const migrated = parseSaveText(serialize(envelope.data));
   expect(migrated).toEqual({
     ...envelope.data,
-    profile: { ...envelope.data.profile, bindEvents: [], papers: [] },
+    profile: { ...envelope.data.profile, bindEvents: [], papers: [], pages: [] },
   });
   expect(parseSaveText(saveText(migrated))).toEqual(migrated);
 });
