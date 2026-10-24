@@ -13,6 +13,7 @@ import {
   step,
 } from './grid';
 import type { Hook } from './hooks';
+import { sealedContext } from './jars';
 import { spendMark } from './marks';
 import { cloudNet, isBrass, oilNet } from './networks';
 import {
@@ -346,6 +347,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
           origin: flow.origin,
           kind: 'filings',
           solvent: 'filings',
+          context: sealedContext(flow),
         }),
       );
     },

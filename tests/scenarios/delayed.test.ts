@@ -14,8 +14,8 @@ import { act, cast, draft, expectLog, withLattices } from './harness';
 
 /**
  * Foundations FD-2: BL-105 (delayed runs lose their context) and BL-106 (dusk-jar identity).
- * `it.fails` cases are the reports reproduced, with the rule the fix (FD-4 for P9, FD-5 for P10)
- * must make pass; plain tests are regressions the fixes must keep.
+ * `it` cases were the reports reproduced (once `it.fails`), now passing with the fix's rule (FD-4
+ * for P9, FD-5 for P10); `test` cases are regressions the fixes must keep.
  */
 
 const inv = (
@@ -33,6 +33,7 @@ const lib = libraryOf([
   inv('outer-wick', 'conduct', ['inv:zap-wick'], { solvent: 'wick' }),
   inv('afterimage', 'repeat', ['strike']),
   inv('echo', 'margin', ['inv:afterimage']),
+  inv('fog-again', 'repeat', ['strike'], { solvent: 'fogJar' }),
 ]);
 
 /** Two dummies: C1 beside the plate, F1 two tiles from it (only a Coil's extra reach finds it). */
@@ -61,21 +62,21 @@ describe('BL-105: a delayed run keeps the auras it was cast with (FD-4, P9)', ()
     expect(hitsByTurn('. Coil\nBolt> inv:zap', 0)).toEqual([[C1, F1]]);
   });
 
-  // Today the repeat comes due as a bare step with no auras: it strikes C1 only.
-  it.fails('coil-repeat: the repeat next turn reaches as far as the cast', () => {
+  // Before FD-4 the repeat came due as a bare step with no auras: it struck C1 only.
+  it('coil-repeat: the repeat next turn reaches as far as the cast', () => {
     expect(hitsByTurn('. Coil\nBolt> inv:rezap', 1)).toEqual([
       [C1, F1],
       [C1, F1],
     ]);
   });
 
-  // Today the woken Wick runs with no auras.
-  it.fails('coil-wick: the Wick wakes with its Coil', () => {
+  // Before FD-4 the woken Wick ran with no auras.
+  it('coil-wick: the Wick wakes with its Coil', () => {
     expect(hitsByTurn('. Coil\nBolt> inv:zap-wick', 1)).toEqual([[], [C1, F1]]);
   });
 
-  // Today Filings' second ring runs with no auras.
-  it.fails('coil-filings: the second ring reaches as far as the first', () => {
+  // Before FD-4 Filings' second ring ran with no auras.
+  it('coil-filings: the second ring reaches as far as the first', () => {
     expect(hitsByTurn('. Coil\nBolt> inv:zap-filings', 1)).toEqual([
       [C1, F1],
       [C1, F1],
@@ -84,8 +85,8 @@ describe('BL-105: a delayed run keeps the auras it was cast with (FD-4, P9)', ()
 });
 
 describe('BL-105: wake flags and limit 5 (FD-4, P9)', () => {
-  // Today `woken` is inherited by the Wick inside the woken one, so it fires at once.
-  it.fails('nested-wick: the inner Wick waits its own round', () => {
+  // Before FD-4 `woken` was inherited by the Wick inside the woken one, so it fired at once.
+  it('nested-wick: the inner Wick waits its own round', () => {
     expect(hitsByTurn('Bolt> inv:outer-wick', 2)).toEqual([[], [], [C1]]);
   });
 
@@ -101,6 +102,55 @@ describe('BL-105: wake flags and limit 5 (FD-4, P9)', () => {
 
   test('margin-filings: the ring and the echo are both spent', () => {
     expect(hitsByTurn('. inv:echo\nBolt> inv:zap-filings', 2)).toEqual([[C1], [C1, C1], []]);
+  });
+});
+
+describe('BL-105: the rest of the sealed context (FD-4, P9)', () => {
+  /** Damage dealt per tile, as `x,y:amount`. */
+  const dealt = (events: readonly GameEvent[]): string[] =>
+    events.flatMap((e) =>
+      e.type === 'damage' ? [`${e.target.at.x},${e.target.at.y}:${e.amount}`] : [],
+    );
+
+  // Fog Jar widens a Repeat to the unit beside C1 one step weaker; its repeat stays weaker.
+  it('fog-repeat: the repeat on a fogged neighbour is still one weaker', () => {
+    const s = withLattices(
+      'D . d d .',
+      { draughtsman: 'Bolt> inv:fog-again' },
+      {
+        inventions: lib,
+        hp: { C1: 20, D1: 20 },
+      },
+    );
+    const first = cast(s, 'draughtsman', 'right');
+    expect(dealt(first.events)).toEqual(['2,0:2', '3,0:1']);
+    const next = endTurn(first.state);
+    expect(dealt(next.events)).toEqual(['2,0:2', '3,0:1']);
+    expect(next.state.scheduled).toEqual([]);
+  });
+
+  // A dusk jar's rest keeps the Afterglow that touched it: the compound it lands lingers.
+  test('afterglow-jar: an Afterglow-touched rest still marks its compound', () => {
+    const s = withLattices('D . . .\nd . . .', {
+      draughtsman: '. . . Afterglow\nBolt> Fuse Ink Oil',
+    });
+    const sealed = cast(s, 'draughtsman', 'right');
+    expect(tileAt(sealed.state, at('D1')).jar?.event).toBe('dusk');
+    const dusk = draft(sealed.state, (ctx) => openDuskJars(ctx));
+    expect(tileAt(dusk.state, at('D1')).state?.afterglow).toBe(true);
+  });
+
+  // The jar runs with the habit it was sealed with, even if the caster's lean changed since.
+  it('habit-jar: a Stoker dusk jar forks ahead as sealed', () => {
+    const arena = '. r . .\nS r . .\n. r . .';
+    const lattice = '. . Strike .\nBolt> Fuse Fork .\n. . Oil .';
+    const sealed = cast(withLattices(arena, { stoker: lattice }), 'stoker', 'right');
+    expect(tileAt(sealed.state, at('B2')).jar?.context?.habit).toBe('forkAhead');
+    const stoker = sealed.state.units.find((u) => u.id === 'stoker');
+    if (stoker?.kind !== 'member') throw new Error('no stoker');
+    stoker.lean.habit = null;
+    const dusk = draft(sealed.state, (ctx) => openDuskJars(ctx));
+    expect(tileAt(dusk.state, at('C2')).state).not.toBeNull(); // the tile ahead got its Oil
   });
 });
 
@@ -130,7 +180,7 @@ describe('BL-106: dusk opens the jars it found (FD-5, P10)', () => {
    *   D r . .     B1: the Draughtsman's dusk jar (Shove right, then Fuse → Strike)
    *   S . . .     C1: the Stoker's dusk jar (Strike)
    * The B1 jar opens first, pushes the rat onto C1 and seals a new jar there, replacing the
-   * Stoker's. Today dusk only remembers coordinates, so the new jar opens this same dusk.
+   * Stoker's. Before FD-5 dusk only remembered coordinates, so the new jar opened this same dusk.
    */
   function duskWithReplacement() {
     const s = withLattices('D r . .\nS . . .', {}, { hp: { B1: 20 } });
@@ -152,8 +202,8 @@ describe('BL-106: dusk opens the jars it found (FD-5, P10)', () => {
     expect(tileAt(dusk.state, at('C1')).jar?.owner).toBe('draughtsman');
   });
 
-  // Today `newestSeq` is the board's max + 1: after the newest jar opens, the next one reuses
-  // its number (here 2).
+  // Before FD-5 `newestSeq` was the board's max + 1: after the newest jar opened, the next one
+  // reused its number (here 2).
   it('jar-ids-never-reused: a jar sealed after the newest opened gets a new id', () => {
     const start = withLattices('D . . .\n. . . .\n. . . .', {});
     let opened: Jar | null = null;

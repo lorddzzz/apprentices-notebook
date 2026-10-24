@@ -5,7 +5,7 @@ import type { Coord, Dir } from './grid';
 import { jarLimit } from './leans';
 import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
-import type { Flow, Jar, Origin, Step, Target, UnitId } from './types';
+import type { Flow, Jar, Origin, SealedContext, Step, Target, UnitId } from './types';
 import { targetKey } from './types';
 
 /** The first rune of a step chain: what a jar's contents peek shows. */
@@ -35,10 +35,24 @@ export function firstRune(step: Step | null): RuneRef | null {
  */
 
 /**
+ * What a delayed run keeps of the flow that sealed it (P9): the step's auras, the caster's gifted
+ * auras, Fog's weakness and the habit. `woken` and `repeated` stay behind (limit 5, nested Wick).
+ */
+export function sealedContext(flow: Flow): SealedContext {
+  return {
+    auras: [...flow.auras],
+    ...(flow.giftedAuras?.length ? { giftedAuras: [...flow.giftedAuras] } : {}),
+    ...(flow.weaker ? { weaker: flow.weaker } : {}),
+    habit: flow.habit,
+  };
+}
+
+/**
  * Runs `step` for `caster` on a target with a flow of its own: a jar opening, a repeat coming due.
  * It has its own event cap; the outer cast's scope is restored afterwards. A repeat coming due
  * passes `repeated` (it can't schedule again, design §6.4 limit 5) and its flavour; a Wick
- * coming due passes `woken` (it has waited).
+ * coming due passes `woken` (it has waited). `context` is what the first cast sealed (P9): the
+ * run starts with it instead of bare.
  */
 export function runDetached(
   ctx: Ctx,
@@ -47,8 +61,15 @@ export function runDetached(
   caster: UnitId,
   origin: Origin,
   heading: Dir | null,
-  extra: { repeated?: boolean; woken?: boolean; solvent?: SolventId | null; trace?: boolean } = {},
+  extra: {
+    repeated?: boolean;
+    woken?: boolean;
+    solvent?: SolventId | null;
+    trace?: boolean;
+    context?: SealedContext;
+  } = {},
 ): void {
+  const sealed = extra.context;
   const unit = findUnit(ctx.s, caster);
   const flow: Flow = {
     caster,
@@ -58,9 +79,11 @@ export function runDetached(
     lay: false,
     gifted: false,
     solvent: extra.solvent ?? null,
-    habit: unit?.kind === 'member' ? unit.lean.habit : null,
+    habit: sealed ? sealed.habit : unit?.kind === 'member' ? unit.lean.habit : null,
     depth: 0,
-    auras: [],
+    auras: sealed ? [...sealed.auras] : [],
+    ...(sealed?.giftedAuras ? { giftedAuras: [...sealed.giftedAuras] } : {}),
+    ...(sealed?.weaker ? { weaker: sealed.weaker } : {}),
     ...(extra.repeated ? { repeated: true } : {}),
     ...(extra.woken ? { woken: true } : {}),
   };
@@ -141,7 +164,9 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null): void {
   const target: Target = opener
     ? { kind: 'unit', unit: opener.id }
     : { kind: 'tile', at: { ...at } };
-  runDetached(ctx, jar.rest, target, jar.owner, jar.origin, jar.heading);
+  runDetached(ctx, jar.rest, target, jar.owner, jar.origin, jar.heading, {
+    ...(jar.context ? { context: jar.context } : {}),
+  });
 }
 
 /** Dusk: every dusk-jar opens, in reading order. Jars sealed while this runs wait for the next dusk. */

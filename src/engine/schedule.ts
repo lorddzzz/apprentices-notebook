@@ -23,7 +23,9 @@ export function schedule(ctx: Ctx, s: Scheduled): void {
 function stepOf(entry: Scheduled): Step | null {
   if (typeof entry.step !== 'string') return entry.step;
   const role = entry.step in KIND_HANDLERS ? 'kind' : 'action';
-  return { role, rune: entry.step, at: { x: 0, y: 0 }, auras: [], next: null };
+  // The auras that touched the first cast's step touch it again (P9).
+  const auras = [...(entry.context?.auras ?? [])];
+  return { role, rune: entry.step, at: { x: 0, y: 0 }, auras, next: null };
 }
 
 function run(ctx: Ctx, e: Scheduled): void {
@@ -47,6 +49,7 @@ function run(ctx: Ctx, e: Scheduled): void {
     repeated: again,
     woken: e.kind === 'wick',
     solvent: e.solvent ?? null,
+    ...(e.context ? { context: e.context } : {}),
   });
 }
 

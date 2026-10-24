@@ -1,5 +1,6 @@
 import type { SealRuneId, TriggerRuneId } from '$data';
 import { type Coord, DIRS, type Dir, neighbors4, step, turnLeft, turnRight } from '../grid';
+import { sealedContext } from '../jars';
 import { inBoard } from '../queries';
 import { targetOn, whereIs } from '../targets';
 import type { BattleState, Flow, Jar, Snapshot, Target, Tile, Unit } from '../types';
@@ -185,5 +186,6 @@ export function jarFor(seal: SealRuneId, rest: Jar['rest'], t: Target, flow: Flo
     rest,
     heading: flow.headings.get(targetKey(t)) ?? null,
     origin: flow.origin,
+    context: sealedContext(flow),
   };
 }

@@ -17,6 +17,7 @@ import {
 import { reachOf, unitsNear } from './bursts';
 import { type Ctx, emit, withLine } from './ctx';
 import { type Coord, type Dir, opposite, step } from './grid';
+import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
 import { attachBound, liftMark } from './marks';
 import { brassNet, isBrass } from './networks';
@@ -328,6 +329,7 @@ function repeat(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
       origin: flow.origin,
       kind: 'repeat',
       solvent: flow.solvent,
+      context: sealedContext(flow),
     });
   if (unitAt(ctx.s, at)) wait();
   else withLine(ctx, 'repeat:empty', wait);
@@ -337,10 +339,11 @@ function repeat(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
 /**
  * Margin's echo (an Aura): an Action on a path touching a Margin happens again next turn on the
  * same tile, exactly as a Repeat does. `resolve.ts` calls this after each Action on a target
- * that stood at `at`. A repeat coming due, and a Repeat itself, are not echoed (limit 5).
+ * that stood at `at`. A repeat coming due, and a Repeat itself, are not echoed (limit 5); nor is a
+ * Wick waking with its Margin restored (P9): it was echoed when it was cast.
  */
 export function marginEcho(ctx: Ctx, rune: RuneRef, t: Target, at: Coord, flow: Flow): void {
-  if (flow.repeated || flow.auras.length === 0) return;
+  if (flow.repeated || flow.woken || flow.auras.length === 0) return;
   const lib = ctx.s.inventions;
   const touching = flow.auras.some((a: AuraRef) => defOf(a, lib)?.method === 'margin');
   if (!touching || isRepeat(rune, lib)) return;
@@ -354,6 +357,7 @@ export function marginEcho(ctx: Ctx, rune: RuneRef, t: Target, at: Coord, flow: 
       origin: flow.origin,
       kind: 'margin',
       solvent: flow.solvent,
+      context: sealedContext(flow),
     });
   if (unitAt(ctx.s, at)) wait();
   else withLine(ctx, 'margin:empty', wait);
@@ -430,7 +434,9 @@ export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): 
   }
   const own = def.solvent;
   const rule = own ? SOLVENT_RULES[own] : undefined;
-  const inner: Flow = { ...flow, depth: flow.depth + 1, solvent: own ?? flow.solvent };
+  // `woken` is spent by the Wick that waited: a Wick inside it waits its own round (P9).
+  const { woken: _woken, ...awake } = flow;
+  const inner: Flow = { ...awake, depth: flow.depth + 1, solvent: own ?? flow.solvent };
   if (own && rule?.delay && !flow.woken) {
     withLine(ctx, `${own}:unit`, () =>
       schedule(ctx, {
@@ -442,6 +448,7 @@ export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): 
         origin: flow.origin,
         kind: 'wick',
         solvent: own,
+        context: sealedContext(flow),
       }),
     );
     return;
