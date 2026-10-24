@@ -3,7 +3,7 @@
   import { game } from '../../app/instance';
   import { go, router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
-  import { planThreshold } from '../../app/threshold';
+  import { planThreshold, thresholdRoom } from '../../app/threshold';
   import { threshold } from '../../app/threshold.svelte';
   import { placeInText } from '../../app/tripviews';
   import BattleView from '../components/battle/BattleView.svelte';
@@ -14,7 +14,7 @@
   const session = $derived(threshold.session);
   const burnt = $derived(threshold.solved && threshold.district !== null);
   const gate = $derived(threshold.district ? DISTRICTS[threshold.district] : null);
-  const room = $derived(gate && gate.gate.kind === 'threshold' ? gate.gate.room : null);
+  const room = $derived(threshold.district ? (thresholdRoom(threshold.district) ?? null) : null);
 
   $effect(() => {
     threshold.load(d);
@@ -51,7 +51,7 @@
               Retry
             </button>
           </div>
-          <p class="goal" data-testid="threshold-goal"><b>Drop the rat in the canal.</b> {room.note}</p>
+          <p class="goal" data-testid="threshold-goal"><b>{room.goalText}</b> {room.note}</p>
         </header>
       {/snippet}
       <BattleView

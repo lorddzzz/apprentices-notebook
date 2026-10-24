@@ -99,11 +99,14 @@ export interface KitRoomDef extends EncounterDef {
   bonus?: BonusObjective;
   lore?: PaperId;
 }
-/** P15 (BL-94): a threshold room as data; start points are HC's `P` tokens in `board`. */
+/**
+ * P15 (BL-94): a threshold room as data; start points are HC's `P` tokens in `board`. The goal is
+ * the threshold language (K-22): the engine checks a threshold battle against `Goal` alone.
+ */
 export interface ThresholdSpec {
   name: string;
   board: string;
-  goal: KitGoal;
+  goal: Goal;
   note: string;
   /** The banner line now hard-coded in `Threshold.svelte`. */
   goalText: string;
@@ -191,6 +194,8 @@ export interface DistrictData {
   bench?: readonly BenchEntry[];
   /** Loot tables this file owns (P2). */
   tables?: readonly KitLootTableId[];
+  /** P15: the threshold room (copy, start points, goal, solved art). The gate's kind stays legacy until DK-17. */
+  threshold?: ThresholdSpec;
 }
 /** Wave 0: the kit fields only, all optional, layered over the legacy `DISTRICTS` entry. */
 export type DistrictKitData = { id: DistrictId } & Partial<Omit<DistrictData, 'id'>>;

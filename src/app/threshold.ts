@@ -1,4 +1,5 @@
-import { DISTRICT_IDS, DISTRICTS, type DistrictId, type MemberId, type ThresholdDef } from '$data';
+import { DISTRICT_IDS, DISTRICTS, type DistrictId, type MemberId } from '$data';
+import { DISTRICT_KIT, type ThresholdSpec } from '$data/districts/index';
 import {
   type ActionResult,
   type BattleState,
@@ -15,12 +16,17 @@ import {
 export const THRESHOLD_SEED = 1;
 
 export type ThresholdPlan =
-  | { ok: true; district: DistrictId; name: string; room: ThresholdDef; line: string }
+  | { ok: true; district: DistrictId; name: string; room: ThresholdSpec; line: string }
   | { ok: false; why: string };
 
 /** Which district the URL names, if it is one. */
 export function districtParam(d: string | null): DistrictId | null {
   return DISTRICT_IDS.find((id) => id === d) ?? null;
+}
+
+/** A district's threshold room as kit data (P15: copy, start points, goal, solved art), if it has one. */
+export function thresholdRoom(d: DistrictId): ThresholdSpec | undefined {
+  return DISTRICT_KIT[d]?.threshold;
 }
 
 /** Whether `d` has a threshold room to try right now: heard, with a threshold gate, not open. */
@@ -31,15 +37,20 @@ export function planThreshold(p: Profile, d: string | null): ThresholdPlan {
   const state = districtState(p, id);
   if (state === 'unheard') return { ok: false, why: 'You have not heard of this place yet.' };
   if (def.gate.kind !== 'threshold') return { ok: false, why: `${def.name} has no barred way.` };
+  const room = thresholdRoom(id);
+  if (room === undefined) return { ok: false, why: `${def.name} has no barred way.` };
   if (tripParty(p).length === 0) {
     return { ok: false, why: 'No one is slotted. Slot an apprentice in the study first.' };
   }
   if (state === 'open') return { ok: false, why: `${def.name} is already open.` };
-  return { ok: true, district: id, name: def.name, room: def.gate.room, line: def.line };
+  return { ok: true, district: id, name: def.name, room, line: def.line };
 }
 
 /** The room's opening state: the current lattices, full HP and full charges. */
-export function thresholdStart(p: Profile, room: ThresholdDef): ActionResult {
+export function thresholdStart(
+  p: Profile,
+  room: Pick<ThresholdSpec, 'name' | 'board' | 'goal'>,
+): ActionResult {
   const lineup = tripParty(p);
   const party: Partial<Record<MemberId, PartyInit>> = {};
   for (const m of lineup) {

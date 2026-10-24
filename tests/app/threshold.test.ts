@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { DISTRICTS } from '$data';
+import { DISTRICT_KIT } from '$data/districts/index';
 import {
   applyAction,
   boardOf,
@@ -14,7 +15,12 @@ import {
 } from '$engine';
 import { GameStore } from '../../src/app/game.svelte';
 import { memoryBackend } from '../../src/app/save';
-import { planThreshold, thresholdOutcome, thresholdStart } from '../../src/app/threshold';
+import {
+  planThreshold,
+  thresholdOutcome,
+  thresholdRoom,
+  thresholdStart,
+} from '../../src/app/threshold';
 import { ThresholdStore } from '../../src/app/threshold.svelte';
 
 const OIL_D = ['.     .   . . .', 'Bolt> Oil . . .', 'x     .   . . x'].join('\n');
@@ -48,6 +54,19 @@ describe('threshold screen logic', () => {
     expect(planThreshold(p, 'nowhere').ok).toBe(false);
     const open: Profile = { ...p, city: { ...p.city, open: ['seam', 'canals'] } };
     expect(planThreshold(open, 'canals').ok).toBe(false);
+  });
+
+  test('the lock room is the canals kit data: the gate, the plan and the banner read one source', () => {
+    const kit = DISTRICT_KIT.canals?.threshold;
+    if (!kit) throw new Error('the canals kit has a threshold');
+    expect(gate.room).toBe(kit);
+    const plan = planThreshold(heardCanals(), 'canals');
+    if (!plan.ok) throw new Error('the lock is plannable');
+    expect(plan.room).toBe(kit);
+    expect(kit.goalText).toBe('Drop the rat in the canal.');
+    expect(kit.solvedArt).toBe('canal-gate');
+    expect(kit.board).toContain('P P P r wv');
+    expect(thresholdRoom('seam')).toBeUndefined();
   });
 
   test('the start is the lock board with the notebook lattices, and Retry gives the same start', () => {
