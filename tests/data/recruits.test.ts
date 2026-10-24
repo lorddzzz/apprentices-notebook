@@ -17,6 +17,7 @@ import {
 } from '$data';
 import { DISTRICT_TOKENS } from '$data/districts/index';
 import { compileLattice, inkUsed, parseLattice, validateLattice } from '$engine';
+import { preconditionsOf } from '$engine/recruits';
 
 const IDS = Object.keys(RECRUITS) as (keyof typeof RECRUITS)[];
 
@@ -130,8 +131,12 @@ test('preconditions (typed plus derived from the page) name real runes; only the
   for (const id of IDS) {
     const r: RecruitDef<string> = RECRUITS[id];
     const derived = pageRunes(id).filter((x) => !START_KNOWN.includes(x));
-    // preconditionsOf (RC-2) = runes.all + derived; a typed rune the page also uses is not double-counted.
-    for (const x of [...r.runes.all, ...(r.runes.any ?? []), ...derived]) {
+    const pre = preconditionsOf(id);
+    // runes.all plus the derived page runes, each once; the typed `any` passes through.
+    expect(pre.runes.all, id).toEqual([...new Set([...r.runes.all, ...derived])]);
+    expect(pre.runes.any, id).toEqual(r.runes.any);
+    for (const x of [...derived, ...r.runes.all]) expect(pre.runes.all, `${id} ${x}`).toContain(x);
+    for (const x of [...pre.runes.all, ...(pre.runes.any ?? [])]) {
       expect(RUNES[x], `${id} ${x}`).toBeDefined();
     }
   }

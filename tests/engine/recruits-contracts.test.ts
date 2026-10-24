@@ -19,7 +19,7 @@ describe('recruitment contracts (RC-W0)', () => {
     expect(kit.kind).toBe('recruit');
   });
 
-  it('stubs throw until RC-2', () => {
-    expect(() => isReady({} as never, 'stoker')).toThrow(/RC-W0/);
+  it('refuses readiness for someone who is not a recruit (RC-2)', () => {
+    expect(() => isReady({} as never, 'stoker')).toThrow(/not a recruit/);
   });
 });

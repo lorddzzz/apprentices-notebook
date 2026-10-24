@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: AH-4, DK-6, DK-7, RC-2 (spawned 07:37).
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: AH-4, DK-6, DK-7 (spawned 07:37; checkpoint-and-report nudged 07:46, Hold by projection).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -53,7 +53,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | AH-4 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | fuseOnStep, steamproof |
 | DK-6 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | out of the room |
 | DK-7 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | offer-kind registry + DK-R1 |
-| RC-2 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | precondition engine |
+| RC-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a606f01c4106771f9 @ d62cab5 | shared | `preconditionsOf(id)` (beats + `runes.all` = typed runes then starter-page runes outside START_KNOWN; `any` passes through), `isReady(p, id, {trip?, atLandmark?})` (owned = `p.known` + rune pages in trip loot), `waitingFor(p, trip?)` (registry order; not in household or loot; heard district or door arrival with beats held), `provenInvention(p)` (≥ `TUNING.provenCasts` proof masks of one apprentice). Loot read through a structural `{kind, apprentice?}` view until DK-7's recruit kind. RC-3/RC-6 stubs still throw |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -89,6 +89,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:04 | 2 | 4h55 | 54 | Normal | new session; spawn DK-4 (finish), AH-3, RV-4, HC-7 |
 | 07:26 | 34 | 4h33 | 59 | Normal (~1.5%/min) | merge RV-4 |
 | 07:35 | 36 | 4h25 | 59 | Normal | merge AH-3, HC-7, DK-4 (pushed); spawn AH-4, DK-6, DK-7, RC-2 |
+| 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
@@ -122,6 +123,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - HC-7: tap opens a page, separate "i" badge for the detail (no double-tap rule); Bench tab always visible; in a doorway the sheets stay readable with slot buttons disabled; `selectMember`/import/reset fall back via `openMemberFor`; bookmark tint uses `--hue-*`; "N of the household go" shows only when the party < min(3, household). Accepted.
 
 - DK-4: kind/area landings don't call `hitPiece` (only projectile flights; no double hit); a Bolt hitting a unit on a piece gives the piece `onStruck('damage')`, not `onHit`; solid pieces block spreading states and placement like a plate; crush into a piece logs `into:'plate'` with no line and no wear; a crushed unit on a piece strikes it twice (`damage` then `push`); a Spark that only strikes a piece logs no miss; Shove at a piece only when it has `onStruck` (uses the action, no shove event); the same token/kind/id listed twice counts as one claim. Accepted.
+
+- RC-2: `isReady` checks preconditions only (RC-4/RC-6 check household/loot); landmark beat holds only with `atLandmark` and on a trip in her own district; `joined` beat counts the household only; non-recruit ids throw; proven = mask cells whose `rune` is the invention id, counted per apprentice (narrowest P4). Accepted.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.
