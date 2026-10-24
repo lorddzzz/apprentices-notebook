@@ -93,6 +93,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:35 | 36 | 4h25 | 59 | Normal | merge AH-3, HC-7, DK-4 (pushed); spawn AH-4, DK-6, DK-7, RC-2 |
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
+| 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
