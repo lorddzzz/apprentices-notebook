@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { MEMBERS, SCENARIOS } from '$data';
+  import { MEMBERS } from '$data';
   import { compileLattice, openAll } from '$engine';
   import { IDLE } from '../../app/battleInput';
   import { game, lab } from '../../app/instance';
-  import { labLocation, PALETTE, variantGroups } from '../../app/lab';
+  import { LAB_SCENARIOS, labLocation, PALETTE, variantGroups } from '../../app/lab';
   import { overlayFor } from '../../app/overlay';
   import { go, router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
@@ -16,7 +16,9 @@
   import CopySheet from '../components/lab/CopySheet.svelte';
   import LabBar from '../components/lab/LabBar.svelte';
   import LabInvention from '../components/lab/LabInvention.svelte';
+  import LabLineup from '../components/lab/LabLineup.svelte';
   import LabVariants from '../components/lab/LabVariants.svelte';
+  import MemberPicker from '../components/lab/MemberPicker.svelte';
   import Palette from '../components/lab/Palette.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
 
@@ -24,6 +26,7 @@
   let menuOpen = $state(false);
   let inventOpen = $state(false);
   let variantsOpen = $state(false);
+  let lineupOpen = $state(false);
   const variantList = variantGroups();
   const inventions = $derived(lab.session?.state.inventions ?? {});
 
@@ -56,6 +59,14 @@
   const slots = $derived(
     shelfSlots(null, lab.lattices[lab.member], null, {}, inventions, lab.member),
   );
+  // Start points show as reach tints in Board mode.
+  const startTints = $derived(
+    lab.starts.map((at) => ({ kind: 'reach' as const, at: { x: at.x, y: at.y } })),
+  );
+  // The bookmarks hold the lineup and the open page's owner; the picker below reaches everyone.
+  const bookmarks = $derived(
+    lab.lineup.includes(lab.member) ? lab.lineup : [...lab.lineup, lab.member],
+  );
   const lattice = $derived(lab.lattices[lab.member]);
   const compiled = $derived(compileLattice(lattice, {}, inventions, MEMBERS[lab.member].lean));
 
@@ -73,7 +84,7 @@
     {@const scenario = lab.scenario}
     {#snippet bar()}
       <LabBar
-        scenarios={SCENARIOS}
+        scenarios={LAB_SCENARIOS}
         current={scenario}
         round={session.state.round}
         mode={lab.mode}
@@ -92,13 +103,16 @@
             <div class="board-wrap">
               <BattleBoard
                 view={session.view}
-                overlay={overlayFor(session.state, IDLE)}
+                overlay={{ ...overlayFor(session.state, IDLE), highlights: startTints }}
                 ontap={(at) => lab.paint(at)}
               />
             </div>
             <div class="paint-line">
               <p>
                 Painting <b>{paintName}</b>. Tap a tile to place or remove it.
+                {#if lab.palette === 'P' || lab.starts.length > 0}
+                  <span data-testid="start-count">{lab.starts.length} start {lab.starts.length === 1 ? 'point' : 'points'}.</span>
+                {/if}
               </p>
               <button
                 type="button"
@@ -112,6 +126,7 @@
             </div>
             <Palette selected={lab.palette} onselect={(item) => (lab.palette = item)} />
           {:else}
+            <MemberPicker member={lab.member} lineup={lab.lineup} onpick={(m) => (lab.member = m)} />
             <div class="desk">
               <LatticeEditor
                 sessionKey={lab.latticeSessionKey()}
@@ -123,6 +138,7 @@
                 tool={lab.tool}
                 ontool={(t) => lab.setTool(t)}
                 onsocket={(at, longPress) => lab.editLattice(at, longPress)}
+                members={bookmarks}
                 member={lab.member}
                 onmember={(m) => (lab.member = m)}
               />
@@ -135,8 +151,9 @@
     <Sheet open={menuOpen} title={scenario.title} onclose={() => (menuOpen = false)}>
       <p class="note">{scenario.note}</p>
       <p class="hint">
-        Lab battles never spend charges, and the lattices have unlimited ink and runes. Members
-        without a scenario lattice use the one in your notebook; nothing here changes your notebook.
+        Lab battles never spend charges, and the lattices have unlimited ink and runes. Anyone in
+        the registry can stand in: a page from the scenario, else the one in your notebook, else
+        their starter page. Nothing here changes your notebook.
       </p>
       <div class="menu" data-testid="lab-sheet">
         <Button variant="quiet" label="Play demo" onclick={() => run(() => lab.playDemo())} testid="play-demo" />
@@ -151,6 +168,12 @@
         <Button variant="quiet" label="Copy board" onclick={() => run(() => void lab.copy('board'))} testid="copy-board" />
         <Button variant="quiet" label="Copy lattices" onclick={() => run(() => void lab.copy('lattices'))} testid="copy-lattices" />
         <Button variant="quiet" label="Copy as scenario" onclick={() => run(() => void lab.copy('scenario'))} testid="copy-scenario" />
+        <Button
+          variant="quiet"
+          label="Lineup ({lab.lineup.length})"
+          onclick={() => run(() => (lineupOpen = true))}
+          testid="lab-lineup-open"
+        />
         <Button variant="quiet" label="Invent for this Lab" onclick={() => run(() => (inventOpen = true))} testid="invent-lab" />
         <Button
           variant="quiet"
@@ -177,6 +200,16 @@
       on={lab.variantsOn}
       ontoggle={(id, value) => lab.toggleVariant(id, value)}
       onclose={() => (variantsOpen = false)}
+    />
+    <LabLineup
+      open={lineupOpen}
+      lineup={lab.lineup}
+      starts={lab.starts.length}
+      canField={lab.canField}
+      ontoggle={(id) => lab.toggleLineupMember(id)}
+      onfield={() => lab.field()}
+      onredraw={() => lab.redraw()}
+      onclose={() => (lineupOpen = false)}
     />
     <LabInvention open={inventOpen} {inventions} onadd={(def) => lab.addInvention(def)} onclose={() => (inventOpen = false)} />
     <CopySheet out={lab.copyOut} onclose={() => lab.closeCopy()} />

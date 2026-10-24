@@ -22,7 +22,7 @@
   }
 </script>
 
-<div class="party" data-testid="party">
+<div class="party" class:three={members.length >= 3} data-testid="party">
   {#each members as m (m.id)}
     {@const danger = threatened.includes(m.id)}
     <button
@@ -51,8 +51,8 @@
         {#if m.mark}<span class="inked" title={m.mark.deep ? 'Deeply marked' : 'Marked'}>●</span>{/if}
         {#if m.collar !== false}<span class="collar" title="Collared in brass">○</span>{/if}
         <span class="ticks">
-          <span class:used={m.moved}>move</span>
-          <span class:used={m.acted}>act</span>
+          <span class:used={m.moved}><span class="full">move</span><span class="short" title="move">m</span></span>
+          <span class:used={m.acted}><span class="full">act</span><span class="short" title="act">a</span></span>
         </span>
       </span>
     </button>
@@ -140,7 +140,7 @@
     margin-left: auto;
     font-family: var(--mono);
   }
-  .ticks span {
+  .ticks > span {
     padding: 0 3px;
     border-radius: 3px;
     background: var(--parchment);
@@ -149,5 +149,32 @@
     text-decoration: line-through;
     opacity: 0.45;
     background: none;
+  }
+
+  /* Three apprentices share one row (HC-8): a narrower chip keeps the board's cells above 44px. */
+  .party.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .three .chip-btn {
+    padding: 4px 4px 4px 6px;
+  }
+  .three .name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+  }
+  .three .aff,
+  .three .full {
+    display: none;
+  }
+  .party:not(.three) .short {
+    display: none;
+  }
+  .three .ticks {
+    gap: 2px;
+    font-size: 10px;
   }
 </style>

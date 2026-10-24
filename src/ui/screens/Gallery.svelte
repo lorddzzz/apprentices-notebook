@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
-    MEMBER_IDS,
+    APPRENTICE_IDS,
+    APPRENTICES,
     MEMBERS,
     METHOD_IDS,
     METHODS,
@@ -18,9 +19,8 @@
     type Dir,
     type Lattice,
     parseBoard,
-    parseLattice,
-    toGrowingLattice,
   } from '$engine';
+  import { fallbackLattices } from '../../app/lab';
   import { EMPTY_OVERLAY } from '../../app/overlay';
   import { buildSteps } from '../../app/playback';
   import { Playback } from '../../app/playback.svelte';
@@ -32,6 +32,7 @@
   import BattleBoard from '../components/board/BattleBoard.svelte';
   import { boardViewBox } from '../components/board/geometry';
   import { cellLabel } from '../components/board/label';
+  import ApprenticeToken from '../components/common/ApprenticeToken.svelte';
   import BackLink from '../components/common/BackLink.svelte';
   import Button from '../components/common/Button.svelte';
   import Pips from '../components/common/Pips.svelte';
@@ -44,6 +45,9 @@
     FX_DEMOS,
     type FxDemo,
     GLYPH_SAMPLES,
+    ROOM_SAMPLES,
+    roomOverlay,
+    roomView,
     SHOWCASE_OVERLAY,
     showcaseView,
   } from './galleryFixtures';
@@ -53,7 +57,7 @@
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'fx', 'lattice'] as const;
+  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'lattice'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -63,15 +67,18 @@
     return `${w} / ${h}`;
   };
 
-  // lattice part: fully interactive, per-member lattices over the first evening's knowledge
-  // The gallery shows the founding pair only (MEMBER_IDS), so the recruits are cast away.
-  const startLattices = (): Record<MemberId, Lattice> =>
-    ({
-    draughtsman: toGrowingLattice(parseLattice(MEMBERS.draughtsman.startLattice)),
-    stoker: toGrowingLattice(parseLattice(MEMBERS.stoker.startLattice)),
-  }) as Record<MemberId, Lattice>;
-  let lattices = $state.raw<Record<MemberId, Lattice>>(startLattices());
-  let member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
+  // rooms part: the two ends of the room format, each with its party on a seeded draw of start points
+  const rooms = ROOM_SAMPLES.map((r) => ({
+    ...r,
+    view: roomView(r.layout, r.lineup),
+    overlay: roomOverlay(r.layout),
+  }));
+
+  // lattice part: fully interactive, per-member lattices over the first evening's knowledge.
+  // Three bookmarks (the pair and the first recruit) show the crowded tab row.
+  const bookmarks = APPRENTICE_IDS.slice(0, 3);
+  let lattices = $state.raw<Record<MemberId, Lattice>>(fallbackLattices());
+  let member = $state<MemberId>(APPRENTICE_IDS[0] ?? 'draughtsman');
   let tool = $state.raw<ShelfTool>(NO_TOOL);
 
   const lattice = $derived(lattices[member]);
@@ -243,6 +250,23 @@
         ontap={(at) => (tapped = cellLabel(showcase, at))}
       />
     </div>
+  {:else if part === 'rooms'}
+    <h2>Apprentices ({APPRENTICE_IDS.length})</h2>
+    <ul class="runes" data-testid="apprentices">
+      {#each APPRENTICE_IDS as id (id)}
+        <li>
+          <ApprenticeToken def={APPRENTICES[id]} size={56} label />
+          <span class="name">{APPRENTICES[id].name}</span>
+          <span class="family">{APPRENTICES[id].token} · {APPRENTICES[id].look.shape}</span>
+        </li>
+      {/each}
+    </ul>
+    {#each rooms as r (r.id)}
+      <h2>{r.title}</h2>
+      <div class="boardbox" style:aspect-ratio={aspect(r.view)} data-testid={r.id}>
+        <BattleBoard view={r.view} overlay={r.overlay} ontap={() => {}} />
+      </div>
+    {/each}
   {:else if part === 'fx'}
     <div class="row">
       {#each FX_DEMOS as d (d.id)}
@@ -279,6 +303,7 @@
       {tool}
       ontool={(t) => (tool = t)}
       onsocket={editAt}
+      members={bookmarks}
       {member}
       onmember={(m) => {
         member = m;
@@ -325,13 +350,14 @@
   }
   nav {
     display: flex;
-    gap: var(--space-2);
+    gap: var(--space-1);
+    overflow-x: auto;
   }
   nav a {
     display: inline-flex;
     align-items: center;
     min-height: var(--tap);
-    padding: 0 var(--space-3);
+    padding: 0 var(--space-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     text-decoration: none;

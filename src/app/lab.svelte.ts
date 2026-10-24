@@ -1,17 +1,22 @@
-import { type InventionDef, MEMBER_IDS, type MemberId, type ScenarioDef } from '$data';
+import {
+  APPRENTICE_IDS,
+  APPRENTICES,
+  type ApprenticeId,
+  type InventionDef,
+  type MemberId,
+  type ScenarioDef,
+} from '$data';
 import {
   type Action,
   type ActionResult,
   type BattleState,
-  boardOf,
+  type Coord,
   createBattle,
   type GameEvent,
   inventionLibrary,
   type Lattice,
   labSetLattice,
-  livingUnits,
   parseLattice,
-  scenarioSpec,
   toGrowingLattice,
 } from '$engine';
 import { BattleSession, type SessionOptions } from './battle.svelte';
@@ -20,16 +25,26 @@ import {
   addLabInvention,
   applyEdits,
   baseOf,
+  boardWithStarts,
+  defaultLineup,
+  exportedMembers,
   fallbackLattices,
+  fieldLineup,
   formatLattices,
   formatScenario,
   type LabBase,
   labFootnotes,
+  labSpec,
+  membersOn,
   type PaletteItem,
+  paintApprentice,
   paletteEdits,
   profileLattices,
+  pruneStarts,
   resolveScenario,
   switchVariant,
+  toggleLineup,
+  toggleStart,
   toScenarioDef,
   whyNoEdit,
 } from './lab';
@@ -48,6 +63,8 @@ interface Snapshot {
   base: LabBase;
   actions: Action[];
   baseLen: number;
+  starts: Coord[];
+  spotSeed: number;
 }
 
 const HISTORY_LIMIT = 60;
@@ -64,11 +81,17 @@ export class LabStore {
   scenario = $state.raw<ScenarioDef | null>(null);
   mode = $state<LabMode>('play');
   /** Lattices mode: which member's page, and the shelf tool in hand. */
-  member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
+  member = $state<MemberId>(APPRENTICE_IDS[0] ?? 'draughtsman');
   tool = $state.raw<ShelfTool>(NO_TOOL);
   /** Board mode: what a tap paints. */
   palette = $state<PaletteItem>('r');
   lattices = $state.raw<Record<MemberId, Lattice>>(fallbackLattices());
+  /** Who a board with start points fields (1–3, any apprentices); set from the slots on first load. */
+  lineup = $state.raw<readonly ApprenticeId[]>([]);
+  /** The board's start points (`P`): painted here or read from a scenario board. */
+  starts = $state.raw<readonly Coord[]>([]);
+  /** The seed the lineup's spots are drawn from; "Redraw" steps it. */
+  spotSeed = $state(1);
   /** Footnote variants switched on for Lab battles (FN-7): ids, one per slot. Not saved. */
   variantsOn = $state.raw<readonly string[]>([]);
   /** Text the clipboard refused, shown for copying by hand. */
@@ -92,22 +115,26 @@ export class LabStore {
     const { def, unknown } = resolveScenario(id);
     this.session?.dispose();
     const mine = profileLattices(this.game.profile);
+    if (this.lineup.length === 0) this.lineup = defaultLineup(this.game.profile);
     const lattices = Object.fromEntries(
-      MEMBER_IDS.map((m) => {
+      APPRENTICE_IDS.map((m) => {
         const own = def.lattices?.[m];
         return [m, own !== undefined ? toGrowingLattice(parseLattice(own)) : mine[m]];
       }),
     ) as Record<MemberId, Lattice>;
     const inventions = { ...inventionLibrary(this.game.profile), ...def.inventions };
-    const init = createBattle(scenarioSpec(def, { lab: true, lattices, inventions }));
+    const fielded = labSpec(def, { lattices, inventions, lineup: this.lineup });
+    const init = createBattle(fielded.spec);
+    this.starts = fielded.starts;
+    this.spotSeed = fielded.spotSeed;
     // The Lab is the workshop: every interaction is named in previews.
-    for (const member of MEMBER_IDS) forgetView(this.latticeSessionKey(member));
+    for (const member of APPRENTICE_IDS) forgetView(this.latticeSessionKey(member));
     this.latticeSession = ++nextLatticeSession;
     // The intro (enemies declaring their intents) plays only for a demo (S18).
     this.session = this.open(init, opts.demo === true);
     this.scenario = def;
     this.lattices = lattices;
-    this.base = baseOf(init.state, lattices);
+    this.base = baseOf(init.state, lattices, this.starts);
     this.baseLen = init.events.length;
     this.actions = [];
     this.history = [];
@@ -183,6 +210,8 @@ export class LabStore {
       base: this.base,
       actions: [...this.actions],
       baseLen: this.baseLen,
+      starts: [...this.starts],
+      spotSeed: this.spotSeed,
     });
   }
 
@@ -194,6 +223,8 @@ export class LabStore {
       base: this.base,
       actions: [...this.actions],
       baseLen: this.baseLen,
+      starts: [...this.starts],
+      spotSeed: this.spotSeed,
     });
     this.actions.push(action);
   }
@@ -213,6 +244,8 @@ export class LabStore {
     this.base = snap.base;
     this.actions = [...snap.actions];
     this.baseLen = snap.baseLen;
+    this.starts = snap.starts;
+    this.spotSeed = snap.spotSeed;
     this.session.replace(snap.state, snap.log);
   }
 
@@ -223,7 +256,7 @@ export class LabStore {
     const session = this.session;
     if (!session) return;
     this.lattices = lattices;
-    this.base = baseOf(state, lattices);
+    this.base = baseOf(state, lattices, this.starts);
     this.baseLen = session.log.length;
     this.actions = [];
     session.replace(state, session.log);
@@ -233,29 +266,96 @@ export class LabStore {
   paint(at: { x: number; y: number }): void {
     const session = this.session;
     if (!session) return;
+    if (this.palette === 'P') {
+      this.paintStart(at);
+      return;
+    }
     const before = session.state;
-    const edits = paletteEdits(before, at, this.palette);
-    if (edits.length === 0) {
+    let next: BattleState | null;
+    try {
+      const who = APPRENTICE_IDS.find((id) => APPRENTICES[id].token === this.palette);
+      if (who) {
+        // Anyone in the registry, with their page from the Lab's lattices.
+        next = paintApprentice(before, at, who, this.lattices);
+      } else {
+        const edits = paletteEdits(before, at, this.palette);
+        next = edits.length > 0 ? applyEdits(before, edits) : null;
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : String(err), 'warn');
+      return;
+    }
+    if (!next) {
       toast(whyNoEdit(this.palette));
+      return;
+    }
+    if (next.phase !== 'player') next = { ...next, phase: 'player' };
+    this.checkpoint();
+    // A tile that became a plate, gate or grate is no start point any more.
+    this.starts = pruneStarts(next, this.starts);
+    this.rebase(next, this.lattices);
+  }
+
+  /** Board mode with the start-point swatch: a tap marks or clears a start point (P). */
+  private paintStart(at: Coord): void {
+    const session = this.session;
+    if (!session) return;
+    const r = toggleStart(session.state, this.starts, at);
+    if (r.why) {
+      toast(r.why);
+      return;
+    }
+    this.checkpoint();
+    this.starts = r.starts;
+    this.rebase(session.state, this.lattices);
+  }
+
+  // ── Lineup (P16) ──
+
+  /** Adds or drops one apprentice from the lineup; with enough start points they are refielded. */
+  toggleLineupMember(id: ApprenticeId): void {
+    const r = toggleLineup(this.lineup, id);
+    if (r.why) {
+      toast(r.why);
+      return;
+    }
+    this.lineup = r.lineup;
+    if (this.starts.length >= this.lineup.length) this.field();
+  }
+
+  /** Whether the lineup can stand on the board's start points. */
+  get canField(): boolean {
+    return this.starts.length >= this.lineup.length && this.lineup.length > 0;
+  }
+
+  /** Stands the lineup on a seeded draw of the start points; everyone else on the board is cleared. */
+  field(spotSeed = this.spotSeed): void {
+    const session = this.session;
+    if (!session) return;
+    if (!this.canField) {
+      toast(`Paint at least ${this.lineup.length} start points (P) first`);
       return;
     }
     let next: BattleState;
     try {
-      next = applyEdits(before, edits);
-      // A member painted back onto the board brings their lattice with them.
-      const there = new Set(livingUnits(before).map((u) => u.def));
-      for (const u of livingUnits(next)) {
-        if (u.kind === 'member' && !there.has(u.def)) {
-          next = labSetLattice(next, u.def as MemberId, this.lattices[u.def as MemberId]);
-        }
-      }
+      next = fieldLineup(session.state, this.starts, this.lineup, spotSeed, this.lattices);
     } catch (err) {
       toast(err instanceof Error ? err.message : String(err), 'warn');
       return;
     }
     if (next.phase !== 'player') next = { ...next, phase: 'player' };
     this.checkpoint();
+    this.spotSeed = spotSeed;
     this.rebase(next, this.lattices);
+  }
+
+  /** The same lineup on a fresh draw of the start points. */
+  redraw(): void {
+    if (!this.canField) {
+      this.field();
+      return;
+    }
+    this.field(this.spotSeed + 1);
   }
 
   setTool(tool: ShelfTool): void {
@@ -307,9 +407,12 @@ export class LabStore {
     if (!session || !scenario || !this.base) return null;
     switch (kind) {
       case 'board':
-        return { title: 'Board', text: boardOf(session.state) };
+        return { title: 'Board', text: boardWithStarts(session.state, this.starts) };
       case 'lattices':
-        return { title: 'Lattices', text: formatLattices(this.lattices) };
+        return {
+          title: 'Lattices',
+          text: formatLattices(this.lattices, exportedMembers(membersOn(session.state))),
+        };
       case 'scenario': {
         const base = scenario.id.startsWith('lab-') ? scenario.id : `lab-${scenario.id}`;
         const def = toScenarioDef(base, this.base, this.actions, session.log.slice(this.baseLen));

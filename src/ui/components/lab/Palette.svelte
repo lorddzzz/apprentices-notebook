@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { APPRENTICE_IDS, APPRENTICES } from '$data';
   import { PALETTE, type PaletteItem } from '../../../app/lab';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
 
   interface Props {
     selected: PaletteItem;
@@ -12,11 +14,14 @@
   const shown = $derived(PALETTE.filter((p) => !items || items.includes(p.item)));
 
   const GLYPH: Partial<Record<PaletteItem, string>> = { '.': '⌫' };
+  // Apprentices paint with their own token (letter, hue, shape), whoever the registry holds.
+  const WHO = new Map(APPRENTICE_IDS.map((id) => [APPRENTICES[id].token, APPRENTICES[id]]));
 </script>
 
 <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
 <div class="palette" data-testid="palette" role="group" aria-label="Board palette">
   {#each shown as { item, name } (item)}
+    {@const who = WHO.get(item)}
     <button
       type="button"
       class="swatch t-{item === '.' ? 'clear' : item.charCodeAt(0)}"
@@ -26,7 +31,11 @@
       data-item={item}
       onclick={() => onselect(item)}
     >
-      <span class="g">{GLYPH[item] ?? item}</span>
+      {#if who}
+        <ApprenticeToken def={who} size={34} />
+      {:else}
+        <span class="g">{GLYPH[item] ?? item}</span>
+      {/if}
     </button>
   {/each}
 </div>
@@ -37,9 +46,12 @@
     grid-template-columns: repeat(8, minmax(0, 1fr));
     grid-auto-rows: 44px;
     flex: none;
+    /* Three rows and a half, then scroll: nine apprentices must not squeeze a 7×9 board below 44px cells. */
+    max-height: 154px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    overflow: hidden;
   }
   .swatch {
     display: grid;
@@ -56,21 +68,7 @@
   .g {
     font: 700 20px var(--mono);
   }
-  /* members and enemies */
-  .t-68 .g,
-  .t-83 .g {
-    color: var(--parchment);
-    background: var(--member-draughtsman);
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: grid;
-    place-items: center;
-    font-size: 17px;
-  }
-  .t-83 .g {
-    background: var(--member-stoker);
-  }
+  /* foes */
   .t-114 .g,
   .t-98 .g,
   .t-102 .g,
@@ -106,6 +104,16 @@
   }
   .t-64 .g {
     color: var(--vent);
+  }
+  .t-80 .g {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 2px dashed var(--select);
+    border-radius: 6px;
+    color: var(--ink);
+    font-size: 17px;
   }
   .on {
     outline: 3px solid var(--select);

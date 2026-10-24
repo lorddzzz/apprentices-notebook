@@ -1,4 +1,7 @@
 import {
+  APPRENTICE_IDS,
+  APPRENTICES,
+  type ApprenticeId,
   ENEMIES,
   type EnemyId,
   type FootnoteKey,
@@ -25,15 +28,22 @@ import {
 } from '$data';
 import {
   type Action,
+  type BattleSpec,
   type BattleState,
   type BoardUnit,
   boardOf,
+  byReadingOrder,
   type Coord,
+  cloneData,
+  createBattle,
+  deriveSeed,
   describeLog,
   emptyTile,
   enemies,
+  FOUNDERS,
   type GameEvent,
   type InventionLibrary,
+  inHousehold,
   inventionIssue,
   type KnownSet,
   type Lattice,
@@ -41,16 +51,22 @@ import {
   labSetCell,
   latticeOf,
   livingUnits,
+  type MemberUnit,
   type Profile,
+  parseBoard,
   parseCell,
   parseLattice,
+  sameCoord,
+  scenarioSpec,
   serializeBoard,
   serializeLattice,
+  spellsFor,
   type Tile,
   toGrowingLattice,
+  tripParty,
 } from '$engine';
-import { cloneData } from '$engine/clone';
 import type { FootnoteIds } from '$engine/ctx';
+import { MAX_PARTY, placeParty, START_SALT } from '$engine/rooms';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
 
@@ -81,27 +97,278 @@ export function labLocation(params: URLSearchParams): { scenario: string; demo: 
   };
 }
 
+/**
+ * Rooms at the extremes of the room format (HC P5), with start points: the Lab fields its lineup
+ * on them (P16). Not lessons, so they live here and not in `SCENARIOS`.
+ */
+export const LAB_ROOMS: readonly ScenarioDef[] = [
+  {
+    id: 'room-7x9',
+    title: 'Room 7×9',
+    note: 'The largest room: seven by nine, six start points. The lineup of one to three stands on a seeded draw of them.',
+    board: [
+      '. . . r . . .',
+      '. b . . . r .',
+      '. . . . . . .',
+      '. . o o . . .',
+      '. . . . ~ . .',
+      '. . . . . . .',
+      'P . . . . . P',
+      '. . P . P . .',
+      'P . . . . . P',
+    ].join('\n'),
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'room-5x6',
+    title: 'Room 5×6',
+    note: 'The smallest room: five by six, four start points. One apprentice fits as well as three.',
+    board: ['. . r . .', '. . . . .', '. o . . .', '. . . . .', 'P . P . P', '. P . . .'].join(
+      '\n',
+    ),
+    demo: [],
+    expected: [],
+  },
+];
+
+/** Every scenario the Lab's picker offers: the lessons, then the sized rooms. */
+export const LAB_SCENARIOS: readonly ScenarioDef[] = [...SCENARIOS, ...LAB_ROOMS];
+
 /** The scenario for an id; unknown ids fall back to the sandbox and say so. */
 export function resolveScenario(id: string): { def: ScenarioDef; unknown: string | null } {
-  const def = SCENARIOS.find((s) => s.id === id);
+  const def = LAB_SCENARIOS.find((s) => s.id === id);
   if (def) return { def, unknown: null };
-  const fallback = SCENARIOS.find((s) => s.id === DEFAULT_SCENARIO) ?? SCENARIOS[0];
+  const fallback = LAB_SCENARIOS.find((s) => s.id === DEFAULT_SCENARIO) ?? LAB_SCENARIOS[0];
   if (!fallback) throw new Error('No Lab scenarios');
   return { def: fallback, unknown: id };
 }
 
+const starterLattice = (m: MemberId): Lattice =>
+  toGrowingLattice(parseLattice(APPRENTICES[m].starterPage));
+
 /** Lattices from the start notebook (tests and Gallery fixtures; the app uses the profile's). */
 export function fallbackLattices(): Record<MemberId, Lattice> {
+  return Object.fromEntries(APPRENTICE_IDS.map((m) => [m, starterLattice(m)])) as Record<
+    MemberId,
+    Lattice
+  >;
+}
+
+/**
+ * Lattices for apprentices a scenario leaves out: the page in the player's notebook, or the
+ * starter page for someone who has not joined the household (the Lab fields anyone, P16).
+ */
+export function profileLattices(p: Profile): Record<MemberId, Lattice> {
   return Object.fromEntries(
-    MEMBER_IDS.map((m) => [m, toGrowingLattice(parseLattice(MEMBERS[m].startLattice))]),
+    APPRENTICE_IDS.map((m) => [
+      m,
+      inHousehold(p, m) ? toGrowingLattice(latticeOf(p, m)) : starterLattice(m),
+    ]),
   ) as Record<MemberId, Lattice>;
 }
 
-/** Lattices for members a scenario leaves out: the ones in the player's notebook. */
-export function profileLattices(p: Profile): Record<MemberId, Lattice> {
-  return Object.fromEntries(
-    MEMBER_IDS.map((m) => [m, toGrowingLattice(latticeOf(p, m))]),
-  ) as Record<MemberId, Lattice>;
+// ── Lineup and start points (HC-8, plan P16) ────────────
+
+/** The lineup a Lab opens with: the slotted trip party, else the founding pair. */
+export function defaultLineup(p: Profile): ApprenticeId[] {
+  const party = tripParty(p);
+  return party.length > 0 ? party : [...FOUNDERS];
+}
+
+/** Adds or removes one apprentice from a lineup: 1–3, in the order picked. `why` says a refusal. */
+export function toggleLineup(
+  lineup: readonly ApprenticeId[],
+  id: ApprenticeId,
+): { lineup: ApprenticeId[]; why: string | null } {
+  if (lineup.includes(id)) {
+    if (lineup.length === 1) {
+      return { lineup: [...lineup], why: 'A lineup needs at least one apprentice' };
+    }
+    return { lineup: lineup.filter((x) => x !== id), why: null };
+  }
+  if (lineup.length >= MAX_PARTY) {
+    return { lineup: [...lineup], why: `A lineup holds ${MAX_PARTY} at most` };
+  }
+  return { lineup: [...lineup, id], why: null };
+}
+
+/** The start-point seed for a Lab spots seed (what `createBattle` derives by default). */
+export const startSeedOf = (spotSeed: number): number => deriveSeed(spotSeed, START_SALT);
+
+/** The board's start points, and whether it places apprentices itself (D, S… tokens on it). */
+export function boardStarts(board: string): { starts: Coord[]; fixed: boolean } {
+  const parsed = parseBoard(board);
+  return { starts: parsed.starts, fixed: parsed.units.some((u) => u.kind === 'member') };
+}
+
+/**
+ * The spec for a Lab battle (P16). Every registry apprentice gets a compiled page, so a painted or
+ * lineup recruit can cast; a board with `P` and no apprentice tokens fields `lineup` (as many as
+ * the board has points) with the Lab seed.
+ */
+export function labSpec(
+  def: ScenarioDef,
+  opts: {
+    lattices: Record<MemberId, Lattice>;
+    inventions: InventionLibrary;
+    lineup: readonly ApprenticeId[];
+    spotSeed?: number;
+  },
+): { spec: BattleSpec; starts: Coord[]; spotSeed: number } {
+  const spec = scenarioSpec(def, {
+    lab: true,
+    lattices: opts.lattices,
+    inventions: opts.inventions,
+  });
+  const party = { ...spec.party };
+  for (const id of APPRENTICE_IDS) {
+    if (!party[id]) party[id] = { spells: spellsFor(id, opts.lattices[id], opts.inventions) };
+  }
+  spec.party = party;
+  const spotSeed = opts.spotSeed ?? spec.seed;
+  const { starts, fixed } = boardStarts(def.board);
+  if (starts.length > 0 && !fixed) {
+    spec.lineup = opts.lineup.slice(0, Math.min(MAX_PARTY, starts.length));
+    spec.startSeed = startSeedOf(spotSeed);
+  }
+  return { spec, starts, spotSeed };
+}
+
+const standable = (t: Tile): boolean => !t.terrain.gate && !t.terrain.grate && !isPlateLike(t);
+
+/** Toggles a start point on a tile. A start point never sits under a unit, plate, gate or grate. */
+export function toggleStart(
+  s: BattleState,
+  starts: readonly Coord[],
+  at: Coord,
+): { starts: Coord[]; why: string | null } {
+  if (starts.some((c) => sameCoord(c, at))) {
+    return { starts: starts.filter((c) => !sameCoord(c, at)), why: null };
+  }
+  const refuse = (why: string) => ({ starts: [...starts], why });
+  const tile = s.tiles[at.y * s.width + at.x];
+  if (!tile) return refuse('Off the board');
+  if (livingUnits(s).some((u) => sameCoord(u.pos, at))) {
+    return refuse('A start point cannot sit under a unit');
+  }
+  if (!standable(tile)) return refuse('A start point cannot sit on a plate, gate or grate');
+  return { starts: [...starts, at].sort(byReadingOrder), why: null };
+}
+
+/** Start points whose tile became a plate, gate or grate are dropped (the room format forbids them). */
+export function pruneStarts(s: BattleState, starts: readonly Coord[]): Coord[] {
+  return starts.filter((c) => {
+    const tile = s.tiles[c.y * s.width + c.x];
+    return tile !== undefined && standable(tile);
+  });
+}
+
+/**
+ * The board as text with its start points (`P`), as the room format writes them (a point under a
+ * unit is left out: the notation keeps them apart). Works on the
+ * serialised board, so an apprentice the notation cannot read yet still copies out.
+ */
+export function boardWithStarts(s: BattleState, starts: readonly Coord[]): string {
+  const text = boardOf(s);
+  if (starts.length === 0) return text;
+  const grid = cellTokens(s).map((row) => [...row]);
+  // A start point under a unit is not written: the notation keeps them apart.
+  const standing = livingUnits(s).map((u) => u.pos);
+  for (const c of starts.filter((c) => !standing.some((p) => sameCoord(p, c)))) {
+    const row = grid[c.y];
+    const token = row?.[c.x];
+    if (row && token !== undefined) row[c.x] = token === '.' ? 'P' : `P${token}`;
+  }
+  const widths = (grid[0] ?? []).map((_, x) => Math.max(...grid.map((r) => (r[x] ?? '').length)));
+  return grid
+    .map((r) =>
+      r
+        .map((c, x) => c.padEnd(widths[x] ?? 0))
+        .join(' ')
+        .trimEnd(),
+    )
+    .join('\n');
+}
+
+/**
+ * A fresh member of the registry with their page compiled and full charges, built by the engine's
+ * own spawn on a one-tile room (so any apprentice works, whatever the board notation reads).
+ */
+function newMember(
+  id: ApprenticeId,
+  lattices: Record<MemberId, Lattice>,
+  inventions: InventionLibrary,
+): MemberUnit {
+  const { state } = createBattle({
+    title: 'Lab',
+    board: 'P',
+    seed: 1,
+    party: { [id]: { spells: spellsFor(id, lattices[id], inventions) } },
+    lineup: [id],
+    inventions,
+    lab: true,
+  });
+  const unit = state.units.find((u): u is MemberUnit => u.kind === 'member');
+  if (!unit) throw new Error(`${APPRENTICES[id].name} did not arrive`);
+  return unit;
+}
+
+/**
+ * Fields `lineup` on the start points: everyone on the board stands down, then the lineup takes a
+ * seeded draw of the points (same board, lineup and spots seed: same spots). Each arrives with
+ * their page from `lattices` and full charges. Throws when there are too few points.
+ */
+export function fieldLineup(
+  s: BattleState,
+  starts: readonly Coord[],
+  lineup: readonly ApprenticeId[],
+  spotSeed: number,
+  lattices: Record<MemberId, Lattice>,
+): BattleState {
+  const next = cloneData(s);
+  next.units = next.units.filter((u) => u.kind !== 'member');
+  const placed = placeParty(
+    { width: s.width, height: s.height, tiles: next.tiles, units: [], starts: [...starts] },
+    lineup,
+    startSeedOf(spotSeed),
+  );
+  for (const p of placed.units) {
+    const unit = newMember(p.def as ApprenticeId, lattices, s.inventions);
+    unit.pos = { ...p.at };
+    next.units.push(unit);
+  }
+  return next;
+}
+
+/**
+ * One tap with an apprentice's token. They stand where tapped (a different unit there is
+ * replaced; a plate under them goes); the same apprentice tapped again leaves the board. One
+ * place per apprentice: painting someone already on the board moves them with their charges.
+ * Null when nothing can change (a gate or grate).
+ */
+export function paintApprentice(
+  s: BattleState,
+  at: Coord,
+  id: ApprenticeId,
+  lattices: Record<MemberId, Lattice>,
+): BattleState | null {
+  const tile = s.tiles[at.y * s.width + at.x];
+  if (!tile || tile.terrain.gate || tile.terrain.grate) return null;
+  const next = cloneData(s);
+  const here = next.units.find((u) => u.hp > 0 && sameCoord(u.pos, at));
+  if (here?.kind === 'member' && here.def === id) {
+    next.units = next.units.filter((u) => u !== here);
+    return next;
+  }
+  const mine = next.units.find((u) => u.kind === 'member' && u.def === id);
+  next.units = next.units.filter((u) => u !== here && u !== mine);
+  const unit = mine?.kind === 'member' ? mine : newMember(id, lattices, s.inventions);
+  unit.pos = { ...at };
+  next.units.push(unit);
+  const t = next.tiles[at.y * next.width + at.x];
+  if (t && isPlateLike(t)) t.state = null;
+  return next;
 }
 
 // ── Footnote variants in the Lab (FN-7, plan P6) ────────
@@ -205,8 +472,6 @@ export type PaletteItem =
   | '{bank}'
   | '{kettle}'
   | '{wall}'
-  | 'D'
-  | 'S'
   | 'r'
   | 'b'
   | 'f'
@@ -221,12 +486,17 @@ export type PaletteItem =
   | '='
   | '@'
   | '_'
-  | '.';
+  | '.'
+  | 'P'
+  | ApprenticeTokenItem;
 
-/** Palette order: units, unit modifiers, tile states, terrain, then the eraser. */
+/** An apprentice's board token: one letter, from the registry. */
+type ApprenticeTokenItem = (typeof APPRENTICES)[ApprenticeId]['token'];
+
+/** Palette order: apprentices, the start point, foes, unit modifiers, tile states, terrain, the eraser. */
 export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
-  { item: 'D', name: 'Draughtsman' },
-  { item: 'S', name: 'Stoker' },
+  ...APPRENTICE_IDS.map((id) => ({ item: APPRENTICES[id].token, name: APPRENTICES[id].name })),
+  { item: 'P', name: 'Start point (P)' },
   { item: 'r', name: 'Rat' },
   { item: 'b', name: 'Brass sentry' },
   { item: 'f', name: 'Familiar' },
@@ -263,7 +533,10 @@ export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
   { item: '.', name: 'Clear the tile' },
 ];
 
-const UNIT_CHARS = new Set(['D', 'S', 'r', 'b', 'f', 'd', 'e', 'n', 'm', 'M']);
+const UNIT_CHARS = new Set<string>([
+  ...APPRENTICE_IDS.map((id) => APPRENTICES[id].token),
+  ...['r', 'b', 'f', 'd', 'e', 'n', 'm', 'M'],
+]);
 const STATE_ITEMS = new Set(['o', 'i', '~', '*']);
 const ORIGIN: Coord = { x: 0, y: 0 };
 
@@ -291,6 +564,7 @@ const isPlateLike = (t: Tile): boolean =>
  */
 export function toggleToken(token: string, item: PaletteItem): string {
   if (item === '.') return '.';
+  if (item === 'P') return token; // start points live outside the tile (see toggleStart)
   if (item === 'g') return token === 'g' ? '.' : 'g';
   const c = readCell(token);
   const { tile } = c;
@@ -400,6 +674,8 @@ export interface LabBase {
   lattices: Record<MemberId, Lattice>;
   /** By cell label: units whose hp is not the default for their kind. */
   hp: Record<string, number>;
+  /** Who stands on the board (their pages are exported with the scenario). */
+  members: ApprenticeId[];
   /** By cell label: enemies that telegraph an attack, and where. */
   intents: Record<string, Dir>;
   inventions?: InventionLibrary;
@@ -410,13 +686,32 @@ type Dir = 'up' | 'right' | 'down' | 'left';
 const defaultHp = (u: { kind: 'member' | 'enemy'; def: string }): number =>
   u.kind === 'member' ? MEMBERS[u.def as MemberId].hp : ENEMIES[u.def as EnemyId].hp;
 
-export function baseOf(s: BattleState, lattices: Record<MemberId, Lattice>): LabBase {
+export function baseOf(
+  s: BattleState,
+  lattices: Record<MemberId, Lattice>,
+  starts: readonly Coord[] = [],
+): LabBase {
   const hp: Record<string, number> = {};
   for (const u of livingUnits(s)) if (u.hp !== defaultHp(u)) hp[label(u.pos)] = u.hp;
   const intents: Record<string, Dir> = {};
   for (const e of enemies(s))
     if (e.hp > 0 && e.intent?.kind === 'attack') intents[label(e.pos)] = e.intent.dir;
-  return { board: boardOf(s), lattices, hp, intents, inventions: structuredClone(s.inventions) };
+  const board = starts.length > 0 ? boardWithStarts(s, starts) : boardOf(s);
+  const members = membersOn(s);
+  return { board, lattices, hp, members, intents, inventions: structuredClone(s.inventions) };
+}
+
+/** Who stands on the board now, in unit order. */
+export const membersOn = (s: BattleState): ApprenticeId[] =>
+  livingUnits(s)
+    .filter((u) => u.kind === 'member')
+    .map((u) => u.def as ApprenticeId);
+
+/** Whose pages an export carries: the founding pair, and anyone else standing on the board. */
+export function exportedMembers(onBoard: readonly ApprenticeId[]): ApprenticeId[] {
+  return APPRENTICE_IDS.filter(
+    (id) => (MEMBER_IDS as readonly string[]).includes(id) || onBoard.includes(id),
+  );
 }
 
 /** A scenario that replays `actions` from `base`; `expected` is the log of `events`. */
@@ -427,7 +722,7 @@ export function toScenarioDef(
   events: readonly GameEvent[],
 ): ScenarioDef {
   const lattices = Object.fromEntries(
-    MEMBER_IDS.map((m) => [m, serializeLattice(base.lattices[m])]),
+    exportedMembers(base.members).map((m) => [m, serializeLattice(base.lattices[m])]),
   );
   return {
     id,
@@ -497,6 +792,9 @@ export function formatScenario(def: ScenarioDef): string {
 }
 
 /** "Draughtsman" then its lattice, for each member (the Lab's Copy lattices). */
-export function formatLattices(lattices: Record<MemberId, Lattice>): string {
-  return MEMBER_IDS.map((m) => `${MEMBERS[m].name}\n${serializeLattice(lattices[m])}`).join('\n\n');
+export function formatLattices(
+  lattices: Record<MemberId, Lattice>,
+  ids: readonly MemberId[] = MEMBER_IDS,
+): string {
+  return ids.map((m) => `${MEMBERS[m].name}\n${serializeLattice(lattices[m])}`).join('\n\n');
 }

@@ -1,5 +1,8 @@
-import { type GameEvent, parseBoard, type UnitRef } from '$engine';
-import type { Overlay } from '../../app/overlay';
+import type { ApprenticeId } from '$data';
+import { deriveSeed, type GameEvent, parseBoard, type UnitRef } from '$engine';
+import { placeParty, START_SALT } from '$engine/rooms';
+import { LAB_ROOMS } from '../../app/lab';
+import { EMPTY_OVERLAY, type Overlay } from '../../app/overlay';
 import { type BoardView, viewOfSpec } from '../../app/view';
 
 /** Every tile state, all eight tile compounds, the drop, and every unit type in one 6 × 8 board (A1 top-left). */
@@ -94,6 +97,41 @@ export const SHOWCASE_OVERLAY: Overlay = {
   ],
   ghosts: [{ unit: 'stoker', at: { x: 1, y: 6 }, kind: 'member', def: 'stoker' }],
 };
+
+/** The room sizes at both ends of the format, each with a party the Gallery places on its start points. */
+export const ROOM_SAMPLES: readonly {
+  id: string;
+  title: string;
+  layout: string;
+  lineup: readonly ApprenticeId[];
+}[] = [
+  {
+    id: 'room-7x9',
+    title: 'Room 7×9, three apprentices',
+    layout: LAB_ROOMS[0]?.board ?? '',
+    lineup: ['draughtsman', 'stoker', 'towelBearer'],
+  },
+  {
+    id: 'room-5x6',
+    title: 'Room 5×6, one apprentice',
+    layout: LAB_ROOMS[1]?.board ?? '',
+    lineup: ['runaway'],
+  },
+];
+
+/** A room with its party standing on a seeded draw of the start points (the way a trip places them). */
+export function roomView(layout: string, lineup: readonly ApprenticeId[], seed = 1): BoardView {
+  const board = placeParty(parseBoard(layout), lineup, deriveSeed(seed, START_SALT));
+  return viewOfSpec(board);
+}
+
+/** The room's start points, tinted. */
+export function roomOverlay(layout: string): Overlay {
+  return {
+    ...EMPTY_OVERLAY,
+    highlights: parseBoard(layout).starts.map((at) => ({ kind: 'reach' as const, at })),
+  };
+}
 
 /** Compiled Glyph sockets for the Gallery: one spell, one payload. */
 export const GLYPH_SAMPLES: readonly { name: string; kind: 'spell' | 'payload' }[] = [
