@@ -34,6 +34,7 @@
   import { href } from '../../app/routes';
   import {
     benchUnlocked,
+    bookmarksOf,
     glyphSlots,
     loadoutBlocker,
     NO_TOOL,
@@ -51,6 +52,7 @@
   import FairCopySheet from '../components/study/FairCopySheet.svelte';
   import GlyphRanking from '../components/study/GlyphRanking.svelte';
   import GlyphSheet from '../components/study/GlyphSheet.svelte';
+  import HouseholdShelf from '../components/study/HouseholdShelf.svelte';
   import RevisionEditor from '../components/study/RevisionEditor.svelte';
   import StudyScene from '../components/study/StudyScene.svelte';
 
@@ -63,6 +65,8 @@
   const slots = $derived(profileShelf(profile, game.member));
   const library = $derived(glyphLibrary(profile));
   const copies = $derived(glyphSlots(profile, game.member));
+  // The editor's bookmarks follow the trip slots, plus whoever's page is open (HC-7).
+  const bookmarks = $derived(bookmarksOf(profile, game.member));
 
   // Fair copy: proven cells glow; the mode selects the maximal proven cluster and trims it.
   const glow = $derived(glowCells(profile, game.member));
@@ -240,6 +244,15 @@
     />
   {/if}
 
+  <HouseholdShelf
+    {profile}
+    locked={game.save.trip !== null}
+    open={game.member}
+    onopen={switchMember}
+    onbring={(id, seat) => game.bring(id, seat)}
+    onhome={(id) => game.sendHome(id)}
+  />
+
   <div class="desk">
     <LatticeEditor
       sessionKey={game.latticeSessionKey()}
@@ -251,6 +264,7 @@
       ontool={(t) => game.setTool(t)}
       onsocket={(at, longPress) => game.tapSocket(at, longPress)}
       member={game.member}
+      members={bookmarks}
       onmember={switchMember}
       onreject={(reason) => toast(reason)}
       inventions={inventionLibrary(profile)}

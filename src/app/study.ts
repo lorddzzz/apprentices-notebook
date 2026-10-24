@@ -1,4 +1,9 @@
 import {
+  APPRENTICES,
+  type ApprenticeDef,
+  type ApprenticeId,
+  type BasicActionId,
+  HABITS,
   isInvention,
   LINES,
   type LineId,
@@ -20,6 +25,7 @@ import {
   canPlace,
   canPlaceGlyph,
   type Dir,
+  FOUNDERS,
   type GlyphArg,
   type GlyphDef,
   type GlyphId,
@@ -30,6 +36,7 @@ import {
   hasArrow,
   headlineOf,
   type InventionLibrary,
+  inHousehold,
   inkOf,
   inkUsed,
   inventionLibrary,
@@ -47,16 +54,21 @@ import {
   recordOf,
   roleOf,
   rotateSocket,
+  type SlotIndex,
   type SpellKey,
   type Step,
   setMemberLattice,
   setOpenCells,
+  setSlot,
   setSocket,
   socketAt,
   type TierLevel,
+  type Trip,
+  tripParty,
   turnRight,
   validateLoadout,
 } from '$engine';
+import { SCHOOL_NAME } from './describe';
 
 /** What the player is holding: a rune or a Fair copy from the shelf, the eraser, or nothing. */
 export type ShelfTool =
@@ -656,11 +668,136 @@ export function benchUnlocked(p: Profile): boolean {
   );
 }
 
-/** What stops the party leaving the desk or a doorway: the first problem with either lattice, in plain words. */
+/** What stops the party leaving the desk or a doorway: nobody slotted, else the first problem with a party page. */
 export function loadoutBlocker(p: Profile): string | null {
-  for (const [id, list] of Object.entries(validateLoadout(p))) {
+  const party = tripParty(p);
+  if (party.length === 0) return NO_PARTY;
+  for (const [id, list] of Object.entries(validateLoadout(p, party))) {
     const first = list?.[0];
-    if (first) return `${MEMBERS[id as MemberId].name}: ${first.message}`;
+    if (first) return `${APPRENTICES[id as ApprenticeId].name}: ${first.message}`;
   }
   return null;
+}
+
+// ── The household shelf (HC-7, party.md §1) ──
+
+export const NO_PARTY = 'Nobody is in a trip slot: bring someone from the shelf';
+export const TRIP_LOCK = 'Out on a trip: the slots are fixed until you are home';
+const SEATS = 3;
+
+/**
+ * How many trip slots the shelf shows (HC P8): one per apprentice up to three, so a two-person
+ * household never shows an empty third seat.
+ */
+export function visibleSlots(p: Profile): number {
+  return Math.min(SEATS, Math.max(1, p.household.members.length));
+}
+
+/** The seats as the shelf draws them: an apprentice or null (an empty seat). */
+export function seatsOf(p: Profile): (ApprenticeId | null)[] {
+  return p.household.slots.slice(0, visibleSlots(p));
+}
+
+/** Who is not in a slot, in join order. */
+export function benchOf(p: Profile): ApprenticeId[] {
+  return p.household.members.filter((m) => !p.household.slots.includes(m));
+}
+
+export function slotOf(p: Profile, id: ApprenticeId): SlotIndex | null {
+  const i = p.household.slots.indexOf(id);
+  return i < 0 ? null : (i as SlotIndex);
+}
+
+/** The words for a basic action on a card (party.md §1). */
+export const ACTION_INFO: Record<BasicActionId, { name: string; rule: string }> = {
+  shove: { name: 'Shove', rule: 'Pushes an adjacent unit one tile.' },
+  pull: { name: 'Pull', rule: 'Hooks a unit two tiles away one tile closer.' },
+  hop: { name: 'Hop', rule: 'Leaps to a free tile exactly two away.' },
+  swap: { name: 'Swap', rule: 'Trades places with an adjacent unit.' },
+};
+
+export interface CardView {
+  def: ApprenticeDef;
+  /** The slot they hold, or null on the bench. */
+  slot: SlotIndex | null;
+  trained: string;
+  /** Null when the gift repeats the trained school (one chip reads "Seam, trained and gifted"). */
+  gifted: string | null;
+  habit: { line: string; kind: 'lattice' | 'body'; leansOn: string | null } | null;
+  /** The habit leans on a rune the household does not know (HC P12). Never set for the founders. */
+  dormant: boolean;
+}
+
+/** What a shelf card shows for one household member; only registry fields, so recruits need no UI work. */
+export function cardOf(p: Profile, id: ApprenticeId): CardView {
+  const def = APPRENTICES[id];
+  const habit = def.habit ? HABITS[def.habit] : null;
+  const leans = habit?.leansOn ?? null;
+  return {
+    def,
+    slot: slotOf(p, id),
+    trained: SCHOOL_NAME[def.lean.trained],
+    gifted:
+      def.lean.gifted && def.lean.gifted !== def.lean.trained ? SCHOOL_NAME[def.lean.gifted] : null,
+    habit: habit
+      ? { line: habit.line, kind: habit.kind, leansOn: leans ? RUNES[leans].name : null }
+      : null,
+    dormant: leans !== null && !p.known.includes(leans) && !FOUNDERS.includes(id),
+  };
+}
+
+export type SlotMove = { profile: Profile } | { why: string };
+
+function tryMove(trip: Trip | null, change: () => Profile): SlotMove {
+  if (trip) return { why: TRIP_LOCK };
+  try {
+    return { profile: change() };
+  } catch (e) {
+    return { why: e instanceof Error ? e.message : 'That did not work' };
+  }
+}
+
+/** Puts `id` in a slot: the first empty seat, or `slot` when given (their old seat swaps with its occupant). */
+export function placeInSlot(
+  p: Profile,
+  trip: Trip | null,
+  id: ApprenticeId,
+  slot?: SlotIndex,
+): SlotMove {
+  return tryMove(trip, () => {
+    if (!inHousehold(p, id)) throw new Error('They are not in the household');
+    const seats = visibleSlots(p);
+    const open = p.household.slots.slice(0, seats).indexOf(null);
+    const to = slot ?? (open < 0 ? null : (open as SlotIndex));
+    if (to === null) throw new Error('Every seat is taken: send someone home first');
+    if (to >= seats) throw new Error('There is no such seat');
+    const from = slotOf(p, id);
+    if (from === to) return p;
+    const displaced = p.household.slots[to];
+    let next = from === null ? p : setSlot(p, from, null);
+    next = setSlot(next, to, id);
+    // Dragging between two seats swaps them; from the bench the occupant goes home.
+    if (from !== null && displaced) next = setSlot(next, from, displaced);
+    return next;
+  });
+}
+
+/** Empties `id`'s slot; they wait on the bench with their page intact. */
+export function leaveHome(p: Profile, trip: Trip | null, id: ApprenticeId): SlotMove {
+  return tryMove(trip, () => {
+    const from = slotOf(p, id);
+    return from === null ? p : setSlot(p, from, null);
+  });
+}
+
+/** Whose page the Study shows: `current` while they are in the household, else the first slotted, else the first. */
+export function openMemberFor(p: Profile, current: ApprenticeId): ApprenticeId {
+  if (inHousehold(p, current)) return current;
+  return tripParty(p)[0] ?? p.household.members[0] ?? current;
+}
+
+/** The lattice editor's bookmarks: the slotted party in slot order, plus the open page's owner (HC P11). */
+export function bookmarksOf(p: Profile, open: ApprenticeId): ApprenticeId[] {
+  const party = tripParty(p);
+  return party.includes(open) ? party : [...party, open];
 }

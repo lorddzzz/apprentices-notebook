@@ -1,4 +1,4 @@
-import { type DistrictId, MEMBER_IDS, type MemberId } from '$data';
+import type { ApprenticeId, DistrictId, MemberId } from '$data';
 import {
   type ActionResult,
   type Cluster,
@@ -11,6 +11,7 @@ import {
   placeOf,
   renameGlyph,
   type SaveData,
+  type SlotIndex,
 } from '$engine';
 import { BattleSession } from './battle.svelte';
 import { namedTitle } from './describe';
@@ -31,7 +32,16 @@ import {
 import { forgetView } from './latticeViewport';
 import { go } from './router.svelte';
 import { loadSave, type SaveBackend, saveText, writeSave } from './save';
-import { editProfile, NO_TOOL, pageSessionKey, type ShelfTool } from './study';
+import {
+  editProfile,
+  leaveHome,
+  NO_TOOL,
+  openMemberFor,
+  pageSessionKey,
+  placeInSlot,
+  type ShelfTool,
+  type SlotMove,
+} from './study';
 import { toast } from './toasts.svelte';
 
 let nextEditorSession = 0;
@@ -57,7 +67,7 @@ export class GameStore {
   /** Named results already announced this trip (the toast shows once per discovery). */
   private toasted: string[] = [];
   /** Which member's notebook page the Study shows, and what the player holds. */
-  member = $state<MemberId>(MEMBER_IDS[0] ?? 'draughtsman');
+  member = $state<MemberId>('draughtsman');
   tool = $state.raw<ShelfTool>(NO_TOOL);
   /**
    * The rewired profile while a quiet doorway is open (plan S11): edits stay here, unsaved, until
@@ -95,6 +105,7 @@ export class GameStore {
     this.older = loaded.older;
     this.refusal = loaded.refused?.message ?? null;
     this.retainedText = loaded.refused?.text ?? null;
+    this.member = openMemberFor(this.save.profile, this.member);
   }
 
   get profile(): Profile {
@@ -112,8 +123,28 @@ export class GameStore {
   }
 
   selectMember(m: MemberId): void {
-    this.member = m;
+    this.member = openMemberFor(this.studyProfile, m);
     this.tool = NO_TOOL;
+  }
+
+  /**
+   * The household shelf (HC-7): fills a seat, the first empty one unless `slot` is given. Refused
+   * during a trip. Returns why not, or null.
+   */
+  bring(id: ApprenticeId, slot?: SlotIndex): string | null {
+    return this.moveSlots(placeInSlot(this.save.profile, this.save.trip, id, slot));
+  }
+
+  /** Empties the apprentice's seat; their page stays as it was. Returns why not, or null. */
+  sendHome(id: ApprenticeId): string | null {
+    return this.moveSlots(leaveHome(this.save.profile, this.save.trip, id));
+  }
+
+  private moveSlots(r: SlotMove): string | null {
+    if (this.refusal) return this.refusal;
+    if ('why' in r) return r.why;
+    this.setProfile(r.profile);
+    return null;
   }
 
   setTool(tool: ShelfTool): void {
@@ -200,6 +231,7 @@ export class GameStore {
     this.refusal = null;
     this.retainedText = null;
     this.commit(next);
+    this.member = openMemberFor(this.save.profile, this.member);
     this.resetLatticeSession();
     this.wipe = null;
     this.tool = NO_TOOL;
@@ -216,7 +248,7 @@ export class GameStore {
     this.resetLatticeSession();
     this.wipe = null;
     this.toasted = [];
-    this.member = MEMBER_IDS[0] ?? 'draughtsman';
+    this.member = openMemberFor(this.save.profile, 'draughtsman');
     this.tool = NO_TOOL;
   }
 

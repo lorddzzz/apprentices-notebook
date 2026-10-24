@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type Snippet, tick } from 'svelte';
-  import { type LineId, MEMBER_IDS, MEMBERS, type MemberId, type RuneRef } from '$data';
+  import { APPRENTICES, type LineId, MEMBER_IDS, MEMBERS, type MemberId, type RuneRef } from '$data';
   import {
     type CellKey,
     type CompiledLattice,
@@ -21,6 +21,7 @@
     socketAt,
   } from '$engine';
   import { detailOf, type GlyphSlot, type ShelfSlot, type ShelfTool } from '../../../app/study';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
   import Sheet from '../common/Sheet.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -40,6 +41,8 @@
     ontool: (tool: ShelfTool) => void;
     onsocket: (at: Coord, longPress: boolean) => void;
     member: MemberId;
+    /** The bookmarks, in order: the slotted party plus the open page's owner. Default: the founding pair (Lab). */
+    members?: readonly MemberId[];
     onmember: (member: MemberId) => void;
     /** Why a shelf slot can't be picked up. */
     onreject?: (reason: string) => void;
@@ -81,6 +84,7 @@
     ontool,
     onsocket,
     member,
+    members = MEMBER_IDS,
     onmember,
     onreject,
     inventions = {},
@@ -192,18 +196,21 @@
 
 <div class="editor" data-testid="editor">
   <div class="bookmarks" role="tablist" aria-label="Party member">
-    {#each MEMBER_IDS as id (id)}
+    {#each members as id (id)}
       <button
         type="button"
         role="tab"
         class="mark"
         class:on={id === member}
-        style:--tint="var(--member-{id})"
+        class:crowded={members.length > 2}
+        style:--tint="var(--hue-{APPRENTICES[id].look.hue})"
         aria-selected={id === member}
+        aria-label={APPRENTICES[id].name}
         data-member={id}
         onclick={() => switchMember(id)}
       >
-        {MEMBERS[id].name}
+        <ApprenticeToken def={APPRENTICES[id]} size={18} />
+        <span class="mname">{APPRENTICES[id].name}</span>
       </button>
     {/each}
     <span class="grow"></span>
@@ -377,6 +384,9 @@
     flex: none;
     min-height: var(--tap);
   }
+  .bookmarks > :global(.pot) {
+    flex: none;
+  }
   .grow {
     flex: 1;
     min-width: 0;
@@ -384,10 +394,13 @@
   .mark {
     position: relative;
     display: inline-flex;
+    flex: 0 1 auto;
     align-items: center;
     justify-content: center;
+    gap: 4px;
+    min-width: var(--tap);
     min-height: var(--tap);
-    padding: 0 12px;
+    padding: 0 8px;
     border: 1px solid var(--line);
     border-bottom: none;
     border-radius: var(--radius) var(--radius) 0 0;
@@ -396,30 +409,26 @@
     font-size: 15px;
     cursor: pointer;
   }
-  /* A small tint flag keeps each member recognisable without reading as selected. */
-  .mark::before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin-right: 6px;
-    border-radius: 50%;
-    background: var(--tint);
-    opacity: 0.6;
+  .mname {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* With three or more bookmarks the idle ones show only their token; the open one keeps its name. */
+  .mark.crowded:not(.on) .mname {
+    display: none;
   }
   /* The selected tab is the page's own tab: filled, taller, joined to the page below. */
   .mark.on {
     z-index: 2;
+    min-width: 0;
     min-height: calc(var(--tap) + 6px);
     margin-bottom: -1px;
     border-color: var(--tint);
     background: var(--tint);
     color: var(--parchment);
     font-weight: 700;
-  }
-  .mark.on::before {
-    background: var(--parchment);
-    opacity: 1;
   }
   /* The board is the centrepiece: it takes every pixel the strip, shelf and door leave. */
   .page {
