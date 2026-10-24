@@ -3,6 +3,7 @@ import { hearAfterTrip, hearFromBattle } from '../city';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
 import { witnessedIn } from '../lines';
+import { findPaper } from '../papers';
 import { recordGlyphCasts, tierUps } from '../profiler';
 import { masksFrom } from '../proof';
 import { memberById } from '../queries';
@@ -111,8 +112,10 @@ export function finishEncounter(
   // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
   const fought = perMember(t.party, (m) => compiledFor(foughtWith, m).spells);
   const stats = accumulateStats(t.stats, log, p, fought);
-  const profile = learnFromFight(p, b, log);
-  if (b.phase === 'lost') return { profile, trip: null, outcome: 'wiped', stats };
+  const learned = learnFromFight(p, b, log);
+  if (b.phase === 'lost') return { profile: learned, trip: null, outcome: 'wiped', stats };
+  // The room's paper is filed at once, so a later wipe keeps it (lore registry, DK §9).
+  const profile = findPaper(learned, t.district, t.encounter);
 
   const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);

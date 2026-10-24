@@ -2235,6 +2235,7 @@
       "shove": { "points": 5, "slots": {} }
     },
     "solventsFound": ["cinder"],
+    "papers": [],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -2422,6 +2423,7 @@
         "shove": { "points": 5, "slots": {} }
       },
       "solventsFound": ["cinder"],
+      "papers": [],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],

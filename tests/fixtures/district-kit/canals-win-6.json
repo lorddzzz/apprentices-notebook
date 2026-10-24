@@ -3479,6 +3479,7 @@
       "shove": { "points": 4, "slots": {} }
     },
     "solventsFound": ["pitch"],
+    "papers": [],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -3665,6 +3666,7 @@
         "shove": { "points": 4, "slots": {} }
       },
       "solventsFound": ["pitch"],
+      "papers": [],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],

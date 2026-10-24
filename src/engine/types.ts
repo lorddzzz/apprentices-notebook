@@ -26,6 +26,7 @@ import type {
   StateId,
   TriggerRuneId,
 } from '$data';
+import type { PaperId } from '$data/districts/index';
 import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
 import type {
   CityCheckpoints,
@@ -594,6 +595,8 @@ export interface Profile {
   glyphRecords: Record<string, GlyphRecord>;
   proof: Partial<Record<ApprenticeId, FiredCell[][]>>; // cast masks, newest last, capped
   city: CityState;
+  /** Found papers (lore registry, DK §9), in found order; banked at once, so a wipe keeps them. */
+  papers: PaperId[];
   /** Recovered rival pages (rivals P11): absent reads as none; RV-15 banks and parses them. */
   pages?: RivalPageId[];
 }

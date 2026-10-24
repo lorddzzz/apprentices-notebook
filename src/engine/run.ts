@@ -28,6 +28,7 @@ import {
   START_KNOWN,
   TUNING,
 } from '$data';
+import type { PaperId } from '$data/districts/index';
 import { cityDefaults } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
 import { baseGlyphCost, canBeOpen, glyphRunes, withOpenCell } from './glyph';
@@ -137,6 +138,7 @@ export function newProfile(): Profile {
     foesMet: [],
     footnotes: {},
     solventsFound: [],
+    papers: [],
     vellum: 0,
     glyphs: [],
     ...masteryDefaults(),
@@ -571,6 +573,21 @@ function parseSolventsFound(
   return SOLVENT_IDS.filter((s) => solvents[s] > 0 || used.has(s));
 }
 
+/** Saves before the lore registry lack the list (none found). Ids stay even if no district defines them now. */
+function parsePapers(v: unknown): PaperId[] {
+  if (v === undefined) return [];
+  return unique(list(v).map(paperId));
+}
+
+/** `district:name`, the district a registry id. */
+function paperId(v: unknown): PaperId {
+  const id = text(v);
+  const at = id.indexOf(':');
+  if (at < 0 || at === id.length - 1) bad();
+  oneOf(DISTRICT_IDS, id.slice(0, at));
+  return id as PaperId;
+}
+
 /** Current sparse profile: every field is required. */
 function parseProfile(v: unknown, budget: ImportBudget): Profile {
   const r = record(v);
@@ -636,6 +653,7 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     foesMet: unique(list(r.foesMet).map((id) => oneOf(ENEMY_IDS, id))),
     footnotes: parseFootnotes(r.footnotes),
     solventsFound: parseSolventsFound(r.solventsFound, solvents, inventions),
+    papers: parsePapers(r.papers),
     vellum: count(r.vellum),
     glyphs,
     glyphArchive,

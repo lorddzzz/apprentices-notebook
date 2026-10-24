@@ -21,6 +21,7 @@ export * from './lines';
 export * from './networks';
 export * from './notation';
 export * from './page';
+export * from './papers';
 export * from './pieces';
 export * from './profiler';
 export * from './proof';

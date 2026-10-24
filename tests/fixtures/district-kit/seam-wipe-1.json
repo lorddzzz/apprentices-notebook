@@ -2625,6 +2625,7 @@
       "ink": { "points": 2, "slots": {} }
     },
     "solventsFound": [],
+    "papers": [],
     "vellum": 0,
     "glyphs": [],
     "glyphArchive": [],
@@ -2757,6 +2758,7 @@
         "ink": { "points": 2, "slots": {} }
       },
       "solventsFound": [],
+      "papers": [],
       "vellum": 0,
       "glyphs": [],
       "glyphArchive": [],
