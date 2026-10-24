@@ -15,6 +15,7 @@ import {
   type SlotIndex,
 } from '$engine';
 import type { StartAt } from '$engine/districts/types';
+import { welcome } from '$engine/recruits';
 import { BattleSession } from './battle.svelte';
 import { chooseWay, setOutAt } from './crossroads';
 import { namedTitle } from './describe';
@@ -33,6 +34,7 @@ import {
   type WipeSummary,
 } from './flow';
 import { forgetView } from './latticeViewport';
+import { newcomers } from './recruitNotes';
 import { go } from './router.svelte';
 import { loadSave, type SaveBackend, saveText, writeSave } from './save';
 import {
@@ -60,6 +62,8 @@ export class GameStore {
   wipe = $state.raw<WipeSummary | null>(null);
   /** The paper the room just won filed for the first time; the loot screen notes it (DK-12). */
   found = $state.raw<{ seed: number; room: number; paper: PaperId } | null>(null);
+  /** Who joined the household on the last homecoming; the trip page says so (RC-7). Not kept across a reload. */
+  joined = $state.raw<ApprenticeId[]>([]);
   /** The save could not be used and was replaced by a new game (the old text is kept). App toasts it once. */
   recovered = $state(false);
   /** ...because the notebook is from before this edition (P1). */
@@ -150,6 +154,11 @@ export class GameStore {
     if ('why' in r) return r.why;
     this.setProfile(r.profile);
     return null;
+  }
+
+  /** Welcomes the one who left a note under the door: off the note, onto the bench. Returns why not, or null. */
+  welcome(id: ApprenticeId): string | null {
+    return this.updateProfile((p) => welcome(p, id));
   }
 
   setTool(tool: ShelfTool): void {
@@ -271,6 +280,7 @@ export class GameStore {
       return e instanceof Error ? e.message : 'The party cannot set out';
     }
     this.wipe = null;
+    this.joined = [];
     this.toasted = [];
     this.dropBattle();
     go('trip');
@@ -324,6 +334,7 @@ export class GameStore {
       });
     }
     this.wipe = null;
+    this.joined = [];
     this.toasted = [];
     go('study', undefined, { replace: true });
   }
@@ -366,7 +377,9 @@ export class GameStore {
   }
 
   returnHome(): void {
+    const before = this.save.profile;
     this.commit(goHome(this.save));
+    this.joined = newcomers(before, this.save.profile);
     this.toasted = [];
     // `replace` updates the router at once; otherwise the trip-less 'trip' route redirects to the Study first.
     go('trip-page', undefined, { replace: true });

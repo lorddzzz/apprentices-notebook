@@ -49,6 +49,7 @@
   import ArgPicker from '../components/lattice/ArgPicker.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
+  import NoteUnderDoor from '../components/recruits/NoteUnderDoor.svelte';
   import FairCopySheet from '../components/study/FairCopySheet.svelte';
   import GlyphRanking from '../components/study/GlyphRanking.svelte';
   import GlyphSheet from '../components/study/GlyphSheet.svelte';
@@ -243,6 +244,8 @@
       ondesk={deskUnlocked(profile) ? () => go('desk') : null}
     />
   {/if}
+
+  <NoteUnderDoor />
 
   <HouseholdShelf
     {profile}

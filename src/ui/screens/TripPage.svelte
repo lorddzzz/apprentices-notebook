@@ -3,13 +3,20 @@
   import { compiledFor, pageOf } from '$engine';
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
+  import { joinedHighlights } from '../../app/recruitNotes';
   import { deadCellNotes, heardHighlights, placeInText, tierUpLine } from '../../app/tripviews';
   import ApprenticeToken from '../components/common/ApprenticeToken.svelte';
   import Button from '../components/common/Button.svelte';
 
   const recap = $derived(game.save.lastTrip);
   const highlights = $derived(
-    recap ? [...tripHighlights(recap, game.profile), ...heardHighlights(recap)] : [],
+    recap
+      ? [
+          ...tripHighlights(recap, game.profile),
+          ...joinedHighlights(game.joined),
+          ...heardHighlights(recap),
+        ]
+      : [],
   );
   const spells = $derived(recap?.stats.spells ?? []);
   const tierUps = $derived(recap?.stats.elegance ?? []);
@@ -148,6 +155,9 @@
   }
   .note.proof {
     border-left-color: var(--m-ink);
+  }
+  .note.joined {
+    border-left-color: var(--lamp);
   }
   h2 {
     margin: 0 0 2px;
