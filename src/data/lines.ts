@@ -479,7 +479,7 @@ export const LINES: readonly LineDef[] = [
     district: 'cartographers',
     text: 'Graphite undoes the states the invention landed and the moves it made, a round later.',
   },
-  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop, AH-2 markTwice/nearUnison/longTouch)
+  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop, AH-2 markTwice/nearUnison/longTouch, AH-3 holdTwo/restoreErase)
   {
     id: 'fuseOnStep:jar',
     subject: 'fuseOnStep',
@@ -517,7 +517,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'member',
     district: 'seam',
     text: 'The second Hold can catch an ally beside the target, keeping it in place through the enemy phase.',
-    pending: true,
   },
   {
     id: 'nearUnison:unit',
@@ -546,7 +545,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'jar',
     district: 'seam',
     text: "A restored jar counts as its owner's newest, so an older one may crumble.",
-    pending: true,
   },
   {
     id: 'restoreErase:mark',
@@ -554,7 +552,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'mark',
     district: 'seam',
     text: 'A mark comes back only to the unit that bore it.',
-    pending: true,
   },
   {
     id: 'restoreErase:unit',
@@ -562,7 +559,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'unit',
     district: 'seam',
     text: 'A state cannot come back under a unit standing on its tile.',
-    pending: true,
   },
   {
     id: 'pull:plate',

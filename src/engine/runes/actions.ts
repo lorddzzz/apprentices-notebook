@@ -1,14 +1,38 @@
-import { ACTIONS, type ActionRuneId, type LineId, RUNES, TUNING } from '$data';
+import {
+  ACTIONS,
+  type ActionRuneId,
+  type CompoundId,
+  type HabitId,
+  type KindId,
+  type LineId,
+  RUNES,
+  type StateId,
+  TUNING,
+} from '$data';
 import { hasTrait, objectArrives, relocateAll } from '../arrival';
-import { type Ctx, emit, ref, withLine } from '../ctx';
+import { cloneData } from '../clone';
+import { type Ctx, emit, ref, withHabit, withLine, withOrigin } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
-import { type Coord, type Dir, step } from '../grid';
+import { type Coord, DIRS, type Dir, opposite, step, turnLeft, turnRight } from '../grid';
+import { ruleOf, sameSide } from '../habits';
+import { sealJar } from '../jars';
+import { jarLimit } from '../leans';
 import { spendMark } from '../marks';
 import { push } from '../push';
-import { inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
+import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
 import type { Handler } from '../resolve';
 import { SOLVENT_RULES } from '../solvents';
-import { type Flow, type Layer, type Target, targetKey, type Unit } from '../types';
+import {
+  type ErasedPart,
+  type ErasedRecord,
+  type Flow,
+  type Layer,
+  type Target,
+  type Tile,
+  targetKey,
+  type Unit,
+  type UnitId,
+} from '../types';
 
 // Numbers the design fixes (§5.2) that have no TUNING key yet: Sentence's push, Hold's duration,
 // Levy's shield per mark. Move them into TUNING when types.ts gains the keys.
@@ -85,14 +109,65 @@ const guard: Handler = (ctx, t, flow) => {
   });
 };
 
+function holdUnit(ctx: Ctx, u: Unit, rounds: number): void {
+  u.held = Math.max(u.held, rounds);
+  emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
+}
+
+/** Units each cast has held so far in this draft (holdTwo skips them, AH P15). */
+const heldByCast = new WeakMap<Ctx, Map<string, Set<UnitId>>>();
+function heldThisCast(ctx: Ctx, flow: Flow): Set<UnitId> {
+  const byCast = heldByCast.get(ctx) ?? new Map<string, Set<UnitId>>();
+  heldByCast.set(ctx, byCast);
+  const key = `${flow.origin.caster}:${flow.origin.cast}`;
+  const held = byCast.get(key) ?? new Set<UnitId>();
+  byCast.set(key, held);
+  return held;
+}
+
+/** Who this step holds anyway: its unit targets and whoever stands on its tile targets. */
+function stepTargets(ctx: Ctx, flow: Flow): UnitId[] {
+  const out: UnitId[] = [];
+  for (const k of flow.headings.keys()) {
+    if (k.startsWith('u:')) out.push(k.slice(2));
+    else {
+      const [x = -1, y = -1] = k.slice(2).split(',').map(Number);
+      const u = unitAt(ctx.s, { x, y });
+      if (u) out.push(u.id);
+    }
+  }
+  return out;
+}
+
+/** holdTwo's scan (AH P15): ahead, left, right, behind; no heading: up, right, down, left. */
+const scanOrder = (h: Dir | null): readonly Dir[] =>
+  h ? [h, turnLeft(h), turnRight(h), opposite(h)] : DIRS;
+
 const hold: Handler = (ctx, t, flow) => {
   const u = unitOf(ctx, t);
   if (!u) return;
   const rounds = ACTIONS.holdRounds + roundBonus('hold', flow);
-  maybeLine(ctx, u.held > 0 ? 'hold:held' : null, () => {
-    u.held = Math.max(u.held, rounds);
-    emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
-  });
+  maybeLine(ctx, u.held > 0 ? 'hold:held' : null, () => holdUnit(ctx, u, rounds));
+  const habit = flow.habit;
+  const extra = ruleOf(habit).holdExtra ?? 0;
+  if (!habit || extra <= 0) return;
+  const held = heldThisCast(ctx, flow);
+  held.add(u.id);
+  const skip = new Set([...held, ...stepTargets(ctx, flow), flow.caster]);
+  const caster = findUnit(ctx.s, flow.caster);
+  const order = scanOrder(headingOf(flow, t));
+  for (let i = 0; i < extra; i++) {
+    const next = order
+      .map((d) => unitAt(ctx.s, step(u.pos, d)))
+      .find((x): x is Unit => x !== null && !skip.has(x.id));
+    if (!next) return;
+    skip.add(next.id);
+    held.add(next.id);
+    const ally = caster !== null && sameSide(caster, next);
+    withHabit(ctx, habit, () =>
+      maybeLine(ctx, ally ? 'holdTwo:member' : null, () => holdUnit(ctx, next, rounds)),
+    );
+  }
 };
 
 const swap: Handler = (ctx, t, flow) => {
@@ -197,35 +272,163 @@ const draw: Handler = (ctx, t, flow) => {
   if (jarAt && tileAt(ctx.s, jarAt).jar) objectArrives(ctx, { kind: 'jar' }, jarAt, opts);
 };
 
-const erase: Handler = (ctx, t) => {
+/** Whether an Erase would take anything from this tile and unit. */
+const holdsAny = (tile: Tile, u: Unit | null): boolean =>
+  !!tile.state ||
+  !!tile.jar ||
+  !!u?.mark ||
+  (!!u && u.collar !== false && u.collar !== null) ||
+  (!!u && u.shackle > 0);
+
+/** The step that wrote the record, so one Erase's targets add up to one record (AH P18). */
+const recordWriter = new WeakMap<ErasedRecord, Flow>();
+
+function remember(ctx: Ctx, t: Target, parts: readonly ErasedPart[], flow: Flow): void {
+  const cur = ctx.s.erased ?? null;
+  const k = targetKey(t);
+  const kept = cur && recordWriter.get(cur) === flow ? cur.entries : [];
+  const next: ErasedRecord = {
+    by: flow.caster,
+    cast: ctx.s.castSeq,
+    entries: [...kept.filter((e) => targetKey(e.target) !== k), { target: t, parts }],
+  };
+  recordWriter.set(next, flow);
+  ctx.s.erased = next;
+}
+
+const PLAIN_KIND: Record<StateId, KindId> = {
+  blot: 'ink',
+  slick: 'oil',
+  cloud: 'steam',
+  plate: 'brass',
+  fire: 'oil',
+};
+const isPlainState = (id: StateId | CompoundId): id is StateId => id in PLAIN_KIND;
+
+/** A restored state logs the event a fresh landing of it would, so playback draws it. */
+function landAgain(ctx: Ctx, at: Coord, layer: Layer): void {
+  const id = layer.id;
+  if (isPlainState(id))
+    emit(ctx, { type: 'landed', kind: PLAIN_KIND[id], at: { ...at }, makes: id });
+  else emit(ctx, { type: 'mixed', at: { ...at }, compound: id });
+}
+
+/** Puts one recorded part back (AH P18); what cannot come back stays gone. */
+function restorePart(ctx: Ctx, part: ErasedPart, u: Unit | null): void {
+  const s = ctx.s;
+  if (part.kind === 'state') {
+    const tile = tileAt(s, part.at);
+    if (tile.state) return;
+    // A plate cannot share a tile with a unit (as Draw, `draw:unit`).
+    if (isPlate({ ...tile, state: part.layer }) && unitAt(s, part.at)) {
+      miss(ctx, 'erase', 'restoreErase:unit');
+      return;
+    }
+    tile.state = cloneData(part.layer);
+    withOrigin(ctx, part.layer.origin, () => landAgain(ctx, part.at, part.layer));
+    return;
+  }
+  if (part.kind === 'jar') {
+    const owner = findUnit(s, part.jar.owner);
+    if (!owner || tileAt(s, part.at).jar) return;
+    const mine = s.tiles.filter((x) => x.jar?.owner === owner.id).length;
+    // Through sealJar: it counts as its owner's newest (J4), so an older one may crumble.
+    maybeLine(ctx, mine >= jarLimit(owner) ? 'restoreErase:jar' : null, () =>
+      withOrigin(ctx, part.jar.origin, () => sealJar(ctx, part.at, part.jar)),
+    );
+    return;
+  }
+  // A unit's part returns only to the unit that bore it, standing on the target.
+  if (!u || u.id !== part.unit) {
+    if (part.kind === 'mark') miss(ctx, 'erase', 'restoreErase:mark');
+    return;
+  }
+  if (part.kind === 'shackle') {
+    u.shackle = part.rounds;
+    emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'shackle' });
+  } else if (part.kind === 'collar') {
+    const collar = part.collar;
+    u.collar = collar;
+    if (collar) withOrigin(ctx, collar, () => emit(ctx, { type: 'collared', unit: ref(u) }));
+    // A born collar (null origin) comes back as born: `landed` leaves the view's `born` alone.
+    else
+      emit(ctx, { type: 'landed', kind: 'brass', at: { ...u.pos }, unit: ref(u), makes: 'collar' });
+  } else {
+    const mark = cloneData(part.mark);
+    u.mark = mark;
+    withOrigin(ctx, mark.origin, () =>
+      emit(ctx, {
+        type: 'marked',
+        unit: ref(u),
+        deep: mark.deep,
+        bound: mark.bound?.action ?? null,
+      }),
+    );
+  }
+}
+
+/** Tile parts first, then the unit's: a shackle before the collar and mark it would clear. */
+const RESTORE_ORDER: Record<ErasedPart['kind'], number> = {
+  state: 0,
+  jar: 1,
+  shackle: 2,
+  collar: 3,
+  mark: 4,
+};
+
+/** restoreErase (AH P18): the record's entry for this target comes back and is used up. */
+function restore(ctx: Ctx, t: Target, u: Unit | null, habit: HabitId): void {
+  const rec = ctx.s.erased;
+  const k = targetKey(t);
+  const entry = rec?.entries.find((e) => targetKey(e.target) === k);
+  if (!rec || !entry) return;
+  const rest = rec.entries.filter((e) => e !== entry);
+  ctx.s.erased = rest.length ? { ...rec, entries: rest } : null;
+  const parts = [...entry.parts].sort((a, b) => RESTORE_ORDER[a.kind] - RESTORE_ORDER[b.kind]);
+  withHabit(ctx, habit, () => {
+    for (const p of parts) restorePart(ctx, p, u);
+  });
+}
+
+const erase: Handler = (ctx, t, flow) => {
   const at = posOf(ctx, t);
   if (!at) return;
   const tile = tileAt(ctx.s, at);
   const u = unitOf(ctx, t);
+  if (flow.habit && ruleOf(flow.habit).eraseRestores && !holdsAny(tile, u)) {
+    return restore(ctx, t, u, flow.habit);
+  }
+  const parts: ErasedPart[] = [];
   const gone = (what: string, line: LineId | null): void =>
     maybeLine(ctx, line, () => emit(ctx, { type: 'erased', at: { ...at }, what }));
   if (u?.mark) {
     const deep = u.mark.deep;
-    spendMark(ctx, u); // spent, never released (P31)
+    const mark = spendMark(ctx, u); // spent, never released (P31)
+    if (mark) parts.push({ kind: 'mark', unit: u.id, mark: cloneData(mark) });
     gone(deep ? 'deep mark' : 'mark', deep ? 'erase:deepMark' : 'erase:mark');
   }
   if (u && u.collar !== false && u.collar !== null) {
+    parts.push({ kind: 'collar', unit: u.id, collar: u.collar });
     u.collar = false;
     gone('collar', 'erase:collar');
   }
   if (u && u.shackle > 0) {
+    parts.push({ kind: 'shackle', unit: u.id, rounds: u.shackle });
     u.shackle = 0;
     gone('shackle', 'erase:shackle');
   }
   if (tile.state) {
     const what = spaced(tile.state.id);
+    parts.push({ kind: 'state', at: { ...at }, layer: cloneData(tile.state) });
     tile.state = null;
     gone(what, null);
   }
   if (tile.jar) {
+    parts.push({ kind: 'jar', at: { ...at }, jar: cloneData(tile.jar) });
     tile.jar = null;
     gone('jar', 'erase:jar');
   }
+  if (parts.length) remember(ctx, t, parts, flow);
 };
 
 const sentence: Handler = (ctx, t, flow) => {
