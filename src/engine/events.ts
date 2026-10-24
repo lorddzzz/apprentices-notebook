@@ -11,6 +11,7 @@ import type {
 import type { ArrivalCause, PlacementCause } from './arrival';
 import { type Coord, type Dir, label } from './grid';
 import type { Blocker } from './queries';
+import type { LockLost, RivalEvent } from './rivals/types';
 import type {
   Aim,
   AttackIntent,
@@ -210,6 +211,7 @@ export type GameEvent = (
   | { type: 'fizzles'; reason: 'cap' | 'depth' }
   /** Silent: a compound, burst or idiom happened for the first time this fight (D7). */
   | { type: 'named'; what: 'compound' | 'burst' | 'idiom'; id: string }
+  | RivalEvent
 ) &
   EventMeta;
 
@@ -227,6 +229,30 @@ const list = (tiles: readonly Coord[]): string => tiles.map(label).join(', ');
 const nameOf = (r: RuneRef): string => (r.startsWith('inv:') ? r.slice(4) : r);
 const spaced = (id: string): string => id.replace(/([A-Z])/g, ' $1').toLowerCase();
 const targetText = (t: Target): string => (t.kind === 'unit' ? t.unit : label(t.at));
+
+const LOCK_LOST: Record<LockLost, string> = {
+  opened: 'already open',
+  erased: 'erased',
+  crumbled: 'crumbled',
+  ownerChanged: 'no longer its own',
+  gone: 'gone',
+};
+
+function telegraphText(e: Extract<GameEvent, { type: 'telegraph' }>): string {
+  const i = e.intent;
+  switch (i.kind) {
+    case 'attack':
+    case 'rivalStrike':
+      return `${who(e.unit)} will ${e.verb} ${i.dir}`;
+    case 'summon':
+      return `${who(e.unit)} will call a moth at ${label(i.at)}`;
+    case 'flare':
+      return `${who(e.unit)} will flare`;
+    case 'cast':
+    case 'trick':
+      return `${who(e.unit)} will ${e.verb}${i.fallback ? `, or strike ${label(i.fallback)}` : ''}`;
+  }
+}
 
 /** One plain-English line per event (null for silent events): the format scenario tests compare against. */
 export function describe(e: GameEvent): string | null {
@@ -276,11 +302,7 @@ export function describe(e: GameEvent): string | null {
     case 'died':
       return e.unit.member ? `${e.unit.name} is down` : `${who(e.unit)} dies`;
     case 'telegraph':
-      return e.intent.kind === 'attack'
-        ? `${who(e.unit)} will ${e.verb} ${e.intent.dir}`
-        : e.intent.kind === 'summon'
-          ? `${who(e.unit)} will call a moth at ${label(e.intent.at)}`
-          : `${who(e.unit)} will flare`;
+      return telegraphText(e);
     case 'idle':
       return `${who(e.unit)} waits`;
     case 'attack':
@@ -372,6 +394,18 @@ export function describe(e: GameEvent): string | null {
       return e.reason === 'cap' ? 'the chain runs too long and fizzles' : 'the nesting fizzles';
     case 'named':
       return null;
+    case 'rivalPlans':
+      return `${who(e.unit)} plans its next move`;
+    case 'castFails':
+      return `${who(e.unit)} cannot cast ${e.spell} at ${label(e.at)} from here`;
+    case 'fallbackStrike':
+      return e.target
+        ? `${who(e.unit)} strikes ${label(e.at)} instead`
+        : `${who(e.unit)}'s strike at ${label(e.at)} finds no one`;
+    case 'orderFails':
+      return `${who(e.unit)}'s order fails: its ${e.object.kind} is ${LOCK_LOST[e.why]}`;
+    case 'pageRecovered':
+      return `a page is recovered: ${e.page}`;
   }
 }
 

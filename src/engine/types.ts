@@ -246,11 +246,10 @@ export interface AttackIntent {
 export type SpecialIntent =
   | { kind: 'summon'; at: Coord; order: number }
   | { kind: 'flare'; order: number };
-export type Intent = AttackIntent | SpecialIntent;
+export type Intent = AttackIntent | SpecialIntent | RivalIntent;
 /**
- * A rival's intents (rivals plan P2, RV-W0). `aim` is the Source's locked native aim; `fallback` is
- * the starved-chain strike tile fixed at planning (null = none). RV-2 joins these into `Intent`
- * when it teaches every switch site (`turn.ts`, `describe.ts`, `events.ts`, `overlay.ts`).
+ * A rival's intents (rivals plan P2, RV-W0; joined into `Intent` by RV-2). `aim` is the Source's
+ * locked native aim; `fallback` is the starved-chain strike tile fixed at planning (null = none).
  */
 export type RivalIntent =
   | { kind: 'cast'; spell: RivalSpellId; aim: Aim; fallback: Coord | null; order: number }
@@ -491,6 +490,8 @@ export interface BattleSpec {
   party?: Partial<Record<MemberId, PartyInit>>; // member tokens on the board are spawned; this overrides hp/spells/charges
   hp?: Readonly<Record<string, number>>; // by label, any unit
   intents?: Readonly<Record<string, Dir>>; // by label; if given, round-1 AI telegraph is skipped, unlisted enemies idle
+  /** Rival intents pinned by label (RV-2): telegraphed every round in place of planning. */
+  pins?: Readonly<Record<string, RivalIntent>>;
   lab?: boolean;
   objective?: Goal;
   inventions?: InventionLibrary; // the household's inventions (default none)

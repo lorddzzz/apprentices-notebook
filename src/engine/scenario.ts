@@ -79,6 +79,7 @@ export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): Bat
   if (inventions) spec.inventions = inventions;
   if (def.hp) spec.hp = def.hp;
   if (def.intents) spec.intents = def.intents;
+  if ('pins' in def && def.pins) spec.pins = def.pins;
   if ('edge' in def && def.edge) spec.edge = def.edge;
   return spec;
 }

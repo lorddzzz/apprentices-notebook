@@ -40,6 +40,7 @@ import {
   type Unit,
   unitAt,
 } from '$engine';
+import { dryStrikeIntent, rivalVerb } from '$engine/rivals/resolve';
 import type { InputMode } from './battleInput';
 
 /** UI wording: captions, inspect lines, preview summaries. Plain functions, tested. */
@@ -110,6 +111,13 @@ function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (e.intent.kind === 'summon')
     return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
+  if (e.intent.kind === 'cast' || e.intent.kind === 'trick') {
+    const fallback = e.intent.fallback ? `, or strikes ${label(e.intent.fallback)}` : '';
+    return `will ${rivalVerb(e, e.intent)}${fallback} (${ordinal(e.intent.order)})`;
+  }
+  if (e.intent.kind === 'rivalStrike') {
+    return `${ATTACKS[dryStrikeIntent(e, e.intent).attack].verbs} ${e.intent.dir} (${ordinal(e.intent.order)})`;
+  }
   const verb = ATTACKS[e.intent.attack].verbs;
   const preview = intentPreview(s, e);
   const victim = preview?.hit ? unitAt(s, preview.hit) : null;

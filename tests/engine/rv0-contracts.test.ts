@@ -80,7 +80,6 @@ describe('RV-W0 contracts', () => {
       fallback: null,
       order: 1,
     };
-    // @ts-expect-error RV-2 joins RivalIntent into Intent with its switch sites
     const joined: Intent = cast;
     expect(joined.kind).toBe('cast');
   });

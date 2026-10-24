@@ -188,6 +188,9 @@ export interface RivalModule {
 /** Events RV-2/RV-3/RV-15 join into `GameEvent`. */
 export type RivalEvent =
   | { type: 'rivalPlans'; unit: UnitRef; intent: RivalIntent }
+  /** A locked tile aim no longer legal from the rival's tile (RV-2): no cast, no charge spent. */
+  | { type: 'castFails'; unit: UnitRef; spell: string; at: Coord }
+  /** The starved-chain strike at its pre-shown tile; `target` null = defeated (left, out of reach). */
   | { type: 'fallbackStrike'; unit: UnitRef; at: Coord; target: UnitRef | null; damage: number }
   | { type: 'orderFails'; unit: UnitRef; object: ObjectRef; why: LockLost }
   | { type: 'pageRecovered'; page: RivalPageId };

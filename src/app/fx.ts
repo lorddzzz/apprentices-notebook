@@ -279,6 +279,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [{ kind: 'pulse', at: e.at, tone: 'danger' }];
     case 'flare':
       return [{ kind: 'pulse', at: e.by.at, tone: 'fire' }];
+    case 'fallbackStrike':
+      return [{ kind: 'pulse', at: e.at, tone: 'danger' }];
     // Silent or nothing to draw: the board catches up from the state.
     case 'shove':
     case 'pull':
@@ -294,6 +296,10 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'repeated':
     case 'triggered':
     case 'named':
+    case 'rivalPlans':
+    case 'castFails':
+    case 'orderFails':
+    case 'pageRecovered':
       return [];
     default: {
       const unhandled: never = e;

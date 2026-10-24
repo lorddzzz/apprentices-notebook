@@ -669,6 +669,9 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
       });
       break;
     case 'attack':
+    case 'castFails':
+    case 'fallbackStrike':
+    case 'orderFails':
       patchUnit(v, e.unit.id, (u) => {
         u.intent = null;
       });
@@ -695,7 +698,6 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'hop':
     case 'swapWith':
     case 'unharmed':
-    case 'cast':
     case 'lands':
     case 'stopped':
     case 'miss':
@@ -710,6 +712,15 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'triggered':
     case 'fizzles':
     case 'named':
+    case 'rivalPlans':
+    case 'pageRecovered':
+      break;
+    case 'cast':
+      // A rival's telegraphed spell is spent once it is cast (RV-2); a member has no intent.
+      if (!e.caster.member)
+        patchUnit(v, e.caster.id, (u) => {
+          u.intent = null;
+        });
       break;
     default: {
       const unhandled: never = e;

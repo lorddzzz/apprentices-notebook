@@ -35,6 +35,7 @@ import {
   spellOf,
   unitAt,
 } from './queries';
+import { rivalAct } from './rivals/resolve';
 import { spawnRival } from './rivals/unit';
 import { deriveSeed } from './rng';
 import { placeParty, START_SALT } from './rooms';
@@ -139,7 +140,7 @@ function telegraphGiven(ctx: Ctx, intents: NonNullable<BattleSpec['intents']>): 
     given.delete(e.id);
     const attack = ENEMIES[e.def].attack;
     if (!g) {
-      emit(ctx, { type: 'idle', unit: ref(e) });
+      if (!e.rival?.pinned) emit(ctx, { type: 'idle', unit: ref(e) });
       continue;
     }
     if (!attack) throw new Error(`The ${e.name} at ${g.lbl} has no attack to telegraph`);
@@ -153,6 +154,21 @@ function telegraphGiven(ctx: Ctx, intents: NonNullable<BattleSpec['intents']>): 
     });
   }
   for (const { lbl } of given.values()) throw new Error(`Intent for ${lbl}: not an enemy`);
+}
+
+/** Rival intents pinned by label (RV-2): kept on the rival, telegraphed in place of planning. */
+function pinRivals(s: BattleState, pins: NonNullable<BattleSpec['pins']>): void {
+  for (const [lbl, intent] of Object.entries(pins)) {
+    const u = unitAtLabel(s, lbl);
+    if (u.kind !== 'enemy' || !u.rival) throw new Error(`Pin for ${lbl}: not a rival`);
+    u.rival.pinned = cloneData(intent);
+  }
+}
+
+/** Round 1 with explicit intents: pinned rivals telegraph after the given ones. */
+function telegraphPins(ctx: Ctx): void {
+  let order = Math.max(0, ...enemies(ctx.s).map((e) => e.intent?.order ?? 0));
+  for (const e of enemies(ctx.s)) if (e.rival?.pinned && !e.intent) rivalAct(ctx, e, ++order);
 }
 
 export function createBattle(spec: BattleSpec): ActionResult {
@@ -195,12 +211,15 @@ export function createBattle(spec: BattleSpec): ActionResult {
     u.hp = hp;
     u.maxHp = Math.max(u.maxHp, hp);
   }
+  if (spec.pins) pinRivals(state, spec.pins);
   return runDraft(state, (ctx) => {
     emit(ctx, { type: 'battleStart', title: spec.title });
     emit(ctx, { type: 'round', round: 1 });
     emit(ctx, { type: 'phase', phase: 'enemy' });
-    if (spec.intents) telegraphGiven(ctx, spec.intents);
-    else enemyPhase(ctx, { move: false });
+    if (spec.intents) {
+      telegraphGiven(ctx, spec.intents);
+      telegraphPins(ctx);
+    } else enemyPhase(ctx, { move: false });
     emit(ctx, { type: 'phase', phase: 'player' });
   });
 }

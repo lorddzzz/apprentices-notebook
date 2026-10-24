@@ -38,6 +38,7 @@ export function durationOf(e: GameEvent): number {
     case 'jarOpened':
     case 'vent':
     case 'attack':
+    case 'fallbackStrike':
       return STEP_MS.normal;
     // No position or no picture of their own: the events around them carry the beat.
     case 'trace':
@@ -72,6 +73,10 @@ export function durationOf(e: GameEvent): number {
     case 'markLifted':
     case 'jarCrumbles':
     case 'scheduled':
+    case 'rivalPlans':
+    case 'castFails':
+    case 'orderFails':
+    case 'pageRecovered':
       return STEP_MS.short;
     default: {
       const unhandled: never = e;

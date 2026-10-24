@@ -340,6 +340,15 @@ const SAMPLES = {
   triggered: { type: 'triggered', rune: 'tally', passed: true },
   fizzles: { type: 'fizzles', reason: 'cap' },
   named: { type: 'named', what: 'compound', id: 'stain' },
+  rivalPlans: {
+    type: 'rivalPlans',
+    unit: rat,
+    intent: { kind: 'rivalStrike', dir: 'left', order: 1 },
+  },
+  castFails: { type: 'castFails', unit: rat, spell: 'Lantern', at: a },
+  fallbackStrike: { type: 'fallbackStrike', unit: rat, at: a, target: stoker, damage: 1 },
+  orderFails: { type: 'orderFails', unit: rat, object: { kind: 'jar', id: 1 }, why: 'erased' },
+  pageRecovered: { type: 'pageRecovered', page: 'lamplighter:lantern' },
 } satisfies Record<GameEvent['type'], GameEvent>;
 
 // Events that leave the beat to their neighbours: no picture, or no place to draw one.
@@ -361,6 +370,10 @@ const NO_PICTURE: readonly GameEvent['type'][] = [
   'idle',
   'telegraph',
   'stateFades',
+  'rivalPlans',
+  'castFails',
+  'orderFails',
+  'pageRecovered',
 ];
 
 describe('one short beat per event', () => {

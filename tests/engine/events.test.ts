@@ -261,6 +261,40 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   triggered: [[{ type: 'triggered', rune: 'tally', passed: false }, 'tally: the chain stops']],
   fizzles: [[{ type: 'fizzles', reason: 'cap' }, 'the chain runs too long and fizzles']],
   named: [[{ type: 'named', what: 'compound', id: 'stain' }, null]],
+  rivalPlans: [
+    [
+      { type: 'rivalPlans', unit: rat, intent: { kind: 'rivalStrike', dir: 'left', order: 1 } },
+      'rat at C2 plans its next move',
+    ],
+  ],
+  castFails: [
+    [
+      { type: 'castFails', unit: rat, spell: 'Lantern', at: at(4, 1) },
+      'rat at C2 cannot cast Lantern at E2 from here',
+    ],
+  ],
+  fallbackStrike: [
+    [
+      { type: 'fallbackStrike', unit: rat, at: at(2, 2), target: stoker, damage: 1 },
+      'rat at C2 strikes C3 instead',
+    ],
+    [
+      { type: 'fallbackStrike', unit: rat, at: at(2, 2), target: null, damage: 0 },
+      "rat at C2's strike at C3 finds no one",
+    ],
+  ],
+  orderFails: [
+    [
+      { type: 'orderFails', unit: rat, object: { kind: 'jar', id: 1 }, why: 'ownerChanged' },
+      "rat at C2's order fails: its jar is no longer its own",
+    ],
+  ],
+  pageRecovered: [
+    [
+      { type: 'pageRecovered', page: 'lamplighter:lantern' },
+      'a page is recovered: lamplighter:lantern',
+    ],
+  ],
 };
 
 test('describe covers every variant', () => {

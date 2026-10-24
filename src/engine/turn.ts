@@ -18,9 +18,10 @@ import {
   travel,
   unitAt,
 } from './queries';
+import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
 import { runScheduled } from './schedule';
 import { driftWaiting } from './solvents';
-import type { EnemyUnit, Unit } from './types';
+import type { AttackIntent, EnemyUnit, Unit } from './types';
 
 /**
  * End of turn (design §3 round order): telegraphed attacks resolve in intent order, then dusk
@@ -46,10 +47,19 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
     emit(ctx, { type: 'idle', unit: ref(e) });
     return;
   }
-  if (intent.kind !== 'attack') {
+  if (intent.kind === 'cast' || intent.kind === 'trick') {
+    resolveRivalIntent(ctx, e, intent);
+    return;
+  }
+  if (intent.kind === 'summon' || intent.kind === 'flare') {
     resolveSpecial(ctx, e, intent);
     return;
   }
+  resolveAttack(ctx, e, intent.kind === 'rivalStrike' ? dryStrikeIntent(e, intent) : intent);
+}
+
+/** A telegraphed attack (a rival's dry strike too: plain approach and strike, never a fallback). */
+function resolveAttack(ctx: Ctx, e: EnemyUnit, intent: AttackIntent): void {
   const att = ATTACKS[intent.attack];
   if (att.id === 'burst') {
     foeBurst(ctx, e);
