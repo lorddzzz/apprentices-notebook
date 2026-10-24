@@ -1,5 +1,5 @@
 import { type EnemyId, encountersOf, type LineId, type Meets, TUNING } from '$data';
-import { hearAfterTrip, hearFromBattle, keyOffer } from '../city';
+import { hearAfterTrip, hearFromBattle } from '../city';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
 import { witnessedIn } from '../lines';
@@ -9,6 +9,7 @@ import { memberById } from '../queries';
 import { compiledFor, recordProof } from '../run';
 import { accumulateStats } from '../tripStats';
 import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../types';
+import { wipeLoot } from './offerKinds';
 import { ownedBy, rollOffers } from './offers';
 import { markCheckpoint, rememberCheckpoint } from './shape';
 import { need, perMember, withAll } from './shared';
@@ -120,14 +121,10 @@ export function finishEncounter(
     hp: perMember(t.party, (m) => Math.max(TUNING.reviveHp, memberById(b, m).hp)),
     charges: perMember(t.party, (m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
-    offers: rollOffers(
-      t.seed,
-      t.encounter,
-      enc.loot,
-      t.party,
-      keyOffer(p, t, enc.loot),
-      ownedBy(p, t),
-    ),
+    offers: rollOffers(t.seed, t.encounter, enc.loot, t.party, null, ownedBy(p, t), {
+      profile: p,
+      trip: t,
+    }),
     picksLeft: enc.picks,
     actions: [],
     stats,
@@ -152,7 +149,9 @@ export function closeBattle(
   // Hearing is kept on a wipe (K-20): owner conditions on this log, then rumours if the trip ended.
   const owner = hearFromBattle(r.profile, t, log);
   // A wipe past the checkpoint still leaves it in the city (P5).
-  const wiped = r.outcome === 'wiped' ? hearAfterTrip(owner.profile, t, 'wiped') : null;
+  // On a wipe the loot is lost, except what a kind's `onWipe` keeps (DK-7).
+  const wiped =
+    r.outcome === 'wiped' ? hearAfterTrip(wipeLoot(owner.profile, t.loot), t, 'wiped') : null;
   const after = wiped
     ? { ...wiped, profile: rememberCheckpoint(wiped.profile, t) }
     : { profile: owner.profile, heard: [] };

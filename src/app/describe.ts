@@ -452,6 +452,9 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         title: `A key to ${DISTRICTS[item.district].name}`,
         text: 'Bring it home and the way opens.',
       };
+    default:
+      // Recruit, bindEvent and district kinds: their cards come from the registry (DK-12).
+      return { title: item.kind, text: '' };
   }
 }
 

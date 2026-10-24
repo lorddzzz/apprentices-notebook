@@ -69,6 +69,7 @@ import { recordOf, rewardsOf } from './profiler';
 import { provenCount } from './proof';
 import { deriveSeed } from './rng';
 import { MAX_PARTY } from './rooms';
+import { overLimit, parseLootItem } from './trip/offerKinds';
 import { variantFor } from './trip/place';
 import { parseCheckpoints, parseTripKit, shapeOf } from './trip/shape';
 import { chargesLeftOf, copyRune, hpOf, perMember, withAll } from './trip/shared';
@@ -490,26 +491,9 @@ function parsePlaced(v: unknown): Placed {
   return parseRune(r);
 }
 
+/** A loot item through its kind's parser (DK-7): an unknown kind or a bad field is a bad save. */
 function parseLoot(v: unknown): LootItem {
-  const r = record(v);
-  switch (r.kind) {
-    case 'rune':
-      return { kind: 'rune', rune: oneOf(RUNE_IDS, r.rune) };
-    case 'method':
-      return { kind: 'method', method: oneOf(METHOD_IDS, r.method) };
-    case 'ink':
-      return { kind: 'ink', amount: count(r.amount) };
-    case 'solvent':
-      return { kind: 'solvent', solvent: oneOf(SOLVENT_IDS, r.solvent) };
-    case 'vellum':
-      return { kind: 'vellum', amount: count(r.amount) };
-    case 'doorway':
-      return { kind: 'doorway' };
-    case 'key':
-      return { kind: 'key', district: oneOf(DISTRICT_IDS, r.district) };
-    default:
-      return bad();
-  }
+  return parseLootItem(v) ?? bad();
 }
 
 function parseSample(v: unknown): CastSample {
@@ -843,7 +827,8 @@ function parseTrip(v: unknown): Trip {
   if (party.some((m) => hpOf(trip, m) < 1)) bad();
   if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
   if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= rooms.length)) bad();
-  if ([...trip.loot, ...trip.offers].filter((i) => i.kind === 'key').length > 1) bad();
+  // Each kind's `limitPerTrip` (one key, one recruit per apprentice).
+  if (overLimit([...trip.loot, ...trip.offers])) bad();
   if (trip.status === 'cleared' && !enc.heart) bad();
   if (trip.status === 'doorway' && enc.heart) bad();
   // A doorway is never banked and never offered at the heart (plan S11).

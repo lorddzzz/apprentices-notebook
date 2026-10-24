@@ -27,7 +27,14 @@ import type {
   TriggerRuneId,
 } from '$data';
 import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
-import type { CityCheckpoints, Json, RuleStates, TilePiece, TripKitState } from './districts/types';
+import type {
+  CityCheckpoints,
+  Json,
+  KitLootItem,
+  RuleStates,
+  TilePiece,
+  TripKitState,
+} from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
 import type { ObjectRef, RivalState } from './rivals/types';
@@ -512,7 +519,8 @@ export interface BattleSpec {
 }
 
 // ── Run layer (plan §2.8; R1 rebuilds it) ───────────────
-export type LootItem =
+/** The built-in loot items; `LootItem` adds the kit's kinds (DK-7, `KitLootItem`). */
+export type CoreLootItem =
   | { kind: 'rune'; rune: RuneId }
   | { kind: 'method'; method: MethodId }
   | { kind: 'solvent'; solvent: SolventId }
@@ -520,6 +528,8 @@ export type LootItem =
   | { kind: 'vellum'; amount: number }
   | { kind: 'doorway' } // never banked: picking it opens field rewiring (plan S11)
   | { kind: 'key'; district: DistrictId }; // opens `district` when banked (K-23)
+/** Any loot item: the core ones plus recruit, bindEvent and district kinds (DK-7). */
+export type LootItem = KitLootItem;
 
 /** A trip slot, left to right on the shelf. */
 export type SlotIndex = 0 | 1 | 2;

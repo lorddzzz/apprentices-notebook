@@ -16,8 +16,8 @@ import type { Telegraph } from '../rivals/types';
 import type {
   Action,
   BattleState,
+  CoreLootItem,
   EnemyUnit,
-  LootItem,
   Origin,
   Profile,
   Terrain,
@@ -154,11 +154,11 @@ export interface OutOfRoomEvent {
 
 // ── Offers (P6, DK-R1; DK-7) ────────────────────────────
 /** The core kinds every district may offer; districts add namespaced ones. */
-export type CoreOfferKindId = LootItem['kind'] | 'recruit' | 'bindEvent';
+export type CoreOfferKindId = CoreLootItem['kind'] | 'recruit' | 'bindEvent';
 export type OfferKindId = CoreOfferKindId | KitId;
-/** Loot items beyond today's `LootItem` (DK-7 widens `LootItem` to this). */
+/** Every loot item: the core ones, recruit, bindEvent and namespaced kinds (`LootItem` is this). */
 export type KitLootItem =
-  | LootItem
+  | CoreLootItem
   | { kind: 'recruit'; apprentice: ApprenticeId } // RC-4's semantics
   | { kind: 'bindEvent'; event: BindEvent } // granted through FD-9
   | { kind: KitId; data: Json; held?: true };
@@ -175,26 +175,45 @@ export interface OfferRollCtx {
   trip: Trip;
   /** The room just won (encounter index). */
   room: number;
+  /** The won room's loot table. */
+  table: KitLootTableId;
+  /** A seed of its own for this roll (never the table's draw, so the table rolls as before). */
   seed: number;
 }
-/** DK-R1: run on every roll; may force one offer and add extra cards. */
-export type OfferContributor = (ctx: OfferRollCtx) => {
+/** What a contributor adds to one roll (DK-R1). */
+export interface OfferContribution {
+  /** Offered after the table's `guaranteed` page, counting toward the normal offers like it. */
   must?: KitLootSpec;
+  /** Cards after the normal offers, never counted toward them. */
   extra?: readonly KitLootItem[];
-};
+}
+/** DK-R1: run on every roll; may force one offer and add extra cards. */
+export type OfferContributor = (ctx: OfferRollCtx) => OfferContribution;
+/** A weighted entry a kind joins to the end of the table's pool (the key, K-23). */
+export interface PoolEntry {
+  spec: KitLootSpec;
+  weight: number;
+}
 export interface OfferKind<I extends KitLootItem = KitLootItem> {
   id: OfferKindId;
-  /** Rolls this kind's own cards, beside the table (key, plunge, terms). */
+  /** Rolls this kind's own cards, beside the table (plunge, terms): offered after the normal ones. */
   roll?(ctx: OfferRollCtx): readonly I[];
-  /** Taking it: most cost a pick; a kind may also raise `picksLeft` (IQ D4). */
+  /** Weighted entries joining the end of the table's pool, drawn like any page (the key). */
+  joinPool?(ctx: OfferRollCtx): readonly PoolEntry[];
+  /**
+   * Taking it, after the pick is spent: most add it to `trip.loot`; the doorway sets the status
+   * instead; a kind may also raise `picksLeft` (IQ D4).
+   */
   onPick(trip: Trip, item: I): Trip;
   /** Returning home with it. */
   onBank(profile: Profile, item: I): Profile;
   /** On a wipe; absent = lost with the rest of the trip loot. */
   onWipe?(profile: Profile, item: I): Profile;
-  /** At most this many in one trip's loot (the key: 1; a recruit: 1 per apprentice). */
+  /** At most this many in one trip's loot and offers (the key: 1; a recruit: 1 per apprentice). */
   limitPerTrip?: number;
-  /** Save parsing: the item or null when it is not this kind's. */
+  /** Groups items for `limitPerTrip` (a recruit by apprentice); absent = the whole kind. */
+  limitKey?(item: I): string;
+  /** Save parsing: the item or null when it is not a valid one of this kind. */
   parse(raw: unknown): I | null;
   /** Card key in `src/ui/districts` (DK-12). */
   card: string;
