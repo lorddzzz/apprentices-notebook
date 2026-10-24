@@ -51,7 +51,10 @@ function landingOf(e: GameEvent): Coord | null {
   }
 }
 
-/** Party members an event hurts: damage, a crush (the pushed unit and what it hit), a drop. */
+/**
+ * Party members an event hurts: damage, a crush (the pushed unit and what it hit), a drop. A
+ * warded hit (`unharmed`, AH P14) is not a hit and hurts nobody.
+ */
 function hurtBy(e: GameEvent): UnitId[] {
   switch (e.type) {
     case 'damage':
@@ -63,6 +66,8 @@ function hurtBy(e: GameEvent): UnitId[] {
     }
     case 'dropped':
       return e.unit.member ? [e.unit.id] : [];
+    case 'unharmed':
+      return [];
     default:
       return [];
   }

@@ -1,4 +1,5 @@
 import { ENEMIES } from '$data';
+import { HABIT_ARRIVAL_HOOKS } from './arrival-habits';
 import { type Ctx, fizzled } from './ctx';
 import { KIT } from './districts/kit';
 import { type Coord, sameCoord } from './grid';
@@ -309,7 +310,7 @@ function districtArrivalHooks(): ArrivalHookList {
  * is not ready while this file loads); nothing registers at runtime.
  */
 export function arrivalHooks(): ArrivalHookList {
-  composed ??= [...CORE_ARRIVAL_HOOKS, ...districtArrivalHooks()];
+  composed ??= [...CORE_ARRIVAL_HOOKS, ...HABIT_ARRIVAL_HOOKS, ...districtArrivalHooks()];
   return composed;
 }
 

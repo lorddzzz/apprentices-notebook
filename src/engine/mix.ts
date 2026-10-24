@@ -22,6 +22,7 @@ import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, neighbors4 } from './grid';
+import { habitRule } from './habits';
 import { strikePiece } from './pieces';
 import {
   blocksUnits,
@@ -402,6 +403,10 @@ function tilesWith(ctx: Ctx, id: Layered): { at: Coord; layer: Layer }[] {
   return out;
 }
 
+/** A steam-warded unit's brand mark is that habit's fine print (AH P14: steam spares, ink marks). */
+const brandLine = (u: Unit): LineId =>
+  habitRule(u).wards?.includes('steam') ? 'steamproof:brandCloud' : line('ink', 'brandCloud');
+
 /**
  * Round end, before `decayStates`: Thunderheads storm again, a Brand cloud marks whoever stands
  * in it, a Kettle scalds each unit beside it, and fire burns whoever stands in it. E6 calls it.
@@ -413,7 +418,7 @@ export function roundEndChemistry(ctx: Ctx): void {
     const u = unitAt(s, at);
     if (!u || u.mark) continue;
     withOrigin(ctx, layer.origin, () =>
-      withLine(ctx, line('ink', 'brandCloud'), () => markUnit(ctx, u, layer.origin)),
+      withLine(ctx, brandLine(u), () => markUnit(ctx, u, layer.origin)),
     );
   }
   for (const { at, layer } of tilesWith(ctx, 'kettle')) {
@@ -423,7 +428,11 @@ export function roundEndChemistry(ctx: Ctx): void {
     withOrigin(ctx, layer.origin, () =>
       withLine(ctx, line('steam', 'kettle'), () => {
         for (const u of near) {
-          dealDamage(ctx, u, CHEMISTRY.kettleHeat, 'Kettle', [], { heading: null, at });
+          dealDamage(ctx, u, CHEMISTRY.kettleHeat, 'Kettle', [], {
+            heading: null,
+            at,
+            harm: 'steam',
+          });
         }
       }),
     );

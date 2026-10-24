@@ -3,6 +3,7 @@ import {
   type BurstId,
   type BurstRow,
   CHEMISTRY,
+  type HarmKind,
   type LineId,
   type Meets,
   TUNING,
@@ -12,6 +13,7 @@ import { burnGates } from './current';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, step } from './grid';
+import { habitRule } from './habits';
 import { applyMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
 import { push } from './push';
@@ -88,9 +90,20 @@ const rowFor = (on: BurstRow['on']): BurstRow => {
   return r;
 };
 
-function hit(ctx: Ctx, units: readonly Unit[], damage: number, source: string, from: Coord): void {
-  for (const u of units) dealDamage(ctx, u, damage, source, [], { heading: null, at: from });
+function hit(
+  ctx: Ctx,
+  units: readonly Unit[],
+  damage: number,
+  source: string,
+  from: Coord,
+  harm?: HarmKind,
+): void {
+  for (const u of units)
+    dealDamage(ctx, u, damage, source, [], { heading: null, at: from, ...(harm ? { harm } : {}) });
 }
+
+/** Whether a unit's habit wards steam (AH P14): the steam bursts skip it. */
+const wardsSteam = (u: Unit): boolean => habitRule(u).wards?.includes('steam') === true;
 
 function announce(
   ctx: Ctx,
@@ -156,10 +169,16 @@ function ignite(
   }
 }
 
-/**
- * Storm: 2 to every unit in the connected cloud. `twice` units (marked at the start) take it a
- * second time, as a separate hit.
- */
+interface StormOpts {
+  /** Marked units (at the start) take it a second time, as a separate hit (Brand storm). */
+  doubleMarked?: boolean;
+  /** Steam by default (AH P14); Flashover's burst is fire (null). */
+  harm?: HarmKind | null;
+  /** The line a hit on a steam-warded unit carries when this storm is not steam (fine print). */
+  throughWard?: LineId;
+}
+
+/** Storm: 2 to every unit in the connected cloud, tagged as steam unless `opts` says otherwise. */
 function storm(
   ctx: Ctx,
   at: Coord,
@@ -167,8 +186,10 @@ function storm(
   id: BurstId,
   damage: number,
   source: string,
-  doubleMarked = false,
+  opts: StormOpts = {},
 ): Coord[] {
+  const { doubleMarked = false, throughWard } = opts;
+  const harm = opts.harm === undefined ? 'steam' : (opts.harm ?? undefined);
   const net = cloudNet(ctx.s, at);
   const tiles = net.length ? net : [at];
   const units = unitsNear(ctx, tiles, reachOf(flow));
@@ -176,7 +197,9 @@ function storm(
   announce(ctx, id, at, tiles, units);
   for (const u of units) {
     const n = doubleMarked && marked.has(u.id) ? CHEMISTRY.markedStormHits : 1;
-    for (let i = 0; i < n; i++) hit(ctx, [u], damage, source, at);
+    const once = () => hit(ctx, [u], damage, source, at, harm);
+    for (let i = 0; i < n; i++)
+      throughWard && wardsSteam(u) ? withLine(ctx, throughWard, once) : once();
   }
   return tiles;
 }
@@ -269,13 +292,16 @@ function pageKettle(ctx: Ctx, at: Coord, flow: Flow | null): void {
     rounds: TUNING.cloudRounds,
     origin: flow?.origin ?? null,
   };
-  hit(ctx, units, rowFor('kettle').damage, 'Kettle', at);
+  hit(ctx, units, rowFor('kettle').damage, 'Kettle', at, 'steam');
 }
 
 /** Flashover: a storm through the fog, then every fog tile in it burns for a round. */
 function pageFog(ctx: Ctx, at: Coord, flow: Flow | null): void {
   const s = ctx.s;
-  const tiles = storm(ctx, at, flow, 'page:greaseFog', rowFor('greaseFog').damage, 'Flashover');
+  const tiles = storm(ctx, at, flow, 'page:greaseFog', rowFor('greaseFog').damage, 'Flashover', {
+    harm: null,
+    throughWard: 'steamproof:greaseFog',
+  });
   for (const c of tiles) {
     if (tileAt(s, c).state?.id === 'greaseFog') {
       tileAt(s, c).state = fireLayer(flow?.origin ?? null, CHEMISTRY.flashoverFireRounds);
@@ -358,7 +384,9 @@ function burstTile(ctx: Ctx, at: Coord, flow: Flow | null): boolean {
       return run(() => ignite(ctx, at, flow, 'page:pool', rowFor('pool'), 'Pool fire'));
     case 'brandCloud':
       return run(() =>
-        storm(ctx, at, flow, 'page:brandCloud', rowFor('brandCloud').damage, 'Brand storm', true),
+        storm(ctx, at, flow, 'page:brandCloud', rowFor('brandCloud').damage, 'Brand storm', {
+          doubleMarked: true,
+        }),
       );
     case 'greaseFog':
       return run(() => pageFog(ctx, at, flow));

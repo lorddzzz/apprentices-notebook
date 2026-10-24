@@ -479,14 +479,13 @@ export const LINES: readonly LineDef[] = [
     district: 'cartographers',
     text: 'Graphite undoes the states the invention landed and the moves it made, a round later.',
   },
-  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop, AH-2 markTwice/nearUnison/longTouch, AH-3 holdTwo/restoreErase)
+  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop, AH-2 markTwice/nearUnison/longTouch, AH-3 holdTwo/restoreErase, AH-4 fuseOnStep/steamproof)
   {
     id: 'fuseOnStep:jar',
     subject: 'fuseOnStep',
     meets: 'jar',
     district: 'seam',
     text: 'A Fuse jar opens under its owner on any arrival, even when pushed, pulled or swapped onto it.',
-    pending: true,
   },
   {
     id: 'markTwice:deepMark',
@@ -501,7 +500,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'greaseFog',
     district: 'seam',
     text: "A flashover's burst is fire, so it still burns through the steamproofing.",
-    pending: true,
   },
   {
     id: 'steamproof:brandCloud',
@@ -509,7 +507,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'brandCloud',
     district: 'seam',
     text: 'A brand storm cannot hurt them, but its ink still marks them.',
-    pending: true,
   },
   {
     id: 'holdTwo:member',

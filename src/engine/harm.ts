@@ -1,6 +1,8 @@
 import type { HabitId, HarmKind, LineId } from '$data';
 import type { Ctx } from './ctx';
 import type { Dir } from './grid';
+import { habitOf, ruleOf } from './habits';
+import { findUnit } from './queries';
 import type { UnitId } from './types';
 
 /**
@@ -34,13 +36,28 @@ export interface HarmGuard {
 }
 export type HarmGuardList = readonly HarmGuard[];
 
-/** AH's guards (the habit wards land in AH-4). */
-export const HABIT_GUARDS: HarmGuardList = [];
+const PASS: HarmVerdict = { kind: 'pass' };
+
+/**
+ * A habit's `wards` (AH P14, the towel-bearer's `steamproof`): a hit tagged with a warded harm
+ * kind does not happen to its bearer. The `unharmed` event carries the habit.
+ */
+const habitWards: HarmGuard = {
+  id: 'habit:wards',
+  kinds: ['hit'],
+  run(ctx, harm) {
+    if (!harm.harm) return PASS;
+    const u = findUnit(ctx.s, harm.unit);
+    const habit = u ? habitOf(u) : null;
+    return habit && ruleOf(habit).wards?.includes(harm.harm) ? { kind: 'cancel', habit } : PASS;
+  },
+};
+
+/** AH's guards. */
+export const HABIT_GUARDS: HarmGuardList = [habitWards];
 
 /** Every guard, in order: habits first; BH, IQ and RV append their own lists here. */
 export const HARM_GUARDS: HarmGuardList = [...HABIT_GUARDS];
-
-const PASS: HarmVerdict = { kind: 'pass' };
 
 /** The first guard that does not pass decides; with none, the harm goes on. */
 export function guardHarm(ctx: Ctx, harm: Harm, guards: HarmGuardList = HARM_GUARDS): HarmVerdict {

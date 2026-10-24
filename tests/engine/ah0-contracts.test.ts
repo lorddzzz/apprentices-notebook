@@ -95,7 +95,7 @@ describe('AH-W0 contracts: fine print', () => {
     const ah = LINES.filter((l) => subjects.has(l.subject));
     expect(ah.length).toBeGreaterThanOrEqual(18);
     for (const l of ah) {
-      // AH-1 fires the Pull and Hop rows, AH-2 the lattice trigger/source habits, AH-3 holdTwo and restoreErase; the rest wait.
+      // AH-1 fires the Pull and Hop rows, AH-2 the lattice trigger/source habits, AH-3 holdTwo and restoreErase, AH-4 fuseOnStep and steamproof; the rest wait.
       const fired = [
         'pull',
         'hop',
@@ -104,6 +104,8 @@ describe('AH-W0 contracts: fine print', () => {
         'longTouch',
         'holdTwo',
         'restoreErase',
+        'fuseOnStep',
+        'steamproof',
       ].includes(l.subject);
       expect(l.pending, l.id).toBe(fired ? undefined : true);
       expect(l.text.length, l.id).toBeGreaterThan(10);
