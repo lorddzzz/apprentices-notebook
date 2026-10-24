@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: FD-6, FN-6, FN-7 (08:19). Wake-up #1 scheduled 12:01 UTC (session-only cron).
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: FD-6, FN-7 (08:19). Wake-up #1 scheduled 12:01 UTC (session-only cron).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -58,7 +58,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | RV-3 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a6b13c1cf4c97461d @ 5ec399a | shared | `rivals/wick.ts`: `LONG_WICK` TrickDef `canals:longWick` (one candidate per owned jar, oldest first), `jarLocation`, `lockStatus` (ok or `LockLost`; for RV-6 preview); opening = ordinary `openJar` (self-harm included), no charge, step trigger stays live. resolve.ts: lazy `trickOf(id)`, trick branch, failed order → `orderFails` + starved fallback, `RivalState.locked` filled at telegraph/cleared at resolve. plan.ts: `simulate` takes trick intents, `bestTrickPlan`. Golden unchanged. **RV-14:** register the wick through DK modules |
 | FN-3 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a3c319f0aa00d0be8 @ bd5be1d | ~1% | Already done by FN-0/FD-8 (ten level-I variants in `seam-runes.ts` with stable ids; hook sites in push/mix/targets/bursts call `hasFootnote(ctx, id)`); added `tests/engine/fn3-seam-runes.test.ts` pinning the ten ids/slots and checking every `hasFootnote` literal is registered |
 | FD-6 | Strong / Opus 5.5 / medium | M | running | worktree (08:19) | | cap unwinding + Graphite context line |
-| FN-6 | Medium / Sonnet 5.5 / high | S | running | worktree (08:19) | | owner's hand in Bench |
+| FN-6 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a5397baf44a75ce39 @ d95ee48 | shared | `bench.ts` `lineTextFor(profile, line)` (base text + written I/II variant texts), `trialFootnotes(profile)`; Bench sessions get `{footnotes}` (bench.svelte.ts), new-lines list uses `lineTextFor` (Bench.svelte, one expression; browser check folded into the session's final phone check). describe/peek untouched (they don't render line text). Bench awards no points (checked via profile). **FN-9/10:** Codex margin should use `lineTextFor`; export `FootnoteIds` type from `$engine` |
 | FN-7 | Fast / Haiku 5.5 / high | S | running | worktree (08:19) | | Lab variant toggle |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 

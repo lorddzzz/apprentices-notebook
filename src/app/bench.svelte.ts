@@ -17,6 +17,7 @@ import {
   setSolvent,
   statusOf,
   trialActions,
+  trialFootnotes,
 } from './bench';
 import type { GameStore } from './game.svelte';
 import type { PaletteItem } from './lab';
@@ -52,7 +53,9 @@ export class BenchStore {
   private load(): void {
     this.session?.dispose();
     const state = sceneBattle(this.scene, this.profile, this.draft);
-    this.session = new BattleSession({ state, events: [] }, 'lab', {});
+    this.session = new BattleSession({ state, events: [] }, 'lab', {
+      footnotes: trialFootnotes(this.profile),
+    });
   }
 
   open(): void {

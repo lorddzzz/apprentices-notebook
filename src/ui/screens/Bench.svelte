@@ -6,7 +6,7 @@
     choicesFor,
     defaultName,
     eventsKnown,
-    lineText,
+    lineTextFor,
     methodsKnown,
     sceneItems,
     subjectsIn,
@@ -122,7 +122,7 @@
     {#if bench.witnessed.length > 0}
       <ul class="seen" data-testid="seen">
         {#each bench.witnessed as id (id)}
-          <li>{lineText(id)}</li>
+          <li>{lineTextFor(profile, id)}</li>
         {/each}
       </ul>
     {/if}

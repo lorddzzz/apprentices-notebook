@@ -11,12 +11,15 @@ import {
   type RuneRef,
   SOLVENTS,
   type SolventId,
+  slotKey,
+  VARIANTS,
 } from '$data';
 import {
   type Action,
   type Aim,
   type BattleState,
   type Coord,
+  footnoteIds,
   type GameEvent,
   headlineOf,
   type InventionLibrary,
@@ -315,3 +318,16 @@ export const newLines = (log: readonly GameEvent[], seen: readonly LineId[]): Li
 /** The sentence a witnessed line reads as. */
 export const lineText = (id: LineId): string =>
   LINES.find((l) => l.id === id)?.text ?? 'This one is still being written.';
+
+/** The sentence with the household's margin written under it (level I, then II), owner's hand. */
+export function lineTextFor(p: Profile, id: LineId): string {
+  const written = footnoteIds(p);
+  const margin = ([1, 2] as const).flatMap((level) => {
+    const variant = VARIANTS.find((v) => v.id === written[slotKey(id, level)]);
+    return variant ? [variant.text] : [];
+  });
+  return [lineText(id), ...margin].join(' ');
+}
+
+/** The footnotes a Bench trial applies (P6): the written ones. The Bench awards no points. */
+export const trialFootnotes = (p: Profile): ReturnType<typeof footnoteIds> => footnoteIds(p);

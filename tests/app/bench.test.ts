@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { applyAction, newProfile, type Profile, writeInvention } from '$engine';
+import { VARIANTS } from '$data';
+import { applyAction, type GameEvent, newProfile, type Profile, writeInvention } from '$engine';
 import {
   choicesFor,
   type Draft,
@@ -8,6 +9,8 @@ import {
   emptyScene,
   eventsKnown,
   inventionToWrite,
+  lineText,
+  lineTextFor,
   newLines,
   paintScene,
   pickMethod,
@@ -20,6 +23,7 @@ import {
   statusOf,
   subjectsIn,
   trialActions,
+  trialFootnotes,
 } from '../../src/app/bench';
 
 /** The Bench reducer (design §6.1; plan P37): fits, headline, trials, writing. */
@@ -240,3 +244,43 @@ describe('naming and writing', () => {
 function fail(): never {
   throw new Error('expected a value');
 }
+
+describe("the owner's hand (FN-6)", () => {
+  const written = (points = 8): Profile =>
+    household({ footnotes: { bolt: { points, slots: { 'bolt:empty@1': 'bolt-empty-far' } } } });
+
+  test('a witnessed line reads with the written variant under it, and plain without one', () => {
+    const plain = lineTextFor(household(), 'bolt:empty');
+    expect(plain).toBe(lineText('bolt:empty'));
+    const mine = lineTextFor(written(), 'bolt:empty');
+    expect(mine).toBe(
+      `${lineText('bolt:empty')} ${VARIANTS.find((v) => v.id === 'bolt-empty-far')?.text}`,
+    );
+    expect(lineTextFor(written(), 'shove:wall')).toBe(lineText('shove:wall'));
+  });
+
+  const landing = (p: Profile) => {
+    const d = impulse();
+    const state = sceneBattle(emptyScene(), p, d);
+    const actions = trialActions(state, d, { x: 5, y: 2 }) ?? [];
+    return actions.reduce(
+      (acc, a) => {
+        const r = applyAction(acc.state, a, trialFootnotes(p));
+        return { state: r.state, events: [...acc.events, ...r.events] };
+      },
+      { state, events: [] as GameEvent[] },
+    );
+  };
+
+  test('a Bench trial applies the written footnote, and awards no points', () => {
+    const without = landing(household()).events.find((e) => e.type === 'lands');
+    const p = written();
+    const run = landing(p);
+    const withIt = run.events.find((e) => e.type === 'lands');
+    expect(without?.type === 'lands' && withIt?.type === 'lands').toBe(true);
+    expect(withIt).not.toEqual(without);
+    // No path through the Bench touches points: the profile is read, never rewritten.
+    expect(p.footnotes.bolt?.points).toBe(8);
+    expect(trialFootnotes(p)).toEqual({ 'bolt:empty@1': 'bolt-empty-far' });
+  });
+});
