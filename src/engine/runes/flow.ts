@@ -1,5 +1,6 @@
-import type { SealRuneId, TriggerRuneId } from '$data';
+import type { LineId, SealRuneId, TriggerRuneId } from '$data';
 import { type Coord, DIRS, type Dir, neighbors4, step, turnLeft, turnRight } from '../grid';
+import { ruleOf, sameSide } from '../habits';
 import { sealedContext } from '../jars';
 import { inBoard } from '../queries';
 import { targetOn, whereIs } from '../targets';
@@ -118,13 +119,16 @@ function seenAt(
   return tile ? { unit, at, tile } : null;
 }
 
-/** Tally: marks, collars, shackles, states (and compounds) and jars on the target and its tile. */
-export function tallyCount(s: BattleState, snap: Snapshot, t: Target): number {
+/**
+ * Tally: marks, collars, shackles, states (and compounds) and jars on the target and its tile. A
+ * mark counts `markWeight` (the notary's habit, AH P13: 2); a deep mark is still one mark.
+ */
+export function tallyCount(s: BattleState, snap: Snapshot, t: Target, markWeight = 1): number {
   const seen = seenAt(s, snap, t);
   if (!seen) return 0;
   const { unit, tile } = seen;
   let n = 0;
-  if (unit?.mark) n++;
+  if (unit?.mark) n += markWeight;
   if (unit && unit.collar !== false) n++;
   if (unit && unit.shackle > 0) n++;
   if (tile.state) n++;
@@ -150,31 +154,96 @@ export function beside(s: BattleState, snap: Snapshot, t: Target): boolean {
   });
 }
 
+/** How a Unison passed: on the target, beside it (AH P16; `besideUnit` via a unit entry), or not. */
+export type UnisonPass = 'on' | 'beside' | 'besideUnit' | null;
+
 /**
- * Unison (P26): another apprentice's cast earlier this player phase had this target among its
- * step targets. Foe actions don't count (only members' casts are looked at).
+ * Unison (P26): another unit of the caster's side (`sameSide`: another apprentice for a member)
+ * had this target among its step targets earlier this player phase. With `reach` 1 (the tuner's
+ * habit, AH P16) a landing on a tile orthogonally beside the target passes too; a unit entry
+ * counts where that unit stood in this cast's snapshot.
  */
-export function unisonWith(snap: Snapshot, caster: string, t: Target): boolean {
+export function unisonWith(
+  s: BattleState,
+  snap: Snapshot,
+  caster: string,
+  t: Target,
+  reach = 0,
+): UnisonPass {
+  const me = snap.units.find((u) => u.id === caster);
+  const others = snap.landed.filter((e) => {
+    if (e.caster === caster) return false;
+    const by = snap.units.find((u) => u.id === e.caster);
+    return by !== undefined && (me ? sameSide(me, by) : by.kind === 'member');
+  });
   const k = targetKey(t);
-  return snap.landed.some(
-    (e) =>
-      e.caster !== caster &&
-      snap.units.some((u) => u.id === e.caster && u.kind === 'member') &&
-      e.targets.includes(k),
-  );
+  if (others.some((e) => e.targets.includes(k))) return 'on';
+  if (reach < 1) return null;
+  const here = seenAt(s, snap, t)?.at;
+  if (!here) return null;
+  let found: UnisonPass = null;
+  for (const e of others)
+    for (const key of e.targets) {
+      const at = landedAt(snap, key);
+      if (!at || manhattan(at, here) !== 1) continue;
+      if (key.startsWith('u:')) return 'besideUnit';
+      found = 'beside';
+    }
+  return found;
+}
+
+/** Where a landed entry stood in the snapshot: a tile's coordinate, a unit's snapshot tile. */
+function landedAt(snap: Snapshot, key: string): Coord | null {
+  if (key.startsWith('u:')) return snap.units.find((u) => `u:${u.id}` === key)?.pos ?? null;
+  const [x, y] = key.slice(2).split(',').map(Number);
+  return x === undefined || y === undefined ? null : { x, y };
+}
+
+const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+
+/**
+ * One target through a trigger: whether it passes, whether only the flow's habit let it through
+ * (the habit's headline, AH P11), and the habit fine-print line it met.
+ */
+export interface Trial {
+  pass: boolean;
+  byHabit: boolean;
+  line: LineId | null;
+}
+
+/** A trigger's verdict on one target, reading only the cast's snapshot and the flow's habit. */
+export function trial(s: BattleState, rune: TriggerRuneId, t: Target, flow: Flow): Trial {
+  const rule = ruleOf(flow.habit);
+  switch (rune) {
+    case 'tally': {
+      const weight = rule.tallyMarkWeight ?? 1;
+      const n = tallyCount(s, flow.snapshot, t, weight);
+      const pass = n >= 2;
+      if (weight === 1) return { pass, byHabit: false, line: null };
+      const plain = tallyCount(s, flow.snapshot, t);
+      const deep = seenAt(s, flow.snapshot, t)?.unit?.mark?.deep === true;
+      return {
+        pass,
+        byHabit: pass && plain < 2,
+        line: deep ? 'markTwice:deepMark' : null,
+      };
+    }
+    case 'brink':
+      return { pass: beside(s, flow.snapshot, t), byHabit: false, line: null };
+    case 'unison': {
+      const how = unisonWith(s, flow.snapshot, flow.caster, t, rule.unisonReach ?? 0);
+      return {
+        pass: how !== null,
+        byHabit: how === 'beside' || how === 'besideUnit',
+        line: how === 'besideUnit' ? 'nearUnison:unit' : null,
+      };
+    }
+  }
 }
 
 /** Whether a trigger lets one target through, reading only the cast's snapshot. */
-export function passes(s: BattleState, rune: TriggerRuneId, t: Target, flow: Flow): boolean {
-  switch (rune) {
-    case 'tally':
-      return tallyCount(s, flow.snapshot, t) >= 2;
-    case 'brink':
-      return beside(s, flow.snapshot, t);
-    case 'unison':
-      return unisonWith(flow.snapshot, flow.caster, t);
-  }
-}
+export const passes = (s: BattleState, rune: TriggerRuneId, t: Target, flow: Flow): boolean =>
+  trial(s, rune, t, flow).pass;
 
 // ── Seals (J1, P32) ──
 

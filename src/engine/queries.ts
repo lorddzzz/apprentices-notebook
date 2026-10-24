@@ -13,6 +13,7 @@ import {
   sameCoord,
   step,
 } from './grid';
+import { habitRule } from './habits';
 import { aimTargets, boltTravel, whereIs } from './resolve';
 import type {
   Aim,
@@ -302,12 +303,42 @@ export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[]
     case 'touch':
       return [
         { kind: 'self' },
-        ...DIRS.map((d) => step(m.pos, d))
-          .filter((c) => inBoard(s, c))
+        ...touchTiles(s, m)
           .sort(byReadingOrder)
           .map((at): Aim => ({ kind: 'tile', at })),
       ];
   }
+}
+
+/** The tiles a Touch aims: the four beside the caster, and with `touchReach` 2 (AH P17) those two away. */
+function touchTiles(s: BattleState, m: Unit): Coord[] {
+  const near = DIRS.map((d) => step(m.pos, d));
+  const far =
+    (habitRule(m).touchReach ?? 1) >= 2
+      ? DIRS.filter((d) => reachOver(s, m.pos, d)).map((d) => step(step(m.pos, d), d))
+      : [];
+  return [...near, ...far].filter((c) => inBoard(s, c));
+}
+
+/**
+ * The reach rule (AH P3, Hop and long Touch): passing over the tile next to `from` toward `dir` is
+ * allowed over a unit, jar, cloud, lingering state, water, a drop or a cut, but not over a tile
+ * that blocks units (plates, Walls, kettles, skid plates, lock gates, grates).
+ */
+export function reachOver(s: BattleState, from: Coord, dir: Dir): boolean {
+  const mid = step(from, dir);
+  return inBoard(s, mid) && !blocksUnits(tileAt(s, mid));
+}
+
+/**
+ * A long Touch (AH P17): the tile it passed over when `at` is two tiles from the caster in a
+ * straight line, else null (an ordinary Touch).
+ */
+export function longTouchOver(from: Coord, at: Coord): Coord | null {
+  const dx = at.x - from.x;
+  const dy = at.y - from.y;
+  const straight = (dx === 0 && Math.abs(dy) === 2) || (dy === 0 && Math.abs(dx) === 2);
+  return straight ? { x: from.x + dx / 2, y: from.y + dy / 2 } : null;
 }
 
 export function sameAim(a: Aim, b: Aim): boolean {

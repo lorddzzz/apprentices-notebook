@@ -4,7 +4,7 @@ import { type Ctx, emit, ref, withLine } from './ctx';
 import { type Coord, DIRS, type Dir, opposite, step } from './grid';
 import { shove } from './movement';
 import { push } from './push';
-import { blocksUnits, findUnit, inBoard, isAlive, tileAt, unitAt } from './queries';
+import { blocksUnits, findUnit, inBoard, isAlive, reachOver, tileAt, unitAt } from './queries';
 import type { BattleState, Tile, Unit, UnitId } from './types';
 
 /**
@@ -221,12 +221,5 @@ export function applyBasic(ctx: Ctx, unit: UnitId, dir: Dir): void {
   BASIC_ACTIONS[a].apply(ctx, unit, dir);
 }
 
-/**
- * The reach rule (AH P3, Hop and long Touch): passing over the tile next to `from` toward `dir` is
- * allowed over a unit, jar, cloud, lingering state, water, a drop or a cut, but not over a tile
- * that blocks units (plates, Walls, kettles, skid plates, lock gates, grates).
- */
-export function reachOver(s: BattleState, from: Coord, dir: Dir): boolean {
-  const mid = step(from, dir);
-  return inBoard(s, mid) && !blocksUnits(tileAt(s, mid));
-}
+/** The reach rule (AH P3) lives with the other board reads; Touch shares it. */
+export { reachOver } from './queries';

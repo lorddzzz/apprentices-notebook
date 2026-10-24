@@ -2,6 +2,7 @@ import type { BindEvent } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { type Coord, type Dir, sameCoord } from './grid';
+import { habitOf } from './habits';
 import type { Hook } from './hooks';
 import { cloudNet } from './networks';
 import { findUnit, isAlive, isCloud, tileAt, unitAt } from './queries';
@@ -181,7 +182,7 @@ function runBound(
     lay: false,
     gifted: false,
     solvent: bound.solvent,
-    habit: caster.kind === 'member' ? caster.lean.habit : null,
+    habit: habitOf(caster),
     depth: 0,
     auras: [],
   };

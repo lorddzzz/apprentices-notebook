@@ -2,6 +2,7 @@ import type { RuneRef, SolventId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
+import { habitOf } from './habits';
 import { jarLimit } from './leans';
 import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
@@ -79,7 +80,7 @@ export function runDetached(
     lay: false,
     gifted: false,
     solvent: extra.solvent ?? null,
-    habit: sealed ? sealed.habit : unit?.kind === 'member' ? unit.lean.habit : null,
+    habit: sealed ? sealed.habit : unit ? habitOf(unit) : null,
     depth: 0,
     auras: sealed ? [...sealed.auras] : [],
     ...(sealed?.giftedAuras ? { giftedAuras: [...sealed.giftedAuras] } : {}),

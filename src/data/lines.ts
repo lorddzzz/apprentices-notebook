@@ -479,7 +479,7 @@ export const LINES: readonly LineDef[] = [
     district: 'cartographers',
     text: 'Graphite undoes the states the invention landed and the moves it made, a round later.',
   },
-  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop)
+  // AH (actions-habits plan P4–P18): text final, `pending` until AH-1–AH-4 fire them (AH-1 fired pull/hop, AH-2 markTwice/nearUnison/longTouch)
   {
     id: 'fuseOnStep:jar',
     subject: 'fuseOnStep',
@@ -494,7 +494,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'deepMark',
     district: 'seam',
     text: 'A deep mark is still one mark in this Tally: it counts 2, not 3.',
-    pending: true,
   },
   {
     id: 'steamproof:greaseFog',
@@ -526,7 +525,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'unit',
     district: 'seam',
     text: 'A unit counts where it stood when the cast began, even if it has moved since.',
-    pending: true,
   },
   {
     id: 'longTouch:cloud',
@@ -534,7 +532,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'cloud',
     district: 'seam',
     text: 'A long Touch reaches past a cloud in between, where Bolt would stop.',
-    pending: true,
   },
   {
     id: 'longTouch:unit',
@@ -542,7 +539,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'unit',
     district: 'seam',
     text: 'A long Touch reaches past a unit in between, where Bolt would stop.',
-    pending: true,
   },
   {
     id: 'restoreErase:jar',

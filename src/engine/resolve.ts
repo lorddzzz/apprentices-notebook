@@ -3,14 +3,14 @@ import { cloneData } from './clone';
 import { type Ctx, emit, fizzled, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
-import { ruleOf } from './habits';
+import { habitOf, ruleOf, withHabit } from './habits';
 import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
 import { sameStateNet } from './networks';
-import { findUnit, giftedIn, unitAt } from './queries';
+import { findUnit, giftedIn, isCloud, longTouchOver, tileAt, unitAt } from './queries';
 import { handlerFor } from './runes';
-import { forkSide, jarFor, passes, seep, toll } from './runes/flow';
+import { forkSide, jarFor, seep, toll, trial } from './runes/flow';
 import { aimTargets, boltTravel, whereIs } from './targets';
 import type {
   Aim,
@@ -211,8 +211,16 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         return;
       }
       case 'trigger': {
-        const through = live.filter((t) => passes(s, st.rune, t, flow));
-        emit(ctx, { type: 'triggered', rune: st.rune, passed: through.length > 0 });
+        const trials = live.map((t) => ({ t, r: trial(s, st.rune, t, flow) }));
+        const through = trials.filter((x) => x.r.pass).map((x) => x.t);
+        const verdict = () =>
+          emit(ctx, { type: 'triggered', rune: st.rune, passed: through.length > 0 });
+        // The habit's headline when it let a target through (AH P11), its fine print when met.
+        const byHabit = flow.habit && trials.some((x) => x.r.byHabit) ? flow.habit : null;
+        const line = trials.find((x) => x.r.line)?.r.line ?? null;
+        const tagged = byHabit ? () => withHabit(ctx, byHabit, verdict) : verdict;
+        if (line) withLine(ctx, line, tagged);
+        else tagged();
         span();
         queue(st.next, through, flow);
         return;
@@ -406,12 +414,25 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
     const gifted = giftedIn(caster, spell.source);
     const { targets, headings } = aimTargets(s, caster, spell.source, aim, gifted, ctx.footnotes);
     const first = targets[0];
-    emit(ctx, {
-      type: 'aimed',
-      source: spell.source,
-      targets: cloneData(targets),
-      heading: first ? (headings.get(targetKey(first)) ?? null) : null,
-    });
+    const aimed = () =>
+      emit(ctx, {
+        type: 'aimed',
+        source: spell.source,
+        targets: cloneData(targets),
+        heading: first ? (headings.get(targetKey(first)) ?? null) : null,
+      });
+    const over =
+      spell.source === 'touch' && aim.kind === 'tile' ? longTouchOver(caster.pos, aim.at) : null;
+    const habit = habitOf(caster);
+    if (over && habit) {
+      // A long Touch is the habit's headline (AH P11, P17); what it passed over is fine print.
+      const line = unitAt(s, over)
+        ? 'longTouch:unit'
+        : isCloud(tileAt(s, over))
+          ? 'longTouch:cloud'
+          : null;
+      withHabit(ctx, habit, () => (line ? withLine(ctx, line, aimed) : aimed()));
+    } else aimed();
     if (spell.source === 'bolt') flight(ctx, caster, aim, gifted);
     const landed = { caster: caster.id, targets: targets.map(targetKey) };
     s.landed.push(landed);
@@ -433,7 +454,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       lay: false,
       gifted: false,
       solvent: null,
-      habit: caster.kind === 'member' ? caster.lean.habit : null,
+      habit: habitOf(caster),
       depth: 0,
       auras: spell.sourceAuras,
     };

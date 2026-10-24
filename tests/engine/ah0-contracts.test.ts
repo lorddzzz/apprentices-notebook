@@ -95,8 +95,8 @@ describe('AH-W0 contracts: fine print', () => {
     const ah = LINES.filter((l) => subjects.has(l.subject));
     expect(ah.length).toBeGreaterThanOrEqual(18);
     for (const l of ah) {
-      // AH-1 fires the Pull and Hop rows; the habit rows wait for AH-2–AH-4.
-      const fired = l.subject === 'pull' || l.subject === 'hop';
+      // AH-1 fires the Pull and Hop rows, AH-2 the lattice trigger/source habits; the rest wait.
+      const fired = ['pull', 'hop', 'markTwice', 'nearUnison', 'longTouch'].includes(l.subject);
       expect(l.pending, l.id).toBe(fired ? undefined : true);
       expect(l.text.length, l.id).toBeGreaterThan(10);
     }
