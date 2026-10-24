@@ -1,4 +1,4 @@
-import { MEMBER_IDS } from '$data';
+import { type ApprenticeId, MEMBER_IDS } from '$data';
 import {
   type Action,
   applyAction,
@@ -45,7 +45,17 @@ function bestAttack(s: BattleState, id: (typeof MEMBER_IDS)[number]) {
   }
   return best;
 }
-export function botFight(initial: BattleState, maxRounds = 40) {
+/**
+ * `order` names who acts, in turn order: default is the founding pair (the members present), as
+ * before. Parties of other sizes or recruits pass their own lineup (HC-9).
+ */
+export function botFight(
+  initial: BattleState,
+  maxRounds = 40,
+  order: readonly ApprenticeId[] = MEMBER_IDS.filter((id) =>
+    initial.units.some((u) => u.kind === 'member' && u.id === id),
+  ),
+) {
   let state = initial;
   const events: GameEvent[] = [];
   const actions: Action[] = [];
@@ -56,7 +66,7 @@ export function botFight(initial: BattleState, maxRounds = 40) {
     actions.push(a);
   };
   for (let n = 0; n < maxRounds && state.phase === 'player'; n++) {
-    for (const id of MEMBER_IDS) {
+    for (const id of order) {
       if (state.phase !== 'player' || memberById(state, id).hp === 0) continue;
       const first = bestAttack(state, id);
       if (first && first.gain > 0) step(first.action);

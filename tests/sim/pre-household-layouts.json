@@ -1,0 +1,33 @@
+{
+  "seam": [
+    ". . r . . .\n. . . . . .\nr . . . . .\n. . . . . .\n. . . . . .\n. . . . r .\n. D . . S .\n. . . . . .",
+    "r . . . . r\n. . . . . .\n. i . . i .\n. . . . . .\n. . . . . .\nr . . . . .\nD . . . . S\n. . . . . .",
+    ". . . r . .\no o . . . =\nr . . . . .\n. . . . o .\n. . . . . .\n. . . . r .\n. . D . S .\n. . . . . .",
+    ". f . . . .\n. . . . r .\n. o o . . .\n. . . . i .\nr . . . . .\n. . . . . .\n. . D . S .\n. . . . . .",
+    ". . . r . .\n. i . . . .\n. . . . . f\no o . . . =\n. . . . . .\nr . . . i .\n. D . . S .\n. . . . . .",
+    ". . . . f .\n. r . . . .\n. . ~ ~ . .\n. . . . . .\n. . o o . r\n. . . . . .\n. D . . S .\n. . . . . .",
+    ". . b . . .\n. . . . . r\no o o . . .\n. o . o . .\nr . . . . .\n. . = . . .\n. D . . S .\n. . . . . .",
+    ". r . . . .\n. . . . . .\n. = . . . b\n. . o o . .\n. . o . . .\nr . . . = .\n. D . . S .\n. . . . . .",
+    "b . . . . .\n. . . . . r\n. @~ . . o o\n. . . . . .\nr . o o . .\n. . . . = .\n. D . . S .\n. . . . . .",
+    "b . . f . b\n. = . . = .\n. = @~ ~ . r\nr o o . . .\n. . . . @~ .\n. = . . . .\n. . D S . .\n. . . . . .",
+    ". b . . . .\n. . . . . r\n@~ . . = . .\n. o o . . b\nr . . . @~ .\n. . = . f .\n. D . . S .\n. . . . . .",
+    ". . . f . .\nb . . . . b\n. . = ~ . r\n. . . . = .\nr . o o . .\n@~ . . . . @~\n. . D S . .\n. . . . . ."
+  ],
+  "canals": [
+    ". r wv . . .\n. . wv . . .\n. . wv o . .\n. . wv . . .\n. . wv . . .\n. . wv . . .\n. D ewv . S .\n. . wv . . .",
+    ". . . . . r\n. . . . . .\n. . . . . .\n. . . . . .\nw> ew> w> w> w> w>\n. D . . . .\n. . . . S .\n. o o . . .",
+    "r . . . wv .\n. . . . wv .\n. . . o wv .\n. . . . wv .\n. . . . wv .\n. . . . wv .\n. D . S ewv .\n. . . . wv .",
+    ". m . . . .\n. . . . . r\nw> w> w> w> w> w>\nw> w> ew> w> w> w>\n. . . . . .\n. o . . . .\n. D . . S .\n. . . . . .",
+    "m . wv wv . .\n. . wv wv . .\n. . wv wv . .\n. . wv wv . .\n. . ewv wv . r\n. o wv wv . .\n. D wv wv S .\n. . wv wv . .",
+    ". . . . . .\nm . . . . .\n. . . . . r\nw< w< w< w< w< w<\nw< w< w< ew< w< w<\n. . o . . .\n. D . . S .\n. . . . . .",
+    ". . wv n . .\n. . wv . . .\nw> w> wv w< w< w<\n. . ewv . . .\n. . . . m .\n. . wv . . .\n. D wv . S .\n. . wv . . .",
+    ". . . wv . .\nn . . wv . .\n. . . wv . m\nw< w< w< wv w< w<\n. . . ewv . .\n. . . . . .\n. D . wv S .\n. . . wv . .",
+    ". . . . n .\n. wv . . . .\n. wv . . . m\n. wv . . . .\n. ewv . . . .\nw> wv w> w> w> w>\n. wv . D . S\n. wv . . . .",
+    ". n . w^ . .\n. . . w^ . .\nw< w< w< w^ w< w<\n. . . ew^ . .\n. . r w^ . .\n. . . w^ . m\n. D . w^ S .\n. . . w^ . .",
+    ". w^ . n . .\n. w^ . . . .\n. w^ . . r .\n. ew^ . . . .\n. w^ . . m .\n. w^ w< w< w< w<\n. w^ D . S .\n. w^ . . . .",
+    ". . . . w^ .\nn . . . w^ .\n. . . . w^ .\nw> w> w> w> w^ .\n. r . . ew^ .\n. . . m . .\n. D . . w^ S\n. . . . w^ .",
+    "l . . . . l\n. w> w> w> wv .\n. w^ m Mw> wv .\nn w^ w> wv wv .\n. w^ w< w< w< .\n. . . . . .\n. D . . S .\nl . . . . l",
+    "l . . . . l\n. wv wv wv wv .\n. wv m Mwv wv .\n. wv wv nwv wv .\n. wv wv wv wv .\n. . . . . .\n. D . . S .\nl . . . . l",
+    "l . . . . l\n. w> w> wv w> .\n. w> m Mw> w> .\n. w> nw> w> w> .\n. w> w> w> w> .\n. . . . . .\n. D . . S .\nl . . . . l"
+  ]
+}
