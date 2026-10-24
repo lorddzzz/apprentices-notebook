@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest';
 import { MEMBER_IDS, MEMBERS, TUNING } from '$data';
-import { parseBoard, parseCell, parseLattice, serializeBoard, serializeLattice } from '$engine';
+import {
+  parseBoard,
+  parseCell,
+  parseLattice,
+  scenarioBattle,
+  serializeBoard,
+  serializeLattice,
+} from '$engine';
 
 const tileAt = (ascii: string, x: number, y: number) => {
   const b = parseBoard(ascii);
@@ -225,4 +232,16 @@ test('water, grates, gates and lamps (K-6)', () => {
   expect(() => parseBoard('Dwvh')).toThrow('cannot stand on a grate');
   expect(() => parseBoard('Dg')).toThrow('cannot stand on a lock gate');
   expect(() => parseBoard('go')).toThrow('cannot share');
+});
+
+test('recruit tokens parse and print on boards and scenarios', () => {
+  const board = 'D+ R r';
+  const spec = parseBoard(board);
+  expect(spec.units.map((u) => u.def)).toEqual(['draughtsman', 'runaway', 'rat']);
+  expect(parseBoard(serializeBoard(spec))).toEqual(spec);
+  expect(serializeBoard(spec)).toContain('R');
+  expect(() => parseBoard('R R')).toThrow('Duplicate member');
+  const battle = scenarioBattle({ board, lattices: { runaway: 'Bolt> . .' } });
+  const unit = battle.units.find((u) => u.kind === 'member' && u.def === 'runaway');
+  expect(unit?.kind === 'member' && unit.spells.length).toBeGreaterThan(0);
 });

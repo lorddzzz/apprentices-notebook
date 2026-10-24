@@ -1,10 +1,10 @@
 import {
+  APPRENTICE_IDS,
   type CompoundId,
   ENEMIES,
   ENEMY_IDS,
   type EnemyId,
   isInvention,
-  MEMBER_IDS,
   MEMBERS,
   type MemberId,
   RUNE_IDS,
@@ -176,7 +176,7 @@ function layerFor(id: Layer['id'], layout: boolean): Layer {
 }
 
 function unitFor(ch: string): { kind: 'member' | 'enemy'; def: MemberId | EnemyId } | null {
-  for (const id of MEMBER_IDS) if (MEMBERS[id].token === ch) return { kind: 'member', def: id };
+  for (const id of APPRENTICE_IDS) if (MEMBERS[id].token === ch) return { kind: 'member', def: id };
   for (const id of ENEMY_IDS) if (ENEMIES[id].token === ch) return { kind: 'enemy', def: id };
   return null;
 }

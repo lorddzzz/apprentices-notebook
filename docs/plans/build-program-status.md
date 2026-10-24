@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: AH-5 (L), notation recruit-token fix (S) (12:59).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: AH-5 (L) (12:59).
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -70,7 +70,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | DK-8 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-ae608f9e50c03688e @ 76ab299 | shared | `engine/hearing.ts` `HEARING_KINDS` registry (burst, named, heart, trips + crossDebt, burstUnits, conducted, performed, pages), `conditionHolds` (district filter except `heart`), `hearOf`, `actorsOf` (credit an apprentice's act: origin, or following her cast/Shove in the same phase); `crossDebt` splits by `round`; `city.ts` `hearFromBattle`/`hearAfterTrip` use the registry; new `data/districts/{inkQuarter,bathhouses,bridges,foundry,cartographers}.ts` with `hear` only (crossDebt, burstUnits(storm,3), performed(theWall), conducted(3) Seam-scoped; hall `pages(5, except registrar)`). 37 tests. Golden: 8 trip fixtures re-recorded, diff verified by orchestrator = only `heard`/`fresh`. **DK-17:** delete old `hear` lists in `data/districts.ts`; `app/tripviews.ts` `heardVoice` should call `hearOf` (hall shows "a rumour") |
 | FN-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ae6ef13811cede131 @ 07d94ae | shared | engine side already existed (FN-1/FN-4); `desk.ts` `rivalPagesHeld(profile)` (any held page of that rival with a non-null note); `marginOf`/`writeAt` fall back to it when no `holdsRivalPage` given; store passes it on write; credit fallback "<Rival>'s hand.". 3 tests `tests/app/desk-rival-note.test.ts`. No shipped rival variant yet (RV-20 authors `lamplighter:wick`). Follow-ups: `VariantDef.rival` should use `$data/rivals` `RivalId`; `rivalNoteVisible` by variant id |
 | AH-5 | Medium / Sonnet 5.5 / high | L | running | worktree (12:59) | | action input + previews |
-| FIX-tokens | Medium / Sonnet 5.5 / high | S | running | worktree (12:59) | | recruit tokens in notation/scenario |
+| FIX-tokens | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-afdb5045b1fe5c071 @ 2b8ab23 | ~2% | `notation.ts` `unitFor` and `scenario.ts` lattice loops use `APPRENTICE_IDS` (`MemberId` already aliases `ApprenticeId`); round-trip test with `R` in `tests/engine/notation.test.ts` |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log

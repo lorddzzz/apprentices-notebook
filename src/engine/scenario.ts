@@ -1,4 +1,4 @@
-import { MEMBER_IDS, MEMBERS, type MemberId, SCENARIOS, type ScenarioDef } from '$data';
+import { APPRENTICE_IDS, MEMBERS, type MemberId, SCENARIOS, type ScenarioDef } from '$data';
 import { applyAction, createBattle } from './battle';
 import { cloneData } from './clone';
 import { describeLog, type GameEvent } from './events';
@@ -51,7 +51,7 @@ export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): Bat
   const party: Partial<Record<MemberId, PartyInit>> = { ...('party' in def ? def.party : {}) };
   const inventions = opts.inventions ?? ('inventions' in def ? def.inventions : undefined);
   const lattices: Partial<Record<MemberId, Lattice>> = {};
-  for (const m of MEMBER_IDS) {
+  for (const m of APPRENTICE_IDS) {
     const lattice = def.lattices?.[m] ?? opts.lattices?.[m];
     if (lattice !== undefined) {
       lattices[m] =
@@ -59,13 +59,13 @@ export function scenarioSpec(def: ScenarioSpec, opts: ScenarioOptions = {}): Bat
     }
   }
   // Finish preflight of every external page before retaining any compiled output.
-  for (const m of MEMBER_IDS) {
+  for (const m of APPRENTICE_IDS) {
     const lattice = lattices[m];
     if (lattice && def.lattices?.[m] !== undefined)
       assertCompilationWork(lattice, {}, inventions ?? {}, budget);
   }
   // Trusted fallback pages have no external work limit.
-  for (const m of MEMBER_IDS) {
+  for (const m of APPRENTICE_IDS) {
     const lattice = lattices[m];
     if (lattice) party[m] = { ...party[m], spells: spellsFor(m, lattice, inventions) };
   }
