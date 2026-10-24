@@ -65,27 +65,80 @@ export function runDraft(
   return { state: ctx.s, events: ctx.log };
 }
 
+/** Thrown by `emit` at the cap; only the `inCastScope` that owns `scope` catches it (P11). */
+export class CapReached extends Error {
+  constructor(readonly scope: CastScope) {
+    super('cast event cap reached');
+  }
+}
+
+/**
+ * Runs `fn` as one cast with a fresh event budget. At the cap the rest of `fn` unwinds, so no
+ * helper keeps changing the board after the log stops (P11, BL-107): helpers emit before they
+ * mutate.
+ */
+export function inCastScope(ctx: Ctx, fn: () => void): void {
+  const outer = ctx.cast;
+  const scope: CastScope = { events: 0, capped: false };
+  ctx.cast = scope;
+  try {
+    fn();
+  } catch (err) {
+    if (!(err instanceof CapReached) || err.scope !== scope) throw err;
+  } finally {
+    ctx.cast = outer;
+  }
+}
+
+function capNow(ctx: Ctx, c: CastScope): never {
+  c.capped = true;
+  ctx.log.push({ type: 'fizzles', reason: 'cap' });
+  throw new CapReached(c);
+}
+
+/**
+ * Before a mutation whose `n` events must all be logged (a hit and its death), caps now if the
+ * cast cannot emit them all, so the board never holds half of it.
+ */
+export function reserve(ctx: Ctx, n: number): void {
+  const c = ctx.cast;
+  if (!c) return;
+  if (c.capped) throw new CapReached(c);
+  if (c.events + n > (ctx.eventCap ?? CAST_EVENT_CAP)) capNow(ctx, c);
+}
+
 /** Appends an event stamped with the current line and origin; inside a cast, counts toward the cap. */
 export function emit(ctx: Ctx, e: GameEvent): void {
   const c = ctx.cast;
   if (c) {
-    if (c.capped) return;
-    if (c.events >= (ctx.eventCap ?? CAST_EVENT_CAP)) {
-      c.capped = true;
-      ctx.log.push({ type: 'fizzles', reason: 'cap' });
-      return;
-    }
+    if (c.capped) throw new CapReached(c);
+    if (c.events >= (ctx.eventCap ?? CAST_EVENT_CAP)) capNow(ctx, c);
     c.events++;
   }
+  ctx.log.push(stamped(ctx, e));
+}
+
+function stamped(ctx: Ctx, e: GameEvent): GameEvent {
   const line = e.line ?? ctx.meta.line;
   const origin = e.origin ?? ctx.meta.origin;
   const habit = e.habit ?? ctx.meta.habit;
-  ctx.log.push({
+  return {
     ...e,
     ...(line ? { line } : {}),
     ...(origin ? { origin } : {}),
     ...(habit ? { habit } : {}),
-  });
+  };
+}
+
+/**
+ * When the cap cut `err` short after a change already made, logs the event that change owes just
+ * before the `fizzles` (a unit hit to 0 is dead even if the cap cuts its `died`). Rethrows.
+ */
+export function oweAtCap(ctx: Ctx, err: unknown, e: GameEvent): never {
+  const last = ctx.log.length - 1;
+  if (err instanceof CapReached && ctx.log[last]?.type === 'fizzles')
+    ctx.log.splice(last, 0, stamped(ctx, e));
+  throw err;
 }
 
 /** True once the cast hit the cap: callers stop walking the chain. */

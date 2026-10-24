@@ -147,8 +147,9 @@ for (let seed = 1; seed <= METHOD_IDS.length * SOLVENT_IDS.length * 2; seed++) {
         const before = viewOf(state);
         const result = applyAction(state, action);
         for (const id of witnessedIn(result.events)) expect(rows.has(id), id).toBe(true);
+        // The cap's events, then at most `fizzles`, the trace and the battle's end (P11).
         if (action.type === 'cast')
-          expect(result.events.length).toBeLessThanOrEqual(CAST_EVENT_CAP + 4);
+          expect(result.events.length).toBeLessThanOrEqual(CAST_EVENT_CAP + 3);
         const want = viewOf(result.state);
         const projected = result.events.reduce(
           (v, e) => (isSilent(e) ? v : projectWith(v, e)),

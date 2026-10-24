@@ -386,6 +386,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
           kind: 'graphite',
           solvent: 'graphite',
           undo,
+          context: sealedContext(flow),
         }),
       );
     },

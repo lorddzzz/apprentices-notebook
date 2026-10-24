@@ -1,6 +1,6 @@
 import type { BindEvent } from '$data';
 import { cloneData } from './clone';
-import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
+import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
 import { type Coord, type Dir, sameCoord } from './grid';
 import { habitOf } from './habits';
 import type { Hook } from './hooks';
@@ -38,9 +38,6 @@ function reach(ctx: Ctx, lineage: number, unit: Unit): void {
 /** Puts a mark on a unit (a new lineage unless given), then spreads it if the unit stands in a cloud. */
 export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): void {
   if (unit.mark) spendMark(ctx, unit); // replaced: spent, never released (limit 6)
-  const lineage = mark.lineage ?? ctx.s.nextLineage++;
-  unit.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null, lineage };
-  reach(ctx, lineage, unit);
   withOrigin(ctx, mark.origin, () =>
     emit(ctx, {
       type: 'marked',
@@ -49,6 +46,9 @@ export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): void {
       bound: mark.bound?.action ?? null,
     }),
   );
+  const lineage = mark.lineage ?? ctx.s.nextLineage++;
+  unit.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null, lineage };
+  reach(ctx, lineage, unit);
   spreadFrom(ctx, unit);
 }
 
@@ -59,14 +59,14 @@ export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): void {
 export function attachBound(ctx: Ctx, unit: Unit, bound: Bound): void {
   const mark = unit.mark;
   if (!mark) return;
+  withOrigin(ctx, mark.origin, () =>
+    emit(ctx, { type: 'marked', unit: ref(unit), deep: mark.deep, bound: bound.action }),
+  );
   for (const u of ctx.s.units) {
     if (u.mark && u.mark.lineage === mark.lineage && !u.mark.bound) {
       u.mark.bound = cloneData(bound);
     }
   }
-  withOrigin(ctx, mark.origin, () =>
-    emit(ctx, { type: 'marked', unit: ref(unit), deep: mark.deep, bound: bound.action }),
-  );
 }
 
 /** Takes the unit's mark off without releasing it (P31). */
@@ -186,13 +186,7 @@ function runBound(
     depth: 0,
     auras: [],
   };
-  const outer = ctx.cast;
-  ctx.cast = { events: 0, capped: false };
-  try {
-    withOrigin(ctx, origin, () => runStep(ctx, step, [target], flow));
-  } finally {
-    ctx.cast = outer;
-  }
+  inCastScope(ctx, () => withOrigin(ctx, origin, () => runStep(ctx, step, [target], flow)));
 }
 
 function release(ctx: Ctx, unit: Unit, h: Hook): void {

@@ -4,7 +4,7 @@ import { METHOD_IDS, METHODS } from '$data/methods';
 import { RUNE_IDS, RUNES } from '$data/runes';
 import { SOLVENT_IDS, SOLVENTS } from '$data/solvents';
 import type { Role } from '$data/types';
-import { CAST_EVENT_CAP, type Ctx, emit, withLine, withOrigin } from '$engine/ctx';
+import { CAST_EVENT_CAP, CapReached, type Ctx, emit, withLine, withOrigin } from '$engine/ctx';
 import type { BattleState } from '$engine/types';
 
 describe('rune redesign contracts (W0)', () => {
@@ -58,7 +58,10 @@ describe('rune redesign contracts (W0)', () => {
     emit(ctx, { type: 'stunned', unit: who });
     expect(ctx.log[0]).toMatchObject({ line: 'shove:edge', origin });
     expect(ctx.log[1]).not.toHaveProperty('line');
-    for (let i = 0; i < CAST_EVENT_CAP + 10; i++) emit(ctx, { type: 'stunned', unit: who });
+    // At the cap the cast unwinds (P11): `emit` throws to the cast's `inCastScope`.
+    expect(() => {
+      for (let i = 0; i < CAST_EVENT_CAP + 10; i++) emit(ctx, { type: 'stunned', unit: who });
+    }).toThrow(CapReached);
     expect(ctx.log.filter((e) => e.type === 'fizzles')).toHaveLength(1);
     expect(ctx.log).toHaveLength(CAST_EVENT_CAP + 1);
   });

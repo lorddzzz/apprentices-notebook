@@ -18,7 +18,7 @@ import {
   runThunderheads,
   sparkLine,
 } from './bursts';
-import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
+import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, neighbors4 } from './grid';
@@ -149,14 +149,12 @@ function soakNeighbours(ctx: Ctx, at: Coord, flow: Flow | null): void {
     if (!inBoard(s, n)) continue;
     const t = tileAt(s, n);
     if (blocksUnits(t) || (t.state && t.state.id !== 'blot')) continue;
-    t.state = newLayer('slick', 'oil', flow);
     emit(ctx, { type: 'landed', kind: 'oil', at: { ...n }, makes: 'slick' });
+    t.state = newLayer('slick', 'oil', flow);
   }
 }
 
 function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, unit?: Unit): void {
-  tileAt(ctx.s, at).state = newLayer(id, kind, flow);
-  noteMet(ctx, id);
   emit(ctx, {
     type: 'landed',
     kind,
@@ -164,6 +162,8 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
     ...(unit ? { unit: ref(unit) } : {}),
     makes: id,
   });
+  tileAt(ctx.s, at).state = newLayer(id, kind, flow);
+  noteMet(ctx, id);
 }
 
 function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
@@ -182,6 +182,7 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
   const row = MIXES.find((m) => m.kind === kind && m.on === cur.id);
   if (row) {
     withLine(ctx, line(kind, cur.id), () => {
+      reserve(ctx, 2); // `named` (first time) and `mixed`
       tile.state = newLayer(row.makes, kind, flow);
       if (row.makes === 'pool' && hasFootnote(ctx, 'oil-slick-short') && tile.state.rounds > 0) {
         tile.state.rounds -= 1;
@@ -196,9 +197,9 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
   if (isCompound(cur.id)) {
     const was = cur.id;
     withLine(ctx, washLine(kind), () => {
+      emit(ctx, { type: 'washed', at: { ...at }, was, now: want });
       tile.state = newLayer(want, kind, flow);
       noteMet(ctx, want);
-      emit(ctx, { type: 'washed', at: { ...at }, was, now: want });
     });
     return;
   }
@@ -210,8 +211,8 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
   }
   withLine(ctx, line(kind, cur.id), () => {
     if (kind === 'oil' && cur.id === 'fire') {
-      cur.rounds = TUNING.fireRounds;
       emit(ctx, { type: 'landed', kind, at: { ...at }, makes: 'fire' });
+      cur.rounds = TUNING.fireRounds;
     } else {
       land(ctx, kind, at, want, flow);
     }

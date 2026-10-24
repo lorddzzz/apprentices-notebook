@@ -124,7 +124,7 @@ describe('the event cap (BL-107)', () => {
 
   // FD-6 (P11): the cap unwinds the cast, and helpers emit before they mutate. Today the board
   // keeps changing after the last logged event (e.g. `ink`: the blot lands, its event is cut).
-  it.fails.each(Object.keys(CHAINS))(
+  it.each(Object.keys(CHAINS))(
     'FD-6: %s cut at every event index projects to the final board',
     (name) => {
       const s = CHAINS[name]?.();

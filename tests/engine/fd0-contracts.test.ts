@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { ArrivalCause, CoreArrivalCause, CoreEnteredTable } from '$engine/arrival';
-import { type Ctx, emit } from '$engine/ctx';
+import { CapReached, type Ctx, emit } from '$engine/ctx';
 import type { BattleState } from '$engine/types';
 
 const who = { id: 'rat-1', name: 'rat', at: { x: 0, y: 0 }, member: false };
@@ -33,7 +33,9 @@ describe('FD-0 contracts', () => {
       footnotes: {},
       eventCap: 2,
     };
-    for (let i = 0; i < 5; i++) emit(ctx, { type: 'stunned', unit: who });
+    expect(() => {
+      for (let i = 0; i < 5; i++) emit(ctx, { type: 'stunned', unit: who });
+    }).toThrow(CapReached); // the cast unwinds at the cap (P11)
     const log = ctx.log;
     expect(log.map((e) => e.type)).toEqual(['stunned', 'stunned', 'fizzles']);
   });

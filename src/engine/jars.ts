@@ -1,6 +1,6 @@
 import type { RuneRef, SolventId } from '$data';
 import { cloneData } from './clone';
-import { type Ctx, emit, ref, withOrigin } from './ctx';
+import { type Ctx, emit, inCastScope, ref, withOrigin } from './ctx';
 import type { Coord, Dir } from './grid';
 import { habitOf } from './habits';
 import { jarLimit } from './leans';
@@ -88,15 +88,11 @@ export function runDetached(
     ...(extra.repeated ? { repeated: true } : {}),
     ...(extra.woken ? { woken: true } : {}),
   };
-  const outer = ctx.cast;
-  ctx.cast = { events: 0, capped: false };
-  try {
+  inCastScope(ctx, () =>
     withOrigin(ctx, origin, () =>
       (extra.trace === false ? runStep : runContinuation)(ctx, step, [target], flow),
-    );
-  } finally {
-    ctx.cast = outer;
-  }
+    ),
+  );
 }
 
 /** The owner's jars on the board, oldest first. */

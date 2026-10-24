@@ -1,5 +1,5 @@
 import { ENEMIES, type HarmKind } from '$data';
-import { type Ctx, emit, ref } from './ctx';
+import { type Ctx, emit, oweAtCap, ref, reserve } from './ctx';
 import { foeBurst } from './foes';
 import type { Coord, Dir } from './grid';
 import { guardHarm } from './harm';
@@ -57,6 +57,7 @@ export function dealDamage(
   }
   const amount = base;
   const absorbed = Math.min(unit.shield, amount);
+  reserve(ctx, absorbed > 0 ? 2 : 1); // `damage` and `shieldAbsorbs`
   unit.shield -= absorbed;
   unit.hp = Math.max(0, unit.hp - (amount - absorbed));
   emit(ctx, {
@@ -69,8 +70,14 @@ export function dealDamage(
   });
   if (absorbed > 0)
     emit(ctx, { type: 'shieldAbsorbs', unit: ref(unit), absorbed, left: unit.shield });
-  notify(ctx, { kind: 'hit', unit: unit.id, heading: from.heading, from: from.at });
-  strikePiece(ctx, unit.pos, 'damage'); // damage landing on a piece's tile strikes it (foundry P2)
+  try {
+    notify(ctx, { kind: 'hit', unit: unit.id, heading: from.heading, from: from.at });
+    strikePiece(ctx, unit.pos, 'damage'); // damage landing on a piece's tile strikes it (foundry P2)
+  } catch (err) {
+    if (unit.hp > 0) throw err;
+    forget(unit);
+    oweAtCap(ctx, err, { type: 'died', unit: ref(unit) });
+  }
   if (unit.hp > 0) return false;
   kill(ctx, unit);
   return true;
@@ -93,11 +100,19 @@ export function gainShield(ctx: Ctx, unit: Unit, amount: number, until: number):
   });
 }
 
-/** Dead units stay in `units` (hp 0) but leave the board. A dying moth bursts (K-16) unless `bursts` is false. */
-export function kill(ctx: Ctx, unit: Unit, bursts = true): void {
-  emit(ctx, { type: 'died', unit: ref(unit) });
+function forget(unit: Unit): void {
   if (unit.kind === 'enemy') unit.intent = null;
   else unit.undo = null;
+}
+
+/** Dead units stay in `units` (hp 0) but leave the board. A dying moth bursts (K-16) unless `bursts` is false. */
+export function kill(ctx: Ctx, unit: Unit, bursts = true): void {
+  forget(unit);
+  try {
+    emit(ctx, { type: 'died', unit: ref(unit) });
+  } catch (err) {
+    oweAtCap(ctx, err, { type: 'died', unit: ref(unit) }); // its hp is already 0 (P11)
+  }
   notify(ctx, { kind: 'died', unit: unit.id });
   if (bursts && unit.kind === 'enemy' && ENEMIES[unit.def].bursts) foeBurst(ctx, unit);
 }

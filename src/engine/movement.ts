@@ -66,8 +66,8 @@ function leaveSlick(ctx: Ctx, tiles: readonly Coord[]): void {
   for (const c of tiles) {
     const t = tileAt(ctx.s, c);
     if (t.state !== null) continue;
-    t.state = { id: 'slick', rounds: 0, origin: null };
     emit(ctx, { type: 'landed', kind: 'oil', at: { ...c }, makes: 'slick' });
+    t.state = { id: 'slick', rounds: 0, origin: null };
   }
 }
 

@@ -8,7 +8,7 @@ import {
   type Meets,
   TUNING,
 } from '$data';
-import { type Ctx, emit, ref, withLine } from './ctx';
+import { type Ctx, emit, ref, reserve, withLine } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
@@ -153,6 +153,7 @@ function ignite(
   const net = oilNet(s, at);
   const tiles = net.length ? net : [at];
   const rounds = id === 'fire' && hasFootnote(ctx, 'spark-slick-long') ? 3 : TUNING.fireRounds;
+  reserve(ctx, 2); // `named` (first time) and `burst`
   for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null, rounds);
   const units = unitsNear(ctx, tiles, reachOf(flow));
   announce(ctx, id, at, tiles, units);

@@ -1,6 +1,6 @@
 import { isInvention, RUNES, type RuneRef } from '$data';
 import { cloneData } from './clone';
-import { type Ctx, emit, fizzled, ref, withLine, withOrigin } from './ctx';
+import { type Ctx, emit, fizzled, inCastScope, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { type Coord, key, label, sameCoord } from './grid';
 import { habitOf, ruleOf, withHabit } from './habits';
@@ -401,9 +401,26 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
     ...(spell.glyph ? { glyph: spell.glyph, glyphAt: { ...spell.at } } : {}),
   };
   const snapshot = snapshotOf(s);
-  const outer = ctx.cast;
-  ctx.cast = { events: 0, capped: false };
+  const glyphs = new Map<string, GlyphId>();
+  for (const c of spell.cells ?? []) if (c.glyph) glyphs.set(key(c.at), c.glyph);
+  const landed = { caster: caster.id, targets: [] as string[] };
+  // Span offsets count from the first effect event, right after `cast` (M2).
+  const rec: Recorder = { from: ctx.log.length + 1, ran: [], spans: [], glyphs, landed };
   withOrigin(ctx, origin, () => {
+    inCastScope(ctx, () => castBody());
+    if (caster.kind === 'member') {
+      emit(ctx, {
+        type: 'trace',
+        caster: ref(caster),
+        spell: spell.key,
+        cells: firedCells(spell, rec.ran),
+        meaningful: ctx.log.slice(rec.from).some((e) => MEANINGFUL.has(e.type)),
+        spans: rec.spans,
+      });
+    }
+  });
+
+  function castBody(): void {
     emit(ctx, {
       type: 'cast',
       caster: ref(caster),
@@ -411,8 +428,8 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       aim: cloneData(aim),
       aimText: aimText(aim),
     });
-    // Span offsets count from the first effect event, right after `cast` (M2).
     const from = ctx.log.length;
+    rec.from = from;
     const gifted = giftedIn(caster, spell.source);
     const { targets, headings } = aimTargets(s, caster, spell.source, aim, gifted, ctx.footnotes);
     const first = targets[0];
@@ -436,17 +453,9 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       withHabit(ctx, habit, () => (line ? withLine(ctx, line, aimed) : aimed()));
     } else aimed();
     if (spell.source === 'bolt') flight(ctx, caster, aim, gifted);
-    const landed = { caster: caster.id, targets: targets.map(targetKey) };
+    landed.targets = targets.map(targetKey);
     s.landed.push(landed);
-    const glyphs = new Map<string, GlyphId>();
-    for (const c of spell.cells ?? []) if (c.glyph) glyphs.set(key(c.at), c.glyph);
-    const rec: Recorder = {
-      from,
-      ran: [],
-      spans: [sourceSpan(spell, from, ctx.log.length)],
-      glyphs,
-      landed,
-    };
+    rec.spans.push(sourceSpan(spell, from, ctx.log.length));
     recorders.set(origin, rec);
     const flow: Flow = {
       caster: caster.id,
@@ -461,16 +470,5 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       auras: spell.sourceAuras,
     };
     runStep(ctx, spell.first, targets, flow);
-    ctx.cast = outer;
-    if (caster.kind === 'member') {
-      emit(ctx, {
-        type: 'trace',
-        caster: ref(caster),
-        spell: spell.key,
-        cells: firedCells(spell, rec.ran),
-        meaningful: ctx.log.slice(from).some((e) => MEANINGFUL.has(e.type)),
-        spans: rec.spans,
-      });
-    }
-  });
+  }
 }
