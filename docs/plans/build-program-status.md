@@ -2,12 +2,12 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: AH-5 (L) (12:59).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: AH-5 (L, 12:59), FN-5 (13:16).
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
 1. ~~Finish DK-4~~ (merged 2026-10-24). Was: **Finish DK-4** from branch `worktree-agent-ac35c09fb4243a694` @ b55e0ed (worktree `.claude/worktrees/agent-ac35c09fb4243a694`, kept): rebase onto main. It conflicts with DK-3 in `arrival.ts`, `districts/index.ts`, `turn.ts`, `types.ts` — both fixed the same import loop (DK-3: lazy `arrivalHooks()`; DK-4: `KIT`/`DISTRICT_MODULES` moved to leaf `districts/kit.ts`); keep both (they're compatible), keep DK-3's `roundEnd` and add DK-4's single `piecesTurnEnd(ctx)` call after it; DK-4 also filters district arrival hooks to tiles holding their piece. Then its remaining steps: token-collision test (kit piece tokens vs `DISTRICT_TOKENS`, `RIVAL_TOKENS`, compound names); wire solidity into `queries.ts` (`pieceBlocksUnits`/`pieceBlocksShots`); call sites `hitPiece` (attack end/blocked, landings), `strikePiece` (spark, push crush both tiles, shove); `export * from './pieces'` in `engine/index.ts`; scenario skill legend + harness comment for `{piece}`.
-2. Ready (watch file overlap): FN-5, AH-6 (after AH-5; overlaps battleInput/overlay/describe), DK-11, AH-7 (HC-8 ✓; lab.ts), papers registry (DK §9, new task owning run.ts) (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
+2. Ready (watch file overlap): AH-6 (after AH-5; overlaps battleInput/overlay/describe), DK-11, AH-7 (HC-8 ✓; lab.ts), papers registry (DK §9, new task owning run.ts) (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
 3. Then FD-11 (phone check of push/drift/jar playback), HC-9, and the first gates: RV-G1 (Lamplighter Lab playtest), HC/AH/RC playtests.
 
 ## Tasks
@@ -71,6 +71,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ae6ef13811cede131 @ 07d94ae | shared | engine side already existed (FN-1/FN-4); `desk.ts` `rivalPagesHeld(profile)` (any held page of that rival with a non-null note); `marginOf`/`writeAt` fall back to it when no `holdsRivalPage` given; store passes it on write; credit fallback "<Rival>'s hand.". 3 tests `tests/app/desk-rival-note.test.ts`. No shipped rival variant yet (RV-20 authors `lamplighter:wick`). Follow-ups: `VariantDef.rival` should use `$data/rivals` `RivalId`; `rivalNoteVisible` by variant id |
 | AH-5 | Medium / Sonnet 5.5 / high | L | running | worktree (12:59) | | action input + previews |
 | FIX-tokens | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-afdb5045b1fe5c071 @ 2b8ab23 | ~2% | `notation.ts` `unitFor` and `scenario.ts` lattice loops use `APPRENTICE_IDS` (`MemberId` already aliases `ApprenticeId`); round-trip test with `R` in `tests/engine/notation.test.ts` |
+| FN-5 | Medium / Sonnet 5.5 / high | M | running | worktree (13:16) | | Codex margin column |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -109,6 +110,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 13:15 | 73 | 3h45 | 76 | Narrow by projection (~0.5%/min) | merge recruit-token fix; spawn FN-5 (M) |
 | 12:57 | 64 | 4h03 | 75 | Normal (~0.5%/min) | merge RV-6, HC-8; spawn AH-5 (L), notation recruit-token fix (S) |
 | 12:47 | 59 | 4h13 | 74 | Wrap by projection (~1.1%/min) | merge FN-8, DK-8; no new spawns |
 | 12:25 | 34 | 4h35 | 71 | Normal (~0.3%/min) | merge FN-4, RV-5, DK-5b |
