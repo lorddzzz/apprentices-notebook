@@ -120,6 +120,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 17:46 | 52 | 4h14 | 85 | Hold by projection (~1.9%/min, spin-up) | merge RC-6; reduce-scope nudges to HC-9, RV-15, DK-13; no new spawns |
 | 17:28 | 27 | 4h33 | 82 | Normal | merge DK-11, DK-PAPERS, AH-7; player: weekly guard → 97% |
 | 17:01 | 0 | 4h58 | 78 | Normal | wake-up #2 (last); spawn AH-7, DK-11, DK-PAPERS; HC-9 after AH-7 (tests/sim overlap) |
 | 13:55 | 88 | 3h05 | 78 | Wrap (idle) | spawn FD-11 (smallest-unblocked rule) |
