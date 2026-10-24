@@ -256,6 +256,8 @@ const SETS_UP_BY_HAND = [
   'Draughtsman: he keeps two jars > two jars cast in turn, then a third crumbles the oldest',
   // RV-2: stuns and kills the rival by hand to check they never strike.
   'the starved-chain fallback > stun, death and dry charges never strike',
+  // RV-3: resolves the wick by hand in a draft, so the shown intent is never cleared.
+  'the order fails and never retargets > placed and opened in one turn is illegal; the next turn it is fine',
 ];
 
 describe('projection drift guard over the engine suites', () => {

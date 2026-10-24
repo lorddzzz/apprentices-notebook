@@ -60,9 +60,9 @@ describe('RV-W0 contracts', () => {
     }
   });
 
-  test('no rival, page or held page exists yet', () => {
-    expect(Object.keys(RIVALS)).toEqual(['lamplighter']); // the RV-1 fixture
-    expect(RIVAL_PAGES).toEqual({});
+  test('the Lamplighter and his page are the only ones; no page is held yet', () => {
+    expect(Object.keys(RIVALS)).toEqual(['lamplighter']); // RV-5
+    expect(Object.keys(RIVAL_PAGES)).toEqual(['lamplighter:lantern']);
     expect(pagesHeld({})).toEqual([]);
     expect(holdsPage({ pages: ['lamplighter:lantern'] }, 'lamplighter:lantern')).toBe(true);
     expect(holdsPage({}, 'lamplighter:lantern')).toBe(false);

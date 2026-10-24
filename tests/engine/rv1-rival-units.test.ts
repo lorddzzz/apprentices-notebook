@@ -12,7 +12,7 @@ describe('RV-1 rival units', () => {
   it('spawns L with compiled spells and per-encounter charges', () => {
     const r = rivalOf(make()).rival;
     expect(r?.rival).toBe('lamplighter');
-    expect(r?.charges).toEqual({ lantern: 5 });
+    expect(r?.charges).toEqual({ lantern: 5, herd: 5 });
     expect(r?.spells.lantern?.charges).toBe(5);
   });
 
@@ -22,7 +22,7 @@ describe('RV-1 rival units', () => {
     if (!u.rival) throw new Error('no rival');
     u.rival.charges.lantern = 2;
     expect(rivalOf(cloneData(s)).rival?.charges.lantern).toBe(2);
-    expect(rivalOf(JSON.parse(JSON.stringify(s))).rival?.charges).toEqual({ lantern: 2 });
+    expect(rivalOf(JSON.parse(JSON.stringify(s))).rival?.charges).toEqual({ lantern: 2, herd: 5 });
     expect(boardOf(s)).toContain('L');
     const placed = labSetCell(make(), { x: 0, y: 0 }, 'L');
     expect(placed.units.filter((x) => x.kind === 'enemy' && x.rival)).toHaveLength(2);

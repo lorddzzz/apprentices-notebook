@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { RIVALS } from '$data/rivals';
 import { applyAction, createBattle } from '$engine/battle';
 import { cloneData } from '$engine/clone';
 import type { GameEvent } from '$engine/events';
@@ -37,6 +38,21 @@ function randomBoard(seed: number): string {
 }
 
 describe('RV-4 planner', () => {
+  // These cases pin the planner's rules on the RV-1 fixture kit; RV-5's real kit has its own suite.
+  const def = RIVALS.lamplighter;
+  if (!def) throw new Error('no def');
+  const real = { spells: def.spells, routine: def.routine, trick: def.trick };
+  beforeAll(() => {
+    Object.assign(def, {
+      spells: [{ id: 'lantern', name: 'Lantern', lattice: 'Bolt> Ink', charges: 5 }],
+      routine: [],
+      trick: null,
+    });
+  });
+  afterAll(() => {
+    Object.assign(def, real);
+  });
+
   it('same state gives the same plan; the state and its rng are untouched (property)', () => {
     for (let seed = 1; seed <= 40; seed++) {
       const s = make(randomBoard(seed), seed);
