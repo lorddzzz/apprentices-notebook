@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { type Coord, type Jar, type Layer, parseLabel, tileAt, unitAt } from '$engine';
 import {
-  ARRIVAL_HOOKS,
+  arrivalHooks,
   arrive,
   CORE_ARRIVAL_HOOKS,
   enteredTilesOf,
@@ -74,7 +74,7 @@ describe('tables and traits', () => {
       'stain',
       'fire',
     ]);
-    expect(ARRIVAL_HOOKS.slice(0, CORE_ARRIVAL_HOOKS.length)).toEqual(CORE_ARRIVAL_HOOKS);
+    expect(arrivalHooks().slice(0, CORE_ARRIVAL_HOOKS.length)).toEqual(CORE_ARRIVAL_HOOKS);
   });
 
   it('traits come from the foe data (P5); members have none', () => {

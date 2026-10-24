@@ -1,8 +1,8 @@
 import { ATTACKS, TUNING } from '$data';
 import { enemyPhase } from './ai';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
-import { burnGates, drift } from './current';
 import { dealDamage } from './damage';
+import type { BoardRule } from './districts/types';
 import { foeBurst, resolveSpecial, snuffStep } from './foes';
 import { type Coord, step } from './grid';
 import { openDuskJars } from './jars';
@@ -19,8 +19,8 @@ import {
   unitAt,
 } from './queries';
 import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
+import { BOARD_RULES, runRuleSlot } from './rules';
 import { runScheduled } from './schedule';
-import { driftWaiting } from './solvents';
 import type { AttackIntent, EnemyUnit, Unit } from './types';
 
 /**
@@ -120,21 +120,22 @@ function coolTiles(ctx: Ctx): void {
 }
 
 /**
- * Dusk: the current drifts (and floats jars and Pitch waits with it), dusk jars open, queued round-end entries run, the chemistry of the
- * board plays out (storms, brand, kettles, fire), gates catch, then layers decay, vents refill,
- * and snuffers put fire out.
+ * Dusk: the board rules' `carry` slot (the canals' current drifts, floating jars and Pitch waits
+ * with it), dusk jars open, queued round-end entries run, the chemistry of the board plays out
+ * (storms, brand, kettles, fire), the `afterChemistry` slot (gates catch), then layers decay,
+ * vents refill, snuffers put fire out, and the `late` slot runs (P8). `rules` is for tests.
  */
-function hazards(ctx: Ctx): void {
-  drift(ctx);
-  driftWaiting(ctx);
+export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = BOARD_RULES): void {
+  runRuleSlot(ctx, 'carry', rules);
   openDuskJars(ctx);
   runScheduled(ctx, 'roundEnd');
   roundEndChemistry(ctx);
-  burnGates(ctx);
+  runRuleSlot(ctx, 'afterChemistry', rules);
   decayStates(ctx);
   coolTiles(ctx);
   vents(ctx);
   snuffStep(ctx);
+  runRuleSlot(ctx, 'late', rules);
 }
 
 /**
@@ -178,7 +179,7 @@ export function endTurnAction(ctx: Ctx): void {
     resolveIntent(ctx, e);
     if (checkEnd(ctx)) return;
   }
-  hazards(ctx);
+  roundEnd(ctx);
   if (checkEnd(ctx)) return;
 
   s.round++;

@@ -27,7 +27,7 @@ import type {
   TriggerRuneId,
 } from '$data';
 import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
-import type { CityCheckpoints, Json, TripKitState } from './districts/types';
+import type { CityCheckpoints, Json, RuleStates, TripKitState } from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
 import type { ObjectRef, RivalState } from './rivals/types';
@@ -425,6 +425,11 @@ export interface BattleState {
   named: string[];
   /** What the last Erase that removed anything took (AH P18); absent or null = nothing yet. */
   erased?: ErasedRecord | null;
+  /**
+   * Board rules' own state by id (P8, DK-3): the rules this fight runs under. A listed rule is put
+   * here at setup (`listRules`); a rule its board brings joins at its first round end. Absent = {}.
+   */
+  rules?: RuleStates;
 }
 
 /** One thing an Erase removed, with its own origin kept (AH P18: a restore keeps the elegance). */

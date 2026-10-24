@@ -62,6 +62,8 @@ export type RoundEndSlot = 'carry' | 'afterChemistry' | 'late';
 /** Generic "Next round" overlay shapes (P8, BH meter, BF outlines and pulses; DK-13 draws them). */
 export type PreviewShape =
   | { kind: 'ghost'; unit: UnitId; from: Coord; to: Coord }
+  /** A state that moves with the board (a float on the current); `to` null = off the board. */
+  | { kind: 'float'; from: Coord; to: Coord | null }
   | { kind: 'tile'; at: Coord; tone: 'warn' | 'cracked' | 'falls' | 'drawn' | 'erased' }
   | { kind: 'outline'; cells: readonly Coord[]; label?: string }
   | { kind: 'pulse'; at: Coord }
@@ -81,7 +83,11 @@ export interface BoardRule<S extends Json = Json> {
   activatedBy: RuleActivation;
   /** Its state at battle start; lives in `BattleState.rules[id]` (DK-3 adds the field). */
   init(state: BattleState, config: Json | undefined): S;
-  /** One round-end run: mutates `ctx` through `emit`, returns its next state. */
+  /**
+   * One round-end run: mutates `ctx` through `emit`, returns its next state. Runs while the rule
+   * is active (`isRuleActive` in `rules.ts`); a brought rule's step must be a no-op without its
+   * piece or terrain.
+   */
   step(ctx: Ctx, own: S): S;
   preview?(state: BattleState, own: S): readonly PreviewShape[];
   /** Bench/generator palette key: met once a fight ran under the rule (DK-E4). */

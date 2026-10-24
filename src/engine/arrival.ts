@@ -280,16 +280,22 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
   { id: 'fire', answers: 'each', subjects: ['unit'], run: () => 'go' },
 ];
 
-/** District pieces' arrival hooks (DK), in kit order. */
-const DISTRICT_ARRIVAL_HOOKS: ArrivalHookList = Object.values(KIT.pieces).flatMap((p) =>
-  p.triggers.onArrive ? [{ ...p.triggers.onArrive, id: `dk:${p.id}` as const }] : [],
-);
+let composed: ArrivalHookList | null = null;
 
 /**
- * Every hook in run order (P3): core, then habits (AH's list goes between), then district hooks.
- * Composed once at import; nothing registers at runtime.
+ * Every hook in run order (P3): core, then habits (AH's list goes between), then district pieces'
+ * hooks in kit order. Composed once, on first use (district modules import the movers, so the kit
+ * is not ready while this file loads); nothing registers at runtime.
  */
-export const ARRIVAL_HOOKS: ArrivalHookList = [...CORE_ARRIVAL_HOOKS, ...DISTRICT_ARRIVAL_HOOKS];
+export function arrivalHooks(): ArrivalHookList {
+  composed ??= [
+    ...CORE_ARRIVAL_HOOKS,
+    ...Object.values(KIT.pieces).flatMap((p) =>
+      p.triggers.onArrive ? [{ ...p.triggers.onArrive, id: `dk:${p.id}` as const }] : [],
+    ),
+  ];
+  return composed;
+}
 
 function applies(h: ArrivalHook, a: ArrivalAt, traits: UnitTraits, cause: ArrivalCause): boolean {
   if (!h.subjects.includes(a.subject.kind)) return false;
@@ -346,7 +352,7 @@ function runUnit(
       cause: opts.cause,
       origin: opts.origin,
     };
-    for (const h of ARRIVAL_HOOKS) {
+    for (const h of arrivalHooks()) {
       if (!applies(h, a, traits, opts.cause)) continue;
       const held = u.held;
       const out = h.run(ctx, a);
@@ -377,7 +383,7 @@ export const objectArrives: ObjectArrivesFn = (ctx, object, at, opts) => {
     cause: opts.cause,
     origin: opts.origin,
   };
-  for (const h of ARRIVAL_HOOKS) {
+  for (const h of arrivalHooks()) {
     if (!applies(h, a, [], opts.cause)) continue;
     if (h.run(ctx, a) === 'stop') return stopped(at, 'held');
     if (fizzled(ctx)) return stopped(at, 'cap');
