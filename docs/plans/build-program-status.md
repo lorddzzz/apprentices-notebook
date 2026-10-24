@@ -2,11 +2,11 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** holding for reset (Stage 1 in progress)
+**State:** building (Stage 1); this window wraps up at >70% (player rule)
 **Reset:** window resets 2026-10-24 01:50 UTC; a session-only wake-up is scheduled for 01:52 UTC (if the session closed, resume manually from this file).
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. On wake-up (01:52 UTC): check usage; no agents are running. Start in parallel, watching file overlap: **AH-1** (Strong, L; Pull/Hop/Swap; FD-3, FD-7, HC-4 merged; also adds `MemberUnit.action`, `BasicAction` into `Action`, shove gate → `u.action`), **RV-2** (rival turn: join `RivalIntent` into `Intent`; add `BattleSpec.pins`), **FN-1** (thresholds 8/25/60, costs, re-pick), **DK-5a** (trip shape return side; after HC-4 ✓).
+1. Collect AH-1, RV-2, FN-1, DK-5a (started 01:53 UTC).
 2. Then: DK-3, DK-4 (pieces/rules; FD-3 ✓), DK-6, FD-4, FD-6, RC-1, AH-2, AH-3, HC-7/HC-8 (UI). Watch: AH-1 and RV-2 both touch `battle.ts`/`turn.ts`; run them on disjoint sections or in sequence.
 3. Player rule for this next window: once usage passes 70%, wrap up the session (status, ROADMAP, commit, push, remove merged worktrees) and write a continuation prompt instead of scheduling another wake-up.
 
@@ -31,6 +31,10 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-2 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ab982da4e109763e3 @ 5137380 | shared | `returnHome` (trip/crossroads) adds banked solvents to `solventsFound` (only gain site); `isKnown` reads it. Golden re-recorded (+`solventsFound` only, script-checked) |
 | RV-1 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a1636a9ac4f9f8113 @ 280148a | shared | `lamplighter` enemy (token L, idle, bite) parses everywhere; `EnemyUnit.rival?` set by `spawnRival` (rivals/unit.ts) compiling kit spells with charges; `RivalState.pinned?` (Intent not widened); fixture Lamplighter `Bolt> Ink` ×5. **RV-2:** resolve `pinned` first, dispatch on `unit.rival`; spells keyed by def spell id. Proposal `BattleSpec.pins` → RV-2 |
 | HC-5 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a1b432aeba92fb8b0 @ ada6567 | shared | `thresholdStart` plays `tripParty` with `startSeed = THRESHOLD_SEED` (1; Retry same spots); blocked "No one is slotted…"; lock has four `P` (A4, B4, C4, B3), solvable from each with one apprentice (60-seed test). Lock fixtures re-recorded; `tests/run/lock.test.ts` passes a lineup |
+| AH-1 | Strong / Opus 5.5 / medium | L | running | worktree | | Pull/Hop/Swap engine |
+| RV-2 | Strong / Opus 5.5 / medium | M | running | worktree | | locked-aim rival casting; Intent join; `BattleSpec.pins` |
+| FN-1 | Strong / Opus 5.5 / medium | M | running | worktree | | levels, thresholds 8/25/60, costs |
+| DK-5a | Strong / Opus 5.5 / medium | M | running | worktree | | trip shape, return side |
 | RC-W0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ace64eca89eca4392 @ cc83bcf | shared | `data/recruits.ts`: `Beat`, `RecruitFound`, `RecruitDef extends ApprenticeDef` (found, beat, runes), `RecruitPlacement`, `RecruitPages` ({runes} or {any}), `RECRUIT_HABITS`, empty `RECRUITS`; `engine/recruits.ts` stubs + `RecruitLootItem`, `RecruitsState`, `EMPTY_RECRUITS`. `Profile.recruits` not added yet (RC-6). Habit ids for AH: runaway `fuseOnStep`, notary `markTwice`, towel-bearer `steamproof`, warden `holdTwo`, tuner `nearUnison`, Copyist `longTouch`, exile `restoreErase`. RC-1 blocked on AH-W0 (`HabitId` closed). **DK-R1 → DK-7:** run contributors every roll; `must` after the table's `guaranteed`, `extra` after the three normal offers; `{kind:'recruit'}` round-trips in save parsing |
 | FD-9 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a8aba70dffdb3a7e3 @ dfd1904 | shared | `Profile.bindEvents` (inferred on load when absent), `grantBindEvent(p, e)` idempotent; `knownSetOf` = stored ∪ old district rule until something grants events. Golden re-recorded (+`bindEvents: []` only). BR/CG call `grantBindEvent` for *pushed*/*dies* |
 | HC-3 | Medium / Sonnet 5.5 / high | M | merged (partial by design) | worktree-agent-a21bdc1e0b9451570 @ 1598f0e | shared | `startLayout(layout)` in `data/encounters.ts` turns D/S into P and pads to 4 points; integrity test runs `checkRoom` on all 27 rooms + the lock. Data strings unchanged. **HC-4 must** use `startLayout(variant.layout)` + `placeParty` in `beginEncounter`, then bake the `P`s into the data and delete `startLayout` (orchestrator: required, not optional) |
@@ -65,6 +69,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 22:20 | 92 | 3h30 | 43 | Wrap | merge FN-2, FD-7; phone check of walk + cast playback OK; spawn RV-1 (S) |
 | 22:33 | 94 | 3h17 | 43 | Wrap | merge RV-1; spawn HC-5 (S) |
 | 22:49 | 96 | 3h01 | 44 | Hold | merge HC-5; hold until the 01:50 reset (wake-up scheduled 01:52 UTC) |
+| 01:53 | 0 | 5h | 44 | Normal | woke up; spawn AH-1, RV-2, FN-1, DK-5a |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RV-W0: DK adds `rivals?: RivalDef[]` to `DistrictKitData` and spreads `RivalModule` into `DistrictModule` (→ DK-9/RV-14); `RIVAL_TOKENS` joins the token uniqueness test (→ DK-4 or DK-17); TECH §7 row at RV finish. Accepted.
