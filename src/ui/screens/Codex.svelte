@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { METHODS } from '$data';
-  import { codexView, compoundTable, headlineOf, inventionLibrary, nameOf } from '$engine';
+  import { type FootnoteSubject, type LineId, METHODS } from '$data';
+  import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf } from '$engine';
+  import { lineTextFor } from '../../app/bench';
+  import { marginOf } from '../../app/desk';
   import { game } from '../../app/instance';
   import CodexEntry from '../components/codex/CodexEntry.svelte';
   import CodexGrid from '../components/codex/CodexGrid.svelte';
@@ -29,8 +31,15 @@
   const made = $derived(game.profile.inventions);
   const known = $derived(entries.filter((e) => e.known).length);
   // Out on a trip the notebook opens from the road, and closes back onto it.
+  const lineText = (id: LineId) => lineTextFor(game.profile, id);
+  const marginFor = (row: CodexRow) =>
+    row.known ? marginOf(game.profile, row.entry.ref as FootnoteSubject) : undefined;
   const back = $derived(game.save.trip ? 'trip' : 'study');
 </script>
+
+{#snippet page(row: CodexRow)}
+  <CodexEntry entry={row.entry} known={row.known} fine={row.fine} margin={marginFor(row)} {lineText} />
+{/snippet}
 
 <section class="codex" data-testid="codex">
   <header>
@@ -52,8 +61,8 @@
 
   <div class="page">
     {#if tab === 'runes'}
-      {#each of('rune') as { entry, known, fine } (entry.id)}
-        <CodexEntry {entry} {known} {fine} />
+      {#each of('rune') as row (row.entry.id)}
+        {@render page(row)}
       {/each}
     {:else if tab === 'made'}
       <p class="lead">Runes this household has invented.</p>
@@ -78,12 +87,12 @@
       <h2>The burst page</h2>
       <CodexGrid label="Burst page" cells={bursts.slice(5)} cols={3} />
     {:else if tab === 'methods'}
-      {#each of('method') as { entry, known } (entry.id)}
-        <CodexEntry {entry} {known} />
+      {#each of('method') as row (row.entry.id)}
+        {@render page(row)}
       {/each}
     {:else if tab === 'solvents'}
-      {#each of('solvent') as { entry, known } (entry.id)}
-        <CodexEntry {entry} {known} />
+      {#each of('solvent') as row (row.entry.id)}
+        {@render page(row)}
       {/each}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}

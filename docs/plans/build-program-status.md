@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: FN-5 (13:16).
+**State:** building (Stage 1). Woke at 12:01 UTC (wake-up #1 of 2). Running: none.
 **Reset:** 5h window resets 2026-10-24 17:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets (#1 used); the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -71,7 +71,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-8 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-ae6ef13811cede131 @ 07d94ae | shared | engine side already existed (FN-1/FN-4); `desk.ts` `rivalPagesHeld(profile)` (any held page of that rival with a non-null note); `marginOf`/`writeAt` fall back to it when no `holdsRivalPage` given; store passes it on write; credit fallback "<Rival>'s hand.". 3 tests `tests/app/desk-rival-note.test.ts`. No shipped rival variant yet (RV-20 authors `lamplighter:wick`). Follow-ups: `VariantDef.rival` should use `$data/rivals` `RivalId`; `rivalNoteVisible` by variant id |
 | AH-5 | Medium / Sonnet 5.5 / high | L | merged | worktree-agent-ac6b35da9958cf234 @ 25e6ae3 | shared | `shove` mode → `basic` (member's action; `onBasic`, `chooseBasic`, `basicOf`, `basicDirAt`: Pull/Hop take the tile 2 away or between, Shove/Swap adjacent); `isAlive` replaces `hp > 0` in battleInput/overlay/describe; previews: Pull path, Hop arc + landing ghost, Swap two-way arc + both ghosts, masking/hurt warnings, masked ghosts from `relocations()`; ActionBar label/icon/rule per action (`BASIC_LABEL`); HighlightLayer `arc`. 21 tests `tests/app/basic-actions.test.ts`. Phone-checked Hop/Swap/Pull end to end in the Lab (scratchpad ah5/). Autofixer unavailable. Follow-ups: Swap arc drawn under tokens (BattleBoard layer order); Lab strip wraps at 4 painted members; gallery `'shove'` → `'basic'` highlight rename |
 | FIX-tokens | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-afdb5045b1fe5c071 @ 2b8ab23 | ~2% | `notation.ts` `unitFor` and `scenario.ts` lattice loops use `APPRENTICE_IDS` (`MemberId` already aliases `ApprenticeId`); round-trip test with `R` in `tests/engine/notation.test.ts` |
-| FN-5 | Medium / Sonnet 5.5 / high | M | running | worktree (13:16) | | Codex margin column |
+| FN-5 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-acc828b476f12b9d0 @ 8d84a41 | ~6% | `run.ts` `fineOf` exported, covers methods and solvents (witnessed lines, "n / total"); `codex/CodexMargin.svelte` read-only on `marginOf` (filled text, "Open: written at the desk, at home.", "At N points, M more."); `CodexEntry` takes `margin`/`lineText` (fine print via `lineTextFor`); Codex passes both for runes/methods/solvents. Tests `tests/app/codex-margin.test.ts`. Phone-checked at home and on the road. Filled frames repeat the written text (deliberate, covers the capstone) — revisit if noisy |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -110,6 +110,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 13:27 | 79 | 3h33 | 77 | Narrow | merge AH-5, FN-5 |
 | 13:15 | 73 | 3h45 | 76 | Narrow by projection (~0.5%/min) | merge recruit-token fix; spawn FN-5 (M) |
 | 12:57 | 64 | 4h03 | 75 | Normal (~0.5%/min) | merge RV-6, HC-8; spawn AH-5 (L), notation recruit-token fix (S) |
 | 12:47 | 59 | 4h13 | 74 | Wrap by projection (~1.1%/min) | merge FN-8, DK-8; no new spawns |

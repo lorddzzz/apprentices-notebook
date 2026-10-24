@@ -1,16 +1,21 @@
 <script lang="ts">
-  import { type CodexEntryDef, type LineDef, type MethodId, RUNES, type RuneId } from '$data';
+  import { type CodexEntryDef, type LineDef, type LineId, type MethodId, RUNES, type RuneId } from '$data';
+  import type { MarginView } from '../../../app/desk';
   import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
+  import CodexMargin from './CodexMargin.svelte';
 
   interface Props {
     entry: CodexEntryDef;
     known: boolean;
     /** A rune page's fine print: the witnessed lines and how many exist (D1). */
     fine?: { seen: LineDef[]; total: number };
+    /** The read-only margin column (FN-5); fine-print sentences read in the owner's hand via `lineText`. */
+    margin?: MarginView;
+    lineText?: (id: LineId) => string;
   }
 
-  let { entry, known, fine }: Props = $props();
+  let { entry, known, fine, margin, lineText }: Props = $props();
 
   const rune = $derived(entry.kind === 'rune' ? (entry.ref as RuneId) : null);
   const method = $derived(entry.kind === 'method' ? (entry.ref as MethodId) : null);
@@ -61,9 +66,10 @@
       {#if fine && fine.total > 0}
         <p class="fine" data-testid="fine-count">fine print {fine.seen.length} / {fine.total}</p>
         {#each fine.seen as line (line.id)}
-          <p class="line" data-testid="fine-line">{line.text}</p>
+          <p class="line" data-testid="fine-line">{lineText ? lineText(line.id) : line.text}</p>
         {/each}
       {/if}
+      {#if margin}<CodexMargin {margin} />{/if}
       {#if entry.ownerNote}<p class="note">{entry.ownerNote}</p>{/if}
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>

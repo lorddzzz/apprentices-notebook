@@ -360,9 +360,9 @@ function isKnown(p: Profile, entry: CodexEntryDef): boolean {
   return p.named.includes(entry.id); // compound, burst (D7)
 }
 
-/** A rune's fine print. Unwitnessed lines are never listed (D1: no hints), only counted. */
-function fineOf(p: Profile, entry: CodexEntryDef): Pick<CodexRow, 'fine'> {
-  if (entry.kind !== 'rune') return {};
+/** A rune, method or solvent page's fine print. Unwitnessed lines are never listed (D1: no hints), only counted. */
+export function fineOf(p: Profile, entry: CodexEntryDef): Pick<CodexRow, 'fine'> {
+  if (entry.kind !== 'rune' && entry.kind !== 'method' && entry.kind !== 'solvent') return {};
   const own = LINES.filter((l) => l.subject === entry.ref);
   const seen = isKnown(p, entry) ? own.filter((l) => p.witnessed.includes(l.id)) : [];
   return { fine: { seen, total: own.length } };
