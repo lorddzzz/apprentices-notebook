@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: DK-4 (finish, in its kept worktree), AH-3, RV-4, HC-7.
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: DK-4 (finish, in its kept worktree), AH-3, HC-7.
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -48,7 +48,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FD-0 | Strong / Opus 5.5 / medium | S | merged | worktree-agent-ad62c68dd4db72616 @ 34b97a0 | shared | `engine/arrival.ts`: `ArrivalCauses` (cause → `'each'`/`'landing'`, extended by module augmentation), `PlacementCause` (`restore`/`spawn`), `UnitTraits` (flies/swims/anchored), `ArrivalHook` {id, answers, subjects, causes?, exceptCauses?, exempt?, run → `'go'`/`'stop'`}, core hooks solvent/markSpread/bindEnters/stepJar/stain + empty `fire`; `RelocationFields` (unemitted); `Jar.id`, `SealedContext`, `BattleState.nextJar`; `Ctx.eventCap`. Risks: augmenting plans also add a runtime entered-tiles list; `nextJar`/`context` optional (FD-4/5 handle old saves); FD-7 moves moved/push/swapped/drift at once (view.ts, fx.ts switch on them); `eventCap` not yet threaded through `battle.ts` (FD-2/FD-6) |
 | HC-W0 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-abb1dc27aa7a53596 @ b4e2727 | shared | `ApprenticeDef`/`APPRENTICES`/`APPRENTICE_IDS`/`isApprenticeId`/`leanOf` in `data/apprentices.ts` (members.ts removed; `MEMBERS`/`MEMBER_IDS`/`MemberId` kept as deprecated views); `HABITS` (twoJars, forkAhead); `RECRUITS = {}` (entries `as const satisfies Record<string, ApprenticeDef<string>>`, avoid circular key type); stubs in `engine/household.ts`, `engine/rooms.ts` (`ROOM_LIMITS`, `START_SALT = 6000`), not re-exported from `$engine`. Risk: once RC adds entries `MEMBER_IDS` spans the registry, so `run.ts` loops must use the household first (HC-1/HC-4) |
 | AH-3 | Strong / Opus 5.5 / medium | M | running | worktree (07:06) | | holdTwo, restoreErase |
-| RV-4 | Strong / Opus 5.5 / medium | M | running | worktree (07:06) | | planner |
+| RV-4 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-ab746c1d7e6f7f36e @ 2fd5531 | ~10% (shared) | `rivals/plan.ts`: `destinations` (safe BFS, never fire/step-jar/drop), `nativeAims`, `simulate`/`outcomeOf` (real `resolveRivalCast` on a clone, fallback off), `CORE_GOALS` hitParty/herdInto/openOwnObject/placeObjectNear + approach/holdDistance, `fallbackTile`, dry approach-and-strike, pure `planRival`; `rivalAct(ctx, e, order, move)` plans, walks, re-plans from the reached tile. Trick steps produce no candidates until RV-3; `registerGoal` → RV-12. Fixture `Bolt> Ink` marks then waits with charges (no strike) — CN's real kit will differ. Golden unchanged |
 | HC-7 | Medium / Sonnet 5.5 / high | L | running | worktree (07:06) | | household shelf UI |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
@@ -83,6 +83,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 02:41 | 73 | 4h09 | 53 | Narrow | >70%: session wrap-up (player rule); checkpoint nudges to DK-3, DK-4, AH-2 |
 | 03:05 | — | — | — | wrap-up | merge DK-3, AH-2; DK-4 kept on its branch (conflicts); session ends |
 | 07:04 | 2 | 4h55 | 54 | Normal | new session; spawn DK-4 (finish), AH-3, RV-4, HC-7 |
+| 07:26 | 34 | 4h33 | 59 | Normal (~1.5%/min) | merge RV-4 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
@@ -108,6 +109,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - FN-1A A2: wrong text is fixed by editing the row, not adding a second one. Accepted.
 - FN-1A A3: Cinder vs a rat's oil trail over a hot tile (doesn't catch; the line says "now or later"): rule choice. **Ask player** at the next design round; default until then = fix the text to match the engine.
 - FN-1A A4: keep near-always lines (`splash:unit`, `fork:unit`, `oil:empty`) as the honest home for heading/duration rules. Accepted.
+
+- RV-4: empty routine = `hitParty` with each spell then `approach`; `hitParty` accepts any effect landing on an apprentice, harm ranked first; action goals reject self-harm; `herdInto` defaults to own step-jars (`object:'hazard'` widens); `placeObjectNear` uses Chebyshev ≤2 (`near` overrides); a move step wins only with a real walk, `approach` strictly closer; dry strike walks to the closest-by-walk destination then strikes the first adjacent apprentice in DIRS order. Contract gap: `Outcome` lacks landing tiles/moves (WeakMap side table) → RV-12 adds `madeAt`/`moves`. Accepted.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.

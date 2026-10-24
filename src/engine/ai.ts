@@ -113,7 +113,7 @@ function idle(ctx: Ctx, e: EnemyUnit): void {
 function act(ctx: Ctx, e: EnemyUnit, canMove: boolean, order: number): boolean {
   // A held or shackled foe can't move by itself (Hold, Shackle).
   const move = canMove && e.held === 0 && e.shackle === 0;
-  if (e.rival) return rivalAct(ctx, e, order);
+  if (e.rival) return rivalAct(ctx, e, order, move);
   const def = ENEMIES[e.def];
   const attack = def.attack;
   if (def.ai === 'lurker' || def.ai === 'moth' || def.ai === 'mother') {

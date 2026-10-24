@@ -5,9 +5,11 @@ import { type Ctx, emit, ref } from '../ctx';
 import { dealDamage } from '../damage';
 import type { EventLog, GameEvent } from '../events';
 import { type Coord, chebyshev, DIRS, type Dir, label, sameCoord, step } from '../grid';
+import { enemyWalk } from '../movement';
 import { inBoard, isAlive, unitAt } from '../queries';
 import { resolveSpell } from '../resolve';
 import type { Aim, AttackIntent, BattleState, EnemyUnit, RivalIntent, Spell } from '../types';
+import { planRival } from './plan';
 
 /**
  * Rival turns (rivals plan P2, P3; RV-2): telegraphing a pinned intent, locked-aim casting, the
@@ -103,14 +105,23 @@ export function telegraphRival(ctx: Ctx, e: EnemyUnit, intent: RivalIntent): voi
 
 /**
  * A rival's enemy-phase turn. A pinned intent (scenarios, RV-1) is telegraphed in place of
- * planning; until RV-4's planner lands, an unpinned rival waits. Returns true when it telegraphed.
+ * planning. Unpinned, the planner (RV-4) chooses; he walks, then re-plans the action from the
+ * tile he reached without moving (P4), so the telegraph matches the board as it now stands.
+ * Returns true when it telegraphed.
  */
-export function rivalAct(ctx: Ctx, e: EnemyUnit, order: number): boolean {
+export function rivalAct(ctx: Ctx, e: EnemyUnit, order: number, move = false): boolean {
   const pinned = e.rival?.pinned;
   if (!pinned) {
-    e.intent = null;
-    emit(ctx, { type: 'idle', unit: ref(e) });
-    return false;
+    const first = planRival(ctx.s, e.id, move);
+    if (first?.path.length) enemyWalk(ctx, e, first.path);
+    const plan = first?.path.length && isAlive(e) ? planRival(ctx.s, e.id, false) : first;
+    if (!plan?.intent || !isAlive(e)) {
+      e.intent = null;
+      emit(ctx, { type: 'idle', unit: ref(e) });
+      return false;
+    }
+    telegraphRival(ctx, e, { ...plan.intent, order });
+    return true;
   }
   telegraphRival(ctx, e, { ...cloneData(pinned), order });
   return true;
