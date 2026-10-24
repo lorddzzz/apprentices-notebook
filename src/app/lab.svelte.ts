@@ -2,6 +2,8 @@ import {
   APPRENTICE_IDS,
   APPRENTICES,
   type ApprenticeId,
+  type BasicActionId,
+  type HabitId,
   type InventionDef,
   type MemberId,
   type ScenarioDef,
@@ -26,13 +28,17 @@ import {
   applyEdits,
   baseOf,
   boardWithStarts,
+  changedKits,
   defaultLineup,
   exportedMembers,
   fallbackLattices,
   fieldLineup,
   formatLattices,
   formatScenario,
+  kitOf,
   type LabBase,
+  type LabKit,
+  type LabKits,
   labFootnotes,
   labSpec,
   membersOn,
@@ -42,11 +48,13 @@ import {
   profileLattices,
   pruneStarts,
   resolveScenario,
+  setKit,
   switchVariant,
   toggleLineup,
   toggleStart,
   toScenarioDef,
   whyNoEdit,
+  withKit,
 } from './lab';
 import { forgetView } from './latticeViewport';
 import { editSocket, NO_TOOL, pageSessionKey, type ShelfTool } from './study';
@@ -65,6 +73,7 @@ interface Snapshot {
   baseLen: number;
   starts: Coord[];
   spotSeed: number;
+  kits: LabKits;
 }
 
 const HISTORY_LIMIT = 60;
@@ -88,6 +97,10 @@ export class LabStore {
   lattices = $state.raw<Record<MemberId, Lattice>>(fallbackLattices());
   /** Who a board with start points fields (1–3, any apprentices); set from the slots on first load. */
   lineup = $state.raw<readonly ApprenticeId[]>([]);
+  /** Basic-action and habit overrides by apprentice (AH-7): only what differs from the registry. Not saved. */
+  kits = $state.raw<LabKits>({});
+  /** Whose kit the picker shows. */
+  kitMember = $state<ApprenticeId>(APPRENTICE_IDS[0] ?? 'draughtsman');
   /** The board's start points (`P`): painted here or read from a scenario board. */
   starts = $state.raw<readonly Coord[]>([]);
   /** The seed the lineup's spots are drawn from; "Redraw" steps it. */
@@ -123,7 +136,9 @@ export class LabStore {
       }),
     ) as Record<MemberId, Lattice>;
     const inventions = { ...inventionLibrary(this.game.profile), ...def.inventions };
-    const fielded = labSpec(def, { lattices, inventions, lineup: this.lineup });
+    // A demo replays as authored, with each apprentice's own kit.
+    if (opts.demo) this.kits = {};
+    const fielded = labSpec(def, { lattices, inventions, lineup: this.lineup, kits: this.kits });
     const init = createBattle(fielded.spec);
     this.starts = fielded.starts;
     this.spotSeed = fielded.spotSeed;
@@ -212,6 +227,7 @@ export class LabStore {
       baseLen: this.baseLen,
       starts: [...this.starts],
       spotSeed: this.spotSeed,
+      kits: this.kits,
     });
   }
 
@@ -225,6 +241,7 @@ export class LabStore {
       baseLen: this.baseLen,
       starts: [...this.starts],
       spotSeed: this.spotSeed,
+      kits: this.kits,
     });
     this.actions.push(action);
   }
@@ -246,6 +263,7 @@ export class LabStore {
     this.baseLen = snap.baseLen;
     this.starts = snap.starts;
     this.spotSeed = snap.spotSeed;
+    this.kits = snap.kits;
     this.session.replace(snap.state, snap.log);
   }
 
@@ -276,7 +294,7 @@ export class LabStore {
       const who = APPRENTICE_IDS.find((id) => APPRENTICES[id].token === this.palette);
       if (who) {
         // Anyone in the registry, with their page from the Lab's lattices.
-        next = paintApprentice(before, at, who, this.lattices);
+        next = paintApprentice(before, at, who, this.lattices, this.kits);
       } else {
         const edits = paletteEdits(before, at, this.palette);
         next = edits.length > 0 ? applyEdits(before, edits) : null;
@@ -338,7 +356,14 @@ export class LabStore {
     }
     let next: BattleState;
     try {
-      next = fieldLineup(session.state, this.starts, this.lineup, spotSeed, this.lattices);
+      next = fieldLineup(
+        session.state,
+        this.starts,
+        this.lineup,
+        spotSeed,
+        this.lattices,
+        this.kits,
+      );
     } catch (err) {
       toast(err instanceof Error ? err.message : String(err), 'warn');
       return;
@@ -347,6 +372,34 @@ export class LabStore {
     this.checkpoint();
     this.spotSeed = spotSeed;
     this.rebase(next, this.lattices);
+  }
+
+  // ── Kits (AH-7) ──
+
+  /** An apprentice's kit in the Lab: the registry's with any override. */
+  kitFor(id: ApprenticeId): LabKit {
+    return kitOf(id, this.kits);
+  }
+
+  /** How many apprentices carry something other than their own kit. */
+  get kitsChanged(): number {
+    return changedKits(this.kits).length;
+  }
+
+  /** Gives one apprentice another action or habit; they carry it from now on, on the board or off. */
+  setKit(id: ApprenticeId, patch: { action?: BasicActionId; habit?: HabitId | null }): void {
+    const session = this.session;
+    if (!session) return;
+    const kits = setKit(this.kits, id, patch);
+    this.checkpoint();
+    this.kits = kits;
+    this.rebase(withKit(session.state, id, kits), this.lattices);
+  }
+
+  /** Back to the registry's own kit for one apprentice. */
+  resetKit(id: ApprenticeId): void {
+    const native = kitOf(id, {});
+    this.setKit(id, { action: native.action, habit: native.habit });
   }
 
   /** The same lineup on a fresh draw of the start points. */
@@ -426,9 +479,9 @@ export class LabStore {
     if (!out) return;
     try {
       await navigator.clipboard.writeText(out.text);
-      if (kind === 'scenario' && this.variantsOn.length > 0) {
-        // A scenario has no place for footnote variants yet, so the copy leaves them out.
-        toast('Scenario copied without the switched-on variants', 'warn');
+      if (kind === 'scenario' && (this.variantsOn.length > 0 || this.kitsChanged > 0)) {
+        // A scenario has no place for footnote variants or kits yet, so the copy leaves them out.
+        toast('Scenario copied without the switched-on variants or kits', 'warn');
       } else toast(`${out.title} copied`);
     } catch {
       // No clipboard access (some iOS contexts): show the text to select by hand.

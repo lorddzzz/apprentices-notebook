@@ -2,11 +2,13 @@ import {
   APPRENTICE_IDS,
   APPRENTICES,
   type ApprenticeId,
+  type BasicActionId,
   ENEMIES,
   type EnemyId,
   type FootnoteKey,
   type FootnoteSubject,
   footnoteKeyOf,
+  type HabitId,
   type InventionDef,
   type InventionId,
   LINES,
@@ -168,6 +170,66 @@ export function profileLattices(p: Profile): Record<MemberId, Lattice> {
   ) as Record<MemberId, Lattice>;
 }
 
+// ── Kits (AH-7): any action and habit on any apprentice ────
+
+/** The four basic actions, in the order the picker lists them. */
+export const LAB_ACTIONS: readonly BasicActionId[] = ['shove', 'pull', 'hop', 'swap'];
+
+/** What an apprentice carries into a fight: their basic action and their habit (null: none). */
+export interface LabKit {
+  action: BasicActionId;
+  habit: HabitId | null;
+}
+/** The Lab's kit overrides, by apprentice. Only what differs from the registry is kept. */
+export type LabKits = Partial<Record<ApprenticeId, Partial<LabKit>>>;
+
+/** The kit the registry gives an apprentice. */
+export const nativeKit = (id: ApprenticeId): LabKit => ({
+  action: APPRENTICES[id].action,
+  habit: APPRENTICES[id].habit,
+});
+
+/** The kit an apprentice has in the Lab: the registry's, with any override on top. */
+export const kitOf = (id: ApprenticeId, kits: LabKits): LabKit => ({
+  ...nativeKit(id),
+  ...kits[id],
+});
+
+/** `kits` with `patch` applied to one apprentice; a field equal to the registry's is dropped. */
+export function setKit(kits: LabKits, id: ApprenticeId, patch: Partial<LabKit>): LabKits {
+  const native = nativeKit(id);
+  const next: Partial<LabKit> = { ...kits[id], ...patch };
+  if (next.action === native.action) delete next.action;
+  if (next.habit === native.habit) delete next.habit;
+  const { [id]: _old, ...rest } = kits;
+  return Object.keys(next).length > 0 ? { ...rest, [id]: next } : rest;
+}
+
+/** Who carries something other than the registry's kit. */
+export const changedKits = (kits: LabKits): ApprenticeId[] =>
+  APPRENTICE_IDS.filter((id) => Object.keys(kits[id] ?? {}).length > 0);
+
+/** `s` with the apprentice's kit written onto their unit, when they stand on the board. */
+export function withKit(s: BattleState, id: ApprenticeId, kits: LabKits): BattleState {
+  const unit = s.units.find((u) => u.kind === 'member' && u.def === id);
+  if (unit?.kind !== 'member') return s;
+  const kit = kitOf(id, kits);
+  if (unit.action === kit.action && unit.lean.habit === kit.habit) return s;
+  const next = cloneData(s);
+  const mine = next.units.find((u) => u.kind === 'member' && u.def === id);
+  if (mine?.kind === 'member') {
+    mine.action = kit.action;
+    mine.lean = { ...mine.lean, habit: kit.habit };
+  }
+  return next;
+}
+
+/** The overrides as the `PartyInit` fields the engine's own spawn honours. */
+const kitInit = (
+  id: ApprenticeId,
+  kits: LabKits,
+): { action?: BasicActionId; habit?: HabitId | null } => kits[id] ?? {};
+
 // ── Lineup and start points (HC-8, plan P16) ────────────
 
 /** The lineup a Lab opens with: the slotted trip party, else the founding pair. */
@@ -214,6 +276,7 @@ export function labSpec(
     inventions: InventionLibrary;
     lineup: readonly ApprenticeId[];
     spotSeed?: number;
+    kits?: LabKits;
   },
 ): { spec: BattleSpec; starts: Coord[]; spotSeed: number } {
   const spec = scenarioSpec(def, {
@@ -224,6 +287,7 @@ export function labSpec(
   const party = { ...spec.party };
   for (const id of APPRENTICE_IDS) {
     if (!party[id]) party[id] = { spells: spellsFor(id, opts.lattices[id], opts.inventions) };
+    party[id] = { ...party[id], ...kitInit(id, opts.kits ?? {}) };
   }
   spec.party = party;
   const spotSeed = opts.spotSeed ?? spec.seed;
@@ -299,12 +363,13 @@ function newMember(
   id: ApprenticeId,
   lattices: Record<MemberId, Lattice>,
   inventions: InventionLibrary,
+  kits: LabKits = {},
 ): MemberUnit {
   const { state } = createBattle({
     title: 'Lab',
     board: 'P',
     seed: 1,
-    party: { [id]: { spells: spellsFor(id, lattices[id], inventions) } },
+    party: { [id]: { spells: spellsFor(id, lattices[id], inventions), ...kitInit(id, kits) } },
     lineup: [id],
     inventions,
     lab: true,
@@ -325,6 +390,7 @@ export function fieldLineup(
   lineup: readonly ApprenticeId[],
   spotSeed: number,
   lattices: Record<MemberId, Lattice>,
+  kits: LabKits = {},
 ): BattleState {
   const next = cloneData(s);
   next.units = next.units.filter((u) => u.kind !== 'member');
@@ -334,7 +400,7 @@ export function fieldLineup(
     startSeedOf(spotSeed),
   );
   for (const p of placed.units) {
-    const unit = newMember(p.def as ApprenticeId, lattices, s.inventions);
+    const unit = newMember(p.def as ApprenticeId, lattices, s.inventions, kits);
     unit.pos = { ...p.at };
     next.units.push(unit);
   }
@@ -352,6 +418,7 @@ export function paintApprentice(
   at: Coord,
   id: ApprenticeId,
   lattices: Record<MemberId, Lattice>,
+  kits: LabKits = {},
 ): BattleState | null {
   const tile = s.tiles[at.y * s.width + at.x];
   if (!tile || tile.terrain.gate || tile.terrain.grate) return null;
@@ -363,7 +430,7 @@ export function paintApprentice(
   }
   const mine = next.units.find((u) => u.kind === 'member' && u.def === id);
   next.units = next.units.filter((u) => u !== here && u !== mine);
-  const unit = mine?.kind === 'member' ? mine : newMember(id, lattices, s.inventions);
+  const unit = mine?.kind === 'member' ? mine : newMember(id, lattices, s.inventions, kits);
   unit.pos = { ...at };
   next.units.push(unit);
   const t = next.tiles[at.y * next.width + at.x];

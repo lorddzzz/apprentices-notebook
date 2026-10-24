@@ -3,12 +3,12 @@ import {
   type Action,
   applyAction,
   type BattleState,
+  basicDirs,
   castableSpells,
   type GameEvent,
   legalAims,
   legalMoves,
   memberById,
-  shoveDirs,
 } from '$engine';
 
 /** Deterministic, deliberately small greedy bot: value harm, avoid friendly fire, then approach. */
@@ -19,9 +19,15 @@ function value(s: BattleState): number {
     0,
   );
 }
+/** The member's own basic action (Shove, Pull, Hop or Swap) in every direction it can take now. */
+function basics(s: BattleState, id: (typeof MEMBER_IDS)[number]): Action[] {
+  const m = memberById(s, id);
+  if (m.acted) return [];
+  return basicDirs(s, id).map((dir): Action => ({ type: m.action, unit: id, dir }) as Action);
+}
 function attacks(s: BattleState, id: (typeof MEMBER_IDS)[number]): Action[] {
   return [
-    ...shoveDirs(s, id).map((dir): Action => ({ type: 'shove', unit: id, dir })),
+    ...basics(s, id),
     ...castableSpells(s, id)
       .filter((x) => x.usable)
       .flatMap(({ spell }) =>

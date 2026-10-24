@@ -3,7 +3,14 @@
   import { compileLattice, openAll } from '$engine';
   import { IDLE } from '../../app/battleInput';
   import { game, lab } from '../../app/instance';
-  import { LAB_SCENARIOS, labLocation, PALETTE, variantGroups } from '../../app/lab';
+  import {
+    changedKits,
+    LAB_SCENARIOS,
+    labLocation,
+    nativeKit,
+    PALETTE,
+    variantGroups,
+  } from '../../app/lab';
   import { overlayFor } from '../../app/overlay';
   import { go, router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
@@ -17,6 +24,7 @@
   import CopySheet from '../components/lab/CopySheet.svelte';
   import LabBar from '../components/lab/LabBar.svelte';
   import LabInvention from '../components/lab/LabInvention.svelte';
+  import LabKits from '../components/lab/LabKits.svelte';
   import LabLineup from '../components/lab/LabLineup.svelte';
   import LabVariants from '../components/lab/LabVariants.svelte';
   import MemberPicker from '../components/lab/MemberPicker.svelte';
@@ -28,6 +36,7 @@
   let inventOpen = $state(false);
   let variantsOpen = $state(false);
   let lineupOpen = $state(false);
+  let kitsOpen = $state(false);
   const variantList = variantGroups();
   const inventions = $derived(lab.session?.state.inventions ?? {});
 
@@ -69,8 +78,10 @@
     lab.lineup.includes(lab.member) ? lab.lineup : [...lab.lineup, lab.member],
   );
   const lattice = $derived(lab.lattices[lab.member]);
-  const memberHabit = $derived(MEMBERS[lab.member].lean.habit);
-  const compiled = $derived(compileLattice(lattice, {}, inventions, MEMBERS[lab.member].lean));
+  const memberHabit = $derived(lab.kitFor(lab.member).habit);
+  const compiled = $derived(
+    compileLattice(lattice, {}, inventions, { ...MEMBERS[lab.member].lean, habit: memberHabit }),
+  );
 
   // Dev builds and `?dev` get the city shortcuts (K-24).
   const devTools = $derived(
@@ -182,6 +193,12 @@
           onclick={() => run(() => (lineupOpen = true))}
           testid="lab-lineup-open"
         />
+        <Button
+          variant="quiet"
+          label={lab.kitsChanged ? `Kits (${lab.kitsChanged} changed)` : 'Kits'}
+          onclick={() => run(() => (kitsOpen = true))}
+          testid="lab-kits-open"
+        />
         <Button variant="quiet" label="Invent for this Lab" onclick={() => run(() => (inventOpen = true))} testid="invent-lab" />
         <Button
           variant="quiet"
@@ -218,6 +235,19 @@
       onfield={() => lab.field()}
       onredraw={() => lab.redraw()}
       onclose={() => (lineupOpen = false)}
+    />
+    <LabKits
+      open={kitsOpen}
+      member={lab.kitMember}
+      lineup={lab.lineup}
+      kit={lab.kitFor(lab.kitMember)}
+      native={nativeKit(lab.kitMember)}
+      changed={changedKits(lab.kits)}
+      onmember={(id) => (lab.kitMember = id)}
+      onaction={(action) => lab.setKit(lab.kitMember, { action })}
+      onhabit={(habit) => lab.setKit(lab.kitMember, { habit })}
+      onreset={() => lab.resetKit(lab.kitMember)}
+      onclose={() => (kitsOpen = false)}
     />
     <LabInvention open={inventOpen} {inventions} onadd={(def) => lab.addInvention(def)} onclose={() => (inventOpen = false)} />
     <CopySheet out={lab.copyOut} onclose={() => lab.closeCopy()} />

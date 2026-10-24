@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { SCENARIOS, type ScenarioDef } from '$data';
+import { type HabitId, SCENARIOS, type ScenarioDef } from '$data';
 import {
   aimPreview,
   castableSpells,
@@ -13,6 +13,7 @@ import {
   scenarioBattle,
   scenarioById,
 } from '$engine';
+import { nativeKit } from '../../src/app/lab';
 import { cast, expectLog } from './harness';
 
 describe('every Lab scenario replays to its expected log', () => {
@@ -133,3 +134,45 @@ test('UI contract: castableSpells, aimPreview path, labSetCell errors', () => {
 function fail(): never {
   throw new Error('missing spell');
 }
+
+describe('AH-7 demos: one per basic action and per habit', () => {
+  const run = (id: string) => {
+    const def = scenarioById(id);
+    if (!def) throw new Error(`missing ${id}`);
+    return runScenario(def);
+  };
+
+  test.each([
+    ['shove-basic', 'shove'],
+    ['pull-basic', 'pull'],
+    ['hop-basic', 'hop'],
+    ['swap-basic', 'swapWith'],
+  ])('%s plays its action (%s event)', (id, type) => {
+    const r = run(id);
+    expect(r.events.some((e) => e.type === type)).toBe(true);
+    expect(scenarioById(id)?.expected.length).toBeGreaterThan(0);
+  });
+
+  test.each([
+    ['fuse-on-step', 'fuseOnStep'],
+    ['mark-twice', 'markTwice'],
+    ['steamproof', 'steamproof'],
+    ['hold-two', 'holdTwo'],
+    ['near-unison', 'nearUnison'],
+    ['long-touch', 'longTouch'],
+    ['restore-erase', 'restoreErase'],
+  ] as [string, HabitId][])('%s shows the habit %s at work', (id, habit) => {
+    const r = run(id);
+    expect(r.events.some((e) => 'habit' in e && e.habit === habit)).toBe(true);
+  });
+
+  test('every apprentice demo is carried out by the apprentice who has that action natively', () => {
+    for (const [id, who, action] of [
+      ['pull-basic', 'runaway', 'pull'],
+      ['hop-basic', 'copyist', 'hop'],
+      ['swap-basic', 'notary', 'swap'],
+    ] as const) {
+      expect(nativeKit(who).action, id).toBe(action);
+    }
+  });
+});
