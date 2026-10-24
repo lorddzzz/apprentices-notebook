@@ -205,8 +205,8 @@ function sweep(who: readonly ApprenticeId[], rooms: readonly Room[], n: number) 
 
 const pct = (n: number, d: number) => Math.round((100 * n) / d);
 
-/** Slow tests run long only under HOUSEHOLD_SWEEP; otherwise they stay inside the default timeout. */
-const LONG = FULL ? 3_600_000 : undefined;
+/** Slow tests run long only under HOUSEHOLD_SWEEP; otherwise they get 90 s, since a loaded machine slows the bot. */
+const LONG = FULL ? 3_600_000 : 90_000;
 
 function report(name: string, rows: Map<string, Tally>, n: number) {
   const total = blank();

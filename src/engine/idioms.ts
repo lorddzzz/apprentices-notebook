@@ -2,6 +2,7 @@ import { type Ctx, emit } from './ctx';
 import type { GameEvent } from './events';
 import { stepsOf } from './lattice';
 import { livingUnits } from './queries';
+import { householdLog, isRivalEvent, rivalIds } from './rivals/credit';
 import type { BattleState, Origin, Step, UnitId } from './types';
 
 /**
@@ -59,9 +60,19 @@ const found = (id: IdiomId, e?: GameEvent): IdiomHit => ({
 const sameTile = (a: { x: number; y: number }, b: { x: number; y: number }): boolean =>
   a.x === b.x && a.y === b.y;
 
-/** Every idiom this action's log (and the board it left) makes, in the design's order. */
-export function idiomsIn(log: readonly GameEvent[], pre: IdiomPre, s: BattleState): IdiomHit[] {
+/**
+ * Every idiom this action's log (and the board it left) makes, in the design's order. Patterns
+ * read only the household's events: a rival's casts and the effects they left carry his origin
+ * and earn no idiom (RV-16; an enemy phase's log holds both sides).
+ */
+export function idiomsIn(
+  all: readonly GameEvent[],
+  pre: IdiomPre,
+  s: BattleState,
+  rivals: ReadonlySet<UnitId> = rivalIds(s),
+): IdiomHit[] {
   const hits: IdiomHit[] = [];
+  const log = householdLog(all, rivals);
   const first = log.find((e) => e.type === 'cast');
   const actorId = first?.type === 'cast' ? first.caster.id : null;
 
@@ -88,8 +99,9 @@ export function idiomsIn(log: readonly GameEvent[], pre: IdiomPre, s: BattleStat
   }
 
   // Lantern Walk: a jar on water holding Spark opens on a foe.
+  // A jar's drift is followed through the whole log, but only a household opening counts.
   const sparkJars = new Set(pre.sparkJars);
-  const lantern = log.find((e) => {
+  const lantern = all.find((e) => {
     if (e.type === 'drawn' && e.what === 'jar') {
       const from = `${e.from.x},${e.from.y}`;
       if (sparkJars.delete(from)) sparkJars.add(`${e.to.x},${e.to.y}`);
@@ -97,6 +109,7 @@ export function idiomsIn(log: readonly GameEvent[], pre: IdiomPre, s: BattleStat
     if (e.type === 'jarCrumbles') sparkJars.delete(`${e.at.x},${e.at.y}`);
     return (
       e.type === 'jarOpened' &&
+      !isRivalEvent(e, rivals) &&
       e.by !== null &&
       !e.by.member &&
       sparkJars.has(`${e.at.x},${e.at.y}`)
@@ -138,7 +151,7 @@ export function idiomsIn(log: readonly GameEvent[], pre: IdiomPre, s: BattleStat
       .slice(i + 1)
       .find((b) => b.type === 'burst' && b.tiles.some((t) => to.some((c) => sameTile(c, t))));
     if (boom) {
-      hits.push(found('redraft', e));
+      hits.push(found('redraft', e.origin ? e : boom));
       break;
     }
   }

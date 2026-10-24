@@ -243,8 +243,11 @@ export function driftWaiting(ctx: Ctx): void {
       return;
     }
     dest.jar = jar;
-    withLine(ctx, 'pitch:water', () =>
-      emit(ctx, { type: 'drawn', from: { ...m.from }, to: { ...m.to }, what: 'jar' }),
+    // The drift is the jar's own cast's doing (RV-16): a rival's lantern floating is no household point.
+    withOrigin(ctx, jar.origin, () =>
+      withLine(ctx, 'pitch:water', () =>
+        emit(ctx, { type: 'drawn', from: { ...m.from }, to: { ...m.to }, what: 'jar' }),
+      ),
     );
     landed.push(m.to);
   });
