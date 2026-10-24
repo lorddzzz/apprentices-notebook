@@ -10,6 +10,8 @@ import { inBoard, isAlive, unitAt } from '../queries';
 import { resolveSpell } from '../resolve';
 import type { Aim, AttackIntent, BattleState, EnemyUnit, RivalIntent, Spell } from '../types';
 import { planRival } from './plan';
+import type { TrickDef } from './types';
+import { LONG_WICK } from './wick';
 
 /**
  * Rival turns (rivals plan P2, P3; RV-2): telegraphing a pinned intent, locked-aim casting, the
@@ -61,6 +63,11 @@ export const isEffect = (e: GameEvent): boolean => EFFECTS.has(e.type);
 /** A starved action changed nothing (P3): every event is flight, a stop, a miss or a trace. */
 export const isStarved = (events: EventLog): boolean => !events.some(isEffect);
 
+/** An action trick by id. Districts' tricks join here when DK's module contract wires them (RV-14). */
+export function trickOf(id: string): TrickDef | null {
+  return id === LONG_WICK.id ? LONG_WICK : null;
+}
+
 export function rivalDefOf(e: EnemyUnit): RivalDef | null {
   return e.rival ? (RIVALS[e.rival.rival] ?? null) : null;
 }
@@ -86,7 +93,7 @@ export function rivalVerb(e: EnemyUnit, intent: RivalIntent): string {
     case 'cast':
       return `cast ${spellName(def, intent.spell)} ${aimWords(intent.aim)}`;
     case 'trick':
-      return `use ${intent.trick}`;
+      return `use ${trickOf(intent.trick)?.name ?? intent.trick}`;
     case 'rivalStrike':
       return ATTACKS[def?.dryStrike ?? 'bite'].verb;
   }
@@ -95,6 +102,7 @@ export function rivalVerb(e: EnemyUnit, intent: RivalIntent): string {
 /** Shows a rival intent on the board (same `telegraph` event as any foe). */
 export function telegraphRival(ctx: Ctx, e: EnemyUnit, intent: RivalIntent): void {
   e.intent = intent;
+  if (e.rival) e.rival.locked = intent.kind === 'trick' && intent.lock ? [{ ...intent.lock }] : [];
   emit(ctx, {
     type: 'telegraph',
     unit: ref(e),
@@ -234,10 +242,20 @@ export function resolveRivalIntent(
   e: EnemyUnit,
   intent: Extract<RivalIntent, { kind: 'cast' | 'trick' }>,
 ): void {
+  if (e.rival) e.rival.locked = [];
   if (intent.kind === 'cast') {
     resolveRivalCast(ctx, e, intent);
     return;
   }
-  // Action tricks (the long wick) resolve through RV-3's lock rules; until then the order waits.
-  emit(ctx, { type: 'idle', unit: ref(e) });
+  // An action trick (the long wick) resolves through its own lock rules. A failed order is a
+  // starved action (P3): it earns the fallback strike like a starved cast.
+  const trick = trickOf(intent.trick);
+  const r = e.rival;
+  if (!trick?.action || !r) {
+    emit(ctx, { type: 'idle', unit: ref(e) });
+    return;
+  }
+  const from = ctx.log.length;
+  r.trick = trick.action.resolve(ctx, e, intent, r.trick);
+  if (isStarved(ctx.log.slice(from))) fallbackStrike(ctx, e, intent.fallback);
 }

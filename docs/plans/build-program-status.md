@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: RC-3, RV-3 (07:55). Wake-up #1 scheduled 12:01 UTC (session-only cron).
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: RC-3 (07:55), FN-3 (08:11). Wake-up #1 scheduled 12:01 UTC (session-only cron).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -55,7 +55,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | DK-7 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-afd1c8f5b96340a0b @ 64f3a42 | shared | `trip/offerKinds.ts`: seven core kinds (rune, method, ink, solvent, vellum, doorway, key; key limit 1 via `keyOffer`/`joinPool`; doorway never banked), `buildOfferRegistry`/`offerRegistry()` (merges `KIT.offerKinds`/`offerContributors`; duplicates throw), `kindOf`, `bankLoot`, `wipeLoot`, `parseLootItem`, `atLimit`/`overLimit`; `LootItem` = `KitLootItem` (closed type → `CoreLootItem`); `OfferKind.joinPool/limitKey`, `OfferContribution`, `OfferRollCtx.table`; `rollOffers(…, withKit)` 7th arg; pick/bank/wipe/save parse through the registry. Placeholder `recruit` kind (`RECRUIT_SAVE_ONLY` in `OFFER_SOURCES`) parses, banks nothing. **RC-3:** replace `RECRUIT_SAVE_ONLY`. Not done: shared `bindEvent` kind (CG/BR), canal key by room (CN), cards (DK-12). Golden unchanged |
 | RC-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a606f01c4106771f9 @ d62cab5 | shared | `preconditionsOf(id)` (beats + `runes.all` = typed runes then starter-page runes outside START_KNOWN; `any` passes through), `isReady(p, id, {trip?, atLandmark?})` (owned = `p.known` + rune pages in trip loot), `waitingFor(p, trip?)` (registry order; not in household or loot; heard district or door arrival with beats held), `provenInvention(p)` (≥ `TUNING.provenCasts` proof masks of one apprentice). Loot read through a structural `{kind, apprentice?}` view until DK-7's recruit kind. RC-3/RC-6 stubs still throw |
 | RC-3 | Strong / Opus 5.5 / medium | M | running | worktree (07:55) | | guaranteed recruit pages |
-| RV-3 | Medium / Sonnet 5.5 / high | M | running | worktree (07:55) | | long wick |
+| RV-3 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a6b13c1cf4c97461d @ 5ec399a | shared | `rivals/wick.ts`: `LONG_WICK` TrickDef `canals:longWick` (one candidate per owned jar, oldest first), `jarLocation`, `lockStatus` (ok or `LockLost`; for RV-6 preview); opening = ordinary `openJar` (self-harm included), no charge, step trigger stays live. resolve.ts: lazy `trickOf(id)`, trick branch, failed order → `orderFails` + starved fallback, `RivalState.locked` filled at telegraph/cleared at resolve. plan.ts: `simulate` takes trick intents, `bestTrickPlan`. Golden unchanged. **RV-14:** register the wick through DK modules |
+| FN-3 | Medium / Sonnet 5.5 / high | S | running | worktree (08:11) | | level-I variants to seam-runes.ts |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -93,6 +94,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:35 | 36 | 4h25 | 59 | Normal | merge AH-3, HC-7, DK-4 (pushed); spawn AH-4, DK-6, DK-7, RC-2 |
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
+| 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
 | 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
@@ -135,6 +137,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - DK-7: a contributor's `must` counts toward the 3 normal offers; contributors and kind rolls use their own seed (salt 5000 + room) so table draws are unchanged; order after the normal offers = contributor extras then each kind's `roll`; limits count trip loot + offers, `limitKey` allows per-apprentice limits; `onPick` runs before the looting-done check; placeholder recruit kind parses but banks nothing until RC-3; key keeps its weighted pool join via `joinPool`. Accepted.
 
 - DK-6: `out` optional on `UnitBase`; member check before elite (members carry `elite`); elite damage source named 'Fall'/'Erase'; elite stays on its tile (district decides); `removeFromRoom` doesn't call `checkEnd`; delayed effects dropped on leaving (equivalent: members return only after the room). Accepted.
+
+- RV-3: dry spells don't skip the trick step (the wick needs a jar, not a charge); fail reason inferred from state (erase record → `erased`, a newer jar of his → `crumbled`, else `opened`; erase-then-restore reads `crumbled`) — exact reasons need jar ids on `jarOpened`/`jarCrumbles` (follow-up); "same turn" = sealed earlier in the same resolve phase (scan log to last `phase`), fails `why:'gone'`; failed order is starved → fallback strike; null lock → `idle`; planner picks a wick only via `openOwnObject` (apprentice harmed, rival not). Accepted.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.

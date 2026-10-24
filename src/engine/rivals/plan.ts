@@ -27,7 +27,7 @@ import {
   unitAt,
 } from '../queries';
 import type { Aim, BattleState, EnemyUnit, JarId, RivalIntent, Spell, UnitId } from '../types';
-import { isEffect, isStarved, resolveRivalCast, rivalDefOf } from './resolve';
+import { isEffect, isStarved, resolveRivalIntent, rivalDefOf, trickOf } from './resolve';
 import type { GoalDef, GoalInput, ObjectRef, Outcome, PlanCandidate } from './types';
 
 /**
@@ -202,7 +202,7 @@ export function simulate(
   state: BattleState,
   unit: UnitId,
   path: readonly Coord[],
-  intent: Extract<RivalIntent, { kind: 'cast' }>,
+  intent: Extract<RivalIntent, { kind: 'cast' | 'trick' }>,
 ): Outcome {
   const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes: {} };
   const e = findUnit(ctx.s, unit);
@@ -211,7 +211,7 @@ export function simulate(
   if (!isAlive(e)) return outcomeOf([], unit, ctx.s);
   const before = cloneData(ctx.s);
   const from = ctx.log.length;
-  resolveRivalCast(ctx, e, { ...intent, fallback: null });
+  resolveRivalIntent(ctx, e, { ...intent, fallback: null });
   return outcomeOf(ctx.log.slice(from), unit, before);
 }
 
@@ -410,6 +410,41 @@ function bestSpellPlan(
   return best?.cand ?? null;
 }
 
+/** The best action-trick candidate (the long wick): each plan the trick offers from each destination. */
+function bestTrickPlan(
+  s: BattleState,
+  e: EnemyUnit,
+  def: RivalDef,
+  st: GoalStep,
+  dests: Dest[],
+): PlanCandidate | null {
+  const goal = CORE_GOALS[st.goal];
+  const trick = def.trick ? trickOf(def.trick) : null;
+  if (!goal || !trick?.action || !e.rival) return null;
+  const plans = trick.action.plan(s, e, e.rival.trick);
+  const input: GoalInput = { state: s, unit: e, rival: def, params: st.params ?? {} };
+  let best: Scored | null = null;
+  for (const dest of dests) {
+    for (const p of plans) {
+      const intent = {
+        kind: 'trick',
+        trick: trick.id,
+        lock: p.lock,
+        data: p.data,
+        fallback: null,
+        order: 0,
+      } as const;
+      const outcome = simulate(s, e.id, dest.path, intent);
+      if (!outcome.effect) continue;
+      const cand: PlanCandidate = { dest: dest.at, path: dest.path, intent, outcome };
+      if (!goal.accepts(outcome, input, cand)) continue;
+      const score = goal.score(outcome, input, cand);
+      if (!best || score > best.score) best = { cand, score };
+    }
+  }
+  return best?.cand ?? null;
+}
+
 function bestMove(s: BattleState, e: EnemyUnit, st: GoalStep, dests: Dest[]): Dest | null {
   let best: { dest: Dest; score: number } | null = null;
   for (const dest of dests) {
@@ -448,8 +483,8 @@ export function planRival(state: BattleState, unit: UnitId, move: boolean): Riva
   if (!def) return null;
   const dests = destinations(state, e, move ? ENEMIES[e.def].move : 0);
   const r = e.rival;
-  if (!Object.keys(r.spells).some((id) => (r.charges[id] ?? 0) > 0))
-    return dryPlan(state, e, dests);
+  // Dry of charges: only the wick (it needs a live jar, not a charge) or the plain strike remain.
+  const dry = !Object.keys(r.spells).some((id) => (r.charges[id] ?? 0) > 0);
   const routine = def.routine.length ? def.routine : defaultRoutine(def);
   for (const st of routine) {
     const a = st.action;
@@ -457,11 +492,14 @@ export function planRival(state: BattleState, unit: UnitId, move: boolean): Riva
       const c = bestSpellPlan(state, e, def, st, a, dests);
       if (c?.intent.kind === 'cast')
         return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
-    } else if (a.kind === 'move' && move) {
+    } else if (a.kind === 'trick') {
+      const c = bestTrickPlan(state, e, def, st, dests);
+      if (c?.intent.kind === 'trick')
+        return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
+    } else if (a.kind === 'move' && move && !dry) {
       const d = bestMove(state, e, st, dests);
       if (d?.path.length) return { path: d.path, intent: null };
     }
-    // Action tricks (`kind: 'trick'`) yield no candidates until RV-3 registers the long wick.
   }
-  return { path: [], intent: null };
+  return dry ? dryPlan(state, e, dests) : { path: [], intent: null };
 }
