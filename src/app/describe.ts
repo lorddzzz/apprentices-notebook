@@ -5,6 +5,8 @@ import {
   type CompoundId,
   DISTRICTS,
   ENEMIES,
+  HABITS,
+  type HabitId,
   IDIOMS,
   MEMBERS,
   METHODS,
@@ -36,6 +38,7 @@ import {
   livingUnits,
   type MemberUnit,
   members,
+  sameCoord,
   spellOf,
   step,
   type Tile,
@@ -300,6 +303,49 @@ export function outcomeOf(events: readonly GameEvent[]): Outcome {
  * kills, shields, marks and pushes of the events given (the witnessed part, D2); `masked` says
  * some events were left out.
  */
+/** A habit that decided something in a preview, and the tile it did so on (null: no one tile). */
+export interface HabitMark {
+  habit: HabitId;
+  at: Coord | null;
+  /** A warded hit (`unharmed`): a calm badge, never the red ring. */
+  unharmed: boolean;
+}
+
+/** Where an event happened, read off whichever field it names its place by. */
+function spotOf(e: GameEvent, before: BattleState): Coord | null {
+  if (e.type === 'aimed') {
+    const t = e.targets[0];
+    if (!t) return null;
+    return t.kind === 'tile' ? { ...t.at } : (findUnit(before, t.unit)?.pos ?? null);
+  }
+  const o = e as unknown as Record<string, unknown>;
+  for (const key of ['at', 'to'] as const) {
+    const c = o[key] as Coord | undefined;
+    if (c && typeof c.x === 'number') return { ...c };
+  }
+  for (const key of ['unit', 'target', 'by'] as const) {
+    const r = o[key] as { at?: Coord } | null | undefined;
+    if (r?.at) return { ...r.at };
+  }
+  return null;
+}
+
+/** Every habit that decided one of these (witnessed) events, once per habit and tile (AH-6). */
+export function habitMarks(before: BattleState, events: readonly GameEvent[]): HabitMark[] {
+  const out: HabitMark[] = [];
+  for (const e of events) {
+    if (!e.habit) continue;
+    const at = spotOf(e, before);
+    const unharmed = e.type === 'unharmed';
+    const same = (m: HabitMark): boolean =>
+      m.habit === e.habit &&
+      m.unharmed === unharmed &&
+      (m.at && at ? sameCoord(m.at, at) : m.at === at);
+    if (!out.some(same)) out.push({ habit: e.habit, at, unharmed });
+  }
+  return out;
+}
+
 export function previewSummary(
   before: BattleState,
   action: Action,
@@ -346,9 +392,12 @@ export function previewSummary(
       else if (!masked) parts.push('no effect');
     }
   }
-  return parts.length
+  const base = parts.length
     ? `${actionLabel(before, action)}: ${parts.join(', ')}`
     : actionLabel(before, action);
+  // The habit chip (AH-6): each habit that decided something names itself, once.
+  const habits = [...new Set(events.flatMap((e) => (e.habit ? [e.habit] : [])))];
+  return habits.length ? `${base} · ${habits.map((h) => HABITS[h].line).join(' · ')}` : base;
 }
 
 // ── Captions ────────────────────────────────────────────

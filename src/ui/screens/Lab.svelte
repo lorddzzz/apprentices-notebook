@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MEMBERS } from '$data';
+  import { HABITS, MEMBERS } from '$data';
   import { compileLattice, openAll } from '$engine';
   import { IDLE } from '../../app/battleInput';
   import { game, lab } from '../../app/instance';
@@ -12,6 +12,7 @@
   import BattleView from '../components/battle/BattleView.svelte';
   import BattleBoard from '../components/board/BattleBoard.svelte';
   import Button from '../components/common/Button.svelte';
+  import HabitFinePrint from '../components/common/HabitFinePrint.svelte';
   import Sheet from '../components/common/Sheet.svelte';
   import CopySheet from '../components/lab/CopySheet.svelte';
   import LabBar from '../components/lab/LabBar.svelte';
@@ -68,6 +69,7 @@
     lab.lineup.includes(lab.member) ? lab.lineup : [...lab.lineup, lab.member],
   );
   const lattice = $derived(lab.lattices[lab.member]);
+  const memberHabit = $derived(MEMBERS[lab.member].lean.habit);
   const compiled = $derived(compileLattice(lattice, {}, inventions, MEMBERS[lab.member].lean));
 
   // Dev builds and `?dev` get the city shortcuts (K-24).
@@ -127,6 +129,12 @@
             <Palette selected={lab.palette} onselect={(item) => (lab.palette = item)} />
           {:else}
             <MemberPicker member={lab.member} lineup={lab.lineup} onpick={(m) => (lab.member = m)} />
+            {#if memberHabit}
+              <div class="habit-print">
+                <b>{HABITS[memberHabit].line}</b>
+                <HabitFinePrint habit={memberHabit} profile={game.profile} />
+              </div>
+            {/if}
             <div class="desk">
               <LatticeEditor
                 sessionKey={lab.latticeSessionKey()}
@@ -264,6 +272,10 @@
     cursor: default;
   }
   /* the Study's desk: the notebook page and its shelf sit on dark wood */
+  .habit-print {
+    padding: 2px 8px;
+    font-size: 13px;
+  }
   .desk {
     flex: 1;
     min-height: 0;

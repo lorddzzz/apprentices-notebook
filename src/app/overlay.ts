@@ -8,6 +8,7 @@ import {
   driftPreview,
   findUnit,
   type GameEvent,
+  habitRule,
   type Intent,
   intentPreview,
   isAlive,
@@ -17,7 +18,9 @@ import {
   relocations,
   type SpellKey,
   sameCoord,
+  spellOf,
   step,
+  tileAt,
   type UnitId,
   unitAt,
 } from '$engine';
@@ -27,7 +30,7 @@ import { layerTone, type Tone } from './fx';
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
 export type Highlight =
   | { kind: 'reach'; at: Coord } // a tile the selected member can move to
-  | { kind: 'aim'; at: Coord; chevron?: Dir } // a legal aim tile (chevron: next to the caster)
+  | { kind: 'aim'; at: Coord; chevron?: Dir; habit?: true } // a legal aim tile (chevron: next to the caster; habit: only her habit reaches it)
   | { kind: 'target'; at: Coord } // a tile the previewed action hits
   | { kind: 'path'; cells: Coord[] } // projectile / push path
   | { kind: 'shove'; at: Coord } // a tile the member's basic action can take (the unit to shove, pull or swap; the landing for a hop)
@@ -52,7 +55,8 @@ export interface IntentDraw {
 
 export interface Badge {
   at: Coord;
-  kind: 'damage' | 'kill' | 'shield';
+  /** `habit`: a habit decided here; `unharmed`: a warded hit, calm (AH-6). */
+  kind: 'damage' | 'kill' | 'shield' | 'habit' | 'unharmed';
   text: string;
 }
 
@@ -121,12 +125,17 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
     const m = findUnit(s, mode.unit);
     const far = mode.action === 'pull' || mode.action === 'hop';
     if (m) {
+      const hop: Coord[] = [];
       for (const d of mode.dirs) {
         const near = step(m.pos, d);
-        highlights.push({ kind: 'shove', at: far ? step(near, d) : near });
+        const at = far ? step(near, d) : near;
+        highlights.push({ kind: 'shove', at });
+        if (mode.action === 'hop') hop.push(at);
       }
+      badges.push(...fuseJarBadges(s, mode.unit, hop));
     }
   }
+  if (mode.kind === 'member') badges.push(...fuseJarBadges(s, mode.unit, mode.moves));
   if (preview) {
     if (preview.path.length > 1) highlights.push({ kind: 'path', cells: preview.path });
     const arc = arcOf(s, preview.action);
@@ -139,6 +148,9 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
       ...tileEffects(s, after).filter((h) => !('at' in h) || !blankKeys.has(`${h.at.x},${h.at.y}`)),
     );
     for (const at of preview.blanks) highlights.push({ kind: 'blank', at });
+    for (const h of preview.habits) {
+      if (h.at) badges.push({ at: h.at, kind: h.unharmed ? 'unharmed' : 'habit', text: '' });
+    }
     for (const id of preview.hurt) {
       const m = findUnit(s, id);
       if (m) highlights.push({ kind: 'hurt', at: { ...m.pos } });
@@ -191,6 +203,18 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
   );
   const drift = driftGhosts(intentState);
   return { highlights, intents, marks, drift, badges, ghosts, selected: selectedOf(mode) };
+}
+
+/** Her own Fuse jars among `tiles`: where fuseOnStep would open one on arrival (AH-6, member mode). */
+function fuseJarBadges(s: BattleState, unit: UnitId, tiles: readonly Coord[]): Badge[] {
+  const m = findUnit(s, unit);
+  if (!m || !habitRule(m).fuseOnStep) return [];
+  return tiles.flatMap((at) => {
+    const jar = tileAt(s, at).jar;
+    return jar?.event === 'dusk' && jar.owner === unit
+      ? [{ at: { ...at }, kind: 'habit' as const, text: '' }]
+      : [];
+  });
 }
 
 /** The leap a Hop draws, or the two-way trade a Swap draws, from the caster's tile. */
@@ -285,6 +309,12 @@ function aimTints(
 ): Highlight[] {
   const out: Highlight[] = [];
   const seen = new Set<string>();
+  const caster = findUnit(s, unit);
+  // A long Touch's far tiles are the habit's own reach: tinted apart (AH-6).
+  const far =
+    caster?.kind === 'member' && spellOf(caster, spell)?.source === 'touch'
+      ? (habitRule(caster).touchReach ?? 1) >= 2
+      : false;
   const add = (h: Highlight & { at: Coord }): void => {
     const k = `${h.at.x},${h.at.y}`;
     if (seen.has(k)) return;
@@ -298,7 +328,9 @@ function aimTints(
         add(i === 0 ? { kind: 'aim', at, chevron: aim.dir } : { kind: 'aim', at });
       });
     } else if (aim.kind === 'tile') {
-      add({ kind: 'aim', at: aim.at });
+      const long =
+        far && caster && Math.abs(aim.at.x - caster.pos.x) + Math.abs(aim.at.y - caster.pos.y) > 1;
+      add(long ? { kind: 'aim', at: aim.at, habit: true } : { kind: 'aim', at: aim.at });
     } else {
       const u = findUnit(s, unit);
       if (u) add({ kind: 'aim', at: u.pos });

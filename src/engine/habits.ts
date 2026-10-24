@@ -1,5 +1,5 @@
-import { ENEMIES, HABITS, type HabitId, type HabitRule } from '$data';
-import type { Unit } from './types';
+import { ENEMIES, HABITS, type HabitId, type HabitRule, LINES, type LineDef } from '$data';
+import type { Profile, Unit } from './types';
 
 /**
  * Habits as data-keyed rules (AH P9): the engine never asks *who* carries a habit, only which one
@@ -26,3 +26,19 @@ export const habitRule = (u: Unit | null | undefined): HabitRule =>
  * with members, foes with foes.
  */
 export const sameSide = (u: Unit, other: Unit): boolean => u.kind === other.kind;
+
+/** A habit's fine print against what the household has seen (D1): the seen lines, a count of the rest. */
+export interface HabitFinePrint {
+  seen: LineDef[];
+  unseen: number;
+}
+
+/** Witnessed lines of one habit, and how many remain unwitnessed (no hints, no text for those). */
+export function habitFinePrint(
+  profile: Pick<Profile, 'witnessed'>,
+  habit: HabitId,
+): HabitFinePrint {
+  const rows = LINES.filter((l) => l.subject === habit && !l.pending);
+  const seen = rows.filter((l) => profile.witnessed.includes(l.id));
+  return { seen, unseen: rows.length - seen.length };
+}

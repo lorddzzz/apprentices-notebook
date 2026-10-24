@@ -33,6 +33,18 @@
         <circle cx="-3.6" cy="-1" r="2.8" fill="var(--ink)" />
         <circle cx="3.6" cy="-1" r="2.8" fill="var(--ink)" />
       </g>
+    {:else if b.kind === 'habit'}
+      <!-- A habit decided here (AH-6): a small star on the tile's top-left. -->
+      <g data-state="habit-badge" transform="translate({o.x + 20} {o.y + 20})">
+        <circle r="16" fill="var(--habit)" stroke="var(--parchment)" stroke-width="3" />
+        <path d="M0 -9 L2.6 -2.8 L9 -2.4 L4.2 1.8 L5.6 8 L0 4.6 L-5.6 8 L-4.2 1.8 L-9 -2.4 L-2.6 -2.8 Z" fill="var(--parchment)" />
+      </g>
+    {:else if b.kind === 'unharmed'}
+      <!-- A warded hit (AH-6): a calm shield, never the red ring. -->
+      <g data-state="unharmed-badge" transform="translate({o.x + 80} {o.y + 20})">
+        <circle r="16" fill="var(--shield)" stroke="var(--parchment)" stroke-width="3" />
+        <path d="M0 -9 L8 -5 V1 C8 6 4 9 0 11 C-4 9 -8 6 -8 1 V-5 Z" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" />
+      </g>
     {:else}
       <rect x={o.x + 38} y={o.y + 4} width="58" height="30" rx="15" fill={FILL[b.kind]} stroke="var(--parchment)" stroke-width="3" />
       <text x={o.x + 67} y={o.y + 26} text-anchor="middle" font-size="24" font-weight="bold" fill="#fff" font-family="var(--mono)">{b.text}</text>

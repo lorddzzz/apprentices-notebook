@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { game } from '../../../app/instance';
   import { ACTION_INFO, type CardView } from '../../../app/study';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Button from '../common/Button.svelte';
+  import HabitFinePrint from '../common/HabitFinePrint.svelte';
   import ActionIcon from './ActionIcon.svelte';
 
   interface Props {
@@ -61,6 +63,7 @@
               >Dormant: needs {card.habit.leansOn ?? 'a rune'}</span
             >
           {/if}
+          {#if def.habit}<HabitFinePrint habit={def.habit} profile={game.profile} />{/if}
         </dd>
       </div>
     {/if}

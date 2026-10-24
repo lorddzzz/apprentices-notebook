@@ -29,7 +29,7 @@ import {
   unitAt,
   witnessedIn,
 } from '$engine';
-import { type Outcome, outcomeOf, previewSummary } from './describe';
+import { type HabitMark, habitMarks, type Outcome, outcomeOf, previewSummary } from './describe';
 
 /** The footnote variants the household wrote, by line: the engine reads them (F1). */
 export type Footnotes = import('$engine/ctx').FootnoteIds;
@@ -58,6 +58,8 @@ export interface Preview extends Outcome {
   shown: GameEvent[];
   /** Landing tiles of masked events: drawn blank, with no text (D2). */
   blanks: Coord[];
+  /** Habits that decided something in the witnessed events, each with its tile (AH-6). */
+  habits: HabitMark[];
   /** Party members hurt by the action, masked or not (D3). */
   hurt: UnitId[];
   /** Something unwitnessed would happen: the resulting state must not be drawn from. */
@@ -284,6 +286,7 @@ export function previewOf(s: BattleState, action: Action, ctx: PreviewCtx = {}):
     targets,
     shown,
     blanks,
+    habits: habitMarks(s, shown),
     hurt,
     masked,
     warning,

@@ -48,7 +48,7 @@
       <circle cx={c.x} cy={c.y} r="15" fill="var(--reach)" stroke="var(--member-draughtsman)" stroke-width="3" />
     {:else if h.kind === 'aim'}
       {@const o = cellOrigin(h.at)}
-      <rect x={o.x + 3} y={o.y + 3} width="94" height="94" rx="6" fill="var(--reach)" opacity="0.4" />
+      <rect data-state={h.habit ? 'aim-habit' : 'aim'} x={o.x + 3} y={o.y + 3} width="94" height="94" rx="6" fill={h.habit ? 'var(--habit)' : 'var(--reach)'} opacity={h.habit ? 0.45 : 0.4} />
       {#if h.chevron}
         <polyline
           points={pointsAttr(chevron(h.at, h.chevron))}
