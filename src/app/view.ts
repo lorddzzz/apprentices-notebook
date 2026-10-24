@@ -14,15 +14,18 @@ import {
   type BattleState,
   type BoardSpec,
   type Coord,
+  cloneData,
   type Dir,
   firstRune,
   type GameEvent,
   type Intent,
+  pieceDef,
   relocations,
   type Tile,
   type Unit,
   type UnitId,
 } from '$engine';
+import type { Json, OutCause } from '$engine/districts/types';
 
 /** A state or compound a tile can hold. */
 export type LayerId = StateId | CompoundId;
@@ -33,6 +36,15 @@ export interface JarView {
   event: 'step' | 'dusk';
   /** The first rune of what is sealed (the jar's contents peek); null when not known or empty. */
   peek: RuneRef | null;
+}
+
+/** A board piece as the board draws it (DK-13): its art key, a name for the label, its plain data. */
+export interface PieceView {
+  id: string;
+  /** `PieceDef.art`: looked up in the UI renderer registry; no renderer = the fallback glyph. */
+  art: string;
+  label: string;
+  data: Json;
 }
 
 /** What the board draws. Events are projected onto it during playback; the engine state replaces it at the end. */
@@ -51,6 +63,8 @@ export interface TileView {
   grate?: boolean;
   gate?: boolean;
   lamp?: boolean;
+  /** A district piece standing here (DK-4); absent or null = none. */
+  piece?: PieceView | null;
 }
 
 export type MarkView = 'plain' | 'deep' | null;
@@ -82,6 +96,8 @@ export interface UnitView {
   held: number;
   stunned: boolean;
   alive: boolean;
+  /** Out of the room (DK-6: fell, erased): off the board, not selectable. Absent = in the room. */
+  out?: OutCause | null;
   intent: Intent | null;
 }
 
@@ -93,6 +109,24 @@ export interface BoardView {
   round: number;
   phase: BattlePhase;
 }
+
+/** The piece on a tile as drawn; an id the registry no longer knows still shows (fallback glyph). */
+export function pieceViewOf(piece: Tile['piece']): PieceView | null {
+  if (!piece) return null;
+  try {
+    const def = pieceDef(piece.id);
+    return {
+      id: piece.id,
+      art: def.art,
+      label: def.palette?.label ?? def.bench?.label ?? def.token,
+      data: cloneJson(piece.data),
+    };
+  } catch {
+    return { id: piece.id, art: piece.id, label: piece.id, data: cloneJson(piece.data) };
+  }
+}
+
+const cloneJson = (j: Json): Json => cloneData(j ?? null);
 
 export function tileViewOf(t: Tile): TileView {
   const { water, grate, gate, lamp, vent, drop } = t.terrain;
@@ -107,6 +141,7 @@ export function tileViewOf(t: Tile): TileView {
     grate,
     gate,
     lamp,
+    ...(t.piece ? { piece: pieceViewOf(t.piece) } : {}),
   };
 }
 
@@ -136,6 +171,7 @@ export function viewOf(s: BattleState): BoardView {
       held: u.held,
       stunned: u.stunned,
       alive: u.hp > 0 && !u.out,
+      ...(u.out ? { out: u.out } : {}),
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
     })),
     round: s.round,
@@ -214,7 +250,11 @@ export function withoutIntents(v: BoardView): BoardView {
 function cloneView(v: BoardView): BoardView {
   return {
     ...v,
-    tiles: v.tiles.map((t) => ({ ...t, jar: t.jar && { ...t.jar } })),
+    tiles: v.tiles.map((t) => ({
+      ...t,
+      jar: t.jar && { ...t.jar },
+      ...(t.piece ? { piece: { ...t.piece, data: cloneJson(t.piece.data) } } : {}),
+    })),
     units: v.units.map((u) => ({ ...u, pos: { ...u.pos }, intent: u.intent && { ...u.intent } })),
   };
 }
@@ -739,3 +779,23 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
 
 /** `projectWith` without a final view: the shape `reduce` wants. */
 export const project = (view: BoardView, e: GameEvent): BoardView => projectWith(view, e);
+
+/**
+ * The party in slot order (HC-8 follow-up): `slots` are the apprentices as the trip lists them;
+ * anyone it does not name keeps the battle's order after them. A battle's own order follows the
+ * drawn start spots, so without this the cards reshuffle each room.
+ */
+export function inSlotOrder<T extends { def: string }>(
+  members: readonly T[],
+  slots: readonly string[] | undefined,
+): T[] {
+  if (!slots || slots.length === 0) return [...members];
+  const rank = (m: T): number => {
+    const i = slots.indexOf(m.def);
+    return i < 0 ? slots.length : i;
+  };
+  return members
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
+    .map((x) => x.m);
+}

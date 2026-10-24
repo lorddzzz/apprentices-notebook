@@ -5,7 +5,6 @@ import {
   type BattleState,
   type Coord,
   type Dir,
-  driftPreview,
   findUnit,
   type GameEvent,
   habitRule,
@@ -24,6 +23,8 @@ import {
   type UnitId,
   unitAt,
 } from '$engine';
+import type { PreviewShape } from '$engine/districts/types';
+import { rulePreview } from '$engine/rules';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
 import { layerTone, type Tone } from './fx';
 
@@ -79,10 +80,29 @@ export type IntentMark =
       emphasis: IntentDraw['emphasis'];
     };
 
-/** Where the next drift will carry floats and units; the board shows it on request. */
-export interface DriftGhosts {
-  floats: { from: Coord; to: Coord | null }[];
+/**
+ * What the board rules will do at the next round end (DK-13): the rules' generic preview shapes
+ * (floats on the current, cracked tiles, outlines, pulses, a gauge) and the ghosts of units they
+ * move. The board draws it on request ("Next round"); the meter strip is always on.
+ */
+export interface NextRound {
+  shapes: PreviewShape[];
   units: Ghost[];
+}
+
+/** A foe's stand-in step telegraph (DK-9): the tiles and units it is about, drawn on the board. */
+export interface StepDraw {
+  from: Coord;
+  label: string;
+  tiles: Coord[];
+  /** Where the units it names stand now. */
+  units: Coord[];
+  order: number;
+  /** `n/m` of a sequence (a tune's notes). */
+  sequence: [number, number] | null;
+  /** Rounds left (the clock writ). */
+  countdown: number | null;
+  emphasis: IntentDraw['emphasis'];
 }
 
 export interface Overlay {
@@ -90,8 +110,10 @@ export interface Overlay {
   intents: IntentDraw[];
   /** Optional so hand-built overlays (the gallery) need not list them. */
   marks?: IntentMark[];
-  /** Null when the board has no water. */
-  drift?: DriftGhosts | null;
+  /** Null when no active rule previews anything. */
+  next?: NextRound | null;
+  /** Telegraphed steps of stand-in foes. */
+  steps?: StepDraw[];
   badges: Badge[];
   ghosts: Ghost[];
   selected: UnitId | null;
@@ -101,7 +123,8 @@ export const EMPTY_OVERLAY: Overlay = {
   highlights: [],
   intents: [],
   marks: [],
-  drift: null,
+  next: null,
+  steps: [],
   badges: [],
   ghosts: [],
   selected: null,
@@ -201,8 +224,18 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
     })),
     focus,
   );
-  const drift = driftGhosts(intentState);
-  return { highlights, intents, marks, drift, badges, ghosts, selected: selectedOf(mode) };
+  const next = nextRound(intentState);
+  const steps = stepsOf(
+    intentState.units.map((u) => ({
+      id: u.id,
+      kind: u.kind,
+      pos: u.pos,
+      intent: u.kind === 'enemy' ? u.intent : null,
+      alive: isAlive(u),
+    })),
+    focus,
+  );
+  return { highlights, intents, marks, next, steps, badges, ghosts, selected: selectedOf(mode) };
 }
 
 /** Her own Fuse jars among `tiles`: where fuseOnStep would open one on arrival (AH-6, member mode). */
@@ -273,16 +306,53 @@ export function marksOf(
   return out;
 }
 
-/** Ghosts of the next drift, or null if the board has no water. */
-function driftGhosts(s: BattleState): DriftGhosts | null {
-  if (!s.tiles.some((t) => t.terrain.water)) return null;
-  const p = driftPreview(s);
+/** The board rules' preview for the next round end, or null when no active rule shows anything. */
+function nextRound(s: BattleState): NextRound | null {
+  const shapes = rulePreview(s).flatMap((r) => [...r.shapes]);
+  if (shapes.length === 0) return null;
   const units: Ghost[] = [];
-  for (const m of p.units) {
-    const u = findUnit(s, m.unit);
-    if (u) units.push({ unit: u.id, at: { ...m.to }, kind: u.kind, def: u.def });
+  for (const sh of shapes) {
+    if (sh.kind !== 'ghost') continue;
+    const u = findUnit(s, sh.unit);
+    if (u && !units.some((g) => g.unit === u.id)) {
+      units.push({ unit: u.id, at: { ...sh.to }, kind: u.kind, def: u.def });
+    }
   }
-  return { floats: p.floats, units };
+  return { shapes, units };
+}
+
+interface StepSource {
+  id: UnitId;
+  kind: 'member' | 'enemy';
+  pos: Coord;
+  intent?: Intent | null;
+  alive: boolean;
+}
+
+/** Telegraph tiles of the living stand-in foes' steps. Works on engine units and on playback views. */
+export function stepsOf(
+  units: readonly StepSource[],
+  focus?: { kind: string; id: UnitId } | null,
+): StepDraw[] {
+  const out: StepDraw[] = [];
+  for (const u of units) {
+    if (u.kind !== 'enemy' || !u.alive || u.intent?.kind !== 'step') continue;
+    const t = u.intent.telegraph;
+    out.push({
+      from: { ...u.pos },
+      label: t.label,
+      tiles: t.tiles.map((c) => ({ ...c })),
+      units: t.units.flatMap((id) => {
+        const at = units.find((o) => o.id === id)?.pos;
+        return at ? [{ ...at }] : [];
+      }),
+      order: u.intent.order,
+      sequence: t.sequence ? [t.sequence[0], t.sequence[1]] : null,
+      countdown: t.countdown ?? null,
+      emphasis: focus?.kind === 'enemy' ? (focus.id === u.id ? 'strong' : 'dim') : 'normal',
+    });
+  }
+  return out;
 }
 
 /** Tiles whose state the action changes, toned by the new state (or by what was there, when it clears). */

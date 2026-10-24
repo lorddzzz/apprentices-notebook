@@ -24,3 +24,15 @@ export interface DistrictUi {
 export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   seam: {},
 };
+
+/** A piece's renderer by art key, across every district; undefined = the board's fallback glyph (DK-13). */
+export function pieceArtFor(
+  art: string,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): Component<{ data: unknown; size: number }> | undefined {
+  for (const d of Object.values(ui)) {
+    const found = d?.pieceArt && Object.hasOwn(d.pieceArt, art) ? d.pieceArt[art] : undefined;
+    if (found) return found;
+  }
+  return undefined;
+}

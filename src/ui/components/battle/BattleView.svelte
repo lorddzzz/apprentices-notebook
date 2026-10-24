@@ -1,10 +1,14 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { canUndoMove, castableSpells, findUnit, members } from '$engine';
+  import { canUndoMove, castableSpells, findUnit, members, tripParty } from '$engine';
+  import { rulePreview } from '$engine/rules';
   import type { BattleSession } from '../../../app/battle.svelte';
   import { basicOf } from '../../../app/battleInput';
   import { actionLabel } from '../../../app/describe';
+  import { game } from '../../../app/instance';
+  import { inSlotOrder } from '../../../app/view';
   import BattleBoard from '../board/BattleBoard.svelte';
+  import RuleMeter from '../board/RuleMeter.svelte';
   import ActionBar from './ActionBar.svelte';
   import BossHeader from './BossHeader.svelte';
   import Caption from './Caption.svelte';
@@ -19,18 +23,26 @@
     top: Snippet;
     continueLabel: string;
     oncontinue: () => void;
+    /** The party in slot order for the strip; a trip's own slots by default, the battle's order in the Lab. */
+    slots?: readonly string[];
   }
 
-  let { session, top, continueLabel, oncontinue }: Props = $props();
+  let { session, top, continueLabel, oncontinue, slots }: Props = $props();
 
   let logOpen = $state(false);
-  let showDrift = $state(false);
+  let showNext = $state(false);
 
   const view = $derived(session.view);
   const battle = $derived(session.state);
   const input = $derived(session.input);
   const busy = $derived(session.busy);
   const selectedId = $derived(session.selected);
+  const order = $derived(slots ?? (session.mode === 'trip' ? tripParty(game.profile) : undefined));
+  const party = $derived(inSlotOrder(members(battle), order));
+  // The rules' gauges are always on; the rest of "Next round" shows on request.
+  const shapes = $derived(rulePreview(battle).flatMap((r) => [...r.shapes]));
+  const meters = $derived(shapes.flatMap((sh) => (sh.kind === 'meter' ? [sh] : [])));
+  const hasNext = $derived(view.tiles.some((t) => t.water) || shapes.some((sh) => sh.kind !== 'meter'));
   const selected = $derived.by(() => {
     const u = selectedId ? findUnit(battle, selectedId) : null;
     return u?.kind === 'member' ? u : null;
@@ -72,20 +84,27 @@
       fx={session.fx}
       fxKey={session.fxKey}
       minimal={busy}
-      {showDrift}
+      {showNext}
       ontap={(at) => session.tapCell(at)}
       onhold={(at) => session.holdCell(at)}
     />
-    {#if view.tiles.some((t) => t.water)}
+    {#if meters.length > 0}
+      <div class="meters">
+        {#each meters as m, i (i)}
+          <RuleMeter label={m.label} value={m.value} max={m.max} />
+        {/each}
+      </div>
+    {/if}
+    {#if hasNext}
       <button
-        class="drift"
-        class:on={showDrift}
+        class="next"
+        class:on={showNext}
         type="button"
-        aria-pressed={showDrift}
-        data-testid="drift-toggle"
-        onclick={() => (showDrift = !showDrift)}
+        aria-pressed={showNext}
+        data-testid="next-toggle"
+        onclick={() => (showNext = !showNext)}
       >
-        Current
+        Next round
       </button>
     {/if}
     {#if session.over && (battle.phase === 'won' || battle.phase === 'lost')}
@@ -96,7 +115,7 @@
   <Caption text={session.caption.text} tone={session.caption.tone} ontap={() => session.skip()} />
 
   <PartyStrip
-    members={members(battle)}
+    members={party}
     selected={selectedId}
     threatened={session.threatened}
     onselect={(id) => session.selectMember(id)}
@@ -137,7 +156,17 @@
     height: 100%;
     padding: 0 var(--space-2) 16px;
   }
-  .drift {
+  .meters {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: calc(100% - 118px);
+  }
+  .next {
     position: absolute;
     bottom: 2px;
     right: 2px;
@@ -150,7 +179,7 @@
     color: var(--ink);
     font-size: 13px;
   }
-  .drift.on {
+  .next.on {
     background: var(--shield);
     color: #fff;
   }

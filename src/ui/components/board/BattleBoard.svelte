@@ -7,10 +7,11 @@
     type IntentMark,
     marksOf,
     type Overlay,
+    type StepDraw,
+    stepsOf,
   } from '../../../app/overlay';
   import type { BoardView } from '../../../app/view';
   import BadgeLayer from './BadgeLayer.svelte';
-  import DriftLayer from './DriftLayer.svelte';
   import FxLayer from './FxLayer.svelte';
   import { boardViewBox, CELL } from './geometry';
   import HighlightLayer from './HighlightLayer.svelte';
@@ -18,7 +19,10 @@
   import JarLayer from './JarLayer.svelte';
   import { cellLabel } from './label';
   import MarksLayer from './MarksLayer.svelte';
+  import PieceLayer from './PieceLayer.svelte';
+  import RulePreviewLayer from './RulePreviewLayer.svelte';
   import SteamLayer from './SteamLayer.svelte';
+  import StepLayer from './StepLayer.svelte';
   import TileLayer from './TileLayer.svelte';
   import UnitToken from './UnitToken.svelte';
 
@@ -29,8 +33,8 @@
     fxKey?: number;
     /** Playback: draw intents as chevrons from the view instead of full paths from the overlay. */
     minimal?: boolean;
-    /** Show ghosts of where the current will carry floats and units next round. */
-    showDrift?: boolean;
+    /** Draw the active rules' "Next round" preview: the current's floats, cracks, outlines, ghosts. */
+    showNext?: boolean;
     ontap: (at: Coord) => void;
     /** Press and hold on a tile (J3: read out a jar or a mark). The tap that ends the hold is swallowed. */
     onhold?: (at: Coord) => void;
@@ -42,7 +46,7 @@
     fx = [],
     fxKey = 0,
     minimal = false,
-    showDrift = false,
+    showNext = false,
     ontap,
     onhold,
   }: Props = $props();
@@ -104,10 +108,11 @@
   );
 
   const marks = $derived<IntentMark[]>(minimal ? marksOf(view.units, null) : (overlay.marks ?? []));
-  const driftGhosts = $derived(showDrift && !minimal ? (overlay.drift ?? null) : null);
+  const steps = $derived<StepDraw[]>(minimal ? stepsOf(view.units) : (overlay.steps ?? []));
+  const next = $derived(showNext && !minimal ? (overlay.next ?? null) : null);
   const ghosts = $derived([
     ...overlay.ghosts,
-    ...(driftGhosts?.units.filter((g) => !overlay.ghosts.some((o) => o.unit === g.unit)) ?? []),
+    ...(next?.units.filter((g) => !overlay.ghosts.some((o) => o.unit === g.unit)) ?? []),
   ]);
 
   const columns = $derived(Array.from({ length: view.width }, (_, x) => String.fromCharCode(65 + x)));
@@ -144,8 +149,10 @@
     {/if}
   {/each}
 
+  <PieceLayer {cells} />
   <HighlightLayer highlights={overlay.highlights} />
-  {#if driftGhosts}<DriftLayer drift={driftGhosts} />{/if}
+  {#if next}<RulePreviewLayer shapes={next.shapes} />{/if}
+  <StepLayer {steps} layer="under" />
   <IntentLayer {intents} {minimal} layer="paths" />
   <MarksLayer {marks} layer="under" />
 
@@ -156,6 +163,7 @@
   <JarLayer {view} />
   <SteamLayer {view} />
   <IntentLayer {intents} {minimal} layer="badges" />
+  <StepLayer {steps} layer="badges" />
   <MarksLayer {marks} layer="badges" />
   <BadgeLayer badges={overlay.badges} {ghosts} />
   <FxLayer {fx} {fxKey} width={view.width} height={view.height} />

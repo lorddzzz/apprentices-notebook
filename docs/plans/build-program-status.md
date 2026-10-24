@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Woke at 17:01 UTC (wake-up #2 of 2, the last). Running: HC-9, RV-15, DK-13 (17:33).
+**State:** building (Stage 1). Woke at 17:01 UTC (wake-up #2 of 2, the last). Running: HC-9, RV-15 (17:33).
 **Reset:** 5h window resets 2026-10-24 22:00 UTC. Session rule (player, 2026-10-24): both wake-ups used; at this window's end wrap up without a timer and write a continuation prompt for a new session.
 **Weekly guard (player, 2026-10-24 17:30):** ignore the weekly limit unless it exceeds 97%; pace by the 5h limit only.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
@@ -81,7 +81,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | HC-9 | Medium / Sonnet 5.5 / high | M | running | worktree (17:33) | | household verification sweep |
 | RV-15 | Medium / Sonnet 5.5 / high | S | running | worktree (17:33) | | recovered pages |
 | RC-6 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a8c5aa6b40435ecf8 @ ccd0fea | shared | `recruits.ts`: `doorArrivals(p)` (first ready door arrival without a note; door A Copyist before door B exile), `knockAtDoor(p, recruitJoined)` (≤1 note per homecoming, none when a district recruit joined; a written note stays if proof lapses), `someoneJoined`, `welcome(p, id)` (removes note, `joinHousehold`; idempotent; throws without a note), `isRevealed`, `noteMilestone` (first idiom key or proven invention), `parseRecruits`; stubs removed. `Profile.recruits?: {notes}` (optional; golden unchanged). flow.ts: `goHome` knocks after banking (skipped if someone joined), wipe knocks, `settleAtDoor(save)` at home on import and (orchestrator) on startup load in `game.svelte.ts`. 18 tests `tests/run/door-arrivals.test.ts`. **RC-7:** note text via `namedTitle(noteMilestone(...))` + UI |
-| DK-13 | Medium / Sonnet 5.5 / high | M | running | worktree (17:33) | | generic board drawing |
+| DK-13 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a06ff60ca876ec2b0 @ 2ff36a5 | shared | view.ts `TileView.piece`, `UnitView.out`, `inSlotOrder`; overlay.ts `Overlay.next` (replaces `drift`: `rulePreview` shapes + unit ghosts), `Overlay.steps`/`stepsOf`; `pieceArtFor` in ui/districts; board layers PieceLayer/PieceGlyph (fallback diamond), RulePreviewLayer (replaces DriftLayer: float/tile/outline/pulse), RuleMeter, StepLayer; BattleView "Next round" toggle (`next-toggle`), meters always on, strip by trip slots (`slots` prop); PartyStrip out member disabled/hatched "out of the room". 14 tests `tests/app/district-board.test.ts`. Phone-checked with a temp dev fixture (removed; scratchpad dk13/). Follow-ups: Lab piece palette; Lab/Combat pass `slots`; describe.ts "out of the room" wording; event animations / `DISTRICT_UI.overlay` unwired |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log

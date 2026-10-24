@@ -152,28 +152,29 @@ test('a moth beside a member draws a burst intent, an eel a lunge', () => {
   expect(o.intents[0]?.hit).toEqual(at('A2'));
 });
 
-test('drift ghosts: where a unit and a float will be after the current', () => {
+test('next round: the current shows a unit ghost and a float after the current', () => {
   const s = board(`
     . . . .
     D w> w> w>
     . . . .
   `);
-  const o = overlayFor(s, IDLE);
-  expect(o.drift).not.toBeNull();
-  expect(o.drift?.units.map((g) => [g.unit, g.at])).toEqual([]);
+  expect(overlayFor(s, IDLE).next).toBeNull();
   const wet = board(`
     . . . .
     . w> Dw> w>
     . . . .
   `);
-  const ghosts = overlayFor(wet, IDLE).drift?.units;
-  expect(ghosts?.map((g) => [g.unit, g.at])).toEqual([['draughtsman', at('D2')]]);
+  const next = overlayFor(wet, IDLE).next;
+  expect(next?.units.map((g) => [g.unit, g.at])).toEqual([['draughtsman', at('D2')]]);
+  expect(next?.shapes.map((sh) => sh.kind)).toEqual(['ghost']);
 });
 
-test('drift preview: floats and no ghost on a board without water', () => {
-  expect(overlayFor(board('. . .\nD . .'), IDLE).drift).toBeNull();
+test('next round: floats and no preview on a board without water', () => {
+  expect(overlayFor(board('. . .\nD . .'), IDLE).next).toBeNull();
   const oily = board('. . .\nD w>o w>');
-  expect(overlayFor(oily, IDLE).drift?.floats).toEqual([{ from: at('B2'), to: at('C2') }]);
+  expect(overlayFor(oily, IDLE).next?.shapes).toEqual([
+    { kind: 'float', from: at('B2'), to: at('C2') },
+  ]);
 });
 
 test('marksOf works on a playback view', () => {

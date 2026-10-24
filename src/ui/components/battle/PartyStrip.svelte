@@ -15,7 +15,11 @@
 
   let { members, selected, threatened, onselect }: Props = $props();
 
+  /** DK-6: off the board (fell, erased); a member who is down (hp 0) is a different state. */
+  const isOut = (m: MemberUnit): boolean => !!m.out;
+
   function status(m: MemberUnit): string {
+    if (m.out) return 'out of the room';
     if (m.hp <= 0) return 'down';
     const parts = [m.moved ? 'moved' : 'can move', m.acted ? 'acted' : 'can act'];
     return parts.join(', ');
@@ -29,7 +33,9 @@
       type="button"
       class="chip-btn"
       class:selected={selected === m.id}
-      class:down={m.hp <= 0}
+      class:down={m.hp <= 0 && !isOut(m)}
+      class:out={isOut(m)}
+      disabled={isOut(m)}
       style:--c="var(--hue-{APPRENTICES[m.def].look.hue})"
       aria-pressed={selected === m.id}
       aria-label="{m.name}, {m.hp} of {m.maxHp} HP, {status(m)}{danger ? ', in danger' : ''}"
@@ -47,10 +53,11 @@
       </span>
       <span class="row small">
         <Pips value={m.hp} max={m.maxHp} />
-        {#if m.shield > 0}<span class="shield">◈{m.shield}</span>{/if}
+        {#if isOut(m)}<span class="away" data-testid="out-tag">out of the room</span>{/if}
+        {#if !isOut(m) && m.shield > 0}<span class="shield">◈{m.shield}</span>{/if}
         {#if m.mark}<span class="inked" title={m.mark.deep ? 'Deeply marked' : 'Marked'}>●</span>{/if}
         {#if m.collar !== false}<span class="collar" title="Collared in brass">○</span>{/if}
-        <span class="ticks">
+        <span class="ticks" class:hidden={isOut(m)}>
           <span class:used={m.moved}><span class="full">move</span><span class="short" title="move">m</span></span>
           <span class:used={m.acted}><span class="full">act</span><span class="short" title="act">a</span></span>
         </span>
@@ -89,6 +96,23 @@
   }
   .down {
     opacity: 0.45;
+  }
+  /* Out of the room: not selectable, drawn apart from the downed (a hatched, dashed card). */
+  .out {
+    cursor: default;
+    border-style: dashed;
+    background: repeating-linear-gradient(135deg, var(--parchment-dark) 0 6px, var(--parchment) 6px 12px);
+    color: var(--ink-soft);
+  }
+  .away {
+    min-width: 0;
+    overflow: hidden;
+    font-style: italic;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ticks.hidden {
+    display: none;
   }
   .row {
     display: flex;

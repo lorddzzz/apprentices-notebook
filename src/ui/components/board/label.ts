@@ -34,6 +34,7 @@ export function cellLabel(view: BoardView, at: Coord): string {
     if (t.grate) parts.push('grate');
     if (t.gate) parts.push('lock gate');
     if (t.lamp) parts.push('lamp');
+    if (t.piece) parts.push(t.piece.label);
     if (t.vent) parts.push('steam vent');
     if (t.drop) parts.push('a drop');
     if (t.jar) {
