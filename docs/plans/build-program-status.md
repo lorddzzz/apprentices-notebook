@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: DK-6 (spawned 07:37; checkpoint-and-report nudged 07:46, Hold by projection).
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: DK-6 (07:37, checkpoint nudged 07:46), RC-3, RV-3 (07:55). Wake-up #1 scheduled 12:01 UTC (session-only cron).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -54,6 +54,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | DK-6 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | out of the room |
 | DK-7 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-afd1c8f5b96340a0b @ 64f3a42 | shared | `trip/offerKinds.ts`: seven core kinds (rune, method, ink, solvent, vellum, doorway, key; key limit 1 via `keyOffer`/`joinPool`; doorway never banked), `buildOfferRegistry`/`offerRegistry()` (merges `KIT.offerKinds`/`offerContributors`; duplicates throw), `kindOf`, `bankLoot`, `wipeLoot`, `parseLootItem`, `atLimit`/`overLimit`; `LootItem` = `KitLootItem` (closed type → `CoreLootItem`); `OfferKind.joinPool/limitKey`, `OfferContribution`, `OfferRollCtx.table`; `rollOffers(…, withKit)` 7th arg; pick/bank/wipe/save parse through the registry. Placeholder `recruit` kind (`RECRUIT_SAVE_ONLY` in `OFFER_SOURCES`) parses, banks nothing. **RC-3:** replace `RECRUIT_SAVE_ONLY`. Not done: shared `bindEvent` kind (CG/BR), canal key by room (CN), cards (DK-12). Golden unchanged |
 | RC-2 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a606f01c4106771f9 @ d62cab5 | shared | `preconditionsOf(id)` (beats + `runes.all` = typed runes then starter-page runes outside START_KNOWN; `any` passes through), `isReady(p, id, {trip?, atLandmark?})` (owned = `p.known` + rune pages in trip loot), `waitingFor(p, trip?)` (registry order; not in household or loot; heard district or door arrival with beats held), `provenInvention(p)` (≥ `TUNING.provenCasts` proof masks of one apprentice). Loot read through a structural `{kind, apprentice?}` view until DK-7's recruit kind. RC-3/RC-6 stubs still throw |
+| RC-3 | Strong / Opus 5.5 / medium | M | running | worktree (07:55) | | guaranteed recruit pages |
+| RV-3 | Medium / Sonnet 5.5 / high | M | running | worktree (07:55) | | long wick |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -89,7 +91,8 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:04 | 2 | 4h55 | 54 | Normal | new session; spawn DK-4 (finish), AH-3, RV-4, HC-7 |
 | 07:26 | 34 | 4h33 | 59 | Normal (~1.5%/min) | merge RV-4 |
 | 07:35 | 36 | 4h25 | 59 | Normal | merge AH-3, HC-7, DK-4 (pushed); spawn AH-4, DK-6, DK-7, RC-2 |
-| 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns |
+| 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
+| 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
