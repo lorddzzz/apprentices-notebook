@@ -77,6 +77,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 01:53 | 0 | 5h | 44 | Normal | woke up; spawn AH-1, RV-2, FN-1, DK-5a |
 | 02:13 | 42 | 4h37 | 49 | Normal | merge FN-1, DK-5a; spawn RC-1, FD-4 |
 | 02:28 | 55 | 4h22 | 51 | Normal | merge RV-2, AH-1, RC-1, FD-4; spawn DK-3, DK-4, AH-2 |
+| 02:41 | 73 | 4h09 | 53 | Narrow | >70%: session wrap-up (player rule); checkpoint nudges to DK-3, DK-4, AH-2 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - RC-1: recruit names and blurbs (placeholders, BL-40), hue/shape order R N B W T C E, 5×3 starter sheets with the chain on the middle row, towel-bearer school rune `any: [vat, seep, steep]`. Accepted pending the player's RC playtest.
