@@ -2,6 +2,9 @@
   import { RUNES } from '$data';
   import type { LootItem } from '$engine';
   import { lootLine } from '../../../app/describe';
+  import { cardPlan } from '../../../app/lootviews';
+  import { FALLBACK_CARD, offerCardFor } from '../../districts';
+  import CardFace from '../../districts/cards/CardFace.svelte';
   import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
   import SolventIcon from '../SolventIcon.svelte';
@@ -16,7 +19,12 @@
 
   let { item, selected, onselect, testid }: Props = $props();
 
-  const line = $derived(lootLine(item));
+  // Core kinds draw themselves; other kinds go through their registered card, else the fallback (DK-12).
+  const plan = $derived(cardPlan(item));
+  const Body = $derived(
+    plan.how === 'key' ? (offerCardFor(plan.key) ?? FALLBACK_CARD) : FALLBACK_CARD,
+  );
+  const line = $derived(plan.how === 'core' ? lootLine(item) : { title: '', text: '' });
   const tint = 'var(--ink-faint)';
 </script>
 
@@ -29,7 +37,11 @@
   onclick={onselect}
   data-testid={testid}
 >
-  <span class="mark">
+  {#if plan.how !== 'core'}
+    <Body {item} />
+  {:else}
+  <CardFace title={line.title} text={line.text}>
+    {#snippet mark()}
     {#if item.kind === 'rune'}
       <RuneGlyph rune={item.rune} dir={RUNES[item.rune].arrow ? 'right' : undefined} size={52} />
     {:else if item.kind === 'ink'}
@@ -61,11 +73,9 @@
         <path d="M12 13h16M12 19h16M12 25h10" stroke="var(--ink-soft)" stroke-width="2" stroke-linecap="round" />
       </svg>
     {/if}
-  </span>
-  <span class="words">
-    <span class="title">{line.title}</span>
-    <span class="text">{line.text}</span>
-  </span>
+    {/snippet}
+  </CardFace>
+  {/if}
 </button>
 
 <style>
@@ -89,25 +99,5 @@
     border-color: var(--select);
     background: #f6e3b4;
     box-shadow: 0 0 0 3px var(--select);
-  }
-  .mark {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 56px;
-  }
-  .words {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-  .title {
-    font-size: 19px;
-  }
-  .text {
-    font-size: 13px;
-    line-height: 1.25;
-    color: var(--ink-soft);
   }
 </style>

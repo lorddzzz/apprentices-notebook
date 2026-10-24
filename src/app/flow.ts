@@ -1,4 +1,5 @@
 import { type DistrictId, MEMBERS, type MemberId, TUNING } from '$data';
+import type { PaperId } from '$data/districts/index';
 import {
   type Action,
   type ActionResult,
@@ -190,6 +191,8 @@ export interface BattleEnd {
   wipe: WipeSummary | null;
   /** Named results (D7) this battle taught that the notebook did not have yet. */
   learned: string[];
+  /** The room's paper when this win filed it for the first time (DK-12). */
+  paper: PaperId | null;
 }
 
 /** Closes a finished battle: won → looting, wiped → trip gone, pending loot lost, discoveries kept. */
@@ -216,7 +219,7 @@ export function endBattle(
   const next: SaveData = { ...save, profile, trip: r.trip, lastTrip };
   const wipe: WipeSummary | null =
     r.outcome === 'wiped' ? { encounter: battle.title, lost: [...trip.loot], learned } : null;
-  return { save: next, outcome: r.outcome, wipe, learned };
+  return { save: next, outcome: r.outcome, wipe, learned, paper: r.paper ?? null };
 }
 
 /** Takes offer `index` into the pending loot (the engine moves the trip on after the last pick). */

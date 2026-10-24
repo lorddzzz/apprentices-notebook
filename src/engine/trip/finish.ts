@@ -1,4 +1,5 @@
 import { type EnemyId, encountersOf, type LineId, type Meets, TUNING } from '$data';
+import type { PaperId } from '$data/districts/index';
 import { hearAfterTrip, hearFromBattle } from '../city';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
@@ -96,6 +97,15 @@ export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profi
   return awardFootnotePoints(learned, pointLines(log, rivalCasters(b)));
 }
 
+/** A closed battle; `paper` is the room's paper when this win filed it for the first time. */
+export interface EncounterEnd {
+  profile: Profile;
+  trip: Trip | null;
+  outcome: 'won' | 'wiped';
+  stats: TripStats;
+  paper?: PaperId;
+}
+
 /**
  * Closes a finished battle. Named results are kept either way (knowledge isn't loot).
  * Won: HP and charges carry over for the party (a downed member returns at 1 HP) and loot is
@@ -108,7 +118,7 @@ export function finishEncounter(
   b: BattleState,
   log: EventLog = [],
   foughtWith: Profile = p,
-): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
+): EncounterEnd {
   need(t, 'fight');
   if (b.phase === 'player') throw new Error('The battle is not over');
   // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
@@ -117,7 +127,9 @@ export function finishEncounter(
   const learned = learnFromFight(p, b, log);
   if (b.phase === 'lost') return { profile: learned, trip: null, outcome: 'wiped', stats };
   // The room's paper is filed at once, so a later wipe keeps it (lore registry, DK §9).
-  const profile = bankPages(findPaper(learned, t.district, t.encounter), b, t.district, awardsPage);
+  const filed = findPaper(learned, t.district, t.encounter);
+  const paper = filed.papers.length > learned.papers.length ? filed.papers.at(-1) : undefined;
+  const profile = bankPages(filed, b, t.district, awardsPage);
 
   const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
@@ -145,7 +157,13 @@ export function finishEncounter(
     actions: [],
     stats,
   };
-  return { profile, trip: markCheckpoint(trip), outcome: 'won', stats };
+  return {
+    profile,
+    trip: markCheckpoint(trip),
+    outcome: 'won',
+    stats,
+    ...(paper ? { paper } : {}),
+  };
 }
 
 /**
@@ -153,12 +171,7 @@ export function finishEncounter(
  * (`recordTripCasts`, win or wipe), then `finishEncounter`; the records' tier-ups go into the trip's
  * stats. Lab, Bench and desk battles never come here.
  */
-export function closeBattle(
-  p: Profile,
-  t: Trip,
-  b: BattleState,
-  log: EventLog = [],
-): { profile: Profile; trip: Trip | null; outcome: 'won' | 'wiped'; stats: TripStats } {
+export function closeBattle(p: Profile, t: Trip, b: BattleState, log: EventLog = []): EncounterEnd {
   const recorded = recordTripCasts(p, t);
   const r = finishEncounter(recorded, t, b, log, p);
   const ups = tierUps(p, recorded);

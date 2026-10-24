@@ -2,6 +2,7 @@
   import { placeOf } from '$engine';
   import { inSentence } from '../../app/describe';
   import { game } from '../../app/instance';
+  import { paperNote } from '../../app/lootviews';
   import { href } from '../../app/routes';
   import Button from '../components/common/Button.svelte';
   import OfferCard from '../components/trip/OfferCard.svelte';
@@ -9,6 +10,13 @@
 
   const trip = $derived(game.save.trip);
   let chosen = $state<number | null>(null);
+
+  // The room just won filed a paper for the first time (DK-12): one line, until the trip moves on.
+  const note = $derived.by(() => {
+    const found = game.found;
+    if (!trip || !found || found.seed !== trip.seed || found.room !== trip.encounter) return null;
+    return paperNote(found.paper);
+  });
 
   // Offers shrink after each pick (the heart gives two): never keep a stale index.
   const pick = $derived(trip && chosen !== null && chosen < trip.offers.length ? chosen : null);
@@ -29,6 +37,15 @@
         {trip.picksLeft === 1 ? 'Take one.' : `Take ${trip.picksLeft}, one at a time.`}
       </p>
     </header>
+
+    {#if note}
+      <p class="paper" data-testid="paper-found">
+        <span class="seal" aria-hidden="true">✎</span>
+        <span>
+          A paper found: <em>{note.title}</em>, in {note.hand}'s hand. Filed in the notebook.
+        </span>
+      </p>
+    {/if}
 
     <div class="offers" data-testid="offers">
       {#each trip.offers as item, i (`${trip.picksLeft}-${i}`)}
@@ -74,6 +91,23 @@
     font-size: 14px;
     font-style: italic;
     color: var(--ink-soft);
+  }
+  .paper {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    flex: none;
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--ink-soft);
+  }
+  .seal {
+    color: var(--ink);
   }
   .offers {
     display: flex;

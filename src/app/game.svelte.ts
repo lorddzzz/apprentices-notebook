@@ -1,4 +1,5 @@
 import type { ApprenticeId, DistrictId, MemberId } from '$data';
+import type { PaperId } from '$data/districts/index';
 import {
   type ActionResult,
   type Cluster,
@@ -57,6 +58,8 @@ export class GameStore {
   save = $state.raw<SaveData>() as SaveData;
   /** A wipe waiting to be read (set by the trip flow, cleared by `dismissWipe`). */
   wipe = $state.raw<WipeSummary | null>(null);
+  /** The paper the room just won filed for the first time; the loot screen notes it (DK-12). */
+  found = $state.raw<{ seed: number; room: number; paper: PaperId } | null>(null);
   /** The save could not be used and was replaced by a new game (the old text is kept). App toasts it once. */
   recovered = $state(false);
   /** ...because the notebook is from before this edition (P1). */
@@ -332,6 +335,8 @@ export class GameStore {
     const end = endBattle(this.save, session.state, session.log);
     this.dropBattle();
     this.wipe = end.wipe;
+    const t = end.save.trip;
+    this.found = end.paper && t ? { seed: t.seed, room: t.encounter, paper: end.paper } : null;
     this.commit(end.save);
   }
 
