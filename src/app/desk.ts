@@ -10,15 +10,16 @@ import {
   SOLVENTS,
   type SolventId,
   slotKey,
+  VARIANTS,
   type VariantDef,
 } from '$data';
 import {
   type FootnoteError,
+  footnoteCost,
   footnoteLevel,
   footnoteOffers,
   footnotePoints,
   type Profile,
-  solventFor,
   writeFootnote,
 } from '$engine';
 import { lineText } from './bench';
@@ -71,55 +72,77 @@ export interface VariantView {
   chosen: boolean;
 }
 
+/** One solvent a first write spends: `n` of it, with `count` held now. */
+export interface SpendView {
+  solvent: SolventId;
+  name: string;
+  n: number;
+  count: number;
+}
+
 export interface OfferView {
   line: LineId;
+  /** 1 or 2: level I costs one solvent, level II two (P3). */
+  level: 1 | 2;
   /** What the line reads as now (the unwritten text). */
   current: string;
   variants: VariantView[];
-  /** The first write spends this; null once written (re-picking is free) or when none is held. */
-  spend: { solvent: SolventId; name: string; count: number } | null;
+  /** What the first write spends; empty once written (re-picking is free) or when it can't be paid. */
+  spends: SpendView[];
+  /** The first of `spends` (level I's one solvent), or null: the built card reads it. */
+  spend: SpendView | null;
   written: boolean;
   /** Why a first write is not possible right now, in plain words. */
   blocked: string | null;
 }
 
-/** "Needs Gallnut or Cinder": the solvents of the district the line was found in. */
-export function needsText(line: LineId): string {
+/** "Needs Gallnut or Cinder" (level II: "Needs 2 of Gallnut or Cinder"): the line's district solvents. */
+export function needsText(line: LineId, level: 1 | 2 = 1): string {
   const district = LINES.find((l) => l.id === line)?.district;
   const names = SOLVENT_IDS.filter((s) => SOLVENTS[s].district === district).map(
     (s) => SOLVENTS[s].name,
   );
-  return names.length > 0 ? `Needs ${names.join(' or ')}` : 'Needs a solvent';
+  if (names.length === 0) return 'Needs a solvent';
+  return `Needs ${level === 2 ? '2 of ' : ''}${names.join(' or ')}`;
 }
 
 /** The lines of one rune with their variants, in the order the offers list them. */
 export function offerViews(p: Profile, rune: RuneId): OfferView[] {
   const chosen = p.footnotes[rune]?.slots ?? {};
-  const bySlot = new Map<SlotKey, { line: LineId; variants: VariantView[] }>();
+  const bySlot = new Map<SlotKey, { line: LineId; level: 1 | 2; variants: VariantView[] }>();
   for (const v of footnoteOffers(p, rune)) {
     if (!('line' in v.slot)) continue;
     const key = slotKey(v.slot.line, v.slot.level);
-    const entry = bySlot.get(key) ?? { line: v.slot.line, variants: [] };
+    const entry = bySlot.get(key) ?? { line: v.slot.line, level: v.slot.level, variants: [] };
     entry.variants.push({ id: v.id, text: v.text, chosen: chosen[key] === v.id });
     bySlot.set(key, entry);
   }
-  return [...bySlot].map(([key, { line, variants }]) => {
+  return [...bySlot].map(([key, { line, level, variants }]) => {
     const written = chosen[key] !== undefined;
-    const s = written ? null : solventFor(p, line);
+    const cost = footnoteCost(p, rune, key);
+    const spends = (cost ?? []).map(({ solvent, n }) => ({
+      solvent,
+      name: SOLVENTS[solvent].name,
+      n,
+      count: p.solvents[solvent],
+    }));
     return {
       line,
+      level,
       current: lineText(line),
       variants,
-      spend: s ? { solvent: s, name: SOLVENTS[s].name, count: p.solvents[s] } : null,
+      spends,
+      spend: spends[0] ?? null,
       written,
-      blocked: written || s ? null : needsText(line),
+      blocked: written || cost ? null : needsText(line, level),
     };
   });
 }
 
-export function footnoteErrorText(e: FootnoteError, line: LineId): string {
-  if (e === 'noSolvent') return needsText(line);
+export function footnoteErrorText(e: FootnoteError, line: LineId, level: 1 | 2 = 1): string {
+  if (e === 'noSolvent') return needsText(line, level);
   if (e === 'notReached') return 'That line is not yet within your reach.';
+  if (e === 'notHeld') return "That note is in a rival's hand you do not hold.";
   return 'There is no such footnote.';
 }
 
@@ -130,6 +153,9 @@ export function writeAt(
   line: LineId,
   variantId: string,
 ): { profile: Profile } | { error: string } {
-  const r = writeFootnote(p, rune, line, variantId);
-  return 'error' in r ? { error: footnoteErrorText(r.error, line) } : r;
+  const v = VARIANTS.find((x) => x.id === variantId);
+  if (!v || !('line' in v.slot) || v.slot.line !== line)
+    return { error: footnoteErrorText('unknownVariant', line) };
+  const r = writeFootnote(p, rune, slotKey(line, v.slot.level), variantId);
+  return 'error' in r ? { error: footnoteErrorText(r.error, line, v.slot.level) } : r;
 }

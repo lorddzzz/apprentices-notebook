@@ -10,7 +10,7 @@ const withShove = (over: Partial<Profile> = {}): Profile => {
     ...base,
     known: [...new Set([...base.known, 'shove' as const])],
     witnessed: ['shove:wall', 'shove:slick'],
-    footnotes: { shove: { points: 5, slots: {} } },
+    footnotes: { shove: { points: 8, slots: {} } },
     solvents: { ...base.solvents, gallnut: 2, cinder: 1 },
     ...over,
   };
@@ -25,11 +25,11 @@ describe('the rune list', () => {
 
   test('a row carries level, points to the next level and unwritten offers', () => {
     const [row] = deskRows(withShove());
-    expect(row).toMatchObject({ rune: 'shove', points: 5, level: 1, toNext: 10, open: 2 });
-    const top = deskRows(withShove({ footnotes: { shove: { points: 40, slots: {} } } }))[0];
+    expect(row).toMatchObject({ rune: 'shove', points: 8, level: 1, toNext: 17, open: 2 });
+    const top = deskRows(withShove({ footnotes: { shove: { points: 60, slots: {} } } }))[0];
     expect(top).toMatchObject({ level: 3, toNext: null });
     const below = deskRows(withShove({ footnotes: { shove: { points: 3, slots: {} } } }))[0];
-    expect(below).toMatchObject({ level: 0, toNext: 2, open: 0 });
+    expect(below).toMatchObject({ level: 0, toNext: 5, open: 0 });
   });
 });
 
@@ -39,7 +39,8 @@ describe('an offer', () => {
     expect(wall?.variants).toHaveLength(2);
     expect(wall?.current).toContain('wall');
     expect(wall?.written).toBe(false);
-    expect(wall?.spend).toEqual({ solvent: 'gallnut', name: 'Gallnut', count: 2 });
+    expect(wall?.spend).toEqual({ solvent: 'gallnut', name: 'Gallnut', n: 1, count: 2 });
+    expect(wall?.level).toBe(1);
     expect(wall?.blocked).toBeNull();
   });
 });

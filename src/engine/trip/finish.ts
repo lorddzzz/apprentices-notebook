@@ -1,7 +1,7 @@
 import { type EnemyId, encountersOf, type LineId, type Meets, TUNING } from '$data';
 import { hearAfterTrip, hearFromBattle, keyOffer } from '../city';
 import { type EventLog, namedIn } from '../events';
-import { awardFootnotePoints } from '../footnotes';
+import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
 import { witnessedIn } from '../lines';
 import { recordGlyphCasts, tierUps } from '../profiler';
 import { masksFrom } from '../proof';
@@ -19,14 +19,7 @@ import { beginEncounter } from './start';
  * something else happened between them.
  */
 export function firedLines(log: EventLog): LineId[] {
-  const out: LineId[] = [];
-  let last: LineId | undefined;
-  for (const e of log) {
-    if (!e.line) continue;
-    if (e.line !== last) out.push(e.line);
-    last = e.line;
-  }
-  return out;
+  return pointLines(log);
 }
 
 /** What a fight showed the household: terrain, states, compounds and kinds of foe (the Bench palette, P37). */
@@ -82,8 +75,8 @@ export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: Enem
 
 /**
  * What a finished trip fight teaches the household, won or lost (D7, D4, P39, P37): named results,
- * the lines that fired (witnessed), a footnote point per firing for the runes it knows, and what
- * the fight met.
+ * the lines that fired (witnessed, whoever cast them), a footnote point per household firing for
+ * each known subject (rival casts earn none), and what the fight met.
  */
 export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profile {
   const seen = metIn(b, log);
@@ -94,7 +87,7 @@ export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profi
     met: withAll(p.met, seen.met),
     foesMet: withAll(p.foesMet, seen.foes),
   };
-  return awardFootnotePoints(learned, firedLines(log));
+  return awardFootnotePoints(learned, pointLines(log, rivalCasters(b)));
 }
 
 /**

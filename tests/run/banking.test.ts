@@ -106,16 +106,16 @@ describe('footnote points on a trip (P39)', () => {
     expect(witnessedIn(log)).toEqual(['shove:wall', 'spark:slick']);
   });
 
-  test('only known runes earn points, and levels follow 5 / 15 / 40', () => {
+  test('only known runes earn points, and levels follow 8 / 25 / 60', () => {
     const p = newProfile();
     const t = startTrip(p, SEED);
     const b = over(beginEncounter(p, t).state, 'won');
     const log: GameEvent[] = [];
-    for (let i = 0; i < 5; i++) log.push(stamped('shove:wall'), stamped('spark:slick'));
+    for (let i = 0; i < 8; i++) log.push(stamped('shove:wall'), stamped('spark:slick'));
     log.push(stamped('splash:unit')); // Splash is not known yet
     const r = finishEncounter(p, t, b, log);
-    expect(r.profile.footnotes.shove?.points).toBe(5);
-    expect(r.profile.footnotes.spark?.points).toBe(5);
+    expect(r.profile.footnotes.shove?.points).toBe(8);
+    expect(r.profile.footnotes.spark?.points).toBe(8);
     expect(r.profile.footnotes.splash).toBeUndefined();
     expect(r.profile.witnessed).toContain('splash:unit'); // seen, even if not yet earning
     expect(footnoteLevel(r.profile, 'shove')).toBe(1);
