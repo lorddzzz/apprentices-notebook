@@ -26,8 +26,9 @@ import { feedLinesOut, recordLog } from './lines-registry';
  * Thin scenario harness. Parsing lives in the engine (`src/engine/notation.ts`); the legend is in
  * that file's header and in `.claude/skills/scenario/SKILL.md`.
  *
- *   Board cell   `.` | [unit D S r b f d e n m M][mods ! !! & $ +][one state i o ~ = # * {stain}…][terrain w> h g l @ _]
- *                e.g. `r!o`, `@~`, `*`, `=`, `b&+`, `{wall}`, `_`
+ *   Board cell   `.` | [unit D S r b f d e n m M][mods ! !! & $ +][one state i o ~ = # * {stain}…][terrain w> h g l @ _][piece {token} {token:suffix}]
+ *                e.g. `r!o`, `@~`, `*`, `=`, `b&+`, `{wall}`, `_`, `r{pier}`, `{bell:a}`
+ *                (a piece is a registered district token, DK-4; see tests/engine/pieces.test.ts)
  *   Lattice cell `.` socket, `x` hole, rune token + arrow iff arrow rune     e.g. `Bolt>`, `Bendv`, `Ink`
  */
 export { label, parseBoard, parseLabel, parseLattice } from '$engine';

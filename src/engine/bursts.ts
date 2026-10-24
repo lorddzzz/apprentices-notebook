@@ -15,7 +15,7 @@ import { byReadingOrder, type Coord, type Dir, step } from './grid';
 import { applyMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
 import { push } from './push';
-import { blocksUnits, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
+import { blocksShots, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
 import { SOLVENT_RULES } from './solvents';
 import type { Flow, Layer, Mark, Origin, Unit } from './types';
 
@@ -233,7 +233,7 @@ function pageSkid(ctx: Ctx, at: Coord, flow: Flow | null): void {
   const path: Coord[] = [];
   let victim: Unit | null = null;
   for (let c = step(at, heading); inBoard(s, c); c = step(c, heading)) {
-    if (blocksUnits(tileAt(s, c))) break;
+    if (blocksShots(tileAt(s, c))) break;
     path.push(c);
     victim = unitAt(s, c);
     if (victim) break;

@@ -32,8 +32,9 @@ Board cell = `.` (floor) or `[unit][mods][state and terrain]`:
 | mods (after a unit) | `!` mark, `!!` deep mark, `&` brass collar, `$` shackle, `+` 1 shield each (`++` = 2) |
 | state (one per tile) | `i` blot, `o` slick, `~` cloud, `=` layout plate (permanent, no unit), `#` rune plate (crumbles after 3 rounds), `*` fire, or a compound in braces: `{stain}` `{brand}` (brand cloud) `{pool}` `{fog}` (grease fog) `{skid}` (skid plate) `{bank}` `{kettle}` `{wall}` |
 | terrain | `w` + arrow water lane flowing that way (`w>`, `wv`), `h` grate (on water only), `g` wooden lock gate (alone), `l` lamp, `@` vent, `_` the drop (an open side) |
+| piece (one per tile, DK-4) | a district board piece in braces by its registered token: `{pier}`, `{bell:a}` (the suffix is the piece's own data). Written after the state (`{stain}{probe}`). A solid piece blocks units like a plate (no unit or start point on it); a piece never shares a cell with a lock gate; `unitsAndShots` pieces also stop Bolts and lines. Tokens never reuse a compound name, a district or rival token (`tests/engine/pieces.test.ts`). Tests register fixture pieces by mocking `$engine/districts/kit` (see that file) |
 
-Examples: `r` rat, `ro` rat on a slick, `r!~` marked rat in a cloud, `r!!` deep-marked rat, `b&` a sentry with a cast collar, `D++` Draughtsman with 2 shield, `*` fire, `@~` vent under a cloud, `=` plate, `{wall}` a Wall, `w>o` slick floating on a lane. Each member token (`D`, `S`) may appear once. Deep mark and Shackle are unit compounds (`!!`, `$`); the other eight compounds sit on tiles.
+Examples: `r` rat, `ro` rat on a slick, `r!~` marked rat in a cloud, `r!!` deep-marked rat, `b&` a sentry with a cast collar, `D++` Draughtsman with 2 shield, `*` fire, `@~` vent under a cloud, `=` plate, `{wall}` a Wall, `w>o` slick floating on a lane, `r{pier}` a rat on a pier. Each member token (`D`, `S`) may appear once. Deep mark and Shackle are unit compounds (`!!`, `$`); the other eight compounds sit on tiles.
 
 A battle's edge is `'wall'` unless the spec says `edge: 'drop'` (P3).
 

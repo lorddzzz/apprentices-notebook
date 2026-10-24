@@ -27,7 +27,7 @@ import type {
   TriggerRuneId,
 } from '$data';
 import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
-import type { CityCheckpoints, Json, RuleStates, TripKitState } from './districts/types';
+import type { CityCheckpoints, Json, RuleStates, TilePiece, TripKitState } from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
 import type { ObjectRef, RivalState } from './rivals/types';
@@ -233,6 +233,8 @@ export interface Tile {
   state: Layer | null;
   jar: Jar | null;
   hot: number; // Cinder: rounds left; oil here catches fire
+  /** A district board piece (DK-4, P10): `{bell:a}`, `{pier}`; null on a bare tile. */
+  piece: TilePiece | null;
 }
 
 /** `dir` is from the enemy's CURRENT position at resolve time. */

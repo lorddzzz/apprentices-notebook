@@ -8,7 +8,8 @@ import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
 import { sameStateNet } from './networks';
-import { findUnit, giftedIn, isCloud, longTouchOver, tileAt, unitAt } from './queries';
+import { hitPiece } from './pieces';
+import { blockerName, findUnit, giftedIn, isCloud, longTouchOver, tileAt, unitAt } from './queries';
 import { handlerFor } from './runes';
 import { forkSide, jarFor, seep, toll, trial } from './runes/flow';
 import { aimTargets, boltTravel, whereIs } from './targets';
@@ -370,11 +371,11 @@ function flight(ctx: Ctx, caster: Unit, aim: Aim, gifted: boolean): void {
       });
       return;
     case 'blocked': {
-      const t = ctx.s.tiles[r.stop.y * ctx.s.width + r.stop.x];
-      const by = t?.terrain.gate ? 'lock gate' : t?.terrain.grate ? 'grate' : 'brass plate';
+      const by = blockerName(tileAt(ctx.s, r.stop));
       withLine(ctx, 'bolt:plate', () => {
         emit(ctx, { type: 'stopped', source: name, at: r.stop, by, path: r.path });
       });
+      hitPiece(ctx, r.stop);
       return;
     }
     case 'unit':
@@ -384,6 +385,7 @@ function flight(ctx: Ctx, caster: Unit, aim: Aim, gifted: boolean): void {
       withLine(ctx, 'bolt:empty', () => {
         emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
       });
+      hitPiece(ctx, r.stop);
       return;
   }
 }

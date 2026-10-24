@@ -23,6 +23,7 @@ import {
   SPARSE_LATTICE_HEADER,
 } from './importPolicy';
 import { growingLattice } from './page';
+import { parsePieceToken, pieceBlocksUnits, pieceToken } from './pieces';
 import {
   type GlyphArg,
   type GlyphDef,
@@ -51,6 +52,8 @@ import {
  *            * fire, or a compound in braces: {stain} {brand} {pool} {fog} {skid} {bank} {kettle} {wall}
  *   terrain  w + arrow water lane flowing that way (`w>`, `wv`), h grate (on water only),
  *            g wooden lock gate (alone), l lamp, @ vent, _ the drop (an open side, P3)
+ *   piece    one per tile, a district board piece in braces by its registered token (DK-4, P10):
+ *            `{pier}`, `{bell:a}` (the suffix is the piece's own data). Never a unit on a solid one
  *
  * Lattice cell = `.` empty socket, `x` hole, a rune token (`Bolt`, `Ink`, `Fork`…) with an arrow
  * suffix `> < ^ v` iff the rune is an arrow rune (sources, Bend), or an invention `inv:name`.
@@ -104,6 +107,7 @@ export function emptyTile(): Tile {
     state: null,
     jar: null,
     hot: 0,
+    piece: null,
   };
 }
 
@@ -139,6 +143,8 @@ const COMPOUND_NAMES: Readonly<Record<string, CompoundId>> = {
   kettle: 'kettle',
   wall: 'wall',
 };
+/** The brace names compounds claim; piece tokens must not reuse them (DK-4 token check). */
+export const COMPOUND_BRACE_NAMES: readonly string[] = Object.keys(COMPOUND_NAMES);
 const COMPOUND_TOKENS: Partial<Record<CompoundId, string>> = Object.fromEntries(
   Object.entries(COMPOUND_NAMES).map(([name, id]) => [id, `{${name}}`]),
 );
@@ -231,10 +237,21 @@ export function parseCell(token: string, at: Coord): ParsedCell {
       case '{': {
         const close = chars.indexOf('}', k);
         const name = close < 0 ? '' : chars.slice(k + 1, close).join('');
-        const id = COMPOUND_NAMES[name];
-        if (!id) throw bad(`Unknown compound "{${name}}"`);
-        setState(layerFor(id, false));
         k = close;
+        const id = COMPOUND_NAMES[name];
+        if (id) {
+          setState(layerFor(id, false));
+          break;
+        }
+        let piece: Tile['piece'] = null;
+        try {
+          piece = parsePieceToken(name);
+        } catch (e) {
+          throw bad(e instanceof Error ? e.message : String(e));
+        }
+        if (!piece) throw bad(`Unknown compound "{${name}}"`);
+        if (tile.piece) throw bad('A tile holds one piece');
+        tile.piece = piece;
         break;
       }
       case 'w': {
@@ -272,11 +289,14 @@ export function parseCell(token: string, at: Coord): ParsedCell {
     if (parts > 1) throw bad('A lock gate cannot share a tile');
   }
   if (plate && unit) throw bad('A unit cannot stand on a plate');
+  const solid = pieceBlocksUnits(tile);
+  if (solid && unit) throw bad('A unit cannot stand on a solid piece');
   if (start) {
     if (unit) throw bad('A start point cannot hold a unit');
     if (plate) throw bad('A start point cannot sit on a plate');
     if (terrain.gate) throw bad('A start point cannot sit on a lock gate');
     if (terrain.grate) throw bad('A start point cannot sit on a grate');
+    if (solid) throw bad('A start point cannot sit on a solid piece');
   }
   return { tile, unit, start };
 }
@@ -342,6 +362,7 @@ function layerToken(t: Tile): string {
     (g.grate ? 'h' : '') +
     (g.drop ? '_' : '') +
     (t.state ? stateToken(t.state) : '') +
+    (t.piece ? pieceToken(t.piece) : '') +
     (g.vent ? '@' : '') +
     (g.gate ? 'g' : '') +
     (g.lamp ? 'l' : '')
@@ -360,7 +381,7 @@ function padRows(grid: string[][]): string {
     .join('\n');
 }
 
-/** Canonical form: unit or P, mods (!/!! & $ +…), then w? h _ state @ g l; columns padded. */
+/** Canonical form: unit or P, mods (!/!! & $ +…), then w? h _ state piece @ g l; columns padded. */
 export function serializeBoard(spec: Omit<BoardSpec, 'starts'> & { starts?: Coord[] }): string {
   const grid: string[][] = [];
   for (let y = 0; y < spec.height; y++) {

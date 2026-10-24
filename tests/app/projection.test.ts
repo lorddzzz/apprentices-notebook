@@ -183,6 +183,7 @@ import.meta.glob(
     '../engine/*.test.ts',
     '!../scenarios/push.test.ts',
     '!../scenarios/actions.test.ts',
+    '!../engine/pieces.test.ts', // mocks the kit with fixture pieces
     '!../engine/events.test.ts', // fabricates events on a board that does not change
   ],
   { eager: true },

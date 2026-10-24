@@ -1,5 +1,6 @@
 import type { Ctx } from '../ctx';
-import type { Coord } from '../grid';
+import { type Coord, key } from '../grid';
+import { coordOf, flood } from '../queries';
 import { choicesAt, takeChoice } from '../trip/choices';
 import { returnCheck } from '../trip/ret';
 import type { BattleState, Trip, UnitId } from '../types';
@@ -37,10 +38,22 @@ export function removeFromRoom(ctx: Ctx, unit: UnitId, cause: OutCause): void {
   stub(`removeFromRoom(${ctx.s.title}, ${unit}, ${cause})`, 'DK-6');
 }
 
-/** P10: the 4-connected groups of tiles matching `inside` (piers cut off, cloud networks). */
+/**
+ * P10: the 4-connected groups of tiles matching `inside` (piers cut off, cloud networks). Groups
+ * come in the reading order of their first tile; each lists its tiles in reading order.
+ */
 export function componentsOf(
   state: BattleState,
   inside: (at: Coord, state: BattleState) => boolean,
 ): Coord[][] {
-  return stub(`componentsOf(${state.width}x${state.height}, ${inside.length})`, 'DK-4');
+  const seen = new Set<string>();
+  const groups: Coord[][] = [];
+  state.tiles.forEach((_, i) => {
+    const at = coordOf(state, i);
+    if (seen.has(key(at))) return;
+    const group = flood(state, at, (c) => inside(c, state));
+    for (const c of group) seen.add(key(c));
+    if (group.length) groups.push(group);
+  });
+  return groups;
 }

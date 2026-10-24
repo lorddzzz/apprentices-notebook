@@ -5,6 +5,7 @@ import { dealDamage, kill } from './damage';
 import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, step } from './grid';
 import { notify } from './hooks';
+import { pieceBlocksUnits, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
 import type { BattleState, Layer, Origin, Tile, Unit } from './types';
 
@@ -51,6 +52,10 @@ function stopAt(ctx: Ctx, unit: Unit, from: Coord, next: Coord): Stop | null {
   const tile = tileAt(s, next);
   if (heldBack(unit, tile.terrain.water !== null)) {
     return { kind: 'crush', into: 'wall', line: null, at: next };
+  }
+  // A solid piece crushes like a plate but has no plate's fine print or wear.
+  if (pieceBlocksUnits(tile) && !isPlate(tile) && !tile.terrain.gate && !tile.terrain.grate) {
+    return { kind: 'crush', into: 'plate', line: null, at: next };
   }
   if (blocksUnits(tile)) {
     const line: LineId | null = tile.state?.id === 'wall' ? 'shove:wall' : 'shove:plate';
@@ -110,6 +115,9 @@ function crush(
         at: { ...unit.pos },
       });
     } else if (stop.into === 'plate') wearPlate(ctx, stop.at);
+    // A crush strikes a piece on either tile: under the pushed unit, and the one it hit (P10).
+    strikePiece(ctx, unit.pos, 'push');
+    if (inBoard(ctx.s, stop.at)) strikePiece(ctx, stop.at, 'push');
   };
   if (stop.line) withLine(ctx, stop.line, body);
   else body();

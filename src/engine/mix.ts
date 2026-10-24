@@ -22,6 +22,7 @@ import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, neighbors4 } from './grid';
+import { strikePiece } from './pieces';
 import {
   blocksUnits,
   coordOf,
@@ -285,6 +286,7 @@ function sparkLand(ctx: Ctx, t: Target, flow: Flow | null): void {
   const at = targetCoord(ctx, t);
   if (!at) return;
   const unit = unitOn(ctx, t, at);
+  const struck = strikePiece(ctx, at, 'spark');
   let burstHappened = false;
   if (unit) {
     const caster = flow ? findUnit(ctx.s, flow.caster) : null;
@@ -295,7 +297,7 @@ function sparkLand(ctx: Ctx, t: Target, flow: Flow | null): void {
     if (isAlive(unit)) burstHappened = burst(ctx, at, 'unit', flow);
   }
   burstHappened = burst(ctx, at, 'tile', flow) || burstHappened;
-  if (!unit && !burstHappened) emit(ctx, { type: 'miss', source: 'Spark' });
+  if (!unit && !burstHappened && !struck) emit(ctx, { type: 'miss', source: 'Spark' });
 }
 
 // ── Entry points ────────────────────────────────────────

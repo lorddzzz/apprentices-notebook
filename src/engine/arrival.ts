@@ -1,6 +1,6 @@
 import { ENEMIES } from '$data';
 import { type Ctx, fizzled } from './ctx';
-import { KIT } from './districts';
+import { KIT } from './districts/kit';
 import { type Coord, sameCoord } from './grid';
 import { openJar } from './jars';
 import * as marks from './marks';
@@ -282,18 +282,34 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
 
 let composed: ArrivalHookList | null = null;
 
+const isTrait = (t: string): t is UnitTrait => ['flies', 'swims', 'anchored'].includes(t);
+
+/**
+ * District pieces' arrival hooks (DK-4), in kit order, as `dk:<piece id>`: each answers only on a
+ * tile holding its piece, and a unit with one of the piece's `exempt` traits skips it.
+ */
+function districtArrivalHooks(): ArrivalHookList {
+  return Object.values(KIT.pieces).flatMap((p) => {
+    const h = p.triggers.onArrive;
+    if (!h) return [];
+    const exempt = [...new Set([...(h.exempt ?? []), ...(p.exempt ?? []).filter(isTrait)])];
+    const hook: ArrivalHook = {
+      ...h,
+      id: `dk:${p.id}`,
+      ...(exempt.length ? { exempt } : {}),
+      run: (ctx, a) => (tileAt(ctx.s, a.at).piece?.id === p.id ? h.run(ctx, a) : 'go'),
+    };
+    return [hook];
+  });
+}
+
 /**
  * Every hook in run order (P3): core, then habits (AH's list goes between), then district pieces'
  * hooks in kit order. Composed once, on first use (district modules import the movers, so the kit
  * is not ready while this file loads); nothing registers at runtime.
  */
 export function arrivalHooks(): ArrivalHookList {
-  composed ??= [
-    ...CORE_ARRIVAL_HOOKS,
-    ...Object.values(KIT.pieces).flatMap((p) =>
-      p.triggers.onArrive ? [{ ...p.triggers.onArrive, id: `dk:${p.id}` as const }] : [],
-    ),
-  ];
+  composed ??= [...CORE_ARRIVAL_HOOKS, ...districtArrivalHooks()];
   return composed;
 }
 

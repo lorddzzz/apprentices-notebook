@@ -7,6 +7,7 @@ import { foeBurst, resolveSpecial, snuffStep } from './foes';
 import { type Coord, step } from './grid';
 import { openDuskJars } from './jars';
 import { decayStates, landKindFree, roundEndChemistry } from './mix';
+import { hitPiece, piecesTurnEnd } from './pieces';
 import {
   blockerName,
   coordOf,
@@ -96,9 +97,11 @@ function resolveAttack(ctx: Ctx, e: EnemyUnit, intent: AttackIntent): void {
         by: blockerName(tileAt(ctx.s, at)),
         path: r.path,
       });
+      hitPiece(ctx, at);
       return;
     case 'end':
       emit(ctx, { type: 'lands', source: att.name, at, path: r.path });
+      hitPiece(ctx, at);
       if (att.inks) spitInk(ctx, at, null);
       return;
   }
@@ -180,6 +183,7 @@ export function endTurnAction(ctx: Ctx): void {
     if (checkEnd(ctx)) return;
   }
   roundEnd(ctx);
+  piecesTurnEnd(ctx);
   if (checkEnd(ctx)) return;
 
   s.round++;

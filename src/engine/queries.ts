@@ -14,6 +14,7 @@ import {
   step,
 } from './grid';
 import { habitRule } from './habits';
+import { pieceBlocksShots, pieceBlocksUnits } from './pieces';
 import { aimTargets, boltTravel, whereIs } from './resolve';
 import type {
   Aim,
@@ -101,13 +102,25 @@ export const isPlate = (t: Tile): boolean => !!t.state && PLATES.has(t.state.id)
 export const isCloud = (t: Tile): boolean => !!t.state && CLOUDS.has(t.state.id);
 export const isFire = (t: Tile): boolean => t.state?.id === 'fire';
 
-/** Plates, wooden gates and grates stop units, walks and projectiles (K-10, K-11). */
-export const blocksUnits = (t: Tile): boolean => isPlate(t) || t.terrain.gate || t.terrain.grate;
+const standsUp = (t: Tile): boolean => isPlate(t) || t.terrain.gate || t.terrain.grate;
+/**
+ * Plates, wooden gates, grates and solid board pieces stop units and walks (K-10, K-11, DK-4).
+ * Pushes, placement and spreading states treat a solid piece like a plate.
+ */
+export const blocksUnits = (t: Tile): boolean => standsUp(t) || pieceBlocksUnits(t);
+/** What stops a projectile or a line: the same, but only `unitsAndShots` pieces (P10). */
+export const blocksShots = (t: Tile): boolean => standsUp(t) || pieceBlocksShots(t);
 
-export type Blocker = 'brass plate' | 'lock gate' | 'grate';
-/** What a projectile stopped at on a `blocksUnits` tile, for the log. */
+export type Blocker = 'brass plate' | 'lock gate' | 'grate' | 'piece';
+/** What a projectile stopped at on a `blocksShots` tile, for the log. */
 export const blockerName = (t: Tile): Blocker =>
-  t.terrain.gate ? 'lock gate' : t.terrain.grate ? 'grate' : 'brass plate';
+  t.terrain.gate
+    ? 'lock gate'
+    : t.terrain.grate
+      ? 'grate'
+      : isPlate(t) || !t.piece
+        ? 'brass plate'
+        : 'piece';
 
 /** Free to walk or be pushed onto: on the board, no plate, gate or grate, no living unit. */
 export function isOpen(s: BattleState, c: Coord, ignore?: UnitId): boolean {
@@ -168,7 +181,7 @@ export function travel(
     if (isCloud(tileAt(s, nxt))) return { reason: 'cloud', path, stop: nxt };
     const u = unitAt(s, nxt);
     if (u && u.id !== ignore) return { reason: 'unit', path, stop: nxt, unit: u };
-    if (blocksUnits(tileAt(s, nxt))) return { reason: 'blocked', path, stop: nxt };
+    if (blocksShots(tileAt(s, nxt))) return { reason: 'blocked', path, stop: nxt };
   }
   const last = path[path.length - 1];
   return last ? { reason: 'end', path, stop: last } : { reason: 'none', path: [], stop: null };

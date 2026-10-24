@@ -18,6 +18,7 @@ import.meta.glob(
     '../engine/*.test.ts',
     '!../scenarios/push.test.ts',
     '!../scenarios/actions.test.ts',
+    '!../engine/pieces.test.ts', // mocks the kit with fixture pieces
   ],
   { eager: true },
 );

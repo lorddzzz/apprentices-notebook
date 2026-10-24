@@ -3,6 +3,7 @@ import { hasTrait, relocateAll } from './arrival';
 import { type Ctx, emit, ref, withLine } from './ctx';
 import { type Coord, DIRS, type Dir, opposite, step } from './grid';
 import { shove } from './movement';
+import { strikable, strikePiece } from './pieces';
 import { push } from './push';
 import { blocksUnits, findUnit, inBoard, isAlive, reachOver, tileAt, unitAt } from './queries';
 import type { BattleState, Tile, Unit, UnitId } from './types';
@@ -192,12 +193,21 @@ export const BASIC_ACTIONS: Readonly<Record<BasicActionId, BasicActionDef>> = {
   shove: def({
     check: (s, id, dir) => {
       const u = unitOf(s, id);
-      return unitAt(s, step(u.pos, dir)) ? null : `Nothing to shove ${dir}`;
+      const at = step(u.pos, dir);
+      if (unitAt(s, at)) return null;
+      // No unit there: a piece that answers a strike can still be shoved (DK-4, P10).
+      return inBoard(s, at) && strikable(tileAt(s, at)) ? null : `Nothing to shove ${dir}`;
     },
     apply: (ctx, id, dir) => {
       const u = unitOf(ctx.s, id);
       if (u.kind !== 'member') throw new Error('A foe shove waits for RV');
-      shove(ctx, u, dir);
+      const at = step(u.pos, dir);
+      if (unitAt(ctx.s, at)) {
+        shove(ctx, u, dir);
+        return;
+      }
+      spend(u);
+      if (!strikePiece(ctx, at, 'shove')) throw new Error(`Nothing to shove ${dir}`);
     },
   }),
   pull,

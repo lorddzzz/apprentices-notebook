@@ -4,6 +4,7 @@ import { foeBurst } from './foes';
 import type { Coord, Dir } from './grid';
 import { guardHarm } from './harm';
 import { notify } from './hooks';
+import { strikePiece } from './pieces';
 import { findUnit } from './queries';
 import type { Unit } from './types';
 
@@ -69,6 +70,7 @@ export function dealDamage(
   if (absorbed > 0)
     emit(ctx, { type: 'shieldAbsorbs', unit: ref(unit), absorbed, left: unit.shield });
   notify(ctx, { kind: 'hit', unit: unit.id, heading: from.heading, from: from.at });
+  strikePiece(ctx, unit.pos, 'damage'); // damage landing on a piece's tile strikes it (foundry P2)
   if (unit.hp > 0) return false;
   kill(ctx, unit);
   return true;
