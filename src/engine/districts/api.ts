@@ -1,11 +1,13 @@
 import type { Ctx } from '../ctx';
 import type { Coord } from '../grid';
+import { choicesAt, takeChoice } from '../trip/choices';
+import { returnCheck } from '../trip/ret';
 import type { BattleState, Trip, UnitId } from '../types';
 import type { CrossroadsChoice, OutCause, ReturnCheck } from './types';
 
 /**
- * Kit operations named in the plan's contracts (§4). DK-1 stubs: the named tasks fill the bodies
- * and wire them into the trip flow and the battle. Nothing calls them yet.
+ * Kit operations named in the plan's contracts (§4). The trip-shape ones (DK-5a) delegate to
+ * `src/engine/trip/`; the rest are DK-1 stubs the named tasks fill.
  */
 
 const stub = (name: string, task: string): never => {
@@ -14,17 +16,20 @@ const stub = (name: string, task: string): never => {
 
 /** P3: may the party go home after the current room? Policy first, then the module's blocks. */
 export function returnPolicy(trip: Trip): ReturnCheck {
-  return stub(`returnPolicy(${trip.district})`, 'DK-5a');
+  return returnCheck(trip);
 }
 
 /** P4: the Crossroads' choices; `[push, return]` unless the module replaces push. */
 export function crossroadsChoices(trip: Trip): readonly CrossroadsChoice[] {
-  return stub(`crossroadsChoices(${trip.district})`, 'DK-5a');
+  return choicesAt(trip);
 }
 
-/** P4: records a choice on the trip (it decides the next room's variant pool). */
+/**
+ * P4: takes a way on: records the choice on the trip (it decides the next room's variant pool)
+ * and the next room becomes current. A return choice throws: home goes through `returnHome`.
+ */
 export function chooseAt(trip: Trip, choice: string): Trip {
-  return stub(`chooseAt(${trip.district}, ${choice})`, 'DK-5a');
+  return takeChoice(trip, choice);
 }
 
 /** P11: takes a unit off the board (fall, erase) and emits `outOfRoom`. */

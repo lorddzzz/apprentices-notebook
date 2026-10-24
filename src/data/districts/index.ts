@@ -11,6 +11,7 @@ import type {
   HearCondition,
   KindId,
 } from '../types';
+import { CANALS_KIT } from './canals';
 import { SEAM_KIT } from './seam';
 
 /**
@@ -23,7 +24,8 @@ import { SEAM_KIT } from './seam';
 /**
  * Where the party may go home (P3; replaces `landings`). Indices are 0-based rooms, as `landings`:
  * `any` after every room; `landings` after the listed rooms; `until` free up to room `after`,
- * none beyond it. The heart is always a return point (city K-table).
+ * none beyond it (the point of no return). The heart is always a return point (city K-table),
+ * whatever the policy says. Absent reads as `any`.
  */
 export type ReturnPolicy =
   | { kind: 'any' }
@@ -191,6 +193,7 @@ export type DistrictKitData = { id: DistrictId } & Partial<Omit<DistrictData, 'i
 /** Every district's kit data, one line each (P1). */
 export const DISTRICT_KIT: Readonly<Partial<Record<DistrictId, DistrictKitData>>> = {
   seam: SEAM_KIT,
+  canals: CANALS_KIT,
 };
 
 /** Every token the districts claim, for the collision check. */

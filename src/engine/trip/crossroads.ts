@@ -1,7 +1,9 @@
 import { encountersOf } from '$data';
-import { bankKeys, canReturn, hearAfterTrip } from '../city';
+import { bankKeys, hearAfterTrip } from '../city';
 import type { Profile, Trip } from '../types';
-
+import { takeChoice } from './choices';
+import { returnCheck } from './ret';
+import { rememberCheckpoint } from './shape';
 import { need } from './shared';
 
 export function pickLoot(t: Trip, index: number): Trip {
@@ -23,21 +25,23 @@ export function pickLoot(t: Trip, index: number): Trip {
   };
 }
 
-/** Deeper into the district: the next encounter becomes current. */
+/**
+ * Deeper into the district: the next encounter becomes current. The default way on; a district
+ * whose module names its own ways (span choices, the doorway) goes through `chooseAt` (P4).
+ */
 export function pushOn(t: Trip): Trip {
-  need(t, 'crossroads');
-  if (t.encounter + 1 >= encountersOf(t.district).length)
-    throw new Error('There is nothing deeper');
-  return { ...t, encounter: t.encounter + 1, status: 'fight' };
+  return takeChoice(t, 'push');
 }
 
 /**
  * Banks the trip's loot into the profile (rune and method pages teach, P34; keys open their
- * district, K-23), then the trip counts and rumours are heard (K-20). Throws away from a landing (K-4).
+ * district, K-23), then the trip counts and rumours are heard (K-20) and a reached checkpoint is
+ * remembered (P5). Throws where the way home is shut (K-4, P3).
  */
 export function returnHome(p: Profile, t: Trip): Profile {
   need(t, 'crossroads', 'cleared');
-  if (!canReturn(t)) throw new Error('There is no landing here');
+  const check = returnCheck(t);
+  if (!check.ok) throw new Error(check.why || 'There is no landing here');
   const known = [...p.known];
   const methods = [...p.methods];
   let ink = p.ink;
@@ -54,5 +58,5 @@ export function returnHome(p: Profile, t: Trip): Profile {
     } else if (item.kind === 'vellum') vellum += item.amount;
   }
   const banked = bankKeys({ ...p, known, methods, ink, solvents, solventsFound, vellum }, t.loot);
-  return hearAfterTrip(banked, t, 'returned').profile;
+  return rememberCheckpoint(hearAfterTrip(banked, t, 'returned').profile, t);
 }

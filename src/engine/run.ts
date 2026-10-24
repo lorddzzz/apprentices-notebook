@@ -70,6 +70,7 @@ import { provenCount } from './proof';
 import { deriveSeed } from './rng';
 import { MAX_PARTY } from './rooms';
 import { variantFor } from './trip/place';
+import { parseCheckpoints, parseTripKit, shapeOf } from './trip/shape';
 import { chargesLeftOf, copyRune, hpOf, perMember, withAll } from './trip/shared';
 import type {
   Action,
@@ -703,6 +704,7 @@ function parseCity(v: unknown): Profile['city'] {
     solved: ids(r.solved),
     trips: count(r.trips),
     fresh: ids(r.fresh),
+    ...(r.checkpoints === undefined ? {} : { checkpoints: parseCheckpoints(r.checkpoints) }),
   };
   const heard = new Set(city.heard);
   if (!city.open.includes('seam')) bad();
@@ -833,6 +835,8 @@ function parseTrip(v: unknown): Trip {
     actions: list(r.actions).map(parseAction),
     stats: parseStats(r.stats),
   };
+  const kit = parseTripKit(r.kit, trip, shapeOf(district));
+  if (kit) trip.kit = kit;
   if (party.some((m) => hpOf(trip, m) < 1)) bad();
   if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
   if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= rooms.length)) bad();

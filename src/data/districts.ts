@@ -276,7 +276,6 @@ function drawn(
       guild,
       edge: 'wall',
       encounters: [],
-      landings: 'all',
       hear,
       gate: { kind: 'drawing' },
       map,
@@ -295,7 +294,6 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
     guild: "No guild: the owner's drawing",
     edge: 'wall',
     encounters: ENCOUNTERS,
-    landings: 'all',
     hear: [],
     gate: { kind: 'none' },
     map: { x: 50, y: 50 },
@@ -309,7 +307,6 @@ export const DISTRICTS: Record<DistrictId, DistrictDef> = {
     guild: 'The Lamplighters',
     edge: 'wall',
     encounters: CANAL_ROOMS,
-    landings: [0, 2, 4],
     hear: [{ kind: 'burst', burst: 'fire', atLeast: 3, district: 'seam', voice: 'owner' }],
     gate: {
       kind: 'threshold',

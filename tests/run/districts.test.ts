@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { DISTRICT_IDS, DISTRICTS, ENCOUNTERS, encountersOf } from '$data';
+import { DISTRICT_KIT } from '$data/districts/index';
 import {
   createBattle,
   districtState,
@@ -43,7 +44,7 @@ describe('districts (K-1, K-2)', () => {
       'canalHeart',
     ]);
     expect(canals.encounters.at(-1)?.heart).toBe(true);
-    expect(canals.landings).toEqual([0, 2, 4]);
+    expect(DISTRICT_KIT.canals?.ret).toEqual({ kind: 'landings', after: [0, 2, 4] });
   });
 
   test('a trip belongs to a district; closed districts refuse', () => {

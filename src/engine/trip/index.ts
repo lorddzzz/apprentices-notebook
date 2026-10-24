@@ -7,6 +7,7 @@
  * the trip's tier-ups (M7, M16).
  */
 
+export { choicesAt, NO_WAY_HOME, takeChoice } from './choices';
 export { pickLoot, pushOn, returnHome } from './crossroads';
 export { applyDoorway } from './doorway';
 export {
@@ -18,5 +19,17 @@ export {
   recordTripCasts,
 } from './finish';
 export { type Owned, rollOffers } from './offers';
-export { placeOf, variantFor } from './place';
+export { placeOf, poolFor, variantFor } from './place';
+export { crossesNoReturn, nextReturnPoint, policyAllows, returnCheck } from './ret';
+export {
+  checkpointRoom,
+  type DistrictShape,
+  heartOf,
+  markCheckpoint,
+  newTripKit,
+  parseTripKit,
+  reachedCheckpoint,
+  rememberCheckpoint,
+  shapeOf,
+} from './shape';
 export { beginEncounter, recordAction, startTrip } from './start';

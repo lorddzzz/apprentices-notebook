@@ -1,5 +1,6 @@
 import { APPRENTICES, type ApprenticeId, DISTRICTS, type DistrictId, encountersOf } from '$data';
 import { applyAction, createEncounterBattle } from '../battle';
+import type { StartAt } from '../districts/types';
 import { footnoteIds } from '../footnotes';
 import { tripParty } from '../household';
 import { deriveSeed } from '../rng';
@@ -8,6 +9,7 @@ import { compiledFor, inventionLibrary, validateLoadout } from '../run';
 import { emptyStats } from '../tripStats';
 import type { Action, ActionResult, PartyInit, Profile, SpellKey, Trip } from '../types';
 import { variantFor } from './place';
+import { checkpointRoom, newTripKit, shapeOf } from './shape';
 import { chargesLeftOf, hpOf, need, perMember } from './shared';
 
 export function chargesOf(p: Profile, m: ApprenticeId): Record<SpellKey, number> {
@@ -18,18 +20,37 @@ export function chargesOf(p: Profile, m: ApprenticeId): Record<SpellKey, number>
  * A new trip into an open district with the slotted apprentices (1–3, slot order, HC-4) at full
  * HP and full charges. Only their pages are checked; the bench may hold an unfinished one.
  * Throws with nobody slotted or a party page that has issues.
+ *
+ * `at: 'checkpoint'` starts past a checkpoint the city remembers (P5): the first fight is the
+ * room after it, still at full HP and charges. Throws when the district has none reached.
  */
-export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam'): Trip {
+export function startTrip(
+  p: Profile,
+  seed: number,
+  district: DistrictId = 'seam',
+  opts: { at?: StartAt } = {},
+): Trip {
   const party = tripParty(p);
   if (party.length === 0) throw new Error('Nobody is in a trip slot');
   const issues = validateLoadout(p, party);
   const first = Object.values(issues)[0]?.[0];
   if (first) throw new Error(`Loadout is not ready: ${first.message}`);
   if (!p.city.open.includes(district)) throw new Error(`${DISTRICTS[district].name} is not open`);
-  return {
+  const shape = shapeOf(district);
+  const kit = newTripKit(shape);
+  let encounter = 0;
+  if (opts.at === 'checkpoint') {
+    const cp = shape.checkpoint;
+    if (!cp || !kit || p.city.checkpoints?.[district] !== cp.after) {
+      throw new Error(`${DISTRICTS[district].name} has no checkpoint reached`);
+    }
+    encounter = checkpointRoom(cp);
+    kit.checkpoint = true;
+  }
+  const trip: Trip = {
     district,
     seed,
-    encounter: 0,
+    encounter,
     status: 'fight',
     party,
     hp: perMember(party, (m) => APPRENTICES[m].hp),
@@ -40,6 +61,8 @@ export function startTrip(p: Profile, seed: number, district: DistrictId = 'seam
     actions: [],
     stats: emptyStats(),
   };
+  if (kit) trip.kit = kit;
+  return trip;
 }
 
 /**

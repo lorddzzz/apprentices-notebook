@@ -10,6 +10,7 @@ import { compiledFor, recordProof } from '../run';
 import { accumulateStats } from '../tripStats';
 import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../types';
 import { ownedBy, rollOffers } from './offers';
+import { markCheckpoint, rememberCheckpoint } from './shape';
 import { need, perMember, withAll } from './shared';
 import { beginEncounter } from './start';
 
@@ -131,7 +132,7 @@ export function finishEncounter(
     actions: [],
     stats,
   };
-  return { profile, trip, outcome: 'won', stats };
+  return { profile, trip: markCheckpoint(trip), outcome: 'won', stats };
 }
 
 /**
@@ -150,10 +151,11 @@ export function closeBattle(
   const ups = tierUps(p, recorded);
   // Hearing is kept on a wipe (K-20): owner conditions on this log, then rumours if the trip ended.
   const owner = hearFromBattle(r.profile, t, log);
-  const after =
-    r.outcome === 'wiped'
-      ? hearAfterTrip(owner.profile, t, 'wiped')
-      : { profile: owner.profile, heard: [] };
+  // A wipe past the checkpoint still leaves it in the city (P5).
+  const wiped = r.outcome === 'wiped' ? hearAfterTrip(owner.profile, t, 'wiped') : null;
+  const after = wiped
+    ? { ...wiped, profile: rememberCheckpoint(wiped.profile, t) }
+    : { profile: owner.profile, heard: [] };
   const heard = [...owner.heard, ...after.heard];
   if (ups.length === 0 && heard.length === 0 && after.profile === r.profile) return r;
   const stats: TripStats = {

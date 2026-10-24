@@ -10,11 +10,12 @@ import {
 import type { EventLog, GameEvent } from './events';
 import { parseLabel } from './notation';
 import { placeOf } from './trip/place';
+import { returnCheck } from './trip/ret';
 import type { BattleState, CityState, LootItem, Profile, Trip } from './types';
 
 /**
  * The city (K-19 to K-24): which districts are heard of, open and cleared, how hearing happens,
- * how gates open, keys, rumours and landings. Logic functions take the district table as an
+ * how gates open, keys, rumours and landings (read from the trip shape, `trip/ret.ts`). Logic functions take the district table as an
  * optional last parameter so tests can pass fixture districts.
  */
 
@@ -118,19 +119,18 @@ export function hearAfterTrip(
   );
 }
 
-/** Whether the party may return home from this Crossroads (K-4). */
-export function canReturn(t: Trip, table: DistrictTable = DISTRICTS): boolean {
-  const l = table[t.district].landings;
-  return l === 'all' || l.includes(t.encounter);
+/** Whether the party may return home from this Crossroads (K-4; the district's `ret`, P3). */
+export function canReturn(t: Trip): boolean {
+  return returnCheck(t).ok;
 }
 
-/** The next landing's room name for the greyed Return button, or null when this is one (K-4). */
-export function nextLanding(t: Trip, table: DistrictTable = DISTRICTS): string | null {
-  if (canReturn(t, table)) return null;
-  const l = table[t.district].landings;
-  if (l === 'all') return null;
-  const next = l.filter((i) => i > t.encounter).sort((a, b) => a - b)[0];
-  return next === undefined ? null : placeOf(t, next);
+/**
+ * The next return point's room name for the greyed Return button, or null when this is one or
+ * the way home is shut by a block rather than the policy (K-4, P3).
+ */
+export function nextLanding(t: Trip): string | null {
+  const check = returnCheck(t);
+  return check.ok || check.next === undefined ? null : placeOf(t, check.next);
 }
 
 /**

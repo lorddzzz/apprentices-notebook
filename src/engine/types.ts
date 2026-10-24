@@ -27,7 +27,7 @@ import type {
   TriggerRuneId,
 } from '$data';
 import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
-import type { Json } from './districts/types';
+import type { CityCheckpoints, Json, TripKitState } from './districts/types';
 import type { GameEvent } from './events';
 import type { Coord, Dir } from './grid';
 import type { ObjectRef, RivalState } from './rivals/types';
@@ -575,6 +575,8 @@ export interface CityState {
   solved: DistrictId[]; // threshold room solved
   trips: number; // finished trips (returned or wiped)
   fresh: DistrictId[]; // heard since the map was last opened (drawn in new ink)
+  /** Checkpoints reached, by district (P5, DK-5a): later trips may start there. Absent = none. */
+  checkpoints?: CityCheckpoints;
 }
 
 // ── Mastery (records, tiers) ────────────────────────────
@@ -653,6 +655,8 @@ export interface Trip {
   /** The current fight's actions so far (status `fight`): a reload replays them instead of restarting. */
   actions: Action[];
   stats: TripStats;
+  /** The trip shape's carry (DK-5a): choices taken, checkpoint, module state. Absent when the district has none. */
+  kit?: TripKitState;
 }
 export interface SaveData {
   profile: Profile;

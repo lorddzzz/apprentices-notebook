@@ -550,8 +550,6 @@ export interface DistrictDef {
   guild: string; // whose quarter it is, shown once heard
   edge: EdgeRule; // P3
   encounters: readonly EncounterDef[];
-  /** Encounter indices after which the party may return home (K-4). */
-  landings: 'all' | readonly number[];
   hear: readonly HearCondition[]; // any one is enough; the Seam has none (heard from the start)
   gate: Gate;
   map: { x: number; y: number }; // node position on the sketch map, 0..100 of the page

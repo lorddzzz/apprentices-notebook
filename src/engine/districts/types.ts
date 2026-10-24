@@ -243,12 +243,22 @@ export interface CrossroadsChoice {
   warn?: string;
   disabled?: string;
 }
-/** DK-5 adds `Trip.kit`: everything the trip shape carries room to room. */
+/** One Crossroads passed: the choice taken after room `after`, and the pool it fixed for the next. */
+export interface TakenChoice {
+  after: number;
+  id: string;
+  /** The next room's variant indices, stored so a replay never re-asks the module (P4). */
+  pool?: number[];
+}
+/**
+ * `Trip.kit` (DK-5a): everything the trip shape carries room to room. Absent on a trip into a
+ * district with no shape hooks and no checkpoint (the Seam, the canals), so their saves are unchanged.
+ */
 export interface TripKitState {
   /** The module's own value; parsed only by its module (P7). */
   state: Json;
-  /** Choice ids taken, one per Crossroads passed. */
-  choices: string[];
+  /** One per Crossroads passed, in order. */
+  choices: TakenChoice[];
   /** The checkpoint was reached this trip (applied to `city.checkpoints` on win or wipe, P5). */
   checkpoint: boolean;
   /** Bonus objectives met, by room index (P13). */
