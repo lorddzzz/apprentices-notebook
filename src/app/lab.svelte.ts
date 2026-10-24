@@ -1,6 +1,7 @@
 import { type InventionDef, MEMBER_IDS, type MemberId, type ScenarioDef } from '$data';
 import {
   type Action,
+  type ActionResult,
   type BattleState,
   boardOf,
   createBattle,
@@ -13,7 +14,7 @@ import {
   scenarioSpec,
   toGrowingLattice,
 } from '$engine';
-import { BattleSession } from './battle.svelte';
+import { BattleSession, type SessionOptions } from './battle.svelte';
 import type { GameStore } from './game.svelte';
 import {
   addLabInvention,
@@ -23,10 +24,12 @@ import {
   formatLattices,
   formatScenario,
   type LabBase,
+  labFootnotes,
   type PaletteItem,
   paletteEdits,
   profileLattices,
   resolveScenario,
+  switchVariant,
   toScenarioDef,
   whyNoEdit,
 } from './lab';
@@ -66,6 +69,8 @@ export class LabStore {
   /** Board mode: what a tap paints. */
   palette = $state<PaletteItem>('r');
   lattices = $state.raw<Record<MemberId, Lattice>>(fallbackLattices());
+  /** Footnote variants switched on for Lab battles (FN-7): ids, one per slot. Not saved. */
+  variantsOn = $state.raw<readonly string[]>([]);
   /** Text the clipboard refused, shown for copying by hand. */
   copyOut = $state.raw<{ title: string; text: string } | null>(null);
   undoDepth = $state(0);
@@ -98,13 +103,8 @@ export class LabStore {
     // The Lab is the workshop: every interaction is named in previews.
     for (const member of MEMBER_IDS) forgetView(this.latticeSessionKey(member));
     this.latticeSession = ++nextLatticeSession;
-    this.session = new BattleSession(init, 'lab', {
-      // The intro (enemies declaring their intents) plays only for a demo (S18).
-      intro: opts.demo === true,
-      // The Lab previews like a trip: only what the household has witnessed is described.
-      witnessed: this.game.profile.witnessed,
-      onAction: (before, action) => this.record(before, action),
-    });
+    // The intro (enemies declaring their intents) plays only for a demo (S18).
+    this.session = this.open(init, opts.demo === true);
     this.scenario = def;
     this.lattices = lattices;
     this.base = baseOf(init.state, lattices);
@@ -116,6 +116,31 @@ export class LabStore {
     this.tool = NO_TOOL;
     if (opts.demo) void this.runDemo();
     return unknown;
+  }
+
+  /** A Lab battle from `init`: the switched-on variants are written in, as the battle reads them. */
+  private open(init: ActionResult, intro: boolean): BattleSession {
+    const options: SessionOptions = {
+      intro,
+      footnotes: labFootnotes(this.variantsOn),
+      // The Lab previews like a trip: only what the household has witnessed is described.
+      witnessed: this.game.profile.witnessed,
+      onAction: (before, action) => this.record(before, action),
+    };
+    return new BattleSession(init, 'lab', options);
+  }
+
+  /**
+   * Switches an authored variant on or off for Lab battles (FN-7). The battle in progress keeps its
+   * board and log and reads the new set from its next action on; Reset starts it again.
+   */
+  toggleVariant(id: string, value = !this.variantsOn.includes(id)): void {
+    this.variantsOn = switchVariant(this.variantsOn, id, value);
+    const old = this.session;
+    if (!old) return;
+    old.skip();
+    this.session = this.open({ state: old.state, events: old.log }, false);
+    old.dispose();
   }
 
   reset(): void {
@@ -298,7 +323,10 @@ export class LabStore {
     if (!out) return;
     try {
       await navigator.clipboard.writeText(out.text);
-      toast(`${out.title} copied`);
+      if (kind === 'scenario' && this.variantsOn.length > 0) {
+        // A scenario has no place for footnote variants yet, so the copy leaves them out.
+        toast('Scenario copied without the switched-on variants', 'warn');
+      } else toast(`${out.title} copied`);
     } catch {
       // No clipboard access (some iOS contexts): show the text to select by hand.
       this.copyOut = out;

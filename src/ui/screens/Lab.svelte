@@ -3,7 +3,7 @@
   import { compileLattice, openAll } from '$engine';
   import { IDLE } from '../../app/battleInput';
   import { game, lab } from '../../app/instance';
-  import { labLocation, PALETTE } from '../../app/lab';
+  import { labLocation, PALETTE, variantGroups } from '../../app/lab';
   import { overlayFor } from '../../app/overlay';
   import { go, router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
@@ -16,12 +16,15 @@
   import CopySheet from '../components/lab/CopySheet.svelte';
   import LabBar from '../components/lab/LabBar.svelte';
   import LabInvention from '../components/lab/LabInvention.svelte';
+  import LabVariants from '../components/lab/LabVariants.svelte';
   import Palette from '../components/lab/Palette.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
 
   const where = $derived(labLocation(router.params));
   let menuOpen = $state(false);
   let inventOpen = $state(false);
+  let variantsOpen = $state(false);
+  const variantList = variantGroups();
   const inventions = $derived(lab.session?.state.inventions ?? {});
 
   // The URL picks the scenario; unknown ids fall back to the sandbox (and the URL follows).
@@ -149,6 +152,12 @@
         <Button variant="quiet" label="Copy lattices" onclick={() => run(() => void lab.copy('lattices'))} testid="copy-lattices" />
         <Button variant="quiet" label="Copy as scenario" onclick={() => run(() => void lab.copy('scenario'))} testid="copy-scenario" />
         <Button variant="quiet" label="Invent for this Lab" onclick={() => run(() => (inventOpen = true))} testid="invent-lab" />
+        <Button
+          variant="quiet"
+          label={lab.variantsOn.length ? `Footnote variants (${lab.variantsOn.length} on)` : 'Footnote variants'}
+          onclick={() => run(() => (variantsOpen = true))}
+          testid="lab-variants"
+        />
         {#if devTools}
           <Button
             variant="quiet"
@@ -162,6 +171,13 @@
       </div>
     </Sheet>
 
+    <LabVariants
+      open={variantsOpen}
+      groups={variantList}
+      on={lab.variantsOn}
+      ontoggle={(id, value) => lab.toggleVariant(id, value)}
+      onclose={() => (variantsOpen = false)}
+    />
     <LabInvention open={inventOpen} {inventions} onadd={(def) => lab.addInvention(def)} onclose={() => (inventOpen = false)} />
     <CopySheet out={lab.copyOut} onclose={() => lab.closeCopy()} />
   {/if}

@@ -1,16 +1,27 @@
 import {
   ENEMIES,
   type EnemyId,
+  type FootnoteKey,
+  type FootnoteSubject,
+  footnoteKeyOf,
   type InventionDef,
   type InventionId,
+  LINES,
   MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   METHODS,
   type MemberId,
+  type MethodId,
   RUNE_IDS,
+  RUNES,
+  type RuneId,
   SCENARIOS,
   type ScenarioDef,
+  SOLVENTS,
+  type SolventId,
+  VARIANTS,
+  type VariantDef,
 } from '$data';
 import {
   type Action,
@@ -39,6 +50,7 @@ import {
   toGrowingLattice,
 } from '$engine';
 import { cloneData } from '$engine/clone';
+import type { FootnoteIds } from '$engine/ctx';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
 
@@ -90,6 +102,85 @@ export function profileLattices(p: Profile): Record<MemberId, Lattice> {
   return Object.fromEntries(
     MEMBER_IDS.map((m) => [m, toGrowingLattice(latticeOf(p, m))]),
   ) as Record<MemberId, Lattice>;
+}
+
+// ── Footnote variants in the Lab (FN-7, plan P6) ────────
+
+/**
+ * Switches an authored variant on or off for Lab trials. A slot (or capstone) holds one variant, as
+ * the Desk writes one, so switching one on switches its slot-mate off.
+ */
+export function switchVariant(
+  on: readonly string[],
+  id: string,
+  value: boolean,
+  variants: readonly VariantDef[] = VARIANTS,
+): string[] {
+  const v = variants.find((x) => x.id === id);
+  if (!v) return [...on];
+  const key = footnoteKeyOf(v);
+  const rest = on.filter((x) => {
+    if (x === id) return false;
+    const other = variants.find((y) => y.id === x);
+    return !other || footnoteKeyOf(other) !== key;
+  });
+  return value ? [...rest, id] : rest;
+}
+
+/** The footnote context a Lab battle runs with: each switched-on variant in its slot or capstone. */
+export function labFootnotes(
+  on: readonly string[],
+  variants: readonly VariantDef[] = VARIANTS,
+): FootnoteIds {
+  const out: Partial<Record<FootnoteKey, string>> = {};
+  for (const id of on) {
+    const v = variants.find((x) => x.id === id);
+    if (v) out[footnoteKeyOf(v)] = v.id;
+  }
+  return out;
+}
+
+export interface VariantRow {
+  id: string;
+  /** "Level I", "Level II", "Capstone"; a rival note says so too. */
+  slot: string;
+  /** The line the slot sits on, in its base wording (empty for a capstone). */
+  line: string;
+  text: string;
+}
+
+export interface VariantGroup {
+  subject: FootnoteSubject;
+  name: string;
+  rows: VariantRow[];
+}
+
+const subjectName = (subject: FootnoteSubject): string => {
+  if ((RUNE_IDS as readonly string[]).includes(subject)) return RUNES[subject as RuneId].name;
+  if ((METHOD_IDS as readonly string[]).includes(subject)) return METHODS[subject as MethodId].name;
+  return SOLVENTS[subject as SolventId].name;
+};
+
+/** Every authored variant, grouped by its subject in registry order (rival notes included). */
+export function variantGroups(variants: readonly VariantDef[] = VARIANTS): VariantGroup[] {
+  const groups = new Map<FootnoteSubject, VariantGroup>();
+  for (const v of variants) {
+    let group = groups.get(v.subject);
+    if (!group) {
+      group = { subject: v.subject, name: subjectName(v.subject), rows: [] };
+      groups.set(v.subject, group);
+    }
+    const { slot } = v;
+    const level = 'line' in slot ? (slot.level === 1 ? 'Level I' : 'Level II') : 'Capstone';
+    const line = 'line' in slot ? (LINES.find((l) => l.id === slot.line)?.text ?? '') : '';
+    group.rows.push({
+      id: v.id,
+      slot: v.rival ? `${level}, rival note` : level,
+      line,
+      text: v.text,
+    });
+  }
+  return [...groups.values()];
 }
 
 // ── Board painting ──────────────────────────────────────
