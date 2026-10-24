@@ -2,12 +2,12 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: none.
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: AH-4, DK-6, DK-7, RC-2 (spawned 07:37).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
 1. ~~Finish DK-4~~ (merged 2026-10-24). Was: **Finish DK-4** from branch `worktree-agent-ac35c09fb4243a694` @ b55e0ed (worktree `.claude/worktrees/agent-ac35c09fb4243a694`, kept): rebase onto main. It conflicts with DK-3 in `arrival.ts`, `districts/index.ts`, `turn.ts`, `types.ts` — both fixed the same import loop (DK-3: lazy `arrivalHooks()`; DK-4: `KIT`/`DISTRICT_MODULES` moved to leaf `districts/kit.ts`); keep both (they're compatible), keep DK-3's `roundEnd` and add DK-4's single `piecesTurnEnd(ctx)` call after it; DK-4 also filters district arrival hooks to tiles holding their piece. Then its remaining steps: token-collision test (kit piece tokens vs `DISTRICT_TOKENS`, `RIVAL_TOKENS`, compound names); wire solidity into `queries.ts` (`pieceBlocksUnits`/`pieceBlocksShots`); call sites `hitPiece` (attack end/blocked, landings), `strikePiece` (spark, push crush both tiles, shove); `export * from './pieces'` in `engine/index.ts`; scenario skill legend + harness comment for `{piece}`.
-2. Ready (watch file overlap): AH-3, AH-4 (FD-3 ✓), RV-3/RV-4 (RV-2 ✓), FN-3..FN-8, FD-6, DK-6, DK-7 (RC-W0 ✓; DK-R1), DK-5b, DK-8/DK-9 (RV-W0 ✓), RC-2/RC-3, HC-7, HC-8 (UI; HC-4 ✓, HC-6 ✓).
+2. Ready (watch file overlap): RV-3, FN-3..FN-8, FD-6, DK-5b, DK-8/DK-9, RC-3 (after RC-2 + DK-7), HC-8 (UI). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
 3. Then FD-11 (phone check of push/drift/jar playback), HC-9, and the first gates: RV-G1 (Lamplighter Lab playtest), HC/AH/RC playtests.
 
 ## Tasks
@@ -50,6 +50,10 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | AH-3 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-ad0657d01ac6feeaa @ ab13f5f | shared | holdTwo: after Hold lands, catches up to `holdExtra` adjacent units (scan ahead/left/right/behind the heading, else up/right/down/left; skips caster and units already held this cast), extra `held` events carry the habit, `holdTwo:member` on caster's side; restoreErase: each Erase step writes `BattleState.erased` (one record, entry per target, parts keep origin); her Erase on an empty listed target restores and consumes it (reuses landed/mixed/jarSealed/collared/marked tagged with the habit). Rows un-pended: holdTwo:member, restoreErase:jar/mark/unit. Golden unchanged. Previews → AH-6 |
 | RV-4 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-ab746c1d7e6f7f36e @ 2fd5531 | ~10% (shared) | `rivals/plan.ts`: `destinations` (safe BFS, never fire/step-jar/drop), `nativeAims`, `simulate`/`outcomeOf` (real `resolveRivalCast` on a clone, fallback off), `CORE_GOALS` hitParty/herdInto/openOwnObject/placeObjectNear + approach/holdDistance, `fallbackTile`, dry approach-and-strike, pure `planRival`; `rivalAct(ctx, e, order, move)` plans, walks, re-plans from the reached tile. Trick steps produce no candidates until RV-3; `registerGoal` → RV-12. Fixture `Bolt> Ink` marks then waits with charges (no strike) — CN's real kit will differ. Golden unchanged |
 | HC-7 | Medium / Sonnet 5.5 / high | L | merged | worktree-agent-a9be81740a4637e55 @ dca608c | shared | `components/study/` HouseholdShelf, SeatCard, ApprenticeFull, ActionIcon, `drag.svelte.ts` (pointer events; mouse 6px, touch 220ms hold); seats = min(3, household), Bench tab (also the unslot drop target), card tap opens the page, "i" opens detail; founders exempt from dormant; `game.bring`/`sendHome` refuse during a trip; LatticeEditor `members` prop (default pair; Study passes slots + open owner); SetOutSheet shows the party, refuses empty; `loadoutBlocker` checks only the party. 24 tests `tests/app/shelf.test.ts`. Verified 375×812 (screens in session scratchpad hc7/). Autofixer clean on HouseholdShelf/SeatCard/ApprenticeFull only; real iOS touch not tested |
+| AH-4 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | fuseOnStep, steamproof |
+| DK-6 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | out of the room |
+| DK-7 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | offer-kind registry + DK-R1 |
+| RC-2 | Strong / Opus 5.5 / medium | M | running | worktree (07:37) | | precondition engine |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -84,6 +88,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 03:05 | — | — | — | wrap-up | merge DK-3, AH-2; DK-4 kept on its branch (conflicts); session ends |
 | 07:04 | 2 | 4h55 | 54 | Normal | new session; spawn DK-4 (finish), AH-3, RV-4, HC-7 |
 | 07:26 | 34 | 4h33 | 59 | Normal (~1.5%/min) | merge RV-4 |
+| 07:35 | 36 | 4h25 | 59 | Normal | merge AH-3, HC-7, DK-4 (pushed); spawn AH-4, DK-6, DK-7, RC-2 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
