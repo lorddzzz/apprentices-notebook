@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: FD-6, FN-7 (08:19). Wake-up #1 scheduled 12:01 UTC (session-only cron).
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. **Holding for the 12:00 UTC reset** (wake-up #1 at 12:01, session-only cron). Running: FD-6, FN-7 (08:19; checkpoint-and-report nudged 08:31). On wake-up: collect their reports or take their branches' last green commit, merge, then Next 2. Wake-up #1 scheduled 12:01 UTC (session-only cron).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
@@ -98,6 +98,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 08:30 | 86 | 3h30 | 65 | Hold (projected >96%, ~0.65%/min) | merge FN-6; checkpoint-and-report nudges to FD-6, FN-7; no new spawns |
 | 08:16 | 77 | 3h44 | 64 | Narrow | merge RC-3, FN-3; a format slip reached main in 83f1d8e (fixed in f95c3d2); spawn FD-6, FN-6, FN-7 |
 | 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
 
