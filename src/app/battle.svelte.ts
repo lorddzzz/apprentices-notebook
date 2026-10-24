@@ -16,11 +16,11 @@ import {
   IDLE,
   type InputMode,
   type InputResult,
+  onBasic,
   onCancel,
   onCell,
   onConfirm,
   onMember,
-  onShove,
   onSpell,
   type PreviewCtx,
   selectedOf,
@@ -114,7 +114,7 @@ export class BattleSession {
 
   get threatened(): string[] {
     if (this.busy) return [];
-    // A pending shove or kill can take a member out of harm's way: read the preview.
+    // A pending shove, pull, swap or kill can take a member out of harm's way: read the preview.
     const p = this.input.kind === 'confirm' ? this.input.preview : null;
     return threatenedMembers(p && !p.masked ? p.result.state : this.state);
   }
@@ -157,9 +157,9 @@ export class BattleSession {
     this.apply(onSpell(this.state, this.input, key, this.ctx));
   }
 
-  chooseShove(): void {
+  chooseBasic(): void {
     if (this.swallow()) return;
-    this.apply(onShove(this.state, this.input));
+    this.apply(onBasic(this.state, this.input));
   }
 
   confirm(): void {

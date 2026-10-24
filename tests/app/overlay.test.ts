@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { scenarioBattle } from '$engine';
-import { IDLE, memberMode, onCell, onShove, onSpell } from '../../src/app/battleInput';
+import { IDLE, memberMode, onBasic, onCell, onSpell } from '../../src/app/battleInput';
 import { threatenedMembers } from '../../src/app/describe';
 import { marksOf, overlayFor } from '../../src/app/overlay';
 import { act, board } from '../scenarios/harness';
@@ -27,7 +27,7 @@ test('pending shove recomputes intents from the preview state', () => {
   const before = overlayFor(s, IDLE).intents[0];
   expect(before?.hit).toEqual(at('E2'));
   expect(threatenedMembers(s)).toEqual(['draughtsman']);
-  const shove = onShove(s, memberMode(s, 'stoker')).mode;
+  const shove = onBasic(s, memberMode(s, 'stoker')).mode;
   const confirm = onCell(s, shove, at('A2')).mode;
   const after = overlayFor(s, confirm).intents[0];
   expect(after?.from).toEqual(at('A1'));
@@ -37,7 +37,7 @@ test('pending shove recomputes intents from the preview state', () => {
 
 test('ghost when a unit would move', () => {
   const s = battleOf(SHOVE_BOARD);
-  const shove = onShove(s, memberMode(s, 'stoker')).mode;
+  const shove = onBasic(s, memberMode(s, 'stoker')).mode;
   const confirm = onCell(s, shove, at('B1')).mode;
   const o = overlayFor(s, confirm);
   expect(o.ghosts).toEqual([{ unit: 'rat-1', at: at('C1'), kind: 'enemy', def: 'rat' }]);

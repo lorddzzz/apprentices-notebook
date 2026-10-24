@@ -1,5 +1,6 @@
 import { type AttackId, ENEMIES, type EnemyId } from '$data';
 import {
+  type Action,
   aimPreview,
   type BattleState,
   type Coord,
@@ -9,9 +10,11 @@ import {
   type GameEvent,
   type Intent,
   intentPreview,
+  isAlive,
   isCloud,
   isPlate,
   legalAims,
+  relocations,
   type SpellKey,
   sameCoord,
   step,
@@ -27,7 +30,8 @@ export type Highlight =
   | { kind: 'aim'; at: Coord; chevron?: Dir } // a legal aim tile (chevron: next to the caster)
   | { kind: 'target'; at: Coord } // a tile the previewed action hits
   | { kind: 'path'; cells: Coord[] } // projectile / push path
-  | { kind: 'shove'; at: Coord } // an adjacent unit that can be shoved
+  | { kind: 'shove'; at: Coord } // a tile the member's basic action can take (the unit to shove, pull or swap; the landing for a hop)
+  | { kind: 'arc'; from: Coord; to: Coord; both?: boolean } // a hop's leap, or a swap's two-way trade
   | { kind: 'effect'; at: Coord; tone: Tone } // a tile the previewed action changes (ink, oil, fire…)
   | { kind: 'focus'; at: Coord } // the tile being inspected
   | { kind: 'blank'; at: Coord } // where an unwitnessed line lands: a dotted outline, no text (D2)
@@ -113,12 +117,20 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
   if ((mode.kind === 'aim' || mode.kind === 'confirm') && mode.spell !== null) {
     highlights.push(...aimTints(s, mode.unit, mode.spell, footnotes));
   }
-  if (mode.kind === 'shove') {
+  if (mode.kind === 'basic') {
     const m = findUnit(s, mode.unit);
-    if (m) for (const d of mode.dirs) highlights.push({ kind: 'shove', at: step(m.pos, d) });
+    const far = mode.action === 'pull' || mode.action === 'hop';
+    if (m) {
+      for (const d of mode.dirs) {
+        const near = step(m.pos, d);
+        highlights.push({ kind: 'shove', at: far ? step(near, d) : near });
+      }
+    }
   }
   if (preview) {
     if (preview.path.length > 1) highlights.push({ kind: 'path', cells: preview.path });
+    const arc = arcOf(s, preview.action);
+    if (arc) highlights.push(arc);
     for (const at of preview.targets) highlights.push({ kind: 'target', at });
     const after = preview.result.state;
     // A masked preview never draws from the resulting state: what changed there may be unwitnessed.
@@ -140,7 +152,7 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
       if (hurt !== undefined && hurt > 0) badges.push({ at, kind: 'damage', text: `−${hurt}` });
       const shield = preview.shields[u.id];
       if (shield) badges.push({ at, kind: 'shield', text: `+${shield}` });
-      if (!preview.masked && before && u.hp > 0 && !sameCoord(before.pos, u.pos)) {
+      if (!preview.masked && before && isAlive(u) && !sameCoord(before.pos, u.pos)) {
         ghosts.push({ unit: u.id, at: { ...u.pos }, kind: u.kind, def: u.def });
       }
     }
@@ -150,7 +162,7 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
   const intentState = preview && !preview.masked ? preview.result.state : s;
   const intents: IntentDraw[] = [];
   for (const u of intentState.units) {
-    if (u.kind !== 'enemy' || u.hp <= 0 || u.intent?.kind !== 'attack') continue;
+    if (u.kind !== 'enemy' || !isAlive(u) || u.intent?.kind !== 'attack') continue;
     const p = intentPreview(intentState, u);
     if (!p) continue;
     const end = p.path.at(-1);
@@ -173,7 +185,7 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
       def: u.def,
       pos: u.pos,
       intent: u.kind === 'enemy' ? u.intent : null,
-      alive: u.hp > 0,
+      alive: isAlive(u),
     })),
     focus,
   );
@@ -181,15 +193,26 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
   return { highlights, intents, marks, drift, badges, ghosts, selected: selectedOf(mode) };
 }
 
-/** Ghosts of units a witnessed push moves, for a preview that also holds unwitnessed events. */
+/** The leap a Hop draws, or the two-way trade a Swap draws, from the caster's tile. */
+function arcOf(s: BattleState, action: Action): Highlight | null {
+  if (action.type !== 'hop' && action.type !== 'swap') return null;
+  const m = findUnit(s, action.unit);
+  if (!m) return null;
+  const near = step(m.pos, action.dir);
+  if (action.type === 'swap') return { kind: 'arc', from: { ...m.pos }, to: near, both: true };
+  return { kind: 'arc', from: { ...m.pos }, to: step(near, action.dir) };
+}
+
+/** Ghosts of units a witnessed relocation moves, for a preview that also holds unwitnessed events. */
 function shownGhosts(s: BattleState, shown: readonly GameEvent[]): Ghost[] {
   const out: Ghost[] = [];
   for (const e of shown) {
-    if (e.type !== 'push' || e.path.length === 0) continue;
-    const u = findUnit(s, e.unit.id);
-    const to = e.path[e.path.length - 1];
-    if (u && to && u.hp > 0 && !out.some((g) => g.unit === u.id)) {
-      out.push({ unit: u.id, at: { ...to }, kind: u.kind, def: u.def });
+    for (const r of relocations(e)) {
+      const u = findUnit(s, r.unit.id);
+      const to = r.path[r.path.length - 1];
+      if (u && to && isAlive(u) && !out.some((g) => g.unit === u.id)) {
+        out.push({ unit: u.id, at: { ...to }, kind: u.kind, def: u.def });
+      }
     }
   }
   return out;

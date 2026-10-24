@@ -1,5 +1,6 @@
 import {
   ATTACKS,
+  type BasicActionId,
   CODEX,
   type CompoundId,
   DISTRICTS,
@@ -16,7 +17,9 @@ import {
 import {
   type Action,
   type Aim,
+  actionOf,
   type BattleState,
+  basicDirs,
   type Coord,
   canUndoMove,
   castableSpells,
@@ -25,6 +28,7 @@ import {
   firstRune,
   type GameEvent,
   intentPreview,
+  isAlive,
   type Layer,
   type LootItem,
   label,
@@ -32,7 +36,6 @@ import {
   livingUnits,
   type MemberUnit,
   members,
-  shoveDirs,
   spellOf,
   step,
   type Tile,
@@ -213,6 +216,30 @@ export function aimText(aim: Aim): string {
   }
 }
 
+/** The action button for each basic action: its name, icon and the rule shown when it is picked. */
+export const BASIC_LABEL: Record<BasicActionId, { name: string; icon: string; hint: string }> = {
+  shove: {
+    name: 'Shove',
+    icon: '⇥',
+    hint: 'Shove: tap an adjacent unit to push it one tile.',
+  },
+  pull: {
+    name: 'Pull',
+    icon: '⇤',
+    hint: 'Pull: tap a unit 2 tiles away in a line to hook it one tile toward you.',
+  },
+  hop: {
+    name: 'Hop',
+    icon: '⤴',
+    hint: 'Hop: tap a free tile 2 away in a line to leap there over what is between.',
+  },
+  swap: {
+    name: 'Swap',
+    icon: '⇄',
+    hint: 'Swap: tap an adjacent unit to trade places with it.',
+  },
+};
+
 /** Short name of an action for buttons: "Bolt right", "Shove rat right". */
 export function actionLabel(s: BattleState, a: Action): string {
   switch (a.type) {
@@ -227,11 +254,15 @@ export function actionLabel(s: BattleState, a: Action): string {
       return t ? `Shove ${t.name} ${a.dir}` : `Shove ${a.dir}`;
     }
     case 'pull':
-      return `Pull ${a.dir}`;
+    case 'swap': {
+      const m = findUnit(s, a.unit);
+      const at = m ? step(a.type === 'pull' ? step(m.pos, a.dir) : m.pos, a.dir) : null;
+      const t = at ? unitAt(s, at) : null;
+      const verb = BASIC_LABEL[a.type].name;
+      return t ? `${verb} ${t.name} ${a.dir}` : `${verb} ${a.dir}`;
+    }
     case 'hop':
       return `Hop ${a.dir}`;
-    case 'swap':
-      return `Swap ${a.dir}`;
     case 'move':
       return `Move to ${label(a.to)}`;
     case 'undoMove':
@@ -293,7 +324,14 @@ export function previewSummary(
     if (bits.length) parts.push(`${name(u.id)} ${bits.join(' ')}`);
   }
   for (const e of events) {
-    if (e.type === 'push') parts.push(`${name(e.unit.id)} pushed ${e.dir}`);
+    if (e.type === 'push') {
+      const how = e.cause === 'pull' ? 'pulled' : 'pushed';
+      parts.push(`${name(e.unit.id)} ${how} ${e.dir}`);
+    } else if (e.type === 'moved' && e.cause === 'hop') {
+      parts.push(`lands at ${label(e.to)}`);
+    } else if (e.type === 'swapped') {
+      parts.push(`${name(e.unit.id)} and ${name(e.with.id)} trade places`);
+    }
   }
   if (parts.length === 0) {
     const lands = events.find((e) => e.type === 'lands' || e.type === 'stopped');
@@ -319,17 +357,18 @@ function memberHint(s: BattleState, m: MemberUnit): string {
   const canMove = legalMoves(s, m.id).length > 0;
   const spells = castableSpells(s, m.id);
   const canCast = spells.some((sp) => sp.usable);
-  const canShove = shoveDirs(s, m.id).length > 0;
+  const own = actionOf(m);
+  const canBasic = !!own && !m.acted && basicDirs(s, m.id).length > 0;
   const undo = canUndoMove(s, m.id);
   if (!canMove && m.acted) {
-    const next = members(s).find((o) => o.id !== m.id && o.hp > 0 && (!o.moved || !o.acted));
+    const next = members(s).find((o) => o.id !== m.id && isAlive(o) && (!o.moved || !o.acted));
     return `${m.name} is done this turn. ${next ? `Tap ${next.name} or End turn.` : 'Tap End turn.'}`;
   }
   const acts: string[] = [];
   if (canMove) acts.push('tap a dot to move');
   if (canCast) acts.push('pick a spell');
   else if (!m.acted && spells.length && !canCast) acts.push('no charges left');
-  if (canShove && !m.acted) acts.push('Shove');
+  if (own && canBasic) acts.push(BASIC_LABEL[own].name);
   if (undo) acts.push('Undo move');
   if (acts.length === 0) return `${m.name}: nothing to do.`;
   const last = acts.pop();
@@ -367,7 +406,7 @@ export function hintFor(mode: InputMode, s: BattleState): Caption {
     note ? { text: `${note} ${text}`, tone: 'warn' } : { text, tone: 'hint' };
   switch (mode.kind) {
     case 'idle': {
-      const ready = members(s).some((m) => m.hp > 0 && (!m.moved || !m.acted));
+      const ready = members(s).some((m) => isAlive(m) && (!m.moved || !m.acted));
       return withNote(
         ready
           ? 'Tap a party member to act, or an enemy to read its intent.'
@@ -380,8 +419,8 @@ export function hintFor(mode: InputMode, s: BattleState): Caption {
     }
     case 'aim':
       return withNote(aimHint(s, mode));
-    case 'shove':
-      return withNote('Shove: tap an adjacent unit to push it one tile.');
+    case 'basic':
+      return withNote(BASIC_LABEL[mode.action].hint);
     case 'confirm':
       return {
         text: `${mode.preview.summary}. Tap again or Confirm.`,

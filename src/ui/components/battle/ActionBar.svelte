@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { describeSpell, type MemberUnit, type Spell, type SpellKey } from '$engine';
+  import { actionOf, describeSpell, type MemberUnit, type Spell, type SpellKey } from '$engine';
   import { activeAction, type InputMode } from '../../../app/battleInput';
+  import { BASIC_LABEL } from '../../../app/describe';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
@@ -8,18 +9,20 @@
     member: MemberUnit | null;
     spells: { spell: Spell; charges: number; usable: boolean }[];
     mode: InputMode;
-    canShove: boolean;
+    canBasic: boolean;
     canUndo: boolean;
     onspell: (key: SpellKey) => void;
-    onshove: () => void;
+    onbasic: () => void;
     onundo: () => void;
   }
 
-  let { member, spells, mode, canShove, canUndo, onspell, onshove, onundo }: Props = $props();
+  let { member, spells, mode, canBasic, canUndo, onspell, onbasic, onundo }: Props = $props();
 
   const lit = $derived(activeAction(mode));
   const activeSpell = $derived(lit.spell);
-  const shoving = $derived(lit.shove);
+  const basic = $derived(member ? actionOf(member) : null);
+  const basicLabel = $derived(basic ? BASIC_LABEL[basic] : null);
+  const basicLit = $derived(lit.basic);
 </script>
 
 <div class="bar" data-testid="actions">
@@ -43,16 +46,19 @@
     {:else}
       <span class="empty">No spells inscribed</span>
     {/each}
-    <button
-      type="button"
-      class="act small"
-      class:active={shoving}
-      class:unusable={!canShove}
-      aria-pressed={shoving}
-      onclick={onshove}
-    >
-      <span class="icon" aria-hidden="true">⇥</span>Shove
-    </button>
+    {#if basicLabel}
+      <button
+        type="button"
+        class="act small"
+        class:active={basicLit}
+        class:unusable={!canBasic}
+        aria-pressed={basicLit}
+        data-testid="basic-action"
+        onclick={onbasic}
+      >
+        <span class="icon" aria-hidden="true">{basicLabel.icon}</span>{basicLabel.name}
+      </button>
+    {/if}
     <button type="button" class="act small" disabled={!canUndo} onclick={onundo}>
       <span class="icon" aria-hidden="true">↶</span>Undo move
     </button>

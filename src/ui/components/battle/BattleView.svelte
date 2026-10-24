@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { canUndoMove, castableSpells, findUnit, members, shoveDirs } from '$engine';
+  import { canUndoMove, castableSpells, findUnit, members } from '$engine';
   import type { BattleSession } from '../../../app/battle.svelte';
+  import { basicOf } from '../../../app/battleInput';
   import { actionLabel } from '../../../app/describe';
   import BattleBoard from '../board/BattleBoard.svelte';
   import ActionBar from './ActionBar.svelte';
@@ -35,12 +36,12 @@
     return u?.kind === 'member' ? u : null;
   });
   const spells = $derived(selected ? castableSpells(battle, selected.id) : []);
-  const canShove = $derived(
-    !!selected && !selected.acted && shoveDirs(battle, selected.id).length > 0,
+  const canBasic = $derived(
+    !!selected && (basicOf(battle, selected.id)?.dirs.length ?? 0) > 0,
   );
   const canUndo = $derived(!!selected && canUndoMove(battle, selected.id));
   const targeting = $derived(
-    input.kind === 'aim' || input.kind === 'shove' || input.kind === 'confirm',
+    input.kind === 'aim' || input.kind === 'basic' || input.kind === 'confirm',
   );
   const right = $derived(
     busy
@@ -105,10 +106,10 @@
     member={selected}
     {spells}
     mode={input}
-    {canShove}
+    {canBasic}
     {canUndo}
     onspell={(key) => session.chooseSpell(key)}
-    onshove={() => session.chooseShove()}
+    onbasic={() => session.chooseBasic()}
     onundo={() => session.undoMove()}
   />
 

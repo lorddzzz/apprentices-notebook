@@ -1,16 +1,19 @@
-import type { LineId } from '$data';
+import type { BasicActionId, LineId } from '$data';
 import {
   type Action,
   type ActionResult,
   type Aim,
+  actionOf,
   aimPreview,
   applyAction,
   type BattleState,
+  basicDirs,
   type Coord,
   castableSpells,
   type Dir,
   findUnit,
   type GameEvent,
+  isAlive,
   label,
   legalAims,
   legalMoves,
@@ -20,7 +23,6 @@ import {
   type SpellKey,
   sameAim,
   sameCoord,
-  shoveDirs,
   spellOf,
   step,
   type UnitId,
@@ -48,7 +50,7 @@ export interface Preview extends Outcome {
   action: Action;
   /** `applyAction` on the current state, discarded unless confirmed. */
   result: ActionResult;
-  /** Projectile line (cast) or the shoved unit's travel (shove). */
+  /** Projectile line (cast), the moved unit's travel (shove, pull). Hop and swap leave it empty: the overlay draws their arcs. */
   path: Coord[];
   /** Tiles the action hits (a Vat's whole 2×2). */
   targets: Coord[];
@@ -69,8 +71,9 @@ export type InputMode =
   | { kind: 'idle'; note?: string }
   | { kind: 'member'; unit: UnitId; moves: Coord[]; note?: string }
   | { kind: 'aim'; unit: UnitId; spell: SpellKey; aims: Aim[]; note?: string }
-  | { kind: 'shove'; unit: UnitId; dirs: Dir[]; note?: string }
-  /** spell null = shove. `at` is the tile that was tapped to get here (tap it again to confirm). */
+  /** The member's own basic action (Shove, Pull, Hop or Swap): `dirs` are its legal directions. */
+  | { kind: 'basic'; unit: UnitId; action: BasicActionId; dirs: Dir[]; note?: string }
+  /** spell null = the basic action. `at` is the tile that was tapped to get here (tap it again to confirm). */
   | { kind: 'confirm'; unit: UnitId; spell: SpellKey | null; at: Coord; preview: Preview }
   /** Reading an enemy or a tile; a selected member keeps its reach dots. */
   | { kind: 'inspect'; at: Coord; member: UnitId | null; moves: Coord[] };
@@ -96,23 +99,60 @@ export function selectedOf(mode: InputMode): UnitId | null {
   }
 }
 
-/** Which action button is lit: exactly one spell, or Shove, or nothing. */
-export function activeAction(mode: InputMode): { spell: SpellKey | null; shove: boolean } {
+/** Which action button is lit: exactly one spell, or the basic action, or nothing. */
+export function activeAction(mode: InputMode): { spell: SpellKey | null; basic: boolean } {
   switch (mode.kind) {
     case 'aim':
-      return { spell: mode.spell, shove: false };
-    case 'shove':
-      return { spell: null, shove: true };
+      return { spell: mode.spell, basic: false };
+    case 'basic':
+      return { spell: null, basic: true };
     case 'confirm':
-      return { spell: mode.spell, shove: mode.spell === null };
+      return { spell: mode.spell, basic: mode.spell === null };
     default:
-      return { spell: null, shove: false };
+      return { spell: null, basic: false };
   }
+}
+
+/**
+ * The member's own basic action and where it can be taken now: nothing once she has acted, off
+ * her turn, or out of the room. The engine's `basicDirs` answers for the board alone.
+ */
+export function basicOf(s: BattleState, id: UnitId): { action: BasicActionId; dirs: Dir[] } | null {
+  const m = findUnit(s, id);
+  if (m?.kind !== 'member' || !isAlive(m) || s.phase !== 'player' || m.acted) return null;
+  const action = actionOf(m);
+  if (!action) return null;
+  return { action, dirs: basicDirs(s, id) };
+}
+
+/** The tile a direction picks out for an action: Pull and Hop reach 2 away, the rest adjacent. */
+const reachOf = (action: BasicActionId): number => (action === 'pull' || action === 'hop' ? 2 : 1);
+
+/** Steps `n` tiles from `from` toward `dir`. */
+function stepN(from: Coord, dir: Dir, n: number): Coord {
+  let c = from;
+  for (let i = 0; i < n; i++) c = step(c, dir);
+  return c;
+}
+
+/**
+ * The direction a tapped tile means for an action. Pull and Hop take the tile 2 away (the unit
+ * to hook, the landing); the tile between works too, since a thumb aims at the near side.
+ */
+export function basicDirAt(
+  from: Coord,
+  action: BasicActionId,
+  dirs: readonly Dir[],
+  at: Coord,
+): Dir | undefined {
+  const far = dirs.find((d) => sameCoord(stepN(from, d, reachOf(action)), at));
+  if (far || reachOf(action) === 1) return far;
+  return dirs.find((d) => sameCoord(step(from, d), at));
 }
 
 function livingMember(s: BattleState, id: UnitId): MemberUnit | null {
   const u = findUnit(s, id);
-  return u?.kind === 'member' && u.hp > 0 ? u : null;
+  return u?.kind === 'member' && isAlive(u) ? u : null;
 }
 
 export function memberMode(s: BattleState, id: UnitId, note?: string): InputMode {
@@ -123,10 +163,10 @@ export function memberMode(s: BattleState, id: UnitId, note?: string): InputMode
 
 /** Can this member still do anything this turn? */
 export function isReady(s: BattleState, m: MemberUnit): boolean {
-  if (m.hp <= 0 || s.phase !== 'player') return false;
+  if (!isAlive(m) || s.phase !== 'player') return false;
   if (legalMoves(s, m.id).length > 0) return true;
   if (m.acted) return false;
-  return castableSpells(s, m.id).some((c) => c.usable) || shoveDirs(s, m.id).length > 0;
+  return castableSpells(s, m.id).some((c) => c.usable) || (basicOf(s, m.id)?.dirs.length ?? 0) > 0;
 }
 
 /** After an action: keep the member if it can still act, else the next ready one, else idle. */
@@ -214,17 +254,25 @@ export function previewOf(s: BattleState, action: Action, ctx: PreviewCtx = {}):
       spell?.source === 'vat' && action.aim.kind === 'tile'
         ? vatFootprint(s, action.aim.at)
         : p.targets;
-  } else if (action.type === 'shove') {
+  } else if (action.type === 'shove' || action.type === 'pull' || action.type === 'swap') {
     const m = findUnit(s, action.unit);
-    const target = m ? unitAt(s, step(m.pos, action.dir)) : null;
-    if (target) {
+    const reach = reachOf(action.type);
+    const at = m ? stepN(m.pos, action.dir, reach) : null;
+    const target = at ? unitAt(s, at) : null;
+    if (at && !target) {
+      // A shoved piece answers where it stands (DK-4): the tile is the target, nothing travels.
+      targets = [{ ...at }];
+    } else if (target) {
       targets = [{ ...target.pos }];
       const pushed = shown.find((e) => e.type === 'push' && e.unit.id === target.id);
-      path = !masked
-        ? travelOf(s, result.state, target.id)
-        : pushed?.type === 'push' && pushed.path.length
-          ? [{ ...target.pos }, ...pushed.path.map((c) => ({ ...c }))]
-          : [];
+      path =
+        action.type === 'swap'
+          ? []
+          : !masked
+            ? travelOf(s, result.state, target.id)
+            : pushed?.type === 'push' && pushed.path.length
+              ? [{ ...target.pos }, ...pushed.path.map((c) => ({ ...c }))]
+              : [];
     }
   }
   const warning = hurtWarning(s, hurt);
@@ -300,22 +348,32 @@ function tapAim(
   return stay({ kind: 'aim', unit, spell, aims, note: why });
 }
 
-function tapShove(
+const BASIC_NOUN: Record<BasicActionId, string> = {
+  shove: 'an adjacent unit can be shoved',
+  pull: 'a unit exactly 2 tiles away in a straight line can be pulled',
+  hop: 'a free tile exactly 2 tiles away in a straight line can be hopped to',
+  swap: 'an adjacent unit can be swapped with',
+};
+
+function tapBasic(
   s: BattleState,
   unit: UnitId,
+  action: BasicActionId,
   at: Coord,
   dirs: Dir[],
   ctx: PreviewCtx,
 ): InputResult {
   const m = livingMember(s, unit);
-  const dir = m ? dirs.find((d) => sameCoord(step(m.pos, d), at)) : undefined;
+  const dir = m ? basicDirAt(m.pos, action, dirs, at) : undefined;
   if (m && dir) {
-    return stay(toConfirm(s, unit, null, at, { type: 'shove', unit, dir }, ctx));
+    const act: Action = { type: action, unit, dir };
+    return stay(toConfirm(s, unit, null, at, act, ctx));
   }
   if (m && sameCoord(m.pos, at)) return stay(memberMode(s, unit));
   const other = selectIfMember(s, at);
   if (other) return other;
-  return stay({ kind: 'shove', unit, dirs, note: 'Only an adjacent unit can be shoved.' });
+  const why = `Only ${BASIC_NOUN[action]}.`;
+  return stay({ kind: 'basic', unit, action, dirs, note: why });
 }
 
 export function onCell(
@@ -348,8 +406,8 @@ export function onCell(
     }
     case 'aim':
       return tapAim(s, mode.unit, mode.spell, at, mode.aims, ctx);
-    case 'shove':
-      return tapShove(s, mode.unit, at, mode.dirs, ctx);
+    case 'basic':
+      return tapBasic(s, mode.unit, mode.action, at, mode.dirs, ctx);
     case 'confirm': {
       if (mode.spell !== null) {
         // Only the tapped tile confirms: tapping further along a Bolt's line re-reads it instead.
@@ -357,7 +415,9 @@ export function onCell(
         return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell), ctx);
       }
       if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-      return tapShove(s, mode.unit, at, shoveDirs(s, mode.unit), ctx);
+      const own = basicOf(s, mode.unit);
+      if (!own) return stay(memberMode(s, mode.unit));
+      return tapBasic(s, mode.unit, own.action, at, own.dirs, ctx);
     }
   }
 }
@@ -397,36 +457,43 @@ export function onSpell(
   return stay({ kind: 'aim', unit, spell: key, aims });
 }
 
-export function onShove(s: BattleState, mode: InputMode): InputResult {
+/** The member's basic-action button. Pressing it again steps back to the member. */
+export function onBasic(s: BattleState, mode: InputMode): InputResult {
   const unit = selectedOf(mode);
   const m = unit ? livingMember(s, unit) : null;
   if (!unit || !m || s.phase !== 'player') return stay(mode);
-  if (mode.kind === 'shove' || (mode.kind === 'confirm' && mode.spell === null)) {
+  if (mode.kind === 'basic' || (mode.kind === 'confirm' && mode.spell === null)) {
     return stay(memberMode(s, unit));
   }
+  const action = actionOf(m);
+  if (!action) return stay(memberMode(s, unit, `${m.name} has no action but her spells.`));
   if (m.acted) return stay(memberMode(s, unit, `${m.name} has already acted.`));
-  const dirs = shoveDirs(s, unit);
-  if (dirs.length === 0) return stay(memberMode(s, unit, 'Nobody is adjacent to shove.'));
-  return stay({ kind: 'shove', unit, dirs });
+  const dirs = basicDirs(s, unit);
+  if (dirs.length === 0) {
+    return stay(memberMode(s, unit, `Nothing in reach to ${action}.`));
+  }
+  return stay({ kind: 'basic', unit, action, dirs });
 }
 
 export function onConfirm(_s: BattleState, mode: InputMode): InputResult {
   return mode.kind === 'confirm' ? { mode, action: mode.preview.action } : stay(mode);
 }
 
-/** One step back: confirm → aim/shove → member → idle. */
+/** One step back: confirm → aim/basic → member → idle. */
 export function onCancel(s: BattleState, mode: InputMode): InputResult {
   switch (mode.kind) {
     case 'confirm': {
       if (mode.spell === null) {
-        return stay({ kind: 'shove', unit: mode.unit, dirs: shoveDirs(s, mode.unit) });
+        const own = basicOf(s, mode.unit);
+        if (!own) return stay(memberMode(s, mode.unit));
+        return stay({ kind: 'basic', unit: mode.unit, action: own.action, dirs: own.dirs });
       }
       const aims = legalAims(s, mode.unit, mode.spell);
       if (aims.length <= 1) return stay(memberMode(s, mode.unit));
       return stay({ kind: 'aim', unit: mode.unit, spell: mode.spell, aims });
     }
     case 'aim':
-    case 'shove':
+    case 'basic':
       return stay(memberMode(s, mode.unit));
     case 'inspect':
       return stay(mode.member ? memberMode(s, mode.member) : IDLE);
@@ -445,7 +512,7 @@ export function unspentCasters(s: BattleState): string[] {
   return members(s)
     .filter(
       (m) =>
-        m.hp > 0 &&
+        isAlive(m) &&
         !m.acted &&
         castableSpells(s, m.id).some((c) => c.usable && legalAims(s, m.id, c.spell.key).length > 0),
     )

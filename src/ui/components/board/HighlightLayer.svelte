@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Coord } from '$engine';
   import type { Highlight } from '../../../app/overlay';
   import { cellCenter, cellOrigin, chevron, pointsAttr } from './geometry';
   import { TONE_COLOR } from './tones';
@@ -8,6 +9,36 @@
   }
 
   let { highlights }: Props = $props();
+
+  interface Arc {
+    d: string;
+    head: string;
+  }
+
+  /** A quadratic leap from one cell centre to another, bowed `bow` to one side, with an arrowhead. */
+  function arc(from: Coord, to: Coord, bow: number): Arc {
+    const a = cellCenter(from);
+    const b = cellCenter(to);
+    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    const ux = (b.x - a.x) / len;
+    const uy = (b.y - a.y) / len;
+    const pad = len < 150 ? 12 : 26;
+    const p0 = { x: a.x + ux * pad, y: a.y + uy * pad };
+    const p1 = { x: b.x - ux * pad, y: b.y - uy * pad };
+    const c = { x: (a.x + b.x) / 2 - uy * bow, y: (a.y + b.y) / 2 + ux * bow };
+    const tx = p1.x - c.x;
+    const ty = p1.y - c.y;
+    const tl = Math.hypot(tx, ty) || 1;
+    const hx = tx / tl;
+    const hy = ty / tl;
+    const back = { x: p1.x - hx * 20, y: p1.y - hy * 20 };
+    const l = { x: back.x - hy * 11, y: back.y + hx * 11 };
+    const r = { x: back.x + hy * 11, y: back.y - hx * 11 };
+    return {
+      d: `M ${p0.x} ${p0.y} Q ${c.x} ${c.y} ${p1.x} ${p1.y}`,
+      head: `${p1.x},${p1.y} ${l.x},${l.y} ${r.x},${r.y}`,
+    };
+  }
 </script>
 
 <g pointer-events="none">
@@ -70,6 +101,13 @@
     {:else if h.kind === 'shove'}
       {@const c = cellCenter(h.at)}
       <circle cx={c.x} cy={c.y} r="45" fill="none" stroke="var(--select)" stroke-width="6" stroke-dasharray="14 8" />
+    {:else if h.kind === 'arc'}
+      <!-- A hop's leap (one way), or a swap's trade (both ways, bowed apart). -->
+      {#each h.both ? [-96, -96] : [-72] as bow, n (n)}
+        {@const a = n === 0 ? arc(h.from, h.to, bow) : arc(h.to, h.from, bow)}
+        <path data-state="arc" d={a.d} fill="none" stroke="var(--select)" stroke-width="9" stroke-linecap="round" stroke-dasharray="14 10" />
+        <polygon points={a.head} fill="var(--select)" />
+      {/each}
     {:else}
       <polyline
         points={pointsAttr(h.cells.map(cellCenter))}

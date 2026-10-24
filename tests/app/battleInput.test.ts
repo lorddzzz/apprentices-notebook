@@ -7,10 +7,10 @@ import {
   IDLE,
   type InputMode,
   memberMode,
+  onBasic,
   onCancel,
   onCell,
   onConfirm,
-  onShove,
   onSpell,
   unspentCasters,
 } from '../../src/app/battleInput';
@@ -117,7 +117,7 @@ describe('battle input', () => {
 
   test('shove flow emits shove with dir', () => {
     const s = battleOf(SHOVE_BOARD);
-    const shove = expectKind(onShove(s, memberMode(s, 'stoker')).mode, 'shove');
+    const shove = expectKind(onBasic(s, memberMode(s, 'stoker')).mode, 'basic');
     expect(shove.dirs).toEqual(['right']);
     const confirm = expectKind(onCell(s, shove, at('B1')).mode, 'confirm');
     expect(confirm.preview.targets).toEqual([at('B1')]);
@@ -127,7 +127,7 @@ describe('battle input', () => {
       unit: 'stoker',
       dir: 'right',
     });
-    expect(onCancel(s, confirm).mode.kind).toBe('shove');
+    expect(onCancel(s, confirm).mode.kind).toBe('basic');
   });
 
   test('cancel steps back one level', () => {
@@ -200,12 +200,12 @@ describe('battle input', () => {
   test('only the active mode lights an action button', () => {
     const s = battleOf(SHOVE_BOARD);
     const member = memberMode(s, 'stoker');
-    expect(activeAction(member)).toEqual({ spell: null, shove: false });
-    expect(activeAction(onShove(s, member).mode)).toEqual({ spell: null, shove: true });
+    expect(activeAction(member)).toEqual({ spell: null, basic: false });
+    expect(activeAction(onBasic(s, member).mode)).toEqual({ spell: null, basic: true });
     const key = castableSpells(s, 'stoker')[0]?.spell.key ?? '';
     const aim = onSpell(s, member, key).mode;
-    expect(activeAction(aim)).toEqual({ spell: key, shove: false });
+    expect(activeAction(aim)).toEqual({ spell: key, basic: false });
     const confirm = onCell(s, aim, at('B1')).mode;
-    expect(activeAction(confirm)).toEqual({ spell: key, shove: false });
+    expect(activeAction(confirm)).toEqual({ spell: key, basic: false });
   });
 });
