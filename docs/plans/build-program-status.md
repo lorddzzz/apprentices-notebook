@@ -2,12 +2,12 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: none. Wake-up #1 scheduled 12:01 UTC (session-only cron).
+**State:** building (Stage 1). Session 2026-10-24 started 07:04 UTC. Running: FD-6, FN-6, FN-7 (08:19). Wake-up #1 scheduled 12:01 UTC (session-only cron).
 **Reset:** 5h window resets 2026-10-24 12:00 UTC. Session rule (player, 2026-10-24): up to 2 wake-ups at resets; the third time wrap up without a timer and write a continuation prompt.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
 1. ~~Finish DK-4~~ (merged 2026-10-24). Was: **Finish DK-4** from branch `worktree-agent-ac35c09fb4243a694` @ b55e0ed (worktree `.claude/worktrees/agent-ac35c09fb4243a694`, kept): rebase onto main. It conflicts with DK-3 in `arrival.ts`, `districts/index.ts`, `turn.ts`, `types.ts` — both fixed the same import loop (DK-3: lazy `arrivalHooks()`; DK-4: `KIT`/`DISTRICT_MODULES` moved to leaf `districts/kit.ts`); keep both (they're compatible), keep DK-3's `roundEnd` and add DK-4's single `piecesTurnEnd(ctx)` call after it; DK-4 also filters district arrival hooks to tiles holding their piece. Then its remaining steps: token-collision test (kit piece tokens vs `DISTRICT_TOKENS`, `RIVAL_TOKENS`, compound names); wire solidity into `queries.ts` (`pieceBlocksUnits`/`pieceBlocksShots`); call sites `hitPiece` (attack end/blocked, landings), `strikePiece` (spark, push crush both tiles, shove); `export * from './pieces'` in `engine/index.ts`; scenario skill legend + harness comment for `{piece}`.
-2. Ready (watch file overlap): RV-3, FN-3..FN-8, FD-6, DK-5b, DK-8/DK-9, RC-3 (RC-2 ✓, DK-7 ✓), HC-8 (UI). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
+2. Ready (watch file overlap): FN-4, FN-5, FN-8 (after FN-4), DK-5b, DK-8, DK-9, HC-8 (UI), RC-4 (check deps), AH-5/AH-6 (check deps), RV-6 (check deps). Done this session: DK-4, AH-3, RV-4, HC-7; running AH-4, DK-6, DK-7, RC-2.
 3. Then FD-11 (phone check of push/drift/jar playback), HC-9, and the first gates: RV-G1 (Lamplighter Lab playtest), HC/AH/RC playtests.
 
 ## Tasks
@@ -57,6 +57,9 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | RC-3 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a06dba8524e0f68ae @ 2988cfd | shared | `guaranteesFor(p, trip, room, kit)` ≤1 missing rune page per roll: district pages from the trip district's `recruitPages` lines naming this room and a waiting recruit ({runes}: first unowned; {any}: first while none owned); Seam pages (touch/splash/steam/brass) only in Seam deep/heart rooms; priority city order (`DISTRICT_IDS`), door arrivals last, then rune order; owned = known or in loot. `recruits/offers.ts` `RECRUIT_OFFERS` (recruit kind save-only + contributor → `must`); `OFFER_SOURCES = [CORE_OFFERS, RECRUIT_OFFERS]`; orchestrator removed dead `RECRUIT_SAVE_ONLY`. Golden + calibration unchanged. **RC-5:** placing the runaway changes seam-win-6/-8/-9, seam-wipe-1/-7 (canals heard at start) → re-record then. **RC-4:** real recruit roll + `joinHousehold` banking |
 | RV-3 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a6b13c1cf4c97461d @ 5ec399a | shared | `rivals/wick.ts`: `LONG_WICK` TrickDef `canals:longWick` (one candidate per owned jar, oldest first), `jarLocation`, `lockStatus` (ok or `LockLost`; for RV-6 preview); opening = ordinary `openJar` (self-harm included), no charge, step trigger stays live. resolve.ts: lazy `trickOf(id)`, trick branch, failed order → `orderFails` + starved fallback, `RivalState.locked` filled at telegraph/cleared at resolve. plan.ts: `simulate` takes trick intents, `bestTrickPlan`. Golden unchanged. **RV-14:** register the wick through DK modules |
 | FN-3 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a3c319f0aa00d0be8 @ bd5be1d | ~1% | Already done by FN-0/FD-8 (ten level-I variants in `seam-runes.ts` with stable ids; hook sites in push/mix/targets/bursts call `hasFootnote(ctx, id)`); added `tests/engine/fn3-seam-runes.test.ts` pinning the ten ids/slots and checking every `hasFootnote` literal is registered |
+| FD-6 | Strong / Opus 5.5 / medium | M | running | worktree (08:19) | | cap unwinding + Graphite context line |
+| FN-6 | Medium / Sonnet 5.5 / high | S | running | worktree (08:19) | | owner's hand in Bench |
+| FN-7 | Fast / Haiku 5.5 / high | S | running | worktree (08:19) | | Lab variant toggle |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 
 ## Usage log
@@ -95,6 +98,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:45 | 59 | 4h15 | 62 | Hold by projection (~2.3%/min) | merge RC-2; checkpoint-and-report nudges to AH-4, DK-6, DK-7; no new spawns; wake-up #1 set 12:01 UTC |
 | 07:53 | 63 | 4h06 | 62 | Normal (~0.4%/min, 1 agent) | merge AH-4, DK-7 (pushed); spawn RC-3, RV-3 |
 | 08:10 | 75 | 3h50 | 64 | Narrow (~0.4%/min) | merge RV-3; spawn FN-3 (S) |
+| 08:16 | 77 | 3h44 | 64 | Narrow | merge RC-3, FN-3; a format slip reached main in 83f1d8e (fixed in f95c3d2); spawn FD-6, FN-6, FN-7 |
 | 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
