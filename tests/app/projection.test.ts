@@ -184,6 +184,7 @@ import.meta.glob(
     '!../scenarios/push.test.ts',
     '!../scenarios/actions.test.ts',
     '!../engine/pieces.test.ts', // mocks the kit with fixture pieces
+    '!../engine/trip-shape-state.test.ts', // mocks the kit with a fixture trip shape
     '!../engine/events.test.ts', // fabricates events on a board that does not change
   ],
   { eager: true },

@@ -3,10 +3,11 @@ import {
   DISTRICTS,
   type DistrictDef,
   type DistrictId,
-  type Goal,
   type HearCondition,
   type LootTableId,
 } from '$data';
+import type { KitGoal } from '$data/districts/index';
+import type { Json } from './districts/types';
 import type { EventLog, GameEvent } from './events';
 import { parseLabel } from './notation';
 import { placeOf } from './trip/place';
@@ -166,11 +167,71 @@ export function bankKeys(p: Profile, loot: readonly LootItem[]): Profile {
   return city === p.city ? p : { ...p, city };
 }
 
-/** One goal against a log and the final state (K-22). */
-export function checkGoal(goal: Goal, events: readonly GameEvent[], state: BattleState): boolean {
+/** Whether an event names unit `id` as its unit or its target. */
+function involves(e: GameEvent, id: string): boolean {
+  const ref = (v: unknown): boolean =>
+    typeof v === 'object' && v !== null && 'id' in v && (v as { id: unknown }).id === id;
+  return ('unit' in e && ref(e.unit)) || ('target' in e && ref(e.target));
+}
+
+/** A piece's data reads as `state`: the value itself, its `state` field, or a true flag by that name. */
+function pieceIs(data: Json, state: string): boolean {
+  if (data === state) return true;
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return false;
+  const rec = data as { readonly [k: string]: Json };
+  return rec.state === state || rec[state] === true;
+}
+
+/** A number in a rule's state: the state itself (empty key) or one of its fields. */
+function ruleValue(own: Json | undefined, key: string): number | null {
+  if (key === '' && typeof own === 'number') return own;
+  if (typeof own !== 'object' || own === null || Array.isArray(own)) return null;
+  const v = (own as { readonly [k: string]: Json })[key];
+  return typeof v === 'number' ? v : null;
+}
+
+/** The log up to the start of round `n + 1`: what happened within the first `n` rounds. */
+function withinRounds(events: readonly GameEvent[], n: number): readonly GameEvent[] {
+  const end = events.findIndex((e) => e.type === 'round' && e.round > n);
+  return end < 0 ? events : events.slice(0, end);
+}
+
+/**
+ * One goal against a log and the final state (K-22), with the kit's kinds (P13): `withinRounds`
+ * reads the log up to that round (state-reading goals inside it still read the final state),
+ * `piece` counts pieces in a state, `rule` reads a number in a rule's state, `outOfRoom`,
+ * `happens` to one unit, and `noneDowned` (no apprentice died).
+ */
+export function checkGoal(
+  goal: KitGoal,
+  events: readonly GameEvent[],
+  state: BattleState,
+): boolean {
   if ('all' in goal) return goal.all.every((g) => checkGoal(g, events, state));
+  if ('withinRounds' in goal) {
+    return checkGoal(goal.goal, withinRounds(events, goal.withinRounds), state);
+  }
+  if ('piece' in goal) {
+    const n = state.tiles.filter(
+      (t) => t.piece?.id === goal.piece && pieceIs(t.piece.data, goal.state),
+    ).length;
+    return n >= (goal.atLeast ?? 1);
+  }
+  if ('rule' in goal) {
+    const v = ruleValue(state.rules?.[goal.rule], goal.key);
+    if (v === null) return false;
+    return v >= (goal.atLeast ?? -Infinity) && v <= (goal.atMost ?? Infinity);
+  }
+  if ('noneDowned' in goal) {
+    return (
+      !events.some((e) => e.type === 'died' && e.unit.member) &&
+      state.units.every((u) => u.kind !== 'member' || u.hp > 0)
+    );
+  }
   if ('happens' in goal) {
-    return events.filter((e) => e.type === goal.happens).length >= (goal.atLeast ?? 1);
+    const hit = (e: GameEvent) =>
+      e.type === goal.happens && (!('unit' in goal) || involves(e, goal.unit));
+    return events.filter(hit).length >= (goal.atLeast ?? 1);
   }
   if ('hurt' in goal) {
     let total = 0;
@@ -178,6 +239,16 @@ export function checkGoal(goal: Goal, events: readonly GameEvent[], state: Battl
     return total >= goal.atLeast;
   }
   const unit = (id: string) => state.units.find((u) => u.id === id);
+  if ('outOfRoom' in goal) {
+    const out = unit(goal.outOfRoom)?.out ?? null;
+    const left = events.some(
+      (e) =>
+        e.type === 'outOfRoom' &&
+        e.unit.id === goal.outOfRoom &&
+        (!goal.cause || e.cause === goal.cause),
+    );
+    return left || (out !== null && (!goal.cause || out === goal.cause));
+  }
   if ('dies' in goal) {
     const u = unit(goal.dies);
     return events.some((e) => e.type === 'died' && e.unit.id === goal.dies) || (!!u && u.hp <= 0);

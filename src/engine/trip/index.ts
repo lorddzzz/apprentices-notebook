@@ -22,6 +22,15 @@ export { type Owned, rollOffers } from './offers';
 export { placeOf, poolFor, variantFor } from './place';
 export { crossesNoReturn, nextReturnPoint, policyAllows, returnCheck } from './ret';
 export {
+  afterRoomWon,
+  bonusMet,
+  type RoomRoll,
+  roomRoll,
+  roomRules,
+  roomSetupFor,
+  setUpRoom,
+} from './setup';
+export {
   checkpointRoom,
   type DistrictShape,
   heartOf,

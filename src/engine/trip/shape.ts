@@ -1,9 +1,15 @@
 import { DISTRICT_IDS, type DistrictId, encountersOf } from '$data';
-import { type CheckpointDef, DISTRICT_KIT, type ReturnPolicy } from '$data/districts/index';
+import {
+  type BonusObjective,
+  type CheckpointDef,
+  DISTRICT_KIT,
+  type ReturnPolicy,
+} from '$data/districts/index';
 import { KIT } from '../districts/index';
 import type {
   CityCheckpoints,
   Json,
+  RuleId,
   ShapeInput,
   TakenChoice,
   TripKitState,
@@ -22,16 +28,28 @@ export interface DistrictShape {
   /** Rooms in a trip; the last is the heart. */
   length: number;
   trip?: TripShapeDef;
+  /** The district's own district-scoped rules, listed in every room (P9; DK-5b). */
+  rules?: readonly RuleId[];
+  /** Rooms with an optional objective, by room index (P13; DK-5b). */
+  bonuses?: Readonly<Record<number, BonusObjective>>;
 }
 
 export function shapeOf(district: DistrictId): DistrictShape {
   const data = DISTRICT_KIT[district];
-  const trip = KIT.modules[district]?.trip;
+  const mod = KIT.modules[district];
+  const trip = mod?.trip;
+  const rules = (mod?.rules ?? []).filter((r) => r.scope === 'district').map((r) => r.id);
+  const bonuses: Record<number, BonusObjective> = {};
+  data?.rooms?.forEach((room, i) => {
+    if (room.bonus) bonuses[i] = room.bonus;
+  });
   return {
     ret: data?.ret ?? { kind: 'any' },
     ...(data?.checkpoint ? { checkpoint: data.checkpoint } : {}),
     length: encountersOf(district).length,
     ...(trip ? { trip } : {}),
+    ...(rules.length > 0 ? { rules } : {}),
+    ...(Object.keys(bonuses).length > 0 ? { bonuses } : {}),
   };
 }
 
@@ -40,7 +58,7 @@ export const heartOf = (shape: DistrictShape): number => shape.length - 1;
 
 /** Whether a trip into this shape carries `Trip.kit` (the Seam and the canals do not). */
 export const carriesKit = (shape: DistrictShape): boolean =>
-  shape.trip !== undefined || shape.checkpoint !== undefined;
+  shape.trip !== undefined || shape.checkpoint !== undefined || shape.bonuses !== undefined;
 
 /** A fresh `Trip.kit`, or undefined for a shape that needs none. */
 export function newTripKit(shape: DistrictShape): TripKitState | undefined {
@@ -143,10 +161,12 @@ export function parseTripKit(
   const checkpoint = raw.checkpoint === true;
   if (checkpoint !== reachedCheckpoint(shape, t)) bad();
   if (first > 0 && !(shape.checkpoint && first === checkpointRoom(shape.checkpoint))) bad();
-  const bonuses = counts(raw.bonuses);
+  // Fields newer than a save read as empty (P18): no bonuses met, the module's default state.
+  const bonuses = raw.bonuses === undefined ? [] : counts(raw.bonuses);
   if (bonuses.some((b) => b > t.encounter)) bad();
-  if (!isJson(raw.state)) return bad();
-  const state = shape.trip ? shape.trip.parseState(raw.state) : raw.state;
+  const own = raw.state;
+  if (own !== undefined && !isJson(own)) return bad();
+  const state: Json = shape.trip ? shape.trip.parseState(own) : (own ?? null);
   return { state, choices, checkpoint, bonuses };
 }
 

@@ -11,7 +11,8 @@ import { accumulateStats } from '../tripStats';
 import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../types';
 import { wipeLoot } from './offerKinds';
 import { ownedBy, rollOffers } from './offers';
-import { markCheckpoint, rememberCheckpoint } from './shape';
+import { afterRoomWon, roomRoll } from './setup';
+import { markCheckpoint, rememberCheckpoint, shapeOf } from './shape';
 import { need, perMember, withAll } from './shared';
 import { beginEncounter } from './start';
 
@@ -115,8 +116,17 @@ export function finishEncounter(
 
   const enc = encountersOf(t.district)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
+  // The room's bonus and the module's `afterRoom` write the kit; then its offers (P7, P13).
+  const shape = shapeOf(t.district);
+  const marked = afterRoomWon(t, b, log, shape);
+  const roll = roomRoll(marked.trip, enc, marked.bonus, shape);
+  const withKit = {
+    profile: p,
+    trip: marked.trip,
+    ...(roll.registry ? { registry: roll.registry } : {}),
+  };
   const trip: Trip = {
-    ...t,
+    ...marked.trip,
     status: 'looting',
     // A member out of the room is hauled back at 1 HP, like a downed one (P11).
     hp: perMember(t.party, (m) => {
@@ -125,11 +135,8 @@ export function finishEncounter(
     }),
     charges: perMember(t.party, (m) => ({ ...memberById(b, m).charges })),
     loot: [...t.loot],
-    offers: rollOffers(t.seed, t.encounter, enc.loot, t.party, null, ownedBy(p, t), {
-      profile: p,
-      trip: t,
-    }),
-    picksLeft: enc.picks,
+    offers: rollOffers(t.seed, t.encounter, roll.table, t.party, null, ownedBy(p, t), withKit),
+    picksLeft: roll.picks,
     actions: [],
     stats,
   };

@@ -9,6 +9,7 @@ import { compiledFor, inventionLibrary, validateLoadout } from '../run';
 import { emptyStats } from '../tripStats';
 import type { Action, ActionResult, PartyInit, Profile, SpellKey, Trip } from '../types';
 import { variantFor } from './place';
+import { roomSetupFor, setUpRoom } from './setup';
 import { checkpointRoom, newTripKit, shapeOf } from './shape';
 import { chargesLeftOf, hpOf, need, perMember } from './shared';
 
@@ -67,7 +68,8 @@ export function startTrip(
 
 /**
  * The current encounter's battle: the party enters with the trip's HP and charges on start points
- * drawn from the trip seed (`startSeedFor`, HC P4), then the trip's recorded actions are replayed
+ * drawn from the trip seed (`startSeedFor`, HC P4), set up from trip state (`roomSetup`: listed
+ * rules and board edits, DK-5b), then the trip's recorded actions are replayed
  * (a reload resumes the fight). Throws if one is illegal.
  */
 export function beginEncounter(p: Profile, t: Trip): ActionResult {
@@ -91,7 +93,9 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
     inventionLibrary(p),
     { lineup: t.party, startSeed: startSeedFor(t, t.encounter) },
   );
-  let state = first.state;
+  // The room's rules and board edits from trip state (P7, DK-3/DK-5b), before any replay.
+  const shape = shapeOf(t.district);
+  let state = setUpRoom(first.state, shape, roomSetupFor(t, shape));
   const events = [...first.events];
   const footnotes = footnoteIds(p);
   for (const a of t.actions) {
