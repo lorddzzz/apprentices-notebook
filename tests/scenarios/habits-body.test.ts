@@ -197,3 +197,17 @@ describe('steamproof: steam never hurts her (P14)', () => {
     expect(maskPreview(r.events, new Set(), ['draughtsman']).hurt).toEqual([]);
   });
 });
+
+test('steamproof-headline-unmasked: a habit event under an unwitnessed line still shows (AH P11)', () => {
+  const unharmed: GameEvent = {
+    type: 'unharmed',
+    unit: { id: 'draughtsman', member: true },
+    source: 'Storm',
+    harm: 'steam',
+    line: 'spark:cloud',
+    habit: 'steamproof',
+  } as GameEvent;
+  const hit: GameEvent = { ...unharmed, habit: undefined } as GameEvent;
+  const { shown } = maskPreview([unharmed, hit], new Set(), ['draughtsman']);
+  expect(shown).toEqual([unharmed]);
+});

@@ -89,7 +89,8 @@ export function maskPreview(
   const inParty = new Set(party);
   for (const e of log) {
     for (const id of hurtBy(e)) if (inParty.has(id) && !hurt.includes(id)) hurt.push(id);
-    if (!e.line || witnessed.has(e.line)) {
+    // A habit's headline is always known (AH P11), even under an inherited unwitnessed line.
+    if (!e.line || witnessed.has(e.line) || e.habit) {
       shown.push(e);
       continue;
     }
