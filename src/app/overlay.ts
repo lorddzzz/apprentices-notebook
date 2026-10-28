@@ -1,10 +1,13 @@
-import { type AttackId, ENEMIES, type EnemyId } from '$data';
+import { type AttackId, ENEMIES, type EnemyId, type LineId } from '$data';
+import { RIVALS, type RivalId } from '$data/rivals';
 import {
   type Action,
   aimPreview,
   type BattleState,
+  boltRange,
   type Coord,
   type Dir,
+  type EnemyUnit,
   findUnit,
   type GameEvent,
   habitRule,
@@ -20,12 +23,16 @@ import {
   spellOf,
   step,
   tileAt,
+  travel,
   type UnitId,
   unitAt,
 } from '$engine';
 import type { PreviewShape } from '$engine/districts/types';
+import { dryStrikeIntent, trickOf } from '$engine/rivals/resolve';
+import { jarLocation } from '$engine/rivals/wick';
 import { rulePreview } from '$engine/rules';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
+import { jarContents, rivalReadout } from './describe';
 import { layerTone, type Tone } from './fx';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
@@ -105,9 +112,38 @@ export interface StepDraw {
   emphasis: IntentDraw['emphasis'];
 }
 
+/**
+ * A rival's telegraphed cast or trick (RV-7): his locked line and where it lands, the tiles where a
+ * witnessed line's effect lands (the unwitnessed ones are `blank` highlights, D2), the long wick's
+ * line to its jar and what the jar holds, and the fallback ring.
+ */
+export interface RivalDraw {
+  unit: UnitId;
+  from: Coord;
+  order: number;
+  /** The pill under him: the spell's name, "long wick", "Strike". */
+  label: string;
+  /** The locked aim's direction, for a chevron when there is no board state to draw a path from. */
+  dir: Dir | null;
+  /** Tiles the line crosses, the landing last. Empty in playback (no engine state). */
+  path: Coord[];
+  landing: Coord | null;
+  /** Tiles where a witnessed line's effect lands. */
+  effects: Coord[];
+  /** The wick: the jar's tile and what it starts with (null: the jar is gone, nothing to point at). */
+  wick: { to: Coord; contents: string | null } | null;
+  /** The pre-shown strike if the chain is starved. `live`: its tile still holds an apprentice. */
+  fallback: { at: Coord; live: boolean } | null;
+  /** The shown action would be starved right now, with every line witnessed (so nothing is hinted). */
+  starving: boolean;
+  emphasis: IntentDraw['emphasis'];
+}
+
 export interface Overlay {
   highlights: Highlight[];
   intents: IntentDraw[];
+  /** Rivals' telegraphed spells and tricks. Optional so hand-built overlays need not list them. */
+  rivals?: RivalDraw[];
   /** Optional so hand-built overlays (the gallery) need not list them. */
   marks?: IntentMark[];
   /** Null when no active rule previews anything. */
@@ -122,6 +158,7 @@ export interface Overlay {
 export const EMPTY_OVERLAY: Overlay = {
   highlights: [],
   intents: [],
+  rivals: [],
   marks: [],
   next: null,
   steps: [],
@@ -131,7 +168,12 @@ export const EMPTY_OVERLAY: Overlay = {
 };
 
 /** What the board highlights for the current input mode (and its preview, if any). */
-export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes = {}): Overlay {
+export function overlayFor(
+  s: BattleState,
+  mode: InputMode,
+  footnotes: Footnotes = {},
+  witnessed: ReadonlySet<LineId> | null = null,
+): Overlay {
   const highlights: Highlight[] = [];
   const badges: Badge[] = [];
   const ghosts: Ghost[] = [];
@@ -196,8 +238,12 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
   const focus = mode.kind === 'inspect' ? unitAt(s, mode.at) : null;
   const intentState = preview && !preview.masked ? preview.result.state : s;
   const intents: IntentDraw[] = [];
-  for (const u of intentState.units) {
-    if (u.kind !== 'enemy' || !isAlive(u) || u.intent?.kind !== 'attack') continue;
+  for (const e of intentState.units) {
+    if (e.kind !== 'enemy' || !isAlive(e)) continue;
+    // A rival's dry strike is an ordinary attack once the spells run out.
+    const u: EnemyUnit =
+      e.intent?.kind === 'rivalStrike' ? { ...e, intent: dryStrikeIntent(e, e.intent) } : e;
+    if (u.intent?.kind !== 'attack') continue;
     const p = intentPreview(intentState, u);
     if (!p) continue;
     const end = p.path.at(-1);
@@ -212,6 +258,15 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
       dir: u.intent.dir,
       emphasis: focus?.kind === 'enemy' ? (focus.id === u.id ? 'strong' : 'dim') : 'normal',
     });
+  }
+  const rivalRead = rivalDraws(intentState, focus, witnessed);
+  for (const at of rivalRead.blanks) {
+    if (!highlights.some((h) => h.kind === 'blank' && sameCoord(h.at, at)))
+      highlights.push({ kind: 'blank', at });
+  }
+  for (const at of rivalRead.hurt) {
+    if (!highlights.some((h) => h.kind === 'hurt' && sameCoord(h.at, at)))
+      highlights.push({ kind: 'hurt', at });
   }
   const marks = marksOf(
     intentState.units.map((u) => ({
@@ -235,7 +290,135 @@ export function overlayFor(s: BattleState, mode: InputMode, footnotes: Footnotes
     })),
     focus,
   );
-  return { highlights, intents, marks, next, steps, badges, ghosts, selected: selectedOf(mode) };
+  return {
+    highlights,
+    intents,
+    rivals: rivalRead.draws,
+    marks,
+    next,
+    steps,
+    badges,
+    ghosts,
+    selected: selectedOf(mode),
+  };
+}
+
+/** What a rival's pill says: the spell's name, or the trick's without its article. */
+function rivalLabel(rival: string, intent: Intent): string {
+  const def = RIVALS[rival as RivalId];
+  if (intent.kind === 'cast')
+    return def?.spells.find((sp) => sp.id === intent.spell)?.name ?? intent.spell;
+  if (intent.kind === 'trick')
+    return (trickOf(intent.trick)?.name ?? intent.trick).replace(/^the /, '');
+  return 'Strike';
+}
+
+const emphasisOf = (
+  id: UnitId,
+  focus: { kind: string; id: UnitId } | null,
+): IntentDraw['emphasis'] =>
+  focus?.kind === 'enemy' ? (focus.id === id ? 'strong' : 'dim') : 'normal';
+
+/**
+ * The telegraph of every living rival's cast or trick, read from `s` (the confirm preview's state
+ * when it is unmasked). The line and landing are always drawn; unwitnessed effects come back as
+ * `blanks` and hurt apprentices as `hurt` tiles for the highlight layer (D2, D3).
+ */
+function rivalDraws(
+  s: BattleState,
+  focus: { kind: string; id: UnitId } | null,
+  witnessed: ReadonlySet<LineId> | null,
+): { draws: RivalDraw[]; blanks: Coord[]; hurt: Coord[] } {
+  const out = { draws: [] as RivalDraw[], blanks: [] as Coord[], hurt: [] as Coord[] };
+  for (const u of s.units) {
+    if (u.kind !== 'enemy' || !u.rival || !isAlive(u) || !u.intent) continue;
+    const i = u.intent;
+    if (i.kind !== 'cast' && i.kind !== 'trick' && i.kind !== 'rivalStrike') continue;
+    const read = rivalReadout(s, u, witnessed);
+    if (!read) continue;
+    out.blanks.push(...read.blanks);
+    for (const id of read.hurt) {
+      const m = findUnit(s, id);
+      if (m) out.hurt.push({ ...m.pos });
+    }
+    if (i.kind === 'rivalStrike') continue; // drawn as an ordinary attack by the intent layer
+    const prev = read.preview;
+    let path = prev.path.map((c) => ({ ...c }));
+    let landing = prev.landing ? { ...prev.landing } : null;
+    const spell = i.kind === 'cast' ? u.rival.spells[i.spell] : null;
+    if (i.kind === 'cast' && i.aim.kind === 'dir' && spell?.source === 'bolt' && !u.stunned) {
+      // A Bolt that meets a unit emits no flight event, so the line is read from the aim, as the
+      // player's own aim preview does.
+      const r = travel(s, u.pos, i.aim.dir, boltRange(u), u.id);
+      path = r.path.map((c) => ({ ...c }));
+      landing = r.stop ? { ...r.stop } : null;
+    }
+    let wick: RivalDraw['wick'] = null;
+    if (i.kind === 'trick' && i.lock?.kind === 'jar') {
+      const jar = jarLocation(s, i.lock.id);
+      if (jar) wick = { to: { ...jar.at }, contents: jarContents(jar.jar) };
+    }
+    out.draws.push({
+      unit: u.id,
+      from: { ...u.pos },
+      order: i.order,
+      label: rivalLabel(u.def, i),
+      dir: i.kind === 'cast' && i.aim.kind === 'dir' ? i.aim.dir : null,
+      path: i.kind === 'cast' ? path : [],
+      landing: i.kind === 'cast' ? landing : null,
+      effects: read.shownTiles.map((c) => ({ ...c })),
+      wick,
+      fallback: i.fallback ? { at: { ...i.fallback }, live: prev.fallbackLive } : null,
+      starving: prev.starved && !u.stunned,
+      emphasis: emphasisOf(u.id, focus),
+    });
+  }
+  return out;
+}
+
+interface RivalSource {
+  kind: 'member' | 'enemy';
+  id: UnitId;
+  def: string;
+  pos: Coord;
+  intent?: Intent | null;
+  alive: boolean;
+}
+
+/**
+ * Rivals' pills and chevrons for playback (RV-7): the order badge, the spell's name and its
+ * direction, with no engine state to draw a path from. Works on playback views.
+ */
+export function rivalMarksOf(
+  units: readonly RivalSource[],
+  focus: { kind: string; id: UnitId } | null = null,
+): RivalDraw[] {
+  const out: RivalDraw[] = [];
+  for (const u of units) {
+    const i = u.intent;
+    if (u.kind !== 'enemy' || !u.alive || !i) continue;
+    if (i.kind !== 'cast' && i.kind !== 'trick' && i.kind !== 'rivalStrike') continue;
+    out.push({
+      unit: u.id,
+      from: { ...u.pos },
+      order: i.order,
+      label: rivalLabel(u.def, i),
+      dir:
+        i.kind === 'rivalStrike'
+          ? i.dir
+          : i.kind === 'cast' && i.aim.kind === 'dir'
+            ? i.aim.dir
+            : null,
+      path: [],
+      landing: null,
+      effects: [],
+      wick: null,
+      fallback: null,
+      starving: false,
+      emphasis: emphasisOf(u.id, focus),
+    });
+  }
+  return out;
 }
 
 /** Her own Fuse jars among `tiles`: where fuseOnStep would open one on arrival (AH-6, member mode). */

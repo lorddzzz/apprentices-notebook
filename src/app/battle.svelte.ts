@@ -104,7 +104,9 @@ export class BattleSession {
   }
 
   get overlay(): Overlay {
-    return this.busy ? EMPTY_OVERLAY : overlayFor(this.state, this.input, this.opts.footnotes);
+    return this.busy
+      ? EMPTY_OVERLAY
+      : overlayFor(this.state, this.input, this.opts.footnotes, this.ctx.witnessed ?? null);
   }
 
   /** Stays put during playback so the party strip and action bar don't jump. */

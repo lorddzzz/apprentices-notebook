@@ -8,6 +8,7 @@ import {
   HABITS,
   type HabitId,
   IDIOMS,
+  type LineId,
   MEMBERS,
   METHODS,
   RUNES,
@@ -31,12 +32,14 @@ import {
   type GameEvent,
   intentPreview,
   isAlive,
+  type Jar,
   type Layer,
   type LootItem,
   label,
   legalMoves,
   livingUnits,
   type MemberUnit,
+  maskPreview,
   members,
   sameCoord,
   spellOf,
@@ -44,10 +47,14 @@ import {
   type Tile,
   tileAt,
   type Unit,
+  type UnitId,
   unitAt,
+  witnessedIn,
 } from '$engine';
 import { KIT } from '$engine/districts/kit';
+import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
 import { dryStrikeIntent, rivalVerb } from '$engine/rivals/resolve';
+import { jarLocation } from '$engine/rivals/wick';
 import type { InputMode } from './battleInput';
 
 /** UI wording: captions, inspect lines, preview summaries. Plain functions, tested. */
@@ -113,19 +120,82 @@ export function tileLine(tile: Tile, at: Coord): string {
   return `${label(at)}: ${parts.length ? parts.join(', ') : 'bare floor'}`;
 }
 
-function intentPhrase(s: BattleState, e: EnemyUnit): string {
+/**
+ * What a rival's shown action does as the board stands, read for the telegraph (RV-7). The path
+ * and landing are always shown; an effect on an unwitnessed line is only a blank landing (D2); a
+ * hurt apprentice is always warned, with no reason (D3). `witnessed` null = nothing is masked.
+ */
+export interface RivalReadout {
+  preview: RivalPreviewDetail;
+  /** Tiles where a witnessed line's effect lands. */
+  shownTiles: Coord[];
+  /** Tiles where an unwitnessed line's effect lands: drawn blank, with no text. */
+  blanks: Coord[];
+  hurt: UnitId[];
+  /** "Stoker will be hurt", or null when the party is safe. */
+  warning: string | null;
+}
+
+/** What a jar shows of its contents (J3): the name of its first rune, or null when it is empty. */
+export function jarContents(jar: Jar): string | null {
+  const first = firstRune(jar.rest);
+  return first ? runeName(first) : null;
+}
+
+/** "Stoker will be hurt", "Stoker and Draughtsman will be hurt". The amount and cause stay unsaid. */
+function hurtLine(s: BattleState, hurt: readonly UnitId[]): string | null {
+  const names = hurt.flatMap((id) => findUnit(s, id)?.name ?? []);
+  return names.length === 0 ? null : `${names.join(' and ')} will be hurt`;
+}
+
+export function rivalReadout(
+  s: BattleState,
+  e: EnemyUnit,
+  witnessed: ReadonlySet<LineId> | null = null,
+): RivalReadout | null {
+  const preview = rivalPreview(s, e.id);
+  if (!preview) return null;
+  const party = members(s).map((m) => m.id);
+  const seen = witnessed ?? new Set(witnessedIn(preview.events));
+  const { blanks, hurt } = maskPreview(preview.events, seen, party);
+  // With nothing witnessed every line-stamped landing is blank: the others are the shown ones.
+  const all = maskPreview(preview.events, new Set(), party).blanks;
+  const shownTiles = all.filter((a) => !blanks.some((b) => sameCoord(a, b)));
+  return { preview, shownTiles, blanks, hurt, warning: hurtLine(s, hurt) };
+}
+
+/** A rival's shown cast or trick in words: what it does, where it lands, the fallback, the warning. */
+function rivalPhrase(s: BattleState, e: EnemyUnit): string {
+  const i = e.intent;
+  if (i?.kind !== 'cast' && i?.kind !== 'trick') return '';
+  const read = rivalReadout(s, e);
+  const bits = [`will ${rivalVerb(e, i)} (${ordinal(i.order)})`];
+  if (i.kind === 'cast') {
+    const landing = read?.preview.landing;
+    bits.push(landing ? `lands at ${label(landing)}` : 'hits nothing yet');
+  } else {
+    const lock = i.lock?.kind === 'jar' ? jarLocation(s, i.lock.id) : null;
+    if (lock) {
+      const first = jarContents(lock.jar);
+      bits.push(`his jar at ${label(lock.at)}${first ? `, starts with ${first}` : ''}`);
+    } else bits.push('but its jar is gone');
+  }
+  if (i.fallback) bits.push(`if starved, strikes ${label(i.fallback)}`);
+  if (read?.warning) bits.push(read.warning);
+  return bits.join(' · ');
+}
+
+export function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (!e.intent) return 'waiting';
   if (e.intent.kind === 'summon')
     return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'step')
     return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
-  if (e.intent.kind === 'cast' || e.intent.kind === 'trick') {
-    const fallback = e.intent.fallback ? `, or strikes ${label(e.intent.fallback)}` : '';
-    return `will ${rivalVerb(e, e.intent)}${fallback} (${ordinal(e.intent.order)})`;
-  }
+  if (e.intent.kind === 'cast' || e.intent.kind === 'trick') return rivalPhrase(s, e);
   if (e.intent.kind === 'rivalStrike') {
-    return `${ATTACKS[dryStrikeIntent(e, e.intent).attack].verbs} ${e.intent.dir} (${ordinal(e.intent.order)})`;
+    const warning = rivalReadout(s, e)?.warning;
+    return `${ATTACKS[dryStrikeIntent(e, e.intent).attack].verbs} ${e.intent.dir} (${ordinal(e.intent.order)})${warning ? ` · ${warning}` : ''}`;
   }
   const verb = ATTACKS[e.intent.attack].verbs;
   const preview = intentPreview(s, e);
@@ -494,6 +564,11 @@ export function threatenedMembers(s: BattleState): string[] {
     const p = intentPreview(s, u);
     const victim = p?.hit ? unitAt(s, p.hit) : null;
     if (victim?.kind === 'member' && !out.includes(victim.id)) out.push(victim.id);
+  }
+  // A rival's shown spell warns for whoever it would hurt, even by an unwitnessed line (D3).
+  for (const u of livingUnits(s)) {
+    if (u.kind !== 'enemy' || !u.rival) continue;
+    for (const id of rivalReadout(s, u)?.hurt ?? []) if (!out.includes(id)) out.push(id);
   }
   return out;
 }

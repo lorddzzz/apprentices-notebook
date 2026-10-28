@@ -7,6 +7,8 @@
     type IntentMark,
     marksOf,
     type Overlay,
+    type RivalDraw,
+    rivalMarksOf,
     type StepDraw,
     stepsOf,
   } from '../../../app/overlay';
@@ -20,6 +22,7 @@
   import { cellLabel } from './label';
   import MarksLayer from './MarksLayer.svelte';
   import PieceLayer from './PieceLayer.svelte';
+  import RivalMarks from './RivalMarks.svelte';
   import RulePreviewLayer from './RulePreviewLayer.svelte';
   import SteamLayer from './SteamLayer.svelte';
   import StepLayer from './StepLayer.svelte';
@@ -107,6 +110,9 @@
       : overlay.intents,
   );
 
+  const rivals = $derived<RivalDraw[]>(
+    minimal ? rivalMarksOf(view.units, null) : (overlay.rivals ?? []),
+  );
   const marks = $derived<IntentMark[]>(minimal ? marksOf(view.units, null) : (overlay.marks ?? []));
   const steps = $derived<StepDraw[]>(minimal ? stepsOf(view.units) : (overlay.steps ?? []));
   const next = $derived(showNext && !minimal ? (overlay.next ?? null) : null);
@@ -154,6 +160,7 @@
   {#if next}<RulePreviewLayer shapes={next.shapes} />{/if}
   <StepLayer {steps} layer="under" />
   <IntentLayer {intents} {minimal} layer="paths" />
+  <RivalMarks {rivals} layer="under" />
   <MarksLayer {marks} layer="under" />
 
   {#each living as unit (unit.id)}
@@ -164,6 +171,7 @@
   <SteamLayer {view} />
   <IntentLayer {intents} {minimal} layer="badges" />
   <StepLayer {steps} layer="badges" />
+  <RivalMarks {rivals} layer="badges" />
   <MarksLayer {marks} layer="badges" />
   <BadgeLayer badges={overlay.badges} {ghosts} />
   <FxLayer {fx} {fxKey} width={view.width} height={view.height} />
