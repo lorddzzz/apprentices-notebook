@@ -30,9 +30,11 @@ export const CANALS_THRESHOLD: ThresholdSpec = {
  */
 export const CANALS_KIT: DistrictKitData = {
   id: 'canals',
+  lean: { lean: 'oil', text: 'Oil and water' },
+  // The first tier above the Seam (DK-16): captions face away from the trunk, branches run level.
+  map: { x: 25, y: 70, label: 'above' },
   ret: { kind: 'landings', after: [0, 2, 4] },
-  threshold: CANALS_THRESHOLD,
-  // RC-5 (P8, city-and-districts §5b): the runaway at the second landing (room 3, 0-based 2);
+  threshold: CANALS_THRESHOLD, // RC-5 (P8, city-and-districts §5b): the runaway at the second landing (room 3, 0-based 2);
   // Fuse is guaranteed in rooms 1-3, so every trip to her landmark can have it in hand.
   recruit: [{ apprentice: 'runaway', room: 2 }],
   recruitPages: [{ for: 'runaway', runes: ['fuse'], rooms: [0, 1, 2] }],

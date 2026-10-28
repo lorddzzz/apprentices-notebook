@@ -25,14 +25,20 @@ describe('sketch map helpers', () => {
     expect(n).toMatchObject({ state: 'heard', tryLock: true, fresh: true, heart: false });
     expect(n?.line).toBeTruthy();
     expect(n?.barred).toBeTruthy();
-    expect(n?.material).toBe('Oil');
-    expect(mapPaths(mapNodes(p)).map((x) => x.id)).toEqual(['canals']);
+    expect(n?.lean).toBe('oil');
+    expect(mapPaths(mapNodes(p)).map((x) => x.id)).toEqual(['trunk-70', 'canals']);
   });
 
   test('open canals: no barred text, no lock to try; solved shows a burnt gate', () => {
     const p = solveThreshold(withCity({ heard: ['seam', 'canals'] }), 'canals');
     const n = mapNode(p, 'canals');
-    expect(n).toMatchObject({ state: 'open', tryLock: false, burntGate: true, barred: '' });
+    expect(n).toMatchObject({
+      state: 'open',
+      tryLock: false,
+      solved: true,
+      solvedArt: 'canal-gate',
+      barred: '',
+    });
   });
 
   test('heart cleared marks the node', () => {
@@ -53,8 +59,8 @@ describe('sketch map helpers', () => {
     expect(nodes.filter((n) => n.state === 'heard').every((n) => n.barred !== '')).toBe(true);
   });
 
-  test('nodeTag joins material and guild', () => {
+  test('nodeTag joins the lean text and guild', () => {
     const n = mapNode(withCity({ heard: ['seam', 'canals'] }), 'canals');
-    expect(n && nodeTag(n)).toBe('Oil · The Lamplighters');
+    expect(n && nodeTag(n)).toBe('Oil and water · The Lamplighters');
   });
 });

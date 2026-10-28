@@ -7,6 +7,8 @@ import type { DistrictKitData } from './index';
  */
 export const FOUNDRY_KIT: DistrictKitData = {
   id: 'foundry',
+  lean: { lean: 'brass', text: 'Brass' },
+  map: { x: 25, y: 22, label: 'above' },
   hear: [
     {
       kind: 'conducted',

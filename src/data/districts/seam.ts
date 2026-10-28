@@ -5,7 +5,13 @@ import type { DistrictKitData } from './index';
  * The Seam's kit data. Its rooms, hearing and map still live in `src/data/districts.ts` until
  * DK-17 moves them here. Home is one step away after every room.
  */
-export const SEAM_KIT: DistrictKitData = { id: 'seam', ret: { kind: 'any' } };
+export const SEAM_KIT: DistrictKitData = {
+  id: 'seam',
+  lean: { lean: 'ink', text: 'All five materials' },
+  // The root of the map: the six districts branch up from it, its caption and the stair go below.
+  map: { x: 50, y: 79, label: 'below' },
+  ret: { kind: 'any' },
+};
 
 // ── The Marginalia (SM P2, P3; SM-1 builds it) ──────────
 /** The five hands in cycle order, one per round (P2). */

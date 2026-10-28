@@ -7,6 +7,8 @@ import type { DistrictKitData } from './index';
  */
 export const CARTOGRAPHERS_KIT: DistrictKitData = {
   id: 'cartographers',
+  lean: { lean: 'paper', text: 'Unfinished paper' },
+  map: { x: 75, y: 22, label: 'above' },
   hear: [
     {
       kind: 'pages',

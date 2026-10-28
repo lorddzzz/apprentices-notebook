@@ -6,6 +6,8 @@ import type { DistrictKitData } from './index';
  */
 export const BATHHOUSES_KIT: DistrictKitData = {
   id: 'bathhouses',
+  lean: { lean: 'steam', text: 'Steam' },
+  map: { x: 75, y: 70, label: 'above' },
   hear: [
     {
       kind: 'burstUnits',

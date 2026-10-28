@@ -7,6 +7,8 @@ import type { DistrictKitData } from './index';
  */
 export const INK_QUARTER_KIT: DistrictKitData = {
   id: 'inkQuarter',
+  lean: { lean: 'ink', text: 'Ink' },
+  map: { x: 25, y: 43, label: 'above' },
   hear: [
     {
       kind: 'crossDebt',

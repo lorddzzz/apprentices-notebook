@@ -6,6 +6,8 @@ import type { DistrictKitData } from './index';
  */
 export const BRIDGES_KIT: DistrictKitData = {
   id: 'bridges',
+  lean: { lean: 'height', text: 'Height, the drop' },
+  map: { x: 75, y: 43, label: 'above' },
   hear: [
     {
       kind: 'performed',
