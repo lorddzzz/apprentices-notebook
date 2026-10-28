@@ -1,3 +1,4 @@
+import type { VariantDef } from '../types';
 import type { RivalDef, RivalPageDef } from './types';
 
 /**
@@ -63,4 +64,17 @@ export const LAMPLIGHTER_PAGE: RivalPageDef = {
   trial: { board: '. . . . .\nD . . . r\n. . . . .' },
   /** The Jar note (footnotes §1 "Rival notes"); RV-20 authors the variant in FN's format. */
   note: { rune: 'jar', line: 'jar:unit', variant: 'lamplighter:wick' },
+};
+
+/**
+ * The Jar note (footnotes §1 "Rival notes", RV-20): a third level I option on `jar:unit`, in FN's
+ * variant shape. Hidden until his page is held (`rivalNoteVisible`); not yet in `BATCHES`, see the
+ * RV-20 report. Its effect needs an engine handler keyed by this id, not yet written.
+ */
+export const LAMPLIGHTER_WICK: VariantDef = {
+  id: 'lamplighter:wick',
+  subject: 'jar',
+  slot: { line: 'jar:unit', level: 1 },
+  text: 'The wick does not care who lit it: a jar that opens also harms the units beside its tile.',
+  rival: 'lamplighter',
 };
