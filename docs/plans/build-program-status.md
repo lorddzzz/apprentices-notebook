@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1, session of 2026-10-28). Running: RC-5, RV-7, FN-9, FN-11 (spawned 19:06).
+**State:** building (Stage 1, session of 2026-10-28). Running: RC-5, RV-7, FN-9 (spawned 19:06). FN-11 merged.
 **Reset:** 5h window resets 2026-10-29 00:00 UTC. Session rule (player, 2026-10-28): when the window nears its end, schedule a wake-up for the reset, at most 2 times (used: 0); the third time, finish without a timer and write a continuation prompt.
 **Weekly guard (player, 2026-10-24 17:30):** ignore the weekly limit unless it exceeds 97%; pace by the 5h limit only.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
@@ -88,6 +88,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | RC-7 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-af6f8c600b2df09ce @ e4e68a4 | shared | `app/recruitNotes.ts` (`noteText`, `notesUnderDoor`, `joinedHighlights`, `newcomers`); `recruits/NoteUnderDoor.svelte` + `WelcomeSheet.svelte` ("Not yet" / "Welcome in"), one mount in Study; `game.welcome(id)`, transient `joined` (filled on return, cleared on set out/wipe); TripPage "Someone joined the household" (lost on reload). 9 tests `tests/app/recruit-notes.test.ts`. Phone-checked (scratchpad rc7/). Exile note uses the invention name directly (namedTitle only for the Copyist's idiom key); UI avoids pronouns. Follow-up: `TripRecap.joined` to persist the line |
 | DK-15 | Fast / Haiku 5.5 / high | S | merged | worktree-agent-a5d7c952d9e8ae53a @ fb187d0 | ~3% | `CANALS_THRESHOLD` in `data/districts/canals.ts` (name, board, goal, note, goalText, solvedArt `canal-gate`), `CANALS_KIT.threshold`; `DistrictData.threshold?: ThresholdSpec`; legacy gate points at the same object; `app/threshold.ts` `thresholdRoom(d)`; Threshold.svelte reads it (no visual change, no browser check). Golden/lock unchanged. Not done: `rules` not wired (createBattle has no rules param); `solvedArt` unread (map draws the gate) |
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
+| FN-11 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a162af67b3a2cbe8b @ 1d404b5 | ~8% (shared) | `data/footnotes/auras.ts` `AURA_DIAGONAL` + `AURAS` batch (afterglow/steep/coil-diagonal capstones, registered in `BATCHES`); `compileLattice(…, opts: CompileOptions {diagonalAuras})`: those auras also touch the 4 diagonals (steps, sources, touches, spell ink; inside Glyph cells and around the socket); orthogonal touches listed first; `compiledFor` passes written capstones. Clusters, Glyph records, Fair Copy, proof masks stay orthogonal. Tests `tests/scenarios/aura-diagonal.test.ts`, `tests/run/aura-diagonal.test.ts` (re-pick keeps Glyph records). Golden unchanged. Not done: FN-12 FlowOverlay may draw diagonal touches oddly; Lab/Gallery compile without capstones |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -149,6 +150,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 08:16 | 77 | 3h44 | 64 | Narrow | merge RC-3, FN-3; a format slip reached main in 83f1d8e (fixed in f95c3d2); spawn FD-6, FN-6, FN-7 |
 | 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
 | 2026-10-28 19:04 | 2 | 4h56 | 0 | Normal | new session baseline; spawn RC-5, RV-7, FN-9, FN-11 |
+| 19:37 | 37 | 4h23 | 5 | Normal (~1.1%/min, 4 agents) | merge FN-11 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.

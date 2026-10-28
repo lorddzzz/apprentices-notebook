@@ -1,6 +1,8 @@
 import {
   APPRENTICE_IDS,
   type ApprenticeId,
+  AURA_DIAGONAL,
+  type AuraRuneId,
   BIND_EVENT_DISTRICT,
   type BindEvent,
   CODEX,
@@ -206,8 +208,14 @@ export function glyphLibrary(p: Pick<Profile, 'glyphs' | 'glyphRecords'>): Glyph
 export const inventionLibrary = (p: Pick<Profile, 'inventions'>): InventionLibrary =>
   libraryOf(p.inventions);
 
+/** The member's page as it casts: the household's aura capstones widen aura reach (FN P7). */
 export function compiledFor(p: Profile, m: MemberId): CompiledLattice {
-  return compileLattice(latticeOf(p, m), glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean);
+  const diagonalAuras = (Object.keys(AURA_DIAGONAL) as AuraRuneId[]).filter(
+    (aura) => p.footnotes[aura]?.capstone === AURA_DIAGONAL[aura],
+  );
+  return compileLattice(latticeOf(p, m), glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean, {
+    diagonalAuras,
+  });
 }
 
 export function setMemberLattice(p: Profile, m: MemberId, l: Lattice): Profile {

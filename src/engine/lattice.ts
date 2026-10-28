@@ -1,4 +1,5 @@
 import {
+  type AuraRuneId,
   type InventionDef,
   isInvention,
   type Lean,
@@ -251,20 +252,37 @@ const cellMap = (
 ): Map<CellKey, PlacedRune> =>
   new Map(cellsWithArgs(def, args, inventions).map((c) => [key(c.at), c]));
 
+/** Profile-dependent compile options (plan FN P7). */
+export interface CompileOptions {
+  /** Auras whose `auraDiagonal` capstone is written: they also touch the 4 diagonal cells. */
+  diagonalAuras?: readonly AuraRuneId[];
+}
+
+/** The 4 diagonal neighbours (up-left, up-right, down-right, down-left). */
+const diagonals = (c: Coord): Coord[] => [
+  { x: c.x - 1, y: c.y - 1 },
+  { x: c.x + 1, y: c.y - 1 },
+  { x: c.x + 1, y: c.y + 1 },
+  { x: c.x - 1, y: c.y + 1 },
+];
+
 /**
  * Compiles `l` into spells (plan §2.3): from each Source the flow walks the page, each Action or
  * Kind becoming a step, Fork a two-sided step (left walked first, it claims shared cells), Bend
  * turning the walk without a step, Seep/Lay/Toll and triggers wrapping the rest, a Seal putting
  * the rest in a jar. Auras and Sources insulate. `glyphs` resolves Glyph sockets (a Glyph not in
  * it insulates); `inventions` gives inventions their role; `lean` prices the ink.
+ * `opts.diagonalAuras` lets those auras touch diagonally too (orthogonal touches come first).
+ * Clusters, Glyph definitions and proof masks never pass it: they stay profile-independent.
  */
 export function compileLattice(
   l: Lattice,
   glyphs: GlyphLibrary = {},
   inventions: InventionLibrary = {},
   lean: Lean | null = null,
+  opts: CompileOptions = {},
 ): CompiledLattice {
-  return compile(l, glyphs, inventions, lean);
+  return compile(l, glyphs, inventions, lean, undefined, opts);
 }
 
 /** Walk the same control flow without retaining expanded paths or steps before accepting input. */
@@ -283,6 +301,7 @@ function compile(
   inventions: InventionLibrary,
   lean: Lean | null,
   budget?: ImportBudget,
+  opts: CompileOptions = {},
 ): CompiledLattice {
   budget?.spend('work', l.runes.length);
   const shape = l.shape;
@@ -315,26 +334,40 @@ function compile(
     return cellMap(def, args, inventions);
   };
   const role = (r: RuneRef): Role | null => roleOf(r, inventions);
-  const aurasNear = (look: (c: Coord) => PlacedRune | null, at: Coord): AuraRef[] =>
-    neighbors4(at).flatMap((n) => {
+  const diagonal = new Set<RuneRef>(opts.diagonalAuras ?? []);
+  /** Aura cells touching `at`: orthogonal ones, then diagonal ones that reach diagonally (P7). */
+  const auraCellsNear = (
+    look: (c: Coord) => PlacedRune | null,
+    at: Coord,
+  ): { at: Coord; aura: AuraRef }[] => {
+    const out: { at: Coord; aura: AuraRef }[] = [];
+    for (const n of neighbors4(at)) {
       const p = look(n);
-      return p && role(p.rune) === 'aura' ? [p.rune as AuraRef] : [];
-    });
+      if (p && role(p.rune) === 'aura') out.push({ at: n, aura: p.rune as AuraRef });
+    }
+    if (diagonal.size === 0) return out;
+    for (const n of diagonals(at)) {
+      const p = look(n);
+      if (p && diagonal.has(p.rune) && role(p.rune) === 'aura')
+        out.push({ at: n, aura: p.rune as AuraRef });
+    }
+    return out;
+  };
+  const aurasNear = (look: (c: Coord) => PlacedRune | null, at: Coord): AuraRef[] =>
+    auraCellsNear(look, at).map((a) => a.aura);
 
   const spells: Spell[] = [];
   const reached = new Set<CellKey>();
   const touches = new Map<string, AuraTouch>();
 
   const touch = (to: Coord): void => {
-    for (const n of neighbors4(to)) {
-      const p = runeAt(n);
-      if (!p || role(p.rune) !== 'aura') continue;
+    for (const { at: n, aura } of auraCellsNear(runeAt, to)) {
       const id = `${key(n)}>${key(to)}`;
       if (budget && !touches.has(id) && !priced.has(key(n))) {
         priced.add(key(n));
-        price(p.rune);
+        price(aura);
       }
-      touches.set(id, { aura: p.rune as AuraRef, from: n, to });
+      touches.set(id, { aura, from: n, to });
     }
   };
 

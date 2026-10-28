@@ -11,6 +11,7 @@ import type {
   SlotLevel,
   VariantDef,
 } from '../types';
+import { AURAS } from './auras';
 import { SEAM_RUNES } from './seam-runes';
 
 /**
@@ -18,10 +19,12 @@ import { SEAM_RUNES } from './seam-runes';
  * `seam-methods`, `canals`, …) and is joined here, so parallel district builds touch disjoint
  * files and add one line to `BATCHES`. Variant ids are `<subject>-<slug>` and never change.
  */
+export { AURA_DIAGONAL } from './auras';
 export { SHOVE_WALL_SOFT } from './seam-runes';
 
 export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   'seam-runes': SEAM_RUNES,
+  auras: AURAS,
 };
 
 /** Every authored variant, batches in registry order. */

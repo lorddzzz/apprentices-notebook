@@ -147,7 +147,8 @@ function aurasTouching(
 /**
  * Every cluster of every spell: any connected subtree that holds its own root, 3..8 flow cells,
  * with the auras touching it. The root is a Source (Spell) or any other flow cell (Payload).
- * Clusters that would hold a Glyph socket are skipped.
+ * Clusters that would hold a Glyph socket are skipped. Auras travel by orthogonal touch only,
+ * whatever aura capstones the household wrote (FN P7), so a Glyph record never depends on them.
  */
 export function clustersOf(l: Lattice, glyphs: GlyphLibrary = {}): Cluster[] {
   const compiled = compileLattice(l, glyphs);
