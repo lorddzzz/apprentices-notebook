@@ -2,12 +2,12 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** paused between sessions (Stage 1 in progress). No agents running, no partial branches. Both wake-ups of the 2026-10-24 session used; resume in a new session from this file.
-**Reset:** 5h window resets 2026-10-24 22:00 UTC. Session rule (player, 2026-10-24): both wake-ups used; at this window's end wrap up without a timer and write a continuation prompt for a new session.
+**State:** building (Stage 1, session of 2026-10-28). Running: RC-5, RV-7, FN-9, FN-11 (spawned 19:06).
+**Reset:** 5h window resets 2026-10-29 00:00 UTC. Session rule (player, 2026-10-28): when the window nears its end, schedule a wake-up for the reset, at most 2 times (used: 0); the third time, finish without a timer and write a continuation prompt.
 **Weekly guard (player, 2026-10-24 17:30):** ignore the weekly limit unless it exceeds 97%; pace by the 5h limit only.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
 **Next:**
-1. (RC-7 merged.) Check usage, record the baseline, then start from item 2.
+1. Collect reports from RC-5, RV-7, FN-9, FN-11; merge each. Then from item 2 (FN-10 after FN-9; RV-20 next filler).
 2. Ready, file-disjoint picks first (owned files in each plan's task row): AH-8 (AH verification sweep → AH plan done; tests/ + verification doc; then DESIGN/TECH/ROADMAP notes like HC-9), RC-5 (S; places the runaway in canals; re-records the Seam golden fixtures seam-win-6/-8/-9, seam-wipe-1/-7 — verify the diff), RV-7 (rival intent UI: overlay/describe/view/IntentLayer, RivalMarks), RV-10, RV-17/RV-18 (after RV-15 ✓), RV-20 (S; the Lamplighter's note variant `lamplighter:wick`, after RV-15 + FN-8 ✓), DK-14 (Lab/Bench district parity; lab.ts/bench.ts), DK-16 (map; Map.svelte, DistrictNode, app/city.ts), FN-9/FN-10 (lines), FN-11 (Strong; aura overlays), FN-A1/FN-A2 (content audits), SM-0 (S). Then RC-9 (after RC-5..RC-8 + DK-18), DK-17 → DK-18 (template district), CN-0 once DK-17 lands.
 3. Gates for the player (none run yet): **RV-G1** Lamplighter Lab playtest; HC playtest (a Seam trip with two then one apprentice, the shelf by thumb, start-point fairness, the 7×9 Lab board); AH playtest (Lab Kits: actions and habits); RC playtest. Open design questions are marked **ask player** in Proposals below.
 4. Rough edges worth a small task: ledger name overlaps HP pips ("Lamp-pole runaway"); Study lattice "Fit"/"Edit scale" look unstyled; `lootLine` should name recruits via the card registry; describe.ts "is down" → "out of the room" for out members; Lab/Combat pass `slots` to BattleView; Swap arc drawn under tokens.
@@ -148,6 +148,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 08:30 | 86 | 3h30 | 65 | Hold (projected >96%, ~0.65%/min) | merge FN-6; checkpoint-and-report nudges to FD-6, FN-7; no new spawns |
 | 08:16 | 77 | 3h44 | 64 | Narrow | merge RC-3, FN-3; a format slip reached main in 83f1d8e (fixed in f95c3d2); spawn FD-6, FN-6, FN-7 |
 | 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
+| 2026-10-28 19:04 | 2 | 4h56 | 0 | Normal | new session baseline; spawn RC-5, RV-7, FN-9, FN-11 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
