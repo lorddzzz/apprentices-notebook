@@ -1,5 +1,5 @@
 import { cloneData } from './clone';
-import { type Ctx, emit } from './ctx';
+import { type Ctx, emit, withLine } from './ctx';
 import { runDetached } from './jars';
 import { unitAt } from './queries';
 import { KIND_HANDLERS } from './runes/kinds';
@@ -35,7 +35,14 @@ function run(ctx: Ctx, e: Scheduled): void {
   }
   // A downed caster's delayed actions lapse (graphite undos above still restore the board).
   const owner = ctx.s.units.find((u) => u.id === e.owner);
-  if (!owner || owner.hp <= 0) return;
+  if (!owner || owner.hp <= 0) {
+    if (e.kind === 'repeat' || e.kind === 'margin') {
+      withLine(ctx, `${e.kind}:member`, () =>
+        emit(ctx, { type: 'miss', source: e.kind === 'repeat' ? 'Repeat' : 'Margin' }),
+      );
+    }
+    return;
+  }
   const at = whereIs(ctx.s, e.target);
   if (!at) return;
   const unit = e.target.kind === 'tile' ? unitAt(ctx.s, at) : null;

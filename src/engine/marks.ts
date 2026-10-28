@@ -22,6 +22,19 @@ import { targetKey } from './types';
 export const RELEASE_DEPTH_LIMIT = 3;
 const depths = new WeakMap<Ctx, number>();
 
+/** While Bind's carrier lands, the mark it makes is already Bind's: its spread signs `bind:cloud`. */
+const carrying = new WeakSet<Ctx>();
+
+export function asBindCarrier(ctx: Ctx, fn: () => void): void {
+  const was = carrying.has(ctx);
+  carrying.add(ctx);
+  try {
+    fn();
+  } finally {
+    if (!was) carrying.delete(ctx);
+  }
+}
+
 type NewMark = Omit<Mark, 'lineage'> & { lineage?: number };
 
 function reachedOf(ctx: Ctx, lineage: number): string[] {
@@ -102,7 +115,8 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
     withLine(ctx, 'wax:cloud', () => emit(ctx, { type: 'miss', source: 'Wax mark spreading' }));
     return;
   }
-  withLine(ctx, 'bind:cloud', () =>
+  // Plain Ink spreads under Ink's line; a mark that holds an action, or is made to, is Bind's (FN-1A In2).
+  withLine(ctx, mark.bound || carrying.has(ctx) ? 'bind:cloud' : 'ink:spread', () =>
     withOrigin(ctx, mark.origin, () => {
       for (const u of to) {
         u.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null };

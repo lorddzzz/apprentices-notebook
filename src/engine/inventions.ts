@@ -19,7 +19,7 @@ import { type Ctx, emit, withLine } from './ctx';
 import { type Coord, type Dir, opposite, step } from './grid';
 import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
-import { attachBound, liftMark } from './marks';
+import { asBindCarrier, attachBound, liftMark } from './marks';
 import { brassNet, isBrass } from './networks';
 import { findUnit, giftedIn, isAlive, unitAt } from './queries';
 import { NEST_LIMIT } from './resolve';
@@ -346,7 +346,14 @@ export function marginEcho(ctx: Ctx, rune: RuneRef, t: Target, at: Coord, flow: 
   if (flow.repeated || flow.woken || flow.auras.length === 0) return;
   const lib = ctx.s.inventions;
   const touching = flow.auras.some((a: AuraRef) => defOf(a, lib)?.method === 'margin');
-  if (!touching || isRepeat(rune, lib)) return;
+  if (!touching) return;
+  if (isRepeat(rune, lib)) {
+    // Said once per cast, however many targets the Repeat reached.
+    if (!ctx.log.some((e) => e.type === 'miss' && e.line === 'margin:limit')) {
+      withLine(ctx, 'margin:limit', () => emit(ctx, { type: 'miss', source: 'Margin' }));
+    }
+    return;
+  }
   const wait = (): void =>
     schedule(ctx, {
       when: 'ownerTurn',
@@ -373,11 +380,22 @@ function bind(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   if (carrier === undefined || action === undefined || !event) return [];
   const unit = unitOf(ctx, t);
   const heading = headingFor(flow, t);
-  runPart(ctx, carrier, t, flow);
+  const held = unit?.mark?.bound != null; // already holds an action: the Ink only deepens it
+  const collared = unit !== null && unit.collar !== false && unit.shackle === 0;
+  asBindCarrier(ctx, () => runPart(ctx, carrier, t, flow));
   if (!unit) {
     withLine(ctx, 'bind:empty', () => emit(ctx, { type: 'miss', source: 'Bind' }));
     return [t];
   }
+  // Nothing to hold the action: a shackle took the mark's place, or the old action stayed.
+  const lost: LineId | null = !isAlive(unit)
+    ? null
+    : collared && !unit.mark
+      ? 'bind:collar'
+      : held && unit.mark
+        ? 'bind:deepMark'
+        : null;
+  if (lost) withLine(ctx, lost, () => emit(ctx, { type: 'miss', source: 'Bind' }));
   if (isAlive(unit) && unit.mark && !unit.mark.bound) {
     attachBound(ctx, unit, { action, event, solvent: def.solvent ?? flow.solvent, heading });
   }

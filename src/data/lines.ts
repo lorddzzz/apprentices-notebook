@@ -16,7 +16,11 @@ const seam = (subject: LineSubject, meets: Meets, text: string): LineDef => ({
 
 export const LINES: readonly LineDef[] = [
   seam('bolt', 'cloud', 'A cloud stops Bolt on its tile, hiding any unit inside it.'),
-  seam('bolt', 'plate', 'A brass plate, grate or lock gate stops Bolt on its tile.'),
+  seam(
+    'bolt',
+    'plate',
+    'Anything standing up on a tile stops Bolt there: a plate, a wall, a kettle, a skid plate, a grate or a lock gate.',
+  ),
   seam('bolt', 'empty', 'An unobstructed Bolt shot lands on the last tile its line reaches.'),
   // kinds (E2)
   // Mixing: the 16 rows of the compound table (design §4.2).
@@ -137,7 +141,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'shove',
     meets: 'noHeading',
     district: 'seam',
-    text: 'Shove needs a way to point: a Touch on yourself that has not moved gives it none, and nothing is pushed.',
+    text: 'Shove needs a way to point: a Touch on yourself that has not moved, or a Splash aimed at your own tile (its centre and corners), gives it none, and nothing is pushed.',
   },
   {
     id: 'shove:slick',
@@ -151,7 +155,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'shove',
     meets: 'plate',
     district: 'seam',
-    text: 'A unit pushed into a plate is crushed for one more than the tiles it moved, and the plate breaks.',
+    text: "A unit pushed into a plate is crushed for one more than the tiles it moved, and a plate you cast breaks; one set into the room's floor never does.",
   },
   {
     id: 'shove:wall',
@@ -307,21 +311,21 @@ export const LINES: readonly LineDef[] = [
     subject: 'bind',
     meets: 'cloud',
     district: 'inkQuarter',
-    text: 'A mark that lands in a cloud, or walks into one, spreads to every unit in the connected cloud, allies too, once per unit per fight.',
+    text: 'A mark that holds a bound action spreads through a cloud as any mark does, copies and all: to every unit in the connected cloud, allies too, once per unit per fight.',
   },
   {
     id: 'bind:mark',
     subject: 'bind',
     meets: 'mark',
     district: 'inkQuarter',
-    text: 'A bound mark releases only on its event; it is spent before its action runs, and each copy releases once.',
+    text: 'A bound mark releases only on its event; it is spent before its action runs, and each copy releases once. The action points the way it was hit, else from the hitter toward the bearer, else as the Bind was cast; releases nested more than three deep fizzle.',
   },
   {
     id: 'lift:unit',
     subject: 'lift',
     meets: 'unit',
     district: 'inkQuarter',
-    text: 'Lift moves a mark, with whatever it holds, to a neighbour, and the mark keeps the spread history it already had.',
+    text: 'Lift moves a mark, with whatever it holds, to a neighbour, and the mark keeps the spread history it already had: it does not spread again on arrival, even into a cloud.',
   },
   {
     id: 'wax:cloud',
@@ -336,7 +340,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'conduct',
     meets: 'network',
     district: 'seam',
-    text: 'Conduct reaches every unit standing on or beside the connected brass the target touches, once each; a Coil reaches one tile further.',
+    text: "Conduct reaches every unit standing on or beside each separate piece of brass the target touches, once each and all in the target's way; who is on the brass is read once, before anyone acts, and a Coil reaches one tile further.",
   },
   {
     id: 'conduct:noTarget',
@@ -350,7 +354,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'repeat',
     meets: 'empty',
     district: 'canals',
-    text: 'A repeat waits on its tile, not on the unit: if the target has gone, it acts on whoever stands there next turn.',
+    text: 'A repeat waits on its tile, not on the unit: if the target has gone, it acts on whoever stands there next turn, in the way the first cast pointed.',
   },
   {
     id: 'margin:empty',
@@ -379,14 +383,14 @@ export const LINES: readonly LineDef[] = [
     subject: 'gallnut',
     meets: 'unit',
     district: 'seam',
-    text: 'Gallnut marks whoever the invention reaches, if they carry no mark already.',
+    text: 'Gallnut marks whoever the invention reaches, if they carry no mark already; on a Lift that includes the unit the mark just left, and a repeat marks only on its first pass.',
   },
   {
     id: 'cinder:slick',
     subject: 'cinder',
     meets: 'slick',
     district: 'seam',
-    text: 'Cinder leaves the tile hot for two rounds; oil on a hot tile, now or later, catches fire.',
+    text: "Cinder leaves the target's starting tile hot for two rounds, wherever it is then pushed; oil on a hot tile, now or later, catches fire.",
   },
   {
     id: 'pitch:water',
@@ -653,4 +657,45 @@ export const LINES: readonly LineDef[] = [
     'unit',
     'A Fork branch keeps the way of the spell, not of its own side; a tile reached twice is acted on once, and the left branch finishes before the right begins.',
   ),
+  // FN-10: the methods, Seam solvents and Seam leftovers (footnotes audit, FN-1A)
+  seam(
+    'ink',
+    'spread',
+    'A plain mark that lands in a cloud, or walks into one, spreads to every unit in the connected cloud, allies too, once per unit per fight.',
+  ),
+  {
+    id: 'repeat:member',
+    subject: 'repeat',
+    meets: 'member',
+    district: 'canals',
+    text: 'A repeat lapses if its caster is down when it falls due.',
+  },
+  {
+    id: 'margin:member',
+    subject: 'margin',
+    meets: 'member',
+    district: 'canals',
+    text: 'An echo lapses if its caster is down when it falls due.',
+  },
+  {
+    id: 'margin:limit',
+    subject: 'margin',
+    meets: 'limit',
+    district: 'canals',
+    text: 'A Margin never echoes a Repeat: it acts now and once more, not twice more.',
+  },
+  {
+    id: 'bind:deepMark',
+    subject: 'bind',
+    meets: 'deepMark',
+    district: 'inkQuarter',
+    text: 'Bind on a mark that already holds an action only deepens it: the old action stays and the new one is lost.',
+  },
+  {
+    id: 'bind:collar',
+    subject: 'bind',
+    meets: 'collar',
+    district: 'inkQuarter',
+    text: 'Bind on a collared unit makes a shackle, which holds nothing.',
+  },
 ];
