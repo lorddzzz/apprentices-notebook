@@ -248,6 +248,11 @@ const EVENT_TYPES: GameEvent['type'][] = [
   'triggered',
   'fizzles',
   'named',
+  // AH: the basic actions' announcements and the harm guard's `unharmed`.
+  'pull',
+  'hop',
+  'swapWith',
+  'unharmed',
 ];
 
 // Tests that move a unit by hand inside a draft (no event says so), so no log could project it.

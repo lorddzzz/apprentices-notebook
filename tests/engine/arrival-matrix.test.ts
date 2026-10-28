@@ -668,10 +668,117 @@ describe('arrival matrix: AH-1 basic actions outside the hook cells', () => {
   });
 });
 
+describe('arrival matrix: AH-4 fuseOnStep, the habit hook, × every cause of a member arriving', () => {
+  // The runaway's own dusk jar opens under her on the tile she lands on, whatever brought her
+  // there (P12); only for the jar's owner, only with the habit, never on a tile merely passed over.
+  interface FuseCase {
+    cause: string;
+    ascii: string;
+    jarAt: string;
+    run: (ctx: Ctx) => void;
+    /** The jar's tile is only passed over, not landed on. */
+    passedOver?: true;
+  }
+  const FUSE: readonly FuseCase[] = [
+    {
+      cause: 'walk',
+      ascii: 'D . .',
+      jarAt: 'B1',
+      run: (ctx) => {
+        const m = unitAt(ctx.s, at('A1'));
+        if (m?.kind === 'member') moveMember(ctx, m, at('B1'));
+      },
+    },
+    {
+      cause: 'push',
+      ascii: 'D . .',
+      jarAt: 'B1',
+      run: (ctx) => {
+        const u = unitAt(ctx.s, at('A1'));
+        if (u) push(ctx, u, 'right', 1, null);
+      },
+    },
+    {
+      // P2: a push enters every tile it moves through, so a jar on the way opens (like a step-jar).
+      cause: 'push through',
+      ascii: 'D . .',
+      jarAt: 'B1',
+      run: (ctx) => {
+        const u = unitAt(ctx.s, at('A1'));
+        if (u) push(ctx, u, 'right', 2, null);
+      },
+    },
+    {
+      cause: 'pull',
+      ascii: 'S . D',
+      jarAt: 'B1',
+      run: (ctx) => BASIC_ACTIONS.pull.apply(ctx, 'stoker', 'right'),
+    },
+    {
+      cause: 'hop',
+      ascii: 'D . .',
+      jarAt: 'C1',
+      run: (ctx) => BASIC_ACTIONS.hop.apply(ctx, 'draughtsman', 'right'),
+    },
+    {
+      cause: 'hop over',
+      ascii: 'D . .',
+      jarAt: 'B1',
+      passedOver: true,
+      run: (ctx) => BASIC_ACTIONS.hop.apply(ctx, 'draughtsman', 'right'),
+    },
+    {
+      cause: 'basic swap',
+      ascii: 'D r .',
+      jarAt: 'B1',
+      run: (ctx) => BASIC_ACTIONS.swap.apply(ctx, 'draughtsman', 'right'),
+    },
+  ];
+  const opened = (events: readonly GameEvent[]) => events.filter((e) => e.type === 'jarOpened');
+  const run = (c: FuseCase, owner: string, habit: 'fuseOnStep' | null) => {
+    const s = structuredClone(board(c.ascii, { kits: { draughtsman: { habit } } }));
+    tileAt(s, at(c.jarAt)).jar = { ...jar('dusk'), owner };
+    return draft(s, c.run);
+  };
+
+  for (const c of FUSE) {
+    describe(c.cause, () => {
+      if (c.passedOver) {
+        it('a tile passed over stays shut', () => {
+          expect(opened(run(c, 'draughtsman', 'fuseOnStep').events)).toEqual([]);
+        });
+        return;
+      }
+      it('her jar opens under her, tagged with the habit', () => {
+        expect(opened(run(c, 'draughtsman', 'fuseOnStep').events)).toEqual([
+          expect.objectContaining({ habit: 'fuseOnStep' }),
+        ]);
+      });
+      it('without the habit the jar waits for dusk', () => {
+        expect(opened(run(c, 'draughtsman', null).events)).toEqual([]);
+      });
+      it("someone else's jar waits, habit or not", () => {
+        expect(opened(run(c, 'stoker', 'fuseOnStep').events)).toEqual([]);
+      });
+    });
+  }
+
+  it('the line fuseOnStep:jar rides on every arrival she did not make herself', () => {
+    const lineOf = (cause: string) => {
+      const c = FUSE.find((x) => x.cause === cause);
+      if (!c) throw new Error(cause);
+      return opened(run(c, 'draughtsman', 'fuseOnStep').events).map((e) => e.line ?? null);
+    };
+    expect(lineOf('walk')).toEqual([null]);
+    expect(lineOf('hop')).toEqual([null]);
+    for (const cause of ['push', 'push through', 'pull', 'basic swap'])
+      expect(lineOf(cause)).toEqual(['fuseOnStep:jar']);
+  });
+});
+
 describe('arrival matrix: causes and rules that do not exist yet', () => {
   it.todo('return to sender (IQ), gargoyle carry (BR): landing only (P2)');
   it.todo('barge cargo and board pieces (DK, CN): object arrivals through objectArrives (P6)');
-  it.todo('runaway (party §0d): her Fuse jars also open when she steps onto them');
   it.todo(
     'fire (P8, Q1): no arrival effect; a later "entering fire burns at once" is one hook entry',
   );
