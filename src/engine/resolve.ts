@@ -11,8 +11,8 @@ import { sameStateNet } from './networks';
 import { hitPiece } from './pieces';
 import { blockerName, findUnit, giftedIn, isCloud, longTouchOver, tileAt, unitAt } from './queries';
 import { handlerFor } from './runes';
-import { forkSide, jarFor, seep, toll, trial } from './runes/flow';
-import { aimTargets, boltTravel, whereIs } from './targets';
+import { forkSide, isForked, jarFor, seep, toll, trial } from './runes/flow';
+import { aimLine, aimTargets, boltTravel, whereIs } from './targets';
 import type {
   Aim,
   BattleState,
@@ -160,6 +160,8 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           giftedAuras: giftedAuras(findUnit(s, flow.caster), st.auras),
         };
         const acted = new Set<UnitId>(); // P23: a unit is acted on once per Action
+        let sawUnit = false;
+        const forked = st.role === 'action' && isForked(flow.headings);
         for (const t of live) {
           if (fizzled(ctx)) return;
           const at = whereIs(s, t);
@@ -169,10 +171,21 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
             const u = unitAt(s, at);
             if (u && acted.has(u.id)) continue; // pushed onto this tile in this very step
           }
+          const standing = t.kind === 'unit' || unitAt(s, at) !== null;
+          if (standing) sawUnit = true;
           withOrigin(ctx, stepOrigin, () => {
-            handler?.(ctx, t, here, st);
+            if (handler && forked && standing) {
+              withLine(ctx, 'fork:unit', () => handler(ctx, t, here, st));
+            } else handler?.(ctx, t, here, st);
             if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here);
           });
+        }
+        // A Strike or Guard that found nobody anywhere in its targets says so, once.
+        const rune = st.rune;
+        if (!sawUnit && st.role === 'action' && (rune === 'strike' || rune === 'guard')) {
+          withLine(ctx, `${rune}:empty`, () =>
+            emit(ctx, { type: 'miss', source: RUNES[rune].name }),
+          );
         }
         span();
         queue(st.next, live, flow);
@@ -186,6 +199,9 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           : null;
         if (left.blind > 0) {
           withLine(ctx, 'fork:noHeading', () => emit(ctx, { type: 'miss', source: 'Fork' }));
+        }
+        if (left.off + right.off > 0) {
+          withLine(ctx, 'fork:edge', () => emit(ctx, { type: 'miss', source: 'Fork' }));
         }
         span();
         if (ahead) {
@@ -451,7 +467,11 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
           ? 'longTouch:cloud'
           : null;
       withHabit(ctx, habit, () => (line ? withLine(ctx, line, aimed) : aimed()));
-    } else aimed();
+    } else {
+      const line = aimLine(caster, spell.source, aim, targets);
+      if (line) withLine(ctx, line, aimed);
+      else aimed();
+    }
     if (spell.source === 'bolt') flight(ctx, caster, aim, gifted);
     landed.targets = targets.map(targetKey);
     s.landed.push(landed);

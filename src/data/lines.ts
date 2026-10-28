@@ -207,7 +207,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'guard',
     meets: 'shielded',
     district: 'seam',
-    text: 'Guard on a unit that already has a shield adds to it.',
+    text: 'Guard on a unit that already has a shield adds to it, and the shield lasts as long as the longer of the two.',
   },
   {
     id: 'hold:held',
@@ -614,4 +614,43 @@ export const LINES: readonly LineDef[] = [
     district: 'seam',
     text: 'A Fork with no heading has no sides, so nothing on either branch happens.',
   },
+  // FN-9: the Seam sources and shapes (footnotes audit, FN-1A)
+  seam(
+    'splash',
+    'unit',
+    'Splash points every tile outward from its centre, so a Shove after it scatters the units; the centre takes the way from you to it.',
+  ),
+  seam(
+    'splash',
+    'noHeading',
+    'A Splash aimed at your own tile gives its centre and corners no way to point: a Shove there pushes nothing.',
+  ),
+  seam('splash', 'member', 'You can stand inside your own Splash, and are a target like anyone.'),
+  seam(
+    'splash',
+    'edge',
+    'Near the edge of the room a Splash is clipped: tiles off the board are not acted on.',
+  ),
+  seam(
+    'touch',
+    'member',
+    'Touch on yourself points the way of your last step this turn; undoing the move or starting a new turn clears it.',
+  ),
+  seam(
+    'touch',
+    'unit',
+    'Touch on a neighbouring unit points away from you: a Shove pushes it off, and a Fork sends its branches to its sides.',
+  ),
+  seam('strike', 'empty', 'Strike on a tile nobody stands on does nothing.'),
+  seam('guard', 'empty', 'Guard on a tile nobody stands on does nothing.'),
+  seam(
+    'fork',
+    'edge',
+    'A Fork branch that would leave the room is dropped; the other side still goes.',
+  ),
+  seam(
+    'fork',
+    'unit',
+    'A Fork branch keeps the way of the spell, not of its own side; a tile reached twice is acted on once, and the left branch finishes before the right begins.',
+  ),
 ];

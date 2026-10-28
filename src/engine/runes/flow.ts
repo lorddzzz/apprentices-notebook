@@ -19,6 +19,11 @@ export interface Aimed {
   headings: Map<string, Dir | null>;
 }
 
+/** Heading maps a Fork built: a Shove or Strike downstream of one acts under `fork:unit`. */
+const forked = new WeakSet<ReadonlyMap<string, Dir | null>>();
+export const isForked = (headings: ReadonlyMap<string, Dir | null>): boolean =>
+  forked.has(headings);
+
 /** Appends `t` unless its key is already taken (P24: the first one wins). */
 function add(out: Aimed, seen: Set<string>, t: Target, heading: Dir | null, override: boolean) {
   const k = targetKey(t);
@@ -31,7 +36,7 @@ function add(out: Aimed, seen: Set<string>, t: Target, heading: Dir | null, over
 /**
  * Fork (R5, P24): one side of every target (`ahead` is the Stoker's habit, P36), relative to its own heading. A side off the board is
  * dropped, duplicates are dropped (first in order wins). `blind` counts targets with no heading:
- * they have no sides (the `fork:noHeading` line). A side keeps the heading of the target it
+ * they have no sides (the `fork:noHeading` line); `off` counts sides dropped at the edge (`fork:edge`). A side keeps the heading of the target it
  * came from, so a Shove after a Fork still pushes along the spell's heading.
  */
 export function forkSide(
@@ -39,8 +44,14 @@ export function forkSide(
   targets: readonly Target[],
   headings: ReadonlyMap<string, Dir | null>,
   side: 'left' | 'right' | 'ahead',
-): Aimed & { blind: number } {
-  const out: Aimed & { blind: number } = { targets: [], headings: new Map(headings), blind: 0 };
+): Aimed & { blind: number; off: number } {
+  const out: Aimed & { blind: number; off: number } = {
+    targets: [],
+    headings: new Map(headings),
+    blind: 0,
+    off: 0,
+  };
+  forked.add(out.headings);
   const seen = new Set<string>();
   for (const t of targets) {
     const at = whereIs(s, t);
@@ -54,6 +65,7 @@ export function forkSide(
       side === 'ahead' ? heading : side === 'left' ? turnLeft(heading) : turnRight(heading);
     const to = step(at, way);
     if (inBoard(s, to)) add(out, seen, targetOn(s, to), heading, true);
+    else out.off++;
   }
   return out;
 }

@@ -187,6 +187,7 @@ describe('Stoker: his Forks act on the tile ahead too', () => {
       'Strike hits rat at B1 for 2',
       'rat at B1 dies',
       'oil lands at B3 as slick',
+      'Strike hits nothing', // the tile ahead is empty (strike:empty, FN-9)
       'oil lands at C2 as slick',
     ]);
     // Without the habit, the tile ahead is left alone.

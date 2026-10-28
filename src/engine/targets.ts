@@ -1,4 +1,4 @@
-import { type SourceRuneId, TUNING } from '$data';
+import { type LineId, type SourceRuneId, TUNING } from '$data';
 import type { DraftOptions } from './ctx';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, square } from './grid';
@@ -129,4 +129,30 @@ export function aimTargets(
       return { targets: [t], headings: new Map([[targetKey(t), axisToward(caster.pos, aim.at)]]) };
     }
   }
+}
+
+/**
+ * The fine-print line an aim meets (stamped on the `aimed` event), most telling first. A Splash
+ * on your own tile gives its centre and corners no heading; the caster inside its own area is a
+ * target like anyone; near an edge the 3×3 is clipped; otherwise a unit in it takes its heading
+ * from the centre. A Touch on yourself carries your last step; on a unit it points away from you.
+ */
+export function aimLine(
+  caster: Unit,
+  source: SourceRuneId,
+  aim: Aim,
+  targets: readonly Target[],
+): LineId | null {
+  if (source === 'splash' && aim.kind === 'tile') {
+    if (aim.at.x === caster.pos.x && aim.at.y === caster.pos.y) return 'splash:noHeading';
+    if (targets.some((t) => t.kind === 'unit' && t.unit === caster.id)) return 'splash:member';
+    if (targets.length < square(aim.at, TUNING.splashRadius).length) return 'splash:edge';
+    return targets.some((t) => t.kind === 'unit') ? 'splash:unit' : null;
+  }
+  if (source === 'touch') {
+    if (aim.kind === 'self') return 'touch:member';
+    const first = targets[0];
+    return aim.kind === 'tile' && first?.kind === 'unit' ? 'touch:unit' : null;
+  }
+  return null;
 }
