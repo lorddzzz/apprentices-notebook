@@ -50,6 +50,7 @@
 ### Rival notes
 
 - Each rival's page (BL-118) names one rune and one slot; the note is the extra option there and appears only after the page is held. It never replaces the two authored options. It is authored in that rival's own voice and carries a lore line about the rival ("the Lamplighter's note on Jar: the wick does not care who lit it").
+- **The Lamplighter's note (decided 2026-10-28):** on Jar, level I, slot `jar:unit`. *A jar you sealed can be opened by anyone, foe or rival included, and its contents still count as yours* (credit and footnote points go to your household). No new harm.
 - The rival is beaten in the district; its note is a rare, named variant, so a build that uses it says so on the page (the owner's hand credits the author in the margin).
 
 ### Notebook presentation
