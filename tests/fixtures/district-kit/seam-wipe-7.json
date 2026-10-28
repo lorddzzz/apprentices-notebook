@@ -1370,9 +1370,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "touch" },
         { "kind": "solvent", "solvent": "cinder" },
-        { "kind": "ink", "amount": 2 },
-        { "kind": "solvent", "solvent": "gallnut" }
+        { "kind": "ink", "amount": 2 }
       ],
       "picked": [0],
       "stats": {

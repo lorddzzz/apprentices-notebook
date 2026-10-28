@@ -1146,9 +1146,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "touch" },
         { "kind": "solvent", "solvent": "cinder" },
-        { "kind": "rune", "rune": "splash" },
-        { "kind": "ink", "amount": 2 }
+        { "kind": "rune", "rune": "splash" }
       ],
       "picked": [0],
       "stats": {
@@ -2171,13 +2171,13 @@
   ],
   "outcome": "returned",
   "profile": {
-    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "brass"],
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "brass", "touch"],
     "methods": ["conduct"],
     "bindEvents": [],
     "inventions": [],
     "solvents": {
       "gallnut": 0,
-      "cinder": 1,
+      "cinder": 0,
       "pitch": 0,
       "wick": 0,
       "wax": 0,
@@ -2234,7 +2234,7 @@
       "ink": { "points": 3, "slots": {} },
       "shove": { "points": 5, "slots": {} }
     },
-    "solventsFound": ["cinder"],
+    "solventsFound": [],
     "papers": [],
     "pages": [],
     "vellum": 0,
@@ -2317,7 +2317,7 @@
     "loot": [
       { "kind": "rune", "rune": "brass" },
       { "kind": "ink", "amount": 2 },
-      { "kind": "solvent", "solvent": "cinder" },
+      { "kind": "rune", "rune": "touch" },
       { "kind": "method", "method": "conduct" },
       { "kind": "ink", "amount": 2 }
     ],
@@ -2357,13 +2357,13 @@
   },
   "save": {
     "profile": {
-      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "brass"],
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "brass", "touch"],
       "methods": ["conduct"],
       "bindEvents": [],
       "inventions": [],
       "solvents": {
         "gallnut": 0,
-        "cinder": 1,
+        "cinder": 0,
         "pitch": 0,
         "wick": 0,
         "wax": 0,
@@ -2423,7 +2423,7 @@
         "ink": { "points": 3, "slots": {} },
         "shove": { "points": 5, "slots": {} }
       },
-      "solventsFound": ["cinder"],
+      "solventsFound": [],
       "papers": [],
       "pages": [],
       "vellum": 0,
@@ -2506,7 +2506,7 @@
       "loot": [
         { "kind": "rune", "rune": "brass" },
         { "kind": "ink", "amount": 2 },
-        { "kind": "solvent", "solvent": "cinder" },
+        { "kind": "rune", "rune": "touch" },
         { "kind": "method", "method": "conduct" },
         { "kind": "ink", "amount": 2 }
       ],

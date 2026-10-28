@@ -1405,9 +1405,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "touch" },
         { "kind": "ink", "amount": 2 },
-        { "kind": "rune", "rune": "brass" },
-        { "kind": "solvent", "solvent": "cinder" }
+        { "kind": "rune", "rune": "brass" }
       ],
       "picked": [0],
       "stats": {
@@ -2340,8 +2340,8 @@
       "outcome": "won",
       "offers": [
         { "kind": "method", "method": "conduct" },
-        { "kind": "rune", "rune": "touch" },
-        { "kind": "solvent", "solvent": "cinder" }
+        { "kind": "ink", "amount": 1 },
+        { "kind": "vellum", "amount": 1 }
       ],
       "picked": [0, 0],
       "stats": {
@@ -2399,7 +2399,7 @@
       "graphite": 0
     },
     "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
-    "ink": 12,
+    "ink": 11,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2500,9 +2500,9 @@
     "loot": [
       { "kind": "rune", "rune": "fork" },
       { "kind": "ink", "amount": 2 },
-      { "kind": "ink", "amount": 2 },
+      { "kind": "rune", "rune": "touch" },
       { "kind": "method", "method": "conduct" },
-      { "kind": "rune", "rune": "touch" }
+      { "kind": "ink", "amount": 1 }
     ],
     "offers": [],
     "picksLeft": 0,
@@ -2564,7 +2564,7 @@
         "members": ["draughtsman", "stoker"],
         "slots": ["draughtsman", "stoker", null]
       },
-      "ink": 12,
+      "ink": 11,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -2676,9 +2676,9 @@
       "loot": [
         { "kind": "rune", "rune": "fork" },
         { "kind": "ink", "amount": 2 },
-        { "kind": "ink", "amount": 2 },
+        { "kind": "rune", "rune": "touch" },
         { "kind": "method", "method": "conduct" },
-        { "kind": "rune", "rune": "touch" }
+        { "kind": "ink", "amount": 1 }
       ],
       "offers": [],
       "picksLeft": 0,

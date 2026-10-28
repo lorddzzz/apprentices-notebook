@@ -5,22 +5,28 @@ import {
   COMPOUND_IDS,
   DISTRICT_IDS,
   DISTRICTS,
+  type DistrictId,
   ENCOUNTERS,
   ENEMIES,
   ENEMY_IDS,
+  HABITS,
   IDIOMS,
   LOOT_TABLES,
   MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   METHODS,
+  RECRUITS,
   RUNE_IDS,
   RUNES,
+  type RuneId,
   SOLVENT_IDS,
   START_KNOWN,
   TUNING,
 } from '$data';
-import { parseBoard, parseLattice } from '$engine';
+import { DISTRICT_KIT } from '$data/districts/index';
+import { BASIC_ACTIONS, parseBoard, parseLattice } from '$engine';
+import { preconditionsOf } from '$engine/recruits';
 import { checkRoom } from '$engine/rooms';
 
 test('31 runes, unique tokens', () => {
@@ -203,4 +209,110 @@ test('every room layout passes checkRoom: start points (P) only, no apprentice t
     expect(checkRoom(layout), name).toEqual([]);
   }
   // The canal lock still fields the pair on fixed tiles until HC-5 lays its start points (P10).
+});
+
+// ── Recruit placement (recruitment plan RC-5, P8/P9, §6 static) ──────────────────────────────
+const RECRUIT_IDS = Object.keys(RECRUITS) as (keyof typeof RECRUITS)[];
+/** The Seam's own precondition pages (§0d): guaranteed in its deep and heart rooms (P6). */
+const SEAM_PAGES: readonly RuneId[] = ['touch', 'splash', 'steam', 'brass'];
+/** Door arrivals whose Board pages come from a district still being drawn (party.md §2: Cartographers). */
+const PAGES_FROM_DRAWN: Readonly<Record<string, DistrictId>> = { exile: 'cartographers' };
+
+const placements = DISTRICT_IDS.flatMap((d) =>
+  (DISTRICT_KIT[d]?.recruit ?? []).map((r) => ({ district: d, ...r })),
+);
+const placedIn = (id: string): DistrictId | undefined =>
+  placements.find((r) => r.apprentice === id)?.district;
+const seamHasDeepRooms = DISTRICTS.seam.encounters.some(
+  (e) => e.loot === 'deep' || e.loot === 'heart',
+);
+
+/** Whether `rune` has a guarantee source for `id`: the Seam's rooms, or her district's pages line. */
+function sourced(id: keyof typeof RECRUITS, rune: RuneId, landmark: number): boolean {
+  if (START_KNOWN.includes(rune)) return true;
+  if (SEAM_PAGES.includes(rune)) return seamHasDeepRooms;
+  const found = RECRUITS[id].found;
+  if (!('district' in found)) return false;
+  return (DISTRICT_KIT[found.district]?.recruitPages ?? []).some(
+    (l) =>
+      l.for === id &&
+      l.rooms.length > 0 &&
+      l.rooms.every((r) => r >= 0 && r <= landmark) &&
+      l.rooms.some((r) => r < landmark) &&
+      ('runes' in l ? l.runes : l.any).includes(rune),
+  );
+}
+
+test('every placement: a real recruit, a real room in a district that opens, once (P8)', () => {
+  expect(new Set(placements.map((r) => r.apprentice)).size).toBe(placements.length);
+  for (const r of placements) {
+    const def = RECRUITS[r.apprentice as keyof typeof RECRUITS];
+    expect(def, r.apprentice).toBeDefined();
+    expect(def.found, r.apprentice).toEqual({ district: r.district });
+    expect(DISTRICTS[r.district].gate.kind, r.district).not.toBe('drawing');
+    expect(r.room, r.apprentice).toBeGreaterThanOrEqual(0);
+    expect(r.room, r.apprentice).toBeLessThan(DISTRICTS[r.district].encounters.length);
+  }
+});
+
+test('every recruit page line belongs to a recruit of that district, in rooms up to the landmark', () => {
+  for (const d of DISTRICT_IDS) {
+    for (const l of DISTRICT_KIT[d]?.recruitPages ?? []) {
+      const id = l.for as keyof typeof RECRUITS;
+      expect(RECRUITS[id].found, `${d}/${id}`).toEqual({ district: d });
+      const landmark = placements.find((r) => r.apprentice === id)?.room;
+      expect(landmark, `${d}/${id} has a landmark`).toBeDefined();
+      expect(l.rooms.length, `${d}/${id}`).toBeGreaterThan(0);
+      for (const room of l.rooms) {
+        expect(room, `${d}/${id}`).toBeGreaterThanOrEqual(0);
+        expect(room, `${d}/${id} before the landmark`).toBeLessThanOrEqual(landmark ?? -1);
+      }
+    }
+  }
+});
+
+test('every placed recruit: each precondition rune has a guarantee source, one room before the landmark at least', () => {
+  for (const r of placements) {
+    const id = r.apprentice as keyof typeof RECRUITS;
+    const { all, any } = preconditionsOf(id).runes;
+    for (const rune of all) expect(sourced(id, rune, r.room), `${id}/${rune}`).toBe(true);
+    if (any)
+      expect(
+        any.some((x) => sourced(id, x, r.room)),
+        `${id} any`,
+      ).toBe(true);
+  }
+});
+
+test('every placed recruit has her habit and her basic action implemented (P9)', () => {
+  for (const r of placements) {
+    const def = RECRUITS[r.apprentice as keyof typeof RECRUITS];
+    expect(HABITS[def.habit], `${def.id} habit`).toBeDefined();
+    expect(BASIC_ACTIONS[def.action], `${def.id} action`).toBeDefined();
+  }
+});
+
+test('an unplaced district recruit belongs to a district still being drawn (P9)', () => {
+  for (const id of RECRUIT_IDS) {
+    const found = RECRUITS[id].found;
+    if (!('district' in found) || placedIn(id)) continue;
+    expect(DISTRICTS[found.district].gate.kind, `${id} / ${found.district}`).toBe('drawing');
+  }
+});
+
+test('every door arrival: her pages come from the Seam, a placed page, or a district being drawn', () => {
+  const pageSources = DISTRICT_IDS.flatMap((d) =>
+    (DISTRICT_KIT[d]?.recruitPages ?? []).map((l) => l),
+  );
+  for (const id of RECRUIT_IDS) {
+    if (!('door' in RECRUITS[id].found)) continue;
+    const { all, any } = preconditionsOf(id).runes;
+    for (const rune of [...all, ...(any?.slice(0, 1) ?? [])]) {
+      if (START_KNOWN.includes(rune) || SEAM_PAGES.includes(rune)) continue;
+      const placed = pageSources.some((l) => ('runes' in l ? l.runes : l.any).includes(rune));
+      const waits = PAGES_FROM_DRAWN[id];
+      const drawn = waits !== undefined && DISTRICTS[waits].gate.kind === 'drawing';
+      expect(placed || drawn, `${id}/${rune}`).toBe(true);
+    }
+  }
 });

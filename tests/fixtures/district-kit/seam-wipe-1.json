@@ -1473,9 +1473,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "touch" },
         { "kind": "ink", "amount": 2 },
-        { "kind": "rune", "rune": "splash" },
-        { "kind": "rune", "rune": "fork" }
+        { "kind": "rune", "rune": "splash" }
       ],
       "picked": [0],
       "stats": {

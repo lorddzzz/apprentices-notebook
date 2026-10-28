@@ -32,4 +32,8 @@ export const CANALS_KIT: DistrictKitData = {
   id: 'canals',
   ret: { kind: 'landings', after: [0, 2, 4] },
   threshold: CANALS_THRESHOLD,
+  // RC-5 (P8, city-and-districts §5b): the runaway at the second landing (room 3, 0-based 2);
+  // Fuse is guaranteed in rooms 1-3, so every trip to her landmark can have it in hand.
+  recruit: [{ apprentice: 'runaway', room: 2 }],
+  recruitPages: [{ for: 'runaway', runes: ['fuse'], rooms: [0, 1, 2] }],
 };

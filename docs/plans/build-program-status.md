@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1, session of 2026-10-28). Running: none yet re-spawned. FN-11, FN-9 merged; RC-5, RV-7 reported (reviewing).
+**State:** building (Stage 1, session of 2026-10-28). Running: FN-10, RV-20, DK-14 (spawned 19:49). Merged this session: FN-11, FN-9, RC-5; RV-7 reported (reviewing).
 **Reset:** 5h window resets 2026-10-29 00:00 UTC. Session rule (player, 2026-10-28): when the window nears its end, schedule a wake-up for the reset, at most 2 times (used: 0); the third time, finish without a timer and write a continuation prompt.
 **Weekly guard (player, 2026-10-24 17:30):** ignore the weekly limit unless it exceeds 97%; pace by the 5h limit only.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
@@ -90,6 +90,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | FN-1A | Strong / Opus 5.5 / medium | M | merged | worktree-agent-aeb0431faf9056812 @ 5a09d70 | shared | 59 gaps (22 new, 10 new+event, 27 text); `bind:cloud` misfiled on plain Ink spread |
 | FN-11 | Strong / Opus 5.5 / medium | M | merged | worktree-agent-a162af67b3a2cbe8b @ 1d404b5 | ~8% (shared) | `data/footnotes/auras.ts` `AURA_DIAGONAL` + `AURAS` batch (afterglow/steep/coil-diagonal capstones, registered in `BATCHES`); `compileLattice(…, opts: CompileOptions {diagonalAuras})`: those auras also touch the 4 diagonals (steps, sources, touches, spell ink; inside Glyph cells and around the socket); orthogonal touches listed first; `compiledFor` passes written capstones. Clusters, Glyph records, Fair Copy, proof masks stay orthogonal. Tests `tests/scenarios/aura-diagonal.test.ts`, `tests/run/aura-diagonal.test.ts` (re-pick keeps Glyph records). Golden unchanged. Not done: FN-12 FlowOverlay may draw diagonal touches oddly; Lab/Gallery compile without capstones |
 | FN-9 | Medium / Sonnet 5.5 / high | M | merged | worktree-agent-a8f760496640327a0 @ 5e55e1a | shared | 10 Seam rows in lines.ts: splash:unit/noHeading/member/edge, touch:member/unit, strike:empty, guard:empty, fork:edge, fork:unit; guard:shielded text fixed. `targets.ts` `aimLine()` (priority noHeading > member > edge > unit; long-touch habit lines win); resolve.ts: strike/guard:empty one `miss` per step when no target had a unit; fork:edge `miss` when a side falls off; fork:unit wraps Action handlers on units reached through a Fork (`isForked` WeakSet of Fork-built heading maps in runes/flow.ts; `forkSide` returns `off`). Tests `tests/scenarios/footnote-lines-seam.test.ts` (15); leans.test.ts fork-ahead-habit now expects "Strike hits nothing". Golden unchanged. Not done: Bo1 (bolt:plate text), Sh1/Sh2 + shove:noHeading text (Splash on own tile also triggers it), In2 (`bind:cloud` on plain Ink spread → ink:spread) → FN-10 or FN-C3. Seep/Toll after a Fork drops the fork:unit mark |
+| RC-5 | Medium / Sonnet 5.5 / high | S | merged | worktree-agent-a345de18310513bb9 @ 9e4663a | shared | `CANALS_KIT.recruit` runaway at room 2 (0-based; second landing), `recruitPages` Fuse in rooms 0–2. Integrity recruit section (6 tests: real recruit/room, page rooms ≤ landmark with one before, precondition runes sourced, habit/action implemented, unplaced recruits in `drawing` districts, door-arrival pages sourced). `tests/run/recruit-placement.test.ts` (10). Golden re-recorded: canals-win-2/4/5/6 (Fuse guaranteed rooms 1–3, `fuse` in known, displaced ink/pitch/jar offers) and seam-win-6/8/9, seam-wipe-1/7 (Touch page in deep rooms displaces one offer); fixtures biome-formatted. Updated two tests that asserted "no district places a recruit" |
 
 ## Usage log
 | Time (UTC) | 5h % | resets in | weekly % | zone | action |
@@ -152,6 +153,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 07:59 | 71 | 4h01 | 63 | Hold by projection (~1.3%/min, spin-up) | merge DK-6 (pushed); reduce-scope nudges to RC-3, RV-3 (orchestrator call: spin-up burst overstates the rate; partial commits recoverable at wake-up #1) |
 | 2026-10-28 19:04 | 2 | 4h56 | 0 | Normal | new session baseline; spawn RC-5, RV-7, FN-9, FN-11 |
 | 19:37 | 37 | 4h23 | 5 | Normal (~1.1%/min, 4 agents) | merge FN-11 |
+| 19:48 | 44 | 4h11 | 6 | Normal (~0.6%/min) | merge FN-9; spawn FN-10, RV-20, DK-14; merge RC-5 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - AH-2: `markTwice:deepMark` fires whenever a deep mark is weighed (explains the count); `nearUnison:unit` fires on any match through a unit entry; `touchReach` ≥2 means exactly two tiles. Accepted.
@@ -211,6 +213,9 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - HC-8: order PartyStrip by slot order (placeParty sorts by drawn spot, so cards reshuffle each room) → follow-up for HC-9; add `members` to HC-9's sweep. Engine gap: `notation.ts`/`scenario.ts` loop pair-only `MEMBER_IDS`, recruit tokens don't parse → fixed in a small task (12:59). Accepted.
 
 - HC-9's sweep timed out (33 s vs 30 s) under load; orchestrator raised its non-FULL timeout to 90 s.
+- FN-11: clusters, Glyph records, Fair Copy and proof masks stay orthogonal (re-pick can't leave stale auras); the capstone reaches diagonally inside a Glyph and around its socket; orthogonal touches listed first; diagonal aura ink counts toward the spell, page total and +1 per aura next to a Glyph stay orthogonal; aura inventions don't get the reach; text "<Aura> also reaches the runes diagonally touching it on the page." Accepted.
+- FN-9: one `aimed` carries one line (Splash priority noHeading > member > edge > unit); splash/touch:unit only with a unit; touch:member on every self-Touch; strike/guard:empty once per step; fork:unit on Actions only (lost after Seep/Toll); logs now say "Strike/Guard/Fork hits nothing" (audit new+event rule). Accepted.
+- RC-5: page rooms may include the landmark if one comes before it; exile's Board runes count as sourced while Cartographers is `drawing` (`PAGES_FROM_DRAWN`, fails once CG ships without placing them); Seam page list duplicated in the integrity test (engine constant not exported). Accepted; export the constant at next touch.
 
 ## Decisions and fixes made during the build
 - FD-3: a hold interrupts an arrival, so a held walker on a stain is not stained (follows P4). Kept; on the player's question list.

@@ -304,9 +304,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "ink", "amount": 2 },
-        { "kind": "solvent", "solvent": "wick" },
-        { "kind": "rune", "rune": "fuse" }
+        { "kind": "solvent", "solvent": "wick" }
       ],
       "picked": [0],
       "stats": {
@@ -3417,7 +3417,7 @@
   ],
   "outcome": "returned",
   "profile": {
-    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "afterglow"],
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "afterglow"],
     "methods": ["margin", "repeat"],
     "bindEvents": [],
     "inventions": [],
@@ -3438,7 +3438,7 @@
       "graphite": 0
     },
     "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
-    "ink": 11,
+    "ink": 9,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3559,7 +3559,7 @@
     "hp": { "draughtsman": 3, "stoker": 3 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
-      { "kind": "ink", "amount": 2 },
+      { "kind": "rune", "rune": "fuse" },
       { "kind": "rune", "rune": "afterglow" },
       { "kind": "solvent", "solvent": "pitch" },
       { "kind": "method", "method": "margin" },
@@ -3602,7 +3602,7 @@
   },
   "save": {
     "profile": {
-      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "afterglow"],
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "afterglow"],
       "methods": ["margin", "repeat"],
       "bindEvents": [],
       "inventions": [],
@@ -3626,7 +3626,7 @@
         "members": ["draughtsman", "stoker"],
         "slots": ["draughtsman", "stoker", null]
       },
-      "ink": 11,
+      "ink": 9,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3747,7 +3747,7 @@
       "hp": { "draughtsman": 3, "stoker": 3 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
-        { "kind": "ink", "amount": 2 },
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "rune", "rune": "afterglow" },
         { "kind": "solvent", "solvent": "pitch" },
         { "kind": "method", "method": "margin" },

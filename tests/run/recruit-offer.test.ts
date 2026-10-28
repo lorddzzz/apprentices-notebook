@@ -186,11 +186,12 @@ describe('saves', () => {
 });
 
 describe('the game registry', () => {
-  test('no district places a recruit yet: a ready profile rolls the plain offers', () => {
+  test('the canals place her at their second landing only (RC-5): other rooms roll plain', () => {
     const p = readyProfile();
     encountersOf('canals').forEach((_, room) => {
       const t = tripAt(p, 'canals', room);
-      expect(roll(p, t, offerRegistry())).not.toContainEqual(runaway);
+      const has = roll(p, t, offerRegistry()).some((o) => o.kind === 'recruit');
+      expect(has, `room ${room + 1}`).toBe(room === LANDMARK);
     });
   });
 });

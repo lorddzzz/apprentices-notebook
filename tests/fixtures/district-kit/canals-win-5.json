@@ -212,9 +212,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
-        { "kind": "rune", "rune": "jar" },
         { "kind": "rune", "rune": "fuse" },
-        { "kind": "solvent", "solvent": "pitch" }
+        { "kind": "rune", "rune": "jar" },
+        { "kind": "rune", "rune": "afterglow" }
       ],
       "picked": [0],
       "stats": {
@@ -575,8 +575,8 @@
       "outcome": "won",
       "offers": [
         { "kind": "ink", "amount": 2 },
-        { "kind": "ink", "amount": 1 },
-        { "kind": "rune", "rune": "afterglow" }
+        { "kind": "rune", "rune": "jar" },
+        { "kind": "solvent", "solvent": "pitch" }
       ],
       "picked": [0],
       "stats": {
@@ -1597,8 +1597,8 @@
       "outcome": "won",
       "offers": [
         { "kind": "method", "method": "margin" },
-        { "kind": "rune", "rune": "fuse" },
-        { "kind": "ink", "amount": 2 }
+        { "kind": "ink", "amount": 1 },
+        { "kind": "solvent", "solvent": "wick" }
       ],
       "picked": [0],
       "stats": {
@@ -3325,7 +3325,7 @@
   ],
   "outcome": "returned",
   "profile": {
-    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "jar", "afterglow"],
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "afterglow"],
     "methods": ["margin"],
     "bindEvents": [],
     "inventions": [],
@@ -3445,7 +3445,7 @@
     "hp": { "draughtsman": 3, "stoker": 6 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
-      { "kind": "rune", "rune": "jar" },
+      { "kind": "rune", "rune": "fuse" },
       { "kind": "ink", "amount": 2 },
       { "kind": "rune", "rune": "afterglow" },
       { "kind": "method", "method": "margin" },
@@ -3488,7 +3488,7 @@
   },
   "save": {
     "profile": {
-      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "jar", "afterglow"],
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "afterglow"],
       "methods": ["margin"],
       "bindEvents": [],
       "inventions": [],
@@ -3611,7 +3611,7 @@
       "hp": { "draughtsman": 3, "stoker": 6 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
-        { "kind": "rune", "rune": "jar" },
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "ink", "amount": 2 },
         { "kind": "rune", "rune": "afterglow" },
         { "kind": "method", "method": "margin" },

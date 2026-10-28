@@ -304,9 +304,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "rune", "rune": "jar" },
-        { "kind": "rune", "rune": "afterglow" },
-        { "kind": "solvent", "solvent": "pitch" }
+        { "kind": "ink", "amount": 2 }
       ],
       "picked": [0],
       "stats": {
@@ -716,9 +716,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "jar" },
         { "kind": "ink", "amount": 1 },
-        { "kind": "solvent", "solvent": "pitch" },
-        { "kind": "rune", "rune": "afterglow" }
+        { "kind": "ink", "amount": 2 }
       ],
       "picked": [0],
       "stats": {
@@ -1353,7 +1353,7 @@
       "offers": [
         { "kind": "ink", "amount": 2 },
         { "kind": "doorway" },
-        { "kind": "rune", "rune": "fuse" }
+        { "kind": "ink", "amount": 1 }
       ],
       "picked": [0],
       "stats": {
@@ -3703,7 +3703,7 @@
   ],
   "outcome": "returned",
   "profile": {
-    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "jar"],
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "jar"],
     "methods": ["repeat"],
     "bindEvents": [],
     "inventions": [],
@@ -3724,7 +3724,7 @@
       "graphite": 0
     },
     "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
-    "ink": 13,
+    "ink": 12,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3838,8 +3838,8 @@
     "hp": { "draughtsman": 4, "stoker": 7 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
+      { "kind": "rune", "rune": "fuse" },
       { "kind": "rune", "rune": "jar" },
-      { "kind": "ink", "amount": 1 },
       { "kind": "ink", "amount": 2 },
       { "kind": "method", "method": "repeat" },
       { "kind": "ink", "amount": 2 },
@@ -3881,7 +3881,7 @@
   },
   "save": {
     "profile": {
-      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "jar"],
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "jar"],
       "methods": ["repeat"],
       "bindEvents": [],
       "inventions": [],
@@ -3905,7 +3905,7 @@
         "members": ["draughtsman", "stoker"],
         "slots": ["draughtsman", "stoker", null]
       },
-      "ink": 13,
+      "ink": 12,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -4019,8 +4019,8 @@
       "hp": { "draughtsman": 4, "stoker": 7 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "rune", "rune": "jar" },
-        { "kind": "ink", "amount": 1 },
         { "kind": "ink", "amount": 2 },
         { "kind": "method", "method": "repeat" },
         { "kind": "ink", "amount": 2 },

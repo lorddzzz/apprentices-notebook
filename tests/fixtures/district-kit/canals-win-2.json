@@ -212,9 +212,9 @@
       "phase": "won",
       "outcome": "won",
       "offers": [
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "ink", "amount": 2 },
-        { "kind": "rune", "rune": "jar" },
-        { "kind": "rune", "rune": "fuse" }
+        { "kind": "rune", "rune": "jar" }
       ],
       "picked": [0],
       "stats": {
@@ -628,7 +628,7 @@
       "outcome": "won",
       "offers": [
         { "kind": "rune", "rune": "afterglow" },
-        { "kind": "rune", "rune": "fuse" },
+        { "kind": "ink", "amount": 1 },
         { "kind": "rune", "rune": "jar" }
       ],
       "picked": [0],
@@ -3184,7 +3184,7 @@
   ],
   "outcome": "returned",
   "profile": {
-    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "afterglow"],
+    "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "afterglow"],
     "methods": [],
     "bindEvents": [],
     "inventions": [],
@@ -3205,7 +3205,7 @@
       "graphite": 0
     },
     "household": { "members": ["draughtsman", "stoker"], "slots": ["draughtsman", "stoker", null] },
-    "ink": 15,
+    "ink": 13,
     "lattices": {
       "draughtsman": [
         { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3304,7 +3304,7 @@
     "hp": { "draughtsman": 5, "stoker": 3 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
-      { "kind": "ink", "amount": 2 },
+      { "kind": "rune", "rune": "fuse" },
       { "kind": "rune", "rune": "afterglow" },
       { "kind": "ink", "amount": 2 },
       { "kind": "ink", "amount": 2 },
@@ -3353,7 +3353,7 @@
   },
   "save": {
     "profile": {
-      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "afterglow"],
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "fuse", "afterglow"],
       "methods": [],
       "bindEvents": [],
       "inventions": [],
@@ -3377,7 +3377,7 @@
         "members": ["draughtsman", "stoker"],
         "slots": ["draughtsman", "stoker", null]
       },
-      "ink": 15,
+      "ink": 13,
       "lattices": {
         "draughtsman": [
           { "at": { "x": 0, "y": 1 }, "rune": "bolt", "dir": "right" },
@@ -3482,7 +3482,7 @@
       "hp": { "draughtsman": 5, "stoker": 3 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
-        { "kind": "ink", "amount": 2 },
+        { "kind": "rune", "rune": "fuse" },
         { "kind": "rune", "rune": "afterglow" },
         { "kind": "ink", "amount": 2 },
         { "kind": "ink", "amount": 2 },
