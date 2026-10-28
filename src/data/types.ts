@@ -453,6 +453,16 @@ export interface CodexEntryDef {
   ownerNote: string; // previous owner's cryptic margin note
   /** One line in the owner's voice shown under `???` while unknown (plan S15). */
   hint?: string;
+  /** The owner's second note, shown once the Marginalia has fallen (SM P12). */
+  answer?: MarginAnswer;
+}
+/**
+ * The margin answering (Seam §0, SM P12): `proof` once a proven cluster in any household lattice
+ * holds this page's rune or method; `mastery` once this page's footnote level reaches II.
+ */
+export interface MarginAnswer {
+  when: 'proof' | 'mastery';
+  text: string;
 }
 
 export interface ScenarioDef {
