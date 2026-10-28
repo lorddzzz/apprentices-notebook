@@ -1,6 +1,7 @@
 import {
   type BindEvent,
-  type EnemyId,
+  ENEMIES,
+  ENEMY_IDS,
   type InventionDef,
   type InventionId,
   LINES,
@@ -14,6 +15,7 @@ import {
   slotKey,
   VARIANTS,
 } from '$data';
+import { RIVAL_TOKENS } from '$data/rivals';
 import {
   type Action,
   type Aim,
@@ -29,11 +31,14 @@ import {
   knownSetOf,
   nameOf,
   type Profile,
+  parseCell,
   partIssue,
   scenarioBattle,
   witnessedIn,
 } from '$engine';
-import { PALETTE, type PaletteItem, toggleToken } from './lab';
+import { KIT } from '$engine/districts/kit';
+import type { Kit } from '$engine/districts/types';
+import { type PaletteEntry, type PaletteItem, paletteOf, toggleToken } from './lab';
 
 /** The Bench (design §6.1; plan P37): the draft invention and the test scene, as pure functions. */
 
@@ -213,32 +218,70 @@ export function emptyScene(): Scene {
 
 export const sceneText = (scene: Scene): string => scene.map((r) => r.join(' ')).join('\n');
 
-const FOE_ITEMS: Partial<Record<EnemyId, PaletteItem>> = { rat: 'r', sentry: 'b', familiar: 'f' };
-const STATE_MET: readonly [PaletteItem, string][] = [
-  ['o', 'slick'],
-  ['i', 'blot'],
-  ['~', 'cloud'],
-  ['*', 'fire'],
-  ['=', 'plate'],
-  ['_', 'drop'],
-  ['!', 'mark'],
-  ['&', 'collar'],
-  ['$', 'shackle'],
+/**
+ * Swatches the Bench offers once the household has met the thing, by `Profile.met` key (any one of
+ * the keys opens it). Foes come from the enemy registry through `foesMet`, board pieces from the kit
+ * through `PieceDef.bench.met`; this table is only the tile states, compounds and terrain.
+ */
+const MET_ITEMS: readonly { items: readonly PaletteItem[]; met: readonly string[] }[] = [
+  { items: ['o'], met: ['slick'] },
+  { items: ['i'], met: ['blot'] },
+  { items: ['~'], met: ['cloud'] },
+  { items: ['*'], met: ['fire'] },
+  { items: ['='], met: ['plate'] },
+  { items: ['_'], met: ['drop'] },
+  { items: ['!'], met: ['mark'] },
+  { items: ['&'], met: ['collar'] },
+  { items: ['$'], met: ['shackle'] },
+  { items: ['{stain}'], met: ['stain'] },
+  { items: ['{brand}'], met: ['brandCloud'] },
+  { items: ['{pool}'], met: ['pool'] },
+  { items: ['{fog}'], met: ['greaseFog'] },
+  { items: ['{skid}'], met: ['skidPlate'] },
+  { items: ['{bank}'], met: ['bank'] },
+  { items: ['{kettle}'], met: ['kettle'] },
+  { items: ['{wall}'], met: ['wall'] },
+  // Water and its current; a grate only makes sense on water.
+  { items: ['w>', 'wv', 'w<', 'w^', 'h'], met: ['water'] },
+  // A vent breathes steam: `metIn` does not record vents yet, so a met steam cloud opens it too.
+  { items: ['@'], met: ['vent', 'cloud'] },
 ];
 
-/** What the palette offers: the caster, a dummy, the foes met, the states and terrain met, the eraser. */
-export function sceneItems(p: Pick<Profile, 'met' | 'foesMet'>): PaletteItem[] {
-  const foes = p.foesMet.flatMap((f) => FOE_ITEMS[f] ?? []);
-  const met = STATE_MET.filter(([, m]) => (p.met as readonly string[]).includes(m)).map(([i]) => i);
-  const order = PALETTE.map((x) => x.item);
-  const have = new Set<PaletteItem>(['D', 'd', ...foes, ...met, '.']);
-  return order.filter((i) => have.has(i));
+/**
+ * What the palette offers: the caster, a dummy, the foes met, the states, compounds, terrain and
+ * board pieces met, the eraser. Read from the registries, in the Lab palette's order.
+ */
+export function sceneEntries(p: Pick<Profile, 'met' | 'foesMet'>, kit: Kit = KIT): PaletteEntry[] {
+  const met: readonly string[] = p.met;
+  const rivals = new Set(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
+  const foes = p.foesMet.filter((f) => !rivals.has(f)).map((f) => ENEMIES[f].token);
+  const states = MET_ITEMS.filter((m) => m.met.some((k) => met.includes(k))).flatMap(
+    (m) => m.items,
+  );
+  const pieces = Object.values(kit.pieces).flatMap((def) =>
+    def.bench && met.includes(def.bench.met) ? [`{${def.token}}`] : [],
+  );
+  const have = new Set<PaletteItem>(['D', 'd', ...foes, ...states, ...pieces, '.']);
+  return paletteOf(kit, 'all').filter((x) => have.has(x.item));
 }
 
-const isCaster = (token: string): boolean => token.startsWith('D');
-const isSubject = (token: string): boolean => /^[rbfd]/.test(token);
+export const sceneItems = (p: Pick<Profile, 'met' | 'foesMet'>, kit: Kit = KIT): PaletteItem[] =>
+  sceneEntries(p, kit).map((x) => x.item);
 
-export const subjectsIn = (scene: Scene): number => scene.flat().filter((t) => isSubject(t)).length;
+const FOE_TOKENS = new Set<string>(ENEMY_IDS.map((id) => ENEMIES[id].token));
+const isCaster = (token: string): boolean => token.startsWith('D');
+const ORIGIN: Coord = { x: 0, y: 0 };
+
+/** A cell is a subject when a foe stands on it (any kind in the enemy registry, the dummy too). */
+function isSubject(token: string): boolean {
+  try {
+    return parseCell(token, ORIGIN).unit?.kind === 'enemy';
+  } catch {
+    return false;
+  }
+}
+
+export const subjectsIn = (scene: Scene): number => scene.flat().filter(isSubject).length;
 
 /** One tap with the palette: the new scene, or the reason nothing changed. */
 export function paintScene(
@@ -248,7 +291,7 @@ export function paintScene(
 ): { scene: Scene } | { why: string } {
   const here = scene[at.y]?.[at.x];
   if (here === undefined) return { why: 'Off the board' };
-  const isUnit = ['D', 'r', 'b', 'f', 'd'].includes(item);
+  const isUnit = item === 'D' || FOE_TOKENS.has(item);
   if (item === '.' && isCaster(here)) return { why: 'The caster stays' };
   if (isUnit && isCaster(here)) return { why: 'The caster is standing there' };
   let next = scene.map((r) => [...r]);

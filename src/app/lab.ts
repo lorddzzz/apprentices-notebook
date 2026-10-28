@@ -4,6 +4,7 @@ import {
   type ApprenticeId,
   type BasicActionId,
   ENEMIES,
+  ENEMY_IDS,
   type EnemyId,
   type FootnoteKey,
   type FootnoteSubject,
@@ -28,6 +29,7 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
+import { RIVAL_TOKENS } from '$data/rivals';
 import {
   type Action,
   type BattleSpec,
@@ -35,6 +37,7 @@ import {
   type BoardUnit,
   boardOf,
   byReadingOrder,
+  COMPOUND_BRACE_NAMES,
   type Coord,
   cloneData,
   createBattle,
@@ -58,6 +61,8 @@ import {
   parseBoard,
   parseCell,
   parseLattice,
+  parsePieceToken,
+  pieceBlocksUnits,
   sameCoord,
   scenarioSpec,
   serializeBoard,
@@ -68,6 +73,8 @@ import {
   tripParty,
 } from '$engine';
 import type { FootnoteIds } from '$engine/ctx';
+import { KIT } from '$engine/districts/kit';
+import type { Json, Kit } from '$engine/districts/types';
 import { MAX_PARTY, placeParty, START_SALT } from '$engine/rooms';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
@@ -299,7 +306,8 @@ export function labSpec(
   return { spec, starts, spotSeed };
 }
 
-const standable = (t: Tile): boolean => !t.terrain.gate && !t.terrain.grate && !isPlateLike(t);
+const standable = (t: Tile): boolean =>
+  !t.terrain.gate && !t.terrain.grate && !isPlateLike(t) && !pieceBlocksUnits(t);
 
 /** Toggles a start point on a tile. A start point never sits under a unit, plate, gate or grate. */
 export function toggleStart(
@@ -519,90 +527,89 @@ export function variantGroups(variants: readonly VariantDef[] = VARIANTS): Varia
 
 // ── Board painting ──────────────────────────────────────
 
-export type PaletteItem =
-  | 'e'
-  | 'n'
-  | 'm'
-  | 'M'
-  | 'w>'
-  | 'wv'
-  | 'w<'
-  | 'w^'
-  | 'h'
-  | 'g'
-  | 'l'
-  | '{stain}'
-  | '{brand}'
-  | '{pool}'
-  | '{fog}'
-  | '{skid}'
-  | '{bank}'
-  | '{kettle}'
-  | '{wall}'
-  | 'r'
-  | 'b'
-  | 'f'
-  | 'd'
-  | '!'
-  | '&'
-  | '$'
-  | 'o'
-  | 'i'
-  | '~'
-  | '*'
-  | '='
-  | '@'
-  | '_'
-  | '.'
-  | 'P'
-  | ApprenticeTokenItem;
+/**
+ * One swatch's cell notation: an apprentice's or foe's token, a tile state, terrain, a compound
+ * (`{stain}`) or a registered board piece (`{bell}`). The registries decide which exist, so this
+ * is a plain string, checked by the board's own parser when it is painted.
+ */
+export type PaletteItem = string;
 
-/** An apprentice's board token: one letter, from the registry. */
-type ApprenticeTokenItem = (typeof APPRENTICES)[ApprenticeId]['token'];
+export interface PaletteEntry {
+  item: PaletteItem;
+  name: string;
+  /** A registered piece: its art key and starting data, so the swatch can draw it. */
+  piece?: { art: string; data: Json };
+}
 
-/** Palette order: apprentices, the start point, foes, unit modifiers, tile states, terrain, the eraser. */
-export const PALETTE: readonly { item: PaletteItem; name: string }[] = [
-  ...APPRENTICE_IDS.map((id) => ({ item: APPRENTICES[id].token, name: APPRENTICES[id].name })),
-  { item: 'P', name: 'Start point (P)' },
-  { item: 'r', name: 'Rat' },
-  { item: 'b', name: 'Brass sentry' },
-  { item: 'f', name: 'Familiar' },
-  { item: 'd', name: 'Dummy' },
-  { item: 'e', name: 'Eel' },
-  { item: 'n', name: 'Snuffer' },
-  { item: 'm', name: 'Lamp-moth' },
-  { item: 'M', name: 'Lamp-mother' },
-  { item: '!', name: 'Mark, then deep mark (a unit)' },
-  { item: '&', name: 'Brass collar (a unit)' },
-  { item: '$', name: 'Shackle (a unit)' },
-  { item: 'o', name: 'Oil slick' },
-  { item: 'i', name: 'Ink blot' },
-  { item: '~', name: 'Steam cloud' },
-  { item: '*', name: 'Fire' },
-  { item: '=', name: 'Brass plate' },
-  { item: '{stain}', name: 'Stain' },
-  { item: '{brand}', name: 'Brand cloud' },
-  { item: '{pool}', name: 'Pool' },
-  { item: '{fog}', name: 'Grease fog' },
-  { item: '{skid}', name: 'Skid plate' },
-  { item: '{bank}', name: 'Bank' },
-  { item: '{kettle}', name: 'Kettle' },
-  { item: '{wall}', name: 'Wall' },
-  { item: 'w>', name: 'Water flowing right' },
-  { item: 'wv', name: 'Water flowing down' },
-  { item: 'w<', name: 'Water flowing left' },
-  { item: 'w^', name: 'Water flowing up' },
-  { item: 'h', name: 'Grate (on water)' },
-  { item: 'g', name: 'Lock gate' },
-  { item: 'l', name: 'Lamp' },
-  { item: '@', name: 'Steam vent' },
-  { item: '_', name: 'A drop' },
-  { item: '.', name: 'Clear the tile' },
-];
+/** Foe shells the palette never paints (a rival's token parses only in its own scenario). */
+const rivalFoes = (): Set<string> =>
+  new Set(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
+
+const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * Palette order: apprentices, the start point, foes (the enemy registry, in its order), unit
+ * modifiers, tile states, terrain, the district pieces the kit registers (for the Lab; `all` adds
+ * those only the Bench offers), the eraser.
+ */
+export function paletteOf(kit: Kit = KIT, pieces: 'lab' | 'all' = 'lab'): readonly PaletteEntry[] {
+  const rivals = rivalFoes();
+  return [
+    ...APPRENTICE_IDS.map((id) => ({ item: APPRENTICES[id].token, name: APPRENTICES[id].name })),
+    { item: 'P', name: 'Start point (P)' },
+    ...ENEMY_IDS.filter((id) => !rivals.has(id)).map((id) => ({
+      item: ENEMIES[id].token,
+      name: capital(ENEMIES[id].name),
+    })),
+    { item: '!', name: 'Mark, then deep mark (a unit)' },
+    { item: '&', name: 'Brass collar (a unit)' },
+    { item: '$', name: 'Shackle (a unit)' },
+    { item: 'o', name: 'Oil slick' },
+    { item: 'i', name: 'Ink blot' },
+    { item: '~', name: 'Steam cloud' },
+    { item: '*', name: 'Fire' },
+    { item: '=', name: 'Brass plate' },
+    { item: '{stain}', name: 'Stain' },
+    { item: '{brand}', name: 'Brand cloud' },
+    { item: '{pool}', name: 'Pool' },
+    { item: '{fog}', name: 'Grease fog' },
+    { item: '{skid}', name: 'Skid plate' },
+    { item: '{bank}', name: 'Bank' },
+    { item: '{kettle}', name: 'Kettle' },
+    { item: '{wall}', name: 'Wall' },
+    { item: 'w>', name: 'Water flowing right' },
+    { item: 'wv', name: 'Water flowing down' },
+    { item: 'w<', name: 'Water flowing left' },
+    { item: 'w^', name: 'Water flowing up' },
+    { item: 'h', name: 'Grate (on water)' },
+    { item: 'g', name: 'Lock gate' },
+    { item: 'l', name: 'Lamp' },
+    { item: '@', name: 'Steam vent' },
+    { item: '_', name: 'A drop' },
+    ...Object.values(kit.pieces).flatMap((def): PaletteEntry[] => {
+      const label = def.palette?.lab
+        ? def.palette.label
+        : pieces === 'all'
+          ? def.bench?.label
+          : undefined;
+      if (!label) return [];
+      return [
+        {
+          item: `{${def.token}}`,
+          name: label,
+          piece: { art: def.art, data: def.data?.init ?? null },
+        },
+      ];
+    }),
+    { item: '.', name: 'Clear the tile' },
+  ];
+}
+
+export const PALETTE: readonly PaletteEntry[] = paletteOf();
 
 const UNIT_CHARS = new Set<string>([
   ...APPRENTICE_IDS.map((id) => APPRENTICES[id].token),
-  ...['r', 'b', 'f', 'd', 'e', 'n', 'm', 'M'],
+  ...ENEMY_IDS.map((id) => ENEMIES[id].token),
 ]);
 const STATE_ITEMS = new Set(['o', 'i', '~', '*']);
 const ORIGIN: Coord = { x: 0, y: 0 };
@@ -636,7 +643,7 @@ export function toggleToken(token: string, item: PaletteItem): string {
   const c = readCell(token);
   const { tile } = c;
   if (UNIT_CHARS.has(item)) {
-    if (tile.terrain.grate || tile.terrain.gate) return token;
+    if (tile.terrain.grate || tile.terrain.gate || pieceBlocksUnits(tile)) return token;
     const placed = readCell(item).unit;
     c.unit = c.unit?.def === placed?.def ? null : placed;
     if (isPlateLike(tile)) tile.state = null;
@@ -660,7 +667,14 @@ export function toggleToken(token: string, item: PaletteItem): string {
     if (!tile.terrain.water || c.unit) return token;
     tile.terrain.grate = !tile.terrain.grate;
   } else if (item === 'l') tile.terrain.lamp = !tile.terrain.lamp;
-  else if (item.startsWith('{')) {
+  else if (item.startsWith('{') && !COMPOUND_BRACE_NAMES.includes(item.slice(1, -1))) {
+    // A registered piece: one per tile, the same again removes it, a solid one never under a unit.
+    const piece = parsePieceToken(item.slice(1, -1));
+    if (!piece) return token;
+    if (tile.piece?.id === piece.id) tile.piece = null;
+    else if (c.unit && pieceBlocksUnits({ ...tile, piece })) return token;
+    else tile.piece = piece;
+  } else if (item.startsWith('{')) {
     const next = readCell(item).tile.state;
     if (c.unit && isPlateLike({ ...tile, state: next })) return token;
     tile.state = tile.state?.id === next?.id ? null : next;

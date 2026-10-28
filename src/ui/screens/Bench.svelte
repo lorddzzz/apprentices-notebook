@@ -8,7 +8,7 @@
     eventsKnown,
     lineTextFor,
     methodsKnown,
-    sceneItems,
+    sceneEntries,
     subjectsIn,
   } from '../../app/bench';
   import { BenchStore } from '../../app/bench.svelte';
@@ -116,7 +116,7 @@
     </p>
     <Palette
       selected={bench.item}
-      items={sceneItems(profile)}
+      entries={sceneEntries(profile)}
       onselect={(item) => (bench.item = item)}
     />
     {#if bench.witnessed.length > 0}
