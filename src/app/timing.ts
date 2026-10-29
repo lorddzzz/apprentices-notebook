@@ -1,4 +1,4 @@
-import type { GameEvent } from '$engine';
+import { type GameEvent, isDistrictEvent } from '$engine';
 
 export const STEP_MS = { quiet: 0, short: 160, normal: 260, big: 420, banner: 500 } as const;
 
@@ -82,6 +82,7 @@ export function durationOf(e: GameEvent): number {
     case 'pageRecovered':
       return STEP_MS.short;
     default: {
+      if (isDistrictEvent(e)) return STEP_MS.short;
       const unhandled: never = e;
       void unhandled;
       return STEP_MS.short;

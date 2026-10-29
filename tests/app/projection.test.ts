@@ -191,6 +191,8 @@ import.meta.glob(
 );
 
 // Exhaustive on purpose: tsc fails here when a GameEvent type is added without being listed.
+// District events (`<district>:<name>`, DK-19) are a pattern type, not listed: no shipped module
+// emits one yet; the fixture district's `bridges:gust` is checked in tests/run/kit.test.ts.
 const EVENT_TYPE_SET: Record<GameEvent['type'], true> = {
   battleStart: true,
   round: true,

@@ -20,7 +20,7 @@ import {
   unitAt,
 } from './queries';
 import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
-import { BOARD_RULES, runRuleSlot } from './rules';
+import { boardRules, runRuleSlot } from './rules';
 import { runScheduled } from './schedule';
 import { actStep } from './standIn';
 import type { AttackIntent, EnemyUnit, Unit } from './types';
@@ -133,7 +133,7 @@ function coolTiles(ctx: Ctx): void {
  * (storms, brand, kettles, fire), the `afterChemistry` slot (gates catch), then layers decay,
  * vents refill, snuffers put fire out, and the `late` slot runs (P8). `rules` is for tests.
  */
-export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = BOARD_RULES): void {
+export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = boardRules()): void {
   runRuleSlot(ctx, 'carry', rules);
   openDuskJars(ctx);
   runScheduled(ctx, 'roundEnd');

@@ -1,5 +1,7 @@
 import { DISTRICTS, type DistrictData, type DistrictId } from '$data';
 import type { KitHearCondition } from '$data/districts/index';
+import { KIT } from './districts';
+import type { KitId } from './districts/types';
 import { type EventLog, type GameEvent, namedIn } from './events';
 import { pagesHeld } from './rivals/pages';
 import type { Profile } from './types';
@@ -142,9 +144,30 @@ export const HEARING_KINDS: { readonly [K in HearKind]: Predicate<K> } = {
   pages: (c, s) => pagesHeld(s.profile).filter((id) => !excepted(id, c.except)).length >= c.atLeast,
 };
 
+/** A condition of a district module's own kind (`bridges:fell`), tested by `KIT.hearKinds`. */
+export interface ModuleHearCondition {
+  kind: KitId;
+  voice: 'owner' | 'rumour';
+  district?: DistrictId;
+  text?: string;
+  homeNote?: string;
+  /** The kind's own fields, read by its `test`. */
+  readonly [field: string]: unknown;
+}
+export type HearingCondition = KitHearCondition | ModuleHearCondition;
+
+const isModuleKind = (c: HearingCondition): c is ModuleHearCondition =>
+  !Object.hasOwn(HEARING_KINDS, c.kind);
+
 /** Whether one condition holds in a scene: its district filter first, then its kind's predicate. */
-export function conditionHolds(c: KitHearCondition, s: HearScene): boolean {
+export function conditionHolds(c: HearingCondition, s: HearScene): boolean {
   if (c.kind !== 'heart' && c.district !== undefined && c.district !== s.district) return false;
+  if (isModuleKind(c)) {
+    // Read at call time: the kit is assembled after this file loads (district modules import it).
+    const kind = KIT.hearKinds[c.kind];
+    if (!kind) throw new Error(`Unknown hearing kind '${c.kind}'`);
+    return kind.test(c, s);
+  }
   const test = HEARING_KINDS[c.kind] as Predicate<typeof c.kind>;
   return test(c, s);
 }

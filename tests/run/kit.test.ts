@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { KitHearCondition } from '$data/districts/index';
 import {
   type Action,
   applyAction,
   type BattleState,
   beginEncounter,
   closeBattle,
+  describe as describeEvent,
   type GameEvent,
   NO_WAY_HOME,
   newProfile,
@@ -17,11 +17,13 @@ import {
   startTrip,
   type Trip,
 } from '$engine';
+import { emit } from '$engine/ctx';
 import { chooseAt, crossroadsChoices, removeFromRoom, returnPolicy } from '$engine/districts/api';
 import { KIT } from '$engine/districts/kit';
 import type { Coord, Dir } from '$engine/grid';
-import { conditionHolds } from '$engine/hearing';
+import { conditionHolds, type ModuleHearCondition } from '$engine/hearing';
 import { hitPiece } from '$engine/pieces';
+import { boardRules } from '$engine/rules';
 import { awardsPage } from '$engine/standIn';
 import type { MemberUnit } from '$engine/types';
 import {
@@ -70,7 +72,7 @@ vi.mock('$data/enemies', async (importOriginal) => {
 });
 
 // The module's kit operations, bound to the mocked kit (see `useKitOps`).
-useKitOps({ removeFromRoom, hitPiece });
+useKitOps({ removeFromRoom, hitPiece, emit });
 
 // ── Helpers ─────────────────────────────────────────────
 const profile = (): Profile => {
@@ -156,6 +158,12 @@ describe('a full trip through the fixture district', () => {
     expect(won0.trip.kit?.state).toEqual({ span: null, won: 1, signedAt: null });
   });
 
+  it('reads the module’s rules from the kit (DK-19: `boardRules` is lazy)', () => {
+    expect(boardRules().map((r) => r.id)).toEqual(
+      expect.arrayContaining(['bridges:wind', 'bridges:sway', 'bridges:toll']),
+    );
+  });
+
   it('runs a rule in each round-end slot, in slot order (P8)', () => {
     expect(rule<Wind>(room0.state, 'bridges:wind')).toEqual({ runs: 1 });
     // The afterChemistry rule saw the carry rule's run of the same round end.
@@ -164,6 +172,13 @@ describe('a full trip through the fixture district', () => {
     expect(KIT.rules['bridges:wind']?.preview?.(room0.state, { runs: 1 })).toEqual([
       { kind: 'meter', label: 'Wind', value: 1, max: 9 },
     ]);
+  });
+
+  it('logs the module’s own event with its own line (P2; DK-19)', () => {
+    const gusts = room0.log.filter((e) => e.type === 'bridges:gust');
+    expect(gusts).toEqual([expect.objectContaining({ type: 'bridges:gust', data: { runs: 1 } })]);
+    expect(gusts.map(describeEvent)).toEqual(['the wind gusts (1)']);
+    expect(describeEvent({ type: 'bridges:unknown' })).toBeNull();
   });
 
   it('fires the plank on arrive, turn end and struck (P10)', () => {
@@ -290,24 +305,39 @@ describe('a full trip through the fixture district', () => {
   });
 });
 
-// ── Hooks the kit does not read yet ─────────────────────
+// ── Module hearing kinds (P12; DK-19) ───────────────────
 describe('module hearing kinds (P12)', () => {
+  const cond: ModuleHearCondition = { kind: 'bridges:fell', voice: 'owner', district: 'bridges' };
+  const fell: GameEvent[] = [
+    {
+      type: 'outOfRoom',
+      unit: { id: 'stoker', name: 'stoker', at: { x: 0, y: 0 }, member: true },
+      cause: 'fell',
+    },
+  ];
+  const scene = (log: GameEvent[], district: 'bridges' | 'seam' = 'bridges') => ({
+    profile: profile(),
+    district,
+    party: ['stoker'],
+    log,
+  });
+
   it('registers the kind', () => {
     expect(KIT.hearKinds['bridges:fell']?.when).toBe('battle');
   });
 
-  // DK-8's HEARING_KINDS is a closed table over KitHearCondition; KIT.hearKinds is never read.
-  it.fails('a district hearing condition of a module kind is heard', () => {
-    const cond = { kind: 'bridges:fell', voice: 'owner' } as unknown as KitHearCondition;
-    const log: GameEvent[] = [
-      {
-        type: 'outOfRoom',
-        unit: { id: 'stoker', name: 'stoker', at: { x: 0, y: 0 }, member: true },
-        cause: 'fell',
-      },
-    ];
-    expect(
-      conditionHolds(cond, { profile: profile(), district: 'bridges', party: ['stoker'], log }),
-    ).toBe(true);
+  it('a district hearing condition of a module kind is heard', () => {
+    expect(conditionHolds(cond, scene(fell))).toBe(true);
+    expect(conditionHolds(cond, scene([]))).toBe(false);
+  });
+
+  it('keeps the district filter for a module kind', () => {
+    expect(conditionHolds(cond, scene(fell, 'seam'))).toBe(false);
+  });
+
+  it('throws on an unregistered module kind', () => {
+    expect(() => conditionHolds({ ...cond, kind: 'bridges:nope' }, scene(fell))).toThrow(
+      "Unknown hearing kind 'bridges:nope'",
+    );
   });
 });

@@ -11,7 +11,6 @@ import type {
   TilePiece,
 } from '$engine/districts/types';
 import { removeFromRoom } from '$engine/outOfRoom';
-import { BOARD_RULES } from '$engine/rules';
 import { IDLE } from '../../src/app/battleInput';
 import { overlayFor, stepsOf } from '../../src/app/overlay';
 import { inSlotOrder, pieceViewOf, tileViewOf, viewOf, viewOfSpec } from '../../src/app/view';
@@ -85,20 +84,20 @@ const ring: ScriptStep = {
 const pieces = KIT.pieces as Record<string, PieceDef>;
 const tokens = KIT.tokens as Record<string, PieceDef>;
 const steps = KIT.steps as Record<string, ScriptStep>;
-const rules = BOARD_RULES as BoardRule[];
+const rules = KIT.rules as Record<string, BoardRule>;
 const original = ENEMIES.dummy;
 
 // Registered while the file loads: the describe bodies below parse boards at collection time.
 pieces[PIECE] = writ;
 tokens[writ.token] = writ;
 steps[STEP] = ring;
-rules.push(heat as BoardRule);
+rules[heat.id] = heat as BoardRule;
 ENEMIES.dummy = { ...original, script: { steps: [STEP], standIn: true } };
 afterAll(() => {
   delete pieces[PIECE];
   delete tokens[writ.token];
   delete steps[STEP];
-  rules.splice(rules.indexOf(heat as BoardRule), 1);
+  delete rules[heat.id];
   ENEMIES.dummy = original;
 });
 

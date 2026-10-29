@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { driftPreview } from '$engine';
 import type { BoardRule, RoundEndSlot, RuleId } from '$engine/districts/types';
-import { BOARD_RULES, isRuleActive, listRules, rulePreview, slotRules } from '$engine/rules';
+import { boardRules, isRuleActive, listRules, rulePreview, slotRules } from '$engine/rules';
 import { roundEnd } from '$engine/turn';
 import { board, draft } from '../scenarios/harness';
 
@@ -34,7 +34,7 @@ describe('round-end rule slots (P8)', () => {
   test('each slot runs where its built-ins sit, in order then id', () => {
     const seen: string[][] = [];
     const rules = [
-      ...BOARD_RULES,
+      ...boardRules(),
       fixture('seam:late', 'late', 0, seen),
       fixture('seam:chemB', 'afterChemistry', 1, seen),
       fixture('seam:chemA', 'afterChemistry', 1, seen),
@@ -62,7 +62,7 @@ describe('round-end rule slots (P8)', () => {
 
   test('a rule state threads through round ends', () => {
     const seen: string[][] = [];
-    const rules = [...BOARD_RULES, fixture('seam:count', 'late', 0, seen)];
+    const rules = [...boardRules(), fixture('seam:count', 'late', 0, seen)];
     const once = draft(board(BOARD), (ctx) => roundEnd(ctx, rules)).state;
     const twice = draft(once, (ctx) => roundEnd(ctx, rules)).state;
     expect(once.rules?.['seam:count']).toBe(1);
@@ -70,9 +70,9 @@ describe('round-end rule slots (P8)', () => {
   });
 
   test('the built-in rules keep today order and are the canals', () => {
-    expect(slotRules('carry', BOARD_RULES).map((r) => r.id)).toEqual(['canals:current']);
-    expect(slotRules('afterChemistry', BOARD_RULES).map((r) => r.id)).toEqual(['canals:gates']);
-    expect(slotRules('late', BOARD_RULES)).toEqual([]);
+    expect(slotRules('carry', boardRules()).map((r) => r.id)).toEqual(['canals:current']);
+    expect(slotRules('afterChemistry', boardRules()).map((r) => r.id)).toEqual(['canals:gates']);
+    expect(slotRules('late', boardRules())).toEqual([]);
   });
 });
 

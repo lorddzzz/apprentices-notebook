@@ -9,7 +9,8 @@ import type {
   TriggerRuneId,
 } from '$data';
 import type { ArrivalCause, PlacementCause } from './arrival';
-import type { OutOfRoomEvent } from './districts/types';
+import { KIT } from './districts';
+import type { DistrictEvent, OutOfRoomEvent } from './districts/types';
 import { type Coord, type Dir, label } from './grid';
 import type { Blocker } from './queries';
 import type { LockLost, RivalEvent } from './rivals/types';
@@ -221,8 +222,14 @@ export type GameEvent = (
   /** CN P3: the crate took harm and its cargo is ruined; `source` names what did it. */
   | { type: 'cargoLost'; unit: UnitRef; at: Coord; source: string }
   | RivalEvent
+  /** A district module's own event (P2): type `<district>:<name>`, its line from `KIT.events`. */
+  | DistrictEvent
 ) &
   EventMeta;
+
+/** A district module's own event (`bridges:gust`): every core type is a plain word. */
+export const isDistrictEvent = (e: GameEvent): e is Extract<GameEvent, DistrictEvent> =>
+  e.type.includes(':');
 
 /** Events with no log line and no animation. */
 export const isSilent = (e: GameEvent): boolean => e.type === 'trace' || e.type === 'named';
@@ -423,6 +430,9 @@ export function describe(e: GameEvent): string | null {
       return `${who(e.unit)}'s order fails: its ${e.object.kind} is ${LOCK_LOST[e.why]}`;
     case 'pageRecovered':
       return `a page is recovered: ${e.page}`;
+    default:
+      // A district event: its module's line, or none for a type no module registers.
+      return KIT.events[e.type]?.describe(e) ?? null;
   }
 }
 

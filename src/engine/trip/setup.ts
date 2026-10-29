@@ -11,7 +11,7 @@ import type {
   RuleId,
 } from '../districts/types';
 import type { EventLog } from '../events';
-import { BOARD_RULES, listRules } from '../rules';
+import { boardRules, listRules } from '../rules';
 import type { BattleState, Trip } from '../types';
 import { type OfferRegistry, offerRegistry } from './offerKinds';
 import { type DistrictShape, shapeInput, shapeOf } from './shape';
@@ -51,7 +51,7 @@ export function setUpRoom(
   s: BattleState,
   shape: DistrictShape,
   setup: RoomSetup,
-  rules: readonly BoardRule[] = BOARD_RULES,
+  rules: readonly BoardRule[] = boardRules(),
 ): BattleState {
   const ids = roomRules(shape, setup);
   const edits = setup.boardEdits ?? [];

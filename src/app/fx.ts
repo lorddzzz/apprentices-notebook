@@ -8,6 +8,7 @@ import {
   findUnit,
   type GameEvent,
   inBounds,
+  isDistrictEvent,
   step,
 } from '$engine';
 import type { BoardView } from './view';
@@ -314,6 +315,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'pageRecovered':
       return [];
     default: {
+      // A district event: its own animation is the district's UI (`eventAnim`), not a core fx.
+      if (isDistrictEvent(e)) return [];
       const unhandled: never = e;
       void unhandled;
       return [];

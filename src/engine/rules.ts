@@ -17,8 +17,11 @@ import type { BattleState, Tile } from './types';
  * (its state is in `BattleState.rules`) or, if piece-scoped, when the board brings it.
  */
 
-/** Every kit rule. */
-export const BOARD_RULES: readonly BoardRule[] = Object.values(KIT.rules);
+/**
+ * Every kit rule, read from `KIT` on first use (as the arrival hooks and offer kinds are), so a
+ * test that mocks the kit with a district module gets its rules whatever loaded first.
+ */
+export const boardRules = (): readonly BoardRule[] => Object.values(KIT.rules);
 
 /** The rules of one slot in run order: `order` ascending, ties by id. */
 export function slotRules(slot: RoundEndSlot, rules: readonly BoardRule[]): BoardRule[] {
@@ -57,7 +60,7 @@ export function listRules(
   s: BattleState,
   ids: readonly RuleId[],
   config: Readonly<Record<RuleId, Json>> = {},
-  rules: readonly BoardRule[] = BOARD_RULES,
+  rules: readonly BoardRule[] = boardRules(),
 ): RuleStates {
   const out: Record<RuleId, Json> = { ...s.rules };
   for (const id of ids) {
@@ -72,7 +75,7 @@ export function listRules(
 export function runRuleSlot(
   ctx: Ctx,
   slot: RoundEndSlot,
-  rules: readonly BoardRule[] = BOARD_RULES,
+  rules: readonly BoardRule[] = boardRules(),
 ): void {
   for (const rule of slotRules(slot, rules)) {
     if (!isRuleActive(rule, ctx.s)) continue;
@@ -94,7 +97,7 @@ export interface RulePreview {
 /** P8: what every active rule will do at the next round end, in run order; never mutates. */
 export function rulePreview(
   s: BattleState,
-  rules: readonly BoardRule[] = BOARD_RULES,
+  rules: readonly BoardRule[] = boardRules(),
 ): RulePreview[] {
   const order: RoundEndSlot[] = ['carry', 'afterChemistry', 'late'];
   return order.flatMap((slot) =>

@@ -1,5 +1,7 @@
+import type { emit } from '$engine/ctx';
 import type {
   BoardRule,
+  DistrictEventDef,
   DistrictModule,
   HearKind,
   OfferKind,
@@ -22,13 +24,14 @@ import type { BattleState } from '$engine/types';
 
 /**
  * The kit operations this module calls. A real module imports them (`removeFromRoom` from
- * `$engine/districts/api`, `hitPiece` from `$engine/pieces`). The fixture is loaded inside the
+ * `$engine/districts/api`, `hitPiece` from `$engine/pieces`, `emit` from `$engine/ctx`). The fixture is loaded inside the
  * test's kit mock, where those imports would bind the engine to the unmocked kit, so the test
  * hands them in once with `useKitOps`.
  */
 export interface KitOps {
   removeFromRoom: typeof removeFromRoom;
   hitPiece: typeof hitPiece;
+  emit: typeof emit;
 }
 let ops: KitOps | null = null;
 export const useKitOps = (o: KitOps): void => {
@@ -48,7 +51,10 @@ export type Wind = { runs: number };
 export type Sway = { runs: number; windRuns: number };
 export type Toll = { runs: number; won: number; span: string | null };
 
-/** `carry` slot (where drift runs): counts round ends; its preview is a meter. */
+/**
+ * `carry` slot (where drift runs): counts round ends and logs its own event, `bridges:gust` (P2);
+ * its preview is a meter.
+ */
 const wind: BoardRule<Wind> = {
   id: 'bridges:wind',
   slot: 'carry',
@@ -56,7 +62,11 @@ const wind: BoardRule<Wind> = {
   scope: 'district',
   activatedBy: { kind: 'district' },
   init: () => ({ runs: 0 }),
-  step: (_ctx, own) => ({ runs: own.runs + 1 }),
+  step: (ctx, own) => {
+    const runs = own.runs + 1;
+    kit().emit(ctx, { type: 'bridges:gust', data: { runs } });
+    return { runs };
+  },
   preview: (_s, own) => [{ kind: 'meter', label: 'Wind', value: own.runs, max: 9 }],
 };
 
@@ -233,6 +243,13 @@ const fellHere: HearKind<{ kind: 'bridges:fell' }> = {
   test: (_c, input) => input.log.some((e) => e.type === 'outOfRoom' && e.unit.member),
 };
 
+// ── A district event (P2) ───────────────────────────────
+/** The wind rule's gust: in the log as `bridges:gust`, its line from here (`describe`). */
+const gust: DistrictEventDef = {
+  type: 'bridges:gust',
+  describe: (e) => `the wind gusts (${num(rec(e.data).runs)})`,
+};
+
 // ── A stand-in heart (P14) ──────────────────────────────
 /** The heart's only step: names the plank's tile, then drops a stone there (`hitPiece`). */
 const stone: ScriptStep = {
@@ -255,6 +272,7 @@ export const FIXTURE_MODULE: DistrictModule = {
   pieces: [plank, gap],
   offerKinds: [term],
   hearKinds: [fellHere],
+  events: [gust],
   steps: [stone],
   trip: shape,
 };

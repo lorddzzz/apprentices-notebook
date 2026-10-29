@@ -19,6 +19,7 @@ import {
   firstRune,
   type GameEvent,
   type Intent,
+  isDistrictEvent,
   pieceDef,
   relocations,
   type Tile,
@@ -772,6 +773,8 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
         });
       break;
     default: {
+      // A district event changes nothing the view draws; its module's rules changed the state.
+      if (isDistrictEvent(e)) break;
       const unhandled: never = e;
       void unhandled;
     }
