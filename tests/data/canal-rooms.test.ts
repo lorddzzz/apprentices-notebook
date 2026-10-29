@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { CANAL_ROOMS, MOOR_PIECE, MOORING_BONUS } from '$data/districts/canals';
+import {
+  CANAL_ROOMS,
+  layRival,
+  MOOR_PIECE,
+  MOORING_BONUS,
+  RIVALS_LIVE,
+} from '$data/districts/canals';
 import {
   type BoardSpec,
   compiledFor,
@@ -170,6 +176,153 @@ describe('canal rooms 1 and 2 play (CN-3)', () => {
           );
           expect(fight.state.phase, `${v.name} seed ${seed}`).toBe('won');
         }
+      }
+    }
+  });
+});
+
+/**
+ * CN-4 (canals-revisit P1, P2, P5, P6): rooms 3 and 4 (indices 2 and 3) are re-laid. Room 3 is
+ * 7×7 (two lanes crossing), room 4 is 6×9 (the water climbs; the crate, the mooring and the
+ * Lamplighter's `L` slot). Both have five start points, none beside a foe.
+ */
+describe('canal rooms 3 and 4 (CN-4)', () => {
+  const three = CANAL_ROOMS[2];
+  const four = CANAL_ROOMS[3];
+  if (!three || !four) throw new Error('missing room');
+  const deep = [three, four];
+
+  test('three layouts each, the §5.5 names kept', () => {
+    expect(deep.map((r) => r.variants.map((v) => v.name))).toEqual([
+      ['The sluice', 'The crossing', "The tanners' cut"],
+      ['The uphill reach', 'The lamp market', 'The siphon'],
+    ]);
+  });
+
+  test('P1: every layout passes checkRoom at its size with five start points', () => {
+    deep.forEach((room, i) => {
+      for (const { name, spec } of specs(room)) {
+        expect(checkRoom(room.variants.find((v) => v.name === name)?.layout ?? ''), name).toEqual(
+          [],
+        );
+        expect([spec.width, spec.height], name).toEqual(i === 0 ? [7, 7] : [6, 9]);
+        expect(spec.starts, name).toHaveLength(5);
+      }
+    });
+  });
+
+  test('P2: no start point on water, none beside any foe or the crate', () => {
+    for (const room of deep) {
+      for (const { name, spec } of specs(room)) {
+        for (const p of spec.starts) {
+          expect(at(spec, p)?.terrain.water, `${name} P on water`).toBeFalsy();
+          for (const u of spec.units)
+            expect(adjacent(p, u.at), `${name} P beside ${u.def}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  test('foes: room 3 eel, Snuffer, moth, rat; room 4 the slot, eel, moth, rat and the crate', () => {
+    const names = (spec: BoardSpec) =>
+      foes(spec)
+        .map((u) => u.def)
+        .sort()
+        .join(',');
+    for (const { name, spec } of specs(three))
+      expect(names(spec), name).toBe('eel,moth,rat,snuffer');
+    for (const { name, spec } of specs(four)) {
+      expect(names(spec), name).toBe('eel,moth,rat,snuffer');
+      expect(
+        spec.units.filter((u) => u.def === 'barge'),
+        name,
+      ).toHaveLength(1);
+    }
+  });
+
+  test('room 3 has no barge or mooring; room 4 has both and the mooring bonus; rooms 3 not', () => {
+    expect(three).not.toHaveProperty('bonus');
+    expect(four).toHaveProperty('bonus', MOORING_BONUS);
+    for (const { name, spec } of specs(three)) {
+      expect(
+        spec.units.some((u) => u.def === 'barge'),
+        name,
+      ).toBe(false);
+      expect(
+        spec.tiles.some((t) => t.piece),
+        name,
+      ).toBe(false);
+    }
+    for (const { name, spec } of specs(four)) {
+      expect(
+        spec.tiles.filter((t) => t.piece?.id === MOOR_PIECE),
+        name,
+      ).toHaveLength(1);
+    }
+  });
+
+  test('room 4: the crate sits on water and the current alone reaches the mooring in 4–6 drifts', () => {
+    for (const { name, spec } of specs(four)) {
+      const crate = spec.units.find((u) => u.def === 'barge');
+      const moorIdx = spec.tiles.findIndex((t) => t.piece?.id === MOOR_PIECE);
+      if (!crate || moorIdx < 0) throw new Error(`${name}: crate or mooring missing`);
+      expect(at(spec, crate.at)?.terrain.water, name).toBeTruthy();
+      const moor = { x: moorIdx % spec.width, y: Math.floor(moorIdx / spec.width) };
+      expect(at(spec, moor)?.terrain.water, name).toBeTruthy();
+      const n = driftsTo(spec, crate.at, moor);
+      expect(n, name).not.toBeNull();
+      expect(n ?? 0, name).toBeGreaterThanOrEqual(4);
+      expect(n ?? 99, name).toBeLessThanOrEqual(6);
+    }
+  });
+
+  test('room 4: the water climbs (every lane tile flows up or sideways into a climbing lane)', () => {
+    for (const { name, spec } of specs(four)) {
+      const up = spec.tiles.filter((t) => t.terrain.water === 'up').length;
+      expect(up, name).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  test('P6: with RIVALS_LIVE off the L slot spawns a Snuffer; live it is the Lamplighter', () => {
+    expect(RIVALS_LIVE.lamplighter).toBe(false);
+    for (const { name, spec } of specs(four)) {
+      expect(
+        spec.units.some((u) => u.def === 'lamplighter'),
+        name,
+      ).toBe(false);
+      expect(
+        spec.units.filter((u) => u.def === 'snuffer'),
+        name,
+      ).toHaveLength(1);
+    }
+    const row = '. L . . .\n. . . . .\n. . . . .\n. . . . .\n. . . . .\n. . . . .\nP P P P .';
+    const slot = (live: boolean) => parseBoard(layRival(row, live)).units.map((u) => u.def);
+    expect(slot(false)).toEqual(['snuffer']);
+    expect(slot(true)).toEqual(['lamplighter']);
+  });
+});
+
+describe('canal rooms 3 and 4 play (CN-4)', () => {
+  test('the bot wins every layout with the founding pair on fresh HP', () => {
+    for (const room of [CANAL_ROOMS[2], CANAL_ROOMS[3]]) {
+      if (!room) throw new Error('missing room');
+      for (const v of room.variants) {
+        let wins = 0;
+        for (const seed of [1, 2, 3, 4, 5]) {
+          const fight = botFight(
+            createBattle({
+              title: room.title,
+              board: v.layout,
+              seed,
+              lineup: FOUNDERS,
+              party: Object.fromEntries(
+                FOUNDERS.map((id) => [id, { spells: compiledFor(newProfile(), id).spells }]),
+              ),
+            }).state,
+          );
+          if (fight.state.phase === 'won') wins++;
+        }
+        expect(wins, v.name).toBe(5);
       }
     }
   });

@@ -262,8 +262,8 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       expect(old).toHaveLength(ROOMS.length);
       ROOMS.forEach((room, i) => {
         // The old boards only differ from the new ones by D, S and the extra P points. Canal
-        // rooms 1-2 are re-laid for good (CN-3), so they have no old twin to compare with.
-        if (room.district === 'canals' && room.index < 2) return;
+        // rooms 1-4 are re-laid for good (CN-3, CN-4), so they have no old twin to compare with.
+        if (room.district === 'canals' && room.index < 4) return;
         const was = (old[i] as string).split('\n');
         const now = room.layout.split('\n');
         expect(now.length, room.name).toBe(was.length);

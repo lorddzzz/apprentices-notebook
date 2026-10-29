@@ -9,6 +9,14 @@ import type {
   ThresholdSpec,
 } from './index';
 
+/**
+ * CN P6: which rivals play their room. While `lamplighter` is off, room 4's `L` reads as its
+ * stand-in (today's Snuffer). CN-7 flips it after RV-G1.
+ */
+export const RIVALS_LIVE: Readonly<Record<RivalId, boolean>> = { lamplighter: false };
+/** CN P6: the foe a rival's token spawns as while that rival is not live. */
+export const RIVAL_STAND_INS: Readonly<Record<RivalId, EnemyId>> = { lamplighter: 'snuffer' };
+
 const board = (rows: readonly string[]): string => rows.join('\n');
 
 /** One room of a district from its variants; `layout` is the first variant's board. */
@@ -141,91 +149,105 @@ const CANAL_2: readonly EncounterVariant[] = [
   },
 ];
 
-/** Room 3: two lanes and a bridge; an eel, a Snuffer, a moth and a rat. */
+/**
+ * Room 3 (CN-4, P1/P2): 7×7, five start points. Two lanes cross; an eel on the water, a Snuffer,
+ * a moth and a rat on the banks. No start point beside a foe.
+ */
 const CANAL_3: readonly EncounterVariant[] = [
   {
     name: 'The sluice',
     layout: board([
-      '. . wv n . .',
-      '. P wv . . .',
-      'w> w> wv w< w< w<',
-      '. . ewv . . .',
-      'P . . . m .',
-      '. . wv . . .',
-      '. P wv . P .',
-      '. . wv . . .',
+      '. . . wv . n .',
+      '. P . wv . . .',
+      'w> w> w> wv w< w< w<',
+      '. . . ewv . . .',
+      '. r . wv . m .',
+      'P . P wv . . P',
+      '. . . wv . P .',
     ]),
   },
   {
     name: 'The crossing',
     layout: board([
-      '. . . wv . .',
-      'n . . wv . .',
-      '. . . wv . m',
-      'w< w< w< wv w< w<',
-      '. P . ewv . P',
-      '. . . . . .',
-      '. P . wv P .',
-      '. . . wv . .',
+      'n . wv . . . .',
+      '. . wv . . m .',
+      '. . wv . . . .',
+      'w< w< w< w< ew< w< w<',
+      '. P . . . P .',
+      '. . . r . . .',
+      'P . P . . P .',
     ]),
   },
   {
     name: "The tanners' cut",
     layout: board([
-      '. . . . n .',
-      '. wv . . . .',
-      '. wv . . . m',
-      '. wv . . . .',
-      '. ewv . . P .',
-      'w> wv w> w> w> w>',
-      'P wv . P . P',
-      '. wv . . . .',
+      '. wv . . . n .',
+      '. wv . . . . m',
+      '. wv . . . . .',
+      '. wv . P . . .',
+      'w> w> w> w> ew> w> w>',
+      '. P . r . . P',
+      'P . . . . P .',
     ]),
   },
 ];
 
-/** Room 4: two lanes, little quay, the water climbs; an eel, a Snuffer, two moths and a rat. */
+/**
+ * The Lamplighter's slot (CN P6): room 4 layouts carry `L`; while `RIVALS_LIVE.lamplighter` is
+ * off the data reads it as its stand-in, today's Snuffer token (`n`, `RIVAL_STAND_INS`).
+ */
+export const layRival = (layout: string, live: boolean): string =>
+  layout.replace(/L/g, live ? 'L' : 'n');
+
+/**
+ * Room 4 (CN-4, P1/P2/P5/P6): 6×9, five start points. Two lanes, little quay, the water climbs
+ * up the screen. The Lamplighter (the Snuffer for now), an eel, one moth, a rat and the crate;
+ * the mooring sits upstream of the crate. The eel never starts beside a start point.
+ */
 const CANAL_4: readonly EncounterVariant[] = [
   {
     name: 'The uphill reach',
     layout: board([
-      '. n . w^ . .',
-      '. . . w^ . .',
-      'w< w< w< w^ w< w<',
-      '. . . ew^ . P',
-      'P . r w^ . .',
-      '. . . w^ . m',
-      '. P . w^ P .',
-      '. . . w^ . .',
+      '. w^ L . w^ .',
+      '. w^ . . w^ m',
+      '. w^ . . w^{moor} .',
+      'P w^ . . w^ .',
+      '. ew^ . . w^ P',
+      '. w^ r . w^ .',
+      '. w^ . . kw^ .',
+      'P w^ . P w^ P',
+      '. w^ . . w^ .',
     ]),
   },
   {
     name: 'The lamp market',
     layout: board([
-      '. w^ . n . .',
-      'P w^ . . . .',
-      '. w^ . . r .',
-      '. ew^ . . . .',
-      '. w^ . . m .',
-      '. w^ w< w< w< w<',
-      'P w^ P . P .',
-      '. w^ . . . .',
+      '. . . . w^ .',
+      '. . . L w^ m',
+      'P . . . ew^ .',
+      '. . r . w^ .',
+      '. . . . w^{moor} P',
+      '. . . . w^ .',
+      '. . . . w^ .',
+      'w> kw> w> w> w^ .',
+      'P . . P . P',
     ]),
   },
   {
     name: 'The siphon',
     layout: board([
-      '. . . . w^ .',
-      'n . . . w^ .',
-      '. . . P w^ .',
-      'w> w> w> w> w^ .',
-      '. r . . ew^ .',
-      '. . . m . .',
-      '. P . . w^ P',
-      '. . . P w^ .',
+      '. . w^ . L .',
+      '. m w^ . . .',
+      '. . ew^ . . .',
+      'P . w^ . . r',
+      '. . w^{moor} . . .',
+      '. . w^ . P .',
+      '. . w^ w< w< kw<',
+      'P . w^ . P .',
+      '. . w^ . . P',
     ]),
   },
-];
+].map((v) => ({ ...v, layout: layRival(v.layout, RIVALS_LIVE.lamplighter) }));
 
 /** The heart: the lamp-mother on the water, a Snuffer, two moths, lamps around the pool. */
 const CANAL_HEART: readonly EncounterVariant[] = [
@@ -284,7 +306,7 @@ export const CANAL_ROOMS: readonly KitRoomDef[] = [
   room('canal-towpath', 'The towpath', 1, CANAL_1, 'canalShallow'),
   room('canal-arcade', 'The drowned arcade', 2, CANAL_2, 'canalShallow', false, MOORING_BONUS),
   room('canal-sluice', 'The sluice', 3, CANAL_3, 'canalDeep'),
-  room('canal-reach', 'The uphill reach', 4, CANAL_4, 'canalDeep'),
+  room('canal-reach', 'The uphill reach', 4, CANAL_4, 'canalDeep', false, MOORING_BONUS),
   room('canal-pool', "The lamp-mother's pool", 5, CANAL_HEART, 'canalHeart', true),
 ];
 
@@ -370,14 +392,6 @@ export const BARGE: EnemyDef = {
 /** CN P4: the mooring piece (`{moor}`, non-solid, on water). Its def is the canal module's. */
 export const MOOR_PIECE = 'canals:moor' as const;
 export const MOOR_TOKEN = 'moor';
-
-/**
- * CN P6: which rivals play their room. While `lamplighter` is off, room 4's `L` reads as its
- * stand-in (today's Snuffer). CN-7 flips it after RV-G1.
- */
-export const RIVALS_LIVE: Readonly<Record<RivalId, boolean>> = { lamplighter: false };
-/** CN P6: the foe a rival's token spawns as while that rival is not live. */
-export const RIVAL_STAND_INS: Readonly<Record<RivalId, EnemyId>> = { lamplighter: 'snuffer' };
 
 /**
  * CN P7 (DK R3, BR): the wardens' pass as the bridges' key gate: offered after room 4 (0-based 3)
