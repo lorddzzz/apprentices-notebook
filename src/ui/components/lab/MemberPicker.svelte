@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { APPRENTICE_IDS, APPRENTICES, type ApprenticeId } from '$data';
+  import { APPRENTICES, type ApprenticeId } from '$data';
 
   /** Lattices mode: whose page to edit. Lists the whole registry, the lineup first. */
-  let { member, lineup, onpick }: {
+  let { member, lineup, roster, onpick }: {
     member: ApprenticeId;
     lineup: readonly ApprenticeId[];
+    /** Who the pickers list: the household in a campaign, everyone in dev. */
+    roster: readonly ApprenticeId[];
     onpick: (id: ApprenticeId) => void;
   } = $props();
 </script>
@@ -16,7 +18,7 @@
     value={member}
     onchange={(e) => onpick(e.currentTarget.value as ApprenticeId)}
   >
-    {#each APPRENTICE_IDS as id (id)}
+    {#each roster as id (id)}
       <option value={id}>{APPRENTICES[id].name}{lineup.includes(id) ? ' (lineup)' : ''}</option>
     {/each}
   </select>

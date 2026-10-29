@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { APPRENTICE_IDS, APPRENTICES, type ApprenticeId, type BasicActionId, HABIT_IDS, HABITS, type HabitId } from '$data';
+  import { APPRENTICES, type ApprenticeId, type BasicActionId, HABIT_IDS, HABITS, type HabitId } from '$data';
   import { BASIC_LABEL } from '../../../app/describe';
   import { LAB_ACTIONS, type LabKit } from '../../../app/lab';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
 
-  let { open, member, lineup, kit, native, changed, onmember, onaction, onhabit, onreset, onclose }: {
+  let { open, member, lineup, roster, kit, native, changed, onmember, onaction, onhabit, onreset, onclose }: {
     open: boolean;
     /** Whose kit is shown. */
     member: ApprenticeId;
     lineup: readonly ApprenticeId[];
+    /** Who the pickers list: the household in a campaign, everyone in dev. */
+    roster: readonly ApprenticeId[];
     /** The kit they carry in the Lab now, and the one the registry gives them. */
     kit: LabKit;
     native: LabKit;
@@ -41,7 +43,7 @@
         value={member}
         onchange={(e) => onmember(e.currentTarget.value as ApprenticeId)}
       >
-        {#each APPRENTICE_IDS as id (id)}
+        {#each roster as id (id)}
           <option value={id}>
             {APPRENTICES[id].name}{lineup.includes(id) ? ' (lineup)' : ''}{changed.includes(id) ? ' *' : ''}
           </option>

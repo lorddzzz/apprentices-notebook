@@ -11,12 +11,13 @@
 
   function welcome(): void {
     if (!note) return;
-    const why = game.welcome(note.id);
+    const { id, name } = note;
+    const why = game.welcome(id);
     if (why) {
       toast(why, 'warn');
       return;
     }
-    toast(`${note.name} joins the household`);
+    toast(`${name} joins the household`);
     reading = null;
   }
 </script>

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import {
+  APPRENTICE_IDS,
   APPRENTICES,
   type ApprenticeId,
   DISTRICT_IDS,
@@ -39,6 +40,7 @@ import {
   preconditionsOf,
   type RecruitKit,
   recruitOffers,
+  SEAM_PAGES,
   someoneJoined,
   waitingFor,
   welcome,
@@ -57,6 +59,7 @@ import {
   startBattle,
   takeOffer,
 } from '../../src/app/flow';
+import { labRoster } from '../../src/app/lab';
 import { notesUnderDoor } from '../../src/app/recruitNotes';
 import { benchOf, cardOf, seatsOf } from '../../src/app/study';
 import { FIXTURE_ROOMS } from '../fixtures/district-kit/fixture-district/data';
@@ -90,7 +93,6 @@ type RecruitId = keyof typeof RECRUITS;
 const RECRUIT_IDS = Object.keys(RECRUITS) as RecruitId[];
 const DISTRICT_RECRUITS = RECRUIT_IDS.filter((id) => 'district' in RECRUITS[id].found);
 const DOOR_RECRUITS = RECRUIT_IDS.filter((id) => 'door' in RECRUITS[id].found);
-const SEAM_PAGES: readonly RuneId[] = ['touch', 'splash', 'steam', 'brass'];
 const isSeamPage = (r: RuneId): boolean => SEAM_PAGES.includes(r);
 
 // ── Fixture placements (DK-18's fixture rooms for the unbuilt districts) ──
@@ -752,10 +754,18 @@ describe('RC-9 no-leak: the campaign Lab', () => {
   // P14 (a request to HC's P16): in a campaign the Lab's lineup, page and kit pickers list the
   // whole registry, so "Visit the Lab" in the Study names every unmet recruit. The pickers read
   // APPRENTICE_IDS straight in the component; there is no campaign filter to call yet.
-  test.fails('BL-RC9-1: the campaign Lab lists only the household (pickers filter the registry)', () => {
+  test('BL-RC9-1: the campaign Lab lists only the household (pickers filter the registry)', () => {
     for (const file of ['LabLineup', 'MemberPicker', 'LabKits']) {
       const src = readFileSync(`src/ui/components/lab/${file}.svelte`, 'utf8');
       expect(src, file).not.toMatch(/\{#each APPRENTICE_IDS as/);
     }
+    const p = newProfile();
+    const roster = labRoster(p, false);
+    expect(roster).toEqual(p.household.members);
+    expect(roster.length).toBeLessThan(APPRENTICE_IDS.length);
+    expect(labRoster(p, true)).toEqual(APPRENTICE_IDS);
+    const unmet = APPRENTICE_IDS.find((id) => !roster.includes(id));
+    if (!unmet) throw new Error('no unmet recruit');
+    expect(labRoster({ ...p, recruits: { notes: [unmet] } }, false)).toContain(unmet);
   });
 });

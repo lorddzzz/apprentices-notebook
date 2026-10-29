@@ -130,7 +130,7 @@ export function waitingFor(p: Profile, trip?: Trip): readonly ApprenticeId[] {
   });
 }
 /** The Seam's own precondition pages (§0d), guaranteed in its deep and heart rooms (P6). */
-const SEAM_PAGES: readonly RuneId[] = ['touch', 'splash', 'steam', 'brass'];
+export const SEAM_PAGES: readonly RuneId[] = ['touch', 'splash', 'steam', 'brass'];
 const SEAM_DEEP_TABLES: readonly string[] = ['deep', 'heart'];
 
 /** P5's priority: the recruit placed earliest in the city (district order), door arrivals last. */

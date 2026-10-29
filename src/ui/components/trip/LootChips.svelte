@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { RUNES } from '$data';
+  import { APPRENTICES, RUNES } from '$data';
   import type { LootItem } from '$engine';
   import { lootName } from '../../../app/describe';
   import { METHOD_ART } from '../../runeArt';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
   import SolventIcon from '../SolventIcon.svelte';
 
@@ -29,10 +30,12 @@
             <path d={METHOD_ART[item.method]} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </span>
+      {:else if item.kind === 'recruit'}
+        <ApprenticeToken def={APPRENTICES[item.apprentice]} size={26} />
       {:else}
         <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'key' ? '⚷' : '✎'}</span>
       {/if}
-      <span class="name">{lootName(item)}</span>
+      <span class="name">{item.kind === 'recruit' ? APPRENTICES[item.apprentice].name : lootName(item)}</span>
     </li>
   {:else}
     <li class="none">Nothing yet.</li>

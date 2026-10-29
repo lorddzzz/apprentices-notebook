@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { APPRENTICE_IDS, APPRENTICES, type ApprenticeId } from '$data';
+  import { APPRENTICES, type ApprenticeId } from '$data';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
 
-  let { open, lineup, starts, canField, ontoggle, onfield, onredraw, onclose }: {
+  let { open, lineup, roster, starts, canField, ontoggle, onfield, onredraw, onclose }: {
     open: boolean;
     lineup: readonly ApprenticeId[];
+    /** Who the pickers list: the household in a campaign, everyone in dev. */
+    roster: readonly ApprenticeId[];
     /** How many start points (P) the board holds. */
     starts: number;
     canField: boolean;
@@ -24,7 +26,7 @@
       the points. Anyone in the registry can stand in, with their notebook page or their starter page.
     </p>
     <ul class="who" aria-label="Apprentices">
-      {#each APPRENTICE_IDS as id (id)}
+      {#each roster as id (id)}
         {@const a = APPRENTICES[id]}
         {@const place = lineup.indexOf(id)}
         <li>

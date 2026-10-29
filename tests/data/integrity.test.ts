@@ -26,7 +26,7 @@ import {
 } from '$data';
 import { DISTRICT_KIT } from '$data/districts/index';
 import { BASIC_ACTIONS, parseBoard, parseLattice } from '$engine';
-import { preconditionsOf } from '$engine/recruits';
+import { preconditionsOf, SEAM_PAGES } from '$engine/recruits';
 import { checkRoom } from '$engine/rooms';
 
 test('31 runes, unique tokens', () => {
@@ -214,7 +214,6 @@ test('every room layout passes checkRoom: start points (P) only, no apprentice t
 // ── Recruit placement (recruitment plan RC-5, P8/P9, §6 static) ──────────────────────────────
 const RECRUIT_IDS = Object.keys(RECRUITS) as (keyof typeof RECRUITS)[];
 /** The Seam's own precondition pages (§0d): guaranteed in its deep and heart rooms (P6). */
-const SEAM_PAGES: readonly RuneId[] = ['touch', 'splash', 'steam', 'brass'];
 /** Door arrivals whose Board pages come from a district still being drawn (party.md §2: Cartographers). */
 const PAGES_FROM_DRAWN: Readonly<Record<string, DistrictId>> = { exile: 'cartographers' };
 

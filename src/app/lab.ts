@@ -75,6 +75,7 @@ import {
 import type { FootnoteIds } from '$engine/ctx';
 import { KIT } from '$engine/districts/kit';
 import type { Json, Kit } from '$engine/districts/types';
+import { isRevealed } from '$engine/recruits';
 import { MAX_PARTY, placeParty, START_SALT } from '$engine/rooms';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
@@ -878,4 +879,18 @@ export function formatLattices(
   ids: readonly MemberId[] = MEMBER_IDS,
 ): string {
   return ids.map((m) => `${MEMBERS[m].name}\n${serializeLattice(lattices[m])}`).join('\n\n');
+}
+
+/**
+ * Who the Lab's pickers list: the household plus anyone revealed (a note under the door), so a
+ * campaign Lab never names an unmet recruit. Dev mode keeps everyone; `keep` (the current
+ * lineup and selections) always stays so a picker never loses its own value.
+ */
+export function labRoster(
+  p: Profile,
+  devMode: boolean,
+  keep: readonly ApprenticeId[] = [],
+): readonly ApprenticeId[] {
+  if (devMode) return APPRENTICE_IDS;
+  return APPRENTICE_IDS.filter((id) => isRevealed(p, id) || keep.includes(id));
 }

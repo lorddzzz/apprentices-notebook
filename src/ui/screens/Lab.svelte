@@ -7,6 +7,7 @@
     changedKits,
     LAB_SCENARIOS,
     labLocation,
+    labRoster,
     nativeKit,
     PALETTE,
     variantGroups,
@@ -83,6 +84,15 @@
     compileLattice(lattice, {}, inventions, { ...MEMBERS[lab.member].lean, habit: memberHabit }),
   );
 
+  // The pickers list the household (plus revealed notes); `?dev` lists everyone.
+  const roster = $derived(
+    labRoster(
+      game.profile,
+      router.params.has('dev') || new URLSearchParams(window.location.search).has('dev'),
+      [...lab.lineup, lab.member, lab.kitMember],
+    ),
+  );
+
   // Dev builds and `?dev` get the city shortcuts (K-24).
   const devTools = $derived(
     import.meta.env.DEV ||
@@ -139,7 +149,7 @@
             </div>
             <Palette selected={lab.palette} onselect={(item) => (lab.palette = item)} />
           {:else}
-            <MemberPicker member={lab.member} lineup={lab.lineup} onpick={(m) => (lab.member = m)} />
+            <MemberPicker member={lab.member} lineup={lab.lineup} {roster} onpick={(m) => (lab.member = m)} />
             {#if memberHabit}
               <div class="habit-print">
                 <b>{HABITS[memberHabit].line}</b>
@@ -229,6 +239,7 @@
     <LabLineup
       open={lineupOpen}
       lineup={lab.lineup}
+      {roster}
       starts={lab.starts.length}
       canField={lab.canField}
       ontoggle={(id) => lab.toggleLineupMember(id)}
@@ -240,6 +251,7 @@
       open={kitsOpen}
       member={lab.kitMember}
       lineup={lab.lineup}
+      {roster}
       kit={lab.kitFor(lab.kitMember)}
       native={nativeKit(lab.kitMember)}
       changed={changedKits(lab.kits)}
