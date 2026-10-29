@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). One status file for the whole program (instead of one per plan) so a fresh session sees every running task across plans; a plan's section moves to its own file only if it grows too long. Updated on every event and committed with every merge.
 
-**State:** building (Stage 1). Holding for the 05:00 UTC reset (wake-up #2 of 2 scheduled, 06:01 CET). No agents running. Merged in the window of 2026-10-29 01:01: FN-A1/A2, RV-17, RV-20b, RV-18, RV-10, RV-19, DK-17, BL-132, CN-0, DK-18, CN-1, CN-2, CN-3, RC-9. AH and RC plans done (notes applied).
+**State:** building (Stage 1, last window of the session rule, from 2026-10-29 06:01 CET). Running: BL-133, CN-4, DK-19 (DK-18 follow-ups). Previous window merged FN-A1/A2, RV-17, RV-20b, RV-18, RV-10, RV-19, DK-17, BL-132, CN-0, DK-18, CN-1, CN-2, CN-3, RC-9.
 **Reset:** 5h window resets 2026-10-29 05:00 UTC (06:00 CET). Session rule (player, 2026-10-28): when the window nears its end, schedule a wake-up for the reset, at most 2 times (used: 2: next window is the last; finish without a timer and write a continuation prompt); the third time, finish without a timer and write a continuation prompt.
 **Weekly guard (player, 2026-10-24 17:30):** ignore the weekly limit unless it exceeds 97%; pace by the 5h limit only.
 **Session policy (player, 2026-10-23):** when this window nears its end, schedule a wake-up at the reset (CronCreate one-shot, session-only). In the window after that, wrap up at >70% usage: status, commit, push, and a continuation prompt for a new session.
@@ -192,6 +192,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 | 02:30 | ~52 | 3h30 | 20 | Normal | merge DK-18, CN-1 |
 | 02:37 | ~55 | 3h23 | 21 | Normal | merge CN-1, CN-2 |
 | 03:04 | 91 | 2h56 | 24 | Wrap (earlier rows from 02:14 on were estimates; the real rate with 2–3 Strong agents was ~1%/min) | merge CN-3, RC-9; no spawns; wake-up #2 at the reset |
+| 2026-10-29 06:01 | 0 | ~5h | 24 | Normal | wake-up #2 baseline (last window: wrap at >70–80% with a continuation prompt); spawn BL-133, CN-4, DK-19 |
 
 ## Proposals (from agents, not yet in DESIGN/TECH)
 - CN-3: bot `value()` should exclude bystanders (stops ruining the crate); CN-13 sims the moored rate with a crate-ignoring bot; retarget the barge.test.ts bonus mock to room index 1. Accepted (follow-ups).
