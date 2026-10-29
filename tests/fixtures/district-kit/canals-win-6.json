@@ -1,7 +1,7 @@
 {
   "district": "canals",
   "seed": 6,
-  "options": { "maxRounds": 100 },
+  "options": { "maxRounds": 100, "startHp": 20 },
   "rooms": [
     {
       "encounter": 0,
@@ -1969,6 +1969,7 @@
         { "type": "shove", "unit": "stoker", "dir": "left" },
         { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 1 } },
         { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "up" },
         { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 4 } },
         { "type": "shove", "unit": "stoker", "dir": "down" },
         { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 0 } },
@@ -2001,7 +2002,110 @@
         { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
         { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
         { "type": "shove", "unit": "stoker", "dir": "right" },
-        { "type": "endTurn" }
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 2 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 6, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "left" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "right" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "left" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 2 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 6, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "left" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "right" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "left" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 2 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 6, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "left" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "right" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "left" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 3 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 4, "y": 2 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 5, "y": 1 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" }
       ],
       "events": [
         { "type": "battleStart", "title": "The lamp-mother's pool" },
@@ -2026,6 +2130,19 @@
           "type": "idle",
           "unit": {
             "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 2, "y": 3 },
+            "member": false
+          }
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "moth-2", "name": "lamp-moth", "at": { "x": 4, "y": 3 }, "member": false }
+        },
+        {
+          "type": "idle",
+          "unit": {
+            "id": "snuffer-2",
             "name": "snuffer",
             "at": { "x": 3, "y": 6 },
             "member": false
@@ -2054,7 +2171,7 @@
             "member": true
           },
           "target": {
-            "id": "snuffer-1",
+            "id": "snuffer-2",
             "name": "snuffer",
             "at": { "x": 3, "y": 6 },
             "member": false
@@ -2064,7 +2181,7 @@
         {
           "type": "dropped",
           "unit": {
-            "id": "snuffer-1",
+            "id": "snuffer-2",
             "name": "snuffer",
             "at": { "x": 3, "y": 6 },
             "member": false
@@ -2076,7 +2193,7 @@
         {
           "type": "damage",
           "target": {
-            "id": "snuffer-1",
+            "id": "snuffer-2",
             "name": "snuffer",
             "at": { "x": 3, "y": 6 },
             "member": false
@@ -2090,7 +2207,7 @@
         {
           "type": "died",
           "unit": {
-            "id": "snuffer-1",
+            "id": "snuffer-2",
             "name": "snuffer",
             "at": { "x": 3, "y": 6 },
             "member": false
@@ -2141,7 +2258,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 13
+          "hpLeft": 55
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2153,7 +2270,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-2",
+            "id": "moth-3",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 7 },
             "member": false
@@ -2193,7 +2310,53 @@
         {
           "type": "moved",
           "unit": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 2, "y": 3 },
+            "member": false
+          },
+          "from": { "x": 2, "y": 3 },
+          "to": { "x": 2, "y": 4 },
+          "path": [{ "x": 2, "y": 4 }],
+          "cause": "walk"
+        },
+        {
+          "type": "idle",
+          "unit": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 2, "y": 4 },
+            "member": false
+          }
+        },
+        {
+          "type": "moved",
+          "unit": {
             "id": "moth-2",
+            "name": "lamp-moth",
+            "at": { "x": 4, "y": 3 },
+            "member": false
+          },
+          "from": { "x": 4, "y": 3 },
+          "to": { "x": 6, "y": 3 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 6, "y": 3 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-2",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 3 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "up", "order": 2 },
+          "verb": "burst"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-3",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 7 },
             "member": false
@@ -2206,12 +2369,12 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-2",
+            "id": "moth-3",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 7 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "left", "order": 2 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "left", "order": 3 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
@@ -2263,7 +2426,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 12
+          "hpLeft": 54
         },
         {
           "type": "moved",
@@ -2283,7 +2446,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 0 },
             "member": false
@@ -2295,6 +2458,20 @@
           "unit": {
             "id": "moth-2",
             "name": "lamp-moth",
+            "at": { "x": 6, "y": 3 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 3 }
+        },
+        {
+          "type": "died",
+          "unit": { "id": "moth-2", "name": "lamp-moth", "at": { "x": 6, "y": 3 }, "member": false }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-3",
+            "name": "lamp-moth",
             "at": { "x": 4, "y": 7 },
             "member": false
           },
@@ -2302,7 +2479,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-2", "name": "lamp-moth", "at": { "x": 4, "y": 7 }, "member": false }
+          "unit": { "id": "moth-3", "name": "lamp-moth", "at": { "x": 4, "y": 7 }, "member": false }
         },
         {
           "type": "drift",
@@ -2362,7 +2539,31 @@
         {
           "type": "moved",
           "unit": {
-            "id": "moth-3",
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 2, "y": 4 },
+            "member": false
+          },
+          "from": { "x": 2, "y": 4 },
+          "to": { "x": 1, "y": 4 },
+          "path": [{ "x": 1, "y": 4 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 1, "y": 4 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "pole", "dir": "down", "order": 3 },
+          "verb": "swing its pole"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 0 },
             "member": false
@@ -2375,15 +2576,67 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 3 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 4 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 1, "y": 5 },
+            "member": true
+          },
+          "target": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 1, "y": 4 },
+            "member": false
+          },
+          "dir": "up"
+        },
+        {
+          "type": "dropped",
+          "unit": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 1, "y": 4 },
+            "member": false
+          },
+          "at": { "x": 1, "y": 3 },
+          "elite": true,
+          "line": "shove:water"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 1, "y": 4 },
+            "member": false
+          },
+          "amount": 4,
+          "source": "Drop",
+          "bonus": [],
+          "hpLeft": 0,
+          "line": "shove:water"
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "snuffer-1",
+            "name": "snuffer",
+            "at": { "x": 1, "y": 4 },
+            "member": false
+          },
+          "line": "shove:water"
+        },
         {
           "type": "moved",
           "unit": {
@@ -2432,7 +2685,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 11
+          "hpLeft": 53
         },
         {
           "type": "moved",
@@ -2468,7 +2721,7 @@
           "amount": 1,
           "source": "Burst",
           "bonus": [],
-          "hpLeft": 5
+          "hpLeft": 19
         },
         {
           "type": "flare",
@@ -2482,7 +2735,7 @@
         {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -2491,7 +2744,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-3", "name": "lamp-moth", "at": { "x": 5, "y": 0 }, "member": false }
+          "unit": { "id": "moth-4", "name": "lamp-moth", "at": { "x": 5, "y": 0 }, "member": false }
         },
         {
           "type": "damage",
@@ -2499,7 +2752,7 @@
           "amount": 1,
           "source": "Burst",
           "bonus": [],
-          "hpLeft": 7
+          "hpLeft": 19
         },
         { "type": "round", "round": 4 },
         { "type": "phase", "phase": "enemy" },
@@ -2571,7 +2824,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 10
+          "hpLeft": 52
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2583,7 +2836,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-4",
+            "id": "moth-5",
             "name": "lamp-moth",
             "at": { "x": 3, "y": 0 },
             "member": false
@@ -2606,7 +2859,7 @@
         {
           "type": "moved",
           "unit": {
-            "id": "moth-4",
+            "id": "moth-5",
             "name": "lamp-moth",
             "at": { "x": 3, "y": 0 },
             "member": false
@@ -2619,7 +2872,7 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-4",
+            "id": "moth-5",
             "name": "lamp-moth",
             "at": { "x": 3, "y": 1 },
             "member": false
@@ -2681,7 +2934,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 9
+          "hpLeft": 51
         },
         {
           "type": "shove",
@@ -2718,7 +2971,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 8
+          "hpLeft": 50
         },
         {
           "type": "moved",
@@ -2738,7 +2991,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 0 },
             "member": false
@@ -2748,7 +3001,7 @@
         {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-4",
+            "id": "moth-5",
             "name": "lamp-moth",
             "at": { "x": 3, "y": 1 },
             "member": false
@@ -2757,7 +3010,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-4", "name": "lamp-moth", "at": { "x": 3, "y": 1 }, "member": false }
+          "unit": { "id": "moth-5", "name": "lamp-moth", "at": { "x": 3, "y": 1 }, "member": false }
         },
         {
           "type": "damage",
@@ -2765,7 +3018,7 @@
           "amount": 1,
           "source": "Burst",
           "bonus": [],
-          "hpLeft": 6
+          "hpLeft": 18
         },
         { "type": "round", "round": 6 },
         { "type": "phase", "phase": "enemy" },
@@ -2783,7 +3036,7 @@
         {
           "type": "moved",
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 0 },
             "member": false
@@ -2796,7 +3049,7 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 0 },
             "member": false
@@ -2845,7 +3098,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 7
+          "hpLeft": 49
         },
         {
           "type": "moved",
@@ -2903,7 +3156,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 6
+          "hpLeft": 48
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2918,7 +3171,7 @@
         {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 0 },
             "member": false
@@ -2927,7 +3180,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-5", "name": "lamp-moth", "at": { "x": 4, "y": 0 }, "member": false }
+          "unit": { "id": "moth-6", "name": "lamp-moth", "at": { "x": 4, "y": 0 }, "member": false }
         },
         {
           "type": "damage",
@@ -2940,7 +3193,7 @@
           "amount": 1,
           "source": "Burst",
           "bonus": [],
-          "hpLeft": 4
+          "hpLeft": 18
         },
         { "type": "round", "round": 7 },
         { "type": "phase", "phase": "enemy" },
@@ -3009,7 +3262,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 5
+          "hpLeft": 47
         },
         {
           "type": "shove",
@@ -3046,7 +3299,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 4
+          "hpLeft": 46
         },
         {
           "type": "moved",
@@ -3066,7 +3319,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-6",
+            "id": "moth-7",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 0 },
             "member": false
@@ -3089,7 +3342,7 @@
         {
           "type": "moved",
           "unit": {
-            "id": "moth-6",
+            "id": "moth-7",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 0 },
             "member": false
@@ -3102,7 +3355,7 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-6",
+            "id": "moth-7",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 1 },
             "member": false
@@ -3151,7 +3404,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 3
+          "hpLeft": 45
         },
         {
           "type": "moved",
@@ -3201,7 +3454,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 2
+          "hpLeft": 44
         },
         {
           "type": "moved",
@@ -3221,7 +3474,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-7",
+            "id": "moth-8",
             "name": "lamp-moth",
             "at": { "x": 3, "y": 0 },
             "member": false
@@ -3231,7 +3484,7 @@
         {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-6",
+            "id": "moth-7",
             "name": "lamp-moth",
             "at": { "x": 6, "y": 1 },
             "member": false
@@ -3240,7 +3493,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-6", "name": "lamp-moth", "at": { "x": 6, "y": 1 }, "member": false }
+          "unit": { "id": "moth-7", "name": "lamp-moth", "at": { "x": 6, "y": 1 }, "member": false }
         },
         {
           "type": "damage",
@@ -3253,7 +3506,7 @@
           "amount": 1,
           "source": "Burst",
           "bonus": [],
-          "hpLeft": 3
+          "hpLeft": 17
         },
         {
           "type": "drift",
@@ -3289,7 +3542,7 @@
         {
           "type": "moved",
           "unit": {
-            "id": "moth-7",
+            "id": "moth-8",
             "name": "lamp-moth",
             "at": { "x": 3, "y": 0 },
             "member": false
@@ -3302,7 +3555,7 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-7",
+            "id": "moth-8",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -3351,7 +3604,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 1
+          "hpLeft": 43
         },
         {
           "type": "moved",
@@ -3409,22 +3662,22 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 0
+          "hpLeft": 42
         },
+        { "type": "phase", "phase": "resolve" },
         {
-          "type": "died",
-          "unit": {
+          "type": "flare",
+          "by": {
             "id": "mother-1",
             "name": "lamp-mother",
             "at": { "x": 5, "y": 2 },
             "member": false
           }
         },
-        { "type": "phase", "phase": "resolve" },
         {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-7",
+            "id": "moth-8",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -3433,7 +3686,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-7", "name": "lamp-moth", "at": { "x": 5, "y": 0 }, "member": false }
+          "unit": { "id": "moth-8", "name": "lamp-moth", "at": { "x": 5, "y": 0 }, "member": false }
         },
         {
           "type": "damage",
@@ -3446,7 +3699,3563 @@
           "amount": 1,
           "source": "Burst",
           "bonus": [],
+          "hpLeft": 16
+        },
+        { "type": "round", "round": 10 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 41
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 40
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-9",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 11 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-9",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-9",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 39
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 38
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-10",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-9",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": { "id": "moth-9", "name": "lamp-moth", "at": { "x": 5, "y": 0 }, "member": false }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 15
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "moth-10",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-10",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-10",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 12 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 37
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 36
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "flare",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 13 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 35
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 6, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 6, "y": 3 }, { "x": 6, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 34
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-11",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 14 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-11",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 6, "y": 0 },
+          "to": { "x": 6, "y": 1 },
+          "path": [{ "x": 6, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-11",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 2 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 33
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 2 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 32
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "from": { "x": 6, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 6, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-12",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-11",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 1 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-11",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 14
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 15 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-12",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-12",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 31
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 30
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "flare",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-12",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-12",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 13
+        },
+        { "type": "round", "round": 16 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 29
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 28
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-13",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 17 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-13",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-13",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 27
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 26
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-14",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-13",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-13",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 12
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "moth-14",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-14",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-14",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 18 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 25
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 24
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "flare",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 19 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 23
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 6, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 6, "y": 3 }, { "x": 6, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 22
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-15",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 20 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-15",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 6, "y": 0 },
+          "to": { "x": 6, "y": 1 },
+          "path": [{ "x": 6, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-15",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 2 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 21
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 2 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 20
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "from": { "x": 6, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 6, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-16",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-15",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 1 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-15",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 11
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 21 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-16",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-16",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 19
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 18
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "flare",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-16",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-16",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 10
+        },
+        { "type": "round", "round": 22 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 17
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 16
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-17",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 23 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-17",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-17",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 15
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 14
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-18",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-17",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-17",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 9
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "moth-18",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-18",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-18",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 24 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 13
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 12
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "flare",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 25 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 11
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 6, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 6, "y": 3 }, { "x": 6, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 10
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-19",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 26 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-19",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 6, "y": 0 },
+          "to": { "x": 6, "y": 1 },
+          "path": [{ "x": 6, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-19",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 2 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 9
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 2 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 2 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 8
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "from": { "x": 6, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 6, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-20",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-19",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 1 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-19",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 1 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 8
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 27 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-20",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-20",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 7
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 6
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "flare",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-20",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-20",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 7
+        },
+        { "type": "round", "round": 28 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 3, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 5
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 4
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "from": { "x": 4, "y": 2 },
+          "to": { "x": 5, "y": 3 },
+          "path": [{ "x": 4, "y": 3 }, { "x": 5, "y": 3 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-21",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "drift",
+          "floats": [],
+          "units": [
+            {
+              "unit": {
+                "id": "stoker",
+                "name": "Stoker",
+                "at": { "x": 5, "y": 3 },
+                "member": true
+              },
+              "from": { "x": 5, "y": 3 },
+              "to": { "x": 5, "y": 4 },
+              "path": [{ "x": 5, "y": 4 }],
+              "cause": "drift"
+            }
+          ]
+        },
+        { "type": "round", "round": 29 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "summon", "at": { "x": 6, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-21",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 5, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-21",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "verb": "burst"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 3
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 5, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 1 }, { "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "from": { "x": 5, "y": 4 },
+          "to": { "x": 4, "y": 2 },
+          "path": [{ "x": 5, "y": 3 }, { "x": 4, "y": 3 }, { "x": 4, "y": 2 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
           "hpLeft": 2
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-22",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-21",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 5, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-21",
+            "name": "lamp-moth",
+            "at": { "x": 5, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 6
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "moth-22",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "moth-22",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-22",
+            "name": "lamp-moth",
+            "at": { "x": 6, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 6, "y": 0 }
+        },
+        { "type": "round", "round": 30 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "intent": { "kind": "flare", "order": 1 },
+          "verb": "flare"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 5, "y": 1 },
+          "path": [{ "x": 5, "y": 0 }, { "x": 5, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 5, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 5, "y": 3 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 1
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 4, "y": 2 }, "member": true },
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 6, "y": 2 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 5, "y": 2 },
+            "member": false
+          }
         },
         { "type": "won" }
       ],
@@ -3633,7 +7442,7 @@
     "encounter": 4,
     "status": "cleared",
     "party": ["draughtsman", "stoker"],
-    "hp": { "draughtsman": 2, "stoker": 6 },
+    "hp": { "draughtsman": 6, "stoker": 18 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
       { "kind": "rune", "rune": "fuse" },
@@ -3834,7 +7643,7 @@
       "encounter": 4,
       "status": "cleared",
       "party": ["draughtsman", "stoker"],
-      "hp": { "draughtsman": 2, "stoker": 6 },
+      "hp": { "draughtsman": 6, "stoker": 18 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
         { "kind": "rune", "rune": "fuse" },

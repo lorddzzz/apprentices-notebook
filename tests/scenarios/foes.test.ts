@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { ENEMIES } from '$data';
 import { type BattleState, describeLog, parseLabel, tileAt, unitAt } from '$engine';
 import { dealDamage } from '$engine/damage';
 import { act, board, draft, expectLog, expectLogIncludes } from './harness';
@@ -237,7 +238,7 @@ describe('lamp-mother (K-17)', () => {
     expect(burn).toBeGreaterThanOrEqual(0);
     expect(snuff).toBeGreaterThan(burn);
     expect(tile(r.state, 'C2').state).toBeNull();
-    expect(unitAt(r.state, parseLabel('C2'))?.hp).toBe(13);
+    expect(unitAt(r.state, parseLabel('C2'))?.hp).toBe(ENEMIES.mother.hp - 1);
   });
 
   test('she never moves', () => {

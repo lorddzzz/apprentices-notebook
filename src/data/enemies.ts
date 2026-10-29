@@ -194,7 +194,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     id: 'mother',
     name: 'lamp-mother',
     token: 'M',
-    hp: 14,
+    hp: 56,
     move: 0,
     attack: null,
     ai: 'mother',

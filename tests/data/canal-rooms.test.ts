@@ -367,20 +367,24 @@ describe('canal heart (CN-5)', () => {
     }
   });
 
-  test('P2: no start point on water or beside a foe; foes are the mother, a Snuffer, a moth', () => {
+  test('P2: no start point on water or beside a foe; foes are the mother, one or two Snuffers, two moths', () => {
     for (const { name, spec } of specs(heart)) {
       for (const p of spec.starts) {
         expect(at(spec, p)?.terrain.water, `${name} P on water`).toBeFalsy();
         for (const u of spec.units)
           expect(adjacent(p, u.at), `${name} P beside ${u.def}`).toBe(false);
       }
-      expect(spec.units.map((u) => u.def).sort(), name).toEqual(['moth', 'mother', 'snuffer']);
+      const defs = spec.units.map((u) => u.def);
+      expect(defs.filter((d) => d !== 'snuffer').sort(), name).toEqual(['moth', 'moth', 'mother']);
+      expect(defs.filter((d) => d === 'snuffer').length, name).toBeGreaterThanOrEqual(1);
+      expect(defs.filter((d) => d === 'snuffer').length, name).toBeLessThanOrEqual(2);
     }
   });
 
-  test('the bot wins every variant with the founding pair on fresh HP', () => {
+  test('CN-13: the bot plays every variant to an end; the pool is no walkover (target 50-65%)', () => {
+    let wins = 0;
+    let fights = 0;
     for (const v of heart.variants) {
-      let wins = 0;
       for (const seed of [1, 2, 3, 4, 5]) {
         const fight = botFight(
           createBattle({
@@ -393,9 +397,12 @@ describe('canal heart (CN-5)', () => {
             ),
           }).state,
         );
+        fights++;
         if (fight.state.phase === 'won') wins++;
       }
-      expect(wins, v.layout).toBe(5);
     }
+    // The full table lives in tests/sim/canals.test.ts; this only keeps both ends in view.
+    expect(wins).toBeGreaterThan(0);
+    expect(wins).toBeLessThan(fights);
   });
 });

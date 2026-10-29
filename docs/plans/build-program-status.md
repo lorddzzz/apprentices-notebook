@@ -12,13 +12,11 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - Verify against the plan before spawning: `grep -n 'ID' build-program-log.md`.
 
 ## Next
-1. **Ask the player** the CN-13 heart-tuning question (below), then merge the tuning from `worktree-agent-a907b3ee9bf57d726` @ e74eb12 or a variant. Default if unanswered: leave data unchanged until the CN playtest.
-2. Ready, file-disjoint picks from the remaining list: DK-10, RV-8, RV-9, FN-12, FN-C batches, SM Wave 1 (SM-1…), CN-14/CN-F*; district plans from the DK-18 template in ROADMAP §2 order.
-3. Small follow-ups: crate "Next round" floats for bystanders (RulePreviewLayer); `lootLine` names recruits (card registry); `summon` required on mother defs; widen `KitHearCondition` with the module-kind shape; `barge.test.ts` bonus mock → room index 1; BL-132 phone captures; ledger name overlaps HP pips; Study lattice "Fit"/"Edit scale" unstyled; describe.ts "is down" → "out of the room"; Lab/Combat pass `slots` to BattleView; route `KitId` hearing through `KIT.hearKinds`; build `BOARD_RULES` lazily; add `DistrictEvent` to `GameEvent`; export the Seam page list constant (RC-5); make `paletteOf`/projection event list exhaustive.
-4. Blocked on the player (gates): **FN-G1** footnote review rounds (`docs/design/footnotes-content/seam.md`, nine batches, §0; questions §6); **RV-G1** Lamplighter Lab playtest (gates CN-7 and RV-11+); **CN-G1** ledger texts (gates CN-9); HC, AH, RC playtests (see each plan's verification doc).
+1. Ready, file-disjoint picks from the remaining list: DK-10, RV-8, RV-9, FN-12, FN-C batches, SM Wave 1 (SM-1…), CN-14/CN-F*; district plans from the DK-18 template in ROADMAP §2 order.
+2. Small follow-ups: crate "Next round" floats for bystanders (RulePreviewLayer); `lootLine` names recruits (card registry); `summon` required on mother defs; widen `KitHearCondition` with the module-kind shape; `barge.test.ts` bonus mock → room index 1; BL-132 phone captures; ledger name overlaps HP pips; Study lattice "Fit"/"Edit scale" unstyled; describe.ts "is down" → "out of the room"; Lab/Combat pass `slots` to BattleView; route `KitId` hearing through `KIT.hearKinds`; build `BOARD_RULES` lazily; add `DistrictEvent` to `GameEvent`; export the Seam page list constant (RC-5); make `paletteOf`/projection event list exhaustive.
+3. Blocked on the player (gates): **FN-G1** footnote review rounds (`docs/design/footnotes-content/seam.md`, nine batches, §0; questions §6); **RV-G1** Lamplighter Lab playtest (gates CN-7 and RV-11+); **CN-G1** ledger texts (gates CN-9); HC, AH, RC playtests (see each plan's verification doc).
 
 ## Open questions for the player (ask in the next design round; defaults held)
-- **CN-13:** the heart is too easy for the pair (100%) and the trio more so. Options: (a) the branch's 56-HP mother + extra foes (pair 52%, trio 97%, full trips rarely clear it), (b) give the mother a real attack, (c) a party-size lever (extra moths for a trio), (d) leave it for the CN playtest. Default (d). Also: what a golden "win" means if bot trips stop clearing the heart.
 - **CN-2:** shoving a moored crate crushes it (anchored = wall); a crate pushed across the mooring without stopping does not moor. Default: as built.
 - **RV-20b / RV-G1:** the rival planner never walks onto a step-jar, so the "Jar" note has no visible effect yet. (a) planner ignores jars when the note is written, (b) a different effect.
 - **RV-5 / RV-10 (RV-G1):** the wick deals ~4 damage and is planned right after the lantern lands; should the planner account for allies? Default no.
@@ -31,7 +29,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - `tests/sim/calibration.test.ts` (15 s) times out while agents run `pnpm check` in parallel; passes alone in ~10 s. Rerun alone before treating it as a failure. Give each UI agent its own port (5190–5193).
 - FD-6: cap sweep lacks push-onto-jar and a mixing chain (`reserve` in mix.ts untested); `eventCap` not passed from `battle.ts`. RV-3: exact wick fail reasons need jar ids on `jarOpened`/`jarCrumbles`. FD-3: Graphite restore with no free tile leaves the unit overlapping.
 - HC-4: greedy bot stalls on some drawn start points; CN/SM should restore the strict turn-1 bite test. HC-5: threshold seed constant per party. `MEMBER_IDS` still used by UI, Lab, profiler, scenarios.
-- RC-4: recruit save cards accept any registry apprentice (tighten to the seven). Canal wins need `DEEP` startHp 20 if the heart tuning merges.
+- RC-4: recruit save cards accept any registry apprentice (tighten to the seven). Canal golden wins record with `DEEP` (startHp 20) since the CN-13 tuning merged; check the trio margin (97%) in the CN playtest.
 
 ## Continuation prompt (new session)
 
