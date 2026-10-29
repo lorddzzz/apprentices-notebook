@@ -44,7 +44,7 @@ import {
  *
  * Board cell = `.` or [unit][mods][terrain and state]:
  *   unit     D Draughtsman, S Stoker, r rat, b brass sentry, f familiar, d dummy, e eel, n snuffer,
- *            m lamp-moth, M lamp-mother (first char only; elite or minion comes from the foe's data)
+ *            m lamp-moth, M lamp-mother, x dead letter, u Sorter (first char only; elite or minion comes from the foe's data)
  *   start    P a start point (HC P3): where the party may be placed; never with a unit, plate,
  *            gate or grate. Written first, in the unit's place (`P`, `P~`, `Pw>`)
  *   mods     ! mark, !! deep mark, & brass collar, $ shackle, + 1 shield each (`++` = 2); after a unit

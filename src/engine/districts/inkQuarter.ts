@@ -1,3 +1,4 @@
+import { INK_FOES } from './inkQuarter/foes';
 import {
   FORWARD_EVENT_LINES,
   FORWARD_GUARD,
@@ -31,7 +32,7 @@ const shape: TripShapeDef<InkTripState> = {
   ...TERM_HOOKS,
 };
 
-/** Log lines: the writs' (IQ-1) and the terms' (IQ-3), else the event's name (IQ-2, IQ-6 write theirs). */
+/** Log lines: the writs' (IQ-1), forwarding's (IQ-2) and the terms' (IQ-3), else the event's name (IQ-6 writes its own). */
 const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
   (type) =>
     WRIT_EVENT_LINES[type] ??
@@ -48,6 +49,7 @@ export const INK_QUARTER_MODULE: DistrictModule = {
   harmGuards: [FORWARD_GUARD],
   pieces: INK_BASE_PIECES.map((p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? p),
   events,
+  foes: INK_FOES,
   trip: shape,
   offerKinds: [TERMED_KIND],
 };

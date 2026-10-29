@@ -344,7 +344,9 @@ export type EnemyId =
   | 'moth'
   | 'mother'
   | 'lamplighter'
-  | 'barge';
+  | 'barge'
+  | 'deadLetter'
+  | 'sorter';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 
 /**

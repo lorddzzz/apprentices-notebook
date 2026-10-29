@@ -1,4 +1,5 @@
 import { ENEMIES, type HarmKind } from '$data';
+import { behaviourDied } from './behaviours';
 import { type Ctx, emit, oweAtCap, ref, reserve } from './ctx';
 import { foeBurst } from './foes';
 import type { Coord, Dir } from './grid';
@@ -121,4 +122,5 @@ export function kill(ctx: Ctx, unit: Unit, bursts = true, source = 'harm'): void
   }
   notify(ctx, { kind: 'died', unit: unit.id });
   if (bursts && unit.kind === 'enemy' && ENEMIES[unit.def].bursts) foeBurst(ctx, unit);
+  if (unit.kind === 'enemy') behaviourDied(ctx, unit);
 }

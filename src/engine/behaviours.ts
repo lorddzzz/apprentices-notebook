@@ -64,6 +64,11 @@ export function resolveBehaviour(
   b.resolve(ctx, e, intent.telegraph);
 }
 
+/** A behaviour foe has just been killed (`kill`): its `onDeath`, if any. */
+export function behaviourDied(ctx: Ctx, e: EnemyUnit): void {
+  behaviourOf(e)?.onDeath?.(ctx, e);
+}
+
 /** Every living behaviour foe's preview shapes (the board's "Next round" layer), in unit order. */
 export function behaviourPreview(s: BattleState): PreviewShape[] {
   const out: PreviewShape[] = [];

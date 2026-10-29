@@ -1,0 +1,63 @@
+import type { EnemyDef } from '../../types';
+
+/**
+ * The postal staff's data (ink-quarter plan P8; IQ-5a: the dead letter and the Sorter; the Sealer
+ * and the heart join in IQ-5b and IQ-7). Every number is *tune by playing*. Their AI is the
+ * kit's behaviour registry (`engine/districts/inkQuarter/foes.ts`); `ai: 'idle'` is only the
+ * Lab fallback label.
+ */
+
+/** Numbers the foes' behaviours read. */
+export const INK_FOE_TUNING = {
+  /** The dead letter's burst on delivery. */
+  deadLetterBurst: 2,
+  /** The Sorter's plain file when it has no mark to forward. */
+  sorterFile: 1,
+} as const;
+
+/** A fluttering paper minion, addressed to the nearest apprentice; bursts on delivery. */
+export const DEAD_LETTER: EnemyDef = {
+  id: 'deadLetter',
+  name: 'dead letter',
+  token: 'x',
+  hp: 1,
+  move: 2,
+  attack: null,
+  ai: 'idle',
+  behaviour: 'inkQuarter:deadLetter',
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb:
+    'Undelivered mail, addressed to you. Bursts on delivery; paper, so fire ends it. Leaves a blot.',
+  habitat: 'any',
+  flies: true,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+};
+
+/** Walks the floor and forwards a mark from a foe onto an apprentice, else files a hit. */
+export const SORTER: EnemyDef = {
+  id: 'sorter',
+  name: 'sorter',
+  token: 'u',
+  hp: 4,
+  move: 2,
+  attack: null,
+  ai: 'idle',
+  behaviour: 'inkQuarter:sorter',
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb: 'A clerk of the sorting hall. Moves the mark on a foe onto one of you, if you let it.',
+  habitat: 'any',
+  flies: false,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+};
+
+export const INK_ENEMIES = { deadLetter: DEAD_LETTER, sorter: SORTER } as const;

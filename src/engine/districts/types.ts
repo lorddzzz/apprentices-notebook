@@ -358,6 +358,8 @@ export interface FoeBehaviour {
   describe?(telegraph: Telegraph): string;
   /** Enemy-level struck trigger (BF's Clapper). */
   onStruck?(ctx: Ctx, unit: EnemyUnit, by: StruckBy): void;
+  /** The foe just died (IQ-5a: the dead letter's blot): after `died`, from `kill`, however it fell. */
+  onDeath?(ctx: Ctx, unit: EnemyUnit): void;
 }
 
 // ── District events (P2) ────────────────────────────────
