@@ -2296,13 +2296,15 @@
           "verb": "burst"
         },
         {
-          "type": "idle",
+          "type": "telegraph",
           "unit": {
             "id": "mother-1",
             "name": "lamp-mother",
             "at": { "x": 3, "y": 2 },
             "member": false
-          }
+          },
+          "intent": { "kind": "summon", "at": { "x": 0, "y": 0 }, "order": 2 },
+          "verb": "call a moth"
         },
         {
           "type": "moved",
@@ -2347,7 +2349,7 @@
             "at": { "x": 4, "y": 0 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 3 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
@@ -2523,6 +2525,22 @@
         },
         { "type": "phase", "phase": "resolve" },
         {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 3, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-3",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 0, "y": 0 }
+        },
+        {
           "type": "foeBursts",
           "unit": {
             "id": "moth-2",
@@ -2612,6 +2630,23 @@
             "at": { "x": 2, "y": 2 },
             "member": false
           }
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-3",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 0, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "idle",
+          "unit": { "id": "moth-3", "name": "lamp-moth", "at": { "x": 3, "y": 0 }, "member": false }
         },
         { "type": "phase", "phase": "player" },
         {
@@ -2734,6 +2769,28 @@
             "at": { "x": 3, "y": 2 },
             "member": false
           }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-3",
+            "name": "lamp-moth",
+            "at": { "x": 3, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 3, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": { "id": "moth-3", "name": "lamp-moth", "at": { "x": 3, "y": 0 }, "member": false }
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 2
         },
         {
           "type": "drift",
@@ -2889,7 +2946,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -2917,18 +2974,20 @@
         { "type": "round", "round": 5 },
         { "type": "phase", "phase": "enemy" },
         {
-          "type": "idle",
+          "type": "telegraph",
           "unit": {
             "id": "mother-1",
             "name": "lamp-mother",
             "at": { "x": 3, "y": 2 },
             "member": false
-          }
+          },
+          "intent": { "kind": "summon", "at": { "x": 0, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
         },
         {
           "type": "moved",
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -2941,12 +3000,12 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 0 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 1 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
@@ -3052,9 +3111,25 @@
         },
         { "type": "phase", "phase": "resolve" },
         {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 3, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 0, "y": 0 }
+        },
+        {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-3",
+            "id": "moth-4",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 0 },
             "member": false
@@ -3063,7 +3138,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-3", "name": "lamp-moth", "at": { "x": 4, "y": 0 }, "member": false }
+          "unit": { "id": "moth-4", "name": "lamp-moth", "at": { "x": 4, "y": 0 }, "member": false }
         },
         {
           "type": "damage",
@@ -3108,6 +3183,30 @@
           },
           "intent": { "kind": "flare", "order": 1 },
           "verb": "flare"
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "from": { "x": 0, "y": 0 },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 2, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "right", "order": 2 },
+          "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
         {
@@ -3219,6 +3318,20 @@
             "at": { "x": 3, "y": 2 },
             "member": false
           }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 2, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 2, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": { "id": "moth-5", "name": "lamp-moth", "at": { "x": 2, "y": 0 }, "member": false }
         },
         {
           "type": "drift",
@@ -3556,7 +3669,7 @@
     "encounter": 4,
     "status": "cleared",
     "party": ["draughtsman", "stoker"],
-    "hp": { "draughtsman": 3, "stoker": 3 },
+    "hp": { "draughtsman": 3, "stoker": 2 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
       { "kind": "rune", "rune": "fuse" },
@@ -3744,7 +3857,7 @@
       "encounter": 4,
       "status": "cleared",
       "party": ["draughtsman", "stoker"],
-      "hp": { "draughtsman": 3, "stoker": 3 },
+      "hp": { "draughtsman": 3, "stoker": 2 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
         { "kind": "rune", "rune": "fuse" },

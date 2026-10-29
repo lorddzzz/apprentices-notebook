@@ -3000,13 +3000,15 @@
         { "type": "round", "round": 5 },
         { "type": "phase", "phase": "enemy" },
         {
-          "type": "idle",
+          "type": "telegraph",
           "unit": {
             "id": "mother-1",
             "name": "lamp-mother",
             "at": { "x": 3, "y": 2 },
             "member": false
-          }
+          },
+          "intent": { "kind": "summon", "at": { "x": 0, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
         },
         {
           "type": "telegraph",
@@ -3016,7 +3018,7 @@
             "at": { "x": 1, "y": 1 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "pole", "dir": "right", "order": 1 },
+          "intent": { "kind": "attack", "attack": "pole", "dir": "right", "order": 2 },
           "verb": "swing its pole"
         },
         {
@@ -3040,7 +3042,7 @@
             "at": { "x": 4, "y": 0 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 3 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
@@ -3157,6 +3159,22 @@
         },
         { "type": "phase", "phase": "resolve" },
         {
+          "type": "summon",
+          "by": {
+            "id": "mother-1",
+            "name": "lamp-mother",
+            "at": { "x": 3, "y": 2 },
+            "member": false
+          },
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 0, "y": 0 }
+        },
+        {
           "type": "foeBursts",
           "unit": {
             "id": "moth-4",
@@ -3200,6 +3218,17 @@
           },
           "intent": { "kind": "flare", "order": 1 },
           "verb": "flare"
+        },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "right", "order": 2 },
+          "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
         {
@@ -3311,6 +3340,20 @@
             "at": { "x": 3, "y": 2 },
             "member": false
           }
+        },
+        {
+          "type": "foeBursts",
+          "unit": {
+            "id": "moth-5",
+            "name": "lamp-moth",
+            "at": { "x": 0, "y": 0 },
+            "member": false
+          },
+          "at": { "x": 0, "y": 0 }
+        },
+        {
+          "type": "died",
+          "unit": { "id": "moth-5", "name": "lamp-moth", "at": { "x": 0, "y": 0 }, "member": false }
         },
         {
           "type": "drift",
@@ -3466,7 +3509,7 @@
             "member": false
           },
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -3494,18 +3537,20 @@
         { "type": "round", "round": 8 },
         { "type": "phase", "phase": "enemy" },
         {
-          "type": "idle",
+          "type": "telegraph",
           "unit": {
             "id": "mother-1",
             "name": "lamp-mother",
             "at": { "x": 3, "y": 2 },
             "member": false
-          }
+          },
+          "intent": { "kind": "summon", "at": { "x": 0, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
         },
         {
           "type": "moved",
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 5, "y": 0 },
             "member": false
@@ -3518,12 +3563,12 @@
         {
           "type": "telegraph",
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 0 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 1 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },
@@ -3640,7 +3685,7 @@
         {
           "type": "foeBursts",
           "unit": {
-            "id": "moth-5",
+            "id": "moth-6",
             "name": "lamp-moth",
             "at": { "x": 4, "y": 0 },
             "member": false
@@ -3649,7 +3694,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "moth-5", "name": "lamp-moth", "at": { "x": 4, "y": 0 }, "member": false }
+          "unit": { "id": "moth-6", "name": "lamp-moth", "at": { "x": 4, "y": 0 }, "member": false }
         },
         {
           "type": "damage",

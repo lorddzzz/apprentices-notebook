@@ -3124,13 +3124,15 @@
         { "type": "round", "round": 8 },
         { "type": "phase", "phase": "enemy" },
         {
-          "type": "idle",
+          "type": "telegraph",
           "unit": {
             "id": "mother-1",
             "name": "lamp-mother",
             "at": { "x": 3, "y": 2 },
             "member": false
-          }
+          },
+          "intent": { "kind": "summon", "at": { "x": 0, "y": 0 }, "order": 1 },
+          "verb": "call a moth"
         },
         {
           "type": "moved",
@@ -3153,7 +3155,7 @@
             "at": { "x": 4, "y": 0 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 1 },
+          "intent": { "kind": "attack", "attack": "burst", "dir": "down", "order": 2 },
           "verb": "burst"
         },
         { "type": "phase", "phase": "player" },

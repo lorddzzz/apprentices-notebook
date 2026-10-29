@@ -24,9 +24,6 @@ import type { BattleState, EnemyUnit, Intent, SpecialIntent, Unit } from './type
  * lamp-mother's summon and flare. `ai.ts` dispatches the new AIs to `foeAct`.
  */
 
-const MOTHS_AT_MOST = 4;
-const FLARE_EVERY = 3;
-
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
 /** A fresh enemy unit (mirrors `spawnEnemy` in battle.ts) with the next free id for its def. */
@@ -121,23 +118,27 @@ export function foeBurst(ctx: Ctx, unit: Unit): void {
 const livingMoths = (s: BattleState): EnemyUnit[] =>
   enemies(s).filter((e) => isAlive(e) && ENEMIES[e.def].bursts);
 
-/** The lamp nearest a member (ties: reading order). Null if the board has none. */
+/** The free lamp (no unit on it) nearest a living member, ties in reading order. Null if none. */
 function summonLamp(s: BattleState): Coord | null {
   const living = members(s).filter(isAlive);
   let best: { at: Coord; d: number } | null = null;
   s.tiles.forEach((t, i) => {
     if (!t.terrain.lamp) return;
     const at = coordOf(s, i);
+    if (unitAt(s, at)) return;
     const d = Math.min(...living.map((m) => manhattan(at, m.pos)));
     if (!best || d < best.d) best = { at, d };
   });
   return (best as { at: Coord } | null)?.at ?? null;
 }
 
-const canSummonAt = (s: BattleState, at: Coord): boolean =>
-  unitAt(s, at) === null && livingMoths(s).length < MOTHS_AT_MOST;
+const summonRule = (e: EnemyUnit) => ENEMIES[e.def].summon ?? { cap: 4, flareEvery: 3 };
 
-const flareRound = (s: BattleState): boolean => s.round % FLARE_EVERY === 0;
+const canSummonAt = (s: BattleState, e: EnemyUnit, at: Coord): boolean =>
+  unitAt(s, at) === null && livingMoths(s).length < summonRule(e).cap;
+
+const flareRound = (s: BattleState, e: EnemyUnit): boolean =>
+  s.round % summonRule(e).flareEvery === 0;
 
 /** Resolves a telegraphed summon or flare (K-17): the moth comes at the lamp she lit. */
 export function resolveSpecial(ctx: Ctx, e: EnemyUnit, intent: SpecialIntent): void {
@@ -149,7 +150,7 @@ export function resolveSpecial(ctx: Ctx, e: EnemyUnit, intent: SpecialIntent): v
     return;
   }
   const at = intent.at;
-  if (!canSummonAt(ctx.s, at)) return;
+  if (!canSummonAt(ctx.s, e, at)) return;
   const moth = makeEnemy(ctx.s, 'moth', at);
   ctx.s.units.push(moth);
   emit(ctx, { type: 'summon', by: ref(e), unit: ref(moth), at: { ...at } });
@@ -270,12 +271,12 @@ function planMoth(ctx: Ctx, e: EnemyUnit, move: boolean, order: number): boolean
   return strikeAdjacent(ctx, e, order, target);
 }
 
-/** Flares every third round, else calls a moth at the lamp nearest a member (unless blocked). */
+/** Flares every `flareEvery` rounds, else calls a moth at the free lamp nearest a member. */
 function planMother(ctx: Ctx, e: EnemyUnit, order: number): boolean {
   const s = ctx.s;
-  if (flareRound(s)) return telegraph(ctx, e, { kind: 'flare', order }, 'flare');
+  if (flareRound(s, e)) return telegraph(ctx, e, { kind: 'flare', order }, 'flare');
   const at = summonLamp(s);
-  if (!at || !canSummonAt(s, at)) return idle(ctx, e);
+  if (!at || !canSummonAt(s, e, at)) return idle(ctx, e);
   return telegraph(ctx, e, { kind: 'summon', at, order }, 'call a moth');
 }
 

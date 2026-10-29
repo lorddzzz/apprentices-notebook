@@ -195,10 +195,9 @@ describe('lamp-mother (K-17)', () => {
     expect(r.state.units.some((u) => u.id === 'moth-1')).toBe(true);
   });
 
-  test('skips a lamp that is taken', () => {
+  test('a taken nearest lamp passes the call to the next free lamp', () => {
     const r = act(board(pool.replace('l .', 'dl .')), endTurn);
-    expect(r.lines.join('\n')).not.toContain('calls');
-    expectLogIncludes(r.events, ['lamp-mother at C2 waits']);
+    expectLogIncludes(r.events, ['lamp-mother at C2 calls lamp-moth at E1']);
   });
 
   test('skips the fifth moth', () => {
