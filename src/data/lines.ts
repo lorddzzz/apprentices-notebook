@@ -610,6 +610,14 @@ export const LINES: readonly LineDef[] = [
     district: 'seam',
     text: 'A Hop clears canal water or an open side in between.',
   },
+  // RV-20b: the Jar rune's fine print
+  {
+    id: 'jar:unit',
+    subject: 'jar',
+    meets: 'unit',
+    district: 'seam',
+    text: "A jar opens under whatever unit stands on it, foe included, and what it holds is still its owner's.",
+  },
   // pending (L1): fired by the engine, text to be written by C1
   {
     id: 'fork:noHeading',

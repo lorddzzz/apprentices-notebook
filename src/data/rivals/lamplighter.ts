@@ -67,14 +67,14 @@ export const LAMPLIGHTER_PAGE: RivalPageDef = {
 };
 
 /**
- * The Jar note (footnotes §1 "Rival notes", RV-20): a third level I option on `jar:unit`, in FN's
- * variant shape. Hidden until his page is held (`rivalNoteVisible`); not yet in `BATCHES`, see the
- * RV-20 report. Its effect needs an engine handler keyed by this id, not yet written.
+ * The Jar note (footnotes §1 "Rival notes", RV-20/20b): a third level I option on `jar:unit`, in
+ * FN's variant shape, registered in the `rivals` batch. Hidden until his page is held
+ * (`rivalNoteVisible`). Its effect is `stepOpens` in `engine/jars.ts`, keyed by this id.
  */
 export const LAMPLIGHTER_WICK: VariantDef = {
   id: 'lamplighter:wick',
   subject: 'jar',
   slot: { line: 'jar:unit', level: 1 },
-  text: 'The wick does not care who lit it: a jar that opens also harms the units beside its tile.',
+  text: 'The wick does not care who lit it: a jar you sealed can be opened by anyone, foe or rival included, and what it holds still counts as yours.',
   rival: 'lamplighter',
 };

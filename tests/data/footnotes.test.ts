@@ -14,11 +14,13 @@ test('footnote variants are unique, and line slots sit on written lines of their
   expect(new Set(ids).size).toBe(ids.length);
   // Line slots so far: level I only. Capstones (FN-11: the aura diagonals) sit on no line.
   const onLines = VARIANTS.filter((v) => variantLine(v) !== null);
-  expect(onLines).toHaveLength(10);
+  expect(onLines).toHaveLength(11);
   for (const v of VARIANTS) {
     expect(v.text.length, v.id).toBeGreaterThan(10);
     expect(isFootnoteSubject(v.subject), v.id).toBe(true);
-    expect(v.id.startsWith(`${v.subject}-`), v.id).toBe(true);
+    // A rival's note keeps its page's id (`lamplighter:wick`); every other variant is `<subject>-<slug>`.
+    if (v.rival === undefined) expect(v.id.startsWith(`${v.subject}-`), v.id).toBe(true);
+    else expect(v.id.startsWith(`${v.rival}:`), v.id).toBe(true);
   }
   for (const v of onLines) {
     expect(variantLevel(v), v.id).toBe(1);

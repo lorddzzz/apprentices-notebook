@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { VariantDef } from '$data';
+import { VARIANTS, type VariantDef } from '$data';
 import { RIVAL_PAGES } from '$data/rivals';
 import { LAMPLIGHTER_PAGE, LAMPLIGHTER_WICK } from '$data/rivals/lamplighter';
 import { newProfile, type Profile } from '$engine';
@@ -81,17 +81,32 @@ describe('the Lamplighter’s Jar note (RV-20)', () => {
   });
 
   test('refused without solvents: the frame says what it needs and spends nothing', () => {
-    // Until a `jar:unit` row exists in LINES, the solvent set for this line is empty, so every
-    // write is refused for want of a solvent. This pins the refusal, not the paid path (below).
+    // The Jar line is written now; without a district solvent the write is refused.
     const p = withPage(jarProfile());
-    const r = writeAt(p, 'jar', WICK, ctx);
-    expect(r).toHaveProperty('error');
+    expect(writeAt(p, 'jar', WICK, ctx)).toHaveProperty('error');
     const frame = jarLevelOne(p);
     expect(frame?.spends).toEqual([]);
-    expect(frame?.blocked).toBe('Needs a solvent');
+    expect(frame?.blocked).toBe('Needs Gallnut or Cinder');
   });
 
-  test.todo(
-    'written with the page, level I and one district solvent: spends that solvent once jar:unit has a LINES row',
-  );
+  test('written with the page, level I and one district solvent: spends that solvent once', () => {
+    const p = withPage(
+      jarProfile({
+        solventsFound: ['gallnut'],
+        solvents: { ...newProfile().solvents, gallnut: 2 },
+      }),
+    );
+    const r = writeAt(p, 'jar', WICK, ctx);
+    if ('error' in r) throw new Error(r.error);
+    expect(r.profile.solvents.gallnut).toBe(1);
+    expect(r.profile.footnotes.jar?.slots['jar:unit@1']).toBe(WICK);
+  });
+
+  test('is registered in the content, so the real margin offers it once the page is held', () => {
+    expect(VARIANTS.map((v) => v.id)).toContain(WICK);
+    const real = marginOf(withPage(jarProfile()), 'jar').lines[0]?.frames[0];
+    expect(real?.variants.map((v) => v.id)).toContain(WICK);
+    const hidden = marginOf(jarProfile(), 'jar').lines[0]?.frames[0]?.variants ?? [];
+    expect(hidden.map((v) => v.id)).not.toContain(WICK);
+  });
 });

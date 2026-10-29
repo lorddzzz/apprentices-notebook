@@ -1,13 +1,28 @@
 import type { RuneRef, SolventId } from '$data';
 import { cloneData } from './clone';
-import { type Ctx, emit, inCastScope, ref, withOrigin } from './ctx';
+import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
+import { hasFootnote } from './footnotes';
 import type { Coord, Dir } from './grid';
 import { habitOf } from './habits';
 import { jarLimit } from './leans';
 import { coordOf, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
-import type { Flow, Jar, Origin, SealedContext, Step, Target, UnitId } from './types';
+import type { Flow, Jar, Origin, SealedContext, Step, Target, Unit, UnitId } from './types';
 import { targetKey } from './types';
+
+/** The Lamplighter's Jar note (footnotes §1 "Rival notes", RV-20b): written, rivals trip your jars. */
+export const WICK_NOTE = 'lamplighter:wick';
+
+/**
+ * Whether a unit's own step opens the step-jar under it. Foes and members always do (J5). A rival
+ * treads carefully over a jar that is not his own unless the household has written the Lamplighter's
+ * Jar note; shoves, pulls and the rest still open it, and the contents stay the owner's either way.
+ */
+export function stepOpens(ctx: Ctx, opener: Unit, jar: Jar, cause: string): boolean {
+  if (cause !== 'walk' || opener.kind !== 'enemy' || !opener.rival || jar.owner === opener.id)
+    return true;
+  return hasFootnote(ctx, WICK_NOTE);
+}
 
 /** The first rune of a step chain: what a jar's contents peek shows. */
 export function firstRune(step: Step | null): RuneRef | null {
@@ -155,9 +170,13 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null): void {
   tile.jar = null;
   const unit = (by ? findUnit(ctx.s, by) : null) ?? unitAt(ctx.s, at);
   const opener = unit && isAlive(unit) && unit.pos.x === at.x && unit.pos.y === at.y ? unit : null;
-  withOrigin(ctx, jar.origin, () =>
-    emit(ctx, { type: 'jarOpened', at: { ...at }, by: opener ? ref(opener) : null }),
-  );
+  const open = () =>
+    withOrigin(ctx, jar.origin, () =>
+      emit(ctx, { type: 'jarOpened', at: { ...at }, by: opener ? ref(opener) : null }),
+    );
+  // A jar opened under someone other than its owner is the fine print of `jar:unit`.
+  if (opener && opener.id !== jar.owner) withLine(ctx, 'jar:unit', open);
+  else open();
   const target: Target = opener
     ? { kind: 'unit', unit: opener.id }
     : { kind: 'tile', at: { ...at } };

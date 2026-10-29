@@ -1,4 +1,5 @@
 import { METHOD_IDS } from '../methods';
+import { LAMPLIGHTER_WICK } from '../rivals/lamplighter';
 import { RUNE_IDS } from '../runes';
 import { SOLVENT_IDS } from '../solvents';
 import type {
@@ -17,7 +18,7 @@ import { SEAM_RUNES } from './seam-runes';
 /**
  * Footnote content registry (plan FN P8, §6). Each batch owns one file (`seam-runes`,
  * `seam-methods`, `canals`, …) and is joined here, so parallel district builds touch disjoint
- * files and add one line to `BATCHES`. Variant ids are `<subject>-<slug>` and never change.
+ * files and add one line to `BATCHES`. Variant ids are `<subject>-<slug>` and never change; a rival's note (`rival` set) keeps its page's id, e.g. `lamplighter:wick`.
  */
 export { AURA_DIAGONAL } from './auras';
 export { SHOVE_WALL_SOFT } from './seam-runes';
@@ -25,6 +26,7 @@ export { SHOVE_WALL_SOFT } from './seam-runes';
 export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   'seam-runes': SEAM_RUNES,
   auras: AURAS,
+  rivals: [LAMPLIGHTER_WICK],
 };
 
 /** Every authored variant, batches in registry order. */

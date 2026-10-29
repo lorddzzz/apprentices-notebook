@@ -3,7 +3,7 @@ import { HABIT_ARRIVAL_HOOKS } from './arrival-habits';
 import { type Ctx, fizzled } from './ctx';
 import { KIT } from './districts/kit';
 import { type Coord, sameCoord } from './grid';
-import { openJar } from './jars';
+import { openJar, stepOpens } from './jars';
 import * as marks from './marks';
 import { stainMarks } from './mix';
 import { findUnit, isAlive, tileAt, unitAt } from './queries';
@@ -262,7 +262,8 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
       if (tileAt(ctx.s, a.at).jar?.event !== 'step') return 'go';
       if (a.subject.kind === 'unit') {
         const u = subjectUnit(ctx, a);
-        if (u) openJar(ctx, a.at, u.id);
+        const jar = tileAt(ctx.s, a.at).jar;
+        if (u && jar && stepOpens(ctx, u, jar, a.cause)) openJar(ctx, a.at, u.id);
       } else if (a.subject.object.kind === 'jar' && unitAt(ctx.s, a.at)) {
         openJar(ctx, a.at); // a step-jar arriving under a standing unit opens on it (P6)
       }
