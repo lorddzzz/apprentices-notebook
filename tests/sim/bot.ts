@@ -20,7 +20,12 @@ import type { Rng } from '$engine/rng';
 function value(s: BattleState): number {
   return s.units.reduce(
     (v, u) =>
-      v + (u.kind === 'enemy' ? -10 * u.hp - (u.hp > 0 ? 20 : 0) + (u.mark ? 0.2 : 0) : 30 * u.hp),
+      v +
+      (u.bystander
+        ? 0 // the canal crate is cargo, never a target (CN P3)
+        : u.kind === 'enemy'
+          ? -10 * u.hp - (u.hp > 0 ? 20 : 0) + (u.mark ? 0.2 : 0)
+          : 30 * u.hp),
     0,
   );
 }
@@ -81,7 +86,7 @@ export function botFight(
       for (const to of legalMoves(state, id)) {
         const action: Action = { type: 'move', unit: id, to };
         const next = applyAction(state, action).state;
-        const enemies = next.units.filter((u) => u.kind === 'enemy' && u.hp > 0);
+        const enemies = next.units.filter((u) => u.kind === 'enemy' && !u.bystander && u.hp > 0);
         const distance = Math.min(
           ...enemies.map((u) => Math.abs(u.pos.x - to.x) + Math.abs(u.pos.y - to.y)),
         );

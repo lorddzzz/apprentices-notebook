@@ -10,6 +10,7 @@
     labRoster,
     nativeKit,
     PALETTE,
+    paletteOf,
     variantGroups,
   } from '../../app/lab';
   import { overlayFor } from '../../app/overlay';
@@ -147,7 +148,11 @@
                 Undo
               </button>
             </div>
-            <Palette selected={lab.palette} onselect={(item) => (lab.palette = item)} />
+            <Palette
+                selected={lab.palette}
+                onselect={(item) => (lab.palette = item)}
+                entries={paletteOf(undefined, 'lab', roster)}
+              />
           {:else}
             <MemberPicker member={lab.member} lineup={lab.lineup} {roster} onpick={(m) => (lab.member = m)} />
             {#if memberHabit}

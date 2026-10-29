@@ -553,10 +553,17 @@ const capital = (text: string): string => text.charAt(0).toUpperCase() + text.sl
  * modifiers, tile states, terrain, the district pieces the kit registers (for the Lab; `all` adds
  * those only the Bench offers), the eraser.
  */
-export function paletteOf(kit: Kit = KIT, pieces: 'lab' | 'all' = 'lab'): readonly PaletteEntry[] {
+export function paletteOf(
+  kit: Kit = KIT,
+  pieces: 'lab' | 'all' = 'lab',
+  roster: readonly ApprenticeId[] = APPRENTICE_IDS,
+): readonly PaletteEntry[] {
   const rivals = rivalFoes();
   return [
-    ...APPRENTICE_IDS.map((id) => ({ item: APPRENTICES[id].token, name: APPRENTICES[id].name })),
+    ...APPRENTICE_IDS.filter((id) => roster.includes(id)).map((id) => ({
+      item: APPRENTICES[id].token,
+      name: APPRENTICES[id].name,
+    })),
     { item: 'P', name: 'Start point (P)' },
     ...ENEMY_IDS.filter((id) => !rivals.has(id)).map((id) => ({
       item: ENEMIES[id].token,
