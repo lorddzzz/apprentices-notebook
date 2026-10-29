@@ -3,12 +3,14 @@
   import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf } from '$engine';
   import { lineTextFor } from '../../app/bench';
   import { householdRows } from '../../app/codexHousehold';
+  import { rivalPageRows } from '../../app/codexRivals';
   import { marginOf } from '../../app/desk';
   import { game } from '../../app/instance';
   import CodexEntry from '../components/codex/CodexEntry.svelte';
   import CodexGrid from '../components/codex/CodexGrid.svelte';
   import CodexHousehold from '../components/codex/CodexHousehold.svelte';
   import CodexIdiom from '../components/codex/CodexIdiom.svelte';
+  import RivalPage from '../components/codex/RivalPage.svelte';
   import BackLink from '../components/common/BackLink.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
 
@@ -21,6 +23,7 @@
     ['solvents', 'Solvents'],
     ['idioms', 'Idioms'],
     ['household', 'Household'],
+    ['pages', 'Pages'],
   ] as const;
   type Tab = (typeof TABS)[number][0];
   let tab = $state<Tab>('runes');
@@ -34,6 +37,8 @@
   const made = $derived(game.profile.inventions);
   // Outside `entries`, so the count above never hints at anyone unmet (recruitment P13).
   const household = $derived(householdRows(game.profile));
+  const rivalPages = $derived(rivalPageRows(game.profile));
+  const tabs = $derived(TABS.filter(([id]) => id !== 'pages' || rivalPages.length > 0));
   const known = $derived(entries.filter((e) => e.known).length);
   // Out on a trip the notebook opens from the road, and closes back onto it.
   const lineText = (id: LineId) => lineTextFor(game.profile, id);
@@ -53,7 +58,7 @@
   </header>
 
   <nav class="tabs" aria-label="Notebook sections">
-    {#each TABS as [id, name] (id)}
+    {#each tabs as [id, name] (id)}
       <button
         type="button"
         class:on={tab === id}
@@ -103,6 +108,11 @@
       <p class="lead">Everyone who works under this roof.</p>
       {#each household as row (row.card.def.id)}
         <CodexHousehold {row} />
+      {/each}
+    {:else if tab === 'pages'}
+      <p class="lead">Pages taken from rivals, annotated.</p>
+      {#each rivalPages as row (row.id)}
+        <RivalPage {row} />
       {/each}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}

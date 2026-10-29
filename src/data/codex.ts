@@ -301,3 +301,14 @@ export const CODEX: readonly CodexEntryDef[] = [
     }),
   ),
 ];
+
+/**
+ * The rival's personal trick as the page shows it (rivals P12): named, and marked as his alone.
+ * The trick is never part of a recovered page or its Bench trial (rivals §3).
+ */
+export const RIVAL_TRICK_TEXT: Readonly<Record<string, { name: string; text: string }>> = {
+  'canals:longWick': {
+    name: 'The long wick',
+    text: 'He opens his jar from afar. His alone, not in the trial.',
+  },
+};
