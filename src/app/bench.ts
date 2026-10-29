@@ -246,6 +246,8 @@ const MET_ITEMS: readonly { items: readonly PaletteItem[]; met: readonly string[
   { items: ['w>', 'wv', 'w<', 'w^', 'h'], met: ['water'] },
   // A vent breathes steam: `metIn` does not record vents yet, so a met steam cloud opens it too.
   { items: ['@'], met: ['vent', 'cloud'] },
+  // CN-12: a canal lamp (terrain, the heart's rim). `metIn` does not record lamps yet (as vents).
+  { items: ['l'], met: ['lamp'] },
 ];
 
 /**

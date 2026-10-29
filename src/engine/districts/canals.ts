@@ -76,6 +76,8 @@ export const MOOR_DEF: PieceDef<null> = {
   token: MOOR_TOKEN,
   solid: 'none',
   triggers: { onArrive: MOOR_ARRIVAL },
+  // CN-12: offered on the Bench once the household has met a mooring.
+  bench: { met: 'moor', label: 'Mooring' },
   art: 'canal-moor',
 };
 
