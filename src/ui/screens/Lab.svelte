@@ -119,7 +119,7 @@
     {/snippet}
     {#key session}
       {#if lab.mode === 'play'}
-        <BattleView {session} continueLabel="Play again" oncontinue={reset} top={bar} />
+        <BattleView {session} slots={lab.lineup} continueLabel="Play again" oncontinue={reset} top={bar} />
       {:else}
         <section class="workshop">
           {@render bar()}

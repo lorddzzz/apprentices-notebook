@@ -100,7 +100,9 @@
 <style>
   .paper-viewport { width: 100%; min-width: 0; min-height: 0; height: var(--lattice-viewport-height, auto); display: flex; flex-direction: column; }
   .paper-controls { flex: none; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding-block: 0.4rem; padding-right: var(--lattice-controls-reserve, 0px); box-sizing: border-box; }
-  .paper-controls button { min-height: 44px; }
+  .paper-controls button { min-width: var(--tap, 44px); min-height: 44px; padding: 0 var(--space-3, 12px); border: 2px solid var(--line); border-radius: var(--radius); background: var(--parchment); color: var(--ink); font-size: 16px; cursor: pointer; }
+  .paper-controls button:active { transform: translateY(1px); filter: brightness(1.15); }
+  .paper-controls button:focus-visible { outline: 3px solid var(--select); outline-offset: 2px; }
   .paper-controls span { font-size: 0.8rem; }
   .paper-surface { position: relative; width: 100%; height: var(--lattice-surface-height, min(52vh, 420px)); min-height: var(--lattice-surface-min-height, 240px); flex: var(--lattice-surface-flex, none); overflow: clip; touch-action: none; user-select: none; background: var(--paper, #f3ead6); }
   .paper-cell { position: absolute; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; overflow: hidden; }

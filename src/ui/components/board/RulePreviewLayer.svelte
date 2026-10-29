@@ -55,6 +55,20 @@
       {:else}
         <circle data-shape="float" cx={a.x} cy={a.y} r="22" fill="none" stroke="var(--m-oil)" stroke-width="5" stroke-dasharray="4 8" opacity="0.8" />
       {/if}
+    {:else if sh.kind === 'ghost'}
+      <!-- A unit the current carries (the crate included): a trail to its next tile; the ghost token is BadgeLayer's. -->
+      {@const a = cellCenter(sh.from)}
+      {@const b = cellCenter(sh.to)}
+      {@const dx = b.x - a.x}
+      {@const dy = b.y - a.y}
+      {@const len = Math.hypot(dx, dy) || 1}
+      {@const ux = dx / len}
+      {@const uy = dy / len}
+      {@const tip = { x: b.x - ux * 36, y: b.y - uy * 36 }}
+      <g data-shape="ghost-trail" stroke="var(--m-oil)" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9">
+        <line x1={a.x + ux * 38} y1={a.y + uy * 38} x2={tip.x} y2={tip.y} stroke-width="5" stroke-dasharray="3 11" />
+        <path d="M{tip.x - ux * 18 - uy * 16} {tip.y - uy * 18 + ux * 16}L{tip.x + ux * 4} {tip.y + uy * 4}L{tip.x - ux * 18 + uy * 16} {tip.y - uy * 18 - ux * 16}" stroke-width="6" />
+      </g>
     {:else if sh.kind === 'tile'}
       {@const o = cellOrigin(sh.at)}
       {@const col = TONE[sh.tone]}

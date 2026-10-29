@@ -38,7 +38,7 @@
   </p>
   {#each rows as r (r.id)}
     <div class="row" data-member={r.id}>
-      <span class="who"><ApprenticeToken def={APPRENTICES[r.id]} size="strip" />{r.name}</span>
+      <span class="who"><ApprenticeToken def={APPRENTICES[r.id]} size="strip" /><span class="name">{r.name}</span></span>
       <span class="hp"><Pips value={r.hp} max={r.maxHp} /><span class="num">{r.hp}/{r.maxHp}</span></span>
       <span class="spells">
         {#each r.spells as s (s.key)}
@@ -73,17 +73,13 @@
     font: 12px var(--mono);
     color: var(--ink-soft);
   }
+  /* Name and HP share a line, the spells sit under them: a long name ("Lamp-pole runaway") never reaches the pips. */
   .row {
     display: grid;
-    grid-template-columns: 128px auto 1fr;
-    grid-template-areas: 'who hp spells';
-    align-items: center;
-    gap: var(--space-2);
-  }
-  .large .row {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: 'who hp' 'spells spells';
-    row-gap: 4px;
+    align-items: center;
+    gap: 4px var(--space-2);
   }
   .who {
     grid-area: who;
@@ -92,6 +88,11 @@
     gap: 6px;
     min-width: 0;
     white-space: nowrap;
+  }
+  .name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .hp {
     grid-area: hp;
@@ -107,11 +108,10 @@
     grid-area: spells;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: var(--space-2);
   }
   .large .spells {
-    justify-content: flex-start;
     gap: var(--space-3);
   }
   .spell {
