@@ -7,7 +7,7 @@ Personal project. Live at https://lorddzzz.github.io/apprentices-notebook/
 - [DESIGN.md](DESIGN.md): the *what* (game design, decision log in §11)
 - [docs/design/](docs/design/README.md): one design doc per big feature (DESIGN.md summarises and links them)
 - [docs/plans/](docs/plans/): implementation plans
-- [docs/ROADMAP.md](docs/ROADMAP.md): backlog and roadmap (everything we could work on, with size, area and status). Update it when a playtest or a build changes the picture.
+- [docs/ROADMAP.md](docs/ROADMAP.md): backlog and roadmap (backlog and plan order). Update it when a playtest or a build changes the picture. Finished items go to [docs/ROADMAP-done.md](docs/ROADMAP-done.md); build history to `docs/plans/*-log.md`. Neither is read on resume.
 - [TECH.md](TECH.md): the *how* (stack, architecture, tooling, decision log in §7)
 
 ## Skills

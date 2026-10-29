@@ -2,6 +2,8 @@
 
 ## Status file: `docs/plans/<plan>-status.md`
 
+Keep it short (a few KB): state, running tasks, next actions, open questions, rough edges, continuation prompt. When a task merges, move its row (report, usage, accepted proposals) to `docs/plans/<plan>-log.md`, an append-only archive that a resuming session does not read. Only unmerged/partial tasks stay in the status table.
+
 ```markdown
 # <Feature> build status (resume here)
 

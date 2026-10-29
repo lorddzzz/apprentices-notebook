@@ -43,7 +43,7 @@ After each report:
 1. Review the diff against acceptance criteria and test evidence; for UI work, inspect screenshots or use `verify` to obtain them.
 2. Fix small integration issues directly. Return larger corrections to the same agent with the required change and reason.
 3. Squash-merge one task per commit. Run `pnpm check` before committing. Keep unfinished screens unreachable until their integration task. Push after each merge or at least each wave.
-4. Include the status update in the merge commit: task state, source branch/commit, usage delta, full Proposals, and exact next actions. Preserve partial-work locations and new risks.
+4. Include the status update in the merge commit: append the task's row (source branch/commit, usage delta, notes, full Proposals) to `<plan>-log.md`; keep `<plan>-status.md` to state, next actions, open questions and rough edges. Preserve partial-work locations and new risks.
 5. Check usage and start newly unblocked work within the pacing rules.
 
 Give the player short updates for meaningful starts, merges, and usage changes. Use chapter markers per wave if available.
