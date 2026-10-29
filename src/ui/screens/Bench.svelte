@@ -14,6 +14,7 @@
   import { BenchStore } from '../../app/bench.svelte';
   import { game } from '../../app/instance';
   import { EMPTY_OVERLAY } from '../../app/overlay';
+  import { router } from '../../app/router.svelte';
   import MethodRow from '../components/bench/MethodRow.svelte';
   import PartSheet from '../components/bench/PartSheet.svelte';
   import PartSlots from '../components/bench/PartSlots.svelte';
@@ -35,7 +36,8 @@
   let writing = $state(false);
   let written = $state<string | null>(null);
 
-  onMount(() => bench.open());
+  onMount(() => bench.open(router.params.get('page')));
+  const page = $derived(bench.page);
   onDestroy(() => bench.leave());
 
   const choices = $derived(slot === null ? [] : choicesFor(profile, draft, slot));
@@ -58,10 +60,16 @@
 
 <section class="bench" data-testid="bench">
   <header>
-    <BackLink to="study" label="Study" />
-    <h1>The Bench</h1>
+    <BackLink to={page ? 'codex' : 'study'} label={page ? 'Codex' : 'Study'} />
+    <h1>{page ? 'Page trial' : 'The Bench'}</h1>
   </header>
 
+  {#if page}
+    <div class="top" data-testid="page-trial">
+      <p class="headline" data-testid="page-trial-title">{page.title}</p>
+      <p class="ink">A free trial of the whole page. Parts you lack are lent for this trial only, and nothing is unlocked.</p>
+    </div>
+  {:else}
   <div class="top">
     <MethodRow methods={methodsKnown(profile)} chosen={draft.method} onpick={(m) => bench.pickMethod(m)} />
     {#if draft.method}
@@ -91,6 +99,7 @@
       {/if}
     </div>
   </div>
+  {/if}
 
   <div class="scene">
     <div class="board-wrap" data-testid="scene" class:aiming={bench.aiming}>
@@ -110,15 +119,19 @@
         Tap the board to aim the cast from the caster.
       {:else if session?.busy}
         {session.caption.text}
+      {:else if page}
+        Press Trial, then tap the board to aim the cast from the caster.
       {:else}
         {subjectsIn(bench.scene)} of 3 subjects. Tap a tile to place or remove the swatch.
       {/if}
     </p>
-    <Palette
-      selected={bench.item}
-      entries={sceneEntries(profile)}
-      onselect={(item) => (bench.item = item)}
-    />
+    {#if !page}
+      <Palette
+        selected={bench.item}
+        entries={sceneEntries(profile)}
+        onselect={(item) => (bench.item = item)}
+      />
+    {/if}
     {#if bench.witnessed.length > 0}
       <ul class="seen" data-testid="seen">
         {#each bench.witnessed as id (id)}
@@ -130,17 +143,21 @@
       <Button
         variant="quiet"
         label={bench.aiming ? 'Cancel aim' : 'Trial'}
-        disabled={!status.valid}
+        disabled={!page && !status.valid}
         onclick={() => bench.startAiming()}
         testid="trial"
       />
-      <Button variant="quiet" label="Clear" onclick={() => bench.clearScene()} testid="clear-scene" />
-      <Button
-        label="Name and write"
-        disabled={!status.valid}
-        onclick={() => (writing = true)}
-        testid="write"
-      />
+      {#if page}
+        <Button variant="quiet" label="Reset" onclick={() => bench.resetScene()} testid="reset-scene" />
+      {:else}
+        <Button variant="quiet" label="Clear" onclick={() => bench.clearScene()} testid="clear-scene" />
+        <Button
+          label="Name and write"
+          disabled={!status.valid}
+          onclick={() => (writing = true)}
+          testid="write"
+        />
+      {/if}
     </div>
     {#if written}
       <p class="done" data-testid="written">{written} is written. It is on the Study shelf.</p>

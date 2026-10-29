@@ -1,4 +1,5 @@
 import type { BindEvent, LineId, MethodId, RuneRef, SolventId } from '$data';
+import type { RivalPageDef } from '$data/rivals';
 import { type Coord, type Profile, writeInvention } from '$engine';
 import { BattleSession } from './battle.svelte';
 import {
@@ -8,6 +9,8 @@ import {
   emptyScene,
   inventionToWrite,
   newLines,
+  pageTrialActions,
+  pageTrialBattle,
   paintScene,
   pickMethod,
   type Scene,
@@ -18,6 +21,7 @@ import {
   statusOf,
   trialActions,
   trialFootnotes,
+  trialPage,
 } from './bench';
 import type { GameStore } from './game.svelte';
 import type { PaletteItem } from './lab';
@@ -40,6 +44,8 @@ export class BenchStore {
   witnessed = $state.raw<LineId[]>([]);
   trials = $state(0);
   session = $state.raw<BattleSession | null>(null);
+  /** A held rival page being tried (P13); null on the ordinary Bench. */
+  page = $state.raw<RivalPageDef | null>(null);
 
   get profile(): Profile {
     return this.game.studyProfile;
@@ -52,13 +58,17 @@ export class BenchStore {
   /** (Re)builds the scene's battle from the placed cells, dropping any trial result. */
   private load(): void {
     this.session?.dispose();
-    const state = sceneBattle(this.scene, this.profile, this.draft);
+    const state = this.page
+      ? pageTrialBattle(this.page, this.profile)
+      : sceneBattle(this.scene, this.profile, this.draft);
     this.session = new BattleSession({ state, events: [] }, 'lab', {
       footnotes: trialFootnotes(this.profile),
     });
   }
 
-  open(): void {
+  /** Opens the Bench; with a held page's id it opens that page's trial instead of the draft. */
+  open(pageId?: string | null): void {
+    this.page = pageId ? trialPage(this.profile, pageId) : null;
     this.load();
   }
 
@@ -99,6 +109,7 @@ export class BenchStore {
       void this.trial(at);
       return;
     }
+    if (this.page) return;
     const r = paintScene(this.scene, at, this.item);
     if ('why' in r) {
       toast(r.why);
@@ -109,7 +120,7 @@ export class BenchStore {
   }
 
   startAiming(): void {
-    if (this.status.valid) this.aiming = !this.aiming;
+    if (this.page || this.status.valid) this.aiming = !this.aiming;
   }
 
   resetScene(): void {
@@ -132,7 +143,9 @@ export class BenchStore {
       toast('Aim away from the caster');
       return;
     }
-    const actions = trialActions(session.state, this.draft, at);
+    const actions = this.page
+      ? pageTrialActions(session.state, at)
+      : trialActions(session.state, this.draft, at);
     if (!actions) return;
     this.aiming = false;
     this.trials += 1;

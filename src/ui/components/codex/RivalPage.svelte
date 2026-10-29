@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { RivalPageRow } from '../../../app/codexRivals';
+  import { go } from '../../../app/router.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   interface Props {
@@ -35,6 +36,13 @@
   {#if missing > 0}
     <p class="hint">Field use needs every part. {missing} still to find.</p>
   {/if}
+
+  <button
+    class="try"
+    type="button"
+    data-testid="codex-rival-try-{row.id}"
+    onclick={() => go('bench', { page: row.id })}>Try at the Bench</button
+  >
 
   {#if row.trick}
     <div class="trick" data-testid="codex-rival-trick">
@@ -124,6 +132,16 @@
     margin: var(--space-1) 0 0;
     font-size: 13px;
     color: var(--ink-soft);
+  }
+  .try {
+    min-height: var(--tap);
+    margin-top: var(--space-2);
+    padding: 0 var(--space-3);
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: var(--parchment-dark);
+    font: inherit;
+    color: var(--ink);
   }
   .trick {
     margin-top: var(--space-2);

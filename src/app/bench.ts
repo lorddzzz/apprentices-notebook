@@ -15,7 +15,7 @@ import {
   slotKey,
   VARIANTS,
 } from '$data';
-import { RIVAL_TOKENS } from '$data/rivals';
+import { RIVAL_PAGES, RIVAL_TOKENS, type RivalPageDef, type RivalPageId } from '$data/rivals';
 import {
   type Action,
   type Aim,
@@ -38,6 +38,7 @@ import {
 } from '$engine';
 import { KIT } from '$engine/districts/kit';
 import type { Kit } from '$engine/districts/types';
+import { holdsPage } from '$engine/rivals/pages';
 import { type PaletteEntry, type PaletteItem, paletteOf, toggleToken } from './lab';
 
 /** The Bench (design §6.1; plan P37): the draft invention and the test scene, as pure functions. */
@@ -374,3 +375,36 @@ export function lineTextFor(p: Profile, id: LineId): string {
 
 /** The footnotes a Bench trial applies (P6): the written ones. The Bench awards no points. */
 export const trialFootnotes = (p: Profile): ReturnType<typeof footnoteIds> => footnoteIds(p);
+
+// ── The page trial (rivals P13) ─────────────────────────
+
+const TRIAL_ID = 'Bench page trial';
+
+/** The held page a trial may open: null for an unknown id or a page the household does not hold. */
+export function trialPage(p: Pick<Profile, 'pages'>, id: string): RivalPageDef | null {
+  const page = RIVAL_PAGES[id as RivalPageId];
+  return page && holdsPage(p, page.id) ? page : null;
+}
+
+/**
+ * The page's spell on its ready scene, Lab rules. The runes come with the page, owned or not, and
+ * live only in this battle: the profile is only read (for its inventions), never changed. No rival
+ * stands on the scene, so his personal trick (the long wick) is never in the trial.
+ */
+export function pageTrialBattle(page: RivalPageDef, p: Profile): BattleState {
+  const state = scenarioBattle(
+    { title: TRIAL_ID, board: page.trial.board, lattices: { draughtsman: page.lattice } },
+    { lab: true, inventions: inventionLibrary(p) },
+  );
+  return state.phase === 'player' ? state : { ...state, phase: 'player' };
+}
+
+/** One cast of the page's spell toward the tap, then the turn's end so a delayed effect plays out. */
+export function pageTrialActions(state: BattleState, tap: Coord): Action[] | null {
+  const caster = state.units.find((u) => u.kind === 'member');
+  if (caster?.kind !== 'member') return null;
+  const aim = aimFrom(caster.pos, tap);
+  const spell = caster.spells[0];
+  if (!aim || !spell) return null;
+  return [{ type: 'cast', unit: caster.id, spell: spell.key, aim }, { type: 'endTurn' }];
+}
