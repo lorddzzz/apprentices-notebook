@@ -105,6 +105,14 @@ describe('the recruit card', () => {
     expect(card?.text).toContain(card?.def.blurb);
   });
 
+  test('lootLine names her instead of printing an id', () => {
+    expect(lootLine(item)).toEqual({
+      title: 'Lamp-pole runaway',
+      text: expect.stringMatching(/^Someone joins you\./),
+    });
+    expect(lootLine({ kind: 'recruit', apprentice: 'nobody' as 'runaway' }).title).toBe('recruit');
+  });
+
   test('an apprentice nobody knows has no card (the fallback draws it)', () => {
     expect(recruitCard({ apprentice: 'nobody' })).toBeNull();
   });

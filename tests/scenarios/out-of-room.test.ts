@@ -13,6 +13,7 @@ import {
 import { checkEnd } from '$engine/ctx';
 import { kill } from '$engine/damage';
 import { removeFromRoom } from '$engine/districts/api';
+import { previewSummary } from '../../src/app/describe';
 import { act, board, draft, expectLog, parseLabel } from './harness';
 
 /**
@@ -39,7 +40,7 @@ describe('a member out of the room', () => {
     expect(r.state.phase).toBe('player');
     // She can't act; the other apprentice still can.
     expect(isLegal(r.state, { type: 'move', unit: 'stoker', to: parseLabel('C1') })).toBe(
-      'Stoker is down',
+      'Stoker is out of the room',
     );
     expect(
       isLegal(r.state, { type: 'move', unit: 'draughtsman', to: parseLabel('B1') }),
@@ -112,5 +113,25 @@ describe('a foe out of the room', () => {
     const next = applyAction(r.state, { type: 'endTurn' });
     expect(next.events.some((e) => e.type === 'attack')).toBe(false);
     expect(unit(next.state, 'sentry-1')).toMatchObject({ stunned: false, pos: { x: 2, y: 0 } });
+  });
+});
+
+describe('the preview caption (FU-A)', () => {
+  test('a unit sent out of the room reads "out of the room", a downed member still "is down"', () => {
+    const before = board('D S . . r');
+    const fell = draft(before, (ctx) => removeFromRoom(ctx, 'stoker', 'fell'));
+    const gone = draft(before, (ctx) => removeFromRoom(ctx, 'rat-1', 'erased'));
+    const act0 = { type: 'endTurn' } as const;
+    expect(previewSummary(before, act0, fell.events)).toContain('Stoker is out of the room');
+    const rat = previewSummary(before, act0, gone.events);
+    expect(rat).toContain('is out of the room');
+    expect(rat).not.toContain('dies');
+    const downed = draft(before, (ctx) => {
+      const m = ctx.s.units.find((u) => u.id === 'stoker');
+      if (!m) return;
+      m.hp = 0;
+      kill(ctx, m, false);
+    });
+    expect(previewSummary(before, act0, downed.events)).toContain('is down');
   });
 });

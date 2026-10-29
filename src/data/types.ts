@@ -380,13 +380,14 @@ export type EnemyAi =
   | 'none';
 /** Where a foe may stand (K-13). */
 export type Habitat = 'land' | 'water' | 'any';
-export interface EnemyDef {
+interface EnemyDefBase {
   id: EnemyId;
   name: string; // lowercase: 'rat' | 'sentry' | 'familiar' | 'dummy'
   token: string;
   hp: number;
   move: number;
   attack: AttackId | null;
+  /** The brain; `mother` additionally requires `summon` (see `EnemyDef`). */
   ai: EnemyAi;
   /** Born brass: starts with a layout collar (it conducts). */
   brass: boolean;
@@ -417,9 +418,18 @@ export interface EnemyDef {
   floats?: true;
   /** CN P3: spawns as a bystander (`Unit.bystander`): never counted for the win, never credited. */
   bystander?: true;
-  /** CN P10 (BL-91): the lamp-mother's rhythm as data: live moths at most, flare every n rounds. */
-  summon?: { cap: number; flareEvery: number };
 }
+
+/** CN P10 (BL-91): the lamp-mother's rhythm as data: live moths at most, flare every n rounds. */
+export interface SummonRule {
+  cap: number;
+  flareEvery: number;
+}
+
+/** A lamp-mother (`ai: 'mother'`) must say how she summons; no other foe carries `summon`. */
+export type EnemyDef =
+  | (EnemyDefBase & { ai: Exclude<EnemyAi, 'mother'>; summon?: undefined })
+  | (EnemyDefBase & { ai: 'mother'; summon: SummonRule });
 
 // ── Encounters and loot ─────────────────────────────────
 /** The Seam's three tables, then the canals' three (P35: each district teaches its own pages). */

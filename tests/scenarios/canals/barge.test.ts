@@ -19,6 +19,7 @@ import {
   parseSaveData,
   pickLoot,
   startTrip,
+  takeChoice,
   tileAt,
   type Unit,
 } from '$engine';
@@ -32,13 +33,13 @@ import { act, board, cast, expectLogIncludes, withLattices } from '../harness';
  * mooring bonus (DK-5b) is one more pick. The room never waits on it.
  */
 
-// The barge rooms are CN-3/CN-4's: here the first canal room carries the mooring bonus.
+// The barge rooms are CN-3/CN-4's: here the second canal room (index 1, as shipped) carries the mooring bonus.
 vi.mock('$data/districts/index', async (importOriginal) => {
   const m = await importOriginal<typeof import('$data/districts/index')>();
   const { MOORING_BONUS } = await import('$data/districts/canals');
   const rooms = m
     .encountersOf('canals')
-    .map((e, i) => (i === 0 ? { ...e, bonus: MOORING_BONUS } : e));
+    .map((e, i) => (i === 1 ? { ...e, bonus: MOORING_BONUS } : e));
   return {
     ...m,
     DISTRICT_KIT: { ...m.DISTRICT_KIT, canals: { ...m.DISTRICT_KIT.canals, rooms } },
@@ -275,8 +276,10 @@ describe('the mooring bonus (DK-5b): one more pick', () => {
     city: { ...p.city, heard: ['seam', 'canals'], open: ['seam', 'canals'] },
   });
   const p = withCanals(newProfile());
-  const picks = encountersOf('canals')[0]?.picks ?? 0;
-  /** A room-1 fight as played on a barge board: the crate moors (or not), the rat falls. */
+  /** The room that carries the bonus: index 1, as the shipped canals do (CN-3). */
+  const ROOM = 1;
+  const picks = encountersOf('canals')[ROOM]?.picks ?? 0;
+  /** A fight in the bonus room as played on a barge board: the crate moors (or not), the rat falls. */
   function fight(moorIt: boolean): { state: BattleState; events: GameEvent[] } {
     const lane = moorIt ? 'kw> w>{moor} w>' : 'kw> w> w>';
     const s = withLattices(`r D . .\n${lane} .\nS . . .`, { draughtsman: 'Bolt> Strike' });
@@ -284,10 +287,12 @@ describe('the mooring bonus (DK-5b): one more pick', () => {
     const r = cast(drifted.state, 'draughtsman', 'left');
     return { state: r.state, events: [...drifted.events, ...r.events] };
   }
+  /** A trip standing in the bonus room: the way on from room 0 taken, as played. */
+  const roomTrip = () => takeChoice({ ...startTrip(p, 7, 'canals'), status: 'crossroads' }, 'push');
   const finish = (moorIt: boolean) => {
     const f = fight(moorIt);
     expect(f.state.phase).toBe('won');
-    const end = finishEncounter(p, startTrip(p, 7, 'canals'), f.state, f.events);
+    const end = finishEncounter(p, roomTrip(), f.state, f.events);
     if (!end.trip) throw new Error('expected a trip');
     return end.trip;
   };
@@ -295,7 +300,7 @@ describe('the mooring bonus (DK-5b): one more pick', () => {
   test('moored-grants-one-pick: the bonus adds exactly one pick and is noted on the trip', () => {
     const t = finish(true);
     expect(t.picksLeft).toBe(picks + 1);
-    expect(t.kit?.bonuses).toEqual([0]);
+    expect(t.kit?.bonuses).toEqual([ROOM]);
     let after = t;
     let taken = 0;
     while (after.status === 'looting') {

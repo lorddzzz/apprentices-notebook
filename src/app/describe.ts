@@ -1,4 +1,5 @@
 import {
+  APPRENTICES,
   ATTACKS,
   type BasicActionId,
   CODEX,
@@ -8,6 +9,7 @@ import {
   HABITS,
   type HabitId,
   IDIOMS,
+  isApprenticeId,
   type LineId,
   MEMBERS,
   METHODS,
@@ -428,13 +430,17 @@ export function previewSummary(
     const u = findUnit(before, id);
     return u ? shortName(u) : id;
   };
+  // A fall or an erase takes a unit out of the room: not "is down" (a downed member) nor "dies".
+  const outIds = events.flatMap((e) => (e.type === 'outOfRoom' ? [e.unit.id] : []));
   for (const u of before.units) {
     const hurt = o.damage[u.id];
-    const dies = o.kills.includes(u.id);
+    const out = outIds.includes(u.id);
+    const dies = !out && o.kills.includes(u.id);
     const shield = o.shields[u.id];
     const bits: string[] = [];
     if (hurt !== undefined) bits.push(hurt > 0 ? `−${hurt}` : 'blocked');
-    if (dies) bits.push(u.kind === 'member' ? 'is down' : 'dies');
+    if (out) bits.push('is out of the room');
+    else if (dies) bits.push(u.kind === 'member' ? 'is down' : 'dies');
     if (shield) bits.push(`+${shield} shield`);
     if (o.marked.includes(u.id) && !dies) bits.push('marked');
     if (bits.length) parts.push(`${name(u.id)} ${bits.join(' ')}`);
@@ -618,8 +624,14 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         title: `A key to ${DISTRICTS[item.district].name}`,
         text: 'Bring it home and the way opens.',
       };
+    case 'recruit': {
+      const def = isApprenticeId(item.apprentice) ? APPRENTICES[item.apprentice] : undefined;
+      return def
+        ? { title: def.name, text: `Someone joins you. ${def.blurb}` }
+        : { title: item.kind, text: '' };
+    }
     default:
-      // Recruit, bindEvent and district kinds: their cards come from the registry (DK-12).
+      // bindEvent and district kinds: their cards come from the registry (DK-12).
       return { title: item.kind, text: '' };
   }
 }

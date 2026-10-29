@@ -260,7 +260,7 @@ export function isLegal(s: BattleState, action: Action): string | null {
   const u = findUnit(s, action.unit);
   if (!u) return `No unit ${action.unit}`;
   if (u.kind !== 'member') return `${u.name} is not a party member`;
-  if (!isAlive(u)) return `${u.name} is down`;
+  if (!isAlive(u)) return u.out ? `${u.name} is out of the room` : `${u.name} is down`;
   switch (action.type) {
     case 'move':
       if (u.moved) return `${u.name} has already moved`;
