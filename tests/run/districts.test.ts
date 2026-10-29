@@ -36,14 +36,14 @@ describe('districts (K-1, K-2)', () => {
 
   test('the canals have five rooms, landings after 1, 3 and the heart', () => {
     const canals = DISTRICTS.canals;
-    expect(canals.encounters.map((e) => e.loot)).toEqual([
+    expect(canals.rooms.map((e) => e.loot)).toEqual([
       'canalShallow',
       'canalShallow',
       'canalDeep',
       'canalDeep',
       'canalHeart',
     ]);
-    expect(canals.encounters.at(-1)?.heart).toBe(true);
+    expect(canals.rooms.at(-1)?.heart).toBe(true);
     expect(DISTRICT_KIT.canals?.ret).toEqual({ kind: 'landings', after: [0, 2, 4] });
   });
 
@@ -71,7 +71,7 @@ describe('the city this build (P2, P3)', () => {
     for (const d of drawn) {
       const def = DISTRICTS[d];
       expect(def.gate.kind, d).toBe('drawing');
-      expect(def.encounters, d).toEqual([]);
+      expect(def.rooms, d).toEqual([]);
       expect(def.hear.length, d).toBeGreaterThan(0);
       expect(def.barred, d).not.toBe('');
     }

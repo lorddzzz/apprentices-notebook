@@ -1,4 +1,4 @@
-import { DISTRICT_IDS, DISTRICTS, type DistrictDef, type DistrictId, RUNES } from '$data';
+import { DISTRICT_IDS, DISTRICTS, type DistrictData, type DistrictId } from '$data';
 import {
   DISTRICT_KIT,
   type DistrictKitData,
@@ -36,17 +36,17 @@ export interface MapNode {
   tryLock: boolean; // heard, with a threshold gate to try
 }
 
-type Table = Readonly<Record<DistrictId, DistrictDef>>;
+type Table = Readonly<Record<DistrictId, DistrictData>>;
 type Kit = Readonly<Partial<Record<DistrictId, DistrictKitData>>>;
 
-/** The kit's lean, else the legacy material (until DK-17 retires `DistrictDef.material`). */
-function leanOf(d: DistrictDef, kit: DistrictKitData | undefined): DistrictLean {
-  return kit?.lean ?? { lean: d.material, text: RUNES[d.material].name };
+/** A kit override (a test's), else the district's own lean. */
+function leanOf(d: DistrictData, kit: DistrictKitData | undefined): DistrictLean {
+  return kit?.lean ?? d.lean;
 }
 
-/** The kit's map entry, else the legacy position with the caption below. */
-function entryOf(d: DistrictDef, kit: DistrictKitData | undefined): MapEntry {
-  return kit?.map ?? { ...d.map, label: 'below' };
+/** A kit override (a test's), else the district's own map entry. */
+function entryOf(d: DistrictData, kit: DistrictKitData | undefined): MapEntry {
+  return kit?.map ?? d.map;
 }
 
 export function mapNode(

@@ -98,13 +98,13 @@ test('every district has an edge; the Seam and the canals are walled (P3)', () =
   expect([DISTRICTS.seam.edge, DISTRICTS.canals.edge]).toEqual(['wall', 'wall']);
   // The five other districts are on the map, being drawn: no rooms, never open (P2).
   for (const id of DISTRICT_IDS.slice(2)) {
-    expect(DISTRICTS[id].encounters, id).toEqual([]);
+    expect(DISTRICTS[id].rooms, id).toEqual([]);
     expect(DISTRICTS[id].gate.kind, id).toBe('drawing');
   }
 });
 
 test('canal rooms and the threshold room parse', () => {
-  for (const enc of DISTRICTS.canals.encounters) {
+  for (const enc of DISTRICTS.canals.rooms) {
     for (const v of enc.variants) expect(() => parseBoard(v.layout), v.name).not.toThrow();
   }
   const gate = DISTRICTS.canals.gate;
@@ -200,7 +200,7 @@ test('every room layout passes checkRoom: start points (P) only, no apprentice t
     for (const v of e.variants) rooms.push([`${e.id}/${v.name}`, v.layout]);
   }
   for (const d of DISTRICT_IDS) {
-    for (const e of DISTRICTS[d].encounters) {
+    for (const e of DISTRICTS[d].rooms) {
       for (const v of e.variants) rooms.push([`${d}/${e.id}/${v.name}`, v.layout]);
     }
   }
@@ -223,9 +223,7 @@ const placements = DISTRICT_IDS.flatMap((d) =>
 );
 const placedIn = (id: string): DistrictId | undefined =>
   placements.find((r) => r.apprentice === id)?.district;
-const seamHasDeepRooms = DISTRICTS.seam.encounters.some(
-  (e) => e.loot === 'deep' || e.loot === 'heart',
-);
+const seamHasDeepRooms = DISTRICTS.seam.rooms.some((e) => e.loot === 'deep' || e.loot === 'heart');
 
 /** Whether `rune` has a guarantee source for `id`: the Seam's rooms, or her district's pages line. */
 function sourced(id: keyof typeof RECRUITS, rune: RuneId, landmark: number): boolean {
@@ -251,7 +249,7 @@ test('every placement: a real recruit, a real room in a district that opens, onc
     expect(def.found, r.apprentice).toEqual({ district: r.district });
     expect(DISTRICTS[r.district].gate.kind, r.district).not.toBe('drawing');
     expect(r.room, r.apprentice).toBeGreaterThanOrEqual(0);
-    expect(r.room, r.apprentice).toBeLessThan(DISTRICTS[r.district].encounters.length);
+    expect(r.room, r.apprentice).toBeLessThan(DISTRICTS[r.district].rooms.length);
   }
 });
 

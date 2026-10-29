@@ -1,9 +1,15 @@
 export * from './apprentices';
 export * from './chemistry';
 export * from './codex';
-export * from './districts';
+export {
+  DISTRICT_IDS,
+  DISTRICTS,
+  type DistrictData,
+  ENCOUNTERS,
+  encountersOf,
+  PLAYABLE_DISTRICTS,
+} from './districts/index';
 export * from './elegance';
-export * from './encounters';
 export * from './enemies';
 export * from './footnotes';
 export * from './habits';

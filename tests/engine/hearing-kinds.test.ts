@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { DISTRICT_IDS, DISTRICTS, type DistrictDef, type DistrictId } from '$data';
+import { DISTRICT_IDS, DISTRICTS, type DistrictData, type DistrictId } from '$data';
 import type { KitHearCondition } from '$data/districts/index';
 import {
   type EventLog,
@@ -361,7 +361,7 @@ describe('the canals keep their hearing', () => {
     const table = {
       ...DISTRICTS,
       bridges: { ...DISTRICTS.bridges, hear: [] },
-    } as Record<DistrictId, DistrictDef>;
+    } as Record<DistrictId, DistrictData>;
     expect(hearOf('bridges', table)).toEqual([]);
     expect(hearOf('bridges')).not.toEqual([]);
   });

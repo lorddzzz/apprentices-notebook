@@ -556,16 +556,3 @@ export type Gate =
   | { kind: 'threshold'; room: ThresholdDef }
   | { kind: 'key'; from: DistrictId; table: LootTableId; weight: number }
   | { kind: 'drawing' };
-export interface DistrictDef {
-  id: DistrictId;
-  name: string; // 'The oil-lit canals'
-  material: KindId; // the kind the district is rich in, shown once heard
-  guild: string; // whose quarter it is, shown once heard
-  edge: EdgeRule; // P3
-  encounters: readonly EncounterDef[];
-  hear: readonly HearCondition[]; // any one is enough; the Seam has none (heard from the start)
-  gate: Gate;
-  map: { x: number; y: number }; // node position on the sketch map, 0..100 of the page
-  line: string; // the owner's line once heard
-  barred: string; // how the way is barred, once heard and not open
-}

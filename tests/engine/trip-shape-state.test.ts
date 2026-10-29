@@ -67,8 +67,7 @@ vi.mock('$engine/districts/kit', async (importOriginal) => {
 
 vi.mock('$data/districts/index', async (importOriginal) => {
   const m = await importOriginal<typeof import('$data/districts/index')>();
-  const { encountersOf } = await import('$data');
-  const rooms = encountersOf('canals').map((e, i) =>
+  const rooms = m.encountersOf('canals').map((e, i) =>
     i === 0
       ? {
           ...e,

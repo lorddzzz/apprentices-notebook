@@ -1,4 +1,4 @@
-import { DISTRICTS, type DistrictDef, type DistrictId, TIER_NAMES, TIER_UP_LINES } from '$data';
+import { DISTRICTS, type DistrictData, type DistrictId, TIER_NAMES, TIER_UP_LINES } from '$data';
 import {
   type CellKey,
   key as cellKey,
@@ -81,7 +81,7 @@ export function heardVoice(id: DistrictId, table: DistrictTable = DISTRICTS): 'o
   return table[id].hear.some((c) => c.voice === 'owner') ? 'owner' : 'rumour';
 }
 
-type DistrictTable = Readonly<Record<DistrictId, DistrictDef>>;
+type DistrictTable = Readonly<Record<DistrictId, DistrictData>>;
 
 export interface HeardHighlight {
   kind: 'heard';

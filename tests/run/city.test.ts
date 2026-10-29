@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { DISTRICTS, type DistrictDef, type DistrictId } from '$data';
+import { DISTRICTS, type DistrictData, type DistrictId } from '$data';
 import {
   type BattleState,
   bankKeys,
@@ -42,13 +42,13 @@ const withCanals = (p: Profile): Profile => ({
 });
 
 /** The real city, but only the canals hear by the given conditions (the drawn districts hear nothing). */
-const fixture = (canals: Partial<DistrictDef>): Record<DistrictId, DistrictDef> => ({
+const fixture = (canals: Partial<DistrictData>): Record<DistrictId, DistrictData> => ({
   ...(Object.fromEntries(
     Object.entries(DISTRICTS).map(([id, d]) => [
       id,
       d.gate.kind === 'drawing' ? { ...d, hear: [] } : d,
     ]),
-  ) as Record<DistrictId, DistrictDef>),
+  ) as Record<DistrictId, DistrictData>),
   canals: { ...DISTRICTS.canals, ...canals },
 });
 

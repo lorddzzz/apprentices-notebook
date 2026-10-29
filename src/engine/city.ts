@@ -1,7 +1,7 @@
 import {
   DISTRICT_IDS,
   DISTRICTS,
-  type DistrictDef,
+  type DistrictData,
   type DistrictId,
   type LootTableId,
 } from '$data';
@@ -21,7 +21,7 @@ import type { BattleState, CityState, LootItem, Profile, Trip } from './types';
  */
 
 export type DistrictState = 'unheard' | 'heard' | 'open';
-type DistrictTable = Readonly<Record<DistrictId, DistrictDef>>;
+type DistrictTable = Readonly<Record<DistrictId, DistrictData>>;
 
 const add = (xs: readonly DistrictId[], id: DistrictId): DistrictId[] =>
   xs.includes(id) ? [...xs] : [...xs, id];

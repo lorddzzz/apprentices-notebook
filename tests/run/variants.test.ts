@@ -124,7 +124,7 @@ describe('beginEncounter builds the chosen variant', () => {
 
 describe('encounter boards teach the district chemistry', () => {
   test('every Seam depth offers oil beside an edge or plate and a brass plate', () => {
-    for (const encounter of DISTRICTS.seam.encounters) {
+    for (const encounter of DISTRICTS.seam.rooms) {
       expect(
         encounter.variants.some((variant) => hasOilAgainstWall(variant.layout)),
         `${encounter.id} oil by wall`,
@@ -137,7 +137,7 @@ describe('encounter boards teach the district chemistry', () => {
   });
 
   test('every canal room has land foes that can be pushed into water', () => {
-    for (const encounter of DISTRICTS.canals.encounters) {
+    for (const encounter of DISTRICTS.canals.rooms) {
       expect(
         encounter.variants.some((variant) => hasLandFoeBesideWater(variant.layout)),
         `${encounter.id} shore foe`,

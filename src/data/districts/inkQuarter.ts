@@ -1,12 +1,19 @@
-import type { DistrictKitData } from './index';
+import type { DistrictData } from './index';
 
 /**
  * The ink-makers' quarter's kit data (district-ink-makers.md, Hearing): a mark by one apprentice,
  * hit by a different apprentice's cast the same turn, in the Seam. The old deep-mark trigger is
  * gone. The rumour of three trips stays as the city's talk.
  */
-export const INK_QUARTER_KIT: DistrictKitData = {
+export const INK_QUARTER_KIT: DistrictData = {
   id: 'inkQuarter',
+  name: "The ink-makers' quarter",
+  guild: 'The Notaries',
+  edge: 'wall',
+  rooms: [],
+  gate: { kind: 'drawing' },
+  line: 'marks that keep what they are owed',
+  barred: 'The page is still being drawn.',
   lean: { lean: 'ink', text: 'Ink' },
   map: { x: 25, y: 43, label: 'above' },
   hear: [

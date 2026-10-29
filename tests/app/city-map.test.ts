@@ -161,9 +161,9 @@ describe('the map for seven (DK-16)', () => {
     expect(art(seamSolved, 'seam')).toBe('');
   });
 
-  test('a district without kit map data falls back to its legacy place and material', () => {
+  test('with no override a district reads its own place and lean', () => {
     const n = mapNode(everything, 'bridges', undefined, {});
-    expect(n).toMatchObject({ label: 'below', lean: 'brass', leanText: 'Brass' });
+    expect(n).toMatchObject({ label: 'above', lean: 'height', leanText: 'Height, the drop' });
   });
 
   test('a checkpoint mark appears on an open district once the city remembers the doorway', () => {

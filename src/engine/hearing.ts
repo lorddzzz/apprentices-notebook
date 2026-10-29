@@ -1,5 +1,5 @@
-import { DISTRICTS, type DistrictDef, type DistrictId } from '$data';
-import { DISTRICT_KIT, type KitHearCondition } from '$data/districts/index';
+import { DISTRICTS, type DistrictData, type DistrictId } from '$data';
+import type { KitHearCondition } from '$data/districts/index';
 import { type EventLog, type GameEvent, namedIn } from './events';
 import { pagesHeld } from './rivals/pages';
 import type { Profile } from './types';
@@ -149,13 +149,10 @@ export function conditionHolds(c: KitHearCondition, s: HearScene): boolean {
   return test(c, s);
 }
 
-/**
- * A district's hearing list. The real table reads the kit's `hear` (the designed triggers) where a
- * district has one; any other table (a test fixture) reads its own entries.
- */
+/** A district's hearing list: its `hear` entries in the given table (a test's, or the city's). */
 export function hearOf(
   id: DistrictId,
-  table: Readonly<Record<DistrictId, DistrictDef>> = DISTRICTS,
+  table: Readonly<Record<DistrictId, DistrictData>> = DISTRICTS,
 ): readonly KitHearCondition[] {
-  return (table === DISTRICTS ? DISTRICT_KIT[id]?.hear : undefined) ?? table[id].hear;
+  return table[id].hear;
 }

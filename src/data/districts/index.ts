@@ -20,9 +20,8 @@ import { INK_QUARTER_KIT } from './inkQuarter';
 import { SEAM_KIT } from './seam';
 
 /**
- * The district kit's data contracts (district-kit plan P1–P16, §9). DK-1: types and empty
- * registries. Until DK-17 folds them into one `DistrictDef`, a district's kit fields live beside
- * the legacy entry in `src/data/districts.ts` (`DistrictKitData`, all optional).
+ * The district kit's data contracts (district-kit plan P1–P16, §9) and the city's index: every
+ * district is one `DistrictData` in its own file; this file only lists them (DK-17).
  */
 
 // ── Trip shape as data (P3, P5) ─────────────────────────
@@ -179,7 +178,8 @@ export interface DistrictData {
   guild: string;
   edge: EdgeRule;
   rooms: readonly KitRoomDef[];
-  ret: ReturnPolicy;
+  /** Absent reads as `any` (P3). */
+  ret?: ReturnPolicy;
   checkpoint?: CheckpointDef;
   hear: readonly KitHearCondition[];
   gate: KitGate;
@@ -194,14 +194,14 @@ export interface DistrictData {
   bench?: readonly BenchEntry[];
   /** Loot tables this file owns (P2). */
   tables?: readonly KitLootTableId[];
-  /** P15: the threshold room (copy, start points, goal, solved art). The gate's kind stays legacy until DK-17. */
+  /** P15: the threshold room (copy, start points, goal, solved art); `gate.room` is the same object. */
   threshold?: ThresholdSpec;
 }
-/** Wave 0: the kit fields only, all optional, layered over the legacy `DISTRICTS` entry. */
+/** The optional view of a district's data: consumers and tests that need only some fields. */
 export type DistrictKitData = { id: DistrictId } & Partial<Omit<DistrictData, 'id'>>;
 
-/** Every district's kit data, one line each (P1). */
-export const DISTRICT_KIT: Readonly<Partial<Record<DistrictId, DistrictKitData>>> = {
+/** The city, district by district (K-1): one line each, one file each (P1). */
+export const DISTRICTS: Readonly<Record<DistrictId, DistrictData>> = {
   seam: SEAM_KIT,
   canals: CANALS_KIT,
   inkQuarter: INK_QUARTER_KIT,
@@ -211,9 +211,31 @@ export const DISTRICT_KIT: Readonly<Partial<Record<DistrictId, DistrictKitData>>
   cartographers: CARTOGRAPHERS_KIT,
 };
 
+/** The same entries by the name the kit's consumers use (tests mock this one). */
+export const DISTRICT_KIT: Readonly<Partial<Record<DistrictId, DistrictKitData>>> = DISTRICTS;
+
+export const DISTRICT_IDS: readonly DistrictId[] = [
+  'seam',
+  'canals',
+  'inkQuarter',
+  'bathhouses',
+  'bridges',
+  'foundry',
+  'cartographers',
+];
+/** The districts with rooms this build (P2). */
+export const PLAYABLE_DISTRICTS: readonly DistrictId[] = ['seam', 'canals'];
+/** The Seam's rooms (the first district's, unchanged). */
+export const ENCOUNTERS: readonly EncounterDef[] = SEAM_KIT.rooms;
+
+/** A district's rooms in order (K-2). */
+export function encountersOf(district: DistrictId): readonly EncounterDef[] {
+  return DISTRICTS[district].rooms;
+}
+
 /** Every token the districts claim, for the collision check. */
-export const DISTRICT_TOKENS: readonly TokenEntry[] = Object.values(DISTRICT_KIT).flatMap(
-  (d) => d?.tokens ?? [],
+export const DISTRICT_TOKENS: readonly TokenEntry[] = Object.values(DISTRICTS).flatMap(
+  (d) => d.tokens ?? [],
 );
 
 /** Tokens claimed twice across districts (or once over a built-in token); empty when clean. */
