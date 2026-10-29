@@ -42,12 +42,21 @@ const learn = (p: Profile, ...runes: readonly RuneId[]): Profile => ({
 /** A profile holding every rune the runaway waits for (Fuse plus her page's). */
 const readyProfile = (): Profile => learn(newProfile(), ...preconditionsOf('runaway').runes.all);
 
-const tripAt = (p: Profile, district: DistrictId, room: number, loot: Trip['loot'] = []): Trip => ({
-  ...startTrip(p, SEED),
-  district,
-  encounter: room,
-  loot,
-});
+/** A trip standing in `room`; a kit-carrying district (canals) has passed the Crossroads before it. */
+function tripAt(p: Profile, district: DistrictId, room: number, loot: Trip['loot'] = []): Trip {
+  const start = startTrip(
+    { ...p, city: { ...p.city, open: [...p.city.open, district] } },
+    SEED,
+    district,
+  );
+  const kit = start.kit
+    ? {
+        ...start.kit,
+        choices: Array.from({ length: room }, (_, after) => ({ after, id: 'ink' })),
+      }
+    : undefined;
+  return { ...start, district, encounter: room, loot, ...(kit ? { kit } : {}) };
+}
 
 /** The offers `finishEncounter` rolls in the trip's room, through `registry`. */
 function roll(p: Profile, t: Trip, registry: OfferRegistry = REGISTRY) {

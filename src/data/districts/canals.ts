@@ -1,6 +1,13 @@
 import type { RivalId } from '../rivals/types';
 import type { EncounterDef, EncounterVariant, EnemyDef, EnemyId } from '../types';
-import type { BonusObjective, DistrictData, KitGate, PaperDef, ThresholdSpec } from './index';
+import type {
+  BonusObjective,
+  DistrictData,
+  KitGate,
+  KitRoomDef,
+  PaperDef,
+  ThresholdSpec,
+} from './index';
 
 const board = (rows: readonly string[]): string => rows.join('\n');
 
@@ -12,7 +19,8 @@ function room(
   variants: readonly EncounterVariant[],
   loot: EncounterDef['loot'],
   heart = false,
-): EncounterDef {
+  bonus?: BonusObjective,
+): KitRoomDef {
   return {
     id,
     title,
@@ -22,6 +30,7 @@ function room(
     loot,
     picks: heart ? 2 : 1,
     heart,
+    ...(bonus ? { bonus } : {}),
   };
 }
 
@@ -33,88 +42,101 @@ function room(
  * heart `canalHeart` (K-3, P35).
  */
 
-/** Room 1: an eel on the water beside a start point (turn 1 may show a lunge, HC P9) and two rats. */
+/**
+ * Room 1 (CN-3, P1/P2): 5 wide, 9 tall; a long quay with one lane. An eel on the water with two
+ * start points beside it (turn 1 may show a lunge, HC P9) and two rats well away.
+ */
 const CANAL_1: readonly EncounterVariant[] = [
   {
     name: 'The towpath',
     layout: board([
-      '. r wv . . .',
-      '. . wv . . .',
-      '. . wv o . .',
-      '. . wv . . .',
-      '. P wv P . .',
-      '. . wv . . .',
-      '. P ewv . P .',
-      '. . wv . . .',
+      'r . wv . .',
+      '. . wv . .',
+      '. . wv o .',
+      '. . wv . r',
+      '. . wv . .',
+      '. . wv . .',
+      '. P ewv P .',
+      '. . wv . .',
+      'P . wv . P',
     ]),
   },
   {
     name: 'The coal wharf',
     layout: board([
-      '. . . . . r',
-      '. . . . . .',
-      '. . . . . .',
-      '. . . P . P',
-      'w> ew> w> w> w> w>',
-      '. P . . . .',
-      '. . . . P .',
-      '. o o . . .',
+      '. . . . r',
+      '. r . . .',
+      '. . o . .',
+      '. . P . .',
+      'w> w> ew> w> w>',
+      '. . P . .',
+      '. . . . .',
+      'P . . . P',
+      '. . o . .',
     ]),
   },
   {
     name: 'The lamplit quay',
     layout: board([
-      'r . . . wv .',
-      '. . . . wv .',
-      '. . . o wv .',
-      '. . . . wv .',
-      'P . P . wv .',
-      '. . . . wv .',
-      '. P . P ewv .',
-      '. . . . wv .',
+      'r . . wv .',
+      '. . . wv .',
+      '. o . wv .',
+      '. . . wv r',
+      '. . . wv .',
+      '. . . wv .',
+      '. . P ewv P',
+      '. . . wv .',
+      'P P . wv .',
     ]),
   },
 ];
 
-/** Room 2: a wider lane; an eel, a rat and a moth. */
+/**
+ * Room 2 (CN-3, P1/P2/P5): 6 wide, 9 tall; a two-wide lane, the barge's run. An eel, a rat, a
+ * moth and the crate; the mooring sits on the crate's lane downstream, so the current alone brings
+ * it in a couple of rounds after a typical win.
+ */
 const CANAL_2: readonly EncounterVariant[] = [
   {
     name: 'The drowned arcade',
     layout: board([
-      '. m . . . .',
-      '. . . P . r',
-      'w> w> w> w> w> w>',
-      'w> w> ew> w> w> w>',
-      '. . . . P .',
-      '. o . . . .',
-      '. P . . P .',
-      '. . . . . .',
+      'm . wv wv . .',
+      '. . wv wv . r',
+      '. . wv kwv . .',
+      '. . wv wv . .',
+      '. o ewv wv . .',
+      '. . wv wv . .',
+      '. . wv wv . .',
+      '. . wv wv{moor} . .',
+      'P P wv wv P P',
     ]),
   },
   {
     name: 'The eel steps',
     layout: board([
-      'm . wv wv . .',
-      '. . wv wv . .',
-      '. . wv wv P .',
-      'P . wv wv . .',
-      '. . ewv wv . r',
-      '. o wv wv . .',
-      '. P wv wv P .',
-      '. . wv wv . .',
+      '. . . . . m',
+      'r . . . . .',
+      '. . w^{moor} w^ . .',
+      '. . w^ w^ . .',
+      '. . w^ ew^ . .',
+      '. . w^ w^ . .',
+      '. . kw^ w^ . o',
+      '. . w^ w^ . .',
+      'P P w^ w^ P P',
     ]),
   },
   {
     name: 'The lock cottage',
     layout: board([
-      '. . P . . .',
-      'm . . . . .',
-      '. . P . . r',
-      'w< w< w< w< w< w<',
-      'w< w< w< ew< w< w<',
-      '. . o . . .',
-      '. P . . P .',
       '. . . . . .',
+      'm . . . . r',
+      '. . . . . .',
+      'w<{moor} w< w< w< w< kw<',
+      'w< w< ew< w< w< w<',
+      '. . . o . .',
+      '. . . . . .',
+      '. P . . P .',
+      '. . P P . .',
     ]),
   },
 ];
@@ -248,9 +270,19 @@ const CANAL_HEART: readonly EncounterVariant[] = [
   },
 ];
 
-export const CANAL_ROOMS: readonly EncounterDef[] = [
+/**
+ * CN P5 (DK-5b): the barge rooms' bonus, one more pick from the same offers when the crate is
+ * moored. CN-3/CN-4 put it on rooms 2 and 4; the crate is the room's first barge.
+ */
+export const MOORING_BONUS: BonusObjective = {
+  goal: { happens: 'moored', unit: 'barge-1' },
+  text: 'Moor the crate before the room is won.',
+  reward: { kind: 'pick' },
+};
+
+export const CANAL_ROOMS: readonly KitRoomDef[] = [
   room('canal-towpath', 'The towpath', 1, CANAL_1, 'canalShallow'),
-  room('canal-arcade', 'The drowned arcade', 2, CANAL_2, 'canalShallow'),
+  room('canal-arcade', 'The drowned arcade', 2, CANAL_2, 'canalShallow', false, MOORING_BONUS),
   room('canal-sluice', 'The sluice', 3, CANAL_3, 'canalDeep'),
   room('canal-reach', 'The uphill reach', 4, CANAL_4, 'canalDeep'),
   room('canal-pool', "The lamp-mother's pool", 5, CANAL_HEART, 'canalHeart', true),
@@ -338,16 +370,6 @@ export const BARGE: EnemyDef = {
 /** CN P4: the mooring piece (`{moor}`, non-solid, on water). Its def is the canal module's. */
 export const MOOR_PIECE = 'canals:moor' as const;
 export const MOOR_TOKEN = 'moor';
-
-/**
- * CN P5 (DK-5b): the barge rooms' bonus, one more pick from the same offers when the crate is
- * moored. CN-3/CN-4 put it on rooms 2 and 4; the crate is the room's first barge.
- */
-export const MOORING_BONUS: BonusObjective = {
-  goal: { happens: 'moored', unit: 'barge-1' },
-  text: 'Moor the crate before the room is won.',
-  reward: { kind: 'pick' },
-};
 
 /**
  * CN P6: which rivals play their room. While `lamplighter` is off, room 4's `L` reads as its
