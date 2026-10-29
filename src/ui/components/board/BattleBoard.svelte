@@ -173,7 +173,7 @@
   <StepLayer {steps} layer="badges" />
   <RivalMarks {rivals} layer="badges" />
   <MarksLayer {marks} layer="badges" />
-  <BadgeLayer badges={overlay.badges} {ghosts} />
+  <BadgeLayer badges={overlay.badges} {ghosts} occupied={living.map((u) => u.pos)} />
   <FxLayer {fx} {fxKey} width={view.width} height={view.height} />
 
   {#each cells as { at } (`${at.x},${at.y}`)}
