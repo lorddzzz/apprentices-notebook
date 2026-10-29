@@ -50,6 +50,7 @@ import {
   type Placed,
   type Profile,
   pageOf,
+  parseLattice,
   placedInk,
   recordOf,
   roleOf,
@@ -800,4 +801,46 @@ export function openMemberFor(p: Profile, current: ApprenticeId): ApprenticeId {
 export function bookmarksOf(p: Profile, open: ApprenticeId): ApprenticeId[] {
   const party = tripParty(p);
   return party.includes(open) ? party : [...party, open];
+}
+
+// ── Copy to the Study (rivals P14) ──
+
+export type SpellCopy = { profile: Profile } | { why: string };
+
+/** The row a copied spell starts on: one blank row under the page's lowest rune (the top of an empty page). */
+function freeRowBelow(page: readonly Placed[]): number {
+  return page.length === 0 ? 0 : Math.max(...page.map((r) => r.at.y)) + 2;
+}
+
+/**
+ * Copies a recovered page's wiring onto `m`'s page (rivals P14). Every rune must be known, else the
+ * refusal names the missing ones. The wiring goes on a free row below what is there, and the new
+ * page must pass the same checks the game runs on load (ink, owned runes, structure); a new issue
+ * refuses the whole copy with its ordinary message. Nothing else in the profile changes.
+ */
+export function copySpellToPage(p: Profile, m: MemberId, spell: string): SpellCopy {
+  let parsed: Lattice;
+  let page: Placed[];
+  try {
+    page = pageOf(p, m);
+    parsed = parseLattice(spell);
+  } catch (e) {
+    return { why: e instanceof Error ? e.message : 'That did not work' };
+  }
+  const inv = inventionLibrary(p);
+  const runes = parsed.runes.flatMap((r) => (isGlyph(r) ? [] : [r.rune]));
+  if (runes.length === 0) return { why: 'Nothing to copy' };
+  const missing = [...new Set(runes.filter((r) => !knows(p, r)))];
+  if (missing.length > 0) {
+    return { why: `Not owned yet: ${missing.map((r) => nameOf(r, inv)).join(', ')}` };
+  }
+  const top = Math.min(...parsed.runes.map((r) => r.at.y));
+  const dy = freeRowBelow(page) - top;
+  const copied = parsed.runes.map((r) => ({ ...r, at: { x: r.at.x, y: r.at.y + dy } }));
+  const next = setMemberLattice(p, m, growingLattice([...page, ...copied]));
+  const before = new Set((validateLoadout(p, [m])[m] ?? []).map((i) => i.message));
+  const fresh = (validateLoadout(next, [m])[m] ?? []).filter((i) => !before.has(i.message));
+  const first = fresh[0];
+  if (first) return { why: first.message };
+  return { profile: next };
 }

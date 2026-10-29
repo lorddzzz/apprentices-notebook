@@ -1,6 +1,9 @@
 <script lang="ts">
+  import { APPRENTICES } from '$data';
   import type { RivalPageRow } from '../../../app/codexRivals';
+  import { game } from '../../../app/instance';
   import { go } from '../../../app/router.svelte';
+  import { copySpellToPage } from '../../../app/study';
   import RuneGlyph from '../RuneGlyph.svelte';
 
   interface Props {
@@ -9,6 +12,20 @@
 
   let { row }: Props = $props();
   const missing = $derived(row.parts.length - row.ownedCount);
+  const missingNames = $derived(row.parts.filter((x) => !x.owned).map((x) => x.name));
+  const who = $derived(APPRENTICES[game.member].name);
+  let notice = $state<string | null>(null);
+
+  /** Copies the spell onto the open apprentice's page; the Study's own checks refuse it with their words. */
+  function copy(): void {
+    notice = null;
+    const error = game.updateProfile((p) => {
+      const r = copySpellToPage(p, game.member, row.lattice);
+      if ('why' in r) throw new Error(r.why);
+      return r.profile;
+    });
+    notice = error ?? `Copied to ${who}'s page.`;
+  }
 </script>
 
 <article class="rival" data-testid="codex-rival-page-{row.id}">
@@ -37,12 +54,26 @@
     <p class="hint">Field use needs every part. {missing} still to find.</p>
   {/if}
 
-  <button
-    class="try"
-    type="button"
-    data-testid="codex-rival-try-{row.id}"
-    onclick={() => go('bench', { page: row.id })}>Try at the Bench</button
-  >
+  <div class="actions">
+    <button
+      class="try"
+      type="button"
+      data-testid="codex-rival-try-{row.id}"
+      onclick={() => go('bench', { page: row.id })}>Try at the Bench</button
+    >
+    <button
+      class="copy"
+      type="button"
+      data-testid="codex-rival-copy-{row.id}"
+      disabled={missingNames.length > 0}
+      onclick={copy}>Copy to the Study</button
+    >
+  </div>
+  {#if missingNames.length > 0}
+    <p class="hint" data-testid="codex-rival-copy-missing">Copy needs: {missingNames.join(', ')}.</p>
+  {:else if notice}
+    <p class="hint" data-testid="codex-rival-copy-notice">{notice}</p>
+  {/if}
 
   {#if row.trick}
     <div class="trick" data-testid="codex-rival-trick">
@@ -133,15 +164,26 @@
     font-size: 13px;
     color: var(--ink-soft);
   }
-  .try {
-    min-height: var(--tap);
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
     margin-top: var(--space-2);
+  }
+  .try,
+  .copy {
+    min-height: var(--tap);
     padding: 0 var(--space-3);
     border: 2px solid var(--ink);
     border-radius: 6px;
     background: var(--parchment-dark);
     font: inherit;
     color: var(--ink);
+  }
+  .copy:disabled {
+    border-style: dashed;
+    border-color: var(--ink-faint);
+    color: var(--ink-faint);
   }
   .trick {
     margin-top: var(--space-2);
