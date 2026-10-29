@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** paused. No agents running; all tasks merged (last window 2026-10-29: BL-133, CN-4, BL-133b, DK-19, CN-5, CN-12, CN-10, CN-6, CN-11, MET-1, CN-8, CN-13 sim only).
+**State:** building (window from 2026-10-29 23:00, baseline 5h 4%, weekly 32%, reset 2026-10-30 01:40 UTC+0). CN-13 tuning merged (db10237). Running: **IQ-W0** (Strong; ink quarter contracts, first district plan), **FU-A** (Medium; engine/data follow-ups: lootLine recruits, mother `summon`, barge mock, "out of the room" text, Seam page constant, exhaustive palette/projection), **FU-B** (Medium; UI follow-ups: bystander crate floats, ledger/HP pips, Study Fit/Edit scale, Lab/Combat `slots`, BL-132 captures). Wake-ups: both used, finish this window without a timer.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (both used: this next window is the last, finish without a timer). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
