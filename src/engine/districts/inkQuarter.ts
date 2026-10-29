@@ -1,3 +1,9 @@
+import {
+  FORWARD_EVENT_LINES,
+  FORWARD_GUARD,
+  FORWARD_PIECES,
+  FORWARDS_RULE,
+} from './inkQuarter/forward';
 import { TERMED_KIND } from './inkQuarter/offers';
 import { TERM_EVENT_DEFS, TERM_HOOKS } from './inkQuarter/terms';
 import {
@@ -29,6 +35,7 @@ const shape: TripShapeDef<InkTripState> = {
 const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
   (type) =>
     WRIT_EVENT_LINES[type] ??
+    FORWARD_EVENT_LINES[type] ??
     TERM_EVENT_DEFS.find((d) => d.type === type) ?? {
       type,
       describe: () => type.slice('inkQuarter:'.length),
@@ -37,8 +44,9 @@ const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
 
 export const INK_QUARTER_MODULE: DistrictModule = {
   id: 'inkQuarter',
-  rules: [WRITS_RULE],
-  pieces: INK_BASE_PIECES.map((p) => WRIT_PIECES[p.id] ?? p),
+  rules: [WRITS_RULE, FORWARDS_RULE],
+  harmGuards: [FORWARD_GUARD],
+  pieces: INK_BASE_PIECES.map((p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? p),
   events,
   trip: shape,
   offerKinds: [TERMED_KIND],

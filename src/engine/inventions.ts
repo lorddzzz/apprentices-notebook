@@ -370,6 +370,15 @@ export function marginEcho(ctx: Ctx, rune: RuneRef, t: Target, at: Coord, flow: 
   else withLine(ctx, 'margin:empty', wait);
 }
 
+/** The other unit the log shows marked since entry `from`, when the mark aimed at `aimed` was redirected. */
+function markedInstead(ctx: Ctx, from: number, aimed: Unit): Unit | null {
+  for (let i = ctx.log.length - 1; i >= from; i--) {
+    const e = ctx.log[i];
+    if (e?.type === 'marked') return e.unit.id === aimed.id ? null : findUnit(ctx.s, e.unit.id);
+  }
+  return null;
+}
+
 /**
  * Bind: the carrier (Ink) lands as it always does, then the mark it made holds the action until
  * its event. Marks already holding something keep it; Ink on a collar is a Shackle and holds none.
@@ -382,9 +391,18 @@ function bind(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   const heading = headingFor(flow, t);
   const held = unit?.mark?.bound != null; // already holds an action: the Ink only deepens it
   const collared = unit !== null && unit.collar !== false && unit.shackle === 0;
+  const logged = ctx.log.length;
   asBindCarrier(ctx, () => runPart(ctx, carrier, t, flow));
   if (!unit) {
     withLine(ctx, 'bind:empty', () => emit(ctx, { type: 'miss', source: 'Bind' }));
+    return [t];
+  }
+  // A harm guard (a forwarding stamp) may have sent the mark to another unit: that one holds it.
+  const sent = markedInstead(ctx, logged, unit);
+  if (sent) {
+    if (isAlive(sent) && sent.mark && !sent.mark.bound) {
+      attachBound(ctx, sent, { action, event, solvent: def.solvent ?? flow.solvent, heading });
+    }
     return [t];
   }
   // Nothing to hold the action: a shackle took the mark's place, or the old action stayed.
