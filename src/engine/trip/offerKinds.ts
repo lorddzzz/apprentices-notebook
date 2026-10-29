@@ -123,8 +123,10 @@ const DOORWAY_KIND: OfferKind<ItemOf<'doorway'>> = {
 const KEY_KIND: OfferKind<ItemOf<'key'>> = {
   id: 'key',
   joinPool(ctx) {
-    const key = keyOffer(ctx.profile, ctx.trip, ctx.table as LootTableId);
-    return key ? [{ spec: { kind: 'key', district: key.district }, weight: key.weight }] : [];
+    const key = keyOffer(ctx.profile, ctx.trip, ctx.table as LootTableId, undefined, ctx.room);
+    return key && !key.guaranteed
+      ? [{ spec: { kind: 'key', district: key.district }, weight: key.weight }]
+      : [];
   },
   onPick: addToLoot,
   onBank: (p, i) => bankKeys(p, [i]),
@@ -137,8 +139,15 @@ const KEY_KIND: OfferKind<ItemOf<'key'>> = {
   card: 'key',
 };
 
+/** CN P7: a guaranteed key (`afterRoom` + `guaranteed`) takes one of the offer cards. */
+const guaranteedKey: OfferContributor = (ctx) => {
+  const key = keyOffer(ctx.profile, ctx.trip, ctx.table as LootTableId, undefined, ctx.room);
+  return key?.guaranteed ? { must: { kind: 'key', district: key.district } } : {};
+};
+
 export const CORE_OFFERS: OfferSource = {
   kinds: [RUNE_KIND, METHOD_KIND, INK_KIND, SOLVENT_KIND, VELLUM_KIND, DOORWAY_KIND, KEY_KIND],
+  contributors: [guaranteedKey],
 };
 
 /** Every non-district source, one line each (RC, and any later core owner). */

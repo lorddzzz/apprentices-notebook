@@ -124,19 +124,26 @@ export function nextLanding(t: Trip): string | null {
 
 /**
  * The key a won fight's table may offer (K-23): a district whose `key` gate is `t.district` +
- * `table`, heard and not open, none on this trip yet. Null for none.
+ * `table`, heard and not open, none on this trip yet. Null for none. A gate with `afterRoom`
+ * (CN P7) is offered only after that 0-based `room` of the trip (never when `room` is omitted);
+ * `guaranteed` is then reported so the offer kind gives it a card instead of a pool weight.
  */
 export function keyOffer(
   p: Profile,
   t: Trip,
   lootTable: LootTableId,
   districts: DistrictTable = DISTRICTS,
-): { district: DistrictId; weight: number } | null {
+  room?: number,
+): { district: DistrictId; weight: number; guaranteed?: true } | null {
   if ([...t.loot, ...t.offers].some((i) => i.kind === 'key')) return null;
   for (const id of DISTRICT_IDS) {
     const gate = districts[id].gate;
     if (gate.kind !== 'key' || gate.from !== t.district || gate.table !== lootTable) continue;
-    if (districtState(p, id) === 'heard') return { district: id, weight: gate.weight };
+    if (gate.afterRoom !== undefined && gate.afterRoom !== room) continue;
+    if (districtState(p, id) !== 'heard') continue;
+    return gate.guaranteed && gate.afterRoom !== undefined
+      ? { district: id, weight: gate.weight, guaranteed: true }
+      : { district: id, weight: gate.weight };
   }
   return null;
 }

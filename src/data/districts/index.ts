@@ -174,7 +174,7 @@ export type KitGate =
       weight: number;
       /**
        * CN P7 (DK R3): placed by room, not by weight: offered only after this 0-based room of
-       * `from`. Read by DK-7's key kind / CN-8; `keyOffer` ignores it today.
+       * `from`. Read by `keyOffer` (CN-8).
        */
       afterRoom?: number;
       /** CN P7: with `afterRoom`, the pass takes one offer card instead of a weighted chance. */

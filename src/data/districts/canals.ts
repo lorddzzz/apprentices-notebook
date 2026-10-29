@@ -401,8 +401,8 @@ export const MOOR_TOKEN = 'moor';
 /**
  * CN P7 (DK R3, BR): the wardens' pass as the bridges' key gate: offered after room 4 (0-based 3)
  * of a canal trip, guaranteed while the bridges are heard and not open, one per trip, lost on a
- * wipe. BR sets `BRIDGES_KIT.gate` to this; `table`/`weight` keep `keyOffer` typed until DK-7
- * reads `afterRoom` (weight 0: never drawn by the weighted pool).
+ * wipe. BR sets `BRIDGES_KIT.gate` to this; `keyOffer` honours `afterRoom`/`guaranteed` (CN-8),
+ * so the weight 0 is never drawn by the weighted pool.
  */
 export const WARDENS_PASS: Extract<KitGate, { kind: 'key' }> = {
   kind: 'key',
