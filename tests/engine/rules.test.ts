@@ -69,10 +69,10 @@ describe('round-end rule slots (P8)', () => {
     expect(twice.rules?.['seam:count']).toBe(2);
   });
 
-  test('the built-in rules keep today order and are the canals', () => {
+  test('the built-in rules keep today order: the canals, then the ink quarter writs (IQ-1)', () => {
     expect(slotRules('carry', boardRules()).map((r) => r.id)).toEqual(['canals:current']);
     expect(slotRules('afterChemistry', boardRules()).map((r) => r.id)).toEqual(['canals:gates']);
-    expect(slotRules('late', boardRules())).toEqual([]);
+    expect(slotRules('late', boardRules()).map((r) => r.id)).toEqual(['inkQuarter:writs']);
   });
 });
 

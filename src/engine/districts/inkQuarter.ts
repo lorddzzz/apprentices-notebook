@@ -8,6 +8,7 @@ import {
   initInkState,
   parseInkState,
 } from './inkQuarter/types';
+import { WRIT_EVENT_LINES, WRIT_PIECES, WRITS_RULE } from './inkQuarter/writs';
 import type { DistrictEventDef, DistrictModule, TripShapeDef } from './types';
 
 /**
@@ -24,9 +25,10 @@ const shape: TripShapeDef<InkTripState> = {
   ...TERM_HOOKS,
 };
 
-/** Placeholder log lines: the event's own name (IQ-1, IQ-2, IQ-3, IQ-6 write the wording). */
+/** Log lines: the writs' (IQ-1) and the terms' (IQ-3), else the event's name (IQ-2, IQ-6 write theirs). */
 const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
   (type) =>
+    WRIT_EVENT_LINES[type] ??
     TERM_EVENT_DEFS.find((d) => d.type === type) ?? {
       type,
       describe: () => type.slice('inkQuarter:'.length),
@@ -35,7 +37,8 @@ const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
 
 export const INK_QUARTER_MODULE: DistrictModule = {
   id: 'inkQuarter',
-  pieces: INK_BASE_PIECES,
+  rules: [WRITS_RULE],
+  pieces: INK_BASE_PIECES.map((p) => WRIT_PIECES[p.id] ?? p),
   events,
   trip: shape,
   offerKinds: [TERMED_KIND],
