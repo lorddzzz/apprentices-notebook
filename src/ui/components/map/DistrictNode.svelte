@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import { MAP_CAPTION_WIDTH, type MapNode, nodeTag } from '../../../app/city';
   import { href } from '../../../app/routes';
+  import { DISTRICT_UI } from '../../districts';
 
   interface Props {
     node: MapNode;
@@ -12,6 +13,8 @@
 
   let { node, onopen, under }: Props = $props();
   const open = $derived(node.state === 'open');
+  /** The district's own solved art (its UI module), if it has one. */
+  const Art = $derived(node.solved ? DISTRICT_UI[node.id]?.solvedArt?.[node.solvedArt] : undefined);
 </script>
 
 <div
@@ -28,10 +31,8 @@
   data-lean={node.lean}
 >
   <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
-    {#if node.solved && node.solvedArt === 'canal-gate'}
-      <!-- the canals' burnt gate: two posts, a charred bar and a flick of flame -->
-      <path d="M5 21V8M19 21V8M5 12h14M5 17h14" class="char" />
-      <path d="M12 3c2 3 3 4 1 7-2-1-4-4-1-7z" class="flame" />
+    {#if Art}
+      <Art />
     {:else if node.solved}
       <!-- a district with no art of its own yet: a ringed dot with a tick through it -->
       <circle cx="12" cy="12" r="8" class="char" />
@@ -136,9 +137,6 @@
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
-  }
-  .flame {
-    fill: var(--m-fire);
   }
   .name {
     margin: 0;
