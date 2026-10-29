@@ -327,3 +327,75 @@ describe('canal rooms 3 and 4 play (CN-4)', () => {
     }
   });
 });
+
+/**
+ * CN-5 (canals-revisit P1, P2, P10): the heart is 7×8 with five start points and five or six
+ * lamps. Each variant keeps at least two lamps clear of every start point and foe (not beside
+ * either), so the lamp-mother's every-round call always has a free lamp to land on.
+ */
+describe('canal heart (CN-5)', () => {
+  const heart = CANAL_ROOMS[4];
+  if (!heart) throw new Error('missing heart');
+  const lampsOf = (spec: BoardSpec): Coord[] =>
+    spec.tiles.flatMap((t, i) =>
+      t.terrain.lamp ? [{ x: i % spec.width, y: Math.floor(i / spec.width) }] : [],
+    );
+
+  test('three variants, 7×8, five start points, each passes checkRoom', () => {
+    expect(heart.heart).toBe(true);
+    expect(heart.variants).toHaveLength(3);
+    for (const v of heart.variants) {
+      const spec = parseBoard(v.layout);
+      expect(checkRoom(v.layout), v.name).toEqual([]);
+      expect([spec.width, spec.height]).toEqual([7, 8]);
+      expect(spec.starts).toHaveLength(5);
+    }
+  });
+
+  test('five or six lamps, at least two clear of every start point and foe', () => {
+    for (const [i, { spec }] of specs(heart).entries()) {
+      const lamps = lampsOf(spec);
+      expect(lamps.length, `variant ${i}`).toBeGreaterThanOrEqual(5);
+      expect(lamps.length, `variant ${i}`).toBeLessThanOrEqual(6);
+      const clear = lamps.filter(
+        (l) =>
+          ![...spec.starts, ...spec.units.map((u) => u.at)].some(
+            (c) => (c.x === l.x && c.y === l.y) || adjacent(c, l),
+          ),
+      );
+      expect(clear.length, `variant ${i}`).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  test('P2: no start point on water or beside a foe; foes are the mother, a Snuffer, a moth', () => {
+    for (const { name, spec } of specs(heart)) {
+      for (const p of spec.starts) {
+        expect(at(spec, p)?.terrain.water, `${name} P on water`).toBeFalsy();
+        for (const u of spec.units)
+          expect(adjacent(p, u.at), `${name} P beside ${u.def}`).toBe(false);
+      }
+      expect(spec.units.map((u) => u.def).sort(), name).toEqual(['moth', 'mother', 'snuffer']);
+    }
+  });
+
+  test('the bot wins every variant with the founding pair on fresh HP', () => {
+    for (const v of heart.variants) {
+      let wins = 0;
+      for (const seed of [1, 2, 3, 4, 5]) {
+        const fight = botFight(
+          createBattle({
+            title: heart.title,
+            board: v.layout,
+            seed,
+            lineup: FOUNDERS,
+            party: Object.fromEntries(
+              FOUNDERS.map((id) => [id, { spells: compiledFor(newProfile(), id).spells }]),
+            ),
+          }).state,
+        );
+        if (fight.state.phase === 'won') wins++;
+      }
+      expect(wins, v.layout).toBe(5);
+    }
+  });
+});

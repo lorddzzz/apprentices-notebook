@@ -249,45 +249,50 @@ const CANAL_4: readonly EncounterVariant[] = [
   },
 ].map((v) => ({ ...v, layout: layRival(v.layout, RIVALS_LIVE.lamplighter) }));
 
-/** The heart: the lamp-mother on the water, a Snuffer, two moths, lamps around the pool. */
+/**
+ * The heart (CN-5, P1/P2): 7 wide, 8 tall, five start points, five or six lamps on the rim. The
+ * lamp-mother on the water, a Snuffer and a moth. Three pools: a ring clockwise, a ring against
+ * the clock, and a lane down the middle. At least two lamps are far from every start point and
+ * foe, so her every-round call has somewhere to land.
+ */
 const CANAL_HEART: readonly EncounterVariant[] = [
   {
     name: "The lamp-mother's pool",
     layout: board([
-      'l . . . . l',
-      '. w> w> w> wv .',
-      '. w^ m Mw> wv P',
-      'n w^ w> wv wv .',
-      '. w^ w< w< w< P',
-      '. . . . . .',
-      '. P . . P .',
-      'l . . . . l',
+      'l . . l . . l',
+      '. w> w> w> w> wv .',
+      '. w^ . m . Mwv .',
+      'P w^ . . . wv .',
+      '. w^ . . . wv P',
+      'P w^ w< w< w< w< .',
+      '. . . n . . .',
+      'l P . . . P l',
     ]),
   },
   {
     name: "The lamp-mother's pool",
     layout: board([
-      'l . . . . l',
-      '. wv wv wv wv .',
-      '. wv m Mwv wv .',
-      '. wv wv nwv wv .',
-      'P wv wv wv wv P',
-      '. . . . . .',
-      '. P . . P .',
-      'l . . . . l',
+      'l . . l . . l',
+      '. wv w< w< w< w< .',
+      '. Mwv . m . w^ .',
+      '. wv . . . w^ P',
+      'P wv . . . w^ .',
+      '. w> w> w> w> w^ P',
+      '. . . n . . .',
+      'l P . . . P l',
     ]),
   },
   {
     name: "The lamp-mother's pool",
     layout: board([
-      'l . . . . l',
-      '. w> w> wv w> .',
-      '. w> m Mw> w> .',
-      '. w> nw> w> w> .',
-      'P w> w> w> w> P',
-      '. . . . . .',
-      '. P . . P .',
-      'l . . . . l',
+      'l . . l . . l',
+      '. w> w> wv w< w< .',
+      '. . m wv . . .',
+      'P . . Mwv . n .',
+      '. . . wv . . P',
+      '. . . wv . . .',
+      '. P . wv . P .',
+      'l . P wv . . l',
     ]),
   },
 ];
