@@ -214,6 +214,10 @@ export type GameEvent = (
   | { type: 'fizzles'; reason: 'cap' | 'depth' }
   /** Silent: a compound, burst or idiom happened for the first time this fight (D7). */
   | { type: 'named'; what: 'compound' | 'burst' | 'idiom'; id: string }
+  /** CN P5: the barge's crate reached its mooring and is anchored there (a room bonus's goal). */
+  | { type: 'moored'; unit: UnitRef; at: Coord }
+  /** CN P3: the crate took harm and its cargo is ruined; `source` names what did it. */
+  | { type: 'cargoLost'; unit: UnitRef; at: Coord; source: string }
   | RivalEvent
 ) &
   EventMeta;
@@ -401,6 +405,10 @@ export function describe(e: GameEvent): string | null {
       return e.reason === 'cap' ? 'the chain runs too long and fizzles' : 'the nesting fizzles';
     case 'named':
       return null;
+    case 'moored':
+      return `the ${e.unit.name} moors at ${label(e.at)}`;
+    case 'cargoLost':
+      return `the ${e.unit.name}'s cargo is lost at ${label(e.at)} (${e.source})`;
     case 'rivalPlans':
       return `${who(e.unit)} plans its next move`;
     case 'castFails':

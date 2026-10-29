@@ -1,5 +1,6 @@
-import type { EncounterDef, EncounterVariant } from '../types';
-import type { DistrictData, ThresholdSpec } from './index';
+import type { RivalId } from '../rivals/types';
+import type { EncounterDef, EncounterVariant, EnemyDef, EnemyId } from '../types';
+import type { BonusObjective, DistrictData, KitGate, PaperDef, ThresholdSpec } from './index';
 
 const board = (rows: readonly string[]): string => rows.join('\n');
 
@@ -303,3 +304,92 @@ export const CANALS_KIT: DistrictData = {
   recruit: [{ apprentice: 'runaway', room: 2 }],
   recruitPages: [{ for: 'runaway', runes: ['fuse'], rooms: [0, 1, 2] }],
 };
+
+// ── Canals revisit contracts (CN-0, canals-revisit plan §4) ─────────────────────────────
+// Declared here, wired by later CN tasks: nothing below changes a canal room or trip yet.
+
+/**
+ * CN P3: the barge's crate, a bystander unit (not a board piece). 1 HP, no attack, never
+ * telegraphs; it floats on the current and any harm ruins it (`cargoLost`). `ENEMIES.barge` is
+ * this object. CN-2 spawns it with `Unit.bystander` and gives it a silent AI.
+ */
+export const BARGE: EnemyDef = {
+  id: 'barge',
+  name: 'crate',
+  token: 'k',
+  hp: 1,
+  move: 0,
+  attack: null,
+  ai: 'idle',
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb: 'A barge crate adrift on the current. Moor it before the room is won for a bonus pick.',
+  habitat: 'any',
+  flies: false,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+  floats: true,
+  bystander: true,
+};
+
+/** CN P4: the mooring piece (`{moor}`, non-solid, on water). Its def is the canal module's. */
+export const MOOR_PIECE = 'canals:moor' as const;
+export const MOOR_TOKEN = 'moor';
+
+/**
+ * CN P5 (DK-5b): the barge rooms' bonus, one more pick from the same offers when the crate is
+ * moored. CN-3/CN-4 put it on rooms 2 and 4; the crate is the room's first barge.
+ */
+export const MOORING_BONUS: BonusObjective = {
+  goal: { happens: 'moored', unit: 'barge-1' },
+  text: 'Moor the crate before the room is won.',
+  reward: { kind: 'pick' },
+};
+
+/**
+ * CN P6: which rivals play their room. While `lamplighter` is off, room 4's `L` reads as its
+ * stand-in (today's Snuffer). CN-7 flips it after RV-G1.
+ */
+export const RIVALS_LIVE: Readonly<Record<RivalId, boolean>> = { lamplighter: false };
+/** CN P6: the foe a rival's token spawns as while that rival is not live. */
+export const RIVAL_STAND_INS: Readonly<Record<RivalId, EnemyId>> = { lamplighter: 'snuffer' };
+
+/**
+ * CN P7 (DK R3, BR): the wardens' pass as the bridges' key gate: offered after room 4 (0-based 3)
+ * of a canal trip, guaranteed while the bridges are heard and not open, one per trip, lost on a
+ * wipe. BR sets `BRIDGES_KIT.gate` to this; `table`/`weight` keep `keyOffer` typed until DK-7
+ * reads `afterRoom` (weight 0: never drawn by the weighted pool).
+ */
+export const WARDENS_PASS: Extract<KitGate, { kind: 'key' }> = {
+  kind: 'key',
+  from: 'canals',
+  table: 'canalDeep',
+  weight: 0,
+  afterRoom: 3,
+  guaranteed: true,
+};
+
+/**
+ * CN P9: the five lamp-ledger leaves, in the Lamplighters' hand. Texts come from CN-F2 after
+ * CN-G1; CN-9 adds them to `CANALS_KIT.papers` and delivers the first unread leaf at each landing
+ * reached (after rooms 1, 3, 5), so `found` names the landing a fresh profile meets each at.
+ */
+const leaf = (n: number, title: string, after: number): PaperDef => ({
+  id: `canals:ledger-${n}`,
+  district: 'canals',
+  title,
+  hand: 'The Lamplighters',
+  text: '',
+  group: 'Lamp-ledgers',
+  found: { kind: 'landing', after },
+});
+export const CANAL_LEDGERS: readonly PaperDef[] = [
+  leaf(1, 'The route', 0),
+  leaf(2, 'Lamp counts', 2),
+  leaf(3, 'A lamp found dark', 4),
+  leaf(4, 'Never the Seam', 0),
+  leaf(5, 'A page that ends', 2),
+];

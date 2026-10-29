@@ -761,6 +761,8 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'named':
     case 'rivalPlans':
     case 'pageRecovered':
+    case 'moored': // CN-10 draws the crate's mooring and loss
+    case 'cargoLost':
       break;
     case 'cast':
       // A rival's telegraphed spell is spent once it is cast (RV-2); a member has no intent.

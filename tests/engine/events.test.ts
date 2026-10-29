@@ -6,6 +6,7 @@ const draughtsman: UnitRef = { id: 'draughtsman', name: 'Draughtsman', at: at(0,
 const stoker: UnitRef = { id: 'stoker', name: 'Stoker', at: at(4, 6), member: true };
 const rat: UnitRef = { id: 'rat-1', name: 'rat', at: at(2, 1), member: false };
 const sentry: UnitRef = { id: 'sentry-1', name: 'sentry', at: at(0, 0), member: false };
+const crate: UnitRef = { id: 'barge-1', name: 'crate', at: at(2, 1), member: false };
 const intent = { kind: 'attack', attack: 'line', dir: 'right', order: 1 } as const;
 
 type Fixture<T extends GameEvent['type']> = [Extract<GameEvent, { type: T }>, string | null];
@@ -300,6 +301,13 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
     [
       { type: 'pageRecovered', page: 'lamplighter:lantern' },
       'a page is recovered: lamplighter:lantern',
+    ],
+  ],
+  moored: [[{ type: 'moored', unit: crate, at: at(2, 1) }, 'the crate moors at C2']],
+  cargoLost: [
+    [
+      { type: 'cargoLost', unit: crate, at: at(2, 1), source: 'Fire' },
+      "the crate's cargo is lost at C2 (Fire)",
     ],
   ],
 };

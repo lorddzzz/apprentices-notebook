@@ -1,6 +1,9 @@
+import type { EnemyId } from '$data';
+import { MOOR_PIECE, MOOR_TOKEN, RIVAL_STAND_INS, RIVALS_LIVE } from '$data/districts/canals';
+import type { RivalId } from '$data/rivals/types';
 import { burnGates, drift, driftPreview } from '../current';
 import { driftWaiting } from '../solvents';
-import type { BoardRule, DistrictModule, PreviewShape } from './types';
+import type { BoardRule, DistrictModule, PieceDef, PreviewShape } from './types';
 
 /**
  * The canals' engine module (DK-3): the current and the lock gates as round-end board rules.
@@ -46,4 +49,26 @@ export const GATES_RULE: BoardRule<null> = {
   },
 };
 
-export const CANALS_MODULE: DistrictModule = { id: 'canals', rules: [CURRENT_RULE, GATES_RULE] };
+/**
+ * CN P4/P5: the mooring (`{moor}`), non-solid, on the barge's lane. CN-2 adds its arrival hook
+ * (the crate arriving by any cause emits `moored` and anchors it); until then it does nothing.
+ */
+export const MOOR_DEF: PieceDef<null> = {
+  id: MOOR_PIECE,
+  token: MOOR_TOKEN,
+  solid: 'none',
+  triggers: {},
+  art: 'canal-moor',
+};
+
+/** CN P6: the foe a rival's slot spawns as: the rival while live, else its stand-in. */
+export const rivalSlot = (
+  rival: RivalId,
+  live: Readonly<Record<RivalId, boolean>> = RIVALS_LIVE,
+): EnemyId => (live[rival] ? rival : RIVAL_STAND_INS[rival]);
+
+export const CANALS_MODULE: DistrictModule = {
+  id: 'canals',
+  rules: [CURRENT_RULE, GATES_RULE],
+  pieces: [MOOR_DEF],
+};

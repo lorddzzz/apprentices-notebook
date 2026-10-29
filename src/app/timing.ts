@@ -74,6 +74,8 @@ export function durationOf(e: GameEvent): number {
     case 'markLifted':
     case 'jarCrumbles':
     case 'scheduled':
+    case 'moored':
+    case 'cargoLost':
     case 'rivalPlans':
     case 'castFails':
     case 'orderFails':

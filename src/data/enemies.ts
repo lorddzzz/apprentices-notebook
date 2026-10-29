@@ -1,3 +1,4 @@
+import { BARGE } from './districts/canals';
 import type { AttackDef, AttackId, EnemyDef, EnemyId } from './types';
 
 export const ENEMY_IDS: readonly EnemyId[] = [
@@ -205,6 +206,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     anchored: true,
     snuffs: true,
     boss: true,
+    summon: { cap: 4, flareEvery: 3 },
   },
   // A rival (rivals plan P1): the unit's numbers live in `RIVALS`; this is the board-facing shell.
   lamplighter: {
@@ -221,4 +223,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     blurb: 'A rival apprentice of the canals.',
     ...PLAIN,
   },
+  // CN P3: the canals' bystander crate (its data is the canal file's). Not in `ENEMY_IDS` until
+  // CN-2 wires it, so `k` does not parse and the Lab does not offer it yet.
+  barge: BARGE,
 };

@@ -259,6 +259,8 @@ const EVENT_TYPE_SET: Record<GameEvent['type'], true> = {
   orderFails: true,
   pageRecovered: true,
   outOfRoom: true,
+  moored: true,
+  cargoLost: true,
 };
 const EVENT_TYPES = Object.keys(EVENT_TYPE_SET) as GameEvent['type'][];
 
@@ -298,7 +300,14 @@ describe('the guard sees the whole union', () => {
     // Conduct (E7) is the only emitter of 'conducted'; delete this when its scenarios land.
     // rivalPlans / pageRecovered change nothing in the view (applyEvent no-ops them), and no suite
     // that runs through the recording harness emits them yet.
-    const notYet: GameEvent['type'][] = ['conducted', 'rivalPlans', 'pageRecovered'];
+    // moored / cargoLost: CN-0 contracts, emitted once the barge lands (CN-2).
+    const notYet: GameEvent['type'][] = [
+      'conducted',
+      'rivalPlans',
+      'pageRecovered',
+      'moored',
+      'cargoLost',
+    ];
     const missing = EVENT_TYPES.filter((t) => !seen.has(t) && !notYet.includes(t));
     expect(missing).toEqual([]);
   });

@@ -306,6 +306,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'repeated':
     case 'triggered':
     case 'named':
+    case 'moored': // CN-10 animates the crate
+    case 'cargoLost':
     case 'rivalPlans':
     case 'castFails':
     case 'orderFails':

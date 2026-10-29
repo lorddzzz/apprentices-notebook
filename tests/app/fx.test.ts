@@ -350,6 +350,8 @@ const SAMPLES = {
   fallbackStrike: { type: 'fallbackStrike', unit: rat, at: a, target: stoker, damage: 1 },
   orderFails: { type: 'orderFails', unit: rat, object: { kind: 'jar', id: 1 }, why: 'erased' },
   pageRecovered: { type: 'pageRecovered', page: 'lamplighter:lantern' },
+  moored: { type: 'moored', unit: rat, at: a },
+  cargoLost: { type: 'cargoLost', unit: rat, at: a, source: 'Fire' },
 } satisfies Record<GameEvent['type'], GameEvent>;
 
 // Events that leave the beat to their neighbours: no picture, or no place to draw one.
@@ -375,6 +377,8 @@ const NO_PICTURE: readonly GameEvent['type'][] = [
   'castFails',
   'orderFails',
   'pageRecovered',
+  'moored', // CN-10 draws these
+  'cargoLost',
 ];
 
 describe('one short beat per event', () => {

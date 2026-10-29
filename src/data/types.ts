@@ -340,7 +340,8 @@ export type EnemyId =
   | 'snuffer'
   | 'moth'
   | 'mother'
-  | 'lamplighter';
+  | 'lamplighter'
+  | 'barge';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 
 /**
@@ -397,6 +398,15 @@ export interface EnemyDef {
   trick?: HabitId;
   /** A scripted foe (DK-9, P14): registered steps cycled by round; `standIn` marks a heart that gives no page. */
   script?: EnemyScript;
+  /**
+   * CN P3: rides the current like any unit in water but is never dropped (the barge's crate);
+   * it can be beached on a quay and pushed back. Read by CN-2; nothing reads it yet.
+   */
+  floats?: true;
+  /** CN P3: spawns as a bystander (`Unit.bystander`): never counted for the win, never credited. */
+  bystander?: true;
+  /** CN P10 (BL-91): the lamp-mother's rhythm as data: live moths at most, flare every n rounds. */
+  summon?: { cap: number; flareEvery: number };
 }
 
 // ── Encounters and loot ─────────────────────────────────

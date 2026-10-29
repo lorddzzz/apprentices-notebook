@@ -167,7 +167,19 @@ export interface BenchEntry {
 export type KitGate =
   | Exclude<Gate, { kind: 'threshold' } | { kind: 'key' }>
   | { kind: 'threshold'; room: ThresholdSpec }
-  | { kind: 'key'; from: DistrictId; table: KitLootTableId; weight: number };
+  | {
+      kind: 'key';
+      from: DistrictId;
+      table: KitLootTableId;
+      weight: number;
+      /**
+       * CN P7 (DK R3): placed by room, not by weight: offered only after this 0-based room of
+       * `from`. Read by DK-7's key kind / CN-8; `keyOffer` ignores it today.
+       */
+      afterRoom?: number;
+      /** CN P7: with `afterRoom`, the pass takes one offer card instead of a weighted chance. */
+      guaranteed?: true;
+    };
 
 // ── The district's data ─────────────────────────────────
 /** The full shape after DK-17 (one entry per district file). */
