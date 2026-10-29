@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** paused at the end of the 2026-10-29/30 window (no agents running). Merged this window: CN-13 tuning (player's pick a), IQ-W0, FU-A, FU-B, IQ-3, IQ-1, DK-IQ. Burn ~1.2%/min average with 3 Strong agents (one 28-point jump in 17 min). Wake-ups: both used; this chain is finished, the next session starts fresh from the continuation prompt.
+**State:** building (window resets 2026-10-30 01:40 UTC; 5h 55% at 00:23 local). Merged this window: CN-13 tuning (player's pick a), IQ-W0, FU-A, FU-B, IQ-3, IQ-1, DK-IQ. Running: **IQ-2** (Medium; forwarding), **IQ-5a** (Medium; dead letter + Sorter), **DK-D9** (Strong; held loot release on a broken term). IQ-2 and IQ-5a add hunks to `inkQuarter.ts`: resolve on merge. Burn ~1.2%/min average with 3 Strong agents (one 28-point jump in 17 min). Wake-ups: both used; finish this window without a timer.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (both used: this next window is the last, finish without a timer). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
