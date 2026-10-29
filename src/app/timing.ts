@@ -16,6 +16,8 @@ export function durationOf(e: GameEvent): number {
     case 'dropped':
     case 'outOfRoom':
     case 'fizzles':
+    case 'moored':
+    case 'cargoLost':
       return STEP_MS.big;
     case 'moved':
     case 'push':
@@ -74,8 +76,6 @@ export function durationOf(e: GameEvent): number {
     case 'markLifted':
     case 'jarCrumbles':
     case 'scheduled':
-    case 'moored':
-    case 'cargoLost':
     case 'rivalPlans':
     case 'castFails':
     case 'orderFails':

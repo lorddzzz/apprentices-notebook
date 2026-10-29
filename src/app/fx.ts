@@ -35,6 +35,8 @@ export type Fx =
   | { kind: 'splat'; at: Coord; tone: Tone } // a detonation: droplets thrown outward
   | { kind: 'float'; at: Coord; text: string; tone: Tone } // "−3", "+2 shield"
   | { kind: 'pulse'; at: Coord; tone: Tone } // cast, detonate, coat
+  | { kind: 'moor'; at: Coord } // CN-10: a crate made fast to its mooring
+  | { kind: 'ruin'; at: Coord } // CN-10: a crate ruined, cargo lost
   | { kind: 'banner'; text: string }; // "Your turn", "Round 3"
 
 export const COMPOUND_TONE: Record<CompoundId, Tone> = {
@@ -286,6 +288,16 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [burst(e.tiles, 'steam', 40)];
     case 'foeBursts':
       return [burst([e.at], 'fire'), { kind: 'pulse', at: e.at, tone: 'fire' }];
+    case 'moored':
+      return [
+        { kind: 'moor', at: e.at },
+        { kind: 'float', at: e.at, text: 'moored', tone: 'brass' },
+      ];
+    case 'cargoLost':
+      return [
+        { kind: 'ruin', at: e.at },
+        { kind: 'float', at: e.at, text: 'cargo lost', tone: 'danger' },
+      ];
     case 'summon':
       return [{ kind: 'pulse', at: e.at, tone: 'danger' }];
     case 'flare':
@@ -307,8 +319,6 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'repeated':
     case 'triggered':
     case 'named':
-    case 'moored': // CN-10 animates the crate
-    case 'cargoLost':
     case 'rivalPlans':
     case 'castFails':
     case 'orderFails':

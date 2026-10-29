@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { encountersOf } from '$data';
   import { placeOf } from '$engine';
+  import { shapeOf } from '$engine/trip/shape';
   import { inSentence } from '../../app/describe';
   import { game } from '../../app/instance';
   import { paperNote } from '../../app/lootviews';
@@ -16,6 +18,14 @@
     const found = game.found;
     if (!trip || !found || found.seed !== trip.seed || found.room !== trip.encounter) return null;
     return paperNote(found.paper);
+  });
+
+  // A met room bonus is the extra pick (CN-10): say so while it is still to be taken.
+  const bonus = $derived.by(() => {
+    if (!trip?.kit?.bonuses.includes(trip.encounter)) return null;
+    const room = shapeOf(trip.district).bonuses?.[trip.encounter];
+    const base = encountersOf(trip.district)[trip.encounter]?.picks ?? 1;
+    return room?.reward.kind === 'pick' && trip.picksLeft > base ? room : null;
   });
 
   // Offers shrink after each pick (the heart gives two): never keep a stale index.
@@ -37,6 +47,13 @@
         {trip.picksLeft === 1 ? 'Take one.' : `Take ${trip.picksLeft}, one at a time.`}
       </p>
     </header>
+
+    {#if bonus}
+      <p class="bonus" data-testid="bonus-pick">
+        <span class="seal" aria-hidden="true">◆</span>
+        <span><strong>Bonus pick earned.</strong> <em>{bonus.text}</em> One more to take.</span>
+      </p>
+    {/if}
 
     {#if note}
       <p class="paper" data-testid="paper-found">
@@ -92,6 +109,7 @@
     font-style: italic;
     color: var(--ink-soft);
   }
+  .bonus,
   .paper {
     display: flex;
     align-items: baseline;

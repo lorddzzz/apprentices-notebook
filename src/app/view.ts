@@ -96,6 +96,8 @@ export interface UnitView {
   /** Rounds a hold has left (0 = none). */
   held: number;
   stunned: boolean;
+  /** A floating crate tied to its mooring (CN-10). Absent = adrift or not a crate. */
+  moored?: true;
   alive: boolean;
   /** Out of the room (DK-6: fell, erased): off the board, not selectable. Absent = in the room. */
   out?: OutCause | null;
@@ -171,6 +173,7 @@ export function viewOf(s: BattleState): BoardView {
       shackle: u.shackle,
       held: u.held,
       stunned: u.stunned,
+      ...(u.moored ? { moored: true as const } : {}),
       alive: u.hp > 0 && !u.out,
       ...(u.out ? { out: u.out } : {}),
       intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
@@ -762,8 +765,12 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'named':
     case 'rivalPlans':
     case 'pageRecovered':
-    case 'moored': // CN-10 draws the crate's mooring and loss
-    case 'cargoLost':
+    case 'cargoLost': // the `died` that follows takes the crate off the board
+      break;
+    case 'moored':
+      patchUnit(v, e.unit.id, (u) => {
+        u.moored = true;
+      });
       break;
     case 'cast':
       // A rival's telegraphed spell is spent once it is cast (RV-2); a member has no intent.

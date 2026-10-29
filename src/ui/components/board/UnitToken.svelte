@@ -2,6 +2,7 @@
   import { fade } from 'svelte/transition';
   import { APPRENTICES, ENEMIES } from '$data';
   import type { UnitView } from '../../../app/view';
+  import { CrateToken } from '../../districts/canals';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import { runePath } from './art';
   import { CELL } from './geometry';
@@ -50,6 +51,8 @@
   {:else if unit.def === 'familiar'}
     <path d="M50 {CY - 32} 82 {CY} 50 {CY + 32} 18 {CY}z" fill="var(--enemy)" stroke="var(--m-ink)" stroke-width="3" stroke-linejoin="round" />
     <text x="50" y={CY + 10} text-anchor="middle" font-size="30" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>
+  {:else if unit.def === 'barge'}
+    <CrateToken moored={unit.moored === true} />
   {:else if unit.def === 'eel'}
     <path d="M14 {CY + 6}q9-26 18-6t18 0 18-6 14 4q-6 22-18 14t-18 0-18 6z" fill="var(--m-ink)" stroke="var(--parchment)" stroke-width="3" stroke-linejoin="round" />
     <circle cx="78" cy={CY - 2} r="3.5" fill="var(--parchment)" />

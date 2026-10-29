@@ -1,6 +1,7 @@
 import type { Component } from 'svelte';
 import type { DistrictId } from '$data';
 import type { DistrictEvent, PreviewShape } from '$engine/districts/types';
+import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
 
@@ -25,6 +26,7 @@ export interface DistrictUi {
 /** Every district's UI module, one line each (P1). */
 export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   seam: {},
+  canals: CANALS_UI,
 };
 
 /** A piece's renderer by art key, across every district; undefined = the board's fallback glyph (DK-13). */

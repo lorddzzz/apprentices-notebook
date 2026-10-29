@@ -377,8 +377,6 @@ const NO_PICTURE: readonly GameEvent['type'][] = [
   'castFails',
   'orderFails',
   'pageRecovered',
-  'moored', // CN-10 draws these
-  'cargoLost',
 ];
 
 describe('one short beat per event', () => {
@@ -407,6 +405,14 @@ describe('one short beat per event', () => {
 
   test('a quiet event never carries a picture that would be skipped', () => {
     for (const e of all) if (durationOf(e) === 0) expect(fxFor(e, board), e.type).toEqual([]);
+  });
+
+  test('a mooring and a lost crate are drawn where it happened, as big beats (CN-10)', () => {
+    expect(fxFor(SAMPLES.moored, board)).toContainEqual({ kind: 'moor', at: a });
+    expect(fxFor(SAMPLES.cargoLost, board)).toContainEqual({ kind: 'ruin', at: a });
+    for (const t of ['moored', 'cargoLost'] as const) {
+      expect(durationOf(SAMPLES[t]), t).toBe(STEP_MS.big);
+    }
   });
 
   test('the new moving-things events are big beats', () => {
