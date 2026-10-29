@@ -132,8 +132,7 @@ export const TERMED_KIND: OfferKind<TermedItem> = {
 
 /**
  * A held page once its term is settled (P6): kept (no longer held) when paid, taken back when
- * broken; an open term's page stays held. The trip flow has no hook that edits the loot after a
- * room, so IQ-4 wires this in (see the IQ-3 report).
+ * broken; an open term's page stays held. Called by the shape's `lootAfterRoom` (DK-D9).
  */
 export function releaseHeld(trip: Trip): Trip {
   if (!trip.kit) return trip;

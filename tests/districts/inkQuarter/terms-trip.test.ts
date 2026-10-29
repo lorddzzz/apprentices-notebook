@@ -252,6 +252,20 @@ describe('settling when the next room is won (P5)', () => {
     expect(releaseHeld(home).loot.some((i) => i.kind === TERMED)).toBe(false);
   });
 
+  test("a broken reward term's page does not bank", () => {
+    expect(broken.trip.loot.some((i) => i.kind === TERMED)).toBe(false);
+    const banked = returnHome(broken.profile, pickLoot(broken.trip, 0));
+    expect(banked.solventsFound).not.toContain('wax');
+    expect(banked.solvents.wax).toBe(broken.profile.solvents.wax);
+  });
+
+  test("a paid term's page is kept, no longer held, once the room is won", () => {
+    expect(paid.trip.loot.find((i) => i.kind === TERMED)).toEqual({
+      kind: TERMED,
+      data: { def: 'inkQuarter:sampler', term: 't0' },
+    });
+  });
+
   test('a wipe loses the term and its page with the rest of the trip', () => {
     const r = close(won0.profile, fight(won0.profile, t1, 1), false);
     expect(r.outcome).toBe('wiped');

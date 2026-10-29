@@ -156,7 +156,7 @@ export function finishEncounter(
       return u.out ? TUNING.reviveHp : Math.max(TUNING.reviveHp, u.hp);
     }),
     charges: perMember(t.party, (m) => ({ ...memberById(b, m).charges })),
-    loot: [...t.loot],
+    loot: [...marked.trip.loot],
     offers: rollOffers(t.seed, t.encounter, roll.table, t.party, null, ownedBy(p, t), withKit),
     picksLeft: roll.picks,
     actions: [],

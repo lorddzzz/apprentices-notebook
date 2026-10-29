@@ -322,6 +322,11 @@ export interface TripShapeDef<S extends Json = Json> {
   choices?(input: ShapeInput<S>): readonly CrossroadsChoice[];
   roomSetup?(input: ShapeInput<S>): RoomSetup;
   afterRoom?(input: ShapeInput<S>, log: EventLog, won: boolean): S;
+  /**
+   * The trip's loot once a won room's `afterRoom` has run (DK-D9): `input` carries the new state,
+   * so a settled stake can drop what it held. Absent keeps the loot as it is.
+   */
+  lootAfterRoom?(input: ShapeInput<S>): readonly KitLootItem[];
   offersFor?(input: ShapeInput<S>): RoomOffers | null;
 }
 

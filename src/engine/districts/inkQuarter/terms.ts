@@ -8,6 +8,7 @@ import type {
   ReturnBlock,
   TripShapeDef,
 } from '../types';
+import { releaseHeld } from './offers';
 import {
   type InkTripState,
   openTerm,
@@ -104,9 +105,14 @@ export function termBlocks(
 }
 
 /** The terms' trip-shape hooks (P5): an open term blocks the way home; the next win settles it. */
-export const TERM_HOOKS: Pick<TripShapeDef<InkTripState>, 'returnBlocks' | 'afterRoom'> = {
+export const TERM_HOOKS: Pick<
+  TripShapeDef<InkTripState>,
+  'returnBlocks' | 'afterRoom' | 'lootAfterRoom'
+> = {
   returnBlocks: ({ state }) => termBlocks(state),
   afterRoom: ({ state, room }, log, won) => (won ? settleTerms(state, room, log) : state),
+  // A broken term takes its held page back; a paid one keeps it (DK-D9).
+  lootAfterRoom: ({ trip }) => releaseHeld(trip).loot,
 };
 
 // ── Events (P5) ─────────────────────────────────────────

@@ -76,8 +76,8 @@ export function bonusMet(
 
 /**
  * A won room's mark on the trip (P7, P13): a met bonus is noted in `kit.bonuses`, then the
- * module's `afterRoom` writes its state (it reads the bonuses, so a `state` reward is its tag).
- * Trips without a kit come back unchanged.
+ * module's `afterRoom` writes its state (it reads the bonuses, so a `state` reward is its tag),
+ * then its `lootAfterRoom` edits the loot. Trips without a kit come back unchanged.
  */
 export function afterRoomWon(
   t: Trip,
@@ -92,7 +92,9 @@ export function afterRoomWon(
   const after = shape.trip?.afterRoom;
   if (!after) return { trip: marked, bonus };
   const state = after(shapeInput(marked, shape), log, true);
-  return { trip: { ...marked, kit: { ...t.kit, bonuses, state } }, bonus };
+  const settled: Trip = { ...marked, kit: { ...t.kit, bonuses, state } };
+  const loot = shape.trip?.lootAfterRoom?.(shapeInput(settled, shape));
+  return { trip: loot ? { ...settled, loot: [...loot] } : settled, bonus };
 }
 
 /** A core spec as the card it is (a bonus's named offer is offered as itself). */
