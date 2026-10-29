@@ -3,6 +3,7 @@ import { cloneData } from './clone';
 import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
 import { type Coord, type Dir, sameCoord } from './grid';
 import { habitOf } from './habits';
+import { guardHarm } from './harm';
 import type { Hook } from './hooks';
 import { cloudNet } from './networks';
 import { findUnit, isAlive, isCloud, tileAt, unitAt } from './queries';
@@ -48,8 +49,38 @@ function reach(ctx: Ctx, lineage: number, unit: Unit): void {
   if (!r.includes(unit.id)) r.push(unit.id);
 }
 
-/** Puts a mark on a unit (a new lineage unless given), then spreads it if the unit stands in a cloud. */
-export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): void {
+/**
+ * Puts a mark on a unit (a new lineage unless given), then spreads it if the unit stands in a cloud.
+ * It passes the harm guards first (DK-IQ D1): a cancel logs `unharmed` and marks no one; a
+ * redirect marks the guard's unit instead, unguarded (a dead or missing one: no one). Returns the
+ * unit that took the mark, or null. Spreading and Lift move marks without the guards.
+ */
+export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): Unit | null {
+  const v = guardHarm(ctx, { kind: 'mark', unit: unit.id, harm: null });
+  if (v.kind === 'cancel') {
+    withOrigin(ctx, mark.origin, () =>
+      emit(ctx, {
+        type: 'unharmed',
+        unit: ref(unit),
+        source: 'Mark',
+        harm: null,
+        ...(v.line ? { line: v.line } : {}),
+        ...(v.habit ? { habit: v.habit } : {}),
+      }),
+    );
+    return null;
+  }
+  if (v.kind === 'redirect') {
+    const to = findUnit(ctx.s, v.to);
+    if (!to || !isAlive(to)) return null;
+    placeMark(ctx, to, mark);
+    return to;
+  }
+  placeMark(ctx, unit, mark);
+  return unit;
+}
+
+function placeMark(ctx: Ctx, unit: Unit, mark: NewMark): void {
   if (unit.mark) spendMark(ctx, unit); // replaced: spent, never released (limit 6)
   withOrigin(ctx, mark.origin, () =>
     emit(ctx, {

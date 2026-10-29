@@ -1,5 +1,6 @@
 import type { HabitId, HarmKind, LineId } from '$data';
 import type { Ctx } from './ctx';
+import { KIT } from './districts/kit';
 import type { Dir } from './grid';
 import { habitOf, ruleOf } from './habits';
 import { findUnit } from './queries';
@@ -9,7 +10,8 @@ import type { UnitId } from './types';
  * The harm guard registry (AH-W0, orchestrator addition): guards that may pass, cancel or redirect
  * a hit, a push or a mark before it applies. Consumers: AH's `steamproof` (AH-4), BH's dissolved
  * bather and boil-over, IQ's forwarding writ, RV-11's `beforeHarm`. Each owner keeps its own list;
- * `HARM_GUARDS` composes them in a fixed order. Nothing registers at runtime.
+ * `harmGuards()` composes them in a fixed order: habits, then the district modules' `harmGuards`
+ * (DK-IQ D1, assembled by `buildKit`). Nothing registers at runtime.
  */
 
 /** What is about to happen to a unit. `harm` tags the source's kind (null = untagged). */
@@ -56,15 +58,25 @@ const habitWards: HarmGuard = {
 /** AH's guards. */
 export const HABIT_GUARDS: HarmGuardList = [habitWards];
 
-/** Every guard, in order: habits first; BH, IQ and RV append their own lists here. */
-export const HARM_GUARDS: HarmGuardList = [...HABIT_GUARDS];
+/**
+ * Every guard, in order: habits first, then the district kit's (registry order). Read lazily:
+ * district modules import the movers, so `KIT` is not ready while this file loads.
+ */
+export function harmGuards(): HarmGuardList {
+  return KIT.harmGuards.length === 0 ? HABIT_GUARDS : [...HABIT_GUARDS, ...KIT.harmGuards];
+}
 
-/** The first guard that does not pass decides; with none, the harm goes on. */
-export function guardHarm(ctx: Ctx, harm: Harm, guards: HarmGuardList = HARM_GUARDS): HarmVerdict {
+function firstVerdict(ctx: Ctx, harm: Harm, guards: HarmGuardList): HarmVerdict | null {
   for (const g of guards) {
     if (!g.kinds.includes(harm.kind)) continue;
     const v = g.run(ctx, harm);
     if (v.kind !== 'pass') return v;
   }
-  return PASS;
+  return null;
+}
+
+/** The first guard that does not pass decides; with none, the harm goes on. */
+export function guardHarm(ctx: Ctx, harm: Harm, guards?: HarmGuardList): HarmVerdict {
+  if (guards) return firstVerdict(ctx, harm, guards) ?? PASS;
+  return firstVerdict(ctx, harm, HABIT_GUARDS) ?? firstVerdict(ctx, harm, KIT.harmGuards) ?? PASS;
 }

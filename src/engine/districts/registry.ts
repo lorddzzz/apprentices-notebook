@@ -1,4 +1,5 @@
 import type { EnteredTiles } from '../arrival';
+import type { HarmGuard } from '../harm';
 import type {
   BoardRule,
   DistrictEventDef,
@@ -30,6 +31,8 @@ export function buildKit(modules: readonly DistrictModule[]): Kit {
   const steps: Record<string, ScriptStep> = {};
   const foes: Record<string, FoeBehaviour> = {};
   const shapes: Record<string, TripShapeDef> = {};
+  const harmGuards: HarmGuard[] = [];
+  const guardIds: Record<string, true> = {};
   const causes: Record<string, EnteredTiles> = {};
   const put = <T>(table: Record<string, T>, id: string, value: T, what: string): void => {
     if (Object.hasOwn(table, id)) throw new Error(`District kit: duplicate ${what} '${id}'`);
@@ -48,6 +51,10 @@ export function buildKit(modules: readonly DistrictModule[]): Kit {
     for (const e of m.events ?? []) put(events, e.type, e, 'event');
     for (const s of m.steps ?? []) put(steps, s.id, s, 'script step');
     for (const f of m.foes ?? []) put(foes, f.id, f, 'foe behaviour');
+    for (const g of m.harmGuards ?? []) {
+      put(guardIds, g.id, true, 'harm guard');
+      harmGuards.push(g);
+    }
     if (m.trip) put(shapes, m.trip.id, m.trip, 'trip shape');
     for (const [c, answers] of Object.entries(m.causes ?? {})) put(causes, c, answers, 'cause');
   }
@@ -62,6 +69,7 @@ export function buildKit(modules: readonly DistrictModule[]): Kit {
     events,
     steps,
     foes,
+    harmGuards,
     shapes,
     causes,
   };

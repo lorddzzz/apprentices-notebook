@@ -9,7 +9,6 @@ import type {
   EdgeRule,
   EnemyId,
   FootnoteSubject,
-  Goal,
   HabitId,
   InventionDef,
   Lean,
@@ -26,11 +25,12 @@ import type {
   StateId,
   TriggerRuneId,
 } from '$data';
-import type { PaperId } from '$data/districts/index';
+import type { KitGoal, PaperId } from '$data/districts/index';
 import type { RivalPageId, RivalSpellId, TrickId } from '$data/rivals';
 import type {
   CityCheckpoints,
   Json,
+  KitId,
   KitLootItem,
   OutCause,
   RuleStates,
@@ -265,7 +265,17 @@ export interface StepIntent {
   telegraph: Telegraph;
   order: number;
 }
-export type Intent = AttackIntent | SpecialIntent | RivalIntent | StepIntent;
+/**
+ * A district foe's registered behaviour (DK-IQ D2): `EnemyDef.behaviour` names it; its `plan`
+ * made `telegraph` in the enemy phase and its `resolve` acts on it next.
+ */
+export interface BehaviourIntent {
+  kind: 'behaviour';
+  id: KitId;
+  telegraph: Telegraph;
+  order: number;
+}
+export type Intent = AttackIntent | SpecialIntent | RivalIntent | StepIntent | BehaviourIntent;
 /**
  * A rival's intents (rivals plan P2, RV-W0; joined into `Intent` by RV-2). `aim` is the Source's
  * locked native aim; `fallback` is the starved-chain strike tile fixed at planning (null = none).
@@ -431,8 +441,8 @@ export interface BattleState {
   phase: BattlePhase;
   rngState: number;
   lab: boolean; // charges are not spent
-  /** A threshold room's goal (K-22): won when met, never by clearing the board. */
-  objective?: Goal;
+  /** A threshold room's goal (K-22, the kit's goals DK-IQ D3): won when met, never by clearing the board. */
+  objective?: KitGoal;
   castSeq: number; // casts so far this battle (Origin.cast)
   /** The next `Jar.id` to hand out (P10); absent reads as 1. Only ever grows. */
   nextJar?: JarId;
@@ -452,7 +462,7 @@ export interface BattleState {
   erased?: ErasedRecord | null;
   /**
    * Board rules' own state by id (P8, DK-3): the rules this fight runs under. A listed rule is put
-   * here at setup (`listRules`); a rule its board brings joins at its first round end. Absent = {}.
+   * here at setup (`listRules`); a rule its board brings at battle creation (`initBroughtRules`). Absent = {}.
    */
   rules?: RuleStates;
 }
@@ -523,7 +533,7 @@ export interface BattleSpec {
   /** Rival intents pinned by label (RV-2): telegraphed every round in place of planning. */
   pins?: Readonly<Record<string, RivalIntent>>;
   lab?: boolean;
-  objective?: Goal;
+  objective?: KitGoal;
   inventions?: InventionLibrary; // the household's inventions (default none)
   /**
    * HC P3/P4: the party (1–3, slot order) placed on the board's start points (`P`). Absent: the

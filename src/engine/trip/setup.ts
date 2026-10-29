@@ -11,7 +11,7 @@ import type {
   RuleId,
 } from '../districts/types';
 import type { EventLog } from '../events';
-import { boardRules, listRules } from '../rules';
+import { boardRules, initBroughtRules, listRules } from '../rules';
 import type { BattleState, Trip } from '../types';
 import { type OfferRegistry, offerRegistry } from './offerKinds';
 import { type DistrictShape, shapeInput, shapeOf } from './shape';
@@ -59,6 +59,7 @@ export function setUpRoom(
   const out = structuredClone(s);
   if (ids.length > 0) out.rules = listRules(out, ids, setup.rulesConfig ?? {}, rules);
   for (const e of edits) applyEdit(out, e);
+  if (edits.length > 0) initBroughtRules(out, rules);
   return out;
 }
 

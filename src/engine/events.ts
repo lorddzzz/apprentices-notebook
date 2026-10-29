@@ -265,6 +265,7 @@ function telegraphText(e: Extract<GameEvent, { type: 'telegraph' }>): string {
     case 'flare':
       return `${who(e.unit)} will flare`;
     case 'step':
+    case 'behaviour':
       return `${who(e.unit)} will ${e.verb}`;
     case 'cast':
     case 'trick':

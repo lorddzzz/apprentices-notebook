@@ -39,6 +39,7 @@ import { rivalAct } from './rivals/resolve';
 import { spawnRival } from './rivals/unit';
 import { deriveSeed } from './rng';
 import { placeParty, START_SALT } from './rooms';
+import { initBroughtRules } from './rules';
 import { endTurnAction } from './turn';
 import type {
   Action,
@@ -214,6 +215,7 @@ export function createBattle(spec: BattleSpec): ActionResult {
     u.maxHp = Math.max(u.maxHp, hp);
   }
   if (spec.pins) pinRivals(state, spec.pins);
+  initBroughtRules(state);
   return runDraft(state, (ctx) => {
     emit(ctx, { type: 'battleStart', title: spec.title });
     emit(ctx, { type: 'round', round: 1 });

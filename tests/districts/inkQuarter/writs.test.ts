@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { type BattleState, canUndoMove, legalMoves, parseLabel, unitAt } from '$engine';
+import { type BattleState, canUndoMove, label, legalMoves, parseLabel, unitAt } from '$engine';
+import { candidatesOf } from '$engine/ai';
 import type { Ctx } from '$engine/ctx';
 import { KIT } from '$engine/districts';
 import { ORDER_PIECE, RETURN_PIECE } from '$engine/districts/inkQuarter/types';
@@ -105,8 +106,10 @@ describe('return to sender (P2)', () => {
     expect(unitAt(r.state, at('A1'))?.id).toBe('rat-1');
   });
 
-  test('no-snapshot: without the rule listed yet the unit stays on the stamp (P2 fallback)', () => {
+  test('no-snapshot: a unit missing from the snapshot stays on the stamp (P2 fallback)', () => {
     const s = structuredClone(board('r {return} .'));
+    // D8 gives the brought rule its state at creation; a unit absent from it (e.g. spawned later) stays.
+    s.rules = {};
     expect(sendBackTarget(s, 'rat-1', at('B1'))).toBeNull();
     const r = draft(s, walk('A1', 'B1'));
     expect(r.events.some((e) => e.type === 'inkQuarter:sentBack')).toBe(false);
@@ -150,10 +153,24 @@ describe('return to sender (P2)', () => {
     expect(isRuleActive(rule, structuredClone(board('r . .')))).toBe(false);
   });
 
-  test.todo('planner-avoidance: a foe never ends its walk on a return stamp (after DK D7)');
-  test.todo(
-    'round-1-snapshot: a brought writs rule knows battle-start tiles without listing (after DK D8)',
-  );
+  test('planner-avoidance: a foe never ends its walk on a return stamp', () => {
+    const ends = (ascii: string) => {
+      const s = board(ascii);
+      const rat = s.units.find((u) => u.kind === 'enemy');
+      if (rat?.kind !== 'enemy') throw new Error('no rat');
+      return candidatesOf(s, rat, true).map((c) => label(c.at));
+    };
+    expect(ends('S . . r')).toContain('C1');
+    expect(ends('S . {return} r')).not.toContain('C1');
+  });
+
+  test('round-1-snapshot: a brought writs rule knows battle-start tiles without listing', () => {
+    const r = draft(board('d . {return} .'), walk('A1', 'B1', 'C1'));
+    expectLogIncludes(r.events, [
+      'the stamp at C1 returns dummy at C1 to sender',
+      'dummy at C1 moves to A1',
+    ]);
+  });
 });
 
 describe('the round snapshot (P2, late slot)', () => {

@@ -71,6 +71,19 @@ export function listRules(
   return out;
 }
 
+/**
+ * DK-IQ D8: the piece-scoped rules the board brings, not yet in `s.rules`, initialised on the
+ * board as it stands (battle creation, after a room's board edits), so a rule that snapshots
+ * positions sees the battle-start board in round 1. Mutates `s`; adds nothing when none is brought.
+ */
+export function initBroughtRules(s: BattleState, rules: readonly BoardRule[] = boardRules()): void {
+  for (const rule of rules) {
+    if (rule.scope !== 'piece' || (s.rules && Object.hasOwn(s.rules, rule.id))) continue;
+    if (!brought(rule, s)) continue;
+    s.rules = { ...s.rules, [rule.id]: rule.init(s, undefined) };
+  }
+}
+
 /** Runs one slot's active rules; each rule's returned state replaces its own. */
 export function runRuleSlot(
   ctx: Ctx,

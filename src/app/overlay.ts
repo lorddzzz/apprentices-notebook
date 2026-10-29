@@ -27,6 +27,7 @@ import {
   type UnitId,
   unitAt,
 } from '$engine';
+import { behaviourPreview } from '$engine/behaviours';
 import type { PreviewShape } from '$engine/districts/types';
 import { dryStrikeIntent, trickOf } from '$engine/rivals/resolve';
 import { jarLocation } from '$engine/rivals/wick';
@@ -491,7 +492,7 @@ export function marksOf(
 
 /** The board rules' preview for the next round end, or null when no active rule shows anything. */
 function nextRound(s: BattleState): NextRound | null {
-  const shapes = rulePreview(s).flatMap((r) => [...r.shapes]);
+  const shapes = [...rulePreview(s).flatMap((r) => [...r.shapes]), ...behaviourPreview(s)];
   if (shapes.length === 0) return null;
   const units: Ghost[] = [];
   for (const sh of shapes) {
@@ -519,7 +520,8 @@ export function stepsOf(
 ): StepDraw[] {
   const out: StepDraw[] = [];
   for (const u of units) {
-    if (u.kind !== 'enemy' || !u.alive || u.intent?.kind !== 'step') continue;
+    if (u.kind !== 'enemy' || !u.alive) continue;
+    if (u.intent?.kind !== 'step' && u.intent?.kind !== 'behaviour') continue;
     const t = u.intent.telegraph;
     out.push({
       from: { ...u.pos },

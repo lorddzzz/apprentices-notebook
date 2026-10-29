@@ -11,6 +11,7 @@ import type { ArrivalCause, ArrivalCauses, ArrivalHook, EnteredTiles } from '../
 import type { Ctx } from '../ctx';
 import type { EventLog, UnitRef } from '../events';
 import type { Coord, Dir } from '../grid';
+import type { HarmGuard } from '../harm';
 import type { BoardSpec } from '../notation';
 import type { Telegraph } from '../rivals/types';
 import type {
@@ -342,9 +343,13 @@ export interface EnemyScript {
 /** A district foe's AI (IQ D2, BH): ordinary foes use the same registry as stand-ins. */
 export interface FoeBehaviour {
   id: KitId;
+  /** Walks before planning, in a phase where the foe may move (not round 1, not held). */
+  move?(ctx: Ctx, unit: EnemyUnit): void;
+  /** The telegraph for this round (null: it idles). Runs after `move`. */
   plan(state: BattleState, unit: EnemyUnit): Telegraph | null;
   resolve(ctx: Ctx, unit: EnemyUnit, telegraph: Telegraph): void;
   preview?(state: BattleState, unit: EnemyUnit): readonly PreviewShape[];
+  /** The telegraph in words (log, intent line); absent = its `label`. */
   describe?(telegraph: Telegraph): string;
   /** Enemy-level struck trigger (BF's Clapper). */
   onStruck?(ctx: Ctx, unit: EnemyUnit, by: StruckBy): void;
@@ -389,6 +394,11 @@ export interface DistrictModule {
   steps?: readonly ScriptStep[];
   foes?: readonly FoeBehaviour[];
   /**
+   * Guards run before a hit, a push or a mark lands (DK-IQ D1: IQ's forwarding writ, BH): after
+   * the habits' guards, in registry order. Ids are owner-prefixed (`inkQuarter:forward`).
+   */
+  harmGuards?: readonly HarmGuard[];
+  /**
    * Its own causes for FD's pipeline with their entered tiles (`'bridges:fall': 'landing'`). The
    * type comes from augmenting `ArrivalCauses` in the district's own file (FD-0); this is the
    * runtime value FD-3 composes.
@@ -415,6 +425,8 @@ export interface Kit {
   events: Readonly<Record<KitId, DistrictEventDef>>;
   steps: Readonly<Record<StepId, ScriptStep>>;
   foes: Readonly<Record<KitId, FoeBehaviour>>;
+  /** Every module's harm guards, in registry order (`harm.ts` runs them after the habits'). */
+  harmGuards: readonly HarmGuard[];
   shapes: Readonly<Record<TripShapeId, TripShapeDef>>;
   /** Every district cause with its entered tiles, for FD-3 to merge with the core table. */
   causes: Readonly<Record<string, EnteredTiles>>;

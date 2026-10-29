@@ -53,6 +53,7 @@ import {
   unitAt,
   witnessedIn,
 } from '$engine';
+import { behaviourVerb } from '$engine/behaviours';
 import { KIT } from '$engine/districts/kit';
 import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
 import { dryStrikeIntent, rivalVerb } from '$engine/rivals/resolve';
@@ -194,6 +195,8 @@ export function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'step')
     return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
+  if (e.intent.kind === 'behaviour')
+    return `will ${behaviourVerb(e.intent.id, e.intent.telegraph)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'cast' || e.intent.kind === 'trick') return rivalPhrase(s, e);
   if (e.intent.kind === 'rivalStrike') {
     const warning = rivalReadout(s, e)?.warning;

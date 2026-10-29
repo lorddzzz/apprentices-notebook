@@ -1,4 +1,4 @@
-import type { EnemyScript } from '$engine/districts/types';
+import type { EnemyScript, KitId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
@@ -411,6 +411,11 @@ interface EnemyDefBase {
   trick?: HabitId;
   /** A scripted foe (DK-9, P14): registered steps cycled by round; `standIn` marks a heart that gives no page. */
   script?: EnemyScript;
+  /**
+   * A district foe's AI from the kit's registry (`KIT.foes`, DK-IQ D2): plans and resolves in
+   * place of `ai`, which stays as the Lab/bench fallback label. Wins over `ai`, loses to `script`.
+   */
+  behaviour?: KitId;
   /**
    * CN P3: rides the current like any unit in water but is never dropped (the barge's crate);
    * it can be beached on a quay and pushed back. Read by CN-2; nothing reads it yet.

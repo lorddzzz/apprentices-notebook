@@ -1,5 +1,6 @@
 import { ATTACKS, TUNING } from '$data';
 import { enemyPhase } from './ai';
+import { resolveBehaviour } from './behaviours';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { dealDamage } from './damage';
 import type { BoardRule } from './districts/types';
@@ -55,6 +56,10 @@ function resolveIntent(ctx: Ctx, e: EnemyUnit): void {
   }
   if (intent.kind === 'step') {
     actStep(ctx, e, intent);
+    return;
+  }
+  if (intent.kind === 'behaviour') {
+    resolveBehaviour(ctx, e, intent);
     return;
   }
   if (intent.kind === 'summon' || intent.kind === 'flare') {

@@ -1,9 +1,13 @@
 import { APPRENTICE_IDS, ATTACKS, ENEMIES } from '$data';
+import { unitTraits } from './arrival';
+import { behaviourAct, behaviourOf } from './behaviours';
 import { type Ctx, emit, ref } from './ctx';
+import { KIT } from './districts/kit';
 import { foeAct } from './foes';
 import { byReadingOrder, type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
+import { habitOf } from './habits';
 import { enemyWalk } from './movement';
-import { distanceField, isAlive, members, reachable, travel, unitAt } from './queries';
+import { distanceField, isAlive, members, reachable, tileAt, travel, unitAt } from './queries';
 import { rivalAct } from './rivals/resolve';
 import { scriptAct } from './standIn';
 import type { BattleState, EnemyUnit, MemberUnit } from './types';
@@ -24,13 +28,27 @@ interface Candidate {
   path: Coord[];
 }
 
+/**
+ * A tile the foe will not end a walk on (DK-IQ D7): it holds a piece with `aiAvoid` that the foe is
+ * not exempt from (one of its traits, its habit or its enemy id in the piece's `exempt`).
+ */
+export function avoids(s: BattleState, e: EnemyUnit, at: Coord): boolean {
+  const piece = tileAt(s, at).piece;
+  const def = piece ? KIT.pieces[piece.id] : undefined;
+  if (!def?.aiAvoid) return false;
+  const exempt = def.exempt ?? [];
+  if (exempt.length === 0) return true;
+  const habit = habitOf(e);
+  const own: string[] = [...unitTraits(e), e.def, ...(habit ? [habit] : [])];
+  return !own.some((t) => exempt.includes(t));
+}
+
 export function candidatesOf(s: BattleState, e: EnemyUnit, move: boolean): Candidate[] {
   const stay: Candidate = { at: e.pos, path: [] };
   if (!move) return [stay];
-  const walks = [...reachable(s, e, ENEMIES[e.def].move).values()].map((r) => ({
-    at: r.path[r.path.length - 1] ?? e.pos,
-    path: r.path,
-  }));
+  const walks = [...reachable(s, e, ENEMIES[e.def].move).values()]
+    .map((r) => ({ at: r.path[r.path.length - 1] ?? e.pos, path: r.path }))
+    .filter((c) => !avoids(s, e, c.at));
   walks.sort((a, b) => a.path.length - b.path.length || byReadingOrder(a.at, b.at));
   return [stay, ...walks];
 }
@@ -117,6 +135,8 @@ function act(ctx: Ctx, e: EnemyUnit, canMove: boolean, order: number): boolean {
   if (e.rival) return rivalAct(ctx, e, order, move);
   const def = ENEMIES[e.def];
   if (def.script) return scriptAct(ctx, e, order);
+  const behaviour = behaviourOf(e);
+  if (behaviour) return behaviourAct(ctx, e, behaviour, move, order);
   const attack = def.attack;
   if (def.ai === 'lurker' || def.ai === 'moth' || def.ai === 'mother') {
     return foeAct(ctx, e, move, order);

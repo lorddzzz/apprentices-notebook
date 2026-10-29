@@ -100,12 +100,12 @@ export interface KitRoomDef extends EncounterDef {
 }
 /**
  * P15 (BL-94): a threshold room as data; start points are HC's `P` tokens in `board`. The goal is
- * the threshold language (K-22): the engine checks a threshold battle against `Goal` alone.
+ * the threshold language (K-22) with the kit's kinds (DK-IQ D3: `happens` to a unit, `noneDowned`).
  */
 export interface ThresholdSpec {
   name: string;
   board: string;
-  goal: Goal;
+  goal: KitGoal;
   note: string;
   /** The banner line now hard-coded in `Threshold.svelte`. */
   goalText: string;
