@@ -1,6 +1,7 @@
 import { type EnemyId, encountersOf, type LineId, type Meets, TUNING } from '$data';
 import type { PaperId } from '$data/districts/index';
 import { hearAfterTrip, hearFromBattle } from '../city';
+import { KIT } from '../districts/kit';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
 import { witnessedIn } from '../lines';
@@ -43,6 +44,10 @@ export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: Enem
     if (t.terrain.drop) met.add('drop');
     if (t.state) met.add(t.state.id);
     if (t.jar) met.add('jar');
+    if (t.terrain.vent) met.add('vent');
+    if (t.terrain.lamp) met.add('lamp');
+    const key = t.piece && KIT.pieces[t.piece.id]?.bench?.met;
+    if (key) met.add(key as Meets);
   }
   for (const e of log) {
     switch (e.type) {

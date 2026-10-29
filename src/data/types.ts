@@ -174,6 +174,9 @@ export type Meets =
   | 'shielded'
   | 'held'
   | 'jar'
+  | 'vent' // board things the Bench offers once met (terrain, and a piece's `bench.met`)
+  | 'lamp'
+  | 'moor'
   | 'edge'
   | 'water'
   | 'drop'

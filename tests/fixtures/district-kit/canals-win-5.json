@@ -3668,7 +3668,19 @@
     },
     "witnessed": ["spark:slick", "spark:fire", "ink:mark", "shove:edge", "shove:water"],
     "named": ["burst:fire", "burst:surge", "compound:deepMark", "idiom:bonfire", "idiom:longDrop"],
-    "met": ["minion", "elite", "fire", "water", "slick", "mark", "deepMark", "drop", "edge"],
+    "met": [
+      "minion",
+      "elite",
+      "fire",
+      "water",
+      "slick",
+      "mark",
+      "moor",
+      "deepMark",
+      "drop",
+      "edge",
+      "lamp"
+    ],
     "foesMet": ["rat", "eel", "moth", "barge", "snuffer", "mother"],
     "footnotes": {
       "spark": { "points": 4, "slots": {} },
@@ -3861,7 +3873,19 @@
         "idiom:bonfire",
         "idiom:longDrop"
       ],
-      "met": ["minion", "elite", "fire", "water", "slick", "mark", "deepMark", "drop", "edge"],
+      "met": [
+        "minion",
+        "elite",
+        "fire",
+        "water",
+        "slick",
+        "mark",
+        "moor",
+        "deepMark",
+        "drop",
+        "edge",
+        "lamp"
+      ],
       "foesMet": ["rat", "eel", "moth", "barge", "snuffer", "mother"],
       "footnotes": {
         "spark": { "points": 4, "slots": {} },

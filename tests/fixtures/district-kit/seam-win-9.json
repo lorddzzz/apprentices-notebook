@@ -2414,7 +2414,19 @@
     },
     "witnessed": ["spark:slick", "shove:edge", "spark:collar", "shove:slick"],
     "named": ["burst:fire", "burst:conduct", "idiom:bonfire", "idiom:theWall"],
-    "met": ["minion", "slick", "plate", "fire", "mark", "blot", "elite", "edge", "cloud", "collar"],
+    "met": [
+      "minion",
+      "slick",
+      "plate",
+      "fire",
+      "mark",
+      "blot",
+      "elite",
+      "edge",
+      "cloud",
+      "vent",
+      "collar"
+    ],
     "foesMet": ["rat", "familiar", "sentry"],
     "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 5, "slots": {} } },
     "solventsFound": [],
@@ -2589,6 +2601,7 @@
         "elite",
         "edge",
         "cloud",
+        "vent",
         "collar"
       ],
       "foesMet": ["rat", "familiar", "sentry"],

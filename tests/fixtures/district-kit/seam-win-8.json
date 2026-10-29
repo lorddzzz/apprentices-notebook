@@ -2226,7 +2226,8 @@
       "plate",
       "collar",
       "edge",
-      "cloud"
+      "cloud",
+      "vent"
     ],
     "foesMet": ["rat", "familiar", "sentry"],
     "footnotes": {
@@ -2415,7 +2416,8 @@
         "plate",
         "collar",
         "edge",
-        "cloud"
+        "cloud",
+        "vent"
       ],
       "foesMet": ["rat", "familiar", "sentry"],
       "footnotes": {

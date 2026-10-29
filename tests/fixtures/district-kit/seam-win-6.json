@@ -2641,6 +2641,7 @@
       "skidPlate",
       "edge",
       "cloud",
+      "vent",
       "unit"
     ],
     "foesMet": ["rat", "familiar", "sentry"],
@@ -2844,6 +2845,7 @@
         "skidPlate",
         "edge",
         "cloud",
+        "vent",
         "unit"
       ],
       "foesMet": ["rat", "familiar", "sentry"],
