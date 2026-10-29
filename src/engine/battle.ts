@@ -118,6 +118,7 @@ function spawnEnemy(b: BoardUnit, n: number): EnemyUnit {
     elite: def.elite,
     lastMove: null,
     intent: null,
+    ...(def.bystander ? { bystander: true as const } : {}),
     ...(RIVALS[def.id as RivalId]
       ? { rival: spawnRival(RIVALS[def.id as RivalId] as RivalDef) }
       : {}),

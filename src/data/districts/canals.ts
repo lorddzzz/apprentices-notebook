@@ -311,7 +311,7 @@ export const CANALS_KIT: DistrictData = {
 /**
  * CN P3: the barge's crate, a bystander unit (not a board piece). 1 HP, no attack, never
  * telegraphs; it floats on the current and any harm ruins it (`cargoLost`). `ENEMIES.barge` is
- * this object. CN-2 spawns it with `Unit.bystander` and gives it a silent AI.
+ * this object, spawned with `Unit.bystander` and the silent AI `none` (CN-2).
  */
 export const BARGE: EnemyDef = {
   id: 'barge',
@@ -320,7 +320,7 @@ export const BARGE: EnemyDef = {
   hp: 1,
   move: 0,
   attack: null,
-  ai: 'idle',
+  ai: 'none',
   brass: false,
   oilTrail: false,
   elite: false,

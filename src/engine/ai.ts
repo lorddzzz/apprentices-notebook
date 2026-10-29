@@ -159,7 +159,8 @@ function act(ctx: Ctx, e: EnemyUnit, canMove: boolean, order: number): boolean {
 export function enemyPhase(ctx: Ctx, opts: EnemyPhaseOptions): void {
   let order = 0;
   for (const e of ctx.s.units) {
-    if (e.kind !== 'enemy' || !isAlive(e)) continue;
+    // A bystander (the barge's crate, CN P3) has no turn: it never plans or idles.
+    if (e.kind !== 'enemy' || !isAlive(e) || ENEMIES[e.def].ai === 'none') continue;
     e.intent = null;
     if (!members(ctx.s).some(isAlive)) return;
     if (e.stunned) {

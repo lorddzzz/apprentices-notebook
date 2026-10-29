@@ -365,7 +365,16 @@ export interface AttackDef {
   inks: boolean; // lands Ink where it hits (spit)
 }
 
-export type EnemyAi = 'chaser' | 'liner' | 'spitter' | 'idle' | 'lurker' | 'moth' | 'mother';
+/** `none`: a bystander (the barge's crate, CN-2) that neither plans nor idles in the log. */
+export type EnemyAi =
+  | 'chaser'
+  | 'liner'
+  | 'spitter'
+  | 'idle'
+  | 'lurker'
+  | 'moth'
+  | 'mother'
+  | 'none';
 /** Where a foe may stand (K-13). */
 export type Habitat = 'land' | 'water' | 'any';
 export interface EnemyDef {

@@ -30,6 +30,8 @@ const SLICK: ReadonlySet<Layer['id']> = new Set(['slick', 'pool', 'greaseFog']);
 
 const flies = (u: Unit): boolean => hasTrait(u, 'flies');
 const swims = (u: Unit): boolean => hasTrait(u, 'swims');
+/** A floating unit (the barge's crate, CN P3) is set on water, never dropped into it. */
+const floatsOn = (u: Unit): boolean => hasTrait(u, 'floats');
 
 /** An anchored foe never moves; a swimmer can't be pushed out of the water (K-13). */
 const heldBack = (u: Unit, toWater: boolean): boolean =>
@@ -64,7 +66,7 @@ function stopAt(ctx: Ctx, unit: Unit, from: Coord, next: Coord): Stop | null {
   const other = unitAt(s, next);
   if (other) return { kind: 'crush', into: other, line: 'shove:unit', at: next };
   if (flies(unit)) return null;
-  if (tile.terrain.water !== null && !swims(unit)) {
+  if (tile.terrain.water !== null && !swims(unit) && !floatsOn(unit)) {
     return { kind: 'drop', line: 'shove:water', at: next };
   }
   if (tile.terrain.drop) return { kind: 'drop', line: 'shove:drop', at: next };
@@ -129,7 +131,7 @@ function fall(ctx: Ctx, unit: Unit, dir: Dir, stop: Stop & { kind: 'drop' }, pul
     emit(ctx, { type: 'dropped', unit: ref(unit), at: { ...stop.at }, elite: unit.elite });
     if (!unit.elite) {
       unit.hp = 0;
-      kill(ctx, unit, false);
+      kill(ctx, unit, false, 'Drop');
       return;
     }
     dealDamage(ctx, unit, TUNING.dropEliteDamage, 'Drop', [], { heading: dir, at: null });

@@ -79,7 +79,7 @@ export function dealDamage(
     oweAtCap(ctx, err, { type: 'died', unit: ref(unit) });
   }
   if (unit.hp > 0) return false;
-  kill(ctx, unit);
+  kill(ctx, unit, true, source);
   return true;
 }
 
@@ -105,10 +105,16 @@ function forget(unit: Unit): void {
   else unit.undo = null;
 }
 
-/** Dead units stay in `units` (hp 0) but leave the board. A dying moth bursts (K-16) unless `bursts` is false. */
-export function kill(ctx: Ctx, unit: Unit, bursts = true): void {
+/**
+ * Dead units stay in `units` (hp 0) but leave the board. A dying moth bursts (K-16) unless `bursts`
+ * is false. A bystander's death is its cargo lost (CN P3), logged first with what did it.
+ */
+export function kill(ctx: Ctx, unit: Unit, bursts = true, source = 'harm'): void {
   forget(unit);
   try {
+    if (unit.bystander) {
+      emit(ctx, { type: 'cargoLost', unit: ref(unit), at: { ...unit.pos }, source });
+    }
     emit(ctx, { type: 'died', unit: ref(unit) });
   } catch (err) {
     oweAtCap(ctx, err, { type: 'died', unit: ref(unit) }); // its hp is already 0 (P11)

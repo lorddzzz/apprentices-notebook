@@ -71,6 +71,12 @@ export interface UnitTraitSet {
   flies: true; // skips ground hooks; still opens step-jars and spreads marks
   swims: true; // a normal arrival on water
   anchored: true; // never moves, so never enters the pipeline
+  /**
+   * CN P3, the barge's crate: carried by the current like any unit in water, never dropped into it
+   * (a push or Pull onto water is a plain arrival). On a quay it is beached: nothing carries it
+   * until a push puts it back on a lane. Moored, it is anchored as well.
+   */
+  floats: true;
 }
 export type UnitTrait = keyof UnitTraitSet;
 /** A unit's traits, in a fixed order (deterministic iteration). */
@@ -210,7 +216,8 @@ export const unitTraits: UnitTraitsFn = (unit) => {
   const out: UnitTrait[] = [];
   if (def.flies) out.push('flies');
   if (def.habitat === 'water') out.push('swims');
-  if (def.anchored) out.push('anchored');
+  if (def.anchored || unit.moored) out.push('anchored');
+  if (def.floats) out.push('floats');
   return out;
 };
 export const hasTrait = (unit: Unit, trait: UnitTrait): boolean => unitTraits(unit).includes(trait);
@@ -284,7 +291,7 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
 
 let composed: ArrivalHookList | null = null;
 
-const isTrait = (t: string): t is UnitTrait => ['flies', 'swims', 'anchored'].includes(t);
+const isTrait = (t: string): t is UnitTrait => ['flies', 'swims', 'anchored', 'floats'].includes(t);
 
 /**
  * District pieces' arrival hooks (DK-4), in kit order, as `dk:<piece id>`: each answers only on a

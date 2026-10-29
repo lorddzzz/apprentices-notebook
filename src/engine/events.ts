@@ -33,6 +33,8 @@ export interface UnitRef {
   name: string;
   at: Coord;
   member: boolean;
+  /** The barge's crate (CN P3): never credited as a kill or as harm to a foe. */
+  bystander?: true;
 }
 
 /**

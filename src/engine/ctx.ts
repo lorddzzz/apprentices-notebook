@@ -165,7 +165,8 @@ export const withOrigin = <T>(ctx: Ctx, origin: Origin | null, fn: () => T): T =
 
 /** Snapshot for an event; `at` defaults to the unit's current tile. */
 export function ref(u: Unit, at: Coord = u.pos): UnitRef {
-  return { id: u.id, name: u.name, at: { ...at }, member: u.kind === 'member' };
+  const r: UnitRef = { id: u.id, name: u.name, at: { ...at }, member: u.kind === 'member' };
+  return u.bystander ? { ...r, bystander: true } : r;
 }
 
 /** Ends the battle when one side is gone (or the objective is met). Returns true if it is (now) over. */

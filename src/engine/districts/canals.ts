@@ -1,7 +1,10 @@
 import type { EnemyId } from '$data';
 import { MOOR_PIECE, MOOR_TOKEN, RIVAL_STAND_INS, RIVALS_LIVE } from '$data/districts/canals';
 import type { RivalId } from '$data/rivals/types';
+import { hasTrait } from '../arrival';
+import { emit, ref } from '../ctx';
 import { burnGates, drift, driftPreview } from '../current';
+import { findUnit, isAlive } from '../queries';
 import { driftWaiting } from '../solvents';
 import type { BoardRule, DistrictModule, PieceDef, PreviewShape } from './types';
 
@@ -50,14 +53,29 @@ export const GATES_RULE: BoardRule<null> = {
 };
 
 /**
- * CN P4/P5: the mooring (`{moor}`), non-solid, on the barge's lane. CN-2 adds its arrival hook
- * (the crate arriving by any cause emits `moored` and anchors it); until then it does nothing.
+ * CN P5: a floating bystander (the crate) coming to rest on the mooring, by any cause (a drift, a
+ * push, a Pull, a Swap), moors there: `moored`, then it is anchored (`unitTraits`) for the room.
+ * Anything else stops on it as on water. Passing over it on a push does not moor.
  */
+export const MOOR_ARRIVAL: NonNullable<PieceDef['triggers']['onArrive']> = {
+  answers: 'landing',
+  subjects: ['unit'],
+  run(ctx, a) {
+    if (a.subject.kind !== 'unit') return 'go';
+    const u = findUnit(ctx.s, a.subject.unit);
+    if (!u || !isAlive(u) || !u.bystander || u.moored || !hasTrait(u, 'floats')) return 'go';
+    u.moored = true;
+    emit(ctx, { type: 'moored', unit: ref(u), at: { ...a.at } });
+    return 'go';
+  },
+};
+
+/** CN P4/P5: the mooring (`{moor}`), non-solid, on the barge's lane. */
 export const MOOR_DEF: PieceDef<null> = {
   id: MOOR_PIECE,
   token: MOOR_TOKEN,
   solid: 'none',
-  triggers: {},
+  triggers: { onArrive: MOOR_ARRIVAL },
   art: 'canal-moor',
 };
 

@@ -143,8 +143,9 @@ export function accumulateStats(
     // An explicit origin always wins, including an enemy origin inside a player's cast.
     const owner = e.origin ? origins.get(castOriginKey(e.origin)) : legacy;
     if (!owner) continue;
-    if (e.type === 'damage' && !e.target.member) owner.damage += e.amount;
-    else if (e.type === 'died' && !e.unit.member) owner.kills += 1;
+    // The barge's crate is no foe: harm to it is not credited (CN P3, DK R1).
+    if (e.type === 'damage' && !e.target.member && !e.target.bystander) owner.damage += e.amount;
+    else if (e.type === 'died' && !e.unit.member && !e.unit.bystander) owner.kills += 1;
     else if (REACTIONS.has(e.type)) owner.reactions += 1;
   }
   for (const segment of segments) {

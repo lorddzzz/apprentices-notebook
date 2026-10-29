@@ -45,7 +45,8 @@ const livingAt = (s: BattleState, c: Coord | null): Unit | null => {
 /** Could `u` stand on `t`? Not on a blocking tile; a land body not in water or over a drop. */
 function canStand(u: Unit, t: Tile): boolean {
   if (blocksUnits(t)) return false;
-  if (hasTrait(u, 'flies')) return true;
+  // Fliers and the floating crate (CN P3) stand on land or water alike.
+  if (hasTrait(u, 'flies') || hasTrait(u, 'floats')) return true;
   if (hasTrait(u, 'swims')) return t.terrain.water !== null;
   return t.terrain.water === null && !t.terrain.drop;
 }

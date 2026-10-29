@@ -11,6 +11,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'moth',
   'mother',
   'lamplighter',
+  'barge',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
@@ -223,7 +224,6 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     blurb: 'A rival apprentice of the canals.',
     ...PLAIN,
   },
-  // CN P3: the canals' bystander crate (its data is the canal file's). Not in `ENEMY_IDS` until
-  // CN-2 wires it, so `k` does not parse and the Lab does not offer it yet.
+  // CN P3: the canals' bystander crate (its data is the canal file's).
   barge: BARGE,
 };

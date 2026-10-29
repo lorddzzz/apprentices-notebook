@@ -13,17 +13,17 @@ import { MOOR_DEF, rivalSlot } from '$engine/districts/canals';
 
 /** CN-0: the canals revisit's contracts are declared and inert until their tasks wire them. */
 describe('CN-0 contracts', () => {
-  test('the barge is a floating bystander, registered but not yet placeable', () => {
+  test('the barge is a floating bystander, placeable since CN-2', () => {
     expect(ENEMIES.barge).toBe(BARGE);
     expect(BARGE).toMatchObject({ token: 'k', hp: 1, attack: null, floats: true, bystander: true });
-    expect(ENEMY_IDS).not.toContain('barge');
+    expect(ENEMY_IDS).toContain('barge');
   });
 
-  test('the mooring piece is in the kit and does nothing yet', () => {
+  test('the mooring piece is in the kit, non-solid, with its arrival hook (CN-2)', () => {
     expect(KIT.pieces[MOOR_PIECE]).toBe(MOOR_DEF);
     expect(KIT.tokens.moor).toBe(MOOR_DEF);
     expect(MOOR_DEF.solid).toBe('none');
-    expect(MOOR_DEF.triggers).toEqual({});
+    expect(Object.keys(MOOR_DEF.triggers)).toEqual(['onArrive']);
   });
 
   test("room 4's rival slot falls back to the Snuffer while the Lamplighter is off", () => {

@@ -229,6 +229,12 @@ function planEel(ctx: Ctx, e: EnemyUnit, move: boolean, order: number): boolean 
     enemyWalk(ctx, e, walk);
     if (!isAlive(e)) return false;
   }
+  // CN P3: with no member beside it, the eel lunges at a crate beside its tile (DIRS order).
+  const attack = ENEMIES[e.def].attack;
+  const crate = DIRS.find((d) => unitAt(s, step(e.pos, d))?.bystander);
+  if (attack && crate && !firstAdjacentMember(s, e)) {
+    return telegraph(ctx, e, { kind: 'attack', attack, dir: crate, order }, ATTACKS[attack].verb);
+  }
   return strikeAdjacent(ctx, e, order, best?.m ?? null);
 }
 

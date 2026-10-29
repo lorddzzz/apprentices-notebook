@@ -83,8 +83,8 @@ export const castOriginKey = (o: Origin): string => `${o.caster}|${o.spell}|${o.
 function harmIn(evs: readonly GameEvent[]): number {
   let harm = 0;
   for (const e of evs) {
-    if (e.type === 'damage' && !e.target.member) harm += e.amount;
-    else if (e.type === 'died' && !e.unit.member) harm += TUNING.killHarm;
+    if (e.type === 'damage' && !e.target.member && !e.target.bystander) harm += e.amount;
+    else if (e.type === 'died' && !e.unit.member && !e.unit.bystander) harm += TUNING.killHarm;
   }
   return harm;
 }

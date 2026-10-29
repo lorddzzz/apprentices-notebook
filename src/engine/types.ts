@@ -317,6 +317,8 @@ interface UnitBase {
   out?: OutCause | null;
   /** Ignored by `checkEnd` (the barge crate, CN §9). */
   bystander?: true;
+  /** The crate reached its mooring (CN P5): anchored there for the rest of the room. */
+  moored?: true;
 }
 export interface UndoRecord {
   from: Coord;
