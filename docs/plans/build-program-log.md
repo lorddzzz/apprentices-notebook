@@ -242,6 +242,8 @@ Append-only history of the build program: task reports, usage log, accepted prop
 | 08:56 | 82 | 2h24 | 53 | Narrow | merged IQ-19, IQ-20; spawn room hardening (one agent) |
 | 09:26 | 87 | 1h54 | 54 | Narrow/Wrap | merged room hardening |
 | 11:24 | 0 | 4h56 | 54 | Normal | wake-up 1; spawn IQ-18+D5, SM-1, RV-8, RV-9 |
+| 12:05 | 50 | 4h14 | 61 | Normal (fast burn ~1.2%/min, 4 agents) | merged IQ-18 + D5, RV-8 |
+| 12:21 | 57 | 3h59 | 62 | Normal | merged RV-9 + drift fix; spawn IQ-21 |
 | 06:55 | — | — | — | Normal | merge CN-6, CN-11 (an agent shared the orchestrator's check log path; orchestrator now logs to its own file) |
 | 07:10 | — | — | — | Normal | merge MET-1 |
 | 07:20 | — | — | — | Normal | merge CN-8 |
