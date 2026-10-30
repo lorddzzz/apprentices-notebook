@@ -30,7 +30,7 @@ const waxLeft = (s: BattleState, lbl: string) =>
 describe('the Sealer', () => {
   test('marks the tile of the nearest apprentice within three, and says so', () => {
     const s = board('S . z');
-    expect(intentPhrase(s, foe(s, 'sealer'))).toBe('will seal A1 (1st)');
+    expect(intentPhrase(s, foe(s, 'sealer'))).toBe('will seal A1 in wax: step off to dodge (1st)');
     expect(foe(s, 'sealer').intent).toMatchObject({
       kind: 'behaviour',
       id: 'inkQuarter:sealer',

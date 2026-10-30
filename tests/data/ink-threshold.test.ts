@@ -18,7 +18,7 @@ import { checkRoom, placeParty } from '$engine/rooms';
 
 /**
  * IQ-11 (ink-quarter plan P11): the "return to sender" threshold. One apprentice with
- * `Bolt > Shove`; the undelivered letter is the board's only unit (an idle dummy, `dummy-1`).
+ * `Bolt > Shove`; the undelivered letter is the board's only unit (an inert letter, `letter-1`).
  */
 
 const SPEC = parseBoard(INK_THRESHOLD.board);
@@ -83,7 +83,7 @@ describe('the return-to-sender threshold (IQ-11)', () => {
     expect(checkRoom(INK_THRESHOLD.board)).toEqual([]);
     expect([SPEC.width, SPEC.height]).toEqual([6, 8]);
     expect(SPEC.starts).toHaveLength(4);
-    expect(SPEC.units.map((u) => u.def)).toEqual(['dummy']);
+    expect(SPEC.units.map((u) => u.def)).toEqual(['letter']);
     expect(SPEC.tiles.filter((t) => t.piece?.id === 'inkQuarter:return')).toHaveLength(1);
   });
 
@@ -111,7 +111,7 @@ describe('the return-to-sender threshold (IQ-11)', () => {
       );
       expect(r.state.phase).toBe('won');
       const sent = r.events.find((e) => e.type === 'inkQuarter:sentBack');
-      expect(unitOf(sent)).toBe('dummy-1');
+      expect(unitOf(sent)).toBe('letter-1');
     }
   });
 
@@ -159,6 +159,6 @@ describe('the return-to-sender threshold (IQ-11)', () => {
   test('copy and art key are set', () => {
     expect(INK_THRESHOLD.goalText).toBe('Send the letter back to its desk.');
     expect(INK_THRESHOLD.solvedArt).toBe('ink-returned');
-    expect(INK_THRESHOLD.goal).toEqual({ happens: 'inkQuarter:sentBack', unit: 'dummy-1' });
+    expect(INK_THRESHOLD.goal).toEqual({ happens: 'inkQuarter:sentBack', unit: 'letter-1' });
   });
 });

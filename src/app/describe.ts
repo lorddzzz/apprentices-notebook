@@ -19,6 +19,7 @@ import {
   SOLVENTS,
   type StateId,
 } from '$data';
+import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
 import {
   type Action,
   type Aim,
@@ -57,6 +58,7 @@ import { behaviourVerb } from '$engine/behaviours';
 import { KIT } from '$engine/districts/kit';
 import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
 import { dryStrikeIntent, rivalVerb } from '$engine/rivals/resolve';
+import type { Telegraph } from '$engine/rivals/types';
 import { jarLocation } from '$engine/rivals/wick';
 import type { InputMode } from './battleInput';
 
@@ -188,6 +190,38 @@ function rivalPhrase(s: BattleState, e: EnemyUnit): string {
   return bits.join(' · ');
 }
 
+/**
+ * The postal staff's telegraphs in words (IQ-16): who is addressed, whose mark moves where, which
+ * tile is sealed. Null for any other foe, or when a named unit is gone (the engine's plain line
+ * then stands).
+ */
+function postalPhrase(s: BattleState, tg: Telegraph): string | null {
+  const named = (i: number): string | null => {
+    const u = tg.units[i] ? findUnit(s, tg.units[i]) : null;
+    return u && u.hp > 0 ? shortName(u) : null;
+  };
+  const tile = tg.tiles[0] ? label(tg.tiles[0]) : '?';
+  switch (tg.label) {
+    case 'deliver': {
+      const to = named(0);
+      return to ? `deliver to ${to} and burst for ${INK_FOE_TUNING.deadLetterBurst}` : null;
+    }
+    case 'forward': {
+      const from = named(0);
+      const to = named(1);
+      return from && to ? `forward the mark on ${from} to ${to}` : null;
+    }
+    case 'file': {
+      const to = named(0);
+      return to ? `file ${to} for ${INK_FOE_TUNING.sorterFile}` : null;
+    }
+    case 'seal':
+      return `seal ${tile} in wax: step off to dodge`;
+    default:
+      return null;
+  }
+}
+
 export function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (!e.intent) return 'waiting';
   if (e.intent.kind === 'summon')
@@ -195,6 +229,10 @@ export function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'step')
     return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
+  if (e.intent.kind === 'behaviour' && e.intent.id.startsWith('inkQuarter:')) {
+    const words = postalPhrase(s, e.intent.telegraph);
+    if (words) return `will ${words} (${ordinal(e.intent.order)})`;
+  }
   if (e.intent.kind === 'behaviour')
     return `will ${behaviourVerb(e.intent.id, e.intent.telegraph)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'cast' || e.intent.kind === 'trick') return rivalPhrase(s, e);

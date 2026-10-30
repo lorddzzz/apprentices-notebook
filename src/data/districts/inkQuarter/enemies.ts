@@ -87,6 +87,27 @@ export const SEALER: EnemyDef = {
   boss: false,
 };
 
+/** The threshold's undelivered letter: inert, sits on its desk until it is shoved (IQ-11, IQ-16). */
+export const LETTER: EnemyDef = {
+  id: 'letter',
+  name: 'letter',
+  token: 'a',
+  hp: 12,
+  move: 0,
+  attack: null,
+  ai: 'idle',
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb: 'An undelivered letter, sealed and waiting. It does not act; it only wants to go back.',
+  habitat: 'any',
+  flies: false,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+};
+
 /** The postmaster's clock writ (P9; IQ-6). */
 export const CLOCK_TUNING = {
   /** The deadline is the serve round plus this: unanswered at its dusk, the marks collect. */
@@ -125,6 +146,7 @@ export const INK_ENEMIES = {
   sorter: SORTER,
   sealer: SEALER,
   clockSeal: CLOCK_SEAL,
+  letter: LETTER,
 } as const;
 
 /** The stand-in postmaster's numbers (IQ-7): his pen strike and how tough he is. */

@@ -4,6 +4,7 @@ import type { DistrictEvent, PreviewShape } from '$engine/districts/types';
 import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
+import { INK_QUARTER_UI } from './inkQuarter';
 
 /**
  * The district kit's UI registries (P1, P8, P10; DK-12/13/16): art keys from the engine and data
@@ -27,6 +28,7 @@ export interface DistrictUi {
 export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   seam: {},
   canals: CANALS_UI,
+  inkQuarter: INK_QUARTER_UI,
 };
 
 /** A piece's renderer by art key, across every district; undefined = the board's fallback glyph (DK-13). */

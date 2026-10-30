@@ -32,7 +32,9 @@ const hpOf = (s: BattleState, id: string) => s.units.find((u) => u.id === id)?.h
 describe('the dead letter', () => {
   test('delivery: beside its addressee it is addressed, then bursts for 2 and leaves a blot', () => {
     const s = board('S x . .', { hp: { A1: 6 } });
-    expect(intentPhrase(s, foe(s, 'deadLetter'))).toBe('will deliver to A1 (1st)');
+    expect(intentPhrase(s, foe(s, 'deadLetter'))).toBe(
+      'will deliver to Stoker and burst for 2 (1st)',
+    );
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, [
       'dead letter at B1 bursts',
@@ -98,7 +100,9 @@ describe('the dead letter', () => {
 describe('the Sorter', () => {
   test('forwards the mark on a foe onto the apprentice (Lift-style move)', () => {
     const s = board('S u . d!', { hp: { A1: 6 } });
-    expect(intentPhrase(s, foe(s, 'sorter'))).toBe('will forward the mark on D1 to A1 (1st)');
+    expect(intentPhrase(s, foe(s, 'sorter'))).toBe(
+      'will forward the mark on dummy D1 to Stoker (1st)',
+    );
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, ['the mark moves from dummy at D1 to Stoker']);
     expect(r.state.units.find((u) => u.id === 'stoker')?.mark).not.toBeNull();
@@ -136,7 +140,7 @@ describe('the Sorter', () => {
 
   test('with no mark to forward it files a 1-damage hit at an adjacent apprentice', () => {
     const s = board('S u . .', { hp: { A1: 6 } });
-    expect(intentPhrase(s, foe(s, 'sorter'))).toBe('will file A1 (1st)');
+    expect(intentPhrase(s, foe(s, 'sorter'))).toBe('will file Stoker for 1 (1st)');
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, ['File hits Stoker for 1']);
     expect(hpOf(r.state, 'stoker')).toBe(5);
