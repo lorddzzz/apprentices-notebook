@@ -17,7 +17,7 @@ describe('term lines', () => {
   test('a listed term reads its three lines; an unlisted one reads plainly', () => {
     expect(termLines('inkQuarter:term-sampler')).toEqual({
       reward: 'a second page from this room',
-      condition: 'win the next room within 8 rounds',
+      condition: 'win the next room within 5 rounds',
       penalty: 'lose 2 ink from the trip',
     });
     expect(termLines('inkQuarter:term-gone').reward).toContain('no longer listed');
@@ -32,8 +32,8 @@ describe('term lines', () => {
 
 describe('the open-term line', () => {
   test('counts rounds against the limit', () => {
-    expect(openTermLine(trip([open]), 3)?.count).toEqual({ round: 3, limit: 8, over: false });
-    expect(openTermLine(trip([open]), 9)?.count).toEqual({ round: 8, limit: 8, over: true });
+    expect(openTermLine(trip([open]), 3)?.count).toEqual({ round: 3, limit: 5, over: false });
+    expect(openTermLine(trip([open]), 9)?.count).toEqual({ round: 5, limit: 5, over: true });
   });
   test('a plain win condition has no count; no open term has no line', () => {
     const sand = { id: 't0', def: 'inkQuarter:term-sand', signedAt: 1, status: 'open' };

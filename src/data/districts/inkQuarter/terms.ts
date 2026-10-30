@@ -3,8 +3,8 @@ import type { TermDef } from './types';
 /**
  * The quarter's terms (P6, P7): the list the `termed` offer kind rolls from. Rooms are 0-based
  * (0-3 the four rooms; the heart, 4, carries none). Every entry passes `checkTermDefs`
- * (`engine/districts/inkQuarter/terms.ts`). All numbers are *tune by playing*; IQ-20 sets the
- * rounds and the stake sizes from the bot's tables.
+ * (`engine/districts/inkQuarter/terms.ts`). IQ-20 set the rounds from the bot's tables
+ * (docs/plans/ink-quarter-calibration.md); the player's playtest retunes them.
  *
  * - Room 1 always carries the sampler (a second pick for ink, never a page).
  * - Bind is guaranteed in room 2 while the household lacks it, with a gentle condition.
@@ -15,11 +15,11 @@ export const INK_TERMS: readonly TermDef[] = [
     id: 'inkQuarter:term-sampler',
     reward: { kind: 'extraPick' },
     stake: { kind: 'resources', loss: { kind: 'ink', amount: 2 } },
-    condition: { kind: 'withinRounds', rounds: 8 },
+    condition: { kind: 'withinRounds', rounds: 5 },
     rooms: [0],
     text: {
       reward: 'a second page from this room',
-      condition: 'win the next room within 8 rounds',
+      condition: 'win the next room within 5 rounds',
       penalty: 'lose 2 ink from the trip',
     },
   },
@@ -27,12 +27,12 @@ export const INK_TERMS: readonly TermDef[] = [
     id: 'inkQuarter:term-bind',
     reward: { kind: 'page', spec: { kind: 'method', method: 'bind' } },
     stake: { kind: 'reward' },
-    condition: { kind: 'withinRounds', rounds: 10 },
+    condition: { kind: 'withinRounds', rounds: 6 },
     rooms: [1],
     guaranteedWhileLacking: 'bind',
     text: {
       reward: 'the Bind page',
-      condition: 'win the next room within 10 rounds',
+      condition: 'win the next room within 6 rounds',
       penalty: 'the Bind page is taken back',
     },
   },
