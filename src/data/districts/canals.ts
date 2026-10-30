@@ -3,6 +3,7 @@ import type { EncounterDef, EncounterVariant, EnemyDef, EnemyId } from '../types
 import type {
   BonusObjective,
   DistrictData,
+  IntrusionSpec,
   KitGate,
   KitRoomDef,
   PaperDef,
@@ -340,6 +341,48 @@ export const CANALS_THRESHOLD: ThresholdSpec = {
 };
 
 /**
+ * DK-10: the canals below the Seam (SM P9, P10): a lane with its current. The rule is the
+ * piece-scoped `canals:current`, brought by the lane's water terrain, so no district-scoped rule
+ * rides along and `pieces` is empty. Three 6-7 wide, 7 tall floors with Seam foes only, five
+ * start points each. SM-9 tunes the final layouts.
+ */
+export const CANALS_INTRUSION: IntrusionSpec = {
+  district: 'canals',
+  pieces: [],
+  rules: ['canals:current'],
+  rooms: [
+    board([
+      '. . . . wv . .',
+      'P . r . wv . .',
+      'P . . . wv . b',
+      'P . . . wv . .',
+      'P . . . wv . .',
+      'P . . . wv . .',
+      '. . . . wv . .',
+    ]),
+    board([
+      '. . . wv . . .',
+      '. r . wv . b .',
+      '. . . wv . . .',
+      'P . . wv . . .',
+      'P P . wv . . .',
+      'P . . wv . . .',
+      'P . . wv . . .',
+    ]),
+    board([
+      '. . . . . . .',
+      '. b . . . r .',
+      'w> w> w> w> w> w> w>',
+      '. . . . . . .',
+      'P . P . P . P',
+      '. . . . . . .',
+      '. . . P . . .',
+    ]),
+  ],
+  loot: 'basics',
+};
+
+/**
  * The canals' data (K-1): rooms, hearing, gate and map. Landings after rooms 1, 3 and the heart (K-4, kept as built).
  */
 export const CANALS_KIT: DistrictData = {
@@ -358,6 +401,7 @@ export const CANALS_KIT: DistrictData = {
   map: { x: 25, y: 70, label: 'above' },
   ret: { kind: 'landings', after: [0, 2, 4] },
   threshold: CANALS_THRESHOLD,
+  intrusion: CANALS_INTRUSION,
   // RC-5 (P8, city-and-districts §5b): the runaway at the second landing (room 3, 0-based 2);
   // Fuse is guaranteed in rooms 1-3, so every trip to her landmark can have it in hand.
   recruit: [{ apprentice: 'runaway', room: 2 }],
