@@ -8,6 +8,7 @@ import OrderPiece from './OrderPiece.svelte';
 import ReturnedArt from './ReturnedArt.svelte';
 import ReturnPiece from './ReturnPiece.svelte';
 import SentBackGhost from './SentBackGhost.svelte';
+import TermCard from './TermCard.svelte';
 import ThreadHighlight from './ThreadHighlight.svelte';
 import WaxPiece from './WaxPiece.svelte';
 
@@ -21,6 +22,7 @@ export const INK_QUARTER_UI: DistrictUi = {
     'inkQuarter:address': AddressPiece,
     'inkQuarter:clockStamp': ClockPiece,
   },
+  offerCards: { 'inkQuarter:termed': TermCard },
   highlightArt: {
     'inkQuarter:thread': ThreadHighlight,
     'inkQuarter:clockCount': ClockCount,
@@ -31,3 +33,4 @@ export const INK_QUARTER_UI: DistrictUi = {
 };
 
 export { default as StaffToken } from './StaffToken.svelte';
+export { default as TermBanner } from './TermBanner.svelte';

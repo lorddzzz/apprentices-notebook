@@ -1,6 +1,7 @@
 <script lang="ts">
   import { APPRENTICES, encountersOf, MEMBERS } from '$data';
   import { compiledFor, type Profile, type Trip } from '$engine';
+  import { termStatusLines } from '../../../app/inkTerms';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -14,6 +15,7 @@
 
   let { trip, profile, large = false }: Props = $props();
 
+  const terms = $derived(termStatusLines(trip));
   const rows = $derived(
     trip.party.map((m) => ({
       id: m,
@@ -36,6 +38,9 @@
     {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {encountersOf(trip.district).length}
     <span class="finds">· {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
   </p>
+  {#each terms as t, i (i)}
+    <p class="term {t.status}" data-testid="trip-term">{t.text}</p>
+  {/each}
   {#each rows as r (r.id)}
     <div class="row" data-member={r.id}>
       <span class="who"><ApprenticeToken def={APPRENTICES[r.id]} size="strip" /><span class="name">{r.name}</span></span>
@@ -72,6 +77,18 @@
     margin: 0;
     font: 12px var(--mono);
     color: var(--ink-soft);
+  }
+  .term {
+    margin: 0;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .term.open {
+    color: var(--ink);
+  }
+  .term.broken {
+    color: var(--danger);
   }
   /* Name and HP share a line, the spells sit under them: a long name ("Lamp-pole runaway") never reaches the pips. */
   .row {

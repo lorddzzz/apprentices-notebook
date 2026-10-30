@@ -3,6 +3,7 @@
   import { placeOf } from '$engine';
   import { shapeOf } from '$engine/trip/shape';
   import { inSentence } from '../../app/describe';
+  import { settledTermLine } from '../../app/inkTerms';
   import { game } from '../../app/instance';
   import { paperNote } from '../../app/lootviews';
   import { href } from '../../app/routes';
@@ -28,6 +29,9 @@
     return room?.reward.kind === 'pick' && trip.picksLeft > base ? room : null;
   });
 
+  // The signed term this room's win settled (IQ-17): paid or broken, until the trip moves on.
+  const settled = $derived(trip ? settledTermLine(trip, trip.encounter) : null);
+
   // Offers shrink after each pick (the heart gives two): never keep a stale index.
   const pick = $derived(trip && chosen !== null && chosen < trip.offers.length ? chosen : null);
 
@@ -52,6 +56,13 @@
       <p class="bonus" data-testid="bonus-pick">
         <span class="seal" aria-hidden="true">◆</span>
         <span><strong>Bonus pick earned.</strong> <em>{bonus.text}</em> One more to take.</span>
+      </p>
+    {/if}
+
+    {#if settled}
+      <p class="paper" data-testid="term-{settled.status}">
+        <span class="seal" aria-hidden="true">{settled.status === 'paid' ? '✓' : '✗'}</span>
+        <span>{settled.text}</span>
       </p>
     {/if}
 
