@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** building (window 2026-10-30, fresh chain: 2 wake-ups available). Running: **IQ-11** threshold (Sonnet). Merged this window: IQ-4, IQ-6, IQ-9 (rooms 1–2, not yet wired on the DistrictDef: the gate flip wires all rooms and updates the tests that assert `rooms: []`). Baseline 06:26Z: 5h 2% (reset 11:20Z), weekly 43%. Previous window peak 81%.
+**State:** building (window 2026-10-30, fresh chain: 2 wake-ups available). Running: **IQ-11** threshold, **IQ-7** stand-in heart, **IQ-14** letters/papers (all Sonnet; IQ-14 runs Vite from its worktree on 5191). Merged this window: IQ-4, IQ-6, IQ-9 (rooms 1–2, not yet wired on the DistrictDef: the gate flip wires all rooms and updates the tests that assert `rooms: []`). Baseline 06:26Z: 5h 2% (reset 11:20Z), weekly 43%. Previous window peak 81%.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (both used: this next window is the last, finish without a timer). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
