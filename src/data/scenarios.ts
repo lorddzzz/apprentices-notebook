@@ -433,4 +433,20 @@ export const SCENARIOS: readonly ScenarioDef[] = [
       'dummy at C1 is marked',
     ],
   },
+  {
+    id: 'postmaster-writ',
+    title: 'The postmaster’s writ',
+    note: 'The stand-in postmaster serves his clock writ at the end of the first round: a seal to break, a stamp to stand on. Play the demo to see the banner and the count.',
+    board: 'D . . . . .\n. . . . . .\n. . . . . p',
+    demo: [{ type: 'endTurn' }],
+    expected: [
+      'Enemies act',
+      "postmaster at F3 calls postmaster's seal at F2",
+      'a clock writ is served due by round 4 (stamp at B1)',
+      'Round 2',
+      'Enemies move',
+      'postmaster at F3 will strike with his pen at 0,0',
+      'Your turn',
+    ],
+  },
 ];

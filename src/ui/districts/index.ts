@@ -1,7 +1,8 @@
 import type { Component } from 'svelte';
 import type { DistrictId } from '$data';
-import type { Coord } from '$engine';
+import type { BattleState, Coord, Trip } from '$engine';
 import type { DistrictEvent, Json, PreviewShape } from '$engine/districts/types';
+import type { GameEvent } from '$engine/events';
 import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
@@ -12,7 +13,16 @@ import { INK_QUARTER_UI } from './inkQuarter';
  * contracts resolve here. DK-1: types and an empty Seam entry.
  */
 
+/** What a district banner is given (D5): the live battle, the trip (none in the Lab) and the battle's log. */
+export interface BannerProps {
+  battle: BattleState;
+  trip: Trip | null;
+  log: readonly GameEvent[];
+}
+
 export interface DistrictUi {
+  /** Lines under the battle header (D5): each draws itself or nothing, from the battle and the trip. */
+  banners?: readonly Component<BannerProps>[];
   /** By `PieceDef.art`: draws one piece inside a board tile. */
   pieceArt?: Readonly<Record<string, Component<{ data: unknown; size: number }>>>;
   /** By district event type: plays one event; absent = the default animation. */
@@ -33,6 +43,18 @@ export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   canals: CANALS_UI,
   inkQuarter: INK_QUARTER_UI,
 };
+
+/**
+ * The banners to draw in the battle HUD: the trip's district's own, or every district's when
+ * there is no trip (the Lab; each banner hides itself when it has nothing to say).
+ */
+export function bannersFor(
+  district: string | undefined,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): readonly Component<BannerProps>[] {
+  const entries = Object.entries(ui).filter(([id]) => district === undefined || id === district);
+  return entries.flatMap(([, d]) => d?.banners ?? []);
+}
 
 /** A piece's renderer by art key, across every district; undefined = the board's fallback glyph (DK-13). */
 export function pieceArtFor(

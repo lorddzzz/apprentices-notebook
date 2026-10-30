@@ -1,5 +1,6 @@
 import type { DistrictUi } from '..';
 import AddressPiece from './AddressPiece.svelte';
+import ClockBanner from './ClockBanner.svelte';
 import ClockCount from './ClockCount.svelte';
 import ClockPiece from './ClockPiece.svelte';
 import ForwardPiece from './ForwardPiece.svelte';
@@ -8,12 +9,14 @@ import OrderPiece from './OrderPiece.svelte';
 import ReturnedArt from './ReturnedArt.svelte';
 import ReturnPiece from './ReturnPiece.svelte';
 import SentBackGhost from './SentBackGhost.svelte';
+import TermBanner from './TermBanner.svelte';
 import TermCard from './TermCard.svelte';
 import ThreadHighlight from './ThreadHighlight.svelte';
 import WaxPiece from './WaxPiece.svelte';
 
 /** The ink quarter's UI module (IQ-16): the wax seal's board art; the solved office's map art. */
 export const INK_QUARTER_UI: DistrictUi = {
+  banners: [TermBanner, ClockBanner],
   pieceArt: {
     'inkQuarter:wax': WaxPiece,
     'inkQuarter:return': ReturnPiece,
@@ -33,4 +36,3 @@ export const INK_QUARTER_UI: DistrictUi = {
 };
 
 export { default as StaffToken } from './StaffToken.svelte';
-export { default as TermBanner } from './TermBanner.svelte';

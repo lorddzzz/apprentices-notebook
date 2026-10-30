@@ -217,6 +217,15 @@ function postalPhrase(s: BattleState, tg: Telegraph): string | null {
     }
     case 'seal':
       return `seal ${tile} in wax: step off to dodge`;
+    // The stand-in heart's script steps (IQ-18): the writ's tiles read as board labels.
+    case 'serve':
+      return tg.tiles[0] && tg.tiles[1]
+        ? `serve a clock writ: seal ${label(tg.tiles[0])}, stamp ${label(tg.tiles[1])}`
+        : 'serve a clock writ';
+    case 'pen':
+      return `strike with his pen at ${tile}`;
+    case 'stunned':
+      return 'reel, his writ answered';
     default:
       return null;
   }
@@ -227,6 +236,10 @@ export function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (e.intent.kind === 'summon')
     return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
+  if (e.intent.kind === 'step' && e.intent.step.startsWith('inkQuarter:')) {
+    const words = postalPhrase(s, e.intent.telegraph);
+    if (words) return `will ${words} (${ordinal(e.intent.order)})`;
+  }
   if (e.intent.kind === 'step')
     return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'behaviour' && e.intent.id.startsWith('inkQuarter:')) {

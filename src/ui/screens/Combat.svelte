@@ -2,12 +2,10 @@
   import { encountersOf } from '$data';
   import { tripParty } from '$engine';
   import { shapeOf } from '$engine/trip/shape';
-  import { openTermLine } from '../../app/inkTerms';
   import { game } from '../../app/instance';
   import BattleView from '../components/battle/BattleView.svelte';
   import TopBar from '../components/battle/TopBar.svelte';
   import { BonusLine } from '../districts/canals';
-  import { TermBanner } from '../districts/inkQuarter';
 
   // The save says "fight"; the live battle is built from it (also after a reload).
   $effect(() => {
@@ -24,8 +22,6 @@
     const trip = game.save.trip;
     return trip ? (shapeOf(trip.district).bonuses?.[trip.encounter] ?? null) : null;
   });
-  // A signed ink-quarter term, with the live round count (IQ-17).
-  const term = $derived(openTermLine(game.save.trip, session?.state.round ?? 1));
   const bonusStatus = $derived.by(() => {
     const crate = session?.view.units.find((u) => u.def === 'barge');
     if (!crate || !bonus || !('happens' in bonus.goal)) return 'open';
@@ -46,7 +42,6 @@
           <span class="depth">Depth {depth} / {rooms}</span>
         </TopBar>
         {#if bonus}<BonusLine text={bonus.text} status={bonusStatus} />{/if}
-        {#if term}<TermBanner line={term} />{/if}
       {/snippet}
     </BattleView>
   {/key}

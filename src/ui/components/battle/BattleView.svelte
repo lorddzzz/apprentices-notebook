@@ -7,6 +7,7 @@
   import { actionLabel } from '../../../app/describe';
   import { game } from '../../../app/instance';
   import { inSlotOrder } from '../../../app/view';
+  import DistrictBanners from '../../districts/DistrictBanners.svelte';
   import BattleBoard from '../board/BattleBoard.svelte';
   import RuleMeter from '../board/RuleMeter.svelte';
   import ActionBar from './ActionBar.svelte';
@@ -80,6 +81,7 @@
 
 <section class="battle">
   {@render top()}
+  <DistrictBanners {battle} trip={session.mode === 'trip' ? game.save.trip : null} log={session.log} />
   <BossHeader units={view.units} />
 
   <div class="board-wrap">

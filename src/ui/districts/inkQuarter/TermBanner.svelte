@@ -1,18 +1,22 @@
 <script lang="ts">
-  import type { OpenTermLine } from '../../../app/inkTerms';
+  import { openTermLine } from '../../../app/inkTerms';
+  import type { BannerProps } from '..';
 
-  let { line }: { line: OpenTermLine } = $props();
+  let { battle, trip }: BannerProps = $props();
+  const line = $derived(openTermLine(trip, battle.round));
 </script>
 
 <!-- The signed term under the room's header (IQ-17): the condition, and a live round count. -->
-<p class="term" class:over={line.count?.over} data-testid="term-banner">
-  <span class="mark" aria-hidden="true">✒</span>
-  <span class="label">Term</span>
-  <span class="text">{line.condition}</span>
-  {#if line.count}
-    <span class="count" data-testid="term-count">round {line.count.round} / {line.count.limit}</span>
-  {/if}
-</p>
+{#if line}
+  <p class="term" class:over={line.count?.over} data-testid="term-banner">
+    <span class="mark" aria-hidden="true">✒</span>
+    <span class="label">Term</span>
+    <span class="text">{line.condition}</span>
+    {#if line.count}
+      <span class="count" data-testid="term-count">round {line.count.round} / {line.count.limit}</span>
+    {/if}
+  </p>
+{/if}
 
 <style>
   .term {
