@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type FootnoteSubject, type LineId, METHODS } from '$data';
-  import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf } from '$engine';
+  import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf, papersView } from '$engine';
   import { lineTextFor } from '../../app/bench';
   import { householdRows } from '../../app/codexHousehold';
   import { rivalPageRows } from '../../app/codexRivals';
@@ -24,6 +24,7 @@
     ['idioms', 'Idioms'],
     ['household', 'Household'],
     ['pages', 'Pages'],
+    ['papers', 'Papers'],
   ] as const;
   type Tab = (typeof TABS)[number][0];
   let tab = $state<Tab>('runes');
@@ -38,7 +39,13 @@
   // Outside `entries`, so the count above never hints at anyone unmet (recruitment P13).
   const household = $derived(householdRows(game.profile));
   const rivalPages = $derived(rivalPageRows(game.profile));
-  const tabs = $derived(TABS.filter(([id]) => id !== 'pages' || rivalPages.length > 0));
+  const paperGroups = $derived(papersView(game.profile));
+  const tabs = $derived(
+    TABS.filter(
+      ([id]) =>
+        (id !== 'pages' || rivalPages.length > 0) && (id !== 'papers' || paperGroups.length > 0),
+    ),
+  );
   const known = $derived(entries.filter((e) => e.known).length);
   // Out on a trip the notebook opens from the road, and closes back onto it.
   const lineText = (id: LineId) => lineTextFor(game.profile, id);
@@ -114,6 +121,18 @@
       {#each rivalPages as row (row.id)}
         <RivalPage {row} />
       {/each}
+    {:else if tab === 'papers'}
+      <p class="lead">Papers found along the way, in the order they turned up.</p>
+      {#each paperGroups as g (g.group)}
+        <h2>{g.group}</h2>
+        {#each g.papers as paper (paper.id)}
+          <article class="paper" data-testid="codex-paper">
+            <h3>{paper.title}</h3>
+            <p class="mline">In the hand of {paper.hand}</p>
+            <p class="body">{paper.text}</p>
+          </article>
+        {/each}
+      {/each}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}
         <CodexIdiom {entry} {known} />
@@ -169,6 +188,18 @@
     padding: var(--space-2) var(--space-1);
     border-bottom: 1px solid var(--line);
   }
+  .paper {
+    padding: var(--space-2) var(--space-1);
+    border-bottom: 1px solid var(--line);
+  }
+  .paper .body {
+    margin: 4px 0 0;
+    font-family: var(--hand);
+    font-size: 17px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .paper h3,
   .made h3 {
     margin: 0;
     font-family: var(--hand);

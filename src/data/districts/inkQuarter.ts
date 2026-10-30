@@ -1,4 +1,5 @@
 import type { DistrictData } from './index';
+import { INK_LETTERS } from './inkQuarter/papers';
 import { INK_THRESHOLD } from './inkQuarter/threshold';
 import { INK_TABLE_IDS } from './inkQuarter/types';
 
@@ -16,6 +17,7 @@ export const INK_QUARTER_KIT: DistrictData = {
   // P7: no landings; an open term decides when the party can go home (the heart is always a way home).
   ret: { kind: 'any' },
   tables: INK_TABLE_IDS,
+  papers: INK_LETTERS,
   gate: { kind: 'drawing' },
   threshold: INK_THRESHOLD,
   line: 'marks that keep what they are owed',

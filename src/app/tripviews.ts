@@ -99,9 +99,11 @@ export function heardHighlights(
 ): HeardHighlight[] {
   return recap.stats.heard.map((id) => {
     const d = table[id];
+    // IQ D6: an owner-voiced district may leave a note waiting at home.
+    const note = d.hear.find((c) => c.voice === 'owner' && c.homeNote)?.homeNote;
     const text =
       heardVoice(id, table) === 'owner'
-        ? `The owner drew ${placeInText(d.name)} on the map: “${d.line}”`
+        ? `The owner drew ${placeInText(d.name)} on the map: “${d.line}”${note ? ` ${note}` : ''}`
         : `A rumour of ${placeInText(d.name)}`;
     return { kind: 'heard', title: 'A new page of the map', text };
   });
