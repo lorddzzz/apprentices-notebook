@@ -1,5 +1,6 @@
 import type { EncounterDef, EncounterVariant, LootTableId } from '../../types';
 import type { KitRoomDef } from '../index';
+import { INK_LETTERS } from './papers';
 
 /**
  * The ink-makers' quarter's rooms 1 and 2 (IQ-9; ink-quarter-plan P1, design §1): three layouts
@@ -27,6 +28,7 @@ function room(
   depth: number,
   variants: readonly EncounterVariant[],
   loot: EncounterDef['loot'],
+  lore: number,
 ): KitRoomDef {
   return {
     id,
@@ -37,6 +39,7 @@ function room(
     loot,
     picks: 1,
     heart: false,
+    lore: INK_LETTERS[lore]?.id,
   };
 }
 
@@ -130,6 +133,6 @@ const INK_2: readonly EncounterVariant[] = [
 ];
 
 export const INK_ROOMS_12: readonly KitRoomDef[] = [
-  room('ink-sorting', 'The pigeonholes', 1, INK_1, SHALLOW),
-  room('ink-blotting', 'The blotter rack', 2, INK_2, SHALLOW),
+  room('ink-sorting', 'The pigeonholes', 1, INK_1, SHALLOW, 0),
+  room('ink-blotting', 'The blotter rack', 2, INK_2, SHALLOW, 1),
 ];
