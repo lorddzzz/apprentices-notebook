@@ -256,7 +256,8 @@ const MET_ITEMS: readonly { items: readonly PaletteItem[]; met: readonly string[
  */
 export function sceneEntries(p: Pick<Profile, 'met' | 'foesMet'>, kit: Kit = KIT): PaletteEntry[] {
   const met: readonly string[] = p.met;
-  const rivals = new Set(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
+  const rivals = new Set<string>(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
+  rivals.add('postmaster'); // IQ-19: the stand-in heart stays off the Bench until he is a rival
   const foes = p.foesMet.filter((f) => !rivals.has(f)).map((f) => ENEMIES[f].token);
   const states = MET_ITEMS.filter((m) => m.met.some((k) => met.includes(k))).flatMap(
     (m) => m.items,

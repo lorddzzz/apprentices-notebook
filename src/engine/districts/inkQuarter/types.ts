@@ -86,6 +86,7 @@ const writ = (id: PieceId, token: string, label: string): PieceDef => ({
   exempt: ['anchored'],
   triggers: {},
   palette: { label, lab: true },
+  bench: { met: token, label },
   art: id,
 });
 
@@ -113,6 +114,7 @@ export const WAX_DEF: PieceDef<WaxData> = {
   },
   triggers: {},
   palette: { label: 'Wax seal', lab: true },
+  bench: { met: 'wax', label: 'Wax seal' },
   art: WAX_PIECE,
 };
 export const CLOCK_STAMP_DEF: PieceDef = writ(CLOCK_STAMP_PIECE, 'stamp', "Postmaster's stamp");

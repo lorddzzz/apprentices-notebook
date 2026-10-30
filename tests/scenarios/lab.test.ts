@@ -128,7 +128,7 @@ test('UI contract: castableSpells, aimPreview path, labSetCell errors', () => {
     targets: [parseLabel('C1')],
   });
   expect(() => labSetCell(s, parseLabel('B1'), 'r=')).toThrow(/plate.*B1/);
-  expect(() => labSetCell(s, parseLabel('B1'), 'q')).toThrow(/Unknown character "q" in cell B1/);
+  expect(() => labSetCell(s, parseLabel('B1'), 'Q')).toThrow(/Unknown character "Q" in cell B1/);
 });
 
 function fail(): never {

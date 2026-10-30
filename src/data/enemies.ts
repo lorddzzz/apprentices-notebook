@@ -16,6 +16,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'deadLetter',
   'sorter',
   'sealer',
+  'clockSeal',
   'postmaster',
   'letter',
 ];
