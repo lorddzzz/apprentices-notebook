@@ -77,7 +77,8 @@ describe('SM-0 Seam contracts', () => {
       'seam:write:brass',
       'seam:write:spark',
     ]);
-    expect(MARGINALIA.id.startsWith('seam:')).toBe(true);
+    expect(MARGINALIA.id).toBe('marginalia');
+    expect(MARGINALIA.behaviour?.startsWith('seam:')).toBe(true);
   });
 
   it('keeps the deep-room ids RC names', () => {

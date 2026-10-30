@@ -1,4 +1,11 @@
-import type { DistrictId, EncounterDef, EncounterVariant, EnemyId, KindId } from '../types';
+import type {
+  DistrictId,
+  EncounterDef,
+  EncounterVariant,
+  EnemyDef,
+  EnemyId,
+  KindId,
+} from '../types';
 import type { DistrictData } from './index';
 
 const board = (rows: readonly string[]): string => rows.join('\n');
@@ -249,15 +256,47 @@ export const SEAM_KIT: DistrictData = {
 // ── The Marginalia (SM P2, P3; SM-1 builds it) ──────────
 /** The five hands in cycle order, one per round (P2). */
 export const MARGINALIA_HANDS: readonly KindId[] = ['ink', 'oil', 'steam', 'brass', 'spark'];
-/** The heart's foe. Numbers tune by playing (Seam §2). */
-export const MARGINALIA = {
-  id: 'seam:marginalia',
+/** The Marginalia's numbers (P2, P3). They tune by playing (Seam §2). */
+export const MARGINALIA_TUNING = {
+  /** Ink familiars the heart room opens with (SM-3 places them); they fall with it (P3). */
+  familiars: 2,
+  /** A hand covers this many tiles each side of its centre, in a row: 1 = three tiles. */
+  reach: 1,
+} as const;
+
+/**
+ * The Seam's heart (SM P2, P3): the owner's leftover familiars gathered into one figure. One tile,
+ * never moves (anchored), a script of five hands cycled by round (`seam:write:<kind>`, one kind
+ * each). Its `behaviour` carries only the death hook: its familiars fall with it. Not a stand-in:
+ * it is the heart itself.
+ */
+export const MARGINALIA: EnemyDef = {
+  id: 'marginalia',
+  name: 'marginalia',
   token: 'G',
   hp: 16,
   move: 0,
-  /** Ink familiars the heart room opens with; they fall with it (P3). */
-  familiars: 2,
-} as const;
+  attack: null,
+  ai: 'idle',
+  behaviour: 'seam:marginalia',
+  script: {
+    steps: MARGINALIA_HANDS.map((k) => `seam:write:${k}` as const),
+    standIn: false,
+  },
+  brass: false,
+  oilTrail: false,
+  elite: true,
+  blurb:
+    "The notebook's margins, come alive. Each round one of its five hands writes a kind across three tiles by the nearest apprentice: a mark, a slick, a cloud, a plate, then a spark.",
+  habitat: 'any',
+  flies: false,
+  anchored: true,
+  snuffs: false,
+  bursts: false,
+  boss: true,
+};
+
+export const SEAM_ENEMIES = { marginalia: MARGINALIA } as const;
 
 /** The Seam's deep rooms (P14): RC registers its guarantees here, after Conduct in the heart. */
 export const SEAM_DEEP_ROOMS = ['sentry-post', 'heart'] as const;

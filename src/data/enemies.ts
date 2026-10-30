@@ -1,5 +1,6 @@
 import { BARGE } from './districts/canals';
 import { INK_ENEMIES, INK_HEART_ENEMIES } from './districts/inkQuarter/enemies';
+import { SEAM_ENEMIES } from './districts/seam';
 import type { AttackDef, AttackId, EnemyDef, EnemyId } from './types';
 
 export const ENEMY_IDS: readonly EnemyId[] = [
@@ -19,6 +20,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'clockSeal',
   'postmaster',
   'letter',
+  'marginalia',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
@@ -236,4 +238,5 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   // IQ P8: the ink quarter's postal staff (data in the district's file).
   ...INK_ENEMIES,
   ...INK_HEART_ENEMIES,
+  ...SEAM_ENEMIES,
 };

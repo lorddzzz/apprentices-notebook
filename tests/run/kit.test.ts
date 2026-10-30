@@ -46,9 +46,10 @@ import {
 // kit. The canals are not visited on this trip.
 vi.mock('$engine/districts/kit', async () => {
   const { buildKit } = await import('$engine/districts/registry');
-  const { SEAM_MODULE } = await import('$engine/districts/seam');
+  // The Seam stands in bare: its real module loads damage and mix, which load this mocked kit
+  // and would deadlock the factory (SM-1). This trip never enters the Seam.
   const { FIXTURE_MODULE } = await import('../fixtures/district-kit/fixture-district');
-  const modules = [SEAM_MODULE, FIXTURE_MODULE];
+  const modules = [{ id: 'seam' as const }, FIXTURE_MODULE];
   return { DISTRICT_MODULES: modules, KIT: buildKit(modules) };
 });
 
