@@ -1,4 +1,5 @@
 import type { DistrictData } from './index';
+import { INK_THRESHOLD } from './inkQuarter/threshold';
 import { INK_TABLE_IDS } from './inkQuarter/types';
 
 /**
@@ -16,6 +17,7 @@ export const INK_QUARTER_KIT: DistrictData = {
   ret: { kind: 'any' },
   tables: INK_TABLE_IDS,
   gate: { kind: 'drawing' },
+  threshold: INK_THRESHOLD,
   line: 'marks that keep what they are owed',
   barred: 'The page is still being drawn.',
   lean: { lean: 'ink', text: 'Ink' },
