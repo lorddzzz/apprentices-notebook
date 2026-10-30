@@ -120,6 +120,7 @@ describe('IQ-W0 registrations', () => {
   test('the intrusion stub brings only the return stamp', () => {
     expect(INK_INTRUSION_STUB.pieces).toEqual(['inkQuarter:return']);
     expect(KIT.pieces[INK_INTRUSION_STUB.pieces[0] ?? 'inkQuarter:none']).toBeDefined();
-    expect(DISTRICTS.inkQuarter.intrusion).toBeUndefined();
+    // IQ-12 replaced the stub on the kit with the authored floor, which brings the same piece.
+    expect(DISTRICTS.inkQuarter.intrusion?.pieces).toEqual(INK_INTRUSION_STUB.pieces);
   });
 });

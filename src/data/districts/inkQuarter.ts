@@ -1,4 +1,5 @@
 import type { DistrictData } from './index';
+import { INK_INTRUSION } from './inkQuarter/floor';
 import { INK_LETTERS } from './inkQuarter/papers';
 import { INK_THRESHOLD } from './inkQuarter/threshold';
 import { INK_TABLE_IDS } from './inkQuarter/types';
@@ -20,6 +21,7 @@ export const INK_QUARTER_KIT: DistrictData = {
   papers: INK_LETTERS,
   gate: { kind: 'drawing' },
   threshold: INK_THRESHOLD,
+  intrusion: INK_INTRUSION,
   line: 'marks that keep what they are owed',
   barred: 'The page is still being drawn.',
   lean: { lean: 'ink', text: 'Ink' },
