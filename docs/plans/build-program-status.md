@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** building (window 2026-10-30, fresh chain: 2 wake-ups available). Running: **IQ-19** Lab/Bench + `clockSeal` in `ENEMY_IDS` (Vite 5192). Merged this window: **gate flip + IQ-13 (quarter playable, live)**, IQ-17, IQ-9, IQ-4, IQ-6, IQ-11, IQ-14, IQ-7, DK-10, IQ-16, IQ-10, IQ-12, IQ-15. 5h 71% at 08:09Z (reset 11:20Z, ~0.6%/min, Narrow: S/M only), weekly 50%.
+**State:** building (window 2026-10-30, fresh chain: 2 wake-ups available). Running: **IQ-20** calibration, **IQ-19** Lab/Bench + `clockSeal` in `ENEMY_IDS` (Vite 5192). Merged this window: **gate flip + IQ-13 (quarter playable, live)**, IQ-17, IQ-9, IQ-4, IQ-6, IQ-11, IQ-14, IQ-7, DK-10, IQ-16, IQ-10, IQ-12, IQ-15. 5h 75% at 08:21Z (reset 11:20Z, ~0.4%/min, Narrow: S/M only), weekly 50%.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (new chain 2026-10-30: 0 used). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
