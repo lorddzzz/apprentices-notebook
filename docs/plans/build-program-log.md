@@ -234,6 +234,7 @@ Append-only history of the build program: task reports, usage log, accepted prop
 | 07:47 | 58 | 3h33 | 50 | Normal (proj ~81) | merged IQ-10, IQ-12, IQ-15; spawn gate flip, IQ-17 (two agents only) |
 | 08:09 | 71 | 3h11 | 52 | Narrow (proj ~89) | merged IQ-17; spawn IQ-19 (S) beside the gate flip |
 | 08:21 | 75 | 2h59 | 52 | Narrow | merged gate flip + IQ-13 (playable); spawn IQ-20 |
+| 08:56 | 82 | 2h24 | 53 | Narrow | merged IQ-19, IQ-20; spawn room hardening (one agent) |
 | 06:55 | — | — | — | Normal | merge CN-6, CN-11 (an agent shared the orchestrator's check log path; orchestrator now logs to its own file) |
 | 07:10 | — | — | — | Normal | merge MET-1 |
 | 07:20 | — | — | — | Normal | merge CN-8 |
