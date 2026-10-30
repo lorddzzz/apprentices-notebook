@@ -1,4 +1,5 @@
 import type { DistrictData } from './index';
+import { INK_TABLE_IDS } from './inkQuarter/types';
 
 /**
  * The ink-makers' quarter's kit data (district-ink-makers.md, Hearing): a mark by one apprentice,
@@ -11,6 +12,9 @@ export const INK_QUARTER_KIT: DistrictData = {
   guild: 'The Notaries',
   edge: 'wall',
   rooms: [],
+  // P7: no landings; an open term decides when the party can go home (the heart is always a way home).
+  ret: { kind: 'any' },
+  tables: INK_TABLE_IDS,
   gate: { kind: 'drawing' },
   line: 'marks that keep what they are owed',
   barred: 'The page is still being drawn.',
