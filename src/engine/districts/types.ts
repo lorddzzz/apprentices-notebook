@@ -6,6 +6,7 @@ import type {
   EnemyId,
   LootSpec,
   LootTableId,
+  Meets,
 } from '$data';
 import type { ArrivalCause, ArrivalCauses, ArrivalHook, EnteredTiles } from '../arrival';
 import type { Ctx } from '../ctx';
@@ -131,7 +132,7 @@ export interface PieceDef<D extends Json = Json> {
   rules?: readonly RuleId[];
   palette?: { label: string; lab: boolean };
   /** Bench parity (BL-102): the `met` key that offers it on the Bench. */
-  bench?: { met: string; label: string };
+  bench?: { met: Meets; label: string };
   /** UI art key looked up in `src/ui/districts` (P10). */
   art: string;
 }

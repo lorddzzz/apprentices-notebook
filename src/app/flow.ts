@@ -32,6 +32,7 @@ import {
 import { knockAtDoor, someoneJoined } from '$engine/recruits';
 import { namedTitle } from './describe';
 import { allMasks } from './faircopy';
+import { termTallies } from './inkTerms';
 import type { Route } from './routes';
 import { parseSaveText, type SaveBackend, writeSave } from './save';
 import { editProfile, type ShelfTool, type SocketDecision } from './study';
@@ -212,6 +213,7 @@ export function endBattle(
           encounter: trip.encounter,
           place: placeOf(trip),
           stats: r.stats,
+          terms: termTallies(trip),
         }
       : save.lastTrip;
   // A wipe sends the party home: a door arrival may knock (recruitment P3).
@@ -253,6 +255,7 @@ export function goHome(save: SaveData): SaveData {
     encounter: trip.encounter,
     place: placeOf(trip),
     stats: { ...trip.stats, heard: [...trip.stats.heard, ...rumours] },
+    terms: termTallies(trip),
   };
   return { ...save, profile, trip: null, lastTrip };
 }

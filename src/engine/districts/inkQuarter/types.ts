@@ -1,3 +1,4 @@
+import type { Meets } from '$data';
 import type { TermId } from '$data/districts/inkQuarter/types';
 import type { UnitRef } from '../../events';
 import type { Coord } from '../../grid';
@@ -79,7 +80,7 @@ const pairData = {
 };
 
 /** Writs are walkable, never block shots, read fliers too; only anchored units are exempt (P1). */
-const writ = (id: PieceId, token: string, label: string): PieceDef => ({
+const writ = (id: PieceId, token: Meets, label: string): PieceDef => ({
   id,
   token,
   solid: 'none',

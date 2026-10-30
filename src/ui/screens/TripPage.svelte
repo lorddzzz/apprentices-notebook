@@ -4,7 +4,7 @@
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
   import { joinedHighlights } from '../../app/recruitNotes';
-  import { deadCellNotes, heardHighlights, placeInText, tierUpLine } from '../../app/tripviews';
+  import { deadCellNotes, heardHighlights, placeInText, termsLine, tierUpLine } from '../../app/tripviews';
   import ApprenticeToken from '../components/common/ApprenticeToken.svelte';
   import Button from '../components/common/Button.svelte';
 
@@ -19,6 +19,7 @@
       : [],
   );
   const spells = $derived(recap?.stats.spells ?? []);
+  const terms = $derived(recap ? termsLine(recap) : null);
   const tierUps = $derived(recap?.stats.elegance ?? []);
   // Dead-cell notes show only while each spell is still wired as it was fought (M15).
   const notes = $derived(
@@ -42,6 +43,9 @@
         Deepest: {recap.place} · {recap.stats.fights}
         {recap.stats.fights === 1 ? 'fight' : 'fights'} fought
       </p>
+      {#if terms}
+        <p class="terms" data-testid="terms">{terms}</p>
+      {/if}
     </header>
 
     <div class="mid">

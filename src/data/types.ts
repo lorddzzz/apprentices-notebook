@@ -188,7 +188,13 @@ export type Meets =
   | 'spread' // a mark spreading to its neighbours (FN-1A A1: `ink:spread`)
   | 'shot' // a foe's line shot or spit (FN-1A A1: `steam:shot`, `brass:shot`)
   | 'limit' // a refusal at a rule's limit (FN-1A A1: Margin's limit of 5)
-  | 'compound'; // a kind landing on any compound without its own row (P16)
+  | 'compound' // a kind landing on any compound without its own row (P16)
+  | 'return' // ink writs, met on the Bench once seen (IQ bench parity)
+  | 'order'
+  | 'forward'
+  | 'address'
+  | 'stamp'
+  | 'wax';
 /**
  * A rune, method or solvent; a habit's fine print (AH P11); or a basic action's (`pull`, `hop`;
  * Swap and Shove use their runes' lines, AH P7). Only a `FootnoteSubject` has a margin and points.

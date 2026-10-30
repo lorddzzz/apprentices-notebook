@@ -13,6 +13,11 @@ type TripLike = { district: string; kit?: { state: unknown } };
 
 const NO_WORDS = 'an old term, no longer listed';
 
+/** The trip's terms as the trip recap keeps them (def and status only). */
+export function termTallies(trip: TripLike | null): { def: string; status: Term['status'] }[] {
+  return tripTerms(trip).map((t) => ({ def: t.def, status: t.status }));
+}
+
 export interface TermLines {
   reward: string;
   condition: string;

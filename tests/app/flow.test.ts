@@ -383,6 +383,7 @@ test('returning home keeps the recap; the next trip clears it', () => {
     encounter: 0,
     place: placeOf(trip),
     stats: trip.stats,
+    terms: [],
   });
   expect(setOut(home).lastTrip).toBeNull();
 });

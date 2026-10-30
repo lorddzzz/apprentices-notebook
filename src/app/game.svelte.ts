@@ -33,6 +33,7 @@ import {
   takeOffer,
   type WipeSummary,
 } from './flow';
+import { termTallies } from './inkTerms';
 import { forgetView } from './latticeViewport';
 import { newcomers } from './recruitNotes';
 import { go } from './router.svelte';
@@ -330,6 +331,7 @@ export class GameStore {
           encounter: trip.encounter,
           place: placeOf(trip),
           stats: trip.stats,
+          terms: termTallies(trip),
         },
       });
     }

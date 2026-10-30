@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { ENEMIES, ENEMY_IDS } from '$data';
+import { ENEMIES, ENEMY_IDS, type Meets } from '$data';
 import { newProfile, type Profile } from '$engine';
 import { KIT } from '$engine/districts/kit';
 import type { DistrictModule } from '$engine/districts/types';
@@ -29,7 +29,7 @@ const FIXTURE = vi.hoisted(
         solid: 'units',
         triggers: {},
         palette: { label: 'Pier', lab: true },
-        bench: { met: 'pier', label: 'Pier' },
+        bench: { met: 'pier' as Meets, label: 'Pier' },
         art: 'pier',
       },
       {
@@ -45,7 +45,7 @@ const FIXTURE = vi.hoisted(
         token: 'post',
         solid: 'none',
         triggers: {},
-        bench: { met: 'post', label: 'Post' },
+        bench: { met: 'post' as Meets, label: 'Post' },
         art: 'post',
       },
     ],

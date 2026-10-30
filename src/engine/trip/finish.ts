@@ -47,7 +47,7 @@ export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: Enem
     if (t.terrain.vent) met.add('vent');
     if (t.terrain.lamp) met.add('lamp');
     const key = t.piece && KIT.pieces[t.piece.id]?.bench?.met;
-    if (key) met.add(key as Meets);
+    if (key) met.add(key);
   }
   for (const e of log) {
     switch (e.type) {

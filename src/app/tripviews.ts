@@ -92,6 +92,15 @@ export interface HeardHighlight {
 /** A place name inside a sentence: "the oil-lit canals", not "The oil-lit canals". */
 export const placeInText = (name: string): string => name.replace(/^The /, 'the ');
 
+/** "Terms: 2 paid, 1 broken" on the trip page; null when the trip signed no terms (IQ-17). */
+export function termsLine(recap: TripRecap): string | null {
+  const terms = recap.terms ?? [];
+  if (terms.length === 0) return null;
+  const paid = terms.filter((t) => t.status === 'paid').length;
+  const broken = terms.filter((t) => t.status === 'broken').length;
+  return `Terms: ${paid} paid, ${broken} broken`;
+}
+
 /** One highlight per district heard on the trip: "The owner drew … on the map" or "A rumour of …" (K-20). */
 export function heardHighlights(
   recap: TripRecap,

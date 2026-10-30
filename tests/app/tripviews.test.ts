@@ -8,6 +8,7 @@ import {
   heardVoice,
   rumourLine,
   spellLine,
+  termsLine,
   tierUpLine,
 } from '../../src/app/tripviews';
 
@@ -162,4 +163,37 @@ test('dead-cell notes use signed and multi-letter lattice labels', () => {
       ],
     ),
   ).toEqual(['the Ink at (-3,-2) never fired', 'the Spark at AA1 never fired']);
+});
+
+describe('termsLine', () => {
+  const recap = (terms?: TripRecap['terms']): TripRecap => ({
+    district: 'inkQuarter',
+    outcome: 'returned',
+    encounter: 4,
+    place: 'The long shelves',
+    stats: {
+      fights: 5,
+      spells: [],
+      biggestChain: null,
+      discoveries: [],
+      proofCasts: 0,
+      elegance: [],
+      heard: [],
+    },
+    ...(terms ? { terms } : {}),
+  });
+  test('counts paid and broken terms', () => {
+    const line = termsLine(
+      recap([
+        { def: 'inkQuarter:term-bind', status: 'paid' },
+        { def: 'inkQuarter:term-bind', status: 'broken' },
+        { def: 'inkQuarter:term-bind', status: 'paid' },
+      ]),
+    );
+    expect(line).toBe('Terms: 2 paid, 1 broken');
+  });
+  test('no line without terms, including old saves', () => {
+    expect(termsLine(recap([]))).toBeNull();
+    expect(termsLine(recap())).toBeNull();
+  });
 });

@@ -683,6 +683,8 @@ export interface TripRecap {
   encounter: number; // the deepest encounter index reached
   place: string; // that room's name (its layout's place name)
   stats: TripStats;
+  /** The trip's terms (ink quarter; absent on older saves and other districts). */
+  terms?: { def: string; status: 'open' | 'paid' | 'broken' }[];
 }
 /** doorway: rewiring in the field after picking a quiet doorway (plan S11). */
 export type TripStatus = 'fight' | 'looting' | 'crossroads' | 'cleared' | 'doorway';
