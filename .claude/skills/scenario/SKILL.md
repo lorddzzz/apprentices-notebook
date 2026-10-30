@@ -28,7 +28,7 @@ Board cell = `.` (floor) or `[unit][mods][state and terrain]`:
 
 | Part | Chars |
 |---|---|
-| unit (first char) | `D` Draughtsman, `S` Stoker, `r` rat, `b` brass sentry (born collared), `f` familiar, `d` training dummy, `e` eel, `n` snuffer, `m` lamp-moth, `M` lamp-mother, `x` dead letter, `u` Sorter, `z` Sealer. Elite or minion comes from the foe's data (P20) |
+| unit (first char) | `D` Draughtsman, `S` Stoker, `r` rat, `b` brass sentry (born collared), `f` familiar, `d` training dummy, `e` eel, `n` snuffer, `m` lamp-moth, `M` lamp-mother, `x` dead letter, `u` Sorter, `z` Sealer, `p` postmaster (stand-in heart), `q` his clock seal. Elite or minion comes from the foe's data (P20) |
 | mods (after a unit) | `!` mark, `!!` deep mark, `&` brass collar, `$` shackle, `+` 1 shield each (`++` = 2) |
 | state (one per tile) | `i` blot, `o` slick, `~` cloud, `=` layout plate (permanent, no unit), `#` rune plate (crumbles after 3 rounds), `*` fire, or a compound in braces: `{stain}` `{brand}` (brand cloud) `{pool}` `{fog}` (grease fog) `{skid}` (skid plate) `{bank}` `{kettle}` `{wall}` |
 | terrain | `w` + arrow water lane flowing that way (`w>`, `wv`), `h` grate (on water only), `g` wooden lock gate (alone), `l` lamp, `@` vent, `_` the drop (an open side) |

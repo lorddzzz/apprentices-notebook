@@ -348,7 +348,8 @@ export type EnemyId =
   | 'deadLetter'
   | 'sorter'
   | 'sealer'
-  | 'clockSeal';
+  | 'clockSeal'
+  | 'postmaster';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 
 /**

@@ -8,6 +8,7 @@ import {
 } from './inkQuarter/forward';
 import { TERMED_KIND } from './inkQuarter/offers';
 import { inkAfterRoom, STAKES_RULE, stakeSetup } from './inkQuarter/stakes';
+import { POSTMASTER_FOE, STAND_IN_STEPS } from './inkQuarter/standIn';
 import { TERM_EVENT_DEFS, TERM_HOOKS } from './inkQuarter/terms';
 import {
   INK_BASE_PIECES,
@@ -60,7 +61,8 @@ export const INK_QUARTER_MODULE: DistrictModule = {
     (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? CLOCK_PIECES[p.id] ?? p,
   ),
   events,
-  foes: [...INK_FOES, CLOCK_SEAL_FOE],
+  foes: [...INK_FOES, CLOCK_SEAL_FOE, POSTMASTER_FOE],
+  steps: STAND_IN_STEPS,
   trip: shape,
   offerKinds: [TERMED_KIND],
 };

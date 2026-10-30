@@ -126,3 +126,43 @@ export const INK_ENEMIES = {
   sealer: SEALER,
   clockSeal: CLOCK_SEAL,
 } as const;
+
+/** The stand-in postmaster's numbers (IQ-7): his pen strike and how tough he is. */
+export const POSTMASTER_TUNING = {
+  /** The pen strike's damage to the apprentice it was thrown at. */
+  pen: 2,
+} as const;
+
+/**
+ * The postmaster as the district's stand-in heart (P10; IQ-7, replaced by the rival at IQ-22):
+ * a scripted foe that never walks. Round by round he serves the clock writ, strikes with his pen,
+ * and seals a tile; `standIn` means clearing him gives no page. `ai`/`behaviour` serve only the
+ * death hook (`withdrawClock`) and the Lab label; the script wins in battle.
+ */
+export const POSTMASTER: EnemyDef = {
+  id: 'postmaster',
+  name: 'postmaster',
+  token: 'p',
+  hp: 14,
+  move: 0,
+  attack: null,
+  ai: 'idle',
+  behaviour: 'inkQuarter:postmaster',
+  script: {
+    steps: ['inkQuarter:serve', 'inkQuarter:pen', 'inkQuarter:waxSeal'],
+    standIn: true,
+  },
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb:
+    'Serves a writ with a clock: break his seal or stand on his stamp in three rounds, or every mark collects. Strikes with his pen and seals your tile in wax.',
+  habitat: 'any',
+  flies: false,
+  anchored: true,
+  snuffs: false,
+  bursts: false,
+  boss: true,
+};
+
+export const INK_HEART_ENEMIES = { postmaster: POSTMASTER } as const;
