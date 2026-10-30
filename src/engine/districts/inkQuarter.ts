@@ -15,6 +15,7 @@ import {
   initInkState,
   parseInkState,
 } from './inkQuarter/types';
+import { WAX_EVENT_LINES, WAX_PIECES } from './inkQuarter/wax';
 import { WRIT_EVENT_LINES, WRIT_PIECES, WRITS_RULE } from './inkQuarter/writs';
 import type { DistrictEventDef, DistrictModule, TripShapeDef } from './types';
 
@@ -37,6 +38,7 @@ const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
   (type) =>
     WRIT_EVENT_LINES[type] ??
     FORWARD_EVENT_LINES[type] ??
+    WAX_EVENT_LINES[type] ??
     TERM_EVENT_DEFS.find((d) => d.type === type) ?? {
       type,
       describe: () => type.slice('inkQuarter:'.length),
@@ -47,7 +49,9 @@ export const INK_QUARTER_MODULE: DistrictModule = {
   id: 'inkQuarter',
   rules: [WRITS_RULE, FORWARDS_RULE],
   harmGuards: [FORWARD_GUARD],
-  pieces: INK_BASE_PIECES.map((p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? p),
+  pieces: INK_BASE_PIECES.map(
+    (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? p,
+  ),
   events,
   foes: INK_FOES,
   trip: shape,

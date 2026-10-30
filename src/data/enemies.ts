@@ -15,6 +15,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'barge',
   'deadLetter',
   'sorter',
+  'sealer',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {

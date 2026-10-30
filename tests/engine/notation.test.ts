@@ -101,7 +101,7 @@ test('the drop `_` is terrain (P3)', () => {
 });
 
 test('rejects unknown chars / two states / unit on plate / mod without unit / duplicate member', () => {
-  expect(() => parseBoard('. . z')).toThrow(/"z".*C1/);
+  expect(() => parseBoard('. . y')).toThrow(/"y".*C1/);
   expect(() => parseBoard('.\n. r=')).toThrow(/plate.*B2/);
   expect(() => parseBoard('. .\n. . !')).toThrow(/needs a unit.*C2/);
   expect(() => parseBoard('D . .\n. . D')).toThrow(/Duplicate.*C2/);

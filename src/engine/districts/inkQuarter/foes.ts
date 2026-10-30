@@ -10,15 +10,17 @@ import { enemies, findUnit, isAlive, members, unitAt } from '../../queries';
 import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit, Unit } from '../../types';
 import type { FoeBehaviour, KitId, PreviewShape } from '../types';
+import { canSeal, placeSeal, sealAt, sealerFell } from './wax';
 
 /**
- * The postal staff's brains (ink-quarter plan P8; IQ-5a): the dead letter and the Sorter, as
+ * The postal staff's brains (ink-quarter plan P8; IQ-5a, IQ-5b): the dead letter, the Sorter and the Sealer, as
  * behaviours on the kit's registry (DK-IQ D2). Each has one telegraph; planners walk with
  * `candidatesOf`, so the return stamp's `aiAvoid` already keeps them off it (D7).
  */
 
 export const DEAD_LETTER_BEHAVIOUR: KitId = 'inkQuarter:deadLetter';
 export const SORTER_BEHAVIOUR: KitId = 'inkQuarter:sorter';
+export const SEALER_BEHAVIOUR: KitId = 'inkQuarter:sealer';
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const living = (units: readonly Unit[]): Unit[] => units.filter(isAlive);
@@ -154,5 +156,43 @@ export const SORTER_FOE: FoeBehaviour = {
       : `file ${where(tg.tiles[0])}`,
 };
 
-/** The postal staff's behaviours, for the district module (IQ-5b adds the Sealer's). */
-export const INK_FOES: readonly FoeBehaviour[] = [DEAD_LETTER_FOE, SORTER_FOE];
+// ── The Sealer ──────────────────────────────────────────
+
+/** The apprentice the Sealer marks: nearest within range that is not already under a seal. */
+function sealTarget(s: BattleState, e: EnemyUnit): Unit | null {
+  return nearestOf(
+    e.pos,
+    living(members(s)).filter(
+      (m) => manhattan(e.pos, m.pos) <= INK_FOE_TUNING.sealerRange && !sealAt(s, m.pos),
+    ),
+  );
+}
+
+/**
+ * A clerk with a seal and a stick of wax. It walks at the nearest apprentice and, with one in
+ * reach, marks that apprentice's tile; when the action resolves a wax seal lands there (so
+ * stepping off dodges it), holds whoever stands on it, and lasts 2 rounds. Fire melts the wax; it
+ * all vanishes if the Sealer dies (`onDeath`).
+ */
+export const SEALER_FOE: FoeBehaviour = {
+  id: SEALER_BEHAVIOUR,
+  move: approach,
+  plan(s, e): Telegraph | null {
+    const to = sealTarget(s, e);
+    return to ? { label: 'seal', tiles: [{ ...to.pos }], units: [] } : null;
+  },
+  resolve(ctx, e, tg) {
+    const at = tg.tiles[0];
+    if (!at || !canSeal(ctx.s, at)) {
+      emit(ctx, { type: 'miss', source: 'Seal' });
+      return;
+    }
+    placeSeal(ctx, at, e.id);
+  },
+  onDeath: (ctx, e) => sealerFell(ctx, e.id),
+  preview: (_s, e) => pulseOnLast(e),
+  describe: (tg) => `seal ${where(tg.tiles[0])}`,
+};
+
+/** The postal staff's behaviours, for the district module. */
+export const INK_FOES: readonly FoeBehaviour[] = [DEAD_LETTER_FOE, SORTER_FOE, SEALER_FOE];

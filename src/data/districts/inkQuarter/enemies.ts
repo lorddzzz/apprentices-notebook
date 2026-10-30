@@ -13,6 +13,10 @@ export const INK_FOE_TUNING = {
   deadLetterBurst: 2,
   /** The Sorter's plain file when it has no mark to forward. */
   sorterFile: 1,
+  /** How far (Manhattan) the Sealer can mark a tile for its seal. */
+  sealerRange: 3,
+  /** Rounds a seal lasts, counting the round it lands in (it holds its bearer as long). */
+  sealRounds: 2,
 } as const;
 
 /** A fluttering paper minion, addressed to the nearest apprentice; bursts on delivery. */
@@ -60,4 +64,27 @@ export const SORTER: EnemyDef = {
   boss: false,
 };
 
-export const INK_ENEMIES = { deadLetter: DEAD_LETTER, sorter: SORTER } as const;
+/** Marks a tile within reach and seals it in wax: whoever stands there is held; dodge it. */
+export const SEALER: EnemyDef = {
+  id: 'sealer',
+  name: 'sealer',
+  token: 'z',
+  hp: 5,
+  move: 1,
+  attack: null,
+  ai: 'idle',
+  behaviour: 'inkQuarter:sealer',
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb:
+    'Marks a tile within three, then drops a wax seal on it. Stand there and you are held for the round; fire melts the wax, and it dies with the Sealer.',
+  habitat: 'any',
+  flies: false,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+};
+
+export const INK_ENEMIES = { deadLetter: DEAD_LETTER, sorter: SORTER, sealer: SEALER } as const;

@@ -68,8 +68,8 @@ export const CLOCK_STAMP_PIECE: PieceId = 'inkQuarter:clockStamp';
 
 /** A forwarding stamp and its address share one letter: `{forward:a}` sends to `{address:a}`. */
 export type PairData = { pair: string };
-/** Rounds the wax seal has left. */
-export type WaxData = { rounds: number };
+/** Rounds the wax seal has left, and the Sealer that placed it ('' = none: a stake's or the clock's). */
+export type WaxData = { rounds: number; by: string };
 
 const PAIR = /^[a-z]$/;
 const pairData = {
@@ -104,9 +104,12 @@ export const WAX_DEF: PieceDef<WaxData> = {
   token: 'wax',
   solid: 'none',
   data: {
-    init: { rounds: 2 },
-    parse: (s) => (/^[1-9]$/.test(s) ? { rounds: Number(s) } : null),
-    write: (d) => String(d.rounds),
+    init: { rounds: 2, by: '' },
+    parse: (s) => {
+      const m = /^([1-9])(?::([a-z][a-z0-9-]*))?$/.exec(s);
+      return m ? { rounds: Number(m[1]), by: m[2] ?? '' } : null;
+    },
+    write: (d) => (d.by ? `${d.rounds}:${d.by}` : String(d.rounds)),
   },
   triggers: {},
   palette: { label: 'Wax seal', lab: true },
@@ -153,6 +156,8 @@ export type ClockLiftedEvent = Ev<'clockLifted', { by: 'seal' | 'stamp' }>;
 export type ClockCollectedEvent = Ev<'clockCollected', { marks: number }>;
 /** A wax seal landed on `at` for `rounds` rounds (P8). */
 export type SealedEvent = Ev<'sealed', { rounds: number }> & { at: Coord };
+/** A wax seal at `at` ended early: it `melted` in fire, or its Sealer fell (IQ-5b). Wearing out is silent. */
+export type UnsealedEvent = Ev<'unsealed', { why: 'melted' | 'sealer' }> & { at: Coord };
 
 export type InkEvent =
   | SentBackEvent
@@ -164,7 +169,8 @@ export type InkEvent =
   | ClockServedEvent
   | ClockLiftedEvent
   | ClockCollectedEvent
-  | SealedEvent;
+  | SealedEvent
+  | UnsealedEvent;
 export type InkEventType = InkEvent['type'];
 
 export const INK_EVENT_TYPES = [
@@ -178,4 +184,5 @@ export const INK_EVENT_TYPES = [
   'inkQuarter:clockLifted',
   'inkQuarter:clockCollected',
   'inkQuarter:sealed',
+  'inkQuarter:unsealed',
 ] as const satisfies readonly InkEventType[];

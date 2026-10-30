@@ -80,7 +80,7 @@ describe('IQ-W0 registrations', () => {
     expect(PLAYABLE_DISTRICTS).not.toContain('inkQuarter');
   });
 
-  test('the writ pieces parse and write their tokens; only the return stamp has a trigger (IQ-1)', () => {
+  test('the writ pieces parse and write their tokens; only the return stamp and the wax seal have triggers (IQ-1, IQ-5b)', () => {
     const s = parseBoard('{return} {order} {forward:b} {address:b} {wax:1} {stamp}');
     const pieces = s.tiles.slice(0, 6).map((t) => t.piece);
     expect(pieces.map((p) => p?.id)).toEqual([
@@ -102,7 +102,12 @@ describe('IQ-W0 registrations', () => {
     for (const p of pieces) {
       const def = p ? KIT.pieces[p.id] : undefined;
       expect(def?.solid).toBe('none');
-      const triggers = p?.id === 'inkQuarter:return' ? ['onArrive'] : [];
+      const triggers =
+        p?.id === 'inkQuarter:return'
+          ? ['onArrive']
+          : p?.id === 'inkQuarter:wax'
+            ? ['onArrive', 'onTurnEnd']
+            : [];
       expect(Object.keys(def?.triggers ?? {})).toEqual(triggers);
     }
     expect(() => parseBoard('{forward:7}')).toThrow();
