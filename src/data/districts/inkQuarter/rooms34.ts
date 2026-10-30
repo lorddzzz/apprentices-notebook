@@ -50,17 +50,17 @@ function room(
   };
 }
 
-/** Room 3, *The tube hall* (6x9): adds forwarding; a Sealer and two dead letters. */
+/** Room 3, *The tube hall* (6x9): adds forwarding; a Sealer and five dead letters. */
 const INK_3: readonly EncounterVariant[] = [
   {
     name: 'The brass tubes',
     layout: board([
       '. . z . . .',
       'x . . . . {address:a}',
-      '. . . . x .',
+      '. . . x x .',
       '. {forward:a} . . . .',
-      '. . {return} . . .',
-      '. . . . . .',
+      'x . {return} . . .',
+      '. . . x . .',
       'P . P . P .',
       '. . . . . .',
       '. . . . . P',
@@ -70,10 +70,10 @@ const INK_3: readonly EncounterVariant[] = [
     name: 'The pneumatic line',
     layout: board([
       '. . . . z .',
-      '. x . . . .',
+      '. x . x . .',
       '{address:a} . . . x .',
-      '. . . {forward:a} . .',
-      '. {return} . . . .',
+      '. x . {forward:a} . .',
+      '. {return} . . x .',
       '. . . . . .',
       'P . . P . .',
       '. P . . . .',
@@ -84,10 +84,10 @@ const INK_3: readonly EncounterVariant[] = [
     name: 'The carriage drop',
     layout: board([
       'x . . . z .',
+      '. . . x . .',
+      '. {forward:a} . . x x',
       '. . . . . .',
-      '. {forward:a} . . . x',
-      '. . . . . .',
-      '. . {return} . {address:a} .',
+      '. x {return} . {address:a} .',
       '. . . . . .',
       'P . . P . .',
       '. . P . . .',
@@ -96,15 +96,15 @@ const INK_3: readonly EncounterVariant[] = [
   },
 ];
 
-/** Room 4, *The ledger stacks* (6x9): all three writs; a Sealer, a Sorter, two dead letters. */
+/** Room 4, *The ledger stacks* (6x9): all three writs; two Sorters, a Sealer, three dead letters. */
 const INK_4: readonly EncounterVariant[] = [
   {
     name: 'The long shelves',
     layout: board([
       '. z . . u .',
-      'x . . . . x',
+      'x . . u . x',
       '. . {order} {order} . {address:a}',
-      '. {forward:a} . . . .',
+      '. {forward:a} . . x .',
       '. . . . {return} .',
       '. . . . . .',
       'P . P . . .',
@@ -116,11 +116,11 @@ const INK_4: readonly EncounterVariant[] = [
     name: 'The indexed aisle',
     layout: board([
       '. . u . z .',
-      '. x . . . .',
+      '. x . . u .',
       '{order} . . . x .',
       '. . {address:a} . . {order}',
       '. {return} . {forward:a} . .',
-      '. . . . . .',
+      '. . . . x .',
       'P . . P . .',
       '. P . . . .',
       '. . . . . P',
@@ -130,9 +130,9 @@ const INK_4: readonly EncounterVariant[] = [
     name: 'The archive cage',
     layout: board([
       'x . . . u .',
-      '. . . z . .',
+      '. u . z . .',
       '. {forward:a} . . . x',
-      '{order} . . {address:a} . .',
+      '{order} . . {address:a} x .',
       '. . {return} . {order} .',
       '. . . . . .',
       'P . . . P .',

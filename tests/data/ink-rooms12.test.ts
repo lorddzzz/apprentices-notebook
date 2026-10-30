@@ -45,16 +45,18 @@ describe('ink rooms 1 and 2 (IQ-9)', () => {
     }
   });
 
-  test('foes per room: room 1 three dead letters; room 2 a Sorter and two dead letters', () => {
+  test('foes per room: room 1 six dead letters; room 2 a Sorter and four dead letters', () => {
     const defs = (layout: string) =>
       parseBoard(layout)
         .units.map((u) => u.def)
         .sort()
         .join(',');
     for (const v of one.variants)
-      expect(defs(v.layout), v.name).toBe('deadLetter,deadLetter,deadLetter');
+      expect(defs(v.layout), v.name).toBe(
+        'deadLetter,deadLetter,deadLetter,deadLetter,deadLetter,deadLetter',
+      );
     for (const v of two.variants)
-      expect(defs(v.layout), v.name).toBe('deadLetter,deadLetter,sorter');
+      expect(defs(v.layout), v.name).toBe('deadLetter,deadLetter,deadLetter,deadLetter,sorter');
   });
 
   test('writs by room: room 1 return only (3+ stamps); room 2 adds orders (2+)', () => {

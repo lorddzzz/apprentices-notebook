@@ -41,16 +41,16 @@ function room(
   };
 }
 
-/** Room 1, *The sorting hall* (6x8): return stamps only; three dead letters. */
+/** Room 1, *The sorting hall* (6x8): return stamps only; six dead letters. */
 const INK_1: readonly EncounterVariant[] = [
   {
     name: 'The pigeonholes',
     layout: board([
       'x . . . . x',
       '. . {return} . {return} .',
-      '. . . x . .',
+      '. x . x . x',
       '. . . . . .',
-      '. {return} . . . .',
+      'x {return} . . . .',
       '. . . . . .',
       'P . P . P .',
       '. . . . . P',
@@ -60,10 +60,10 @@ const INK_1: readonly EncounterVariant[] = [
     name: 'The franking desk',
     layout: board([
       '. x . . x .',
-      '. . . . . .',
+      '. . x . . .',
       '{return} . . {return} . x',
-      '. . . . . .',
-      '. . {return} . . .',
+      '. . . . x .',
+      '. . {return} x . .',
       'P . . . . P',
       '. . . . . .',
       '. P . . P .',
@@ -72,11 +72,11 @@ const INK_1: readonly EncounterVariant[] = [
   {
     name: 'The chute',
     layout: board([
-      'x . . . . .',
+      'x . . . . x',
       '. . x . . .',
       '. {return} . {return} . x',
       '. . . . . .',
-      '. . . . . .',
+      '. x . . x .',
       '. . {return} . . .',
       'P P . . P .',
       '. . . . . P',
@@ -84,14 +84,14 @@ const INK_1: readonly EncounterVariant[] = [
   },
 ];
 
-/** Room 2, *The blotting room* (6x9): adds the standing order; a Sorter and two dead letters. */
+/** Room 2, *The blotting room* (6x9): adds the standing order; a Sorter and four dead letters. */
 const INK_2: readonly EncounterVariant[] = [
   {
     name: 'The blotter rack',
     layout: board([
       '. . u . . .',
       'x . . . . x',
-      '. . {order} {order} . .',
+      '. x {order} {order} x .',
       '. . . . . .',
       '. {return} . . {return} .',
       '. . . . . .',
@@ -105,9 +105,9 @@ const INK_2: readonly EncounterVariant[] = [
     layout: board([
       '. . . . u .',
       'x . . . . .',
-      '. {order} . . . x',
+      '. {order} . x . x',
       '. . . {return} . .',
-      '. . . . . .',
+      '. x . . . .',
       '. {return} {order} . . .',
       '. . . . . .',
       'P . . . P .',
@@ -119,9 +119,9 @@ const INK_2: readonly EncounterVariant[] = [
     layout: board([
       'x . . . . .',
       '. . u . . .',
-      '. . . . . x',
+      '. . . x . x',
       '{order} . {return} . {order} .',
-      '. . . . . .',
+      '. x . . . .',
       '. {return} . . . .',
       '. . . . . .',
       'P . . P . .',

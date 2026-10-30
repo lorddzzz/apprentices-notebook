@@ -67,3 +67,19 @@ Yes: with a fresh party every room is won 100% of the time in 2 to 6 rounds, and
 - Room 4 (ledger stacks): two Sorters plus letters; today it falls in 3 rounds.
 - Heart: the clock never comes due in 5 rounds; move the first deadline to round 3 (or serve on round 1) so answering it matters.
 - A tighter `withinRounds` only bites once rooms take longer; retune after the layouts change.
+
+## Hardened (post-IQ-20)
+
+Reduced sample: 30 seeds per room, founding pair, fresh party (seeds 1000-1029). Layouts and `CLOCK_TUNING` only; no engine change.
+
+| room | before (win / median / max) | after |
+|---|---|---|
+| 1 | 100% / 2 / 2 | 100% / 3 / 3 (6 dead letters, was 3) |
+| 2 | 100% / 2 / 3 | 100% / 3 / 4 (Sorter + 4 dead letters, was 2) |
+| 3 | 100% / 3 / 4 | 100% / 4 / 6 (5 dead letters, was 2) |
+| 4 | 100% / 3 / 4 | 100% / 4 / 5 (two Sorters, 3 dead letters) |
+| heart | 100% / 5 / 6 | 100% / 5 / 6 (roster and clock unchanged) |
+
+- `CLOCK_TUNING` left unchanged (deadline 3, cooldown 2). The bot answers the clock whatever the number: with deadline 2 and cooldown 1, 80 heart fights gave 91 serves and 0 collections; deadline 1 gave 3 collections in 49 fights. Engine tests (ink-clock, ink-standin) also hard-code serve+3, so a change needs those updated.
+- Terms re-checked (30 seeds, every term and room): all won 30/30 and paid 30/30, so sampler 5, bind 6, wax 7 stand. Bind's limit is now the room-3 max (6): no slack.
+- Not reached: the 85-95% room win rate and a 60-80% heart win rate. The postal foes cannot damage the party (dead letters and Sorters have no attack, the Sealer only holds), so a fresh party can only lose by stalling. More rounds, not more losses, is all layouts can buy. The heart needs a damaging foe, a larger `collect`, or a sturdier clock seal (data/engine outside this pass).

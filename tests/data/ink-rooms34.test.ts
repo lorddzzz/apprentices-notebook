@@ -65,9 +65,11 @@ describe('ink rooms 3, 4 and the heart (IQ-10)', () => {
 
   test('foes per room; the heart matches HEART_ROSTER', () => {
     for (const v of three.variants)
-      expect(defs(v.layout), v.name).toBe('deadLetter,deadLetter,sealer');
+      expect(defs(v.layout), v.name).toBe(
+        'deadLetter,deadLetter,deadLetter,deadLetter,deadLetter,sealer',
+      );
     for (const v of four.variants)
-      expect(defs(v.layout), v.name).toBe('deadLetter,deadLetter,sealer,sorter');
+      expect(defs(v.layout), v.name).toBe('deadLetter,deadLetter,deadLetter,sealer,sorter,sorter');
     for (const v of heart.variants)
       expect(defs(v.layout), v.name).toBe([...HEART_ROSTER].sort().join(','));
   });

@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** building (window 2026-10-30, fresh chain: 2 wake-ups available). Running: **room hardening** (IQ-20 follow-up: rooms 1–4 layouts, heart clock deadline, re-run tables). Merged this window: IQ-20 (bot wins every room 100%: hardening running), IQ-19, **gate flip + IQ-13 (quarter playable, live)**, IQ-17, IQ-9, IQ-4, IQ-6, IQ-11, IQ-14, IQ-7, DK-10, IQ-16, IQ-10, IQ-12, IQ-15. 5h 82% at 08:56Z (reset 11:20Z, Narrow: one agent), weekly 50%.
+**State:** building (window 2026-10-30, fresh chain: 2 wake-ups available). Running: none. Merged this window: IQ-20 + room hardening (rooms longer; still 100% wins), IQ-19, **gate flip + IQ-13 (quarter playable, live)**, IQ-17, IQ-9, IQ-4, IQ-6, IQ-11, IQ-14, IQ-7, DK-10, IQ-16, IQ-10, IQ-12, IQ-15. 5h 82% at 08:56Z (reset 11:20Z, Narrow: one agent), weekly 50%.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (new chain 2026-10-30: 0 used). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
@@ -18,6 +18,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 3. Blocked on the player (gates): **FN-G1** footnote review rounds (`docs/design/footnotes-content/seam.md`, nine batches, §0; questions §6); **RV-G1** Lamplighter Lab playtest (gates CN-7 and RV-11+); **CN-G1** ledger texts (gates CN-9); HC, AH, RC playtests (see each plan's verification doc).
 
 ## Open questions for the player (ask in the next design round; defaults held)
+- **IQ-20 / IQ-G1:** the bot never loses an ink-quarter room with a fresh pair (staff deal 1–2, the clock seal (3 HP) is always broken in time; real trips fail only from charge attrition, heart cleared 3%). Default: playtest first; candidate levers: a real damage source on the postmaster/Sealer, `CLOCK_TUNING.collect` up, a sturdier or out-of-reach clock seal.
 - **CN-2:** shoving a moored crate crushes it (anchored = wall); a crate pushed across the mooring without stopping does not moor. Default: as built.
 - **RV-20b / RV-G1:** the rival planner never walks onto a step-jar, so the "Jar" note has no visible effect yet. (a) planner ignores jars when the note is written, (b) a different effect.
 - **RV-5 / RV-10 (RV-G1):** the wick deals ~4 damage and is planned right after the lantern lands; should the planner account for allies? Default no.
