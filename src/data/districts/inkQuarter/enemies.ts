@@ -87,4 +87,42 @@ export const SEALER: EnemyDef = {
   boss: false,
 };
 
-export const INK_ENEMIES = { deadLetter: DEAD_LETTER, sorter: SORTER, sealer: SEALER } as const;
+/** The postmaster's clock writ (P9; IQ-6). */
+export const CLOCK_TUNING = {
+  /** The deadline is the serve round plus this: unanswered at its dusk, the marks collect. */
+  deadlineAfter: 3,
+  /** Damage each collected mark deals its bearer. */
+  collect: 3,
+  /** Rounds after the writ ends (lifted or collected) before he may serve again. */
+  cooldown: 2,
+} as const;
+
+/** The postmaster's seal (P9): an anchored, inert 3-HP unit; breaking it answers the clock writ. */
+export const CLOCK_SEAL: EnemyDef = {
+  id: 'clockSeal',
+  name: "postmaster's seal",
+  token: 'q',
+  hp: 3,
+  move: 0,
+  attack: null,
+  ai: 'none',
+  behaviour: 'inkQuarter:clockSeal',
+  brass: false,
+  oilTrail: false,
+  elite: false,
+  blurb:
+    "The postmaster's seal on his writ. Break it, or stand on his stamp, before the clock runs out.",
+  habitat: 'any',
+  flies: false,
+  anchored: true,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+};
+
+export const INK_ENEMIES = {
+  deadLetter: DEAD_LETTER,
+  sorter: SORTER,
+  sealer: SEALER,
+  clockSeal: CLOCK_SEAL,
+} as const;

@@ -347,7 +347,8 @@ export type EnemyId =
   | 'barge'
   | 'deadLetter'
   | 'sorter'
-  | 'sealer';
+  | 'sealer'
+  | 'clockSeal';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
 
 /**

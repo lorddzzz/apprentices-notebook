@@ -1,3 +1,4 @@
+import { CLOCK_EVENT_LINES, CLOCK_PIECES, CLOCK_RULE, CLOCK_SEAL_FOE } from './inkQuarter/clock';
 import { INK_FOES } from './inkQuarter/foes';
 import {
   FORWARD_EVENT_LINES,
@@ -44,6 +45,7 @@ const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
     WRIT_EVENT_LINES[type] ??
     FORWARD_EVENT_LINES[type] ??
     WAX_EVENT_LINES[type] ??
+    CLOCK_EVENT_LINES[type] ??
     TERM_EVENT_DEFS.find((d) => d.type === type) ?? {
       type,
       describe: () => type.slice('inkQuarter:'.length),
@@ -52,13 +54,13 @@ const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
 
 export const INK_QUARTER_MODULE: DistrictModule = {
   id: 'inkQuarter',
-  rules: [WRITS_RULE, FORWARDS_RULE, STAKES_RULE],
+  rules: [WRITS_RULE, FORWARDS_RULE, CLOCK_RULE, STAKES_RULE],
   harmGuards: [FORWARD_GUARD],
   pieces: INK_BASE_PIECES.map(
-    (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? p,
+    (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? CLOCK_PIECES[p.id] ?? p,
   ),
   events,
-  foes: INK_FOES,
+  foes: [...INK_FOES, CLOCK_SEAL_FOE],
   trip: shape,
   offerKinds: [TERMED_KIND],
 };
