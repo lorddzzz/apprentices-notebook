@@ -6,6 +6,7 @@ import {
   FORWARDS_RULE,
 } from './inkQuarter/forward';
 import { TERMED_KIND } from './inkQuarter/offers';
+import { inkAfterRoom, STAKES_RULE, stakeSetup } from './inkQuarter/stakes';
 import { TERM_EVENT_DEFS, TERM_HOOKS } from './inkQuarter/terms';
 import {
   INK_BASE_PIECES,
@@ -31,6 +32,10 @@ const shape: TripShapeDef<InkTripState> = {
   parseState: parseInkState,
   initState: initInkState,
   ...TERM_HOOKS,
+  roomSetup: stakeSetup,
+  // The broken term's page goes back (IQ-3), then its ink (IQ-4).
+  lootAfterRoom: (input) =>
+    inkAfterRoom(input, TERM_HOOKS.lootAfterRoom?.(input) ?? input.trip.loot),
 };
 
 /** Log lines: the writs' (IQ-1), forwarding's (IQ-2) and the terms' (IQ-3), else the event's name (IQ-6 writes its own). */
@@ -47,7 +52,7 @@ const events: readonly DistrictEventDef[] = INK_EVENT_TYPES.map(
 
 export const INK_QUARTER_MODULE: DistrictModule = {
   id: 'inkQuarter',
-  rules: [WRITS_RULE, FORWARDS_RULE],
+  rules: [WRITS_RULE, FORWARDS_RULE, STAKES_RULE],
   harmGuards: [FORWARD_GUARD],
   pieces: INK_BASE_PIECES.map(
     (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? p,

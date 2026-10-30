@@ -75,6 +75,7 @@ describe('round-end rule slots (P8)', () => {
     expect(slotRules('late', boardRules()).map((r) => r.id)).toEqual([
       'inkQuarter:writs',
       'inkQuarter:forwards',
+      'inkQuarter:stakes',
     ]);
   });
 });
