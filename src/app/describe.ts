@@ -10,9 +10,11 @@ import {
   type HabitId,
   IDIOMS,
   isApprenticeId,
+  LINES,
   type LineId,
   MEMBERS,
   METHODS,
+  RIVAL_TRICK_TEXT,
   RUNES,
   type RuneId,
   type SchoolId,
@@ -29,6 +31,7 @@ import {
   type Coord,
   canUndoMove,
   castableSpells,
+  type Dir,
   type EnemyUnit,
   findUnit,
   firstRune,
@@ -44,6 +47,7 @@ import {
   type MemberUnit,
   maskPreview,
   members,
+  parseLattice,
   sameCoord,
   spellOf,
   step,
@@ -57,7 +61,7 @@ import {
 import { behaviourVerb } from '$engine/behaviours';
 import { KIT } from '$engine/districts/kit';
 import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
-import { dryStrikeIntent, rivalVerb } from '$engine/rivals/resolve';
+import { dryStrikeIntent, rivalDefOf, rivalVerb } from '$engine/rivals/resolve';
 import type { Telegraph } from '$engine/rivals/types';
 import { jarLocation } from '$engine/rivals/wick';
 import type { InputMode } from './battleInput';
@@ -698,4 +702,93 @@ export function lootName(item: LootItem): string {
 /** "the flooded stair", "the Heart of the Seam": a place name inside a sentence. */
 export function inSentence(place: string): string {
   return place.startsWith('The ') ? `the ${place.slice(4)}` : `the ${place}`;
+}
+
+// ── The rival sheet (RV-8) ──────────────────────────────
+
+/** One rune on a rival spell's drawing, placed on a small grid (column and row from 0). */
+export interface RivalSheetCell {
+  col: number;
+  row: number;
+  rune: RuneId;
+  dir: Dir | undefined;
+}
+
+/** One spell of a rival's kit, drawn read-only. */
+export interface RivalSheetSpell {
+  id: string;
+  name: string;
+  charges: number;
+  max: number;
+  cols: number;
+  rows: number;
+  cells: RivalSheetCell[];
+  /** The ordinary headline of each distinct rune, in reading order (D1: always true, always shown). */
+  headlines: { rune: RuneId; name: string; text: string }[];
+  /** Fine print the household has witnessed for these runes: unwitnessed lines are never listed. */
+  fine: string[];
+}
+
+/** What selecting a rival shows (rivals §1: reading a rival). */
+export interface RivalSheetView {
+  name: string;
+  hp: number;
+  maxHp: number;
+  blurb: string;
+  spells: RivalSheetSpell[];
+  /** The signature trick, shown apart from the spells: his alone. */
+  trick: { name: string; text: string } | null;
+  /** The current plan in one sentence. */
+  plan: string;
+}
+
+/**
+ * The rival sheet's view model: each kit spell's lattice, ordinary headlines, charges left, the
+ * trick, and the plan as shown. Fine print appears only for lines in `witnessed` (null = none).
+ */
+export function rivalSheet(
+  s: BattleState,
+  e: EnemyUnit,
+  witnessed: ReadonlySet<LineId> | null = null,
+): RivalSheetView | null {
+  const def = rivalDefOf(e);
+  if (!def || !e.rival) return null;
+  const spells = def.spells.map((sp): RivalSheetSpell => {
+    const placed = parseLattice(sp.lattice).runes.flatMap((p) =>
+      'rune' in p && p.rune in RUNES ? [{ at: p.at, rune: p.rune as RuneId, dir: p.dir }] : [],
+    );
+    const minX = Math.min(...placed.map((p) => p.at.x));
+    const minY = Math.min(...placed.map((p) => p.at.y));
+    const maxX = Math.max(...placed.map((p) => p.at.x));
+    const maxY = Math.max(...placed.map((p) => p.at.y));
+    const runes = [...new Set(placed.map((p) => p.rune))];
+    return {
+      id: sp.id,
+      name: sp.name,
+      charges: e.rival?.charges[sp.id] ?? 0,
+      max: sp.charges,
+      cols: placed.length ? maxX - minX + 1 : 0,
+      rows: placed.length ? maxY - minY + 1 : 0,
+      cells: placed.map((p) => ({
+        col: p.at.x - minX,
+        row: p.at.y - minY,
+        rune: p.rune,
+        dir: p.dir,
+      })),
+      headlines: runes.map((r) => ({ rune: r, name: RUNES[r].name, text: RUNES[r].headline })),
+      fine: LINES.filter(
+        (l) => runes.some((r) => r === l.subject) && witnessed?.has(l.id) === true,
+      ).map((l) => l.text),
+    };
+  });
+  const trick = def.trick
+    ? (RIVAL_TRICK_TEXT[def.trick] ?? { name: def.trick, text: 'His alone.' })
+    : null;
+  const plan =
+    e.hp <= 0
+      ? 'Defeated.'
+      : e.intent
+        ? `${def.name} ${intentPhrase(s, e)}.`
+        : `${def.name} is waiting.`;
+  return { name: def.name, hp: e.hp, maxHp: e.maxHp, blurb: def.blurb, spells, trick, plan };
 }

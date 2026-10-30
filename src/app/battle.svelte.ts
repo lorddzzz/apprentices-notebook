@@ -7,6 +7,7 @@ import {
   type GameEvent,
   type SpellKey,
   type UnitId,
+  unitAt,
   witnessedIn,
 } from '$engine';
 import {
@@ -26,7 +27,13 @@ import {
   selectedOf,
   unspentCasters,
 } from './battleInput';
-import { type Caption, hintFor, threatenedMembers } from './describe';
+import {
+  type Caption,
+  hintFor,
+  type RivalSheetView,
+  rivalSheet,
+  threatenedMembers,
+} from './describe';
 import { castLead, type Fx } from './fx';
 import { EMPTY_OVERLAY, type Overlay, overlayFor } from './overlay';
 import { holdLine } from './peek';
@@ -112,6 +119,15 @@ export class BattleSession {
   /** Stays put during playback so the party strip and action bar don't jump. */
   get selected(): UnitId | null {
     return selectedOf(this.input);
+  }
+
+  /** The rival being read (a tap on his tile), as the sheet shows him; fine print only if witnessed (RV-8). */
+  get rivalSheet(): RivalSheetView | null {
+    if (this.input.kind !== 'inspect') return null;
+    const u = unitAt(this.state, this.input.at);
+    return u?.kind === 'enemy' && u.rival
+      ? rivalSheet(this.state, u, this.ctx.witnessed ?? null)
+      : null;
   }
 
   get threatened(): string[] {

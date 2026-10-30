@@ -17,6 +17,7 @@
   import Footer from './Footer.svelte';
   import LogSheet from './LogSheet.svelte';
   import PartyStrip from './PartyStrip.svelte';
+  import RivalSheet from './RivalSheet.svelte';
 
   interface Props {
     session: BattleSession;
@@ -153,6 +154,7 @@
   />
 </section>
 
+<RivalSheet view={session.rivalSheet} onclose={() => session.cancel()} />
 <LogSheet open={logOpen} log={session.log} onclose={() => (logOpen = false)} />
 
 <style>
