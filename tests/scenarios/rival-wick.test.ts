@@ -15,6 +15,7 @@ import { runDraft } from '$engine/ctx';
 import { sealJar } from '$engine/jars';
 import { resolveRivalIntent } from '$engine/rivals/resolve';
 import { driftWaiting } from '$engine/solvents';
+import { projectWith, viewOf } from '../../src/app/view';
 import { act, board, cast, draft, withLattices } from './harness';
 
 /** The long wick (rivals §2, RV-3): an object lock on one named jar. */
@@ -80,6 +81,20 @@ describe('the wick opens the named jar', () => {
     const s = lay(board(BOARD, { pins: { D2: wick(1) } }), 'D2');
     const r = act(s, endTurn);
     expect(hp(r.state, rivalOf(s).id)).toBeLessThan(rivalOf(s).hp);
+  });
+});
+
+describe('the wick is spent when it resolves', () => {
+  test('a trickUsed event comes first, so the view clears the shown intent', () => {
+    const s = lay(board(BOARD, { pins: { D2: wick(1) } }), 'A3');
+    const r = act(s, endTurn);
+    const used = r.events.findIndex((e) => e.type === 'trickUsed');
+    expect(used).toBeGreaterThanOrEqual(0);
+    expect(used).toBeLessThan(r.events.findIndex((e) => e.type === 'jarOpened'));
+    // The first events are the resolve phase; project only up to the wick's own.
+    const upTo = r.events.slice(0, used + 1).reduce((v, e) => projectWith(v, e), viewOf(s));
+    expect(viewOf(s).units.find((u) => u.id === rivalOf(s).id)?.intent).not.toBeNull();
+    expect(upTo.units.find((u) => u.id === rivalOf(s).id)?.intent).toBeNull();
   });
 });
 

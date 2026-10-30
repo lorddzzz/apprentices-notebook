@@ -321,6 +321,7 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'named':
     case 'rivalPlans':
     case 'castFails':
+    case 'trickUsed':
     case 'orderFails':
     case 'pageRecovered':
       return [];

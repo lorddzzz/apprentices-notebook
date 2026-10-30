@@ -348,6 +348,7 @@ const SAMPLES = {
   },
   castFails: { type: 'castFails', unit: rat, spell: 'Lantern', at: a },
   fallbackStrike: { type: 'fallbackStrike', unit: rat, at: a, target: stoker, damage: 1 },
+  trickUsed: { type: 'trickUsed', unit: rat, trick: 'canals:longWick', name: 'the long wick' },
   orderFails: { type: 'orderFails', unit: rat, object: { kind: 'jar', id: 1 }, why: 'erased' },
   pageRecovered: { type: 'pageRecovered', page: 'lamplighter:lantern' },
   moored: { type: 'moored', unit: rat, at: a },
@@ -375,6 +376,7 @@ const NO_PICTURE: readonly GameEvent['type'][] = [
   'stateFades',
   'rivalPlans',
   'castFails',
+  'trickUsed',
   'orderFails',
   'pageRecovered',
 ];

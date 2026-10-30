@@ -72,12 +72,11 @@ const paint = (scene: Scene, x: number, y: number, item: string): Scene => {
 };
 
 describe('the Lab palette lists the registries', () => {
-  test('every registered foe is there, in registry order, but no rival shell', () => {
+  test('every registered foe is there, in registry order, the Lamplighter included (RV-9)', () => {
     const foes = PALETTE.filter((e) => ENEMY_IDS.some((id) => ENEMIES[id].token === e.item));
-    const painted = ENEMY_IDS.filter((id) => id !== 'lamplighter').map((id) => ENEMIES[id].token);
-    expect(foes.map((e) => e.item)).toEqual(painted);
+    expect(foes.map((e) => e.item)).toEqual(ENEMY_IDS.map((id) => ENEMIES[id].token));
     expect(foes.find((e) => e.item === 'e')?.name).toBe('Eel');
-    expect(PALETTE.some((e) => e.item === 'L')).toBe(false);
+    expect(PALETTE.find((e) => e.item === 'L')?.name).toBe('Lamplighter');
   });
 
   test('pieces appear when the kit registers them for the Lab, in front of the eraser', () => {

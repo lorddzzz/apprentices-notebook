@@ -291,6 +291,12 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
       "rat at C2's strike at C3 finds no one",
     ],
   ],
+  trickUsed: [
+    [
+      { type: 'trickUsed', unit: rat, trick: 'canals:longWick', name: 'the long wick' },
+      'rat at C2 uses the long wick',
+    ],
+  ],
   orderFails: [
     [
       { type: 'orderFails', unit: rat, object: { kind: 'jar', id: 1 }, why: 'ownerChanged' },

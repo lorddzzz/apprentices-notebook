@@ -192,6 +192,8 @@ export type RivalEvent =
   | { type: 'castFails'; unit: UnitRef; spell: string; at: Coord }
   /** The starved-chain strike at its pre-shown tile; `target` null = defeated (left, out of reach). */
   | { type: 'fallbackStrike'; unit: UnitRef; at: Coord; target: UnitRef | null; damage: number }
+  /** A rival's action trick resolves (its telegraphed intent is spent), before whatever it does. */
+  | { type: 'trickUsed'; unit: UnitRef; trick: TrickId; name: string }
   | { type: 'orderFails'; unit: UnitRef; object: ObjectRef; why: LockLost }
   | { type: 'pageRecovered'; page: RivalPageId };
 

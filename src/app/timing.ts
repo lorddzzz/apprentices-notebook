@@ -78,6 +78,7 @@ export function durationOf(e: GameEvent): number {
     case 'scheduled':
     case 'rivalPlans':
     case 'castFails':
+    case 'trickUsed':
     case 'orderFails':
     case 'pageRecovered':
       return STEP_MS.short;

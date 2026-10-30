@@ -457,6 +457,20 @@ test('drift carries a float one tile and drops it past the end of the lane', () 
   expect(tile(v0, 1, 1)?.state).toBe('fire');
 });
 
+test('drift: fire joins whatever floats on the tile it reaches, and wins', () => {
+  for (const there of ['slick', 'blot', 'stain', 'fire'] as const) {
+    const v0 = fixture();
+    Object.assign(tile(v0, 1, 1) ?? {}, { state: 'fire', rounds: 2 });
+    Object.assign(tile(v0, 2, 1) ?? {}, { state: there, rounds: 1 });
+    const v1 = project(v0, {
+      type: 'drift',
+      floats: [{ from: { x: 1, y: 1 }, to: { x: 2, y: 1 } }],
+      units: [],
+    });
+    expect(tile(v1, 2, 1)).toMatchObject({ state: 'fire', rounds: 2 });
+  }
+});
+
 test('drift moves units named in the event', () => {
   const v1 = project(fixture(), {
     type: 'drift',

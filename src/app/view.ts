@@ -327,6 +327,9 @@ function clearMark(u: UnitView): void {
   u.lineage = null;
 }
 
+/** The states a current carries (the engine's `FLOATS`). */
+const DRIFTS: ReadonlySet<string> = new Set(['slick', 'fire', 'blot', 'stain']);
+
 /** Lifts what floats on each source tile and sets it down downstream (the engine's merge rules). */
 function driftTiles(v: BoardView, floats: readonly { from: Coord; to: Coord | null }[]): void {
   const lifted = floats.map((f) => {
@@ -342,7 +345,8 @@ function driftTiles(v: BoardView, floats: readonly { from: Coord; to: Coord | nu
     const cargo = lifted[i];
     const dest = f.to && tileOf(v, f.to);
     if (!cargo?.state || !dest) return;
-    if (dest.state === null || (cargo.state === 'fire' && dest.state === 'slick')) {
+    // Fire joins whatever floats there (a slick, a blot, a stain or other fire): it wins.
+    if (dest.state === null || (cargo.state === 'fire' && DRIFTS.has(dest.state))) {
       dest.state = cargo.state;
       dest.rounds = cargo.rounds;
       dest.hits = cargo.hits;
@@ -722,6 +726,7 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'attack':
     case 'castFails':
     case 'fallbackStrike':
+    case 'trickUsed':
     case 'orderFails':
       patchUnit(v, e.unit.id, (u) => {
         u.intent = null;

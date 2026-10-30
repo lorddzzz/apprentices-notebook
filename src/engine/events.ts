@@ -427,6 +427,8 @@ export function describe(e: GameEvent): string | null {
       return e.target
         ? `${who(e.unit)} strikes ${label(e.at)} instead`
         : `${who(e.unit)}'s strike at ${label(e.at)} finds no one`;
+    case 'trickUsed':
+      return `${who(e.unit)} uses ${e.name}`;
     case 'orderFails':
       return `${who(e.unit)}'s order fails: its ${e.object.kind} is ${LOCK_LOST[e.why]}`;
     case 'pageRecovered':

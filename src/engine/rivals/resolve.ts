@@ -255,6 +255,7 @@ export function resolveRivalIntent(
     emit(ctx, { type: 'idle', unit: ref(e) });
     return;
   }
+  emit(ctx, { type: 'trickUsed', unit: ref(e), trick: intent.trick, name: trick.name });
   const from = ctx.log.length;
   r.trick = trick.action.resolve(ctx, e, intent, r.trick);
   if (isStarved(ctx.log.slice(from))) fallbackStrike(ctx, e, intent.fallback);

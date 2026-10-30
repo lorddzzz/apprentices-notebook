@@ -259,6 +259,7 @@ const EVENT_TYPE_SET: Record<GameEvent['type'], true> = {
   castFails: true,
   fallbackStrike: true,
   orderFails: true,
+  trickUsed: true,
   pageRecovered: true,
   outOfRoom: true,
   moored: true,

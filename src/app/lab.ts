@@ -29,7 +29,6 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
-import { RIVAL_TOKENS } from '$data/rivals';
 import {
   type Action,
   type BattleSpec,
@@ -542,10 +541,6 @@ export interface PaletteEntry {
   piece?: { art: string; data: Json };
 }
 
-/** Foe shells the palette never paints (a rival's token parses only in its own scenario). */
-const rivalFoes = (): Set<string> =>
-  new Set(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
-
 const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /**
@@ -558,14 +553,13 @@ export function paletteOf(
   pieces: 'lab' | 'all' = 'lab',
   roster: readonly ApprenticeId[] = APPRENTICE_IDS,
 ): readonly PaletteEntry[] {
-  const rivals = rivalFoes();
   return [
     ...APPRENTICE_IDS.filter((id) => roster.includes(id)).map((id) => ({
       item: APPRENTICES[id].token,
       name: APPRENTICES[id].name,
     })),
     { item: 'P', name: 'Start point (P)' },
-    ...ENEMY_IDS.filter((id) => !rivals.has(id)).map((id) => ({
+    ...ENEMY_IDS.map((id) => ({
       item: ENEMIES[id].token,
       name: capital(ENEMIES[id].name),
     })),
