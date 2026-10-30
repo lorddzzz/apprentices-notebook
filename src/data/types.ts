@@ -450,7 +450,10 @@ export type LootTableId =
   | 'heart'
   | 'canalShallow'
   | 'canalDeep'
-  | 'canalHeart';
+  | 'canalHeart'
+  | 'inkQuarter:shallow'
+  | 'inkQuarter:deep'
+  | 'inkQuarter:heart';
 /** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
 export interface EncounterVariant {
   name: string; // a short place name: 'The drainage cut'

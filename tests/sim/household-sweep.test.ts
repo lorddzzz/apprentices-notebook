@@ -61,7 +61,11 @@ function withParty(who: readonly ApprenticeId[]): Profile {
   let p: Profile = {
     ...base,
     known: [...RUNE_IDS],
-    city: { ...base.city, heard: ['seam', 'canals'], open: ['seam', 'canals'] },
+    city: {
+      ...base.city,
+      heard: ['seam', 'canals', 'inkQuarter'],
+      open: ['seam', 'canals', 'inkQuarter'],
+    },
   };
   for (const id of who) p = joinHousehold(p, id);
   for (const slot of [0, 1, 2] as SlotIndex[]) p = setSlot(p, slot, null);
@@ -134,8 +138,10 @@ function checkPlacement(s: BattleState, who: readonly ApprenticeId[], again: Bat
 }
 
 describe('rooms hold up for every party size (HC-9)', () => {
-  test('the room list covers the Seam (12) and the canals (15)', () => {
-    expect(ROOMS).toHaveLength(27);
+  test('the room list covers the Seam (12), the canals (15) and the ink quarter (5 rooms, 3 layouts each)', () => {
+    expect(ROOMS.filter((r) => r.district === 'seam')).toHaveLength(12);
+    expect(ROOMS.filter((r) => r.district === 'canals')).toHaveLength(15);
+    expect(ROOMS.filter((r) => r.district === 'inkQuarter')).toHaveLength(15);
     for (const r of ROOMS) expect(checkRoom(r.layout), r.name).toEqual([]);
   });
 
@@ -259,8 +265,10 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       const who: ApprenticeId[] = ['draughtsman', 'stoker'];
       const p = withParty(who);
       const old = [...baseline.seam, ...baseline.canals];
-      expect(old).toHaveLength(ROOMS.length);
-      ROOMS.forEach((room, i) => {
+      // The ink quarter was never a fixed-spot board: no old twin.
+      const rooms = ROOMS.filter((r) => r.district !== 'inkQuarter');
+      expect(old).toHaveLength(rooms.length);
+      rooms.forEach((room, i) => {
         // The old boards only differ from the new ones by D, S and the extra P points. The
         // canal rooms are re-laid for good (CN-3, CN-4, CN-5), so they have no old twin to compare.
         if (room.district === 'canals' && room.index <= 4) return;
@@ -282,7 +290,7 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       let drawn = 0;
       let fixed = 0;
       const table: string[] = [];
-      ROOMS.forEach((room, i) => {
+      rooms.forEach((room, i) => {
         let was = 0;
         let now = 0;
         for (const seed of seeds(n)) {
@@ -303,7 +311,7 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       });
       if (FULL) {
         console.log(
-          `${table.join('\n')}\nTOTAL fixed ${fixed} drawn ${drawn} of ${ROOMS.length * n}`,
+          `${table.join('\n')}\nTOTAL fixed ${fixed} drawn ${drawn} of ${rooms.length * n}`,
         );
         expect(drawn).toBeGreaterThanOrEqual(Math.floor(fixed * 0.8));
       }
@@ -315,7 +323,7 @@ describe('the bot plays every room with every party size (HC-9)', () => {
 // ── whole trips ─────────────────────────────────────────
 
 /** A bot trip: every fight to the end, first offer, push on; returns how far it got. */
-function botTrip(who: readonly ApprenticeId[], seed: number, district: 'seam' | 'canals') {
+function botTrip(who: readonly ApprenticeId[], seed: number, district: Room['district']) {
   let save = newSave(seed);
   save = { ...save, profile: withParty(who) };
   const nextSeed = seed;
@@ -362,7 +370,7 @@ describe('whole bot trips with one, two and three (HC-9)', () => {
       const n = FULL ? SEEDS : 2;
       const ends: Record<string, number> = {};
       let rooms = 0;
-      for (const district of ['seam', 'canals'] as const) {
+      for (const district of PLAYABLE_DISTRICTS) {
         for (const seed of seeds(n)) {
           const r = botTrip(who, seed, district);
           ends[`${district}:${r.outcome}`] = (ends[`${district}:${r.outcome}`] ?? 0) + 1;

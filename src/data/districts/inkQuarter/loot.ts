@@ -7,9 +7,6 @@ import type { InkTableId } from './types';
  * weighted offer. Bind, Wax and Sand never appear here: they come only on a term (`terms.ts`).
  * Tally is guaranteed in rooms 1-2 while the household lacks it (the notary's precondition) and
  * Lift is guaranteed at the heart, where no term can exist. All weights are *tune by playing*.
- *
- * `LOOT_TABLES` (`data/loot.ts`) cannot hold these until `LootTableId` admits the namespaced ids;
- * that is part of the gate flip, so tests register them themselves.
  */
 export interface InkLootTable {
   id: InkTableId;

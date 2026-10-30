@@ -109,10 +109,10 @@ const termedDefs = (offers: ReturnType<typeof offersAt>) =>
 
 // ── Integrity ───────────────────────────────────────────
 describe('the quarter as data', () => {
-  test('it keeps the drawn gate this build, with the plan P7 return policy and its tables', () => {
+  test('it is playable behind its threshold, with the plan P7 return policy and its tables', () => {
     expect(KIT.id).toBe('inkQuarter');
-    expect(KIT.gate.kind).toBe('drawing');
-    expect(PLAYABLE_DISTRICTS).not.toContain('inkQuarter');
+    expect(KIT.gate.kind).toBe('threshold');
+    expect(PLAYABLE_DISTRICTS).toContain('inkQuarter');
     expect(KIT.ret).toEqual({ kind: 'any' });
     expect(KIT.lean).toEqual({ lean: 'ink', text: 'Ink' });
     expect(KIT.map.label).toBe('above');

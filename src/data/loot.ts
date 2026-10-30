@@ -1,3 +1,4 @@
+import { INK_LOOT_TABLES } from './districts/inkQuarter/loot';
 import type { LootEntry, LootTableDef, LootTableId, MethodId, RuneId, SolventId } from './types';
 
 const rune = (r: RuneId, weight: number): LootEntry => ({
@@ -23,6 +24,7 @@ const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount:
  * their solvents (Pitch, Wick).
  */
 export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
+  ...INK_LOOT_TABLES,
   shallow: {
     id: 'shallow',
     entries: [

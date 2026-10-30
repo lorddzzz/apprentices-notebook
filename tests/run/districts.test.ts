@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { DISTRICT_IDS, DISTRICTS, ENCOUNTERS, encountersOf } from '$data';
+import { DISTRICT_IDS, DISTRICTS, ENCOUNTERS, encountersOf, PLAYABLE_DISTRICTS } from '$data';
 import { DISTRICT_KIT } from '$data/districts/index';
 import {
   createBattle,
@@ -65,9 +65,9 @@ describe('the city this build (P2, P3)', () => {
     for (const d of DISTRICT_IDS) expect(['wall', 'drop']).toContain(DISTRICTS[d].edge);
   });
 
-  test('the five other districts are heard of, barred and have no rooms', () => {
-    const drawn = DISTRICT_IDS.filter((d) => d !== 'seam' && d !== 'canals');
-    expect(drawn).toHaveLength(5);
+  test('the four other districts are heard of, barred and have no rooms', () => {
+    const drawn = DISTRICT_IDS.filter((d) => !PLAYABLE_DISTRICTS.includes(d));
+    expect(drawn).toHaveLength(4);
     for (const d of drawn) {
       const def = DISTRICTS[d];
       expect(def.gate.kind, d).toBe('drawing');

@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { PLAYABLE_DISTRICTS } from '$data';
+import { LOOT_TABLES, PLAYABLE_DISTRICTS } from '$data';
 import { DISTRICTS } from '$data/districts/index';
-import { INK_INTRUSION_STUB } from '$data/districts/inkQuarter/types';
+import { HEART_RULES } from '$data/districts/inkQuarter/rooms34';
+import { INK_THRESHOLD } from '$data/districts/inkQuarter/threshold';
 import { KIT } from '$engine/districts';
+import { CLOCK_RULE_ID } from '$engine/districts/inkQuarter/clock';
 import {
   INK_EVENT_TYPES,
   INK_SHAPE,
@@ -14,6 +16,7 @@ import {
 } from '$engine/districts/inkQuarter/types';
 import { parseBoard } from '$engine/notation';
 import { pieceToken } from '$engine/pieces';
+import { shapeOf } from '$engine/trip/shape';
 
 /** IQ-W0: the quarter's contracts are registered and inert; the trip state reads strictly. */
 describe('IQ-W0 trip state', () => {
@@ -74,10 +77,19 @@ describe('IQ-W0 trip state', () => {
 });
 
 describe('IQ-W0 registrations', () => {
-  test('the district stays drawn and unplayable', () => {
-    expect(DISTRICTS.inkQuarter.gate).toEqual({ kind: 'drawing' });
-    expect(DISTRICTS.inkQuarter.rooms).toEqual([]);
-    expect(PLAYABLE_DISTRICTS).not.toContain('inkQuarter');
+  test('the district is playable: threshold gate, four rooms and the heart, the clock listed for the heart (IQ gate flip)', () => {
+    expect(DISTRICTS.inkQuarter.gate).toEqual({ kind: 'threshold', room: INK_THRESHOLD });
+    expect(DISTRICTS.inkQuarter.rooms.map((r) => r.heart)).toEqual([
+      false,
+      false,
+      false,
+      false,
+      true,
+    ]);
+    expect(PLAYABLE_DISTRICTS).toContain('inkQuarter');
+    expect(HEART_RULES[0]).toBe(CLOCK_RULE_ID);
+    expect(shapeOf('inkQuarter').rules).toContain(CLOCK_RULE_ID);
+    for (const r of DISTRICTS.inkQuarter.rooms) expect(LOOT_TABLES[r.loot]).toBeDefined();
   });
 
   test('the writ pieces parse and write their tokens; only the return stamp, the wax seal and the clock stamp have triggers (IQ-1, IQ-5b, IQ-6)', () => {
@@ -117,10 +129,8 @@ describe('IQ-W0 registrations', () => {
     for (const type of INK_EVENT_TYPES) expect(KIT.events[type]?.describe({ type })).toBeTruthy();
   });
 
-  test('the intrusion stub brings only the return stamp', () => {
-    expect(INK_INTRUSION_STUB.pieces).toEqual(['inkQuarter:return']);
-    expect(KIT.pieces[INK_INTRUSION_STUB.pieces[0] ?? 'inkQuarter:none']).toBeDefined();
-    // IQ-12 replaced the stub on the kit with the authored floor, which brings the same piece.
-    expect(DISTRICTS.inkQuarter.intrusion?.pieces).toEqual(INK_INTRUSION_STUB.pieces);
+  test('the lower-Seam floor brings only the return stamp', () => {
+    expect(DISTRICTS.inkQuarter.intrusion?.pieces).toEqual(['inkQuarter:return']);
+    expect(KIT.pieces['inkQuarter:return']).toBeDefined();
   });
 });

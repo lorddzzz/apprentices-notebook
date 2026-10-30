@@ -86,7 +86,7 @@ describe('Seam pages (P6)', () => {
   });
 
   test('an unplaced recruit guarantees nothing (P9): the unbuilt districts place none', () => {
-    const p = hear(newProfile(), 'inkQuarter');
+    const p = hear(newProfile(), 'bathhouses');
     expect(guaranteesFor(p, tripAt(p, 'seam', DEEP), DEEP)).toBeNull();
     const t = tripAt(p, 'seam', DEEP);
     expect(roll(p, t, offerRegistry())).toEqual(roll(p, t, null));

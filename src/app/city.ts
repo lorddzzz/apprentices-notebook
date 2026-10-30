@@ -10,7 +10,7 @@ import { type DoorState, lowerSeamOpen, ownerDoor } from '$engine/districts/lowe
 import { startCheckpoint } from './crossroads';
 
 /** The page the map is drawn on is this tall (px); `x`/`y` in the data are percents of it (BL-95). */
-export const MAP_PAGE_HEIGHT = 960;
+export const MAP_PAGE_HEIGHT = 1160;
 /** A node's caption is this wide (px); the layout check and the CSS share it. */
 export const MAP_CAPTION_WIDTH = 150;
 

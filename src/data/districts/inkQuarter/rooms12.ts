@@ -14,11 +14,9 @@ import { INK_LETTERS } from './papers';
  */
 
 /**
- * The rooms' table (P15). `LootTableId` is a closed union the loot task (IQ-8, which owns
- * `types.ts` and `LOOT_TABLES`) widens; until then the id is asserted, and nothing reads it
- * because the district is not playable.
+ * The rooms' table (P15).
  */
-const SHALLOW = 'inkQuarter:shallow' as unknown as LootTableId;
+const SHALLOW: LootTableId = 'inkQuarter:shallow';
 
 const board = (rows: readonly string[]): string => rows.join('\n');
 

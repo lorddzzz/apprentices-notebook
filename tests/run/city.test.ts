@@ -182,7 +182,7 @@ describe('rumours and trips (K-20)', () => {
       p = r.profile;
       heard.push(r.heard);
     }
-    expect(heard).toEqual([[], [], ['canals']]);
+    expect(heard).toEqual([[], [], ['canals', 'inkQuarter']]);
     expect(p.city.trips).toBe(3);
   });
 
@@ -327,7 +327,7 @@ describe('thresholds, the map and the dev toggle', () => {
     expect(cityDefaults().open).toEqual(['seam']);
     const all = openAll(newProfile());
     expect(all.city.heard).toHaveLength(7);
-    expect(all.city.open).toEqual(['seam', 'canals']);
+    expect(all.city.open).toEqual(['seam', 'canals', 'inkQuarter']);
     expect(openAll(all).city).toEqual(all.city);
   });
 });

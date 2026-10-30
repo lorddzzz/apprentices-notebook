@@ -41,7 +41,9 @@ describe('the doorway in the loot tables', () => {
   test('only the deep tables hold it, once each, at weight 1', () => {
     for (const [id, table] of Object.entries(LOOT_TABLES)) {
       const doors = table.entries.filter((e) => e.spec.kind === 'doorway');
-      expect(doors.length, id).toBe(id === 'deep' || id === 'canalDeep' ? 1 : 0);
+      expect(doors.length, id).toBe(
+        id === 'deep' || id === 'canalDeep' || id === 'inkQuarter:deep' ? 1 : 0,
+      );
       for (const d of doors) expect(d.weight).toBe(1);
     }
   });

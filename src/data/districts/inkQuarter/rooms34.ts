@@ -17,8 +17,8 @@ import { INK_LETTERS } from './papers';
  * The notary's desk (IQ-13) is a marked free tile in room 3: see `NOTARY_DESK`.
  */
 
-const DEEP = 'inkQuarter:deep' as unknown as LootTableId;
-const HEART = 'inkQuarter:heart' as unknown as LootTableId;
+const DEEP: LootTableId = 'inkQuarter:deep';
+const HEART: LootTableId = 'inkQuarter:heart';
 
 /** The clock rule the heart board runs under (the district lists it; no other room does). */
 export const HEART_RULES: readonly RuleId[] = ['inkQuarter:clock'];

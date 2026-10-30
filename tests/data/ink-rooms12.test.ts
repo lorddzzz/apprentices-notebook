@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { INK_ROOMS_12 } from '$data/districts/inkQuarter/rooms12';
 import { compiledFor, createBattle, FOUNDERS, newProfile, parseBoard } from '$engine';
-import { type Coord } from '$engine/grid';
+import type { Coord } from '$engine/grid';
 import { checkRoom } from '$engine/rooms';
 import { botFight } from '../sim/bot';
 

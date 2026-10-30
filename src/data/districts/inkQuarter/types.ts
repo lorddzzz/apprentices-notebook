@@ -1,9 +1,9 @@
 import type { KitLootSpec } from '$engine/districts/types';
-import type { IntrusionSpec, PaperDef } from '../index';
+import type { PaperDef } from '../index';
 
 /**
- * The ink-makers' quarter's data contracts (IQ-W0; ink-quarter-plan §2, §4). Types and ids only,
- * plus the inert intrusion stub: the tasks named on each block fill them in. Every number here is
+ * The ink-makers' quarter's data contracts (IQ-W0; ink-quarter-plan §2, §4). Types and ids only:
+ * the tasks named on each block fill them in. Every number here is
  * *tune by playing* and set by IQ-8 / IQ-20.
  */
 
@@ -80,18 +80,4 @@ export type InkPaperDef = PaperDef & {
   id: InkPaperId;
   district: 'inkQuarter';
   group: 'Dead letters';
-};
-
-// ── Lower Seam (P12; IQ-12, SM) ─────────────────────────
-/**
- * The writ floor, inert until SM-0 reads intrusions and IQ-12 authors the rooms: the return stamp
- * only, no rules (the snapshot rule is piece-scoped and comes with the piece). Not yet on
- * `INK_QUARTER_KIT`.
- */
-export const INK_INTRUSION_STUB: IntrusionSpec = {
-  district: 'inkQuarter',
-  pieces: ['inkQuarter:return'],
-  rules: [],
-  rooms: ['', '', ''],
-  loot: 'basics',
 };

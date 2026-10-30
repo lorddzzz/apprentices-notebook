@@ -16,6 +16,7 @@ import {
   MEMBERS,
   METHOD_IDS,
   METHODS,
+  PLAYABLE_DISTRICTS,
   RECRUITS,
   RUNE_IDS,
   RUNES,
@@ -96,8 +97,8 @@ test('every district has an edge; the Seam and the canals are walled (P3)', () =
   expect(DISTRICT_IDS).toHaveLength(7);
   for (const id of DISTRICT_IDS) expect(['wall', 'drop']).toContain(DISTRICTS[id].edge);
   expect([DISTRICTS.seam.edge, DISTRICTS.canals.edge]).toEqual(['wall', 'wall']);
-  // The five other districts are on the map, being drawn: no rooms, never open (P2).
-  for (const id of DISTRICT_IDS.slice(2)) {
+  // The four other districts are on the map, being drawn: no rooms, never open (P2).
+  for (const id of DISTRICT_IDS.filter((d) => !PLAYABLE_DISTRICTS.includes(d))) {
     expect(DISTRICTS[id].rooms, id).toEqual([]);
     expect(DISTRICTS[id].gate.kind, id).toBe('drawing');
   }

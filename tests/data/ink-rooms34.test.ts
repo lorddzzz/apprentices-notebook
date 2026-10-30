@@ -13,7 +13,7 @@ import {
 } from '$engine';
 import { CLOCK_RULE_ID } from '$engine/districts/inkQuarter/clock';
 import { HEART_ROSTER } from '$engine/districts/inkQuarter/standIn';
-import { type Coord } from '$engine/grid';
+import type { Coord } from '$engine/grid';
 import { bankPages, pagesHeld } from '$engine/rivals/pages';
 import { checkRoom } from '$engine/rooms';
 import { listRules } from '$engine/rules';
