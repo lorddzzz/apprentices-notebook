@@ -1,6 +1,7 @@
 import type { Component } from 'svelte';
 import type { DistrictId } from '$data';
-import type { DistrictEvent, PreviewShape } from '$engine/districts/types';
+import type { Coord } from '$engine';
+import type { DistrictEvent, Json, PreviewShape } from '$engine/districts/types';
 import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
@@ -20,6 +21,8 @@ export interface DistrictUi {
   overlay?: Readonly<Record<string, Component<{ shapes: readonly PreviewShape[] }>>>;
   /** By `OfferKind.card`: the offer card body on Loot and the Crossroads. */
   offerCards?: Readonly<Record<string, Component<{ item: unknown }>>>;
+  /** By a `district` highlight's key (IQ-15): board marks drawn from the battle state, in board space. */
+  highlightArt?: Readonly<Record<string, Component<{ at: Coord; to?: Coord; data?: Json }>>>;
   /** By `solvedArt` key: the map illustration of a solved gate. */
   solvedArt?: Readonly<Record<string, Component>>;
 }
@@ -38,6 +41,19 @@ export function pieceArtFor(
 ): Component<{ data: unknown; size: number }> | undefined {
   for (const d of Object.values(ui)) {
     const found = d?.pieceArt && Object.hasOwn(d.pieceArt, art) ? d.pieceArt[art] : undefined;
+    if (found) return found;
+  }
+  return undefined;
+}
+
+/** A district highlight's renderer by key, across every district (IQ-15). */
+export function highlightArtFor(
+  key: string,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): Component<{ at: Coord; to?: Coord; data?: Json }> | undefined {
+  for (const d of Object.values(ui)) {
+    const found =
+      d?.highlightArt && Object.hasOwn(d.highlightArt, key) ? d.highlightArt[key] : undefined;
     if (found) return found;
   }
   return undefined;

@@ -35,6 +35,7 @@ import { rulePreview } from '$engine/rules';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
 import { jarContents, rivalReadout } from './describe';
 import { layerTone, type Tone } from './fx';
+import { type DistrictHighlight, inkHighlights, orderShapes } from './inkHighlights';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
 export type Highlight =
@@ -47,7 +48,8 @@ export type Highlight =
   | { kind: 'effect'; at: Coord; tone: Tone } // a tile the previewed action changes (ink, oil, fire…)
   | { kind: 'focus'; at: Coord } // the tile being inspected
   | { kind: 'blank'; at: Coord } // where an unwitnessed line lands: a dotted outline, no text (D2)
-  | { kind: 'hurt'; at: Coord }; // a party member the preview hurts: a red ring (D3)
+  | { kind: 'hurt'; at: Coord } // a party member the preview hurts: a red ring (D3)
+  | DistrictHighlight; // a district's own mark, drawn by its registered art (IQ-15)
 
 export interface IntentDraw {
   from: Coord;
@@ -280,6 +282,7 @@ export function overlayFor(
     })),
     focus,
   );
+  highlights.push(...inkHighlights(s, mode, preview ? preview.shown : null));
   const next = nextRound(intentState);
   const steps = stepsOf(
     intentState.units.map((u) => ({
@@ -492,7 +495,11 @@ export function marksOf(
 
 /** The board rules' preview for the next round end, or null when no active rule shows anything. */
 function nextRound(s: BattleState): NextRound | null {
-  const shapes = [...rulePreview(s).flatMap((r) => [...r.shapes]), ...behaviourPreview(s)];
+  const shapes = [
+    ...rulePreview(s).flatMap((r) => [...r.shapes]),
+    ...behaviourPreview(s),
+    ...orderShapes(s),
+  ];
   if (shapes.length === 0) return null;
   const units: Ghost[] = [];
   for (const sh of shapes) {

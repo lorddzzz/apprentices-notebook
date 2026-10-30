@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Coord } from '$engine';
   import type { Highlight } from '../../../app/overlay';
+  import { highlightArtFor } from '../../districts';
   import { cellCenter, cellOrigin, chevron, pointsAttr } from './geometry';
   import { TONE_COLOR } from './tones';
 
@@ -98,6 +99,9 @@
       <!-- A party member the previewed action would hurt (D3). -->
       {@const c = cellCenter(h.at)}
       <circle data-state="hurt" cx={c.x} cy={c.y - 6} r="44" fill="var(--danger)" fill-opacity="0.18" stroke="var(--danger)" stroke-width="7" />
+    {:else if h.kind === 'district'}
+      {@const Art = highlightArtFor(h.key)}
+      {#if Art}<Art at={h.at} to={h.to} data={h.data} />{/if}
     {:else if h.kind === 'shove'}
       {@const c = cellCenter(h.at)}
       <circle cx={c.x} cy={c.y} r="45" fill="none" stroke="var(--select)" stroke-width="6" stroke-dasharray="14 8" />

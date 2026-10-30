@@ -42,7 +42,12 @@
   // The rules' gauges are always on; the rest of "Next round" shows on request.
   const shapes = $derived(rulePreview(battle).flatMap((r) => [...r.shapes]));
   const meters = $derived(shapes.flatMap((sh) => (sh.kind === 'meter' ? [sh] : [])));
-  const hasNext = $derived(view.tiles.some((t) => t.water) || shapes.some((sh) => sh.kind !== 'meter'));
+  const hasNext = $derived(
+    view.tiles.some((t) => t.water) ||
+      shapes.some((sh) => sh.kind !== 'meter') ||
+      // Shapes a district adds in the app layer (the standing order's dusk marks, IQ-15).
+      (session.overlay.next?.shapes.some((sh) => sh.kind !== 'meter') ?? false),
+  );
   const selected = $derived.by(() => {
     const u = selectedId ? findUnit(battle, selectedId) : null;
     return u?.kind === 'member' ? u : null;
