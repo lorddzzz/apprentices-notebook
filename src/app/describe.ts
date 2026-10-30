@@ -22,6 +22,7 @@ import {
   type StateId,
 } from '$data';
 import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
+import { INK_TERMS } from '$data/districts/inkQuarter/terms';
 import {
   type Action,
   type Aim,
@@ -688,9 +689,15 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         ? { title: def.name, text: `Someone joins you. ${def.blurb}` }
         : { title: item.kind, text: '' };
     }
-    default:
-      // bindEvent and district kinds: their cards come from the registry (DK-12).
+    default: {
+      // A signed term names what it holds; other district kinds' cards come from the registry (DK-12).
+      const data =
+        'data' in item && typeof item.data === 'object' && item.data !== null ? item.data : null;
+      const def = data && 'def' in data ? INK_TERMS.find((t) => t.id === data.def) : undefined;
+      if (item.kind === 'inkQuarter:termed' && def)
+        return { title: `Signed: ${def.text.reward}`, text: `If you ${def.text.condition}.` };
       return { title: item.kind, text: '' };
+    }
   }
 }
 

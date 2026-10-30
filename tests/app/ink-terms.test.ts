@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { lootName } from '../../src/app/describe';
 import {
   openTermLine,
   settledTermLine,
@@ -6,6 +7,7 @@ import {
   termStatusLines,
   tripTerms,
 } from '../../src/app/inkTerms';
+import type { LootItem } from '../../src/engine';
 
 const trip = (terms: unknown[], district = 'inkQuarter') => ({
   district,
@@ -58,5 +60,16 @@ describe('the settled line', () => {
   test('the status block lists every term', () => {
     const lines = termStatusLines(trip([{ ...open, status: 'paid' }]));
     expect(lines).toEqual([{ status: 'paid', text: 'Term paid: a second page from this room' }]);
+  });
+});
+
+describe('a signed term on the loot chips (IQ-21 defect 1)', () => {
+  test('names the reward instead of the raw kind', () => {
+    const item = {
+      kind: 'inkQuarter:termed',
+      data: { def: 'inkQuarter:term-bind', term: 't1' },
+      held: true,
+    } as unknown as LootItem;
+    expect(lootName(item)).toBe('Signed: the Bind page');
   });
 });
