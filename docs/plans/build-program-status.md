@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** building, session 2026-11-04 (new chain, 0 wake-ups used). Running: SM-2, SM-3, FN-12, CN-F1. Baseline 1% 5h (resets 21:40Z), weekly 0%. Previous session (2026-10-30) merged the ink quarter up to IQ-G1, DK-10, RV-8, RV-9, SM-1.
+**State:** building, session 2026-11-04 (new chain, 0 wake-ups used). Merged today: FN-12, SM-2, CN-F1, SM-3. Running: SM-4, SM-12, IQ-FU1 (ink follow-ups: Tally dedupe, Lab export `intents`, stunned postmaster telegraph, `WRITS_RULE` preview). Usage 1% → 47% (resets 21:40Z), weekly 7%.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (chain 2026-10-30 ended by the player; a new session starts a new chain). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
@@ -12,7 +12,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - Verify against the plan before spawning: `grep -n 'ID' build-program-log.md`.
 
 ## Next
-1. Ready, file-disjoint picks from the remaining list: RV-8, RV-9, FN-12, FN-C batches, SM-2 (Marginalia on screen) and SM-3 (re-lay Seam rooms, place `G` + two `f` in the hearts) now that SM-1 is merged; SM-7 then SM-8 (DK-10 merged), CN-14/CN-F*; district plans from the DK-18 template in ROADMAP §2 order.
+1. Ready, file-disjoint picks from the remaining list: RV-8, RV-9, FN-12, FN-C batches, SM-6 after SM-4 (the heart is too easy: bot wins 15/15 at full HP), SM-13 (answer texts), SM-5 (hints); SM-7 then SM-8 (DK-10 merged), CN-14/CN-F*; district plans from the DK-18 template in ROADMAP §2 order.
 2. Small follow-ups left: widen `KitHearCondition` with the module-kind shape; route `KitId` hearing through `KIT.hearKinds`; BL-132 phone captures (needs a path); UI agents start Vite from their own worktree with Bash on 5191–5193 (`dev-alt*` serves the main checkout).
 2b. **Ink quarter (IQ):** playable since 2026-10-30 (gate flip). Merged IQ-W0…IQ-17, IQ-19, IQ-20, DK-IQ, DK-D9, DK-10 (grep the log). Left: **IQ-G1** playtest (blocked on the player; see `ink-quarter-verification.md`); IQ-F1…F5 footnotes; IQ-22/23 after RV-G1. Follow-ups: IQ-15's highlight registry (overlay.ts imports `inkHighlights` directly) and a `preview` on `WRITS_RULE`; room 1 can offer two identical Tally cards (dedupe the guarantee against the table roll); Lab export should omit empty `intents`; the stunned postmaster's telegraph still reads "pen"; dark-mode pass of the ink screens; map tiers instead of `MAP_PAGE_HEIGHT`.
 3. Blocked on the player (gates): **FN-G1** footnote review rounds (`docs/design/footnotes-content/seam.md`, nine batches, §0; questions §6); **RV-G1** Lamplighter Lab playtest (gates CN-7 and RV-11+); **CN-G1** ledger texts (gates CN-9); HC, AH, RC playtests (see each plan's verification doc).
@@ -28,6 +28,7 @@ Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.m
 - **DK-8:** should friendly fire (apprentices reached) count for hearing (`burstUnits`/`conducted`)? Default keep (it counts).
 
 ## Rough edges (risks worth remembering)
+- SM-2: the StepLayer pill covers the Marginalia's 16/16 HP on its tile; `app/overlay.ts` imports `handHighlights` from `ui/districts/seam` (no district-highlight registry; IQ-15 follow-up). CN-F1: jar drift is stamped `pitch:water` in `solvents.ts::driftWaiting` (credits Pitch for every jar); Afterglow has no lines yet (needs new events), so CN-F2/F4's Afterglow margins have no rows.
 - `tests/data/canal-rooms.test.ts` CN-13 (30 s) can time out in a full `pnpm check` even with no agents running; passes alone. Raise its timeout or trim seeds. SM-1 made `engine/districts/seam.ts` import damage/mix (→ kit): any test that mocks `$engine/districts/kit` must not import the real Seam module in its factory (deadlock; see tests/run/kit.test.ts).
 - `tests/sim/calibration.test.ts` (15 s) times out while agents run `pnpm check` in parallel; passes alone in ~10 s. Rerun alone before treating it as a failure. Give each UI agent its own port (5190–5193).
 - FD-6: cap sweep lacks push-onto-jar and a mixing chain (`reserve` in mix.ts untested); `eventCap` not passed from `battle.ts`. RV-3: exact wick fail reasons need jar ids on `jarOpened`/`jarCrumbles`. FD-3: Graphite restore with no free tile leaves the unit overlapping.
