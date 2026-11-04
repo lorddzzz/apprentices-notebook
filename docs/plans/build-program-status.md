@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
 
-**State:** paused at the end of the 2026-10-30 session (no agents running, no wake-up: the player ended the chain after window 2). Merged 2026-10-30: the whole ink quarter up to its playtest gate (IQ-4…IQ-21, IQ-13, D5, gate flip: **playable and live**), DK-10, RV-8, RV-9 (+ projection fixes: fire drift joins any float, `trickUsed`), SM-1 (Marginalia engine). Peaks 87% / 78%; burn ~1.2%/min with 4 agents. The next session starts fresh from the continuation prompt below.
+**State:** building, session 2026-11-04 (new chain, 0 wake-ups used). Running: SM-2, SM-3, FN-12, CN-F1. Baseline 1% 5h (resets 21:40Z), weekly 0%. Previous session (2026-10-30) merged the ink quarter up to IQ-G1, DK-10, RV-8, RV-9, SM-1.
 **Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), at most 2 per session chain (chain 2026-10-30 ended by the player; a new session starts a new chain). In the window after a wake-up wrap up at > 70%: status, commit, push, continuation prompt.
 
 ## Remaining tasks (computed 2026-10-29 from the plans minus the log; everything else in FD, DK, HC, AH, RC is merged)
