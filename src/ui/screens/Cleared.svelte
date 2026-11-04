@@ -3,8 +3,12 @@
   import Button from '../components/common/Button.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
   import TripStatus from '../components/trip/TripStatus.svelte';
+  import { DISTRICT_UI } from '../districts';
 
   const trip = $derived(game.save.trip);
+  // The bottom of a trip is this screen, not a Crossroads; a district may add a line above the
+  // way home (the lower Seam's door, SM-10).
+  const Line = $derived(trip ? DISTRICT_UI[trip.district]?.crossroadsLine : undefined);
 </script>
 
 {#if trip}
@@ -22,6 +26,8 @@
         <LootChips items={trip.loot} />
       </div>
     </div>
+
+    {#if Line}<Line {trip} profile={game.profile} />{/if}
 
     <Button onclick={() => game.returnHome()} testid="return">
       Return home with {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}

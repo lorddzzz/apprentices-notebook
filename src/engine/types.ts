@@ -625,6 +625,11 @@ export interface CityState {
   fresh: DistrictId[]; // heard since the map was last opened (drawn in new ink)
   /** Checkpoints reached, by district (P5, DK-5a): later trips may start there. Absent = none. */
   checkpoints?: CityCheckpoints;
+  /**
+   * The lowest lower-Seam floor was reached once, win or wipe (SM P11). Absent = never. Only
+   * grows; the sealed door (`ownerDoor`) is derived from it and the Cartographers' heart.
+   */
+  doorSeen?: boolean;
 }
 
 // ── Mastery (records, tiers) ────────────────────────────

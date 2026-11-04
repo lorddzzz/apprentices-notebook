@@ -734,12 +734,15 @@ function parseCity(v: unknown): Profile['city'] {
     trips: count(r.trips),
     fresh: ids(r.fresh),
     ...(r.checkpoints === undefined ? {} : { checkpoints: parseCheckpoints(r.checkpoints) }),
+    ...(r.doorSeen === undefined ? {} : { doorSeen: bool(r.doorSeen) }),
   };
   const heard = new Set(city.heard);
   if (!city.open.includes('seam')) bad();
   if (city.open.some((d) => !heard.has(d)) || city.hearts.some((d) => !city.open.includes(d)))
     bad();
   if (city.solved.some((d) => !heard.has(d)) || city.fresh.some((d) => !heard.has(d))) bad();
+  // The lower Seam opens on the Seam's heart, so a door seen without it is not a real save.
+  if (city.doorSeen && !city.hearts.includes('seam')) bad();
   return city;
 }
 

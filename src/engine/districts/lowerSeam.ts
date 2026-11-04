@@ -12,7 +12,7 @@ import type { BoardRule, DistrictModule, Kit, TripShapeDef } from './types';
 /**
  * The lower Seam (SM P7, P10, P11): its own trip, one floor per opened district with an
  * intrusion, free return after any floor, no heart. SM-7: the trip and its module. SM-8: the floor
- * builder (piece-scoped rules only, the Seam drop, the loot table). The door (SM-10) comes later.
+ * builder (piece-scoped rules only, the Seam drop, the loot table). SM-10: the sealed door.
  */
 
 /** The lower Seam's module id (P7), last in `DISTRICT_IDS` so other salts are unchanged. */
@@ -21,8 +21,8 @@ export const LOWER_SEAM = 'lowerSeam' as const;
 export interface LowerSeamState {
   floors: DistrictId[];
 }
-/** `city.doorSeen` (P11): the lowest floor was reached once, win or wipe. SM-10 adds the field. */
-export type DoorCity = CityState & { doorSeen?: boolean };
+/** A city with `doorSeen` (P11); the field itself lives on `CityState`. */
+export type DoorCity = CityState;
 
 // ── Floors (P7) ─────────────────────────────────────────
 /** Districts that are never a floor: the Seam itself, and the Cartographers (its truth, not a floor). */
@@ -154,6 +154,16 @@ export type DoorState = 'hidden' | 'sealed' | 'open';
 export function ownerDoor(p: { city: DoorCity }): DoorState {
   if (!p.city.doorSeen) return 'hidden';
   return p.city.hearts.includes('cartographers') ? 'open' : 'sealed';
+}
+
+/**
+ * Closes the lowest floor's fight (win or wipe) into `city.doorSeen` (P11): the room was reached,
+ * and the door is no longer hidden. Any other trip or room leaves the profile as it was.
+ */
+export function markDoorSeen(p: Profile, t: Trip): Profile {
+  if (t.district !== LOWER_SEAM || !t.kit || p.city.doorSeen) return p;
+  if (t.encounter !== tripFloors(t).length - 1) return p;
+  return { ...p, city: { ...p.city, doorSeen: true } };
 }
 
 // ── The floor format (P9, P10) ──────────────────────────

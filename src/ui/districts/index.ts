@@ -7,6 +7,7 @@ import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
 import { INK_QUARTER_UI } from './inkQuarter';
+import { LOWER_SEAM_UI } from './lowerSeam';
 import { SEAM_UI } from './seam';
 
 /**
@@ -36,6 +37,8 @@ export interface DistrictUi {
   highlightArt?: Readonly<Record<string, Component<{ at: Coord; to?: Coord; data?: Json }>>>;
   /** By `solvedArt` key: the map illustration of a solved gate. */
   solvedArt?: Readonly<Record<string, Component>>;
+  /** A line above the way home on the bottom screen of this district's trips (the lower Seam's door, SM-10): draws itself or nothing. */
+  crossroadsLine?: Component<{ trip: Trip; profile: Profile }>;
   /** A sheet the district's node on the map opens beside "set out" (the Seam's owner's margin, SM-5). */
   mapSheet?: {
     label: string;
@@ -48,6 +51,7 @@ export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   seam: SEAM_UI,
   canals: CANALS_UI,
   inkQuarter: INK_QUARTER_UI,
+  lowerSeam: LOWER_SEAM_UI,
 };
 
 /**
