@@ -1,12 +1,15 @@
 <script lang="ts">
   import type { CodexEntryDef } from '$data';
+  import type { NoteView } from '$engine/margins';
 
   interface Props {
     entry: CodexEntryDef;
     known: boolean;
+    /** The page's note: the first note, or the owner's answer once it has come (SM-14). */
+    note?: NoteView;
   }
 
-  let { entry, known }: Props = $props();
+  let { entry, known, note }: Props = $props();
 
   const initial = $derived(entry.title.charAt(0));
 </script>
@@ -35,7 +38,13 @@
     {#if known}
       <h3>{entry.title}</h3>
       <p class="rule">{entry.text}</p>
-      <p class="note">{entry.ownerNote}</p>
+      {#if note?.answered}
+        <p class="note first" data-testid="codex-first-note">{entry.ownerNote}</p>
+        <p class="answered" data-testid="codex-answered">answered</p>
+        <p class="note answer" data-testid="codex-answer">{note.text}</p>
+      {:else}
+        <p class="note">{entry.ownerNote}</p>
+      {/if}
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>
       {#if entry.hint}
@@ -94,5 +103,18 @@
     font-size: 16px;
     line-height: 1.25;
     color: var(--accent);
+  }
+  .note.first {
+    opacity: 0.7;
+  }
+  .answered {
+    margin: 6px 0 0 var(--space-1);
+    font: 700 10px var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .note.answer {
+    margin-top: 2px;
   }
 </style>

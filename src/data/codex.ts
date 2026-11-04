@@ -3,7 +3,15 @@ import { IDIOMS } from './idioms';
 import { METHOD_IDS, METHODS } from './methods';
 import { RUNE_IDS, RUNES } from './runes';
 import { SOLVENT_IDS, SOLVENTS } from './solvents';
-import type { BurstId, CodexEntryDef, CompoundId, MethodId, RuneId, SolventId } from './types';
+import type {
+  BurstId,
+  CodexEntryDef,
+  CompoundId,
+  MarginAnswer,
+  MethodId,
+  RuneId,
+  SolventId,
+} from './types';
 
 /**
  * The codex (P6, D7): rune pages, compounds and bursts (named when first made), methods, solvents
@@ -230,6 +238,122 @@ const SOLVENT_NOTES: Record<SolventId, string> = {
   graphite: 'Write it in pencil. Things undo themselves, eventually.',
 };
 
+/**
+ * The owner's second notes (SM-13, docs/design/footnotes-content/seam-answers.md): each `when` and
+ * text is copied from the approved tables. Compound and burst pages never answer (P12).
+ */
+const RUNE_ANSWERS: Partial<Record<RuneId, MarginAnswer>> = {
+  bolt: {
+    when: 'proof',
+    text: 'You minded it. I am what stands in the way now, and you keep missing me.',
+  },
+  splash: {
+    when: 'proof',
+    text: 'You stood near anyway, and kept your feet. Once was enough for you, then.',
+  },
+  touch: {
+    when: 'proof',
+    text: 'You trusted yours, and it held. Mine is busy holding something else.',
+  },
+  strike: {
+    when: 'proof',
+    text: 'You found something clever to do with it anyway. I would have lost a bet on that.',
+  },
+  shove: {
+    when: 'proof',
+    text: 'You chose where it landed, every time. That is the expensive part, and you can afford it now.',
+  },
+  guard: {
+    when: 'proof',
+    text: 'Now I am the one saying it, and you the one proving it. My teacher would have liked you.',
+  },
+  ink: { when: 'proof', text: 'What you mark, I find too. You need not ask anyone now.' },
+  oil: {
+    when: 'proof',
+    text: 'You kept a Stoker in the room and the room is still standing. I never managed both.',
+  },
+  steam: {
+    when: 'proof',
+    text: 'It does not hide you from me either. Do not take that as a complaint.',
+  },
+  brass: { when: 'proof', text: 'The spark found it in your hands. I felt it go warm from here.' },
+  spark: {
+    when: 'proof',
+    text: 'You taught it where the right things are. I only ever taught it to hurry.',
+  },
+  fork: {
+    when: 'proof',
+    text: 'You remembered, and built on it. Some nights I forget which side is left in here.',
+  },
+  bend: {
+    when: 'proof',
+    text: 'And you turned with it. Keep turning; there are pages under this one.',
+  },
+  jar: {
+    when: 'mastery',
+    text: 'Someone always does, and lately it is the right someone. You have learned who walks where.',
+  },
+  fuse: {
+    when: 'mastery',
+    text: 'You know the distance to the tile and the round to the moment. I used to count on my fingers.',
+  },
+  afterglow: {
+    when: 'mastery',
+    text: 'I left a room once, and the light is still on. You found it, I see.',
+  },
+};
+
+const METHOD_ANSWERS: Partial<Record<MethodId, MarginAnswer>> = {
+  conduct: {
+    when: 'proof',
+    text: 'You sent good news down it for once. It reached me, all the way down.',
+  },
+  repeat: { when: 'proof', text: 'I heard it both times. The second time, I wrote back.' },
+  margin: {
+    when: 'proof',
+    text: 'And a margin of a margin is where I keep now. Mind the echoes; some of them are mine.',
+  },
+};
+
+const SOLVENT_ANSWERS: Partial<Record<SolventId, MarginAnswer>> = {
+  gallnut: {
+    when: 'proof',
+    text: 'It has stained you now as well. The stain is how I knew it was you.',
+  },
+  cinder: {
+    when: 'proof',
+    text: 'You put it in the oil and made the impatience work for you. I should have thought of that years ago.',
+  },
+  pitch: {
+    when: 'proof',
+    text: 'My notes did sink, in the end. You have been fishing them out, one page at a time.',
+  },
+  wick: {
+    when: 'proof',
+    text: 'You gave it the round, and it used the round well. So few things in this notebook are patient.',
+  },
+};
+
+const IDIOM_ANSWERS: Record<string, MarginAnswer> = {
+  cashingIn: {
+    when: 'proof',
+    text: 'You were patient, and it paid. I have been waiting longer than you; I expect a fortune.',
+  },
+  bonfire: {
+    when: 'proof',
+    text: 'In that order, and all of it. The smoke came down here too; it smelled like a kitchen I knew.',
+  },
+  theWall: { when: 'proof', text: 'Most of the walls here are mine. That one held well.' },
+  lanternWalk: {
+    when: 'proof',
+    text: 'It delivered. One of these nights, send a lantern down to me.',
+  },
+};
+
+/** The answer field, present only on pages that have one (keeps `exactOptionalPropertyTypes`-safe spreads). */
+const answerOf = (answer: MarginAnswer | undefined): { answer?: MarginAnswer } =>
+  answer ? { answer } : {};
+
 const lowerFirst = (s: string): string => s.charAt(0).toLowerCase() + s.slice(1);
 
 /** The distinct compounds the mix table makes, in table order. */
@@ -248,6 +372,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       text: RUNES[id].headline,
       ownerNote: RUNE_NOTES[id],
       ...(RUNE_HINTS[id] ? { hint: RUNE_HINTS[id] } : {}),
+      ...answerOf(RUNE_ANSWERS[id]),
     }),
   ),
   ...COMPOUND_IDS.map(
@@ -278,6 +403,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: METHODS[id].name,
       text: METHOD_PAGES[id].text,
       ownerNote: METHOD_PAGES[id].note,
+      ...answerOf(METHOD_ANSWERS[id]),
     }),
   ),
   ...SOLVENT_IDS.map(
@@ -288,6 +414,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: SOLVENTS[id].name,
       text: `Bends the invention so that ${lowerFirst(SOLVENTS[id].rule)}`,
       ownerNote: SOLVENT_NOTES[id],
+      ...answerOf(SOLVENT_ANSWERS[id]),
     }),
   ),
   ...IDIOMS.map(
@@ -298,6 +425,7 @@ export const CODEX: readonly CodexEntryDef[] = [
       title: i.name,
       text: i.rule,
       ownerNote: i.ownerNote,
+      ...answerOf(IDIOM_ANSWERS[i.id]),
     }),
   ),
 ];

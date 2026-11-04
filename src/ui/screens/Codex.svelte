@@ -1,6 +1,7 @@
 <script lang="ts">
   import { type FootnoteSubject, type LineId, METHODS } from '$data';
   import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf, papersView } from '$engine';
+  import { noteFor } from '$engine/margins';
   import { lineTextFor } from '../../app/bench';
   import { householdRows } from '../../app/codexHousehold';
   import { rivalPageRows } from '../../app/codexRivals';
@@ -51,11 +52,20 @@
   const lineText = (id: LineId) => lineTextFor(game.profile, id);
   const marginFor = (row: CodexRow) =>
     row.known ? marginOf(game.profile, row.entry.ref as FootnoteSubject) : undefined;
+  // The first note, or the owner's answer once its page's margin has answered (SM-14).
+  const noteOf = (row: CodexRow) => (row.known ? noteFor(game.profile, row.entry.id) : undefined);
   const back = $derived(game.save.trip ? 'trip' : 'study');
 </script>
 
 {#snippet page(row: CodexRow)}
-  <CodexEntry entry={row.entry} known={row.known} fine={row.fine} margin={marginFor(row)} {lineText} />
+  <CodexEntry
+    entry={row.entry}
+    known={row.known}
+    fine={row.fine}
+    margin={marginFor(row)}
+    note={noteOf(row)}
+    {lineText}
+  />
 {/snippet}
 
 <section class="codex" data-testid="codex">
@@ -135,7 +145,7 @@
       {/each}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}
-        <CodexIdiom {entry} {known} />
+        <CodexIdiom {entry} {known} note={noteFor(game.profile, entry.id)} />
       {/each}
     {/if}
   </div>

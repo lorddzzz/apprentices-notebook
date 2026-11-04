@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type CodexEntryDef, type LineDef, type LineId, type MethodId, RUNES, type RuneId } from '$data';
+  import type { NoteView } from '$engine/margins';
   import type { MarginView } from '../../../app/desk';
   import { METHOD_ART } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -13,9 +14,11 @@
     /** The read-only margin column (FN-5); fine-print sentences read in the owner's hand via `lineText`. */
     margin?: MarginView;
     lineText?: (id: LineId) => string;
+    /** The page's note: the first note, or the owner's answer once it has come (SM-14). */
+    note?: NoteView;
   }
 
-  let { entry, known, fine, margin, lineText }: Props = $props();
+  let { entry, known, fine, margin, lineText, note }: Props = $props();
 
   const rune = $derived(entry.kind === 'rune' ? (entry.ref as RuneId) : null);
   const method = $derived(entry.kind === 'method' ? (entry.ref as MethodId) : null);
@@ -70,7 +73,13 @@
         {/each}
       {/if}
       {#if margin}<CodexMargin {margin} />{/if}
-      {#if entry.ownerNote}<p class="note">{entry.ownerNote}</p>{/if}
+      {#if note?.answered}
+        <p class="note first" data-testid="codex-first-note">{entry.ownerNote}</p>
+        <p class="answered" data-testid="codex-answered">answered</p>
+        <p class="note answer" data-testid="codex-answer">{note.text}</p>
+      {:else if entry.ownerNote}
+        <p class="note">{entry.ownerNote}</p>
+      {/if}
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>
       {#if entry.hint}
@@ -147,6 +156,19 @@
     font-size: 16px;
     line-height: 1.25;
     color: var(--accent);
+  }
+  .note.first {
+    opacity: 0.7;
+  }
+  .answered {
+    margin: 6px 0 0 var(--space-1);
+    font: 700 10px var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .note.answer {
+    margin-top: 2px;
   }
   .entry:nth-of-type(odd) .note {
     transform: rotate(-0.5deg);

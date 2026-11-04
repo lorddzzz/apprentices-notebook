@@ -50,7 +50,7 @@ const home = (profile: Profile): SaveData => ({
 describe('the recap carries what answered', () => {
   test('clearing the Marginalia opens the margins and the held proof answers on the trip home', () => {
     const recap = goHome(home(proven())).lastTrip;
-    expect(recap?.stats.answered).toEqual(['rune:bolt']);
+    expect(recap?.stats.answered).toEqual(['rune:bolt', 'rune:ink', 'rune:oil', 'rune:spark']);
   });
 
   test('a household with nothing proven has nothing to say', () => {
@@ -88,7 +88,12 @@ describe('the recap carries what answered', () => {
 describe('the save', () => {
   test('keeps the answered pages in a recap and in a trip in progress', () => {
     const recap = goHome(home(proven()));
-    expect(parseSaveText(saveText(recap)).lastTrip?.stats.answered).toEqual(['rune:bolt']);
+    expect(parseSaveText(saveText(recap)).lastTrip?.stats.answered).toEqual([
+      'rune:bolt',
+      'rune:ink',
+      'rune:oil',
+      'rune:spark',
+    ]);
     const trip = startTrip(newProfile(), 1);
     const mid: SaveData = {
       ...newSave(7),
