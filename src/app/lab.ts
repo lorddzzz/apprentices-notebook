@@ -817,7 +817,7 @@ export function toScenarioDef(
       ? { inventions: base.inventions }
       : {}),
     ...(Object.keys(base.hp).length ? { hp: base.hp } : {}),
-    intents: base.intents,
+    ...(Object.keys(base.intents).length ? { intents: base.intents } : {}),
     demo: actions,
     expected: describeLog(events),
   };

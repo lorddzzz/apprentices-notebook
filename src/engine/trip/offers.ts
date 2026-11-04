@@ -133,7 +133,10 @@ export function rollOffers(
   };
   const must = def.guaranteed;
   if (must && !hasPage(owned, must)) take(must);
-  for (const c of given) if (c.must && fits(c.must)) take(c.must);
+  // A contributor's page the table's guarantee already offered is skipped (one card per page).
+  const offered = (spec: KitLootSpec): boolean =>
+    offers.some((o) => samePage(o as KitLootSpec, spec));
+  for (const c of given) if (c.must && fits(c.must) && !offered(c.must)) take(c.must);
   while (offers.length < TUNING.offersPerWin) {
     if (reg) pool = pool.filter((e) => fits(e.spec));
     if (pool.length === 0) break;

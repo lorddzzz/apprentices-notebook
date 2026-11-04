@@ -3,6 +3,7 @@ import { ENCOUNTERS, ENEMIES } from '$data';
 import {
   type BattleState,
   beginEncounter,
+  describeLog,
   finishEncounter,
   hearAfterTrip,
   newProfile,
@@ -113,11 +114,18 @@ describe('the stand-in postmaster', () => {
     if (!w) throw new Error('no writ');
     const seal = s.units.find((u) => u.id === w.seal);
     if (!seal) throw new Error('no seal');
-    s = draft(s, (ctx) => {
+    expect(labelOf(s)).toBe('pen');
+    const answered = draft(s, (ctx) => {
       const live = ctx.s.units.find((u) => u.id === w.seal);
       if (live) dealDamage(ctx, live, 3, 'Strike');
-    }).state;
+    });
+    s = answered.state;
     expect(clockStaggered(s, pm(s).id)).toBe(true);
+    // The telegraph he already had no longer reads "pen": it is stunned, on the log and the unit.
+    expect(labelOf(s)).toBe('stunned');
+    const stunned = answered.events.filter((e) => e.type === 'telegraph');
+    expect(stunned).toHaveLength(1);
+    expect(describeLog(stunned)).toEqual([expect.stringContaining('reel, his writ answered')]);
     const hp = hpOf(s, 'stoker');
     s = act(s, endTurn).state; // the pen would have landed
     expect(hpOf(s, 'stoker')).toBe(hp);

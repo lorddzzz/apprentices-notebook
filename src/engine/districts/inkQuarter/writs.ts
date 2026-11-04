@@ -121,17 +121,24 @@ export const RETURN_WRIT_DEF: PieceDef = {
 /** P4: the order acts through the writs rule at dusk. */
 export const ORDER_WRIT_DEF: PieceDef = { ...ORDER_DEF, rules: [WRITS_RULE_ID] };
 
-/** P4: a plain Ink mark (no owner) on each unmarked, unanchored unit standing on an order. */
-function standingOrders(ctx: Ctx): void {
-  const s = ctx.s;
+/** P4: the unmarked, unanchored units standing on an order, who the round end will mark. */
+function orderedUnits(s: BattleState): { at: Coord; unit: Unit }[] {
+  const out: { at: Coord; unit: Unit }[] = [];
   for (let i = 0; i < s.tiles.length; i++) {
     if (s.tiles[i]?.piece?.id !== ORDER_PIECE) continue;
     const at = coordOf(s, i);
-    const u = livingUnits(s).find((v) => sameCoord(v.pos, at));
-    if (!u || u.mark || hasTrait(u, 'anchored')) continue;
-    const ordered: OrderedEvent = { type: 'inkQuarter:ordered', data: {}, unit: ref(u), at };
+    const unit = livingUnits(s).find((v) => sameCoord(v.pos, at));
+    if (unit && !unit.mark && !hasTrait(unit, 'anchored')) out.push({ at, unit });
+  }
+  return out;
+}
+
+/** P4: a plain Ink mark (no owner) on each unmarked, unanchored unit standing on an order. */
+function standingOrders(ctx: Ctx): void {
+  for (const { at, unit } of orderedUnits(ctx.s)) {
+    const ordered: OrderedEvent = { type: 'inkQuarter:ordered', data: {}, unit: ref(unit), at };
     emit(ctx, ordered);
-    applyMark(ctx, u, { deep: false, bound: null, origin: null });
+    applyMark(ctx, unit, { deep: false, bound: null, origin: null });
   }
 }
 
@@ -147,6 +154,8 @@ export const WRITS_RULE: BoardRule<WritsState> = {
     standingOrders(ctx);
     return snapshot(ctx.s);
   },
+  /** The dusk's marks: a drawn-ink tile on every order that holds a unit it will mark. */
+  preview: (s) => orderedUnits(s).map(({ at }) => ({ kind: 'tile', at, tone: 'drawn' })),
 };
 
 /** IQ-1's pieces by id, swapped in for the base defs. */

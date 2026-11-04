@@ -7,7 +7,7 @@ import { ORDER_PIECE, RETURN_PIECE } from '$engine/districts/inkQuarter/types';
 import { sendBackTarget, WRITS_RULE_ID, type WritsState } from '$engine/districts/inkQuarter/writs';
 import { enemyWalk, moveMember } from '$engine/movement';
 import { push } from '$engine/push';
-import { isRuleActive, listRules } from '$engine/rules';
+import { isRuleActive, listRules, rulePreview } from '$engine/rules';
 import { roundEnd } from '$engine/turn';
 import { board, draft, expectLog, expectLogIncludes } from '../../scenarios/harness';
 
@@ -221,5 +221,29 @@ describe('standing order (P4)', () => {
   test('walking onto an order marks nothing until dusk', () => {
     const r = draft(withWrits('r {order} .'), walk('A1', 'B1'));
     expect(r.events.some((e) => e.type === 'marked')).toBe(false);
+  });
+
+  test('preview (IQ-FU1): a drawn tile on each order whose unit the dusk will mark, and the dusk marks exactly those', () => {
+    // Marked, anchored and empty orders show nothing.
+    const s = withWrits('r{order} d{order} M{order} {order} D{order}');
+    const marked = unitAt(s, at('B1'));
+    if (!marked) throw new Error('no dummy');
+    marked.mark = { deep: false, lineage: 3, bound: null, origin: null };
+    const shapes = rulePreview(s).find((p) => p.rule === WRITS_RULE_ID)?.shapes;
+    expect(shapes).toEqual([
+      { kind: 'tile', at: at('A1'), tone: 'drawn' },
+      { kind: 'tile', at: at('E1'), tone: 'drawn' },
+    ]);
+    const marks = draft(s, (ctx) => roundEnd(ctx)).events.filter(
+      (e) => e.type === 'inkQuarter:ordered',
+    );
+    expect(marks.map((e) => (e.type === 'inkQuarter:ordered' ? e.at : null))).toEqual([
+      at('A1'),
+      at('E1'),
+    ]);
+  });
+
+  test('preview is empty with no order to mark', () => {
+    expect(rulePreview(withWrits('r . {return}'))).toEqual([]);
   });
 });

@@ -11,6 +11,8 @@ import {
   canServe,
   canStamp,
   clockStaggered,
+  STUNNED_TELEGRAPH,
+  STUNNED_VERB,
   serveClock,
   spendStagger,
   withdrawClock,
@@ -72,8 +74,6 @@ export function writTiles(s: BattleState, e: EnemyUnit): { seal: Coord; stamp: C
   return seal ? { seal, stamp } : null;
 }
 
-const STUNNED: Telegraph = { label: 'stunned', tiles: [], units: [] };
-
 /** Wraps a step so a staggered postmaster shows "stunned" and spends the stagger in place of acting. */
 function stepOf(
   id: StepId,
@@ -83,12 +83,12 @@ function stepOf(
 ): ScriptStep {
   return {
     id,
-    plan: (s, e) => (clockStaggered(s, e.id) ? STUNNED : plan(s, e)),
+    plan: (s, e) => (clockStaggered(s, e.id) ? { ...STUNNED_TELEGRAPH } : plan(s, e)),
     act: (ctx, e, tg) => {
       if (spendStagger(ctx.s, e.id)) return;
       act(ctx, e, tg);
     },
-    describe: (tg) => (tg.label === 'stunned' ? 'reel, his writ answered' : describe(tg)),
+    describe: (tg) => (tg.label === 'stunned' ? STUNNED_VERB : describe(tg)),
   };
 }
 

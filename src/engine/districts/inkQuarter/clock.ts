@@ -6,7 +6,8 @@ import { type Coord, label, sameCoord } from '../../grid';
 import { spendMark } from '../../marks';
 import { makePiece } from '../../pieces';
 import { findUnit, inBoard, isAlive, isOpen, livingUnits, tileAt } from '../../queries';
-import type { BattleState, Unit, UnitId } from '../../types';
+import type { Telegraph } from '../../rivals/types';
+import type { BattleState, EnemyUnit, Unit, UnitId } from '../../types';
 import type {
   BoardRule,
   DistrictEvent,
@@ -186,6 +187,27 @@ const breakSeal = (ctx: Ctx, seal: Unit | null): void => {
   kill(ctx, seal, false);
 };
 
+/** What a staggered server's step reads: no tiles, nothing struck. */
+export const STUNNED_TELEGRAPH: Telegraph = { label: 'stunned', tiles: [], units: [] };
+export const STUNNED_VERB = 'reel, his writ answered';
+
+/**
+ * His already-telegraphed step is replaced by the stunned one (a new telegraph on the log), so the
+ * board stops reading "pen" for a blow he will not strike. The stagger is still spent by the step.
+ */
+function stunTelegraph(ctx: Ctx, server: Unit): void {
+  const i = (server as EnemyUnit).intent;
+  if (server.kind !== 'enemy' || i?.kind !== 'step' || i.telegraph.label === 'stunned') return;
+  const intent = { ...i, telegraph: { ...STUNNED_TELEGRAPH, tiles: [], units: [] } };
+  (server as EnemyUnit).intent = intent;
+  emit(ctx, {
+    type: 'telegraph',
+    unit: ref(server),
+    intent: structuredClone(intent),
+    verb: STUNNED_VERB,
+  });
+}
+
 /** Answered (P9): the writ lifts, he loses his next action; a stamp answer also breaks the seal. */
 function lift(ctx: Ctx, how: 'seal' | 'stamp'): void {
   const w = openClock(ctx.s);
@@ -198,6 +220,7 @@ function lift(ctx: Ctx, how: 'seal' | 'stamp'): void {
     data: { by: how },
   };
   emit(ctx, ev);
+  if (server && isAlive(server)) stunTelegraph(ctx, server);
   breakSeal(ctx, seal);
 }
 

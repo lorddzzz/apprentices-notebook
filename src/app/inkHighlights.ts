@@ -1,22 +1,7 @@
 import type { GameEvent, UnitId } from '$engine';
-import {
-  type BattleState,
-  type Coord,
-  coordOf,
-  findUnit,
-  isAlive,
-  livingUnits,
-  sameCoord,
-  step,
-} from '$engine';
-import { hasTrait } from '$engine/arrival';
+import { type BattleState, type Coord, coordOf, findUnit, step } from '$engine';
 import { clockRoundsLeft, openClock } from '$engine/districts/inkQuarter/clock';
-import {
-  ADDRESS_PIECE,
-  FORWARD_PIECE,
-  ORDER_PIECE,
-  RETURN_PIECE,
-} from '$engine/districts/inkQuarter/types';
+import { ADDRESS_PIECE, FORWARD_PIECE, RETURN_PIECE } from '$engine/districts/inkQuarter/types';
 import { sendBackTarget } from '$engine/districts/inkQuarter/writs';
 import type { Json, PreviewShape } from '$engine/districts/types';
 import type { InputMode } from './battleInput';
@@ -120,18 +105,5 @@ export function inkHighlights(
     if (ghost) out.push(ghost);
   }
   if (shown) out.push(...forwardedRings(s, shown));
-  return out;
-}
-
-/**
- * The standing order's dusk preview (P4): a drawn-ink tile on every order that holds an unmarked,
- * unanchored unit, which is exactly who the round end will mark.
- */
-export function orderShapes(s: BattleState): PreviewShape[] {
-  const out: PreviewShape[] = [];
-  for (const at of tilesOf(s, ORDER_PIECE)) {
-    const u = livingUnits(s).find((v) => isAlive(v) && sameCoord(v.pos, at));
-    if (u && !u.mark && !hasTrait(u, 'anchored')) out.push({ kind: 'tile', at, tone: 'drawn' });
-  }
   return out;
 }

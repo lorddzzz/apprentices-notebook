@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import { encountersOf, type RuneId } from '$data';
-import { type BattleState, newProfile, newSave, type Profile, startTrip, type Trip } from '$engine';
+import {
+  type BattleState,
+  newProfile,
+  newSave,
+  type Profile,
+  rollOffers,
+  startTrip,
+  type Trip,
+} from '$engine';
 import { CLOCK_RULE_ID } from '$engine/districts/inkQuarter/clock';
 import { recruitOffers } from '$engine/recruits';
 import {
@@ -75,5 +83,27 @@ describe('the notary (IQ-13)', () => {
     expect(recruitOffers(ready, tripAt(ready, 2, [tally]), 2)).toEqual([
       { kind: 'recruit', apprentice: 'notary' },
     ]);
+  });
+});
+
+describe('the shallow table and the notary page (IQ-FU1)', () => {
+  test('rooms 1 and 2 offer Tally once, never twice, on every seed', () => {
+    const p = open();
+    for (let seed = 1; seed <= 60; seed++) {
+      for (const room of [0, 1]) {
+        const trip = startTrip(p, seed, 'inkQuarter');
+        const offers = rollOffers(
+          seed,
+          room,
+          'inkQuarter:shallow',
+          trip.party,
+          null,
+          { known: p.known, methods: p.methods },
+          { profile: p, trip: { ...trip, encounter: room } },
+        );
+        const tallies = offers.filter((o) => o.kind === 'rune' && o.rune === 'tally');
+        expect(tallies, `seed ${seed} room ${room}`).toHaveLength(1);
+      }
+    }
   });
 });

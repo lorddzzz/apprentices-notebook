@@ -212,8 +212,7 @@ describe('toScenarioDef round-trips', () => {
     expect(runScenario(exported).lines).toEqual(exported.expected);
   });
 
-  // The postmaster's script plans itself; an export pins `intents: {}`, which idles every foe in round 1.
-  for (const def of [...SCENARIOS, CHAIN].filter((d) => d.id !== 'postmaster-writ')) {
+  for (const def of [...SCENARIOS, CHAIN]) {
     test(`${def.id}: replay of the export matches`, () => {
       const { exported, final } = exportAfterDemo(def);
       const again = runScenario(exported);
@@ -221,6 +220,16 @@ describe('toScenarioDef round-trips', () => {
       expect(boardOf(again.state)).toBe(boardOf(final));
     });
   }
+
+  test('an export with no telegraphing foe omits `intents` (the foes plan themselves)', () => {
+    const { exported } = exportAfterDemo(CHAIN);
+    expect(exported.intents).toBeUndefined();
+    expect('intents' in exported).toBe(false);
+    expect(formatScenario(exported)).not.toContain('intents:');
+    const base = baseOf(createBattle(scenarioSpec(CHAIN, { lab: true })).state, fallbackLattices());
+    const telegraphed = toScenarioDef('x', { ...base, intents: { A1: 'right' } }, [], []);
+    expect(telegraphed.intents).toEqual({ A1: 'right' });
+  });
 
   test('formatScenario output contains board and lattices as template strings', () => {
     const { exported } = exportAfterDemo(CHAIN);

@@ -36,7 +36,7 @@ import { handHighlights } from '../ui/districts/seam/hands';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
 import { jarContents, rivalReadout } from './describe';
 import { layerTone, type Tone } from './fx';
-import { type DistrictHighlight, inkHighlights, orderShapes } from './inkHighlights';
+import { type DistrictHighlight, inkHighlights } from './inkHighlights';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
 export type Highlight =
@@ -497,11 +497,7 @@ export function marksOf(
 
 /** The board rules' preview for the next round end, or null when no active rule shows anything. */
 function nextRound(s: BattleState): NextRound | null {
-  const shapes = [
-    ...rulePreview(s).flatMap((r) => [...r.shapes]),
-    ...behaviourPreview(s),
-    ...orderShapes(s),
-  ];
+  const shapes = [...rulePreview(s).flatMap((r) => [...r.shapes]), ...behaviourPreview(s)];
   if (shapes.length === 0) return null;
   const units: Ghost[] = [];
   for (const sh of shapes) {
