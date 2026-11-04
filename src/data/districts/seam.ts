@@ -304,8 +304,17 @@ export interface SeamHint {
   district: DistrictId;
   line: string;
 }
-/** One per district heard in the Seam, in map order. Empty until SM-5. */
-export const SEAM_HINTS: readonly SeamHint[] = [];
+/**
+ * One per district heard in the Seam, in map order: the deed, never the place. A line retires once
+ * its district is heard (the map then carries that district's own line).
+ */
+export const SEAM_HINTS: readonly SeamHint[] = [
+  { district: 'canals', line: 'Three oils burning at once, and the water answers.' },
+  { district: 'inkQuarter', line: 'One hand makes the mark; another hand comes to collect.' },
+  { district: 'bathhouses', line: 'Three of you in one storm, and the air keeps count.' },
+  { district: 'bridges', line: 'Set a stone upright and lean on it until it holds.' },
+  { district: 'foundry', line: 'A note struck once and carried to three, each ringing.' },
+];
 
 // ── The lower Seam's floor format (SM P10; checked by `checkFloor`) ──
 export interface FloorFormat {

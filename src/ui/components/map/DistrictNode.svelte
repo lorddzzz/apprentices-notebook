@@ -7,13 +7,16 @@
   interface Props {
     node: MapNode;
     onopen: () => void;
+    /** Opens the district's own map sheet (the Seam's margin), when its UI module has one. */
+    onsheet?: () => void;
     /** Drawn below the caption: the Seam's slot for the lower Seam and the owner's door. */
     under?: Snippet;
   }
 
-  let { node, onopen, under }: Props = $props();
+  let { node, onopen, onsheet, under }: Props = $props();
   const open = $derived(node.state === 'open');
   /** The district's own solved art (its UI module), if it has one. */
+  const sheetLabel = $derived(DISTRICT_UI[node.id]?.mapSheet?.label);
   const Art = $derived(node.solved ? DISTRICT_UI[node.id]?.solvedArt?.[node.solvedArt] : undefined);
 </script>
 
@@ -55,6 +58,9 @@
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 11V5a4 4 0 0 1 8 0v6M2 11h8" /></svg>
         {node.checkpoint}
       </p>
+    {/if}
+    {#if sheetLabel && onsheet}
+      <button type="button" class="margin-link" onclick={onsheet} data-testid={`sheet-${node.id}`}>{sheetLabel}</button>
     {/if}
     {#if !open}
       <p class="line">&ldquo;{node.line}&rdquo;</p>
@@ -162,6 +168,18 @@
     margin: 0;
     font-size: 12px;
     color: var(--ink-soft);
+  }
+  .margin-link {
+    margin: 0;
+    padding: 0 var(--space-1);
+    min-height: var(--tap);
+    font-family: var(--hand);
+    font-size: 17px;
+    color: var(--ink-soft);
+    background: none;
+    border: 0;
+    border-bottom: 1px dashed var(--ink-faint);
+    cursor: pointer;
   }
   .doorway {
     display: inline-flex;

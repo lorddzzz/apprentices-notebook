@@ -1,6 +1,6 @@
 import type { Component } from 'svelte';
 import type { DistrictId } from '$data';
-import type { BattleState, Coord, Trip } from '$engine';
+import type { BattleState, Coord, Profile, Trip } from '$engine';
 import type { DistrictEvent, Json, PreviewShape } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import { CANALS_UI } from './canals';
@@ -36,6 +36,11 @@ export interface DistrictUi {
   highlightArt?: Readonly<Record<string, Component<{ at: Coord; to?: Coord; data?: Json }>>>;
   /** By `solvedArt` key: the map illustration of a solved gate. */
   solvedArt?: Readonly<Record<string, Component>>;
+  /** A sheet the district's node on the map opens beside "set out" (the Seam's owner's margin, SM-5). */
+  mapSheet?: {
+    label: string;
+    sheet: Component<{ open: boolean; profile: Profile; onclose: () => void }>;
+  };
 }
 
 /** Every district's UI module, one line each (P1). */

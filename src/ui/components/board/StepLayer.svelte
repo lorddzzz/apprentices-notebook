@@ -20,9 +20,14 @@
     const name = st.label.length > room ? `${st.label.slice(0, room - 1)}…` : st.label;
     return [name, ...tail].join(' ');
   }
+
+  /** The pill is as wide as its text (14px mono is about 8.4 per character), so a short name leaves the token's face showing. */
+  function pillWidth(st: StepDraw): number {
+    return Math.min(92, Math.ceil(pill(st).length * 8.4) + 16);
+  }
 </script>
 
-<!-- A stand-in foe's telegraphed step (DK-9): the tiles and units it is about, then its badge and name. -->
+<!-- A stand-in foe's telegraphed step (DK-9): the tiles and units it is about, then its badge and name. The name pill sits above the token's HP row (y 76+), never over it. -->
 <g pointer-events="none" data-layer="steps-{layer}">
   {#each steps as st (st.order)}
     <g opacity={st.emphasis === 'dim' ? 0.35 : 1}>
@@ -44,8 +49,8 @@
         <g data-step={st.label}>
           <circle cx={o.x + 16} cy={o.y + 16} r="16" fill="var(--danger)" stroke="var(--parchment)" stroke-width="3" />
           <text x={o.x + 16} y={o.y + 25} text-anchor="middle" font-size="24" font-weight="bold" fill="#fff" font-family="var(--mono)">{st.order}</text>
-          <rect x={o.x + 4} y={o.y + 76} width="92" height="20" rx="10" fill="var(--parchment)" fill-opacity="0.92" stroke="var(--danger)" stroke-width="2.5" />
-          <text x={o.x + 50} y={o.y + 91} text-anchor="middle" font-size="14" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{pill(st)}</text>
+          <rect x={o.x + 50 - pillWidth(st) / 2} y={o.y + 58} width={pillWidth(st)} height="18" rx="9" fill="var(--parchment)" fill-opacity="0.92" stroke="var(--danger)" stroke-width="2.5" />
+          <text x={o.x + 50} y={o.y + 71} text-anchor="middle" font-size="14" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{pill(st)}</text>
         </g>
       {/if}
     </g>

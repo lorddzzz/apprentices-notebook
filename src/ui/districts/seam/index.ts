@@ -2,6 +2,7 @@ import type { DistrictUi } from '..';
 import CycleBanner from './CycleBanner.svelte';
 import HandTile from './HandTile.svelte';
 import { HAND_HIGHLIGHT } from './hands';
+import SeamMargin from './SeamMargin.svelte';
 
 /**
  * The Seam's UI module (SM-2): the Marginalia's cycle strip under the room header, and the mark
@@ -11,7 +12,9 @@ import { HAND_HIGHLIGHT } from './hands';
 export const SEAM_UI: DistrictUi = {
   banners: [CycleBanner],
   highlightArt: { [HAND_HIGHLIGHT]: HandTile },
+  mapSheet: { label: "The owner's margin", sheet: SeamMargin },
 };
 
 export { handHighlights, handOf } from './hands';
 export { default as MarginaliaToken } from './MarginaliaToken.svelte';
+export { unheardHints } from './margin';

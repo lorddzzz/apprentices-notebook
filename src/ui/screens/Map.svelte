@@ -9,6 +9,7 @@
   import { toast } from '../../app/toasts.svelte';
   import DistrictNode from '../components/map/DistrictNode.svelte';
   import SetOutSheet from '../components/map/SetOutSheet.svelte';
+  import { DISTRICT_UI } from '../districts';
 
   // New ink shows once: remember what was fresh on arrival, then mark the map seen.
   const freshOnArrival = new Set<DistrictId>(game.profile.city.fresh);
@@ -16,6 +17,9 @@
   const paths = $derived(mapPaths(nodes));
   const under = $derived(underSeam(game.profile));
   let target = $state<DistrictId | null>(null);
+  /** A district's own map sheet (the Seam's margin) that is open. */
+  let sheetOf = $state<DistrictId | null>(null);
+  const Sheet = $derived(sheetOf ? DISTRICT_UI[sheetOf]?.mapSheet?.sheet : undefined);
   let scroller = $state<HTMLElement | null>(null);
 
   $effect(() => {
@@ -65,9 +69,9 @@
       </svg>
       {#each nodes as n (n.id)}
         {#if n.id === 'seam'}
-          <DistrictNode node={n} onopen={() => (target = n.id)} under={underSeamSlot} />
+          <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} under={underSeamSlot} />
         {:else}
-          <DistrictNode node={n} onopen={() => (target = n.id)} />
+          <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} />
         {/if}
       {/each}
     </div>
@@ -79,6 +83,9 @@
     onclose={() => (target = null)}
     onsetout={setOut}
   />
+  {#if Sheet}
+    <Sheet open={true} profile={game.profile} onclose={() => (sheetOf = null)} />
+  {/if}
 </div>
 
 <!-- The slot under the Seam (DK-E5): the lower Seam's stair, and the owner's door beside it. SM draws both into it. -->
