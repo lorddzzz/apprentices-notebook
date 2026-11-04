@@ -1,4 +1,12 @@
-import { DISTRICTS, type DistrictData, type DistrictId, TIER_NAMES, TIER_UP_LINES } from '$data';
+import {
+  CODEX,
+  type CodexEntryDef,
+  DISTRICTS,
+  type DistrictData,
+  type DistrictId,
+  TIER_NAMES,
+  TIER_UP_LINES,
+} from '$data';
 import {
   type CellKey,
   key as cellKey,
@@ -125,4 +133,32 @@ export function rumourLine(
 ): string | null {
   const id = recap?.stats.heard.find((d) => heardVoice(d, table) === 'rumour');
   return id ? `A rumour of ${placeInText(table[id].name)}` : null;
+}
+
+export interface AnsweredHighlight {
+  kind: 'answered';
+  title: string;
+  text: string;
+}
+
+/** "The margin answered": one highlight naming the pages whose owner's note changed on the trip (SM P12). */
+export function answeredHighlights(
+  recap: TripRecap,
+  codex: readonly CodexEntryDef[] = CODEX,
+): AnsweredHighlight[] {
+  const titles = (recap.stats.answered ?? []).flatMap((id) => {
+    const entry = codex.find((e) => e.id === id);
+    return entry ? [entry.title] : [];
+  });
+  if (titles.length === 0) return [];
+  const shown = titles.slice(0, 3);
+  const more = titles.length - shown.length;
+  const list = shown.join(', ') + (more > 0 ? ` and ${more} more` : '');
+  return [
+    {
+      kind: 'answered',
+      title: 'The margin answered',
+      text: `The owner wrote back beside ${list} in the codex.`,
+    },
+  ];
 }

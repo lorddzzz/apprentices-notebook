@@ -1,11 +1,11 @@
-import { CODEX, type KindId } from '$data';
+import type { KindId } from '$data';
 import { MARGINALIA_HANDS, MARGINALIA_TUNING } from '$data/districts/seam';
 import { type Ctx, emit, ref } from '../ctx';
 import { kill } from '../damage';
 import { byReadingOrder, type Coord, label } from '../grid';
 import { landKindFree } from '../mix';
 import { enemies, inBoard, isAlive, members } from '../queries';
-import type { BattleState, EnemyUnit, Profile, Unit } from '../types';
+import type { BattleState, EnemyUnit, Unit } from '../types';
 import type {
   DistrictEvent,
   DistrictEventDef,
@@ -167,18 +167,5 @@ export const SEAM_MODULE: DistrictModule = {
   events: SEAM_EVENTS,
 };
 
-// ── The margins answer (SM P12; SM-12 builds the triggers) ──
-/** The note a codex page shows: the first, or the owner's answer once it has come. */
-export interface NoteView {
-  text: string;
-  answered: boolean;
-}
-/**
- * The note to show on a codex page. Nothing answers before the Marginalia falls; then a page's
- * `answer` shows once its `when` holds. Until SM-12, always the first note.
- */
-export function noteFor(_p: Profile, entryId: string): NoteView {
-  const entry = CODEX.find((e) => e.id === entryId);
-  if (!entry) throw new Error(`noteFor: unknown codex entry '${entryId}'`);
-  return { text: entry.ownerNote, answered: false };
-}
+// ── The margins answer (SM P12) lives in engine/margins.ts; kept importable from here (SM-0). ──
+export { type NoteView, noteFor } from '../margins';

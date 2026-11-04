@@ -28,7 +28,9 @@ import {
   startTrip,
   type Trip,
   type TripRecap,
+  type TripStats,
 } from '$engine';
+import { newlyAnswered } from '$engine/margins';
 import { knockAtDoor, someoneJoined } from '$engine/recruits';
 import { namedTitle } from './describe';
 import { allMasks } from './faircopy';
@@ -196,6 +198,12 @@ export interface BattleEnd {
   paper: PaperId | null;
 }
 
+/** `stats` with `ids` added to the pages answered on this trip; unchanged when there are none. */
+function withAnswered(stats: TripStats, ids: readonly string[]): TripStats {
+  const merged = [...new Set([...(stats.answered ?? []), ...ids])];
+  return merged.length === 0 ? stats : { ...stats, answered: merged };
+}
+
 /** Closes a finished battle: won → looting, wiped → trip gone, pending loot lost, discoveries kept. */
 export function endBattle(
   save: SaveData,
@@ -218,7 +226,18 @@ export function endBattle(
       : save.lastTrip;
   // A wipe sends the party home: a door arrival may knock (recruitment P3).
   const profile = r.outcome === 'wiped' ? knockAtDoor(r.profile) : r.profile;
-  const next: SaveData = { ...save, profile, trip: r.trip, lastTrip };
+  // Margins that answered in this fight ride on the trip's stats until the trip page (SM P12).
+  const answered = newlyAnswered(save.profile, profile);
+  const marked = r.trip ? { ...r.trip, stats: withAnswered(r.trip.stats, answered) } : null;
+  const next: SaveData = {
+    ...save,
+    profile,
+    trip: marked,
+    lastTrip:
+      lastTrip && r.outcome === 'wiped'
+        ? { ...lastTrip, stats: withAnswered(lastTrip.stats, answered) }
+        : lastTrip,
+  };
   const wipe: WipeSummary | null =
     r.outcome === 'wiped' ? { encounter: battle.title, lost: [...trip.loot], learned } : null;
   return { save: next, outcome: r.outcome, wipe, learned, paper: r.paper ?? null };
@@ -254,7 +273,10 @@ export function goHome(save: SaveData): SaveData {
     outcome: 'returned',
     encounter: trip.encounter,
     place: placeOf(trip),
-    stats: { ...trip.stats, heard: [...trip.stats.heard, ...rumours] },
+    stats: withAnswered(
+      { ...trip.stats, heard: [...trip.stats.heard, ...rumours] },
+      newlyAnswered(save.profile, profile),
+    ),
     terms: termTallies(trip),
   };
   return { ...save, profile, trip: null, lastTrip };

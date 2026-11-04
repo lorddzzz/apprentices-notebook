@@ -193,6 +193,7 @@ export function accumulateStats(
     proofCasts,
     elegance: [...stats.elegance],
     heard: [...stats.heard],
+    ...(stats.answered ? { answered: [...stats.answered] } : {}),
   };
 }
 

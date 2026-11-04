@@ -675,6 +675,8 @@ export interface TripStats {
   proofCasts: number; // meaningful casts recorded toward proof
   elegance: TierUp[]; // tier-ups in the order they landed (M16)
   heard: DistrictId[]; // districts heard of on this trip (K-20)
+  /** Codex pages whose margin answered during this trip (SM P12); absent when none did. */
+  answered?: string[];
 }
 /** The last finished trip, kept for the trip page (plan S17) until the next trip starts. */
 export interface TripRecap {

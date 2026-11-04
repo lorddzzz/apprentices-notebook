@@ -4,7 +4,14 @@
   import { tripHighlights } from '../../app/flow';
   import { game } from '../../app/instance';
   import { joinedHighlights } from '../../app/recruitNotes';
-  import { deadCellNotes, heardHighlights, placeInText, termsLine, tierUpLine } from '../../app/tripviews';
+  import {
+    answeredHighlights,
+    deadCellNotes,
+    heardHighlights,
+    placeInText,
+    termsLine,
+    tierUpLine,
+  } from '../../app/tripviews';
   import ApprenticeToken from '../components/common/ApprenticeToken.svelte';
   import Button from '../components/common/Button.svelte';
 
@@ -15,6 +22,7 @@
           ...tripHighlights(recap, game.profile),
           ...joinedHighlights(game.joined),
           ...heardHighlights(recap),
+          ...answeredHighlights(recap),
         ]
       : [],
   );
@@ -159,6 +167,10 @@
   }
   .note.proof {
     border-left-color: var(--m-ink);
+  }
+  .note.answered {
+    border-left-color: var(--m-ink);
+    font-style: italic;
   }
   .note.joined {
     border-left-color: var(--lamp);

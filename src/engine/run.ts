@@ -947,6 +947,7 @@ function parseStats(v: unknown): TripStats {
     proofCasts: count(r.proofCasts),
     elegance: list(r.elegance).map(parseTierUp),
     heard: unique(list(r.heard).map((id) => oneOf(DISTRICT_IDS, id))),
+    ...(r.answered === undefined ? {} : { answered: unique(list(r.answered).map(text)) }),
   };
 }
 
