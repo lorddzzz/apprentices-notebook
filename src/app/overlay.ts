@@ -32,6 +32,7 @@ import type { PreviewShape } from '$engine/districts/types';
 import { dryStrikeIntent, trickOf } from '$engine/rivals/resolve';
 import { jarLocation } from '$engine/rivals/wick';
 import { rulePreview } from '$engine/rules';
+import { handHighlights } from '../ui/districts/seam/hands';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
 import { jarContents, rivalReadout } from './describe';
 import { layerTone, type Tone } from './fx';
@@ -283,6 +284,7 @@ export function overlayFor(
     focus,
   );
   highlights.push(...inkHighlights(s, mode, preview ? preview.shown : null));
+  highlights.push(...handHighlights(intentState));
   const next = nextRound(intentState);
   const steps = stepsOf(
     intentState.units.map((u) => ({

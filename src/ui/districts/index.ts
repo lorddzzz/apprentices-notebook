@@ -7,6 +7,7 @@ import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
 import { INK_QUARTER_UI } from './inkQuarter';
+import { SEAM_UI } from './seam';
 
 /**
  * The district kit's UI registries (P1, P8, P10; DK-12/13/16): art keys from the engine and data
@@ -39,7 +40,7 @@ export interface DistrictUi {
 
 /** Every district's UI module, one line each (P1). */
 export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
-  seam: {},
+  seam: SEAM_UI,
   canals: CANALS_UI,
   inkQuarter: INK_QUARTER_UI,
 };

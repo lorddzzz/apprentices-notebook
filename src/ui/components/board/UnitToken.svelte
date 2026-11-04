@@ -4,6 +4,7 @@
   import type { UnitView } from '../../../app/view';
   import { CrateToken } from '../../districts/canals';
   import { StaffToken } from '../../districts/inkQuarter';
+  import { handOf, MarginaliaToken } from '../../districts/seam';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import { runePath } from './art';
   import { CELL } from './geometry';
@@ -55,6 +56,8 @@
     <text x="50" y={CY + 10} text-anchor="middle" font-size="30" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>
   {:else if unit.def === 'barge'}
     <CrateToken moored={unit.moored === true} />
+  {:else if unit.def === 'marginalia'}
+    <MarginaliaToken {glyph} next={handOf(unit.intent)} />
   {:else if STAFF.includes(unit.def)}
     <StaffToken def={unit.def} {glyph} />
   {:else if unit.def === 'eel'}
