@@ -260,3 +260,67 @@ Each district's audit (template step 1) starts here. Zero-row runes first.
 | A2 | Fix wrong text (**text** rows) by editing the row, not by adding a second row for the same event | One event, one line; the stable-ID rule covers IDs, not text |
 | A3 | Ci2 is left for the player as a design choice (trail catches, or text narrows to "oil you land") | It is a rule question, not an audit fact |
 | A4 | Lines that would fire on nearly every cast (`splash:unit`, `fork:unit`, `oil:empty`) are still proposed: they are the honest place for the heading and duration rules, and P1 needs wiring-relevant lines | `bolt:empty` already works this way |
+
+## 8. Canals: the Timing runes (CN-F1, P12)
+
+Audited 2026-11-04 against `src/data/lines.ts` and the sites that touch jars and waits: `jars.ts` (`sealJar`, `openJar`, `openDuskJars`), `arrival.ts` (`stepJar`), `schedule.ts::run`, `solvents.ts::driftWaiting`, `current.ts::drift`, `mix.ts::newLayer`/`decayStates`, `lattice.ts` (seal steps, `aurasAround`). Same kinds of gap as above. Rows added by CN-F1 are marked **added**; their firing cases are in `tests/scenarios/canal-lines.test.ts`.
+
+| Subject | Rows before | Rows after |
+|---|---|---|
+| Jar | 1 (`jar:unit`, RV-20b) | 2 |
+| Fuse | 0 | 2 |
+| Afterglow | 0 | 0 |
+| Pitch | 1 (`pitch:water`) | 1 |
+| Wick | 1 (`wick:unit`) | 2 |
+
+### Jar (`jar:unit`, `jar:jar`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Ja1 | A new jar crumbles the owner's oldest empty once they hold their limit (one, Jars and Fuses together; two with the Draughtsman's habit), and crumbles any jar already on its tile, whoever owns it. `jarCrumbles` was unstamped. A restore that crumbles keeps its own `restoreErase:jar` | Seal a Jar, end the turn, seal another: the first crumbles | `jars.ts::sealJar`/`crumble` | `jar:jar` | **added** |
+| Ja2 | Every jar on water drifts one tile downstream at dusk and opens on a unit it floats under (Lantern Walk), **Pitch or not**; the drift is stamped `pitch:water`, so a plain Jar's float credits Pitch | `solvents.test` "pitch-jar-floats-and-opens-on-a-foe" seals a plain Jar | `solvents.ts::driftWaiting` | `jar:water` (and `fuse:water`) | new, **not added**: the stamp is in `solvents.ts`, outside CN-F1's files |
+| Ja3 | A jar sealed under a standing unit does not open: it waits for the next arrival on the tile | Bolt + Jar + Strike at a rat: the rat stands on the jar untouched | `resolve.ts` (`seal`), `arrival.ts::stepJar` | none: `jar:unit` is the only fitting id and is taken; fold into its text (A2) if wanted | text |
+| Ja4 | A unit pushed, pulled, swapped or carried onto a step-jar opens it (any arrival, not only a walk); a rival's walk over another's jar opens it only with the Lamplighter's note | Shove a rat onto your jar | `arrival.ts::stepJar`, `jars.ts::stepOpens` | `jar:unit` already fires on these | none |
+
+### Fuse (`fuse:jar`, `fuse:unit`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Fu1 | A Fuse counts against the same jar limit as Jar and crumbles the oldest jar, and any jar on its tile | A Jar on the board, then seal a Fuse: the Jar crumbles | `jars.ts::sealJar` | `fuse:jar` | **added** |
+| Fu2 | At dusk a Fuse opens on **whoever stands on its tile then**, foe included, not on the unit it was sealed at. This was stamped `jar:unit` (crediting Jar for a Fuse) whenever a non-owner stood there | Bolt + Fuse + Strike at a dummy: at dusk it opens under the dummy | `jars.ts::openJar` (`jarLine`) | `fuse:unit` | **added** (and the `jar:unit` misfile fixed) |
+| Fu3 | Dusk jars open in **reading order**, not sealing order; a jar sealed while they open waits for the next dusk. P12's candidate said "sealing order": the code says reading order | Two Fuses, the lower one sealed first: the upper opens first | `jars.ts::openDuskJars` | none: no fitting `Meets` (`order` is the ink writs' Bench term) | new (needs a meets value) |
+| Fu4 | A Fuse on water drifts before it opens, so it opens on its new tile | Fuse on a lane | `solvents.ts::driftWaiting` | `fuse:water` | as Ja2 |
+| Fu5 | A step onto a Fuse jar does nothing (the Fuse habit aside, `fuseOnStep:jar`) | | | headline | none |
+
+### Afterglow (no rows)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Af1 | Only a **compound** takes the flag: Afterglow touching a plain cloud, slick or plate does nothing | Afterglow beside Steam on bare floor: the cloud lasts 2 | `mix.ts::newLayer` (`isCompound`) | `afterglow:cloud` or similar | new+event (the landing event already carries the kind's line) |
+| Af2 | The extra round is spent once, at the first round end the compound would have ticked; a gifted Afterglow adds one more to its count | | `mix.ts::decayStates` | | new+event (decay is silent) |
+| Af3 | A drifting stain keeps its Afterglow | Afterglow + Ink + Oil on a lane | `current.ts::drift` (the layer moves whole) | `afterglow:water` | new+event (`drift` carries no per-float line) |
+| Af4 | A rest sealed in a jar keeps the Afterglow that touched the sealing path (P9) | `delayed.test` "afterglow-jar" | `jars.ts::sealedContext` | | none: the compound is landed by the jar's run, nothing distinct to say |
+
+All of Afterglow's lines need an event in `mix.ts` or `current.ts`, neither CN-F1's; none is added. The page side (which paths it touches; diagonals only with FN-11's capstone) is page-only, like Bend.
+
+### Pitch (`pitch:water`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Pi1 | Only a wait aimed at a **tile** drifts; one aimed at a unit follows the unit (the current carries it, or not). A drift into land or a blocker leaves it, silently | Pitch Afterimage at a rat in the lane | `solvents.ts::driftWaiting` (`target.kind === 'tile'`, `downstream`) | `pitch:unit` | new+event |
+| Pi2 | `pitch:water` says "a jar or a waiting repeat"; jars float without Pitch (Ja2) | | | `pitch:water` | text, once Ja2 lands |
+
+### Wick (`wick:unit`, `wick:member`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Wi1 | A Wick lapses if its caster is down when it wakes; it returned silently (Repeat and Margin already said so) | Bolt + a Wick Conduct(Strike), then the caster falls: next turn nothing, and a `miss` | `schedule.ts::run` (`LAPSES`) | `wick:member` | **added** (new+event) |
+| Wi2 | A Wick aimed at a tile acts on whoever stands there when it wakes | | `schedule.ts::run` | | none: the same rule as Repeat's, its run's own lines fire |
+
+### Canal proposals
+
+| # | Proposal | Reason |
+|---|---|---|
+| C1 | Stamp a jar's drift with the sealing rune (`jar:water`, `fuse:water`) in `driftWaiting`, keeping `pitch:water` for Pitch waits; then narrow `pitch:water`'s text | Ja2: Pitch is credited for every jar's float today |
+| C2 | A crumble inside another line's scope (a restore) keeps that line | `restoreErase:jar` already explains the crumble; one event, one line |
+| C3 | `fuse:unit` fires only when someone other than the owner opens the Fuse, mirroring `jar:unit` | Keeps `fuseOnStep:jar` (owner arrivals) its own line |

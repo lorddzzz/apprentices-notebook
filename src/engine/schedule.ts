@@ -1,3 +1,4 @@
+import type { LineId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, withLine } from './ctx';
 import { runDetached } from './jars';
@@ -28,6 +29,13 @@ function stepOf(entry: Scheduled): Step | null {
   return { role, rune: entry.step, at: { x: 0, y: 0 }, auras, next: null };
 }
 
+/** The waits that say so when they lapse (`repeat:member`, `margin:member`, `wick:member`). */
+const LAPSES: Partial<Record<Scheduled['kind'], { source: string; line: LineId }>> = {
+  repeat: { source: 'Repeat', line: 'repeat:member' },
+  margin: { source: 'Margin', line: 'margin:member' },
+  wick: { source: 'Wick', line: 'wick:member' },
+};
+
 function run(ctx: Ctx, e: Scheduled): void {
   if (e.kind === 'graphite') {
     if (e.undo) undoBoard(ctx, e.undo);
@@ -36,11 +44,8 @@ function run(ctx: Ctx, e: Scheduled): void {
   // A downed caster's delayed actions lapse (graphite undos above still restore the board).
   const owner = ctx.s.units.find((u) => u.id === e.owner);
   if (!owner || owner.hp <= 0) {
-    if (e.kind === 'repeat' || e.kind === 'margin') {
-      withLine(ctx, `${e.kind}:member`, () =>
-        emit(ctx, { type: 'miss', source: e.kind === 'repeat' ? 'Repeat' : 'Margin' }),
-      );
-    }
+    const lapse = LAPSES[e.kind];
+    if (lapse) withLine(ctx, lapse.line, () => emit(ctx, { type: 'miss', source: lapse.source }));
     return;
   }
   const at = whereIs(ctx.s, e.target);

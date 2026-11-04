@@ -706,4 +706,33 @@ export const LINES: readonly LineDef[] = [
     district: 'inkQuarter',
     text: 'Bind on a collared unit makes a shackle, which holds nothing.',
   },
+  // CN-F1: the Timing runes against the current and jars (footnotes audit, canals section)
+  {
+    id: 'jar:jar',
+    subject: 'jar',
+    meets: 'jar',
+    district: 'canals',
+    text: 'A new jar crumbles your oldest empty once you hold your limit (one, Jars and Fuses together), and crumbles any jar already on its tile.',
+  },
+  {
+    id: 'fuse:jar',
+    subject: 'fuse',
+    meets: 'jar',
+    district: 'canals',
+    text: 'A Fuse counts against your jar limit with your Jars: sealing one crumbles your oldest empty, and crumbles any jar already on its tile.',
+  },
+  {
+    id: 'fuse:unit',
+    subject: 'fuse',
+    meets: 'unit',
+    district: 'canals',
+    text: 'A Fuse opens at dusk on whoever stands on its tile then, foe included, not on the unit it was sealed at.',
+  },
+  {
+    id: 'wick:member',
+    subject: 'wick',
+    meets: 'member',
+    district: 'canals',
+    text: 'A held-back invention lapses if its caster is down when it wakes.',
+  },
 ];

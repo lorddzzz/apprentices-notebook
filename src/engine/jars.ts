@@ -1,4 +1,4 @@
-import type { RuneRef, SolventId } from '$data';
+import type { LineId, RuneRef, SolventId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
 import { hasFootnote } from './footnotes';
@@ -128,9 +128,16 @@ function takeJarId(ctx: Ctx): number {
   return id;
 }
 
-function crumble(ctx: Ctx, at: Coord): void {
+/** The sealing rune's line for a jar: a step-jar is Jar's, a dusk-jar Fuse's (CN-F1). */
+const jarLine = (jar: Jar, meets: 'jar' | 'unit'): LineId =>
+  jar.event === 'dusk' ? `fuse:${meets}` : `jar:${meets}`;
+
+/** A new jar crumbles an old one (`jar:jar`, `fuse:jar`), unless a line already explains why. */
+function crumble(ctx: Ctx, at: Coord, by: Jar): void {
   tileAt(ctx.s, at).jar = null;
-  emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+  const go = () => emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+  if (ctx.meta.line) go();
+  else withLine(ctx, jarLine(by, 'jar'), go);
 }
 
 /**
@@ -144,9 +151,9 @@ export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
   const mine = jarsOf(ctx, jar.owner).filter((c) => c.x !== at.x || c.y !== at.y);
   while (mine.length >= jarLimit(owner)) {
     const old = mine.shift();
-    if (old) crumble(ctx, old);
+    if (old) crumble(ctx, old, jar);
   }
-  if (tileAt(ctx.s, at).jar) crumble(ctx, at);
+  if (tileAt(ctx.s, at).jar) crumble(ctx, at, jar);
   const id = takeJarId(ctx);
   tileAt(ctx.s, at).jar = { ...cloneData(jar), id, seq: id };
   emit(ctx, {
@@ -174,8 +181,9 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null): void {
     withOrigin(ctx, jar.origin, () =>
       emit(ctx, { type: 'jarOpened', at: { ...at }, by: opener ? ref(opener) : null }),
     );
-  // A jar opened under someone other than its owner is the fine print of `jar:unit`.
-  if (opener && opener.id !== jar.owner) withLine(ctx, 'jar:unit', open);
+  // A jar opened under someone other than its owner is the fine print of `jar:unit` (a Fuse's
+  // at dusk, of `fuse:unit`).
+  if (opener && opener.id !== jar.owner) withLine(ctx, jarLine(jar, 'unit'), open);
   else open();
   const target: Target = opener
     ? { kind: 'unit', unit: opener.id }
