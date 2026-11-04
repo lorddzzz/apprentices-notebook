@@ -10,7 +10,7 @@ import type {
 } from '$data';
 import type { ArrivalCause, PlacementCause } from './arrival';
 import { KIT } from './districts';
-import type { DistrictEvent, OutOfRoomEvent } from './districts/types';
+import type { DistrictEvent, Json, OutOfRoomEvent } from './districts/types';
 import { type Coord, type Dir, label } from './grid';
 import type { Blocker } from './queries';
 import type { LockLost, RivalEvent } from './rivals/types';
@@ -434,8 +434,49 @@ export function describe(e: GameEvent): string | null {
     case 'pageRecovered':
       return `a page is recovered: ${e.page}`;
     default:
-      // A district event: its module's line, or none for a type no module registers.
-      return KIT.events[e.type]?.describe(e) ?? null;
+      // A trick hook's event reads the same in every district; any other district event is its
+      // module's line, or none for a type no module registers.
+      return trickLine(e) ?? KIT.events[e.type]?.describe(e) ?? null;
+  }
+}
+
+const TRICK_EVENT = /:(trickResists|trickMarkUsed|trickMark|trickObjectGone|trickObject)$/;
+const RESISTED: Record<string, string> = {
+  push: 'cannot be pushed',
+  hold: 'cannot be held',
+  fall: 'will not fall',
+};
+
+const jsonObject = (j: Json | undefined): { readonly [k: string]: Json } =>
+  j && typeof j === 'object' && !Array.isArray(j) ? (j as { readonly [k: string]: Json }) : {};
+
+/** The log line of a trick hook's event (RV-11's `<district>:trick…` events), or null for any other type. */
+function trickLine(e: Extract<GameEvent, { type: `${string}:${string}` }>): string | null {
+  const kind = TRICK_EVENT.exec(e.type)?.[1];
+  if (!kind) return null;
+  const d = jsonObject(e.data);
+  const name = e.unit ? who(e.unit) : 'a rival';
+  switch (kind) {
+    case 'trickResists':
+      return `${name} ${RESISTED[String(d.what)] ?? 'stands fast'} (his trick)`;
+    case 'trickMark': {
+      const tiles = Array.isArray(d.tiles) ? d.tiles.length : 0;
+      const when =
+        d.timing === 'beforeActions' ? 'before the enemy actions' : 'after the enemy actions';
+      return `${name} marks ${tiles === 1 ? 'a tile' : `${tiles} tiles`} for ${when}`;
+    }
+    case 'trickMarkUsed':
+      return `${name}'s mark takes effect`;
+    case 'trickObject': {
+      const at = jsonObject(d.at);
+      return typeof at.x === 'number' && typeof at.y === 'number'
+        ? `${name} sets something down at ${label({ x: at.x, y: at.y })}`
+        : `${name} sets something aside`;
+    }
+    default: {
+      const why = LOCK_LOST[d.why as LockLost];
+      return `${name}'s object is ${why ?? 'gone'}`;
+    }
   }
 }
 

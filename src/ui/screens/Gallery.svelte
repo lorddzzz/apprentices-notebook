@@ -29,6 +29,7 @@
   import { editSocket, NO_TOOL, type ShelfTool, shelfSlots } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
   import { type BoardView, viewOfSpec } from '../../app/view';
+  import TrickBanner from '../components/battle/TrickBanner.svelte';
   import BattleBoard from '../components/board/BattleBoard.svelte';
   import { boardViewBox } from '../components/board/geometry';
   import { cellLabel } from '../components/board/label';
@@ -51,13 +52,14 @@
     SHOWCASE_OVERLAY,
     showcaseView,
   } from './galleryFixtures';
+  import { TRICK_SAMPLES, type TrickSample, trickScene } from './galleryTricks';
 
   const DIR_LIST: Dir[] = ['up', 'right', 'down', 'left'];
   const part = $derived(router.params.get('part') ?? 'glyphs');
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'lattice'] as const;
+  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -91,6 +93,12 @@
     tool = result.tool;
     if (result.message) toast(result.message);
   }
+
+  // tricks part (RV-13): the five fixture tricks through the generic trick telegraph
+  let trickSample = $state.raw<TrickSample>(
+    TRICK_SAMPLES.find((t) => t.id === router.params.get('trick')) ?? (TRICK_SAMPLES[0] as TrickSample),
+  );
+  const trickView = $derived(trickScene(trickSample));
 
   // fx part: the oil chain and a few more playable chains (slide and crush, storm, jar, drop)
   const FIRST_DEMO = FX_DEMOS[0] as FxDemo;
@@ -292,6 +300,21 @@
         minimal
         ontap={tapChain}
       />
+    </div>
+  {:else if part === 'tricks'}
+    <div class="row">
+      {#each TRICK_SAMPLES as t (t.id)}
+        <Button
+          label={t.label}
+          variant={t.id === trickSample.id ? 'primary' : 'quiet'}
+          onclick={() => (trickSample = t)}
+          testid={`trick-${t.id}`}
+        />
+      {/each}
+    </div>
+    <TrickBanner tricks={trickView.draws} />
+    <div class="boardbox" style:aspect-ratio={aspect(trickView.view)} data-testid="trick-board">
+      <BattleBoard view={trickView.view} overlay={trickView.overlay} ontap={() => {}} />
     </div>
   {:else if part === 'lattice'}
     <LatticeEditor

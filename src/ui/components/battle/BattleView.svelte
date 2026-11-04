@@ -18,6 +18,7 @@
   import LogSheet from './LogSheet.svelte';
   import PartyStrip from './PartyStrip.svelte';
   import RivalSheet from './RivalSheet.svelte';
+  import TrickBanner from './TrickBanner.svelte';
 
   interface Props {
     session: BattleSession;
@@ -83,6 +84,7 @@
 <section class="battle">
   {@render top()}
   <DistrictBanners {battle} trip={session.mode === 'trip' ? game.save.trip : null} log={session.log} />
+  <TrickBanner tricks={session.overlay.tricks ?? []} />
   <BossHeader units={view.units} />
 
   <div class="board-wrap">

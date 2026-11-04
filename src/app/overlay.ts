@@ -16,6 +16,7 @@ import {
   isAlive,
   isCloud,
   isPlate,
+  label,
   legalAims,
   relocations,
   type SpellKey,
@@ -30,11 +31,13 @@ import {
 import { behaviourPreview } from '$engine/behaviours';
 import type { PreviewShape } from '$engine/districts/types';
 import { dryStrikeIntent, trickOf } from '$engine/rivals/resolve';
+import { trickFor, trickObjectOf } from '$engine/rivals/tricks';
+import type { ObjectRef, Telegraph, TrickMark, TrickPlan } from '$engine/rivals/types';
 import { jarLocation } from '$engine/rivals/wick';
 import { rulePreview } from '$engine/rules';
 import { handHighlights } from '../ui/districts/seam/hands';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
-import { jarContents, rivalReadout } from './describe';
+import { jarContents, rivalReadout, shortName } from './describe';
 import { layerTone, type Tone } from './fx';
 import { type DistrictHighlight, inkHighlights } from './inkHighlights';
 
@@ -114,6 +117,42 @@ export interface StepDraw {
   /** Rounds left (the clock writ). */
   countdown: number | null;
   emphasis: IntentDraw['emphasis'];
+  /** Board objects it is about (a writ, a circle): a diamond on the tile. */
+  objects?: Coord[];
+  /** A rival's trick (RV-13): an action has its order badge and name pill from `RivalDraw`; a mark has no order. */
+  trick?: 'action' | 'mark';
+}
+
+/** A board object a trick telegraph names, placed (null: it is not on the board, like a tune). */
+export interface TrickObjectDraw {
+  ref: ObjectRef;
+  at: Coord | null;
+}
+
+/**
+ * A rival's trick telegraph (RV-13), read from the trick's `draw` descriptor: what the generic
+ * banner and board layers render. `action` is the telegraphed action trick, `mark` the always-shown
+ * per-round mark.
+ */
+export interface TrickDraw {
+  unit: UnitId;
+  slot: 'action' | 'mark';
+  /** The trick's own label ("the long wick", "note"). */
+  label: string;
+  /** `TrickDef.describe`: what it does. */
+  text: string;
+  /** Where it acts, in words ("C4, D4"): tiles, then objects, then the units named. */
+  where: string;
+  from: Coord;
+  /** The action's order badge; a mark has none. */
+  order: number | null;
+  tiles: Coord[];
+  /** Where the units it names stand now. */
+  units: Coord[];
+  objects: TrickObjectDraw[];
+  sequence: [number, number] | null;
+  countdown: number | null;
+  emphasis: IntentDraw['emphasis'];
 }
 
 /**
@@ -152,8 +191,10 @@ export interface Overlay {
   marks?: IntentMark[];
   /** Null when no active rule previews anything. */
   next?: NextRound | null;
-  /** Telegraphed steps of stand-in foes. */
+  /** Telegraphed steps of stand-in foes, and the board part of rivals' tricks (`trickSteps`). */
   steps?: StepDraw[];
+  /** Rivals' trick telegraphs, for the trick banner (RV-13). */
+  tricks?: TrickDraw[];
   badges: Badge[];
   ghosts: Ghost[];
   selected: UnitId | null;
@@ -166,6 +207,7 @@ export const EMPTY_OVERLAY: Overlay = {
   marks: [],
   next: null,
   steps: [],
+  tricks: [],
   badges: [],
   ghosts: [],
   selected: null,
@@ -296,13 +338,15 @@ export function overlayFor(
     })),
     focus,
   );
+  const tricks = trickDraws(intentState, focus);
   return {
     highlights,
     intents,
     rivals: rivalRead.draws,
     marks,
     next,
-    steps,
+    steps: [...steps, ...trickSteps(tricks)],
+    tricks,
     badges,
     ghosts,
     selected: selectedOf(mode),
@@ -508,6 +552,145 @@ function nextRound(s: BattleState): NextRound | null {
     }
   }
   return { shapes, units };
+}
+
+// ── Trick telegraphs (RV-13) ────────────────────────────
+const sameKey = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
+const uniqueTiles = (cs: readonly Coord[]): Coord[] =>
+  cs.filter((c, i) => cs.findIndex((o) => sameKey(o, c)) === i).map((c) => ({ ...c }));
+
+/** Where a named object stands now: a jar by FD's id, a trick object by its own. */
+function objectAt(s: BattleState, o: ObjectRef): Coord | null {
+  const at = o.kind === 'jar' ? jarLocation(s, o.id)?.at : trickObjectOf(s, o.id)?.at;
+  return at ? { ...at } : null;
+}
+
+/** Up to four place names, then "and N more". */
+function whereOf(places: readonly string[]): string {
+  const shown = places.slice(0, 4).join(', ');
+  return places.length > 4 ? `${shown} and ${places.length - 4} more` : shown;
+}
+
+/**
+ * One trick telegraph as the UI draws it (pure): the descriptor's tiles, the standing places of
+ * its units and objects, the `n/m` sequence and the countdown. Units that are gone are dropped.
+ */
+export function trickDrawOf(
+  s: BattleState,
+  unit: EnemyUnit,
+  slot: TrickDraw['slot'],
+  tg: Telegraph,
+  text: string,
+  order: number | null,
+  emphasis: IntentDraw['emphasis'] = 'normal',
+): TrickDraw {
+  const named = (tg.units ?? []).flatMap((id) => {
+    const u = findUnit(s, id);
+    return u && isAlive(u) ? [u] : [];
+  });
+  const objects = (tg.objects ?? []).map(
+    (o): TrickObjectDraw => ({ ref: { ...o }, at: objectAt(s, o) }),
+  );
+  const tiles = uniqueTiles(tg.tiles);
+  const places = [
+    ...tiles.map((c) => label(c)),
+    ...objects.flatMap((o) =>
+      o.at && !tiles.some((t) => sameKey(t, o.at as Coord)) ? [label(o.at)] : [],
+    ),
+    ...named.map(shortName),
+  ];
+  return {
+    unit: unit.id,
+    slot,
+    label: tg.label,
+    text,
+    where: whereOf(places),
+    from: { ...unit.pos },
+    order,
+    tiles,
+    units: named.map((u) => ({ ...u.pos })),
+    objects,
+    sequence: tg.sequence ? [tg.sequence[0], tg.sequence[1]] : null,
+    countdown: tg.countdown ?? null,
+    emphasis,
+  };
+}
+
+/**
+ * The telegraph of every living rival's trick: the action trick he has planned (read from his
+ * intent) and the per-round mark he shows, each through the trick's own `draw` (P10).
+ */
+export function trickDraws(
+  s: BattleState,
+  focus: { kind: string; id: UnitId } | null = null,
+): TrickDraw[] {
+  const out: TrickDraw[] = [];
+  for (const u of s.units) {
+    if (u.kind !== 'enemy' || !u.rival || !isAlive(u)) continue;
+    const emphasis = emphasisOf(u.id, focus);
+    const i = u.intent;
+    const trick = i?.kind === 'trick' ? trickOf(i.trick) : null;
+    if (i?.kind === 'trick' && trick) {
+      const plan: TrickPlan = { lock: i.lock, data: i.data };
+      out.push(
+        trickDrawOf(
+          s,
+          u,
+          'action',
+          trick.draw(s, u, plan, u.rival.trick),
+          trick.describe(plan),
+          i.order,
+          emphasis,
+        ),
+      );
+    }
+    const mark: TrickMark | null | undefined = u.rival.mark;
+    const markTrick = mark ? trickFor(u) : null;
+    if (mark && markTrick?.mark) {
+      out.push(
+        trickDrawOf(
+          s,
+          u,
+          'mark',
+          markTrick.draw(s, u, mark, u.rival.trick),
+          markTrick.describe(mark),
+          null,
+          emphasis,
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+/**
+ * The board part of trick telegraphs (pure draw to highlight mapping): tiles, the units named and
+ * the objects. A jar object is the wick's, which `RivalDraw.wick` already draws as a fuse line and
+ * ring, so its tile and the unit on it are left to that. Nothing left to draw gives no step.
+ */
+export function trickSteps(draws: readonly TrickDraw[]): StepDraw[] {
+  const out: StepDraw[] = [];
+  for (const d of draws) {
+    const jars = d.objects.flatMap((o) => (o.ref.kind === 'jar' && o.at ? [o.at] : []));
+    const tiles = d.tiles.filter((c) => !jars.some((j) => sameKey(j, c)));
+    const units = d.units.filter((c) => !jars.some((j) => sameKey(j, c)));
+    const objects = d.objects.flatMap((o) => (o.ref.kind === 'trick' && o.at ? [{ ...o.at }] : []));
+    const tail = d.slot === 'mark' || d.sequence !== null || d.countdown !== null;
+    if (tiles.length === 0 && units.length === 0 && objects.length === 0 && !tail) continue;
+    out.push({
+      from: { ...d.from },
+      label: d.label,
+      tiles,
+      units,
+      objects,
+      order: d.order ?? 0,
+      sequence: d.sequence,
+      countdown: d.countdown,
+      emphasis: d.emphasis,
+      trick: d.slot,
+    });
+  }
+  return out;
 }
 
 interface StepSource {
