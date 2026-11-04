@@ -907,63 +907,63 @@
         {
           "type": "aimed",
           "source": "bolt",
-          "targets": [{ "kind": "unit", "unit": "rat-1" }],
+          "targets": [{ "kind": "tile", "at": { "x": 5, "y": 2 } }],
           "heading": "up",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
-          "type": "lands",
+          "type": "stopped",
           "source": "Bolt",
-          "at": { "x": 5, "y": 1 },
-          "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }, { "x": 5, "y": 1 }],
+          "at": { "x": 5, "y": 2 },
+          "by": "brass plate",
+          "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }],
+          "line": "bolt:plate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
-          "type": "landed",
-          "kind": "oil",
-          "at": { "x": 5, "y": 1 },
-          "makes": "slick",
+          "type": "named",
+          "what": "compound",
+          "id": "skidPlate",
+          "line": "oil:plate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
-          "type": "damage",
-          "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
-          "amount": 1,
-          "source": "Spark",
-          "bonus": [],
-          "hpLeft": 1,
+          "type": "mixed",
+          "at": { "x": 5, "y": 2 },
+          "compound": "skidPlate",
+          "line": "oil:plate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "named",
           "what": "burst",
-          "id": "fire",
-          "line": "spark:slick",
+          "id": "page:skidPlate",
+          "line": "spark:skidPlate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "burst",
-          "burst": "fire",
-          "at": { "x": 5, "y": 1 },
+          "burst": "page:skidPlate",
+          "at": { "x": 5, "y": 2 },
           "tiles": [{ "x": 5, "y": 1 }],
           "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false }],
-          "line": "spark:slick",
+          "line": "spark:skidPlate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "damage",
           "target": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
-          "amount": 2,
-          "source": "Fire",
+          "amount": 3,
+          "source": "Skid plate",
           "bonus": [],
           "hpLeft": 0,
-          "line": "spark:slick",
+          "line": "spark:skidPlate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
           "type": "died",
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 5, "y": 1 }, "member": false },
-          "line": "spark:slick",
+          "line": "spark:skidPlate",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
         {
@@ -978,8 +978,8 @@
           "meaningful": true,
           "spans": [
             { "at": { "x": 1, "y": 0 }, "from": 0, "to": 2 },
-            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 3 },
-            { "at": { "x": 1, "y": 2 }, "from": 3, "to": 8 }
+            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 4 },
+            { "at": { "x": 1, "y": 2 }, "from": 4, "to": 8 }
           ],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
         },
@@ -1001,19 +1001,9 @@
         {
           "type": "stopped",
           "source": "Line",
-          "at": { "x": 2, "y": 4 },
+          "at": { "x": 2, "y": 3 },
           "by": "cloud",
-          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }, { "x": 2, "y": 3 }, { "x": 2, "y": 4 }]
-        },
-        {
-          "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
-          "amount": 1,
-          "source": "Fire",
-          "bonus": [],
-          "hpLeft": 7,
-          "line": "spark:slick",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 2 }
+          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }, { "x": 2, "y": 3 }]
         },
         { "type": "round", "round": 2 },
         { "type": "phase", "phase": "enemy" },
@@ -1206,6 +1196,13 @@
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
+          "type": "named",
+          "what": "burst",
+          "id": "fire",
+          "line": "spark:slick",
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
+        },
+        {
           "type": "burst",
           "burst": "fire",
           "at": { "x": 2, "y": 1 },
@@ -1227,7 +1224,7 @@
           "spans": [
             { "at": { "x": 1, "y": 0 }, "from": 0, "to": 2 },
             { "at": { "x": 1, "y": 1 }, "from": 2, "to": 3 },
-            { "at": { "x": 1, "y": 2 }, "from": 3, "to": 9 }
+            { "at": { "x": 1, "y": 2 }, "from": 3, "to": 10 }
           ],
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
@@ -1315,6 +1312,7 @@
         { "type": "endTurn" },
         { "type": "shove", "unit": "draughtsman", "dir": "up" },
         { "type": "move", "unit": "draughtsman", "to": { "x": 2, "y": 0 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 6, "y": 3 } },
         { "type": "endTurn" },
         { "type": "shove", "unit": "draughtsman", "dir": "right" },
         { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 0 } },
@@ -1594,7 +1592,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 6
+          "hpLeft": 7
         },
         {
           "type": "marked",
@@ -1719,7 +1717,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 5
+          "hpLeft": 6
         },
         { "type": "named", "what": "compound", "id": "deepMark", "line": "ink:mark" },
         {
@@ -1867,7 +1865,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 4
+          "hpLeft": 5
         },
         {
           "type": "washed",
@@ -2058,7 +2056,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 3
+          "hpLeft": 4
         },
         {
           "type": "mixed",
@@ -2209,7 +2207,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 2
+          "hpLeft": 3
         },
         {
           "type": "washed",
@@ -2351,7 +2349,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 1
+          "hpLeft": 2
         },
         {
           "type": "mixed",
@@ -2502,11 +2500,14 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 0
+          "hpLeft": 1
         },
         {
-          "type": "died",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true }
+          "type": "washed",
+          "at": { "x": 6, "y": 2 },
+          "was": "deepMark",
+          "now": "blot",
+          "line": "ink:compound"
         },
         { "type": "stateFades", "tiles": [{ "x": 3, "y": 2 }] },
         { "type": "vent", "at": { "x": 3, "y": 2 } },
@@ -2533,27 +2534,14 @@
           "verb": "write Brass on C2–E2"
         },
         {
-          "type": "moved",
+          "type": "telegraph",
           "unit": {
             "id": "familiar-2",
             "name": "familiar",
             "at": { "x": 6, "y": 1 },
             "member": false
           },
-          "from": { "x": 6, "y": 1 },
-          "to": { "x": 5, "y": 1 },
-          "path": [{ "x": 5, "y": 1 }],
-          "cause": "walk"
-        },
-        {
-          "type": "telegraph",
-          "unit": {
-            "id": "familiar-2",
-            "name": "familiar",
-            "at": { "x": 5, "y": 1 },
-            "member": false
-          },
-          "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 2 },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 2 },
           "verb": "spit"
         },
         { "type": "phase", "phase": "player" },
@@ -2612,6 +2600,14 @@
           "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 0 }],
           "cause": "walk"
         },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "from": { "x": 6, "y": 2 },
+          "to": { "x": 6, "y": 3 },
+          "path": [{ "x": 6, "y": 3 }],
+          "cause": "walk"
+        },
         { "type": "phase", "phase": "resolve" },
         {
           "type": "seam:hand",
@@ -2649,18 +2645,23 @@
           "unit": {
             "id": "familiar-2",
             "name": "familiar",
-            "at": { "x": 5, "y": 1 },
+            "at": { "x": 6, "y": 1 },
             "member": false
           },
-          "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 2 },
+          "intent": { "kind": "attack", "attack": "spit", "dir": "down", "order": 2 },
           "verbs": "spits"
         },
         {
-          "type": "stopped",
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "amount": 1,
           "source": "Spit",
-          "at": { "x": 4, "y": 1 },
-          "by": "brass plate",
-          "path": [{ "x": 4, "y": 1 }]
+          "bonus": [],
+          "hpLeft": 0
+        },
+        {
+          "type": "died",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true }
         },
         {
           "type": "stateFades",
@@ -2693,12 +2694,12 @@
           "unit": {
             "id": "familiar-2",
             "name": "familiar",
-            "at": { "x": 5, "y": 1 },
+            "at": { "x": 6, "y": 1 },
             "member": false
           },
-          "from": { "x": 5, "y": 1 },
-          "to": { "x": 6, "y": 2 },
-          "path": [{ "x": 6, "y": 1 }, { "x": 6, "y": 2 }],
+          "from": { "x": 6, "y": 1 },
+          "to": { "x": 6, "y": 3 },
+          "path": [{ "x": 6, "y": 2 }, { "x": 6, "y": 3 }],
           "cause": "walk"
         },
         {
@@ -2706,7 +2707,7 @@
           "unit": {
             "id": "familiar-2",
             "name": "familiar",
-            "at": { "x": 6, "y": 2 },
+            "at": { "x": 6, "y": 3 },
             "member": false
           },
           "intent": { "kind": "attack", "attack": "spit", "dir": "left", "order": 2 },
@@ -3038,10 +3039,10 @@
     ],
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
     "footnotes": {
-      "bolt": { "points": 1, "slots": {} },
-      "oil": { "points": 2, "slots": {} },
+      "bolt": { "points": 2, "slots": {} },
+      "oil": { "points": 3, "slots": {} },
       "spark": { "points": 8, "slots": {} },
-      "ink": { "points": 6, "slots": {} }
+      "ink": { "points": 7, "slots": {} }
     },
     "solventsFound": [],
     "papers": [],
@@ -3209,10 +3210,10 @@
       ],
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],
       "footnotes": {
-        "bolt": { "points": 1, "slots": {} },
-        "oil": { "points": 2, "slots": {} },
+        "bolt": { "points": 2, "slots": {} },
+        "oil": { "points": 3, "slots": {} },
         "spark": { "points": 8, "slots": {} },
-        "ink": { "points": 6, "slots": {} }
+        "ink": { "points": 7, "slots": {} }
       },
       "solventsFound": [],
       "papers": [],

@@ -796,7 +796,7 @@
           "aim": { "kind": "dir", "dir": "up" }
         },
         { "type": "move", "unit": "draughtsman", "to": { "x": 1, "y": 1 } },
-        { "type": "move", "unit": "stoker", "to": { "x": 5, "y": 6 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 4 } },
         { "type": "cast", "unit": "stoker", "spell": "1,0", "aim": { "kind": "dir", "dir": "up" } }
       ],
       "events": [
@@ -1038,9 +1038,9 @@
         {
           "type": "stopped",
           "source": "Line",
-          "at": { "x": 2, "y": 4 },
+          "at": { "x": 2, "y": 3 },
           "by": "cloud",
-          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }, { "x": 2, "y": 3 }, { "x": 2, "y": 4 }]
+          "path": [{ "x": 2, "y": 1 }, { "x": 2, "y": 2 }, { "x": 2, "y": 3 }]
         },
         { "type": "round", "round": 2 },
         { "type": "phase", "phase": "enemy" },
@@ -1175,13 +1175,13 @@
           "type": "moved",
           "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
           "from": { "x": 2, "y": 6 },
-          "to": { "x": 5, "y": 6 },
-          "path": [{ "x": 3, "y": 6 }, { "x": 4, "y": 6 }, { "x": 5, "y": 6 }],
+          "to": { "x": 3, "y": 4 },
+          "path": [{ "x": 2, "y": 5 }, { "x": 2, "y": 4 }, { "x": 3, "y": 4 }],
           "cause": "walk"
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 6 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 4 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "up" },
           "aimText": "up",
@@ -1190,96 +1190,66 @@
         {
           "type": "aimed",
           "source": "bolt",
-          "targets": [{ "kind": "tile", "at": { "x": 5, "y": 1 } }],
+          "targets": [{ "kind": "tile", "at": { "x": 3, "y": 0 } }],
           "heading": "up",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
           "type": "lands",
           "source": "Bolt",
-          "at": { "x": 5, "y": 1 },
-          "path": [
-            { "x": 5, "y": 5 },
-            { "x": 5, "y": 4 },
-            { "x": 5, "y": 3 },
-            { "x": 5, "y": 2 },
-            { "x": 5, "y": 1 }
-          ],
+          "at": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 3 }, { "x": 3, "y": 2 }, { "x": 3, "y": 1 }, { "x": 3, "y": 0 }],
           "line": "bolt:empty",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
-          "type": "named",
-          "what": "compound",
-          "id": "pool",
-          "line": "oil:slick",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
-        },
-        {
-          "type": "mixed",
-          "at": { "x": 5, "y": 1 },
-          "compound": "pool",
-          "line": "oil:slick",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
-        },
-        {
           "type": "landed",
           "kind": "oil",
-          "at": { "x": 5, "y": 0 },
+          "at": { "x": 3, "y": 0 },
           "makes": "slick",
-          "line": "oil:slick",
-          "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
-        },
-        {
-          "type": "landed",
-          "kind": "oil",
-          "at": { "x": 5, "y": 2 },
-          "makes": "slick",
-          "line": "oil:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
           "type": "named",
           "what": "burst",
-          "id": "page:pool",
-          "line": "spark:pool",
+          "id": "fire",
+          "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
           "type": "burst",
-          "burst": "page:pool",
-          "at": { "x": 5, "y": 1 },
+          "burst": "fire",
+          "at": { "x": 3, "y": 0 },
           "tiles": [
-            { "x": 5, "y": 0 },
+            { "x": 3, "y": 0 },
             { "x": 2, "y": 1 },
             { "x": 3, "y": 1 },
             { "x": 4, "y": 1 },
-            { "x": 5, "y": 1 },
-            { "x": 5, "y": 2 }
+            { "x": 5, "y": 1 }
           ],
           "units": [{ "id": "rat-1", "name": "rat", "at": { "x": 2, "y": 1 }, "member": false }],
-          "line": "spark:pool",
+          "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
           "type": "damage",
           "target": { "id": "rat-1", "name": "rat", "at": { "x": 2, "y": 1 }, "member": false },
-          "amount": 3,
-          "source": "Pool fire",
+          "amount": 2,
+          "source": "Fire",
           "bonus": [],
           "hpLeft": 0,
-          "line": "spark:pool",
+          "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
           "type": "died",
           "unit": { "id": "rat-1", "name": "rat", "at": { "x": 2, "y": 1 }, "member": false },
-          "line": "spark:pool",
+          "line": "spark:slick",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 6 }, "member": true },
+          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 4 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -1289,9 +1259,15 @@
           "meaningful": true,
           "spans": [
             { "at": { "x": 1, "y": 0 }, "from": 0, "to": 2 },
-            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 6 },
-            { "at": { "x": 1, "y": 2 }, "from": 6, "to": 10 }
+            { "at": { "x": 1, "y": 1 }, "from": 2, "to": 3 },
+            { "at": { "x": 1, "y": 2 }, "from": 3, "to": 7 }
           ],
+          "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
+        },
+        {
+          "type": "named",
+          "what": "idiom",
+          "id": "bonfire",
           "origin": { "caster": "stoker", "spell": "1,0", "cast": 4 }
         },
         { "type": "won" }
@@ -1322,7 +1298,7 @@
             "spell": "1,0",
             "name": "Bolt",
             "casts": 5,
-            "damage": 15,
+            "damage": 14,
             "kills": 4,
             "cells": ["1,0", "1,1", "1,2"],
             "fired": ["1,0", "1,1", "1,2"]
@@ -1335,8 +1311,7 @@
           "compound:skidPlate",
           "burst:page:skidPlate",
           "compound:shackle",
-          "compound:pool",
-          "burst:page:pool"
+          "idiom:bonfire"
         ],
         "proofCasts": 10,
         "elegance": [],
@@ -3073,7 +3048,7 @@
             "spell": "1,0",
             "name": "Bolt",
             "casts": 5,
-            "damage": 15,
+            "damage": 14,
             "kills": 4,
             "cells": ["1,0", "1,1", "1,2"],
             "fired": ["1,0", "1,1", "1,2"]
@@ -3086,8 +3061,7 @@
           "compound:skidPlate",
           "burst:page:skidPlate",
           "compound:shackle",
-          "compound:pool",
-          "burst:page:pool",
+          "idiom:bonfire",
           "compound:stain",
           "burst:detonation",
           "idiom:cashingIn",
@@ -3146,8 +3120,6 @@
       "shove:edge",
       "ink:collar",
       "bolt:empty",
-      "oil:slick",
-      "spark:pool",
       "ink:slick",
       "ink:spread",
       "brass:mark",
@@ -3164,8 +3136,7 @@
       "compound:skidPlate",
       "burst:page:skidPlate",
       "compound:shackle",
-      "compound:pool",
-      "burst:page:pool",
+      "idiom:bonfire",
       "compound:stain",
       "burst:detonation",
       "idiom:cashingIn",
@@ -3184,7 +3155,6 @@
       "elite",
       "skidPlate",
       "shackle",
-      "pool",
       "edge",
       "collar",
       "empty",
@@ -3198,7 +3168,7 @@
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
     "footnotes": {
       "spark": { "points": 6, "slots": {} },
-      "oil": { "points": 3, "slots": {} },
+      "oil": { "points": 2, "slots": {} },
       "bolt": { "points": 2, "slots": {} },
       "shove": { "points": 3, "slots": {} },
       "ink": { "points": 6, "slots": {} }
@@ -3311,7 +3281,7 @@
           "spell": "1,0",
           "name": "Bolt",
           "casts": 5,
-          "damage": 15,
+          "damage": 14,
           "kills": 4,
           "cells": ["1,0", "1,1", "1,2"],
           "fired": ["1,0", "1,1", "1,2"]
@@ -3324,8 +3294,7 @@
         "compound:skidPlate",
         "burst:page:skidPlate",
         "compound:shackle",
-        "compound:pool",
-        "burst:page:pool",
+        "idiom:bonfire",
         "compound:stain",
         "burst:detonation",
         "idiom:cashingIn",
@@ -3386,8 +3355,6 @@
         "shove:edge",
         "ink:collar",
         "bolt:empty",
-        "oil:slick",
-        "spark:pool",
         "ink:slick",
         "ink:spread",
         "brass:mark",
@@ -3404,8 +3371,7 @@
         "compound:skidPlate",
         "burst:page:skidPlate",
         "compound:shackle",
-        "compound:pool",
-        "burst:page:pool",
+        "idiom:bonfire",
         "compound:stain",
         "burst:detonation",
         "idiom:cashingIn",
@@ -3424,7 +3390,6 @@
         "elite",
         "skidPlate",
         "shackle",
-        "pool",
         "edge",
         "collar",
         "empty",
@@ -3438,7 +3403,7 @@
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],
       "footnotes": {
         "spark": { "points": 6, "slots": {} },
-        "oil": { "points": 3, "slots": {} },
+        "oil": { "points": 2, "slots": {} },
         "bolt": { "points": 2, "slots": {} },
         "shove": { "points": 3, "slots": {} },
         "ink": { "points": 6, "slots": {} }
@@ -3551,7 +3516,7 @@
             "spell": "1,0",
             "name": "Bolt",
             "casts": 5,
-            "damage": 15,
+            "damage": 14,
             "kills": 4,
             "cells": ["1,0", "1,1", "1,2"],
             "fired": ["1,0", "1,1", "1,2"]
@@ -3564,8 +3529,7 @@
           "compound:skidPlate",
           "burst:page:skidPlate",
           "compound:shackle",
-          "compound:pool",
-          "burst:page:pool",
+          "idiom:bonfire",
           "compound:stain",
           "burst:detonation",
           "idiom:cashingIn",
