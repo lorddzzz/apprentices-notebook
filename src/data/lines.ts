@@ -397,7 +397,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'pitch',
     meets: 'water',
     district: 'canals',
-    text: 'Pitch floats: a jar or a waiting repeat on water drifts one tile downstream each round.',
+    text: 'Pitch floats: a waiting repeat or Wick on water drifts one tile downstream each round.',
   },
   {
     id: 'wick:unit',
@@ -727,6 +727,20 @@ export const LINES: readonly LineDef[] = [
     meets: 'unit',
     district: 'canals',
     text: 'A Fuse opens at dusk on whoever stands on its tile then, foe included, not on the unit it was sealed at.',
+  },
+  {
+    id: 'jar:water',
+    subject: 'jar',
+    meets: 'water',
+    district: 'canals',
+    text: 'A sealed Jar on water floats one tile downstream each round, and opens on whoever it floats under.',
+  },
+  {
+    id: 'fuse:water',
+    subject: 'fuse',
+    meets: 'water',
+    district: 'canals',
+    text: 'A Fuse on water floats one tile downstream each round, and opens at dusk on whoever stands where it has floated to.',
   },
   {
     id: 'wick:member',

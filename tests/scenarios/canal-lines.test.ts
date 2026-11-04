@@ -124,3 +124,23 @@ describe('Wick lapses with its caster', () => {
     expect(next.state.scheduled).toEqual([]);
   });
 });
+
+describe('A jar floats under its sealing rune’s line (jar:water, fuse:water)', () => {
+  const drawnLines = (events: readonly GameEvent[]) =>
+    events.filter((e) => e.type === 'drawn' && e.what === 'jar').map((e) => e.line);
+
+  test('jar-water: a Jar on the lane drifts under jar:water, not pitch:water', () => {
+    const s = withLattices('. . . .\nD w> w> w>\n. . . d', { draughtsman: 'Touch> Jar Strike' });
+    const sealed = cast(s, 'draughtsman', tileAim('B2')).state;
+    const round = endTurn(sealed);
+    expect(drawnLines(round.events)).toEqual(['jar:water']);
+    expect(round.events.some((e) => e.line === 'pitch:water')).toBe(false);
+  });
+
+  test('fuse-water: a Fuse on the lane drifts under fuse:water', () => {
+    const s = withLattices('. . . .\nD w> w> w>\n. . . d', { draughtsman: 'Touch> Fuse Strike' });
+    const sealed = cast(s, 'draughtsman', tileAim('B2')).state;
+    const round = endTurn(sealed);
+    expect(drawnLines(round.events)).toEqual(['fuse:water']);
+  });
+});

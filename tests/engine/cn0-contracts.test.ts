@@ -26,10 +26,10 @@ describe('CN-0 contracts', () => {
     expect(Object.keys(MOOR_DEF.triggers)).toEqual(['onArrive']);
   });
 
-  test("room 4's rival slot falls back to the Snuffer while the Lamplighter is off", () => {
-    expect(RIVALS_LIVE.lamplighter).toBe(false);
-    expect(rivalSlot('lamplighter')).toBe('snuffer');
-    expect(rivalSlot('lamplighter', { lamplighter: true })).toBe('lamplighter');
+  test("room 4's rival slot is the Lamplighter, and falls back to the Snuffer with the flag off", () => {
+    expect(RIVALS_LIVE.lamplighter).toBe(true);
+    expect(rivalSlot('lamplighter')).toBe('lamplighter');
+    expect(rivalSlot('lamplighter', { lamplighter: false })).toBe('snuffer');
   });
 
   test("the lamp-mother's rhythm is data, at today's numbers", () => {

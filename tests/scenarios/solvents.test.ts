@@ -147,7 +147,7 @@ describe('Canals', () => {
     const sealed = cast(s, 'draughtsman', touchAt('B2')).state;
     expect(tileAt(sealed, at('B2')).jar).not.toBeNull();
     const one = endTurn(sealed);
-    expect(one.events.some((e) => e.type === 'drawn' && e.line === 'pitch:water')).toBe(true);
+    expect(one.events.some((e) => e.type === 'drawn' && e.line === 'jar:water')).toBe(true);
     expect(tileAt(one.state, at('B2')).jar).toBeNull();
     expect(tileAt(one.state, at('C2')).jar).not.toBeNull();
     const two = endTurn(one.state);

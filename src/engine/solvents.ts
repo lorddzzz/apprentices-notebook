@@ -215,8 +215,9 @@ function downstream(s: BattleState, at: Coord): Coord | null {
 
 /**
  * The round's drift for what waits on water: a jar floats one tile downstream (Lantern Walk: it
- * opens on whoever it floats under), and so does a Pitch-flavoured entry waiting on a tile (a
- * Repeat, a Wick). A bound mark's bearer is a unit, so the current already carries it.
+ * opens on whoever it floats under; stamped with its sealing rune's line, `jar:water` or
+ * `fuse:water`), and so does a Pitch-flavoured entry waiting on a tile (a Repeat, a Wick:
+ * `pitch:water`). A bound mark's bearer is a unit, so the current already carries it.
  */
 export function driftWaiting(ctx: Ctx): void {
   const s = ctx.s;
@@ -245,7 +246,7 @@ export function driftWaiting(ctx: Ctx): void {
     dest.jar = jar;
     // The drift is the jar's own cast's doing (RV-16): a rival's lantern floating is no household point.
     withOrigin(ctx, jar.origin, () =>
-      withLine(ctx, 'pitch:water', () =>
+      withLine(ctx, jar.event === 'dusk' ? 'fuse:water' : 'jar:water', () =>
         emit(ctx, { type: 'drawn', from: { ...m.from }, to: { ...m.to }, what: 'jar' }),
       ),
     );

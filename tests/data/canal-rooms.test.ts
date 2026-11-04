@@ -191,7 +191,7 @@ describe('canal rooms 3 and 4 (CN-4)', () => {
     }
   });
 
-  test('foes: room 3 eel, Snuffer, moth, rat; room 4 the slot, eel, moth, rat and the crate', () => {
+  test('foes: room 3 eel, Snuffer, moth, rat; room 4 the Lamplighter, eel, moth, rat and the crate', () => {
     const names = (spec: BoardSpec) =>
       foes(spec)
         .map((u) => u.def)
@@ -200,7 +200,7 @@ describe('canal rooms 3 and 4 (CN-4)', () => {
     for (const { name, spec } of specs(three))
       expect(names(spec), name).toBe('eel,moth,rat,snuffer');
     for (const { name, spec } of specs(four)) {
-      expect(names(spec), name).toBe('eel,moth,rat,snuffer');
+      expect(names(spec), name).toBe('eel,lamplighter,moth,rat');
       expect(
         spec.units.filter((u) => u.def === 'barge'),
         name,
@@ -251,16 +251,28 @@ describe('canal rooms 3 and 4 (CN-4)', () => {
     }
   });
 
-  test('P6: with RIVALS_LIVE off the L slot spawns a Snuffer; live it is the Lamplighter', () => {
-    expect(RIVALS_LIVE.lamplighter).toBe(false);
+  test('P6: live, room 4 spawns the Lamplighter and no Snuffer; with the flag off the L slot is a Snuffer', () => {
+    expect(RIVALS_LIVE.lamplighter).toBe(true);
     for (const { name, spec } of specs(four)) {
       expect(
-        spec.units.some((u) => u.def === 'lamplighter'),
+        spec.units.filter((u) => u.def === 'lamplighter'),
         name,
+      ).toHaveLength(1);
+      expect(
+        spec.units.some((u) => u.def === 'snuffer'),
+        name,
+      ).toBe(false);
+    }
+    // The fallback, as data: the same layouts laid with the flag off read `L` as the Snuffer.
+    for (const v of four.variants) {
+      const spec = parseBoard(layRival(v.layout, false));
+      expect(
+        spec.units.some((u) => u.def === 'lamplighter'),
+        v.name,
       ).toBe(false);
       expect(
         spec.units.filter((u) => u.def === 'snuffer'),
-        name,
+        v.name,
       ).toHaveLength(1);
     }
     const row = '. L . . .\n. . . . .\n. . . . .\n. . . . .\n. . . . .\n. . . . .\nP P P P .';

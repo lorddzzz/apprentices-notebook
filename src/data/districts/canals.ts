@@ -12,9 +12,10 @@ import type {
 
 /**
  * CN P6: which rivals play their room. While `lamplighter` is off, room 4's `L` reads as its
- * stand-in (today's Snuffer). CN-7 flips it after RV-G1.
+ * stand-in (the Snuffer). CN-7 turned the Lamplighter on; the fallback stays as data, tested
+ * through `layRival(layout, false)`.
  */
-export const RIVALS_LIVE: Readonly<Record<RivalId, boolean>> = { lamplighter: false };
+export const RIVALS_LIVE: Readonly<Record<RivalId, boolean>> = { lamplighter: true };
 /** CN P6: the foe a rival's token spawns as while that rival is not live. */
 export const RIVAL_STAND_INS: Readonly<Record<RivalId, EnemyId>> = { lamplighter: 'snuffer' };
 
