@@ -7,6 +7,7 @@ import type {
   RivalSpellId,
   TrickId,
 } from '$data/rivals';
+import type { ArrivalCause } from '../arrival';
 import type { Ctx } from '../ctx';
 import type { Json, RoundEndSlot } from '../districts/types';
 import type { EventLog, UnitRef } from '../events';
@@ -78,6 +79,10 @@ export interface RivalState {
   locked: ObjectRef[];
   /** A scenario's pinned intent (RV-1): RV-2 resolves it in place of planning. */
   pinned?: RivalIntent;
+  /** The per-round mark shown this round (RV-11), resolved at its timing slot. */
+  mark?: TrickMark | null;
+  /** The last trick object id this rival issued (RV-11); ids are battle-unique via the max. */
+  objectSeq?: number;
 }
 
 // ── Planning (P4, P5) ───────────────────────────────────
@@ -143,7 +148,10 @@ export interface TrickMark {
   tiles: readonly Coord[];
 }
 /** `beforeHarm`'s answer: AH's guard verdicts, or cancel and move through FD's pipeline. */
-export type TrickHarmReaction = HarmVerdict | { kind: 'relocate'; to: Coord };
+export type TrickHarmReaction =
+  | HarmVerdict
+  /** The hit does not land; the rival moves to `to` through FD's pipeline under the trick's cause. */
+  | { kind: 'relocate'; to: Coord; cause: ArrivalCause };
 /** What an immunity can refuse. */
 export type Resistance = 'push' | 'hold' | 'fall';
 
@@ -166,7 +174,7 @@ export interface TrickDef<S extends Json = Json> {
     plan(state: BattleState, unit: EnemyUnit, own: S): TrickMark | null;
     resolve(ctx: Ctx, unit: EnemyUnit, mark: TrickMark, own: S): S;
   };
-  /** Reaction before harm lands on the rival (steams away); registered as an `rv:` harm guard. */
+  /** Reaction before a hit lands on the rival (steams away); `dealDamage` asks it before the harm guards. */
   beforeHarm?(ctx: Ctx, unit: EnemyUnit, harm: Harm, own: S): TrickHarmReaction;
   /** Immunity conditioned on board state (right of way). */
   resists?(state: BattleState, unit: EnemyUnit, what: Resistance, own: S): boolean;

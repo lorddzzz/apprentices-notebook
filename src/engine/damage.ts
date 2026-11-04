@@ -7,6 +7,7 @@ import { guardHarm } from './harm';
 import { notify } from './hooks';
 import { strikePiece } from './pieces';
 import { findUnit } from './queries';
+import { trickBeforeHarm, trickDied } from './rivals/tricks';
 import type { Unit } from './types';
 
 /** Where a hit came from, and (AH P14) what kind of harm it is, for wards and harm guards. */
@@ -33,13 +34,17 @@ export function dealDamage(
 ): boolean {
   if (unit.hp <= 0) return false;
   if (!from.unguarded) {
-    const v = guardHarm(ctx, {
+    const harm = {
       kind: 'hit',
       unit: unit.id,
       amount: base,
       source,
       harm: from.harm ?? null,
-    });
+    } as const;
+    // A rival's trick answers first (RV-11 `beforeHarm`: it may steam away), then the harm guards.
+    const reaction = trickBeforeHarm(ctx, unit, harm);
+    if (reaction === 'relocated') return false;
+    const v = reaction ?? guardHarm(ctx, harm);
     if (v.kind === 'cancel') {
       emit(ctx, {
         type: 'unharmed',
@@ -123,4 +128,5 @@ export function kill(ctx: Ctx, unit: Unit, bursts = true, source = 'harm'): void
   notify(ctx, { kind: 'died', unit: unit.id });
   if (bursts && unit.kind === 'enemy' && ENEMIES[unit.def].bursts) foeBurst(ctx, unit);
   if (unit.kind === 'enemy') behaviourDied(ctx, unit);
+  trickDied(ctx, unit);
 }

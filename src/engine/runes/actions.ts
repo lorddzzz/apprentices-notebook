@@ -21,6 +21,7 @@ import { spendMark } from '../marks';
 import { push } from '../push';
 import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
 import type { Handler } from '../resolve';
+import { trickResists } from '../rivals/tricks';
 import { SOLVENT_RULES } from '../solvents';
 import {
   type ErasedPart,
@@ -110,6 +111,7 @@ const guard: Handler = (ctx, t, flow) => {
 };
 
 function holdUnit(ctx: Ctx, u: Unit, rounds: number): void {
+  if (trickResists(ctx, u, 'hold')) return; // RV-11 `resists`
   u.held = Math.max(u.held, rounds);
   emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
 }

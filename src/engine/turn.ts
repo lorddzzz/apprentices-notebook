@@ -3,7 +3,7 @@ import { enemyPhase } from './ai';
 import { resolveBehaviour } from './behaviours';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { dealDamage } from './damage';
-import type { BoardRule } from './districts/types';
+import type { BoardRule, RoundEndSlot } from './districts/types';
 import { foeBurst, resolveSpecial, snuffStep } from './foes';
 import { type Coord, step } from './grid';
 import { openDuskJars } from './jars';
@@ -21,6 +21,7 @@ import {
   unitAt,
 } from './queries';
 import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
+import { runTrickMarks, runTrickRoundEnd } from './rivals/tricks';
 import { boardRules, runRuleSlot } from './rules';
 import { runScheduled } from './schedule';
 import { actStep } from './standIn';
@@ -139,16 +140,22 @@ function coolTiles(ctx: Ctx): void {
  * vents refill, snuffers put fire out, and the `late` slot runs (P8). `rules` is for tests.
  */
 export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = boardRules()): void {
-  runRuleSlot(ctx, 'carry', rules);
+  slot(ctx, 'carry', rules);
   openDuskJars(ctx);
   runScheduled(ctx, 'roundEnd');
   roundEndChemistry(ctx);
-  runRuleSlot(ctx, 'afterChemistry', rules);
+  slot(ctx, 'afterChemistry', rules);
   decayStates(ctx);
   coolTiles(ctx);
   vents(ctx);
   snuffStep(ctx);
-  runRuleSlot(ctx, 'late', rules);
+  slot(ctx, 'late', rules);
+}
+
+/** One round-end slot: its board rules, then the rivals' trick steps in it (RV-11). */
+function slot(ctx: Ctx, at: RoundEndSlot, rules: readonly BoardRule[]): void {
+  runRuleSlot(ctx, at, rules);
+  runTrickRoundEnd(ctx, at);
 }
 
 /**
@@ -187,11 +194,14 @@ export function endTurnAction(ctx: Ctx): void {
   const order = enemies(s)
     .filter((e) => isAlive(e) && e.intent)
     .sort((a, b) => (a.intent?.order ?? 0) - (b.intent?.order ?? 0));
+  // Rivals' per-round marks resolve in their timing slot around the actions (RV-11).
+  if (runTrickMarks(ctx, 'beforeActions') && checkEnd(ctx)) return;
   for (const e of order) {
     if (!isAlive(e)) continue;
     resolveIntent(ctx, e);
     if (checkEnd(ctx)) return;
   }
+  if (runTrickMarks(ctx, 'afterActions') && checkEnd(ctx)) return;
   roundEnd(ctx);
   piecesTurnEnd(ctx);
   if (checkEnd(ctx)) return;

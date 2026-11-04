@@ -10,8 +10,7 @@ import { inBoard, isAlive, unitAt } from '../queries';
 import { resolveSpell } from '../resolve';
 import type { Aim, AttackIntent, BattleState, EnemyUnit, RivalIntent, Spell } from '../types';
 import { planRival } from './plan';
-import type { TrickDef } from './types';
-import { LONG_WICK } from './wick';
+import { isTrickEffect, planTrickMark, resolveTrickAction, trickOf } from './tricks';
 
 /**
  * Rival turns (rivals plan P2, P3; RV-2): telegraphing a pinned intent, locked-aim casting, the
@@ -58,15 +57,13 @@ const EFFECTS: ReadonlySet<GameEvent['type']> = new Set<GameEvent['type']>([
   'summon',
 ]);
 
-export const isEffect = (e: GameEvent): boolean => EFFECTS.has(e.type);
+export const isEffect = (e: GameEvent): boolean => EFFECTS.has(e.type) || isTrickEffect(e);
 
 /** A starved action changed nothing (P3): every event is flight, a stop, a miss or a trace. */
 export const isStarved = (events: EventLog): boolean => !events.some(isEffect);
 
-/** An action trick by id. Districts' tricks join here when DK's module contract wires them (RV-14). */
-export function trickOf(id: string): TrickDef | null {
-  return id === LONG_WICK.id ? LONG_WICK : null;
-}
+/** A trick by id, from the trick registry (RV-11). */
+export { trickOf };
 
 export function rivalDefOf(e: EnemyUnit): RivalDef | null {
   return e.rival ? (RIVALS[e.rival.rival] ?? null) : null;
@@ -118,6 +115,12 @@ export function telegraphRival(ctx: Ctx, e: EnemyUnit, intent: RivalIntent): voi
  * Returns true when it telegraphed.
  */
 export function rivalAct(ctx: Ctx, e: EnemyUnit, order: number, move = false): boolean {
+  const shown = rivalActAction(ctx, e, order, move);
+  planTrickMark(ctx, e); // the per-round mark, always shown after the action (P10)
+  return shown;
+}
+
+function rivalActAction(ctx: Ctx, e: EnemyUnit, order: number, move: boolean): boolean {
   const pinned = e.rival?.pinned;
   if (!pinned) {
     const first = planRival(ctx.s, e.id, move);
@@ -247,16 +250,12 @@ export function resolveRivalIntent(
     resolveRivalCast(ctx, e, intent);
     return;
   }
-  // An action trick (the long wick) resolves through its own lock rules. A failed order is a
-  // starved action (P3): it earns the fallback strike like a starved cast.
-  const trick = trickOf(intent.trick);
-  const r = e.rival;
-  if (!trick?.action || !r) {
+  // An action trick (the long wick) resolves through the trick hooks' lock rules. A failed order
+  // is a starved action (P3): it earns the fallback strike like a starved cast.
+  const from = ctx.log.length;
+  if (!resolveTrickAction(ctx, e, intent)) {
     emit(ctx, { type: 'idle', unit: ref(e) });
     return;
   }
-  emit(ctx, { type: 'trickUsed', unit: ref(e), trick: intent.trick, name: trick.name });
-  const from = ctx.log.length;
-  r.trick = trick.action.resolve(ctx, e, intent, r.trick);
   if (isStarved(ctx.log.slice(from))) fallbackStrike(ctx, e, intent.fallback);
 }

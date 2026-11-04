@@ -2,7 +2,7 @@ import { type Ctx, emit, ref } from '../ctx';
 import type { Coord } from '../grid';
 import { openJar } from '../jars';
 import { coordOf, unitAt } from '../queries';
-import type { BattleState, EnemyUnit, Jar, JarId, RivalIntent, UnitId } from '../types';
+import type { BattleState, EnemyUnit, Jar, JarId, UnitId } from '../types';
 import type { LockLost, ObjectRef, Telegraph, TrickDef, TrickMark, TrickPlan } from './types';
 
 /**
@@ -54,45 +54,28 @@ export function lockStatus(s: BattleState, owner: UnitId, id: JarId): LockCheck 
   return { ok: false, why: 'opened' };
 }
 
-/** A jar sealed earlier in this resolve phase (the log since the last `phase` event). */
-function sealedThisTurn(ctx: Ctx, id: JarId): boolean {
-  for (let i = ctx.log.length - 1; i >= 0; i--) {
-    const e = ctx.log[i];
-    if (e?.type === 'phase') return false;
-    if (e?.type === 'jarSealed' && e.id === id) return true;
-  }
-  return false;
-}
-
 const jarOf = (lock: ObjectRef | null): JarId | null => (lock?.kind === 'jar' ? lock.id : null);
 
-function resolveWick(
-  ctx: Ctx,
-  unit: EnemyUnit,
-  intent: Extract<RivalIntent, { kind: 'trick' }>,
-): void {
-  const id = jarOf(intent.lock);
-  if (id === null) {
+/**
+ * The wick's own part, once the trick hooks (`tricks.ts` `resolveTrickAction`) have checked the
+ * lock: the jar is still his and was not sealed this phase. It opens it where it stands now.
+ */
+function resolveWick(ctx: Ctx, unit: EnemyUnit, lock: ObjectRef | null): void {
+  const id = jarOf(lock);
+  const found = id === null ? null : jarLocation(ctx.s, id);
+  if (!found) {
     emit(ctx, { type: 'idle', unit: ref(unit) });
     return;
   }
-  const object: ObjectRef = { kind: 'jar', id };
-  const check = lockStatus(ctx.s, unit.id, id);
-  // Placed and opened in one turn is illegal: a jar sealed in this resolve phase waits a turn.
-  if (check.ok && sealedThisTurn(ctx, id)) {
-    emit(ctx, { type: 'orderFails', unit: ref(unit), object, why: 'gone' });
-    return;
-  }
-  if (!check.ok) {
-    emit(ctx, { type: 'orderFails', unit: ref(unit), object, why: check.why });
-    return;
-  }
-  openJar(ctx, check.at);
+  openJar(ctx, found.at);
 }
 
 const isPlan = (shown: TrickPlan | TrickMark): shown is TrickPlan => 'lock' in shown;
 
-/** The long wick as a `TrickDef`: one candidate per jar he owns, oldest first. */
+/**
+ * The long wick as the first registered action trick (`tricks.ts` `coreTricks`): one candidate
+ * per jar he owns, oldest first. Its lock rules are the generic object lock.
+ */
 export const LONG_WICK: TrickDef = {
   id: LONG_WICK_ID,
   name: 'the long wick',
@@ -101,7 +84,7 @@ export const LONG_WICK: TrickDef = {
     plan: (state, unit) =>
       jarsOwnedBy(state, unit.id).map((id): TrickPlan => ({ lock: { kind: 'jar', id }, data: {} })),
     resolve: (ctx, unit, intent, own) => {
-      resolveWick(ctx, unit, intent);
+      resolveWick(ctx, unit, intent.lock);
       return own;
     },
   },

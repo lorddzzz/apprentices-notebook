@@ -7,6 +7,7 @@ import { type Coord, type Dir, step } from './grid';
 import { notify } from './hooks';
 import { pieceBlocksUnits, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
+import { trickResists } from './rivals/tricks';
 import type { BattleState, Layer, Origin, Tile, Unit } from './types';
 
 export interface PushResult {
@@ -210,6 +211,8 @@ export function push(
       return unmoved();
     };
     if (unit.held > 0) return blockedByHold();
+    // A rival's trick may refuse the push (RV-11 `resists`: right of way).
+    if (trickResists(ctx, unit, 'push')) return unmoved();
     // A bound mark may answer "pushed" by holding its bearer in place (Anchor).
     notify(ctx, { kind: 'pushed', unit: unit.id, dir });
     if (unit.hp <= 0) return unmoved();
@@ -268,7 +271,8 @@ export function push(
       // Pull (P4): a blocking tile in between, or a swimmer that won't leave the water.
       const why: LineId = stop.into === 'plate' ? 'pull:plate' : 'pull:water';
       withLine(ctx, why, () => emit(ctx, { type: 'miss', source: 'Pull' }));
-    } else if (stop?.kind === 'drop') {
+    } else if (stop?.kind === 'drop' && !trickResists(ctx, unit, 'fall')) {
+      // A rival's trick may refuse the fall (RV-11 `resists`): he stops on the brink.
       fall(ctx, unit, dir, stop, pull);
       dropped = true;
     }
