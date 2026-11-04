@@ -17,7 +17,8 @@ Project skills live in `.claude/skills/`. At the start of each session, GPT/Code
 ## Commands
 
 - `pnpm dev`: dev server (`http://localhost:5173/apprentices-notebook/`). Claude preview entries are in `.claude/launch.json`; other runtimes can start it through their terminal or preview tools.
-- `pnpm check`: typecheck + lint + test. **Must pass before every commit.** CI runs the same gate.
+- `pnpm check:fast`: typecheck + lint + tests without the slow bot play-through sims (`tests/sim/`). **Must pass before every commit** during a build.
+- `pnpm check`: the full gate, sims included. Run it when a wave or plan finishes (and before telling the player a feature is done); CI runs it on every push.
 - `pnpm test`: Vitest. `pnpm format`: Biome. `pnpm icons`: regenerate PWA icons from `public/icon.svg`.
 
 ## Architecture rules
@@ -32,7 +33,8 @@ Project skills live in `.claude/skills/`. At the start of each session, GPT/Code
 
 - Behavior changes ship with engine or scenario tests (`tests/`; see the `scenario` skill). Documentation and configuration changes need checks appropriate to the change.
 - UI changes get a browser check at phone size (375×812) with a screenshot, using the active runtime's browser tools (see the `verify` skill). Report what you verified and any checks that could not be completed.
-- The player's playtests are for feel, UX and direction, not for finding bugs.
+- The player's playtests are for feel, UX and direction, not for finding bugs. The player tests mostly at the end: playtest gates never block other work, and balance numbers (HP, damage, win rates) are not tuned during the build; keep the design's numbers and leave calibration for the end.
+- Play-through checks (bot sweeps, full-loop browser runs) are for finished big pieces (a wave, a plan), not every task.
 
 ## Workflow
 
