@@ -12,80 +12,73 @@ const board = (rows: readonly string[]): string => rows.join('\n');
 
 /**
  * Each depth has three boards (plan S10); the trip seed picks one (`variantFor`) and the
- * Crossroads names it. Enemy counts and the difficulty band are the same across a depth's
- * variants: only the shape of the room changes.
+ * Crossroads names it. Foe counts are the same across a depth's variants: only the shape of the
+ * room changes. SM-3 re-laid them at per-place sizes, tuned for two (Seam §1 "Re-laying"):
+ * room 1 tight (5×6, 6×6), room 2 6×7, room 3 6×8 and 7×8, the heart 7×8. Every variant of a
+ * depth carries the same hearing setups (SM P4), and no start point sits beside a foe except for
+ * the depth-1 bite.
  */
 /**
- * Depth 1: a rat sits beside a start point, so turn 1 often shows a bite coming (best effort with
- * drawn start points, HC P9; CN/SM restore it when they re-lay the rooms).
+ * Depth 1: every start point is beside exactly one rat, so turn 1 always shows a bite coming (the
+ * strict turn-1 bite, HC P9). Setups: a line of three oils ending at the wall, and plates
+ * (fire on 3+ oil, The Wall, cross debt).
  */
 const DEPTH_1: readonly EncounterVariant[] = [
   {
     name: 'The lamplit landing',
-    layout: board([
-      '. . r . . .',
-      '. . . . . .',
-      'r . . . . .',
-      '. . . . . .',
-      'P . P . . .',
-      '. . . . r .',
-      '. P . . P .',
-      '. . . . . .',
-    ]),
+    layout: board(['o o o . .', '. = . r P', '. . . . .', 'P r . = .', '. . i . .', '. P r P .']),
   },
   {
     name: 'The drainage cut',
     layout: board([
-      'r . . . . r',
-      '. . . . . .',
-      '. i . . i .',
-      '. . . . . .',
-      '. . P . . .',
-      'r . . . . .',
-      'P . P . . P',
-      '. . . . . .',
+      'r P . . . .',
+      '. . . = . .',
+      '. . i . . P',
+      'o o o . . r',
+      '. . = . . P',
+      'P r . . . .',
     ]),
   },
   {
     name: 'The coal chute',
     layout: board([
-      '. . . r . .',
-      'o o . . . =',
-      'r . . . . .',
-      '. . . . o .',
-      '. . P . . .',
-      '. . . . r .',
-      'P . P . P .',
-      '. . . . . .',
+      '. . = . P .',
+      'P r . . r .',
+      '. P . . . .',
+      '. = . . . o',
+      '. . r . . o',
+      '. . P . . o',
     ]),
   },
 ];
 
+/**
+ * Depth 2: a line of three oils, a vent's cloud and a short plate run (fire, Storm on 3,
+ * conducted on 3, cross debt).
+ */
 const DEPTH_2: readonly EncounterVariant[] = [
   {
     name: 'The oil cellar',
     layout: board([
       '. f . . . .',
       '. . . . r .',
-      '. o o . . .',
-      '. . . . i .',
-      'r . P . . .',
-      '. . . . . .',
-      'P . P . P .',
-      '. . . . . .',
+      'o o o . . .',
+      '. . . @~ . i',
+      'r . . . . .',
+      '. = = . P .',
+      'P . . P . P',
     ]),
   },
   {
     name: 'The scullery',
     layout: board([
-      '. . . r . P',
-      '. i . . . .',
-      '. . . . . f',
-      'o o . P . =',
-      '. . . . . .',
-      'r . . . i .',
-      '. P . . P .',
-      '. . . . . .',
+      '. . . r . .',
+      '. i . . . f',
+      'P . @~ . . .',
+      '. . . . o .',
+      'r . = = o .',
+      '. . . . o .',
+      '. P . P . P',
     ]),
   },
   {
@@ -93,96 +86,100 @@ const DEPTH_2: readonly EncounterVariant[] = [
     layout: board([
       '. . . . f .',
       '. r . . . .',
-      '. . ~ ~ P .',
-      '. . . . . .',
-      'P . o o . r',
-      '. . . . . .',
-      '. P . . P .',
-      '. . . . . .',
+      '. . ~ @~ . .',
+      'P . . . . P',
+      '. o o o . .',
+      '. . . = = r',
+      'P . P . . .',
     ]),
   },
 ];
 
+/** Depth 3: plates and a vent (Storm, conducted, The Wall); no start point in the sentry's line. */
 const DEPTH_3: readonly EncounterVariant[] = [
   {
     name: 'The sentry post',
     layout: board([
-      'P . b . . .',
+      '. . b . . .',
       '. . . . . r',
-      'o o o . . .',
-      '. o . o . .',
-      'r . . . . P',
+      'o o . = = .',
+      '. . . . . .',
+      'r . @~ . . P',
       '. . = . . .',
       '. P . . P .',
-      '. . . . . .',
+      'P . . . . .',
     ]),
   },
   {
     name: 'The brass gallery',
     layout: board([
-      '. r . . . .',
-      '. . . . . .',
-      '. = . . . b',
-      'P . o o . .',
-      '. . o . . P',
-      'r . . . = .',
-      '. P . . P .',
-      '. . . . . .',
+      '. r . . . . b',
+      '. . . . . . .',
+      '. = = = . . .',
+      'P . . . o o .',
+      '. . @~ . . . .',
+      'r . . . . P .',
+      '. . . = . . .',
+      '. P . . P . .',
     ]),
   },
   {
     name: 'The boiler alley',
     layout: board([
-      'b . . . . .',
-      '. . . . . r',
-      '. @~ P . o o',
-      '. . . . . .',
-      'r . o o . P',
-      '. . . . = .',
-      '. P . . P .',
-      '. . . . . .',
+      'b . . . . . .',
+      '. . . . . r .',
+      '. . @~ . o o .',
+      '. = . . . . P',
+      '. = . r . . .',
+      '. . . . . = .',
+      '. . P . . . .',
+      '. . . . P . P',
     ]),
   },
 ];
 
+/**
+ * The heart: the Marginalia (`G`) and its two ink familiars (SM P3), with plates, vents and oil
+ * for the hands to mix with. Five start points, none beside a foe.
+ */
 const DEPTH_4: readonly EncounterVariant[] = [
   {
     name: 'Heart of the Seam',
     layout: board([
-      'b . . f . b',
-      '. = . . = .',
-      '. = @~ ~ . r',
-      'r o o . . .',
-      '. . . . @~ .',
-      '. = . . . .',
-      'P . P P . P',
-      '. . . . . .',
+      '. . . G . . .',
+      '. f . . . f .',
+      '. = . @~ . = .',
+      '. . . . . . .',
+      'o o . . . o o',
+      '. . = . = . .',
+      'P . . P . . P',
+      '. . P . P . .',
     ]),
   },
   {
     name: 'The furnace hall',
     layout: board([
-      '. b . P . .',
-      '. . . P . r',
-      '@~ . . = . .',
-      '. o o . . b',
-      'r . . . @~ .',
-      '. . = . f .',
-      '. P . . P .',
-      '. . . . . .',
+      '@~ . . . . . .',
+      '. . . G . . .',
+      '. f . = . f .',
+      '. . . = . . .',
+      'o o . . . . @~',
+      '. . . . = . .',
+      '. P . . . P .',
+      'P . . P . . P',
     ]),
   },
   {
     name: 'The old foundry',
     layout: board([
-      '. . . f . .',
-      'b . . . . b',
-      '. . = ~ . r',
-      '. . . . = .',
-      'r . o o . .',
-      '@~ . . . . @~',
-      'P . P P . P',
-      '. . . . . .',
+      '. . . . . . .',
+      '. f . . . . .',
+      '. . = G = . .',
+      '@~ . . . . f @~',
+      '. . o o o . .',
+      '. = . . . = .',
+      'P . . P . . P',
+      '. . P . . P .',
     ]),
   },
 ];

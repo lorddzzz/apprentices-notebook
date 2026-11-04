@@ -152,10 +152,17 @@ test('dummy never in encounter layouts', () => {
   }
 });
 
-test('encounter layouts parse to 6x8 with start points and no fixed apprentice (HC P9)', () => {
+test('encounter layouts parse at their per-place sizes with start points and no fixed apprentice (SM-3)', () => {
+  // Room 1 tight, room 2 6x7, room 3 6x8 or 7x8, the heart 7x8 (seam-grows P4).
+  const sizes = [
+    ['5x6', '6x6', '6x6'],
+    ['6x7', '6x7', '6x7'],
+    ['6x8', '7x8', '7x8'],
+    ['7x8', '7x8', '7x8'],
+  ];
   for (const v of VARIANTS) {
     const b = parseBoard(v.layout);
-    expect([b.width, b.height], v.label).toEqual([TUNING.grid.width, TUNING.grid.height]);
+    expect(`${b.width}x${b.height}`, v.label).toBe(sizes[v.depth]?.[v.index]);
     expect(
       b.units.filter((u) => u.kind === 'member'),
       v.label,
@@ -168,12 +175,13 @@ test('encounter enemy counts hold for every variant of a depth', () => {
   for (const v of VARIANTS) {
     const b = parseBoard(v.layout);
     const count = (def: string) => b.units.filter((u) => u.def === def).length;
-    const got = [count('rat'), count('familiar'), count('sentry')];
+    const got = [count('rat'), count('familiar'), count('sentry'), count('marginalia')];
+    // The heart is the Marginalia and its two familiars (SM P3).
     const want = [
-      [3, 0, 0],
-      [2, 1, 0],
-      [2, 0, 1],
-      [2, 1, 2],
+      [3, 0, 0, 0],
+      [2, 1, 0, 0],
+      [2, 0, 1, 0],
+      [0, 2, 0, 1],
     ][v.depth];
     expect(got, v.label).toEqual(want);
     if (v.depth === 2)

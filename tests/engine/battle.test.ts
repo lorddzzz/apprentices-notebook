@@ -198,7 +198,8 @@ test('createEncounterBattle builds the first encounter', () => {
   expect(events[0]).toEqual({ type: 'battleStart', title: enc.variants[0]?.name });
   expect(state.units.filter((u) => u.kind === 'enemy')).toHaveLength(3);
   expect(state.units.find((u) => u.id === 'stoker')?.hp).toBe(5);
-  expect([state.width, state.height]).toEqual([6, 8]);
+  // The Seam's room 1 is tight (SM-3): 5×6.
+  expect([state.width, state.height]).toEqual([5, 6]);
 });
 
 test('labSetCell replaces tile and unit, keeping member spells', () => {
