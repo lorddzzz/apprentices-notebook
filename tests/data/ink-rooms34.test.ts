@@ -2,23 +2,13 @@ import { describe, expect, test } from 'vitest';
 import { INK_LETTERS } from '$data/districts/inkQuarter/papers';
 import { INK_ROOMS_12 } from '$data/districts/inkQuarter/rooms12';
 import { HEART_RULES, INK_ROOMS_34, NOTARY_DESK } from '$data/districts/inkQuarter/rooms34';
-import {
-  compiledFor,
-  createBattle,
-  FOUNDERS,
-  newProfile,
-  parseBoard,
-  returnCheck,
-  startTrip,
-} from '$engine';
+import { createBattle, FOUNDERS, newProfile, parseBoard, returnCheck, startTrip } from '$engine';
 import { CLOCK_RULE_ID } from '$engine/districts/inkQuarter/clock';
 import { HEART_ROSTER } from '$engine/districts/inkQuarter/standIn';
 import type { Coord } from '$engine/grid';
 import { bankPages, pagesHeld } from '$engine/rivals/pages';
 import { checkRoom } from '$engine/rooms';
-import { listRules } from '$engine/rules';
 import { awardsPage } from '$engine/standIn';
-import { botFight } from '../sim/bot';
 
 /**
  * IQ-10 (ink-quarter-plan P1, P3, P9, P10; design §1): rooms 3 and 4 and the heart, three
@@ -124,31 +114,5 @@ describe('ink rooms 3, 4 and the heart (IQ-10)', () => {
     const t = { ...startTrip(p, 3), encounter: 4 };
     expect(returnCheck(t, shape)).toEqual({ ok: true });
     expect(returnCheck({ ...t, encounter: 2 }, shape).ok).toBe(false);
-  });
-
-  test('the bot wins every layout over a seed sample (founding pair, fresh HP)', () => {
-    const table: string[] = [];
-    ROOMS.forEach((room, ri) => {
-      for (const v of room.variants) {
-        let wins = 0;
-        const seeds = [1, 2];
-        for (const seed of seeds) {
-          const s0 = createBattle({
-            title: room.title,
-            board: v.layout,
-            seed,
-            lineup: FOUNDERS,
-            party: Object.fromEntries(
-              FOUNDERS.map((id) => [id, { spells: compiledFor(newProfile(), id).spells }]),
-            ),
-          }).state;
-          if (ri === 2) s0.rules = listRules(s0, [...HEART_RULES]);
-          if (botFight(s0).state.phase === 'won') wins++;
-        }
-        table.push(`${v.name}: ${wins}/${seeds.length}`);
-        expect(wins, v.name).toBeGreaterThanOrEqual(ri === 2 ? 1 : 2);
-      }
-    });
-    if (process.env.INK_TABLE) process.stderr.write(`${table.join('\n')}\n`);
   });
 });

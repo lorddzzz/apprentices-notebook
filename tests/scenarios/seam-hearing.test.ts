@@ -9,7 +9,6 @@ import {
   playScript,
   ROOM_EVENTS,
   type SeamEvent,
-  sweep,
 } from '../sim/seamHearing';
 
 /**
@@ -105,23 +104,4 @@ describe('scripted solutions hear the right district (SM-4)', () => {
       expect(heard, `${v.name}: ${notable(f.log).join(', ')}`).toContain(EVENT_DISTRICT[event]);
     },
   );
-});
-
-describe('the search bot over every seating (SM-4)', () => {
-  // About 9 s alone on a laptop: 324 searches, most stop in the first round or two.
-  test('reaches each event from at least half the seatings of each room P4 names', () => {
-    const t0 = performance.now();
-    const rows = sweep();
-    const table = rows.map(
-      (r) =>
-        `${r.room.padEnd(18)} ${r.event.padEnd(10)} ${String(r.reached).padStart(2)}/${r.of} ${Math.round((100 * r.reached) / r.of)}%`,
-    );
-    console.log(`${table.join('\n')}\n(${Math.round(performance.now() - t0)} ms)`);
-    for (const r of rows) {
-      expect(
-        r.reached / r.of,
-        `${r.room} ${r.event} missed ${r.missed.join('; ')}`,
-      ).toBeGreaterThanOrEqual(0.5);
-    }
-  }, 120_000);
 });

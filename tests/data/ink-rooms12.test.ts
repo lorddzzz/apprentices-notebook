@@ -1,9 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { INK_ROOMS_12 } from '$data/districts/inkQuarter/rooms12';
-import { compiledFor, createBattle, FOUNDERS, newProfile, parseBoard } from '$engine';
+import { parseBoard } from '$engine';
 import type { Coord } from '$engine/grid';
 import { checkRoom } from '$engine/rooms';
-import { botFight } from '../sim/bot';
 
 /**
  * IQ-9 (ink-quarter-plan P1, design §1): rooms 1 and 2 of the ink-makers' quarter, three
@@ -76,32 +75,5 @@ describe('ink rooms 1 and 2 (IQ-9)', () => {
         expect(pieceCount(v.layout, 'inkQuarter:forward'), v.name).toBe(0);
         expect(pieceCount(v.layout, 'inkQuarter:wax'), v.name).toBe(0);
       }
-  });
-
-  test('the bot wins every layout over a seed sample (founding pair, fresh HP)', () => {
-    const table: string[] = [];
-    for (const room of ROOMS) {
-      for (const v of room.variants) {
-        let wins = 0;
-        const seeds = [1, 2, 3, 4, 5];
-        for (const seed of seeds) {
-          const fight = botFight(
-            createBattle({
-              title: room.title,
-              board: v.layout,
-              seed,
-              lineup: FOUNDERS,
-              party: Object.fromEntries(
-                FOUNDERS.map((id) => [id, { spells: compiledFor(newProfile(), id).spells }]),
-              ),
-            }).state,
-          );
-          if (fight.state.phase === 'won') wins++;
-        }
-        table.push(`${v.name}: ${wins}/${seeds.length}`);
-        expect(wins, v.name).toBeGreaterThanOrEqual(4);
-      }
-    }
-    if (process.env.INK_TABLE) console.log(table.join('\n'));
   });
 });

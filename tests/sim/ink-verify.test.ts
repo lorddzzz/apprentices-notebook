@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest';
 import { type BattleState, type GameEvent, isSilent, newSave, type SaveData } from '$engine';
 import { setOut, startBattle } from '../../src/app/flow';
 import { type BoardView, projectWith, viewOf, withoutIntents } from '../../src/app/view';
-import { botFight } from '../sim/bot';
-import { inkProfile } from '../sim/ink-bot';
+import { botFight } from './bot';
+import { inkProfile } from './ink-bot';
 
 /**
  * IQ-21 (plan section 6): a bot fights every room of the quarter, writs and the clock in play.
