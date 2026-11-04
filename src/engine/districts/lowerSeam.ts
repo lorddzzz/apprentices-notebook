@@ -4,14 +4,15 @@ import { LOWER_SEAM_FLOOR } from '$data/districts/lowerSeam';
 import { FLOOR_FORMAT, type FloorFormat } from '$data/districts/seam';
 import { label } from '../grid';
 import { type BoardSpec, parseBoard } from '../notation';
+import { SEAM_DROP_RULE } from '../outOfRoom';
 import type { CityState, Profile, Trip } from '../types';
 import { KIT } from './kit';
-import type { DistrictModule, Kit, TripShapeDef } from './types';
+import type { BoardRule, DistrictModule, Kit, TripShapeDef } from './types';
 
 /**
  * The lower Seam (SM P7, P10, P11): its own trip, one floor per opened district with an
- * intrusion, free return after any floor, no heart. SM-7: the trip and its module. The floor
- * builder (SM-8: piece rules, the drop, the loot table) and the door (SM-10) come later.
+ * intrusion, free return after any floor, no heart. SM-7: the trip and its module. SM-8: the floor
+ * builder (piece-scoped rules only, the Seam drop, the loot table). The door (SM-10) comes later.
  */
 
 /** The lower Seam's module id (P7), last in `DISTRICT_IDS` so other salts are unchanged. */
@@ -75,16 +76,21 @@ export function tripFloors(t: Pick<Trip, 'district' | 'kit'>): readonly District
  * Floor `index` of a trip with these floors, as a room: the floor district's three intrusion
  * layouts are its variants (the seed picks one, salted per floor by `variantFor`). The lowest
  * floor is the trip's last room (`heart: true`, two picks, P10), and still marks no heart
- * (`marksHeart: false`). SM-8 adds the floor's own loot table and the Seam drop.
+ * (`marksHeart: false`). Its loot is the `lowerSeam` table. A spec carrying a district-scoped or
+ * unknown rule is refused (P9): the board brings its piece-scoped rules itself, nothing else runs.
  */
 export function floorRoom(
   floors: readonly DistrictId[],
   index: number,
   kit: IntrusionKit = DISTRICT_KIT,
+  rulesKit: Kit = KIT,
 ): EncounterDef {
   const d = floors[index];
   const spec = d === undefined ? undefined : kit[d]?.intrusion;
   if (d === undefined || !spec) throw new Error(`No floor ${index + 1} below the Seam`);
+  const bad = spec.rules.filter((id) => rulesKit.rules[id]?.scope !== 'piece');
+  if (bad.length > 0)
+    throw new Error(`Floor ${d} brings a rule that is not piece-scoped: ${bad.join(', ')}`);
   const lowest = index === floors.length - 1;
   const title = `Floor ${index + 1}: ${DISTRICTS[d].name}`;
   return {
@@ -99,16 +105,33 @@ export function floorRoom(
   };
 }
 
+/**
+ * The Seam drop (P9): every floor lists this do-nothing rule, and a fall there (a span going, a
+ * bridge piece) is the canals' survivable drop instead of out of the room. Piece-scoped like
+ * everything a floor runs, and brought by no piece: the floor lists it.
+ */
+export const SEAM_DROP: BoardRule<null> = {
+  id: SEAM_DROP_RULE,
+  slot: 'late',
+  order: 100, // after every other late rule; it does nothing
+  scope: 'piece',
+  activatedBy: { kind: 'piece', pieces: [] },
+  init: () => null,
+  step: (_ctx, own) => own,
+};
+
 /** The lower Seam's trip shape: the floors fixed from the profile at `startTrip` (P7). */
 export const LOWER_SEAM_TRIP: TripShapeDef<{ floors: DistrictId[] }> = {
   id: `${LOWER_SEAM}:floors`,
   parseState: (raw) => parseLowerSeamState(raw),
   initState: (p) => ({ floors: p ? floorsFor(p) : [] }),
+  roomSetup: () => ({ activate: [SEAM_DROP_RULE] }),
 };
 
 /** The lower Seam's engine module: per-trip rooms, its shape, opened by the Seam's heart. */
 export const LOWER_SEAM_MODULE: DistrictModule = {
   id: LOWER_SEAM,
+  rules: [SEAM_DROP],
   trip: LOWER_SEAM_TRIP,
   isOpen: lowerSeamOpen,
   length: (t) => (t.kit ? floorsOfState(t.kit.state).length : 0),

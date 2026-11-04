@@ -69,7 +69,7 @@ describe('round-end rule slots (P8)', () => {
     expect(twice.rules?.['seam:count']).toBe(2);
   });
 
-  test('the built-in rules keep today order: the canals, then the ink quarter writs, forwards and clock (IQ-1, IQ-2, IQ-6)', () => {
+  test('the built-in rules keep today order: the canals, then the ink quarter writs, forwards and clock (IQ-1, IQ-2, IQ-6; SM-8 the lower Seam drop switch)', () => {
     expect(slotRules('carry', boardRules()).map((r) => r.id)).toEqual(['canals:current']);
     expect(slotRules('afterChemistry', boardRules()).map((r) => r.id)).toEqual(['canals:gates']);
     expect(slotRules('late', boardRules()).map((r) => r.id)).toEqual([
@@ -77,6 +77,7 @@ describe('round-end rule slots (P8)', () => {
       'inkQuarter:forwards',
       'inkQuarter:clock',
       'inkQuarter:stakes',
+      'lowerSeam:drop',
     ]);
   });
 });

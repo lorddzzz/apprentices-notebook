@@ -1,4 +1,4 @@
-import type { LootTableId } from '../types';
+import type { LootEntry, LootTableDef, LootTableId, RuneId } from '../types';
 import type { DistrictData } from './index';
 
 /**
@@ -26,9 +26,37 @@ export const LOWER_SEAM_KIT: DistrictData = {
   marksHeart: false,
 };
 
-/** A floor's loot until SM-8's `lowerSeam` table: the Seam's basics; two picks on the lowest (P10). */
+const rune = (r: RuneId, weight: number): LootEntry => ({
+  spec: { kind: 'rune', rune: r },
+  weight,
+});
+
+/**
+ * The floors' loot (SM P10): basics-tier, scaled for three, and never the intruding district's own
+ * pages (Seam design, "Intrusion loot"). Seam rune pages (a page the household has drops as ink),
+ * the ink reserve weighted up (ink is household-wide), Gallnut and Cinder, vellum and the quiet
+ * doorway. No method pages: Conduct stays the Seam heart's. Weights are tune by playing.
+ */
+export const LOWER_SEAM_LOOT: LootTableDef = {
+  id: 'lowerSeam',
+  entries: [
+    rune('splash', 2),
+    rune('touch', 2),
+    rune('steam', 2),
+    rune('brass', 2),
+    rune('bend', 2),
+    rune('fork', 2),
+    { spec: { kind: 'ink' }, weight: 5 },
+    { spec: { kind: 'solvent', solvent: 'gallnut' }, weight: 1 },
+    { spec: { kind: 'solvent', solvent: 'cinder' }, weight: 1 },
+    { spec: { kind: 'vellum', amount: 1 }, weight: 1 },
+    { spec: { kind: 'doorway' }, weight: 1 },
+  ],
+};
+
+/** A floor's loot: one pick per floor, two on the lowest (P10). */
 export const LOWER_SEAM_FLOOR: { loot: LootTableId; picks: number; lowestPicks: number } = {
-  loot: 'shallow',
+  loot: 'lowerSeam',
   picks: 1,
   lowestPicks: 2,
 };
