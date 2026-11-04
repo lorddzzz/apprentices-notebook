@@ -79,8 +79,32 @@ export function arrowHead(line: Line, dir: Dir, size = 0.09): string {
   return `${tip.x},${tip.y} ${a.x},${a.y} ${b.x},${b.y}`;
 }
 
-export function auraLinks(touches: readonly AuraTouch[]): { from: Coord; to: Coord }[] {
-  return touches.map((t) => ({ from: t.from, to: t.to }));
+/** A touch reaching across a corner (an `auraDiagonal` capstone, plan FN P7). */
+export function isDiagonal(from: Coord, to: Coord): boolean {
+  return from.x !== to.x && from.y !== to.y;
+}
+
+export interface AuraLink {
+  from: Coord;
+  to: Coord;
+  diagonal: boolean;
+}
+
+export function auraLinks(touches: readonly AuraTouch[]): AuraLink[] {
+  return touches.map((t) => ({
+    from: t.from,
+    to: t.to,
+    diagonal: isDiagonal(t.from, t.to),
+  }));
+}
+
+/** Orthogonal aura links sit in the gap between frames; a diagonal one crosses the shared corner. */
+export const AURA_TRIM = 0.3;
+export const AURA_TRIM_DIAGONAL = 0.5;
+
+/** The aura line, corner to corner for a diagonal link, trimmed to leave the frames clear. */
+export function auraLine(link: AuraLink): Line {
+  return linkLine(link.from, link.to, link.diagonal ? AURA_TRIM_DIAGONAL : AURA_TRIM);
 }
 
 export interface FlowWindow {

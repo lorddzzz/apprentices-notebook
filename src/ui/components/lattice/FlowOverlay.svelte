@@ -2,7 +2,7 @@
   import type { Attachment } from 'svelte/attachments';
   import type { CompiledLattice, Coord, SpellKey } from '$engine';
   import { key } from '$engine';
-  import { arrowHead, auraLinks, flowSegments, linkLine, localCell, windowLinks } from '../../../app/flowGeometry';
+  import { arrowHead, auraLine, auraLinks, flowSegments, linkLine, localCell, windowLinks } from '../../../app/flowGeometry';
   import { type FlowZone, flowZones } from '../../../app/study';
 
   interface Props {
@@ -91,7 +91,7 @@
     windowLinks(allAuras, window, pixels).map((l) => ({
       ...l,
       at: localCell(l.to, origin),
-      line: linkLine(localCell(l.from, origin), localCell(l.to, origin), 0.3),
+      line: auraLine({ ...l, from: localCell(l.from, origin), to: localCell(l.to, origin) }),
       id: `${key(l.from)}>${key(l.to)}`,
     })),
   );
@@ -106,8 +106,18 @@
   {@attach measure}
 >
   {#each auras as a (a.id)}
-    <circle cx={a.at.x + 0.5} cy={a.at.y + 0.5} r="0.47" class="glow" />
-    <line x1={a.line.x1} y1={a.line.y1} x2={a.line.x2} y2={a.line.y2} class="aura" />
+    <circle cx={a.at.x + 0.5} cy={a.at.y + 0.5} r="0.47" class="glow" class:diagonal={a.diagonal} />
+    <line
+      x1={a.line.x1}
+      y1={a.line.y1}
+      x2={a.line.x2}
+      y2={a.line.y2}
+      class="aura"
+      class:diagonal={a.diagonal}
+    />
+    {#if a.diagonal}
+      <circle cx={a.line.x2} cy={a.line.y2} r="0.06" class="reach" />
+    {/if}
   {/each}
   {#each segments as s (s.id)}
     <g
@@ -215,6 +225,19 @@
   .glow {
     fill: var(--f-aura);
     opacity: 0.2;
+  }
+  /* A diagonal reach (Afterglow, Steep, Coil capstone): finer and dotted, a dot on the touched end. */
+  .aura.diagonal {
+    stroke-width: 1.75;
+    stroke-dasharray: 1 5;
+    opacity: 0.85;
+  }
+  .glow.diagonal {
+    opacity: 0.12;
+  }
+  .reach {
+    fill: var(--f-aura);
+    opacity: 0.85;
   }
 </style>
 

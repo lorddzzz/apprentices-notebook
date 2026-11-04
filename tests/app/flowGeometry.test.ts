@@ -1,12 +1,17 @@
 import { expect, test } from 'vitest';
 import { compileLattice, parseLattice } from '$engine';
 import {
+  AURA_TRIM,
+  AURA_TRIM_DIAGONAL,
   arrowHead,
+  auraLine,
   auraLinks,
   flowSegments,
   focusedCells,
   idleCells,
+  isDiagonal,
   linkLine,
+  windowLinks,
 } from '../../src/app/flowGeometry';
 
 const compile = (ascii: string) => {
@@ -79,4 +84,69 @@ test('arrowHead points along dir from the segment midpoint', () => {
   expect(tip?.[0]).toBeGreaterThan(b?.[0] ?? 0);
   expect(tip?.[1]).toBeCloseTo(0.5);
   expect((a?.[1] ?? 0) + (b?.[1] ?? 0)).toBeCloseTo(1);
+});
+
+const coil = { diagonalAuras: ['coil' as const] };
+const compileDiag = (ascii: string) => {
+  const lattice = parseLattice(ascii);
+  return { lattice, compiled: compileLattice(lattice, {}, {}, null, coil) };
+};
+
+test('diagonal aura touches are flagged, orthogonal ones are not', () => {
+  const { compiled } = compileDiag('Coil . .\nBolt> Ink Oil');
+  const links = auraLinks(compiled.auraTouches);
+  const byTo = Object.fromEntries(links.map((l) => [`${l.to.x},${l.to.y}`, l.diagonal]));
+  // Coil (0,0) touches the Bolt below it, and the Ink diagonally.
+  expect(byTo).toEqual({ '0,1': false, '1,1': true });
+  expect(isDiagonal({ x: 0, y: 0 }, { x: 1, y: 1 })).toBe(true);
+  expect(isDiagonal({ x: 0, y: 0 }, { x: 0, y: 1 })).toBe(false);
+  expect(isDiagonal({ x: 2, y: 2 }, { x: 1, y: 1 })).toBe(true);
+});
+
+test('without the capstone nothing is drawn diagonally', () => {
+  const { compiled } = compile('Coil . .\nBolt> Ink Oil');
+  expect(auraLinks(compiled.auraTouches).some((l) => l.diagonal)).toBe(false);
+});
+
+test('a diagonal aura line runs corner to corner, centred on the shared corner', () => {
+  const link = { from: { x: 0, y: 0 }, to: { x: 1, y: 1 }, diagonal: true };
+  const l = auraLine(link);
+  // symmetric about the corner (1, 1), moving down-right, equal on both axes
+  expect(l.x1).toBeCloseTo(1 - (l.x2 - 1));
+  expect(l.y1).toBeCloseTo(1 - (l.y2 - 1));
+  expect(l.x2 - l.x1).toBeCloseTo(l.y2 - l.y1);
+  expect(l.x2).toBeGreaterThan(l.x1);
+  // trimmed by the diagonal trim along the line from each centre
+  expect(Math.hypot(l.x1 - 0.5, l.y1 - 0.5)).toBeCloseTo(AURA_TRIM_DIAGONAL);
+  expect(Math.hypot(l.x2 - 1.5, l.y2 - 1.5)).toBeCloseTo(AURA_TRIM_DIAGONAL);
+  // the other three diagonals mirror it
+  const up = auraLine({ from: { x: 1, y: 1 }, to: { x: 0, y: 0 }, diagonal: true });
+  expect(up.x1).toBeCloseTo(l.x2);
+  expect(up.y2).toBeCloseTo(l.y1);
+  const anti = auraLine({ from: { x: 1, y: 0 }, to: { x: 0, y: 1 }, diagonal: true });
+  expect(anti.x1).toBeGreaterThan(anti.x2);
+  expect(anti.y1).toBeLessThan(anti.y2);
+});
+
+test('an orthogonal aura line keeps its short trim; a diagonal one never meets the other', () => {
+  const o = auraLine({ from: { x: 0, y: 0 }, to: { x: 1, y: 0 }, diagonal: false });
+  expect(o.x1).toBeCloseTo(0.5 + AURA_TRIM);
+  expect(o.y1).toBe(0.5);
+  // The diagonal and an orthogonal link of the same cells pass through different points:
+  // the orthogonal one crosses the shared edge midpoint, the diagonal one the shared corner.
+  const d = auraLine({ from: { x: 0, y: 0 }, to: { x: 1, y: 1 }, diagonal: true });
+  expect((d.x1 + d.x2) / 2).toBeCloseTo(1);
+  expect((d.y1 + d.y2) / 2).toBeCloseTo(1);
+  expect((o.x1 + o.x2) / 2).toBeCloseTo(1);
+  expect((o.y1 + o.y2) / 2).toBeCloseTo(0.5);
+});
+
+test('diagonal links are windowed like any other link', () => {
+  const links = [
+    { from: { x: 0, y: 0 }, to: { x: 1, y: 1 }, diagonal: true },
+    { from: { x: 40, y: 40 }, to: { x: 41, y: 41 }, diagonal: true },
+  ];
+  const kept = windowLinks(links, { origin: { x: 0, y: 0 }, width: 4, height: 4 });
+  expect(kept).toHaveLength(1);
+  expect(kept[0]?.diagonal).toBe(true);
 });
