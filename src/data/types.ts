@@ -23,7 +23,8 @@ export type DistrictId =
   | 'bathhouses'
   | 'bridges'
   | 'foundry'
-  | 'cartographers';
+  | 'cartographers'
+  | 'lowerSeam';
 /** What pushing a unit into the board edge does in a district (P3; Seam and canals: wall). */
 export type EdgeRule = 'wall' | 'drop';
 

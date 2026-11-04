@@ -56,7 +56,8 @@ export function mapNode(
   kits: Kit = DISTRICT_KIT,
 ): MapNode | null {
   const state = districtState(p, id);
-  if (state === 'unheard') return null;
+  // A district that hears as another (the lower Seam) is no node: SM-11 draws its stair.
+  if (state === 'unheard' || table[id].hearsAs) return null;
   const d = table[id];
   const kit = kits[id];
   const at = entryOf(d, kit);

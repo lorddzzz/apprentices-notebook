@@ -1,5 +1,6 @@
-import { APPRENTICES, type ApprenticeId, DISTRICTS, type DistrictId, encountersOf } from '$data';
+import { APPRENTICES, type ApprenticeId, DISTRICTS, type DistrictId } from '$data';
 import { applyAction, createEncounterBattle } from '../battle';
+import { KIT } from '../districts/kit';
 import type { StartAt } from '../districts/types';
 import { footnoteIds } from '../footnotes';
 import { tripParty } from '../household';
@@ -10,7 +11,7 @@ import { emptyStats } from '../tripStats';
 import type { Action, ActionResult, PartyInit, Profile, SpellKey, Trip } from '../types';
 import { variantFor } from './place';
 import { roomSetupFor, setUpRoom } from './setup';
-import { checkpointRoom, newTripKit, shapeOf } from './shape';
+import { checkpointRoom, newTripKit, roomsOf, shapeOf } from './shape';
 import { chargesLeftOf, hpOf, need, perMember } from './shared';
 
 export function chargesOf(p: Profile, m: ApprenticeId): Record<SpellKey, number> {
@@ -36,9 +37,10 @@ export function startTrip(
   const issues = validateLoadout(p, party);
   const first = Object.values(issues)[0]?.[0];
   if (first) throw new Error(`Loadout is not ready: ${first.message}`);
-  if (!p.city.open.includes(district)) throw new Error(`${DISTRICTS[district].name} is not open`);
+  const isOpen = KIT.modules[district]?.isOpen ?? ((q: Profile) => q.city.open.includes(district));
+  if (!isOpen(p)) throw new Error(`${DISTRICTS[district].name} is not open`);
   const shape = shapeOf(district);
-  const kit = newTripKit(shape);
+  const kit = newTripKit(shape, p);
   let encounter = 0;
   if (opts.at === 'checkpoint') {
     const cp = shape.checkpoint;
@@ -63,6 +65,8 @@ export function startTrip(
     stats: emptyStats(),
   };
   if (kit) trip.kit = kit;
+  // A trip whose rooms come from the city may have none yet (SM P8): its barred line says why.
+  if (roomsOf(trip).length === 0) throw new Error(DISTRICTS[district].barred);
   return trip;
 }
 
@@ -74,7 +78,7 @@ export function startTrip(
  */
 export function beginEncounter(p: Profile, t: Trip): ActionResult {
   need(t, 'fight');
-  const enc = encountersOf(t.district)[t.encounter];
+  const enc = roomsOf(t)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
   const party = perMember(
     t.party,
@@ -94,7 +98,7 @@ export function beginEncounter(p: Profile, t: Trip): ActionResult {
     { lineup: t.party, startSeed: startSeedFor(t, t.encounter) },
   );
   // The room's rules and board edits from trip state (P7, DK-3/DK-5b), before any replay.
-  const shape = shapeOf(t.district);
+  const shape = shapeOf(t.district, t);
   let state = setUpRoom(first.state, shape, roomSetupFor(t, shape));
   const events = [...first.events];
   const footnotes = footnoteIds(p);

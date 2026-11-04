@@ -1,18 +1,20 @@
-import type { DistrictId, EnemyId } from '$data';
-import { DISTRICT_KIT, type IntrusionSpec } from '$data/districts/index';
+import type { DistrictId, EncounterDef, EnemyId } from '$data';
+import { DISTRICT_IDS, DISTRICT_KIT, DISTRICTS, type IntrusionSpec } from '$data/districts/index';
+import { LOWER_SEAM_FLOOR } from '$data/districts/lowerSeam';
 import { FLOOR_FORMAT, type FloorFormat } from '$data/districts/seam';
 import { label } from '../grid';
 import { type BoardSpec, parseBoard } from '../notation';
-import type { CityState, Profile } from '../types';
+import type { CityState, Profile, Trip } from '../types';
 import { KIT } from './kit';
-import type { Kit } from './types';
+import type { DistrictModule, Kit, TripShapeDef } from './types';
 
 /**
- * The lower Seam (SM P7, P10, P11). SM-0: its contracts. The trip itself (SM-7), the floor
- * builder (SM-8) and the door's Crossroads line (SM-10) come later.
+ * The lower Seam (SM P7, P10, P11): its own trip, one floor per opened district with an
+ * intrusion, free return after any floor, no heart. SM-7: the trip and its module. The floor
+ * builder (SM-8: piece rules, the drop, the loot table) and the door (SM-10) come later.
  */
 
-/** The lower Seam's module id (P7). SM-7 appends it last to `DISTRICT_IDS` (other salts unchanged). */
+/** The lower Seam's module id (P7), last in `DISTRICT_IDS` so other salts are unchanged. */
 export const LOWER_SEAM = 'lowerSeam' as const;
 /** `Trip.kit.state` on a lower-Seam trip: the floors, fixed at `startTrip` so replays stay seeded. */
 export interface LowerSeamState {
@@ -23,7 +25,7 @@ export type DoorCity = CityState & { doorSeen?: boolean };
 
 // ── Floors (P7) ─────────────────────────────────────────
 /** Districts that are never a floor: the Seam itself, and the Cartographers (its truth, not a floor). */
-const NOT_FLOORS: readonly DistrictId[] = ['seam', 'cartographers'];
+const NOT_FLOORS: readonly DistrictId[] = ['seam', 'cartographers', LOWER_SEAM];
 
 /** The lower Seam opens when the Marginalia (the Seam's heart) has fallen. */
 export function lowerSeamOpen(p: Profile): boolean {
@@ -36,6 +38,88 @@ export function floorsFor(
   kit: Readonly<Partial<Record<DistrictId, { intrusion?: IntrusionSpec }>>> = DISTRICT_KIT,
 ): DistrictId[] {
   return p.city.open.filter((d) => !NOT_FLOORS.includes(d) && kit[d]?.intrusion !== undefined);
+}
+
+type IntrusionKit = Readonly<Partial<Record<DistrictId, { intrusion?: IntrusionSpec }>>>;
+
+// ── The trip (P7) ───────────────────────────────────────
+const badSave = (): never => {
+  throw new Error('Not a valid save');
+};
+
+/**
+ * Trip state from a save: one or more floors, each a district that is still a floor (not the
+ * Seam, the Cartographers or the lower Seam, and shipping an intrusion), none twice.
+ */
+export function parseLowerSeamState(
+  raw: unknown,
+  kit: IntrusionKit = DISTRICT_KIT,
+): LowerSeamState {
+  if (typeof raw !== 'object' || raw === null || !('floors' in raw)) return badSave();
+  const floors = raw.floors;
+  if (!Array.isArray(floors) || floors.length === 0) return badSave();
+  const out = floors.map((f): DistrictId => {
+    const d = DISTRICT_IDS.find((id) => id === f) ?? badSave();
+    return NOT_FLOORS.includes(d) || !kit[d]?.intrusion ? badSave() : d;
+  });
+  return new Set(out).size === out.length ? { floors: out } : badSave();
+}
+
+/** The floors a lower-Seam trip fixed when it set out (none on any other trip). */
+export function tripFloors(t: Pick<Trip, 'district' | 'kit'>): readonly DistrictId[] {
+  if (t.district !== LOWER_SEAM || !t.kit) return [];
+  return parseLowerSeamState(t.kit.state).floors;
+}
+
+/**
+ * Floor `index` of a trip with these floors, as a room: the floor district's three intrusion
+ * layouts are its variants (the seed picks one, salted per floor by `variantFor`). The lowest
+ * floor is the trip's last room (`heart: true`, two picks, P10), and still marks no heart
+ * (`marksHeart: false`). SM-8 adds the floor's own loot table and the Seam drop.
+ */
+export function floorRoom(
+  floors: readonly DistrictId[],
+  index: number,
+  kit: IntrusionKit = DISTRICT_KIT,
+): EncounterDef {
+  const d = floors[index];
+  const spec = d === undefined ? undefined : kit[d]?.intrusion;
+  if (d === undefined || !spec) throw new Error(`No floor ${index + 1} below the Seam`);
+  const lowest = index === floors.length - 1;
+  const title = `Floor ${index + 1}: ${DISTRICTS[d].name}`;
+  return {
+    id: `${LOWER_SEAM}:${d}`,
+    title,
+    depth: index + 1,
+    layout: spec.rooms[0],
+    variants: spec.rooms.map((layout) => ({ name: title, layout })),
+    loot: LOWER_SEAM_FLOOR.loot,
+    picks: lowest ? LOWER_SEAM_FLOOR.lowestPicks : LOWER_SEAM_FLOOR.picks,
+    heart: lowest,
+  };
+}
+
+/** The lower Seam's trip shape: the floors fixed from the profile at `startTrip` (P7). */
+export const LOWER_SEAM_TRIP: TripShapeDef<{ floors: DistrictId[] }> = {
+  id: `${LOWER_SEAM}:floors`,
+  parseState: (raw) => parseLowerSeamState(raw),
+  initState: (p) => ({ floors: p ? floorsFor(p) : [] }),
+};
+
+/** The lower Seam's engine module: per-trip rooms, its shape, opened by the Seam's heart. */
+export const LOWER_SEAM_MODULE: DistrictModule = {
+  id: LOWER_SEAM,
+  trip: LOWER_SEAM_TRIP,
+  isOpen: lowerSeamOpen,
+  length: (t) => (t.kit ? floorsOfState(t.kit.state).length : 0),
+  encounter: (t, i) => floorRoom(tripFloors(t), i),
+};
+
+/** A new trip's floors may be empty (refused at `startTrip`, P8); a saved one never is. */
+function floorsOfState(state: unknown): readonly DistrictId[] {
+  const floors =
+    typeof state === 'object' && state !== null && 'floors' in state ? state.floors : null;
+  return Array.isArray(floors) && floors.length === 0 ? [] : parseLowerSeamState(state).floors;
 }
 
 // ── The sealed door (P11) ───────────────────────────────

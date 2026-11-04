@@ -159,9 +159,14 @@ export type HearingCondition = KitHearCondition | ModuleHearCondition;
 const isModuleKind = (c: HearingCondition): c is ModuleHearCondition =>
   !Object.hasOwn(HEARING_KINDS, c.kind);
 
+/** Where a fight counts for district filters: the lower Seam counts as the Seam (SM P5). */
+export const hearsAs = (d: DistrictId): DistrictId => DISTRICTS[d].hearsAs ?? d;
+
 /** Whether one condition holds in a scene: its district filter first, then its kind's predicate. */
 export function conditionHolds(c: HearingCondition, s: HearScene): boolean {
-  if (c.kind !== 'heart' && c.district !== undefined && c.district !== s.district) return false;
+  if (c.kind !== 'heart' && c.district !== undefined && c.district !== hearsAs(s.district)) {
+    return false;
+  }
   if (isModuleKind(c)) {
     // Read at call time: the kit is assembled after this file loads (district modules import it).
     const kind = KIT.hearKinds[c.kind];

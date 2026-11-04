@@ -33,7 +33,7 @@ const WHY = {
  * nowhere else to go, so blocks never apply there. `next` names the next room where the policy
  * would allow it, for the greyed button.
  */
-export function returnCheck(t: Trip, shape: DistrictShape = shapeOf(t.district)): ReturnCheck {
+export function returnCheck(t: Trip, shape: DistrictShape = shapeOf(t.district, t)): ReturnCheck {
   const heart = heartOf(shape);
   if (t.status === 'cleared' || t.encounter >= heart) return { ok: true };
   if (!policyAllows(shape.ret, t.encounter, heart)) {
@@ -45,7 +45,7 @@ export function returnCheck(t: Trip, shape: DistrictShape = shapeOf(t.district))
 }
 
 /** Whether pushing on from here walks past the point of no return ("no way home" warning). */
-export function crossesNoReturn(t: Trip, shape: DistrictShape = shapeOf(t.district)): boolean {
+export function crossesNoReturn(t: Trip, shape: DistrictShape = shapeOf(t.district, t)): boolean {
   const heart = heartOf(shape);
   const next = t.encounter + 1;
   if (next >= heart) return false;

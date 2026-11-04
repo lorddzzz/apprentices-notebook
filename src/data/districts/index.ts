@@ -17,6 +17,7 @@ import { CANALS_KIT } from './canals';
 import { CARTOGRAPHERS_KIT } from './cartographers';
 import { FOUNDRY_KIT } from './foundry';
 import { INK_QUARTER_KIT } from './inkQuarter';
+import { LOWER_SEAM_KIT } from './lowerSeam';
 import { SEAM_KIT } from './seam';
 
 /**
@@ -208,6 +209,10 @@ export interface DistrictData {
   tables?: readonly KitLootTableId[];
   /** P15: the threshold room (copy, start points, goal, solved art); `gate.room` is the same object. */
   threshold?: ThresholdSpec;
+  /** SM P5: hearing filters read this district as another (the lower Seam hears as the Seam). */
+  hearsAs?: DistrictId;
+  /** SM P7: false when clearing the last room marks no heart (the lower Seam). Absent reads true. */
+  marksHeart?: false;
 }
 /** The optional view of a district's data: consumers and tests that need only some fields. */
 export type DistrictKitData = { id: DistrictId } & Partial<Omit<DistrictData, 'id'>>;
@@ -221,6 +226,7 @@ export const DISTRICTS: Readonly<Record<DistrictId, DistrictData>> = {
   bridges: BRIDGES_KIT,
   foundry: FOUNDRY_KIT,
   cartographers: CARTOGRAPHERS_KIT,
+  lowerSeam: LOWER_SEAM_KIT,
 };
 
 /** The same entries by the name the kit's consumers use (tests mock this one). */
@@ -234,6 +240,8 @@ export const DISTRICT_IDS: readonly DistrictId[] = [
   'bridges',
   'foundry',
   'cartographers',
+  // SM P7: last, so every other district's variant salt is unchanged.
+  'lowerSeam',
 ];
 /** The districts with rooms this build (P2). */
 export const PLAYABLE_DISTRICTS: readonly DistrictId[] = ['seam', 'canals', 'inkQuarter'];

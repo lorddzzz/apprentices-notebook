@@ -318,7 +318,8 @@ export interface ShapeInput<S extends Json> {
 export interface TripShapeDef<S extends Json = Json> {
   id: TripShapeId;
   parseState(raw: unknown): S;
-  initState(): S;
+  /** The state a new trip starts with; `p` is the setting-out profile (SM P7: floors fixed here). */
+  initState(p?: Profile): S;
   returnBlocks?(input: ShapeInput<S>): readonly ReturnBlock[];
   choices?(input: ShapeInput<S>): readonly CrossroadsChoice[];
   roomSetup?(input: ShapeInput<S>): RoomSetup;
@@ -415,9 +416,11 @@ export interface DistrictModule {
   trip?: TripShapeDef;
   heart?: HeartSetup;
   bot?: BotTerms;
-  /** DK-E1: rooms supplied per trip instead of static data. */
+  /** DK-E1: rooms supplied per trip instead of static data (read through `roomsOf`). */
   encounter?(trip: Trip, index: number): EncounterDef;
   length?(trip: Trip): number;
+  /** A trip-only district's own opening rule (SM P7: the lower Seam opens on the Seam's heart). */
+  isOpen?(p: Profile): boolean;
 }
 
 /** Every registry, assembled once from the module list (no runtime registration, FD P3). */

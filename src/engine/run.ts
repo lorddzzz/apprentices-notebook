@@ -10,7 +10,6 @@ import {
   type CompoundId,
   DISTRICT_IDS,
   ENEMY_IDS,
-  encountersOf,
   type FootnoteSubject,
   type InventionDef,
   isInvention,
@@ -76,7 +75,7 @@ import { deriveSeed } from './rng';
 import { MAX_PARTY } from './rooms';
 import { overLimit, parseLootItem } from './trip/offerKinds';
 import { variantFor } from './trip/place';
-import { parseCheckpoints, parseTripKit, shapeOf } from './trip/shape';
+import { parseCheckpoints, parseTripKit, roomsOf, shapeOf } from './trip/shape';
 import { chargesLeftOf, copyRune, hpOf, perMember, withAll } from './trip/shared';
 import type {
   Action,
@@ -843,8 +842,6 @@ function parseTrip(v: unknown): Trip {
   const r = record(v);
   const encounter = count(r.encounter);
   const district = oneOf(DISTRICT_IDS, r.district);
-  const rooms = encountersOf(district);
-  const enc = rooms[encounter] ?? bad();
   const party = list(r.party).map((m) => oneOf(APPRENTICE_IDS, m));
   if (party.length < 1 || party.length > MAX_PARTY || unique(party).length !== party.length) bad();
   const hp = record(r.hp);
@@ -870,6 +867,9 @@ function parseTrip(v: unknown): Trip {
   };
   const kit = parseTripKit(r.kit, trip, shapeOf(district));
   if (kit) trip.kit = kit;
+  // Rooms after the kit: a module's per-trip rooms read its state (the lower Seam's floors).
+  const rooms = roomsOf(trip);
+  const enc = rooms[encounter] ?? bad();
   if (party.some((m) => hpOf(trip, m) < 1)) bad();
   if (trip.status === 'looting' && (trip.offers.length === 0 || trip.picksLeft === 0)) bad();
   if (trip.status === 'crossroads' && (enc.heart || encounter + 1 >= rooms.length)) bad();
@@ -1124,7 +1124,7 @@ function validateSaveReferencesUnchecked(save: SaveData, budget: ImportBudget): 
     assertCompilationWork(latticeOf(p, m), glyphs, inventions, budget);
   const t = save.trip;
   if (!t) return;
-  const enc = encountersOf(t.district)[t.encounter] ?? bad();
+  const enc = roomsOf(t)[t.encounter] ?? bad();
   const variant = enc.variants[variantFor(t, t.encounter)] ?? bad();
   const board = parseBoard(variant.layout);
   const onBoard = (at: Coord): void => {

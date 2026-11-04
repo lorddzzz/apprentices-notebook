@@ -1,4 +1,4 @@
-import { type DistrictId, encountersOf } from '$data';
+import type { DistrictId } from '$data';
 import {
   choicesAt,
   type DistrictShape,
@@ -50,9 +50,9 @@ const finds = (n: number): string => `keep ${n} ${n === 1 ? 'find' : 'finds'}`;
  */
 export function crossroadsView(
   t: Trip,
-  shape: DistrictShape = shapeOf(t.district),
+  shape: DistrictShape = shapeOf(t.district, t),
 ): CrossroadsView {
-  const depth = `depth ${t.encounter + 2} of ${encountersOf(t.district).length}`;
+  const depth = `depth ${t.encounter + 2} of ${shape.length}`;
   const views = choicesAt(t, shape).map((c): WayView => {
     const base = {
       id: c.id,

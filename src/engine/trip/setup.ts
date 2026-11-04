@@ -23,7 +23,7 @@ import { type DistrictShape, shapeInput, shapeOf } from './shape';
  */
 
 /** The module's setup for the room the trip is about to fight, if it has one. */
-export function roomSetupFor(t: Trip, shape: DistrictShape = shapeOf(t.district)): RoomSetup {
+export function roomSetupFor(t: Trip, shape: DistrictShape = shapeOf(t.district, t)): RoomSetup {
   return shape.trip?.roomSetup?.(shapeInput(t, shape)) ?? {};
 }
 
@@ -83,7 +83,7 @@ export function afterRoomWon(
   t: Trip,
   b: BattleState,
   log: EventLog,
-  shape: DistrictShape = shapeOf(t.district),
+  shape: DistrictShape = shapeOf(t.district, t),
 ): { trip: Trip; bonus: BonusObjective | null } {
   if (!t.kit) return { trip: t, bonus: null };
   const bonus = bonusMet(shape, t.encounter, b, log);
@@ -126,7 +126,7 @@ export function roomRoll(
   t: Trip,
   enc: EncounterDef,
   bonus: BonusObjective | null,
-  shape: DistrictShape = shapeOf(t.district),
+  shape: DistrictShape = shapeOf(t.district, t),
 ): RoomRoll {
   const own = t.kit ? (shape.trip?.offersFor?.(shapeInput(t, shape)) ?? null) : null;
   const table = own?.table ?? enc.loot;

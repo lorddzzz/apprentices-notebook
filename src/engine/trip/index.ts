@@ -39,6 +39,7 @@ export {
   parseTripKit,
   reachedCheckpoint,
   rememberCheckpoint,
+  roomsOf,
   shapeOf,
 } from './shape';
 export { beginEncounter, recordAction, startTrip } from './start';

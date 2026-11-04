@@ -1,4 +1,4 @@
-import { DISTRICT_IDS, type DistrictId, encountersOf } from '$data';
+import { DISTRICT_IDS, type DistrictId, type EncounterDef, encountersOf } from '$data';
 import {
   type BonusObjective,
   type CheckpointDef,
@@ -34,7 +34,25 @@ export interface DistrictShape {
   bonuses?: Readonly<Record<number, BonusObjective>>;
 }
 
-export function shapeOf(district: DistrictId): DistrictShape {
+/**
+ * A trip's rooms in order: the module's per-trip rooms (DK-E1; the lower Seam's floors, fixed in
+ * trip state) or the district's static rooms.
+ */
+export function roomsOf(t: Trip): readonly EncounterDef[] {
+  const mod = KIT.modules[t.district];
+  if (!mod?.encounter || !mod.length) return encountersOf(t.district);
+  const { encounter } = mod;
+  return Array.from({ length: mod.length(t) }, (_, i) => encounter(t, i));
+}
+
+/** Rooms in a trip without building them: the module's `length`, or the static count. */
+function lengthOf(district: DistrictId, t?: Trip): number {
+  const per = KIT.modules[district]?.length;
+  return t && per ? per(t) : encountersOf(district).length;
+}
+
+/** `t` gives the length of a trip whose module supplies its rooms (DK-E1). */
+export function shapeOf(district: DistrictId, t?: Trip): DistrictShape {
   const data = DISTRICT_KIT[district];
   const mod = KIT.modules[district];
   const trip = mod?.trip;
@@ -46,7 +64,7 @@ export function shapeOf(district: DistrictId): DistrictShape {
   return {
     ret: data?.ret ?? { kind: 'any' },
     ...(data?.checkpoint ? { checkpoint: data.checkpoint } : {}),
-    length: encountersOf(district).length,
+    length: lengthOf(district, t),
     ...(trip ? { trip } : {}),
     ...(rules.length > 0 ? { rules } : {}),
     ...(Object.keys(bonuses).length > 0 ? { bonuses } : {}),
@@ -61,9 +79,9 @@ export const carriesKit = (shape: DistrictShape): boolean =>
   shape.trip !== undefined || shape.checkpoint !== undefined || shape.bonuses !== undefined;
 
 /** A fresh `Trip.kit`, or undefined for a shape that needs none. */
-export function newTripKit(shape: DistrictShape): TripKitState | undefined {
+export function newTripKit(shape: DistrictShape, p?: Profile): TripKitState | undefined {
   if (!carriesKit(shape)) return undefined;
-  return { state: shape.trip?.initState() ?? null, choices: [], checkpoint: false, bonuses: [] };
+  return { state: shape.trip?.initState(p) ?? null, choices: [], checkpoint: false, bonuses: [] };
 }
 
 /** What a shape hook reads: the trip with its kit and parsed state. */
@@ -92,7 +110,7 @@ export function reachedCheckpoint(
 }
 
 /** A won room may be the checkpoint's: the trip notes it (P5). */
-export function markCheckpoint(t: Trip, shape: DistrictShape = shapeOf(t.district)): Trip {
+export function markCheckpoint(t: Trip, shape: DistrictShape = shapeOf(t.district, t)): Trip {
   if (!t.kit || t.kit.checkpoint || !reachedCheckpoint(shape, t)) return t;
   return { ...t, kit: { ...t.kit, checkpoint: true } };
 }
@@ -104,7 +122,7 @@ export const checkpointRoom = (cp: CheckpointDef): number => cp.after + 1;
  * A trip that reached its checkpoint leaves it in the city when it ends, won or wiped (P5, like
  * hearing). Other trips leave the profile as it was.
  */
-export function rememberCheckpoint(p: Profile, t: Trip, shape = shapeOf(t.district)): Profile {
+export function rememberCheckpoint(p: Profile, t: Trip, shape = shapeOf(t.district, t)): Profile {
   if (!t.kit?.checkpoint || !shape.checkpoint) return p;
   if (p.city.checkpoints?.[t.district] === shape.checkpoint.after) return p;
   const checkpoints = { ...p.city.checkpoints, [t.district]: shape.checkpoint.after };

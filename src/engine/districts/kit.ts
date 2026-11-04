@@ -1,5 +1,6 @@
 import { CANALS_MODULE } from './canals';
 import { INK_QUARTER_MODULE } from './inkQuarter';
+import { LOWER_SEAM_MODULE } from './lowerSeam';
 import { buildKit } from './registry';
 import { SEAM_MODULE } from './seam';
 import type { DistrictModule } from './types';
@@ -14,6 +15,7 @@ export const DISTRICT_MODULES: readonly DistrictModule[] = [
   SEAM_MODULE,
   CANALS_MODULE,
   INK_QUARTER_MODULE,
+  LOWER_SEAM_MODULE,
 ];
 
 /** The assembled registries (rules, pieces, offer kinds, hearing kinds, steps, shapes). */

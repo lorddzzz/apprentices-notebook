@@ -1,10 +1,9 @@
-import { encountersOf } from '$data';
 import { hearAfterTrip } from '../city';
 import type { Profile, Trip } from '../types';
 import { takeChoice } from './choices';
 import { bankLoot, kindOf, type OfferRegistry, offerRegistry } from './offerKinds';
 import { returnCheck } from './ret';
-import { rememberCheckpoint } from './shape';
+import { rememberCheckpoint, roomsOf } from './shape';
 import { need } from './shared';
 
 /**
@@ -24,7 +23,7 @@ export function pickLoot(t: Trip, index: number, reg: OfferRegistry = offerRegis
   // The kind acts before "done" is read, so a kind that raises `picksLeft` keeps the looting open.
   const after = kindOf(item, reg).onPick(spent, item);
   const done = after.picksLeft <= 0 || after.offers.length === 0;
-  const heart = encountersOf(t.district)[t.encounter]?.heart ?? false;
+  const heart = roomsOf(t)[t.encounter]?.heart ?? false;
   return {
     ...after,
     offers: done ? [] : after.offers,

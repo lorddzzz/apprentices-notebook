@@ -95,7 +95,12 @@ export function hearAfterTrip(
   table: DistrictTable = DISTRICTS,
 ): { profile: Profile; heard: DistrictId[] } {
   const city: CityState = { ...p.city, trips: p.city.trips + 1 };
-  if (outcome === 'returned' && t.status === 'cleared') {
+  // SM P7: the lower Seam has no heart; its lowest floor cleared marks nothing.
+  if (
+    outcome === 'returned' &&
+    t.status === 'cleared' &&
+    DISTRICTS[t.district].marksHeart !== false
+  ) {
     city.hearts = add(city.hearts, t.district);
     city.heard = add(city.heard, t.district);
     city.open = add(city.open, t.district);
@@ -287,7 +292,8 @@ export function openAll(p: Profile): Profile {
     ...p,
     city: {
       ...c,
-      heard: DISTRICT_IDS.reduce(add, c.heard),
+      // The lower Seam hears as the Seam and opens on its heart: never heard or opened itself.
+      heard: DISTRICT_IDS.filter((id) => !DISTRICTS[id].hearsAs).reduce(add, c.heard),
       open: DISTRICT_IDS.filter((id) => DISTRICTS[id].gate.kind !== 'drawing').reduce(add, c.open),
     },
   };

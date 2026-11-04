@@ -1,4 +1,4 @@
-import { type EnemyId, encountersOf, type LineId, type Meets, TUNING } from '$data';
+import { type EnemyId, type LineId, type Meets, TUNING } from '$data';
 import type { PaperId } from '$data/districts/index';
 import { hearAfterTrip, hearFromBattle } from '../city';
 import { KIT } from '../districts/kit';
@@ -17,7 +17,7 @@ import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../typ
 import { wipeLoot } from './offerKinds';
 import { ownedBy, rollOffers } from './offers';
 import { afterRoomWon, roomRoll } from './setup';
-import { markCheckpoint, rememberCheckpoint, shapeOf } from './shape';
+import { markCheckpoint, rememberCheckpoint, roomsOf, shapeOf } from './shape';
 import { need, perMember, withAll } from './shared';
 import { beginEncounter } from './start';
 
@@ -136,10 +136,10 @@ export function finishEncounter(
   const paper = filed.papers.length > learned.papers.length ? filed.papers.at(-1) : undefined;
   const profile = bankPages(filed, b, t.district, awardsPage);
 
-  const enc = encountersOf(t.district)[t.encounter];
+  const enc = roomsOf(t)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
   // The room's bonus and the module's `afterRoom` write the kit; then its offers (P7, P13).
-  const shape = shapeOf(t.district);
+  const shape = shapeOf(t.district, t);
   const marked = afterRoomWon(t, b, log, shape);
   const roll = roomRoll(marked.trip, enc, marked.bonus, shape);
   const withKit = {

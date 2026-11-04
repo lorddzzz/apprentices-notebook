@@ -16,7 +16,7 @@ const RETURN: CrossroadsChoice = { id: 'return', label: 'Return home', kind: 're
  */
 export function choicesAt(
   t: Trip,
-  shape: DistrictShape = shapeOf(t.district),
+  shape: DistrictShape = shapeOf(t.district, t),
 ): readonly CrossroadsChoice[] {
   need(t, 'crossroads', 'cleared');
   const check = returnCheck(t, shape);
@@ -33,7 +33,11 @@ export function choicesAt(
  * kit the choice is recorded with the variant pool it fixes, so a reload replays the same room,
  * and passing the checkpoint is noted (P5). Return home goes through `returnHome` instead.
  */
-export function takeChoice(t: Trip, id: string, shape: DistrictShape = shapeOf(t.district)): Trip {
+export function takeChoice(
+  t: Trip,
+  id: string,
+  shape: DistrictShape = shapeOf(t.district, t),
+): Trip {
   need(t, 'crossroads');
   if (t.encounter + 1 >= shape.length) throw new Error('There is nothing deeper');
   const choice = choicesAt(t, shape).find((c) => c.id === id);
