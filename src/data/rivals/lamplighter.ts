@@ -26,21 +26,26 @@ export const LAMPLIGHTER: RivalDef = {
     { id: 'herd', name: 'Herd', lattice: HERD, charges: 5 },
   ],
   /**
-   * Rivals §2 rows 1–4 as P5 goal steps; the first step with an effective plan wins. Rows 1–3 only
+   * Rivals §2 rows 1–4 as P5 goal steps (the vocabulary and its params: `engine/rivals/goals.ts`);
+   * the first step with an effective plan wins. Rows 1–3 only
    * find plans while he owns a jar (own-jar herding, the wick, a herding position), so without
    * one he falls through to row 4. No step opens the jar unless it hurts an apprentice and not
    * him (`openOwnObject`), so he never detonates harmlessly.
    */
   routine: [
     // 1. Shove an apprentice into his jar, without catching himself.
-    { goal: 'herdInto', action: { kind: 'spell', spell: 'herd' } },
+    { goal: 'herdInto', action: { kind: 'spell', spell: 'herd' }, params: { object: 'jar' } },
     // 2. Open the jar from afar when it would harm an apprentice and not him.
     { goal: 'openOwnObject', action: { kind: 'trick' } },
     // 3. Keep the jar: a useful shove into any visible hazard, else walk to a herding position.
     { goal: 'herdInto', action: { kind: 'spell', spell: 'herd' }, params: { object: 'hazard' } },
-    { goal: 'herdInto', action: { kind: 'move' } },
+    { goal: 'herdInto', action: { kind: 'move' }, params: { object: 'jar' } },
     // 4. Without a jar: lay a lantern near the party; else approach, else shove rather than idle.
-    { goal: 'placeObjectNear', action: { kind: 'spell', spell: 'lantern' } },
+    {
+      goal: 'placeObjectNear',
+      action: { kind: 'spell', spell: 'lantern' },
+      params: { near: 2 },
+    },
     { goal: 'approach', action: { kind: 'move' } },
     { goal: 'hitParty', action: { kind: 'spell', spell: 'herd' } },
   ],

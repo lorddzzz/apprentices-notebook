@@ -114,11 +114,23 @@ export interface GoalInput {
   rival: RivalDef;
   params: GoalParams;
 }
-/** One goal in the vocabulary (P5): a predicate plus a score; higher scores win. */
+/** A tile the rival may walk to this turn and the safe walk there (empty path = stay). */
+export interface GoalDest {
+  at: Coord;
+  path: readonly Coord[];
+}
+/**
+ * One goal in the vocabulary (P5, RV-12). An action goal reads a simulated cast through `accepts`
+ * (a predicate) and `score` (higher wins); a move goal reads a destination through `moveScore`
+ * (null = it does not qualify). A goal may offer both; a routine step uses whichever its action
+ * needs (`spell`/`trick` use accepts and score, `move` uses moveScore). Register district goals
+ * with `registerGoal` (`engine/rivals/goals.ts`).
+ */
 export interface GoalDef {
   id: GoalId;
-  accepts(outcome: Outcome, input: GoalInput, candidate: PlanCandidate): boolean;
-  score(outcome: Outcome, input: GoalInput, candidate: PlanCandidate): number;
+  accepts?(outcome: Outcome, input: GoalInput, candidate: PlanCandidate): boolean;
+  score?(outcome: Outcome, input: GoalInput, candidate: PlanCandidate): number;
+  moveScore?(input: GoalInput, dest: GoalDest): number | null;
 }
 
 // ── Preview (P6, P7) ────────────────────────────────────

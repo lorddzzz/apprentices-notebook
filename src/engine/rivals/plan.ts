@@ -3,30 +3,11 @@ import type { GoalAction, GoalId, GoalStep, RivalDef } from '$data/rivals';
 import { cloneData } from '../clone';
 import type { Ctx } from '../ctx';
 import { type EventLog, type GameEvent, relocations } from '../events';
-import {
-  byReadingOrder,
-  type Coord,
-  chebyshev,
-  DIRS,
-  type Dir,
-  key,
-  sameCoord,
-  step,
-} from '../grid';
+import { byReadingOrder, type Coord, chebyshev, DIRS, type Dir, key, step } from '../grid';
 import { enemyWalk } from '../movement';
-import {
-  distanceField,
-  findUnit,
-  inBoard,
-  isAlive,
-  isFire,
-  isOpen,
-  members,
-  tileAt,
-  travel,
-  unitAt,
-} from '../queries';
+import { findUnit, inBoard, isAlive, isFire, isOpen, tileAt, unitAt } from '../queries';
 import type { Aim, BattleState, EnemyUnit, JarId, RivalIntent, Spell, UnitId } from '../types';
+import { type Detail, goalOf, ownStepJars, partyDistance, setDetail } from './goals';
 import { isEffect, isStarved, resolveRivalIntent, rivalDefOf, trickOf } from './resolve';
 import type { GoalDef, GoalInput, ObjectRef, Outcome, PlanCandidate } from './types';
 
@@ -108,43 +89,11 @@ export function nativeAims(s: BattleState, from: Coord, spell: Spell): Aim[] {
 
 // ── The clone evaluator (P4) ────────────────────────────
 
-/** What the goals read beyond `Outcome`: where made objects stand and who was moved where. */
-interface Detail {
-  madeAt: Coord[];
-  moves: { unit: UnitId; member: boolean; path: Coord[] }[];
-  /** The rival's own step-jars as the cast began (after the walk). */
-  ownJars: Coord[];
-  dropped: UnitId[];
-  /** Effect events that named an apprentice (inked, marked, pushed, hurt…). */
-  partyTouched: number;
-  /** His own jars (standing before the cast) that crumbled: a re-laid lantern, a thrown-away trap. */
-  ownCrumbled: number;
-}
-const details = new WeakMap<Outcome, Detail>();
-const EMPTY: Detail = {
-  madeAt: [],
-  moves: [],
-  ownJars: [],
-  dropped: [],
-  partyTouched: 0,
-  ownCrumbled: 0,
-};
-const detailOf = (o: Outcome): Detail => details.get(o) ?? EMPTY;
-
 function jarIdsOf(s: BattleState): Map<string, JarId> {
   const out = new Map<string, JarId>();
   s.tiles.forEach((t, i) => {
     if (t.jar?.id !== undefined)
       out.set(key({ x: i % s.width, y: Math.floor(i / s.width) }), t.jar.id);
-  });
-  return out;
-}
-
-function ownStepJars(s: BattleState, owner: UnitId): Coord[] {
-  const out: Coord[] = [];
-  s.tiles.forEach((t, i) => {
-    if (t.jar?.owner === owner && t.jar.event === 'step')
-      out.push({ x: i % s.width, y: Math.floor(i / s.width) });
   });
   return out;
 }
@@ -207,7 +156,7 @@ export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): 
     opened,
     effect: !isStarved(events),
   };
-  details.set(o, d);
+  setDetail(o, d);
   return o;
 }
 
@@ -227,140 +176,6 @@ export function simulate(
   const from = ctx.log.length;
   resolveRivalIntent(ctx, e, { ...intent, fallback: null });
   return outcomeOf(ctx.log.slice(from), unit, before);
-}
-
-// ── Goals (P5) ──────────────────────────────────────────
-
-const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-/** An effective action that costs him nothing: no self-harm, and none of his own live objects crumble. */
-const clean = (o: Outcome) => o.effect && o.selfHarm === 0 && detailOf(o).ownCrumbled === 0;
-const net = (o: Outcome) => o.partyHarm - o.allyHarm;
-
-function hazardTiles(s: BattleState): Coord[] {
-  const out: Coord[] = [];
-  s.tiles.forEach((t, i) => {
-    if (t.terrain.drop || isFire(t) || t.jar?.event === 'step')
-      out.push({ x: i % s.width, y: Math.floor(i / s.width) });
-  });
-  return out;
-}
-
-/** The tiles `herdInto` aims at: the rival's own step-jars, or (`object: 'hazard'`) any hazard. */
-function herdTargets(o: Outcome, input: GoalInput): Coord[] {
-  return input.params.object === 'hazard' ? hazardTiles(input.state) : detailOf(o).ownJars;
-}
-
-const livingParty = (s: BattleState) => members(s).filter(isAlive);
-
-/** The core vocabulary's action goals (plan §4). RV-12 adds `registerGoal` for district goals. */
-export const CORE_GOALS: Readonly<Partial<Record<GoalId, GoalDef>>> = {
-  /** Harm an apprentice, or land any effect on one, without harming himself. */
-  hitParty: {
-    id: 'hitParty',
-    accepts: (o) => clean(o) && (o.partyHarm > 0 || detailOf(o).partyTouched > 0),
-    /** Harm first, then how many effects reached the party. */
-    score: (o) => net(o) * 100 + detailOf(o).partyTouched,
-  },
-  /** Push or slide an apprentice onto his own step-jar (or any hazard) without harming himself. */
-  herdInto: {
-    id: 'herdInto',
-    accepts: (o, input) => {
-      const targets = herdTargets(o, input);
-      const d = detailOf(o);
-      return (
-        clean(o) &&
-        (d.moves.some(
-          (m) => m.member && m.path.some((c) => targets.some((t) => sameCoord(c, t))),
-        ) ||
-          (input.params.object === 'hazard' &&
-            d.dropped.some((id) => findUnit(input.state, id)?.kind === 'member')))
-      );
-    },
-    score: (o) => net(o) + 1,
-  },
-  /** Open his own object (the long wick) when it harms an apprentice and not himself. */
-  openOwnObject: {
-    id: 'openOwnObject',
-    accepts: (o) => clean(o) && o.opened.length > 0 && o.partyHarm > 0,
-    score: (o) => net(o),
-  },
-  /** Make an object within `near` tiles (default 2, Chebyshev) of a living apprentice: a useful landing. */
-  placeObjectNear: {
-    id: 'placeObjectNear',
-    accepts: (o, input) => {
-      const near = typeof input.params.near === 'number' ? input.params.near : 2;
-      const party = livingParty(input.state);
-      return (
-        clean(o) && detailOf(o).madeAt.some((c) => party.some((m) => chebyshev(c, m.pos) <= near))
-      );
-    },
-    /** Closer to the party scores higher. */
-    score: (o, input) => {
-      const party = livingParty(input.state);
-      const best = Math.min(
-        ...detailOf(o).madeAt.flatMap((c) => party.map((m) => chebyshev(c, m.pos))),
-      );
-      return net(o) - best;
-    },
-  },
-};
-
-/** Walking distance from `at` to the nearest living apprentice. */
-function partyDistance(s: BattleState, at: Coord, self: UnitId): number {
-  let best = Number.POSITIVE_INFINITY;
-  for (const m of livingParty(s)) {
-    const d = distanceField(s, m.pos, self).get(key(at));
-    if (d !== undefined && d < best) best = d;
-  }
-  return best;
-}
-
-/**
- * P5 herding position: a Bolt from `at` first hits a living apprentice, and a push along its
- * heading brings them closer (Manhattan) to one of his own step-jars. Lower is better; null = not.
- */
-function herdingScore(s: BattleState, e: EnemyUnit, at: Coord): number | null {
-  const jars = ownStepJars(s, e.id);
-  let best: number | null = null;
-  for (const dir of DIRS) {
-    const r = travel(s, at, dir, TUNING.boltRange, e.id);
-    if (r.reason !== 'unit' || r.unit.kind !== 'member') continue;
-    const pushed = step(r.unit.pos, dir);
-    for (const j of jars) {
-      const after = manhattan(pushed, j);
-      if (after < manhattan(r.unit.pos, j) && (best === null || after < best)) best = after;
-    }
-  }
-  return best;
-}
-
-/**
- * A `move` step's score for one destination (higher wins; null = it does not qualify). Move steps
- * have no cast to simulate, so they read the board: `approach`, `holdDistance` (`range`, default
- * 2) and `herdInto` (a herding position, P5).
- */
-function moveScore(
-  goal: GoalId,
-  st: GoalStep,
-  s: BattleState,
-  e: EnemyUnit,
-  dest: Dest,
-): number | null {
-  const d = partyDistance(s, dest.at, e.id);
-  switch (goal) {
-    case 'approach':
-      return Number.isFinite(d) && d < partyDistance(s, e.pos, e.id) ? -d : null;
-    case 'holdDistance': {
-      const range = typeof st.params?.range === 'number' ? st.params.range : 2;
-      return Number.isFinite(d) ? -Math.abs(d - range) : null;
-    }
-    case 'herdInto': {
-      const h = herdingScore(s, e, dest.at);
-      return h === null ? null : -h;
-    }
-    default:
-      return null;
-  }
 }
 
 // ── Planning ────────────────────────────────────────────
@@ -391,6 +206,12 @@ interface Scored {
   score: number;
 }
 
+/** A goal's action half (`accepts` and `score`), or null for an unknown or move-only goal. */
+function actionGoal(id: GoalId): Required<Pick<GoalDef, 'accepts' | 'score'>> | null {
+  const g = goalOf(id);
+  return g?.accepts && g.score ? { accepts: g.accepts, score: g.score } : null;
+}
+
 /** The best candidate of one spell step: strict `>` keeps the first in tie order. */
 function bestSpellPlan(
   s: BattleState,
@@ -400,7 +221,7 @@ function bestSpellPlan(
   action: Extract<GoalAction, { kind: 'spell' }>,
   dests: Dest[],
 ): PlanCandidate | null {
-  const goal = CORE_GOALS[st.goal];
+  const goal = actionGoal(st.goal);
   const spell = e.rival?.spells[action.spell];
   if (!goal || !spell || (e.rival?.charges[action.spell] ?? 0) <= 0) return null;
   const input: GoalInput = { state: s, unit: e, rival: def, params: st.params ?? {} };
@@ -433,7 +254,7 @@ function bestTrickPlan(
   st: GoalStep,
   dests: Dest[],
 ): PlanCandidate | null {
-  const goal = CORE_GOALS[st.goal];
+  const goal = actionGoal(st.goal);
   const trick = def.trick ? trickOf(def.trick) : null;
   if (!goal || !trick?.action || !e.rival) return null;
   const plans = trick.action.plan(s, e, e.rival.trick);
@@ -460,10 +281,19 @@ function bestTrickPlan(
   return best?.cand ?? null;
 }
 
-function bestMove(s: BattleState, e: EnemyUnit, st: GoalStep, dests: Dest[]): Dest | null {
+function bestMove(
+  s: BattleState,
+  e: EnemyUnit,
+  def: RivalDef,
+  st: GoalStep,
+  dests: Dest[],
+): Dest | null {
+  const goal = goalOf(st.goal);
+  if (!goal?.moveScore) return null;
+  const input: GoalInput = { state: s, unit: e, rival: def, params: st.params ?? {} };
   let best: { dest: Dest; score: number } | null = null;
   for (const dest of dests) {
-    const score = moveScore(st.goal, st, s, e, dest);
+    const score = goal.moveScore(input, dest);
     if (score !== null && (!best || score > best.score)) best = { dest, score };
   }
   return best?.dest ?? null;
@@ -512,7 +342,7 @@ export function planRival(state: BattleState, unit: UnitId, move: boolean): Riva
       if (c?.intent.kind === 'trick')
         return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
     } else if (a.kind === 'move' && move && !dry) {
-      const d = bestMove(state, e, st, dests);
+      const d = bestMove(state, e, def, st, dests);
       if (d?.path.length) return { path: d.path, intent: null };
     }
   }
