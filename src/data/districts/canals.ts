@@ -344,40 +344,46 @@ export const CANALS_THRESHOLD: ThresholdSpec = {
 /**
  * DK-10: the canals below the Seam (SM P9, P10): a lane with its current. The rule is the
  * piece-scoped `canals:current`, brought by the lane's water terrain, so no district-scoped rule
- * rides along and `pieces` is empty. Three 6-7 wide, 7 tall floors with Seam foes only, five
- * start points each. SM-9 tunes the final layouts.
+ * rides along and `pieces` is empty. Three 7 wide, 8 tall floors with Seam foes only, five
+ * start points each, meant for three apprentices. SM-9: layouts only, no balance tuning.
  */
 export const CANALS_INTRUSION: IntrusionSpec = {
   district: 'canals',
   pieces: [],
   rules: ['canals:current'],
   rooms: [
+    // Floor 1: a down-lane splits the room; a rat and a sentry guard the far bank.
     board([
       '. . . . wv . .',
-      'P . r . wv . .',
-      'P . . . wv . b',
+      'P . r . wv . b',
       'P . . . wv . .',
       'P . . . wv . .',
-      'P . . . wv . .',
+      'P . = . wv . .',
+      'P . . . wv . r',
+      '. . . . wv . .',
       '. . . . wv . .',
     ]),
+    // Floor 2: the lane runs beside the starts, a plate in the middle of the near bank.
     board([
       '. . . wv . . .',
       '. r . wv . b .',
       '. . . wv . . .',
-      'P . . wv . . .',
+      'P . . wv . r .',
       'P P . wv . . .',
+      'P . = wv . . .',
       'P . . wv . . .',
-      'P . . wv . . .',
+      '. . . wv . . .',
     ]),
+    // Floor 3: a cross-current; the foes stand north of it, the apprentices south.
     board([
       '. . . . . . .',
-      '. b . . . r .',
+      '. b . r . b .',
+      '. . . . . . .',
       'w> w> w> w> w> w> w>',
       '. . . . . . .',
       'P . P . P . P',
-      '. . . . . . .',
       '. . . P . . .',
+      '. . . . . . .',
     ]),
   ],
   loot: 'basics',
