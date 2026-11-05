@@ -39,7 +39,10 @@ const isHeat = (v: unknown): v is HeatLevel => v === 1 || v === 2 || v === 3 || 
 export function initBoilOver(config: Json | undefined): BoilOverState {
   const c = config && typeof config === 'object' && !Array.isArray(config) ? config : {};
   const heat = 'heat' in c && isHeat(c.heat) ? c.heat : 1;
-  const line = 'line' in c && typeof c.line === 'string' ? c.line : undefined;
+  const line =
+    'line' in c && typeof c.line === 'number' && Number.isSafeInteger(c.line) && c.line > 0
+      ? c.line
+      : undefined;
   return {
     pressure: 0,
     capacity: BOIL_CAPACITY_PIPS * QUARTERS,
@@ -172,14 +175,22 @@ export function boilOverStep(ctx: Ctx, own: BoilOverState): BoilOverState {
 const pips = (q: number): number => Math.floor(q / QUARTERS);
 
 /**
- * P4: the meter (whole pips now; a second meter for next round's level, full when it boils), then
+ * P4: the meter (whole pips now, next round's level as its `forecast`, `danger` when it boils; a
+ * second meter for next round's level until DK-13 draws the forecast tick), then
  * when it boils a warn tone on every cloud tile and a pulse on each member it would hurt.
  */
 export function boilOverPreview(s: BattleState, own: BoilOverState): PreviewShape[] {
   const f = forecastBoilOver(s, own);
   const max = pips(f.capacity);
   const out: PreviewShape[] = [
-    { kind: 'meter', label: 'Pressure', value: pips(f.value), max },
+    {
+      kind: 'meter',
+      label: 'Pressure',
+      value: pips(f.value),
+      max,
+      forecast: pips(f.forecast),
+      danger: f.boils,
+    },
     { kind: 'meter', label: 'Next round', value: pips(f.forecast), max },
   ];
   if (!f.boils) return out;

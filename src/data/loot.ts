@@ -1,3 +1,4 @@
+import { BATH_LOOT_TABLES } from './districts/bathhouses';
 import { INK_LOOT_TABLES } from './districts/inkQuarter/loot';
 import { LOWER_SEAM_LOOT } from './districts/lowerSeam';
 import type { LootEntry, LootTableDef, LootTableId, MethodId, RuneId, SolventId } from './types';
@@ -26,6 +27,7 @@ const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount:
  */
 export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
   ...INK_LOOT_TABLES,
+  ...BATH_LOOT_TABLES,
   lowerSeam: LOWER_SEAM_LOOT,
   shallow: {
     id: 'shallow',

@@ -42,7 +42,11 @@ describe('the doorway in the loot tables', () => {
     for (const [id, table] of Object.entries(LOOT_TABLES)) {
       const doors = table.entries.filter((e) => e.spec.kind === 'doorway');
       expect(doors.length, id).toBe(
-        id === 'deep' || id === 'canalDeep' || id === 'inkQuarter:deep' || id === 'lowerSeam'
+        id === 'deep' ||
+          id === 'canalDeep' ||
+          id === 'inkQuarter:deep' ||
+          id === 'bathhouses:h3' ||
+          id === 'lowerSeam'
           ? 1
           : 0,
       );

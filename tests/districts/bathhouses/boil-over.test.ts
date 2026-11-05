@@ -6,6 +6,8 @@ import {
   BOIL_OVER_RULE,
   boilOverState,
   forecastBoilOver,
+  initBoilOver,
+  parseBoilOver,
 } from '$engine/districts/bathhouses/boilOver';
 import { BOIL_OVER_RULE_ID, type BoilOverState } from '$engine/districts/bathhouses/types';
 import { listRules, rulePreview } from '$engine/rules';
@@ -263,16 +265,33 @@ describe('forecast and preview (P4)', () => {
   test('preview: the meter in whole pips, next round, and a harm ring when it boils', () => {
     const calm = bath('D ~ ~', 1, 9);
     expect(rulePreview(calm).find((p) => p.rule === ID)?.shapes).toEqual([
-      { kind: 'meter', label: 'Pressure', value: 2, max: 12 },
+      { kind: 'meter', label: 'Pressure', value: 2, max: 12, forecast: 3, danger: false },
       { kind: 'meter', label: 'Next round', value: 3, max: 12 },
     ]);
     const hot = bath('D~ r~ .', 1, 46);
     expect(rulePreview(hot).find((p) => p.rule === ID)?.shapes).toEqual([
-      { kind: 'meter', label: 'Pressure', value: 11, max: 12 },
+      { kind: 'meter', label: 'Pressure', value: 11, max: 12, forecast: 12, danger: true },
       { kind: 'meter', label: 'Next round', value: 12, max: 12 },
       { kind: 'tile', at: at('A1'), tone: 'warn' },
       { kind: 'tile', at: at('B1'), tone: 'warn' },
       { kind: 'pulse', at: at('A1') },
     ]);
+  });
+});
+
+describe('the marked line (BH-9)', () => {
+  test('a numeric line in quarter-pips is kept; anything else is dropped', () => {
+    expect(initBoilOver({ heat: 2, line: 32 })).toEqual({
+      pressure: 0,
+      capacity: 48,
+      heat: 2,
+      line: 32,
+    });
+    for (const line of ['32', 0, -4, 1.5, null]) {
+      expect(initBoilOver({ heat: 2, line })).not.toHaveProperty('line');
+    }
+    expect(
+      parseBoilOver(JSON.parse(JSON.stringify({ pressure: 8, capacity: 48, heat: 3, line: 40 }))),
+    ).toEqual({ pressure: 8, capacity: 48, heat: 3, line: 40 });
   });
 });

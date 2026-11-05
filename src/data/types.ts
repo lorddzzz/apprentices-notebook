@@ -464,6 +464,10 @@ export type LootTableId =
   | 'inkQuarter:shallow'
   | 'inkQuarter:deep'
   | 'inkQuarter:heart'
+  | 'bathhouses:h1'
+  | 'bathhouses:h2'
+  | 'bathhouses:h3'
+  | 'bathhouses:h4'
   | 'lowerSeam';
 /** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
 export interface EncounterVariant {

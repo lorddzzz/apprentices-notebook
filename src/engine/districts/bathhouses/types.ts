@@ -11,13 +11,14 @@ import type { DistrictEvent, RuleId, TripShapeId } from '../types';
 export const BOIL_OVER_RULE_ID: RuleId = 'bathhouses:boilOver';
 /**
  * `BattleState.rules['bathhouses:boilOver']`: `pressure` and `capacity` in quarter-pips, the
- * room's effective heat, and an optional line for the HUD.
+ * room's effective heat, and an optional marked level (quarter-pips) the HUD draws and a
+ * threshold goal reads (BH-9: "fill the dome" to the line).
  */
 export type BoilOverState = {
   pressure: number;
   capacity: number;
   heat: HeatLevel;
-  line?: string;
+  line?: number;
 };
 
 // ── Events (P2, P3) ─────────────────────────────────────

@@ -69,7 +69,15 @@ export type PreviewShape =
   | { kind: 'tile'; at: Coord; tone: 'warn' | 'cracked' | 'falls' | 'drawn' | 'erased' }
   | { kind: 'outline'; cells: readonly Coord[]; label?: string }
   | { kind: 'pulse'; at: Coord }
-  | { kind: 'meter'; label: string; value: number; max: number };
+  /** A gauge; `forecast` is next round's level and `danger` marks that it spills over (BH P4). */
+  | {
+      kind: 'meter';
+      label: string;
+      value: number;
+      max: number;
+      forecast?: number;
+      danger?: boolean;
+    };
 /** How a rule turns on (P9): listed by its district, or brought by a piece/terrain on the board. */
 export type RuleActivation =
   | { kind: 'district' }
