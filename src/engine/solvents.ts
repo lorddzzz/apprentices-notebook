@@ -17,8 +17,9 @@ import { guardCancels } from './harm';
 import type { Hook } from './hooks';
 import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
-import { deepen, landOnTile } from './mix';
+import { deepen, landOnTile, layThinCloud } from './mix';
 import { brassNet, cloudNet, isBrass, oilNet } from './networks';
+import { push } from './push';
 import {
   blocksUnits,
   coordOf,
@@ -57,13 +58,25 @@ import { targetKey } from './types';
  * answers the board's hooks, and the waiting forms drift in `driftWaiting`.
  */
 export interface SolventRule {
-  widen?(s: BattleState, t: Target, flow: Flow): Target[];
+  widen?(s: BattleState, t: Target, flow: Flow, ctx: Ctx): Target[];
   /** The fine-print line the targets `widen` added are run under. */
   line?: LineId;
   /** A finer line for one added target (given the original), else `line`. */
   lineFor?(s: BattleState, added: Target, first: Target): LineId | null;
   /** How many steps weaker the added targets are hit (push, damage; min 0). */
   weaker?: number;
+  /** A finer weakness for one added target (given the original), else `weaker`. */
+  weakerFor?(ctx: Ctx, added: Target, first: Target, flow: Flow): number | undefined;
+  /**
+   * Brackets the whole run: `play` runs every target, `again` runs one more (at the given
+   * weakness, under the given line). Bath salt and Fog jar answer their footnotes here.
+   */
+  wrap?(
+    ctx: Ctx,
+    run: { first: Target; targets: Target[]; flow: Flow },
+    play: () => void,
+    again: (t: Target, weaker: number, line: LineId | null) => void,
+  ): void;
   /** Runs before each target; what it returns is handed to `after`. */
   before?(ctx: Ctx, t: Target, flow: Flow): unknown;
   onReach?(ctx: Ctx, t: Target, flow: Flow): void;
@@ -418,6 +431,154 @@ function carryState(s: BattleState, from: Coord, to: Coord): void {
   src.state = null;
 }
 
+// ── Bath salt and Fog jar ───────────────────────────────
+
+/** Only the household's own casts are bent by its footnotes. */
+const fnFor = (ctx: Ctx, flow: Flow, id: Parameters<typeof hasFootnote>[1]): boolean =>
+  findUnit(ctx.s, flow.caster)?.kind === 'member' && hasFootnote(ctx, id);
+
+/** The cloud tiles salt carries through from `at`: the whole net, or `cap` steps of it. */
+function saltTiles(s: BattleState, at: Coord, cap: number | null): Coord[] {
+  const net = cloudNet(s, at);
+  if (cap === null) return net;
+  const inNet = new Set(net.map(key));
+  const seen = new Set([key(at)]);
+  let ring: Coord[] = [at];
+  const out: Coord[] = [at];
+  for (let n = 0; n < cap; n++) {
+    const next: Coord[] = [];
+    for (const c of ring) {
+      for (const nb of neighbors4(c)) {
+        if (!inNet.has(key(nb)) || seen.has(key(nb))) continue;
+        seen.add(key(nb));
+        next.push(nb);
+        out.push(nb);
+      }
+    }
+    ring = next;
+  }
+  return out;
+}
+
+const tilesSalted = (ctx: Ctx, flow: Flow, at: Coord): Coord[] =>
+  saltTiles(ctx.s, at, fnFor(ctx, flow, 'bathSalt-cloud-near') ? 3 : null);
+
+/** Fog jar's neighbours of `at`: the four, the invention's line, or with the ring the diagonals too. */
+function fogNear(ctx: Ctx, flow: Flow, t: Target, at: Coord): Coord[] {
+  const heading = flow.headings.get(targetKey(t)) ?? null;
+  let near = neighbors4(at);
+  if (heading && fnFor(ctx, flow, 'fogJar-unit-line')) {
+    near = [step(at, heading), step(at, opposite(heading))];
+  }
+  if (fnFor(ctx, flow, 'fogJar-unit-ring')) {
+    near = [
+      ...near,
+      ...[-1, 1].flatMap((dx) => [-1, 1].map((dy) => ({ x: at.x + dx, y: at.y + dy }))),
+    ];
+  }
+  return near.filter((c) => inBoard(ctx.s, c));
+}
+
+const isDiagonal = (a: Coord, b: Coord): boolean => a.x !== b.x && a.y !== b.y;
+
+type Wrapped = { first: Target; targets: Target[]; flow: Flow };
+type Again = (t: Target, weaker: number, line: LineId | null) => void;
+
+/** Salt: the run, the dry miss, the capstones, and the spent cloud. */
+function saltWrap(ctx: Ctx, { first, targets, flow }: Wrapped, play: () => void, again: Again) {
+  const s = ctx.s;
+  const at = whereIs(s, first);
+  const reached = targets.filter((t) => isUnitTarget(s, t)).length;
+  const carried = at && isCloud(tileAt(s, at)) ? tilesSalted(ctx, flow, at) : [];
+  const bare = !!at && !tileAt(s, at).state;
+  play();
+  if (targets.length === 1) {
+    withLine(ctx, 'bathSalt:dry', () => emit(ctx, { type: 'miss', source: 'Bath salt' }));
+  }
+  if (reached >= 3 && fnFor(ctx, flow, 'bathSalt-cap-again')) again(first, flow.weaker ?? 0, null);
+  if (fnFor(ctx, flow, 'bathSalt-cloud-spent')) {
+    const faded: Coord[] = [];
+    for (const c of carried) {
+      const tile = tileAt(s, c);
+      const layer = tile.state;
+      if (!layer || !isCloud(tile) || layer.rounds === 0 || layer.set) continue;
+      layer.rounds--;
+      if (layer.rounds === 0) {
+        tile.state = null;
+        faded.push({ ...c });
+      }
+    }
+    if (faded.length) {
+      withLine(ctx, 'bathSalt:cloud', () => emit(ctx, { type: 'stateFades', tiles: faded }));
+    }
+  }
+  if (at && bare && fnFor(ctx, flow, 'bathSalt-cap-condense')) {
+    const tile = tileAt(s, at);
+    if (!tile.state && !blocksUnits(tile)) {
+      withLine(ctx, 'bathSalt:cloud', () => layThinCloud(ctx, at, flow.origin));
+    }
+  }
+}
+
+/** Fog jar: the run, the mist on empty neighbours, the spill from the fallen, the draw. */
+function fogWrap(ctx: Ctx, { first, targets, flow }: Wrapped, play: () => void, again: Again) {
+  const s = ctx.s;
+  const at = whereIs(s, first);
+  if (!at) return play();
+  const mist = fnFor(ctx, flow, 'fogJar-unit-mist')
+    ? fogNear(ctx, flow, first, at).filter((c) => !unitAt(s, c) && !tileAt(s, c).state)
+    : [];
+  const reached: { id: string; pos: Coord }[] = [];
+  for (const t of targets.slice(1)) {
+    const c = whereIs(s, t);
+    const u = c ? unitAt(s, c) : null;
+    if (u) reached.push({ id: u.id, pos: { ...u.pos } });
+  }
+  play();
+  for (const c of mist) {
+    const tile = tileAt(s, c);
+    if (tile.state || blocksUnits(tile)) continue;
+    withLine(ctx, 'fogJar:unit', () => layThinCloud(ctx, c, flow.origin));
+  }
+  if (fnFor(ctx, flow, 'fogJar-cap-spill')) {
+    const seen = new Set([key(at), ...reached.map((r) => key(r.pos))]);
+    const ring: Coord[] = [];
+    for (const r of reached) {
+      const u = findUnit(s, r.id);
+      if (u && isAlive(u)) continue;
+      for (const n of neighbors4(r.pos)) {
+        if (!inBoard(s, n) || seen.has(key(n)) || !unitAt(s, n)) continue;
+        seen.add(key(n));
+        ring.push(n);
+      }
+    }
+    for (const n of ring.sort(byReadingOrder)) {
+      if (!unitAt(s, n)) continue;
+      const t = tileTarget(n);
+      const line = SOLVENT_RULES.fogJar?.lineFor?.(s, t, first) ?? 'fogJar:unit';
+      again(t, SOLVENT_TUNING.fogWeaker + 1, line);
+    }
+  }
+  if (fnFor(ctx, flow, 'fogJar-cap-draw')) {
+    const pulls = reached
+      .map((r) => findUnit(s, r.id))
+      .filter((u): u is Unit => !!u && isAlive(u))
+      .sort((a, b) => byReadingOrder(a.pos, b.pos));
+    for (const u of pulls) {
+      const dx = at.x - u.pos.x;
+      const dy = at.y - u.pos.y;
+      if (dx === 0 && dy === 0) continue;
+      const horizontal = dx !== 0 && Math.abs(dx) >= Math.abs(dy);
+      const dir: Dir = horizontal ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+      const to = step(u.pos, dir);
+      if (!inBoard(s, to) || unitAt(s, to)) continue;
+      withLine(ctx, 'fogJar:unit', () =>
+        push(ctx, u, dir, 1, flow.origin, { as: 'pull', crush: false }),
+      );
+    }
+  }
+}
+
 // ── The rules ───────────────────────────────────────────
 
 /** Filled for all fourteen; a test may swap one out and put it back. */
@@ -470,26 +631,51 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   sand: { reverse: true },
   bathSalt: {
     line: 'bathSalt:cloud',
-    widen(s, t) {
+    widen(s, t, flow, ctx) {
       const at = whereIs(s, t);
       if (!at || !isCloud(tileAt(s, at))) return [t];
-      const rest = cloudNet(s, at)
-        .filter((c) => !sameCoord(c, at) && unitAt(s, c))
+      const tiles = tilesSalted(ctx, flow, at);
+      const seen = new Set(tiles.map(key));
+      const holders = tiles.filter((c) => !sameCoord(c, at));
+      if (fnFor(ctx, flow, 'bathSalt-cloud-shore')) {
+        for (const c of tiles) {
+          for (const n of neighbors4(c)) {
+            if (!inBoard(s, n) || seen.has(key(n))) continue;
+            seen.add(key(n));
+            holders.push(n);
+          }
+        }
+      }
+      const kin = fnFor(ctx, flow, 'bathSalt-cloud-kin');
+      const rest = holders
+        .filter((c) => {
+          const u = unitAt(s, c);
+          return u && !(kin && u.kind === 'member');
+        })
         .sort(byReadingOrder);
       return [t, ...rest.map(tileTarget)];
     },
+    wrap: saltWrap,
     lineFor: (s, added) => (isMemberAt(s, added) ? 'bathSalt:member' : null),
   },
   fogJar: {
     line: 'fogJar:unit',
     weaker: SOLVENT_TUNING.fogWeaker,
-    widen(s, t) {
+    widen(s, t, flow, ctx) {
       const at = whereIs(s, t);
       if (!at) return [t];
-      const near = neighbors4(at)
-        .filter((c) => inBoard(s, c) && unitAt(s, c))
+      const near = fogNear(ctx, flow, t, at)
+        .filter((c) => unitAt(s, c))
         .sort(byReadingOrder);
       return [t, ...near.map(tileTarget)];
+    },
+    wrap: fogWrap,
+    weakerFor(ctx, added, first, flow) {
+      const from = whereIs(ctx.s, first);
+      const to = whereIs(ctx.s, added);
+      if (!from || !to) return undefined;
+      if (fnFor(ctx, flow, 'fogJar-unit-cloud') && isCloud(tileAt(ctx.s, to))) return 0;
+      return isDiagonal(from, to) ? SOLVENT_TUNING.fogWeaker + 1 : undefined;
     },
     lineFor(s, added, first) {
       if (isMemberAt(s, added)) return 'fogJar:member';

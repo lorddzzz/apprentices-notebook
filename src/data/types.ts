@@ -185,6 +185,7 @@ export type Meets =
   | 'unit'
   | 'noHeading'
   | 'noTarget'
+  | 'dry' // a solvent with nothing to carry to (Bath salt outside a cloud)
   | 'network'
   | 'flier' // a flying unit (AH: a pulled flier never falls)
   | 'spread' // a mark spreading to its neighbours (FN-1A A1: `ink:spread`)

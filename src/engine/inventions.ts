@@ -612,22 +612,37 @@ export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): 
     headings.set(targetKey(first), heading ? opposite(heading) : null);
     base = { ...inner, headings };
   }
-  const targets = rule?.widen ? rule.widen(ctx.s, first, base) : [first];
+  const targets = rule?.widen ? rule.widen(ctx.s, first, base, ctx) : [first];
   const added = targets.filter((x) => targetKey(x) !== targetKey(first));
   const widened = withHeadings(base, first, added);
-  for (const tt of targets) {
-    const extra = added.includes(tt);
-    const f: Flow = extra && rule?.weaker ? { ...widened, weaker: rule.weaker } : widened;
+  const runOn = (tt: Target, f: Flow, line: LineId | null | undefined): void => {
     const go = (): void => {
       const before = rule?.before?.(ctx, tt, f);
       const reached = invoke(ctx, def, tt, f);
       for (const r of reached) rule?.onReach?.(ctx, r, f);
       rule?.after?.(ctx, tt, f, { inv: id, before });
     };
-    const line = extra ? (rule?.lineFor?.(ctx.s, tt, first) ?? rule?.line) : undefined;
     if (line) withLine(ctx, line, go);
     else go();
-  }
+  };
+  const loop = (): void => {
+    for (const tt of targets) {
+      const extra = added.includes(tt);
+      const weaker = extra ? rule?.weakerFor?.(ctx, tt, first, widened) : undefined;
+      const f: Flow =
+        weaker !== undefined
+          ? { ...widened, weaker }
+          : extra && rule?.weaker
+            ? { ...widened, weaker: rule.weaker }
+            : widened;
+      runOn(tt, f, extra ? (rule?.lineFor?.(ctx.s, tt, first) ?? rule?.line) : undefined);
+    }
+  };
+  if (rule?.wrap) {
+    rule.wrap(ctx, { first, targets, flow: widened }, loop, (tt, weaker, line) =>
+      runOn(tt, { ...widened, weaker }, line),
+    );
+  } else loop();
 }
 
 /** One method's behaviour on one target; returns what it reached. Margin runs as an aura, not here. */

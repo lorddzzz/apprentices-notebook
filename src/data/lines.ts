@@ -834,4 +834,11 @@ export const LINES: readonly LineDef[] = [
     district: 'bathhouses',
     text: 'Fog jar aimed at a tile nobody stands on still carries the invention to the units beside it, one step weaker.',
   },
+  {
+    id: 'bathSalt:dry',
+    subject: 'bathSalt',
+    meets: 'dry',
+    district: 'bathhouses',
+    text: 'Bath salt with no other unit in reach has nothing to carry the invention to.',
+  },
 ];

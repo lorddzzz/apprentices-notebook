@@ -5,9 +5,9 @@ import type { VariantDef } from '../types';
  * `vat:unit`, `vat:edge`, `seep:edge`, `seep:member`, `steep:spread`, `steep:plate`, two options at
  * level I and two at level II, and a pair of capstones each (Steep's first is the built
  * `steep-diagonal` in the `auras` batch); docs/design/footnotes-content/bathhouses.md §2. The
- * solvents (Bath salt, Fog jar) ship with BH-F4, the Steward's note with BH-17. Effects live in
- * `engine/vat.ts`, `vatPlan.ts`, `runes/flow.ts`, `resolve.ts`, `mix.ts`, `push.ts` and
- * `arrival.ts`, keyed by these ids. `steep-plate-ring` has no Brass ring to bend (no such event
+ * solvents (BH-F4: Bath salt `bathSalt:cloud`, Fog jar `fogJar:unit`, §4) follow, the Steward's
+ * note comes with BH-17. Effects live in `engine/vat.ts`, `vatPlan.ts`, `runes/flow.ts`,
+ * `resolve.ts`, `mix.ts`, `push.ts`, `arrival.ts` and `solvents.ts`, keyed by these ids. `steep-plate-ring` has no Brass ring to bend (no such event
  * outside a hit), so by proposal H4 the option is `steep-plate-seep`.
  */
 export const BATHHOUSES: readonly VariantDef[] = [
@@ -188,5 +188,80 @@ export const BATHHOUSES: readonly VariantDef[] = [
     subject: 'steep',
     slot: { capstone: true },
     text: 'When a unit steps out of a steeped compound, it also carries a copy onto the tile it steps to.',
+  },
+  // ── Bath salt ──
+  {
+    id: 'bathSalt-cloud-shore',
+    subject: 'bathSalt',
+    slot: { line: 'bathSalt:cloud', level: 1 },
+    text: 'Salt also reaches units standing one tile outside the cloud’s edge.',
+  },
+  {
+    id: 'bathSalt-cloud-near',
+    subject: 'bathSalt',
+    slot: { line: 'bathSalt:cloud', level: 1 },
+    text: 'Salt reaches only units within 3 tiles of the target, counted through the cloud.',
+  },
+  {
+    id: 'bathSalt-cloud-kin',
+    subject: 'bathSalt',
+    slot: { line: 'bathSalt:cloud', level: 2 },
+    text: 'Salt passes over your own party in the cloud.',
+  },
+  {
+    id: 'bathSalt-cloud-spent',
+    subject: 'bathSalt',
+    slot: { line: 'bathSalt:cloud', level: 2 },
+    text: 'Salt spends the cloud: every tile it carried through loses a round, and a 1-round tile clears.',
+  },
+  // ── Fog jar ──
+  {
+    id: 'fogJar-unit-line',
+    subject: 'fogJar',
+    slot: { line: 'fogJar:unit', level: 1 },
+    text: 'Fog jar reaches only the neighbours in the invention’s line, in front and behind, still one step weaker; with no heading it reaches all four.',
+  },
+  {
+    id: 'fogJar-unit-ring',
+    subject: 'fogJar',
+    slot: { line: 'fogJar:unit', level: 1 },
+    text: 'Fog jar also reaches the diagonal neighbours, two steps weaker.',
+  },
+  {
+    id: 'fogJar-unit-cloud',
+    subject: 'fogJar',
+    slot: { line: 'fogJar:unit', level: 2 },
+    text: 'A neighbour standing on a cloud takes the full invention, not a weaker one.',
+  },
+  {
+    id: 'fogJar-unit-mist',
+    subject: 'fogJar',
+    slot: { line: 'fogJar:unit', level: 2 },
+    text: 'Fog jar leaves a 1-round plain cloud on each empty neighbour it reaches.',
+  },
+  // ── Solvent capstones ──
+  {
+    id: 'bathSalt-cap-again',
+    subject: 'bathSalt',
+    slot: { capstone: true },
+    text: 'When salt reaches three or more units, it also acts once more on the target.',
+  },
+  {
+    id: 'bathSalt-cap-condense',
+    subject: 'bathSalt',
+    slot: { capstone: true },
+    text: 'When salt carries an invention, it also leaves a 1-round plain cloud under the target if it had none.',
+  },
+  {
+    id: 'fogJar-cap-spill',
+    subject: 'fogJar',
+    slot: { capstone: true },
+    text: 'When a neighbour Fog jar reaches is defeated, it also reaches that unit’s neighbours, one step weaker still.',
+  },
+  {
+    id: 'fogJar-cap-draw',
+    subject: 'fogJar',
+    slot: { capstone: true },
+    text: 'When Fog jar acts, it also pulls each reached neighbour one tile toward the target.',
   },
 ];

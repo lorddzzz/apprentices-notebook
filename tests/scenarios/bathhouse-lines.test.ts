@@ -145,6 +145,16 @@ describe('Bath salt and Fog jar', () => {
     expect(linesOf(r.events, 'damage')).toEqual([undefined, 'bathSalt:cloud']);
   });
 
+  test('bathSalt-dry: salt with no other unit in reach is a stamped miss (B1)', () => {
+    const s = withLattices(
+      'D r . .',
+      { draughtsman: 'Bolt> inv:strike-salt' },
+      { ...opts, hp: { B1: 9 } },
+    );
+    const r = cast(s, 'draughtsman', 'right');
+    expect(lineOf(r.events, 'miss')).toBe('bathSalt:dry');
+  });
+
   test('fogJar-member: an ally beside the target is hit one step weaker', () => {
     const s = withLattices(
       'D . .\n. . .\nr S .\n. . .',
