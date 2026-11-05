@@ -228,7 +228,9 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
             if (handler && forked && standing) {
               withLine(ctx, 'fork:unit', () => handler(ctx, t, here, st));
             } else handler?.(ctx, t, here, st);
-            if (st.role === 'action') marginEcho(ctx, st.rune, t, at, here);
+            if (st.role === 'action' || hasFootnote(ctx, 'margin-cap-kinds')) {
+              marginEcho(ctx, st.rune, t, at, here);
+            }
           });
         }
         // A Strike or Guard that found nobody anywhere in its targets says so, once.

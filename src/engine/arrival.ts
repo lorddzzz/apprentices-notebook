@@ -9,6 +9,7 @@ import { openJar, stepOpens } from './jars';
 import * as marks from './marks';
 import { stainMarks } from './mix';
 import { findUnit, isAlive, tileAt, unitAt } from './queries';
+import { disturbRepeats } from './schedule';
 import * as solvents from './solvents';
 import type { Layer, Origin, Unit, UnitId } from './types';
 
@@ -400,6 +401,7 @@ function runUnit(
       if (fizzled(ctx)) return stopped(u.pos, 'cap');
     }
   }
+  disturbRepeats(ctx, u, opts.cause, opts.origin);
   return { interrupted: false };
 }
 

@@ -324,7 +324,9 @@ function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): voi
   let units = unitsNear(ctx, tiles, focus ? reach : 1 + reach);
   if (spare) units = units.filter((u) => u.kind !== 'member');
   announce(ctx, 'conduct', at, tiles, units);
-  const damage = focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage;
+  // `conduct-network-hum`: brass a conduct left humming this round burns 1 more.
+  const humming = tiles.some((c) => ctx.s.hum?.some((h) => h.x === c.x && h.y === c.y)) ? 1 : 0;
+  const damage = (focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage) + humming;
   hit(ctx, units, damage, 'Conduct', at);
   if (fromPlate && hasFootnote(ctx, 'brass-plate-hum')) {
     const walls = tiles.filter((c) => tileAt(ctx.s, c).state?.id === 'wall');

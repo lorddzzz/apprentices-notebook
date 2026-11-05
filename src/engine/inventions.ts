@@ -14,20 +14,31 @@ import {
   type RuneRef,
   SOLVENTS,
 } from '$data';
-import { reachOf, unitsNear } from './bursts';
+import { markUnit, reachOf, unitsNear } from './bursts';
 import { type Ctx, emit, withLine } from './ctx';
+import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, opposite, step } from './grid';
 import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
 import { asBindCarrier, attachBound, liftMark } from './marks';
-import { brassNet, isBrass } from './networks';
-import { findUnit, giftedIn, isAlive, unitAt } from './queries';
+import { netCollar } from './mix';
+import { brassNet, cloudNet, isBrass } from './networks';
+import { findUnit, giftedIn, isAlive, isCloud, members, tileAt, unitAt } from './queries';
 import { NEST_LIMIT } from './resolve';
 import { handlerFor } from './runes';
 import { schedule } from './schedule';
 import { SOLVENT_RULES } from './solvents';
-import { whereIs } from './targets';
-import type { AuraRef, Flow, InventionLibrary, Step, Target, Unit } from './types';
+import { axisToward, whereIs } from './targets';
+import type {
+  AuraRef,
+  Flow,
+  InventionLibrary,
+  Scheduled,
+  Step,
+  Target,
+  Unit,
+  UnitId,
+} from './types';
 import { targetKey } from './types';
 
 export type { InventionLibrary };
@@ -250,17 +261,16 @@ const unitTarget = (u: Unit): Target => ({ kind: 'unit', unit: u.id });
  * The brass the target touches (§4.4, §6.2): the connected brass it stands on, else every brass
  * network on a tile next to it. Plates and collared units are both brass.
  */
-function networkTouching(ctx: Ctx, at: Coord): Coord[] {
+function networkTouching(ctx: Ctx, at: Coord, cloud = false): Coord[] {
   const s = ctx.s;
-  const seeds = isBrass(s, at)
+  const inNet = (c: Coord): boolean => (cloud ? isCloud(tileAt(s, c)) : isBrass(s, c));
+  const seeds = inNet(at)
     ? [at]
-    : [step(at, 'up'), step(at, 'down'), step(at, 'left'), step(at, 'right')].filter((c) =>
-        isBrass(s, c),
-      );
+    : [step(at, 'up'), step(at, 'down'), step(at, 'left'), step(at, 'right')].filter(inNet);
   const seen = new Set<string>();
   const out: Coord[] = [];
   for (const seed of seeds) {
-    for (const c of brassNet(s, seed)) {
+    for (const c of cloud ? cloudNet(s, seed) : brassNet(s, seed)) {
       const k = `${c.x},${c.y}`;
       if (seen.has(k)) continue;
       seen.add(k);
@@ -268,6 +278,14 @@ function networkTouching(ctx: Ctx, at: Coord): Coord[] {
     }
   }
   return out;
+}
+
+/** `conduct-network-scatter`: the way from the nearest other brass tile to the unit, along its longer axis. */
+function awayFromNet(u: Unit, net: readonly Coord[]): Dir | null {
+  const dist = (c: Coord): number => Math.abs(c.x - u.pos.x) + Math.abs(c.y - u.pos.y);
+  const others = net.filter((c) => c.x !== u.pos.x || c.y !== u.pos.y);
+  const from = [...(others.length ? others : net)].sort((a, b) => dist(a) - dist(b))[0];
+  return from ? axisToward(from, u.pos) : null;
 }
 
 /**
@@ -278,12 +296,20 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   const at = whereIs(ctx.s, t);
   const part = def.parts[0];
   if (!at || part === undefined) return [];
-  const net = networkTouching(ctx, at);
+  let net = networkTouching(ctx, at);
+  // `conduct-cap-cloud`: with no brass about, the action travels the connected cloud.
+  if (net.length === 0 && hasFootnote(ctx, 'conduct-cap-cloud'))
+    net = networkTouching(ctx, at, true);
   if (net.length === 0) {
     withLine(ctx, 'conduct:noTarget', () => emit(ctx, { type: 'miss', source: 'Conduct' }));
     return [];
   }
-  const units = unitsNear(ctx, net, 1 + reachOf(flow));
+  let units = unitsNear(ctx, net, 1 + reachOf(flow));
+  // `conduct-network-spare`: the action passes over your apprentices.
+  if (hasFootnote(ctx, 'conduct-network-spare')) units = units.filter((u) => u.kind !== 'member');
+  // `conduct-cap-mark`: a marked target marks every unit the conduct reaches.
+  const marking = hasFootnote(ctx, 'conduct-cap-mark') && unitOf(ctx, t)?.mark != null;
+  const scatter = hasFootnote(ctx, 'conduct-network-scatter');
   // A solvent that lengthens the reach (Chalk) signs the line it reached by.
   const line: LineId =
     flow.solvent && SOLVENT_RULES[flow.solvent]?.reach
@@ -302,9 +328,22 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
     });
     const heading = headingFor(flow, t);
     const headings = new Map(flow.headings);
-    for (const u of units) headings.set(targetKey(unitTarget(u)), heading);
+    for (const u of units) {
+      headings.set(targetKey(unitTarget(u)), scatter ? (awayFromNet(u, net) ?? heading) : heading);
+    }
     const conducted: Flow = { ...flow, headings };
     for (const u of units) if (isAlive(u)) runPart(ctx, part, unitTarget(u), conducted);
+    if (marking) {
+      for (const u of units) if (isAlive(u) && !u.mark) markUnit(ctx, u, flow.origin, flow);
+    }
+    // `conduct-network-collar`: every unit reached joins the brass for the next conduct.
+    if (hasFootnote(ctx, 'conduct-network-collar')) {
+      for (const u of units) if (isAlive(u)) netCollar(ctx, u, flow.origin);
+    }
+    // `conduct-network-hum`: the brass hums until round end, and Spark on it hits harder.
+    if (hasFootnote(ctx, 'conduct-network-hum')) {
+      ctx.s.hum = [...(ctx.s.hum ?? []), ...net.map((c) => ({ ...c }))];
+    }
   });
   return units.map(unitTarget);
 }
@@ -317,12 +356,15 @@ function repeat(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   const part = def.parts[0];
   const at = whereIs(ctx.s, t);
   if (part === undefined) return [];
+  const hit = at ? unitAt(ctx.s, at) : null;
   runPart(ctx, part, t, flow);
   if (!at || flow.repeated) return [t];
   const wait = (): void =>
     schedule(ctx, {
-      when: 'ownerTurn',
+      // `repeat-empty-dusk`: falls due at round end instead of the caster's next turn.
+      when: hasFootnote(ctx, 'repeat-empty-dusk') ? 'roundEnd' : 'ownerTurn',
       owner: flow.caster,
+      ...waitingOn(ctx, 'repeat', hit),
       step: part,
       target: { kind: 'tile', at: { ...at } },
       heading: headingFor(flow, t),
@@ -334,6 +376,25 @@ function repeat(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   if (unitAt(ctx.s, at)) wait();
   else withLine(ctx, 'repeat:empty', wait);
   return [t];
+}
+
+/** The next living apprentice after `caster` in casting order (the caster again if alone). */
+function nextMember(ctx: Ctx, caster: UnitId): UnitId {
+  const all = members(ctx.s).filter((m) => isAlive(m) || m.id === caster);
+  const i = all.findIndex((m) => m.id === caster);
+  return all[(i + 1) % all.length]?.id ?? caster;
+}
+
+/** What a repeat or echo keeps of the unit it first hit: follow, and how long an empty tile waits. */
+function waitingOn(ctx: Ctx, kind: 'repeat' | 'margin', hit: Unit | null): Partial<Scheduled> {
+  const follow = hasFootnote(ctx, `${kind}-empty-follow`);
+  const wait = kind === 'repeat' ? 'repeat-cap-patient' : 'margin-empty-wait';
+  const turns = hasFootnote(ctx, wait) ? (kind === 'repeat' ? 1 : 2) : 0;
+  return {
+    ...(hit ? { hit: hit.id } : {}),
+    ...(hit && follow ? { follow: true as const } : {}),
+    ...(turns ? { wait: turns } : {}),
+  };
 }
 
 /**
@@ -354,13 +415,19 @@ export function marginEcho(ctx: Ctx, rune: RuneRef, t: Target, at: Coord, flow: 
     }
     return;
   }
+  const targeted = t.kind === 'unit' ? findUnit(ctx.s, t.unit) : null;
+  const hit = unitAt(ctx.s, at) ?? (targeted && isAlive(targeted) ? targeted : null);
+  const heading = headingFor(flow, t);
   const wait = (): void =>
     schedule(ctx, {
       when: 'ownerTurn',
-      owner: flow.caster,
+      // `margin-empty-relay`: the next apprentice in casting order sets it off.
+      owner: hasFootnote(ctx, 'margin-empty-relay') ? nextMember(ctx, flow.caster) : flow.caster,
+      ...waitingOn(ctx, 'margin', hit),
       step: rune,
       target: { kind: 'tile', at: { ...at } },
-      heading: headingFor(flow, t),
+      // `margin-empty-mirror`: the echo points the opposite way.
+      heading: heading && hasFootnote(ctx, 'margin-empty-mirror') ? opposite(heading) : heading,
       origin: flow.origin,
       kind: 'margin',
       solvent: flow.solvent,

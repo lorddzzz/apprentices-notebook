@@ -13,6 +13,7 @@ import type {
   VariantDef,
 } from '../types';
 import { AURAS } from './auras';
+import { SEAM_METHODS } from './seam-methods';
 import { SEAM_RUNES } from './seam-runes';
 
 /**
@@ -25,6 +26,7 @@ export { SHOVE_WALL_SOFT } from './seam-runes';
 
 export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   'seam-runes': SEAM_RUNES,
+  'seam-methods': SEAM_METHODS,
   auras: AURAS,
   rivals: [LAMPLIGHTER_WICK],
 };

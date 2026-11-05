@@ -214,6 +214,7 @@ export function compiledFor(p: Profile, m: MemberId): CompiledLattice {
   );
   return compileLattice(latticeOf(p, m), glyphLibrary(p), inventionLibrary(p), MEMBERS[m].lean, {
     diagonalAuras,
+    diagonalMargin: p.footnotes.margin?.capstone === 'margin-cap-diagonal',
   });
 }
 

@@ -1,12 +1,13 @@
 import type { LineId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, withLine } from './ctx';
+import { hasFootnote } from './footnotes';
 import { runDetached } from './jars';
-import { unitAt } from './queries';
+import { findUnit, isAlive, unitAt } from './queries';
 import { KIND_HANDLERS } from './runes/kinds';
 import { undoBoard } from './solvents';
-import { whereIs } from './targets';
-import type { Scheduled, Step, UnitId } from './types';
+import { axisToward, whereIs } from './targets';
+import type { Origin, Scheduled, Step, Unit, UnitId } from './types';
 
 /**
  * The scheduled queue (E6): repeats, Margin echoes, Wick, Graphite, Filings and Pitch wait here for
@@ -48,15 +49,29 @@ function run(ctx: Ctx, e: Scheduled): void {
     if (lapse) withLine(ctx, lapse.line, () => emit(ctx, { type: 'miss', source: lapse.source }));
     return;
   }
-  const at = whereIs(ctx.s, e.target);
+  // `repeat-empty-follow`, `margin-empty-follow`: the unit first hit, while it lives.
+  const followed = e.follow && e.hit ? findUnit(ctx.s, e.hit) : null;
+  const live = followed && isAlive(followed) ? followed : null;
+  const at = live ? live.pos : whereIs(ctx.s, e.target);
   if (!at) return;
-  const unit = e.target.kind === 'tile' ? unitAt(ctx.s, at) : null;
+  const unit = live ?? (e.target.kind === 'tile' ? unitAt(ctx.s, at) : null);
+  // `repeat-cap-patient`, `margin-empty-wait`: an empty tile waits another turn.
+  if (!unit && (e.wait ?? 0) > 0 && (e.kind === 'repeat' || e.kind === 'margin')) {
+    ctx.s.scheduled.push({ ...cloneData(e), wait: (e.wait ?? 0) - 1 });
+    withLine(ctx, `${e.kind}:empty`, () => emit(ctx, { type: 'scheduled', kind: e.kind, at }));
+    return;
+  }
   // A tile target hits whoever stands there now; otherwise the tile itself.
   const target = unit ? { kind: 'unit' as const, unit: unit.id } : e.target;
+  // `repeat-empty-reaim`: the repeat points from where its caster stands now.
+  const heading =
+    e.kind === 'repeat' && hasFootnote(ctx, 'repeat-empty-reaim')
+      ? (axisToward(owner.pos, at) ?? e.heading)
+      : e.heading;
   // Ringing again (Filings) is a repeat too: spent, it never waits again.
   const again = e.kind === 'repeat' || e.kind === 'margin' || e.kind === 'filings';
   if (again && typeof e.step === 'string') emit(ctx, { type: 'repeated', action: e.step });
-  runDetached(ctx, stepOf(e), target, e.owner, e.origin, e.heading, {
+  runDetached(ctx, stepOf(e), target, e.owner, e.origin, heading, {
     trace: typeof e.step !== 'string',
     repeated: again,
     woken: e.kind === 'wick',
@@ -84,5 +99,32 @@ export function runScheduled(ctx: Ctx, when: Scheduled['when'], owner?: UnitId):
   for (const e of ordered) run(ctx, e);
   if (when === 'roundEnd') {
     for (const e of s.scheduled) if (e.when === 'nextRoundEnd') e.when = 'roundEnd';
+  }
+}
+
+/**
+ * A unit came to rest on `u.pos` (arrival.ts). `repeat-empty-step`: a repeat waiting on that tile
+ * (or following that unit) goes off now. `repeat-cap-pushed`: a repeat whose first target was
+ * pushed in a member's cast acts at once on its new tile. Either way it is spent.
+ */
+export function disturbRepeats(ctx: Ctx, u: Unit, cause: string, origin: Origin | null): void {
+  if (ctx.s.scheduled.length === 0 || !isAlive(u)) return;
+  const step = hasFootnote(ctx, 'repeat-empty-step');
+  const pushed =
+    cause === 'push' &&
+    hasFootnote(ctx, 'repeat-cap-pushed') &&
+    origin !== null &&
+    findUnit(ctx.s, origin.caster)?.kind === 'member';
+  const onTile = (e: Scheduled): boolean =>
+    e.target.kind === 'tile' && e.target.at.x === u.pos.x && e.target.at.y === u.pos.y;
+  const stepped = (e: Scheduled): boolean => step && (e.follow ? e.hit === u.id : onTile(e));
+  const due = ctx.s.scheduled.filter(
+    (e) => e.kind === 'repeat' && ((pushed && e.hit === u.id) || stepped(e)),
+  );
+  if (due.length === 0) return;
+  ctx.s.scheduled = ctx.s.scheduled.filter((e) => !due.includes(e));
+  for (const e of due) {
+    const here = pushed && e.hit === u.id;
+    run(ctx, here ? { ...e, target: { kind: 'tile', at: { ...u.pos } } } : e);
   }
 }

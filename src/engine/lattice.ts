@@ -257,6 +257,8 @@ const cellMap = (
 export interface CompileOptions {
   /** Auras whose `auraDiagonal` capstone is written: they also touch the 4 diagonal cells. */
   diagonalAuras?: readonly AuraRuneId[];
+  /** `margin-cap-diagonal` is written: every Margin invention touches diagonally too. */
+  diagonalMargin?: boolean;
 }
 
 /** The 4 diagonal neighbours (up-left, up-right, down-right, down-left). */
@@ -346,10 +348,15 @@ function compile(
       const p = look(n);
       if (p && role(p.rune) === 'aura') out.push({ at: n, aura: p.rune as AuraRef });
     }
-    if (diagonal.size === 0) return out;
+    if (diagonal.size === 0 && !opts.diagonalMargin) return out;
     for (const n of diagonals(at)) {
       const p = look(n);
-      if (p && diagonal.has(p.rune) && role(p.rune) === 'aura')
+      const margin =
+        !!opts.diagonalMargin &&
+        !!p &&
+        isInvention(p.rune) &&
+        inventions[p.rune]?.method === 'margin';
+      if (p && (diagonal.has(p.rune) || margin) && role(p.rune) === 'aura')
         out.push({ at: n, aura: p.rune as AuraRef });
     }
     return out;

@@ -19,7 +19,7 @@ export function whereIs(s: BattleState, t: Target): Coord | null {
 }
 
 /** Dominant axis from `from` to `to`; a tie goes vertical; the same tile has none. */
-function axisToward(from: Coord, to: Coord): Dir | null {
+export function axisToward(from: Coord, to: Coord): Dir | null {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   if (dx === 0 && dy === 0) return null;

@@ -445,6 +445,11 @@ export interface Scheduled {
   /** The sealing step's auras, gifted auras, weakness and habit (P9). Absent until FD-4. */
   context?: SealedContext;
   kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch';
+  /** Footnotes: the unit first hit (a repeat's follow, step and pushed lines), and whether it is followed. */
+  hit?: UnitId;
+  follow?: true;
+  /** Footnotes: turns an empty tile may still wait before the entry lapses (patient, wait). */
+  wait?: number;
 }
 
 // ── Battle ──────────────────────────────────────────────
@@ -469,6 +474,8 @@ export interface BattleState {
   lineages: Record<number, { reached: UnitId[] }>;
   nextLineage: number;
   scheduled: Scheduled[];
+  /** Brass a conduct left humming this round (`conduct-network-hum`); cleared at round end. */
+  hum?: Coord[];
   /** The household's inventions, so a Conduct, Bind or Repeat can be run from its id (E7). */
   inventions: InventionLibrary;
   /** This player phase's casts and every target they touched (Unison, P26). */

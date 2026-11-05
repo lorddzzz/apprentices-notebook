@@ -145,6 +145,7 @@ export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = boardRules()): 
   runScheduled(ctx, 'roundEnd');
   roundEndChemistry(ctx);
   slot(ctx, 'afterChemistry', rules);
+  delete ctx.s.hum;
   decayStates(ctx);
   coolTiles(ctx);
   vents(ctx);
