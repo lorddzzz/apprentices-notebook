@@ -1,6 +1,6 @@
 import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId } from '$data';
 import { objectArrives, relocateAll } from './arrival';
-import { burstAt, markUnit } from './bursts';
+import { burstAt, markUnit, nameOnce, noteMet } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { hasFootnote } from './footnotes';
 import {
@@ -17,7 +17,8 @@ import { guardCancels } from './harm';
 import type { Hook } from './hooks';
 import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
-import { cloudNet, isBrass, oilNet } from './networks';
+import { deepen, landOnTile } from './mix';
+import { brassNet, cloudNet, isBrass, oilNet } from './networks';
 import {
   blocksUnits,
   coordOf,
@@ -101,6 +102,53 @@ export function catchIfHot(ctx: Ctx, at: Coord, flow: Flow | null): void {
   burstAt(ctx, at, 'tile', flow);
   // The oil burns because the tile was hot, not because of a Spark: the fire signs it.
   for (const e of ctx.log.slice(from)) if (e.line?.startsWith('spark:')) e.line = 'cinder:slick';
+  // `cinder-cap-spread`: the tiles beside a hot tile that caught become hot (they do not chain).
+  if (hasFootnote(ctx, 'cinder-cap-spread')) {
+    const rounds = tileAt(ctx.s, at).hot;
+    for (const n of neighbors4(at)) {
+      if (inBoard(ctx.s, n)) tileAt(ctx.s, n).hot = Math.max(tileAt(ctx.s, n).hot, rounds);
+    }
+  }
+}
+
+/** Rounds a Cinder tile stays hot: two, or three with `cinder-slick-long`. */
+const hotRounds = (ctx: Ctx): number =>
+  hasFootnote(ctx, 'cinder-slick-long') ? SOLVENT_TUNING.hotRounds + 1 : SOLVENT_TUNING.hotRounds;
+
+/**
+ * Gallnut: marks whoever the invention reaches. `gallnut-unit-deep` deepens a mark already there,
+ * `-blot` leaves a blot under it, `-heavy` keeps it from sliding on oil; the capstones brand the
+ * cloud it stands in or turn the slick under it to a stain. Also run on a repeat's later passes.
+ */
+export function gallnutReach(ctx: Ctx, t: Target, origin: Origin | null, flow: Flow | null): void {
+  const u = unitOf(ctx, t);
+  if (!u) return;
+  withLine(ctx, 'gallnut:unit', () => {
+    if (!u.mark) {
+      markUnit(ctx, u, origin, flow);
+      const made = findUnit(ctx.s, u.id)?.mark; // the unit may be the one a guard sent it to
+      if (made && hasFootnote(ctx, 'gallnut-unit-heavy')) made.heavy = true;
+      if (made && hasFootnote(ctx, 'gallnut-unit-blot') && !tileAt(ctx.s, u.pos).state) {
+        landOnTile(ctx, 'ink', u.pos, flow);
+      }
+    } else if (hasFootnote(ctx, 'gallnut-unit-deep')) {
+      deepen(ctx, u);
+    }
+    const here = tileAt(ctx.s, u.pos);
+    if (hasFootnote(ctx, 'gallnut-cap-bloom') && isCloud(here)) {
+      for (const c of cloudNet(ctx.s, u.pos)) {
+        const layer = tileAt(ctx.s, c).state;
+        if (layer?.id !== 'cloud') continue;
+        tileAt(ctx.s, c).state = { ...layer, id: 'brandCloud' };
+        noteMet(ctx, 'brandCloud');
+        nameOnce(ctx, 'compound', 'brandCloud');
+        emit(ctx, { type: 'mixed', at: { ...c }, compound: 'brandCloud' });
+      }
+    }
+    if (hasFootnote(ctx, 'gallnut-cap-stain') && here.state?.id === 'slick') {
+      landOnTile(ctx, 'ink', u.pos, flow);
+    }
+  });
 }
 
 /** Whether `at` is brass or touches brass: a plate, or a collared unit (§4.4). */
@@ -376,21 +424,36 @@ function carryState(s: BattleState, from: Coord, to: Coord): void {
 export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   gallnut: {
     onReach(ctx, t, flow) {
-      const u = unitOf(ctx, t);
-      if (!u || u.mark) return;
-      withLine(ctx, 'gallnut:unit', () => markUnit(ctx, u, flow.origin, flow));
+      gallnutReach(ctx, t, flow.origin, flow);
     },
   },
   cinder: {
     // The target's tile is left hot before anything lands; oil already there burns afterwards.
     before(ctx, t) {
       const at = whereIs(ctx.s, t);
-      if (at) tileAt(ctx.s, at).hot = SOLVENT_TUNING.hotRounds;
-      return at;
+      if (at) tileAt(ctx.s, at).hot = hotRounds(ctx);
+      return { at, unit: at ? (unitAt(ctx.s, at)?.id ?? null) : null };
+    },
+    // `cinder-cap-brass`: the whole connected brass the invention reaches is hot.
+    onReach(ctx, t) {
+      const at = whereIs(ctx.s, t);
+      if (!at || !hasFootnote(ctx, 'cinder-cap-brass') || !isBrass(ctx.s, at)) return;
+      for (const c of brassNet(ctx.s, at)) tileAt(ctx.s, c).brassHot = SOLVENT_TUNING.hotRounds;
     },
     after(ctx, _t, flow, run) {
-      const at = run.before as Coord | null;
+      const { at, unit } = run.before as { at: Coord | null; unit: string | null };
       if (at) catchIfHot(ctx, at, flow);
+      // `cinder-slick-follow`: the tile the pushed target ends on is hot too.
+      const moved = unit ? findUnit(ctx.s, unit) : null;
+      if (
+        moved &&
+        isAlive(moved) &&
+        hasFootnote(ctx, 'cinder-slick-follow') &&
+        !(at && sameCoord(moved.pos, at))
+      ) {
+        tileAt(ctx.s, moved.pos).hot = hotRounds(ctx);
+        catchIfHot(ctx, moved.pos, flow);
+      }
     },
   },
   pitch: {},

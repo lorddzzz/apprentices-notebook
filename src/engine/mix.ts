@@ -238,7 +238,7 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
   noteMet(ctx, id);
 }
 
-function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
+export function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
   const s = ctx.s;
   const tile = tileAt(s, at);
   const want = PLAIN[kind];
@@ -651,6 +651,23 @@ export function roundEndChemistry(ctx: Ctx): void {
         dealDamage(ctx, u, 1, 'Scald', [], { heading: null, at, harm: 'steam' }),
       ),
     );
+  });
+  // `cinder-slick-steam`: a cloud over a hot tile scalds the unit in it; `cinder-cap-brass`: hot brass scorches.
+  const steamy = hasFootnote(ctx, 'cinder-slick-steam');
+  s.tiles.forEach((t, i) => {
+    const hotCloud = steamy && t.hot > 0 && isCloud(t);
+    if (!hotCloud && !t.brassHot) return;
+    const at = coordOf(s, i);
+    const u = unitAt(s, at);
+    if (!u) return;
+    withLine(ctx, 'cinder:slick', () => {
+      if (hotCloud && !habitRule(u).wards?.includes('steam')) {
+        dealDamage(ctx, u, 1, 'Scald', [], { heading: null, at, harm: 'steam' });
+      }
+      if (t.brassHot && u.hp > 0) {
+        dealDamage(ctx, u, 1, 'Hot brass', [], { heading: null, at });
+      }
+    });
   });
   const burning = livingUnits(s)
     .filter((u) => isFire(tileAt(s, u.pos)))

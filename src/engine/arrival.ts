@@ -258,7 +258,10 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
     id: 'markSpread',
     answers: 'each',
     subjects: ['unit'],
-    run: onUnit((ctx, u) => marks.spreadFrom(ctx, u)),
+    run: onUnit((ctx, u, a) => {
+      marks.hauntMark(ctx, u, a.at); // a tile that holds a bound action marks the unit first
+      marks.spreadFrom(ctx, u);
+    }),
   },
   {
     id: 'bindEnters',

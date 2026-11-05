@@ -6,6 +6,7 @@ import { type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
 import { landKindFree, slipInFog } from './mix';
 import { push } from './push';
 import { isAlive, reachable, tileAt, unitAt } from './queries';
+import { catchIfHot } from './solvents';
 import type { EnemyUnit, MemberUnit, Unit } from './types';
 
 /** The direction of the last step of a walk (P22: Touch on yourself takes it). */
@@ -126,6 +127,8 @@ function leaveSlick(ctx: Ctx, tiles: readonly Coord[]): void {
     if (t.state !== null) continue;
     emit(ctx, { type: 'landed', kind: 'oil', at: { ...c }, makes: 'slick' });
     t.state = { id: 'slick', rounds: 0, origin: null };
+    // `cinder-slick-trails`: a trail laid over a hot tile catches.
+    if (hasFootnote(ctx, 'cinder-slick-trails')) catchIfHot(ctx, c, null);
   }
 }
 

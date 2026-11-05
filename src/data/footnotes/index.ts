@@ -16,6 +16,7 @@ import { AURAS } from './auras';
 import { CANALS } from './canals';
 import { SEAM_METHODS } from './seam-methods';
 import { SEAM_RUNES } from './seam-runes';
+import { SEAM_SOLVENTS } from './seam-solvents';
 
 /**
  * Footnote content registry (plan FN P8, §6). Each batch owns one file (`seam-runes`,
@@ -28,6 +29,7 @@ export { SHOVE_WALL_SOFT } from './seam-runes';
 export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   'seam-runes': SEAM_RUNES,
   'seam-methods': SEAM_METHODS,
+  'seam-solvents': SEAM_SOLVENTS,
   auras: AURAS,
   canals: CANALS,
   rivals: [LAMPLIGHTER_WICK],

@@ -7,6 +7,7 @@ import type { BoardRule, RoundEndSlot } from './districts/types';
 import { foeBurst, resolveSpecial, snuffStep } from './foes';
 import { type Coord, step } from './grid';
 import { openDuskJars } from './jars';
+import { runLateSpreads } from './marks';
 import { decayStates, landKindFree, roundEndChemistry } from './mix';
 import { hitPiece, piecesTurnEnd } from './pieces';
 import {
@@ -130,7 +131,10 @@ function vents(ctx: Ctx): void {
 
 /** Cinder cools a round at a time. */
 function coolTiles(ctx: Ctx): void {
-  for (const t of ctx.s.tiles) if (t.hot > 0) t.hot--;
+  for (const t of ctx.s.tiles) {
+    if (t.hot > 0) t.hot--;
+    if (t.brassHot) t.brassHot--;
+  }
 }
 
 /**
@@ -143,6 +147,7 @@ export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = boardRules()): 
   slot(ctx, 'carry', rules);
   openDuskJars(ctx);
   runScheduled(ctx, 'roundEnd');
+  runLateSpreads(ctx);
   roundEndChemistry(ctx);
   slot(ctx, 'afterChemistry', rules);
   delete ctx.s.hum;

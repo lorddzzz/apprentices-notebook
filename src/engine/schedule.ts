@@ -6,7 +6,7 @@ import { neighbors4, sameCoord } from './grid';
 import { openJar, runDetached } from './jars';
 import { findUnit, isAlive, tileAt, unitAt } from './queries';
 import { KIND_HANDLERS } from './runes/kinds';
-import { undoBoard } from './solvents';
+import { gallnutReach, undoBoard } from './solvents';
 import { axisToward, whereIs } from './targets';
 import type { Origin, Scheduled, Step, Target, Unit, UnitId } from './types';
 
@@ -90,6 +90,10 @@ function run(ctx: Ctx, e: Scheduled): void {
       ...(e.context ? { context: e.context } : {}),
     });
   go(target);
+  // `gallnut-unit-every`: a Gallnut repeat marks on every pass, not only the first.
+  if (e.kind === 'repeat' && e.solvent === 'gallnut' && hasFootnote(ctx, 'gallnut-unit-every')) {
+    gallnutReach(ctx, target, e.origin, null);
+  }
   // `pitch-cap-wake`: a drifting wait also acts on the tile it last drifted from.
   if (e.solvent === 'pitch' && e.drifted && hasFootnote(ctx, 'pitch-cap-wake'))
     go({ kind: 'tile', at: { ...e.drifted } });

@@ -221,6 +221,11 @@ export interface Layer {
   scalds?: true;
   /** A pool that leaves a blot where it clears (oil-slick-short). */
   dregs?: true;
+  /**
+   * A bound action the tile holds (`bind-cloud-haunt` on a cloud, `bind-cap-snare` on a blot):
+   * a unit that enters is marked with it, once per unit per lineage. `once` spends it on the first.
+   */
+  haunt?: { bound: Bound; origin: Origin | null; lineage: number; kin?: Unit['kind']; once?: true };
 }
 export interface Terrain {
   water: Dir | null; // canal lane and its current (K-6)
@@ -257,6 +262,8 @@ export interface Tile {
   state: Layer | null;
   jar: Jar | null;
   hot: number; // Cinder: rounds left; oil here catches fire
+  /** `cinder-cap-brass`: rounds this brass stays hot; a unit on it at round end takes 1. */
+  brassHot?: number;
   /** A district board piece (DK-4, P10): `{bell:a}`, `{pier}`; null on a bare tile. */
   piece: TilePiece | null;
 }
@@ -321,6 +328,10 @@ export interface Mark {
   bound: Bound | null;
   origin: Origin | null;
   wax?: true; // Wax solvent: never spreads, fire melts it unspent
+  /** `bind-mark-layered`: the second action a deep mark holds, released after the first. */
+  layer?: Bound | null;
+  /** `gallnut-unit-heavy`: a Gallnut mark that keeps its bearer from sliding on oil. */
+  heavy?: true;
 }
 interface UnitBase {
   id: UnitId;
@@ -482,6 +493,8 @@ export interface BattleState {
   nextJar?: JarId;
   /** Mark lineages: who each has reached, once per fight (§6.4 limit 3). */
   lineages: Record<number, { reached: UnitId[] }>;
+  /** `bind-cloud-late`: bound marks whose spread waits for round end. */
+  lateSpreads?: { unit: UnitId; lineage: number }[];
   nextLineage: number;
   scheduled: Scheduled[];
   /** Brass a conduct left humming this round (`conduct-network-hum`); cleared at round end. */

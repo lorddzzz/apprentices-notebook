@@ -118,6 +118,75 @@ export function attachBound(ctx: Ctx, unit: Unit, bound: Bound): void {
       u.mark.bound = cloneData(bound);
     }
   }
+  // `bind-cloud-haunt`: a bound mark in a cloud leaves the action in it (late: at round end).
+  if (!hasFootnote(ctx, 'bind-cloud-late')) haunt(ctx, unit, bound);
+}
+
+/** `bind-mark-layered`: a deep mark that already holds an action takes a second, released after it. */
+export function attachLayer(ctx: Ctx, unit: Unit, bound: Bound): void {
+  const mark = unit.mark;
+  if (!mark?.bound || mark.layer) return;
+  withOrigin(ctx, mark.origin, () =>
+    emit(ctx, { type: 'marked', unit: ref(unit), deep: mark.deep, bound: bound.action }),
+  );
+  for (const u of ctx.s.units) {
+    if (u.mark && u.mark.lineage === mark.lineage && u.mark.bound && !u.mark.layer) {
+      u.mark.layer = cloneData(bound);
+    }
+  }
+}
+
+/** The cloud the bearer stands in holds the action: whoever walks in is marked with it. */
+function haunt(ctx: Ctx, unit: Unit, bound: Bound): void {
+  const mark = unit.mark;
+  if (!mark || !hasFootnote(ctx, 'bind-cloud-haunt') || !isCloud(tileAt(ctx.s, unit.pos))) return;
+  const kin = hasFootnote(ctx, 'bind-cloud-kin');
+  for (const c of cloudNet(ctx.s, unit.pos)) {
+    const layer = tileAt(ctx.s, c).state;
+    if (!layer) continue;
+    layer.haunt = {
+      bound: cloneData(bound),
+      origin: mark.origin,
+      lineage: mark.lineage,
+      ...(kin ? { kin: unit.kind } : {}),
+    };
+  }
+}
+
+/** `bind-cloud-haunt`, `bind-cap-snare`: a unit entering a tile that holds an action is marked with it. */
+export function hauntMark(ctx: Ctx, unit: Unit, at: Coord): void {
+  const layer = tileAt(ctx.s, at).state;
+  const h = layer?.haunt;
+  if (!layer || !h || !isAlive(unit) || unit.mark) return;
+  if (h.kin && unit.kind !== h.kin) return;
+  if (reachedOf(ctx, h.lineage).includes(unit.id)) return;
+  if (h.once) delete layer.haunt;
+  withLine(ctx, h.once ? 'bind:empty' : 'bind:cloud', () =>
+    applyMark(ctx, unit, {
+      deep: false,
+      bound: cloneData(h.bound),
+      origin: h.origin,
+      lineage: h.lineage,
+    }),
+  );
+}
+
+/** `bind-cap-snare`: Bind on an empty tile binds the blot it left. */
+export function snareBlot(ctx: Ctx, at: Coord, bound: Bound, origin: Origin | null): void {
+  const layer = tileAt(ctx.s, at).state;
+  if (!layer || !['blot', 'stain'].includes(layer.id) || unitAt(ctx.s, at)) return;
+  layer.haunt = { bound: cloneData(bound), origin, lineage: ctx.s.nextLineage++, once: true };
+}
+
+/** `bind-cloud-late`: the spreads put off to round end happen now. */
+export function runLateSpreads(ctx: Ctx): void {
+  const pending = ctx.s.lateSpreads;
+  if (!pending?.length) return;
+  delete ctx.s.lateSpreads;
+  for (const p of pending) {
+    const u = findUnit(ctx.s, p.unit);
+    if (u?.mark && u.mark.lineage === p.lineage) spreadFrom(ctx, u, true);
+  }
 }
 
 /** Takes the unit's mark off without releasing it (P31). */
@@ -137,10 +206,23 @@ export function expireMark(ctx: Ctx, unit: Unit): void {
 }
 
 /** Copies the unit's mark to every unmarked, unreached unit in its connected cloud (P29). */
-export function spreadFrom(ctx: Ctx, unit: Unit): void {
+export function spreadFrom(ctx: Ctx, unit: Unit, now = false): void {
   const mark = unit.mark;
   if (!mark || !isAlive(unit)) return;
   if (!isCloud(tileAt(ctx.s, unit.pos))) return;
+  // Plain Ink spreads under Ink's line; a mark that holds an action, or is made to, is Bind's (FN-1A In2).
+  const isBind = !!mark.bound || carrying.has(ctx);
+  const spreadLine: LineId = isBind ? 'bind:cloud' : 'ink:spread';
+  // `bind-cloud-late`: a bound mark spreads at round end.
+  if (isBind && !now && !mark.wax && hasFootnote(ctx, 'bind-cloud-late')) {
+    const wait = ctx.s.lateSpreads ?? [];
+    ctx.s.lateSpreads = wait;
+    if (!wait.some((p) => p.unit === unit.id && p.lineage === mark.lineage)) {
+      wait.push({ unit: unit.id, lineage: mark.lineage });
+    }
+    return;
+  }
+  if (mark.bound && !mark.wax) haunt(ctx, unit, mark.bound);
   const reached = reachedOf(ctx, mark.lineage);
   const to: Unit[] = [];
   const net = cloudNet(ctx.s, unit.pos);
@@ -150,7 +232,7 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
     ? [...net, ...net.flatMap((c) => neighbors4(c).filter((n) => inBoard(ctx.s, n)))]
     : net;
   const deeper = hasFootnote(ctx, 'ink-spread-deep');
-  const kin = hasFootnote(ctx, 'ink-spread-kin');
+  const kin = hasFootnote(ctx, isBind ? 'bind-cloud-kin' : 'ink-spread-kin');
   for (const c of cells) {
     const u = unitAt(ctx.s, c);
     if (!u || u.id === unit.id || reached.includes(u.id) || to.includes(u)) continue;
@@ -163,8 +245,6 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
     withLine(ctx, 'wax:cloud', () => emit(ctx, { type: 'miss', source: 'Wax mark spreading' }));
     return;
   }
-  // Plain Ink spreads under Ink's line; a mark that holds an action, or is made to, is Bind's (FN-1A In2).
-  const spreadLine: LineId = mark.bound || carrying.has(ctx) ? 'bind:cloud' : 'ink:spread';
   withLine(ctx, spreadLine, () =>
     withOrigin(ctx, mark.origin, () => {
       for (const u of to) {
@@ -174,7 +254,11 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
           nameOnce(ctx, 'compound', 'deepMark');
           emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'deepMark' });
         } else {
-          u.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null };
+          u.mark = {
+            ...mark,
+            bound: mark.bound ? cloneData(mark.bound) : null,
+            ...(mark.layer ? { layer: cloneData(mark.layer) } : {}),
+          };
         }
         reached.push(u.id);
       }
@@ -200,15 +284,44 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
  */
 export function liftMark(ctx: Ctx, from: Unit, to: Unit, line: LineId = 'lift:unit'): boolean {
   const mark = from.mark;
-  if (!mark || to.mark || from.id === to.id || !isAlive(to)) return false;
+  if (!mark || from.id === to.id || !isAlive(to)) return false;
+  const other = to.mark;
+  // `lift-cap-trade`: a marked receiver trades marks; `lift-unit-deepen`: it deepens its own.
+  const trade = other !== null && hasFootnote(ctx, 'lift-cap-trade');
+  const deepen = other !== null && !trade && hasFootnote(ctx, 'lift-unit-deepen');
+  if (other && !trade && !deepen) return false;
   withLine(ctx, line, () =>
     withOrigin(ctx, mark.origin, () => {
+      if (trade && other) {
+        from.mark = other;
+        to.mark = mark;
+        reach(ctx, mark.lineage, to);
+        reach(ctx, other.lineage, from);
+        emit(ctx, { type: 'markLifted', from: ref(from), to: ref(to) });
+        withOrigin(ctx, other.origin, () =>
+          emit(ctx, { type: 'markLifted', from: ref(to), to: ref(from) }),
+        );
+        return;
+      }
       from.mark = null;
-      to.mark = mark;
       reach(ctx, mark.lineage, to);
+      if (deepen && other) {
+        // What the lifted mark held is lost: the receiver keeps its own action, if any.
+        emit(ctx, { type: 'markLifted', from: ref(from), to: ref(to) });
+        if (!other.deep) {
+          to.mark = { ...other, deep: true };
+          noteMet(ctx, 'deepMark');
+          nameOnce(ctx, 'compound', 'deepMark');
+          emit(ctx, { type: 'mixed', at: { ...to.pos }, unit: ref(to), compound: 'deepMark' });
+        }
+        return;
+      }
+      to.mark = mark;
       emit(ctx, { type: 'markLifted', from: ref(from), to: ref(to) });
     }),
   );
+  // `lift-unit-spread`: a lifted mark spreads on arrival if its new bearer stands in a cloud.
+  if (!deepen && hasFootnote(ctx, 'lift-unit-spread')) spreadFrom(ctx, to);
   return true;
 }
 
@@ -229,11 +342,15 @@ function dirBetween(from: Coord, to: Coord): Dir | null {
   return dy > 0 ? 'down' : 'up';
 }
 
-/** P30: the effect's own heading; else from its origin tile to the bearer; else the binding cast's. */
-function releaseHeading(h: Hook, bearer: Coord, bound: Bound): Dir | null {
+/**
+ * P30: the effect's own heading; else from its origin tile to the bearer; else the binding cast's.
+ * `bind-mark-fixed` keeps only the cast's; `bind-mark-recoil` only the hitter's.
+ */
+function releaseHeading(ctx: Ctx, h: Hook, bearer: Coord, bound: Bound): Dir | null {
+  if (hasFootnote(ctx, 'bind-mark-fixed')) return bound.heading;
   if (h.kind === 'pushed') return h.dir;
   if (h.kind === 'hit') {
-    if (h.heading) return h.heading;
+    if (h.heading && !hasFootnote(ctx, 'bind-mark-recoil')) return h.heading;
     if (h.from && !sameCoord(h.from, bearer)) return dirBetween(h.from, bearer) ?? bound.heading;
   }
   return bound.heading;
@@ -278,6 +395,11 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
   withLine(ctx, 'bind:mark', () =>
     withOrigin(ctx, mark.origin, () => {
       emit(ctx, { type: 'markSpent', unit: ref(unit), released: true });
+      // `bind-mark-layered`: the second action stays on the mark, for the next event.
+      if (mark.layer) {
+        unit.mark = { ...mark, bound: mark.layer, layer: null, deep: false };
+        emit(ctx, { type: 'marked', unit: ref(unit), deep: false, bound: mark.layer.action });
+      }
       const depth = depths.get(ctx) ?? 0;
       if (depth >= RELEASE_DEPTH_LIMIT) {
         emit(ctx, { type: 'fizzles', reason: 'depth' });
@@ -286,10 +408,12 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
       if (!mark.origin) return;
       emit(ctx, { type: 'released', unit: ref(unit), action: bound.action });
       const target: Target =
-        h.kind === 'died' ? { kind: 'tile', at: { ...unit.pos } } : { kind: 'unit', unit: unit.id };
+        h.kind === 'died' || !isAlive(unit)
+          ? { kind: 'tile', at: { ...unit.pos } }
+          : { kind: 'unit', unit: unit.id };
       // Sand turns the action back on whoever set it off.
       const origin = mark.origin;
-      const heading = releaseHeading(h, unit.pos, bound);
+      const heading = releaseHeading(ctx, h, unit.pos, bound);
       const turned = turnBack(ctx, bound.solvent, h, heading);
       if (turned === 'nobody') return;
       depths.set(ctx, depth + 1);
@@ -300,6 +424,10 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
         else go();
       } finally {
         depths.set(ctx, depth);
+      }
+      // `bind-cap-rearm`: the bearer is left with a plain mark.
+      if (hasFootnote(ctx, 'bind-cap-rearm') && isAlive(unit) && !unit.mark) {
+        applyMark(ctx, unit, { deep: false, bound: null, origin: mark.origin });
       }
     }),
   );
@@ -312,7 +440,22 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
 export function onHook(ctx: Ctx, h: Hook): void {
   const unit = findUnit(ctx.s, h.unit);
   if (!unit?.mark) return;
-  if (unit.mark.bound?.event !== EVENT_OF[h.kind]) return;
-  if (h.kind !== 'died' && !isAlive(unit)) return; // a killing blow: the dies event takes it
+  const event = unit.mark.bound?.event;
+  if (event !== EVENT_OF[h.kind]) return;
+  // A killing blow: the dies event takes it, unless `bind-mark-lastword` lets the hit release first.
+  const lastWord = h.kind === 'hit' && hasFootnote(ctx, 'bind-mark-lastword');
+  if (h.kind !== 'died' && !isAlive(unit) && !lastWord) return;
+  // `bind-cloud-chorus`: every copy in the same cloud releases with it, once each.
+  const lineage = unit.mark.lineage;
+  const chorus =
+    hasFootnote(ctx, 'bind-cloud-chorus') && isCloud(tileAt(ctx.s, unit.pos))
+      ? cloudNet(ctx.s, unit.pos)
+          .map((c) => unitAt(ctx.s, c))
+          .filter((u): u is Unit => !!u && u.id !== unit.id)
+          .filter((u) => u.mark?.lineage === lineage && u.mark.bound?.event === event)
+      : [];
   release(ctx, unit, h);
+  for (const copy of chorus) {
+    if (copy.mark?.bound?.event === event) release(ctx, copy, { ...h, unit: copy.id });
+  }
 }

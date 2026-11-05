@@ -20,10 +20,10 @@ import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, opposite, step } from './grid';
 import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
-import { asBindCarrier, attachBound, liftMark } from './marks';
-import { netCollar } from './mix';
+import { asBindCarrier, attachBound, attachLayer, liftMark, snareBlot, spendMark } from './marks';
+import { landKind, netCollar } from './mix';
 import { brassNet, cloudNet, isBrass } from './networks';
-import { findUnit, giftedIn, isAlive, isCloud, members, tileAt, unitAt } from './queries';
+import { findUnit, giftedIn, inBoard, isAlive, isCloud, members, tileAt, unitAt } from './queries';
 import { NEST_LIMIT } from './resolve';
 import { handlerFor } from './runes';
 import { schedule } from './schedule';
@@ -462,6 +462,16 @@ function bind(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   asBindCarrier(ctx, () => runPart(ctx, carrier, t, flow));
   if (!unit) {
     withLine(ctx, 'bind:empty', () => emit(ctx, { type: 'miss', source: 'Bind' }));
+    // `bind-cap-snare`: the blot it left holds the action for the first unit to step on it.
+    const at = whereIs(ctx.s, t);
+    if (at && hasFootnote(ctx, 'bind-cap-snare')) {
+      snareBlot(
+        ctx,
+        at,
+        { action, event, solvent: def.solvent ?? flow.solvent, heading },
+        flow.origin,
+      );
+    }
     return [t];
   }
   // A harm guard (a forwarding stamp) may have sent the mark to another unit: that one holds it.
@@ -470,6 +480,11 @@ function bind(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
     if (isAlive(sent) && sent.mark && !sent.mark.bound) {
       attachBound(ctx, sent, { action, event, solvent: def.solvent ?? flow.solvent, heading });
     }
+    return [t];
+  }
+  // `bind-mark-layered`: a deep mark that holds an action takes the new one as its second.
+  if (held && isAlive(unit) && unit.mark?.deep && hasFootnote(ctx, 'bind-mark-layered')) {
+    attachLayer(ctx, unit, { action, event, solvent: def.solvent ?? flow.solvent, heading });
     return [t];
   }
   // Nothing to hold the action: a shackle took the mark's place, or the old action stayed.
@@ -501,13 +516,39 @@ function lift(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
     Math.abs(c.x - from.pos.x) + Math.abs(c.y - from.pos.y) === 1;
   let to: Unit | null = null;
   if (part === 'swap') to = caster && adjacent(caster.pos) ? caster : null;
-  else if (heading) to = unitAt(ctx.s, step(from.pos, heading));
+  else if (heading) {
+    to = unitAt(ctx.s, step(from.pos, heading));
+    // `lift-unit-far`: one tile further along the heading.
+    if (!to && hasFootnote(ctx, 'lift-unit-far')) {
+      to = unitAt(ctx.s, step(step(from.pos, heading), heading));
+    }
+    // `lift-unit-aside`: else a unit beside the target, left of the heading first.
+    if (!to && hasFootnote(ctx, 'lift-unit-aside')) {
+      to =
+        unitAt(ctx.s, step(from.pos, leftOf(heading))) ??
+        unitAt(ctx.s, step(from.pos, opposite(leftOf(heading))));
+    }
+  }
+  if (!to && from.mark && hasFootnote(ctx, 'lift-cap-drop')) {
+    // `lift-cap-drop`: no unit can take the mark, so it is left on the tile ahead as a blot.
+    const ahead = heading ? step(from.pos, heading) : from.pos;
+    const at = inBoard(ctx.s, ahead) ? ahead : from.pos;
+    withLine(ctx, 'lift:noTarget', () => {
+      spendMark(ctx, from);
+      landKind(ctx, 'ink', { kind: 'tile', at }, flow);
+    });
+    return [t];
+  }
   if (!to || !liftMark(ctx, from, to)) {
     withLine(ctx, 'lift:noTarget', () => emit(ctx, { type: 'miss', source: 'Lift' }));
     return [];
   }
   return [t];
 }
+
+/** The way a quarter turn to the left of `d` points. */
+const leftOf = (d: Dir): Dir =>
+  ({ right: 'up', up: 'left', left: 'down', down: 'right' })[d] as Dir;
 
 /** The heading of `t` copied to the targets a solvent added, so they act the same way. */
 function withHeadings(flow: Flow, from: Target, to: readonly Target[]): Flow {
