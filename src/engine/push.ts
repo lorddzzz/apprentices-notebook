@@ -7,6 +7,7 @@ import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { guardCancels } from './harm';
 import { notify } from './hooks';
+import { landKindFree } from './mix';
 import { pieceBlocksUnits, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
 import { trickBeforeHarm, trickResists } from './rivals/tricks';
@@ -81,7 +82,7 @@ function stopAt(ctx: Ctx, unit: Unit, from: Coord, next: Coord): Stop | null {
 }
 
 /** Plates and Walls break after a few crushes; layout plates (no hits recorded, permanent) never. */
-function wearPlate(ctx: Ctx, at: Coord, wear = 1): boolean {
+export function wearPlate(ctx: Ctx, at: Coord, wear = 1): boolean {
   const tile: Tile = tileAt(ctx.s, at);
   const layer = tile.state;
   if (!layer || !isPlate(tile)) return false;
@@ -167,6 +168,10 @@ function crush(
         heading: dir,
         at: { ...unit.pos },
       });
+      // `shove-cap-chain`: the unit crushed against is shoved one tile too (once, no crush).
+      if (other.hp > 0 && hasFootnote(ctx, 'shove-cap-chain')) {
+        push(ctx, other, dir, 1, origin, { crush: false });
+      }
     } else if (stop.into === 'plate') {
       // `steam-kettle-press`: a unit crushed against a kettle is scalded for 1 more.
       if (tileAt(ctx.s, stop.at).state?.id === 'kettle' && hasFootnote(ctx, 'steam-kettle-press')) {
@@ -294,6 +299,15 @@ export function push(
       return unmoved();
     };
     if (unit.held > 0) return blockedByHold();
+    // `guard-cap-brace`: a shielded unit holds its ground; the push costs its shield 1.
+    if (!pull && unit.shield > 0 && hasFootnote(ctx, 'guard-cap-brace')) {
+      withLine(ctx, 'shove:held', () => {
+        unit.shield -= 1;
+        if (unit.shield <= 0) delete unit.thorns;
+        emit(ctx, { type: 'shieldAbsorbs', unit: ref(unit), absorbed: 1, left: unit.shield });
+      });
+      return unmoved();
+    }
     // A rival's trick answers the push first (RV-11 `beforeHarm`): a relocation or a cancel leaves
     // the push undone; a redirect is not offered for a push (it passes).
     const reaction = trickBeforeHarm(ctx, unit, { kind: 'push', unit: unit.id, dir, harm: null });
@@ -359,6 +373,14 @@ export function push(
     if (hasFootnote(ctx, 'shove-slick-smear') && unit.hp > 0 && slide.length) {
       const inked = slide.some((at) => ['blot', 'stain'].includes(tileAt(s, at).state?.id ?? ''));
       if (inked) withLine(ctx, 'shove:slick', () => markUnit(ctx, unit, origin));
+    }
+
+    // `shove-cap-oily`: a unit that slid on oil leaves a slick where it stops.
+    if (slid > 0 && unit.hp > 0 && hasFootnote(ctx, 'shove-cap-oily')) {
+      const at = { ...unit.pos };
+      if (tileAt(s, at).state === null) {
+        landKindFree(ctx, 'oil', { kind: 'tile', at });
+      }
     }
 
     let crushed: PushResult['crushed'] = null;

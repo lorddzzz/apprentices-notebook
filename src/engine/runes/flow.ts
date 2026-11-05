@@ -1,10 +1,19 @@
 import type { LineId, SealRuneId, TriggerRuneId } from '$data';
 import type { FootnoteIds, FootnoteVariantId } from '../ctx';
 import { hasFootnote } from '../footnotes';
-import { type Coord, DIRS, type Dir, neighbors4, step, turnLeft, turnRight } from '../grid';
+import {
+  type Coord,
+  DIRS,
+  type Dir,
+  neighbors4,
+  opposite,
+  step,
+  turnLeft,
+  turnRight,
+} from '../grid';
 import { ruleOf, sameSide } from '../habits';
 import { sealedContext } from '../jars';
-import { inBoard } from '../queries';
+import { inBoard, unitAt } from '../queries';
 import { targetOn, whereIs } from '../targets';
 import type { BattleState, Flow, Jar, Snapshot, Target, Tile, Unit } from '../types';
 import { targetKey } from '../types';
@@ -25,6 +34,24 @@ export interface Aimed {
 const forked = new WeakSet<ReadonlyMap<string, Dir | null>>();
 export const isForked = (headings: ReadonlyMap<string, Dir | null>): boolean =>
   forked.has(headings);
+
+/** The same headings with `more` set (and rotated by `quarter` turns first), staying a Fork's own. */
+export function reheaded(
+  headings: ReadonlyMap<string, Dir | null>,
+  quarter: number,
+  more: Iterable<[string, Dir | null]> = [],
+): Map<string, Dir | null> {
+  const turn = (d: Dir | null): Dir | null => {
+    let out = d;
+    for (let i = 0; out && i < quarter % 4; i++) out = turnRight(out);
+    return out;
+  };
+  const out = new Map<string, Dir | null>();
+  for (const [k, d] of headings) out.set(k, turn(d));
+  for (const [k, d] of more) out.set(k, d);
+  if (forked.has(headings)) forked.add(out);
+  return out;
+}
 
 /** Appends `t` unless its key is already taken (P24: the first one wins). */
 function add(out: Aimed, seen: Set<string>, t: Target, heading: Dir | null, override: boolean) {
@@ -47,6 +74,8 @@ export function forkSide(
   headings: ReadonlyMap<string, Dir | null>,
   side: 'left' | 'right' | 'ahead',
   footnotes: FootnoteIds = {},
+  /** `fork-cap-pinch` (decided by the caller): side branches point back at the target. */
+  pinch = false,
 ): Aimed & { blind: number; off: number } {
   const fn = (id: FootnoteVariantId) => hasFootnote({ footnotes }, id);
   const out: Aimed & { blind: number; off: number } = {
@@ -68,9 +97,24 @@ export function forkSide(
     const way =
       side === 'ahead' ? heading : side === 'left' ? turnLeft(heading) : turnRight(heading);
     // `fork-unit-wide`: the side branches act two tiles out.
-    const to = side !== 'ahead' && fn('fork-unit-wide') ? step(step(at, way), way) : step(at, way);
+    const reach = (w: Dir): Coord =>
+      side !== 'ahead' && fn('fork-unit-wide') ? step(step(at, w), w) : step(at, w);
+    let to = reach(way);
+    // `fork-cap-behind`: an empty side branch acts on the tile behind the target instead; when
+    // both sides are empty the left takes it and the right is dropped.
+    if (side !== 'ahead' && fn('fork-cap-behind') && inBoard(s, to) && !unitAt(s, to)) {
+      const other = reach(side === 'left' ? turnRight(heading) : turnLeft(heading));
+      const otherEmpty = !inBoard(s, other) || !unitAt(s, other);
+      if (!otherEmpty || side === 'left') to = step(at, opposite(heading));
+      else continue;
+    }
     // `fork-unit-splay`: a side branch points its own side's way.
-    const aim = side !== 'ahead' && fn('fork-unit-splay') ? way : heading;
+    const aim =
+      side !== 'ahead' && pinch
+        ? opposite(way)
+        : side !== 'ahead' && fn('fork-unit-splay')
+          ? way
+          : heading;
     if (inBoard(s, to)) {
       // `fork-unit-both`: a tile two targets reach is acted on once for each.
       if (fn('fork-unit-both')) {

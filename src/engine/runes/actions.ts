@@ -38,7 +38,7 @@ import { guardCancels } from '../harm';
 import { sealJar } from '../jars';
 import { jarLimit } from '../leans';
 import { spendMark } from '../marks';
-import { push } from '../push';
+import { push, wearPlate } from '../push';
 import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
 import type { Handler } from '../resolve';
 import { trickResists } from '../rivals/tricks';
@@ -100,7 +100,19 @@ function miss(ctx: Ctx, rune: ActionRuneId, line: LineId): void {
 
 const strike: Handler = (ctx, t, flow) => {
   const u = unitOf(ctx, t);
-  if (!u) return;
+  if (!u) {
+    // `strike-cap-crack`: a Strike on a plate, wall, kettle or skid plate breaks it.
+    const at = t.kind === 'tile' ? t.at : null;
+    if (
+      at &&
+      inBoard(ctx.s, at) &&
+      isPlate(tileAt(ctx.s, at)) &&
+      hasFootnote(ctx, 'strike-cap-crack')
+    ) {
+      wearPlate(ctx, at, 99);
+    }
+    return;
+  }
   const caster = unitById(ctx.s, flow.caster);
   const damage = TUNING.strikeDamage - (flow.weaker ?? 0);
   if (damage <= 0) return;
@@ -174,6 +186,9 @@ const guard: Handler = (ctx, t, flow) => {
   const until = ctx.s.round + 1 + roundBonus('guard', flow);
   const again = u.shield > 0;
   const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  // `guard-cap-share`: Guarding someone else shields you for 1 too.
+  const caster = findUnit(ctx.s, flow.caster);
+  if (caster && caster.id !== u.id && fn('guard-cap-share')) gainShield(ctx, caster, 1, until);
   maybeLine(ctx, again ? 'guard:shielded' : null, () => {
     if (!again) return gainShield(ctx, u, TUNING.guardShield, until);
     if (fn('guard-shielded-long')) gainShield(ctx, u, 0, until, true);

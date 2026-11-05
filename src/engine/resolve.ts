@@ -3,7 +3,7 @@ import { cloneData } from './clone';
 import { type Ctx, emit, fizzled, inCastScope, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
 import { hasFootnote } from './footnotes';
-import { type Coord, key, label, sameCoord } from './grid';
+import { type Coord, type Dir, key, label, neighbors4, sameCoord, step } from './grid';
 import { habitOf, ruleOf, withHabit } from './habits';
 import { marginEcho } from './inventions';
 import { sealJar } from './jars';
@@ -12,8 +12,8 @@ import { sameStateNet } from './networks';
 import { hitPiece } from './pieces';
 import { blockerName, findUnit, giftedIn, isCloud, longTouchOver, tileAt, unitAt } from './queries';
 import { handlerFor } from './runes';
-import { forkSide, isForked, jarFor, seep, toll, trial } from './runes/flow';
-import { aimLine, aimTargets, boltTravel, whereIs } from './targets';
+import { forkSide, isForked, jarFor, reheaded, seep, toll, trial } from './runes/flow';
+import { aimLine, aimTargets, boltTravel, tilesBetween, whereIs } from './targets';
 import type {
   Aim,
   BattleState,
@@ -131,7 +131,57 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
       return;
     }
     const s = ctx.s;
-    const live = targets.filter((t) => whereIs(s, t) !== null);
+    // `bend-cap-turn` / `bend-cap-back`: the Bends just crossed turn (or reverse) the heading.
+    if (st.turn) {
+      const quarter = hasFootnote(ctx, 'bend-cap-turn')
+        ? st.turn
+        : hasFootnote(ctx, 'bend-cap-back')
+          ? 2
+          : 0;
+      if (quarter) flow = { ...flow, headings: reheaded(flow.headings, quarter) };
+    }
+    let live = targets.filter((t) => whereIs(s, t) !== null);
+    // `bolt-cap-onward`: a Bolt's target that died hands the rest on to the next unit along the line.
+    if (flow.src === 'bolt' && hasFootnote(ctx, 'bolt-cap-onward')) {
+      const more: Target[] = [];
+      const way = new Map<string, Dir | null>();
+      for (const t of targets) {
+        if (t.kind !== 'unit' || whereIs(s, t) !== null) continue;
+        const dead = findUnit(s, t.unit);
+        const dir = flow.headings.get(targetKey(t)) ?? null;
+        if (!dead || !dir) continue;
+        let at = dead.pos;
+        for (let i = 0; i < 8; i++) {
+          at = step(at, dir);
+          const next = unitAt(s, at);
+          if (next) {
+            const nt: Target = { kind: 'unit', unit: next.id };
+            more.push(nt);
+            way.set(targetKey(nt), dir);
+            break;
+          }
+        }
+      }
+      if (more.length) {
+        flow = { ...flow, headings: reheaded(flow.headings, 0, way) };
+        live = [...live, ...more];
+      }
+    }
+    // `splash-cap-trail`: a kind lands on the tiles between the caster and the Splash's centre too.
+    const origin0 = findUnit(s, flow.caster);
+    if (
+      st.role === 'kind' &&
+      flow.src === 'splash' &&
+      flow.centre &&
+      origin0 &&
+      hasFootnote(ctx, 'splash-cap-trail')
+    ) {
+      const trail: Target[] = tilesBetween(origin0.pos, flow.centre).map((at) => ({
+        kind: 'tile',
+        at,
+      }));
+      live = [...live, ...trail.filter((t) => !live.some((x) => targetKey(x) === targetKey(t)))];
+    }
     if (live.length === 0) return; // nothing left to act on
     const rec = recorderOf(ctx, flow);
     rec.ran.push(st);
@@ -189,12 +239,46 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           );
         }
         span();
-        queue(st.next, live, flow);
+        // `strike-cap-finish`: a Strike that killed its target hands the rest to the nearest unit beside it.
+        let onward = live;
+        let nextFlow = flow;
+        if (st.role === 'action' && st.rune === 'strike' && hasFootnote(ctx, 'strike-cap-finish')) {
+          const more: Target[] = [];
+          const way = new Map<string, Dir | null>();
+          for (const t of live) {
+            const dead = t.kind === 'unit' ? findUnit(s, t.unit) : null;
+            if (!dead || dead.hp > 0) continue;
+            const near = neighbors4(dead.pos)
+              .sort((a, b) => a.y - b.y || a.x - b.x)
+              .flatMap((at) => unitAt(s, at) ?? [])
+              .find((u) => u.id !== flow.caster);
+            if (!near) continue;
+            const nt: Target = { kind: 'unit', unit: near.id };
+            more.push(nt);
+            way.set(targetKey(nt), flow.headings.get(targetKey(t)) ?? null);
+          }
+          if (more.length) {
+            onward = [...live, ...more];
+            nextFlow = { ...flow, headings: reheaded(flow.headings, 0, way) };
+          }
+        }
+        queue(st.next, onward, nextFlow);
         return;
       }
       case 'fork': {
-        const left = forkSide(s, live, flow.headings, 'left', ctx.footnotes);
-        const right = forkSide(s, live, flow.headings, 'right', ctx.footnotes);
+        let left = forkSide(s, live, flow.headings, 'left', ctx.footnotes);
+        let right = forkSide(s, live, flow.headings, 'right', ctx.footnotes);
+        // `fork-cap-pinch`: when both branches push units they push toward the target.
+        if (
+          hasFootnote(ctx, 'fork-cap-pinch') &&
+          carriesShove(st.left) &&
+          carriesShove(st.right) &&
+          hasUnits(s, left.targets) &&
+          hasUnits(s, right.targets)
+        ) {
+          left = forkSide(s, live, flow.headings, 'left', ctx.footnotes, true);
+          right = forkSide(s, live, flow.headings, 'right', ctx.footnotes, true);
+        }
         const ahead = ruleOf(flow.habit).forkAhead
           ? forkSide(s, live, flow.headings, 'ahead', ctx.footnotes)
           : null;
@@ -264,6 +348,24 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
     }
   }
 }
+
+/** Whether a branch has a Shove anywhere along it. */
+function carriesShove(st: Step | null): boolean {
+  for (let cur = st; cur; ) {
+    if (cur.role === 'action' && cur.rune === 'shove') return true;
+    if (cur.role === 'fork') return carriesShove(cur.left) || carriesShove(cur.right);
+    if (cur.role === 'split') return cur.branches.some(carriesShove);
+    if (cur.role === 'seal') return false;
+    cur = cur.next;
+  }
+  return false;
+}
+
+const hasUnits = (s: BattleState, targets: readonly Target[]): boolean =>
+  targets.some((t) => {
+    const at = whereIs(s, t);
+    return t.kind === 'unit' || (at !== null && unitAt(s, at) !== null);
+  });
 
 /** Record the cells reached when stored flow resumes, without creating another cast. */
 export function runContinuation(
@@ -506,6 +608,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       depth: 0,
       auras: spell.sourceAuras,
       src: spell.source,
+      ...(spell.source === 'splash' && aim.kind === 'tile' ? { centre: { ...aim.at } } : {}),
       ...(spell.source === 'splash'
         ? {
             area: targets.flatMap((t) => {

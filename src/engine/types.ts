@@ -126,6 +126,8 @@ interface StepBase {
   glyph?: GlyphId; // retained by stored steps after the original recorder is gone
   via?: readonly Coord[]; // shape cells walked to reach it (Bend)
   viaInner?: readonly Coord[];
+  /** Quarter turns (clockwise) of the Bends crossed since the previous step, for the Bend capstones. */
+  turn?: 1 | 2 | 3;
 }
 /** Margin inventions are auras too. */
 export type AuraRef = AuraRuneId | `inv:${string}`;
@@ -402,6 +404,8 @@ export interface Flow {
   /** Footnotes: the cast's source rune, and a Splash's unit targets (read by Shove, Strike, Spark). */
   src?: SourceRuneId;
   area?: readonly UnitId[];
+  /** A Splash's centre, read by `splash-cap-trail`. */
+  centre?: Coord;
 }
 export const targetKey = (t: Target): string =>
   t.kind === 'unit' ? `u:${t.unit}` : `t:${t.at.x},${t.at.y}`;

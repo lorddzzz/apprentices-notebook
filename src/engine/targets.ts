@@ -77,7 +77,30 @@ function areaTargets(
     targets.push(t);
     headings.set(targetKey(t), heading);
   }
+  // `splash-cap-heart`: a unit at the centre is acted on twice (its second turn comes last).
+  const heart = targets.find((t) => {
+    const at = whereIs(s, t);
+    return t.kind === 'unit' && at && at.x === centre.x && at.y === centre.y;
+  });
+  if (heart && fn('splash-cap-heart')) targets.push(heart);
   return { targets, headings };
+}
+
+/**
+ * The tiles between `from` and `to` (neither included), one step at a time along the larger axis
+ * (a tie goes vertical, like `axisToward`): what `splash-cap-trail` lays a kind on.
+ */
+export function tilesBetween(from: Coord, to: Coord): Coord[] {
+  const out: Coord[] = [];
+  let at = from;
+  for (let i = 0; i < 64; i++) {
+    const way = axisToward(at, to);
+    if (!way) break;
+    at = step(at, way);
+    if (at.x === to.x && at.y === to.y) break;
+    out.push(at);
+  }
+  return out;
 }
 
 /** A Bolt's flight, with what footnotes did to it (each field is set only by its variant). */
@@ -195,7 +218,13 @@ export function aimTargets(
             : found
               ? targetOn(s, r.stop)
               : { kind: 'tile', at: r.stop };
-      return { targets: [t], headings: new Map([[targetKey(t), aim.dir]]) };
+      const out: Target[] = [t];
+      // `bolt-cap-front`: a Bolt that reaches a unit also acts on the empty tile just before it.
+      const front = r.reason === 'unit' ? r.path[r.path.length - 2] : undefined;
+      if (front && hasFootnote({ footnotes }, 'bolt-cap-front')) {
+        out.push({ kind: 'tile', at: { ...front } });
+      }
+      return { targets: out, headings: new Map(out.map((x) => [targetKey(x), aim.dir])) };
     }
     case 'splash': {
       if (aim.kind !== 'tile') return none;
@@ -216,19 +245,33 @@ export function aimTargets(
         const way =
           caster.lastMove ??
           (hasFootnote({ footnotes }, 'touch-member-memory') ? (caster.prevMove ?? null) : null);
-        return { targets: [t], headings: new Map([[targetKey(t), way]]) };
+        const out: Target[] = [t];
+        const headings = new Map<string, Dir | null>([[targetKey(t), way]]);
+        // `touch-cap-wake`: the tile you stepped from is acted on too.
+        if (caster.lastMove && hasFootnote({ footnotes }, 'touch-cap-wake')) {
+          const wake: Target = { kind: 'tile', at: step(caster.pos, opposite(caster.lastMove)) };
+          if (inBoard(s, wake.at)) {
+            out.push(wake);
+            headings.set(targetKey(wake), way);
+          }
+        }
+        return { targets: out, headings };
       }
       if (aim.kind !== 'tile') return none;
       const t = targetOn(s, aim.at);
       // `touch-unit-steer`: a Touch on a unit points the way you stepped.
       const steer =
         t.kind === 'unit' && caster.lastMove && hasFootnote({ footnotes }, 'touch-unit-steer');
-      return {
-        targets: [t],
-        headings: new Map([
-          [targetKey(t), steer ? caster.lastMove : axisToward(caster.pos, aim.at)],
-        ]),
-      };
+      const way = steer ? caster.lastMove : axisToward(caster.pos, aim.at);
+      const out: Target[] = [t];
+      // `touch-cap-behind`: a neighbouring unit's line goes on to the unit behind it.
+      const near = Math.abs(aim.at.x - caster.pos.x) + Math.abs(aim.at.y - caster.pos.y) === 1;
+      const line = axisToward(caster.pos, aim.at);
+      if (t.kind === 'unit' && near && line && hasFootnote({ footnotes }, 'touch-cap-behind')) {
+        const behind = unitAt(s, step(aim.at, line));
+        if (behind) out.push({ kind: 'unit', unit: behind.id });
+      }
+      return { targets: out, headings: new Map(out.map((x) => [targetKey(x), way])) };
     }
   }
 }

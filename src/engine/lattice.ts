@@ -14,6 +14,7 @@ import { argIssue, cellsWithArgs, glyphCost, rotateDirLocal } from './glyph';
 import {
   byReadingOrder,
   type Coord,
+  DIRS,
   type Dir,
   isLatticeCoord,
   key,
@@ -402,6 +403,8 @@ function compile(
     assign: (st: Step | null) => void,
     via: Trail | null = null,
     viaInner: Trail | null = null,
+    /** Quarter turns (clockwise) of the Bends crossed since the last step. */
+    rot = 0,
   ): void {
     // In preflight, queued jobs still traverse every branch but never link retained step trees.
     if (budget) assign = () => {};
@@ -439,6 +442,7 @@ function compile(
           assign,
           appendTrail(via, where.at),
           where.inner ? appendTrail(viaInner, where.inner) : null,
+          (rot + DIRS.indexOf(out) - DIRS.indexOf(dir) + 4) % 4,
         );
         return;
       }
@@ -448,6 +452,7 @@ function compile(
         ...where,
         ...(!budget && via ? { via: trailCoords(via) } : {}),
         ...(!budget && where.inner && viaInner ? { viaInner: trailCoords(viaInner) } : {}),
+        ...(!budget && rot % 4 !== 0 ? { turn: (rot % 4) as 1 | 2 | 3 } : {}),
       };
       if (placed.rune === 'fork') {
         const st: Step = { ...base, role: 'fork', left: null, right: null };

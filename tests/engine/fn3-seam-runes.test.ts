@@ -95,6 +95,23 @@ const LEVEL_ONE = [
   ['brass-mark-throw', 'brass:mark@2'],
   ['oil-slick-corners', 'oil:slick@1'],
   ['oil-slick-short', 'oil:slick@1'],
+  // FN-C6 capstones
+  ['bolt-cap-onward', 'bolt@cap'],
+  ['bolt-cap-front', 'bolt@cap'],
+  ['splash-cap-heart', 'splash@cap'],
+  ['splash-cap-trail', 'splash@cap'],
+  ['touch-cap-behind', 'touch@cap'],
+  ['touch-cap-wake', 'touch@cap'],
+  ['strike-cap-finish', 'strike@cap'],
+  ['strike-cap-crack', 'strike@cap'],
+  ['shove-cap-chain', 'shove@cap'],
+  ['shove-cap-oily', 'shove@cap'],
+  ['guard-cap-share', 'guard@cap'],
+  ['guard-cap-brace', 'guard@cap'],
+  ['fork-cap-pinch', 'fork@cap'],
+  ['fork-cap-behind', 'fork@cap'],
+  ['bend-cap-turn', 'bend@cap'],
+  ['bend-cap-back', 'bend@cap'],
 ] as const;
 
 describe('FN-3: level-I variants live in the seam-runes batch under stable ids', () => {
