@@ -4,10 +4,19 @@ import {
   HEART_HEAT,
   HEAT_BY_ROOM,
   PICKS_BY_HEAT,
+  PLUNGE_KIND,
+  PLUNGE_ROOMS,
   tableForHeat,
 } from '$data/districts/bathhouses';
 import type { HeatLevel } from '$data/districts/bathhouses/types';
-import type { OfferContributor, RoomOffers, RoomSetup, ShapeInput, TripShapeDef } from '../types';
+import type {
+  OfferContributor,
+  OfferKind,
+  RoomOffers,
+  RoomSetup,
+  ShapeInput,
+  TripShapeDef,
+} from '../types';
 import {
   BATH_SHAPE,
   type BathTripState,
@@ -69,6 +78,35 @@ export const AREAS_GUARANTEE: OfferContributor = (ctx) => {
   if (AREAS_RUNES.some((r) => ctx.profile.known.includes(r) || inLoot(r))) return {};
   const rune = AREAS_RUNES[0];
   return rune ? { must: { kind: 'rune', rune } } : {};
+};
+
+export type PlungeItem = { kind: typeof PLUNGE_KIND; data: Record<string, never> };
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/**
+ * The cold plunge (P5, P6; BH-3): a fixed extra card after rooms 1–3 of a bathhouses trip (never
+ * rolled, never at the heart). Taking it spends a pick, lands in the trip's loot (so a wipe drops
+ * it like the rest) and cools the next room; banking it at home changes nothing. The offers
+ * stay on the room's base heat (`bathOffersFor`), so the plunge buys safety, not worse loot.
+ */
+export const PLUNGE: OfferKind<PlungeItem> = {
+  id: PLUNGE_KIND,
+  roll: (ctx) =>
+    ctx.trip.district === 'bathhouses' && PLUNGE_ROOMS.includes(ctx.room)
+      ? [{ kind: PLUNGE_KIND, data: {} }]
+      : [],
+  onPick: (trip, item) => ({
+    ...trip,
+    loot: [...trip.loot, item],
+    kit: trip.kit && { ...trip.kit, state: { ...parseBathState(trip.kit.state), pendingCool: 1 } },
+  }),
+  onBank: (p) => p,
+  parse: (raw) =>
+    isRecord(raw) && raw.kind === PLUNGE_KIND && isRecord(raw.data)
+      ? { kind: PLUNGE_KIND, data: {} }
+      : null,
+  card: 'plunge',
 };
 
 export const BATH_TRIP: TripShapeDef<BathTripState> = {

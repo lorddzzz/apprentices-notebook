@@ -40,9 +40,11 @@ describe('BH-0 registration', () => {
 
   test("inert but for BH-1's rule: no pieces, foes, offers, guards or steps; lines, the shape and the cause", () => {
     const m = KIT.modules.bathhouses;
-    for (const k of ['pieces', 'foes', 'offerKinds', 'harmGuards', 'steps'] as const) {
+    for (const k of ['pieces', 'foes', 'harmGuards', 'steps'] as const) {
       expect(m?.[k] ?? []).toEqual([]);
     }
+    // BH-3 adds the cold plunge, the only offer kind
+    expect((m?.offerKinds ?? []).map((o) => o.id)).toEqual(['bathhouses:plunge']);
     expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bathhouses:'))).toEqual([
       BOIL_OVER_RULE_ID,
     ]);

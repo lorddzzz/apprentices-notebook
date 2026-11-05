@@ -103,3 +103,13 @@ export const AREAS_GUARANTEE_ROOMS: readonly number[] = [0, 1];
 
 /** The table a room of this heat offers from. */
 export const tableForHeat = (h: HeatLevel): BathTableId => `bathhouses:h${h}`;
+
+/** The cold plunge (P5, P6): a fixed extra card, not rolled from a table. */
+export const PLUNGE_KIND = 'bathhouses:plunge' as const;
+/** The rooms (0-based) after which it is offered: rooms 1–3; never after room 4, never at the heart. */
+export const PLUNGE_ROOMS: readonly number[] = [0, 1, 2];
+/** Its card copy: the cost is the pick it uses, the gain is one heat off the next room. */
+export const PLUNGE_CARD = {
+  title: 'Cold plunge',
+  blurb: 'Costs a pick. The next hall runs one heat cooler (never below 1); its loot is unchanged.',
+} as const;

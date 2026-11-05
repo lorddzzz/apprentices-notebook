@@ -142,6 +142,7 @@ function walk(
 /** An offer card's table entry (a page the household has comes back as ink). */
 const inTable = (table: (typeof BATH_TABLE_IDS)[number], item: Trip['offers'][number]): boolean =>
   item.kind === 'ink' ||
+  item.kind === 'bathhouses:plunge' || // BH-3's fixed card, not from a table
   BATH_LOOT_TABLES[table].entries.some((e) => JSON.stringify(e.spec) === JSON.stringify(item));
 
 // ── Heat per room (P5) ──────────────────────────────────
