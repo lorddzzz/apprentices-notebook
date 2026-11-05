@@ -456,6 +456,10 @@ export interface Scheduled {
   follow?: true;
   /** Footnotes: turns an empty tile may still wait before the entry lapses (patient, wait). */
   wait?: number;
+  /** Footnotes (Pitch, Wick): the tile a drifting wait last left; rounds a Wick still holds; a second dusk run spent. */
+  drifted?: Coord;
+  holds?: number;
+  twice?: true;
 }
 
 // ── Battle ──────────────────────────────────────────────

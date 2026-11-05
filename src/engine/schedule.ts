@@ -2,12 +2,13 @@ import type { LineId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, withLine } from './ctx';
 import { hasFootnote } from './footnotes';
-import { runDetached } from './jars';
-import { findUnit, isAlive, unitAt } from './queries';
+import { neighbors4, sameCoord } from './grid';
+import { openJar, runDetached } from './jars';
+import { findUnit, isAlive, tileAt, unitAt } from './queries';
 import { KIND_HANDLERS } from './runes/kinds';
 import { undoBoard } from './solvents';
 import { axisToward, whereIs } from './targets';
-import type { Origin, Scheduled, Step, Unit, UnitId } from './types';
+import type { Origin, Scheduled, Step, Target, Unit, UnitId } from './types';
 
 /**
  * The scheduled queue (E6): repeats, Margin echoes, Wick, Graphite, Filings and Pitch wait here for
@@ -44,7 +45,9 @@ function run(ctx: Ctx, e: Scheduled): void {
   }
   // A downed caster's delayed actions lapse (graphite undos above still restore the board).
   const owner = ctx.s.units.find((u) => u.id === e.owner);
-  if (!owner || owner.hp <= 0) {
+  // `wick-unit-proxy`: a Wick still acts when its caster fell, from where they lie.
+  const proxy = e.kind === 'wick' && hasFootnote(ctx, 'wick-unit-proxy') && !!owner;
+  if (!owner || (owner.hp <= 0 && !proxy)) {
     const lapse = LAPSES[e.kind];
     if (lapse) withLine(ctx, lapse.line, () => emit(ctx, { type: 'miss', source: lapse.source }));
     return;
@@ -54,6 +57,13 @@ function run(ctx: Ctx, e: Scheduled): void {
   const live = followed && isAlive(followed) ? followed : null;
   const at = live ? live.pos : whereIs(ctx.s, e.target);
   if (!at) return;
+  // `wick-unit-jar`: a Wick waking on your jar's tile opens the jar first.
+  if (
+    e.kind === 'wick' &&
+    hasFootnote(ctx, 'wick-unit-jar') &&
+    tileAt(ctx.s, at).jar?.owner === e.owner
+  )
+    openJar(ctx, at, null, { line: 'wick:unit' });
   const unit = live ?? (e.target.kind === 'tile' ? unitAt(ctx.s, at) : null);
   // `repeat-cap-patient`, `margin-empty-wait`: an empty tile waits another turn.
   if (!unit && (e.wait ?? 0) > 0 && (e.kind === 'repeat' || e.kind === 'margin')) {
@@ -71,13 +81,31 @@ function run(ctx: Ctx, e: Scheduled): void {
   // Ringing again (Filings) is a repeat too: spent, it never waits again.
   const again = e.kind === 'repeat' || e.kind === 'margin' || e.kind === 'filings';
   if (again && typeof e.step === 'string') emit(ctx, { type: 'repeated', action: e.step });
-  runDetached(ctx, stepOf(e), target, e.owner, e.origin, heading, {
-    trace: typeof e.step !== 'string',
-    repeated: again,
-    woken: e.kind === 'wick',
-    solvent: e.solvent ?? null,
-    ...(e.context ? { context: e.context } : {}),
-  });
+  const go = (t: Target): void =>
+    runDetached(ctx, stepOf(e), t, e.owner, e.origin, heading, {
+      trace: typeof e.step !== 'string',
+      repeated: again,
+      woken: e.kind === 'wick',
+      solvent: e.solvent ?? null,
+      ...(e.context ? { context: e.context } : {}),
+    });
+  go(target);
+  // `pitch-cap-wake`: a drifting wait also acts on the tile it last drifted from.
+  if (e.solvent === 'pitch' && e.drifted && hasFootnote(ctx, 'pitch-cap-wake'))
+    go({ kind: 'tile', at: { ...e.drifted } });
+  // `wick-cap-twice`: a waking Wick acts once more at dusk of that round.
+  if (e.kind === 'wick' && !e.twice && hasFootnote(ctx, 'wick-cap-twice')) {
+    const second: Scheduled = { ...cloneData(e), twice: true, when: 'roundEnd', holds: 0 };
+    if (e.when === 'roundEnd') run(ctx, second);
+    else ctx.s.scheduled.push(second);
+  }
+}
+
+/** Wakes one waiting entry now (`pitch-cap-shore`, `wick-cap-trip`): it leaves the queue and runs. */
+export function wakeScheduled(ctx: Ctx, e: Scheduled): void {
+  if (!ctx.s.scheduled.includes(e)) return;
+  ctx.s.scheduled = ctx.s.scheduled.filter((x) => x !== e);
+  run(ctx, e);
 }
 
 /**
@@ -96,7 +124,12 @@ export function runScheduled(ctx: Ctx, when: Scheduled['when'], owner?: UnitId):
     ...due.filter((e) => e.kind !== 'graphite'),
     ...due.filter((e) => e.kind === 'graphite').reverse(),
   ];
-  for (const e of ordered) run(ctx, e);
+  for (const e of ordered) {
+    // `wick-unit-long`: a Wick that still holds waits for the next time.
+    if (e.kind === 'wick' && (e.holds ?? 0) > 0)
+      s.scheduled.push({ ...e, holds: (e.holds ?? 0) - 1 });
+    else run(ctx, e);
+  }
   if (when === 'roundEnd') {
     for (const e of s.scheduled) if (e.when === 'nextRoundEnd') e.when = 'roundEnd';
   }
@@ -109,6 +142,7 @@ export function runScheduled(ctx: Ctx, when: Scheduled['when'], owner?: UnitId):
  */
 export function disturbRepeats(ctx: Ctx, u: Unit, cause: string, origin: Origin | null): void {
   if (ctx.s.scheduled.length === 0 || !isAlive(u)) return;
+  tripWicks(ctx, u);
   const step = hasFootnote(ctx, 'repeat-empty-step');
   const pushed =
     cause === 'push' &&
@@ -127,4 +161,20 @@ export function disturbRepeats(ctx: Ctx, u: Unit, cause: string, origin: Origin 
     const here = pushed && e.hit === u.id;
     run(ctx, here ? { ...e, target: { kind: 'tile', at: { ...u.pos } } } : e);
   }
+}
+
+/**
+ * `wick-cap-trip`: a foe came to rest beside a waiting Wick invention's target, so it wakes at
+ * once (it leaves the queue like any wake).
+ */
+function tripWicks(ctx: Ctx, u: Unit): void {
+  if (u.kind !== 'enemy' || !hasFootnote(ctx, 'wick-cap-trip')) return;
+  const beside = (e: Scheduled): boolean => {
+    const at = e.kind === 'wick' ? whereIs(ctx.s, e.target) : null;
+    return !!at && neighbors4(at).some((c) => sameCoord(c, u.pos));
+  };
+  const due = ctx.s.scheduled.filter(
+    (e) => beside(e) && findUnit(ctx.s, e.owner)?.kind === 'member',
+  );
+  for (const e of due) wakeScheduled(ctx, e);
 }

@@ -3,8 +3,9 @@ import type { VariantDef } from '../types';
 /**
  * Batch `canals` (plan FN P8, CN-F3): the Timing runes Jar and Fuse. Margin lines `jar:unit`,
  * `jar:jar`, `fuse:unit`, `fuse:water`, two options at level I and two at level II, and a pair of
- * capstones each (docs/design/footnotes-content/canals.md §2). Pitch, Wick and Afterglow's
- * second capstone ship with CN-F4. Effects live in `engine/jars.ts`, `arrival.ts`, `solvents.ts`
+ * capstones each (docs/design/footnotes-content/canals.md §2); CN-F4 adds the solvents Pitch
+ * (`pitch:water`) and Wick (`wick:unit`) and Afterglow's second capstone (no margin rows: it has
+ * no line yet, K5). Effects live in `engine/jars.ts`, `arrival.ts`, `solvents.ts`
  * and `bursts.ts`, keyed by these ids.
  */
 export const CANALS: readonly VariantDef[] = [
@@ -129,5 +130,86 @@ export const CANALS: readonly VariantDef[] = [
     subject: 'fuse',
     slot: { capstone: true },
     text: 'When your Fuse opens on an empty tile, the rest also acts on the nearest unit within 2.',
+  },
+  // ── Pitch ──
+  {
+    id: 'pitch-water-far',
+    subject: 'pitch',
+    slot: { line: 'pitch:water', level: 1 },
+    text: 'A waiting Pitch invention drifts two tiles each round.',
+  },
+  {
+    id: 'pitch-water-upstream',
+    subject: 'pitch',
+    slot: { line: 'pitch:water', level: 1 },
+    text: 'A waiting Pitch invention drifts one tile upstream each round, against the current.',
+  },
+  {
+    id: 'pitch-water-catch',
+    subject: 'pitch',
+    slot: { line: 'pitch:water', level: 2 },
+    text: 'A drifting wait that floats onto a unit fixes on it, and acts on that unit wherever it goes; a far one fixes on the first unit of its two tiles.',
+  },
+  {
+    id: 'pitch-water-wash',
+    subject: 'pitch',
+    slot: { line: 'pitch:water', level: 2 },
+    text: 'A drifting wait carries its tile’s slick or cloud along with it.',
+  },
+  {
+    id: 'pitch-cap-wake',
+    subject: 'pitch',
+    slot: { capstone: true },
+    text: 'When a drifting wait acts, it also acts on the tile it last drifted from.',
+  },
+  {
+    id: 'pitch-cap-shore',
+    subject: 'pitch',
+    slot: { capstone: true },
+    text: 'When a drifting wait is stopped by a quay or a blocker, it also wakes at once.',
+  },
+  // ── Wick ──
+  {
+    id: 'wick-unit-long',
+    subject: 'wick',
+    slot: { line: 'wick:unit', level: 1 },
+    text: 'Wick holds the invention two rounds, not one.',
+  },
+  {
+    id: 'wick-unit-dusk',
+    subject: 'wick',
+    slot: { line: 'wick:unit', level: 1 },
+    text: 'Wick acts at dusk of the same round, after the foes have moved, not at your next turn.',
+  },
+  {
+    id: 'wick-unit-jar',
+    subject: 'wick',
+    slot: { line: 'wick:unit', level: 2 },
+    text: 'A Wick invention that wakes on your jar’s tile opens the jar first, then acts.',
+  },
+  {
+    id: 'wick-unit-proxy',
+    subject: 'wick',
+    slot: { line: 'wick:unit', level: 2 },
+    text: 'A Wick whose caster is down when it wakes still acts, from where they fell.',
+  },
+  {
+    id: 'wick-cap-twice',
+    subject: 'wick',
+    slot: { capstone: true },
+    text: 'When a Wick invention wakes, it also acts once more at dusk of that round.',
+  },
+  {
+    id: 'wick-cap-trip',
+    subject: 'wick',
+    slot: { capstone: true },
+    text: 'When a foe steps beside a waiting Wick invention’s target, it also wakes at once.',
+  },
+  // ── Afterglow (the diagonal capstone is built in auras.ts) ──
+  {
+    id: 'afterglow-cap-plain',
+    subject: 'afterglow',
+    slot: { capstone: true },
+    text: 'When a touching path lands a plain cloud, slick or plate, it also lasts 1 round longer.',
   },
 ];

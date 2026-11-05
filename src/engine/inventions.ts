@@ -541,9 +541,12 @@ export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): 
   const { woken: _woken, ...awake } = flow;
   const inner: Flow = { ...awake, depth: flow.depth + 1, solvent: own ?? flow.solvent };
   if (own && rule?.delay && !flow.woken) {
+    const yours = findUnit(ctx.s, flow.caster)?.kind === 'member';
     withLine(ctx, `${own}:unit`, () =>
       schedule(ctx, {
-        when: 'ownerTurn',
+        // `wick-unit-dusk`: falls due at round end; `wick-unit-long`: holds one more round.
+        when: yours && hasFootnote(ctx, 'wick-unit-dusk') ? 'roundEnd' : 'ownerTurn',
+        ...(yours && hasFootnote(ctx, 'wick-unit-long') ? { holds: 1 } : {}),
         owner: flow.caster,
         step: id,
         target: t,

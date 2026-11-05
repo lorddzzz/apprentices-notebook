@@ -225,7 +225,16 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
     ...(unit ? { unit: ref(unit) } : {}),
     makes: id,
   });
-  tileAt(ctx.s, at).state = newLayer(id, kind, flow);
+  const layer = newLayer(id, kind, flow);
+  // `afterglow-cap-plain`: a touching path lands a plain cloud or plate one round longer
+  // (a slick has no rounds to lengthen).
+  if (
+    flow?.auras.includes('afterglow') &&
+    layer.rounds > 0 &&
+    hasFootnote(ctx, 'afterglow-cap-plain')
+  )
+    layer.rounds += 1;
+  tileAt(ctx.s, at).state = layer;
   noteMet(ctx, id);
 }
 

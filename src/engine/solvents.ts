@@ -31,9 +31,19 @@ import {
   unitAt,
 } from './queries';
 import { trickResists } from './rivals/tricks';
-import { schedule } from './schedule';
+import { schedule, wakeScheduled } from './schedule';
 import { whereIs } from './targets';
-import type { BattleState, BoardUndo, Flow, Layer, Origin, Target, Tile, Unit } from './types';
+import type {
+  BattleState,
+  BoardUndo,
+  Flow,
+  Layer,
+  Origin,
+  Scheduled,
+  Target,
+  Tile,
+  Unit,
+} from './types';
 import { targetKey } from './types';
 
 /**
@@ -301,13 +311,63 @@ export function driftWaiting(ctx: Ctx): void {
       if (unitAt(s, at)) openJar(ctx, at, null, { line: 'fuse:water' });
     } else objectArrives(ctx, { kind: 'jar' }, at, { cause: 'drift', origin: null });
   }
+  const shored: Scheduled[] = [];
   for (const e of s.scheduled) {
     if (e.solvent !== 'pitch' || e.target.kind !== 'tile') continue;
-    const to = downstream(s, e.target.at);
-    if (!to) continue;
-    e.target = tileTarget(to);
-    withLine(ctx, 'pitch:water', () => emit(ctx, { type: 'scheduled', kind: 'pitch', at: to }));
+    const reach = hasFootnote(ctx, 'pitch-water-far') ? 2 : 1;
+    const back = hasFootnote(ctx, 'pitch-water-upstream');
+    const catches = hasFootnote(ctx, 'pitch-water-catch');
+    const wash = hasFootnote(ctx, 'pitch-water-wash');
+    let to = e.target.at;
+    let from = to;
+    let moved = 0;
+    let caught = false;
+    for (let n = 0; n < reach && !caught; n++) {
+      const next = back ? upstream(s, to) : downstream(s, to);
+      if (!next) break;
+      if (wash) carryState(s, to, next);
+      from = to;
+      to = next;
+      moved++;
+      // `pitch-water-catch`: the wait fixes on the first unit it floats onto.
+      const unit = catches ? unitAt(s, to) : null;
+      if (unit) {
+        e.target = { kind: 'unit', unit: unit.id };
+        caught = true;
+      }
+    }
+    if (moved > 0) {
+      if (!caught) e.target = tileTarget(to);
+      e.drifted = { ...from }; // `pitch-cap-wake`
+      const landed = to;
+      withLine(ctx, 'pitch:water', () =>
+        emit(ctx, { type: 'scheduled', kind: 'pitch', at: landed }),
+      );
+    }
+    if (!caught && moved < reach && tileAt(s, to).terrain.water) shored.push(e);
   }
+  // `pitch-cap-shore`: a wait stopped by a quay or a blocker wakes at once.
+  if (hasFootnote(ctx, 'pitch-cap-shore')) for (const e of shored) wakeScheduled(ctx, e);
+}
+
+/** The next water tile upstream of `at` (`pitch-water-upstream`), if a waiting thing can float there. */
+function upstream(s: BattleState, at: Coord): Coord | null {
+  const dir = tileAt(s, at).terrain.water;
+  if (!dir) return null;
+  const to = step(at, opposite(dir));
+  if (!inBoard(s, to)) return null;
+  const dest = tileAt(s, to);
+  return dest.terrain.water && !blocksUnits(dest) ? to : null;
+}
+
+/** `pitch-water-wash`: a slick or plain cloud floats along with the wait, onto a bare tile. */
+function carryState(s: BattleState, from: Coord, to: Coord): void {
+  const src = tileAt(s, from);
+  const dest = tileAt(s, to);
+  if (!src.state || dest.state) return;
+  if (src.state.id !== 'slick' && src.state.id !== 'cloud') return;
+  dest.state = src.state;
+  src.state = null;
 }
 
 // ── The rules ───────────────────────────────────────────
