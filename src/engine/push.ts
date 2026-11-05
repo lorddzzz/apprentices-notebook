@@ -1,9 +1,10 @@
 import { type LineId, TUNING } from '$data';
 import { arrive, hasTrait } from './arrival';
+import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
 import { hasFootnote } from './footnotes';
-import { type Coord, type Dir, step } from './grid';
+import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { notify } from './hooks';
 import { pieceBlocksUnits, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
@@ -75,18 +76,50 @@ function stopAt(ctx: Ctx, unit: Unit, from: Coord, next: Coord): Stop | null {
 }
 
 /** Plates and Walls break after a few crushes; layout plates (no hits recorded, permanent) never. */
-function wearPlate(ctx: Ctx, at: Coord): void {
+function wearPlate(ctx: Ctx, at: Coord, wear = 1): boolean {
   const tile: Tile = tileAt(ctx.s, at);
   const layer = tile.state;
-  if (!layer || !isPlate(tile)) return;
-  if (layer.hits === undefined && layer.rounds === 0 && !layer.set) return;
-  const left = (layer.hits ?? (layer.id === 'wall' ? 2 : 1)) - 1;
+  if (!layer || !isPlate(tile)) return false;
+  if (layer.hits === undefined && layer.rounds === 0 && !layer.set) return false;
+  const left = (layer.hits ?? (layer.id === 'wall' ? 2 : 1)) - wear;
   if (left > 0) {
     layer.hits = left;
-    return;
+    return false;
   }
   tile.state = null;
   emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
+  return true;
+}
+
+/** The direction from a tile out to the unit beside it. */
+function awayFrom(from: Coord, to: Coord): Dir {
+  if (to.x !== from.x) return to.x < from.x ? 'left' : 'right';
+  return to.y < from.y ? 'up' : 'down';
+}
+
+/**
+ * What a crushed wall does next (footnotes): `shove-wall-ring` pushes every other unit touching it
+ * one tile away, unharmed; `shove-wall-through` carries the crushed unit into the tile of a wall
+ * that broke.
+ */
+function wallAnswers(
+  ctx: Ctx,
+  unit: Unit,
+  dir: Dir,
+  wall: Coord,
+  broke: boolean,
+  origin: Origin | null,
+): void {
+  if (hasFootnote(ctx, 'shove-wall-ring')) {
+    const beside = neighbors4(wall)
+      .sort(byReadingOrder)
+      .flatMap((at) => unitAt(ctx.s, at) ?? [])
+      .filter((u) => u.id !== unit.id && u.hp > 0);
+    for (const u of beside) push(ctx, u, awayFrom(wall, u.pos), 1, origin, { crush: false });
+  }
+  if (broke && unit.hp > 0 && hasFootnote(ctx, 'shove-wall-through')) {
+    push(ctx, unit, dir, 1, origin, { crush: false });
+  }
 }
 
 function crush(
@@ -95,6 +128,7 @@ function crush(
   dir: Dir,
   moved: number,
   stop: Stop & { kind: 'crush' },
+  origin: Origin | null,
 ): void {
   const other = typeof stop.into === 'string' ? null : stop.into;
   // Footnote `shove-wall-soft` (P39): a wall crush skips the per-tile damage.
@@ -117,7 +151,11 @@ function crush(
         heading: dir,
         at: { ...unit.pos },
       });
-    } else if (stop.into === 'plate') wearPlate(ctx, stop.at);
+    } else if (stop.into === 'plate') {
+      // `shove-wall-soft` wears the wall by two crushes.
+      const broke = wearPlate(ctx, stop.at, softWall ? 2 : 1);
+      if (stop.line === 'shove:wall') wallAnswers(ctx, unit, dir, stop.at, broke, origin);
+    }
     // A crush strikes a piece on either tile: under the pushed unit, and the one it hit (P10).
     strikePiece(ctx, unit.pos, 'push');
     if (inBoard(ctx.s, stop.at)) strikePiece(ctx, stop.at, 'push');
@@ -152,6 +190,8 @@ export interface PushPlan {
   stop: Stop | null;
   /** Fresh slicks it slides on, used up for the round when the push happens (no pinball). */
   slicks: Layer[];
+  /** Tiles of the push still unspent when it stopped. */
+  left: number;
 }
 
 /** Plans a push (P3, P19, P28): pure, so previews and AH's Pull can read it. */
@@ -175,7 +215,7 @@ export function planPush(ctx: Ctx, unit: Unit, dir: Dir, tiles: number): PushPla
       allowance = Math.max(allowance, hasFootnote(ctx, 'shove-slick-far') ? 2 : 1);
     }
   }
-  return { path, slid: Math.max(0, path.length - tiles), stop, slicks };
+  return { path, slid: Math.max(0, path.length - tiles), stop, slicks, left: allowance };
 }
 
 /**
@@ -228,7 +268,7 @@ export function push(
 
     // Plan the walk first so the log reads push, then crush or drop.
     const start = { ...unit.pos };
-    const { path, slid, stop, slicks } = planPush(ctx, unit, dir, tiles);
+    const { path, slid, stop, slicks, left } = planPush(ctx, unit, dir, tiles);
     if (!hasFootnote(ctx, 'shove-slick-again')) for (const l of slicks) l.slid = s.round;
 
     const end = path[path.length - 1];
@@ -269,11 +309,29 @@ export function push(
       }
     }
 
+    // `shove-slick-smear`: a slide over a blot or stain picks up the ink.
+    if (hasFootnote(ctx, 'shove-slick-smear') && unit.hp > 0 && slide.length) {
+      const inked = slide.some((at) => ['blot', 'stain'].includes(tileAt(s, at).state?.id ?? ''));
+      if (inked) withLine(ctx, 'shove:slick', () => markUnit(ctx, unit, origin));
+    }
+
     let crushed: PushResult['crushed'] = null;
     let dropped = false;
-    // With `crush: false` it stops short of what is in the way.
-    if (stop?.kind === 'crush' && opts.crush !== false) {
-      crush(ctx, unit, dir, path.length, stop);
+    // `shove-slick-carry`: a unit still sliding hands its tiles on to the one in its way.
+    const carried =
+      stop?.kind === 'crush' &&
+      typeof stop.into !== 'string' &&
+      !pull &&
+      opts.crush !== false &&
+      slicks.length > 0 &&
+      left > 0 &&
+      hasFootnote(ctx, 'shove-slick-carry');
+    if (carried && stop?.kind === 'crush' && typeof stop.into !== 'string') {
+      const blocker = stop.into;
+      withLine(ctx, 'shove:slick', () => push(ctx, blocker, dir, left, origin, { crush: false }));
+    } else if (stop?.kind === 'crush' && opts.crush !== false) {
+      // With `crush: false` it stops short of what is in the way.
+      crush(ctx, unit, dir, path.length, stop, origin);
       crushed = typeof stop.into === 'string' ? stop.into : stop.into.id;
     } else if (stop?.kind === 'crush' && pull && path.length === 0) {
       // Pull (P4): a blocking tile in between, or a swimmer that won't leave the water.

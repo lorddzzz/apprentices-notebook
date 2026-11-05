@@ -1,8 +1,8 @@
 import { type LineId, type SourceRuneId, TUNING } from '$data';
-import type { DraftOptions } from './ctx';
+import type { DraftOptions, FootnoteVariantId } from './ctx';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, type Dir, square } from './grid';
-import { clip, travel, unitAt } from './queries';
+import { byReadingOrder, type Coord, type Dir, neighbors4, square, step } from './grid';
+import { clip, inBoard, isCloud, type Travel, tileAt, travel, unitAt } from './queries';
 import type { Aim, BattleState, Target, Unit } from './types';
 import { targetKey } from './types';
 
@@ -66,25 +66,92 @@ function areaTargets(
   return { targets, headings };
 }
 
-/** Footnotes shift only an unobstructed landing; first-unit and blocker targeting stay fixed. */
+/** A Bolt's flight, with what footnotes did to it (each field is set only by its variant). */
+export type BoltFlight = Travel & {
+  /** `bolt-cloud-through`: the cloud tile the shot passed (the log stamps it `bolt:cloud`). */
+  through?: Coord;
+  /** `bolt-empty-seek`: the neighbour an unobstructed shot turned onto. */
+  seek?: Unit;
+};
+
+const SETTLES: ReadonlySet<string> = new Set([
+  'slick',
+  'pool',
+  'greaseFog',
+  'blot',
+  'stain',
+  'fire',
+]);
+
+/**
+ * The Bolt's travel. Footnotes shift an unobstructed landing (far, near, settle, seek) and bend how
+ * a cloud meets the line (through, find, cover); first-unit and blocker stops stay fixed.
+ */
 export function boltTravel(
   s: BattleState,
   caster: Unit,
   dir: Dir,
   gifted: boolean,
   footnotes: NonNullable<DraftOptions['footnotes']> = {},
-) {
-  const r = travel(s, caster.pos, dir, TUNING.boltRange + (gifted ? 1 : 0), caster.id);
+): BoltFlight {
+  const fn = (id: FootnoteVariantId) => hasFootnote({ footnotes }, id);
+  const range = TUNING.boltRange + (gifted ? 1 : 0);
+  let from = caster.pos;
+  let remaining = range;
+  const lead: Coord[] = [];
+  // `bolt-cloud-cover`: the cloud the caster stands in does not stop the shot.
+  if (fn('bolt-cloud-cover') && isCloud(tileAt(s, caster.pos))) {
+    while (remaining > 0) {
+      const nxt = step(from, dir);
+      if (!inBoard(s, nxt) || !isCloud(tileAt(s, nxt))) break;
+      lead.push(nxt);
+      from = nxt;
+      remaining--;
+      const u = unitAt(s, nxt);
+      if (u && u.id !== caster.id) return { reason: 'unit', path: lead, stop: nxt, unit: u };
+    }
+  }
+  const first = travel(s, from, dir, remaining, caster.id);
+  let r: BoltFlight =
+    first.reason === 'none'
+      ? lead.length
+        ? { reason: 'end', path: lead, stop: lead[lead.length - 1] as Coord }
+        : first
+      : { ...first, path: [...lead, ...first.path] };
+  // `bolt-cloud-through`: the first cloud tile met is passed, if anything lies beyond it.
+  if (fn('bolt-cloud-through') && first.reason === 'cloud') {
+    const left = remaining - first.path.length;
+    const beyond = left > 0 ? travel(s, first.stop, dir, left, caster.id) : null;
+    if (beyond && beyond.reason !== 'none') {
+      r = { ...beyond, path: [...lead, ...first.path, ...beyond.path], through: first.stop };
+    }
+  }
   if (r.reason !== 'end') return r;
-  if (hasFootnote({ footnotes }, 'bolt-empty-far')) {
+  // `bolt-empty-settle`: the first slick, blot or fire on the way ends the shot; never shifted.
+  if (fn('bolt-empty-settle')) {
+    const i = r.path.findIndex((at) => SETTLES.has(tileAt(s, at).state?.id ?? ''));
+    if (i >= 0) {
+      const path = r.path.slice(0, i + 1);
+      return seek({ ...r, stop: path[i] as Coord, path });
+    }
+  }
+  if (fn('bolt-empty-far')) {
     const extra = travel(s, r.stop, dir, 1, caster.id);
-    if (extra.reason === 'end') return { ...r, stop: extra.stop, path: [...r.path, ...extra.path] };
-  }
-  if (hasFootnote({ footnotes }, 'bolt-empty-near') && r.path.length > 1) {
+    if (extra.reason === 'end') r = { ...r, stop: extra.stop, path: [...r.path, ...extra.path] };
+  } else if (fn('bolt-empty-near') && r.path.length > 1) {
     const path = r.path.slice(0, -1);
-    return { ...r, stop: path[path.length - 1] as Coord, path };
+    r = { ...r, stop: path[path.length - 1] as Coord, path };
   }
-  return r;
+  return seek(r);
+
+  function seek(f: BoltFlight): BoltFlight {
+    if (!fn('bolt-empty-seek') || f.reason !== 'end') return f;
+    const beside = neighbors4(f.stop)
+      .sort(byReadingOrder)
+      .map((at) => unitAt(s, at))
+      .find((u) => u && u.id !== caster.id);
+    return beside ? { ...f, seek: beside } : f;
+  }
 }
 
 /** Where a Source aims, and each target's heading (R2, R4, P21–P23). */
@@ -103,8 +170,17 @@ export function aimTargets(
       const r = boltTravel(s, caster, aim.dir, gifted, footnotes);
       if (r.reason === 'none') return none;
       // P21: no unit in the line → the last tile the line reached (a cloud or a blocker stops it).
+      // Footnotes: `bolt-empty-seek` turns onto a neighbour; `bolt-cloud-find` aims at the unit
+      // hidden in the cloud that stopped the shot.
+      const found = r.reason === 'cloud' && hasFootnote({ footnotes }, 'bolt-cloud-find');
       const t: Target =
-        r.reason === 'unit' ? { kind: 'unit', unit: r.unit.id } : { kind: 'tile', at: r.stop };
+        r.reason === 'unit'
+          ? { kind: 'unit', unit: r.unit.id }
+          : r.seek
+            ? { kind: 'unit', unit: r.seek.id }
+            : found
+              ? targetOn(s, r.stop)
+              : { kind: 'tile', at: r.stop };
       return { targets: [t], headings: new Map([[targetKey(t), aim.dir]]) };
     }
     case 'splash': {

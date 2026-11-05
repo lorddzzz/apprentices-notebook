@@ -2,6 +2,7 @@ import { isInvention, RUNES, type RuneRef } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, fizzled, inCastScope, ref, withLine, withOrigin } from './ctx';
 import type { NodeSpan } from './events';
+import { hasFootnote } from './footnotes';
 import { type Coord, key, label, sameCoord } from './grid';
 import { habitOf, ruleOf, withHabit } from './habits';
 import { marginEcho } from './inventions';
@@ -374,36 +375,41 @@ function sourceSpan(spell: Spell, from: number, to: number): NodeSpan {
 }
 
 /** The line's flight, for the log and its animation: where a Bolt lands or what stops it. */
-function flight(ctx: Ctx, caster: Unit, aim: Aim, gifted: boolean): void {
-  if (aim.kind !== 'dir') return;
+function flight(ctx: Ctx, caster: Unit, aim: Aim, gifted: boolean): Coord | null {
+  if (aim.kind !== 'dir') return null;
   const r = boltTravel(ctx.s, caster, aim.dir, gifted, ctx.footnotes);
   const name = RUNES.bolt.name;
   switch (r.reason) {
     case 'none':
       emit(ctx, { type: 'miss', source: name });
-      return;
+      return null;
     case 'cloud':
       withLine(ctx, 'bolt:cloud', () => {
         emit(ctx, { type: 'stopped', source: name, at: r.stop, by: 'cloud', path: r.path });
       });
-      return;
+      return r.stop;
     case 'blocked': {
       const by = blockerName(tileAt(ctx.s, r.stop));
       withLine(ctx, 'bolt:plate', () => {
         emit(ctx, { type: 'stopped', source: name, at: r.stop, by, path: r.path });
       });
       hitPiece(ctx, r.stop);
-      return;
+      return null;
     }
     case 'unit':
-      emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
-      return;
+      // `bolt-cloud-through` stamps its own line on the shot that passed a cloud.
+      if (r.through) {
+        withLine(ctx, 'bolt:cloud', () =>
+          emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path }),
+        );
+      } else emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
+      return null;
     case 'end':
-      withLine(ctx, 'bolt:empty', () => {
+      withLine(ctx, r.through ? 'bolt:cloud' : 'bolt:empty', () => {
         emit(ctx, { type: 'lands', source: name, at: r.stop, path: r.path });
       });
       hitPiece(ctx, r.stop);
-      return;
+      return null;
   }
 }
 
@@ -421,10 +427,20 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
   const glyphs = new Map<string, GlyphId>();
   for (const c of spell.cells ?? []) if (c.glyph) glyphs.set(key(c.at), c.glyph);
   const landed = { caster: caster.id, targets: [] as string[] };
+  const clear: { at: Coord | null } = { at: null };
   // Span offsets count from the first effect event, right after `cast` (M2).
   const rec: Recorder = { from: ctx.log.length + 1, ran: [], spans: [], glyphs, landed };
   withOrigin(ctx, origin, () => {
     inCastScope(ctx, () => castBody());
+    // `bolt-cloud-clear`: the cloud that stopped the Bolt thins once the spell has ended.
+    if (clear.at && hasFootnote(ctx, 'bolt-cloud-clear')) {
+      const at = clear.at;
+      const tile = tileAt(ctx.s, at);
+      if (isCloud(tile)) {
+        tile.state = null;
+        withLine(ctx, 'bolt:cloud', () => emit(ctx, { type: 'stateFades', tiles: [{ ...at }] }));
+      }
+    }
     if (caster.kind === 'member') {
       emit(ctx, {
         type: 'trace',
@@ -473,7 +489,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       if (line) withLine(ctx, line, aimed);
       else aimed();
     }
-    if (spell.source === 'bolt') flight(ctx, caster, aim, gifted);
+    if (spell.source === 'bolt') clear.at = flight(ctx, caster, aim, gifted);
     landed.targets = targets.map(targetKey);
     s.landed.push(landed);
     rec.spans.push(sourceSpan(spell, from, ctx.log.length));
