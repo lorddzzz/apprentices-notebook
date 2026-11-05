@@ -371,3 +371,121 @@ export const BATH_ROOMS_12: readonly BathRoomDef[] = [
   bathRoom('bath-changing', 'The changing hall', 1, 1, BATH_1),
   bathRoom('bath-gallery', 'The steam gallery', 2, 2, BATH_2),
 ];
+
+// ── Rooms 3 and 4 (BH-7) ────────────────────────────────
+/**
+ * Rooms 3 and 4 of the thermae (bathhouses-plan BH-7), both 7x9, three layouts each. Room 3 is at
+ * heat 3 (an attendant, a boilerman beside the one vent, a rat, two bathers who start dissolved in
+ * clouds); room 4 at heat 4 (two attendants, a boilerman beside the one vent, two bathers). Same
+ * tokens and authoring rules as rooms 1 and 2. At heat 4 one vent plus the cloud it lays fills
+ * the gauge in three rounds, not four: the party's own clouds are what make it dangerous there.
+ *
+ * The landmark (the towel-bearer's room, design party section 2): room 3's second layout, *The long
+ * pool hall*, carries her placement (`TOWEL_BEARER_SPOT`, an empty tile) and the mosaic copy.
+ * Which layout a trip plays is the seed's (`variantFor`), so the landmark is the room's variant
+ * `LANDMARK_VARIANT`. The recruit slot belongs to room 3 as a whole (RC's `recruit` entry with
+ * `room: 2`, BH-15), so it is offered whichever layout the seed picks; the hall only adds where
+ * she stands and what the mosaic says.
+ */
+export const LANDMARK_VARIANT = 1;
+/** Where the towel-bearer waits in *The long pool hall* (x, y): an empty tile by the side wall. */
+export const TOWEL_BEARER_SPOT = { x: 6, y: 4 } as const;
+/** Mosaic copy for the landmark hall (BL-40 may replace the wording). */
+export const LANDMARK_MOSAIC =
+  'A mosaic along the pool: bathers in a line, and one in a towel who holds the rest above the water.';
+
+const BATH_3: readonly EncounterVariant[] = [
+  {
+    name: 'The frigidarium',
+    layout: bathBoard([
+      '. . r . . . .',
+      '. . . @ c . .',
+      '. s~ ~ . . t .',
+      '. . . . . . .',
+      '. . . . . s~ .',
+      '. . . . . . .',
+      '. . . . . . .',
+      'P . P . . P .',
+      '. P . . P . .',
+    ]),
+  },
+  {
+    name: 'The long pool hall',
+    layout: bathBoard([
+      '. . . . . . .',
+      '. r . . @ c .',
+      '. . . . ~ t .',
+      '. s~ ~ . . . .',
+      '. . . . . . .',
+      '. . . . . s~ .',
+      '. . . . . . .',
+      'P . P . . . .',
+      '. P . P . P .',
+    ]),
+  },
+  {
+    name: 'The mosaic court',
+    layout: bathBoard([
+      '. . . . r . .',
+      'c @ . . . . .',
+      '. . . s~ ~ . .',
+      '. . . . . t .',
+      '. . . . . . .',
+      '. s~ . . . . .',
+      '. . . . . . .',
+      '. . . . . P .',
+      'P . P . P . P',
+    ]),
+  },
+];
+
+const BATH_4: readonly EncounterVariant[] = [
+  {
+    name: 'The great caldarium',
+    layout: bathBoard([
+      '. . . t . . .',
+      '. . @ c . . .',
+      '. s~ ~ . . t .',
+      '. . . . . . .',
+      '. . . . . . .',
+      '. . . . s~ . .',
+      '. . . . . . .',
+      'P . P . . . P',
+      '. P . P . P .',
+    ]),
+  },
+  {
+    name: 'The sudatorium',
+    layout: bathBoard([
+      '. . . . . t .',
+      '. t . . @ c .',
+      '. . . . . ~ .',
+      '. s~ ~ . . . .',
+      '. . . . . . .',
+      '. . . . s~ . .',
+      '. . . . . . .',
+      'P . P . . . .',
+      '. P . P . P .',
+    ]),
+  },
+  {
+    name: 'The hot springs',
+    layout: bathBoard([
+      '. . t . . . .',
+      '. . . . . . .',
+      'c @ . ~ s~ . .',
+      '. . . . . . t',
+      '. . . . . . .',
+      '. s~ . . . . .',
+      '. . . . . . .',
+      '. . . . . P .',
+      'P . P . P . P',
+    ]),
+  },
+];
+
+/** Rooms 3 and 4 (heat 3, heat 4), loot from the room's base heat table. */
+export const BATH_ROOMS_34: readonly BathRoomDef[] = [
+  bathRoom('bath-pools', 'The long pools', 3, 3, BATH_3),
+  bathRoom('bath-caldarium', 'The caldarium', 4, 4, BATH_4),
+];
