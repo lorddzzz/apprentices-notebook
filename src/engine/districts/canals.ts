@@ -85,8 +85,8 @@ export const MOOR_DEF: PieceDef<null> = {
 /** CN P6: the foe a rival's slot spawns as: the rival while live, else its stand-in. */
 export const rivalSlot = (
   rival: RivalId,
-  live: Readonly<Record<RivalId, boolean>> = RIVALS_LIVE,
-): EnemyId => (live[rival] ? rival : RIVAL_STAND_INS[rival]);
+  live: Readonly<Partial<Record<RivalId, boolean>>> = RIVALS_LIVE,
+): EnemyId => (live[rival] ? rival : (RIVAL_STAND_INS[rival] ?? rival));
 
 export const CANALS_MODULE: DistrictModule = {
   id: 'canals',

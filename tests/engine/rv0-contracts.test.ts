@@ -39,10 +39,10 @@ const SHAPE: RivalDef = {
 
 describe('RV-W0 contracts', () => {
   test('L is claimed for the Lamplighter and collides with no foe, roster, district or board char', () => {
-    expect(RIVAL_TOKENS.map((t) => t.token)).toEqual(['L']);
+    expect(RIVAL_TOKENS.map((t) => t.token)).toEqual(['L', 'p']);
     const builtIn = [
       ...Object.values(ENEMIES)
-        .filter((e) => e.id !== 'lamplighter') // the rival's own shell (RV-1)
+        .filter((e) => !Object.hasOwn(RIVALS, e.id)) // the rivals' own shells (RV-1, IQ-22)
         .map((e) => e.token),
       ...Object.values(APPRENTICES).map((a) => a.token),
       ...'DSRNBWTCE', // the household roster letters (HC P3)
@@ -61,8 +61,8 @@ describe('RV-W0 contracts', () => {
   });
 
   test('the Lamplighter and his page are the only ones; no page is held yet', () => {
-    expect(Object.keys(RIVALS)).toEqual(['lamplighter']); // RV-5
-    expect(Object.keys(RIVAL_PAGES)).toEqual(['lamplighter:lantern']);
+    expect(Object.keys(RIVALS)).toEqual(['lamplighter', 'postmaster']); // RV-5, IQ-22
+    expect(Object.keys(RIVAL_PAGES)).toEqual(['lamplighter:lantern', 'postmaster:serveNotice']);
     expect(pagesHeld({ pages: [] })).toEqual([]);
     expect(holdsPage({ pages: ['lamplighter:lantern'] }, 'lamplighter:lantern')).toBe(true);
     expect(holdsPage({ pages: [] }, 'lamplighter:lantern')).toBe(false);

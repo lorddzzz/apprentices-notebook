@@ -9,7 +9,7 @@ import type { AttackId, DistrictId, Habitat, HabitId, LineId, RuneId } from '../
 
 // ── Ids ─────────────────────────────────────────────────
 /** One id per rival; districts add theirs (IQ, BH, BR, BF, CG). */
-export type RivalId = 'lamplighter';
+export type RivalId = 'lamplighter' | 'postmaster';
 /** A spell inside one rival's kit (`'lantern'`, `'herd'`); unique per rival only. */
 export type RivalSpellId = string;
 /** A recovered page, namespaced by its rival: `'lamplighter:lantern'`. Validated against `RIVAL_PAGES`. */

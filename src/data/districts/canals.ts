@@ -15,9 +15,11 @@ import type {
  * stand-in (the Snuffer). CN-7 turned the Lamplighter on; the fallback stays as data, tested
  * through `layRival(layout, false)`.
  */
-export const RIVALS_LIVE: Readonly<Record<RivalId, boolean>> = { lamplighter: true };
+export const RIVALS_LIVE: Readonly<Partial<Record<RivalId, boolean>>> = { lamplighter: true };
 /** CN P6: the foe a rival's token spawns as while that rival is not live. */
-export const RIVAL_STAND_INS: Readonly<Record<RivalId, EnemyId>> = { lamplighter: 'snuffer' };
+export const RIVAL_STAND_INS: Readonly<Partial<Record<RivalId, EnemyId>>> = {
+  lamplighter: 'snuffer',
+};
 
 const board = (rows: readonly string[]): string => rows.join('\n');
 
@@ -249,7 +251,7 @@ const CANAL_4: readonly EncounterVariant[] = [
       '. . w^ . . P',
     ]),
   },
-].map((v) => ({ ...v, layout: layRival(v.layout, RIVALS_LIVE.lamplighter) }));
+].map((v) => ({ ...v, layout: layRival(v.layout, RIVALS_LIVE.lamplighter === true) }));
 
 /**
  * The heart (CN-5, P1/P2): 7 wide, 8 tall, five start points, five or six lamps on the rim. The

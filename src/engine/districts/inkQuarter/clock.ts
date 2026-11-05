@@ -6,8 +6,7 @@ import { type Coord, label, sameCoord } from '../../grid';
 import { spendMark } from '../../marks';
 import { makePiece } from '../../pieces';
 import { findUnit, inBoard, isAlive, isOpen, livingUnits, tileAt } from '../../queries';
-import type { Telegraph } from '../../rivals/types';
-import type { BattleState, EnemyUnit, Unit, UnitId } from '../../types';
+import type { BattleState, Unit, UnitId } from '../../types';
 import type {
   BoardRule,
   DistrictEvent,
@@ -27,8 +26,8 @@ import {
 } from './types';
 
 /**
- * The postmaster's clock writ (ink-quarter plan P9; IQ-6). One module for the stand-in (IQ-7) and
- * the rival (IQ-22). `serveClock` places his seal (an anchored, inert 3-HP unit) and his stamp (a
+ * The postmaster's clock writ (ink-quarter plan P9; IQ-6), served by his rival trick (IQ-22,
+ * `postmaster.ts`). `serveClock` places his seal (an anchored, inert 3-HP unit) and his stamp (a
  * piece); the deadline is the serve round + 3. Breaking the seal, or an apprentice landing on the
  * stamp by any cause but `return`, lifts the writ and he loses his next action (`clockStaggered`,
  * `spendStagger`). Unanswered at the deadline's dusk (`late` slot), every mark on the board
@@ -111,7 +110,7 @@ export function canServe(s: BattleState, by: UnitId): boolean {
   return !st.writ && s.round >= (st.ready[by] ?? 0);
 }
 
-/** Answered: `by` loses his next action (IQ-7 and IQ-22 read this before he acts). */
+/** Answered: `by` loses his next action (the banner and his trick read it). */
 export const clockStaggered = (s: BattleState, by: UnitId): boolean =>
   clockState(s).stagger.includes(by);
 
@@ -187,25 +186,15 @@ const breakSeal = (ctx: Ctx, seal: Unit | null): void => {
   kill(ctx, seal, false);
 };
 
-/** What a staggered server's step reads: no tiles, nothing struck. */
-export const STUNNED_TELEGRAPH: Telegraph = { label: 'stunned', tiles: [], units: [] };
-export const STUNNED_VERB = 'reel, his writ answered';
-
 /**
- * His already-telegraphed step is replaced by the stunned one (a new telegraph on the log), so the
- * board stops reading "pen" for a blow he will not strike. The stagger is still spent by the step.
+ * An answered writ stuns a living rival server (IQ-22): the action he has telegraphed is skipped,
+ * or, when it lifts at dusk, his next one. His trick's round-end step (`postmaster.ts`) clears the
+ * stagger once the stun is spent, so the banner reads "stunned" until then.
  */
-function stunTelegraph(ctx: Ctx, server: Unit): void {
-  const i = (server as EnemyUnit).intent;
-  if (server.kind !== 'enemy' || i?.kind !== 'step' || i.telegraph.label === 'stunned') return;
-  const intent = { ...i, telegraph: { ...STUNNED_TELEGRAPH, tiles: [], units: [] } };
-  (server as EnemyUnit).intent = intent;
-  emit(ctx, {
-    type: 'telegraph',
-    unit: ref(server),
-    intent: structuredClone(intent),
-    verb: STUNNED_VERB,
-  });
+function stunServer(ctx: Ctx, server: Unit): void {
+  if (server.kind !== 'enemy' || !server.rival || server.stunned) return;
+  server.stunned = true;
+  emit(ctx, { type: 'stunned', unit: ref(server) });
 }
 
 /** Answered (P9): the writ lifts, he loses his next action; a stamp answer also breaks the seal. */
@@ -220,13 +209,13 @@ function lift(ctx: Ctx, how: 'seal' | 'stamp'): void {
     data: { by: how },
   };
   emit(ctx, ev);
-  if (server && isAlive(server)) stunTelegraph(ctx, server);
+  if (server && isAlive(server)) stunServer(ctx, server);
   breakSeal(ctx, seal);
 }
 
 /**
  * Takes the writ off the board with no answer and no collection (its server fell or left).
- * IQ-7/IQ-22 call it when the postmaster dies, before the room's end is checked, so his seal
+ * His trick calls it when the postmaster dies, before the room's end is checked, so his seal
  * never holds the room open. No-op without an open writ by `by`.
  */
 export function withdrawClock(ctx: Ctx, by: UnitId): void {

@@ -4,7 +4,7 @@ import { INK_ROOMS_12 } from '$data/districts/inkQuarter/rooms12';
 import { HEART_RULES, INK_ROOMS_34, NOTARY_DESK } from '$data/districts/inkQuarter/rooms34';
 import { createBattle, FOUNDERS, newProfile, parseBoard, returnCheck, startTrip } from '$engine';
 import { CLOCK_RULE_ID } from '$engine/districts/inkQuarter/clock';
-import { HEART_ROSTER } from '$engine/districts/inkQuarter/standIn';
+import { HEART_ROSTER } from '$engine/districts/inkQuarter/postmaster';
 import type { Coord } from '$engine/grid';
 import { bankPages, pagesHeld } from '$engine/rivals/pages';
 import { checkRoom } from '$engine/rooms';
@@ -13,7 +13,7 @@ import { awardsPage } from '$engine/standIn';
 /**
  * IQ-10 (ink-quarter-plan P1, P3, P9, P10; design §1): rooms 3 and 4 and the heart, three
  * layouts each. Room 3 is 6x9 (adds forwarding); room 4 is 6x9 (all three writs); the heart is
- * 7x9 (the stand-in postmaster, a Sealer, two dead letters; the clock rule).
+ * 7x9 (the postmaster, a rival since IQ-22, a Sealer, two dead letters; the clock rule).
  */
 
 const [three, four, heart] = INK_ROOMS_34;
@@ -100,7 +100,7 @@ describe('ink rooms 3, 4 and the heart (IQ-10)', () => {
     expect(HEART_RULES).toEqual([CLOCK_RULE_ID]);
   });
 
-  test('clearing the heart awards no page, and the heart is a return point', () => {
+  test('clearing the heart banks his page (IQ-22), and the heart is a return point', () => {
     const p = newProfile();
     const v = heart.variants[0];
     if (!v) throw new Error('no variant');
@@ -108,8 +108,10 @@ describe('ink rooms 3, 4 and the heart (IQ-10)', () => {
       createBattle({ title: heart.title, board: v.layout, seed: 1, lineup: FOUNDERS }).state,
     );
     for (const u of b.units) if (u.kind === 'enemy') u.hp = 0;
-    expect(awardsPage({ def: 'postmaster' })).toBe(false);
-    expect(pagesHeld(bankPages(p, b, 'inkQuarter', awardsPage))).toEqual([]);
+    expect(awardsPage({ def: 'postmaster' })).toBe(true);
+    expect(pagesHeld(bankPages(p, b, 'inkQuarter', awardsPage))).toEqual([
+      'postmaster:serveNotice',
+    ]);
     const shape = { ret: { kind: 'until', after: 0 } as const, length: 5 };
     const t = { ...startTrip(p, 3), encounter: 4 };
     expect(returnCheck(t, shape)).toEqual({ ok: true });

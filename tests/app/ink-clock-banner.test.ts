@@ -78,13 +78,9 @@ describe('clockBanner', () => {
   });
 });
 
-describe('the stand-in postmaster phrases', () => {
-  test('serve, pen and the stunned step read in board labels', () => {
+describe('the postmaster rival phrases (IQ-22)', () => {
+  test('his clock writ trick reads its seal and stamp in board labels', () => {
     const h = start();
-    expect(intentPhrase(h.s, pm(h.s))).toMatch(
-      /^will serve a clock writ: seal \w\d, stamp \w\d \(1st\)$/,
-    );
-    step(h);
-    expect(intentPhrase(h.s, pm(h.s))).toMatch(/^will strike with his pen at A1 \(1st\)$/);
+    expect(intentPhrase(h.s, pm(h.s))).toBe('will use the clock writ (1st) · serve at F2, B1');
   });
 });

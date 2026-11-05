@@ -7,8 +7,8 @@ import {
   FORWARDS_RULE,
 } from './inkQuarter/forward';
 import { TERMED_KIND } from './inkQuarter/offers';
+import { POSTMASTER_GOALS, POSTMASTER_TRICKS } from './inkQuarter/postmaster';
 import { inkAfterRoom, STAKES_RULE, stakeSetup } from './inkQuarter/stakes';
-import { POSTMASTER_FOE, STAND_IN_STEPS } from './inkQuarter/standIn';
 import { TERM_EVENT_DEFS, TERM_HOOKS } from './inkQuarter/terms';
 import {
   INK_BASE_PIECES,
@@ -61,8 +61,10 @@ export const INK_QUARTER_MODULE: DistrictModule = {
     (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? CLOCK_PIECES[p.id] ?? p,
   ),
   events,
-  foes: [...INK_FOES, CLOCK_SEAL_FOE, POSTMASTER_FOE],
-  steps: STAND_IN_STEPS,
+  foes: [...INK_FOES, CLOCK_SEAL_FOE],
+  // The postmaster, a rival (IQ-22): his clock writ trick and his routine's district goals.
+  tricks: POSTMASTER_TRICKS,
+  goals: POSTMASTER_GOALS,
   trip: shape,
   offerKinds: [TERMED_KIND],
 };

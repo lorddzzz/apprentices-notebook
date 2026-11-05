@@ -149,17 +149,10 @@ export const INK_ENEMIES = {
   letter: LETTER,
 } as const;
 
-/** The stand-in postmaster's numbers (IQ-7): his pen strike and how tough he is. */
-export const POSTMASTER_TUNING = {
-  /** The pen strike's damage to the apprentice it was thrown at. */
-  pen: 2,
-} as const;
-
 /**
- * The postmaster as the district's stand-in heart (P10; IQ-7, replaced by the rival at IQ-22):
- * a scripted foe that never walks. Round by round he serves the clock writ, strikes with his pen,
- * and seals a tile; `standIn` means clearing him gives no page. `ai`/`behaviour` serve only the
- * death hook (`withdrawClock`) and the Lab label; the script wins in battle.
+ * The postmaster's board shell (P10; IQ-22): he is a rival, so his numbers and kit live in
+ * `RIVALS` (`src/data/rivals/postmaster.ts`) and this is the board-facing entry with the same id,
+ * token and HP. He never walks (anchored, behind his counter); his trick serves the clock writ.
  */
 export const POSTMASTER: EnemyDef = {
   id: 'postmaster',
@@ -167,18 +160,13 @@ export const POSTMASTER: EnemyDef = {
   token: 'p',
   hp: 14,
   move: 0,
-  attack: null,
+  attack: 'line',
   ai: 'idle',
-  behaviour: 'inkQuarter:postmaster',
-  script: {
-    steps: ['inkQuarter:serve', 'inkQuarter:pen', 'inkQuarter:waxSeal'],
-    standIn: true,
-  },
   brass: false,
   oilTrail: false,
   elite: false,
   blurb:
-    'Serves a writ with a clock: break his seal or stand on his stamp in three rounds, or every mark collects. Strikes with his pen and seals your tile in wax.',
+    'A rival inscriber behind the counter. Serves a writ with a clock: break his seal or stand on his stamp in three rounds, or every mark collects.',
   habitat: 'any',
   flies: false,
   anchored: true,

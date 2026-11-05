@@ -439,4 +439,8 @@ export const RIVAL_TRICK_TEXT: Readonly<Record<string, { name: string; text: str
     name: 'The long wick',
     text: 'He opens his jar from afar. His alone, not in the trial.',
   },
+  'inkQuarter:clockWrit': {
+    name: 'The clock writ',
+    text: 'He serves a writ with a clock: break his seal or stand on his stamp, or every mark collects. His alone, not in the trial.',
+  },
 };

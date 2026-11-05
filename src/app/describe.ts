@@ -62,7 +62,7 @@ import {
 import { behaviourVerb } from '$engine/behaviours';
 import { KIT } from '$engine/districts/kit';
 import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
-import { dryStrikeIntent, rivalDefOf, rivalVerb } from '$engine/rivals/resolve';
+import { dryStrikeIntent, rivalDefOf, rivalVerb, trickOf } from '$engine/rivals/resolve';
 import type { Telegraph } from '$engine/rivals/types';
 import { jarLocation } from '$engine/rivals/wick';
 import type { InputMode } from './battleInput';
@@ -188,7 +188,12 @@ function rivalPhrase(s: BattleState, e: EnemyUnit): string {
     if (lock) {
       const first = jarContents(lock.jar);
       bits.push(`his jar at ${label(lock.at)}${first ? `, starts with ${first}` : ''}`);
-    } else bits.push('but its jar is gone');
+    } else if (i.lock?.kind === 'jar') bits.push('but its jar is gone');
+    else if (!i.lock && e.rival) {
+      // A trick with no jar (the clock writ): the tiles its telegraph names.
+      const tg = trickOf(i.trick)?.draw(s, e, i, e.rival.trick);
+      if (tg?.tiles.length) bits.push(`${tg.label} at ${tg.tiles.map(label).join(', ')}`);
+    }
   }
   if (i.fallback) bits.push(`if starved, strikes ${label(i.fallback)}`);
   if (read?.warning) bits.push(read.warning);

@@ -8,7 +8,7 @@ import {
   type HeatLevel,
 } from '$data/districts/bathhouses/types';
 import { DISTRICT_TOKENS, DISTRICTS, tokenCollisions } from '$data/districts/index';
-import { RIVAL_TOKENS } from '$data/rivals';
+import { RIVAL_TOKENS, RIVALS } from '$data/rivals';
 import type { AttackDef } from '$data/types';
 import type { ArrivalCause, UnitTrait } from '$engine/arrival';
 import { KIT } from '$engine/districts';
@@ -95,7 +95,7 @@ describe('BH-0 contracts', () => {
     ]);
     const builtIn = [
       ...Object.values(ENEMIES)
-        .filter((e) => e.id !== 'lamplighter') // the rival's own shell (RV-1)
+        .filter((e) => !Object.hasOwn(RIVALS, e.id)) // the rivals' own shells (RV-1, IQ-22)
         .map((e) => e.token),
       ...Object.values(APPRENTICES).map((a) => a.token),
       ...'DSRNBWTCE',
