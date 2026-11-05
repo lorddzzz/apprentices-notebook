@@ -1,5 +1,6 @@
 import { ATTACKS, type CompoundId, RUNES, type StateId, TUNING } from '$data';
 import type { DraftOptions } from './ctx';
+import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
   type Coord,
@@ -299,7 +300,12 @@ function areaRange(u: Unit, source: 'splash' | 'vat'): number {
 }
 
 /** Every aim the spell accepts from the member's current tile. */
-export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[] {
+export function legalAims(
+  s: BattleState,
+  id: UnitId,
+  spellKey: SpellKey,
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
+): Aim[] {
   const m = findUnit(s, id);
   if (m?.kind !== 'member' || !isAlive(m)) return [];
   const spell = spellOf(m, spellKey);
@@ -317,7 +323,7 @@ export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[]
     case 'touch':
       return [
         { kind: 'self' },
-        ...touchTiles(s, m)
+        ...touchTiles(s, m, footnotes)
           .sort(byReadingOrder)
           .map((at): Aim => ({ kind: 'tile', at })),
       ];
@@ -325,13 +331,25 @@ export function legalAims(s: BattleState, id: UnitId, spellKey: SpellKey): Aim[]
 }
 
 /** The tiles a Touch aims: the four beside the caster, and with `touchReach` 2 (AH P17) those two away. */
-function touchTiles(s: BattleState, m: Unit): Coord[] {
+function touchTiles(
+  s: BattleState,
+  m: Unit,
+  footnotes: NonNullable<DraftOptions['footnotes']>,
+): Coord[] {
   const near = DIRS.map((d) => step(m.pos, d));
   const far =
     (habitRule(m).touchReach ?? 1) >= 2
       ? DIRS.filter((d) => reachOver(s, m.pos, d)).map((d) => step(step(m.pos, d), d))
       : [];
-  return [...near, ...far].filter((c) => inBoard(s, c));
+  // `touch-unit-reach`: a unit two tiles off in a straight line, over an empty tile.
+  const reach = hasFootnote({ footnotes }, 'touch-unit-reach')
+    ? DIRS.filter((d) => reachOver(s, m.pos, d) && !unitAt(s, step(m.pos, d)))
+        .map((d) => step(step(m.pos, d), d))
+        .filter((c) => inBoard(s, c) && unitAt(s, c))
+    : [];
+  return [...near, ...far, ...reach.filter((c) => !far.some((f) => sameCoord(f, c)))].filter((c) =>
+    inBoard(s, c),
+  );
 }
 
 /**

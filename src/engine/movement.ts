@@ -15,6 +15,19 @@ function lastStepDir(from: Coord, path: readonly Coord[]): Dir | null {
   return DIRS.find((d) => sameCoord(step(before, d), end)) ?? null;
 }
 
+/** Tiles at the end of a walk taken in one direction (`touch-member-runup`). */
+function straightRun(from: Coord, path: readonly Coord[]): number {
+  const dir = lastStepDir(from, path);
+  let run = 0;
+  for (let i = path.length - 1; i >= 0 && dir; i--) {
+    const before = path[i - 1] ?? from;
+    const here = path[i] as Coord;
+    if (!sameCoord(step(before, dir), here)) break;
+    run++;
+  }
+  return run;
+}
+
 /** Member move action (legality checked by the caller). A walk enters only its landing (P2). */
 export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   const reach = reachable(ctx.s, m, m.move).get(key(to));
@@ -30,6 +43,7 @@ export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   });
   m.moved = true;
   m.lastMove = lastStepDir(from, reach.path);
+  m.run = straightRun(from, reach.path);
   m.undo = { from };
   const seen = ctx.log.length;
   stainsAlong(ctx, m.id, reach.path);
@@ -51,6 +65,7 @@ export function undoMove(ctx: Ctx, m: MemberUnit): void {
   );
   m.moved = false;
   m.lastMove = null;
+  m.run = 0;
   m.undo = null;
 }
 

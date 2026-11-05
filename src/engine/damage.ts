@@ -6,7 +6,7 @@ import type { Coord, Dir } from './grid';
 import { guardHarm } from './harm';
 import { notify } from './hooks';
 import { strikePiece } from './pieces';
-import { findUnit } from './queries';
+import { findUnit, unitAt } from './queries';
 import { trickBeforeHarm, trickDied } from './rivals/tricks';
 import type { Unit } from './types';
 
@@ -17,6 +17,8 @@ export interface HitFrom {
   harm?: HarmKind;
   /** Set on a redirected hit: it is not guarded again. */
   unguarded?: true;
+  /** Footnotes: how a Strike meets a shield (`strike-shielded-break`, `strike-shielded-pierce`). */
+  shield?: 'break' | 'pierce';
 }
 
 /**
@@ -62,10 +64,16 @@ export function dealDamage(
     }
   }
   const amount = base;
-  const absorbed = Math.min(unit.shield, amount);
+  const barbed = unit.thorns === true && unit.shield > 0;
+  // A broken shield takes the whole blow and all it held; a pierced one lets 1 through.
+  const absorbed =
+    from.shield === 'break' && unit.shield > 0
+      ? unit.shield
+      : Math.min(unit.shield, from.shield === 'pierce' ? Math.max(0, amount - 1) : amount);
   reserve(ctx, absorbed > 0 ? 2 : 1); // `damage` and `shieldAbsorbs`
   unit.shield -= absorbed;
-  unit.hp = Math.max(0, unit.hp - (amount - absorbed));
+  unit.hp = Math.max(0, unit.hp - Math.max(0, amount - absorbed));
+  if (unit.shield <= 0) delete unit.thorns;
   emit(ctx, {
     type: 'damage',
     target: ref(unit),
@@ -84,19 +92,34 @@ export function dealDamage(
     forget(unit);
     oweAtCap(ctx, err, { type: 'died', unit: ref(unit) });
   }
+  // `guard-shielded-thorns`: whoever hits the barbed shield takes 1 (the thorn is not itself barbed).
+  if (barbed && from.at) {
+    const hitter = unitAtCoord(ctx, from.at);
+    if (hitter && hitter.id !== unit.id)
+      dealDamage(ctx, hitter, 1, 'Thorns', [], { heading: null, at: null });
+  }
   if (unit.hp > 0) return false;
   kill(ctx, unit, true, source);
   return true;
 }
 
+const unitAtCoord = (ctx: Ctx, at: Coord): Unit | null => unitAt(ctx.s, at);
+
 /**
  * Shield on a unit (Guard, Levy; P27). It lasts until the start of the player phase of round
  * `until` (E6 clears it there); a longer-lived shield already on the unit keeps its date.
  */
-export function gainShield(ctx: Ctx, unit: Unit, amount: number, until: number): void {
-  if (amount <= 0 || unit.hp <= 0) return;
+export function gainShield(
+  ctx: Ctx,
+  unit: Unit,
+  amount: number,
+  until: number,
+  /** `guard-shielded-long`: the shield only lasts a round longer, whatever `until` says. */
+  extend = false,
+): void {
+  if (unit.hp <= 0 || (amount <= 0 && !extend)) return;
   unit.shield += amount;
-  unit.guardUntil = Math.max(unit.guardUntil ?? 0, until);
+  unit.guardUntil = extend ? (unit.guardUntil ?? until) + 1 : Math.max(unit.guardUntil ?? 0, until);
   emit(ctx, {
     type: 'shieldGained',
     unit: ref(unit),

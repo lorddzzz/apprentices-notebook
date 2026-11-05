@@ -40,6 +40,7 @@ import {
   unitAt,
 } from './queries';
 import { catchIfHot } from './solvents';
+import { splashSpares } from './targets';
 import type { Flow, Layer, Target, Unit } from './types';
 
 /**
@@ -329,8 +330,8 @@ function sparkLand(ctx: Ctx, t: Target, flow: Flow | null): void {
   const unit = unitOn(ctx, t, at);
   const struck = strikePiece(ctx, at, 'spark');
   let burstHappened = false;
-  if (unit) {
-    const caster = flow ? findUnit(ctx.s, flow.caster) : null;
+  const caster = flow ? findUnit(ctx.s, flow.caster) : null;
+  if (unit && !(caster && splashSpares(ctx, flow, caster, unit))) {
     dealDamage(ctx, unit, TUNING.sparkDamage, 'Spark', [], {
       heading: headingAt(ctx, flow, at),
       at: caster ? { ...caster.pos } : null,

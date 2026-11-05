@@ -1,7 +1,7 @@
 import { type LineId, type SourceRuneId, TUNING } from '$data';
 import type { DraftOptions, FootnoteVariantId } from './ctx';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, type Dir, neighbors4, square, step } from './grid';
+import { byReadingOrder, type Coord, type Dir, neighbors4, opposite, square, step } from './grid';
 import { clip, inBoard, isCloud, type Travel, tileAt, travel, unitAt } from './queries';
 import type { Aim, BattleState, Target, Unit } from './types';
 import { targetKey } from './types';
@@ -42,15 +42,22 @@ function areaTargets(
   caster: Unit,
   tiles: readonly Coord[],
   centre: { x: number; y: number },
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
 ): { targets: Target[]; headings: Map<string, Dir | null> } {
-  const inward = axisToward(caster.pos, { x: Math.round(centre.x), y: Math.round(centre.y) });
+  const fn = (id: FootnoteVariantId) => hasFootnote({ footnotes }, id);
+  let inward = axisToward(caster.pos, { x: Math.round(centre.x), y: Math.round(centre.y) });
+  // `splash-member-step` (a Splash on your own tile) and `splash-member-ride` (the caster's own
+  // tile) take the way of the last step.
+  if (!inward && fn('splash-member-step')) inward = caster.lastMove;
   const targets: Target[] = [];
   const headings = new Map<string, Dir | null>();
   for (const at of [...tiles].sort(byReadingOrder)) {
+    // `splash-member-spared`: your own Splash passes over you.
+    if (fn('splash-member-spared') && at.x === caster.pos.x && at.y === caster.pos.y) continue;
     const t = targetOn(s, at);
     const dx = at.x - centre.x;
     const dy = at.y - centre.y;
-    const heading =
+    let heading: Dir | null =
       Math.abs(dx) === Math.abs(dy)
         ? inward
         : Math.abs(dx) > Math.abs(dy)
@@ -60,6 +67,13 @@ function areaTargets(
           : dy < 0
             ? 'up'
             : 'down';
+    if (fn('splash-unit-sweep')) heading = inward;
+    else if (fn('splash-unit-gather') && Math.abs(dx) !== Math.abs(dy) && heading) {
+      heading = opposite(heading);
+    }
+    if (fn('splash-member-ride') && at.x === caster.pos.x && at.y === caster.pos.y) {
+      heading = caster.lastMove;
+    }
     targets.push(t);
     headings.set(targetKey(t), heading);
   }
@@ -186,7 +200,7 @@ export function aimTargets(
     case 'splash': {
       if (aim.kind !== 'tile') return none;
       const tiles = clip(s, square(aim.at, TUNING.splashRadius));
-      return areaTargets(s, caster, tiles, aim.at);
+      return areaTargets(s, caster, tiles, aim.at, footnotes);
     }
     case 'vat': {
       if (aim.kind !== 'tile') return none;
@@ -198,11 +212,23 @@ export function aimTargets(
     case 'touch': {
       if (aim.kind === 'self') {
         const t: Target = { kind: 'unit', unit: caster.id };
-        return { targets: [t], headings: new Map([[targetKey(t), caster.lastMove]]) };
+        // `touch-member-memory`: no step this turn, so the last step of an earlier turn.
+        const way =
+          caster.lastMove ??
+          (hasFootnote({ footnotes }, 'touch-member-memory') ? (caster.prevMove ?? null) : null);
+        return { targets: [t], headings: new Map([[targetKey(t), way]]) };
       }
       if (aim.kind !== 'tile') return none;
       const t = targetOn(s, aim.at);
-      return { targets: [t], headings: new Map([[targetKey(t), axisToward(caster.pos, aim.at)]]) };
+      // `touch-unit-steer`: a Touch on a unit points the way you stepped.
+      const steer =
+        t.kind === 'unit' && caster.lastMove && hasFootnote({ footnotes }, 'touch-unit-steer');
+      return {
+        targets: [t],
+        headings: new Map([
+          [targetKey(t), steer ? caster.lastMove : axisToward(caster.pos, aim.at)],
+        ]),
+      };
     }
   }
 }
@@ -218,10 +244,18 @@ export function aimLine(
   source: SourceRuneId,
   aim: Aim,
   targets: readonly Target[],
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
 ): LineId | null {
   if (source === 'splash' && aim.kind === 'tile') {
-    if (aim.at.x === caster.pos.x && aim.at.y === caster.pos.y) return 'splash:noHeading';
-    if (targets.some((t) => t.kind === 'unit' && t.unit === caster.id)) return 'splash:member';
+    const own = aim.at.x === caster.pos.x && aim.at.y === caster.pos.y;
+    // `splash-member-step` gives the centre a heading once you have stepped: it is no longer blind.
+    const stepped = caster.lastMove && hasFootnote({ footnotes }, 'splash-member-step');
+    if (own && !stepped) return 'splash:noHeading';
+    // The caster stands in the 3x3 even when `splash-member-spared` left her out of its targets.
+    const inside =
+      Math.abs(caster.pos.x - aim.at.x) <= TUNING.splashRadius &&
+      Math.abs(caster.pos.y - aim.at.y) <= TUNING.splashRadius;
+    if (inside) return 'splash:member';
     if (targets.length < square(aim.at, TUNING.splashRadius).length) return 'splash:edge';
     return targets.some((t) => t.kind === 'unit') ? 'splash:unit' : null;
   }
@@ -239,4 +273,23 @@ export function aimLine(
     return aim.kind === 'tile' && first?.kind === 'unit' ? 'touch:unit' : null;
   }
   return null;
+}
+
+/**
+ * `splash-member-friendly`: a Strike or Spark in your own Splash passes over your allies (not you).
+ * Only units the Splash itself aimed at count; kinds and pushes still reach them.
+ */
+export function splashSpares(
+  ctx: { footnotes: NonNullable<DraftOptions['footnotes']> },
+  flow: { src?: SourceRuneId; area?: readonly string[] } | null,
+  caster: Unit,
+  unit: Unit,
+): boolean {
+  return (
+    flow?.src === 'splash' &&
+    unit.id !== caster.id &&
+    unit.kind === caster.kind &&
+    flow.area?.includes(unit.id) === true &&
+    hasFootnote(ctx, 'splash-member-friendly')
+  );
 }

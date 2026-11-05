@@ -1,4 +1,6 @@
 import type { LineId, SealRuneId, TriggerRuneId } from '$data';
+import type { FootnoteIds, FootnoteVariantId } from '../ctx';
+import { hasFootnote } from '../footnotes';
 import { type Coord, DIRS, type Dir, neighbors4, step, turnLeft, turnRight } from '../grid';
 import { ruleOf, sameSide } from '../habits';
 import { sealedContext } from '../jars';
@@ -44,7 +46,9 @@ export function forkSide(
   targets: readonly Target[],
   headings: ReadonlyMap<string, Dir | null>,
   side: 'left' | 'right' | 'ahead',
+  footnotes: FootnoteIds = {},
 ): Aimed & { blind: number; off: number } {
+  const fn = (id: FootnoteVariantId) => hasFootnote({ footnotes }, id);
   const out: Aimed & { blind: number; off: number } = {
     targets: [],
     headings: new Map(headings),
@@ -63,8 +67,18 @@ export function forkSide(
     }
     const way =
       side === 'ahead' ? heading : side === 'left' ? turnLeft(heading) : turnRight(heading);
-    const to = step(at, way);
-    if (inBoard(s, to)) add(out, seen, targetOn(s, to), heading, true);
+    // `fork-unit-wide`: the side branches act two tiles out.
+    const to = side !== 'ahead' && fn('fork-unit-wide') ? step(step(at, way), way) : step(at, way);
+    // `fork-unit-splay`: a side branch points its own side's way.
+    const aim = side !== 'ahead' && fn('fork-unit-splay') ? way : heading;
+    if (inBoard(s, to)) {
+      // `fork-unit-both`: a tile two targets reach is acted on once for each.
+      if (fn('fork-unit-both')) {
+        const t = targetOn(s, to);
+        out.targets.push(t);
+        out.headings.set(targetKey(t), aim);
+      } else add(out, seen, targetOn(s, to), aim, true);
+    } else if (fn('fork-unit-bounce')) add(out, seen, t, aim, true);
     else out.off++;
   }
   return out;

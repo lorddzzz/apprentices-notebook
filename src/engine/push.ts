@@ -25,6 +25,10 @@ export interface PushResult {
 export interface PushOptions {
   crush?: boolean;
   as?: 'pull';
+  /** A Splash's unit targets: `splash-unit-ripple` and `splash-unit-press` read them. */
+  area?: readonly string[];
+  /** `touch-member-ram`: a crush into a unit reverses its split (it takes the full crush). */
+  ram?: true;
 }
 
 /** Layers a pushed land unit slides across (design §4.2, §4.4). */
@@ -129,8 +133,16 @@ function crush(
   moved: number,
   stop: Stop & { kind: 'crush' },
   origin: Origin | null,
+  opts: PushOptions = {},
 ): void {
   const other = typeof stop.into === 'string' ? null : stop.into;
+  // `splash-unit-press`: two Splash targets crush each other for the full crush.
+  const press =
+    other !== null &&
+    opts.area?.includes(unit.id) === true &&
+    opts.area.includes(other.id) &&
+    hasFootnote(ctx, 'splash-unit-press');
+  const ram = other !== null && opts.ram === true;
   // Footnote `shove-wall-soft` (P39): a wall crush skips the per-tile damage.
   const softWall = stop.line === 'shove:wall' && hasFootnote(ctx, 'shove-wall-soft');
   const heavyWall = stop.line === 'shove:wall' && hasFootnote(ctx, 'shove-wall-heavy');
@@ -145,9 +157,12 @@ function crush(
       at: { ...stop.at },
       dir,
     });
-    dealDamage(ctx, unit, damage, 'Crush', [], { heading: dir, at: null });
+    dealDamage(ctx, unit, ram ? TUNING.crushStruck : damage, 'Crush', [], {
+      heading: dir,
+      at: null,
+    });
     if (other) {
-      dealDamage(ctx, other, TUNING.crushStruck, 'Crush', [], {
+      dealDamage(ctx, other, ram || press ? damage : TUNING.crushStruck, 'Crush', [], {
         heading: dir,
         at: { ...unit.pos },
       });
@@ -162,6 +177,15 @@ function crush(
   };
   if (stop.line) withLine(ctx, stop.line, body);
   else body();
+}
+
+/** `splash-unit-ripple`: the unit in the way moves a tile instead; true when it did. */
+function ripple(ctx: Ctx, blocker: Unit, dir: Dir, origin: Origin | null): boolean {
+  let moved = false;
+  withLine(ctx, 'shove:unit', () => {
+    moved = push(ctx, blocker, dir, 1, origin, { crush: false }).moved > 0;
+  });
+  return moved;
 }
 
 /** A fall: a minion is gone (no death-burst); an elite or member takes 4 and is stunned (P19). */
@@ -330,9 +354,19 @@ export function push(
     if (carried && stop?.kind === 'crush' && typeof stop.into !== 'string') {
       const blocker = stop.into;
       withLine(ctx, 'shove:slick', () => push(ctx, blocker, dir, left, origin, { crush: false }));
+    } else if (
+      stop?.kind === 'crush' &&
+      opts.crush !== false &&
+      typeof stop.into !== 'string' &&
+      !pull &&
+      opts.area?.includes(unit.id) &&
+      hasFootnote(ctx, 'splash-unit-ripple') &&
+      ripple(ctx, stop.into, dir, origin)
+    ) {
+      // `splash-unit-ripple`: the blocker took the push on; nothing is crushed.
     } else if (stop?.kind === 'crush' && opts.crush !== false) {
       // With `crush: false` it stops short of what is in the way.
-      crush(ctx, unit, dir, path.length, stop, origin);
+      crush(ctx, unit, dir, path.length, stop, origin, opts);
       crushed = typeof stop.into === 'string' ? stop.into : stop.into.id;
     } else if (stop?.kind === 'crush' && pull && path.length === 0) {
       // Pull (P4): a blocking tile in between, or a swimmer that won't leave the water.

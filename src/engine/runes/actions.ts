@@ -11,9 +11,28 @@ import {
 } from '$data';
 import { hasTrait, objectArrives, relocateAll } from '../arrival';
 import { cloneData } from '../clone';
-import { type Ctx, emit, ref, withHabit, withLine, withOrigin } from '../ctx';
+import {
+  type Ctx,
+  emit,
+  type FootnoteVariantId,
+  ref,
+  withHabit,
+  withLine,
+  withOrigin,
+} from '../ctx';
 import { dealDamage, gainShield } from '../damage';
-import { type Coord, DIRS, type Dir, opposite, step, turnLeft, turnRight } from '../grid';
+import { hasFootnote } from '../footnotes';
+import {
+  byReadingOrder,
+  type Coord,
+  DIRS,
+  type Dir,
+  neighbors4,
+  opposite,
+  step,
+  turnLeft,
+  turnRight,
+} from '../grid';
 import { ruleOf, sameSide } from '../habits';
 import { sealJar } from '../jars';
 import { jarLimit } from '../leans';
@@ -23,6 +42,7 @@ import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries
 import type { Handler } from '../resolve';
 import { trickResists } from '../rivals/tricks';
 import { SOLVENT_RULES } from '../solvents';
+import { splashSpares } from '../targets';
 import {
   type ErasedPart,
   type ErasedRecord,
@@ -83,11 +103,33 @@ const strike: Handler = (ctx, t, flow) => {
   const caster = unitById(ctx.s, flow.caster);
   const damage = TUNING.strikeDamage - (flow.weaker ?? 0);
   if (damage <= 0) return;
-  maybeLine(ctx, u.shield > 0 ? 'strike:shielded' : null, () => {
+  if (splashSpares(ctx, flow, caster, u)) return; // `splash-member-friendly`
+  const shielded = u.shield > 0;
+  const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  const heading = headingOf(flow, t);
+  maybeLine(ctx, shielded ? 'strike:shielded' : null, () => {
     dealDamage(ctx, u, damage, RUNES.strike.name, [], {
-      heading: headingOf(flow, t),
+      heading,
       at: { ...caster.pos },
+      ...(shielded && fn('strike-shielded-break')
+        ? { shield: 'break' as const }
+        : shielded && fn('strike-shielded-pierce')
+          ? { shield: 'pierce' as const }
+          : {}),
     });
+    if (!shielded) return;
+    // `strike-shielded-glance`: the nearest other unit beside the target takes 1.
+    if (fn('strike-shielded-glance')) {
+      const near = neighbors4(u.pos)
+        .sort(byReadingOrder)
+        .flatMap((at) => unitAt(ctx.s, at) ?? [])
+        .find((v) => v.hp > 0 && v.id !== u.id && v.id !== caster.id);
+      if (near) {
+        dealDamage(ctx, near, 1, RUNES.strike.name, [], { heading, at: { ...u.pos } });
+      }
+    }
+    // `strike-shielded-knock`: the shielded unit is knocked one tile along the heading.
+    if (fn('strike-shielded-knock') && heading && u.hp > 0) push(ctx, u, heading, 1, flow.origin);
   });
 };
 
@@ -96,8 +138,32 @@ const shove: Handler = (ctx, t, flow) => {
   if (!u) return;
   const heading = headingOf(flow, t);
   if (!heading) return miss(ctx, 'shove', 'shove:noHeading');
-  const tiles = TUNING.shoveTiles + pushBonus('shove', flow);
-  maybeLine(ctx, solventLine(flow), () => push(ctx, u, heading, Math.max(0, tiles), flow.origin));
+  let tiles = TUNING.shoveTiles + pushBonus('shove', flow);
+  const caster = unitById(ctx.s, flow.caster);
+  const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  const touch = flow.src === 'touch';
+  const selfTouch = touch && u.id === caster.id;
+  const unitTouch = touch && u.id !== caster.id;
+  // `touch-member-runup`: a tile for each one walked in a straight line, up to 3.
+  if (selfTouch && fn('touch-member-runup')) tiles = Math.max(tiles, Math.min(3, caster.run ?? 0));
+  // `touch-member-tow`: the unit right behind you is pulled along one tile.
+  const behind =
+    selfTouch && fn('touch-member-tow') ? unitAt(ctx.s, step(u.pos, opposite(heading))) : null;
+  const opts = {
+    ...(flow.area?.includes(u.id) ? { area: flow.area } : {}),
+    ...(selfTouch && fn('touch-member-ram') ? { ram: true as const } : {}),
+  };
+  maybeLine(ctx, solventLine(flow), () => {
+    const r = push(ctx, u, heading, Math.max(0, tiles), flow.origin, opts);
+    if (behind && behind.hp > 0 && r.moved > 0) {
+      push(ctx, behind, heading, 1, flow.origin, { crush: false, as: 'pull' });
+    }
+    if (unitTouch && r.moved > 0 && caster.hp > 0) {
+      // `touch-unit-follow`: you step after it; `touch-unit-recoil`: you are pushed the other way.
+      if (fn('touch-unit-follow')) push(ctx, caster, heading, 1, flow.origin, { crush: false });
+      else if (fn('touch-unit-recoil')) push(ctx, caster, opposite(heading), 1, flow.origin);
+    }
+  });
 };
 
 const guard: Handler = (ctx, t, flow) => {
@@ -105,8 +171,21 @@ const guard: Handler = (ctx, t, flow) => {
   if (!u) return;
   // Until the start of the next player phase; a round-gifted caster adds one more round.
   const until = ctx.s.round + 1 + roundBonus('guard', flow);
-  maybeLine(ctx, u.shield > 0 ? 'guard:shielded' : null, () => {
-    gainShield(ctx, u, TUNING.guardShield, until);
+  const again = u.shield > 0;
+  const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  maybeLine(ctx, again ? 'guard:shielded' : null, () => {
+    if (!again) return gainShield(ctx, u, TUNING.guardShield, until);
+    if (fn('guard-shielded-long')) gainShield(ctx, u, 0, until, true);
+    else gainShield(ctx, u, fn('guard-shielded-thick') ? 3 : TUNING.guardShield, until);
+    if (fn('guard-shielded-thorns') && u.hp > 0) u.thorns = true;
+    // `guard-shielded-spill`: the nearest unshielded ally beside it is shielded for 1.
+    if (fn('guard-shielded-spill')) {
+      const near = neighbors4(u.pos)
+        .sort(byReadingOrder)
+        .flatMap((at) => unitAt(ctx.s, at) ?? [])
+        .find((v) => v.hp > 0 && v.shield === 0 && sameSide(u, v));
+      if (near) gainShield(ctx, near, 1, until);
+    }
   });
 };
 

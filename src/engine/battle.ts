@@ -256,7 +256,11 @@ export function createEncounterBattle(
 // ── Actions ─────────────────────────────────────────────
 
 /** Null when legal, else a short reason (for disabled buttons and the thrown error). */
-export function isLegal(s: BattleState, action: Action): string | null {
+export function isLegal(
+  s: BattleState,
+  action: Action,
+  footnotes: NonNullable<DraftOptions['footnotes']> = {},
+): string | null {
   if (s.phase !== 'player') return 'The battle is over';
   if (action.type === 'endTurn') return null;
   const u = findUnit(s, action.unit);
@@ -283,7 +287,7 @@ export function isLegal(s: BattleState, action: Action): string | null {
       if (u.acted) return `${u.name} has already acted`;
       if (!spellOf(u, action.spell)) return `${u.name} has no spell at ${action.spell}`;
       if (!s.lab && (u.charges[action.spell] ?? 0) <= 0) return 'No charges left';
-      const ok = legalAims(s, u.id, action.spell).some((a) => sameAim(a, action.aim));
+      const ok = legalAims(s, u.id, action.spell, footnotes).some((a) => sameAim(a, action.aim));
       return ok ? null : 'Not a legal aim';
     }
   }
@@ -318,7 +322,7 @@ export function applyAction(
   action: Action,
   footnotes: DraftOptions['footnotes'] = {},
 ): ActionResult {
-  const reason = isLegal(state, action);
+  const reason = isLegal(state, action, footnotes);
   if (reason !== null) throw new IllegalActionError(reason);
   return runDraft(
     state,

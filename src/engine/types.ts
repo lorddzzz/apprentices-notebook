@@ -327,6 +327,12 @@ interface UnitBase {
   stunned: boolean; // skips its next action (dropped elite)
   elite: boolean; // members count as elites (P19)
   lastMove: Dir | null; // this turn, for Touch-self headings (P22)
+  /** Footnotes: the last step of an earlier turn (`touch-member-memory`). */
+  prevMove?: Dir | null;
+  /** Footnotes: tiles walked in a straight line to the last step this turn (`touch-member-runup`). */
+  run?: number;
+  /** Footnotes: a second Guard left the shield barbed (`guard-shielded-thorns`) while it lasts. */
+  thorns?: true;
   /** Out of the room (P11, `removeFromRoom`): off the board until the room ends; absent = in it. */
   out?: OutCause | null;
   /** Ignored by `checkEnd` (the barge crate, CN §9). */
@@ -393,6 +399,9 @@ export interface Flow {
   /** Fog jar: how many steps weaker this reach is (push, damage; min 0) (E8). */
   weaker?: number;
   auras: readonly AuraRef[]; // auras touching the current step
+  /** Footnotes: the cast's source rune, and a Splash's unit targets (read by Shove, Strike, Spark). */
+  src?: SourceRuneId;
+  area?: readonly UnitId[];
 }
 export const targetKey = (t: Target): string =>
   t.kind === 'unit' ? `u:${t.unit}` : `t:${t.at.x},${t.at.y}`;

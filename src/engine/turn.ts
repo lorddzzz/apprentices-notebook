@@ -169,7 +169,9 @@ function beginPlayerPhase(ctx: Ctx): void {
     m.moved = false;
     m.acted = false;
     m.undo = null;
+    m.prevMove = m.lastMove ?? m.prevMove ?? null;
     m.lastMove = null;
+    m.run = 0;
   }
   s.landed = [];
   runScheduled(ctx, 'ownerTurn');
@@ -177,6 +179,7 @@ function beginPlayerPhase(ctx: Ctx): void {
     if (u.guardUntil !== null && u.guardUntil <= s.round) {
       u.shield = 0;
       u.guardUntil = null;
+      delete u.thorns;
     }
     if (u.held > 0) u.held--;
     if (u.kind === 'member' && u.stunned) {

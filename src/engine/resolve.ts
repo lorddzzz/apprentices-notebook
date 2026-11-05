@@ -193,10 +193,10 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         return;
       }
       case 'fork': {
-        const left = forkSide(s, live, flow.headings, 'left');
-        const right = forkSide(s, live, flow.headings, 'right');
+        const left = forkSide(s, live, flow.headings, 'left', ctx.footnotes);
+        const right = forkSide(s, live, flow.headings, 'right', ctx.footnotes);
         const ahead = ruleOf(flow.habit).forkAhead
-          ? forkSide(s, live, flow.headings, 'ahead')
+          ? forkSide(s, live, flow.headings, 'ahead', ctx.footnotes)
           : null;
         if (left.blind > 0) {
           withLine(ctx, 'fork:noHeading', () => emit(ctx, { type: 'miss', source: 'Fork' }));
@@ -485,7 +485,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
           : null;
       withHabit(ctx, habit, () => (line ? withLine(ctx, line, aimed) : aimed()));
     } else {
-      const line = aimLine(caster, spell.source, aim, targets);
+      const line = aimLine(caster, spell.source, aim, targets, ctx.footnotes);
       if (line) withLine(ctx, line, aimed);
       else aimed();
     }
@@ -505,6 +505,15 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
       habit: habitOf(caster),
       depth: 0,
       auras: spell.sourceAuras,
+      src: spell.source,
+      ...(spell.source === 'splash'
+        ? {
+            area: targets.flatMap((t) => {
+              const at = whereIs(s, t);
+              return (at && unitAt(s, at)?.id) || [];
+            }),
+          }
+        : {}),
     };
     runStep(ctx, spell.first, targets, flow);
   }
