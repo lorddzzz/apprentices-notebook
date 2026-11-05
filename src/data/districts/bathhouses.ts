@@ -190,5 +190,47 @@ export const BOILERMAN: EnemyDef = {
   ...BATH_PLAIN,
 };
 
-/** The district's foes for `ENEMIES` (BH-4 and BH-8 add the bather and the Steward). */
-export const BATH_ENEMIES = { attendant: ATTENDANT, boilerman: BOILERMAN } as const;
+// ── The dissolved bather (P8; BH-4) ─────────────────────
+/**
+ * Dissolved while its tile is a cloud tile: single hits, pushes, holds and swaps pass through it,
+ * area bursts do not. It drifts through connected cloud for free and bites only from an open tile
+ * at an apprentice on one. A rat's bite and body, sized under the snuffer.
+ */
+export const DISSOLVED_BATHER: EnemyDef = {
+  id: 'dissolvedBather',
+  name: 'bather',
+  token: BATH_FOE_TOKENS.dissolvedBather,
+  hp: 3,
+  move: 2,
+  attack: 'bite',
+  ai: 'idle',
+  behaviour: 'bathhouses:bather',
+  elite: false,
+  blurb:
+    'A bather who stayed too long. In a cloud it is steam: only a burst of the cloud hurts it. It must step out to bite, and is solid there.',
+  traits: ['dissolves'],
+  ...BATH_PLAIN,
+};
+
+/** The bather's bite (*tune by playing*). */
+export const BATHER_BITE = 1;
+
+/**
+ * The hits that reach a dissolved bather (P8): bursts of the cloud and around it. Anything else
+ * (a Bolt, a Spark's arc, a crush, Conduct, a bite) passes through.
+ */
+export const BATHER_AREA_SOURCES: readonly string[] = [
+  'Storm',
+  'Brand storm',
+  'Thunderhead',
+  'Flashover',
+  'Kettle',
+  'Boil-over',
+];
+
+/** The district's foes for `ENEMIES` (BH-8 adds the Steward). */
+export const BATH_ENEMIES = {
+  attendant: ATTENDANT,
+  boilerman: BOILERMAN,
+  dissolvedBather: DISSOLVED_BATHER,
+} as const;

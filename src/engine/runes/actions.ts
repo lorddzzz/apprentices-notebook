@@ -34,6 +34,7 @@ import {
   turnRight,
 } from '../grid';
 import { ruleOf, sameSide } from '../habits';
+import { guardCancels } from '../harm';
 import { sealJar } from '../jars';
 import { jarLimit } from '../leans';
 import { spendMark } from '../marks';
@@ -191,6 +192,7 @@ const guard: Handler = (ctx, t, flow) => {
 
 function holdUnit(ctx: Ctx, u: Unit, rounds: number): void {
   if (trickResists(ctx, u, 'hold')) return; // RV-11 `resists`
+  if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Hold')) return; // BH P8
   u.held = Math.max(u.held, rounds);
   emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
 }
@@ -267,6 +269,7 @@ const swap: Handler = (ctx, t, flow) => {
     emit(ctx, { type: 'miss', source: RUNES.swap.name });
     return;
   }
+  if (guardCancels(ctx, u, { kind: 'swap', unit: u.id, harm: null }, RUNES.swap.name)) return;
   const a = { ...caster.pos };
   const b = { ...u.pos };
   emit(ctx, {

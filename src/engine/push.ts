@@ -5,6 +5,7 @@ import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
+import { guardCancels } from './harm';
 import { notify } from './hooks';
 import { pieceBlocksUnits, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
@@ -303,6 +304,9 @@ export function push(
     }
     // A rival's trick may refuse the push (RV-11 `resists`: right of way).
     if (trickResists(ctx, unit, 'push')) return unmoved();
+    // The harm guards (BH P8: a dissolved bather lets the push pass through it).
+    const pushHarm = { kind: 'push', unit: unit.id, dir, harm: null } as const;
+    if (guardCancels(ctx, unit, pushHarm, pull ? 'Pull' : 'Push')) return unmoved();
     // A bound mark may answer "pushed" by holding its bearer in place (Anchor).
     notify(ctx, { kind: 'pushed', unit: unit.id, dir });
     if (unit.hp <= 0) return unmoved();

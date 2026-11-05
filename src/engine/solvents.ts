@@ -12,6 +12,7 @@ import {
   sameCoord,
   step,
 } from './grid';
+import { guardCancels } from './harm';
 import type { Hook } from './hooks';
 import { sealedContext } from './jars';
 import { spendMark } from './marks';
@@ -347,6 +348,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
     onReach(ctx, t) {
       const u = unitOf(ctx, t);
       if (!u || trickResists(ctx, u, 'hold')) return; // a rival's immunity (RV-11 `resists`)
+      if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Rivet')) return;
       withLine(ctx, 'rivet:unit', () => {
         u.held = Math.max(u.held, ACTIONS.holdRounds);
         emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });

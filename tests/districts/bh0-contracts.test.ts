@@ -38,10 +38,15 @@ describe('BH-0 registration', () => {
     expect(DISTRICT_UI.bathhouses).toEqual({});
   });
 
-  test("inert but for BH-1's rule and BH-5's foes: no pieces, offers, guards or steps; lines, the shape and the cause", () => {
+  test("inert but for BH-1's rule, BH-4/5's foes and the bather's guard: no pieces or steps; lines, the shape and the cause", () => {
     const m = KIT.modules.bathhouses;
-    expect(m?.foes?.map((f) => f.id)).toEqual(['bathhouses:attendant', 'bathhouses:boilerman']);
-    for (const k of ['pieces', 'harmGuards', 'steps'] as const) {
+    expect(m?.foes?.map((f) => f.id)).toEqual([
+      'bathhouses:attendant',
+      'bathhouses:boilerman',
+      'bathhouses:bather',
+    ]);
+    expect(m?.harmGuards?.map((g) => g.id)).toEqual(['bathhouses:bather']);
+    for (const k of ['pieces', 'steps'] as const) {
       expect(m?.[k] ?? []).toEqual([]);
     }
     // BH-3 adds the cold plunge, the only offer kind
@@ -51,6 +56,7 @@ describe('BH-0 registration', () => {
     ]);
     expect(Object.keys(KIT.events).filter((t) => t.startsWith('bathhouses:'))).toEqual([
       ...BATH_EVENT_TYPES,
+      'bathhouses:passesThrough', // BH-4
     ]);
     expect(KIT.causes[STEAM_CAUSE]).toBe('landing');
     expect(
@@ -110,8 +116,12 @@ describe('BH-0 contracts', () => {
     expect(tokenCollisions([...DISTRICT_TOKENS, ...RIVAL_TOKENS], [...new Set(builtIn)])).toEqual(
       [],
     );
-    // BH-5's foes parse; the bather and the Steward are not foes yet.
-    expect(parseBoard('t c').units.map((u) => u.def)).toEqual(['attendant', 'boilerman']);
-    for (const t of ['s', 'H']) expect(() => parseBoard(t)).toThrow();
+    // BH-4's and BH-5's foes parse; the Steward is not a foe yet.
+    expect(parseBoard('s t c').units.map((u) => u.def)).toEqual([
+      'dissolvedBather',
+      'attendant',
+      'boilerman',
+    ]);
+    expect(() => parseBoard('H')).toThrow();
   });
 });

@@ -1,10 +1,10 @@
 import type { HabitId, HarmKind, LineId } from '$data';
-import type { Ctx } from './ctx';
+import { type Ctx, emit, ref } from './ctx';
 import { KIT } from './districts/kit';
 import type { Dir } from './grid';
 import { habitOf, ruleOf } from './habits';
 import { findUnit } from './queries';
-import type { UnitId } from './types';
+import type { Unit, UnitId } from './types';
 
 /**
  * The harm guard registry (AH-W0, orchestrator addition): guards that may pass, cancel or redirect
@@ -18,7 +18,10 @@ import type { UnitId } from './types';
 export type Harm =
   | { kind: 'hit'; unit: UnitId; amount: number; source: string; harm: HarmKind | null }
   | { kind: 'push'; unit: UnitId; dir: Dir; harm: HarmKind | null }
-  | { kind: 'mark'; unit: UnitId; harm: HarmKind | null };
+  | { kind: 'mark'; unit: UnitId; harm: HarmKind | null }
+  /** BH P8: a Hold or Rivet, and a Swap moving the unit (the dissolved bather passes through). */
+  | { kind: 'hold'; unit: UnitId; harm: null }
+  | { kind: 'swap'; unit: UnitId; harm: null };
 export type HarmEventKind = Harm['kind'];
 
 /**
@@ -79,4 +82,22 @@ function firstVerdict(ctx: Ctx, harm: Harm, guards: HarmGuardList): HarmVerdict 
 export function guardHarm(ctx: Ctx, harm: Harm, guards?: HarmGuardList): HarmVerdict {
   if (guards) return firstVerdict(ctx, harm, guards) ?? PASS;
   return firstVerdict(ctx, harm, HABIT_GUARDS) ?? firstVerdict(ctx, harm, KIT.harmGuards) ?? PASS;
+}
+
+/**
+ * A push, hold or swap through the guards (BH P8): true when one cancels it, logged `unharmed`
+ * under `source`. A redirect is not offered for these: it passes.
+ */
+export function guardCancels(ctx: Ctx, unit: Unit, harm: Harm, source: string): boolean {
+  const v = guardHarm(ctx, harm);
+  if (v.kind !== 'cancel') return false;
+  emit(ctx, {
+    type: 'unharmed',
+    unit: ref(unit),
+    source,
+    harm: null,
+    ...(v.line ? { line: v.line } : {}),
+    ...(v.habit ? { habit: v.habit } : {}),
+  });
+  return true;
 }

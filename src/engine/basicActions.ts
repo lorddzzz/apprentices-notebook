@@ -2,6 +2,7 @@ import type { BasicActionId } from '$data';
 import { hasTrait, relocateAll } from './arrival';
 import { type Ctx, emit, ref, withLine } from './ctx';
 import { type Coord, DIRS, type Dir, opposite, step } from './grid';
+import { guardCancels } from './harm';
 import { shove } from './movement';
 import { strikable, strikePiece } from './pieces';
 import { push } from './push';
@@ -166,6 +167,7 @@ const swap = def({
       );
       return;
     }
+    if (guardCancels(ctx, target, { kind: 'swap', unit: target.id, harm: null }, 'Swap')) return;
     const a = { ...u.pos };
     const b = { ...target.pos };
     u.lastMove = dir;

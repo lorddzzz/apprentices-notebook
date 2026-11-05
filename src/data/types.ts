@@ -361,7 +361,8 @@ export type EnemyId =
   | 'letter'
   | 'marginalia'
   | 'attendant'
-  | 'boilerman';
+  | 'boilerman'
+  | 'dissolvedBather';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst' | 'shove';
 
 /**

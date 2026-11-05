@@ -80,7 +80,7 @@ export const FORWARD_GUARD: HarmGuard = {
   id: FORWARD_GUARD_ID,
   kinds: ['hit', 'mark'],
   run(ctx, harm): HarmVerdict {
-    if (harm.kind === 'push' || (harm.kind === 'hit' && harm.amount <= 0)) return { kind: 'pass' };
+    if (harm.kind !== 'mark' && (harm.kind !== 'hit' || harm.amount <= 0)) return { kind: 'pass' };
     const unit = findUnit(ctx.s, harm.unit);
     const to = unit ? forwardTarget(ctx.s, unit) : null;
     if (!unit || !to) return { kind: 'pass' };
