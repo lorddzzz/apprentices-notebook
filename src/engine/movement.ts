@@ -1,7 +1,8 @@
 import { ENEMIES, TUNING } from '$data';
-import { arrive, relocateAll } from './arrival';
+import { arrive, relocateAll, stainsAlong } from './arrival';
 import { type Ctx, emit, ref } from './ctx';
 import { type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
+import { slipInFog } from './mix';
 import { push } from './push';
 import { reachable, tileAt, unitAt } from './queries';
 import type { EnemyUnit, MemberUnit } from './types';
@@ -31,7 +32,9 @@ export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   m.lastMove = lastStepDir(from, reach.path);
   m.undo = { from };
   const seen = ctx.log.length;
-  arrive(ctx, m.id, reach.path, { cause: 'walk', origin: null, landing: true });
+  stainsAlong(ctx, m.id, reach.path);
+  const r = arrive(ctx, m.id, reach.path, { cause: 'walk', origin: null, landing: true });
+  if (!r.interrupted) slipInFog(ctx, m, m.lastMove);
   if (ctx.log.length > seen) m.undo = null; // a jar or a stain answered: the step is final
 }
 
@@ -86,5 +89,7 @@ export function enemyWalk(ctx: Ctx, e: EnemyUnit, path: readonly Coord[]): void 
   });
   e.lastMove = lastStepDir(start, path);
   if (ENEMIES[e.def].oilTrail) leaveSlick(ctx, [start, ...path]);
-  arrive(ctx, e.id, path, { cause: 'walk', origin: null, landing: true });
+  stainsAlong(ctx, e.id, path);
+  const r = arrive(ctx, e.id, path, { cause: 'walk', origin: null, landing: true });
+  if (!r.interrupted) slipInFog(ctx, e, e.lastMove);
 }

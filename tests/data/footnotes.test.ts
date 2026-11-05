@@ -12,9 +12,9 @@ import {
 test('footnote variants are unique, and line slots sit on written lines of their subject (P39)', () => {
   const ids = VARIANTS.map((v) => v.id);
   expect(new Set(ids).size).toBe(ids.length);
-  // Line slots so far: levels I and II (Bolt, Shove and Spark so far). Capstones (FN-11: the aura diagonals) sit on no line.
+  // Line slots so far: levels I and II (Bolt, Shove, Spark, Ink and Oil so far). Capstones (FN-11: the aura diagonals) sit on no line.
   const onLines = VARIANTS.filter((v) => variantLine(v) !== null);
-  expect(onLines).toHaveLength(31);
+  expect(onLines).toHaveLength(49);
   for (const v of VARIANTS) {
     expect(v.text.length, v.id).toBeGreaterThan(10);
     expect(isFootnoteSubject(v.subject), v.id).toBe(true);

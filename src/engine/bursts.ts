@@ -14,7 +14,7 @@ import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule } from './habits';
-import { applyMark, spendMark } from './marks';
+import { applyMark, liftMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
 import { push } from './push';
 import { blocksShots, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
@@ -79,6 +79,14 @@ export function markUnit(ctx: Ctx, unit: Unit, origin: Origin | null, flow?: Flo
   noteMet(ctx, 'mark');
 }
 
+/** The first unmarked living unit beside `u`, in reading order (ink-mark-overflow, -pass). */
+export function unmarkedBeside(ctx: Ctx, u: Unit): Unit | null {
+  const beside = neighbors4(u.pos)
+    .sort(byReadingOrder)
+    .flatMap((c) => (inBoard(ctx.s, c) ? (unitAt(ctx.s, c) ?? []) : []));
+  return beside.find((n) => n.hp > 0 && !n.mark) ?? null;
+}
+
 /** Living units within `dist` (Manhattan) of any of `tiles`, in reading order. */
 export function unitsNear(ctx: Ctx, tiles: readonly Coord[], dist: number): Unit[] {
   return manyOf(livingUnits(ctx.s).filter((u) => tiles.some((t) => manhattan(t, u.pos) <= dist)));
@@ -136,6 +144,7 @@ const WIDE_DAMAGE = 1;
 const FOCUS_DAMAGE = 3;
 const SPARE_DAMAGE = 1;
 const CHARGE_DAMAGE = 1;
+const FLARE_DAMAGE = 1;
 
 /** Detonation: 3 to the unit and its mark is spent. Footnotes: wide, keep, blast (`heading` is the spark's). */
 function detonate(ctx: Ctx, u: Unit, heading: Dir | null = null): void {
@@ -228,11 +237,22 @@ function ignite(
   const s = ctx.s;
   const net = oilNet(s, at);
   const tiles = net.length ? net : [at];
+  // `ink-stain-wick`: a stain in the run burns as Inkfire.
+  const wick = id !== 'page:stain' && hasFootnote(ctx, 'ink-stain-wick');
+  const stains = wick ? tiles.filter((c) => tileAt(s, c).state?.id === 'stain') : [];
   const rounds = id === 'fire' && hasFootnote(ctx, 'spark-slick-long') ? 3 : TUNING.fireRounds;
   reserve(ctx, 2); // `named` (first time) and `burst`
   for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null, rounds);
-  const units = unitsNear(ctx, tiles, reachOf(flow));
+  const inked = stains.length ? unitsNear(ctx, stains, reachOf(flow)) : [];
+  const units = unitsNear(ctx, tiles, reachOf(flow)).filter((u) => !inked.includes(u));
   announce(ctx, id, at, tiles, units);
+  if (inked.length) {
+    withLine(ctx, 'ink:stain', () => {
+      announce(ctx, 'page:stain', at, stains, inked);
+      hit(ctx, inked, rowFor('stain').damage, 'Inkfire', at);
+      for (const u of inked) if (u.hp > 0 && !u.mark) markUnit(ctx, u, flow?.origin ?? null);
+    });
+  }
   burnGates(ctx);
   hit(
     ctx,
@@ -323,6 +343,16 @@ function pageDeepMark(ctx: Ctx, u: Unit): void {
   mark.deep = false; // leaves a plain mark
   emit(ctx, { type: 'marked', unit: ref(u), deep: false, bound: mark.bound?.action ?? null });
   hit(ctx, [u], rowFor('deepMark').damage, 'Deep mark', u.pos);
+  // The ink margin: the plain mark left over jumps (pass), or each unit beside takes 1 (flare).
+  const pass = hasFootnote(ctx, 'ink-mark-pass') ? unmarkedBeside(ctx, u) : null;
+  if (pass && u.hp > 0) liftMark(ctx, u, pass, 'ink:mark');
+  if (hasFootnote(ctx, 'ink-mark-flare')) {
+    const from = { ...u.pos };
+    const beside = manyOf(
+      livingUnits(ctx.s).filter((n) => neighbors4(from).some((c) => sameTile(c, n.pos))),
+    );
+    withLine(ctx, 'ink:mark', () => hit(ctx, beside, FLARE_DAMAGE, 'Flare', from));
+  }
 }
 
 function pageShackle(ctx: Ctx, u: Unit, flow: Flow | null): void {

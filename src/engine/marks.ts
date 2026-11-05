@@ -1,12 +1,14 @@
-import type { BindEvent } from '$data';
+import type { BindEvent, LineId } from '$data';
+import { nameOnce, noteMet } from './bursts';
 import { cloneData } from './clone';
 import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
-import { type Coord, type Dir, sameCoord } from './grid';
+import { hasFootnote } from './footnotes';
+import { type Coord, type Dir, neighbors4, sameCoord } from './grid';
 import { habitOf } from './habits';
 import { guardHarm } from './harm';
 import type { Hook } from './hooks';
 import { cloudNet } from './networks';
-import { findUnit, isAlive, isCloud, tileAt, unitAt } from './queries';
+import { findUnit, inBoard, isAlive, isCloud, tileAt, unitAt } from './queries';
 import { runStep, snapshotOf } from './resolve';
 import { trickBeforeHarm } from './rivals/tricks';
 import { turnBack } from './solvents';
@@ -141,9 +143,19 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
   if (!isCloud(tileAt(ctx.s, unit.pos))) return;
   const reached = reachedOf(ctx, mark.lineage);
   const to: Unit[] = [];
-  for (const c of cloudNet(ctx.s, unit.pos)) {
+  const net = cloudNet(ctx.s, unit.pos);
+  // Ink margin: `kin` keeps to the bearer's side, `seep` adds the units beside the cloud, and
+  // `deep` also reaches a marked unit (deepening it).
+  const cells = hasFootnote(ctx, 'ink-spread-seep')
+    ? [...net, ...net.flatMap((c) => neighbors4(c).filter((n) => inBoard(ctx.s, n)))]
+    : net;
+  const deeper = hasFootnote(ctx, 'ink-spread-deep');
+  const kin = hasFootnote(ctx, 'ink-spread-kin');
+  for (const c of cells) {
     const u = unitAt(ctx.s, c);
-    if (!u || u.id === unit.id || u.mark || reached.includes(u.id)) continue;
+    if (!u || u.id === unit.id || reached.includes(u.id) || to.includes(u)) continue;
+    if (u.mark && !(deeper && !u.mark.deep)) continue;
+    if (kin && u.kind !== unit.kind) continue;
     to.push(u);
   }
   if (to.length === 0) return;
@@ -152,13 +164,32 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
     return;
   }
   // Plain Ink spreads under Ink's line; a mark that holds an action, or is made to, is Bind's (FN-1A In2).
-  withLine(ctx, mark.bound || carrying.has(ctx) ? 'bind:cloud' : 'ink:spread', () =>
+  const spreadLine: LineId = mark.bound || carrying.has(ctx) ? 'bind:cloud' : 'ink:spread';
+  withLine(ctx, spreadLine, () =>
     withOrigin(ctx, mark.origin, () => {
       for (const u of to) {
-        u.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null };
+        if (u.mark) {
+          u.mark = { ...u.mark, deep: true };
+          noteMet(ctx, 'deepMark');
+          nameOnce(ctx, 'compound', 'deepMark');
+          emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'deepMark' });
+        } else {
+          u.mark = { ...mark, bound: mark.bound ? cloneData(mark.bound) : null };
+        }
         reached.push(u.id);
       }
       emit(ctx, { type: 'markSpread', from: ref(unit), to: to.map((u) => ref(u)) });
+      // `ink-spread-brand`: the cloud it spread through takes the ink.
+      if (spreadLine === 'ink:spread' && hasFootnote(ctx, 'ink-spread-brand')) {
+        for (const c of net) {
+          const layer = tileAt(ctx.s, c).state;
+          if (layer?.id !== 'cloud') continue;
+          tileAt(ctx.s, c).state = { ...layer, id: 'brandCloud' };
+          noteMet(ctx, 'brandCloud');
+          nameOnce(ctx, 'compound', 'brandCloud');
+          emit(ctx, { type: 'mixed', at: { ...c }, compound: 'brandCloud' });
+        }
+      }
     }),
   );
 }
@@ -167,10 +198,10 @@ export function spreadFrom(ctx: Ctx, unit: Unit): void {
  * Lift: moves the mark, with whatever it holds, to another unit. It keeps its lineage and spread
  * history and does not spread again (limit 3). Returns false when there is nothing to move.
  */
-export function liftMark(ctx: Ctx, from: Unit, to: Unit): boolean {
+export function liftMark(ctx: Ctx, from: Unit, to: Unit, line: LineId = 'lift:unit'): boolean {
   const mark = from.mark;
   if (!mark || to.mark || from.id === to.id || !isAlive(to)) return false;
-  withLine(ctx, 'lift:unit', () =>
+  withLine(ctx, line, () =>
     withOrigin(ctx, mark.origin, () => {
       from.mark = null;
       to.mark = mark;

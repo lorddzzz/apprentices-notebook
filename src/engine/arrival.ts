@@ -3,6 +3,7 @@ import { HABIT_ARRIVAL_HOOKS } from './arrival-habits';
 import { chargeTrip } from './bursts';
 import { type Ctx, fizzled } from './ctx';
 import { KIT } from './districts/kit';
+import { hasFootnote } from './footnotes';
 import { type Coord, sameCoord } from './grid';
 import { openJar, stepOpens } from './jars';
 import * as marks from './marks';
@@ -280,11 +281,16 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
   },
   {
     id: 'stain',
-    answers: 'landing',
+    answers: 'each',
     subjects: ['unit'],
     exceptCauses: ['drift'],
     exempt: ['flies'],
-    run: onUnit((ctx, u) => stainMarks(ctx, u)),
+    // Landing only, unless `ink-stain-pushed` lets a push or slide mark on every tile it crosses.
+    run: onUnit((ctx, u, a) => {
+      const across =
+        ['push', 'slide', 'pull'].includes(a.cause) && hasFootnote(ctx, 'ink-stain-pushed');
+      if (a.landing || across) stainMarks(ctx, u);
+    }),
   },
   // P8: fire burns at round end, not on arrival. The slot holds spark-plate-charge's trip.
   {
@@ -403,6 +409,21 @@ function runUnit(
  */
 export const arrive: ArriveFn = (ctx, unit, entered, opts) =>
   runUnit(ctx, unit, entered, opts, true);
+
+/**
+ * `ink-stain-wet`: a walker crosses each tile of its path before the last; a stain there marks it
+ * (the walk's own arrival then answers only on the landing). Called by `movement.ts` first.
+ */
+export function stainsAlong(ctx: Ctx, id: UnitId, path: readonly Coord[]): void {
+  const u = findUnit(ctx.s, id);
+  if (!u || !hasFootnote(ctx, 'ink-stain-wet') || hasTrait(u, 'flies')) return;
+  const home = { ...u.pos };
+  for (const c of path.slice(0, -1)) {
+    u.pos = { ...c };
+    stainMarks(ctx, u);
+  }
+  u.pos = home;
+}
 
 /** A jar, state or piece arrived on `at` (P6); the mover has already put it there. */
 export const objectArrives: ObjectArrivesFn = (ctx, object, at, opts) => {

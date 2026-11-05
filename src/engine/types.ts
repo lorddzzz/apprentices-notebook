@@ -215,6 +215,8 @@ export interface Layer {
   slid?: number;
   /** Brass a conduct left charged (spark-plate-charge): the round it holds for. */
   charged?: number;
+  /** A pool that leaves a blot where it clears (oil-slick-short). */
+  dregs?: true;
 }
 export interface Terrain {
   water: Dir | null; // canal lane and its current (K-6)

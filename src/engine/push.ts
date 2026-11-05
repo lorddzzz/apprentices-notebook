@@ -210,7 +210,8 @@ export function planPush(ctx: Ctx, unit: Unit, dir: Dir, tiles: number): PushPla
     path.push(next);
     allowance--;
     const layer = tileAt(s, next).state as Layer | null;
-    if (!flies(unit) && layer && SLICK.has(layer.id) && layer.slid !== s.round) {
+    const heavy = unit.mark?.deep === true && hasFootnote(ctx, 'ink-mark-heavy');
+    if (!flies(unit) && !heavy && layer && SLICK.has(layer.id) && layer.slid !== s.round) {
       slicks.push(layer);
       allowance = Math.max(allowance, hasFootnote(ctx, 'shove-slick-far') ? 2 : 1);
     }

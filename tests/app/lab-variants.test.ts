@@ -39,7 +39,9 @@ describe('Lab variant toggles (pure)', () => {
     expect(rows.map((r) => r.id).sort()).toEqual(VARIANTS.map((v) => v.id).sort());
     const oil = groups.find((g) => g.subject === 'oil');
     expect(oil?.name).toBe('Oil');
-    expect(oil?.rows.map((r) => r.slot)).toEqual(['Level I', 'Level I']);
+    const slots = oil?.rows.map((r) => r.slot) ?? [];
+    expect(slots.filter((x) => x === 'Level I')).toHaveLength(4);
+    expect(slots.filter((x) => x === 'Level II')).toHaveLength(4);
   });
 });
 

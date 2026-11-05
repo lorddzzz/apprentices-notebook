@@ -18,13 +18,16 @@ import {
   noteMet,
   runThunderheads,
   sparkLine,
+  unmarkedBeside,
 } from './bursts';
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, neighbors4 } from './grid';
+import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule } from './habits';
+import { cloudNet } from './networks';
 import { strikePiece } from './pieces';
+import { push } from './push';
 import {
   blocksUnits,
   coordOf,
@@ -146,12 +149,35 @@ function soakNeighbours(ctx: Ctx, at: Coord, flow: Flow | null): void {
   if (hasFootnote(ctx, 'oil-slick-corners')) {
     for (const x of [-1, 1]) for (const y of [-1, 1]) neighbors.push({ x: at.x + x, y: at.y + y });
   }
+  // `oil-slick-lane`: one more tile ahead along the spell's heading.
+  const ahead = hasFootnote(ctx, 'oil-slick-lane') ? headingAt(ctx, flow, at) : null;
+  if (ahead) neighbors.push(step(step(at, ahead), ahead));
+  const seep = hasFootnote(ctx, 'oil-slick-seep'); // a blot becomes a stain, not a slick
   for (const n of neighbors.sort(byReadingOrder)) {
     if (!inBoard(s, n)) continue;
     const t = tileAt(s, n);
     if (blocksUnits(t) || (t.state && t.state.id !== 'blot')) continue;
+    if (seep && t.state?.id === 'blot') {
+      t.state = newLayer('stain', 'oil', flow);
+      noteMet(ctx, 'stain');
+      nameOnce(ctx, 'compound', 'stain');
+      emit(ctx, { type: 'mixed', at: { ...n }, compound: 'stain' });
+      continue;
+    }
     emit(ctx, { type: 'landed', kind: 'oil', at: { ...n }, makes: 'slick' });
     t.state = newLayer('slick', 'oil', flow);
+  }
+}
+
+/** `oil-cloud-wide`: every other tile of the connected cloud turns to grease fog too. */
+function greaseCloud(ctx: Ctx, at: Coord, flow: Flow | null): void {
+  for (const c of cloudNet(ctx.s, at)) {
+    if (c.x === at.x && c.y === at.y) continue;
+    const t = tileAt(ctx.s, c);
+    if (t.state?.id !== 'cloud') continue;
+    t.state = newLayer('greaseFog', 'oil', flow);
+    if (hasFootnote(ctx, 'oil-cloud-long')) t.state.rounds += 1;
+    emit(ctx, { type: 'mixed', at: { ...c }, compound: 'greaseFog' });
   }
 }
 
@@ -187,11 +213,15 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
       tile.state = newLayer(row.makes, kind, flow);
       if (row.makes === 'pool' && hasFootnote(ctx, 'oil-slick-short') && tile.state.rounds > 0) {
         tile.state.rounds -= 1;
+        tile.state.dregs = true; // the blot it leaves when it clears
       }
+      if (row.makes === 'greaseFog' && hasFootnote(ctx, 'oil-cloud-long')) tile.state.rounds += 1;
       noteMet(ctx, row.makes);
       nameOnce(ctx, 'compound', row.makes);
       emit(ctx, { type: 'mixed', at: { ...at }, compound: row.makes });
       if (row.makes === 'pool') soakNeighbours(ctx, at, flow);
+      if (row.makes === 'greaseFog' && hasFootnote(ctx, 'oil-cloud-wide'))
+        greaseCloud(ctx, at, flow);
     });
     return;
   }
@@ -236,6 +266,15 @@ function washUnit(ctx: Ctx, kind: Plain, u: Unit, was: CompoundId): void {
   emit(ctx, { type: 'washed', at: { ...u.pos }, was, now: PLAIN[kind] });
 }
 
+/** A plain mark becomes a deep one (Ink on a mark, `ink-stain-deepen`, `ink-spread-deep`). */
+export function deepen(ctx: Ctx, u: Unit): void {
+  if (!u.mark || u.mark.deep) return;
+  u.mark = { ...u.mark, deep: true };
+  noteMet(ctx, 'deepMark');
+  nameOnce(ctx, 'compound', 'deepMark');
+  emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'deepMark' });
+}
+
 function inkOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
   if (u.shackle > 0) {
     withLine(ctx, washLine('ink'), () => {
@@ -251,12 +290,11 @@ function inkOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
       washUnit(ctx, 'ink', u, 'deepMark');
     });
   } else if (u.mark) {
-    withLine(ctx, line('ink', 'mark'), () => {
-      u.mark = { ...u.mark, deep: true } as NonNullable<Unit['mark']>;
-      noteMet(ctx, 'deepMark');
-      nameOnce(ctx, 'compound', 'deepMark');
-      emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'deepMark' });
-    });
+    // `ink-mark-overflow`: the ink runs over to a neighbour instead (no one beside: a deep mark).
+    const over = hasFootnote(ctx, 'ink-mark-overflow') ? unmarkedBeside(ctx, u) : null;
+    if (over)
+      withLine(ctx, line('ink', 'mark'), () => markUnit(ctx, over, flow?.origin ?? null, flow));
+    else withLine(ctx, line('ink', 'mark'), () => deepen(ctx, u));
   } else {
     markUnit(ctx, u, flow?.origin ?? null, flow);
   }
@@ -390,6 +428,8 @@ export function decayStates(ctx: Ctx): void {
   spreadSteep(ctx);
   const faded: Coord[] = [];
   const burnt: Coord[] = []; // fire that left something behind (spark-slick-smoke, -soot)
+  const dregs: Coord[] = []; // a short pool's blot (oil-slick-short)
+  const dripped: Coord[] = []; // grease fog's slick (oil-cloud-drip)
   s.tiles.forEach((t, i) => {
     const l = t.state;
     if (!l || l.rounds === 0 || l.set) return;
@@ -399,6 +439,16 @@ export function decayStates(ctx: Ctx): void {
     }
     l.rounds--;
     if (l.rounds > 0) return;
+    if (l.id === 'pool' && l.dregs) {
+      t.state = { id: 'blot', rounds: 0, origin: l.origin };
+      dregs.push(coordOf(s, i));
+      return;
+    }
+    if (l.id === 'greaseFog' && hasFootnote(ctx, 'oil-cloud-drip')) {
+      t.state = { id: 'slick', rounds: 0, origin: l.origin };
+      dripped.push(coordOf(s, i));
+      return;
+    }
     t.state = l.id === 'fire' ? fireLeaves(ctx, l) : null;
     (t.state ? burnt : faded).push(coordOf(s, i));
   });
@@ -410,7 +460,23 @@ export function decayStates(ctx: Ctx): void {
   if (burnt.length) {
     withLine(ctx, sparkLine('slick'), () => emit(ctx, { type: 'stateFades', tiles: burnt }));
   }
+  if (dregs.length) {
+    withLine(ctx, line('oil', 'slick'), () => emit(ctx, { type: 'stateFades', tiles: dregs }));
+  }
+  if (dripped.length) {
+    withLine(ctx, line('oil', 'cloud'), () => {
+      emit(ctx, { type: 'stateFades', tiles: dripped });
+      for (const at of dripped) emit(ctx, { type: 'landed', kind: 'oil', at, makes: 'slick' });
+    });
+  }
   if (faded.length) emit(ctx, { type: 'stateFades', tiles: faded });
+}
+
+/** `oil-cloud-slip`: a unit that walked and rests in grease fog slides one tile on. */
+export function slipInFog(ctx: Ctx, unit: Unit, dir: Dir | null): void {
+  if (!dir || !isAlive(unit) || !hasFootnote(ctx, 'oil-cloud-slip')) return;
+  if (tileAt(ctx.s, unit.pos).state?.id !== 'greaseFog') return;
+  withLine(ctx, line('oil', 'cloud'), () => push(ctx, unit, dir, 1, null));
 }
 
 /** The tiles holding `id`, in reading order. */
@@ -472,7 +538,14 @@ export function roundEndChemistry(ctx: Ctx): void {
 /** A stain marks an unmarked unit that ends its move on it. E3's movement calls it after a move. */
 export function stainMarks(ctx: Ctx, unit: Unit): void {
   const layer = tileAt(ctx.s, unit.pos).state;
-  if (layer?.id !== 'stain' || unit.mark || !isAlive(unit)) return;
+  if (layer?.id !== 'stain' || !isAlive(unit)) return;
+  if (unit.mark) {
+    if (!hasFootnote(ctx, 'ink-stain-deepen') || unit.mark.deep) return;
+    withOrigin(ctx, layer.origin, () =>
+      withLine(ctx, line('ink', 'stain'), () => deepen(ctx, unit)),
+    );
+    return;
+  }
   withOrigin(ctx, layer.origin, () =>
     withLine(ctx, line('ink', 'stain'), () => markUnit(ctx, unit, layer.origin)),
   );
