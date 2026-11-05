@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { APPRENTICES, encountersOf, MEMBERS } from '$data';
-  import { compiledFor, type Profile, type Trip } from '$engine';
+  import { APPRENTICES, MEMBERS } from '$data';
+  import { compiledFor, type Profile, roomsOf, type Trip } from '$engine';
   import { termStatusLines } from '../../../app/inkTerms';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
@@ -35,7 +35,7 @@
 
 <div class="status" class:large data-testid="trip-status">
   <p class="depth">
-    {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {encountersOf(trip.district).length}
+    {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {roomsOf(trip).length}
     <span class="finds">· {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
   </p>
   {#each terms as t, i (i)}

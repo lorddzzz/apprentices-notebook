@@ -39,6 +39,8 @@ export interface DistrictUi {
   solvedArt?: Readonly<Record<string, Component>>;
   /** A line above the way home on the bottom screen of this district's trips (the lower Seam's door, SM-10): draws itself or nothing. */
   crossroadsLine?: Component<{ trip: Trip; profile: Profile }>;
+  /** Drawn under another district's node on the map (the lower Seam's stair under the Seam, SM-11): `onsetout` opens Set out for this district. */
+  underNode?: Component<{ profile: Profile; onsetout: () => void; floors?: readonly DistrictId[] }>;
   /** A sheet the district's node on the map opens beside "set out" (the Seam's owner's margin, SM-5). */
   mapSheet?: {
     label: string;

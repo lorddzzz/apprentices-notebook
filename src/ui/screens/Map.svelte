@@ -3,7 +3,7 @@
   import type { DistrictId } from '$data';
   import { seeMap } from '$engine';
   import type { StartAt } from '$engine/districts/types';
-  import { MAP_PAGE_HEIGHT, mapNodes, mapPaths, underSeam } from '../../app/city';
+  import { MAP_PAGE_HEIGHT, mapNodes, mapPaths } from '../../app/city';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
   import { toast } from '../../app/toasts.svelte';
@@ -15,7 +15,9 @@
   const freshOnArrival = new Set<DistrictId>(game.profile.city.fresh);
   const nodes = $derived(mapNodes(game.profile).map((n) => ({ ...n, fresh: freshOnArrival.has(n.id) })));
   const paths = $derived(mapPaths(nodes));
-  const under = $derived(underSeam(game.profile));
+  const UnderNode = DISTRICT_UI.lowerSeam?.underNode;
+  // Dev check only: `window.__lowerFloors = [...]` draws fixture floors under the Seam.
+  const fixtureFloors = import.meta.env.DEV ? (window as { __lowerFloors?: DistrictId[] }).__lowerFloors : undefined;
   let target = $state<DistrictId | null>(null);
   /** A district's own map sheet (the Seam's margin) that is open. */
   let sheetOf = $state<DistrictId | null>(null);
@@ -88,16 +90,11 @@
   {/if}
 </div>
 
-<!-- The slot under the Seam (DK-E5): the lower Seam's stair, and the owner's door beside it. SM draws both into it. -->
+<!-- The slot under the Seam (DK-E5, SM-11): the lower Seam draws its stair, floors and the owner's door into it. -->
 {#snippet underSeamSlot()}
-  <div class="under" data-testid="under-seam" data-stair={under.stair} data-door={under.door}>
-    {#if under.stair}
-      <span class="stem"></span>
-      <svg class="stair" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3 20h5v-4h5v-4h5V8h3" />
-      </svg>
-    {/if}
-  </div>
+  {#if UnderNode}
+    <UnderNode profile={game.profile} floors={fixtureFloors} onsetout={() => (target = 'lowerSeam')} />
+  {/if}
 {/snippet}
 
 <style>
@@ -162,26 +159,5 @@
   line.dashed {
     stroke: var(--ink-faint);
     stroke-dasharray: 3 6;
-  }
-  .under {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 90px;
-    color: var(--ink-soft);
-  }
-  .stem {
-    width: 0;
-    height: 28px;
-    border-left: 2px dashed var(--ink-faint);
-  }
-  .stair {
-    width: 32px;
-    height: 32px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
   }
 </style>

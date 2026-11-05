@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { encountersOf } from '$data';
-  import { tripParty } from '$engine';
+  import { roomsOf, tripParty } from '$engine';
   import { shapeOf } from '$engine/trip/shape';
   import { game } from '../../app/instance';
   import BattleView from '../components/battle/BattleView.svelte';
@@ -16,7 +15,7 @@
   // The strip follows the party's slots, not whoever the battle listed first.
   const slots = $derived(tripParty(game.profile));
   const depth = $derived((game.save.trip?.encounter ?? 0) + 1);
-  const rooms = $derived(encountersOf(game.save.trip?.district ?? 'seam').length);
+  const rooms = $derived(game.save.trip ? roomsOf(game.save.trip).length : 0);
   // The room's optional bonus (CN-10): a crate goal reads its state off the board.
   const bonus = $derived.by(() => {
     const trip = game.save.trip;

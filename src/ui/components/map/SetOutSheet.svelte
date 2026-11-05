@@ -2,6 +2,7 @@
   import { APPRENTICES, type DistrictId } from '$data';
   import { compiledFor, describeSpell, type Profile, tripParty } from '$engine';
   import type { StartAt } from '$engine/districts/types';
+  import { TUNED_FOR, TUNED_LINE } from '../../../app/city';
   import { startCheckpoint } from '../../../app/crossroads';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Button from '../common/Button.svelte';
@@ -41,6 +42,10 @@
         : `${carried.length} of the household go; the rest stay home.`
       : null,
   );
+  // The lower Seam is tuned for three (SM-11): fewer slotted is said once, quietly.
+  const tunedLine = $derived(
+    district === 'lowerSeam' && carried.length > 0 && carried.length < TUNED_FOR ? TUNED_LINE : null,
+  );
 </script>
 
 <Sheet {open} title="Set out?" {onclose}>
@@ -62,6 +67,7 @@
       {/each}
     </ul>
     {#if staying}<p class="staying" data-testid="staying">{staying}</p>{/if}
+    {#if tunedLine}<p class="staying" data-testid="tuned">{tunedLine}</p>{/if}
   {/if}
   {#if doorway && carried.length > 0}
     <fieldset class="starts" data-testid="starts">

@@ -5,12 +5,12 @@ import {
   type DistrictLean,
   type MapEntry,
 } from '$data/districts/index';
-import { type DistrictState, districtState, type Profile } from '$engine';
-import { type DoorState, lowerSeamOpen, ownerDoor } from '$engine/districts/lowerSeam';
+import { type DistrictState, districtState, type Profile, tripParty } from '$engine';
+import { type DoorState, floorsFor, lowerSeamOpen, ownerDoor } from '$engine/districts/lowerSeam';
 import { startCheckpoint } from './crossroads';
 
 /** The page the map is drawn on is this tall (px); `x`/`y` in the data are percents of it (BL-95). */
-export const MAP_PAGE_HEIGHT = 1160;
+export const MAP_PAGE_HEIGHT = 1500;
 /** A node's caption is this wide (px); the layout check and the CSS share it. */
 export const MAP_CAPTION_WIDTH = 150;
 
@@ -144,13 +144,52 @@ export function nodeTag(n: MapNode): string {
   return [n.leanText, n.guild].filter(Boolean).join(' · ');
 }
 
-/** What the slot under the Seam shows (DK-E5): SM draws the stair and the door into it. */
+/** One floor of the lower Seam, as the stair lists it (SM-11). */
+export interface StairFloor {
+  id: DistrictId;
+  label: string;
+}
+
+/** What the slot under the Seam shows (DK-E5; SM-11): the stair, its floors, the quiet line and the owner's door. */
 export interface UnderSeam {
   stair: boolean; // the lower Seam is open
   door: DoorState; // the owner's door: hidden, sealed or open
+  /** One per floor, in opening order. Empty while no opened district ships an intrusion. */
+  floors: StairFloor[];
+  /** Set out is offered (at least one floor). */
+  canSetOut: boolean;
+  /** A quiet line under the stair, or null: nothing below yet, or tuned for three with fewer slotted. */
+  quiet: string | null;
 }
-export function underSeam(p: Profile): UnderSeam {
-  return { stair: lowerSeamOpen(p), door: ownerDoor(p) };
+
+/** The lower Seam is tuned for three (SM P7); fewer is a pure challenge, said once and quietly. */
+export const TUNED_FOR = 3;
+export const TUNED_LINE = 'Tuned for three.';
+export const NOTHING_BELOW = 'Nothing below yet. The page waits for the city.';
+
+/** `party` and `floors` default to the profile's own; tests and fixtures pass theirs. */
+export function underSeam(
+  p: Profile,
+  party: number = tripParty(p).length,
+  floors: readonly DistrictId[] = floorsFor(p),
+): UnderSeam {
+  const stair = lowerSeamOpen(p);
+  const quiet = !stair
+    ? null
+    : floors.length === 0
+      ? NOTHING_BELOW
+      : party < TUNED_FOR
+        ? TUNED_LINE
+        : null;
+  return {
+    stair,
+    door: ownerDoor(p),
+    floors: stair
+      ? floors.map((id, i) => ({ id, label: `Floor ${i + 1}: ${DISTRICTS[id].name}` }))
+      : [],
+    canSetOut: stair && floors.length > 0,
+    quiet,
+  };
 }
 
 // ── Layout check ────────────────────────────────────────
@@ -166,7 +205,7 @@ const MARK = 28;
 const OPEN_CAPTION = 70;
 const HEARD_CAPTION = 165;
 const LOCK_BUTTON = 48;
-const UNDER_SEAM = 90;
+const UNDER_SEAM = 260; // the margin link, stem, stair, five floor labels, a quiet line and the door
 
 export function nodeBox(n: MapNode, pageWidth: number, pageHeight = MAP_PAGE_HEIGHT): Box {
   const cx = (n.x / 100) * pageWidth;

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { encountersOf } from '$data';
-  import { placeOf } from '$engine';
+  import { placeOf, roomsOf } from '$engine';
   import { shapeOf } from '$engine/trip/shape';
   import { inSentence } from '../../app/describe';
   import { settledTermLine } from '../../app/inkTerms';
@@ -25,7 +24,7 @@
   const bonus = $derived.by(() => {
     if (!trip?.kit?.bonuses.includes(trip.encounter)) return null;
     const room = shapeOf(trip.district).bonuses?.[trip.encounter];
-    const base = encountersOf(trip.district)[trip.encounter]?.picks ?? 1;
+    const base = roomsOf(trip)[trip.encounter]?.picks ?? 1;
     return room?.reward.kind === 'pick' && trip.picksLeft > base ? room : null;
   });
 

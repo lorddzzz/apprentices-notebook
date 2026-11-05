@@ -246,7 +246,7 @@ export const SEAM_KIT: DistrictData = {
   barred: '',
   lean: { lean: 'ink', text: 'All five materials' },
   // The root of the map: the six districts branch up from it, its caption and the stair go below.
-  map: { x: 50, y: 79, label: 'below' },
+  map: { x: 50, y: 72, label: 'below' },
   ret: { kind: 'any' },
 };
 

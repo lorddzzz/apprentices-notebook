@@ -9,13 +9,20 @@
   // The bottom of a trip is this screen, not a Crossroads; a district may add a line above the
   // way home (the lower Seam's door, SM-10).
   const Line = $derived(trip ? DISTRICT_UI[trip.district]?.crossroadsLine : undefined);
+  // The lower Seam has no heart: its bottom floor is quiet, not the Marginalia's page.
+  const lower = $derived(trip?.district === 'lowerSeam');
 </script>
 
 {#if trip}
   <section class="cleared" data-testid="cleared">
     <header>
-      <h1>The heart of the Seam is quiet.</h1>
-      <p>Nothing deeper answers. Take it all home.</p>
+      {#if lower}
+        <h1>The stair ends here.</h1>
+        <p>The lowest floor is quiet. Take it all home.</p>
+      {:else}
+        <h1>The heart of the Seam is quiet.</h1>
+        <p>Nothing deeper answers. Take it all home.</p>
+      {/if}
     </header>
 
     <div class="mid">

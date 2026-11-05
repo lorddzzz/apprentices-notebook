@@ -180,9 +180,14 @@ describe('the map for seven (DK-16)', () => {
   });
 
   test('the slot under the Seam follows the lower Seam and the owner door', () => {
-    expect(underSeam(newProfile())).toEqual({ stair: false, door: 'hidden' });
+    expect(underSeam(newProfile())).toMatchObject({
+      stair: false,
+      door: 'hidden',
+      floors: [],
+      quiet: null,
+    });
     const cleared = withCity(newProfile(), { hearts: ['seam'] });
-    expect(underSeam(cleared)).toEqual({ stair: true, door: 'hidden' });
+    expect(underSeam(cleared)).toMatchObject({ stair: true, door: 'hidden' });
     const seen = withCity(cleared, { doorSeen: true } as Partial<Profile['city']>);
     expect(underSeam(seen).door).toBe('sealed');
     const open = withCity(seen, { hearts: ['seam', 'cartographers'] });
