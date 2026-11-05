@@ -1,8 +1,17 @@
-import type { AttackDef, EnemyDef, LootEntry, LootTableDef, RuneId, SolventId } from '../types';
+import type {
+  AttackDef,
+  EncounterVariant,
+  EnemyDef,
+  LootEntry,
+  LootTableDef,
+  RuneId,
+  SolventId,
+} from '../types';
 import {
   BATH_FOE_TOKENS,
   BATH_TABLE_IDS,
   BATH_TOKENS,
+  type BathRoomDef,
   type BathTableId,
   type HeatLevel,
 } from './bathhouses/types';
@@ -234,3 +243,131 @@ export const BATH_ENEMIES = {
   boilerman: BOILERMAN,
   dissolvedBather: DISSOLVED_BATHER,
 } as const;
+
+// ── Rooms 1 and 2 (BH-6) ────────────────────────────────
+/**
+ * Rooms 1 and 2 of the thermae (bathhouses-plan BH-6): three layouts each. Room 1 is 6x8 at heat 1
+ * (an attendant, a boilerman beside the one vent, two rats); room 2 is 6x9 at heat 2 (an attendant,
+ * a boilerman beside the one vent, a rat and a bather who starts dissolved in a cloud). Tokens: `t`
+ * attendant, `c` boilerman, `s` bather, `r` rat, `@` vent, `~` cloud.
+ *
+ * Authoring rules (*tune by playing*): one vent a room, so the vent alone takes at least four
+ * rounds to fill the gauge (the party's own clouds are what hurry it); every `P` stands in the
+ * bottom rows, three or more tiles from any foe, so a 5 to 6 HP body is never hit before its
+ * first action; every start cloud keeps an open tile beside it (the bather has a tile to step
+ * out to, and the party a tile to stand on beside a cloud).
+ */
+const bathBoard = (rows: readonly string[]): string => rows.join('\n');
+
+function bathRoom(
+  id: string,
+  title: string,
+  depth: number,
+  heatBase: HeatLevel,
+  variants: readonly EncounterVariant[],
+): BathRoomDef {
+  return {
+    id,
+    title,
+    depth,
+    layout: variants[0]?.layout ?? '',
+    variants,
+    loot: tableForHeat(heatBase),
+    picks: PICKS_BY_HEAT[heatBase],
+    heart: false,
+    heatBase,
+  };
+}
+
+const BATH_1: readonly EncounterVariant[] = [
+  {
+    name: 'The changing hall',
+    layout: bathBoard([
+      '. . r . . .',
+      '. . @ c . .',
+      '. t . . . r',
+      '. . . . . .',
+      '. . . . . .',
+      '. . . . . .',
+      'P . P . P .',
+      '. P . . . P',
+    ]),
+  },
+  {
+    name: 'The scrubbing floor',
+    layout: bathBoard([
+      '. r . . . .',
+      '@ c . . t .',
+      '. . . . . .',
+      '. . r . . .',
+      '. . . . . .',
+      '. . . . . .',
+      '. P . P . P',
+      'P . . . . P',
+    ]),
+  },
+  {
+    name: 'The tepidarium',
+    layout: bathBoard([
+      '. . . . r .',
+      '. . . ~ @ c',
+      '. r ~ ~ . .',
+      '. . . . . .',
+      '. t . . . .',
+      '. . . . . .',
+      'P . P . . P',
+      '. . . P . .',
+    ]),
+  },
+];
+
+const BATH_2: readonly EncounterVariant[] = [
+  {
+    name: 'The steam gallery',
+    layout: bathBoard([
+      '. . . . . .',
+      '. s~ ~ @ c .',
+      '. . ~ . . .',
+      '. . . . . r',
+      '. t . . . .',
+      '. . . . . .',
+      '. . . . . .',
+      'P . P . . P',
+      '. P . . P .',
+    ]),
+  },
+  {
+    name: 'The laundry',
+    layout: bathBoard([
+      '. r . . . .',
+      '@ c . . ~ s~',
+      '. . . . ~ .',
+      '. . . . . .',
+      '. . t . . .',
+      '. . . . . .',
+      '. . . . . .',
+      '. P . P . P',
+      'P . . . P .',
+    ]),
+  },
+  {
+    name: 'The boiler passage',
+    layout: bathBoard([
+      '. . . . . r',
+      '. . . ~ . .',
+      'c @ ~ s~ . .',
+      '. . . . . .',
+      '. . . . t .',
+      '. . . . . .',
+      '. . . . . .',
+      'P . P . . .',
+      '. P . P . P',
+    ]),
+  },
+];
+
+/** Rooms 1 and 2 (heat 1, heat 2), loot from the room's base heat table. */
+export const BATH_ROOMS_12: readonly BathRoomDef[] = [
+  bathRoom('bath-changing', 'The changing hall', 1, 1, BATH_1),
+  bathRoom('bath-gallery', 'The steam gallery', 2, 2, BATH_2),
+];
