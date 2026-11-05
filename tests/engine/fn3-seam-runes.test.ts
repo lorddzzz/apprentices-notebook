@@ -112,6 +112,17 @@ const LEVEL_ONE = [
   ['fork-cap-behind', 'fork@cap'],
   ['bend-cap-turn', 'bend@cap'],
   ['bend-cap-back', 'bend@cap'],
+  // FN-C7 capstones
+  ['ink-cap-trail', 'ink@cap'],
+  ['ink-cap-seen', 'ink@cap'],
+  ['oil-cap-slip', 'oil@cap'],
+  ['oil-cap-skate', 'oil@cap'],
+  ['steam-cap-carry', 'steam@cap'],
+  ['steam-cap-scald', 'steam@cap'],
+  ['brass-cap-magnet', 'brass@cap'],
+  ['brass-cap-net', 'brass@cap'],
+  ['spark-cap-pyre', 'spark@cap'],
+  ['spark-cap-arc', 'spark@cap'],
 ] as const;
 
 describe('FN-3: level-I variants live in the seam-runes batch under stable ids', () => {

@@ -217,6 +217,8 @@ export interface Layer {
   slid?: number;
   /** Brass a conduct left charged (spark-plate-charge): the round it holds for. */
   charged?: number;
+  /** A cloud landed on a unit's tile that scalds it at round end (steam-cap-scald). */
+  scalds?: true;
   /** A pool that leaves a blot where it clears (oil-slick-short). */
   dregs?: true;
 }

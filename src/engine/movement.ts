@@ -1,11 +1,12 @@
 import { ENEMIES, TUNING } from '$data';
 import { arrive, relocateAll, stainsAlong } from './arrival';
 import { type Ctx, emit, ref } from './ctx';
+import { hasFootnote } from './footnotes';
 import { type Coord, DIRS, type Dir, key, sameCoord, step } from './grid';
-import { slipInFog } from './mix';
+import { landKindFree, slipInFog } from './mix';
 import { push } from './push';
-import { reachable, tileAt, unitAt } from './queries';
-import type { EnemyUnit, MemberUnit } from './types';
+import { isAlive, reachable, tileAt, unitAt } from './queries';
+import type { EnemyUnit, MemberUnit, Unit } from './types';
 
 /** The direction of the last step of a walk (P22: Touch on yourself takes it). */
 function lastStepDir(from: Coord, path: readonly Coord[]): Dir | null {
@@ -28,6 +29,43 @@ function straightRun(from: Coord, path: readonly Coord[]): number {
   return run;
 }
 
+/**
+ * After a walk's arrival: `ink-cap-trail` (a marked walker leaves a blot where it started) and
+ * `oil-cap-slip` (a walker that rests on a slick slides one tile on).
+ */
+function walkFollowUps(
+  ctx: Ctx,
+  u: Unit,
+  from: Coord,
+  marked: boolean,
+  interrupted: boolean,
+): void {
+  if (marked && hasFootnote(ctx, 'ink-cap-trail') && isAlive(u) && !unitAt(ctx.s, from)) {
+    landKindFree(ctx, 'ink', { kind: 'tile', at: { ...from } });
+  }
+  if (interrupted || !isAlive(u) || !u.lastMove) return;
+  const dir = u.lastMove;
+  if (tileAt(ctx.s, u.pos).state?.id !== 'slick') return;
+  // `oil-cap-skate`: an apprentice's walk onto a slick goes one tile on, free of its move.
+  if (u.kind === 'member' && hasFootnote(ctx, 'oil-cap-skate')) {
+    const to = step(u.pos, dir);
+    if (reachable(ctx.s, u, 1).has(key(to))) {
+      emit(ctx, {
+        type: 'moved',
+        unit: ref(u),
+        from: { ...u.pos },
+        to: { ...to },
+        path: [{ ...to }],
+        cause: 'walk',
+      });
+      const r = arrive(ctx, u.id, [to], { cause: 'walk', origin: null, landing: true });
+      if (r.interrupted || !isAlive(u)) return;
+    }
+  }
+  if (tileAt(ctx.s, u.pos).state?.id !== 'slick') return;
+  if (hasFootnote(ctx, 'oil-cap-slip')) push(ctx, u, dir, 1, null);
+}
+
 /** Member move action (legality checked by the caller). A walk enters only its landing (P2). */
 export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   const reach = reachable(ctx.s, m, m.move).get(key(to));
@@ -47,8 +85,10 @@ export function moveMember(ctx: Ctx, m: MemberUnit, to: Coord): void {
   m.undo = { from };
   const seen = ctx.log.length;
   stainsAlong(ctx, m.id, reach.path);
+  const marked = m.mark !== null;
   const r = arrive(ctx, m.id, reach.path, { cause: 'walk', origin: null, landing: true });
   if (!r.interrupted) slipInFog(ctx, m, m.lastMove);
+  walkFollowUps(ctx, m, from, marked, r.interrupted);
   if (ctx.log.length > seen) m.undo = null; // a jar or a stain answered: the step is final
 }
 
@@ -105,6 +145,8 @@ export function enemyWalk(ctx: Ctx, e: EnemyUnit, path: readonly Coord[]): void 
   e.lastMove = lastStepDir(start, path);
   if (ENEMIES[e.def].oilTrail) leaveSlick(ctx, [start, ...path]);
   stainsAlong(ctx, e.id, path);
+  const marked = e.mark !== null;
   const r = arrive(ctx, e.id, path, { cause: 'walk', origin: null, landing: true });
   if (!r.interrupted) slipInFog(ctx, e, e.lastMove);
+  walkFollowUps(ctx, e, start, marked, r.interrupted);
 }

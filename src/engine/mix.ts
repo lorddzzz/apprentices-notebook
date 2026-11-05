@@ -23,7 +23,7 @@ import {
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
+import { byReadingOrder, type Coord, DIRS, type Dir, neighbors4, step } from './grid';
 import { habitRule } from './habits';
 import { cloudNet } from './networks';
 import { strikePiece } from './pieces';
@@ -34,14 +34,16 @@ import {
   findUnit,
   inBoard,
   isAlive,
+  isCloud,
   isFire,
+  isPlate,
   livingUnits,
   tileAt,
   unitAt,
 } from './queries';
 import { catchIfHot } from './solvents';
 import { splashSpares } from './targets';
-import type { Flow, Layer, Target, Unit } from './types';
+import type { Flow, Layer, Origin, Target, Unit } from './types';
 
 /**
  * Mixing (design §4.1–4.2, P13–P17). A kind lands on the unit layer (Ink and Brass, if a unit
@@ -360,6 +362,14 @@ function brassOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
   }
 }
 
+/** `brass-cap-net`: a unit caught by a plate you cast is collared (once, owned by the caster). */
+export function netCollar(ctx: Ctx, u: Unit, origin: Origin | null): void {
+  if (u.collar !== false) return;
+  u.collar = origin;
+  noteMet(ctx, 'collar');
+  emit(ctx, { type: 'collared', unit: ref(u) });
+}
+
 function collar(ctx: Ctx, u: Unit, flow: Flow | null): void {
   u.collar = flow ? flow.origin : null;
   noteMet(ctx, 'collar');
@@ -384,7 +394,22 @@ function sparkLand(ctx: Ctx, t: Target, flow: Flow | null): void {
     if (isAlive(unit)) burstHappened = burst(ctx, at, 'unit', flow);
   }
   burstHappened = burst(ctx, at, 'tile', flow) || burstHappened;
-  if (!unit && !burstHappened && !struck) emit(ctx, { type: 'miss', source: 'Spark' });
+  if (!unit && !burstHappened && !struck) {
+    // `spark-cap-arc`: a Spark with nothing to burst arcs to the nearest unit within 2 for 1.
+    const near = hasFootnote(ctx, 'spark-cap-arc')
+      ? livingUnits(ctx.s)
+          .filter((u) => u.id !== flow?.caster)
+          .map((u) => ({ u, d: Math.abs(u.pos.x - at.x) + Math.abs(u.pos.y - at.y) }))
+          .filter((x) => x.d <= 2)
+          .sort((a, b) => a.d - b.d || byReadingOrder(a.u.pos, b.u.pos))[0]
+      : undefined;
+    if (near) {
+      dealDamage(ctx, near.u, CHEMISTRY.arcDamage, 'Arc', [], {
+        heading: null,
+        at: { ...at },
+      });
+    } else emit(ctx, { type: 'miss', source: 'Spark' });
+  }
 }
 
 // ── Entry points ────────────────────────────────────────
@@ -414,6 +439,11 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
   }
   landOnTile(ctx, kind, at, flow);
   if (kind === 'oil') catchIfHot(ctx, at, flow);
+  // `steam-cap-scald`: a cloud landed on a unit's tile scalds that unit at round end.
+  if (kind === 'steam' && hasFootnote(ctx, 'steam-cap-scald')) {
+    const layer = tileAt(ctx.s, at).state;
+    if (layer && isCloud(tileAt(ctx.s, at)) && unitAt(ctx.s, at)) layer.scalds = true;
+  }
 }
 
 // ── The round ───────────────────────────────────────────
@@ -583,6 +613,36 @@ export function roundEndChemistry(ctx: Ctx): void {
       }),
     );
   }
+  // `brass-cap-magnet`: a collared unit two tiles from a plate is pulled one tile toward it.
+  if (hasFootnote(ctx, 'brass-cap-magnet')) {
+    const collared = livingUnits(s)
+      .filter((u) => u.collar !== false)
+      .sort((a, b) => byReadingOrder(a.pos, b.pos));
+    for (const u of collared) {
+      const dir = DIRS.find((d) => {
+        const two = step(step(u.pos, d), d);
+        return inBoard(s, two) && isPlate(tileAt(s, two));
+      });
+      if (dir && u.hp > 0) {
+        withLine(ctx, line('brass', 'plate'), () =>
+          push(ctx, u, dir, 1, u.collar || null, { as: 'pull', crush: false }),
+        );
+      }
+    }
+  }
+  // `steam-cap-scald`: the cloud scalds the unit standing in it for 1.
+  s.tiles.forEach((t, i) => {
+    if (!t.state?.scalds) return;
+    const at = coordOf(s, i);
+    const u = unitAt(s, at);
+    if (!u || habitRule(u).wards?.includes('steam')) return;
+    const layer = t.state;
+    withOrigin(ctx, layer.origin, () =>
+      withLine(ctx, line('steam', 'cloud'), () =>
+        dealDamage(ctx, u, 1, 'Scald', [], { heading: null, at, harm: 'steam' }),
+      ),
+    );
+  });
   const burning = livingUnits(s)
     .filter((u) => isFire(tileAt(s, u.pos)))
     .sort((a, b) => byReadingOrder(a.pos, b.pos));

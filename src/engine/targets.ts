@@ -156,6 +156,21 @@ export function boltTravel(
         : first
       : { ...first, path: [...lead, ...first.path] };
   // `bolt-cloud-through`: the first cloud tile met is passed, if anything lies beyond it.
+  // `ink-cap-seen`: a marked foe in the cloud line is not hidden; the shot stops on it.
+  if (fn('ink-cap-seen') && first.reason === 'cloud') {
+    let cur = first.stop;
+    const way = [...lead, ...first.path];
+    for (let i = first.path.length; i <= remaining; i++) {
+      const u = unitAt(s, cur);
+      if (u && u.kind === 'enemy' && u.mark && u.id !== caster.id) {
+        return { reason: 'unit', path: way, stop: cur, unit: u };
+      }
+      const nxt = step(cur, dir);
+      if (!inBoard(s, nxt) || !isCloud(tileAt(s, nxt))) break;
+      cur = nxt;
+      way.push(nxt);
+    }
+  }
   if (fn('bolt-cloud-through') && first.reason === 'cloud') {
     const left = remaining - first.path.length;
     const beyond = left > 0 ? travel(s, first.stop, dir, left, caster.id) : null;

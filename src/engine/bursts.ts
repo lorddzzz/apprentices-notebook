@@ -106,8 +106,17 @@ function hit(
   from: Coord,
   harm?: HarmKind,
 ): void {
-  for (const u of units)
+  for (const u of units) {
     dealDamage(ctx, u, damage, source, [], { heading: null, at: from, ...(harm ? { harm } : {}) });
+    // `spark-cap-pyre`: a unit a burst kills leaves its tile on fire.
+    if (u.hp <= 0 && hasFootnote(ctx, 'spark-cap-pyre')) {
+      const tile = tileAt(ctx.s, u.pos);
+      if (tile.state === null && !unitAt(ctx.s, u.pos)) {
+        emit(ctx, { type: 'landed', kind: 'spark', at: { ...u.pos }, makes: 'fire' });
+        tile.state = fireLayer(null);
+      }
+    }
+  }
 }
 
 /** Whether a unit's habit wards steam (AH P14): the steam bursts skip it. */

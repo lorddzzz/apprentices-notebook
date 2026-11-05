@@ -659,4 +659,67 @@ export const SEAM_RUNES: readonly VariantDef[] = [
     slot: { capstone: true },
     text: 'When a Bend turns the spell, the runes after it act with the heading reversed.',
   },
+  // FN-C7 capstones: Ink.
+  {
+    id: 'ink-cap-trail',
+    subject: 'ink',
+    slot: { capstone: true },
+    text: 'When a marked unit walks, it leaves a blot on the tile it left.',
+  },
+  {
+    id: 'ink-cap-seen',
+    subject: 'ink',
+    slot: { capstone: true },
+    text: 'When a marked foe stands in a cloud, it is not hidden: Bolt stops on it, not on the cloud.',
+  },
+  // FN-C7 capstones: Oil.
+  {
+    id: 'oil-cap-slip',
+    subject: 'oil',
+    slot: { capstone: true },
+    text: 'When a unit walks onto a slick, it slides one tile on.',
+  },
+  {
+    id: 'oil-cap-skate',
+    subject: 'oil',
+    slot: { capstone: true },
+    text: 'When one of your apprentices walks onto a slick, the next tile along costs no step.',
+  },
+  // FN-C7 capstones: Steam, Brass, Spark.
+  {
+    id: 'steam-cap-carry',
+    subject: 'steam',
+    slot: { capstone: true },
+    text: 'When a unit standing in a cloud is pushed, its cloud tile goes with it.',
+  },
+  {
+    id: 'steam-cap-scald',
+    subject: 'steam',
+    slot: { capstone: true },
+    text: "When you land Steam on a unit's tile, the cloud scalds that unit for 1 at round end.",
+  },
+  {
+    id: 'brass-cap-magnet',
+    subject: 'brass',
+    slot: { capstone: true },
+    text: 'When a collared unit is two tiles from a plate at round end, it is pulled one tile toward it.',
+  },
+  {
+    id: 'brass-cap-net',
+    subject: 'brass',
+    slot: { capstone: true },
+    text: 'When a pushed unit hits a plate you cast, it is caught: no crush, and it is collared.',
+  },
+  {
+    id: 'spark-cap-pyre',
+    subject: 'spark',
+    slot: { capstone: true },
+    text: 'When a burst kills a unit, its tile catches fire.',
+  },
+  {
+    id: 'spark-cap-arc',
+    subject: 'spark',
+    slot: { capstone: true },
+    text: 'When a Spark finds nothing to burst, it arcs to the nearest unit within 2 for 1.',
+  },
 ];

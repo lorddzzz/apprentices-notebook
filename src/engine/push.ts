@@ -4,12 +4,12 @@ import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
+import { byReadingOrder, type Coord, type Dir, neighbors4, sameCoord, step } from './grid';
 import { guardCancels } from './harm';
 import { notify } from './hooks';
-import { landKindFree } from './mix';
+import { landKindFree, netCollar } from './mix';
 import { pieceBlocksUnits, strikePiece } from './pieces';
-import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
+import { blocksUnits, inBoard, isCloud, isPlate, tileAt, unitAt } from './queries';
 import { trickBeforeHarm, trickResists } from './rivals/tricks';
 import type { BattleState, Layer, Origin, Tile, Unit } from './types';
 
@@ -150,6 +150,14 @@ function crush(
   const heavyWall = stop.line === 'shove:wall' && hasFootnote(ctx, 'shove-wall-heavy');
   const damage =
     TUNING.crushBase + (softWall ? 0 : TUNING.crushPerTile * moved) + (heavyWall ? 1 : 0);
+  // `brass-cap-net`: a plate you cast catches the unit: no crush, and it is collared.
+  const netted = stop.into === 'plate' ? tileAt(ctx.s, stop.at).state : null;
+  if (netted?.origin && hasFootnote(ctx, 'brass-cap-net')) {
+    const catchIt = (): void => netCollar(ctx, unit, netted.origin);
+    if (stop.line) withLine(ctx, stop.line, catchIt);
+    else catchIt();
+    return;
+  }
   const body = (): void => {
     emit(ctx, {
       type: 'crush',
@@ -328,6 +336,7 @@ export function push(
 
     // Plan the walk first so the log reads push, then crush or drop.
     const start = { ...unit.pos };
+    const cloudFrom = isCloud(tileAt(s, start)) ? tileAt(s, start).state : null;
     const { path, slid, stop, slicks, left } = planPush(ctx, unit, dir, tiles);
     if (!hasFootnote(ctx, 'shove-slick-again')) for (const l of slicks) l.slid = s.round;
 
@@ -366,6 +375,20 @@ export function push(
       const r = arrive(ctx, unit.id, leg.tiles, { cause: leg.cause, origin, landing: leg.landing });
       if (r.interrupted) {
         return { moved: path.length, end: { ...unit.pos }, crushed: null, dropped: false };
+      }
+    }
+
+    // `steam-cap-carry`: the cloud a pushed unit stood in goes with it, onto a bare tile.
+    if (cloudFrom && unit.hp > 0 && hasFootnote(ctx, 'steam-cap-carry')) {
+      const dest = tileAt(s, unit.pos);
+      const gone = tileAt(s, start);
+      if (dest.state === null && gone.state === cloudFrom && !sameCoord(start, unit.pos)) {
+        withLine(ctx, 'steam:cloud', () => {
+          gone.state = null;
+          emit(ctx, { type: 'stateFades', tiles: [{ ...start }] });
+          emit(ctx, { type: 'landed', kind: 'steam', at: { ...unit.pos }, makes: cloudFrom.id });
+          dest.state = cloudFrom;
+        });
       }
     }
 
