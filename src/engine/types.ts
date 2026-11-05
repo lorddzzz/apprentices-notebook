@@ -213,6 +213,8 @@ export interface Layer {
   steepWide?: true; // a Steep-gifted caster's: it spreads two tiles a round
   /** A slick a unit slid over: the round it was used up in (no pinball, design §4.4). */
   slid?: number;
+  /** Brass a conduct left charged (spark-plate-charge): the round it holds for. */
+  charged?: number;
 }
 export interface Terrain {
   water: Dir | null; // canal lane and its current (K-6)

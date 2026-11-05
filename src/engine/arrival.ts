@@ -1,5 +1,6 @@
 import { ENEMIES } from '$data';
 import { HABIT_ARRIVAL_HOOKS } from './arrival-habits';
+import { chargeTrip } from './bursts';
 import { type Ctx, fizzled } from './ctx';
 import { KIT } from './districts/kit';
 import { type Coord, sameCoord } from './grid';
@@ -285,8 +286,13 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
     exempt: ['flies'],
     run: onUnit((ctx, u) => stainMarks(ctx, u)),
   },
-  // P8: fire burns at round end, not on arrival; the slot keeps the order for a later rule.
-  { id: 'fire', answers: 'each', subjects: ['unit'], run: () => 'go' },
+  // P8: fire burns at round end, not on arrival. The slot holds spark-plate-charge's trip.
+  {
+    id: 'fire',
+    answers: 'each',
+    subjects: ['unit'],
+    run: onUnit((ctx, u, a) => chargeTrip(ctx, u, a.at)),
+  },
 ];
 
 let composed: ArrivalHookList | null = null;

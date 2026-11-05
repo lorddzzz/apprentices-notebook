@@ -11,6 +11,7 @@ import {
 } from '$data';
 import {
   burst,
+  fireLeaves,
   headingAt,
   markUnit,
   nameOnce,
@@ -388,6 +389,7 @@ export function decayStates(ctx: Ctx): void {
   const s = ctx.s;
   spreadSteep(ctx);
   const faded: Coord[] = [];
+  const burnt: Coord[] = []; // fire that left something behind (spark-slick-smoke, -soot)
   s.tiles.forEach((t, i) => {
     const l = t.state;
     if (!l || l.rounds === 0 || l.set) return;
@@ -397,13 +399,16 @@ export function decayStates(ctx: Ctx): void {
     }
     l.rounds--;
     if (l.rounds > 0) return;
-    t.state = null;
-    faded.push(coordOf(s, i));
+    t.state = l.id === 'fire' ? fireLeaves(ctx, l) : null;
+    (t.state ? burnt : faded).push(coordOf(s, i));
   });
   for (const u of livingUnits(s)) {
     if (u.shackle === 0) continue;
     u.shackle--;
     if (u.shackle === 0) faded.push({ ...u.pos });
+  }
+  if (burnt.length) {
+    withLine(ctx, sparkLine('slick'), () => emit(ctx, { type: 'stateFades', tiles: burnt }));
   }
   if (faded.length) emit(ctx, { type: 'stateFades', tiles: faded });
 }

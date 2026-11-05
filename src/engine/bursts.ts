@@ -8,11 +8,11 @@ import {
   type Meets,
   TUNING,
 } from '$data';
-import { type Ctx, emit, ref, reserve, withLine } from './ctx';
+import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, type Dir, step } from './grid';
+import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule } from './habits';
 import { applyMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
@@ -130,13 +130,89 @@ const fireLayer = (origin: Origin | null, rounds: number = TUNING.fireRounds): L
 
 // ── The five bursts ─────────────────────────────────────
 
-function detonate(ctx: Ctx, u: Unit): void {
+/** Footnote numbers for the Spark margin (seam.md; unbalanced on purpose). */
+const KEEP_DAMAGE = 2;
+const WIDE_DAMAGE = 1;
+const FOCUS_DAMAGE = 3;
+const SPARE_DAMAGE = 1;
+const CHARGE_DAMAGE = 1;
+
+/** Detonation: 3 to the unit and its mark is spent. Footnotes: wide, keep, blast (`heading` is the spark's). */
+function detonate(ctx: Ctx, u: Unit, heading: Dir | null = null): void {
   withLine(ctx, sparkLine('mark'), () => {
     const row = rowFor('mark');
-    announce(ctx, 'detonation', u.pos, [u.pos], [u]);
-    spendMark(ctx, u); // spent, never released (P31)
-    hit(ctx, [u], row.damage, 'Detonation', u.pos);
+    const from = { ...u.pos };
+    const beside = hasFootnote(ctx, 'spark-mark-wide')
+      ? manyOf(livingUnits(ctx.s).filter((n) => neighbors4(from).some((c) => sameTile(c, n.pos))))
+      : [];
+    announce(ctx, 'detonation', from, [from], [u, ...beside]);
+    const keep = hasFootnote(ctx, 'spark-mark-keep');
+    if (!keep) spendMark(ctx, u); // spent, never released (P31)
+    hit(ctx, [u], keep ? KEEP_DAMAGE : row.damage, 'Detonation', from);
+    hit(ctx, beside, WIDE_DAMAGE, 'Detonation', from);
+    if (heading && u.hp > 0 && hasFootnote(ctx, 'spark-mark-blast')) {
+      push(ctx, u, heading, 1, u.mark?.origin ?? null);
+    }
   });
+}
+
+const sameTile = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
+
+/** The other plain copies of `u`'s mark in its cloud (spark-mark-chain), in reading order. */
+function markCopies(ctx: Ctx, u: Unit): Unit[] {
+  const mark = u.mark;
+  if (!mark) return [];
+  const tiles = cloudNet(ctx.s, u.pos);
+  return manyOf(
+    livingUnits(ctx.s).filter(
+      (o) =>
+        o.id !== u.id &&
+        o.mark?.lineage === mark.lineage &&
+        !o.mark.deep &&
+        tiles.some((c) => sameTile(c, o.pos)),
+    ),
+  );
+}
+
+/** After a conduct from a plate: the plate-layer brass holds a charge for the rest of the round. */
+function chargeBrass(ctx: Ctx, tiles: readonly Coord[]): void {
+  for (const c of tiles) {
+    const layer = tileAt(ctx.s, c).state;
+    if (layer?.id === 'plate') layer.charged = ctx.s.round;
+  }
+}
+
+/**
+ * spark-plate-charge: a unit entering a tile on or beside charged brass takes 1, once; the whole
+ * network is then spent. Called by the arrival pipeline's `fire` slot.
+ */
+export function chargeTrip(ctx: Ctx, unit: Unit, at: Coord): void {
+  const s = ctx.s;
+  if (unit.hp <= 0 || (unit.kind === 'member' && hasFootnote(ctx, 'spark-plate-spare'))) return;
+  const hot = [at, ...neighbors4(at)].find((c) => {
+    const l = inBoard(s, c) ? tileAt(s, c).state : null;
+    return l?.id === 'plate' && l.charged === s.round;
+  });
+  if (!hot) return;
+  const origin = tileAt(s, hot).state?.origin ?? null;
+  for (const c of brassNet(s, hot)) {
+    const l = tileAt(s, c).state;
+    if (l?.id === 'plate') delete l.charged;
+  }
+  withOrigin(ctx, origin, () =>
+    withLine(ctx, sparkLine('plate'), () =>
+      dealDamage(ctx, unit, CHARGE_DAMAGE, 'Charge', [], { heading: null, at: { ...hot } }),
+    ),
+  );
+}
+
+/** What a burned-out fire leaves (spark-slick-smoke, -soot); null leaves the tile bare. */
+export function fireLeaves(ctx: Ctx, layer: Layer): Layer | null {
+  if (hasFootnote(ctx, 'spark-slick-smoke')) {
+    return { id: 'cloud', rounds: TUNING.cloudRounds, origin: layer.origin };
+  }
+  if (hasFootnote(ctx, 'spark-slick-soot')) return { id: 'blot', rounds: 0, origin: layer.origin };
+  return null;
 }
 
 /** Fire: every connected oil tile catches, 2 to each unit on it, and the fire stays 2 rounds. */
@@ -206,12 +282,24 @@ function storm(
 }
 
 /** Conduct: 2 to every unit on or touching the connected brass (collared units are brass). */
-function conduct(ctx: Ctx, at: Coord, flow: Flow | null): void {
+function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): void {
   const net = brassNet(ctx.s, at);
   const tiles = net.length ? net : [at];
-  const units = unitsNear(ctx, tiles, 1 + reachOf(flow));
+  // The spark:plate footnotes bend only a conduct that started on a plate, not a collar's.
+  const focus = fromPlate && hasFootnote(ctx, 'spark-plate-focus');
+  const spare = fromPlate && hasFootnote(ctx, 'spark-plate-spare');
+  const reach = reachOf(flow);
+  let units = unitsNear(ctx, tiles, focus ? reach : 1 + reach);
+  if (spare) units = units.filter((u) => u.kind !== 'member');
   announce(ctx, 'conduct', at, tiles, units);
-  hit(ctx, units, rowFor('plate').damage, 'Conduct', at);
+  const damage = focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage;
+  hit(ctx, units, damage, 'Conduct', at);
+  if (!fromPlate) return;
+  const heading = headingAt(ctx, flow, at);
+  if (heading && hasFootnote(ctx, 'spark-plate-jolt')) {
+    for (const u of units) if (u.hp > 0) push(ctx, u, heading, 1, flow?.origin ?? null);
+  }
+  if (hasFootnote(ctx, 'spark-plate-charge')) chargeBrass(ctx, tiles);
 }
 
 /** Surge: 3 to the unit on the tile, and one arc of 1 to the nearest other unit. */
@@ -351,7 +439,10 @@ function burstUnit(ctx: Ctx, at: Coord, flow: Flow | null): boolean {
   if (u.mark?.deep) {
     withLine(ctx, sparkLine('deepMark'), () => pageDeepMark(ctx, u));
   } else if (u.mark) {
-    detonate(ctx, u);
+    const heading = headingAt(ctx, flow, at);
+    const copies = hasFootnote(ctx, 'spark-mark-chain') ? markCopies(ctx, u) : [];
+    detonate(ctx, u, heading);
+    for (const c of copies) if (c.mark && c.hp > 0) detonate(ctx, c, heading);
   } else if (u.shackle > 0) {
     withLine(ctx, sparkLine('shackle'), () => pageShackle(ctx, u, flow));
   } else if (u.collar !== false) {
@@ -376,7 +467,7 @@ function burstTile(ctx: Ctx, at: Coord, flow: Flow | null): boolean {
     case 'cloud':
       return run(() => storm(ctx, at, flow, 'storm', rowFor('cloud').damage, 'Storm'));
     case 'plate':
-      return run(() => conduct(ctx, at, flow));
+      return run(() => conduct(ctx, at, flow, true));
     case 'fire':
       return run(() => surge(ctx, at));
     case 'stain':
