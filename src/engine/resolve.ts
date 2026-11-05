@@ -219,10 +219,11 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           queue(st.next, live, { ...flow, lay: true });
           return;
         }
-        const aimed =
-          st.rune === 'seep'
-            ? seep(s, live, flow.headings)
-            : toll(s, live, flow.headings, seams.sameStateNet ?? sameStateNet);
+        const seeped = st.rune === 'seep' ? seep(s, live, flow.headings) : null;
+        const aimed = seeped ?? toll(s, live, flow.headings, seams.sameStateNet ?? sameStateNet);
+        if (seeped && seeped.off > 0) {
+          withLine(ctx, 'seep:edge', () => emit(ctx, { type: 'miss', source: 'Seep' }));
+        }
         span();
         queue(st.next, aimed.targets, { ...flow, headings: aimed.headings });
         return;

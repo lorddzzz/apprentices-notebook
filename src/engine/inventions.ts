@@ -513,7 +513,8 @@ export function runInvention(ctx: Ctx, id: InventionId, t: Target, flow: Flow): 
       for (const r of reached) rule?.onReach?.(ctx, r, f);
       rule?.after?.(ctx, tt, f, { inv: id, before });
     };
-    if (extra && rule?.line) withLine(ctx, rule.line, go);
+    const line = extra ? (rule?.lineFor?.(ctx.s, tt, first) ?? rule?.line) : undefined;
+    if (line) withLine(ctx, line, go);
     else go();
   }
 }

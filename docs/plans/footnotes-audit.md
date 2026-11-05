@@ -324,3 +324,71 @@ All of Afterglow's lines need an event in `mix.ts` or `current.ts`, neither CN-F
 | C1 | Stamp a jar's drift with the sealing rune (`jar:water`, `fuse:water`) in `driftWaiting`, keeping `pitch:water` for Pitch waits; then narrow `pitch:water`'s text | Ja2: Pitch is credited for every jar's float today |
 | C2 | A crumble inside another line's scope (a restore) keeps that line | `restoreErase:jar` already explains the crumble; one event, one line |
 | C3 | `fuse:unit` fires only when someone other than the owner opens the Fuse, mirroring `jar:unit` | Keeps `fuseOnStep:jar` (owner arrivals) its own line |
+
+## 9. Bathhouses: the Areas runes and solvents (BH-F1, P12)
+
+Audited 2026-11-05 against `src/data/lines.ts` and the sites that touch them: `targets.ts` (`aimTargets`, `aimLine`), `runes/flow.ts::seep`, `resolve.ts` (`shape`), `mix.ts::spreadSteep`, `solvents.ts` (`bathSalt`, `fogJar`), `inventions.ts::runInvention`. Rows added by BH-F1 are marked **added**; their firing cases are in `tests/scenarios/bathhouse-lines.test.ts`. The gauge, heat and bather rules are the district's own and are not footnote lines.
+
+| Subject | Rows before | Rows after |
+|---|---|---|
+| Vat | 0 (only the headline) | 4 |
+| Seep | 0 | 1 |
+| Steep | 0 | 3 |
+| Bath salt | 1 (`bathSalt:cloud`) | 2 |
+| Fog jar | 1 (`fogJar:unit`) | 3 |
+
+### Vat
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Va1 | The 2×2 is the aimed tile and its right, lower and diagonal neighbours; every one is diagonal to the square's centre, so **all four take the one caster-to-square heading** (no outward spread as Splash has). A Shove pushes every unit in it the same way | Vat> Shove at two rats side by side: both go down | `targets.ts::areaTargets` | `vat:unit` | **added** |
+| Va2 | The heading is the caster to the square's bottom-right tile, so a caster standing **on** that tile gives all four tiles no heading | Caster at B2, Vat aimed at A1, Shove: nothing moves | `areaTargets` (`inward` is null) | `vat:noHeading` | **added** |
+| Va3 | A caster inside the square (aimed on its own tile, or top-left of it) is a target like anyone | Vat> Strike aimed at your own tile | `aimTargets` | `vat:member` | **added** |
+| Va4 | At the last column or row the square is clipped: off-board tiles are dropped | Vat at D2 on a four-wide board: 2 targets | `clip` | `vat:edge` | **added** |
+| Va5 | Vat on a cloud, slick or plate | | | | none: Vat only picks tiles; the kind on the tile is the Action's own line (`bolt:cloud` stops a Bolt, nothing for an area) |
+
+### Seep
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Se1 | A neighbour past the room's edge is dropped; the rest still go. Fork says so (`fork:edge`); Seep was silent | Bolt> Seep Strike at a rat on the top row | `flow.ts::seep` (`off`), `resolve.ts` | `seep:edge` | **added** (new+event: a `miss`, as `fork:edge`) |
+| Se2 | The neighbours are acted on whoever they are: the caster and allies beside the target are struck or shoved too | Seep Strike with an ally beside the target | `flow.ts::seep` | `seep:member` | new+event, **not added**: no event fires at the neighbour (an `aimed`-like "reached" event is a contract change) |
+| Se3 | A neighbour keeps the target's heading (none stays none); on a cloud, a wall or a plate tile Seep still picks it, the Action then does what it does there | | `seep` | none | the Action's own lines (`shove:noHeading`, `shove:plate`) already say it |
+| Se4 | After a Fork, Seep's neighbours lose the `fork:unit` mark | | `isForked` | | known drop (FN-9 notes it); not Seep's row |
+
+### Steep
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| St1 | Each round, a steeped compound with rounds left copies itself (with those rounds and the steep) onto every empty neighbour; the copies steep too, so the cloud keeps growing while it lasts. The spread was an unstamped event | Steep, Steam, Oil, one round | `mix.ts::spreadSteep` | `steep:spread` | **added** (stamp only) |
+| St2 | A spread stops at a plate, a gate, a grate or a solid piece: it does not go around or over them | Steeped grease fog beside a plate at round end | `spreadSteep` (`blocksUnits`) | `steep:plate` | **added** (new+event: a `miss`, once per source per round) |
+| St3 | A steeped plate, kettle or wall will not grow onto a tile where a unit stands (a cloud does) | Steeped kettle beside a rat | `spreadSteep` (`STANDS_UP`) | `steep:unit` | **added** (new+event: a `miss`) |
+| St4 | A spread never overwrites a tile that already carries a layer (blot, slick, another compound) | | `spreadSteep` (`t.state`) | | none: silent and the common case in a mixed room; a line would fire most rounds |
+| St5 | Lay'd and layout layers (0 rounds), and plain states, never spread | | `spreadSteep` | | none: the headline says "lingering compounds" |
+| St6 | The gift (two tiles a round) | `leans.test` "gifted-steep-spreads-two-tiles" | | | none: the gift is the headline's reach |
+
+### Bath salt (`bathSalt:cloud`, `bathSalt:member`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Ba1 | The salt reaches **every** unit in the connected cloud, so your own party in it is struck or shoved too, caster included | Salted Strike at a foe in a cloud with an ally further along | `solvents.ts` (`bathSalt.widen`, `lineFor`) | `bathSalt:member` | **added** (stamp only: `SolventRule.lineFor` picks the line per added target) |
+| Ba2 | A target **not** in a cloud adds nothing, silently; a cloud cut by a gap or a diagonal strands the rest | Salted Strike at a foe in the open | `widen` | | new+event, **not added**: no fitting `Meets` ("dry" or `noCloud`) and a `miss` would need A1's new meets value |
+| Ba3 | The salt travels with the invention's run only to units, not to bare cloud tiles | | `widen` (`unitAt`) | | none: the headline says "every unit" |
+
+### Fog jar (`fogJar:unit`, `fogJar:member`, `fogJar:empty`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Fo1 | The jar reaches the units beside its target, the caster and allies included, one step weaker | Strike at a rat with an ally beside it | `solvents.ts` (`fogJar.widen`, `lineFor`) | `fogJar:member` | **added** |
+| Fo2 | The target can be an **empty tile** (a Bolt that ends short, a tile aim): the units beside that tile still take the weaker hit | Bolt down a column, the rat is beside the tile it ends on | `widen` (`whereIs`) | `fogJar:empty` | **added** |
+| Fo3 | A lone target with no neighbours adds nothing; a neighbour that is a wall or a cloud tile without a unit is skipped | | `widen` | | none: silent no-op, the headline's own case |
+| Fo4 | Weaker applies only to the added targets; the original takes the full hit | `solvents.test` "fog-jar-neighbours-one-step-weaker" | `runInvention` | `fogJar:unit` | none: already the headline |
+
+### Bathhouse proposals
+
+| # | Proposal | Reason |
+|---|---|---|
+| B1 | Add a `Meets` value `dry` (or `noCloud`) and give Bath salt a `miss` row for a target outside any cloud (Ba2) | A real trap (the salt does nothing), and the only margin for "salt reaches one tile past the cloud" |
+| B2 | Add a "reached" event (or let `aimed`-style events be stamped) so Seep can have `seep:member` (Se2) | The only way to say that Seep strikes your own party; needs `events.ts`, which BH-F1 does not own |
+| B3 | `steep:plate` and `steep:unit` emit `miss` ("Steep hits nothing" in the log text); if that reads badly, give them a dedicated `spreadBlocked` event with the text "the spread stops at the plate" | Same precedent as `fork:edge` and `seep:edge`; a proper event is a contract change |
+| B4 | Seep and Fork both log "hits nothing" at an edge even when the rest went; shorten both texts to "loses a branch at the edge" when the event gets a `what` field | Misleading log text, minor |

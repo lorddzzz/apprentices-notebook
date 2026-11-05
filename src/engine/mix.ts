@@ -347,14 +347,23 @@ function spreadSteep(ctx: Ctx): void {
     const to: Coord[] = [];
     // One tile a round; two when the caster is gifted in Steep (design §9).
     let ring: Coord[] = [from];
+    let walled = false;
+    let crowded = false;
     for (let step = 0; step < (layer.steepWide ? 2 : 1); step++) {
       const next: Coord[] = [];
       for (const c of ring) {
         for (const n of neighbors4(c).sort(byReadingOrder)) {
           if (!inBoard(s, n)) continue;
           const t = tileAt(s, n);
-          if (t.state || blocksUnits(t)) continue;
-          if (STANDS_UP.has(layer.id) && unitAt(s, n)) continue;
+          if (blocksUnits(t)) {
+            walled = true;
+            continue;
+          }
+          if (t.state) continue;
+          if (STANDS_UP.has(layer.id) && unitAt(s, n)) {
+            crowded = true;
+            continue;
+          }
           t.state = structuredClone(layer);
           to.push(n);
           next.push(n);
@@ -362,8 +371,12 @@ function spreadSteep(ctx: Ctx): void {
       }
       ring = next;
     }
-    if (to.length)
-      withOrigin(ctx, layer.origin, () => emit(ctx, { type: 'spreadState', from, to }));
+    withOrigin(ctx, layer.origin, () => {
+      if (to.length)
+        withLine(ctx, 'steep:spread', () => emit(ctx, { type: 'spreadState', from, to }));
+      if (walled) withLine(ctx, 'steep:plate', () => emit(ctx, { type: 'miss', source: 'Steep' }));
+      if (crowded) withLine(ctx, 'steep:unit', () => emit(ctx, { type: 'miss', source: 'Steep' }));
+    });
   }
 }
 

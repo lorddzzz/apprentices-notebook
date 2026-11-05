@@ -70,22 +70,25 @@ export function forkSide(
   return out;
 }
 
-/** Seep: the targets, then their neighbours (new ones only, in reading order per target). */
+/**
+ * Seep: the targets, then their neighbours (new ones only, in reading order per target). `off`
+ * counts neighbours dropped at the board's edge (`seep:edge`).
+ */
 export function seep(
   s: BattleState,
   targets: readonly Target[],
   headings: ReadonlyMap<string, Dir | null>,
-): Aimed {
-  const out: Aimed = { targets: [], headings: new Map(headings) };
+): Aimed & { off: number } {
+  const out: Aimed & { off: number } = { targets: [], headings: new Map(headings), off: 0 };
   const seen = new Set<string>();
   for (const t of targets) add(out, seen, t, headings.get(targetKey(t)) ?? null, false);
   for (const t of targets) {
     const at = whereIs(s, t);
     if (!at) continue;
     const heading = headings.get(targetKey(t)) ?? null;
-    const around = neighbors4(at)
-      .filter((c) => inBoard(s, c))
-      .sort((a, b) => a.y - b.y || a.x - b.x);
+    const ring = neighbors4(at);
+    out.off += ring.filter((c) => !inBoard(s, c)).length;
+    const around = ring.filter((c) => inBoard(s, c)).sort((a, b) => a.y - b.y || a.x - b.x);
     for (const c of around) add(out, seen, targetOn(s, c), heading, false);
   }
   return out;

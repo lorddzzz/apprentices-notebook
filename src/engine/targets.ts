@@ -149,6 +149,14 @@ export function aimLine(
     if (targets.length < square(aim.at, TUNING.splashRadius).length) return 'splash:edge';
     return targets.some((t) => t.kind === 'unit') ? 'splash:unit' : null;
   }
+  if (source === 'vat' && aim.kind === 'tile') {
+    // Every tile of the 2x2 is diagonal to its centre: all four take the caster-to-square heading,
+    // which does not exist when the caster stands on the square's bottom-right tile.
+    if (caster.pos.x === aim.at.x + 1 && caster.pos.y === aim.at.y + 1) return 'vat:noHeading';
+    if (targets.some((t) => t.kind === 'unit' && t.unit === caster.id)) return 'vat:member';
+    if (targets.length < 4) return 'vat:edge';
+    return targets.some((t) => t.kind === 'unit') ? 'vat:unit' : null;
+  }
   if (source === 'touch') {
     if (aim.kind === 'self') return 'touch:member';
     const first = targets[0];

@@ -47,6 +47,8 @@ export interface SolventRule {
   widen?(s: BattleState, t: Target, flow: Flow): Target[];
   /** The fine-print line the targets `widen` added are run under. */
   line?: LineId;
+  /** A finer line for one added target (given the original), else `line`. */
+  lineFor?(s: BattleState, added: Target, first: Target): LineId | null;
   /** How many steps weaker the added targets are hit (push, damage; min 0). */
   weaker?: number;
   /** Runs before each target; what it returns is handed to `after`. */
@@ -64,6 +66,15 @@ export interface SolventRule {
 // ── Helpers ─────────────────────────────────────────────
 
 const tileTarget = (at: Coord): Target => ({ kind: 'tile', at: { ...at } });
+const isUnitTarget = (s: BattleState, t: Target): boolean => {
+  const at = whereIs(s, t);
+  return t.kind === 'unit' || (!!at && unitAt(s, at) !== null);
+};
+/** An added target whose tile holds one of your party (the caster or an ally). */
+const isMemberAt = (s: BattleState, t: Target): boolean => {
+  const at = whereIs(s, t);
+  return !!at && unitAt(s, at)?.kind === 'member';
+};
 
 /** The living unit a target means: a unit target's, or whoever stands on a tile target. */
 function unitOf(ctx: Ctx, t: Target): Unit | null {
@@ -312,6 +323,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
         .sort(byReadingOrder);
       return [t, ...rest.map(tileTarget)];
     },
+    lineFor: (s, added) => (isMemberAt(s, added) ? 'bathSalt:member' : null),
   },
   fogJar: {
     line: 'fogJar:unit',
@@ -323,6 +335,10 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
         .filter((c) => inBoard(s, c) && unitAt(s, c))
         .sort(byReadingOrder);
       return [t, ...near.map(tileTarget)];
+    },
+    lineFor(s, added, first) {
+      if (isMemberAt(s, added)) return 'fogJar:member';
+      return whereIs(s, first) && !isUnitTarget(s, first) ? 'fogJar:empty' : null;
     },
   },
   mortar: { pushBonus: SOLVENT_TUNING.mortarPush },
