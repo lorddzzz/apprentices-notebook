@@ -1,3 +1,4 @@
+import { BOIL_OVER_RULE } from './bathhouses/boilOver';
 import {
   BATH_EVENT_TYPES,
   BATH_SHAPE,
@@ -9,8 +10,9 @@ import {
 import type { DistrictEventDef, DistrictModule, TripShapeDef } from './types';
 
 /**
- * The bathhouses' engine module, assembled from `bathhouses/`. BH-0 registers the contracts only:
- * the trip state's reader, the events' lines and the `steam` cause. No rules, foes or offers yet,
+ * The bathhouses' engine module, assembled from `bathhouses/`. BH-0 registered the contracts (the
+ * trip state's reader, the events' lines, the `steam` cause); BH-1 adds the boil-over rule. No foes
+ * or offers yet,
  * and the district stays `gate: 'drawing'` with no rooms, so no trip carries this shape.
  */
 
@@ -33,5 +35,6 @@ export const BATHHOUSES_MODULE: DistrictModule = {
   id: 'bathhouses',
   events,
   trip: shape,
+  rules: [BOIL_OVER_RULE],
   causes: { [STEAM_CAUSE]: 'landing' },
 };

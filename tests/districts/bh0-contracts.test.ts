@@ -38,13 +38,14 @@ describe('BH-0 registration', () => {
     expect(DISTRICT_UI.bathhouses).toEqual({});
   });
 
-  test('inert: no rules, pieces, foes, offers, guards or steps; only lines, the shape and the cause', () => {
+  test("inert but for BH-1's rule: no pieces, foes, offers, guards or steps; lines, the shape and the cause", () => {
     const m = KIT.modules.bathhouses;
-    for (const k of ['rules', 'pieces', 'foes', 'offerKinds', 'harmGuards', 'steps'] as const) {
+    for (const k of ['pieces', 'foes', 'offerKinds', 'harmGuards', 'steps'] as const) {
       expect(m?.[k] ?? []).toEqual([]);
     }
-    expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bathhouses:'))).toEqual([]);
-    expect(KIT.rules[BOIL_OVER_RULE_ID]).toBeUndefined();
+    expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bathhouses:'))).toEqual([
+      BOIL_OVER_RULE_ID,
+    ]);
     expect(Object.keys(KIT.events).filter((t) => t.startsWith('bathhouses:'))).toEqual([
       ...BATH_EVENT_TYPES,
     ]);
