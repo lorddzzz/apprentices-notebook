@@ -1,8 +1,8 @@
 # Footnotes content: the Seam
 
-> **State: Draft for review (FN-G1).** Tasks FN-A1 (the 13 Seam runes) and FN-A2 (the five methods, Gallnut and Cinder) of [footnotes-plan.md](../../plans/footnotes-plan.md). Rules: [footnotes.md](../footnotes.md) §1. Lines: `src/data/lines.ts`; audit: [footnotes-audit.md](../../plans/footnotes-audit.md). Built variants: `src/data/footnotes/seam-runes.ts`.
+> **State: Approved 2026-11-05 by the orchestrator in place of FN-G1.** Tasks FN-A1 (the 13 Seam runes) and FN-A2 (the five methods, Gallnut and Cinder) of [footnotes-plan.md](../../plans/footnotes-plan.md). Rules: [footnotes.md](../footnotes.md) §1. Lines: `src/data/lines.ts`; audit: [footnotes-audit.md](../../plans/footnotes-audit.md). Built variants: `src/data/footnotes/seam-runes.ts`.
 >
-> Nothing here is built except the five level-I pairs marked **built**. Every text is a draft, *tune by playing*.
+> Nothing here is built except the five level-I pairs marked **built**. Texts are approved as the build spec (see section 8, Review notes); *tune by playing*.
 
 ## 0. How to read this
 
@@ -155,8 +155,6 @@ Headline: *Aims yourself or an adjacent unit or tile.*
   Engine: `queries.ts::legalAims` for Touch adds the second tile; heading unchanged. No new event. (Not Pull: nothing moves until a rune says so.)
 - b · `touch-unit-steer`: *If you stepped this turn, Touch on a neighbouring unit points the way you stepped, not away from you.*
   Engine: `targets.ts::aimTargets`, heading = `caster.lastMove` when set. No new event. Walk along a wall and shove the foe along it.
-- c · *spare* `touch-unit-draw`: *Touch on a neighbouring unit points toward you: a Shove pulls it into you, and both take the crush.*
-  Engine: heading flipped; `push.ts` treats the caster as the blocker. Competes with steer for "Touch's heading opinion".
 
 **Touch-unit-II** · `touch:unit`
 
@@ -164,7 +162,7 @@ Headline: *Aims yourself or an adjacent unit or tile.*
   Engine: after the target's `push`, move the caster 1 along the heading if free (a `moved` arrival; Undo is gone, as Sh2). Bends `touch:member` (your new step sets the heading for later Touches).
 - b · `touch-unit-recoil`: *When a Touch pushes a unit off, you are pushed one tile the other way.*
   Engine: `push.ts::push` on the caster, opposite heading. Existing `push`; can crush you (the harm warning shows it).
-- Combos: reach + follow: you step one tile into the gap, not two; fine. reach + recoil: fine. steer + follow: you chase it along your own line; coherent. steer + recoil: fine. With spare draw: draw + follow is a clash (it was pulled into you, there is no gap); if draw is kept, follow must read "if the tile ahead is free".
+- Combos: reach + follow: you step one tile into the gap, not two; fine. reach + recoil: fine. steer + follow: you chase it along your own line; coherent. steer + recoil: fine.
 
 ### Strike
 
@@ -179,7 +177,7 @@ Headline: *Deals 2 to the target. Mixes with nothing: the safe hit.*
 
 **Strike-shielded-II** · `strike:shielded`
 
-- a · `strike-shielded-glance`: *A Strike a shield takes glances off: the nearest other unit beside the target takes 1.*
+- a · `strike-shielded-glance`: *A Strike a shield takes glances off: the nearest other unit beside the target takes 1; if it is shielded, its shield takes it, which still counts as a hit.*
   Engine: after `shieldAbsorbs` from a Strike, deal 1 to the first neighbour in reading order. Existing `damage`.
 - b · `strike-shielded-knock`: *A shielded unit you Strike is knocked one tile along the heading.*
   Engine: `push.ts::push` after the absorb. Existing `push`/`crush`. Bends `shove:*` lines (the knock can crush).
@@ -191,7 +189,7 @@ Headline: *Pushes the target 1 tile along the heading.*
 
 **Shove-wall-I** · `shove:wall` · **built**
 
-- a · `shove-wall-soft`: *A crush against a wall skips the damage for distance, so the pushed unit takes only 1.* (built)
+- a · `shove-wall-soft`: *A crush against a wall skips the damage for distance, so the pushed unit takes only 1, but it wears the wall by two crushes.* (built; text and wear to be updated by FN-C1)
 - b · `shove-wall-heavy`: *A crush against a wall deals 1 more to the unit pushed into it.* (built)
 
 **Shove-wall-II** · `shove:wall`
@@ -274,8 +272,6 @@ Headline: *Lands Ink.*
   Engine: `marks.ts::spreadFrom` filters by side. Existing `markSpread`. A foe's spit on you still spreads to your allies; your ink on a foe spares them.
 - b · `ink-spread-seep`: *A spreading mark also reaches units standing beside the cloud.*
   Engine: `spreadFrom` adds the cloud's outer neighbours. Existing `markSpread`. More reach, more friendly fire.
-- c · *spare* `ink-spread-slow`: *A mark spreads one ring of the cloud per round, not all at once.*
-  Engine: spread scheduled at round end, one step per round. Needs a `Scheduled` kind (`spread`). Competes with seep as the "reach" opinion.
 
 **Ink-spread-II** · `ink:spread`
 
@@ -292,7 +288,7 @@ Headline: *Lands Oil.*
 **Oil-slick-I** · `oil:slick` · **built**
 
 - a · `oil-slick-corners`: *Oil on a slick makes a pool that also covers the tiles diagonal to it.* (built)
-- b · `oil-slick-short`: *Oil on a slick makes a pool that lasts one round less.* (built)
+- b · `oil-slick-short`: *Oil on a slick makes a pool that lasts one round less, and each tile it clears from leaves a blot.* (built; text and blot to be updated by FN-C3)
 
 **Oil-slick-II** · `oil:slick`
 
@@ -300,7 +296,7 @@ Headline: *Lands Oil.*
   Engine: `mix.ts::soakNeighbours` adds the tile two ahead. Existing `spreadState`. Makes a slide lane for Shove.
 - b · `oil-slick-seep`: *A pool's soak turns a neighbouring blot into a stain, not a slick.*
   Engine: `soakNeighbours`, blot branch makes `stain` (audit Oi3). Existing `mixed`. Bends `ink:stain`.
-- Combos: corners + lane: diagonals and one tile ahead; additive, fine. short + lane: fine. corners/short + seep: fine. Note: built `oil-slick-short` reads as a plain cost; its opinion is "the pool clears out of your own way sooner". Kept as built.
+- Combos: corners + lane: diagonals and one tile ahead; additive, fine. short + lane: fine. corners/short + seep: fine. Note: `oil-slick-short` now carries an upside (the blots it leaves are fuel for stains).
 
 **Oil-cloud-I** · `oil:cloud` (*Oil on a cloud makes grease fog…*)
 
@@ -359,8 +355,8 @@ Headline: *Lands Brass.* (Margin lines changed from the audit; see F2.)
 
 - a · `brass-plate-stand`: *A wall never fades; it stands until it is broken.*
   Engine: `newLayer` rounds 0 for `wall` (as blots and slicks). No new event.
-- b · `brass-plate-broad`: *Brass on a plate makes a second plate on the free tile behind it along the heading, instead of a wall.*
-  Engine: `mix.ts` plate+brass branch lands a plate one ahead; `brass:plate` stamped there. Existing `landed`. Width instead of strength.
+- b · `brass-plate-twin`: *Brass on a plate makes two walls, one on the plate and one on the free tile behind it along the heading; each breaks at one hit.*
+  Engine: `mix.ts` plate+brass branch lands a second wall one ahead; both walls take one hit; `brass:plate` stamped on both. Existing `mixed`/`landed`. Width instead of strength (renamed from `brass-plate-broad`, which left II idle).
 
 **Brass-plate-II** · `brass:plate`
 
@@ -368,7 +364,7 @@ Headline: *Lands Brass.* (Margin lines changed from the audit; see F2.)
   Engine: `bursts.ts` conduct burst, extra damage for units beside a wall in the network. Existing `damage`. Bends `spark:plate`.
 - b · `brass-plate-ground`: *A wall grounds a conduct: the burst stops at the wall and does not reach the brass beyond it.*
   Engine: `networks.ts` brass net does not pass through wall tiles. Existing `burst` (fewer units). Lets you Spark one half of a network safely.
-- Combos: stand + hum, stand + ground: a lasting wall that amplifies or insulates; fine. broad + hum/ground: broad makes no wall, so II fires only on walls made by other means (Brass on a plate cast twice, a kettle washed…). **Clash in practice**: broad leaves II nearly idle. Note for the player; keep only if broad is rejected or II is moved onto plates in general.
+- Combos: stand/twin + hum/ground: both options make walls, so II always has something to act on; twin gives two walls to amplify or insulate with, stand gives one that lasts. No clash.
 
 **Brass-mark-I** · `brass:mark` (*Brass on a marked unit makes a shackle that replaces the mark.*)
 
@@ -383,7 +379,7 @@ Headline: *Lands Brass.* (Margin lines changed from the audit; see F2.)
   Engine: `push.ts::push` returns early for a shackled unit, as `shove:held` does. Existing `miss`/`push` with 0 tiles; stamps `brass:mark`. Your own Shoves fail on it too.
 - b · `brass-mark-throw`: *Spark snapping a shackle throws the unit two tiles, not one.*
   Engine: `bursts.ts::pageShackle` push distance 2. Existing `push`/`crush`. Bends `spark:shackle`.
-- Combos: long + anchor: a long, total lock; fine. keep + anchor: fine. long/keep + throw: fine. keep + throw: Spark on a kept-mark shackle bursts the unit layer: the shackle snaps first (unit layer order) and the mark stays; check the order at build time.
+- Combos: long + anchor: a long, total lock; fine. keep + anchor: fine. long/keep + throw: fine. keep + throw: Spark on a kept-mark shackle bursts the unit layer: the shackle snaps first (unit layer order) and the mark stays; check the order at build time. anchor + throw: the snap frees the unit before the throw, so the anchor does not stop it; say so in the anchor text at build time.
 
 ### Spark
 
@@ -426,11 +422,11 @@ Headline: *Lands Spark, the igniter.*
 
 **Spark-plate-II** · `spark:plate`
 
-- a · `spark-plate-jolt`: *A unit a conduct hits is jolted one tile away from the brass.*
-  Engine: after the conduct, `push.ts::push` each reached unit away from its nearest brass tile (no heading: skip units on the brass). Existing `push`/`crush`.
+- a · `spark-plate-jolt`: *A unit a conduct hits is jolted one tile off the brass, along the spark's heading.*
+  Engine: after the conduct, `push.ts::push` each reached unit along the spark's heading. Existing `push`/`crush`.
 - b · `spark-plate-charge`: *Sparked brass stays charged for the round: the first unit to step onto or beside it takes 1.*
   Engine: a charged flag on the network; `movement.ts` arrival check. Existing `damage`; stamps `spark:plate`. Needs a round-end clear (a `Scheduled` kind or a layer field).
-- Combos: focus + jolt: units on the brass have no "away" (they stand on it), so focus leaves jolt with no one to move. **Clash.** Resolve: jolt reads "…is jolted one tile off the brass, along the spark's heading". spare + jolt, focus + charge, spare + charge: fine (spare makes charge pass over your party too, say so in the text).
+- Combos: focus + jolt: units on the brass have no "away" (they stand on it), so focus leaves jolt with no one to move. Resolved in the text: jolt now pushes along the spark's heading, so it works on units standing on the brass. spare + jolt, focus + charge, spare + charge: fine (spare makes charge pass over your party too; say so in the build text).
 
 ### Fork
 
@@ -488,8 +484,8 @@ Capstones need no witnessed line. Each is "when X, also Y"; the headline stays t
 **Guard-III**
 - a · `guard-cap-share`: *When you Guard someone else, you gain 1 shield too.*
   Engine: `runes/actions.ts::guard`, non-self target: `gainShield(caster, 1)`. Existing event.
-- b · `guard-cap-brace`: *While a Guarded unit's shield lasts, pushes do not move it.*
-  Engine: `push.ts::push` returns early for a Guard-shielded unit (a flag on the shield). Your own Shoves on it fail too.
+- b · `guard-cap-brace`: *When a Guarded unit is pushed, it holds its ground: it does not move, and its shield loses 1.*
+  Engine: `push.ts::push` returns early for a Guard-shielded unit and spends 1 of the shield (a flag on the shield). Existing `shieldAbsorbs`. Your own Shoves on it fail too.
 
 **Ink-III**
 - a · `ink-cap-trail`: *When a marked unit walks, it leaves a blot on the tile it left.*
@@ -528,9 +524,9 @@ Capstones need no witnessed line. Each is "when X, also Y"; the headline stays t
   Engine: `forkSide` empty side → tile opposite the heading. Both empty: the left takes it, the right is dropped.
 
 **Bend-III**
-- a · `bend-cap-turn`: *The runes after a Bend also turn the spell's heading the way the Bend turns.*
+- a · `bend-cap-turn`: *When a Bend turns the spell, the runes after it also take the turned heading.*
   Engine: `lattice.ts` records the turn; `resolve.ts` rotates the heading for later steps. No new event. A Bend → Shove pushes sideways.
-- b · `bend-cap-back`: *The runes after a Bend act with the heading reversed.*
+- b · `bend-cap-back`: *When a Bend turns the spell, the runes after it act with the heading reversed.*
   Engine: same, rotated 180°. A Shove after it pulls toward you (stops against you, crushing both).
 
 ## 3. The methods
@@ -575,11 +571,9 @@ Headline: *An Action that happens now and once more next turn, on the same tile.
 
 - a · `repeat-empty-dusk`: *A repeat falls due at round end, not on your next turn.*
   Engine: `Scheduled` repeat runs in the round-end step. Existing `repeated`. It acts before the foes' next move, after yours.
-- b · `repeat-empty-step`: *A repeat goes off early if a unit steps onto its tile before it falls due.*
+- b · `repeat-empty-step`: *A repeat goes off early if a unit steps onto its tile, or the unit it follows is moved, before it falls due.*
   Engine: `movement.ts` arrival checks scheduled repeats on the tile (as a step jar). Existing `repeated`. Bends Jar's idea without a jar.
-- c · *spare* `repeat-empty-faithful`: *A repeat still goes off if its caster is down.*
-  Engine: `schedule.ts::run` skips the HP check. Bends `repeat:member`. Competes with dusk; close to a plain upgrade, so offered as spare only.
-- Combos: follow + dusk: fine. reaim + dusk, reaim + step: fine. **follow + step clashes**: a repeat that follows a unit has no tile to step onto. Resolve: step reads "…if a unit steps onto its tile, or the unit it follows is moved, before it falls due".
+- Combos: follow + dusk: fine. reaim + dusk, reaim + step: fine. follow + step: a repeat that follows a unit has no tile to step onto, so step's text also fires when the followed unit is moved; resolved in the text.
 
 **Repeat-III** (a is the design's illustrative capstone)
 - a · `repeat-cap-pushed`: *When the target is pushed during your turn, the repeat acts at once on its new tile, and is spent.*
@@ -636,7 +630,7 @@ Headline: *Ink + an Action + an event: a mark that holds the action until the ev
 - a · `bind-cloud-kin`: *A bound mark spreads only to units on its bearer's side.*
   Engine: `marks.ts::spreadFrom` side filter for bound marks. Existing `markSpread`. Same opinion as `ink-spread-kin`; one rule, two subjects.
 - b · `bind-cloud-late`: *A bound mark spreads at round end, not at once.*
-  Engine: spread scheduled for round end. Needs a `Scheduled` kind (`spread`), shared with spare `ink-spread-slow`.
+  Engine: spread scheduled for round end. Needs a `Scheduled` kind (`spread`).
 
 **Bind-cloud-II** · `bind:cloud`
 
@@ -734,7 +728,7 @@ Rule: *it leaves the tile hot (oil there catches fire).*
 - **Runes:** 23 margin lines; 46 level I/II pairs (5 built, 41 new); 13 capstone pairs.
 - **Methods:** 6 margin lines; 12 level I/II pairs; 5 capstone pairs.
 - **Solvents:** 2 margin lines; 4 level I/II pairs; 2 capstone pairs.
-- **Total new pairs:** 77 (57 line pairs, 20 capstone pairs). **Spares:** 3 (`touch-unit-draw`, `ink-spread-slow`, `repeat-empty-faithful`).
+- **Total new pairs:** 77 (57 line pairs, 20 capstone pairs). **Spares:** 3 offered, all dropped (see Review notes).
 - **Flags:** missing lines F1 `steam:unit`, F2 `brass:unit`, F3 Bind's killing-hit line. Clashes noted: Brass-plate broad × II, Spark-plate focus × jolt (resolved in text), Repeat follow × step (resolved in text), Touch-unit draw × follow (spare only).
 - **New engine pieces** (beyond hooks): a `LineStop` `state` (bolt-empty-settle); a `Scheduled` `spread` kind (ink-spread-slow, bind-cloud-late); a held action on a layer (bind-cloud-haunt, bind-cap-snare); round flags with a clear (spark-plate-charge, conduct-network-hum); heat on plates (cinder-cap-brass). No new `Meets` values.
 
@@ -760,3 +754,25 @@ The pairs I am least sure of, in order:
 | M3 | Variants may bend a neighbouring line's behaviour but always stamp their own slot's line | Level II is defined as an interaction with a neighbour; credit stays with the subject that wrote it |
 | M4 | No capstone takes another district's content (no jars, no "pushed" or "dies" Bind events) | A Seam-only household must be able to use every Seam capstone |
 | M5 | Built `oil-slick-short` and `shove-wall-soft` stay as they are, though they read as costs | The brief keeps built pairs; their opinion is "less of the rule in your own way" |
+
+## 8. Review notes (FN-G1, 2026-11-05)
+
+Review by the orchestrator's delegate. All 82 pairs (77 new, 5 built) are approved as the build spec; none is deferred, because every margin line used exists in `src/data/lines.ts` (and `src/data/footnotes/seam-runes.ts` for the built ones).
+
+**Spares dropped** (a and b kept in each case)
+- `touch-unit-draw`: a pull into the caster is not a better opinion than reach or steer, and it clashed with `touch-unit-follow`.
+- `ink-spread-slow`: needs a new `Scheduled` kind for one pair; seep is the reach opinion. (`bind-cloud-late` still needs the `spread` kind, built with it.)
+- `repeat-empty-faithful`: close to a plain upgrade, not an opinion.
+
+**Rewrites** (smallest edit that obeys footnotes.md §1)
+- `shove-wall-soft` (M5): now "takes only 1, but wears the wall by two crushes", so it is the gentle way to open a wall. A built variant: FN-C1 updates its text and wear.
+- `oil-slick-short` (M5): now "lasts one round less, and each tile it clears from leaves a blot" (fuel for stains). A built variant: FN-C3 updates its text and blot.
+- `brass-plate-broad` renamed `brass-plate-twin` (two walls, one hit each): broad made no wall and left level II idle in half the combos.
+- `spark-plate-jolt`: pushes along the spark's heading, so it works on units standing on the brass (focus clash).
+- `repeat-empty-step`: also fires when the followed unit is moved (follow clash).
+- `strike-shielded-glance`: a shielded neighbour's shield takes the 1, still a hit, so it touches the Guard line.
+- `guard-cap-brace`, `bend-cap-turn`, `bend-cap-back`: reworded into the "when X, also Y" form; brace now costs the shield 1.
+
+**Open questions settled**: M1 kept (Margin capstone a reuses FN-11's diagonal reach); M2 applied (no `steam:unit` or `brass:unit` pairs; those lines do not exist, and Steam and Brass use their real lines); M5 applied.
+
+**Left as drafted, for playtest**: `spark-mark-chain` (strongest variant), Guard level I `thick` (a plain number on a one-line rune), `gallnut-unit-heavy` (weak, overlaps `ink-mark-heavy`), `ink-spread-kin` and `bind-cloud-kin` (one rule on two subjects), `cinder-slick-trails` (depends on the open rat-trail rule A3), `ink-mark-pass` (weak with `overflow`).
