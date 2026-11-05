@@ -3,8 +3,9 @@ import { HABIT_ARRIVAL_HOOKS } from './arrival-habits';
 import { chargeTrip } from './bursts';
 import { type Ctx, fizzled } from './ctx';
 import { KIT } from './districts/kit';
+import { relocations } from './events';
 import { hasFootnote } from './footnotes';
-import { type Coord, sameCoord } from './grid';
+import { type Coord, type Dir, sameCoord } from './grid';
 import { openJar, stepOpens } from './jars';
 import * as marks from './marks';
 import { stainMarks } from './mix';
@@ -274,7 +275,18 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
       if (a.subject.kind === 'unit') {
         const u = subjectUnit(ctx, a);
         const jar = tileAt(ctx.s, a.at).jar;
-        if (u && jar && stepOpens(ctx, u, jar, a.cause)) openJar(ctx, a.at, u.id);
+        if (u && jar && stepOpens(ctx, u, jar, a.cause)) {
+          const mine = findUnit(ctx.s, jar.owner)?.kind === 'member';
+          const moved = ['push', 'pull', 'swap'].includes(a.cause);
+          // `jar-unit-pushed`: the rest takes the heading the unit came in on, not the seal's.
+          const heading =
+            mine && moved && hasFootnote(ctx, 'jar-unit-pushed')
+              ? arrivedHeading(ctx, u, a.at)
+              : null;
+          openJar(ctx, a.at, u.id, heading ? { heading } : {});
+          // `jar-unit-slide`: a slide ends on the owner's jar.
+          if (mine && a.cause === 'slide' && hasFootnote(ctx, 'jar-unit-slide')) return 'stop';
+        }
       } else if (a.subject.object.kind === 'jar' && unitAt(ctx.s, a.at)) {
         openJar(ctx, a.at); // a step-jar arriving under a standing unit opens on it (P6)
       }
@@ -302,6 +314,22 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
     run: onUnit((ctx, u, a) => chargeTrip(ctx, u, a.at)),
   },
 ];
+
+/** The way a pushed, pulled or swapped unit moved into `at`: read off its relocation event. */
+function arrivedHeading(ctx: Ctx, u: Unit, at: Coord): Dir | null {
+  for (const e of ctx.log.slice().reverse()) {
+    const r = relocations(e).find((x) => x.unit.id === u.id);
+    if (!r) continue;
+    const i = r.path.findIndex((c) => sameCoord(c, at));
+    const from = i > 0 ? r.path[i - 1] : r.from;
+    if (!from) return null;
+    const dx = at.x - from.x;
+    const dy = at.y - from.y;
+    if (Math.abs(dx) >= Math.abs(dy)) return dx === 0 ? null : dx > 0 ? 'right' : 'left';
+    return dy > 0 ? 'down' : 'up';
+  }
+  return null;
+}
 
 let composed: ArrivalHookList | null = null;
 

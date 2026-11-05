@@ -81,24 +81,24 @@ describe('the Lamplighter’s Jar note (RV-20)', () => {
   });
 
   test('refused without solvents: the frame says what it needs and spends nothing', () => {
-    // The Jar line is written now; without a district solvent the write is refused.
+    // The Jar line is written now; without a canal solvent the write is refused.
     const p = withPage(jarProfile());
     expect(writeAt(p, 'jar', WICK, ctx)).toHaveProperty('error');
     const frame = jarLevelOne(p);
     expect(frame?.spends).toEqual([]);
-    expect(frame?.blocked).toBe('Needs Gallnut or Cinder');
+    expect(frame?.blocked).toBe('Needs Pitch or Wick');
   });
 
-  test('written with the page, level I and one district solvent: spends that solvent once', () => {
+  test('written with the page, level I and one canal solvent: spends that solvent once', () => {
     const p = withPage(
       jarProfile({
-        solventsFound: ['gallnut'],
-        solvents: { ...newProfile().solvents, gallnut: 2 },
+        solventsFound: ['pitch'],
+        solvents: { ...newProfile().solvents, pitch: 2 },
       }),
     );
     const r = writeAt(p, 'jar', WICK, ctx);
     if ('error' in r) throw new Error(r.error);
-    expect(r.profile.solvents.gallnut).toBe(1);
+    expect(r.profile.solvents.pitch).toBe(1);
     expect(r.profile.footnotes.jar?.slots['jar:unit@1']).toBe(WICK);
   });
 

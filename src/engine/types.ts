@@ -244,6 +244,12 @@ export interface Jar {
   id?: JarId;
   /** What the sealing step carried, restored when the jar runs (P9). Absent until FD-4. */
   context?: SealedContext;
+  /** `fuse-unit-follow`: the foe this Fuse was sealed under; at dusk the jar goes where it stands. */
+  carrier?: UnitId;
+  /** `fuse-unit-late`: dusks this Fuse has waited through; it opens once this is 1 or more. */
+  dusks?: number;
+  /** `jar-cap-reseal`: set on the jar the capstone sealed again, so it seals only once. */
+  resealed?: true;
 }
 export type JarId = number;
 export interface Tile {

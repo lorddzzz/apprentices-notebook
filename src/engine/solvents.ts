@@ -2,6 +2,7 @@ import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId 
 import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
+import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
   type Coord,
@@ -14,7 +15,7 @@ import {
 } from './grid';
 import { guardCancels } from './harm';
 import type { Hook } from './hooks';
-import { sealedContext } from './jars';
+import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
 import { cloudNet, isBrass, oilNet } from './networks';
 import {
@@ -234,12 +235,26 @@ function downstream(s: BattleState, at: Coord): Coord | null {
  */
 export function driftWaiting(ctx: Ctx): void {
   const s = ctx.s;
-  const jars: { from: Coord; to: Coord }[] = [];
+  const jars: { from: Coord; to: Coord; dir: Dir | null }[] = [];
   s.tiles.forEach((t, i) => {
     if (!t.jar) return;
+    const mine = t.jar.event === 'dusk' && findUnit(s, t.jar.owner)?.kind === 'member';
+    // `fuse-water-slow`: your Fuse floats only on even rounds.
+    if (mine && s.round % 2 === 1 && hasFootnote(ctx, 'fuse-water-slow')) return;
     const from = coordOf(s, i);
-    const to = downstream(s, from);
-    if (to) jars.push({ from, to });
+    // `fuse-water-swift`: two tiles, stopping at a blocker, or at the first unit with `-wake`.
+    const reach = mine && hasFootnote(ctx, 'fuse-water-swift') ? 2 : 1;
+    const wake = mine && hasFootnote(ctx, 'fuse-water-wake');
+    let to = from;
+    let dir: Dir | null = null;
+    for (let n = 0; n < reach; n++) {
+      const next = downstream(s, to);
+      if (!next || (n > 0 && tileAt(s, next).jar)) break;
+      dir = tileAt(s, to).terrain.water;
+      to = next;
+      if (wake && unitAt(s, to)) break;
+    }
+    if (to !== from) jars.push({ from, to, dir });
   });
   const carried = jars.map((m) => {
     const tile = tileAt(s, m.from);
@@ -257,6 +272,14 @@ export function driftWaiting(ctx: Ctx): void {
       return;
     }
     dest.jar = jar;
+    // `fuse-water-heading`: a Fuse that has floated opens facing the way the water ran.
+    if (
+      m.dir &&
+      jar.event === 'dusk' &&
+      findUnit(s, jar.owner)?.kind === 'member' &&
+      hasFootnote(ctx, 'fuse-water-heading')
+    )
+      jar.heading = m.dir;
     // The drift is the jar's own cast's doing (RV-16): a rival's lantern floating is no household point.
     withOrigin(ctx, jar.origin, () =>
       withLine(ctx, jar.event === 'dusk' ? 'fuse:water' : 'jar:water', () =>
@@ -265,10 +288,18 @@ export function driftWaiting(ctx: Ctx): void {
     );
     landed.push(m.to);
   });
-  // A jar floating under a standing unit opens on it (Lantern Walk, P6).
+  // A jar floating under a standing unit opens on it (Lantern Walk, P6); with `fuse-water-wake`
+  // your Fuse does too.
   for (const at of landed) {
-    if (tileAt(s, at).jar)
-      objectArrives(ctx, { kind: 'jar' }, at, { cause: 'drift', origin: null });
+    const jar = tileAt(s, at).jar;
+    if (!jar) continue;
+    const wakes =
+      jar.event === 'dusk' &&
+      findUnit(s, jar.owner)?.kind === 'member' &&
+      hasFootnote(ctx, 'fuse-water-wake');
+    if (wakes) {
+      if (unitAt(s, at)) openJar(ctx, at, null, { line: 'fuse:water' });
+    } else objectArrives(ctx, { kind: 'jar' }, at, { cause: 'drift', origin: null });
   }
   for (const e of s.scheduled) {
     if (e.solvent !== 'pitch' || e.target.kind !== 'tile') continue;

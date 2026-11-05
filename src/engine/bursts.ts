@@ -14,6 +14,7 @@ import { dealDamage } from './damage';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule } from './habits';
+import { openJar, ownedByMember } from './jars';
 import { applyMark, liftMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
 import { push } from './push';
@@ -273,6 +274,12 @@ function ignite(
   );
   if (marks) {
     for (const u of units) if (u.hp > 0 && !u.mark) markUnit(ctx, u, flow?.origin ?? null);
+  }
+  // `fuse-unit-fire`: fire reaching your Fuse's tile opens it at once, on whoever stands there.
+  for (const c of tiles) {
+    const jar = tileAt(s, c).jar;
+    if (jar?.event === 'dusk' && hasFootnote(ctx, 'fuse-unit-fire') && ownedByMember(ctx, jar))
+      openJar(ctx, c, null, { line: 'fuse:unit' });
   }
 }
 

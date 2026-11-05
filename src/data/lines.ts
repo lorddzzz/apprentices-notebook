@@ -615,7 +615,7 @@ export const LINES: readonly LineDef[] = [
     id: 'jar:unit',
     subject: 'jar',
     meets: 'unit',
-    district: 'seam',
+    district: 'canals',
     text: "A jar opens under whatever unit stands on it, foe included, and what it holds is still its owner's.",
   },
   // pending (L1): fired by the engine, text to be written by C1
