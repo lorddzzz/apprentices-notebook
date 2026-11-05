@@ -489,3 +489,104 @@ export const BATH_ROOMS_34: readonly BathRoomDef[] = [
   bathRoom('bath-pools', 'The long pools', 3, 3, BATH_3),
   bathRoom('bath-caldarium', 'The caldarium', 4, 4, BATH_4),
 ];
+
+// ── The heart: the Bath-Steward stand-in and his room (P10; BH-8) ──
+/** The stand-in's three steps in cycle order: lay a cloud, shove from within, stoke (DK-9 script). */
+export const STEWARD_STEPS = [
+  'bathhouses:steward:lay',
+  'bathhouses:steward:shove',
+  'bathhouses:steward:stoke',
+] as const;
+
+/** The stand-in's numbers (*tune by playing*). */
+export const STEWARD_TUNING = {
+  /** Cloud tiles one lay adds (his own tile first, then toward the nearest apprentice). */
+  layTiles: 4,
+  /** Whole pips one stoke adds to the gauge (every third round). */
+  stokePips: 4,
+} as const;
+
+/**
+ * The Bath-Steward, stand-in (bathhouses-plan P10, DK-9): a scripted heart until RV's authoring API
+ * (BH-17). He never walks: he lays steam toward the party, re-forms within his cloud to shove one
+ * of you out of it, and stokes the house. Hit on a cloud tile by anything but a burst of the
+ * cloud, he steams away (the `steamsAway` trait): cut his cloud, or storm it. No page (`standIn`).
+ */
+export const BATH_STEWARD: EnemyDef = {
+  id: 'bathSteward',
+  name: 'Bath-Steward',
+  token: BATH_FOE_TOKENS.bathSteward,
+  hp: 14,
+  move: 0,
+  attack: 'shove',
+  ai: 'idle',
+  script: { steps: STEWARD_STEPS, standIn: true },
+  elite: true,
+  blurb:
+    'The house steward, half steam. Lays clouds by you, shoves from inside them, and stokes the boil every third round. Struck in a cloud he re-forms across it: cut it, or storm it.',
+  traits: ['steamsAway'],
+  ...BATH_PLAIN,
+  boss: true,
+};
+
+/**
+ * The heart (P5, P10): 7 wide, 8 tall, five start points, heat 4 and never cooled. The Steward on
+ * a pool of steam with two vents feeding it, one bather beside him. Each variant leaves open
+ * tiles between the pool and the start points, so a cut is always on the board.
+ */
+const heartBoard = (rows: readonly string[]): string => rows.join('\n');
+// Inline type imports keep this block apart from the rooms 1–4 block (BH-6, BH-7) above it.
+const STEWARD_HEART: readonly import('../types').EncounterVariant[] = [
+  {
+    name: "The steward's caldarium",
+    layout: heartBoard([
+      '. . . @ . . .',
+      '. ~ ~ ~ ~ . .',
+      '. ~ H~ ~ s~ . .',
+      '. ~ ~ ~ ~ . .',
+      '. . . . . . .',
+      'P . . . . . P',
+      '. . P . . . .',
+      '. . . . P . P',
+    ]),
+  },
+  {
+    name: "The steward's caldarium",
+    layout: heartBoard([
+      '@ . . . . . .',
+      '~ ~ ~ . . . .',
+      '~ H~ ~ ~ . P .',
+      '~ ~ ~ s~ . . .',
+      '. . . . . . P',
+      '. . . . . . .',
+      'P . . . . P .',
+      '. . P . . . @',
+    ]),
+  },
+  {
+    name: "The steward's caldarium",
+    layout: heartBoard([
+      '. . . . . . .',
+      '. . ~ ~ ~ . .',
+      'P . ~ H~ ~ . P',
+      '. . ~ s~ ~ . .',
+      '. . . @ . . .',
+      '. . . . . . .',
+      'P . . . . . P',
+      '. . . P . . .',
+    ]),
+  },
+];
+
+/** The heart room: base heat 4, the h4 offers with two picks (BH-2's `offersFor` reads the heat). */
+export const BATH_HEART: import('./bathhouses/types').BathRoomDef = {
+  id: 'bath-caldarium',
+  title: "The steward's caldarium",
+  depth: 5,
+  layout: STEWARD_HEART[0]?.layout ?? '',
+  variants: STEWARD_HEART,
+  loot: 'bathhouses:h4',
+  picks: PICKS_BY_HEAT[HEART_HEAT],
+  heart: true,
+  heatBase: HEART_HEAT,
+};

@@ -38,17 +38,21 @@ describe('BH-0 registration', () => {
     expect(DISTRICT_UI.bathhouses).toEqual({});
   });
 
-  test("inert but for BH-1's rule, BH-4/5's foes and the bather's guard: no pieces or steps; lines, the shape and the cause", () => {
+  test("inert but for BH-1's rule, BH-4/5's foes, the guards and BH-8's steps: no pieces; lines, the shape and the cause", () => {
     const m = KIT.modules.bathhouses;
     expect(m?.foes?.map((f) => f.id)).toEqual([
       'bathhouses:attendant',
       'bathhouses:boilerman',
       'bathhouses:bather',
     ]);
-    expect(m?.harmGuards?.map((g) => g.id)).toEqual(['bathhouses:bather']);
-    for (const k of ['pieces', 'steps'] as const) {
-      expect(m?.[k] ?? []).toEqual([]);
-    }
+    expect(m?.harmGuards?.map((g) => g.id)).toEqual(['bathhouses:bather', 'bathhouses:steward']);
+    expect(m?.pieces ?? []).toEqual([]);
+    // BH-8: the Steward stand-in's script
+    expect((m?.steps ?? []).map((st) => st.id)).toEqual([
+      'bathhouses:steward:lay',
+      'bathhouses:steward:shove',
+      'bathhouses:steward:stoke',
+    ]);
     // BH-3 adds the cold plunge, the only offer kind
     expect((m?.offerKinds ?? []).map((o) => o.id)).toEqual(['bathhouses:plunge']);
     expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bathhouses:'))).toEqual([
@@ -57,6 +61,8 @@ describe('BH-0 registration', () => {
     expect(Object.keys(KIT.events).filter((t) => t.startsWith('bathhouses:'))).toEqual([
       ...BATH_EVENT_TYPES,
       'bathhouses:passesThrough', // BH-4
+      'bathhouses:steamsAway', // BH-8
+      'bathhouses:stoke',
     ]);
     expect(KIT.causes[STEAM_CAUSE]).toBe('landing');
     expect(
@@ -116,12 +122,12 @@ describe('BH-0 contracts', () => {
     expect(tokenCollisions([...DISTRICT_TOKENS, ...RIVAL_TOKENS], [...new Set(builtIn)])).toEqual(
       [],
     );
-    // BH-4's and BH-5's foes parse; the Steward is not a foe yet.
-    expect(parseBoard('s t c').units.map((u) => u.def)).toEqual([
+    // BH-4's, BH-5's and BH-8's foes parse.
+    expect(parseBoard('s t c H').units.map((u) => u.def)).toEqual([
       'dissolvedBather',
       'attendant',
       'boilerman',
+      'bathSteward',
     ]);
-    expect(() => parseBoard('H')).toThrow();
   });
 });

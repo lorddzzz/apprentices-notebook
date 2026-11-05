@@ -1,4 +1,4 @@
-import { BATH_ENEMIES, BATH_SHOVE } from './districts/bathhouses';
+import { BATH_ENEMIES, BATH_SHOVE, BATH_STEWARD } from './districts/bathhouses';
 import { BARGE } from './districts/canals';
 import { INK_ENEMIES, INK_HEART_ENEMIES } from './districts/inkQuarter/enemies';
 import { SEAM_ENEMIES } from './districts/seam';
@@ -25,6 +25,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'attendant',
   'boilerman',
   'dissolvedBather',
+  'bathSteward',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
@@ -245,4 +246,5 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   ...INK_HEART_ENEMIES,
   ...SEAM_ENEMIES,
   ...BATH_ENEMIES,
+  bathSteward: BATH_STEWARD,
 };

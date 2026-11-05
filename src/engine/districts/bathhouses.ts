@@ -1,6 +1,7 @@
 import { BOIL_OVER_RULE } from './bathhouses/boilOver';
 import { BATHER_EVENT_LINES, BATHER_FOE, BATHER_GUARD } from './bathhouses/dissolved';
 import { BATH_FOES } from './bathhouses/foes';
+import { STEWARD_EVENT_LINES, STEWARD_GUARD, STEWARD_STEP_LIST } from './bathhouses/heart';
 import { AREAS_GUARANTEE, BATH_TRIP, PLUNGE } from './bathhouses/trip';
 import { BATH_EVENT_TYPES, STEAM_CAUSE } from './bathhouses/types';
 import type { DistrictEventDef, DistrictModule } from './types';
@@ -23,12 +24,13 @@ const events: readonly DistrictEventDef[] = BATH_EVENT_TYPES.map((type) => ({
 
 export const BATHHOUSES_MODULE: DistrictModule = {
   id: 'bathhouses',
-  events: [...events, ...BATHER_EVENT_LINES],
+  events: [...events, ...BATHER_EVENT_LINES, ...STEWARD_EVENT_LINES],
   trip: BATH_TRIP,
   offerKinds: [PLUNGE],
   offerContributors: [AREAS_GUARANTEE],
   rules: [BOIL_OVER_RULE],
   foes: [...BATH_FOES, BATHER_FOE],
-  harmGuards: [BATHER_GUARD],
+  harmGuards: [BATHER_GUARD, STEWARD_GUARD],
+  steps: STEWARD_STEP_LIST,
   causes: { [STEAM_CAUSE]: 'landing' },
 };
