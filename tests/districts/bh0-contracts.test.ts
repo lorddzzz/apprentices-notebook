@@ -38,9 +38,10 @@ describe('BH-0 registration', () => {
     expect(DISTRICT_UI.bathhouses).toEqual({});
   });
 
-  test("inert but for BH-1's rule: no pieces, foes, offers, guards or steps; lines, the shape and the cause", () => {
+  test("inert but for BH-1's rule and BH-5's foes: no pieces, offers, guards or steps; lines, the shape and the cause", () => {
     const m = KIT.modules.bathhouses;
-    for (const k of ['pieces', 'foes', 'harmGuards', 'steps'] as const) {
+    expect(m?.foes?.map((f) => f.id)).toEqual(['bathhouses:attendant', 'bathhouses:boilerman']);
+    for (const k of ['pieces', 'harmGuards', 'steps'] as const) {
       expect(m?.[k] ?? []).toEqual([]);
     }
     // BH-3 adds the cold plunge, the only offer kind
@@ -53,8 +54,10 @@ describe('BH-0 registration', () => {
     ]);
     expect(KIT.causes[STEAM_CAUSE]).toBe('landing');
     expect(
-      Object.keys(ATTACKS).every((a) => ATTACKS[a as keyof typeof ATTACKS].push === undefined),
-    ).toBe(true);
+      Object.values(ATTACKS)
+        .filter((a) => a.push !== undefined)
+        .map((a) => a.id),
+    ).toEqual(['shove']);
   });
 });
 
@@ -98,6 +101,7 @@ describe('BH-0 contracts', () => {
     const builtIn = [
       ...Object.values(ENEMIES)
         .filter((e) => !Object.hasOwn(RIVALS, e.id)) // the rivals' own shells (RV-1, IQ-22)
+        .filter((e) => !DISTRICT_TOKENS.some((t) => t.kind === 'foe' && t.id === e.id)) // a district's claimed foes (BH-5)
         .map((e) => e.token),
       ...Object.values(APPRENTICES).map((a) => a.token),
       ...'DSRNBWTCE',
@@ -106,7 +110,8 @@ describe('BH-0 contracts', () => {
     expect(tokenCollisions([...DISTRICT_TOKENS, ...RIVAL_TOKENS], [...new Set(builtIn)])).toEqual(
       [],
     );
-    // Not foes yet: the letters are unknown to the board parser.
-    for (const t of ['s', 't', 'c', 'H']) expect(() => parseBoard(t)).toThrow();
+    // BH-5's foes parse; the bather and the Steward are not foes yet.
+    expect(parseBoard('t c').units.map((u) => u.def)).toEqual(['attendant', 'boilerman']);
+    for (const t of ['s', 'H']) expect(() => parseBoard(t)).toThrow();
   });
 });

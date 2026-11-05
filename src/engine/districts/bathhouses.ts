@@ -1,4 +1,5 @@
 import { BOIL_OVER_RULE } from './bathhouses/boilOver';
+import { BATH_FOES } from './bathhouses/foes';
 import { AREAS_GUARANTEE, BATH_TRIP, PLUNGE } from './bathhouses/trip';
 import { BATH_EVENT_TYPES, STEAM_CAUSE } from './bathhouses/types';
 import type { DistrictEventDef, DistrictModule } from './types';
@@ -26,5 +27,6 @@ export const BATHHOUSES_MODULE: DistrictModule = {
   offerKinds: [PLUNGE],
   offerContributors: [AREAS_GUARANTEE],
   rules: [BOIL_OVER_RULE],
+  foes: BATH_FOES,
   causes: { [STEAM_CAUSE]: 'landing' },
 };

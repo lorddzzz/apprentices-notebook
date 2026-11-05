@@ -1,3 +1,4 @@
+import type { UnitTrait } from '$engine/arrival';
 import type { EnemyScript, KitId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
@@ -358,8 +359,10 @@ export type EnemyId =
   | 'clockSeal'
   | 'postmaster'
   | 'letter'
-  | 'marginalia';
-export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst';
+  | 'marginalia'
+  | 'attendant'
+  | 'boilerman';
+export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst' | 'shove';
 
 /**
  * @deprecated The pre-household view of an apprentice (`MEMBERS`): the registry entry with the
@@ -380,7 +383,13 @@ export interface AttackDef {
   range: number; // 1, 99 (unlimited), 2
   damage: number;
   inks: boolean; // lands Ink where it hits (spit)
-  /** BH P9 (the attendant's shove): tiles the hit unit is pushed. Nothing reads it yet (BH-5). */
+  /**
+   * BH P9 (the attendant's shove): the hit pushes its target this many tiles, through the arrival
+   * pipeline (`push.ts::push`: slides, crushes and drops as for a player's Shove), after `damage`.
+   * Only `adjacent` attacks push. The heading is the attacker's to choose (it is not the attack's
+   * `dir`): a behaviour foe reads this number and picks it (`bathhouses/foes.ts`); the core `ai`
+   * never reads it.
+   */
   push?: number;
 }
 
@@ -437,6 +446,8 @@ interface EnemyDefBase {
    * it can be beached on a quay and pushed back. Read by CN-2; nothing reads it yet.
    */
   floats?: true;
+  /** District traits the unit carries (`unitTraits` adds them after the core ones): BH's `feeds`. */
+  traits?: readonly UnitTrait[];
   /** CN P3: spawns as a bystander (`Unit.bystander`): never counted for the win, never credited. */
   bystander?: true;
 }

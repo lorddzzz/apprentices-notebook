@@ -43,6 +43,7 @@ describe('RV-W0 contracts', () => {
     const builtIn = [
       ...Object.values(ENEMIES)
         .filter((e) => !Object.hasOwn(RIVALS, e.id)) // the rivals' own shells (RV-1, IQ-22)
+        .filter((e) => !DISTRICT_TOKENS.some((t) => t.kind === 'foe' && t.id === e.id)) // a district's claimed foes (BH-5)
         .map((e) => e.token),
       ...Object.values(APPRENTICES).map((a) => a.token),
       ...'DSRNBWTCE', // the household roster letters (HC P3)

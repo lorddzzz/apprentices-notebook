@@ -220,6 +220,7 @@ export const unitTraits: UnitTraitsFn = (unit) => {
   if (def.habitat === 'water') out.push('swims');
   if (def.anchored || unit.moored) out.push('anchored');
   if (def.floats) out.push('floats');
+  for (const t of def.traits ?? []) if (!out.includes(t)) out.push(t);
   return out;
 };
 export const hasTrait = (unit: Unit, trait: UnitTrait): boolean => unitTraits(unit).includes(trait);

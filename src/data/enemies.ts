@@ -1,3 +1,4 @@
+import { BATH_ENEMIES, BATH_SHOVE } from './districts/bathhouses';
 import { BARGE } from './districts/canals';
 import { INK_ENEMIES, INK_HEART_ENEMIES } from './districts/inkQuarter/enemies';
 import { SEAM_ENEMIES } from './districts/seam';
@@ -21,6 +22,8 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'postmaster',
   'letter',
   'marginalia',
+  'attendant',
+  'boilerman',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
@@ -84,6 +87,7 @@ export const ATTACKS: Record<AttackId, AttackDef> = {
     damage: 1,
     inks: false,
   },
+  shove: BATH_SHOVE,
 };
 
 /** The K-13 trait defaults: a plain land-or-water foe. */
@@ -239,4 +243,5 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   ...INK_ENEMIES,
   ...INK_HEART_ENEMIES,
   ...SEAM_ENEMIES,
+  ...BATH_ENEMIES,
 };

@@ -1,5 +1,11 @@
-import type { LootEntry, LootTableDef, RuneId, SolventId } from '../types';
-import { BATH_TABLE_IDS, BATH_TOKENS, type BathTableId, type HeatLevel } from './bathhouses/types';
+import type { AttackDef, EnemyDef, LootEntry, LootTableDef, RuneId, SolventId } from '../types';
+import {
+  BATH_FOE_TOKENS,
+  BATH_TABLE_IDS,
+  BATH_TOKENS,
+  type BathTableId,
+  type HeatLevel,
+} from './bathhouses/types';
 import type { DistrictData } from './index';
 
 /**
@@ -113,3 +119,76 @@ export const PLUNGE_CARD = {
   title: 'Cold plunge',
   blurb: 'Costs a pick. The next hall runs one heat cooler (never below 1); its loot is unchanged.',
 } as const;
+
+// ── The steam's people: the attendant and the boilerman (P7, P9; BH-5) ──
+/**
+ * The attendant's shove (P9): no damage of its own, a 2-tile push the attendant aims; the harm is
+ * the crush (1 + 1 per tile moved, 1 to what it hits), as for a player's Shove.
+ */
+export const BATH_SHOVE: AttackDef = {
+  id: 'shove',
+  name: 'Shove',
+  verb: 'shove',
+  verbs: 'shoves',
+  kind: 'adjacent',
+  range: 1,
+  damage: 0,
+  inks: false,
+  push: 2,
+};
+
+/** Numbers the foes' behaviours read (*tune by playing*). The feeder's pips are `FEEDER_PIPS`. */
+export const BATH_FOE_TUNING = {
+  /** The boilerman's bite when an apprentice stands beside him. */
+  boilermanBite: 1,
+} as const;
+
+const BATH_PLAIN = {
+  brass: false,
+  oilTrail: false,
+  habitat: 'any',
+  flies: false,
+  anchored: false,
+  snuffs: false,
+  bursts: false,
+  boss: false,
+} as const;
+
+/**
+ * Sized against the canals' foes (eel 3 HP, snuffer 4 HP elite): the attendant is the snuffer's
+ * weight with twice its pace; the boilerman a rat's bite on a body one tougher, a minion so the
+ * priority target dies to a drop.
+ */
+export const ATTENDANT: EnemyDef = {
+  id: 'attendant',
+  name: 'attendant',
+  token: BATH_FOE_TOKENS.attendant,
+  hp: 4,
+  move: 2,
+  attack: 'shove',
+  ai: 'idle',
+  behaviour: 'bathhouses:attendant',
+  elite: true,
+  blurb:
+    'An attendant in white. Shoves one of you two tiles toward the nearest wall, edge or body, and the crush does the rest.',
+  ...BATH_PLAIN,
+};
+
+export const BOILERMAN: EnemyDef = {
+  id: 'boilerman',
+  name: 'boilerman',
+  token: BATH_FOE_TOKENS.boilerman,
+  hp: 3,
+  move: 2,
+  attack: 'bite',
+  ai: 'idle',
+  behaviour: 'bathhouses:boilerman',
+  elite: false,
+  blurb:
+    'Stokes the house. Beside a vent he feeds the gauge 2 pips a round; kill him first or it boils.',
+  traits: ['feeds'],
+  ...BATH_PLAIN,
+};
+
+/** The district's foes for `ENEMIES` (BH-4 and BH-8 add the bather and the Steward). */
+export const BATH_ENEMIES = { attendant: ATTENDANT, boilerman: BOILERMAN } as const;
