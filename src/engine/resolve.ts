@@ -1,6 +1,7 @@
 import { isInvention, RUNES, type RuneRef } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, fizzled, inCastScope, ref, withLine, withOrigin } from './ctx';
+import { dealDamage } from './damage';
 import type { NodeSpan } from './events';
 import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, key, label, neighbors4, sameCoord, step } from './grid';
@@ -8,12 +9,22 @@ import { habitOf, ruleOf, withHabit } from './habits';
 import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
+import { layThinCloud } from './mix';
 import { sameStateNet } from './networks';
 import { hitPiece } from './pieces';
-import { blockerName, findUnit, giftedIn, isCloud, longTouchOver, tileAt, unitAt } from './queries';
+import {
+  blockerName,
+  findUnit,
+  giftedIn,
+  inBoard,
+  isCloud,
+  longTouchOver,
+  tileAt,
+  unitAt,
+} from './queries';
 import { handlerFor } from './runes';
 import { forkSide, isForked, jarFor, reheaded, seep, toll, trial } from './runes/flow';
-import { aimLine, aimTargets, boltTravel, tilesBetween, whereIs } from './targets';
+import { aimLine, aimTargets, boltTravel, targetOn, tilesBetween, whereIs } from './targets';
 import type {
   Aim,
   BattleState,
@@ -29,6 +40,7 @@ import type {
   UnitId,
 } from './types';
 import { targetKey } from './types';
+import { takesCloud, type VatPlan, vatPlan } from './vatPlan';
 
 export { aimTargets, boltTravel, whereIs };
 
@@ -225,9 +237,18 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           const standing = t.kind === 'unit' || unitAt(s, at) !== null;
           if (standing) sawUnit = true;
           withOrigin(ctx, stepOrigin, () => {
-            if (handler && forked && standing) {
-              withLine(ctx, 'fork:unit', () => handler(ctx, t, here, st));
-            } else handler?.(ctx, t, here, st);
+            const run = (): void => {
+              if (handler && forked && standing) {
+                withLine(ctx, 'fork:unit', () => handler(ctx, t, here, st));
+              } else handler?.(ctx, t, here, st);
+            };
+            // `seep:member`: your own party beside a Seep target; `seep-member-guard` guards it instead.
+            if (standing && flow.seep?.members.includes(targetKey(t))) {
+              const guarding = st.role === 'action' && hasFootnote(ctx, 'seep-member-guard');
+              withLine(ctx, 'seep:member', () =>
+                guarding ? handlerOf('guard')?.(ctx, t, here, st) : run(),
+              );
+            } else run();
             if (st.role === 'action' || hasFootnote(ctx, 'margin-cap-kinds')) {
               marginEcho(ctx, st.rune, t, at, here);
             }
@@ -262,6 +283,37 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           if (more.length) {
             onward = [...live, ...more];
             nextFlow = { ...flow, headings: reheaded(flow.headings, 0, way) };
+          }
+        }
+        // `seep-cap-chain`: a neighbour Seep's rest defeated lets it act on that one's neighbours, once.
+        if (
+          st.role === 'action' &&
+          flow.seep &&
+          !flow.seep.chained &&
+          hasFootnote(ctx, 'seep-cap-chain')
+        ) {
+          const more: Target[] = [];
+          const way = new Map<string, Dir | null>();
+          const taken = new Set(live.map(targetKey));
+          for (const t of live) {
+            if (t.kind !== 'unit' || !flow.seep.neighbours.includes(targetKey(t))) continue;
+            const fallen = findUnit(s, t.unit);
+            if (!fallen || fallen.hp > 0) continue;
+            for (const c of neighbors4(fallen.pos)) {
+              if (!inBoard(s, c)) continue;
+              const nt = targetOn(s, c);
+              if (taken.has(targetKey(nt))) continue;
+              taken.add(targetKey(nt));
+              more.push(nt);
+              way.set(targetKey(nt), flow.headings.get(targetKey(t)) ?? null);
+            }
+          }
+          if (more.length) {
+            queue(st, more, {
+              ...flow,
+              headings: reheaded(flow.headings, 0, way),
+              seep: { ...flow.seep, chained: true },
+            });
           }
         }
         queue(st.next, onward, nextFlow);
@@ -306,13 +358,20 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           queue(st.next, live, { ...flow, lay: true });
           return;
         }
-        const seeped = st.rune === 'seep' ? seep(s, live, flow.headings) : null;
+        const seeped =
+          st.rune === 'seep'
+            ? seep(s, live, flow.headings, ctx.footnotes, findUnit(s, flow.caster) ?? null)
+            : null;
         const aimed = seeped ?? toll(s, live, flow.headings, seams.sameStateNet ?? sameStateNet);
         if (seeped && seeped.off > 0) {
           withLine(ctx, 'seep:edge', () => emit(ctx, { type: 'miss', source: 'Seep' }));
         }
         span();
-        queue(st.next, aimed.targets, { ...flow, headings: aimed.headings });
+        queue(st.next, aimed.targets, {
+          ...flow,
+          headings: aimed.headings,
+          ...(seeped ? { seep: { members: seeped.members, neighbours: seeped.neighbours } } : {}),
+        });
         return;
       }
       case 'trigger': {
@@ -589,7 +648,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
           : null;
       withHabit(ctx, habit, () => (line ? withLine(ctx, line, aimed) : aimed()));
     } else {
-      const line = aimLine(caster, spell.source, aim, targets, ctx.footnotes);
+      const line = aimLine(caster, spell.source, aim, targets, ctx.footnotes, s);
       if (line) withLine(ctx, line, aimed);
       else aimed();
     }
@@ -620,6 +679,33 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
           }
         : {}),
     };
+    const vat =
+      spell.source === 'vat' && aim.kind === 'tile'
+        ? vatPlan(s, caster, aim.at, ctx.footnotes)
+        : null;
+    if (vat?.weaker) flow.weaker = vat.weaker; // `vat-edge-press`: stronger, by the tiles lost
     runStep(ctx, spell.first, targets, flow);
+    if (vat) afterVat(ctx, vat, spell, flow);
+  }
+}
+
+/** What a Vat adds once its rest has run: the ring (`vat-cap-room`), clouds, the crowd's toll. */
+function afterVat(ctx: Ctx, vat: VatPlan, spell: Spell, flow: Flow): void {
+  if (fizzled(ctx)) return;
+  // `vat-cap-room`: the rest also acts on the ring around the square, one step weaker.
+  if (vat.ring) {
+    const weaker = Math.max(0, flow.weaker ?? 0) + 1;
+    runStep(ctx, spell.first, vat.ring.targets, { ...flow, headings: vat.ring.headings, weaker });
+  }
+  // `vat-unit-fill`: a tile that was empty and still is takes a thin cloud for a round.
+  for (const at of vat.fill) if (takesCloud(ctx, at)) layThinCloud(ctx, at, flow.origin);
+  // `vat-cap-crowd`: two or more foes in the Vat each take 1 per other foe, at most 2.
+  const crowd = vat.crowd;
+  const caster = findUnit(ctx.s, flow.caster);
+  for (const foe of crowd) {
+    dealDamage(ctx, foe, Math.min(2, crowd.length - 1), RUNES.vat.name, [], {
+      heading: null,
+      at: caster ? { ...caster.pos } : null,
+    });
   }
 }

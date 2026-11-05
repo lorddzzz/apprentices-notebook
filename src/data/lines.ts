@@ -786,6 +786,13 @@ export const LINES: readonly LineDef[] = [
     text: "Seep reaches only tiles on the board: a neighbour past the room's edge is dropped, and the rest still go.",
   },
   {
+    id: 'seep:member',
+    subject: 'seep',
+    meets: 'member',
+    district: 'bathhouses',
+    text: 'Seep acts on its neighbours whoever they are: you and your allies beside the target take the rest too.',
+  },
+  {
     id: 'steep:spread',
     subject: 'steep',
     meets: 'spread',

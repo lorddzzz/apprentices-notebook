@@ -5,6 +5,7 @@ import { byReadingOrder, type Coord, type Dir, neighbors4, opposite, square, ste
 import { clip, inBoard, isCloud, type Travel, tileAt, travel, unitAt } from './queries';
 import type { Aim, BattleState, Target, Unit } from './types';
 import { targetKey } from './types';
+import { vatHeadings, vatLost, vatOrigin, vatPour, vatTiles } from './vat';
 
 /**
  * Where a spell aims and who it acts on (design R2, R4, R7, R9; plan P21–P23). Pure functions of
@@ -248,10 +249,15 @@ export function aimTargets(
     }
     case 'vat': {
       if (aim.kind !== 'tile') return none;
-      // The 2×2 whose top-left is the aimed tile.
-      const { x, y } = aim.at;
-      const tiles = clip(s, [aim.at, { x: x + 1, y }, { x, y: y + 1 }, { x: x + 1, y: y + 1 }]);
-      return areaTargets(s, caster, tiles, { x: x + 0.5, y: y + 0.5 });
+      // The 2×2 whose top-left is the aimed tile (`vat-edge-slide` shifts it to stay whole).
+      const o = vatOrigin(s, aim.at, footnotes);
+      const r = areaTargets(s, caster, vatTiles(s, o), { x: o.x + 0.5, y: o.y + 0.5 });
+      vatHeadings(s, r.targets, r.headings, o, footnotes);
+      // `vat-unit-pour`: each empty tile pours its share on the first unit.
+      if (hasFootnote({ footnotes }, 'vat-unit-pour')) {
+        return { targets: vatPour(r.targets, r.headings), headings: r.headings };
+      }
+      return r;
     }
     case 'touch': {
       if (aim.kind === 'self') {
@@ -303,6 +309,7 @@ export function aimLine(
   aim: Aim,
   targets: readonly Target[],
   footnotes: NonNullable<DraftOptions['footnotes']> = {},
+  board: BattleState | null = null,
 ): LineId | null {
   if (source === 'splash' && aim.kind === 'tile') {
     const own = aim.at.x === caster.pos.x && aim.at.y === caster.pos.y;
@@ -322,7 +329,8 @@ export function aimLine(
     // which does not exist when the caster stands on the square's bottom-right tile.
     if (caster.pos.x === aim.at.x + 1 && caster.pos.y === aim.at.y + 1) return 'vat:noHeading';
     if (targets.some((t) => t.kind === 'unit' && t.unit === caster.id)) return 'vat:member';
-    if (targets.length < 4) return 'vat:edge';
+    // `vat-edge-slide` keeps four tiles, but the square was still clipped by the edge.
+    if (targets.length < 4 || (board && vatLost(board, aim.at) > 0)) return 'vat:edge';
     return targets.some((t) => t.kind === 'unit') ? 'vat:unit' : null;
   }
   if (source === 'touch') {

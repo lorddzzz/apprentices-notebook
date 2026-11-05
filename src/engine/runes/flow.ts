@@ -13,7 +13,7 @@ import {
 } from '../grid';
 import { ruleOf, sameSide } from '../habits';
 import { sealedContext } from '../jars';
-import { inBoard, unitAt } from '../queries';
+import { blocksUnits, inBoard, isCloud, tileAt, unitAt } from '../queries';
 import { targetOn, whereIs } from '../targets';
 import type { BattleState, Flow, Jar, Snapshot, Target, Tile, Unit } from '../types';
 import { targetKey } from '../types';
@@ -128,26 +128,121 @@ export function forkSide(
   return out;
 }
 
+/** What Seep did besides the plain target list: lost neighbours, allies and the neighbour keys. */
+export interface Seeped extends Aimed {
+  /** Neighbours dropped at the board's edge (`seep:edge`); with `seep-edge-wall`, blockers too. */
+  off: number;
+  /** Target keys of your own party beside a target (`seep:member`). */
+  members: string[];
+  /** Target keys of every neighbour Seep added, for `seep-cap-chain`. */
+  neighbours: string[];
+}
+
+const DIAGONALS: readonly Coord[] = [
+  { x: -1, y: -1 },
+  { x: 1, y: -1 },
+  { x: -1, y: 1 },
+  { x: 1, y: 1 },
+];
+const readingOrder = (a: Coord, b: Coord): number => a.y - b.y || a.x - b.x;
+const dirBetween = (from: Coord, to: Coord): Dir =>
+  to.x !== from.x ? (to.x < from.x ? 'left' : 'right') : to.y < from.y ? 'up' : 'down';
+
 /**
  * Seep: the targets, then their neighbours (new ones only, in reading order per target). `off`
- * counts neighbours dropped at the board's edge (`seep:edge`).
+ * counts neighbours dropped at the board's edge (`seep:edge`). Footnotes bend the edge (`back`,
+ * `turn`, `wall`, `along`), the party beside the target (`spare-self`, `pass`, `away`) and the
+ * capstone `seep-cap-cloud`; `caster` says who "you" are.
  */
 export function seep(
   s: BattleState,
   targets: readonly Target[],
   headings: ReadonlyMap<string, Dir | null>,
-): Aimed & { off: number } {
-  const out: Aimed & { off: number } = { targets: [], headings: new Map(headings), off: 0 };
+  footnotes: FootnoteIds = {},
+  caster: Unit | null = null,
+): Seeped {
+  const fn = (id: FootnoteVariantId) => hasFootnote({ footnotes }, id);
+  const out: Seeped = {
+    targets: [],
+    headings: new Map(headings),
+    off: 0,
+    members: [],
+    neighbours: [],
+  };
   const seen = new Set<string>();
   for (const t of targets) add(out, seen, t, headings.get(targetKey(t)) ?? null, false);
+  const free = (c: Coord): boolean => inBoard(s, c) && !blocksUnits(tileAt(s, c));
+  const reach = (c: Coord, heading: Dir | null): boolean => {
+    const nt = targetOn(s, c);
+    const k = targetKey(nt);
+    if (seen.has(k)) return false;
+    add(out, seen, nt, heading, false);
+    out.neighbours.push(k);
+    return true;
+  };
   for (const t of targets) {
     const at = whereIs(s, t);
     if (!at) continue;
     const heading = headings.get(targetKey(t)) ?? null;
     const ring = neighbors4(at);
-    out.off += ring.filter((c) => !inBoard(s, c)).length;
-    const around = ring.filter((c) => inBoard(s, c)).sort((a, b) => a.y - b.y || a.x - b.x);
-    for (const c of around) add(out, seen, targetOn(s, c), heading, false);
+    let off = ring.filter((c) => !inBoard(s, c)).length;
+    let around = ring.filter((c) => inBoard(s, c)).sort(readingOrder);
+    // `seep-edge-wall`: a wall, gate or plate beside the target is lost like the edge.
+    if (fn('seep-edge-wall')) {
+      off += around.filter((c) => blocksUnits(tileAt(s, c))).length;
+      around = around.filter((c) => !blocksUnits(tileAt(s, c)));
+    }
+    const beyond: Coord[] = [];
+    for (const c of around) {
+      const there = unitAt(s, c);
+      const mine = !!caster && !!there && sameSide(caster, there);
+      // `seep-member-spare-self`: Seep never reaches you, the caster.
+      if (mine && there?.id === caster?.id && fn('seep-member-spare-self')) continue;
+      // `seep-member-away`: your party is pushed away from the target, not along its heading.
+      const way = mine && fn('seep-member-away') ? dirBetween(at, c) : heading;
+      if (!reach(c, way)) continue;
+      if (mine) {
+        out.members.push(targetKey(targetOn(s, c)));
+        // `seep-member-pass`: a neighbour of yours passes it along to the tile beyond.
+        if (fn('seep-member-pass')) beyond.push({ x: 2 * c.x - at.x, y: 2 * c.y - at.y });
+      }
+    }
+    for (const c of beyond) if (inBoard(s, c)) reach(c, heading);
+    // `seep-edge-along`: a target on the room's edge reaches one tile further along it, both ways.
+    if (fn('seep-edge-along')) {
+      const along: Coord[] = [];
+      if (at.x === 0 || at.x === s.width - 1) {
+        for (const dy of [-1, 1]) {
+          if (inBoard(s, { x: at.x, y: at.y + dy })) along.push({ x: at.x, y: at.y + 2 * dy });
+        }
+      }
+      if (at.y === 0 || at.y === s.height - 1) {
+        for (const dx of [-1, 1]) {
+          if (inBoard(s, { x: at.x + dx, y: at.y })) along.push({ x: at.x + 2 * dx, y: at.y });
+        }
+      }
+      for (const c of along.sort(readingOrder)) if (inBoard(s, c)) reach(c, heading);
+    }
+    const diagonals = DIAGONALS.map((d) => ({ x: at.x + d.x, y: at.y + d.y }))
+      .filter((c) => inBoard(s, c))
+      .sort(readingOrder);
+    // `seep-edge-back`: each lost neighbour turns back, the rest acts once more on the target (at most twice).
+    if (fn('seep-edge-back')) {
+      for (let i = 0; i < Math.min(off, 2); i++) out.targets.push(t);
+    }
+    // `seep-edge-turn`: each lost neighbour is replaced by the nearest free diagonal on the board.
+    if (fn('seep-edge-turn')) {
+      let lost = off;
+      for (const c of diagonals) {
+        if (lost <= 0) break;
+        if (free(c) && reach(c, heading)) lost--;
+      }
+    }
+    // `seep-cap-cloud`: a target on a cloud also reaches the four diagonals.
+    if (fn('seep-cap-cloud') && isCloud(tileAt(s, at))) {
+      for (const c of diagonals) if (free(c)) reach(c, heading);
+    }
+    out.off += off;
   }
   return out;
 }

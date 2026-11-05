@@ -425,6 +425,11 @@ export interface Flow {
   area?: readonly UnitId[];
   /** A Splash's centre, read by `splash-cap-trail`. */
   centre?: Coord;
+  /**
+   * After a Seep: the keys of your own party beside a target (`seep:member`) and of every
+   * neighbour it added (`seep-cap-chain`, which runs once: `chained`).
+   */
+  seep?: { members: readonly string[]; neighbours: readonly string[]; chained?: true };
 }
 export const targetKey = (t: Target): string =>
   t.kind === 'unit' ? `u:${t.unit}` : `t:${t.at.x},${t.at.y}`;

@@ -1,7 +1,7 @@
 import { ENEMIES } from '$data';
 import { HABIT_ARRIVAL_HOOKS } from './arrival-habits';
 import { chargeTrip } from './bursts';
-import { type Ctx, fizzled } from './ctx';
+import { type Ctx, emit, fizzled, withLine } from './ctx';
 import { KIT } from './districts/kit';
 import { relocations } from './events';
 import { hasFootnote } from './footnotes';
@@ -9,7 +9,7 @@ import { type Coord, type Dir, sameCoord } from './grid';
 import { openJar, stepOpens } from './jars';
 import * as marks from './marks';
 import { stainMarks } from './mix';
-import { findUnit, isAlive, tileAt, unitAt } from './queries';
+import { blocksUnits, findUnit, isAlive, tileAt, unitAt } from './queries';
 import { disturbRepeats } from './schedule';
 import * as solvents from './solvents';
 import type { Layer, Origin, Unit, UnitId } from './types';
@@ -307,6 +307,7 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
       const across =
         ['push', 'slide', 'pull'].includes(a.cause) && hasFootnote(ctx, 'ink-stain-pushed');
       if (a.landing || across) stainMarks(ctx, u);
+      if (a.landing) steepCarry(ctx, u, a.at);
     }),
   },
   // P8: fire burns at round end, not on arrival. The slot holds spark-plate-charge's trip.
@@ -317,6 +318,30 @@ export const CORE_ARRIVAL_HOOKS: ArrivalHookList = [
     run: onUnit((ctx, u, a) => chargeTrip(ctx, u, a.at)),
   },
 ];
+
+/**
+ * `steep-cap-carry`: a unit that stepped out of a steeped compound carries a copy of it onto the
+ * empty tile it came to rest on (pushes and slides included). Rides the landing, with the stain.
+ */
+function steepCarry(ctx: Ctx, u: Unit, at: Coord): void {
+  if (!hasFootnote(ctx, 'steep-cap-carry')) return;
+  let from: Coord | null = null;
+  for (const e of ctx.log.slice().reverse()) {
+    const r = relocations(e).find((x) => x.unit.id === u.id);
+    if (r) {
+      from = r.from;
+      break;
+    }
+  }
+  if (!from || sameCoord(from, at)) return;
+  const layer = tileAt(ctx.s, from).state;
+  const dest = tileAt(ctx.s, at);
+  if (!layer?.steep || layer.rounds <= 0 || dest.state || blocksUnits(dest)) return;
+  withLine(ctx, 'steep:spread', () => {
+    dest.state = structuredClone(layer);
+    emit(ctx, { type: 'spreadState', from: { ...from }, to: [{ ...at }] });
+  });
+}
 
 /** The way a pushed, pulled or swapped unit moved into `at`: read off its relocation event. */
 function arrivedHeading(ctx: Ctx, u: Unit, at: Coord): Dir | null {

@@ -165,6 +165,7 @@ const shove: Handler = (ctx, t, flow) => {
   const opts = {
     ...(flow.area?.includes(u.id) ? { area: flow.area } : {}),
     ...(selfTouch && fn('touch-member-ram') ? { ram: true as const } : {}),
+    ...(flow.src === 'vat' ? { vat: true as const } : {}),
   };
   maybeLine(ctx, solventLine(flow), () => {
     const r = push(ctx, u, heading, Math.max(0, tiles), flow.origin, opts);

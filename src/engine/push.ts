@@ -4,7 +4,15 @@ import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, type Dir, neighbors4, sameCoord, step } from './grid';
+import {
+  byReadingOrder,
+  type Coord,
+  type Dir,
+  neighbors4,
+  opposite,
+  sameCoord,
+  step,
+} from './grid';
 import { guardCancels } from './harm';
 import { notify } from './hooks';
 import { landKindFree, netCollar } from './mix';
@@ -29,6 +37,8 @@ export interface PushOptions {
   as?: 'pull';
   /** A Splash's unit targets: `splash-unit-ripple` and `splash-unit-press` read them. */
   area?: readonly string[];
+  /** A Vat's Shove: `vat-edge-pin` and `vat-edge-rebound` answer the room's edge. */
+  vat?: true;
   /** `touch-member-ram`: a crush into a unit reverses its split (it takes the full crush). */
   ram?: true;
 }
@@ -432,10 +442,35 @@ export function push(
       ripple(ctx, stop.into, dir, origin)
     ) {
       // `splash-unit-ripple`: the blocker took the push on; nothing is crushed.
+    } else if (
+      stop?.kind === 'crush' &&
+      stop.line === 'shove:edge' &&
+      opts.vat &&
+      !pull &&
+      opts.crush !== false &&
+      unit.hp > 0 &&
+      hasFootnote(ctx, 'vat-edge-rebound')
+    ) {
+      // `vat-edge-rebound`: the blocked step bounces one tile back, colliding like any Shove.
+      push(ctx, unit, opposite(dir), 1, origin);
     } else if (stop?.kind === 'crush' && opts.crush !== false) {
       // With `crush: false` it stops short of what is in the way.
       crush(ctx, unit, dir, path.length, stop, origin, opts);
       crushed = typeof stop.into === 'string' ? stop.into : stop.into.id;
+      // `vat-edge-pin`: a unit your Vat pushed against the room's edge cannot move until your next turn.
+      if (
+        opts.vat &&
+        stop.line === 'shove:edge' &&
+        unit.hp > 0 &&
+        hasFootnote(ctx, 'vat-edge-pin')
+      ) {
+        withLine(ctx, 'vat:edge', () => {
+          if (trickResists(ctx, unit, 'hold')) return;
+          if (guardCancels(ctx, unit, { kind: 'hold', unit: unit.id, harm: null }, 'Hold')) return;
+          unit.held = Math.max(unit.held, 1);
+          emit(ctx, { type: 'held', unit: ref(unit), rounds: unit.held });
+        });
+      }
     } else if (stop?.kind === 'crush' && pull && path.length === 0) {
       // Pull (P4): a blocking tile in between, or a swimmer that won't leave the water.
       const why: LineId = stop.into === 'plate' ? 'pull:plate' : 'pull:water';

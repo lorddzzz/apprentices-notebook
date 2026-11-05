@@ -27,7 +27,7 @@ import { byReadingOrder, type Coord, DIRS, type Dir, neighbors4, step } from './
 import { habitRule } from './habits';
 import { cloudNet } from './networks';
 import { strikePiece } from './pieces';
-import { push } from './push';
+import { push, wearPlate } from './push';
 import {
   blocksUnits,
   coordOf,
@@ -457,9 +457,31 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
 
 // ── The round ───────────────────────────────────────────
 
-/** Steep: each steeped compound copies itself onto empty neighbours every round it lasts. */
+/** A plain cloud for one round, laid where nothing is (Vat's fill, Steep's seep, the solvents' mist). */
+export function layThinCloud(ctx: Ctx, at: Coord, origin: Origin | null, rounds = 1): void {
+  emit(ctx, { type: 'landed', kind: 'steam', at: { ...at }, makes: 'cloud' });
+  tileAt(ctx.s, at).state = { id: 'cloud', rounds, origin };
+}
+
+/** A copy of a steeped layer: `steep-spread-once` drops the steep so it stops after one ring. */
+function copied(layer: Layer, rounds: number, once: boolean): Layer {
+  const copy = structuredClone(layer);
+  copy.rounds = rounds;
+  if (once) {
+    delete copy.steep;
+    delete copy.steepWide;
+  }
+  return copy;
+}
+
+/**
+ * Steep: each steeped compound copies itself onto empty neighbours every round it lasts. The
+ * footnotes: `thin` and `once` shape the copy, `mix` and `spare` pick the tiles, and the plate
+ * line (`under`, `pool`, `wear`, `seep`) answers a spread that was stopped.
+ */
 function spreadSteep(ctx: Ctx): void {
   const s = ctx.s;
+  const fn = (id: Parameters<typeof hasFootnote>[1]) => hasFootnote(ctx, id);
   const sources: number[] = [];
   s.tiles.forEach((t, i) => {
     if (t.state?.steep && t.state.rounds > 0) sources.push(i);
@@ -469,10 +491,18 @@ function spreadSteep(ctx: Ctx): void {
     const layer = tileAt(s, from).state;
     if (!layer) continue;
     const to: Coord[] = [];
+    const under: Coord[] = [];
+    const seeped: Coord[] = [];
     // One tile a round; two when the caster is gifted in Steep (design §9).
     let ring: Coord[] = [from];
     let walled = false;
     let crowded = false;
+    let pooled = false;
+    // `steep-spread-thin`: a copy takes a round fewer, and none is made at 0.
+    const thin = fn('steep-spread-thin');
+    const copyRounds = thin ? layer.rounds - 1 : layer.rounds;
+    const open = (b: Coord): boolean =>
+      inBoard(s, b) && !blocksUnits(tileAt(s, b)) && !tileAt(s, b).state;
     for (let step = 0; step < (layer.steepWide ? 2 : 1); step++) {
       const next: Coord[] = [];
       for (const c of ring) {
@@ -480,15 +510,55 @@ function spreadSteep(ctx: Ctx): void {
           if (!inBoard(s, n)) continue;
           const t = tileAt(s, n);
           if (blocksUnits(t)) {
+            let passed = false;
+            const beyond = { x: 2 * n.x - c.x, y: 2 * n.y - c.y };
+            // `steep-plate-under`: ironwork lets the spread pass under to the tile beyond.
+            if ((t.terrain.gate || t.terrain.grate) && fn('steep-plate-under') && open(beyond)) {
+              if (!thin || copyRounds > 0) {
+                tileAt(s, beyond).state = copied(layer, copyRounds, fn('steep-spread-once'));
+                under.push(beyond);
+                passed = true;
+              }
+            }
+            if (passed) continue;
             walled = true;
+            if (fn('steep-plate-seep') && open(beyond)) {
+              seeped.push(beyond); // a stopped spread seeps under as a thin cloud
+            }
+            // `steep-plate-wear`: a spread pressing on a plate wears it by 1.
+            if (fn('steep-plate-wear') && isPlate(t)) {
+              withOrigin(ctx, layer.origin, () =>
+                withLine(ctx, 'steep:plate', () => wearPlate(ctx, n, 1)),
+              );
+            }
+            // `steep-plate-pool`: the source gains a round, once a round.
+            if (fn('steep-plate-pool') && !pooled) {
+              pooled = true;
+              layer.rounds += 1;
+            }
             continue;
           }
-          if (t.state) continue;
+          // `steep-spread-spare`: it flows around your own party.
+          if (fn('steep-spread-spare') && unitAt(s, n)?.kind === 'member') continue;
+          if (t.state) {
+            // `steep-spread-mix`: onto a slick or a plain cloud, mixing as a cast would.
+            const on = t.state.id;
+            const row =
+              fn('steep-spread-mix') && (on === 'slick' || on === 'cloud')
+                ? MIXES.find((m) => m.on === on && m.makes === layer.id)
+                : undefined;
+            if (row && (!thin || copyRounds > 0)) {
+              const kind = row.kind;
+              withOrigin(ctx, layer.origin, () => landOnTile(ctx, kind, n, null));
+            }
+            continue;
+          }
           if (STANDS_UP.has(layer.id) && unitAt(s, n)) {
             crowded = true;
             continue;
           }
-          t.state = structuredClone(layer);
+          if (thin && copyRounds <= 0) continue;
+          t.state = copied(layer, copyRounds, fn('steep-spread-once'));
           to.push(n);
           next.push(n);
         }
@@ -498,6 +568,14 @@ function spreadSteep(ctx: Ctx): void {
     withOrigin(ctx, layer.origin, () => {
       if (to.length)
         withLine(ctx, 'steep:spread', () => emit(ctx, { type: 'spreadState', from, to }));
+      if (under.length) {
+        withLine(ctx, 'steep:plate', () => emit(ctx, { type: 'spreadState', from, to: under }));
+      }
+      for (const at of seeped) {
+        if (!tileAt(s, at).state)
+          // Laid before the round's tick, so two rounds leave one.
+          withLine(ctx, 'steep:plate', () => layThinCloud(ctx, at, null, 2));
+      }
       if (walled) withLine(ctx, 'steep:plate', () => emit(ctx, { type: 'miss', source: 'Steep' }));
       if (crowded) withLine(ctx, 'steep:unit', () => emit(ctx, { type: 'miss', source: 'Steep' }));
     });
