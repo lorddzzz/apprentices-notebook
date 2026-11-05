@@ -28,6 +28,7 @@ import {
   tileAt,
   unitAt,
 } from './queries';
+import { trickResists } from './rivals/tricks';
 import { schedule } from './schedule';
 import { whereIs } from './targets';
 import type { BattleState, BoardUndo, Flow, Layer, Origin, Target, Tile, Unit } from './types';
@@ -329,7 +330,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   rivet: {
     onReach(ctx, t) {
       const u = unitOf(ctx, t);
-      if (!u) return;
+      if (!u || trickResists(ctx, u, 'hold')) return; // a rival's immunity (RV-11 `resists`)
       withLine(ctx, 'rivet:unit', () => {
         u.held = Math.max(u.held, ACTIONS.holdRounds);
         emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });

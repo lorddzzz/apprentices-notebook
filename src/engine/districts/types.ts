@@ -14,7 +14,7 @@ import type { EventLog, UnitRef } from '../events';
 import type { Coord, Dir } from '../grid';
 import type { HarmGuard } from '../harm';
 import type { BoardSpec } from '../notation';
-import type { Telegraph } from '../rivals/types';
+import type { Telegraph, TrickDef } from '../rivals/types';
 import type {
   Action,
   BattleState,
@@ -402,6 +402,8 @@ export interface DistrictModule {
   events?: readonly DistrictEventDef[];
   steps?: readonly ScriptStep[];
   foes?: readonly FoeBehaviour[];
+  /** Its rivals' signature tricks (rivals P10, RV-14), ids `district:name`; `rivals/tricks.ts` reads them. */
+  tricks?: readonly TrickDef[];
   /**
    * Guards run before a hit, a push or a mark lands (DK-IQ D1: IQ's forwarding writ, BH): after
    * the habits' guards, in registry order. Ids are owner-prefixed (`inkQuarter:forward`).

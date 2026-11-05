@@ -14,13 +14,12 @@ import type {
   MarkTiming,
   ObjectRef,
   Resistance,
-  RivalModule,
   TrickDef,
   TrickMark,
   TrickObject,
   TrickObjectId,
 } from './types';
-import { LONG_WICK, lockStatus } from './wick';
+import { lockStatus } from './wick';
 
 /**
  * The trick hook points (rivals plan P10, RV-11). A rival's signature trick (`RivalDef.trick`) is a
@@ -33,23 +32,24 @@ import { LONG_WICK, lockStatus } from './wick';
 
 // ── Registry ────────────────────────────────────────────
 /**
- * Tricks the engine registers itself; the long wick is the first (RV-14 moves it to canals). A
- * function, read on first use: the wick's file sits in the movers' import cycle.
+ * Tricks the engine registers itself: none since RV-14 (the long wick is in the canals module's
+ * `tricks`). Kept so the registry reads like the goals' (core, then the modules).
  */
-export const coreTricks = (): readonly TrickDef[] => [LONG_WICK];
+export const coreTricks = (): readonly TrickDef[] => [];
 
+const extra = new Map<string, TrickDef>();
 let table: Record<string, TrickDef> | null = null;
 
 /**
- * Every trick by id: the core list, then each district module's `tricks` (RivalModule, in registry
- * order). Built on first use (district modules import the movers, so `KIT` is not ready while this
- * file loads). Tests may add a fixture trick to the returned table and remove it after.
+ * Every trick by id: the core list, then each district module's `tricks` (`DistrictModule.tricks`,
+ * in registry order). Built on first use (district modules import the movers, so `KIT` is not
+ * ready while this file loads). `registerTrick` entries are consulted before it.
  */
 export function trickTable(): Record<string, TrickDef> {
   if (table) return table;
   const out: Record<string, TrickDef> = {};
-  const modules = Object.values(KIT.modules) as Partial<RivalModule>[];
-  for (const t of [...coreTricks(), ...modules.flatMap((m) => m.tricks ?? [])]) {
+  const modules = Object.values(KIT.modules);
+  for (const t of [...coreTricks(), ...modules.flatMap((m) => m?.tricks ?? [])]) {
     if (Object.hasOwn(out, t.id)) throw new Error(`Trick '${t.id}' is registered twice`);
     out[t.id] = t;
   }
@@ -57,8 +57,24 @@ export function trickTable(): Record<string, TrickDef> {
   return out;
 }
 
+/**
+ * Adds a trick to the registry (a test fixture or a Lab prototype; a district lists its own in its
+ * module's `tricks`). Ids are namespaced by district (`bridges:rightOfWay`) and may not repeat a
+ * module's or an earlier registered id. Returns a function that removes it again.
+ */
+export function registerTrick<S extends Json>(def: TrickDef<S>): () => void {
+  if (extra.has(def.id) || Object.hasOwn(trickTable(), def.id))
+    throw new Error(`Trick '${def.id}' is registered twice`);
+  // Hooks receive the state `init` made, so widening `S` to `Json` here is safe.
+  const t = def as unknown as TrickDef;
+  extra.set(def.id, t);
+  return () => {
+    if (extra.get(def.id) === t) extra.delete(def.id);
+  };
+}
+
 /** A trick by id, or null. */
-export const trickOf = (id: string): TrickDef | null => trickTable()[id] ?? null;
+export const trickOf = (id: string): TrickDef | null => extra.get(id) ?? trickTable()[id] ?? null;
 
 /** The signature trick of a living or dead rival unit, or null for any other unit. */
 export function trickFor(u: Unit): TrickDef | null {

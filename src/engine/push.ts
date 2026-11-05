@@ -7,7 +7,7 @@ import { type Coord, type Dir, step } from './grid';
 import { notify } from './hooks';
 import { pieceBlocksUnits, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isPlate, tileAt, unitAt } from './queries';
-import { trickResists } from './rivals/tricks';
+import { trickBeforeHarm, trickResists } from './rivals/tricks';
 import type { BattleState, Layer, Origin, Tile, Unit } from './types';
 
 export interface PushResult {
@@ -211,6 +211,14 @@ export function push(
       return unmoved();
     };
     if (unit.held > 0) return blockedByHold();
+    // A rival's trick answers the push first (RV-11 `beforeHarm`): a relocation or a cancel leaves
+    // the push undone; a redirect is not offered for a push (it passes).
+    const reaction = trickBeforeHarm(ctx, unit, { kind: 'push', unit: unit.id, dir, harm: null });
+    if (reaction === 'relocated') return unmoved();
+    if (reaction?.kind === 'cancel') {
+      emit(ctx, { type: 'unharmed', unit: ref(unit), source: pull ? 'Pull' : 'Push', harm: null });
+      return unmoved();
+    }
     // A rival's trick may refuse the push (RV-11 `resists`: right of way).
     if (trickResists(ctx, unit, 'push')) return unmoved();
     // A bound mark may answer "pushed" by holding its bearer in place (Anchor).

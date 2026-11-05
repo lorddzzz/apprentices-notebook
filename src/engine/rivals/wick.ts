@@ -73,7 +73,7 @@ function resolveWick(ctx: Ctx, unit: EnemyUnit, lock: ObjectRef | null): void {
 const isPlan = (shown: TrickPlan | TrickMark): shown is TrickPlan => 'lock' in shown;
 
 /**
- * The long wick as the first registered action trick (`tricks.ts` `coreTricks`): one candidate
+ * The long wick, registered through the canals module's `tricks` (RV-14): one candidate
  * per jar he owns, oldest first. Its lock rules are the generic object lock.
  */
 export const LONG_WICK: TrickDef = {

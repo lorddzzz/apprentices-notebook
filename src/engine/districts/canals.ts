@@ -5,6 +5,7 @@ import { hasTrait } from '../arrival';
 import { emit, ref } from '../ctx';
 import { burnGates, drift, driftPreview } from '../current';
 import { findUnit, isAlive } from '../queries';
+import { LONG_WICK } from '../rivals/wick';
 import { driftWaiting } from '../solvents';
 import type { BoardRule, DistrictModule, PieceDef, PreviewShape } from './types';
 
@@ -91,4 +92,6 @@ export const CANALS_MODULE: DistrictModule = {
   id: 'canals',
   rules: [CURRENT_RULE, GATES_RULE],
   pieces: [MOOR_DEF],
+  // RV-14: the Lamplighter's long wick (rivals §2), found by `trickOf('canals:longWick')`.
+  tricks: [LONG_WICK],
 };

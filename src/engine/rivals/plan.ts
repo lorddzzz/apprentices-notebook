@@ -1,7 +1,8 @@
-import { ENEMIES, TUNING } from '$data';
+import { TUNING } from '$data';
 import type { GoalAction, GoalId, GoalStep, RivalDef } from '$data/rivals';
 import { cloneData } from '../clone';
 import type { Ctx } from '../ctx';
+import type { Json } from '../districts/types';
 import { type EventLog, type GameEvent, relocations } from '../events';
 import { byReadingOrder, type Coord, chebyshev, DIRS, type Dir, key, step } from '../grid';
 import { enemyWalk } from '../movement';
@@ -9,6 +10,7 @@ import { findUnit, inBoard, isAlive, isFire, isOpen, tileAt, unitAt } from '../q
 import type { Aim, BattleState, EnemyUnit, JarId, RivalIntent, Spell, UnitId } from '../types';
 import { type Detail, goalOf, ownStepJars, partyDistance, setDetail } from './goals';
 import { isEffect, isStarved, resolveRivalIntent, rivalDefOf, trickOf } from './resolve';
+import { isTrickEvent } from './tricks';
 import type { GoalDef, GoalInput, ObjectRef, Outcome, PlanCandidate } from './types';
 
 /**
@@ -107,6 +109,17 @@ const isMemberRef = (v: unknown): boolean =>
 const namesMember = (e: GameEvent): boolean =>
   ('unit' in e && isMemberRef(e.unit)) || ('target' in e && isMemberRef(e.target));
 
+/** The id and tile of a `<district>:trickObject` event's object. */
+function trickObjectMade(e: GameEvent): { id: number; at: Coord | null } | null {
+  const d = 'data' in e ? e.data : null;
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+  const o = d as { readonly [k: string]: Json };
+  if (typeof o.id !== 'number') return null;
+  const at = o.at && typeof o.at === 'object' && !Array.isArray(o.at) ? o.at : null;
+  const { x, y } = (at ?? {}) as { readonly [k: string]: Json };
+  return { id: o.id, at: typeof x === 'number' && typeof y === 'number' ? { x, y } : null };
+}
+
 /** Reads one cast's events into an `Outcome` (P4). */
 export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): Outcome {
   let partyHarm = 0;
@@ -140,6 +153,13 @@ export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): 
     } else if (e.type === 'jarOpened') {
       const id = jars.get(key(e.at));
       if (id !== undefined) opened.push({ kind: 'jar', id });
+    } else if (isTrickEvent(e, 'trickObject')) {
+      // A trick object made (a writ, a circle): an object like a sealed jar (RV-14).
+      const made1 = trickObjectMade(e);
+      if (made1) {
+        made.push({ kind: 'trick', id: made1.id });
+        if (made1.at) d.madeAt.push(made1.at);
+      }
     } else if (e.type === 'jarCrumbles' && ownedJarAt(before, e.at, self)) d.ownCrumbled++;
     else if (e.type === 'dropped') d.dropped.push(e.unit.id);
     for (const r of relocations(e)) {
@@ -326,7 +346,7 @@ export function planRival(state: BattleState, unit: UnitId, move: boolean): Riva
   if (e?.kind !== 'enemy' || !e.rival || !isAlive(e)) return null;
   const def = rivalDefOf(e);
   if (!def) return null;
-  const dests = destinations(state, e, move ? ENEMIES[e.def].move : 0);
+  const dests = destinations(state, e, move ? def.move : 0); // the RivalDef's move, not the shell's
   const r = e.rival;
   // Dry of charges: only the wick (it needs a live jar, not a charge) or the plain strike remain.
   const dry = !Object.keys(r.spells).some((id) => (r.charges[id] ?? 0) > 0);

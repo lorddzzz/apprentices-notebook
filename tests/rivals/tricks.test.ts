@@ -11,8 +11,10 @@ import {
 import { cloneData } from '$engine/clone';
 import type { Ctx } from '$engine/ctx';
 import { dealDamage, kill } from '$engine/damage';
+import { KIT } from '$engine/districts/kit';
 import type { Json } from '$engine/districts/types';
 import type { Harm } from '$engine/harm';
+import { applyMark } from '$engine/marks';
 import { push } from '$engine/push';
 import { resolveRivalIntent } from '$engine/rivals/resolve';
 import {
@@ -158,8 +160,9 @@ const trickIntent = (lock: TrickIntent['lock']): TrickIntent => ({
 });
 
 describe('registry', () => {
-  test('the long wick is the first registered action trick', () => {
-    expect(coreTricks()[0]).toBe(LONG_WICK);
+  test('the long wick is registered through the canals module (RV-14)', () => {
+    expect(coreTricks()).toEqual([]);
+    expect(KIT.modules.canals?.tricks).toContain(LONG_WICK);
     expect(LONG_WICK.action).toBeDefined();
     expect(trickOf('canals:longWick')).toBe(LONG_WICK);
     expect(trickOf('canals:nothing')).toBeNull();
@@ -333,6 +336,28 @@ describe('beforeHarm reaction', () => {
     });
     expect(rivalOf(r.state).pos).toEqual(at('B2'));
     expect(rivalOf(r.state).hp).toBe(LAMPLIGHTER.hp - 2);
+  });
+
+  test('it also answers a push and a mark (RV-14)', () => {
+    cfg.reaction = { kind: 'relocate', to: at('A1'), cause: 'hop' };
+    const pushed = draft(start(), (ctx) => {
+      push(ctx, rivalOf(ctx.s), 'right', 1, null);
+    });
+    expect(rivalOf(pushed.state).pos).toEqual(at('A1'));
+    expect(ofType(pushed.events, 'push')).toHaveLength(0);
+    expect(seen.harm).toMatchObject([{ kind: 'push', dir: 'right' }]);
+
+    cfg.reaction = { kind: 'cancel' };
+    const shoved = draft(start(), (ctx) => {
+      push(ctx, rivalOf(ctx.s), 'right', 1, null);
+    });
+    expect(rivalOf(shoved.state).pos).toEqual(at('B2'));
+    expect(ofType(shoved.events, 'unharmed')).toMatchObject([{ source: 'Push' }]);
+    const marked = draft(start(), (ctx) => {
+      applyMark(ctx, rivalOf(ctx.s), { deep: false, bound: null, origin: null });
+    });
+    expect(rivalOf(marked.state).mark).toBeNull();
+    expect(ofType(marked.events, 'unharmed')).toMatchObject([{ source: 'Mark' }]);
   });
 
   test('a cancel verdict logs `unharmed`; pass lets the harm guards decide', () => {

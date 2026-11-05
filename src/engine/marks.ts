@@ -8,6 +8,7 @@ import type { Hook } from './hooks';
 import { cloudNet } from './networks';
 import { findUnit, isAlive, isCloud, tileAt, unitAt } from './queries';
 import { runStep, snapshotOf } from './resolve';
+import { trickBeforeHarm } from './rivals/tricks';
 import { turnBack } from './solvents';
 import type { Bound, Flow, Mark, Origin, Step, Target, Unit } from './types';
 import { targetKey } from './types';
@@ -56,7 +57,11 @@ function reach(ctx: Ctx, lineage: number, unit: Unit): void {
  * unit that took the mark, or null. Spreading and Lift move marks without the guards.
  */
 export function applyMark(ctx: Ctx, unit: Unit, mark: NewMark): Unit | null {
-  const v = guardHarm(ctx, { kind: 'mark', unit: unit.id, harm: null });
+  const harm = { kind: 'mark', unit: unit.id, harm: null } as const;
+  // A rival's trick answers first (RV-11 `beforeHarm`), then the harm guards.
+  const reaction = trickBeforeHarm(ctx, unit, harm);
+  if (reaction === 'relocated') return null;
+  const v = reaction ?? guardHarm(ctx, harm);
   if (v.kind === 'cancel') {
     withOrigin(ctx, mark.origin, () =>
       emit(ctx, {
