@@ -380,6 +380,8 @@ export interface AttackDef {
   range: number; // 1, 99 (unlimited), 2
   damage: number;
   inks: boolean; // lands Ink where it hits (spit)
+  /** BH P9 (the attendant's shove): tiles the hit unit is pushed. Nothing reads it yet (BH-5). */
+  push?: number;
 }
 
 /** `none`: a bystander (the barge's crate, CN-2) that neither plans nor idles in the log. */

@@ -3,6 +3,7 @@ import type { DistrictId } from '$data';
 import type { BattleState, Coord, Profile, Trip } from '$engine';
 import type { DistrictEvent, Json, PreviewShape } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
+import { BATHHOUSES_UI } from './bathhouses';
 import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
@@ -53,6 +54,7 @@ export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   seam: SEAM_UI,
   canals: CANALS_UI,
   inkQuarter: INK_QUARTER_UI,
+  bathhouses: BATHHOUSES_UI,
   lowerSeam: LOWER_SEAM_UI,
 };
 

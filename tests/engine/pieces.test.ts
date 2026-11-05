@@ -55,10 +55,10 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
     },
   };
   return {
-    id: 'bathhouses',
+    id: 'foundry',
     pieces: [
       {
-        id: 'bathhouses:probe',
+        id: 'foundry:probe',
         token: 'probe',
         solid: 'none',
         data: {
@@ -78,7 +78,7 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
         art: 'probe',
       },
       {
-        id: 'bathhouses:mat',
+        id: 'foundry:mat',
         token: 'mat',
         solid: 'none',
         data: { init: fresh() },
@@ -86,9 +86,9 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
         triggers: { onArrive },
         art: 'mat',
       },
-      { id: 'bathhouses:pencil', token: 'pencil', solid: 'units', triggers: {}, art: 'pencil' },
+      { id: 'foundry:pencil', token: 'pencil', solid: 'units', triggers: {}, art: 'pencil' },
       {
-        id: 'bathhouses:bell',
+        id: 'foundry:bell',
         token: 'bell',
         solid: 'unitsAndShots',
         data: { init: fresh() },
@@ -119,12 +119,12 @@ describe('piece notation', () => {
     const ascii = ['{probe}   {probe:3} {bell}', 'r{probe}  w>{mat}  {pencil}'].join('\n');
     const spec = parseBoard(ascii);
     expect(spec.tiles.map((t) => t.piece?.id ?? null)).toEqual([
-      'bathhouses:probe',
-      'bathhouses:probe',
-      'bathhouses:bell',
-      'bathhouses:probe',
-      'bathhouses:mat',
-      'bathhouses:pencil',
+      'foundry:probe',
+      'foundry:probe',
+      'foundry:bell',
+      'foundry:probe',
+      'foundry:mat',
+      'foundry:pencil',
     ]);
     expect(spec.tiles[1]?.piece?.data).toMatchObject({ turns: 3 });
     expect(spec.tiles[1]?.terrain.water).toBeNull();
@@ -155,7 +155,7 @@ describe('piece notation', () => {
     expect(() => parseCell('{mud}', at)).toThrow(/Unknown compound "\{mud\}"/);
     expect(parseCell('{stain}{probe}', at).tile).toMatchObject({
       state: { id: 'stain' },
-      piece: { id: 'bathhouses:probe' },
+      piece: { id: 'foundry:probe' },
     });
   });
 });
@@ -236,7 +236,7 @@ describe('piece triggers', () => {
     });
     expect(probeAt(r.state, 'A1').struck).toEqual(['shove']);
     expect(probeAt(s, 'A1').struck).toEqual([]);
-    expect(piecesOn(r.state).map((p) => p.piece.id)).toEqual(['bathhouses:probe']);
+    expect(piecesOn(r.state).map((p) => p.piece.id)).toEqual(['foundry:probe']);
   });
 });
 
@@ -249,7 +249,7 @@ describe('componentsOf', () => {
         '{probe} .       .       .',
       ].join('\n'),
     );
-    const groups = componentsOf(s, (at, st) => tileAt(st, at).piece?.id === 'bathhouses:probe');
+    const groups = componentsOf(s, (at, st) => tileAt(st, at).piece?.id === 'foundry:probe');
     expect(groups.map((g) => g.map((c) => `${c.x},${c.y}`))).toEqual([
       ['0,0', '1,0', '1,1'],
       ['3,0', '3,1'],
@@ -279,8 +279,8 @@ describe('piece tokens', () => {
 
   test('a piece token reusing a compound name or a rival letter is caught', () => {
     const bad: TokenEntry[] = [
-      { token: 'stain', kind: 'piece', id: 'bathhouses:stain', district: 'bathhouses' },
-      { token: 'L', kind: 'piece', id: 'bathhouses:lantern', district: 'bathhouses' },
+      { token: 'stain', kind: 'piece', id: 'foundry:stain', district: 'foundry' },
+      { token: 'L', kind: 'piece', id: 'foundry:lantern', district: 'foundry' },
     ];
     expect(tokenCollisions(claims([...RIVAL_TOKENS, ...bad]), COMPOUND_BRACE_NAMES)).toEqual([
       'stain',

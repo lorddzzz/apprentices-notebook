@@ -1,13 +1,14 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { ArrivalCause, CoreArrivalCause, CoreEnteredTable } from '$engine/arrival';
 import { CapReached, type Ctx, emit } from '$engine/ctx';
+import type { KitId } from '$engine/districts/types';
 import type { BattleState } from '$engine/types';
 
 const who = { id: 'rat-1', name: 'rat', at: { x: 0, y: 0 }, member: false };
 
 describe('FD-0 contracts', () => {
-  it('core causes are exactly the declared arrival causes', () => {
-    expectTypeOf<CoreArrivalCause>().toEqualTypeOf<ArrivalCause>();
+  it("core causes are exactly the declared arrival causes, beside districts' namespaced ones", () => {
+    expectTypeOf<CoreArrivalCause>().toEqualTypeOf<Exclude<ArrivalCause, KitId>>();
     const table: CoreEnteredTable = {
       walk: 'landing',
       push: 'each',

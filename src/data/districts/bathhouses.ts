@@ -1,8 +1,10 @@
+import { BATH_TOKENS } from './bathhouses/types';
 import type { DistrictData } from './index';
 
 /**
- * The bathhouses' kit data (district-bathhouses.md, Hearing): one Storm reaching three units in
- * the Seam. The old grease-fog trigger is gone. The rumour of four trips stays.
+ * The bathhouses (district-bathhouses.md; bathhouses-plan). BH-0: still drawing and roomless, with
+ * free return (P5), the steam lean and the foes' tokens. Hearing (DK-8): one Storm reaching three
+ * units in the Seam; the rumour of four trips stays.
  */
 export const BATHHOUSES_KIT: DistrictData = {
   id: 'bathhouses',
@@ -10,6 +12,8 @@ export const BATHHOUSES_KIT: DistrictData = {
   guild: 'The bath-keepers',
   edge: 'wall',
   rooms: [],
+  ret: { kind: 'any' },
+  tokens: BATH_TOKENS,
   gate: { kind: 'drawing' },
   line: 'one fog over the whole house',
   barred: 'The page is still being drawn.',
