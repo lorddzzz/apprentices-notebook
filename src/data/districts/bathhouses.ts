@@ -590,3 +590,152 @@ export const BATH_HEART: import('./bathhouses/types').BathRoomDef = {
   heart: true,
   heatBase: HEART_HEAT,
 };
+
+// ── The dome threshold, the ledger and the steam-vent floor (BH-9, BH-10, BH-11) ──
+// Appended as one block with inline type imports, apart from the rooms and heart blocks above.
+
+/**
+ * "Fill the dome" (bathhouses-plan §1 Gate; BH-9): the free, retryable room that teaches the
+ * gauge before the district opens. One vent puffs at the top of an empty 6x8 hall; the party's
+ * only job is to add cloud. The marked line sits at 5 pips (20 quarters, below the 12-pip
+ * capacity), so the dome pops before the house would boil over. `Bolt> Steam` from any of the
+ * four start points lands a cloud tile in its column each round; at heat 1 that reaches the line
+ * by the third round's end, while the vent alone only gets there on the fourth (*tune by playing*).
+ */
+export const DOME_LINE_QUARTERS = 20;
+/** The rounds the dome is meant to be filled in: the vent alone is short of the line by then. */
+export const DOME_ROUNDS = 3;
+/** The threshold battle lists the district's gauge at heat 1 (the app wires `rules`, BH-12/18). */
+export const DOME_HEAT: HeatLevel = 1;
+
+export const BATH_THRESHOLD: import('./index').ThresholdSpec = {
+  name: 'The dome',
+  board: [
+    '. . . . . .',
+    '. . @ . . .',
+    '. . . . . .',
+    '. . . . . .',
+    '. . . . . .',
+    '. . . . . .',
+    'P . . . . P',
+    '. P . . P .',
+  ].join('\n'),
+  goal: { rule: 'bathhouses:boilOver', key: 'pressure', atLeast: DOME_LINE_QUARTERS },
+  note: 'The vent in the dome puffs a little each round and the dome stays shut. It pops for a house that is already full of steam.',
+  goalText: 'Fill the dome with steam to the line.',
+  rules: ['bathhouses:boilOver'],
+  solvedArt: 'bath-dome',
+};
+
+/**
+ * The bather's ledger (bathhouses-plan P13; BH-10): five entries, one per fight, a bather's name,
+ * a number of hours, and "stayed". The heart's entry is in the owner's own hand. Wiring (BH-12):
+ * each room's `lore` names `BATH_LEDGERS[room].id`; `found.room` is the encounter index (0-3 the
+ * rooms, 4 the heart).
+ */
+const entry = (
+  n: number,
+  room: number,
+  title: string,
+  text: string,
+): import('./index').PaperDef => ({
+  id: `bathhouses:ledger-${n}`,
+  district: 'bathhouses',
+  title,
+  hand: 'A bather',
+  text,
+  group: "Bather's ledger",
+  found: { kind: 'room', room },
+});
+
+export const BATH_LEDGERS: readonly import('./index').PaperDef[] = [
+  entry(
+    1,
+    0,
+    'Tepid',
+    'Orsolo Venn, one hour in the tepidarium, which is nothing. Stayed. The attendant says the first hour never counts and the water is only warm to those who mean to leave.',
+  ),
+  entry(
+    2,
+    1,
+    'Warm',
+    'Maret of the lamp-yard, three hours, warm to the shoulder. Stayed. She says she can no longer tell where the water stops and the air begins, and that it is a comfort.',
+  ),
+  entry(
+    3,
+    2,
+    'The long pools',
+    'Dov Alder, nine hours in the long pool, mosaic at his back. Stayed. Someone has tiled a bather in a towel holding the rest above the water. He says it is a good likeness and will not say of whom.',
+  ),
+  entry(
+    4,
+    3,
+    'The caldarium',
+    'Ilse Marr, a day and a night, past counting. Stayed. The tiles sweat; the steam keeps the names of those who stood in it, and reads them back to the vent when the gauge is high.',
+  ),
+  entry(
+    5,
+    4,
+    "In the owner's hand",
+    'Entered under a name you know, in a hand you know: your own, for the baths you took while studying the join, years of hours. Stayed. The Steward has left it open at this page. He has not read the rest.',
+  ),
+];
+
+/**
+ * The thermae's chimney in the lower Seam (bathhouses-plan P12; BH-11): the existing vent terrain
+ * in a bath-mosaic skin (art only), two vents per floor close enough that their clouds overlap.
+ * No gauge and no heat: district-scoped rules never ride on a floor (DK P9), so `pieces` and `rules`
+ * are empty. Three 7 wide, 8 tall floors, Seam foes only, five or more start points.
+ */
+const floorBoard = (rows: readonly string[]): string => rows.join('\n');
+
+export const BATH_INTRUSION: import('./index').IntrusionSpec = {
+  district: 'bathhouses',
+  pieces: [],
+  rules: [],
+  rooms: [
+    // Floor 1: two vents two tiles apart in the middle; a rat and a sentry on the far side.
+    floorBoard([
+      '. . . r . . .',
+      '. . . . . b .',
+      '. . . . . . .',
+      '. . @ . @ . .',
+      '. . . . . . .',
+      '. . . . . . .',
+      'P . P . P . P',
+      '. P . . . P .',
+    ]),
+    // Floor 2: the vents sit diagonal, so a cloud from one meets a cloud from the other.
+    floorBoard([
+      '. r . . . . .',
+      '. . . . . r .',
+      '. @ . . . . .',
+      '. . . @ . . b',
+      '. . . . . . .',
+      '. . . . . . .',
+      'P . P . . P .',
+      '. P . . P . P',
+    ]),
+    // Floor 3: one vent beside the foes, one in front of the party.
+    floorBoard([
+      '. . . . . . .',
+      '. b . @ . r .',
+      '. . . . . . .',
+      '. . . . . . .',
+      '. r . . @ . .',
+      '. . . . . . .',
+      'P . P . P . P',
+      '. . . P . . .',
+    ]),
+  ],
+  loot: 'basics',
+};
+
+// The kit above is built before these constants exist; fill in only the fields the block owns. The
+// district stays `gate: 'drawing'` and has no rooms listed, so none of it is reachable yet (BH-18).
+// `intrusion` is not wired: the lower Seam's floor check wants a piece or a rule-read terrain, and no
+// piece-scoped rule reads the vent (see BH-11's report); BH-18 sets `intrusion: BATH_INTRUSION`.
+Object.assign(BATHHOUSES_KIT, {
+  threshold: BATH_THRESHOLD,
+  papers: BATH_LEDGERS,
+});
