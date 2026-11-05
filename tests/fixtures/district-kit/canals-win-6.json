@@ -7639,7 +7639,7 @@
       "shove": { "points": 3, "slots": {} }
     },
     "solventsFound": ["pitch"],
-    "papers": [],
+    "papers": ["canals:ledger-1", "canals:ledger-2", "canals:ledger-3"],
     "pages": ["lamplighter:lantern"],
     "vellum": 0,
     "glyphs": [],
@@ -7848,7 +7848,7 @@
         "shove": { "points": 3, "slots": {} }
       },
       "solventsFound": ["pitch"],
-      "papers": [],
+      "papers": ["canals:ledger-1", "canals:ledger-2", "canals:ledger-3"],
       "pages": ["lamplighter:lantern"],
       "vellum": 0,
       "glyphs": [],

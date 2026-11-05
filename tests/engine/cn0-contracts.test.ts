@@ -42,7 +42,7 @@ describe('CN-0 contracts', () => {
     expect(CANAL_LEDGERS.map((l) => l.id)).toEqual(
       [1, 2, 3, 4, 5].map((n) => `canals:ledger-${n}`),
     );
-    expect(DISTRICTS.canals.papers).toBeUndefined();
+    expect(DISTRICTS.canals.papers).toBe(CANAL_LEDGERS);
     expect(DISTRICTS.canals.recruit).toEqual([{ apprentice: 'runaway', room: 2 }]);
   });
 });

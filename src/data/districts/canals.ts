@@ -390,6 +390,52 @@ export const CANALS_INTRUSION: IntrusionSpec = {
 };
 
 /**
+ * CN P9: the five lamp-ledger leaves, in the Lamplighters' hand. Texts: docs/design/footnotes-content/canal-ledgers.md. CN-9 files the first unread leaf at each landing
+ * reached (after rooms 1, 3, 5), so `found` names the landing a fresh profile meets each at.
+ */
+const leaf = (n: number, title: string, text: string, after: number): PaperDef => ({
+  id: `canals:ledger-${n}`,
+  district: 'canals',
+  title,
+  hand: 'The Lamplighters',
+  text,
+  group: 'Lamp-ledgers',
+  found: { kind: 'landing', after },
+});
+export const CANAL_LEDGERS: readonly PaperDef[] = [
+  leaf(
+    1,
+    'The route',
+    'Round the long lamps, first light to last. The lock stair, thirty-one posts along the north towpath, the footbridge, the barge-yard, home by the oil store. Wick, oil, flame, in that order, and no talk at the posts. The streets hold still beside a lit lamp. The old hands say that is what we are paid for, and not the light.',
+    0,
+  ),
+  leaf(
+    2,
+    'Lamp counts',
+    "Lamps lit this round: ninety-four. Lamps lit last round: ninety-four. The count never changes and neither do the streets beside them. Where a night is skipped, the towpath is a hand's width narrower by morning. The foreman says it is damp in the stones. I have begun chalking each post's number on its foot. Not for the foreman.",
+    2,
+  ),
+  leaf(
+    3,
+    'A lamp found dark',
+    "Post forty-one found dark, wick dry, oil full, and no entry for it in last month's book. The street it served had gone: where it ran north there was a wall, and the wall had moss. I lit the post anyway. By the second round the street was back, mossed over, as if it had never left. We are to say nothing of this to the lamp-mother.",
+    4,
+  ),
+  leaf(
+    4,
+    'Never the Seam',
+    "Standing order, in the foreman's hand. No lamp is to be set or lit in the Seam, for any fee, for any person who asks. The drawing has nothing there to hold it; a place with no lamps has no one keeping it in its place, and so it drifts. We do not carry oil down that stair, and we do not ask who first drew it.",
+    0,
+  ),
+  leaf(
+    5,
+    'A page that ends',
+    'The ones with the long rules came to the yard again and asked whose hand lit the first lamp. The foreman said we light them to keep what they drew. They want the lamps put out wherever the street meets the drawing, for the drawing is theirs to mend, they say. We will not. If the lamps go dark, every street goes back to whatever it was drawn as, and the first to sl',
+    2,
+  ),
+];
+
+/**
  * The canals' data (K-1): rooms, hearing, gate and map. Landings after rooms 1, 3 and the heart (K-4, kept as built).
  */
 export const CANALS_KIT: DistrictData = {
@@ -398,6 +444,7 @@ export const CANALS_KIT: DistrictData = {
   guild: 'The Lamplighters',
   edge: 'wall',
   rooms: CANAL_ROOMS,
+  papers: CANAL_LEDGERS,
   hear: [{ kind: 'burst', burst: 'fire', atLeast: 3, district: 'seam', voice: 'owner' }],
   // The lock's room is the canals' kit data (P15, BL-94): copy, start points and goal live here.
   gate: { kind: 'threshold', room: CANALS_THRESHOLD },
@@ -463,25 +510,3 @@ export const WARDENS_PASS: Extract<KitGate, { kind: 'key' }> = {
   afterRoom: 3,
   guaranteed: true,
 };
-
-/**
- * CN P9: the five lamp-ledger leaves, in the Lamplighters' hand. Texts come from CN-F2 after
- * CN-G1; CN-9 adds them to `CANALS_KIT.papers` and delivers the first unread leaf at each landing
- * reached (after rooms 1, 3, 5), so `found` names the landing a fresh profile meets each at.
- */
-const leaf = (n: number, title: string, after: number): PaperDef => ({
-  id: `canals:ledger-${n}`,
-  district: 'canals',
-  title,
-  hand: 'The Lamplighters',
-  text: '',
-  group: 'Lamp-ledgers',
-  found: { kind: 'landing', after },
-});
-export const CANAL_LEDGERS: readonly PaperDef[] = [
-  leaf(1, 'The route', 0),
-  leaf(2, 'Lamp counts', 2),
-  leaf(3, 'A lamp found dark', 4),
-  leaf(4, 'Never the Seam', 0),
-  leaf(5, 'A page that ends', 2),
-];

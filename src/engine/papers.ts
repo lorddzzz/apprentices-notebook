@@ -47,6 +47,24 @@ export function findPaper(
   return { ...p, papers: [...p.papers, paper.id] };
 }
 
+/**
+ * CN P9: a landing reached (a won room where the district lets the party home) files the district's
+ * first unread `landing` paper, in definition order: leaf n at landing n, whatever room each
+ * stands in. Same profile when nothing is left to find.
+ */
+export function findLandingPaper(
+  p: Profile,
+  district: DistrictId,
+  isLanding: boolean,
+  kit: PapersKit = DISTRICT_KIT,
+): Profile {
+  if (!isLanding) return p;
+  const next = kit[district]?.papers?.find(
+    (x) => x.found.kind === 'landing' && !p.papers.includes(x.id),
+  );
+  return next ? { ...p, papers: [...p.papers, next.id] } : p;
+}
+
 export interface PaperGroup {
   group: string;
   papers: PaperDef[];

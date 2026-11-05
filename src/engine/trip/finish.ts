@@ -6,7 +6,7 @@ import { markDoorSeen } from '../districts/lowerSeam';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
 import { witnessedIn } from '../lines';
-import { findPaper } from '../papers';
+import { findLandingPaper, findPaper } from '../papers';
 import { recordGlyphCasts, tierUps } from '../profiler';
 import { masksFrom } from '../proof';
 import { memberById } from '../queries';
@@ -17,8 +17,9 @@ import { accumulateStats } from '../tripStats';
 import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../types';
 import { wipeLoot } from './offerKinds';
 import { ownedBy, rollOffers } from './offers';
+import { policyAllows } from './ret';
 import { afterRoomWon, roomRoll } from './setup';
-import { markCheckpoint, rememberCheckpoint, roomsOf, shapeOf } from './shape';
+import { heartOf, markCheckpoint, rememberCheckpoint, roomsOf, shapeOf } from './shape';
 import { need, perMember, withAll } from './shared';
 import { beginEncounter } from './start';
 
@@ -133,7 +134,9 @@ export function finishEncounter(
   const learned = learnFromFight(p, b, log);
   if (b.phase === 'lost') return { profile: learned, trip: null, outcome: 'wiped', stats };
   // The room's paper is filed at once, so a later wipe keeps it (lore registry, DK §9).
-  const filed = findPaper(learned, t.district, t.encounter);
+  const shape0 = shapeOf(t.district, t);
+  const landing = policyAllows(shape0.ret, t.encounter, heartOf(shape0));
+  const filed = findLandingPaper(findPaper(learned, t.district, t.encounter), t.district, landing);
   const paper = filed.papers.length > learned.papers.length ? filed.papers.at(-1) : undefined;
   const profile = bankPages(filed, b, t.district, awardsPage);
 
