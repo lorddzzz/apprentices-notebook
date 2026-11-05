@@ -167,6 +167,16 @@ function crush(
         at: { ...unit.pos },
       });
     } else if (stop.into === 'plate') {
+      // `steam-kettle-press`: a unit crushed against a kettle is scalded for 1 more.
+      if (tileAt(ctx.s, stop.at).state?.id === 'kettle' && hasFootnote(ctx, 'steam-kettle-press')) {
+        withLine(ctx, 'steam:kettle', () =>
+          dealDamage(ctx, unit, 1, 'Kettle', [], {
+            heading: dir,
+            at: { ...stop.at },
+            harm: 'steam',
+          }),
+        );
+      }
       // `shove-wall-soft` wears the wall by two crushes.
       const broke = wearPlate(ctx, stop.at, softWall ? 2 : 1);
       if (stop.line === 'shove:wall') wallAnswers(ctx, unit, dir, stop.at, broke, origin);
@@ -268,6 +278,13 @@ export function push(
     });
     if (unit.hp <= 0 || tiles <= 0) return unmoved();
     const pull = opts.as === 'pull';
+    // `brass-mark-anchor`: a shackled unit cannot be pushed (the snap frees it before a throw).
+    if (unit.shackle > 0 && hasFootnote(ctx, 'brass-mark-anchor')) {
+      withLine(ctx, 'brass:mark', () =>
+        emit(ctx, { type: 'miss', source: pull ? 'Pull' : 'Push' }),
+      );
+      return unmoved();
+    }
     const cause = pull ? ('pull' as const) : ('push' as const);
     const blockedByHold = (): PushResult => {
       withLine(ctx, pull ? 'pull:held' : 'shove:held', () =>

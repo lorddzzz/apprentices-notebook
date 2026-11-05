@@ -170,6 +170,39 @@ function soakNeighbours(ctx: Ctx, at: Coord, flow: Flow | null): void {
   }
 }
 
+/** `steam-cloud-wide`: every other plain cloud tile of the connected cloud thickens to a bank too. */
+function thickenCloud(ctx: Ctx, at: Coord, flow: Flow | null): void {
+  for (const c of cloudNet(ctx.s, at)) {
+    if (c.x === at.x && c.y === at.y) continue;
+    const t = tileAt(ctx.s, c);
+    if (t.state?.id !== 'cloud') continue;
+    t.state = newLayer('bank', 'steam', flow);
+    if (hasFootnote(ctx, 'steam-cloud-long')) t.state.rounds += 1;
+    emit(ctx, { type: 'mixed', at: { ...c }, compound: 'bank' });
+  }
+}
+
+/** `brass-plate-twin`: a second wall on the free tile one ahead along the heading. */
+function twinWall(ctx: Ctx, at: Coord, flow: Flow | null): void {
+  const heading = headingAt(ctx, flow, at);
+  if (!heading) return;
+  const n = step(at, heading);
+  if (!inBoard(ctx.s, n)) return;
+  const t = tileAt(ctx.s, n);
+  if (t.state || blocksUnits(t) || unitAt(ctx.s, n)) return;
+  emit(ctx, { type: 'landed', kind: 'brass', at: { ...n }, makes: 'wall' });
+  t.state = wallLayer(ctx, flow);
+  noteMet(ctx, 'wall');
+}
+
+/** A wall with its footnotes: `brass-plate-stand` never fades, `brass-plate-twin` breaks at one hit. */
+function wallLayer(ctx: Ctx, flow: Flow | null): Layer {
+  const layer = newLayer('wall', 'brass', flow);
+  if (hasFootnote(ctx, 'brass-plate-stand')) layer.rounds = 0;
+  if (hasFootnote(ctx, 'brass-plate-twin')) layer.hits = 1;
+  return layer;
+}
+
 /** `oil-cloud-wide`: every other tile of the connected cloud turns to grease fog too. */
 function greaseCloud(ctx: Ctx, at: Coord, flow: Flow | null): void {
   for (const c of cloudNet(ctx.s, at)) {
@@ -217,12 +250,17 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
         tile.state.dregs = true; // the blot it leaves when it clears
       }
       if (row.makes === 'greaseFog' && hasFootnote(ctx, 'oil-cloud-long')) tile.state.rounds += 1;
+      if (row.makes === 'kettle' && hasFootnote(ctx, 'steam-kettle-long')) tile.state.rounds += 1;
+      if (row.makes === 'bank' && hasFootnote(ctx, 'steam-cloud-long')) tile.state.rounds += 1;
+      if (row.makes === 'wall') tile.state = wallLayer(ctx, flow);
       noteMet(ctx, row.makes);
       nameOnce(ctx, 'compound', row.makes);
       emit(ctx, { type: 'mixed', at: { ...at }, compound: row.makes });
       if (row.makes === 'pool') soakNeighbours(ctx, at, flow);
       if (row.makes === 'greaseFog' && hasFootnote(ctx, 'oil-cloud-wide'))
         greaseCloud(ctx, at, flow);
+      if (row.makes === 'bank' && hasFootnote(ctx, 'steam-cloud-wide')) thickenCloud(ctx, at, flow);
+      if (row.makes === 'wall' && hasFootnote(ctx, 'brass-plate-twin')) twinWall(ctx, at, flow);
     });
     return;
   }
@@ -255,9 +293,16 @@ function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
 
 /** Shackle replaces the mark and the collar; a born brass collar (null) stays. */
 function shackle(ctx: Ctx, kind: Plain, u: Unit, flow: Flow | null): void {
-  u.mark = null;
+  // `brass-mark-keep` leaves the mark under the shackle for a round less; `-long` adds one.
+  const keep = kind === 'brass' && hasFootnote(ctx, 'brass-mark-keep');
+  const long = kind === 'brass' && hasFootnote(ctx, 'brass-mark-long');
+  if (!keep) u.mark = null;
   if (u.collar !== null) u.collar = false;
-  u.shackle = TUNING.compoundRounds + (flow?.gifted && kind === 'brass' ? CHEMISTRY.giftRounds : 0);
+  u.shackle =
+    TUNING.compoundRounds +
+    (flow?.gifted && kind === 'brass' ? CHEMISTRY.giftRounds : 0) +
+    (long ? 1 : 0) -
+    (keep ? 1 : 0);
   noteMet(ctx, 'shackle');
   nameOnce(ctx, 'compound', 'shackle');
   emit(ctx, { type: 'mixed', at: { ...u.pos }, unit: ref(u), compound: 'shackle' });
@@ -508,9 +553,14 @@ export function roundEndChemistry(ctx: Ctx): void {
     );
   }
   for (const { at, layer } of tilesWith(ctx, 'kettle')) {
-    const near = neighbors4(at)
-      .filter((n) => inBoard(s, n))
-      .flatMap((n) => unitAt(s, n) ?? []);
+    // `steam-kettle-corners`: the diagonals are scalded too.
+    const reach = hasFootnote(ctx, 'steam-kettle-corners')
+      ? [
+          ...neighbors4(at),
+          ...[-1, 1].flatMap((x) => [-1, 1].map((y) => ({ x: at.x + x, y: at.y + y }))),
+        ]
+      : neighbors4(at);
+    const near = reach.filter((n) => inBoard(s, n)).flatMap((n) => unitAt(s, n) ?? []);
     withOrigin(ctx, layer.origin, () =>
       withLine(ctx, line('steam', 'kettle'), () => {
         for (const u of near) {
@@ -519,6 +569,16 @@ export function roundEndChemistry(ctx: Ctx): void {
             at,
             harm: 'steam',
           });
+        }
+        // `steam-kettle-breath`: a cloud on the first empty tile beside it.
+        const room = hasFootnote(ctx, 'steam-kettle-breath')
+          ? neighbors4(at)
+              .sort(byReadingOrder)
+              .find((n) => inBoard(s, n) && !tileAt(s, n).state && !blocksUnits(tileAt(s, n)))
+          : undefined;
+        if (room) {
+          emit(ctx, { type: 'landed', kind: 'steam', at: { ...room }, makes: 'cloud' });
+          tileAt(s, room).state = { ...newLayer('cloud', 'steam', null), origin: layer.origin };
         }
       }),
     );

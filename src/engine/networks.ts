@@ -1,5 +1,5 @@
 import type { CompoundId, StateId } from '$data';
-import type { Coord } from './grid';
+import { byReadingOrder, type Coord, neighbors4 } from './grid';
 import { flood, inBoard, isCloud, isPlate, tileAt, unitAt } from './queries';
 import type { BattleState } from './types';
 
@@ -19,13 +19,37 @@ export function isBrass(s: BattleState, at: Coord): boolean {
   return u !== null && u.collar !== false;
 }
 
-export function brassNet(s: BattleState, at: Coord): Coord[] {
-  return flood(s, at, (c) => isBrass(s, c));
+/** `grounded` (brass-plate-ground): a wall ends the net; the brass beyond it is not reached. */
+export function brassNet(s: BattleState, at: Coord, grounded = false): Coord[] {
+  if (!grounded) return flood(s, at, (c) => isBrass(s, c));
+  const isWall = (c: Coord): boolean => tileAt(s, c).state?.id === 'wall';
+  const first = flood(
+    s,
+    at,
+    (c) => isBrass(s, c) && (!isWall(c) || (c.x === at.x && c.y === at.y)),
+  );
+  // The wall tiles touching the run are in the net, but nothing grows from them.
+  const seen = new Set(first.map((c) => `${c.x},${c.y}`));
+  const out = [...first];
+  for (const c of first) {
+    for (const n of neighbors4(c)) {
+      const k = `${n.x},${n.y}`;
+      if (inBoard(s, n) && !seen.has(k) && isBrass(s, n) && isWall(n)) {
+        seen.add(k);
+        out.push(n);
+      }
+    }
+  }
+  return out.sort(byReadingOrder);
 }
 
-/** Clouds of every kind join when they touch (design §4.1). */
-export function cloudNet(s: BattleState, at: Coord): Coord[] {
-  return flood(s, at, (c) => isCloud(tileAt(s, c)));
+/** Clouds of every kind join when they touch (design §4.1); `bankStops` ends it at a bank. */
+export function cloudNet(s: BattleState, at: Coord, bankStops = false): Coord[] {
+  return flood(
+    s,
+    at,
+    (c) => isCloud(tileAt(s, c)) && !(bankStops && tileAt(s, c).state?.id === 'bank'),
+  );
 }
 
 export function oilNet(s: BattleState, at: Coord): Coord[] {

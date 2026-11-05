@@ -145,6 +145,7 @@ const FOCUS_DAMAGE = 3;
 const SPARE_DAMAGE = 1;
 const CHARGE_DAMAGE = 1;
 const FLARE_DAMAGE = 1;
+const HUM_DAMAGE = 1;
 
 /** Detonation: 3 to the unit and its mark is spent. Footnotes: wide, keep, blast (`heading` is the spark's). */
 function detonate(ctx: Ctx, u: Unit, heading: Dir | null = null): void {
@@ -273,6 +274,8 @@ interface StormOpts {
   harm?: HarmKind | null;
   /** The line a hit on a steam-warded unit carries when this storm is not steam (fine print). */
   throughWard?: LineId;
+  /** `steam-cloud-damp`: the storm's cloud ends at a bank (fire goes out there). */
+  damp?: boolean;
 }
 
 /** Storm: 2 to every unit in the connected cloud, tagged as steam unless `opts` says otherwise. */
@@ -285,9 +288,9 @@ function storm(
   source: string,
   opts: StormOpts = {},
 ): Coord[] {
-  const { doubleMarked = false, throughWard } = opts;
+  const { doubleMarked = false, throughWard, damp = false } = opts;
   const harm = opts.harm === undefined ? 'steam' : (opts.harm ?? undefined);
-  const net = cloudNet(ctx.s, at);
+  const net = cloudNet(ctx.s, at, damp);
   const tiles = net.length ? net : [at];
   const units = unitsNear(ctx, tiles, reachOf(flow));
   const marked = new Set(units.filter((u) => u.mark).map((u) => u.id));
@@ -303,7 +306,7 @@ function storm(
 
 /** Conduct: 2 to every unit on or touching the connected brass (collared units are brass). */
 function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): void {
-  const net = brassNet(ctx.s, at);
+  const net = brassNet(ctx.s, at, fromPlate && hasFootnote(ctx, 'brass-plate-ground'));
   const tiles = net.length ? net : [at];
   // The spark:plate footnotes bend only a conduct that started on a plate, not a collar's.
   const focus = fromPlate && hasFootnote(ctx, 'spark-plate-focus');
@@ -314,6 +317,11 @@ function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): voi
   announce(ctx, 'conduct', at, tiles, units);
   const damage = focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage;
   hit(ctx, units, damage, 'Conduct', at);
+  if (fromPlate && hasFootnote(ctx, 'brass-plate-hum')) {
+    const walls = tiles.filter((c) => tileAt(ctx.s, c).state?.id === 'wall');
+    const hummed = units.filter((u) => walls.some((w) => manhattan(w, u.pos) <= 1 + reach));
+    hit(ctx, hummed, HUM_DAMAGE, 'Hum', at);
+  }
   if (!fromPlate) return;
   const heading = headingAt(ctx, flow, at);
   if (heading && hasFootnote(ctx, 'spark-plate-jolt')) {
@@ -361,7 +369,8 @@ function pageShackle(ctx: Ctx, u: Unit, flow: Flow | null): void {
   const from = { ...u.pos };
   hit(ctx, [u], rowFor('shackle').damage, 'Shackle', from);
   const heading = headingAt(ctx, flow, from);
-  if (u.hp > 0 && heading) push(ctx, u, heading, CHEMISTRY.shackleThrow, flow?.origin ?? null);
+  const far = CHEMISTRY.shackleThrow + (hasFootnote(ctx, 'brass-mark-throw') ? 1 : 0);
+  if (u.hp > 0 && heading) push(ctx, u, heading, far, flow?.origin ?? null);
 }
 
 function pageSkid(ctx: Ctx, at: Coord, flow: Flow | null): void {
@@ -420,6 +429,7 @@ function pageFog(ctx: Ctx, at: Coord, flow: Flow | null): void {
   const tiles = storm(ctx, at, flow, 'page:greaseFog', rowFor('greaseFog').damage, 'Flashover', {
     harm: null,
     throughWard: 'steamproof:greaseFog',
+    damp: hasFootnote(ctx, 'steam-cloud-damp'),
   });
   for (const c of tiles) {
     if (tileAt(s, c).state?.id === 'greaseFog') {
@@ -452,7 +462,9 @@ export function runThunderheads(ctx: Ctx): void {
   if (!due.length) return;
   s.scheduled = s.scheduled.filter((e) => !due.includes(e));
   for (const e of due) {
-    if (e.target.kind !== 'tile' || !isCloud(tileAt(s, e.target.at))) continue;
+    // `steam-cloud-thunder`: it strikes where the bank was, even if the cloud is gone.
+    const sure = hasFootnote(ctx, 'steam-cloud-thunder');
+    if (e.target.kind !== 'tile' || !(sure || isCloud(tileAt(s, e.target.at)))) continue;
     const at = e.target.at;
     withLine(ctx, sparkLine('bank'), () => {
       storm(ctx, at, null, 'page:bank', rowFor('bank').damage, 'Thunderhead');
@@ -466,15 +478,16 @@ export function runThunderheads(ctx: Ctx): void {
 function burstUnit(ctx: Ctx, at: Coord, flow: Flow | null): boolean {
   const u = unitAt(ctx.s, at);
   if (!u) return false;
-  if (u.mark?.deep) {
+  if (u.shackle > 0) {
+    // First, so a shackle that keeps its mark (brass-mark-keep) snaps before the mark bursts.
+    withLine(ctx, sparkLine('shackle'), () => pageShackle(ctx, u, flow));
+  } else if (u.mark?.deep) {
     withLine(ctx, sparkLine('deepMark'), () => pageDeepMark(ctx, u));
   } else if (u.mark) {
     const heading = headingAt(ctx, flow, at);
     const copies = hasFootnote(ctx, 'spark-mark-chain') ? markCopies(ctx, u) : [];
     detonate(ctx, u, heading);
     for (const c of copies) if (c.mark && c.hp > 0) detonate(ctx, c, heading);
-  } else if (u.shackle > 0) {
-    withLine(ctx, sparkLine('shackle'), () => pageShackle(ctx, u, flow));
   } else if (u.collar !== false) {
     withLine(ctx, sparkLine('collar'), () => conduct(ctx, at, flow));
   } else {
