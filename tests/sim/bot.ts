@@ -14,6 +14,7 @@ import {
   type Trip,
 } from '$engine';
 import { boilOverState, forecastBoilOver } from '$engine/districts/bathhouses/boilOver';
+import { crackedSet } from '$engine/districts/bridges/preview';
 import { preconditionsOf, waitingFor } from '$engine/recruits';
 import type { Rng } from '$engine/rng';
 
@@ -21,6 +22,8 @@ import type { Rng } from '$engine/rng';
 /** Bot options. `gauge` makes it read the boil-over forecast (BH-16); off keeps the old bot. */
 export interface BotOptions {
   gauge?: boolean;
+  /** BR-21: never end a move on a cracked span tile (it falls at dusk) while a standing one is reachable. */
+  cracks?: boolean;
 }
 
 /**
@@ -96,6 +99,7 @@ export function botFight(
   opts: BotOptions = {},
 ) {
   const gauge = opts.gauge === true;
+  const cracks = opts.cracks === true;
   let firstBoil: number | null = null;
   let state = initial;
   const events: GameEvent[] = [];
@@ -111,7 +115,9 @@ export function botFight(
   };
   for (let n = 0; n < maxRounds && state.phase === 'player'; n++) {
     for (const id of order) {
-      if (state.phase !== 'player' || memberById(state, id).hp === 0) continue;
+      if (state.phase !== 'player' || memberById(state, id).hp === 0 || memberById(state, id).out) {
+        continue;
+      }
       const first = bestAttack(state, id, gauge);
       if (first && first.gain > 0) step(first.action);
       if (state.phase !== 'player') break;
@@ -124,7 +130,11 @@ export function botFight(
         const distance = Math.min(
           ...enemies.map((u) => Math.abs(u.pos.x - to.x) + Math.abs(u.pos.y - to.y)),
         );
+        // A cracked tile costs more than any attack gains, so it is picked only when nothing else is legal.
+        const crackCost =
+          cracks && crackedSet(next).some((c) => c.x === to.x && c.y === to.y) ? 1e6 : 0;
         const candidate =
+          -crackCost +
           value(next, gauge) -
           value(state, gauge) +
           Math.max(0, bestAttack(next, id, gauge)?.gain ?? 0) -

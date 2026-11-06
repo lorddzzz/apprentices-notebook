@@ -404,7 +404,8 @@ describe('RC-9 property fuzz: random notebooks x trips x rooms (plan §6)', () =
         }
       }
       // The fuzz reaches the interesting cases, not only empty rolls.
-      expect(guaranteed).toBeGreaterThan(FUZZ_CASES / 10);
+      // Floor 1 in 12 (was 1 in 10): the bridges district dilutes the share of guaranteed rolls.
+      expect(guaranteed).toBeGreaterThan(FUZZ_CASES / 12);
       expect(cards).toBeGreaterThan(0);
     },
     LONG,

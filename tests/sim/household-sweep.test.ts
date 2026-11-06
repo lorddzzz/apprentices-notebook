@@ -34,9 +34,10 @@ import {
   tripParty,
 } from '$engine';
 import { CAST_EVENT_CAP } from '$engine/ctx';
+import { chooseAt } from '$engine/districts/api';
 import { createRng } from '$engine/rng';
 import { checkRoom, startSeedFor } from '$engine/rooms';
-import { endBattle, pushOnward, startBattle, takeOffer } from '../../src/app/flow';
+import { endBattle, leaveDoorway, pushOnward, startBattle, takeOffer } from '../../src/app/flow';
 import { projectWith, viewOf } from '../../src/app/view';
 import { botFight } from './bot';
 import baseline from './pre-household-layouts.json';
@@ -63,8 +64,8 @@ function withParty(who: readonly ApprenticeId[]): Profile {
     known: [...RUNE_IDS],
     city: {
       ...base.city,
-      heard: ['seam', 'canals', 'inkQuarter', 'bathhouses'],
-      open: ['seam', 'canals', 'inkQuarter', 'bathhouses'],
+      heard: ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges'],
+      open: ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges'],
     },
   };
   for (const id of who) p = joinHousehold(p, id);
@@ -266,8 +267,11 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       const who: ApprenticeId[] = ['draughtsman', 'stoker'];
       const p = withParty(who);
       const old = [...baseline.seam, ...baseline.canals];
-      // The ink quarter and the bathhouses were never fixed-spot boards: no old twin.
-      const rooms = ROOMS.filter((r) => r.district !== 'inkQuarter' && r.district !== 'bathhouses');
+      // The ink quarter, bathhouses and bridges were never fixed-spot boards: no old twin.
+      const rooms = ROOMS.filter(
+        (r) =>
+          r.district !== 'inkQuarter' && r.district !== 'bathhouses' && r.district !== 'bridges',
+      );
       expect(old).toHaveLength(rooms.length);
       rooms.forEach((room, i) => {
         // The old boards only differ from the new ones by D, S and the extra P points. The
@@ -355,7 +359,13 @@ function botTrip(who: readonly ApprenticeId[], seed: number, district: Room['dis
     } else if (status === 'looting') {
       save = takeOffer(save, 0);
     } else if (status === 'crossroads') {
-      save = pushOnward(save);
+      // The bridges fork into sound and crumbling spans; the seed picks one so both are walked.
+      save =
+        district === 'bridges'
+          ? { ...save, trip: chooseAt(save.trip, seed % 2 ? 'sound' : 'crumbling') }
+          : pushOnward(save);
+    } else if (status === 'doorway') {
+      save = leaveDoorway(save, save.profile);
     } else {
       outcome = status;
       break;
@@ -418,7 +428,7 @@ describe('random legal walks on every room (HC-9 fuzz)', () => {
           const options: Action[] = [{ type: 'endTurn' }];
           for (const id of who) {
             const m = memberById(state, id);
-            if (m.hp <= 0) continue;
+            if (m.hp <= 0 || m.out) continue;
             for (const to of legalMoves(state, id)) options.push({ type: 'move', unit: id, to });
             for (const dir of m.acted ? [] : basicDirs(state, id)) {
               options.push({ type: m.action, unit: id, dir } as Action);
