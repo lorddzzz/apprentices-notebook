@@ -1,3 +1,4 @@
+import { collapseStep, FALL_CAUSE } from './bridges/collapse';
 import { scanBridges } from './bridges/support';
 import {
   BRIDGE_EVENT_TYPES,
@@ -10,7 +11,6 @@ import {
   KEYSTONE_PIECE,
   PIER_PIECE,
   parseBridgeState,
-  parseBridges,
   SPAN_PIECE,
 } from './bridges/types';
 import type { BoardRule, DistrictEventDef, DistrictModule, TripShapeDef } from './types';
@@ -41,7 +41,7 @@ export const COLLAPSE_RULE: BoardRule<BridgesState> = {
   scope: 'piece',
   activatedBy: { kind: 'piece', pieces: [SPAN_PIECE, PIER_PIECE, KEYSTONE_PIECE] },
   init: (state) => scanBridges(state),
-  step: (_ctx, own) => parseBridges(own),
+  step: (ctx, own) => collapseStep(ctx, own),
   met: 'span',
 };
 
@@ -57,4 +57,5 @@ export const BRIDGES_MODULE: DistrictModule = {
   pieces: BRIDGE_PIECES,
   rules: [COLLAPSE_RULE],
   trip: shape,
+  causes: { [FALL_CAUSE]: 'landing' },
 };

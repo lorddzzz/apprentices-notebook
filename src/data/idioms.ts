@@ -48,7 +48,7 @@ export const IDIOMS: readonly IdiomDef[] = [
     id: 'longDrop',
     name: 'The Long Drop',
     district: 'bridges',
-    rule: 'A foe is pushed off an edge or into a canal.',
+    rule: 'A foe is pushed off an edge or into a canal, or dropped with a cut span.',
     ownerNote: 'The quickest way across a bridge is down.',
   },
   {

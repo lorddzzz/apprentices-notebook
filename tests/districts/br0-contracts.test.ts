@@ -26,7 +26,7 @@ import {
 import type { Json } from '$engine/districts/types';
 import { parseBoard, serializeBoard } from '$engine/notation';
 import { DISTRICT_UI } from '$ui/districts';
-import { board } from '../scenarios/harness';
+import { board, draft } from '../scenarios/harness';
 
 /** BR-0: the bridges' module is registered and inert; its contracts compile and read strictly. */
 describe('BR-0 registration', () => {
@@ -59,8 +59,9 @@ describe('BR-0 registration', () => {
     expect(m?.harmGuards ?? []).toEqual([]);
     expect(m?.steps ?? []).toEqual([]);
     expect(m?.offerKinds ?? []).toEqual([]);
-    expect(m?.causes).toBeUndefined();
-    expect(Object.keys(KIT.causes).filter((c) => c.startsWith('bridges:'))).toEqual([]);
+    expect(Object.keys(KIT.causes).filter((c) => c.startsWith('bridges:'))).toEqual([
+      'bridges:fall',
+    ]);
     expect(Object.keys(KIT.shapes)).toContain(BRIDGE_SHAPE);
   });
 });
@@ -73,8 +74,10 @@ describe('BR-0 inert stubs', () => {
       originals: ['1,1'],
       cuts: { '2,2': { by: 'rat-1', cause: 'crush' } },
     };
-    // The step takes no board and emits nothing: a null ctx would throw if it touched either.
-    expect(rule?.step(null as never, own)).toEqual(own);
+    // With nothing cracked the step changes nothing and keeps its state (BR-3 adds the fall).
+    const quiet = board('{pier} {span}');
+    const r = draft(quiet, (ctx) => rule?.step(ctx, own));
+    expect(r.events).toEqual([]);
     expect(rule?.init(board('.'), undefined)).toEqual(initBridges());
   });
 
