@@ -89,7 +89,7 @@
   <TrickBanner tricks={session.overlay.tricks ?? []} />
   <BossHeader units={view.units} />
 
-  <div class="board-wrap">
+  <div class="board-wrap" class:reserve={hasNext || meters.length > 0}>
     <BattleBoard
       view={session.view}
       overlay={session.overlay}
@@ -200,5 +200,9 @@
     position: relative;
     flex: 1;
     min-height: 0;
+  }
+  /* The floating gauges and the Next round toggle get their own strip: they never cover a tile. */
+  .board-wrap.reserve {
+    padding-bottom: 38px;
   }
 </style>

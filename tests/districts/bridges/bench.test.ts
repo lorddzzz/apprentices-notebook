@@ -24,6 +24,10 @@ describe('the Bench offers the wardens’ staff only once met', () => {
     expect(sceneEntries(household([foe])).some((e) => e.item === token)).toBe(true);
   });
 
+  test('the Chief Warden, a stand-in heart, stays Lab-only even once met', () => {
+    expect(sceneItems(household(['chiefWarden']))).not.toContain(ENEMIES.chiefWarden.token);
+  });
+
   test('meeting one warden does not offer the other two', () => {
     const items = sceneItems(household(['gargoyle']));
     expect(items).toContain(ENEMIES.gargoyle.token);

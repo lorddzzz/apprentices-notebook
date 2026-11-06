@@ -67,6 +67,12 @@
         <path d="M13 31V18a7 7 0 0 1 14 0v13z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="1.5" />
         <circle cx="23.5" cy="24.5" r="1.2" fill="var(--lamp)" />
       </svg>
+    {:else if item.kind === 'key'}
+      <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="A key">
+        <circle cx="20" cy="20" r="16.5" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2.5" />
+        <circle cx="14.500" cy="17" r="4.500" fill="none" stroke="var(--ink)" stroke-width="2.500" />
+        <path d="M18.500 20.500L29 31M25 27l3-3M28 30l3-3" fill="none" stroke="var(--ink)" stroke-width="2.500" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     {:else}
       <svg width="52" height="52" viewBox="0 0 40 40" role="img" aria-label="Vellum">
         <rect x="7" y="5" width="26" height="30" rx="2" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2" />

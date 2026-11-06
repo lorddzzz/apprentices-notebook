@@ -47,6 +47,7 @@
     flex-direction: column;
     gap: var(--space-3);
     height: 100%;
+    overflow-y: auto;
     padding: var(--space-3) var(--space-3) calc(var(--space-3) + 14px);
   }
   h1 {
@@ -69,12 +70,13 @@
   }
   .mid {
     display: flex;
-    flex: 1;
+    flex: 1 0 auto;
     flex-direction: column;
     justify-content: center;
     gap: var(--space-3);
-    min-height: 0;
-    overflow-y: auto;
+  }
+  .crossroads > :global(*) {
+    flex-shrink: 0;
   }
   .choices {
     display: flex;

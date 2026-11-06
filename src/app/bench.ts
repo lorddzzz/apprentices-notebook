@@ -257,7 +257,10 @@ const MET_ITEMS: readonly { items: readonly PaletteItem[]; met: readonly string[
 export function sceneEntries(p: Pick<Profile, 'met' | 'foesMet'>, kit: Kit = KIT): PaletteEntry[] {
   const met: readonly string[] = p.met;
   const rivals = new Set<string>(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
-  const foes = p.foesMet.filter((f) => !rivals.has(f)).map((f) => ENEMIES[f].token);
+  // A stand-in heart (the Chief Warden until his rival exists, P20) is Lab-only, like the rivals.
+  const foes = p.foesMet
+    .filter((f) => !rivals.has(f) && !ENEMIES[f].script?.standIn)
+    .map((f) => ENEMIES[f].token);
   const states = MET_ITEMS.filter((m) => m.met.some((k) => met.includes(k))).flatMap(
     (m) => m.items,
   );

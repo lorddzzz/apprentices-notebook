@@ -104,7 +104,11 @@
     flex-direction: column;
     gap: var(--space-3);
     height: 100%;
+    overflow-y: auto;
     padding: var(--space-3) var(--space-3) calc(var(--space-3) + 14px);
+  }
+  .loot > :global(*) {
+    flex-shrink: 0;
   }
   header {
     flex: none;
@@ -145,11 +149,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    flex: 1;
-    min-height: 0;
+    flex: 1 0 auto;
   }
   .offers :global(.card) {
-    flex: 1 1 0;
+    flex: 1 0 auto;
     max-height: 150px;
   }
   .foot {
