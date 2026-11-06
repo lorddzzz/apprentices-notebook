@@ -26,6 +26,7 @@ import {
 import type { Json } from '$engine/districts/types';
 import { parseBoard, serializeBoard } from '$engine/notation';
 import { DISTRICT_UI } from '$ui/districts';
+import { board } from '../scenarios/harness';
 
 /** BR-0: the bridges' module is registered and inert; its contracts compile and read strictly. */
 describe('BR-0 registration', () => {
@@ -74,7 +75,7 @@ describe('BR-0 inert stubs', () => {
     };
     // The step takes no board and emits nothing: a null ctx would throw if it touched either.
     expect(rule?.step(null as never, own)).toEqual(own);
-    expect(rule?.init(null as never, undefined)).toEqual(initBridges());
+    expect(rule?.init(board('.'), undefined)).toEqual(initBridges());
   });
 
   test('the pieces parse and round-trip in notation, with data suffixes', () => {

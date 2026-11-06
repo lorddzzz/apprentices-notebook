@@ -1,3 +1,4 @@
+import { scanBridges } from './bridges/support';
 import {
   BRIDGE_EVENT_TYPES,
   BRIDGE_PIECES,
@@ -6,7 +7,6 @@ import {
   type BridgeTripState,
   COLLAPSE_RULE_ID,
   initBridgeState,
-  initBridges,
   KEYSTONE_PIECE,
   PIER_PIECE,
   parseBridgeState,
@@ -40,7 +40,7 @@ export const COLLAPSE_RULE: BoardRule<BridgesState> = {
   order: 20,
   scope: 'piece',
   activatedBy: { kind: 'piece', pieces: [SPAN_PIECE, PIER_PIECE, KEYSTONE_PIECE] },
-  init: () => initBridges(),
+  init: (state) => scanBridges(state),
   step: (_ctx, own) => parseBridges(own),
   met: 'span',
 };
