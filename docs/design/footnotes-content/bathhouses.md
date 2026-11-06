@@ -100,7 +100,7 @@ Headline: *The rest also acts on the target's 4 neighbours.*
   Engine: `seep` gives member neighbours the target-to-neighbour heading instead of the target's. No new event. Interacts with the Shove heading lines; clears your people out of a blast.
 - b · `seep-member-guard`: *Your own party beside the target takes a Guard from Seep instead of the rest.*
   Engine: `resolve.ts`, a member neighbour runs the Guard step in place of the rest. No new event (`guarded`, stamped). Interacts with Guard; the cast that hurts the foe shields its neighbours.
-- c · `bathSteward:steam`: the Steward's note (section 3). Hidden until his page is held.
+- c · `bathSteward:seep`: the Steward's note (section 3). Hidden until his page is held.
 - Combos: spare-self + away: allies pushed clear, you untouched; fine. spare-self + guard: allies guarded, you neither; fine. spare-self + note: fine. pass + away: the tile beyond is acted on first, then the ally pushed away; say the order at build. pass + guard: the ally holds and the rest goes past them; reads well. pass + note: an ally on a cloud is passed over and the rest re-forms; the re-formed rest does not pass along, say so in the note's build text.
 
 ### Steep
@@ -160,9 +160,9 @@ Capstones need no witnessed line. Each is "when X, also Y"; the headline stays t
 
 ## 3. The Steward's note (BH-17)
 
-On **Seep, level II, slot `seep:member`**, as a third option beside a and b (plan BH-F2; Seep is on his page: he lays a cloud near the party and shoves from within, so the page assumed is Steam, Seep, Shove; confirm at RV-15). Hidden until his page is held; still needs the slot's level and costs. Id `bathSteward:steam`, after the foe id and the Lamplighter's pattern.
+On **Seep, level II, slot `seep:member`**, as a third option beside a and b (plan BH-F2; Seep is on his page: he lays a cloud near the party and shoves from within, so the page assumed is Steam, Seep, Shove; confirm at RV-15). Hidden until his page is held; still needs the slot's level and costs. Id `bathSteward:seep` (built by BH-17b; named after the rune, as the build chose).
 
-- c · `bathSteward:steam`: *A regular is never splashed in his own steam. Any of yours standing in a cloud beside the target is passed over, and the rest re-forms on the farthest free tile of that cloud instead.*
+- c · `bathSteward:seep`: *A regular is never splashed in his own steam. Any of yours standing in a cloud beside the target is passed over, and the rest re-forms on the farthest free tile of that cloud instead.*
   Credit line, in the household's hand under it: *Copied from the Steward's towel book.*
   Engine: `seep`, a member neighbour on a cloud tile is swapped for the free connected cloud tile farthest from it (ties in reading order), the same helper as his steams-away trick (plan P10, BH-8). No new event; with no free tile, the member is passed over and nothing re-forms. No new harm: the rest lands on a tile, so it strikes whoever is there (a foe, or nobody).
 
