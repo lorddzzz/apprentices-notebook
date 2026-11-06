@@ -14,6 +14,7 @@ import {
   type LineId,
   MEMBERS,
   METHODS,
+  type MethodId,
   RIVAL_TRICK_TEXT,
   RUNES,
   type RuneId,
@@ -657,6 +658,18 @@ export function namedTitle(id: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
+/**
+ * A method's headline on an offer card. The card has no parts yet, so `{0}`, `{1}` and `{event}`
+ * take neutral words (never the raw template); the first letter is capitalised.
+ */
+export function methodOfferHeadline(method: MethodId): string {
+  const filled = METHODS[method].headline
+    .replace('{0}', 'the action')
+    .replace('{1}', 'an action')
+    .replace('{event}', 'is hit');
+  return filled.charAt(0).toUpperCase() + filled.slice(1);
+}
+
 /** One line for a loot item: name, then what it does. */
 export function lootLine(item: LootItem): { title: string; text: string } {
   switch (item.kind) {
@@ -666,7 +679,7 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         text: RUNES[item.rune].headline,
       };
     case 'method':
-      return { title: METHODS[item.method].name, text: METHODS[item.method].headline };
+      return { title: METHODS[item.method].name, text: methodOfferHeadline(item.method) };
     case 'ink':
       return {
         title: `+${item.amount} ink`,

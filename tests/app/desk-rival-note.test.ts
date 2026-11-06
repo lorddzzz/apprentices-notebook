@@ -53,6 +53,7 @@ describe('a rival note in a named slot', () => {
     expect(r.profile.footnotes.shove?.slots['shove:wall@1']).toBe('wick');
     const written = frameOf(r.profile)?.variants.find((v) => v.id === 'wick');
     expect(written?.chosen).toBe(true);
+    // The fixture's wick has no `credit`, so the generic "<Rival>'s hand." line is the fallback.
     expect(written?.credit).toBe("Lamplighter's hand.");
     expect(frameOf(r.profile)?.variants.find((v) => v.id === 'a')?.credit).toBeNull();
   });

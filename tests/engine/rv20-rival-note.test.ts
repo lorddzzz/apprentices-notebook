@@ -56,7 +56,9 @@ describe('the Lamplighter’s Jar note (RV-20)', () => {
     expect(rivalNoteVisible(p, WICK)).toBe(true);
     const frame = jarLevelOne(p);
     expect(frame?.variants.map((v) => v.id)).toEqual(['jar-plain', WICK]);
-    expect(frame?.variants.find((v) => v.id === WICK)?.credit).toBe("Lamplighter's hand.");
+    expect(frame?.variants.find((v) => v.id === WICK)?.credit).toBe(
+      "Copied from the Lamplighter's route sheet.",
+    );
     expect(frame?.variants.find((v) => v.id === 'jar-plain')?.credit).toBeNull();
   });
 

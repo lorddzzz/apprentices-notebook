@@ -45,7 +45,7 @@ const FIXTURE: VariantDef[] = [
   {
     ...variant('shove-cap-rival', { capstone: true }),
     rival: 'lamplighter',
-    credit: "The Lamplighter's hand.",
+    credit: "Copied from the Lamplighter's route sheet.",
   },
 ];
 
@@ -164,7 +164,7 @@ describe('the margin column', () => {
     expect(hidden.capstone?.variants.some((v) => v.id === 'shove-cap-rival')).toBe(false);
     const held = marginOf(p, 'shove', { variants: FIXTURE, holdsRivalPage: () => true });
     expect(held.capstone?.variants.find((v) => v.id === 'shove-cap-rival')?.credit).toBe(
-      "The Lamplighter's hand.",
+      "Copied from the Lamplighter's route sheet.",
     );
   });
 });

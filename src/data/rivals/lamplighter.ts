@@ -82,4 +82,5 @@ export const LAMPLIGHTER_WICK: VariantDef = {
   slot: { line: 'jar:unit', level: 1 },
   text: 'The wick does not care who lit it. A careful boot finds a jar as well as a careless one, mine included, and the light is still yours.',
   rival: 'lamplighter',
+  credit: "Copied from the Lamplighter's route sheet.",
 };

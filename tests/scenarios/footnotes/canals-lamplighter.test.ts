@@ -75,7 +75,9 @@ describe('CN-F5: the Lamplighter’s note on Jar', () => {
   test('offered once his page is held: listed on level I, credited to the Lamplighter', () => {
     const frame = levelOne(jarReady([PAGE]));
     expect(frame?.variants.map((v) => v.id)).toContain(NOTE);
-    expect(frame?.variants.find((v) => v.id === NOTE)?.credit).toBe("Lamplighter's hand.");
+    expect(frame?.variants.find((v) => v.id === NOTE)?.credit).toBe(
+      "Copied from the Lamplighter's route sheet.",
+    );
   });
 
   test('written in the margin with his page, it is the slot’s note and changes his walk', () => {
