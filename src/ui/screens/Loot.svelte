@@ -73,7 +73,7 @@
       <p class="paper" data-testid="paper-found">
         <span class="seal" aria-hidden="true">✎</span>
         <span>
-          A paper found: <em>{note.title}</em>, in {note.hand}'s hand. Filed in the notebook.
+          A paper found: <em>{note.title}</em>, in {note.hand}{note.hand.endsWith('s') ? "'" : "'s"} hand. Filed in the notebook.
         </span>
       </p>
     {/if}
