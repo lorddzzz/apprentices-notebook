@@ -1,5 +1,14 @@
 import { BRIDGE_TUNING, type SpanKind } from '$data/districts/bridges/types';
-import type { DistrictEvent, Json, PieceDef, PieceId, RuleId, TripShapeId } from '../types';
+import type {
+  DistrictEvent,
+  Json,
+  PieceDef,
+  PieceId,
+  PieceTriggers,
+  RuleId,
+  TripShapeId,
+} from '../types';
+import { wearStruck } from './wear';
 
 /**
  * The bridges' engine contracts (BR-0; bridges-plan §2, §4): the three pieces, the collapse rule's
@@ -125,18 +134,21 @@ export function parseBridgeState(raw: unknown): BridgeTripState {
 /** What the Chief Warden resists while the keystone stands (BR-8 wires the three branches). */
 export type ResistKind = 'push' | 'hold' | 'fall';
 
+/** BR-2: crushes and non-fire bursts wear span stone and the keystone (`wear.ts`). */
+const WEARS: PieceTriggers = { onStruck: wearStruck };
+
 /** The pieces' shared shape: walkable footing, no triggers until BR-1..BR-3. */
-const footing = (id: PieceId, token: string): PieceDef => ({
+const footing = (id: PieceId, token: string, triggers: PieceTriggers = {}): PieceDef => ({
   id,
   token,
   solid: 'none',
-  triggers: {},
+  triggers,
   rules: [COLLAPSE_RULE_ID],
   art: id,
 });
 
 export const SPAN_DEF: PieceDef<SpanData> = {
-  ...footing(SPAN_PIECE, 'span'),
+  ...footing(SPAN_PIECE, 'span', WEARS),
   data: {
     init: { stone: BRIDGE_TUNING.stone.sound },
     parse: (s) => (/^[1-9]$/.test(s) ? { stone: Number(s) } : null),
@@ -145,7 +157,7 @@ export const SPAN_DEF: PieceDef<SpanData> = {
 };
 export const PIER_DEF: PieceDef = footing(PIER_PIECE, 'pier');
 export const KEYSTONE_DEF: PieceDef<KeystoneData> = {
-  ...footing(KEYSTONE_PIECE, 'keystone'),
+  ...footing(KEYSTONE_PIECE, 'keystone', WEARS),
   data: {
     init: { hp: BRIDGE_TUNING.keystoneHp },
     parse: (s) => (/^[1-9]$/.test(s) ? { hp: Number(s) } : null),

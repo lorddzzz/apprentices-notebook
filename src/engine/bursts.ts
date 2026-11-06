@@ -17,6 +17,7 @@ import { habitRule } from './habits';
 import { openJar, ownedByMember } from './jars';
 import { applyMark, liftMark, spendMark } from './marks';
 import { brassNet, cloudNet, oilNet } from './networks';
+import { strikePiece } from './pieces';
 import { push } from './push';
 import { blocksShots, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
 import { SOLVENT_RULES } from './solvents';
@@ -138,6 +139,8 @@ function announce(
     tiles: tiles.map((c) => ({ ...c })),
     units: units.map((u) => ref(u)),
   });
+  if (burst !== 'fire' && burst !== 'page:stain')
+    for (const c of tiles) strikePiece(ctx, c, 'burst');
 }
 
 const fireLayer = (origin: Origin | null, rounds: number = TUNING.fireRounds): Layer => ({

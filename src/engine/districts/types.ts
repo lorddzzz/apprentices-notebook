@@ -109,8 +109,8 @@ export type RuleStates = Readonly<Record<RuleId, Json>>;
 // ── Board pieces (P10; DK-4) ────────────────────────────
 /** What a piece blocks: nothing, units only (a pencil outline), or units and shots (a plate). */
 export type Solidity = 'none' | 'units' | 'unitsAndShots';
-/** What struck a piece (§9 CG, BF): damage, a push into it, a Spark, a basic Shove, Erase or Draw. */
-export type StruckBy = 'damage' | 'push' | 'spark' | 'shove' | 'erase' | 'draw';
+/** What struck a piece (§9 CG, BF): damage, a push into it, a Spark, a basic Shove, Erase or Draw; `burst`: a non-fire burst covering its tile (BR-2). */
+export type StruckBy = 'damage' | 'push' | 'spark' | 'shove' | 'erase' | 'draw' | 'burst';
 /** A piece on a tile (DK-4 adds `Tile.piece: TilePiece | null`); `data` is cloned and saved (BF). */
 export interface TilePiece {
   id: PieceId;
