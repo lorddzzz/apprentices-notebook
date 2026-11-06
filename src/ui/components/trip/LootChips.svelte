@@ -2,6 +2,7 @@
   import { APPRENTICES, RUNES } from '$data';
   import type { LootItem } from '$engine';
   import { lootName } from '../../../app/describe';
+  import { offerLabelFor } from '../../districts';
   import { METHOD_ART } from '../../runeArt';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -35,7 +36,7 @@
       {:else}
         <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'key' ? '⚷' : '✎'}</span>
       {/if}
-      <span class="name">{item.kind === 'recruit' ? APPRENTICES[item.apprentice].name : lootName(item)}</span>
+      <span class="name">{item.kind === 'recruit' ? APPRENTICES[item.apprentice].name : (offerLabelFor(item) ?? lootName(item))}</span>
     </li>
   {:else}
     <li class="none">Nothing yet.</li>

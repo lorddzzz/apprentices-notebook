@@ -38,6 +38,14 @@ export interface DistrictUi {
   highlightArt?: Readonly<Record<string, Component<{ at: Coord; to?: Coord; data?: Json }>>>;
   /** By `solvedArt` key: the map illustration of a solved gate. */
   solvedArt?: Readonly<Record<string, Component>>;
+  /** Offer chips' names by `OfferKind.id`, for a kind the screens cannot name on their own (BH-13). */
+  offerLabels?: Readonly<Record<string, (item: unknown) => string>>;
+  /** A badge in the trip status (the bathhouses' heat, BH-13): draws itself or nothing. */
+  tripBadge?: Component<{ trip: Trip; profile: Profile }>;
+  /** Lines under the loot screen's header (BH-13): draws itself or nothing. */
+  lootHeader?: Component<{ trip: Trip }>;
+  /** A line above the Crossroads' ways (BH-13): draws itself or nothing. */
+  crossroadsNote?: Component<{ trip: Trip }>;
   /** A line above the way home on the bottom screen of this district's trips (the lower Seam's door, SM-10): draws itself or nothing. */
   crossroadsLine?: Component<{ trip: Trip; profile: Profile }>;
   /** Drawn under another district's node on the map (the lower Seam's stair under the Seam, SM-11): `onsetout` opens Set out for this district. */
@@ -91,6 +99,21 @@ export function highlightArtFor(
     const found =
       d?.highlightArt && Object.hasOwn(d.highlightArt, key) ? d.highlightArt[key] : undefined;
     if (found) return found;
+  }
+  return undefined;
+}
+
+/** A kind's chip name from its district's `offerLabels`; undefined = the screen's own name. */
+export function offerLabelFor(
+  item: { kind: string },
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): string | undefined {
+  for (const d of Object.values(ui)) {
+    const f =
+      d?.offerLabels && Object.hasOwn(d.offerLabels, item.kind)
+        ? d.offerLabels[item.kind]
+        : undefined;
+    if (f) return f(item);
   }
   return undefined;
 }

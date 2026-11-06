@@ -2,6 +2,7 @@
   import { APPRENTICES, MEMBERS } from '$data';
   import { compiledFor, type Profile, roomsOf, type Trip } from '$engine';
   import { termStatusLines } from '../../../app/inkTerms';
+  import { DISTRICT_UI } from '../../districts';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -15,6 +16,7 @@
 
   let { trip, profile, large = false }: Props = $props();
 
+  const Badge = $derived(DISTRICT_UI[trip.district]?.tripBadge);
   const terms = $derived(termStatusLines(trip));
   const rows = $derived(
     trip.party.map((m) => ({
@@ -38,6 +40,7 @@
     {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {roomsOf(trip).length}
     <span class="finds">· {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
   </p>
+  {#if Badge}<Badge {trip} {profile} />{/if}
   {#each terms as t, i (i)}
     <p class="term {t.status}" data-testid="trip-term">{t.text}</p>
   {/each}

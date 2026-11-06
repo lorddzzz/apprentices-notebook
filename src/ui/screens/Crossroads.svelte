@@ -5,9 +5,11 @@
   import CrossroadsChoices from '../components/trip/CrossroadsChoices.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
   import TripStatus from '../components/trip/TripStatus.svelte';
+  import { DISTRICT_UI } from '../districts';
 
   const trip = $derived(game.save.trip);
   // The district module names the ways on; the Seam and the canals get push and return (P4).
+  const Note = $derived(trip ? DISTRICT_UI[trip.district]?.crossroadsNote : undefined);
   const view = $derived(trip ? crossroadsView(trip) : null);
 </script>
 
@@ -28,6 +30,7 @@
     </div>
 
     <div class="choices">
+      {#if Note}<Note {trip} />{/if}
       <CrossroadsChoices
         {view}
         onway={(id) => (id === 'push' ? game.pushOn() : game.chooseWay(id))}

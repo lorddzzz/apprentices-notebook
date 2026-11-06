@@ -9,6 +9,7 @@
   import Button from '../components/common/Button.svelte';
   import OfferCard from '../components/trip/OfferCard.svelte';
   import TripStatus from '../components/trip/TripStatus.svelte';
+  import { DISTRICT_UI } from '../districts';
 
   const trip = $derived(game.save.trip);
   let chosen = $state<number | null>(null);
@@ -19,6 +20,8 @@
     if (!trip || !found || found.seed !== trip.seed || found.room !== trip.encounter) return null;
     return paperNote(found.paper);
   });
+
+  const Header = $derived(trip ? DISTRICT_UI[trip.district]?.lootHeader : undefined);
 
   // A met room bonus is the extra pick (CN-10): say so while it is still to be taken.
   const bonus = $derived.by(() => {
@@ -49,6 +52,7 @@
       <p class="picks" data-testid="picks-left">
         {trip.picksLeft === 1 ? 'Take one.' : `Take ${trip.picksLeft}, one at a time.`}
       </p>
+      {#if Header}<Header {trip} />{/if}
     </header>
 
     {#if bonus}
