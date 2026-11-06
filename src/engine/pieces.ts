@@ -42,6 +42,10 @@ export const pieceBlocksUnits = (t: Tile, kit: Kit = KIT): boolean => solidityOf
 export const pieceBlocksShots = (t: Tile, kit: Kit = KIT): boolean =>
   solidityOf(t, kit) === 'unitsAndShots';
 
+/** The piece lets only a cloud land on its tile (a foundry bell, BF-2). */
+export const pieceHoldsOnlyClouds = (t: Tile, kit: Kit = KIT): boolean =>
+  !!t.piece && pieceDef(t.piece.id, kit).holds === 'clouds';
+
 /** The piece on a tile answers being struck (a basic Shove may aim at it). */
 export const strikable = (t: Tile, kit: Kit = KIT): boolean =>
   !!t.piece && !!pieceDef(t.piece.id, kit).triggers.onStruck;

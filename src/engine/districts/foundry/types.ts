@@ -81,6 +81,7 @@ export const BELL_DEF: PieceDef<BellData> = {
   id: BELL_PIECE,
   token: 'bell',
   solid: 'unitsAndShots',
+  holds: 'clouds',
   triggers: {},
   rules: [BELLS_RULE_ID],
   data: {
@@ -127,6 +128,7 @@ export const GREAT_BELL_DEF: PieceDef<GreatBellData> = {
   id: GREAT_BELL_PIECE,
   token: 'greatBell',
   solid: 'unitsAndShots',
+  holds: 'clouds',
   triggers: {},
   rules: [BELLS_RULE_ID],
   data: {

@@ -14,7 +14,10 @@ import {
   TUNE_RULE_ID,
   type TuneState,
 } from './foundry/types';
+
 import type { BoardRule, DistrictEventDef, DistrictModule, TripShapeDef } from './types';
+
+export * from './foundry/pieces';
 
 /**
  * The foundry's engine module, assembled from `foundry/`. BF-0 registers the contracts only: the
