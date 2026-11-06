@@ -3,7 +3,7 @@ import { arrive, hasTrait } from './arrival';
 import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
-import { resists } from './districts/bridges/rightOfWay';
+import { refusesHold, resists } from './districts/bridges/rightOfWay';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -466,7 +466,7 @@ export function push(
         hasFootnote(ctx, 'vat-edge-pin')
       ) {
         withLine(ctx, 'vat:edge', () => {
-          if (trickResists(ctx, unit, 'hold') || resists(ctx, unit, 'hold')) return;
+          if (refusesHold(ctx, unit)) return;
           if (guardCancels(ctx, unit, { kind: 'hold', unit: unit.id, harm: null }, 'Hold')) return;
           unit.held = Math.max(unit.held, 1);
           emit(ctx, { type: 'held', unit: ref(unit), rounds: unit.held });

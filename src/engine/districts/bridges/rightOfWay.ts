@@ -1,5 +1,6 @@
 import { type Ctx, emit, ref } from '../../ctx';
 import { isAlive } from '../../queries';
+import { trickResists } from '../../rivals/tricks';
 import type { BattleState, Unit } from '../../types';
 import { COLLAPSE_RULE_ID, KEYSTONE_PIECE, parseBridges, type ResistKind, tileKey } from './types';
 
@@ -47,4 +48,9 @@ export function resists(ctx: Ctx, unit: Unit, what: ResistKind): boolean {
     data: { trick: RIGHT_OF_WAY_RULE, what },
   });
   return true;
+}
+
+/** Every hold site asks this: a rival's immunity or right of way refuses the hold (the refusal logged). */
+export function refusesHold(ctx: Ctx, unit: Unit): boolean {
+  return trickResists(ctx, unit, 'hold') || resists(ctx, unit, 'hold');
 }

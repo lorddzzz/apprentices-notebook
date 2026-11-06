@@ -4,8 +4,8 @@ import { type Ctx, emit, ref } from '../../ctx';
 import { type Coord, label } from '../../grid';
 import { makePiece, piecesOn } from '../../pieces';
 import { findUnit, inBoard, isAlive, tileAt, unitAt } from '../../queries';
-import { trickResists } from '../../rivals/tricks';
 import type { BattleState, Unit } from '../../types';
+import { refusesHold } from '../bridges/rightOfWay';
 import type { DistrictEvent, DistrictEventDef, PieceDef, PieceId, TilePiece } from '../types';
 import { type SealedEvent, type UnsealedEvent, WAX_DEF, WAX_PIECE, type WaxData } from './types';
 
@@ -37,7 +37,7 @@ export function canSeal(s: BattleState, at: Coord): boolean {
 /** Holds `u` for `rounds` (never shortens an existing hold); emits `held` when it grows. */
 function hold(ctx: Ctx, u: Unit, rounds: number): void {
   if (hasTrait(u, 'anchored') || u.held >= rounds) return;
-  if (trickResists(ctx, u, 'hold')) return; // a rival's immunity (RV-11 `resists`)
+  if (refusesHold(ctx, u)) return; // a rival's immunity (RV-11 `resists`)
   u.held = rounds;
   emit(ctx, { type: 'held', unit: ref(u), rounds });
 }

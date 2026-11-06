@@ -196,6 +196,15 @@ function beginPlayerPhase(ctx: Ctx): void {
   }
 }
 
+/**
+ * The phase ended early (a wipe or a win): no replan follows, so a foe that spent a behaviour
+ * intent (a district event the view never reads) stands idle in the log, and the final state and
+ * its projection agree that no spent intent is left.
+ */
+function idleSpent(ctx: Ctx, spent: readonly EnemyUnit[]): void {
+  for (const e of spent) if (isAlive(e) && !e.intent) emit(ctx, { type: 'idle', unit: ref(e) });
+}
+
 /** Legality (player phase) is checked by `isLegal` before this runs. */
 export function endTurnAction(ctx: Ctx): void {
   const s = ctx.s;
@@ -205,12 +214,20 @@ export function endTurnAction(ctx: Ctx): void {
     .sort((a, b) => (a.intent?.order ?? 0) - (b.intent?.order ?? 0));
   // Rivals' per-round marks resolve in their timing slot around the actions (RV-11).
   if (runTrickMarks(ctx, 'beforeActions') && checkEnd(ctx)) return;
+  const spent: EnemyUnit[] = [];
   for (const e of order) {
     if (!isAlive(e)) continue;
+    if (e.intent?.kind === 'behaviour') spent.push(e);
     resolveIntent(ctx, e);
-    if (checkEnd(ctx)) return;
+    if (checkEnd(ctx)) {
+      idleSpent(ctx, spent);
+      return;
+    }
   }
-  if (runTrickMarks(ctx, 'afterActions') && checkEnd(ctx)) return;
+  if (runTrickMarks(ctx, 'afterActions') && checkEnd(ctx)) {
+    idleSpent(ctx, spent);
+    return;
+  }
   roundEnd(ctx);
   piecesTurnEnd(ctx);
   if (checkEnd(ctx)) return;
