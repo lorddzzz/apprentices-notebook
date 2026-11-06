@@ -55,10 +55,10 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
     },
   };
   return {
-    id: 'foundry',
+    id: 'cartographers',
     pieces: [
       {
-        id: 'foundry:probe',
+        id: 'cartographers:probe',
         token: 'probe',
         solid: 'none',
         data: {
@@ -78,7 +78,7 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
         art: 'probe',
       },
       {
-        id: 'foundry:mat',
+        id: 'cartographers:mat',
         token: 'mat',
         solid: 'none',
         data: { init: fresh() },
@@ -86,10 +86,10 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
         triggers: { onArrive },
         art: 'mat',
       },
-      { id: 'foundry:pencil', token: 'pencil', solid: 'units', triggers: {}, art: 'pencil' },
+      { id: 'cartographers:pencil', token: 'pencil', solid: 'units', triggers: {}, art: 'pencil' },
       {
-        id: 'foundry:bell',
-        token: 'bell',
+        id: 'cartographers:slab',
+        token: 'slab',
         solid: 'unitsAndShots',
         data: { init: fresh() },
         triggers: {
@@ -99,7 +99,7 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
           },
           onHit: (_ctx, _at, p) => bump(p, 'hits'),
         },
-        art: 'bell',
+        art: 'slab',
       },
     ],
   };
@@ -116,15 +116,15 @@ const probeAt = (s: BattleState, lbl: string): Probe =>
 
 describe('piece notation', () => {
   test('pieces round-trip through braces, with and without a data suffix', () => {
-    const ascii = ['{probe}   {probe:3} {bell}', 'r{probe}  w>{mat}  {pencil}'].join('\n');
+    const ascii = ['{probe}   {probe:3} {slab}', 'r{probe}  w>{mat}  {pencil}'].join('\n');
     const spec = parseBoard(ascii);
     expect(spec.tiles.map((t) => t.piece?.id ?? null)).toEqual([
-      'foundry:probe',
-      'foundry:probe',
-      'foundry:bell',
-      'foundry:probe',
-      'foundry:mat',
-      'foundry:pencil',
+      'cartographers:probe',
+      'cartographers:probe',
+      'cartographers:slab',
+      'cartographers:probe',
+      'cartographers:mat',
+      'cartographers:pencil',
     ]);
     expect(spec.tiles[1]?.piece?.data).toMatchObject({ turns: 3 });
     expect(spec.tiles[1]?.terrain.water).toBeNull();
@@ -147,22 +147,22 @@ describe('piece notation', () => {
     const at = { x: 0, y: 0 };
     expect(() => parseCell('{probe}{mat}', at)).toThrow(/one piece in cell A1/);
     expect(() => parseCell('{probe:x}', at)).toThrow(/cannot read "x" in cell A1/);
-    expect(() => parseCell('{bell:a}', at)).toThrow(/cannot read "a"/);
-    expect(() => parseCell('r{bell}', at)).toThrow(/cannot stand on a solid piece/);
+    expect(() => parseCell('{slab:a}', at)).toThrow(/cannot read "a"/);
+    expect(() => parseCell('r{slab}', at)).toThrow(/cannot stand on a solid piece/);
     expect(() => parseCell('r{pencil}', at)).toThrow(/cannot stand on a solid piece/);
-    expect(() => parseCell('P{bell}', at)).toThrow(/start point cannot sit on a solid piece/);
+    expect(() => parseCell('P{slab}', at)).toThrow(/start point cannot sit on a solid piece/);
     expect(() => parseCell('{probe}g', at)).toThrow(/lock gate cannot share/);
     expect(() => parseCell('{mud}', at)).toThrow(/Unknown compound "\{mud\}"/);
     expect(parseCell('{stain}{probe}', at).tile).toMatchObject({
       state: { id: 'stain' },
-      piece: { id: 'foundry:probe' },
+      piece: { id: 'cartographers:probe' },
     });
   });
 });
 
 describe('piece solidity', () => {
-  test('pencil blocks units only, bell blocks units and shots, probe blocks nothing', () => {
-    const s = board('{probe} {pencil} {bell} .');
+  test('pencil blocks units only, slab blocks units and shots, probe blocks nothing', () => {
+    const s = board('{probe} {pencil} {slab} .');
     const tile = (lbl: string) => tileAt(s, parseLabel(lbl));
     expect(['A1', 'B1', 'C1', 'D1'].map((l) => pieceBlocksUnits(tile(l)))).toEqual([
       false,
@@ -217,7 +217,7 @@ describe('piece triggers', () => {
   });
 
   test('onStruck and onHit through the entry points (push, Spark, landings)', () => {
-    const s = board('{probe} . {bell}');
+    const s = board('{probe} . {slab}');
     const r = draft(s, (ctx) => {
       expect(strikePiece(ctx, parseLabel('A1'), 'push')).toBe(true);
       expect(strikePiece(ctx, parseLabel('A1'), 'spark')).toBe(true);
@@ -236,7 +236,7 @@ describe('piece triggers', () => {
     });
     expect(probeAt(r.state, 'A1').struck).toEqual(['shove']);
     expect(probeAt(s, 'A1').struck).toEqual([]);
-    expect(piecesOn(r.state).map((p) => p.piece.id)).toEqual(['foundry:probe']);
+    expect(piecesOn(r.state).map((p) => p.piece.id)).toEqual(['cartographers:probe']);
   });
 });
 
@@ -249,7 +249,7 @@ describe('componentsOf', () => {
         '{probe} .       .       .',
       ].join('\n'),
     );
-    const groups = componentsOf(s, (at, st) => tileAt(st, at).piece?.id === 'foundry:probe');
+    const groups = componentsOf(s, (at, st) => tileAt(st, at).piece?.id === 'cartographers:probe');
     expect(groups.map((g) => g.map((c) => `${c.x},${c.y}`))).toEqual([
       ['0,0', '1,0', '1,1'],
       ['3,0', '3,1'],
@@ -279,8 +279,8 @@ describe('piece tokens', () => {
 
   test('a piece token reusing a compound name or a rival letter is caught', () => {
     const bad: TokenEntry[] = [
-      { token: 'stain', kind: 'piece', id: 'foundry:stain', district: 'foundry' },
-      { token: 'L', kind: 'piece', id: 'foundry:lantern', district: 'foundry' },
+      { token: 'stain', kind: 'piece', id: 'cartographers:stain', district: 'cartographers' },
+      { token: 'L', kind: 'piece', id: 'cartographers:lantern', district: 'cartographers' },
     ];
     expect(tokenCollisions(claims([...RIVAL_TOKENS, ...bad]), COMPOUND_BRACE_NAMES)).toEqual([
       'stain',
@@ -306,7 +306,7 @@ describe('piece solidity on the board', () => {
   });
 
   test('a units-and-shots piece stops a Bolt, which hits it there', () => {
-    const s = withLattices('D . {bell} r', { draughtsman: 'Bolt> Strike' });
+    const s = withLattices('D . {slab} r', { draughtsman: 'Bolt> Strike' });
     const r = cast(s, 'draughtsman', 'right');
     expect(r.events.find((e) => e.type === 'stopped')).toMatchObject({ by: 'piece' });
     expect(r.events.some((e) => e.type === 'damage')).toBe(false);
@@ -323,7 +323,7 @@ describe('piece triggers from play', () => {
   });
 
   test('onStruck: a push crushing into a solid piece strikes both tiles', () => {
-    const s = board('D r{probe} {bell}');
+    const s = board('D r{probe} {slab}');
     const r = act(s, { type: 'shove', unit: unitAtLabel(s, 'A1').id, dir: 'right' });
     expect(r.events.find((e) => e.type === 'crush')).toMatchObject({ into: 'plate' });
     expect(probeAt(r.state, 'B1').struck).toEqual(['damage', 'push']);

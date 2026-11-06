@@ -500,6 +500,13 @@ export const MEANINGFUL: ReadonlySet<string> = new Set([
   'jarOpened',
   'markSpent',
   'scheduled',
+  // The foundry's (BF-0; `FOUNDRY_MEANINGFUL_TYPES`): a strike, a ring, a pulse, a retune, a muffle, a rung bell.
+  'foundry:bellStruck',
+  'foundry:ring',
+  'foundry:pulse',
+  'foundry:retuned',
+  'foundry:muffled',
+  'foundry:bellRung',
 ]);
 
 /** The source, every step that ran and the shape cells walked to reach it, once each (plan P7). */

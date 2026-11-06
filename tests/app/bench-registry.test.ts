@@ -21,10 +21,10 @@ import { PALETTE, paletteOf, toggleToken } from '../../src/app/lab';
 
 const FIXTURE = vi.hoisted(
   (): DistrictModule => ({
-    id: 'foundry',
+    id: 'cartographers',
     pieces: [
       {
-        id: 'foundry:plinth',
+        id: 'cartographers:plinth',
         token: 'plinth',
         solid: 'units',
         triggers: {},
@@ -33,7 +33,7 @@ const FIXTURE = vi.hoisted(
         art: 'plinth',
       },
       {
-        id: 'foundry:lantern',
+        id: 'cartographers:lantern',
         token: 'lantern',
         solid: 'none',
         triggers: {},
@@ -41,7 +41,7 @@ const FIXTURE = vi.hoisted(
         art: 'lantern',
       },
       {
-        id: 'foundry:post',
+        id: 'cartographers:post',
         token: 'post',
         solid: 'none',
         triggers: {},
