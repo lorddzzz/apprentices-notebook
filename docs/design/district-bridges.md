@@ -1,12 +1,14 @@
 # The bridges: the arches in the fog
 
-> **Status: Decided** (design rounds 2026-10-22; not built). Roadmap: BL-115. Part of the one-district-at-a-time design pass ([district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md) came first); the apprentices are designed in [party.md](party.md) §2.
+> **Status: Decided** (design rounds 2026-10-22; built 2026-11-06, see §0). Roadmap: BL-115. Part of the one-district-at-a-time design pass ([district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md) came first); the apprentices are designed in [party.md](party.md) §2.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. Frame: [city-and-districts.md](city-and-districts.md) (layers in §4; keys in §3.2). School and runes: [rune-design-final.md](rune-design-final.md) §5.2 and §11. Rival rules: [rivals.md](rivals.md).
 > Names are placeholders until BL-40. Numbers are *tune by playing*.
 
 **One-liner:** ancient aqueduct arches stepping across white nothing, with the drop hidden in fog so the floor feels thin. Each room's span **stands only while it is connected to a pier**; cut the link and the cut-off section falls with everything on it. A fallen apprentice is out of the fight until the room ends.
 
 ## 0. Decisions (2026-10-22)
+
+**Built 2026-11-06 (BR-0…BR-21, BR-R):** open and playable with the Chief Warden as a stand-in (no page awarded until BR-20); accepted build proposals and the out-of-band calibration numbers are in DESIGN §11 and [bridges-verification](../plans/bridges-verification.md).
 
 | Layer | Decision | Why |
 |---|---|---|
