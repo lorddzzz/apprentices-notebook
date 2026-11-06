@@ -28,6 +28,31 @@ const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount:
 export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
   ...INK_LOOT_TABLES,
   ...BATH_LOOT_TABLES,
+  // BR-9 (bridges-plan P11, P12): the Structure school (Hold, Brink, Lay; Mortar, Chalk). Sound
+  // spans pay steadily with ink; crumbling ones drop ink for more of the school and vellum.
+  'bridges:sound': {
+    id: 'bridges:sound',
+    entries: [
+      rune('hold', 3),
+      rune('brink', 3),
+      rune('lay', 2),
+      solvent('mortar', 2),
+      solvent('chalk', 2),
+      ink(3),
+      vellum(1),
+    ],
+  },
+  'bridges:crumbling': {
+    id: 'bridges:crumbling',
+    entries: [
+      rune('hold', 3),
+      rune('brink', 3),
+      rune('lay', 3),
+      solvent('mortar', 3),
+      solvent('chalk', 3),
+      vellum(2),
+    ],
+  },
   lowerSeam: LOWER_SEAM_LOOT,
   shallow: {
     id: 'shallow',

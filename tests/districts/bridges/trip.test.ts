@@ -184,6 +184,7 @@ describe('the loot table follows the span (P11)', () => {
         const t = tripOf(save);
         expect(spanOfRoom(t.kit ?? { choices: [] }, room)).toBe(expected[room]);
         for (const o of t.offers) {
+          if (o.kind === 'rune' && o.rune === 'hold') continue; // BR-9: the Hold guarantee, rooms 1-2
           expect(o).toMatchObject({
             kind: 'solvent',
             solvent: solventOf(expected[room] ?? 'sound'),

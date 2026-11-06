@@ -485,6 +485,8 @@ export type LootTableId =
   | 'bathhouses:h2'
   | 'bathhouses:h3'
   | 'bathhouses:h4'
+  | 'bridges:sound'
+  | 'bridges:crumbling'
   | 'lowerSeam';
 /** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
 export interface EncounterVariant {

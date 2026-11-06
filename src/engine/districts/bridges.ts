@@ -1,5 +1,6 @@
 import { collapseStep, FALL_CAUSE } from './bridges/collapse';
 import { BRIDGE_FOES } from './bridges/foes';
+import { HOLD_GUARANTEE } from './bridges/guarantee';
 import { previewCollapse } from './bridges/preview';
 import { scanBridges } from './bridges/support';
 import { BRIDGE_TRIP_HOOKS } from './bridges/trip';
@@ -64,6 +65,7 @@ export const BRIDGES_MODULE: DistrictModule = {
   pieces: BRIDGE_PIECES,
   rules: [COLLAPSE_RULE],
   foes: BRIDGE_FOES,
+  offerContributors: [HOLD_GUARANTEE],
   trip: shape,
   causes: { [FALL_CAUSE]: 'landing' },
 };

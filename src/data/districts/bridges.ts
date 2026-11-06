@@ -1,3 +1,4 @@
+import type { EncounterVariant } from '../types';
 import {
   BRIDGE_TABLE_IDS,
   BRIDGE_TOKENS,
@@ -6,7 +7,7 @@ import {
   type SpanKind,
 } from './bridges/types';
 import { WARDENS_PASS } from './canals';
-import type { DistrictData } from './index';
+import type { DistrictData, KitRoomDef } from './index';
 
 /**
  * The bridges' kit data (district-bridges.md, Hearing): perform The Wall in the Seam. The rumour
@@ -18,7 +19,7 @@ export const BRIDGES_KIT: DistrictData = {
   id: 'bridges',
   name: 'The bridges',
   guild: 'The bridge-wardens',
-  edge: 'wall',
+  edge: 'drop', // bridge rooms only (P10); the Seam and canals keep their walls
   rooms: [],
   ret: { kind: 'any' },
   tokens: BRIDGE_TOKENS,
@@ -199,3 +200,147 @@ export function spanVariantPool(next: number, kind: SpanKind): readonly number[]
 /** P18: the mason's-ledger line on a span card, after room `after` (0-based). */
 export const spanLedger = (after: number, kind: SpanKind): BridgeLedgerLine | undefined =>
   BRIDGES_LEDGER.find((l) => l.at.kind === 'span' && l.at.after === after && l.at.span === kind);
+
+// ── BR-9: rooms 1 and 2 (bridges-plan P10, P12) ──
+/**
+ * Boards are authored compactly and expanded to board notation: `.` span, `#` pier, `_` fog, `P` a
+ * start point (on a span), `j` Warden, `y` Gargoyle, `J` Mason (each on a span). Sound boards carry
+ * `{span}` (2 stone); crumbling ones `{span:1}` (1 stone). Piers never wear, so crumbling boards
+ * have one. Rules of thumb (*tune by playing*): every `P` is in the bottom rows, three or more
+ * tiles from any foe; every board has a neck the party can cut and a pier-held floor to stand on.
+ */
+const BRIDGE_FOE_CELLS = new Set(['j', 'y', 'J']);
+function bridgeBoard(rows: readonly string[], kind: SpanKind): string {
+  const stone = kind === 'sound' ? '{span}' : '{span:1}';
+  return rows
+    .map((row) =>
+      row
+        .split(' ')
+        .map((c) => {
+          if (c === '_') return '_';
+          if (c === '#') return '{pier}';
+          if (c === '.') return stone;
+          if (c === 'P' || BRIDGE_FOE_CELLS.has(c)) return c + stone;
+          throw new Error(`bridge board: unknown cell "${c}"`);
+        })
+        .join(' '),
+    )
+    .join('\n');
+}
+const variant = (name: string, kind: SpanKind, rows: readonly string[]): EncounterVariant => ({
+  name,
+  layout: bridgeBoard(rows, kind),
+});
+
+/** Room 1: three sound boards, 6x9 to 7x9, a Warden with a Mason or a Gargoyle (no choice before it). */
+const BRIDGE_1: readonly EncounterVariant[] = [
+  variant('The first arch', 'sound', [
+    '_ _ j . _ _',
+    '_ . . . . _',
+    '_ _ _ . _ _',
+    '. . . . . _',
+    '. # . . . .',
+    '. . . J . .',
+    '_ . . . . _',
+    'P . P . # _',
+    '. P . P . P',
+  ]),
+  variant('The long stair', 'sound', [
+    '. . y . . _',
+    '. . . . . _',
+    '_ _ . _ _ _',
+    '_ . . . _ _',
+    '. . # . . _',
+    '. . . . j .',
+    '_ . . . . _',
+    'P . P . . _',
+    '. P . # P .',
+  ]),
+  variant('The broken run', 'sound', [
+    '_ _ . . . _ _',
+    '_ . . j . . _',
+    '_ . . . . . _',
+    '_ _ _ . _ _ _',
+    '. . . . . . .',
+    '. # . J . # .',
+    '_ . . . . . _',
+    'P . P . P . .',
+    '. . . P . . .',
+  ]),
+];
+
+/** Room 2, sound: a Warden, a Gargoyle and a Mason on 6x9 to 7x9 boards. */
+const BRIDGE_2_SOUND: readonly EncounterVariant[] = [
+  variant('The long arcade', 'sound', [
+    '_ . . y . . _',
+    '_ . j . . . _',
+    '_ _ . _ . _ _',
+    '. . . . . . .',
+    '. # . . . # .',
+    '. . . J . . .',
+    '_ . . . . . _',
+    'P . P . P . P',
+    '_ P . . . P _',
+  ]),
+  variant('The two arches', 'sound', [
+    '. . _ _ . .',
+    '. j . _ . .',
+    '. # . _ # y',
+    '. . . _ . .',
+    '_ . . J . _',
+    '_ _ . . _ _',
+    '. . . . . .',
+    'P . P . P .',
+    '. P . . . P',
+  ]),
+];
+
+/** Room 2, crumbling: 5x7 to 6x7 boards with a single pier, thin stone and two foes. */
+const BRIDGE_2_CRUMBLING: readonly EncounterVariant[] = [
+  variant('The loose span', 'crumbling', [
+    '_ . y . . _',
+    '. . . . . _',
+    '. # _ . j .',
+    '. . . . . .',
+    '_ . _ . _ .',
+    'P . P . . P',
+    '. P . . P .',
+  ]),
+  variant('The hanging stair', 'crumbling', [
+    '_ . j . _',
+    '_ . . . _',
+    '. . _ J .',
+    '. # . . .',
+    '. . _ . .',
+    'P . P . P',
+    '. P . P .',
+  ]),
+];
+
+const bridgeRoom = (
+  id: string,
+  title: string,
+  depth: number,
+  variants: readonly EncounterVariant[],
+): KitRoomDef => ({
+  id,
+  title,
+  depth,
+  layout: variants[0]?.layout ?? '',
+  variants,
+  // The room's own table; the offers follow the span it was crossed by (`bridgeOffersFor`).
+  loot: tableForSpan('sound'),
+  picks: BRIDGE_PICKS[depth - 1] ?? 1,
+  heart: false,
+});
+
+/** Rooms 1 and 2. Variant order is the pools': sound first, then crumbling (`spanVariantPool`). */
+export const BRIDGE_ROOMS_12: readonly KitRoomDef[] = [
+  bridgeRoom('bridges-1', 'The first arch', 1, BRIDGE_1),
+  bridgeRoom('bridges-2', 'The lamp-house span', 2, [...BRIDGE_2_SOUND, ...BRIDGE_2_CRUMBLING]),
+];
+
+/** P12: rooms (0-based) whose offers hold Hold's page while the household lacks it and no warden has joined. */
+export const HOLD_GUARANTEE_ROOMS: readonly number[] = [0, 1];
+
+// Not wired into `BRIDGES_KIT.rooms` yet: the district stays roomless and `drawing` until it opens (BR-18).
