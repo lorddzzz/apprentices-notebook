@@ -41,6 +41,16 @@ export function fallingTiles(s: BattleState, own: BridgesState): Coord[] {
   return out.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
+/** The living, grounded units standing on the falling tiles (fliers are untouched). */
+export function fallersOn(s: BattleState, falling: readonly Coord[]): { unit: Unit; at: Coord }[] {
+  const out: { unit: Unit; at: Coord }[] = [];
+  for (const at of falling) {
+    const u = unitAt(s, at);
+    if (u && isAlive(u) && !hasTrait(u, 'flies')) out.push({ unit: u, at });
+  }
+  return out;
+}
+
 /** Who cut the group of falling tiles `at` belongs to: the first recorded cut in it, else the room. */
 function originAt(at: Coord, falling: readonly Coord[], cuts: BridgesState['cuts']): CutOrigin {
   const group = new Set<string>([key(at)]);
@@ -91,11 +101,7 @@ export function collapseStep(ctx: Ctx, own: BridgesState): BridgesState {
   if (!falling.length) return state;
   const keys = new Set(falling.map(key));
   const origins = new Map(falling.map((f) => [key(f), originAt(f, falling, state.cuts)]));
-  const fallers: { unit: Unit; at: Coord }[] = [];
-  for (const at of falling) {
-    const u = unitAt(ctx.s, at);
-    if (u && isAlive(u) && !hasTrait(u, 'flies')) fallers.push({ unit: u, at });
-  }
+  const fallers = fallersOn(ctx.s, falling);
   const ev: CollapseEvent = {
     type: 'bridges:collapse',
     data: {

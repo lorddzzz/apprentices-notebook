@@ -1,4 +1,5 @@
 import { collapseStep, FALL_CAUSE } from './bridges/collapse';
+import { previewCollapse } from './bridges/preview';
 import { scanBridges } from './bridges/support';
 import {
   BRIDGE_EVENT_TYPES,
@@ -42,6 +43,7 @@ export const COLLAPSE_RULE: BoardRule<BridgesState> = {
   activatedBy: { kind: 'piece', pieces: [SPAN_PIECE, PIER_PIECE, KEYSTONE_PIECE] },
   init: (state) => scanBridges(state),
   step: (ctx, own) => collapseStep(ctx, own),
+  preview: (s, own) => previewCollapse(s, own),
   met: 'span',
 };
 
