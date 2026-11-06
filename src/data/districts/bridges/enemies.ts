@@ -11,6 +11,10 @@ import { BRIDGE_FOE_TOKENS, BRIDGE_TUNING } from './types';
 export const BRIDGE_FOE_TUNING = {
   /** The chalk circle holds through the party's next turn (the counter drops at its start). */
   chalkRounds: 2,
+  /** The Mason's mended tile comes back as thin stone (one crush from broken). */
+  mendStone: 1,
+  /** A pier is laid only on a span tile at least this many tiles from every pier and keystone. */
+  pierGap: 3,
 } as const;
 
 const PLAIN = {
@@ -51,4 +55,17 @@ export const GARGOYLE: EnemyDef = {
   ...PLAIN,
 };
 
-export const BRIDGE_ENEMIES = { warden: WARDEN, gargoyle: GARGOYLE } as const;
+export const MASON: EnemyDef = {
+  id: 'mason',
+  name: 'mason',
+  token: BRIDGE_FOE_TOKENS.mason,
+  hp: BRIDGE_TUNING.foes.mason.hp,
+  move: BRIDGE_TUNING.foes.mason.move,
+  elite: BRIDGE_TUNING.foes.mason.elite,
+  flies: BRIDGE_TUNING.foes.mason.flies,
+  behaviour: 'bridges:mason',
+  blurb: `Rebuilds a fallen span tile beside it, or lays a pier on a span far from any pier (${BRIDGE_FOE_TUNING.pierGap}+ tiles). Prefers a mend that saves a cracked section. Cannot build on a tile with someone standing on it: keep a unit there, or hunt the mason.`,
+  ...PLAIN,
+};
+
+export const BRIDGE_ENEMIES = { warden: WARDEN, gargoyle: GARGOYLE, mason: MASON } as const;

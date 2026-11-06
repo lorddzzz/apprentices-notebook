@@ -197,7 +197,7 @@ describe('BR-0 tuning and tokens', () => {
       ),
     ).toEqual(['span', 'pier', 'keystone']);
     for (const id of BRIDGE_FOE_IDS) {
-      expect(Object.hasOwn(ENEMIES, id)).toBe(id === 'warden' || id === 'gargoyle');
+      expect(Object.hasOwn(ENEMIES, id)).toBe(id !== 'chiefWarden');
     }
     const builtIn = [
       ...Object.values(ENEMIES)

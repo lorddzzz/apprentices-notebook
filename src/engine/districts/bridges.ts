@@ -30,6 +30,8 @@ const LINES: Record<(typeof BRIDGE_EVENT_TYPES)[number], string> = {
   'bridges:cracked': 'The span cracks.',
   'bridges:collapse': 'The span falls.',
   'bridges:keystoneBreaks': 'The keystone breaks.',
+  'bridges:mended': 'The mason mends the span.',
+  'bridges:pierLaid': 'The mason lays a pier.',
 };
 const events: readonly DistrictEventDef[] = BRIDGE_EVENT_TYPES.map((type) => ({
   type,

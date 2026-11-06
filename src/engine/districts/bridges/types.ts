@@ -104,13 +104,26 @@ export type CollapseEvent = Ev<'collapse', { tiles: At[]; units: string[]; epilo
 /** The keystone shattered: the tile is fog and the chief's right of way is gone (P7). */
 export type KeystoneBreaksEvent = Ev<'keystoneBreaks', { by: string | null }>;
 
-export type BridgeEvent = StoneWornEvent | CrackedEvent | CollapseEvent | KeystoneBreaksEvent;
+/** The Mason rebuilt a fallen original span tile; `rescued` cracked tiles are standing again (P8). */
+export type MendedEvent = Ev<'mended', { stone: number; rescued: number }>;
+/** The Mason laid a pier on a span tile; `rescued` cracked tiles are held up by it (P8). */
+export type PierLaidEvent = Ev<'pierLaid', { rescued: number }>;
+
+export type BridgeEvent =
+  | StoneWornEvent
+  | CrackedEvent
+  | CollapseEvent
+  | KeystoneBreaksEvent
+  | MendedEvent
+  | PierLaidEvent;
 export type BridgeEventType = BridgeEvent['type'];
 export const BRIDGE_EVENT_TYPES = [
   'bridges:stoneWorn',
   'bridges:cracked',
   'bridges:collapse',
   'bridges:keystoneBreaks',
+  'bridges:mended',
+  'bridges:pierLaid',
 ] as const satisfies readonly BridgeEventType[];
 
 // ── Trip state (P1, P11) ────────────────────────────────

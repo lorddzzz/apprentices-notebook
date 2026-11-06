@@ -6,7 +6,7 @@ import { type Ctx, emit, ref } from '../../ctx';
 import { byReadingOrder, type Coord, DIRS, key, label, sameCoord, step } from '../../grid';
 import { guardCancels } from '../../harm';
 import { enemyWalk } from '../../movement';
-import { pieceBlocksUnits } from '../../pieces';
+import { makePiece, pieceBlocksUnits } from '../../pieces';
 import {
   blocksUnits,
   findUnit,
@@ -22,6 +22,18 @@ import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit, Unit } from '../../types';
 import type { FoeBehaviour, KitId, PreviewShape } from '../types';
 import { crackedSet } from './preview';
+import { cracksOf } from './support';
+import {
+  type BridgesState,
+  COLLAPSE_RULE_ID,
+  KEYSTONE_PIECE,
+  type MendedEvent,
+  PIER_PIECE,
+  type PierLaidEvent,
+  parseBridges,
+  SPAN_PIECE,
+  tileKey,
+} from './types';
 
 /**
  * The wardens' staff, part one (bridges-plan P8; BR-5): the Warden's chalk circle and the
@@ -33,6 +45,7 @@ import { crackedSet } from './preview';
 
 export const WARDEN_BEHAVIOUR: KitId = 'bridges:warden';
 export const GARGOYLE_BEHAVIOUR: KitId = 'bridges:gargoyle';
+export const MASON_BEHAVIOUR: KitId = 'bridges:mason';
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const where = (c: Coord | undefined): string => (c ? label(c) : '?');
@@ -114,7 +127,7 @@ export const WARDEN_FOE: FoeBehaviour = {
     return { label: 'chalk', tiles: [{ ...aim.victim.pos }], units: [aim.victim.id] };
   },
   /** The unit still standing in the circle is held through the party's next turn; else a miss. */
-  resolve(ctx, e, tg) {
+  resolve(ctx, _e, tg) {
     const victim = tg.units[0] ? findUnit(ctx.s, tg.units[0]) : null;
     const at = tg.tiles[0];
     if (!victim || !isAlive(victim) || !at || !sameCoord(victim.pos, at)) {
@@ -127,7 +140,7 @@ export const WARDEN_FOE: FoeBehaviour = {
     emit(ctx, { type: 'held', unit: ref(victim), rounds: victim.held });
   },
   /** The circle on the tile, and a pulse on it: she is held if she stays. */
-  preview(s, e): readonly PreviewShape[] {
+  preview(_s, e): readonly PreviewShape[] {
     const tg = telegraphOf(e);
     const at = tg?.tiles[0];
     if (!tg || !at) return [];
@@ -262,5 +275,179 @@ export const GARGOYLE_FOE: FoeBehaviour = {
   describe: (tg) => `carry ${where(tg.tiles[0])} to ${where(tg.tiles[1])}`,
 };
 
-/** The staff's behaviours, for the district module (BR-6 adds the Mason's). */
-export const BRIDGE_FOES: readonly FoeBehaviour[] = [WARDEN_FOE, GARGOYLE_FOE];
+// ── The Mason: mend and lay pier ────────────────────────
+
+export interface MasonAim {
+  kind: 'mend' | 'pier';
+  at: Coord;
+  /** Cracked tiles that stand again if it works (the span tile itself does not count). */
+  rescues: number;
+}
+
+const tileKeyOf = (c: Coord) => tileKey(c.x, c.y);
+const pieceOf = (s: BattleState, c: Coord) => tileAt(s, c).piece?.id ?? null;
+
+/** The board after the work, for asking `cracksOf` what it would save; the real tiles are untouched. */
+function withWork(
+  s: BattleState,
+  own: BridgesState,
+  aim: Pick<MasonAim, 'kind' | 'at'>,
+): { s: BattleState; own: BridgesState } {
+  const i = aim.at.y * s.width + aim.at.x;
+  const k = tileKeyOf(aim.at);
+  const tiles = s.tiles.map((t, n) => {
+    if (n !== i) return t;
+    return aim.kind === 'mend'
+      ? { ...t, terrain: { ...t.terrain, drop: false }, piece: makePiece(SPAN_PIECE) }
+      : { ...t, piece: makePiece(PIER_PIECE) };
+  });
+  const stone = { ...own.stone };
+  if (aim.kind === 'mend') stone[k] = BRIDGE_FOE_TUNING.mendStone;
+  else delete stone[k];
+  return { s: { ...s, tiles }, own: { ...own, stone } };
+}
+
+function rescuesOf(s: BattleState, own: BridgesState, aim: Pick<MasonAim, 'kind' | 'at'>): number {
+  const before = cracksOf(s, own).map(tileKeyOf);
+  const w = withWork(s, own, aim);
+  const after = new Set(cracksOf(w.s, w.own).map(tileKeyOf));
+  return before.filter((k) => !after.has(k)).length;
+}
+
+/** Distance from `c` to the nearest pier or standing keystone (infinite when there is none). */
+function pierDistance(s: BattleState, own: BridgesState, c: Coord): number {
+  let d = Number.POSITIVE_INFINITY;
+  s.tiles.forEach((t, i) => {
+    const id = t.piece?.id;
+    const at = { x: i % s.width, y: Math.floor(i / s.width) };
+    const footing =
+      id === PIER_PIECE || (id === KEYSTONE_PIECE && (own.stone[tileKeyOf(at)] ?? 1) > 0);
+    if (footing) d = Math.min(d, manhattan(at, c));
+  });
+  return d;
+}
+
+/** Mend (rescuing) first, then a far pier, then any mend; more rescued, then reading order. */
+const RANK = { rescueMend: 0, pier: 1, mend: 2 } as const;
+const rankOf = (a: MasonAim): number =>
+  a.kind === 'pier' ? RANK.pier : a.rescues > 0 ? RANK.rescueMend : RANK.mend;
+
+/**
+ * What a Mason standing on `from` would do: an adjacent fog tile that was original span and has
+ * nobody on it is mended; a span tile beside it with nobody on it, `pierGap` or more from every
+ * footing, takes a pier. Null when nothing qualifies.
+ */
+export function masonAim(s: BattleState, from: Coord, ignore?: string): MasonAim | null {
+  const own = parseBridges(s.rules?.[COLLAPSE_RULE_ID]);
+  const originals = new Set(own.originals);
+  const aims: MasonAim[] = [];
+  for (const dir of DIRS) {
+    const at = step(from, dir);
+    if (!inBoard(s, at)) continue;
+    const occupant = unitAt(s, at);
+    if (occupant && occupant.id !== ignore) continue;
+    const t = tileAt(s, at);
+    if (t.terrain.drop && originals.has(tileKeyOf(at)) && !t.piece) {
+      aims.push({ kind: 'mend', at, rescues: rescuesOf(s, own, { kind: 'mend', at }) });
+    } else if (
+      pieceOf(s, at) === SPAN_PIECE &&
+      pierDistance(s, own, at) >= BRIDGE_FOE_TUNING.pierGap
+    ) {
+      aims.push({ kind: 'pier', at, rescues: rescuesOf(s, own, { kind: 'pier', at }) });
+    }
+  }
+  aims.sort((a, b) => rankOf(a) - rankOf(b) || b.rescues - a.rescues || byReadingOrder(a.at, b.at));
+  return aims[0] ?? null;
+}
+
+function masonMove(ctx: Ctx, e: EnemyUnit): void {
+  if (masonAim(ctx.s, e.pos, e.id)) return;
+  let best: { path: Coord[]; aim: MasonAim } | null = null;
+  for (const c of candidatesOf(ctx.s, e, true)) {
+    const aim = masonAim(ctx.s, c.at, e.id);
+    if (!aim) continue;
+    if (
+      !best ||
+      rankOf(aim) < rankOf(best.aim) ||
+      (rankOf(aim) === rankOf(best.aim) &&
+        (aim.rescues > best.aim.rescues ||
+          (aim.rescues === best.aim.rescues && c.path.length < best.path.length)))
+    ) {
+      best = { path: c.path, aim };
+    }
+  }
+  if (best) enemyWalk(ctx, e, best.path);
+  else approach(ctx, e);
+}
+
+const kindOf = (tg: Telegraph): 'mend' | 'pier' => (tg.label === 'mend' ? 'mend' : 'pier');
+
+export const MASON_FOE: FoeBehaviour = {
+  id: MASON_BEHAVIOUR,
+  move: masonMove,
+  plan(s, e): Telegraph | null {
+    const aim = masonAim(s, e.pos, e.id);
+    if (!aim) return null;
+    return { label: aim.kind === 'mend' ? 'mend' : 'lay pier', tiles: [{ ...aim.at }], units: [] };
+  },
+  /**
+   * Builds on the telegraphed tile if it is still as planned and still empty: a fallen original
+   * becomes thin span, or a span tile becomes a pier. Cracks are derived, so a reconnected
+   * section is saved with no further bookkeeping; the collapse at dusk finds nothing to drop.
+   */
+  resolve(ctx, e, tg) {
+    const at = tg.tiles[0];
+    const kind = kindOf(tg);
+    const t = at && inBoard(ctx.s, at) ? tileAt(ctx.s, at) : null;
+    const own = parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]);
+    const ready =
+      at &&
+      t &&
+      manhattan(at, e.pos) === 1 &&
+      !unitAt(ctx.s, at) &&
+      (kind === 'mend'
+        ? t.terrain.drop && !t.piece && own.originals.includes(tileKeyOf(at))
+        : t.piece?.id === SPAN_PIECE);
+    if (!at || !t || !ready) {
+      emit(ctx, { type: 'miss', source: kind === 'mend' ? 'Mend' : 'Pier' });
+      return;
+    }
+    const rescued = rescuesOf(ctx.s, own, { kind, at });
+    const k = tileKeyOf(at);
+    const next: BridgesState = { ...own, stone: { ...own.stone }, cuts: { ...own.cuts } };
+    delete next.cuts[k];
+    if (kind === 'mend') {
+      t.terrain = { ...t.terrain, drop: false };
+      t.piece = makePiece(SPAN_PIECE, { stone: BRIDGE_FOE_TUNING.mendStone });
+      next.stone[k] = BRIDGE_FOE_TUNING.mendStone;
+      const ev: MendedEvent = {
+        type: 'bridges:mended',
+        at: { ...at },
+        data: { stone: BRIDGE_FOE_TUNING.mendStone, rescued },
+      };
+      ctx.s.rules = { ...ctx.s.rules, [COLLAPSE_RULE_ID]: next };
+      emit(ctx, ev);
+    } else {
+      t.piece = makePiece(PIER_PIECE);
+      delete next.stone[k];
+      const ev: PierLaidEvent = { type: 'bridges:pierLaid', at: { ...at }, data: { rescued } };
+      ctx.s.rules = { ...ctx.s.rules, [COLLAPSE_RULE_ID]: next };
+      emit(ctx, ev);
+    }
+  },
+  /** The tile to be built, outlined; it warns when the work will be undone by a unit stepping on it. */
+  preview(_s, e): readonly PreviewShape[] {
+    const tg = telegraphOf(e);
+    const at = tg?.tiles[0];
+    if (!tg || !at) return [];
+    return [
+      { kind: 'outline', cells: [{ ...at }], label: kindOf(tg) === 'mend' ? 'mended' : 'pier' },
+      { kind: 'pulse', at: { ...at } },
+    ];
+  },
+  describe: (tg) =>
+    tg.label === 'mend' ? `mend ${where(tg.tiles[0])}` : `lay a pier on ${where(tg.tiles[0])}`,
+};
+
+/** The staff's behaviours, for the district module. */
+export const BRIDGE_FOES: readonly FoeBehaviour[] = [WARDEN_FOE, GARGOYLE_FOE, MASON_FOE];
