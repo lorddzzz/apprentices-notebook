@@ -516,15 +516,8 @@ export const BATH_ROOMS_34: readonly BathRoomDef[] = [
   bathRoom('bath-caldarium', 'The caldarium', 4, 4, BATH_4),
 ];
 
-// ── The heart: the Bath-Steward stand-in and his room (P10; BH-8) ──
-/** The stand-in's three steps in cycle order: lay a cloud, shove from within, stoke (DK-9 script). */
-export const STEWARD_STEPS = [
-  'bathhouses:steward:lay',
-  'bathhouses:steward:shove',
-  'bathhouses:steward:stoke',
-] as const;
-
-/** The stand-in's numbers (*tune by playing*). */
+// ── The heart: the Bath-Steward (a rival, BH-17b) and his room (P10; BH-8) ──
+/** The Steward's numbers (*tune by playing*). */
 export const STEWARD_TUNING = {
   /** Cloud tiles one lay adds (his own tile first, then toward the nearest apprentice). */
   layTiles: 4,
@@ -533,10 +526,10 @@ export const STEWARD_TUNING = {
 } as const;
 
 /**
- * The Bath-Steward, stand-in (bathhouses-plan P10, DK-9): a scripted heart until RV's authoring API
- * (BH-17). He never walks: he lays steam toward the party, re-forms within his cloud to shove one
- * of you out of it, and stokes the house. Hit on a cloud tile by anything but a burst of the
- * cloud, he steams away (the `steamsAway` trait): cut his cloud, or storm it. No page (`standIn`).
+ * The Bath-Steward's board shell (P10; BH-17b): he is a rival, so his numbers and kit live in
+ * `RIVALS` (`src/data/rivals/bathSteward.ts`) and this is the board-facing entry with the same id,
+ * token and HP. He never walks. Lays clouds by the party, shoves from inside them, stokes the
+ * gauge, and steams away when struck in a cloud (his trick: cut his cloud, or storm it).
  */
 export const BATH_STEWARD: EnemyDef = {
   id: 'bathSteward',
@@ -546,11 +539,9 @@ export const BATH_STEWARD: EnemyDef = {
   move: 0,
   attack: 'shove',
   ai: 'idle',
-  script: { steps: STEWARD_STEPS, standIn: true },
   elite: true,
   blurb:
-    'The house steward, half steam. Lays clouds by you, shoves from inside them, and stokes the boil every third round. Struck in a cloud he re-forms across it: cut it, or storm it.',
-  traits: ['steamsAway'],
+    'The house steward, half steam. Lays clouds by you, shoves from inside them, and stokes the boil. Struck in a cloud he re-forms across it: cut it, or storm it.',
   ...BATH_PLAIN,
   boss: true,
 };

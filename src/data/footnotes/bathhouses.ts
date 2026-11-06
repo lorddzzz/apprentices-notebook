@@ -109,6 +109,15 @@ export const BATHHOUSES: readonly VariantDef[] = [
     slot: { line: 'seep:member', level: 2 },
     text: 'Your own party beside the target takes a Guard from Seep instead of the rest.',
   },
+  // The Steward's note (BH-17b): a rival's note keeps its page's id; hidden until his page is held.
+  {
+    id: 'bathSteward:seep',
+    subject: 'seep',
+    slot: { line: 'seep:member', level: 2 },
+    text: 'A regular is never splashed in his own steam. Any of yours standing in a cloud beside the target is passed over, and the rest re-forms on the farthest free tile of that cloud instead.',
+    rival: 'bathSteward',
+    credit: "Copied from the Steward's towel book.",
+  },
   // ── Steep ──
   {
     id: 'steep-spread-thin',

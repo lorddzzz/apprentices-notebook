@@ -1,95 +1,46 @@
-import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import type { MemberId } from '$data';
-import { BATHER_AREA_SOURCES, STEWARD_TUNING } from '$data/districts/bathhouses';
-import { RIVAL_PAGES, RIVALS, type RivalDef, type RivalPageDef } from '$data/rivals';
-import {
-  BATH_STEWARD_GOALS,
-  BATH_STEWARD_PAGE,
-  BATH_STEWARD_RIVAL,
-  STEWARD_TRICK_ID,
-} from '$data/rivals/bathSteward';
+import { BATH_HEART, BATHER_AREA_SOURCES } from '$data/districts/bathhouses';
+import { BATHHOUSES } from '$data/footnotes/bathhouses';
+import { RIVAL_PAGES, RIVALS } from '$data/rivals';
+import { BATH_STEWARD_PAGE, BATH_STEWARD_RIVAL, STEWARD_TRICK_ID } from '$data/rivals/bathSteward';
 import {
   type BattleState,
-  byReadingOrder,
-  type Coord,
-  cloudNet,
   describeLog,
   isCloud,
+  newProfile,
+  type Profile,
   parseLabel,
-  sameCoord,
   tileAt,
-  unitAt,
 } from '$engine';
 import { runDraft } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
-import { parseBoilOver } from '$engine/districts/bathhouses/boilOver';
+import { BATHHOUSES_MODULE } from '$engine/districts/bathhouses';
+import { STEWARD_TRICK } from '$engine/districts/bathhouses/heart';
 import { BOIL_OVER_RULE_ID } from '$engine/districts/bathhouses/types';
-import { registerGoal } from '$engine/rivals/goals';
+import { footnoteIds } from '$engine/footnotes';
+import { bankPages, rivalNoteVisible } from '$engine/rivals/pages';
 import { rivalAct } from '$engine/rivals/resolve';
-import { makeTrickObject, registerTrick, removeTrickObject } from '$engine/rivals/tricks';
-import type { TrickDef } from '$engine/rivals/types';
+import { trickOf } from '$engine/rivals/tricks';
 import { spawnRival } from '$engine/rivals/unit';
 import { listRules } from '$engine/rules';
-import { act, cast, draft, expectLogIncludes, withLattices } from '../scenarios/harness';
+import { awardsPage } from '$engine/standIn';
+import { marginOf, writeAt } from '../../src/app/desk';
+import { withFootnotes } from '../scenarios/footnoteHarness';
+import { castWith } from '../scenarios/footnotes/castHelper';
+import { act, board, cast, draft, expectLogIncludes, withLattices } from '../scenarios/harness';
 import { rivalOf } from './fixtures/harness';
 
 /**
- * BH-17a: the Bath-Steward as data through RV's authoring API. The def, goals and page are the
- * real data (`data/rivals/bathSteward.ts`); his trick (stoke, steams away) is BH-17b's engine
- * work, so a test-only stand-in trick registers here with the same id and the RV-14 `steam`
- * fixture's rule. `RIVALS` does not list him (the stand-in heart still owns `bathSteward`), so the
- * test adds him for its own scenes, on the Lamplighter's `L` shell as the fixtures do.
+ * BH-17a/b: the Bath-Steward as data through RV's authoring API, live. The def, goals and page are
+ * the real data (`data/rivals/bathSteward.ts`); his trick (stoke, steams away) is the district's
+ * registered one (`engine/districts/bathhouses/heart.ts`), and he stands on his own `H` shell.
  */
 
 const at = parseLabel;
 const endTurn = (s: BattleState) => act(s, { type: 'endTurn' });
-const STOKE_AMOUNT = STEWARD_TUNING.stokePips * 4;
-const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
-const TRICK: TrickDef<null> = {
-  id: STEWARD_TRICK_ID,
-  name: 'the Steward',
-  init: () => null,
-  action: {
-    plan: (s) =>
-      s.rules && Object.hasOwn(s.rules, BOIL_OVER_RULE_ID) ? [{ lock: null, data: null }] : [],
-    resolve(ctx, unit, _intent, own) {
-      // A stoke raises the gauge and nothing else, so the planner would call it starved (no
-      // effect event); a transient trick object is the one effect an action trick can log.
-      removeTrickObject(ctx, makeTrickObject(ctx, unit, null, null), 'gone');
-      const rules = ctx.s.rules;
-      if (!rules) return own;
-      const g = parseBoilOver(rules[BOIL_OVER_RULE_ID]);
-      const pressure = Math.min(g.capacity, g.pressure + STOKE_AMOUNT);
-      ctx.s.rules = { ...rules, [BOIL_OVER_RULE_ID]: { ...g, pressure } };
-      return own;
-    },
-  },
-  beforeHarm(ctx, unit, harm) {
-    if (harm.kind !== 'hit' || BATHER_AREA_SOURCES.includes(harm.source)) return { kind: 'pass' };
-    if (!isCloud(tileAt(ctx.s, unit.pos))) return { kind: 'pass' };
-    const to = cloudNet(ctx.s, unit.pos)
-      .filter((c) => !sameCoord(c, unit.pos) && !unitAt(ctx.s, c))
-      .sort((a, b) => manhattan(b, unit.pos) - manhattan(a, unit.pos) || byReadingOrder(a, b))[0];
-    return to ? { kind: 'relocate', to, cause: 'hop' } : { kind: 'pass' };
-  },
-  draw: () => ({ label: 'stoke', tiles: [], units: [] }),
-  describe: () => 'stokes the house',
-};
-
-let undo: (() => void)[] = [];
-beforeAll(() => {
-  undo = [registerTrick(TRICK), ...BATH_STEWARD_GOALS.map(registerGoal)];
-  (RIVALS as Record<string, RivalDef>).bathSteward = BATH_STEWARD_RIVAL;
-  (RIVAL_PAGES as Record<string, RivalPageDef>)[BATH_STEWARD_PAGE.id] = BATH_STEWARD_PAGE;
-});
-afterAll(() => {
-  for (const u of undo) u();
-  delete (RIVALS as Record<string, RivalDef>).bathSteward;
-  delete (RIVAL_PAGES as Record<string, RivalPageDef>)[BATH_STEWARD_PAGE.id];
-});
-
-/** The Steward on the `L` shell, the gauge listed, his round-1 telegraph planned. */
+/** The Steward on his own `H` shell, the gauge listed, his round-1 telegraph planned. */
 function hall(
   ascii: string,
   gauge = false,
@@ -130,30 +81,30 @@ describe('data', () => {
 const hp = (s: BattleState, id: string) => s.units.find((u) => u.id === id)?.hp ?? 0;
 
 describe('the trial scene', () => {
-  const SCENE = '. . . . . . .\n. L D . . . .\n. . . . . . .';
+  const SCENE = '. . . . . . .\n. H D . . . .\n. . . . . . .';
 
   test('he lays steam over his own tile, then shoves from within it', () => {
     const s = hall(SCENE);
     expect(rivalOf(s).intent).toMatchObject({ kind: 'cast', spell: 'steamHall' });
     let r = endTurn(s);
-    expectLogIncludes(r.events, ['lamplighter at B2 casts Vat at C2']);
+    expectLogIncludes(r.events, ['Bath-Steward at B2 casts Vat at C2']);
     expect(isCloud(tileAt(r.state, at('B2')))).toBe(true);
     expect(isCloud(tileAt(r.state, at('C2')))).toBe(true);
     expect(isCloud(tileAt(r.state, at('E2')))).toBe(true); // wide: Vat 2x2 and Seep's neighbours
     r = endTurn(r.state);
-    expectLogIncludes(r.events, ['lamplighter at B2 casts Bolt right']);
+    expectLogIncludes(r.events, ['Bath-Steward at B2 casts Bolt right']);
     expect(describeLog(r.events)).toContain('Draughtsman is pushed right to D2');
     expect(rivalOf(r.state).rival?.charges).toMatchObject({ steamHall: 4, shove: 4 });
   });
 
   test('he stokes when two apprentices stand in cloud and the house has a gauge', () => {
-    const wet = '. . . . . . .\n. L~ D~ S~ . . .\n. . . . . . .';
+    const wet = '. . . . . . .\n. H~ D~ S~ . . .\n. . . . . . .';
     const s = hall(wet, true);
     expect(rivalOf(s).intent).toMatchObject({ kind: 'trick', trick: STEWARD_TRICK_ID });
     const r = endTurn(s);
-    expectLogIncludes(r.events, ['lamplighter at B2 uses the Steward']);
+    expectLogIncludes(r.events, ['Bath-Steward at B2 uses the Steward']);
     // One in cloud is not enough, nor is a board with no gauge.
-    const one = hall('. . . . . . .\n. L~ D~ S . . .\n. . . . . . .', true);
+    const one = hall('. . . . . . .\n. H~ D~ S . . .\n. . . . . . .', true);
     expect(rivalOf(one).intent).toMatchObject({ kind: 'cast' });
     expect(rivalOf(hall(wet)).intent).toMatchObject({ kind: 'cast' });
   });
@@ -161,16 +112,16 @@ describe('the trial scene', () => {
   test('steams away: struck in his cloud he re-forms across it (RV-14 parity); a storm or a cut lands', () => {
     // The RV-14 `steam` fixture's board and answer: the farthest free tile of that cloud, E2.
     const lattices = { draughtsman: 'Bolt> Strike' };
-    const s = hall('D . . L~ ~\n. . . ~ ~\n. . . . .', false, lattices);
+    const s = hall('D . . H~ ~\n. . . ~ ~\n. . . . .', false, lattices);
     const r = cast(s, 'draughtsman', 'right');
     expectLogIncludes(r.events, [
-      'Strike leaves lamplighter at D1 unharmed',
-      'lamplighter at D1 moves to E2',
+      'Strike leaves Bath-Steward at D1 unharmed',
+      'Bath-Steward at D1 moves to E2',
     ]);
     expect(rivalOf(r.state)).toMatchObject({ pos: at('E2'), hp: BATH_STEWARD_RIVAL.hp });
 
     // Out of cloud the hit lands.
-    const dry = cast(hall('D . L .\n. . . .', false, lattices), 'draughtsman', 'right');
+    const dry = cast(hall('D . H .\n. . . .', false, lattices), 'draughtsman', 'right');
     expect(rivalOf(dry.state).hp).toBe(BATH_STEWARD_RIVAL.hp - 2);
 
     // A burst of the cloud is not steamed away.
@@ -191,7 +142,81 @@ describe('the trial scene', () => {
     expect(seen).toEqual(['steamHall', 'shove']);
   });
 
-  test.todo(
-    'BH-17b: steams away is the district-registered beforeHarm reaction, not this test-only trick',
-  );
+  test('steams away is the district-registered beforeHarm reaction, and the district is still drawing', () => {
+    expect(trickOf(STEWARD_TRICK_ID)).toBe(STEWARD_TRICK);
+    expect(BATHHOUSES_MODULE.tricks).toContain(STEWARD_TRICK);
+    expect(STEWARD_TRICK.beforeHarm).toBeDefined();
+    expect(BATH_STEWARD_RIVAL.trick).toBe(STEWARD_TRICK_ID);
+  });
+});
+
+describe('listed and banked', () => {
+  test('he is in the rival lists, on the board as H', () => {
+    expect(RIVALS.bathSteward).toBe(BATH_STEWARD_RIVAL);
+    expect(board('H').units.find((u) => u.kind === 'enemy')).toMatchObject({
+      def: 'bathSteward',
+      hp: 14,
+    });
+    expect(awardsPage({ def: 'bathSteward' })).toBe(true);
+    expect(BATH_HEART.heart).toBe(true);
+  });
+
+  test('a downed Steward in his own house banks his page, once; alive or elsewhere it does not', () => {
+    const p = newProfile();
+    const b = structuredClone(board('H . S'));
+    expect(bankPages(p, b, 'bathhouses', awardsPage)).toBe(p);
+    for (const u of b.units) if (u.kind === 'enemy') u.hp = 0;
+    const won = bankPages(p, b, 'bathhouses', awardsPage);
+    expect(won.pages).toEqual([BATH_STEWARD_PAGE.id]);
+    expect(bankPages(won, b, 'bathhouses', awardsPage)).toBe(won);
+    expect(bankPages(p, b, 'canals', awardsPage)).toBe(p);
+  });
+});
+
+describe('the Steward’s note on Seep (level II, seep:member)', () => {
+  const NOTE = 'bathSteward:seep';
+  const seepReady = (pages: Profile['pages']): Profile => ({
+    ...newProfile(),
+    pages,
+    witnessed: ['seep:member'],
+    footnotes: { seep: { points: 200, slots: { 'seep:member@1': 'seep-member-spare-self' } } },
+    solventsFound: ['bathSalt'],
+    solvents: { ...newProfile().solvents, bathSalt: 4 },
+  });
+  const slotTwo = (p: Profile) => marginOf(p, 'seep').lines.find((l) => l.line === 'seep:member');
+  const offered = (p: Profile) =>
+    (slotTwo(p)?.frames.find((f) => f.level === 2)?.variants ?? []).map((v) => v.id);
+
+  test('hidden without his page', () => {
+    expect(rivalNoteVisible(newProfile(), NOTE)).toBe(false);
+    expect(offered(seepReady([]))).not.toContain(NOTE);
+  });
+
+  test('offered once his page is held, credited, and writing it files it in the slot', () => {
+    const p = seepReady([BATH_STEWARD_PAGE.id]);
+    expect(rivalNoteVisible(p, NOTE)).toBe(true);
+    const frame = slotTwo(p)?.frames.find((f) => f.level === 2);
+    expect(frame?.variants.map((v) => v.id)).toContain(NOTE);
+    expect(frame?.variants.find((v) => v.id === NOTE)?.credit).toBe(
+      "Copied from the Steward's towel book.",
+    );
+    expect(BATHHOUSES.find((v) => v.id === NOTE)?.rival).toBe('bathSteward');
+    const r = writeAt(p, 'seep', NOTE, { atHome: true });
+    if ('error' in r) throw new Error(r.error);
+    expect(footnoteIds(r.profile)['seep:member@2']).toBe(NOTE);
+  });
+
+  test('written: an ally of yours on a cloud beside the target is passed over, the rest re-forms', () => {
+    // Seep Strike on the rat at B1: the Stoker beside it stands on cloud, with free cloud to E1.
+    const room = () =>
+      withLattices(
+        'D r S~ ~ ~\n. . . . .',
+        { draughtsman: 'Bolt> Seep Strike' },
+        { hp: { A1: 9, B1: 9, C1: 9 } },
+      );
+    const plain = cast(room(), 'draughtsman', 'right');
+    expect(hp(plain.state, 'stoker')).toBeLessThan(9);
+    const noted = castWith(room(), { kind: 'dir', dir: 'right' }, withFootnotes([NOTE]));
+    expect(hp(noted.state, 'stoker')).toBe(9);
+  });
 });

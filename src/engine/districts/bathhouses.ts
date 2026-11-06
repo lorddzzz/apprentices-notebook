@@ -1,7 +1,8 @@
+import { BATH_STEWARD_GOALS } from '$data/rivals/bathSteward';
 import { BOIL_OVER_RULE } from './bathhouses/boilOver';
 import { BATHER_EVENT_LINES, BATHER_FOE, BATHER_GUARD } from './bathhouses/dissolved';
 import { BATH_FOES } from './bathhouses/foes';
-import { STEWARD_EVENT_LINES, STEWARD_GUARD, STEWARD_STEP_LIST } from './bathhouses/heart';
+import { STEWARD_EVENT_LINES, STEWARD_TRICKS } from './bathhouses/heart';
 import { AREAS_GUARANTEE, BATH_TRIP, PLUNGE } from './bathhouses/trip';
 import { BATH_EVENT_TYPES, STEAM_CAUSE } from './bathhouses/types';
 import type { DistrictEventDef, DistrictModule } from './types';
@@ -30,7 +31,9 @@ export const BATHHOUSES_MODULE: DistrictModule = {
   offerContributors: [AREAS_GUARANTEE],
   rules: [BOIL_OVER_RULE],
   foes: [...BATH_FOES, BATHER_FOE],
-  harmGuards: [BATHER_GUARD, STEWARD_GUARD],
-  steps: STEWARD_STEP_LIST,
+  harmGuards: [BATHER_GUARD],
+  // The Bath-Steward is a rival (BH-17b): his trick and routine goals ride the rival kit.
+  tricks: STEWARD_TRICKS,
+  goals: BATH_STEWARD_GOALS,
   causes: { [STEAM_CAUSE]: 'landing' },
 };

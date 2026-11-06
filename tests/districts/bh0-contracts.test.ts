@@ -45,14 +45,11 @@ describe('BH-0 registration', () => {
       'bathhouses:boilerman',
       'bathhouses:bather',
     ]);
-    expect(m?.harmGuards?.map((g) => g.id)).toEqual(['bathhouses:bather', 'bathhouses:steward']);
+    expect(m?.harmGuards?.map((g) => g.id)).toEqual(['bathhouses:bather']);
     expect(m?.pieces ?? []).toEqual([]);
-    // BH-8: the Steward stand-in's script
-    expect((m?.steps ?? []).map((st) => st.id)).toEqual([
-      'bathhouses:steward:lay',
-      'bathhouses:steward:shove',
-      'bathhouses:steward:stoke',
-    ]);
+    // BH-17b: the Steward is a rival, so the stand-in's script steps are gone
+    expect(m?.steps ?? []).toEqual([]);
+    expect((m?.tricks ?? []).map((x) => x.id)).toEqual(['bathhouses:steamsAway']);
     // BH-3 adds the cold plunge, the only offer kind
     expect((m?.offerKinds ?? []).map((o) => o.id)).toEqual(['bathhouses:plunge']);
     expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bathhouses:'))).toEqual([

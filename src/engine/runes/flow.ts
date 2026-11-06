@@ -7,12 +7,14 @@ import {
   type Dir,
   neighbors4,
   opposite,
+  sameCoord,
   step,
   turnLeft,
   turnRight,
 } from '../grid';
 import { ruleOf, sameSide } from '../habits';
 import { sealedContext } from '../jars';
+import { cloudNet } from '../networks';
 import { blocksUnits, inBoard, isCloud, tileAt, unitAt } from '../queries';
 import { targetOn, whereIs } from '../targets';
 import type { BattleState, Flow, Jar, Snapshot, Target, Tile, Unit } from '../types';
@@ -200,6 +202,15 @@ export function seep(
       if (mine && there?.id === caster?.id && fn('seep-member-spare-self')) continue;
       // `seep-member-away`: your party is pushed away from the target, not along its heading.
       const way = mine && fn('seep-member-away') ? dirBetween(at, c) : heading;
+      // `bathSteward:seep` (his note): a member on a cloud tile is passed over, and the rest re-forms
+      // on the farthest free tile of that cloud (ties in reading order); with none, nothing re-forms.
+      if (mine && fn('bathSteward:seep') && isCloud(tileAt(s, c))) {
+        const to = cloudNet(s, c)
+          .filter((k) => !sameCoord(k, c) && !unitAt(s, k) && free(k))
+          .sort((a, b) => manhattan(b, c) - manhattan(a, c) || readingOrder(a, b))[0];
+        if (to) reach(to, heading);
+        continue;
+      }
       if (!reach(c, way)) continue;
       if (mine) {
         out.members.push(targetKey(targetOn(s, c)));
