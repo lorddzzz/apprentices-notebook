@@ -3,6 +3,7 @@
   import { APPRENTICES, ENEMIES } from '$data';
   import type { UnitView } from '../../../app/view';
   import { BathToken, isBathDef } from '../../districts/bathhouses';
+  import { BridgeToken, isBridgeDef } from '../../districts/bridges';
   import { CrateToken } from '../../districts/canals';
   import { StaffToken } from '../../districts/inkQuarter';
   import { handOf, MarginaliaToken } from '../../districts/seam';
@@ -63,6 +64,8 @@
     <MarginaliaToken {glyph} next={handOf(unit.intent)} />
   {:else if isBathDef(unit.def)}
     <BathToken def={unit.def} {glyph} {dissolved} />
+  {:else if isBridgeDef(unit.def)}
+    <BridgeToken def={unit.def} {glyph} />
   {:else if STAFF.includes(unit.def)}
     <StaffToken def={unit.def} {glyph} />
   {:else if unit.def === 'eel'}

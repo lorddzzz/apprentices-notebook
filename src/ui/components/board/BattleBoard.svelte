@@ -14,6 +14,7 @@
   } from '../../../app/overlay';
   import type { BoardView } from '../../../app/view';
   import { dissolvedOn } from '../../districts/bathhouses';
+  import { BridgeLayer } from '../../districts/bridges';
   import BadgeLayer from './BadgeLayer.svelte';
   import FxLayer from './FxLayer.svelte';
   import { boardViewBox, CELL } from './geometry';
@@ -157,6 +158,7 @@
   {/each}
 
   <PieceLayer {cells} />
+  <BridgeLayer {view} layer="under" />
   <HighlightLayer highlights={overlay.highlights} />
   {#if next}<RulePreviewLayer shapes={next.shapes} />{/if}
   <StepLayer {steps} layer="under" />
@@ -170,6 +172,7 @@
 
   <JarLayer {view} />
   <SteamLayer {view} />
+  <BridgeLayer {view} layer="badges" />
   <IntentLayer {intents} {minimal} layer="badges" />
   <StepLayer {steps} layer="badges" />
   <RivalMarks {rivals} layer="badges" />

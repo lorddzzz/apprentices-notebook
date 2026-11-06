@@ -868,3 +868,13 @@ export function boilOverTiles(e: { type: string; data?: unknown }): Coord[] {
     t && typeof t.x === 'number' && typeof t.y === 'number' ? [{ x: t.x, y: t.y }] : [],
   );
 }
+
+/** The tiles a `bridges:collapse` event drops (BR-14); empty for any other event or a malformed one. */
+export function fallenTiles(e: { type: string; data?: unknown }): Coord[] {
+  if (e.type !== 'bridges:collapse') return [];
+  const tiles = (e.data as { tiles?: unknown } | undefined)?.tiles;
+  if (!Array.isArray(tiles)) return [];
+  return tiles.flatMap((t) =>
+    t && typeof t.x === 'number' && typeof t.y === 'number' ? [{ x: t.x, y: t.y }] : [],
+  );
+}

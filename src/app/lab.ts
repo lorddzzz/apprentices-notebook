@@ -29,6 +29,7 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
+import { BRIDGE_ROOMS_12 } from '$data/districts/bridges';
 import {
   type Action,
   type BattleSpec,
@@ -142,8 +143,53 @@ export const LAB_ROOMS: readonly ScenarioDef[] = [
   },
 ];
 
+/**
+ * Two of BR-9's boards for the bridges' art (BR-14): a sound span (two stone a tile) and a crumbling
+ * one (one stone, a single pier). Not lessons: the cracks and the fall are tried by crushing a span.
+ */
+const bridgeBoard = (room: number, variant: number): string =>
+  BRIDGE_ROOMS_12[room]?.variants?.[variant]?.layout ?? '';
+export const BRIDGE_LAB_ROOMS: readonly ScenarioDef[] = [
+  {
+    id: 'bridge-sound',
+    title: 'Bridge, sound span',
+    note: 'Room 1 of the bridges: sound stone (two to a tile), piers marked heavy. Crush a span tile twice to cut a section off; it falls at dusk.',
+    board: bridgeBoard(0, 0),
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'bridge-crumbling',
+    title: 'Bridge, crumbling span',
+    note: 'A crumbling room: one stone a tile and a single pier. A crush breaks a tile and cuts off what hangs beyond it.',
+    board: bridgeBoard(1, 2),
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'bridge-cut',
+    title: 'Bridge, a section cut off',
+    note: 'The upper span has no pier: it is cracked (dashed outline) and falls at dusk. The Draughtsman and a Warden stand on it. Shove a rat into the other to crush both and chip the stone. End the turn to watch the section fall.',
+    board: [
+      '{span} {span} {span} {span} {span} _',
+      '{span} {span} {span} {span} y{span} _',
+      '_ _ {span} D{span} {span} _',
+      '_ _ j{span} {span} {span} _',
+      '_ _ _ _ _ _',
+      '{span} {span} {pier} {span} {span} {span}',
+      '{span} S{span} r{span} r{span} {span} {span}',
+    ].join('\n'),
+    demo: [],
+    expected: [],
+  },
+];
+
 /** Every scenario the Lab's picker offers: the lessons, then the sized rooms. */
-export const LAB_SCENARIOS: readonly ScenarioDef[] = [...SCENARIOS, ...LAB_ROOMS];
+export const LAB_SCENARIOS: readonly ScenarioDef[] = [
+  ...SCENARIOS,
+  ...LAB_ROOMS,
+  ...BRIDGE_LAB_ROOMS,
+];
 
 /** The scenario for an id; unknown ids fall back to the sandbox and say so. */
 export function resolveScenario(id: string): { def: ScenarioDef; unknown: string | null } {

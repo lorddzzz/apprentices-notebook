@@ -27,6 +27,7 @@ import {
   type UnitId,
 } from '$engine';
 import type { Json, OutCause } from '$engine/districts/types';
+import { liveBridges, projectBridge } from './bridgeView';
 
 /** A state or compound a tile can hold. */
 export type LayerId = StateId | CompoundId;
@@ -151,7 +152,7 @@ export function tileViewOf(t: Tile): TileView {
 const markOf = (u: Unit): MarkView => (u.mark ? (u.mark.deep ? 'deep' : 'plain') : null);
 
 export function viewOf(s: BattleState): BoardView {
-  return {
+  return liveBridges(s, {
     width: s.width,
     height: s.height,
     tiles: s.tiles.map(tileViewOf),
@@ -180,7 +181,7 @@ export function viewOf(s: BattleState): BoardView {
     })),
     round: s.round,
     phase: s.phase,
-  };
+  });
 }
 
 /** A fresh view from parsed ASCII (gallery fixtures, Lab board edits). Mirrors the engine's spawn rules. */
@@ -785,8 +786,12 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
         });
       break;
     default: {
-      // A district event changes nothing the view draws; its module's rules changed the state.
-      if (isDistrictEvent(e)) break;
+      // A district event changes nothing the view draws (its module's rules changed the state),
+      // except the bridges' stone: a worn, mended, laid or fallen tile (BR-14).
+      if (isDistrictEvent(e)) {
+        projectBridge(v, e);
+        break;
+      }
       const unhandled: never = e;
       void unhandled;
     }
