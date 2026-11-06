@@ -25,7 +25,7 @@ function step(h: { s: BattleState; log: GameEvent[] }): void {
 }
 const pm = (s: BattleState): EnemyUnit => {
   const u = s.units.find((v) => v.kind === 'enemy' && v.def === 'postmaster');
-  if (!u || u.kind !== 'enemy') throw new Error('no postmaster');
+  if (u?.kind !== 'enemy') throw new Error('no postmaster');
   return u;
 };
 

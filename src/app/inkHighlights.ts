@@ -3,7 +3,7 @@ import { type BattleState, type Coord, coordOf, findUnit, step } from '$engine';
 import { clockRoundsLeft, openClock } from '$engine/districts/inkQuarter/clock';
 import { ADDRESS_PIECE, FORWARD_PIECE, RETURN_PIECE } from '$engine/districts/inkQuarter/types';
 import { sendBackTarget } from '$engine/districts/inkQuarter/writs';
-import type { Json, PreviewShape } from '$engine/districts/types';
+import type { Json } from '$engine/districts/types';
 import type { InputMode } from './battleInput';
 
 /**

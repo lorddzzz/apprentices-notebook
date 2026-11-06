@@ -142,7 +142,7 @@ export const SORTER_FOE: FoeBehaviour = {
       return;
     }
     const victim = unitAt(ctx.s, tg.tiles[0] ?? e.pos);
-    if (!victim || victim.kind !== 'member' || manhattan(e.pos, victim.pos) !== 1) {
+    if (victim?.kind !== 'member' || manhattan(e.pos, victim.pos) !== 1) {
       emit(ctx, { type: 'miss', source: 'File' });
       return;
     }

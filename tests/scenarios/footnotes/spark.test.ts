@@ -10,7 +10,6 @@ import { type Combo, fourCombos } from '../footnoteHarness';
 import { board, unitAtLabel } from '../harness';
 
 const at = (l: string) => parseLabel(l);
-const hpOf = (s: Parameters<typeof unitAtLabel>[0], l: string) => unitAtLabel(s, l).hp;
 
 test('spark:slick fourCombos: hot or long, then smoke or soot', () => {
   const ascii = 'D . . . .\n. . o . .\n. . . . .';

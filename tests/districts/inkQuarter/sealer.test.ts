@@ -16,7 +16,7 @@ import { act, board, draft, expectLog, expectLogIncludes } from '../../scenarios
 const at = parseLabel;
 const foe = (s: BattleState, def: string) => {
   const u = s.units.find((v) => v.kind === 'enemy' && v.def === def);
-  if (!u || u.kind !== 'enemy') throw new Error(`no ${def}`);
+  if (u?.kind !== 'enemy') throw new Error(`no ${def}`);
   return u;
 };
 const stoker = (s: BattleState) => {

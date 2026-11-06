@@ -72,21 +72,22 @@ test('bolt:cloud fourCombos: through or find, then cover or clear', () => {
     (c) => shoot(ascii, c),
   );
   const [throughCover, throughClear, findCover, findClear] = runs.map((r) => r.result);
+  if (!throughCover || !throughClear || !findCover || !findClear) throw new Error('four runs');
 
   // through + cover: the shot leaves the caster's cloud, passes the cloud at D1 and lands on E1.
-  expect(throughCover?.event).toMatchObject({ type: 'lands', line: 'bolt:cloud' });
-  expect(throughCover?.at).toEqual({ x: 4, y: 0 });
-  expect(throughCover?.target).toBe(unitAtLabel(throughCover!.start, 'E1').id);
+  expect(throughCover.event).toMatchObject({ type: 'lands', line: 'bolt:cloud' });
+  expect(throughCover.at).toEqual({ x: 4, y: 0 });
+  expect(throughCover.target).toBe(unitAtLabel(throughCover.start, 'E1').id);
   // through + clear: B1 is passed, D1 stops it (a second cloud) and thins away after the cast.
-  expect(throughClear?.event).toMatchObject({ type: 'stopped', by: 'cloud', at: { x: 3, y: 0 } });
-  expect(cloudAt(throughClear!.state, 3)).toBe(false);
-  expect(cloudAt(throughClear!.state, 1)).toBe(true);
+  expect(throughClear.event).toMatchObject({ type: 'stopped', by: 'cloud', at: { x: 3, y: 0 } });
+  expect(cloudAt(throughClear.state, 3)).toBe(false);
+  expect(cloudAt(throughClear.state, 1)).toBe(true);
   // find + cover: stopped at D1, aims at the foe hidden there; nothing clears.
-  expect(findCover?.event).toMatchObject({ type: 'stopped', at: { x: 3, y: 0 } });
-  expect(findCover?.target).toBe(unitAtLabel(findCover!.start, 'D1').id);
-  expect(cloudAt(findCover!.state, 3)).toBe(true);
+  expect(findCover.event).toMatchObject({ type: 'stopped', at: { x: 3, y: 0 } });
+  expect(findCover.target).toBe(unitAtLabel(findCover.start, 'D1').id);
+  expect(cloudAt(findCover.state, 3)).toBe(true);
   // find + clear: stopped at the empty cloud B1 (a tile), which thins.
-  expect(findClear?.event).toMatchObject({ type: 'stopped', at: { x: 1, y: 0 } });
-  expect(findClear?.target).toBe('tile 1,0');
-  expect(cloudAt(findClear!.state, 1)).toBe(false);
+  expect(findClear.event).toMatchObject({ type: 'stopped', at: { x: 1, y: 0 } });
+  expect(findClear.target).toBe('tile 1,0');
+  expect(cloudAt(findClear.state, 1)).toBe(false);
 });
