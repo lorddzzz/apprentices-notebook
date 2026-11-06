@@ -65,12 +65,12 @@ describe('the city this build (P2, P3)', () => {
     for (const d of DISTRICT_IDS) expect(['wall', 'drop']).toContain(DISTRICTS[d].edge);
   });
 
-  test('the four other districts are heard of, barred and have no rooms', () => {
+  test('the other districts are heard of, barred and have no rooms', () => {
     // The lower Seam is no district of its own on the map (it hears as the Seam, SM P5).
     const drawn = DISTRICT_IDS.filter(
       (d) => !PLAYABLE_DISTRICTS.includes(d) && !DISTRICTS[d].hearsAs,
     );
-    expect(drawn).toHaveLength(4);
+    expect(drawn).toHaveLength(3);
     for (const d of drawn) {
       const def = DISTRICTS[d];
       expect(def.gate.kind, d).toBe('drawing');

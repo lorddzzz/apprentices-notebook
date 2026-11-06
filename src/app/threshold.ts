@@ -11,6 +11,7 @@ import {
   solveThreshold,
   tripParty,
 } from '$engine';
+import { listRules } from '$engine/rules';
 
 /** A threshold room's battle (K-22) is not a trip: one fixed seed, so Retry replays the same start. */
 export const THRESHOLD_SEED = 1;
@@ -49,7 +50,7 @@ export function planThreshold(p: Profile, d: string | null): ThresholdPlan {
 /** The room's opening state: the current lattices, full HP and full charges. */
 export function thresholdStart(
   p: Profile,
-  room: Pick<ThresholdSpec, 'name' | 'board' | 'goal'>,
+  room: Pick<ThresholdSpec, 'name' | 'board' | 'goal'> & Partial<Pick<ThresholdSpec, 'rules'>>,
 ): ActionResult {
   const lineup = tripParty(p);
   const party: Partial<Record<MemberId, PartyInit>> = {};
@@ -57,7 +58,7 @@ export function thresholdStart(
     const spells = compiledFor(p, m).spells;
     party[m] = { spells, charges: Object.fromEntries(spells.map((s) => [s.key, s.charges])) };
   }
-  return createBattle({
+  const made = createBattle({
     title: room.name,
     board: room.board,
     seed: THRESHOLD_SEED,
@@ -66,6 +67,11 @@ export function thresholdStart(
     lineup,
     startSeed: THRESHOLD_SEED,
   });
+  // BH-18: the threshold lists the rules it names (the dome's gauge) at their default config.
+  if (!room.rules || room.rules.length === 0) return made;
+  const state = structuredClone(made.state);
+  state.rules = listRules(state, room.rules);
+  return { ...made, state };
 }
 
 /** The profile after the battle: solved on a win, otherwise the same object. */

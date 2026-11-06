@@ -55,10 +55,10 @@ describe('placement data', () => {
   });
 });
 
-describe('not wired before the district opens', () => {
-  test('the live kit places nobody yet, so the Seam and the integrity check are untouched', () => {
-    expect(DISTRICT_KIT.bathhouses?.recruit).toBeUndefined();
-    expect(DISTRICT_KIT.bathhouses?.recruitPages).toBeUndefined();
+describe('wired into the opened district (BH-18)', () => {
+  test('the live kit places her in room 3 with the Areas page line', () => {
+    expect(DISTRICT_KIT.bathhouses?.recruit).toEqual(BATH_RECRUIT_KIT.recruit);
+    expect(DISTRICT_KIT.bathhouses?.recruitPages).toEqual(BATH_RECRUIT_KIT.recruitPages);
   });
 });
 

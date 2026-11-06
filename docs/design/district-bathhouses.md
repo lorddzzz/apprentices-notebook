@@ -8,6 +8,8 @@
 
 ## 0. Decisions (2026-10-22)
 
+**Built 2026-11-06 (BH-0…BH-18):** open and playable; accepted build proposals and the out-of-band calibration numbers are in DESIGN §11 and [bathhouses-verification](../plans/bathhouses-verification.md). The Steward's note id is `bathSteward:seep`.
+
 | Layer | Decision | Why |
 |---|---|---|
 | Place | **The grand thermae**: vaulted bath-halls with mosaics, long pools and attendants in white; every door opens onto a larger hall. (Chosen from the laundries, the cure-house and the pump-house.) | Big, lush rooms give clouds room to grow |

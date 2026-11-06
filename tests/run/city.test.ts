@@ -327,7 +327,7 @@ describe('thresholds, the map and the dev toggle', () => {
     expect(cityDefaults().open).toEqual(['seam']);
     const all = openAll(newProfile());
     expect(all.city.heard).toHaveLength(7);
-    expect(all.city.open).toEqual(['seam', 'canals', 'inkQuarter']);
+    expect(all.city.open).toEqual(['seam', 'canals', 'inkQuarter', 'bathhouses']);
     expect(openAll(all).city).toEqual(all.city);
   });
 });

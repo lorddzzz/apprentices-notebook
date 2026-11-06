@@ -58,8 +58,9 @@ describe('sketch map helpers', () => {
       'seam',
       'canals',
       'inkQuarter',
+      'bathhouses',
     ]);
-    // the four others are heard and drawn, but barred
+    // the others are heard and drawn, but barred
     expect(nodes.filter((n) => n.state === 'heard').every((n) => n.barred !== '')).toBe(true);
   });
 

@@ -27,13 +27,13 @@ import { DISTRICT_UI } from '$ui/districts';
 
 /** BH-0: the bathhouses' module is registered and inert; its contracts compile and read strictly. */
 describe('BH-0 registration', () => {
-  test('data, engine and UI modules are registered; the district is still drawing', () => {
+  test('data, engine and UI modules are registered; the district is open (BH-18)', () => {
     const d = DISTRICTS.bathhouses;
-    expect(d.gate).toEqual({ kind: 'drawing' });
+    expect(d.gate.kind).toBe('threshold');
     expect(d.ret).toEqual({ kind: 'any' });
     expect(d.lean.lean).toBe('steam');
-    expect(d.rooms).toEqual([]);
-    expect(PLAYABLE_DISTRICTS).not.toContain('bathhouses');
+    expect(d.rooms).toHaveLength(5);
+    expect(PLAYABLE_DISTRICTS).toContain('bathhouses');
     expect(KIT.modules.bathhouses?.id).toBe('bathhouses');
     expect(DISTRICT_UI.bathhouses).toBeDefined(); // BH-12 registers the gauge banner
   });

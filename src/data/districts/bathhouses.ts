@@ -34,7 +34,7 @@ export const BATHHOUSES_KIT: DistrictData = {
   tables: BATH_TABLE_IDS,
   gate: { kind: 'drawing' },
   line: 'one fog over the whole house',
-  barred: 'The page is still being drawn.',
+  barred: 'The dome is shut. It wants steam.',
   lean: { lean: 'steam', text: 'Steam' },
   map: { x: 75, y: 70, label: 'above' },
   hear: [
@@ -597,7 +597,7 @@ const STEWARD_HEART: readonly import('../types').EncounterVariant[] = [
 
 /** The heart room: base heat 4, the h4 offers with two picks (BH-2's `offersFor` reads the heat). */
 export const BATH_HEART: import('./bathhouses/types').BathRoomDef = {
-  id: 'bath-caldarium',
+  id: 'bath-heart',
   title: "The steward's caldarium",
   depth: 5,
   layout: STEWARD_HEART[0]?.layout ?? '',
@@ -748,14 +748,18 @@ export const BATH_INTRUSION: import('./index').IntrusionSpec = {
   loot: 'basics',
 };
 
-// The kit above is built before these constants exist; fill in only the fields the block owns. The
-// district stays `gate: 'drawing'` and has no rooms listed, so none of it is reachable yet (BH-18).
-// `recruit` and `recruitPages` (`BATH_RECRUIT_KIT`, BH-15) are not wired either: RC's integrity check
-// wants a placed district to be open with real rooms, so BH-18 adds `...BATH_RECRUIT_KIT` with them
-// (until then the Seam, which guarantees nothing for an unplaced recruit, rolls as before).
-// `intrusion` is not wired: the lower Seam's floor check wants a piece or a rule-read terrain, and no
-// piece-scoped rule reads the vent (see BH-11's report); BH-18 sets `intrusion: BATH_INTRUSION`.
+// The kit above is built before these constants exist; fill in what they own. BH-18 opens the
+// district: rooms 1-4 and the heart (each fight carries its ledger entry as `lore`), the dome
+// threshold as the gate, and the towel-bearer's placement and page guarantee.
+// `intrusion` (`BATH_INTRUSION`, BH-11) is NOT wired: the lower Seam's `checkFloor` wants a piece
+// the intrusion brings or a terrain one of its rules reads, and the vent is read by the district-
+// scoped boil-over rule only (P9: none rides on a floor). Wiring it needs an engine change in
+// `lowerSeam.ts` (e.g. `IntrusionSpec.terrain`), which belongs to the Seam's owner.
+const BATH_ALL_ROOMS = [...BATH_ROOMS_12, ...BATH_ROOMS_34, BATH_HEART];
 Object.assign(BATHHOUSES_KIT, {
+  rooms: BATH_ALL_ROOMS.map((r, i) => ({ ...r, lore: BATH_LEDGERS[i]?.id })),
+  gate: { kind: 'threshold', room: BATH_THRESHOLD },
   threshold: BATH_THRESHOLD,
   papers: BATH_LEDGERS,
+  ...BATH_RECRUIT_KIT,
 });

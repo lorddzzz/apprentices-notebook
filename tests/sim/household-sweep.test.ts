@@ -63,8 +63,8 @@ function withParty(who: readonly ApprenticeId[]): Profile {
     known: [...RUNE_IDS],
     city: {
       ...base.city,
-      heard: ['seam', 'canals', 'inkQuarter'],
-      open: ['seam', 'canals', 'inkQuarter'],
+      heard: ['seam', 'canals', 'inkQuarter', 'bathhouses'],
+      open: ['seam', 'canals', 'inkQuarter', 'bathhouses'],
     },
   };
   for (const id of who) p = joinHousehold(p, id);
@@ -142,6 +142,7 @@ describe('rooms hold up for every party size (HC-9)', () => {
     expect(ROOMS.filter((r) => r.district === 'seam')).toHaveLength(12);
     expect(ROOMS.filter((r) => r.district === 'canals')).toHaveLength(15);
     expect(ROOMS.filter((r) => r.district === 'inkQuarter')).toHaveLength(15);
+    expect(ROOMS.filter((r) => r.district === 'bathhouses')).toHaveLength(15);
     for (const r of ROOMS) expect(checkRoom(r.layout), r.name).toEqual([]);
   });
 
@@ -164,7 +165,7 @@ describe('rooms hold up for every party size (HC-9)', () => {
         checkPlacement(openRoom(room, who, seed), who, openRoom(room, who, seed));
       }
     }
-  });
+  }, 60_000); // four districts' rooms × lineups × seeds: ~30 s alone, slower under load
 
   test('a smaller party takes the leading spots of the larger party draw', () => {
     for (const room of ROOMS) {
@@ -265,8 +266,8 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       const who: ApprenticeId[] = ['draughtsman', 'stoker'];
       const p = withParty(who);
       const old = [...baseline.seam, ...baseline.canals];
-      // The ink quarter was never a fixed-spot board: no old twin.
-      const rooms = ROOMS.filter((r) => r.district !== 'inkQuarter');
+      // The ink quarter and the bathhouses were never fixed-spot boards: no old twin.
+      const rooms = ROOMS.filter((r) => r.district !== 'inkQuarter' && r.district !== 'bathhouses');
       expect(old).toHaveLength(rooms.length);
       rooms.forEach((room, i) => {
         // The old boards only differ from the new ones by D, S and the extra P points. The

@@ -77,10 +77,10 @@ describe('the steam-vent floor (BH-11)', () => {
     }
   });
 
-  test('the district is still drawing, so no profile can reach the floor yet', () => {
-    expect(DISTRICTS.bathhouses.gate).toEqual({ kind: 'drawing' });
-    const p = newProfile();
-    expect(p.city.open).not.toContain('bathhouses');
+  test('the district is open; its floor stays unwired (the lower Seam check wants a piece or a rule-read terrain)', () => {
+    expect(DISTRICTS.bathhouses.gate.kind).toBe('threshold');
+    expect(DISTRICTS.bathhouses.intrusion).toBeUndefined();
+    expect(newProfile().city.open).not.toContain('bathhouses');
   });
 
   test("as the lower Seam's builder lays it: given the spec, the floor builder lays all three layouts", () => {

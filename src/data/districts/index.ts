@@ -244,7 +244,12 @@ export const DISTRICT_IDS: readonly DistrictId[] = [
   'lowerSeam',
 ];
 /** The districts with rooms this build (P2). */
-export const PLAYABLE_DISTRICTS: readonly DistrictId[] = ['seam', 'canals', 'inkQuarter'];
+export const PLAYABLE_DISTRICTS: readonly DistrictId[] = [
+  'seam',
+  'canals',
+  'inkQuarter',
+  'bathhouses',
+];
 /** The Seam's rooms (the first district's, unchanged). */
 export const ENCOUNTERS: readonly EncounterDef[] = SEAM_KIT.rooms;
 

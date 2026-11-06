@@ -120,10 +120,11 @@ describe('the map for seven (DK-16)', () => {
       expect([p.x1, p.x2]).toEqual([seam.x, seam.x]);
     }
     for (const p of paths.filter((x) => !x.id.startsWith('trunk'))) expect(p.y1).toBe(p.y2);
-    // canals and the ink quarter are open under openAll, the bathhouses only heard
+    // canals, the ink quarter and the bathhouses are open under openAll
     expect(paths.find((p) => p.id === 'canals')?.open).toBe(true);
     expect(paths.find((p) => p.id === 'inkQuarter')?.open).toBe(true);
-    expect(paths.find((p) => p.id === 'bathhouses')?.open).toBe(false);
+    expect(paths.find((p) => p.id === 'bathhouses')?.open).toBe(true);
+    expect(paths.find((p) => p.id === 'bridges')?.open).toBe(false);
     expect(paths.find((p) => p.id === 'trunk-70')?.open).toBe(true);
     expect(paths.find((p) => p.id === 'trunk-43')?.open).toBe(true);
   });

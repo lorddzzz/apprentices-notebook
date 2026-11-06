@@ -87,9 +87,8 @@ describe('the bather ledger (BH-10, P13)', () => {
     for (const p of BATH_LEDGERS.slice(0, 4)) expect(p.text).not.toContain('your own');
   });
 
-  test('the kit carries them, and the district stays drawing with no rooms', () => {
+  test('the kit carries them, and each room names its ledger entry', () => {
     expect(DISTRICTS.bathhouses.papers).toBe(BATH_LEDGERS);
-    expect(BATHHOUSES_KIT.gate).toEqual({ kind: 'drawing' });
-    expect(BATHHOUSES_KIT.rooms).toEqual([]);
+    expect(BATHHOUSES_KIT.rooms.map((r) => r.lore)).toEqual(BATH_LEDGERS.map((p) => p.id));
   });
 });
