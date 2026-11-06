@@ -474,3 +474,56 @@ export const WARDEN_CARD = {
 
 /** P12: rooms (0-based) whose offers hold the *pushed* page for a household that owns Bind. */
 export const PUSHED_PAGE_ROOMS: readonly number[] = [2, 3];
+
+// ── BR-13: the lower-Seam intrusion (bridges-plan P19) ──────────────────────
+/**
+ * A small span in the lower Seam: 6-9 `{span}` tiles with one `{pier}`, beside solid Seam floor.
+ * It brings the piece-scoped `bridges:collapse` and nothing else: no staff, no keystone, and no
+ * district-scoped rule (DK P9). The span is optional ground; a cut one drops what stands on it.
+ * Three 7 wide, 8 tall floors, Seam foes only, five start points each. No balance tuning.
+ */
+const floorBoard = (rows: readonly string[]): string => rows.join('\n');
+
+export const BRIDGES_INTRUSION: import('./index').IntrusionSpec = {
+  district: 'bridges',
+  pieces: ['bridges:span', 'bridges:pier'],
+  rules: ['bridges:collapse'],
+  rooms: [
+    // Floor 1: a pier at the near end of a strip; a rat waits on the strip's far end.
+    floorBoard([
+      '. . . . . . .',
+      '. . . . {span} {span} {span}',
+      '. {pier} {span} {span} {span} {span} r',
+      '. . . . {span} . .',
+      '. . . . . . b',
+      '. . . . . . .',
+      'P . P . P . P',
+      '. P . . . P .',
+    ]),
+    // Floor 2: a pier on the far side; the sentry stands at the neck, a rat on the span.
+    floorBoard([
+      '. . . . . . .',
+      '. b . . . . .',
+      '. {span} {span} {span} . . .',
+      '. {span} r {span} {span} {pier} .',
+      '. {span} {span} {span} . . .',
+      '. . . . . . .',
+      'P . P . . P .',
+      '. P . . P . P',
+    ]),
+    // Floor 3: a ring of span round a pier in the middle of the floor, foes at its edges.
+    floorBoard([
+      '. . . . . . .',
+      '. r . . . r .',
+      '. . {span} {span} {span} . .',
+      '. . {span} {pier} {span} . .',
+      '. . {span} {span} {span} . b',
+      '. . . . . . .',
+      'P . P . P . P',
+      '. . . P . . .',
+    ]),
+  ],
+  loot: 'basics',
+};
+
+BRIDGES_KIT.intrusion = BRIDGES_INTRUSION;
