@@ -54,8 +54,7 @@ describe('BR-0 registration', () => {
     ]);
     expect(BRIDGE_EVENT_TYPES).toContain('bridges:stoneWorn');
     expect(BRIDGE_EVENT_TYPES).toContain('bridges:collapse');
-    // nothing else: no foes, guards, steps, offers, causes or tricks yet
-    expect(m?.foes ?? []).toEqual([]);
+    // nothing else: no guards, steps, offers, causes or tricks yet
     expect(m?.harmGuards ?? []).toEqual([]);
     expect(m?.steps ?? []).toEqual([]);
     expect(m?.offerKinds ?? []).toEqual([]);
@@ -187,7 +186,7 @@ describe('BR-0 tuning and tokens', () => {
     expect(BRIDGE_TUNING.foes.mason).toMatchObject({ hp: 3, move: 2 });
   });
 
-  test('foe tokens are claimed and collide with nothing; the staff is not in ENEMIES yet', () => {
+  test('foe tokens are claimed and collide with nothing; only the Warden and Gargoyle are in ENEMIES (BR-5)', () => {
     expect(BRIDGE_FOE_IDS.map((id) => BRIDGE_FOE_TOKENS[id])).toEqual(['j', 'y', 'J', 'K']);
     expect(
       DISTRICT_TOKENS.filter((t) => t.district === 'bridges' && t.kind === 'foe').map((t) => t.id),
@@ -197,7 +196,9 @@ describe('BR-0 tuning and tokens', () => {
         (t) => t.token,
       ),
     ).toEqual(['span', 'pier', 'keystone']);
-    for (const id of BRIDGE_FOE_IDS) expect(Object.hasOwn(ENEMIES, id)).toBe(false);
+    for (const id of BRIDGE_FOE_IDS) {
+      expect(Object.hasOwn(ENEMIES, id)).toBe(id === 'warden' || id === 'gargoyle');
+    }
     const builtIn = [
       ...Object.values(ENEMIES)
         .filter((e) => !Object.hasOwn(RIVALS, e.id))

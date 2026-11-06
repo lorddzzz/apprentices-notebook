@@ -93,6 +93,7 @@ test('elites are sentry, eel, snuffer and the mother; minions the rest (P20)', (
     'marginalia',
     'attendant',
     'bathSteward',
+    'warden',
   ]);
 });
 
