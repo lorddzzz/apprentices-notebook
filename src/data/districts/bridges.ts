@@ -1,3 +1,4 @@
+import type { RecruitPages, RecruitPlacement } from '../recruits';
 import type { EncounterVariant } from '../types';
 import {
   BRIDGE_TABLE_IDS,
@@ -344,3 +345,132 @@ export const BRIDGE_ROOMS_12: readonly KitRoomDef[] = [
 export const HOLD_GUARANTEE_ROOMS: readonly number[] = [0, 1];
 
 // Not wired into `BRIDGES_KIT.rooms` yet: the district stays roomless and `drawing` until it opens (BR-18).
+
+// ── BR-10: rooms 3 and 4, the watchpost, the warden's card, the pushed page (P12, P13) ──
+
+/** Room 3, sound: 7x9 and 6x9 boards, three foes on the first, a Mason on the second. */
+const BRIDGE_3_SOUND: readonly EncounterVariant[] = [
+  variant('The gatehouse span', 'sound', [
+    '_ . . y . . _',
+    '_ . j . . . _',
+    '_ _ . _ . _ _',
+    '. . . # . . .',
+    '. . . J . . .',
+    '_ . . . . . _',
+    '_ . . . . . _',
+    'P . P . . P .',
+    '. P . . P . .',
+  ]),
+  variant('The chalk walk', 'sound', [
+    '. . y . . _',
+    '. . . . . _',
+    '_ . . j . _',
+    '_ _ . _ _ _',
+    '. . . . . _',
+    '. # . J . .',
+    '_ . . . . _',
+    'P . P . . P',
+    '. P . # P .',
+  ]),
+];
+
+/** Room 3, crumbling: a Gargoyle and a Warden, or a Warden and a Mason, on thin stone. */
+const BRIDGE_3_CRUMBLING: readonly EncounterVariant[] = [
+  variant("The sentry's stair", 'crumbling', [
+    '_ . y . _',
+    '. . . . _',
+    '. # . j .',
+    '. . _ . .',
+    '_ . . . _',
+    'P . P . P',
+    '. P . P .',
+  ]),
+  variant('The lantern ledge', 'crumbling', [
+    '. . j . . _',
+    '. . . . _ _',
+    '_ . J . . .',
+    '. . . # . .',
+    '. . _ . . _',
+    'P . P . . P',
+    '. P . . P .',
+  ]),
+];
+
+/** Room 4, sound: all three of the staff on 7x9 and 6x9 boards. */
+const BRIDGE_4_SOUND: readonly EncounterVariant[] = [
+  variant('The tall arcade', 'sound', [
+    '_ . y . . . _',
+    '_ . . j . . _',
+    '_ _ . _ . _ _',
+    '. . . . . . .',
+    '. # . . . # .',
+    '. . . J . . .',
+    '_ . . . . . _',
+    'P . P . P . P',
+    '_ P . . . P _',
+  ]),
+  variant('The split span', 'sound', [
+    '. . j . y .',
+    '. . . . . .',
+    '. # . _ . .',
+    '. . . _ . .',
+    '_ . . J . _',
+    '_ _ . . _ _',
+    '. . . # . .',
+    'P . P . P .',
+    '. P . . . P',
+  ]),
+];
+
+/** Room 4, crumbling: the deepest thin boards before the heart. */
+const BRIDGE_4_CRUMBLING: readonly EncounterVariant[] = [
+  variant('The thin arch', 'crumbling', [
+    '. . y . .',
+    '. . . . .',
+    '_ . # . j',
+    '. . . . .',
+    '_ . . . _',
+    'P . P . P',
+    '. P . P .',
+  ]),
+  variant('The last ledge', 'crumbling', [
+    '. . J . . _',
+    '_ . . . j .',
+    '. . # . . .',
+    '. . _ . _ .',
+    'P . P . . P',
+    '. P . . P .',
+  ]),
+];
+
+/** Rooms 3 and 4. Variant order is the pools': sound first, then crumbling (`spanVariantPool`). */
+export const BRIDGE_ROOMS_34: readonly KitRoomDef[] = [
+  bridgeRoom('bridges-3', 'The watchpost', 3, [...BRIDGE_3_SOUND, ...BRIDGE_3_CRUMBLING]),
+  bridgeRoom('bridges-4', 'The tollhouse span', 4, [...BRIDGE_4_SOUND, ...BRIDGE_4_CRUMBLING]),
+];
+
+/**
+ * P13 (party.md section 2, RC's P8): the defector warden's card sits in the watchpost, room 3
+ * (0-based 2), whichever layout and span kind the seed picks. RC shows it once Hold is owned or
+ * picked this trip; her Hold line shares `HOLD_GUARANTEE_ROOMS`, the same card as the district's
+ * own Hold guarantee, so the two never add up to two cards.
+ */
+export const WARDEN_PLACEMENT: readonly RecruitPlacement[] = [{ apprentice: 'warden', room: 2 }];
+export const WARDEN_PAGES: readonly RecruitPages[] = [
+  { for: 'warden', runes: ['hold'], rooms: HOLD_GUARANTEE_ROOMS },
+];
+/** What BR-18 merges into `BRIDGES_KIT` when the district opens (`recruit`, `recruitPages`). */
+export const BRIDGE_RECRUIT_KIT = {
+  recruit: WARDEN_PLACEMENT,
+  recruitPages: WARDEN_PAGES,
+} as const;
+/** The watchpost's scene line and her card copy (the card itself shows the registry's blurb). */
+export const WATCHPOST_SCENE =
+  'A watchpost on the span: a flask, a box of chalk, a stool turned to face the way out. One warden has stopped counting.';
+export const WARDEN_CARD = {
+  title: 'Defector warden',
+  blurb: 'She chalks the line for you, and her Hold takes a second unit beside the first.',
+} as const;
+
+/** P12: rooms (0-based) whose offers hold the *pushed* page for a household that owns Bind. */
+export const PUSHED_PAGE_ROOMS: readonly number[] = [2, 3];

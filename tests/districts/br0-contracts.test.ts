@@ -57,7 +57,8 @@ describe('BR-0 registration', () => {
     // nothing else: no guards, steps, offers, causes or tricks yet
     expect(m?.harmGuards ?? []).toEqual([]);
     expect(m?.steps ?? []).toEqual([]);
-    expect(m?.offerKinds ?? []).toEqual([]);
+    // BR-10 registers the generic `bindEvent` kind (the pushed page)
+    expect((m?.offerKinds ?? []).map((k) => k.id)).toEqual(['bindEvent']);
     expect(Object.keys(KIT.causes).filter((c) => c.startsWith('bridges:'))).toEqual([
       'bridges:fall',
     ]);
