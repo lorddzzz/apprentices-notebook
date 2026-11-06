@@ -182,6 +182,7 @@ export type Meets =
   | 'edge'
   | 'water'
   | 'drop'
+  | 'cracked' // a bridge span tile that is broken or cut off from every pier (BR-17)
   | 'unit'
   | 'noHeading'
   | 'noTarget'

@@ -168,6 +168,10 @@ export function projectBridge(v: BoardView, e: DistrictEvent): void {
         if (!t) continue;
         t.piece = null;
         t.drop = true;
+        // The engine clears whatever was set into a falling tile (a Lay'd layer, BR-17).
+        t.state = null;
+        t.rounds = 0;
+        t.hits = 0;
       }
       markCracks(v);
       break;

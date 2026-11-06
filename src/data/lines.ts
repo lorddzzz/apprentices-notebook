@@ -220,6 +220,42 @@ export const LINES: readonly LineDef[] = [
     district: 'bridges',
     text: 'Holding a unit that is already held does not stack; it only keeps the longer hold.',
   },
+  // BR-17 (bridges footnotes audit): Hold, Brink and Lay against the cracked, fallen and fog tiles
+  {
+    id: 'hold:cracked',
+    subject: 'hold',
+    meets: 'cracked',
+    district: 'bridges',
+    text: 'A unit held on a cracked span cannot step off before dusk, so it falls with the stone.',
+  },
+  {
+    id: 'brink:drop',
+    subject: 'brink',
+    meets: 'drop',
+    district: 'bridges',
+    text: 'A fallen span is fog now, and fog counts as an edge: Brink lets the rest through beside it.',
+  },
+  {
+    id: 'brink:cracked',
+    subject: 'brink',
+    meets: 'cracked',
+    district: 'bridges',
+    text: 'A cracked span is still stone until dusk, so Brink does not count it as an edge yet.',
+  },
+  {
+    id: 'brink:edge',
+    subject: 'brink',
+    meets: 'edge',
+    district: 'bridges',
+    text: "The room's walls are not an edge to Brink: only fog, water or an open drop at the rim count.",
+  },
+  {
+    id: 'lay:cracked',
+    subject: 'lay',
+    meets: 'cracked',
+    district: 'bridges',
+    text: 'Lay sets a layer into the tile, not into the bridge: it falls with a cracked span.',
+  },
   {
     id: 'swap:held',
     subject: 'swap',

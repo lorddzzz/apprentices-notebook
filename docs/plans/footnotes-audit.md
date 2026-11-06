@@ -392,3 +392,65 @@ Audited 2026-11-05 against `src/data/lines.ts` and the sites that touch them: `t
 | B2 | Add a "reached" event (or let `aimed`-style events be stamped) so Seep can have `seep:member` (Se2) | The only way to say that Seep strikes your own party; needs `events.ts`, which BH-F1 does not own |
 | B3 | `steep:plate` and `steep:unit` emit `miss` ("Steep hits nothing" in the log text); if that reads badly, give them a dedicated `spreadBlocked` event with the text "the spread stops at the plate" | Same precedent as `fork:edge` and `seep:edge`; a proper event is a contract change |
 | B4 | Seep and Fork both log "hits nothing" at an edge even when the rest went; shorten both texts to "loses a branch at the edge" when the event gets a `what` field | Misleading log text, minor |
+
+## 10. Bridges: the Structure runes and solvents (BR-17, P12)
+
+Audited 2026-11-06 against `src/data/lines.ts` and the sites that touch the bridge terrain: `runes/actions.ts` (`hold`), `runes/flow.ts` (`beside`, `trial`), `resolve.ts` (`shape`, `trigger`), `mix.ts::newLayer` (Lay's `set` flag), `push.ts` (`stopAt`, drop), `solvents.ts` (Mortar, Chalk), `districts/bridges/support.ts` (cracked set), `wear.ts` and `collapse.ts` (the dusk fall). The terrain in play: a span tile is **cracked** when it is broken or cut off from every pier (still stone, still walkable, falls at dusk); a **fallen** span is fog (a drop tile, no piece); **fog** (`_`) is a drop tile; a **span** is walkable footing with no solid. Rows added by BR-17 are marked **added**; their firing cases are in `tests/scenarios/bridges-audit-lines.test.ts`.
+
+| Subject | Rows before | Rows after |
+|---|---|---|
+| Hold | 1 (`hold:held`) | 2 |
+| Brink | 0 | 3 |
+| Lay | 0 | 1 |
+| Mortar | 1 (`mortar:unit`) | 1 |
+| Chalk | 1 (`chalk:network`) | 1 |
+
+A new `Meets` value, `cracked`, was added to `data/types.ts` (a span tile that is broken or cut off from every pier). `drop` and `edge` already existed.
+
+### Hold (`hold:held`, `hold:cracked`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Ho1 | A unit held on a cracked span cannot step off before dusk and falls with the stone. Hold pins foes and allies alike, so it is the cleanest way to spend a crack, and the trap to avoid on your own party | Bolt > Hold at a rat on a cracked span; dusk drops it | `actions.ts::hold` | `hold:cracked` | **added** (stamp on the existing `held` event) |
+| Ho2 | A supported span: Hold is plain, no line | Same cast with a pier beside the span | | none | none |
+
+### Brink (`brink:drop`, `brink:cracked`, `brink:edge`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Br1 | Beside a fallen span (a drop tile of fog) the rest goes through: fog is an edge. This is the row that hosts the Chief Warden's note on Brink (BR-18, BR-20) | Bolt > Brink Strike at a rat beside fog | `flow.ts::brinkLine`, `resolve.ts` (`trigger`) | `brink:drop` | **added** (stamp on `triggered`) |
+| Br2 | Beside a **cracked** span the chain stops: it is still stone, so Brink does not count it as an edge until the fall. Reads the tiles as the cast began | Brink Strike at a rat with a cracked span below it | `brinkLine` | `brink:cracked` | **added** |
+| Br3 | The room's own walls are not an edge to Brink (P3): only fog, water or a drop rim count. A trap in a walled room | Brink at a rat on the top row | `brinkLine` (`inBoard`) | `brink:edge` | **added** |
+| Br4 | Beside canal water Brink passes with no line | | `beside` | none | none: the canals' own terrain, not a bridge behaviour |
+| Br5 | A flier standing over fog: the tile counts as a drop | | `beside` | | none: no bridge foe or recruit is both |
+
+### Lay (`lay:cracked`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| La1 | A layer Lay sets into a **cracked** span tile (a cloud, a plate) falls with it at dusk and the board shows fog; "for good" means the tile, not the bridge. The fall was silent for the layer | Bolt > Lay Steam at a rat on a cracked span; dusk clears it | `collapse.ts::collapseStep` | `lay:cracked` | **added** (new+event: a `stateFades` stamped at the fall) |
+| La2 | On a supported span a Lay'd layer is set like anywhere | Same cast with a pier beside | `mix.ts::newLayer` | none | none |
+| La3 | Lay on a blot or slick (no rounds) changes nothing | | `newLayer` (`rounds > 0`) | | none: not bridge-specific |
+
+### Mortar (`mortar:unit`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Mo1 | The extra tile carries a push over the last stone and into the fog: a rat two tiles from a drop is safe from a plain Shove and falls to a Mortar'd one. The fall itself is stamped `shove:drop`, the push `mortar:unit` | Impulse and Impulse with Mortar at a rat two tiles from fog | `push.ts::stopAt`, `solvents.ts` (`pushBonus`) | `mortar:unit` (push), `shove:drop` (fall) | none: the existing row says it; the test pins the terrain case |
+| Mo2 | Beside the fog already, Mortar changes nothing: the first step drops it | | `stopAt` | | none |
+| Mo3 | A span and a pier are not solid, so pushes and Mortar go over them; only a cracked section's fall at dusk ends it | | `stopAt` (`solid: 'none'`) | | none |
+
+### Chalk (`chalk:network`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Ch1 | The reach is plain distance from the network, so a unit across a fallen tile is reached; fog never blocks it | Impulse with Chalk, a rat two tiles past the brass with fog between | `bursts.ts::unitsNear`, `inventions.ts` | `chalk:network` | none: the existing row says it; the test pins the terrain case |
+| Ch2 | Brass on a span falls with it at dusk, so a network cut by a fall has nothing to conduct | | `collapse.ts` (clears `state`) | `conduct:noTarget` | none: Conduct's own row |
+
+### Bridge proposals
+
+| # | Proposal | Reason |
+|---|---|---|
+| Q1 | Let `brink:cracked` read the cracked set as the **dusk** will see it ("falls at dusk"), or add a preview so the player can see Brink miss before casting | Br2 is the surprise of the district: the span looks like an edge and is not, until it falls |
+| Q2 | Give Hold's margin a capstone idea built on Ho1 (held units also take the fall as a crush from the cut) | The row is real and the game's cleanest set piece; BR-18 may want it |
+| Q3 | Stamp Lay'd layers lost to a mend or a Mason's pier too (`lay:cracked` fires only at a fall) | Not built: the Mason replaces a fallen tile with fresh stone, nothing to fade |

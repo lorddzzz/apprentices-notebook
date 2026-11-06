@@ -1,5 +1,5 @@
 import { arrive, hasTrait } from '../../arrival';
-import { type Ctx, emit, ref, withOrigin } from '../../ctx';
+import { type Ctx, emit, ref, withLine, withOrigin } from '../../ctx';
 import { type Coord, sameCoord } from '../../grid';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
 import { coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
@@ -112,6 +112,13 @@ export function collapseStep(ctx: Ctx, own: BridgesState): BridgesState {
     },
   };
   emit(ctx, ev);
+  // BR-17: a Lay'd layer set into a falling tile goes with it.
+  const setIn = falling.filter((at) => tileAt(ctx.s, at).state?.set === true);
+  if (setIn.length) {
+    withLine(ctx, 'lay:cracked', () =>
+      emit(ctx, { type: 'stateFades', tiles: setIn.map((c) => ({ ...c })) }),
+    );
+  }
   for (const at of falling) {
     const t = tileAt(ctx.s, at);
     t.piece = null;
