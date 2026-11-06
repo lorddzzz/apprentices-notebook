@@ -221,6 +221,7 @@ function bridgeBoard(rows: readonly string[], kind: SpanKind): string {
           if (c === '_') return '_';
           if (c === '#') return '{pier}';
           if (c === '.') return stone;
+          if (c === 'K') return 'K{keystone}'; // the Chief Warden on the keystone (BR-11)
           if (c === 'P' || BRIDGE_FOE_CELLS.has(c)) return c + stone;
           throw new Error(`bridge board: unknown cell "${c}"`);
         })
@@ -527,3 +528,39 @@ export const BRIDGES_INTRUSION: import('./index').IntrusionSpec = {
 };
 
 BRIDGES_KIT.intrusion = BRIDGES_INTRUSION;
+
+// ── BR-11: the heart, the great arch (bridges-plan P7, P10, P16) ──
+/**
+ * The two approach boards of the Chief Warden's arch (`K` is him, on the keystone; `#` a pier). The
+ * sound approach has more guards and piers, the crumbling one fewer guards and one thin pier. Sound
+ * is 7x9, crumbling 6x7; fog rings the arch top so a push or the chief's *mind the edge* can drop
+ * someone. Variant order is the pools': sound first, then crumbling (`spanVariantPool`).
+ */
+const BRIDGE_HEART_VARIANTS: readonly EncounterVariant[] = [
+  variant('The great arch', 'sound', [
+    '_ . . K . . _',
+    '_ . . . . . _',
+    '_ _ . . . _ _',
+    '. . . # . . .',
+    '. j . . . y .',
+    '. # . . . # .',
+    '. . . . . . .',
+    'P . P . . P .',
+    '. P . . P . .',
+  ]),
+  variant('The thin arch', 'crumbling', [
+    '_ . K . . _',
+    '_ . . . . _',
+    '_ _ . . _ _',
+    '. j . # . .',
+    '. . . . . .',
+    'P . P . . P',
+    '. P . . P .',
+  ]),
+];
+
+/** Room 5, the heart: 0-based room 4, the table of the span it was reached over, two picks. */
+export const BRIDGE_HEART: KitRoomDef = {
+  ...bridgeRoom('bridges-heart', 'The great arch', 5, BRIDGE_HEART_VARIANTS),
+  heart: true,
+};

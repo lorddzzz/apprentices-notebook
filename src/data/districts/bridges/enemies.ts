@@ -17,6 +17,9 @@ export const BRIDGE_FOE_TUNING = {
   pierGap: 3,
 } as const;
 
+/** The heart's stand-in (P7, P16): the staff he may have at once (`call the staff` waits below it). */
+export const CHIEF_TUNING = { staffCap: 3 } as const;
+
 const PLAIN = {
   attack: null,
   ai: 'idle',
@@ -68,4 +71,33 @@ export const MASON: EnemyDef = {
   ...PLAIN,
 };
 
-export const BRIDGE_ENEMIES = { warden: WARDEN, gargoyle: GARGOYLE, mason: MASON } as const;
+/**
+ * The Chief Warden's stand-in (P16; BR-11): token `K`, standing on the keystone. A scripted foe
+ * (`script.standIn`: clears the heart, awards no page) with a behaviour for its death hook only.
+ * He never walks; right of way is the BR-8 flag the keystone's rule grants at battle start.
+ */
+export const CHIEF_WARDEN: EnemyDef = {
+  id: 'chiefWarden',
+  name: 'Chief Warden',
+  token: BRIDGE_FOE_TOKENS.chiefWarden,
+  hp: BRIDGE_TUNING.foes.chiefWarden.hp,
+  move: BRIDGE_TUNING.foes.chiefWarden.move,
+  elite: BRIDGE_TUNING.foes.chiefWarden.elite,
+  flies: BRIDGE_TUNING.foes.chiefWarden.flies,
+  behaviour: 'bridges:chiefWarden',
+  script: {
+    steps: ['bridges:chalk', 'bridges:mindTheEdge', 'bridges:callStaff'],
+    standIn: true,
+  },
+  blurb:
+    'The Chief Warden, on the keystone. While it stands he cannot be pushed, held or dropped. Chalks a circle, shoves whoever stands beside fog, and calls his staff. Break the keystone, or wear him down: when he falls the bridge falls after you.',
+  ...PLAIN,
+  boss: true,
+};
+
+export const BRIDGE_ENEMIES = {
+  warden: WARDEN,
+  gargoyle: GARGOYLE,
+  mason: MASON,
+  chiefWarden: CHIEF_WARDEN,
+} as const;

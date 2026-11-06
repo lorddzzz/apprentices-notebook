@@ -45,6 +45,7 @@ describe('BR-0 registration', () => {
     expect(m?.pieces?.map((p) => p.id)).toEqual([SPAN_PIECE, PIER_PIECE, KEYSTONE_PIECE]);
     expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bridges:'))).toEqual([
       COLLAPSE_RULE_ID,
+      'bridges:rightOfWay', // BR-11: the heart's flag, brought by the keystone
     ]);
     const rule = KIT.rules[COLLAPSE_RULE_ID];
     expect(rule?.slot).toBe('late');
@@ -56,7 +57,11 @@ describe('BR-0 registration', () => {
     expect(BRIDGE_EVENT_TYPES).toContain('bridges:collapse');
     // nothing else: no guards, steps, offers, causes or tricks yet
     expect(m?.harmGuards ?? []).toEqual([]);
-    expect(m?.steps ?? []).toEqual([]);
+    expect(m?.steps?.map((x) => x.id)).toEqual([
+      'bridges:chalk',
+      'bridges:mindTheEdge',
+      'bridges:callStaff',
+    ]); // BR-11
     // BR-10 registers the generic `bindEvent` kind (the pushed page)
     expect((m?.offerKinds ?? []).map((k) => k.id)).toEqual(['bindEvent']);
     expect(Object.keys(KIT.causes).filter((c) => c.startsWith('bridges:'))).toEqual([
@@ -198,7 +203,7 @@ describe('BR-0 tuning and tokens', () => {
       ),
     ).toEqual(['span', 'pier', 'keystone']);
     for (const id of BRIDGE_FOE_IDS) {
-      expect(Object.hasOwn(ENEMIES, id)).toBe(id !== 'chiefWarden');
+      expect(Object.hasOwn(ENEMIES, id)).toBe(true); // the stand-in joined in BR-11
     }
     const builtIn = [
       ...Object.values(ENEMIES)

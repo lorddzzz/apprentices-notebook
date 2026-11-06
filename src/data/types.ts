@@ -370,7 +370,8 @@ export type EnemyId =
   | 'bathSteward'
   | 'warden'
   | 'gargoyle'
-  | 'mason';
+  | 'mason'
+  | 'chiefWarden';
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst' | 'shove';
 
 /**
