@@ -15,7 +15,7 @@ import { PALETTE, paletteOf, toggleToken } from '../../src/app/lab';
 
 /**
  * DK-14: the Lab and Bench palettes read the registries. Fixture pieces are registered through a
- * mocked kit (as tests/engine/pieces.test.ts does): a solid pier the Bench offers once the
+ * mocked kit (as tests/engine/pieces.test.ts does): a solid plinth the Bench offers once the
  * household has met it, a lab-only lamp, and a bench-only post.
  */
 
@@ -24,13 +24,13 @@ const FIXTURE = vi.hoisted(
     id: 'foundry',
     pieces: [
       {
-        id: 'foundry:pier',
-        token: 'pier',
+        id: 'foundry:plinth',
+        token: 'plinth',
         solid: 'units',
         triggers: {},
-        palette: { label: 'Pier', lab: true },
-        bench: { met: 'pier' as Meets, label: 'Pier' },
-        art: 'pier',
+        palette: { label: 'Plinth', lab: true },
+        bench: { met: 'plinth' as Meets, label: 'Plinth' },
+        art: 'plinth',
       },
       {
         id: 'foundry:lantern',
@@ -81,29 +81,32 @@ describe('the Lab palette lists the registries', () => {
 
   test('pieces appear when the kit registers them for the Lab, in front of the eraser', () => {
     const items = PALETTE.map((e) => e.item);
-    expect(items).toContain('{pier}');
+    expect(items).toContain('{plinth}');
     expect(items).toContain('{lantern}');
     expect(items).not.toContain('{post}');
     expect(items.at(-1)).toBe('.');
-    expect(items.indexOf('{pier}')).toBeLessThan(items.indexOf('.'));
-    expect(PALETTE.find((e) => e.item === '{pier}')?.piece).toEqual({ art: 'pier', data: null });
+    expect(items.indexOf('{plinth}')).toBeLessThan(items.indexOf('.'));
+    expect(PALETTE.find((e) => e.item === '{plinth}')?.piece).toEqual({
+      art: 'plinth',
+      data: null,
+    });
   });
 
   test('a kit with no pieces gives the same palette minus them', () => {
     const none = paletteOf({ ...KIT, pieces: {} }).map((e) => e.item);
-    expect(none).not.toContain('{pier}');
+    expect(none).not.toContain('{plinth}');
     expect(none).toContain('e');
   });
 
   test('painting a piece toggles it; a solid one never goes under or receives a unit', () => {
-    expect(toggleToken('.', '{pier}')).toBe('{pier}');
-    expect(toggleToken('{pier}', '{pier}')).toBe('.');
-    expect(toggleToken('{pier}', '{lantern}')).toBe('{lantern}');
-    expect(toggleToken('r', '{pier}')).toBe('r');
+    expect(toggleToken('.', '{plinth}')).toBe('{plinth}');
+    expect(toggleToken('{plinth}', '{plinth}')).toBe('.');
+    expect(toggleToken('{plinth}', '{lantern}')).toBe('{lantern}');
+    expect(toggleToken('r', '{plinth}')).toBe('r');
     expect(toggleToken('r', '{lantern}')).toBe('r{lantern}');
-    expect(toggleToken('{pier}', 'r')).toBe('{pier}');
+    expect(toggleToken('{plinth}', 'r')).toBe('{plinth}');
     expect(toggleToken('{lantern}', 'r')).toBe('r{lantern}');
-    expect(toggleToken('{pier}', '.')).toBe('.');
+    expect(toggleToken('{plinth}', '.')).toBe('.');
   });
 });
 
@@ -156,15 +159,15 @@ describe('sceneItems: the Bench offers what has been met', () => {
   });
 
   test('a registered piece is offered once its bench key is met, with its label', () => {
-    expect(sceneItems(household())).not.toContain('{pier}');
-    const met = household({ met: ['pier'] });
-    expect(sceneItems(met)).toEqual(['D', 'd', '{pier}', '.']);
-    expect(sceneEntries(met).find((e) => e.item === '{pier}')?.name).toBe('Pier');
+    expect(sceneItems(household())).not.toContain('{plinth}');
+    const met = household({ met: ['plinth'] });
+    expect(sceneItems(met)).toEqual(['D', 'd', '{plinth}', '.']);
+    expect(sceneEntries(met).find((e) => e.item === '{plinth}')?.name).toBe('Plinth');
     // A lab-only piece has no bench key; a bench-only piece shows only on the Bench.
-    expect(sceneItems(household({ met: ['pier', 'post'] }))).toEqual([
+    expect(sceneItems(household({ met: ['plinth', 'post'] }))).toEqual([
       'D',
       'd',
-      '{pier}',
+      '{plinth}',
       '{post}',
       '.',
     ]);
@@ -181,7 +184,7 @@ describe('subjectsIn and the three-subject limit', () => {
     expect(subjectsIn(scene)).toBe(2);
     scene = paint(scene, 3, 0, 'w>');
     scene = paint(scene, 4, 0, '{lantern}');
-    scene = paint(scene, 5, 0, '{pier}');
+    scene = paint(scene, 5, 0, '{plinth}');
     expect(subjectsIn(scene)).toBe(2);
     expect(subjectsIn(emptyScene())).toBe(0);
   });
@@ -213,10 +216,10 @@ describe('subjectsIn and the three-subject limit', () => {
   });
 
   test('a solid piece refuses a foe, and a foe refuses a solid piece', () => {
-    const pier = paint(emptyScene(), 3, 3, '{pier}');
-    expect(paintScene(pier, { x: 3, y: 3 }, 'e')).toEqual({ why: 'Nothing to change there' });
+    const plinth = paint(emptyScene(), 3, 3, '{plinth}');
+    expect(paintScene(plinth, { x: 3, y: 3 }, 'e')).toEqual({ why: 'Nothing to change there' });
     const eel = paint(emptyScene(), 3, 3, 'e');
-    expect(paintScene(eel, { x: 3, y: 3 }, '{pier}')).toEqual({ why: 'Nothing to change there' });
+    expect(paintScene(eel, { x: 3, y: 3 }, '{plinth}')).toEqual({ why: 'Nothing to change there' });
     expect('scene' in paintScene(eel, { x: 3, y: 3 }, '{lantern}')).toBe(true);
   });
 });

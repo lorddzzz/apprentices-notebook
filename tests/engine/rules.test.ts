@@ -79,6 +79,7 @@ describe('round-end rule slots (P8)', () => {
       'inkQuarter:writs',
       'inkQuarter:forwards',
       'inkQuarter:clock',
+      'bridges:collapse',
       'inkQuarter:stakes',
       'lowerSeam:drop',
     ]);
