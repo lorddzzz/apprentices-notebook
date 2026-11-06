@@ -4,6 +4,7 @@ import { type Coord, sameCoord } from '../../grid';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
 import { coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
 import type { BattleState, Origin, Unit } from '../../types';
+import { resists } from './rightOfWay';
 import { cracksOf } from './support';
 import {
   type BridgesState,
@@ -122,6 +123,23 @@ export function collapseStep(ctx: Ctx, own: BridgesState): BridgesState {
   }
   const seam = Object.hasOwn(ctx.s.rules ?? {}, SEAM_DROP_RULE);
   for (const { unit, at } of fallers) {
+    // P17 right of way: he does not fall; he is set on the nearest standing tile, unhurt.
+    const held = resists(ctx, unit, 'fall');
+    if (held) {
+      const to = landingFor(ctx.s, at, keys, unit.id);
+      if (to && !sameCoord(to, unit.pos)) {
+        emit(ctx, {
+          type: 'moved',
+          unit: ref(unit),
+          from: { ...unit.pos },
+          to: { ...to },
+          path: [{ ...to }],
+          cause: FALL_CAUSE,
+        });
+        arrive(ctx, unit.id, [to], { cause: FALL_CAUSE, origin: null, landing: true });
+      }
+      continue;
+    }
     const by = origins.get(key(at))?.by ?? null;
     const origin: Origin | null = by ? { caster: by, spell: '0,0', cast: ctx.s.castSeq } : null;
     withOrigin(ctx, origin, () => {

@@ -21,6 +21,7 @@ import {
   withOrigin,
 } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
+import { resists } from '../districts/bridges/rightOfWay';
 import { hasFootnote } from '../footnotes';
 import {
   byReadingOrder,
@@ -207,7 +208,7 @@ const guard: Handler = (ctx, t, flow) => {
 };
 
 function holdUnit(ctx: Ctx, u: Unit, rounds: number): void {
-  if (trickResists(ctx, u, 'hold')) return; // RV-11 `resists`
+  if (trickResists(ctx, u, 'hold') || resists(ctx, u, 'hold')) return; // RV-11 / BR-8 `resists`
   if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Hold')) return; // BH P8
   u.held = Math.max(u.held, rounds);
   emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
