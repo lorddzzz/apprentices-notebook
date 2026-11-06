@@ -13,20 +13,48 @@ import {
   type Profile,
   type Trip,
 } from '$engine';
+import { boilOverState, forecastBoilOver } from '$engine/districts/bathhouses/boilOver';
 import { preconditionsOf, waitingFor } from '$engine/recruits';
 import type { Rng } from '$engine/rng';
 
 /** Deterministic, deliberately small greedy bot: value harm, avoid friendly fire, then approach. */
-function value(s: BattleState): number {
-  return s.units.reduce(
-    (v, u) =>
-      v +
-      (u.bystander
-        ? 0 // the canal crate is cargo, never a target (CN P3)
-        : u.kind === 'enemy'
-          ? -10 * u.hp - (u.hp > 0 ? 20 : 0) + (u.mark ? 0.2 : 0)
-          : 30 * u.hp),
-    0,
+/** Bot options. `gauge` makes it read the boil-over forecast (BH-16); off keeps the old bot. */
+export interface BotOptions {
+  gauge?: boolean;
+}
+
+/**
+ * What the forecast boil-over is worth at round end: foes standing in the steam take 2 (brewing on
+ * purpose), party members on a cloud take 2 (never end the round in a cloud that boils).
+ */
+function boilTerm(s: BattleState): number {
+  const own = boilOverState(s);
+  if (!own) return 0;
+  const f = forecastBoilOver(s, own);
+  if (!f.boils) return 0;
+  let v = 0;
+  for (const id of f.units) {
+    const u = s.units.find((x) => x.id === id);
+    if (!u || u.bystander) continue;
+    if (u.kind === 'enemy') v += 10 * Math.min(2, u.hp) + (u.hp <= 2 ? 20 : 0);
+    else v -= 30 * Math.min(2, u.hp) + (u.hp <= 2 ? 200 : 0);
+  }
+  return v;
+}
+
+function value(s: BattleState, gauge = false): number {
+  return (
+    (gauge ? boilTerm(s) : 0) +
+    s.units.reduce(
+      (v, u) =>
+        v +
+        (u.bystander
+          ? 0 // the canal crate is cargo, never a target (CN P3)
+          : u.kind === 'enemy'
+            ? -10 * u.hp - (u.hp > 0 ? 20 : 0) + (u.mark ? 0.2 : 0)
+            : 30 * u.hp),
+      0,
+    )
   );
 }
 /** The member's own basic action (Shove, Pull, Hop or Swap) in every direction it can take now. */
@@ -47,10 +75,10 @@ function attacks(s: BattleState, id: (typeof MEMBER_IDS)[number]): Action[] {
       ),
   ];
 }
-function bestAttack(s: BattleState, id: (typeof MEMBER_IDS)[number]) {
+function bestAttack(s: BattleState, id: (typeof MEMBER_IDS)[number], gauge = false) {
   let best: { action: Action; gain: number } | null = null;
   for (const action of attacks(s, id)) {
-    const gain = value(applyAction(s, action).state) - value(s);
+    const gain = value(applyAction(s, action).state, gauge) - value(s, gauge);
     if (!best || gain > best.gain) best = { action, gain };
   }
   return best;
@@ -65,7 +93,10 @@ export function botFight(
   order: readonly ApprenticeId[] = MEMBER_IDS.filter((id) =>
     initial.units.some((u) => u.kind === 'member' && u.id === id),
   ),
+  opts: BotOptions = {},
 ) {
+  const gauge = opts.gauge === true;
+  let firstBoil: number | null = null;
   let state = initial;
   const events: GameEvent[] = [];
   const actions: Action[] = [];
@@ -74,11 +105,14 @@ export function botFight(
     state = r.state;
     events.push(...r.events);
     actions.push(a);
+    if (firstBoil === null && r.events.some((e) => e.type === 'bathhouses:boilOver')) {
+      firstBoil = state.round;
+    }
   };
   for (let n = 0; n < maxRounds && state.phase === 'player'; n++) {
     for (const id of order) {
       if (state.phase !== 'player' || memberById(state, id).hp === 0) continue;
-      const first = bestAttack(state, id);
+      const first = bestAttack(state, id, gauge);
       if (first && first.gain > 0) step(first.action);
       if (state.phase !== 'player') break;
       let move: Action | null = null;
@@ -91,9 +125,9 @@ export function botFight(
           ...enemies.map((u) => Math.abs(u.pos.x - to.x) + Math.abs(u.pos.y - to.y)),
         );
         const candidate =
-          value(next) -
-          value(state) +
-          Math.max(0, bestAttack(next, id)?.gain ?? 0) -
+          value(next, gauge) -
+          value(state, gauge) +
+          Math.max(0, bestAttack(next, id, gauge)?.gain ?? 0) -
           distance * 0.01;
         if (candidate > score) {
           score = candidate;
@@ -102,12 +136,12 @@ export function botFight(
       }
       if (move) step(move);
       if (state.phase !== 'player') break;
-      const last = bestAttack(state, id);
+      const last = bestAttack(state, id, gauge);
       if (last && last.gain > 0) step(last.action);
     }
     if (state.phase === 'player') step({ type: 'endTurn' });
   }
-  return { state, events, actions };
+  return { state, events, actions, firstBoil };
 }
 
 // ── Recruit policies (RC-9) ─────────────────────────────
