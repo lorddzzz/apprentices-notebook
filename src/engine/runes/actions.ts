@@ -547,7 +547,10 @@ const levy: Handler = (ctx, t, flow) => {
   if (!u?.mark) return;
   const caster = unitById(ctx.s, flow.caster);
   spendMark(ctx, u);
-  gainShield(ctx, caster, ACTIONS.levyShieldPerMark, ctx.s.round + 1 + roundBonus('levy', flow));
+  // An enemy casts after the party has acted, and the shield lapses at the next player phase
+  // start: one more round, so it covers the party's coming turn.
+  const lapse = ctx.s.round + 1 + (caster?.kind === 'enemy' ? 1 : 0);
+  gainShield(ctx, caster, ACTIONS.levyShieldPerMark, lapse + roundBonus('levy', flow));
 };
 
 /** What each authored Action does to one target (design §5, P27–P28). */
