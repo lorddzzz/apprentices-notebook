@@ -182,11 +182,17 @@ export function afterAction(s: BattleState, prev: InputMode): InputMode {
 }
 
 /** The aim a tapped tile stands for, if it is legal. */
-export function aimAt(s: BattleState, unit: UnitId, spell: SpellKey, at: Coord): Aim | null {
+export function aimAt(
+  s: BattleState,
+  unit: UnitId,
+  spell: SpellKey,
+  at: Coord,
+  footnotes: Footnotes = {},
+): Aim | null {
   const m = livingMember(s, unit);
   const sp = m ? spellOf(m, spell) : null;
   if (!m || !sp) return null;
-  const legal = legalAims(s, unit, spell);
+  const legal = legalAims(s, unit, spell, footnotes);
   let aim: Aim | null = null;
   switch (sp.source) {
     case 'bolt': {
@@ -335,7 +341,7 @@ function tapAim(
   aims: Aim[],
   ctx: PreviewCtx,
 ): InputResult {
-  const aim = aimAt(s, unit, spell, at);
+  const aim = aimAt(s, unit, spell, at, ctx.footnotes);
   if (aim) return stay(toConfirm(s, unit, spell, at, { type: 'cast', unit, spell, aim }, ctx));
   const caster = livingMember(s, unit);
   if (caster && sameCoord(caster.pos, at)) return stay(memberMode(s, unit));
@@ -415,7 +421,14 @@ export function onCell(
       if (mode.spell !== null) {
         // Only the tapped tile confirms: tapping further along a Bolt's line re-reads it instead.
         if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
-        return tapAim(s, mode.unit, mode.spell, at, legalAims(s, mode.unit, mode.spell), ctx);
+        return tapAim(
+          s,
+          mode.unit,
+          mode.spell,
+          at,
+          legalAims(s, mode.unit, mode.spell, ctx.footnotes),
+          ctx,
+        );
       }
       if (sameCoord(mode.at, at)) return { mode, action: mode.preview.action };
       const own = basicOf(s, mode.unit);
@@ -450,7 +463,7 @@ export function onSpell(
     const why = m.acted ? `${m.name} has already acted.` : 'No charges left.';
     return stay(memberMode(s, unit, why));
   }
-  const aims = legalAims(s, unit, key);
+  const aims = legalAims(s, unit, key, ctx.footnotes);
   const only = aims.length === 1 ? aims[0] : undefined;
   if (only) {
     const at =
@@ -483,7 +496,7 @@ export function onConfirm(_s: BattleState, mode: InputMode): InputResult {
 }
 
 /** One step back: confirm → aim/basic → member → idle. */
-export function onCancel(s: BattleState, mode: InputMode): InputResult {
+export function onCancel(s: BattleState, mode: InputMode, ctx: PreviewCtx = {}): InputResult {
   switch (mode.kind) {
     case 'confirm': {
       if (mode.spell === null) {
@@ -491,7 +504,7 @@ export function onCancel(s: BattleState, mode: InputMode): InputResult {
         if (!own) return stay(memberMode(s, mode.unit));
         return stay({ kind: 'basic', unit: mode.unit, action: own.action, dirs: own.dirs });
       }
-      const aims = legalAims(s, mode.unit, mode.spell);
+      const aims = legalAims(s, mode.unit, mode.spell, ctx.footnotes);
       if (aims.length <= 1) return stay(memberMode(s, mode.unit));
       return stay({ kind: 'aim', unit: mode.unit, spell: mode.spell, aims });
     }
@@ -506,18 +519,20 @@ export function onCancel(s: BattleState, mode: InputMode): InputResult {
 }
 
 /** End turn needs a second tap while someone could still act. */
-export function endTurnNeedsConfirm(s: BattleState): boolean {
-  return unspentCasters(s).length > 0;
+export function endTurnNeedsConfirm(s: BattleState, footnotes: Footnotes = {}): boolean {
+  return unspentCasters(s, footnotes).length > 0;
 }
 
 /** Names of members who could still cast this turn: a usable spell with a legal aim. */
-export function unspentCasters(s: BattleState): string[] {
+export function unspentCasters(s: BattleState, footnotes: Footnotes = {}): string[] {
   return members(s)
     .filter(
       (m) =>
         isAlive(m) &&
         !m.acted &&
-        castableSpells(s, m.id).some((c) => c.usable && legalAims(s, m.id, c.spell.key).length > 0),
+        castableSpells(s, m.id).some(
+          (c) => c.usable && legalAims(s, m.id, c.spell.key, footnotes).length > 0,
+        ),
     )
     .map((m) => m.name);
 }

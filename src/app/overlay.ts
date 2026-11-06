@@ -764,7 +764,7 @@ function aimTints(
     seen.add(k);
     out.push(h);
   };
-  for (const aim of legalAims(s, unit, spell)) {
+  for (const aim of legalAims(s, unit, spell, footnotes)) {
     if (aim.kind === 'dir') {
       const { path } = aimPreview(s, unit, spell, aim, footnotes);
       path.forEach((at, i) => {

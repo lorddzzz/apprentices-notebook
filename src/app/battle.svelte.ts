@@ -142,7 +142,7 @@ export class BattleSession {
     if (step) return { text: step.line, tone: 'event' };
     if (this.peek) return { text: this.peek, tone: 'hint' };
     if (this.armed) {
-      const who = unspentCasters(this.state).join(' and ');
+      const who = unspentCasters(this.state, this.opts.footnotes ?? {}).join(' and ');
       return { text: `${who} can still cast. Tap End turn again to end the turn.`, tone: 'warn' };
     }
     return hintFor(this.input, this.state);
@@ -187,7 +187,7 @@ export class BattleSession {
 
   cancel(): void {
     if (this.swallow()) return;
-    this.apply(onCancel(this.state, this.input));
+    this.apply(onCancel(this.state, this.input, this.ctx));
   }
 
   undoMove(): void {
@@ -198,7 +198,7 @@ export class BattleSession {
 
   endTurn(): void {
     if (this.swallow()) return;
-    if (!this.armed && endTurnNeedsConfirm(this.state)) {
+    if (!this.armed && endTurnNeedsConfirm(this.state, this.opts.footnotes ?? {})) {
       this.armed = true;
       return;
     }
