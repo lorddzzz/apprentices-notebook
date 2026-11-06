@@ -2,6 +2,7 @@
   import { fade } from 'svelte/transition';
   import { APPRENTICES, ENEMIES } from '$data';
   import type { UnitView } from '../../../app/view';
+  import { BathToken, isBathDef } from '../../districts/bathhouses';
   import { CrateToken } from '../../districts/canals';
   import { StaffToken } from '../../districts/inkQuarter';
   import { handOf, MarginaliaToken } from '../../districts/seam';
@@ -13,9 +14,11 @@
     unit: UnitView;
     selected: boolean;
     dim: boolean;
+    /** A bather standing in a cloud is steam (BH-14): drawn dissolved. */
+    dissolved?: boolean;
   }
 
-  let { unit, selected, dim }: Props = $props();
+  let { unit, selected, dim, dissolved = false }: Props = $props();
 
   const glyph = $derived(
     unit.kind === 'member'
@@ -58,6 +61,8 @@
     <CrateToken moored={unit.moored === true} />
   {:else if unit.def === 'marginalia'}
     <MarginaliaToken {glyph} next={handOf(unit.intent)} />
+  {:else if isBathDef(unit.def)}
+    <BathToken def={unit.def} {glyph} {dissolved} />
   {:else if STAFF.includes(unit.def)}
     <StaffToken def={unit.def} {glyph} />
   {:else if unit.def === 'eel'}

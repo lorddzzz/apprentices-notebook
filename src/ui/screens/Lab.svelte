@@ -32,6 +32,7 @@
   import MemberPicker from '../components/lab/MemberPicker.svelte';
   import Palette from '../components/lab/Palette.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
+  import { DISTRICT_UI } from '../districts';
 
   const where = $derived(labLocation(router.params));
   let menuOpen = $state(false);
@@ -232,6 +233,12 @@
         <a class="link" href={href('gallery', { part: 'board' })}>Gallery</a>
         <a class="link" href={href('study')}>Study</a>
       </div>
+      {#each Object.entries(DISTRICT_UI) as [id, ui] (id)}
+        {#if ui?.labPanel}
+          {@const Panel = ui.labPanel}
+          <Panel state={session.state} onrule={(rule, config) => lab.setRule(rule, config)} />
+        {/if}
+      {/each}
     </Sheet>
 
     <LabVariants

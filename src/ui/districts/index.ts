@@ -1,7 +1,7 @@
 import type { Component } from 'svelte';
 import type { DistrictId } from '$data';
 import type { BattleState, Coord, Profile, Trip } from '$engine';
-import type { DistrictEvent, Json, PreviewShape } from '$engine/districts/types';
+import type { DistrictEvent, Json, PreviewShape, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import { BATHHOUSES_UI } from './bathhouses';
 import { CANALS_UI } from './canals';
@@ -46,6 +46,11 @@ export interface DistrictUi {
   lootHeader?: Component<{ trip: Trip }>;
   /** A line above the Crossroads' ways (BH-13): draws itself or nothing. */
   crossroadsNote?: Component<{ trip: Trip }>;
+  /**
+   * Controls in the Lab's menu sheet (BH-14): the district's board rules at a setting. `onrule`
+   * lists a rule on the battle in hand at a config (null takes it off).
+   */
+  labPanel?: Component<{ state: BattleState; onrule: (id: RuleId, config: Json | null) => void }>;
   /** A line above the way home on the bottom screen of this district's trips (the lower Seam's door, SM-10): draws itself or nothing. */
   crossroadsLine?: Component<{ trip: Trip; profile: Profile }>;
   /** Drawn under another district's node on the map (the lower Seam's stair under the Seam, SM-11): `onsetout` opens Set out for this district. */

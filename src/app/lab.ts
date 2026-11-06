@@ -73,9 +73,10 @@ import {
 } from '$engine';
 import type { FootnoteIds } from '$engine/ctx';
 import { KIT } from '$engine/districts/kit';
-import type { Json, Kit } from '$engine/districts/types';
+import type { Json, Kit, RuleId } from '$engine/districts/types';
 import { isRevealed } from '$engine/recruits';
 import { MAX_PARTY, placeParty, START_SALT } from '$engine/rooms';
+import { listRules } from '$engine/rules';
 
 /** Lab helpers (pure): painting the board, and exporting a session as a scenario. */
 
@@ -894,4 +895,33 @@ export function labRoster(
 ): readonly ApprenticeId[] {
   if (devMode) return APPRENTICE_IDS;
   return APPRENTICE_IDS.filter((id) => isRevealed(p, id) || keep.includes(id));
+}
+
+// ── Board rules (BH-14): a Lab board lists a district's rule at a config ──
+
+/**
+ * `s` with the rules of `config` listed (each initialised from its config); a null config entry
+ * takes the rule off. Pure. Unknown rule ids are skipped so an old scenario never breaks the Lab.
+ */
+export function withLabRules(
+  s: BattleState,
+  config: Readonly<Partial<Record<RuleId, Json | null>>> | undefined,
+): BattleState {
+  if (!config) return s;
+  const ids = Object.keys(config) as RuleId[];
+  if (ids.length === 0) return s;
+  const next = cloneData(s);
+  const rules: Record<RuleId, Json> = { ...next.rules };
+  for (const id of ids) {
+    const entry = config[id];
+    if (entry === null || entry === undefined) {
+      delete rules[id];
+      continue;
+    }
+    if (!Object.hasOwn(KIT.rules, id)) continue;
+    rules[id] = listRules(next, [id], { [id]: entry })[id] as Json;
+  }
+  if (Object.keys(rules).length === 0) delete next.rules;
+  else next.rules = rules;
+  return next;
 }

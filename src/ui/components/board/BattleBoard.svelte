@@ -13,6 +13,7 @@
     stepsOf,
   } from '../../../app/overlay';
   import type { BoardView } from '../../../app/view';
+  import { dissolvedOn } from '../../districts/bathhouses';
   import BadgeLayer from './BadgeLayer.svelte';
   import FxLayer from './FxLayer.svelte';
   import { boardViewBox, CELL } from './geometry';
@@ -164,7 +165,7 @@
   <MarksLayer {marks} layer="under" />
 
   {#each living as unit (unit.id)}
-    <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} />
+    <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} dissolved={dissolvedOn(view, unit)} />
   {/each}
 
   <JarLayer {view} />

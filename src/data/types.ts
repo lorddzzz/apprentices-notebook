@@ -1,5 +1,5 @@
 import type { UnitTrait } from '$engine/arrival';
-import type { EnemyScript, KitId } from '$engine/districts/types';
+import type { EnemyScript, Json, KitId, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
@@ -549,6 +549,8 @@ export interface ScenarioDef {
   lattices?: Partial<Record<MemberId, string>>; // omitted member → Lab uses profile lattice; tests use none
   hp?: Readonly<Record<string, number>>; // by cell label 'C1'
   intents?: Readonly<Record<string, Dir>>; // by cell label; listed enemies telegraph this dir, others idle
+  /** Board rules this Lab board lists, with their config by rule id (BH-14: the boil-over gauge at a heat). Lab only. */
+  rules?: Readonly<Partial<Record<RuleId, Json>>>;
   demo: readonly Action[];
   expected: readonly string[]; // describeLog of all demo events concatenated
 }

@@ -21,6 +21,7 @@ import {
   parseLattice,
   toGrowingLattice,
 } from '$engine';
+import type { Json, RuleId } from '$engine/districts/types';
 import { BattleSession, type SessionOptions } from './battle.svelte';
 import type { GameStore } from './game.svelte';
 import {
@@ -55,6 +56,7 @@ import {
   toScenarioDef,
   whyNoEdit,
   withKit,
+  withLabRules,
 } from './lab';
 import { forgetView } from './latticeViewport';
 import { editSocket, NO_TOOL, pageSessionKey, type ShelfTool } from './study';
@@ -139,7 +141,8 @@ export class LabStore {
     // A demo replays as authored, with each apprentice's own kit.
     if (opts.demo) this.kits = {};
     const fielded = labSpec(def, { lattices, inventions, lineup: this.lineup, kits: this.kits });
-    const init = createBattle(fielded.spec);
+    const created = createBattle(fielded.spec);
+    const init = { ...created, state: withLabRules(created.state, def.rules) };
     this.starts = fielded.starts;
     this.spotSeed = fielded.spotSeed;
     // The Lab is the workshop: every interaction is named in previews.
@@ -372,6 +375,22 @@ export class LabStore {
     this.checkpoint();
     this.spotSeed = spotSeed;
     this.rebase(next, this.lattices);
+  }
+
+  // ── Board rules (BH-14) ──
+
+  /** The state of a listed rule in the battle in hand, or undefined when it is off. */
+  ruleState(id: RuleId): unknown {
+    const rules = this.session?.state.rules;
+    return rules && Object.hasOwn(rules, id) ? rules[id] : undefined;
+  }
+
+  /** Lists a district's rule at `config` (a new gauge at a new heat), or takes it off with null. Undoable. */
+  setRule(id: RuleId, config: Json | null): void {
+    const session = this.session;
+    if (!session) return;
+    this.checkpoint();
+    this.rebase(withLabRules(session.state, { [id]: config }), this.lattices);
   }
 
   // ── Kits (AH-7) ──
