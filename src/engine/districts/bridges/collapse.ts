@@ -3,8 +3,9 @@ import { type Ctx, emit, ref, withLine, withOrigin } from '../../ctx';
 import { type Coord, sameCoord } from '../../grid';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
 import { coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
-import type { BattleState, Origin, Unit } from '../../types';
-import { resists } from './rightOfWay';
+import type { BattleState, EnemyUnit, Origin, Unit } from '../../types';
+import { epilogueFall } from './heart';
+import { hasRightOfWay, resists } from './rightOfWay';
 import { cracksOf } from './support';
 import {
   type BridgesState,
@@ -96,10 +97,47 @@ function landingFor(
   return best;
 }
 
+/** Epilogues asked for while a collapse step is still looping: run once it has finished (P7). */
+const stepping = new WeakSet<Ctx>();
+const deferred = new Map<Ctx, EnemyUnit>();
+
+/** The chief's death calls this: now, or after the collapse step in progress (no stale tiles). */
+export function whenCollapseDone(ctx: Ctx, chief: EnemyUnit, run: () => void): void {
+  if (!stepping.has(ctx)) run();
+  else deferred.set(ctx, chief);
+}
+
 export function collapseStep(ctx: Ctx, own: BridgesState): BridgesState {
+  stepping.add(ctx);
+  try {
+    return collapseOnce(ctx, own);
+  } finally {
+    stepping.delete(ctx);
+    const chief = deferred.get(ctx);
+    if (chief) {
+      deferred.delete(ctx);
+      epilogueFall(ctx, chief);
+    }
+  }
+}
+
+function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
   const state = parseBridges(own);
-  const falling = fallingTiles(ctx.s, state);
+  let falling = fallingTiles(ctx.s, state);
   if (!falling.length) return state;
+  // P17: right of way means he never falls; with nowhere to be set down, his tile stays standing.
+  const spared = new Set<string>();
+  const allKeys = new Set(falling.map(key));
+  for (const { unit, at } of fallersOn(ctx.s, falling)) {
+    if (hasRightOfWay(ctx.s, unit) && !landingFor(ctx.s, at, allKeys, unit.id)) spared.add(key(at));
+  }
+  if (spared.size) {
+    falling = falling.filter((c) => !spared.has(key(c)));
+    for (const u of ctx.s.units) {
+      if (isAlive(u) && spared.has(key(u.pos))) resists(ctx, u, 'fall');
+    }
+    if (!falling.length) return state;
+  }
   const keys = new Set(falling.map(key));
   const origins = new Map(falling.map((f) => [key(f), originAt(f, falling, state.cuts)]));
   const fallers = fallersOn(ctx.s, falling);

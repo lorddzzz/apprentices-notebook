@@ -18,6 +18,7 @@ import {
 import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit } from '../../types';
 import type { BoardRule, FoeBehaviour, KitId, ScriptStep } from '../types';
+import { whenCollapseDone } from './collapse';
 import { chalkAim, WARDEN_FOE } from './foes';
 import { crackedSet } from './preview';
 import { grantRightOfWay, RIGHT_OF_WAY_RULE } from './rightOfWay';
@@ -202,5 +203,5 @@ export const CHIEF_FOE: FoeBehaviour = {
   id: CHIEF_BEHAVIOUR,
   plan: () => null,
   resolve: () => {},
-  onDeath: (ctx, e) => epilogueFall(ctx, e),
+  onDeath: (ctx, e) => whenCollapseDone(ctx, e, () => epilogueFall(ctx, e)),
 };

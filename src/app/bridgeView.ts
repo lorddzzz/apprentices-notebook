@@ -170,6 +170,7 @@ export function projectBridge(v: BoardView, e: DistrictEvent): void {
         t.drop = true;
         // The engine clears whatever was set into a falling tile (a Lay'd layer, BR-17).
         t.state = null;
+        t.jar = null; // so does a jar sealed there (and, unseen, heat)
         t.rounds = 0;
         t.hits = 0;
       }

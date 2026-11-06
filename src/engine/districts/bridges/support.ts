@@ -42,6 +42,12 @@ export function scanBridges(s: BattleState): BridgesState {
   return out;
 }
 
+/** Cheap: does this fight carry the collapse rule or any span piece? Others skip the scan. */
+function carriesBridges(s: BattleState): boolean {
+  if (s.rules && Object.hasOwn(s.rules, COLLAPSE_RULE_ID)) return true;
+  return s.tiles.some((t) => t.piece?.id === SPAN_PIECE);
+}
+
 /** The rule's state if the fight carries it, else read from the pieces' own data. */
 function liveState(s: BattleState): BridgesState {
   const own = s.rules?.[COLLAPSE_RULE_ID];
@@ -69,7 +75,9 @@ export function supportedTiles(s: BattleState, own: BridgesState = liveState(s))
 }
 
 /** Every span tile that is broken or cut off from every pier, in reading order. */
-export function cracksOf(s: BattleState, own: BridgesState = liveState(s)): Coord[] {
+export function cracksOf(s: BattleState, own?: BridgesState): Coord[] {
+  if (!own && !carriesBridges(s)) return [];
+  own ??= liveState(s);
   const held = new Set(supportedTiles(s, own).map((c) => tileKey(c.x, c.y)));
   const out: Coord[] = [];
   s.tiles.forEach((_, i) => {
