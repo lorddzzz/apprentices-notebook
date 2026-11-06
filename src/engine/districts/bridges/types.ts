@@ -162,13 +162,20 @@ const footing = (id: PieceId, token: string, triggers: PieceTriggers = {}): Piec
 
 export const SPAN_DEF: PieceDef<SpanData> = {
   ...footing(SPAN_PIECE, 'span', WEARS),
+  // BR-16 (P20): on the Bench once the household has met a span.
+  palette: { label: 'Span', lab: true },
+  bench: { met: 'span', label: 'Span' },
   data: {
     init: { stone: BRIDGE_TUNING.stone.sound },
     parse: (s) => (/^[1-9]$/.test(s) ? { stone: Number(s) } : null),
     write: (d) => String(d.stone),
   },
 };
-export const PIER_DEF: PieceDef = footing(PIER_PIECE, 'pier');
+export const PIER_DEF: PieceDef = {
+  ...footing(PIER_PIECE, 'pier'),
+  palette: { label: 'Pier', lab: true },
+  bench: { met: 'pier', label: 'Pier' },
+};
 export const KEYSTONE_DEF: PieceDef<KeystoneData> = {
   ...footing(KEYSTONE_PIECE, 'keystone', WEARS),
   data: {
