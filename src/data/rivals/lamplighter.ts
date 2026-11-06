@@ -80,6 +80,6 @@ export const LAMPLIGHTER_WICK: VariantDef = {
   id: 'lamplighter:wick',
   subject: 'jar',
   slot: { line: 'jar:unit', level: 1 },
-  text: 'The wick does not care who lit it: a jar you sealed can be opened by anyone, foe or rival included, and what it holds still counts as yours.',
+  text: 'The wick does not care who lit it. A careful boot finds a jar as well as a careless one, mine included, and the light is still yours.',
   rival: 'lamplighter',
 };
