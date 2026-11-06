@@ -14,7 +14,7 @@
     deutan: '0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0',
     tritan: '1.256 -0.077 -0.179 0 0  -0.078 0.931 0.148 0 0  0.005 0.691 0.304 0 0  0 0 0 1 0',
   };
-  const filter = $derived(
+  const stageFilter = $derived(
     mode === 'none' ? 'none' : mode === 'grayscale' ? 'grayscale(1)' : `url(#tone-${mode})`,
   );
 
@@ -46,7 +46,7 @@
       </filter>
     {/each}
   </svg>
-  <div class="stage" style:filter data-testid="tone-stage" data-mode={mode}>
+  <div class="stage" style:filter={stageFilter} data-testid="tone-stage" data-mode={mode}>
     <svg width={CELL * 6} height={CELL * 3} viewBox="0 0 {CELL * 6} {CELL * 3}" aria-label="Tones at 47px">
       {#each TONES as tone, i (tone)}
         <rect x={i * 2 * CELL} y="0" width={CELL * 2} height={CELL * 3} fill="var(--tile)" />
