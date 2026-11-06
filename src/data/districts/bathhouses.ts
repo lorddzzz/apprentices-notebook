@@ -1,3 +1,4 @@
+import type { RecruitPages, RecruitPlacement } from '../recruits';
 import type {
   AttackDef,
   EncounterVariant,
@@ -394,6 +395,31 @@ export const TOWEL_BEARER_SPOT = { x: 6, y: 4 } as const;
 export const LANDMARK_MOSAIC =
   'A mosaic along the pool: bathers in a line, and one in a towel who holds the rest above the water.';
 
+/**
+ * BH-15 (party.md section 2, RC's P8): the towel-bearer's card sits in room 3 (0-based 2), whichever
+ * layout the seed picks, hidden until RC says she is ready (an Areas page owned or picked this trip).
+ * Rooms 1-2 guarantee one Areas page while the household lacks all three; `any` makes RC pick the
+ * first of the school (Vat), the same card the district's own `AREAS_GUARANTEE` asks for, so the
+ * two never add up to two cards.
+ */
+export const TOWEL_BEARER_PLACEMENT: readonly RecruitPlacement[] = [
+  { apprentice: 'towelBearer', room: 2 },
+];
+export const TOWEL_BEARER_PAGES: readonly RecruitPages[] = [
+  { for: 'towelBearer', any: AREAS_RUNES, rooms: AREAS_GUARANTEE_ROOMS },
+];
+/** What BH-18 merges into `BATHHOUSES_KIT` when the district opens (`recruit`, `recruitPages`). */
+export const BATH_RECRUIT_KIT = {
+  recruit: TOWEL_BEARER_PLACEMENT,
+  recruitPages: TOWEL_BEARER_PAGES,
+} as const;
+/** Her card copy in room 3 (the recruit card shows the registry's blurb; this is the district's own line). */
+export const TOWEL_BEARER_CARD = {
+  title: 'Towel-bearer',
+  blurb:
+    'Big, calm and steam-soaked. She holds the cloud while foes boil in it, and the boil-over skips her.',
+} as const;
+
 const BATH_3: readonly EncounterVariant[] = [
   {
     name: 'The frigidarium',
@@ -733,6 +759,9 @@ export const BATH_INTRUSION: import('./index').IntrusionSpec = {
 
 // The kit above is built before these constants exist; fill in only the fields the block owns. The
 // district stays `gate: 'drawing'` and has no rooms listed, so none of it is reachable yet (BH-18).
+// `recruit` and `recruitPages` (`BATH_RECRUIT_KIT`, BH-15) are not wired either: RC's integrity check
+// wants a placed district to be open with real rooms, so BH-18 adds `...BATH_RECRUIT_KIT` with them
+// (until then the Seam, which guarantees nothing for an unplaced recruit, rolls as before).
 // `intrusion` is not wired: the lower Seam's floor check wants a piece or a rule-read terrain, and no
 // piece-scoped rule reads the vent (see BH-11's report); BH-18 sets `intrusion: BATH_INTRUSION`.
 Object.assign(BATHHOUSES_KIT, {
