@@ -175,9 +175,8 @@ export function boilOverStep(ctx: Ctx, own: BoilOverState): BoilOverState {
 const pips = (q: number): number => Math.floor(q / QUARTERS);
 
 /**
- * P4: the meter (whole pips now, next round's level as its `forecast`, `danger` when it boils; a
- * second meter for next round's level until DK-13 draws the forecast tick), then
- * when it boils a warn tone on every cloud tile and a pulse on each member it would hurt.
+ * P4: the meter (whole pips now, next round's level as its `forecast`, `danger` when it boils),
+ * then when it boils a warn tone on every cloud tile and a pulse on each member it would hurt.
  */
 export function boilOverPreview(s: BattleState, own: BoilOverState): PreviewShape[] {
   const f = forecastBoilOver(s, own);
@@ -191,7 +190,6 @@ export function boilOverPreview(s: BattleState, own: BoilOverState): PreviewShap
       forecast: pips(f.forecast),
       danger: f.boils,
     },
-    { kind: 'meter', label: 'Next round', value: pips(f.forecast), max },
   ];
   if (!f.boils) return out;
   for (const at of f.tiles) out.push({ kind: 'tile', at, tone: 'warn' });

@@ -45,6 +45,8 @@
   // The rules' gauges are always on; the rest of "Next round" shows on request.
   const shapes = $derived(rulePreview(battle).flatMap((r) => [...r.shapes]));
   const meters = $derived(shapes.flatMap((sh) => (sh.kind === 'meter' ? [sh] : [])));
+  // A gauge that spills over next round shows its warn tiles and harm rings unasked (BH-12).
+  const danger = $derived(meters.some((m) => m.danger));
   const hasNext = $derived(
     view.tiles.some((t) => t.water) ||
       shapes.some((sh) => sh.kind !== 'meter') ||
@@ -94,14 +96,14 @@
       fx={session.fx}
       fxKey={session.fxKey}
       minimal={busy}
-      {showNext}
+      showNext={showNext || danger}
       ontap={(at) => session.tapCell(at)}
       onhold={(at) => session.holdCell(at)}
     />
     {#if meters.length > 0}
       <div class="meters">
         {#each meters as m, i (i)}
-          <RuleMeter label={m.label} value={m.value} max={m.max} />
+          <RuleMeter label={m.label} value={m.value} max={m.max} forecast={m.forecast} danger={m.danger} />
         {/each}
       </div>
     {/if}

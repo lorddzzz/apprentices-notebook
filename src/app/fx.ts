@@ -11,6 +11,7 @@ import {
   isDistrictEvent,
   step,
 } from '$engine';
+import { boilOverTiles } from './describe';
 import type { BoardView } from './view';
 
 export type Tone =
@@ -37,6 +38,7 @@ export type Fx =
   | { kind: 'pulse'; at: Coord; tone: Tone } // cast, detonate, coat
   | { kind: 'moor'; at: Coord } // CN-10: a crate made fast to its mooring
   | { kind: 'ruin'; at: Coord } // CN-10: a crate ruined, cargo lost
+  | { kind: 'boil'; cells: Coord[] } // BH-12: the house boils over, steam rolls over every cloud tile
   | { kind: 'banner'; text: string }; // "Your turn", "Round 3"
 
 export const COMPOUND_TONE: Record<CompoundId, Tone> = {
@@ -327,7 +329,10 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       return [];
     default: {
       // A district event: its own animation is the district's UI (`eventAnim`), not a core fx.
-      if (isDistrictEvent(e)) return [];
+      if (isDistrictEvent(e)) {
+        const cells = boilOverTiles(e);
+        return cells.length > 0 ? [{ kind: 'boil', cells }] : [];
+      }
       const unhandled: never = e;
       void unhandled;
       return [];

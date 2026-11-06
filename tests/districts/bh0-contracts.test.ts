@@ -35,7 +35,7 @@ describe('BH-0 registration', () => {
     expect(d.rooms).toEqual([]);
     expect(PLAYABLE_DISTRICTS).not.toContain('bathhouses');
     expect(KIT.modules.bathhouses?.id).toBe('bathhouses');
-    expect(DISTRICT_UI.bathhouses).toEqual({});
+    expect(DISTRICT_UI.bathhouses).toBeDefined(); // BH-12 registers the gauge banner
   });
 
   test("inert but for BH-1's rule, BH-4/5's foes, the guards and BH-8's steps: no pieces; lines, the shape and the cause", () => {

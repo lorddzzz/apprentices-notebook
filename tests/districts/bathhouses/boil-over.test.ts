@@ -266,12 +266,10 @@ describe('forecast and preview (P4)', () => {
     const calm = bath('D ~ ~', 1, 9);
     expect(rulePreview(calm).find((p) => p.rule === ID)?.shapes).toEqual([
       { kind: 'meter', label: 'Pressure', value: 2, max: 12, forecast: 3, danger: false },
-      { kind: 'meter', label: 'Next round', value: 3, max: 12 },
     ]);
     const hot = bath('D~ r~ .', 1, 46);
     expect(rulePreview(hot).find((p) => p.rule === ID)?.shapes).toEqual([
       { kind: 'meter', label: 'Pressure', value: 11, max: 12, forecast: 12, danger: true },
-      { kind: 'meter', label: 'Next round', value: 12, max: 12 },
       { kind: 'tile', at: at('A1'), tone: 'warn' },
       { kind: 'tile', at: at('B1'), tone: 'warn' },
       { kind: 'pulse', at: at('A1') },

@@ -60,6 +60,7 @@ import {
   witnessedIn,
 } from '$engine';
 import { behaviourVerb } from '$engine/behaviours';
+import { boilOverState, forecastBoilOver } from '$engine/districts/bathhouses/boilOver';
 import { KIT } from '$engine/districts/kit';
 import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
 import { dryStrikeIntent, rivalDefOf, rivalVerb, trickOf } from '$engine/rivals/resolve';
@@ -803,4 +804,54 @@ export function rivalSheet(
         ? `${def.name} ${intentPhrase(s, e)}.`
         : `${def.name} is waiting.`;
   return { name: def.name, hp: e.hp, maxHp: e.maxHp, blurb: def.blurb, spells, trick, plan };
+}
+
+// ── The bathhouses' gauge (BH-12) ───────────────────────
+
+/** What the boil-over gauge says about the next round end, in words; null when the rule is off the board. */
+export interface GaugeLine {
+  /** The warning banner's text when it boils, else the quiet reading ("Steam 5 of 12, rising to 7"). */
+  text: string;
+  boils: boolean;
+  /** Party members it would storm, by name (the harm ring's units). */
+  harm: string[];
+}
+
+/** "Ada and Bo", "Ada, Bo and Cy". */
+const nameList = (names: readonly string[]): string =>
+  names.length <= 2
+    ? names.join(' and ')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
+export function gaugeLine(s: BattleState): GaugeLine | null {
+  const own = boilOverState(s);
+  if (!own) return null;
+  const f = forecastBoilOver(s, own);
+  const pips = (q: number) => Math.floor(q / 4);
+  const harm = f.harm.flatMap((id) => findUnit(s, id)?.name ?? []);
+  if (f.boils) {
+    const text =
+      harm.length > 0
+        ? `The house boils over at round end: ${nameList(harm)} will be stormed for 2`
+        : 'The house boils over at round end (none of yours stand in the steam)';
+    return { text, boils: true, harm };
+  }
+  const now = pips(f.value);
+  const next = pips(f.forecast);
+  const of = pips(f.capacity);
+  return {
+    text: next > now ? `Steam ${now} of ${of}, rising to ${next}` : `Steam ${now} of ${of}`,
+    boils: false,
+    harm,
+  };
+}
+
+/** The tiles a `bathhouses:boilOver` event stormed; empty for any other event or a malformed one. */
+export function boilOverTiles(e: { type: string; data?: unknown }): Coord[] {
+  if (e.type !== 'bathhouses:boilOver') return [];
+  const tiles = (e.data as { tiles?: unknown } | undefined)?.tiles;
+  if (!Array.isArray(tiles)) return [];
+  return tiles.flatMap((t) =>
+    t && typeof t.x === 'number' && typeof t.y === 'number' ? [{ x: t.x, y: t.y }] : [],
+  );
 }

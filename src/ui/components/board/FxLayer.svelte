@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte';
   import type { Fx } from '../../../app/fx';
+  import { BoilFx } from '../../districts/bathhouses';
   import { MoorFx, RuinFx } from '../../districts/canals';
   import { cellCenter, cellOrigin, pointsAttr, zigzag } from './geometry';
   import { TONE_COLOR } from './tones';
@@ -118,6 +119,8 @@
         <MoorFx at={f.at} />
       {:else if f.kind === 'ruin'}
         <RuinFx at={f.at} />
+      {:else if f.kind === 'boil'}
+        <BoilFx cells={f.cells} />
       {:else if f.kind === 'banner'}
         <g class="banner">
           <rect x={width * 50 - bannerW / 2} y={height * 50 - 40} width={bannerW} height="80" rx="10" />

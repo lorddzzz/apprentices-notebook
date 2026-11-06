@@ -83,7 +83,7 @@ export function durationOf(e: GameEvent): number {
     case 'pageRecovered':
       return STEP_MS.short;
     default: {
-      if (isDistrictEvent(e)) return STEP_MS.short;
+      if (isDistrictEvent(e)) return e.type === 'bathhouses:boilOver' ? STEP_MS.big : STEP_MS.short;
       const unhandled: never = e;
       void unhandled;
       return STEP_MS.short;
