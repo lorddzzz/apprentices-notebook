@@ -102,7 +102,13 @@ describe('the trial scene', () => {
     const s = hall(wet, true);
     expect(rivalOf(s).intent).toMatchObject({ kind: 'trick', trick: STEWARD_TRICK_ID });
     const r = endTurn(s);
-    expectLogIncludes(r.events, ['Bath-Steward at B2 uses the Steward']);
+    expectLogIncludes(r.events, [
+      'Bath-Steward at B2 uses the Steward',
+      'the Steward stokes the house (+4)',
+    ]);
+    const lines = describeLog(r.events);
+    expect(lines).not.toContain('sets something aside');
+    expect(lines).not.toContain('object is gone');
     // One in cloud is not enough, nor is a board with no gauge.
     const one = hall('. . . . . . .\n. H~ D~ S . . .\n. . . . . . .', true);
     expect(rivalOf(one).intent).toMatchObject({ kind: 'cast' });

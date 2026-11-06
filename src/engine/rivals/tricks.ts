@@ -131,7 +131,16 @@ export const isTrickEvent = (e: GameEvent, name?: TrickEventName): boolean =>
     : /:trick(Resists|Mark|MarkUsed|Object|ObjectGone)$/.test(e.type));
 
 /** A trick object made counts as an effect (P3), as a sealed jar does. */
-export const isTrickEffect = (e: GameEvent): boolean => isTrickEvent(e, 'trickObject');
+export const isTrickEffect = (e: GameEvent): boolean =>
+  isTrickEvent(e, 'trickObject') || declaredEffectEvents().has(e.type);
+
+let declared: ReadonlySet<string> | null = null;
+/** Event types tricks declare as effects (`TrickDef.effectEvents`); registered tricks are read each call. */
+function declaredEffectEvents(): ReadonlySet<string> {
+  declared ??= new Set(Object.values(trickTable()).flatMap((t) => t.effectEvents ?? []));
+  if (extra.size === 0) return declared;
+  return new Set([...declared, ...[...extra.values()].flatMap((t) => t.effectEvents ?? [])]);
+}
 
 // ── Objects and locks ───────────────────────────────────
 /** The next battle-unique trick object id: one past the highest any rival has issued. */

@@ -4,7 +4,6 @@ import { who } from '../../events';
 import { byReadingOrder, type Coord, label, sameCoord } from '../../grid';
 import { cloudNet } from '../../networks';
 import { isCloud, isOpen, tileAt, unitAt } from '../../queries';
-import { makeTrickObject, removeTrickObject } from '../../rivals/tricks';
 import type { TrickDef } from '../../rivals/types';
 import type { BattleState, EnemyUnit, Unit } from '../../types';
 import type { DistrictEvent, DistrictEventDef } from '../types';
@@ -52,15 +51,13 @@ function stoke(ctx: Ctx, e: EnemyUnit): boolean {
 export const STEWARD_TRICK: TrickDef<null> = {
   id: STEAMS_AWAY,
   name: 'the Steward',
+  effectEvents: [STOKE],
   init: () => null,
   action: {
     /** Only on a board with the gauge. */
     plan: (s) =>
       s.rules && Object.hasOwn(s.rules, BOIL_OVER_RULE_ID) ? [{ lock: null, data: null }] : [],
     resolve(ctx, unit, _intent, own) {
-      // A stoke changes the gauge and nothing else, so the planner would call it starved (no
-      // effect event): a transient trick object is the one effect an action trick can log.
-      removeTrickObject(ctx, makeTrickObject(ctx, unit, null, null), 'gone');
       stoke(ctx, unit);
       return own;
     },

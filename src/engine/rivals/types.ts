@@ -174,6 +174,8 @@ export type Resistance = 'push' | 'hold' | 'fall';
 export interface TrickDef<S extends Json = Json> {
   id: TrickId;
   name: string;
+  /** District event types (`district:name`) this trick's action logs that count as effects for the planner (not starved). */
+  effectEvents?: readonly string[];
   init(rival: RivalDef): S;
   /** Action trick, telegraphed like a spell (the long wick, the clock writ). */
   action?: {
