@@ -80,10 +80,10 @@ describe('BR-10 rooms 3 and 4', () => {
     ]);
   });
 
-  test('kept out of the live kit: still roomless and drawing, no recruit placed', () => {
-    expect(BRIDGES_KIT.rooms).toEqual([]);
-    expect(BRIDGES_KIT.gate).toEqual({ kind: 'drawing' });
-    expect(BRIDGES_KIT.recruit).toBeUndefined();
+  test('wired into the live kit (BR-R): five rooms, keyed, the Warden placed', () => {
+    expect(BRIDGES_KIT.rooms).toHaveLength(5);
+    expect(BRIDGES_KIT.gate.kind).toBe('key');
+    expect(BRIDGES_KIT.recruit).toEqual([{ apprentice: 'warden', room: 2 }]);
   });
 
   test('names are present and distinct', () => {
@@ -227,8 +227,9 @@ describe('the defector warden at the watchpost', () => {
         profile: p,
         trip: tripAt(p, room),
       });
-    // the live kit does not place her yet (BR-18), so nothing rolls from the registry
-    expect(at(ROOM3).some((i) => i.kind === 'recruit')).toBe(false);
+    // BR-R: the live kit places her, in room 3 only
+    expect(at(ROOM3).some((i) => i.kind === 'recruit')).toBe(true);
+    for (const room of [0, 1, 3, 4]) expect(at(room).some((i) => i.kind === 'recruit')).toBe(false);
   });
 
   test('her card copy', () => {

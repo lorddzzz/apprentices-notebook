@@ -184,6 +184,7 @@ describe('the loot table follows the span (P11)', () => {
         const t = tripOf(save);
         expect(spanOfRoom(t.kit ?? { choices: [] }, room)).toBe(expected[room]);
         for (const o of t.offers) {
+          if (o.kind === 'recruit' || o.kind === 'key') continue; // BR-R: the Warden, the pass
           if (o.kind === 'rune' && o.rune === 'hold') continue; // BR-9: the Hold guarantee, rooms 1-2
           expect(o).toMatchObject({
             kind: 'solvent',
@@ -240,12 +241,12 @@ describe('return is free (P11 `ret: any`)', () => {
 });
 
 describe('trip state reader', () => {
-  test('parseBridgeState stays forgiving; the module keeps the shape and stays drawing', () => {
+  test('parseBridgeState stays forgiving; the module keeps the shape and is keyed', () => {
     expect(parseBridgeState({ spans: ['sound', 'x', 'crumbling'] }).spans).toEqual([
       'sound',
       'crumbling',
     ]);
     expect(KIT.modules.bridges?.trip?.choices).toBeTypeOf('function');
-    expect(BRIDGES_KIT.gate).toEqual({ kind: 'drawing' });
+    expect(BRIDGES_KIT.gate.kind).toBe('key');
   });
 });

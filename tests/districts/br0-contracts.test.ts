@@ -30,12 +30,12 @@ import { board, draft } from '../scenarios/harness';
 
 /** BR-0: the bridges' module is registered and inert; its contracts compile and read strictly. */
 describe('BR-0 registration', () => {
-  test('data, engine and UI modules are registered; the district is still drawing', () => {
+  test('data, engine and UI modules are registered; the district is keyed (BR-R)', () => {
     const d = DISTRICTS.bridges;
-    expect(d.gate).toEqual({ kind: 'drawing' });
-    expect(d.rooms).toEqual([]);
+    expect(d.gate.kind).toBe('key');
+    expect(d.rooms).toHaveLength(5);
     expect(d.lean.lean).toBe('height');
-    expect(PLAYABLE_DISTRICTS).not.toContain('bridges');
+    expect(PLAYABLE_DISTRICTS).toContain('bridges');
     expect(KIT.modules.bridges?.id).toBe('bridges');
     expect(DISTRICT_UI.bridges).toBeDefined();
   });

@@ -22,6 +22,7 @@ import {
   SOLVENTS,
   type StateId,
 } from '$data';
+import { BRIDGES_PASS_CARD } from '$data/districts/bridges';
 import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
 import { INK_TERMS } from '$data/districts/inkQuarter/terms';
 import {
@@ -698,6 +699,7 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         text: 'Somewhere to sit and rewire your lattices before going on.',
       };
     case 'key':
+      if (item.district === 'bridges') return { ...BRIDGES_PASS_CARD };
       return {
         title: `A key to ${DISTRICTS[item.district].name}`,
         text: 'Bring it home and the way opens.',

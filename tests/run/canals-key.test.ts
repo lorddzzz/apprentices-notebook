@@ -65,10 +65,10 @@ afterEach(() => {
 });
 
 describe('the wardens pass (P7)', () => {
-  test('the real gate is room 4 (index 3), guaranteed, and the bridges still use drawing', () => {
+  test('the real gate is room 4 (index 3), guaranteed, and the bridges use it (BR-R)', () => {
     expect(WARDENS_PASS.afterRoom).toBe(3);
     expect(WARDENS_PASS.guaranteed).toBe(true);
-    expect(original?.value.gate.kind).toBe('drawing');
+    expect(original?.value.gate.kind).toBe('key');
   });
 
   test('keyOffer: offered after room 4 only, reported as guaranteed', () => {

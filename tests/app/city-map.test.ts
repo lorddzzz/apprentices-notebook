@@ -124,7 +124,7 @@ describe('the map for seven (DK-16)', () => {
     expect(paths.find((p) => p.id === 'canals')?.open).toBe(true);
     expect(paths.find((p) => p.id === 'inkQuarter')?.open).toBe(true);
     expect(paths.find((p) => p.id === 'bathhouses')?.open).toBe(true);
-    expect(paths.find((p) => p.id === 'bridges')?.open).toBe(false);
+    expect(paths.find((p) => p.id === 'bridges')?.open).toBe(true);
     expect(paths.find((p) => p.id === 'trunk-70')?.open).toBe(true);
     expect(paths.find((p) => p.id === 'trunk-43')?.open).toBe(true);
   });

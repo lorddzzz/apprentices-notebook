@@ -249,6 +249,7 @@ export const PLAYABLE_DISTRICTS: readonly DistrictId[] = [
   'canals',
   'inkQuarter',
   'bathhouses',
+  'bridges',
 ];
 /** The Seam's rooms (the first district's, unchanged). */
 export const ENCOUNTERS: readonly EncounterDef[] = SEAM_KIT.rooms;

@@ -55,7 +55,7 @@ describe('BR-9 rooms 1 and 2', () => {
       'crumbling',
     ]);
     expect(BRIDGES_KIT.edge).toBe('drop');
-    expect(BRIDGES_KIT.gate).toEqual({ kind: 'drawing' });
+    expect(BRIDGES_KIT.gate.kind).toBe('key');
   });
 
   test('names are present and distinct', () => {

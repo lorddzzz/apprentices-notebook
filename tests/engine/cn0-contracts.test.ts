@@ -36,9 +36,9 @@ describe('CN-0 contracts', () => {
     expect(ENEMIES.mother.summon).toEqual({ cap: 4, flareEvery: 3 });
   });
 
-  test('the pass, ledgers and recruit placement are declared; the bridges are not yet keyed', () => {
+  test('the pass, ledgers and recruit placement are declared; the bridges are keyed (BR-R)', () => {
     expect(WARDENS_PASS).toMatchObject({ from: 'canals', afterRoom: 3, guaranteed: true });
-    expect(DISTRICTS.bridges.gate.kind).toBe('drawing');
+    expect(DISTRICTS.bridges.gate.kind).toBe('key');
     expect(CANAL_LEDGERS.map((l) => l.id)).toEqual(
       [1, 2, 3, 4, 5].map((n) => `canals:ledger-${n}`),
     );

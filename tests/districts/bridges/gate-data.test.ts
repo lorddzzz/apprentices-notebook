@@ -13,9 +13,9 @@ import { keyOffer, newProfile, startTrip } from '$engine';
 /** BR-12 data shapes: the gate, the map hint, the pass card, the hearing lines and the lore. */
 
 describe('BR-12 key gate (P14)', () => {
-  test('the bridges still open by drawing; the pass is data the district owns', () => {
-    expect(DISTRICTS.bridges.gate).toEqual({ kind: 'drawing' });
-    expect(PLAYABLE_DISTRICTS).not.toContain('bridges');
+  test('the bridges open by the pass (BR-R); it is data the district owns', () => {
+    expect(DISTRICTS.bridges.gate).toEqual(BRIDGES_PASS_GATE);
+    expect(PLAYABLE_DISTRICTS).toContain('bridges');
     expect(BRIDGES_PASS_GATE).toEqual(WARDENS_PASS);
     expect(BRIDGES_PASS_GATE).toMatchObject({
       kind: 'key',

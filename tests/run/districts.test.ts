@@ -70,7 +70,7 @@ describe('the city this build (P2, P3)', () => {
     const drawn = DISTRICT_IDS.filter(
       (d) => !PLAYABLE_DISTRICTS.includes(d) && !DISTRICTS[d].hearsAs,
     );
-    expect(drawn).toHaveLength(3);
+    expect(drawn).toHaveLength(2);
     for (const d of drawn) {
       const def = DISTRICTS[d];
       expect(def.gate.kind, d).toBe('drawing');

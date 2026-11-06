@@ -564,3 +564,13 @@ export const BRIDGE_HEART: KitRoomDef = {
   ...bridgeRoom('bridges-heart', 'The great arch', 5, BRIDGE_HEART_VARIANTS),
   heart: true,
 };
+
+// ── BR-R: the bridges open ──────────────────────────────────────────────────
+// Rooms 1-4 and the heart, the wardens' pass as the gate (BR-12), and the Warden's placement.
+// The heart's ledger line is the heart room's lore; the rest are span cards, not `papers`.
+Object.assign(BRIDGES_KIT, {
+  rooms: [...BRIDGE_ROOMS_12, ...BRIDGE_ROOMS_34, BRIDGE_HEART],
+  gate: BRIDGES_PASS_GATE,
+  barred: BRIDGES_KEY_HINT,
+  ...BRIDGE_RECRUIT_KIT,
+});
