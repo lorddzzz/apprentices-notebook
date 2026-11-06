@@ -1,6 +1,7 @@
 import { collapseStep, FALL_CAUSE } from './bridges/collapse';
 import { previewCollapse } from './bridges/preview';
 import { scanBridges } from './bridges/support';
+import { BRIDGE_TRIP_HOOKS } from './bridges/trip';
 import {
   BRIDGE_EVENT_TYPES,
   BRIDGE_PIECES,
@@ -51,6 +52,7 @@ const shape: TripShapeDef<BridgeTripState> = {
   id: BRIDGE_SHAPE,
   parseState: parseBridgeState,
   initState: initBridgeState,
+  ...BRIDGE_TRIP_HOOKS,
 };
 
 export const BRIDGES_MODULE: DistrictModule = {

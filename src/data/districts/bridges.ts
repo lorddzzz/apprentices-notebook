@@ -1,4 +1,10 @@
-import { BRIDGE_TABLE_IDS, BRIDGE_TOKENS } from './bridges/types';
+import {
+  BRIDGE_TABLE_IDS,
+  BRIDGE_TOKENS,
+  BRIDGE_TUNING,
+  type BridgeTableId,
+  type SpanKind,
+} from './bridges/types';
 import { WARDENS_PASS } from './canals';
 import type { DistrictData } from './index';
 
@@ -171,3 +177,25 @@ export const BRIDGES_LEDGER: readonly BridgeLedgerLine[] = [
 ];
 
 Object.assign(BRIDGES_KIT, { hear: BRIDGES_HEARING });
+
+// ── BR-7: the span choice (bridges-plan P1, P10, P11) ──
+
+/** P11: the loot table a room offers from, by the span it was reached over (room 1 has none: sound). */
+export const tableForSpan = (kind: SpanKind): BridgeTableId => `bridges:${kind}`;
+
+/** Picks per room, 0-based (placeholder, like the bathhouses'; *tune by playing*). */
+export const BRIDGE_PICKS: readonly number[] = [1, 1, 1, 2, 2];
+
+/**
+ * P10: the layout indices of room `next` that belong to a span kind. Rooms 1–3 hold sound layouts
+ * first, then the crumbling ones; the heart (room 4) has one of each.
+ */
+export function spanVariantPool(next: number, kind: SpanKind): readonly number[] {
+  const n = next >= BRIDGE_TUNING.rooms ? BRIDGE_TUNING.layouts.heart : BRIDGE_TUNING.layouts.mid;
+  const first = kind === 'sound' ? 0 : n.sound;
+  return Array.from({ length: n[kind] }, (_, i) => first + i);
+}
+
+/** P18: the mason's-ledger line on a span card, after room `after` (0-based). */
+export const spanLedger = (after: number, kind: SpanKind): BridgeLedgerLine | undefined =>
+  BRIDGES_LEDGER.find((l) => l.at.kind === 'span' && l.at.after === after && l.at.span === kind);
