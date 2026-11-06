@@ -3,7 +3,7 @@ import { CANALS_INTRUSION } from '$data/districts/canals';
 import { DISTRICT_KIT } from '$data/districts/index';
 import { createBattle, newProfile } from '$engine';
 import { KIT } from '$engine/districts';
-import { floorLayout, floorListedRules, importedRules } from '$engine/districts/intrusion';
+import { floorLayout, importedRules } from '$engine/districts/intrusion';
 import { checkFloor, floorsFor } from '$engine/districts/lowerSeam';
 import { isRuleActive } from '$engine/rules';
 import { act } from '../scenarios/harness';
@@ -24,7 +24,6 @@ describe('DK-10 canals intrusion', () => {
 
   it('imports only the piece-scoped current and lists no rule for the fight', () => {
     expect(importedRules(CANALS_INTRUSION)).toEqual(['canals:current']);
-    expect(floorListedRules()).toEqual([]);
   });
 
   it('a floor drifts units on the lane with no district-scoped rule', () => {

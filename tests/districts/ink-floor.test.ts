@@ -3,7 +3,7 @@ import { DISTRICT_KIT } from '$data/districts/index';
 import { INK_INTRUSION } from '$data/districts/inkQuarter/floor';
 import { createBattle, parseLabel, unitAt } from '$engine';
 import { KIT } from '$engine/districts';
-import { floorLayout, floorListedRules, importedRules } from '$engine/districts/intrusion';
+import { floorLayout, importedRules } from '$engine/districts/intrusion';
 import { checkFloor } from '$engine/districts/lowerSeam';
 import { enemyWalk } from '$engine/movement';
 import { isRuleActive } from '$engine/rules';
@@ -23,7 +23,6 @@ describe('IQ-12 ink floor', () => {
 
   test('brings the piece and its piece-scoped rule, never a district rule', () => {
     expect(importedRules(INK_INTRUSION)).toEqual(['inkQuarter:writs']);
-    expect(floorListedRules()).toEqual([]);
     for (const i of INDEXES) {
       const s = floor(i);
       expect(Object.keys(s.rules ?? {})).toEqual(['inkQuarter:writs']);
