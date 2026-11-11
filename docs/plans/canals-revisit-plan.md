@@ -1,7 +1,7 @@
 # Canals revisit: the canals at the new standard (CN)
 
 > Design: [city-and-districts.md](../design/city-and-districts.md) §5 (the built canals) and **§5b** (this revisit); [party.md](../design/party.md) §0d and §2 (the lamp-pole runaway); [rivals.md](../design/rivals.md) §2 (the Lamplighter); [footnotes.md](../design/footnotes.md) §1 (rival notes, district batches). Roadmap: **BL-124**, with **BL-91** (lamp-mother cadence) and **BL-119** (lock illustration); calibrates for BL-92. Brief: [build-program.md](build-program.md). Prefix **CN**.
-> **State: Drafted (not approved).**
+> **State: Built (playtest CN-P1 open).**
 > Scope: bring the built canals up to the four newer districts: the runaway at the second landing, the Lamplighter rival in room 4 with the wardens' pass, barge cargo in rooms 2 and 4, rooms re-laid at per-room sizes with 4+ start points, the every-round lamp-mother, lamp-ledger lore, the opened-lock map art, Bench parity and **the Timing footnote batch** (Jar, Fuse, Afterglow, Pitch, Wick, plus the Lamplighter's note on Jar).
 
 ## 1. Scope and settled rules

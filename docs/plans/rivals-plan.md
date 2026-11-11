@@ -1,7 +1,7 @@
 # Rivals plan: the rival engine, the Lamplighter and recovered pages
 
 > Design: [rivals.md](../design/rivals.md), [rune-design-final.md](../design/rune-design-final.md) §3, §7, §10, [footnotes.md](../design/footnotes.md) §1 "Rival notes", [city-and-districts.md](../design/city-and-districts.md) §5b. Roadmap: **BL-30**, **BL-118**. Prefix **RV**. Brief: [build-program.md](build-program.md).
-> State: **Drafted (not approved)**.
+> State: Built bar the gate RV-G1; close-out docs owed.
 > Scope: foes that cast real lattices under the shared rune rules, with locked aims, honest telegraphs, the starved-chain fallback and deterministic routines; the canal Lamplighter with the long wick as a Lab prototype behind a **player playtest gate**; the authoring API every district uses for its rival; recovered annotated pages (banking, notebook page, Bench trial copy, witness and credit rules, the rival-note hook, the "pages held" count).
 
 ## 1. Scope and settled rules

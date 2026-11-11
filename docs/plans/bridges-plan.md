@@ -1,7 +1,7 @@
 # The bridges: implementation plan (BR)
 
 Design: [district-bridges.md](../design/district-bridges.md) (all), [city-and-districts.md](../design/city-and-districts.md) §3.2 and §5b, [rune-design-final.md](../design/rune-design-final.md) §4.4, §5.2, §6.2, §6.3, §11, [party.md](../design/party.md) §2 (the defector warden), [rivals.md](../design/rivals.md). Roadmap: **BL-115**. Prefix **BR**. Brief: [build-program.md](build-program.md).
-**State: Drafted (not approved).**
+**State: Built and open on a stand-in heart; BR-19 and BR-20 ready.**
 **Scope:** the arches in the fog as a district module on DK's kit: piers and falls, span choice, four rooms and the heart, drop edges, the wardens' staff, the Chief Warden on the keystone (stand-in first, rival after RV), the Wall hearing, the key gate, mason's-ledger lore, the warden's landmark room, a lower-Seam intrusion, the footnote batch, the Bind *pushed* page, Bench parity and calibration.
 
 ## 1. Scope and settled rules

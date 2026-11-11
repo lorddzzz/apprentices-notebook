@@ -1,7 +1,7 @@
 # The ending: implementation plan (EN)
 
 > Design: [ending.md](../design/ending.md) (all), [district-cartographers.md](../design/district-cartographers.md) §0 ("The ending") and §2, [district-seam.md](../design/district-seam.md) (the sealed door), [party.md](../design/party.md) §1 (habit rules, start points) and §2 (the tenth). Roadmap: **BL-126**. Brief: [build-program.md](build-program.md). Prefix **EN**.
-> **State: Drafted (not approved).**
+> **State: Planned (not started).**
 > Scope: the handover visit and credits, the owner as the tenth apprentice, the drawing table with its pen, drawn districts on the map, and the **room generator** with its guardrails and bot test, plus drawn hearts and loot.
 
 ## 1. Scope and settled rules

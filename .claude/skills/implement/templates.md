@@ -42,13 +42,16 @@ Contract: <types/signatures on main; report problems without changing them>.
 For Wave 0 instead: define <owned contracts> and report interfaces, invariants, and integration risks.
 Done when: <acceptance list>.
 Rules:
-- `pnpm check` green before each commit. Commit at every green checkpoint, staging explicit paths
+- `pnpm check:fast` green before each commit (never the sims in `tests/sim/` unless your task owns
+  them). Commit at every green checkpoint, staging explicit paths
   (never `git add -A`): "<type>(<area>): <ID> <summary>".
 - .svelte files: run the Svelte MCP `svelte-autofixer` until clean. UI: the `verify` skill at 375×812
-  using the `dev-alt` preview (port 5190). Reserve 5173 for the orchestrator; only one UI agent
-  may use 5190 at a time. Use your own browser tab.
+  against your own dev server: `pnpm dev --port <519x> --strictPort` from your worktree, on the port
+  the orchestrator gave you (5190–5193, one per UI agent; the `dev-alt` previews serve the main
+  checkout, not yours). 5173 is the orchestrator's. Use your own browser tab.
 - Don't edit DESIGN.md, TECH.md, docs/design/* or the status file.
 - If you get a message from the orchestrator about scope or usage, follow it at your next step.
+Send your final report once, then stop.
 Report (under ~300 words): what you built, the branch and last commit, test names, screenshot paths (UI),
 what's left undone, and "Proposals": every rule you decided that the plan didn't, one line each with the reason.
 ```

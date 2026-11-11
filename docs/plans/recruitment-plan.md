@@ -1,7 +1,7 @@
 # Recruitment: the seven new apprentices, recruit offers, hidden-until-ready and door arrivals (RC)
 
 > Design: [party.md](../design/party.md) §0b, §0c, §1 ("Hidden until ready", "The household shelf"), §2, with **§0d winning over §0b/§0c**; [city-and-districts.md](../design/city-and-districts.md) §5b (the runaway at the canals' second landing); the "Apprentice(s)" rows of [ink-makers](../design/district-ink-makers.md), [bathhouses](../design/district-bathhouses.md), [bridges](../design/district-bridges.md), [bell foundry](../design/district-bell-foundry.md), [Seam](../design/district-seam.md), [Cartographers](../design/district-cartographers.md). Roadmap: **BL-131** (part of BL-43). Brief: [build-program.md](build-program.md). Prefix **RC**.
-> **State: Drafted (not approved).**
+> **State: Built (playtest open).**
 > Scope: give the seven new apprentices their data, let a district offer "someone joins you" at a landmark room, keep everyone invisible until every precondition holds, guarantee the precondition pages so nobody can be soft-locked, and bring the two door arrivals home with a note under the attic door.
 
 ## 1. Scope and settled rules

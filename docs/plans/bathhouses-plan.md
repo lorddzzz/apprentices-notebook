@@ -1,7 +1,7 @@
 # The bathhouses: boil-over, rising heat and the steam's people (BH)
 
 > Design: [district-bathhouses.md](../design/district-bathhouses.md), with [rune-design-final.md](../design/rune-design-final.md) §4 (clouds, Storm), §5.2 (Areas), §6.3 (Bath salt, Fog jar), §11 (Steam Room); [party.md](../design/party.md) §2 (the towel-bearer); [district-seam.md](../design/district-seam.md) (the chimney and the floor); [footnotes.md](../design/footnotes.md). Roadmap: **BL-114**. Prefix **BH**. Brief: [build-program.md](build-program.md).
-> **State: Drafted (not approved).**
+> **State: Built and open (playtest BH-G1 open).**
 > Scope: the thermae as a district module built on the kit: the boil-over gauge, heat 1–4 with richer offers and the cold plunge, the dissolved bather, the attendant and the boilerman, five fights (four rooms and the heart), a stand-in Bath-Steward until RV's authoring API, the storm-on-3 hearing, the "fill the dome" threshold, the bather's-ledger lore, the towel-bearer's landmark room, the steam-vent floor of the lower Seam, the footnote batch, Bench parity and bot calibration.
 
 ## 1. Scope and settled rules

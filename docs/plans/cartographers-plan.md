@@ -1,7 +1,7 @@
 # The Cartographers' hall: implementation plan
 
 > Design: [district-cartographers.md](../design/district-cartographers.md) (rev. 2026-10-23), [rune-design-final.md](../design/rune-design-final.md) §5.2, §6.2–6.3, §11, [party.md](../design/party.md) §2 (door arrival B), [district-seam.md](../design/district-seam.md) (the sealed door), [rivals.md](../design/rivals.md). Roadmap: **BL-117**. Prefix **CG**. Brief: [build-program.md](build-program.md).
-> **State: Drafted (not approved).**
+> **State: Planned (not started).**
 > Scope: the last district: pencil and ink, drawn-in reinforcements, the guild's hands, free-then-no-return with the doorway checkpoint, the Registrar (stand-in first, rival later), the five-page hearing, the redraft threshold, the academy's lore, its footnote batch, Bench parity and the trigger for the owner's sealed door.
 
 ## 1. Scope and settled rules

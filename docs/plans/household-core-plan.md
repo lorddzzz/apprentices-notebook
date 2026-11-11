@@ -1,7 +1,7 @@
 # Household core: open roster, trip slots and start points (HC)
 
 > Design: [party.md](../design/party.md) §0b–§1 (§0d wins over §0b/§0c), [DESIGN.md](../../DESIGN.md) §6.1, §6.2, §6.4. Roadmap: **BL-129** (part of BL-43). Brief: [build-program.md](build-program.md).
-> **State: Drafted (not approved).**
+> **State: Built (playtest open).**
 > Scope: replace the fixed Draughtsman/Stoker pair with an open household of apprentices, clear incompatible saves, pick 1–3 apprentices for a trip on a household shelf in the Study, and play every room (trip, threshold, Lab) with that party on per-room boards whose start points are drawn from the trip seed.
 
 ## 1. Scope and settled rules

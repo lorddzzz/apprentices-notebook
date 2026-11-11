@@ -1,7 +1,7 @@
 # Actions and habits: Pull, Hop, Swap and the seven new habits (AH)
 
 > Design: [party.md](../design/party.md) §1–§2 (§0d wins over §0b/§0c), [rune rules](../design/rune-design-final.md) §3, §4.4, §7, §9. Roadmap: **BL-130** (part of BL-43). Brief: [build-program.md](build-program.md).
-> **State: Drafted (not approved).**
+> **State: Built (playtest open).**
 > Scope: the basic actions Pull, Hop and Swap (Shove exists) with landing previews and arrivals through FD's pipeline, and the seven new habits as generic, data-keyed rules that any apprentice, the Lab or a rival can carry, each previewed, with witnessed fine print and a scenario test.
 
 ## 1. Scope and settled rules

@@ -34,6 +34,8 @@ Choose the least expensive role suited to the task.
 
 Planning uses the explicit High setting above, overriding the Claude Strong default. Use the active runtime's model and reasoning/effort controls. For Codex model overrides, use `fork_turns: "none"` with a standalone prompt. Legacy plan roles Opus/Sonnet/Haiku mean Strong/Medium/Fast. Apply mappings to new spawns; do not restart running agents just to change models.
 
+A project or session rule may lower these defaults (the build program, 2026-11-04: Fast for content and small fixes, Medium for UI and engine, Strong only for exceptionally complex tasks). Playtest gates never block other work, and balance numbers are not tuned mid-build (AGENTS.md): do not accept or reject a task on a win rate.
+
 After two failed reviews, escalate one role with the attempt's branch and review notes. If already Strong, reassess the contract or task split before retrying.
 
 ## Review, merge, record
@@ -42,7 +44,7 @@ After each report:
 
 1. Review the diff against acceptance criteria and test evidence; for UI work, inspect screenshots or use `verify` to obtain them.
 2. Fix small integration issues directly. Return larger corrections to the same agent with the required change and reason.
-3. Squash-merge one task per commit. Run `pnpm check` before committing. Keep unfinished screens unreachable until their integration task. Push after each merge or at least each wave.
+3. Squash-merge one task per commit. Run `pnpm check:fast` before committing; the full `pnpm check` (sims included) runs when a wave or plan finishes and in CI. Keep unfinished screens unreachable until their integration task. Push after each merge or at least each wave.
 4. Include the status update in the merge commit: append the task's row (source branch/commit, usage delta, notes, full Proposals) to `<plan>-log.md`; keep `<plan>-status.md` to state, next actions, open questions and rough edges. Preserve partial-work locations and new risks.
 5. Check usage and start newly unblocked work within the pacing rules.
 

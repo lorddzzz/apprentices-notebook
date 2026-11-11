@@ -1,7 +1,7 @@
 # The district kit: implementation plan
 
 Design: [city-and-districts.md](../design/city-and-districts.md) (§1–§4, §5b) and every district doc: [Seam](../design/district-seam.md), [ink-makers](../design/district-ink-makers.md), [bathhouses](../design/district-bathhouses.md), [bridges](../design/district-bridges.md), [bell foundry](../design/district-bell-foundry.md), [Cartographers](../design/district-cartographers.md) (rev. 2026-10-23). Roadmap: **BL-127** (new), absorbs BL-94, BL-95, BL-102. Brief: [build-program.md](build-program.md). Prefix **DK**.
-**State: Drafted (not approved).**
+**State: Done (all tasks merged; close-out docs owed; refactors KIT-R1–R3 in midpoint-audit.md).**
 **Scope:** one shared framework so the five new districts and the two revisits can be built in parallel, each in its own files; proven by porting the Seam and the canals onto it with no behaviour change. No district content.
 
 ## 1. Scope and settled rules

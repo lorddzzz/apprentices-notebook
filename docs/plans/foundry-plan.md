@@ -1,7 +1,7 @@
 # The bell foundry: implementation plan
 
 Design: [district-bell-foundry.md](../design/district-bell-foundry.md). Also [rune-design-final.md](../design/rune-design-final.md) §4.3–4.4, §5.2, §6.3, §11, [party.md](../design/party.md) §2 (the tuner), [rivals.md](../design/rivals.md), [footnotes.md](../design/footnotes.md). Roadmap: **BL-116**. Prefix **BF**. Brief: [build-program.md](build-program.md).
-**State: Drafted (not approved).**
+**State: Building (BF-0, BF-1, BF-2 merged).**
 **Scope:** the carillon towers as a playable district: sympathetic bells by tone, a peal across the trip, the ringers' staff, four rooms and the heart with the Carillonneur (a scripted stand-in first, the rival once RV's API exists), the far-bell gate, the conducted-burst hearing, the tuner's landmark room, a lower-Seam floor with a pair of bells, and the Resonance footnote batch.
 
 ## 1. Scope and settled rules

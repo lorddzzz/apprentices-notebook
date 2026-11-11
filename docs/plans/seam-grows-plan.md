@@ -1,7 +1,7 @@
 # The Seam grows: implementation plan (SM)
 
 > Design: [district-seam.md](../design/district-seam.md) (all), [district-cartographers.md](../design/district-cartographers.md) §0 (the Seam's truth, the owner's door), [party.md](../design/party.md) §0b and §0d (boards, start points, Seam guarantees), the "Hearing" rows of [ink-makers](../design/district-ink-makers.md), [bathhouses](../design/district-bathhouses.md), [bridges](../design/district-bridges.md), [bell foundry](../design/district-bell-foundry.md) and [city-and-districts.md](../design/city-and-districts.md) §5.3. Roadmap: **BL-125**. Brief: [build-program.md](build-program.md). Prefix **SM**.
-> **State: Drafted (not approved).**
+> **State: Built except SM-15 (verification); SM-6 calibration deferred to the end.**
 > Scope: the Marginalia heart, re-laid base rooms, the five hearing events made reachable with owner's hints, the lower Seam framework with its sealed door, and the answering margins.
 
 ## 1. Scope and settled rules

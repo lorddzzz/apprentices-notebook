@@ -1,7 +1,7 @@
 # Foundations: one arrival pipeline and the engine contracts
 
 > Design: [rune rules](../design/rune-design-final.md) §3–§7, [audit](rune-redesign-audit.md), [party](../design/party.md) §1 and §0d, [districts](../design/city-and-districts.md) §5 (drift details). Roadmap: **BL-128** (groups BL-105, BL-106, BL-107, BL-108, BL-109, BL-112, BL-123). Brief: [build-program.md](build-program.md).
-> State: Drafted (not approved)
+> State: Done (all tasks merged; close-out docs owed, see midpoint-audit.md §1.2).
 > Scope: make movement, delayed effects, the event cap and the event log trustworthy before AH, DK and the district plans build on them.
 
 ## 1. Scope and settled rules
