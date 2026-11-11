@@ -9,7 +9,7 @@ Keep it under about 6 KB. It is the only thing a resuming session reads. Anythin
 
 Plan: [<plan>](<plan>.md). Log: [<plan>-log.md](<plan>-log.md) (not read on resume; `git log --grep '<ID>'` has each task's details).
 
-**State:** building | holding for reset | waiting on player | done
+**State:** building | holding for reset | waiting on player | done · **next window:** design | routine
 **Session rules:** <the player's rules for pacing, models, gates; one line each>
 **Reset:** <readable time>; resume: <scheduled wake-up or manual>
 
@@ -22,11 +22,14 @@ Plan: [<plan>](<plan>.md). Log: [<plan>-log.md](<plan>-log.md) (not read on resu
 |---|---|---|---|---|
 | A | BF-3 → BF-4 → BF-5 | Sonnet | worktree-agent-… @ abc1234 | BF-3 committed; BF-4 in progress |
 
+## Needs design review (left unmerged by a routine window)
+- <pack> @ <branch> — <the question>
+
 ## Owed (declared by a contract, not yet built)
 - <what> — owed by <task>; needed by <task>
 
 ## Close checklist
-- [ ] full gate on main · [ ] full-loop phone check · [ ] code review · [ ] DESIGN §11 / TECH §7 · [ ] plan State + roadmap row · [ ] every task ID accounted for · [ ] CI deployed
+- [ ] full gate on main · [ ] full-loop phone check · [ ] code review · [ ] DESIGN §11 / TECH §7 · [ ] plan State + roadmap row · [ ] ledger clean · [ ] CI deployed
 
 ## Open questions for the player (defaults held)
 ## Rough edges
@@ -74,12 +77,15 @@ Verify:
 - Never run `tests/sim/` unless a task above says so.
 - .svelte files: run the Svelte MCP `svelte-autofixer` until clean. UI: the `verify` skill at 375×812
   against your own server, `pnpm dev --port <519x> --strictPort` from your worktree; your own tab.
+  (Omit this line for a pattern-following UI pack: the orchestrator checks those per wave.)
 
 Rules:
 - Commit at each green task, staging explicit paths (never `git add -A`):
   "<type>(<area>): <ID> <summary>", with a body listing what you built and the test names.
 - Don't edit DESIGN.md, TECH.md, docs/design/*, the roadmap or the status file.
 - Don't tune balance numbers; keep the design's values.
+- Tests marked `it.fails` or `it.todo` with your task's ID are your acceptance: make them pass and
+  remove the marker. If one must change, say so under Proposals.
 - If the orchestrator messages you about scope or usage, follow it at your next step.
 
 Report once, under 250 words, then stop: per task, the commit and the passing test names (paste the
