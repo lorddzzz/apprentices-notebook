@@ -10,6 +10,7 @@ import {
 import { TERMED } from '$engine/districts/inkQuarter/offers';
 import { signTerm, termDef } from '$engine/districts/inkQuarter/terms';
 import { parseInkState, type Term } from '$engine/districts/inkQuarter/types';
+import { runTrip } from '$engine/sim';
 import { returnCheck } from '$engine/trip/ret';
 import {
   endBattle,
@@ -103,62 +104,62 @@ export function inkTrip(
     stranded: false,
     save,
   };
-  for (let guard = 0; guard < 60 && save.trip; guard++) {
-    const t = save.trip;
+  const track = (t: Trip) => {
     run.maxOpen = Math.max(run.maxOpen, openOf(t).length);
-    if (t.status === 'fight') {
-      const open = openOf(t)[0] ?? null;
-      const fight =
+  };
+  const out = runTrip(
+    save,
+    { startBattle, endBattle, takeOffer, leaveDoorway, pushOnward },
+    {
+      step: track,
+      pick: (t) => pickIndex(t, policy),
+      fight: (s, t) =>
         mode === 'skip'
           ? {
               state: {
-                ...forced(startBattle(save).state),
+                ...forced(startBattle(s).state),
                 round: 1 + ((seed * 7 + t.encounter * 5) % 12),
               },
               events: [
                 { type: 'round', round: 1 + ((seed * 7 + t.encounter * 5) % 12) },
               ] as GameEvent[],
             }
-          : botFight(startBattle(save).state, maxRounds);
-      if (fight.state.phase === 'player') {
-        // Out of rounds: a stall counts as a loss in the tables.
+          : botFight(startBattle(s).state, maxRounds),
+      // Out of rounds: a stall counts as a loss in the tables.
+      onStall: (t, state) =>
         run.rooms.push({
           room: t.encounter,
           won: false,
-          rounds: fight.state.round,
-          term: open?.def ?? null,
+          rounds: state.round,
+          term: openOf(t)[0]?.def ?? null,
           settled: null,
+        }),
+      onRoom: (t, state, end) => {
+        const open = openOf(t)[0] ?? null;
+        const won = end.outcome === 'won';
+        const after = end.save.trip;
+        const was = open && after ? termsOf(after).find((x) => x.id === open.id) : null;
+        run.rooms.push({
+          room: t.encounter,
+          won,
+          rounds: state.round,
+          term: open?.def ?? null,
+          settled: won ? (was?.status ?? null) : null,
         });
-        break;
-      }
-      const end = endBattle(save, fight.state, fight.events);
-      const won = end.outcome === 'won';
-      const after = end.save.trip;
-      const was = open && after ? termsOf(after).find((x) => x.id === open.id) : null;
-      run.rooms.push({
-        room: t.encounter,
-        won,
-        rounds: fight.state.round,
-        term: open?.def ?? null,
-        settled: won ? (was?.status ?? null) : null,
-      });
-      save = end.save;
-      if (!won) break;
-    } else if (t.status === 'looting') {
-      const before = termsOf(t).length;
-      const room = t.encounter;
-      save = takeOffer(save, pickIndex(t, policy));
-      if (save.trip && termsOf(save.trip).length > before) {
-        run.signed.push(termsOf(save.trip).at(-1)?.def ?? '');
-        if (room >= 4) run.termAtHeart = true;
-      }
-    } else if (t.status === 'doorway') save = leaveDoorway(save, save.profile);
-    else if (t.status === 'crossroads') save = pushOnward(save);
-    else {
-      run.cleared = t.status === 'cleared';
-      run.stranded = t.status === 'cleared' && !returnCheck(t).ok;
-      break;
-    }
+      },
+      onLoot: (t, after) => {
+        if (after.trip && termsOf(after.trip).length > termsOf(t).length) {
+          run.signed.push(termsOf(after.trip).at(-1)?.def ?? '');
+          if (t.encounter >= 4) run.termAtHeart = true;
+        }
+      },
+    },
+  );
+  save = out.save;
+  const last = save.trip;
+  if (last && out.end === 'cleared') {
+    run.cleared = true;
+    run.stranded = !returnCheck(last).ok;
   }
   run.save = save;
   return run;
