@@ -12,3 +12,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 
 | Time (CET) | 5h % | Weekly % | Action |
 |---|---|---|---|
+| GATE-1 | 7cc4e66 | Sonnet medium | split typecheck, check:changed, sims moved; 0 returns |
