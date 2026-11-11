@@ -17,3 +17,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | KIT-R2 | 3423901 | Sonnet medium | registry slots; logic.ts holds component-free slots; autofixer only run on RoomBonus, Seam/Foundry no Lab scenario; 0 returns |
 | EN-0 | merge of 98a825e | Sonnet medium | src/engine/sim, runTrip injected flow; calibration timeouts raised; 0 returns |
 | IQ-F1, IQ-F2 | 62579fb, 0bd06c3 | Sonnet high | audit §11 + draft; fires tests it.fails until IQ-F3 stamps; 0 returns |
+| SAVE-1 | 2dbbce8 | Haiku high | 10 fixtures, recorded at 89f498b; canal-rooms timeout closed obsolete; 0 returns |
