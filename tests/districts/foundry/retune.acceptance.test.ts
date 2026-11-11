@@ -44,7 +44,7 @@ describe('BF-5 retune and muffle', () => {
     expect(ev(r.events, 'foundry:ring')).toHaveLength(0);
   });
 
-  it.fails('BF-5: a Steam cloud muffles a bell: struck, silent, and no ring at all', () => {
+  it('BF-5: a Steam cloud muffles a bell: struck, silent, and no ring at all', () => {
     const s = withLattices('D . {bell:mid} . {bell:mid}', { draughtsman: 'Bolt> Steam' });
     const r = cast(s, 'draughtsman', 'right');
     expect(struckAt(r.events, 2, 0)).toHaveLength(1);
@@ -53,7 +53,7 @@ describe('BF-5 retune and muffle', () => {
     expect(ev(r.events, 'foundry:ring')).toHaveLength(0);
   });
 
-  it.fails('BF-5: a Storm on a muffled bell bursts, strikes it and stays silent', () => {
+  it('BF-5: a Storm on a muffled bell bursts, strikes it and stays silent', () => {
     const s = withLattices('D . ~{bell:low} . {bell:low}', { draughtsman: 'Bolt> Spark' });
     const r = cast(s, 'draughtsman', 'right');
     expect(r.events.some((e) => e.type === 'burst')).toBe(true);

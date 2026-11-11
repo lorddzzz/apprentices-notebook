@@ -39,7 +39,7 @@ import { rivalAct } from './rivals/resolve';
 import { spawnRival } from './rivals/unit';
 import { deriveSeed } from './rng';
 import { placeParty, START_SALT } from './rooms';
-import { initBroughtRules } from './rules';
+import { initBroughtRules, settleRules } from './rules';
 import { endTurnAction } from './turn';
 import type {
   Action,
@@ -321,6 +321,7 @@ export function applyAction(
   state: BattleState,
   action: Action,
   footnotes: DraftOptions['footnotes'] = {},
+  eventCap?: number,
 ): ActionResult {
   const reason = isLegal(state, action, footnotes);
   if (reason !== null) throw new IllegalActionError(reason);
@@ -331,10 +332,13 @@ export function applyAction(
       if (action.type !== 'move' && action.type !== 'undoMove' && action.type !== 'endTurn') {
         for (const m of members(ctx.s)) m.undo = null;
       }
-      withIdioms(ctx, () => dispatch(ctx, action));
+      withIdioms(ctx, () => {
+        dispatch(ctx, action);
+        settleRules(ctx); // P18 settle point 2: a basic action's strikes, anything left over
+      });
       if (action.type !== 'endTurn') checkEnd(ctx);
     },
-    { footnotes },
+    { footnotes, ...(eventCap === undefined ? {} : { eventCap }) },
   );
 }
 

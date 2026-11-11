@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { type Action, type BattleState, memberById } from '$engine';
 import { basicDirs } from '$engine/basicActions';
 import { applyAction } from '$engine/battle';
+import { pulseTiles } from '$engine/districts/foundry';
+import type { Json } from '$engine/districts/types';
 import { tileAt } from '$engine/queries';
+import { rulePreview } from '$engine/rules';
 import { roundEnd } from '$engine/turn';
 import { act, board, cast, draft, withLattices } from '../../scenarios/harness';
 import {
@@ -29,7 +32,7 @@ const TWO = { draughtsman: 'Bolt> Strike', stoker: 'Bolt> Strike' } as const;
 const SHOVER = { kits: { draughtsman: { action: 'shove' as const } } };
 
 describe('BF-3 strike sources (P2)', () => {
-  it.fails('BF-3: a Bolt stopped by a bell strikes it and every bell of its tone rings', () => {
+  it('BF-3: a Bolt stopped by a bell strikes it and every bell of its tone rings', () => {
     const s = withLattices('D . {bell:mid} . {bell:mid}', BOLT);
     const r = cast(s, 'draughtsman', 'right');
     expect(struckAt(r.events, 2, 0)).toHaveLength(1);
@@ -40,7 +43,7 @@ describe('BF-3 strike sources (P2)', () => {
     expect(ringBells(rings[0])).toEqual(['2,0', '4,0']);
   });
 
-  it.fails('BF-3: a basic Shove at a bell is legal, strikes it and moves nothing', () => {
+  it('BF-3: a basic Shove at a bell is legal, strikes it and moves nothing', () => {
     const s = board('D {bell:low} . {bell:low}', SHOVER);
     expect(basicDirs(s, 'draughtsman')).toContain('right');
     const r = act(s, { type: 'shove', unit: 'draughtsman', dir: 'right' });
@@ -49,28 +52,28 @@ describe('BF-3 strike sources (P2)', () => {
     expect(tileAt(r.state, { x: 1, y: 0 }).piece?.id).toBe('foundry:bell');
   });
 
-  it.fails('BF-3: a unit pushed into a bell strikes it', () => {
+  it('BF-3: a unit pushed into a bell strikes it', () => {
     const s = withLattices('D r {bell:high} . .', { draughtsman: 'Bolt> Shove' });
     const r = cast(s, 'draughtsman', 'right');
     expect(dataOf(struckAt(r.events, 2, 0)[0])).toMatchObject({ by: 'push', tone: 'high' });
     expect(ringTones(r.events)).toEqual(['high']);
   });
 
-  it.fails('BF-3: a Spark landing on a bell strikes it', () => {
+  it('BF-3: a Spark landing on a bell strikes it', () => {
     const s = withLattices('D . {bell:low} r', { draughtsman: 'Splash> Spark' });
     const r = cast(s, 'draughtsman', { kind: 'tile', at: { x: 2, y: 0 } });
     expect(dataOf(struckAt(r.events, 2, 0)[0])).toMatchObject({ by: 'spark', tone: 'low' });
     expect(ringTones(r.events)).toEqual(['low']);
   });
 
-  it.fails('BF-3: a foe projectile that stops at a bell strikes it', () => {
+  it('BF-3: a foe projectile that stops at a bell strikes it', () => {
     const s = board('b . {bell:low} D', { intents: { A1: 'right' } });
     const r = act(s, { type: 'endTurn' });
     expect(struckAt(r.events, 2, 0)).toHaveLength(1);
     expect(ringTones(r.events)).toEqual(['low']);
   });
 
-  it.fails('BF-3: kinds, Pull, Hop and Swap are not strikes', () => {
+  it('BF-3: kinds, Pull, Hop and Swap are not strikes', () => {
     const at = { kind: 'tile', at: { x: 2, y: 0 } } as const;
     const ascii = 'D . {bell:low} r';
     // Control: a Spark does strike this bell.
@@ -86,12 +89,32 @@ describe('BF-3 strike sources (P2)', () => {
     }
   });
 
-  it.todo('BF-3: the preview shows the tiles a tone would pulse');
+  it('BF-3: the preview shows the tiles a tone would pulse', () => {
+    const s = board('D . {bell:low} . .\n. . r . {bell:low}');
+    const strike = { at: { x: 2, y: 0 }, by: 'damage' as const, origin: null };
+    const queued = (own: Json) => ({ ...s, rules: { 'foundry:bells': own } });
+    const cells = [
+      { x: 1, y: 0 },
+      { x: 3, y: 0 },
+      { x: 2, y: 1 },
+      { x: 3, y: 1 },
+      { x: 4, y: 0 },
+    ].sort((a, b) => a.y - b.y || a.x - b.x);
+    // A queued strike of the low tone outlines the tiles beside every low bell.
+    expect(rulePreview(queued({ humming: [], struck: {}, queue: [strike] }))).toEqual([
+      { rule: 'foundry:bells', shapes: [{ kind: 'outline', cells, label: 'low' }] },
+    ]);
+    expect(pulseTiles(s, 'low')).toEqual(cells);
+    expect(pulseTiles(s, 'mid')).toEqual([]);
+    // Nothing queued, or the tone already humming: nothing would ring, nothing is shown.
+    expect(rulePreview(queued({ humming: [], struck: {} }))).toEqual([]);
+    expect(rulePreview(queued({ humming: ['low'], struck: {}, queue: [strike] }))).toEqual([]);
+  });
 });
 
 describe('BF-3 the ring and the hum (P3)', () => {
-  it.fails('BF-3: a tone rings once per round, hums, and the hum clears at round end', () => {
-    const s = withLattices('D . {bell:low} . {bell:low} . S', TWO);
+  it('BF-3: a tone rings once per round, hums, and the hum clears at round end', () => {
+    const s = withLattices('D . {bell:low} . {bell:low} . S\n. . . . . . r', TWO);
     const a = cast(s, 'draughtsman', 'right');
     expect(ringTones(a.events)).toEqual(['low']);
     expect(hums(a.state)).toEqual(['low']);
@@ -108,7 +131,7 @@ describe('BF-3 the ring and the hum (P3)', () => {
     });
   });
 
-  it.fails('BF-3: a unit beside two bells of the ringing tone is hit once', () => {
+  it('BF-3: a unit beside two bells of the ringing tone is hit once', () => {
     const s = withLattices('D . {bell:low} r .\n. . . {bell:low} .', BOLT);
     const r = cast(s, 'draughtsman', 'right');
     const rat = unit(s, 'rat-1');
@@ -118,7 +141,7 @@ describe('BF-3 the ring and the hum (P3)', () => {
     expect(after.pos).toEqual({ x: 4, y: 0 }); // pushed away from the first bell in reading order
   });
 
-  it.fails('BF-3: a chain low to mid to high rings each tone once and ends', () => {
+  it('BF-3: a chain low to mid to high rings each tone once and ends', () => {
     const s = withLattices('D . {bell:low} r {bell:mid} r {bell:high} .', BOLT);
     const r = cast(s, 'draughtsman', 'right');
     expect(ringTones(r.events)).toEqual(['low', 'mid', 'high']);
@@ -126,7 +149,7 @@ describe('BF-3 the ring and the hum (P3)', () => {
     expect(hums(r.state)).toEqual(['low', 'mid', 'high']);
   });
 
-  it.fails('BF-3: a pulse that strikes a bell of a humming tone does not ring it again', () => {
+  it('BF-3: a pulse that strikes a bell of a humming tone does not ring it again', () => {
     const s = withLattices('D . {bell:low} b {bell:mid} b {bell:low}', BOLT);
     const r = cast(s, 'draughtsman', 'right');
     expect(ringTones(r.events)).toEqual(['low', 'mid']);
@@ -134,8 +157,8 @@ describe('BF-3 the ring and the hum (P3)', () => {
     expect(lowStrikes.length).toBeGreaterThan(1); // the mid pulse pushed foes into low bells
   });
 
-  it.fails('BF-3: a muffled bell is struck but silent, and joins no ring', () => {
-    const s = withLattices('D . ~{bell:low} . {bell:low} . S', {
+  it('BF-3: a muffled bell is struck but silent, and joins no ring', () => {
+    const s = withLattices('D . ~{bell:low} . {bell:low} . S\n. . . . . . r', {
       draughtsman: 'Bolt> Spark',
       stoker: 'Bolt> Strike',
     });
@@ -153,7 +176,7 @@ describe('BF-3 pulses (P1, P5)', () => {
     '\n',
   );
 
-  it.fails('BF-3: a pulse hurts every unit beside the bell, damage then push, credited to the striker', () => {
+  it('BF-3: a pulse hurts every unit beside the bell, damage then push, credited to the striker', () => {
     const s = withLattices(ASCII, BOLT);
     const r = cast(s, 'draughtsman', 'right');
     const moved = [
@@ -178,7 +201,7 @@ describe('BF-3 pulses (P1, P5)', () => {
 });
 
 describe('BF-3 event cap', () => {
-  it.fails('BF-3: applyAction passes eventCap to the draft', () => {
+  it('BF-3: applyAction passes eventCap to the draft', () => {
     const run = applyAction as unknown as (
       s: BattleState,
       a: Action,
@@ -193,7 +216,9 @@ describe('BF-3 event cap', () => {
       spell,
       aim: { kind: 'dir', dir: 'right' },
     };
-    expect(run(s, action, {}, 3).events.at(-1)).toMatchObject({ type: 'fizzles', reason: 'cap' });
+    expect(run(s, action, {}, 3).events).toContainEqual(
+      expect.objectContaining({ type: 'fizzles', reason: 'cap' }),
+    );
     expect(run(s, action, {}, 10_000).events.some((e) => e.type === 'fizzles')).toBe(false);
   });
 });

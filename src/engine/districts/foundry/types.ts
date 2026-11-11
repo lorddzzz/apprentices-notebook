@@ -180,13 +180,34 @@ const tones = (v: unknown): Tone[] => {
 };
 
 // ── The bell rule's state (P3, P8) ──────────────────────
+/** A cast's origin as plain JSON, kept with a queued strike so its pulses carry the striker (P5, P18). */
+export type QueuedOrigin = {
+  caster: string;
+  spell: string;
+  cast: number;
+  glyph?: string;
+  glyphAt?: { x: number; y: number };
+};
+/** A strike waiting for the next settle point (P18): the bell's tile, what struck it, who cast it. */
+export type QueuedStrike = {
+  at: { x: number; y: number };
+  by: StruckBy;
+  origin: QueuedOrigin | null;
+};
+
 /**
  * `BattleState.rules['foundry:bells']`.
  * - `humming`: the tones that have rung this round, in tone order; cleared in `late` (P3).
  * - `struck`: tile key → the unit ids that struck that bell this round, in order; cleared in
  *   `late` (P8's once per round, P6's Unison).
+ * - `queue`: strikes not yet settled, in strike order (P18); absent when empty, and empty after
+ *   every settle point.
  */
-export type BellsState = { humming: Tone[]; struck: { [key: string]: string[] } };
+export type BellsState = {
+  humming: Tone[];
+  struck: { [key: string]: string[] };
+  queue?: QueuedStrike[];
+};
 export const initBells = (): BellsState => ({ humming: [], struck: {} });
 
 /** The forgiving reader (kit convention): unknown tones, bad keys and non-strings are dropped. */
@@ -199,7 +220,40 @@ export function parseBells(raw: unknown): BellsState {
     const ids = [...new Set(v.filter((x): x is string => typeof x === 'string'))];
     if (ids.length > 0) struck[k] = ids;
   }
-  return { humming: tones(r.humming), struck };
+  const queue = queued(r.queue);
+  return { humming: tones(r.humming), struck, ...(queue.length > 0 ? { queue } : {}) };
+}
+
+const STRIKES: readonly StruckBy[] = ['damage', 'push', 'spark', 'shove', 'erase', 'draw', 'burst'];
+const coord = (v: unknown): { x: number; y: number } | null => {
+  const r = rec(v);
+  return r && Number.isInteger(r.x) && Number.isInteger(r.y)
+    ? { x: r.x as number, y: r.y as number }
+    : null;
+};
+function queuedOrigin(v: unknown): QueuedOrigin | null {
+  const r = rec(v);
+  if (!r || typeof r.caster !== 'string' || typeof r.spell !== 'string') return null;
+  if (typeof r.cast !== 'number' || !Number.isFinite(r.cast)) return null;
+  const glyphAt = coord(r.glyphAt);
+  return {
+    caster: r.caster,
+    spell: r.spell,
+    cast: r.cast,
+    ...(typeof r.glyph === 'string' ? { glyph: r.glyph } : {}),
+    ...(glyphAt ? { glyphAt } : {}),
+  };
+}
+function queued(v: unknown): QueuedStrike[] {
+  if (!Array.isArray(v)) return [];
+  const out: QueuedStrike[] = [];
+  for (const item of v) {
+    const r = rec(item);
+    const at = coord(r?.at);
+    if (!r || !at || !STRIKES.includes(r.by as StruckBy)) continue;
+    out.push({ at, by: r.by as StruckBy, origin: queuedOrigin(r.origin) });
+  }
+  return out;
 }
 
 // ── The tune (P9) ───────────────────────────────────────

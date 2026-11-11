@@ -77,7 +77,7 @@ describe('BF-2 solidity', () => {
 
   test('a Bolt is stopped by a bell and by a great bell, but passes a rope and a hook', () => {
     for (const piece of ['{bell:mid}', '{greatBell:2}']) {
-      const s = withLattices(`D . ${piece} r`, { draughtsman: 'Bolt> Strike' });
+      const s = withLattices(`D . ${piece} . r`, { draughtsman: 'Bolt> Strike' });
       const r = cast(s, 'draughtsman', 'right');
       expect(r.events.find((e) => e.type === 'stopped')).toMatchObject({ by: 'piece' });
       expect(r.events.some((e) => e.type === 'damage')).toBe(false);

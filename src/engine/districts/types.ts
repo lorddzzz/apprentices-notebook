@@ -99,6 +99,12 @@ export interface BoardRule<S extends Json = Json> {
    * piece or terrain.
    */
   step(ctx: Ctx, own: S): S;
+  /**
+   * Resolves what the rule queued during an action (P18); run by `settleRules` at the settle points
+   * (a cast's end, an action's end, a foe's action, the rule's own round-end step). With nothing
+   * queued it emits nothing and returns `own` unchanged.
+   */
+  settle?(ctx: Ctx, own: S): S;
   preview?(state: BattleState, own: S): readonly PreviewShape[];
   /** Bench/generator palette key: met once a fight ran under the rule (DK-E4). */
   met?: string;

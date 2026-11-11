@@ -43,7 +43,7 @@ const projects = (s: BattleState, r: ActionResult): boolean => {
 const LOW_MID_HIGH = 'D . {bell:low} r {bell:mid} r {bell:high} .';
 
 describe('BF-4 cascade proof', () => {
-  it.fails('BF-4: a ring chain cut at every event index projects to the board it ended on', () => {
+  it('BF-4: a ring chain cut at every event index projects to the board it ended on', () => {
     const s = withLattices(LOW_MID_HIGH, { draughtsman: 'Bolt> Strike' });
     const full = run(s, castRight(s), {}, UNCAPPED);
     expect(ringTones(full.events)).toEqual(['low', 'mid', 'high']);
@@ -54,7 +54,7 @@ describe('BF-4 cascade proof', () => {
     expect(drifting).toEqual([]);
   });
 
-  it.fails('BF-4: random bell nets ring each tone once and never reach the cap', () => {
+  it('BF-4: random bell nets ring each tone once and never reach the cap', () => {
     let rang = 0;
     for (let seed = 1; seed <= 40; seed++) {
       const s = withLattices(net(seed), { draughtsman: 'Bolt> Strike' });
@@ -71,7 +71,7 @@ describe('BF-4 cascade proof', () => {
     expect(rang).toBeGreaterThan(0); // the nets did ring
   });
 
-  it.fails('BF-4: random bell nets project to the final board', () => {
+  it('BF-4: random bell nets project to the final board', () => {
     let pulses = 0;
     for (let seed = 1; seed <= 40; seed++) {
       const s = withLattices(net(seed), { draughtsman: 'Bolt> Strike' });
