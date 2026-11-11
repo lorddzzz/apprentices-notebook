@@ -2,7 +2,6 @@
   import { placeOf, roomsOf } from '$engine';
   import { shapeOf } from '$engine/trip/shape';
   import { inSentence } from '../../app/describe';
-  import { settledTermLine } from '../../app/inkTerms';
   import { game } from '../../app/instance';
   import { paperNote } from '../../app/lootviews';
   import { href } from '../../app/routes';
@@ -10,6 +9,7 @@
   import OfferCard from '../components/trip/OfferCard.svelte';
   import TripStatus from '../components/trip/TripStatus.svelte';
   import { DISTRICT_UI } from '../districts';
+  import { settledTermLine } from '../districts/inkQuarter/terms';
 
   const trip = $derived(game.save.trip);
   let chosen = $state<number | null>(null);

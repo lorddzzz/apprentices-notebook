@@ -3,6 +3,8 @@ import type { DistrictId } from '$data';
 import type { BattleState, Coord, Profile, Trip } from '$engine';
 import type { DistrictEvent, Json, PreviewShape, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
+import type { Fx } from '../../app/fx';
+import type { BoardView, UnitView } from '../../app/view';
 import { BATHHOUSES_UI } from './bathhouses';
 import { BRIDGES_UI } from './bridges';
 import { CANALS_UI } from './canals';
@@ -12,6 +14,8 @@ import { FOUNDRY_UI } from './foundry';
 import { INK_QUARTER_UI } from './inkQuarter';
 import { LOWER_SEAM_UI } from './lowerSeam';
 import { SEAM_UI } from './seam';
+
+export type { DistrictHighlight } from './logic';
 
 /**
  * The district kit's UI registries (P1, P8, P10; DK-12/13/16): art keys from the engine and data
@@ -25,7 +29,29 @@ export interface BannerProps {
   log: readonly GameEvent[];
 }
 
+/** What a foe's token is given (KIT-R2): the unit on the board, its glyph and the view it stands in. */
+export interface UnitArtProps {
+  unit: UnitView;
+  glyph: string;
+  view: BoardView;
+}
+
+/** Where a board layer draws: `under` the tokens, or `badges` above them. */
+export type BoardLayerSlot = 'under' | 'badges';
+
 export interface DistrictUi {
+  /** By foe def id (KIT-R2): draws one foe's token inside a board tile; absent = the default token. */
+  unitArt?: Readonly<Record<string, Component<UnitArtProps>>>;
+  /** By foe def id: the dashed "next round" ghost of a foe that has art of its own. */
+  ghostArt?: Readonly<Record<string, Component>>;
+  /** By `Fx.kind` (KIT-R2): plays one board effect. */
+  fx?: Readonly<Record<string, Component<{ fx: Fx }>>>;
+  /** Drawn over the board (KIT-R2), once under the tokens and once above them: each draws its `layer` or nothing. */
+  boardLayers?: readonly Component<{ view: BoardView; layer: BoardLayerSlot }>[];
+  /** A line under the combat header, from the trip's room and the board in view (the canals' bonus pick). */
+  roomLine?: Component<{ trip: Trip; view: BoardView }>;
+  /** Lines in the trip status (the ink quarter's signed terms). */
+  tripLines?: (trip: Trip) => readonly { text: string; status: string }[];
   /** Lines under the battle header (D5): each draws itself or nothing, from the battle and the trip. */
   banners?: readonly Component<BannerProps>[];
   /** By `PieceDef.art`: draws one piece inside a board tile. */
@@ -152,4 +178,65 @@ export function offerCardFor(
     if (found) return found;
   }
   return undefined;
+}
+
+/** A foe's token art by def id, across every district; undefined = the board's default token (KIT-R2). */
+export function unitArtFor(
+  def: string,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): Component<UnitArtProps> | undefined {
+  for (const d of Object.values(ui)) {
+    const found = d?.unitArt && Object.hasOwn(d.unitArt, def) ? d.unitArt[def] : undefined;
+    if (found) return found;
+  }
+  return undefined;
+}
+
+/** A foe's ghost art by def id; undefined = the generic ghost letter. */
+export function ghostArtFor(
+  def: string,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): Component | undefined {
+  for (const d of Object.values(ui)) {
+    const found = d?.ghostArt && Object.hasOwn(d.ghostArt, def) ? d.ghostArt[def] : undefined;
+    if (found) return found;
+  }
+  return undefined;
+}
+
+/** A board effect's renderer by `Fx.kind`, across every district; undefined = the layer's own. */
+export function fxFor(
+  kind: string,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): Component<{ fx: Fx }> | undefined {
+  for (const d of Object.values(ui)) {
+    const found = d?.fx && Object.hasOwn(d.fx, kind) ? d.fx[kind] : undefined;
+    if (found) return found;
+  }
+  return undefined;
+}
+
+/** Every district's board layers, in registry order. */
+export function boardLayersFor(
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): readonly Component<{ view: BoardView; layer: BoardLayerSlot }>[] {
+  return Object.values(ui).flatMap((d) => d?.boardLayers ?? []);
+}
+
+/** The trip district's room line, if it has one. */
+export function roomLineFor(
+  district: string | undefined,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): Component<{ trip: Trip; view: BoardView }> | undefined {
+  const entry = Object.entries(ui).find(([id]) => id === district);
+  return entry?.[1]?.roomLine;
+}
+
+/** A district's trip-status lines. */
+export function tripLinesFor(
+  trip: Trip,
+  ui: Readonly<Partial<Record<DistrictId, DistrictUi>>> = DISTRICT_UI,
+): readonly { text: string; status: string }[] {
+  const entry = Object.entries(ui).find(([id]) => id === trip.district);
+  return entry?.[1]?.tripLines?.(trip) ?? [];
 }

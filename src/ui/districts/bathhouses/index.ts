@@ -1,6 +1,9 @@
 import type { DistrictUi } from '..';
+import BoilArt from './BoilArt.svelte';
 import BoilBanner from './BoilBanner.svelte';
+import BathArt from './foes/BathArt.svelte';
 import LabHeat from './foes/LabHeat.svelte';
+import { BATH_ART_DEFS } from './foes/view';
 import HeatBadge from './heat/HeatBadge.svelte';
 import HeatNote from './heat/HeatNote.svelte';
 import LootHeat from './heat/LootHeat.svelte';
@@ -14,6 +17,8 @@ import { BATH_OFFER_LABELS } from './heat/view';
  */
 export const BATHHOUSES_UI: DistrictUi = {
   banners: [BoilBanner],
+  unitArt: Object.fromEntries(BATH_ART_DEFS.map((def) => [def, BathArt])),
+  fx: { boil: BoilArt },
   offerCards: { plunge: PlungeCard },
   offerLabels: BATH_OFFER_LABELS,
   tripBadge: HeatBadge,

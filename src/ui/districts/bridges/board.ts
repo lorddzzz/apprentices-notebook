@@ -8,7 +8,7 @@ import {
   tileKey,
 } from '$engine/districts/bridges/types';
 import type { DistrictEvent } from '$engine/districts/types';
-import type { BoardView, TileView } from './view';
+import type { BoardView, TileView } from '../../../app/view';
 
 /**
  * The bridges on a board view (BR-14). The engine keeps the live stone in the collapse rule's

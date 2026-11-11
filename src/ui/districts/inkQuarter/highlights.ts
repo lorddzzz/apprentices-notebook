@@ -4,7 +4,8 @@ import { clockRoundsLeft, openClock } from '$engine/districts/inkQuarter/clock';
 import { ADDRESS_PIECE, FORWARD_PIECE, RETURN_PIECE } from '$engine/districts/inkQuarter/types';
 import { sendBackTarget } from '$engine/districts/inkQuarter/writs';
 import type { Json } from '$engine/districts/types';
-import type { InputMode } from './battleInput';
+import type { InputMode } from '../../../app/battleInput';
+import type { DistrictHighlight } from '../logic';
 
 /**
  * The ink quarter's board marks (IQ-15), as district highlights the board draws through the UI
@@ -13,13 +14,7 @@ import type { InputMode } from './battleInput';
  * addressee when a previewed hit would be forwarded. Pure reads of the battle state.
  */
 
-export type DistrictHighlight = {
-  kind: 'district';
-  key: string;
-  at: Coord;
-  to?: Coord;
-  data?: Json;
-};
+export type { DistrictHighlight };
 
 export const THREAD = 'inkQuarter:thread';
 export const CLOCK_COUNT = 'inkQuarter:clockCount';

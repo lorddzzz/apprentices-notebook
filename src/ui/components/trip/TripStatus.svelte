@@ -1,8 +1,7 @@
 <script lang="ts">
   import { APPRENTICES, MEMBERS } from '$data';
   import { compiledFor, type Profile, roomsOf, type Trip } from '$engine';
-  import { termStatusLines } from '../../../app/inkTerms';
-  import { DISTRICT_UI } from '../../districts';
+  import { DISTRICT_UI, tripLinesFor } from '../../districts';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
@@ -17,7 +16,7 @@
   let { trip, profile, large = false }: Props = $props();
 
   const Badge = $derived(DISTRICT_UI[trip.district]?.tripBadge);
-  const terms = $derived(termStatusLines(trip));
+  const terms = $derived(tripLinesFor(trip));
   const rows = $derived(
     trip.party.map((m) => ({
       id: m,

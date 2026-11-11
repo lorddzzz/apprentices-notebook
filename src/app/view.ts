@@ -27,7 +27,7 @@ import {
   type UnitId,
 } from '$engine';
 import type { Json, OutCause } from '$engine/districts/types';
-import { liveBridges, projectBridge } from './bridgeView';
+import { liveBridges, projectBridge } from '../ui/districts/bridges/board';
 
 /** A state or compound a tile can hold. */
 export type LayerId = StateId | CompoundId;

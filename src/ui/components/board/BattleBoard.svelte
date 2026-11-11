@@ -13,8 +13,7 @@
     stepsOf,
   } from '../../../app/overlay';
   import type { BoardView } from '../../../app/view';
-  import { dissolvedOn } from '../../districts/bathhouses';
-  import { BridgeLayer } from '../../districts/bridges';
+  import { boardLayersFor } from '../../districts';
   import BadgeLayer from './BadgeLayer.svelte';
   import FxLayer from './FxLayer.svelte';
   import { boardViewBox, CELL } from './geometry';
@@ -55,6 +54,9 @@
     ontap,
     onhold,
   }: Props = $props();
+
+  // The districts' own layers (KIT-R2): each draws its `layer` or nothing.
+  const layers = boardLayersFor();
 
   const HOLD_MS = 450;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
@@ -158,7 +160,7 @@
   {/each}
 
   <PieceLayer {cells} />
-  <BridgeLayer {view} layer="under" />
+  {#each layers as Layer, i (i)}<Layer {view} layer="under" />{/each}
   <HighlightLayer highlights={overlay.highlights} />
   {#if next}<RulePreviewLayer shapes={next.shapes} />{/if}
   <StepLayer {steps} layer="under" />
@@ -167,12 +169,12 @@
   <MarksLayer {marks} layer="under" />
 
   {#each living as unit (unit.id)}
-    <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} dissolved={dissolvedOn(view, unit)} />
+    <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} {view} />
   {/each}
 
   <JarLayer {view} />
   <SteamLayer {view} />
-  <BridgeLayer {view} layer="badges" />
+  {#each layers as Layer, i (i)}<Layer {view} layer="badges" />{/each}
   <IntentLayer {intents} {minimal} layer="badges" />
   <StepLayer {steps} layer="badges" />
   <RivalMarks {rivals} layer="badges" />

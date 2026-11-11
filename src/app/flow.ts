@@ -32,9 +32,9 @@ import {
 } from '$engine';
 import { newlyAnswered } from '$engine/margins';
 import { knockAtDoor, someoneJoined } from '$engine/recruits';
+import { termTallies } from '../ui/districts/inkQuarter/terms';
 import { namedTitle } from './describe';
 import { allMasks } from './faircopy';
-import { termTallies } from './inkTerms';
 import type { Route } from './routes';
 import { parseSaveText, type SaveBackend, writeSave } from './save';
 import { editProfile, type ShelfTool, type SocketDecision } from './study';

@@ -1,10 +1,9 @@
 <script lang="ts">
   import { roomsOf, tripParty } from '$engine';
-  import { shapeOf } from '$engine/trip/shape';
   import { game } from '../../app/instance';
   import BattleView from '../components/battle/BattleView.svelte';
   import TopBar from '../components/battle/TopBar.svelte';
-  import { BonusLine } from '../districts/canals';
+  import { roomLineFor } from '../districts';
 
   // The save says "fight"; the live battle is built from it (also after a reload).
   $effect(() => {
@@ -16,16 +15,8 @@
   const slots = $derived(tripParty(game.profile));
   const depth = $derived((game.save.trip?.encounter ?? 0) + 1);
   const rooms = $derived(game.save.trip ? roomsOf(game.save.trip).length : 0);
-  // The room's optional bonus (CN-10): a crate goal reads its state off the board.
-  const bonus = $derived.by(() => {
-    const trip = game.save.trip;
-    return trip ? (shapeOf(trip.district).bonuses?.[trip.encounter] ?? null) : null;
-  });
-  const bonusStatus = $derived.by(() => {
-    const crate = session?.view.units.find((u) => u.def === 'barge');
-    if (!crate || !bonus || !('happens' in bonus.goal)) return 'open';
-    return crate.moored ? 'met' : crate.alive ? 'open' : 'lost';
-  });
+  // A district's line under the header (the canals' bonus pick, CN-10).
+  const RoomLine = $derived(roomLineFor(game.save.trip?.district));
 </script>
 
 {#if session}
@@ -40,7 +31,7 @@
         <TopBar title={session.state.title} round={session.state.round}>
           <span class="depth">Depth {depth} / {rooms}</span>
         </TopBar>
-        {#if bonus}<BonusLine text={bonus.text} status={bonusStatus} />{/if}
+        {#if RoomLine && game.save.trip}<RoomLine trip={game.save.trip} view={session.view} />{/if}
       {/snippet}
     </BattleView>
   {/key}

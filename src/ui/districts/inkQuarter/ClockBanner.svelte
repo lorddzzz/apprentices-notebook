@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clockBanner } from '../../../app/inkClock';
   import type { BannerProps } from '..';
+  import { clockBanner } from './clock';
 
   let { battle, log }: BannerProps = $props();
   const line = $derived(clockBanner(battle, log));

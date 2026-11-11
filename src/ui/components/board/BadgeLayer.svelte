@@ -2,7 +2,7 @@
   import { ENEMIES, MEMBERS } from '$data';
   import type { Coord } from '$engine';
   import type { Badge, Ghost } from '../../../app/overlay';
-  import { CrateToken } from '../../districts/canals';
+  import { ghostArtFor } from '../../districts';
   import { cellCenter, cellOrigin } from './geometry';
 
   const taken = (at: Coord): boolean => occupied.some((o) => o.x === at.x && o.y === at.y);
@@ -26,10 +26,11 @@
 <g pointer-events="none">
   {#each ghosts as g (g.unit)}
     {@const c = cellCenter(g.at)}
-    {#if g.def === 'barge'}
-      <!-- The crate's next tile (CN-10): a ghost crate, not a letter. -->
+    {@const Ghost = ghostArtFor(g.def)}
+    {#if Ghost}
+      <!-- A foe with ghost art of its own (the crate's next tile, CN-10): drawn in its cell, not as a letter. -->
       <g data-state="ghost-crate" transform="translate({cellOrigin(g.at).x} {cellOrigin(g.at).y})">
-        <CrateToken ghost />
+        <Ghost />
       </g>
     {:else if taken(g.at)}
       <!-- A swap lands on a tile that is still occupied: a small ghost in the tile's corner, so both letters read. -->

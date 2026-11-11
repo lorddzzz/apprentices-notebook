@@ -85,7 +85,7 @@ export function cycleStrip(s: BattleState): CycleStrip | null {
   return { items: HAND_KINDS.map((kind) => ({ kind, next: next?.kind === kind })), next, text };
 }
 
-/** A district highlight, as `Overlay` takes it (see `src/app/inkHighlights.ts`). */
+/** A district highlight, as `Overlay` takes it (see `DistrictHighlight`). */
 export interface HandHighlight {
   kind: 'district';
   key: typeof HAND_HIGHLIGHT;

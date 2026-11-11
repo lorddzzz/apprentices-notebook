@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { lootName } from '../../src/app/describe';
+import type { LootItem } from '../../src/engine';
 import {
   openTermLine,
   settledTermLine,
   termLines,
   termStatusLines,
   tripTerms,
-} from '../../src/app/inkTerms';
-import type { LootItem } from '../../src/engine';
+} from '../../src/ui/districts/inkQuarter/terms';
 
 const trip = (terms: unknown[], district = 'inkQuarter') => ({
   district,

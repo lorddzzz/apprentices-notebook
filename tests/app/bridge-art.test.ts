@@ -2,12 +2,12 @@ import { describe, expect, test } from 'vitest';
 import { BRIDGE_ROOMS_12 } from '$data/districts/bridges';
 import { type Action, applyAction, type BattleState, scenarioBattle } from '$engine';
 import { cracksOf } from '$engine/districts/bridges/support';
-import { bridgeArtOf, crackedTiles, hasBridges } from '../../src/app/bridgeView';
 import { fallenTiles } from '../../src/app/describe';
 import { fxFor } from '../../src/app/fx';
 import { BRIDGE_LAB_ROOMS, fallbackLattices } from '../../src/app/lab';
 import { type BoardView, projectWith, viewOf } from '../../src/app/view';
 import { BRIDGES_UI, isBridgeDef } from '../../src/ui/districts/bridges';
+import { bridgeArtOf, crackedTiles, hasBridges } from '../../src/ui/districts/bridges/board';
 import { carryArrow, chalkOf, perimeter } from '../../src/ui/districts/bridges/view';
 
 /** BR-14: the bridges' board art reads the same floor the engine does. */

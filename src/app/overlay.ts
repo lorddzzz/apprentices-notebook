@@ -35,11 +35,10 @@ import { trickFor, trickObjectOf } from '$engine/rivals/tricks';
 import type { ObjectRef, Telegraph, TrickMark, TrickPlan } from '$engine/rivals/types';
 import { jarLocation } from '$engine/rivals/wick';
 import { rulePreview } from '$engine/rules';
-import { handHighlights } from '../ui/districts/seam/hands';
+import { type DistrictHighlight, districtHighlights } from '../ui/districts/logic';
 import { type Footnotes, type InputMode, selectedOf } from './battleInput';
 import { jarContents, rivalReadout, shortName } from './describe';
 import { layerTone, type Tone } from './fx';
-import { type DistrictHighlight, inkHighlights } from './inkHighlights';
 
 /** What the board draws on top of the tiles, derived from the input mode by `overlayFor`. */
 export type Highlight =
@@ -325,8 +324,14 @@ export function overlayFor(
     })),
     focus,
   );
-  highlights.push(...inkHighlights(s, mode, preview ? preview.shown : null));
-  highlights.push(...handHighlights(intentState));
+  highlights.push(
+    ...districtHighlights({
+      state: s,
+      intentState,
+      mode,
+      shown: preview ? preview.shown : null,
+    }),
+  );
   const next = nextRound(intentState);
   const steps = stepsOf(
     intentState.units.map((u) => ({

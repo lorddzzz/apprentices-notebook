@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { bridgeArtOf } from '../../../app/bridgeView';
+  import { bridgeArtOf } from './board';
 
   interface Props {
     data: unknown;

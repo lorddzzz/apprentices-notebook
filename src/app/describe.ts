@@ -22,9 +22,6 @@ import {
   SOLVENTS,
   type StateId,
 } from '$data';
-import { BRIDGES_PASS_CARD } from '$data/districts/bridges';
-import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
-import { INK_TERMS } from '$data/districts/inkQuarter/terms';
 import {
   type Action,
   type Aim,
@@ -62,12 +59,16 @@ import {
   witnessedIn,
 } from '$engine';
 import { behaviourVerb } from '$engine/behaviours';
-import { boilOverState, forecastBoilOver } from '$engine/districts/bathhouses/boilOver';
 import { KIT } from '$engine/districts/kit';
 import { type RivalPreviewDetail, rivalPreview } from '$engine/rivals';
 import { dryStrikeIntent, rivalDefOf, rivalVerb, trickOf } from '$engine/rivals/resolve';
-import type { Telegraph } from '$engine/rivals/types';
 import { jarLocation } from '$engine/rivals/wick';
+import {
+  describeGaugeFor,
+  describeIntentFor,
+  describeLootFor,
+  eventTilesFor,
+} from '../ui/districts/logic';
 import type { InputMode } from './battleInput';
 
 /** UI wording: captions, inspect lines, preview summaries. Plain functions, tested. */
@@ -203,62 +204,15 @@ function rivalPhrase(s: BattleState, e: EnemyUnit): string {
   return bits.join(' · ');
 }
 
-/**
- * The postal staff's telegraphs in words (IQ-16): who is addressed, whose mark moves where, which
- * tile is sealed. Null for any other foe, or when a named unit is gone (the engine's plain line
- * then stands).
- */
-function postalPhrase(s: BattleState, tg: Telegraph): string | null {
-  const named = (i: number): string | null => {
-    const u = tg.units[i] ? findUnit(s, tg.units[i]) : null;
-    return u && u.hp > 0 ? shortName(u) : null;
-  };
-  const tile = tg.tiles[0] ? label(tg.tiles[0]) : '?';
-  switch (tg.label) {
-    case 'deliver': {
-      const to = named(0);
-      return to ? `deliver to ${to} and burst for ${INK_FOE_TUNING.deadLetterBurst}` : null;
-    }
-    case 'forward': {
-      const from = named(0);
-      const to = named(1);
-      return from && to ? `forward the mark on ${from} to ${to}` : null;
-    }
-    case 'file': {
-      const to = named(0);
-      return to ? `file ${to} for ${INK_FOE_TUNING.sorterFile}` : null;
-    }
-    case 'seal':
-      return `seal ${tile} in wax: step off to dodge`;
-    // The stand-in heart's script steps (IQ-18): the writ's tiles read as board labels.
-    case 'serve':
-      return tg.tiles[0] && tg.tiles[1]
-        ? `serve a clock writ: seal ${label(tg.tiles[0])}, stamp ${label(tg.tiles[1])}`
-        : 'serve a clock writ';
-    case 'pen':
-      return `strike with his pen at ${tile}`;
-    case 'stunned':
-      return 'reel, his writ answered';
-    default:
-      return null;
-  }
-}
-
 export function intentPhrase(s: BattleState, e: EnemyUnit): string {
   if (!e.intent) return 'waiting';
   if (e.intent.kind === 'summon')
     return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'flare') return `flares every moth (${ordinal(e.intent.order)})`;
-  if (e.intent.kind === 'step' && e.intent.step.startsWith('inkQuarter:')) {
-    const words = postalPhrase(s, e.intent.telegraph);
-    if (words) return `will ${words} (${ordinal(e.intent.order)})`;
-  }
+  const district = describeIntentFor(s, e);
+  if (district) return district;
   if (e.intent.kind === 'step')
     return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
-  if (e.intent.kind === 'behaviour' && e.intent.id.startsWith('inkQuarter:')) {
-    const words = postalPhrase(s, e.intent.telegraph);
-    if (words) return `will ${words} (${ordinal(e.intent.order)})`;
-  }
   if (e.intent.kind === 'behaviour')
     return `will ${behaviourVerb(e.intent.id, e.intent.telegraph)} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'cast' || e.intent.kind === 'trick') return rivalPhrase(s, e);
@@ -673,6 +627,9 @@ export function methodOfferHeadline(method: MethodId): string {
 
 /** One line for a loot item: name, then what it does. */
 export function lootLine(item: LootItem): { title: string; text: string } {
+  // A district's own kinds (the bridges' pass, the ink quarter's signed term) read from the registry.
+  const district = describeLootFor(item);
+  if (district) return district;
   switch (item.kind) {
     case 'rune':
       return {
@@ -699,7 +656,6 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         text: 'Somewhere to sit and rewire your lattices before going on.',
       };
     case 'key':
-      if (item.district === 'bridges') return { ...BRIDGES_PASS_CARD };
       return {
         title: `A key to ${DISTRICTS[item.district].name}`,
         text: 'Bring it home and the way opens.',
@@ -711,12 +667,6 @@ export function lootLine(item: LootItem): { title: string; text: string } {
         : { title: item.kind, text: '' };
     }
     default: {
-      // A signed term names what it holds; other district kinds' cards come from the registry (DK-12).
-      const data =
-        'data' in item && typeof item.data === 'object' && item.data !== null ? item.data : null;
-      const def = data && 'def' in data ? INK_TERMS.find((t) => t.id === data.def) : undefined;
-      if (item.kind === 'inkQuarter:termed' && def)
-        return { title: `Signed: ${def.text.reward}`, text: `If you ${def.text.condition}.` };
       return { title: item.kind, text: '' };
     }
   }
@@ -832,51 +782,16 @@ export interface GaugeLine {
   harm: string[];
 }
 
-/** "Ada and Bo", "Ada, Bo and Cy". */
-const nameList = (names: readonly string[]): string =>
-  names.length <= 2
-    ? names.join(' and ')
-    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-
 export function gaugeLine(s: BattleState): GaugeLine | null {
-  const own = boilOverState(s);
-  if (!own) return null;
-  const f = forecastBoilOver(s, own);
-  const pips = (q: number) => Math.floor(q / 4);
-  const harm = f.harm.flatMap((id) => findUnit(s, id)?.name ?? []);
-  if (f.boils) {
-    const text =
-      harm.length > 0
-        ? `The house boils over at round end: ${nameList(harm)} will be stormed for 2`
-        : 'The house boils over at round end (none of yours stand in the steam)';
-    return { text, boils: true, harm };
-  }
-  const now = pips(f.value);
-  const next = pips(f.forecast);
-  const of = pips(f.capacity);
-  return {
-    text: next > now ? `Steam ${now} of ${of}, rising to ${next}` : `Steam ${now} of ${of}`,
-    boils: false,
-    harm,
-  };
+  return describeGaugeFor(s);
 }
 
 /** The tiles a `bathhouses:boilOver` event stormed; empty for any other event or a malformed one. */
 export function boilOverTiles(e: { type: string; data?: unknown }): Coord[] {
-  if (e.type !== 'bathhouses:boilOver') return [];
-  const tiles = (e.data as { tiles?: unknown } | undefined)?.tiles;
-  if (!Array.isArray(tiles)) return [];
-  return tiles.flatMap((t) =>
-    t && typeof t.x === 'number' && typeof t.y === 'number' ? [{ x: t.x, y: t.y }] : [],
-  );
+  return e.type === 'bathhouses:boilOver' ? eventTilesFor(e) : [];
 }
 
 /** The tiles a `bridges:collapse` event drops (BR-14); empty for any other event or a malformed one. */
 export function fallenTiles(e: { type: string; data?: unknown }): Coord[] {
-  if (e.type !== 'bridges:collapse') return [];
-  const tiles = (e.data as { tiles?: unknown } | undefined)?.tiles;
-  if (!Array.isArray(tiles)) return [];
-  return tiles.flatMap((t) =>
-    t && typeof t.x === 'number' && typeof t.y === 'number' ? [{ x: t.x, y: t.y }] : [],
-  );
+  return e.type === 'bridges:collapse' ? eventTilesFor(e) : [];
 }

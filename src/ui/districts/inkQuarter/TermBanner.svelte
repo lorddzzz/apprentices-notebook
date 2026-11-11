@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { openTermLine } from '../../../app/inkTerms';
   import type { BannerProps } from '..';
+  import { openTermLine } from './terms';
 
   let { battle, trip }: BannerProps = $props();
   const line = $derived(openTermLine(trip, battle.round));

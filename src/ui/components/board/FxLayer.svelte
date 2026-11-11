@@ -1,9 +1,7 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte';
   import type { Fx } from '../../../app/fx';
-  import { BoilFx } from '../../districts/bathhouses';
-  import { FallFx } from '../../districts/bridges';
-  import { MoorFx, RuinFx } from '../../districts/canals';
+  import { fxFor } from '../../districts';
   import { cellCenter, cellOrigin, pointsAttr, zigzag } from './geometry';
   import { TONE_COLOR } from './tones';
 
@@ -116,14 +114,9 @@
       {:else if f.kind === 'pulse'}
         {@const c = cellCenter(f.at)}
         <circle class="pulse" cx={c.x} cy={c.y} r="30" style:--c={TONE_COLOR[f.tone]} />
-      {:else if f.kind === 'moor'}
-        <MoorFx at={f.at} />
-      {:else if f.kind === 'ruin'}
-        <RuinFx at={f.at} />
-      {:else if f.kind === 'boil'}
-        <BoilFx cells={f.cells} />
-      {:else if f.kind === 'fall'}
-        <FallFx cells={f.cells} />
+      {:else if fxFor(f.kind)}
+        {@const FxArt = fxFor(f.kind)}
+        {#if FxArt}<FxArt fx={f} />{/if}
       {:else if f.kind === 'banner'}
         <g class="banner">
           <rect x={width * 50 - bannerW / 2} y={height * 50 - 40} width={bannerW} height="80" rx="10" />

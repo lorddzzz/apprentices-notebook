@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { termLines } from '../../../app/inkTerms';
   import FallbackCard from '../cards/FallbackCard.svelte';
+  import { termLines } from './terms';
 
   let { item }: { item: unknown } = $props();
 

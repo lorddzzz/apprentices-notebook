@@ -16,6 +16,7 @@ import {
 } from '$engine';
 import type { StartAt } from '$engine/districts/types';
 import { welcome } from '$engine/recruits';
+import { termTallies } from '../ui/districts/inkQuarter/terms';
 import { BattleSession } from './battle.svelte';
 import { chooseWay, setOutAt } from './crossroads';
 import { namedTitle } from './describe';
@@ -33,7 +34,6 @@ import {
   takeOffer,
   type WipeSummary,
 } from './flow';
-import { termTallies } from './inkTerms';
 import { forgetView } from './latticeViewport';
 import { newcomers } from './recruitNotes';
 import { go } from './router.svelte';

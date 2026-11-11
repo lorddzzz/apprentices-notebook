@@ -1,4 +1,7 @@
 import type { DistrictUi } from '..';
+import BridgeArt from './BridgeArt.svelte';
+import BridgeLayer from './BridgeLayer.svelte';
+import FallArt from './FallArt.svelte';
 import KeystonePiece from './KeystonePiece.svelte';
 import LootNote from './LootNote.svelte';
 import { bindEventCard } from './ledger';
@@ -14,7 +17,12 @@ import SpanPiece from './SpanPiece.svelte';
  * board's FxLayer) and the foes' tokens (`BridgeToken`). The "Next round" fall preview is the
  * generic rule preview (`previewCollapse`). BR-15 adds the Crossroads cards, BR-16 the Lab palette.
  */
+export const BRIDGE_ART_DEFS: readonly string[] = ['warden', 'gargoyle', 'mason'];
+
 export const BRIDGES_UI: DistrictUi = {
+  unitArt: Object.fromEntries(BRIDGE_ART_DEFS.map((def) => [def, BridgeArt])),
+  fx: { fall: FallArt },
+  boardLayers: [BridgeLayer],
   pieceArt: {
     'bridges:span': SpanPiece,
     'bridges:pier': PierPiece,
@@ -27,7 +35,6 @@ export const BRIDGES_UI: DistrictUi = {
   offerLabels: { bindEvent: (item) => bindEventCard(item)?.title ?? 'A Bind page' },
 };
 
-export const BRIDGE_ART_DEFS: readonly string[] = ['warden', 'gargoyle', 'mason'];
 export const isBridgeDef = (def: string): boolean => BRIDGE_ART_DEFS.includes(def);
 
 export { default as BridgeLayer } from './BridgeLayer.svelte';

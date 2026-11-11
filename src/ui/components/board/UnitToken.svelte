@@ -1,12 +1,8 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
   import { APPRENTICES, ENEMIES } from '$data';
-  import type { UnitView } from '../../../app/view';
-  import { BathToken, isBathDef } from '../../districts/bathhouses';
-  import { BridgeToken, isBridgeDef } from '../../districts/bridges';
-  import { CrateToken } from '../../districts/canals';
-  import { StaffToken } from '../../districts/inkQuarter';
-  import { handOf, MarginaliaToken } from '../../districts/seam';
+  import type { BoardView, UnitView } from '../../../app/view';
+  import { unitArtFor } from '../../districts';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import { runePath } from './art';
   import { CELL } from './geometry';
@@ -15,11 +11,14 @@
     unit: UnitView;
     selected: boolean;
     dim: boolean;
-    /** A bather standing in a cloud is steam (BH-14): drawn dissolved. */
-    dissolved?: boolean;
+    /** The board the unit stands on: a district's art may read its tile (a bather in a cloud is steam). */
+    view: BoardView;
   }
 
-  let { unit, selected, dim, dissolved = false }: Props = $props();
+  let { unit, selected, dim, view }: Props = $props();
+
+  // A foe a district registered art for (KIT-R2); any other draws the default token below.
+  const Art = $derived(unitArtFor(unit.def));
 
   const glyph = $derived(
     unit.kind === 'member'
@@ -27,7 +26,6 @@
       : ENEMIES[unit.def as keyof typeof ENEMIES].token,
   );
   const apprentice = $derived(unit.kind === 'member' ? APPRENTICES[unit.def as keyof typeof APPRENTICES] : null);
-  const STAFF = ['deadLetter', 'sorter', 'sealer', 'clockSeal', 'letter'];
   const pipText = $derived(unit.maxHp > 8);
   const pipX = $derived(50 - (unit.maxHp * 11 - 3) / 2);
   const CY = 42;
@@ -58,16 +56,8 @@
   {:else if unit.def === 'familiar'}
     <path d="M50 {CY - 32} 82 {CY} 50 {CY + 32} 18 {CY}z" fill="var(--enemy)" stroke="var(--m-ink)" stroke-width="3" stroke-linejoin="round" />
     <text x="50" y={CY + 10} text-anchor="middle" font-size="30" fill="var(--parchment)" font-family="Georgia, serif">{glyph}</text>
-  {:else if unit.def === 'barge'}
-    <CrateToken moored={unit.moored === true} />
-  {:else if unit.def === 'marginalia'}
-    <MarginaliaToken {glyph} next={handOf(unit.intent)} />
-  {:else if isBathDef(unit.def)}
-    <BathToken def={unit.def} {glyph} {dissolved} />
-  {:else if isBridgeDef(unit.def)}
-    <BridgeToken def={unit.def} {glyph} />
-  {:else if STAFF.includes(unit.def)}
-    <StaffToken def={unit.def} {glyph} />
+  {:else if Art}
+    <Art {unit} {glyph} {view} />
   {:else if unit.def === 'eel'}
     <path d="M14 {CY + 6}q9-26 18-6t18 0 18-6 14 4q-6 22-18 14t-18 0-18 6z" fill="var(--m-ink)" stroke="var(--parchment)" stroke-width="3" stroke-linejoin="round" />
     <circle cx="78" cy={CY - 2} r="3.5" fill="var(--parchment)" />

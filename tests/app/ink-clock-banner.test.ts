@@ -8,7 +8,7 @@ import {
 } from '$engine';
 import { clockState } from '$engine/districts/inkQuarter/clock';
 import { intentPhrase } from '../../src/app/describe';
-import { clockBanner } from '../../src/app/inkClock';
+import { clockBanner } from '../../src/ui/districts/inkQuarter/clock';
 
 /** The heart's clock banner words and the stand-in's step phrases (IQ-18). */
 
