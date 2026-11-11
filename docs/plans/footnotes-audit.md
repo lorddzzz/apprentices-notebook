@@ -454,3 +454,92 @@ A new `Meets` value, `cracked`, was added to `data/types.ts` (a span tile that i
 | Q1 | Let `brink:cracked` read the cracked set as the **dusk** will see it ("falls at dusk"), or add a preview so the player can see Brink miss before casting | Br2 is the surprise of the district: the span looks like an edge and is not, until it falls |
 | Q2 | Give Hold's margin a capstone idea built on Ho1 (held units also take the fall as a crush from the cut) | The row is real and the game's cleanest set piece; BR-18 may want it |
 | Q3 | Stamp Lay'd layers lost to a mend or a Mason's pier too (`lay:cracked` fires only at a fall) | Not built: the Mason replaces a fallen tile with fresh stone, nothing to fade |
+
+## 11. Ink Quarter: the Contracts runes and solvents (IQ-F1, P12)
+
+Audited 2026-11-11 against `src/data/lines.ts` and the sites that touch marks, collars and the quarter's pieces: `runes/actions.ts` (`sentence`, `levy`), `runes/flow.ts` (`tallyCount`, `trial`), `resolve.ts` (the `trigger` step), `damage.ts::gainShield`, `marks.ts` (`release`, `spreadFrom`, `spendMark`), `solvents.ts` (`turnBack`, `wax`) and `districts/inkQuarter/` (`writs.ts`, `forward.ts`, `wax.ts`). The quarter's own terrain is not a rune's fine print and gets no row: the writs (return, order, forward and address, the clock's stamp), the Sealer's seal and the terms are pieces and trip rules with their own events and Bench entries. Where one touches a rune, it is listed below.
+
+**Scope of this pass.** IQ-F1 audits Sentence, Levy, Tally, Wax and Sand. Bind and Lift (the quarter's other treasures) were audited in FN-1A (Bi1 to Bi5, Li1) and built in FN-C8/C9; they are not part of this batch. Bi3 (`bind:minion`) and the Bind text rows are still open there.
+
+**Why the new rows are `pending`.** Every new row needs a one-line stamp at an engine site that IQ-F1 does not own (the task owns `lines.ts`, this audit and the tests only). The rows carry final text and `pending: true`, and each `fires` test in `tests/scenarios/footnotes-ink-lines.test.ts` is `it.fails`. IQ-F3 stamps them (sites in the tables), then drops each `pending` flag and each `it.fails`. The `behaviour` tests next to them are green today and prove every claim in this section.
+
+| Subject | Rows before | Rows after |
+|---|---|---|
+| Sentence | 2 (`sentence:unit`, `sentence:noHeading`) | 3 |
+| Levy | 0 | 4 |
+| Tally | 0 | 2 |
+| Wax | 2 (`wax:cloud`, `wax:fire`) | 2 |
+| Sand | 2 (`sand:unit`, `sand:noTarget`) | 2 (one text fix, Sa1) |
+
+No new `Meets` value is needed: `mark`, `unit`, `member`, `shielded`, `collar` and `stamp` exist (`stamp` is the Bench's token for the clock's stamp; here it stands for pieces in general, see Q3).
+
+### Sentence (`sentence:unit`, `sentence:noHeading`, `sentence:mark`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Se1 | A target with no mark has nothing to spend | Bolt > Sentence at an unmarked rat | `actions.ts::sentence` | `sentence:unit` | none: row exists, fires today |
+| Se2 | No heading, no push, and the mark stays | Sentence on a tile with no heading | `sentence` | `sentence:noHeading` | none: row exists |
+| Se3 | The mark is spent **before** the push, whole. A unit that cannot move (held by a seal or by Hold) still loses it, and the action a bound mark held is lost: it is never released (P31), unlike a hit, which releases | Held rat marked, Bolt > Sentence: the rat stays and the mark is gone; a Bind mark on a rat, Sentence: no `released` | `sentence` (`spendMark` before `push`) | `sentence:mark` | **added** (new: the `markSpent` event exists; wrap `spendMark` in `withLine(ctx, 'sentence:mark', …)`) |
+| Se4 | Its push uses the Shove's rules and credits Shove's lines: a crush at the edge fires `shove:edge`, a held unit `shove:held` | Sentence at a marked rat on the last column | `push.ts` | the Shove rows | none: Shove's rows say it |
+| Se5 | A unit pushed **past** a return stamp does not meet it: only the landing tile answers (P2). Landing on it sends the unit back to its start tile of the round, undoing the push | Sentence at a marked rat two tiles from a stamp | `districts/inkQuarter/writs.ts` (`RETURN_ARRIVAL`) | none | none: the stamp's rule and Bench entry (`return`); a Sentence-keyed line would stamp every push, because `inkQuarter:sentBack` carries only the cause (`push`), not the rune |
+| Se6 | Sentence at an empty tile does nothing | Aim on a tile nobody stands on | `sentence` (`unitOf` null) | | none: nothing to read, as Vat's empty tiles |
+| Se7 | A crush into a unit standing on a forwarding stamp: the damage is the stamp's to forward | | `forward.ts` | | none: the stamp's |
+
+### Levy (`levy:unit`, `levy:mark`, `levy:member`, `levy:shielded`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Lv1 | A unit with no mark pays nothing: no shield, no event, no message. Levy over an area passes unmarked units in silence | Bolt > Levy at an unmarked rat | `actions.ts::levy` (`!u?.mark` returns) | `levy:unit` | **added** (new+event: a `miss` as `sentence:unit` does, when the unit exists and has no mark) |
+| Lv2 | Each mark is spent **whole** for one shield: a deep mark (which takes two sparks) pays one, and what a bound mark held is lost, not released | Levy a deep-marked rat: shield 1; Levy a Bind mark: no `released` | `levy` (`spendMark`, `ACTIONS.levyShieldPerMark`) | `levy:mark` | **added** (new: stamp the `markSpent` of a foe's mark) |
+| Lv3 | It takes the marks of **your own party** too, the caster's own included (a Splash puts the caster in the area), and the shield is always the **caster's**, never the bearer's | Bolt > Levy at a marked Stoker: his mark is gone, the Draughtsman has the shield | `levy` | `levy:member` | **added** (new: stamp the `markSpent` of a member's mark; it wins over `levy:mark` for that event, so `levy:mark` is witnessed only on foes) |
+| Lv4 | Levy on a caster who already holds a shield adds to it and keeps the later lapse date, as Guard does | Caster with shield 2 until round 9, Levy a marked rat: shield 3, still until 9 | `damage.ts::gainShield` | `levy:shielded` | **added** (new: stamp the `shieldGained` when `caster.shield > 0`; the rule is `guard:shielded`'s, a Levy decision only in that the shield comes from marks) |
+| Lv5 | The shield lapses when the next player phase begins; an **enemy's** lasts one round longer so it stands for the party's coming turn | `levy-shield-timing.test.ts` | `levy`, `gainShield` | | none: the lapse is one rule for Guard and Levy |
+| Lv6 | The postmaster's clock "collects" every mark at its deadline (3 to the bearer, mark spent): a Levy that spent the marks first leaves nothing to collect | | `districts/inkQuarter/clock.ts` | | none: the clock's counter, not a Levy line |
+
+### Tally (`tally:collar`, `tally:stamp`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Ta1 | A **collar** and a **shackle** each count as one thing, as a mark does: a collared unit alone is one (fails), with a mark it is two (passes), a shackled marked unit too. The headline lists "marks, states, jars" and leaves them out | Bolt > Tally Strike at a collared, marked rat | `flow.ts::tallyCount` | `tally:collar` | **added** (new: `trial` returns `line: 'tally:collar'` when a collar or a shackle was counted; the `triggered` event carries it) |
+| Ta2 | **Pieces are not counted**: a writ, a seal, an address or any piece on the tile is not a state, so a marked unit standing on a stamp is one thing, not two. A plate is a state and does count | Marked rat on a return stamp, Tally: the chain stops; marked rat on a slick: the rest happens | `tallyCount` (reads `tile.state` and `tile.jar`, not `tile.piece`) | `tally:stamp` | **added** (new: `trial` returns `line: 'tally:stamp'` when the target's tile holds a piece; the quarter is where Tally stands on writs) |
+| Ta3 | The count is read from the cast's snapshot: the cast's own Ink or Oil cannot satisfy it | `triggers.test.ts` "own-cast-cannot-satisfy-tally" | `trial`, `seenAt` | | none: the headline says "when the cast began" |
+| Ta4 | A deep mark counts as one mark (two for the notary's habit) | | `tallyCount` | `markTwice:deepMark` | none: the habit's row says it; for a plain Tally one mark is one mark |
+| Ta5 | A Tally gives one `triggered` event and so one line: when two apply (a habit's, a collar, a piece) only the first is stamped | | `resolve.ts` (`trigger` step) | | none: precedence, noted for IQ-F3 (habit, then collar, then piece) |
+
+### Wax (`wax:cloud`, `wax:fire`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Wx1 | A wax mark never spreads, even in a cloud; the miss fires only if there was someone to spread to | Wax Recoil on a rat in a cloud with a neighbour | `marks.ts::spreadFrom` | `wax:cloud` | none: row exists, fires today (`solvents.test.ts`) |
+| Wx2 | Fire melts a wax mark, spent and unreleased; the check is on a hit or an entered tile, so the round-end burn does it | Wax Recoil on a rat standing in fire | `solvents.ts` (`wax.onHook`) | `wax:fire` | none: row exists, fires today |
+| Wx3 | A wax mark moves with a Lift and is spent like any mark by Sentence, Levy or Erase | | `marks.ts::liftMark` | | none: an ordinary mark that does not spread |
+| Wx4 | A wax mark that holds a bound action does **not** leave it in the cloud (`haunt` skips wax marks) | Bind-cloud-II-b (`bind-cloud-haunt`) with Wax | `marks.ts::spreadFrom` (`!mark.wax`) | | none: exists only under a footnote; say so in that variant's text if Wax is meant to stop it |
+
+Wax has nothing missing. The Sealer's wax **seal** (a piece, Bench token `wax`) is a different thing from the Wax solvent; it melts in fire by its own rule (`inkQuarter:unsealed`, `why: melted`) and has no rune line.
+
+### Sand (`sand:unit`, `sand:noTarget`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Sa1 | Sand turns back only a release set off by a **hit**. A mark set to release on a death or an entered tile acts on the bearer as cast, and Sand says nothing: no turn, no miss | Bind (`dies`) with Sand on a rat, a Strike kills it: the action is released as without Sand, no Sand line | `solvents.ts::turnBack` (`h.kind !== 'hit'` returns null) | `sand:noTarget` | text + new+event: widen the row's text and stamp a `miss` at that return (A2: edit the row, the id stays) |
+| Sa2 | The hitter is whoever hit, your own apprentice too (the standing test strikes with the Stoker), so a Sand mark is a trap for whoever collects it | `solvents.test.ts` "sand-recoil-hits-hitter" | `turnBack` | `sand:unit` | none: the row says "whoever hit the bearer" |
+| Sa3 | A hit with no hitter (a fire) or the bearer hitting itself spends the mark | | `turnBack` | `sand:noTarget` | none: row exists, fires today |
+
+### Writs and terms against the five
+
+| Piece or rule | Touches | Result |
+|---|---|---|
+| Return stamp | Sentence's push, any push | Only a landing is answered; a push over the stamp passes (Se5). The stamp's own rule, with a Bench entry |
+| Standing order | Sentence, Levy, Tally | The mark it puts on at dusk is a plain mark with no owner: Sentence and Levy spend it as any plain mark, Tally counts it as a mark. Nothing special |
+| Forwarding and address | Sentence's crush, Levy | A hit or a mark lands on the address instead (once per stamp per round). Spending a mark is not a hit, so Sentence and Levy are never forwarded |
+| The Sealer's seal | Sentence | A sealed unit is held: Se3 (the mark is still spent) |
+| Terms | all | Stakes and conditions are trip rules; no rune line |
+
+### Ink Quarter proposals
+
+| # | Proposal | Reason |
+|---|---|---|
+| Q1 | Accept the seven rows as `pending` now and let IQ-F3 stamp them at the sites named above | The task cannot edit the engine; the rows' text is final and the `fires` tests flip when the stamp lands |
+| Q2 | Fix `sand:noTarget`'s text (Sa1) when IQ-F4 builds Sand, by editing the row (A2): "If nobody hit the bearer, there is no one to turn back on: a fire, the bearer's own doing, a death or a step" | The row says "nobody set it off but the bearer itself", which is wrong for a death or a step |
+| Q3 | Keep `Meets` `stamp` for `tally:stamp` (a piece on the tile) and add a `piece` value only if a second rune needs one | A new value is a types change; no row has `stamp` as a subject's meets today, so there is no clash with the Bench token |
+| Q4 | Give Sentence a line only through its own stamps (Se3), not through the writs | `inkQuarter:sentBack` carries only the cause; stamping the writs per rune would make every push witness Sentence |

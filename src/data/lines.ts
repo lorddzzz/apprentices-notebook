@@ -877,4 +877,64 @@ export const LINES: readonly LineDef[] = [
     district: 'bathhouses',
     text: 'Bath salt with no other unit in reach has nothing to carry the invention to.',
   },
+  // IQ-F1: Sentence, Levy and Tally against marks, collars and pieces (footnotes audit, ink quarter
+  // section). Text final, `pending` until IQ-F3 stamps them (each needs a one-line `withLine` or
+  // trial `line` at the engine site the audit names); the `fires` tests in
+  // tests/scenarios/footnotes-ink-lines.test.ts are `it.fails` until then.
+  {
+    id: 'sentence:mark',
+    subject: 'sentence',
+    meets: 'mark',
+    district: 'inkQuarter',
+    text: 'Sentence spends the mark whole before it pushes: a unit that cannot move still loses it, and the action a bound mark held is lost, not released.',
+    pending: true,
+  },
+  {
+    id: 'levy:unit',
+    subject: 'levy',
+    meets: 'unit',
+    district: 'inkQuarter',
+    text: 'Levy takes marks only: a unit with no mark pays no shield, and nothing happens to it.',
+    pending: true,
+  },
+  {
+    id: 'levy:mark',
+    subject: 'levy',
+    meets: 'mark',
+    district: 'inkQuarter',
+    text: 'Levy spends each mark whole, for one shield: a deep mark pays only one, and the action a bound mark held is lost, not released.',
+    pending: true,
+  },
+  {
+    id: 'levy:member',
+    subject: 'levy',
+    meets: 'member',
+    district: 'inkQuarter',
+    text: "Levy takes the marks of your own party too, yourself included, and the shield is always the caster's.",
+    pending: true,
+  },
+  {
+    id: 'levy:shielded',
+    subject: 'levy',
+    meets: 'shielded',
+    district: 'inkQuarter',
+    text: 'Levy on a caster who already holds a shield adds to it, and the shield lasts as long as the longer of the two.',
+    pending: true,
+  },
+  {
+    id: 'tally:collar',
+    subject: 'tally',
+    meets: 'collar',
+    district: 'inkQuarter',
+    text: 'A collar and a shackle each count as a thing for Tally, as a mark does.',
+    pending: true,
+  },
+  {
+    id: 'tally:stamp',
+    subject: 'tally',
+    meets: 'stamp',
+    district: 'inkQuarter',
+    text: 'Tally counts marks, collars, shackles, states and jars, not pieces: a writ, a seal or anything else standing on the tile is not counted.',
+    pending: true,
+  },
 ];
