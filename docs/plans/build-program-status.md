@@ -2,7 +2,7 @@
 
 Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.md](midpoint-audit.md) §2.2; remaining work in pack form: [platform-closure-plan.md](platform-closure-plan.md), [foundry-plan.md](foundry-plan.md), [ending-plan.md](ending-plan.md), [cartographers-plan.md](cartographers-plan.md), [calibration-plan.md](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'` has each task's details; work before 2026-11-11 is in the archive log, grep only).
 
-**State:** GATE-1 merged 2026-11-11; Packs A, B, E running (C1, D next) · **next window:** routine
+**State:** GATE-1, B, D, E merged 2026-11-11; A parked for design review; C1 not started · **next window:** design (A's hook, then briefs) · **next window:** routine
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
@@ -10,7 +10,8 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 **Reset:** none recorded; resume: manual, with the continuation prompt below
 
 ## Next
-1. ~~GATE-1~~ merged 7cc4e66 (check:fast 55 s warm; CN-13 timeout 120 s).
+1. ~~GATE-1, Packs B, D, E~~ merged (EN-0 98a825e-merge, KIT-R2 3423901, BR-20 d63d64e). Left: Pack C1, and Pack A after design review. Owed: `tests/data/canal-rooms.test.ts` timeout (one line, not owned by D).
+   ~~GATE-1~~ merged 7cc4e66 (check:fast 55 s warm; CN-13 timeout 120 s).
 2. Then two or three at a time, briefs written, file-disjoint: **Pack A** foundry ring engine (BF-3 → BF-4 → BF-5) · **Pack B** bridges completion (BR-20 → BR-7 leftovers) · **Pack C1** ink footnote audit and draft (IQ-F1 → IQ-F2, then IQ-FG review) · **Pack D** one bot (EN-0) · **Pack E** board UI registries (KIT-R2).
 3. A design window is due when A–E are merged or the review list has three entries. It writes the briefs listed at the end of the briefs file (KIT-R1, IQ-F3–F5, BR-19a/b, EN-W0, KIT-R3 → EN-S1 → EN-G0, the next foundry packs, SAVE-1), reviews IQ-FG, drafts EN-12, and runs the ledger.
 4. Hard edges: BR-20 → KIT-R1 · KIT-R2 → any new board UI (BF-17, BF-18, CG-12, EN-7) · EN-0 → EN-W0 → KIT-R3 → EN-S1 → EN-G0 · EN-0 → MIX-1 → EN-2 · KIT-R4 → EN-9 · BL-111 → EN-4 · BR-20 and BF-9 → CG-14 · cartographers start when BF-12 merges or a slot is free.
@@ -19,7 +20,6 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
 | A | BF-3→5 | Sonnet high | none (no commits) | stopped, see Needs design review |
-| D | EN-0 | Sonnet medium | worktree | running |
 
 ## Needs design review (left unmerged by a routine window)
 - **Pack A (BF-3→5), agent a4bcf112ebe6f3c86, no commits.** (1) BF-3 needs a post-action hook: a district `settle(ctx)` (or `settleRings(ctx)`) called in `applyAction` after `dispatch`, inside `withIdioms`; foe actions flush in the `late` slot. Today the only post-action hooks (`withIdioms`, `checkEnd`) are not hookable, so queued rings can't resolve after the whole cast (`Bolt> Brass Strike`, `Bolt> Steam`) and the test `applyAction passes eventCap` can't get its `fizzles`. (2) BF-5 needs an `onKind` trigger in types.ts/pieces.ts called from mix.ts `landOnTile` before the guard (mind the kit.ts import cycle). Both need widened ownership: battle.ts, mix.ts, pieces.ts, types.ts. Agent expects no acceptance test to change. Resume with SendMessage once approved, in its own worktree.

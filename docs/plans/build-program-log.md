@@ -15,3 +15,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | GATE-1 | 7cc4e66 | Sonnet medium | split typecheck, check:changed, sims moved; 0 returns |
 | BR-20, BR-7 | d63d64e, +fix | Sonnet medium | one commit for both; bench.ts RIVALS filter fixed by orchestrator; 0 returns |
 | KIT-R2 | 3423901 | Sonnet medium | registry slots; logic.ts holds component-free slots; autofixer only run on RoomBonus, Seam/Foundry no Lab scenario; 0 returns |
+| EN-0 | merge of 98a825e | Sonnet medium | src/engine/sim, runTrip injected flow; calibration timeouts raised; 0 returns |
