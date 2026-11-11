@@ -1,0 +1,302 @@
+{
+  "version": 9,
+  "data": {
+    "profile": {
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark"],
+      "methods": [],
+      "bindEvents": [],
+      "inventions": [],
+      "solvents": {
+        "gallnut": 0,
+        "cinder": 0,
+        "pitch": 0,
+        "wick": 0,
+        "wax": 0,
+        "sand": 0,
+        "bathSalt": 0,
+        "fogJar": 0,
+        "mortar": 0,
+        "chalk": 0,
+        "rivet": 0,
+        "filings": 0,
+        "quicksilver": 0,
+        "graphite": 0
+      },
+      "household": {
+        "members": ["draughtsman", "stoker"],
+        "slots": ["draughtsman", "stoker", null]
+      },
+      "ink": 8,
+      "lattices": {
+        "draughtsman": [
+          {
+            "at": {
+              "x": 0,
+              "y": 1
+            },
+            "rune": "bolt",
+            "dir": "right"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "ink"
+          },
+          {
+            "at": {
+              "x": 2,
+              "y": 1
+            },
+            "rune": "strike"
+          }
+        ],
+        "stoker": [
+          {
+            "at": {
+              "x": 1,
+              "y": 0
+            },
+            "rune": "bolt",
+            "dir": "down"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "oil"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 2
+            },
+            "rune": "spark"
+          }
+        ]
+      },
+      "witnessed": ["spark:slick", "oil:slick", "spark:pool", "shove:unit", "shove:edge"],
+      "named": ["burst:fire", "compound:pool", "burst:page:pool"],
+      "met": ["minion", "elite", "slick", "cloud", "vent", "fire", "mark", "pool", "unit", "edge"],
+      "foesMet": ["rat", "boilerman", "attendant"],
+      "footnotes": {
+        "spark": {
+          "points": 2,
+          "slots": {}
+        },
+        "oil": {
+          "points": 1,
+          "slots": {}
+        },
+        "shove": {
+          "points": 2,
+          "slots": {}
+        }
+      },
+      "solventsFound": [],
+      "papers": ["bathhouses:ledger-1"],
+      "pages": [],
+      "vellum": 0,
+      "glyphs": [],
+      "glyphArchive": [],
+      "glyphRecords": {},
+      "proof": {
+        "draughtsman": [
+          [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "ink"
+            },
+            {
+              "at": {
+                "x": 2,
+                "y": 1
+              },
+              "rune": "strike"
+            }
+          ],
+          [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "ink"
+            },
+            {
+              "at": {
+                "x": 2,
+                "y": 1
+              },
+              "rune": "strike"
+            }
+          ]
+        ],
+        "stoker": [
+          [
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "oil"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 2
+              },
+              "rune": "spark"
+            }
+          ],
+          [
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "oil"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 2
+              },
+              "rune": "spark"
+            }
+          ]
+        ]
+      },
+      "city": {
+        "heard": ["seam", "bathhouses"],
+        "open": ["seam", "bathhouses"],
+        "hearts": [],
+        "solved": [],
+        "trips": 0,
+        "fresh": []
+      }
+    },
+    "trip": {
+      "district": "bathhouses",
+      "seed": 2693262067,
+      "encounter": 0,
+      "status": "looting",
+      "party": ["draughtsman", "stoker"],
+      "hp": {
+        "draughtsman": 5,
+        "stoker": 8
+      },
+      "charges": {
+        "draughtsman": {
+          "0,1": 3
+        },
+        "stoker": {
+          "1,0": 3
+        }
+      },
+      "loot": [],
+      "offers": [
+        {
+          "kind": "rune",
+          "rune": "vat"
+        },
+        {
+          "kind": "rune",
+          "rune": "seep"
+        },
+        {
+          "kind": "ink",
+          "amount": 2
+        },
+        {
+          "kind": "bathhouses:plunge",
+          "data": {}
+        }
+      ],
+      "picksLeft": 1,
+      "actions": [],
+      "stats": {
+        "fights": 1,
+        "spells": [
+          {
+            "member": "draughtsman",
+            "spell": "0,1",
+            "name": "Bolt",
+            "casts": 2,
+            "damage": 4,
+            "kills": 1,
+            "cells": ["0,1", "1,1", "2,1"],
+            "fired": ["0,1", "1,1", "2,1"]
+          },
+          {
+            "member": "stoker",
+            "spell": "1,0",
+            "name": "Bolt",
+            "casts": 2,
+            "damage": 7,
+            "kills": 2,
+            "cells": ["1,0", "1,1", "1,2"],
+            "fired": ["1,0", "1,1", "1,2"]
+          }
+        ],
+        "biggestChain": {
+          "member": "stoker",
+          "spell": "1,0",
+          "name": "Bolt",
+          "reactions": 2
+        },
+        "discoveries": ["burst:fire", "compound:pool", "burst:page:pool"],
+        "proofCasts": 4,
+        "elegance": [],
+        "heard": []
+      },
+      "kit": {
+        "state": {
+          "pendingCool": 0
+        },
+        "choices": [],
+        "checkpoint": false,
+        "bonuses": []
+      }
+    },
+    "seedCounter": 2,
+    "lastTrip": null
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "version": 9,
+  "data": {
+    "profile": {
+      "known": ["bolt", "strike", "shove", "guard", "ink", "oil", "spark", "steam"],
+      "methods": [],
+      "bindEvents": [],
+      "inventions": [],
+      "solvents": {
+        "gallnut": 0,
+        "cinder": 0,
+        "pitch": 0,
+        "wick": 0,
+        "wax": 0,
+        "sand": 0,
+        "bathSalt": 0,
+        "fogJar": 0,
+        "mortar": 0,
+        "chalk": 0,
+        "rivet": 0,
+        "filings": 0,
+        "quicksilver": 0,
+        "graphite": 0
+      },
+      "household": {
+        "members": ["draughtsman", "stoker"],
+        "slots": ["draughtsman", "stoker", null]
+      },
+      "ink": 8,
+      "lattices": {
+        "draughtsman": [
+          {
+            "at": {
+              "x": 0,
+              "y": 1
+            },
+            "rune": "bolt",
+            "dir": "right"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "ink"
+          },
+          {
+            "at": {
+              "x": 2,
+              "y": 1
+            },
+            "rune": "strike"
+          }
+        ],
+        "stoker": [
+          {
+            "at": {
+              "x": 1,
+              "y": 0
+            },
+            "rune": "bolt",
+            "dir": "down"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 1
+            },
+            "rune": "oil"
+          },
+          {
+            "at": {
+              "x": 1,
+              "y": 2
+            },
+            "rune": "spark"
+          }
+        ]
+      },
+      "witnessed": ["spark:slick"],
+      "named": ["burst:fire"],
+      "met": ["minion", "plate", "fire", "slick", "mark"],
+      "foesMet": ["rat"],
+      "footnotes": {
+        "spark": {
+          "points": 1,
+          "slots": {}
+        }
+      },
+      "solventsFound": [],
+      "papers": [],
+      "pages": [],
+      "vellum": 0,
+      "glyphs": [],
+      "glyphArchive": [],
+      "glyphRecords": {},
+      "proof": {
+        "draughtsman": [
+          [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "ink"
+            },
+            {
+              "at": {
+                "x": 2,
+                "y": 1
+              },
+              "rune": "strike"
+            }
+          ],
+          [
+            {
+              "at": {
+                "x": 0,
+                "y": 1
+              },
+              "rune": "bolt",
+              "dir": "right"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "ink"
+            },
+            {
+              "at": {
+                "x": 2,
+                "y": 1
+              },
+              "rune": "strike"
+            }
+          ]
+        ],
+        "stoker": [
+          [
+            {
+              "at": {
+                "x": 1,
+                "y": 0
+              },
+              "rune": "bolt",
+              "dir": "down"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 1
+              },
+              "rune": "oil"
+            },
+            {
+              "at": {
+                "x": 1,
+                "y": 2
+              },
+              "rune": "spark"
+            }
+          ]
+        ]
+      },
+      "city": {
+        "heard": ["seam"],
+        "open": ["seam"],
+        "hearts": [],
+        "solved": [],
+        "trips": 1,
+        "fresh": []
+      }
+    },
+    "trip": null,
+    "seedCounter": 2,
+    "lastTrip": {
+      "district": "seam",
+      "outcome": "returned",
+      "encounter": 0,
+      "place": "The coal chute",
+      "stats": {
+        "fights": 1,
+        "spells": [
+          {
+            "member": "draughtsman",
+            "spell": "0,1",
+            "name": "Bolt",
+            "casts": 2,
+            "damage": 4,
+            "kills": 2,
+            "cells": ["0,1", "1,1", "2,1"],
+            "fired": ["0,1", "1,1", "2,1"]
+          },
+          {
+            "member": "stoker",
+            "spell": "1,0",
+            "name": "Bolt",
+            "casts": 1,
+            "damage": 3,
+            "kills": 1,
+            "cells": ["1,0", "1,1", "1,2"],
+            "fired": ["1,0", "1,1", "1,2"]
+          }
+        ],
+        "biggestChain": {
+          "member": "stoker",
+          "spell": "1,0",
+          "name": "Bolt",
+          "reactions": 1
+        },
+        "discoveries": ["burst:fire"],
+        "proofCasts": 3,
+        "elegance": [],
+        "heard": []
+      },
+      "terms": []
+    }
+  }
+}
