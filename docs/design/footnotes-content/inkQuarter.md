@@ -1,8 +1,8 @@
 # Footnotes content: the ink-makers' quarter (Contracts)
 
-> **State: Drafted 2026-11-11 for IQ-FG (not approved).** Task IQ-F2 of [ink-quarter-plan.md](../../plans/ink-quarter-plan.md). Rules: [footnotes.md](../footnotes.md) §1. Lines: `src/data/lines.ts` (the IQ-F1 block, rows `pending` until IQ-F3 stamps them); audit: [footnotes-audit.md](../../plans/footnotes-audit.md) §11. Format and pair rules as in [seam.md](seam.md) §0 and [bathhouses.md](bathhouses.md). Builds: IQ-F3 (Sentence, Levy, Tally) and IQ-F4 (Wax, Sand) into `src/data/footnotes/inkQuarter.ts`; the postmaster's note with IQ-F5 (RV API, IQ-22).
+> **State: Approved 2026-11-11 at IQ-FG** (orchestrator review, design window; the decisions are in §7). This text is the spec for IQ-F3 to IQ-F5. Drafted by task IQ-F2 of [ink-quarter-plan.md](../../plans/ink-quarter-plan.md). Rules: [footnotes.md](../footnotes.md) §1. Lines: `src/data/lines.ts` (the IQ-F1 block, rows `pending` until IQ-F3 stamps them); audit: [footnotes-audit.md](../../plans/footnotes-audit.md) §11. Format and pair rules as in [seam.md](seam.md) §0 and [bathhouses.md](bathhouses.md). Builds: IQ-F3 (Sentence, Levy, Tally) and IQ-F4 (Wax, Sand) into `src/data/footnotes/inkQuarter.ts`; the postmaster's note with IQ-F5 (RV API, IQ-22).
 >
-> Nothing here is built. Every number is *tune by playing*.
+> Nothing here is built yet. Every number is *tune by playing*.
 
 ## 0. How to read this
 
@@ -12,7 +12,7 @@ Costs (FN plan P3): level I and II pay in the line's district; every line here i
 
 **Mark vocabulary.** A *plain* mark is spent whole by one Spark, Sentence or Levy. A *deep* mark (Ink on a marked unit) takes two sparks; Sentence and Levy spend it whole today. A *bound* mark holds an action (Bind). Spending a mark never releases what it holds; only its event does (P31).
 
-**Pending lines.** `sentence:mark`, `levy:mark`, `levy:member`, `tally:collar` and `tally:stamp` are IQ-F1 rows with final text and no engine stamp yet; the build task stamps them first (audit §11 names each site), so every pair below has a line to hang on. `sentence:unit` and `sand:unit` are live rows.
+**Pending lines.** `sentence:mark`, `levy:mark`, `levy:member`, `tally:collar` and `tally:stamp` are IQ-F1 rows with final text and no engine stamp yet; the build task stamps them first (audit §11 names each site), so every pair below has a line to hang on. `sentence:unit` and `sand:unit` are live rows. `tally:stamp` is stamped like the others but carries no slot (cut at IQ-FG).
 
 ### Review batches for IQ-FG
 
@@ -20,19 +20,19 @@ Costs (FN plan P3): level I and II pay in the line's district; every line here i
 |---|---|---|
 | 1 | Sentence (both lines), the postmaster's note | IQ-F3, IQ-F5 |
 | 2 | Levy (both lines) | IQ-F3 |
-| 3 | Tally (both lines) | IQ-F3 |
+| 3 | Tally (`tally:collar`; `tally:stamp` cut) | IQ-F3 |
 | 4 | Capstones: Sentence, Levy, Tally | IQ-F3 |
 | 5 | Wax, Sand (line pairs and capstones) | IQ-F4 |
 
 ## 1. Margin lines
 
-Two margin lines per rune, one per solvent. None is invented to host a slot (FN P5): all six rune lines are IQ-F1's or already live, and each one bends a real decision.
+Two margin lines for Sentence and Levy, one for Tally, one per solvent. None is invented to host a slot (FN P5): all five rune lines are IQ-F1's or already live, and each one bends a real decision.
 
 | Subject | Margin lines | Note |
 |---|---|---|
 | Sentence | `sentence:mark`, `sentence:unit` | `sentence:mark` holds the postmaster's note (level II). `sentence:noHeading` stays unslotted: it fires only for a headless aim, rare in a lattice |
 | Levy | `levy:mark`, `levy:member` | `levy:unit` and `levy:shielded` stay unslotted: the first is a miss with nothing to choose, the second is Guard's rule over again |
-| Tally | `tally:collar`, `tally:stamp` | **The weakest pair of the draft** (a trigger has little to wire around); it can drop to `tally:collar` alone at IQ-FG (P1 allows one) |
+| Tally | `tally:collar` | `tally:stamp` stays fine print with no slot (cut at IQ-FG: its level II options counted states and jars, not pieces, so they did not bend its own line) |
 | Wax | `wax:cloud` | `wax:fire` stays unslotted: `wax-cloud-smother` and `wax-cloud-drip` bend it from here |
 | Sand | `sand:unit` | `sand:noTarget` stays unslotted: `sand-unit-nearest` bends it from here |
 
@@ -56,7 +56,7 @@ Headline: *Spends the target's mark to push it 2 tiles along the heading.*
 - b · `sentence-mark-pass`: *When Sentence spends a mark whole, a plain mark lands on the nearest unmarked unit beside where the pushed unit ends.*
   Engine: `sentence` after the push, `bursts.ts::unmarkedBeside` then `applyMark` plain with the Sentence's origin. Existing `marked`. A chain of notices down a line of foes.
 - c · `postmaster:sentence`: the postmaster's note (section 3). Hidden until his page is held.
-- Combos: release + held: a held unit keeps its mark, so nothing is released; say so in held's text at build. release + pass: the action fires on the unit and what passes is a plain mark, never the action. peel + held: fine. peel + pass: a peeled mark is not spent whole, so nothing passes; a plain mark does; say "spends a mark whole" at build. release + note, peel + note: the note acts on the crush, not the mark; independent.
+- Combos: release + held: a held unit keeps its mark, so nothing is released; say so in held's text at build. release + pass: the action fires on the unit and what passes is a plain mark, never the action. peel + held: fine. peel + pass: a peeled mark is not spent whole, so nothing passes; a plain mark does; say "spends a mark whole" at build. release + note: the note acts on the crush, not the mark; independent. peel + note: a peeled unit crushed at a wall is held, so a second Sentence spends its plain mark but cannot push it; the note trades the double push for the pin; say so in the note's build comment.
 
 **Sentence-unit-I** · `sentence:unit` (*A unit with no mark has nothing to spend: Sentence does nothing to it.*)
 
@@ -72,6 +72,12 @@ Headline: *Spends the target's mark to push it 2 tiles along the heading.*
 - b · `sentence-unit-shield`: *A shielded unit counts as marked: Sentence strips the shield and pushes the full two tiles.*
   Engine: same branch, shield set to 0 by the step `strike-shielded-break` uses. Existing events. Bends `strike:shielded`; a Sentence is the answer to a Guard.
 - Combos: nudge + collar, nudge + shield: the collar or shield makes the unit count as marked, so it gets the full two tiles; only a bare unit is nudged. serve + collar, serve + shield: same; only a bare unit is marked. Say "counts as marked" first in both texts.
+
+**Sentence-III** (added at IQ-FG: the draft had none)
+- a · `sentence-cap-blot`: *When Sentence spends a mark, the tile the unit was pushed from takes a blot.*
+  Engine: `sentence`, after the push, `landKind` Ink on the start tile when the unit left it (nothing when it did not move). Existing `landed`. The next unit to step there is stained (`stainMarks`): a notice nailed where the debtor stood.
+- b · `sentence-cap-cosign`: *When Sentence pushes a unit into another unit, the unit it hits is marked plain.*
+  Engine: `sentence`, a crush whose obstacle is a living unit, `applyMark` plain on it with the Sentence's origin (skipped when it is already marked). Existing `marked`. Aim into a crowd and the next Sentence has a target. With `sentence-mark-pass` both may mark; a unit is marked once.
 
 ### Levy
 
@@ -132,20 +138,7 @@ Headline: *The rest happens only if the target and its tile held 2 or more thing
   Engine: after a pass whose count needed it (the count falls below 2 without it), the collar-off step (`erased`). Existing event. The debt is called in once.
 - Combos: twice + net: a collared target with two collared neighbours counts 4; fine. twice + spend: a collared unit alone passes and loses its collar, once. shackle + net: fine. shackle + spend: the shackle is spent as it carries the pass. In all four, "needed it" is read as: the count would be under 2 without it.
 
-**Tally-stamp-I** · `tally:stamp` (*Tally counts marks, collars, shackles, states and jars, not pieces: a writ, a seal or anything else standing on the tile is not counted.*)
-
-- a · `tally-stamp-count`: *A piece on the target's tile counts as one thing.*
-  Engine: `tallyCount` counts `tile.piece`. No new event. Standing on a writ is now worth something.
-- b · `tally-stamp-beside`: *A piece on a tile beside the target's counts as one thing, at most one.*
-  Engine: same site, the 4 neighbours' pieces, capped at 1. No new event. A room's furniture counts.
-
-**Tally-stamp-II** · `tally:stamp`
-
-- a · `tally-stamp-cloud`: *A cloud or a compound on the tile counts as two things, not one.*
-  Engine: `tallyCount` counts `tile.state` of a cloud or compound twice. No new event. Bends the headline's states; Steam and Oil become keys.
-- b · `tally-stamp-jar`: *A jar on the tile counts as two things, not one.*
-  Engine: same site, `tile.jar` counts 2. No new event. A jar is a debt and a promise.
-- Combos: count + cloud: a piece with a cloud counts 3; fine. count + jar: fine. beside + cloud, beside + jar: fine. None clash.
+**`tally:stamp`: cut at IQ-FG.** The line stays as fine print (IQ-F3 stamps it, its `fires` test comes off `it.fails`), with no slot and no variants. The four drafted options (`tally-stamp-count`, `-beside`, `-cloud`, `-jar`) are not built and their ids are not reserved.
 
 **Tally-III**
 - a · `tally-cap-surplus`: *When Tally counts four or more things on a target, the rest acts on it twice.*
@@ -171,8 +164,8 @@ Headline: *It never spreads, and fire melts it unspent.*
 
 **Wax-cloud-I** · `wax:cloud` (*A wax mark never spreads, even in a cloud.*)
 
-- a · `wax-cloud-copy`: *A wax mark spreads once: one copy to the nearest unmarked unit in its cloud, in reading order, and the copy does not spread.*
-  Engine: `marks.ts::spreadFrom` for a wax mark copies to the first unmarked unit of the net and stamps the copy wax. Existing `markSpread`. Bends the headline's "never"; the capstones keep it.
+- a · `wax-cloud-keep`: *A cloud does not thin on the tile of a unit with a wax mark: the wax keeps it while the mark stands.*
+  Engine: `mix.ts::decayStates` skips the cloud's countdown on a tile whose unit bears a wax mark (stamped `wax:cloud`; no `stateFades` that round). No new event. The mark keeps its cover; the cloud ends when the mark is spent or melted. (Replaces the draft's `wax-cloud-copy` at IQ-FG: a Wax that spreads undoes the solvent's one rule.)
 - b · `wax-cloud-stay`: *A unit with a wax mark cannot be pushed while it stands in a cloud: the wax holds it.*
   Engine: `push.ts` refuses a step for a wax-marked unit on a cloud tile (the held path, `shove:held`). Existing `held`. A pin you set with a cloud and a mark, the Sealer's seal without the Sealer.
 
@@ -182,7 +175,7 @@ Headline: *It never spreads, and fire melts it unspent.*
   Engine: `solvents.ts` `wax.onHook` skips a unit on a cloud tile. No new event. Bends `wax:fire`.
 - b · `wax-cloud-drip`: *When fire melts a wax mark, the wax runs: its tile takes a blot.*
   Engine: `wax.onHook` after the melt lands Ink (`landKind`) on the tile. Existing `landed`. Bends `wax:fire`: a melted mark leaves a stain behind.
-- Combos: copy + smother: a cloud of waxed units that fire cannot melt; fine, the intended pair for a trap room. copy + drip: each melt leaves a blot; fine. stay + smother: a pinned unit that fire cannot free, strong, say so in the text. stay + drip: fine.
+- Combos: keep + smother: a waxed unit in a cloud that neither thins nor lets fire melt the mark; a lasting pocket, strong, the intended pair for a trap room. keep + drip: the cloud lasts until fire melts the mark, which then leaves a blot; fine. stay + smother: a pinned unit that fire cannot free, strong, say so in the text. stay + drip: fine.
 
 **Wax-III**
 - a · `wax-cap-seal`: *When a unit takes a wax mark, it is held until your next turn.*
@@ -198,8 +191,8 @@ Headline: *It turns back: it acts on whoever set it off instead.*
 
 - a · `sand-unit-onward`: *The turned-back action keeps the heading it was released with: the hitter is pushed on, not back.*
   Engine: `solvents.ts::turnBack` returns the heading unreversed. No new event. A Shove becomes a throw past the bearer.
-- b · `sand-unit-both`: *The action also acts on the bearer, as if Sand had not turned it.*
-  Engine: `marks.ts::release` runs the bound action twice, once turned and once as cast (depth limit holds). Existing `released`. The trap costs the hitter and the bearer.
+- b · `sand-unit-still`: *The turned-back action does not push: the hitter takes the rest of it where it stands.*
+  Engine: `solvents.ts::turnBack` returns `heading: null` (a push in it reads as a headless aim, as `sentence:noHeading` already handles). No new event. The pair is about the push: draw the hitter in (onward) or pin it in place (still). (Replaces the draft's `sand-unit-both` at IQ-FG: acting on the bearer too undoes "instead".)
 
 **Sand-unit-II** · `sand:unit`
 
@@ -207,7 +200,7 @@ Headline: *It turns back: it acts on whoever set it off instead.*
   Engine: `turnBack`'s no-hitter branch picks the nearest living unit (reading order on ties). Existing `released`. Bends `sand:noTarget`; a fire release stops being wasted.
 - b · `sand-unit-spared`: *Sand never turns an action back on your own party: an ally's hit releases it as cast.*
   Engine: `turnBack` returns null for a member hitter. No new event. Makes a Sand mark safe to leave on a foe among your own apprentices.
-- Combos: onward + nearest: the heading stays as cast on the nearest unit; fine. onward + spared: an ally's hit releases as cast; the foe's hit is thrown onward. both + nearest: the nearest unit and the bearer both take it. both + spared: an ally's hit releases once, as cast, not twice; say so at build.
+- Combos: onward + nearest: the heading stays as cast on the nearest unit; fine. onward + spared: an ally's hit releases as cast; the foe's hit is thrown onward. still + nearest: the nearest unit takes it without a push; fine. still + spared: an ally's hit releases as cast (with its push), a foe's is turned and pins; fine.
 
 **Sand-III**
 - a · `sand-cap-return`: *When Sand turns an action back, the hitter is also marked with plain Ink.*
@@ -217,11 +210,11 @@ Headline: *It turns back: it acts on whoever set it off instead.*
 
 ## 5. Counts
 
-- **Runes:** 6 margin lines; 12 level I/II pairs; 3 capstone pairs.
+- **Runes:** 5 margin lines; 10 level I/II pairs; 3 capstone pairs.
 - **Solvents:** 2 margin lines; 4 level I/II pairs; 2 capstone pairs.
-- **Total new pairs:** 21 (16 line pairs, 5 capstone pairs). **Variants:** 42 plus the rival note. **Rival note:** 1 (effect not built).
-- **Clashes noted:** release × held, peel × pass, peel × release, shackle/twice × spend ("needed it"), both × spared, stay × smother (wording at build). None needs a rule change.
-- **New engine pieces:** five line stamps (audit §11); one shared "release as it is spent" helper (Sentence, Levy); one peel (Sentence, Levy); a collar-off and a shield-off step reused from Erase and Strike; pulls (Levy cap); a held-on-cloud push rule (Wax); the `turnBack` variants (Sand). No new events or `Meets` values.
+- **Total new pairs:** 19 (14 line pairs, 5 capstone pairs). **Variants:** 38 plus the rival note. **Rival note:** 1 (effect not built).
+- **Clashes noted:** release × held, peel × pass, peel × release, peel × note, shackle/twice × spend ("needed it"), stay × smother (wording at build). None needs a rule change.
+- **New engine pieces:** the seven line stamps (audit §11, `tally:stamp` included); one shared "release as it is spent" helper (Sentence, Levy); one peel (Sentence, Levy); a collar-off and a shield-off step reused from Erase and Strike; pulls (Levy cap); a held-on-cloud push rule and a kept cloud (Wax); the `turnBack` variants (Sand). No new events or `Meets` values.
 
 ## 6. Proposals
 
@@ -230,6 +223,16 @@ Headline: *It turns back: it acts on whoever set it off instead.*
 | I1 | The note is on **level II** of `sentence:mark` (as planned), not on `sentence:unit` | The note works on a crush, which is the push, not the mark; level II is where Sentence meets its neighbour lines (`shove:wall`, `shove:edge`) |
 | I2 | Sentence and Levy share the same two ideas (a release, a peel) on `*:mark`, in different levels | One rule, two subjects (the `ink-spread-kin` and `bind-cloud-kin` precedent); the levels differ so a household can mix |
 | I3 | `postmaster:sentence` holds, it does not hurt | A rival's note adds no new harm (the Steward's precedent); a hold already exists as the seal and as `vat-edge-pin` |
-| I4 | Tally keeps two lines in the draft; drop `tally:stamp` if IQ-FG finds it thin | A trigger has few lines worth choosing on; P1 allows one honest line |
+| I4 | **Decided at IQ-FG:** `tally:stamp` dropped; Tally has one margin line | Its level II options counted states and jars, so the line had no second decision of its own; P1 allows one honest line |
 | I5 | `levy-member-near` reaches only members beside the caster | Without the cap it is Splash for free |
-| I6 | The `wax-cloud-copy` option bends "never spreads"; the capstones leave the headline true | Level I may change a rule's reach; the capstone rule (headline stays true) is for level III |
+| I6 | **Replaced at IQ-FG:** `wax-cloud-copy` became `wax-cloud-keep` | See §7 |
+
+## 7. IQ-FG review (orchestrator, design window 2026-11-11)
+
+Approved with these changes; everything not named here is approved as drafted.
+
+1. **Tally:** `tally:stamp` loses its slot (I4). The line itself stays and is stamped.
+1a. **Sentence had no capstone** (IQ-F2's Done-when asks one per rune): `sentence-cap-blot` and `sentence-cap-cosign` are added above.
+2. **Defining words stay true.** Level I and II may change a subject's numbers or reach (`levy-mark-deep` pays two, `sentence-unit-nudge` pushes one), but no variant undoes the one rule a solvent is named for. `wax-cloud-copy` ("spreads once") is replaced by `wax-cloud-keep`; `sand-unit-both` (also acts on the bearer, against "instead") by `sand-unit-still`. `wax-cloud-smother` stays: it keeps fire from reaching the mark in a cloud, an interaction with a neighbouring line, and fire still melts a wax mark it reaches. `sand-cap-ricochet` stays: a capstone's bounded "when X, also" is allowed.
+3. **The postmaster's note** holds the crushed unit (a root: it cannot move or be pushed until your next turn; it still acts). No new harm; a rival's hold immunity wins. It trades against `sentence-mark-peel`'s double push (the combo line above). Approved as drafted.
+4. **Build notes for IQ-F3 to IQ-F5:** each "say so at build" in a Combos line becomes a short clause in the variant's text or a one-line comment beside it; the ids above are final; `fourCombos` per margin line (Sentence 2, Levy 2, Tally 1, Wax 1, Sand 1), one scenario per capstone (10), the note hidden, then offered, then credited.
