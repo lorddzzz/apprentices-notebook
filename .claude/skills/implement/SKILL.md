@@ -18,7 +18,7 @@ You are the **orchestrator**. You own contracts, briefs, reviews, merges and the
 ## Start or resume
 
 1. **Resume:** read the status file only (never the log), check `git status`, `git worktree list` and recent commits against it, then continue from **Next**. If the status file and Git disagree, Git is right: correct the file first.
-2. **No plan:** delegate planning to a Strong planner at high effort. The plan states settled rules and open Proposals, shared contracts, and tasks **already grouped into packs** (see below) with owned files, dependencies and acceptance written as test names. Summarize it for the player and get their go, unless already authorized.
+2. **No plan:** delegate planning to the strongest model available at high effort, giving it [plan-template.md](plan-template.md). The plan states settled rules and open Proposals, shared contracts, and tasks **already grouped into packs** (see below) with owned files, dependencies and acceptance written as test names. Summarize it for the player and get their go, unless already authorized.
 3. Design wins over the plan. Resolve conflicts with the player through `design-round`, or follow the autonomy log when they are away.
 4. Create the status file from [templates.md](templates.md) and commit it before spawning.
 5. Read [usage-pacing.md](usage-pacing.md) and record the usage baseline.
@@ -36,7 +36,7 @@ A **pack** is one agent run: two to four tasks that touch the same files, done i
 
 ### The brief
 
-Use the spawn prompt in [templates.md](templates.md). A good brief lets the agent start without exploring:
+Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules, so the brief holds only what differs per pack. A good brief lets the agent start without exploring:
 
 - **Owns:** the exact files or directories. Everything else is read-only.
 - **Read:** at most three things: the plan rows, one design section, and **one pattern file** to copy (the nearest finished example).
@@ -48,15 +48,19 @@ Store briefs for packs that are not started yet in `docs/plans/<plan>-briefs.md`
 
 ### Model choice
 
-Default to the cheapest role that fits; move up only after a failed review.
+Start at the role's first setting; move to its escalation only after a failed review. These settings are deliberately on the cheap side and are an experiment: the log's Model and Returns columns decide whether they stay.
 
 | Role | Claude | GPT | Use for |
 |---|---|---|---|
-| **Fast** | Haiku 5.5 high | Luna 6 max (`gpt-6-luna`) | Content and data from an approved text or a precise spec, pattern-following screens, log and fact gathering |
-| **Medium** | Sonnet 5.5 high | Sol 6.1 medium (`gpt-6.1-sol`) | The default: engine logic, Svelte screens, tests, refactors, debugging |
-| **Strong** | Opus 5.5 medium | Sol 6.1 high | Planning (at high effort), a Wave 0 with no template to follow, and escalations |
+| **Fast** | Haiku 5.5 high | Luna 6 high (`gpt-6-luna`) | Content and data from an approved text or a precise spec, pattern-following screens, log and fact gathering |
+| **Default** | Sonnet 5.5 medium → Sonnet 5.5 high or Opus 5.5 medium | Terra 6.1 high (`gpt-6.1-terra`) → Sol 6.1 high (`gpt-6.1-sol`) | Most packs: engine logic with tests already written, Svelte screens, tests, refactors, debugging |
+| **Strong** | Sonnet 5.5 high → Opus 5.5 high | Sol 6.1 medium → Sol 6.1 extra high | A Wave 0 with no template to follow, hard algorithms, cross-cutting refactors |
+| **Routine orchestrator** | Sonnet 5.5 medium | Sol 6.1 medium | See "Two kinds of window" |
+| **Design orchestrator, planner** | The strongest model available, high effort | The strongest model available, high effort | Planning, briefs, Wave 0 and Close reviews, audits |
 
-A session or project rule may narrow this further. For Codex model overrides use `fork_turns: "none"` with a standalone prompt. Don't restart a running agent to change its model.
+- A Fast pack that fails review moves to Default; it does not get a second Fast attempt.
+- Pass the role's model and effort when spawning `pack-worker` (its own default is Sonnet 5.5 medium). For Codex model overrides use `fork_turns: "none"` with a standalone prompt. Don't restart a running agent to change its model.
+- Record the model, the effort and any escalation in the log row.
 
 ## Verify in tiers
 
@@ -81,8 +85,8 @@ Verification is the largest avoidable cost. Each tier runs once, at its own leve
 When a pack reports:
 
 1. **Review** the test diff and the public surface (exported names, contracts, data shapes) against the brief's Done-when. For UI, look at the screenshots. Leave line-level review to the Close review.
-2. **One return per pack.** Send the agent one message with every correction and the reason. If a problem remains after that: fix it yourself when it is small (about 30 lines), otherwise write a new brief with the review notes and move up one model role.
-3. **Squash-merge** one commit per task. Put the detail in the commit body (what was built, test names, accepted Proposals): `git log --grep '<ID>'` finds it later for free.
+2. **One return per pack.** Send the agent one message with every correction and the reason. If a problem remains after that: fix it yourself when it is small (about 30 lines), otherwise write a new brief with the review notes and spawn it at the role's escalation setting.
+3. **Squash-merge** one commit per task (in the log row, note the model, effort and how many times the work was sent back). Put the detail in the commit body (what was built, test names, accepted Proposals): `git log --grep '<ID>'` finds it later for free.
 4. **Record** in the same commit: one row in the log (ID, commit, model, one clause), and the status file's Next, Owed and Rough edges. Remove the pack's worktree and branch now.
 5. Check usage, then start the next pack.
 
@@ -97,7 +101,7 @@ Orchestration does not need the strongest model all the time. The orchestrator's
 | Window | Orchestrator | Does |
 |---|---|---|
 | **Design** | The strongest model available | Planning and replanning, Wave 0 review, writing the briefs file for the coming packs, the one return a pack is allowed when the problem is a contract or design question, Close reviews, audits |
-| **Routine** | A Medium model (Sonnet 5.5 high; Sol 6.1 medium) | Spawns packs from the briefs file as written, checks reports against Done-when, runs the gates, merges, records, paces usage |
+| **Routine** | Sonnet 5.5 medium or Sol 6.1 medium | Spawns packs from the briefs file as written, checks reports against Done-when, runs the gates, merges, records, paces usage |
 
 A routine orchestrator does not decide contracts or accept Proposals that change a rule. When a report needs that, it leaves the pack unmerged under **Needs design review** in the status file with the branch and the question, and goes on to the next pack. The status file's **State** line names which kind of window comes next; the player picks the session's model to match. A program normally runs one design window, then routine windows until the briefs run out or the review list has three entries.
 

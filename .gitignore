@@ -5,3 +5,4 @@ coverage
 *.local
 .claude/settings.local.json
 .claude/worktrees
+check.log

@@ -46,6 +46,8 @@ Atmosphere items (BL-40–42) stay in the roadmap outside the program.
 
 ## 2. What a plan looks like
 
+> For new plans use [the implement skill's plan template](../../.claude/skills/implement/plan-template.md) (packs, tests-first engine work, no balance targets). The format below is the one the 15 existing plans were written in.
+
 Plans state **goals**, not keystrokes. Aim for roughly 120–220 lines. Use these sections:
 
 1. **Header:** title, design link, roadmap ID, `State: Drafted (not approved)`, one-line scope.

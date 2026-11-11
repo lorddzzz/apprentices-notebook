@@ -41,56 +41,36 @@ Plan: [<plan>](<plan>.md). Log: [<plan>-log.md](<plan>-log.md) (not read on resu
 Append-only, one line per merged task. Keep the table format so IDs can be matched by script.
 
 ```markdown
-| ID | Commit | Model | Usage Δ | Note |
-|---|---|---|---|---|
-| BF-3 | 1a2b3c4 | Sonnet | ~7% | ring queue and hum; cap wired from battle.ts |
+| ID | Commit | Model / effort | Returns | Usage Δ | Note |
+|---|---|---|---|---|---|
+| BF-3 | 1a2b3c4 | Sonnet / medium | 0 | ~7% | ring queue and hum; cap wired from battle.ts |
+| BF-4 | 5d6e7f8 | Sonnet / medium → high | 1 | ~5% | cap sweep; escalated after a missed case |
 ```
+
+**Returns** counts review rounds that sent work back (0 = merged on the first report); write an escalation as `from → to`. Usage Δ is per pack when tasks cannot be told apart: put it on the pack's last row. These two columns are how model and effort choices get judged, so fill them every time.
 
 Usage readings go in a second table (time, 5h %, weekly %, action), one row per merge batch.
 
 ## Spawn prompt
 
+In Claude, spawn the `pack-worker` agent (`.claude/agents/pack-worker.md` holds the standing rules: start, ownership, verification, commits, report) with the role's model and effort from the skill's table, and send only this brief. In a runtime without agent definitions, paste the body of that file first.
+
 ```
-You are implementing pack <name> of docs/plans/<plan>.md: tasks <ID> → <ID> → <ID>, in that order,
-one commit per task.
+Pack <name> of docs/plans/<plan>.md: tasks <ID> → <ID> → <ID>.
 
-First: run `git merge --ff-only main` (report if it fails).
-Read only: AGENTS.md; <plan rows / section>; <design section>; and <pattern file> as the example to
-follow. Do not read the status file, the log, or whole design docs. Look at other code only when a
-type or call site requires it.
-
-You own (create or edit only these): <files and directories>. Everything else is read-only; if the
-work needs a change elsewhere, stop and report it.
-
-Contract (on main; keep it, report problems instead of changing it):
+Read: <plan rows / section>; <design section>; pattern: <file to follow>.
+Own: <files and directories>.
+Contract (on main):
 <signatures, invariants, ordering rules, quoted>
-Owed by this pack: <items from the status file's Owed list>
+Owed by this pack: <items from the status file's Owed list, or "nothing">
 
-Done when, per task:
-- <ID>: tests named <…> exist and pass; <other observable result>
+Done when:
+- <ID>: tests named <…> pass; <other observable result>
 - <ID>: …
 
-Verify:
-- Before each commit: `<the pack's test command> --reporter=dot` and the typecheck your files need
-  (`pnpm exec tsc --noEmit` for .ts only; `pnpm typecheck` if you changed a .svelte file).
-- Before your last commit: `pnpm check:fast > /tmp/<pack>-check.log 2>&1; tail -20 /tmp/<pack>-check.log`.
-- Never run `tests/sim/` unless a task above says so.
-- .svelte files: run the Svelte MCP `svelte-autofixer` until clean. UI: the `verify` skill at 375×812
-  against your own server, `pnpm dev --port <519x> --strictPort` from your worktree; your own tab.
-  (Omit this line for a pattern-following UI pack: the orchestrator checks those per wave.)
-
-Rules:
-- Commit at each green task, staging explicit paths (never `git add -A`):
-  "<type>(<area>): <ID> <summary>", with a body listing what you built and the test names.
-- Don't edit DESIGN.md, TECH.md, docs/design/*, the roadmap or the status file.
-- Don't tune balance numbers; keep the design's values.
-- Tests marked `it.fails` or `it.todo` with your task's ID are your acceptance: make them pass and
-  remove the marker. If one must change, say so under Proposals.
-- If the orchestrator messages you about scope or usage, follow it at your next step.
-
-Report once, under 250 words, then stop: per task, the commit and the passing test names (paste the
-summary line of the test run); screenshot paths for UI; what is not done and the exact next step;
-"Proposals": each rule you decided that the plan did not, one line with the reason.
+Verify: `<the pack's test command>`
+<UI only> Phone check: yes, port <519x> | no (the orchestrator checks this wave's screens)
+<if it applies> Sims: run `<path>` for task <ID>.
 ```
 
 For a **Wave 0** pack, replace Contract with: "Define <owned contracts>. Report the public interfaces, the invariants, the integration risks, and everything you declared that later tasks must fill in (the Owed list)."
