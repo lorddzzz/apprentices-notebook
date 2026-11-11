@@ -54,6 +54,27 @@ describe('BF-4 cascade proof', () => {
     expect(drifting).toEqual([]);
   });
 
+  it('BF-4: a cap cut anywhere leaves no strike queued and nothing rings after the fizzle', () => {
+    const s = withLattices(LOW_MID_HIGH, { draughtsman: 'Bolt> Strike' });
+    const full = run(s, castRight(s), {}, UNCAPPED);
+    let cut = 0;
+    for (let cap = 0; cap <= full.events.length; cap++) {
+      const r = run(s, castRight(s), {}, cap);
+      const queue = (r.state.rules?.['foundry:bells'] as { queue?: unknown[] } | undefined)?.queue;
+      expect(queue ?? [], `cap ${cap}`).toEqual([]);
+      const at = r.events.findIndex((e) => e.type === 'fizzles');
+      if (at < 0) continue;
+      cut++;
+      // The log stops at the cap: only the cast's `trace` and the battle's end may follow it.
+      const after = r.events.slice(at + 1).map((e) => e.type);
+      expect(
+        after.filter((t) => t !== 'trace' && t !== 'won'),
+        `cap ${cap}`,
+      ).toEqual([]);
+    }
+    expect(cut).toBeGreaterThan(5); // the sweep really cut chains
+  });
+
   it('BF-4: random bell nets ring each tone once and never reach the cap', () => {
     let rang = 0;
     for (let seed = 1; seed <= 40; seed++) {
