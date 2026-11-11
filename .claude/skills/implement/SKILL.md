@@ -5,56 +5,98 @@ description: Execute or resume a larger feature from an implementation plan in d
 
 # Implement a feature
 
-You are the **orchestrator**. You own contract decisions, reviews, merges, and the status file. Delegate implementation and exploration; request concise reports.
+You are the **orchestrator**. You own contracts, briefs, reviews, merges and the records. Subagents write the code. Usage is the scarce resource: every spawn, every check run and every line you read or write is paid for, so the rules below aim at the fewest spawns and the least repeated verification that still give correct work.
+
+## Pick the size first
+
+| The work is | Do this |
+|---|---|
+| **Small** (up to about 5 tasks, one area) | No status file or log. Do it directly, or spawn one agent with one brief. Run the fast gate, review, commit, then the Close steps that apply |
+| **A plan** (one `docs/plans/<feature>-plan.md`) | Everything below, with `<plan>-status.md` and `<plan>-log.md` |
+| **A program** (several plans) | Everything below, with one status file and one log for the whole program and a boundary map of which plan owns which system |
 
 ## Start or resume
 
-1. **Resume:** read `docs/plans/<plan>-status.md`, inspect worktrees and recent commits, and collect reports from surviving agents. Reconcile the recorded state with Git, then continue from **Next**.
-2. **No plan:** delegate planning to **Opus 5.5 High** or **Sol 6.1 High** (`gpt-6.1-sol`, reasoning `high`). The planner reads the relevant design and writes `docs/plans/<feature>-plan.md`: settled rules and open Proposals, shared contracts, dependency-ordered waves, and tasks with owned files, model role, dependencies, acceptance criteria, and size (S/M/L). Summarize the plan for the player and get their go before building, unless already authorized.
-3. Read the plan and relevant design sections. Design takes precedence; resolve conflicts with the player through `design-round`, or follow the autonomy log when they are away.
-4. Create or refresh the status file using [templates.md](templates.md). Commit it before spawning; if project memory is available, store only a pointer to it there.
-5. Read [usage-pacing.md](usage-pacing.md), check usage, and record the baseline. Use that reference throughout the build.
+1. **Resume:** read the status file only (never the log), check `git status`, `git worktree list` and recent commits against it, then continue from **Next**. If the status file and Git disagree, Git is right: correct the file first.
+2. **No plan:** delegate planning to a Strong planner at high effort. The plan states settled rules and open Proposals, shared contracts, and tasks **already grouped into packs** (see below) with owned files, dependencies and acceptance written as test names. Summarize it for the player and get their go, unless already authorized.
+3. Design wins over the plan. Resolve conflicts with the player through `design-round`, or follow the autonomy log when they are away.
+4. Create the status file from [templates.md](templates.md) and commit it before spawning.
+5. Read [usage-pacing.md](usage-pacing.md) and record the usage baseline.
 
-## Delegate and sequence
+## Packs, not tasks
 
-- **Wave 0:** default to a **Strong** subagent for shared types, contracts, and stubs. Require a handoff identifying public interfaces, invariants, and integration risks. The orchestrator reviews the contract diff against downstream tasks, resolves gaps, and merges it before dependent tasks start. Do Wave 0 directly when it is small or its unresolved design decisions require close iteration with the player.
-- Give each task an isolated worktree and explicit file ownership. Concurrent tasks must own disjoint files. Start a task once its dependencies are merged; a wave is not a barrier.
-- Run 2–4 agents when usage and independent work allow. Prioritize the critical path, then large tasks, then fillers.
-- Use the standalone spawn prompt in [templates.md](templates.md); fill in the task's context and acceptance criteria. It contains the ownership, checkpoint, preview, and report requirements. Give Wave 0 authority over its listed contract files; later tasks report contract problems instead of changing them.
+A **pack** is one agent run: two to four tasks that touch the same files, done in sequence, one commit each. Packs running at the same time own disjoint files. Spawning has a fixed cost (the agent reads the project rules, the plan and the code around its task), so pay it once per area, not once per task.
+
+- Write the window's packs up front: decide the two or three to run, write their briefs, then spend the window merging and recording.
+- Run **two or three** agents at a time. Four gives the same output per unit of usage and makes tests time out.
+- **Wave 0** (shared types, contracts, stubs) is its own pack and merges before anything that depends on it. Do it yourself when it is small or needs the player.
+- A pack starts as soon as what it depends on is merged. Order by critical path, then risk: work that could change the plan (a spike, a go/no-go) runs before content that assumes its answer.
+
+### The brief
+
+Use the spawn prompt in [templates.md](templates.md). A good brief lets the agent start without exploring:
+
+- **Owns:** the exact files or directories. Everything else is read-only.
+- **Read:** at most three things: the plan rows, one design section, and **one pattern file** to copy (the nearest finished example).
+- **Contract:** the signatures and invariants it must keep, quoted in the brief, not "see the plan".
+- **Done when:** a list of test names that must exist and pass, plus screenshots for UI. Never a win rate or other balance target unless the project's rules allow tuning in this phase.
+- **Verify:** the one command that runs the pack's own tests.
 
 ### Model choice
 
-Choose the least expensive role suited to the task.
+Default to the cheapest role that fits; move up only after a failed review.
 
-| Role       | Claude option   | GPT option                               | Use for                                                                                                      |
-| ---------- | --------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Strong** | Opus 5.5 Medium | Sol 6.1 High (`gpt-6.1-sol`, `high`)     | Wave 0, cross-cutting refactors, hard algorithms                                                             |
-| **Medium** | Sonnet 5.5 High | Sol 6.1 Medium (`gpt-6.1-sol`, `medium`) | Planned engine logic, Svelte screens, debugging, substantive tests and review                                |
-| **Fast**   | Haiku 5.5 High  | Luna 6 Max (`gpt-6-luna`, `max`)         | Precise-spec content/data, pattern-based screens, test runs, log inspection, fact gathering, QA playthroughs |
+| Role | Claude | GPT | Use for |
+|---|---|---|---|
+| **Fast** | Haiku 5.5 high | Luna 6 max (`gpt-6-luna`) | Content and data from an approved text or a precise spec, pattern-following screens, log and fact gathering |
+| **Medium** | Sonnet 5.5 high | Sol 6.1 medium (`gpt-6.1-sol`) | The default: engine logic, Svelte screens, tests, refactors, debugging |
+| **Strong** | Opus 5.5 medium | Sol 6.1 high | Planning (at high effort), a Wave 0 with no template to follow, and escalations |
 
-Planning uses the explicit High setting above, overriding the Claude Strong default. Use the active runtime's model and reasoning/effort controls. For Codex model overrides, use `fork_turns: "none"` with a standalone prompt. Legacy plan roles Opus/Sonnet/Haiku mean Strong/Medium/Fast. Apply mappings to new spawns; do not restart running agents just to change models.
+A session or project rule may narrow this further. For Codex model overrides use `fork_turns: "none"` with a standalone prompt. Don't restart a running agent to change its model.
 
-A project or session rule may lower these defaults (the build program, 2026-11-04: Fast for content and small fixes, Medium for UI and engine, Strong only for exceptionally complex tasks). Playtest gates never block other work, and balance numbers are not tuned mid-build (AGENTS.md): do not accept or reject a task on a win rate.
+## Verify in tiers
 
-After two failed reviews, escalate one role with the attempt's branch and review notes. If already Strong, reassess the contract or task split before retrying.
+Verification is the largest avoidable cost. Each tier runs once, at its own level.
+
+| Who | Runs | When |
+|---|---|---|
+| Agent | The pack's own test paths (quiet reporter), plus the typecheck its files need | Before each commit |
+| Agent | The fast gate (`pnpm check:fast`) | Once, before its last commit |
+| Orchestrator | The fast gate on merged `main` | Once per **merge batch** (everything that reported since the last run), not per merge |
+| CI | The full gate (`pnpm check`) | On push; read the run's result instead of repeating it locally |
+| Orchestrator | The full gate locally and a full-loop phone check | Only at Close |
+
+- Send check output to a file and read the tail. A passing run's output is never worth reading in full.
+- Only a pack that owns the slow sims runs them.
+- A test that fails on timing, not logic, is a bug in the gate: fix its timeout or move it to the slow tier the same day. Don't rerun and carry on.
+- Push once per merge batch, so CI finishes on a commit instead of being cancelled by the next push.
 
 ## Review, merge, record
 
-After each report:
+When a pack reports:
 
-1. Review the diff against acceptance criteria and test evidence; for UI work, inspect screenshots or use `verify` to obtain them.
-2. Fix small integration issues directly. Return larger corrections to the same agent with the required change and reason.
-3. Squash-merge one task per commit. Run `pnpm check:fast` before committing; the full `pnpm check` (sims included) runs when a wave or plan finishes and in CI. Keep unfinished screens unreachable until their integration task. Push after each merge or at least each wave.
-4. Include the status update in the merge commit: append the task's row (source branch/commit, usage delta, notes, full Proposals) to `<plan>-log.md`; keep `<plan>-status.md` to state, next actions, open questions and rough edges. Preserve partial-work locations and new risks.
-5. Check usage and start newly unblocked work within the pacing rules.
+1. **Review** the test diff and the public surface (exported names, contracts, data shapes) against the brief's Done-when. For UI, look at the screenshots. Leave line-level review to the Close review.
+2. **One return per pack.** Send the agent one message with every correction and the reason. If a problem remains after that: fix it yourself when it is small (about 30 lines), otherwise write a new brief with the review notes and move up one model role.
+3. **Squash-merge** one commit per task. Put the detail in the commit body (what was built, test names, accepted Proposals): `git log --grep '<ID>'` finds it later for free.
+4. **Record** in the same commit: one row in the log (ID, commit, model, one clause), and the status file's Next, Owed and Rough edges. Remove the pack's worktree and branch now.
+5. Check usage, then start the next pack.
 
-Give the player short updates for meaningful starts, merges, and usage changes. Use chapter markers per wave if available.
+**Owed list.** Whenever a contract leaves something for later ("each district registers its frame when it runs", "BF-5 routes X before Y"), write it in the status file's **Owed** list with the task that must do it, and copy it into that task's brief. Fields that are declared and never filled are the commonest kind of hidden work.
 
-## Finish
+Give the player a short update for each start, merge batch and usage change.
 
-1. On merged `main`, run `pnpm check` and verify the feature's full loop using `verify` at 375×812, with screenshots.
-2. Review the feature diff with `code-review` if available, otherwise a Medium reviewer. Fix material findings and record remaining follow-ups.
-3. Update DESIGN.md §11 and the feature doc §0 with rules and accepted Proposals (marked *Proposal*), TECH.md §7 with tech decisions, and the status file to **Done**, in the final implementation commit.
-4. Push and confirm that CI deployed the pushed commit, rather than relying on the latest unrelated run.
-5. Remove only merged task worktrees and branches after preserving needed reports in the status file.
-6. Hand over what can be played, verification, decisions, rough edges, peak usage, and 2–4 playtest questions about feel and direction.
+## Sessions
+
+End the session at each Hold and start a fresh one at the reset, resuming from the status file. A long session carries its whole history through every turn, and the cache does not survive a hold anyway. Schedule the wake-up when the runtime allows it and the player's pacing rule says to continue ([usage-pacing.md](usage-pacing.md)).
+
+## Close (a plan, or a wave of a program)
+
+These steps are tasks: list them in the status file when the plan starts, so they are not forgotten.
+
+1. On merged `main`: the full gate, and the feature's full loop at 375×812 with screenshots (`verify`).
+2. One `code-review` of the plan's diff (or of each subsystem, for a program). Fix material findings; record the rest as follow-ups.
+3. Records: DESIGN.md §11 and the feature doc with the rules and accepted Proposals (marked *Proposal*), TECH.md §7, the plan's `State:` line, the roadmap row, and a short verification note. Check that every task ID in the plan is in the log or listed as open.
+4. Push, and confirm CI deployed that commit.
+5. Hand over: what can be played, what was verified and what was not, decisions, rough edges, usage, and two to four playtest questions about feel and direction.
+
+Every few sessions of a long program, spend ten minutes on step 3's last check and on the Owed list. Drift is cheap to fix early.
