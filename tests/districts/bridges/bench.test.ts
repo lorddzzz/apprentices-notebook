@@ -24,9 +24,7 @@ describe('the Bench offers the wardens’ staff only once met', () => {
     expect(sceneEntries(household([foe])).some((e) => e.item === token)).toBe(true);
   });
 
-  // BR-20: he is a rival now, and bench.ts (not in this pack) filters rivals by RIVAL_TOKENS, which
-  // omits `K` (a district token). Fails until bench.ts filters by RIVALS; reported to the orchestrator.
-  test.fails('the Chief Warden, a rival heart, stays Lab-only even once met', () => {
+  test('the Chief Warden, a rival heart, stays Lab-only even once met', () => {
     expect(sceneItems(household(['chiefWarden']))).not.toContain(ENEMIES.chiefWarden.token);
   });
 

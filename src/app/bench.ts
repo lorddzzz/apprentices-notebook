@@ -15,7 +15,7 @@ import {
   slotKey,
   VARIANTS,
 } from '$data';
-import { RIVAL_PAGES, RIVAL_TOKENS, type RivalPageDef, type RivalPageId } from '$data/rivals';
+import { RIVAL_PAGES, RIVALS, type RivalPageDef, type RivalPageId } from '$data/rivals';
 import {
   type Action,
   type Aim,
@@ -256,7 +256,7 @@ const MET_ITEMS: readonly { items: readonly PaletteItem[]; met: readonly string[
  */
 export function sceneEntries(p: Pick<Profile, 'met' | 'foesMet'>, kit: Kit = KIT): PaletteEntry[] {
   const met: readonly string[] = p.met;
-  const rivals = new Set<string>(RIVAL_TOKENS.filter((t) => t.kind === 'foe').map((t) => t.id));
+  const rivals = new Set<string>(Object.keys(RIVALS));
   // A stand-in heart (the Chief Warden until his rival exists, P20) is Lab-only, like the rivals.
   const foes = p.foesMet
     .filter((f) => !rivals.has(f) && !ENEMIES[f].script?.standIn)

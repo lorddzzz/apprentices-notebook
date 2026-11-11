@@ -59,7 +59,7 @@ export function trickTable(): Record<string, TrickDef> {
 
 /**
  * Adds a trick to the registry (a test fixture or a Lab prototype; a district lists its own in its
- * module's `tricks`). Ids are namespaced by district (`bridges:rightOfWay`) and may not repeat a
+ * module's `tricks`). Ids are namespaced by district (`bridges:keystoneRight`) and may not repeat a
  * module's or an earlier registered id. Returns a function that removes it again.
  */
 export function registerTrick<S extends Json>(def: TrickDef<S>): () => void {
