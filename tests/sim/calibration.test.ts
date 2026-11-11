@@ -42,7 +42,8 @@ test('Seam calibration bots terminate within forty rounds across every variant',
   expect(rows.every((r) => r.rounds.every((round) => round <= 41))).toBe(true);
   expect(rows.reduce((sum, r) => sum + r.won + r.lost + r.timedOut, 0)).toBe(24);
   if (process.env.CALIBRATE_SEAM) console.log(JSON.stringify(rows));
-}, 60_000);
+  // 11s alone, but sims share the machine with other agents and the full sweep: a wide margin, not a trim.
+}, 300_000);
 
 test('starter trip calibration includes HP and charge attrition', () => {
   const trips = [7, 42].map((seed) => {
@@ -66,4 +67,5 @@ test('starter trip calibration includes HP and charge attrition', () => {
   });
   expect(trips.every((t) => t.rooms.length > 0 && t.rooms.length <= 4)).toBe(true);
   if (process.env.CALIBRATE_SEAM) console.log(JSON.stringify(trips));
-});
+  // 2.5s alone; vitest's 5s default fails under load.
+}, 120_000);
