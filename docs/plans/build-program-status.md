@@ -35,6 +35,8 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 
 Ledger: `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/{platform-closure,calibration,foundry,cartographers,ending,bridges,ink-quarter,seam-grows}-plan.md`
 
+Ledger caveats: it counts GATE-1 and BF-3 to BF-9 as merged because two consolidation commits of 2026-11-11 name them in their messages; they are **open**. IQ-13 shows open but is built (archive log, prose only). The foundry's acceptance tests (`tests/districts/foundry/*.acceptance.test.ts`, 36 `it.fails`, 27 `it.todo`) are the Done-when for BF-3 to BF-9; proposals P16 and P17 in the foundry plan came with them and want a look in the next design window.
+
 ## Open questions for the player (defaults held; ask in the next design round)
 - **IQ-20 / IQ-G1:** the bot never loses an ink-quarter room with a fresh pair. Default: playtest first; levers are in the calibration plan.
 - **CN-2:** shoving a moored crate crushes it; a crate pushed across the mooring without stopping does not moor. Default: as built.
