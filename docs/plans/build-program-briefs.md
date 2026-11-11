@@ -7,12 +7,12 @@ Order: **GATE-1 alone first.** Then two or three of A–E at a time (they own di
 ## GATE-1 (Default: Sonnet medium)
 
 ```
-Pack GATE of docs/plans/platform-closure-plan.md: task GATE-1.
+Pack A of docs/plans/platform-closure-plan.md: task GATE-1.
 
 Read: platform-closure-plan.md row GATE-1; midpoint-audit.md §4.1 (the timing table) and §4.2 item 3.
 Own: package.json (scripts), tsconfig*.json, vitest config, the two bridges play-through test files
 (the two files under tests/districts/bridges/ that take over 20 s each: move them to tests/sim/),
-tests/sim/canals.test.ts and tests/data/canal-rooms.test.ts (the CN-13 timeouts only),
+tests/sim/canals.test.ts (the CN-13 timeout at line 39) and the global test timeout in vite.config.ts,
 .github/workflows/* only if a script name it calls changes, AGENTS.md "Commands" (one line for check:changed).
 Contract (on main): `pnpm check` stays the full gate and `pnpm check:fast` stays "typecheck + lint + tests
 without tests/sim". No test is deleted or weakened: a moved test keeps its assertions; a timeout fix
@@ -23,9 +23,9 @@ Done when:
 - GATE-1: `svelte-check` and `tsc` are timed separately and the redundant pass is out of check:fast
   (state both times in the report; `pnpm typecheck` remains a full check); incremental builds on for the other.
 - `pnpm check:changed` exists (`vitest run --changed main --exclude 'tests/sim/**'`).
-- No file under tests/districts/ takes over 10 s; `pnpm vitest run tests/sim/canals.test.ts` and
-  `tests/data/canal-rooms.test.ts` pass three times in a row, alone.
-- check:fast wall time on an idle machine is reported (target: under 3 minutes).
+- No file under tests/districts/ takes over 10 s; `pnpm vitest run tests/sim/canals.test.ts`
+  passes three times in a row, alone.
+- check:fast wall time on an idle machine is reported (target: 3 min 30 s or less).
 
 Verify: `pnpm check:fast > check.log 2>&1; tail -20 check.log`
 Sims: run `tests/sim/canals.test.ts` and the two moved files for task GATE-1.
@@ -67,8 +67,8 @@ Read: bridges-plan.md P16, P17 and row BR-20; TECH.md §3 "Authoring a rival";
 pattern: src/data/rivals/bathSteward.ts.
 Own: src/data/rivals/chiefWarden.ts, src/data/rivals/index.ts (one line), src/engine/districts/bridges/**,
 tests/rivals/chiefWarden.test.ts, tests/districts/bridges/**, and the `refusesHold` / `resists` call sites
-in src/engine/push.ts, src/engine/runes/actions.ts, src/engine/runes/flow.ts, src/engine/solvents.ts
-(deletions only).
+in src/engine/push.ts, src/engine/runes/actions.ts, src/engine/runes/flow.ts, src/engine/solvents.ts,
+src/engine/districts/inkQuarter/wax.ts (deletions only).
 Contract (on main): the Chief Warden is authored through RV's API (RV-11 tricks, RV-14 authoring, RV-15 page);
 he holds his tile while the keystone stands and falls only when it breaks (P17). The stand-in mechanism
 `rightOfWay` is removed, not wrapped. Leave `cracksOf` imports alone (KIT-R1 replaces them next).
@@ -132,9 +132,9 @@ Sims: run `tests/sim` for task EN-0. This is the only pack that runs sims.
 ## Pack E: board UI registries (Default: Sonnet medium; escalate to Sonnet high)
 
 ```
-Pack E of docs/plans/platform-closure-plan.md: task KIT-R2.
+Pack C of docs/plans/platform-closure-plan.md (the audit's Pack E): task KIT-R2.
 
-Read: platform-closure-plan.md row KIT-R2 and its contract; district-kit-plan.md P8 and P10;
+Read: platform-closure-plan.md row KIT-R2 and its contract (the slot names there are the ones to use); district-kit-plan.md P8 and P10;
 pattern: src/ui/districts/index.ts (the existing registry slots).
 Own: src/ui/districts/index.ts, each src/ui/districts/<id>/index.ts,
 src/ui/components/board/{UnitToken,FxLayer,BattleBoard,BadgeLayer}.svelte, src/ui/screens/Combat.svelte

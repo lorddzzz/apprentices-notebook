@@ -6,7 +6,7 @@ Source: [midpoint-audit.md](midpoint-audit.md) §1.2 item 8 and §2.1 (every win
 
 ## 1. Deferred items (numbers as of `a6e8bfb`)
 
-All "main" values are what is committed now. "Source" is where the item was recorded (`log` = [build-program-log.md](build-program-log.md), grep the ID).
+All "main" values are what is committed now. "Source" is where the item was recorded (`log` = [build-program-log-archive.md](build-program-log-archive.md), grep the ID).
 
 | Item | Tunable (file:line) | Main value | Measured / proposed | Source |
 |---|---|---|---|---|

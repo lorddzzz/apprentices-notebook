@@ -1,52 +1,60 @@
 # Build program status (resume here)
 
-Plans: [build-program.md](build-program.md), order in [ROADMAP §2](../ROADMAP.md). History (every task's report, usage log, accepted proposals, decisions) is in [build-program-log.md](build-program-log.md): **do not read it on resume**, grep it for a task ID when you need details. Keep this file short: when a task merges, add one row to the log's tables, not here.
+Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.md](midpoint-audit.md) §2.2; remaining work in pack form: [platform-closure-plan.md](platform-closure-plan.md), [foundry-plan.md](foundry-plan.md), [ending-plan.md](ending-plan.md), [cartographers-plan.md](cartographers-plan.md), [calibration-plan.md](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'` has each task's details; work before 2026-11-11 is in the archive log, grep only).
 
-**Next window:** routine (the briefs are midpoint-audit.md §3; a Medium orchestrator can run them). **State:** session ended (player, 2026-11-06: last wave BF-1 + BF-2, done). **2026-11-11: [midpoint audit](midpoint-audit.md) written; read its §2.2 (order) and §3 (packs) before picking work. Its new tasks and re-ordering wait for the player's approval; this file's corrections below are facts.** Bridges plan done except gated BR-19/BR-20. Foundry: BF-0, BF-1, BF-2 merged. Nothing running. Worktrees: 14 old ones (3.4 GB, all squash-merged sources except SM-6) are safe to remove (the classifier blocked a bulk remove; ask the player); `worktree-agent-a7d9ce60e430bee68` = SM-6 (unmerged calibration).
-**Player rule (2026-11-04):** play-through sims and full-loop checks only when a wave or plan finishes (`pnpm check:fast` per commit/merge, full `pnpm check` at milestones and in CI); no balance tuning mid-build (keep design numbers; SM-6 and other calibration wait for the end); the player tests mostly at the end, so **gates never block**: build past IQ-G1, RV-G1, FN-G1, CN-G1, SM G1–G3 on the defaults and the open-question defaults below.
-**Pacing rules (player):** pace by the 5h limit; ignore the weekly limit unless > 97%. Near the window's end schedule a wake-up for the reset (CronCreate one-shot, session-only), **session 2026-11-06: keep scheduling one per window** until the player says a window is the last one or weekly usage passes 85%. Subagents: weaker models than usual (Haiku for content, Sonnet for UI/engine; Opus only for exceptionally complex tasks).
-
-## Remaining (by ID; verify with `grep -n 'ID' build-program-log.md`)
-- Bathhouses: built and open; BH-G1 (player); follow-ups: wire the vent floor (`IntrusionSpec.terrain`), calibration, per-threshold "Try the lock" label, bath-dome solved art, footnote margins phone check. Bridges: built and open with a stand-in heart; left BR-19, BR-20 (both ready, see below), BR-G2 (player).
-- Seam: SM-15 (verification file). Rivals: all tasks merged; RV-G1 (player). Canals: CN-P1 (player). **Ink quarter: footnote batch IQ-F1–F5 and IQ-FG not started** (no draft, no data file). BR-19 and BR-20 are **ready** (BR-G1 is an orchestrator review; RV-14/15/20 merged). Foundry: BF-3 onward. CG, EN not started (EN-0 was due early).
-- Owed at plan close for FD, DK, RV, FN, SM, IQ: DESIGN §11 / TECH §7 rows, a verification file (FD, DK, RV, FN, SM), a code review (none run for any plan).
-- Main is not fully green: `tests/sim/canals.test.ts` (CN-13 win rates) timed out at 30 s run alone on 2026-11-11. `eventCap` is still not passed from `battle.ts`: wire it with BF-3, before BF-4.
+**State:** consolidated for the new `implement` skill 2026-11-11; nothing running · **next window:** routine
+**Session rules (player):**
+- Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
+- Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
+- 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
+**Reset:** none recorded; resume: manual, with the continuation prompt below
 
 ## Next
-1. **The adopted order is [midpoint-audit.md](midpoint-audit.md) §2.2; the first batch is its §3 (paste the pack briefs as written).** Start with **GATE-1** (S, Sonnet: split the typecheck, move the two bridges play-throughs to `tests/sim/`, fix the CN-13 timeout, add `check:changed`), alone, because every later pack pays for the gate. Then run two or three of these at a time, file-disjoint:
-   - **Pack A** foundry ring engine: BF-3 (+ `eventCap` from `battle.ts`) → BF-4 → BF-5. Contract notes: the log's BF-0, BF-1, BF-2 rows.
-   - **Pack B** bridges completion: BR-20 (real Chief Warden, deletes `rightOfWay`) + BR-7 leftovers. Then **KIT-R1** (engine hooks; no core file imports a district).
-   - **Pack C** ink footnotes: IQ-F1 + IQ-F2 → IQ-FG (orchestrator) → IQ-F3–F5 (Haiku). Then BR-19a/b behind it (same files).
-   - **Pack D** one bot: EN-0 with `ink-bot.ts` folded in. Then EN-W0 → **KIT-R3** (heart frames, bot terms, Seam and canal shapes) → EN-S1 → **EN-G0**.
-   - **Pack E** board UI registries: **KIT-R2** (before any new board UI: BF-17, BF-18, CG-12, EN-7).
-   - Orchestrator alongside: EN-12 (handover text draft, so the player's review EN-G2 starts early); SM-15 and the owed close-out docs.
-   Hard edges: BR-20 → KIT-R1; KIT-R2 → new board UI; EN-0 → EN-S1, MIX-1, CAL; KIT-R3 → EN-S1 and EN-K1–K5; BR-20 and the Carillonneur → CG-14.
-   Plan changes in force (build-program.md §5): the Carillonneur and the Registrar are built as real rivals directly (BF-9+BF-23, CG-7+CG-15); no win-rate band is an acceptance criterion; all calibration goes to one CAL plan at the end.
-2. Small follow-ups: BR-7: `BridgeTripState.spans` never written (drop it or add a DK `onChoice` hook), `CrossroadsChoice` lacks `note?` for ledger lines; canal fuzz at party 1–3 with crate and rival in `tests/sim`; RV-14 gaps (no runtime rival registration, a trick can't add an arrival cause, `LockLost` lacks met/spent; IQ-22 types `DistrictModule.goals`); BH-1: `BoilOverState.line` numeric for BH-9; widen `KitHearCondition`; route `KitId` hearing through `KIT.hearKinds`; IQ-15 highlight registry (overlay.ts imports `inkHighlights` and `ui/districts/seam/hands`); ink dark-mode pass; `lines.test.ts`/`projection.test.ts` (~35 s); autofixer not run on SM-11's edited Map/Cleared/SetOutSheet; New: add a postmaster heart row to `INK_CAL`; P7 vent puffs even if a state lies on it (`turn.ts::vents`); `splash-unit-press` text vs engine; Conduct respecting `brass-plate-ground`; BH-5 planning uses no footnotes.
-3. Gates (non-blocking; the player tests at the end): IQ-G1, RV-G1, CN-G1 (texts approved by the orchestrator), CN-P1, SM G1–G3, BH-G1, HC/AH/RC playtests. Calibration (BH-16 tables: heart boils on round 2, 100% wins; SM-6 branch `worktree-agent-a7d9ce60e430bee68`, IQ-20 levers, IQ-23: give the postmaster a move or a non-Bolt opener) waits for the end.
-4. At the end of a plan: full `pnpm check`, one full-loop phone check, code review, DESIGN §11 / TECH §7 / ROADMAP updates (SM, RV, CN, IQ all owe them; RV-14 already wrote TECH §3 "Authoring a rival").
+1. **GATE-1 alone** (brief written). Every later pack pays for the gate.
+2. Then two or three at a time, briefs written, file-disjoint: **Pack A** foundry ring engine (BF-3 → BF-4 → BF-5) · **Pack B** bridges completion (BR-20 → BR-7 leftovers) · **Pack C1** ink footnote audit and draft (IQ-F1 → IQ-F2, then IQ-FG review) · **Pack D** one bot (EN-0) · **Pack E** board UI registries (KIT-R2).
+3. A design window is due when A–E are merged or the review list has three entries. It writes the briefs listed at the end of the briefs file (KIT-R1, IQ-F3–F5, BR-19a/b, EN-W0, KIT-R3 → EN-S1 → EN-G0, the next foundry packs, SAVE-1), reviews IQ-FG, drafts EN-12, and runs the ledger.
+4. Hard edges: BR-20 → KIT-R1 · KIT-R2 → any new board UI (BF-17, BF-18, CG-12, EN-7) · EN-0 → EN-W0 → KIT-R3 → EN-S1 → EN-G0 · EN-0 → MIX-1 → EN-2 · KIT-R4 → EN-9 · BL-111 → EN-4 · BR-20 and BF-9 → CG-14 · cartographers start when BF-12 merges or a slot is free.
 
-## Open questions for the player (ask in the next design round; defaults held)
-- **IQ-20 / IQ-G1:** the bot never loses an ink-quarter room with a fresh pair (staff deal 1–2, the clock seal (3 HP) is always broken in time; real trips fail only from charge attrition, heart cleared 3%). Default: playtest first; candidate levers: a real damage source on the postmaster/Sealer, `CLOCK_TUNING.collect` up, a sturdier or out-of-reach clock seal.
-- **CN-2:** shoving a moored crate crushes it (anchored = wall); a crate pushed across the mooring without stopping does not moor. Default: as built.
-- **RV-20b / RV-G1:** the rival planner never walks onto a step-jar, so the "Jar" note has no visible effect yet. (a) planner ignores jars when the note is written, (b) a different effect.
-- **RV-5 / RV-10 (RV-G1):** the wick deals ~4 damage and is planned right after the lantern lands; should the planner account for allies? Default no.
-- **FN-A1 (FN-G1):** M1 Margin capstone a reuses FN-11's diagonal reach; M2 add `steam:unit`/`brass:unit` lines first?; M5 `oil-slick-short`/`shove-wall-soft` read as costs, keep?
-- **FN-1A A3:** Cinder vs a rat's oil trail over a hot tile; default: fix the text to match the engine.
-- **FN-4:** Desk rows still need ≥1 point (zero-point subject with margins stays hidden). Default keep.
-- **DK-8:** should friendly fire (apprentices reached) count for hearing (`burstUnits`/`conducted`)? Default keep (it counts).
+## Running or partial
+| Pack | Tasks | Model | Branch @ commit | State |
+|---|---|---|---|---|
 
-## Rough edges (risks worth remembering)
-- BH-12: the meter row overlaps board row 9 (P4's top-edge strip not built).
-- SM-12/14: the trip-page "The margin answered" card is still not phone-checked (answers are in data now; reach it with a Seam-heart profile and a proven cluster, then one fight). SM-2: the StepLayer pill covers the Marginalia's 16/16 HP on its tile; `app/overlay.ts` imports `handHighlights` from `ui/districts/seam` (no district-highlight registry; IQ-15 follow-up). CN-F1: Afterglow has no lines yet (needs new events), so CN-F2/F4's Afterglow margins have no rows.
-- `tests/data/canal-rooms.test.ts` CN-13 (30 s) can time out in a full `pnpm check` even with no agents running; passes alone. Raise its timeout or trim seeds. SM-1 made `engine/districts/seam.ts` import damage/mix (→ kit): any test that mocks `$engine/districts/kit` must not import the real Seam module in its factory (deadlock; see tests/run/kit.test.ts).
-- `tests/sim/calibration.test.ts` (15 s) times out while agents run `pnpm check` in parallel; passes alone in ~10 s. Rerun alone before treating it as a failure. Give each UI agent its own port (5190–5193).
-- FD-6: cap sweep lacks push-onto-jar and a mixing chain (`reserve` in mix.ts untested); `eventCap` not passed from `battle.ts`. RV-3: exact wick fail reasons need jar ids on `jarOpened`/`jarCrumbles`. FD-3: Graphite restore with no free tile leaves the unit overlapping.
-- HC-4: greedy bot stalls on some drawn start points; CN/SM should restore the strict turn-1 bite test. HC-5: threshold seed constant per party. `MEMBER_IDS` still used by UI, Lab, profiler, scenarios.
-- RC-4: recruit save cards accept any registry apprentice (tighten to the seven). Canal golden wins record with `DEEP` (startHp 20) since the CN-13 tuning merged; check the trio margin (97%) in the CN playtest.
+## Needs design review (left unmerged by a routine window)
+- none
+
+## Owed (declared by a contract, not yet built)
+- `eventCap` passed from `battle.ts` (FD-6) — owed by BF-3; needed by BF-4.
+- `DistrictModule.heart` and `.bot` for Seam, canals, ink quarter, bathhouses, bridges; `trip` shape for Seam and canals — owed by KIT-R3; needed by EN-S1, EN-K1–K5. The foundry and cartographers register theirs in their own plans (BF-12, CG-10).
+- `rightOfWay` stand-in removed, including its import in `inkQuarter/wax.ts` — owed by BR-20; needed by KIT-R1.
+- Ink quarter footnote batch (no draft, no data file) — owed by IQ-F1–F5.
+- Close-out for FD, DK, RV, FN, SM, IQ (DESIGN §11 / TECH §7 rows, verification files incl. SM-15, a code review per subsystem; none was ever run) — owed by CL-1…5 (platform-closure Pack N).
+- Each plan's own "Leaves for later tasks" list (§4 of the foundry, ending, cartographers and closure plans) — copy the matching items into each brief.
+
+## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)
+- [ ] full gate on main · [ ] full-loop phone check · [ ] code review · [ ] DESIGN §11 / TECH §7 · [ ] plan State + roadmap row · [ ] ledger clean · [ ] CI deployed
+
+Ledger: `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/{platform-closure,calibration,foundry,cartographers,ending,bridges,ink-quarter,seam-grows}-plan.md`
+
+## Open questions for the player (defaults held; ask in the next design round)
+- **IQ-20 / IQ-G1:** the bot never loses an ink-quarter room with a fresh pair. Default: playtest first; levers are in the calibration plan.
+- **CN-2:** shoving a moored crate crushes it; a crate pushed across the mooring without stopping does not moor. Default: as built.
+- **RV-20b:** the rival planner never walks onto a step-jar, so the "Jar" note has no visible effect. (a) planner ignores jars when the note is written, (b) a different effect.
+- **RV-5 / RV-10:** should the planner account for allies when the wick lands? Default no.
+- **FN-A1:** M1 Margin capstone reuses FN-11's diagonal reach; M2 add `steam:unit`/`brass:unit` lines first?; M5 `oil-slick-short`/`shove-wall-soft` read as costs, keep?
+- **FN-1A A3:** Cinder vs a rat's oil trail over a hot tile. Default: fix the text to match the engine.
+- **FN-4:** Desk rows still need ≥ 1 point. Default keep. **DK-8:** friendly fire counts for hearing. Default keep.
+- **CAL:** bridges and the foundry have no stated win-rate band. Default: the canals' band.
+- Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, HC/AH/RC playtests.
+
+## Rough edges (risks; the code follow-ups are FU-1…20 in the closure plan)
+- 15 old agent worktrees (about 3.5 GB) are squash-merged sources and safe to remove; a bulk remove needs the player's OK. `worktree-agent-a7d9ce60e430bee68` is SM-6 (unmerged calibration, commit `4c77215`): its numbers are in the calibration plan, tag it `ref/sm-6` before removing.
+- Main is not fully green until GATE-1: `tests/sim/canals.test.ts:39` (CN-13) can time out at 30 s run alone; `tests/sim/calibration.test.ts` times out while agents run checks in parallel (Pack D fixes it). CI cancels a run when the next push arrives: push once per merge batch.
+- A test that mocks `$engine/districts/kit` must not import the real Seam module in its factory (deadlock; see `tests/run/kit.test.ts`).
+- UI agents: one port each (5191–5193). SM-12/14's "The margin answered" card and BH-12's meter overlap are still not phone-checked (FU tasks).
+- `vents` in `turn.ts` skips tiles with a state, the opposite of bathhouses P7 (FU task; not a calibration item).
 
 ## Continuation prompt (new session)
 
 ```
-/implement Resume the build program from docs/plans/build-program-status.md. Follow Next item 1 (GATE-1 first if not merged, then the packs of docs/plans/midpoint-audit.md §3). Session rule: schedule a wake-up at each reset (CronCreate one-shot; local time is CET = UTC+1) until the player says a window is the last one or weekly usage passes 85%.
+/implement Resume the build program from docs/plans/build-program-status.md.
 ```

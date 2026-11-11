@@ -14,7 +14,7 @@
 
 ## 1. Now: correctness and plan leftovers
 
-Items BL-101, 102, 104–108, 119 are absorbed by plan tasks (FN-1A/9/10, DK-14, FN solvent discovery, FD-2…FD-6, CN-11); they leave this doc when those tasks merge, and the ones whose tasks have merged are done (see [ROADMAP-done.md](ROADMAP-done.md) and [build-program-log.md](plans/build-program-log.md)). Still open:
+Items BL-101, 102, 104–108, 119 are absorbed by plan tasks (FN-1A/9/10, DK-14, FN solvent discovery, FD-2…FD-6, CN-11); they leave this doc when those tasks merge, and the ones whose tasks have merged are done (see [ROADMAP-done.md](ROADMAP-done.md) and [build-program-log-archive.md](plans/build-program-log-archive.md)). Still open:
 
 | ID | Work | Type / size | Area | Status | Concrete scope |
 |---|---|---|---|---|---|
