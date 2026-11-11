@@ -2,7 +2,8 @@
 
 Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.md](midpoint-audit.md) §2.2; remaining work in pack form: [platform-closure-plan.md](platform-closure-plan.md), [foundry-plan.md](foundry-plan.md), [ending-plan.md](ending-plan.md), [cartographers-plan.md](cartographers-plan.md), [calibration-plan.md](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'` has each task's details; work before 2026-11-11 is in the archive log, grep only).
 
-**State:** design window 2026-11-11 done: Pack A's hooks decided (foundry P18–P20), IQ-FG approved, briefs written for waves 1–4 · **next window:** routine
+**State (updated):** Wave 1 packs A and S merged; D2 not started (usage). Next: D2, then Wave 2 (F2, B2) per the briefs file. Pack A proposals to look at in the next design window: duplicate strikes on one bell collapse until settle; a capped action drops the queue; two BF-3 acceptance boards got a far foe row; bf0-contracts/pieces/tune tests touched; foundry tests must `import '$engine'` first (kit import cycle).
+**State (older):** design window 2026-11-11 done: Pack A's hooks decided (foundry P18–P20), IQ-FG approved, briefs written for waves 1–4 · **next window:** routine
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
