@@ -33,6 +33,7 @@ import type { PaperId } from '$data/districts/index';
 import { RIVALS, type RivalId, type RivalPageId } from '$data/rivals';
 import { cityDefaults } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
+import { endingFieldsOf } from './drawing/profile';
 import { baseGlyphCost, canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import {
   type Coord,
@@ -682,6 +683,7 @@ function parseProfile(v: unknown, budget: ImportBudget): Profile {
     papers: parsePapers(r.papers),
     ...(r.recruits === undefined ? {} : { recruits: parseRecruits(r.recruits, household.members) }),
     pages: parsePages(r.pages),
+    ...endingFieldsOf(r),
     vellum: count(r.vellum),
     glyphs,
     glyphArchive,

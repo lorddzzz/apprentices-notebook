@@ -1,5 +1,5 @@
 import type { UnitTrait } from '$engine/arrival';
-import type { EnemyScript, Json, KitId, RuleId } from '$engine/districts/types';
+import type { EnemyScript, Json, KitId, PieceId, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import type { Dir } from '$engine/grid';
 import type { Action } from '$engine/types';
@@ -372,6 +372,34 @@ export type EnemyId =
   | 'gargoyle'
   | 'mason'
   | 'chiefWarden';
+/**
+ * The masters a drawing's heart may name (EN P13, one heart frame each): the lamp-mother is `mother`.
+ * Carillonneur and Registrar belong to districts not built yet; their frames are EN-K6 and EN-K7.
+ */
+export type MasterId =
+  | 'marginalia'
+  | 'mother'
+  | 'lamplighter'
+  | 'postmaster'
+  | 'bathSteward'
+  | 'chiefWarden'
+  | 'carillonneur'
+  | 'registrar';
+/** A trip shape a drawing borrows (the `TripShapeId` its owner district registers). */
+export type ShapeId = KitId;
+/**
+ * A drawn district (EN P2): JSON-safe. `name` is trimmed, 1-24 characters; `foes` 1-3; `pieces` at
+ * most two *extra* kinds (a rule brings its own, P4); `length` is the number of rooms.
+ */
+export interface Drawing {
+  name: string;
+  rule: RuleId | null;
+  foes: EnemyId[];
+  pieces: PieceId[];
+  shape: ShapeId | 'plain';
+  length: 3 | 4 | 5 | 6;
+  heart: MasterId;
+}
 export type AttackId = 'bite' | 'line' | 'spit' | 'lunge' | 'pole' | 'burst' | 'shove';
 
 /**

@@ -6,6 +6,7 @@ import type {
   BindEvent,
   CompoundId,
   DistrictId,
+  Drawing,
   EdgeRule,
   EnemyId,
   FootnoteSubject,
@@ -667,6 +668,28 @@ export interface Profile {
   recruits?: { notes: ApprenticeId[] };
   /** Recovered rival pages (rivals P11), in recovered order; banked on the win, so a wipe keeps them. */
   pages: RivalPageId[];
+  /**
+   * The ending's three fields (EN-W0), absent until they differ from empty so older saves keep
+   * their form (like `recruits`). Read them through `drawingsOf`, `endingOf` and `ledgerOf`.
+   * `drawings`: the drawing table's three page slots (EN P2), written by EN-6.
+   */
+  drawings?: (Drawing | null)[];
+  /** The handover and credits (EN-10, EN-11 set them). */
+  ending?: EndingState;
+  /** Lifetime counts the credits read (EN P21); fed by EN-1. */
+  ledger?: Ledger;
+}
+
+export interface EndingState {
+  handover: boolean;
+  creditsSeen: boolean;
+}
+
+/** Lifetime counts (EN P21): casts, the biggest chain ever, and the districts in opening order. */
+export interface Ledger {
+  casts: number;
+  biggest: { chain: number; caster: ApprenticeId; name: string } | null;
+  districts: DistrictId[];
 }
 
 /** The map's ladder (K-19): heard ⊇ open ⊇ hearts. */
