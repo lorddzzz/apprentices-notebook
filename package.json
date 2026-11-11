@@ -16,9 +16,12 @@
     "fuzz": "FUZZ_SEEDS=200 vitest run tests/sim --silent=false",
     "lint": "biome check",
     "format": "biome format --write",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc --noEmit",
+    "typecheck:svelte": "svelte-check --tsconfig ./tsconfig.json --incremental",
+    "typecheck:ts": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsc.tsbuildinfo",
+    "typecheck": "pnpm typecheck:svelte && pnpm typecheck:ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
-    "check:fast": "pnpm typecheck && pnpm lint && vitest run --exclude 'tests/sim/**'",
+    "check:changed": "vitest run --changed main --exclude 'tests/sim/**'",
+    "check:fast": "pnpm typecheck:svelte && pnpm lint && vitest run --exclude 'tests/sim/**'",
     "icons": "pwa-assets-generator"
   },
   "devDependencies": {

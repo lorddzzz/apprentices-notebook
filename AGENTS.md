@@ -17,7 +17,8 @@ Project skills live in `.claude/skills/`. At the start of each session, GPT/Code
 ## Commands
 
 - `pnpm dev`: dev server (`http://localhost:5173/apprentices-notebook/`). Claude preview entries are in `.claude/launch.json`; other runtimes can start it through their terminal or preview tools.
-- `pnpm check:fast`: typecheck + lint + tests without the slow bot play-through sims (`tests/sim/`). **Must pass before every commit** during a build.
+- `pnpm check:fast`: `svelte-check` (it covers the `.ts` files too) + lint + tests without the slow bot play-through sims (`tests/sim/`). **Must pass before every commit** during a build.
+- `pnpm check:changed`: only the tests affected by changes since `main` (no sims); for a quick loop, not a gate.
 - `pnpm check`: the full gate, sims included. Run it when a wave or plan finishes (and before telling the player a feature is done); CI runs it on every push.
 - `pnpm test`: Vitest. `pnpm format`: Biome. `pnpm icons`: regenerate PWA icons from `public/icon.svg`.
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { BRIDGE_ROOMS_34 } from '$data/districts/bridges';
 import { compiledFor, createBattle, FOUNDERS, newProfile } from '$engine';
-import { botFight } from '../../sim/bot';
+import { botFight } from './bot';
 
 /**
  * BR-10: a quick bot fight per layout of rooms 3 and 4. The bot knows nothing about cracks, so

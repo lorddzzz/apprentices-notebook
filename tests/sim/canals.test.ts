@@ -35,7 +35,8 @@ const ONLY = process.env.CANALS_ROOMS?.split(',').map(Number);
 const inScope = (i: number) => !ONLY || ONLY.includes(i);
 const ROUNDS = 40;
 const seeds = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
-const LONG = FULL ? 3_600_000 : 30_000;
+// GATE-1: the quick set takes ~14 s alone but timed out at 30 s under load; 120 s leaves headroom.
+const LONG = FULL ? 3_600_000 : 120_000;
 vi.setConfig({ testTimeout: LONG });
 const pct = (n: number, d: number) => Math.round((100 * n) / d);
 
