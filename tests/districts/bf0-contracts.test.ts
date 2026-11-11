@@ -97,7 +97,7 @@ describe('BF-0 pieces', () => {
     ]);
     for (const p of KIT.modules.foundry?.pieces ?? []) {
       if (p.id === BELL_PIECE)
-        expect(Object.keys(p.triggers).sort()).toEqual(['onHit', 'onStruck']);
+        expect(Object.keys(p.triggers).sort()).toEqual(['onHit', 'onKind', 'onStruck']);
       else expect(p.triggers).toEqual({});
     }
   });

@@ -4,6 +4,7 @@ import type {
   DistrictId,
   EncounterDef,
   EnemyId,
+  KindId,
   LootSpec,
   LootTableId,
   Meets,
@@ -129,6 +130,17 @@ export interface PieceTriggers {
   onStruck?(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Origin | null): void;
   /** A projectile or area landing on its tile. */
   onHit?(ctx: Ctx, at: Coord, piece: TilePiece, origin: Origin | null): void;
+  /**
+   * A plain kind (not Spark) landing on its tile, asked before the `holds` guard (P19). `true` =
+   * the piece took the kind and nothing lands; `false` = it lands as it would (or misses).
+   */
+  onKind?(
+    ctx: Ctx,
+    at: Coord,
+    piece: TilePiece,
+    kind: Exclude<KindId, 'spark'>,
+    origin: Origin | null,
+  ): boolean;
 }
 export interface PieceDef<D extends Json = Json> {
   id: PieceId;

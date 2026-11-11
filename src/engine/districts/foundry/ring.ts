@@ -1,4 +1,4 @@
-import { FOUNDRY_TUNING, TONES, type Tone } from '$data/districts/foundry';
+import { FOUNDRY_TUNING, retunedTone, TONES, type Tone } from '$data/districts/foundry';
 import { cloneData } from '../../clone';
 import { type Ctx, emit, withOrigin } from '../../ctx';
 import { dealDamage } from '../../damage';
@@ -20,6 +20,7 @@ import {
   parseBells,
   type QueuedOrigin,
   type QueuedStrike,
+  type RetunedEvent,
   type RingEvent,
   tileKey,
 } from './types';
@@ -73,10 +74,26 @@ function strike(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Ori
   writeBells(ctx, { ...own, struck, queue: [...(own.queue ?? []), entry] });
 }
 
-/** The bell's triggers: struck or hit it queues a ring. */
+/**
+ * P4, P19: Brass retunes the bell up one tone (wrapping) and lands nothing, and is no strike. Every
+ * other kind is left to land: Steam as the muffling cloud, Ink and Oil as misses on the bell.
+ */
+function retune(ctx: Ctx, at: Coord, piece: TilePiece, kind: string): boolean {
+  if (kind !== 'brass') return false;
+  const from = toneOfPiece(piece.id, piece.data);
+  if (!from) return false;
+  const to = retunedTone(from);
+  const ev: RetunedEvent = { type: 'foundry:retuned', at: { ...at }, data: { from, to } };
+  emit(ctx, ev);
+  piece.data = { tone: to };
+  return true;
+}
+
+/** The bell's triggers: struck or hit it queues a ring; Brass retunes it. */
 export const BELL_TRIGGERS: PieceTriggers = {
   onStruck: (ctx, at, piece, by, origin) => strike(ctx, at, piece, by, origin),
   onHit: (ctx, at, piece, origin) => strike(ctx, at, piece, 'damage', origin),
+  onKind: (ctx, at, piece, kind) => retune(ctx, at, piece, kind),
 };
 
 // ── Ringing (P3, P5) ────────────────────────────────────
