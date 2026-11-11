@@ -1,3 +1,4 @@
+import type { KindId } from '$data';
 import { cloneData } from './clone';
 import type { Ctx } from './ctx';
 import { KIT } from './districts/kit';
@@ -101,6 +102,23 @@ export function hitPiece(ctx: Ctx, at: Coord, origin?: Origin | null): boolean {
   if (!piece || !fn) return false;
   fn(ctx, { ...at }, piece, originOf(ctx, origin));
   return true;
+}
+
+/**
+ * A plain kind landed on `at` (foundry P19): the piece may take it before the `holds` guard.
+ * Returns whether the piece took it, so nothing lands.
+ */
+export function kindOnPiece(
+  ctx: Ctx,
+  at: Coord,
+  kind: Exclude<KindId, 'spark'>,
+  origin?: Origin | null,
+): boolean {
+  if (!inBoard(ctx.s, at)) return false;
+  const piece = tileAt(ctx.s, at).piece;
+  const fn = piece && pieceDef(piece.id).triggers.onKind;
+  if (!piece || !fn) return false;
+  return fn(ctx, { ...at }, piece, kind, originOf(ctx, origin));
 }
 
 /**

@@ -4,6 +4,7 @@ import type {
   DistrictId,
   EncounterDef,
   EnemyId,
+  KindId,
   LootSpec,
   LootTableId,
   Meets,
@@ -99,6 +100,12 @@ export interface BoardRule<S extends Json = Json> {
    * piece or terrain.
    */
   step(ctx: Ctx, own: S): S;
+  /**
+   * Resolves what the rule queued during an action (P18); run by `settleRules` at the settle points
+   * (a cast's end, an action's end, a foe's action, the rule's own round-end step). With nothing
+   * queued it emits nothing and returns `own` unchanged.
+   */
+  settle?(ctx: Ctx, own: S): S;
   preview?(state: BattleState, own: S): readonly PreviewShape[];
   /** Bench/generator palette key: met once a fight ran under the rule (DK-E4). */
   met?: string;
@@ -123,6 +130,17 @@ export interface PieceTriggers {
   onStruck?(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Origin | null): void;
   /** A projectile or area landing on its tile. */
   onHit?(ctx: Ctx, at: Coord, piece: TilePiece, origin: Origin | null): void;
+  /**
+   * A plain kind (not Spark) landing on its tile, asked before the `holds` guard (P19). `true` =
+   * the piece took the kind and nothing lands; `false` = it lands as it would (or misses).
+   */
+  onKind?(
+    ctx: Ctx,
+    at: Coord,
+    piece: TilePiece,
+    kind: Exclude<KindId, 'spark'>,
+    origin: Origin | null,
+  ): boolean;
 }
 export interface PieceDef<D extends Json = Json> {
   id: PieceId;

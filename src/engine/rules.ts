@@ -101,6 +101,26 @@ export function runRuleSlot(
   }
 }
 
+/**
+ * P18: resolves what the active rules queued during an action. Every rule with `settle` runs,
+ * slots carry, afterChemistry, late, inside a slot by `order` then id; each returned state
+ * replaces the rule's own. Called at the settle points only; a no-op when nothing is queued.
+ */
+export function settleRules(ctx: Ctx, rules: readonly BoardRule[] = boardRules()): void {
+  const order: RoundEndSlot[] = ['carry', 'afterChemistry', 'late'];
+  for (const slot of order) {
+    for (const rule of slotRules(slot, rules)) {
+      if (!rule.settle || !isRuleActive(rule, ctx.s)) continue;
+      const states = ctx.s.rules ?? {};
+      const own = Object.hasOwn(states, rule.id)
+        ? (states[rule.id] as Json)
+        : rule.init(ctx.s, undefined);
+      const next = rule.settle(ctx, own);
+      ctx.s.rules = { ...ctx.s.rules, [rule.id]: next };
+    }
+  }
+}
+
 /** One active rule's "Next round" shapes. */
 export interface RulePreview {
   rule: RuleId;

@@ -23,7 +23,7 @@ import {
 } from './queries';
 import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
 import { runTrickMarks, runTrickRoundEnd } from './rivals/tricks';
-import { boardRules, runRuleSlot } from './rules';
+import { boardRules, runRuleSlot, settleRules } from './rules';
 import { runScheduled } from './schedule';
 import { actStep } from './standIn';
 import type { AttackIntent, EnemyUnit, Unit } from './types';
@@ -219,6 +219,7 @@ export function endTurnAction(ctx: Ctx): void {
     if (!isAlive(e)) continue;
     if (e.intent?.kind === 'behaviour') spent.push(e);
     resolveIntent(ctx, e);
+    settleRules(ctx); // P18 settle point 3: a foe's projectile rings at the end of its action
     if (checkEnd(ctx)) {
       idleSpent(ctx, spent);
       return;

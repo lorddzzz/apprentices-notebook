@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Tone } from '$data/districts/foundry';
 import { FOUNDRY_FOE_IDS, FOUNDRY_TUNING } from '$data/districts/foundry';
 import { RIVAL_TOKENS, RIVALS } from '$data/rivals';
+import '$engine'; // loads the district kit first: the foundry module reaches the engine (import cycle)
 import type { Ctx } from '$engine/ctx';
 import * as foundry from '$engine/districts/foundry';
 import { type AnswerReason, initTune, type TuneState } from '$engine/districts/foundry/types';

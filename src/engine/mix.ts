@@ -26,7 +26,7 @@ import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, DIRS, type Dir, neighbors4, step } from './grid';
 import { habitRule } from './habits';
 import { cloudNet } from './networks';
-import { pieceHoldsOnlyClouds, strikePiece } from './pieces';
+import { kindOnPiece, pieceHoldsOnlyClouds, strikePiece } from './pieces';
 import { push, wearPlate } from './push';
 import {
   blocksUnits,
@@ -242,6 +242,7 @@ export function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null):
   const s = ctx.s;
   const tile = tileAt(s, at);
   const want = PLAIN[kind];
+  if (tile.piece && kindOnPiece(ctx, at, kind)) return;
   if (tile.piece && kind !== 'steam' && pieceHoldsOnlyClouds(tile)) {
     emit(ctx, { type: 'miss', source: kind });
     return;

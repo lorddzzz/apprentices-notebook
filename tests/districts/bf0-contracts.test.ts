@@ -39,7 +39,7 @@ import type { Json } from '$engine/districts/types';
 import { MEANINGFUL } from '$engine/index';
 import { parseBoard, serializeBoard } from '$engine/notation';
 import { solidityOf } from '$engine/pieces';
-import { board } from '../scenarios/harness';
+import { board, draft } from '../scenarios/harness';
 
 /** BF-0: the foundry's module is registered and inert; its contracts compile and read strictly. */
 describe('BF-0 registration', () => {
@@ -87,7 +87,7 @@ describe('BF-0 registration', () => {
 });
 
 describe('BF-0 pieces', () => {
-  test('bells are solid, rope and hook are open footing, none has a trigger yet (P1, P2)', () => {
+  test('bells are solid, rope and hook are open footing, only the bell has triggers (P1, P2)', () => {
     const tiles = parseBoard('{bell} {greatBell:1} {rope} {hook}').tiles.flat();
     expect(tiles.map((t) => solidityOf(t))).toEqual([
       'unitsAndShots',
@@ -95,7 +95,11 @@ describe('BF-0 pieces', () => {
       'none',
       'none',
     ]);
-    for (const p of KIT.modules.foundry?.pieces ?? []) expect(p.triggers).toEqual({});
+    for (const p of KIT.modules.foundry?.pieces ?? []) {
+      if (p.id === BELL_PIECE)
+        expect(Object.keys(p.triggers).sort()).toEqual(['onHit', 'onKind', 'onStruck']);
+      else expect(p.triggers).toEqual({});
+    }
   });
 
   test('every piece parses and round-trips in notation, with data suffixes', () => {
@@ -183,7 +187,7 @@ describe('BF-0 rule state', () => {
     expect(parseTune({ ...s, at: -1, peals: 'x' })).toMatchObject({ at: 0, peals: 0 });
   });
 
-  test('both rules keep their state on a round end (no behaviour yet)', () => {
+  test('the tune keeps its state on a round end; the bell rule clears its hum and strikers (BF-3)', () => {
     const bells = KIT.rules[BELLS_RULE_ID];
     const tune = KIT.rules[TUNE_RULE_ID];
     const own: BellsState = { humming: ['mid'], struck: { '0,0': ['u'] } };
@@ -191,7 +195,8 @@ describe('BF-0 rule state', () => {
     const s = board('.');
     expect(bells?.init(s, undefined)).toEqual(initBells());
     expect(tune?.init(s, undefined)).toEqual(initTune());
-    expect(bells?.step({ s } as never, own)).toBe(own);
+    const dusk = draft(s, (ctx) => expect(bells?.step(ctx, own)).toEqual(initBells()));
+    expect(dusk.events.map((e) => e.type)).toEqual(['foundry:hum']);
     expect(tune?.step({ s } as never, t)).toBe(t);
   });
 });

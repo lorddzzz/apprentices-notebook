@@ -22,6 +22,7 @@ import {
   tileAt,
   unitAt,
 } from './queries';
+import { settleRules } from './rules';
 import { handlerFor } from './runes';
 import { forkSide, isForked, jarFor, reheaded, seep, toll, trial } from './runes/flow';
 import { aimLine, aimTargets, boltTravel, targetOn, tilesBetween, whereIs } from './targets';
@@ -693,6 +694,7 @@ export function resolveSpell(ctx: Ctx, caster: Unit, spell: Spell, aim: Aim): vo
     if (vat?.weaker) flow.weaker = vat.weaker; // `vat-edge-press`: stronger, by the tiles lost
     runStep(ctx, spell.first, targets, flow);
     if (vat) afterVat(ctx, vat, spell, flow);
+    settleRules(ctx); // P18 settle point 1: what the cast queued rings inside its own scope
   }
 }
 
