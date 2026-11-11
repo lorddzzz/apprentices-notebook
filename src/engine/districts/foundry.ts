@@ -1,4 +1,11 @@
-import { BELL_TRIGGERS, bellsPreview, bellsStep, settleBells } from './foundry/ring';
+import { FOUNDRY_FOES } from './foundry/foes';
+import {
+  BELL_TRIGGERS,
+  bellsPreview,
+  bellsStep,
+  GREAT_BELL_TRIGGERS,
+  settleBells,
+} from './foundry/ring';
 import {
   BELL_PIECE,
   BELLS_RULE_ID,
@@ -26,6 +33,7 @@ import type {
   TripShapeDef,
 } from './types';
 
+export * from './foundry/foes';
 export * from './foundry/pieces';
 export * from './foundry/ring';
 
@@ -97,7 +105,7 @@ export const TUNE_RULE: BoardRule<TuneState> = {
   step: (_ctx, own) => own,
 };
 
-/** P7: trip state is the great bells rung; BF-8 adds `roomSetup`, `afterRoom` and `offersFor`. */
+/** P7: trip state is the great bells rung; `roomSetup` and `afterRoom` are BF-8's, `offersFor` waits for BF-13. */
 const shape: TripShapeDef<FoundryTripState> = {
   id: FOUNDRY_SHAPE,
   parseState: parseFoundryState,
@@ -106,12 +114,17 @@ const shape: TripShapeDef<FoundryTripState> = {
 
 /** BF-3: the bell takes its triggers here (the base defs in `foundry/types.ts` stay cycle-free). */
 const withTriggers = (def: PieceDef): PieceDef =>
-  def.id === BELL_PIECE ? { ...def, triggers: BELL_TRIGGERS } : def;
+  def.id === BELL_PIECE
+    ? { ...def, triggers: BELL_TRIGGERS }
+    : def.id === GREAT_BELL_PIECE
+      ? { ...def, triggers: GREAT_BELL_TRIGGERS }
+      : def;
 
 export const FOUNDRY_MODULE: DistrictModule = {
   id: 'foundry',
   events,
   pieces: FOUNDRY_PIECES.map(withTriggers),
   rules: [BELLS_RULE, TUNE_RULE],
+  foes: FOUNDRY_FOES,
   trip: shape,
 };

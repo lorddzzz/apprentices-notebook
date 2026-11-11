@@ -28,6 +28,17 @@ export type ToneMember =
 export type UnitToneReader = (u: Unit) => Tone | null;
 export const NO_UNIT_TONES: UnitToneReader = () => null;
 
+/**
+ * BF-6: a Clapper rings the tone of its ordinal among the room's Clappers (`clapper-1` low,
+ * `clapper-2` mid, `clapper-3` high, then around): stable while it lives or dies, so a unit needs
+ * no data field. Any other unit has none.
+ */
+export const clapperTone: UnitToneReader = (u) => {
+  if (u.kind !== 'enemy' || u.def !== 'clapper') return null;
+  const n = Number(/-(\d+)$/.exec(u.id)?.[1] ?? 1);
+  return TONES[(Math.max(1, n) - 1) % TONES.length] ?? null;
+};
+
 /** The tone a bell piece hangs as (a great bell hangs as its `hang`); null for any other piece. */
 export function toneOfPiece(id: string, data: unknown): Tone | null {
   const tone =

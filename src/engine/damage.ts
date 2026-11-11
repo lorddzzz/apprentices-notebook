@@ -1,5 +1,5 @@
 import { ENEMIES, type HarmKind } from '$data';
-import { behaviourDied } from './behaviours';
+import { behaviourDied, behaviourOf } from './behaviours';
 import { type Ctx, emit, oweAtCap, ref, reserve } from './ctx';
 import { foeBurst } from './foes';
 import type { Coord, Dir } from './grid';
@@ -87,6 +87,7 @@ export function dealDamage(
   try {
     notify(ctx, { kind: 'hit', unit: unit.id, heading: from.heading, from: from.at });
     strikePiece(ctx, unit.pos, 'damage'); // damage landing on a piece's tile strikes it (foundry P2)
+    if (unit.kind === 'enemy') behaviourOf(unit)?.onStruck?.(ctx, unit, 'damage'); // the Clapper (BF-6)
   } catch (err) {
     if (unit.hp > 0) throw err;
     forget(unit);
