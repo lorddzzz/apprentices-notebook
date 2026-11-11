@@ -21,7 +21,7 @@ import {
   withOrigin,
 } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
-import { cracksOf } from '../districts/bridges/support';
+import { crackedTiles } from '../districts/api';
 import { hasFootnote } from '../footnotes';
 import {
   byReadingOrder,
@@ -249,7 +249,7 @@ const hold: Handler = (ctx, t, flow) => {
   if (!u) return;
   const rounds = ACTIONS.holdRounds + roundBonus('hold', flow);
   // A hold on a cracked span tile pins the unit there for the dusk fall (BR-17).
-  const cracked = cracksOf(ctx.s).some((c) => sameCoord(c, u.pos));
+  const cracked = crackedTiles(ctx.s).some((c) => sameCoord(c, u.pos));
   const line: LineId | null = u.held > 0 ? 'hold:held' : cracked ? 'hold:cracked' : null;
   maybeLine(ctx, line, () => holdUnit(ctx, u, rounds));
   const habit = flow.habit;

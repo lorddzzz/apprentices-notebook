@@ -1,6 +1,6 @@
 import type { LineId, SealRuneId, TriggerRuneId } from '$data';
 import type { FootnoteIds, FootnoteVariantId } from '../ctx';
-import { cracksOf } from '../districts/bridges/support';
+import { crackedTiles } from '../districts/api';
 import { hasFootnote } from '../footnotes';
 import {
   type Coord,
@@ -346,7 +346,7 @@ function brinkLine(s: BattleState, snap: Snapshot, t: Target, pass: boolean): Li
   const tileOf = (c: Coord): Tile | undefined =>
     inBoard(s, c) ? snap.tiles[c.y * s.width + c.x] : undefined;
   if (pass) return around.some((c) => tileOf(c)?.terrain.drop) ? 'brink:drop' : null;
-  const cracked = cracksOf({ ...s, tiles: [...snap.tiles] });
+  const cracked = crackedTiles({ ...s, tiles: [...snap.tiles] });
   if (around.some((c) => cracked.some((k) => sameCoord(k, c)))) return 'brink:cracked';
   return around.some((c) => !inBoard(s, c)) ? 'brink:edge' : null;
 }

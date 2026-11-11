@@ -26,6 +26,30 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/engine/**", "!src/engine/districts/**", "!src/engine/sim/bot.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/ui/**", "$ui/**", "**/app/**", "*.svelte", "svelte", "svelte/*"],
+                    "message": "The engine is pure: no UI, app or Svelte imports."
+                  },
+                  {
+                    "group": ["**/districts/**", "!**/districts/{kit,api,types,registry,index}"],
+                    "message": "Core engine files reach a district only through districts/{kit,api,types,registry,index}. (src/engine/sim/bot.ts is exempt until KIT-R3b moves its imports into the modules bot terms.)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

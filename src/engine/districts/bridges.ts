@@ -4,7 +4,7 @@ import { BRIDGE_OFFERS } from './bridges/guarantee';
 import { CHIEF_FOE, HEART_STEPS } from './bridges/heart';
 import { BRIDGE_TRICKS } from './bridges/keystoneRight';
 import { previewCollapse } from './bridges/preview';
-import { scanBridges } from './bridges/support';
+import { cracksOf, scanBridges } from './bridges/support';
 import { BRIDGE_TRIP_HOOKS } from './bridges/trip';
 import {
   BRIDGE_EVENT_TYPES,
@@ -66,6 +66,7 @@ export const BRIDGES_MODULE: DistrictModule = {
   events,
   pieces: BRIDGE_PIECES,
   rules: [COLLAPSE_RULE],
+  unsupported: (s) => cracksOf(s),
   tricks: BRIDGE_TRICKS,
   steps: HEART_STEPS,
   foes: [...BRIDGE_FOES, CHIEF_FOE],

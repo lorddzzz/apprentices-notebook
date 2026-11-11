@@ -33,6 +33,7 @@ import type { PaperId } from '$data/districts/index';
 import { RIVALS, type RivalId, type RivalPageId } from '$data/rivals';
 import { cityDefaults } from './city';
 import { blockingAuras, type Cluster, sharingSpells, tidyCollapse, toGlyphDef } from './cluster';
+import { KIT } from './districts/kit';
 import { endingFieldsOf } from './drawing/profile';
 import { baseGlyphCost, canBeOpen, glyphRunes, withOpenCell } from './glyph';
 import {
@@ -239,7 +240,10 @@ export function knows(p: Profile, rune: RuneRef): boolean {
 /** Today's rule for which Bind events a profile has (P14); fills saves lacking the field. */
 function inferBindEvent(p: Profile, e: BindEvent): boolean {
   const d = BIND_EVENT_DISTRICT[e];
-  return p.methods.includes('bind') && (d === 'inkQuarter' || p.city.open.includes(d));
+  return (
+    p.methods.includes('bind') &&
+    (KIT.modules[d]?.bindsBeforeOpen === true || p.city.open.includes(d))
+  );
 }
 
 /** Stores one learned Bind event on the profile; idempotent (P14). */

@@ -445,6 +445,15 @@ export interface DistrictModule {
    * runtime value FD-3 composes.
    */
   causes?: KitCauses;
+  /**
+   * Tiles whose support has failed on this board (the bridges' cracked spans); `crackedTiles` in
+   * `api.ts` unions every module's. A district with a support rule implements it.
+   */
+  unsupported?(s: BattleState): readonly Coord[];
+  /** Closes a trip battle into the profile (win or wipe), applied in registry order (`finish.ts`). */
+  afterBattleClose?(p: Profile, t: Trip): Profile;
+  /** Its Bind events are known before the district opens (the ink quarter). */
+  bindsBeforeOpen?: true;
   trip?: TripShapeDef;
   heart?: HeartSetup;
   bot?: BotTerms;

@@ -3,6 +3,7 @@ import { coordOf, flood } from '../queries';
 import { choicesAt, takeChoice } from '../trip/choices';
 import { returnCheck } from '../trip/ret';
 import type { BattleState, Trip } from '../types';
+import { KIT } from './kit';
 import type { CrossroadsChoice, ReturnCheck } from './types';
 
 /**
@@ -49,4 +50,18 @@ export function componentsOf(
     if (group.length) groups.push(group);
   });
   return groups;
+}
+
+/** Every tile whose support has failed, the union over modules in registry order (no duplicates). */
+export function crackedTiles(state: BattleState): Coord[] {
+  const seen = new Set<string>();
+  const out: Coord[] = [];
+  for (const m of Object.values(KIT.modules)) {
+    for (const c of m?.unsupported?.(state) ?? []) {
+      if (seen.has(key(c))) continue;
+      seen.add(key(c));
+      out.push(c);
+    }
+  }
+  return out;
 }

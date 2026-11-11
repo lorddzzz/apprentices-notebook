@@ -57,6 +57,7 @@ export const INK_QUARTER_MODULE: DistrictModule = {
   id: 'inkQuarter',
   rules: [WRITS_RULE, FORWARDS_RULE, CLOCK_RULE, STAKES_RULE],
   harmGuards: [FORWARD_GUARD],
+  bindsBeforeOpen: true,
   pieces: INK_BASE_PIECES.map(
     (p) => WRIT_PIECES[p.id] ?? FORWARD_PIECES[p.id] ?? WAX_PIECES[p.id] ?? CLOCK_PIECES[p.id] ?? p,
   ),

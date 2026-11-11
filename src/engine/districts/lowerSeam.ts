@@ -134,6 +134,7 @@ export const LOWER_SEAM_MODULE: DistrictModule = {
   rules: [SEAM_DROP],
   trip: LOWER_SEAM_TRIP,
   isOpen: lowerSeamOpen,
+  afterBattleClose: markDoorSeen,
   length: (t) => (t.kit ? floorsOfState(t.kit.state).length : 0),
   encounter: (t, i) => floorRoom(tripFloors(t), i),
 };

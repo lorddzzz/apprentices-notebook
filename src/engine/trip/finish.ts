@@ -2,7 +2,6 @@ import { type EnemyId, type LineId, type Meets, TUNING } from '$data';
 import type { PaperId } from '$data/districts/index';
 import { hearAfterTrip, hearFromBattle } from '../city';
 import { KIT } from '../districts/kit';
-import { markDoorSeen } from '../districts/lowerSeam';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
 import { witnessedIn } from '../lines';
@@ -175,6 +174,11 @@ export function finishEncounter(
   };
 }
 
+/** Each district module's `afterBattleClose`, applied in registry order. */
+function closeDistricts(p: Profile, t: Trip): Profile {
+  return Object.values(KIT.modules).reduce((acc, m) => m?.afterBattleClose?.(acc, t) ?? acc, p);
+}
+
 /**
  * Closes a finished trip battle (M7, M16): one replay writes proof and Glyph records
  * (`recordTripCasts`, win or wipe), then `finishEncounter`; the records' tier-ups go into the trip's
@@ -185,7 +189,7 @@ export function closeBattle(p: Profile, t: Trip, b: BattleState, log: EventLog =
   const r = finishEncounter(recorded, t, b, log, p);
   const ups = tierUps(p, recorded);
   // Hearing is kept on a wipe (K-20): owner conditions on this log, then rumours if the trip ended.
-  const owner = hearFromBattle(markDoorSeen(r.profile, t), t, log);
+  const owner = hearFromBattle(closeDistricts(r.profile, t), t, log);
   // A wipe past the checkpoint still leaves it in the city (P5).
   // On a wipe the loot is lost, except what a kind's `onWipe` keeps (DK-7).
   const wiped =
