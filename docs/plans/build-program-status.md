@@ -2,7 +2,7 @@
 
 Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.md](midpoint-audit.md) §2.2; remaining work in pack form: [platform-closure-plan.md](platform-closure-plan.md), [foundry-plan.md](foundry-plan.md), [ending-plan.md](ending-plan.md), [cartographers-plan.md](cartographers-plan.md), [calibration-plan.md](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'` has each task's details; work before 2026-11-11 is in the archive log, grep only).
 
-**State:** GATE-1, B, D, E merged 2026-11-11; A parked for design review; C1 not started · **next window:** design (A's hook, then briefs) · **next window:** routine
+**State:** GATE-1, B, D, E merged 2026-11-11; A parked for design review; C1 merged (draft awaits IQ-FG) · **next window:** design (A's hook, then briefs) · **next window:** routine
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
@@ -10,7 +10,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 **Reset:** none recorded; resume: manual, with the continuation prompt below
 
 ## Next
-1. ~~GATE-1, Packs B, D, E~~ merged (EN-0 98a825e-merge, KIT-R2 3423901, BR-20 d63d64e). Left: Pack C1, and Pack A after design review. Owed: `tests/data/canal-rooms.test.ts` timeout (one line, not owned by D).
+1. ~~GATE-1, Packs B, D, E~~ merged (EN-0 98a825e-merge, KIT-R2 3423901, BR-20 d63d64e). Left: Pack A after design review; IQ-FG review of docs/design/footnotes-content/inkQuarter.md (Tally is weakest, may cut `tally:stamp`; postmaster note holds a unit). Owed: `tests/data/canal-rooms.test.ts` timeout (one line, not owned by D).
    ~~GATE-1~~ merged 7cc4e66 (check:fast 55 s warm; CN-13 timeout 120 s).
 2. Then two or three at a time, briefs written, file-disjoint: **Pack A** foundry ring engine (BF-3 → BF-4 → BF-5) · **Pack B** bridges completion (BR-20 → BR-7 leftovers) · **Pack C1** ink footnote audit and draft (IQ-F1 → IQ-F2, then IQ-FG review) · **Pack D** one bot (EN-0) · **Pack E** board UI registries (KIT-R2).
 3. A design window is due when A–E are merged or the review list has three entries. It writes the briefs listed at the end of the briefs file (KIT-R1, IQ-F3–F5, BR-19a/b, EN-W0, KIT-R3 → EN-S1 → EN-G0, the next foundry packs, SAVE-1), reviews IQ-FG, drafts EN-12, and runs the ledger.
@@ -29,7 +29,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - `eventCap` passed from `battle.ts` (FD-6) — owed by BF-3; needed by BF-4.
 - `DistrictModule.heart` and `.bot` for Seam, canals, ink quarter, bathhouses, bridges; `trip` shape for Seam and canals — owed by KIT-R3; needed by EN-S1, EN-K1–K5. The foundry and cartographers register theirs in their own plans (BF-12, CG-10).
 - `rightOfWay` stand-in removed, including its import in `inkQuarter/wax.ts` — owed by BR-20; needed by KIT-R1.
-- Ink quarter footnote batch (no draft, no data file) — owed by IQ-F1–F5.
+- Ink quarter footnotes: draft + 7 `pending` rows + `it.fails` fires tests (IQ-F1/F2 merged 62579fb, 0bd06c3). IQ-F3 must add the engine stamps (sentence:mark in actions.ts `sentence`; levy:unit miss, levy:mark/member markSpent, levy:shielded in `levy`; tally:collar/stamp return `line` from flow.ts `trial`), drop `pending` and `it.fails`; IQ-F4 widens `sand:noTarget` text; Codex `study.ts` counts pending rows in its total (filter them or wait for F3).
 - Close-out for FD, DK, RV, FN, SM, IQ (DESIGN §11 / TECH §7 rows, verification files incl. SM-15, a code review per subsystem; none was ever run) — owed by CL-1…5 (platform-closure Pack N).
 - Each plan's own "Leaves for later tasks" list (§4 of the foundry, ending, cartographers and closure plans) — copy the matching items into each brief.
 
