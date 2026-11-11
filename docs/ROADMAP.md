@@ -65,7 +65,7 @@ The "Needs before it starts" and "Unlocks" columns of §2.3 are the dependency m
 | BL-117 | [Cartographers' hall](plans/cartographers-plan.md) (CG) | **planned** | L (21) | DK-17, FD-9, RV-14, RV-15; a campaign needs all four masters real | the owner's door (SM-10), the exile's Board pages, BL-126 | CG-G1, CG-G2, CG-G4 |
 | BL-126 | [The ending](plans/ending-plan.md) (EN): the handover, the owner as the tenth apprentice, credits, the drawing table and pen, generated rooms with a bot test, drawn districts on the map — design [ending.md](design/ending.md) | **planned**; EN-0 (bot to `src/engine/sim/`) runs early, beside Stage 2 | L (24) | the generator spike EN-S1 needs DK-17 and EN-0; the full table needs SM-11, CG's door, RV-15, FN-1 and each district's heart frame | the credits; the sandbox | **EN-G0** generator go/no-go, playtest, campaign gate |
 
-**Next action:** the program is building; live task state is in [build-program-status.md](plans/build-program-status.md). The [midpoint audit](plans/midpoint-audit.md) (2026-11-11) re-orders the remaining work (the generator spike EN-0 → EN-S1 → EN-G0 moves up) and adds tasks GATE-1, KIT-R1–R3, SAVE-1, MIX-1 and a calibration plan; none of it is adopted until the player approves.
+**Next action:** the program is building; live task state is in [build-program-status.md](plans/build-program-status.md). The [midpoint audit](plans/midpoint-audit.md) (2026-11-11) re-orders the remaining work (the generator spike EN-0 → EN-S1 → EN-G0 moves up) and adds tasks GATE-1, KIT-R1–R3, SAVE-1, MIX-1 and a calibration plan (CAL). **Adopted 2026-11-11:** its §2.2 replaces the stage order of §2.1 for the remaining work, BL-110 and BL-111 move into the program, and the plan changes are in [build-program.md](plans/build-program.md) §5.
 
 ### 2.4 Atmosphere (outside the program)
 
@@ -111,8 +111,8 @@ New possibilities arising from the shipped systems (all **proposals**):
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
 | BL-109 | Authoritative event contracts | tech / M | combat | ready **→ FD-7** | crush at/dir, jarSealed contents, held duration; reduce projection guesses. Consider dedicated waiting-drift and release-origin events. Preserve masked-preview non-disclosure. |
-| BL-110 | Shared scenario-log verification | tech / M | tooling | ready | Stop re-registering most engine suites for both line integrity and projection drift. Keep equivalent coverage and the mocked-suite isolation. |
-| BL-111 | Production bundle cost | tech / S | tooling | ready | Measure what drives the >500 kB advisory; evaluate lazy-loading Lab/Gallery/content while retaining offline play. |
+| BL-110 | Shared scenario-log verification | tech / M | tooling | ready **→ build program (close; audit §2.1)** | Stop re-registering most engine suites for both line integrity and projection drift. Keep equivalent coverage and the mocked-suite isolation. |
+| BL-111 | Production bundle cost | tech / S | tooling | ready **→ build program, before EN-4 (audit §2.1)** | Measure what drives the >500 kB advisory; evaluate lazy-loading Lab/Gallery/content while retaining offline play. |
 | BL-112 | Save/battle fallback resilience | tech / S | save | ready **→ FD-10** | Guard ensureBattle's fallback; define recovery for multiple corrupt saves. Pair with backup/export work when useful. |
 | BL-80 | Built-app browser smoke tests | test / M | tooling | idea | Load, trip, cast, Bench and save reload; deterministic fixtures. |
 | BL-81 | Verify red CI blocks deployment | test / XS | tooling | ready | Use a disposable branch/workflow check; never deliberately break main. |

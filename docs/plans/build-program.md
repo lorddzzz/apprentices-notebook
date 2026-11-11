@@ -101,3 +101,13 @@ All 14 plans are drafted and reconciled. Their `State:` lines still say *Drafted
 | BF | A tone rings at most once per round (the hum rule, a counter-toll); allied great bells hurt foes only; the far-bell gate gets a loose rat so a party without Shove can still strike the bell; great-bell puzzles need only Seam runes and Brass |
 | EN | The pen is rescaled (EN P6: 1 per heart, 1 per four rune pages, 1 per level-III capstone) so it limits drawings; the bot tests a generated room at fresh HP; a master beaten only as a stand-in can still be drawn; the owner brings Splash and Steam if the household lacks them; if the generator spike fails its gate (EN-G0), Plan B checks rooms at home against the slotted household and keeps a pool (a **Redefines**, taken to the player only then) |
 | CG | Erase on pencil under a foe erases it; a circle is held by the nearest guild hand; Draw does not move bare pencil; rooms 1–3 each guarantee one unowned Board treasure in the order Erase, Draw, Swap, *dies*, Quicksilver, Graphite |
+
+## 5. Midpoint audit (adopted 2026-11-11)
+
+[midpoint-audit.md](midpoint-audit.md) is the plan of record for the remaining work: its §2.2 is the order, §3 the first packs, §4.2 the workflow. Where it differs from a plan file, the audit wins:
+
+- **Real rivals directly.** The Carillonneur and the Registrar are authored through RV's API from the start: BF-9 merges with BF-23, CG-7 with CG-15. No new stand-in hearts.
+- **No win-rate band is an acceptance criterion** (BF-10/11/12/20, CG-9/10, EN-K*, BR-21). Acceptance is: `checkRoom` passes, a scripted solve exists, fuzz finds no throw and no cap overrun. BF-21 and every other tuning task move to one calibration plan (**CAL**) at the end, on the shared bot; SM-6's numbers are recorded there.
+- **New tasks:** GATE-1 (faster, stable gate), KIT-R1 (engine hooks: no core file imports a district), KIT-R2 (board UI and describe registries), KIT-R3 (heart frames, bot terms, missing trip shapes for the built districts), SAVE-1 (old saves still load), MIX-1 (fuzz pairs of district rules), CAL. BL-110 and BL-111 join the program.
+- **Order:** EN-0 → EN-W0 → KIT-R3 → EN-S1 → EN-G0 runs now, beside the foundry. EN-12 is drafted early for the player's review.
+- **Verification tasks** (SM-15, CG-16's notes, EN-14's notes) are written by the orchestrator at plan close, with the DESIGN §11 / TECH §7 rows and one code review per subsystem.

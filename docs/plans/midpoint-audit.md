@@ -1,6 +1,7 @@
 # Build program: midpoint audit (2026-11-11)
 
-> Audit of the build program at `a6e8bfb` (main, clean). Sources: ROADMAP §2, build-program.md, the status file, the log's task and usage tables, every remaining plan's task table, and the code. Nothing was changed in the repo except this file.
+> **Adopted by the player 2026-11-11:** §2 (order, pruning, new tasks), §3 (packs) and §4.2 (workflow) are the plan of record; the status file's Next follows them.
+> Audit of the build program at `a6e8bfb` (main, clean). Sources: ROADMAP §2, build-program.md, the status file, the log's task and usage tables, every remaining plan's task table, and the code.
 > How it was checked: each plan's task IDs were matched against the log and `git log --grep`; imports and district ids were grepped across `src/`; the check pipeline was timed stage by stage on an idle machine (§4.1).
 
 ## 0. Summary
