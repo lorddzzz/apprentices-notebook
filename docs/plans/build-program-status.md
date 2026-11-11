@@ -20,7 +20,6 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 |---|---|---|---|---|
 | A | BF-3→5 | Sonnet high | none (no commits) | stopped, see Needs design review |
 | D | EN-0 | Sonnet medium | worktree | running |
-| E | KIT-R2 | Sonnet medium | worktree | running |
 
 ## Needs design review (left unmerged by a routine window)
 - **Pack A (BF-3→5), agent a4bcf112ebe6f3c86, no commits.** (1) BF-3 needs a post-action hook: a district `settle(ctx)` (or `settleRings(ctx)`) called in `applyAction` after `dispatch`, inside `withIdioms`; foe actions flush in the `late` slot. Today the only post-action hooks (`withIdioms`, `checkEnd`) are not hookable, so queued rings can't resolve after the whole cast (`Bolt> Brass Strike`, `Bolt> Steam`) and the test `applyAction passes eventCap` can't get its `fizzles`. (2) BF-5 needs an `onKind` trigger in types.ts/pieces.ts called from mix.ts `landOnTile` before the guard (mind the kit.ts import cycle). Both need widened ownership: battle.ts, mix.ts, pieces.ts, types.ts. Agent expects no acceptance test to change. Resume with SendMessage once approved, in its own worktree.
