@@ -1,4 +1,4 @@
-import { BRIDGE_TUNING, type SpanKind } from '$data/districts/bridges/types';
+import { BRIDGE_TUNING } from '$data/districts/bridges/types';
 import type {
   DistrictEvent,
   Json,
@@ -128,24 +128,14 @@ export const BRIDGE_EVENT_TYPES = [
 
 // ── Trip state (P1, P11) ────────────────────────────────
 /**
- * `Trip.kit.state`: the span kind picked after each room so far, in order (room 1 has no choice, so
- * entry `i` is the kind chosen after room `i`, which picks room `i + 1`'s variant pool).
+ * `Trip.kit.state`: the bridges keep nothing of their own; the span picked after each room is the
+ * kit's own choice record (`kit.choices`), which the trip hooks read.
  */
-export type BridgeTripState = { spans: SpanKind[] };
+export type BridgeTripState = Record<string, never>;
 export const BRIDGE_SHAPE: TripShapeId = 'bridges:span';
-export const initBridgeState = (): BridgeTripState => ({ spans: [] });
-/** The forgiving reader: anything that is not a list of `sound`/`crumbling` reads as those it has. */
-export function parseBridgeState(raw: unknown): BridgeTripState {
-  const list = rec(raw)?.spans;
-  if (!Array.isArray(list)) return initBridgeState();
-  return {
-    spans: list.filter((k): k is SpanKind => k === 'sound' || k === 'crumbling').slice(0, 4),
-  };
-}
-
-// ── Right of way (P17) ──────────────────────────────────
-/** What the Chief Warden resists while the keystone stands (BR-8 wires the three branches). */
-export type ResistKind = 'push' | 'hold' | 'fall';
+export const initBridgeState = (): BridgeTripState => ({});
+/** Anything reads as the empty state. */
+export const parseBridgeState = (_raw: unknown): BridgeTripState => ({});
 
 /** BR-2: crushes and non-fire bursts wear span stone and the keystone (`wear.ts`). */
 const WEARS: PieceTriggers = { onStruck: wearStruck };

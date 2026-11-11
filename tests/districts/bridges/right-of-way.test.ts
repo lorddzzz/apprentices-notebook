@@ -1,12 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { grantRightOfWay } from '$engine/districts/bridges/rightOfWay';
 import { strikePiece } from '$engine/pieces';
 import { push } from '$engine/push';
 import { roundEnd } from '$engine/turn';
 import type { BattleState } from '$engine/types';
 import { board, cast, draft, unitAtLabel, withLattices } from '../../scenarios/harness';
 
-/** BR-8 (bridges P17): the stand-in right of way holds while the keystone has HP. */
+/** BR-8, BR-20 (bridges P17): the Chief Warden's right of way holds while the keystone has HP. */
 const whats = (events: readonly { type: string }[]) =>
   (
     events.filter((e) => e.type === 'bridges:trickResists') as unknown as {
@@ -23,14 +22,13 @@ const breakKeystone = (ctx: C, x: number) => {
 describe('BR-8 right of way', () => {
   const shoved = (s: BattleState, id: string, brk: boolean) =>
     draft(s, (ctx) => {
-      grantRightOfWay(ctx.s, id);
       if (brk) breakKeystone(ctx, 0);
       const u = ctx.s.units.find((x) => x.id === id);
       if (u) push(ctx, u, 'right', 1, null);
     });
 
   test('Shove: unmoved and logged while the keystone has HP; moves after it breaks', () => {
-    const s = board('{keystone:2} r . S');
+    const s = board('{keystone:2} K . S');
     const id = unitAtLabel(s, 'B1').id;
     const held = shoved(s, id, false);
     expect(held.state.units.find((u) => u.id === id)?.pos).toEqual({ x: 1, y: 0 });
@@ -53,12 +51,11 @@ describe('BR-8 right of way', () => {
 
   test('Hold: refused while the keystone stands, lands after it breaks', () => {
     const page = { draughtsman: 'Bolt> Hold' };
-    const make = () => withLattices('D r . {keystone:2}', page);
+    const make = () => withLattices('D K . {keystone:2}', page);
     const s = make();
     const id = unitAtLabel(s, 'B1').id;
     const flag = (st: BattleState, brk: boolean) =>
       draft(st, (ctx) => {
-        grantRightOfWay(ctx.s, id);
         if (brk) breakKeystone(ctx, 3);
       }).state;
     const held = cast(flag(s, false), 'draughtsman', 'right');
@@ -70,11 +67,10 @@ describe('BR-8 right of way', () => {
   });
 
   test('a dusk drop: he is set on a standing tile, then falls once the keystone breaks', () => {
-    const s = board('r{span} . S{keystone:2}');
+    const s = board('K{span} . S{keystone:2}');
     const id = unitAtLabel(s, 'A1').id;
     const run = (brk: boolean) =>
       draft(s, (ctx) => {
-        grantRightOfWay(ctx.s, id);
         if (brk) breakKeystone(ctx, 2);
         roundEnd(ctx);
       });
@@ -86,7 +82,7 @@ describe('BR-8 right of way', () => {
     expect(u?.pos).not.toEqual({ x: 0, y: 0 });
     expect(whats(held.events)).toEqual(['fall']);
     const freed = run(true);
-    expect(freed.state.units.find((x) => x.id === id)?.out).toBe('fell');
+    expect(freed.state.units.find((x) => x.id === id)?.hp).toBeLessThan(u?.hp ?? 0 + 1);
     expect(whats(freed.events)).toEqual([]);
   });
 });

@@ -17,21 +17,18 @@ import {
 } from '../../queries';
 import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit } from '../../types';
-import type { BoardRule, FoeBehaviour, KitId, ScriptStep } from '../types';
+import type { FoeBehaviour, KitId, ScriptStep } from '../types';
 import { whenCollapseDone } from './collapse';
 import { chalkAim, WARDEN_FOE } from './foes';
 import { crackedSet } from './preview';
-import { grantRightOfWay, RIGHT_OF_WAY_RULE } from './rightOfWay';
 import { type CollapseEvent, KEYSTONE_PIECE, SPAN_PIECE } from './types';
 
 /**
- * The heart (bridges-plan P7, P16 stand-in; BR-11): the Chief Warden on the great arch's keystone.
- * Until the rival exists (BR-20) he is a scripted stand-in (`EnemyDef.script`, `standIn: true`: it
- * clears the heart and awards no page). His script is `chalk` (the Warden's circle), `mind the
- * edge` (shoves whoever stands beside fog off it) and `call the staff` (a Gargoyle or Mason
- * arrives), cycled by round. Right of way is the BR-8 flag, granted at battle start and kept while
- * the keystone stands. Felling him ends the room (the staff folds with their chief) and the
- * remaining span falls as an epilogue.
+ * The heart (bridges-plan P7, P16; BR-11, BR-20): the Chief Warden on the great arch's keystone.
+ * He is a rival now (`data/rivals/chiefWarden.ts`; right of way is his trick, `keystoneRight.ts`).
+ * The scripted steps below (`chalk`, `mind the edge`, `call the staff`) are the old stand-in's
+ * script, kept registered for the Lab and no longer reached by a battle. Felling him ends the room
+ * (the staff folds with their chief) and the remaining span falls as an epilogue.
  */
 
 export const CHIEF_BEHAVIOUR: KitId = 'bridges:chiefWarden';
@@ -44,27 +41,6 @@ const STAFF: readonly EnemyUnit['def'][] = ['warden', 'gargoyle', 'mason'];
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const sameTile = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 const tileText = (c: Coord | undefined): string => (c ? `${c.x},${c.y}` : '?');
-
-// ── Right of way, granted at battle start (P17) ─────────
-
-/**
- * The flag's own rule, brought by the keystone: its state is the list of ids that hold right of way,
- * which is what `grantRightOfWay` writes. Built on a scratch state so `init` stays pure.
- */
-export const RIGHT_OF_WAY_BOARD_RULE: BoardRule = {
-  id: RIGHT_OF_WAY_RULE,
-  slot: 'late',
-  order: 30,
-  scope: 'piece',
-  activatedBy: { kind: 'piece', pieces: [KEYSTONE_PIECE] },
-  init(s) {
-    const scratch: BattleState = { ...s, rules: {} };
-    for (const e of enemies(s)) if (e.def === 'chiefWarden') grantRightOfWay(scratch, e.id);
-    const ids = scratch.rules?.[RIGHT_OF_WAY_RULE];
-    return Array.isArray(ids) ? ids.filter((v): v is string => typeof v === 'string') : [];
-  },
-  step: (_ctx, own) => own,
-};
 
 // ── Chalk the line ──────────────────────────────────────
 
@@ -189,6 +165,7 @@ export function epilogueFall(ctx: Ctx, chief: EnemyUnit): void {
   emit(ctx, ev);
   for (const at of tiles) {
     const t = tileAt(ctx.s, at);
+    if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at } });
     t.piece = null;
     t.state = null;
     t.jar = null;

@@ -242,10 +242,7 @@ describe('return is free (P11 `ret: any`)', () => {
 
 describe('trip state reader', () => {
   test('parseBridgeState stays forgiving; the module keeps the shape and is keyed', () => {
-    expect(parseBridgeState({ spans: ['sound', 'x', 'crumbling'] }).spans).toEqual([
-      'sound',
-      'crumbling',
-    ]);
+    expect(parseBridgeState({ spans: ['sound', 'x', 'crumbling'] })).toEqual({});
     expect(KIT.modules.bridges?.trip?.choices).toBeTypeOf('function');
     expect(BRIDGES_KIT.gate.kind).toBe('key');
   });

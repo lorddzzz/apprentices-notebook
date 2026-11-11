@@ -62,11 +62,12 @@ describe('RV-W0 contracts', () => {
   });
 
   test('the Lamplighter and his page are the only ones; no page is held yet', () => {
-    expect(Object.keys(RIVALS)).toEqual(['lamplighter', 'postmaster', 'bathSteward']); // RV-5, IQ-22, BH-17b
+    expect(Object.keys(RIVALS)).toEqual(['lamplighter', 'postmaster', 'bathSteward', 'chiefWarden']); // RV-5, IQ-22, BH-17b, BR-20
     expect(Object.keys(RIVAL_PAGES)).toEqual([
       'lamplighter:lantern',
       'postmaster:serveNotice',
       'bathSteward:steamHall',
+      'chiefWarden:mindTheEdge',
     ]);
     expect(pagesHeld({ pages: [] })).toEqual([]);
     expect(holdsPage({ pages: ['lamplighter:lantern'] }, 'lamplighter:lantern')).toBe(true);

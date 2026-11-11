@@ -72,9 +72,9 @@ export const MASON: EnemyDef = {
 };
 
 /**
- * The Chief Warden's stand-in (P16; BR-11): token `K`, standing on the keystone. A scripted foe
- * (`script.standIn`: clears the heart, awards no page) with a behaviour for its death hook only.
- * He never walks; right of way is the BR-8 flag the keystone's rule grants at battle start.
+ * The Chief Warden's board shell (P16; BR-20): he is a rival, so his numbers and kit live in
+ * `RIVALS` (`src/data/rivals/chiefWarden.ts`) and this is the board-facing entry with the same id,
+ * token and HP. He never walks; right of way is his trick, while the keystone stands.
  */
 export const CHIEF_WARDEN: EnemyDef = {
   id: 'chiefWarden',
@@ -84,13 +84,9 @@ export const CHIEF_WARDEN: EnemyDef = {
   move: BRIDGE_TUNING.foes.chiefWarden.move,
   elite: BRIDGE_TUNING.foes.chiefWarden.elite,
   flies: BRIDGE_TUNING.foes.chiefWarden.flies,
-  behaviour: 'bridges:chiefWarden',
-  script: {
-    steps: ['bridges:chalk', 'bridges:mindTheEdge', 'bridges:callStaff'],
-    standIn: true,
-  },
+  behaviour: 'bridges:chiefWarden', // its death hook only: the epilogue fall
   blurb:
-    'The Chief Warden, on the keystone. While it stands he cannot be pushed, held or dropped. Chalks a circle, shoves whoever stands beside fog, and calls his staff. Break the keystone, or wear him down: when he falls the bridge falls after you.',
+    'The Chief Warden, on the keystone. While it stands he cannot be pushed, held or dropped. Chalks a circle, and shoves whoever stands beside fog. Break the keystone, or wear him down: when he falls the bridge falls after you.',
   ...PLAIN,
   boss: true,
 };

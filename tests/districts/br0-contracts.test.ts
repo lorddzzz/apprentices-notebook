@@ -45,7 +45,6 @@ describe('BR-0 registration', () => {
     expect(m?.pieces?.map((p) => p.id)).toEqual([SPAN_PIECE, PIER_PIECE, KEYSTONE_PIECE]);
     expect(Object.keys(KIT.rules).filter((id) => id.startsWith('bridges:'))).toEqual([
       COLLAPSE_RULE_ID,
-      'bridges:rightOfWay', // BR-11: the heart's flag, brought by the keystone
     ]);
     const rule = KIT.rules[COLLAPSE_RULE_ID];
     expect(rule?.slot).toBe('late');
@@ -144,18 +143,12 @@ describe('BR-0 rule state and trip state', () => {
     });
   });
 
-  test('trip state keeps the recorded span kinds, through the registered shape', () => {
-    const t: BridgeTripState = { spans: ['sound', 'crumbling'] };
-    const saved: unknown = JSON.parse(JSON.stringify(t));
-    expect(parseBridgeState(saved)).toEqual(t);
-    expect(KIT.shapes[BRIDGE_SHAPE]?.parseState(saved)).toEqual(t);
-    expect(KIT.modules.bridges?.trip?.initState()).toEqual({ spans: [] });
-    expect(parseBridgeState({ spans: ['sound', 'wide', 3, 'crumbling'] })).toEqual({
-      spans: ['sound', 'crumbling'],
-    });
-    for (const raw of [undefined, null, 3, [], {}, { spans: 'sound' }]) {
-      expect(parseBridgeState(raw)).toEqual({ spans: [] });
-    }
+  test('BR-7: the trip state is empty (the spans live in the kit choices), through the registered shape', () => {
+    const t: BridgeTripState = {};
+    expect(parseBridgeState(JSON.parse(JSON.stringify(t)))).toEqual({});
+    expect(KIT.shapes[BRIDGE_SHAPE]?.parseState({ spans: ['sound'] })).toEqual({});
+    expect(KIT.modules.bridges?.trip?.initState()).toEqual({});
+    for (const raw of [undefined, null, 3, [], {}]) expect(parseBridgeState(raw)).toEqual({});
   });
 
   test('types: states are JSON', () => {

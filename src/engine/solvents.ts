@@ -2,7 +2,6 @@ import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId 
 import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit, nameOnce, noteMet } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
-import { refusesHold } from './districts/bridges/rightOfWay';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -33,6 +32,7 @@ import {
   tileAt,
   unitAt,
 } from './queries';
+import { trickResists } from './rivals/tricks';
 import { schedule, wakeScheduled } from './schedule';
 import { whereIs } from './targets';
 import type {
@@ -687,7 +687,7 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   rivet: {
     onReach(ctx, t) {
       const u = unitOf(ctx, t);
-      if (!u || refusesHold(ctx, u)) return; // a rival's immunity (RV-11 `resists`)
+      if (!u || trickResists(ctx, u, 'hold')) return; // a rival's immunity (RV-11 `resists`)
       if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Rivet')) return;
       withLine(ctx, 'rivet:unit', () => {
         u.held = Math.max(u.held, ACTIONS.holdRounds);

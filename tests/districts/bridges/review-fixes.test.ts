@@ -3,7 +3,6 @@ import type { GameEvent } from '$engine';
 import { isSilent } from '$engine';
 import { checkEnd } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
-import { grantRightOfWay } from '$engine/districts/bridges/rightOfWay';
 import { cracksOf } from '$engine/districts/bridges/support';
 import { strikePiece } from '$engine/pieces';
 import { roundEnd } from '$engine/turn';
@@ -33,14 +32,12 @@ const jar = (s: BattleState) => ({
 
 describe('review 1: right of way with nowhere to land', () => {
   test('he keeps his tile standing (the design: he cannot fall while the keystone stands)', () => {
-    const s = board('r{span} _ K{keystone:2} _ S{pier}');
-    const rat = s.units.find((u) => u.def === 'rat');
-    if (!rat) throw new Error('no rat');
+    const s = board('K{span} _ {keystone:2} _ S{pier}');
+    const chief = chiefOf(s);
     const r = draft(s, (ctx) => {
-      grantRightOfWay(ctx.s, rat.id);
       roundEnd(ctx);
     });
-    const at = r.state.units.find((u) => u.id === rat.id);
+    const at = r.state.units.find((u) => u.id === chief.id);
     expect(at?.hp).toBeGreaterThan(0);
     expect(at?.out ?? null).toBeNull();
     expect(r.state.tiles[0]?.terrain.drop).toBeFalsy();
@@ -103,5 +100,20 @@ describe('review 3: the chief dies in the dusk fall', () => {
 describe('review 4: non-bridge fights skip the scan', () => {
   test('no rule and no span pieces: no cracks', () => {
     expect(cracksOf(board('S . r'))).toEqual([]);
+  });
+});
+
+describe('BR-7: what falls with a span', () => {
+  test('BR-7: a fall crumbles the jar on the tile', () => {
+    const base = board('{pier} {span} . {span} . S');
+    const start = draft(base, (ctx) => {
+      const t = ctx.s.tiles[3];
+      if (t) t.jar = jar(ctx.s);
+    }).state;
+    const r = draft(start, (ctx) => roundEnd(ctx));
+    const crumbles = r.events.filter((e) => e.type === 'jarCrumbles');
+    expect(crumbles).toHaveLength(1);
+    expect(crumbles[0]).toMatchObject({ at: { x: 3, y: 0 } });
+    expect(r.state.tiles[3]?.jar).toBeNull();
   });
 });

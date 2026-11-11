@@ -2,27 +2,29 @@ import { describe, expect, test } from 'vitest';
 import { ENEMIES } from '$data';
 import { BRIDGE_HEART, spanVariantPool } from '$data/districts/bridges';
 import { BRIDGE_TUNING } from '$data/districts/bridges/types';
+import { RIVALS } from '$data/rivals';
 import { compiledFor, createBattle, FOUNDERS, newProfile } from '$engine';
 import { checkEnd } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
 import {
   CALL_STAFF,
+  CHALK,
   CHIEF_SCRIPT,
   fogDir,
   HEART_STEPS,
   MIND_THE_EDGE,
-  RIGHT_OF_WAY_BOARD_RULE,
   staffFor,
 } from '$engine/districts/bridges/heart';
-import { hasRightOfWay, RIGHT_OF_WAY_RULE } from '$engine/districts/bridges/rightOfWay';
+import { holdsRightOfWay } from '$engine/districts/bridges/keystoneRight';
 import { cracksOf } from '$engine/districts/bridges/support';
 import { type BridgesState, COLLAPSE_RULE_ID } from '$engine/districts/bridges/types';
 import { KIT } from '$engine/districts/kit';
 import { parseBoard } from '$engine/notation';
 import { strikePiece } from '$engine/pieces';
 import { push } from '$engine/push';
+import { trickOf } from '$engine/rivals/tricks';
 import { checkRoom } from '$engine/rooms';
-import { awardsPage, stepOf } from '$engine/standIn';
+import { awardsPage } from '$engine/standIn';
 import { roundEnd } from '$engine/turn';
 import type { BattleState, EnemyUnit } from '$engine/types';
 import { board, cast, draft, unitAtLabel, withLattices } from '../../scenarios/harness';
@@ -48,27 +50,28 @@ const shatter = (ctx: C, at = { x: 0, y: 0 }) => {
 };
 
 describe('data and registration', () => {
-  test('the stand-in: token K, an elite boss, a script that awards no page', () => {
+  test('the rival: token K, an elite boss, no script, the shell and the def agree', () => {
     const e = ENEMIES.chiefWarden;
     expect(e).toMatchObject({ token: 'K', move: 0, elite: true, boss: true, anchored: false });
     expect(e.hp).toBe(BRIDGE_TUNING.chiefHp);
-    expect(e.script).toEqual({ steps: [...CHIEF_SCRIPT], standIn: true });
-    expect(awardsPage({ def: 'chiefWarden' })).toBe(false);
-    expect(awardsPage({ def: 'warden' })).toBe(true);
+    expect(e.script).toBeUndefined();
+    expect(RIVALS.chiefWarden).toMatchObject({ hp: e.hp, token: 'K', district: 'bridges' });
+    expect(awardsPage({ def: 'chiefWarden' })).toBe(true);
   });
 
-  test('steps, behaviour and the flag rule are in the kit', () => {
+  test('steps, behaviour and the right-of-way trick are in the kit', () => {
     for (const step of HEART_STEPS) expect(KIT.steps[step.id]).toBe(step);
     expect(KIT.foes['bridges:chiefWarden']).toBeDefined();
-    expect(KIT.rules[RIGHT_OF_WAY_RULE]).toBe(RIGHT_OF_WAY_BOARD_RULE);
+    expect(trickOf('bridges:keystoneRight')).toBeDefined();
+    expect(RIVALS.chiefWarden?.trick).toBe('bridges:keystoneRight');
   });
 
-  test('the keystone brings right of way to the chief at battle start, and to nobody else', () => {
+  test('the chief holds right of way while the keystone stands, and nobody else does', () => {
     const s = board('K{keystone:2} r . S');
-    expect(s.rules?.[RIGHT_OF_WAY_RULE]).toEqual([chiefOf(s).id]);
-    expect(hasRightOfWay(s, chiefOf(s))).toBe(true);
-    const plain = board('r . S');
-    expect(plain.rules ? Object.hasOwn(plain.rules, RIGHT_OF_WAY_RULE) : false).toBe(false);
+    expect(chiefOf(s).rival?.rival).toBe('chiefWarden');
+    expect(holdsRightOfWay(s, chiefOf(s))).toBe(true);
+    const rat = s.units.find((u) => u.kind === 'enemy' && u.def === 'rat');
+    expect(rat && holdsRightOfWay(s, rat)).toBe(false);
   });
 });
 
@@ -121,7 +124,7 @@ describe('the keystone shatters', () => {
     const r = draft(s, (ctx) => {
       shatter(ctx);
       // right away: no longer protected, though nothing has fallen yet
-      expect(hasRightOfWay(ctx.s, chiefOf(ctx.s))).toBe(false);
+      expect(holdsRightOfWay(ctx.s, chiefOf(ctx.s))).toBe(false);
       roundEnd(ctx);
     });
     expect(ofType(r.events, 'bridges:keystoneBreaks')).toHaveLength(1);
@@ -132,7 +135,7 @@ describe('the keystone shatters', () => {
     expect(chief.out ?? null).toBeNull();
     expect(chief.pos).not.toEqual({ x: 0, y: 0 });
     expect(ofType(r.events, 'bridges:trickResists')).toEqual([]);
-    expect(hasRightOfWay(r.state, chief)).toBe(false);
+    expect(holdsRightOfWay(r.state, chief)).toBe(false);
   });
 
   test('before it breaks a dusk drop leaves him standing (the keystone tile holds)', () => {
@@ -141,37 +144,17 @@ describe('the keystone shatters', () => {
   });
 });
 
-describe('the script, by round', () => {
-  test('chalk, mind the edge, call the staff, cycled; the same on a second run', () => {
-    const run = () => {
-      let s = board('S K{keystone:6} _');
-      const seen: (string | null)[] = [];
-      for (let i = 0; i < 6; i++) {
-        seen.push(stepOf(s, chiefOf(s))?.id ?? null);
-        s = draft(s, (ctx) => {
-          ctx.s.round++;
-        }).state;
-      }
-      return seen;
-    };
-    expect(run()).toEqual([
-      'bridges:chalk',
-      'bridges:mindTheEdge',
-      'bridges:callStaff',
-      'bridges:chalk',
-      'bridges:mindTheEdge',
-      'bridges:callStaff',
-    ]);
-    expect(run()).toEqual(run());
+describe('the heart steps (the old stand-in script, kept for the Lab)', () => {
+  test('the cycle is chalk, mind the edge, call the staff', () => {
+    expect(CHIEF_SCRIPT).toEqual(['bridges:chalk', 'bridges:mindTheEdge', 'bridges:callStaff']);
   });
 
-  test('chalk: round 1 telegraphs the apprentice in line, and he is held when it lands', () => {
+  test('chalk: telegraphs the apprentice in line, and he is held when it lands', () => {
     const s = board('S . K{keystone:6}');
-    const intent = chiefOf(s).intent;
-    expect(intent).toMatchObject({ kind: 'step', step: 'bridges:chalk' });
+    const tg = CHALK.plan(s, chiefOf(s));
+    expect(tg).toMatchObject({ label: 'chalk' });
     const r = draft(s, (ctx) => {
-      const e = chiefOf(ctx.s);
-      if (e.intent?.kind === 'step') KIT.steps[e.intent.step]?.act(ctx, e, e.intent.telegraph);
+      if (tg) CHALK.act(ctx, chiefOf(ctx.s), tg);
     });
     expect(unitAtLabel(r.state, 'A1').held).toBeGreaterThan(0);
   });
@@ -276,10 +259,6 @@ describe('felling him ends the room, and the bridge drops after the win', () => 
     const collapses = ofType(r.events, 'bridges:collapse');
     expect(collapses.length).toBeGreaterThanOrEqual(1);
   });
-
-  test('a stand-in clears the heart and awards no page', () => {
-    expect(awardsPage({ def: 'chiefWarden' })).toBe(false);
-  });
 });
 
 // ── The two approach boards ──────────────────────────────
@@ -334,8 +313,7 @@ describe('the great arch boards', () => {
       const chief = chiefOf(state);
       const t = state.tiles[chief.pos.y * state.width + chief.pos.x];
       expect(t?.piece?.id).toBe('bridges:keystone');
-      expect(state.rules?.[RIGHT_OF_WAY_RULE]).toEqual([chief.id]);
-      expect(hasRightOfWay(state, chief)).toBe(true);
+      expect(holdsRightOfWay(state, chief)).toBe(true);
       expect(cracksOf(state)).toEqual([]);
     });
 

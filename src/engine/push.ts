@@ -3,7 +3,6 @@ import { arrive, hasTrait } from './arrival';
 import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, kill } from './damage';
-import { refusesHold, resists } from './districts/bridges/rightOfWay';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -338,7 +337,7 @@ export function push(
       return unmoved();
     }
     // A rival's trick may refuse the push (RV-11 `resists`: right of way).
-    if (trickResists(ctx, unit, 'push') || resists(ctx, unit, 'push')) return unmoved();
+    if (trickResists(ctx, unit, 'push')) return unmoved();
     // The harm guards (BH P8: a dissolved bather lets the push pass through it).
     const pushHarm = { kind: 'push', unit: unit.id, dir, harm: null } as const;
     if (guardCancels(ctx, unit, pushHarm, pull ? 'Pull' : 'Push')) return unmoved();
@@ -466,7 +465,7 @@ export function push(
         hasFootnote(ctx, 'vat-edge-pin')
       ) {
         withLine(ctx, 'vat:edge', () => {
-          if (refusesHold(ctx, unit)) return;
+          if (trickResists(ctx, unit, 'hold')) return;
           if (guardCancels(ctx, unit, { kind: 'hold', unit: unit.id, harm: null }, 'Hold')) return;
           unit.held = Math.max(unit.held, 1);
           emit(ctx, { type: 'held', unit: ref(unit), rounds: unit.held });
@@ -476,11 +475,7 @@ export function push(
       // Pull (P4): a blocking tile in between, or a swimmer that won't leave the water.
       const why: LineId = stop.into === 'plate' ? 'pull:plate' : 'pull:water';
       withLine(ctx, why, () => emit(ctx, { type: 'miss', source: 'Pull' }));
-    } else if (
-      stop?.kind === 'drop' &&
-      !trickResists(ctx, unit, 'fall') &&
-      !resists(ctx, unit, 'fall')
-    ) {
+    } else if (stop?.kind === 'drop' && !trickResists(ctx, unit, 'fall')) {
       // A rival's trick may refuse the fall (RV-11 `resists`): he stops on the brink.
       fall(ctx, unit, dir, stop, pull);
       dropped = true;

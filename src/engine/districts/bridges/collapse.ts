@@ -3,9 +3,10 @@ import { type Ctx, emit, ref, withLine, withOrigin } from '../../ctx';
 import { type Coord, sameCoord } from '../../grid';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
 import { coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
+import { trickResists } from '../../rivals/tricks';
 import type { BattleState, EnemyUnit, Origin, Unit } from '../../types';
 import { epilogueFall } from './heart';
-import { hasRightOfWay, resists } from './rightOfWay';
+import { holdsRightOfWay } from './keystoneRight';
 import { cracksOf } from './support';
 import {
   type BridgesState,
@@ -129,12 +130,13 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
   const spared = new Set<string>();
   const allKeys = new Set(falling.map(key));
   for (const { unit, at } of fallersOn(ctx.s, falling)) {
-    if (hasRightOfWay(ctx.s, unit) && !landingFor(ctx.s, at, allKeys, unit.id)) spared.add(key(at));
+    if (holdsRightOfWay(ctx.s, unit) && !landingFor(ctx.s, at, allKeys, unit.id))
+      spared.add(key(at));
   }
   if (spared.size) {
     falling = falling.filter((c) => !spared.has(key(c)));
     for (const u of ctx.s.units) {
-      if (isAlive(u) && spared.has(key(u.pos))) resists(ctx, u, 'fall');
+      if (isAlive(u) && spared.has(key(u.pos))) trickResists(ctx, u, 'fall');
     }
     if (!falling.length) return state;
   }
@@ -159,6 +161,7 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
   }
   for (const at of falling) {
     const t = tileAt(ctx.s, at);
+    if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at } });
     t.piece = null;
     t.state = null;
     t.jar = null;
@@ -169,7 +172,7 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
   const seam = Object.hasOwn(ctx.s.rules ?? {}, SEAM_DROP_RULE);
   for (const { unit, at } of fallers) {
     // P17 right of way: he does not fall; he is set on the nearest standing tile, unhurt.
-    const held = resists(ctx, unit, 'fall');
+    const held = trickResists(ctx, unit, 'fall');
     if (held) {
       const to = landingFor(ctx.s, at, keys, unit.id);
       if (to && !sameCoord(to, unit.pos)) {

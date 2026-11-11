@@ -91,7 +91,7 @@ describe('a whole trip', () => {
     }
   });
 
-  test('the Chief Warden stand-in clears the heart and awards no page', () => {
+  test('the Chief Warden rival clears the heart and banks his page', () => {
     const save = setOut({ ...newSave(1), profile: open() }, 'bridges');
     const trip = save.trip as Trip;
     const b = structuredClone(
@@ -107,7 +107,7 @@ describe('a whole trip', () => {
     for (const u of b.units) if (u.kind === 'enemy') u.hp = 0;
     const before = JSON.stringify(save.profile.city);
     const done = finishEncounter(save.profile, { ...trip, encounter: 4 }, b);
-    expect(done.profile.pages).toEqual(save.profile.pages);
+    expect(done.profile.pages).toEqual([...save.profile.pages, 'chiefWarden:mindTheEdge']);
     expect(JSON.stringify(save.profile.city)).toBe(before);
   });
 });

@@ -1,7 +1,8 @@
 import { collapseStep, FALL_CAUSE } from './bridges/collapse';
 import { BRIDGE_FOES } from './bridges/foes';
 import { BRIDGE_OFFERS } from './bridges/guarantee';
-import { CHIEF_FOE, HEART_STEPS, RIGHT_OF_WAY_BOARD_RULE } from './bridges/heart';
+import { CHIEF_FOE, HEART_STEPS } from './bridges/heart';
+import { BRIDGE_TRICKS } from './bridges/keystoneRight';
 import { previewCollapse } from './bridges/preview';
 import { scanBridges } from './bridges/support';
 import { BRIDGE_TRIP_HOOKS } from './bridges/trip';
@@ -64,7 +65,8 @@ export const BRIDGES_MODULE: DistrictModule = {
   id: 'bridges',
   events,
   pieces: BRIDGE_PIECES,
-  rules: [COLLAPSE_RULE, RIGHT_OF_WAY_BOARD_RULE],
+  rules: [COLLAPSE_RULE],
+  tricks: BRIDGE_TRICKS,
   steps: HEART_STEPS,
   foes: [...BRIDGE_FOES, CHIEF_FOE],
   ...BRIDGE_OFFERS,
