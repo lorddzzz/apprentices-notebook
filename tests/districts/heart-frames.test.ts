@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { DistrictId } from '$data';
+import { BATH_HEART } from '$data/districts/bathhouses';
 import { CANAL_ROOMS } from '$data/districts/canals';
 import { SEAM_ROOMS } from '$data/districts/seam';
 import { KIT } from '$engine/districts';
@@ -130,6 +131,47 @@ describe('KIT-R3 heart frames', () => {
         }
         const mother = framed.units.find((u) => u.def === 'mother');
         expect(mother && water.has(`${mother.at.x},${mother.at.y}`)).toBe(true);
+      }
+    }
+  });
+
+  test('KIT-R3: bathhouses frame places the Bath-Steward on 5x5, 7x9 and the real room size, seeded', () => {
+    const layout = firstHeart([BATH_HEART]);
+    checkFrame('bathhouses', layout, 'bathSteward', sizeOf(layout));
+    expect(heartOf('bathhouses').rules).toContain('bathhouses:boilOver');
+  });
+
+  test('KIT-R3: bathhouses frame stands the Steward on a connected cloud of four or more tiles', () => {
+    for (const [w, h] of [
+      [5, 5],
+      [5, 6],
+      [7, 8],
+      [7, 9],
+    ] as const) {
+      for (const seed of [1, 2, 3, 4, 5, 6]) {
+        const framed = heartOf('bathhouses').frame(blank(w, h), seed);
+        const steward = framed.units.find((u) => u.def === 'bathSteward');
+        const cloud = (x: number, y: number): boolean =>
+          x >= 0 && y >= 0 && x < w && y < h && framed.tiles[y * w + x]?.state?.id === 'cloud';
+        if (!steward) throw new Error('no Steward');
+        expect(cloud(steward.at.x, steward.at.y)).toBe(true);
+        const seen = new Set<string>([`${steward.at.x},${steward.at.y}`]);
+        const queue = [steward.at];
+        for (let c = queue.pop(); c; c = queue.pop()) {
+          for (const [dx, dy] of [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+          ] as const) {
+            const n = { x: c.x + dx, y: c.y + dy };
+            if (cloud(n.x, n.y) && !seen.has(`${n.x},${n.y}`)) {
+              seen.add(`${n.x},${n.y}`);
+              queue.push(n);
+            }
+          }
+        }
+        expect(seen.size).toBeGreaterThanOrEqual(4);
       }
     }
   });
