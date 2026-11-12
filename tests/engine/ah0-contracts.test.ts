@@ -42,9 +42,9 @@ describe('AH-W0 contracts: habits', () => {
   it('has a row for the pair and every recruit habit, keyed by its own id', () => {
     expectTypeOf<RecruitHabitId>().toMatchTypeOf<HabitId>();
     for (const h of Object.values(RECRUIT_HABITS)) expect(HABITS[h].id).toBe(h);
-    expect(HABIT_IDS).toHaveLength(9);
+    expect(HABIT_IDS).toHaveLength(10);
     for (const h of HABIT_IDS) expect(HABITS[h].id).toBe(h);
-    expect(HABIT_IDS).not.toContain('mender'); // reserved for EN
+    expect(HABIT_IDS.at(-1)).toBe('mender'); // the owner's (EN-9)
   });
 
   it('gives each habit exactly one rule field (P9)', () => {

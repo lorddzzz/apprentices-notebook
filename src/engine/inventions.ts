@@ -19,6 +19,7 @@ import { type Ctx, emit, withLine } from './ctx';
 import { fallenBrassTiles, spendFallenBrass } from './districts/api';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, opposite, step } from './grid';
+import { ruleOf } from './habits';
 import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
 import { asBindCarrier, attachBound, attachLayer, liftMark, snareBlot, spendMark } from './marks';
@@ -262,7 +263,7 @@ const unitTarget = (u: Unit): Target => ({ kind: 'unit', unit: u.id });
  * The brass the target touches (§4.4, §6.2): the connected brass it stands on, else every brass
  * network on a tile next to it. Plates and collared units are both brass.
  */
-function networkTouching(ctx: Ctx, at: Coord, cloud = false): Coord[] {
+function networkTouching(ctx: Ctx, at: Coord, cloud = false, gap = 0): Coord[] {
   const s = ctx.s;
   const inNet = (c: Coord): boolean => (cloud ? isCloud(tileAt(s, c)) : isBrass(s, c));
   const seeds = inNet(at)
@@ -271,7 +272,7 @@ function networkTouching(ctx: Ctx, at: Coord, cloud = false): Coord[] {
   const seen = new Set<string>();
   const out: Coord[] = [];
   for (const seed of seeds) {
-    for (const c of cloud ? cloudNet(s, seed) : brassNet(s, seed)) {
+    for (const c of cloud ? cloudNet(s, seed, false, gap) : brassNet(s, seed, false, gap)) {
       const k = `${c.x},${c.y}`;
       if (seen.has(k)) continue;
       seen.add(k);
@@ -297,11 +298,12 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   const at = whereIs(ctx.s, t);
   const part = def.parts[0];
   if (!at || part === undefined) return [];
-  let net = networkTouching(ctx, at);
+  const gap = ruleOf(flow.habit).networkGap ?? 0; // the owner's mender (P19)
+  let net = networkTouching(ctx, at, false, gap);
   const onBrass = net.length > 0;
   // `conduct-cap-cloud`: with no brass about, the action travels the connected cloud.
   if (net.length === 0 && hasFootnote(ctx, 'conduct-cap-cloud'))
-    net = networkTouching(ctx, at, true);
+    net = networkTouching(ctx, at, true, gap);
   if (net.length === 0) {
     withLine(ctx, 'conduct:noTarget', () => emit(ctx, { type: 'miss', source: 'Conduct' }));
     return [];

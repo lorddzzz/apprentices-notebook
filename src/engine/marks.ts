@@ -4,7 +4,7 @@ import { cloneData } from './clone';
 import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
 import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, neighbors4, sameCoord } from './grid';
-import { habitOf } from './habits';
+import { habitOf, habitRule } from './habits';
 import { guardHarm } from './harm';
 import type { Hook } from './hooks';
 import { cloudNet } from './networks';
@@ -225,7 +225,9 @@ export function spreadFrom(ctx: Ctx, unit: Unit, now = false): void {
   if (mark.bound && !mark.wax) haunt(ctx, unit, mark.bound);
   const reached = reachedOf(ctx, mark.lineage);
   const to: Unit[] = [];
-  const net = cloudNet(ctx.s, unit.pos);
+  // The owner's mender: a mark of their cast also spreads across one empty tile (P19).
+  const maker = mark.origin ? findUnit(ctx.s, mark.origin.caster) : null;
+  const net = cloudNet(ctx.s, unit.pos, false, habitRule(maker).networkGap ?? 0);
   // Ink margin: `kin` keeps to the bearer's side, `seep` adds the units beside the cloud, and
   // `deep` also reaches a marked unit (deepening it).
   const cells = hasFootnote(ctx, 'ink-spread-seep')

@@ -1,3 +1,4 @@
+import { OWNER } from './apprentices/owner';
 import { RECRUITS } from './recruits';
 import type { ApprenticeDef, Lean, MemberDef } from './types';
 
@@ -40,7 +41,7 @@ const PAIR = {
   },
 } as const satisfies Readonly<Record<string, ApprenticeDef<string>>>;
 
-const REGISTRY = { ...PAIR, ...RECRUITS };
+const REGISTRY = { ...PAIR, ...RECRUITS, ...OWNER };
 
 /** Every apprentice the game knows (HC P1): the registry's keys, the pair first, then RC's recruits. */
 export type ApprenticeId = keyof typeof REGISTRY;

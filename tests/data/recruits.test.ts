@@ -122,7 +122,7 @@ function TABLE_HABITS(): string[] {
 }
 
 test('the registry is the pair then the recruits, and the founders are the pair', () => {
-  expect(APPRENTICE_IDS).toEqual(['draughtsman', 'stoker', ...IDS]);
+  expect(APPRENTICE_IDS).toEqual(['draughtsman', 'stoker', ...IDS, 'owner']); // owner last (EN-9)
   expect(FOUNDERS).toEqual(['draughtsman', 'stoker']);
   for (const id of IDS) expect(APPRENTICES[id]).toBe(RECRUITS[id]);
 });

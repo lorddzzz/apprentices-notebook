@@ -3,7 +3,7 @@ import type { HabitDef, HabitId } from './types';
 /**
  * Every habit (party.md §1–§2, AH P9–P10), keyed by id, never by apprentice: any apprentice, the
  * Lab or a rival (`EnemyDef.trick`) can carry one. `rule` holds only the field the habit bends.
- * `mender` is reserved for EN.
+ * `mender` is the owner's (EN-9).
  */
 export const HABITS: Readonly<Record<HabitId, HabitDef>> = {
   twoJars: {
@@ -69,7 +69,14 @@ export const HABITS: Readonly<Record<HabitId, HabitDef>> = {
     leansOn: 'erase',
     rule: { eraseRestores: true },
   },
+  mender: {
+    id: 'mender',
+    line: 'Networks join across one empty tile',
+    kind: 'lattice',
+    leansOn: 'spark',
+    rule: { networkGap: 1 },
+  },
 };
 
-/** HABIT_IDS in table order (the pair's two, then the recruits' seven). */
+/** HABIT_IDS in table order (the pair's two, the recruits' seven, then the owner's). */
 export const HABIT_IDS = Object.keys(HABITS) as HabitId[];

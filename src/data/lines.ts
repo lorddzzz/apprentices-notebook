@@ -928,4 +928,15 @@ export const LINES: readonly LineDef[] = [
     district: 'inkQuarter',
     text: 'Tally counts marks, collars, shackles, states and jars, not pieces: a writ, a seal or anything else standing on the tile is not counted.',
   },
+  // EN-9: the owner's mender. Rows for `mender:diagonal` and `mender:dusk` wait on `Meets`
+  // gaining 'diagonal' and 'dusk' (src/data/types.ts is out of EN-9's reach); the engine stamps
+  // none of these yet.
+  {
+    id: 'mender:unit',
+    subject: 'mender',
+    meets: 'unit',
+    district: 'seam',
+    text: 'A unit standing in the gap keeps the two sides apart: the gap must be empty ground.',
+    pending: true,
+  },
 ];

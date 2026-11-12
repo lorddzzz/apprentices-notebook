@@ -13,6 +13,7 @@ import {
   sameCoord,
   step,
 } from './grid';
+import { ruleOf } from './habits';
 import { guardCancels } from './harm';
 import type { Hook } from './hooks';
 import { openJar, sealedContext } from './jars';
@@ -476,8 +477,8 @@ const fnFor = (ctx: Ctx, flow: Flow, id: Parameters<typeof hasFootnote>[1]): boo
   findUnit(ctx.s, flow.caster)?.kind === 'member' && hasFootnote(ctx, id);
 
 /** The cloud tiles salt carries through from `at`: the whole net, or `cap` steps of it. */
-function saltTiles(s: BattleState, at: Coord, cap: number | null): Coord[] {
-  const net = cloudNet(s, at);
+function saltTiles(s: BattleState, at: Coord, cap: number | null, gap = 0): Coord[] {
+  const net = cloudNet(s, at, false, gap);
   if (cap === null) return net;
   const inNet = new Set(net.map(key));
   const seen = new Set([key(at)]);
@@ -499,7 +500,12 @@ function saltTiles(s: BattleState, at: Coord, cap: number | null): Coord[] {
 }
 
 const tilesSalted = (ctx: Ctx, flow: Flow, at: Coord): Coord[] =>
-  saltTiles(ctx.s, at, fnFor(ctx, flow, 'bathSalt-cloud-near') ? 3 : null);
+  saltTiles(
+    ctx.s,
+    at,
+    fnFor(ctx, flow, 'bathSalt-cloud-near') ? 3 : null,
+    ruleOf(flow.habit).networkGap ?? 0,
+  );
 
 /** Fog jar's neighbours of `at`: the four, the invention's line, or with the ring the diagonals too. */
 function fogNear(ctx: Ctx, flow: Flow, t: Target, at: Coord): Coord[] {

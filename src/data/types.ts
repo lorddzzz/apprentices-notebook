@@ -264,10 +264,10 @@ export interface IdiomDef {
 /** The seven recruits' habit ids, derived from RC's table so the two can't drift (AH P10). */
 export type RecruitHabitId = (typeof RECRUIT_HABITS)[keyof typeof RECRUIT_HABITS];
 /**
- * Habit ids (party.md §1, AH P10): the pair's two plus the recruits' seven. `mender` is reserved
- * for the ending plan (EN builds it); no other habit may take that id.
+ * Habit ids (party.md §1, AH P10): the pair's two plus the recruits' seven, and `mender`, the
+ * owner's (EN-9); no other habit may take that id.
  */
-export type HabitId = 'forkAhead' | 'twoJars' | RecruitHabitId;
+export type HabitId = 'forkAhead' | 'twoJars' | RecruitHabitId | 'mender';
 /** What a ward or harm guard reads off a hit (AH P14). Only steam is tagged so far. */
 export type HarmKind = 'steam';
 /**
@@ -284,6 +284,7 @@ export interface HabitRule {
   unisonReach?: number; // how far from the target another cast may land for her Unison
   touchReach?: number; // how far her Touch aims in a straight line
   eraseRestores?: true; // her Erase on an empty target puts back what the last Erase took
+  networkGap?: number; // the owner's own casts join network tiles across this many empty tiles (mender: 1)
 }
 /** A unit's lean as the engine reads it: the apprentice's schools plus their habit. */
 export interface Lean {

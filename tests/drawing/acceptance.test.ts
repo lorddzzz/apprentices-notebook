@@ -188,18 +188,6 @@ describe('EN-W0: the stubs and kit interfaces', () => {
 
 // ── Acceptance owed by later tasks (ending-plan §5), by task ──────────────────
 
-describe('EN-9 (Pack D): the owner and the mender', () => {
-  it.todo('EN-9: mender joins Storm across one gap');
-  it.todo('EN-9: mender joins Conduct across one gap');
-  it.todo('EN-9: mender ignites fire across one gap');
-  it.todo('EN-9: mender joins Toll across one gap');
-  it.todo('EN-9: a unit in the gap blocks the join');
-  it.todo('EN-9: no diagonal join');
-  it.todo('EN-9: dusk fire does not jump the gap');
-  it.todo('EN-9: the same page cast by another apprentice behaves as today');
-  it.todo("EN-9: the owner's starter page fires a Storm");
-});
-
 // EN-S1 (Pack B) is built: its three tests are in tests/sim/generator.test.ts (they run the bot).
 
 describe('EN-2 and EN-3 (Pack E): the generator and the module', () => {

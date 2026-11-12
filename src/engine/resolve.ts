@@ -377,7 +377,10 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           st.rune === 'seep'
             ? seep(s, live, flow.headings, ctx.footnotes, findUnit(s, flow.caster) ?? null)
             : null;
-        const aimed = seeped ?? toll(s, live, flow.headings, seams.sameStateNet ?? sameStateNet);
+        const gap = ruleOf(flow.habit).networkGap ?? 0; // the owner's mender (P19)
+        const tollNet = seams.sameStateNet ?? sameStateNet;
+        const aimed =
+          seeped ?? toll(s, live, flow.headings, gap ? (b, at) => tollNet(b, at, gap) : tollNet);
         if (seeped && seeped.off > 0) {
           withLine(ctx, 'seep:edge', () => emit(ctx, { type: 'miss', source: 'Seep' }));
         }
