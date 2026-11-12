@@ -97,5 +97,6 @@ export const CANALS_MODULE: DistrictModule = {
   // RV-14: the Lamplighter's long wick (rivals §2), found by `trickOf('canals:longWick')`.
   tricks: [LONG_WICK],
   shapes: [CANALS_LANDINGS],
+  bot: {},
   heart: { foe: 'mother', rules: [CURRENT_RULE.id], frame: canalsHeartFrame },
 };

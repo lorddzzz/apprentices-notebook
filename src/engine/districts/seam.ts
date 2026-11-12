@@ -169,6 +169,7 @@ export const SEAM_MODULE: DistrictModule = {
   // Lent to drawn districts (platform-closure P5): no hooks, state null.
   shapes: [{ id: 'seam:plain', parseState: () => null, initState: () => null }],
   heart: SEAM_HEART,
+  bot: {},
 };
 
 // ── The margins answer (SM P12) lives in engine/margins.ts; kept importable from here (SM-0). ──

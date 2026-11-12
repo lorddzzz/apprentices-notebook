@@ -1,5 +1,6 @@
 import { BATH_STEWARD_GOALS } from '$data/rivals/bathSteward';
 import { BOIL_OVER_RULE } from './bathhouses/boilOver';
+import { BATH_BOT } from './bathhouses/bot';
 import { BATHER_EVENT_LINES, BATHER_FOE, BATHER_GUARD } from './bathhouses/dissolved';
 import { BATH_FOES } from './bathhouses/foes';
 import { STEWARD_EVENT_LINES, STEWARD_TRICKS } from './bathhouses/heart';
@@ -38,4 +39,5 @@ export const BATHHOUSES_MODULE: DistrictModule = {
   goals: BATH_STEWARD_GOALS,
   causes: { [STEAM_CAUSE]: 'landing' },
   heart: BATH_HEART_SETUP,
+  bot: BATH_BOT,
 };

@@ -52,6 +52,13 @@ export function componentsOf(
   return groups;
 }
 
+/** The bot's district terms, summed over modules in registry order; each is 0 on a board without its rule. */
+export function botValue(state: BattleState): number {
+  let v = 0;
+  for (const m of Object.values(KIT.modules)) v += m?.bot?.value?.(state) ?? 0;
+  return v;
+}
+
 /** Every tile whose support has failed, the union over modules in registry order (no duplicates). */
 export function crackedTiles(state: BattleState): Coord[] {
   const seen = new Set<string>();

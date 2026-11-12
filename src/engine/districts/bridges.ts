@@ -74,5 +74,6 @@ export const BRIDGES_MODULE: DistrictModule = {
   ...BRIDGE_OFFERS,
   trip: shape,
   heart: BRIDGES_HEART,
+  bot: {},
   causes: { [FALL_CAUSE]: 'landing' },
 };
