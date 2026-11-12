@@ -134,7 +134,7 @@ export const FOUNDRY_KIT: DistrictData = {
   line: 'one bang, heard three tiles away',
   barred: 'The page is still being drawn.',
   lean: { lean: 'brass', text: 'Brass' },
-  map: { x: 25, y: 22, label: 'above' },
+  map: { x: 25, y: 22, label: 'above', solvedArt: 'foundry-bell' },
   hear: [
     {
       kind: 'conducted',
