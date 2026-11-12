@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-12d; ED, O, F5, I merged (452d9bc, not pushed until CI is green); **CI** running. CI red since F9 (sims only: household-sweep 'bell foundry is not open'; AH-8 fuzz since ED's `mender`).
+**State:** routine window 2026-11-12d; ED, O, F5, I, CI merged and pushed (9dd36ad). **Next window: design** (briefs exhausted). CI red since F9 (sims only: household-sweep 'bell foundry is not open'; AH-8 fuzz since ED's `mender`).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Wake-up at each reset (CronCreate one-shot, session-only; CET = UTC+1) until the player says stop or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
@@ -10,7 +10,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 **Reset:** 2026-11-12 18:50 CET (17:50 UTC); no wake-up scheduled (the player cancelled it earlier); resume manually. Held at 90 % of 5h, weekly 52 %. C3b merged (0c5af97); nothing running; check:fast green on main (343 files, 7896 tests).
 
 ## Next
-0. **Pack CI (player, 2026-11-12):** CI-1 household-sweep since F9, CI-2 AH-8 fuzz since ED; full `pnpm check` green before any further merge batch is pushed. Read each push's CI result (sims run only there).
+0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12).
 1. **Briefs exhausted** after CI: the next window is a **design window**.
 2. **Filed by MIX (MIX-F1, unassigned, Default):** Seam hand and telegraph events project the intent and `born` flag the engine reaches at the end of the enemy phase; remove the four `KNOWN_FAILS` in `tests/sim/rule-pairs.test.ts` when it lands. The cartographers' hand joins `FEATURES` there when CG-2 merges.
 3. **Next design window:** briefs for cartographers Packs A–J (CW0 merged: due now); EN-G0 once the player has timed the dev page; BF-FG (F5 merged; its questions in Needs design review); EN-12 handover draft; ending Packs E–L after EN-G0; RV-20b and FN-A1 M2 briefs; the ledger.
