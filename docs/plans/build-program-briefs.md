@@ -152,32 +152,6 @@ Done when:
 Verify: `pnpm vitest run tests/data tests/scenarios/foundry-audit-lines.test.ts --reporter=dot`
 ```
 
-## Pack O: ink footnote follow-ups (Fast: Haiku high; escalate to Sonnet medium)
-
-Starts when ED is merged.
-
-```
-Pack O of docs/plans/platform-closure-plan.md: task FU-21.
-
-Read: docs/design/footnotes-content/inkQuarter.md §8; platform-closure-plan.md P9 and row FU-21; pattern:
-the `wax-cloud-*` scenarios in tests/scenarios/footnotes/ink-wax.test.ts.
-Own: src/engine/solvents.ts (the `wax-cloud-smother` check in `wax.onHook` only), src/data/footnotes/inkQuarter.ts
-(the texts of wax-cloud-smother, sentence-mark-peel, levy-mark-peel, sentence-unit-collar),
-tests/scenarios/footnotes/ink-*.test.ts.
-Contract: `wax-cloud-smother` keeps its id; its text becomes "A wax mark does not melt in fire while a cloud
-stands beside its bearer: the steam keeps the wax cool." and its check reads a cloud on any 4-neighbour of
-the bearer instead of its own tile. Clauses: both `*-mark-peel` texts end "A bound mark is released, not
-peeled."; `sentence-unit-collar` adds "(born brass is not a collar)". No other behaviour changes.
-Owed by this pack: nothing. Leaves for later: none.
-
-Done when:
-- FU-21: "FU-21: wax-cloud-smother keeps a wax mark from melting in fire beside a cloud", "FU-21: without a
-  cloud beside it the mark melts as before" and "FU-21: wax-cap-seal holds through a real wax invention cast"
-  pass; "wax:cloud fourCombos" passes; tests/data/integrity.test.ts passes.
-
-Verify: `pnpm vitest run tests/scenarios/footnotes tests/data --reporter=dot`
-```
-
 ## Pack I: rivals and events leftovers (Default: Sonnet medium)
 
 Starts when F5 is merged (FU-5 edits `src/data/lines.ts`).
