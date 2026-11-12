@@ -7,7 +7,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
-**Reset:** 2026-11-12 13:50 CET (12:50 UTC); no wake-up scheduled (cancelled at the player's request); resume manually with the continuation prompt below after the reset. Held at 88 % of 5h, weekly 39 %. Next: Wave 8 (C3, D5 sims, F7), routine window.
+**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). Running: F8, CW0 (shared main checkout, no worktrees). ED waits on the C3 design review.
 
 ## Next
 1. **Routine windows, in the briefs file's order** (two or three at a time, file-disjoint; one sims pack at a time):
@@ -21,7 +21,9 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 | none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
-- none (C3 and ED decided 2026-11-12b: bridges-plan P21–P23, ending-plan P26–P27; both re-briefed; neither left commits).
+- **C3 @ main (d39aa96, bbf7b32), committed but with open questions:** (1) `brink-cap-fall` and `chalk-network-ring` are not built (cap-fall needs Brink's rest carried cast→dusk, nothing can carry a Step across turns; chalk ring needs a `districts/api` reader for the fallen brass tile and a bridges-state field, `parseBridges` drops unknown fields); Brink's capstone slot has `brink-cap-rim` only. Decide: add a dusk-replay carrier and api reader, or cut both. (2) Edits outside the owned list: `inventions.ts` `conduct`, `mix.ts` `landOnTile`, `actions.ts` shove `bonus`, `push.ts` `PushOptions.bonus`; resolve.ts +189 lines; core reaches bridges via a `shove` piece strike keyed by `ctx.meta.line` handled in `wear.ts`. (3) `lay-cracked-spent` text reworded (plates and walls only); shake beats `hold-held-extend`; `hold-cap-crush` foes only; test count 211→239 in `tests/data/footnotes.test.ts`. Review the core-file diff line by line and check no golden moved before ED starts.
+- **F7 (4127679…eec836e):** far-bell goal `{ happens: 'foundry:ring' }` (no per-tone goal kind); `FOUNDRY_FLOOR_LINE` exported as plain const.
+- **D5 (0d13e6e):** EN-G0 reads: fair within 4 attempts 94.4 % (P28 says 98 %), 28/500 dull; EN-S1 guardrails test setup changed; dev page is `src/app/dev/generator.html`.
 
 ## Owed (declared by a contract, not yet built)
 - Foundry (from F4, F6): BF-22 registers the foundry loot tables and swaps the rooms' placeholder ids, merges rooms, heart and recruit kit into `FOUNDRY_KIT`, discards rung bells on return/wipe, adds the save pair; BF-20 the `bot.value`; EN-K6 wraps the frame (all in F9's brief). BF-F1 confirms the Toll note's line (`toll:network`), BF-F3 builds it.
