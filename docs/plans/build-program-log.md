@@ -35,3 +35,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | BF-14, BF-15, BF-16 | 4127679, 6320e44, eec836e | Sonnet medium | foundry solved art, far bell, lower-Seam floor; goal is `happens foundry:ring`, decoy muffled; 0 returns |
 | EN-S2 | 0d13e6e | Sonnet high | two-sided judge and budget walk at default GEN_TUNING; walkovers 83 % to 5.6 %, dull 28/500 (P28's 98 % fair not met); EN-S1 guardrails test setup uses walked budget; 0 returns |
 | BR-19a, BR-19b | d39aa96, bbf7b32 | Sonnet medium | bridges footnotes; brink-cap-fall and chalk-network-ring NOT built (need a dusk carrier and an api reader); wider edits than briefed; pending design review |
+| CG-W0 | fa1876d | Sonnet high | cartographers contracts: types, stub threshold, six loot tables, 59 `it.todo` acceptance titles, HAND_SALT 8100; `kit.ts` module line NOT added (two tests mock a fixture under id 'cartographers'); 0 returns |

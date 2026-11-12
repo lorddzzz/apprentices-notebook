@@ -7,7 +7,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
-**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). Running: F8, CW0 (shared main checkout, no worktrees). ED waits on the C3 design review.
+**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). CW0 merged (fa1876d). Running: F8, G (shared main checkout, no worktrees). ED waits on the C3 design review.
 
 ## Next
 1. **Routine windows, in the briefs file's order** (two or three at a time, file-disjoint; one sims pack at a time):
@@ -29,6 +29,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - Foundry (from F4, F6): BF-22 registers the foundry loot tables and swaps the rooms' placeholder ids, merges rooms, heart and recruit kit into `FOUNDRY_KIT`, discards rung bells on return/wipe, adds the save pair; BF-20 the `bot.value`; EN-K6 wraps the frame (all in F9's brief). BF-F1 confirms the Toll note's line (`toll:network`), BF-F3 builds it.
 - From EF (EN-5): DK-E4 rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`), so most rules stay out of `paletteOf.rules` until their district adds the key; the Registrar joins the masters at CG-10; `ledger.districts` fed by EN-1.
 - From D4 (EN-S1): rooms are walkovers; EN-S2 (D5) adds the two-sided judge, the walk and `GEN_TUNING`; EN-G0 the limits in `src/data/tuning.ts`; EN-2 the walk in production; CAL-5 the numbers.
+- From CW0: CG-1 registers `CARTOGRAPHERS_MODULE` in `src/engine/districts/kit.ts` and moves the fixtures in `tests/engine/pieces.test.ts` and `tests/app/bench-registry.test.ts` to another module id in the same commit; hand salt is `HAND_SALT = 8100`.
 - Cartographers' `heart` frame through `frame.ts` (salt 7160) and `bot` — CG-10.
 - Ending (EN-W0, ending-plan §4): ledger EN-1; owner and `mender` EN-9; generator EN-S2 then EN-2 (with "EN-5: every offered combination generates"); limits EN-G0; kits EN-K1–K7; `inkedPage` EN-3/EN-8; worker EN-4; screens EN-6/7/10/11 (`handover`, `creditsOf` in `drawing/ending.ts`).
 - Ink footnote follow-ups — FU-21 (Pack O).
