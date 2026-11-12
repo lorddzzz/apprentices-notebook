@@ -36,6 +36,11 @@ export const spanOfRoom = (kit: Pick<TripKitState, 'choices'>, room: number): Sp
   return id !== undefined && isSpan(id) ? id : 'sound';
 };
 
+const noteOf = (after: number, kind: SpanKind): { note?: string } => {
+  const note = spanLedger(after, kind)?.text;
+  return note ? { note } : {};
+};
+
 /** The two ways on after room `input.room`: each carries its variant pool. */
 export const bridgeChoices = (
   input: Pick<ShapeInput<BridgeTripState>, 'room'>,
@@ -45,6 +50,7 @@ export const bridgeChoices = (
     label: LABELS[kind],
     kind: 'push' as const,
     variantPool: spanVariantPool(input.room + 1, kind),
+    ...noteOf(input.room, kind),
   }));
 
 /** P11: the room's table follows the span it was reached over. */

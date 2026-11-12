@@ -296,6 +296,8 @@ export interface CrossroadsChoice {
   variantPool?: readonly number[];
   /** "After this room: no way home" (DK-11). */
   warn?: string;
+  /** A ledger line shown under the label (BR-7); never saved: the taken choice keeps id and pool only. */
+  note?: string;
   disabled?: string;
 }
 /** One Crossroads passed: the choice taken after room `after`, and the pool it fixed for the next. */

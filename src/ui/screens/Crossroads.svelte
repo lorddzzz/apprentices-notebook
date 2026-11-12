@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { crossroadsChoices } from '$engine/districts/api';
   import { crossroadsView } from '../../app/crossroads';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
@@ -10,7 +11,17 @@
   const trip = $derived(game.save.trip);
   // The district module names the ways on; the Seam and the canals get push and return (P4).
   const Note = $derived(trip ? DISTRICT_UI[trip.district]?.crossroadsNote : undefined);
-  const view = $derived(trip ? crossroadsView(trip) : null);
+  // A choice's ledger note (BR-7) leads its second line; a choice without one reads as before.
+  const view = $derived.by(() => {
+    if (!trip) return null;
+    const v = crossroadsView(trip);
+    const notes = new Map(crossroadsChoices(trip).map((c) => [c.id, c.note]));
+    const withNote = (w: (typeof v.ways)[number]) => {
+      const note = notes.get(w.id);
+      return note ? { ...w, sub: `${note} ${w.sub}` } : w;
+    };
+    return { ...v, ways: v.ways.map(withNote) };
+  });
 </script>
 
 {#if trip && view}
