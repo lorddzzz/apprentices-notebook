@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { FOUNDRY_ROOMS_12 } from '$data/districts/foundry';
-import type { EventLog } from '$engine';
+import { type EventLog, newProfile, startTrip } from '$engine';
 import { basicDirs } from '$engine/basicActions';
-import { alliedBellEdits, FOUNDRY_MODULE } from '$engine/districts/foundry';
-import { parseFoundryState } from '$engine/districts/foundry/types';
+import {
+  alliedBellEdits,
+  FOUNDRY_MODULE,
+  HEART_HOOKS,
+  pealRoomSetup,
+} from '$engine/districts/foundry';
+import { type FoundryTripState, parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json, ShapeInput } from '$engine/districts/types';
 import { tileAt } from '$engine/queries';
 import { bonusMet } from '$engine/trip/setup';
@@ -153,7 +158,31 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     ]); // the hook for note 2 hangs nothing: that room's bell was not rung
   });
 
-  it.todo('BF-8: roomSetup hangs an allied bell at each hook for every note rung');
+  it('BF-8: roomSetup hangs an allied bell at each hook for every note rung', () => {
+    const trip = { ...startTrip(newProfile(), 9), district: 'foundry' as const };
+    const kit = { state: null, choices: [], checkpoint: false, bonuses: [] };
+    const setupWith = (notes: number[], room = 4) =>
+      pealRoomSetup({
+        trip,
+        kit,
+        room,
+        length: 5,
+        state: { rung: notes.map((note, i) => ({ room: i, note })) },
+      } as ShapeInput<FoundryTripState>);
+    const hooks = HEART_HOOKS[0] ?? [];
+    expect(hooks).toHaveLength(4);
+    const bare = setupWith([]);
+    expect(bare.boardEdits).toBeUndefined(); // 0 notes: nothing hung
+    const full = setupWith([1, 2, 3, 4]);
+    expect(full.boardEdits).toHaveLength(4);
+    expect(full.boardEdits?.map((e) => e.at)).toEqual(hooks.map((h) => h.at));
+    for (const e of full.boardEdits ?? []) {
+      expect('piece' in e ? e.piece?.id : null).toBe('foundry:greatBell');
+    }
+    const two = setupWith([2, 4]);
+    expect(two.boardEdits?.map((e) => e.at)).toEqual(hooks.slice(0, 2).map((h) => h.at));
+    expect(setupWith([1, 2, 3, 4], 2)).toEqual({}); // a hall that is not the heart hangs nothing
+  });
   it('BF-8: a room bonus is its great bell rung and the room won', () => {
     const room = FOUNDRY_ROOMS_12[0];
     if (!room?.bonus) throw new Error('room 1 has no bonus');

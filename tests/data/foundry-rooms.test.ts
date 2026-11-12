@@ -1,9 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import type { MemberId } from '$data';
-import { FOUNDRY_ROOMS_12, FOUNDRY_ROOMS_34 } from '$data/districts/foundry';
+import { FOUNDRY_HEART, FOUNDRY_ROOMS_12, FOUNDRY_ROOMS_34 } from '$data/districts/foundry';
 import type { KitRoomDef } from '$data/districts/index';
-import { type BattleState, type Dir, parseBoard } from '$engine';
+import { type BattleState, type Dir, newProfile, parseBoard, startTrip } from '$engine';
+import { HEART_HOOKS, pealRoomSetup } from '$engine/districts/foundry';
+import { newTune, tuneOf } from '$engine/districts/foundry/tune';
+import { type FoundryTripState, TUNE_RULE_ID } from '$engine/districts/foundry/types';
+import type { ShapeInput } from '$engine/districts/types';
 import { checkRoom } from '$engine/rooms';
+import { setUpRoom } from '$engine/trip/setup';
+import type { DistrictShape } from '$engine/trip/shape';
 import { ev } from '../districts/foundry/helpers';
 import { act, cast, type Step, withLattices } from '../scenarios/harness';
 
@@ -260,5 +266,72 @@ describe('foundry rooms 3 and 4 (BF-11)', () => {
     const dead = play(v.layout, hit, { hp: { D4: 1 } }); // D4 is the Clapper's tile
     expect(dead.state.units.find((u) => u.id === 'clapper-1')?.hp).toBeLessThanOrEqual(0);
     expect(rung(dead.events)).toHaveLength(0);
+  });
+});
+
+describe('the heart (BF-12)', () => {
+  const trip = { ...startTrip(newProfile(), 11), district: 'foundry' as const };
+  const kit = { state: null, choices: [], checkpoint: false, bonuses: [] };
+  const notes = (n: number) => Array.from({ length: n }, (_, i) => ({ room: i, note: i + 1 }));
+  const setupFor = (n: number, t = trip) =>
+    pealRoomSetup({
+      trip: t,
+      kit,
+      room: 4,
+      length: 5,
+      state: { rung: notes(n) },
+    } as ShapeInput<FoundryTripState>);
+  const shape: DistrictShape = { ret: { kind: 'any' }, length: 5, rules: [TUNE_RULE_ID] };
+
+  test('BF-12: every heart layout passes checkRoom with its tones, hooks and staff', () => {
+    expect(FOUNDRY_HEART.heart).toBe(true);
+    expect(FOUNDRY_HEART.variants).toHaveLength(3);
+    FOUNDRY_HEART.variants?.forEach((v, i) => {
+      expect(checkRoom(v.layout), v.name).toEqual([]);
+      const spec = parseBoard(v.layout);
+      expect([spec.width, spec.height], v.name).toEqual([7, 9]);
+      expect(tonesOf(v.layout), v.name).toHaveLength(3);
+      expect(v.layout.match(/\{hook\}/g), v.name).toHaveLength(4);
+      expect(HEART_HOOKS[i], v.name).toHaveLength(4);
+      expect(defs(v.layout), v.name).toContain('carillonneur');
+      expect(spec.starts.length, v.name).toBeGreaterThanOrEqual(4);
+      // Safe tiles: no start point beside a bell.
+      const bells = spec.tiles.flatMap((t, k) =>
+        t.piece?.id === 'foundry:bell'
+          ? [{ x: k % spec.width, y: Math.floor(k / spec.width) }]
+          : [],
+      );
+      expect(bells.length, v.name).toBeGreaterThan(0);
+      for (const s of spec.starts)
+        for (const b of bells)
+          expect(Math.abs(s.x - b.x) + Math.abs(s.y - b.y), v.name).toBeGreaterThan(1);
+    });
+  });
+
+  test("BF-12: the heart's tune is seeded from the trip seed", () => {
+    expect(setupFor(0).rulesConfig).toEqual({ [TUNE_RULE_ID]: { seed: trip.seed } });
+    const s = setUpRoom(withLattices(FOUNDRY_HEART.layout, {}), shape, setupFor(0));
+    expect(tuneOf(s).tune).toEqual(newTune(trip.seed));
+    expect(tuneOf(s).tune).toHaveLength(4);
+    const other = { ...trip, seed: trip.seed + 1 };
+    expect(setupFor(0, other).rulesConfig).toEqual({ [TUNE_RULE_ID]: { seed: other.seed } });
+  });
+
+  test('BF-12: a scripted full heart fight with 0 and with 4 bells hung ends without a throw', () => {
+    for (const n of [0, 4]) {
+      const layout = fielded(FOUNDRY_HEART.layout, { draughtsman: [0, 7], stoker: [2, 7] });
+      let s = setUpRoom(
+        withLattices(layout, { draughtsman: BOLT, stoker: BOLT }, { hp: { A8: 99, C8: 99 } }),
+        shape,
+        setupFor(n),
+      );
+      const hung = s.tiles.filter((t) => t.piece?.id === 'foundry:greatBell');
+      expect(hung, `${n} bells`).toHaveLength(n);
+      for (let round = 0; round < 40 && s.phase === 'player'; round++) {
+        if (round < 3) s = cast(s, 'draughtsman', 'up').state;
+        s = act(s, { type: 'endTurn' }).state;
+      }
+      expect(['player', 'won', 'lost'], `${n} bells`).toContain(s.phase);
+    }
   });
 });

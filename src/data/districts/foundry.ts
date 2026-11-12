@@ -386,6 +386,72 @@ export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
   ),
 ];
 
+// ── The heart (BF-12; foundry-plan P7, P12, P24) ────────
+/**
+ * The Great Bell, 7x9, three layouts, all three tones in each. The Carillonneur `V` hangs at the top
+ * with a Ringer on a rope at each side of him and the staff below; four `{hook}` tiles are bare
+ * (by reading order, P7): each rung note hangs an allied great bell there (`pealRoomSetup`). The
+ * party starts along the bottom rows, no start point beside a bell, so the Peal's pulses reach
+ * foes first. The frame (`foundry/heartFrame.ts`) reads the first layout.
+ */
+const HOOK = '{hook}';
+const FOUNDRY_HEART_VARIANTS: readonly EncounterVariant[] = [
+  {
+    name: 'The great bell',
+    layout: board(
+      `${HOOK} . . V . . ${HOOK}`,
+      `. . ${ROPE.low} . ${ROPE.high} . .`,
+      '. . . . . . .',
+      `. ${M} . Q . ${L} .`,
+      '. . . . . . .',
+      `${HOOK} . . X . . ${HOOK}`,
+      `. ${H} . . ${M} . .`,
+      'P . P . . P .',
+      '. P . . P . .',
+    ),
+  },
+  {
+    name: 'The clapper hall',
+    layout: board(
+      `${HOOK} . . . V . ${HOOK}`,
+      `. . . ${ROPE.mid} . ${ROPE.high} .`,
+      `. ${L} . . . . .`,
+      `. . . . ${H} . .`,
+      '. Q . . . . .',
+      `${HOOK} . X . ${M} . ${HOOK}`,
+      '. . . . . . .',
+      'P . . P . . P',
+      '. P . . . P .',
+    ),
+  },
+  {
+    name: 'The sounding yoke',
+    layout: board(
+      '. . . V . . .',
+      `. . ${ROPE.high} . ${ROPE.low} . .`,
+      `${HOOK} . . . . . ${HOOK}`,
+      `. ${M} . . . ${H} .`,
+      '. . Q . . . .',
+      `${HOOK} . . . X . ${HOOK}`,
+      `. . ${L} . . . .`,
+      'P . . P . . P',
+      '. P . . . P .',
+    ),
+  },
+];
+
+/** Room 5, the heart: the Seam's heart table until BF-22 swaps in `foundry:heart`; two picks. */
+export const FOUNDRY_HEART: KitRoomDef = {
+  id: 'foundry-heart',
+  title: 'The Great Bell',
+  depth: 5,
+  layout: FOUNDRY_HEART_VARIANTS[0]?.layout ?? '',
+  variants: FOUNDRY_HEART_VARIANTS,
+  loot: 'heart',
+  picks: 2,
+  heart: true,
+};
+
 export const FOUNDRY_ROOMS_12: readonly KitRoomDef[] = [
   foundryRoom(
     'foundry-stair',

@@ -1,4 +1,5 @@
 import { FOUNDRY_FOES } from './foundry/foes';
+import { FOUNDRY_HEART_SETUP } from './foundry/heartFrame';
 import { pealAfterRoom, pealRoomSetup } from './foundry/peal';
 import {
   BELL_TRIGGERS,
@@ -139,4 +140,6 @@ export const FOUNDRY_MODULE: DistrictModule = {
   tricks: FOUNDRY_TRICKS,
   goals: FOUNDRY_GOALS,
   trip: shape,
+  heart: FOUNDRY_HEART_SETUP,
+  bot: {},
 };
