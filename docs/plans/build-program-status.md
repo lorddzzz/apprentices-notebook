@@ -7,7 +7,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
-**Reset:** 2026-11-12 13:50 CET (12:50 UTC); wake-up scheduled 13:53 CET (CronCreate, session-only; if the session is closed, resume manually with the continuation prompt below). Held at 88 % of 5h, weekly 39 %. Next: Wave 8 (C3, D5 sims, F7), routine window.
+**Reset:** 2026-11-12 13:50 CET (12:50 UTC); no wake-up scheduled (cancelled at the player's request); resume manually with the continuation prompt below after the reset. Held at 88 % of 5h, weekly 39 %. Next: Wave 8 (C3, D5 sims, F7), routine window.
 
 ## Next
 1. **Routine windows, in the briefs file's order** (two or three at a time, file-disjoint; one sims pack at a time):
