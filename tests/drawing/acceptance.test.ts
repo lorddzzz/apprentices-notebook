@@ -188,13 +188,6 @@ describe('EN-W0: the stubs and kit interfaces', () => {
 
 // ── Acceptance owed by later tasks (ending-plan §5), by task ──────────────────
 
-describe('EN-1 (Pack D): the ledger', () => {
-  it.todo('EN-1: counts grow on return and on wipe');
-  it.todo('EN-1: lab and bench never feed the ledger');
-  it.todo('EN-1: city.open keeps opening order');
-  it.todo('EN-1: the ledger round-trips through save');
-});
-
 describe('EN-9 (Pack D): the owner and the mender', () => {
   it.todo('EN-9: mender joins Storm across one gap');
   it.todo('EN-9: mender joins Conduct across one gap');

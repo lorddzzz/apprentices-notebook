@@ -4,6 +4,7 @@ import { hearAfterTrip, hearFromBattle } from '../city';
 import { KIT } from '../districts/kit';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
+import { feedLedger } from '../ledger';
 import { witnessedIn } from '../lines';
 import { findLandingPaper, findPaper } from '../papers';
 import { recordGlyphCasts, tierUps } from '../profiler';
@@ -195,7 +196,7 @@ export function closeBattle(p: Profile, t: Trip, b: BattleState, log: EventLog =
   const wiped =
     r.outcome === 'wiped' ? hearAfterTrip(wipeLoot(owner.profile, t.loot), t, 'wiped') : null;
   const after = wiped
-    ? { ...wiped, profile: rememberCheckpoint(wiped.profile, t) }
+    ? { ...wiped, profile: feedLedger(rememberCheckpoint(wiped.profile, t), r.stats) }
     : { profile: owner.profile, heard: [] };
   const heard = [...owner.heard, ...after.heard];
   if (ups.length === 0 && heard.length === 0 && after.profile === r.profile) return r;

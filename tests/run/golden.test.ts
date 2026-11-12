@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import type { DistrictId } from '$data';
+import type { Profile } from '$engine';
+import { ledgerOf } from '$engine/drawing';
 import {
   playLock,
   recordTrip,
@@ -63,6 +65,11 @@ const LOCKS: ThresholdRecord['kind'][] = ['solve', 'fire'];
 
 /** JSON round trip: what a fixture file holds (drops `undefined`, like a save does). */
 const plain = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
+/** The ledger is bookkeeping (EN-1, P26): the recorded fixtures predate it. */
+const noLedger = (p: Profile): Profile => {
+  const { ledger: _ledger, ...rest } = p;
+  return rest;
+};
 const file = (name: string) => new URL(`${name}.json`, DIR);
 function load<T>(name: string): T {
   return JSON.parse(readFileSync(file(name), 'utf8')) as T;
@@ -102,9 +109,12 @@ describe('golden trips', () => {
         expect(got?.stats, `room ${i} stats`).toEqual(room.stats);
       });
       expect(replayed.outcome).toBe(golden.outcome);
-      expect(replayed.profile).toEqual(golden.profile);
+      expect(noLedger(replayed.profile)).toEqual(golden.profile);
+      if (replayed.outcome === 'returned') {
+        expect(ledgerOf(replayed.profile).casts).toBeGreaterThan(0);
+      }
       expect(replayed.trip).toEqual(golden.trip);
-      expect(replayed.save).toEqual(golden.save);
+      expect({ ...replayed.save, profile: noLedger(replayed.save.profile) }).toEqual(golden.save);
     }, 120_000);
   }
 

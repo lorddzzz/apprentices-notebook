@@ -1,4 +1,5 @@
 import { hearAfterTrip } from '../city';
+import { feedLedger } from '../ledger';
 import type { Profile, Trip } from '../types';
 import { takeChoice } from './choices';
 import { bankLoot, kindOf, type OfferRegistry, offerRegistry } from './offerKinds';
@@ -57,5 +58,5 @@ export function returnHome(p: Profile, t: Trip, reg: OfferRegistry = offerRegist
   const check = returnCheck(t);
   if (!check.ok) throw new Error(check.why || 'There is no landing here');
   const banked = bankLoot(p, t.loot, reg);
-  return rememberCheckpoint(hearAfterTrip(banked, t, 'returned').profile, t);
+  return feedLedger(rememberCheckpoint(hearAfterTrip(banked, t, 'returned').profile, t), t.stats);
 }

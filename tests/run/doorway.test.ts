@@ -17,6 +17,7 @@ import {
   startTrip,
   type Trip,
 } from '$engine';
+import { ledgerOf } from '$engine/drawing';
 
 const isDoorway = (i: LootItem): boolean => i.kind === 'doorway';
 const heartIndex = ENCOUNTERS.findIndex((e) => e.heart);
@@ -118,7 +119,9 @@ describe('picking a doorway', () => {
     expect(after.offers).toEqual([]);
     // nothing is banked for it
     const home = returnHome(newProfile(), { ...after, status: 'crossroads' });
-    expect(home).toEqual({ ...newProfile(), city: { ...newProfile().city, trips: 1 } });
+    const { ledger: _ledger, ...rest } = home;
+    expect(rest).toEqual({ ...newProfile(), city: { ...newProfile().city, trips: 1 } });
+    expect(ledgerOf(home).casts).toBe(0);
   });
 
   test('with picks left the other offers wait', () => {
