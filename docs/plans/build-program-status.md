@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** holding at 90 % of 5h (2026-11-12); C3b merged · **next window: routine** (Sonnet medium), **starting with ED**.
+**State:** routine window 2026-11-12d; ED merged (56387a8); F5 and O running.
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Wake-up at each reset (CronCreate one-shot, session-only; CET = UTC+1) until the player says stop or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
@@ -10,7 +10,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 **Reset:** 2026-11-12 18:50 CET (17:50 UTC); no wake-up scheduled (the player cancelled it earlier); resume manually. Held at 90 % of 5h, weekly 52 %. C3b merged (0c5af97); nothing running; check:fast green on main (343 files, 7896 tests).
 
 ## Next
-1. **Routine windows, in the briefs file's order:** wave 9 **ED** (EN-1→9, after C3b: shared cast paths) → wave 10 **F5** (BF-F1) · **O** (FU-21), both after ED → wave 11 **I** (after F5).
+1. **Routine windows, in the briefs file's order:** wave 10 **F5** (BF-F1) · **O** (FU-21), both after ED → wave 11 **I** (after F5).
 2. **Filed by MIX (MIX-F1, unassigned, Default):** Seam hand and telegraph events project the intent and `born` flag the engine reaches at the end of the enemy phase; remove the four `KNOWN_FAILS` in `tests/sim/rule-pairs.test.ts` when it lands. The cartographers' hand joins `FEATURES` there when CG-2 merges.
 3. **Next design window:** briefs for cartographers Packs A–J (CW0 merged: due now); EN-G0 once the player has timed the dev page; BF-FG after F5; EN-12 handover draft; ending Packs E–L after EN-G0; RV-20b and FN-A1 M2 briefs; the ledger.
 4. Hard edges: EN-S2 → EN-G0 → ending Pack E · C3b → ED → F5 → I · ED → O · CW0 → every CG pack · BL-111 → EN-4 · BR-20 and BF-9 → CG-14.
@@ -27,7 +27,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - M (FU-20): decided 2026-11-12c, the `runaway` rename stands. FU-19 has no "reports it" event: only no-overlap is guaranteed.
 
 ## Owed (declared by a contract, not yet built)
-- From C3b: `src/engine/solvents.ts` (~line 414) drifts every queued entry with `solvent === 'pitch'` and a tile target; a `brink` entry from a Pitch'd Brink cast would drift on water boards: add a `kind !== 'brink'` guard (small; put in ED's or the next engine pack's brief). The `brink:cracked` replay line is overridden by the inner rune's own line (by design, tests assert damage events).
+- From C3b (guard done in ED): the `brink:cracked` replay line is overridden by the inner rune's own line (by design, tests assert damage events).
 - **C3 hygiene (bridges Close code review):** `lay-cap-footing` and `mortar-cap-set` write bridges state through a `shove` piece strike keyed by `ctx.meta.line` (mix.ts, push.ts → wear.ts `footnoteTouch`): replace with named `districts/api` writes as P24's `spendFallenBrass`; `brinkLine` calls `crackedTiles` on snapshot tiles with the live rule state; `runStep` gained a generic `{ after }` job for Brink's follow-ups (keep it Brink-only or document it).
 - From B1 (FU-1): `note?` on `WayView` (`src/app/crossroads.ts`), rendered as its own line in `CrossroadsChoices.svelte`; Small, Default; phone check.
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed.
@@ -35,7 +35,8 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - Foundry (F4, F6): BF-F1 confirms the Toll note's line (`toll:network`), BF-F3 builds it; EN-K6 wraps the frame.
 - From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10.
 - From CW0: CG-1 registers `CARTOGRAPHERS_MODULE` in `districts/kit.ts` and moves the fixtures in `tests/engine/pieces.test.ts` and `tests/app/bench-registry.test.ts` to another module id in the same commit; `HAND_SALT = 8100`; `heart` frame (salt 7160) and `bot` at CG-10.
-- Ending (ending-plan §4): EN-1 ledger (and `ledger.districts`); EN-9 owner and `mender`; EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
+- From ED (EN-9): fine print `mender:diagonal` and `mender:dusk` need two new `Meets` members in src/data/types.ts, then their rows in lines.ts; the engine stamps none of the three `mender:*` keys yet (`mender:unit` row is `pending`). Small, Default; next engine pack touching types.ts.
+- Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
 - Ink footnote follow-ups: FU-21 (Pack O). Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 (Pack N). Plans' "Leaves for later" items: copied into every brief written.
 
 ## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)
