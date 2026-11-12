@@ -3,13 +3,11 @@ import type { ApprenticeId, Drawing, EnemyId, MasterId, ShapeId } from '$data';
 import { newSave, type Profile, parseSaveData, type SaveData } from '$engine';
 import {
   type Credits,
-  checkGenerated,
   creditsOf,
   DRAWING_SLOTS,
   drawingsOf,
   EN_SALT,
   endingOf,
-  generateRoom,
   handover,
   ledgerOf,
   MASTER_IDS,
@@ -156,12 +154,6 @@ describe('EN-W0: the profile fields', () => {
 describe('EN-W0: the stubs and kit interfaces', () => {
   const profile = newSave(1).profile;
   const calls: [string, string, () => unknown][] = [
-    [
-      'EN-S1',
-      'generateRoom',
-      () => generateRoom({ profile, drawing: DRAWING, party: [], seed: 1, room: 0 }),
-    ],
-    ['EN-S1', 'checkGenerated', () => checkGenerated(undefined as never, undefined as never)],
     ['EN-10', 'handover', () => handover(profile)],
     ['EN-11', 'creditsOf', () => creditsOf(profile)],
   ];
@@ -215,11 +207,7 @@ describe('EN-9 (Pack D): the owner and the mender', () => {
   it.todo("EN-9: the owner's starter page fires a Storm");
 });
 
-describe('EN-S1 (Pack B): the generator spike', () => {
-  it.todo('EN-S1: guardrails hold on 500 seeds');
-  it.todo('EN-S1: no event-cap overrun inside trials');
-  it.todo('EN-S1: same input gives the same layout, attempts and ops');
-});
+// EN-S1 (Pack B) is built: its three tests are in tests/sim/generator.test.ts (they run the bot).
 
 describe('EN-2 and EN-3 (Pack E): the generator and the module', () => {
   it.todo('EN-2: checkGenerated is green on every seed of every fixture drawing');
