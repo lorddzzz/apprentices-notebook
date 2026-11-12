@@ -1,5 +1,6 @@
 import type { KitId, KitLootSpec, KitLootTableId, PieceId, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
+import type { Terrain } from '$engine/types';
 import type { RecruitPages, RecruitPlacement } from '../recruits';
 import type {
   BurstId,
@@ -122,6 +123,8 @@ export interface IntrusionSpec {
   pieces: readonly PieceId[];
   /** Piece-scoped rules only (P9). */
   rules: readonly RuleId[];
+  /** Terrain flags the floor brings by itself (the thermae's `vent`); count as the intrusion. */
+  terrain?: readonly (keyof Terrain)[];
   rooms: readonly [string, string, string];
   loot: 'basics';
 }

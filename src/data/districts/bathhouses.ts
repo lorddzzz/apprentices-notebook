@@ -710,6 +710,7 @@ export const BATH_INTRUSION: import('./index').IntrusionSpec = {
   district: 'bathhouses',
   pieces: [],
   rules: [],
+  terrain: ['vent'],
   rooms: [
     // Floor 1: two vents two tiles apart in the middle; a rat and a sentry on the far side.
     floorBoard([
@@ -751,15 +752,13 @@ export const BATH_INTRUSION: import('./index').IntrusionSpec = {
 // The kit above is built before these constants exist; fill in what they own. BH-18 opens the
 // district: rooms 1-4 and the heart (each fight carries its ledger entry as `lore`), the dome
 // threshold as the gate, and the towel-bearer's placement and page guarantee.
-// `intrusion` (`BATH_INTRUSION`, BH-11) is NOT wired: the lower Seam's `checkFloor` wants a piece
-// the intrusion brings or a terrain one of its rules reads, and the vent is read by the district-
-// scoped boil-over rule only (P9: none rides on a floor). Wiring it needs an engine change in
-// `lowerSeam.ts` (e.g. `IntrusionSpec.terrain`), which belongs to the Seam's owner.
+// `intrusion` (`BATH_INTRUSION`, BH-11) is wired through `IntrusionSpec.terrain` (FU-6).
 const BATH_ALL_ROOMS = [...BATH_ROOMS_12, ...BATH_ROOMS_34, BATH_HEART];
 Object.assign(BATHHOUSES_KIT, {
   rooms: BATH_ALL_ROOMS.map((r, i) => ({ ...r, lore: BATH_LEDGERS[i]?.id })),
   gate: { kind: 'threshold', room: BATH_THRESHOLD },
   threshold: BATH_THRESHOLD,
   papers: BATH_LEDGERS,
+  intrusion: BATH_INTRUSION,
   ...BATH_RECRUIT_KIT,
 });

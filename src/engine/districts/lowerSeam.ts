@@ -5,7 +5,7 @@ import { FLOOR_FORMAT, type FloorFormat } from '$data/districts/seam';
 import { label } from '../grid';
 import { type BoardSpec, parseBoard } from '../notation';
 import { SEAM_DROP_RULE } from '../outOfRoom';
-import type { CityState, Profile, Trip } from '../types';
+import type { CityState, Profile, Terrain, Trip } from '../types';
 import { KIT } from './kit';
 import type { BoardRule, DistrictModule, Kit, TripShapeDef } from './types';
 
@@ -176,10 +176,13 @@ export interface FloorProblem {
 
 /** Does this board carry the intrusion: one of its pieces, or a terrain one of its rules reads? */
 function carriesIntrusion(board: BoardSpec, spec: IntrusionSpec, kit: Kit): boolean {
-  const flags = spec.rules.flatMap((id) => {
-    const a = kit.rules[id]?.activatedBy;
-    return a?.kind === 'terrain' ? [a.flag] : [];
-  });
+  const flags: (keyof Terrain)[] = [
+    ...spec.rules.flatMap((id) => {
+      const a = kit.rules[id]?.activatedBy;
+      return a?.kind === 'terrain' ? [a.flag] : [];
+    }),
+    ...(spec.terrain ?? []),
+  ];
   return board.tiles.some(
     (t) =>
       (t.piece !== null && spec.pieces.includes(t.piece.id)) ||
