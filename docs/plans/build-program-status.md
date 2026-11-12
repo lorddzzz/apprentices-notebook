@@ -40,17 +40,9 @@ Ledger: `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.m
 
 Ledger caveats (2026-11-12): counted merged but **open** because a commit names them: KIT-R3b, BF-12, BF-20, BF-22, BF-F1. IQ-13 shows open but is built. BR-19 = C3 (BR-19a/b). Name no open task ID in a docs commit message.
 
-## Open questions for the player (defaults held; ask in the next design round)
-- **IQ-20 / IQ-G1:** the bot never loses an ink-quarter room with a fresh pair. Default: playtest first; levers are in the calibration plan.
-- **CN-2:** shoving a moored crate crushes it; a crate pushed across the mooring without stopping does not moor. Default: as built.
-- **RV-20b:** the rival planner never walks onto a step-jar, so the "Jar" note has no visible effect. (a) planner ignores jars when the note is written, (b) a different effect.
-- **RV-5 / RV-10:** should the planner account for allies when the wick lands? Default no.
-- **FN-A1:** M1 Margin capstone reuses FN-11's diagonal reach; M2 add `steam:unit`/`brass:unit` lines first?; M5 `oil-slick-short`/`shove-wall-soft` read as costs, keep?
-- **FN-1A A3:** Cinder vs a rat's oil trail over a hot tile. Default: fix the text to match the engine.
-- **FN-4:** Desk rows still need ≥ 1 point. Default keep. **DK-8:** friendly fire counts for hearing. Default keep.
-- **CAL:** bridges and the foundry have no stated win-rate band. Default: the canals' band.
-- **Foundry Q1–Q3** (plan §7): once-per-round ring (hum), allied bells spare the party, the far-bell gate needs a striker. Defaults as planned; P18's ring timing joins Q1 at BF-G1.
-- **Foundry P23 (new):** should a basic Shove count toward a Unison lock? Default: no (only casts and Spark sign it).
+## Open questions for the player
+Round held 2026-11-12 (DESIGN §11 last row): RV-20b, RV-5/10, CN-2, foundry P23, foundry Q1/P18, FN-A1 M2/M5 and the CAL bands are **decided** (all defaults except FN-A1 M2: add `steam:unit`/`brass:unit` first). Follow-ups to build: RV-20b — planner ignores jars when the Jar note is written; FN-A1 M2 — two new margin lines, to a footnote pack.
+Still held at default (no decision needed): IQ-20 / IQ-G1 (playtest first), FN-1A A3 (fix text to engine), FN-4, DK-8, foundry Q2/Q3, FN-A1 M1.
 - **EN-G0 (later):** the generator's phone timings come from the player's iPhone on `#/dev/generator` once D4 merges.
 - Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, HC/AH/RC playtests.
 
