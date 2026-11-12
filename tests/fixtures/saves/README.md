@@ -17,3 +17,6 @@ file and its own test title.
 Adding a district: when a district is opened (`PLAYABLE_DISTRICTS` grows, e.g. the foundry at BF-22
 or the cartographers), add its pair with the same recipe and add the district to `DISTRICTS` in
 `tests/app/save-compat.test.ts`.
+
+The foundry's pair (`foundry-returned.json`, `foundry-mid-trip.json`) was recorded the same way at
+BF-22 with the working tree on top of **7113ee9**, the first build in which the foundry is playable.

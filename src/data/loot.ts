@@ -1,4 +1,5 @@
 import { BATH_LOOT_TABLES } from './districts/bathhouses';
+import { FOUNDRY_LOOT_TABLES } from './districts/foundry';
 import { INK_LOOT_TABLES } from './districts/inkQuarter/loot';
 import { LOWER_SEAM_LOOT } from './districts/lowerSeam';
 import type { LootEntry, LootTableDef, LootTableId, MethodId, RuneId, SolventId } from './types';
@@ -28,6 +29,7 @@ const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount:
 export const LOOT_TABLES: Record<LootTableId, LootTableDef> = {
   ...INK_LOOT_TABLES,
   ...BATH_LOOT_TABLES,
+  ...FOUNDRY_LOOT_TABLES,
   // BR-9 (bridges-plan P11, P12): the Structure school (Hold, Brink, Lay; Mortar, Chalk). Sound
   // spans pay steadily with ink; crumbling ones drop ink for more of the school and vellum.
   'bridges:sound': {

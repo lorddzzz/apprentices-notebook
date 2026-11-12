@@ -43,12 +43,12 @@ import { board, draft } from '../scenarios/harness';
 
 /** BF-0: the foundry's module is registered and inert; its contracts compile and read strictly. */
 describe('BF-0 registration', () => {
-  test('the district stays hidden: drawing, roomless, not playable', () => {
+  test('the district is open (BF-22): threshold gate, five rooms, playable', () => {
     const d = DISTRICTS.foundry;
-    expect(d.gate.kind).toBe('drawing');
-    expect(d.rooms).toHaveLength(0);
+    expect(d.gate.kind).toBe('threshold');
+    expect(d.rooms).toHaveLength(5);
     expect(d.lean.lean).toBe('brass');
-    expect(PLAYABLE_DISTRICTS).not.toContain('foundry');
+    expect(PLAYABLE_DISTRICTS).toContain('foundry');
   });
 
   test('the module registers four pieces, two late rules, the events and the trip shape only', () => {

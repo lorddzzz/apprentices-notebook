@@ -5,7 +5,8 @@ import {
   FOUNDRY_ROOMS_34,
   FOUNDRY_TUNING,
 } from '$data/districts/foundry';
-import { compiledFor, createBattle, FOUNDERS, newProfile } from '$engine';
+import type { Profile, SaveData } from '$engine';
+import { compiledFor, createBattle, FOUNDERS, newProfile, rollOffers, startTrip } from '$engine';
 import { basicDirs } from '$engine/basicActions';
 import { applyAction } from '$engine/battle';
 import { CAST_EVENT_CAP } from '$engine/ctx';
@@ -13,7 +14,9 @@ import { botValue } from '$engine/districts/api';
 import { castableSpells, legalAims, legalMoves, memberById } from '$engine/queries';
 import { createRng } from '$engine/rng';
 import { listRules } from '$engine/rules';
+import { ownedBy } from '$engine/trip/offers';
 import type { Action, BattleState } from '$engine/types';
+import { endBattle, pushOnward, setOut, startBattle, takeOffer } from '../../src/app/flow';
 import { board, withLattices } from '../scenarios/harness';
 import { botFight } from './bot';
 
@@ -113,4 +116,43 @@ describe('BF-20 foundry trips never throw or overrun the cap', () => {
     expect(actions).toBeGreaterThan(200);
     expect(FOUNDRY_TUNING.pulseDamage).toBeGreaterThan(0);
   }, 600_000);
+});
+
+describe('BF-22 a headless foundry trip', () => {
+  test("BF-22: a trip from room 1 to the heart runs and rolls every room's loot", () => {
+    const p = newProfile();
+    const profile: Profile = {
+      ...p,
+      city: { ...p.city, heard: ['seam', 'foundry'], open: ['seam', 'foundry'] },
+    };
+    // Played: the bot's trips from room 1 as far as it wins (the loot of each won room is rolled
+    // through the app's flow). Then every room's table is rolled for a trip of the foundry's length.
+    let played = 0;
+    for (let seedCounter = 1; seedCounter <= 6; seedCounter++) {
+      let save: SaveData = { profile, trip: null, seedCounter, lastTrip: null };
+      save = setOut(save, 'foundry');
+      for (let guard = 0; guard < 40 && save.trip; guard++) {
+        const trip = save.trip;
+        if (trip.status === 'looting') {
+          expect(trip.offers.length, `room ${trip.encounter + 1} rolled`).toBeGreaterThan(0);
+          played++;
+          save = takeOffer(save, 0);
+        } else if (trip.status === 'fight') {
+          const start = startBattle(save);
+          const fight = botFight(start.state, 40);
+          if (fight.state.phase === 'player') break;
+          const log = [...start.events, ...fight.events];
+          const tripNow = { ...trip, actions: fight.actions };
+          save = endBattle({ ...save, trip: tripNow }, fight.state, log).save;
+        } else if (trip.status === 'crossroads') save = pushOnward(save);
+        else break;
+      }
+    }
+    expect(played).toBeGreaterThan(0);
+    const trip = { ...startTrip(profile, 7, 'foundry') };
+    ROOMS.forEach((room, i) => {
+      const offers = rollOffers(trip.seed, i, room.loot, trip.party, null, ownedBy(profile, trip));
+      expect(offers.length, room.title).toBeGreaterThan(0);
+    });
+  }, 300_000);
 });

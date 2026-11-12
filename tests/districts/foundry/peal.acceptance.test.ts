@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FOUNDRY_ROOMS_12 } from '$data/districts/foundry';
-import { type EventLog, newProfile, startTrip } from '$engine';
+import { type EventLog, newProfile, returnHome, startTrip } from '$engine';
 import { basicDirs } from '$engine/basicActions';
 import {
   alliedBellEdits,
@@ -11,6 +11,8 @@ import {
 import { type FoundryTripState, parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json, ShapeInput } from '$engine/districts/types';
 import { tileAt } from '$engine/queries';
+import { wipeLoot } from '$engine/trip/offerKinds';
+import { variantFor } from '$engine/trip/place';
 import { bonusMet } from '$engine/trip/setup';
 import { act, board, cast, withLattices } from '../../scenarios/harness';
 import { dataOf, ev, unit } from './helpers';
@@ -169,7 +171,7 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
         length: 5,
         state: { rung: notes.map((note, i) => ({ room: i, note })) },
       } as ShapeInput<FoundryTripState>);
-    const hooks = HEART_HOOKS[0] ?? [];
+    const hooks = HEART_HOOKS[variantFor(trip, 4)] ?? [];
     expect(hooks).toHaveLength(4);
     const bare = setupWith([]);
     expect(bare.boardEdits).toBeUndefined(); // 0 notes: nothing hung
@@ -203,5 +205,27 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     expect(quiet.state.phase).toBe('won');
     expect(bonusMet(shape, 0, quiet.state, quiet.events)).toBeNull();
   });
-  it.todo('BF-8: returning home or a wipe discards the rung bells');
+  it('BF-8: returning home or a wipe discards the rung bells', () => {
+    const profile = {
+      ...newProfile(),
+      city: { ...newProfile().city, open: ['seam' as const, 'foundry' as const] },
+    };
+    const fresh = startTrip(profile, 5, 'foundry');
+    const state = parseFoundryState(fresh.kit?.state);
+    expect(state.rung).toEqual([]);
+    const rungTrip = {
+      ...fresh,
+      status: 'crossroads' as const,
+      kit: { ...fresh.kit, state: { rung: [{ room: 0, note: 1 }] } } as NonNullable<
+        typeof fresh.kit
+      >,
+    };
+    // Home: the notebook keeps no peal, and the next trip starts without one.
+    const home = returnHome(profile, rungTrip);
+    expect(JSON.stringify(home)).not.toContain('"rung"');
+    expect(parseFoundryState(startTrip(home, 6, 'foundry').kit?.state).rung).toEqual([]);
+    // A wipe (the trip ends with its state): nothing of it reaches the profile either.
+    const wiped = wipeLoot(profile, rungTrip.loot);
+    expect(JSON.stringify(wiped)).not.toContain('"rung"');
+  });
 });

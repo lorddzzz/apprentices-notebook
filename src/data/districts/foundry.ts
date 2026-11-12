@@ -394,7 +394,7 @@ export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
     'The tuning hall',
     3,
     FOUNDRY_3,
-    'deep',
+    'foundry:deep',
     greatBellBonus(
       'Ring the great bell: two apprentices must strike it in one turn. Casts and Spark count; a Shove does not.',
     ),
@@ -405,7 +405,7 @@ export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
     'The clockwork loft',
     4,
     FOUNDRY_4,
-    'deep',
+    'foundry:deep',
     greatBellBonus('Ring the great bell: one ring of three other bells makes the chord.'),
     LEDGER_IDS[3],
   ),
@@ -472,7 +472,7 @@ export const FOUNDRY_HEART: KitRoomDef = {
   depth: 5,
   layout: FOUNDRY_HEART_VARIANTS[0]?.layout ?? '',
   variants: FOUNDRY_HEART_VARIANTS,
-  loot: 'heart',
+  loot: 'foundry:heart',
   picks: 2,
   heart: true,
   lore: LEDGER_IDS[4],
@@ -484,7 +484,7 @@ export const FOUNDRY_ROOMS_12: readonly KitRoomDef[] = [
     'The belfry stair',
     1,
     FOUNDRY_1,
-    'shallow',
+    'foundry:shallow',
     greatBellBonus('Ring the great bell across the drop: a bolt reaches it.'),
     LEDGER_IDS[0],
   ),
@@ -493,7 +493,7 @@ export const FOUNDRY_ROOMS_12: readonly KitRoomDef[] = [
     "The ringers' gallery",
     2,
     FOUNDRY_2,
-    'shallow',
+    'foundry:shallow',
     greatBellBonus('Ring the great bell: only a ring of its own tone reaches it.'),
     LEDGER_IDS[1],
   ),
@@ -512,7 +512,9 @@ const ink = (weight: number): LootEntry => ({ spec: { kind: 'ink' }, weight });
 const vellum = (weight: number): LootEntry => ({ spec: { kind: 'vellum', amount: 1 }, weight });
 
 export type FoundryTableId = KitId<'foundry'>;
-export type FoundryLootTable = Omit<LootTableDef, 'id'> & { id: FoundryTableId };
+export type FoundryLootTable = Omit<LootTableDef, 'id'> & {
+  id: 'foundry:shallow' | 'foundry:deep' | 'foundry:heart';
+};
 
 /**
  * Rooms 1 and 2 teach the school (Toll, Coil, Unison) and the basics; rooms 3 and 4 add the solvents
@@ -547,7 +549,9 @@ export const foundryHeart: FoundryLootTable = {
     vellum(2),
   ],
 };
-export const FOUNDRY_LOOT_TABLES: Readonly<Record<FoundryTableId, FoundryLootTable>> = {
+export const FOUNDRY_LOOT_TABLES: Readonly<
+  Record<'foundry:shallow' | 'foundry:deep' | 'foundry:heart', FoundryLootTable>
+> = {
   'foundry:shallow': foundryShallow,
   'foundry:deep': foundryDeep,
   'foundry:heart': foundryHeart,
@@ -704,3 +708,16 @@ export const FOUNDRY_INTRUSION: IntrusionSpec = {
   ],
   loot: 'basics',
 };
+
+// BF-22 opens the district: rooms 1-4 and the heart, the far bell as the gate, the ringers' ledger,
+// the tuner's placement and the lower-Seam floor. `FOUNDRY_FLOOR_LINE` has no kit field; it stays
+// the story's line for the floor's text.
+Object.assign(FOUNDRY_KIT, {
+  rooms: [...FOUNDRY_ROOMS_12, ...FOUNDRY_ROOMS_34, FOUNDRY_HEART],
+  gate: { kind: 'threshold', room: FOUNDRY_THRESHOLD },
+  threshold: FOUNDRY_THRESHOLD,
+  intrusion: FOUNDRY_INTRUSION,
+  barred: 'The far bell hangs silent. It wants a ring.',
+  papers: FOUNDRY_LEDGERS,
+  ...FOUNDRY_RECRUIT_KIT,
+});

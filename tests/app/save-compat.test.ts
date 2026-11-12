@@ -67,3 +67,28 @@ describe('SAVE-1: saves recorded by the build parse and load', () => {
     expect(parseSaveText(saveText(save))).toEqual(save);
   });
 });
+
+describe("SAVE-1: the foundry's saves", () => {
+  test('SAVE-1: foundry save written by 7113ee9 parses and loads', () => {
+    const { text, data } = fixture('foundry-returned');
+    const save = parseSaveText(text);
+    expect(save.trip).toBeNull();
+    expect(save.lastTrip?.district).toBe('foundry');
+    expect(save.lastTrip?.outcome).toBe('returned');
+    expect(save.profile.city.open).toContain('foundry');
+    expect(save.profile).toEqual(data.profile);
+    expect(loadSave(memoryBackend(text), 1).recovered).toBe(false);
+    expect(parseSaveText(saveText(save))).toEqual(save);
+  });
+
+  test('SAVE-1: foundry mid-trip save resumes to its next offer', () => {
+    const { text, data } = fixture('foundry-mid-trip');
+    const save = loadSave(memoryBackend(text), 1).save;
+    expect(save.trip?.district).toBe('foundry');
+    expect(save.trip?.status).toBe('looting');
+    const offers = save.trip?.offers ?? [];
+    expect(offers.length).toBeGreaterThan(0);
+    expect(offers).toEqual(data.trip?.offers);
+    expect(takeOffer(save, 0).trip?.loot).toContainEqual(offers[0]);
+  });
+});

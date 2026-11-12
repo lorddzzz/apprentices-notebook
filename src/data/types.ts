@@ -523,6 +523,9 @@ export type LootTableId =
   | 'bathhouses:h2'
   | 'bathhouses:h3'
   | 'bathhouses:h4'
+  | 'foundry:shallow'
+  | 'foundry:deep'
+  | 'foundry:heart'
   | 'bridges:sound'
   | 'bridges:crumbling'
   | 'lowerSeam';

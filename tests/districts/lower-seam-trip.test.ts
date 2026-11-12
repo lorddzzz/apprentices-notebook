@@ -152,7 +152,7 @@ describe('a reload', () => {
   test('a save naming a floor that is not one is refused', () => {
     const t = startTrip(THREE, 3, LOWER_SEAM);
     const kit = t.kit ?? (null as never);
-    for (const floors of [[], ['seam'], ['canals', 'canals'], ['foundry']]) {
+    for (const floors of [[], ['seam'], ['canals', 'canals'], ['cartographers']]) {
       const bad = {
         ...newSave(1),
         profile: THREE,
