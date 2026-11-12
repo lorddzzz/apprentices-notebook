@@ -1,6 +1,6 @@
 import type { DistrictUi } from '..';
-import BoilArt from './BoilArt.svelte';
 import BathDome from './BathDome.svelte';
+import BoilArt from './BoilArt.svelte';
 import BoilBanner from './BoilBanner.svelte';
 import BathArt from './foes/BathArt.svelte';
 import LabHeat from './foes/LabHeat.svelte';
