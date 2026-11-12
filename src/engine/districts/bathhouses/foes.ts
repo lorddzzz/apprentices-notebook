@@ -3,7 +3,7 @@ import { BATH_FOE_TUNING } from '$data/districts/bathhouses';
 import { FEEDER_PIPS } from '$data/districts/bathhouses/types';
 import { candidatesOf, closestTo, nearestMember } from '../../ai';
 import { hasTrait } from '../../arrival';
-import { type Ctx, emit, ref } from '../../ctx';
+import { type Ctx, emit, type FootnoteIds, ref } from '../../ctx';
 import { dealDamage } from '../../damage';
 import {
   byReadingOrder,
@@ -62,7 +62,13 @@ function approach(ctx: Ctx, e: EnemyUnit): void {
 }
 
 /** A planning-only draft: `planPush` reads the state and footnotes and never writes. */
-const planCtx = (s: BattleState): Ctx => ({ s, log: [], cast: null, meta: {}, footnotes: {} });
+const planCtx = (s: BattleState, footnotes: FootnoteIds = {}): Ctx => ({
+  s,
+  log: [],
+  cast: null,
+  meta: {},
+  footnotes,
+});
 
 // ── The attendant (P9) ──────────────────────────────────
 
@@ -114,8 +120,14 @@ const headingOf = (tg: Telegraph): Dir | null =>
   DIRS.find((d) => tg.label === `shove:${d}`) ?? null;
 
 /** Where the shove ends as the board stands: the tiles moved through and the crush tile. */
-function shoveLine(s: BattleState, victim: Unit, dir: Dir, tiles: number) {
-  const plan = planPush(planCtx(s), victim, dir, tiles);
+function shoveLine(
+  s: BattleState,
+  victim: Unit,
+  dir: Dir,
+  tiles: number,
+  footnotes: FootnoteIds = {},
+) {
+  const plan = planPush(planCtx(s, footnotes), victim, dir, tiles);
   const crush = plan.stop?.kind === 'crush' ? plan.stop.at : null;
   return { path: plan.path, crush: crush && inBoard(s, crush) ? crush : null };
 }
@@ -123,10 +135,10 @@ function shoveLine(s: BattleState, victim: Unit, dir: Dir, tiles: number) {
 export const ATTENDANT_FOE: FoeBehaviour = {
   id: ATTENDANT_BEHAVIOUR,
   move: approach,
-  plan(s, e): Telegraph | null {
+  plan(s, e, footnotes): Telegraph | null {
     const aim = aimShove(s, e);
     if (!aim) return null;
-    const { path, crush } = shoveLine(s, aim.victim, aim.dir, pushTiles(e));
+    const { path, crush } = shoveLine(s, aim.victim, aim.dir, pushTiles(e), footnotes);
     return {
       label: `shove:${aim.dir}`,
       tiles: [{ ...aim.victim.pos }, ...path.map((c) => ({ ...c })), ...(crush ? [crush] : [])],
@@ -149,12 +161,12 @@ export const ATTENDANT_FOE: FoeBehaviour = {
     if (isAlive(victim)) push(ctx, victim, dir, attack.push ?? 0, null);
   },
   /** The line the victim is shoved along (a ghost) and the tile it is crushed against. */
-  preview(s, e): readonly PreviewShape[] {
+  preview(s, e, footnotes): readonly PreviewShape[] {
     const tg = e.intent?.kind === 'behaviour' ? e.intent.telegraph : null;
     const victim = tg?.units[0] ? findUnit(s, tg.units[0]) : null;
     const dir = tg ? headingOf(tg) : null;
     if (!victim || !isAlive(victim) || !dir || manhattan(victim.pos, e.pos) !== 1) return [];
-    const { path, crush } = shoveLine(s, victim, dir, pushTiles(e));
+    const { path, crush } = shoveLine(s, victim, dir, pushTiles(e), footnotes);
     const end = path[path.length - 1];
     const out: PreviewShape[] = [];
     if (end) out.push({ kind: 'ghost', unit: victim.id, from: { ...victim.pos }, to: { ...end } });

@@ -332,7 +332,7 @@ export function overlayFor(
       shown: preview ? preview.shown : null,
     }),
   );
-  const next = nextRound(intentState);
+  const next = nextRound(intentState, footnotes);
   const steps = stepsOf(
     intentState.units.map((u) => ({
       id: u.id,
@@ -545,8 +545,11 @@ export function marksOf(
 }
 
 /** The board rules' preview for the next round end, or null when no active rule shows anything. */
-function nextRound(s: BattleState): NextRound | null {
-  const shapes = [...rulePreview(s).flatMap((r) => [...r.shapes]), ...behaviourPreview(s)];
+function nextRound(s: BattleState, footnotes: Footnotes): NextRound | null {
+  const shapes = [
+    ...rulePreview(s).flatMap((r) => [...r.shapes]),
+    ...behaviourPreview(s, footnotes),
+  ];
   if (shapes.length === 0) return null;
   const units: Ghost[] = [];
   for (const sh of shapes) {

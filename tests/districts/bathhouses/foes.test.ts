@@ -1,13 +1,19 @@
 import { describe, expect, test } from 'vitest';
-import { ATTACKS, ENEMIES } from '$data';
+import { ATTACKS, ENEMIES, footnoteKeyOf, VARIANTS } from '$data';
 import { FEEDER_PIPS } from '$data/districts/bathhouses/types';
 import { type BattleState, unitAt } from '$engine';
 import { hasTrait } from '$engine/arrival';
 import { behaviourPreview } from '$engine/behaviours';
+import { runDraft } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
 import { KIT } from '$engine/districts';
 import { forecastBoilOver } from '$engine/districts/bathhouses/boilOver';
-import { ATTENDANT_FOE, aimShove, BOILERMAN_FOE } from '$engine/districts/bathhouses/foes';
+import {
+  ATTENDANT_BEHAVIOUR,
+  ATTENDANT_FOE,
+  aimShove,
+  BOILERMAN_FOE,
+} from '$engine/districts/bathhouses/foes';
 import { BOIL_OVER_RULE_ID, type BoilOverState } from '$engine/districts/bathhouses/types';
 import { listRules } from '$engine/rules';
 import type { EnemyUnit } from '$engine/types';
@@ -248,5 +254,33 @@ describe("FU-7: the boilerman's vent", () => {
     const idx = (c: { x: number; y: number }) => r.state.width * c.y + c.x;
     expect(r.state.tiles[idx(at('A2'))]?.state?.id).toBe('cloud');
     expect(r.state.tiles[idx(at('F2'))]?.state?.id).toBe('slick');
+  });
+});
+
+describe('FU-8: planning reads the footnotes', () => {
+  test('FU-8: a slick footnote does not make the shove telegraph differ from the shove', () => {
+    const v = VARIANTS.find((x) => x.id === 'shove-slick-far');
+    if (!v) throw new Error('shove-slick-far');
+    const notes = { [footnoteKeyOf(v)]: v.id };
+    const empty = '. . . . . . .';
+    const s = board(rows(empty, empty, empty, empty, '. . o S t . .', empty, empty, empty, empty));
+    const e = foe(s, 'attendant');
+    const tg = ATTENDANT_FOE.plan(s, e, notes);
+    expect(tg?.label).toBe('shove:left');
+    if (!tg) return;
+    // A far slick makes the shove 3 tiles: the telegraph shows all of them, not the bare 2.
+    expect(tg.tiles.length).toBe(1 + 3);
+    expect(ATTENDANT_FOE.plan(s, e)?.tiles.length).toBe(1 + 2);
+    const planned = structuredClone(s);
+    const pe = foe(planned, 'attendant');
+    pe.intent = { kind: 'behaviour', id: ATTENDANT_BEHAVIOUR, telegraph: tg, order: 0 };
+    const ghost = ATTENDANT_FOE.preview?.(planned, pe, notes)?.find((p) => p.kind === 'ghost');
+    const r = runDraft(planned, (ctx) => ATTENDANT_FOE.resolve(ctx, foe(ctx.s, 'attendant'), tg), {
+      footnotes: notes,
+    });
+    const push = r.events.find((x) => x.type === 'push');
+    expect(push).toBeDefined();
+    expect(tg.tiles.slice(1)).toEqual(push && 'path' in push ? push.path : []);
+    expect(ghost).toMatchObject({ to: tg.tiles[tg.tiles.length - 1] });
   });
 });

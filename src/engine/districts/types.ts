@@ -10,7 +10,7 @@ import type {
   Meets,
 } from '$data';
 import type { ArrivalCause, ArrivalCauses, ArrivalHook, EnteredTiles } from '../arrival';
-import type { Ctx } from '../ctx';
+import type { Ctx, FootnoteIds } from '../ctx';
 import type { EventLog, UnitRef } from '../events';
 import type { Coord, Dir } from '../grid';
 import type { HarmGuard } from '../harm';
@@ -381,9 +381,9 @@ export interface FoeBehaviour {
   /** Walks before planning, in a phase where the foe may move (not round 1, not held). */
   move?(ctx: Ctx, unit: EnemyUnit): void;
   /** The telegraph for this round (null: it idles). Runs after `move`. */
-  plan(state: BattleState, unit: EnemyUnit): Telegraph | null;
+  plan(state: BattleState, unit: EnemyUnit, footnotes?: FootnoteIds): Telegraph | null;
   resolve(ctx: Ctx, unit: EnemyUnit, telegraph: Telegraph): void;
-  preview?(state: BattleState, unit: EnemyUnit): readonly PreviewShape[];
+  preview?(state: BattleState, unit: EnemyUnit, footnotes?: FootnoteIds): readonly PreviewShape[];
   /** The telegraph in words (log, intent line); absent = its `label`. */
   describe?(telegraph: Telegraph): string;
   /** Enemy-level struck trigger (BF's Clapper). */

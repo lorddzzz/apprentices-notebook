@@ -1,6 +1,6 @@
 import { ENEMIES } from '$data';
 import { cloneData } from './clone';
-import { type Ctx, emit, ref } from './ctx';
+import { type Ctx, emit, type FootnoteIds, ref } from './ctx';
 import { KIT } from './districts/kit';
 import type { FoeBehaviour, PreviewShape } from './districts/types';
 import { isAlive } from './queries';
@@ -36,7 +36,7 @@ export function behaviourAct(
   order: number,
 ): boolean {
   if (move) b.move?.(ctx, e);
-  const telegraph = isAlive(e) ? b.plan(ctx.s, e) : null;
+  const telegraph = isAlive(e) ? b.plan(ctx.s, e, ctx.footnotes) : null;
   if (!telegraph) {
     e.intent = null;
     if (isAlive(e)) emit(ctx, { type: 'idle', unit: ref(e) });
@@ -70,12 +70,12 @@ export function behaviourDied(ctx: Ctx, e: EnemyUnit): void {
 }
 
 /** Every living behaviour foe's preview shapes (the board's "Next round" layer), in unit order. */
-export function behaviourPreview(s: BattleState): PreviewShape[] {
+export function behaviourPreview(s: BattleState, footnotes: FootnoteIds = {}): PreviewShape[] {
   const out: PreviewShape[] = [];
   for (const u of s.units) {
     if (u.kind !== 'enemy' || !isAlive(u) || u.intent?.kind !== 'behaviour') continue;
     const b = KIT.foes[u.intent.id];
-    if (b?.preview) out.push(...b.preview(s, u));
+    if (b?.preview) out.push(...b.preview(s, u, footnotes));
   }
   return out;
 }
