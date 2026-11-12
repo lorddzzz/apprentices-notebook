@@ -245,6 +245,13 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
   )
     layer.rounds += 1;
   tileAt(ctx.s, at).state = layer;
+  // Afterglow lingers on a compound only: a plain cloud it touches lasts its usual rounds (CN-F1 Af1).
+  if (
+    flow?.auras.includes('afterglow') &&
+    id === 'cloud' &&
+    !hasFootnote(ctx, 'afterglow-cap-plain')
+  )
+    withLine(ctx, 'afterglow:cloud', () => emit(ctx, { type: 'miss', source: 'Afterglow' }));
   noteMet(ctx, id);
 }
 

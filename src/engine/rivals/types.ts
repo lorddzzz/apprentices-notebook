@@ -61,14 +61,7 @@ export interface TrickObject {
   data: Json;
 }
 /** Why a locked order fails (RV-3): it never switches to a replacement object. */
-export type LockLost =
-  | 'opened'
-  | 'erased'
-  | 'crumbled'
-  | 'ownerChanged'
-  | 'gone'
-  | 'met'
-  | 'spent';
+export type LockLost = 'opened' | 'erased' | 'crumbled' | 'ownerChanged' | 'gone' | 'met' | 'spent';
 
 // ── Rival state (P1) ────────────────────────────────────
 /** What a rival unit carries (RV-1 attaches it to its `EnemyUnit`). Plain serialisable data. */

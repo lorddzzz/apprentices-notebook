@@ -3,9 +3,9 @@ import { RIVALS, type RivalDef } from '$data/rivals';
 import {
   type BattleState,
   type Coord,
+  describeLog,
   type EnemyUnit,
   type GameEvent,
-  describeLog,
   parseLabel,
   tileAt,
 } from '$engine';
@@ -213,7 +213,10 @@ describe('action trick and trick-owned objects', () => {
       const b = makeTrickObject(ctx, e, at('B1'), null);
       removeTrickObject(ctx, a, 'spent');
       removeTrickObject(ctx, b, 'met');
-      expect(objectLock(ctx.s, e.id, { kind: 'trick', id: a })).toEqual({ ok: false, why: 'spent' });
+      expect(objectLock(ctx.s, e.id, { kind: 'trick', id: a })).toEqual({
+        ok: false,
+        why: 'spent',
+      });
       expect(objectLock(ctx.s, e.id, { kind: 'trick', id: b })).toEqual({ ok: false, why: 'met' });
       ctx.log.push({ type: 'phase', phase: 'resolve' });
       resolveRivalIntent(ctx, e, trickIntent({ kind: 'trick', id: a }));

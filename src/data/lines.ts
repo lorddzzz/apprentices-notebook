@@ -785,6 +785,14 @@ export const LINES: readonly LineDef[] = [
     district: 'canals',
     text: 'A held-back invention lapses if its caster is down when it wakes.',
   },
+  // FU-5: Afterglow against a plain cloud (footnotes audit Af1)
+  {
+    id: 'afterglow:cloud',
+    subject: 'afterglow',
+    meets: 'cloud',
+    district: 'canals',
+    text: 'Afterglow lingers on a compound only: a plain cloud it touches lasts its usual rounds.',
+  },
   // BH-F1: Vat, Seep, Steep, Bath salt and Fog jar against the terrain (footnotes audit, bathhouses section)
   {
     id: 'vat:unit',

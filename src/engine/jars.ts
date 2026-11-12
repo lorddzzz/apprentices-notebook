@@ -5,9 +5,9 @@ import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4 } from './grid';
 import { habitOf } from './habits';
 import { jarLimit } from './leans';
-import { noteJarFate } from './rivals/jarFate';
 import { coordOf, findUnit, inBoard, isAlive, livingUnits, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
+import { noteJarFate } from './rivals/jarFate';
 import type { Flow, Jar, JarId, Origin, SealedContext, Step, Target, Unit, UnitId } from './types';
 import { targetKey } from './types';
 
