@@ -166,7 +166,7 @@ describe('rooms hold up for every party size (HC-9)', () => {
         checkPlacement(openRoom(room, who, seed), who, openRoom(room, who, seed));
       }
     }
-  }, 60_000); // four districts' rooms × lineups × seeds: ~30 s alone, slower under load
+  }, 180_000); // five districts' rooms × lineups × seeds: ~45 s alone, slower under load
 
   test('a smaller party takes the leading spots of the larger party draw', () => {
     for (const room of ROOMS) {
