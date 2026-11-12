@@ -269,6 +269,123 @@ const FOUNDRY_2: readonly EncounterVariant[] = [
   },
 ];
 
+/**
+ * Room 3, 5x9, Unison, the landmark hall (quiet and long: the foes keep to the far end). The great
+ * bell hangs high in the middle of the hall with a clear line to it from three sides, so one, two or
+ * three apprentices can each strike it in one turn from their own line.
+ */
+const FOUNDRY_3: readonly EncounterVariant[] = [
+  {
+    name: 'The long hall',
+    layout: board(
+      `X . . . ${ROPE.high}`,
+      `. ${L} . ${H} .`,
+      '. . Q . .',
+      `. . ${GREAT(3)} . .`,
+      '. . . . .',
+      `. ${M} . . .`,
+      'P . . . P',
+      '. . P . .',
+      '. P . . .',
+    ),
+  },
+  {
+    name: 'The quiet nave',
+    layout: board(
+      `. . ${ROPE.mid} . .`,
+      `${H} . . . X`,
+      `. Q . ${L} .`,
+      '. . . . .',
+      `. . . ${GREAT(3)} .`,
+      `. ${M} . . .`,
+      'P . . . P',
+      '. . . P .',
+      '. P . . .',
+    ),
+  },
+  {
+    name: 'The tuning floor',
+    layout: board(
+      `. . . ${H} .`,
+      'X . . . .',
+      `. ${M} . ${ROPE.low} .`,
+      `. . Q . ${L}`,
+      `. ${GREAT(3)} . . .`,
+      '. . . . .',
+      'P . . . .',
+      '. P . . P',
+      '. . . P .',
+    ),
+  },
+];
+
+/**
+ * Room 4, 6x8, Chord: the great bell hangs low. Two low bells and the room's lone (low) Clapper
+ * make the three other members of one low ring; a retuned bell would do for the Clapper.
+ */
+const FOUNDRY_4: readonly EncounterVariant[] = [
+  {
+    name: 'The clock floor',
+    layout: board(
+      `. . ${GREAT(4)} . . X`,
+      'X . . . . .',
+      `. ${L} . . ${H} .`,
+      `. . . Q . ${ROPE.mid}`,
+      `. ${M} . . ${L} .`,
+      '. . . . . .',
+      'P . . . . P',
+      '. P . . P .',
+    ),
+  },
+  {
+    name: 'The escapement',
+    layout: board(
+      'X . . . . .',
+      `. . . ${GREAT(4)} . .`,
+      `. ${L} . . . X`,
+      `. . . . ${L} .`,
+      `${ROPE.mid} . Q . . ${H}`,
+      `. . . . ${M} .`,
+      '. P . P . .',
+      'P . . . . P',
+    ),
+  },
+  {
+    name: 'The weights',
+    layout: board(
+      '. . . . . .',
+      '. X . . . .',
+      `${GREAT(4)} . . ${ROPE.mid} . .`,
+      `. . ${L} . . X`,
+      `. ${H} . . Q .`,
+      '. . . . . .',
+      `P . ${L} . . P`,
+      '. P . . P .',
+    ),
+  },
+];
+
+export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
+  foundryRoom(
+    'foundry-hall',
+    'The tuning hall',
+    3,
+    FOUNDRY_3,
+    'deep',
+    greatBellBonus(
+      'Ring the great bell: two apprentices must strike it in one turn. Casts and Spark count; a Shove does not.',
+    ),
+  ),
+  foundryRoom(
+    'foundry-loft',
+    'The clockwork loft',
+    4,
+    FOUNDRY_4,
+    'deep',
+    greatBellBonus('Ring the great bell: one ring of three other bells makes the chord.'),
+  ),
+];
+
 export const FOUNDRY_ROOMS_12: readonly KitRoomDef[] = [
   foundryRoom(
     'foundry-stair',
