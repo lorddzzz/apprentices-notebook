@@ -1,4 +1,5 @@
 import { METHOD_IDS } from '../methods';
+import { CARILLONNEUR_NOTE } from '../rivals/carillonneur';
 import { LAMPLIGHTER_WICK } from '../rivals/lamplighter';
 import { RUNE_IDS } from '../runes';
 import { SOLVENT_IDS } from '../solvents';
@@ -36,7 +37,7 @@ export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   canals: CANALS,
   bathhouses: BATHHOUSES,
   'ink-quarter': INK_QUARTER,
-  rivals: [LAMPLIGHTER_WICK],
+  rivals: [LAMPLIGHTER_WICK, CARILLONNEUR_NOTE],
 };
 
 /** Every authored variant, batches in registry order. */
