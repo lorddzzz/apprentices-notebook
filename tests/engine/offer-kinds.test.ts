@@ -195,7 +195,7 @@ describe('offer-kind registry (DK-7)', () => {
 
   test('a recruit round-trips through save parsing and two keys are refused', () => {
     const { p, t } = fresh();
-    const recruit: LootItem = { kind: 'recruit', apprentice: 'stoker' };
+    const recruit: LootItem = { kind: 'recruit', apprentice: 'runaway' };
     const save = (trip: Trip) =>
       JSON.parse(JSON.stringify({ profile: p, trip, seedCounter: 1, lastTrip: null }));
     const looting: Trip = {

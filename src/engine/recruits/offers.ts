@@ -1,4 +1,5 @@
-import { APPRENTICE_IDS } from '$data';
+import type { ApprenticeId } from '$data';
+import { RECRUITS } from '$data';
 import type { KitLootItem, OfferContributor, OfferKind } from '../districts/types';
 import { bankRecruit, guaranteesFor, type RecruitKit, recruitOffers } from '../recruits';
 import type { OfferSource } from '../trip/offerKinds';
@@ -13,8 +14,8 @@ type RecruitItem = Extract<KitLootItem, { kind: 'recruit' }>;
 /**
  * The recruit card (P7): rolled at her landmark room when ready, after the normal offers; taking
  * it costs the pick; banked with `joinHousehold`; lost on a wipe (no `onWipe`) and offered again
- * on a later trip; one per apprentice per trip. A save naming an unknown apprentice is bad (a
- * founder parses, as DK-7's test card does, and banks as nothing: she is already home).
+ * on a later trip; one per apprentice per trip. A save naming a founder or an unknown
+ * apprentice is bad (FU-20).
  */
 const recruitKind = (kit?: RecruitKit): OfferKind<RecruitItem> => ({
   id: 'recruit',
@@ -27,7 +28,7 @@ const recruitKind = (kit?: RecruitKit): OfferKind<RecruitItem> => ({
     if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
     const r = raw as Record<string, unknown>;
     const keys = Object.keys(r);
-    const apprentice = APPRENTICE_IDS.find((x) => x === r.apprentice);
+    const apprentice = (Object.keys(RECRUITS) as ApprenticeId[]).find((x) => x === r.apprentice);
     return r.kind === 'recruit' && keys.length === 2 && apprentice
       ? { kind: 'recruit', apprentice }
       : null;
