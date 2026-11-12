@@ -1,5 +1,5 @@
 import { type ApprenticeId, ATTACKS, ENEMIES, type EnemyId } from '$data';
-import { COSTS, NEEDS } from '$data/drawing';
+import { COSTS, GEN_TUNING, NEEDS } from '$data/drawing';
 import { createBattle } from '../battle';
 import { cloneData } from '../clone';
 import type { PieceId, RuleId } from '../districts/types';
@@ -45,8 +45,6 @@ export const BLOCKED_SHARE = 0.3;
 export const MAX_DRAWS = 8;
 /** P8: Seam ground, 2 to 5 tiles of plates, oil or vents. */
 const GROUND = { min: 2, max: 5 } as const;
-/** P7 (spike): +1 minion-equivalent per weight band over the depth's base. */
-const BAND_BONUS = { light: 0, medium: 1, heavy: 2 } as const;
 
 const CURRENT: RuleId = 'canals:current';
 
@@ -205,8 +203,21 @@ const foeKitOf = (spec: GenSpec, id: EnemyId): FoeKit | undefined =>
 
 const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
-/** P8 size from depth and kit hints (5-7 wide, 6-9 tall: deeper rooms are bigger; the current wants 7 rows). */
-export function specFor(input: GenInput, seed: number): GenSpec {
+/** P28: the walk's first budget, from the party, the depth and the drawing's weight band. */
+export function baseBudget(input: GenInput): number {
+  const depth = Math.min(input.room, 3);
+  return (
+    GEN_TUNING.perMember * input.party.length +
+    GEN_TUNING.perDepth * depth +
+    GEN_TUNING.bandBonus[weightBand(input.drawing)]
+  );
+}
+
+/**
+ * P8 size from depth and kit hints (5-7 wide, 6-9 tall: deeper rooms are bigger; the current wants 7
+ * rows). `budget` is the walk's budget for this attempt (default: the base budget, P28).
+ */
+export function specFor(input: GenInput, seed: number, budget?: number): GenSpec {
   const rng = createRng(deriveSeed(seed, 7990));
   const depth = Math.min(input.room, 3);
   const hint = input.drawing.rule === CURRENT ? 7 : 6;
@@ -218,7 +229,7 @@ export function specFor(input: GenInput, seed: number): GenSpec {
       width: clamp(5 + rng.int(0, 1) + (depth >= 2 ? 1 : 0), 5, 7),
       height: clamp(Math.max(hint, 6 + rng.int(0, 1) + Math.min(depth, 2)), 6, 9),
     },
-    budget: 3 + depth + BAND_BONUS[weightBand(input.drawing)],
+    budget: budget ?? baseBudget(input),
     kits: SPIKE_KITS,
   };
 }
@@ -477,12 +488,14 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
   return issues;
 }
 
-// ── P10: the trial, the attempts, the fallback ───────────────────────
+// ── P10 and P28: the trial, the walk, the fallback ───────────────────
 
 /** One attempt's record: its salt, the layout draws it took, the oracle's verdict and the bot's. */
 export interface RoomTrial {
   attempt: number;
   salt: number;
+  /** The foe budget this attempt was drawn with (P28: the walk moves it). */
+  budget: number;
   draws: number;
   /** The guardrails still broken after the last draw (empty: the layout went to the bot). */
   guardrails: GenIssue[];
@@ -491,6 +504,8 @@ export interface RoomTrial {
   rounds: number;
   /** Share of the party's HP left at the end (a quality signal for EN-G0: 1 is a walkover). */
   hpLeft: number;
+  /** Won with `GEN_TUNING.walkover` to spare: not fair, so not offered while a fairer attempt may come. */
+  walkover: boolean;
   ops: number;
   /** A cast hit the event cap during the trial. */
   capped: boolean;
@@ -499,7 +514,16 @@ export interface RoomTrial {
 export interface GeneratedRoom extends GenResult {
   /** The bot cleared the offered layout (false: an unverified fallback, counted). */
   verified: boolean;
+  /** No attempt was fair: the offered room was won, but as a walkover (or it is a fallback that was). */
+  dull: boolean;
   trials: RoomTrial[];
+}
+
+/** The trial whose layout `room` carries: the last one, or the last won one for a dull room. */
+export function offeredTrial(room: GeneratedRoom): RoomTrial | undefined {
+  return room.dull && !room.fallback
+    ? room.trials.findLast((t) => t.won === true)
+    : room.trials.at(-1);
 }
 
 /** Draws layouts until the oracle is green (at most `MAX_DRAWS`); returns the last one either way. */
@@ -530,15 +554,36 @@ const hpShare = (s: BattleState): number => {
   );
 };
 
+const isWalkover = (rounds: number, hpLeft: number): boolean =>
+  rounds <= GEN_TUNING.walkover.rounds || hpLeft >= GEN_TUNING.walkover.hpLeft;
+
+/** An attempt the guardrails held back: no bot ran. */
+const heldBack = (
+  attempt: number,
+  salt: number,
+  budget: number,
+  drawn: { issues: GenIssue[]; draws: number },
+): RoomTrial => ({
+  attempt,
+  salt,
+  budget,
+  draws: drawn.draws,
+  guardrails: drawn.issues,
+  won: null,
+  rounds: 0,
+  hpLeft: 0,
+  walkover: false,
+  ops: 0,
+  capped: false,
+});
+
 /** The room judged fair, not the trip: fresh HP and charges, the party's compiled pages. */
 function trial(
   input: GenInput,
   layout: BoardSpec,
   seed: number,
-  budget: number,
-  attempt: number,
-  salt: number,
-  draws: number,
+  opBudget: number,
+  meta: { attempt: number; salt: number; budget: number; draws: number },
 ): RoomTrial {
   const state = createBattle({
     title: 'A drawn room',
@@ -552,84 +597,94 @@ function trial(
       ]),
     ),
   }).state;
-  const r = botTrial(state, budget, input.party);
+  const r = botTrial(state, opBudget, input.party);
+  const won = r.won && r.state.round <= ROOM_ROUNDS;
+  const hpLeft = hpShare(r.state);
   return {
-    attempt,
-    salt,
-    draws,
+    ...meta,
     guardrails: [],
-    won: r.won && r.state.round <= ROOM_ROUNDS,
+    won,
     rounds: r.state.round,
-    hpLeft: hpShare(r.state),
+    hpLeft,
+    walkover: won && isWalkover(r.state.round, hpLeft),
     ops: r.ops,
     capped: r.events.some((e) => e.type === 'fizzles' && e.reason === 'cap'),
   };
 }
 
 /**
- * P8-P10: one room from the trip seed, bot-tested, with the safe fallback. Attempt `n` (1-4) draws
- * from salt `7000 + 10*room + n`; the fallback from `7900 + room`. The first room the bot wins
- * within 12 rounds is offered; the fallback is offered even when it fails (`verified: false`).
+ * P8-P10 and P28: one room from the trip seed, bot-tested on a walking budget. Attempt `n` (1-4)
+ * draws from salt `7000 + 10*room + n`. Attempt 1 uses the base budget; the next uses this one's
+ * plus `GEN_TUNING.step` after a walkover, minus it after a loss or a guardrail failure (never
+ * below 1). The first won attempt that is not a walkover is offered. When none is fair but one was
+ * won, the last won attempt is offered (`verified`, `dull`). When none was won, the safe fallback
+ * (salt `7900 + room`, half the base budget) is offered even when it fails (`verified: false`).
  * Hearts come from their frames (EN-2), not from here.
  */
 export function generateRoom(input: GenInput): GeneratedRoom {
   if (input.room >= input.drawing.length - 1) {
     throw new RangeError('The spike draws rooms, not hearts: a heart is its frame (EN-2)');
   }
-  const budget = input.budget ?? TRIAL_BUDGET;
+  const opBudget = input.budget ?? TRIAL_BUDGET;
   const trials: RoomTrial[] = [];
   let ops = 0;
+  let budget = baseBudget(input);
+  let lastWon: BoardSpec | undefined;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const salt = EN_SALT.from + 10 * input.room + attempt;
     const seed = deriveSeed(input.seed, salt);
-    const spec = specFor(input, seed);
+    const spec = specFor(input, seed, budget);
     const drawn = draw(spec, seed, false);
-    if (drawn.issues.length > 0) {
-      trials.push({
-        attempt,
-        salt,
-        draws: drawn.draws,
-        guardrails: drawn.issues,
-        won: null,
-        rounds: 0,
-        hpLeft: 0,
-        ops: 0,
-        capped: false,
-      });
-      continue;
-    }
-    const t = trial(input, drawn.layout, seed, budget, attempt, salt, drawn.draws);
+    const t =
+      drawn.issues.length > 0
+        ? heldBack(attempt, salt, budget, drawn)
+        : trial(input, drawn.layout, seed, opBudget, {
+            attempt,
+            salt,
+            budget,
+            draws: drawn.draws,
+          });
     trials.push(t);
     ops += t.ops;
-    if (t.won) {
+    if (t.won && !t.walkover) {
       return {
         layout: drawn.layout,
         attempts: attempt,
         fallback: false,
         ops,
         verified: true,
+        dull: false,
         trials,
       };
     }
+    if (t.won) lastWon = drawn.layout;
+    budget = Math.max(1, budget + (t.won ? GEN_TUNING.step : -GEN_TUNING.step));
+  }
+  if (lastWon) {
+    return {
+      layout: lastWon,
+      attempts: MAX_ATTEMPTS,
+      fallback: false,
+      ops,
+      verified: true,
+      dull: true,
+      trials,
+    };
   }
   const salt = EN_SALT.fallback + input.room;
   const seed = deriveSeed(input.seed, salt);
-  const spec = specFor(input, seed);
+  const base = baseBudget(input);
+  const spec = specFor(input, seed, base);
   const drawn = draw(spec, seed, true);
   const t =
     drawn.issues.length > 0
-      ? {
+      ? heldBack(MAX_ATTEMPTS + 1, salt, base, drawn)
+      : trial(input, drawn.layout, seed, opBudget, {
           attempt: MAX_ATTEMPTS + 1,
           salt,
+          budget: base,
           draws: drawn.draws,
-          guardrails: drawn.issues,
-          won: null,
-          rounds: 0,
-          hpLeft: 0,
-          ops: 0,
-          capped: false,
-        }
-      : trial(input, drawn.layout, seed, budget, MAX_ATTEMPTS + 1, salt, drawn.draws);
+        });
   trials.push(t);
   ops += t.ops;
   return {
@@ -638,6 +693,7 @@ export function generateRoom(input: GenInput): GeneratedRoom {
     fallback: true,
     ops,
     verified: t.won === true,
+    dull: t.walkover,
     trials,
   };
 }

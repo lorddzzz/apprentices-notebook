@@ -37,6 +37,20 @@ export const BASE_LENGTH = 3;
 /** P7: light up to `light`, medium up to `medium`, heavy above. */
 export const WEIGHT_BANDS = { light: 9, medium: 14 } as const;
 
+/**
+ * EN-S2 (ending-plan P28): the generator's foe budget and its two-sided judge. The base budget is
+ * `perMember × party + perDepth × depth + bandBonus[band]`; a won trial is a walkover when it ends
+ * within `walkover.rounds` rounds or with at least `walkover.hpLeft` of the party's HP; each attempt
+ * moves the budget by `step` (up after a walkover, down after a loss). Defaults for CAL-5 to tune.
+ */
+export const GEN_TUNING = {
+  perMember: 2,
+  perDepth: 1,
+  bandBonus: { light: 0, medium: 1, heavy: 2 },
+  walkover: { rounds: 2, hpLeft: 1 },
+  step: 1,
+} as const;
+
 const CURRENT = ['canals:current'];
 const BELLS = ['foundry:bells', 'foundry:bell'];
 

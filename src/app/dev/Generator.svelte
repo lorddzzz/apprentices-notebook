@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ENEMIES, type EnemyId } from '$data';
   import type { BoardSpec } from '$engine';
-  import { type GeneratedRoom, generateRoom } from '$engine/drawing';
+  import { type GeneratedRoom, generateRoom, offeredTrial } from '$engine/drawing';
   import { sampleInput } from './samples';
 
   const COUNT = 20;
@@ -30,6 +30,7 @@
     firstTry: rows.filter((r) => !r.room.fallback && r.room.attempts === 1).length,
     fallbacks: rows.filter((r) => r.room.fallback).length,
     unverified: rows.filter((r) => !r.room.verified).length,
+    dull: rows.filter((r) => r.room.dull).length,
     ops: Math.round(pct(rows.map((r) => r.room.ops), 0.5)),
   });
 
@@ -103,14 +104,15 @@
       <div><b>{summary.median} ms</b> median per accepted room</div>
       <div><b>{summary.p95} ms</b> p95</div>
       <div><b>{summary.firstTry}/{rows.length}</b> first try</div>
-      <div><b>{summary.fallbacks}</b> fallbacks, <b>{summary.unverified}</b> unverified</div>
+      <div><b>{summary.fallbacks}</b> fallbacks, <b>{summary.unverified}</b> unverified, <b>{summary.dull}</b> dull</div>
       <div><b>{summary.ops}</b> median ops per room</div>
     </section>
   {/if}
 
   {#each rows as row (row.seed)}
     {@const layout = row.room.layout}
-    <article class={{ fallback: row.room.fallback }}>
+    {@const pick = offeredTrial(row.room)}
+    <article class={{ fallback: row.room.fallback, dull: row.room.dull }}>
       <header>
         <b>Seed {row.seed}</b>
         <span>{row.title}</span>
@@ -126,10 +128,23 @@
       <footer>
         <span>{layout.width}×{layout.height}, {row.party} apprentices</span>
         <span>
-          {row.room.fallback ? (row.room.verified ? 'fallback (cleared)' : 'fallback (UNVERIFIED)') : `attempt ${row.room.attempts}`}
+          {row.room.fallback ? (row.room.verified ? 'fallback (cleared)' : 'fallback (UNVERIFIED)') : `attempt ${pick?.attempt ?? row.room.attempts} of ${row.room.attempts}`}
         </span>
         <span>{row.room.ops} ops</span>
         <span>{Math.round(row.ms)} ms</span>
+      </footer>
+      <footer class="walk">
+        <span>budget {row.room.trials.map((t) => t.budget).join(' → ')}</span>
+        <span>
+          {#if pick?.won}
+            won round {pick.rounds}, {Math.round(pick.hpLeft * 100)}% HP left{pick.walkover ? ' (walkover)' : ''}
+          {:else if pick?.won === false}
+            lost, round {pick.rounds}, {Math.round(pick.hpLeft * 100)}% HP left
+          {:else}
+            not played
+          {/if}
+        </span>
+        <span>{row.room.dull ? 'DULL' : 'fair'}</span>
       </footer>
     </article>
   {/each}
@@ -197,6 +212,9 @@
   article.fallback {
     border-color: var(--accent);
   }
+  article.dull {
+    border-style: dashed;
+  }
   header {
     display: flex;
     flex-direction: column;
@@ -256,6 +274,9 @@
     background: var(--danger);
     color: var(--parchment);
     border-radius: 50%;
+  }
+  footer.walk {
+    margin-top: 2px;
   }
   footer {
     display: flex;
