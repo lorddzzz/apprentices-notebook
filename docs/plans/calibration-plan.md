@@ -24,6 +24,7 @@ All "main" values are what is committed now. "Source" is where the item was reco
 | CN-13 golden | `DEEP = { maxRounds: 100, startHp: 20 }`, `tests/run/golden.test.ts:47` | used by the canal win trips | the golden wins only clear the heart with a full house; the trio margin (97 %) was to be checked in the CN playtest (status "Rough edges") | status file |
 | **BF-20 / BF-21** | `FOUNDRY_TUNING`, `data/districts/foundry.ts:84`: `pulseDamage 1`, `pulsePush 1`, `alliedPulseDamage 2`, `alliedPulsePush 1`, `tuneLength 4`, `maxPerToneInTune 2`, `tonesInRoom {2,2,3,3,3}` | as listed | no table yet (BF-12 not merged); BF-21 is the tuning pass after BF-G1 | foundry-plan.md rows BF-20, BF-21 |
 | **EN-13** drawn rooms | `src/data/drawing.ts` (planned, EN-8) | none yet | pen on bot-campaign and real saves, drawn trips per weight band at party 1-3, fallback rate, phone timing | ending-plan.md row EN-13 |
+| EN-S2 generator numbers | `GEN_TUNING`, `src/data/drawing.ts` (EN-S2): `perMember`, `perDepth`, band bonus, `walkover { rounds, hpLeft }`, the walk's step; `ROOM_ROUNDS` 12 (`src/engine/drawing/generate.ts`) | EN-S2's defaults | EN-S1 at `3 + depth + band`: 100 % first try, median win round 2, median HP left 100 % (all walkovers); EN-S2's report has the after numbers | ending-plan P28 |
 | HC-4 bot | `tests/sim/bot.ts` limits | greedy; stalls on some drawn start points; no Hold; never loses an ink room | fixed by EN-0's shared bot where possible; record what remains | status "Rough edges", "Known limits" |
 
 ## 2. Target bands (quoted, not set here)
@@ -47,7 +48,7 @@ All "main" values are what is committed now. "Source" is where the item was reco
 | CAL-2 | Ink quarter: pick the IQ-20 lever, give the postmaster a move or opener (IQ-23), add the `INK_CAL` postmaster row | M | table row exists; the heart is lost in some seeds and won in others; `tests/sim/postmaster-heart.test.ts` passes |
 | CAL-3 | Bathhouses and bridges: BH-16 levers, BR-21 numbers; decide whether the bot learns Hold | M | tables inside the §2 band or the proposal's; no median boil before round 3 |
 | CAL-4 | Foundry and cartographers (BF-20, BF-21, CG-9/10): tables at party 1-3, hung bells 0-4 | M | as CAL-3; 0 bells winnable, 4 clearly easier |
-| CAL-5 | Drawn rooms (EN-13) and the shared household sweep | M | EN-13's three weight bands; `tests/sim/household-sweep.test.ts` unchanged in result |
+| CAL-5 | Drawn rooms (EN-13, with EN-S2's generator numbers) and the shared household sweep | M | EN-13's three weight bands; offered rooms stay inside EN-S2's walkover limit; `tests/sim/household-sweep.test.ts` unchanged in result |
 | CAL-G1 | **Gate (orchestrator):** the player sees the final tables before the playtest; the player decides any band the plan could not meet | S | tables committed to a verification file; the player's call logged |
 
 ## 4. Proposals, contracts and open questions
