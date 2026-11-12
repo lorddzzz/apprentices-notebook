@@ -1,8 +1,9 @@
 import { render } from 'svelte/server';
 import { describe, expect, test } from 'vitest';
-import type { BattleState } from '$engine';
+import { type BattleState, scenarioBattle } from '$engine';
 import { IDLE } from '../../src/app/battleInput';
 import { fxFor as fxOfEvent } from '../../src/app/fx';
+import { resolveScenario, withLabRules } from '../../src/app/lab';
 import { viewOf } from '../../src/app/view';
 import { fxFor, pieceArtFor, unitArtFor } from '../../src/ui/districts';
 import { FOUNDRY_UI } from '../../src/ui/districts/foundry';
@@ -15,7 +16,8 @@ import {
   STRUCK,
 } from '../../src/ui/districts/foundry/highlights';
 import RingArt from '../../src/ui/districts/foundry/RingArt.svelte';
-import { clapperToneOfId } from '../../src/ui/districts/foundry/state';
+import { clapperToneOfId, tuneLine } from '../../src/ui/districts/foundry/state';
+import TuneBanner from '../../src/ui/districts/foundry/TuneBanner.svelte';
 import { act, board, cast, withLattices } from '../scenarios/harness';
 
 /** BF-17: what the board draws of the bells, from the battle (no browser). */
@@ -142,5 +144,61 @@ describe('a Clapper’s tone follows its number', () => {
       'high',
       'low',
     ]);
+  });
+});
+
+describe('BF-18: the tune banner and the Peal', () => {
+  const heart = () => {
+    const def = resolveScenario('foundry-heart').def;
+    return withLabRules(scenarioBattle(def, { lab: true }), def.rules);
+  };
+
+  test('the heart fixture reads a four-note tune with a called note and the rounds to the Peal', () => {
+    const line = tuneLine(heart());
+    expect(line?.notes).toHaveLength(4);
+    expect(line?.at).toBe(0);
+    expect(line?.called).toBe(line?.notes[0]);
+    expect(line?.roundsToPeal).toBe(4);
+    expect(line?.peal).toBe(false);
+  });
+  test('a board with no tune listed has no tune line', () => {
+    expect(tuneLine(board('D . {bell:low} . .'))).toBeNull();
+  });
+  test('the banner draws the four notes, marks the called one and says the countdown', () => {
+    const { body } = render(TuneBanner, { props: { battle: heart(), trip: null, log: [] } });
+    expect(body).toContain('data-testid="tune-banner"');
+    expect(body.match(/data-note="\d"/g)).toHaveLength(4);
+    expect(body).toContain('The Great Peal in 4 rounds');
+    expect(body.match(/<li[^>]*>/)?.[0]).toMatch(/now/);
+    expect(body.match(/<li[^>]*>/g)?.filter((li) => /now/.test(li))).toHaveLength(1);
+  });
+  test('on the fourth note the banner warns of the Peal, and every bell that can ring is haloed', () => {
+    const s = heart();
+    const rules = s.rules as Record<string, { at: number }>;
+    s.rules = { ...rules, 'foundry:tune': { ...rules['foundry:tune'], at: 3 } } as typeof s.rules;
+    const line = tuneLine(s);
+    expect(line?.peal).toBe(true);
+    expect(line?.roundsToPeal).toBe(1);
+    const { body } = render(TuneBanner, { props: { battle: s, trip: null, log: [] } });
+    expect(body).toContain('The Great Peal rings this round');
+    const peal = foundryHighlights(ctx(s)).filter(
+      (h) => h.key === HALO && (h.data as { why: string }).why === 'peal',
+    );
+    expect(peal.length).toBeGreaterThan(0);
+    expect(peal.map((h) => h.at)).not.toContainEqual({ x: 0, y: 0 });
+  });
+  test('the called note’s bells are haloed before the fourth note', () => {
+    const s = heart();
+    const called = tuneLine(s)?.called;
+    const halos = foundryHighlights(ctx(s)).filter(
+      (h) => h.key === HALO && (h.data as { why: string }).why === 'note',
+    );
+    expect(halos.length).toBeGreaterThan(0);
+    expect(halos.every((h) => (h.data as { tone: string }).tone === called)).toBe(true);
+  });
+  test('the four hung bells are strikeable on the player’s turn and the tune banner is registered', () => {
+    const hung = foundryHighlights(ctx(heart())).filter((h) => h.key === HUNG);
+    expect(hung).toHaveLength(4);
+    expect(FOUNDRY_UI.banners).toContain(TuneBanner);
   });
 });

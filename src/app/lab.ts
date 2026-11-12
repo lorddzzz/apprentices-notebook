@@ -221,6 +221,15 @@ const HEART_HUNG = (FOUNDRY_HEART.variants?.[0]?.layout ?? '')
   .split('{hook}')
   .map((part, i) => (i === 0 ? part : `{greatBell:${i}:allied:rung}${part}`))
   .join('');
+/** The same heart with the staff gone: only the Carillonneur rings, so three End turns bring the Peal's warning. */
+const HEART_ALONE = HEART_HUNG.split('\n')
+  .map((row) =>
+    row
+      .split(' ')
+      .map((cell) => (cell === 'Q' || cell === 'X' || cell.startsWith('Z{rope') ? '.' : cell))
+      .join(' '),
+  )
+  .join('\n');
 export const FOUNDRY_LAB_ROOMS: readonly ScenarioDef[] = [
   {
     id: 'foundry-tones',
@@ -246,6 +255,15 @@ export const FOUNDRY_LAB_ROOMS: readonly ScenarioDef[] = [
     title: 'Foundry, the great bell (four hung)',
     note: 'The heart at 7x9 with all four great bells hung at the hooks and the tune playing. The banner shows the four notes and the one called now; on the fourth the Great Peal is telegraphed over every bell that can ring. Strike a hung bell on your turn.',
     board: HEART_HUNG,
+    rules: { 'foundry:tune': { seed: 11 } },
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'foundry-peal',
+    title: 'Foundry, the tune alone',
+    note: 'The heart with the Ringers, the Detuner and the Clapper gone and the four great bells hung: only the Carillonneur rings. End the turn three times and the fourth note brings the Great Peal warning: every bell that can ring is haloed and the strip turns red.',
+    board: HEART_ALONE,
     rules: { 'foundry:tune': { seed: 11 } },
     demo: [],
     expected: [],

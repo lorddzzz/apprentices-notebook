@@ -102,4 +102,9 @@ describe('a preset per lock loads in the Lab', () => {
     expect(s.units.some((u) => u.def === 'carillonneur')).toBe(true);
     expect(tileAt(s, { x: 0, y: 0 }).piece?.id).toBe('foundry:greatBell');
   });
+  test('the tune-alone fixture has the Carillonneur and none of the staff', () => {
+    const s = scenarioBattle(resolveScenario('foundry-peal').def, { lab: true });
+    const defs = s.units.filter((u) => u.kind === 'enemy').map((u) => u.def);
+    expect(defs).toEqual(['carillonneur']);
+  });
 });

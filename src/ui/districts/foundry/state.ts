@@ -2,12 +2,14 @@ import { isTone, type Tone } from '$data/districts/foundry';
 import type { BattleState, Coord } from '$engine';
 import { toneOfPiece } from '$engine/districts/foundry/pieces';
 import { isHumming } from '$engine/districts/foundry/ring';
+import { calledNote, tuneOf } from '$engine/districts/foundry/tune';
 import {
   BELL_PIECE,
   BELLS_RULE_ID,
   GREAT_BELL_PIECE,
   type GreatBellData,
   parseBells,
+  TUNE_RULE_ID,
 } from '$engine/districts/foundry/types';
 import type { BoardView } from '../../../app/view';
 
@@ -74,3 +76,31 @@ export const clapperToneOfId = (id: string): Tone => {
   const n = Number(/-(\d+)$/.exec(id)?.[1] ?? 1);
   return (['low', 'mid', 'high'] as const)[(Math.max(1, n) - 1) % 3] ?? 'low';
 };
+
+/** What the tune banner says (BF-18): the four notes, the one called now, and the rounds to the Peal. */
+export interface TuneLine {
+  notes: readonly Tone[];
+  /** 0-based index of the note called this round. */
+  at: number;
+  called: Tone;
+  /** Rounds until the Great Peal rings, counting this one (1 = it rings this round, after the fourth note). */
+  roundsToPeal: number;
+  peal: boolean;
+  /** Notes he was made to restart on. */
+  answered: number;
+}
+
+/** The tune as the banner shows it, or null while no tune plays (not the heart, or the Carillonneur is gone). */
+export function tuneLine(s: BattleState): TuneLine | null {
+  if (!(TUNE_RULE_ID in (s.rules ?? {}))) return null;
+  if (!s.units.some((u) => u.kind === 'enemy' && u.def === 'carillonneur' && u.hp > 0)) return null;
+  const t = tuneOf(s);
+  return {
+    notes: t.tune,
+    at: t.at,
+    called: calledNote(t),
+    roundsToPeal: t.tune.length - t.at,
+    peal: t.at === t.tune.length - 1,
+    answered: t.answered,
+  };
+}

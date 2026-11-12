@@ -19,6 +19,11 @@
 <g data-district="foundry:hung" pointer-events="none">
   <circle class="beat" cx={c.x} cy={c.y} r="44" fill="none" stroke="var(--parchment)" stroke-width="10" />
   <circle class="beat" cx={c.x} cy={c.y} r="44" fill="none" stroke="var(--m-brass)" stroke-width="5" stroke-dasharray="3 9" stroke-linecap="round" />
+  <g transform="translate({c.x - 34} {c.y - 36})">
+    <circle r="14" fill="var(--m-brass)" stroke="var(--parchment)" stroke-width="3.5" />
+    <path d="M-6 6L4 -4" stroke="var(--ink)" stroke-width="3.4" stroke-linecap="round" />
+    <rect x="-1" y="-10" width="11" height="8" rx="2" fill="var(--ink)" transform="rotate(45 4 -6)" />
+  </g>
 </g>
 
 <style>
