@@ -89,9 +89,25 @@ export function unmarkedBeside(ctx: Ctx, u: Unit): Unit | null {
   return beside.find((n) => n.hp > 0 && !n.mark) ?? null;
 }
 
-/** Living units within `dist` (Manhattan) of any of `tiles`, in reading order. */
-export function unitsNear(ctx: Ctx, tiles: readonly Coord[], dist: number): Unit[] {
-  return manyOf(livingUnits(ctx.s).filter((u) => tiles.some((t) => manhattan(t, u.pos) <= dist)));
+/**
+ * Living units within `dist` (Manhattan) of any of `tiles`, in reading order. `diagonal`
+ * (`chalk-network-square`): the last step may be a diagonal one, so a unit one diagonal step past a
+ * tile within `dist - 1` is reached too.
+ */
+export function unitsNear(
+  ctx: Ctx,
+  tiles: readonly Coord[],
+  dist: number,
+  diagonal = false,
+): Unit[] {
+  const reached = (t: Coord, at: Coord): boolean => {
+    if (manhattan(t, at) <= dist) return true;
+    if (!diagonal) return false;
+    return [-1, 0, 1].some((dx) =>
+      [-1, 0, 1].some((dy) => manhattan(t, { x: at.x + dx, y: at.y + dy }) <= dist - 1),
+    );
+  };
+  return manyOf(livingUnits(ctx.s).filter((u) => tiles.some((t) => reached(t, u.pos))));
 }
 
 const rowFor = (on: BurstRow['on']): BurstRow => {

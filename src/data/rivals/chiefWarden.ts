@@ -57,5 +57,5 @@ export const CHIEF_WARDEN_PAGE: RivalPageDef = {
   story:
     'A watch roster for the great arch, every span counted and ticked. In the margin, in chalk: the count comes out the same whether I walk it or not. Mind the edge.',
   trial: { board: '. . . . _\nD . . r _\n. . . . _' },
-  note: { rune: 'brink', line: 'brink:edge', variant: 'chiefWarden:brink' },
+  note: { rune: 'brink', line: 'brink:drop', variant: 'chiefWarden:brink' },
 };

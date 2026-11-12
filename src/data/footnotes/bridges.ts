@@ -177,4 +177,83 @@ export const BRIDGES: readonly VariantDef[] = [
     slot: { capstone: true },
     text: 'When Lay sets a layer, it also sets a copy one round shorter into the tile behind the target.',
   },
+  // ── Mortar: the unit (level I and II) ──
+  {
+    id: 'mortar-unit-rim',
+    subject: 'mortar',
+    slot: { line: 'mortar:unit', level: 1 },
+    text: "Mortar's extra tile is dropped if it would carry a unit into fog: the push stops on the last stone.",
+  },
+  {
+    id: 'mortar-unit-fall',
+    subject: 'mortar',
+    slot: { line: 'mortar:unit', level: 1 },
+    text: 'A unit Mortar carries into the fog takes the fall one step harder.',
+  },
+  {
+    id: 'mortar-unit-guard',
+    subject: 'mortar',
+    slot: { line: 'mortar:unit', level: 2 },
+    text: 'A member of your party that Mortar pushes still goes the extra tile, and takes a Guard of 1 where it stops.',
+  },
+  {
+    id: 'mortar-unit-behind',
+    subject: 'mortar',
+    slot: { line: 'mortar:unit', level: 2 },
+    text: 'A Mortar’d push also pushes the unit behind the target one tile, plain.',
+  },
+  // ── Mortar: capstones ──
+  {
+    id: 'mortar-cap-set',
+    subject: 'mortar',
+    slot: { capstone: true },
+    text: 'When a Mortar’d push ends on a chipped span tile, it sets the stone sound again.',
+  },
+  {
+    id: 'mortar-cap-scatter',
+    subject: 'mortar',
+    slot: { capstone: true },
+    text: 'When a Mortar’d push drops a unit into the fog, it also pushes each unit beside it one tile.',
+  },
+  // ── Chalk: the network (level I; level II is `chalk-network-kin`) ──
+  {
+    id: 'chalk-network-square',
+    subject: 'chalk',
+    slot: { line: 'chalk:network', level: 1 },
+    text: "Chalk's reach counts diagonal tiles as one step.",
+  },
+  {
+    id: 'chalk-network-end',
+    subject: 'chalk',
+    slot: { line: 'chalk:network', level: 1 },
+    text: 'Chalk reaches one tile further past the brass at the last node as the cast began, the far end only.',
+  },
+  {
+    id: 'chalk-network-kin',
+    subject: 'chalk',
+    slot: { line: 'chalk:network', level: 2 },
+    text: "Chalk's extra reach passes over your own party.",
+  },
+  // ── Chalk: capstones ──
+  {
+    id: 'chalk-cap-circle',
+    subject: 'chalk',
+    slot: { capstone: true },
+    text: 'When Chalk reaches a unit across fog, it reaches the units beside that unit too, one step weaker.',
+  },
+  {
+    id: 'chalk-cap-line',
+    subject: 'chalk',
+    slot: { capstone: true },
+    text: 'When a conducted action ends at brass, Chalk draws it on: the action runs once more from the next brass.',
+  },
+  // The Chief Warden's note (BR-20's rival, BR-19b's effect): hidden until his page is held.
+  {
+    id: 'chiefWarden:brink',
+    subject: 'brink',
+    slot: { line: 'brink:drop', level: 2 },
+    text: 'A Warden does not fall off a bridge they walk. Any of yours beside the fog is passed over by Brink’s rest, and takes a Guard of 1 instead.',
+    rival: 'chiefWarden',
+    credit: "Copied from the Chief Warden's day-book.",
+  },
 ];

@@ -17,7 +17,7 @@ import {
 import { markUnit, reachOf, unitsNear } from './bursts';
 import { type Ctx, emit, withLine } from './ctx';
 import { hasFootnote } from './footnotes';
-import { type Coord, type Dir, opposite, step } from './grid';
+import { byReadingOrder, type Coord, type Dir, opposite, step } from './grid';
 import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
 import { asBindCarrier, attachBound, attachLayer, liftMark, snareBlot, spendMark } from './marks';
@@ -304,7 +304,26 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
     withLine(ctx, 'conduct:noTarget', () => emit(ctx, { type: 'miss', source: 'Conduct' }));
     return [];
   }
-  let units = unitsNear(ctx, net, 1 + reachOf(flow));
+  const reach = 1 + reachOf(flow);
+  const chalk = flow.solvent === 'chalk' ? (SOLVENT_RULES.chalk?.reach ?? 0) : 0;
+  const far = chalk > 0 && hasFootnote(ctx, 'chalk-network-end') ? farEnd(net, at) : null;
+  let units = far
+    ? // `chalk-network-end`: the extra tile only past the brass at the far end.
+      mergeUnits(unitsNear(ctx, net, reach - chalk), unitsNear(ctx, [far], reach))
+    : unitsNear(ctx, net, reach, chalk > 0 && hasFootnote(ctx, 'chalk-network-square'));
+  // `chalk-network-kin`: Chalk's extra tile passes over your own party; they still take the rest in reach.
+  const kin = chalk > 0 && hasFootnote(ctx, 'chalk-network-kin');
+  const plain = kin || chalk > 0 ? unitsNear(ctx, net, reach - chalk) : [];
+  if (kin) units = units.filter((u) => u.kind !== 'member' || plain.some((p) => p.id === u.id));
+  // `chalk-cap-circle`: a unit Chalk reaches across fog brings the units beside it too, one step weaker.
+  const circle =
+    chalk > 0 && hasFootnote(ctx, 'chalk-cap-circle')
+      ? circleBeside(ctx, net, reach - chalk, units, plain).filter(
+          (u) => !kin || u.kind !== 'member',
+        )
+      : [];
+  const weakIds = new Set(circle.map((u) => u.id));
+  units = [...units, ...circle];
   // `conduct-network-spare`: the action passes over your apprentices.
   if (hasFootnote(ctx, 'conduct-network-spare')) units = units.filter((u) => u.kind !== 'member');
   // `conduct-cap-mark`: a marked target marks every unit the conduct reaches.
@@ -332,7 +351,10 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
       headings.set(targetKey(unitTarget(u)), scatter ? (awayFromNet(u, net) ?? heading) : heading);
     }
     const conducted: Flow = { ...flow, headings };
-    for (const u of units) if (isAlive(u)) runPart(ctx, part, unitTarget(u), conducted);
+    const weakened: Flow = { ...conducted, weaker: (conducted.weaker ?? 0) + 1 };
+    for (const u of units) {
+      if (isAlive(u)) runPart(ctx, part, unitTarget(u), weakIds.has(u.id) ? weakened : conducted);
+    }
     if (marking) {
       for (const u of units) if (isAlive(u) && !u.mark) markUnit(ctx, u, flow.origin, flow);
     }
@@ -345,7 +367,95 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
       ctx.s.hum = [...(ctx.s.hum ?? []), ...net.map((c) => ({ ...c }))];
     }
   });
+  // `chalk-cap-line`: the action is drawn on, and runs once more from the next brass along the heading.
+  if (chalk > 0 && hasFootnote(ctx, 'chalk-cap-line') && !drawing.has(ctx)) {
+    const heading = headingFor(flow, t);
+    const next = heading ? nextBrass(ctx, far ?? farEnd(net, at), heading, net) : null;
+    if (next) {
+      const to: Target = { kind: 'tile', at: next };
+      const headings = new Map(flow.headings).set(targetKey(to), heading);
+      drawing.add(ctx);
+      try {
+        withLine(ctx, line, () => conduct(ctx, def, to, { ...flow, headings }));
+      } finally {
+        drawing.delete(ctx);
+      }
+    }
+  }
   return units.map(unitTarget);
+}
+
+/** Casts that are drawing a conduct on (`chalk-cap-line` runs once, not forever). */
+const drawing = new WeakSet<Ctx>();
+
+/** The last node of the network as the cast began: the farthest tile from the target, reading order on ties. */
+function farEnd(net: readonly Coord[], from: Coord): Coord {
+  const d = (c: Coord): number => Math.abs(c.x - from.x) + Math.abs(c.y - from.y);
+  return [...net].sort((a, b) => d(b) - d(a) || byReadingOrder(b, a))[0] ?? from;
+}
+
+/** The first brass tile outside `net` along `heading` from `from`, or null. */
+function nextBrass(ctx: Ctx, from: Coord, heading: Dir, net: readonly Coord[]): Coord | null {
+  let at = step(from, heading);
+  while (inBoard(ctx.s, at)) {
+    if (isBrass(ctx.s, at) && !net.some((c) => c.x === at.x && c.y === at.y)) return at;
+    at = step(at, heading);
+  }
+  return null;
+}
+
+/** Two reading-order unit lists merged without duplicates, in reading order. */
+function mergeUnits(a: readonly Unit[], b: readonly Unit[]): Unit[] {
+  const seen = new Set<UnitId>();
+  return [...a, ...b]
+    .filter((u) => !seen.has(u.id) && seen.add(u.id))
+    .sort((x, y) => byReadingOrder(x.pos, y.pos));
+}
+
+/**
+ * `chalk-cap-circle`: units Chalk reached only through its extra tile, across fog (a fog tile within
+ * `base` of the brass touches them), and the living units beside those that nothing else reached.
+ */
+function circleBeside(
+  ctx: Ctx,
+  net: readonly Coord[],
+  base: number,
+  reached: readonly Unit[],
+  plain: readonly Unit[],
+): Unit[] {
+  const fog = (c: Coord): boolean => inBoard(ctx.s, c) && tileAt(ctx.s, c).terrain.drop;
+  const across = reached.filter(
+    (u) =>
+      !plain.some((p) => p.id === u.id) &&
+      ctx.s.tiles.some((_, i) => {
+        const f = { x: i % ctx.s.width, y: Math.floor(i / ctx.s.width) };
+        return (
+          fog(f) &&
+          Math.abs(f.x - u.pos.x) + Math.abs(f.y - u.pos.y) === 1 &&
+          net.some((c) => Math.abs(c.x - f.x) + Math.abs(c.y - f.y) <= base)
+        );
+      }),
+  );
+  const out: Unit[] = [];
+  for (const u of across) {
+    for (const at of [
+      step(u.pos, 'up'),
+      step(u.pos, 'right'),
+      step(u.pos, 'down'),
+      step(u.pos, 'left'),
+    ]) {
+      const v = inBoard(ctx.s, at) ? unitAt(ctx.s, at) : null;
+      if (
+        v &&
+        isAlive(v) &&
+        !reached.some((r) => r.id === v.id) &&
+        !out.some((o) => o.id === v.id)
+      ) {
+        out.push(v);
+      }
+    }
+  }
+  return out.sort((a, b) => byReadingOrder(a.pos, b.pos));
 }
 
 /**

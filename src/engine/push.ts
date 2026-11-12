@@ -2,7 +2,7 @@ import { type LineId, TUNING } from '$data';
 import { arrive, hasTrait } from './arrival';
 import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
-import { dealDamage, kill } from './damage';
+import { dealDamage, gainShield, kill } from './damage';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -41,6 +41,8 @@ export interface PushOptions {
   vat?: true;
   /** `touch-member-ram`: a crush into a unit reverses its split (it takes the full crush). */
   ram?: true;
+  /** Mortar: how many of the pushed tiles are its extra ones (the Mortar footnotes read it). */
+  bonus?: number;
 }
 
 /** Layers a pushed land unit slides across (design §4.2, §4.4). */
@@ -222,8 +224,50 @@ function ripple(ctx: Ctx, blocker: Unit, dir: Dir, origin: Origin | null): boole
   return moved;
 }
 
+/**
+ * What a Mortar'd push does once it is over (the push's own line, `mortar:unit`, is already set):
+ * `mortar-unit-guard` (a member takes a Guard of 1 where it stops; a fall is no stop), `-behind`
+ * (the unit behind the target is pushed one plain tile, once: that push carries no bonus),
+ * `mortar-cap-set` (the span it ends on is set sound again, by the bridges wear hook) and
+ * `mortar-cap-scatter` (a drop pushes each unit beside the last stone one tile away).
+ */
+function mortarAfter(
+  ctx: Ctx,
+  unit: Unit,
+  dir: Dir,
+  start: Coord,
+  dropped: boolean,
+  origin: Origin | null,
+): void {
+  if (!dropped && unit.hp > 0) {
+    if (unit.kind === 'member' && hasFootnote(ctx, 'mortar-unit-guard')) {
+      gainShield(ctx, unit, 1, ctx.s.round + 1);
+    }
+    if (hasFootnote(ctx, 'mortar-cap-set')) strikePiece(ctx, unit.pos, 'shove');
+  }
+  if (hasFootnote(ctx, 'mortar-unit-behind')) {
+    const back = step(start, opposite(dir));
+    const behind = inBoard(ctx.s, back) ? unitAt(ctx.s, back) : null;
+    if (behind && behind.hp > 0 && behind.id !== unit.id) push(ctx, behind, dir, 1, origin);
+  }
+  if (dropped && hasFootnote(ctx, 'mortar-cap-scatter')) {
+    const edge = { ...unit.pos };
+    for (const at of neighbors4(edge).sort(byReadingOrder)) {
+      const v = inBoard(ctx.s, at) ? unitAt(ctx.s, at) : null;
+      if (v && v.hp > 0 && v.id !== unit.id) push(ctx, v, awayFrom(edge, v.pos), 1, origin);
+    }
+  }
+}
+
 /** A fall: a minion is gone (no death-burst); an elite or member takes 4 and is stunned (P19). */
-function fall(ctx: Ctx, unit: Unit, dir: Dir, stop: Stop & { kind: 'drop' }, pull: boolean): void {
+function fall(
+  ctx: Ctx,
+  unit: Unit,
+  dir: Dir,
+  stop: Stop & { kind: 'drop' },
+  pull: boolean,
+  harder = 0,
+): void {
   withLine(ctx, pull ? 'pull:drop' : stop.line, () => {
     emit(ctx, { type: 'dropped', unit: ref(unit), at: { ...stop.at }, elite: unit.elite });
     if (!unit.elite) {
@@ -231,7 +275,7 @@ function fall(ctx: Ctx, unit: Unit, dir: Dir, stop: Stop & { kind: 'drop' }, pul
       kill(ctx, unit, false, 'Drop');
       return;
     }
-    dealDamage(ctx, unit, TUNING.dropEliteDamage, 'Drop', [], { heading: dir, at: null });
+    dealDamage(ctx, unit, TUNING.dropEliteDamage + harder, 'Drop', [], { heading: dir, at: null });
     if (unit.hp > 0) {
       unit.stunned = true;
       emit(ctx, { type: 'stunned', unit: ref(unit) });
@@ -354,7 +398,15 @@ export function push(
     // Plan the walk first so the log reads push, then crush or drop.
     const start = { ...unit.pos };
     const cloudFrom = isCloud(tileAt(s, start)) ? tileAt(s, start).state : null;
-    const { path, slid, stop, slicks, left } = planPush(ctx, unit, dir, tiles);
+    const bonus = pull ? 0 : Math.min(tiles, opts.bonus ?? 0);
+    let plan = planPush(ctx, unit, dir, tiles);
+    // Whether Mortar's extra tile is the step that ends in the fog.
+    const bonusFall = bonus > 0 && plan.stop?.kind === 'drop' && plan.path.length >= tiles - bonus;
+    // `mortar-unit-rim`: the extra tile is dropped when it would carry the unit into fog.
+    if (bonusFall && hasFootnote(ctx, 'mortar-unit-rim')) {
+      plan = planPush(ctx, unit, dir, tiles - bonus);
+    }
+    const { path, slid, stop, slicks, left } = plan;
     if (!hasFootnote(ctx, 'shove-slick-again')) for (const l of slicks) l.slid = s.round;
 
     const end = path[path.length - 1];
@@ -482,9 +534,12 @@ export function push(
       withLine(ctx, why, () => emit(ctx, { type: 'miss', source: 'Pull' }));
     } else if (stop?.kind === 'drop' && !trickResists(ctx, unit, 'fall')) {
       // A rival's trick may refuse the fall (RV-11 `resists`): he stops on the brink.
-      fall(ctx, unit, dir, stop, pull);
+      // `mortar-unit-fall`: a unit the extra tile carried into the fog takes the fall one step harder.
+      fall(ctx, unit, dir, stop, pull, bonusFall && hasFootnote(ctx, 'mortar-unit-fall') ? 1 : 0);
       dropped = true;
     }
-    return { moved: path.length, end: { ...unit.pos }, crushed, dropped };
+    const result = { moved: path.length, end: { ...unit.pos }, crushed, dropped };
+    if (bonus > 0) mortarAfter(ctx, unit, dir, start, dropped, origin);
+    return result;
   });
 }

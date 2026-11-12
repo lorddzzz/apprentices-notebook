@@ -89,6 +89,13 @@ function pushBonus(rune: ActionRuneId, flow: Flow): number {
 const solventLine = (flow: Flow): LineId | null =>
   flow.solvent && SOLVENT_RULES[flow.solvent]?.pushBonus ? `${flow.solvent}:unit` : null;
 
+/** The tiles of a push that are the solvent's own (Mortar), after Fog jar's reach takes some off. */
+const mortarTiles = (flow: Flow): number =>
+  Math.max(
+    0,
+    (flow.solvent ? (SOLVENT_RULES[flow.solvent]?.pushBonus ?? 0) : 0) - (flow.weaker ?? 0),
+  );
+
 const roundBonus = (rune: ActionRuneId, flow: Flow): number =>
   flow.gifted && RUNES[rune].gift === 'round' ? 1 : 0;
 
@@ -170,6 +177,7 @@ const shove: Handler = (ctx, t, flow) => {
     ...(flow.area?.includes(u.id) ? { area: flow.area } : {}),
     ...(selfTouch && fn('touch-member-ram') ? { ram: true as const } : {}),
     ...(flow.src === 'vat' ? { vat: true as const } : {}),
+    ...(solventLine(flow) ? { bonus: mortarTiles(flow) } : {}),
   };
   maybeLine(ctx, solventLine(flow), () => {
     const r = push(ctx, u, heading, Math.max(0, tiles), flow.origin, opts);
