@@ -4,6 +4,7 @@ import type { EncounterVariant, LootEntry, LootTableDef, RuneId, SolventId } fro
 import type {
   BonusObjective,
   DistrictData,
+  IntrusionSpec,
   KitRoomDef,
   PaperDef,
   PaperId,
@@ -650,4 +651,56 @@ export const FOUNDRY_THRESHOLD: ThresholdSpec = {
   note: 'Two bells of one tone hang at either end of the hall. The door is hung from the far one.',
   goalText: 'Ring the far bell.',
   solvedArt: 'foundry-bell',
+};
+
+// ── The lower-Seam floor (BF-16; foundry-plan P13) ──────
+/** The floor's line, the story's thread (`CARILLONNEUR_PAGE`): the bells hold the drawn streets down. */
+export const FOUNDRY_FLOOR_LINE = 'The Seam has no bell.';
+
+/**
+ * The foundry's floor: the Seam has no bell, so the two on every floor are the foundry's own, one
+ * tone apiece, far apart. Piece-scoped only: the bell brings `foundry:bells` (strike, ring, hum), no
+ * Ringers, tune or great bells. Seam foes only (rat `r`, sentry `b`), three 7x8 layouts, five or more
+ * `P`; a foe stands by a bell, so striking one pulses it. Not yet on `FOUNDRY_KIT` (BF-22).
+ */
+export const FOUNDRY_INTRUSION: IntrusionSpec = {
+  district: 'foundry',
+  pieces: ['foundry:bell'],
+  rules: ['foundry:bells'],
+  rooms: [
+    // Floor 1: a low pair on opposite corners; the rat hugs the far one.
+    board(
+      `. . . . . ${L} .`,
+      '. . . r . . .',
+      '. . . . . . .',
+      '. . . . b . .',
+      '. . . . . . .',
+      `. ${L} . . . . .`,
+      'P . P . P . P',
+      '. P . . . P .',
+    ),
+    // Floor 2: a mid pair, one beside the sentry and one in front of the party.
+    board(
+      `. . b ${M} . . .`,
+      '. . . . . r .',
+      '. . . . . . .',
+      '. . . . . . .',
+      `. . . . . ${M} .`,
+      '. r . . . . .',
+      'P . P . . P .',
+      '. P . . P . P',
+    ),
+    // Floor 3: a high pair across the middle, foes beyond both.
+    board(
+      '. r . . . b .',
+      `. ${H} . . . . .`,
+      '. . . . . . .',
+      '. . . . . . .',
+      `. . . . . ${H} .`,
+      '. . r . . . .',
+      'P . P . P . P',
+      '. . . P . . .',
+    ),
+  ],
+  loot: 'basics',
 };
