@@ -9,6 +9,7 @@ import {
   parseLabel,
   tileAt,
 } from '$engine';
+import { arrive, enteredTilesOf } from '$engine/arrival';
 import { cloneData } from '$engine/clone';
 import type { Ctx } from '$engine/ctx';
 import { dealDamage, kill } from '$engine/damage';
@@ -24,6 +25,7 @@ import {
   makeTrickObject,
   objectLock,
   planTrickMark,
+  registerTrick,
   removeTrickObject,
   runTrickMarks,
   trickOf,
@@ -452,5 +454,48 @@ describe('round end through DK’s slots', () => {
       roundEnd(ctx, []);
     });
     expect(own(r.state).roundEnds).toBeUndefined();
+  });
+});
+
+declare module '$engine/arrival' {
+  interface ArrivalCauses {
+    'canals:fixtureArrive': 'each';
+  }
+}
+
+describe('a trick own arrival cause', () => {
+  test("FU-4: a trick's arrival cause enters FD's pipeline with its entered tiles", () => {
+    const undo = registerTrick({
+      ...FIXTURE,
+      id: 'canals:fixtureArrivalTrick',
+      causes: { 'canals:fixtureArrive': 'each' },
+    });
+    try {
+      expect(enteredTilesOf('canals:fixtureArrive')).toBe('each');
+      const s = board('. . .\n. L .\n. . .');
+      const owner = rivalOf(s).id;
+      const withJar = cloneData(s);
+      tileAt(withJar, at('A2')).jar = {
+        owner: 'draughtsman',
+        event: 'step',
+        rest: null,
+        heading: null,
+        origin: { caster: owner, spell: 'fixture', cast: 0 },
+        id: 1,
+        seq: 1,
+      };
+      // Entered tiles 'each': the jar on the way is stepped on, not only the landing tile.
+      const r = draft(withJar, (ctx) => {
+        arrive(ctx, owner, [at('A2'), at('A1')], {
+          cause: 'canals:fixtureArrive',
+          origin: null,
+          landing: true,
+        });
+      });
+      expect(ofType(r.events, 'jarOpened')).toMatchObject([{ at: at('A2') }]);
+    } finally {
+      undo();
+    }
+    expect(() => enteredTilesOf('canals:fixtureArrive')).toThrow();
   });
 });

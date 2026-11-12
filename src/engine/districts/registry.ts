@@ -55,6 +55,8 @@ export function buildKit(modules: readonly DistrictModule[]): Kit {
       put(guardIds, g.id, true, 'harm guard');
       harmGuards.push(g);
     }
+    for (const t of m.tricks ?? [])
+      for (const [c, answers] of Object.entries(t.causes ?? {})) put(causes, c, answers, 'cause');
     if (m.trip) put(shapes, m.trip.id, m.trip, 'trip shape');
     for (const t of m.shapes ?? []) put(shapes, t.id, t, 'trip shape');
     for (const [c, answers] of Object.entries(m.causes ?? {})) put(causes, c, answers, 'cause');

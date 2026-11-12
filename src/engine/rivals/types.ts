@@ -7,7 +7,7 @@ import type {
   RivalSpellId,
   TrickId,
 } from '$data/rivals';
-import type { ArrivalCause } from '../arrival';
+import type { ArrivalCause, EnteredTiles } from '../arrival';
 import type { Ctx } from '../ctx';
 import type { Json, RoundEndSlot } from '../districts/types';
 import type { EventLog, UnitRef } from '../events';
@@ -187,6 +187,12 @@ export interface TrickDef<S extends Json = Json> {
   name: string;
   /** District event types (`district:name`) this trick's action logs that count as effects for the planner (not starved). */
   effectEvents?: readonly string[];
+  /**
+   * Its own arrival causes with their entered tiles (FU-4), for a relocation or a move it makes
+   * under a cause of its own (`'bathhouses:steam': 'landing'`). The type comes from augmenting
+   * `ArrivalCauses`, as a district's `causes` do; FD's pipeline reads the value like those.
+   */
+  causes?: Readonly<Record<string, EnteredTiles>>;
   init(rival: RivalDef): S;
   /** Action trick, telegraphed like a spell (the long wick, the clock writ). */
   action?: {

@@ -1,6 +1,6 @@
 import type { DistrictId } from '$data';
 import { RIVALS, type TrickId } from '$data/rivals';
-import { arrive } from '../arrival';
+import { arrive, type EnteredTiles } from '../arrival';
 import { type Ctx, emit, ref } from '../ctx';
 import { KIT } from '../districts/kit';
 import type { Json, RoundEndSlot } from '../districts/types';
@@ -68,8 +68,17 @@ export function registerTrick<S extends Json>(def: TrickDef<S>): () => void {
   // Hooks receive the state `init` made, so widening `S` to `Json` here is safe.
   const t = def as unknown as TrickDef;
   extra.set(def.id, t);
+  // Its own arrival causes join FD's table (FU-4); a core or district cause cannot be redefined.
+  const causes = KIT.causes as Record<string, EnteredTiles>;
+  const added: string[] = [];
+  for (const [c, answers] of Object.entries(def.causes ?? {})) {
+    if (Object.hasOwn(causes, c)) throw new Error(`District kit: duplicate cause '${c}'`);
+    causes[c] = answers;
+    added.push(c);
+  }
   return () => {
     if (extra.get(def.id) === t) extra.delete(def.id);
+    for (const c of added) delete causes[c];
   };
 }
 
