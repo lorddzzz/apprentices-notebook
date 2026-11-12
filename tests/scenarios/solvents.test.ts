@@ -122,6 +122,20 @@ describe('Canals', () => {
       at: at('B1'),
     });
   });
+  test('C3b-owed: a pitched brink entry does not drift', () => {
+    // A Pitch'd Brink entry is not a Repeat: the current leaves it where it waits.
+    const s = withLattices(
+      'D w> w> w> .\n. . . . d',
+      { draughtsman: 'Touch> inv:after-pitch' },
+      opts,
+    );
+    const waiting = cast(s, 'draughtsman', touchAt('B1')).state;
+    const entry = waiting.scheduled[0];
+    if (!entry) throw new Error('nothing waits');
+    entry.kind = 'brink';
+    const dusk = run(waiting, (ctx) => driftWaiting(ctx));
+    expect(dusk.state.scheduled[0]?.target).toEqual({ kind: 'tile', at: at('B1') });
+  });
   test('pitch-repeat-strikes-whoever-it-floats-to', () => {
     // A full turn: the entry floats from B1 to C1 at dusk (the dummies are wedged in the lane
     // and stay put) and strikes the dummy holding C1.

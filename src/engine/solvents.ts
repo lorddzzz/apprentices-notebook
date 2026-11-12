@@ -413,7 +413,7 @@ export function driftWaiting(ctx: Ctx): void {
   }
   const shored: Scheduled[] = [];
   for (const e of s.scheduled) {
-    if (e.solvent !== 'pitch' || e.target.kind !== 'tile') continue;
+    if (e.solvent !== 'pitch' || e.kind === 'brink' || e.target.kind !== 'tile') continue;
     const reach = hasFootnote(ctx, 'pitch-water-far') ? 2 : 1;
     const back = hasFootnote(ctx, 'pitch-water-upstream');
     const catches = hasFootnote(ctx, 'pitch-water-catch');
