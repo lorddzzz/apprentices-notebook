@@ -240,7 +240,6 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null, opts: Ope
   const tile = tileAt(ctx.s, at);
   const jar = tile.jar;
   if (!jar) return;
-  tile.jar = null;
   const unit = (by ? findUnit(ctx.s, by) : null) ?? unitAt(ctx.s, at);
   const opener = unit && isAlive(unit) && unit.pos.x === at.x && unit.pos.y === at.y ? unit : null;
   const open = () =>
@@ -253,6 +252,7 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null, opts: Ope
   if (line) withLine(ctx, line, open);
   else if (opener && opener.id !== jar.owner) withLine(ctx, jarLine(jar, 'unit'), open);
   else open();
+  tile.jar = null; // after the event: a cap that cuts `jarOpened` leaves the jar standing (FU-18)
   const heading = opts.heading !== undefined ? opts.heading : jar.heading;
   const run = (target: Target) =>
     runDetached(ctx, jar.rest, target, jar.owner, jar.origin, heading, {

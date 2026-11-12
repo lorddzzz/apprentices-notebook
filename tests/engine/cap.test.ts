@@ -100,6 +100,11 @@ function pushOntoJar(): BattleState {
   return s;
 }
 
+/** Ink then steam down a row of oil: each landing is a mix reserving its `named` and `mixed`. */
+function mixingChain(): BattleState {
+  return withLattices('D . . . . .\n. o o o o .', { draughtsman: 'Bolt> Oil Ink Steam' });
+}
+
 describe('the event cap (BL-107)', () => {
   it.each(Object.keys(CHAINS))('%s: every cut terminates and fizzles once', (name) => {
     const s = CHAINS[name]?.();
@@ -146,5 +151,19 @@ describe('the event cap (BL-107)', () => {
     const at = events.findIndex((e) => e.type === 'fizzles');
     expect(at).toBeGreaterThanOrEqual(0);
     expect(events.slice(at + 1).filter((e) => e.type !== 'trace')).toEqual([]);
+  });
+
+  // FU-18: the cap sweep also covers a push onto a jar and a mixing chain (`reserve` in `mix.ts`).
+  it('FU-18: cap sweep at every event index, push onto a jar', () => {
+    const s = pushOntoJar();
+    expect(castWithCap(s, UNCAPPED).events.length).toBeGreaterThan(3);
+    expect(drifting(s)).toEqual([]);
+  });
+
+  it('FU-18: cap sweep at every event index, mixing chain', () => {
+    const s = mixingChain();
+    const full = castWithCap(s, UNCAPPED).events;
+    expect(full.filter((e) => e.type === 'mixed').length).toBeGreaterThan(0);
+    expect(drifting(s)).toEqual([]);
   });
 });
