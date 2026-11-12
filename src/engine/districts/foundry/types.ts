@@ -193,6 +193,9 @@ export type QueuedStrike = {
   at: { x: number; y: number };
   by: StruckBy;
   origin: QueuedOrigin | null;
+  /** A tone ring queued by a foe (BF-6): rings this tone as `cause`, `at` is the source's tile. */
+  tone?: Tone;
+  cause?: RingCause;
 };
 
 /**
@@ -251,7 +254,14 @@ function queued(v: unknown): QueuedStrike[] {
     const r = rec(item);
     const at = coord(r?.at);
     if (!r || !at || !STRIKES.includes(r.by as StruckBy)) continue;
-    out.push({ at, by: r.by as StruckBy, origin: queuedOrigin(r.origin) });
+    const tone = isTone(r.tone) ? r.tone : null;
+    const cause = RING_CAUSES.find((c) => c === r.cause);
+    out.push({
+      at,
+      by: r.by as StruckBy,
+      origin: queuedOrigin(r.origin),
+      ...(tone ? { tone, cause: cause ?? 'strike' } : {}),
+    });
   }
   return out;
 }
@@ -292,7 +302,8 @@ type Ev<T extends string, D extends { readonly [k: string]: Json }> = DistrictEv
 };
 type At = { x: number; y: number };
 /** What rang a tone: a strike, a Ringer, a Clapper, the called note, the Great Peal, a hung bell. */
-export type RingCause = 'strike' | 'ringer' | 'clapper' | 'note' | 'peal' | 'hung';
+export const RING_CAUSES = ['strike', 'ringer', 'clapper', 'note', 'peal', 'hung'] as const;
+export type RingCause = (typeof RING_CAUSES)[number];
 
 /** A bell (or great bell, `tone` null) was struck from `by`; `at` is its tile (P2). */
 export type BellStruckEvent = Ev<'bellStruck', { by: StruckBy; tone: Tone | null }>;

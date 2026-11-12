@@ -68,10 +68,14 @@ describe('BF-0 registration', () => {
     expect(Object.keys(KIT.events).filter((t) => t.startsWith('foundry:'))).toEqual([
       ...FOUNDRY_EVENT_TYPES,
     ]);
-    // nothing else: no guards, steps, foes, offers, causes or tricks yet
+    // nothing else: no guards, steps, offers, causes or tricks yet (BF-6/7: the staff's three foes)
     expect(m?.harmGuards ?? []).toEqual([]);
     expect(m?.steps ?? []).toEqual([]);
-    expect(m?.foes ?? []).toEqual([]);
+    expect((m?.foes ?? []).map((f) => f.id)).toEqual([
+      'foundry:ringer',
+      'foundry:detuner',
+      'foundry:clapper',
+    ]);
     expect(m?.offerKinds ?? []).toEqual([]);
     expect(Object.keys(KIT.causes).filter((c) => c.startsWith('foundry:'))).toEqual([]);
     expect(Object.keys(KIT.shapes)).toContain(FOUNDRY_SHAPE);
@@ -98,6 +102,8 @@ describe('BF-0 pieces', () => {
     for (const p of KIT.modules.foundry?.pieces ?? []) {
       if (p.id === BELL_PIECE)
         expect(Object.keys(p.triggers).sort()).toEqual(['onHit', 'onKind', 'onStruck']);
+      else if (p.id === GREAT_BELL_PIECE)
+        expect(Object.keys(p.triggers).sort()).toEqual(['onHit', 'onStruck']);
       else expect(p.triggers).toEqual({});
     }
   });
@@ -326,7 +332,9 @@ describe('BF-0 tokens', () => {
         (t) => t.token,
       ),
     ).toEqual(['bell', 'rope', 'hook', 'greatBell']);
-    for (const id of FOUNDRY_FOE_IDS) expect(Object.hasOwn(ENEMIES, id)).toBe(false);
+    // BF-6/7 put the staff in ENEMIES; the Carillonneur's stand-in stays out until BF-9
+    for (const id of FOUNDRY_FOE_IDS)
+      expect(Object.hasOwn(ENEMIES, id)).toBe(id !== 'carillonneurStandIn');
     const builtIn = [
       ...Object.values(ENEMIES)
         .filter((e) => !Object.hasOwn(RIVALS, e.id))

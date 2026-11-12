@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { EventLog } from '$engine';
 import { basicDirs } from '$engine/basicActions';
-import { FOUNDRY_MODULE } from '$engine/districts/foundry';
+import { alliedBellEdits, FOUNDRY_MODULE } from '$engine/districts/foundry';
 import { parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json, ShapeInput } from '$engine/districts/types';
 import { tileAt } from '$engine/queries';
@@ -23,7 +23,7 @@ const rung = (s: Parameters<typeof tileAt>[0], x: number, y = 0): unknown =>
   (tileAt(s, { x, y }).piece?.data as { rung?: boolean } | undefined)?.rung;
 
 describe('BF-8 the great bells and their locks (P6)', () => {
-  it.fails('BF-8: lock 1 reach: a Bolt across drop tiles rings the great bell', () => {
+  it('BF-8: lock 1 reach: a Bolt across drop tiles rings the great bell', () => {
     const s = withLattices('D . _ _ {greatBell:1}', BOLT);
     const r = cast(s, 'draughtsman', 'right');
     const e = ev(r.events, 'foundry:bellRung');
@@ -33,7 +33,7 @@ describe('BF-8 the great bells and their locks (P6)', () => {
     expect(rung(r.state, 4)).toBe(true);
   });
 
-  it.fails('BF-8: lock 2 match: only a ring of its tone reaches it, and muffled the ring never comes', () => {
+  it('BF-8: lock 2 match: only a ring of its tone reaches it, and muffled the ring never comes', () => {
     const open = withLattices('D . {bell:mid} . . . {greatBell:2}', BOLT);
     const a = cast(open, 'draughtsman', 'right');
     expect(dataOf(ev(a.events, 'foundry:bellRung')[0])).toEqual({
@@ -51,8 +51,8 @@ describe('BF-8 the great bells and their locks (P6)', () => {
     expect(rung(b.state, 6)).toBe(false);
   });
 
-  it.fails('BF-8: lock 3 unison: needs two apprentices in the same player phase', () => {
-    const s = withLattices('D . . {greatBell:3} . . S', TWO);
+  it('BF-8: lock 3 unison: needs two apprentices in the same player phase', () => {
+    const s = withLattices('D . . {greatBell:3} . . S\nb . . . . . .', TWO); // a far foe keeps the battle on
     const a = cast(s, 'draughtsman', 'right');
     expect(ev(a.events, 'foundry:bellStruck')).toHaveLength(1); // control: it was struck
     expect(ev(a.events, 'foundry:bellRung')).toHaveLength(0);
@@ -62,14 +62,14 @@ describe('BF-8 the great bells and their locks (P6)', () => {
     expect(rung(b.state, 3)).toBe(true);
   });
 
-  it.fails('BF-8: lock 3 unison: one strike when the party is alone', () => {
+  it('BF-8: lock 3 unison: one strike when the party is alone', () => {
     const s = withLattices('D . . {greatBell:3}', BOLT);
     const r = cast(s, 'draughtsman', 'right');
     expect(dataOf(ev(r.events, 'foundry:bellRung')[0])).toMatchObject({ note: 3, lock: 'unison' });
     expect(rung(r.state, 3)).toBe(true);
   });
 
-  it.fails('BF-8: lock 4 chord: needs one ring of three other bells', () => {
+  it('BF-8: lock 4 chord: needs one ring of three other bells', () => {
     const three = withLattices(
       'D . {bell:low} . {bell:low}\n. . . . {bell:low}\n. . . . {greatBell:4}',
       BOLT,
@@ -94,7 +94,7 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     data: { note: 2, lock: 'match', hang: 'mid' },
   } as unknown as EventLog[number];
 
-  it.fails('BF-8: a won room with a rung great bell writes a rung bell to trip state', () => {
+  it('BF-8: a won room with a rung great bell writes a rung bell to trip state', () => {
     const afterRoom = FOUNDRY_MODULE.trip?.afterRoom;
     expect(afterRoom).toBeTypeOf('function');
     const start: Json = { rung: [{ room: 0, note: 1 }] };
@@ -110,7 +110,7 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     expect(afterRoom?.(input(start, 1), [], true)).toEqual(start); // nothing rung
   });
 
-  it.fails('BF-8: an allied great bell pulses foes only and spares the party', () => {
+  it('BF-8: an allied great bell pulses foes only and spares the party', () => {
     const s = board('D {greatBell:1:allied:rung} b . .', {
       kits: { draughtsman: { action: 'shove' } },
     });
@@ -121,6 +121,34 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     expect(unit(r.state, 'sentry-1').pos).toEqual({ x: 3, y: 0 });
     expect(unit(r.state, 'draughtsman').hp).toBe(unit(s, 'draughtsman').hp);
     expect(unit(r.state, 'draughtsman').pos).toEqual({ x: 0, y: 0 });
+  });
+
+  it('BF-8: hooks hang the rung notes: a named hook its note, bare hooks the rest in reading order', () => {
+    const edits = alliedBellEdits(
+      {
+        rung: [
+          { room: 0, note: 1 },
+          { room: 2, note: 3 },
+          { room: 3, note: 4 },
+        ],
+      },
+      [
+        { at: { x: 4, y: 0 }, note: 0 },
+        { at: { x: 0, y: 0 }, note: 4 },
+        { at: { x: 2, y: 0 }, note: 2 },
+        { at: { x: 6, y: 0 }, note: 0 },
+      ],
+    );
+    expect(
+      edits.map((e) => [
+        e.at.x,
+        'piece' in e ? ((e.piece?.data ?? { note: 0 }) as { note: number }).note : 0,
+      ]),
+    ).toEqual([
+      [0, 4],
+      [4, 1],
+      [6, 3],
+    ]); // the hook for note 2 hangs nothing: that room's bell was not rung
   });
 
   it.todo('BF-8: roomSetup hangs an allied bell at each hook for every note rung');
