@@ -59,7 +59,7 @@ Not wired: `intrusion: BATH_INTRUSION`. The lower Seam's `checkFloor` (`lowerSea
 | Phone: Crossroads with heat copy | pass | `bh18-crossroads-heat.jpg` ("Next hall: heat 1, cooled by the plunge"); before the heart "as hot as it gets: heat 4" |
 | Phone: the dome threshold | pass | `bh18-map-threshold.jpg`, `bh18-dome.jpg` (gauge strip, "Pressure 0 to 1") |
 | Phone: map caption | pass | barred caption and "Try the lock" button on the map; opened node after solving (no bath art for `bath-dome`: generic solved tick) |
-| Phone: footnote margins for the five subjects | not checked | text and scenarios exist (`tests/scenarios/footnotes/bathhouses-*.test.ts`); not viewed on a phone here |
+| Phone: footnote margins for the five subjects | pass (FU-12) | Desk at 375x812 with Vat, Seep, Steep, Bath salt, Fog jar each opened: no horizontal overflow, text wraps inside the frames, nothing clipped. Only the capstone frame showed (a synthetic save at 80 points, nothing written); the line slots were not seen. No layout fix needed. Also FU-11: the meter row sits 14px under board row 9 (Lab room 7x9, heat 4), no overlap |
 | Svelte autofixer | n/a | no `.svelte` file changed |
 | `pnpm check` | see Full check | |
 | Golden fixtures unchanged | pass | check green |
