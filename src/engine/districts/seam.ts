@@ -6,6 +6,7 @@ import { byReadingOrder, type Coord, label } from '../grid';
 import { landKindFree } from '../mix';
 import { enemies, inBoard, isAlive, members } from '../queries';
 import type { BattleState, EnemyUnit, Unit } from '../types';
+import { SEAM_HEART } from './seam/heartFrame';
 import type {
   DistrictEvent,
   DistrictEventDef,
@@ -165,6 +166,7 @@ export const SEAM_MODULE: DistrictModule = {
   steps: HAND_STEPS,
   foes: [MARGINALIA_FOE],
   events: SEAM_EVENTS,
+  heart: SEAM_HEART,
 };
 
 // ── The margins answer (SM P12) lives in engine/margins.ts; kept importable from here (SM-0). ──
