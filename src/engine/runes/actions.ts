@@ -210,10 +210,33 @@ const guard: Handler = (ctx, t, flow) => {
   });
 };
 
-function holdUnit(ctx: Ctx, u: Unit, rounds: number): void {
+/**
+ * Holds a unit. `viaHold`: the Hold rune's own target (`hold-held-extend` lengthens only that).
+ * `holds` and `holdFreeUntil` are written only while `hold-held-exposed` or `hold-held-shake` is
+ * written, so units are unchanged without them (bridges plan P22).
+ */
+export function holdUnit(ctx: Ctx, u: Unit, rounds: number, viaHold = false): void {
   if (trickResists(ctx, u, 'hold')) return; // RV-11 `resists`
   if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Hold')) return; // BH P8
-  u.held = Math.max(u.held, rounds);
+  // `hold-held-shake`: a unit freed by the shake cannot be held again for a round.
+  if (u.holdFreeUntil !== undefined && ctx.s.round <= u.holdFreeUntil) {
+    withLine(ctx, 'hold:held', () => emit(ctx, { type: 'miss', source: 'Hold' }));
+    return;
+  }
+  const shake = hasFootnote(ctx, 'hold-held-shake');
+  if (shake || hasFootnote(ctx, 'hold-held-exposed')) {
+    u.holds = u.held > 0 ? (u.holds ?? 1) + 1 : 1;
+  }
+  if (viaHold && u.held > 0 && hasFootnote(ctx, 'hold-held-extend')) {
+    u.held = Math.min(u.held + 1, rounds + 2); // at most 2 extra in all
+  } else {
+    u.held = Math.max(u.held, rounds);
+  }
+  // The Hold that makes it held twice frees it at your next turn (it wins over `hold-held-extend`).
+  if (shake && u.holds === 2) {
+    u.held = 1;
+    u.holdFreeUntil = ctx.s.round + 1; // the round it is freed in
+  }
   emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
 }
 
@@ -253,7 +276,25 @@ const hold: Handler = (ctx, t, flow) => {
   // A hold on a cracked span tile pins the unit there for the dusk fall (BR-17).
   const cracked = crackedTiles(ctx.s).some((c) => sameCoord(c, u.pos));
   const line: LineId | null = u.held > 0 ? 'hold:held' : cracked ? 'hold:cracked' : null;
-  maybeLine(ctx, line, () => holdUnit(ctx, u, rounds));
+  // `hold-held-pass`: the second Hold goes to the first unheld unit beside it, yours included, so
+  // the first unit is not held twice.
+  const passTo =
+    u.held > 0 && hasFootnote(ctx, 'hold-held-pass')
+      ? neighbors4(u.pos)
+          .sort(byReadingOrder)
+          .flatMap((at) => (inBoard(ctx.s, at) ? (unitAt(ctx.s, at) ?? []) : []))
+          .find((v) => v.hp > 0 && v.held === 0)
+      : undefined;
+  maybeLine(ctx, line, () => holdUnit(ctx, passTo ?? u, rounds, !passTo));
+  // `hold-cracked-knot`: the units beside the target on the same cracked span are held too.
+  if (cracked && hasFootnote(ctx, 'hold-cracked-knot')) {
+    const span = crackedTiles(ctx.s);
+    for (const at of neighbors4(u.pos).sort(byReadingOrder)) {
+      const v = inBoard(ctx.s, at) ? unitAt(ctx.s, at) : null;
+      if (v && v.hp > 0 && span.some((c) => sameCoord(c, at)))
+        withLine(ctx, 'hold:cracked', () => holdUnit(ctx, v, rounds));
+    }
+  }
   const habit = flow.habit;
   const extra = ruleOf(habit).holdExtra ?? 0;
   if (!habit || extra <= 0) return;

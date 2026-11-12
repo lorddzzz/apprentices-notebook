@@ -15,6 +15,7 @@ import type {
 } from '../types';
 import { AURAS } from './auras';
 import { BATHHOUSES } from './bathhouses';
+import { BRIDGES } from './bridges';
 import { CANALS } from './canals';
 import { INK_QUARTER } from './inkQuarter';
 import { SEAM_METHODS } from './seam-methods';
@@ -37,6 +38,7 @@ export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   canals: CANALS,
   bathhouses: BATHHOUSES,
   'ink-quarter': INK_QUARTER,
+  bridges: BRIDGES,
   rivals: [LAMPLIGHTER_WICK, CARILLONNEUR_NOTE],
 };
 

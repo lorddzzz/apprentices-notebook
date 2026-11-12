@@ -1,6 +1,6 @@
 import { BRIDGE_TUNING } from '$data/districts/bridges/types';
 import type { Coord } from '../../grid';
-import { coordOf } from '../../queries';
+import { coordOf, isPlate } from '../../queries';
 import type { BattleState } from '../../types';
 import { componentsOf } from '../api';
 import type { BoardEdit } from '../types';
@@ -57,10 +57,19 @@ function liveState(s: BattleState): BridgesState {
 const isSpanTile = (s: BattleState, at: Coord): boolean => pieceAt(s, at)?.id === SPAN_PIECE;
 const stoneAt = (own: BridgesState, at: Coord): number => own.stone[tileKey(at.x, at.y)] ?? 1;
 
-/** Footing tiles that hold the network up: piers and a keystone with HP left. */
+/**
+ * Footing tiles that hold the network up: piers, a keystone with HP left, and (`lay-cap-footing`) a
+ * span tile whose set plate stands: the Lay hook in `wear.ts` marked the span (`data.footing`), and
+ * the plate has to still be there.
+ */
 function isFooting(s: BattleState, own: BridgesState, at: Coord): boolean {
-  const id = pieceAt(s, at)?.id;
-  return id === PIER_PIECE || (id === KEYSTONE_PIECE && stoneAt(own, at) > 0);
+  const piece = pieceAt(s, at);
+  if (piece?.id === SPAN_PIECE) {
+    const tile = s.tiles[at.y * s.width + at.x];
+    const footing = (piece.data as { footing?: true } | null)?.footing === true;
+    return footing && tile !== undefined && tile.state?.set === true && isPlate(tile);
+  }
+  return piece?.id === PIER_PIECE || (piece?.id === KEYSTONE_PIECE && stoneAt(own, at) > 0);
 }
 
 /** Span tiles in a component that holds a footing, in reading order. */

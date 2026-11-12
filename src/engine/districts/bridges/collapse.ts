@@ -1,10 +1,15 @@
+import { TUNING } from '$data';
 import { arrive, hasTrait } from '../../arrival';
+import { markUnit } from '../../bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from '../../ctx';
+import { dealDamage } from '../../damage';
+import { hasFootnote } from '../../footnotes';
 import { type Coord, sameCoord } from '../../grid';
+import { layThinCloud } from '../../mix';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
-import { coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
+import { blocksUnits, coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
 import { trickResists } from '../../rivals/tricks';
-import type { BattleState, EnemyUnit, Origin, Unit } from '../../types';
+import type { BattleState, EnemyUnit, Layer, Origin, Unit } from '../../types';
 import { epilogueFall } from './heart';
 import { holdsRightOfWay } from './keystoneRight';
 import { cracksOf } from './support';
@@ -14,6 +19,7 @@ import {
   type CutOrigin,
   KEYSTONE_PIECE,
   parseBridges,
+  SPAN_PIECE,
   tileKey,
 } from './types';
 
@@ -98,6 +104,80 @@ function landingFor(
   return best;
 }
 
+/** The nearest bare standing tile for a cloud (`lay-cracked-cloud`): not falling, not fog, no layer. */
+function nearestBare(s: BattleState, from: Coord, falling: ReadonlySet<string>): Coord | null {
+  let best: Coord | null = null;
+  let bestD = Number.POSITIVE_INFINITY;
+  s.tiles.forEach((t, i) => {
+    const at = coordOf(s, i);
+    if (falling.has(key(at)) || t.terrain.drop || t.terrain.water || t.state || blocksUnits(t))
+      return;
+    const d = Math.abs(at.x - from.x) + Math.abs(at.y - from.y);
+    if (d < bestD) {
+      best = at;
+      bestD = d;
+    }
+  });
+  return best;
+}
+
+/**
+ * The Hold footnotes that act before the fall, in bridges.md §8's order: `hold-cracked-spare` and
+ * `hold-cap-hang` set a held unit on the nearest standing tile (the former only for a member), then
+ * `hold-cracked-lean` spares a tile whose occupant is held, once (the span piece remembers it).
+ * `fallingTiles` stays the one selection; these only take tiles out of what falls.
+ */
+function holdAtDusk(ctx: Ctx, falling: Coord[]): Coord[] {
+  const hang = hasFootnote(ctx, 'hold-cap-hang');
+  const spare = hasFootnote(ctx, 'hold-cracked-spare');
+  const lean = hasFootnote(ctx, 'hold-cracked-lean');
+  if (!hang && !spare && !lean) return falling;
+  const keys = new Set(falling.map(key));
+  for (const { unit, at } of fallersOn(ctx.s, falling)) {
+    if (unit.held <= 0 || !(hang || (spare && unit.kind === 'member'))) continue;
+    const to = landingFor(ctx.s, at, keys, unit.id);
+    if (!to) continue;
+    withLine(ctx, 'hold:cracked', () => {
+      emit(ctx, {
+        type: 'moved',
+        unit: ref(unit),
+        from: { ...unit.pos },
+        to: { ...to },
+        path: [{ ...to }],
+        cause: FALL_CAUSE,
+      });
+      arrive(ctx, unit.id, [to], { cause: FALL_CAUSE, origin: null, landing: true });
+    });
+  }
+  if (!lean) return falling;
+  return falling.filter((at) => {
+    const u = unitAt(ctx.s, at);
+    const piece = tileAt(ctx.s, at).piece;
+    const data = (piece?.data ?? {}) as Record<string, unknown>;
+    if (!u || !isAlive(u) || hasTrait(u, 'flies') || u.held <= 0) return true;
+    if (!piece || piece.id !== SPAN_PIECE || data.leaned === true) return true;
+    piece.data = { ...data, leaned: true } as typeof piece.data;
+    // The held unit is stamped again: the stone waits one more dusk.
+    withLine(ctx, 'hold:cracked', () => emit(ctx, { type: 'held', unit: ref(u), rounds: u.held }));
+    return false;
+  });
+}
+
+/** `lay-cracked-last`: the lost layer's step on the unit that falls with it (fire, a brand cloud, a scalding cloud). */
+function lastWord(ctx: Ctx, layer: Layer, unit: Unit, at: Coord): void {
+  withOrigin(ctx, layer.origin, () =>
+    withLine(ctx, 'lay:cracked', () => {
+      if (layer.id === 'fire') {
+        dealDamage(ctx, unit, TUNING.fireDamage, 'Fire', [], { heading: null, at: { ...at } });
+      } else if (layer.id === 'brandCloud' && !unit.mark) {
+        markUnit(ctx, unit, layer.origin);
+      } else if (layer.scalds) {
+        dealDamage(ctx, unit, 1, 'Scald', [], { heading: null, at: { ...at }, harm: 'steam' });
+      }
+    }),
+  );
+}
+
 /** Epilogues asked for while a collapse step is still looping: run once it has finished (P7). */
 const stepping = new WeakSet<Ctx>();
 const deferred = new Map<Ctx, EnemyUnit>();
@@ -140,6 +220,8 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
     }
     if (!falling.length) return state;
   }
+  falling = holdAtDusk(ctx, falling);
+  if (!falling.length) return state;
   const keys = new Set(falling.map(key));
   const origins = new Map(falling.map((f) => [key(f), originAt(f, falling, state.cuts)]));
   const fallers = fallersOn(ctx.s, falling);
@@ -154,6 +236,7 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
   emit(ctx, ev);
   // BR-17: a Lay'd layer set into a falling tile goes with it.
   const setIn = falling.filter((at) => tileAt(ctx.s, at).state?.set === true);
+  const lost = new Map(setIn.map((at) => [key(at), structuredClone(tileAt(ctx.s, at).state)]));
   if (setIn.length) {
     withLine(ctx, 'lay:cracked', () =>
       emit(ctx, { type: 'stateFades', tiles: setIn.map((c) => ({ ...c })) }),
@@ -168,6 +251,16 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
     t.hot = 0;
     delete t.brassHot;
     t.terrain = { ...t.terrain, drop: true };
+  }
+  // `lay-cracked-cloud`: each lost layer leaves a 1-round plain cloud on the nearest standing tile.
+  if (hasFootnote(ctx, 'lay-cracked-cloud')) {
+    for (const at of setIn) {
+      const to = nearestBare(ctx.s, at, keys);
+      if (to)
+        withLine(ctx, 'lay:cracked', () =>
+          layThinCloud(ctx, to, lost.get(key(at))?.origin ?? null, 1),
+        );
+    }
   }
   const seam = Object.hasOwn(ctx.s.rules ?? {}, SEAM_DROP_RULE);
   for (const { unit, at } of fallers) {
@@ -190,6 +283,24 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
     }
     const by = origins.get(key(at))?.by ?? null;
     const origin: Origin | null = by ? { caster: by, spell: '0,0', cast: ctx.s.castSeq } : null;
+    const gone = lost.get(key(at));
+    if (gone && hasFootnote(ctx, 'lay-cracked-last') && isAlive(unit))
+      lastWord(ctx, gone, unit, at);
+    // `hold-cap-crush`: a foe you held takes the fall as a crush too (a minion is gone either way;
+    // an elite takes it on top of the drop). A member held by a foe's chalk is not "held by you".
+    if (
+      unit.kind === 'enemy' &&
+      unit.held > 0 &&
+      hasFootnote(ctx, 'hold-cap-crush') &&
+      isAlive(unit)
+    ) {
+      withOrigin(ctx, origin, () =>
+        withLine(ctx, 'hold:cracked', () =>
+          dealDamage(ctx, unit, TUNING.crushBase, 'Crush', [], { heading: null, at: { ...at } }),
+        ),
+      );
+    }
+    if (!isAlive(unit)) continue;
     withOrigin(ctx, origin, () => {
       if (unit.kind === 'enemy' && !seam) {
         emit(ctx, { type: 'dropped', unit: ref(unit, at), at: { ...at }, elite: unit.elite });

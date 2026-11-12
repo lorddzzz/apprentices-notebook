@@ -22,8 +22,18 @@ import {
 } from './bursts';
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
+import { crackedTiles } from './districts/api';
 import { hasFootnote } from './footnotes';
-import { byReadingOrder, type Coord, DIRS, type Dir, neighbors4, step } from './grid';
+import {
+  byReadingOrder,
+  type Coord,
+  DIRS,
+  type Dir,
+  neighbors4,
+  opposite,
+  sameCoord,
+  step,
+} from './grid';
 import { habitRule } from './habits';
 import { cloudNet } from './networks';
 import { kindOnPiece, pieceHoldsOnlyClouds, strikePiece } from './pieces';
@@ -238,7 +248,76 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
   noteMet(ctx, id);
 }
 
+/**
+ * What Lay's footnotes do to a layer it has just set (BR-19a, line `lay:cracked`): `lay-cracked-spent`
+ * (a plate or wall on a cracked tile takes one hit more; a plain layer has no power to add to),
+ * `lay-cracked-both` (a copy on the nearest standing tile), `lay-cap-footing` (a set plate on a span
+ * counts as a pier: the bridges wear hook marks it, `districts/bridges/wear.ts`) and `lay-cap-trail`
+ * (a copy one round shorter than the layer's own, behind the target).
+ */
+function layFootnotes(ctx: Ctx, kind: Plain, at: Coord, flow: Flow): void {
+  const layer = tileAt(ctx.s, at).state;
+  if (!layer?.set) return;
+  const cracked = crackedTiles(ctx.s);
+  withLine(ctx, 'lay:cracked', () => {
+    if (cracked.some((c) => sameCoord(c, at))) {
+      if (hasFootnote(ctx, 'lay-cracked-spent') && layer.hits !== undefined) layer.hits += 1;
+      if (hasFootnote(ctx, 'lay-cracked-both')) {
+        const to = nearestFree(ctx, at, cracked, STANDS_UP.has(layer.id));
+        if (to) {
+          emit(ctx, { type: 'landed', kind, at: { ...to }, makes: layer.id });
+          tileAt(ctx.s, to).state = structuredClone(layer);
+        }
+      }
+    }
+    if (hasFootnote(ctx, 'lay-cap-footing') && isPlate(tileAt(ctx.s, at))) {
+      strikePiece(ctx, at, 'shove'); // the span under it marks the plate as footing
+    }
+    const heading = hasFootnote(ctx, 'lay-cap-trail') ? headingAt(ctx, flow, at) : null;
+    const behind = heading ? step(at, opposite(heading)) : null;
+    if (behind && inBoard(ctx.s, behind)) {
+      const t = tileAt(ctx.s, behind);
+      const fresh = newLayer(layer.id, kind, { ...flow, lay: false });
+      // A layer with no rounds of its own (a blot, a slick) cannot be shorter.
+      const rounds = fresh.rounds > 0 ? fresh.rounds - 1 : 0;
+      if (!t.state && !blocksUnits(t) && !t.terrain.drop && (fresh.rounds === 0 || rounds > 0)) {
+        if (!STANDS_UP.has(layer.id) || !unitAt(ctx.s, behind)) {
+          emit(ctx, { type: 'landed', kind, at: { ...behind }, makes: layer.id });
+          t.state = { ...fresh, rounds };
+        }
+      }
+    }
+  });
+}
+
+/** The nearest standing tile (not fog, water or cracked) that can take a layer, reading order on ties. */
+function nearestFree(
+  ctx: Ctx,
+  from: Coord,
+  cracked: readonly Coord[],
+  solid: boolean,
+): Coord | null {
+  let best: Coord | null = null;
+  let bestD = Number.POSITIVE_INFINITY;
+  ctx.s.tiles.forEach((t, i) => {
+    const c = coordOf(ctx.s, i);
+    if (t.state || t.jar || blocksUnits(t) || t.terrain.drop || t.terrain.water) return;
+    if (cracked.some((k) => sameCoord(k, c)) || (solid && unitAt(ctx.s, c))) return;
+    const d = Math.abs(c.x - from.x) + Math.abs(c.y - from.y);
+    if (d > 0 && d < bestD) {
+      best = c;
+      bestD = d;
+    }
+  });
+  return best;
+}
+
 export function landOnTile(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
+  landOnTileInner(ctx, kind, at, flow);
+  if (flow?.lay) layFootnotes(ctx, kind, at, flow);
+}
+
+function landOnTileInner(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): void {
   const s = ctx.s;
   const tile = tileAt(s, at);
   const want = PLAIN[kind];

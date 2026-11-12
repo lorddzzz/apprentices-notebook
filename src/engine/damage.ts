@@ -1,6 +1,7 @@
 import { ENEMIES, type HarmKind } from '$data';
 import { behaviourDied, behaviourOf } from './behaviours';
 import { type Ctx, emit, oweAtCap, ref, reserve } from './ctx';
+import { exposedStep, NOT_EXPOSED } from './exposed';
 import { foeBurst } from './foes';
 import type { Coord, Dir } from './grid';
 import { guardHarm } from './harm';
@@ -63,7 +64,8 @@ export function dealDamage(
       return to ? dealDamage(ctx, to, base, source, extra, { ...from, unguarded: true }) : false;
     }
   }
-  const amount = base;
+  const exposed = base > 0 ? exposedStep(ctx, unit) : NOT_EXPOSED;
+  const amount = base + exposed.step;
   const barbed = unit.thorns === true && unit.shield > 0;
   // A broken shield takes the whole blow and all it held; a pierced one lets 1 through.
   const absorbed =
@@ -81,6 +83,7 @@ export function dealDamage(
     source,
     bonus: [...extra],
     hpLeft: unit.hp,
+    ...(exposed.line ? { line: exposed.line } : {}),
   });
   if (absorbed > 0)
     emit(ctx, { type: 'shieldAbsorbs', unit: ref(unit), absorbed, left: unit.shield });

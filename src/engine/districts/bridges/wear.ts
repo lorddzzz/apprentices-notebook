@@ -1,4 +1,5 @@
 import { type Ctx, emit } from '../../ctx';
+import { hasFootnote } from '../../footnotes';
 import type { Coord } from '../../grid';
 import type { Origin } from '../../types';
 import type { StruckBy, TilePiece } from '../types';
@@ -11,6 +12,7 @@ import {
   KEYSTONE_PIECE,
   type KeystoneBreaksEvent,
   parseBridges,
+  SPAN_PIECE,
   type StoneWornEvent,
   tileKey,
 } from './types';
@@ -26,6 +28,18 @@ const CAUSE: Partial<Record<StruckBy, CutOrigin['cause']>> = { push: 'crush', bu
 
 const key = (c: Coord) => tileKey(c.x, c.y);
 
+/**
+ * A `shove` strike never wears. The bridges footnotes use it as the one way a core file can reach
+ * bridges state: the caller names itself by the line it runs in. `lay-cap-footing` (line
+ * `lay:cracked`, from `mix.ts`) marks the span a set plate stands on.
+ */
+function footnoteTouch(ctx: Ctx, where: Coord, piece: TilePiece): void {
+  if (piece.id !== SPAN_PIECE) return;
+  if (ctx.meta.line === 'lay:cracked' && hasFootnote(ctx, 'lay-cap-footing')) {
+    piece.data = { ...(piece.data as object), footing: true } as typeof piece.data;
+  }
+}
+
 export function wearStruck(
   ctx: Ctx,
   where: Coord,
@@ -33,6 +47,10 @@ export function wearStruck(
   by: StruckBy,
   origin: Origin | null,
 ): void {
+  if (by === 'shove') {
+    footnoteTouch(ctx, where, piece);
+    return;
+  }
   const cause = CAUSE[by];
   if (!cause) return;
   const own = parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]);

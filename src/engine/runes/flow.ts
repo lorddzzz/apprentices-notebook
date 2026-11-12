@@ -368,17 +368,37 @@ export function beside(s: BattleState, snap: Snapshot, t: Target): boolean {
  * Brink's fine print on a bridge (BR-17): a pass over a fallen (fog) tile signs `brink:drop`; a
  * miss beside a cracked span tile (still standing, so no edge yet) signs `brink:cracked`; a miss
  * at the room's own wall signs `brink:edge`. Canal water and a drop edge pass with no line.
+ * Footnotes (BR-19a): `brink-drop-near` counts the diagonals of a fog tile, `brink-drop-keen` makes
+ * a fog pass one step stronger (`weaker` -1), `brink-cracked-dusk` and `-half` let a cracked tile
+ * through (the latter one step weaker), `brink-cap-rim` lets the room's walls through.
  */
-function brinkLine(s: BattleState, snap: Snapshot, t: Target, pass: boolean): LineId | null {
+function brinkLine(
+  s: BattleState,
+  snap: Snapshot,
+  t: Target,
+  pass: boolean,
+  fn: FootnoteCheck,
+): { pass: boolean; line: LineId | null; weaker?: number } {
   const seen = seenAt(s, snap, t);
-  if (!seen) return null;
+  if (!seen) return { pass, line: null };
   const around = [seen.at, ...DIRS.map((d) => step(seen.at, d))];
   const tileOf = (c: Coord): Tile | undefined =>
     inBoard(s, c) ? snap.tiles[c.y * s.width + c.x] : undefined;
-  if (pass) return around.some((c) => tileOf(c)?.terrain.drop) ? 'brink:drop' : null;
+  const fogIn = (cs: readonly Coord[]): boolean => cs.some((c) => tileOf(c)?.terrain.drop);
+  const keen = fn('brink-drop-keen') ? { weaker: -1 } : {};
+  if (pass) return fogIn(around) ? { pass, line: 'brink:drop', ...keen } : { pass, line: null };
+  const corners = [-1, 1].flatMap((x) =>
+    [-1, 1].map((y) => ({ x: seen.at.x + x, y: seen.at.y + y })),
+  );
+  if (fn('brink-drop-near') && fogIn(corners)) return { pass: true, line: 'brink:drop', ...keen };
   const cracked = crackedTiles({ ...s, tiles: [...snap.tiles] });
-  if (around.some((c) => cracked.some((k) => sameCoord(k, c)))) return 'brink:cracked';
-  return around.some((c) => !inBoard(s, c)) ? 'brink:edge' : null;
+  if (around.some((c) => cracked.some((k) => sameCoord(k, c)))) {
+    if (fn('brink-cracked-dusk')) return { pass: true, line: 'brink:cracked' };
+    if (fn('brink-cracked-half')) return { pass: true, line: 'brink:cracked', weaker: 1 };
+    return { pass, line: 'brink:cracked' };
+  }
+  if (!around.some((c) => !inBoard(s, c))) return { pass, line: null };
+  return fn('brink-cap-rim') ? { pass: true, line: 'brink:edge' } : { pass, line: 'brink:edge' };
 }
 
 /** How a Unison passed: on the target, beside it (AH P16; `besideUnit` via a unit entry), or not. */
@@ -440,6 +460,8 @@ export interface Trial {
   line: LineId | null;
   count?: number;
   spend?: 'collar' | 'shackle';
+  /** Brink: how many steps weaker (or, negative, stronger) the rest acts on this target. */
+  weaker?: number;
 }
 
 /** A trigger's verdict on one target, reading only the cast's snapshot and the flow's habit. */
@@ -478,8 +500,13 @@ export function trial(
       };
     }
     case 'brink': {
-      const pass = beside(s, flow.snapshot, t);
-      return { pass, byHabit: false, line: brinkLine(s, flow.snapshot, t, pass) };
+      const v = brinkLine(s, flow.snapshot, t, beside(s, flow.snapshot, t), fn);
+      return {
+        pass: v.pass,
+        byHabit: false,
+        line: v.line,
+        ...(v.weaker !== undefined ? { weaker: v.weaker } : {}),
+      };
     }
     case 'unison': {
       const how = unisonWith(s, flow.snapshot, flow.caster, t, rule.unisonReach ?? 0);

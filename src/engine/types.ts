@@ -346,6 +346,10 @@ interface UnitBase {
   collar: Origin | null | false; // false = none; null = layout (born brass)
   shackle: number; // rounds left; 0 = none
   held: number; // Hold/Rivet: rounds left
+  /** Footnotes (`hold-held-exposed`, `hold-held-shake`): Holds landed during the current hold, read only while `held > 0`. */
+  holds?: number;
+  /** Footnotes (`hold-held-shake`): no Hold lands on this unit while the round is at most this. */
+  holdFreeUntil?: number;
   stunned: boolean; // skips its next action (dropped elite)
   elite: boolean; // members count as elites (P19)
   lastMove: Dir | null; // this turn, for Touch-self headings (P22)
