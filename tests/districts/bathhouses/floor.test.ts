@@ -1,12 +1,11 @@
 import { expect, test } from 'vitest';
-import { newProfile } from '$engine';
-import { BATH_INTRUSION } from '$data/districts/bathhouses';
-import { DISTRICT_KIT } from '$data/districts/index';
-import { checkFloor } from '$engine/districts/lowerSeam';
 import { act, board } from '../../scenarios/harness';
 
-test("FU-6: a thermae floor's vents puff at dusk", () => {
-  expect(newProfile()).toBeDefined();
+test("FU-6: a thermae floor's vents puff at dusk", async () => {
+  // The harness loads the engine first; the data and Seam modules form an import cycle otherwise.
+  const { BATH_INTRUSION } = await import('$data/districts/bathhouses');
+  const { DISTRICT_KIT } = await import('$data/districts/index');
+  const { checkFloor } = await import('$engine/districts/lowerSeam');
   expect(DISTRICT_KIT.bathhouses?.intrusion).toBe(BATH_INTRUSION);
   expect(checkFloor(BATH_INTRUSION)).toEqual([]);
   for (const layout of BATH_INTRUSION.rooms) {
