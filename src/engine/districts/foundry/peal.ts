@@ -1,13 +1,21 @@
-import { DEFAULT_HANG, type Note } from '$data/districts/foundry';
+import {
+  DEFAULT_HANG,
+  FOUNDRY_HEART,
+  foundryPicksFor,
+  foundryTableFor,
+  type Note,
+} from '$data/districts/foundry';
 import type { EventLog } from '../../events';
 import { byReadingOrder, type Coord } from '../../grid';
-import type { BoardEdit, RoomSetup, ShapeInput, TilePiece } from '../types';
+import { variantFor } from '../../trip/place';
+import type { BoardEdit, RoomOffers, RoomSetup, ShapeInput, TilePiece } from '../types';
 import {
   type BellRungEvent,
   type FoundryTripState,
   GREAT_BELL_PIECE,
   type GreatBellData,
   parseFoundryState,
+  TUNE_RULE_ID,
 } from './types';
 
 /**
@@ -57,15 +65,43 @@ export function alliedBellEdits(state: FoundryTripState, hooks: readonly HookTil
   return edits;
 }
 
-/**
- * The heart's hook tiles. A `RoomSetup` cannot read the board, so the heart's authored layouts
- * (BF-12) list them here, by layout; empty until then, which hangs nothing.
- */
-export const HEART_HOOKS: readonly HookTile[] = [];
+/** Each heart layout's `{hook}` tiles in reading order (all bare, note 0), read off the authored layouts. */
+const hooksOf = (layout: string): HookTile[] =>
+  layout.split('\n').flatMap((row, y) =>
+    row
+      .trim()
+      .split(/\s+/)
+      .flatMap((cell, x) => (cell === '{hook}' ? [{ at: { x, y }, note: 0 }] : [])),
+  );
 
-/** P7: the heart hangs the peal; every other room sets up as it is authored. */
+/**
+ * The heart's hook tiles, by layout (BF-12). A `RoomSetup` cannot read the board, so they are listed
+ * here from the authored layouts; the trip's variant picks the list.
+ */
+export const HEART_HOOKS: readonly (readonly HookTile[])[] = (FOUNDRY_HEART.variants ?? []).map(
+  (v) => hooksOf(v.layout),
+);
+
+/**
+ * P7, P24: the heart hangs the peal on its layout's hooks and seeds the tune from the trip seed
+ * (the tune rule is listed by the district); every other room sets up as it is authored.
+ */
 export function pealRoomSetup(input: ShapeInput<FoundryTripState>): RoomSetup {
   if (input.room < input.length - 1) return {};
-  const boardEdits = alliedBellEdits(parseFoundryState(input.state), HEART_HOOKS);
-  return boardEdits.length > 0 ? { boardEdits } : {};
+  const hooks = HEART_HOOKS[variantFor(input.trip, input.room)] ?? [];
+  const boardEdits = alliedBellEdits(parseFoundryState(input.state), hooks);
+  return {
+    ...(boardEdits.length > 0 ? { boardEdits } : {}),
+    rulesConfig: { [TUNE_RULE_ID]: { seed: input.trip.seed } },
+  };
 }
+
+/**
+ * BF-13: the room's table and picks (rooms 1-2 shallow, 3-4 deep, the heart its own and two picks).
+ * Unison's page in room 2 and the tuner's card in room 3 come from RC's guarantee and offer kind
+ * reading the district's recruit placement, not from here.
+ */
+export const pealOffersFor = (input: ShapeInput<FoundryTripState>): RoomOffers => ({
+  table: foundryTableFor(input.room, input.length),
+  picks: foundryPicksFor(input.room, input.length),
+});

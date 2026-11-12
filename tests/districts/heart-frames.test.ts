@@ -3,6 +3,7 @@ import type { DistrictId } from '$data';
 import { BATH_HEART } from '$data/districts/bathhouses';
 import { BRIDGE_HEART } from '$data/districts/bridges';
 import { CANAL_ROOMS } from '$data/districts/canals';
+import { FOUNDRY_HEART } from '$data/districts/foundry';
 import { SEAM_ROOMS } from '$data/districts/seam';
 import { createBattle } from '$engine';
 import { KIT } from '$engine/districts';
@@ -142,6 +143,24 @@ describe('KIT-R3 heart frames', () => {
     const layout = firstHeart([BATH_HEART]);
     checkFrame('bathhouses', layout, 'bathSteward', sizeOf(layout));
     expect(heartOf('bathhouses').rules).toContain('bathhouses:boilOver');
+  });
+
+  test('KIT-R3: foundry frame places the Carillonneur on 5x5, 7x9 and the real room size, seeded', () => {
+    const layout = firstHeart([FOUNDRY_HEART]);
+    checkFrame('foundry', layout, 'carillonneur', sizeOf(layout));
+    expect(heartOf('foundry').rules).toContain('foundry:tune');
+    // The four hooks survive every size, never stacked.
+    for (const [w, h] of [
+      [5, 5],
+      [7, 9],
+      [5, 6],
+    ] as const) {
+      for (const seed of [1, 2, 3, 4]) {
+        const framed = heartOf('foundry').frame(blank(w, h), seed);
+        const hooks = framed.tiles.filter((t) => t.piece?.id === 'foundry:hook');
+        expect(hooks, `${w}x${h} seed ${seed}`).toHaveLength(4);
+      }
+    }
   });
 
   test('KIT-R3: bathhouses frame stands the Steward on a connected cloud of four or more tiles', () => {
