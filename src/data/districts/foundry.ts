@@ -7,6 +7,7 @@ import type {
   KitRoomDef,
   PaperDef,
   PaperId,
+  ThresholdSpec,
   TokenEntry,
 } from './index';
 
@@ -165,6 +166,7 @@ const L = BELL.low;
 const M = BELL.mid;
 const H = BELL.high;
 const MUFFLED_M = `~${M}`;
+const MUFFLED_H = `~${H}`;
 const board = (...rows: readonly string[]): string => rows.join('\n');
 
 /** The ringers' ledger's entry ids, one per fight: rooms 1 to 4, then the heart (`FOUNDRY_LEDGERS`). */
@@ -622,4 +624,30 @@ export const FOUNDRY_INK: Readonly<Record<string, string>> = {
   'foundry-hall': 'Two hands, one turn. A bell is rung by agreement.',
   'foundry-loft': 'Three bells and the fourth answers. Count the Clapper among them.',
   'foundry-heart': 'He plays the same four notes. Learn them and he has nothing left to say.',
+};
+
+// ── The far bell (BF-15; foundry-plan P26) ──────────────
+/**
+ * The gate, a free and retryable hall (6x8, four `P`): two low bells far apart, one near the
+ * party and one at the far wall, and a muffled high bell between them that stays silent when
+ * struck (nothing but a ring opens the door, so the lure cannot solve it). Strike the near bell
+ * (a Shove is enough) and every low bell rings. The goal is any `foundry:ring`: only a muffled
+ * decoy can be struck without one. BF-22 sets it as `gate` and `threshold`.
+ */
+export const FOUNDRY_THRESHOLD: ThresholdSpec = {
+  name: 'The far bell',
+  board: board(
+    `. . . ${L} . .`,
+    '. . . . . .',
+    '. . . . . .',
+    `. . . . ${MUFFLED_H} .`,
+    '. . . . . .',
+    `. . ${L} . . .`,
+    'P . . . . P',
+    '. P . . P .',
+  ),
+  goal: { happens: 'foundry:ring' },
+  note: 'Two bells of one tone hang at either end of the hall. The door is hung from the far one.',
+  goalText: 'Ring the far bell.',
+  solvedArt: 'foundry-bell',
 };
