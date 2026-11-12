@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-12d; ED, O, F5 merged (e6e3c78); I and **CI** running. CI red since F9 (sims only: household-sweep 'bell foundry is not open'; AH-8 fuzz since ED's `mender`).
+**State:** routine window 2026-11-12d; ED, O, F5, I merged (452d9bc, not pushed until CI is green); **CI** running. CI red since F9 (sims only: household-sweep 'bell foundry is not open'; AH-8 fuzz since ED's `mender`).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Wake-up at each reset (CronCreate one-shot, session-only; CET = UTC+1) until the player says stop or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
@@ -11,7 +11,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 ## Next
 0. **Pack CI (player, 2026-11-12):** CI-1 household-sweep since F9, CI-2 AH-8 fuzz since ED; full `pnpm check` green before any further merge batch is pushed. Read each push's CI result (sims run only there).
-1. **Routine windows, in the briefs file's order:** wave 11 **I** (FU-2–5).
+1. **Briefs exhausted** after CI: the next window is a **design window**.
 2. **Filed by MIX (MIX-F1, unassigned, Default):** Seam hand and telegraph events project the intent and `born` flag the engine reaches at the end of the enemy phase; remove the four `KNOWN_FAILS` in `tests/sim/rule-pairs.test.ts` when it lands. The cartographers' hand joins `FEATURES` there when CG-2 merges.
 3. **Next design window:** briefs for cartographers Packs A–J (CW0 merged: due now); EN-G0 once the player has timed the dev page; BF-FG (F5 merged; its questions in Needs design review); EN-12 handover draft; ending Packs E–L after EN-G0; RV-20b and FN-A1 M2 briefs; the ledger.
 4. Hard edges: EN-S2 → EN-G0 → ending Pack E · C3b → ED → F5 → I · ED → O · CW0 → every CG pack · BL-111 → EN-4 · BR-20 and BF-9 → CG-14.
@@ -39,6 +39,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - From CW0: CG-1 registers `CARTOGRAPHERS_MODULE` in `districts/kit.ts` and moves the fixtures in `tests/engine/pieces.test.ts` and `tests/app/bench-registry.test.ts` to another module id in the same commit; `HAND_SALT = 8100`; `heart` frame (salt 7160) and `bot` at CG-10.
 - From ED (EN-9): fine print `mender:diagonal` and `mender:dusk` need two new `Meets` members in src/data/types.ts, then their rows in lines.ts; the engine stamps none of the three `mender:*` keys yet (`mender:unit` row is `pending`). Small, Default; next engine pack touching types.ts.
 - Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
+- From I (FU-5): Afterglow lines Af2 (extra round spent once) and Af3 (a drifting stain keeps its Afterglow) need a new `GameEvent` each, so the pack must own src/app/view.ts, fx.ts, timing.ts and tests/app/projection.test.ts (exhaustive event switches). Small–M, Default; brief in the next design window.
 - Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 (Pack N). Plans' "Leaves for later" items: copied into every brief written.
 
 ## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)

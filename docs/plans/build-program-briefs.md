@@ -122,32 +122,6 @@ Verify: `pnpm vitest run tests/scenarios tests/data tests/rivals tests/districts
 Phone check: no (no screen changes; the orchestrator checks at the wave's end that the Chalk margin lists the ring at level II).
 ```
 
-## Pack I: rivals and events leftovers (Default: Sonnet medium)
-
-Starts when F5 is merged (FU-5 edits `src/data/lines.ts`).
-
-```
-Pack I of docs/plans/platform-closure-plan.md: tasks FU-2 → FU-3 → FU-4 → FU-5.
-
-Read: platform-closure-plan.md Pack I's rows; TECH.md §3 "Authoring a rival"; pattern: `removeTrickObject`
-and `LockLost` in src/engine/rivals/tricks.ts.
-Own: src/engine/rivals/**, src/engine/events.ts, src/data/footnotes/auras.ts, the afterglow rows of src/data/lines.ts,
-tests/rivals/**, tests/scenarios/footnotes/auras*.test.ts, and the suites that assert `jarOpened`/`jarCrumbles`
-(FU-3; list them in the report).
-Contract: FU-2 `LockLost` gains `met` and `spent`; FU-3 `jarOpened` and `jarCrumbles` carry the jar id;
-FU-4 a trick may add an arrival cause that enters FD's pipeline with its entered tiles; FU-5 the afterglow
-margin lines with the events they need.
-Owed by this pack: nothing. Leaves for later: none.
-
-Done when:
-- FU-2: "FU-2: a lock fails as spent when its charge is gone and met when its goal is reached" passes.
-- FU-3: "FU-3: a wick order names the jar that opened or crumbled" passes.
-- FU-4: "FU-4: a trick's arrival cause enters FD's pipeline with its entered tiles" passes; tests/rivals unchanged otherwise.
-- FU-5: each new row fires in a scenario; tests/data/integrity.test.ts passes.
-
-Verify: `pnpm vitest run tests/rivals tests/scenarios tests/data --reporter=dot`
-```
-
 ## Close-outs (platform-closure Pack N; orchestrator, not a pack-worker run)
 
 Platform-closure Pack N (CL-1 → CL-5) runs last, by the orchestrator in a design window, after every pack above and the tracks that finish the built plans: DESIGN §11 and TECH §7 rows for FD, DK, RV, FN, SM, IQ (write only the missing ones), the five verification files (SM-15 among them), five `code-review` runs, records and the ledger, full `pnpm check`.
