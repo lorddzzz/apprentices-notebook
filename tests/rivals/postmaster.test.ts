@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import { RIVAL_PAGES, RIVALS } from '$data/rivals';
-import { type BattleState, describeLog, type EnemyUnit, newProfile, parseLabel } from '$engine';
+import { POSTMASTER_PAGE } from '$data/rivals/postmaster';
+import {
+  type BattleState,
+  describeLog,
+  type EnemyUnit,
+  newProfile,
+  type Profile,
+  parseLabel,
+} from '$engine';
 import { dealDamage } from '$engine/damage';
 import {
   CLOCK_RULE_ID,
@@ -9,10 +17,14 @@ import {
   openClock,
 } from '$engine/districts/inkQuarter/clock';
 import { CLOCK_WRIT_TRICK_ID } from '$engine/districts/inkQuarter/postmaster';
-import { bankPages, pagesHeld } from '$engine/rivals/pages';
+import { footnoteIds } from '$engine/footnotes';
+import { bankPages, pagesHeld, rivalNoteVisible } from '$engine/rivals/pages';
 import { listRules } from '$engine/rules';
 import { awardsPage } from '$engine/standIn';
-import { act, board, draft, expectLogIncludes } from '../scenarios/harness';
+import { marginOf, writeAt } from '../../src/app/desk';
+import { withFootnotes } from '../scenarios/footnoteHarness';
+import { castWith } from '../scenarios/footnotes/castHelper';
+import { act, board, draft, expectLogIncludes, withLattices } from '../scenarios/harness';
 
 /**
  * The postmaster as a rival (ink-quarter plan P9, P10; IQ-22): `p` is him, the clock writ is his
@@ -145,6 +157,56 @@ describe('his kit and routine', () => {
   test('one mark is not enough to Collect', () => {
     const s = endTurn(heart('. . . . . .\nS . . d! . .\n. . . . . p')).state;
     expect(pm(s).intent).toBeNull();
+  });
+});
+
+describe("the postmaster's note on Sentence (level II, sentence:mark)", () => {
+  const NOTE = 'postmaster:sentence';
+  const sentenceReady = (pages: Profile['pages']): Profile => ({
+    ...newProfile(),
+    pages,
+    witnessed: ['sentence:mark'],
+    footnotes: { sentence: { points: 200, slots: { 'sentence:mark@1': 'sentence-mark-release' } } },
+    solventsFound: ['wax'],
+    solvents: { ...newProfile().solvents, wax: 4 },
+  });
+  const slotTwo = (p: Profile) =>
+    marginOf(p, 'sentence').lines.find((l) => l.line === 'sentence:mark');
+  const offered = (p: Profile) =>
+    (slotTwo(p)?.frames.find((f) => f.level === 2)?.variants ?? []).map((v) => v.id);
+
+  test('hidden without his page', () => {
+    expect(rivalNoteVisible(newProfile(), NOTE)).toBe(false);
+    expect(offered(sentenceReady([]))).not.toContain(NOTE);
+  });
+
+  test('offered once his page is held, credited, and writing it files it in the slot', () => {
+    const p = sentenceReady([POSTMASTER_PAGE.id]);
+    expect(rivalNoteVisible(p, NOTE)).toBe(true);
+    const frame = slotTwo(p)?.frames.find((f) => f.level === 2);
+    expect(frame?.variants.find((v) => v.id === NOTE)?.credit).toBe(
+      "Copied from the postmaster's receipt book.",
+    );
+    const r = writeAt(p, 'sentence', NOTE, { atHome: true });
+    if ('error' in r) throw new Error(r.error);
+    expect(footnoteIds(r.profile)['sentence:mark@2']).toBe(NOTE);
+  });
+
+  test('written: a unit Sentence crushes against a wall is held until your next turn', () => {
+    const rat = (s: BattleState) => s.units.find((u) => u.id === 'rat-1');
+    const heldAfter = (ascii: string, fns: string[]) => {
+      const s = withLattices(ascii, { draughtsman: 'Bolt> Sentence' });
+      const r = castWith(s, { kind: 'dir', dir: 'right' }, withFootnotes(fns));
+      return { held: rat(r.state)?.held ?? 0, hp: rat(r.state)?.hp ?? 0 };
+    };
+    // The rat stands on the last column: Sentence pushes it into the room's edge.
+    expect(heldAfter('D . . . r!', [])).toMatchObject({ held: 0 });
+    expect(heldAfter('D . . . r!', [NOTE])).toMatchObject({ held: 1 });
+    // The rat stands beside a wall: the push crushes against it and the note holds it.
+    expect(heldAfter('D . r! {wall}', [])).toMatchObject({ held: 0 });
+    const walled = heldAfter('D . r! {wall}', [NOTE]);
+    expect(walled.held).toBe(1);
+    expect(walled.hp).toBeGreaterThan(0); // the crush still hurts; the note only holds the unit
   });
 });
 

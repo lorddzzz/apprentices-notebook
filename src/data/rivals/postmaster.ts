@@ -68,5 +68,6 @@ export const POSTMASTER_PAGE: RivalPageDef = {
   story:
     'His own copy of a notice, ruled for delivery by hand. Under the address, in the counter’s ink: held at the office, recipient not found. The street on the envelope does not join.',
   trial: { board: '. . . . . .\nD . r . . .\n. . . . . .' },
-  note: null,
+  /** The postmaster's note on Sentence (level II): a third option, built by IQ-F5 (the ink quarter batch). */
+  note: { rune: 'sentence', line: 'sentence:mark', variant: 'postmaster:sentence' },
 };

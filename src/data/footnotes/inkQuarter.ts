@@ -248,4 +248,13 @@ export const INK_QUARTER: readonly VariantDef[] = [
     slot: { capstone: true },
     text: 'When the turned-back action defeats the hitter, it also acts on the bearer.',
   },
+  // The postmaster's note (IQ-F5): a rival's note keeps its page's id; hidden until his page is held.
+  {
+    id: 'postmaster:sentence',
+    subject: 'sentence',
+    slot: { line: 'sentence:mark', level: 2 },
+    text: 'Served at the wall is served for good. A unit Sentence crushes against a wall or the room’s edge is held until your next turn.',
+    rival: 'postmaster',
+    credit: "Copied from the postmaster's receipt book.",
+  },
 ];
