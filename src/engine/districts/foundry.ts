@@ -1,6 +1,6 @@
 import { FOUNDRY_FOES } from './foundry/foes';
 import { FOUNDRY_HEART_SETUP } from './foundry/heartFrame';
-import { pealAfterRoom, pealRoomSetup } from './foundry/peal';
+import { pealAfterRoom, pealOffersFor, pealRoomSetup } from './foundry/peal';
 import {
   BELL_TRIGGERS,
   bellsPreview,
@@ -113,13 +113,14 @@ export const TUNE_RULE: BoardRule<TuneState> = {
   step: (_ctx, own) => tuneStep(own),
 };
 
-/** P7: trip state is the great bells rung; `roomSetup` and `afterRoom` are BF-8's, `offersFor` waits for BF-13. */
+/** P7: trip state is the great bells rung; `roomSetup` and `afterRoom` are BF-8's, `offersFor` is BF-13's. */
 const shape: TripShapeDef<FoundryTripState> = {
   id: FOUNDRY_SHAPE,
   parseState: parseFoundryState,
   initState: initFoundryState,
   roomSetup: pealRoomSetup,
   afterRoom: pealAfterRoom,
+  offersFor: pealOffersFor,
 };
 
 /** BF-3: the bell takes its triggers here (the base defs in `foundry/types.ts` stay cycle-free). */

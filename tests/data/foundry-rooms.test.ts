@@ -1,12 +1,31 @@
 import { describe, expect, test } from 'vitest';
-import type { MemberId } from '$data';
-import { FOUNDRY_HEART, FOUNDRY_ROOMS_12, FOUNDRY_ROOMS_34 } from '$data/districts/foundry';
+import type { MemberId, RuneId } from '$data';
+import {
+  FOUNDRY_HEART,
+  FOUNDRY_INK,
+  FOUNDRY_LEDGERS,
+  FOUNDRY_LOOT_TABLES,
+  FOUNDRY_RECRUIT_KIT,
+  FOUNDRY_ROOMS_12,
+  FOUNDRY_ROOMS_34,
+  foundryShallow,
+} from '$data/districts/foundry';
 import type { KitRoomDef } from '$data/districts/index';
-import { type BattleState, type Dir, newProfile, parseBoard, startTrip } from '$engine';
-import { HEART_HOOKS, pealRoomSetup } from '$engine/districts/foundry';
+import {
+  type BattleState,
+  type Dir,
+  newProfile,
+  type Profile,
+  parseBoard,
+  startTrip,
+  type Trip,
+} from '$engine';
+import { HEART_HOOKS, pealOffersFor, pealRoomSetup } from '$engine/districts/foundry';
 import { newTune, tuneOf } from '$engine/districts/foundry/tune';
 import { type FoundryTripState, TUNE_RULE_ID } from '$engine/districts/foundry/types';
 import type { ShapeInput } from '$engine/districts/types';
+import { joinHousehold } from '$engine/household';
+import { guaranteesFor, isReady, preconditionsOf, recruitOffers } from '$engine/recruits';
 import { checkRoom } from '$engine/rooms';
 import { setUpRoom } from '$engine/trip/setup';
 import type { DistrictShape } from '$engine/trip/shape';
@@ -333,5 +352,91 @@ describe('the heart (BF-12)', () => {
       }
       expect(['player', 'won', 'lost'], `${n} bells`).toContain(s.phase);
     }
+  });
+});
+
+describe('loot and the tuner (BF-13)', () => {
+  const KIT = { foundry: FOUNDRY_RECRUIT_KIT };
+  const card = { kind: 'recruit', apprentice: 'tuner' } as const;
+  const owned = preconditionsOf('tuner').runes.all;
+  const heard = (known: readonly RuneId[]): Profile => {
+    const p = newProfile();
+    return {
+      ...p,
+      known: [...new Set([...p.known, ...known])],
+      city: { ...p.city, heard: ['seam', 'foundry'], fresh: [] },
+    };
+  };
+  const tripAt = (p: Profile, room: number, loot: Trip['loot'] = []): Trip => ({
+    ...startTrip(p, 5),
+    district: 'foundry',
+    encounter: room,
+    loot,
+  });
+
+  test("BF-13: the tuner's offer appears only when her preconditions hold", () => {
+    expect(FOUNDRY_RECRUIT_KIT.recruit).toEqual([{ apprentice: 'tuner', room: 2 }]);
+    // Without her pages: no card in room 3.
+    const bare = heard([]);
+    expect(recruitOffers(bare, tripAt(bare, 2), 2, KIT)).toEqual([]);
+    // With every page held she is offered in room 3 and only there.
+    const ready = heard(owned);
+    expect(isReady(ready, 'tuner', { trip: tripAt(ready, 2), atLandmark: true })).toBe(true);
+    expect(recruitOffers(ready, tripAt(ready, 2), 2, KIT)).toEqual([card]);
+    for (const room of [0, 1, 3, 4])
+      expect(recruitOffers(ready, tripAt(ready, room), room, KIT)).toEqual([]);
+    // Pages picked on this very trip count; a card already in the trip is not offered twice.
+    const picked = owned.map((rune) => ({ kind: 'rune', rune }) as const);
+    expect(recruitOffers(bare, tripAt(bare, 2, picked), 2, KIT)).toEqual([card]);
+    expect(recruitOffers(ready, tripAt(ready, 2, [card]), 2, KIT)).toEqual([]);
+    // Once she has joined the household, never again.
+    expect(recruitOffers(joinHousehold(ready, 'tuner'), tripAt(ready, 2), 2, KIT)).toEqual([]);
+  });
+
+  test('BF-13: a trip can always bank Unison', () => {
+    const p = heard(owned.filter((r) => r !== 'unison'));
+    expect(p.known).not.toContain('unison');
+    // Room 2 guarantees the page while she waits on it; once picked (or known) nothing more.
+    expect(guaranteesFor(p, tripAt(p, 1), 1, KIT)).toEqual({ kind: 'rune', rune: 'unison' });
+    expect(guaranteesFor(p, tripAt(p, 1, [{ kind: 'rune', rune: 'unison' }]), 1, KIT)).toBeNull();
+    expect(guaranteesFor(heard(owned), tripAt(p, 1), 1, KIT)).toBeNull();
+    // Her line names room 2 only, and every table the foundry offers from can hold Unison or the guarantee reaches it.
+    expect(guaranteesFor(p, tripAt(p, 3), 3, KIT)).toBeNull();
+    expect(
+      foundryShallow.entries.some((e) => e.spec.kind === 'rune' && e.spec.rune === 'unison'),
+    ).toBe(true);
+    // The module offers room 2 from the shallow table with one pick, the heart from its own with two.
+    const input = (room: number) =>
+      ({
+        trip: tripAt(p, room),
+        kit: tripAt(p, room).kit,
+        state: { rung: [] },
+        room,
+        length: 5,
+      }) as ShapeInput<FoundryTripState>;
+    expect(pealOffersFor(input(1))).toEqual({ table: 'foundry:shallow', picks: 1 });
+    expect(pealOffersFor(input(2))).toEqual({ table: 'foundry:deep', picks: 1 });
+    expect(pealOffersFor(input(4))).toEqual({ table: 'foundry:heart', picks: 2 });
+    expect(Object.keys(FOUNDRY_LOOT_TABLES).sort()).toEqual([
+      'foundry:deep',
+      'foundry:heart',
+      'foundry:shallow',
+    ]);
+  });
+
+  test('BF-13: every room and the heart has its ink and lore lines', () => {
+    const rooms = [one, two, three, four, FOUNDRY_HEART];
+    expect(FOUNDRY_LEDGERS).toHaveLength(5);
+    rooms.forEach((room, i) => {
+      const paper = FOUNDRY_LEDGERS.find((l) => l.id === room.lore);
+      expect(paper, room.id).toBeDefined();
+      expect(paper?.text.length, room.id).toBeGreaterThan(40);
+      expect(paper?.title, room.id).toBeTruthy();
+      expect(paper?.found, room.id).toEqual(
+        i === 4 ? { kind: 'heart' } : { kind: 'room', room: i },
+      );
+      expect(FOUNDRY_INK[room.id]?.length, room.id).toBeGreaterThan(10);
+    });
+    expect(new Set(rooms.map((r) => r.lore)).size).toBe(5);
   });
 });

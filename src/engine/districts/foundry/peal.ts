@@ -1,8 +1,14 @@
-import { DEFAULT_HANG, FOUNDRY_HEART, type Note } from '$data/districts/foundry';
+import {
+  DEFAULT_HANG,
+  FOUNDRY_HEART,
+  foundryPicksFor,
+  foundryTableFor,
+  type Note,
+} from '$data/districts/foundry';
 import type { EventLog } from '../../events';
 import { byReadingOrder, type Coord } from '../../grid';
 import { variantFor } from '../../trip/place';
-import type { BoardEdit, RoomSetup, ShapeInput, TilePiece } from '../types';
+import type { BoardEdit, RoomOffers, RoomSetup, ShapeInput, TilePiece } from '../types';
 import {
   type BellRungEvent,
   type FoundryTripState,
@@ -89,3 +95,13 @@ export function pealRoomSetup(input: ShapeInput<FoundryTripState>): RoomSetup {
     rulesConfig: { [TUNE_RULE_ID]: { seed: input.trip.seed } },
   };
 }
+
+/**
+ * BF-13: the room's table and picks (rooms 1-2 shallow, 3-4 deep, the heart its own and two picks).
+ * Unison's page in room 2 and the tuner's card in room 3 come from RC's guarantee and offer kind
+ * reading the district's recruit placement, not from here.
+ */
+export const pealOffersFor = (input: ShapeInput<FoundryTripState>): RoomOffers => ({
+  table: foundryTableFor(input.room, input.length),
+  picks: foundryPicksFor(input.room, input.length),
+});
