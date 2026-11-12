@@ -291,11 +291,22 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
       const stuck = movers.filter((m) => !place(m, m.home));
       for (const m of stuck) {
         if (!place(m, m.from)) {
+          const dist = (c: Coord) => Math.abs(c.x - m.home.x) + Math.abs(c.y - m.home.y);
           const free = s.tiles
             .map((_, i) => coordOf(s, i))
-            .find((c) => !taken.has(key(c)) && !blocksUnits(tileAt(s, c)));
+            .filter((c) => !taken.has(key(c)) && !blocksUnits(tileAt(s, c)))
+            .sort((a, b) => dist(a) - dist(b))[0];
           if (free) place(m, free);
         }
+      }
+      // FU-19: with no free tile a stuck unit keeps its tile, so whoever took it steps back to
+      // theirs; never two units on one tile.
+      for (let pass = 0; pass <= movers.length; pass++) {
+        const clash = movers.find(
+          (m) => !sameCoord(m.to, m.from) && movers.some((o) => o !== m && sameCoord(o.to, m.to)),
+        );
+        if (!clash) break;
+        clash.to = { ...clash.from };
       }
       for (const m of movers) {
         if (m.u.kind === 'member') m.u.undo = null;

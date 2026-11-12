@@ -11,6 +11,7 @@ import {
 } from '$engine';
 import { castAction } from '$engine/cast';
 import type { Ctx } from '$engine/ctx';
+import { undoBoard } from '$engine/solvents';
 import { type BoardView, projectWith, viewOf } from '../../src/app/view';
 import { withLattices } from '../scenarios/harness';
 
@@ -165,5 +166,34 @@ describe('the event cap (BL-107)', () => {
     const full = castWithCap(s, UNCAPPED).events;
     expect(full.filter((e) => e.type === 'mixed').length).toBeGreaterThan(0);
     expect(drifting(s)).toEqual([]);
+  });
+
+  // FU-19 (FD-3): a Graphite restore whose homes are taken and whose board is full.
+  it('FU-19: a restore with no free tile places the unit on the nearest free tile or reports it', () => {
+    const s = cloneData(withLattices('D r r', { draughtsman: 'Bolt> Strike' }));
+    const at = (l: string) => parseLabel(l);
+    const who = (l: string) => {
+      const u = s.units.find((x) => x.pos.x === at(l).x && x.pos.y === at(l).y);
+      if (!u) throw new Error(l);
+      return u.id;
+    };
+    const [d, mid, far] = [who('A1'), who('B1'), who('C1')];
+    // Gate every tile but the first two: the far rat's own tile no longer takes a unit, so the
+    // board has no free tile for the Draughtsman once the far rat takes A1.
+    for (const t of s.tiles) {
+      if (t !== tileAt(s, at('A1')) && t !== tileAt(s, at('B1'))) t.terrain.gate = true;
+    }
+    const ctx: Ctx = { s, log: [], cast: null, meta: {}, footnotes: {}, eventCap: UNCAPPED };
+    // The Draughtsman wants B1 (the middle rat stands there, unmoved); the far rat wants A1.
+    undoBoard(ctx, {
+      tiles: [],
+      units: [
+        { id: d, pos: at('B1') },
+        { id: far, pos: at('A1') },
+      ],
+    });
+    const spots = s.units.filter((u) => u.hp > 0).map((u) => `${u.pos.x},${u.pos.y}`);
+    expect(new Set(spots).size).toBe(spots.length);
+    expect(s.units.find((u) => u.id === mid)?.pos).toEqual(at('B1'));
   });
 });
