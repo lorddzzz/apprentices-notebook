@@ -27,6 +27,6 @@ Before any step above 90 %, make sure the last checkpoint and Next are committed
 
 ## Reset and weekly guard
 
-At Hold, record the reset time and the exact Next, schedule a wake-up for reset + 1 minute when the runtime supports it and the player's rule allows another window, and end the session. Otherwise report the reset time and stop; never claim a resume is scheduled when it is not. The wake-up starts a fresh session from the continuation prompt: reread the status file, recheck usage, and give any replacement agent its exact continuation point.
+At Hold, record the reset time and the exact Next, schedule a wake-up for reset + 1 minute when the runtime supports it and the player's rule allows another window, and end the session. Use a scheduler that starts a **new** session with the continuation prompt (in Claude, a scheduled task; `CronCreate` is session-only and resumes the old session with its whole history, so use it only when nothing else is available and say so). Otherwise report the reset time and stop; never claim a resume is scheduled when it is not. The wake-up starts a fresh session from the continuation prompt: reread the status file, recheck usage, and give any replacement agent its exact continuation point.
 
 The player's session rule decides how many windows to run. Without one: above about 85 % weekly usage, finish the current packs, update the records and ask before starting another window. Never auto-resume above 95 % weekly.

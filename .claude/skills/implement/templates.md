@@ -47,13 +47,13 @@ Append-only, one line per merged task. Keep the table format so IDs can be match
 | BF-4 | 5d6e7f8 | Sonnet / medium → high | 1 | ~5% | cap sweep; escalated after a missed case |
 ```
 
-**Returns** counts review rounds that sent work back (0 = merged on the first report); write an escalation as `from → to`. Usage Δ is per pack when tasks cannot be told apart: put it on the pack's last row. These two columns are how model and effort choices get judged, so fill them every time.
+**Returns** counts review rounds that sent work back (0 = merged on the first report); write an escalation as `from → to`. Usage Δ is per pack when tasks cannot be told apart: put it on the pack's last row. These two columns are how model and effort choices get judged, so fill them every time. Every row has all six cells, and task rows go in the Tasks table only; the ledger script fails on a row that breaks either rule, so run it after adding rows.
 
 Usage readings go in a second table (time, 5h %, weekly %, action), one row per merge batch.
 
 ## Spawn prompt
 
-In Claude, spawn the `pack-worker` agent (`.claude/agents/pack-worker.md` holds the standing rules: start, ownership, verification, commits, report) with the role's model and effort from the skill's table, and send only this brief. In a runtime without agent definitions, paste the body of that file first.
+In Claude, spawn the `pack-worker` agent (`.claude/agents/pack-worker.md` holds the standing rules: start, ownership, verification, commits, report; it runs in its own worktree) with the role's model and effort from the skill's table, and send only this brief. For a brief stored in the briefs file, paste its text into the prompt; don't send the agent to read the file. In a runtime without agent definitions, paste the body of that file first.
 
 ```
 Pack <name> of docs/plans/<plan>.md: tasks <ID> → <ID> → <ID>.
@@ -70,12 +70,19 @@ Done when:
 
 Verify: `<the pack's test command>`
 <UI only> Phone check: yes, port <519x> | no (the orchestrator checks this wave's screens)
-<if it applies> Sims: run `<path>` for task <ID>.
+<if it applies> Sims: run `<path>` for task <ID>. (Always, for a task that opens a district or changes the default party, habits or rules.)
 ```
 
 For a **Wave 0** pack, replace Contract with: "Define <owned contracts>. Report the public interfaces, the invariants, the integration risks, and everything you declared that later tasks must fill in (the Owed list)."
 
 ## Messages to a running agent
+
+**Grant (an additive edit outside Owns)**
+```
+Granted for <ID>: you may edit <file> (<the one field, parameter or entry>).
+Additive and optional only; behaviour without it stays identical; existing tests pass unchanged.
+Any test you have to change goes in your report as a Proposal.
+```
 
 **Return (once per pack)**
 ```

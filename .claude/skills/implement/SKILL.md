@@ -36,9 +36,9 @@ A **pack** is one agent run: two to four tasks that touch the same files, done i
 
 ### The brief
 
-Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules, so the brief holds only what differs per pack. A good brief lets the agent start without exploring:
+Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules and its worktree isolation, so the brief holds only what differs per pack. If you spawn any other agent type to write files while another agent runs, pass `isolation: "worktree"` yourself, and never tell the player an agent is in a worktree unless the spawn said so. A good brief lets the agent start without exploring:
 
-- **Owns:** the exact files or directories. Everything else is read-only.
+- **Owns:** the exact files or directories. Everything else is read-only. Before writing this list, trace the task through the code: where the new behaviour is called from, which shared type or registry it must touch, which tests and fixtures it will change. A brief whose Owns list was guessed from the plan stops its pack before the first commit.
 - **Read:** at most three things: the plan rows, one design section, and **one pattern file** to copy (the nearest finished example).
 - **Contract:** the signatures and invariants it must keep, quoted in the brief, not "see the plan".
 - **Done when:** a list of test names that must exist and pass, plus screenshots for UI. Never a win rate or other balance target unless the project's rules allow tuning in this phase.
@@ -71,13 +71,14 @@ Verification is the largest avoidable cost. Each tier runs once, at its own leve
 | Agent | The pack's own test paths (quiet reporter), plus the typecheck its files need | Before each commit |
 | Agent | The fast gate (`pnpm check:fast`) | Once, before its last commit |
 | Orchestrator | The fast gate on merged `main` | Once per **merge batch** (everything that reported since the last run), not per merge |
-| CI | The full gate (`pnpm check`) | On push; read the run's result instead of repeating it locally |
+| CI | The full gate (`pnpm check`) | On push; **read the last run's result before the next push** (`gh run list --limit 3`) instead of repeating it locally |
 | Orchestrator | The full gate locally and a full-loop phone check | Only at Close |
 
 - Send check output to a file and read the tail. A passing run's output is never worth reading in full.
 - Only a pack that owns the slow sims runs them.
 - A test that fails on timing, not logic, is a bug in the gate: fix its timeout or move it to the slow tier the same day. Don't rerun and carry on.
-- Push once per merge batch, so CI finishes on a commit instead of being cancelled by the next push.
+- Push once per merge batch, records included, so CI finishes on a commit instead of being cancelled by the next push.
+- The slow sims run only in CI, so a red run is the only signal that a pack broke them. A red run is a fix pack in the current wave, started before any new pack. A pack that changes what the sims can reach (opens a district, adds a member, a habit or a rule to the defaults) names the sim files to run in its brief.
 - **Phone checks.** A pack that adds a new interaction (a gesture, a new control, an animation that carries meaning) verifies it itself at 375×812 before reporting. A pack whose screens follow an existing pattern (another district's banner, card or token) does not start a browser: you check all such screens together, once, when the wave ends, and fix small defects yourself.
 
 ## Review, merge, record
@@ -85,10 +86,11 @@ Verification is the largest avoidable cost. Each tier runs once, at its own leve
 When a pack reports:
 
 1. **Review** the test diff and the public surface (exported names, contracts, data shapes) against the brief's Done-when. For UI, look at the screenshots. Leave line-level review to the Close review.
-2. **One return per pack.** Send the agent one message with every correction and the reason. If a problem remains after that: fix it yourself when it is small (about 30 lines), otherwise write a new brief with the review notes and spawn it at the role's escalation setting.
-3. **Squash-merge** one commit per task (in the log row, note the model, effort and how many times the work was sent back). Put the detail in the commit body (what was built, test names, accepted Proposals): `git log --grep '<ID>'` finds it later for free.
-4. **Record** in the same commit: one row in the log (ID, commit, model, one clause), and the status file's Next, Owed and Rough edges. Remove the pack's worktree and branch now.
-5. Check usage, then start the next pack.
+2. **Widen, don't park, when the request is additive.** A pack that stopped because it needs an edit outside its Owns list gets a message granting it, in any kind of window, when the edit only adds something optional, behaviour without it is identical and existing tests pass unchanged. Park the pack under Needs design review only when the edit changes a rule, a contract, a test or a fixture.
+3. **One return per pack.** Send the agent one message with every correction and the reason. If a problem remains after that: fix it yourself when it is small (about 30 lines), otherwise write a new brief with the review notes and spawn it at the role's escalation setting.
+4. **Squash-merge** one commit per task (in the log row, note the model, effort and how many times the work was sent back). Put the detail in the commit body (what was built, test names, accepted Proposals): `git log --grep '<ID>'` finds it later for free.
+5. **Record** in the same commit: one row in the log with all six cells (ID, commit, model and effort, returns, usage Δ, one clause), and the status file's Next, Owed and Rough edges. The usage Δ is the reading at the pack's report minus the reading at its spawn, shared between packs that ran together. Remove the pack's worktree and branch now, but never one with uncommitted changes or commits that are not on `main`: commit them as `wip` on the branch and list the branch under Running or partial.
+6. Check usage, then start the next pack.
 
 **Owed list.** Whenever a contract leaves something for later ("each district registers its frame when it runs", "BF-5 routes X before Y"), write it in the status file's **Owed** list with the task that must do it, and copy it into that task's brief. Fields that are declared and never filled are the commonest kind of hidden work.
 
@@ -103,11 +105,15 @@ Orchestration does not need the strongest model all the time. The orchestrator's
 | **Design** | The strongest model available | Planning and replanning, Wave 0 review, writing the briefs file for the coming packs, the one return a pack is allowed when the problem is a contract or design question, Close reviews, audits |
 | **Routine** | Sonnet 5.5 medium or Sol 6.1 medium | Spawns packs from the briefs file as written, checks reports against Done-when, runs the gates, merges, records, paces usage |
 
-A routine orchestrator does not decide contracts or accept Proposals that change a rule. When a report needs that, it leaves the pack unmerged under **Needs design review** in the status file with the branch and the question, and goes on to the next pack. The status file's **State** line names which kind of window comes next; the player picks the session's model to match. A program normally runs one design window, then routine windows until the briefs run out or the review list has three entries.
+A routine orchestrator does not decide contracts or accept Proposals that change a rule. When a report needs that, it leaves the pack unmerged under **Needs design review** in the status file with the branch and the question, and goes on to the next pack. A program normally runs one design window, then routine windows until the briefs run out or the review list has three entries. One parked pack is not a reason for a design window while other briefs can run.
+
+- **Don't ask to start a design window.** When one is due, a routine orchestrator spawns it at once as a single agent on the strongest model at high effort, in a worktree, writing docs only, then merges its branch and carries on with the routine work. Questions only the player can answer go to the status file's open questions with a default held; they never stop the window.
+- A design window writes briefs for every pack it can unblock, not only the next wave, and traces each brief's Owns list through the code (see The brief).
+- The status file's **State** line names which kind of window comes next. If the session's own model does not match it (a routine window on the strongest model, or a design window run directly on a cheaper one), say so in the first update and continue.
 
 ## Sessions
 
-End the session at each Hold and start a fresh one at the reset, resuming from the status file. A long session carries its whole history through every turn, and the cache does not survive a hold anyway. Schedule the wake-up when the runtime allows it and the player's pacing rule says to continue ([usage-pacing.md](usage-pacing.md)).
+End the session at each Hold and start a fresh one at the reset, resuming from the status file. A long session carries its whole history through every turn (a routine orchestrator grows by about 60k tokens per window), and the cache does not survive a hold anyway. Schedule the wake-up when the runtime allows it and the player's pacing rule says to continue ([usage-pacing.md](usage-pacing.md)). A wake-up that fires inside the old session is not a fresh session: prefer a scheduler that opens a new one, and otherwise tell the player the reset time and the continuation prompt.
 
 ## Close (a plan, or a wave of a program)
 

@@ -4,13 +4,14 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 **State:** design window 2026-11-12e done: briefs for waves 14–19 written (cartographers Packs A–I, BF-J, P, Q, L, H3), BF-FG approved. CI green on main (e0ebe16). **Next window: routine** (wave 14).
 **Session rules (player):**
-- Pace by the 5h limit; ignore the weekly limit unless > 97 %. Wake-up at each reset (CronCreate one-shot, session-only; CET = UTC+1) until the player says stop or weekly usage passes 85 %.
+- Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
+- A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning (everything goes to CAL); **player gates never block**. Only EN-G2 (handover text) waits for the player.
 **Reset:** 2026-11-13 01:30 CET (00:30 UTC); no wake-up scheduled; resume manually. Weekly 57 %.
 
 ## Next
-0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12).
+0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
 1. **Wave 14 (now, together):** CG-A (Strong) · BF-J (Default) · Q (Default, phone check). Then waves 15–19 per the briefs' order table (CG-C, CG-E, P → CG-B, L → CG-D, H3 → CG-F, CG-I → CG-G, CG-H).
 2. **`src/data/lines.ts` is shared by named blocks** in these waves (briefs' order notes): a merge conflict there is row appends; keep both sides. Same for the cartographers' acceptance file.
 3. **Next design window** (when the routine windows reach it, or three reviews pile up): approve the drafts from P (Afterglow pairs, canals.md), L (`steam:unit`/`brass:unit` pairs, seam.md) and CG-I (cartographers.md, CG-G3), then brief FU-5b, FN-M2b and CG-J; EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft.
@@ -44,7 +45,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - [ ] full gate on main · [ ] full-loop phone check · [ ] code review · [ ] DESIGN §11 / TECH §7 · [ ] plan State + roadmap row · [ ] ledger clean · [ ] CI deployed
 
 Ledger: `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/{platform-closure,calibration,foundry,cartographers,ending,bridges,ink-quarter,seam-grows}-plan.md`
-Ledger caveats (2026-11-12e run): counted merged but **open** because a commit names them: BF-20, BF-22, BF-F1. IQ-13 shows open but is built. BR-19 = C3 (BR-19a/b) + C3b (BR-19c, merged 0c5af97). FU-13–15 and CAL-4 appear in the log's prose only (FU-13–15 built in SM's track; CAL-4 belongs to CAL). SM-15 is a verification file (CL). Name no open task ID in a docs commit message.
+Ledger caveats (2026-11-13 run): IQ-13 shows open but is built. FU-16 and EN-10 show unmerged, which is right. BR-19 = C3 (BR-19a/b) + C3b (BR-19c, merged 0c5af97). FU-13–15 and CAL-4 appear in the log's prose only (FU-13–15 built in SM's track; CAL-4 belongs to CAL). SM-15 is a verification file (CL). (The ledger no longer counts `docs: …` record commits or commit bodies, and reads every ID in a log row's first cell.)
 
 ## Open questions for the player
 - **EN-G0:** time `#/dev/generator` on the iPhone (20 samples; median and p95 per offered room). D5's inputs: fair within 4 attempts 94.4 % (P28 says 98 %), 28/500 dull; EN-S1 guardrails test setup changed; dev page `src/app/dev/generator.html`.
