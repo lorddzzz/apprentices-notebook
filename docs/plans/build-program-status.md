@@ -7,7 +7,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
-**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). CW0 merged (fa1876d). G merged (0ffa10b). Running: F8 (shared main checkout, no worktrees). ED waits on the C3 design review.
+**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). CW0 merged (fa1876d). G merged (0ffa10b). F8 merged (5385674). Nothing running; check:fast green on main (339 files, 7866 tests). ED waits on the C3 design review.
 
 ## Next
 1. **Routine windows, in the briefs file's order** (two or three at a time, file-disjoint; one sims pack at a time):
@@ -26,6 +26,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - **D5 (0d13e6e):** EN-G0 reads: fair within 4 attempts 94.4 % (P28 says 98 %), 28/500 dull; EN-S1 guardrails test setup changed; dev page is `src/app/dev/generator.html`.
 
 ## Owed (declared by a contract, not yet built)
+- From F8: `Meets` gained `bell` and `rope` in `src/data/types.ts` (ED also edits that file; rebase on it). Dark mode of foundry screens: app has no dark theme, Close sweep. The shared browser tab on port 5192 was navigated away by F8; harmless.
 - Foundry (from F4, F6): BF-22 registers the foundry loot tables and swaps the rooms' placeholder ids, merges rooms, heart and recruit kit into `FOUNDRY_KIT`, discards rung bells on return/wipe, adds the save pair; BF-20 the `bot.value`; EN-K6 wraps the frame (all in F9's brief). BF-F1 confirms the Toll note's line (`toll:network`), BF-F3 builds it.
 - From EF (EN-5): DK-E4 rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`), so most rules stay out of `paletteOf.rules` until their district adds the key; the Registrar joins the masters at CG-10; `ledger.districts` fed by EN-1.
 - From D4 (EN-S1): rooms are walkovers; EN-S2 (D5) adds the two-sided judge, the walk and `GEN_TUNING`; EN-G0 the limits in `src/data/tuning.ts`; EN-2 the walk in production; CAL-5 the numbers.
