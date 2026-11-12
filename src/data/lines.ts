@@ -461,7 +461,7 @@ export const LINES: readonly LineDef[] = [
     subject: 'sand',
     meets: 'noTarget',
     district: 'inkQuarter',
-    text: 'If nobody set it off but the bearer itself, a sand mark has no one to turn back on.',
+    text: 'If nobody hit the bearer, a sand mark has no one to turn back on: a fire, the bearer’s own doing, a death or a step. It then spends the mark, or with a nearest turn acts on the nearest other unit.',
   },
   {
     id: 'bathSalt:cloud',

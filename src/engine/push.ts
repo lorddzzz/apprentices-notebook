@@ -319,6 +319,11 @@ export function push(
       return unmoved();
     };
     if (unit.held > 0) return blockedByHold();
+    // `wax-cloud-stay`: a waxed unit standing in a cloud is held by the wax, for the step.
+    if (unit.mark?.wax && isCloud(tileAt(s, unit.pos)) && hasFootnote(ctx, 'wax-cloud-stay')) {
+      withLine(ctx, 'wax:cloud', () => emit(ctx, { type: 'held', unit: ref(unit), rounds: 1 }));
+      return unmoved();
+    }
     // `guard-cap-brace`: a shielded unit holds its ground; the push costs its shield 1.
     if (!pull && unit.shield > 0 && hasFootnote(ctx, 'guard-cap-brace')) {
       withLine(ctx, 'shove:held', () => {

@@ -1,5 +1,5 @@
 import type { BindEvent, LineId } from '$data';
-import { nameOnce, noteMet } from './bursts';
+import { markUnit, nameOnce, noteMet } from './bursts';
 import { cloneData } from './clone';
 import { type Ctx, emit, inCastScope, ref, withLine, withOrigin } from './ctx';
 import { hasFootnote } from './footnotes';
@@ -387,6 +387,30 @@ function runBound(
   inCastScope(ctx, () => withOrigin(ctx, origin, () => runStep(ctx, step, [target], flow)));
 }
 
+/**
+ * Sand's capstones after a turned action: `sand-cap-return` marks the one it was turned on (if it
+ * stands and is unmarked); `sand-cap-ricochet` acts the same action on the bearer when that one fell.
+ */
+function sandCapstones(
+  ctx: Ctx,
+  turnedOn: Target,
+  bearer: Unit,
+  bound: Bound,
+  origin: Origin,
+  heading: Dir | null,
+): void {
+  if (turnedOn.kind !== 'unit') return;
+  const hitter = findUnit(ctx.s, turnedOn.unit);
+  if (!hitter) return;
+  if (hitter.hp > 0) {
+    if (!hitter.mark && hasFootnote(ctx, 'sand-cap-return')) markUnit(ctx, hitter, origin);
+    return;
+  }
+  if (hasFootnote(ctx, 'sand-cap-ricochet') && isAlive(bearer)) {
+    runBound(ctx, bound, { kind: 'unit', unit: bearer.id }, origin, heading);
+  }
+}
+
 function release(
   ctx: Ctx,
   unit: Unit,
@@ -428,6 +452,7 @@ function release(
           runBound(ctx, bound, turned?.target ?? target, origin, turned ? turned.heading : heading);
         if (turned) withLine(ctx, 'sand:unit', go);
         else go();
+        if (turned) sandCapstones(ctx, turned.target, unit, bound, origin, heading);
       } finally {
         depths.set(ctx, depth);
       }

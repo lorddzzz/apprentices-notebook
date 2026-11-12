@@ -601,6 +601,10 @@ export function decayStates(ctx: Ctx): void {
   s.tiles.forEach((t, i) => {
     const l = t.state;
     if (!l || l.rounds === 0 || l.set) return;
+    // `wax-cloud-keep`: a cloud over a waxed unit does not thin while the wax stands.
+    if (isCloud(t) && hasFootnote(ctx, 'wax-cloud-keep') && unitAt(s, coordOf(s, i))?.mark?.wax) {
+      return;
+    }
     if (l.afterglow) {
       delete l.afterglow;
       return;

@@ -172,4 +172,80 @@ export const INK_QUARTER: readonly VariantDef[] = [
     slot: { capstone: true },
     text: 'When Tally stops a cast on a target, a plain blot is left on its tile.',
   },
+  // ── Wax: the cloud (level I and II) ──
+  {
+    id: 'wax-cloud-keep',
+    subject: 'wax',
+    slot: { line: 'wax:cloud', level: 1 },
+    text: 'A cloud does not thin on the tile of a unit with a wax mark: the wax keeps it while the mark stands.',
+  },
+  {
+    id: 'wax-cloud-stay',
+    subject: 'wax',
+    slot: { line: 'wax:cloud', level: 1 },
+    text: 'A unit with a wax mark cannot be pushed while it stands in a cloud: the wax holds it.',
+  },
+  {
+    id: 'wax-cloud-smother',
+    subject: 'wax',
+    slot: { line: 'wax:cloud', level: 2 },
+    text: 'A wax mark in a cloud is not melted by fire: the cloud smothers the flame on its tile.',
+  },
+  {
+    id: 'wax-cloud-drip',
+    subject: 'wax',
+    slot: { line: 'wax:cloud', level: 2 },
+    text: 'When fire melts a wax mark, the wax runs: its tile takes a blot.',
+  },
+  // ── Wax: capstones ──
+  {
+    id: 'wax-cap-seal',
+    subject: 'wax',
+    slot: { capstone: true },
+    text: 'When a unit takes a wax mark, it is held until your next turn.',
+  },
+  {
+    id: 'wax-cap-spatter',
+    subject: 'wax',
+    slot: { capstone: true },
+    text: 'When fire melts a wax mark, each unit beside its bearer is marked with plain Ink.',
+  },
+  // ── Sand: the unit (level I and II) ──
+  {
+    id: 'sand-unit-onward',
+    subject: 'sand',
+    slot: { line: 'sand:unit', level: 1 },
+    text: 'The turned-back action keeps the heading it was released with: the hitter is pushed on, not back.',
+  },
+  {
+    id: 'sand-unit-still',
+    subject: 'sand',
+    slot: { line: 'sand:unit', level: 1 },
+    text: 'The turned-back action does not push: the hitter takes the rest of it where it stands.',
+  },
+  {
+    id: 'sand-unit-nearest',
+    subject: 'sand',
+    slot: { line: 'sand:unit', level: 2 },
+    text: 'With no one to turn back on (a fire, the bearer’s own doing), Sand turns the action on the nearest other unit instead of spending it.',
+  },
+  {
+    id: 'sand-unit-spared',
+    subject: 'sand',
+    slot: { line: 'sand:unit', level: 2 },
+    text: 'Sand never turns an action back on your own party: an ally’s hit releases it as cast.',
+  },
+  // ── Sand: capstones ──
+  {
+    id: 'sand-cap-return',
+    subject: 'sand',
+    slot: { capstone: true },
+    text: 'When Sand turns an action back, the hitter is also marked with plain Ink.',
+  },
+  {
+    id: 'sand-cap-ricochet',
+    subject: 'sand',
+    slot: { capstone: true },
+    text: 'When the turned-back action defeats the hitter, it also acts on the bearer.',
+  },
 ];

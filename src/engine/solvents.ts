@@ -45,6 +45,7 @@ import type {
   Target,
   Tile,
   Unit,
+  UnitId,
 } from './types';
 import { targetKey } from './types';
 
@@ -172,7 +173,9 @@ const touchesBrass = (s: BattleState, at: Coord): boolean =>
 
 /**
  * Sand turns a released action back on whoever set it off: the one who hit the bearer, pushed
- * (in reverse) back the way it came. Nobody to turn it on (a fire, the bearer itself) spends it.
+ * (in reverse) back the way it came. Nobody to turn it on (a fire, the bearer itself) spends it,
+ * unless `sand-unit-nearest` turns it on the nearest other unit. `sand-unit-spared` lets an ally's
+ * hit release it as cast; `sand-unit-onward` keeps the heading and `sand-unit-still` drops it.
  */
 export function turnBack(
   ctx: Ctx,
@@ -181,15 +184,39 @@ export function turnBack(
   heading: Dir | null,
 ): { target: Target; heading: Dir | null } | 'nobody' | null {
   if (!solvent || !SOLVENT_RULES[solvent]?.reverse || h.kind !== 'hit') return null;
+  const still = hasFootnote(ctx, 'sand-unit-still');
   const hitter = h.from ? unitAt(ctx.s, h.from) : null;
-  if (!hitter || !isAlive(hitter) || hitter.id === h.unit) {
-    withLine(ctx, 'sand:noTarget', () => emit(ctx, { type: 'miss', source: 'Sand' }));
-    return 'nobody';
+  if (hitter && isAlive(hitter) && hitter.id !== h.unit) {
+    if (hitter.kind === 'member' && hasFootnote(ctx, 'sand-unit-spared')) return null;
+    const back = hasFootnote(ctx, 'sand-unit-onward') ? heading : heading && opposite(heading);
+    return {
+      target: { kind: 'unit', unit: hitter.id },
+      heading: still ? null : back,
+    };
   }
-  return {
-    target: { kind: 'unit', unit: hitter.id },
-    heading: heading ? opposite(heading) : null,
-  };
+  const near = hasFootnote(ctx, 'sand-unit-nearest') ? nearestOther(ctx, h.unit) : null;
+  if (near) return { target: { kind: 'unit', unit: near.id }, heading: still ? null : heading };
+  withLine(ctx, 'sand:noTarget', () => emit(ctx, { type: 'miss', source: 'Sand' }));
+  return 'nobody';
+}
+
+/** `sand-unit-nearest`: the living unit nearest the bearer (not the bearer), reading order on ties. */
+function nearestOther(ctx: Ctx, bearer: UnitId): Unit | null {
+  const b = findUnit(ctx.s, bearer);
+  if (!b) return null;
+  let best: Unit | null = null;
+  let bestD = Number.POSITIVE_INFINITY;
+  for (const u of ctx.s.units) {
+    if (u.id === bearer || !isAlive(u)) continue;
+    const d = Math.abs(u.pos.x - b.pos.x) + Math.abs(u.pos.y - b.pos.y);
+    const first =
+      best !== null && (u.pos.y < best.pos.y || (u.pos.y === best.pos.y && u.pos.x < best.pos.x));
+    if (d < bestD || (d === bestD && first)) {
+      best = u;
+      bestD = d;
+    }
+  }
+  return best;
 }
 
 // ── Graphite ────────────────────────────────────────────
@@ -621,11 +648,37 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   wick: { delay: 'round' },
   wax: {
     noSpread: true,
+    before(ctx, t) {
+      return unitOf(ctx, t)?.mark?.wax === true;
+    },
+    after(ctx, t, _flow, run) {
+      const u = unitOf(ctx, t);
+      // `wax-cap-seal`: a unit that takes a wax mark is held until your next turn.
+      if (u && !run.before && u.mark?.wax && u.held === 0 && hasFootnote(ctx, 'wax-cap-seal')) {
+        if (trickResists(ctx, u, 'hold')) return;
+        if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Hold')) return;
+        u.held = 1;
+        emit(ctx, { type: 'held', unit: ref(u), rounds: 1 });
+      }
+    },
     onHook(ctx, h) {
       if (h.kind !== 'hit' && h.kind !== 'entered') return;
       const u = findUnit(ctx.s, h.unit);
       if (!u?.mark?.wax || !isFire(tileAt(ctx.s, u.pos))) return;
+      // `wax-cloud-smother`: a unit standing in a cloud keeps its wax from the fire.
+      if (hasFootnote(ctx, 'wax-cloud-smother') && isCloud(tileAt(ctx.s, u.pos))) return;
       withLine(ctx, 'wax:fire', () => spendMark(ctx, u));
+      // `wax-cloud-drip`: the melted wax runs, and its tile takes a blot.
+      if (hasFootnote(ctx, 'wax-cloud-drip')) {
+        withLine(ctx, 'wax:cloud', () => landOnTile(ctx, 'ink', u.pos, null));
+      }
+      // `wax-cap-spatter`: each unit beside the bearer is marked with plain Ink.
+      if (hasFootnote(ctx, 'wax-cap-spatter')) {
+        for (const at of neighbors4(u.pos)) {
+          const n = unitAt(ctx.s, at);
+          if (n && isAlive(n) && !n.mark) markUnit(ctx, n, null);
+        }
+      }
     },
   },
   sand: { reverse: true },
