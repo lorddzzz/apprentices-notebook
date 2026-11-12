@@ -5,24 +5,13 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { LINES } from '$data';
-import { firedLines, trackFiredLines } from '../scenarios/lines-registry';
+import { linesOfRuns } from '../scenarios/engine-suites';
+import { firedLines } from '../scenarios/lines-registry';
 
-// Re-register the suites that fire lines inside this file (vitest isolates files), after the spy.
+// The engine suites run inside this file through the shared registrar (vitest isolates files).
 // push.test and actions.test mock '$engine/hooks' for their whole module graph, so they run in a
 // child vitest instead (see lines-registry.ts).
 const MOCKED = ['push', 'actions'];
-trackFiredLines();
-import.meta.glob(
-  [
-    '../scenarios/*.test.ts',
-    '../engine/*.test.ts',
-    '!../scenarios/push.test.ts',
-    '!../scenarios/actions.test.ts',
-    '!../engine/pieces.test.ts', // mocks the kit with fixture pieces
-    '!../engine/trip-shape-state.test.ts', // mocks the kit with a fixture trip shape
-  ],
-  { eager: true },
-);
 
 function firedInChildRun(): string[] {
   const dir = mkdtempSync(join(tmpdir(), 'lines-fired-'));
@@ -66,7 +55,7 @@ describe('lines fired by the suite (L1)', () => {
   let fired: Set<string>;
 
   test('every line the engine fired has a row', () => {
-    fired = new Set([...firedLines, ...firedInChildRun()]);
+    fired = new Set([...firedLines, ...linesOfRuns(), ...firedInChildRun()]);
     expect([...fired].filter((id) => !rows.has(id))).toEqual([]);
   }, 120_000);
 

@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { ENCOUNTERS, SCENARIOS } from '$data';
 import {
   type Action,
@@ -9,10 +9,10 @@ import {
   isSilent,
   scenarioSpec,
 } from '$engine';
-import * as ctxModule from '$engine/ctx';
 import { fallbackLattices } from '../../src/app/lab';
 import { buildSteps } from '../../src/app/playback';
 import { type BoardView, projectWith, viewOf, withoutIntents } from '../../src/app/view';
+import { runs as allRuns } from '../scenarios/engine-suites';
 
 /**
  * The drift guard: playback projects events onto a view; at the end it must agree with the
@@ -159,36 +159,9 @@ describe('projection matches engine state', () => {
 // and actions.test mock '$engine/hooks' for their whole module graph, so they stay out; the
 // curated cases above and below cover pushes and the actions.
 
-interface Run {
-  test: string;
-  prev: BattleState;
-  next: BattleState;
-  events: GameEvent[];
-}
-const runs: Run[] = [];
-const realRunDraft = ctxModule.runDraft;
-vi.spyOn(ctxModule, 'runDraft').mockImplementation((...args) => {
-  const r = realRunDraft(...args);
-  runs.push({
-    test: expect.getState().currentTestName ?? '?',
-    prev: args[0],
-    next: r.state,
-    events: r.events,
-  });
-  return r;
-});
-import.meta.glob(
-  [
-    '../scenarios/*.test.ts',
-    '../engine/*.test.ts',
-    '!../scenarios/push.test.ts',
-    '!../scenarios/actions.test.ts',
-    '!../engine/pieces.test.ts', // mocks the kit with fixture pieces
-    '!../engine/trip-shape-state.test.ts', // mocks the kit with a fixture trip shape
-    '!../engine/events.test.ts', // fabricates events on a board that does not change
-  ],
-  { eager: true },
-);
+// The suites come from the shared registrar (tests/scenarios/engine-suites.ts), which records every
+// run. events.test fabricates events on a board that does not change, so its runs are skipped.
+const engineRuns = () => allRuns.filter((r) => !r.file.endsWith('/engine/events.test.ts'));
 
 // Exhaustive on purpose: tsc fails here when a GameEvent type is added without being listed.
 // District events (`<district>:<name>`, DK-19) are a pattern type, not listed: no shipped module
@@ -280,6 +253,7 @@ const SETS_UP_BY_HAND = [
 
 describe('projection drift guard over the engine suites', () => {
   test('every run the suites made projects to the engine state', () => {
+    const runs = engineRuns();
     expect(runs.length).toBeGreaterThan(200);
     const drifted: string[] = [];
     runs.forEach((run, i) => {
@@ -299,7 +273,7 @@ describe('projection drift guard over the engine suites', () => {
 // Which events the guard saw: a new event type nobody replays would be a hole.
 describe('the guard sees the whole union', () => {
   test('every event type has been replayed', () => {
-    const seen = new Set(runs.flatMap((r) => r.events.map((e) => e.type)));
+    const seen = new Set(engineRuns().flatMap((r) => r.events.map((e) => e.type)));
     // Conduct (E7) is the only emitter of 'conducted'; delete this when its scenarios land.
     // rivalPlans / pageRecovered change nothing in the view (applyEvent no-ops them), and no suite
     // that runs through the recording harness emits them yet.
