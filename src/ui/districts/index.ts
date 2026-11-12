@@ -10,6 +10,7 @@ import { BRIDGES_UI } from './bridges';
 import { CANALS_UI } from './canals';
 import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
+import { CARTOGRAPHERS_UI } from './cartographers';
 import { FOUNDRY_UI } from './foundry';
 import { INK_QUARTER_UI } from './inkQuarter';
 import { LOWER_SEAM_UI } from './lowerSeam';
@@ -99,6 +100,7 @@ export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   bridges: BRIDGES_UI,
   lowerSeam: LOWER_SEAM_UI,
   foundry: FOUNDRY_UI,
+  cartographers: CARTOGRAPHERS_UI,
 };
 
 /**
