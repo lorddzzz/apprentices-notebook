@@ -3,9 +3,7 @@ import type { ApprenticeId, Drawing, EnemyId, MasterId, ShapeId } from '$data';
 import { newSave, type Profile, parseSaveData, type SaveData } from '$engine';
 import {
   type Credits,
-  checkDrawing,
   checkGenerated,
-  costOf,
   creditsOf,
   DRAWING_SLOTS,
   drawingsOf,
@@ -16,10 +14,7 @@ import {
   ledgerOf,
   MASTER_IDS,
   NAME_MAX,
-  paletteOf,
-  penOf,
   readDrawing,
-  weightBand,
 } from '$engine/drawing';
 import { botTrial } from '$engine/drawing/trial';
 import type {
@@ -161,11 +156,6 @@ describe('EN-W0: the profile fields', () => {
 describe('EN-W0: the stubs and kit interfaces', () => {
   const profile = newSave(1).profile;
   const calls: [string, string, () => unknown][] = [
-    ['EN-5', 'paletteOf', () => paletteOf(profile)],
-    ['EN-5', 'penOf', () => penOf(profile)],
-    ['EN-5', 'costOf', () => costOf(DRAWING)],
-    ['EN-5', 'weightBand', () => weightBand(DRAWING)],
-    ['EN-5', 'checkDrawing', () => checkDrawing(profile, DRAWING)],
     [
       'EN-S1',
       'generateRoom',
@@ -244,9 +234,6 @@ describe('EN-2 and EN-3 (Pack E): the generator and the module', () => {
 });
 
 describe('EN-5 and EN-8 (Pack F): palette, pen and loot', () => {
-  it.todo('EN-5: each need greys its element with its sentence');
-  it.todo('EN-5: the palette grows only with met content');
-  it.todo('EN-5: pen parts sum to the total');
   it.todo('EN-5: every offered combination generates');
   it.todo('EN-8: offers come only from source districts or basics');
   it.todo('EN-8: a page you hold is never offered');
