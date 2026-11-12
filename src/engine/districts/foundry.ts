@@ -1,4 +1,5 @@
 import { FOUNDRY_FOES } from './foundry/foes';
+import { pealAfterRoom, pealRoomSetup } from './foundry/peal';
 import {
   BELL_TRIGGERS,
   bellsPreview,
@@ -34,6 +35,7 @@ import type {
 } from './types';
 
 export * from './foundry/foes';
+export * from './foundry/peal';
 export * from './foundry/pieces';
 export * from './foundry/ring';
 
@@ -110,6 +112,8 @@ const shape: TripShapeDef<FoundryTripState> = {
   id: FOUNDRY_SHAPE,
   parseState: parseFoundryState,
   initState: initFoundryState,
+  roomSetup: pealRoomSetup,
+  afterRoom: pealAfterRoom,
 };
 
 /** BF-3: the bell takes its triggers here (the base defs in `foundry/types.ts` stay cycle-free). */
