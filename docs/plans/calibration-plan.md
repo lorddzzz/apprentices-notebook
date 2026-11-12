@@ -2,7 +2,7 @@
 
 Source: [midpoint-audit.md](midpoint-audit.md) §1.2 item 8 and §2.1 (every win-rate band and tuning task leaves the content plans), [build-program.md](build-program.md) §5 (plan changes in force). Prefix **CAL**.
 **State: Planned (runs last, after all content; needs EN-0).**
-**Scope:** collect every deferred calibration item with its numbers, then run one pass per district on the shared bot (`src/engine/sim/` after EN-0) against the target bands. **No number is tuned while content is built** (player rule, 2026-11-04). The SM-6 branch `worktree-agent-a7d9ce60e430bee68` is dropped; its change is recorded in §1.
+**Scope:** collect every deferred calibration item with its numbers, then run one pass per district on the shared bot (`src/engine/sim/` after EN-0) against the target bands. **No number is tuned while content is built** (player rule, 2026-11-04). The SM-6 branch `worktree-agent-a7d9ce60e430bee68` (commit `4c77215`, tag `ref/sm-6`) is kept for review at CAL-0; delete it only with the player's OK. Its change is recorded in §1.
 
 ## 1. Deferred items (numbers as of `a6e8bfb`)
 
@@ -43,7 +43,7 @@ All "main" values are what is committed now. "Source" is where the item was reco
 
 | ID | Goal | Size | Done when |
 |---|---|---|---|
-| CAL-0 | Harness: one table runner over `src/engine/sim/` (party 1-3, fresh and trip-worn HP, both span kinds, hung bells 0-4), output as markdown; first tag the SM-6 commit (`git tag ref/sm-6 4c77215`) and port its `seam-calibration.test.ts` (`SEAM_SIM=1` table) | M | `CAL=1 pnpm vitest run tests/sim/calibration-tables.test.ts` prints one table per district in the §2 format; the default run is under 20 s and asserts no throw and no cap overrun only |
+| CAL-0 | Harness: one table runner over `src/engine/sim/` (party 1-3, fresh and trip-worn HP, both span kinds, hung bells 0-4), output as markdown; the tag `ref/sm-6` (`4c77215`) already exists; review the kept SM-6 branch and port its `seam-calibration.test.ts` (`SEAM_SIM=1` table) | M | `CAL=1 pnpm vitest run tests/sim/calibration-tables.test.ts` prints one table per district in the §2 format; the default run is under 20 s and asserts no throw and no cap overrun only |
 | CAL-1 | Seam and canals: apply SM-6's 72 HP only if the table agrees; re-run CN-13 (heart pair, trio, crate); update `SEAM_DEEP`/`DEEP` and the golden fixtures together | M | both districts inside their §2 band, or the miss written down with numbers; `tests/sim/seam-rooms-play.test.ts` "the heart plays to an end and is no walkover" passes; golden tests pass |
 | CAL-2 | Ink quarter: pick the IQ-20 lever, give the postmaster a move or opener (IQ-23), add the `INK_CAL` postmaster row | M | table row exists; the heart is lost in some seeds and won in others; `tests/sim/postmaster-heart.test.ts` passes |
 | CAL-3 | Bathhouses and bridges: BH-16 levers, BR-21 numbers; decide whether the bot learns Hold | M | tables inside the §2 band or the proposal's; no median boil before round 3 |
@@ -55,7 +55,7 @@ All "main" values are what is committed now. "Source" is where the item was reco
 
 | # | Proposal | Reason |
 |---|---|---|
-| P1 | **Record before drop.** The orchestrator tags `4c77215` (`ref/sm-6`) before deleting the SM-6 branch; §1 holds the data change, the tag holds the sim and the fixtures | The audit says the branch will not survive two more weeks of data changes |
+| P1 | **Record before drop.** Tag `ref/sm-6` (`4c77215`) is set; the SM-6 branch stays until the CAL-0 review, then goes only with the player's OK; §1 holds the data change, the tag holds the sim and the fixtures | The audit says the branch will not survive two more weeks of data changes |
 | P2 | **Bridges and foundry use the canals' band** (§2) until the player names one | Neither plan states a number; BR-21 and BF-20 only say "recorded" or "inside the target band" |
 | P3 | **Order inside a pass:** bot fixes first (Hold, cracks, pulses), then data numbers, then re-record golden fixtures once at the end | Golden fixtures break on any data change; one re-record avoids churn |
 | P4 | **A band the data cannot reach by numbers** (the bot never loses an ink room) becomes a filed design question, not a rule change | Player decides rules; the plan decides numbers |

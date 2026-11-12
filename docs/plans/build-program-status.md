@@ -52,7 +52,7 @@ Ledger caveats (2026-11-13 run): IQ-13 shows open but is built. FU-16 and EN-10 
 - Held at default: IQ-20 / IQ-G1, FN-1A A3, FN-4, DK-8, foundry Q2/Q3, FN-A1 M1, cartographers §7 Q1–Q3. Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, CG-G1/G2, HC/AH/RC playtests.
 
 ## Rough edges (risks)
-- 15 old agent worktrees (~3.5 GB): removal needs the player's OK; first tag `worktree-agent-a7d9ce60e430bee68` (`4c77215`) as `ref/sm-6`.
+- Old agent worktrees removed 2026-11-13 (~3.5 GB). 13 merged-or-superseded branches deleted. The SM-6 branch `worktree-agent-a7d9ce60e430bee68` is kept (tag `ref/sm-6`); review it at CAL-0 in calibration-plan.md.
 - CI cancels a run when the next push arrives: push once per merge batch.
 - A test mocking `$engine/districts/kit` must not import the real Seam module in its factory; tests import `$engine` before district files (the kit's lazy import cycle). CG-A registers the cartographers in the kit: watch the two fixture tests.
 - D5 raised foe budgets, so generator ops and timings grew; EN-G0 reads the new numbers.
