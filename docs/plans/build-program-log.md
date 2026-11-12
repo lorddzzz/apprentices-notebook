@@ -29,3 +29,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | BF-10, BF-11 | df10e08, 68524b5 | Sonnet medium | foundry rooms 1-4 with scripted solves; 0 returns |
 | KIT-R3b–e | 280f9f3, 042a3b9, 2dc1f64, 063bce9 | Sonnet medium | heart frames for 4 districts + frame.ts helper; 0 returns |
 | EN-5 | 218e771 | Sonnet medium | palette, pen, cost, checkDrawing; 0 returns |
+| KIT-R3f, KIT-R3g | 538d03c, d266a3e | Sonnet medium | lent shapes, botValue, sim/bot.ts free of districts, lint exemption gone; sims same status; 0 returns |
