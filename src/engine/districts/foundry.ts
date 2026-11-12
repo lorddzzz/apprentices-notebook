@@ -1,3 +1,4 @@
+import { FOUNDRY_BOT } from './foundry/bot';
 import { FOUNDRY_FOES } from './foundry/foes';
 import { FOUNDRY_HEART_SETUP } from './foundry/heartFrame';
 import { pealAfterRoom, pealOffersFor, pealRoomSetup } from './foundry/peal';
@@ -35,6 +36,7 @@ import type {
   TripShapeDef,
 } from './types';
 
+export * from './foundry/bot';
 export * from './foundry/foes';
 export * from './foundry/peal';
 export * from './foundry/pieces';
@@ -142,5 +144,5 @@ export const FOUNDRY_MODULE: DistrictModule = {
   goals: FOUNDRY_GOALS,
   trip: shape,
   heart: FOUNDRY_HEART_SETUP,
-  bot: {},
+  bot: FOUNDRY_BOT,
 };
