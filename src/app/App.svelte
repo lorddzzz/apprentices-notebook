@@ -7,8 +7,6 @@
   import Combat from '../ui/screens/Combat.svelte';
   import Crossroads from '../ui/screens/Crossroads.svelte';
   import Desk from '../ui/screens/Desk.svelte';
-  import Gallery from '../ui/screens/Gallery.svelte';
-  import Lab from '../ui/screens/Lab.svelte';
   import Loot from '../ui/screens/Loot.svelte';
   import CityMap from '../ui/screens/Map.svelte';
   import Study from '../ui/screens/Study.svelte';
@@ -66,9 +64,13 @@
   {:else if resolved.screen === 'desk'}
     <Desk />
   {:else if resolved.screen === 'gallery'}
-    <Gallery />
+    {#await import('../ui/screens/Gallery.svelte') then { default: Gallery }}
+      <Gallery />
+    {/await}
   {:else if resolved.screen === 'lab'}
-    <Lab />
+    {#await import('../ui/screens/Lab.svelte') then { default: Lab }}
+      <Lab />
+    {/await}
   {:else if resolved.screen === 'battle'}
     <Combat />
   {:else if resolved.screen === 'loot'}
