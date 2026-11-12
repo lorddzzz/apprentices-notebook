@@ -1,9 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import type { DistrictId } from '$data';
 import { BATH_HEART } from '$data/districts/bathhouses';
+import { BRIDGE_HEART } from '$data/districts/bridges';
 import { CANAL_ROOMS } from '$data/districts/canals';
 import { SEAM_ROOMS } from '$data/districts/seam';
+import { createBattle } from '$engine';
 import { KIT } from '$engine/districts';
+import { crackedTiles } from '$engine/districts/api';
 import { HEART_ROSTER } from '$engine/districts/inkQuarter/postmaster';
 import type { HeartSetup } from '$engine/districts/types';
 import { type BoardSpec, parseBoard, serializeBoard } from '$engine/notation';
@@ -172,6 +175,41 @@ describe('KIT-R3 heart frames', () => {
           }
         }
         expect(seen.size).toBeGreaterThanOrEqual(4);
+      }
+    }
+  });
+
+  test('KIT-R3: bridges frame places the Chief Warden on 5x5, 7x9 and the real room size, seeded', () => {
+    const layout = firstHeart([BRIDGE_HEART]);
+    checkFrame('bridges', layout, 'chiefWarden', sizeOf(layout));
+    expect(heartOf('bridges').rules).toContain('bridges:collapse');
+  });
+
+  test('KIT-R3: bridges frame stands the Chief Warden on the keystone and no span starts cracked', () => {
+    for (const [w, h] of [
+      [5, 5],
+      [5, 6],
+      [7, 9],
+      [6, 7],
+    ] as const) {
+      for (const seed of [1, 2, 3, 4, 5, 6]) {
+        const framed = heartOf('bridges').frame(blank(w, h), seed);
+        const chief = framed.units.find((u) => u.def === 'chiefWarden');
+        if (!chief) throw new Error('no Chief Warden');
+        expect(framed.tiles[chief.at.y * w + chief.at.x]?.piece?.id).toBe('bridges:keystone');
+        // Every tile is a span, a pier, the keystone or fog.
+        for (const t of framed.tiles) {
+          expect(t.terrain.drop || t.piece !== null).toBe(true);
+        }
+        const state = createBattle({
+          title: 'frame',
+          seed: 1,
+          board: serializeBoard(framed),
+        }).state;
+        expect(crackedTiles(state)).toEqual([]);
+        for (const s of framed.starts) {
+          expect(framed.tiles[s.y * w + s.x]?.piece?.id).toBe('bridges:span');
+        }
       }
     }
   });
