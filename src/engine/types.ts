@@ -457,7 +457,10 @@ export interface BoardUndo {
   units: { id: UnitId; pos: Coord }[];
 }
 
-/** A repeat, Wick, Graphite, Filings, Thunderhead or Pitch waiting for its moment (E6). */
+/**
+ * A repeat, Wick, Graphite, Filings, Thunderhead or Pitch waiting for its moment (E6). `brink` is
+ * `brink-cap-fall` waiting for `hit` to fall this dusk.
+ */
 export interface Scheduled {
   when: 'ownerTurn' | 'roundEnd' | 'nextRoundEnd';
   owner: UnitId;
@@ -471,7 +474,7 @@ export interface Scheduled {
   undo?: BoardUndo;
   /** The sealing step's auras, gifted auras, weakness and habit (P9). Absent until FD-4. */
   context?: SealedContext;
-  kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch';
+  kind: 'repeat' | 'margin' | 'wick' | 'graphite' | 'filings' | 'thunderhead' | 'pitch' | 'brink';
   /** Footnotes: the unit first hit (a repeat's follow, step and pushed lines), and whether it is followed. */
   hit?: UnitId;
   follow?: true;

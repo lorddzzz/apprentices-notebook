@@ -452,6 +452,13 @@ export interface DistrictModule {
    * `api.ts` unions every module's. A district with a support rule implements it.
    */
   unsupported?(s: BattleState): readonly Coord[];
+  /**
+   * Brass tiles a fall took that `chalk-network-ring` still remembers (bridges); `fallenBrassTiles`
+   * in `api.ts` unions every module's. A remembered tile that stands again is not listed.
+   */
+  fallenBrass?(s: BattleState): readonly Coord[];
+  /** Forgets those remembered tiles: a Chalk conduct used them (`spendFallenBrass` in `api.ts`). */
+  spendFallenBrass?(ctx: Ctx, tiles: readonly Coord[]): void;
   /** Closes a trip battle into the profile (win or wipe), applied in registry order (`finish.ts`). */
   afterBattleClose?(p: Profile, t: Trip): Profile;
   /** Its Bind events are known before the district opens (the ink quarter). */

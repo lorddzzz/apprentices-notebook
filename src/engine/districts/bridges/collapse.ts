@@ -6,20 +6,24 @@ import { dealDamage } from '../../damage';
 import { hasFootnote } from '../../footnotes';
 import { type Coord, sameCoord } from '../../grid';
 import { layThinCloud } from '../../mix';
+import { isBrass } from '../../networks';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
-import { blocksUnits, coordOf, isAlive, isOpen, tileAt, unitAt } from '../../queries';
+import { blocksUnits, coordOf, inBoard, isAlive, isOpen, tileAt, unitAt } from '../../queries';
 import { trickResists } from '../../rivals/tricks';
-import type { BattleState, EnemyUnit, Layer, Origin, Unit } from '../../types';
+import { replayFallen } from '../../schedule';
+import type { BattleState, EnemyUnit, Layer, Origin, Unit, UnitId } from '../../types';
 import { epilogueFall } from './heart';
 import { holdsRightOfWay } from './keystoneRight';
 import { cracksOf } from './support';
 import {
   type BridgesState,
+  COLLAPSE_RULE_ID,
   type CollapseEvent,
   type CutOrigin,
   KEYSTONE_PIECE,
   parseBridges,
   SPAN_PIECE,
+  sortKeys,
   tileKey,
 } from './types';
 
@@ -242,6 +246,10 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
       emit(ctx, { type: 'stateFades', tiles: setIn.map((c) => ({ ...c })) }),
     );
   }
+  // `chalk-network-ring`: the brass that falls is remembered, read before the tile is cleared.
+  const brass = hasFootnote(ctx, 'chalk-network-ring')
+    ? falling.filter((at) => isBrass(ctx.s, at)).map(key)
+    : [];
   for (const at of falling) {
     const t = tileAt(ctx.s, at);
     if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at } });
@@ -263,6 +271,7 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
     }
   }
   const seam = Object.hasOwn(ctx.s.rules ?? {}, SEAM_DROP_RULE);
+  const fell: { unit: UnitId; at: Coord }[] = [];
   for (const { unit, at } of fallers) {
     // P17 right of way: he does not fall; he is set on the nearest standing tile, unhurt.
     const held = trickResists(ctx, unit, 'fall');
@@ -281,6 +290,7 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
       }
       continue;
     }
+    fell.push({ unit: unit.id, at });
     const by = origins.get(key(at))?.by ?? null;
     const origin: Origin | null = by ? { caster: by, spell: '0,0', cast: ctx.s.castSeq } : null;
     const gone = lost.get(key(at));
@@ -320,10 +330,45 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
     });
     arrive(ctx, unit.id, [to], { cause: FALL_CAUSE, origin: null, landing: true });
   }
+  // `brink-cap-fall`: Brink's rest acts again on the tile each faller stood on.
+  replayFallen(ctx, fell);
   const next: BridgesState = { ...state, stone: { ...state.stone }, cuts: { ...state.cuts } };
   for (const k of keys) {
     delete next.stone[k];
     delete next.cuts[k];
   }
+  // The replay may have spent a remembered tile (a Chalk conduct), so the list is read afresh.
+  const now = Object.hasOwn(ctx.s.rules ?? {}, COLLAPSE_RULE_ID)
+    ? parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]).fallenBrass
+    : state.fallenBrass;
+  const remembered = sortKeys([...new Set([...(now ?? []), ...brass])]);
+  if (remembered.length) next.fallenBrass = remembered;
+  else delete next.fallenBrass;
   return next;
+}
+
+const coordOfKey = (k: string): Coord => {
+  const [x = 0, y = 0] = k.split(',').map(Number);
+  return { x, y };
+};
+
+/** `DistrictModule.fallenBrass`: the recorded tiles that are still fog (a mended tile is forgotten). */
+export function fallenBrassOf(s: BattleState): Coord[] {
+  const own = parseBridges(s.rules?.[COLLAPSE_RULE_ID]);
+  return (own.fallenBrass ?? [])
+    .map(coordOfKey)
+    .filter((c) => inBoard(s, c) && tileAt(s, c).terrain.drop === true);
+}
+
+/** `DistrictModule.spendFallenBrass`: a Chalk conduct used these tiles, so they are forgotten. */
+export function spendFallenBrassOf(ctx: Ctx, tiles: readonly Coord[]): void {
+  if (!tiles.length) return;
+  const own = parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]);
+  if (!own.fallenBrass) return;
+  const spent = new Set<string>(tiles.map(key));
+  const left = own.fallenBrass.filter((k) => !spent.has(k));
+  const next: BridgesState = { ...own };
+  if (left.length) next.fallenBrass = left;
+  else delete next.fallenBrass;
+  ctx.s.rules = { ...ctx.s.rules, [COLLAPSE_RULE_ID]: next };
 }

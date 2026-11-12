@@ -1,4 +1,4 @@
-import { collapseStep, FALL_CAUSE } from './bridges/collapse';
+import { collapseStep, FALL_CAUSE, fallenBrassOf, spendFallenBrassOf } from './bridges/collapse';
 import { BRIDGE_FOES } from './bridges/foes';
 import { BRIDGE_OFFERS } from './bridges/guarantee';
 import { CHIEF_FOE, HEART_STEPS } from './bridges/heart';
@@ -68,6 +68,8 @@ export const BRIDGES_MODULE: DistrictModule = {
   pieces: BRIDGE_PIECES,
   rules: [COLLAPSE_RULE],
   unsupported: (s) => cracksOf(s),
+  fallenBrass: fallenBrassOf,
+  spendFallenBrass: spendFallenBrassOf,
   tricks: BRIDGE_TRICKS,
   steps: HEART_STEPS,
   foes: [...BRIDGE_FOES, CHIEF_FOE],

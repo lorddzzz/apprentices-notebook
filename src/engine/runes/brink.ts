@@ -1,11 +1,21 @@
 import { ACTIONS } from '$data';
 import { type Ctx, type FootnoteVariantId, withLine } from '../ctx';
 import { gainShield } from '../damage';
+import { hasFootnote } from '../footnotes';
 import { byReadingOrder, type Coord, type Dir } from '../grid';
+import { sealedContext } from '../jars';
 import { push } from '../push';
 import { findUnit, inBoard, livingUnits, tileAt, unitAt } from '../queries';
+import { awaitFall } from '../schedule';
 import { whereIs } from '../targets';
-import { type BattleState, type Flow, type Target, targetKey, type Unit } from '../types';
+import {
+  type BattleState,
+  type Flow,
+  type Step,
+  type Target,
+  targetKey,
+  type Unit,
+} from '../types';
 import { holdUnit } from './actions';
 import { beside, type Trial } from './flow';
 
@@ -145,4 +155,37 @@ export function brinkOutcome(
           }
         : null,
   };
+}
+
+/**
+ * `brink-cap-fall`: one wait per living unit Brink's rest acts on (every group, never a member the
+ * Warden passed over), until dusk shows whether that unit falls (`replayFallen`). A replay records
+ * nothing, and an empty rest has nothing to repeat.
+ */
+export function recordFall(
+  ctx: Ctx,
+  next: Step | null,
+  groups: readonly { targets: Target[]; flow: Flow }[],
+): void {
+  if (!next || !hasFootnote(ctx, 'brink-cap-fall')) return;
+  // `groups` is last-first (the first group runs first): record in run order.
+  for (const group of [...groups].reverse()) {
+    if (group.flow.repeated) continue;
+    for (const target of group.targets) {
+      const at = whereIs(ctx.s, target);
+      const unit =
+        target.kind === 'unit' ? findUnit(ctx.s, target.unit) : at ? unitAt(ctx.s, at) : null;
+      if (!unit || unit.hp <= 0) continue;
+      awaitFall(ctx, {
+        owner: group.flow.caster,
+        step: next,
+        target,
+        hit: unit.id,
+        heading: group.flow.headings.get(targetKey(target)) ?? null,
+        origin: group.flow.origin,
+        solvent: group.flow.solvent ?? null,
+        context: sealedContext(group.flow),
+      });
+    }
+  }
 }

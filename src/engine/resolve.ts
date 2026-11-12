@@ -33,7 +33,7 @@ import {
 } from './queries';
 import { settleRules } from './rules';
 import { handlerFor } from './runes';
-import { brinkOutcome } from './runes/brink';
+import { brinkOutcome, recordFall } from './runes/brink';
 import { forkSide, isForked, jarFor, reheaded, seep, toll, trial } from './runes/flow';
 import { aimLine, aimTargets, boltTravel, targetOn, tilesBetween, whereIs } from './targets';
 import type {
@@ -422,8 +422,9 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         if (brink) {
           // Brink's rest, after it the `brink-drop-stay` and `-nudge` follow-ups (LIFO: pushed first).
           if (brink.after) pending.push({ after: brink.after(through) });
-          for (const group of brink.groups(through, flow))
-            queue(st.next, group.targets, group.flow);
+          const groups = brink.groups(through, flow);
+          recordFall(ctx, st.next, groups);
+          for (const group of groups) queue(st.next, group.targets, group.flow);
         } else if (surplus.length === 0) queue(st.next, through, flow);
         else {
           const once = through.filter((t) => !surplus.includes(t));

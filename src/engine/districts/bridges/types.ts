@@ -45,11 +45,14 @@ export type CutOrigin = { by: string | null; cause: 'crush' | 'burst' | 'shatter
  *   pieces' data. A tile at 0 is broken (P3). Piers never appear.
  * - `originals`: every tile that was span at room start (the Mason mends only these, P8).
  * - `cuts`: broken tile → the origin of the cut, kept until the tile falls (P6).
+ * - `fallenBrass`: with `chalk-network-ring`, brass tiles a dusk fall took, until a Chalk conduct spends them.
  */
 export type BridgesState = {
   stone: { [key: string]: number };
   originals: string[];
   cuts: { [key: string]: CutOrigin };
+  /** `chalk-network-ring`'s brass tiles lost to a fall; reading order, no duplicates (P24). */
+  fallenBrass?: string[];
 };
 
 export const initBridges = (): BridgesState => ({ stone: {}, originals: [], cuts: {} });
@@ -83,7 +86,21 @@ export function parseBridges(raw: unknown): BridgesState {
     if (c.by !== null && typeof c.by !== 'string') continue;
     cuts[k] = { by: c.by, cause: c.cause as CutOrigin['cause'] };
   }
-  return { stone, originals, cuts };
+  const fallen = Array.isArray(r.fallenBrass)
+    ? [...new Set(r.fallenBrass.filter((k): k is string => typeof k === 'string' && KEY.test(k)))]
+    : [];
+  return fallen.length
+    ? { stone, originals, cuts, fallenBrass: sortKeys(fallen) }
+    : { stone, originals, cuts };
+}
+
+/** Tile keys in reading order (row, then column). */
+export function sortKeys(keys: readonly string[]): string[] {
+  const xy = (k: string): [number, number] => {
+    const [x = 0, y = 0] = k.split(',').map(Number);
+    return [x, y];
+  };
+  return [...keys].sort((a, b) => xy(a)[1] - xy(b)[1] || xy(a)[0] - xy(b)[0]);
 }
 
 // ── Events (P3, P4, P5, P7) ─────────────────────────────

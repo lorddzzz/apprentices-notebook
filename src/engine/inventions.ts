@@ -16,6 +16,7 @@ import {
 } from '$data';
 import { markUnit, reachOf, unitsNear } from './bursts';
 import { type Ctx, emit, withLine } from './ctx';
+import { fallenBrassTiles, spendFallenBrass } from './districts/api';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, opposite, step } from './grid';
 import { sealedContext } from './jars';
@@ -297,12 +298,21 @@ function conduct(ctx: Ctx, def: InventionDef, t: Target, flow: Flow): Target[] {
   const part = def.parts[0];
   if (!at || part === undefined) return [];
   let net = networkTouching(ctx, at);
+  const onBrass = net.length > 0;
   // `conduct-cap-cloud`: with no brass about, the action travels the connected cloud.
   if (net.length === 0 && hasFootnote(ctx, 'conduct-cap-cloud'))
     net = networkTouching(ctx, at, true);
   if (net.length === 0) {
     withLine(ctx, 'conduct:noTarget', () => emit(ctx, { type: 'miss', source: 'Conduct' }));
     return [];
+  }
+  // `chalk-network-ring`: brass a fall took, beside the network, joins it once (then it is spent).
+  if (onBrass && flow.solvent === 'chalk' && hasFootnote(ctx, 'chalk-network-ring')) {
+    const ring = fallenBrassTiles(ctx.s).filter((f) =>
+      net.some((n) => Math.abs(n.x - f.x) + Math.abs(n.y - f.y) === 1),
+    );
+    net = [...net, ...ring];
+    spendFallenBrass(ctx, ring);
   }
   const reach = 1 + reachOf(flow);
   const chalk = flow.solvent === 'chalk' ? (SOLVENT_RULES.chalk?.reach ?? 0) : 0;

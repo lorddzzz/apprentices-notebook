@@ -2,6 +2,7 @@ import type { LineId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, withLine } from './ctx';
 import { hasFootnote } from './footnotes';
+import type { Coord } from './grid';
 import { neighbors4, sameCoord } from './grid';
 import { openJar, runDetached } from './jars';
 import { findUnit, isAlive, tileAt, unitAt } from './queries';
@@ -13,7 +14,7 @@ import type { Origin, Scheduled, Step, Target, Unit, UnitId } from './types';
 /**
  * The scheduled queue (E6): repeats, Margin echoes, Wick, Graphite, Filings and Pitch wait here for
  * their moment. Each entry runs once (design §6.4 limit 5). Thunderhead entries belong to
- * `roundEndChemistry` (E2) and are left alone.
+ * `roundEndChemistry` (E2) and `brink` entries to the dusk fall (`replayFallen`); both are left alone.
  */
 
 export function schedule(ctx: Ctx, s: Scheduled): void {
@@ -78,8 +79,9 @@ function run(ctx: Ctx, e: Scheduled): void {
     e.kind === 'repeat' && hasFootnote(ctx, 'repeat-empty-reaim')
       ? (axisToward(owner.pos, at) ?? e.heading)
       : e.heading;
-  // Ringing again (Filings) is a repeat too: spent, it never waits again.
-  const again = e.kind === 'repeat' || e.kind === 'margin' || e.kind === 'filings';
+  // Ringing again (Filings) is a repeat too: spent, it never waits again. So is a fall's replay.
+  const again =
+    e.kind === 'repeat' || e.kind === 'margin' || e.kind === 'filings' || e.kind === 'brink';
   if (again && typeof e.step === 'string') emit(ctx, { type: 'repeated', action: e.step });
   const go = (t: Target): void =>
     runDetached(ctx, stepOf(e), t, e.owner, e.origin, heading, {
@@ -120,7 +122,11 @@ export function wakeScheduled(ctx: Ctx, e: Scheduled): void {
 export function runScheduled(ctx: Ctx, when: Scheduled['when'], owner?: UnitId): void {
   const s = ctx.s;
   const due = s.scheduled.filter(
-    (e) => e.when === when && e.kind !== 'thunderhead' && (!owner || e.owner === owner),
+    (e) =>
+      e.when === when &&
+      e.kind !== 'thunderhead' &&
+      e.kind !== 'brink' &&
+      (!owner || e.owner === owner),
   );
   s.scheduled = s.scheduled.filter((e) => !due.includes(e));
   // Graphite undoes last-in-first, so stacked undos peel back in order.
@@ -181,4 +187,36 @@ function tripWicks(ctx: Ctx, u: Unit): void {
     (e) => beside(e) && findUnit(ctx.s, e.owner)?.kind === 'member',
   );
   for (const e of due) wakeScheduled(ctx, e);
+}
+
+/**
+ * `brink-cap-fall`: Brink's rest, queued with no event for the unit `e.hit` it acted on, waits
+ * for that unit to fall at dusk (`replayFallen`); `lapseFallReplays` drops what is left.
+ */
+export function awaitFall(ctx: Ctx, e: Omit<Scheduled, 'kind' | 'when'> & { hit: UnitId }): void {
+  ctx.s.scheduled.push({ ...cloneData(e), kind: 'brink', when: 'roundEnd' });
+}
+
+/**
+ * The collapse (`fell`: each unit that fell and the tile it stood on): every waiting `brink` entry
+ * for one of them leaves the queue and, in queue order, runs once on that tile (fog now) as a repeat.
+ */
+export function replayFallen(ctx: Ctx, fell: readonly { unit: UnitId; at: Coord }[]): void {
+  const due = ctx.s.scheduled.filter(
+    (e) => e.kind === 'brink' && fell.some((f) => f.unit === e.hit),
+  );
+  if (due.length === 0) return;
+  ctx.s.scheduled = ctx.s.scheduled.filter((e) => !due.includes(e));
+  for (const e of due) {
+    const at = fell.find((f) => f.unit === e.hit)?.at;
+    if (at)
+      withLine(ctx, 'brink:cracked', () =>
+        run(ctx, { ...e, target: { kind: 'tile', at: { ...at } } }),
+      );
+  }
+}
+
+/** The last call of the dusk: no `brink` entry outlives it, on any board. No event. */
+export function lapseFallReplays(ctx: Ctx): void {
+  ctx.s.scheduled = ctx.s.scheduled.filter((e) => e.kind !== 'brink');
 }

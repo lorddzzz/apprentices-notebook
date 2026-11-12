@@ -7,10 +7,6 @@ import type { VariantDef } from '../types';
  * `runes/flow.ts`, `resolve.ts`, `mix.ts`, `push.ts`, `bursts.ts`, `inventions.ts`, `exposed.ts` and
  * `districts/bridges/{collapse,support,wear}.ts`, keyed by these ids. Every "say so at build" in the
  * draft's Combos is a clause in the text or a one-line comment at the engine site.
- *
- * `chalk-network-ring` (a network cut by a fall reaches from where the brass stood) is not here yet:
- * it needs the fallen brass tile kept across casts, and a core file can read bridges state only
- * through `districts/api`, which has no reader for it (reported with BR-19b).
  */
 export const BRIDGES: readonly VariantDef[] = [
   // ── Hold: a held unit (level I and II) ──
@@ -233,6 +229,12 @@ export const BRIDGES: readonly VariantDef[] = [
     subject: 'chalk',
     slot: { line: 'chalk:network', level: 2 },
     text: "Chalk's extra reach passes over your own party.",
+  },
+  {
+    id: 'chalk-network-ring',
+    subject: 'chalk',
+    slot: { line: 'chalk:network', level: 2 },
+    text: 'A network cut by a fall reaches from where the brass stood, once.',
   },
   // ── Chalk: capstones ──
   {

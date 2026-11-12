@@ -14,7 +14,7 @@ test('footnote variants are unique, and line slots sit on written lines of their
   expect(new Set(ids).size).toBe(ids.length);
   // Line slots so far: levels I and II (Bolt, Shove, Spark, Ink, Oil, Splash, Touch, Strike, Guard, Fork, Steam and Brass, Jar, Fuse, Pitch, Wick, Vat, Seep, Steep, Bath salt and Fog jar, and the ink quarter's Sentence, Levy, Tally, Wax and Sand, and the postmaster's note, and the bridges' Hold, Brink, Lay, Mortar, Chalk and the Chief Warden's note). Capstones (FN-11: the aura diagonals) sit on no line.
   const onLines = VARIANTS.filter((v) => variantLine(v) !== null);
-  expect(onLines).toHaveLength(239);
+  expect(onLines).toHaveLength(240);
   for (const v of VARIANTS) {
     expect(v.text.length, v.id).toBeGreaterThan(10);
     expect(isFootnoteSubject(v.subject), v.id).toBe(true);

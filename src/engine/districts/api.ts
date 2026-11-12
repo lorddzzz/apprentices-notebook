@@ -1,3 +1,4 @@
+import type { Ctx } from '../ctx';
 import { type Coord, key } from '../grid';
 import { coordOf, flood } from '../queries';
 import { choicesAt, takeChoice } from '../trip/choices';
@@ -71,4 +72,23 @@ export function crackedTiles(state: BattleState): Coord[] {
     }
   }
   return out;
+}
+
+/** `chalk-network-ring`: the brass tiles a fall took that are still fog, the union over modules (no duplicates). */
+export function fallenBrassTiles(state: BattleState): Coord[] {
+  const seen = new Set<string>();
+  const out: Coord[] = [];
+  for (const m of Object.values(KIT.modules)) {
+    for (const c of m?.fallenBrass?.(state) ?? []) {
+      if (seen.has(key(c))) continue;
+      seen.add(key(c));
+      out.push(c);
+    }
+  }
+  return out;
+}
+
+/** Forgets remembered fallen brass a Chalk conduct used: every module's hook, in registry order. */
+export function spendFallenBrass(ctx: Ctx, tiles: readonly Coord[]): void {
+  for (const m of Object.values(KIT.modules)) m?.spendFallenBrass?.(ctx, tiles);
 }

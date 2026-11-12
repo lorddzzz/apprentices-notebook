@@ -25,7 +25,7 @@ import {
 import { dryStrikeIntent, resolveRivalIntent } from './rivals/resolve';
 import { runTrickMarks, runTrickRoundEnd } from './rivals/tricks';
 import { boardRules, runRuleSlot, settleRules } from './rules';
-import { runScheduled } from './schedule';
+import { lapseFallReplays, runScheduled } from './schedule';
 import { actStep } from './standIn';
 import type { AttackIntent, BattleState, EnemyUnit, Unit } from './types';
 
@@ -167,6 +167,7 @@ export function roundEnd(ctx: Ctx, rules: readonly BoardRule[] = boardRules()): 
   vents(ctx);
   snuffStep(ctx);
   slot(ctx, 'late', rules);
+  lapseFallReplays(ctx);
 }
 
 /** One round-end slot: its board rules, then the rivals' trick steps in it (RV-11). */
