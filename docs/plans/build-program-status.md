@@ -7,7 +7,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
-**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). CW0 merged (fa1876d). G merged (0ffa10b). F8 merged (5385674). L reported (FU-13–15 verified, FU-16 open). K reported (FU-9–12 done). F9 merged (139c416); foundry is open. Running: MIX (sims), J, H (port 5191), shared main checkout; B1 and M not started; ED held on C3 review; check:fast green on main (339 files, 7869 tests). ED waits on the C3 design review.
+**Reset:** window reset 2026-11-12 13:50 CET; wave 8 ran (F7, D5 merged, C3 merged with review items). CW0 merged (fa1876d). G merged (0ffa10b). F8 merged (5385674). L reported (FU-13–15 verified, FU-16 open). K reported (FU-9–12 done). F9 merged (139c416); foundry is open. H reported (BL-111 partial). Running: MIX (sims), J (FU-6/8 extra ownership granted), shared main checkout; B1 and M not started; ED held on C3 review; check:fast green on main (339 files, 7869 tests). ED waits on the C3 design review.
 
 ## Next
 1. **Routine windows, in the briefs file's order** (two or three at a time, file-disjoint; one sims pack at a time):
@@ -26,6 +26,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - **D5 (0d13e6e):** EN-G0 reads: fair within 4 attempts 94.4 % (P28 says 98 %), 28/500 dull; EN-S1 guardrails test setup changed; dev page is `src/app/dev/generator.html`.
 
 ## Owed (declared by a contract, not yet built)
+- BL-111 (H): the offline check (service worker installed, network off: home, a Seam trip, the Lab) is unmet; needs real Chrome (Claude in Chrome or the player): open `pnpm build && pnpm preview`, install the SW, go offline in DevTools. Further splitting (Codex, Study, Bench, engine) is a separate decision; App.svelte not autofixed.
 - FU-16 (ink room, term card, clock seal, stamp preview in dark) is open: `theme.css` has only dark accent hues, no dark surfaces (`--parchment`, `--ink`), so a dark check is meaningless until a dark theme exists (design question: build one, or drop the dark checks from the Close sweep). Also needs a Lab or fixture ink-quarter trip.
 - From F8: `Meets` gained `bell` and `rope` in `src/data/types.ts` (ED also edits that file; rebase on it). Dark mode of foundry screens: app has no dark theme, Close sweep. The shared browser tab on port 5192 was navigated away by F8; harmless.
 - Pack K left: FU-12 did not see the footnote line slots (synthetic save had only the capstone frame); DistrictNode.svelte not autofixed; FU-11 checked in the Lab only. `DistrictUi.thresholdLabel` added (additive). Stale FU-11 'meter overlap' note in Rough edges is resolved.
