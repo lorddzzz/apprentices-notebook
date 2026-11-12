@@ -24,6 +24,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 - none (KIT-R3b's two questions answered 2026-11-12: platform-closure P5 and P6; the parked attempt left no commits).
 
 ## Owed (declared by a contract, not yet built)
+- From F4 (BF-10, BF-11 merged: df10e08, 68524b5): rooms are exported as `FOUNDRY_ROOMS_12/_34`, not merged into `FOUNDRY_KIT.rooms` (BF-22 merges them); loot uses placeholder tables 'shallow'/'deep' (BF-13 swaps in foundry ids); room 3's recruit slot attaches by index in BF-13.
 - `DistrictModule.heart` for Seam, canals, bathhouses, bridges — KIT-R3b–e (D3b); `bot` for the same four, lent shapes `seam:plain`, `canals:landings` — KIT-R3f–g (D3c); needed by EN-S1, EN-K1–K5.
 - sim/bot.ts imports `bathhouses/boilOver` and `bridges/preview` under a lint exemption — KIT-R3g moves them to `botValue`/`crackedTiles` and drops the exemption.
 - Foundry: `HEART_HOOKS` and the tune seed `rulesConfig: { 'foundry:tune': { seed: trip.seed } }` in `pealRoomSetup`, the foundry's `heart`/`bot` — BF-12 (P24); the foundry's `bot.value` — BF-20; the Toll note's effect (placeholder line `toll:network`) — BF-F1 confirms the line, BF-F3 builds it; the foundry save pair — BF-22.
