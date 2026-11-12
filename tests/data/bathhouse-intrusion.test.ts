@@ -77,9 +77,9 @@ describe('the steam-vent floor (BH-11)', () => {
     }
   });
 
-  test('the district is open; its floor stays unwired (the lower Seam check wants a piece or a rule-read terrain)', () => {
+  test('the district is open; its floor is wired through IntrusionSpec.terrain (FU-6)', () => {
     expect(DISTRICTS.bathhouses.gate.kind).toBe('threshold');
-    expect(DISTRICTS.bathhouses.intrusion).toBeUndefined();
+    expect(DISTRICTS.bathhouses.intrusion).toBe(BATH_INTRUSION);
     expect(newProfile().city.open).not.toContain('bathhouses');
   });
 
