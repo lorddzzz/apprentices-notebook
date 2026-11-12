@@ -1,11 +1,12 @@
 import { expect, test } from 'vitest';
-import { MEMBER_IDS, MEMBERS, RUNE_IDS, TUNING } from '$data';
+import { MEMBERS, RUNE_IDS, TUNING } from '$data';
 import {
   clustersOf,
   compileGlyph,
   compileLattice,
   createBattle,
   describeLog,
+  FOUNDERS,
   glyphLibrary,
   growingLattice,
   inkUsed,
@@ -85,7 +86,7 @@ Bolt> Oil Spark . . . Ink . .`);
   expect(profile.lattices).toEqual(snapshot.lattices);
 });
 
-for (const member of MEMBER_IDS) {
+for (const member of FOUNDERS) {
   const legacy = parseLattice(MEMBERS[member].shape).shape;
   const targets = [
     { x: -1, y: 0 },

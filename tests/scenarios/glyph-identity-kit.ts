@@ -1,4 +1,4 @@
-import { MEMBER_IDS, MEMBERS, type MemberId, RUNE_IDS, RUNES, type RuneId, TUNING } from '$data';
+import { MEMBERS, type MemberId, RUNE_IDS, RUNES, type RuneId, TUNING } from '$data';
 import {
   type Aim,
   type BattleState,
@@ -13,6 +13,7 @@ import {
   type Dir,
   describeLog,
   disconnected,
+  FOUNDERS,
   type GlyphArg,
   type GlyphDef,
   type GlyphLibrary,
@@ -385,13 +386,13 @@ export interface Compiled {
 export function* provenGlyphs(seeds: number, perPage: number): Generator<Compiled> {
   for (let seed = 1; seed <= seeds; seed++) {
     const rng = createRng(seed * 7919);
-    for (const m of MEMBER_IDS) {
+    for (const m of FOUNDERS) {
       const lattice = randomLattice(rng, shapeOf(m));
       let p = setMemberLattice(newProfile(), m, lattice);
       const masks = compileLattice(latticeOf(p, m)).spells.map((sp) => [...(sp.cells ?? [])]);
       for (let i = 0; i < TUNING.provenCasts; i++) p = recordProof(p, m, masks);
       const l = latticeOf(p, m);
-      const allMasks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
+      const allMasks = FOUNDERS.flatMap((id) => p.proof[id] ?? []);
       const candidates = clustersOf(l).filter(
         (c) =>
           c.cells.length >= TUNING.glyphMinCells &&

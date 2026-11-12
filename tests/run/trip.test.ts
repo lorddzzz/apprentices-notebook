@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { ENCOUNTERS, MEMBER_IDS, TUNING } from '$data';
+import { ENCOUNTERS, TUNING } from '$data';
 import {
   type Action,
   applyAction,
@@ -7,6 +7,7 @@ import {
   beginEncounter,
   deriveSeed,
   describeLog,
+  FOUNDERS,
   finishEncounter,
   type GameEvent,
   type LootItem,
@@ -107,17 +108,17 @@ describe('loot', () => {
   });
 
   test('offers deterministic per seed and differ by encounter', () => {
-    const a = rollOffers(SEED, 0, 'shallow', MEMBER_IDS);
-    expect(rollOffers(SEED, 0, 'shallow', MEMBER_IDS)).toEqual(a);
-    const many = Array.from({ length: 20 }, (_, i) => rollOffers(SEED, i, 'shallow', MEMBER_IDS));
+    const a = rollOffers(SEED, 0, 'shallow', FOUNDERS);
+    expect(rollOffers(SEED, 0, 'shallow', FOUNDERS)).toEqual(a);
+    const many = Array.from({ length: 20 }, (_, i) => rollOffers(SEED, i, 'shallow', FOUNDERS));
     expect(new Set(many.map((o) => JSON.stringify(o))).size).toBeGreaterThan(1);
-    expect(rollOffers(SEED, 2, 'deep', MEMBER_IDS)).toHaveLength(3);
+    expect(rollOffers(SEED, 2, 'deep', FOUNDERS)).toHaveLength(3);
   });
 
   test('an ink offer is +2 for the household and names no one (HC P6)', () => {
     let seen = 0;
     for (let seed = 0; seed < 300; seed++) {
-      for (const o of rollOffers(seed, 0, 'shallow', MEMBER_IDS)) {
+      for (const o of rollOffers(seed, 0, 'shallow', FOUNDERS)) {
         if (o.kind !== 'ink') continue;
         expect(o).toEqual({ kind: 'ink', amount: 2 });
         seen += 1;
@@ -129,7 +130,7 @@ describe('loot', () => {
   test('every table offers three entries with positive amounts', () => {
     for (const table of ['shallow', 'deep', 'heart'] as const) {
       for (let seed = 0; seed < 50; seed++) {
-        const offers = rollOffers(seed, 1, table, MEMBER_IDS);
+        const offers = rollOffers(seed, 1, table, FOUNDERS);
         expect(offers).toHaveLength(3);
         for (const o of offers)
           if (o.kind === 'ink' || o.kind === 'vellum') expect(o.amount).toBeGreaterThan(0);

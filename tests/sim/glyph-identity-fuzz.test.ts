@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { MEMBER_IDS, TUNING } from '$data';
+import { TUNING } from '$data';
 import {
   blockingAuras,
   clustersOf,
@@ -7,6 +7,7 @@ import {
   compileLattice,
   createRng,
   disconnected,
+  FOUNDERS,
   glyphLibrary,
   isSocket,
   type Lattice,
@@ -43,13 +44,13 @@ describe('fuzz: a tidied Fair Copy keeps the cast (S13 identity)', () => {
     let refused = 0;
     for (let seed = 1; seed <= 400; seed++) {
       const rng = createRng(seed * 7919);
-      for (const m of MEMBER_IDS) {
+      for (const m of FOUNDERS) {
         const lattice = randomLattice(rng, shapeOf(m));
         let p = setMemberLattice(newProfile(), m, lattice);
         const masks = compileLattice(latticeOf(p, m)).spells.map((sp) => [...(sp.cells ?? [])]);
         for (let i = 0; i < TUNING.provenCasts; i++) p = recordProof(p, m, masks);
         const l = latticeOf(p, m);
-        const allMasks = MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
+        const allMasks = FOUNDERS.flatMap((id) => p.proof[id] ?? []);
         const candidates = clustersOf(l).filter(
           (c) =>
             c.cells.length >= TUNING.glyphMinCells &&

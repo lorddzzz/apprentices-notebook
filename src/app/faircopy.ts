@@ -1,4 +1,4 @@
-import { MEMBER_IDS, MEMBERS, type MemberId, type RuneRef, TUNING } from '$data';
+import { MEMBERS, type MemberId, type RuneRef, TUNING } from '$data';
 import {
   blockingAuras,
   type Cluster,
@@ -29,7 +29,7 @@ import {
 
 /** Every member's masks together: a pattern proven in one lattice counts when rebuilt in another. */
 export function allMasks(p: Profile): FiredCell[][] {
-  return MEMBER_IDS.flatMap((id) => p.proof[id] ?? []);
+  return p.household.members.flatMap((id) => p.proof[id] ?? []);
 }
 
 /** Cells that belong to some proven cluster of member `m`'s page (these glow). */
@@ -53,7 +53,7 @@ export function glowCells(p: Profile, m: MemberId): Set<string> {
 
 /** Fair Copy shows up once anything is proven on either page, or a Glyph already exists (plan P11). */
 export function fairCopyUnlocked(p: Profile): boolean {
-  return p.glyphs.length > 0 || MEMBER_IDS.some((id) => glowCells(p, id).size > 0);
+  return p.glyphs.length > 0 || p.household.members.some((id) => glowCells(p, id).size > 0);
 }
 
 export interface FairState {

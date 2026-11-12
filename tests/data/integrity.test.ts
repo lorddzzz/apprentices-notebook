@@ -12,7 +12,6 @@ import {
   HABITS,
   IDIOMS,
   LOOT_TABLES,
-  MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   METHODS,
@@ -26,7 +25,7 @@ import {
   TUNING,
 } from '$data';
 import { DISTRICT_KIT } from '$data/districts/index';
-import { BASIC_ACTIONS, parseBoard, parseLattice } from '$engine';
+import { BASIC_ACTIONS, FOUNDERS, parseBoard, parseLattice } from '$engine';
 import { preconditionsOf, SEAM_PAGES } from '$engine/recruits';
 import { checkRoom } from '$engine/rooms';
 
@@ -203,7 +202,7 @@ test('encounter enemy counts hold for every variant of a depth', () => {
 });
 
 test('member start lattices match their shape (dims + holes)', () => {
-  for (const id of MEMBER_IDS) {
+  for (const id of FOUNDERS) {
     const shape = parseLattice(MEMBERS[id].shape).shape;
     const start = parseLattice(MEMBERS[id].startLattice);
     expect(start.shape, id).toEqual(shape);

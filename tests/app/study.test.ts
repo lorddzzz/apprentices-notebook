@@ -3,7 +3,6 @@ import {
   type InventionDef,
   LINES,
   type LineId,
-  MEMBER_IDS,
   MEMBERS,
   RUNE_IDS,
   RUNES,
@@ -14,6 +13,7 @@ import {
   type CellKey,
   canPlace,
   compileLattice,
+  FOUNDERS,
   type GlyphArg,
   type GlyphDef,
   glyphCost,
@@ -223,7 +223,7 @@ test('profileShelf: learning a rune opens its slot', () => {
 test('profile placement honours canPlace, with its reasons', () => {
   const p = newProfile();
   let checked = 0;
-  for (const m of MEMBER_IDS) {
+  for (const m of FOUNDERS) {
     const shape = latticeOf(p, m).shape;
     for (let y = 0; y < shape.height; y++) {
       for (let x = 0; x < shape.width; x++) {

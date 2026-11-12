@@ -6,7 +6,6 @@ import {
   HABITS,
   isInvention,
   leanOf,
-  MEMBER_IDS,
   RECRUIT_HABITS,
   RECRUITS,
   type RecruitDef,
@@ -16,8 +15,21 @@ import {
   TUNING,
 } from '$data';
 import { DISTRICT_TOKENS } from '$data/districts/index';
-import { compileLattice, inkUsed, parseLattice, validateLattice } from '$engine';
+import {
+  compileLattice,
+  FOUNDERS,
+  type GlyphDef,
+  glyphSamples,
+  inkUsed,
+  joinHousehold,
+  newProfile,
+  parseLattice,
+  validateLattice,
+} from '$engine';
 import { preconditionsOf } from '$engine/recruits';
+import { allMasks, fairCopyUnlocked } from '../../src/app/faircopy';
+import { exportedMembers } from '../../src/app/lab';
+import { act, board, cast } from '../scenarios/harness';
 
 const IDS = Object.keys(RECRUITS) as (keyof typeof RECRUITS)[];
 
@@ -109,9 +121,9 @@ function TABLE_HABITS(): string[] {
     .sort();
 }
 
-test('the registry is the pair then the recruits, and the old loops still see only the pair', () => {
+test('the registry is the pair then the recruits, and the founders are the pair', () => {
   expect(APPRENTICE_IDS).toEqual(['draughtsman', 'stoker', ...IDS]);
-  expect(MEMBER_IDS).toEqual(['draughtsman', 'stoker']);
+  expect(FOUNDERS).toEqual(['draughtsman', 'stoker']);
   for (const id of IDS) expect(APPRENTICES[id]).toBe(RECRUITS[id]);
 });
 
@@ -167,4 +179,50 @@ test('tokens are unique across the registry and clear of foe and district tokens
     ...DISTRICT_TOKENS.map((t) => t.token),
   ];
   for (const t of tokens) expect(others, t).not.toContain(t);
+});
+
+test('KIT-R4: the Lab and the profiler list a recruited apprentice', () => {
+  const recruit = IDS[0] as (typeof IDS)[number];
+  const p = joinHousehold(newProfile(), recruit);
+  const mask = [[{ at: { x: 0, y: 0 }, node: 'x' }]] as unknown as NonNullable<
+    (typeof p.proof)[typeof recruit]
+  >[number];
+  const proved = { ...p, proof: { ...p.proof, [recruit]: mask } };
+  expect(allMasks(proved)).toHaveLength(1);
+  expect(fairCopyUnlocked(proved)).toBe(false);
+  expect(exportedMembers([recruit])).toEqual(['draughtsman', 'stoker', recruit]);
+
+  // The profiler charges the recruit's touching aura: replay the founder's cast under their name.
+  const g: GlyphDef = {
+    id: 'fuse',
+    name: 'fuse',
+    version: 1,
+    kind: 'spell',
+    entry: { x: 0, y: 0 },
+    exits: [],
+    idiom: null,
+    params: [],
+    extraExit: null,
+    cells: parseLattice('Bolt> Fuse Oil Spark').runes.flatMap((r) => ('glyph' in r ? [] : [r])),
+  } as unknown as GlyphDef;
+  const spells = compileLattice(parseLattice('G:fuse>'), { fuse: g }).spells;
+  const sealed = cast(
+    board('D . d', { party: { draughtsman: { spells } } }),
+    'draughtsman',
+    'right',
+  );
+  const events = [...sealed.events, ...act(sealed.state, { type: 'endTurn' }).events].map((e) =>
+    e.type === 'trace' ? { ...e, caster: { ...e.caster, id: recruit } } : e,
+  );
+  const withAura = {
+    ...p,
+    glyphs: [g],
+    lattices: { ...p.lattices, [recruit]: parseLattice('G:fuse> Afterglow').runes },
+  };
+  const bare = {
+    ...withAura,
+    lattices: { ...p.lattices, [recruit]: parseLattice('G:fuse>').runes },
+  };
+  const cost = (q: typeof p) => glyphSamples(events, q)[0]?.sample.cost ?? 0;
+  expect(cost(withAura)).toBe(cost(bare) + 1);
 });

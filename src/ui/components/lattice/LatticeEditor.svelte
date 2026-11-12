@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type Snippet, tick } from 'svelte';
-  import { APPRENTICES, type LineId, MEMBER_IDS, MEMBERS, type MemberId, type RuneRef } from '$data';
+  import { APPRENTICES, type LineId, MEMBERS, type MemberId, type RuneRef } from '$data';
   import {
     type CellKey,
     type CompiledLattice,
@@ -41,8 +41,8 @@
     ontool: (tool: ShelfTool) => void;
     onsocket: (at: Coord, longPress: boolean) => void;
     member: MemberId;
-    /** The bookmarks, in order: the slotted party plus the open page's owner. Default: the founding pair (Lab). */
-    members?: readonly MemberId[];
+    /** The bookmarks, in order: the slotted party plus the open page's owner. */
+    members: readonly MemberId[];
     onmember: (member: MemberId) => void;
     /** Why a shelf slot can't be picked up. */
     onreject?: (reason: string) => void;
@@ -84,7 +84,7 @@
     ontool,
     onsocket,
     member,
-    members = MEMBER_IDS,
+    members,
     onmember,
     onreject,
     inventions = {},

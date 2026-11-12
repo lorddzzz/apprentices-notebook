@@ -4,7 +4,6 @@ import {
   ENCOUNTERS,
   LOOT_TABLES,
   type LootTableId,
-  MEMBER_IDS,
   METHODS,
   RUNES,
   SOLVENTS,
@@ -13,6 +12,7 @@ import {
 import {
   beginEncounter,
   codexView,
+  FOUNDERS,
   finishEncounter,
   type LootItem,
   newProfile,
@@ -81,7 +81,7 @@ describe('typed loot tables (P34, P35)', () => {
   test('every table offers three distinct things, for many seeds', () => {
     for (const table of [...SEAM, ...CANALS]) {
       for (let seed = 0; seed < 100; seed++) {
-        const offers = rollOffers(seed, 1, table, MEMBER_IDS);
+        const offers = rollOffers(seed, 1, table, FOUNDERS);
         expect(offers, `${table} ${seed}`).toHaveLength(3);
         const keys = offers.map((o) => JSON.stringify(o));
         expect(new Set(keys).size).toBe(3);
@@ -96,7 +96,7 @@ describe('knowledge, not copies (P34)', () => {
   test('a rune page the household already has drops as 1 ink', () => {
     let ink = 0;
     for (let seed = 0; seed < 200; seed++) {
-      const offers = rollOffers(seed, 0, 'shallow', MEMBER_IDS, null, {
+      const offers = rollOffers(seed, 0, 'shallow', FOUNDERS, null, {
         known: allSeamRunes,
         methods: [],
       });
@@ -114,8 +114,8 @@ describe('knowledge, not copies (P34)', () => {
     const seen = new Set<number>();
     for (let seed = 0; seed < 300; seed++) {
       const owned = { known: allSeamRunes, methods: [] };
-      const plain = rollOffers(seed, 0, 'shallow', MEMBER_IDS);
-      const dup = rollOffers(seed, 0, 'shallow', MEMBER_IDS, null, owned);
+      const plain = rollOffers(seed, 0, 'shallow', FOUNDERS);
+      const dup = rollOffers(seed, 0, 'shallow', FOUNDERS, null, owned);
       // The first draw happens before any member is rolled, so it is the same entry: a rune page
       // there becomes a 1-ink offer in its place.
       const o = plain[0];
@@ -131,7 +131,7 @@ describe('knowledge, not copies (P34)', () => {
 
   test('a method page the household has is ink too', () => {
     for (let seed = 0; seed < 200; seed++) {
-      const offers = rollOffers(seed, 0, 'canalDeep', MEMBER_IDS, null, {
+      const offers = rollOffers(seed, 0, 'canalDeep', FOUNDERS, null, {
         known: [],
         methods: ['repeat', 'margin'],
       });
@@ -193,13 +193,13 @@ describe('the first heart clear (P35)', () => {
 
   test('always offers the Conduct page while the household lacks it', () => {
     for (let seed = 0; seed < 400; seed++) {
-      expect(hasConduct(rollOffers(seed, 4, 'heart', MEMBER_IDS)), `seed ${seed}`).toBe(true);
+      expect(hasConduct(rollOffers(seed, 4, 'heart', FOUNDERS)), `seed ${seed}`).toBe(true);
     }
   });
 
   test('still three offers, and a key joins the pool without crowding it out', () => {
     for (let seed = 0; seed < 100; seed++) {
-      const offers = rollOffers(seed, 4, 'heart', MEMBER_IDS, { district: 'canals', weight: 50 });
+      const offers = rollOffers(seed, 4, 'heart', FOUNDERS, { district: 'canals', weight: 50 });
       expect(offers).toHaveLength(3);
       expect(hasConduct(offers)).toBe(true);
     }
@@ -207,7 +207,7 @@ describe('the first heart clear (P35)', () => {
 
   test('once learned it comes back as 1 ink at most, never as a page', () => {
     for (let seed = 0; seed < 400; seed++) {
-      const offers = rollOffers(seed, 4, 'heart', MEMBER_IDS, null, {
+      const offers = rollOffers(seed, 4, 'heart', FOUNDERS, null, {
         known: [],
         methods: ['conduct'],
       });

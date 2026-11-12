@@ -1,9 +1,10 @@
-import { type ApprenticeId, MEMBER_IDS } from '$data';
+import type { ApprenticeId } from '$data';
 import { basicDirs } from '../basicActions';
 import { applyAction } from '../battle';
 import { boilOverState, forecastBoilOver } from '../districts/bathhouses/boilOver';
 import { crackedSet } from '../districts/bridges/preview';
 import type { GameEvent } from '../events';
+import { FOUNDERS } from '../household';
 import { castableSpells, legalAims, legalMoves, memberById } from '../queries';
 import type { Action, BattleState } from '../types';
 
@@ -74,12 +75,12 @@ function value(s: BattleState, gauge = false): number {
   );
 }
 /** The member's own basic action (Shove, Pull, Hop or Swap) in every direction it can take now. */
-function basics(s: BattleState, id: (typeof MEMBER_IDS)[number]): Action[] {
+function basics(s: BattleState, id: ApprenticeId): Action[] {
   const m = memberById(s, id);
   if (m.acted) return [];
   return basicDirs(s, id).map((dir): Action => ({ type: m.action, unit: id, dir }) as Action);
 }
-function attacks(s: BattleState, id: (typeof MEMBER_IDS)[number]): Action[] {
+function attacks(s: BattleState, id: ApprenticeId): Action[] {
   return [
     ...basics(s, id),
     ...castableSpells(s, id)
@@ -91,7 +92,7 @@ function attacks(s: BattleState, id: (typeof MEMBER_IDS)[number]): Action[] {
       ),
   ];
 }
-function bestAttack(s: BattleState, id: (typeof MEMBER_IDS)[number], gauge = false) {
+function bestAttack(s: BattleState, id: ApprenticeId, gauge = false) {
   let best: { action: Action; gain: number } | null = null;
   for (const action of attacks(s, id)) {
     const gain = value(applyAction(s, action).state, gauge) - value(s, gauge);
@@ -106,7 +107,7 @@ function bestAttack(s: BattleState, id: (typeof MEMBER_IDS)[number], gauge = fal
 export function botFight(
   initial: BattleState,
   maxRounds = 40,
-  order: readonly ApprenticeId[] = MEMBER_IDS.filter((id) =>
+  order: readonly ApprenticeId[] = FOUNDERS.filter((id) =>
     initial.units.some((u) => u.kind === 'member' && u.id === id),
   ),
   opts: BotOptions = {},

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { LOOT_TABLES, type LootTableId, MEMBER_IDS } from '$data';
-import { newProfile, parseSaveData, startTrip } from '$engine';
+import { LOOT_TABLES, type LootTableId } from '$data';
+import { FOUNDERS, newProfile, parseSaveData, startTrip } from '$engine';
 import type { Json, KitId, OfferContributor, OfferKind } from '$engine/districts/types';
 import { pickLoot, returnHome } from '$engine/trip/crossroads';
 import {
@@ -67,8 +67,8 @@ describe('offer-kind registry (DK-7)', () => {
       for (let seed = 1; seed <= 40; seed++)
         for (const enc of [0, 2, 4]) {
           const owned = ownedBy(p, t);
-          const plain = rollOffers(seed, enc, table, MEMBER_IDS, null, owned);
-          const kit = rollOffers(seed, enc, table, MEMBER_IDS, null, owned, {
+          const plain = rollOffers(seed, enc, table, FOUNDERS, null, owned);
+          const kit = rollOffers(seed, enc, table, FOUNDERS, null, owned, {
             profile: p,
             trip: t,
           });
@@ -90,8 +90,8 @@ describe('offer-kind registry (DK-7)', () => {
       },
     ]);
     for (let seed = 1; seed <= 30; seed++) {
-      const legacy = rollOffers(seed, 4, 'heart', MEMBER_IDS, { district: 'canals', weight: 50 });
-      const kit = rollOffers(seed, 4, 'heart', MEMBER_IDS, null, undefined, {
+      const legacy = rollOffers(seed, 4, 'heart', FOUNDERS, { district: 'canals', weight: 50 });
+      const kit = rollOffers(seed, 4, 'heart', FOUNDERS, null, undefined, {
         profile: p,
         trip: t,
         registry: keyed,
@@ -110,7 +110,7 @@ describe('offer-kind registry (DK-7)', () => {
       },
     ]);
     for (let seed = 1; seed <= 20; seed++) {
-      const offers = rollOffers(seed, 4, 'heart', MEMBER_IDS, null, undefined, {
+      const offers = rollOffers(seed, 4, 'heart', FOUNDERS, null, undefined, {
         profile: p,
         trip: t,
         registry: reg,
@@ -120,7 +120,7 @@ describe('offer-kind registry (DK-7)', () => {
       expect(offers).toHaveLength(4);
       expect(offers[3]).toEqual(charm);
       // On a table with no guarantee the must leads.
-      const deep = rollOffers(seed, 2, 'deep', MEMBER_IDS, null, undefined, {
+      const deep = rollOffers(seed, 2, 'deep', FOUNDERS, null, undefined, {
         profile: p,
         trip: t,
         registry: reg,
@@ -136,7 +136,7 @@ describe('offer-kind registry (DK-7)', () => {
     const { p, t } = fresh();
     const reg = withFixtures([() => ({ must: { kind: TOKEN_ID, data: 1 }, extra: [token(2)] })]);
     const roll = (trip: Trip) =>
-      rollOffers(9, 2, 'deep', MEMBER_IDS, null, undefined, { profile: p, trip, registry: reg });
+      rollOffers(9, 2, 'deep', FOUNDERS, null, undefined, { profile: p, trip, registry: reg });
     // The must takes the one slot; the extra token would be a second.
     expect(roll(t).filter((i) => i.kind === TOKEN_ID)).toEqual([token(1)]);
     expect(roll({ ...t, loot: [token(5)] }).some((i) => i.kind === TOKEN_ID)).toBe(false);

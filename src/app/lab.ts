@@ -13,7 +13,6 @@ import {
   type InventionDef,
   type InventionId,
   LINES,
-  MEMBER_IDS,
   MEMBERS,
   METHOD_IDS,
   METHODS,
@@ -839,9 +838,7 @@ export const membersOn = (s: BattleState): ApprenticeId[] =>
 
 /** Whose pages an export carries: the founding pair, and anyone else standing on the board. */
 export function exportedMembers(onBoard: readonly ApprenticeId[]): ApprenticeId[] {
-  return APPRENTICE_IDS.filter(
-    (id) => (MEMBER_IDS as readonly string[]).includes(id) || onBoard.includes(id),
-  );
+  return APPRENTICE_IDS.filter((id) => FOUNDERS.includes(id) || onBoard.includes(id));
 }
 
 /** A scenario that replays `actions` from `base`; `expected` is the log of `events`. */
@@ -924,7 +921,7 @@ export function formatScenario(def: ScenarioDef): string {
 /** "Draughtsman" then its lattice, for each member (the Lab's Copy lattices). */
 export function formatLattices(
   lattices: Record<MemberId, Lattice>,
-  ids: readonly MemberId[] = MEMBER_IDS,
+  ids: readonly MemberId[] = FOUNDERS,
 ): string {
   return ids.map((m) => `${MEMBERS[m].name}\n${serializeLattice(lattices[m])}`).join('\n\n');
 }

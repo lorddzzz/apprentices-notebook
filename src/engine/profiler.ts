@@ -1,4 +1,4 @@
-import { MEMBER_IDS, TUNING } from '$data';
+import { TUNING } from '$data';
 import type { EventLog, GameEvent, NodeSpan } from './events';
 import { baseGlyphCost } from './glyph';
 import { type Coord, key, neighbors4 } from './grid';
@@ -96,7 +96,7 @@ function localCells(span: NodeSpan): Coord[] {
 
 /** Auras beside a socket in a member's lattice: each costs 1 ink (M9). */
 function outerAuras(p: Profile, caster: string, socket: Coord): number {
-  const member = MEMBER_IDS.find((m) => m === caster);
+  const member = p.household.members.find((m) => m === caster);
   const runes = member ? (p.lattices?.[member] ?? []) : [];
   const near = new Set(neighbors4(socket).map(key));
   const lib = libraryOf(p.inventions ?? []);

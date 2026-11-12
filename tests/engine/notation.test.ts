@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
-import { MEMBER_IDS, MEMBERS, TUNING } from '$data';
+import { MEMBERS, TUNING } from '$data';
 import {
+  FOUNDERS,
   parseBoard,
   parseCell,
   parseLattice,
@@ -182,7 +183,7 @@ test('serializeLattice round-trips', () => {
 });
 
 test('member start lattices serialize back to their data text', () => {
-  for (const id of MEMBER_IDS) {
+  for (const id of FOUNDERS) {
     const text = MEMBERS[id].startLattice;
     expect(serializeLattice(parseLattice(text))).toBe(text);
   }

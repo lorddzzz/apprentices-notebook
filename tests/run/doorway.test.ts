@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import { ENCOUNTERS, LOOT_TABLES, MEMBER_IDS, type MemberId } from '$data';
+import { ENCOUNTERS, LOOT_TABLES, type MemberId } from '$data';
 import {
   applyDoorway,
   compiledFor,
+  FOUNDERS,
   type GlyphDef,
   type LootItem,
   newProfile,
@@ -57,7 +58,7 @@ describe('the doorway in the loot tables', () => {
   test("the heart's offers never hold a doorway (many seeds)", () => {
     expect(ENCOUNTERS[heartIndex]?.loot).toBe('heart');
     for (let seed = 1; seed <= 400; seed++) {
-      const offers = rollOffers(seed, heartIndex, 'heart', MEMBER_IDS);
+      const offers = rollOffers(seed, heartIndex, 'heart', FOUNDERS);
       expect(offers.some(isDoorway), `seed ${seed}`).toBe(false);
     }
   });
@@ -65,7 +66,7 @@ describe('the doorway in the loot tables', () => {
   test('a deep offer holds a doorway sometimes, and never two', () => {
     let seen = 0;
     for (let seed = 1; seed <= 600; seed++) {
-      const n = rollOffers(seed, 2, 'deep', MEMBER_IDS).filter(isDoorway).length;
+      const n = rollOffers(seed, 2, 'deep', FOUNDERS).filter(isDoorway).length;
       expect(n, `seed ${seed}`).toBeLessThanOrEqual(1);
       seen += n;
     }
