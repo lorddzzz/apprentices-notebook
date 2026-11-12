@@ -216,8 +216,10 @@ describe('AH-8: seeded walks with every action and habit', () => {
     for (const a of BASICS) expect(sawAction.has(a), a).toBe(true);
     console.info(`AH fuzz: ${SEEDS} walks; habits tagged: ${[...sawHabit].sort().join(', ')}`);
     if (SEEDS >= 240) {
-      // The seven new habits (twoJars and forkAhead are older and tag nothing).
-      for (const h of HABIT_IDS.filter((x) => x !== 'twoJars' && x !== 'forkAhead'))
+      // The seven new habits (twoJars and forkAhead are older and tag nothing; mender is the owner's, who no household has yet).
+      for (const h of HABIT_IDS.filter(
+        (x) => x !== 'twoJars' && x !== 'forkAhead' && x !== 'mender',
+      ))
         expect(sawHabit.has(h), h).toBe(true);
     }
   });
