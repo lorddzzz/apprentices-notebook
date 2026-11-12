@@ -7,11 +7,6 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 
 | ID | Commit | Model / effort | Returns | Usage Δ | Note |
 |---|---|---|---|---|---|
-
-## Usage
-
-| Time (CET) | 5h % | Weekly % | Action |
-|---|---|---|---|
 | GATE-1 | 7cc4e66 | Sonnet medium | split typecheck, check:changed, sims moved; 0 returns |
 | BR-20, BR-7 | d63d64e, +fix | Sonnet medium | one commit for both; bench.ts RIVALS filter fixed by orchestrator; 0 returns |
 | KIT-R2 | 3423901 | Sonnet medium | registry slots; logic.ts holds component-free slots; autofixer only run on RoomBonus, Seam/Foundry no Lab scenario; 0 returns |
@@ -25,3 +20,8 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | IQ-F3, IQ-F4, IQ-F5 | 300e481, 7d8aa8d, 87d09e8 | Haiku high | ink footnotes built; 7 proposals in status; 0 returns |
 | KIT-R3a | 8263248 | Sonnet medium | ink heart frame exemplar (heart.ts pattern); ink bot is {}; 0 returns |
 | BF-9, BF-24 | 4e0e89c, 089473c | Sonnet high | Carillonneur rival; touched data/types, enemies, footnotes index and 3 tests; 0 returns |
+
+## Usage
+
+| Time (CET) | 5h % | Weekly % | Action |
+|---|---|---|---|

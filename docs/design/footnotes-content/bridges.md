@@ -1,8 +1,8 @@
 # Footnotes content: the bridges (Structure)
 
-> **State: Drafted 2026-11-06 for BR-G1 (not approved).** Task BR-18 of [bridges-plan.md](../../plans/bridges-plan.md). Rules: [footnotes.md](../footnotes.md) §1 and "Rival notes". Lines: `src/data/lines.ts` (BR-17 block); audit: [footnotes-audit.md](../../plans/footnotes-audit.md) §10. Format and pair rules as in [bathhouses.md](bathhouses.md) §0 and [seam.md](seam.md) §0. Builds: BR-19 into `src/data/footnotes/bridges.ts`; the Chief Warden's note with the real rival (RV API, BR-20).
+> **State: Approved 2026-11-12 at BR-G1** (orchestrator review, design window; the decisions are in §8). This text is the spec for BR-19a (Hold, Brink, Lay) and BR-19b (Mortar, Chalk, the Chief Warden's note). Drafted 2026-11-06 by task BR-18 of [bridges-plan.md](../../plans/bridges-plan.md). Rules: [footnotes.md](../footnotes.md) §1 and "Rival notes". Lines: `src/data/lines.ts` (BR-17 block); audit: [footnotes-audit.md](../../plans/footnotes-audit.md) §10. Format and pair rules as in [bathhouses.md](bathhouses.md) §0 and [seam.md](seam.md) §0. Builds: BR-19a and BR-19b into `src/data/footnotes/bridges.ts`; the Chief Warden's note in BR-19b (his rival and page are BR-20's, merged).
 >
-> Nothing here is built. Every number is *tune by playing*. Engine lines are sketches. Names are placeholders.
+> Nothing here is built yet. Every number is *tune by playing*. Engine lines are sketches; the variant ids are final.
 
 ## 0. How to read this
 
@@ -138,7 +138,7 @@ Headline: *What the rest lands sets into the tile for good (until broken), inste
 
 ## 3. The Chief Warden's note (BR-20)
 
-On **Brink, level II, slot `brink:drop`**, a third option beside a and b (plan BR-18; default level II per FN Q3: level II adds an interaction, which is what a right of way is). Hidden until his page (**Mind the edge**) is held; still needs the slot's level and solvents. Id `chiefWarden:brink`. Assumes his page includes Brink; confirm at RV-15.
+On **Brink, level II, slot `brink:drop`**, a third option beside a and b (plan BR-18; default level II per FN Q3: level II adds an interaction, which is what a right of way is). Hidden until his page (**Mind the edge**) is held; still needs the slot's level and solvents. Id `chiefWarden:brink`. His page includes Brink (BR-20 built it); BR-20 wrote the note's slot as `brink:edge`, and BR-19b moves it to `brink:drop` (§8).
 
 - c · `chiefWarden:brink`: *A Warden does not fall off a bridge they walk. Any of yours beside the fog is passed over by Brink's rest, and takes a Guard of 1 instead.*
   Credit line, in the household's hand under it: *Copied from the Chief Warden's day-book.*
@@ -160,11 +160,11 @@ Headline: *Pushes in it go 1 tile further.*
 
 **Mortar-unit-II** · `mortar:unit`
 
-- a · `mortar-unit-kin`: *Your own party is pushed as plain, with no extra tile.*
-  Engine: `pushBonus` skips members. No new event. Mortar that knows friends.
+- a · `mortar-unit-guard`: *A member of your party that Mortar pushes still goes the extra tile, and takes a Guard of 1 where it stops.*
+  Engine: after the push, a Guard step on a member target (`push.ts`, the Mortar bonus site). Existing `guarded`. Mortar that knows friends. (Replaces the draft's `mortar-unit-kin` at BR-G1: a Mortar that pushes your own as plain undoes the solvent's one rule.)
 - b · `mortar-unit-behind`: *A Mortar'd push also pushes the unit behind the target one tile.*
   Engine: `push` adds one step for the next unit along the heading (once). Existing `push`. A line of pushed units.
-- Combos: rim + kin: both safeties, a cautious Mortar; fine. rim + behind: the unit behind is pushed even when the first stops short; fine. fall + kin: foes drop harder, yours never; reads well. fall + behind: the second unit takes no bonus; say "one tile, plain" at build.
+- Combos: rim + guard: both safeties for your own, a cautious Mortar; fine. rim + behind: the unit behind is pushed even when the first stops short; fine. fall + guard: a member carried into fog falls, and a fall is no stop, so no Guard; say so at build. fall + behind: the second unit takes no bonus; say "one tile, plain" at build.
 
 **Mortar-III**
 - a · `mortar-cap-set`: *When a Mortar'd push ends on a chipped span tile, it sets the stone sound again.*
@@ -201,7 +201,7 @@ Headline: *It reaches 1 tile further.*
 
 - **Runes:** 4 margin lines (Hold 2, Brink 2) plus Lay's one; 10 level I/II pairs; 3 capstone pairs.
 - **Solvents:** 2 margin lines; 4 level I/II pairs; 2 capstone pairs.
-- **Total pairs:** 19 (14 line pairs, 5 capstone pairs). **Rival note:** 1 (effect not built).
+- **Total pairs:** 19 (14 line pairs, 5 capstone pairs). **Rival note:** 1 (effect built by BR-19b).
 - **Clashes noted:** pass x exposed, half x find, near x nudge, fall x behind (wording at build). None needs a rule change.
 - **New engine pieces:** dusk hooks in `collapse.ts` (lean, spare, hang, fall, cloud, last), a held-twice count, a power raise and a copy tile in `newLayer`, a stone reset on a push end.
 
@@ -218,3 +218,12 @@ Headline: *It reaches 1 tile further.*
 | P2 | The Chief Warden's note on level II of `brink:drop` (default FN Q3) | Level II adds an interaction; level I there is about reach |
 | P3 | Hold capstone `hold-cap-crush` as BR-17 Q2 proposed, with `hold-cap-hang` as its opposite | Two opinions: spend the crack, or save the unit |
 | P4 | Accept Lay, Mortar, Chalk with one margin line each | No second real behaviour; no invented rows (FN P5) |
+
+## 8. BR-G1 review (orchestrator, design window 2026-11-12)
+
+Approved with these changes; everything not named here is approved as drafted.
+
+1. **Defining words stay true** (the IQ-FG rule): `mortar-unit-kin` (your own pushed as plain) undoes Mortar's one rule for a whole class of targets and is replaced by `mortar-unit-guard` (the extra tile stays; a member takes a Guard of 1 where it stops). `mortar-unit-rim` stays: it is an interaction with fog, as `wax-cloud-smother` was with a cloud, and every other push still goes the extra tile. `chalk-network-kin` stays: the reach is unchanged, only who it touches.
+2. **Open questions answered.** Q1: Lay keeps one margin line (P4 approved; no invented row). Q2: the dusk hooks live in `collapse.ts`'s own step, each behind `hasFootnote`, in this order before the fall: `hold-cracked-spare` and `hold-cap-hang` move a held unit to the nearest standing tile, then `hold-cracked-lean` skips a tile once, then the fall (with `hold-cap-crush`, `brink-cap-fall`, `lay-cracked-cloud`, `lay-cracked-last` on what falls). `fallingTiles` stays the one selection, so the preview and the fall agree.
+3. **The Chief Warden's note** sits on `brink:drop`, level II (P2 approved). `CHIEF_WARDEN_PAGE.note.line` changes from `brink:edge` to `brink:drop` in BR-19b; the variant id `chiefWarden:brink`, his credit line and his page stay.
+4. **Build notes for BR-19a and BR-19b:** each "say so at build" becomes a clause in the variant's text or a one-line comment beside it: `hold-held-pass` says "yours included"; `hold-cracked-knot` says "units beside the target, yours included"; pass + exposed counts "held twice"; `hold-cap-crush` says a minion is gone either way and an elite takes the crush on top of the drop damage; `brink-cracked-dusk` reads "will fall this dusk" as `fallingTiles`; near + nudge pushes toward the nearest fog tile (reading order); half + find retargets at full strength; end + ring reads "the last node as the cast began"; `mortar-cap-set` runs after any wear the push did. Core files (`push.ts`, `mix.ts`, `resolve.ts`, `runes/*`, `bursts.ts`, `inventions.ts`) read bridges state only through `districts/api` (`crackedTiles`); an effect that writes bridges state (stone, the fall, support) lives in `src/engine/districts/bridges/`. `fourCombos` per margin line (Hold 2, Brink 2, Lay 1, Mortar 1, Chalk 1), one scenario per capstone option (10), the note hidden, then offered, then credited.

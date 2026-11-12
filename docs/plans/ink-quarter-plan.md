@@ -1,7 +1,7 @@
 # The ink-makers' quarter: the dead-letter office (plan)
 
 > Design: [district-ink-makers.md](../design/district-ink-makers.md); also [rune-design-final.md](../design/rune-design-final.md) §5.2, §6.2, §6.3, §11, [party.md](../design/party.md) §2, [footnotes.md](../design/footnotes.md), [rivals.md](../design/rivals.md). Roadmap: **BL-113**. Prefix **IQ**. Brief: [build-program.md](build-program.md).
-> **State: Built and open; footnote batch: IQ-F1, IQ-F2 merged, IQ-FG approved 2026-11-11 (docs/design/footnotes-content/inkQuarter.md §7); IQ-F3–F5 next (Pack C2).**
+> **State: Built and open; footnote batch: IQ-F1, IQ-F2 merged, IQ-FG approved 2026-11-11 (docs/design/footnotes-content/inkQuarter.md §7); IQ-F3–F5 merged (Pack C2); the build's follow-ups decided 2026-11-12 (inkQuarter.md §8), built as FU-21 in the platform-closure plan.**
 > Scope: the Notaries' district as a DK district module: three writ pieces, offers with terms, the postal staff, four rooms and a heart (a scripted stand-in first, the postmaster as a rival later), the return-to-sender gate, the cross-apprentice hearing's data, letters to the owner, the junior notary's landmark room, its lower-Seam floor, its footnote batch, Bench parity and bot calibration.
 
 ## 1. Scope and settled rules

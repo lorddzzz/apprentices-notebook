@@ -1,7 +1,7 @@
 # The ending: implementation plan (EN)
 
 > Design: [ending.md](../design/ending.md) (all), [district-cartographers.md](../design/district-cartographers.md) §0 ("The ending") and §2, [district-seam.md](../design/district-seam.md) (the sealed door), [party.md](../design/party.md) §1 (habit rules, start points) and §2 (the tenth). Roadmap: **BL-126**. Brief: [build-program.md](build-program.md). Prefix **EN**.
-> **State: Drafted (repacked 2026-11-11 for the `implement` skill; not started).** Order: [midpoint-audit.md](midpoint-audit.md) §2.2 Track E and §3 Pack D (EN-0 first). Calibration (the old EN-13) moved to the CAL plan.
+> **State: Building (EN-0 and EN-W0 merged; D2's proposals decided and EN-5 moved before the generator, P22–P25, design window 2026-11-12).** Order: [midpoint-audit.md](midpoint-audit.md) §2.2 Track E and §3 Pack D (EN-0 first). Calibration (the old EN-13) moved to the CAL plan.
 > Scope: the handover visit and credits, the owner as the tenth apprentice, the drawing table with its pen, drawn districts on the map, and the **room generator** with its guardrails and bot test, plus drawn hearts and loot.
 
 ## 1. Scope and settled rules
@@ -42,6 +42,10 @@
 | P19 | **Mender is planned here, not in AH**: data row `mender` (lattice, `leansOn: spark`, rule `networkGap: 1`) in AH's habit table, and a `gap` option on `networks.ts` (`brassNet`, `cloudNet`, `oilNet`, `sameStateNet`): on the owner's own casts two network tiles in a straight line with **one empty tile** between them (no state, compound, unit or blocking piece) join; the gap tile is not part of the network. Never diagonal, never round-end fire spread, never bells | AH's scope closes with the seven; the owner arrives last and needs Toll's network from BF. Fine print: `mender:unit` (a unit in the gap blocks it), `mender:diagonal`, `mender:dusk` (the fire spreading at dusk does not jump) |
 | P20 | **The door visit lives on the map**, as ending §1.1 says: the Seam node's sheet (and SM's stair sheet) shows *The owner's door* while `ownerDoor(p) === 'open'` and the handover is not done; afterwards it stays as *Visit the owner's desk* (scene replay). SM-10's in-trip line becomes "The door stands open. You can visit it from home." | ending.md (later) wins over SM P11's in-trip route; a free visit should not need a trip |
 | P21 | **A lifetime ledger lands early** (`Profile.ledger`: casts, biggest chain ever with its caster and name, the order districts opened), fed by `returnHome` and the wipe path from the moment it ships | Credits need counts the profile does not keep today (only `city.trips`); a late field would show zeros for a long campaign |
+| P22 | **Accepted from EN-W0 (design window 2026-11-12):** `Profile.drawings`, `.ending` and `.ledger` are optional and stored only once non-empty (a save without them is unchanged; the readers give P2's empty defaults); `MasterId` is a literal union of the eight; `handover` and `creditsOf` live in `src/engine/drawing/ending.ts` (Pack L builds them there; no `src/engine/ending.ts`) | Saves stay byte-identical until the ending is used; one folder for the ending's engine |
+| P23 | **EN-5 runs before the generator.** The `needs` table of P5 and the element costs are data in `src/data/drawing.ts` (`NEEDS` by element id, `COSTS`), read by `checkDrawing` now and by every kit and frame later (a kit's `needs` is `NEEDS[id] ?? []`, so the reasons are written once). EN-5's last test, `EN-5: every offered combination generates`, stays `it.todo` and joins EN-2's Done-when | The palette, pen and compatibility need no generator; only the "generates" check does |
+| P24 | **EN-9's acceptance todos move:** Pack D writes the nine EN-9 scenarios in `tests/scenarios/habits-mender.test.ts` and deletes their duplicate `it.todo` lines from `tests/drawing/acceptance.test.ts` (titles unchanged) | One home per test, as the `scenario` skill keeps them |
+| P25 | **Re-sequenced (design window 2026-11-12):** KIT-R3 is now KIT-R3b–g (platform-closure P8); EN-S1 starts when KIT-R3g merges; EN-G0 follows EN-S1's report and the player's phone timings, in a design window | The frames and bot terms EN-S1 composes land first |
 
 ## 3. Current implementation and risks
 
@@ -136,16 +140,16 @@ Pattern: the spike's `generate.ts`; `src/engine/districts/bathhouses.ts` for mod
 
 | ID | Goal | Size | Done when |
 |---|---|---|---|
-| EN-2 | Production generator: kit composition, `matters` scoring, depth budgets (P7), size hints, stored layouts, the full P9 oracle | M | tests `EN-2: checkGenerated is green on every seed of every fixture drawing`, `EN-2: same input gives the same layout, attempts and ops`, `EN-2: no foe starts within distance 2 of any P`, `EN-2: depth bands scale the foe budget`, `EN-2: unverified fallbacks are zero` pass |
+| EN-2 | Production generator: kit composition, `matters` scoring, depth budgets (P7), size hints, stored layouts, the full P9 oracle | M | tests `EN-5: every offered combination generates` (P23), `EN-2: checkGenerated is green on every seed of every fixture drawing`, `EN-2: same input gives the same layout, attempts and ops`, `EN-2: no foe starts within distance 2 of any P`, `EN-2: depth bands scale the foe budget`, `EN-2: unverified fallbacks are zero` pass |
 | EN-3 | `inkedPage` module (P1, P15, P16): snapshot, dynamic rooms, shape delegation, rule activation, heart from its frame, nothing given that P16 excludes | M | tests `EN-3: trips of length 3 and 6 start, reload, return and wipe`, `EN-3: reload replays stored layouts without running the bot`, `EN-3: a redraw during a trip changes nothing`, `EN-3: no hearing, heart, page or recruit is given` pass |
 
-### Pack F: Palette, pen and loot (role: Default; engine; depends on: Pack E; DK-14, DK-E4, FN-1, RV-15)
-Owns: `src/engine/drawing/palette.ts`, `src/data/drawing.ts`, the offers in `src/engine/districts/inkedPage.ts`, `tests/drawing/{palette,loot}.test.ts`
+### Pack F: Palette, pen and loot (role: Default; engine; EN-5 depends on: Pack 0, DK-14, DK-E4, FN-1, RV-15 (P23: before the generator); EN-8 depends on: Pack E)
+Owns: `src/engine/drawing/{palette,cost,check}.ts`, `src/data/drawing.ts`, the offers in `src/engine/districts/inkedPage.ts` (EN-8), `tests/drawing/{palette,loot}.test.ts`
 Pattern: `src/engine/districts/bridges/guarantee.ts` for derived offers
 
 | ID | Goal | Size | Done when |
 |---|---|---|---|
-| EN-5 | Palette, pen, costs, compatibility (P3–P7): `paletteOf`, `penOf`, `costOf`, `weightBand`, `checkDrawing` with reasons | M | tests `EN-5: each need greys its element with its sentence`, `EN-5: the palette grows only with met content`, `EN-5: pen parts sum to the total`, `EN-5: every offered combination generates` pass |
+| EN-5 | Palette, pen, costs, compatibility (P3–P7, P23): `paletteOf`, `penOf`, `costOf`, `weightBand`, `checkDrawing` with reasons; `NEEDS` and `COSTS` in `src/data/drawing.ts` | M | tests `EN-5: each need greys its element with its sentence`, `EN-5: the palette grows only with met content`, `EN-5: pen parts sum to the total` pass; `EN-5: every offered combination generates` stays todo (EN-2, P23) |
 | EN-8 | Loot by depth (P17) and rewards: the derived table, picks by band, proof and points as any trip | S | tests `EN-8: offers come only from source districts or basics`, `EN-8: a page you hold is never offered`, `EN-8: solvents come only from drawn districts` pass (as fuzz: no throw) |
 
 ### Pack G: Generation worker and map nodes (role: Default; UI; depends on: Pack E; BL-111, KIT-R2, DK-16, SM-11)
@@ -194,7 +198,7 @@ Pattern: Pack I's kits
 | EN-K7 | Cartographers kit (pencil, guild hands, free-then-no-return); Registrar frame | M | the three standard titles as `EN-K7: …`, plus `EN-K7: no return after the point and none needed at the heart` |
 
 ### Pack L: Handover and credits (role: Default; UI; depends on: Packs D and E, Pack C (EN-G2 approved); SM-10, SM-11, CG-14)
-Owns: `src/engine/ending.ts`, `src/ui/screens/Handover.svelte`, `src/ui/screens/Credits.svelte`, `src/ui/screens/Codex.svelte` (one entry), the SM sheet registration line, `tests/ending/`
+Owns: `src/engine/drawing/ending.ts` (P22), `src/ui/screens/Handover.svelte`, `src/ui/screens/Credits.svelte`, `src/ui/screens/Codex.svelte` (one entry), the SM sheet registration line, `tests/ending/`
 Pattern: `src/ui/screens/Cleared.svelte` for a tap-through scene
 
 | ID | Goal | Size | Done when |
@@ -226,7 +230,7 @@ Pattern: `src/ui/screens/Cleared.svelte` for a tap-through scene
 
 ## 8. Execution notes
 
-- **Critical path** (audit §2.2 Track E): Pack A (EN-0) → Pack 0 (EN-W0) → KIT-R3 → Pack B (EN-S1 → **EN-G0**) → Pack E → Packs I–K → Close. The risk (the generator) is retired at EN-G0, long before the districts finish.
+- **Critical path** (audit §2.2 Track E): Pack A (EN-0) → Pack 0 (EN-W0) → KIT-R3 (b–g, P25) → Pack B (EN-S1 → **EN-G0**) → Pack E → Packs I–K → Close. EN-5 (P23) and Pack D (after KIT-R4) run beside the KIT-R3 packs. The risk (the generator) is retired at EN-G0, long before the districts finish.
 - **Early and independent:** Pack C (EN-12 draft, then EN-G2) runs from Pack 0 on, because EN-G2 is the one gate that waits on the player; Pack D (ledger, owner) after KIT-R4.
 - **Parallel:** Pack C beside B; Pack D beside B and E (no shared files); Packs F, G, H after E and in any order (F and G own disjoint files; H follows F); Packs I and J follow their districts, K waits for BF-12 and CG-10; Pack L waits for Packs D and E, EN-G2 approval and CG-14. MIX-1 gates Pack E, BL-111 and KIT-R2 gate Pack G.
 - **Size:** 23 tasks and 4 gates (EN-13 moved to CAL) in 13 packs and Close: 8 S, 14 M, 1 L; about an L build, with the generator (EN-S1, EN-2, EN-K5–K7) the heaviest.

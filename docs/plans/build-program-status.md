@@ -2,23 +2,18 @@
 
 Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.md](midpoint-audit.md) §2.2; remaining work in pack form: [platform-closure-plan.md](platform-closure-plan.md), [foundry-plan.md](foundry-plan.md), [ending-plan.md](ending-plan.md), [cartographers-plan.md](cartographers-plan.md), [calibration-plan.md](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'` has each task's details; work before 2026-11-11 is in the archive log, grep only).
 
-**State (now):** R3a merged (8263248); F3 (BF-9 4e0e89c, BF-24 089473c) merged and pushed; R3b parked for design review (above). F3 notes: the Toll note has no effect yet (Pack J / BF-F3 adds the hook); `heart.ts`/`pealRoomSetup` must pass `rulesConfig: {'foundry:tune': {seed: trip.seed}}` (BF-22); note sits on Toll's capstone with placeholder line `toll:network`; TuneState has no seed field (later tunes derived from old tune + peal count). Next window: design (decide R3b blockers, rewrite its brief as frames-per-district tasks), then D4.
-**State (current):** C2 (IQ-F3–F5, 300e481, 7d8aa8d, 87d09e8) merged and pushed; remaining Wave 3: D3 (KIT-R3), F3 (Carillonneur); then D4. Design-window items from C2: (1) `wax-cloud-smother` cannot fire (a tile holds one layer; fire tile never holds cloud) — needs a design call; (2) Levy emits a miss per unmarked target even in an area; (3) levy bank fires at the third spend in a cast; (4) bound deep mark: release beats peel; (5) Sentence strikes only removable collars, not born-brass `&`; (6) wax seal lives in solvents.ts wax rule hooks, only in wax invention runs, no end-to-end test; footnote line-variant count 182→211. Ink-quarter footnotes are done.
-**State (newest):** Wave 2 done: B2 (KIT-R1, dec8acf) and F2 (BF-6–8, 1742421, c65f7b1) merged and pushed; next Wave 3 (C2, D3, F3). F2 proposals for design window: one line in core `damage.ts` `dealDamage` calls `behaviourOf(unit)?.onStruck`; EnemyId gains the 3 foes; Clapper tone from id ordinal; a Shove has no origin so no distinct striker for Unison; `HEART_HOOKS` in peal.ts empty, BF-12 fills it. D3 must remove the `!src/engine/sim/bot.ts` include and its sentence from biome.json's second override (KIT-R3b).
-**State (latest):** D2 (EN-W0, 001e345) merged; next Wave 2: F2 and B2 (both unblocked). D2 proposals for design window: Profile.drawings/ending/ledger optional (stored only when non-empty); handover/creditsOf stubs live in src/engine/drawing/ending.ts (Pack L moves or re-exports); MasterId is a literal union of eight; EN-9 todos duplicated in tests/drawing (Pack D removes them). Owed list from D2 is in the commit body (`git log --grep EN-W0`).
-**State (updated):** Wave 1 packs A and S merged; D2 not started (usage). Next: D2, then Wave 2 (F2, B2) per the briefs file. Pack A proposals to look at in the next design window: duplicate strikes on one bell collapse until settle; a capped action drops the queue; two BF-3 acceptance boards got a far foe row; bf0-contracts/pieces/tune tests touched; foundry tests must `import '$engine'` first (kit import cycle).
-**State (older):** design window 2026-11-11 done: Pack A's hooks decided (foundry P18–P20), IQ-FG approved, briefs written for waves 1–4 · **next window:** routine
+**State:** design window 2026-11-12 done: KIT-R3b's blockers decided (platform-closure P5–P8; KIT-R3b split into R3b–e frames and R3f–g shapes and bot terms), BR-G1 approved (C3 spawnable), every open proposal from A, D2, F2, B2, C2, F3 accepted or redirected (foundry P21–P26, ending P22–P25, closure P9, inkQuarter.md §8), briefs written for waves 5–9 and the free-slot packs · **next window: routine** (Sonnet medium), from wave 5.
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Schedule a wake-up at each reset (CronCreate one-shot, session-only; local time CET = UTC+1) until the player says a window is the last one or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
 - 2026-11-04: `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning during the build (everything goes to CAL); the player tests at the end, so **player gates never block** (build on the defaults below). Only EN-G2 (handover text) waits for the player.
-**Reset:** 2026-11-12 03:30 CET (02:30 UTC); wake-up scheduled 03:33 CET (CronCreate, session-only: if the session is closed, resume manually with the continuation prompt below). Held at 90 % of 5h, weekly 25 %. Next: D3 and F3 together (both Strong/Default), then D4; routine window.
+**Reset:** set by the next routine session from its usage reading.
 
 ## Next
-1. **Routine window, in the briefs file's order** (two or three at a time, file-disjoint as the table there states):
-   wave 1 **A** (BF-3→5) · **D2** (EN-W0) · **S** (SAVE-1 + canal-rooms timeout) → wave 2 **F2** (BF-6→8, after A) · **B2** (KIT-R1, after A and D2) → wave 3 **C2** (IQ-F3→F5, after A and B2) · **D3** (KIT-R3a→b, after B2 and D2) · **F3** (BF-9→24, after F2) → wave 4 **D4** (EN-S1, after D3).
-2. **Next design window** (when the briefs above run out or the review list has three entries): BR-G1 review of `docs/design/footnotes-content/bridges.md` and C3's ids; EN-G0 on D4's report (needs the player's phone timings); EN-12 draft (after D2); briefs for foundry Packs D–J (rooms share `src/data/districts/foundry.ts`: one at a time), closure Packs E, G–M and the FU sweep, KIT-R4, MIX-1; the ledger.
-3. Hard edges: KIT-R2 (merged) → any new board UI (BF-17, BF-18, CG-12, EN-7) · EN-0 → EN-W0 → KIT-R3 → EN-S1 → EN-G0 · EN-0 → MIX-1 → EN-2 · KIT-R4 → EN-9 · BL-111 → EN-4 · BR-20 and BF-9 → CG-14 · cartographers start when BF-12 merges or a slot is free.
+1. **Routine window, in the briefs file's order** (two or three at a time, file-disjoint; one sims pack at a time):
+   wave 5 **D3b** (KIT-R3b→e) · **F4** (BF-10→11) · **E1** (KIT-R4) → wave 6 **D3c** (KIT-R3f→g, after D3b and E1) · **C3** (BR-19a→b) · **EF** (EN-5) → wave 7 **D4** (EN-S1, after D3c) · **F6** (BF-12→13, after F4 and D3b) · **ED** (EN-1→9, after E1 and C3) → wave 8 **F5** (BF-F1, after C3 and ED) · **F7** (BF-14→16) · **F8** (BF-17→19→18, UI) → wave 9 **F9** (BF-20→22) · **CW0** (CG-W0) · **O** (FU-21). Free slots: G, H, K, L now; J and B1 after D3c; I after F5; M and MIX when no sims pack runs.
+2. **Next design window** (when D4 reports, F5 reports, or the review list has three entries): EN-G0 on D4's report (needs the player's phone timings on `#/dev/generator`); BF-FG review of the foundry draft and Pack J's brief; EN-12 handover draft; briefs for cartographers Packs A–J (after CW0) and ending Packs E–L (after EN-G0); the ledger.
+3. Hard edges: KIT-R3b–g → EN-S1 → EN-G0 → ending Pack E · KIT-R4 → EN-9 · MIX-1 → EN-2 · BL-111 → EN-4 · KIT-R3b (frame.ts) → BF-12, CG-10 · BR-20 and BF-9 → CG-14 · CW0 → every CG pack.
 
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
@@ -26,17 +21,16 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 | none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
-- none (Pack A's question answered by foundry P18–P20, 2026-11-11; the stopped agent left no commits or worktree: spawn A fresh from its brief).
+- none (KIT-R3b's two questions answered 2026-11-12: platform-closure P5 and P6; the parked attempt left no commits).
 
 ## Owed (declared by a contract, not yet built)
-- `eventCap` passed through `applyAction` (FD-6) — owed by BF-3 (Pack A); needed by BF-4.
-- Settle points (foundry P18) — owed by BF-3: `BoardRule.settle`, `settleRules` at four points; any later rule with a mid-action queue uses it.
-- TECH.md §3 still names `bridges:rightOfWay` as its authoring example (now `bridges:keystoneRight`) — owed by KIT-R1 (B2). Stand-in steps stay in `bridges/heart.ts` for the Lab.
-- `src/engine/sim/bot.ts` imports `bathhouses/boilOver` and `bridges/preview` (since EN-0) — KIT-R1 exempts it in the lint rule; KIT-R3b moves them into `bot` terms and drops the exemption.
-- `DistrictModule.heart` and `.bot` for Seam, canals, ink quarter, bathhouses, bridges; `trip` shape for Seam and canals — owed by KIT-R3 (D3); needed by EN-S1, EN-K1–K5. The foundry and cartographers register theirs in their own plans (BF-12, CG-10).
-- Ink quarter footnotes (approved text, IQ-FG): IQ-F3 adds the seven engine stamps (sentence:mark in actions.ts `sentence`; levy:unit miss, levy:mark/member at `markSpent`, levy:shielded in `levy`; tally:collar/stamp as the `line` from flow.ts `trial`), drops `pending` and `it.fails`; IQ-F4 widens `sand:noTarget`; `finePrint` in `src/app/study.ts` filters pending rows — all in Pack C2.
-- `tests/data/canal-rooms.test.ts` timeout (one line) — Pack S.
-- Close-out for FD, DK, RV, FN, SM, IQ (DESIGN §11 / TECH §7 rows, verification files incl. SM-15, a code review per subsystem) — owed by CL-1…5 (platform-closure Pack N).
+- `DistrictModule.heart` for Seam, canals, bathhouses, bridges — KIT-R3b–e (D3b); `bot` for the same four, lent shapes `seam:plain`, `canals:landings` — KIT-R3f–g (D3c); needed by EN-S1, EN-K1–K5.
+- sim/bot.ts imports `bathhouses/boilOver` and `bridges/preview` under a lint exemption — KIT-R3g moves them to `botValue`/`crackedTiles` and drops the exemption.
+- Foundry: `HEART_HOOKS` and the tune seed `rulesConfig: { 'foundry:tune': { seed: trip.seed } }` in `pealRoomSetup`, the foundry's `heart`/`bot` — BF-12 (P24); the foundry's `bot.value` — BF-20; the Toll note's effect (placeholder line `toll:network`) — BF-F1 confirms the line, BF-F3 builds it; the foundry save pair — BF-22.
+- Cartographers' `heart` frame through `frame.ts` and `bot` — CG-10.
+- Ending (from EN-W0, ending-plan §4 "Leaves for later"): ledger EN-1; owner and `mender` EN-9; palette, pen, costs, `NEEDS` EN-5 (its "generates" test EN-2); generator EN-S1 then EN-2; limits EN-G0; kits EN-K1–K7; `inkedPage` EN-3/EN-8; worker EN-4; screens EN-6/7/10/11 (`handover`, `creditsOf` in `drawing/ending.ts`).
+- Ink footnote follow-ups (smother re-read, three text clauses, a `wax-cap-seal` end-to-end test) — FU-21 (Pack O).
+- Close-out for FD, DK, RV, FN, SM, IQ (DESIGN §11 / TECH §7 rows, verification files incl. SM-15, a code review per subsystem) — CL-1…5 (platform-closure Pack N).
 - Plans' "Leaves for later" items: copied into every brief written; copy the rest into later briefs.
 
 ## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)
@@ -44,7 +38,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 
 Ledger: `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/{platform-closure,calibration,foundry,cartographers,ending,bridges,ink-quarter,seam-grows}-plan.md`
 
-Ledger caveats (run 2026-11-11, design window): it counts GATE-1 and BF-3 to BF-9 as merged because two consolidation commits name them; BF-3 to BF-9 are **open** (GATE-1 is merged). It counts **IQ-F3** as merged because commit 61ffb54 names it; it is open (Pack C2). IQ-13 shows open but is built (archive log, prose only). Every other open ID is in Next 1 or 2.
+Ledger caveats (2026-11-12): counted merged but **open** because a commit names them: KIT-R3b, BF-12, BF-20, BF-22, BF-F1. IQ-13 shows open but is built. BR-19 = C3 (BR-19a/b). Name no open task ID in a docs commit message.
 
 ## Open questions for the player (defaults held; ask in the next design round)
 - **IQ-20 / IQ-G1:** the bot never loses an ink-quarter room with a fresh pair. Default: playtest first; levers are in the calibration plan.
@@ -56,16 +50,17 @@ Ledger caveats (run 2026-11-11, design window): it counts GATE-1 and BF-3 to BF-
 - **FN-4:** Desk rows still need ≥ 1 point. Default keep. **DK-8:** friendly fire counts for hearing. Default keep.
 - **CAL:** bridges and the foundry have no stated win-rate band. Default: the canals' band.
 - **Foundry Q1–Q3** (plan §7): once-per-round ring (hum), allied bells spare the party, the far-bell gate needs a striker. Defaults as planned; P18's ring timing joins Q1 at BF-G1.
+- **Foundry P23 (new):** should a basic Shove count toward a Unison lock? Default: no (only casts and Spark sign it).
 - **EN-G0 (later):** the generator's phone timings come from the player's iPhone on `#/dev/generator` once D4 merges.
-- Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, HC/AH/RC playtests.
+- Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, HC/AH/RC playtests.
 
-## Rough edges (risks; the code follow-ups are FU-1…20 in the closure plan)
-- 15 old agent worktrees (~3.5 GB) are merged sources; a bulk remove needs the player's OK. Tag `worktree-agent-a7d9ce60e430bee68` (SM-6, `4c77215`) as `ref/sm-6` first.
+## Rough edges (risks; the code follow-ups are FU-1…21 in the closure plan)
+- 15 old agent worktrees (~3.5 GB): bulk remove needs the player's OK; tag `worktree-agent-a7d9ce60e430bee68` (SM-6, `4c77215`) as `ref/sm-6` first.
 - CI cancels a run when the next push arrives: push once per merge batch.
-- A test that mocks `$engine/districts/kit` must not import the real Seam module in its factory (deadlock; see `tests/run/kit.test.ts`).
-- UI agents: one port each (5191–5193). SM-12/14's "The margin answered" card and BH-12's meter overlap are still not phone-checked (FU tasks).
-- `vents` in `turn.ts` skips tiles with a state, the opposite of bathhouses P7 (FU task; not a calibration item).
-- Pack A widens into seven core files by one call or field each (foundry P18–P19); review its diff of those files line by line before merging.
+- A test that mocks `$engine/districts/kit` must not import the real Seam module in its factory (deadlock; see `tests/run/kit.test.ts`); foundry tests import `$engine` before district files (the kit's lazy import cycle).
+- UI agents: one port each (5191–5193). SM-12/14's "The margin answered" card and BH-12's meter overlap are still not phone-checked (FU-11, FU-14).
+- `vents` in `turn.ts` skips tiles with a state, the opposite of bathhouses P7 (FU-7).
+- C3 widens into seven core files by one guarded call each (bridges.md §8); review its diff of those files line by line before merging.
 
 ## Continuation prompt (new session)
 
