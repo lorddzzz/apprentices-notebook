@@ -84,5 +84,5 @@ describe('canal heart (CN-5) play', () => {
     // The full table lives in tests/sim/canals.test.ts; this only keeps both ends in view.
     expect(wins).toBeGreaterThan(0);
     expect(wins).toBeLessThan(fights);
-  });
+  }, 120_000); // ~25 s alone, over the 30 s default under a loaded full run
 });
