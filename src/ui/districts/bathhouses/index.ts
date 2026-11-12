@@ -19,6 +19,7 @@ export const BATHHOUSES_UI: DistrictUi = {
   banners: [BoilBanner],
   unitArt: Object.fromEntries(BATH_ART_DEFS.map((def) => [def, BathArt])),
   fx: { boil: BoilArt },
+  thresholdLabel: 'Open the vent',
   offerCards: { plunge: PlungeCard },
   offerLabels: BATH_OFFER_LABELS,
   tripBadge: HeatBadge,

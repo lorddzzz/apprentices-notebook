@@ -17,6 +17,7 @@
   const open = $derived(node.state === 'open');
   /** The district's own solved art (its UI module), if it has one. */
   const sheetLabel = $derived(DISTRICT_UI[node.id]?.mapSheet?.label);
+  const lockLabel = $derived(DISTRICT_UI[node.id]?.thresholdLabel ?? 'Try the lock');
   const Art = $derived(node.solved ? DISTRICT_UI[node.id]?.solvedArt?.[node.solvedArt] : undefined);
 </script>
 
@@ -67,7 +68,7 @@
       <p class="barred">{node.barred}</p>
       {#if node.tryLock}
         <a class="lock" href={href('threshold', { d: node.id })} data-testid={`try-lock-${node.id}`}>
-          Try the lock
+          {lockLabel}
         </a>
       {/if}
     {/if}

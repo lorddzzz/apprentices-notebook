@@ -67,6 +67,8 @@ export interface DistrictUi {
   highlightArt?: Readonly<Record<string, Component<{ at: Coord; to?: Coord; data?: Json }>>>;
   /** By `solvedArt` key: the map illustration of a solved gate. */
   solvedArt?: Readonly<Record<string, Component>>;
+  /** The map node's threshold button, when the gate is not a lock (default "Try the lock"). */
+  thresholdLabel?: string;
   /** Offer chips' names by `OfferKind.id`, for a kind the screens cannot name on their own (BH-13). */
   offerLabels?: Readonly<Record<string, (item: unknown) => string>>;
   /** A badge in the trip status (the bathhouses' heat, BH-13): draws itself or nothing. */
