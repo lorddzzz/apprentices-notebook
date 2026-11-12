@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-12d; ED, O merged (736bcce); F5 running.
+**State:** routine window 2026-11-12d; ED, O, F5 merged (e6e3c78); I running.
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. Wake-up at each reset (CronCreate one-shot, session-only; CET = UTC+1) until the player says stop or weekly usage passes 85 %.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
@@ -10,9 +10,9 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 **Reset:** 2026-11-12 18:50 CET (17:50 UTC); no wake-up scheduled (the player cancelled it earlier); resume manually. Held at 90 % of 5h, weekly 52 %. C3b merged (0c5af97); nothing running; check:fast green on main (343 files, 7896 tests).
 
 ## Next
-1. **Routine windows, in the briefs file's order:** wave 10 **F5** (BF-F1) → wave 11 **I** (after F5).
+1. **Routine windows, in the briefs file's order:** wave 11 **I** (FU-2–5).
 2. **Filed by MIX (MIX-F1, unassigned, Default):** Seam hand and telegraph events project the intent and `born` flag the engine reaches at the end of the enemy phase; remove the four `KNOWN_FAILS` in `tests/sim/rule-pairs.test.ts` when it lands. The cartographers' hand joins `FEATURES` there when CG-2 merges.
-3. **Next design window:** briefs for cartographers Packs A–J (CW0 merged: due now); EN-G0 once the player has timed the dev page; BF-FG after F5; EN-12 handover draft; ending Packs E–L after EN-G0; RV-20b and FN-A1 M2 briefs; the ledger.
+3. **Next design window:** briefs for cartographers Packs A–J (CW0 merged: due now); EN-G0 once the player has timed the dev page; BF-FG (F5 merged; its questions in Needs design review); EN-12 handover draft; ending Packs E–L after EN-G0; RV-20b and FN-A1 M2 briefs; the ledger.
 4. Hard edges: EN-S2 → EN-G0 → ending Pack E · C3b → ED → F5 → I · ED → O · CW0 → every CG pack · BL-111 → EN-4 · BR-20 and BF-9 → CG-14.
 
 ## Running or partial
@@ -24,6 +24,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - C3: decided, briefed (pack C3b, bridges-plan P24).
 - **F7 (4127679…eec836e):** far-bell goal `{ happens: 'foundry:ring' }` (no per-tone goal kind); `FOUNDRY_FLOOR_LINE` exported as plain const.
 - **D5 (0d13e6e):** EN-G0 reads: fair within 4 attempts 94.4 % (P28 says 98 %), 28/500 dull; EN-S1 guardrails test setup changed; dev page `src/app/dev/generator.html`.
+- **BF-FG inputs (from F5, e6e3c78):** note dominance over `toll-bell-beside`/`toll-bell-next` (trim its second clause?); Bolt stops at the cloud before a muffled bell (Q4); Filings' second run strikes nothing on a bell, a Rivet-held Detuner/Ringer still acts (Q5); one margin line each for Toll/Coil/Unison (FN P5); variants need strike flags `knell`/`wide`/`spare` and `BellsState.locked`; `coil-cap-surge` is not about bells.
 - M (FU-20): decided 2026-11-12c, the `runaway` rename stands. FU-19 has no "reports it" event: only no-overlap is guaranteed.
 
 ## Owed (declared by a contract, not yet built)
@@ -32,7 +33,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - From B1 (FU-1): `note?` on `WayView` (`src/app/crossroads.ts`), rendered as its own line in `CrossroadsChoices.svelte`; Small, Default; phone check.
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed.
 - From F8: `Meets` gained `bell`, `rope` in `src/data/types.ts` (ED rebases on it). Pack K: FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only.
-- Foundry (F4, F6): BF-F1 confirms the Toll note's line (`toll:network`), BF-F3 builds it; EN-K6 wraps the frame.
+- Foundry (F4, F6): the Toll note's line is `toll:bell` at level II (BF-F1); BF-F3 builds it and edits src/data/rivals/carillonneur.ts and tests/rivals/carillonneur.test.ts; EN-K6 wraps the frame.
 - From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10.
 - From CW0: CG-1 registers `CARTOGRAPHERS_MODULE` in `districts/kit.ts` and moves the fixtures in `tests/engine/pieces.test.ts` and `tests/app/bench-registry.test.ts` to another module id in the same commit; `HAND_SALT = 8100`; `heart` frame (salt 7160) and `bot` at CG-10.
 - From ED (EN-9): fine print `mender:diagonal` and `mender:dusk` need two new `Meets` members in src/data/types.ts, then their rows in lines.ts; the engine stamps none of the three `mender:*` keys yet (`mender:unit` row is `pending`). Small, Default; next engine pack touching types.ts.

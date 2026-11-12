@@ -122,36 +122,6 @@ Verify: `pnpm vitest run tests/scenarios tests/data tests/rivals tests/districts
 Phone check: no (no screen changes; the orchestrator checks at the wave's end that the Chalk margin lists the ring at level II).
 ```
 
-## Pack F5: foundry footnote audit (Strong: Sonnet high; escalate to Opus high)
-
-Starts when ED is merged (ED and F5 both edit `src/data/lines.ts`; C3 and C3b add no lines).
-
-```
-Pack I of docs/plans/foundry-plan.md: task BF-F1.
-
-Read: foundry-plan.md P15, P25 and Pack I's row; footnotes.md §1 and "Rival notes"; pattern: the ink
-quarter's audit (footnotes-audit.md §11) and draft (docs/design/footnotes-content/inkQuarter.md with its §7).
-Own: src/data/lines.ts (a new BF block at its end, `pending` rows only where the engine does not stamp yet),
-docs/plans/footnotes-audit.md (a new §12), docs/design/footnotes-content/foundry.md (new),
-tests/scenarios/foundry-audit-lines.test.ts (new; `it.fails` for each pending line, named "BF-F1: <line> fires").
-Contract: audit Toll, Coil, Unison, Rivet and Filings against bells, the hum, muffle, retune and the staff
-(Filings or Toll on a bell, Unison for lock 3, Rivet on a Clapper); a line exists only for a real behaviour
-(FN P5); the draft gives per rune two margin lines × levels I and II and a capstone pair, per solvent one
-margin line and capstones, Coil's non-diagonal capstone, and the Carillonneur's note on Toll (level II;
-BF-24's placeholder line `toll:network` is confirmed or replaced, P25). Defining words stay true (the IQ-FG
-and BR-G1 rule). No engine change. A variant that changes a hit's amount uses `exposedStep`'s pattern (one
-guarded term in src/engine/exposed.ts, bridges-plan P21), not a new damage path: say so in the draft.
-Owed by this pack: nothing. Leaves for later: BF-FG (a design window) approves the draft; BF-F2 and BF-F3
-build it, BF-F3 the Toll note's effect.
-
-Done when:
-- BF-F1: §12 of the audit has the table of real behaviours without rows; the draft exists with every pair's
-  Combos read in all four combinations; tests/data/integrity.test.ts passes with the new rows (pending rows
-  excluded as today).
-
-Verify: `pnpm vitest run tests/data tests/scenarios/foundry-audit-lines.test.ts --reporter=dot`
-```
-
 ## Pack I: rivals and events leftovers (Default: Sonnet medium)
 
 Starts when F5 is merged (FU-5 edits `src/data/lines.ts`).
