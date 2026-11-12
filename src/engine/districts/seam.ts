@@ -166,6 +166,8 @@ export const SEAM_MODULE: DistrictModule = {
   steps: HAND_STEPS,
   foes: [MARGINALIA_FOE],
   events: SEAM_EVENTS,
+  // Lent to drawn districts (platform-closure P5): no hooks, state null.
+  shapes: [{ id: 'seam:plain', parseState: () => null, initState: () => null }],
   heart: SEAM_HEART,
 };
 
