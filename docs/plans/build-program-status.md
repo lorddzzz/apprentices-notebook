@@ -21,6 +21,7 @@ Plans: boundary map [build-program.md](build-program.md); order [midpoint-audit.
 | none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
+- **Pack C3 (BR-19a→b), agent a4b7448295a7c66ac, no commits.** Four variants (`hold-held-exposed`, `hold-cracked-pinned` and their fourCombos) are "one step more from every hit", but a hit's amount is fixed in `dealDamage` (`const amount = base`, src/engine/damage.ts, not owned). Harm guards can't change an amount; `Flow.weaker` only reaches rune-handler hits, not foe attacks, bursts, crushes or falls. Options: (1) add damage.ts to the Own list for one line `amount = base + exposedBonus(ctx, unit)` (helper in actions.ts or districts/bridges/; cracked-span reads via `districts/api` `crackedTiles`); (2) narrow those variants to rune-handler hits via `Flow.weaker` (a design change to the approved bridges draft). Smaller plans the agent will take on resume: per-unit "held twice" count in an unregistered `s.rules` key valid only while held; `hold-held-shake` via capping `held` to 1 + immune-until round; `brink-cracked-dusk` reads falling spans via `crackedTiles` (a shattered keystone is the only difference). Needs a design call, then re-brief C3.
 - none (KIT-R3b's two questions answered 2026-11-12: platform-closure P5 and P6; the parked attempt left no commits).
 
 ## Owed (declared by a contract, not yet built)
