@@ -39,10 +39,10 @@ export const DEFAULT_HANG: Readonly<Record<Note, Tone>> = {
 
 // ── Foes (P12) ──────────────────────────────────────────
 /**
- * The ringers' staff and the heart's stand-in, as they will join `EnemyId` (BF-6, BF-7, BF-9):
- * plain words like the other districts'. Not in `ENEMIES` yet, so no roster or Lab list changes.
+ * The ringers' staff (BF-6, BF-7): plain words like the other districts'. The Carillonneur is not
+ * here: he is a rival (BF-9, `data/rivals/carillonneur.ts`), his token `V` claimed in `RIVAL_TOKENS`.
  */
-export const FOUNDRY_FOE_IDS = ['ringer', 'detuner', 'clapper', 'carillonneurStandIn'] as const;
+export const FOUNDRY_FOE_IDS = ['ringer', 'detuner', 'clapper'] as const;
 export type FoundryFoeId = (typeof FOUNDRY_FOE_IDS)[number];
 
 /** Board tokens: the letters still free after the other districts and rivals (checked in BF-0). */
@@ -50,7 +50,6 @@ export const FOUNDRY_FOE_TOKENS: Readonly<Record<FoundryFoeId, string>> = {
   ringer: 'Z',
   detuner: 'X',
   clapper: 'Q',
-  carillonneurStandIn: 'V',
 };
 
 /** Piece names inside braces: `{bell:low}`, `{rope:mid}`, `{hook}`, `{greatBell:1}` (P1). */
@@ -104,8 +103,9 @@ export const FOUNDRY_TUNING = {
     ringer: { hp: 4, move: 0, anchored: true, bump: 0 },
     detuner: { hp: 3, move: 2, anchored: false, bump: 0 },
     clapper: { hp: 5, move: 1, anchored: false, bump: 1 },
-    carillonneurStandIn: { hp: 14, move: 0, anchored: false, bump: 1 },
   } as Readonly<Record<FoundryFoeId, FoundryFoeStats>>,
+  /** P10: the Carillonneur's body (his kit and trick are `RIVALS`'); he never walks. */
+  carillonneur: { hp: 14, move: 0 },
 } as const;
 
 /**

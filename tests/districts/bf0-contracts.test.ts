@@ -322,8 +322,8 @@ describe('BF-0 handoff invariants (P1-P9)', () => {
 });
 
 describe('BF-0 tokens', () => {
-  test('foe tokens are claimed and collide with nothing; no foe is in ENEMIES yet', () => {
-    expect(FOUNDRY_FOE_IDS.map((id) => FOUNDRY_FOE_TOKENS[id])).toEqual(['Z', 'X', 'Q', 'V']);
+  test('foe tokens are claimed and collide with nothing; the staff are in ENEMIES', () => {
+    expect(FOUNDRY_FOE_IDS.map((id) => FOUNDRY_FOE_TOKENS[id])).toEqual(['Z', 'X', 'Q']);
     expect(
       DISTRICT_TOKENS.filter((t) => t.district === 'foundry' && t.kind === 'foe').map((t) => t.id),
     ).toEqual([...FOUNDRY_FOE_IDS]);
@@ -332,9 +332,8 @@ describe('BF-0 tokens', () => {
         (t) => t.token,
       ),
     ).toEqual(['bell', 'rope', 'hook', 'greatBell']);
-    // BF-6/7 put the staff in ENEMIES; the Carillonneur's stand-in stays out until BF-9
-    for (const id of FOUNDRY_FOE_IDS)
-      expect(Object.hasOwn(ENEMIES, id)).toBe(id !== 'carillonneurStandIn');
+    // BF-6/7 put the staff in ENEMIES; BF-9 made the Carillonneur a rival (his `V` is in RIVAL_TOKENS)
+    for (const id of FOUNDRY_FOE_IDS) expect(Object.hasOwn(ENEMIES, id)).toBe(true);
     const builtIn = [
       ...Object.values(ENEMIES)
         .filter((e) => !Object.hasOwn(RIVALS, e.id))
