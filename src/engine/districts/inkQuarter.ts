@@ -6,6 +6,7 @@ import {
   FORWARD_PIECES,
   FORWARDS_RULE,
 } from './inkQuarter/forward';
+import { INK_BOT, INK_HEART } from './inkQuarter/heart';
 import { TERMED_KIND } from './inkQuarter/offers';
 import { POSTMASTER_GOALS, POSTMASTER_TRICKS } from './inkQuarter/postmaster';
 import { inkAfterRoom, STAKES_RULE, stakeSetup } from './inkQuarter/stakes';
@@ -67,5 +68,7 @@ export const INK_QUARTER_MODULE: DistrictModule = {
   tricks: POSTMASTER_TRICKS,
   goals: POSTMASTER_GOALS,
   trip: shape,
+  heart: INK_HEART,
+  bot: INK_BOT,
   offerKinds: [TERMED_KIND],
 };
