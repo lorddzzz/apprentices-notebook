@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { FOUNDRY_ROOMS_12 } from '$data/districts/foundry';
 import type { EventLog } from '$engine';
 import { basicDirs } from '$engine/basicActions';
 import { alliedBellEdits, FOUNDRY_MODULE } from '$engine/districts/foundry';
 import { parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json, ShapeInput } from '$engine/districts/types';
 import { tileAt } from '$engine/queries';
+import { bonusMet } from '$engine/trip/setup';
 import { act, board, cast, withLattices } from '../../scenarios/harness';
 import { dataOf, ev, unit } from './helpers';
 
@@ -152,6 +154,25 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
   });
 
   it.todo('BF-8: roomSetup hangs an allied bell at each hook for every note rung');
-  it.todo('BF-8: a room bonus is its great bell rung and the room won');
+  it('BF-8: a room bonus is its great bell rung and the room won', () => {
+    const room = FOUNDRY_ROOMS_12[0];
+    if (!room?.bonus) throw new Error('room 1 has no bonus');
+    const shape = { ret: { kind: 'any' }, length: 5, bonuses: { 0: room.bonus } } as const;
+    const lone = 'D . _ _ {greatBell:1}\nS . . . .\nr . . . .';
+    const first = cast(withLattices(lone, TWO), 'draughtsman', 'right');
+    expect(first.state.phase).toBe('player'); // rung, but the rat still stands
+    expect(bonusMet(shape, 0, first.state, first.events)?.reward).toEqual({
+      kind: 'state',
+      tag: 'peal',
+    });
+    const won = cast(first.state, 'stoker', 'down');
+    expect(won.state.phase).toBe('won');
+    const log = [...first.events, ...won.events];
+    expect(bonusMet(shape, 0, won.state, log)).toEqual(room.bonus);
+    // Control: the room won without ringing the bell earns nothing.
+    const quiet = cast(withLattices('D r _ _ {greatBell:1}', BOLT), 'draughtsman', 'right');
+    expect(quiet.state.phase).toBe('won');
+    expect(bonusMet(shape, 0, quiet.state, quiet.events)).toBeNull();
+  });
   it.todo('BF-8: returning home or a wipe discards the rung bells');
 });
