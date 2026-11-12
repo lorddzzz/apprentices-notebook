@@ -5,6 +5,7 @@ import {
   type Coord,
   type EnemyUnit,
   type GameEvent,
+  describeLog,
   parseLabel,
   tileAt,
 } from '$engine';
@@ -201,6 +202,24 @@ describe('action trick and trick-owned objects', () => {
         why: 'ownerChanged',
       });
     });
+  });
+
+  test('FU-2: a lock fails as spent when its charge is gone and met when its goal is reached', () => {
+    const r = draft(start(), (ctx) => {
+      const e = rivalOf(ctx.s);
+      const a = makeTrickObject(ctx, e, at('A1'), null);
+      const b = makeTrickObject(ctx, e, at('B1'), null);
+      removeTrickObject(ctx, a, 'spent');
+      removeTrickObject(ctx, b, 'met');
+      expect(objectLock(ctx.s, e.id, { kind: 'trick', id: a })).toEqual({ ok: false, why: 'spent' });
+      expect(objectLock(ctx.s, e.id, { kind: 'trick', id: b })).toEqual({ ok: false, why: 'met' });
+      ctx.log.push({ type: 'phase', phase: 'resolve' });
+      resolveRivalIntent(ctx, e, trickIntent({ kind: 'trick', id: a }));
+      resolveRivalIntent(ctx, e, trickIntent({ kind: 'trick', id: b }));
+    });
+    const fails = ofType(r.events, 'orderFails');
+    expect(fails).toMatchObject([{ why: 'spent' }, { why: 'met' }]);
+    expect(describeLog(r.events).join('\n')).toMatch(/object is spent[\s\S]*object is already met/);
   });
 
   test('a lost object fails the order with no resolve (starved: the fallback strike)', () => {

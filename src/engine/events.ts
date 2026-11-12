@@ -252,6 +252,8 @@ const LOCK_LOST: Record<LockLost, string> = {
   crumbled: 'crumbled',
   ownerChanged: 'no longer its own',
   gone: 'gone',
+  met: 'already met',
+  spent: 'spent',
 };
 
 function telegraphText(e: Extract<GameEvent, { type: 'telegraph' }>): string {

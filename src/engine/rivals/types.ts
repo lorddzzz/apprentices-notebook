@@ -61,7 +61,14 @@ export interface TrickObject {
   data: Json;
 }
 /** Why a locked order fails (RV-3): it never switches to a replacement object. */
-export type LockLost = 'opened' | 'erased' | 'crumbled' | 'ownerChanged' | 'gone';
+export type LockLost =
+  | 'opened'
+  | 'erased'
+  | 'crumbled'
+  | 'ownerChanged'
+  | 'gone'
+  | 'met'
+  | 'spent';
 
 // ── Rival state (P1) ────────────────────────────────────
 /** What a rival unit carries (RV-1 attaches it to its `EnemyUnit`). Plain serialisable data. */
@@ -83,6 +90,8 @@ export interface RivalState {
   mark?: TrickMark | null;
   /** The last trick object id this rival issued (RV-11); ids are battle-unique via the max. */
   objectSeq?: number;
+  /** Objects taken off as `met` or `spent` (FU-2), so a later order locked on one says why. */
+  lost?: Record<number, 'met' | 'spent'>;
 }
 
 // ── Planning (P4, P5) ───────────────────────────────────

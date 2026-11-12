@@ -189,8 +189,15 @@ export function removeTrickObject(ctx: Ctx, id: TrickObjectId, why: LockLost): v
   const owner = obj ? findUnit(ctx.s, obj.owner) : null;
   if (!obj || owner?.kind !== 'enemy' || !owner.rival) return;
   owner.rival.objects = owner.rival.objects.filter((o) => o.id !== id);
+  if (why === 'met' || why === 'spent') owner.rival.lost = { ...owner.rival.lost, [id]: why };
   const b = bearerOf(owner);
   if (b) trickEvent(ctx, b, 'trickObjectGone', { id, why });
+}
+
+/** `met` or `spent` when its owner took it off for that reason, else `gone`. */
+function lostWhy(s: BattleState, owner: UnitId, id: TrickObjectId): LockLost {
+  const u = findUnit(s, owner);
+  return (u?.kind === 'enemy' && u.rival?.lost?.[id]) || 'gone';
 }
 
 export type ObjectLock = { ok: true; at: Coord | null } | { ok: false; why: LockLost };
@@ -206,7 +213,7 @@ export function objectLock(s: BattleState, owner: UnitId, lock: ObjectRef): Obje
     return c.ok ? { ok: true, at: c.at } : c;
   }
   const obj = trickObjectOf(s, lock.id);
-  if (!obj) return { ok: false, why: 'gone' };
+  if (!obj) return { ok: false, why: lostWhy(s, owner, lock.id) };
   return obj.owner === owner ? { ok: true, at: obj.at } : { ok: false, why: 'ownerChanged' };
 }
 
