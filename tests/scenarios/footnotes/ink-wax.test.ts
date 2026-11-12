@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import type { InventionId } from '$data';
-import { type BattleState, label, type Origin, parseLabel } from '$engine';
+import type { InventionDef, InventionId } from '$data';
+import { type BattleState, label, libraryOf, type Origin, parseLabel } from '$engine';
 import { type Ctx, type FootnoteIds, runDraft } from '$engine/ctx';
 import { notify } from '$engine/hooks';
 import { applyMark } from '$engine/marks';
@@ -46,8 +46,8 @@ function cloudRun(footnotes: FootnoteIds) {
 }
 
 /** A waxed rat on fire (C1), a dummy beside it (D1): a fire hit melts the wax, spilling onto the dummy. */
-function fireRun(footnotes: FootnoteIds) {
-  const s = runDraft(withLattices('D . r* d', { draughtsman: 'Bolt> Shove' }), waxMark, {
+function fireRun(footnotes: FootnoteIds, ascii = 'D . r* d') {
+  const s = runDraft(withLattices(ascii, { draughtsman: 'Bolt> Shove' }), waxMark, {
     footnotes,
   }).state;
   const melted = runDraft(
@@ -73,7 +73,7 @@ test('wax:cloud fourCombos: keep or stay on the cloud, then smother or drip on t
   // Keep: the cloud does not thin while the wax stands, and stay holds the waxed rat in place.
   for (const r of [keepSmother, keepDrip]) expect(r?.cloud.cloudKept).toBe(true);
   for (const r of [staySmother, stayDrip]) expect(r?.cloud.rat).toBe('B1');
-  // Smother: a fire tile holds no cloud (one layer per tile), so the fire still melts the wax.
+  // Smother: no cloud stands beside the fire here, so the fire still melts the wax.
   for (const r of [keepSmother, staySmother]) {
     expect(r?.fire).toEqual({ melted: true, blot: 'fire', spattered: false });
   }
@@ -87,6 +87,45 @@ test('wax:cloud baseline: without keep the cloud thins; without stay the waxed r
   const plain = cloudRun(withFootnotes([]));
   expect(plain.cloudKept).toBe(false);
   expect(plain.rat).toBe('C1');
+});
+
+describe('FU-21: wax-cloud-smother reads a cloud beside the bearer', () => {
+  test('FU-21: wax-cloud-smother keeps a wax mark from melting in fire beside a cloud', () => {
+    // The cloud sits on B1, beside the fire on C1 (not under the rat).
+    expect(fireRun(withFootnotes(['wax-cloud-smother']), 'D ~ r* d').melted).toBe(false);
+  });
+
+  test('FU-21: without a cloud beside it the mark melts as before', () => {
+    // The cloud is two tiles off (E1), so no 4-neighbour of the fire holds one.
+    expect(fireRun(withFootnotes(['wax-cloud-smother']), 'D . r* d ~')).toEqual({
+      melted: true,
+      blot: 'fire',
+      spattered: false,
+    });
+  });
+
+  test('FU-21: wax-cap-seal holds through a real wax invention cast', () => {
+    const waxRecoil: InventionDef = {
+      id: 'inv:recoil-wax',
+      name: 'recoil-wax',
+      method: 'bind',
+      parts: ['ink', 'shove'],
+      solvent: 'wax',
+      event: 'hit',
+    };
+    const cast = (footnotes: FootnoteIds): BattleState =>
+      castWith(
+        withLattices(
+          'D r . .',
+          { draughtsman: 'Touch> inv:recoil-wax' },
+          { inventions: libraryOf([waxRecoil]) },
+        ),
+        tileAim('B1'),
+        footnotes,
+      ).state;
+    expect(unit(cast(withFootnotes(['wax-cap-seal'])), 'rat-1').held).toBe(1);
+    expect(unit(cast(withFootnotes([])), 'rat-1').held).toBe(0);
+  });
 });
 
 describe('Wax capstones', () => {

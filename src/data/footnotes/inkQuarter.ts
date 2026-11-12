@@ -19,7 +19,7 @@ export const INK_QUARTER: readonly VariantDef[] = [
     id: 'sentence-mark-peel',
     subject: 'sentence',
     slot: { line: 'sentence:mark', level: 1 },
-    text: 'A deep mark is only peeled: it drops to a plain mark and the unit is still pushed.',
+    text: 'A deep mark is only peeled: it drops to a plain mark and the unit is still pushed. A bound mark is released, not peeled.',
   },
   {
     id: 'sentence-mark-held',
@@ -50,7 +50,7 @@ export const INK_QUARTER: readonly VariantDef[] = [
     id: 'sentence-unit-collar',
     subject: 'sentence',
     slot: { line: 'sentence:unit', level: 2 },
-    text: 'A collared unit counts as marked: Sentence strikes the collar off and pushes the full two tiles.',
+    text: 'A collared unit counts as marked: Sentence strikes the collar off and pushes the full two tiles (born brass is not a collar).',
   },
   {
     id: 'sentence-unit-shield',
@@ -82,7 +82,7 @@ export const INK_QUARTER: readonly VariantDef[] = [
     id: 'levy-mark-peel',
     subject: 'levy',
     slot: { line: 'levy:mark', level: 1 },
-    text: 'A deep mark is only peeled to a plain one, and still pays a shield.',
+    text: 'A deep mark is only peeled to a plain one, and still pays a shield. A bound mark is released, not peeled.',
   },
   {
     id: 'levy-mark-release',
@@ -189,7 +189,7 @@ export const INK_QUARTER: readonly VariantDef[] = [
     id: 'wax-cloud-smother',
     subject: 'wax',
     slot: { line: 'wax:cloud', level: 2 },
-    text: 'A wax mark in a cloud is not melted by fire: the cloud smothers the flame on its tile.',
+    text: 'A wax mark does not melt in fire while a cloud stands beside its bearer: the steam keeps the wax cool.',
   },
   {
     id: 'wax-cloud-drip',

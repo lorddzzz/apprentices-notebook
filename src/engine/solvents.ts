@@ -682,8 +682,13 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
       if (h.kind !== 'hit' && h.kind !== 'entered') return;
       const u = findUnit(ctx.s, h.unit);
       if (!u?.mark?.wax || !isFire(tileAt(ctx.s, u.pos))) return;
-      // `wax-cloud-smother`: a unit standing in a cloud keeps its wax from the fire.
-      if (hasFootnote(ctx, 'wax-cloud-smother') && isCloud(tileAt(ctx.s, u.pos))) return;
+      // `wax-cloud-smother`: a cloud on any side of the bearer keeps its wax from the fire (the steam).
+      if (
+        hasFootnote(ctx, 'wax-cloud-smother') &&
+        neighbors4(u.pos).some((n) => inBoard(ctx.s, n) && isCloud(tileAt(ctx.s, n)))
+      ) {
+        return;
+      }
       withLine(ctx, 'wax:fire', () => spendMark(ctx, u));
       // `wax-cloud-drip`: the melted wax runs, and its tile takes a blot.
       if (hasFootnote(ctx, 'wax-cloud-drip')) {
