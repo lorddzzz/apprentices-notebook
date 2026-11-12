@@ -92,6 +92,8 @@ export interface RivalState {
   objectSeq?: number;
   /** Objects taken off as `met` or `spent` (FU-2), so a later order locked on one says why. */
   lost?: Record<number, 'met' | 'spent'>;
+  /** Jars of his that opened or crumbled (FU-3), by jar id: the exact reason for a wick's lock. */
+  jarsLost?: Record<number, 'opened' | 'crumbled'>;
 }
 
 // ── Planning (P4, P5) ───────────────────────────────────

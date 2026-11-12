@@ -151,7 +151,7 @@ export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): 
       made.push({ kind: 'jar', id: e.id });
       d.madeAt.push({ ...e.at });
     } else if (e.type === 'jarOpened') {
-      const id = jars.get(key(e.at));
+      const id = e.id ?? jars.get(key(e.at));
       if (id !== undefined) opened.push({ kind: 'jar', id });
     } else if (isTrickEvent(e, 'trickObject')) {
       // A trick object made (a writ, a circle): an object like a sealed jar (RV-14).

@@ -70,6 +70,14 @@ const noLedger = (p: Profile): Profile => {
   const { ledger: _ledger, ...rest } = p;
   return rest;
 };
+/** FU-3: `jarOpened`/`jarCrumbles` carry the jar id now; the recorded fixtures predate it. */
+const noJarIds = (events: readonly unknown[] | undefined) =>
+  events?.map((e) => {
+    const ev = e as { type?: string; id?: unknown };
+    if (ev.type !== 'jarOpened' && ev.type !== 'jarCrumbles') return e;
+    const { id: _id, ...rest } = ev;
+    return rest;
+  });
 const file = (name: string) => new URL(`${name}.json`, DIR);
 function load<T>(name: string): T {
   return JSON.parse(readFileSync(file(name), 'utf8')) as T;
@@ -102,7 +110,7 @@ describe('golden trips', () => {
         const got = replayed.rooms[i];
         expect(got?.place, `room ${i} place`).toBe(room.place);
         expect(got?.variant, `room ${i} variant`).toBe(room.variant);
-        expect(got?.events, `room ${i} events`).toEqual(room.events);
+        expect(noJarIds(got?.events), `room ${i} events`).toEqual(room.events);
         expect(got?.phase, `room ${i} phase`).toBe(room.phase);
         expect(got?.outcome, `room ${i} outcome`).toBe(room.outcome);
         expect(got?.offers, `room ${i} offers`).toEqual(room.offers);

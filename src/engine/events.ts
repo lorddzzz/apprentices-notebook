@@ -208,8 +208,8 @@ export type GameEvent = (
       id: JarId;
       peek: RuneRef | null;
     }
-  | { type: 'jarOpened'; at: Coord; by: UnitRef | null }
-  | { type: 'jarCrumbles'; at: Coord }
+  | { type: 'jarOpened'; at: Coord; by: UnitRef | null; id?: JarId }
+  | { type: 'jarCrumbles'; at: Coord; id?: JarId }
   | { type: 'scheduled'; kind: Scheduled['kind']; at: Coord }
   | { type: 'repeated'; action: RuneRef }
   | { type: 'triggered'; rune: TriggerRuneId; passed: boolean }

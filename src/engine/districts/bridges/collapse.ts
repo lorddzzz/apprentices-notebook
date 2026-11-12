@@ -9,6 +9,7 @@ import { layThinCloud } from '../../mix';
 import { isBrass } from '../../networks';
 import { removeFromRoom, SEAM_DROP_RULE } from '../../outOfRoom';
 import { blocksUnits, coordOf, inBoard, isAlive, isOpen, tileAt, unitAt } from '../../queries';
+import { noteJarFate } from '../../rivals/jarFate';
 import { trickResists } from '../../rivals/tricks';
 import { replayFallen } from '../../schedule';
 import type { BattleState, EnemyUnit, Layer, Origin, Unit, UnitId } from '../../types';
@@ -252,7 +253,8 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
     : [];
   for (const at of falling) {
     const t = tileAt(ctx.s, at);
-    if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+    if (t.jar) noteJarFate(ctx, t.jar, 'crumbled');
+    if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at }, ...(t.jar.id === undefined ? {} : { id: t.jar.id }) });
     t.piece = null;
     t.state = null;
     t.jar = null;

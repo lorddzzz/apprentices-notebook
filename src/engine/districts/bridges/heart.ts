@@ -15,6 +15,7 @@ import {
   tileAt,
   unitAt,
 } from '../../queries';
+import { noteJarFate } from '../../rivals/jarFate';
 import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit } from '../../types';
 import type { FoeBehaviour, KitId, ScriptStep } from '../types';
@@ -165,7 +166,8 @@ export function epilogueFall(ctx: Ctx, chief: EnemyUnit): void {
   emit(ctx, ev);
   for (const at of tiles) {
     const t = tileAt(ctx.s, at);
-    if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+    if (t.jar) noteJarFate(ctx, t.jar, 'crumbled');
+    if (t.jar) emit(ctx, { type: 'jarCrumbles', at: { ...at }, ...(t.jar.id === undefined ? {} : { id: t.jar.id }) });
     t.piece = null;
     t.state = null;
     t.jar = null;

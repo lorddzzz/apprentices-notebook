@@ -129,6 +129,21 @@ describe('the order fails and never retargets', () => {
     expect(jarAt(r.state, 'B3')?.id).toBe(2);
   });
 
+  test('FU-3: a wick order names the jar that opened or crumbled', () => {
+    const s = lay(board(BOARD, { pins: { D2: wick(1) } }), 'A3');
+    // A jar of the apprentice's sealed on his tile crumbles his; he owns no newer jar.
+    const sealed = draft(s, (ctx) => sealJar(ctx, at('A3'), jarFor('draughtsman', 0)));
+    expect(types(sealed.events, 'jarCrumbles')).toMatchObject([{ id: 1 }]);
+    const r = act(sealed.state, endTurn);
+    expect(types(r.events, 'orderFails')).toMatchObject([{ why: 'crumbled', object: { id: 1 } }]);
+    const t = lay(board(BOARD, { pins: { D2: wick(1) } }), 'B3');
+    const stepped = act(t, { type: 'move', unit: 'draughtsman', to: at('B3') });
+    expect(types(stepped.events, 'jarOpened')).toMatchObject([{ id: 1 }]);
+    expect(types(act(stepped.state, endTurn).events, 'orderFails')).toMatchObject([
+      { why: 'opened', object: { id: 1 } },
+    ]);
+  });
+
   test('owner change: the wick fails and the jar is left alone', () => {
     const s = lay(board(BOARD, { pins: { D2: wick(1) } }), 'A3');
     const jar = tileAt(s, at('A3')).jar;

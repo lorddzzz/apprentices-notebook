@@ -1,7 +1,7 @@
 import { type Ctx, emit, ref } from '../ctx';
 import type { Coord } from '../grid';
 import { openJar } from '../jars';
-import { coordOf, unitAt } from '../queries';
+import { coordOf, findUnit, unitAt } from '../queries';
 import type { BattleState, EnemyUnit, Jar, JarId, UnitId } from '../types';
 import type { LockLost, ObjectRef, Telegraph, TrickDef, TrickMark, TrickPlan } from './types';
 
@@ -50,6 +50,9 @@ export function lockStatus(s: BattleState, owner: UnitId, id: JarId): LockCheck 
     en.parts.some((p) => p.kind === 'jar' && p.jar.id === id),
   );
   if (erased) return { ok: false, why: 'erased' };
+  const u = findUnit(s, owner);
+  const noted = u?.kind === 'enemy' ? u.rival?.jarsLost?.[id] : undefined;
+  if (noted) return { ok: false, why: noted };
   if (jarsOwnedBy(s, owner).some((other) => other > id)) return { ok: false, why: 'crumbled' };
   return { ok: false, why: 'opened' };
 }

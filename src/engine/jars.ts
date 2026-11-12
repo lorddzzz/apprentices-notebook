@@ -5,9 +5,10 @@ import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4 } from './grid';
 import { habitOf } from './habits';
 import { jarLimit } from './leans';
+import { noteJarFate } from './rivals/jarFate';
 import { coordOf, findUnit, inBoard, isAlive, livingUnits, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
-import type { Flow, Jar, Origin, SealedContext, Step, Target, Unit, UnitId } from './types';
+import type { Flow, Jar, JarId, Origin, SealedContext, Step, Target, Unit, UnitId } from './types';
 import { targetKey } from './types';
 
 /** The Lamplighter's Jar note (footnotes §1 "Rival notes", RV-20b): written, rivals trip your jars. */
@@ -145,6 +146,10 @@ function takeJarId(ctx: Ctx): number {
 const jarLine = (jar: Jar, meets: 'jar' | 'unit'): LineId =>
   jar.event === 'dusk' ? `fuse:${meets}` : `jar:${meets}`;
 
+/** The jar's id for an event, when it has one (a hand-laid jar may not). */
+export const idOf = (jar: Jar | null | undefined): { id?: JarId } =>
+  jar?.id === undefined ? {} : { id: jar.id };
+
 /** What a footnote changes about how a jar opens (CN-F3). */
 export interface OpenOpts {
   /** Replaces the sealing cast's heading for this run (`jar-unit-pushed`, a drifted Fuse). */
@@ -169,8 +174,9 @@ function crumble(ctx: Ctx, at: Coord, by: Jar): void {
     openJar(ctx, at, null, { line });
     return;
   }
+  if (old) noteJarFate(ctx, old, 'crumbled');
   tileAt(ctx.s, at).jar = null;
-  const go = () => emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+  const go = () => emit(ctx, { type: 'jarCrumbles', at: { ...at }, ...idOf(old) });
   if (ctx.meta.line) go();
   else withLine(ctx, line, go);
 }
@@ -244,7 +250,12 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null, opts: Ope
   const opener = unit && isAlive(unit) && unit.pos.x === at.x && unit.pos.y === at.y ? unit : null;
   const open = () =>
     withOrigin(ctx, jar.origin, () =>
-      emit(ctx, { type: 'jarOpened', at: { ...at }, by: opener ? ref(opener) : null }),
+      emit(ctx, {
+        type: 'jarOpened',
+        at: { ...at },
+        by: opener ? ref(opener) : null,
+        ...idOf(jar),
+      }),
     );
   // A jar opened under someone other than its owner is the fine print of `jar:unit` (a Fuse's
   // at dusk, of `fuse:unit`); a footnote that opened it early names its own line.
@@ -252,6 +263,7 @@ export function openJar(ctx: Ctx, at: Coord, by: UnitId | null = null, opts: Ope
   if (line) withLine(ctx, line, open);
   else if (opener && opener.id !== jar.owner) withLine(ctx, jarLine(jar, 'unit'), open);
   else open();
+  noteJarFate(ctx, jar, 'opened');
   tile.jar = null; // after the event: a cap that cuts `jarOpened` leaves the jar standing (FU-18)
   const heading = opts.heading !== undefined ? opts.heading : jar.heading;
   const run = (target: Target) =>
