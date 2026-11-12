@@ -31,3 +31,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | EN-5 | 218e771 | Sonnet medium | palette, pen, cost, checkDrawing; 0 returns |
 | KIT-R3f, KIT-R3g | 538d03c, d266a3e | Sonnet medium | lent shapes, botValue, sim/bot.ts free of districts, lint exemption gone; sims same status; 0 returns |
 | EN-S1 | 6c1ca8d | Sonnet high | generator spike; rooms are walkovers (warning); dev page; 0 returns |
+| BF-12, BF-13 | 170837a, 45c216f | Sonnet medium | foundry heart, loot, tuner, text; 0 returns |
