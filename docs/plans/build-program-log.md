@@ -22,3 +22,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 | EN-W0 | 001e345 | Sonnet high | ending contracts + acceptance todos; optional profile fields; 0 returns |
 | KIT-R1 | dec8acf | Sonnet medium | unsupported/afterBattleClose/bindsBeforeOpen hooks; lint rule exempts sim/bot.ts until KIT-R3b; 0 returns |
 | BF-6, BF-7, BF-8 | 1742421 (6+7), c65f7b1 | Sonnet medium | foes, great bells; touched damage.ts one line; 0 returns |
+| IQ-F3, IQ-F4, IQ-F5 | 300e481, 7d8aa8d, 87d09e8 | Haiku high | ink footnotes built; 7 proposals in status; 0 returns |
