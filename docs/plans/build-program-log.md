@@ -25,3 +25,4 @@ Everything merged before 2026-11-11 (FD, DK, HC, AH, RC, RV, FN, CN, SM, IQ, BH,
 
 | Time (CET) | 5h % | Weekly % | Action |
 |---|---|---|---|
+| KIT-R4 | de088cb | Sonnet medium | members read from household; phone-checked 2 screens; autofixer on stub only; 0 returns |
