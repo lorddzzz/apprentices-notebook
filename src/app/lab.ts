@@ -36,6 +36,7 @@ import {
   LOCK_OF_NOTE,
   type Lock,
   type Note,
+  TONES,
 } from '$data/districts/foundry';
 import {
   type Action,
@@ -659,6 +660,24 @@ export interface PaletteEntry {
 const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /**
+ * Pieces the palette offers once per variant of their data instead of once (BF-19: a bell and a
+ * rope in each tone, a great bell by note, hung or not). `suffix` is the token's data part.
+ */
+const PIECE_VARIANTS: Readonly<Record<string, readonly { suffix: string; name: string }[]>> = {
+  bell: TONES.map((t) => ({ suffix: t, name: `Bell, ${t}` })),
+  rope: TONES.map((t) => ({ suffix: t, name: `Rope, ${t}` })),
+  greatBell: [1, 2, 3, 4].flatMap((n) => [
+    { suffix: String(n), name: `Great bell ${n}` },
+    { suffix: `${n}:allied:rung`, name: `Great bell ${n}, hung` },
+  ]),
+};
+const pieceItem = (token: string, suffix: string): string => `{${token}:${suffix}}`;
+
+/** The palette items a piece stands for: its token, or one per variant. */
+export const pieceItems = (token: string): string[] =>
+  PIECE_VARIANTS[token]?.map((v) => pieceItem(token, v.suffix)) ?? [`{${token}}`];
+
+/**
  * Palette order: apprentices, the start point, foes (the enemy registry, in its order), unit
  * modifiers, tile states, terrain, the district pieces the kit registers (for the Lab; `all` adds
  * those only the Bench offers), the eraser.
@@ -710,6 +729,21 @@ export function paletteOf(
           ? def.bench?.label
           : undefined;
       if (!label) return [];
+      const variants = PIECE_VARIANTS[def.token];
+      if (variants) {
+        return variants.flatMap((v) => {
+          const data = def.data?.parse?.(v.suffix);
+          return data
+            ? [
+                {
+                  item: pieceItem(def.token, v.suffix),
+                  name: v.name,
+                  piece: { art: def.art, data },
+                },
+              ]
+            : [];
+        });
+      }
       return [
         {
           item: `{${def.token}}`,

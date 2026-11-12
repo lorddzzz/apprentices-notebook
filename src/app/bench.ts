@@ -39,7 +39,7 @@ import {
 import { KIT } from '$engine/districts/kit';
 import type { Kit } from '$engine/districts/types';
 import { holdsPage } from '$engine/rivals/pages';
-import { type PaletteEntry, type PaletteItem, paletteOf, toggleToken } from './lab';
+import { type PaletteEntry, type PaletteItem, paletteOf, pieceItems, toggleToken } from './lab';
 
 /** The Bench (design §6.1; plan P37): the draft invention and the test scene, as pure functions. */
 
@@ -269,7 +269,7 @@ export function sceneEntries(p: Pick<Profile, 'met' | 'foesMet'>, kit: Kit = KIT
     (m) => m.items,
   );
   const pieces = Object.values(kit.pieces).flatMap((def) =>
-    def.bench && met.includes(def.bench.met) ? [`{${def.token}}`] : [],
+    def.bench && met.includes(def.bench.met) ? pieceItems(def.token) : [],
   );
   const have = new Set<PaletteItem>(['D', 'd', ...foes, ...states, ...pieces, '.']);
   return paletteOf(kit, 'all').filter((x) => have.has(x.item));

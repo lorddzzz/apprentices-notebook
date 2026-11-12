@@ -93,6 +93,8 @@ export const BELL_DEF: PieceDef<BellData> = {
     write: (d) => d.tone,
   },
   art: 'foundry:bell',
+  palette: { label: 'Bell', lab: true },
+  bench: { met: 'bell', label: 'Bell' },
 };
 
 export const ROPE_DEF: PieceDef<RopeData> = {
@@ -109,6 +111,8 @@ export const ROPE_DEF: PieceDef<RopeData> = {
     write: (d) => d.tone,
   },
   art: 'foundry:rope',
+  palette: { label: 'Rope', lab: true },
+  bench: { met: 'rope', label: 'Rope' },
 };
 
 export const HOOK_DEF: PieceDef<HookData> = {
@@ -122,6 +126,7 @@ export const HOOK_DEF: PieceDef<HookData> = {
     write: (d) => (d.note > 0 ? String(d.note) : ''),
   },
   art: 'foundry:hook',
+  palette: { label: 'Hook', lab: true },
 };
 
 export const GREAT_BELL_DEF: PieceDef<GreatBellData> = {
@@ -156,6 +161,7 @@ export const GREAT_BELL_DEF: PieceDef<GreatBellData> = {
       ].join(':'),
   },
   art: 'foundry:greatBell',
+  palette: { label: 'Great bell', lab: true },
 };
 
 export const FOUNDRY_PIECES: readonly PieceDef[] = [
