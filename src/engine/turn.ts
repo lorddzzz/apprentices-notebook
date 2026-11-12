@@ -1,5 +1,6 @@
 import { ATTACKS, TUNING } from '$data';
 import { enemyPhase } from './ai';
+import { hasTrait } from './arrival';
 import { resolveBehaviour } from './behaviours';
 import { type Ctx, checkEnd, emit, ref } from './ctx';
 import { dealDamage } from './damage';
@@ -26,7 +27,7 @@ import { runTrickMarks, runTrickRoundEnd } from './rivals/tricks';
 import { boardRules, runRuleSlot, settleRules } from './rules';
 import { runScheduled } from './schedule';
 import { actStep } from './standIn';
-import type { AttackIntent, EnemyUnit, Unit } from './types';
+import type { AttackIntent, BattleState, EnemyUnit, Unit } from './types';
 
 /**
  * End of turn (design §3 round order): telegraphed attacks resolve in intent order, then dusk
@@ -119,11 +120,21 @@ function resolveAttack(ctx: Ctx, e: EnemyUnit, intent: AttackIntent): void {
   }
 }
 
-/** A vent puffs a cloud onto its tile when nothing lies there (K-7). */
+/** Is a living unit with the `feeds` trait orthogonally beside `at`? */
+const fedByNeighbour = (s: BattleState, at: Coord): boolean =>
+  livingUnits(s).some(
+    (u) => hasTrait(u, 'feeds') && Math.abs(u.pos.x - at.x) + Math.abs(u.pos.y - at.y) === 1,
+  );
+
+/**
+ * A vent puffs a cloud onto its tile when nothing lies there (K-7); a living feeder (the
+ * boilerman) standing beside it makes it puff over a standing state too (bathhouses P7).
+ */
 function vents(ctx: Ctx): void {
   const s = ctx.s;
   s.tiles.forEach((t, i) => {
-    if (!t.terrain.vent || t.state !== null) return;
+    if (!t.terrain.vent) return;
+    if (t.state !== null && !fedByNeighbour(s, coordOf(s, i))) return;
     emit(ctx, { type: 'vent', at: coordOf(s, i) });
     t.state = { id: 'cloud', rounds: TUNING.cloudRounds, origin: null };
   });

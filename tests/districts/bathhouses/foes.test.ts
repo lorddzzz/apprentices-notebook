@@ -234,3 +234,19 @@ describe('the boilerman: the feeder (P7)', () => {
     expect(hpOf(r.state, 'stoker')).toBe(5);
   });
 });
+
+describe("FU-7: the boilerman's vent", () => {
+  test("FU-7: a boilerman's vent puffs over a standing state; other vents do not", () => {
+    // Vent B2 has a boilerman beside it (C2); vent F2 has nobody. Both carry a slick.
+    const s = structuredClone(board(rows('S . . . . .', '@ c . . . @')));
+    for (const lbl of ['A2', 'F2']) {
+      const t = s.tiles[s.width * at(lbl).y + at(lbl).x];
+      if (!t) throw new Error(lbl);
+      t.state = { id: 'slick', rounds: 5, origin: null };
+    }
+    const r = act(s, { type: 'endTurn' });
+    const idx = (c: { x: number; y: number }) => r.state.width * c.y + c.x;
+    expect(r.state.tiles[idx(at('A2'))]?.state?.id).toBe('cloud');
+    expect(r.state.tiles[idx(at('F2'))]?.state?.id).toBe('slick');
+  });
+});
