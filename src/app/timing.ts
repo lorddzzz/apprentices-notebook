@@ -84,7 +84,10 @@ export function durationOf(e: GameEvent): number {
       return STEP_MS.short;
     default: {
       if (isDistrictEvent(e))
-        return e.type === 'bathhouses:boilOver' || e.type === 'bridges:collapse'
+        return e.type === 'bathhouses:boilOver' ||
+          e.type === 'bridges:collapse' ||
+          e.type === 'foundry:ring' ||
+          e.type === 'foundry:greatPeal'
           ? STEP_MS.big
           : STEP_MS.short;
       const unhandled: never = e;

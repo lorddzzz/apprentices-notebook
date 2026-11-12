@@ -28,6 +28,7 @@ import {
 } from '$engine';
 import type { Json, OutCause } from '$engine/districts/types';
 import { liveBridges, projectBridge } from '../ui/districts/bridges/board';
+import { liveFoundry } from '../ui/districts/foundry/state';
 
 /** A state or compound a tile can hold. */
 export type LayerId = StateId | CompoundId;
@@ -152,36 +153,39 @@ export function tileViewOf(t: Tile): TileView {
 const markOf = (u: Unit): MarkView => (u.mark ? (u.mark.deep ? 'deep' : 'plain') : null);
 
 export function viewOf(s: BattleState): BoardView {
-  return liveBridges(s, {
-    width: s.width,
-    height: s.height,
-    tiles: s.tiles.map(tileViewOf),
-    units: s.units.map((u) => ({
-      id: u.id,
-      kind: u.kind,
-      def: u.def,
-      name: u.name,
-      pos: { ...u.pos },
-      hp: u.hp,
-      maxHp: u.maxHp,
-      shield: u.shield,
-      guard: u.guardUntil,
-      mark: markOf(u),
-      bound: u.mark?.bound?.action ?? null,
-      lineage: u.mark ? u.mark.lineage : null,
-      collar: u.collar !== false,
-      born: u.collar === null,
-      shackle: u.shackle,
-      held: u.held,
-      stunned: u.stunned,
-      ...(u.moored ? { moored: true as const } : {}),
-      alive: u.hp > 0 && !u.out,
-      ...(u.out ? { out: u.out } : {}),
-      intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
-    })),
-    round: s.round,
-    phase: s.phase,
-  });
+  return liveFoundry(
+    s,
+    liveBridges(s, {
+      width: s.width,
+      height: s.height,
+      tiles: s.tiles.map(tileViewOf),
+      units: s.units.map((u) => ({
+        id: u.id,
+        kind: u.kind,
+        def: u.def,
+        name: u.name,
+        pos: { ...u.pos },
+        hp: u.hp,
+        maxHp: u.maxHp,
+        shield: u.shield,
+        guard: u.guardUntil,
+        mark: markOf(u),
+        bound: u.mark?.bound?.action ?? null,
+        lineage: u.mark ? u.mark.lineage : null,
+        collar: u.collar !== false,
+        born: u.collar === null,
+        shackle: u.shackle,
+        held: u.held,
+        stunned: u.stunned,
+        ...(u.moored ? { moored: true as const } : {}),
+        alive: u.hp > 0 && !u.out,
+        ...(u.out ? { out: u.out } : {}),
+        intent: u.kind === 'enemy' && u.intent ? { ...u.intent } : null,
+      })),
+      round: s.round,
+      phase: s.phase,
+    }),
+  );
 }
 
 /** A fresh view from parsed ASCII (gallery fixtures, Lab board edits). Mirrors the engine's spawn rules. */

@@ -30,6 +30,14 @@ import {
 } from '$data';
 import { BRIDGE_ROOMS_12 } from '$data/districts/bridges';
 import {
+  FOUNDRY_HEART,
+  FOUNDRY_ROOMS_12,
+  FOUNDRY_ROOMS_34,
+  LOCK_OF_NOTE,
+  type Lock,
+  type Note,
+} from '$data/districts/foundry';
+import {
   type Action,
   type BattleSpec,
   type BattleState,
@@ -183,11 +191,72 @@ export const BRIDGE_LAB_ROOMS: readonly ScenarioDef[] = [
   },
 ];
 
+/**
+ * The foundry's Lab boards (BF-17, BF-19): the three tones on a 7x9 board with a Ringer, a humming
+ * and a muffled bell; one preset per lock (the first layout of each room, in the lock's order);
+ * and the heart with its four great bells hung (BF-18). Not lessons: strike a bell with a cast,
+ * a Spark or a Shove into it and watch the tone ring.
+ */
+const foundryRooms = [...FOUNDRY_ROOMS_12, ...FOUNDRY_ROOMS_34];
+const LOCK_NOTES: Record<Lock, string> = {
+  reach: 'Reach: the great bell hangs across a drop; a bolt reaches it.',
+  match: 'Match: only a ring of its own tone reaches it.',
+  unison: 'Unison: two apprentices must strike it in one turn.',
+  chord: 'Chord: one ring of three other bells makes the chord.',
+};
+const FOUNDRY_LOCK_ROOMS: readonly ScenarioDef[] = ([1, 2, 3, 4] as const).map((n: Note) => {
+  const room = foundryRooms[n - 1];
+  const lock = LOCK_OF_NOTE[n];
+  return {
+    id: `foundry-${lock}`,
+    title: `Foundry, ${lock}`,
+    note: `${room?.title ?? 'A foundry room'}. ${LOCK_NOTES[lock]}`,
+    board: room?.variants?.[0]?.layout ?? room?.layout ?? '',
+    demo: [],
+    expected: [],
+  };
+});
+const HEART_HUNG = (FOUNDRY_HEART.variants?.[0]?.layout ?? '')
+  .split('{hook}')
+  .map((part, i) => (i === 0 ? part : `{greatBell:${i}:allied:rung}${part}`))
+  .join('');
+export const FOUNDRY_LAB_ROOMS: readonly ScenarioDef[] = [
+  {
+    id: 'foundry-tones',
+    title: 'Foundry, the three tones',
+    note: 'Low (big, blue, stripes, one pip), mid (orange, slanting stripes, two) and high (small, gold, dots, three) on a 7x9 board. A Ringer stands on a mid rope; one high bell is muffled by a cloud. Strike a bell (a Spark, a bolt, a Shove into it) and its whole tone rings; the tone then hums until the round ends.',
+    board: [
+      '. . . . . . .',
+      '. {bell:low} . . {bell:high} . .',
+      '. . . Z{rope:mid} . . .',
+      '{bell:mid} . . . . {bell:low} .',
+      '. . ~{bell:high} . . . .',
+      '. . . . Q . .',
+      '. {bell:mid} . . . . .',
+      '. D . . {bell:high} S .',
+      '. . . . . . .',
+    ].join('\n'),
+    demo: [],
+    expected: [],
+  },
+  ...FOUNDRY_LOCK_ROOMS,
+  {
+    id: 'foundry-heart',
+    title: 'Foundry, the great bell (four hung)',
+    note: 'The heart at 7x9 with all four great bells hung at the hooks and the tune playing. The banner shows the four notes and the one called now; on the fourth the Great Peal is telegraphed over every bell that can ring. Strike a hung bell on your turn.',
+    board: HEART_HUNG,
+    rules: { 'foundry:tune': { seed: 11 } },
+    demo: [],
+    expected: [],
+  },
+];
+
 /** Every scenario the Lab's picker offers: the lessons, then the sized rooms. */
 export const LAB_SCENARIOS: readonly ScenarioDef[] = [
   ...SCENARIOS,
   ...LAB_ROOMS,
   ...BRIDGE_LAB_ROOMS,
+  ...FOUNDRY_LAB_ROOMS,
 ];
 
 /** The scenario for an id; unknown ids fall back to the sandbox and say so. */

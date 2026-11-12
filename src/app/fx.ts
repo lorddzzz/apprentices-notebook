@@ -11,6 +11,7 @@ import {
   isDistrictEvent,
   step,
 } from '$engine';
+import { foundryFx } from '../ui/districts/foundry/fx';
 import { boilOverTiles, fallenTiles } from './describe';
 import type { BoardView } from './view';
 
@@ -40,6 +41,7 @@ export type Fx =
   | { kind: 'ruin'; at: Coord } // CN-10: a crate ruined, cargo lost
   | { kind: 'boil'; cells: Coord[] } // BH-12: the house boils over, steam rolls over every cloud tile
   | { kind: 'fall'; cells: Coord[] } // BR-14: cracked span tiles tip and drop into the fog
+  | { kind: 'ring'; cells: Coord[]; bell: 'low' | 'mid' | 'high' } // BF-17: a tone rings from each of its bells
   | { kind: 'banner'; text: string }; // "Your turn", "Round 3"
 
 export const COMPOUND_TONE: Record<CompoundId, Tone> = {
@@ -331,6 +333,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     default: {
       // A district event: its own animation is the district's UI (`eventAnim`), not a core fx.
       if (isDistrictEvent(e)) {
+        const rung = foundryFx(e);
+        if (rung) return rung;
         const fell = fallenTiles(e);
         if (fell.length > 0) return [{ kind: 'fall', cells: fell }];
         if (e.type === 'bridges:stoneWorn' && e.at) {

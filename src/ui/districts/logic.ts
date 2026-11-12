@@ -6,6 +6,7 @@ import type { InputMode } from '../../app/battleInput';
 import type { GaugeLine } from '../../app/describe';
 import { BATH_DESCRIBE } from './bathhouses/describe';
 import { BRIDGES_DESCRIBE } from './bridges/describe';
+import { foundryHighlights } from './foundry/highlights';
 import { INK_DESCRIBE } from './inkQuarter/describe';
 import { inkHighlights } from './inkQuarter/highlights';
 import { handHighlights } from './seam/hands';
@@ -60,6 +61,7 @@ export const DISTRICT_LOGIC: Readonly<Partial<Record<DistrictId, DistrictLogic>>
   },
   bathhouses: { describe: BATH_DESCRIBE },
   bridges: { describe: BRIDGES_DESCRIBE },
+  foundry: { highlights: foundryHighlights },
 };
 
 type Logic = Readonly<Partial<Record<DistrictId, DistrictLogic>>>;
