@@ -939,4 +939,39 @@ export const LINES: readonly LineDef[] = [
     text: 'A unit standing in the gap keeps the two sides apart: the gap must be empty ground.',
     pending: true,
   },
+  // BF-F1: Toll, Coil, Unison and Filings against the bells and the staff (footnotes audit, foundry
+  // section). Text final; the engine stamps none of these yet (the audit names each site), so each
+  // `fires` test in tests/scenarios/foundry-audit-lines.test.ts is `it.fails` until BF-F2/BF-F3.
+  {
+    id: 'toll:bell',
+    subject: 'toll',
+    meets: 'bell',
+    district: 'foundry',
+    text: 'A bell holds no state, so a Toll aimed at one joins nothing: only that bell is struck.',
+    pending: true,
+  },
+  {
+    id: 'coil:bell',
+    subject: 'coil',
+    meets: 'bell',
+    district: 'foundry',
+    text: "Coil widens a burst's reach for units, never for bells: a bell just past the burst is not struck, and a ring's pulse is not widened.",
+    pending: true,
+  },
+  {
+    id: 'unison:bell',
+    subject: 'unison',
+    meets: 'bell',
+    district: 'foundry',
+    text: "Unison on a bell waits for another apprentice's cast on that same bell: another bell of its tone, a ring or a basic Shove does not count.",
+    pending: true,
+  },
+  {
+    id: 'filings:bell',
+    subject: 'filings',
+    meets: 'bell',
+    district: 'foundry',
+    text: 'Filings comes back to the tile, not to what struck it: a bell is not struck again, so it does not ring, and a Clapper that walked off is missed.',
+    pending: true,
+  },
 ];

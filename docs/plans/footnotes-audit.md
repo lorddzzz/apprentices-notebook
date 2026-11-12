@@ -543,3 +543,91 @@ Wax has nothing missing. The Sealer's wax **seal** (a piece, Bench token `wax`) 
 | Q2 | Fix `sand:noTarget`'s text (Sa1) when IQ-F4 builds Sand, by editing the row (A2): "If nobody hit the bearer, there is no one to turn back on: a fire, the bearer's own doing, a death or a step" | The row says "nobody set it off but the bearer itself", which is wrong for a death or a step |
 | Q3 | Keep `Meets` `stamp` for `tally:stamp` (a piece on the tile) and add a `piece` value only if a second rune needs one | A new value is a types change; no row has `stamp` as a subject's meets today, so there is no clash with the Bench token |
 | Q4 | Give Sentence a line only through its own stamps (Se3), not through the writs | `inkQuarter:sentBack` carries only the cause; stamping the writs per rune would make every push witness Sentence |
+
+## 12. Bell foundry: the Resonance runes and solvents (BF-F1, P15, P25)
+
+Audited 2026-11-12 against `src/data/lines.ts` and the sites that touch bells and the staff: `runes/flow.ts` (`toll`, `unisonWith`, `trial`), `resolve.ts` (the `shape` step), `networks.ts::sameStateNet`, `bursts.ts` (`announce`, `unitsNear`, `reachOf`), `solvents.ts` (`rivet`, `filings`), `schedule.ts`, `pieces.ts::strikePiece` and `districts/foundry/` (`ring.ts` for the strike, the queue, the hum, the muffle and the retune; `foes.ts` for the Ringer, the Clapper and the Detuner). The terrain in play: a **bell** is a solid piece with no state (it holds a cloud only); a **muffled** bell has a cloud on its tile; a tone **hums** from its first ring to round end; the **staff** are the Ringer (anchored on a rope), the Clapper (walks, counts as a member of its tone, rings when hit) and the Detuner (walks to a bell and retunes it). Rows added by BF-F1 are marked **added**; their cases are in `tests/scenarios/foundry-audit-lines.test.ts`.
+
+**Why the new rows are `pending`.** Every new row needs a one-line stamp at an engine site BF-F1 does not own (the task owns `lines.ts`, this audit, the draft and the test). The rows carry final text and `pending: true`; each `fires` test is `it.fails`. BF-F2 (Toll, Coil, Unison) and BF-F3 (Filings) stamp them at the sites named below and drop each `pending` flag and each `it.fails`. The `behaviour` tests next to them are green today and prove every claim in this section, the "none" rows included.
+
+| Subject | Rows before | Rows after |
+|---|---|---|
+| Toll | 0 | 1 (`toll:bell`) |
+| Coil | 0 | 1 (`coil:bell`) |
+| Unison | 0 | 1 (`unison:bell`; the tuner's `nearUnison:unit` is a habit row) |
+| Rivet | 1 (`rivet:unit`) | 1 |
+| Filings | 1 (`filings:plate`) | 2 (`filings:bell`) |
+
+No new `Meets` value is needed: `bell` exists (BF-19, the Bench's token for the piece). The Seam's other lines for these runes (a Toll along an oil slick, a Coil on a Conduct) belong to the Seam audit and are not repeated here.
+
+### Toll (`toll:bell`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| To1 | A bell carries no state, so the network of a Toll aimed at one is empty: the rest acts on that tile only, and a tone-mate across the room is not reached. The bell is struck by whatever struck it (the Bolt that stopped there), never by Toll. This is the row that hosts the Carillonneur's note (P15, P25) | Bolt > Toll Spark at a bell with a tone-mate | `networks.ts::sameStateNet` (no `state` returns `[]`), `flow.ts::toll` | `toll:bell` | **added** (new+event: a `miss` from Toll when a target tile holds a bell and the network added no tile) |
+| To2 | A muffled bell (a cloud on its tile) has a network: the whole connected cloud. But a Bolt stops at the **cloud** before the bell, so the bell is not struck at all (`bolt:cloud` hides it) and nothing rings | Bolt > Toll Strike at a muffled bell | `resolve.ts` (`shape`), Bolt's stop | `bolt:cloud` | none: Bolt's row says it; see Q4 |
+| To3 | A Toll with Spark across a cloud over bells bursts the whole cloud, and the burst strikes every tile of it, bells included, all silent. Toll adds nothing the Storm does not already reach | Bolt > Spark at a cloud over two bells | `bursts.ts::announce` (`strikePiece` on each tile) | `spark:cloud` | none: Spark's |
+| To4 | A Toll that reaches a Clapper or a Ringer through a state network (a cloud or a slick they stand in) hits them like any unit: a Clapper hit rings its tone, a Ringer only takes the hit | | `damage.ts` (the Clapper's `onStruck`) | | none: the damage rule, not Toll's |
+| To5 | A strike on a bell whose tone hums rings nothing; Toll does not change that | | `ring.ts::resolveStrike` (hum) | | none: the hum rule (P3) |
+| To6 | A retuned bell is read at the end of the action; Toll has no part in it | | `ring.ts::retune` | | none |
+
+### Coil (`coil:bell`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Co1 | Coil's extra tile gathers **units** (`unitsNear` over the burst's tiles); a bell is struck only if it stands on one of the burst's own tiles, so a bell one tile past a cloud's end stays silent even though a rat beside it is hit | Storm in a two-tile cloud, Coil, a bell beside its end and a rat below its last tile | `bursts.ts` (`announce` strikes `tiles`; `unitsNear` takes `reachOf`) | `coil:bell` | **added** (new: stamp the `burst` event with the line when `reachOf(flow) > 0` and a bell stands within reach of the burst's tiles but not on one) |
+| Co2 | A ring is not a burst and not a conducted action: Coil does not widen its pulse, which is the four tiles beside each ringing bell and nothing more | Bolt > Strike at a bell with a rat beside it and one two tiles away, with and without Coil | `ring.ts::pulse` | `coil:bell` (the same row's second clause) | covered by Co1's row: one line, two clauses; only the first is stamped (Q3) |
+| Co3 | A conducted action cannot reach a bell by Coil either: a bell is never brass, so no brass network contains one | | `networks.ts::isBrass` | | none: bells are never brass (P1) |
+| Co4 | A Clapper in Coil's extra tile is hit and, with a bell in the room, rings its tone | | `damage.ts` | | none: the damage rule |
+
+### Unison (`unison:bell`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Un1 | Unison keys on the **target**, which for a bell is its tile: another apprentice's cast that landed on that same bell passes it; one that landed on a tone-mate does not, though the whole tone rang; a basic Shove that strikes the bell is no cast and signs nothing (P23) | Stoker Bolt > Strike at a bell, Draughtsman Bolt > Unison Strike at the same bell (passes) and at its tone-mate (stops); a Shove first (stops) | `flow.ts::unisonWith` (`snap.landed`), `trial` | `unison:bell` | **added** (new: `trial` returns the line when the target's snapshot tile holds a bell, pass or fail; a habit's line, `nearUnison:unit`, wins over it) |
+| Un2 | Unison cannot hold a bell back. The Bolt that stops at a bell strikes it, and queues its ring, **before** the trigger reads: only the rest waits for a second voice | Draughtsman alone, Bolt > Unison Strike at a bell: the trigger stops, the bell is struck and its tone rings | `pieces.ts::strikePiece` from the Bolt's stop, `resolve.ts` (`trigger`) | | none: Bolt's strike source (P2); the line's sentence does not claim otherwise |
+| Un3 | Great-bell lock 3 counts distinct apprentices' **strikes** (`BellsState.struck`), not the rune: two plain Bolt > Strike casts ring it, and Unison is only the easy way to stand two casts on one tile | Stoker then Draughtsman at a lock-3 great bell | `ring.ts::resolveGreat` | | none: the lock (P6) |
+| Un4 | A foe's cast, a ring's pulse or a bump never signs Unison: `unisonWith` keeps only casts of the caster's own side | | `flow.ts::unisonWith` (`sameSide`) | | none: the headline says "another apprentice" |
+| Un5 | The tuner's habit counts a cast **beside** the target (`nearUnison:unit`); on a bell that includes a cast on a neighbouring tile | | `flow.ts::unisonWith` (`reach` 1) | `nearUnison:unit` | none: the habit's own row |
+
+### Rivet (`rivet:unit`, no new row)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Ri1 | A Riveted **Clapper** stays where it stands but is still a member of its tone: struck, it rings, and the ring pulses the unit beside the bell, itself included. The pulse hurts it and cannot push it (`shove:held`), so a Riveted unit beside a bell takes the pulse where it stands | A Rivet Strike (repeat) at a Clapper beside a bell | `solvents.ts` (`rivet.onReach`), `ring.ts::pulse` → `push.ts` | `rivet:unit`, `shove:held` | none: both rows exist and fire today; the test pins the case |
+| Ri2 | Held stops walking, not acting: a Riveted **Detuner** beside a bell still retunes it, and a Riveted **Ringer** still rings. Rivet pins a foe that has yet to reach a bell; it is no answer to one that has | A held Detuner beside a bell; a held Ringer on its rope | `foes.ts` (`plan` and `resolve` ignore `held`) | | none: the row says "can't move" and is true; see Q5 |
+| Ri3 | Rivet at a bell reaches no unit and holds nothing; the Bolt that stopped there strikes it as usual | Bolt > Rivet repeat at a bell | `solvents.ts` (`onReach` needs a unit) | | none: nothing to read |
+| Ri4 | The Carillonneur never walks, so a hold costs him nothing he was not already paying | | RV | | none: not tested here; the rival's own entry |
+
+### Filings (`filings:plate`, `filings:bell`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Fi1 | Filings repeats **the invention at the tile**, without the Bolt that carried it. At a bell the repeat is a Strike at a tile with no unit (`strike:empty`): the bell is not struck again, so it does not ring. "Rings once more" is literal for Conduct and brass, not for a bell | A Filings Strike repeat at a bell with a plate beside it; end the turn | `solvents.ts` (`filings.after` schedules `tileTarget`), `schedule.ts::run` | `filings:bell` | **added** (new+event: stamp the `repeated` event of a Filings run when the run's tile holds a bell) |
+| Fi2 | A bell is never brass (it holds clouds only, and Brass retunes it): Filings comes back to a bell only when a plate or a collared unit stands beside it. With none, nothing is scheduled | The same cast at a bell with open ground around it | `solvents.ts::touchesBrass` | | none: `filings:plate`'s own condition ("Filings on brass") |
+| Fi3 | The second run goes to the **tile**: a Clapper that walked off in the enemy phase is missed (`strike:empty`) and loses nothing | Filings on a Clapper beside a plate; end the turn | `filings.after` (`tileTarget`) | `filings:bell` | **added**, same row, its second clause (new+event: stamp the same `repeated` event when the unit the run reached was a Clapper that is no longer on the tile; `filings.after` records the unit) |
+| Fi4 | It comes back once: the second run is flagged `repeated`, so it schedules nothing | | `solvents.ts` (`flow.repeated`) | | none: the row says "once more" |
+| Fi5 | The hum is gone by then (round end clears it), so a second run that did strike a bell would ring it afresh | | `ring.ts::bellsStep` | | none: nothing to read until a variant strikes (`filings-bell-strike`) |
+
+### The staff and the school against the five
+
+| Piece or rule | Touches | Result |
+|---|---|---|
+| Ringer | Rivet, Filings | Rivet does not stop its ring (Ri2). Filings on a Ringer needs brass beside the rope; nothing special |
+| Clapper | Toll, Coil, Rivet, Filings | Hit through a Toll or a Coil it rings (To4, Co4); Rivet pins it and it still rings and is pulsed in place (Ri1); Filings misses it once it has walked (Fi3) |
+| Detuner | Rivet | Held, it still retunes the bell beside it (Ri2) |
+| The hum | all five | One ring per tone per round; none of the five adds a strike source of its own, so none can ring a humming tone |
+| Muffle | Toll, Coil | Bolt stops at the cloud (To2); a burst strikes a muffled bell silently (To3); Coil does not reach it (Co1) |
+| Retune | all five | None touches a bell's tone; Brass does (P4) |
+| Great bells | Unison | The lock counts strikers, not Unison (Un3) |
+
+### Foundry proposals
+
+| # | Proposal | Reason |
+|---|---|---|
+| Q1 | Accept the four rows as `pending` now and let BF-F2 (`toll:bell`, `coil:bell`, `unison:bell`) and BF-F3 (`filings:bell`) stamp them at the sites above | The task cannot edit the engine; the rows' text is final and the `fires` tests flip when the stamp lands |
+| Q2 | **Replace** BF-24's placeholder `toll:network` with `toll:bell` as the line the Carillonneur's note sits on, and move the note from the capstone to **level II** of that line (P25; the pack's contract): BF-F3 edits `src/data/rivals/carillonneur.ts` (`note.line`, and `CARILLONNEUR_NOTE.slot` to `{ line: 'toll:bell', level: 2 }`) and `tests/rivals/carillonneur.test.ts` | `toll:network` names no behaviour (a Toll's network is the same state, which no bell has); the note's text, "a Toll that reaches a bell strikes every bell of its tone", is exactly what To1 says a Toll does not do |
+| Q3 | Keep `coil:bell` as one line with two clauses and stamp only the burst clause (Co1); the pulse clause (Co2) is a non-event with nothing to stamp | One honest line (FN P1); a stamp on a ring would mark every ring a Coil sat beside |
+| Q4 | Decide at BF-FG whether a Bolt stopped by a muffled bell should strike it (To2). Today the cloud stops the Bolt first, so a muffled great bell cannot be struck by a Bolt at all (locks 1 and 3) | P2 lists "a spell's target" as a strike source and P4 says a muffled bell is "struck but silent"; the cast that most often aims at a bell does neither once a cloud is over it |
+| Q5 | Note for BF-FG: Rivet pins a foe's walking but never its acts (Ri2), and Filings' second run never strikes a bell (Fi1). The draft answers each with a variant (`rivet-unit-gag`, `filings-bell-strike`); if the player would rather the rule itself changed, that is a design call, not a footnote | Both read against the design's wording ("can't move", "rings once more") and surprise |
+| Q6 | One margin line each for Toll, Coil and Unison, not two | FN P5: no second behaviour of these runes against the foundry is both real and unbent by another subject's row (To2 to To6, Co3, Co4, Un2 to Un5 all belong to a row that is not theirs) |
