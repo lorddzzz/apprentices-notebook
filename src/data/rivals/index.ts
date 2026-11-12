@@ -1,5 +1,6 @@
 import type { TokenEntry } from '../districts/index';
 import { BATH_STEWARD_PAGE, BATH_STEWARD_RIVAL } from './bathSteward';
+import { CARILLONNEUR_PAGE, CARILLONNEUR_RIVAL } from './carillonneur';
 import { CHIEF_WARDEN_PAGE, CHIEF_WARDEN_RIVAL } from './chiefWarden';
 import { LAMPLIGHTER, LAMPLIGHTER_PAGE } from './lamplighter';
 import { POSTMASTER_PAGE, POSTMASTER_RIVAL } from './postmaster';
@@ -13,6 +14,7 @@ export const RIVALS: Readonly<Partial<Record<RivalId, RivalDef>>> = {
   postmaster: POSTMASTER_RIVAL,
   bathSteward: BATH_STEWARD_RIVAL,
   chiefWarden: CHIEF_WARDEN_RIVAL,
+  carillonneur: CARILLONNEUR_RIVAL,
 };
 
 /** Every recovered page, by id. */
@@ -21,14 +23,17 @@ export const RIVAL_PAGES: Readonly<Partial<Record<RivalPageId, RivalPageDef>>> =
   [POSTMASTER_PAGE.id]: POSTMASTER_PAGE,
   [BATH_STEWARD_PAGE.id]: BATH_STEWARD_PAGE,
   [CHIEF_WARDEN_PAGE.id]: CHIEF_WARDEN_PAGE,
+  [CARILLONNEUR_PAGE.id]: CARILLONNEUR_PAGE,
 };
 
 /**
  * Board tokens the rivals claim (P15), for the collision check beside `DISTRICT_TOKENS`. Each
  * rival's `ENEMIES` shell carries the same token (the collision tests skip the shells). The
- * Bath-Steward's `H` is already claimed by his district's `DISTRICT_TOKENS` entry (BH-5).
+ * Bath-Steward's `H` is already claimed by his district's `DISTRICT_TOKENS` entry (BH-5); the
+ * Carillonneur's `V` is claimed here only (BF-9).
  */
 export const RIVAL_TOKENS: readonly TokenEntry[] = [
   { token: 'L', kind: 'foe', id: 'lamplighter', district: 'canals' },
   { token: 'p', kind: 'foe', id: 'postmaster', district: 'inkQuarter' },
+  { token: 'V', kind: 'foe', id: 'carillonneur', district: 'foundry' },
 ];

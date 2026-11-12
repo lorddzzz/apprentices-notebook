@@ -7,6 +7,7 @@ import {
   GREAT_BELL_TRIGGERS,
   settleBells,
 } from './foundry/ring';
+import { FOUNDRY_GOALS, FOUNDRY_TRICKS, initTuneRule, tuneStep } from './foundry/tune';
 import {
   BELL_PIECE,
   BELLS_RULE_ID,
@@ -18,7 +19,6 @@ import {
   GREAT_BELL_PIECE,
   initBells,
   initFoundryState,
-  initTune,
   parseBells,
   parseFoundryState,
   TUNE_RULE_ID,
@@ -38,6 +38,7 @@ export * from './foundry/foes';
 export * from './foundry/peal';
 export * from './foundry/pieces';
 export * from './foundry/ring';
+export * from './foundry/tune';
 
 /**
  * The foundry's engine module, assembled from `foundry/`. BF-0 registered the contracts, BF-3 and
@@ -96,15 +97,19 @@ export const BELLS_RULE: BoardRule<BellsState> = {
   preview: (s, own) => bellsPreview(s, parseBells(own)),
 };
 
-/** P9: the tune's state, listed by the heart's setup (BF-9); a district rule, never brought. */
+/**
+ * P9: the tune's state, listed by the heart's setup; a district rule, never brought. `init` plays
+ * the config's `seed` (the trip seed) through `newTune`; the Carillonneur's mark advances it
+ * (`foundry/tune.ts`), so the step only starts a tune where one is missing.
+ */
 export const TUNE_RULE: BoardRule<TuneState> = {
   id: TUNE_RULE_ID,
   slot: 'late',
   order: 80,
   scope: 'district',
   activatedBy: { kind: 'district' },
-  init: () => initTune(),
-  step: (_ctx, own) => own,
+  init: (_s, config) => initTuneRule(config),
+  step: (_ctx, own) => tuneStep(own),
 };
 
 /** P7: trip state is the great bells rung; `roomSetup` and `afterRoom` are BF-8's, `offersFor` waits for BF-13. */
@@ -130,5 +135,8 @@ export const FOUNDRY_MODULE: DistrictModule = {
   pieces: FOUNDRY_PIECES.map(withTriggers),
   rules: [BELLS_RULE, TUNE_RULE],
   foes: FOUNDRY_FOES,
+  // The Carillonneur is a rival (BF-9): his trick and routine goal ride the rival kit.
+  tricks: FOUNDRY_TRICKS,
+  goals: FOUNDRY_GOALS,
   trip: shape,
 };

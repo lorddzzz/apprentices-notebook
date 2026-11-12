@@ -372,6 +372,7 @@ export type EnemyId =
   | 'gargoyle'
   | 'mason'
   | 'chiefWarden'
+  | 'carillonneur'
   | 'ringer'
   | 'detuner'
   | 'clapper';

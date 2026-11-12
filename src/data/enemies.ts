@@ -32,6 +32,7 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'gargoyle',
   'mason',
   'chiefWarden',
+  'carillonneur',
   'ringer',
   'detuner',
   'clapper',

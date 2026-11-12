@@ -60,8 +60,29 @@ export const CLAPPER: EnemyDef = {
   ...PLAIN,
 };
 
+/**
+ * The Carillonneur's board shell (P10; BF-9): he is a rival, so his kit and trick live in `RIVALS`
+ * (`src/data/rivals/carillonneur.ts`) and this is the board-facing entry with the same id, token and
+ * HP. He never walks: he rings from the Great Bell.
+ */
+export const CARILLONNEUR: EnemyDef = {
+  id: 'carillonneur',
+  name: 'Carillonneur',
+  token: 'V',
+  hp: FOUNDRY_TUNING.carillonneur.hp,
+  move: FOUNDRY_TUNING.carillonneur.move,
+  ...PLAIN,
+  attack: 'line',
+  elite: true,
+  anchored: true,
+  boss: true,
+  blurb:
+    'The ringer of the Great Bell, playing a four-note tune. Each round he rings the next note; after the fourth the Great Peal rings every bell. Ring a note first, mute it, or silence him, and the tune starts over.',
+};
+
 export const FOUNDRY_ENEMIES = {
   ringer: RINGER,
   detuner: DETUNER,
   clapper: CLAPPER,
+  carillonneur: CARILLONNEUR,
 } as const;
