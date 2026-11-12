@@ -8,10 +8,9 @@ import { cast, draft, withLattices } from './harness';
 /**
  * IQ-F1: the Contracts audit (footnotes audit, section 11). Sentence, Levy and Tally against marks,
  * collars and pieces. Each new row has a `behaviour` test (green today: the rule the row describes)
- * and a `fires` test. The rows are `pending` because no engine site stamps them yet (that is
- * IQ-F3, which owns the engine edits): each `fires` test is `it.fails` until it does, and then
- * flips red so the marker comes off with the row's `pending` flag. The Debt Collection scenario
- * runs through Bind, the quarter's treasure, with no engine change.
+ * and a `fires` test. IQ-F3 stamped the rows at their engine sites and dropped their `pending`
+ * flags and the `it.fails` markers. The Debt Collection scenario runs through Bind, the quarter's
+ * treasure, with no engine change.
  */
 
 const ORIGIN: Origin = { caster: 'draughtsman', spell: '0,0', cast: 1 };
@@ -38,7 +37,7 @@ const withBound = (s: BattleState, id: string, deep = false): BattleState =>
     applyMark(ctx, unit(ctx.s, id), { deep, bound: HELD_ACTION, origin: ORIGIN });
   }).state;
 
-test('IQ-F1: the new Contracts rows exist, are Ink Quarter rows, and are pending the engine stamp', () => {
+test('IQ-F1: the new Contracts rows exist, are Ink Quarter rows, and are stamped (not pending)', () => {
   const ids = [
     'sentence:mark',
     'levy:unit',
@@ -52,7 +51,7 @@ test('IQ-F1: the new Contracts rows exist, are Ink Quarter rows, and are pending
     const row = LINES.find((l) => l.id === id);
     expect(row, id).toBeDefined();
     expect(row?.district, id).toBe('inkQuarter');
-    expect(row?.pending, id).toBe(true);
+    expect(row?.pending, id).toBeUndefined();
   }
 });
 
@@ -80,7 +79,7 @@ describe('Sentence', () => {
     expect(unit(bound.state, 'rat-1').pos.x).toBeGreaterThan(1); // and it is still pushed
   });
 
-  it.fails('IQ-F1: sentence:mark fires', () => {
+  it('IQ-F1: sentence:mark fires', () => {
     const r = cast(s0(), 'draughtsman', 'right');
     expect(linesOf(r.events, 'markSpent')).toContain('sentence:mark');
   });
@@ -94,7 +93,7 @@ describe('Levy', () => {
     expect(unit(r.state, 'draughtsman').shield).toBe(0);
   });
 
-  it.fails('IQ-F1: levy:unit fires', () => {
+  it('IQ-F1: levy:unit fires', () => {
     const r = cast(withLattices('D . r', { draughtsman: 'Bolt> Levy' }), 'draughtsman', 'right');
     expect(linesOf(r.events, 'miss')).toContain('levy:unit');
   });
@@ -116,7 +115,7 @@ describe('Levy', () => {
     expect(unit(bound.state, 'draughtsman').shield).toBe(1);
   });
 
-  it.fails('IQ-F1: levy:mark fires', () => {
+  it('IQ-F1: levy:mark fires', () => {
     const r = cast(withLattices('D . r!!', { draughtsman: 'Bolt> Levy' }), 'draughtsman', 'right');
     expect(linesOf(r.events, 'markSpent')).toContain('levy:mark');
   });
@@ -128,7 +127,7 @@ describe('Levy', () => {
     expect(unit(r.state, 'stoker').shield).toBe(0);
   });
 
-  it.fails('IQ-F1: levy:member fires', () => {
+  it('IQ-F1: levy:member fires', () => {
     const r = cast(withLattices('D . S!', { draughtsman: 'Bolt> Levy' }), 'draughtsman', 'right');
     expect(linesOf(r.events, 'markSpent')).toContain('levy:member');
   });
@@ -143,7 +142,7 @@ describe('Levy', () => {
     expect(unit(r.state, 'draughtsman').guardUntil).toBe(9); // the longer of the two
   });
 
-  it.fails('IQ-F1: levy:shielded fires', () => {
+  it('IQ-F1: levy:shielded fires', () => {
     const start = structuredClone(withLattices('D . r!', { draughtsman: 'Bolt> Levy' }));
     unit(start, 'draughtsman').shield = 2;
     const r = cast(start, 'draughtsman', 'right');
@@ -166,7 +165,7 @@ describe('Tally', () => {
     expect(passed(run('D . r!$').events)).toEqual([true]); // shackle + mark
   });
 
-  it.fails('IQ-F1: tally:collar fires', () => {
+  it('IQ-F1: tally:collar fires', () => {
     expect(linesOf(run('D . r&!').events, 'triggered')).toContain('tally:collar');
   });
 
@@ -177,7 +176,7 @@ describe('Tally', () => {
     expect(passed(run('D . r!o').events)).toEqual([true]);
   });
 
-  it.fails('IQ-F1: tally:stamp fires', () => {
+  it('IQ-F1: tally:stamp fires', () => {
     expect(linesOf(run('D . r!{return}').events, 'triggered')).toContain('tally:stamp');
   });
 });

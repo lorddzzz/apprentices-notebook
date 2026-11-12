@@ -379,7 +379,8 @@ export function finePrint(
   inventions: InventionLibrary = {},
 ): FinePrint {
   const subject = isInvention(ref) ? inventions[ref]?.method : ref;
-  const rows = LINES.filter((l) => l.subject === subject);
+  // A `pending` row has no engine stamp yet: it is not fine print the household can witness.
+  const rows = LINES.filter((l) => l.subject === subject && !l.pending);
   return { total: rows.length, witnessed: rows.filter((l) => witnessed.includes(l.id)).length };
 }
 

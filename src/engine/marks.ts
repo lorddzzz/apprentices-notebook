@@ -387,12 +387,18 @@ function runBound(
   inCastScope(ctx, () => withOrigin(ctx, origin, () => runStep(ctx, step, [target], flow)));
 }
 
-function release(ctx: Ctx, unit: Unit, h: Hook): void {
+function release(
+  ctx: Ctx,
+  unit: Unit,
+  h: Hook,
+  line: LineId = 'bind:mark',
+  given?: Dir | null,
+): void {
   const mark = unit.mark;
   const bound = mark?.bound;
   if (!mark || !bound) return;
   unit.mark = null; // spent before the action runs (limit 2)
-  withLine(ctx, 'bind:mark', () =>
+  withLine(ctx, line, () =>
     withOrigin(ctx, mark.origin, () => {
       emit(ctx, { type: 'markSpent', unit: ref(unit), released: true });
       // `bind-mark-layered`: the second action stays on the mark, for the next event.
@@ -413,7 +419,7 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
           : { kind: 'unit', unit: unit.id };
       // Sand turns the action back on whoever set it off.
       const origin = mark.origin;
-      const heading = releaseHeading(ctx, h, unit.pos, bound);
+      const heading = given !== undefined ? given : releaseHeading(ctx, h, unit.pos, bound);
       const turned = turnBack(ctx, bound.solvent, h, heading);
       if (turned === 'nobody') return;
       depths.set(ctx, depth + 1);
@@ -430,6 +436,23 @@ function release(ctx: Ctx, unit: Unit, h: Hook): void {
         applyMark(ctx, unit, { deep: false, bound: null, origin: mark.origin });
       }
     }),
+  );
+}
+
+/**
+ * Sentence and Levy spend a mark whole and release its bound action on the bearer (`sentence-mark-release`,
+ * `levy-mark-release`). The action runs under `line` with the spender's heading, else the binding cast's.
+ * It is never a hit, so Sand turns nothing back (the entered hook reads the same as a death's tile).
+ */
+export function releaseSpent(ctx: Ctx, unit: Unit, line: LineId, heading: Dir | null): void {
+  const bound = unit.mark?.bound;
+  if (!bound) return;
+  release(
+    ctx,
+    unit,
+    { kind: 'entered', unit: unit.id, at: { ...unit.pos } },
+    line,
+    heading ?? bound.heading,
   );
 }
 

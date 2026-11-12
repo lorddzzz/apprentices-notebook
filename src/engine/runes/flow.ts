@@ -299,18 +299,48 @@ function seenAt(
   return tile ? { unit, at, tile } : null;
 }
 
+/** Footnote reads for the trigger verdicts (the flow carries no footnotes; the trigger step passes them). */
+export type FootnoteCheck = (id: FootnoteVariantId) => boolean;
+const NO_FOOTNOTES: FootnoteCheck = () => false;
+
+/** What a unit's collar and shackle count for Tally (`tally-collar-twice`, `tally-collar-shackle`). */
+function ownCollarPart(unit: Unit | null, fn: FootnoteCheck): number {
+  if (!unit) return 0;
+  let n = 0;
+  if (unit.collar !== false) n += fn('tally-collar-twice') ? 2 : 1;
+  if (unit.shackle > 0) n += fn('tally-collar-shackle') ? 2 : 1;
+  return n;
+}
+
 /**
  * Tally: marks, collars, shackles, states (and compounds) and jars on the target and its tile. A
- * mark counts `markWeight` (the notary's habit, AH P13: 2); a deep mark is still one mark.
+ * mark counts `markWeight` (the notary's habit, AH P13: 2); a deep mark is still one mark. A collar
+ * or shackle counts as its footnote says; `tally-collar-net` adds collared neighbours (at most two).
+ * Pieces never count.
  */
-export function tallyCount(s: BattleState, snap: Snapshot, t: Target, markWeight = 1): number {
+export function tallyCount(
+  s: BattleState,
+  snap: Snapshot,
+  t: Target,
+  markWeight = 1,
+  fn: FootnoteCheck = NO_FOOTNOTES,
+): number {
   const seen = seenAt(s, snap, t);
   if (!seen) return 0;
-  const { unit, tile } = seen;
+  const { unit, tile, at } = seen;
   let n = 0;
   if (unit?.mark) n += markWeight;
-  if (unit && unit.collar !== false) n++;
-  if (unit && unit.shackle > 0) n++;
+  n += ownCollarPart(unit, fn);
+  if (fn('tally-collar-net')) {
+    const beside = snap.units.filter(
+      (u) =>
+        u.hp > 0 &&
+        u.collar !== false &&
+        u.id !== unit?.id &&
+        neighbors4(at).some((c) => sameCoord(c, u.pos)),
+    );
+    n += Math.min(2, beside.length);
+  }
   if (tile.state) n++;
   if (tile.jar) n++;
   return n;
@@ -400,29 +430,51 @@ const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs
 
 /**
  * One target through a trigger: whether it passes, whether only the flow's habit let it through
- * (the habit's headline, AH P11), and the habit fine-print line it met.
+ * (the habit's headline, AH P11), the fine-print line it met (habit, then collar, then piece: one
+ * `triggered` event carries one line), the count Tally read, and the collar or shackle a passing
+ * Tally needed (`tally-collar-spend`).
  */
 export interface Trial {
   pass: boolean;
   byHabit: boolean;
   line: LineId | null;
+  count?: number;
+  spend?: 'collar' | 'shackle';
 }
 
 /** A trigger's verdict on one target, reading only the cast's snapshot and the flow's habit. */
-export function trial(s: BattleState, rune: TriggerRuneId, t: Target, flow: Flow): Trial {
+export function trial(
+  s: BattleState,
+  rune: TriggerRuneId,
+  t: Target,
+  flow: Flow,
+  fn: FootnoteCheck = NO_FOOTNOTES,
+): Trial {
   const rule = ruleOf(flow.habit);
   switch (rune) {
     case 'tally': {
       const weight = rule.tallyMarkWeight ?? 1;
-      const n = tallyCount(s, flow.snapshot, t, weight);
+      const n = tallyCount(s, flow.snapshot, t, weight, fn);
       const pass = n >= 2;
-      if (weight === 1) return { pass, byHabit: false, line: null };
-      const plain = tallyCount(s, flow.snapshot, t);
-      const deep = seenAt(s, flow.snapshot, t)?.unit?.mark?.deep === true;
+      const seen = seenAt(s, flow.snapshot, t);
+      const unit = seen?.unit ?? null;
+      const collared = unit !== null && (unit.collar !== false || unit.shackle > 0);
+      const piece = seen?.tile.piece !== undefined && seen.tile.piece !== null;
+      const deep = unit?.mark?.deep === true;
+      const habit: LineId | null = weight === 1 || !deep ? null : 'markTwice:deepMark';
+      const line: LineId | null =
+        habit ?? (collared ? 'tally:collar' : piece ? 'tally:stamp' : null);
+      const byHabit = weight !== 1 && pass && tallyCount(s, flow.snapshot, t, 1, fn) < 2;
+      // The count without the target's own collar and shackle: below 2, the debt carried the pass.
+      const needed = pass && collared && n - ownCollarPart(unit, fn) < 2;
+      const spend =
+        needed && fn('tally-collar-spend') ? (unit?.shackle ? 'shackle' : 'collar') : null;
       return {
         pass,
-        byHabit: pass && plain < 2,
-        line: deep ? 'markTwice:deepMark' : null,
+        byHabit,
+        line,
+        count: n,
+        ...(spend ? { spend } : {}),
       };
     }
     case 'brink': {

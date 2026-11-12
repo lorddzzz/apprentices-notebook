@@ -1,6 +1,15 @@
 import { isInvention, RUNES, type RuneRef } from '$data';
 import { cloneData } from './clone';
-import { type Ctx, emit, fizzled, inCastScope, ref, withLine, withOrigin } from './ctx';
+import {
+  type Ctx,
+  emit,
+  type FootnoteVariantId,
+  fizzled,
+  inCastScope,
+  ref,
+  withLine,
+  withOrigin,
+} from './ctx';
 import { dealDamage } from './damage';
 import type { NodeSpan } from './events';
 import { hasFootnote } from './footnotes';
@@ -9,7 +18,7 @@ import { habitOf, ruleOf, withHabit } from './habits';
 import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
-import { layThinCloud } from './mix';
+import { landOnTile, layThinCloud } from './mix';
 import { sameStateNet } from './networks';
 import { hitPiece } from './pieces';
 import {
@@ -376,7 +385,8 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         return;
       }
       case 'trigger': {
-        const trials = live.map((t) => ({ t, r: trial(s, st.rune, t, flow) }));
+        const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+        const trials = live.map((t) => ({ t, r: trial(s, st.rune, t, flow, fn) }));
         const through = trials.filter((x) => x.r.pass).map((x) => x.t);
         const verdict = () =>
           emit(ctx, { type: 'triggered', rune: st.rune, passed: through.length > 0 });
@@ -387,7 +397,26 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         if (line) withLine(ctx, line, tagged);
         else tagged();
         span();
-        queue(st.next, through, flow);
+        for (const x of trials) if (x.r.pass && x.r.spend) spendCollar(ctx, x.t, x.r.spend);
+        // `tally-cap-refund`: a gate that stops a cast leaves a blot on its target's tile.
+        if (st.rune === 'tally' && fn('tally-cap-refund')) {
+          for (const x of trials) {
+            const at = x.r.pass ? null : whereIs(ctx.s, x.t);
+            if (at) landOnTile(ctx, 'ink', at, flow);
+          }
+        }
+        // `tally-cap-surplus`: a target Tally counted four things on takes the rest twice.
+        const surplus =
+          st.rune === 'tally' && fn('tally-cap-surplus')
+            ? through.filter((t) => (trials.find((x) => x.t === t)?.r.count ?? 0) >= 4)
+            : [];
+        if (surplus.length === 0) queue(st.next, through, flow);
+        else {
+          const once = through.filter((t) => !surplus.includes(t));
+          if (once.length) queue(st.next, once, flow);
+          queue(st.next, surplus, flow);
+          queue(st.next, surplus, flow);
+        }
         return;
       }
       case 'seal': {
@@ -409,6 +438,17 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
       }
     }
   }
+}
+
+/** `tally-collar-spend`: the collar or shackle that carried a Tally through is struck off (erased). */
+function spendCollar(ctx: Ctx, t: Target, what: 'collar' | 'shackle'): void {
+  const u = t.kind === 'unit' ? findUnit(ctx.s, t.unit) : unitAt(ctx.s, t.at);
+  if (!u || u.hp <= 0) return;
+  withLine(ctx, 'tally:collar', () => {
+    emit(ctx, { type: 'erased', at: { ...u.pos }, what });
+    if (what === 'shackle') u.shackle = 0;
+    else u.collar = false;
+  });
 }
 
 /** Whether a branch has a Shove anywhere along it. */

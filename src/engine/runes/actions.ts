@@ -10,6 +10,7 @@ import {
   TUNING,
 } from '$data';
 import { hasTrait, objectArrives, relocateAll } from '../arrival';
+import { markUnit, unmarkedBeside } from '../bursts';
 import { cloneData } from '../clone';
 import {
   type Ctx,
@@ -39,8 +40,9 @@ import { ruleOf, sameSide } from '../habits';
 import { guardCancels } from '../harm';
 import { sealJar } from '../jars';
 import { jarLimit } from '../leans';
-import { spendMark } from '../marks';
-import { push, wearPlate } from '../push';
+import { releaseSpent, spendMark } from '../marks';
+import { landOnTile } from '../mix';
+import { type PushResult, push, wearPlate } from '../push';
 import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
 import type { Handler } from '../resolve';
 import { trickResists } from '../rivals/tricks';
@@ -536,26 +538,199 @@ const erase: Handler = (ctx, t, flow) => {
   if (parts.length) remember(ctx, t, parts, flow);
 };
 
+/** A removable collar (not the born-brass kind): what `sentence-unit-collar` strikes off. */
+const removableCollar = (u: Unit): boolean => u.collar !== false && u.collar !== null;
+
+/** `sentence-unit-collar` / `-shield`: a bare unit with a cover that counts as marked. */
+function coverCounts(ctx: Ctx, u: Unit): boolean {
+  return (
+    (hasFootnote(ctx, 'sentence-unit-collar') && removableCollar(u)) ||
+    (hasFootnote(ctx, 'sentence-unit-shield') && u.shield > 0)
+  );
+}
+
+/** The cover Sentence strikes off a bare unit (`sentence-unit-collar`, `-shield`): the collar first. */
+function strikeCover(ctx: Ctx, u: Unit): void {
+  if (removableCollar(u) && hasFootnote(ctx, 'sentence-unit-collar')) {
+    emit(ctx, { type: 'erased', at: { ...u.pos }, what: 'collar' });
+    u.collar = false;
+  } else if (u.shield > 0 && hasFootnote(ctx, 'sentence-unit-shield')) {
+    emit(ctx, { type: 'shieldAbsorbs', unit: ref(u), absorbed: u.shield, left: 0 });
+    u.shield = 0;
+    delete u.thorns;
+  }
+}
+
+/** `postmaster:sentence`: a unit the push crushed against a wall or the room's edge (`shove:wall`, `shove:edge`). */
+function crushedAgainstWall(ctx: Ctx, at: Coord, dir: Dir, r: PushResult): boolean {
+  if (r.crushed === null) return false;
+  const ahead = step(at, dir);
+  if (!inBoard(ctx.s, ahead)) return r.crushed === 'wall';
+  return r.crushed === 'plate' && tileAt(ctx.s, ahead).state?.id === 'wall';
+}
+
+/** Levy's spends this cast, counted from the first (`levy-cap-bank` pays once, at the third). */
+const levyCounts = new WeakMap<Ctx, Map<string, number>>();
+function marksThisCast(ctx: Ctx, flow: Flow): number {
+  const byCast = levyCounts.get(ctx) ?? new Map<string, number>();
+  levyCounts.set(ctx, byCast);
+  const key = `${flow.origin.caster}:${flow.origin.cast}`;
+  const n = (byCast.get(key) ?? 0) + 1;
+  byCast.set(key, n);
+  return n;
+}
+
+/** The heading one tile from `from` toward `to`, along the longer axis (a tie reads horizontal). */
+function towardHeading(from: Coord, to: Coord): Dir | null {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (dx === 0 && dy === 0) return null;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+  return dy > 0 ? 'down' : 'up';
+}
+
 const sentence: Handler = (ctx, t, flow) => {
   const u = unitOf(ctx, t);
   if (!u) return;
-  if (!u.mark) return miss(ctx, 'sentence', 'sentence:unit');
+  const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  // A bare unit: no mark, and no collar or shield that counts as one (`sentence-unit-*`).
+  const bare = !u.mark && !coverCounts(ctx, u);
+  if (bare && fn('sentence-unit-serve')) {
+    // `sentence-unit-serve`: the bare unit is marked plain instead of pushed.
+    withLine(ctx, 'sentence:unit', () => markUnit(ctx, u, flow.origin));
+    return;
+  }
+  if (bare && !fn('sentence-unit-nudge')) return miss(ctx, 'sentence', 'sentence:unit');
   const heading = headingOf(flow, t);
   if (!heading) return miss(ctx, 'sentence', 'sentence:noHeading');
-  spendMark(ctx, u); // spent before the push, never released (P31)
+  if (bare) {
+    // `sentence-unit-nudge`: a bare unit is pushed one tile and spends nothing.
+    withLine(ctx, 'sentence:unit', () => push(ctx, u, heading, 1, flow.origin));
+    return;
+  }
+  if (!u.mark) withLine(ctx, 'sentence:unit', () => strikeCover(ctx, u)); // counts as marked: the full push
+  // Spent whole before the push, never released by a hit (P31), unless a footnote says otherwise.
+  let spent = false;
+  const mark = u.mark;
+  if (mark && u.held > 0 && fn('sentence-mark-held')) {
+    // `sentence-mark-held`: a unit Sentence cannot move keeps its mark (and so its action).
+  } else if (
+    mark?.deep &&
+    fn('sentence-mark-peel') &&
+    !(fn('sentence-mark-release') && mark.bound)
+  ) {
+    // `sentence-mark-peel`: a deep mark drops to a plain one and is not spent, so nothing passes on.
+    withLine(ctx, 'sentence:mark', () => {
+      u.mark = { ...mark, deep: false };
+      emit(ctx, { type: 'marked', unit: ref(u), deep: false, bound: mark.bound?.action ?? null });
+    });
+  } else if (mark) {
+    spent = true;
+    // `sentence-mark-release`: the held action runs on the bearer as the mark is spent (no peel with it).
+    if (fn('sentence-mark-release') && mark.bound) releaseSpent(ctx, u, 'sentence:mark', heading);
+    else withLine(ctx, 'sentence:mark', () => spendMark(ctx, u));
+  }
   const tiles = ACTIONS.sentenceTiles + pushBonus('sentence', flow);
-  maybeLine(ctx, solventLine(flow), () => push(ctx, u, heading, Math.max(0, tiles), flow.origin));
+  const start = { ...u.pos };
+  const box: { r?: PushResult } = {};
+  maybeLine(ctx, solventLine(flow), () => {
+    box.r = push(ctx, u, heading, Math.max(0, tiles), flow.origin);
+  });
+  const r = box.r;
+  if (!r) return;
+  // `sentence-cap-blot`: a spent mark leaves a blot where the unit was pushed from.
+  if (spent && r.moved > 0 && fn('sentence-cap-blot')) landOnTile(ctx, 'ink', start, flow);
+  // `sentence-mark-pass`: the spent mark's plain copy lands on the nearest unmarked unit beside the push's end.
+  if (spent && u.hp > 0 && fn('sentence-mark-pass')) {
+    const over = unmarkedBeside(ctx, u);
+    if (over) withLine(ctx, 'sentence:mark', () => markUnit(ctx, over, flow.origin));
+  }
+  // `sentence-cap-cosign`: the unit a push runs into is marked plain (once).
+  if (fn('sentence-cap-cosign') && r.crushed && r.crushed !== 'wall' && r.crushed !== 'plate') {
+    const hit = findUnit(ctx.s, r.crushed);
+    if (hit && hit.hp > 0 && !hit.mark) markUnit(ctx, hit, flow.origin);
+  }
+  // `postmaster:sentence`: crushed against a wall or the edge, held until your next turn (the rival's hold immunity wins).
+  if (u.hp > 0 && fn('postmaster:sentence') && crushedAgainstWall(ctx, u.pos, heading, r)) {
+    withLine(ctx, 'sentence:mark', () => holdUnit(ctx, u, 1));
+  }
 };
 
-const levy: Handler = (ctx, t, flow) => {
-  const u = unitOf(ctx, t);
-  if (!u?.mark) return;
-  const caster = unitById(ctx.s, flow.caster);
-  spendMark(ctx, u);
+/**
+ * One Levy spend: the mark's shield (2 for a deep mark under `levy-mark-deep`, 1 under `-peel`, with
+ * the peel leaving the mark standing), paid to the caster, or to the ally under `levy-member-share`.
+ * Returns whether the mark was spent whole.
+ */
+function levyMark(ctx: Ctx, u: Unit, flow: Flow, caster: Unit): boolean {
+  const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  const mark = u.mark;
+  if (!mark) return false;
+  const member = u.kind === 'member';
+  const line: LineId = member ? 'levy:member' : 'levy:mark';
   // An enemy casts after the party has acted, and the shield lapses at the next player phase
-  // start: one more round, so it covers the party's coming turn.
-  const lapse = ctx.s.round + 1 + (caster?.kind === 'enemy' ? 1 : 0);
-  gainShield(ctx, caster, ACTIONS.levyShieldPerMark, lapse + roundBonus('levy', flow));
+  // start: one more round, so it covers the party's coming turn. `levy-mark-ward` adds one.
+  const until =
+    ctx.s.round +
+    1 +
+    (caster.kind === 'enemy' ? 1 : 0) +
+    roundBonus('levy', flow) +
+    (fn('levy-mark-ward') ? 1 : 0);
+  const peel = mark.deep && fn('levy-mark-peel') && !(fn('levy-mark-release') && mark.bound);
+  const shield = ACTIONS.levyShieldPerMark * (mark.deep && fn('levy-mark-deep') ? 2 : 1);
+  if (peel) {
+    // `levy-mark-peel`: the deep mark drops to a plain one, stays, and still pays a shield.
+    withLine(ctx, line, () => {
+      u.mark = { ...mark, deep: false };
+      emit(ctx, { type: 'marked', unit: ref(u), deep: false, bound: mark.bound?.action ?? null });
+    });
+  } else if (fn('levy-mark-release') && mark.bound) {
+    // `levy-mark-release`: the held action runs on its bearer as the mark is spent.
+    releaseSpent(ctx, u, line, null);
+  } else {
+    withLine(ctx, line, () => spendMark(ctx, u)); // spent, never released (P31)
+  }
+  // `levy-member-share`: an ally's mark pays the ally, not the caster; `levy-member-repay` adds 1 more to the ally.
+  const ally = member && u.id !== caster.id;
+  const who = ally && fn('levy-member-share') ? u : caster;
+  withLine(ctx, who.shield > 0 ? 'levy:shielded' : line, () => gainShield(ctx, who, shield, until));
+  if (ally && fn('levy-member-repay')) {
+    withLine(ctx, u.shield > 0 ? 'levy:shielded' : line, () => gainShield(ctx, u, 1, until));
+  }
+  return !peel;
+}
+
+const levy: Handler = (ctx, t, flow) => {
+  const fn = (id: FootnoteVariantId) => hasFootnote(ctx, id);
+  const caster = unitById(ctx.s, flow.caster);
+  const u = unitOf(ctx, t);
+  if (u && !(u.kind === 'member' && u.id === caster.id && fn('levy-member-self'))) {
+    // `levy:unit`: a unit with no mark pays nothing (the miss).
+    if (!u.mark) miss(ctx, 'levy', 'levy:unit');
+    else {
+      const spent = levyMark(ctx, u, flow, caster);
+      if (spent && fn('levy-cap-bank') && marksThisCast(ctx, flow) === 3) {
+        // `levy-cap-bank`: the third mark in one cast shields every member of your party.
+        const until =
+          ctx.s.round + 1 + (caster.kind === 'enemy' ? 1 : 0) + roundBonus('levy', flow);
+        for (const m of ctx.s.units)
+          if (m.kind === 'member' && m.hp > 0) gainShield(ctx, m, 1, until);
+      }
+      // `levy-cap-draw`: a foe whose mark is spent is pulled one tile toward the caster.
+      const toward =
+        spent && fn('levy-cap-draw') && u.kind === 'enemy' && u.hp > 0
+          ? towardHeading(u.pos, caster.pos)
+          : null;
+      if (toward) push(ctx, u, toward, 1, flow.origin, { as: 'pull' });
+    }
+  }
+  // `levy-member-near`: the caster's neighbours that are your party have their marks spent too.
+  if (fn('levy-member-near') && caster.hp > 0) {
+    for (const at of neighbors4(caster.pos)) {
+      const m = unitAt(ctx.s, at);
+      if (m && m.kind === 'member' && m.id !== caster.id && m.hp > 0 && m.mark)
+        levyMark(ctx, m, flow, caster);
+    }
+  }
 };
 
 /** What each authored Action does to one target (design §5, P27–P28). */
