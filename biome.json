@@ -28,7 +28,7 @@
       }
     },
     {
-      "includes": ["src/engine/**", "!src/engine/districts/**", "!src/engine/sim/bot.ts"],
+      "includes": ["src/engine/**", "!src/engine/districts/**"],
       "linter": {
         "rules": {
           "style": {
@@ -42,7 +42,7 @@
                   },
                   {
                     "group": ["**/districts/**", "!**/districts/{kit,api,types,registry,index}"],
-                    "message": "Core engine files reach a district only through districts/{kit,api,types,registry,index}. (src/engine/sim/bot.ts is exempt until KIT-R3b moves its imports into the modules bot terms.)"
+                    "message": "Core engine files reach a district only through districts/{kit,api,types,registry,index}."
                   }
                 ]
               }

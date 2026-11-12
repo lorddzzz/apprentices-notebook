@@ -56,6 +56,7 @@ export function buildKit(modules: readonly DistrictModule[]): Kit {
       harmGuards.push(g);
     }
     if (m.trip) put(shapes, m.trip.id, m.trip, 'trip shape');
+    for (const t of m.shapes ?? []) put(shapes, t.id, t, 'trip shape');
     for (const [c, answers] of Object.entries(m.causes ?? {})) put(causes, c, answers, 'cause');
   }
   return {

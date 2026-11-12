@@ -455,6 +455,8 @@ export interface DistrictModule {
   /** Its Bind events are known before the district opens (the ink quarter). */
   bindsBeforeOpen?: true;
   trip?: TripShapeDef;
+  /** Shapes it lends to drawn districts, not used for its own trips. */
+  shapes?: readonly TripShapeDef[];
   heart?: HeartSetup;
   bot?: BotTerms;
   /** DK-E1: rooms supplied per trip instead of static data (read through `roomsOf`). */
