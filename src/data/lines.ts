@@ -956,7 +956,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'bell',
     district: 'foundry',
     text: 'A bell holds no state, so a Toll aimed at one joins nothing: only that bell is struck.',
-    pending: true,
   },
   {
     id: 'coil:bell',
@@ -964,7 +963,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'bell',
     district: 'foundry',
     text: "Coil widens a burst's reach for units, never for bells: a bell just past the burst is not struck, and a ring's pulse is not widened.",
-    pending: true,
   },
   {
     id: 'unison:bell',
@@ -972,7 +970,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'bell',
     district: 'foundry',
     text: "Unison on a bell waits for another apprentice's cast on that same bell: another bell of its tone, a ring or a basic Shove does not count.",
-    pending: true,
   },
   {
     id: 'filings:bell',

@@ -37,7 +37,9 @@ test('BF-F1: the four new Resonance rows exist, are foundry rows, and are pendin
     const row = LINES.find((l) => l.id === id);
     expect(row, id).toBeDefined();
     expect(row?.district, id).toBe('foundry');
-    expect(row?.pending, id).toBe(true);
+    // BF-F2 stamped Toll, Coil and Unison; Filings is BF-F3's.
+    if (id === 'filings:bell') expect(row?.pending, id).toBe(true);
+    else expect(row?.pending, id).toBeUndefined();
   }
   // The solvents' own rows are live and untouched; Toll, Coil and Unison had none.
   for (const id of ['rivet:unit', 'filings:plate']) {
@@ -63,7 +65,7 @@ describe('Toll', () => {
     expect(ev(plain.events, 'foundry:bellStruck')).toHaveLength(1);
   });
 
-  it.fails('BF-F1: toll:bell fires', () => {
+  test('BF-F1: toll:bell fires', () => {
     const r = cast(withLattices(TWO_MID, TOLL), 'draughtsman', 'right');
     expect(lineSet(r.events)).toContain('toll:bell');
   });
@@ -117,7 +119,7 @@ describe('Coil', () => {
     expect(pulsed('. Coil\nBolt> Strike')).toEqual(['rat-1']);
   });
 
-  it.fails('BF-F1: coil:bell fires', () => {
+  test('BF-F1: coil:bell fires', () => {
     const r = cast(withLattices(STORM, COIL), 'draughtsman', 'right');
     expect(lineSet(r.events)).toContain('coil:bell');
   });
@@ -166,7 +168,7 @@ describe('Unison', () => {
     expect(ev(cast(a.state, 'draughtsman', 'up').events, 'foundry:bellRung')).toHaveLength(1);
   });
 
-  it.fails('BF-F1: unison:bell fires', () => {
+  test('BF-F1: unison:bell fires', () => {
     const first = cast(withLattices(ROOM, PAGES), 'stoker', 'left');
     const r = cast(first.state, 'draughtsman', 'up');
     expect(lineSet(r.events)).toContain('unison:bell');

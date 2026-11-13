@@ -1,6 +1,7 @@
 import { FOUNDRY_TUNING, TONES, type Tone } from '$data/districts/foundry';
 import { cloneData } from '../../clone';
 import { type Ctx, emit, withOrigin } from '../../ctx';
+import { hasFootnote } from '../../footnotes';
 import { dealDamage } from '../../damage';
 import { type Coord, DIRS, type Dir, inBounds, neighbors4, step } from '../../grid';
 import { push } from '../../push';
@@ -27,6 +28,7 @@ import {
   type RetunedEvent,
   type RingCause,
   type RingEvent,
+  type StrikeFlags,
   tileKey,
 } from './types';
 
@@ -51,6 +53,40 @@ const withQueue = (own: BellsState, queue: QueuedStrike[]): BellsState => {
 
 const toOrigin = (o: QueuedOrigin | null): Origin | null => o as Origin | null;
 
+// ── Strike flags (BF-F2, F7) ────────────────────────────
+
+/** A ring with no flag is plain; a merged ring takes the union of its strikes' flags. */
+const unionFlags = (a: StrikeFlags | undefined, b: StrikeFlags | undefined): StrikeFlags => ({
+  ...(a?.knell || b?.knell ? { knell: true as const } : {}),
+  ...(a?.wide || b?.wide ? { wide: true as const } : {}),
+  ...(a?.spare || b?.spare ? { spare: true as const } : {}),
+});
+const hasFlags = (f: StrikeFlags): boolean => !!(f.knell || f.wide || f.spare);
+
+/** The flags the strikes made inside `withStrikeFlags` carry (a synchronous scope, never held across calls). */
+let scoped: StrikeFlags = {};
+
+/** Runs `fn`; every strike it queues (or merges into) carries `flags`. */
+export function withStrikeFlags<T>(flags: StrikeFlags, fn: () => T): T {
+  const prev = scoped;
+  scoped = unionFlags(prev, flags);
+  try {
+    return fn();
+  } finally {
+    scoped = prev;
+  }
+}
+
+/** Adds `flags` to every strike already queued on the bell at `at` (the Toll and Unison steps tag the Bolt's). */
+export function tagQueued(ctx: Ctx, at: Coord, flags: StrikeFlags): void {
+  const own = readBells(ctx);
+  if (!own.queue?.some((q) => q.at.x === at.x && q.at.y === at.y && !q.tone)) return;
+  const queue = own.queue.map((q) =>
+    q.at.x === at.x && q.at.y === at.y && !q.tone ? { ...q, ...unionFlags(q, flags) } : q,
+  );
+  writeBells(ctx, { ...own, queue });
+}
+
 // ── Strikes (P2) ────────────────────────────────────────
 
 const isGreat = (piece: TilePiece): boolean => piece.id === GREAT_BELL_PIECE;
@@ -61,7 +97,10 @@ const isAllied = (piece: TilePiece): boolean =>
 function strike(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Origin | null): void {
   // One blow per bell until the queue settles: a Bolt that stops at a bell and the Spark it
   // carries (or a Storm burst on top of it) strike it once.
-  if (readBells(ctx).queue?.some((q) => q.at.x === at.x && q.at.y === at.y)) return;
+  if (readBells(ctx).queue?.some((q) => q.at.x === at.x && q.at.y === at.y)) {
+    if (hasFlags(scoped)) tagQueued(ctx, at, scoped);
+    return;
+  }
   const key = tileKey(at.x, at.y);
   const caster = origin?.caster;
   let by_ = caster;
@@ -86,6 +125,7 @@ function strike(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Ori
     at: { x: at.x, y: at.y },
     by,
     origin: origin ? cloneData(origin) : null,
+    ...scoped,
   };
   writeBells(ctx, { ...own, struck, queue: [...(own.queue ?? []), entry] });
 }
@@ -126,6 +166,7 @@ export const isHumming = (s: BattleState, tone: Tone): boolean =>
 export function retune(ctx: Ctx, at: Coord, delta = 1): boolean {
   const piece = tileAt(ctx.s, at).piece;
   if (!piece || piece.id !== BELL_PIECE) return false;
+  if (readBells(ctx).locked?.includes(tileKey(at.x, at.y))) return false; // `rivet-cap-lock`
   const from = toneOfPiece(piece.id, piece.data);
   if (!from) return false;
   const n = TONES.length;
@@ -134,6 +175,14 @@ export function retune(ctx: Ctx, at: Coord, delta = 1): boolean {
   emit(ctx, ev);
   piece.data = { tone: to };
   return true;
+}
+
+/** `rivet-cap-lock`: the bell at `at` cannot be retuned until round end. */
+export function lockBell(ctx: Ctx, at: Coord): void {
+  const own = readBells(ctx);
+  const k = tileKey(at.x, at.y);
+  if (own.locked?.includes(k)) return;
+  writeBells(ctx, { ...own, locked: [...(own.locked ?? []), k] });
 }
 
 /**
@@ -196,9 +245,17 @@ function pulse(
   bell: Coord,
   pulsed: Set<string>,
   origin: Origin | null,
+  flags: StrikeFlags = {},
 ): void {
+  // `coil-bell-pulse` (wide): also the unit two tiles out on each side; `unison-bell-hush` (spare): not your party.
+  const wide = (u: Unit): boolean => !!flags.wide && straightTwo(bell, u.pos) !== null;
   const beside = livingUnits(ctx.s)
-    .filter((u) => !pulsed.has(u.id) && dirBetween(bell, u.pos))
+    .filter(
+      (u) =>
+        !pulsed.has(u.id) &&
+        (dirBetween(bell, u.pos) || wide(u)) &&
+        !(flags.spare && u.kind === 'member'),
+    )
     .sort((a, b) => a.pos.y - b.pos.y || a.pos.x - b.pos.x);
   if (beside.length === 0) return;
   const ev: PulseEvent = {
@@ -208,8 +265,23 @@ function pulse(
   };
   emit(ctx, ev);
   for (const u of beside) pulsed.add(u.id);
-  for (const u of beside) hurt(ctx, u, bell, origin);
+  for (const u of beside)
+    hurt(
+      ctx,
+      u,
+      bell,
+      origin,
+      FOUNDRY_TUNING.pulseDamage,
+      FOUNDRY_TUNING.pulsePush + (flags.knell ? 1 : 0), // `toll-cap-knell`
+    );
 }
+
+/** The direction from `bell` to a tile exactly two tiles out along a row or column, else null. */
+function straightTwo(bell: Coord, to: Coord): Dir | null {
+  const mid = DIRS.find((d) => sameXY(step(step(bell, d), d), to));
+  return mid ?? null;
+}
+const sameXY = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 
 function hurt(
   ctx: Ctx,
@@ -220,7 +292,7 @@ function hurt(
   pushBy: number = FOUNDRY_TUNING.pulsePush,
 ): void {
   if (u.hp <= 0 || u.out) return;
-  const dir = dirBetween(bell, u.pos);
+  const dir = dirBetween(bell, u.pos) ?? straightTwo(bell, u.pos);
   if (!dir) return; // a pulse earlier in this ring moved it away
   dealDamage(ctx, u, damage, 'Bell', [], { heading: dir, at: { ...bell } });
   if (u.hp > 0) push(ctx, u, dir, pushBy, origin);
@@ -275,7 +347,13 @@ function ringGreatBells(ctx: Ctx, ringing: readonly ToneMember[]): void {
 }
 
 /** Rings `tone`: every bell of it that is not muffled, then the tone hums until round end (P3). */
-function ring(ctx: Ctx, tone: Tone, origin: Origin | null, cause: RingCause = 'strike'): void {
+function ring(
+  ctx: Ctx,
+  tone: Tone,
+  origin: Origin | null,
+  cause: RingCause = 'strike',
+  flags: StrikeFlags = {},
+): void {
   const ringing = ringMembers(ctx.s, tone);
   const bells = ringing.map((m) => ({ ...m.at }));
   if (bells.length === 0) return;
@@ -294,7 +372,7 @@ function ring(ctx: Ctx, tone: Tone, origin: Origin | null, cause: RingCause = 's
     });
     ringGreatBells(ctx, ringing);
     const pulsed = new Set<string>();
-    for (const bell of bells) pulse(ctx, tone, bell, pulsed, origin);
+    for (const bell of bells) pulse(ctx, tone, bell, pulsed, origin, flags);
   });
 }
 
@@ -345,7 +423,17 @@ function resolveStrike(ctx: Ctx, entry: QueuedStrike): void {
     return;
   }
   if (readBells(ctx).humming.includes(tone)) return;
-  ring(ctx, tone, toOrigin(entry.origin));
+  ring(ctx, tone, toOrigin(entry.origin), 'strike', mergedFlags(ctx, entry, tone));
+}
+
+/** The ring's flags: this strike's and those of every strike of the same tone still queued behind it. */
+function mergedFlags(ctx: Ctx, entry: QueuedStrike, tone: Tone): StrikeFlags {
+  let flags = unionFlags(entry, undefined);
+  for (const q of readBells(ctx).queue ?? []) {
+    const piece = q.tone ? null : tileAt(ctx.s, q.at).piece;
+    if (piece && toneOfPiece(piece.id, piece.data) === tone) flags = unionFlags(flags, q);
+  }
+  return flags;
 }
 
 const capped = (ctx: Ctx): boolean =>
@@ -379,8 +467,26 @@ export function bellsStep(ctx: Ctx, own: BellsState): BellsState {
     const ev: HumEvent = { type: 'foundry:hum', data: { tone, on: false } };
     emit(ctx, ev);
   }
-  if (settled.humming.length === 0 && Object.keys(settled.struck).length === 0) return settled;
-  return initBells();
+  // `rivet-cap-lock` ends with the round; `unison-bell-lingers` carries this phase's bell casts on.
+  const carried = hasFootnote(ctx, 'unison-bell-lingers') ? bellCasts(ctx) : [];
+  const { locked: _locked, carried: _carried, ...rest } = settled;
+  if (rest.humming.length === 0 && Object.keys(rest.struck).length === 0 && carried.length === 0)
+    return rest;
+  return { ...initBells(), ...(carried.length > 0 ? { carried } : {}) };
+}
+
+/** This phase's landed casts, cut to the targets that are bell tiles (`unison-bell-lingers`). */
+function bellCasts(ctx: Ctx): { caster: string; targets: string[] }[] {
+  const { width, tiles } = ctx.s;
+  const onBell = (k: string): boolean => {
+    if (!k.startsWith('t:')) return false;
+    const [x, y] = k.slice(2).split(',').map(Number);
+    const piece = x === undefined || y === undefined ? null : tiles[y * width + x]?.piece;
+    return !!piece && toneOfPiece(piece.id, piece.data) !== null;
+  };
+  return ctx.s.landed
+    .map((e) => ({ caster: e.caster, targets: e.targets.filter(onBell) }))
+    .filter((e) => e.targets.length > 0);
 }
 
 /**

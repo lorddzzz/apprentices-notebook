@@ -1,6 +1,8 @@
 import type { LineId, SealRuneId, TriggerRuneId } from '$data';
 import type { FootnoteIds, FootnoteVariantId } from '../ctx';
 import { crackedTiles } from '../districts/api';
+import { toneOfPiece } from '../districts/foundry/pieces';
+import { BELLS_RULE_ID, parseBells } from '../districts/foundry/types';
 import { hasFootnote } from '../footnotes';
 import {
   type Coord,
@@ -404,11 +406,67 @@ function brinkLine(
 /** How a Unison passed: on the target, beside it (AH P16; `besideUnit` via a unit entry), or not. */
 export type UnisonPass = 'on' | 'beside' | 'besideUnit' | null;
 
+/** The tone of the bell the target stood on when the cast began, or null. */
+function bellToneAt(s: BattleState, snap: Snapshot, t: Target): string | null {
+  const piece = seenAt(s, snap, t)?.tile.piece;
+  return piece ? toneOfPiece(piece.id, piece.data) : null;
+}
+
+type Landed = { caster: string; targets: string[] };
+
+/**
+ * The casts of the caster's own side that could sign this target: this phase's (`snap.landed`)
+ * and, with `unison-bell-lingers`, last phase's casts that landed on a bell (`BellsState.carried`).
+ */
+function othersOf(
+  s: BattleState,
+  snap: Snapshot,
+  caster: string,
+  fn: FootnoteCheck,
+): readonly Landed[] {
+  const me = snap.units.find((u) => u.id === caster);
+  const carried = fn('unison-bell-lingers')
+    ? (parseBells(s.rules?.[BELLS_RULE_ID]).carried ?? [])
+    : [];
+  return [...snap.landed, ...carried].filter((e) => {
+    if (e.caster === caster) return false;
+    const by = snap.units.find((u) => u.id === e.caster);
+    return by !== undefined && (me ? sameSide(me, by) : by.kind === 'member');
+  });
+}
+
+/** Whether a landed entry signs `t` exactly: its tile or unit, or (`unison-bell-tone`) a bell of its tone. */
+function signs(s: BattleState, snap: Snapshot, e: Landed, t: Target, fn: FootnoteCheck): boolean {
+  const k = targetKey(t);
+  if (e.targets.includes(k)) return true;
+  const tone = fn('unison-bell-tone') ? bellToneAt(s, snap, t) : null;
+  if (!tone) return false;
+  return e.targets.some((key) => {
+    const at = landedAt(snap, key);
+    const piece = at ? snap.tiles[at.y * s.width + at.x]?.piece : null;
+    return !!piece && toneOfPiece(piece.id, piece.data) === tone;
+  });
+}
+
+/** The distinct other apprentices whose casts signed this target (`unison-cap-three`, `-share`). */
+export function unisonSigners(
+  s: BattleState,
+  snap: Snapshot,
+  caster: string,
+  t: Target,
+  fn: FootnoteCheck = NO_FOOTNOTES,
+): string[] {
+  const ids = othersOf(s, snap, caster, fn)
+    .filter((e) => signs(s, snap, e, t, fn))
+    .map((e) => e.caster);
+  return [...new Set(ids)];
+}
+
 /**
  * Unison (P26): another unit of the caster's side (`sameSide`: another apprentice for a member)
  * had this target among its step targets earlier this player phase. With `reach` 1 (the tuner's
- * habit, AH P16) a landing on a tile orthogonally beside the target passes too; a unit entry
- * counts where that unit stood in this cast's snapshot.
+ * habit, AH P16; `unison-bell-beside` for a bell target) a landing on a tile orthogonally beside
+ * the target passes too; a unit entry counts where that unit stood in this cast's snapshot.
  */
 export function unisonWith(
   s: BattleState,
@@ -416,16 +474,12 @@ export function unisonWith(
   caster: string,
   t: Target,
   reach = 0,
+  fn: FootnoteCheck = NO_FOOTNOTES,
 ): UnisonPass {
-  const me = snap.units.find((u) => u.id === caster);
-  const others = snap.landed.filter((e) => {
-    if (e.caster === caster) return false;
-    const by = snap.units.find((u) => u.id === e.caster);
-    return by !== undefined && (me ? sameSide(me, by) : by.kind === 'member');
-  });
-  const k = targetKey(t);
-  if (others.some((e) => e.targets.includes(k))) return 'on';
-  if (reach < 1) return null;
+  const others = othersOf(s, snap, caster, fn);
+  if (others.some((e) => signs(s, snap, e, t, fn))) return 'on';
+  const wide = Math.max(reach, fn('unison-bell-beside') && bellToneAt(s, snap, t) ? 1 : 0);
+  if (wide < 1) return null;
   const here = seenAt(s, snap, t)?.at;
   if (!here) return null;
   let found: UnisonPass = null;
@@ -509,11 +563,19 @@ export function trial(
       };
     }
     case 'unison': {
-      const how = unisonWith(s, flow.snapshot, flow.caster, t, rule.unisonReach ?? 0);
+      const habitReach = rule.unisonReach ?? 0;
+      const how = unisonWith(s, flow.snapshot, flow.caster, t, habitReach, fn);
+      const habit = habitReach >= 1 && (how === 'beside' || how === 'besideUnit');
+      // A habit's line wins over `unison:bell`, which a bell target meets pass or fail.
       return {
         pass: how !== null,
-        byHabit: how === 'beside' || how === 'besideUnit',
-        line: how === 'besideUnit' ? 'nearUnison:unit' : null,
+        byHabit: habit,
+        line:
+          habit && how === 'besideUnit'
+            ? 'nearUnison:unit'
+            : bellToneAt(s, flow.snapshot, t)
+              ? 'unison:bell'
+              : null,
       };
     }
   }

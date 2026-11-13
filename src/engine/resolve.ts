@@ -1,4 +1,5 @@
 import { isInvention, RUNES, type RuneRef } from '$data';
+import type { Tone } from '$data/districts/foundry';
 import { cloneData } from './clone';
 import {
   type Ctx,
@@ -10,7 +11,10 @@ import {
   withLine,
   withOrigin,
 } from './ctx';
-import { dealDamage } from './damage';
+import { dealDamage, gainShield } from './damage';
+import { clapperTone, ropeTone, toneGroups, toneOfPiece } from './districts/foundry/pieces';
+import { tagQueued, withStrikeFlags } from './districts/foundry/ring';
+import { ROPE_PIECE } from './districts/foundry/types';
 import type { NodeSpan } from './events';
 import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, key, label, neighbors4, sameCoord, step } from './grid';
@@ -20,7 +24,7 @@ import { sealJar } from './jars';
 import { giftedAuras } from './leans';
 import { landOnTile, layThinCloud } from './mix';
 import { sameStateNet } from './networks';
-import { hitPiece } from './pieces';
+import { hitPiece, strikePiece } from './pieces';
 import {
   blockerName,
   findUnit,
@@ -34,7 +38,16 @@ import {
 import { settleRules } from './rules';
 import { handlerFor } from './runes';
 import { brinkOutcome, recordFall } from './runes/brink';
-import { forkSide, isForked, jarFor, reheaded, seep, toll, trial } from './runes/flow';
+import {
+  forkSide,
+  isForked,
+  jarFor,
+  reheaded,
+  seep,
+  toll,
+  trial,
+  unisonSigners,
+} from './runes/flow';
 import { aimLine, aimTargets, boltTravel, targetOn, tilesBetween, whereIs } from './targets';
 import type {
   Aim,
@@ -377,10 +390,15 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           st.rune === 'seep'
             ? seep(s, live, flow.headings, ctx.footnotes, findUnit(s, flow.caster) ?? null)
             : null;
-        const gap = ruleOf(flow.habit).networkGap ?? 0; // the owner's mender (P19)
+        // The owner's mender (P19) and `toll-cap-gap` join across one empty tile; never two.
+        const gap = Math.max(
+          ruleOf(flow.habit).networkGap ?? 0,
+          hasFootnote(ctx, 'toll-cap-gap') ? 1 : 0,
+        );
         const tollNet = seams.sameStateNet ?? sameStateNet;
-        const aimed =
-          seeped ?? toll(s, live, flow.headings, gap ? (b, at) => tollNet(b, at, gap) : tollNet);
+        const net = gap ? (b: BattleState, at: Coord) => tollNet(b, at, gap) : tollNet;
+        const aimed = seeped ?? toll(s, live, flow.headings, net);
+        if (!seeped && st.rune === 'toll') tollBells(ctx, live, aimed, flow, stepOrigin, net);
         if (seeped && seeped.off > 0) {
           withLine(ctx, 'seep:edge', () => emit(ctx, { type: 'miss', source: 'Seep' }));
         }
@@ -418,10 +436,32 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           }
         }
         // `tally-cap-surplus`: a target Tally counted four things on takes the rest twice.
+        // `unison-cap-three`: so does one that two or more other apprentices signed.
+        const signers = (t: Target): string[] =>
+          unisonSigners(ctx.s, flow.snapshot, flow.caster, t, fn);
         const surplus =
           st.rune === 'tally' && fn('tally-cap-surplus')
             ? through.filter((t) => (trials.find((x) => x.t === t)?.r.count ?? 0) >= 4)
-            : [];
+            : st.rune === 'unison' && fn('unison-cap-three')
+              ? through.filter((t) => signers(t).length >= 2)
+              : [];
+        if (st.rune === 'unison') {
+          for (const t of through) {
+            // `unison-bell-hush`: the ring a passed Unison caused spares your party (the Bolt's strike, tagged).
+            const at = whereIs(ctx.s, t);
+            if (at && fn('unison-bell-hush')) tagQueued(ctx, at, { spare: true });
+            // `unison-cap-share`: each apprentice whose cast signed it gains 1 shield.
+            if (fn('unison-cap-share')) {
+              const until = ctx.s.round + 1;
+              withLine(ctx, 'unison:bell', () => {
+                for (const id of signers(t)) {
+                  const who = findUnit(ctx.s, id);
+                  if (who) gainShield(ctx, who, 1, until);
+                }
+              });
+            }
+          }
+        }
         if (brink) {
           // Brink's rest, after it the `brink-drop-stay` and `-nudge` follow-ups (LIFO: pushed first).
           if (brink.after) pending.push({ after: brink.after(through) });
@@ -455,6 +495,87 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
         return;
       }
     }
+  }
+}
+
+/**
+ * A Toll aimed at a bell (`toll:bell`, foundry.md §2): a bell holds no state, so the net adds
+ * nothing and the step says so with a `miss`; the footnotes then add targets (`clappers`,
+ * `ringers`, `beside`), strike another bell (`next`, the Carillonneur's note) or tag the Toll's
+ * strike (`toll-cap-knell`). Repeats are dropped; the added targets keep the bell's heading.
+ */
+function tollBells(
+  ctx: Ctx,
+  live: readonly Target[],
+  aimed: { targets: Target[]; headings: Map<string, Dir | null> },
+  flow: Flow,
+  origin: Origin,
+  net: (s: BattleState, at: Coord) => Coord[],
+): void {
+  const s = ctx.s;
+  const bells: { at: Coord; tone: Tone; heading: Dir | null }[] = [];
+  for (const t of live) {
+    const at = whereIs(s, t);
+    const piece = at && inBoard(s, at) ? tileAt(s, at).piece : null;
+    const tone = piece ? toneOfPiece(piece.id, piece.data) : null;
+    if (at && tone) bells.push({ at, tone, heading: flow.headings.get(targetKey(t)) ?? null });
+  }
+  if (bells.length === 0) return;
+  if (bells.some((b) => net(s, b.at).length === 0)) {
+    withLine(ctx, 'toll:bell', () => emit(ctx, { type: 'miss', source: 'Toll' }));
+  }
+  const fn = (id: FootnoteVariantId): boolean => hasFootnote(ctx, id);
+  const seen = new Set(aimed.targets.map(targetKey));
+  const reach = (id: UnitId | undefined, heading: Dir | null): void => {
+    if (!id) return;
+    const t: Target = { kind: 'unit', unit: id };
+    if (seen.has(targetKey(t))) return;
+    seen.add(targetKey(t));
+    aimed.targets.push(t);
+    aimed.headings.set(targetKey(t), heading);
+  };
+  const beside = (at: Coord): UnitId | undefined =>
+    neighbors4(at).flatMap((c) => (inBoard(s, c) ? (unitAt(s, c)?.id ?? []) : []))[0];
+  const knell = fn('toll-cap-knell');
+  for (const b of bells) {
+    const group = toneGroups(s, clapperTone)[b.tone];
+    const others = group.filter((m) => m.kind !== 'unit' && !sameCoord(m.at, b.at));
+    if (fn('toll-bell-clappers'))
+      for (const m of group) if (m.kind === 'unit') reach(m.unit, b.heading);
+    if (fn('toll-bell-ringers')) {
+      s.tiles.forEach((tile, i) => {
+        if (tile.piece?.id !== ROPE_PIECE || ropeTone(tile.piece.data) !== b.tone) return;
+        reach(unitAt(s, { x: i % s.width, y: Math.floor(i / s.width) })?.id, b.heading);
+      });
+    }
+    const around = (at: Coord): void => {
+      for (const c of neighbors4(at)) if (inBoard(s, c)) reach(unitAt(s, c)?.id, b.heading);
+    };
+    if (fn('toll-bell-beside')) around(b.at);
+    // `carillonneur:toll`: every bell of the tone is struck at once, and the rest lands beside each.
+    const struck: Coord[] = [];
+    if (fn('carillonneur:toll')) {
+      for (const m of others) struck.push(m.at);
+      for (const m of group) if (m.kind !== 'unit') around(m.at);
+    } else if (fn('toll-bell-next')) {
+      const next = [...others].sort(
+        (x, y) =>
+          Math.abs(x.at.x - b.at.x) +
+            Math.abs(x.at.y - b.at.y) -
+            (Math.abs(y.at.x - b.at.x) + Math.abs(y.at.y - b.at.y)) ||
+          x.at.y - y.at.y ||
+          x.at.x - y.at.x,
+      )[0];
+      if (next) struck.push(next.at);
+    }
+    withOrigin(ctx, origin, () =>
+      withLine(ctx, 'toll:bell', () =>
+        withStrikeFlags(knell ? { knell: true } : {}, () => {
+          for (const c of struck) strikePiece(ctx, c, 'damage');
+        }),
+      ),
+    );
+    if (knell) tagQueued(ctx, b.at, { knell: true });
   }
 }
 

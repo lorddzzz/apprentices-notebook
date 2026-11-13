@@ -11,6 +11,8 @@ import {
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
+import { toneOfPiece } from './districts/foundry/pieces';
+import { retune, withStrikeFlags } from './districts/foundry/ring';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule, ruleOf } from './habits';
@@ -140,23 +142,83 @@ function hit(
 /** Whether a unit's habit wards steam (AH P14): the steam bursts skip it. */
 const wardsSteam = (u: Unit): boolean => habitRule(u).wards?.includes('steam') === true;
 
+/** The bells standing on Coil's extra tile: within `reachOf` of the burst's tiles, on none of them (`coil:bell`). */
+function bellsBeyond(ctx: Ctx, flow: Flow | null, tiles: readonly Coord[]): Coord[] {
+  const reach = flow?.auras.includes('coil') ? reachOf(flow) : 0;
+  if (reach <= 0) return [];
+  const out: Coord[] = [];
+  ctx.s.tiles.forEach((tile, i) => {
+    const c = { x: i % ctx.s.width, y: Math.floor(i / ctx.s.width) };
+    if (!tile.piece || toneOfPiece(tile.piece.id, tile.piece.data) === null) return;
+    if (tiles.some((t) => manhattan(t, c) === 0)) return;
+    if (tiles.some((t) => manhattan(t, c) <= reach)) out.push(c);
+  });
+  return out;
+}
+
+/**
+ * `coil-bell-strike`, `-retune`, `-muffle`: what a burst's edge does to a bell on Coil's extra
+ * tile. Retune and strike are one slot (never both); a struck and clouded bell is a strike with no
+ * ring (the ring is read at the end of the action, under the cloud).
+ */
+function coilBells(ctx: Ctx, bells: readonly Coord[], wide: boolean): void {
+  const strike = hasFootnote(ctx, 'coil-bell-strike');
+  const tune = hasFootnote(ctx, 'coil-bell-retune');
+  const muffle = hasFootnote(ctx, 'coil-bell-muffle');
+  if (!strike && !tune && !muffle) return;
+  withLine(ctx, 'coil:bell', () => {
+    for (const c of bells) {
+      if (tune) retune(ctx, c, 1);
+      else if (strike) withStrikeFlags(wide ? { wide: true } : {}, () => strikePiece(ctx, c, 'burst'));
+      const tile = tileAt(ctx.s, c);
+      if (muffle && tile.state === null) {
+        emit(ctx, { type: 'landed', kind: 'steam', at: { ...c }, makes: 'cloud' });
+        tile.state = { id: 'cloud', rounds: 1, origin: null };
+      }
+    }
+  });
+}
+
 function announce(
   ctx: Ctx,
   burst: BurstId,
   at: Coord,
   tiles: Coord[],
   units: readonly Unit[],
+  flow: Flow | null = null,
 ): void {
   nameOnce(ctx, 'burst', burst);
-  emit(ctx, {
-    type: 'burst',
-    burst,
-    at: { ...at },
-    tiles: tiles.map((c) => ({ ...c })),
-    units: units.map((u) => ref(u)),
-  });
-  if (burst !== 'fire' && burst !== 'page:stain')
+  const beyond = bellsBeyond(ctx, flow, tiles);
+  const say = (): void =>
+    emit(ctx, {
+      type: 'burst',
+      burst,
+      at: { ...at },
+      tiles: tiles.map((c) => ({ ...c })),
+      units: units.map((u) => ref(u)),
+    });
+  if (beyond.length > 0) withLine(ctx, 'coil:bell', say);
+  else say();
+  if (burst === 'fire' || burst === 'page:stain') return;
+  // `coil-bell-pulse`: the ring a Coil-widened burst causes pulses one tile further.
+  const wide = !!flow?.auras.includes('coil') && hasFootnote(ctx, 'coil-bell-pulse');
+  withStrikeFlags(wide ? { wide: true } : {}, () => {
     for (const c of tiles) strikePiece(ctx, c, 'burst');
+  });
+  coilBells(ctx, beyond, wide);
+}
+
+/** `coil-cap-surge`: a Coil-widened hit on three or more units reaches one tile further, once. */
+function surged(
+  ctx: Ctx,
+  flow: Flow | null,
+  tiles: readonly Coord[],
+  reach: number,
+  units: Unit[],
+): Unit[] {
+  if (units.length < 3 || !flow?.auras.includes('coil') || !hasFootnote(ctx, 'coil-cap-surge'))
+    return units;
+  return unitsNear(ctx, tiles, reach + 1);
 }
 
 const fireLayer = (origin: Origin | null, rounds: number = TUNING.fireRounds): Layer => ({
@@ -274,8 +336,10 @@ function ignite(
   reserve(ctx, 2); // `named` (first time) and `burst`
   for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null, rounds);
   const inked = stains.length ? unitsNear(ctx, stains, reachOf(flow)) : [];
-  const units = unitsNear(ctx, tiles, reachOf(flow)).filter((u) => !inked.includes(u));
-  announce(ctx, id, at, tiles, units);
+  const units = surged(ctx, flow, tiles, reachOf(flow), unitsNear(ctx, tiles, reachOf(flow))).filter(
+    (u) => !inked.includes(u),
+  );
+  announce(ctx, id, at, tiles, units, flow);
   if (inked.length) {
     withLine(ctx, 'ink:stain', () => {
       announce(ctx, 'page:stain', at, stains, inked);
@@ -327,9 +391,9 @@ function storm(
   const harm = opts.harm === undefined ? 'steam' : (opts.harm ?? undefined);
   const net = cloudNet(ctx.s, at, damp, ruleOf(flow?.habit).networkGap ?? 0);
   const tiles = net.length ? net : [at];
-  const units = unitsNear(ctx, tiles, reachOf(flow));
+  const units = surged(ctx, flow, tiles, reachOf(flow), unitsNear(ctx, tiles, reachOf(flow)));
   const marked = new Set(units.filter((u) => u.mark).map((u) => u.id));
-  announce(ctx, id, at, tiles, units);
+  announce(ctx, id, at, tiles, units, flow);
   for (const u of units) {
     const n = doubleMarked && marked.has(u.id) ? CHEMISTRY.markedStormHits : 1;
     const once = () => hit(ctx, [u], damage, source, at, harm);
@@ -352,9 +416,10 @@ function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): voi
   const focus = fromPlate && hasFootnote(ctx, 'spark-plate-focus');
   const spare = fromPlate && hasFootnote(ctx, 'spark-plate-spare');
   const reach = reachOf(flow);
-  let units = unitsNear(ctx, tiles, focus ? reach : 1 + reach);
+  const near = focus ? reach : 1 + reach;
+  let units = surged(ctx, flow, tiles, near, unitsNear(ctx, tiles, near));
   if (spare) units = units.filter((u) => u.kind !== 'member');
-  announce(ctx, 'conduct', at, tiles, units);
+  announce(ctx, 'conduct', at, tiles, units, flow);
   // `conduct-network-hum`: brass a conduct left humming this round burns 1 more.
   const humming = tiles.some((c) => ctx.s.hum?.some((h) => h.x === c.x && h.y === c.y)) ? 1 : 0;
   const damage = (focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage) + humming;

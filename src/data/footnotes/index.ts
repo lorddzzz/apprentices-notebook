@@ -17,6 +17,7 @@ import { AURAS } from './auras';
 import { BATHHOUSES } from './bathhouses';
 import { BRIDGES } from './bridges';
 import { CANALS } from './canals';
+import { FOUNDRY } from './foundry';
 import { INK_QUARTER } from './inkQuarter';
 import { SEAM_METHODS } from './seam-methods';
 import { SEAM_RUNES } from './seam-runes';
@@ -39,6 +40,7 @@ export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   bathhouses: BATHHOUSES,
   'ink-quarter': INK_QUARTER,
   bridges: BRIDGES,
+  foundry: FOUNDRY,
   rivals: [LAMPLIGHTER_WICK, CARILLONNEUR_NOTE],
 };
 
