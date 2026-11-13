@@ -1,10 +1,12 @@
 import type { PieceDef } from '../types';
+import { outlineStruck, pencilStruck } from './paper';
 import {
   BLANK_DEF,
   isFate,
   OUTLINE_DEF,
   type OutlineData,
   PENCIL_DEF,
+  PENCIL_RULE_ID,
   type PencilData,
 } from './types';
 
@@ -54,6 +56,7 @@ export function writeOutline(d: OutlineData): string {
 /** The pencil piece as registered. */
 export const PENCIL: PieceDef<PencilData> = {
   ...PENCIL_DEF,
+  triggers: { onStruck: pencilStruck },
   data: {
     init: { fate: null, due: null },
     parse: parsePencil,
@@ -64,6 +67,8 @@ export const PENCIL: PieceDef<PencilData> = {
 /** The outline piece as registered (CG-4 gives it its inking and the waiting rule). */
 export const OUTLINE: PieceDef<OutlineData> = {
   ...OUTLINE_DEF,
+  triggers: { onStruck: outlineStruck },
+  rules: [PENCIL_RULE_ID],
   data: {
     init: { foe: '', due: null },
     parse: parseOutline,

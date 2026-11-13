@@ -139,26 +139,9 @@ describe('CG-W0 contracts', () => {
   });
 });
 
-// ── Pack A: paper and the guild's hand ───────────────────
-describe('CG-1 paper pieces', () => {
-  it.todo('CG-1: draw onto blank fails with draw:blank');
-});
-
 // ── Pack B: runes on paper and outlines ──────────────────
-describe('CG-3 board runes on paper', () => {
-  it.todo('CG-3: erase on pencil under a foe erases it');
-  it.todo('CG-3: erase on an outline un-draws the foe');
-  it.todo('CG-3: inked paper cannot be erased');
-  it.todo('CG-3: quicksilver un-draws the mirrored pencil');
-  it.todo('CG-3: graphite after an un-draw leaves it blank');
-  it.todo('CG-3: redraft still names on pencil');
-});
-
-describe('CG-4 drawn-in reinforcements', () => {
-  it.todo('CG-4: an outline inks at its due round');
-  it.todo('CG-4: a standing unit delays the inking a round');
-  it.todo('CG-4: erase un-draws an outline foe');
-});
+// CG-3 passes in runes.test.ts (and the CG-1 draw:blank test moved there with it).
+// CG-4 passes in outline.test.ts.
 
 // ── Pack C: the guild's hands ────────────────────────────
 // CG-5 and CG-6 (the surveyor, the eraser, the tracer) pass in hands.test.ts under their plan titles.

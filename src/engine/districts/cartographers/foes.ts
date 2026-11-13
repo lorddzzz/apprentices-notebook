@@ -7,7 +7,6 @@ import { byReadingOrder, type Coord, key, label, neighbors4 } from '../../grid';
 import { guardCancels } from '../../harm';
 import { spendMark } from '../../marks';
 import { enemyWalk } from '../../movement';
-import { removeFromRoom } from '../../outOfRoom';
 import {
   coordOf,
   distanceField,
@@ -22,6 +21,7 @@ import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit, MemberUnit, Unit } from '../../types';
 import type { BoardRule, FoeBehaviour, PreviewShape, RuleId } from '../types';
 import { guildHandPreview } from './guildHand';
+import { undrawPencil } from './paper';
 import {
   BLANK_PIECE,
   ERASER_BEHAVIOUR,
@@ -29,7 +29,6 @@ import {
   PENCIL_PIECE,
   SURVEYOR_BEHAVIOUR,
   TRACER_BEHAVIOUR,
-  type UndrawnEvent,
 } from './types';
 
 /**
@@ -43,7 +42,6 @@ import {
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const where = (c: Coord | undefined): string => (c ? label(c) : '?');
-const sameTile = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 
 /** A telegraph of a behaviour foe as the board stands, if it has one. */
 const telegraphOf = (e: EnemyUnit): Telegraph | null =>
@@ -214,28 +212,6 @@ export const SURVEYOR_FOE: FoeBehaviour = {
 };
 
 // ── The eraser (P8) ─────────────────────────────────────
-
-/** Un-draws a pencil tile at once: it turns blank, what it held is gone and whoever stood there is erased. */
-export function undrawPencil(ctx: Ctx, at: Coord, by: UndrawnEvent['data']['by']): void {
-  const tile = tileAt(ctx.s, at);
-  const units = ctx.s.units.filter((u) => isAlive(u) && sameTile(u.pos, at));
-  tile.piece = { id: BLANK_PIECE, data: {} };
-  const ev: UndrawnEvent = {
-    type: 'cartographers:undrawn',
-    at: { ...at },
-    data: { by, was: 'pencil', units: units.map((u) => u.id) },
-  };
-  emit(ctx, ev);
-  if (tile.state) {
-    tile.state = null;
-    emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
-  }
-  if (tile.jar) {
-    tile.jar = null;
-    emit(ctx, { type: 'jarCrumbles', at: { ...at } });
-  }
-  for (const u of units) removeFromRoom(ctx, u, 'erased');
-}
 
 /** Rubs what a tile holds as the Erase rune's parts would go, with no record: its state, its jar, the mark of the unit there. */
 function rubParts(ctx: Ctx, at: Coord): boolean {
