@@ -125,7 +125,8 @@ function rivalActAction(ctx: Ctx, e: EnemyUnit, order: number, move: boolean): b
   if (!pinned) {
     const first = planRival(ctx.s, e.id, move, ctx.footnotes);
     if (first?.path.length) enemyWalk(ctx, e, first.path);
-    const plan = first?.path.length && isAlive(e) ? planRival(ctx.s, e.id, false, ctx.footnotes) : first;
+    const plan =
+      first?.path.length && isAlive(e) ? planRival(ctx.s, e.id, false, ctx.footnotes) : first;
     if (!plan?.intent || !isAlive(e)) {
       e.intent = null;
       emit(ctx, { type: 'idle', unit: ref(e) });
