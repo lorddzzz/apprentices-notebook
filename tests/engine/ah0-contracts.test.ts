@@ -106,6 +106,7 @@ describe('AH-W0 contracts: fine print', () => {
         'restoreErase',
         'fuseOnStep',
         'steamproof',
+        'mender', // EN-9b: mender:unit, :diagonal and :dusk fire
       ].includes(l.subject);
       expect(l.pending, l.id).toBe(fired ? undefined : true);
       expect(l.text.length, l.id).toBeGreaterThan(10);

@@ -17,15 +17,7 @@ import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule, ruleOf } from './habits';
 import { openJar, ownedByMember } from './jars';
 import { applyMark, liftMark, spendMark } from './marks';
-import {
-  brassNet,
-  brassPass,
-  cloudNet,
-  cloudPass,
-  oilNet,
-  oilPass,
-  stampGap,
-} from './networks';
+import { brassNet, brassPass, cloudNet, cloudPass, oilNet, oilPass, stampGap } from './networks';
 import { strikePiece } from './pieces';
 import { push } from './push';
 import { blocksShots, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
