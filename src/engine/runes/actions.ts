@@ -381,7 +381,7 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord): Hop | null {
   const dst = tileAt(s, to);
   const moved: Hop = { state: null, jar: false };
   if ((src.state || src.jar) && pieceVoid(dst)) {
-    miss(ctx, 'draw', 'draw:blank');
+    miss(ctx, 'draw', 'draw:drop');
     return null;
   }
   if (src.state && dst.state === null) {

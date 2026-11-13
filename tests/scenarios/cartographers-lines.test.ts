@@ -16,26 +16,26 @@ const silver: InventionDef = {
   solvent: 'quicksilver',
 };
 
-test('erase:pencil fires when Erase un-draws pencil under a foe', () => {
+test('erase:unit fires when Erase un-draws pencil under a foe', () => {
   const s = withLattices('D r{pencil} . . r', { draughtsman: 'Touch> Erase' });
-  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('erase:pencil');
+  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('erase:unit');
 });
 
-test('erase:outline fires when Erase un-draws an outline', () => {
+test('erase:empty fires when Erase un-draws an outline', () => {
   const s = withLattices('D {outline:surveyor@2} . . r', { draughtsman: 'Touch> Erase' });
-  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('erase:outline');
+  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('erase:empty');
 });
 
-test('draw:blank fires when Draw would carry a state onto blank paper', () => {
+test('draw:drop fires when Draw would carry a state onto blank paper', () => {
   const s = withLattices('D o {blank} . r', { draughtsman: 'Touch> Draw' });
-  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('draw:blank');
+  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('draw:drop');
 });
 
-test('quicksilver:undraw fires when the mirrored Erase un-draws pencil', () => {
+test('quicksilver:drop fires when the mirrored Erase un-draws pencil', () => {
   const s = withLattices(
     'D {pencil} . . . {pencil} .\n. . . . . . r',
     { draughtsman: 'Touch> inv:erase-quicksilver' },
     { inventions: libraryOf([silver]) },
   );
-  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('quicksilver:undraw');
+  expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('quicksilver:drop');
 });

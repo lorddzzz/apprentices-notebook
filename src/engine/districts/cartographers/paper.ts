@@ -23,7 +23,7 @@ import {
  *   loses its action). Erase on an outline un-draws the foe: the tile stays pencil, unplanned.
  *   Inked paper has no piece, so an Erase there is the core Erase and nothing more.
  * - Quicksilver's mirrored Erase arrives under `quicksilver:edge` (it is the added target) and
- *   un-draws a mirrored pencil under `quicksilver:undraw`.
+ *   un-draws a mirrored pencil under `quicksilver:drop`.
  * - An outline whose `due` is this round inks in at round end: the foe is spawned on the tile and
  *   the piece goes. A unit standing on it delays it one round.
  */
@@ -63,7 +63,7 @@ export function undrawOutline(ctx: Ctx, at: Coord, by: UndrawnEvent['data']['by'
   emit(ctx, ev);
 }
 
-/** What an Erase aimed at paper does: `erase:pencil`, or `quicksilver:undraw` on Quicksilver's mirrored tile. */
+/** What an Erase aimed at paper does: `erase:unit`, or `quicksilver:drop` on Quicksilver's mirrored tile. */
 export function pencilStruck(
   ctx: Ctx,
   at: Coord,
@@ -73,13 +73,13 @@ export function pencilStruck(
 ): void {
   if (by !== 'erase') return;
   if (ctx.meta.line === QUICKSILVER_ADDED) {
-    withLine(ctx, 'quicksilver:undraw', () => undrawPencil(ctx, at, 'quicksilver'));
+    withLine(ctx, 'quicksilver:drop', () => undrawPencil(ctx, at, 'quicksilver'));
     return;
   }
-  withLine(ctx, 'erase:pencil', () => undrawPencil(ctx, at, 'erase'));
+  withLine(ctx, 'erase:unit', () => undrawPencil(ctx, at, 'erase'));
 }
 
-/** `erase:outline`; Quicksilver's mirrored Erase un-draws an outline as it would pencil. */
+/** `erase:empty`; Quicksilver's mirrored Erase un-draws an outline as it would pencil. */
 export function outlineStruck(
   ctx: Ctx,
   at: Coord,
@@ -89,10 +89,10 @@ export function outlineStruck(
 ): void {
   if (by !== 'erase') return;
   if (ctx.meta.line === QUICKSILVER_ADDED) {
-    withLine(ctx, 'quicksilver:undraw', () => undrawOutline(ctx, at, 'quicksilver'));
+    withLine(ctx, 'quicksilver:drop', () => undrawOutline(ctx, at, 'quicksilver'));
     return;
   }
-  withLine(ctx, 'erase:outline', () => undrawOutline(ctx, at, 'erase'));
+  withLine(ctx, 'erase:empty', () => undrawOutline(ctx, at, 'erase'));
 }
 
 // ── Outlines (P6) ───────────────────────────────────────

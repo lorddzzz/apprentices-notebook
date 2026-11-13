@@ -36,7 +36,7 @@ describe('CG-3 board runes on paper', () => {
     expect(pieceAt(r.state, 'B1')?.id).toBe(BLANK_PIECE);
     expect(unit(r.state, 'rat-1')).toMatchObject({ hp: 0, out: 'erased' });
     expect(ofType(r.events, 'cartographers:undrawn')[0]).toMatchObject({
-      line: 'erase:pencil',
+      line: 'erase:unit',
       data: { by: 'erase', was: 'pencil', units: ['rat-1'] },
     });
     // An elite takes the drop damage and loses its action instead.
@@ -49,7 +49,7 @@ describe('CG-3 board runes on paper', () => {
     const r = cast(eraseTouch('D {outline:eraser@2} . . r'), 'draughtsman', touch('B1'));
     expect(pieceAt(r.state, 'B1')).toEqual({ id: PENCIL_PIECE, data: { fate: null, due: null } });
     expect(ofType(r.events, 'cartographers:undrawn')[0]).toMatchObject({
-      line: 'erase:outline',
+      line: 'erase:empty',
       data: { by: 'erase', was: 'outline', units: [] },
     });
   });
@@ -71,9 +71,11 @@ describe('CG-3 board runes on paper', () => {
     expect(pieceAt(r.state, 'B1')?.id).toBe(BLANK_PIECE);
     expect(pieceAt(r.state, 'F1')?.id).toBe(BLANK_PIECE);
     const undrawn = ofType(r.events, 'cartographers:undrawn');
-    expect(undrawn.map((e) => [e.line, (e as { data: { by: string } }).data.by])).toEqual([
-      ['erase:pencil', 'erase'],
-      ['quicksilver:undraw', 'quicksilver'],
+    expect(
+      undrawn.map((e) => [e.line, (e as unknown as { data: { by: string } }).data.by]),
+    ).toEqual([
+      ['erase:unit', 'erase'],
+      ['quicksilver:drop', 'quicksilver'],
     ]);
   });
 
@@ -104,7 +106,7 @@ describe('CG-3 board runes on paper', () => {
     const s = withLattices('D o {blank} . r', { draughtsman: 'Touch> Draw' });
     const r = cast(s, 'draughtsman', touch('B1'));
     const miss = r.events.filter((e) => e.type === 'miss');
-    expect(miss.map((e) => e.line)).toContain('draw:blank');
+    expect(miss.map((e) => e.line)).toContain('draw:drop');
     expect(tileAt(r.state, at('B1')).state?.id).toBe('slick');
     expect(tileAt(r.state, at('C1')).state).toBeNull();
     expect(pieceAt(r.state, 'C1')?.id).toBe(BLANK_PIECE);
@@ -113,7 +115,7 @@ describe('CG-3 board runes on paper', () => {
 
 describe('CG-3 lines', () => {
   it('the four new rows exist for the cartographers', () => {
-    for (const id of ['erase:pencil', 'erase:outline', 'draw:blank', 'quicksilver:undraw']) {
+    for (const id of ['erase:unit', 'erase:empty', 'draw:drop', 'quicksilver:drop']) {
       expect(LINES.find((l) => l.id === id)?.district, id).toBe('cartographers');
     }
   });
