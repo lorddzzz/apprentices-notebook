@@ -15,6 +15,7 @@
   {#each view.ways as w (w.id)}
     <Button disabled={w.disabled} onclick={() => onway(w.id)} testid={w.testid}>
       <span class="big">{w.label}</span>
+      {#if w.note}<span class="sub" data-testid="way-note">{w.note}</span>{/if}
       <span class="sub">{w.sub}</span>
       {#if w.warn}<span class="warn" data-testid="no-way-home">{w.warn}</span>{/if}
     </Button>

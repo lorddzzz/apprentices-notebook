@@ -153,6 +153,22 @@ describe('a module names the ways on (P4)', () => {
     expect(view.home?.disabled).toBe(false);
   });
 
+  test('FU-1: a choice note reaches the crossroads card data and survives a save', () => {
+    const noted: DistrictShape = {
+      ...spans,
+      trip: fixture([
+        { id: 'sound', label: 'The sound span', kind: 'push', note: 'It holds.' },
+        { id: 'crumbling', label: 'The crumbling span', kind: 'push' },
+      ]),
+    };
+    const b = memoryBackend();
+    writeSave(b, { ...newSave(1), profile: p0, trip: walkTo(p0, 0) });
+    const t = new GameStore(b, () => 1).save.trip as Trip;
+    const view = crossroadsView(t, noted);
+    expect(view.ways[0]?.note).toBe('It holds.');
+    expect(view.ways[1]).not.toHaveProperty('note');
+  });
+
   test('a greyed way carries its reason on the button', () => {
     const shut: DistrictShape = {
       ...spans,

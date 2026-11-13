@@ -19,6 +19,8 @@ export interface WayView {
   id: string;
   kind: CrossroadsChoice['kind'];
   label: string;
+  /** A line under the label from the choice's note (the bridges' spans), when it has one. */
+  note?: string;
   /** The second line: where it leads, what is kept, or why it is shut. */
   sub: string;
   /** "After this room: no way home" on a way that walks past the point of no return. */
@@ -61,6 +63,7 @@ export function crossroadsView(
       disabled: c.disabled !== undefined,
       testid: c.kind === 'return' ? 'return' : c.id === 'push' ? 'push' : `way-${c.id}`,
       ...(c.warn ? { warn: c.warn } : {}),
+      ...(c.note ? { note: c.note } : {}),
     };
     if (c.kind === 'return') {
       if (c.disabled === undefined) return { ...base, sub: finds(t.loot.length) };
