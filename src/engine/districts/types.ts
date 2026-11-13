@@ -147,8 +147,17 @@ export interface PieceDef<D extends Json = Json> {
   /** Notation inside braces: `bell` reads `{bell}` and `{bell:a}` (the suffix is parsed by `parse`). */
   token: string;
   solid: Solidity;
-  /** Tile states that may land on the piece's tile; absent = all. `'clouds'`: only a Steam cloud (BF-2). */
-  holds?: 'clouds';
+  /**
+   * Tile states that may land on the piece's tile; absent = all. `'clouds'`: only a Steam cloud
+   * (BF-2). `'none'`: no state and no jar at all (a Cartographers' blank, CG-1).
+   */
+  holds?: 'clouds' | 'none';
+  /**
+   * No floor (a Cartographers' blank): a push, slide or pull that would carry a unit onto it
+   * stops the unit and takes it out of the room with this cause (`removeFromRoom`); walks and foe
+   * paths never enter it, as its solidity already stops them. A flier crushes against it.
+   */
+  void?: OutCause;
   /** Default data and the reader for a token suffix (`{bell:a}` → tone a). */
   data?: { init: D; parse?(suffix: string): D | null; write?(data: D): string };
   triggers: PieceTriggers;

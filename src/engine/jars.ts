@@ -5,6 +5,7 @@ import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4 } from './grid';
 import { habitOf } from './habits';
 import { jarLimit } from './leans';
+import { pieceHoldsNothing } from './pieces';
 import { coordOf, findUnit, inBoard, isAlive, livingUnits, tileAt, unitAt } from './queries';
 import { runContinuation, runStep, snapshotOf } from './resolve';
 import { noteJarFate } from './rivals/jarFate';
@@ -191,6 +192,11 @@ function crumble(ctx: Ctx, at: Coord, by: Jar): void {
 export function sealJar(ctx: Ctx, at: Coord, jar: Jar): void {
   const owner = findUnit(ctx.s, jar.owner);
   if (!owner) return;
+  // A piece that holds nothing (a blank) takes no jar: it crumbles where it would have sealed.
+  if (pieceHoldsNothing(tileAt(ctx.s, at))) {
+    emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+    return;
+  }
   const party = owner.kind === 'member';
   const note = (id: string): boolean => party && hasFootnote(ctx, id);
   const here = tileAt(ctx.s, at).jar;

@@ -29,6 +29,13 @@ import type { DistrictEvent, Json, PieceDef, PieceId, RuleId } from '../types';
  */
 
 // ── Pieces (P1, P6) ─────────────────────────────────────
+/**
+ * The pencil piece's own rule (see `guildHand.ts`): `scope: 'piece'`, so a pencil on any board
+ * brings it. It resolves fixed-fate pencil at its due round and does nothing where the district's
+ * rule is listed (that one resolves and plans). The one rule `isRuleActive` cannot make from a
+ * single `scope: 'district'` entry, which a trip lists on its own but a pencil cannot bring.
+ */
+export const PENCIL_RULE_ID: RuleId = 'cartographers:pencil';
 export const PENCIL_PIECE: PieceId = 'cartographers:pencil';
 export const BLANK_PIECE: PieceId = 'cartographers:blank';
 export const OUTLINE_PIECE: PieceId = 'cartographers:outline';
@@ -55,20 +62,29 @@ export type OutlineData = { foe: string; due: number | null };
 
 const stub = { solid: 'none' } as const;
 
-/** Standable pencil, holds states, jars and units (solid `none`); behaviour is CG-1. */
+/**
+ * Standable pencil, holds states, jars and units (solid `none`). Its notation and the piece-scoped
+ * rule that resolves a fixed fate on a Lab board come with `pieces.ts` (CG-1).
+ */
 export const PENCIL_DEF: PieceDef<PencilData> = {
   ...stub,
   id: PENCIL_PIECE,
   token: 'pencil',
   triggers: {},
   data: { init: { fate: null, due: null } },
+  rules: [PENCIL_RULE_ID],
   art: 'cartographers:pencil',
 };
-/** No tile at all (P2): blocks shots like the edge (`unitsAndShots`); the void semantics are CG-1. */
+/**
+ * No tile at all (P2): blocks walks, foe paths and shots like the edge (`unitsAndShots`) and is a
+ * void that erases (`pieceVoid`, `push.ts`). It holds nothing (`holds: 'none'`): no state, jar or mark lands on it.
+ */
 export const BLANK_DEF: PieceDef<BlankData> = {
   id: BLANK_PIECE,
   token: 'blank',
   solid: 'unitsAndShots',
+  holds: 'none',
+  void: 'erased',
   triggers: {},
   data: { init: {} },
   art: 'cartographers:blank',
@@ -82,7 +98,7 @@ export const OUTLINE_DEF: PieceDef<OutlineData> = {
   data: { init: { foe: '', due: null } },
   art: 'cartographers:outline',
 };
-/** Declared, not registered: CG-1 and CG-4 add them to the module with their triggers. */
+/** The declared bases; `pieces.ts` registers them with their notation and triggers (CG-1, CG-4). */
 export const CARTOGRAPHERS_PIECES: readonly PieceDef[] = [
   PENCIL_DEF,
   BLANK_DEF,
@@ -94,11 +110,12 @@ export const GUILD_HAND_RULE_ID: RuleId = 'cartographers:guildHand';
 /** The hand's stream: `deriveSeed(battle seed, HAND_SALT + round)`; outside EN's 7000-7999 (P3). */
 export const HAND_SALT = 8100;
 /**
- * `BattleState.rules['cartographers:guildHand']` (CG-2 fills it): the room's pencil config as the
- * room set it (`PencilConfig`, JSON) and the last round whose plan was drawn, so a saved battle
- * replays the same plan.
+ * `BattleState.rules['cartographers:guildHand']`: the room's pencil config as the room set it
+ * (`PencilConfig`, JSON), the due round of the last plan drawn (0 = none yet) and the stream's
+ * base `seed` (CG-2: the config's `seed`, else the battle's `rngState` when the rule is listed, as
+ * a battle has no stable seed of its own), so a saved battle replays the same plan.
  */
-export type GuildHandState = PencilConfig & { planned: number };
+export type GuildHandState = PencilConfig & { planned: number; seed?: number };
 export const initGuildHand = (): GuildHandState => ({ ...DEFAULT_PENCIL, planned: 0 });
 
 // ── The guild's hands: foe behaviour ids (P7–P9) ────────

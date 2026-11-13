@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
+import type { DistrictId } from '$data';
 import { DISTRICT_TOKENS, type TokenEntry, tokenCollisions } from '$data/districts/index';
 import { RIVAL_TOKENS } from '$data/rivals';
 import { arrive } from '$engine/arrival';
@@ -55,7 +56,7 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
     },
   };
   return {
-    id: 'cartographers',
+    id: 'fixture' as DistrictId,
     pieces: [
       {
         id: 'cartographers:probe',
@@ -108,7 +109,9 @@ const FIXTURE = vi.hoisted((): DistrictModule => {
 vi.mock('$engine/districts/kit', async (importOriginal) => {
   const m = await importOriginal<typeof import('$engine/districts/kit')>();
   const { buildKit } = await import('$engine/districts/registry');
-  return { ...m, KIT: buildKit([...m.DISTRICT_MODULES, FIXTURE]) };
+  // The fixture reuses the Cartographers' `pencil` id and token (a solid stand-in): leave the real module out.
+  const modules = m.DISTRICT_MODULES.filter((d) => d.id !== 'cartographers');
+  return { ...m, KIT: buildKit([...modules, FIXTURE]) };
 });
 
 const probeAt = (s: BattleState, lbl: string): Probe =>
