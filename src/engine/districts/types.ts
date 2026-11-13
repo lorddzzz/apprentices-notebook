@@ -468,6 +468,10 @@ export interface DistrictModule {
   fallenBrass?(s: BattleState): readonly Coord[];
   /** Forgets those remembered tiles: a Chalk conduct used them (`spendFallenBrass` in `api.ts`). */
   spendFallenBrass?(ctx: Ctx, tiles: readonly Coord[]): void;
+  /** `lay-cap-footing`: a set plate stands on this tile (`markFooting` in `api.ts`). */
+  markFooting?(ctx: Ctx, at: Coord): void;
+  /** `mortar-cap-set`: a Mortar'd unit ended its push on this tile (`setMortar` in `api.ts`). */
+  setMortar?(ctx: Ctx, at: Coord): void;
   /**
    * An Erase landed on this tile, after the core Erase and the piece's own answer (`eraseTouches` in
    * `api.ts`): for objects that are not pieces (the Registrar's circles, CG-7).

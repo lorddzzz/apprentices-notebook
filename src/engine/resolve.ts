@@ -154,6 +154,7 @@ const giftedFor = (caster: Unit | null, rune: RuneRef): boolean =>
  * runs on every target before the next step starts; a unit target follows its unit and a dead
  * one drops out; Fork, Seep and Toll rebuild the target list; a Trigger lets targets through or
  * ends the branch; a Seal hands everything after it to a jar. Earlier effects always stay.
+ * A job `{ after }` (any trigger's `after`, today only Brink's) runs once the branches it covers are done.
  */
 export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], flow: Flow): void {
   const pending: (

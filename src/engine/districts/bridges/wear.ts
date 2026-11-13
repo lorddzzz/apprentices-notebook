@@ -2,6 +2,7 @@ import { BRIDGE_TUNING } from '$data/districts/bridges/types';
 import { type Ctx, emit } from '../../ctx';
 import { hasFootnote } from '../../footnotes';
 import type { Coord } from '../../grid';
+import { inBoard, tileAt } from '../../queries';
 import type { Origin } from '../../types';
 import type { StruckBy, TilePiece } from '../types';
 import { cracksOf } from './support';
@@ -29,26 +30,25 @@ const CAUSE: Partial<Record<StruckBy, CutOrigin['cause']>> = { push: 'crush', bu
 
 const key = (c: Coord) => tileKey(c.x, c.y);
 
-/**
- * A `shove` strike never wears. Two footnotes use it as the one way a core file can reach bridges
- * state: the caller names itself by the line it runs in. `lay-cap-footing` (line `lay:cracked`,
- * from `mix.ts`) marks the span a set plate stands on, and `mortar-cap-set` (line `mortar:unit`,
- * from `push.ts`, run after any wear the push did) sets a chipped stone sound again.
- */
-function footnoteTouch(ctx: Ctx, where: Coord, piece: TilePiece): void {
-  if (piece.id !== SPAN_PIECE) return;
-  if (ctx.meta.line === 'lay:cracked' && hasFootnote(ctx, 'lay-cap-footing')) {
-    piece.data = { ...(piece.data as object), footing: true } as typeof piece.data;
-  } else if (ctx.meta.line === 'mortar:unit' && hasFootnote(ctx, 'mortar-cap-set')) {
-    const own = parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]);
-    const k = key(where);
-    const from = own.stone[k];
-    if (from === undefined || from <= 0 || from >= BRIDGE_TUNING.stone.sound) return;
-    ctx.s.rules = {
-      ...ctx.s.rules,
-      [COLLAPSE_RULE_ID]: { ...own, stone: { ...own.stone, [k]: BRIDGE_TUNING.stone.sound } },
-    };
-  }
+/** `DistrictModule.markFooting` (`lay-cap-footing`): the span under a set plate counts as a pier. */
+export function markFootingOf(ctx: Ctx, at: Coord): void {
+  const piece = inBoard(ctx.s, at) ? tileAt(ctx.s, at).piece : null;
+  if (!piece || piece.id !== SPAN_PIECE) return;
+  piece.data = { ...(piece.data as object), footing: true } as typeof piece.data;
+}
+
+/** `DistrictModule.setMortar` (`mortar-cap-set`): a chipped stone under a Mortar'd unit is sound again. */
+export function setMortarOf(ctx: Ctx, at: Coord): void {
+  const piece = inBoard(ctx.s, at) ? tileAt(ctx.s, at).piece : null;
+  if (!piece || piece.id !== SPAN_PIECE) return;
+  const own = parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]);
+  const k = key(at);
+  const from = own.stone[k];
+  if (from === undefined || from <= 0 || from >= BRIDGE_TUNING.stone.sound) return;
+  ctx.s.rules = {
+    ...ctx.s.rules,
+    [COLLAPSE_RULE_ID]: { ...own, stone: { ...own.stone, [k]: BRIDGE_TUNING.stone.sound } },
+  };
 }
 
 export function wearStruck(
@@ -58,10 +58,6 @@ export function wearStruck(
   by: StruckBy,
   origin: Origin | null,
 ): void {
-  if (by === 'shove') {
-    footnoteTouch(ctx, where, piece);
-    return;
-  }
   const cause = CAUSE[by];
   if (!cause) return;
   const own = parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID]);

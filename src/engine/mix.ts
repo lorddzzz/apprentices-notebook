@@ -22,7 +22,7 @@ import {
 } from './bursts';
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { dealDamage } from './damage';
-import { crackedTiles } from './districts/api';
+import { crackedTiles, markFooting } from './districts/api';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -259,7 +259,7 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
  * What Lay's footnotes do to a layer it has just set (BR-19a, line `lay:cracked`): `lay-cracked-spent`
  * (a plate or wall on a cracked tile takes one hit more; a plain layer has no power to add to),
  * `lay-cracked-both` (a copy on the nearest standing tile), `lay-cap-footing` (a set plate on a span
- * counts as a pier: the bridges wear hook marks it, `districts/bridges/wear.ts`) and `lay-cap-trail`
+ * counts as a pier: `markFooting` in `districts/api.ts`) and `lay-cap-trail`
  * (a copy one round shorter than the layer's own, behind the target).
  */
 function layFootnotes(ctx: Ctx, kind: Plain, at: Coord, flow: Flow): void {
@@ -278,7 +278,7 @@ function layFootnotes(ctx: Ctx, kind: Plain, at: Coord, flow: Flow): void {
       }
     }
     if (hasFootnote(ctx, 'lay-cap-footing') && isPlate(tileAt(ctx.s, at))) {
-      strikePiece(ctx, at, 'shove'); // the span under it marks the plate as footing
+      markFooting(ctx, at);
     }
     const heading = hasFootnote(ctx, 'lay-cap-trail') ? headingAt(ctx, flow, at) : null;
     const behind = heading ? step(at, opposite(heading)) : null;

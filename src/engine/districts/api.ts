@@ -102,6 +102,16 @@ export function spendFallenBrass(ctx: Ctx, tiles: readonly Coord[]): void {
   for (const m of Object.values(KIT.modules)) m?.spendFallenBrass?.(ctx, tiles);
 }
 
+/** `lay-cap-footing`: the span under a set plate on `at` counts as a pier (bridges). */
+export function markFooting(ctx: Ctx, at: Coord): void {
+  for (const m of Object.values(KIT.modules)) m?.markFooting?.(ctx, at);
+}
+
+/** `mortar-cap-set`: the span a Mortar'd unit ends on is set sound again (bridges). */
+export function setMortar(ctx: Ctx, at: Coord): void {
+  for (const m of Object.values(KIT.modules)) m?.setMortar?.(ctx, at);
+}
+
 /** An Erase landed on `at`: every module's hook for non-piece objects, in registry order (CG-3). */
 export function eraseTouches(ctx: Ctx, at: Coord, origin: Origin | null): void {
   for (const m of Object.values(KIT.modules)) m?.eraseAt?.(ctx, at, origin);

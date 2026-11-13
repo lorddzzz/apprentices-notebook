@@ -3,6 +3,7 @@ import { arrive, hasTrait } from './arrival';
 import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, gainShield, kill } from './damage';
+import { setMortar } from './districts/api';
 import type { OutCause } from './districts/types';
 import { hasFootnote } from './footnotes';
 import {
@@ -233,7 +234,7 @@ function ripple(ctx: Ctx, blocker: Unit, dir: Dir, origin: Origin | null): boole
  * What a Mortar'd push does once it is over (the push's own line, `mortar:unit`, is already set):
  * `mortar-unit-guard` (a member takes a Guard of 1 where it stops; a fall is no stop), `-behind`
  * (the unit behind the target is pushed one plain tile, once: that push carries no bonus),
- * `mortar-cap-set` (the span it ends on is set sound again, by the bridges wear hook) and
+ * `mortar-cap-set` (the span it ends on is set sound again, `setMortar` in `districts/api.ts`) and
  * `mortar-cap-scatter` (a drop pushes each unit beside the last stone one tile away).
  */
 function mortarAfter(
@@ -248,7 +249,7 @@ function mortarAfter(
     if (unit.kind === 'member' && hasFootnote(ctx, 'mortar-unit-guard')) {
       gainShield(ctx, unit, 1, ctx.s.round + 1);
     }
-    if (hasFootnote(ctx, 'mortar-cap-set')) strikePiece(ctx, unit.pos, 'shove');
+    if (hasFootnote(ctx, 'mortar-cap-set')) setMortar(ctx, unit.pos);
   }
   if (hasFootnote(ctx, 'mortar-unit-behind')) {
     const back = step(start, opposite(dir));

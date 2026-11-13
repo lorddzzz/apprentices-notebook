@@ -391,7 +391,7 @@ function brinkLine(
     [-1, 1].map((y) => ({ x: seen.at.x + x, y: seen.at.y + y })),
   );
   if (fn('brink-drop-near') && fogIn(corners)) return { pass: true, line: 'brink:drop', ...keen };
-  const cracked = crackedTiles({ ...s, tiles: [...snap.tiles] });
+  const cracked = crackedTiles(s);
   if (around.some((c) => cracked.some((k) => sameCoord(k, c)))) {
     if (fn('brink-cracked-dusk')) return { pass: true, line: 'brink:cracked' };
     if (fn('brink-cracked-half')) return { pass: true, line: 'brink:cracked', weaker: 1 };
