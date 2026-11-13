@@ -959,20 +959,6 @@ export const LINES: readonly LineDef[] = [
     district: 'seam',
     text: 'A unit standing in the gap keeps the two sides apart: the gap must be empty ground.',
   },
-  {
-    id: 'mender:diagonal',
-    subject: 'mender',
-    meets: 'diagonal',
-    district: 'seam',
-    text: 'The gap is a straight line: two tiles diagonal to each other never join.',
-  },
-  {
-    id: 'mender:dusk',
-    subject: 'mender',
-    meets: 'dusk',
-    district: 'seam',
-    text: "Fire spreading at dusk does not jump the gap; only the owner's own casts do.",
-  },
   // BF-F1: Toll, Coil, Unison and Filings against the bells and the staff (footnotes audit, foundry
   // section). Text final; the engine stamps none of these yet (the audit names each site), so each
   // `fires` test in tests/scenarios/foundry-audit-lines.test.ts is `it.fails` until BF-F2/BF-F3.
@@ -1011,6 +997,7 @@ export const LINES: readonly LineDef[] = [
     meets: 'unit',
     district: 'seam',
     text: 'Steam aimed at a unit lands on the tile under it: the unit stands inside the cloud at once.',
+    pending: true,
   },
   {
     id: 'brass:unit',
@@ -1018,5 +1005,6 @@ export const LINES: readonly LineDef[] = [
     meets: 'unit',
     district: 'seam',
     text: 'Brass on a bare unit collars it: the unit counts as brass, joins the network and conducts.',
+    pending: true,
   },
 ];
