@@ -200,7 +200,7 @@ function withinRounds(events: readonly GameEvent[], n: number): readonly GameEve
  * One goal against a log and the final state (K-22), with the kit's kinds (P13): `withinRounds`
  * reads the log up to that round (state-reading goals inside it still read the final state),
  * `piece` counts pieces in a state, `rule` reads a number in a rule's state, `outOfRoom`,
- * `happens` to one unit, and `noneDowned` (no apprentice died).
+ * `happens` to one unit, `noneDowned` (no apprentice died) and `reach` (a living apprentice on a tile).
  */
 export function checkGoal(
   goal: KitGoal,
@@ -221,6 +221,18 @@ export function checkGoal(
     const v = ruleValue(state.rules?.[goal.rule], goal.key);
     if (v === null) return false;
     return v >= (goal.atLeast ?? -Infinity) && v <= (goal.atMost ?? Infinity);
+  }
+  if ('reach' in goal) {
+    // A living apprentice stands on one of the tiles, by round `byRound` (CG-11's far bench).
+    if (goal.byRound !== undefined && state.round > goal.byRound) return false;
+    const spots = goal.reach.map(parseLabel);
+    return state.units.some(
+      (u) =>
+        u.kind === 'member' &&
+        u.hp > 0 &&
+        !u.out &&
+        spots.some((c) => c.x === u.pos.x && c.y === u.pos.y),
+    );
   }
   if ('noneDowned' in goal) {
     return (
