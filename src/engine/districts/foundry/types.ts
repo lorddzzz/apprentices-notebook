@@ -202,7 +202,13 @@ export type QueuedStrike = {
   /** A tone ring queued by a foe (BF-6): rings this tone as `cause`, `at` is the source's tile. */
   tone?: Tone;
   cause?: RingCause;
+  /** BF-F2 (footnotes): a ring that carries these is bent by a variant; a ring with none is plain. */
+  knell?: true;
+  wide?: true;
+  spare?: true;
 };
+/** The flags a strike may carry (`QueuedStrike`'s optional trio); a merged ring takes their union. */
+export type StrikeFlags = Pick<QueuedStrike, 'knell' | 'wide' | 'spare'>;
 
 /**
  * `BattleState.rules['foundry:bells']`.
@@ -216,6 +222,10 @@ export type BellsState = {
   humming: Tone[];
   struck: { [key: string]: string[] };
   queue?: QueuedStrike[];
+  /** `rivet-cap-lock`: bell tile keys that cannot be retuned until round end; omitted when empty. */
+  locked?: string[];
+  /** `unison-bell-lingers`: last phase's casts that landed on a bell tile, still counted this turn. */
+  carried?: { caster: string; targets: string[] }[];
 };
 export const initBells = (): BellsState => ({ humming: [], struck: {} });
 
@@ -230,7 +240,28 @@ export function parseBells(raw: unknown): BellsState {
     if (ids.length > 0) struck[k] = ids;
   }
   const queue = queued(r.queue);
-  return { humming: tones(r.humming), struck, ...(queue.length > 0 ? { queue } : {}) };
+  const locked = Array.isArray(r.locked)
+    ? [...new Set(r.locked.filter((k): k is string => typeof k === 'string' && KEY.test(k)))]
+    : [];
+  const carried = Array.isArray(r.carried)
+    ? r.carried.flatMap((c) => {
+        const o = rec(c);
+        if (!o || typeof o.caster !== 'string' || !Array.isArray(o.targets)) return [];
+        return [
+          {
+            caster: o.caster,
+            targets: o.targets.filter((x): x is string => typeof x === 'string'),
+          },
+        ];
+      })
+    : [];
+  return {
+    humming: tones(r.humming),
+    struck,
+    ...(queue.length > 0 ? { queue } : {}),
+    ...(locked.length > 0 ? { locked } : {}),
+    ...(carried.length > 0 ? { carried } : {}),
+  };
 }
 
 const STRIKES: readonly StruckBy[] = ['damage', 'push', 'spark', 'shove', 'erase', 'draw', 'burst'];
@@ -267,6 +298,9 @@ function queued(v: unknown): QueuedStrike[] {
       by: r.by as StruckBy,
       origin: queuedOrigin(r.origin),
       ...(tone ? { tone, cause: cause ?? 'strike' } : {}),
+      ...(r.knell === true ? { knell: true as const } : {}),
+      ...(r.wide === true ? { wide: true as const } : {}),
+      ...(r.spare === true ? { spare: true as const } : {}),
     });
   }
   return out;

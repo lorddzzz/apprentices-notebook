@@ -66,18 +66,17 @@ export const CARILLONNEUR_PAGE: RivalPageDef = {
     'A tuning sheet for the Great Bell, four notes ruled in a column and the fifth line left bare. In the margin, in a ringer’s cramped hand: every street on the plan has a bell to hold it down. Walk out to the Seam and listen. The Seam has no bell.',
   trial: { board: '. . . . . .\nD . r . r .\n. . . . . .' },
   /**
-   * The Carillonneur's note on Toll (P15): a third option, hidden until this page is held. Toll has
-   * no written lines yet (BF-F1 adds them), so the note sits on its capstone and `line` names the
-   * line Toll will meet it on; the footnote build (BF-F3) may re-seat it.
+   * The Carillonneur's note on Toll (P15, P25): a third option at level II of `toll:bell`, hidden
+   * until this page is held.
    */
-  note: { rune: 'toll', line: 'toll:network', variant: CARILLONNEUR_TOLL },
+  note: { rune: 'toll', line: 'toll:bell', variant: CARILLONNEUR_TOLL },
 };
 
 /** The note itself, in FN's variant shape (registered in the footnote `rivals` batch, like the Lamplighter's wick). */
 export const CARILLONNEUR_NOTE: VariantDef = {
   id: CARILLONNEUR_TOLL,
   subject: 'toll',
-  slot: { capstone: true },
+  slot: { line: 'toll:bell', level: 2 },
   text: 'Tolled as one. A Toll that reaches a bell strikes every bell of its tone at once, and the rest of the cast lands beside each of them.',
   rival: 'carillonneur',
   credit: "Copied from the Carillonneur's tuning sheet.",

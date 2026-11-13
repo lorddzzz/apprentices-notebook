@@ -53,6 +53,15 @@ export function componentsOf(
   return groups;
 }
 
+/**
+ * The foundry's bells, for the footnotes that bend them (BF-F2, BF-F3): tones, the strike queue
+ * and its flags, retune and its lock, and the bell state the rules read. Re-exported so core files
+ * need no import into `districts/foundry/`.
+ */
+export { clapperTone, ropeTone, toneGroups, toneOfPiece } from './foundry/pieces';
+export { lockBell, retune, ringTone, tagQueued, withStrikeFlags } from './foundry/ring';
+export { BELL_PIECE, BELLS_RULE_ID, parseBells, ROPE_PIECE } from './foundry/types';
+
 /** The bot's district terms, summed over modules in registry order; each is 0 on a board without its rule. */
 export function botValue(state: BattleState): number {
   let v = 0;

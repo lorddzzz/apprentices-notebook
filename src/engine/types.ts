@@ -484,6 +484,8 @@ export interface Scheduled {
   drifted?: Coord;
   holds?: number;
   twice?: true;
+  /** Footnotes (`filings-bell-twice`): runs of a Filings entry still to come after this one. */
+  again?: number;
 }
 
 // ── Battle ──────────────────────────────────────────────

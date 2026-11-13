@@ -18,7 +18,7 @@ import { marginOf, writeAt } from '../../src/app/desk';
 
 /**
  * BF-24 (foundry plan P10, P15; rivals P11): the Carillonneur's recovered page and his note on
- * Toll. The note is a third option in Toll's capstone (Toll has no written lines yet), hidden until
+ * Toll. The note is a third option at level II of `toll:bell` (BF-F3), hidden until
  * his page is held, then offered with its credit line, and filing it in the slot credits the write.
  * His def, shell, trick and goal ids agree.
  */
@@ -27,11 +27,12 @@ const PAGE = 'carillonneur:tune' as const;
 const toll = (pages: Profile['pages']): Profile => ({
   ...newProfile(),
   pages,
+  witnessed: ['toll:bell'],
   footnotes: { toll: { points: 999, slots: {} } },
   solventsFound: ['rivet', 'filings'],
   solvents: { ...newProfile().solvents, rivet: 4, filings: 4 },
 });
-const capstone = (p: Profile) => marginOf(p, 'toll').capstone;
+const levelTwo = (p: Profile) => marginOf(p, 'toll').lines[0]?.frames[1];
 
 describe('his def, shell and page', () => {
   test('BF-24: the def, the page, the shell, the trick and the goal agree', () => {
@@ -70,7 +71,7 @@ describe('his def, shell and page', () => {
     expect(CARILLONNEUR_PAGE.trial.board.length).toBeGreaterThan(0);
     expect(CARILLONNEUR_PAGE.note).toEqual({
       rune: 'toll',
-      line: 'toll:network',
+      line: 'toll:bell',
       variant: CARILLONNEUR_TOLL,
     });
   });
@@ -79,25 +80,29 @@ describe('his def, shell and page', () => {
 describe("the Carillonneur's note on Toll", () => {
   test('BF-24: the note is registered as a rival note on Toll', () => {
     const v = VARIANTS.find((x) => x.id === CARILLONNEUR_TOLL);
-    expect(v).toMatchObject({ subject: 'toll', rival: 'carillonneur', slot: { capstone: true } });
+    expect(v).toMatchObject({
+      subject: 'toll',
+      rival: 'carillonneur',
+      slot: { line: 'toll:bell', level: 2 },
+    });
     expect(v?.credit).toBe("Copied from the Carillonneur's tuning sheet.");
   });
 
   test('BF-24: hidden without his page', () => {
     expect(rivalNoteVisible(newProfile(), CARILLONNEUR_TOLL)).toBe(false);
-    expect(capstone(toll([]))).toBeNull();
+    expect(levelTwo(toll([]))?.variants.map((v) => v.id)).not.toContain(CARILLONNEUR_TOLL);
   });
 
   test('BF-24: offered once his page is held, credited, and writing it files it in the slot', () => {
     const p = toll([PAGE]);
     expect(rivalNoteVisible(p, CARILLONNEUR_TOLL)).toBe(true);
-    const frame = capstone(p);
+    const frame = levelTwo(p);
     const note = frame?.variants.find((v) => v.id === CARILLONNEUR_TOLL);
     expect(note?.credit).toBe("Copied from the Carillonneur's tuning sheet.");
     expect(frame?.state).toBe('open');
     const r = writeAt(p, 'toll', CARILLONNEUR_TOLL, { atHome: true });
     if ('error' in r) throw new Error(r.error);
-    expect(r.profile.footnotes.toll?.capstone).toBe(CARILLONNEUR_TOLL);
-    expect(capstone(r.profile)?.state).toBe('filled');
+    expect(r.profile.footnotes.toll?.slots['toll:bell@2']).toBe(CARILLONNEUR_TOLL);
+    expect(levelTwo(r.profile)?.state).toBe('filled');
   });
 });

@@ -1,10 +1,15 @@
 import type { LineId } from '$data';
 import { cloneData } from './clone';
 import { type Ctx, emit, withLine } from './ctx';
+import { gainShield } from './damage';
+import { toneOfPiece } from './districts/api';
 import { hasFootnote } from './footnotes';
 import type { Coord } from './grid';
 import { neighbors4, sameCoord } from './grid';
 import { openJar, runDetached } from './jars';
+import { landKindFree } from './mix';
+import { isBrass } from './networks';
+import { strikePiece } from './pieces';
 import { findUnit, isAlive, tileAt, unitAt } from './queries';
 import { KIND_HANDLERS } from './runes/kinds';
 import { gallnutReach, undoBoard } from './solvents';
@@ -82,7 +87,22 @@ function run(ctx: Ctx, e: Scheduled): void {
   // Ringing again (Filings) is a repeat too: spent, it never waits again. So is a fall's replay.
   const again =
     e.kind === 'repeat' || e.kind === 'margin' || e.kind === 'filings' || e.kind === 'brink';
-  if (again && typeof e.step === 'string') emit(ctx, { type: 'repeated', action: e.step });
+  // `filings:bell`: Filings came back to a bell, or to the Clapper that walked off the tile.
+  const filings = e.kind === 'filings';
+  const piece = tileAt(ctx.s, at).piece;
+  const bellHere = filings && !!piece && toneOfPiece(piece.id, piece.data) !== null;
+  const was = filings && e.hit ? findUnit(ctx.s, e.hit) : null;
+  const walked = !!was && isAlive(was) && was.def === 'clapper' && !sameCoord(was.pos, at);
+  if (again && typeof e.step === 'string') {
+    const action = e.step;
+    const say = (): void => emit(ctx, { type: 'repeated', action });
+    if (bellHere || walked) withLine(ctx, 'filings:bell', say);
+    else say();
+  }
+  // `filings-bell-strike`: the second run strikes the bell it comes back to, so it rings again.
+  if (bellHere && hasFootnote(ctx, 'filings-bell-strike'))
+    withLine(ctx, 'filings:bell', () => strikePiece(ctx, at, 'damage', e.origin));
+  const bare = filings && !touchesBrassAt(ctx, at);
   const go = (t: Target): void =>
     runDetached(ctx, stepOf(e), t, e.owner, e.origin, heading, {
       trace: typeof e.step !== 'string',
@@ -92,6 +112,7 @@ function run(ctx: Ctx, e: Scheduled): void {
       ...(e.context ? { context: e.context } : {}),
     });
   go(target);
+  if (filings) filingsAfter(ctx, e, at, bare);
   // `gallnut-unit-every`: a Gallnut repeat marks on every pass, not only the first.
   if (e.kind === 'repeat' && e.solvent === 'gallnut' && hasFootnote(ctx, 'gallnut-unit-every')) {
     gallnutReach(ctx, target, e.origin, null);
@@ -105,6 +126,27 @@ function run(ctx: Ctx, e: Scheduled): void {
     if (e.when === 'roundEnd') run(ctx, second);
     else ctx.s.scheduled.push(second);
   }
+}
+
+const touchesBrassAt = (ctx: Ctx, at: Coord): boolean =>
+  isBrass(ctx.s, at) || neighbors4(at).some((n) => isBrass(ctx.s, n));
+
+/**
+ * What a Filings run owes after it ran: `filings-bell-twice` queues the third run,
+ * `filings-cap-plate` lands Brass on an empty tile nothing brass touches, `filings-cap-guard`
+ * shields the one who rang it.
+ */
+function filingsAfter(ctx: Ctx, e: Scheduled, at: Coord, bare: boolean): void {
+  if ((e.again ?? 0) > 0)
+    ctx.s.scheduled.push({ ...cloneData(e), again: (e.again ?? 0) - 1, when: 'ownerTurn' });
+  const t = tileAt(ctx.s, at);
+  if (bare && hasFootnote(ctx, 'filings-cap-plate') && !t.state && !t.piece && !unitAt(ctx.s, at))
+    withLine(ctx, 'filings:plate', () =>
+      landKindFree(ctx, 'brass', { kind: 'tile', at: { ...at } }),
+    );
+  const owner = findUnit(ctx.s, e.owner);
+  if (owner && hasFootnote(ctx, 'filings-cap-guard'))
+    withLine(ctx, 'filings:plate', () => gainShield(ctx, owner, 1, ctx.s.round + 1));
 }
 
 /** Wakes one waiting entry now (`pitch-cap-shore`, `wick-cap-trip`): it leaves the queue and runs. */
