@@ -1,5 +1,4 @@
 import { collapseStep, FALL_CAUSE, fallenBrassOf, spendFallenBrassOf } from './bridges/collapse';
-import { markFootingOf, setMortarOf } from './bridges/wear';
 import { BRIDGE_FOES } from './bridges/foes';
 import { BRIDGE_OFFERS } from './bridges/guarantee';
 import { CHIEF_FOE, HEART_STEPS } from './bridges/heart';
@@ -21,6 +20,7 @@ import {
   parseBridgeState,
   SPAN_PIECE,
 } from './bridges/types';
+import { markFootingOf, setMortarOf } from './bridges/wear';
 import type { BoardRule, DistrictEventDef, DistrictModule, TripShapeDef } from './types';
 
 /**

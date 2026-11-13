@@ -1,6 +1,5 @@
 import { BRIDGE_TUNING } from '$data/districts/bridges/types';
 import { type Ctx, emit } from '../../ctx';
-import { hasFootnote } from '../../footnotes';
 import type { Coord } from '../../grid';
 import { inBoard, tileAt } from '../../queries';
 import type { Origin } from '../../types';
