@@ -865,7 +865,7 @@ describe('arrival matrix: CG-1 paper (pencil and blank) × every cause that carr
   }
 
   it('a step jar on pencil opens for a pushed unit as it would on bare paper (hook cell stepJar)', () => {
-    const s = board('D r {pencil} .');
+    const s = structuredClone(board('D r {pencil} .'));
     tileAt(s, at('C1')).jar = jar('step');
     const res = draft(s, (ctx) => {
       push(ctx, unitAt(ctx.s, at('B1')) as Unit, 'right', 1, null);
