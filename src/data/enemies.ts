@@ -1,6 +1,7 @@
 import { BATH_ENEMIES, BATH_SHOVE, BATH_STEWARD } from './districts/bathhouses';
 import { BRIDGE_ENEMIES } from './districts/bridges/enemies';
 import { BARGE } from './districts/canals';
+import { CARTOGRAPHERS_ENEMIES } from './districts/cartographers/foes';
 import { FOUNDRY_ENEMIES } from './districts/foundry/enemies';
 import { INK_ENEMIES, INK_HEART_ENEMIES } from './districts/inkQuarter/enemies';
 import { SEAM_ENEMIES } from './districts/seam';
@@ -36,6 +37,9 @@ export const ENEMY_IDS: readonly EnemyId[] = [
   'ringer',
   'detuner',
   'clapper',
+  'surveyor',
+  'eraser',
+  'tracer',
 ];
 
 export const ATTACKS: Record<AttackId, AttackDef> = {
@@ -258,5 +262,6 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   ...BATH_ENEMIES,
   ...BRIDGE_ENEMIES,
   ...FOUNDRY_ENEMIES,
+  ...CARTOGRAPHERS_ENEMIES,
   bathSteward: BATH_STEWARD,
 };

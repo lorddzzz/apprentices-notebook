@@ -82,6 +82,7 @@ describe('round-end rule slots (P8)', () => {
       'bridges:collapse',
       'cartographers:guildHand',
       'cartographers:pencil',
+      'cartographers:tracer',
       'foundry:tune',
       'foundry:bells',
       'inkQuarter:stakes',
