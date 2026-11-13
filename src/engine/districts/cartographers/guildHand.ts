@@ -6,6 +6,7 @@ import { blocksUnits, coordOf, inBoard, isAlive, members, tileAt } from '../../q
 import { createRng, deriveSeed, type Rng } from '../../rng';
 import type { BattleState, Tile } from '../../types';
 import type { BoardRule, Json, PreviewShape } from '../types';
+import { inkOutlines, outlineBlocked, outlineTiles } from './paper';
 import {
   BLANK_PIECE,
   type Fate,
@@ -14,6 +15,7 @@ import {
   HAND_SALT,
   type InkedEvent,
   isFate,
+  OUTLINE_PIECE,
   PENCIL_PIECE,
   PENCIL_RULE_ID,
   type PencilData,
@@ -120,6 +122,7 @@ interface Assigned {
 }
 interface Plan {
   fates: Assigned[];
+  outlines: { at: Coord; foe: string; due: number }[];
   redraw: Coord[];
 }
 
@@ -201,13 +204,20 @@ export function planDue(s: BattleState, own: GuildHandState, due: number, withRe
     });
     redraw.push(...shuffle(rng, beside).slice(0, own.redraw));
   }
-  return { fates, redraw };
+  // Outlines still unplanned fall due this plan's round (an authored `@n` keeps its own).
+  const outlines = outlineTiles(s)
+    .filter((o) => o.data.due === null)
+    .map((o) => ({ at: o.at, foe: o.data.foe, due }));
+  return { fates, outlines, redraw };
 }
 
 /** Writes a plan onto the board: the pencil's fates and dues, and any new unplanned pencil. */
 function applyPlan(s: BattleState, plan: Plan): void {
   for (const f of plan.fates) {
     tileAt(s, f.at).piece = { id: PENCIL_PIECE, data: { fate: f.fate, due: f.due } };
+  }
+  for (const o of plan.outlines) {
+    tileAt(s, o.at).piece = { id: OUTLINE_PIECE, data: { foe: o.foe, due: o.due } };
   }
   for (const at of plan.redraw) {
     tileAt(s, at).piece = { id: PENCIL_PIECE, data: { fate: null, due: null } };
@@ -256,9 +266,6 @@ export function resolveDue(ctx: Ctx, round: number): boolean {
   return rubbed;
 }
 
-/** CG-4 inks the outlines due this round here; until then it leaves them alone. */
-function inkOutlines(_ctx: Ctx, _round: number): void {}
-
 /** The first plan, when none was drawn yet for this round (see the file note). */
 function planNow(s: BattleState, own: GuildHandState): GuildHandState {
   if (s.phase !== 'player' || own.planned >= s.round) return own;
@@ -291,6 +298,22 @@ export function guildHandPreview(s: BattleState, raw: unknown): PreviewShape[] {
     if (fate === null || due !== s.round) continue;
     out.push({ kind: 'tile', at: { ...p.at }, tone: fate === 'rub' ? 'erased' : 'drawn' });
   }
+  const planned = new Map(
+    (own.planned < s.round ? planDue(s, own, s.round, false).outlines : []).map((o) => [
+      keyOf(o.at),
+      o.due,
+    ]),
+  );
+  for (const o of outlineTiles(s)) {
+    const due = planned.get(keyOf(o.at)) ?? o.data.due;
+    if (due !== s.round) continue;
+    // A unit standing on it holds the inking back a round.
+    out.push({
+      kind: 'tile',
+      at: { ...o.at },
+      tone: outlineBlocked(s, o.at) ? 'warn' : 'drawn',
+    });
+  }
   return out;
 }
 
@@ -320,10 +343,13 @@ export const PENCIL_RULE: BoardRule = {
   slot: 'late',
   order: 60,
   scope: 'piece',
-  activatedBy: { kind: 'piece', pieces: [PENCIL_PIECE] },
+  activatedBy: { kind: 'piece', pieces: [PENCIL_PIECE, OUTLINE_PIECE] },
   init: () => ({}),
   step: (ctx, own) => {
-    if (!handListed(ctx.s)) resolveDue(ctx, ctx.s.round);
+    if (!handListed(ctx.s)) {
+      resolveDue(ctx, ctx.s.round);
+      inkOutlines(ctx, ctx.s.round);
+    }
     return own;
   },
   preview: (s, own) =>

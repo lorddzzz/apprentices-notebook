@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { type InventionDef, type LineId } from '$data';
+import type { InventionDef, LineId } from '$data';
 import { type GameEvent, libraryOf, parseLabel } from '$engine';
 import { cast, withLattices } from './harness';
 

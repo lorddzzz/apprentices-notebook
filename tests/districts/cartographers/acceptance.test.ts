@@ -141,11 +141,7 @@ describe('CG-W0 contracts', () => {
 
 // ── Pack B: runes on paper and outlines ──────────────────
 // CG-3 passes in runes.test.ts (and the CG-1 draw:blank test moved there with it).
-describe('CG-4 drawn-in reinforcements', () => {
-  it.todo('CG-4: an outline inks at its due round');
-  it.todo('CG-4: a standing unit delays the inking a round');
-  it.todo('CG-4: erase un-draws an outline foe');
-});
+// CG-4 passes in outline.test.ts.
 
 // ── Pack C: the guild's hands ────────────────────────────
 // CG-5 and CG-6 (the surveyor, the eraser, the tracer) pass in hands.test.ts under their plan titles.

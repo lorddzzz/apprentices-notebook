@@ -6,6 +6,7 @@ import {
   OUTLINE_DEF,
   type OutlineData,
   PENCIL_DEF,
+  PENCIL_RULE_ID,
   type PencilData,
 } from './types';
 
@@ -67,6 +68,7 @@ export const PENCIL: PieceDef<PencilData> = {
 export const OUTLINE: PieceDef<OutlineData> = {
   ...OUTLINE_DEF,
   triggers: { onStruck: outlineStruck },
+  rules: [PENCIL_RULE_ID],
   data: {
     init: { foe: '', due: null },
     parse: parseOutline,
