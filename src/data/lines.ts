@@ -993,4 +993,33 @@ export const LINES: readonly LineDef[] = [
     district: 'foundry',
     text: 'Filings comes back to the tile, not to what struck it: a bell is not struck again, so it does not ring, and a Clapper that walked off is missed.',
   },
+  // CG-3: Erase and Draw on the Cartographers' paper.
+  {
+    id: 'erase:pencil',
+    subject: 'erase',
+    meets: 'pencil',
+    district: 'cartographers',
+    text: 'On unfinished paper, Erase un-draws the tile: whoever stands there is erased from the fight.',
+  },
+  {
+    id: 'erase:outline',
+    subject: 'erase',
+    meets: 'outline',
+    district: 'cartographers',
+    text: 'Erase on an outline un-draws the foe before it inks in.',
+  },
+  {
+    id: 'draw:blank',
+    subject: 'draw',
+    meets: 'blank',
+    district: 'cartographers',
+    text: "Draw cannot carry a state or a jar onto blank paper, as at the board's edge.",
+  },
+  {
+    id: 'quicksilver:undraw',
+    subject: 'quicksilver',
+    meets: 'undraw',
+    district: 'cartographers',
+    text: "Quicksilver's mirrored Erase un-draws the mirrored pencil too.",
+  },
 ];

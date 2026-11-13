@@ -3,7 +3,7 @@ import { type Coord, key } from '../grid';
 import { coordOf, flood } from '../queries';
 import { choicesAt, takeChoice } from '../trip/choices';
 import { returnCheck } from '../trip/ret';
-import type { BattleState, Trip } from '../types';
+import type { BattleState, Origin, Trip } from '../types';
 import { KIT } from './kit';
 import type { CrossroadsChoice, ReturnCheck } from './types';
 
@@ -100,4 +100,9 @@ export function fallenBrassTiles(state: BattleState): Coord[] {
 /** Forgets remembered fallen brass a Chalk conduct used: every module's hook, in registry order. */
 export function spendFallenBrass(ctx: Ctx, tiles: readonly Coord[]): void {
   for (const m of Object.values(KIT.modules)) m?.spendFallenBrass?.(ctx, tiles);
+}
+
+/** An Erase landed on `at`: every module's hook for non-piece objects, in registry order (CG-3). */
+export function eraseTouches(ctx: Ctx, at: Coord, origin: Origin | null): void {
+  for (const m of Object.values(KIT.modules)) m?.eraseAt?.(ctx, at, origin);
 }

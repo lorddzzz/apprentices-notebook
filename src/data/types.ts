@@ -203,7 +203,11 @@ export type Meets =
   | 'span' // bridge pieces, met on the Bench once seen (BR-16)
   | 'pier'
   | 'bell' // foundry pieces, met on the Bench once seen (BF-19)
-  | 'rope';
+  | 'rope'
+  | 'pencil' // Cartographers' paper (CG-3): unfinished paper, an outline, blank paper, a mirrored un-draw
+  | 'outline'
+  | 'blank'
+  | 'undraw';
 /**
  * A rune, method or solvent; a habit's fine print (AH P11); or a basic action's (`pull`, `hop`;
  * Swap and Shove use their runes' lines, AH P7). Only a `FootnoteSubject` has a margin and points.

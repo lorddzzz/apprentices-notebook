@@ -22,7 +22,7 @@ import {
   withOrigin,
 } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
-import { crackedTiles } from '../districts/api';
+import { crackedTiles, eraseTouches } from '../districts/api';
 import { hasFootnote } from '../footnotes';
 import {
   byReadingOrder,
@@ -42,6 +42,7 @@ import { sealJar } from '../jars';
 import { jarLimit } from '../leans';
 import { releaseSpent, spendMark } from '../marks';
 import { landOnTile } from '../mix';
+import { pieceVoid, strikePiece } from '../pieces';
 import { type PushResult, push, wearPlate } from '../push';
 import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
 import type { Handler } from '../resolve';
@@ -379,6 +380,10 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord): Hop | null {
   const src = tileAt(s, from);
   const dst = tileAt(s, to);
   const moved: Hop = { state: null, jar: false };
+  if ((src.state || src.jar) && pieceVoid(dst)) {
+    miss(ctx, 'draw', 'draw:blank');
+    return null;
+  }
   if (src.state && dst.state === null) {
     const standing = isPlate(src) && unitAt(s, to);
     if (standing) {
@@ -585,6 +590,8 @@ const erase: Handler = (ctx, t, flow) => {
     gone('jar', 'erase:jar');
   }
   if (parts.length) remember(ctx, t, parts, flow);
+  strikePiece(ctx, at, 'erase', flow.origin);
+  eraseTouches(ctx, at, flow.origin);
 };
 
 /** A removable collar (not the born-brass kind): what `sentence-unit-collar` strikes off. */
