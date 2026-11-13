@@ -56,6 +56,8 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-5, CG-6 | 0934afa, cb58f65 | Sonnet high | 0 | ~10% | Surveyor, Eraser, Tracer; third rule `cartographers:tracer` (units have no data field); `EnemyId` gains three ids; no priority flag exists; `undrawPencil` local to foes.ts (CG-B shares it) |
 | CG-8, CG-11 | 394a93c, bf0948d | Sonnet medium | 0 | ~10% | trip shape (`ret`/`checkpoint` after: 2 = after room 3, 0-based; brief said 3), six loot tables, drafting-table threshold with lay-figure variant; new `{ reach, byRound? }` goal kind |
 | MIX-F1, FU-5 | b5dbc24, d24b7a5 | Sonnet medium | 0 | ~8% | seam hand clears its telegraph in the projection, transient `handWrites` flag for born brass; `afterglowSpent`, `afterglowDrifts`, lines `afterglow:spent`/`water`; `Meets` gains `spent`; draft pairs for cloud and water only |
+| CG-3, CG-4 | 80bc1d9, 2b0a021, 127fb1a | Sonnet high | 0 | ~14% | Erase/Draw on paper, outlines ink in; line ids `erase:unit`, `erase:empty`, `draw:drop`, `quicksilver:drop` (new `Meets` members crash tsc: Map maximum size exceeded); Shove at empty pencil now legal; resumed after crash |
+| EN-9b (partial) | 913a793, 2bffecc | Sonnet medium | 1 | ~12% | `mender:unit` stamped (golden-neutral); `mender:diagonal`/`dusk` rows removed, `steam:unit`/`brass:unit` rows pending (stamping changes the five Seam goldens); FN-M2 draft written; resumed after crash |
 
 ## Usage
 
@@ -63,3 +65,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 |---|---|---|---|
 | 2026-11-13 | 33 | 65 | wave 14 merged (Q, CG-A, BF-J); fast gate green on main; wave 15 CG-C, CG-E, P running |
 | 2026-11-13 | 64 | 69 | wave 15 merged (CG-C, CG-E, P); fast gate green (8190); CI green on 1239b6b; wave 16 CG-B, L running |
+| 2026-11-13 | 86 | 72 | wave 16 merged (CG-B, L partial); fast gate green (8216); CI green on 7cfc883; H3 next |
