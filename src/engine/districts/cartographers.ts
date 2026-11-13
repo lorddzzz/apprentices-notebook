@@ -1,3 +1,4 @@
+import { CARTOGRAPHERS_FOES } from './cartographers/foes';
 import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
 import { CARTOGRAPHERS_REGISTERED_PIECES } from './cartographers/pieces';
 import { CARTOGRAPHERS_EVENT_TYPES, type CartographersEventType } from './cartographers/types';
@@ -32,5 +33,6 @@ export const CARTOGRAPHERS_MODULE: DistrictModule = {
   id: 'cartographers',
   rules: [GUILD_HAND_RULE, PENCIL_RULE],
   pieces: CARTOGRAPHERS_REGISTERED_PIECES,
+  foes: CARTOGRAPHERS_FOES,
   events,
 };

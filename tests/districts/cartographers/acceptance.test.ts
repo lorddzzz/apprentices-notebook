@@ -45,13 +45,16 @@ describe('CG-W0 registration', () => {
     expect(d.tables).toEqual([...CARTOGRAPHERS_TABLE_IDS]);
   });
 
-  it('the module declares events, the paper pieces and the two rules: no foes, heart or bot yet', () => {
+  it("the module declares events, the paper pieces, the rules and the guild's hands: no heart or bot yet", () => {
     const m = CARTOGRAPHERS_MODULE;
     expect(m.id).toBe('cartographers');
     expect((m.events ?? []).map((e) => e.type)).toEqual([...CARTOGRAPHERS_EVENT_TYPES]);
     expect((m.pieces ?? []).map((p) => p.token)).toEqual([...CARTOGRAPHERS_PIECE_TOKENS]);
     expect((m.rules ?? []).map((r) => r.id)).toEqual([GUILD_HAND_RULE_ID, PENCIL_RULE_ID]);
-    expect(m.foes ?? []).toEqual([]);
+    expect((m.foes ?? []).map((f) => f.id)).toEqual([
+      'cartographers:surveyor',
+      'cartographers:eraser',
+    ]); // CG-5 (CG-6 adds the tracer)
     expect(m.offerKinds ?? []).toEqual([]);
     expect(m.trip).toBeUndefined();
     expect(m.heart).toBeUndefined(); // CG-10, through frame.ts's placeFrame
@@ -154,14 +157,7 @@ describe('CG-4 drawn-in reinforcements', () => {
 });
 
 // ── Pack C: the guild's hands ────────────────────────────
-describe('CG-5 surveyor and eraser', () => {
-  it.todo('CG-5: a swap out of range fails');
-  it.todo("CG-5: a held unit refuses the surveyor's swap");
-  it.todo('CG-5: swap onto rub-due pencil then erased');
-  it.todo('CG-5: the eraser rubs a jar');
-  it.todo('CG-5: the eraser un-draws pencil under an apprentice who stayed');
-});
-
+// CG-5 passes in hands.test.ts under its plan titles.
 describe('CG-6 tracer', () => {
   it.todo("CG-6: strikes land on the mirrors of last turn's damaged tiles");
   it.todo('CG-6: no strike after a turn with no damage');
