@@ -53,9 +53,13 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | RV-20b, FU-1 | f637ab7, e2e5f5f, 4d7a2d4 | Sonnet medium | 0 | ~10% | Jar note lets the planned walk cross a step-jar (`planRival` takes optional footnotes; resolve.ts passes ctx.footnotes); crossroads card note line; `simulate` still runs with empty footnotes |
 | CG-1, CG-2 | dc67c6a, 12a9699, 90bf5a6 | Sonnet high | 0 | ~15% | paper pieces, `pieceVoid`, kit registration, guild's hand; two rules (district hand + piece-scoped pencil), optional seed, `holds: 'none'` guards in mix.ts/jars.ts |
 | BF-F2, BF-F3 | b071e86, fd8eb8f | Sonnet medium | 0 | ~15% | 29 foundry variants stamped (Toll, Coil, Unison, Rivet, Filings), Carillonneur note at toll:bell II; api.ts re-exports, `Scheduled.again`, `BellsState.carried` added |
+| CG-5, CG-6 | 0934afa, cb58f65 | Sonnet high | 0 | ~10% | Surveyor, Eraser, Tracer; third rule `cartographers:tracer` (units have no data field); `EnemyId` gains three ids; no priority flag exists; `undrawPencil` local to foes.ts (CG-B shares it) |
+| CG-8, CG-11 | 394a93c, bf0948d | Sonnet medium | 0 | ~10% | trip shape (`ret`/`checkpoint` after: 2 = after room 3, 0-based; brief said 3), six loot tables, drafting-table threshold with lay-figure variant; new `{ reach, byRound? }` goal kind |
+| MIX-F1, FU-5 | b5dbc24, d24b7a5 | Sonnet medium | 0 | ~8% | seam hand clears its telegraph in the projection, transient `handWrites` flag for born brass; `afterglowSpent`, `afterglowDrifts`, lines `afterglow:spent`/`water`; `Meets` gains `spent`; draft pairs for cloud and water only |
 
 ## Usage
 
 | Time (CET) | 5h % | Weekly % | Action |
 |---|---|---|---|
 | 2026-11-13 | 33 | 65 | wave 14 merged (Q, CG-A, BF-J); fast gate green on main; wave 15 CG-C, CG-E, P running |
+| 2026-11-13 | 64 | 69 | wave 15 merged (CG-C, CG-E, P); fast gate green (8190); CI green on 1239b6b; wave 16 CG-B, L running |
