@@ -2,15 +2,25 @@ import { CARTOGRAPHERS_FOE_TUNING } from '$data/districts/cartographers/foes';
 import { candidatesOf, nearestMember } from '../../ai';
 import { hasTrait, relocateAll } from '../../arrival';
 import { type Ctx, emit, ref } from '../../ctx';
+import { dealDamage } from '../../damage';
 import { byReadingOrder, type Coord, key, label, neighbors4 } from '../../grid';
 import { guardCancels } from '../../harm';
 import { spendMark } from '../../marks';
 import { enemyWalk } from '../../movement';
 import { removeFromRoom } from '../../outOfRoom';
-import { coordOf, distanceField, findUnit, inBoard, isAlive, tileAt, unitAt } from '../../queries';
+import {
+  coordOf,
+  distanceField,
+  enemies,
+  findUnit,
+  inBoard,
+  isAlive,
+  tileAt,
+  unitAt,
+} from '../../queries';
 import type { Telegraph } from '../../rivals/types';
-import type { BattleState, EnemyUnit, Unit } from '../../types';
-import type { FoeBehaviour, PreviewShape } from '../types';
+import type { BattleState, EnemyUnit, MemberUnit, Unit } from '../../types';
+import type { BoardRule, FoeBehaviour, PreviewShape, RuleId } from '../types';
 import { guildHandPreview } from './guildHand';
 import {
   BLANK_PIECE,
@@ -18,6 +28,7 @@ import {
   GUILD_HAND_RULE_ID,
   PENCIL_PIECE,
   SURVEYOR_BEHAVIOUR,
+  TRACER_BEHAVIOUR,
   type UndrawnEvent,
 } from './types';
 
@@ -305,5 +316,150 @@ export const ERASER_FOE: FoeBehaviour = {
   describe: (tg) => `erase ${where(tg.tiles[0])}`,
 };
 
+// ── The tracer (P9) ─────────────────────────────────────
+
+/**
+ * Its memory is a district rule's state (the units have no data of their own): which apprentice
+ * each tracer is bound to, and the tiles each apprentice damaged, stamped with the round. The rule
+ * is listed with the hall's rooms (a district rule) and by a Lab scenario's `rules`; without it a
+ * tracer binds to the nearest apprentice each time and nothing is recorded.
+ */
+export const TRACER_RULE_ID: RuleId = 'cartographers:tracer';
+export type TracerState = {
+  bound: { [tracer: string]: string };
+  hits: { round: number; by: string; x: number; y: number }[];
+};
+
+const tracerState = (raw: unknown): TracerState => {
+  const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const bound: TracerState['bound'] = {};
+  if (r.bound && typeof r.bound === 'object' && !Array.isArray(r.bound)) {
+    for (const [k, v] of Object.entries(r.bound)) if (typeof v === 'string') bound[k] = v;
+  }
+  const hits: TracerState['hits'] = [];
+  if (Array.isArray(r.hits)) {
+    for (const h of r.hits as unknown[]) {
+      const o = h && typeof h === 'object' ? (h as Record<string, unknown>) : null;
+      if (
+        o &&
+        typeof o.round === 'number' &&
+        typeof o.by === 'string' &&
+        typeof o.x === 'number' &&
+        typeof o.y === 'number'
+      )
+        hits.push({ round: o.round, by: o.by, x: o.x, y: o.y });
+    }
+  }
+  return { bound, hits };
+};
+
+const tracers = (s: BattleState): EnemyUnit[] =>
+  enemies(s).filter((u) => u.def === 'tracer' && isAlive(u));
+
+/** Binds each living tracer not yet bound to the nearest apprentice (at spawn, or the first settle after). */
+function bindTracers(s: BattleState, st: TracerState): TracerState {
+  const bound = { ...st.bound };
+  for (const t of tracers(s)) {
+    if (bound[t.id]) continue;
+    const m = nearestMember(s, t);
+    if (m) bound[t.id] = m.id;
+  }
+  return { ...st, bound };
+}
+
+/** The apprentice a tracer is tethered to: its bound one while she lives, else the nearest. */
+export function tracerTether(s: BattleState, e: EnemyUnit): MemberUnit | null {
+  const id = tracerState(s.rules?.[TRACER_RULE_ID]).bound[e.id];
+  const m = id ? findUnit(s, id) : null;
+  return m && m.kind === 'member' && isAlive(m) ? m : nearestMember(s, e);
+}
+
+/** The x-mirror of a tile (Quicksilver's mirror). */
+const mirrorOf = (s: BattleState, c: Coord): Coord => ({ x: s.width - 1 - c.x, y: c.y });
+
+/** The tiles `by` damaged during last round's turn, mirrored: reading order, one entry each. */
+export function mirroredHits(s: BattleState, by: string): Coord[] {
+  const seen = new Set<string>();
+  const out: Coord[] = [];
+  for (const h of tracerState(s.rules?.[TRACER_RULE_ID]).hits) {
+    if (h.by !== by || h.round !== s.round - 1) continue;
+    const m = mirrorOf(s, { x: h.x, y: h.y });
+    if (!inBoard(s, m) || seen.has(key(m))) continue;
+    seen.add(key(m));
+    out.push(m);
+  }
+  return out.sort(byReadingOrder);
+}
+
+/** Each draft's log is read once: settle runs several times per action over the same log. */
+const readTo = new WeakMap<object, number>();
+
+function recordHits(ctx: Ctx, st: TracerState): TracerState {
+  const from = readTo.get(ctx.log) ?? 0;
+  readTo.set(ctx.log, ctx.log.length);
+  const tethered = new Set(Object.values(st.bound));
+  const hits = [...st.hits];
+  for (const e of ctx.log.slice(from)) {
+    if (e.type !== 'damage' || e.amount <= 0 || !e.origin || !tethered.has(e.origin.caster))
+      continue;
+    const { x, y } = e.target.at;
+    const dup = hits.some(
+      (h) => h.round === ctx.s.round && h.by === e.origin?.caster && h.x === x && h.y === y,
+    );
+    if (!dup) hits.push({ round: ctx.s.round, by: e.origin.caster, x, y });
+  }
+  return { ...st, hits };
+}
+
+export const TRACER_RULE: BoardRule<TracerState> = {
+  id: TRACER_RULE_ID,
+  slot: 'late',
+  order: 70,
+  scope: 'district',
+  activatedBy: { kind: 'district' },
+  init: (s) => bindTracers(s, { bound: {}, hits: [] }),
+  /** Records what the tethered apprentices damage, as it lands (a cast's end, an action's end). */
+  settle: (ctx, own) => recordHits(ctx, bindTracers(ctx.s, tracerState(own))),
+  /** A round end drops what the strikes just read: only this round's damage is kept for the next. */
+  step: (ctx, own) => {
+    const st = tracerState(own);
+    return { ...st, hits: st.hits.filter((h) => h.round >= ctx.s.round) };
+  },
+};
+
+export const TRACER_FOE: FoeBehaviour = {
+  id: TRACER_BEHAVIOUR,
+  /** Walks toward the mirror of its apprentice's tile. */
+  move(ctx, e) {
+    const m = tracerTether(ctx.s, e);
+    if (m) walkToward(ctx, e, mirrorOf(ctx.s, m.pos));
+  },
+  /** The mirror of every tile its apprentice damaged last turn; with none, only the tether shows. */
+  plan(s, e): Telegraph | null {
+    const m = tracerTether(s, e);
+    if (!m) return null;
+    const tiles = mirroredHits(s, m.id);
+    return { label: tiles.length > 0 ? 'trace' : 'tether', tiles, units: [m.id] };
+  },
+  resolve(ctx, e, tg) {
+    if (tg.label !== 'trace') return;
+    let hit = false;
+    for (const at of tg.tiles) {
+      const u = unitAt(ctx.s, at);
+      if (!u || u.id === e.id || u.bystander) continue;
+      hit = true;
+      dealDamage(ctx, u, CARTOGRAPHERS_FOE_TUNING.tracer.strike, 'Trace');
+    }
+    if (!hit) emit(ctx, { type: 'miss', source: 'Trace' });
+  },
+  preview(_s, e): readonly PreviewShape[] {
+    const tg = telegraphOf(e);
+    if (tg?.label !== 'trace') return [];
+    return tg.tiles.map((at): PreviewShape => ({ kind: 'tile', at: { ...at }, tone: 'warn' }));
+  },
+  describe: (tg) =>
+    tg.label === 'trace' ? `trace ${tg.tiles.map(where).join(' ')}` : 'follow its apprentice',
+};
+
 /** The guild's hands, for the district module. */
-export const CARTOGRAPHERS_FOES: readonly FoeBehaviour[] = [SURVEYOR_FOE, ERASER_FOE];
+export const CARTOGRAPHERS_FOES: readonly FoeBehaviour[] = [SURVEYOR_FOE, ERASER_FOE, TRACER_FOE];

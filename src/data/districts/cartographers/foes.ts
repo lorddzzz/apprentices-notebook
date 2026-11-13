@@ -13,6 +13,7 @@ export const CARTOGRAPHERS_FOE_TUNING = {
     /** Both swapped units must stand within this many tiles of him. */ range: 3,
   },
   eraser: { hp: 3, move: 2 },
+  tracer: { hp: 4, move: 1, /** The damage of each mirrored strike. */ strike: 1 },
 } as const;
 
 const PLAIN = {
@@ -53,8 +54,21 @@ export const ERASER: EnemyDef = {
   ...PLAIN,
 };
 
+export const TRACER: EnemyDef = {
+  id: 'tracer',
+  name: 'tracer',
+  token: CARTOGRAPHERS_FOE_TOKENS.tracer,
+  hp: CARTOGRAPHERS_FOE_TUNING.tracer.hp,
+  move: CARTOGRAPHERS_FOE_TUNING.tracer.move,
+  behaviour: 'cartographers:tracer',
+  blurb:
+    'Tethered to one apprentice, it copies her work a round late: every tile she hurt last turn is struck again, mirrored across the middle of the room. Cast through the middle and it answers on the far side.',
+  ...PLAIN,
+};
+
 /** The district's foes for `ENEMIES`. */
 export const CARTOGRAPHERS_ENEMIES = {
   surveyor: SURVEYOR,
   eraser: ERASER,
+  tracer: TRACER,
 } as const;

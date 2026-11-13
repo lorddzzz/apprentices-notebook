@@ -13,6 +13,7 @@ import { DISTRICT_TOKENS, DISTRICTS, tokenCollisions } from '$data/districts/ind
 import { RIVAL_TOKENS, RIVALS } from '$data/rivals';
 import { KIT } from '$engine/districts';
 import { CARTOGRAPHERS_MODULE } from '$engine/districts/cartographers';
+import { TRACER_RULE_ID } from '$engine/districts/cartographers/foes';
 import {
   CARTOGRAPHERS_EVENT_TYPES,
   CARTOGRAPHERS_PIECES,
@@ -50,11 +51,14 @@ describe('CG-W0 registration', () => {
     expect(m.id).toBe('cartographers');
     expect((m.events ?? []).map((e) => e.type)).toEqual([...CARTOGRAPHERS_EVENT_TYPES]);
     expect((m.pieces ?? []).map((p) => p.token)).toEqual([...CARTOGRAPHERS_PIECE_TOKENS]);
-    expect((m.rules ?? []).map((r) => r.id)).toEqual([GUILD_HAND_RULE_ID, PENCIL_RULE_ID]);
-    expect((m.foes ?? []).map((f) => f.id)).toEqual([
-      'cartographers:surveyor',
-      'cartographers:eraser',
-    ]); // CG-5 (CG-6 adds the tracer)
+    expect((m.rules ?? []).map((r) => r.id)).toEqual([
+      GUILD_HAND_RULE_ID,
+      PENCIL_RULE_ID,
+      TRACER_RULE_ID, // CG-6: the tracer's memory
+    ]);
+    expect((m.foes ?? []).map((f) => f.id)).toEqual(
+      [...CARTOGRAPHERS_FOE_IDS].map((id) => `cartographers:${id}`),
+    ); // CG-5, CG-6
     expect(m.offerKinds ?? []).toEqual([]);
     expect(m.trip).toBeUndefined();
     expect(m.heart).toBeUndefined(); // CG-10, through frame.ts's placeFrame
@@ -157,11 +161,7 @@ describe('CG-4 drawn-in reinforcements', () => {
 });
 
 // ── Pack C: the guild's hands ────────────────────────────
-// CG-5 passes in hands.test.ts under its plan titles.
-describe('CG-6 tracer', () => {
-  it.todo("CG-6: strikes land on the mirrors of last turn's damaged tiles");
-  it.todo('CG-6: no strike after a turn with no damage');
-});
+// CG-5 and CG-6 (the surveyor, the eraser, the tracer) pass in hands.test.ts under their plan titles.
 
 // ── Pack D: the Registrar ────────────────────────────────
 describe('CG-7 the Registrar', () => {

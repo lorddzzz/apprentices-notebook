@@ -1,14 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { ENEMIES } from '$data';
 import { CARTOGRAPHERS_FOE_TOKENS } from '$data/districts/cartographers/types';
-import { type BattleState, type GameEvent, tileAt } from '$engine';
+import { type BattleState, type GameEvent, memberById, tileAt } from '$engine';
 import { enemyPhase } from '$engine/ai';
 import { behaviourPreview } from '$engine/behaviours';
 import { KIT } from '$engine/districts';
-import { CARTOGRAPHERS_FOES, ERASER_FOE, SURVEYOR_FOE } from '$engine/districts/cartographers/foes';
+import {
+  CARTOGRAPHERS_FOES,
+  ERASER_FOE,
+  SURVEYOR_FOE,
+  TRACER_FOE,
+  TRACER_RULE,
+  TRACER_RULE_ID,
+} from '$engine/districts/cartographers/foes';
 import { BLANK_PIECE, PENCIL_PIECE } from '$engine/districts/cartographers/types';
+import { listRules } from '$engine/rules';
 import type { EnemyUnit, Unit } from '$engine/types';
-import { act, board, draft, parseLabel } from '../../scenarios/harness';
+import { act, board, draft, parseLabel, withLattices } from '../../scenarios/harness';
 
 /**
  * CG-5 and CG-6: the guild's hands (cartographers-plan P7-P9). Tokens: `A` the surveyor, `F` the
@@ -37,11 +45,13 @@ const clone = (s: BattleState): BattleState => structuredClone(s);
 
 describe('registration', () => {
   it('the three hands are foes on the behaviour registry, with their tokens and sizes', () => {
-    expect(CARTOGRAPHERS_FOES).toEqual([SURVEYOR_FOE, ERASER_FOE]);
+    expect(CARTOGRAPHERS_FOES).toEqual([SURVEYOR_FOE, ERASER_FOE, TRACER_FOE]);
     for (const f of CARTOGRAPHERS_FOES) expect(KIT.foes[f.id]).toBe(f);
+    expect(KIT.rules[TRACER_RULE_ID]).toBe(TRACER_RULE);
     expect(ENEMIES.surveyor).toMatchObject({ token: 'A', move: 2, hp: 3, attack: null });
     expect(ENEMIES.eraser).toMatchObject({ token: 'F', move: 2, hp: 3, attack: null });
-    for (const [id, token] of Object.entries(CARTOGRAPHERS_FOE_TOKENS).slice(0, 2)) {
+    expect(ENEMIES.tracer).toMatchObject({ token: 'I', move: 1, hp: 4, attack: null });
+    for (const [id, token] of Object.entries(CARTOGRAPHERS_FOE_TOKENS)) {
       expect(ENEMIES[id as keyof typeof ENEMIES].token).toBe(token);
       expect(ENEMIES[id as keyof typeof ENEMIES].behaviour).toBe(`cartographers:${id}`);
       expect(ENEMIES[id as keyof typeof ENEMIES].elite).toBe(false);
@@ -190,3 +200,81 @@ describe('CG-5 the eraser', () => {
     expect(telegraphOf(foe(pencil, 'eraser'))).toBeNull(); // pencil under a foe is not its aim
   });
 });
+
+describe('CG-6 the tracer', () => {
+  // D at F1 is the apprentice beside the tracer (so the one it binds); S waits at C1, the mirror
+  // (x -> 6 - x) of E1, where D's bolt first lands on the dummy.
+  const ROW = 'd . S . d D I';
+  const room = (): BattleState => {
+    const s = withLattices(ROW, { draughtsman: 'Strike Bolt<' });
+    s.rules = listRules(s, [TRACER_RULE_ID]);
+    return s;
+  };
+
+  it('binds the nearest apprentice at the start and shows a tether before any strike', () => {
+    const s = room();
+    expect(s.rules?.[TRACER_RULE_ID]).toMatchObject({
+      bound: { [foe(s, 'tracer').id]: 'draughtsman' },
+    });
+    expect(telegraphOf(foe(replan(s), 'tracer'))).toEqual({
+      label: 'tether',
+      tiles: [],
+      units: ['draughtsman'],
+    });
+  });
+
+  it("CG-6: strikes land on the mirrors of last turn's damaged tiles", () => {
+    const s = room();
+    const cast = act(s, {
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: memberById(s, 'draughtsman').spells[0]?.key ?? '',
+      aim: { kind: 'dir', dir: 'left' },
+    });
+    const hit = ofType(cast.events, 'damage');
+    expect(hit.length).toBeGreaterThan(0);
+    expect(hit[0]).toMatchObject({ target: { at: at('E1') } });
+    // Round 1 ends: the tracer's round-1 intent had no record, so nothing strikes yet.
+    const dusk = act(cast.state, { type: 'endTurn' });
+    expect(
+      ofType(dusk.events, 'damage').filter((e) => e.type === 'damage' && e.source === 'Trace'),
+    ).toEqual([]);
+    // Round 2: it telegraphs the mirror of E1 (C1), where the stoker stands.
+    expect(dusk.state.round).toBe(2);
+    expect(telegraphOf(foe(dusk.state, 'tracer'))).toEqual({
+      label: 'trace',
+      tiles: [at('C1')],
+      units: ['draughtsman'],
+    });
+    expect(behaviourPreview(dusk.state)).toEqual([{ kind: 'tile', at: at('C1'), tone: 'warn' }]);
+    const hp = unit(dusk.state, 'stoker').hp;
+    const strike = act(dusk.state, { type: 'endTurn' });
+    const traced = strike.events.filter((e) => e.type === 'damage' && e.source === 'Trace');
+    expect(traced).toMatchObject([{ amount: 1, target: { id: 'stoker', at: at('C1') } }]);
+    expect(unit(strike.state, 'stoker').hp).toBe(hp - 1);
+    // The record is spent: round 3 shows only the tether again.
+    expect(telegraphOf(foe(strike.state, 'tracer'))?.label).toBe('tether');
+  });
+
+  it('CG-6: no strike after a turn with no damage', () => {
+    const s = room();
+    const r1 = act(s, { type: 'endTurn' });
+    expect(telegraphOf(foe(r1.state, 'tracer'))).toMatchObject({ label: 'tether', tiles: [] });
+    const hp = unit(r1.state, 'stoker').hp;
+    const r2 = act(r1.state, { type: 'endTurn' });
+    expect(r2.events.filter((e) => e.type === 'damage' && e.source === 'Trace')).toEqual([]);
+    expect(unit(r2.state, 'stoker').hp).toBe(hp);
+  });
+
+  it('damage by someone else, or by a foe, is not copied', () => {
+    const s = room();
+    // The stoker has no lattice here; only the draughtsman is tethered, and only her damage counts.
+    const r = act(s, { type: 'endTurn' });
+    expect(tracerHits(r.state)).toEqual([]);
+  });
+});
+
+function tracerHits(s: BattleState): unknown[] {
+  const own = s.rules?.[TRACER_RULE_ID] as { hits?: unknown[] } | undefined;
+  return own?.hits ?? [];
+}
