@@ -26,6 +26,7 @@ import {
   type Unit,
   type UnitId,
 } from '$engine';
+import { HAND_EVENT } from '$engine/districts/seam';
 import type { Json, OutCause } from '$engine/districts/types';
 import { liveBridges, projectBridge } from '../ui/districts/bridges/board';
 import { liveFoundry } from '../ui/districts/foundry/state';
@@ -113,6 +114,8 @@ export interface BoardView {
   units: UnitView[];
   round: number;
   phase: BattlePhase;
+  /** Playback only: a Seam hand is landing its kind (no origin, so brass it writes is born). */
+  handWrites?: boolean;
 }
 
 /** The piece on a tile as drawn; an id the registry no longer knows still shows (fallback glyph). */
@@ -450,6 +453,27 @@ function beginPlayerPhase(v: BoardView): void {
 const nextLineage = (v: BoardView): number =>
   1 + Math.max(-1, ...v.units.map((u) => u.lineage ?? -1));
 
+/** The Seam's hands: a hand that writes has spent its telegraph (MIX-F1). */
+function projectSeam(v: BoardView, e: GameEvent): void {
+  if (!isDistrictEvent(e)) return;
+  if (e.type === HAND_EVENT && e.unit) {
+    patchUnit(v, e.unit.id, (u) => {
+      u.intent = null;
+    });
+    v.handWrites = true;
+  }
+}
+
+/** The events that end a hand's landings: the next foe acts or the phase turns. */
+const HAND_DONE: ReadonlySet<GameEvent['type']> = new Set([
+  'phase',
+  'round',
+  'telegraph',
+  'idle',
+  'attack',
+  'cast',
+]);
+
 /**
  * Applies one event to a copy of the view. Patches what the event states, and what the engine does
  * silently around it that the log makes certain (a burst's fire, a hold's countdown);
@@ -459,6 +483,7 @@ const nextLineage = (v: BoardView): number =>
  */
 export function projectWith(view: BoardView, e: GameEvent): BoardView {
   const v = cloneView(view);
+  if (v.handWrites && HAND_DONE.has(e.type)) delete v.handWrites;
   switch (e.type) {
     case 'moved':
     case 'push':
@@ -594,7 +619,7 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'collared':
       patchUnit(v, e.unit.id, (u) => {
         u.collar = true;
-        u.born = false; // only a unit's start puts brass on it without a cast
+        u.born = !!v.handWrites && e.origin == null; // a hand's brass has no owner
       });
       break;
     case 'markSpread': {
@@ -761,6 +786,8 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
     case 'unharmed':
     case 'lands':
     case 'stopped':
+    case 'afterglowSpent': // the layer's own drift/decay events already carry the state
+    case 'afterglowDrifts':
     case 'miss':
     case 'foeBursts':
     case 'trace':
@@ -793,6 +820,7 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
       // A district event changes nothing the view draws (its module's rules changed the state),
       // except the bridges' stone: a worn, mended, laid or fallen tile (BR-14).
       if (isDistrictEvent(e)) {
+        projectSeam(v, e);
         projectBridge(v, e);
         break;
       }

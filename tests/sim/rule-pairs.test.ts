@@ -266,17 +266,8 @@ function pairOutcome(a: Feature, b: Feature): Outcome {
   return merged;
 }
 
-/**
- * Pairs known to fail today, filed as a task in the Pack F report (not fixed here): on an end of
- * turn with the Marginalia on the board, the projected log leaves a stale telegraph on its intent
- * (engine: null) or misses a `born` flag the engine set. Remove each entry when the fix lands.
- */
-const KNOWN_FAILS: Readonly<Record<string, readonly ('throws' | 'cap' | 'projection')[]>> = {
-  'boil-over x seam hands': ['projection'],
-  'bells x seam hands': ['projection'],
-  'writs x seam hands': ['projection'],
-  'current x seam hands': ['projection'],
-};
+/** Pairs known to fail today (MIX-F1 emptied it: the Seam hands project their intent and born flag). */
+const KNOWN_FAILS: Readonly<Record<string, readonly ('throws' | 'cap' | 'projection')[]>> = {};
 const expectedFail = (a: Feature, b: Feature, what: 'throws' | 'cap' | 'projection') =>
   KNOWN_FAILS[`${a.name} x ${b.name}`]?.includes(what) ?? false;
 

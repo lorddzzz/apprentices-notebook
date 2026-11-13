@@ -793,6 +793,21 @@ export const LINES: readonly LineDef[] = [
     district: 'canals',
     text: 'Afterglow lingers on a compound only: a plain cloud it touches lasts its usual rounds.',
   },
+  // FU-5: Afterglow's extra round spent, and a glowing stain carried by the current (audit Af2, Af3)
+  {
+    id: 'afterglow:spent',
+    subject: 'afterglow',
+    meets: 'spent',
+    district: 'canals',
+    text: "Afterglow's extra round is spent once, at the first round end the state would have faded; a second Afterglow adds one more.",
+  },
+  {
+    id: 'afterglow:water',
+    subject: 'afterglow',
+    meets: 'water',
+    district: 'canals',
+    text: 'A stain the current carries keeps its Afterglow.',
+  },
   // BH-F1: Vat, Seep, Steep, Bath salt and Fog jar against the terrain (footnotes audit, bathhouses section)
   {
     id: 'vat:unit',

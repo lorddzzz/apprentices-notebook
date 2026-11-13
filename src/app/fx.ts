@@ -319,6 +319,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
     case 'idle':
     case 'telegraph':
     case 'trace':
+    case 'afterglowSpent':
+    case 'afterglowDrifts':
     case 'stateFades':
     case 'markSpent':
     case 'repeated':
