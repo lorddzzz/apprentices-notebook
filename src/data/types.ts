@@ -529,6 +529,12 @@ export type LootTableId =
   | 'foundry:heart'
   | 'bridges:sound'
   | 'bridges:crumbling'
+  | 'cartographers:room1'
+  | 'cartographers:room2'
+  | 'cartographers:room3'
+  | 'cartographers:room4'
+  | 'cartographers:room5'
+  | 'cartographers:heart'
   | 'lowerSeam';
 /** One of a depth's boards. The trip seed picks one (`variantFor`); the Crossroads shows `name`. */
 export interface EncounterVariant {

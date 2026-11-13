@@ -13,6 +13,8 @@ export const CARTOGRAPHERS_KIT: DistrictData = {
   guild: 'The Cartographers',
   edge: 'wall',
   rooms: [],
+  ret: { kind: 'until', after: 2 },
+  checkpoint: { after: 2, name: 'the quiet doorway' },
   tokens: CARTOGRAPHERS_TOKENS,
   tables: CARTOGRAPHERS_TABLE_IDS,
   gate: { kind: 'drawing' },

@@ -1,7 +1,8 @@
 import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
 import { CARTOGRAPHERS_REGISTERED_PIECES } from './cartographers/pieces';
+import { BOARD_GUARANTEE, CARTOGRAPHERS_TRIP } from './cartographers/trip';
 import { CARTOGRAPHERS_EVENT_TYPES, type CartographersEventType } from './cartographers/types';
-import type { DistrictEventDef, DistrictModule } from './types';
+import type { DistrictEventDef, DistrictModule, TripShapeDef } from './types';
 
 export * from './cartographers/types';
 
@@ -33,4 +34,6 @@ export const CARTOGRAPHERS_MODULE: DistrictModule = {
   rules: [GUILD_HAND_RULE, PENCIL_RULE],
   pieces: CARTOGRAPHERS_REGISTERED_PIECES,
   events,
+  trip: CARTOGRAPHERS_TRIP as TripShapeDef,
+  offerContributors: [BOARD_GUARANTEE],
 };

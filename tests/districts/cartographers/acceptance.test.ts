@@ -52,8 +52,8 @@ describe('CG-W0 registration', () => {
     expect((m.pieces ?? []).map((p) => p.token)).toEqual([...CARTOGRAPHERS_PIECE_TOKENS]);
     expect((m.rules ?? []).map((r) => r.id)).toEqual([GUILD_HAND_RULE_ID, PENCIL_RULE_ID]);
     expect(m.foes ?? []).toEqual([]);
-    expect(m.offerKinds ?? []).toEqual([]);
-    expect(m.trip).toBeUndefined();
+    expect(m.offerKinds ?? []).toEqual([]); // bindEvent is the bridges' registration
+    expect(m.trip?.id).toBe('cartographers:doorway'); // CG-8
     expect(m.heart).toBeUndefined(); // CG-10, through frame.ts's placeFrame
     expect(m.bot).toBeUndefined(); // CG-10, through BotTerms
     expect(DISTRICT_UI.cartographers).toBeDefined();
@@ -181,18 +181,8 @@ describe('CG-7 the Registrar', () => {
 });
 
 // ── Pack E: trip shape, loot and threshold ───────────────
-describe('CG-8 trip shape and loot', () => {
-  it.todo('CG-8: no return after the doorway');
-  it.todo('CG-8: the checkpoint is recorded on a win and a wipe');
-  it.todo('CG-8: a wipe in room 5 restarts at the doorway');
-  it.todo('CG-8: each treasure is reachable from rooms 1-3');
-  it.todo('CG-8: dies is granted once on banking');
-});
-
-describe('CG-11 redraft threshold', () => {
-  it.todo('CG-11: a scripted solve exists from every P with each available kit alone');
-  it.todo('CG-11: retry replays the same fates');
-});
+// CG-8 (trip shape and loot) lives in trip.test.ts, which mocks stub rooms through the kit.
+// CG-11 (the redraft threshold) lives in threshold.test.ts.
 
 // ── Pack F: rooms ────────────────────────────────────────
 describe('CG-9 rooms 1-3', () => {
