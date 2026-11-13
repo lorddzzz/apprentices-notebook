@@ -693,6 +693,9 @@ export function decayStates(ctx: Ctx): void {
     }
     if (l.afterglow) {
       delete l.afterglow;
+      withLine(ctx, 'afterglow:spent', () =>
+        emit(ctx, { type: 'afterglowSpent', at: coordOf(s, i) }),
+      );
       return;
     }
     l.rounds--;

@@ -31,11 +31,6 @@ export const MARGINALIA_BEHAVIOUR: KitId = 'seam:marginalia';
 export const HAND_EVENT = 'seam:hand';
 /** The Marginalia fell and its familiars with it: `data.count` familiars. */
 export const FAMILIARS_FALL_EVENT = 'seam:familiarsFall';
-/**
- * A hand's brass left a collar with no owner on units (`born`): `data.units`, the ids that now hold
- * one. The view reads it, for `collared` alone cannot say whose brass it is (MIX-F1).
- */
-export const HAND_BORN_EVENT = 'seam:handBorn';
 export interface HandData {
   kind: KindId;
   tiles: Coord[];
@@ -112,16 +107,7 @@ export function handScript(kind: KindId): ScriptStep {
       const tiles = tg.tiles.filter((c) => inBoard(ctx.s, c)).map((c) => ({ x: c.x, y: c.y }));
       const ev: DistrictEvent = { type: HAND_EVENT, unit: ref(e), data: { kind, tiles } };
       emit(ctx, ev);
-      const bornBefore = new Set(ctx.s.units.filter((u) => u.collar === null).map((u) => u.id));
       for (const at of tiles) landKindFree(ctx, kind, { kind: 'tile', at });
-      const born = ctx.s.units.filter((u) => u.collar === null && !bornBefore.has(u.id));
-      if (born.length > 0) {
-        emit(ctx, {
-          type: HAND_BORN_EVENT,
-          unit: ref(e),
-          data: { units: born.map((u) => u.id) },
-        } satisfies DistrictEvent);
-      }
     },
     describe: (tg) => `${handVerb(kind)} on ${tilesText(tg.tiles)}`,
   };
@@ -165,7 +151,6 @@ export const SEAM_EVENTS: readonly DistrictEventDef[] = [
       return `the Marginalia ${verb} on ${tilesText(d.tiles)}`;
     },
   },
-  { type: HAND_BORN_EVENT, describe: () => 'the brass it wrote has no owner' },
   {
     type: FAMILIARS_FALL_EVENT,
     describe: (e) => {

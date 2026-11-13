@@ -69,6 +69,8 @@ export function durationOf(e: GameEvent): number {
     case 'foeBursts':
     case 'summon':
     case 'flare':
+    case 'afterglowSpent':
+    case 'afterglowDrifts':
     case 'stateFades':
     case 'stunned':
     case 'held':

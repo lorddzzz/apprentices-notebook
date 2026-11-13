@@ -167,6 +167,15 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
       'skid plate bursts at B1',
     ],
   ],
+  afterglowSpent: [
+    [{ type: 'afterglowSpent', at: at(2, 0) }, "Afterglow's extra round is spent at C1"],
+  ],
+  afterglowDrifts: [
+    [
+      { type: 'afterglowDrifts', from: at(0, 0), to: at(1, 0) },
+      'the Afterglow drifts from A1 to B1',
+    ],
+  ],
   stateFades: [[{ type: 'stateFades', tiles: [at(2, 0), at(3, 0)] }, 'the board fades at C1, D1']],
   spreadState: [
     [{ type: 'spreadState', from: at(1, 1), to: [at(1, 0)] }, 'it spreads from B2 to B1'],

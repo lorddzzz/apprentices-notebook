@@ -1,6 +1,6 @@
 import { objectArrives, relocateAll, unitTraits } from './arrival';
 import { cloneData } from './clone';
-import { type Ctx, emit, ref } from './ctx';
+import { type Ctx, emit, ref, withLine } from './ctx';
 import { type Coord, neighbors4, sameCoord, step } from './grid';
 import { blocksUnits, coordOf, inBoard, isAlive, isFire, isPlate, tileAt } from './queries';
 import type { BattleState, Layer, Unit, UnitId } from './types';
@@ -25,7 +25,10 @@ const carried = (u: Unit): boolean =>
   !unitTraits(u).some((t) => t === 'flies' || t === 'swims' || t === 'anchored');
 
 /** A float that moved; `placed` is the state that came to rest on `to` (it may be lost). */
-type FloatMove = DriftPreview['floats'][number] & { placed: Layer['id'] | null };
+type FloatMove = DriftPreview['floats'][number] & {
+  placed: Layer['id'] | null;
+  glows: boolean;
+};
 
 /** Moves the floats of `s` one tile; returns what moved (reading order of the sources). */
 function driftFloats(s: BattleState): FloatMove[] {
@@ -59,7 +62,7 @@ function driftFloats(s: BattleState): FloatMove[] {
       dest.state = cargo;
       placed = cargo.id;
     }
-    return { from: m.from, to: m.to, placed };
+    return { from: m.from, to: m.to, placed, glows: !!cargo?.afterglow };
   });
 }
 
@@ -135,6 +138,12 @@ export function drift(ctx: Ctx): void {
         cause: 'drift',
         origin: null,
       });
+      if (f.glows) {
+        const to = { ...f.to };
+        withLine(ctx, 'afterglow:water', () =>
+          emit(ctx, { type: 'afterglowDrifts', from: { ...f.from }, to }),
+        );
+      }
     }
   }
   const moves = resolved.map((m) => ({ unit: m.unit.id, from: m.from, to: m.to, path: [m.to] }));

@@ -189,6 +189,7 @@ export type Meets =
   | 'dry' // a solvent with nothing to carry to (Bath salt outside a cloud)
   | 'network'
   | 'flier' // a flying unit (AH: a pulled flier never falls)
+  | 'spent' // Afterglow's extra round, used up at a round end (FU-5)
   | 'spread' // a mark spreading to its neighbours (FN-1A A1: `ink:spread`)
   | 'shot' // a foe's line shot or spit (FN-1A A1: `steam:shot`, `brass:shot`)
   | 'limit' // a refusal at a rule's limit (FN-1A A1: Margin's limit of 5)

@@ -171,6 +171,8 @@ export type GameEvent = (
   | { type: 'washed'; at: Coord; was: CompoundId; now: StateId }
   | { type: 'burst'; burst: BurstId; at: Coord; tiles: Coord[]; units: UnitRef[] }
   | { type: 'stateFades'; tiles: Coord[] }
+  | { type: 'afterglowSpent'; at: Coord }
+  | { type: 'afterglowDrifts'; from: Coord; to: Coord }
   | { type: 'spreadState'; from: Coord; to: Coord[] }
   | ({ type: 'push'; dir: Dir; slid: number } & RelocationFields)
   /** `at` is the tile struck (the plate, wall or unit), `dir` the heading of the push. */
@@ -365,6 +367,10 @@ export function describe(e: GameEvent): string | null {
       return `the ${spaced(e.was)} at ${label(e.at)} washes out to ${e.now}`;
     case 'burst':
       return `${spaced(e.burst.replace('page:', ''))} bursts at ${label(e.at)}${e.units.length ? `, hitting ${e.units.map(who).join(', ')}` : ''}`;
+    case 'afterglowSpent':
+      return `Afterglow's extra round is spent at ${label(e.at)}`;
+    case 'afterglowDrifts':
+      return `the Afterglow drifts from ${label(e.from)} to ${label(e.to)}`;
     case 'stateFades':
       return `the board fades at ${list(e.tiles)}`;
     case 'spreadState':

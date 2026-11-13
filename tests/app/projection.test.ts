@@ -9,13 +9,13 @@ import {
   isSilent,
   scenarioSpec,
 } from '$engine';
+import { runDraft } from '$engine/ctx';
+import { KIT } from '$engine/districts/kit';
 import { fallbackLattices } from '../../src/app/lab';
 import { buildSteps } from '../../src/app/playback';
 import { type BoardView, projectWith, viewOf, withoutIntents } from '../../src/app/view';
-import { KIT } from '$engine/districts/kit';
-import { runDraft } from '$engine/ctx';
-import { board } from '../scenarios/harness';
 import { runs as allRuns } from '../scenarios/engine-suites';
+import { board } from '../scenarios/harness';
 
 /**
  * The drift guard: playback projects events onto a view; at the end it must agree with the
@@ -203,6 +203,8 @@ const EVENT_TYPE_SET: Record<GameEvent['type'], true> = {
   washed: true,
   burst: true,
   stateFades: true,
+  afterglowSpent: true,
+  afterglowDrifts: true,
   spreadState: true,
   push: true,
   crush: true,
@@ -296,7 +298,7 @@ describe('the guard sees the whole union', () => {
 describe('MIX-F1: the Seam hands', () => {
   const OPEN = '. . . . . .\n. . S . . .\n. . . . . .\n. . . . . G';
 
-  test('MIX-F1: a seam hand\'s telegraph projects the intent the engine holds', () => {
+  test("MIX-F1: a seam hand's telegraph projects the intent the engine holds", () => {
     let s = board(OPEN);
     for (let i = 0; i < 8 && s.phase === 'player'; i++) {
       const r = applyAction(s, endTurn);
