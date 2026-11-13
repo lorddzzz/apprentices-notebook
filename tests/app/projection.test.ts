@@ -12,6 +12,9 @@ import {
 import { fallbackLattices } from '../../src/app/lab';
 import { buildSteps } from '../../src/app/playback';
 import { type BoardView, projectWith, viewOf, withoutIntents } from '../../src/app/view';
+import { KIT } from '$engine/districts/kit';
+import { runDraft } from '$engine/ctx';
+import { board } from '../scenarios/harness';
 import { runs as allRuns } from '../scenarios/engine-suites';
 
 /**
@@ -287,6 +290,36 @@ describe('the guard sees the whole union', () => {
     ];
     const missing = EVENT_TYPES.filter((t) => !seen.has(t) && !notYet.includes(t));
     expect(missing).toEqual([]);
+  });
+});
+
+describe('MIX-F1: the Seam hands', () => {
+  const OPEN = '. . . . . .\n. . S . . .\n. . . . . .\n. . . . . G';
+
+  test('MIX-F1: a seam hand\'s telegraph projects the intent the engine holds', () => {
+    let s = board(OPEN);
+    for (let i = 0; i < 8 && s.phase === 'player'; i++) {
+      const r = applyAction(s, endTurn);
+      expectProjects(viewOf(s), r.events, r.state);
+      s = r.state;
+    }
+  });
+
+  test('MIX-F1: a hand that writes brass projects the unowned collar as born', () => {
+    const s = board(OPEN);
+    const handStep = KIT.steps['seam:write:brass'];
+    const r = runDraft(s, (ctx) => {
+      const g = ctx.s.units.find((u) => u.kind === 'enemy' && u.def === 'marginalia');
+      if (g?.kind !== 'enemy' || !handStep) throw new Error('no hand');
+      const tg = handStep.plan(ctx.s, g);
+      if (!tg) throw new Error('no plan');
+      handStep.act(ctx, g, tg);
+    });
+    expect(viewOf(r.state).units.some((u) => u.born && u.id !== 'marginalia-1')).toBe(true);
+    const { got, want } = projected(viewOf(s), r.events, r.state);
+    expect(got.units.map((u) => ('born' in u ? u.born : null))).toEqual(
+      want.units.map((u) => ('born' in u ? u.born : null)),
+    );
   });
 });
 

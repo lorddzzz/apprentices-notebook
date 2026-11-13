@@ -27,6 +27,7 @@ import {
   type UnitId,
 } from '$engine';
 import type { Json, OutCause } from '$engine/districts/types';
+import { HAND_BORN_EVENT, HAND_EVENT } from '$engine/districts/seam';
 import { liveBridges, projectBridge } from '../ui/districts/bridges/board';
 import { liveFoundry } from '../ui/districts/foundry/state';
 
@@ -457,6 +458,23 @@ const nextLineage = (v: BoardView): number =>
  * state at the end. Every event in the union is named here, so a new one fails to compile until
  * it is considered.
  */
+/** The Seam's hands: a hand that writes has spent its telegraph, and brass it wrote may be unowned (MIX-F1). */
+function projectSeam(v: BoardView, e: GameEvent): void {
+  if (!isDistrictEvent(e)) return;
+  if (e.type === HAND_EVENT && e.unit) {
+    patchUnit(v, e.unit.id, (u) => {
+      u.intent = null;
+    });
+  } else if (e.type === HAND_BORN_EVENT) {
+    const ids = (e.data as { units?: string[] } | undefined)?.units ?? [];
+    for (const id of ids) {
+      patchUnit(v, id, (u) => {
+        u.born = true;
+      });
+    }
+  }
+}
+
 export function projectWith(view: BoardView, e: GameEvent): BoardView {
   const v = cloneView(view);
   switch (e.type) {
@@ -793,6 +811,7 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
       // A district event changes nothing the view draws (its module's rules changed the state),
       // except the bridges' stone: a worn, mended, laid or fallen tile (BR-14).
       if (isDistrictEvent(e)) {
+        projectSeam(v, e);
         projectBridge(v, e);
         break;
       }
