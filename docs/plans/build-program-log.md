@@ -58,6 +58,8 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | MIX-F1, FU-5 | b5dbc24, d24b7a5 | Sonnet medium | 0 | ~8% | seam hand clears its telegraph in the projection, transient `handWrites` flag for born brass; `afterglowSpent`, `afterglowDrifts`, lines `afterglow:spent`/`water`; `Meets` gains `spent`; draft pairs for cloud and water only |
 | CG-3, CG-4 | 80bc1d9, 2b0a021, 127fb1a | Sonnet high | 0 | ~14% | Erase/Draw on paper, outlines ink in; line ids `erase:unit`, `erase:empty`, `draw:drop`, `quicksilver:drop` (new `Meets` members crash tsc: Map maximum size exceeded); Shove at empty pencil now legal; resumed after crash |
 | EN-9b (partial) | 913a793, 2bffecc | Sonnet medium | 1 | ~12% | `mender:unit` stamped (golden-neutral); `mender:diagonal`/`dusk` rows removed, `steam:unit`/`brass:unit` rows pending (stamping changes the five Seam goldens); FN-M2 draft written; resumed after crash |
+| C3-H | f3c4ee9, fbc3451 | Sonnet medium | 0 | ~6% | `markFooting`/`setMortar` named api writes with optional module hooks; `footnoteTouch` and the wear `shove` branch removed; `brinkLine` reads live state (flow.ts); mortar path has no dedicated no-shove test |
+| CI-3 | (this commit) | Sonnet medium (orchestrator) | 0 | ~1% | red CI on 9ba0a5f: `tsc --noEmit` crashed (Map maximum size exceeded, `Meets` union); removed the unused `diagonal` and `dusk` members; tsc clean |
 
 ## Usage
 
@@ -66,3 +68,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-13 | 33 | 65 | wave 14 merged (Q, CG-A, BF-J); fast gate green on main; wave 15 CG-C, CG-E, P running |
 | 2026-11-13 | 64 | 69 | wave 15 merged (CG-C, CG-E, P); fast gate green (8190); CI green on 1239b6b; wave 16 CG-B, L running |
 | 2026-11-13 | 86 | 72 | wave 16 merged (CG-B, L partial); fast gate green (8216); CI green on 7cfc883; H3 next |
+| 2026-11-13 | 90 | 73 | H3 merged; CI red on 9ba0a5f (tsc crash) fixed in the next commit; Wrap zone, no new pack |

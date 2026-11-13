@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-13: waves 14–16 merged (L partial), wave 17: H3 running; CG-D waits for a window below Narrow. **Next window: routine.**
+**State:** routine window 2026-11-13: waves 14–16 merged (L partial), H3 merged. **CI red on 9ba0a5f was a `tsc --noEmit` crash; fixed (see CI-3), read the next run first.** CG-D waits for the next window. **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -12,7 +12,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 ## Next
 0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
-1. **Wave 17:** H3 (running) · CG-D (Strong, next window). Then CG-F, CG-I → CG-G, CG-H.
+1. **Next window (after reset):** read CI first (CI-3 fix push). Then CG-D (Strong) · CG-F (needs CG-D) ; CG-I (after L, which is merged) can run beside CG-D. Then CG-G, CG-H.
 2. **`src/data/lines.ts` is shared by named blocks** in these waves (briefs' order notes): a merge conflict there is row appends; keep both sides. Same for the cartographers' acceptance file.
 3. **Next design window** (when the routine windows reach it, or three reviews pile up): approve the drafts from P (Afterglow pairs, canals.md), L (`steam:unit`/`brass:unit` pairs, seam.md) and CG-I (cartographers.md, CG-G3), then brief FU-5b, FN-M2b and CG-J; EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft.
 4. Hard edges: EN-S2 → EN-G0 → ending Pack E · CG-A → CG-B, CG-C, CG-E · BF-J → CG-B, P, L · P → L · CG-B, CG-C → CG-D · CG-B..E → CG-F → CG-G · CG-D → CG-H · BL-111 → EN-4.
@@ -20,11 +20,11 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| H3 | C3 hygiene | Sonnet medium | (see worktree list) | running |
+| none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
 - **Golden decision (from L):** stamping a line on an event the cast already emits adds a `line` field and changes the five Seam goldens (seam-win-6/8/9, seam-wipe-23/7) because golden.test compares `line`. Choose: re-record those goldens once, or make the golden test ignore `line`; then restore the L stamps (`git show 913a793` has the diagonal/dusk code).
-- **`LineId` limit (from CG-B):** adding even three `Meets` members crashes tsc/svelte-check (Map maximum size exceeded). Needs a narrower `LineId` before any pack adds `Meets` members.
+- **`LineId` limit (from CG-B, confirmed by CI-3):** `pnpm check:fast` (svelte-check) hides it but the full gate's `tsc --noEmit` crashes (Map maximum size exceeded) when `Meets` grows: adding 'diagonal' and 'dusk' broke CI. Any pack adding `Meets` members must run `pnpm exec tsc --noEmit`; the real fix is a narrower `LineId`.
 - **Pencil Shove (from CG-B):** a basic Shove at an empty pencil tile is legal and does nothing (`strikable` in basicActions.ts); fix to ask for specific strike kinds. Graphite `undoBoard` can restore a state onto blank paper: CG-F1 audit.
 - (F7, M and C3 recorded as accepted; BF-FG inputs decided in DESIGN §11 2026-11-12e; D5's numbers wait for EN-G0 below.)
 
