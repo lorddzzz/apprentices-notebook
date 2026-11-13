@@ -7,7 +7,7 @@ import { type Coord, type Dir, neighbors4, sameCoord } from './grid';
 import { habitOf, habitRule } from './habits';
 import { guardHarm } from './harm';
 import type { Hook } from './hooks';
-import { cloudNet } from './networks';
+import { cloudNet, cloudPass, stampGap } from './networks';
 import { findUnit, inBoard, isAlive, isCloud, tileAt, unitAt } from './queries';
 import { runStep, snapshotOf } from './resolve';
 import { trickBeforeHarm } from './rivals/tricks';
@@ -227,7 +227,9 @@ export function spreadFrom(ctx: Ctx, unit: Unit, now = false): void {
   const to: Unit[] = [];
   // The owner's mender: a mark of their cast also spreads across one empty tile (P19).
   const maker = mark.origin ? findUnit(ctx.s, mark.origin.caster) : null;
-  const net = cloudNet(ctx.s, unit.pos, false, habitRule(maker).networkGap ?? 0);
+  const gap = habitRule(maker).networkGap ?? 0;
+  const net = cloudNet(ctx.s, unit.pos, false, gap);
+  stampGap(ctx, net, cloudPass(ctx.s), gap, 'Ink');
   // Ink margin: `kin` keeps to the bearer's side, `seep` adds the units beside the cloud, and
   // `deep` also reaches a marked unit (deepening it).
   const cells = hasFootnote(ctx, 'ink-spread-seep')

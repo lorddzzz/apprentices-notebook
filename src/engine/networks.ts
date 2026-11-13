@@ -1,4 +1,5 @@
 import type { CompoundId, StateId } from '$data';
+import { type Ctx, emit, withLine } from './ctx';
 import { byReadingOrder, type Coord, key, neighbors4 } from './grid';
 import { blocksUnits, flood, inBoard, isCloud, isPlate, tileAt, unitAt } from './queries';
 import type { BattleState } from './types';
@@ -111,4 +112,53 @@ export function sameStateNet(s: BattleState, at: Coord, gap = 0): Coord[] {
   const id = tileAt(s, at).state?.id;
   if (!id) return [];
   return floodGap(s, at, (c) => tileAt(s, c).state?.id === id, gap);
+}
+
+// ── The mender's refusals (EN-9b) ───────────────────────
+
+/** The membership tests the nets use, so a refusal is read against the same rule. */
+export const cloudPass =
+  (s: BattleState, bankStops = false) =>
+  (c: Coord): boolean =>
+    isCloud(tileAt(s, c)) && !(bankStops && tileAt(s, c).state?.id === 'bank');
+export const oilPass =
+  (s: BattleState) =>
+  (c: Coord): boolean => {
+    const l = tileAt(s, c).state;
+    return !!l && OIL.has(l.id);
+  };
+export const brassPass =
+  (s: BattleState) =>
+  (c: Coord): boolean =>
+    isBrass(s, c);
+export const statePass =
+  (s: BattleState, id: StateId | CompoundId | undefined) =>
+  (c: Coord): boolean =>
+    id !== undefined && tileAt(s, c).state?.id === id;
+
+/**
+ * After a mender's net is read: says (as a miss under `mender:unit` / `mender:diagonal`) when
+ * a member of the same kind stands out of it only because a unit sits in the gap or it lies
+ * diagonal. `gap` 0 (everyone else) is silent.
+ */
+export function stampGap(
+  ctx: Ctx,
+  net: readonly Coord[],
+  pass: (c: Coord) => boolean,
+  gap: number,
+  who: string,
+): void {
+  if (gap <= 0 || net.length === 0) return;
+  const s = ctx.s;
+  const inNet = new Set(net.map(key));
+  const out = (c: Coord): boolean => inBoard(s, c) && pass(c) && !inNet.has(key(c));
+  let unit = false;
+  for (const c of net) {
+    for (const d of DIRS) {
+      const gapTile = { x: c.x + d.x, y: c.y + d.y };
+      const beyond = { x: c.x + d.x * 2, y: c.y + d.y * 2 };
+      if (inBoard(s, gapTile) && !pass(gapTile) && unitAt(s, gapTile) && out(beyond)) unit = true;
+    }
+  }
+  if (unit) withLine(ctx, 'mender:unit', () => emit(ctx, { type: 'miss', source: who }));
 }
