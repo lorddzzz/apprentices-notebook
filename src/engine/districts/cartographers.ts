@@ -1,3 +1,4 @@
+import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
 import { CARTOGRAPHERS_REGISTERED_PIECES } from './cartographers/pieces';
 import { CARTOGRAPHERS_EVENT_TYPES, type CartographersEventType } from './cartographers/types';
 import type { DistrictEventDef, DistrictModule } from './types';
@@ -29,6 +30,7 @@ const events: readonly DistrictEventDef[] = CARTOGRAPHERS_EVENT_TYPES.map((type)
 
 export const CARTOGRAPHERS_MODULE: DistrictModule = {
   id: 'cartographers',
+  rules: [GUILD_HAND_RULE, PENCIL_RULE],
   pieces: CARTOGRAPHERS_REGISTERED_PIECES,
   events,
 };

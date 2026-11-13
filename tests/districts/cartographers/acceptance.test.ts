@@ -21,6 +21,7 @@ import {
   type GuildHandState,
   HAND_SALT,
   initGuildHand,
+  PENCIL_RULE_ID,
   type PencilData,
 } from '$engine/districts/cartographers/types';
 import type { Json } from '$engine/districts/types';
@@ -44,12 +45,12 @@ describe('CG-W0 registration', () => {
     expect(d.tables).toEqual([...CARTOGRAPHERS_TABLE_IDS]);
   });
 
-  it('the module declares events and the paper pieces: no foes, heart or bot yet', () => {
+  it('the module declares events, the paper pieces and the two rules: no foes, heart or bot yet', () => {
     const m = CARTOGRAPHERS_MODULE;
     expect(m.id).toBe('cartographers');
     expect((m.events ?? []).map((e) => e.type)).toEqual([...CARTOGRAPHERS_EVENT_TYPES]);
     expect((m.pieces ?? []).map((p) => p.token)).toEqual([...CARTOGRAPHERS_PIECE_TOKENS]);
-    expect(m.rules ?? []).toEqual([]);
+    expect((m.rules ?? []).map((r) => r.id)).toEqual([GUILD_HAND_RULE_ID, PENCIL_RULE_ID]);
     expect(m.foes ?? []).toEqual([]);
     expect(m.offerKinds ?? []).toEqual([]);
     expect(m.trip).toBeUndefined();
@@ -134,13 +135,6 @@ describe('CG-W0 contracts', () => {
 // ── Pack A: paper and the guild's hand ───────────────────
 describe('CG-1 paper pieces', () => {
   it.todo('CG-1: draw onto blank fails with draw:blank');
-});
-
-describe('CG-2 the guild hand', () => {
-  it.todo('CG-2: same seed gives the same plan');
-  it.todo('CG-2: preview equals the next round end');
-  it.todo('CG-2: a unit on a rub-due tile is erased at round end');
-  it.todo('CG-2: the strand guard never leaves a member without a standable neighbour');
 });
 
 // ── Pack B: runes on paper and outlines ──────────────────
