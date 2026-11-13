@@ -51,7 +51,8 @@ export type GoalExtension =
   | { rule: RuleId; key: string; atLeast?: number; atMost?: number }
   | { outOfRoom: string; cause?: 'fell' | 'erased' }
   | { happens: GameEvent['type']; unit: string; atLeast?: number }
-  | { noneDowned: true };
+  | { noneDowned: true }
+  | { reach: readonly string[]; byRound?: number };
 export type KitGoal = Goal | GoalExtension | { all: readonly KitGoal[] };
 /** A room's optional objective (P13): checked when the room ends. */
 export interface BonusObjective {
