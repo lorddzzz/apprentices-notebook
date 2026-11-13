@@ -24,7 +24,7 @@ import { sealedContext } from './jars';
 import { addInk, inkPricer, nameOf } from './lattice';
 import { asBindCarrier, attachBound, attachLayer, liftMark, snareBlot, spendMark } from './marks';
 import { landKind, netCollar } from './mix';
-import { brassNet, cloudNet, isBrass } from './networks';
+import { brassNet, brassPass, cloudNet, cloudPass, isBrass, stampGap } from './networks';
 import { findUnit, giftedIn, inBoard, isAlive, isCloud, members, tileAt, unitAt } from './queries';
 import { NEST_LIMIT } from './resolve';
 import { handlerFor } from './runes';
@@ -272,7 +272,9 @@ function networkTouching(ctx: Ctx, at: Coord, cloud = false, gap = 0): Coord[] {
   const seen = new Set<string>();
   const out: Coord[] = [];
   for (const seed of seeds) {
-    for (const c of cloud ? cloudNet(s, seed, false, gap) : brassNet(s, seed, false, gap)) {
+    const net = cloud ? cloudNet(s, seed, false, gap) : brassNet(s, seed, false, gap);
+    stampGap(ctx, net, cloud ? cloudPass(s) : brassPass(s), gap, 'Conduct');
+    for (const c of net) {
       const k = `${c.x},${c.y}`;
       if (seen.has(k)) continue;
       seen.add(k);

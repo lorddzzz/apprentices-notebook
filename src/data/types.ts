@@ -189,6 +189,8 @@ export type Meets =
   | 'dry' // a solvent with nothing to carry to (Bath salt outside a cloud)
   | 'network'
   | 'flier' // a flying unit (AH: a pulled flier never falls)
+  | 'diagonal' // the mender: two network tiles diagonal to each other never join (EN-9b)
+  | 'dusk' // the mender: the fire that spreads at round end never jumps a gap (EN-9b)
   | 'spent' // Afterglow's extra round, used up at a round end (FU-5)
   | 'spread' // a mark spreading to its neighbours (FN-1A A1: `ink:spread`)
   | 'shot' // a foe's line shot or spit (FN-1A A1: `steam:shot`, `brass:shot`)

@@ -35,7 +35,7 @@ import {
   step,
 } from './grid';
 import { habitRule } from './habits';
-import { cloudNet } from './networks';
+import { cloudNet, stampDusk } from './networks';
 import { kindOnPiece, pieceHoldsNothing, pieceHoldsOnlyClouds, strikePiece } from './pieces';
 import { push, wearPlate } from './push';
 import {
@@ -458,7 +458,7 @@ function brassOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
   } else if (u.mark) {
     withLine(ctx, line('brass', 'mark'), () => shackle(ctx, 'brass', u, flow));
   } else if (u.collar === false) {
-    collar(ctx, u, flow);
+    withLine(ctx, line('brass', 'unit'), () => collar(ctx, u, flow));
   }
 }
 
@@ -537,7 +537,11 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
     else brassOnUnit(ctx, unit, flow);
     return;
   }
-  landOnTile(ctx, kind, at, flow);
+  // `steam:unit`: Steam aimed at a unit lands on its tile, so the unit stands inside the cloud.
+  const bare = !tileAt(ctx.s, at).state && !tileAt(ctx.s, at).piece;
+  if (kind === 'steam' && bare && unitAt(ctx.s, at))
+    withLine(ctx, line('steam', 'unit'), () => landOnTile(ctx, kind, at, flow));
+  else landOnTile(ctx, kind, at, flow);
   if (kind === 'oil') catchIfHot(ctx, at, flow);
   // `steam-cap-scald`: a cloud landed on a unit's tile scalds that unit at round end.
   if (kind === 'steam' && hasFootnote(ctx, 'steam-cap-scald')) {
@@ -680,6 +684,13 @@ function spreadSteep(ctx: Ctx): void {
 export function decayStates(ctx: Ctx): void {
   const s = ctx.s;
   spreadSteep(ctx);
+  // The owner's mender never reaches round end: a fire they lit does not jump a gap at dusk.
+  s.tiles.forEach((t, i) => {
+    const origin = t.state?.origin;
+    if (t.state?.id !== 'fire' || !origin) return;
+    const maker = findUnit(s, origin.caster);
+    if ((habitRule(maker).networkGap ?? 0) > 0) stampDusk(ctx, coordOf(s, i));
+  });
   const faded: Coord[] = [];
   const burnt: Coord[] = []; // fire that left something behind (spark-slick-smoke, -soot)
   const dregs: Coord[] = []; // a short pool's blot (oil-slick-short)

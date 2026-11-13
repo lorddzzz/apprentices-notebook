@@ -951,16 +951,27 @@ export const LINES: readonly LineDef[] = [
     district: 'inkQuarter',
     text: 'Tally counts marks, collars, shackles, states and jars, not pieces: a writ, a seal or anything else standing on the tile is not counted.',
   },
-  // EN-9: the owner's mender. Rows for `mender:diagonal` and `mender:dusk` wait on `Meets`
-  // gaining 'diagonal' and 'dusk' (src/data/types.ts is out of EN-9's reach); the engine stamps
-  // none of these yet.
+  // EN-9: the owner's mender (the fine print of P19).
   {
     id: 'mender:unit',
     subject: 'mender',
     meets: 'unit',
     district: 'seam',
     text: 'A unit standing in the gap keeps the two sides apart: the gap must be empty ground.',
-    pending: true,
+  },
+  {
+    id: 'mender:diagonal',
+    subject: 'mender',
+    meets: 'diagonal',
+    district: 'seam',
+    text: 'The gap is a straight line: two tiles diagonal to each other never join.',
+  },
+  {
+    id: 'mender:dusk',
+    subject: 'mender',
+    meets: 'dusk',
+    district: 'seam',
+    text: "Fire spreading at dusk does not jump the gap; only the owner's own casts do.",
   },
   // BF-F1: Toll, Coil, Unison and Filings against the bells and the staff (footnotes audit, foundry
   // section). Text final; the engine stamps none of these yet (the audit names each site), so each
@@ -992,5 +1003,20 @@ export const LINES: readonly LineDef[] = [
     meets: 'bell',
     district: 'foundry',
     text: 'Filings comes back to the tile, not to what struck it: a bell is not struck again, so it does not ring, and a Clapper that walked off is missed.',
+  },
+  // FN-M2: Steam and Brass meeting a unit (footnotes audit Se2, Br1).
+  {
+    id: 'steam:unit',
+    subject: 'steam',
+    meets: 'unit',
+    district: 'seam',
+    text: 'Steam aimed at a unit lands on the tile under it: the unit stands inside the cloud at once.',
+  },
+  {
+    id: 'brass:unit',
+    subject: 'brass',
+    meets: 'unit',
+    district: 'seam',
+    text: 'Brass on a bare unit collars it: the unit counts as brass, joins the network and conducts.',
   },
 ];

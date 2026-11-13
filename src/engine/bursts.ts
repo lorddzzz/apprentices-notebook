@@ -17,7 +17,15 @@ import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule, ruleOf } from './habits';
 import { openJar, ownedByMember } from './jars';
 import { applyMark, liftMark, spendMark } from './marks';
-import { brassNet, cloudNet, oilNet } from './networks';
+import {
+  brassNet,
+  brassPass,
+  cloudNet,
+  cloudPass,
+  oilNet,
+  oilPass,
+  stampGap,
+} from './networks';
 import { strikePiece } from './pieces';
 import { push } from './push';
 import { blocksShots, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
@@ -327,7 +335,9 @@ function ignite(
   marks = false,
 ): void {
   const s = ctx.s;
-  const net = oilNet(s, at, ruleOf(flow?.habit).networkGap ?? 0);
+  const gap = ruleOf(flow?.habit).networkGap ?? 0;
+  const net = oilNet(s, at, gap);
+  stampGap(ctx, net, oilPass(s), gap, source);
   const tiles = net.length ? net : [at];
   // `ink-stain-wick`: a stain in the run burns as Inkfire.
   const wick = id !== 'page:stain' && hasFootnote(ctx, 'ink-stain-wick');
@@ -393,7 +403,9 @@ function storm(
 ): Coord[] {
   const { doubleMarked = false, throughWard, damp = false } = opts;
   const harm = opts.harm === undefined ? 'steam' : (opts.harm ?? undefined);
-  const net = cloudNet(ctx.s, at, damp, ruleOf(flow?.habit).networkGap ?? 0);
+  const gap = ruleOf(flow?.habit).networkGap ?? 0;
+  const net = cloudNet(ctx.s, at, damp, gap);
+  stampGap(ctx, net, cloudPass(ctx.s, damp), gap, source);
   const tiles = net.length ? net : [at];
   const units = surged(ctx, flow, tiles, reachOf(flow), unitsNear(ctx, tiles, reachOf(flow)));
   const marked = new Set(units.filter((u) => u.mark).map((u) => u.id));
@@ -409,12 +421,9 @@ function storm(
 
 /** Conduct: 2 to every unit on or touching the connected brass (collared units are brass). */
 function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): void {
-  const net = brassNet(
-    ctx.s,
-    at,
-    fromPlate && hasFootnote(ctx, 'brass-plate-ground'),
-    ruleOf(flow?.habit).networkGap ?? 0,
-  );
+  const gap = ruleOf(flow?.habit).networkGap ?? 0;
+  const net = brassNet(ctx.s, at, fromPlate && hasFootnote(ctx, 'brass-plate-ground'), gap);
+  stampGap(ctx, net, brassPass(ctx.s), gap, 'Conduct');
   const tiles = net.length ? net : [at];
   // The spark:plate footnotes bend only a conduct that started on a plate, not a collar's.
   const focus = fromPlate && hasFootnote(ctx, 'spark-plate-focus');

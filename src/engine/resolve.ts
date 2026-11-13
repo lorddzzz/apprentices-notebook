@@ -28,7 +28,7 @@ import { marginEcho } from './inventions';
 import { sealJar } from './jars';
 import { giftedAuras } from './leans';
 import { landOnTile, layThinCloud } from './mix';
-import { sameStateNet } from './networks';
+import { sameStateNet, stampGap, statePass } from './networks';
 import { hitPiece, strikePiece } from './pieces';
 import {
   blockerName,
@@ -401,7 +401,13 @@ export function runStep(ctx: Ctx, st: Step | null, targets: readonly Target[], f
           hasFootnote(ctx, 'toll-cap-gap') ? 1 : 0,
         );
         const tollNet = seams.sameStateNet ?? sameStateNet;
-        const net = gap ? (b: BattleState, at: Coord) => tollNet(b, at, gap) : tollNet;
+        const net = gap
+          ? (b: BattleState, at: Coord) => {
+              const joined = tollNet(b, at, gap);
+              stampGap(ctx, joined, statePass(b, tileAt(b, at).state?.id), gap, 'Toll');
+              return joined;
+            }
+          : tollNet;
         const aimed = seeped ?? toll(s, live, flow.headings, net);
         if (!seeped && st.rune === 'toll') tollBells(ctx, live, aimed, flow, stepOrigin, net);
         if (seeped && seeped.off > 0) {

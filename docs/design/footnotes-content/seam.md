@@ -776,3 +776,39 @@ Review by the orchestrator's delegate. All 82 pairs (77 new, 5 built) are approv
 **Open questions settled**: M1 kept (Margin capstone a reuses FN-11's diagonal reach); M2 applied (no `steam:unit` or `brass:unit` pairs; those lines do not exist, and Steam and Brass use their real lines); M5 applied.
 
 **Left as drafted, for playtest**: `spark-mark-chain` (strongest variant), Guard level I `thick` (a plain number on a one-line rune), `gallnut-unit-heavy` (weak, overlaps `ink-mark-heavy`), `ink-spread-kin` and `bind-cloud-kin` (one rule on two subjects), `cinder-slick-trails` (depends on the open rat-trail rule A3), `ink-mark-pass` (weak with `overflow`).
+
+## 9. Draft for review (FN-M2)
+
+Two margin lines now exist (`steam:unit`, `brass:unit`, stamped on `landed` under a unit and on `collared` for a bare unit). Each gets a level I and a level II pair, to become the rune's third margin line beside the built ones. Not built: the orchestrator approves in a design window. Avoided: `steam-cap-carry`, `steam-cap-scald`, `brass-cap-magnet`, `brass-cap-net`, `brass-mark-anchor`.
+
+**Steam-unit-I** · `steam:unit` (*Steam aimed at a unit lands on the tile under it: the unit stands inside the cloud at once.*)
+
+- a · `steam-unit-ring`: *Steam under a unit also clouds the empty tiles beside it, one round only.*
+  Engine: after the `landed` under the unit, `layThinCloud` on each empty orthogonal neighbour (rounds 1). Existing `landed`.
+- b · `steam-unit-lift`: *A cloud landed under a unit lasts one round longer.*
+  Engine: the layer gets rounds +1 when a unit stands on the tile at landing. No new event.
+
+**Steam-unit-II** · `steam:unit`
+
+- a · `steam-unit-hide`: *A unit standing in a cloud you landed on it is not aimed at by the foes' shots this round.*
+  Engine: foe line-shot target filter skips a unit whose tile holds a cloud with that origin (round of landing). No new event; stamp `miss` under the line. Bends `steam:shot`.
+- b · `steam-unit-wet`: *A mark on a unit standing in the cloud you landed on it spreads at once through the connected cloud.*
+  Engine: on landing, `spreadFrom` for a marked unit on the tile. Existing `markSpread`. Bends `ink:spread`.
+- Combos: ring + hide: a wide cover, fine. ring + wet: more cloud to spread through, strong, fine. lift + hide: cover lasts two rounds only if the hide counts the landing round; text keeps it to the landing round, no clash. lift + wet: fine.
+- Defining-word check: "lands under" stays Steam's rule; ring and lift change only reach and length. Hide and wet each name another rune's line.
+
+**Brass-unit-I** · `brass:unit` (*Brass on a bare unit collars it: the unit counts as brass, joins the network and conducts.*)
+
+- a · `brass-unit-light`: *A collar you put on a unit wears off at round end.*
+  Engine: collar gains a one-round flag cleared in `decayStates`. No new event (existing `collared`, `stateFades` at wear-off). A safer way to use allies as wire.
+- b · `brass-unit-pair`: *Brass on a bare unit also collars one bare unit beside it.*
+  Engine: after `collared`, `collar` the first bare neighbour in reading order. Existing `collared`.
+
+**Brass-unit-II** · `brass:unit`
+
+- a · `brass-unit-ground`: *A collared unit that is struck takes 1 less, the collar carrying it away along the brass.*
+  Engine: `damage.ts` on a collared target: -1 (min 0), `miss`-style stamp under the line. Bends `spark:plate`.
+- b · `brass-unit-wire`: *A collared unit counts as a plate for Bolt: it stops there and the Spark comes from it.*
+  Engine: `isBrass`-like check in the Bolt stop rule for a collared unit. Existing events. Bends `bolt:plate`.
+- Combos: light + ground: a brief armour, fine. light + wire: a one-round relay, fine. pair + ground: two shielded units; fine. pair + wire: two relays; strong, fine.
+- Defining-word check: "collars" stays Brass's rule; light and pair change length and count. Ground and wire each name another rune's line.

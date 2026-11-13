@@ -20,7 +20,7 @@ import type { Hook } from './hooks';
 import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
 import { deepen, landOnTile, layThinCloud } from './mix';
-import { brassNet, cloudNet, isBrass, oilNet } from './networks';
+import { brassNet, cloudNet, cloudPass, isBrass, oilNet, stampGap } from './networks';
 import { push } from './push';
 import {
   blocksUnits,
@@ -506,13 +506,11 @@ function saltTiles(s: BattleState, at: Coord, cap: number | null, gap = 0): Coor
   return out;
 }
 
-const tilesSalted = (ctx: Ctx, flow: Flow, at: Coord): Coord[] =>
-  saltTiles(
-    ctx.s,
-    at,
-    fnFor(ctx, flow, 'bathSalt-cloud-near') ? 3 : null,
-    ruleOf(flow.habit).networkGap ?? 0,
-  );
+function tilesSalted(ctx: Ctx, flow: Flow, at: Coord): Coord[] {
+  const gap = ruleOf(flow.habit).networkGap ?? 0;
+  if (gap > 0) stampGap(ctx, cloudNet(ctx.s, at, false, gap), cloudPass(ctx.s), gap, 'Bath salt');
+  return saltTiles(ctx.s, at, fnFor(ctx, flow, 'bathSalt-cloud-near') ? 3 : null, gap);
+}
 
 /** Fog jar's neighbours of `at`: the four, the invention's line, or with the ring the diagonals too. */
 function fogNear(ctx: Ctx, flow: Flow, t: Target, at: Coord): Coord[] {
