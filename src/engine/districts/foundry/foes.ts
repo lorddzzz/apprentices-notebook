@@ -2,6 +2,7 @@ import { FOUNDRY_TUNING, TONES, type Tone } from '$data/districts/foundry';
 import { candidatesOf, closestTo, nearestMember } from '../../ai';
 import { type Ctx, emit } from '../../ctx';
 import { dealDamage } from '../../damage';
+import { hasFootnote } from '../../footnotes';
 import {
   byReadingOrder,
   type Coord,
@@ -65,6 +66,13 @@ function approach(ctx: Ctx, e: EnemyUnit): void {
   enemyWalk(ctx, e, best?.path ?? []);
 }
 
+/**
+ * `rivet-unit-gag`: a held Ringer or Detuner does not act (its usual `idle`). Plain held stops
+ * walking, not acting; the telegraph still shows the act, since `plan` reads no footnotes.
+ */
+const gagged = (ctx: Ctx, e: EnemyUnit): boolean =>
+  e.held > 0 && hasFootnote(ctx, 'rivet-unit-gag');
+
 // ── The Ringer ──────────────────────────────────────────
 
 /** The tone of the rope the Ringer stands on; a Ringer off its rope rings low. */
@@ -104,6 +112,7 @@ export const RINGER_FOE: FoeBehaviour = {
   },
   /** The ring is queued with the foe's own tile as its source and settles at this foe's end. */
   resolve(ctx, e, tg) {
+    if (gagged(ctx, e)) return; // `rivet-unit-gag`: a held Ringer loses its next act
     const tone = toneOfLabel(tg) ?? ringerTone(ctx.s, e);
     ringTone(ctx, tone, 'ringer', null, e.pos);
   },
@@ -229,6 +238,7 @@ export const DETUNER_FOE: FoeBehaviour = {
   },
   /** Retunes the telegraphed bell if it still stands beside the Detuner. */
   resolve(ctx, e, tg) {
+    if (gagged(ctx, e)) return; // `rivet-unit-gag`: a held Detuner loses its next act
     const at = tg.tiles[0];
     if (!at || manhattan(at, e.pos) !== 1 || !retune(ctx, at, 1)) {
       emit(ctx, { type: 'miss', source: 'Retune' });

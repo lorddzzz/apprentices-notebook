@@ -977,6 +977,5 @@ export const LINES: readonly LineDef[] = [
     meets: 'bell',
     district: 'foundry',
     text: 'Filings comes back to the tile, not to what struck it: a bell is not struck again, so it does not ring, and a Clapper that walked off is missed.',
-    pending: true,
   },
 ];

@@ -2,6 +2,7 @@ import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId 
 import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit, nameOnce, noteMet } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
+import { BELL_PIECE, clapperTone, lockBell, ringTone, toneOfPiece } from './districts/api';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -167,8 +168,14 @@ export function gallnutReach(ctx: Ctx, t: Target, origin: Origin | null, flow: F
 }
 
 /** Whether `at` is brass or touches brass: a plate, or a collared unit (§4.4). */
-const touchesBrass = (s: BattleState, at: Coord): boolean =>
-  isBrass(s, at) || neighbors4(at).some((n) => isBrass(s, n));
+const touchesBrass = (s: BattleState, at: Coord, bellsCount = false): boolean =>
+  isBrass(s, at) ||
+  neighbors4(at).some((n) => isBrass(s, n)) ||
+  (bellsCount &&
+    (() => {
+      const piece = tileAt(s, at).piece;
+      return !!piece && toneOfPiece(piece.id, piece.data) !== null;
+    })());
 
 // ── Sand ────────────────────────────────────────────────
 
@@ -760,21 +767,27 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   mortar: { pushBonus: SOLVENT_TUNING.mortarPush },
   chalk: { reach: SOLVENT_TUNING.chalkReach },
   rivet: {
-    onReach(ctx, t) {
+    onReach(ctx, t, flow) {
       const u = unitOf(ctx, t);
-      if (!u || trickResists(ctx, u, 'hold')) return; // a rival's immunity (RV-11 `resists`)
-      if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Rivet')) return;
-      withLine(ctx, 'rivet:unit', () => {
-        u.held = Math.max(u.held, ACTIONS.holdRounds);
-        emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
-      });
+      if (!u || !rivetHold(ctx, u, flow)) return;
+      // `rivet-cap-pair`: the first unit beside it, in reading order, is held too (no chain).
+      if (!hasFootnote(ctx, 'rivet-cap-pair')) return;
+      const mate = neighbors4(u.pos)
+        .sort(byReadingOrder)
+        .flatMap((c) => (inBoard(ctx.s, c) ? (unitAt(ctx.s, c) ?? []) : []))[0];
+      if (mate) rivetHold(ctx, mate, flow);
     },
   },
   filings: {
     after(ctx, t, flow, run) {
       if (flow.repeated) return; // it rings once more, not forever
       const at = whereIs(ctx.s, t);
-      if (!at || !touchesBrass(ctx.s, at)) return;
+      if (!at || !touchesBrass(ctx.s, at, hasFootnote(ctx, 'filings-bell-brass'))) return;
+      // `filings-bell-follow`: the run follows the unit it reached. The unit is kept for a Clapper
+      // too, so a Clapper that walked off is told from an empty tile (`filings:bell`).
+      const reached = unitAt(ctx.s, at);
+      const follow = !!reached && hasFootnote(ctx, 'filings-bell-follow');
+      const keep = !!reached && (follow || reached.def === 'clapper');
       withLine(ctx, 'filings:plate', () =>
         schedule(ctx, {
           when: 'ownerTurn',
@@ -786,6 +799,10 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
           kind: 'filings',
           solvent: 'filings',
           context: sealedContext(flow),
+          ...(keep && reached ? { hit: reached.id } : {}),
+          ...(follow ? { follow: true as const } : {}),
+          // `filings-bell-twice`: one more run after the second.
+          ...(hasFootnote(ctx, 'filings-bell-twice') ? { again: 1 } : {}),
         }),
       );
     },
@@ -830,6 +847,30 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
     },
   },
 };
+
+/**
+ * Rivet holds one unit (`rivet:unit`): false when it did not (a rival's immunity, a guard, or
+ * `rivet-unit-spare` for your own party). `rivet-unit-strike` rings a Clapper's tone as it lands;
+ * `rivet-cap-lock` locks every bell beside a held unit against retuning until round end.
+ */
+function rivetHold(ctx: Ctx, u: Unit, flow: Flow): boolean {
+  if (u.kind === 'member' && hasFootnote(ctx, 'rivet-unit-spare')) return false;
+  if (trickResists(ctx, u, 'hold')) return false; // a rival's immunity (RV-11 `resists`)
+  if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Rivet')) return false;
+  withLine(ctx, 'rivet:unit', () => {
+    u.held = Math.max(u.held, ACTIONS.holdRounds);
+    emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
+  });
+  const tone = clapperTone(u);
+  if (tone && hasFootnote(ctx, 'rivet-unit-strike')) {
+    withLine(ctx, 'rivet:unit', () => ringTone(ctx, tone, 'clapper', flow.origin, u.pos));
+  }
+  if (hasFootnote(ctx, 'rivet-cap-lock')) {
+    for (const c of neighbors4(u.pos))
+      if (inBoard(ctx.s, c) && tileAt(ctx.s, c).piece?.id === BELL_PIECE) lockBell(ctx, c);
+  }
+  return true;
+}
 
 /** Fans a hook out to every solvent rule that listens. */
 export function onHook(ctx: Ctx, h: Hook): void {

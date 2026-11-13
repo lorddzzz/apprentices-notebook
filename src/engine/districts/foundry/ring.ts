@@ -1,8 +1,8 @@
 import { FOUNDRY_TUNING, TONES, type Tone } from '$data/districts/foundry';
 import { cloneData } from '../../clone';
 import { type Ctx, emit, withOrigin } from '../../ctx';
-import { hasFootnote } from '../../footnotes';
 import { dealDamage } from '../../damage';
+import { hasFootnote } from '../../footnotes';
 import { type Coord, DIRS, type Dir, inBounds, neighbors4, step } from '../../grid';
 import { push } from '../../push';
 import { isCloud, livingUnits, members, tileAt } from '../../queries';

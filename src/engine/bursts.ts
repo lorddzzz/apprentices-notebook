@@ -11,8 +11,7 @@ import {
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
-import { toneOfPiece } from './districts/foundry/pieces';
-import { retune, withStrikeFlags } from './districts/foundry/ring';
+import { retune, toneOfPiece, withStrikeFlags } from './districts/api';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, step } from './grid';
 import { habitRule, ruleOf } from './habits';
@@ -169,7 +168,8 @@ function coilBells(ctx: Ctx, bells: readonly Coord[], wide: boolean): void {
   withLine(ctx, 'coil:bell', () => {
     for (const c of bells) {
       if (tune) retune(ctx, c, 1);
-      else if (strike) withStrikeFlags(wide ? { wide: true } : {}, () => strikePiece(ctx, c, 'burst'));
+      else if (strike)
+        withStrikeFlags(wide ? { wide: true } : {}, () => strikePiece(ctx, c, 'burst'));
       const tile = tileAt(ctx.s, c);
       if (muffle && tile.state === null) {
         emit(ctx, { type: 'landed', kind: 'steam', at: { ...c }, makes: 'cloud' });
@@ -336,9 +336,13 @@ function ignite(
   reserve(ctx, 2); // `named` (first time) and `burst`
   for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null, rounds);
   const inked = stains.length ? unitsNear(ctx, stains, reachOf(flow)) : [];
-  const units = surged(ctx, flow, tiles, reachOf(flow), unitsNear(ctx, tiles, reachOf(flow))).filter(
-    (u) => !inked.includes(u),
-  );
+  const units = surged(
+    ctx,
+    flow,
+    tiles,
+    reachOf(flow),
+    unitsNear(ctx, tiles, reachOf(flow)),
+  ).filter((u) => !inked.includes(u));
   announce(ctx, id, at, tiles, units, flow);
   if (inked.length) {
     withLine(ctx, 'ink:stain', () => {

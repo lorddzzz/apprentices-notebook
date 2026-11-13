@@ -117,4 +117,80 @@ export const FOUNDRY: readonly VariantDef[] = [
     slot: { capstone: true },
     text: 'When a Unison passes, each apprentice whose cast signed it gains 1 shield.',
   },
+  // ── Rivet: the unit (level I and II) ──
+  {
+    id: 'rivet-unit-anvil',
+    subject: 'rivet',
+    slot: { line: 'rivet:unit', level: 1 },
+    text: 'A unit you Rivet takes one more from every hit while it is held.',
+  },
+  {
+    id: 'rivet-unit-spare',
+    subject: 'rivet',
+    slot: { line: 'rivet:unit', level: 1 },
+    text: 'Rivet never holds your own party.',
+  },
+  {
+    id: 'rivet-unit-strike',
+    subject: 'rivet',
+    slot: { line: 'rivet:unit', level: 2 },
+    text: 'A Clapper you Rivet rings its tone as the Rivet lands.',
+  },
+  {
+    id: 'rivet-unit-gag',
+    subject: 'rivet',
+    slot: { line: 'rivet:unit', level: 2 },
+    text: 'A Ringer or Detuner you Rivet loses its next act.',
+  },
+  // ── Rivet: capstones ──
+  {
+    id: 'rivet-cap-pair',
+    subject: 'rivet',
+    slot: { capstone: true },
+    text: 'When Rivet holds a unit that stands beside another unit, that unit is held too, once.',
+  },
+  {
+    id: 'rivet-cap-lock',
+    subject: 'rivet',
+    slot: { capstone: true },
+    text: 'When Rivet holds a unit beside a bell, that bell cannot be retuned until your next turn.',
+  },
+  // ── Filings: the bell (level I and II) ──
+  {
+    id: 'filings-bell-strike',
+    subject: 'filings',
+    slot: { line: 'filings:bell', level: 1 },
+    text: "Filings' second run strikes the bell it comes back to, so it rings again.",
+  },
+  {
+    id: 'filings-bell-follow',
+    subject: 'filings',
+    slot: { line: 'filings:bell', level: 1 },
+    text: "Filings' second run follows the unit it reached: it hits the unit wherever it stands then.",
+  },
+  {
+    id: 'filings-bell-brass',
+    subject: 'filings',
+    slot: { line: 'filings:bell', level: 2 },
+    text: 'A bell counts as brass for Filings: it comes back to a bell with no brass beside it.',
+  },
+  {
+    id: 'filings-bell-twice',
+    subject: 'filings',
+    slot: { line: 'filings:bell', level: 2 },
+    text: 'Filings comes back at the start of each of your next two turns.',
+  },
+  // ── Filings: capstones ──
+  {
+    id: 'filings-cap-plate',
+    subject: 'filings',
+    slot: { capstone: true },
+    text: 'When Filings comes back and no brass touches the target, a plate lands on its tile.',
+  },
+  {
+    id: 'filings-cap-guard',
+    subject: 'filings',
+    slot: { capstone: true },
+    text: 'When Filings comes back, you gain 1 shield.',
+  },
 ];

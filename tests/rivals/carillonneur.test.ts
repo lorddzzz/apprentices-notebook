@@ -80,7 +80,10 @@ describe('his def, shell and page', () => {
 describe("the Carillonneur's note on Toll", () => {
   test('BF-24: the note is registered as a rival note on Toll', () => {
     const v = VARIANTS.find((x) => x.id === CARILLONNEUR_TOLL);
-    expect(v).toMatchObject({ subject: 'toll', rival: 'carillonneur', slot: { line: 'toll:bell', level: 2 },
+    expect(v).toMatchObject({
+      subject: 'toll',
+      rival: 'carillonneur',
+      slot: { line: 'toll:bell', level: 2 },
     });
     expect(v?.credit).toBe("Copied from the Carillonneur's tuning sheet.");
   });

@@ -1,5 +1,4 @@
 import { isInvention, RUNES, type RuneRef } from '$data';
-import type { Tone } from '$data/districts/foundry';
 import { cloneData } from './clone';
 import {
   type Ctx,
@@ -12,9 +11,15 @@ import {
   withOrigin,
 } from './ctx';
 import { dealDamage, gainShield } from './damage';
-import { clapperTone, ropeTone, toneGroups, toneOfPiece } from './districts/foundry/pieces';
-import { tagQueued, withStrikeFlags } from './districts/foundry/ring';
-import { ROPE_PIECE } from './districts/foundry/types';
+import {
+  clapperTone,
+  ROPE_PIECE,
+  ropeTone,
+  tagQueued,
+  toneGroups,
+  toneOfPiece,
+  withStrikeFlags,
+} from './districts/api';
 import type { NodeSpan } from './events';
 import { hasFootnote } from './footnotes';
 import { type Coord, type Dir, key, label, neighbors4, sameCoord, step } from './grid';
@@ -513,7 +518,11 @@ function tollBells(
   net: (s: BattleState, at: Coord) => Coord[],
 ): void {
   const s = ctx.s;
-  const bells: { at: Coord; tone: Tone; heading: Dir | null }[] = [];
+  const bells: {
+    at: Coord;
+    tone: NonNullable<ReturnType<typeof toneOfPiece>>;
+    heading: Dir | null;
+  }[] = [];
   for (const t of live) {
     const at = whereIs(s, t);
     const piece = at && inBoard(s, at) ? tileAt(s, at).piece : null;
@@ -534,8 +543,6 @@ function tollBells(
     aimed.targets.push(t);
     aimed.headings.set(targetKey(t), heading);
   };
-  const beside = (at: Coord): UnitId | undefined =>
-    neighbors4(at).flatMap((c) => (inBoard(s, c) ? (unitAt(s, c)?.id ?? []) : []))[0];
   const knell = fn('toll-cap-knell');
   for (const b of bells) {
     const group = toneGroups(s, clapperTone)[b.tone];

@@ -4,7 +4,7 @@ import type { FootnoteIds } from '$engine/ctx';
 import { ev, ringTones, struckAt, unit } from '../../districts/foundry/helpers';
 import { fourCombos, withFootnotes } from '../footnoteHarness';
 import { withLattices } from '../harness';
-import { castWith, firstSpell, step } from './castHelper';
+import { castWith, step } from './castHelper';
 
 /**
  * BF-F2: the Resonance runes' margin lines (`toll:bell`, `coil:bell`, `unison:bell`) and their
