@@ -5,6 +5,7 @@ import { KIT } from './districts/kit';
 import type {
   Json,
   Kit,
+  OutCause,
   PieceDef,
   PieceId,
   Solidity,
@@ -46,6 +47,14 @@ export const pieceBlocksShots = (t: Tile, kit: Kit = KIT): boolean =>
 /** The piece lets only a cloud land on its tile (a foundry bell, BF-2). */
 export const pieceHoldsOnlyClouds = (t: Tile, kit: Kit = KIT): boolean =>
   !!t.piece && pieceDef(t.piece.id, kit).holds === 'clouds';
+
+/** The piece on the tile is a void: what it takes out of the room, or null (a Cartographers' blank). */
+export const pieceVoid = (t: Tile, kit: Kit = KIT): OutCause | null =>
+  t.piece ? (pieceDef(t.piece.id, kit).void ?? null) : null;
+
+/** The piece lets nothing land on its tile: no state, jar or mark (a blank). */
+export const pieceHoldsNothing = (t: Tile, kit: Kit = KIT): boolean =>
+  !!t.piece && pieceDef(t.piece.id, kit).holds === 'none';
 
 /** The piece on a tile answers being struck (a basic Shove may aim at it). */
 export const strikable = (t: Tile, kit: Kit = KIT): boolean =>

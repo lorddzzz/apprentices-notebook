@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { ENEMIES, ENEMY_IDS, type Meets } from '$data';
+import { type DistrictId, ENEMIES, ENEMY_IDS, type Meets } from '$data';
 import { newProfile, type Profile } from '$engine';
 import { KIT } from '$engine/districts/kit';
 import type { DistrictModule } from '$engine/districts/types';
@@ -21,7 +21,7 @@ import { PALETTE, paletteOf, toggleToken } from '../../src/app/lab';
 
 const FIXTURE = vi.hoisted(
   (): DistrictModule => ({
-    id: 'cartographers',
+    id: 'fixture' as DistrictId,
     pieces: [
       {
         id: 'cartographers:plinth',

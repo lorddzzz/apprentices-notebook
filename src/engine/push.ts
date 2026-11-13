@@ -3,6 +3,7 @@ import { arrive, hasTrait } from './arrival';
 import { markUnit } from './bursts';
 import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
 import { dealDamage, gainShield, kill } from './damage';
+import type { OutCause } from './districts/types';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -16,7 +17,8 @@ import {
 import { guardCancels } from './harm';
 import { notify } from './hooks';
 import { landKindFree, netCollar } from './mix';
-import { pieceBlocksUnits, strikePiece } from './pieces';
+import { removeFromRoom } from './outOfRoom';
+import { pieceBlocksUnits, pieceVoid, strikePiece } from './pieces';
 import { blocksUnits, inBoard, isCloud, isPlate, tileAt, unitAt } from './queries';
 import { trickBeforeHarm, trickResists } from './rivals/tricks';
 import type { BattleState, Layer, Origin, Tile, Unit } from './types';
@@ -60,7 +62,7 @@ const heldBack = (u: Unit, toWater: boolean): boolean =>
 /** What stopped the push: something to crush against, or a fall. */
 export type Stop =
   | { kind: 'crush'; into: Unit | 'wall' | 'plate'; line: LineId | null; at: Coord }
-  | { kind: 'drop'; line: LineId; at: Coord };
+  | { kind: 'drop'; line: LineId; at: Coord; out?: OutCause };
 
 /** The first reason the unit can't enter `next` (P3, P19, P28), or null if it can. */
 function stopAt(ctx: Ctx, unit: Unit, from: Coord, next: Coord): Stop | null {
@@ -75,6 +77,9 @@ function stopAt(ctx: Ctx, unit: Unit, from: Coord, next: Coord): Stop | null {
   if (heldBack(unit, tile.terrain.water !== null)) {
     return { kind: 'crush', into: 'wall', line: null, at: next };
   }
+  // A void piece (a blank) is no floor: a unit that doesn't fly is stopped and taken out of the room.
+  const out = pieceVoid(tile);
+  if (out && !flies(unit)) return { kind: 'drop', line: 'shove:drop', at: next, out };
   // A solid piece crushes like a plate but has no plate's fine print or wear.
   if (pieceBlocksUnits(tile) && !isPlate(tile) && !tile.terrain.gate && !tile.terrain.grate) {
     return { kind: 'crush', into: 'plate', line: null, at: next };
@@ -535,7 +540,10 @@ export function push(
     } else if (stop?.kind === 'drop' && !trickResists(ctx, unit, 'fall')) {
       // A rival's trick may refuse the fall (RV-11 `resists`): he stops on the brink.
       // `mortar-unit-fall`: a unit the extra tile carried into the fog takes the fall one step harder.
-      fall(ctx, unit, dir, stop, pull, bonusFall && hasFootnote(ctx, 'mortar-unit-fall') ? 1 : 0);
+      const out = stop.out;
+      if (out) withLine(ctx, pull ? 'pull:drop' : stop.line, () => removeFromRoom(ctx, unit, out));
+      else
+        fall(ctx, unit, dir, stop, pull, bonusFall && hasFootnote(ctx, 'mortar-unit-fall') ? 1 : 0);
       dropped = true;
     }
     const result = { moved: path.length, end: { ...unit.pos }, crushed, dropped };

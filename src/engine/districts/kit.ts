@@ -1,6 +1,7 @@
 import { BATHHOUSES_MODULE } from './bathhouses';
 import { BRIDGES_MODULE } from './bridges';
 import { CANALS_MODULE } from './canals';
+import { CARTOGRAPHERS_MODULE } from './cartographers';
 import { FOUNDRY_MODULE } from './foundry';
 import { INK_QUARTER_MODULE } from './inkQuarter';
 import { LOWER_SEAM_MODULE } from './lowerSeam';
@@ -21,6 +22,7 @@ export const DISTRICT_MODULES: readonly DistrictModule[] = [
   BATHHOUSES_MODULE,
   BRIDGES_MODULE,
   FOUNDRY_MODULE,
+  CARTOGRAPHERS_MODULE,
   LOWER_SEAM_MODULE,
 ];
 

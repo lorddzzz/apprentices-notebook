@@ -18,6 +18,7 @@ import type { Ctx } from '$engine/ctx';
 import { drift } from '$engine/current';
 import { enemyWalk, moveMember } from '$engine/movement';
 import { push } from '$engine/push';
+import { legalMoves } from '$engine/queries';
 import { snapshotOf } from '$engine/resolve';
 import { ACTION_HANDLERS } from '$engine/runes/actions';
 import { driftWaiting, undoBoard } from '$engine/solvents';
@@ -773,6 +774,120 @@ describe('arrival matrix: AH-4 fuseOnStep, the habit hook, × every cause of a m
     expect(lineOf('hop')).toEqual([null]);
     for (const cause of ['push', 'push through', 'pull', 'basic swap'])
       expect(lineOf(cause)).toEqual(['fuseOnStep:jar']);
+  });
+});
+
+describe('arrival matrix: CG-1 paper (pencil and blank) × every cause that carries a unit onto a tile', () => {
+  // `{blank}` is a void (P2): a push, slide or pull stops the unit on the tile before and takes it
+  // out of the room; a flier crushes against it; walks and hops never land on it. `{pencil}` is
+  // ordinary floor to every cause (it holds a step jar, which answers the arrival as any would).
+  type Outcome = 'arrives' | 'erased' | 'crushed' | 'refused';
+  interface PaperRow {
+    cause: string;
+    ascii: string;
+    run: (ctx: Ctx) => void;
+    /** Where the subject (a rat 'r', or a moth 'm' for fliers) stands afterwards, by piece. */
+    land: Partial<Record<'pencil' | 'blank', { to: string; out: Outcome }>>;
+    flier?: Partial<Record<'pencil' | 'blank', { to: string; out: Outcome }>>;
+  }
+  const paperRow = (piece: string, row: string): string => row.replaceAll('P', piece);
+  const rows: PaperRow[] = [
+    {
+      cause: 'push',
+      ascii: 'D r P .',
+      run: (ctx) => {
+        push(ctx, unitAt(ctx.s, at('B1')) as Unit, 'right', 1, null);
+      },
+      land: { pencil: { to: 'C1', out: 'arrives' }, blank: { to: 'B1', out: 'erased' } },
+    },
+    {
+      cause: 'push through',
+      ascii: 'r . P .',
+      run: (ctx) => {
+        push(ctx, unitAt(ctx.s, at('A1')) as Unit, 'right', 2, null);
+      },
+      land: { pencil: { to: 'C1', out: 'arrives' }, blank: { to: 'B1', out: 'erased' } },
+    },
+    {
+      cause: 'slide',
+      ascii: 'r o P .',
+      run: (ctx) => {
+        push(ctx, unitAt(ctx.s, at('A1')) as Unit, 'right', 1, null);
+      },
+      land: { pencil: { to: 'C1', out: 'arrives' }, blank: { to: 'B1', out: 'erased' } },
+    },
+    {
+      cause: 'pull',
+      ascii: 'D P r .',
+      run: (ctx) => {
+        BASIC_ACTIONS.pull.apply(ctx, 'draughtsman', 'right');
+      },
+      land: { pencil: { to: 'B1', out: 'arrives' }, blank: { to: 'C1', out: 'erased' } },
+    },
+  ];
+  const flierRows: Record<string, PaperRow['flier']> = {
+    push: { pencil: { to: 'C1', out: 'arrives' }, blank: { to: 'B1', out: 'crushed' } },
+    'push through': { pencil: { to: 'C1', out: 'arrives' }, blank: { to: 'B1', out: 'crushed' } },
+  };
+
+  for (const r of rows) {
+    for (const piece of ['pencil', 'blank'] as const) {
+      const want = r.land[piece];
+      if (!want) continue;
+      for (const flies of [false, true]) {
+        const expected = flies ? flierRows[r.cause]?.[piece] : want;
+        if (!expected) continue;
+        it(`${r.cause} × ${flies ? 'flier' : 'land'} × {${piece}}: ${expected.out}`, () => {
+          const token = flies ? 'm' : 'r';
+          const ascii = paperRow(`{${piece}}`, r.ascii).replace(
+            /(?<![A-Za-z{])r(?![a-z}])/g,
+            token,
+          );
+          const s = board(ascii);
+          const res = draft(s, r.run);
+          const subject = res.state.units.find(
+            (u) => u.kind === 'enemy' && u.def === (flies ? 'moth' : 'rat'),
+          );
+          if (!subject) throw new Error('no subject');
+          expect(subject.pos).toEqual(at(expected.to));
+          const gone = subject.out === 'erased';
+          const crushed = res.events.some((e) => e.type === 'crush');
+          expect(expected.out === 'erased').toBe(gone);
+          expect(expected.out === 'crushed').toBe(crushed);
+          if (expected.out === 'arrives') {
+            expect(res.events.some((e) => e.type === 'outOfRoom' || e.type === 'crush')).toBe(
+              false,
+            );
+          }
+        });
+      }
+    }
+  }
+
+  it('a step jar on pencil opens for a pushed unit as it would on bare paper (hook cell stepJar)', () => {
+    const s = structuredClone(board('D r {pencil} .'));
+    tileAt(s, at('C1')).jar = jar('step');
+    const res = draft(s, (ctx) => {
+      push(ctx, unitAt(ctx.s, at('B1')) as Unit, 'right', 1, null);
+    });
+    expect(res.events.some((e) => e.type === 'jarOpened')).toBe(true);
+  });
+
+  it('walks and hops never land on blank, and a hop over it is refused', () => {
+    const s = board('D {blank} . .');
+    expect(legalMoves(s, 'draughtsman').some((c) => c.x === 1 && c.y === 0)).toBe(false);
+    expect(BASIC_ACTIONS.hop.check(s, 'draughtsman', 'right')).toMatch(/Can't hop over/);
+    const open = board('D {pencil} . .');
+    expect(BASIC_ACTIONS.hop.check(open, 'draughtsman', 'right')).toBeNull();
+    expect(legalMoves(open, 'draughtsman').some((c) => c.x === 1 && c.y === 0)).toBe(true);
+  });
+
+  it('a swap never lands on blank: both tiles of a swap are floor already', () => {
+    const s = board('D r {blank} .');
+    expect(BASIC_ACTIONS.swap.check(s, 'draughtsman', 'right')).toBeNull();
+    const res = draft(s, (ctx) => BASIC_ACTIONS.swap.apply(ctx, 'draughtsman', 'right'));
+    expect(res.state.units.find((u) => u.id === 'rat-1')?.pos).toEqual(at('A1'));
+    expect(res.state.units.some((u) => u.out)).toBe(false);
   });
 });
 

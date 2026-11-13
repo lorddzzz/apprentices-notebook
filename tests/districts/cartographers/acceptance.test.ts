@@ -21,6 +21,7 @@ import {
   type GuildHandState,
   HAND_SALT,
   initGuildHand,
+  PENCIL_RULE_ID,
   type PencilData,
 } from '$engine/districts/cartographers/types';
 import type { Json } from '$engine/districts/types';
@@ -44,12 +45,12 @@ describe('CG-W0 registration', () => {
     expect(d.tables).toEqual([...CARTOGRAPHERS_TABLE_IDS]);
   });
 
-  it('the module declares the events only: no pieces, rules, foes, heart or bot yet', () => {
+  it('the module declares events, the paper pieces and the two rules: no foes, heart or bot yet', () => {
     const m = CARTOGRAPHERS_MODULE;
     expect(m.id).toBe('cartographers');
     expect((m.events ?? []).map((e) => e.type)).toEqual([...CARTOGRAPHERS_EVENT_TYPES]);
-    expect(m.pieces ?? []).toEqual([]);
-    expect(m.rules ?? []).toEqual([]);
+    expect((m.pieces ?? []).map((p) => p.token)).toEqual([...CARTOGRAPHERS_PIECE_TOKENS]);
+    expect((m.rules ?? []).map((r) => r.id)).toEqual([GUILD_HAND_RULE_ID, PENCIL_RULE_ID]);
     expect(m.foes ?? []).toEqual([]);
     expect(m.offerKinds ?? []).toEqual([]);
     expect(m.trip).toBeUndefined();
@@ -58,10 +59,8 @@ describe('CG-W0 registration', () => {
     expect(DISTRICT_UI.cartographers).toBeDefined();
   });
 
-  it('it is not in the kit yet: tests/engine/pieces.test.ts and bench-registry.test.ts own the id', () => {
-    // Their mocked kits add a fixture module under 'cartographers'; CG-1 registers the real one
-    // and moves those fixtures to another id in the same commit.
-    expect(KIT.modules.cartographers).toBeUndefined();
+  it('it is in the kit (CG-1); the two fixture tests moved their mocked module to another id', () => {
+    expect(KIT.modules.cartographers).toBe(CARTOGRAPHERS_MODULE);
   });
 
   it('every event has a line', () => {
@@ -135,19 +134,7 @@ describe('CG-W0 contracts', () => {
 
 // ── Pack A: paper and the guild's hand ───────────────────
 describe('CG-1 paper pieces', () => {
-  it.todo('CG-1: notation round-trips pencil, blank and fixed fates');
-  it.todo('CG-1: shove onto blank erases a member and gives 1 HP back on a win');
-  it.todo('CG-1: a minion pushed onto blank is gone');
-  it.todo('CG-1: an elite pushed onto blank takes the drop damage and loses its action');
   it.todo('CG-1: draw onto blank fails with draw:blank');
-  it.todo('CG-1: walking and foe paths avoid blank');
-});
-
-describe('CG-2 the guild hand', () => {
-  it.todo('CG-2: same seed gives the same plan');
-  it.todo('CG-2: preview equals the next round end');
-  it.todo('CG-2: a unit on a rub-due tile is erased at round end');
-  it.todo('CG-2: the strand guard never leaves a member without a standable neighbour');
 });
 
 // ── Pack B: runes on paper and outlines ──────────────────
