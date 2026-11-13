@@ -2,9 +2,12 @@ import { describe, expect, test } from 'vitest';
 import { VARIANTS, type VariantDef } from '$data';
 import { RIVAL_PAGES } from '$data/rivals';
 import { LAMPLIGHTER_PAGE, LAMPLIGHTER_WICK } from '$data/rivals/lamplighter';
-import { newProfile, type Profile } from '$engine';
+import { newProfile, type Profile, parseLabel, tileAt, unitAt } from '$engine';
+import { destinations } from '$engine/rivals/plan';
 import { rivalNoteVisible } from '$engine/rivals/pages';
 import { marginOf, writeAt } from '../../src/app/desk';
+import { withFootnotes } from '../scenarios/footnoteHarness';
+import { board } from '../scenarios/harness';
 
 /**
  * The Lamplighter's Jar note (footnotes §1 "Rival notes", plan RV-20): a rival's variant sits in
@@ -110,5 +113,31 @@ describe('the Lamplighter’s Jar note (RV-20)', () => {
     expect(real?.variants.map((v) => v.id)).toContain(WICK);
     const hidden = marginOf(jarProfile(), 'jar').lines[0]?.frames[0]?.variants ?? [];
     expect(hidden.map((v) => v.id)).not.toContain(WICK);
+  });
+});
+
+describe('the Lamplighter’s planned walk and your step-jars (RV-20b)', () => {
+  /** `. . L` with a live step-jar on B1: where can he plan to stand, with or without the note? */
+  const reach = (written: boolean): string[] => {
+    const s = structuredClone(board('D . L'));
+    tileAt(s, parseLabel('B1')).jar = {
+      owner: 'draughtsman',
+      event: 'step',
+      rest: { role: 'action', rune: 'strike', at: { x: 0, y: 0 }, auras: [], next: null },
+      heading: null,
+      origin: { caster: 'draughtsman', spell: 'x', cast: 0 },
+    };
+    const e = unitAt(s, parseLabel('C1'));
+    if (e?.kind !== 'enemy') throw new Error('no rival');
+    const f = written ? withFootnotes([WICK]) : {};
+    return destinations(s, e, 2, f).map((d) => d.path.map((c) => `${c.x},${c.y}`).join('>'));
+  };
+
+  test('RV-20b: with the Jar note written the Lamplighter’s planned walk crosses a step-jar', () => {
+    expect(reach(true)).toContain('1,0');
+  });
+
+  test('RV-20b: without the note the planner still steps around step-jars', () => {
+    expect(reach(false)).not.toContain('1,0');
   });
 });

@@ -1,10 +1,12 @@
 import { TUNING } from '$data';
 import type { GoalAction, GoalId, GoalStep, RivalDef } from '$data/rivals';
 import { cloneData } from '../clone';
-import type { Ctx } from '../ctx';
+import type { Ctx, FootnoteIds } from '../ctx';
 import type { Json } from '../districts/types';
 import { type EventLog, type GameEvent, relocations } from '../events';
 import { byReadingOrder, type Coord, chebyshev, DIRS, type Dir, key, step } from '../grid';
+import { hasFootnote } from '../footnotes';
+import { WICK_NOTE } from '../jars';
 import { enemyWalk } from '../movement';
 import { findUnit, inBoard, isAlive, isFire, isOpen, tileAt, unitAt } from '../queries';
 import type { Aim, BattleState, EnemyUnit, JarId, RivalIntent, Spell, UnitId } from '../types';
@@ -33,15 +35,21 @@ interface Dest {
   path: Coord[];
 }
 
-/** A tile a planned walk may cross: no live step-jar, fire or drop. */
-function safeTile(s: BattleState, c: Coord, self: UnitId): boolean {
+/** A tile a planned walk may cross: no fire or drop, and no live step-jar unless the Jar note is written (RV-20b). */
+function safeTile(s: BattleState, c: Coord, self: UnitId, footnotes: FootnoteIds): boolean {
   if (!isOpen(s, c, self)) return false;
   const t = tileAt(s, c);
-  return !t.terrain.drop && !isFire(t) && t.jar?.event !== 'step';
+  const jarOk = t.jar?.event !== 'step' || hasFootnote({ footnotes }, WICK_NOTE);
+  return !t.terrain.drop && !isFire(t) && jarOk;
 }
 
 /** Stay, then every safe tile within `move` steps (BFS in `DIRS` order): shortest, then reading order. */
-export function destinations(s: BattleState, e: EnemyUnit, move: number): Dest[] {
+export function destinations(
+  s: BattleState,
+  e: EnemyUnit,
+  move: number,
+  footnotes: FootnoteIds = {},
+): Dest[] {
   const out: Dest[] = [{ at: { ...e.pos }, path: [] }];
   const seen = new Set([key(e.pos)]);
   let frontier = out.slice();
@@ -50,7 +58,7 @@ export function destinations(s: BattleState, e: EnemyUnit, move: number): Dest[]
     for (const r of frontier) {
       for (const dir of DIRS) {
         const n = step(r.at, dir);
-        if (seen.has(key(n)) || !safeTile(s, n, e.id)) continue;
+        if (seen.has(key(n)) || !safeTile(s, n, e.id, footnotes)) continue;
         seen.add(key(n));
         const reach = { at: n, path: [...r.path, n] };
         next.push(reach);
@@ -341,12 +349,17 @@ function dryPlan(s: BattleState, e: EnemyUnit, dests: Dest[]): RivalPlan {
  * The plan for this state (P4, P5): the first routine step that yields an effective plan wins.
  * Pure: the same state gives the same plan. `move` false plans from the current tile only.
  */
-export function planRival(state: BattleState, unit: UnitId, move: boolean): RivalPlan | null {
+export function planRival(
+  state: BattleState,
+  unit: UnitId,
+  move: boolean,
+  footnotes: FootnoteIds = {},
+): RivalPlan | null {
   const e = findUnit(state, unit);
   if (e?.kind !== 'enemy' || !e.rival || !isAlive(e)) return null;
   const def = rivalDefOf(e);
   if (!def) return null;
-  const dests = destinations(state, e, move ? def.move : 0); // the RivalDef's move, not the shell's
+  const dests = destinations(state, e, move ? def.move : 0, footnotes); // the RivalDef's move, not the shell's
   const r = e.rival;
   // Dry of charges: only the wick (it needs a live jar, not a charge) or the plain strike remain.
   const dry = !Object.keys(r.spells).some((id) => (r.charges[id] ?? 0) > 0);
