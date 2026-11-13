@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-12e done: briefs for waves 14–19 written (cartographers Packs A–I, BF-J, P, Q, L, H3), BF-FG approved. CI green on main (e0ebe16). **Next window: routine** (wave 14).
+**State:** routine window 2026-11-13: wave 14 merged (Q, CG-A, BF-J), wave 15 running (CG-C, CG-E, P). **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -12,7 +12,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 ## Next
 0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
-1. **Wave 14 (now, together):** CG-A (Strong) · BF-J (Default) · Q (Default, phone check). Then waves 15–19 per the briefs' order table (CG-C, CG-E, P → CG-B, L → CG-D, H3 → CG-F, CG-I → CG-G, CG-H).
+1. **Wave 15 running:** CG-C · CG-E · P. Then CG-B, L → CG-D, H3 → CG-F, CG-I → CG-G, CG-H (briefs' order table). Briefs for Q, CG-A, BF-J deleted from the briefs file.
 2. **`src/data/lines.ts` is shared by named blocks** in these waves (briefs' order notes): a merge conflict there is row appends; keep both sides. Same for the cartographers' acceptance file.
 3. **Next design window** (when the routine windows reach it, or three reviews pile up): approve the drafts from P (Afterglow pairs, canals.md), L (`steam:unit`/`brass:unit` pairs, seam.md) and CG-I (cartographers.md, CG-G3), then brief FU-5b, FN-M2b and CG-J; EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft.
 4. Hard edges: EN-S2 → EN-G0 → ending Pack E · CG-A → CG-B, CG-C, CG-E · BF-J → CG-B, P, L · P → L · CG-B, CG-C → CG-D · CG-B..E → CG-F → CG-G · CG-D → CG-H · BL-111 → EN-4.
@@ -20,7 +20,9 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| none | | | | |
+| CG-C | CG-5 → CG-6 | Sonnet high | worktree-agent-ae6d61e804cd16bca | running |
+| CG-E | CG-8 → CG-11 | Sonnet medium | worktree-agent-afedad38494276499 | running |
+| P | MIX-F1 → FU-5 | Sonnet medium | worktree-agent-a73889e0cd9772593 | running |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (F7, M and C3 recorded as accepted; BF-FG inputs decided in DESIGN §11 2026-11-12e; D5's numbers wait for EN-G0 below.)
@@ -28,12 +30,11 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Owed (declared by a contract, not yet built)
 - From C3b (guard done in ED): the `brink:cracked` replay line is overridden by the inner rune's own line (by design, tests assert damage events).
 - **C3 hygiene** → Pack H3 (brief written).
-- From B1 (FU-1) → Pack Q.
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed.
 - From F8: Pack K: FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only.
-- Foundry (F4, F6): Toll note's slot `toll:bell` level II → Pack BF-J. EN-K6 wraps the frame.
+- Foundry: EN-K6 wraps the frame.
 - From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10 (Pack CG-F).
-- From CW0: kit registration and the two fixture ids → Pack CG-A; `heart` frame (salt 7160) and `bot` → Pack CG-F.
+- From CW0: `heart` frame (salt 7160) and `bot` → Pack CG-F.
 - From ED (EN-9): `mender:*` Meets, rows and stamps → Pack L.
 - From I (FU-5): Af2, Af3 events and lines → Pack P; the Afterglow variants after review (FU-5b).
 - FN-A1 M2: `steam:unit`/`brass:unit` lines → Pack L; variants after review (FN-M2b).
@@ -52,6 +53,7 @@ Ledger caveats (2026-11-13 run): IQ-13 shows open but is built. FU-16 and EN-10 
 - Held at default: IQ-20 / IQ-G1, FN-1A A3, FN-4, DK-8, foundry Q2/Q3, FN-A1 M1, cartographers §7 Q1–Q3. Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, CG-G1/G2, HC/AH/RC playtests.
 
 ## Rough edges (risks)
+- For the next design window: CG-A deviated (two rules `GUILD_HAND_RULE` + piece-scoped `PENCIL_RULE`; optional `seed` on GuildHandState; first plan made lazily, so a strand-guard flip could differ between preview and result in a rare first-round case). BF-J proposals accepted as implementation detail: `rivet-unit-gag` read in `resolve` only (telegraph still shows the act), `rivet-cap-lock` clears at round end, `coil-cap-surge` skips the invention-conduct path. Pack Q: `simulate` still runs with empty footnotes.
 - Old agent worktrees removed 2026-11-13 (~3.5 GB). 13 merged-or-superseded branches deleted. The SM-6 branch `worktree-agent-a7d9ce60e430bee68` is kept (tag `ref/sm-6`); review it at CAL-0 in calibration-plan.md.
 - CI cancels a run when the next push arrives: push once per merge batch.
 - A test mocking `$engine/districts/kit` must not import the real Seam module in its factory; tests import `$engine` before district files (the kit's lazy import cycle). CG-A registers the cartographers in the kit: watch the two fixture tests.
@@ -63,3 +65,4 @@ Ledger caveats (2026-11-13 run): IQ-13 shows open but is built. FU-16 and EN-10 
 ```
 /implement Resume the build program from docs/plans/build-program-status.md.
 ```
+

@@ -50,8 +50,12 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | FU-2, FU-3, FU-4, FU-5 (partial) | de0c7fe, 030e78c, 6771037, 452d9bc | Sonnet medium | 0 | – | LockLost met/spent; jar events carry optional id (`jarFate.ts`, golden compares via noJarIds); TrickDef.causes into KIT.causes; `afterglow:cloud` row (reuses `miss`); extra files accepted: jars.ts, mix.ts, districts/registry.ts, bridges/collapse.ts, bridges/heart.ts |
 | CI-1, CI-2 | 88b6175, 009d49c, fbe0b17, 9dd36ad | Sonnet medium | 0 | – | sims stale since F9: household-sweep `withParty` lacked foundry in heard/open (no engine change); placement and CN-13 timeouts raised (load-driven); AH-8 fuzz skips the owner's `mender`; full check green in worktree |
 | BF-FG | (design window 2026-11-12e) | Opus 5.5 high (orchestrator) | 0 | – | foundry footnote draft approved as written; F1 note kept whole, F2–F7 accepted, Q4/Q5 plain rules as built (DESIGN §11) |
+| RV-20b, FU-1 | f637ab7, e2e5f5f, 4d7a2d4 | Sonnet medium | 0 | ~10% | Jar note lets the planned walk cross a step-jar (`planRival` takes optional footnotes; resolve.ts passes ctx.footnotes); crossroads card note line; `simulate` still runs with empty footnotes |
+| CG-1, CG-2 | dc67c6a, 12a9699, 90bf5a6 | Sonnet high | 0 | ~15% | paper pieces, `pieceVoid`, kit registration, guild's hand; two rules (district hand + piece-scoped pencil), optional seed, `holds: 'none'` guards in mix.ts/jars.ts |
+| BF-F2, BF-F3 | b071e86, fd8eb8f | Sonnet medium | 0 | ~15% | 29 foundry variants stamped (Toll, Coil, Unison, Rivet, Filings), Carillonneur note at toll:bell II; api.ts re-exports, `Scheduled.again`, `BellsState.carried` added |
 
 ## Usage
 
 | Time (CET) | 5h % | Weekly % | Action |
 |---|---|---|---|
+| 2026-11-13 | 33 | 65 | wave 14 merged (Q, CG-A, BF-J); fast gate green on main; wave 15 CG-C, CG-E, P running |
