@@ -65,6 +65,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-9, CG-10 | 3062b50 | Sonnet medium | 0 | ~10% | six academy rooms (3 layouts each), heart frame salt 7160 (+7161 pencil scatter), bot term; `ROOM_PENCIL` data only (trip `roomSetup` owed); drawn-district tests exempt cartographers; tsc clean |
 | CI-4 | 6fbe977 | Sonnet medium | 0 | ~3% | `LineId` = subject:string; literal-id scan test; `typecheck:ts` (warm 5 s) joins check:fast; one test cast widened |
 | CG-3b, CG-F1b | d3513d7 | Sonnet medium | 0 | ~5% | `PieceTriggers.struckBy`; pencil and outline answer only Erase; `NoteCircle`/`circles` declared; Graphite skips blank |
+| FN-M2c, EN-9c | 3c03d50 | Sonnet medium | 1 | ~6% | `steam:unit`/`brass:unit` stamps restored; `RECORD_GOLDEN=replay`; five Seam goldens re-stored (line, witnessed, met +'unit'); `mender:diagonal` + `Meets` 'diagonal'; dusk dropped; returned once for the `met` approval |
 
 ## Usage
 

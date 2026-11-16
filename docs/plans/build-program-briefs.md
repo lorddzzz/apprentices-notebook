@@ -108,56 +108,6 @@ Verify: `pnpm vitest run tests/scenarios tests/data tests/rivals tests/districts
 Phone check: no (the orchestrator checks at the wave's end that the Swap margin offers the note at level II once the page is held).
 ```
 
-## Pack U: goldens and the Seam stamps (Default: Sonnet medium; escalate to Sonnet high)
-
-Starts when T is merged (`Meets` may grow).
-
-```
-Tasks FN-M2c → EN-9c: the rest of Pack L (status Owed "From ED (EN-9)" and the golden decision; DESIGN §11 and
-TECH §7, 2026-11-16).
-
-Read: TECH.md §7 row 2026-11-16 ("Golden trips keep comparing `line` …"); `git show 913a793` (the stamps L wrote:
-`steam:unit`/`brass:unit` in mix.ts, the diagonal check in networks.ts `stampGap`); pattern: tests/run/golden.test.ts
-(`noLedger`, `noJarIds`, ending-plan P26).
-Own: tests/run/golden.test.ts (the replay mode), tests/fixtures/district-kit/*.json (re-stored by replay only),
-src/engine/mix.ts (`brassOnUnit`, `landKindWith`: the two stamps), src/data/lines.ts (the FN-M2 rows' `pending`;
-one row in the EN-9 mender block), src/data/types.ts (`Meets`: `'diagonal'`), src/engine/networks.ts (`stampGap`),
-tests/scenarios/seam-unit-lines.test.ts, tests/scenarios/habits-mender.test.ts (the two EN-9b todos only).
-Contract (on main after T):
-- FN-M2c: restore 913a793's stamps. `landKindWith` lands Steam aimed at a unit on a bare tile under
-  `withLine(ctx, line('steam', 'unit'), …)`; `brassOnUnit`'s bare-unit branch collars under `line('brass', 'unit')`
-  (the shackle and mark branches keep their lines). `steam:unit` and `brass:unit` lose `pending`; the two FN-M2
-  todos become tests again, bodies unchanged. Behaviour unchanged.
-- Goldens: `RECORD_GOLDEN=replay pnpm vitest run tests/run/golden.test.ts` re-stores a trip from its recorded actions
-  (`recordTrip(golden.district, golden.seed, golden.options, golden.rooms.map((r) => r.actions))`, never the bot) in
-  the form the comparison reads: events through `noJarIds`, `profile` and `save.profile` through `noLedger`;
-  `district`, `seed`, `options`, `outcome` and every room's `actions` stay byte-identical. Document the mode in the
-  header comment beside `RECORD_GOLDEN=1`. Re-store only the trips that fail after the stamps (expected: seam-win-6,
-  -8, -9, seam-wipe-23, -7). In the report, list per fixture the JSON paths that changed (path → count); expected:
-  `line` on `landed`/`collared` events, the profile's `witnessed` lines and footnote points. Any other path is a stop:
-  report it and do not commit the fixtures.
-- EN-9c: `Meets` gains `'diagonal'` (doc: the mender, two network tiles diagonal to each other never join, EN-9b);
-  row `mender:diagonal` ("The gap is a straight line: two tiles diagonal to each other never join."), district
-  `seam`, in the EN-9 mender block; `stampGap` emits a `miss` (source `who`) under `mender:diagonal` when a
-  same-kind tile outside the net lies diagonal to a net tile across a gap tile, as 913a793 did. Only `gap > 0` (the
-  owner) stamps it, so no golden moves. `mender:dusk` is dropped (no fire spreads at round end): delete its
-  `test.todo`; the scenario "EN-9: dusk fire does not jump the gap" stays as it is.
-- Run `pnpm exec tsc --noEmit` after adding `'diagonal'`.
-Owed by this pack: "From ED (EN-9)"; the golden decision (decided). Leaves for later: the `steam:unit`/`brass:unit`
-variants (Pack V).
-
-Done when:
-- FN-M2c: "FN-M2: steam:unit fires when Steam lands under a unit" and "FN-M2: brass:unit fires when Brass collars a
-  bare unit" pass; tests/run/golden.test.ts passes on the re-stored fixtures; the report lists the changed paths.
-- EN-9c: "EN-9: mender:diagonal fires on a diagonal pair" passes; the nine EN-9 scenarios pass unchanged; the dusk
-  todo is gone.
-- tests/data/lines.test.ts (both L1 tests), tests/engine/ah0-contracts.test.ts, tests/scenarios and tests/run pass;
-  `pnpm exec tsc --noEmit` exits 0; `git status tests/fixtures` shows only the re-stored trips.
-
-Verify: `pnpm exec tsc --noEmit && pnpm vitest run tests/run tests/scenarios tests/data tests/engine --reporter=dot`
-Phone check: no.
-```
-
 ## Pack CG-G: room wiring, hearing, Bench and hall fuzz (Default: Sonnet medium)
 
 Starts now (CG-F merged as 3062b50).
