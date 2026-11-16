@@ -1,6 +1,6 @@
 # Build program: briefs for the packs not started yet
 
-Spawn `pack-worker` with the role's model and effort and paste one brief as written ([templates](../../.claude/skills/implement/templates.md)). Delete a brief when its pack merges. A routine window runs these; a design window writes the next ones (listed at the end). Written in the design windows of 2026-11-12e (the cartographers' Packs F–H) and 2026-11-16 (Packs S, T, U, V and CG-J; CG-G and CG-H amended). The decisions behind them: DESIGN §11 and TECH §7, 2026-11-16.
+Spawn `pack-worker` with the role's model and effort and paste one brief as written ([templates](../../.claude/skills/implement/templates.md)). Delete a brief when its pack merges. A routine window runs these; a design window writes the next ones (listed at the end). Written in the design windows of 2026-11-12e (the cartographers' Packs G and H) and 2026-11-16 (Packs S, T, U, V and CG-J; CG-G and CG-H amended). The decisions behind them: DESIGN §11 and TECH §7, 2026-11-16.
 
 ## Order for the routine windows
 
@@ -8,10 +8,9 @@ A pack starts when the packs in its "Starts when" are merged. Run two or three a
 
 | Wave | Packs (together) | Starts when |
 |---|---|---|
-| 18 | **CG-F** rooms (running) | |
-| 19 | **S** paper fixes · **T** `LineId` | now (beside CG-F) |
+| 19 | **S** paper fixes · **T** `LineId` · **CG-G** room wiring, hearing, bench, fuzz | now (CG-F merged 3062b50) |
 | 20 | **CG-H** board art · **CG-J** cartographers footnotes · **U** goldens and stamps | CG-H: S · CG-J: S · U: T |
-| 21 | **CG-G** doorway, hearing, bench, fuzz · **V** Afterglow and Seam unit margins | CG-G: CG-F · V: U |
+| 21 | **V** Afterglow and Seam unit margins | V: U |
 
 File clashes that set this order:
 - **`src/data/types.ts`:** T narrows `LineId` before any pack adds a `Meets` member; U adds `'diagonal'` after it. Every pack that edits this file runs `pnpm exec tsc --noEmit` (`check:fast` does not, unless T adds it).
@@ -21,39 +20,9 @@ File clashes that set this order:
 
 Every brief's "Leaves for later" items are also in the status file's Owed list. Plan §7 open questions of the cartographers are held at their defaults (DESIGN §11, 2026-11-12e).
 
-## Pack CG-F: rooms (Default: Sonnet medium)
-
-Starts when CG-B, CG-C, CG-D and CG-E are merged.
-
-```
-Pack F of docs/plans/cartographers-plan.md: tasks CG-9 → CG-10.
-
-Read: cartographers-plan.md §2 P4, P13, P17 and §5 Pack F; docs/design/district-cartographers.md §0 "Place" (academy
-rooms: lecture theatre, drafting benches, registry, back hall); pattern: the foundry's room data
-(`rooms` in src/data/districts/foundry.ts) and tests/data/foundry-rooms.test.ts, `checkRoom` in src/engine/rooms.ts.
-Own: src/data/districts/cartographers/rooms.ts (new), src/data/districts/cartographers.ts (`rooms` only),
-src/engine/districts/cartographers/heartFrame.ts (new), src/engine/districts/cartographers.ts (`heart`, `bot` lines),
-tests/data/cartographers-rooms.test.ts (new), tests/districts/cartographers/acceptance.test.ts (CG-9, CG-10 lines).
-Contract (on main: pieces, hand, hands, Registrar, trip):
-- Six encounters: rooms 1–3 (three layouts each, 7×9 at most, pencil config per room, Surveyor/Eraser/Tracer mixes,
-  `redraw: 0`), rooms 4–5 (three layouts each, `redraw` 1–2, outlines), the heart room (three layouts, the Registrar;
-  a return point). Academy names on every room. Numbers are first guesses for CAL.
-- `heart` through `frame.ts`'s `placeFrame`, salt 7160 (Owed from CW0); `bot` terms as the bathhouses' `BotTerms`.
-- The district stays `gate: 'drawing'` (CG-14 flips it).
-Owed by this pack: CW0's "`heart` frame (salt 7160) and `bot` at CG-10"; EF's "the Registrar joins the masters at CG-10".
-
-Done when: "CG-9: checkRoom passes for every room 1-3 layout at party sizes 1-3", "CG-9: a scripted solve exists for
-every room 1-3 layout", "CG-10: checkRoom passes for every room 4-5 and heart layout", "CG-10: a scripted solve exists
-for every deep layout", "CG-10: the heart room is a return point" and tests/districts/heart-frames.test.ts (the
-cartographers' row) pass.
-
-Verify: `pnpm vitest run tests/data tests/districts --reporter=dot`
-Phone check: no.
-```
-
 ## Pack S: paper fixes (Default: Sonnet medium; escalate to Sonnet high)
 
-Starts now (beside CG-F: no shared file).
+Starts now (beside T and CG-G: no shared file).
 
 ```
 Tasks CG-3b (status "Needs design review": Pencil Shove) → CG-F1b (footnotes-audit §13 Gr3, Proposal Z3); decided
@@ -268,25 +237,30 @@ Verify: `pnpm exec tsc --noEmit && pnpm vitest run tests/run tests/scenarios tes
 Phone check: no.
 ```
 
-## Pack CG-G: doorway, hearing, Bench and hall fuzz (Default: Sonnet medium)
+## Pack CG-G: room wiring, hearing, Bench and hall fuzz (Default: Sonnet medium)
 
-Starts when CG-F is merged.
+Starts now (CG-F merged as 3062b50).
 
 ```
 Pack G of docs/plans/cartographers-plan.md: tasks CG-8b → CG-13 → CG-14 → CG-16.
 
-Read: cartographers-plan.md §2 P13, P17, P18 and §5 Pack G; pattern: src/engine/districts/bridges/guarantee.ts
-(Bench entries), tests/sim/ink-trip.test.ts (a trip fuzz), `applyDoorway` in src/engine/trip/doorway.ts.
-Own: src/engine/trip/choices.ts (`takeChoice`), src/engine/trip/doorway.ts (`applyDoorway`), src/engine/trip/crossroads.ts
+Read: cartographers-plan.md §2 P4, P13, P17, P18 and §5 Pack G; pattern: src/engine/districts/bridges/guarantee.ts
+(Bench entries), tests/sim/ink-trip.test.ts (a trip fuzz), `bathRoomSetup` in src/engine/districts/bathhouses/trip.ts
+(a `roomSetup` returning `rulesConfig`).
+Own: src/engine/districts/cartographers/trip.ts (`roomSetup` on `CARTOGRAPHERS_TRIP`), src/engine/trip/choices.ts (`takeChoice`), src/engine/trip/doorway.ts (`applyDoorway`), src/engine/trip/crossroads.ts
 (`pushOn`), src/engine/run.ts (the trip parse check only, if a reload in the doorway needs it), src/app/crossroads.ts
 (the `through` way's `sub`), src/engine/districts/cartographers/bench.ts (new), src/data/districts/cartographers/lore.ts
 (new), src/data/districts/cartographers.ts (`hear`, `gate`, map art keys), src/data/scenarios.ts (the CG lines),
 src/data/codex.ts (the four lore entries), tests/sim/cartographers-hall.test.ts (new),
-tests/districts/cartographers/{doorway,bench,hearing}.test.ts (new), tests/districts/cartographers/trip.test.ts (the
+tests/districts/cartographers/{doorway,roomPencil,bench,hearing}.test.ts (new), tests/districts/cartographers/trip.test.ts (the
 `wayOn` helper only), tests/app/crossroads.test.ts (one new test), tests/rivals/registrar.test.ts (the heart and wipe
 tests only), the acceptance file's remaining CG lines.
-Contract:
-- CG-8b, through the doorway (P13; DESIGN §11 and TECH §7 2026-11-16; Owed from CG-E): `takeChoice` on a
+Contract (on main after CG-F, 3062b50: rooms, `ROOM_PENCIL`, heart frame, bot term):
+- CG-8b, the trip's room wiring. (a) The pencil per room (P4; CG-F left `ROOM_PENCIL` as data only):
+  `CARTOGRAPHERS_TRIP.roomSetup = (input) => ({ rulesConfig: { [GUILD_HAND_RULE_ID]: { ...(ROOM_PENCIL[input.room]
+  ?? DEFAULT_PENCIL) } } })`; no seed in the config (the hand seeds from the battle's rng state, as now); the rule is
+  already listed in every room as the district's own (`roomRules`), so `setUpRoom` applies the config. (b) Through the
+  doorway (P13; DESIGN §11 and TECH §7 2026-11-16; Owed from CG-E): `takeChoice` on a
   `kind: 'through'` choice records the choice (and the checkpoint, computed for the next room as today) and opens
   the quiet doorway: `status: 'doorway'`, `encounter` unchanged. `applyDoorway` on a trip whose `kit.choices` holds a
   choice taken after the current encounter goes on to that room (`encounter + 1`, `status: 'fight'`, charges carried
@@ -311,7 +285,8 @@ Contract:
 Owed by this pack: "From CG-E: the Crossroads 'through the doorway' app wiring"; "From CG-D: the heart/wipe tests on
 the real district".
 
-Done when: "CG-8b: through the doorway opens the rewiring, then room 4", "CG-8b: a doorway from loot still returns
+Done when: "CG-8b: each room's battle starts with its ROOM_PENCIL config" (rooms 1–5 and the heart, read from the
+battle's `GuildHandState`), "CG-8b: through the doorway opens the rewiring, then room 4", "CG-8b: a doorway from loot still returns
 to the cards or the Crossroads", "CG-8b: pushOn takes the only way on", "CG-8b: a reload in the through-doorway
 resumes it" pass; the CG-8 tests in trip.test.ts and tests/run/doorway.test.ts pass with only the helper change; the
 plan's CG-13, CG-14 and CG-16 rows' tests pass; the dev "open all" toggle shows the hall.

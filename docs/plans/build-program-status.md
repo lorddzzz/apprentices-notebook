@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F still running. **Next window: routine.**
+**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged on main (3062b50) during the window; its log row is the routine window's to write. **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -12,15 +12,15 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 ## Next
 0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
-1. **Routine:** merge CG-F when it reports. Start **S** and **T** now (wave 19, beside CG-F). Then wave 20: **CG-H** and **CG-J** (after S), **U** (after T). Then wave 21: **CG-G** (after CG-F), **V** (after U). Order table and clash notes: the briefs file.
+1. **Routine:** record CG-F (3062b50). Start **S**, **T** and **CG-G** now (wave 19). Then wave 20: **CG-H** and **CG-J** (after S), **U** (after T). Then wave 21: **V** (after U). Order table and clash notes: the briefs file.
 2. A pack that edits `src/data/types.ts` runs `pnpm exec tsc --noEmit` (CI-3); T may add it to `check:fast`.
 3. **Next design window** (when the briefs run out, or three reviews pile up): EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft; cartographers Close after CG-G/H/J.
-4. Hard edges: EN-S2 → EN-G0 → ending Pack E · S → CG-H, CG-J · T → U → V · CG-F → CG-G · BL-111 → EN-4.
+4. Hard edges: EN-S2 → EN-G0 → ending Pack E · S → CG-H, CG-J · T → U → V · BL-111 → EN-4.
 
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| CG-F | CG-9, CG-10 | Sonnet 5.5 medium | pack-worker worktree | running (spawned 2026-11-16, 5h 66 %) |
+| none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-16: the golden decision → replay re-store, Pack U; `LineId` → Pack T; Pencil Shove and Graphite on blank → Pack S; CG-I's proposals and the three drafts → DESIGN §11. F7, M and C3 recorded as accepted earlier; D5's numbers wait for EN-G0.)
@@ -29,12 +29,11 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed.
 - From F8: Pack K: FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only.
 - Foundry: EN-K6 wraps the frame.
-- From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10 (Pack CG-F).
-- From CW0: `heart` frame (salt 7160) and `bot` → Pack CG-F.
+- From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10 (check in CG-F's merge record).
 - From ED (EN-9) and the golden decision: `mender:diagonal` row and stamp, `steam:unit`/`brass:unit` stamps → Pack U (`mender:dusk` dropped).
 - From I (FU-5) and FN-A1 M2: the Afterglow and `steam:unit`/`brass:unit` variants → Pack V.
 - From CG-I: CG-F3 stamps `swap:unit` on `swapped` → Pack CG-J. From CG-D: his page note (`registrar:swap`) → CG-J; the heart/wipe tests on the real district → CG-G.
-- From CG-E: *Through the doorway* app wiring → Pack CG-G (CG-8b).
+- From CG-E: *Through the doorway* app wiring; from CG-F: `ROOM_PENCIL` applied per room through `roomSetup` → Pack CG-G (CG-8b).
 - Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
 - Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 (Pack N). Plans' "Leaves for later" items: copied into every brief written.
 

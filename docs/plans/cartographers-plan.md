@@ -146,7 +146,7 @@ Pattern: the bathhouses' room data and `tests/data/canal-rooms.test.ts`
 | CG-10 | Rooms 4–5 and the heart room (three layouts each), `redraw`, outlines, the back hall; the heart room is a return point | M | tests `CG-10: checkRoom passes for every room 4-5 and heart layout`, `CG-10: a scripted solve exists for every deep layout`, `CG-10: the heart room is a return point` pass |
 
 ### Pack G: Hearing, Bench and hall fuzz (role: Default; engine; depends on: Packs D, E, F; BR-20, BF-9)
-> Design window 2026-11-16: Pack G also takes **CG-8b**, the *Through the doorway* wiring (a `through` choice opens the quiet doorway, then room 4; P13), owed from Pack E; see the briefs file.
+> Design window 2026-11-16: Pack G also takes **CG-8b**, the trip's room wiring: `roomSetup` applies `ROOM_PENCIL` per room (P4, left as data by Pack F), and the *Through the doorway* choice opens the quiet doorway, then room 4 (P13, owed from Pack E); see the briefs file.
 Owns: `src/engine/districts/cartographers/bench.ts`, `src/data/districts/cartographers/lore.ts`, `src/data/districts.ts` (the hearing line), `src/data/scenarios.ts` (CG lines), `tests/sim/cartographers-hall.test.ts`, `tests/districts/cartographers/{bench,hearing}.test.ts`
 Pattern: `src/engine/districts/bridges/guarantee.ts` for Bench entries; `tests/sim/ink-trip.test.ts` for a trip fuzz
 
