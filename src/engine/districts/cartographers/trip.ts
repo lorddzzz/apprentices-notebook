@@ -1,7 +1,9 @@
 import { BOARD_TREASURES, TREASURE_ROOMS } from '$data/districts/cartographers/loot';
+import { ROOM_PENCIL } from '$data/districts/cartographers/rooms';
 import {
   CARTOGRAPHERS_TABLE_IDS,
   type CartographersTableId,
+  DEFAULT_PENCIL,
 } from '$data/districts/cartographers/types';
 import type { Profile } from '../../types';
 import type {
@@ -10,9 +12,11 @@ import type {
   KitLootSpec,
   OfferContributor,
   RoomOffers,
+  RoomSetup,
   ShapeInput,
   TripShapeDef,
 } from '../types';
+import { GUILD_HAND_RULE_ID } from './types';
 
 /**
  * The Cartographers' trip (cartographers-plan P13-P15; CG-8): free return after rooms 1-3 (`ret`
@@ -44,11 +48,17 @@ export const cartographersOffersFor = (input: ShapeInput<null>): RoomOffers => {
   return { table: table ?? HEART_TABLE, picks: 1 };
 };
 
+/** P4: each room's battle lists the guild's hand with that room's pencil config (the seed is the battle's). */
+export const cartographersRoomSetup = (input: ShapeInput<null>): RoomSetup => ({
+  rulesConfig: { [GUILD_HAND_RULE_ID]: { ...(ROOM_PENCIL[input.room] ?? DEFAULT_PENCIL) } },
+});
+
 export const CARTOGRAPHERS_TRIP: TripShapeDef<null> = {
   id: CARTOGRAPHERS_SHAPE,
   parseState: () => null,
   initState: () => null,
   choices: cartographersChoices,
+  roomSetup: cartographersRoomSetup,
   offersFor: cartographersOffersFor,
 };
 

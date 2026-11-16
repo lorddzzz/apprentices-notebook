@@ -16,6 +16,7 @@ import {
   type GameEvent,
   hearAfterTrip,
   newProfile,
+  type Profile,
   startTrip,
   type Trip,
 } from '$engine';
@@ -263,6 +264,13 @@ describe('strike from the register', () => {
   });
 });
 
+/** A real cartographers trip standing in the heart room (CG-F's rooms). */
+const heartTrip = (p: Profile): Trip => {
+  const city = { ...p.city, open: [...p.city.open, 'cartographers' as const] };
+  const t = startTrip({ ...p, city }, 1, 'cartographers');
+  return { ...t, encounter: t.kit ? 5 : 0 };
+};
+
 describe('his heart', () => {
   it('CG-7: the page banks on a win and is kept on a wipe', () => {
     const won = structuredClone(hall('. . S . . Y'));
@@ -270,7 +278,7 @@ describe('his heart', () => {
     expect(bankPages(newProfile(), won, 'cartographers', awardsPage).pages).toEqual([PAGE]);
     expect(bankPages(newProfile(), won, 'seam', awardsPage).pages).toEqual([]);
     const held = { ...newProfile(), pages: [PAGE] };
-    const trip = { ...startTrip(newProfile(), 1), district: 'cartographers' } as Trip;
+    const trip = heartTrip(newProfile());
     const lost = structuredClone(hall('. . S . . Y'));
     lost.phase = 'lost';
     const done = finishEncounter(held, trip, lost);
@@ -282,7 +290,7 @@ describe('his heart', () => {
     // The cleared trip is the generic one: a rival heart needs nothing of its own (P12, P18).
     expect(awardsPage({ def: 'registrar' })).toBe(true);
     const p = newProfile();
-    const cleared = { ...startTrip(p, 1), district: 'cartographers', status: 'cleared' } as Trip;
+    const cleared: Trip = { ...heartTrip(p), status: 'cleared' };
     expect(hearAfterTrip(p, cleared, 'wiped').profile.city.hearts).toEqual([]);
     expect(hearAfterTrip(p, cleared, 'returned').profile.city.hearts).toContain('cartographers');
   });

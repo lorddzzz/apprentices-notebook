@@ -76,6 +76,9 @@ export function crossroadsView(
           next === undefined ? reason : `${reason} The next landing is after ${placeOf(t, next)}.`,
       };
     }
+    if (c.kind === 'through') {
+      return { ...base, sub: `Rewire at the quiet doorway, then ${leadsTo(t, c)} (${depth})` };
+    }
     return { ...base, sub: `Deeper: ${leadsTo(t, c)} (${depth})` };
   });
   return {

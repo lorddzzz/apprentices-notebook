@@ -96,7 +96,9 @@ function clearRoom(save: SaveData, want?: KitLootSpec): SaveData {
 /** The way on from a Crossroads: the module's own choice, else the default push. */
 const wayOn = (save: SaveData): SaveData => {
   const way = choicesAt(tripOf(save)).find((c) => c.kind !== 'return');
-  return chooseWay(save, way?.id ?? 'push');
+  const next = chooseWay(save, way?.id ?? 'push');
+  // The quiet doorway: leave it without rewiring, which goes on to the next room.
+  return tripOf(next).status === 'doorway' ? leaveDoorway(next, next.profile) : next;
 };
 
 // ── Shape data ──────────────────────────────────────────

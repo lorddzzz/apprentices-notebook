@@ -1,4 +1,5 @@
 import type { TrickDef } from '../rivals/types';
+import { withBench } from './cartographers/bench';
 import { CARTOGRAPHERS_FOES, TRACER_RULE } from './cartographers/foes';
 import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
 import { CARTOGRAPHERS_BOT, CARTOGRAPHERS_HEART_SETUP } from './cartographers/heartFrame';
@@ -41,7 +42,7 @@ const events: readonly DistrictEventDef[] = CARTOGRAPHERS_EVENT_TYPES.map((type)
 export const CARTOGRAPHERS_MODULE: DistrictModule = {
   id: 'cartographers',
   rules: [GUILD_HAND_RULE, PENCIL_RULE, TRACER_RULE],
-  pieces: CARTOGRAPHERS_REGISTERED_PIECES,
+  pieces: CARTOGRAPHERS_REGISTERED_PIECES.map(withBench),
   foes: CARTOGRAPHERS_FOES,
   // The Registrar is a rival (CG-7): his trick, routine goals and the Erase that lifts his circles.
   tricks: [STRIKE_FROM_THE_REGISTER as TrickDef],

@@ -334,6 +334,7 @@ describe('thresholds, the map and the dev toggle', () => {
       'bathhouses',
       'bridges',
       'foundry',
+      'cartographers',
     ]);
     expect(openAll(all).city).toEqual(all.city);
   });

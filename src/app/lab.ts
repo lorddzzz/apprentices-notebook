@@ -682,6 +682,14 @@ const capital = (text: string): string => text.charAt(0).toUpperCase() + text.sl
  * rope in each tone, a great bell by note, hung or not). `suffix` is the token's data part.
  */
 const PIECE_VARIANTS: Readonly<Record<string, readonly { suffix: string; name: string }[]>> = {
+  pencil: [
+    { suffix: 'ink', name: 'Pencil, ink' },
+    { suffix: 'rub', name: 'Pencil, rub' },
+  ],
+  outline: ['surveyor', 'eraser', 'tracer'].map((foe) => ({
+    suffix: foe,
+    name: `Outline, ${foe}`,
+  })),
   bell: TONES.map((t) => ({ suffix: t, name: `Bell, ${t}` })),
   rope: TONES.map((t) => ({ suffix: t, name: `Rope, ${t}` })),
   greatBell: [1, 2, 3, 4].flatMap((n) => [

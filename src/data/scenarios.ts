@@ -561,4 +561,55 @@ export const SCENARIOS: readonly ScenarioDef[] = [
     demo: [],
     expected: [],
   },
+  // CG-13: the Cartographers' Lab prototypes. The pencil's fixed fates resolve at the first round end.
+  {
+    id: 'cg-pencil',
+    title: 'Pencil and blank paper',
+    note: 'Pencil marked ink becomes real paper at round end; pencil marked rub is rubbed out, and whoever stands there with it. Blank paper is a void. End the turn and watch.',
+    board: [
+      'D . . . . .',
+      '. {pencil:ink} {pencil:rub} . {pencil:rub} .',
+      '. . {pencil:ink} . . .',
+      'S . . {blank} . d',
+    ].join('\n'),
+    lattices: { draughtsman: 'Bolt> Oil Spark', stoker: 'Bolt> Spark Oil' },
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'cg-hands',
+    title: 'The guild’s three hands',
+    note: 'The Surveyor swaps two of you, the Eraser un-draws a tile, the Tracer copies your last attack in mirror. The guild’s hand plans the pencil a round ahead.',
+    board: [
+      'A . . . . F',
+      '. {pencil} . {pencil} . .',
+      '. . I . {pencil} .',
+      '. {pencil} . . . .',
+      'D . . . . S',
+    ].join('\n'),
+    lattices: { draughtsman: 'Bolt> Oil Spark', stoker: 'Bolt> Spark Oil' },
+    rules: {
+      'cartographers:guildHand': { share: 1 / 3, perRound: 0.4, inkBias: 0.5, redraw: 1 },
+    },
+    demo: [],
+    expected: [],
+  },
+  {
+    id: 'cg-registrar',
+    title: 'The Registrar',
+    note: 'He circles a name in the register; a circle still under its unit at round end strikes it out. Move off, Erase the tile, or kill the hand that holds the circle.',
+    board: [
+      '. . . . Y . .',
+      '. {pencil} . . . {pencil} .',
+      '. . I . . . .',
+      '. . . {blank} . . .',
+      '. D . . . S .',
+    ].join('\n'),
+    lattices: { draughtsman: 'Bolt> Oil Spark', stoker: 'Bolt> Spark Oil' },
+    rules: {
+      'cartographers:guildHand': { share: 0.4, perRound: 0.4, inkBias: 0.45, redraw: 2 },
+    },
+    demo: [],
+    expected: [],
+  },
 ];

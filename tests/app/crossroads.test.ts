@@ -247,4 +247,21 @@ describe('Set out offers the checkpoint', () => {
     const game = new GameStore(b, () => 1);
     expect(game.setOut('canals', 'checkpoint')).toMatch(/Nobody is in a trip slot/);
   });
+
+  test('a through way reads as the quiet doorway, then the next room', () => {
+    const profile = {
+      ...newProfile(),
+      city: {
+        ...newProfile().city,
+        heard: ['seam', 'cartographers'],
+        open: ['seam', 'cartographers'],
+      },
+    } as Profile;
+    const save = setOutAt({ ...newSave(1), profile }, 'cartographers');
+    if (!save.trip) throw new Error('expected a trip');
+    const at: Trip = { ...save.trip, encounter: 2, status: 'crossroads' };
+    const way = crossroadsView(at).ways[0];
+    expect(way?.kind).toBe('through');
+    expect(way?.sub).toBe(`Rewire at the quiet doorway, then ${placeOf(at, 3)} (depth 4 of 6)`);
+  });
 });

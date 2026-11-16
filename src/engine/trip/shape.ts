@@ -174,7 +174,10 @@ export function parseTripKit(
   const passed = choices.map((c) => c.after);
   // A trip started at the checkpoint skipped the Crossroads before it.
   const first = passed[0] ?? t.encounter;
-  if (passed.some((a, i) => a !== first + i) || first + passed.length !== t.encounter) bad();
+  // A `through` choice taken at the Crossroads leaves the trip in the doorway one choice ahead (P13).
+  const ahead = t.status === 'doorway' && passed.at(-1) === t.encounter ? 1 : 0;
+  if (passed.some((a, i) => a !== first + i) || first + passed.length !== t.encounter + ahead)
+    bad();
   if (typeof raw.checkpoint !== 'boolean') bad();
   const checkpoint = raw.checkpoint === true;
   if (checkpoint !== reachedCheckpoint(shape, t)) bad();

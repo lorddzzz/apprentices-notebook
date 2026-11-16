@@ -31,7 +31,7 @@ export function choicesAt(
 /**
  * Takes a way on from the Crossroads (P4): the next room becomes current. On a trip that carries a
  * kit the choice is recorded with the variant pool it fixes, so a reload replays the same room,
- * and passing the checkpoint is noted (P5). Return home goes through `returnHome` instead.
+ * and passing the checkpoint is noted (P5). A `through` way stops at the quiet doorway (P13). Return home goes through `returnHome` instead.
  */
 export function takeChoice(
   t: Trip,
@@ -49,5 +49,7 @@ export function takeChoice(
   const taken: TakenChoice = { after: t.encounter, id };
   if (choice.variantPool && choice.variantPool.length > 0) taken.pool = [...choice.variantPool];
   const checkpoint = t.kit.checkpoint || reachedCheckpoint(shape, next);
-  return { ...next, kit: { ...t.kit, choices: [...t.kit.choices, taken], checkpoint } };
+  const kit = { ...t.kit, choices: [...t.kit.choices, taken], checkpoint };
+  // A `through` way opens the quiet doorway first; `applyDoorway` goes on to the room (P13).
+  return choice.kind === 'through' ? { ...t, status: 'doorway', kit } : { ...next, kit };
 }

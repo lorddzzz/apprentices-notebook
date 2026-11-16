@@ -24,6 +24,7 @@ import {
   START_KNOWN,
   TUNING,
 } from '$data';
+import { BOARD_TREASURES } from '$data/districts/cartographers/loot';
 import { DISTRICT_KIT } from '$data/districts/index';
 import { BASIC_ACTIONS, FOUNDERS, parseBoard, parseLattice } from '$engine';
 import { preconditionsOf, SEAM_PAGES } from '$engine/recruits';
@@ -109,7 +110,7 @@ test('every district has an edge; the Seam and the canals are walled (P3)', () =
   // The Cartographers' six rooms are laid (CG-9, CG-10) behind the same gate until CG-14.
   for (const id of DISTRICT_IDS.filter((d) => !PLAYABLE_DISTRICTS.includes(d))) {
     if (id !== 'cartographers') expect(DISTRICTS[id].rooms, id).toEqual([]);
-    expect(DISTRICTS[id].gate.kind, id).toBe('drawing');
+    expect(DISTRICTS[id].gate.kind, id).toBe(id === 'cartographers' ? 'threshold' : 'drawing'); // CG-14
   }
 });
 
@@ -327,7 +328,9 @@ test('every door arrival: her pages come from the Seam, a placed page, or a dist
       const placed = pageSources.some((l) => ('runes' in l ? l.runes : l.any).includes(rune));
       const waits = PAGES_FROM_DRAWN[id];
       const drawn = waits !== undefined && DISTRICTS[waits].gate.kind === 'drawing';
-      expect(placed || drawn, `${id}/${rune}`).toBe(true);
+      // CG-14: the hall's Board treasures (P14) guarantee Erase, Draw and Swap.
+      const boarded = BOARD_TREASURES.some((t) => t.kind === 'rune' && t.rune === rune);
+      expect(placed || drawn || boarded, `${id}/${rune}`).toBe(true);
     }
   }
 });

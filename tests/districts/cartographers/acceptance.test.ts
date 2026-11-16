@@ -38,7 +38,7 @@ import { DISTRICT_UI } from '$ui/districts';
 describe('CG-W0 registration', () => {
   it('the district stays hidden: drawing, six rooms, not playable, with the stub hearing', () => {
     const d = DISTRICTS.cartographers;
-    expect(d.gate.kind).toBe('drawing');
+    expect(d.gate.kind).toBe('threshold'); // CG-14
     expect(d.rooms).toHaveLength(6); // CG-9, CG-10
     expect(d.lean.lean).toBe('paper');
     expect(d.hear).toMatchObject([{ kind: 'pages', atLeast: 5, except: ['registrar'] }]);
@@ -158,17 +158,7 @@ describe('CG-W0 contracts', () => {
 // heart room's frame in tests/districts/heart-frames.test.ts).
 
 // ── Pack G: hearing, Bench and hall fuzz ─────────────────
-describe('CG-13 Bench and Lab parity', () => {
-  it.todo('CG-13: the bench offers pencil after it is met and not before');
-  it.todo('CG-13: the registrar is never on the bench');
-  it.todo('CG-13: each cg scenario opens from #/lab?scenario=');
-});
-
-describe('CG-14 hearing, map and lore', () => {
-  it.todo('CG-14: the hearing meets at five pages');
-  it.todo("CG-14: the hearing misses at four pages or with the Registrar's");
-  it.todo("CG-14: SM's gate reads cartographers in city.hearts");
-});
+// CG-13 and CG-14 pass in bench.test.ts and hearing.test.ts under their plan titles.
 
 // ── Pack I and J: footnotes ──────────────────────────────
 // CG-F1: every cartographers line row has a firing scenario (tests/scenarios/cartographers-lines.test.ts)

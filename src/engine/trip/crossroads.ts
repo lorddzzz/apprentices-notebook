@@ -1,7 +1,7 @@
 import { hearAfterTrip } from '../city';
 import { feedLedger } from '../ledger';
 import type { Profile, Trip } from '../types';
-import { takeChoice } from './choices';
+import { choicesAt, takeChoice } from './choices';
 import { bankLoot, kindOf, type OfferRegistry, offerRegistry } from './offerKinds';
 import { returnCheck } from './ret';
 import { rememberCheckpoint, roomsOf } from './shape';
@@ -45,7 +45,9 @@ export function pickLoot(t: Trip, index: number, reg: OfferRegistry = offerRegis
  * whose module names its own ways (span choices, the doorway) goes through `chooseAt` (P4).
  */
 export function pushOn(t: Trip): Trip {
-  return takeChoice(t, 'push');
+  const ways = choicesAt(t).filter((c) => c.kind !== 'return');
+  const only = ways.length === 1 ? ways[0] : undefined;
+  return takeChoice(t, only && !ways.some((c) => c.id === 'push') ? only.id : 'push');
 }
 
 /**

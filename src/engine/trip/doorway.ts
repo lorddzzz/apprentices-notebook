@@ -70,12 +70,17 @@ export function applyDoorway(
   const first = Object.values(validateLoadout(profile, t.party))[0]?.[0];
   if (first) throw new Error(`Loadout is not ready: ${first.message}`);
   const more = t.picksLeft > 0 && t.offers.length > 0;
-  const trip: Trip = {
-    ...t,
-    charges: carryCharges(p, profile, t),
-    offers: more ? t.offers : [],
-    picksLeft: more ? t.picksLeft : 0,
-    status: more ? 'looting' : 'crossroads',
-  };
+  // A doorway a `through` choice opened (taken after this room) goes on to the next room (P13).
+  const through = t.kit?.choices.some((c) => c.after >= t.encounter) ?? false;
+  const charges = carryCharges(p, profile, t);
+  const trip: Trip = through
+    ? { ...t, charges, offers: [], picksLeft: 0, encounter: t.encounter + 1, status: 'fight' }
+    : {
+        ...t,
+        charges,
+        offers: more ? t.offers : [],
+        picksLeft: more ? t.picksLeft : 0,
+        status: more ? 'looting' : 'crossroads',
+      };
   return { profile, trip };
 }
