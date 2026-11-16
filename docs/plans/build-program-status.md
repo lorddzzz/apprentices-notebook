@@ -85,3 +85,5 @@ Ledger caveats: IQ-13 shows open but is built. BR-19 = C3 (BR-19a/b) + C3b (BR-1
 ```
 /implement Resume the build program from docs/plans/build-program-status.md.
 ```
+
+**Session 2026-11-17 end:** hit 72 % of the 5h limit after the design window; per the player's rule (>65 % = start nothing, finish, close) no packs were spawned. 5h reset 2026-11-17 02:10 UTC (03:10 CET). Next window = routine: spawn wave 23 (DEV-1, EN-W1, MET-1, N1) from the briefs file. Player rule for that session may differ; ask nothing, follow this file.
