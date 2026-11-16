@@ -209,7 +209,11 @@ export type Meets =
  * Swap and Shove use their runes' lines, AH P7). Only a `FootnoteSubject` has a margin and points.
  */
 export type LineSubject = RuneId | MethodId | SolventId | HabitId | 'pull' | 'hop';
-export type LineId = `${LineSubject}:${Meets}`;
+/**
+ * `subject:meets`. The subject is checked by the type; the meets half by tests (L1 and
+ * line-literals), so `Meets` can grow without widening this union (a product type crashed tsc).
+ */
+export type LineId = `${LineSubject}:${string}`;
 export interface LineDef {
   id: LineId;
   subject: LineSubject;

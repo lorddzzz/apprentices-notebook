@@ -21,7 +21,7 @@
     "typecheck": "pnpm typecheck:svelte && pnpm typecheck:ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "check:changed": "vitest run --changed main --exclude 'tests/sim/**'",
-    "check:fast": "pnpm typecheck:svelte && pnpm lint && vitest run --exclude 'tests/sim/**'",
+    "check:fast": "pnpm typecheck:svelte && pnpm typecheck:ts && pnpm lint && vitest run --exclude 'tests/sim/**'",
     "icons": "pwa-assets-generator"
   },
   "devDependencies": {

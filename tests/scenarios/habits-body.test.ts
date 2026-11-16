@@ -206,7 +206,7 @@ test('steamproof-headline-unmasked: a habit event under an unwitnessed line stil
     harm: 'steam',
     line: 'spark:cloud',
     habit: 'steamproof',
-  } as GameEvent;
+  } as unknown as GameEvent;
   const hit: GameEvent = { ...unharmed, habit: undefined } as GameEvent;
   const { shown } = maskPreview([unharmed, hit], new Set(), ['draughtsman']);
   expect(shown).toEqual([unharmed]);
