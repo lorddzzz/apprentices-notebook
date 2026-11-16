@@ -1,6 +1,6 @@
 # The Cartographers' hall: the academy
 
-> **Status: Decided** (design rounds 2026-10-22; trip shape, wipe rule and gate revised 2026-10-23 so the Board pages can be banked; not built). Roadmap: BL-117 (and BL-126 for the ending). The last of the seven districts to be designed ([district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md), [district-bridges.md](district-bridges.md), [district-bell-foundry.md](district-bell-foundry.md), the canals revisit in [city-and-districts.md](city-and-districts.md) §5b and [district-seam.md](district-seam.md) came first). The apprentices are designed in [party.md](party.md) §2.
+> **Status: Built and open** behind the drafting table (design rounds 2026-10-22; trip shape, wipe rule and gate revised 2026-10-23 so the Board pages can be banked; built 2026-11-12 to 2026-11-16, [cartographers-plan.md](../plans/cartographers-plan.md); the build's rules in §4). Roadmap: BL-117 (and BL-126 for the ending). The last of the seven districts to be designed ([district-ink-makers.md](district-ink-makers.md), [district-bathhouses.md](district-bathhouses.md), [district-bridges.md](district-bridges.md), [district-bell-foundry.md](district-bell-foundry.md), the canals revisit in [city-and-districts.md](city-and-districts.md) §5b and [district-seam.md](district-seam.md) came first). The apprentices are designed in [party.md](party.md) §2.
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. School and runes: [rune-design-final.md](rune-design-final.md) §5.2 and §11. Rival rules: [rivals.md](rivals.md).
 > Names are placeholders until BL-40. Numbers are *tune by playing*.
 
@@ -56,3 +56,21 @@
 - The recovered-rival-page format and how five pages read as one city plan (BL-118), and the redraft threshold board.
 - Room layouts and sizes (three per depth), the academy's art, the benches that draw on you, the registry and the owner's desk, the Surveyor/Eraser/Tracer numbers.
 - **Resolved 2026-10-23 ([ending.md](ending.md)):** the sandbox is the drawing table (three drawn districts, a pen that grows with mastery, real trips), and the Seam stays as the player's page with drawn districts inked in below it.
+
+## 4. As built (Close, 2026-11-16)
+
+Rules the build settled. *Proposal* marks a builder's or design window's default that the playtests (CG-G1, CG-G2, CG-G4) may change; every number goes to the calibration plan.
+
+| Topic | As built |
+|---|---|
+| Pencil | Each room's pencil share and pace come from its own config (rooms 2–3: 0.3/0.25 of the board, *Proposal*). The guild's hand plans one round ahead: a fate (ink blot or eraser smudge) and its due round show on the tile. The first plan is drawn at the party's first action; until then the Next round overlay shows round 1's fates (*Proposal*: a playtest question) |
+| Paper and runes | Pencil and outlines answer only Erase: a basic Shove is not offered at them. Erase on pencil under a foe erases it (a minion is gone, an elite takes the drop damage and loses its action), on an outline un-draws the foe; inked paper cannot be erased. A flier pushed at blank paper crushes against it. Graphite never puts a state back on blank paper. Draw moves only what stands on pencil (§7 default) |
+| The guild's hands (*Proposal*) | **Surveyor** (move 2, 3 HP): swaps two units within 3, preferring a unit onto rub-due pencil, then beside blank paper, then the nearest apprentice with the farthest foe. **Eraser** (move 2, 3 HP): rubs one tile's state, jar or mark, or un-draws pencil early. **Tracer** (move 1, 4 HP, no attack of its own): bound to the nearest apprentice by a visible tether; strikes for 1 the mirror of each tile she damaged last turn |
+| The Registrar (*Proposal*) | 10 HP, move 1; *Rub out* (Bolt → Erase) and *Pull in* (Bolt → Swap), four charges each. *Strike from the register*: one circle a round (two below half HP), held by the nearest living guild hand, else by him; lifted by an Erase on the tile, by the unit moving off, or by the holder's death; a unit still circled at round end is erased. His page is *Pull in*; it banks on a win and is kept on a wipe |
+| The Registrar's note | On Swap, level II (`swap:unit`), offered once his page is held: a foe your Swap leaves on pencil is circled and erased at round end if it stays (approved 2026-11-16) |
+| Threshold (*Proposal*) | The drafting table: a 6×7 pencil sheet over blank paper with fixed fates; reach the inked bench within four rounds. A second sheet adds a lay-figure on rub-due pencil that a Shove, Pull or Swap saves |
+| Trip | Return home after rooms 1–3; the Crossroads after room 3 offers *Through the doorway* (rewire, then room 4) with the warning that what you carry is lost past it; Set Out offers *the quiet doorway* once reached (start at room 4 at full health and charges) |
+| Lore | The registry (room 2), *the bad join* (room 4, decided at the Close; built by Pack CG-K), the owner's desk (room 5), the struck name (the heart, with the door line "Below the Seam, a lock turns.") |
+| Footnotes | The batch in [footnotes-content/cartographers.md](footnotes-content/cartographers.md) as approved, with these build calls (*Proposal*): `graphite-cap-pin` holds 2 rounds; `graphite-unit-redraw` is silent; `quicksilver-edge-middle`'s second pass is unlined; `erase-cap-salvage` draws to the nearest paper tile; a variant acts only for a member's cast |
+| Board art | Graphite hatching for pencil, a torn page for blank paper, dashed outlines with a due badge; one circle mark for both sources (the Registrar's red, the household's blue, doubled) with holder lines; the Surveyor's swap pair and the Tracer's tether drawn on the board |
+| Playable | The hall is in `PLAYABLE_DISTRICTS` (decided at the Close; Pack CG-K) |

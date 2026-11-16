@@ -1,7 +1,7 @@
 # The Cartographers' hall: implementation plan
 
 > Design: [district-cartographers.md](../design/district-cartographers.md) (rev. 2026-10-23), [rune-design-final.md](../design/rune-design-final.md) §5.2, §6.2–6.3, §11, [party.md](../design/party.md) §2 (door arrival B), [district-seam.md](../design/district-seam.md) (the sealed door), [rivals.md](../design/rivals.md). Roadmap: **BL-117**. Prefix **CG**. Brief: [build-program.md](build-program.md).
-> **State: Building (CG-W0 merged; briefs for Packs A–I in build-program-briefs.md, 2026-11-12e).** Order: [midpoint-audit.md](midpoint-audit.md) §2.2 Track C; starts when BF-12 merges or a slot is free.
+> **State: Built and open behind the drafting table (Close 2026-11-16, main 01761c5).** Review fixes Pack W and Pack CG-K (the hall joins `PLAYABLE_DISTRICTS`, *the bad join* filed by room 4) are briefed in build-program-briefs.md; playtest gates CG-G1, CG-G2, CG-G4 open (never blocking). Verification: §6 "Close verification".
 > Scope: the last district: pencil and ink, drawn-in reinforcements, the guild's hands, free-then-no-return with the doorway checkpoint, the Registrar (a real rival through RV's API from the start), the five-page hearing, the redraft threshold, the academy's lore, its footnote batch, Bench parity and the trigger for the owner's sealed door.
 
 ## 1. Scope and settled rules
@@ -185,6 +185,15 @@ Pattern: `src/data/footnotes/bathhouses.ts`
 | CG-F3 | Build the Swap, Draw and Erase batch | M | tests `CG-F3: fourCombos reads for every margin line` and `CG-F3: one scenario per capstone` pass |
 | CG-F4 | Build Quicksilver, Graphite and the Registrar's note | M | tests `CG-F4: fourCombos reads for every margin line`, `CG-F4: one scenario per capstone`, `CG-F4: the registrar's note is hidden until his page is held` pass |
 
+### Pack K: Opening the hall (role: Default; data and tests; depends on: Close)
+> Added at the Close (design window 2026-11-16; DESIGN §11). Brief in build-program-briefs.md.
+Owns: `src/data/districts/index.ts` (`PLAYABLE_DISTRICTS`), `src/data/districts/cartographers/lore.ts`, the SAVE-1 pair, the tests that read the list
+
+| ID | Goal | Size | Done when |
+|---|---|---|---|
+| CG-17 | The hall joins `PLAYABLE_DISTRICTS`; its SAVE-1 pair is recorded; the tests' cartographers exceptions go | S | tests `CG-17: the cartographers are playable` and the two SAVE-1 cartographers titles pass; the hall fuzz passes |
+| CG-18 | *The bad join* is filed by room 4, the first room past the doorway | S | tests `CG-18: winning room 4 files the bad join`, `CG-18: every cartographers paper is filed by exactly one room` pass |
+
 ### Close (role: orchestrator; depends on: all packs)
 
 | ID | Goal | Size | Done when |
@@ -198,6 +207,14 @@ Pattern: `src/data/footnotes/bathhouses.ts`
 - **Property/fuzz** (`tests/sim`, CG-16): the plan preview equals the round end; seeded determinism after save/load; random hall trips: no throw, no cap overrun, never stranded, the doorway and checkpoint rules, one Bind page.
 - **Per wave, by the orchestrator:** one phone screenshot per UI state named in the rows. **At Close:** a pencilled 7×9 room, the Registrar's circles, the doorway Crossroads warning, Set Out with the doorway option, the threshold, codex lore and the Registrar's page, the Bench palette with pencil, the map with the hall; light and dark; autofixer on every changed component.
 - No win-rate bands: room difficulty is checked by `checkRoom` and a scripted solve; its tuning belongs to the CAL plan.
+
+### Close verification (2026-11-16, design window, main 01761c5)
+
+- **Gate:** `pnpm check` green: 403 files, 9059 tests passed, 2 skipped, 60 todo, sims included (the hall fuzz CG-16: 200 seeds at party sizes 1-3).
+- **Phone (375x812, built-in browser, dev server from the worktree):** dev "open all" shows the hall on the map; room 1 with pencil, the Surveyor and the Eraser; round 2 fates (ink blot and eraser smudge with the due round); the Crossroads after room 3 offers *Through the doorway* with its warning; the doorway opens the Study in field mode, then room 4 (outlines, the Tracer's tether); room 5 and the heart with the Registrar's circle, holder text and *Rub out* telegraph; the heart clear adds the hall to `city.hearts` and banks `registrar:pullIn`; Set Out offers *the quiet doorway* and starts at room 4; the Desk's Swap margin at level II offers the Registrar's note once his page is held; the codex files the registry, the owner's desk and the struck name. No console errors, no horizontal overflow. Fights were ended with `__game.debug.forceWin()`; nothing was played by hand.
+- **Not checked:** a played Registrar kill (forced wins only), the household circle on a live board (Gallery only, CG-H), light/dark (light only, DESIGN §11 2026-11-12), the threshold room on the phone (checked by CG-E's tests), device-only behaviour.
+- **Seen on the phone, recorded as rough edges:** round 1 shows no fate marks until the party's first action (the lazy first plan; the Next round overlay shows them); the Crossroads keeps the generic "deeper than the lamplight" line in the academy; the doorway's Done caption said "Back to the spoils" after *Through the doorway* (Pack W, FX-5); the Registrar's page showed his trick's raw id (Pack W, FX-5).
+- **Review:** one `code-review` (high) of 5e4a85e..01761c5, src/: six material findings (four fixes, FX-1 to FX-4) briefed as Pack W with the two copy fixes above (FX-5); four lesser ones are in the status file's Rough edges.
 
 ## 7. Open questions for the player
 

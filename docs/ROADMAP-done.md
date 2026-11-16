@@ -4,6 +4,7 @@ Newest first. Done items live here and nowhere else. Link the plan or doc, not t
 
 | Date | What | Where |
 |---|---|---|
+| 2026-11-16 | **The Cartographers' hall** (BL-117): pencil and ink, the guild's hands, free return then the final run past the quiet doorway, the Registrar as a real rival, the five-page hearing, the drafting-table threshold, the academy's lore and footnote batch; full gate and phone check at the Close; review fixes (Pack W) and opening the hall (Pack CG-K) briefed; playtests open | [plan](plans/cartographers-plan.md) §6, [design](design/district-cartographers.md) §4 |
 | 2026-10-29 | **Recruitment** (BL-131): seven recruits, the recruit offer, hidden until ready, door arrivals; verified by sim, playtest open | [plan](plans/recruitment-plan.md), [verification](plans/recruitment-verification.md) |
 | 2026-10-28 | **Actions and habits** (BL-130): Pull, Hop, Swap, seven habits, harm guard; verified, playtest open | [plan](plans/actions-habits-plan.md), [verification](plans/actions-habits-verification.md) |
 | 2026-10-21 | **Growing lattice pages** (closes BL-103/BL-88): automatic growth in all directions, former holes writable, readable pan/Fit in Study/doorway/Lab and Glyph revision, v7→v8 notebook migration and sparse imports. Ink and the independent 3–8 Glyph flow-cell rule remain the budgets | [design](design/growing-pages.md), [plan](plans/growing-pages-plan.md), [verification](plans/growing-pages-verification.md) |
