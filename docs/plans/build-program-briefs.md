@@ -20,52 +20,6 @@ File clashes that set this order:
 
 Every brief's "Leaves for later" items are also in the status file's Owed list. Plan §7 open questions of the cartographers are held at their defaults (DESIGN §11, 2026-11-12e).
 
-## Pack S: paper fixes (Default: Sonnet medium; escalate to Sonnet high)
-
-Starts now (beside T and CG-G: no shared file).
-
-```
-Tasks CG-3b (status "Needs design review": Pencil Shove) → CG-F1b (footnotes-audit §13 Gr3, Proposal Z3); decided
-in DESIGN §11 and TECH §7, 2026-11-16.
-
-Read: docs/plans/footnotes-audit.md §13 (Gr3 and Z3); TECH.md §7 row 2026-11-16 ("Piece strike kinds"); pattern:
-`strikable` and `pieceHoldsNothing` in src/engine/pieces.ts, tests/districts/cartographers/paper.test.ts.
-Own: src/engine/districts/types.ts (`PieceTriggers.struckBy` only), src/engine/pieces.ts (`strikable`),
-src/engine/districts/cartographers/pieces.ts (the PENCIL and OUTLINE triggers), src/engine/districts/cartographers/types.ts
-(the `circles` declaration below only), src/engine/solvents.ts (`undoBoard`'s state restore only),
-tests/districts/cartographers/shove.test.ts (new), tests/scenarios/cartographers-lines.test.ts (the Graphite test only).
-Contract (on main):
-- CG-3b: `PieceTriggers` gains `struckBy?: readonly StruckBy[]`, the kinds `onStruck` answers; absent = every kind
-  (bells, spans and the fixture district stay as they are). `strikable(t, kit = KIT, by: StruckBy = 'shove')` is true
-  only when the piece has `onStruck` and `struckBy` is absent or includes `by`; its only caller is basic Shove's
-  `check` in src/engine/basicActions.ts, which keeps calling it as now. `strikePiece` is unchanged (the triggers already
-  ignore kinds they don't answer). PENCIL and OUTLINE declare `struckBy: ['erase']`, so a basic Shove at an empty
-  pencil tile or at an outline is no longer legal ("Nothing to shove <dir>") and `basicDirs` (input, describe, the
-  bot) stops offering it. A Shove at a unit standing on pencil is unchanged. Spans and bells declare nothing (saves
-  replay recorded Shoves at spans).
-- Declare for CG-H and CG-J (no writer, no reader yet): in cartographers/types.ts
-  `export type NoteCircle = { at: { x: number; y: number }; unit: string; holder: string };` and
-  `GuildHandState.circles?: readonly NoteCircle[]`, doc comment "the Registrar's note (`registrar:swap`, CG-J):
-  one-round circles the casting member holds; omitted when empty". The hand's state reads as today without it.
-- CG-F1b: `undoBoard` does not restore a state onto a tile whose piece holds nothing (`pieceHoldsNothing`: the
-  blank); a restored unit already never lands there (blank is solid). The pinned test loses `it.fails` and its title
-  loses " (found: it does)".
-Owed by this pack: "Pencil Shove (from CG-B)" and "Graphite on blank (from CG-I)" (decided 2026-11-16). Leaves for
-later: nothing.
-
-Tests first (it.fails, then un-mark).
-
-Done when:
-- CG-3b: "CG-3b: a Shove at an empty pencil tile is not offered", "CG-3b: a Shove at an outline is not offered",
-  "CG-3b: a Shove at a unit on pencil still shoves it", "CG-3b: a Shove at a bell is still legal" pass.
-- CG-F1b: "CG-F1: graphite does not put a state back on blank paper" passes un-marked.
-- tests/districts (the foundry, bridges and cartographers threshold tests included), tests/scenarios, tests/engine and
-  tests/run pass unchanged otherwise; `git status tests/fixtures` is clean.
-
-Verify: `pnpm vitest run tests/districts tests/scenarios tests/engine tests/run --reporter=dot`
-Phone check: no.
-```
-
 ## Pack CG-H: board art and playback (Default: Sonnet medium; UI)
 
 Starts when CG-D and S are merged (all pieces, foes and both kinds of circle exist).

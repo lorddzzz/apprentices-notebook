@@ -64,6 +64,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-F1, CG-F2 | 50c656e | Sonnet high | 0 | ~12% | audit §13; new row `swap:unit` pending (stamp in CG-F3); `quicksilver:drop` text widened; draft cartographers.md (42 variants, note `registrar:erase`); Graphite-on-blank found, pinned it.fails; tsc clean |
 | CG-9, CG-10 | 3062b50 | Sonnet medium | 0 | ~10% | six academy rooms (3 layouts each), heart frame salt 7160 (+7161 pencil scatter), bot term; `ROOM_PENCIL` data only (trip `roomSetup` owed); drawn-district tests exempt cartographers; tsc clean |
 | CI-4 | 6fbe977 | Sonnet medium | 0 | ~3% | `LineId` = subject:string; literal-id scan test; `typecheck:ts` (warm 5 s) joins check:fast; one test cast widened |
+| CG-3b, CG-F1b | d3513d7 | Sonnet medium | 0 | ~5% | `PieceTriggers.struckBy`; pencil and outline answer only Erase; `NoteCircle`/`circles` declared; Graphite skips blank |
 
 ## Usage
 
@@ -76,3 +77,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 19:40 | 63 | 88 | CG-D merged; CG-I running; CG-F next |
 | 2026-11-16 19:55 | 66 | 89 | CG-I merged; CG-F running; design window due (review list ≥ 3) |
 | 2026-11-16 20:05 | 6 (reset) | 71 | CG-F merged; CI green on 984a947; design window running; CG-G/CG-H wait for its briefs |
+| 2026-11-16 20:30 | 23 | 74 | T, S merged; CG-G, U running; CG-J next |
