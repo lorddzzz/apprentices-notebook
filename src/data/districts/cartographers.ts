@@ -1,3 +1,4 @@
+import { CARTOGRAPHERS_ROOMS } from './cartographers/rooms';
 import { CARTOGRAPHERS_TABLE_IDS, CARTOGRAPHERS_TOKENS } from './cartographers/types';
 import type { DistrictData } from './index';
 
@@ -12,7 +13,7 @@ export const CARTOGRAPHERS_KIT: DistrictData = {
   name: "The Cartographers' hall",
   guild: 'The Cartographers',
   edge: 'wall',
-  rooms: [],
+  rooms: CARTOGRAPHERS_ROOMS,
   ret: { kind: 'until', after: 2 },
   checkpoint: { after: 2, name: 'the quiet doorway' },
   tokens: CARTOGRAPHERS_TOKENS,

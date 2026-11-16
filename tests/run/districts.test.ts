@@ -74,7 +74,8 @@ describe('the city this build (P2, P3)', () => {
     for (const d of drawn) {
       const def = DISTRICTS[d];
       expect(def.gate.kind, d).toBe('drawing');
-      expect(def.rooms, d).toEqual([]);
+      // The Cartographers' six rooms are laid (CG-9, CG-10) behind the same gate until CG-14.
+      if (d !== 'cartographers') expect(def.rooms, d).toEqual([]);
       expect(def.hear.length, d).toBeGreaterThan(0);
       expect(def.barred, d).not.toBe('');
     }

@@ -3,6 +3,7 @@ import type { DistrictId } from '$data';
 import { BATH_HEART } from '$data/districts/bathhouses';
 import { BRIDGE_HEART } from '$data/districts/bridges';
 import { CANAL_ROOMS } from '$data/districts/canals';
+import { CARTOGRAPHERS_ROOMS } from '$data/districts/cartographers/rooms';
 import { FOUNDRY_HEART } from '$data/districts/foundry';
 import { SEAM_ROOMS } from '$data/districts/seam';
 import { createBattle } from '$engine';
@@ -237,6 +238,26 @@ describe('KIT-R3 heart frames', () => {
     const heart = heartOf('inkQuarter');
     const got = [1, 2, 3, 4].map((seed) => serializeBoard(heart.frame(blank(7, 9), seed)));
     expect(got).toEqual(INK_RECORDED);
+  });
+
+  test('CG-10: cartographers frame places the Registrar, the Tracer and the outlines on 5x5, 7x9 and the real room size, seeded', () => {
+    const layout = firstHeart(CARTOGRAPHERS_ROOMS);
+    checkFrame('cartographers', layout, 'registrar', sizeOf(layout));
+    expect(heartOf('cartographers').rules).toEqual(['cartographers:guildHand']);
+    // The outlines survive every size, pencil is scattered above the starts, blank paper is not.
+    const want = parseBoard(layout);
+    const count = (b: BoardSpec, id: string) => b.tiles.filter((t) => t.piece?.id === id).length;
+    for (const [w, h] of [
+      [5, 6],
+      [7, 9],
+    ] as const) {
+      for (const seed of [1, 2, 3, 4]) {
+        const framed = heartOf('cartographers').frame(blank(w, h), seed);
+        expect(count(framed, 'cartographers:outline')).toBe(count(want, 'cartographers:outline'));
+        expect(count(framed, 'cartographers:pencil')).toBeGreaterThan(0);
+        expect(count(framed, 'cartographers:blank')).toBe(0);
+      }
+    }
   });
 
   test('KIT-R3: inkQuarter frame places the postmaster on 5x5, 7x9 and the real room size, seeded', () => {

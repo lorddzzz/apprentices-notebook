@@ -106,8 +106,9 @@ test('every district has an edge; the Seam and the canals are walled (P3)', () =
   for (const id of DISTRICT_IDS) expect(['wall', 'drop']).toContain(DISTRICTS[id].edge);
   expect([DISTRICTS.seam.edge, DISTRICTS.canals.edge]).toEqual(['wall', 'wall']);
   // The districts not yet playable are on the map, being drawn: no rooms, never open (P2).
+  // The Cartographers' six rooms are laid (CG-9, CG-10) behind the same gate until CG-14.
   for (const id of DISTRICT_IDS.filter((d) => !PLAYABLE_DISTRICTS.includes(d))) {
-    expect(DISTRICTS[id].rooms, id).toEqual([]);
+    if (id !== 'cartographers') expect(DISTRICTS[id].rooms, id).toEqual([]);
     expect(DISTRICTS[id].gate.kind, id).toBe('drawing');
   }
 });

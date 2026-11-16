@@ -1,6 +1,7 @@
 import type { TrickDef } from '../rivals/types';
 import { CARTOGRAPHERS_FOES, TRACER_RULE } from './cartographers/foes';
 import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
+import { CARTOGRAPHERS_BOT, CARTOGRAPHERS_HEART_SETUP } from './cartographers/heartFrame';
 import { CARTOGRAPHERS_REGISTERED_PIECES } from './cartographers/pieces';
 import {
   REGISTRAR_GOALS,
@@ -19,9 +20,9 @@ export * from './cartographers/types';
  * the district's rule, and the pencil's own piece-scoped one). CG-5 and CG-6 add the guild's hands
  * (`foes.ts`: the surveyor, the eraser and the tracer, with the tracer's memory as a third rule).
  * The Registrar's trick, goals and `eraseAt` (CG-7, `registrar.ts`), the trip shape (CG-8) and the offers come in later tasks. `heart`
- * (CG-10, through `frame.ts`'s `placeFrame`, salt 7160) and `bot` (CG-10, `BotTerms` as the
- * bathhouses') are absent on purpose. The district stays `gate: 'drawing'` with no rooms, so no
- * trip carries this shape.
+ * (CG-10, through `frame.ts`'s `placeFrame`, salt 7160) and `bot` (a `BotTerms` that keeps units off
+ * pencil about to be rubbed) are in `cartographers/heartFrame.ts`. CG-9 and CG-10 lay the six rooms;
+ * the district stays `gate: 'drawing'` until CG-14.
  */
 
 const LINES: Record<CartographersEventType, string> = {
@@ -49,4 +50,6 @@ export const CARTOGRAPHERS_MODULE: DistrictModule = {
   events,
   trip: CARTOGRAPHERS_TRIP as TripShapeDef,
   offerContributors: [BOARD_GUARANTEE],
+  heart: CARTOGRAPHERS_HEART_SETUP,
+  bot: CARTOGRAPHERS_BOT,
 };
