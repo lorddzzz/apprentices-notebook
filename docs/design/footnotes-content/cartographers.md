@@ -1,12 +1,12 @@
 # Footnotes content: the Cartographers' hall (the Board)
 
-> **State: Draft 2026-11-16 (CG-F2), awaiting the orchestrator's review at CG-G3.** Task CG-F2 of [cartographers-plan.md](../../plans/cartographers-plan.md) (Pack I; P5, P11). Rules: [footnotes.md](../footnotes.md) §1 and "Rival notes". Lines: `src/data/lines.ts` (the CG block; `swap:unit` is `pending`); audit: [footnotes-audit.md](../../plans/footnotes-audit.md) §13. Format and pair rules as in [seam.md](seam.md) §0, [bridges.md](bridges.md) and [foundry.md](foundry.md). Builds: CG-F3 (Swap, Draw, Erase) and CG-F4 (Quicksilver, Graphite, the Registrar's note) into `src/data/footnotes/cartographers.ts`.
+> **State: Approved 2026-11-16 at CG-G3 with amendments (DESIGN §11, 2026-11-16; section 8 lists them). This text is the build spec for Pack CG-J.** Drafted by task CG-F2 of [cartographers-plan.md](../../plans/cartographers-plan.md) (Pack I; P5, P11). Rules: [footnotes.md](../footnotes.md) §1 and "Rival notes". Lines: `src/data/lines.ts` (the CG block; `swap:unit` is `pending`); audit: [footnotes-audit.md](../../plans/footnotes-audit.md) §13. Format and pair rules as in [seam.md](seam.md) §0, [bridges.md](bridges.md) and [foundry.md](foundry.md). Builds: CG-F3 (Swap, Draw, Erase) and CG-F4 (Quicksilver, Graphite, the Registrar's note) into `src/data/footnotes/cartographers.ts`.
 >
-> Nothing here is built. No variant data is written. Every number is *tune by playing*. Engine lines are sketches; the variant ids are final once approved.
+> Not built yet. No variant data is written. Every number is *tune by playing*. Engine lines are sketches; the variant ids are final once approved.
 
 ## 0. How to read this
 
-Same conventions as [foundry.md](foundry.md) §0: pair IDs `<Subject>-<meets>-<level>`, capstones `<Subject>-III`, options **a**/**b** with the variant ID they ship under (`<subject>-<slug>`, never changed once shipped), a **c** only for the rival's note. **Engine** is a one-line sketch; "no new event" means an existing event stamped with the slot's line carries it. **Combos** reads all four level I × level II pairings on the line (six on `erase:unit`, where the note adds a third level II option).
+Same conventions as [foundry.md](foundry.md) §0: pair IDs `<Subject>-<meets>-<level>`, capstones `<Subject>-III`, options **a**/**b** with the variant ID they ship under (`<subject>-<slug>`, never changed once shipped), a **c** only for the rival's note. **Engine** is a one-line sketch; "no new event" means an existing event stamped with the slot's line carries it. **Combos** reads all four level I × level II pairings on the line (six on `swap:unit`, where the note adds a third level II option).
 
 Costs (FN plan P3): level I and II pay in the line's district; every line here is `cartographers`. Capstones pay one Quicksilver and one Graphite.
 
@@ -18,9 +18,9 @@ Costs (FN plan P3): level I and II pay in the line's district; every line here i
 
 | Round | Pairs | Build task |
 |---|---|---|
-| 1 | Erase: `erase:unit` (both levels) and the Registrar's note | CG-F3, CG-F4 |
-| 2 | Erase: `erase:mark` | CG-F3 |
-| 3 | Swap (both lines) | CG-F3 |
+| 1 | Swap: `swap:unit` (both levels) and the Registrar's note | CG-F3, CG-F4 |
+| 2 | Erase (both lines) | CG-F3 |
+| 3 | Swap: `swap:held` | CG-F3 |
 | 4 | Draw (both lines) | CG-F3 |
 | 5 | Quicksilver, Graphite (both levels) | CG-F4 |
 | 6 | Capstones: Swap, Draw, Erase, Quicksilver, Graphite | CG-F3, CG-F4 |
@@ -31,9 +31,9 @@ Two per rune (FN P1), one per solvent. Every line is a real, witnessable behavio
 
 | Subject | Margin lines | Note |
 |---|---|---|
-| Swap | `swap:held`, `swap:unit` | `swap:unit` is the pencil row added by CG-F1 (pending). Swap had one row before |
+| Swap | `swap:held`, `swap:unit` | `swap:unit` is the pencil row added by CG-F1 (pending until CG-F3 stamps it); it hosts the Registrar's note (level II). Swap had one row before |
 | Draw | `draw:jar`, `draw:drop` | `draw:drop` is the hall's line (blank paper). `draw:unit` and `draw:edge` stay unslotted: plain refusals with no second opinion worth having |
-| Erase | `erase:unit`, `erase:mark` | `erase:unit` hosts the Registrar's note (level II). `erase:empty` (outlines), `erase:jar`, `erase:collar`, `erase:shackle` and `erase:deepMark` stay unslotted |
+| Erase | `erase:unit`, `erase:mark` | `erase:empty` (outlines), `erase:jar`, `erase:collar`, `erase:shackle` and `erase:deepMark` stay unslotted |
 | Quicksilver | `quicksilver:edge` | Where the mirror lies is the one wiring question; `quicksilver:drop` (the mirrored un-draw) stays unslotted |
 | Graphite | `graphite:unit` | Its one line |
 
@@ -69,9 +69,10 @@ Headline: *The target and the caster trade places.*
 
 - a · `swap-unit-ink`: *The pencil you are left standing on by a Swap is inked in.*
   Engine: same site, the caster's tile turns plain paper through the existing `cartographers:inked`. A swap onto safe ground that stays safe.
-- b · `swap-unit-rub`: *A foe your Swap leaves standing on pencil has that pencil rewritten to rub out this round.*
-  Engine: same site, the pencil's data becomes `{ fate: 'rub', due: round }`. No new event. Turns the hand's own plan against the foe.
-- Combos: carry + ink: your carried pencil is inked where you arrive, and the foe keeps its own paper; safe for you. carry + rub: the foe stands on its own carried pencil, which is rewritten to rub; fine. strand + ink: you on inked paper, the foe held on pencil; the trap pairing. strand + rub: a held foe on pencil rewritten to rub out this round, a sure erasure that costs two slots and needs the foe on pencil to begin with; the strongest, fine. None needs a rule change.
+- b · `swap-unit-due`: *Every pencil tile under a Swap's pair has its fate put off a round.*
+  Engine: same site, each of the two tiles' pencil data `due + 1` when it has a fate (an unplanned pencil is untouched). No new event (the fate marks redraw). Buys a round on rub-due paper, or holds an ink back. *(Amended at CG-G3: replaces `swap-unit-rub`, which did what the Registrar's note does.)*
+- c · `registrar:swap`: the Registrar's note (section 3). Hidden until his page is held.
+- Combos: carry + ink: your carried pencil is inked where you arrive, and the foe keeps its own paper; safe for you. carry + due: both carried pencils arrive a round later due. strand + ink: you on inked paper, the foe held on pencil; the trap pairing. strand + due: the held foe's rub waits a round, so strand pins it past its own erasure; a mixed pair, fine as a choice. carry + note: the foe stands on its own carried pencil and is circled. strand + note: the foe is held and circled, a sure erasure that costs two slots, a held page and a foe on pencil; the strongest, fine as a rare choice (CAL watches it). None needs a rule change.
 
 **Swap-III**
 - a · `swap-cap-step`: *When a Swap finds nobody at its target, you step onto that tile instead, if it is empty paper within two tiles of you.*
@@ -136,8 +137,7 @@ Headline: *Removes the state, compound, mark or jar on the target; on unfinished
   Engine: `undrawPencil`, for a member, relocates to the nearest standable free tile (the Graphite restore helper). Existing relocation event. Safe with a wide Erase.
 - b · `erase-unit-sweep`: *The states and jars on the tiles beside an un-drawn tile are erased too.*
   Engine: after the un-draw, clear the neighbours' state and jar with `stateFades` and `jarCrumbles`. Existing events. The un-draw takes the scenery with it.
-- c · `registrar:erase`: the Registrar's note (section 3). Hidden until his page is held.
-- Combos: trace + spare: the tile stays pencil and a member standing on it is set down, not erased; the gentlest Erase. trace + sweep: pencil stays, the beside tiles are cleared; fine. wide + spare: members on any of the un-drawn tiles are set down. wide + sweep: sweep acts around every un-drawn tile; the widest clear, fine as a choice. trace + note and wide + note: the note's circle is on top of either; see F1.
+- Combos: trace + spare: the tile stays pencil and a member standing on it is set down, not erased; the gentlest Erase. trace + sweep: pencil stays, the beside tiles are cleared; fine. wide + spare: members on any of the un-drawn tiles are set down. wide + sweep: sweep acts around every un-drawn tile; the widest clear, fine as a choice. None needs a rule change.
 
 **Erase-mark-I** · `erase:mark` (*Erase lifts a mark off; whatever the mark held is lost, never released.*)
 
@@ -162,13 +162,13 @@ Headline: *Removes the state, compound, mark or jar on the target; on unfinished
 
 ## 3. The Registrar's note
 
-On **Erase, level II, slot `erase:unit`**, as a third option beside `erase-unit-spare` and `erase-unit-sweep` (the plan's default: "a third option on an Erase line"). Hidden until his page is held; still needs the slot's level and costs. Id `registrar:erase`, in the style of `postmaster:sentence` and `carillonneur:toll`.
+On **Swap, level II, slot `swap:unit`**, as a third option beside `swap-unit-ink` and `swap-unit-due` (amended at CG-G3: footnotes.md puts a note on a rune of the rival's page, and his page, *Pull in*, recovers Bolt → Swap). Hidden until his page is held; still needs the slot's level and costs. Id `registrar:swap`, in the style of `postmaster:sentence` and `carillonneur:toll`.
 
-- c · `registrar:erase`: *Struck from the register. An Erase on pencil circles the nearest foe to it; a circled foe still on its tile at round end is erased from the fight.*
+- c · `registrar:swap`: *Struck from the register. A foe your Swap leaves standing on pencil is circled; if it is still on that tile at round end, it is erased from the fight.*
   Credit line, in the household's hand under it: *Copied from the Registrar's register.*
-  Engine: at the `erase:unit` stamp, add a one-round circle on that foe's tile (the same per-round object the Registrar's own *strike from the register* uses, RV P10; its holder is the household), lifted when the foe moves off. At the `late` slot (before the hand), a foe still on its tile is erased through `removeFromRoom(…, 'erased')`, the rule his circle already follows (a minion is gone, an elite takes 4 and loses its action). Existing `cartographers:circled` and `cartographers:struck`. No new harm beyond the erase the headline already names.
+  Engine: at the `swap:unit` stamp, when the foe of the pair stands on pencil after the swap, add a one-round circle `{ at, unit, holder }` (holder: the casting member) to the guild's hand's own state (`GuildHandState.circles?`, omitted when empty), event `cartographers:circled`. The hand's round-end step, before the fates, erases a foe still on its circled tile through `removeFromRoom(…, 'erased')` (event `cartographers:struck`; a minion is gone, an elite takes 4 and loses its action), then clears the circles. Moving off lifts it; the holder's fall lifts it, as the Registrar's circles. No new event, no new harm beyond the erasure the hall already has.
 
-His page recovers *Bolt → Swap*, so the note sits on a rune beside it, not on a rune of the page: see F2. The idea is the Registrar's signature turned to the household's use: his round-end erasure, ready in your hand, answered the way his is (step off).
+The idea is his own play turned to the household's use: his Swap pulls an apprentice into a circle; yours sets a foe in one, on paper, and the foe answers it the way you answer his (step off). It needs the pencil (F1): outside the hall the note never fires.
 
 ## 4. The solvents
 
@@ -219,16 +219,16 @@ Headline: *What it changes is undone a round later.*
 **Graphite-III**
 - a · `graphite-cap-trace`: *Graphite also undoes the marks and jars the invention placed.*
   Engine: `boardNow` records marks and jars; `undoBoard` clears the ones that were not there (`erased`, `jarCrumbles`). Existing events. Graphite with Ink or a Jar: a delay that takes it all back.
-- b · `graphite-cap-rescue`: *A party member the invention moved who is erased from the fight before the undo is set back on her home tile at 1 HP instead.*
-  Engine: `outOfRoom.ts::removeFromRoom` for a member consults the scheduled Graphite entries; if she has one, she is placed at home at 1 HP with the existing `moveUndone`. Bends the erasure of a member (a Strong task; F4). Swap onto rub-due pencil, and let the graphite bring you home.
+- b · `graphite-cap-pin`: *When Graphite sets a foe back on its home tile, the foe cannot move until your next turn.*
+  Engine: `undoBoard`, after `relocateAll`, each enemy mover that reached its home is held 1 (existing `held`). Reads only the undo's own movers. Swap a foe out of place, and the graphite snaps it back pinned. *(Amended at CG-G3: replaces `graphite-cap-rescue`, F4.)*
 
 ## 5. Counts
 
-- **Runes:** 6 margin lines (Swap 2, Draw 2, Erase 2); 12 level I/II pairs; 3 capstone pairs.
+- **Runes:** 6 margin lines (Swap 2, Draw 2, Erase 2); 12 level I/II pairs; 3 capstone pairs; the Registrar's note on `swap:unit` level II.
 - **Solvents:** 2 margin lines; 4 level I/II pairs; 2 capstone pairs.
 - **Total pairs:** 21 (16 line pairs, 5 capstone pairs). **Variants:** 42 plus the Registrar's note (every id above).
-- **Clashes noted:** around + ease and slip + ease (Swap), strand + rub (Swap), over + yield and mend + spend (Draw), release + reset (Erase), stay + shield (Graphite). None needs a rule change.
-- **New engine pieces:** one stamp (the `swapped` event for `swap:unit`); a `carryPaper` helper in `paper.ts`; a jar-trade and a claim in `drawHop`; the pencil piece written by `undrawPencil` and a neighbour sweep; a `mirror` tag and an optional caster argument on `widen`; `boardNow` records pieces, marks and jars; one `removeFromRoom` read for `graphite-cap-rescue`. No new `Meets` value, no new event type.
+- **Clashes noted:** around + ease and slip + ease (Swap), strand + due and strand + note (Swap), over + yield and mend + spend (Draw), release + reset (Erase), stay + shield (Graphite). None needs a rule change.
+- **New engine pieces:** one stamp (the `swapped` event for `swap:unit`); a `carryPaper` helper in `paper.ts`; a jar-trade and a claim in `drawHop`; the pencil piece written by `undrawPencil` and a neighbour sweep; a `mirror` tag and an optional caster argument on `widen`; `boardNow` records pieces, marks and jars; the note's one-round circles in `GuildHandState`. No new `Meets` value, no new event type.
 
 ## 6. Defining words
 
@@ -250,3 +250,19 @@ The IQ-FG and BR-G1 rule: no variant undoes the one rule a subject is named for.
 | F4 | `graphite-cap-rescue` reads the erasure of a member (`removeFromRoom`) and is the heaviest variant here; CG-F4 may swap it for one that reads only the Graphite entry and say so in its report | A footnote must not change a rule it did not touch |
 | F5 | `registrar:erase` needs the Registrar's circle as an object a household can hold; if Pack D's circle is Registrar-only, CG-F4 builds a smaller one-round erase mark and says so | The note is a draft until the circle API is read |
 | F6 | `swap-cap-pact` needs a friend and `draw-jar-claim` a jar not yours; each is rare in a solo household | A trio is the usual party; a household of one picks the other capstone |
+
+## 8. Review at CG-G3 (2026-11-16, orchestrator)
+
+Approved with these amendments (DESIGN §11, 2026-11-16); everything else stands as drafted.
+
+| # | Decision |
+|---|---|
+| F1, F2 | The note moves to `swap:unit` level II as `registrar:swap` and needs pencil under the foe (section 3). `erase:unit` level II keeps its two options |
+| — | `swap-unit-rub` → `swap-unit-due` (rub-this-round was the note's effect without the page) |
+| F3 | Accepted: `graphite-unit-late` changes the number only |
+| F4 | `graphite-cap-rescue` → `graphite-cap-pin` (reads only the undo's movers) |
+| F5 | The note's circle lives in the guild's hand's state, held by the casting member; the Registrar's own circles stay in his trick |
+| F6 | Accepted |
+| Z1 | `swap:unit` keeps its id (and `erase:unit`, `erase:empty`, `draw:drop`, `quicksilver:drop` theirs): ids are internal and the CG ones already shipped. `LineId` no longer limits `Meets` (TECH §7, 2026-11-16), but no rename is worth a save's witnessed list |
+| Z2, Z4, Z5 | Accepted |
+| Z3 | The Graphite defect (Gr3) is fixed by Pack S before CG-J (`graphite-unit-redraw` assumes it) |
