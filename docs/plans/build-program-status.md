@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19 (S, T, CG-G) running. **Next window: routine.**
+**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19: T merged (6fbe977); S, CG-G, U running. **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -21,7 +21,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
 | S | CG-3b, CG-F1b | Sonnet 5.5 medium | pack-worker worktree | running (5h 6 %) |
-| T | CI-4 | Sonnet 5.5 medium | pack-worker worktree | running (5h 6 %) |
+| U | FN-M2c, EN-9c | Sonnet 5.5 medium | pack-worker worktree | running |
 | CG-G | CG-8b, 13, 14, 16 | Sonnet 5.5 medium | pack-worker worktree | running (5h 6 %) |
 
 ## Needs design review (left unmerged by a routine window)

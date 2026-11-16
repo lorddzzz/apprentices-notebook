@@ -63,6 +63,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-7 | 472f098 | Sonnet high | 0 | ~12% | the Registrar: token Y, page `registrar:pullIn`, circles in mark data then trick state, holder death checked at resolve/round end, module goals `rubOut`/`pullIn`; additive RivalId/EnemyId edits; tsc clean |
 | CG-F1, CG-F2 | 50c656e | Sonnet high | 0 | ~12% | audit §13; new row `swap:unit` pending (stamp in CG-F3); `quicksilver:drop` text widened; draft cartographers.md (42 variants, note `registrar:erase`); Graphite-on-blank found, pinned it.fails; tsc clean |
 | CG-9, CG-10 | 3062b50 | Sonnet medium | 0 | ~10% | six academy rooms (3 layouts each), heart frame salt 7160 (+7161 pencil scatter), bot term; `ROOM_PENCIL` data only (trip `roomSetup` owed); drawn-district tests exempt cartographers; tsc clean |
+| CI-4 | 6fbe977 | Sonnet medium | 0 | ~3% | `LineId` = subject:string; literal-id scan test; `typecheck:ts` (warm 5 s) joins check:fast; one test cast widened |
 
 ## Usage
 

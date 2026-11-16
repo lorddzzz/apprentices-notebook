@@ -66,39 +66,6 @@ Verify: `pnpm vitest run tests/districts tests/scenarios tests/engine tests/run 
 Phone check: no.
 ```
 
-## Pack T: a narrower `LineId` (Default: Sonnet medium; escalate to Sonnet high)
-
-Starts now. Runs before any pack that adds a `Meets` member (U).
-
-```
-Task CI-4 (status "Needs design review": the `LineId` limit, confirmed by CI-3); decided in TECH §7, 2026-11-16.
-
-Read: TECH.md §7 row 2026-11-16 ("`LineId` is …"); src/data/types.ts (`Meets`, `LineSubject`, `LineId`); pattern:
-tests/data/lines.test.ts (the L1 integrity test).
-Own: src/data/types.ts (`LineId` and its doc comment only), tests/data/line-literals.test.ts (new), package.json and
-AGENTS.md (the `check:fast` line, only under the condition below). Any other file only where a use fails to compile
-(the smallest change, listed in the report).
-Contract (on main):
-- `export type LineId = `${LineSubject}:${string}`;` with a doc comment: the subject is checked by the type, the meets
-  half by tests (L1, and line-literals); `Meets` may grow. The old product type is a subtype of this one, so every
-  current use should compile unchanged.
-- New test "CI-4: every literal line id in src is a row": scans src/**/*.ts and src/**/*.svelte for line ids written
-  as literals in `withLine(ctx, '<a>:<b>'`, `line: '<a>:<b>'` and `{ line: '<a>:<b>'` and expects each to be a
-  `LINES` id. A literal whose prefix is not a `LineSubject` (a district event type such as `cartographers:inked`) is
-  skipped; any other skip is an allowlist entry with a one-line reason.
-- Time `pnpm exec tsc --noEmit` cold and `pnpm typecheck:ts` warm (incremental). If the warm run is under 60 s, add
-  `pnpm typecheck:ts` to `check:fast` after `typecheck:svelte` and say so in AGENTS.md's `check:fast` line; otherwise
-  change neither and report the timings.
-Owed by this pack: the `LineId` limit (decided). Leaves for later: U adds `'diagonal'` to `Meets`.
-
-Done when: "CI-4: every literal line id in src is a row" passes; `pnpm exec tsc --noEmit` exits 0, and still exits 0
-with four scratch members (`'zzA'`…`'zzD'`) added to `Meets` (removed before the commit; the report says so);
-`pnpm check:fast` passes.
-
-Verify: `pnpm exec tsc --noEmit && pnpm vitest run tests/data --reporter=dot`
-Phone check: no.
-```
-
 ## Pack CG-H: board art and playback (Default: Sonnet medium; UI)
 
 Starts when CG-D and S are merged (all pieces, foes and both kinds of circle exist).
