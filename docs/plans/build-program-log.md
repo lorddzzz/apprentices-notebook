@@ -62,6 +62,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CI-3 | (this commit) | Sonnet medium (orchestrator) | 0 | ~1% | red CI on 9ba0a5f: `tsc --noEmit` crashed (Map maximum size exceeded, `Meets` union); removed the unused `diagonal` and `dusk` members; tsc clean |
 | CG-7 | 472f098 | Sonnet high | 0 | ~12% | the Registrar: token Y, page `registrar:pullIn`, circles in mark data then trick state, holder death checked at resolve/round end, module goals `rubOut`/`pullIn`; additive RivalId/EnemyId edits; tsc clean |
 | CG-F1, CG-F2 | 50c656e | Sonnet high | 0 | ~12% | audit §13; new row `swap:unit` pending (stamp in CG-F3); `quicksilver:drop` text widened; draft cartographers.md (42 variants, note `registrar:erase`); Graphite-on-blank found, pinned it.fails; tsc clean |
+| CG-9, CG-10 | 3062b50 | Sonnet medium | 0 | ~10% | six academy rooms (3 layouts each), heart frame salt 7160 (+7161 pencil scatter), bot term; `ROOM_PENCIL` data only (trip `roomSetup` owed); drawn-district tests exempt cartographers; tsc clean |
 
 ## Usage
 
@@ -73,3 +74,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-13 | 90 | 73 | H3 merged; CI red on 9ba0a5f (tsc crash) fixed in the next commit; Wrap zone, no new pack |
 | 2026-11-16 19:40 | 63 | 88 | CG-D merged; CG-I running; CG-F next |
 | 2026-11-16 19:55 | 66 | 89 | CG-I merged; CG-F running; design window due (review list ≥ 3) |
+| 2026-11-16 20:05 | 6 (reset) | 71 | CG-F merged; CI green on 984a947; design window running; CG-G/CG-H wait for its briefs |
