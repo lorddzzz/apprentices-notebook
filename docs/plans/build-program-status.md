@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-16 ran the cartographers' Close on main 01761c5: full gate green, phone check done, one review, records written, decisions taken (the hall joins `PLAYABLE_DISTRICTS`; *the bad join* filed by room 4). Briefs: Packs W and CG-K (wave 22). **Next window: routine** (wave 22), then the design window for Pack N.
+**State:** session of 2026-11-16 ended: waves 17–22 merged (CG-D, CG-I, CG-F, T, S, U, V, CG-G, CG-J, CG-H, the cartographers' Close, W, CG-K; last c10252f). The cartographers plan is closed and the hall is playable. Briefs are empty. **Next window: design** (Pack N close-outs; EN-G0 waits on the player's timings).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -11,16 +11,15 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 **Reset:** 2026-11-13 01:30 CET (00:30 UTC); no wake-up scheduled; resume manually. Weekly 57 %.
 
 ## Next
-0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
-1. **Routine window, wave 22:** Pack **W** (review fixes FX-1 → FX-5: `strikePiece` honours `struckBy`, Erase's neighbour marks, the collapse replay's wear, Rivet's anvil, rival trick copy and the doorway caption) and Pack **CG-K** (CG-17 the hall joins `PLAYABLE_DISTRICTS` with its SAVE-1 pair, CG-18 *the bad join* in room 4), together; briefs in build-program-briefs.md. Push once for the batch and confirm CI deployed it (the cartographers' last Close box).
-2. Then: Pack N close-outs (CL-1…5, a design window); EN-G0 waits on the player's phone timings, then ending Packs E–L; EN-12 handover draft.
-3. Every pack's `check:fast` now runs `typecheck:ts` (CI-4); `Meets` may grow.
-4. Hard edges: EN-S2 → EN-G0 → ending Pack E · BL-111 → EN-4.
+0. Read the CI run on the last push first (sims run only there); a red run is a fix pack before anything else. Log rows carry all six cells, usage Δ included.
+1. **Design window:** platform-closure Pack N (CL-1…CL-5; see the briefs file's Close-outs). EN-G0 once the player has timed `#/dev/generator` on the iPhone, then ending Packs E–L briefs; EN-12 handover draft. The cartographers' Close checklist: only "CI deployed" is left to confirm (read CI).
+2. Every pack's `check:fast` runs `typecheck:ts` (CI-4); `Meets` may grow.
+3. Hard edges: EN-S2 → EN-G0 → ending Pack E · BL-111 → EN-4.
 
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| W | FX-1…FX-5 | Sonnet 5.5 medium | pack-worker worktree | running |
+| none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-16: the golden decision → replay re-store, Pack U; `LineId` → Pack T; Pencil Shove and Graphite on blank → Pack S; CG-I's proposals and the three drafts → DESIGN §11. F7, M and C3 recorded as accepted earlier; D5's numbers wait for EN-G0.)

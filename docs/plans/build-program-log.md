@@ -72,6 +72,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-12 | 060bdfe | Sonnet medium | 1 | ~10% | hall art through the KIT-R2 slots, one circle mark for both sources, PaperFx, Gallery hall sheet; returned once for the full-file autofixer (clean, no change) |
 | CG Close | 533caba | Opus high (design window) | 0 | ~12% | full gate green (9059 tests, sims); phone loop at 375x812 (10 screenshots, forced wins); code review: 5 material findings → Pack W; hall joins PLAYABLE_DISTRICTS, bad join filed by room 4 → Pack CG-K |
 | CG-17, CG-18 | 958528f | Sonnet medium | 0 | ~4% | hall in PLAYABLE_DISTRICTS, SAVE-1 pair recorded over 01761c5, bad join filed by room 4 |
+| FX-1, FX-2, FX-3, FX-4, FX-5 | c10252f | Sonnet medium | 0 | ~8% | strikePiece honours struckBy (bells, spans declare theirs); erase-mark-clean neighbour restore (`beside` part); collapseOnce keeps replayed wear; `Unit.riveted`; rival trick page text, doorway Done caption; cut by the 5h limit once, resumed |
 
 ## Usage
 
@@ -87,3 +88,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 20:30 | 23 | 74 | T, S merged; CG-G, U running; CG-J next |
 | 2026-11-16 21:10 | ~50 | 77 | CG-G merged; CG-J, CG-H running; briefs empty after them |
 | 2026-11-16 21:40 | ~67 | 79 | waves 19–21 merged (S, T, U, V, CG-G, CG-H, CG-J); briefs empty; cartographers Close next |
+| 2026-11-16 22:25 | 5 (reset at ~22:10) | 1 | wave 22 merged (W, CG-K); fast gate green (8451); session ends, next session resumes |
