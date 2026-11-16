@@ -27,7 +27,7 @@ P11 asks for two margin lines on Jar, Fuse and Afterglow and one on Pitch and Wi
 |---|---|---|
 | Jar | `jar:unit`, `jar:jar` | `jar:unit` holds the Lamplighter's note (level I, built effect). `jar:water` is left unslotted: its opinions would repeat Fuse-water's |
 | Fuse | `fuse:unit`, `fuse:water` | |
-| Afterglow | `afterglow:cloud`, `afterglow:water` (+ `afterglow:spent`, no pairs) | Built by FU-5; pairs drafted below, awaiting review |
+| Afterglow | `afterglow:cloud`, `afterglow:water` (+ `afterglow:spent`, no pairs) | Lines built by FU-5; pairs approved 2026-11-16 (amended), built by FU-5b |
 | Pitch | `pitch:water` | Text narrowed by CN-7 ("a waiting repeat or Wick") |
 | Wick | `wick:unit` | `wick:unit` fires on every wake, so it earns; `wick:member` (the lapse) is bent by Wick-unit-II-b instead |
 
@@ -106,26 +106,26 @@ Headline: *Seals the rest in a jar on the target's tile; it opens at the end of 
 
 Headline: *Lingering compounds from touching paths last 1 round longer.*
 
-**Margins: lines built (FU-5), pairs drafted below.** The three lines are `afterglow:cloud` (a plain cloud it touches lasts its usual rounds), `afterglow:spent` (the extra round is spent once) and `afterglow:water` (a stain the current carries keeps its Afterglow). The pairs wait for approval in a design window; no variant data exists.
+**Margins: lines built (FU-5), pairs approved below (2026-11-16), built by FU-5b.** The three lines are `afterglow:cloud` (a plain cloud it touches lasts its usual rounds), `afterglow:spent` (the extra round is spent once) and `afterglow:water` (a stain the current carries keeps its Afterglow). The design window of 2026-11-16 approved the pairs with one amendment (DESIGN §11); no variant data exists yet.
 
-#### Draft for review (FU-5)
+#### Approved pairs (FU-5 draft, reviewed 2026-11-16)
 
-> Not approved, not built. Format as in [seam.md](seam.md) §0. FN P1 gives a rune two lines: this draft **chooses `afterglow:cloud` and `afterglow:water`**. `afterglow:spent` stays a fine-print line with no pairs: it restates the headline's own rule, and every option on it ("spend later", "spend twice") would only retune the headline's number rather than meet a neighbour. If the review wants it, it takes the spare slot.
+> **Approved 2026-11-16 with one amendment** (`afterglow-cloud-wide` → `afterglow-cloud-store`: "lasts its usual rounds, no less" changed nothing a player could see). Build: FU-5b. Not built yet. Format as in [seam.md](seam.md) §0. FN P1 gives a rune two lines: this draft **chooses `afterglow:cloud` and `afterglow:water`**. `afterglow:spent` stays a fine-print line with no pairs: it restates the headline's own rule, and every option on it ("spend later", "spend twice") would only retune the headline's number rather than meet a neighbour. If the review wants it, it takes the spare slot.
 
 **Afterglow-cloud-I** · `afterglow:cloud` (*Afterglow lingers on a compound only: a plain cloud it touches lasts its usual rounds.*)
 
-- a · `afterglow-cloud-thin`: *A plain cloud your Afterglow touches thins one round sooner than usual.*
+- a · `afterglow-cloud-thin`: *A plain cloud your Afterglow touches thins one round sooner than usual, unless a unit of yours stands in it.* (the "unless" settles thin + hold in the text)
   Engine: `mix.ts::land`, on the line's branch, `layer.rounds = max(1, rounds - 1)` for a cloud landed by an Afterglow path. Existing `miss` stamped `afterglow:cloud`. Clear a lane's fog behind you.
-- b · `afterglow-cloud-wide`: *Your Afterglow also reaches the cloud's neighbours: a plain cloud beside it lasts its usual rounds, no less.*
-  Engine: the same branch also guards clouds on the four tiles around from being thinned by other rules (reads `rounds` back up to the landed count). No new event. Keeps a lingering fog steady.
+- b · `afterglow-cloud-store`: *A plain cloud your Afterglow touches keeps the gift: if it is later mixed into a compound, that compound lasts 1 round longer.*
+  Engine: the same branch sets a `glowKept` flag on the cloud layer (not `afterglow`, so the cloud's own rounds stay as they are); `mix.ts`, where a cloud layer becomes a compound, turns `glowKept` into the compound's `afterglow`. Existing `mixed`. Saves the gift for a later Spark or Oil. *(Amended at review: replaces `afterglow-cloud-wide`.)*
 
 **Afterglow-cloud-II** · `afterglow:cloud`
 
-- a · `afterglow-cloud-steam`: *Steam landed through your Afterglow leaves a plain cloud that also hides the unit standing in it from the next aimed hit.*
-  Engine: a `shielded`-like flag on a unit in a cloud landed by an Afterglow path, spent on the next hit. Bends `steam:cloud`; stamps `afterglow:cloud`. Existing `unharmed`.
+- a · `afterglow-cloud-steam`: *Steam landed through your Afterglow leaves a plain cloud that also hides the unit standing in it from the next foe attack.*
+  Engine: a one-hit dodge flag on a unit in a cloud landed by an Afterglow path, spent where `turn.ts` resolves a foe attack on it (the same flag as `steam-unit-hide`, seam.md §9). Bends `steam:cloud`; stamps `afterglow:cloud`. Existing `unharmed`. *(Amended at review: "the next aimed hit" is the next foe attack.)*
 - b · `afterglow-cloud-hold`: *A plain cloud your Afterglow touches does not thin while a unit of yours stands in it.*
   Engine: `decayStates` skips such a cloud while a member stands there (as `wax-cloud-keep` does for wax). No new event. Fog as cover.
-- Combos: thin + steam: the thinner cloud still hides the unit for the hit; fine. thin + hold: hold wins while someone stands in it, thin applies when it leaves; say so in thin's text. wide + steam: fine. wide + hold: the neighbours hold only while the standing unit is in the first cloud; fine.
+- Combos: thin + steam: the thinner cloud still hides the unit for the hit; fine. thin + hold: hold wins while someone stands in it (thin's text says so). store + steam: fine; the kept gift waits under the hiding cloud. store + hold: a held cloud keeps its gift for longer; fine.
 
 **Afterglow-water-I** · `afterglow:water` (*A stain the current carries keeps its Afterglow.*)
 
@@ -140,7 +140,7 @@ Headline: *Lingering compounds from touching paths last 1 round longer.*
   Engine: `driftFloats` merge branch copies `afterglow` onto a slick it joins. Existing `afterglowDrifts`; bends `oil:slick`. Light a whole lane's worth.
 - b · `afterglow-water-fire`: *A glowing stain that meets fire is not burnt away: it is carried on, lit, for the round.*
   Engine: the merge branch keeps a glowing float when it joins fire (as a lit float). Existing `afterglowDrifts`. Bends the current's fire rule.
-- Combos: renew + slick: the lane stays lit end to end; fine. renew + fire: fine. anchor + slick: the stain stops before a slick it would join; **clash**: resolve in anchor's text ("only at land, never at a slick"). anchor + fire: fine.
+- Combos: renew + slick: the lane stays lit end to end; fine. renew + fire: fine. anchor + slick: the stain stops before a slick it would join; **clash**, resolved in anchor's text at build: *…stops where it first touches land (never at a slick), and keeps its Afterglow there.* anchor + fire: fine.
 
 ### The five capstones
 
@@ -231,7 +231,7 @@ The five leaves are **approved and built** (CN-9, [canal-ledgers.md](canal-ledge
 
 ## 6. Counts
 
-- **Runes:** 4 margin lines (Afterglow none); 8 level I/II pairs; 3 capstone pairs (Afterglow's a built).
+- **Runes:** 4 margin lines (Afterglow none); 8 level I/II pairs; 3 capstone pairs (Afterglow's a built). **Added 2026-11-16 (FU-5b):** Afterglow's 2 margin lines, 4 level I/II pairs (8 variants).
 - **Solvents:** 2 margin lines; 4 level I/II pairs; 2 capstone pairs.
 - **Total new pairs:** 17 (12 line pairs, 5 capstone pairs, one option already built). **Rival note:** 1 (effect built, text rewritten).
 - **Clashes noted:** Jar-jar keep × stack (resolved in text); swift/far × wake/catch (wording at build); kin × slide (wording at build).

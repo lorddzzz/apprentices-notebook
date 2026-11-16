@@ -146,6 +146,7 @@ Pattern: the bathhouses' room data and `tests/data/canal-rooms.test.ts`
 | CG-10 | Rooms 4–5 and the heart room (three layouts each), `redraw`, outlines, the back hall; the heart room is a return point | M | tests `CG-10: checkRoom passes for every room 4-5 and heart layout`, `CG-10: a scripted solve exists for every deep layout`, `CG-10: the heart room is a return point` pass |
 
 ### Pack G: Hearing, Bench and hall fuzz (role: Default; engine; depends on: Packs D, E, F; BR-20, BF-9)
+> Design window 2026-11-16: Pack G also takes **CG-8b**, the *Through the doorway* wiring (a `through` choice opens the quiet doorway, then room 4; P13), owed from Pack E; see the briefs file.
 Owns: `src/engine/districts/cartographers/bench.ts`, `src/data/districts/cartographers/lore.ts`, `src/data/districts.ts` (the hearing line), `src/data/scenarios.ts` (CG lines), `tests/sim/cartographers-hall.test.ts`, `tests/districts/cartographers/{bench,hearing}.test.ts`
 Pattern: `src/engine/districts/bridges/guarantee.ts` for Bench entries; `tests/sim/ink-trip.test.ts` for a trip fuzz
 
@@ -175,6 +176,7 @@ Pattern: `docs/design/footnotes-content/bathhouses.md`; footnotes-plan.md §6
 | **CG-G3** | **Orchestrator review gate** (the player delegated footnote variant choice, 2026-10-23): the orchestrator approves the text before Pack J | | Approved text committed |
 
 ### Pack J: Footnote build (role: Default; engine; depends on: Pack I approved, Pack D; FN-8, RV-20)
+> CG-G3 approved the draft 2026-11-16 with amendments (DESIGN §11; cartographers.md §8): the Registrar's note is `registrar:swap` on `swap:unit` level II, not on Erase. CG-F3 first stamps `swap:unit`.
 Owns: `src/data/footnotes/cartographers.ts`, `src/data/footnotes/index.ts` (one line), `tests/scenarios/footnotes-cartographers*.test.ts`
 Pattern: `src/data/footnotes/bathhouses.ts`
 
