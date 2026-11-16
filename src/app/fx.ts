@@ -11,6 +11,7 @@ import {
   isDistrictEvent,
   step,
 } from '$engine';
+import { cartographersFx } from '../ui/districts/cartographers/fx';
 import { foundryFx } from '../ui/districts/foundry/fx';
 import { boilOverTiles, fallenTiles } from './describe';
 import type { BoardView } from './view';
@@ -42,7 +43,18 @@ export type Fx =
   | { kind: 'boil'; cells: Coord[] } // BH-12: the house boils over, steam rolls over every cloud tile
   | { kind: 'fall'; cells: Coord[] } // BR-14: cracked span tiles tip and drop into the fog
   | { kind: 'ring'; cells: Coord[]; bell: 'low' | 'mid' | 'high' } // BF-17: a tone rings from each of its bells
+  | { kind: 'paper'; at: Coord; what: PaperWhat } // CG-12: one paper event on a tile
   | { kind: 'banner'; text: string }; // "Your turn", "Round 3"
+
+/** Which paper event a `paper` effect plays (the Cartographers' hall). */
+export type PaperWhat =
+  | 'inked'
+  | 'rubbed'
+  | 'undrawn'
+  | 'drawnIn'
+  | 'circled'
+  | 'struck'
+  | 'lifted';
 
 export const COMPOUND_TONE: Record<CompoundId, Tone> = {
   deepMark: 'ink',
@@ -337,6 +349,8 @@ export function fxFor(e: GameEvent, before: BoardView): Fx[] {
       if (isDistrictEvent(e)) {
         const rung = foundryFx(e);
         if (rung) return rung;
+        const paper = cartographersFx(e);
+        if (paper) return paper;
         const fell = fallenTiles(e);
         if (fell.length > 0) return [{ kind: 'fall', cells: fell }];
         if (e.type === 'bridges:stoneWorn' && e.at) {

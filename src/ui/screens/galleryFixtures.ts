@@ -334,3 +334,82 @@ S  .  r  _  .  .
     ],
   },
 ];
+
+// ── The Cartographers' hall (CG-12) ─────────────────────
+
+/**
+ * A 7 x 9 hall: pencil unplanned and planned (ink and rub, with their due rounds), blank paper, two
+ * outlines, the three hands (A the Surveyor, F the Eraser, I the Tracer) and the Registrar (Y).
+ */
+export const HALL_BOARD = `
+.       .             {pencil}  {pencil:ink@1}  .                   .                    .
+.       {pencil:rub@1}  D{pencil:rub@1}  {pencil:ink@2}  .          .                    .
+{blank} {blank}       .         .               {outline:eraser@2}  .                    .
+{blank} .             .         A               .                   .                    Y
+.       .             S{pencil:ink@2}  .        .                   F                    .
+.       {pencil}      .         .               .                   .                    .
+.       I             .         .               {outline:surveyor@3}  .                  .
+.       .             .         .               .                   .                    .
+.       .             .         .               .                   .                    .
+`;
+
+export function hallView(): BoardView {
+  return viewOfSpec(parseBoard(HALL_BOARD));
+}
+
+const hallAt = (x: number, y: number): { x: number; y: number } => ({ x, y });
+
+/** The hall's marks: one circle of each source with its holder line, the Surveyor's pair and the Tracer's tether, over the generic "Next round" tiles. */
+export function hallOverlay(): Overlay {
+  return {
+    ...EMPTY_OVERLAY,
+    highlights: [
+      // The Registrar's circle on the Stoker's pencil, held by the Eraser (a guild hand), still shown.
+      {
+        kind: 'district',
+        key: 'cartographers:circle',
+        at: hallAt(2, 4),
+        to: hallAt(5, 4),
+        data: { source: 'registrar', state: 'shown', holder: 'hand' },
+      },
+      // His drawn circle, held by himself.
+      {
+        kind: 'district',
+        key: 'cartographers:circle',
+        at: hallAt(2, 1),
+        to: hallAt(6, 3),
+        data: { source: 'registrar', state: 'drawn', holder: 'self' },
+      },
+      // The household's one-round circle from the Registrar's note, held by an apprentice.
+      {
+        kind: 'district',
+        key: 'cartographers:circle',
+        at: hallAt(4, 7),
+        to: hallAt(2, 4),
+        data: { source: 'note', state: 'drawn', holder: 'member' },
+      },
+      {
+        kind: 'district',
+        key: 'cartographers:link',
+        at: hallAt(3, 3),
+        to: hallAt(2, 1),
+        data: { kind: 'swap' },
+      },
+      {
+        kind: 'district',
+        key: 'cartographers:link',
+        at: hallAt(1, 6),
+        to: hallAt(2, 4),
+        data: { kind: 'tether' },
+      },
+    ],
+    next: {
+      shapes: [
+        { kind: 'tile', at: hallAt(1, 1), tone: 'erased' },
+        { kind: 'tile', at: hallAt(3, 0), tone: 'drawn' },
+        { kind: 'tile', at: hallAt(4, 2), tone: 'warn' },
+      ],
+      units: [],
+    },
+  };
+}

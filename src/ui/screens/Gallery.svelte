@@ -41,6 +41,7 @@
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import SolventIcon from '../components/SolventIcon.svelte';
+  import HallSheet from '../districts/cartographers/HallSheet.svelte';
   import ToneSheet from '../districts/foundry/ToneSheet.svelte';
   import { METHOD_ART } from '../runeArt';
   import {
@@ -60,7 +61,7 @@
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry'] as const;
+  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -337,6 +338,8 @@
     />
   {:else if part === 'foundry'}
     <ToneSheet />
+  {:else if part === 'hall'}
+    <HallSheet />
   {:else}
     <p>No gallery part "{part}" yet.</p>
   {/if}
