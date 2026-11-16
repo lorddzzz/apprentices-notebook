@@ -36,17 +36,17 @@ import { DISTRICT_UI } from '$ui/districts';
  */
 
 describe('CG-W0 registration', () => {
-  it('the district stays hidden: drawing, roomless, not playable, with the stub hearing', () => {
+  it('the district stays hidden: drawing, six rooms, not playable, with the stub hearing', () => {
     const d = DISTRICTS.cartographers;
     expect(d.gate.kind).toBe('drawing');
-    expect(d.rooms).toHaveLength(0);
+    expect(d.rooms).toHaveLength(6); // CG-9, CG-10
     expect(d.lean.lean).toBe('paper');
     expect(d.hear).toMatchObject([{ kind: 'pages', atLeast: 5, except: ['registrar'] }]);
     expect(PLAYABLE_DISTRICTS).not.toContain('cartographers');
     expect(d.tables).toEqual([...CARTOGRAPHERS_TABLE_IDS]);
   });
 
-  it("the module declares events, the paper pieces, the rules and the guild's hands: no heart or bot yet", () => {
+  it("the module declares events, the paper pieces, the rules, the guild's hands, the heart and the bot", () => {
     const m = CARTOGRAPHERS_MODULE;
     expect(m.id).toBe('cartographers');
     expect((m.events ?? []).map((e) => e.type)).toEqual([...CARTOGRAPHERS_EVENT_TYPES]);
@@ -61,8 +61,8 @@ describe('CG-W0 registration', () => {
     ); // CG-5, CG-6
     expect(m.offerKinds ?? []).toEqual([]); // bindEvent is the bridges' registration
     expect(m.trip?.id).toBe('cartographers:doorway'); // CG-8
-    expect(m.heart).toBeUndefined(); // CG-10, through frame.ts's placeFrame
-    expect(m.bot).toBeUndefined(); // CG-10, through BotTerms
+    expect(m.heart).toMatchObject({ foe: 'registrar', rules: [GUILD_HAND_RULE_ID] }); // CG-10
+    expect(m.bot?.value).toBeTypeOf('function'); // CG-10
     expect(DISTRICT_UI.cartographers).toBeDefined();
   });
 
@@ -154,16 +154,8 @@ describe('CG-W0 contracts', () => {
 // CG-11 (the redraft threshold) lives in threshold.test.ts.
 
 // ── Pack F: rooms ────────────────────────────────────────
-describe('CG-9 rooms 1-3', () => {
-  it.todo('CG-9: checkRoom passes for every room 1-3 layout at party sizes 1-3');
-  it.todo('CG-9: a scripted solve exists for every room 1-3 layout');
-});
-
-describe('CG-10 rooms 4-5 and the heart room', () => {
-  it.todo('CG-10: checkRoom passes for every room 4-5 and heart layout');
-  it.todo('CG-10: a scripted solve exists for every deep layout');
-  it.todo('CG-10: the heart room is a return point');
-});
+// CG-9 and CG-10 pass in tests/data/cartographers-rooms.test.ts under their plan titles (the
+// heart room's frame in tests/districts/heart-frames.test.ts).
 
 // ── Pack G: hearing, Bench and hall fuzz ─────────────────
 describe('CG-13 Bench and Lab parity', () => {
