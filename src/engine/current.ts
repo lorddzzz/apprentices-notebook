@@ -1,6 +1,7 @@
 import { objectArrives, relocateAll, unitTraits } from './arrival';
 import { cloneData } from './clone';
 import { type Ctx, emit, ref, withLine } from './ctx';
+import { hasFootnote } from './footnotes';
 import { type Coord, neighbors4, sameCoord, step } from './grid';
 import { blocksUnits, coordOf, inBoard, isAlive, isFire, isPlate, tileAt } from './queries';
 import type { BattleState, Layer, Unit, UnitId } from './types';
@@ -28,15 +29,29 @@ const carried = (u: Unit): boolean =>
 type FloatMove = DriftPreview['floats'][number] & {
   placed: Layer['id'] | null;
   glows: boolean;
+  /** A glowing float that gave its Afterglow to the slick or fire it met (placed stays null). */
+  lit?: boolean;
 };
 
 /** Moves the floats of `s` one tile; returns what moved (reading order of the sources). */
-function driftFloats(s: BattleState): FloatMove[] {
+interface GlowRules {
+  /** `afterglow-water-anchor`: a glowing float stops at a board edge too. */
+  anchor?: boolean;
+  /** `afterglow-water-slick`: a glowing float gives the slick it joins its Afterglow. */
+  slick?: boolean;
+  /** `afterglow-water-fire`: a glowing float joining fire is carried on, lit. */
+  fire?: boolean;
+}
+const glowing = (l: Layer | null | undefined): boolean =>
+  !!l && (l.afterglow === true || l.glowKept === true);
+
+function driftFloats(s: BattleState, rules: GlowRules = {}): FloatMove[] {
   const moves: { from: Coord; to: Coord | null; i: number; j: number }[] = [];
   s.tiles.forEach((t, i) => {
     if (!t.terrain.water || !floats(t.state)) return;
     const from = coordOf(s, i);
     const to = step(from, t.terrain.water);
+    if (rules.anchor && glowing(t.state) && !inBoard(s, to)) return;
     // Onto land the float stays where it is; off the board it is gone.
     if (inBoard(s, to) && (!tileAt(s, to).terrain.water || isPlate(tileAt(s, to)))) return;
     // A float never displaces a cloud or another state that doesn't drift.
@@ -57,12 +72,20 @@ function driftFloats(s: BattleState): FloatMove[] {
     const cargo = lifted[n];
     const dest = m.j < 0 ? undefined : s.tiles[m.j];
     let placed: Layer['id'] | null = null;
+    let lit = false;
     // A float joins what floats there (fire wins); it never displaces a cloud or another state.
     if (cargo && dest && (dest.state === null || (floats(dest.state) && cargo.id === 'fire'))) {
       dest.state = cargo;
       placed = cargo.id;
+    } else if (cargo && dest?.state && glowing(cargo)) {
+      // `afterglow-water-slick` / `-fire`: a glowing stain that meets a slick or fire gives it the glow.
+      const meets = dest.state;
+      if ((rules.slick && meets.id === 'slick') || (rules.fire && meets.id === 'fire')) {
+        meets.afterglow = true;
+        lit = true;
+      }
     }
-    return { from: m.from, to: m.to, placed, glows: !!cargo?.afterglow };
+    return { from: m.from, to: m.to, placed, glows: glowing(cargo), lit };
   });
 }
 
@@ -116,7 +139,11 @@ function driftUnits(s: BattleState): { resolved: UnitDrift[]; ordered: UnitDrift
  */
 export function drift(ctx: Ctx): void {
   const s = ctx.s;
-  const floats = driftFloats(s);
+  const floats = driftFloats(s, {
+    anchor: hasFootnote(ctx, 'afterglow-water-anchor'),
+    slick: hasFootnote(ctx, 'afterglow-water-slick'),
+    fire: hasFootnote(ctx, 'afterglow-water-fire'),
+  });
   const { resolved, ordered } = driftUnits(s);
   for (const m of ordered) if (m.unit.kind === 'member') m.unit.undo = null;
   if (floats.length || ordered.length) {
@@ -133,7 +160,16 @@ export function drift(ctx: Ctx): void {
     });
   }
   for (const f of floats) {
+    if (f.to && f.lit) {
+      const to = { ...f.to };
+      withLine(ctx, 'afterglow:water', () =>
+        emit(ctx, { type: 'afterglowDrifts', from: { ...f.from }, to }),
+      );
+    }
     if (f.to && f.placed) {
+      // `afterglow-water-renew`: the stain is given its extra round again.
+      const landed = tileAt(s, f.to).state;
+      if (f.glows && landed && hasFootnote(ctx, 'afterglow-water-renew')) landed.afterglow = true;
       objectArrives(ctx, { kind: 'state', state: f.placed }, f.to, {
         cause: 'drift',
         origin: null,

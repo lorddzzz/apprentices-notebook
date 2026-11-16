@@ -212,6 +212,11 @@ export interface Layer {
   set?: true; // Lay: permanent until broken
   /** Aura flags read at decay: Afterglow (+1 round once), Steep (spreads each round). */
   afterglow?: true;
+  /**
+   * Afterglow's margin (`afterglow-cloud-store`, `-hold`, `afterglow-water-renew`): a plain cloud
+   * touched by an Afterglow path keeps the gift; a stain keeps remembering it after it is spent.
+   */
+  glowKept?: true;
   steep?: true;
   steepWide?: true; // a Steep-gifted caster's: it spreads two tiles a round
   /** A slick a unit slid over: the round it was used up in (no pinball, design §4.4). */
@@ -359,6 +364,10 @@ interface UnitBase {
   run?: number;
   /** Footnotes: a second Guard left the shield barbed (`guard-shielded-thorns`) while it lasts. */
   thorns?: true;
+  /** `afterglow-cloud-steam`, `steam-unit-hide`: the next foe attack on this unit in a cloud misses, under this line. */
+  dodge?: LineId;
+  /** `brass-unit-light`: the collar cast this round wears off at round end. */
+  collarLight?: true;
   /** Out of the room (P11, `removeFromRoom`): off the board until the room ends; absent = in it. */
   out?: OutCause | null;
   /** Ignored by `checkEnd` (the barge crate, CN §9). */

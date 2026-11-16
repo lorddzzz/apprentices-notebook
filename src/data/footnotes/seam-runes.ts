@@ -723,3 +723,58 @@ export const SEAM_RUNES: readonly VariantDef[] = [
     text: 'When a Spark finds nothing to burst, it arcs to the nearest unit within 2 for 1.',
   },
 ];
+
+/**
+ * Batch `seam-unit` (FN-M2b, seam.md §9): the margin pairs on `steam:unit` and `brass:unit`. A batch
+ * of its own, so the `seam-runes` list FN-3 pins stays as it is.
+ */
+export const SEAM_UNIT: readonly VariantDef[] = [
+  {
+    id: 'steam-unit-ring',
+    subject: 'steam',
+    slot: { line: 'steam:unit', level: 1 },
+    text: 'Steam under a unit also clouds the empty tiles beside it, one round only.',
+  },
+  {
+    id: 'steam-unit-lift',
+    subject: 'steam',
+    slot: { line: 'steam:unit', level: 1 },
+    text: 'A cloud landed under a unit lasts one round longer.',
+  },
+  {
+    id: 'steam-unit-hide',
+    subject: 'steam',
+    slot: { line: 'steam:unit', level: 2 },
+    text: 'A unit standing in the cloud you landed on it is missed by the first foe attack that reaches it before the cloud thins.',
+  },
+  {
+    id: 'steam-unit-wet',
+    subject: 'steam',
+    slot: { line: 'steam:unit', level: 2 },
+    text: 'A mark on a unit standing in the cloud you landed on it spreads at once through the connected cloud.',
+  },
+  {
+    id: 'brass-unit-light',
+    subject: 'brass',
+    slot: { line: 'brass:unit', level: 1 },
+    text: 'A collar you put on a unit wears off at round end.',
+  },
+  {
+    id: 'brass-unit-pair',
+    subject: 'brass',
+    slot: { line: 'brass:unit', level: 1 },
+    text: 'Brass on a bare unit also collars one bare unit beside it.',
+  },
+  {
+    id: 'brass-unit-ground',
+    subject: 'brass',
+    slot: { line: 'brass:unit', level: 2 },
+    text: 'A friend you collar gains 1 shield: the collar carries the next hit away along the brass.',
+  },
+  {
+    id: 'brass-unit-burn',
+    subject: 'brass',
+    slot: { line: 'brass:unit', level: 2 },
+    text: 'A Spark conducted through a unit wearing a cast collar burns the collar off, and that unit takes 1 more.',
+  },
+];

@@ -9,7 +9,7 @@ import { foeBurst, resolveSpecial, snuffStep } from './foes';
 import { type Coord, step } from './grid';
 import { openDuskJars } from './jars';
 import { runLateSpreads } from './marks';
-import { decayStates, landKindFree, roundEndChemistry } from './mix';
+import { decayStates, landKindFree, roundEndChemistry, spendDodge } from './mix';
 import { hitPiece, piecesTurnEnd } from './pieces';
 import {
   blockerName,
@@ -82,9 +82,9 @@ function resolveAttack(ctx: Ctx, e: EnemyUnit, intent: AttackIntent): void {
   emit(ctx, { type: 'attack', unit: ref(e), intent: { ...intent }, verbs: att.verbs });
   if (att.kind === 'adjacent') {
     const victim = unitAt(ctx.s, step(e.pos, intent.dir));
-    if (victim)
+    if (victim && !spendDodge(ctx, victim, att.name))
       dealDamage(ctx, victim, att.damage, att.name, [], { heading: intent.dir, at: e.pos });
-    else emit(ctx, { type: 'miss', source: att.name });
+    else if (!victim) emit(ctx, { type: 'miss', source: att.name });
     return;
   }
   const r = travel(ctx.s, e.pos, intent.dir, att.range, e.id);
@@ -95,6 +95,7 @@ function resolveAttack(ctx: Ctx, e: EnemyUnit, intent: AttackIntent): void {
   const at = { ...r.stop };
   switch (r.reason) {
     case 'unit': {
+      if (spendDodge(ctx, r.unit, att.name)) return;
       dealDamage(ctx, r.unit, att.damage, att.name, [], { heading: intent.dir, at: e.pos });
       if (att.inks) spitInk(ctx, at, r.unit);
       return;

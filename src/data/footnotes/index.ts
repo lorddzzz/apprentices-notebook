@@ -20,7 +20,7 @@ import { CANALS } from './canals';
 import { FOUNDRY } from './foundry';
 import { INK_QUARTER } from './inkQuarter';
 import { SEAM_METHODS } from './seam-methods';
-import { SEAM_RUNES } from './seam-runes';
+import { SEAM_RUNES, SEAM_UNIT } from './seam-runes';
 import { SEAM_SOLVENTS } from './seam-solvents';
 
 /**
@@ -35,6 +35,7 @@ export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   'seam-runes': SEAM_RUNES,
   'seam-methods': SEAM_METHODS,
   'seam-solvents': SEAM_SOLVENTS,
+  'seam-unit': SEAM_UNIT,
   auras: AURAS,
   canals: CANALS,
   bathhouses: BATHHOUSES,

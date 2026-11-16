@@ -205,7 +205,55 @@ export const CANALS: readonly VariantDef[] = [
     slot: { capstone: true },
     text: 'When a foe steps beside a waiting Wick invention’s target, it also wakes at once.',
   },
-  // ── Afterglow (the diagonal capstone is built in auras.ts) ──
+  // ── Afterglow (FU-5b: the margin pairs; the diagonal capstone is built in auras.ts) ──
+  {
+    id: 'afterglow-cloud-thin',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:cloud', level: 1 },
+    text: 'A plain cloud your Afterglow touches thins one round sooner than usual, unless a unit of yours stands in it.',
+  },
+  {
+    id: 'afterglow-cloud-store',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:cloud', level: 1 },
+    text: 'A plain cloud your Afterglow touches keeps the gift: if it is later mixed into a compound, that compound lasts 1 round longer.',
+  },
+  {
+    id: 'afterglow-cloud-steam',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:cloud', level: 2 },
+    text: 'Steam landed through your Afterglow leaves a plain cloud that also hides the unit standing in it from the next foe attack.',
+  },
+  {
+    id: 'afterglow-cloud-hold',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:cloud', level: 2 },
+    text: 'A plain cloud your Afterglow touches does not thin while a unit of yours stands in it.',
+  },
+  {
+    id: 'afterglow-water-renew',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:water', level: 1 },
+    text: 'A stain your Afterglow carries downstream is given its extra round again each time it drifts.',
+  },
+  {
+    id: 'afterglow-water-anchor',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:water', level: 1 },
+    text: 'A stain your Afterglow carries stops where it first touches land (never at a slick), and keeps its Afterglow there.',
+  },
+  {
+    id: 'afterglow-water-slick',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:water', level: 2 },
+    text: 'A glowing stain that meets a slick on the lane gives the slick its Afterglow.',
+  },
+  {
+    id: 'afterglow-water-fire',
+    subject: 'afterglow',
+    slot: { line: 'afterglow:water', level: 2 },
+    text: 'A glowing stain that meets fire is not burnt away: it is carried on, lit, for the round.',
+  },
   {
     id: 'afterglow-cap-plain',
     subject: 'afterglow',

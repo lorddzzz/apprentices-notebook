@@ -428,7 +428,23 @@ function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): voi
   // `conduct-network-hum`: brass a conduct left humming this round burns 1 more.
   const humming = tiles.some((c) => ctx.s.hum?.some((h) => h.x === c.x && h.y === c.y)) ? 1 : 0;
   const damage = (focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage) + humming;
-  hit(ctx, units, damage, 'Conduct', at);
+  if (hasFootnote(ctx, 'brass-unit-burn')) {
+    // Each unit in turn: a cast collar adds 1 to its hit, then comes off.
+    for (const u of units) {
+      const cast = u.collar !== false && u.collar !== null;
+      if (!cast) {
+        hit(ctx, [u], damage, 'Conduct', at);
+        continue;
+      }
+      withLine(ctx, 'brass:unit', () => {
+        hit(ctx, [u], damage + 1, 'Conduct', at);
+        if (u.hp > 0) {
+          emit(ctx, { type: 'erased', at: { ...u.pos }, what: 'collar' });
+          u.collar = false;
+        }
+      });
+    }
+  } else hit(ctx, units, damage, 'Conduct', at);
   if (fromPlate && hasFootnote(ctx, 'brass-plate-hum')) {
     const walls = tiles.filter((c) => tileAt(ctx.s, c).state?.id === 'wall');
     const hummed = units.filter((u) => walls.some((w) => manhattan(w, u.pos) <= 1 + reach));

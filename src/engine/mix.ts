@@ -21,7 +21,7 @@ import {
   unmarkedBeside,
 } from './bursts';
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
-import { dealDamage } from './damage';
+import { dealDamage, gainShield } from './damage';
 import { crackedTiles, markFooting } from './districts/api';
 import { hasFootnote } from './footnotes';
 import {
@@ -35,6 +35,7 @@ import {
   step,
 } from './grid';
 import { habitRule } from './habits';
+import { spreadFrom } from './marks';
 import { cloudNet } from './networks';
 import { kindOnPiece, pieceHoldsNothing, pieceHoldsOnlyClouds, strikePiece } from './pieces';
 import { push, wearPlate } from './push';
@@ -227,6 +228,33 @@ function greaseCloud(ctx: Ctx, at: Coord, flow: Flow | null): void {
   }
 }
 
+/** The `afterglow:cloud` margin on a plain cloud an Afterglow path has just landed (not yet on the tile). */
+function afterglowCloud(ctx: Ctx, layer: Layer, at: Coord, kind: Plain): void {
+  const standing = unitAt(ctx.s, at);
+  // `afterglow-cloud-thin`: one round sooner, unless a unit of yours stands in it.
+  if (hasFootnote(ctx, 'afterglow-cloud-thin') && layer.rounds > 0 && standing?.kind !== 'member')
+    layer.rounds = Math.max(1, layer.rounds - 1);
+  // `-store` keeps the gift for a later mix; `-hold` marks the cloud as Afterglow's.
+  if (hasFootnote(ctx, 'afterglow-cloud-store') || hasFootnote(ctx, 'afterglow-cloud-hold'))
+    layer.glowKept = true;
+  // `afterglow-cloud-steam`: Steam through Afterglow hides the unit in it from the next foe attack.
+  if (kind === 'steam' && standing && hasFootnote(ctx, 'afterglow-cloud-steam'))
+    standing.dodge = 'afterglow:cloud';
+}
+
+/**
+ * A one-hit dodge (`afterglow-cloud-steam`, `steam-unit-hide`): true, and spent, when the unit
+ * still stands in a cloud; a unit that has left its cloud loses it. Stamps `unharmed` with its line.
+ */
+export function spendDodge(ctx: Ctx, unit: Unit, source: string): boolean {
+  const line = unit.dodge;
+  if (!line) return false;
+  delete unit.dodge;
+  if (!isCloud(tileAt(ctx.s, unit.pos))) return false;
+  withLine(ctx, line, () => emit(ctx, { type: 'unharmed', unit: ref(unit), source, harm: null }));
+  return true;
+}
+
 function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, unit?: Unit): void {
   emit(ctx, {
     type: 'landed',
@@ -244,13 +272,11 @@ function land(ctx: Ctx, kind: Plain, at: Coord, id: Layered, flow: Flow | null, 
     hasFootnote(ctx, 'afterglow-cap-plain')
   )
     layer.rounds += 1;
+  const glowing = flow?.auras.includes('afterglow') === true && id === 'cloud';
+  if (glowing) afterglowCloud(ctx, layer, at, kind);
   tileAt(ctx.s, at).state = layer;
   // Afterglow lingers on a compound only: a plain cloud it touches lasts its usual rounds (CN-F1 Af1).
-  if (
-    flow?.auras.includes('afterglow') &&
-    id === 'cloud' &&
-    !hasFootnote(ctx, 'afterglow-cap-plain')
-  )
+  if (glowing && !hasFootnote(ctx, 'afterglow-cap-plain'))
     withLine(ctx, 'afterglow:cloud', () => emit(ctx, { type: 'miss', source: 'Afterglow' }));
   noteMet(ctx, id);
 }
@@ -347,6 +373,9 @@ function landOnTileInner(ctx: Ctx, kind: Plain, at: Coord, flow: Flow | null): v
     withLine(ctx, line(kind, cur.id), () => {
       reserve(ctx, 2); // `named` (first time) and `mixed`
       tile.state = newLayer(row.makes, kind, flow);
+      // `afterglow-cloud-store`: the gift a plain cloud kept turns into the compound's Afterglow.
+      if (cur.id === 'cloud' && cur.glowKept && hasFootnote(ctx, 'afterglow-cloud-store'))
+        tile.state.afterglow = true;
       if (row.makes === 'pool' && hasFootnote(ctx, 'oil-slick-short') && tile.state.rounds > 0) {
         tile.state.rounds -= 1;
         tile.state.dregs = true; // the blot it leaves when it clears
@@ -458,7 +487,30 @@ function brassOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
   } else if (u.mark) {
     withLine(ctx, line('brass', 'mark'), () => shackle(ctx, 'brass', u, flow));
   } else if (u.collar === false) {
-    withLine(ctx, line('brass', 'unit'), () => collar(ctx, u, flow));
+    withLine(ctx, line('brass', 'unit'), () => collarBare(ctx, u, flow));
+  }
+}
+
+/** Brass on a bare unit with its margin: `-light` (wears off), `-pair` (a neighbour too), `-ground` (a friend's shield). */
+function collarBare(ctx: Ctx, u: Unit, flow: Flow | null): void {
+  collar(ctx, u, flow);
+  if (hasFootnote(ctx, 'brass-unit-light') && u.collar !== null) u.collarLight = true;
+  if (hasFootnote(ctx, 'brass-unit-ground') && u.kind === 'member') {
+    gainShield(ctx, u, 1, ctx.s.round + 1);
+  }
+  if (hasFootnote(ctx, 'brass-unit-pair')) {
+    const bare = neighbors4(u.pos)
+      .filter((n) => inBoard(ctx.s, n))
+      .sort(byReadingOrder)
+      .flatMap((n) => unitAt(ctx.s, n) ?? [])
+      .find((n) => n.collar === false && n.shackle === 0 && !n.mark);
+    if (bare) {
+      collar(ctx, bare, flow);
+      if (hasFootnote(ctx, 'brass-unit-light') && bare.collar !== null) bare.collarLight = true;
+      if (hasFootnote(ctx, 'brass-unit-ground') && bare.kind === 'member') {
+        gainShield(ctx, bare, 1, ctx.s.round + 1);
+      }
+    }
   }
 }
 
@@ -474,6 +526,24 @@ function collar(ctx: Ctx, u: Unit, flow: Flow | null): void {
   u.collar = flow ? flow.origin : null;
   noteMet(ctx, 'collar');
   emit(ctx, { type: 'collared', unit: ref(u) });
+}
+
+/** The `steam:unit` margin on a cloud just landed under `unit`: `-ring`, `-lift`, `-hide` and `-wet`. */
+function steamUnitMargin(ctx: Ctx, unit: Unit, flow: Flow | null): void {
+  const at = unit.pos;
+  const layer = tileAt(ctx.s, at).state;
+  if (layer?.id !== 'cloud') return;
+  if (hasFootnote(ctx, 'steam-unit-lift') && layer.rounds > 0) layer.rounds += 1;
+  if (hasFootnote(ctx, 'steam-unit-ring')) {
+    for (const n of neighbors4(at).sort(byReadingOrder)) {
+      if (!inBoard(ctx.s, n)) continue;
+      const t = tileAt(ctx.s, n);
+      if (t.state || t.piece || t.jar || blocksUnits(t) || unitAt(ctx.s, n)) continue;
+      layThinCloud(ctx, n, flow?.origin ?? null, 1);
+    }
+  }
+  if (hasFootnote(ctx, 'steam-unit-hide')) unit.dodge = 'steam:unit';
+  if (hasFootnote(ctx, 'steam-unit-wet') && unit.mark) spreadFrom(ctx, unit);
 }
 
 // ── Spark ───────────────────────────────────────────────
@@ -539,8 +609,12 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
   }
   // `steam:unit`: Steam aimed at a unit lands on its tile, so the unit stands inside the cloud.
   const bare = !tileAt(ctx.s, at).state && !tileAt(ctx.s, at).piece;
-  if (kind === 'steam' && bare && unitAt(ctx.s, at))
-    withLine(ctx, line('steam', 'unit'), () => landOnTile(ctx, kind, at, flow));
+  const under = kind === 'steam' && bare ? unitAt(ctx.s, at) : null;
+  if (under)
+    withLine(ctx, line('steam', 'unit'), () => {
+      landOnTile(ctx, kind, at, flow);
+      steamUnitMargin(ctx, under, flow);
+    });
   else landOnTile(ctx, kind, at, flow);
   if (kind === 'oil') catchIfHot(ctx, at, flow);
   // `steam-cap-scald`: a cloud landed on a unit's tile scalds that unit at round end.
@@ -695,8 +769,19 @@ export function decayStates(ctx: Ctx): void {
     if (isCloud(t) && hasFootnote(ctx, 'wax-cloud-keep') && unitAt(s, coordOf(s, i))?.mark?.wax) {
       return;
     }
+    // `afterglow-cloud-hold`: a cloud Afterglow touched does not thin while a unit of yours stands in it.
+    if (
+      l.glowKept &&
+      isCloud(t) &&
+      hasFootnote(ctx, 'afterglow-cloud-hold') &&
+      unitAt(s, coordOf(s, i))?.kind === 'member'
+    ) {
+      return;
+    }
     if (l.afterglow) {
       delete l.afterglow;
+      // `afterglow-water-renew`: a stain remembers the gift, so each drift can give it again.
+      if (hasFootnote(ctx, 'afterglow-water-renew')) l.glowKept = true;
       withLine(ctx, 'afterglow:spent', () =>
         emit(ctx, { type: 'afterglowSpent', at: coordOf(s, i) }),
       );
@@ -718,6 +803,16 @@ export function decayStates(ctx: Ctx): void {
     (t.state ? burnt : faded).push(coordOf(s, i));
   });
   for (const u of livingUnits(s)) {
+    // `brass-unit-light`: a collar cast this round wears off.
+    if (u.collarLight) {
+      delete u.collarLight;
+      if (u.collar !== false && u.collar !== null) {
+        u.collar = false;
+        faded.push({ ...u.pos });
+      }
+    }
+    // A dodge ends with its cloud (spent, thinned away, or the unit left it).
+    if (u.dodge && !isCloud(tileAt(s, u.pos))) delete u.dodge;
     if (u.shackle === 0) continue;
     u.shackle--;
     if (u.shackle === 0) faded.push({ ...u.pos });
