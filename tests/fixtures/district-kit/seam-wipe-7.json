@@ -2930,7 +2930,13 @@
         },
         { "type": "landed", "kind": "steam", "at": { "x": 1, "y": 2 }, "makes": "cloud" },
         { "type": "landed", "kind": "steam", "at": { "x": 2, "y": 2 }, "makes": "cloud" },
-        { "type": "landed", "kind": "steam", "at": { "x": 3, "y": 2 }, "makes": "cloud" },
+        {
+          "type": "landed",
+          "kind": "steam",
+          "at": { "x": 3, "y": 2 },
+          "makes": "cloud",
+          "line": "steam:unit"
+        },
         { "type": "stateFades", "tiles": [{ "x": 0, "y": 3 }, { "x": 3, "y": 3 }] },
         { "type": "vent", "at": { "x": 0, "y": 3 } },
         { "type": "round", "round": 9 },
@@ -3348,6 +3354,7 @@
       "ink:plate",
       "ink:stain",
       "oil:blot",
+      "steam:unit",
       "ink:mark",
       "brass:mark",
       "ink:compound",
@@ -3389,6 +3396,7 @@
       "wall",
       "deepMark",
       "shackle",
+      "unit",
       "compound"
     ],
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
@@ -3529,6 +3537,7 @@
         "ink:plate",
         "ink:stain",
         "oil:blot",
+        "steam:unit",
         "ink:mark",
         "brass:mark",
         "ink:compound",
@@ -3570,6 +3579,7 @@
         "wall",
         "deepMark",
         "shackle",
+        "unit",
         "compound"
       ],
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],

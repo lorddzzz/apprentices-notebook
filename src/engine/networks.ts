@@ -153,12 +153,17 @@ export function stampGap(
   const inNet = new Set(net.map(key));
   const out = (c: Coord): boolean => inBoard(s, c) && pass(c) && !inNet.has(key(c));
   let unit = false;
+  let diagonal = false;
   for (const c of net) {
     for (const d of DIRS) {
       const gapTile = { x: c.x + d.x, y: c.y + d.y };
       const beyond = { x: c.x + d.x * 2, y: c.y + d.y * 2 };
       if (inBoard(s, gapTile) && !pass(gapTile) && unitAt(s, gapTile) && out(beyond)) unit = true;
+      const side = d.x === 0 ? { x: 1, y: 0 } : { x: 0, y: 1 };
+      if (out({ x: gapTile.x + side.x, y: gapTile.y + side.y })) diagonal = true;
+      if (out({ x: gapTile.x - side.x, y: gapTile.y - side.y })) diagonal = true;
     }
   }
   if (unit) withLine(ctx, 'mender:unit', () => emit(ctx, { type: 'miss', source: who }));
+  if (diagonal) withLine(ctx, 'mender:diagonal', () => emit(ctx, { type: 'miss', source: who }));
 }

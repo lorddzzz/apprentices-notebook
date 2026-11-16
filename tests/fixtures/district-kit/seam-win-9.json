@@ -1862,9 +1862,21 @@
             "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
           }
         },
-        { "type": "landed", "kind": "steam", "at": { "x": 1, "y": 1 }, "makes": "cloud" },
+        {
+          "type": "landed",
+          "kind": "steam",
+          "at": { "x": 1, "y": 1 },
+          "makes": "cloud",
+          "line": "steam:unit"
+        },
         { "type": "landed", "kind": "steam", "at": { "x": 2, "y": 1 }, "makes": "cloud" },
-        { "type": "landed", "kind": "steam", "at": { "x": 3, "y": 1 }, "makes": "cloud" },
+        {
+          "type": "landed",
+          "kind": "steam",
+          "at": { "x": 3, "y": 1 },
+          "makes": "cloud",
+          "line": "steam:unit"
+        },
         {
           "type": "attack",
           "unit": {
@@ -3121,6 +3133,7 @@
       "ink:collar",
       "bolt:empty",
       "ink:slick",
+      "steam:unit",
       "ink:spread",
       "brass:mark",
       "spark:mark",
@@ -3161,9 +3174,9 @@
       "brandCloud",
       "stain",
       "deepMark",
+      "unit",
       "spread",
-      "compound",
-      "unit"
+      "compound"
     ],
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
     "footnotes": {
@@ -3356,6 +3369,7 @@
         "ink:collar",
         "bolt:empty",
         "ink:slick",
+        "steam:unit",
         "ink:spread",
         "brass:mark",
         "spark:mark",
@@ -3396,9 +3410,9 @@
         "brandCloud",
         "stain",
         "deepMark",
+        "unit",
         "spread",
-        "compound",
-        "unit"
+        "compound"
       ],
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],
       "footnotes": {

@@ -6,8 +6,7 @@ import { board } from './harness';
 describe('FN-M2: the unit lines', () => {
   const field = () => board('D r . . .');
 
-  // Pending: stamping `line` on these existing events changes the recorded golden trips.
-  test.todo('FN-M2: steam:unit fires when Steam lands under a unit', () => {
+  test('FN-M2: steam:unit fires when Steam lands under a unit', () => {
     const r = lands(field(), [['steam', tile('B1')]]);
     expect(r.events.find((e) => e.type === 'landed')).toMatchObject({
       kind: 'steam',
@@ -15,7 +14,7 @@ describe('FN-M2: the unit lines', () => {
     });
   });
 
-  test.todo('FN-M2: brass:unit fires when Brass collars a bare unit', () => {
+  test('FN-M2: brass:unit fires when Brass collars a bare unit', () => {
     const r = lands(field(), [['brass', tile('B1')]]);
     expect(r.events.find((e) => e.type === 'collared')).toMatchObject({ line: 'brass:unit' });
   });

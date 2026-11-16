@@ -2482,7 +2482,13 @@
           "compound": "brandCloud",
           "line": "steam:blot"
         },
-        { "type": "landed", "kind": "steam", "at": { "x": 3, "y": 0 }, "makes": "cloud" },
+        {
+          "type": "landed",
+          "kind": "steam",
+          "at": { "x": 3, "y": 0 },
+          "makes": "cloud",
+          "line": "steam:unit"
+        },
         {
           "type": "attack",
           "unit": {
@@ -3001,6 +3007,7 @@
       "steam:kettle",
       "spark:cloud",
       "steam:blot",
+      "steam:unit",
       "spark:mark"
     ],
     "named": [
@@ -3035,7 +3042,8 @@
       "kettle",
       "deepMark",
       "brandCloud",
-      "compound"
+      "compound",
+      "unit"
     ],
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
     "footnotes": {
@@ -3172,6 +3180,7 @@
         "steam:kettle",
         "spark:cloud",
         "steam:blot",
+        "steam:unit",
         "spark:mark"
       ],
       "named": [
@@ -3206,7 +3215,8 @@
         "kettle",
         "deepMark",
         "brandCloud",
-        "compound"
+        "compound",
+        "unit"
       ],
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],
       "footnotes": {

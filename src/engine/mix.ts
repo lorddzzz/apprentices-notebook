@@ -458,7 +458,7 @@ function brassOnUnit(ctx: Ctx, u: Unit, flow: Flow | null): void {
   } else if (u.mark) {
     withLine(ctx, line('brass', 'mark'), () => shackle(ctx, 'brass', u, flow));
   } else if (u.collar === false) {
-    collar(ctx, u, flow);
+    withLine(ctx, line('brass', 'unit'), () => collar(ctx, u, flow));
   }
 }
 
@@ -537,7 +537,11 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
     else brassOnUnit(ctx, unit, flow);
     return;
   }
-  landOnTile(ctx, kind, at, flow);
+  // `steam:unit`: Steam aimed at a unit lands on its tile, so the unit stands inside the cloud.
+  const bare = !tileAt(ctx.s, at).state && !tileAt(ctx.s, at).piece;
+  if (kind === 'steam' && bare && unitAt(ctx.s, at))
+    withLine(ctx, line('steam', 'unit'), () => landOnTile(ctx, kind, at, flow));
+  else landOnTile(ctx, kind, at, flow);
   if (kind === 'oil') catchIfHot(ctx, at, flow);
   // `steam-cap-scald`: a cloud landed on a unit's tile scalds that unit at round end.
   if (kind === 'steam' && hasFootnote(ctx, 'steam-cap-scald')) {

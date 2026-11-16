@@ -29,12 +29,24 @@ import {
  *
  *   RECORD_GOLDEN=1 pnpm vitest run tests/run/golden.test.ts
  *
+ * To re-store a trip from its *recorded actions* (never the bot), when only what the events or
+ * profile say changed (a stamped `line`, a new footnote point):
+ *
+ *   RECORD_GOLDEN=replay pnpm vitest run tests/run/golden.test.ts
+ *
+ * It replays each trip and, for those that no longer match, rewrites the fixture in the form the
+ * comparison reads (events through `noJarIds`, profiles through `noLedger`); `district`, `seed`,
+ * `options`, `outcome` and every room's `actions` stay as recorded. It logs the JSON paths that
+ * changed (path -> count), so the diff can be reviewed before committing.
+ * It re-stores only the fixtures that differ; a second plain run confirms them.
+ *
  * Recording drives the greedy bot (tests/sim/bot.ts) and takes about a minute. To add a scenario,
  * add a line to TRIPS below and re-record.
  */
 
 const DIR = new URL('../fixtures/district-kit/', import.meta.url);
 const RECORDING = process.env.RECORD_GOLDEN === '1';
+const REPLAYING = process.env.RECORD_GOLDEN === 'replay';
 
 interface TripCase {
   name: string;
@@ -82,6 +94,30 @@ const file = (name: string) => new URL(`${name}.json`, DIR);
 function load<T>(name: string): T {
   return JSON.parse(readFileSync(file(name), 'utf8')) as T;
 }
+/** Paths (array indexes folded to `[]`) where two JSON values differ, with counts. */
+function changedPaths(a: unknown, b: unknown, path = '', out = new Map<string, number>()) {
+  const bump = () => out.set(path, (out.get(path) ?? 0) + 1);
+  if (typeof a !== 'object' || typeof b !== 'object' || !a || !b) {
+    if (a !== b) bump();
+    return out;
+  }
+  if (Array.isArray(a) !== Array.isArray(b)) {
+    bump();
+    return out;
+  }
+  const A = a as Record<string, unknown>;
+  const B = b as Record<string, unknown>;
+  if (Array.isArray(a)) {
+    const n = Math.max(a.length, (b as unknown[]).length);
+    if (a.length !== (b as unknown[]).length) bump();
+    for (let i = 0; i < Math.min(a.length, (b as unknown[]).length); i++)
+      changedPaths(A[i], B[i], `${path}[]`, out);
+    return n ? out : out;
+  }
+  for (const k of new Set([...Object.keys(A), ...Object.keys(B)]))
+    changedPaths(A[k], B[k], `${path}.${k}`, out);
+  return out;
+}
 function store(name: string, value: unknown) {
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
   writeFileSync(file(name), `${JSON.stringify(value)}\n`);
@@ -97,6 +133,33 @@ describe('golden trips', () => {
       }
       const golden = load<TripRecord>(c.name);
       expect(golden.outcome).toBe(c.expect);
+      if (REPLAYING) {
+        const re = plain(
+          recordTrip(
+            golden.district,
+            golden.seed,
+            golden.options,
+            golden.rooms.map((r) => r.actions),
+          ),
+        );
+        const next: TripRecord = {
+          ...golden,
+          rooms: golden.rooms.map((room, i) => ({
+            ...room,
+            ...re.rooms[i],
+            events: noJarIds(re.rooms[i]?.events) as typeof room.events,
+            actions: room.actions,
+          })),
+          profile: noLedger(re.profile),
+          trip: re.trip,
+          save: { ...re.save, profile: noLedger(re.save.profile) },
+        };
+        const diff = changedPaths(golden, plain(next));
+        if (diff.size > 0) {
+          console.log(`REPLAY ${c.name}: ${JSON.stringify([...diff])}`);
+          store(c.name, next);
+        }
+      }
       const replayed = plain(
         recordTrip(
           golden.district,

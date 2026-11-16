@@ -1861,7 +1861,8 @@
             "name": "marginalia",
             "at": { "x": 3, "y": 1 },
             "member": false
-          }
+          },
+          "line": "brass:unit"
         },
         {
           "type": "stateFades",
@@ -2827,6 +2828,7 @@
       "shove:edge",
       "oil:blot",
       "oil:cloud",
+      "brass:unit",
       "steam:slick",
       "steam:compound",
       "brass:compound",
@@ -2861,6 +2863,7 @@
       "greaseFog",
       "shackle",
       "edge",
+      "unit",
       "compound"
     ],
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
@@ -3049,6 +3052,7 @@
         "shove:edge",
         "oil:blot",
         "oil:cloud",
+        "brass:unit",
         "steam:slick",
         "steam:compound",
         "brass:compound",
@@ -3083,6 +3087,7 @@
         "greaseFog",
         "shackle",
         "edge",
+        "unit",
         "compound"
       ],
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],
