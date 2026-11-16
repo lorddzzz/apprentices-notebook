@@ -353,6 +353,8 @@ interface UnitBase {
   held: number; // Hold/Rivet: rounds left
   /** Footnotes (`hold-held-exposed`, `hold-held-shake`): Holds landed during the current hold, read only while `held > 0`. */
   holds?: number;
+  /** Footnote `rivet-unit-anvil`: held by Rivet (not a Hold); cleared when the hold ends or a Hold lands. */
+  riveted?: true;
   /** Footnotes (`hold-held-shake`): no Hold lands on this unit while the round is at most this. */
   holdFreeUntil?: number;
   stunned: boolean; // skips its next action (dropped elite)
@@ -548,7 +550,7 @@ export interface BattleState {
 export type ErasedPart =
   | { kind: 'state'; at: Coord; layer: Layer }
   | { kind: 'jar'; at: Coord; jar: Jar }
-  | { kind: 'mark'; unit: UnitId; mark: Mark }
+  | { kind: 'mark'; unit: UnitId; mark: Mark; beside?: true }
   | { kind: 'collar'; unit: UnitId; collar: Origin | null }
   | { kind: 'shackle'; unit: UnitId; rounds: number };
 /**

@@ -100,8 +100,9 @@ const originOf = (ctx: Ctx, origin: Origin | null | undefined): Origin | null =>
 export function strikePiece(ctx: Ctx, at: Coord, by: StruckBy, origin?: Origin | null): boolean {
   if (!inBoard(ctx.s, at)) return false;
   const piece = tileAt(ctx.s, at).piece;
-  const fn = piece && pieceDef(piece.id).triggers.onStruck;
-  if (!piece || !fn) return false;
+  const triggers = piece && pieceDef(piece.id).triggers;
+  const fn = triggers?.onStruck;
+  if (!piece || !fn || (triggers.struckBy && !triggers.struckBy.includes(by))) return false;
   fn(ctx, { ...at }, piece, by, originOf(ctx, origin));
   return true;
 }

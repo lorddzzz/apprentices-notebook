@@ -241,6 +241,7 @@ export function holdUnit(ctx: Ctx, u: Unit, rounds: number, viaHold = false): vo
     withLine(ctx, 'hold:held', () => emit(ctx, { type: 'miss', source: 'Hold' }));
     return;
   }
+  delete u.riveted; // held by a Hold now, not by Rivet alone
   const shake = hasFootnote(ctx, 'hold-held-shake');
   if (shake || hasFootnote(ctx, 'hold-held-exposed')) {
     u.holds = u.held > 0 ? (u.holds ?? 1) + 1 : 1;
@@ -402,6 +403,7 @@ const swap: Handler = (ctx, t, flow) => {
         for (const x of [caster, first]) {
           if (x.held <= 0) continue;
           x.held -= 1;
+          if (x.held === 0) delete x.riveted;
           emit(ctx, { type: 'held', unit: ref(x), rounds: x.held });
         }
       }
@@ -684,8 +686,13 @@ function restorePart(ctx: Ctx, part: ErasedPart, u: Unit | null): void {
     );
     return;
   }
-  // A unit's part returns only to the unit that bore it, standing on the target.
-  if (!u || u.id !== part.unit) {
+  // A unit's part returns only to the unit that bore it, standing on the target. A neighbour's mark
+  // (`erase-mark-clean`, `beside`) goes back to that neighbour wherever it stands, if unmarked.
+  if (part.kind === 'mark' && part.beside) {
+    const bearer = findUnit(s, part.unit);
+    if (!bearer || !isAlive(bearer) || bearer.mark) return;
+    u = bearer;
+  } else if (!u || u.id !== part.unit) {
     if (part.kind === 'mark') miss(ctx, 'erase', 'restoreErase:mark');
     return;
   }
@@ -791,7 +798,10 @@ function eraseAt(ctx: Ctx, t: Target, flow: Flow, through: boolean): void {
     if (plain && fn('erase-mark-clean')) {
       for (const c of neighbors4(u.pos)) {
         const n = inBoard(ctx.s, c) ? unitAt(ctx.s, c) : null;
-        if (n?.mark) eraseMark(ctx, n, caster, [], gone);
+        if (!n?.mark) continue;
+        const side: ErasedPart[] = [];
+        eraseMark(ctx, n, caster, side, gone);
+        for (const p of side) if (p.kind === 'mark') parts.push({ ...p, beside: true });
       }
     }
   }

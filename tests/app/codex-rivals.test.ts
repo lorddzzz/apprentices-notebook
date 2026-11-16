@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+import { RIVAL_TRICK_TEXT } from '$data/codex';
+import { RIVALS } from '$data/rivals';
 import { newProfile, type Profile } from '$engine';
 import { partsOf, rivalPageRows } from '../../src/app/codexRivals';
 
@@ -36,4 +38,12 @@ test('the trick is listed apart from the parts, marked his alone', () => {
   expect(row?.trick?.name).toBe('The long wick');
   expect(row?.trick?.text).toContain('not in the trial');
   expect(row?.parts).toHaveLength(4);
+});
+
+test("FX-5: every rival's trick has page text", () => {
+  for (const r of Object.values(RIVALS)) {
+    if (!r.trick) continue;
+    expect(RIVAL_TRICK_TEXT[r.trick], r.trick).toBeDefined();
+    expect(RIVAL_TRICK_TEXT[r.trick]?.text).toContain('His alone, not in the trial.');
+  }
 });

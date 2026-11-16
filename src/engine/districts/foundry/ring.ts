@@ -192,8 +192,12 @@ export function lockBell(ctx: Ctx, at: Coord): void {
 const retuneByKind = (ctx: Ctx, at: Coord, kind: string): boolean =>
   kind === 'brass' && retune(ctx, at, 1);
 
+/** What rings a bell (P2 and the bursts); never an Erase. */
+const BELL_STRIKES: readonly StruckBy[] = ['damage', 'push', 'spark', 'shove', 'burst'];
+
 /** The bell's triggers: struck or hit it queues a ring; Brass retunes it. */
 export const BELL_TRIGGERS: PieceTriggers = {
+  struckBy: BELL_STRIKES,
   onStruck: (ctx, at, piece, by, origin) => strike(ctx, at, piece, by, origin),
   onHit: (ctx, at, piece, origin) => strike(ctx, at, piece, 'damage', origin),
   onKind: (ctx, at, _piece, kind) => retuneByKind(ctx, at, kind),
@@ -201,6 +205,7 @@ export const BELL_TRIGGERS: PieceTriggers = {
 
 /** The great bell's triggers (P6): a strike is queued and weighed against its lock at the settle point. */
 export const GREAT_BELL_TRIGGERS: PieceTriggers = {
+  struckBy: BELL_STRIKES,
   onStruck: (ctx, at, piece, by, origin) => strike(ctx, at, piece, by, origin),
   onHit: (ctx, at, piece, origin) => strike(ctx, at, piece, 'damage', origin),
 };

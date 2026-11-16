@@ -54,6 +54,7 @@ import {
   placedInk,
   recordOf,
   roleOf,
+  roomsOf,
   rotateSocket,
   type SlotIndex,
   type SpellKey,
@@ -844,4 +845,11 @@ export function copySpellToPage(p: Profile, m: MemberId, spell: string): SpellCo
   const first = fresh[0];
   if (first) return { why: first.message };
   return { profile: next };
+}
+
+/** The doorway's Done caption: the next room's name after a *Through the doorway* choice, else the spoils. */
+export function doorwayDoneCaption(trip: Trip | null): string {
+  const through = !!trip?.kit?.choices.some((c) => c.after >= trip.encounter);
+  const next = trip && through ? roomsOf(trip)[trip.encounter + 1] : undefined;
+  return next ? `On to ${next.title}` : 'Back to the spoils, with the new pages';
 }

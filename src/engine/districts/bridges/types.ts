@@ -155,7 +155,7 @@ export const initBridgeState = (): BridgeTripState => ({});
 export const parseBridgeState = (_raw: unknown): BridgeTripState => ({});
 
 /** BR-2: crushes and non-fire bursts wear span stone and the keystone (`wear.ts`). */
-const WEARS: PieceTriggers = { onStruck: wearStruck };
+const WEARS: PieceTriggers = { onStruck: wearStruck, struckBy: ['push', 'burst', 'shove'] };
 
 /** The pieces' shared shape: walkable footing, no triggers until BR-1..BR-3. */
 const footing = (id: PieceId, token: string, triggers: PieceTriggers = {}): PieceDef => ({

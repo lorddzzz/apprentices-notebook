@@ -35,6 +35,7 @@
   import {
     benchUnlocked,
     bookmarksOf,
+    doorwayDoneCaption,
     glyphSlots,
     loadoutBlocker,
     NO_TOOL,
@@ -120,7 +121,7 @@
   const doorCaption = $derived(
     blocker ?? 'The owner\'s map of the city',
   );
-  const doneCaption = $derived(blocker ?? 'Back to the spoils, with the new pages');
+  const doneCaption = $derived(blocker ?? doorwayDoneCaption(game.save.trip));
   type Panel = 'closed' | 'menu' | 'paste' | 'copy' | 'reset';
   let panel = $state<Panel>('closed');
   let pasted = $state('');

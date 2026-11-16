@@ -200,7 +200,7 @@ function beginPlayerPhase(ctx: Ctx): void {
       u.guardUntil = null;
       delete u.thorns;
     }
-    if (u.held > 0) u.held--;
+    if (u.held > 0 && --u.held === 0) delete u.riveted;
     if (u.kind === 'member' && u.stunned) {
       u.stunned = false;
       u.moved = true;

@@ -24,8 +24,8 @@ export function exposedStep(ctx: Ctx, unit: Unit): { step: 0 | 1; line: LineId |
   ) {
     return { step: 1, line: 'hold:cracked' };
   }
-  // `rivet-unit-anvil`: held by Rivet alone (no Hold counted), never stacked with the terms above.
-  if (hasFootnote(ctx, 'rivet-unit-anvil') && (unit.holds ?? 0) === 0) {
+  // `rivet-unit-anvil`: held by Rivet (`riveted`, cleared when a Hold lands), never stacked with the terms above.
+  if (hasFootnote(ctx, 'rivet-unit-anvil') && unit.riveted === true) {
     return { step: 1, line: 'rivet:unit' };
   }
   return NOT_EXPOSED;

@@ -339,7 +339,11 @@ function collapseOnce(ctx: Ctx, own: BridgesState): BridgesState {
   }
   // `brink-cap-fall`: Brink's rest acts again on the tile each faller stood on.
   replayFallen(ctx, fell);
-  const next: BridgesState = { ...state, stone: { ...state.stone }, cuts: { ...state.cuts } };
+  // The replay may have worn a span or cut one (a Brink rest), so `next` starts from what it left.
+  const left = Object.hasOwn(ctx.s.rules ?? {}, COLLAPSE_RULE_ID)
+    ? parseBridges(ctx.s.rules?.[COLLAPSE_RULE_ID])
+    : state;
+  const next: BridgesState = { ...left, stone: { ...left.stone }, cuts: { ...left.cuts } };
   for (const k of keys) {
     delete next.stone[k];
     delete next.cuts[k];

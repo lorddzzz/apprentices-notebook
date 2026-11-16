@@ -443,4 +443,20 @@ export const RIVAL_TRICK_TEXT: Readonly<Record<string, { name: string; text: str
     name: 'The clock writ',
     text: 'He serves a writ with a clock: break his seal or stand on his stamp, or every mark collects. His alone, not in the trial.',
   },
+  'bathhouses:steamsAway': {
+    name: 'Steams away',
+    text: 'Struck inside a cloud, he disperses and re-forms anywhere in that connected cloud; cut the cloud to hurt him. His alone, not in the trial.',
+  },
+  'bridges:keystoneRight': {
+    name: 'Right of way',
+    text: 'While the keystone stands he cannot be pushed, held or dropped. His alone, not in the trial.',
+  },
+  'foundry:playsATune': {
+    name: 'Plays a tune',
+    text: 'Each round he rings one note of a four-note tune, and after the fourth the Great Peal rings every bell at once. His alone, not in the trial.',
+  },
+  'cartographers:strikeFromTheRegister': {
+    name: 'Strike from the register',
+    text: 'Each round pencil circles ring a unit, and at round end whoever is still circled is erased from the fight. His alone, not in the trial.',
+  },
 };

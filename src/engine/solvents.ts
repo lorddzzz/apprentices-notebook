@@ -961,6 +961,7 @@ function rivetHold(ctx: Ctx, u: Unit, flow: Flow): boolean {
   if (guardCancels(ctx, u, { kind: 'hold', unit: u.id, harm: null }, 'Rivet')) return false;
   withLine(ctx, 'rivet:unit', () => {
     u.held = Math.max(u.held, ACTIONS.holdRounds);
+    if (hasFootnote(ctx, 'rivet-unit-anvil')) u.riveted = true;
     emit(ctx, { type: 'held', unit: ref(u), rounds: u.held });
   });
   const tone = clapperTone(u);
