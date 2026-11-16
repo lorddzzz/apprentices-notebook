@@ -108,64 +108,6 @@ Verify: `pnpm vitest run tests/scenarios tests/data tests/rivals tests/districts
 Phone check: no (the orchestrator checks at the wave's end that the Swap margin offers the note at level II once the page is held).
 ```
 
-## Pack CG-G: room wiring, hearing, Bench and hall fuzz (Default: Sonnet medium)
-
-Starts now (CG-F merged as 3062b50).
-
-```
-Pack G of docs/plans/cartographers-plan.md: tasks CG-8b → CG-13 → CG-14 → CG-16.
-
-Read: cartographers-plan.md §2 P4, P13, P17, P18 and §5 Pack G; pattern: src/engine/districts/bridges/guarantee.ts
-(Bench entries), tests/sim/ink-trip.test.ts (a trip fuzz), `bathRoomSetup` in src/engine/districts/bathhouses/trip.ts
-(a `roomSetup` returning `rulesConfig`).
-Own: src/engine/districts/cartographers/trip.ts (`roomSetup` on `CARTOGRAPHERS_TRIP`), src/engine/trip/choices.ts (`takeChoice`), src/engine/trip/doorway.ts (`applyDoorway`), src/engine/trip/crossroads.ts
-(`pushOn`), src/engine/run.ts (the trip parse check only, if a reload in the doorway needs it), src/app/crossroads.ts
-(the `through` way's `sub`), src/engine/districts/cartographers/bench.ts (new), src/data/districts/cartographers/lore.ts
-(new), src/data/districts/cartographers.ts (`hear`, `gate`, map art keys), src/data/scenarios.ts (the CG lines),
-src/data/codex.ts (the four lore entries), tests/sim/cartographers-hall.test.ts (new),
-tests/districts/cartographers/{doorway,roomPencil,bench,hearing}.test.ts (new), tests/districts/cartographers/trip.test.ts (the
-`wayOn` helper only), tests/app/crossroads.test.ts (one new test), tests/rivals/registrar.test.ts (the heart and wipe
-tests only), the acceptance file's remaining CG lines.
-Contract (on main after CG-F, 3062b50: rooms, `ROOM_PENCIL`, heart frame, bot term):
-- CG-8b, the trip's room wiring. (a) The pencil per room (P4; CG-F left `ROOM_PENCIL` as data only):
-  `CARTOGRAPHERS_TRIP.roomSetup = (input) => ({ rulesConfig: { [GUILD_HAND_RULE_ID]: { ...(ROOM_PENCIL[input.room]
-  ?? DEFAULT_PENCIL) } } })`; no seed in the config (the hand seeds from the battle's rng state, as now); the rule is
-  already listed in every room as the district's own (`roomRules`), so `setUpRoom` applies the config. (b) Through the
-  doorway (P13; DESIGN §11 and TECH §7 2026-11-16; Owed from CG-E): `takeChoice` on a
-  `kind: 'through'` choice records the choice (and the checkpoint, computed for the next room as today) and opens
-  the quiet doorway: `status: 'doorway'`, `encounter` unchanged. `applyDoorway` on a trip whose `kit.choices` holds a
-  choice taken after the current encounter goes on to that room (`encounter + 1`, `status: 'fight'`, charges carried
-  as today); a doorway picked from loot behaves as today. No new route: the doorway shows the Study in field mode and
-  leaving it shows the battle. `crossroadsView` gives a `through` way the sub "Rewire at the quiet doorway, then
-  <room> (depth …)". `pushOn` takes `push` when offered, else the only way on when the module names exactly one,
-  else throws as today (so the sims' `pushOnward` crosses the doorway). trip.test.ts's `wayOn` helper leaves the
-  doorway when one opens; test titles unchanged.
-- From CG-D (Owed): the Registrar's heart and wipe tests in tests/rivals/registrar.test.ts move from a seam
-  `startTrip` with the district overridden to a real cartographers trip (CG-F's rooms); titles unchanged.
-- Bench (CG-13): palette entries with `bench.met` keys for pencil (with a chosen fate), blank, outline and the three
-  hands; the Registrar never on the Bench. Lab scenarios `cg-pencil`, `cg-hands`, `cg-registrar`.
-- Hearing (CG-14): `{ kind: 'pages', atLeast: 5, of: HEARING_RIVALS }` (DK-8's set filter if it exists, else the
-  `except` form CG-W0 wrote; say which); `gate` flips to the threshold; the door line "Below the Seam, a lock turns."
-  on the heart clear; codex entries *the registry* (reaching room 2), *the owner's desk* (room 5's back hall), *the
-  struck name* (the Registrar's fall), *the bad join* (the hall cleared). SM's door reads
-  `city.hearts.includes('cartographers')`.
-- Fuzz (CG-16): 200 seeds at party sizes 1–3 from room 1 and from the doorway: no throw, no event-cap overrun in the
-  round-end phase, never stranded, the through-doorway opens the rewiring and then room 4, no return after the
-  doorway, checkpoint kept on a wipe, one Bind page granted once; the plan preview equals the round end; seeded
-  determinism after save and load.
-Owed by this pack: "From CG-E: the Crossroads 'through the doorway' app wiring"; "From CG-D: the heart/wipe tests on
-the real district".
-
-Done when: "CG-8b: each room's battle starts with its ROOM_PENCIL config" (rooms 1–5 and the heart, read from the
-battle's `GuildHandState`), "CG-8b: through the doorway opens the rewiring, then room 4", "CG-8b: a doorway from loot still returns
-to the cards or the Crossroads", "CG-8b: pushOn takes the only way on", "CG-8b: a reload in the through-doorway
-resumes it" pass; the CG-8 tests in trip.test.ts and tests/run/doorway.test.ts pass with only the helper change; the
-plan's CG-13, CG-14 and CG-16 rows' tests pass; the dev "open all" toggle shows the hall.
-
-Verify: `pnpm vitest run tests/districts/cartographers tests/data tests/app tests/run tests/rivals --reporter=dot` and `pnpm vitest run tests/sim/cartographers-hall.test.ts`
-Phone check: no (the orchestrator checks at the wave's end: the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option).
-```
-
 ## Close-outs (platform-closure Pack N; orchestrator, not a pack-worker run)
 
 Platform-closure Pack N (CL-1 → CL-5) runs last, by the orchestrator in a design window, after every pack above and the tracks that finish the built plans: DESIGN §11 and TECH §7 rows for FD, DK, RV, FN, SM, IQ (write only the missing ones), the five verification files (SM-15 among them), five `code-review` runs, records and the ledger, full `pnpm check`.

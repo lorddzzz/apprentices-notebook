@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19: T (6fbe977) and S (d3513d7) merged; U (3c03d50) and V (792c786) merged; CG-G, CG-J, CG-H running. When CG-J merges: footnotes.test count = 277 + 33; index.ts keeps both batch lines. **Next window: routine.**
+**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19: T (6fbe977) and S (d3513d7) merged; U (3c03d50) and V (792c786) merged; CG-G merged (d620f76); CG-J, CG-H running. When CG-J merges: footnotes.test count = 277 + 33; index.ts keeps both batch lines. **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -22,7 +22,6 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 |---|---|---|---|---|
 | CG-J | CG-F3, CG-F4 | Sonnet 5.5 medium | pack-worker worktree | running (5h 23 %) |
 | CG-H | CG-12 | Sonnet 5.5 medium | pack-worker worktree | running (UI) |
-| CG-G | CG-8b, 13, 14, 16 | Sonnet 5.5 medium | pack-worker worktree | running (5h 6 %) |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-16: the golden decision → replay re-store, Pack U; `LineId` → Pack T; Pencil Shove and Graphite on blank → Pack S; CG-I's proposals and the three drafts → DESIGN §11. F7, M and C3 recorded as accepted earlier; D5's numbers wait for EN-G0.)
@@ -32,10 +31,9 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - From F8: Pack K: FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only.
 - Foundry: EN-K6 wraps the frame.
 - From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10 (check in CG-F's merge record).
-- From ED (EN-9) and the golden decision: `mender:diagonal` row and stamp, `steam:unit`/`brass:unit` stamps → Pack U (`mender:dusk` dropped).
-- From I (FU-5) and FN-A1 M2: the Afterglow and `steam:unit`/`brass:unit` variants → Pack V.
-- From CG-I: CG-F3 stamps `swap:unit` on `swapped` → Pack CG-J. From CG-D: his page note (`registrar:swap`) → CG-J; the heart/wipe tests on the real district → CG-G.
-- From CG-E: *Through the doorway* app wiring; from CG-F: `ROOM_PENCIL` applied per room through `roomSetup` → Pack CG-G (CG-8b).
+- From CG-I: CG-F3 stamps `swap:unit` on `swapped` → Pack CG-J. From CG-D: his page note (`registrar:swap`) → CG-J.
+- From CG-G: *the bad join* lore paper is defined but never filed (a room carries one `lore`; the heart's is *the struck name*): needs a second filing point (the hall cleared). Codex lore is `PaperDef`s in lore.ts (`CodexEntryDef.kind` is closed). The district is at the threshold but not in `PLAYABLE_DISTRICTS`: decide at the cartographers' Close. `metIn` records pencil only if some survives the fight.
+- Wave end (orchestrator): phone check of the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option; the Swap margin offers the Registrar's note at level II once the page is held.
 - Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
 - Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 (Pack N). Plans' "Leaves for later" items: copied into every brief written.
 

@@ -67,6 +67,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-3b, CG-F1b | d3513d7 | Sonnet medium | 0 | ~5% | `PieceTriggers.struckBy`; pencil and outline answer only Erase; `NoteCircle`/`circles` declared; Graphite skips blank |
 | FN-M2c, EN-9c | 3c03d50 | Sonnet medium | 1 | ~6% | `steam:unit`/`brass:unit` stamps restored; `RECORD_GOLDEN=replay`; five Seam goldens re-stored (line, witnessed, met +'unit'); `mender:diagonal` + `Meets` 'diagonal'; dusk dropped; returned once for the `met` approval |
 | FU-5b, FN-M2b | 792c786 | Sonnet medium | 0 | ~8% | 8 Afterglow + 8 Steam/Brass unit variants (new 'seam-unit' batch); `glowKept`, `dodge`, `collarLight` optional fields; `afterglow-water-fire` changed from sketch; count 277 |
+| CG-8b, CG-13, CG-14, CG-16 | d620f76 | Sonnet medium | 0 | ~14% | ROOM_PENCIL applied via roomSetup; through-doorway → rewiring → room 4; bench + Lab scenarios; hearing (except form), gate at threshold; hall fuzz sim; `Meets` + pencil/blank/outline; bad-join paper unfiled |
 
 ## Usage
 
@@ -80,3 +81,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 19:55 | 66 | 89 | CG-I merged; CG-F running; design window due (review list ≥ 3) |
 | 2026-11-16 20:05 | 6 (reset) | 71 | CG-F merged; CI green on 984a947; design window running; CG-G/CG-H wait for its briefs |
 | 2026-11-16 20:30 | 23 | 74 | T, S merged; CG-G, U running; CG-J next |
+| 2026-11-16 21:10 | ~50 | 77 | CG-G merged; CG-J, CG-H running; briefs empty after them |
