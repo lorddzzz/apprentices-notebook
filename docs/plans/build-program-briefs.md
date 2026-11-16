@@ -67,43 +67,6 @@ Phone check: yes, port 5190: the doorway after *Through the doorway* (dev "open 
 with `window.__game.debug.forceWin()`), and the codex Pages tab with a held rival page.
 ```
 
-## Pack CG-K: the hall joins `PLAYABLE_DISTRICTS`; *the bad join* filed (Default: Sonnet 5.5 medium)
-
-Starts now, beside W. Decided at the cartographers' Close (DESIGN §11 and TECH §7, 2026-11-16 (Close)).
-
-```
-Pack CG-K of docs/plans/cartographers-plan.md: tasks CG-17 → CG-18.
-
-Read: DESIGN §11 2026-11-16 (Close) row; tests/fixtures/saves/README.md (the recipe); the foundry's pair (BF-22,
-139c416) as the pattern for a district opened late.
-Own: src/data/districts/index.ts (`PLAYABLE_DISTRICTS`), src/data/districts/cartographers/lore.ts,
-tests/districts/cartographers/acceptance.test.ts (the CG-W0 `not.toContain` line), tests/run/districts.test.ts
-("the other districts are heard of, barred and have no rooms"), tests/data/integrity.test.ts (the two cartographers
-exceptions at lines 112-113 only), tests/app/save-compat.test.ts (a cartographers describe block),
-tests/fixtures/saves/cartographers-{returned,mid-trip}.json (new), tests/fixtures/saves/README.md (one paragraph),
-tests/districts/cartographers/lore.test.ts (new).
-Contract (on main 01761c5):
-- CG-17: `PLAYABLE_DISTRICTS` gains `'cartographers'` (last). No game code reads the list; it states which
-  districts have rooms, and the tests that read it lose their cartographers exceptions: the acceptance line becomes
-  `toContain`; the "drawn districts" test asserts that every district outside the list hears as another
-  (`hearsAs`), so none is left drawn; integrity no longer special-cases the hall. Record the hall's SAVE-1 pair with
-  `record.ts`'s recipe (`openedProfile('cartographers')`, bot, app flow) on the working tree over main, and add a
-  "SAVE-1: the cartographers' saves" block like the foundry's (the returned save lists the hall in `city.open`; the
-  mid-trip save resumes to its next offer). Never regenerate an existing fixture.
-- CG-18: *the bad join* is filed by **room 4** (index 3, the first room past the quiet doorway): its `found` becomes
-  `{ kind: 'room', room: 3 }` and `LORE_BY_ROOM[3]` names it; the file note says why. The heart keeps *the struck
-  name*. The final run then reads the registry, the bad join, the owner's desk, the struck name.
-Owed by this pack: "From CG-G: the bad join is defined but never filed; PLAYABLE_DISTRICTS decided at the Close".
-
-Done when: "CG-17: the cartographers are playable", "SAVE-1: cartographers save written by <commit> parses and
-loads", "SAVE-1: cartographers mid-trip save resumes to its next offer", "CG-18: winning room 4 files the bad join",
-"CG-18: every cartographers paper is filed by exactly one room" pass; `tests/sim/cartographers-hall.test.ts` passes.
-
-Verify: `pnpm vitest run tests/districts tests/run tests/data tests/app --reporter=dot`, `pnpm exec tsc --noEmit` and `pnpm vitest run tests/sim/cartographers-hall.test.ts`
-Phone check: no (data and tests only).
-Sims: run `tests/sim/cartographers-hall.test.ts` for CG-17 (it opens a district).
-```
-
 ## Close-outs (platform-closure Pack N; orchestrator, not a pack-worker run)
 
 Platform-closure Pack N (CL-1 → CL-5) runs last, by the orchestrator in a design window, after every pack above and the tracks that finish the built plans: DESIGN §11 and TECH §7 rows for FD, DK, RV, FN, SM, IQ (write only the missing ones), the five verification files (SM-15 among them), five `code-review` runs, records and the ledger, full `pnpm check`.

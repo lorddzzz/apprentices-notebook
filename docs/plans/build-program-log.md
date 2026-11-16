@@ -71,6 +71,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG-F3, CG-F4 | 40c9853 | Sonnet medium | 0 | ~12% | 42 cartographers variants + `registrar:swap` note (household circles); `swap:unit` stamped; `swapAt` module hook; `graphite-cap-pin` holds 2; count 310 after the merge with V |
 | CG-12 | 060bdfe | Sonnet medium | 1 | ~10% | hall art through the KIT-R2 slots, one circle mark for both sources, PaperFx, Gallery hall sheet; returned once for the full-file autofixer (clean, no change) |
 | CG Close | 533caba | Opus high (design window) | 0 | ~12% | full gate green (9059 tests, sims); phone loop at 375x812 (10 screenshots, forced wins); code review: 5 material findings → Pack W; hall joins PLAYABLE_DISTRICTS, bad join filed by room 4 → Pack CG-K |
+| CG-17, CG-18 | 958528f | Sonnet medium | 0 | ~4% | hall in PLAYABLE_DISTRICTS, SAVE-1 pair recorded over 01761c5, bad join filed by room 4 |
 
 ## Usage
 

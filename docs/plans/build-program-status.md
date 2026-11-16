@@ -21,7 +21,6 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
 | W | FX-1…FX-5 | Sonnet 5.5 medium | pack-worker worktree | running |
-| CG-K | CG-17, CG-18 | Sonnet 5.5 medium | pack-worker worktree | running |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-16: the golden decision → replay re-store, Pack U; `LineId` → Pack T; Pencil Shove and Graphite on blank → Pack S; CG-I's proposals and the three drafts → DESIGN §11. F7, M and C3 recorded as accepted earlier; D5's numbers wait for EN-G0.)
