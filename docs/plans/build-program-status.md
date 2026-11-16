@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-16: design window decided every review (DESIGN §11, TECH §7 2026-11-16); waves 17–21 merged: CG-D, CG-I, CG-F, T, S, U, V, CG-G, CG-J, CG-H (last 060bdfe). Briefs are empty. **Next window: design** (the cartographers' Close).
+**State:** design window 2026-11-16 ran the cartographers' Close on main 01761c5: full gate green, phone check done, one review, records written, decisions taken (the hall joins `PLAYABLE_DISTRICTS`; *the bad join* filed by room 4). Briefs: Packs W and CG-K (wave 22). **Next window: routine** (wave 22), then the design window for Pack N.
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -12,8 +12,8 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 ## Next
 0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
-1. **Design window: the cartographers' Close** (skill Close steps 1–5): full gate on main; full-loop phone check at 375×812 including the wave-end checks in Owed (the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option, the Swap margin offering the Registrar's note at level II once the page is held); one `code-review` of the cartographers' diff (CG-A … CG-J); records (DESIGN §11, cartographers.md, TECH §7, plan State, roadmap row); the ledger; decide `PLAYABLE_DISTRICTS` and the unfiled *bad join* paper (Owed from CG-G); brief any fix packs.
-2. Then: Pack N close-outs (CL-1…5); EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft.
+1. **Routine window, wave 22:** Pack **W** (review fixes FX-1 → FX-5: `strikePiece` honours `struckBy`, Erase's neighbour marks, the collapse replay's wear, Rivet's anvil, rival trick copy and the doorway caption) and Pack **CG-K** (CG-17 the hall joins `PLAYABLE_DISTRICTS` with its SAVE-1 pair, CG-18 *the bad join* in room 4), together; briefs in build-program-briefs.md. Push once for the batch and confirm CI deployed it (the cartographers' last Close box).
+2. Then: Pack N close-outs (CL-1…5, a design window); EN-G0 waits on the player's phone timings, then ending Packs E–L; EN-12 handover draft.
 3. Every pack's `check:fast` now runs `typecheck:ts` (CI-4); `Meets` may grow.
 4. Hard edges: EN-S2 → EN-G0 → ending Pack E · BL-111 → EN-4.
 
@@ -30,20 +30,19 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - From F8: Pack K: FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only.
 - Foundry: EN-K6 wraps the frame.
 - From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10 (check in CG-F's merge record).
-- From CG-I: CG-F3 stamps `swap:unit` on `swapped` → Pack CG-J.
-- From CG-G: *the bad join* lore paper is defined but never filed (a room carries one `lore`; the heart's is *the struck name*): needs a second filing point (the hall cleared). Codex lore is `PaperDef`s in lore.ts (`CodexEntryDef.kind` is closed). The district is at the threshold but not in `PLAYABLE_DISTRICTS`: decide at the cartographers' Close. `metIn` records pencil only if some survives the fight.
-- Wave end (orchestrator): phone check of the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option; the Swap margin offers the Registrar's note at level II once the page is held.
+- From the cartographers' Close: Pack W (review fixes) and Pack CG-K (`PLAYABLE_DISTRICTS`, *the bad join* in room 4, SAVE-1 pair); `metIn` records pencil only if some survives the fight (kept).
 - Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
 - Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 (Pack N). Plans' "Leaves for later" items: copied into every brief written.
 
 ## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)
-- [ ] full gate on main · [ ] full-loop phone check · [ ] code review · [ ] DESIGN §11 / TECH §7 · [ ] plan State + roadmap row · [ ] ledger clean · [ ] CI deployed
+Cartographers (2026-11-16, main 01761c5): [x] full gate on main (403 files, 9059 passed, sims in) · [x] full-loop phone check (plan §6, Close verification) · [x] code review (Pack W) · [x] DESIGN §11 / TECH §7 · [x] plan State + roadmap row · [x] ledger clean (CG: 20/24 merged, the rest gates; CG-17/18 briefed) · [ ] CI deployed (after wave 22's push)
 
 Ledger: `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/{platform-closure,calibration,foundry,cartographers,ending,bridges,ink-quarter,seam-grows}-plan.md`
-Ledger caveats (2026-11-16 run): IQ-13 shows open but is built. EN-10 shows open, which is right. BR-19 = C3 (BR-19a/b) + C3b (BR-19c, merged 0c5af97). FU-13–16 and CAL-4 appear in the log's prose only (FU-13–15 built in SM's track; FU-16 dropped with the dark theme; CAL-4 belongs to CAL). CG-F3 appears in the log's prose only (CG-J builds it). SM-15 is a verification file (CL). The 2026-11-16 briefs' new IDs are in no plan table. (The ledger does not count `docs: …` record commits or commit bodies, and reads every ID in a log row's first cell.)
+Ledger caveats (2026-11-16 run): IQ-13 shows open but is built. EN-10 shows open, which is right. BR-19 = C3 (BR-19a/b) + C3b (BR-19c, merged 0c5af97). FU-13–16 and CAL-4 appear in the log's prose only (FU-13–15 built in SM's track; FU-16 dropped with the dark theme; CAL-4 belongs to CAL). CG-F3 appears in the log's prose only (CG-J builds it). SM-15 is a verification file (CL). The 2026-11-16 briefs' new IDs (and Pack W's FX-1…5) are in no plan table; CG-17 and CG-18 show open until Pack CG-K merges. (The ledger does not count `docs: …` record commits or commit bodies, and reads every ID in a log row's first cell.)
 
 ## Open questions for the player
 - **EN-G0:** time `#/dev/generator` on the iPhone (20 samples; median and p95 per offered room). D5's inputs: fair within 4 attempts 94.4 % (P28 says 98 %), 28/500 dull; EN-S1 guardrails test setup changed; dev page `src/app/dev/generator.html`.
+- **Cartographers' hall playtest (CG-G1, CG-G4; dev "open all", or a campaign run):** (1) Does the pencil read at a glance: can you tell from the board alone which tiles will be inked and which rubbed out next round, and does round 1 (fates only in the Next round overlay until your first move) feel unfair? (2) The Registrar's circles: does "erase the circle, step off, or kill the holder" feel like a fair puzzle or a sudden loss? (3) The rhythm: do the free rooms 1–3 and then *Through the doorway* feel like a real decision, or do you always go home first? (4) Does the academy feel like a different place from the other districts (the hands, the paper, the lore), or like the same fights on new tiles?
 - Held at default: IQ-20 / IQ-G1, FN-1A A3, FN-4, DK-8, foundry Q2/Q3, FN-A1 M1, cartographers §7 Q1–Q3. Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, CG-G1/G2, HC/AH/RC playtests.
 
 ## Rough edges (risks)
@@ -54,6 +53,8 @@ Ledger caveats (2026-11-16 run): IQ-13 shows open but is built. EN-10 shows open
 - CI cancels a run when the next push arrives: push once per merge batch.
 - A test mocking `$engine/districts/kit` must not import the real Seam module in its factory; tests import `$engine` before district files (the kit's lazy import cycle).
 - D5 raised foe budgets, so generator ops and timings grew; EN-G0 reads the new numbers.
+- Cartographers' Close review, not material (CL or CAL): `inventions.ts::stampGap` logs a mender miss on every call, so `networkTouching` and `tollBells` can log duplicate `mender:unit`/`mender:diagonal` misses (counted by the cast cap); `bursts.ts::announce` stamps `coil:bell` on fire and stain bursts that touch no bell (may reveal the line early); core files name `'cartographers:pencil'` instead of a `districts/api` re-export and `schedule.ts::touchesBrassAt` duplicates `solvents.ts::touchesBrass`; `graphite-cap-pin`'s 2 rounds and the foundry bot's 6/10/15 weights are literals in engine code (move to `src/data` at CAL).
+- Cartographers' phone check: round 1 shows no fate marks until the party's first action (the lazy first plan; overlay only), a playtest question; the Crossroads keeps the generic "deeper than the lamplight reaches" line in the academy (copy for CAL or a district `crossroadsNote`).
 - The cartographers' briefs name functions earlier packs define (`pieceVoid`, `eraseTouches`, `GuildHandState.circles`): if a pack renames one, fix the later briefs in the same merge.
 
 ## Continuation prompt (new session)
