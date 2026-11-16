@@ -21,6 +21,7 @@ import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
 import { deepen, landOnTile, layThinCloud } from './mix';
 import { brassNet, cloudNet, cloudPass, isBrass, oilNet, stampGap } from './networks';
+import { pieceHoldsNothing } from './pieces';
 import { push } from './push';
 import {
   blocksUnits,
@@ -260,7 +261,10 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
           if (tile.state === null) continue;
           tile.state = null;
           gone.push({ ...at });
-        } else if (!(isPlate({ ...tile, state } as Tile) && unitAt(s, at))) {
+        } else if (
+          !pieceHoldsNothing(tile) &&
+          !(isPlate({ ...tile, state } as Tile) && unitAt(s, at))
+        ) {
           tile.state = structuredClone(state);
           const id = state.id;
           if (id in PLAIN_KIND) {

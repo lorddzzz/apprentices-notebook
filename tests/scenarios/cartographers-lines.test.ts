@@ -276,7 +276,7 @@ describe('CG-F1 the paper audit', () => {
     expect(tileAt(oily.state, at('B1')).state).toBeNull();
   });
 
-  it.fails('CG-F1: graphite does not put a state back on blank paper (found: it does)', () => {
+  it('CG-F1: graphite does not put a state back on blank paper', () => {
     const s = withLattices(
       'D o{pencil} . . r',
       { draughtsman: 'Touch> inv:erase-graphite' },

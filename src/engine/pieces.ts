@@ -56,9 +56,12 @@ export const pieceVoid = (t: Tile, kit: Kit = KIT): OutCause | null =>
 export const pieceHoldsNothing = (t: Tile, kit: Kit = KIT): boolean =>
   !!t.piece && pieceDef(t.piece.id, kit).holds === 'none';
 
-/** The piece on a tile answers being struck (a basic Shove may aim at it). */
-export const strikable = (t: Tile, kit: Kit = KIT): boolean =>
-  !!t.piece && !!pieceDef(t.piece.id, kit).triggers.onStruck;
+/** The piece on a tile answers being struck by `by` (a basic Shove may aim at it). */
+export const strikable = (t: Tile, kit: Kit = KIT, by: StruckBy = 'shove'): boolean => {
+  if (!t.piece) return false;
+  const { onStruck, struckBy } = pieceDef(t.piece.id, kit).triggers;
+  return !!onStruck && (!struckBy || struckBy.includes(by));
+};
 
 // ── Notation ────────────────────────────────────────────
 

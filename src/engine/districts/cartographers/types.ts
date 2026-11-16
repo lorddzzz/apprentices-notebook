@@ -115,7 +115,16 @@ export const HAND_SALT = 8100;
  * base `seed` (CG-2: the config's `seed`, else the battle's `rngState` when the rule is listed, as
  * a battle has no stable seed of its own), so a saved battle replays the same plan.
  */
-export type GuildHandState = PencilConfig & { planned: number; seed?: number };
+export type GuildHandState = PencilConfig & {
+  planned: number;
+  seed?: number;
+  /**
+   * the Registrar's note (`registrar:swap`, CG-J): one-round circles the casting member holds;
+   * omitted when empty
+   */
+  circles?: readonly NoteCircle[];
+};
+export type NoteCircle = { at: { x: number; y: number }; unit: string; holder: string };
 export const initGuildHand = (): GuildHandState => ({ ...DEFAULT_PENCIL, planned: 0 });
 
 // ── The guild's hands: foe behaviour ids (P7–P9) ────────

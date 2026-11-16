@@ -128,6 +128,8 @@ export interface PieceTriggers {
   onArrive?: Omit<ArrivalHook, 'id'>;
   onTurnEnd?(ctx: Ctx, at: Coord, piece: TilePiece): void;
   onStruck?(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Origin | null): void;
+  /** The kinds `onStruck` answers; absent = every kind (a basic Shove is offered only for these). */
+  struckBy?: readonly StruckBy[];
   /** A projectile or area landing on its tile. */
   onHit?(ctx: Ctx, at: Coord, piece: TilePiece, origin: Origin | null): void;
   /**
