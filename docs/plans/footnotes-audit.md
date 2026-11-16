@@ -631,3 +631,81 @@ No new `Meets` value is needed: `bell` exists (BF-19, the Bench's token for the 
 | Q4 | Decide at BF-FG whether a Bolt stopped by a muffled bell should strike it (To2). Today the cloud stops the Bolt first, so a muffled great bell cannot be struck by a Bolt at all (locks 1 and 3) | P2 lists "a spell's target" as a strike source and P4 says a muffled bell is "struck but silent"; the cast that most often aims at a bell does neither once a cloud is over it |
 | Q5 | Note for BF-FG: Rivet pins a foe's walking but never its acts (Ri2), and Filings' second run never strikes a bell (Fi1). The draft answers each with a variant (`rivet-unit-gag`, `filings-bell-strike`); if the player would rather the rule itself changed, that is a design call, not a footnote | Both read against the design's wording ("can't move", "rings once more") and surprise |
 | Q6 | One margin line each for Toll, Coil and Unison, not two | FN P5: no second behaviour of these runes against the foundry is both real and unbent by another subject's row (To2 to To6, Co3, Co4, Un2 to Un5 all belong to a row that is not theirs) |
+
+## 13. Cartographers: the Board runes and solvents (CG-F1, P12)
+
+Audited 2026-11-16 against `src/data/lines.ts` and the sites that touch paper: `runes/actions.ts` (`swap`, `drawHop`, `draw`, `erase`), `solvents.ts` (`quicksilver.widen`, `graphite.before/after`, `undoBoard`), `districts/cartographers/paper.ts` (`undrawPencil`, `undrawOutline`, `pencilStruck`, `outlineStruck`, `inkOutlines`), `pieces.ts` and `guildHand.ts`. The terrain in play: **pencil** is a standable tile that holds states, jars and units and carries a fate (`ink` or `rub`, due a round); **blank** is a void that holds nothing and erases whoever is carried onto it; an **outline** is pencil carrying a foe, and it is **solid** (no unit stands on one, `parseBoard` refuses it; only the foe inking in at its due round fills it). Rows added by CG-F1 are marked **added**; every case is in `tests/scenarios/cartographers-lines.test.ts`.
+
+**Why the new row is `pending`.** The only new row needs a one-line stamp at `runes/actions.ts::swap`, which CG-F1 does not own (the task owns `lines.ts`, this audit, the draft and the test). The row carries final text and `pending: true`; its `fires` test is `it.fails`. CG-F3 stamps it (site below) and drops the flag and the `it.fails`. The `behaviour` tests are green today and prove every claim in this section, the "none" rows included.
+
+| Subject | Rows before | Rows after |
+|---|---|---|
+| Swap | 1 (`swap:held`) | 2 (`swap:unit`, pending) |
+| Draw | 5 (`noHeading`, `edge`, `unit`, `jar`, `drop`) | 5 |
+| Erase | 7 (`mark`, `deepMark`, `collar`, `shackle`, `jar`, `unit`, `empty`) | 7 |
+| Quicksilver | 2 (`edge`, `drop`; one text widening, Q2) | 2 |
+| Graphite | 1 (`unit`) | 1 |
+
+No new `Meets` value is added (the union is at the size where CI's `tsc --noEmit` crashes, CI-3). The plan's names `erase:pencil`, `erase:outline`, `draw:blank`, `swap:pencil` and `quicksilver:undraw` were therefore never available: CG-3 reused `unit`, `empty` and `drop` for pencil, outline and blank, and `swap:unit` stands for "a Swap across pencil". See Proposal Z1.
+
+### Swap (`swap:held`, `swap:unit`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Sw1 | A held unit, or a held caster, does not trade places | A held rat | `actions.ts::swap` | `swap:held` | exists, fires |
+| Sw2 | Swap trades the two units' places and nothing else: the pencil under each stays on its tile, fate and all. A swap can therefore set a foe on pencil due to be rubbed out this round (the Surveyor's play), or take you there. This is the real second margin line for Swap | Touch > Swap at a rat standing on `{pencil:rub@2}` | `actions.ts::swap` (`relocateAll`), `guildHand.ts` | `swap:unit` | **added** (new: stamp the `swapped` event when either unit's tile holds pencil) |
+| Sw3 | A Swap at a tile with nobody on it (pencil, blank, inked ground or an outline, which is solid) finds nobody and returns silently | Touch > Swap at an empty pencil tile | `actions.ts::swap` (`!u`) | | none: no event to stamp, and no row fits (Z2) |
+| Sw4 | Nothing is ever swapped onto blank: no unit stands there | | | | none |
+| Sw5 | A unit swapped onto rub-due pencil is erased at round end like any other; Swap has no part in it | CG-5 `swap onto rub-due pencil then erased` | `guildHand.ts` | | none: the hand's rule |
+| Sw6 | A swap with an anchored unit is a bare `miss` | | `actions.ts::swap` | | none: not paper (a Seam finding) |
+
+### Draw (`draw:drop` and the Seam's four)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Dr1 | Draw cannot carry a state or a jar onto blank paper, as at the board's edge | Draw an oil slick toward `{blank}` | `drawHop` (`pieceVoid`) | `draw:drop` | exists, fires (CG-3) |
+| Dr2 | A state (or jar) drawn onto pencil or onto an outline's tile rests there, and the paper stays: it goes with the tile if the tile is rubbed or un-drawn. Drawn off pencil, the state leaves the pencil behind (the plan's open question 3: only what stands on it moves) | Draw a slick onto `{pencil}` and onto `{outline:eraser@2}` | `drawHop` | | none: an ordinary `drawn`, as on any tile |
+| Dr3 | The Seam's silent refusals still hold on paper: onto a gate or grate nothing moves | | `drawHop` | | none: a Seam finding (§6) |
+
+### Erase (`erase:unit`, `erase:empty` and the Seam's five)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Er1 | Erase on pencil un-draws the tile: it turns blank, the unit on it is erased from the fight (a minion is gone, an elite takes the drop damage and loses its action, a member is hauled back at 1 HP). The line also stamps an Erase on an **empty** pencil tile (units: none) and its sentence ("whoever stands there") stays true | Touch > Erase at `r{pencil}`, and at bare `{pencil}` | `paper.ts::pencilStruck` | `erase:unit` | exists, fires (CG-3) |
+| Er2 | Erase on an outline un-draws the foe before it inks in; the tile stays pencil, unplanned | Touch > Erase at `{outline:eraser@2}` | `paper.ts::outlineStruck` | `erase:empty` | exists, fires (CG-3) |
+| Er3 | A state, jar or mark on a pencil tile is taken first by the core Erase (their own lines fire), then the tile is un-drawn | Touch > Erase at `o{pencil}` | `actions.ts::erase` then `strikePiece` | `erase:mark`, `erase:jar` | none: the core rows |
+| Er4 | Erase on inked paper (no piece) is the core Erase and nothing more; on blank nobody can aim it | | `actions.ts::erase` | | none |
+
+### Quicksilver (`quicksilver:edge`, `quicksilver:drop`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Qs1 | The invention also acts on the tile mirrored across the board | A Strike with Quicksilver, dummies at B1 and F1 | `solvents.ts::widen` | `quicksilver:edge` | exists, fires |
+| Qs2 | The mirrored Erase un-draws the mirrored pencil **or outline** (the row said only pencil) | Quicksilver Erase with an outline at the mirror | `paper.ts` (`quicksilver:drop` on both) | `quicksilver:drop` | **text** (Q2) |
+| Qs3 | A mirror that falls on inked paper or on blank does nothing, silently; on the middle column the tile is its own mirror and acts once | | `widen` | | none |
+
+### Graphite (`graphite:unit`)
+
+| # | Behaviour | Firing case | Engine | Line | Kind |
+|---|---|---|---|---|---|
+| Gr1 | The states the invention landed and the moves it made are undone a round later | Draw with Graphite, end the turn | `solvents.ts::undoBoard` | `graphite:unit` | exists, fires |
+| Gr2 | Graphite never restores un-drawn paper or erased units: its snapshot is states and positions, and `isAlive` skips the erased | CG-3 `graphite after an un-draw leaves it blank` (no state on the tile) | `boardNow`, `undoBoard` | | none: a non-event, nothing to stamp (a candidate margin variant, `graphite-unit-redraw`) |
+| Gr3 | **Finding: Graphite puts a state back on blank paper.** Erase on `o{pencil}` with Graphite takes the slick (the snapshot differs) and un-draws the tile; next turn `undoBoard` restores the slick onto the now blank tile, against P2 (blank holds nothing). Pinned by `it.fails` | Erase with Graphite at `o{pencil}`, end the turn | `solvents.ts::undoBoard` (`tile.state = ...` with no `pieceVoid` guard) | | defect, not a row (Z3) |
+
+### The paper against the five
+
+| Paper | Touches | Result |
+|---|---|---|
+| Pencil | Swap, Draw, Erase, Quicksilver, Graphite | Swap leaves it in place (Sw2); Draw rests a state on it (Dr2); Erase un-draws it (Er1); the mirror un-draws a mirrored one (Qs2); Graphite does not un-un-draw it (Gr2) |
+| Blank | Swap, Draw, Erase, Quicksilver, Graphite | Nothing is swapped onto it (Sw4); Draw refuses it (Dr1); it cannot be aimed at (Er4); a mirror on it does nothing (Qs3); Graphite restores a state onto it, which it should not (Gr3) |
+| Outline | Swap, Draw, Erase, Quicksilver, Graphite | Solid, so Swap finds nobody (Sw3); a state may be drawn onto it (Dr2); Erase un-draws the foe (Er2); the mirror does too (Qs2) |
+
+### Cartographers proposals
+
+| # | Proposal | Reason |
+|---|---|---|
+| Z1 | Keep `swap:unit` as the pencil row for Swap and name it in the footnote slots (`swap:unit@1`). If a `pencil` `Meets` ever fits the union, rename before any variant ships | IDs never change once shipped (A1); no `Meets` can be added today (the `tsc` crash) |
+| Z2 | Leave Sw3 (a Swap that finds nobody) without a row | It would need a `miss` stamp on a no-op and a `Meets` for "nobody"; no variant of this draft bends it |
+| Z3 | Fix Gr3 in `undoBoard`: skip a tile whose piece is a void (`pieceVoid`) when restoring a state, then flip the `it.fails` | A Graphite pre-image should not re-create what un-drawn paper cannot hold; the fix is one guard in `solvents.ts`, outside CG-F1's files |
+| Z4 | CG-F3 owns the `swapped` stamp for `swap:unit` in `runes/actions.ts::swap` (one `withLine` when either unit stands on a pencil tile) | The row is `pending` until then |
+| Z5 | The plan's `quicksilver:undraw`, `erase:pencil`, `erase:outline` and `draw:blank` are `quicksilver:drop`, `erase:unit`, `erase:empty` and `draw:drop` | CG-3's choice, kept; the texts say what they stamp |

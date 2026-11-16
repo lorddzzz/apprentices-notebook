@@ -179,9 +179,7 @@ describe('CG-14 hearing, map and lore', () => {
 });
 
 // ── Pack I and J: footnotes ──────────────────────────────
-describe('CG-F1 footnote audit', () => {
-  it.todo('CG-F1: every cartographers line row has a firing scenario');
-});
+// CG-F1: every cartographers line row has a firing scenario (tests/scenarios/cartographers-lines.test.ts)
 
 describe('CG-F3 Swap, Draw and Erase batch', () => {
   it.todo('CG-F3: fourCombos reads for every margin line');
