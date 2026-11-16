@@ -20,31 +20,6 @@ File clashes that set this order:
 
 Every brief's "Leaves for later" items are also in the status file's Owed list. Plan §7 open questions of the cartographers are held at their defaults (DESIGN §11, 2026-11-12e).
 
-## Pack CG-H: board art and playback (Default: Sonnet medium; UI)
-
-Starts when CG-D and S are merged (all pieces, foes and both kinds of circle exist).
-
-```
-Pack H of docs/plans/cartographers-plan.md: task CG-12.
-
-Read: cartographers-plan.md §5 Pack H and §3 risk (2); pattern: src/ui/districts/foundry/ (registry slots, pieces,
-fx, highlights) and src/ui/screens/galleryFixtures.ts.
-Own: src/ui/districts/cartographers/ (CG-W0's empty module), the hall's Gallery fixture in galleryFixtures.ts.
-Contract: everything through the KIT-R2 slots (`unitArt`, `fx`, `boardLayers`, `describe`, highlights); no board
-component is edited. Pencil (graphite hatching), blank (the page's paper colour with a torn edge), fate marks (ink
-blot / eraser smudge with the due round), outlines (dashed foe silhouette), circles with a holder line, the Tracer's
-tether, the three hands' tokens, the six events' animations, "Next round" overlay entries. Circles come from two
-sources, drawn by one layer: the Registrar's (his trick's shown mark and state, holder a guild hand or himself) and
-the household's (`GuildHandState.circles`, declared by Pack S and written by CG-J for the Registrar's note; holder a
-party member); a Gallery fixture shows one of each. Svelte 5 runes only; the autofixer clean on every component.
-Done when: a Gallery sheet in light with every piece, mark and foe legible in greyscale (the BF-1 method);
-Combat at 375×812 on a 7×9 room showing fates, an outline, a Surveyor telegraph and the Registrar's circles with
-holder lines; screenshots in the report. (There is no dark theme: DESIGN §11, 2026-11-12.)
-
-Verify: `pnpm check:fast`
-Phone check: yes, port 5191.
-```
-
 ## Close-outs (platform-closure Pack N; orchestrator, not a pack-worker run)
 
 Platform-closure Pack N (CL-1 → CL-5) runs last, by the orchestrator in a design window, after every pack above and the tracks that finish the built plans: DESIGN §11 and TECH §7 rows for FD, DK, RV, FN, SM, IQ (write only the missing ones), the five verification files (SM-15 among them), five `code-review` runs, records and the ledger, full `pnpm check`.

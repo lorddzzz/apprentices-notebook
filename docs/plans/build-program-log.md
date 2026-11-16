@@ -69,6 +69,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | FU-5b, FN-M2b | 792c786 | Sonnet medium | 0 | ~8% | 8 Afterglow + 8 Steam/Brass unit variants (new 'seam-unit' batch); `glowKept`, `dodge`, `collarLight` optional fields; `afterglow-water-fire` changed from sketch; count 277 |
 | CG-8b, CG-13, CG-14, CG-16 | d620f76 | Sonnet medium | 0 | ~14% | ROOM_PENCIL applied via roomSetup; through-doorway → rewiring → room 4; bench + Lab scenarios; hearing (except form), gate at threshold; hall fuzz sim; `Meets` + pencil/blank/outline; bad-join paper unfiled |
 | CG-F3, CG-F4 | 40c9853 | Sonnet medium | 0 | ~12% | 42 cartographers variants + `registrar:swap` note (household circles); `swap:unit` stamped; `swapAt` module hook; `graphite-cap-pin` holds 2; count 310 after the merge with V |
+| CG-12 | 060bdfe | Sonnet medium | 1 | ~10% | hall art through the KIT-R2 slots, one circle mark for both sources, PaperFx, Gallery hall sheet; returned once for the full-file autofixer (clean, no change) |
 
 ## Usage
 
@@ -83,3 +84,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 20:05 | 6 (reset) | 71 | CG-F merged; CI green on 984a947; design window running; CG-G/CG-H wait for its briefs |
 | 2026-11-16 20:30 | 23 | 74 | T, S merged; CG-G, U running; CG-J next |
 | 2026-11-16 21:10 | ~50 | 77 | CG-G merged; CG-J, CG-H running; briefs empty after them |
+| 2026-11-16 21:40 | ~67 | 79 | waves 19–21 merged (S, T, U, V, CG-G, CG-H, CG-J); briefs empty; cartographers Close next |

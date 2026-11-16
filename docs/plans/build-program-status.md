@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19: T (6fbe977) and S (d3513d7) merged; U (3c03d50) and V (792c786) merged; CG-G (d620f76) and CG-J (40c9853) merged; CG-H returned once (autofixer). **Next window: routine.**
+**State:** routine window 2026-11-16: design window decided every review (DESIGN §11, TECH §7 2026-11-16); waves 17–21 merged: CG-D, CG-I, CG-F, T, S, U, V, CG-G, CG-J, CG-H (last 060bdfe). Briefs are empty. **Next window: design** (the cartographers' Close).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -12,15 +12,15 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 ## Next
 0. Read each push's CI result (sims run only there); a red run is a fix pack in the current wave (player, 2026-11-12). Log rows carry all six cells, usage Δ included (the ledger checks the format).
-1. **Routine:** record CG-F (3062b50). Start **S**, **T** and **CG-G** now (wave 19). Then wave 20: **CG-H** and **CG-J** (after S), **U** (after T). Then wave 21: **V** (after U). Order table and clash notes: the briefs file.
-2. A pack that edits `src/data/types.ts` runs `pnpm exec tsc --noEmit` (CI-3); T may add it to `check:fast`.
-3. **Next design window** (when the briefs run out, or three reviews pile up): EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft; cartographers Close after CG-G/H/J.
-4. Hard edges: EN-S2 → EN-G0 → ending Pack E · S → CG-H, CG-J · T → U → V · BL-111 → EN-4.
+1. **Design window: the cartographers' Close** (skill Close steps 1–5): full gate on main; full-loop phone check at 375×812 including the wave-end checks in Owed (the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option, the Swap margin offering the Registrar's note at level II once the page is held); one `code-review` of the cartographers' diff (CG-A … CG-J); records (DESIGN §11, cartographers.md, TECH §7, plan State, roadmap row); the ledger; decide `PLAYABLE_DISTRICTS` and the unfiled *bad join* paper (Owed from CG-G); brief any fix packs.
+2. Then: Pack N close-outs (CL-1…5); EN-G0 once the player has timed the dev page, then ending Packs E–L; EN-12 handover draft.
+3. Every pack's `check:fast` now runs `typecheck:ts` (CI-4); `Meets` may grow.
+4. Hard edges: EN-S2 → EN-G0 → ending Pack E · BL-111 → EN-4.
 
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| CG-H | CG-12 | Sonnet 5.5 medium | pack-worker worktree | running (UI) |
+| none | | | | |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-16: the golden decision → replay re-store, Pack U; `LineId` → Pack T; Pencil Shove and Graphite on blank → Pack S; CG-I's proposals and the three drafts → DESIGN §11. F7, M and C3 recorded as accepted earlier; D5's numbers wait for EN-G0.)
