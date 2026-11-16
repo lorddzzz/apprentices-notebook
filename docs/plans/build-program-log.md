@@ -60,6 +60,8 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | EN-9b (partial) | 913a793, 2bffecc | Sonnet medium | 1 | ~12% | `mender:unit` stamped (golden-neutral); `mender:diagonal`/`dusk` rows removed, `steam:unit`/`brass:unit` rows pending (stamping changes the five Seam goldens); FN-M2 draft written; resumed after crash |
 | C3-H | f3c4ee9, fbc3451 | Sonnet medium | 0 | ~6% | `markFooting`/`setMortar` named api writes with optional module hooks; `footnoteTouch` and the wear `shove` branch removed; `brinkLine` reads live state (flow.ts); mortar path has no dedicated no-shove test |
 | CI-3 | (this commit) | Sonnet medium (orchestrator) | 0 | ~1% | red CI on 9ba0a5f: `tsc --noEmit` crashed (Map maximum size exceeded, `Meets` union); removed the unused `diagonal` and `dusk` members; tsc clean |
+| CG-7 | 472f098 | Sonnet high | 0 | ~12% | the Registrar: token Y, page `registrar:pullIn`, circles in mark data then trick state, holder death checked at resolve/round end, module goals `rubOut`/`pullIn`; additive RivalId/EnemyId edits; tsc clean |
+| CG-F1, CG-F2 | 50c656e | Sonnet high | 0 | ~12% | audit §13; new row `swap:unit` pending (stamp in CG-F3); `quicksilver:drop` text widened; draft cartographers.md (42 variants, note `registrar:erase`); Graphite-on-blank found, pinned it.fails; tsc clean |
 
 ## Usage
 
@@ -69,3 +71,5 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-13 | 64 | 69 | wave 15 merged (CG-C, CG-E, P); fast gate green (8190); CI green on 1239b6b; wave 16 CG-B, L running |
 | 2026-11-13 | 86 | 72 | wave 16 merged (CG-B, L partial); fast gate green (8216); CI green on 7cfc883; H3 next |
 | 2026-11-13 | 90 | 73 | H3 merged; CI red on 9ba0a5f (tsc crash) fixed in the next commit; Wrap zone, no new pack |
+| 2026-11-16 19:40 | 63 | 88 | CG-D merged; CG-I running; CG-F next |
+| 2026-11-16 19:55 | 66 | 89 | CG-I merged; CG-F running; design window due (review list ≥ 3) |

@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-16: CI green on 8528ed8 (CI-3 fix). Wave 17/18: CG-D and CG-I running. **Next window: routine.**
+**State:** routine window 2026-11-16: CI green on 8528ed8 (CI-3 fix). CG-D (472f098) and CG-I (50c656e) merged; fast gate green (8229). CG-F running; design window due (review list ≥ 3). **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -20,13 +20,14 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| CG-D | CG-7 | Sonnet 5.5 high | pack-worker worktree | running (spawned 2026-11-16, 5h 38 %) |
-| CG-I | CG-F1, CG-F2 | Sonnet 5.5 high | pack-worker worktree | running (spawned 2026-11-16, 5h 38 %) |
+| CG-F | CG-9, CG-10 | Sonnet 5.5 medium | pack-worker worktree | running (spawned 2026-11-16, 5h 66 %) |
 
 ## Needs design review (left unmerged by a routine window)
 - **Golden decision (from L):** stamping a line on an event the cast already emits adds a `line` field and changes the five Seam goldens (seam-win-6/8/9, seam-wipe-23/7) because golden.test compares `line`. Choose: re-record those goldens once, or make the golden test ignore `line`; then restore the L stamps (`git show 913a793` has the diagonal/dusk code).
 - **`LineId` limit (from CG-B, confirmed by CI-3):** `pnpm check:fast` (svelte-check) hides it but the full gate's `tsc --noEmit` crashes (Map maximum size exceeded) when `Meets` grows: adding 'diagonal' and 'dusk' broke CI. Any pack adding `Meets` members must run `pnpm exec tsc --noEmit`; the real fix is a narrower `LineId`.
 - **Pencil Shove (from CG-B):** a basic Shove at an empty pencil tile is legal and does nothing (`strikable` in basicActions.ts); fix to ask for specific strike kinds. Graphite `undoBoard` can restore a state onto blank paper: CG-F1 audit.
+- **CG-I proposals (CG-G3):** Z1 `swap:unit` stands in for Swap across pencil (no `pencil` in `Meets`); F1 weigh the Registrar's note (erases a foe anywhere with no pencil under it); F2 the note sits on Erase but his page recovers Bolt → Swap (move it to Swap?); F4 `graphite-cap-rescue` is the heaviest variant; F5 the note needs a household-held circle (CG-7's circle is the trick's own).
+- **Graphite on blank (from CG-I, confirms the CG-F1 audit item):** `undoBoard` restores a state onto blank paper; fix is a `pieceVoid` guard in `solvents.ts::undoBoard`; pinned `it.fails` in cartographers-lines.test.ts.
 - (F7, M and C3 recorded as accepted; BF-FG inputs decided in DESIGN §11 2026-11-12e; D5's numbers wait for EN-G0 below.)
 
 ## Owed (declared by a contract, not yet built)
@@ -44,6 +45,8 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.
 - Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 (Pack N). Plans' "Leaves for later" items: copied into every brief written.
 
+- From CG-I: CG-F3 stamps `swap:unit` on the `swapped` event (runes/actions.ts::swap), drops `pending` and the `it.fails`.
+- From CG-D: the heart/wipe tests in tests/rivals/registrar.test.ts use a seam `startTrip` with the district overridden (cartographers had no rooms); switch to the real district after CG-F if possible. His page note is null (CG-F4).
 - From CG-E: the app's handling of the Crossroads 'through the doorway' choice (the rewiring step) is in no brief yet: add it to CG-F or CG-G's brief at the next design window (check how the bathhouses' doorway/checkpoint choice is routed in src/app).
 
 ## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)
