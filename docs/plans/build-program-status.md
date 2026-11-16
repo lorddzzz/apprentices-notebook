@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19: T (6fbe977) and S (d3513d7) merged; U (3c03d50) and V (792c786) merged; CG-G merged (d620f76); CG-J, CG-H running. When CG-J merges: footnotes.test count = 277 + 33; index.ts keeps both batch lines. **Next window: routine.**
+**State:** design window 2026-11-16 done (docs only): every design review decided (DESIGN §11, TECH §7 2026-11-16), the three drafts approved, briefs written for S, T, U, V, CG-J; CG-G and CG-H amended. CG-F merged (3062b50, logged). Routine window 2026-11-16: wave 19: T (6fbe977) and S (d3513d7) merged; U (3c03d50) and V (792c786) merged; CG-G (d620f76) and CG-J (40c9853) merged; CG-H returned once (autofixer). **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -20,7 +20,6 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| CG-J | CG-F3, CG-F4 | Sonnet 5.5 medium | pack-worker worktree | running (5h 23 %) |
 | CG-H | CG-12 | Sonnet 5.5 medium | pack-worker worktree | running (UI) |
 
 ## Needs design review (left unmerged by a routine window)
@@ -31,7 +30,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - From F8: Pack K: FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only.
 - Foundry: EN-K6 wraps the frame.
 - From EF (EN-5): rule `met` keys mostly unwired (only `bridges:collapse` declares `'span'`); the Registrar joins the masters at CG-10 (check in CG-F's merge record).
-- From CG-I: CG-F3 stamps `swap:unit` on `swapped` → Pack CG-J. From CG-D: his page note (`registrar:swap`) → CG-J.
+- From CG-I: CG-F3 stamps `swap:unit` on `swapped` → Pack CG-J.
 - From CG-G: *the bad join* lore paper is defined but never filed (a room carries one `lore`; the heart's is *the struck name*): needs a second filing point (the hall cleared). Codex lore is `PaperDef`s in lore.ts (`CodexEntryDef.kind` is closed). The district is at the threshold but not in `PLAYABLE_DISTRICTS`: decide at the cartographers' Close. `metIn` records pencil only if some survives the fight.
 - Wave end (orchestrator): phone check of the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option; the Swap margin offers the Registrar's note at level II once the page is held.
 - Ending (ending-plan §4): EN-G0 limits, EN-2 the walk, CAL-5 the numbers; EN-K1–K7 kits; EN-3/EN-8 `inkedPage`; EN-4 worker; EN-6/7/10/11 screens.

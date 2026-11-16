@@ -68,6 +68,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | FN-M2c, EN-9c | 3c03d50 | Sonnet medium | 1 | ~6% | `steam:unit`/`brass:unit` stamps restored; `RECORD_GOLDEN=replay`; five Seam goldens re-stored (line, witnessed, met +'unit'); `mender:diagonal` + `Meets` 'diagonal'; dusk dropped; returned once for the `met` approval |
 | FU-5b, FN-M2b | 792c786 | Sonnet medium | 0 | ~8% | 8 Afterglow + 8 Steam/Brass unit variants (new 'seam-unit' batch); `glowKept`, `dodge`, `collarLight` optional fields; `afterglow-water-fire` changed from sketch; count 277 |
 | CG-8b, CG-13, CG-14, CG-16 | d620f76 | Sonnet medium | 0 | ~14% | ROOM_PENCIL applied via roomSetup; through-doorway → rewiring → room 4; bench + Lab scenarios; hearing (except form), gate at threshold; hall fuzz sim; `Meets` + pencil/blank/outline; bad-join paper unfiled |
+| CG-F3, CG-F4 | 40c9853 | Sonnet medium | 0 | ~12% | 42 cartographers variants + `registrar:swap` note (household circles); `swap:unit` stamped; `swapAt` module hook; `graphite-cap-pin` holds 2; count 310 after the merge with V |
 
 ## Usage
 
