@@ -64,8 +64,8 @@ function withParty(who: readonly ApprenticeId[]): Profile {
     known: [...RUNE_IDS],
     city: {
       ...base.city,
-      heard: ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges', 'foundry'],
-      open: ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges', 'foundry'],
+      heard: ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges', 'foundry', 'cartographers'],
+      open: ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges', 'foundry', 'cartographers'],
     },
   };
   for (const id of who) p = joinHousehold(p, id);
@@ -267,13 +267,14 @@ describe('the bot plays every room with every party size (HC-9)', () => {
       const who: ApprenticeId[] = ['draughtsman', 'stoker'];
       const p = withParty(who);
       const old = [...baseline.seam, ...baseline.canals];
-      // The ink quarter, bathhouses, bridges and foundry were never fixed-spot boards: no old twin.
+      // The ink quarter, bathhouses, bridges, foundry and cartographers were never fixed-spot boards: no old twin.
       const rooms = ROOMS.filter(
         (r) =>
           r.district !== 'inkQuarter' &&
           r.district !== 'bathhouses' &&
           r.district !== 'bridges' &&
-          r.district !== 'foundry',
+          r.district !== 'foundry' &&
+          r.district !== 'cartographers',
       );
       expect(old).toHaveLength(rooms.length);
       rooms.forEach((room, i) => {
