@@ -1,7 +1,8 @@
 import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId } from '$data';
 import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit, nameOnce, noteMet } from './bursts';
-import { type Ctx, emit, ref, withLine, withOrigin } from './ctx';
+import { type Ctx, emit, type FootnoteVariantId, ref, withLine, withOrigin } from './ctx';
+import { gainShield } from './damage';
 import { BELL_PIECE, clapperTone, lockBell, ringTone, toneOfPiece } from './districts/api';
 import { hasFootnote } from './footnotes';
 import {
@@ -21,7 +22,7 @@ import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
 import { deepen, landOnTile, layThinCloud } from './mix';
 import { brassNet, cloudNet, cloudPass, isBrass, oilNet, stampGap } from './networks';
-import { pieceHoldsNothing } from './pieces';
+import { makePiece, pieceHoldsNothing, pieceVoid } from './pieces';
 import { push } from './push';
 import {
   blocksUnits,
@@ -228,6 +229,19 @@ function nearestOther(ctx: Ctx, bearer: UnitId): Unit | null {
   return best;
 }
 
+// ── Quicksilver ─────────────────────────────────────────
+
+/** `quicksilver-cap-rebound`: the first tile from the mirror back toward the target that is paper; null if none. */
+function reboundMirror(s: BattleState, mirror: Coord, at: Coord): Coord | null {
+  let c = mirror;
+  if (sameCoord(c, at)) return c;
+  while (!sameCoord(c, at)) {
+    if (inBoard(s, c) && !pieceVoid(tileAt(s, c)) && !pieceHoldsNothing(tileAt(s, c))) return c;
+    c = { x: c.x + Math.sign(at.x - c.x), y: c.y + Math.sign(at.y - c.y) };
+  }
+  return null;
+}
+
 // ── Graphite ────────────────────────────────────────────
 
 const PLAIN_KIND = {
@@ -242,18 +256,51 @@ const sameLayer = (a: Layer | null, b: Layer | null): boolean =>
   JSON.stringify(a) === JSON.stringify(b);
 
 /** The whole board's tile states and unit positions, to compare after the invention ran. */
-function boardNow(s: BattleState): BoardUndo {
-  return {
+function boardNow(ctx: Ctx): BoardUndo {
+  const s = ctx.s;
+  const board: BoardUndo = {
     tiles: s.tiles.map((t, i) => ({ at: coordOf(s, i), state: structuredClone(t.state) })),
     units: s.units.filter(isAlive).map((u) => ({ id: u.id, pos: { ...u.pos } })),
   };
+  // Only while the footnotes are written, so a saved undo is unchanged without them: the pencil
+  // that stands now (`graphite-unit-redraw`), and the marks and jars already there (`graphite-cap-trace`).
+  if (hasFootnote(ctx, 'graphite-unit-redraw')) {
+    board.redraw = s.tiles.flatMap((t, i) => (t.piece?.id === PENCIL_ID ? [coordOf(s, i)] : []));
+  }
+  if (hasFootnote(ctx, 'graphite-cap-trace')) {
+    board.placed = {
+      marks: s.units.filter((u) => isAlive(u) && u.mark).map((u) => u.id),
+      jars: s.tiles.flatMap((t, i) => (t.jar ? [coordOf(s, i)] : [])),
+    };
+  }
+  return board;
 }
+
+/** The Cartographers' pencil piece (its registered id), which `graphite-unit-redraw` puts back bare. */
+const PENCIL_ID = 'cartographers:pencil';
 
 /** Puts back what Graphite recorded: states landed are gone, units moved are home (when free). */
 export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = null): void {
   const s = ctx.s;
   withOrigin(ctx, origin, () =>
     withLine(ctx, 'graphite:unit', () => {
+      // `graphite-unit-redraw`: the paper the invention un-drew comes back as bare pencil first.
+      for (const at of undo.redraw ?? []) {
+        const tile = tileAt(s, at);
+        if (pieceVoid(tile)) tile.piece = makePiece(PENCIL_ID, { fate: null, due: null });
+      }
+      // `graphite-cap-trace`: the marks and jars the invention placed are taken back.
+      for (const id of undo.placed?.marks ?? []) {
+        const u = findUnit(s, id);
+        if (!u || !isAlive(u) || !u.mark) continue;
+        spendMark(ctx, u);
+        emit(ctx, { type: 'erased', at: { ...u.pos }, what: 'mark' });
+      }
+      for (const at of undo.placed?.jars ?? []) {
+        if (!tileAt(s, at).jar) continue;
+        tileAt(s, at).jar = null;
+        emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+      }
       const gone: Coord[] = [];
       for (const { at, state } of undo.tiles) {
         const tile = tileAt(s, at);
@@ -301,8 +348,10 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
         return true;
       };
       const stuck = movers.filter((m) => !place(m, m.home));
+      // `graphite-unit-stay`: a unit whose home is taken keeps its tile, not the nearest free one.
+      const stay = hasFootnote(ctx, 'graphite-unit-stay');
       for (const m of stuck) {
-        if (!place(m, m.from)) {
+        if (!place(m, m.from) && !stay) {
           const dist = (c: Coord) => Math.abs(c.x - m.home.x) + Math.abs(c.y - m.home.y);
           const free = s.tiles
             .map((_, i) => coordOf(s, i))
@@ -332,6 +381,19 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
         'restore',
         origin,
       );
+      // Those that reached their home: `graphite-unit-shield` steadies them, `graphite-cap-pin`
+      // holds a foe there until your next turn.
+      for (const m of movers) {
+        if (!sameCoord(m.to, m.home) || !isAlive(m.u)) continue;
+        if (m.u.kind === 'member' && hasFootnote(ctx, 'graphite-unit-shield')) {
+          gainShield(ctx, m.u, 1, s.round + 1);
+        }
+        if (m.u.kind === 'enemy' && hasFootnote(ctx, 'graphite-cap-pin')) {
+          // The undo runs as your turn begins, where Hold counts down at once: 2 lasts the enemy phase.
+          m.u.held = Math.max(m.u.held, 2);
+          emit(ctx, { type: 'held', unit: ref(m.u), rounds: m.u.held });
+        }
+      }
     }),
   );
 }
@@ -811,15 +873,37 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
   },
   quicksilver: {
     line: 'quicksilver:edge',
-    widen(s, t) {
+    widen(s, t, flow, ctx) {
       const at = whereIs(s, t);
       if (!at) return [t];
-      const mirror = { x: s.width - 1 - at.x, y: at.y };
-      return sameCoord(mirror, at) ? [t] : [t, tileTarget(mirror)];
+      const caster = findUnit(s, flow.caster);
+      const fn = (id: FootnoteVariantId): boolean =>
+        caster?.kind === 'member' && hasFootnote(ctx, id);
+      // `-self` reflects through the caster, `-turn` top to bottom; else left to right.
+      let mirror: Coord | null =
+        fn('quicksilver-edge-self') && caster
+          ? { x: 2 * caster.pos.x - at.x, y: 2 * caster.pos.y - at.y }
+          : fn('quicksilver-edge-turn')
+            ? { x: at.x, y: s.height - 1 - at.y }
+            : { x: s.width - 1 - at.x, y: at.y };
+      // `quicksilver-cap-rebound`: a mirror that falls on blank paper or off the board walks back to paper.
+      if (fn('quicksilver-cap-rebound')) mirror = reboundMirror(s, mirror, at);
+      if (!mirror) return [t];
+      // `quicksilver-edge-middle`: a target that is its own mirror is acted on twice.
+      if (sameCoord(mirror, at)) return fn('quicksilver-edge-middle') ? [t, tileTarget(at)] : [t];
+      if (!inBoard(s, mirror)) return [t];
+      const friend = unitAt(s, mirror);
+      const reached = friend?.kind === 'member' ? friend : null;
+      // `quicksilver-cap-ward`: a party member the copy would reach gains a shield; `-spare` passes over her.
+      if (reached && fn('quicksilver-cap-ward')) {
+        withLine(ctx, 'quicksilver:edge', () => gainShield(ctx, reached, 1, s.round + 1));
+      }
+      if (reached && fn('quicksilver-edge-spare')) return [t];
+      return [t, tileTarget(mirror)];
     },
   },
   graphite: {
-    before: (ctx) => boardNow(ctx.s),
+    before: (ctx) => boardNow(ctx),
     after(ctx, t, flow, run) {
       const was = run.before as BoardUndo | undefined;
       if (!was) return;
@@ -831,10 +915,26 @@ export const SOLVENT_RULES: Partial<Record<SolventId, SolventRule>> = {
           return !!u && isAlive(u) && !sameCoord(u.pos, pos);
         }),
       };
-      if (undo.tiles.length === 0 && undo.units.length === 0) return;
+      // `graphite-unit-redraw`: pencil that stood and is now a blank; `graphite-cap-trace`: what the run placed.
+      const redraw = (was.redraw ?? []).filter((at) => pieceVoid(tileAt(s, at)));
+      if (redraw.length > 0) undo.redraw = redraw;
+      if (was.placed) {
+        const marks = s.units
+          .filter((u) => isAlive(u) && u.mark && !was.placed?.marks.includes(u.id))
+          .map((u) => u.id);
+        const jars = s.tiles.flatMap((tl, i) => {
+          const at = coordOf(s, i);
+          return tl.jar && !was.placed?.jars.some((j) => sameCoord(j, at)) ? [at] : [];
+        });
+        if (marks.length > 0 || jars.length > 0) undo.placed = { marks, jars };
+      }
+      if (undo.tiles.length === 0 && undo.units.length === 0 && !undo.redraw && !undo.placed)
+        return;
       withLine(ctx, 'graphite:unit', () =>
         schedule(ctx, {
           when: 'ownerTurn',
+          // `graphite-unit-late`: it waits one more turn of its owner.
+          ...(hasFootnote(ctx, 'graphite-unit-late') ? { holds: 1 } : {}),
           owner: flow.caster,
           step: run.inv,
           target: t,

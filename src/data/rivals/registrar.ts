@@ -1,4 +1,4 @@
-import type { EnemyDef } from '../types';
+import type { EnemyDef, VariantDef } from '../types';
 import type { RivalDef, RivalPageDef } from './types';
 
 /**
@@ -58,8 +58,8 @@ export const REGISTRAR_RIVAL: RivalDef = {
 };
 
 /**
- * His recovered page (P11): *Pull in*. His footnote note is the footnote batch's (CG-F4), so the
- * page carries none yet; his page never counts toward the hall's hearing.
+ * His recovered page (P11): *Pull in*. His note is on Swap (level II, `swap:unit`); his page never
+ * counts toward the hall's hearing.
  */
 export const REGISTRAR_PAGE: RivalPageDef = {
   id: 'registrar:pullIn',
@@ -72,7 +72,17 @@ export const REGISTRAR_PAGE: RivalPageDef = {
   story:
     'A page of the register, ruled in columns, every name ticked off in a neat hand. One line has been struck so hard the nib went through the paper. In the margin, in the same hand, smaller: the register is never wrong. It is only ever corrected.',
   trial: { board: '. . . . . .\nD . . . r .\n. . . . . .' },
-  note: null,
+  note: { rune: 'swap', line: 'swap:unit', variant: 'registrar:swap' },
+};
+
+/** The note itself, in FN's variant shape (registered in the footnote `rivals` batch). */
+export const REGISTRAR_NOTE: VariantDef = {
+  id: 'registrar:swap',
+  subject: 'swap',
+  slot: { line: 'swap:unit', level: 2 },
+  text: 'Struck from the register. A foe your Swap leaves standing on pencil is circled; if it is still on that tile at round end, it is erased from the fight.',
+  rival: 'registrar',
+  credit: "Copied from the Registrar's register.",
 };
 
 const PLAIN = {

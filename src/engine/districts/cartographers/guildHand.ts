@@ -1,25 +1,32 @@
 import { DEFAULT_PENCIL, type PencilConfig } from '$data/districts/cartographers/types';
-import { type Ctx, checkEnd, emit } from '../../ctx';
+import { type Ctx, checkEnd, emit, ref, withLine } from '../../ctx';
+import { hasFootnote } from '../../footnotes';
 import { type Coord, neighbors4, sameCoord } from '../../grid';
+import { sameSide } from '../../habits';
+import { guardCancels } from '../../harm';
 import { removeFromRoom } from '../../outOfRoom';
-import { blocksUnits, coordOf, inBoard, isAlive, members, tileAt } from '../../queries';
+import { blocksUnits, coordOf, findUnit, inBoard, isAlive, members, tileAt } from '../../queries';
+import { trickResists } from '../../rivals/tricks';
 import { createRng, deriveSeed, type Rng } from '../../rng';
 import type { BattleState, Tile } from '../../types';
-import type { BoardRule, Json, PreviewShape } from '../types';
-import { inkOutlines, outlineBlocked, outlineTiles } from './paper';
+import type { BoardRule, Json, PreviewShape, SwapMeet } from '../types';
+import { carryPaper, inkOutlines, outlineBlocked, outlineTiles } from './paper';
 import {
   BLANK_PIECE,
+  type CircledEvent,
   type Fate,
   GUILD_HAND_RULE_ID,
   type GuildHandState,
   HAND_SALT,
   type InkedEvent,
   isFate,
+  type NoteCircle,
   OUTLINE_PIECE,
   PENCIL_PIECE,
   PENCIL_RULE_ID,
   type PencilData,
   type RubbedOutEvent,
+  type StruckEvent,
 } from './types';
 
 /**
@@ -104,11 +111,30 @@ export function parseGuildHand(raw: unknown): GuildHandState {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const planned = safeInt(r.planned);
   const seed = safeInt(r.seed);
+  const circles = readCircles(r.circles);
   return {
     ...readPencilConfig(raw),
     planned: planned !== null && planned > 0 ? planned : 0,
     ...(seed !== null ? { seed } : {}),
+    ...(circles.length > 0 ? { circles } : {}),
   };
+}
+
+const isCoord = (v: unknown): v is Coord =>
+  !!v &&
+  typeof v === 'object' &&
+  safeInt((v as Record<string, unknown>).x) !== null &&
+  safeInt((v as Record<string, unknown>).y) !== null;
+
+/** The note's circles, read forgivingly (anything malformed is dropped). */
+function readCircles(raw: unknown): NoteCircle[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((c: unknown): NoteCircle[] => {
+    const r = c && typeof c === 'object' ? (c as Record<string, unknown>) : {};
+    return isCoord(r.at) && typeof r.unit === 'string' && typeof r.holder === 'string'
+      ? [{ at: { x: r.at.x, y: r.at.y }, unit: r.unit, holder: r.holder }]
+      : [];
+  });
 }
 
 const handListed = (s: BattleState): boolean =>
@@ -248,15 +274,20 @@ function rubOut(ctx: Ctx, at: Coord, round: number): void {
   for (const u of units) removeFromRoom(ctx, u, 'erased');
 }
 
+/** Inks a pencil tile in: it is real paper from now on. */
+export function inkPencil(ctx: Ctx, at: Coord, round: number): void {
+  tileAt(ctx.s, at).piece = null;
+  const ev: InkedEvent = { type: 'cartographers:inked', at: { ...at }, data: { round } };
+  emit(ctx, ev);
+}
+
 /** Resolves every pencil tile due `round`, in reading order; true when a tile was rubbed out. */
 export function resolveDue(ctx: Ctx, round: number): boolean {
   let rubbed = false;
   for (const p of pencilTiles(ctx.s)) {
     if (p.data.fate === null || p.data.due !== round) continue;
     if (p.data.fate === 'ink') {
-      tileAt(ctx.s, p.at).piece = null;
-      const ev: InkedEvent = { type: 'cartographers:inked', at: { ...p.at }, data: { round } };
-      emit(ctx, ev);
+      inkPencil(ctx, p.at, round);
     } else {
       rubOut(ctx, p.at, round);
       rubbed = true;
@@ -273,10 +304,97 @@ function planNow(s: BattleState, own: GuildHandState): GuildHandState {
   return { ...own, planned: s.round };
 }
 
-/** One round end: resolve, outlines, plan the next round. */
+// ── The Registrar's note (`registrar:swap`, CG-J) ───────
+const isPencilAt = (s: BattleState, at: Coord): boolean =>
+  inBoard(s, at) && tileAt(s, at).piece?.id === PENCIL_PIECE;
+
+/**
+ * A Swap traded places (`DistrictModule.swapAt`): the `swap:unit` footnotes, when either tile of
+ * the pair holds pencil. Only a member's Swap is read; the foe is whichever of the pair stands on
+ * the other side.
+ */
+export function swapPaper(ctx: Ctx, m: SwapMeet): void {
+  const caster = findUnit(ctx.s, m.caster);
+  const other = findUnit(ctx.s, m.other);
+  if (!caster || !other || caster.kind !== 'member') return;
+  if (!isPencilAt(ctx.s, m.a) && !isPencilAt(ctx.s, m.b)) return;
+  const fn = (id: Parameters<typeof hasFootnote>[1]): boolean => hasFootnote(ctx, id);
+  withLine(ctx, 'swap:unit', () => {
+    if (fn('swap-unit-carry')) carryPaper(ctx.s, m.a, m.b);
+    const foe = !sameSide(caster, other) && isAlive(other) ? other : null;
+    const foeOnPencil = foe !== null && isPencilAt(ctx.s, foe.pos);
+    if (foe && foeOnPencil && fn('swap-unit-strand')) {
+      const hold = { kind: 'hold', unit: foe.id, harm: null } as const;
+      if (!trickResists(ctx, foe, 'hold') && !guardCancels(ctx, foe, hold, 'Swap')) {
+        foe.held = Math.max(foe.held, 1);
+        emit(ctx, { type: 'held', unit: ref(foe), rounds: foe.held });
+      }
+    }
+    if (fn('swap-unit-ink') && isAlive(caster) && isPencilAt(ctx.s, caster.pos)) {
+      inkPencil(ctx, caster.pos, ctx.s.round);
+    }
+    if (fn('swap-unit-due')) {
+      for (const at of [m.a, m.b]) {
+        const piece = isPencilAt(ctx.s, at) ? tileAt(ctx.s, at).piece : null;
+        const d = piece ? pencilData(piece.data) : null;
+        if (piece && d && d.fate !== null && d.due !== null) {
+          piece.data = { fate: d.fate, due: d.due + 1 };
+        }
+      }
+    }
+    if (foe && foeOnPencil && isPencilAt(ctx.s, foe.pos) && fn('registrar:swap')) {
+      circle(ctx, { at: { ...foe.pos }, unit: foe.id, holder: caster.id });
+    }
+  });
+}
+
+/** Adds a circle to the hand's state (one per foe) and says so; nothing outside the hall (no hand listed). */
+function circle(ctx: Ctx, c: NoteCircle): void {
+  if (!handListed(ctx.s)) return;
+  const own = parseGuildHand(ctx.s.rules?.[GUILD_HAND_RULE_ID]);
+  const circles = [...(own.circles ?? []).filter((x) => x.unit !== c.unit), c];
+  const next: GuildHandState = { ...own, circles };
+  ctx.s.rules = { ...ctx.s.rules, [GUILD_HAND_RULE_ID]: next as unknown as Json };
+  const foe = findUnit(ctx.s, c.unit);
+  const ev: CircledEvent = {
+    type: 'cartographers:circled',
+    at: { ...c.at },
+    ...(foe ? { unit: ref(foe) } : {}),
+    data: { holder: c.holder, units: [c.unit] },
+  };
+  emit(ctx, ev);
+}
+
+/**
+ * The round end's first step: each circled foe still on its tile is erased from the fight, unless
+ * its holder has fallen. Whoever stepped off is let go.
+ */
+function closeCircles(ctx: Ctx, circles: readonly NoteCircle[]): void {
+  const hit = circles.flatMap((c) => {
+    const foe = findUnit(ctx.s, c.unit);
+    const holder = findUnit(ctx.s, c.holder);
+    return foe && isAlive(foe) && sameCoord(foe.pos, c.at) && holder && isAlive(holder)
+      ? [foe]
+      : [];
+  });
+  const first = hit[0];
+  if (!first) return;
+  const ev: StruckEvent = {
+    type: 'cartographers:struck',
+    at: { ...first.pos },
+    data: { units: hit.map((u) => u.id), tiles: hit.map((u) => ({ ...u.pos })) },
+  };
+  emit(ctx, ev);
+  for (const u of hit) removeFromRoom(ctx, u, 'erased');
+  checkEnd(ctx);
+}
+
+/** One round end: the note's circles, resolve, outlines, plan the next round. */
 export function guildHandStep(ctx: Ctx, raw: unknown): GuildHandState {
   const round = ctx.s.round;
-  const own = planNow(ctx.s, parseGuildHand(raw));
+  const { circles, ...held } = parseGuildHand(raw);
+  const own = planNow(ctx.s, held);
+  closeCircles(ctx, circles ?? []);
   resolveDue(ctx, round);
   inkOutlines(ctx, round);
   if (ctx.s.phase !== 'player') return own;

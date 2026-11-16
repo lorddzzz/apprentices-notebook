@@ -1,7 +1,7 @@
 import type { TrickDef } from '../rivals/types';
 import { withBench } from './cartographers/bench';
 import { CARTOGRAPHERS_FOES, TRACER_RULE } from './cartographers/foes';
-import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
+import { GUILD_HAND_RULE, PENCIL_RULE, swapPaper } from './cartographers/guildHand';
 import { CARTOGRAPHERS_BOT, CARTOGRAPHERS_HEART_SETUP } from './cartographers/heartFrame';
 import { CARTOGRAPHERS_REGISTERED_PIECES } from './cartographers/pieces';
 import {
@@ -48,6 +48,7 @@ export const CARTOGRAPHERS_MODULE: DistrictModule = {
   tricks: [STRIKE_FROM_THE_REGISTER as TrickDef],
   goals: REGISTRAR_GOALS,
   eraseAt: registrarEraseAt,
+  swapAt: swapPaper,
   events,
   trip: CARTOGRAPHERS_TRIP as TripShapeDef,
   offerContributors: [BOARD_GUARANTEE],

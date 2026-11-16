@@ -22,7 +22,7 @@ import {
   withOrigin,
 } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
-import { crackedTiles, eraseTouches } from '../districts/api';
+import { crackedTiles, eraseTouches, swapped } from '../districts/api';
 import { hasFootnote } from '../footnotes';
 import {
   byReadingOrder,
@@ -38,13 +38,22 @@ import {
 } from '../grid';
 import { ruleOf, sameSide } from '../habits';
 import { guardCancels } from '../harm';
-import { sealJar } from '../jars';
+import { claimJar, sealJar } from '../jars';
 import { jarLimit } from '../leans';
-import { releaseSpent, spendMark } from '../marks';
+import { applyMark, releaseSpent, spendMark } from '../marks';
 import { landOnTile } from '../mix';
-import { pieceVoid, strikePiece } from '../pieces';
+import { pieceHoldsNothing, pieceVoid, strikable, strikePiece } from '../pieces';
 import { type PushResult, push, wearPlate } from '../push';
-import { findUnit, inBoard, isPlate, tileAt, unitAt, unitById } from '../queries';
+import {
+  blocksUnits,
+  findUnit,
+  inBoard,
+  isAlive,
+  isPlate,
+  tileAt,
+  unitAt,
+  unitById,
+} from '../queries';
 import type { Handler } from '../resolve';
 import { trickResists } from '../rivals/tricks';
 import { SOLVENT_RULES } from '../solvents';
@@ -326,16 +335,80 @@ const hold: Handler = (ctx, t, flow) => {
   }
 };
 
+/** The Cartographers' pencil piece (its registered id), read here to stamp `swap:unit`. */
+const PENCIL_ID = 'cartographers:pencil';
+const pencilAt = (ctx: Ctx, c: Coord): boolean => tileAt(ctx.s, c).piece?.id === PENCIL_ID;
+
+/** A tile a unit may be set on: real paper, not solid, a drop, water or a void. */
+const standableTile = (ctx: Ctx, c: Coord): boolean => {
+  if (!inBoard(ctx.s, c)) return false;
+  const tile = tileAt(ctx.s, c);
+  return !blocksUnits(tile) && !tile.terrain.drop && !tile.terrain.water && !pieceVoid(tile);
+};
+
+/** `swap-cap-step`: a Swap that finds nobody steps its caster onto the empty paper tile aimed at, within two. */
+function stepOnto(ctx: Ctx, caster: Unit, t: Target, flow: Flow): void {
+  const to = posOf(ctx, t);
+  if (!to || caster.held > 0 || hasTrait(caster, 'anchored')) return;
+  const dist = Math.abs(to.x - caster.pos.x) + Math.abs(to.y - caster.pos.y);
+  if (dist === 0 || dist > 2 || !standableTile(ctx, to) || unitAt(ctx.s, to)) return;
+  const from = { ...caster.pos };
+  emit(ctx, {
+    type: 'moved',
+    unit: ref(caster),
+    from,
+    to: { ...to },
+    path: [{ ...to }],
+    cause: 'swap',
+  });
+  relocateAll(
+    ctx,
+    [{ unit: caster.id, from, to: { ...to }, path: [{ ...to }] }],
+    'swap',
+    flow.origin,
+  );
+}
+
 const swap: Handler = (ctx, t, flow) => {
-  const u = unitOf(ctx, t);
+  const first = unitOf(ctx, t);
   const caster = unitById(ctx.s, flow.caster);
-  if (!u || u.id === caster.id || caster.hp <= 0) return;
-  const blocked = [caster, u].find((x) => x.held > 0);
-  if (blocked) {
-    withLine(ctx, 'swap:held', () =>
-      emit(ctx, { type: 'held', unit: ref(blocked), rounds: blocked.held }),
-    );
-    return;
+  const fn = (id: FootnoteVariantId): boolean => caster.kind === 'member' && hasFootnote(ctx, id);
+  if (!first && caster.hp > 0 && fn('swap-cap-step')) stepOnto(ctx, caster, t, flow);
+  if (!first || first.id === caster.id || caster.hp <= 0) return;
+  let u = first;
+  let line: LineId | null = null;
+  if ([caster, first].some((x) => x.held > 0)) {
+    // `swap:held`: a Swap that meets a hold. Slip, then around, then ease and brace (each a footnote).
+    let go = false;
+    withLine(ctx, 'swap:held', () => {
+      if (caster.held > 0 && fn('swap-held-slip')) {
+        caster.held = 0;
+        emit(ctx, { type: 'held', unit: ref(caster), rounds: 0 });
+      }
+      const blocked = [caster, first].find((x) => x.held > 0);
+      if (blocked) emit(ctx, { type: 'held', unit: ref(blocked), rounds: blocked.held });
+      if (first.held > 0 && fn('swap-held-around')) {
+        const beside = neighbors4(first.pos)
+          .filter((c) => inBoard(ctx.s, c))
+          .flatMap((c) => {
+            const n = unitAt(ctx.s, c);
+            return n && n.id !== caster.id && n.held === 0 ? [n] : [];
+          })
+          .sort((x, y) => byReadingOrder(x.pos, y.pos))[0];
+        if (beside) u = beside;
+      }
+      go = caster.held === 0 && u.held === 0;
+      if (fn('swap-held-ease')) {
+        for (const x of [caster, first]) {
+          if (x.held <= 0) continue;
+          x.held -= 1;
+          emit(ctx, { type: 'held', unit: ref(x), rounds: x.held });
+        }
+      }
+      if (fn('swap-held-brace')) gainShield(ctx, caster, 1, ctx.s.round + 1);
+    });
+    if (!go) return;
+    line = 'swap:held';
   }
   // An anchored unit never moves (P5, party §1); the Swap rune still trades places with fliers.
   if (hasTrait(u, 'anchored') || hasTrait(caster, 'anchored')) {
@@ -345,15 +418,18 @@ const swap: Handler = (ctx, t, flow) => {
   if (guardCancels(ctx, u, { kind: 'swap', unit: u.id, harm: null }, RUNES.swap.name)) return;
   const a = { ...caster.pos };
   const b = { ...u.pos };
-  emit(ctx, {
-    type: 'swapped',
-    unit: ref(caster),
-    with: ref(u),
-    from: a,
-    to: b,
-    path: [{ ...b }],
-    cause: 'swap',
-  });
+  // `swap:unit`: a Swap that trades places across pencil (the paper stays unless a footnote moves it).
+  maybeLine(ctx, line ?? (pencilAt(ctx, a) || pencilAt(ctx, b) ? 'swap:unit' : null), () =>
+    emit(ctx, {
+      type: 'swapped',
+      unit: ref(caster),
+      with: ref(u),
+      from: a,
+      to: b,
+      path: [{ ...b }],
+      cause: 'swap',
+    }),
+  );
   // Both are lifted and set down, then arrive: the caster first, then the target (P4).
   relocateAll(
     ctx,
@@ -364,6 +440,12 @@ const swap: Handler = (ctx, t, flow) => {
     'swap',
     flow.origin,
   );
+  swapped(ctx, { caster: caster.id, other: u.id, a, b });
+  // `swap-cap-pact`: a Swap with a friend steadies you both.
+  if (fn('swap-cap-pact') && u.kind === 'member') {
+    gainShield(ctx, caster, 1, ctx.s.round + 1);
+    gainShield(ctx, u, 1, ctx.s.round + 1);
+  }
 };
 
 const spaced = (id: string): string => id.replace(/([A-Z])/g, ' $1').toLowerCase();
@@ -372,16 +454,55 @@ const spaced = (id: string): string => id.replace(/([A-Z])/g, ' $1').toLowerCase
 interface Hop {
   state: Layer['id'] | null;
   jar: boolean;
+  /** Where the hop came to rest (`draw-drop-over` lands one tile further). */
+  landed: Coord;
+  /** `draw-jar-trade`: the jar that came back to the tile the hop started from. */
+  traded: boolean;
+  /** `draw-cap-mix`: the carried state mixed into the one there, so it goes no further. */
+  mixed: boolean;
 }
 
+/** The Cartographers' pencil, written bare by `draw-drop-mend` (its registered id and data). */
+const BARE_PENCIL = { id: 'cartographers:pencil', data: { fate: null, due: null } } as const;
+
+const spendCarried = (ctx: Ctx, from: Coord): void => {
+  const src = tileAt(ctx.s, from);
+  if (src.state) {
+    src.state = null;
+    emit(ctx, { type: 'stateFades', tiles: [{ ...from }] });
+  }
+  if (src.jar) {
+    src.jar = null;
+    emit(ctx, { type: 'jarCrumbles', at: { ...from } });
+  }
+};
+
 /** One hop of Draw: the tile's state and jar go to `to` if it will take them. */
-function drawHop(ctx: Ctx, from: Coord, to: Coord): Hop | null {
+function drawHop(ctx: Ctx, from: Coord, to: Coord, flow: Flow, over = true): Hop | null {
   const s = ctx.s;
   const src = tileAt(s, from);
   const dst = tileAt(s, to);
-  const moved: Hop = { state: null, jar: false };
+  const caster = findUnit(s, flow.caster);
+  const fn = (id: FootnoteVariantId): boolean => caster?.kind === 'member' && hasFootnote(ctx, id);
+  const moved: Hop = { state: null, jar: false, landed: { ...to }, traded: false, mixed: false };
   if ((src.state || src.jar) && pieceVoid(dst)) {
+    // `draw-drop-over`: hop the blank tile to the paper beyond it, if that tile is free.
+    if (over && fn('draw-drop-over')) {
+      const beyond = { x: 2 * to.x - from.x, y: 2 * to.y - from.y };
+      if (inBoard(s, beyond) && !pieceVoid(tileAt(s, beyond))) {
+        const hop = withLine(ctx, 'draw:drop', () => drawHop(ctx, from, beyond, flow, false));
+        if (hop) return hop;
+      }
+    }
     miss(ctx, 'draw', 'draw:drop');
+    withLine(ctx, 'draw:drop', () => {
+      if (fn('draw-drop-mend')) dst.piece = structuredClone(BARE_PENCIL);
+      if (caster && fn('draw-drop-yield')) gainShield(ctx, caster, 1, s.round + 1);
+      if (fn('draw-drop-spend')) {
+        spendCarried(ctx, from);
+        dst.piece = null;
+      }
+    });
     return null;
   }
   if (src.state && dst.state === null) {
@@ -394,6 +515,22 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord): Hop | null {
       src.state = null;
       moved.state = dst.state.id;
     }
+  } else if (
+    src.state &&
+    dst.state &&
+    fn('draw-cap-mix') &&
+    src.state.id !== 'fire' &&
+    isPlainState(src.state.id) &&
+    !dst.terrain.gate &&
+    !dst.terrain.grate &&
+    !(isPlate(src) && unitAt(s, to))
+  ) {
+    // `draw-cap-mix`: a carried plain state lands on the one there, as if you had landed it.
+    const kind = PLAIN_KIND[src.state.id] as Exclude<KindId, 'spark'>;
+    emit(ctx, { type: 'drawn', from: { ...from }, to: { ...to }, what: spaced(src.state.id) });
+    src.state = null;
+    landOnTile(ctx, kind, to, flow);
+    moved.mixed = true;
   }
   if (src.jar && dst.jar === null) {
     withLine(ctx, 'draw:jar', () =>
@@ -402,8 +539,17 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord): Hop | null {
     dst.jar = src.jar;
     src.jar = null;
     moved.jar = true;
+  } else if (src.jar && dst.jar && fn('draw-jar-trade')) {
+    // `draw-jar-trade`: the two jars change tiles, each keeping its owner and contents.
+    withLine(ctx, 'draw:jar', () => {
+      emit(ctx, { type: 'drawn', from: { ...from }, to: { ...to }, what: 'jar' });
+      emit(ctx, { type: 'drawn', from: { ...to }, to: { ...from }, what: 'jar' });
+    });
+    [src.jar, dst.jar] = [dst.jar, src.jar];
+    moved.jar = true;
+    moved.traded = true;
   }
-  return moved.state || moved.jar ? moved : null;
+  return moved.state || moved.jar || moved.mixed ? moved : null;
 }
 
 const draw: Handler = (ctx, t, flow) => {
@@ -413,24 +559,63 @@ const draw: Handler = (ctx, t, flow) => {
   const here = tileAt(ctx.s, at);
   if (!here.state && !here.jar) return;
   if (!heading) return miss(ctx, 'draw', 'draw:noHeading');
+  const caster = findUnit(ctx.s, flow.caster);
+  const fn = (id: FootnoteVariantId): boolean => caster?.kind === 'member' && hasFootnote(ctx, id);
+  const carried = unitAt(ctx.s, at);
   // Where the drawn state and jar came to rest: they arrive there once, after the hops (P2, P6).
   let state: { id: Layer['id']; at: Coord } | null = null;
   let jarAt: Coord | null = null;
+  const back: Coord[] = [];
   for (let i = 0; i < Math.max(0, 1 + pushBonus('draw', flow)); i++) {
     const next = step(at, heading);
     if (!inBoard(ctx.s, next)) {
       miss(ctx, 'draw', 'draw:edge');
       break;
     }
-    const hop = drawHop(ctx, at, next);
+    const start = at;
+    const hop = drawHop(ctx, at, next, flow);
     if (!hop) break;
-    if (hop.state) state = { id: hop.state, at: next };
-    if (hop.jar) jarAt = next;
-    at = next;
+    if (hop.state) state = { id: hop.state, at: hop.landed };
+    if (hop.jar) jarAt = hop.landed;
+    if (hop.jar && hop.traded) back.push({ ...start });
+    at = hop.landed;
+    if (hop.mixed) break;
+  }
+  // `draw-jar-slide`: a drawn jar keeps going until the next tile holds a unit, a jar, blank paper or the edge.
+  if (jarAt && back.length === 0 && fn('draw-jar-slide')) {
+    let cur: Coord = jarAt;
+    for (;;) {
+      const next = step(cur, heading);
+      if (!inBoard(ctx.s, next)) break;
+      const nt = tileAt(ctx.s, next);
+      if (nt.jar || unitAt(ctx.s, next) || pieceVoid(nt) || pieceHoldsNothing(nt)) break;
+      const there = tileAt(ctx.s, cur);
+      const from = cur;
+      withLine(ctx, 'draw:jar', () =>
+        emit(ctx, { type: 'drawn', from: { ...from }, to: { ...next }, what: 'jar' }),
+      );
+      nt.jar = there.jar;
+      there.jar = null;
+      cur = next;
+    }
+    jarAt = cur;
+  }
+  // `draw-jar-claim`: the jar you drew is yours now, and your newest.
+  if (jarAt && caster && fn('draw-jar-claim')) claimJar(ctx, jarAt, caster);
+  // `draw-cap-drag`: a unit whose state was drawn from under it goes one tile along, if that tile is free.
+  if (state && carried && isAlive(carried) && fn('draw-cap-drag')) {
+    const to = step(carried.pos, heading);
+    if (standableTile(ctx, to) && !unitAt(ctx.s, to)) push(ctx, carried, heading, 1, flow.origin);
   }
   const opts = { cause: 'draw', origin: flow.origin } as const;
   if (state) objectArrives(ctx, { kind: 'state', state: state.id }, state.at, opts);
-  if (jarAt && tileAt(ctx.s, jarAt).jar) objectArrives(ctx, { kind: 'jar' }, jarAt, opts);
+  const quiet = fn('draw-jar-quiet');
+  if (jarAt && tileAt(ctx.s, jarAt).jar && !quiet) {
+    objectArrives(ctx, { kind: 'jar' }, jarAt, opts);
+  }
+  if (!quiet) {
+    for (const c of back) if (tileAt(ctx.s, c).jar) objectArrives(ctx, { kind: 'jar' }, c, opts);
+  }
 };
 
 /** Whether an Erase would take anything from this tile and unit. */
@@ -551,22 +736,64 @@ function restore(ctx: Ctx, t: Target, u: Unit | null, habit: HabitId): void {
   });
 }
 
-const erase: Handler = (ctx, t, flow) => {
+/**
+ * Erase lifts one unit's mark. A plain mark (`erase:mark`) answers the footnotes: `release` lets
+ * its action happen first, `ward` shields a friend, `reset` leaves a bound mark as a plain one.
+ */
+function eraseMark(
+  ctx: Ctx,
+  u: Unit,
+  caster: Unit | null,
+  parts: ErasedPart[],
+  gone: (what: string, line: LineId | null, at: Coord) => void,
+): void {
+  const mark = u.mark;
+  if (!mark) return;
+  const plain = !mark.deep && caster?.kind === 'member';
+  const fn = (id: FootnoteVariantId): boolean => plain && hasFootnote(ctx, id);
+  parts.push({ kind: 'mark', unit: u.id, mark: cloneData(mark) });
+  // Spent whole, never released (P31), unless `erase-mark-release` says so.
+  if (fn('erase-mark-release') && mark.bound) releaseSpent(ctx, u, 'erase:mark', null);
+  else spendMark(ctx, u);
+  gone(mark.deep ? 'deep mark' : 'mark', mark.deep ? 'erase:deepMark' : 'erase:mark', u.pos);
+  if (fn('erase-mark-reset') && mark.bound && isAlive(u)) {
+    withLine(ctx, 'erase:mark', () =>
+      applyMark(ctx, u, { deep: false, bound: null, origin: mark.origin }),
+    );
+  }
+  if (fn('erase-mark-ward') && u.kind === 'member') {
+    withLine(ctx, 'erase:mark', () => gainShield(ctx, u, 1, ctx.s.round + 1));
+  }
+}
+
+const erase: Handler = (ctx, t, flow) => eraseAt(ctx, t, flow, false);
+
+function eraseAt(ctx: Ctx, t: Target, flow: Flow, through: boolean): void {
   const at = posOf(ctx, t);
   if (!at) return;
   const tile = tileAt(ctx.s, at);
   const u = unitOf(ctx, t);
   if (flow.habit && ruleOf(flow.habit).eraseRestores && !holdsAny(tile, u)) {
-    return restore(ctx, t, u, flow.habit);
+    restore(ctx, t, u, flow.habit);
+    return;
   }
+  const caster = findUnit(ctx.s, flow.caster);
+  const fn = (id: FootnoteVariantId): boolean => caster?.kind === 'member' && hasFootnote(ctx, id);
+  const answers = !!tile.piece && strikable(tile, undefined, 'erase');
+  const empty = !holdsAny(tile, u) && !answers;
   const parts: ErasedPart[] = [];
-  const gone = (what: string, line: LineId | null): void =>
-    maybeLine(ctx, line, () => emit(ctx, { type: 'erased', at: { ...at }, what }));
+  const gone = (what: string, line: LineId | null, where: Coord = at): void =>
+    maybeLine(ctx, line, () => emit(ctx, { type: 'erased', at: { ...where }, what }));
   if (u?.mark) {
-    const deep = u.mark.deep;
-    const mark = spendMark(ctx, u); // spent, never released (P31)
-    if (mark) parts.push({ kind: 'mark', unit: u.id, mark: cloneData(mark) });
-    gone(deep ? 'deep mark' : 'mark', deep ? 'erase:deepMark' : 'erase:mark');
+    const plain = !u.mark.deep;
+    eraseMark(ctx, u, caster, parts, gone);
+    // `erase-mark-clean`: the marks of the units beside the target are lifted too.
+    if (plain && fn('erase-mark-clean')) {
+      for (const c of neighbors4(u.pos)) {
+        const n = inBoard(ctx.s, c) ? unitAt(ctx.s, c) : null;
+        if (n?.mark) eraseMark(ctx, n, caster, [], gone);
+      }
+    }
   }
   if (u && u.collar !== false && u.collar !== null) {
     parts.push({ kind: 'collar', unit: u.id, collar: u.collar });
@@ -578,13 +805,15 @@ const erase: Handler = (ctx, t, flow) => {
     u.shackle = 0;
     gone('shackle', 'erase:shackle');
   }
-  if (tile.state) {
+  // `erase-cap-salvage`: paper's own answer saves what the tile holds, so the core leaves it.
+  const saving = answers && fn('erase-cap-salvage');
+  if (tile.state && !saving) {
     const what = spaced(tile.state.id);
     parts.push({ kind: 'state', at: { ...at }, layer: cloneData(tile.state) });
     tile.state = null;
     gone(what, null);
   }
-  if (tile.jar) {
+  if (tile.jar && !saving) {
     parts.push({ kind: 'jar', at: { ...at }, jar: cloneData(tile.jar) });
     tile.jar = null;
     gone('jar', 'erase:jar');
@@ -592,7 +821,13 @@ const erase: Handler = (ctx, t, flow) => {
   if (parts.length) remember(ctx, t, parts, flow);
   strikePiece(ctx, at, 'erase', flow.origin);
   eraseTouches(ctx, at, flow.origin);
-};
+  // `erase-cap-through`: an Erase that found nothing to take acts on the next tile along its heading.
+  const heading = headingOf(flow, t);
+  if (empty && !through && heading && fn('erase-cap-through')) {
+    const next = step(at, heading);
+    if (inBoard(ctx.s, next)) eraseAt(ctx, { kind: 'tile', at: next }, flow, true);
+  }
+}
 
 /** A removable collar (not the born-brass kind): what `sentence-unit-collar` strikes off. */
 const removableCollar = (u: Unit): boolean => u.collar !== false && u.collar !== null;

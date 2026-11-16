@@ -183,6 +183,22 @@ function crumble(ctx: Ctx, at: Coord, by: Jar): void {
 }
 
 /**
+ * `draw-jar-claim`: the jar a Draw brought to `at` is now `owner`'s and their newest; their older
+ * jars crumble past `jarLimit`, as when a jar is sealed.
+ */
+export function claimJar(ctx: Ctx, at: Coord, owner: Unit): void {
+  const jar = tileAt(ctx.s, at).jar;
+  if (!jar) return;
+  const others = jarsOf(ctx, owner.id).filter((c) => c.x !== at.x || c.y !== at.y);
+  jar.owner = owner.id;
+  jar.seq = takeJarId(ctx);
+  while (others.length >= jarLimit(owner)) {
+    const old = others.shift();
+    if (old) crumble(ctx, old, jar);
+  }
+}
+
+/**
  * Seals a jar on a tile: the owner's oldest jar crumbles empty once they would keep more than
  * `jarLimit` (one; two with the Draughtsman's habit), and so does any jar already there (J4, P32).
  * The `jar:jar` margins bend this: stack (your own jar there opens first), keep (at the limit the

@@ -464,6 +464,10 @@ export interface SealedContext {
 export interface BoardUndo {
   tiles: { at: Coord; state: Layer | null }[];
   units: { id: UnitId; pos: Coord }[];
+  /** `graphite-unit-redraw`: tiles that held pencil when the invention began, and now hold a blank. */
+  redraw?: Coord[];
+  /** `graphite-cap-trace`: the marks and jars the invention placed (absent before it ran). */
+  placed?: { marks: UnitId[]; jars: Coord[] };
 }
 
 /**

@@ -433,6 +433,14 @@ export interface BotTerms {
 }
 
 // ── The module (P1) ─────────────────────────────────────
+/** A Swap that took place: the caster and the unit it traded with, and the two tiles, as they stood before. */
+export interface SwapMeet {
+  caster: UnitId;
+  other: UnitId;
+  a: Coord;
+  b: Coord;
+}
+
 export interface DistrictModule {
   id: DistrictId;
   rules?: readonly BoardRule[];
@@ -479,6 +487,11 @@ export interface DistrictModule {
    * `api.ts`): for objects that are not pieces (the Registrar's circles, CG-7).
    */
   eraseAt?(ctx: Ctx, at: Coord, origin: Origin | null): void;
+  /**
+   * A Swap traded two units' places, after they arrived (`swapped` in `api.ts`): for what the
+   * district's paper does with it (the Cartographers' `swap:unit` footnotes).
+   */
+  swapAt?(ctx: Ctx, swap: SwapMeet): void;
   /** Closes a trip battle into the profile (win or wipe), applied in registry order (`finish.ts`). */
   afterBattleClose?(p: Profile, t: Trip): Profile;
   /** Its Bind events are known before the district opens (the ink quarter). */

@@ -178,7 +178,7 @@ export function runScheduled(ctx: Ctx, when: Scheduled['when'], owner?: UnitId):
   ];
   for (const e of ordered) {
     // `wick-unit-long`: a Wick that still holds waits for the next time.
-    if (e.kind === 'wick' && (e.holds ?? 0) > 0)
+    if ((e.kind === 'wick' || e.kind === 'graphite') && (e.holds ?? 0) > 0)
       s.scheduled.push({ ...e, holds: (e.holds ?? 0) - 1 });
     else run(ctx, e);
   }

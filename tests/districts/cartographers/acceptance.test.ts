@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { APPRENTICES, ENEMIES, PLAYABLE_DISTRICTS } from '$data';
+import { APPRENTICES, ENEMIES, type LineId, PLAYABLE_DISTRICTS, VARIANTS } from '$data';
 import {
   CARTOGRAPHERS_FOE_IDS,
   CARTOGRAPHERS_FOE_TOKENS,
@@ -11,6 +11,7 @@ import {
 } from '$data/districts/cartographers/types';
 import { DISTRICT_TOKENS, DISTRICTS, tokenCollisions } from '$data/districts/index';
 import { RIVAL_TOKENS, RIVALS } from '$data/rivals';
+import { newProfile, type Profile } from '$engine';
 import { KIT } from '$engine/districts';
 import { CARTOGRAPHERS_MODULE } from '$engine/districts/cartographers';
 import { TRACER_RULE_ID } from '$engine/districts/cartographers/foes';
@@ -28,6 +29,7 @@ import {
 import type { Json } from '$engine/districts/types';
 import { EN_SALT } from '$engine/drawing/types';
 import { DISTRICT_UI } from '$ui/districts';
+import { marginOf, writeAt } from '../../../src/app/desk';
 
 /**
  * CG-W0: the Cartographers' module is registered and inert (cartographers-plan §2 P1–P3, §4). The
@@ -163,13 +165,70 @@ describe('CG-W0 contracts', () => {
 // ── Pack I and J: footnotes ──────────────────────────────
 // CG-F1: every cartographers line row has a firing scenario (tests/scenarios/cartographers-lines.test.ts)
 
+/** The authored shape of a margin: each line has two level I and two level II options; the note adds a third on `swap:unit`. */
+const margin = (line: LineId, level: 1 | 2): string[] =>
+  VARIANTS.filter((v) => 'line' in v.slot && v.slot.line === line && v.slot.level === level).map(
+    (v) => v.id,
+  );
+const capstones = (subject: string): string[] =>
+  VARIANTS.filter((v) => v.subject === subject && 'capstone' in v.slot).map((v) => v.id);
+
 describe('CG-F3 Swap, Draw and Erase batch', () => {
-  it.todo('CG-F3: fourCombos reads for every margin line');
-  it.todo('CG-F3: one scenario per capstone');
+  it('CG-F3: fourCombos reads for every margin line', () => {
+    // The scenarios (tests/scenarios/footnotes/cartographers-runes.test.ts) read every pairing.
+    for (const line of [
+      'swap:held',
+      'swap:unit',
+      'draw:jar',
+      'draw:drop',
+      'erase:unit',
+      'erase:mark',
+    ] as const) {
+      expect(margin(line, 1), line).toHaveLength(2);
+      expect(margin(line, 2), line).toHaveLength(line === 'swap:unit' ? 3 : 2);
+    }
+    expect(margin('swap:unit', 2)).toContain('registrar:swap');
+  });
+  it('CG-F3: one scenario per capstone', () => {
+    for (const s of ['swap', 'draw', 'erase']) expect(capstones(s), s).toHaveLength(2);
+  });
 });
 
 describe('CG-F4 Quicksilver, Graphite and the Registrar note', () => {
-  it.todo('CG-F4: fourCombos reads for every margin line');
-  it.todo('CG-F4: one scenario per capstone');
-  it.todo("CG-F4: the registrar's note is hidden until his page is held");
+  it('CG-F4: fourCombos reads for every margin line', () => {
+    // The scenarios (tests/scenarios/footnotes/cartographers-solvents.test.ts) read every pairing.
+    for (const line of ['quicksilver:edge', 'graphite:unit'] as const) {
+      expect(margin(line, 1), line).toHaveLength(2);
+      expect(margin(line, 2), line).toHaveLength(2);
+    }
+  });
+  it('CG-F4: one scenario per capstone', () => {
+    for (const s of ['quicksilver', 'graphite']) expect(capstones(s), s).toHaveLength(2);
+  });
+  it("CG-F4: the registrar's note is hidden until his page is held", () => {
+    const profile = (pages: Profile['pages']): Profile => {
+      const base = newProfile();
+      return {
+        ...base,
+        known: [...new Set([...base.known, 'swap' as const])],
+        witnessed: ['swap:unit'],
+        footnotes: { swap: { points: 99, slots: {} } },
+        solvents: { ...base.solvents, quicksilver: 4 },
+        pages,
+      };
+    };
+    const frame = (p: Profile) =>
+      marginOf(p, 'swap').lines.find((l) => l.line === 'swap:unit')?.frames[1];
+    expect(frame(profile([]))?.variants.map((v) => v.id)).not.toContain('registrar:swap');
+    const held = frame(profile(['registrar:pullIn']));
+    expect(held?.variants.map((v) => v.id)).toEqual(
+      expect.arrayContaining(['swap-unit-ink', 'swap-unit-due', 'registrar:swap']),
+    );
+    const w = writeAt(profile(['registrar:pullIn']), 'swap', 'registrar:swap', { atHome: true });
+    if ('error' in w) throw new Error(w.error);
+    expect(frame(w.profile)?.variants.find((v) => v.id === 'registrar:swap')).toMatchObject({
+      chosen: true,
+      credit: "Copied from the Registrar's register.",
+    });
+  });
 });

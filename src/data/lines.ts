@@ -1026,15 +1026,13 @@ export const LINES: readonly LineDef[] = [
     district: 'cartographers',
     text: "Quicksilver's mirrored Erase un-draws the mirrored pencil or outline too.",
   },
-  // CG-F1: the paper audit (footnotes audit section 13). Text final; `pending` until a stamp lands
-  // on the `swapped` event (CG-F3) and the row's `fires` test in cartographers-lines.test.ts flips.
+  // CG-F1: the paper audit (footnotes audit section 13); CG-F3 stamps the `swapped` event.
   {
     id: 'swap:unit',
     subject: 'swap',
     meets: 'unit',
     district: 'cartographers',
     text: 'Swap trades places, not paper: pencil stays on its tile, fate and all.',
-    pending: true,
   },
   // FN-M2: Steam and Brass meeting a unit (footnotes audit Se2, Br1).
   {

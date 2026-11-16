@@ -1,9 +1,12 @@
 import { ENEMIES } from '$data';
+import { relocateAll } from '../../arrival';
 import { type Ctx, emit, ref, withLine } from '../../ctx';
 import { makeEnemy } from '../../foes';
-import { type Coord, sameCoord } from '../../grid';
+import { hasFootnote } from '../../footnotes';
+import { type Coord, neighbors4, sameCoord } from '../../grid';
 import { removeFromRoom } from '../../outOfRoom';
-import { coordOf, isAlive, tileAt, unitAt } from '../../queries';
+import { pieceVoid } from '../../pieces';
+import { blocksUnits, coordOf, inBoard, isAlive, tileAt, unitAt } from '../../queries';
 import type { BattleState } from '../../types';
 import type { Json, StruckBy, TilePiece } from '../types';
 import {
@@ -30,17 +33,90 @@ import {
 
 const QUICKSILVER_ADDED = 'quicksilver:edge';
 
-/** Un-draws a pencil tile at once: it turns blank, what it held is gone and whoever stood there is erased. */
-export function undrawPencil(ctx: Ctx, at: Coord, by: UndrawnEvent['data']['by']): void {
+/**
+ * `swap-unit-carry`: the two tiles of a Swap exchange their pencil, fate and all, so each unit
+ * takes the pencil it stood on. Only pencil moves; a tile holding any other piece keeps it, and
+ * the exchange is skipped if either would lose one.
+ */
+export function carryPaper(s: BattleState, a: Coord, b: Coord): void {
+  const ta = tileAt(s, a);
+  const tb = tileAt(s, b);
+  const carries = (p: TilePiece | null): boolean => p === null || p.id === PENCIL_PIECE;
+  if (!carries(ta.piece) || !carries(tb.piece) || (!ta.piece && !tb.piece)) return;
+  [ta.piece, tb.piece] = [tb.piece, ta.piece];
+}
+
+/** The footnotes that bend an Erase's un-draw (`erase:unit`): `trace`, `spare`, `sweep`, `salvage`. */
+export interface UndrawOpts {
+  trace?: boolean;
+  spare?: boolean;
+  sweep?: boolean;
+  salvage?: boolean;
+}
+
+const standing = (s: BattleState, at: Coord) =>
+  s.units.filter((u) => isAlive(u) && sameCoord(u.pos, at));
+
+/** A tile paper can stand a unit or hold an object on: real, not solid, not a drop or water. */
+const paperTile = (s: BattleState, at: Coord): boolean => {
+  if (!inBoard(s, at)) return false;
+  const t = tileAt(s, at);
+  return !blocksUnits(t) && !t.terrain.drop && !t.terrain.water && !pieceVoid(t);
+};
+
+/** The nearest paper tile to `from` that satisfies `ok`, ties in reading order (excluding `from`). */
+function nearestPaper(s: BattleState, from: Coord, ok: (at: Coord) => boolean): Coord | null {
+  let best: Coord | null = null;
+  let bestD = Number.POSITIVE_INFINITY;
+  s.tiles.forEach((_, i) => {
+    const c = coordOf(s, i);
+    if (sameCoord(c, from) || !paperTile(s, c) || !ok(c)) return;
+    const d = Math.abs(c.x - from.x) + Math.abs(c.y - from.y);
+    if (d < bestD) {
+      best = c;
+      bestD = d;
+    }
+  });
+  return best;
+}
+
+/**
+ * Un-draws a pencil tile at once: it turns blank, what it held is gone and whoever stood there is
+ * erased. `opts` are the household's footnotes: `trace` leaves bare pencil, `spare` sets a member
+ * down on the nearest free paper, `salvage` draws the state and jar to the nearest paper, `sweep`
+ * clears the states and jars beside the tile.
+ */
+export function undrawPencil(
+  ctx: Ctx,
+  at: Coord,
+  by: UndrawnEvent['data']['by'],
+  opts: UndrawOpts = {},
+): void {
   const tile = tileAt(ctx.s, at);
-  const units = ctx.s.units.filter((u) => isAlive(u) && sameCoord(u.pos, at));
-  tile.piece = { id: BLANK_PIECE, data: {} };
+  const there = standing(ctx.s, at);
+  tile.piece = opts.trace
+    ? { id: PENCIL_PIECE, data: { fate: null, due: null } }
+    : { id: BLANK_PIECE, data: {} };
+  const down = new Map<string, Coord>();
+  if (opts.spare) {
+    for (const u of there) {
+      if (u.kind !== 'member') continue;
+      const to = nearestPaper(
+        ctx.s,
+        at,
+        (c) => !unitAt(ctx.s, c) && ![...down.values()].some((d) => sameCoord(d, c)),
+      );
+      if (to) down.set(u.id, to);
+    }
+  }
+  const erased = there.filter((u) => !down.has(u.id));
   const ev: UndrawnEvent = {
     type: 'cartographers:undrawn',
     at: { ...at },
-    data: { by, was: 'pencil', units: units.map((u) => u.id) },
+    data: { by, was: 'pencil', units: erased.map((u) => u.id) },
   };
   emit(ctx, ev);
+  if (opts.salvage) salvage(ctx, at);
   if (tile.state) {
     tile.state = null;
     emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
@@ -49,7 +125,72 @@ export function undrawPencil(ctx: Ctx, at: Coord, by: UndrawnEvent['data']['by']
     tile.jar = null;
     emit(ctx, { type: 'jarCrumbles', at: { ...at } });
   }
-  for (const u of units) removeFromRoom(ctx, u, 'erased');
+  if (opts.sweep) sweepBeside(ctx, at);
+  for (const [id, to] of down) {
+    const u = ctx.s.units.find((x) => x.id === id);
+    if (!u) continue;
+    const from = { ...u.pos };
+    emit(ctx, {
+      type: 'moved',
+      unit: ref(u),
+      from,
+      to: { ...to },
+      path: [{ ...to }],
+      cause: 'return',
+    });
+    relocateAll(ctx, [{ unit: u.id, from, to, path: [to] }], 'return', null);
+  }
+  for (const u of erased) removeFromRoom(ctx, u, 'erased');
+}
+
+/** `erase-cap-salvage`: the state and jar on an un-drawn tile go to the nearest paper tile that is free for them. */
+function salvage(ctx: Ctx, at: Coord): void {
+  const tile = tileAt(ctx.s, at);
+  const free = (c: Coord, what: 'state' | 'jar') =>
+    tileAt(ctx.s, c)[what] === null &&
+    !tileAt(ctx.s, c).terrain.gate &&
+    !tileAt(ctx.s, c).terrain.grate;
+  if (tile.state) {
+    const to = nearestPaper(
+      ctx.s,
+      at,
+      (c) => free(c, 'state') && !(tile.state?.id === 'plate' && unitAt(ctx.s, c)),
+    );
+    if (to) {
+      emit(ctx, {
+        type: 'drawn',
+        from: { ...at },
+        to: { ...to },
+        what: tile.state.id.replace(/([A-Z])/g, ' $1').toLowerCase(),
+      });
+      tileAt(ctx.s, to).state = tile.state;
+      tile.state = null;
+    }
+  }
+  if (tile.jar) {
+    const to = nearestPaper(ctx.s, at, (c) => free(c, 'jar'));
+    if (to) {
+      emit(ctx, { type: 'drawn', from: { ...at }, to: { ...to }, what: 'jar' });
+      tileAt(ctx.s, to).jar = tile.jar;
+      tile.jar = null;
+    }
+  }
+}
+
+/** `erase-unit-sweep`: the states and jars on the tiles beside an un-drawn tile are erased too. */
+function sweepBeside(ctx: Ctx, at: Coord): void {
+  for (const c of neighbors4(at)) {
+    if (!inBoard(ctx.s, c)) continue;
+    const t = tileAt(ctx.s, c);
+    if (t.state) {
+      t.state = null;
+      emit(ctx, { type: 'stateFades', tiles: [{ ...c }] });
+    }
+    if (t.jar) {
+      t.jar = null;
+      emit(ctx, { type: 'jarCrumbles', at: { ...c } });
+    }
+  }
 }
 
 /** Un-draws an outline: the foe in it never inks, and the tile is plain pencil again. */
@@ -76,7 +217,22 @@ export function pencilStruck(
     withLine(ctx, 'quicksilver:drop', () => undrawPencil(ctx, at, 'quicksilver'));
     return;
   }
-  withLine(ctx, 'erase:unit', () => undrawPencil(ctx, at, 'erase'));
+  const opts: UndrawOpts = {
+    trace: hasFootnote(ctx, 'erase-unit-trace'),
+    spare: hasFootnote(ctx, 'erase-unit-spare'),
+    sweep: hasFootnote(ctx, 'erase-unit-sweep'),
+    salvage: hasFootnote(ctx, 'erase-cap-salvage'),
+  };
+  withLine(ctx, 'erase:unit', () => {
+    undrawPencil(ctx, at, 'erase', opts);
+    // `erase-unit-wide`: every pencil tile touching the first is un-drawn the same way (once over).
+    if (!hasFootnote(ctx, 'erase-unit-wide')) return;
+    for (const c of neighbors4(at)) {
+      if (inBoard(ctx.s, c) && tileAt(ctx.s, c).piece?.id === PENCIL_PIECE) {
+        undrawPencil(ctx, c, 'erase', opts);
+      }
+    }
+  });
 }
 
 /** `erase:empty`; Quicksilver's mirrored Erase un-draws an outline as it would pencil. */
@@ -91,6 +247,18 @@ export function outlineStruck(
   if (ctx.meta.line === QUICKSILVER_ADDED) {
     withLine(ctx, 'quicksilver:drop', () => undrawOutline(ctx, at, 'quicksilver'));
     return;
+  }
+  // `erase-cap-salvage` left the tile's state and jar for the paper to save; an outline is no un-draw, so they go as ever.
+  const tile = tileAt(ctx.s, at);
+  if (hasFootnote(ctx, 'erase-cap-salvage')) {
+    if (tile.state) {
+      tile.state = null;
+      emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
+    }
+    if (tile.jar) {
+      tile.jar = null;
+      emit(ctx, { type: 'jarCrumbles', at: { ...at } });
+    }
   }
   withLine(ctx, 'erase:empty', () => undrawOutline(ctx, at, 'erase'));
 }

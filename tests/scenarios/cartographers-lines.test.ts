@@ -175,6 +175,12 @@ const FIRES: Record<string, () => readonly GameEvent[]> = {
     );
     return cast(s, 'draughtsman', touch('B1')).events;
   },
+  'swap:unit': () =>
+    cast(
+      withLattices('D r{pencil:rub@2} . . r', { draughtsman: 'Touch> Swap' }),
+      'draughtsman',
+      touch('B1'),
+    ).events,
   'graphite:unit': () => {
     const s = withLattices(
       'D o . r',
@@ -186,7 +192,7 @@ const FIRES: Record<string, () => readonly GameEvent[]> = {
 };
 
 /** Rows with final text and no stamp yet: each has a behaviour test below and a failing `fires` test. */
-const PENDING = ['swap:unit'];
+const PENDING: string[] = [];
 
 describe('CG-F1 the paper audit', () => {
   test('CG-F1: every cartographers line row has a firing scenario', () => {
@@ -218,7 +224,7 @@ describe('CG-F1 the paper audit', () => {
     expect(find(none.state, 'draughtsman').pos).toEqual(at('A1'));
   });
 
-  it.fails('CG-F1: swap:unit fires when a Swap trades places across pencil', () => {
+  it('CG-F1: swap:unit fires when a Swap trades places across pencil', () => {
     const s = withLattices('D r{pencil:rub@2} . . r', { draughtsman: 'Touch> Swap' });
     expect(fired(cast(s, 'draughtsman', touch('B1')).events)).toContain('swap:unit');
   });

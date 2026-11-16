@@ -139,7 +139,11 @@ describe('his def, page, shell and trick', () => {
     expect(REGISTRAR_PAGE.annotation).toContain('Swap');
     expect(REGISTRAR_PAGE.story.length).toBeGreaterThan(40);
     expect(REGISTRAR_PAGE.trial.board.length).toBeGreaterThan(0);
-    expect(REGISTRAR_PAGE.note).toBeNull(); // CG-F4
+    expect(REGISTRAR_PAGE.note).toEqual({
+      rune: 'swap',
+      line: 'swap:unit',
+      variant: 'registrar:swap',
+    }); // CG-F4
   });
 });
 

@@ -5,7 +5,7 @@ import { choicesAt, takeChoice } from '../trip/choices';
 import { returnCheck } from '../trip/ret';
 import type { BattleState, Origin, Trip } from '../types';
 import { KIT } from './kit';
-import type { CrossroadsChoice, ReturnCheck } from './types';
+import type { CrossroadsChoice, ReturnCheck, SwapMeet } from './types';
 
 /**
  * Kit operations named in the plan's contracts (§4). The trip-shape ones (DK-5a) delegate to
@@ -110,6 +110,11 @@ export function markFooting(ctx: Ctx, at: Coord): void {
 /** `mortar-cap-set`: the span a Mortar'd unit ends on is set sound again (bridges). */
 export function setMortar(ctx: Ctx, at: Coord): void {
   for (const m of Object.values(KIT.modules)) m?.setMortar?.(ctx, at);
+}
+
+/** A Swap traded places and both units arrived: every module's hook, in registry order. */
+export function swapped(ctx: Ctx, swap: SwapMeet): void {
+  for (const m of Object.values(KIT.modules)) m?.swapAt?.(ctx, swap);
 }
 
 /** An Erase landed on `at`: every module's hook for non-piece objects, in registry order (CG-3). */

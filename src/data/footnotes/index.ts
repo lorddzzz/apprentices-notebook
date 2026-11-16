@@ -1,6 +1,7 @@
 import { METHOD_IDS } from '../methods';
 import { CARILLONNEUR_NOTE } from '../rivals/carillonneur';
 import { LAMPLIGHTER_WICK } from '../rivals/lamplighter';
+import { REGISTRAR_NOTE } from '../rivals/registrar';
 import { RUNE_IDS } from '../runes';
 import { SOLVENT_IDS } from '../solvents';
 import type {
@@ -17,6 +18,7 @@ import { AURAS } from './auras';
 import { BATHHOUSES } from './bathhouses';
 import { BRIDGES } from './bridges';
 import { CANALS } from './canals';
+import { CARTOGRAPHERS } from './cartographers';
 import { FOUNDRY } from './foundry';
 import { INK_QUARTER } from './inkQuarter';
 import { SEAM_METHODS } from './seam-methods';
@@ -42,7 +44,8 @@ export const BATCHES: Readonly<Record<string, readonly VariantDef[]>> = {
   'ink-quarter': INK_QUARTER,
   bridges: BRIDGES,
   foundry: FOUNDRY,
-  rivals: [LAMPLIGHTER_WICK, CARILLONNEUR_NOTE],
+  cartographers: CARTOGRAPHERS,
+  rivals: [LAMPLIGHTER_WICK, CARILLONNEUR_NOTE, REGISTRAR_NOTE],
 };
 
 /** Every authored variant, batches in registry order. */
