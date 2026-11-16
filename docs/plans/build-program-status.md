@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** routine window 2026-11-13: waves 14–16 merged (L partial), H3 merged. **CI red on 9ba0a5f was a `tsc --noEmit` crash; fixed (see CI-3), read the next run first.** CG-D waits for the next window. **Next window: routine.**
+**State:** routine window 2026-11-16: CI green on 8528ed8 (CI-3 fix). Wave 17/18: CG-D and CG-I running. **Next window: routine.**
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -20,7 +20,8 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| none | | | | |
+| CG-D | CG-7 | Sonnet 5.5 high | pack-worker worktree | running (spawned 2026-11-16, 5h 38 %) |
+| CG-I | CG-F1, CG-F2 | Sonnet 5.5 high | pack-worker worktree | running (spawned 2026-11-16, 5h 38 %) |
 
 ## Needs design review (left unmerged by a routine window)
 - **Golden decision (from L):** stamping a line on an event the cast already emits adds a `line` field and changes the five Seam goldens (seam-win-6/8/9, seam-wipe-23/7) because golden.test compares `line`. Choose: re-record those goldens once, or make the golden test ignore `line`; then restore the L stamps (`git show 913a793` has the diagonal/dusk code).
