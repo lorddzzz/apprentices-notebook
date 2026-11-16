@@ -255,6 +255,7 @@ export const PLAYABLE_DISTRICTS: readonly DistrictId[] = [
   'bathhouses',
   'bridges',
   'foundry',
+  'cartographers',
 ];
 /** The Seam's rooms (the first district's, unchanged). */
 export const ENCOUNTERS: readonly EncounterDef[] = SEAM_KIT.rooms;

@@ -17,7 +17,7 @@ import {
  * mid-trip save (looting, offers pending). The files in tests/fixtures/saves were written once by
  * the build named in each test title and are never regenerated; see tests/fixtures/saves/README.md.
  */
-/** The five districts with rooms this build (`PLAYABLE_DISTRICTS`). */
+/** The districts with rooms before the foundry's (the foundry's and the hall's pairs have blocks below) (`PLAYABLE_DISTRICTS`). */
 const DISTRICTS: readonly DistrictId[] = ['seam', 'canals', 'inkQuarter', 'bathhouses', 'bridges'];
 
 function fixture(name: string): { text: string; version: number; data: SaveData } {
@@ -65,6 +65,31 @@ describe('SAVE-1: saves recorded by the build parse and load', () => {
     const picked = takeOffer(save, 0);
     expect(picked.trip?.loot).toContainEqual(first);
     expect(parseSaveText(saveText(save))).toEqual(save);
+  });
+});
+
+describe("SAVE-1: the cartographers' saves", () => {
+  test('SAVE-1: cartographers save written by 01761c5 parses and loads', () => {
+    const { text, data } = fixture('cartographers-returned');
+    const save = parseSaveText(text);
+    expect(save.trip).toBeNull();
+    expect(save.lastTrip?.district).toBe('cartographers');
+    expect(save.lastTrip?.outcome).toBe('returned');
+    expect(save.profile.city.open).toContain('cartographers');
+    expect(save.profile).toEqual(data.profile);
+    expect(loadSave(memoryBackend(text), 1).recovered).toBe(false);
+    expect(parseSaveText(saveText(save))).toEqual(save);
+  });
+
+  test('SAVE-1: cartographers mid-trip save resumes to its next offer', () => {
+    const { text, data } = fixture('cartographers-mid-trip');
+    const save = loadSave(memoryBackend(text), 1).save;
+    expect(save.trip?.district).toBe('cartographers');
+    expect(save.trip?.status).toBe('looting');
+    const offers = save.trip?.offers ?? [];
+    expect(offers.length).toBeGreaterThan(0);
+    expect(offers).toEqual(data.trip?.offers);
+    expect(takeOffer(save, 0).trip?.loot).toContainEqual(offers[0]);
   });
 });
 

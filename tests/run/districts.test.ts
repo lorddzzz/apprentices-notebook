@@ -67,17 +67,11 @@ describe('the city this build (P2, P3)', () => {
 
   test('the other districts are heard of, barred and have no rooms', () => {
     // The lower Seam is no district of its own on the map (it hears as the Seam, SM P5).
-    const drawn = DISTRICT_IDS.filter(
-      (d) => !PLAYABLE_DISTRICTS.includes(d) && !DISTRICTS[d].hearsAs,
-    );
-    expect(drawn).toHaveLength(1);
-    for (const d of drawn) {
+    // Every district outside the list hears as another, so none is left drawn (CG-17).
+    for (const d of DISTRICT_IDS.filter((x) => !PLAYABLE_DISTRICTS.includes(x))) {
       const def = DISTRICTS[d];
-      expect(def.gate.kind, d).toBe(d === 'cartographers' ? 'threshold' : 'drawing'); // CG-14
-      // The Cartographers' six rooms are laid (CG-9, CG-10) behind the same gate until CG-14.
-      if (d !== 'cartographers') expect(def.rooms, d).toEqual([]);
-      expect(def.hear.length, d).toBeGreaterThan(0);
-      expect(def.barred, d).not.toBe('');
+      expect(def.hearsAs, d).toBeDefined();
+      expect(def.rooms, d).toEqual([]);
     }
   });
 

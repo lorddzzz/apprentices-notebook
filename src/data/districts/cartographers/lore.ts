@@ -6,9 +6,9 @@ import type { KitRoomDef, PaperDef } from '../index';
  * under "The academy". The registry waits in room 2, the owner's desk in room 5's back hall and
  * the struck name in the heart room (the Registrar's fall), which also carries the door line on the
  * heart's clear, "Below the Seam, a lock turns." (P18: the lower Seam's door reads
- * `city.hearts`; the paper is only the line). *The bad join* (the hall cleared,
- * design §2) is defined here too, as the heart's own paper; one room files one paper, so it waits
- * for a second filing point (see the pack report).
+ * `city.hearts`; the paper is only the line). *The bad join* is filed by room 4 (the first room past
+ * the quiet doorway): one room files one paper and the heart's is the struck name, so the join
+ * takes the room before the owner's desk, and the final run reads registry, bad join, desk, name.
  */
 const paper = (
   id: string,
@@ -50,13 +50,14 @@ export const CARTOGRAPHERS_PAPERS: readonly PaperDef[] = [
     'badJoin',
     'The bad join',
     'Where the canals, the quarter and the baths were pieced together, the guild joined them badly, and nothing anchors a join: no lamps, no bell, nothing to hold it still. That is the Seam. The owner went in to keep it, and the keeping drew a real place on the paper.',
-    { kind: 'heart' },
+    { kind: 'room', room: 3 },
   ),
 ];
 
 /** The rooms whose win files a paper: the registry (room 2), the owner's desk (room 5), the heart. */
 const LORE_BY_ROOM: Readonly<Record<number, string>> = {
   1: 'cartographers:registry',
+  3: 'cartographers:badJoin',
   4: 'cartographers:ownersDesk',
   5: 'cartographers:struckName',
 };

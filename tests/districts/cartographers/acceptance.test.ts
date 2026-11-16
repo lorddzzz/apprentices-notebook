@@ -38,13 +38,13 @@ import { marginOf, writeAt } from '../../../src/app/desk';
  */
 
 describe('CG-W0 registration', () => {
-  it('the district stays hidden: drawing, six rooms, not playable, with the stub hearing', () => {
+  it('CG-17: the cartographers are playable: threshold gate, six rooms, the hearing', () => {
     const d = DISTRICTS.cartographers;
     expect(d.gate.kind).toBe('threshold'); // CG-14
     expect(d.rooms).toHaveLength(6); // CG-9, CG-10
     expect(d.lean.lean).toBe('paper');
     expect(d.hear).toMatchObject([{ kind: 'pages', atLeast: 5, except: ['registrar'] }]);
-    expect(PLAYABLE_DISTRICTS).not.toContain('cartographers');
+    expect(PLAYABLE_DISTRICTS).toContain('cartographers');
     expect(d.tables).toEqual([...CARTOGRAPHERS_TABLE_IDS]);
   });
 

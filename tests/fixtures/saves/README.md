@@ -20,3 +20,7 @@ or the cartographers), add its pair with the same recipe and add the district to
 
 The foundry's pair (`foundry-returned.json`, `foundry-mid-trip.json`) was recorded the same way at
 BF-22 with the working tree on top of **7113ee9**, the first build in which the foundry is playable.
+
+The cartographers' pair (`cartographers-returned.json`, `cartographers-mid-trip.json`) was recorded
+the same way at CG-17 with the working tree on top of **01761c5**, the first build in which the hall
+is playable (`openedProfile('cartographers')`, the greedy bot, the app's flow).
