@@ -1,7 +1,7 @@
 # Platform closure: implementation plan (GATE, KIT-R, SAVE, MIX, FU, CL)
 
 Design: none of its own. Source: [midpoint-audit.md](midpoint-audit.md) §1.1, §1.2, §2.1–2.3, §3, §4.2 (adopted by the player 2026-11-11), [build-program-status.md](build-program-status.md) ("Next" 2, "Rough edges"), [district-kit-plan.md](district-kit-plan.md) P8 and P10, [ending-plan.md](ending-plan.md) §4 (DK-E1–E6). Roadmap: **BL-110**, **BL-111**. Prefixes **GATE**, **KIT-R**, **SAVE**, **MIX**, **BL**, **FU**, **CL**. Brief: [build-program.md](build-program.md).
-**State: Building (GATE-1, KIT-R1, KIT-R2, KIT-R3a, SAVE-1 merged; KIT-R3b split into KIT-R3b–g and its blockers decided, P5–P9, design window 2026-11-12).**
+**State: Built except Pack N (every task of Packs A–M and O is merged or accounted for in the status file's ledger caveats). Pack N is briefed in [build-program-briefs.md](build-program-briefs.md) as N1 (CL-1 to CL-3 and CL-6's records) and N2 (CL-4, CL-5, CL-6's checks), design window 2026-11-17.**
 **Scope:** the audit's platform and leftover tracks: a faster stable gate, the kit seams (engine hooks, board UI registries, heart frames and trip shapes, legacy pair ids), save and rule-pair safety nets, the two tooling items, the status file's small follow-ups, and the owed close-out of FD, DK, RV, FN, SM, IQ. Pack letters here are this plan's own; the audit's first batch maps as audit Pack E = Pack C, Pack D (EN-0) = ending-plan.
 
 ## 1. Scope and settled rules
@@ -194,6 +194,7 @@ Pattern: [ink-quarter-verification.md](ink-quarter-verification.md) and the bath
 | CL-2 | TECH §7 rows for the same six (RV already has §3 "Authoring a rival", IQ a DK-IQ row) | S | the missing ones written |
 | CL-3 | Verification files `foundations-verification.md`, `district-kit-verification.md`, `rivals-verification.md`, `footnotes-verification.md`, `seam-grows-verification.md` (**SM-15**) from the log rows and the existing checks; `ink-quarter-verification.md` already exists | M | five files with a pass/not-checked table each; SM-15 row merged |
 | CL-4 | One `code-review` run per subsystem: engine core and runes; kit and districts; rivals; footnotes and data; UI board and app | M | five runs; findings under 30 lines fixed in place, larger ones filed as briefs |
+| CL-6 | **The foundry's Close** (added 2026-11-17: the ledger showed the foundry built with no Close on record): `foundry-verification.md`, the full-trip phone check of foundry-plan §6, the foundry's share of the kit-and-districts review, its plan `State:` line and ROADMAP row | M | the file exists with no "not checked" row left for a Close check; screenshots reported |
 | CL-5 | Records and ledger: plan `State:` lines, ROADMAP §2.3, `ledger.mjs` clean for every plan, full `pnpm check` | S | `node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/*-plan.md` exits 0; `pnpm check` green |
 
 ## 6. Follow-up sweep (status file "Next" 2 and "Rough edges")
