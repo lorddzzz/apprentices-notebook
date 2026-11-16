@@ -39,7 +39,7 @@ const SHAPE: RivalDef = {
 
 describe('RV-W0 contracts', () => {
   test('L is claimed for the Lamplighter and collides with no foe, roster, district or board char', () => {
-    expect(RIVAL_TOKENS.map((t) => t.token)).toEqual(['L', 'p', 'V']);
+    expect(RIVAL_TOKENS.map((t) => t.token)).toEqual(['L', 'p', 'V', 'Y']);
     const builtIn = [
       ...Object.values(ENEMIES)
         .filter((e) => !Object.hasOwn(RIVALS, e.id)) // the rivals' own shells (RV-1, IQ-22)
@@ -68,13 +68,15 @@ describe('RV-W0 contracts', () => {
       'bathSteward',
       'chiefWarden',
       'carillonneur',
-    ]); // RV-5, IQ-22, BH-17b, BR-20, BF-9
+      'registrar',
+    ]); // RV-5, IQ-22, BH-17b, BR-20, BF-9, CG-7
     expect(Object.keys(RIVAL_PAGES)).toEqual([
       'lamplighter:lantern',
       'postmaster:serveNotice',
       'bathSteward:steamHall',
       'chiefWarden:mindTheEdge',
       'carillonneur:tune',
+      'registrar:pullIn',
     ]);
     expect(pagesHeld({ pages: [] })).toEqual([]);
     expect(holdsPage({ pages: ['lamplighter:lantern'] }, 'lamplighter:lantern')).toBe(true);

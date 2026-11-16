@@ -147,17 +147,7 @@ describe('CG-W0 contracts', () => {
 // CG-5 and CG-6 (the surveyor, the eraser, the tracer) pass in hands.test.ts under their plan titles.
 
 // ── Pack D: the Registrar ────────────────────────────────
-describe('CG-7 the Registrar', () => {
-  it.todo('CG-7: aims are locked at the telegraph');
-  it.todo('CG-7: starved Erase falls back to the swap');
-  it.todo('CG-7: Erase on the tile lifts a circle');
-  it.todo('CG-7: moving off lifts a circle');
-  it.todo('CG-7: killing the holder lifts a circle');
-  it.todo('CG-7: with no hand left the Registrar holds the circle');
-  it.todo('CG-7: a unit still circled at round end is erased');
-  it.todo('CG-7: the page banks on a win and is kept on a wipe');
-  it.todo('CG-7: clearing the heart adds cartographers to city.hearts');
-});
+// CG-7 passes in tests/rivals/registrar.test.ts under its plan titles.
 
 // ── Pack E: trip shape, loot and threshold ───────────────
 // CG-8 (trip shape and loot) lives in trip.test.ts, which mocks stub rooms through the kit.

@@ -4,6 +4,7 @@ import { CARILLONNEUR_PAGE, CARILLONNEUR_RIVAL } from './carillonneur';
 import { CHIEF_WARDEN_PAGE, CHIEF_WARDEN_RIVAL } from './chiefWarden';
 import { LAMPLIGHTER, LAMPLIGHTER_PAGE } from './lamplighter';
 import { POSTMASTER_PAGE, POSTMASTER_RIVAL } from './postmaster';
+import { REGISTRAR_PAGE, REGISTRAR_RIVAL } from './registrar';
 import type { RivalDef, RivalId, RivalPageDef, RivalPageId } from './types';
 
 export type * from './types';
@@ -15,6 +16,7 @@ export const RIVALS: Readonly<Partial<Record<RivalId, RivalDef>>> = {
   bathSteward: BATH_STEWARD_RIVAL,
   chiefWarden: CHIEF_WARDEN_RIVAL,
   carillonneur: CARILLONNEUR_RIVAL,
+  registrar: REGISTRAR_RIVAL,
 };
 
 /** Every recovered page, by id. */
@@ -24,6 +26,7 @@ export const RIVAL_PAGES: Readonly<Partial<Record<RivalPageId, RivalPageDef>>> =
   [BATH_STEWARD_PAGE.id]: BATH_STEWARD_PAGE,
   [CHIEF_WARDEN_PAGE.id]: CHIEF_WARDEN_PAGE,
   [CARILLONNEUR_PAGE.id]: CARILLONNEUR_PAGE,
+  [REGISTRAR_PAGE.id]: REGISTRAR_PAGE,
 };
 
 /**
@@ -36,4 +39,5 @@ export const RIVAL_TOKENS: readonly TokenEntry[] = [
   { token: 'L', kind: 'foe', id: 'lamplighter', district: 'canals' },
   { token: 'p', kind: 'foe', id: 'postmaster', district: 'inkQuarter' },
   { token: 'V', kind: 'foe', id: 'carillonneur', district: 'foundry' },
+  { token: 'Y', kind: 'foe', id: 'registrar', district: 'cartographers' },
 ];

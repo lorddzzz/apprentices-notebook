@@ -382,7 +382,8 @@ export type EnemyId =
   | 'clapper'
   | 'surveyor'
   | 'eraser'
-  | 'tracer';
+  | 'tracer'
+  | 'registrar';
 /**
  * The masters a drawing's heart may name (EN P13, one heart frame each): the lamp-mother is `mother`.
  * Carillonneur and Registrar belong to districts not built yet; their frames are EN-K6 and EN-K7.

@@ -1,6 +1,12 @@
+import type { TrickDef } from '../rivals/types';
 import { CARTOGRAPHERS_FOES, TRACER_RULE } from './cartographers/foes';
 import { GUILD_HAND_RULE, PENCIL_RULE } from './cartographers/guildHand';
 import { CARTOGRAPHERS_REGISTERED_PIECES } from './cartographers/pieces';
+import {
+  REGISTRAR_GOALS,
+  registrarEraseAt,
+  STRIKE_FROM_THE_REGISTER,
+} from './cartographers/registrar';
 import { BOARD_GUARANTEE, CARTOGRAPHERS_TRIP } from './cartographers/trip';
 import { CARTOGRAPHERS_EVENT_TYPES, type CartographersEventType } from './cartographers/types';
 import type { DistrictEventDef, DistrictModule, TripShapeDef } from './types';
@@ -12,7 +18,7 @@ export * from './cartographers/types';
  * lines; CG-1 adds the three paper pieces (`pieces.ts`) and CG-2 the guild's hand (`guildHand.ts`:
  * the district's rule, and the pencil's own piece-scoped one). CG-5 and CG-6 add the guild's hands
  * (`foes.ts`: the surveyor, the eraser and the tracer, with the tracer's memory as a third rule).
- * The Registrar's trick (CG-7), the trip shape (CG-8) and the offers come in later tasks. `heart`
+ * The Registrar's trick, goals and `eraseAt` (CG-7, `registrar.ts`), the trip shape (CG-8) and the offers come in later tasks. `heart`
  * (CG-10, through `frame.ts`'s `placeFrame`, salt 7160) and `bot` (CG-10, `BotTerms` as the
  * bathhouses') are absent on purpose. The district stays `gate: 'drawing'` with no rooms, so no
  * trip carries this shape.
@@ -36,6 +42,10 @@ export const CARTOGRAPHERS_MODULE: DistrictModule = {
   rules: [GUILD_HAND_RULE, PENCIL_RULE, TRACER_RULE],
   pieces: CARTOGRAPHERS_REGISTERED_PIECES,
   foes: CARTOGRAPHERS_FOES,
+  // The Registrar is a rival (CG-7): his trick, routine goals and the Erase that lifts his circles.
+  tricks: [STRIKE_FROM_THE_REGISTER as TrickDef],
+  goals: REGISTRAR_GOALS,
+  eraseAt: registrarEraseAt,
   events,
   trip: CARTOGRAPHERS_TRIP as TripShapeDef,
   offerContributors: [BOARD_GUARANTEE],
