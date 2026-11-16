@@ -166,55 +166,6 @@ Verify: `pnpm vitest run tests/districts/cartographers tests/data tests/app test
 Phone check: no (the orchestrator checks at the wave's end: the doorway Crossroads, the Study in field mode after it, Set Out with the doorway option).
 ```
 
-## Pack V: Afterglow and Seam unit margins (Default: Sonnet medium; escalate to Sonnet high)
-
-Starts when U is merged (the `steam:unit`/`brass:unit` stamps; mix.ts).
-
-```
-Tasks FU-5b → FN-M2b (status Owed "From I (FU-5)" and "FN-A1 M2"; drafts approved 2026-11-16, DESIGN §11).
-
-Read: docs/design/footnotes-content/canals.md "Afterglow" (the approved pairs) and seam.md §9 (the approved FN-M2
-pairs), both as amended; pattern: src/data/footnotes/canals.ts and tests/scenarios/footnotes/canals-jar-fuse.test.ts
-(fourCombos).
-Own:
-- src/data/footnotes/canals.ts (an Afterglow block), src/data/footnotes/seam-runes.ts (a `steam:unit`/`brass:unit`
-  block), tests/data/footnotes.test.ts (the count only).
-- Variant sites: src/engine/mix.ts (the `afterglow:cloud` branch of `land`, `decayStates`, the step where a cloud
-  becomes a compound, the `steam:unit` landing, `collar`), src/engine/current.ts (`drift`, `driftFloats` and its merge
-  branch), src/engine/turn.ts (the two foe-attack `dealDamage` sites: the dodge), src/engine/bursts.ts (the conduct
-  path: `brass-unit-burn`), src/engine/types.ts (optional fields: the layer's `glowKept?: true`, the unit's one-hit
-  dodge, the collar's one-round flag), src/engine/marks.ts (a `spreadFrom` call only).
-- Tests: tests/scenarios/footnotes/canals-afterglow.test.ts and tests/scenarios/footnotes/seam-unit.test.ts (new).
-Contract (on main after U):
-- Ids, slots and text as the two approved sections: Afterglow 8 (`afterglow-cloud-thin`, `-store` at level 1 and
-  `-steam`, `-hold` at level 2 on `afterglow:cloud`; `afterglow-water-renew`, `-anchor` at level 1 and `-slick`,
-  `-fire` at level 2 on `afterglow:water`); Steam 4 (`steam-unit-ring`, `-lift` at level 1, `-hide`, `-wet` at level
-  2); Brass 4 (`brass-unit-light`, `-pair` at level 1, `-ground`, `-burn` at level 2). No capstones (Afterglow's are
-  built; Steam and Brass keep theirs). `anchor`'s text takes its "(never at a slick)" clause.
-- `afterglow-cloud-steam` and `steam-unit-hide` share one optional `Unit` field, a one-hit dodge carrying the line
-  that set it: the next foe attack on the unit (turn.ts) misses with the existing `unharmed` under that line and
-  spends it; it clears when the unit's cloud thins or the unit leaves it.
-- `brass-unit-burn` adds 1 to the hit's base at the conduct call site (nothing changes inside `dealDamage`) for a
-  unit whose collar is cast (`collar` is an `Origin`; born brass, `null`, never burns), then takes the collar off with
-  the event Erase uses for a cast collar.
-- New fields are optional and written only while their variant is on; plain behaviour is unchanged: goldens,
-  fixtures and every existing test pass as they are. No new events, lines or `Meets` values. If a variant proves
-  heavier than its sketch, swap that one for one that reads only existing state and say so.
-Owed by this pack: "From I (FU-5): the Afterglow variants after review"; "FN-A1 M2: variants after review (FN-M2b)".
-Leaves for later: nothing.
-
-Done when:
-- FU-5b: "FU-5b: fourCombos reads for every margin line" (both Afterglow lines) and one scenario per variant named
-  "<variant id>: …" pass.
-- FN-M2b: "FN-M2b: fourCombos reads for every margin line" (`steam:unit`, `brass:unit`) and one scenario per variant
-  pass.
-- tests/data/footnotes.test.ts passes with only its count changed (+16); tests/scenarios, tests/data, tests/engine
-  and tests/run pass unchanged otherwise; `git status tests/fixtures` is clean.
-
-Verify: `pnpm vitest run tests/scenarios tests/data tests/engine tests/run --reporter=dot`
-Phone check: no.
-```
-
 ## Close-outs (platform-closure Pack N; orchestrator, not a pack-worker run)
 
 Platform-closure Pack N (CL-1 → CL-5) runs last, by the orchestrator in a design window, after every pack above and the tracks that finish the built plans: DESIGN §11 and TECH §7 rows for FD, DK, RV, FN, SM, IQ (write only the missing ones), the five verification files (SM-15 among them), five `code-review` runs, records and the ledger, full `pnpm check`.
