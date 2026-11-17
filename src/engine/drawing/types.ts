@@ -123,6 +123,11 @@ export interface HeartFrame extends Needing {
   escorts: readonly EnemyId[];
   /** Where the drawing's rule may be added on the frame. */
   ruleAt: readonly Coord[];
+  /**
+   * The master stands in a cloud by design (the Bath-Steward's pool, EN-K4): `checkGenerated`
+   * does not flag him as starting in a burst. Absent: he must stand clear of every hazard.
+   */
+  masterInCloud?: true;
   /** The authored fallback board: always offered when the bot cannot clear a generated heart. */
   fallback: BoardSpec;
 }

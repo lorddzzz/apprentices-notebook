@@ -410,7 +410,10 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
       add('reach', `${def.name} cannot be reached`, f.at);
     }
     const t = at(layout, f.at);
-    if (t !== undefined && isHazard(t)) add('burst', `${def.name} starts in a burst or fire`, f.at);
+    const poolMaster = frame?.masterInCloud === true && f.def === frame.setup.foe;
+    if (t !== undefined && isHazard(t) && !(poolMaster && t.state?.id === 'cloud')) {
+      add('burst', `${def.name} starts in a burst or fire`, f.at);
+    }
   }
   for (const p of layout.starts) {
     const t = at(layout, p);

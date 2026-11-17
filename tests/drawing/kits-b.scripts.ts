@@ -1,0 +1,44 @@
+import type { MasterId } from '$data';
+import { applyAction, createBattle } from '$engine/battle';
+import { HEART_FRAMES } from '$engine/drawing';
+import { serializeBoard } from '$engine/notation';
+import { compiledFor } from '$engine/run';
+import type { BattleState } from '$engine/types';
+import { sampleHousehold, sampleParty } from '../../src/app/dev/samples';
+import { decode, SCRIPT_SEED } from './kits-a.scripts';
+
+/**
+ * The scripted solves of Pack J's fallback boards (EN-K4), stored the way Pack I stored
+ * theirs (`kits-a.scripts.ts`, whose step format and battle seed they share): one fixed action
+ * list per master, recorded once from the lite bot on the authored fallback and replayed here, so
+ * nothing is searched. A frame whose fallback no longer wins under its script needs a re-recorded
+ * script.
+ */
+
+export const SCRIPTS_B: Partial<Record<MasterId, readonly string[]>> = {
+  bathSteward: [
+    'm draughtsman 6,2;c draughtsman 0,1 left;c stoker 1,0 up;m stoker 2,3;e',
+    'c draughtsman 0,1 down;m draughtsman 3,2;c stoker 1,0 up;m stoker 1,2;e',
+    'c draughtsman 0,1 left;m draughtsman 2,1;c stoker 1,0 right',
+  ],
+};
+
+/** Replays the master's script on its frame's fallback board; the final state of the battle. */
+export function scriptedSolveB(master: MasterId): BattleState {
+  const frame = HEART_FRAMES[master];
+  const script = SCRIPTS_B[master];
+  if (!frame || !script) throw new RangeError(`No scripted solve for ${master}`);
+  const profile = sampleHousehold();
+  const party = sampleParty(2);
+  let state = createBattle({
+    title: 'A scripted fallback',
+    board: serializeBoard(frame.fallback),
+    seed: SCRIPT_SEED,
+    lineup: party,
+    party: Object.fromEntries(party.map((id) => [id, { spells: compiledFor(profile, id).spells }])),
+  }).state;
+  for (const step of script.flatMap((line) => line.split(';'))) {
+    state = applyAction(state, decode(step)).state;
+  }
+  return state;
+}

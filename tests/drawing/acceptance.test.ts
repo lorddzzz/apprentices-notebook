@@ -65,6 +65,7 @@ import {
   inputFor,
 } from './fixtures';
 import { scriptedSolve } from './kits-a.scripts';
+import { SCRIPTS_B, scriptedSolveB } from './kits-b.scripts';
 
 /**
  * EN-W0 (ending-plan §4, §5): the ending's contracts exist, are inert and read strictly. Every
@@ -257,7 +258,9 @@ describe('EN-W1: the contracts', () => {
   });
 
   test('EN-W1: the registries hold the spike’s kits', () => {
-    expect(GEN_KITS.map((k) => k.district)).toEqual(['seam', 'canals', 'inkQuarter']);
+    // Each kit pack adds its district after these (Packs I-K): the registry's first three stay put.
+    expect(GEN_KITS.slice(0, 3).map((k) => k.district)).toEqual(['seam', 'canals', 'inkQuarter']);
+    expect(GEN_KITS.map((k) => k.district)).toContain('bathhouses');
     expect(SPIKE_KITS).toBe(GEN_KITS);
     expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
     expect(GEN_KITS[1]?.rules.map((r) => r.id)).toEqual(['canals:current']);
@@ -397,7 +400,8 @@ function frameTests(pack: string, masters: readonly MasterId[], built = false): 
     for (const master of masters) {
       const spec = heartSpec(inputFor(heartDrawing(master), 1));
       expect(checkGenerated(frameOf(master).fallback, spec)).toEqual([]);
-      expect(scriptedSolve(master).phase, `${master}'s scripted solve`).toBe('won');
+      const solve = SCRIPTS_B[master] ? scriptedSolveB : scriptedSolve;
+      expect(solve(master).phase, `${master}'s scripted solve`).toBe('won');
     }
   });
   check(`${pack}: the bot trial ends within its op budget`, () => {
@@ -481,11 +485,28 @@ describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
     }
   });
 
-  frameTests('EN-K4', ['bathSteward']);
-  it.fails('EN-K4: heat reaches 4 at the heart for every length', () => {
+  frameTests('EN-K4', ['bathSteward'], true);
+  it('EN-K4: heat reaches 4 at the heart for every length', () => {
     const kit = shapeKit('bathhouses:heat');
     expect(kit.lengths).toEqual([3, 4, 5, 6]);
-    // The pack asserts `heatOf` at room `length - 1` is 4 for each length.
+    expect(kit.id).toBe(kit.shape.id);
+    for (const length of kit.lengths) {
+      const heats = Array.from({ length }, (_, room) => {
+        const input = {
+          trip: { seed: 3 },
+          kit: {},
+          state: kit.shape.initState(),
+          room,
+          length,
+        } as unknown as ShapeInput<Json>;
+        const config = kit.shape.roomSetup?.(input).rulesConfig?.['bathhouses:boilOver'];
+        return (config as { heat: number }).heat;
+      });
+      expect(heats[0], `room 1 of ${length}`).toBe(1);
+      expect(heats[length - 1], `heart of ${length}`).toBe(4);
+      expect(heats.slice(0, -1).every((h) => h >= 1 && h <= 3)).toBe(true);
+      expect(heats, `the heat of ${length} rooms never falls`).toEqual([...heats].sort());
+    }
   });
 
   frameTests('EN-K5', ['chiefWarden']);

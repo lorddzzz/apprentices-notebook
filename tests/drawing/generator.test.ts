@@ -77,7 +77,7 @@ describe('EN-2: the production generator', () => {
     // The lamp-mother is not here: the lite bot needs 17 to 38 rounds for her (the heart limit is
     // 16), so all her hearts reach the fallback and it stays unverified until the bot has terms for
     // the current. Every other frame is covered (Pack I).
-    for (const master of ['marginalia', 'lamplighter', 'postmaster'] as const) {
+    for (const master of ['marginalia', 'lamplighter', 'postmaster', 'bathSteward'] as const) {
       for (const seed of SEEDS) {
         const { room, masterOnBoard } = heartRoom(master, seed);
         expect(masterOnBoard).toBe(true);
