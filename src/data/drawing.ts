@@ -119,3 +119,20 @@ export const NEEDS: Readonly<Record<string, readonly NeedRow[]>> = {
   ],
   'foundry:peal': [{ anyOf: BELLS, reason: 'A peal needs bells: draw sympathetic bells.' }],
 };
+
+/**
+ * EN-8 (ending-plan P7, P17): what a drawn trip's rooms offer. `picks` are by weight band for the
+ * rooms before the heart (a heavy drawing gives `heavyPicksBeforeHeart` instead); the heart gives
+ * `heartPicks` and rolls from the heavy weights. Weights are per entry: each page, each solvent,
+ * the ink reserve and the vellum. Defaults for CAL to tune.
+ */
+export const DRAWN_LOOT = {
+  picks: { light: 1, medium: 1, heavy: 1 },
+  heavyPicksBeforeHeart: 2,
+  heartPicks: 2,
+  weights: {
+    light: { page: 1, solvent: 1, ink: 3, vellum: 2 },
+    medium: { page: 2, solvent: 2, ink: 2, vellum: 2 },
+    heavy: { page: 3, solvent: 2, ink: 1, vellum: 1 },
+  },
+} as const;

@@ -2,6 +2,7 @@ import type { EncounterDef, LootTableId } from '$data';
 import { cloneData } from '../clone';
 import { checkDrawing } from '../drawing/check';
 import { GEN_KITS } from '../drawing/kits';
+import { drawnOffersFor } from '../drawing/loot';
 import { drawingsOf, endingOf } from '../drawing/profile';
 import { parseInkedState } from '../drawing/trip';
 import type { InkedTripState } from '../drawing/types';
@@ -20,7 +21,7 @@ import type { DistrictModule, Json, RoomSetup, ShapeInput, TripShapeDef } from '
 
 export const INKED_PAGE = 'inkedPage' as const;
 
-/** Loot until EN-8 (offers by depth): the Seam's deepest table, one pick, the heart two. */
+/** The room's own fields; the offers come from `offersFor` (EN-8, `drawing/loot.ts`), which replaces these. */
 const LOOT: LootTableId = 'deep';
 const PICKS = { room: 1, heart: 2 } as const;
 
@@ -66,6 +67,12 @@ function viewOf(input: ShapeInput<Json>): {
   const lent = lentShape(own.drawing.shape);
   return { own, lent, lentIn: lentInput(input, own, lent) };
 }
+
+/** The pages the trip already carries (a hook has no profile; the roll turns the household's into ink). */
+const tripOwned = (t: Trip) => ({
+  known: t.loot.flatMap((i) => (i.kind === 'rune' ? [i.rune] : [])),
+  methods: t.loot.flatMap((i) => (i.kind === 'method' ? [i.method] : [])),
+});
 
 const asJson = (s: InkedTripState): Json => s as unknown as Json;
 
@@ -116,7 +123,11 @@ export const INKED_TRIP: TripShapeDef = {
   },
   offersFor(input) {
     const { lent, lentIn } = viewOf(input);
-    return lent.offersFor?.(lentIn) ?? null;
+    const lentOwn = lent.offersFor?.(lentIn) ?? null;
+    // EN-8: the drawn table, rolled from the snapshot. The shape lends its own cards (`extra`)
+    // but not its table or picks. A page the household holds turns to ink in the roll.
+    const own = drawnOffersFor(input.trip, input.room, tripOwned(input.trip));
+    return { ...own, ...(lentOwn?.extra ? { extra: lentOwn.extra } : {}) };
   },
 };
 

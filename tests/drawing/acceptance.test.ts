@@ -352,12 +352,7 @@ describe('EN-W1: the contracts', () => {
 // EN-S1 (Pack B) is built: its three tests are in tests/sim/generator.test.ts (they run the bot).
 // Pack E's tests are real `it.fails` in generator.test.ts and tests/districts/inkedPage/trip.test.ts.
 
-describe('EN-5 and EN-8 (Pack F): palette, pen and loot', () => {
-  // EN-8 needs the module's offers, which no contract names yet (EN-8 defines them in Pack F).
-  it.todo('EN-8: offers come only from source districts or basics');
-  it.todo('EN-8: a page you hold is never offered');
-  it.todo('EN-8: solvents come only from drawn districts');
-});
+// The EN-8 tests (offers, held pages, solvents, heavy picks) are in tests/drawing/loot.test.ts.
 
 describe('EN-4 (Pack G): the generation worker', () => {
   it.todo('EN-4: worker results equal the synchronous path');
