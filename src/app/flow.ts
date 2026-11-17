@@ -178,10 +178,14 @@ function tripOf(save: SaveData): Trip {
 }
 
 /** A fresh trip into an open district: advances the seed counter, full HP and charges. Throws if the loadout is not ready. */
-export function setOut(save: SaveData, district: DistrictId = 'seam'): SaveData {
+export function setOut(
+  save: SaveData,
+  district: DistrictId = 'seam',
+  opts?: { page?: 0 | 1 | 2 },
+): SaveData {
   if (save.trip) throw new Error('The party is already out');
   const { seed, save: next } = nextTripSeed(save);
-  return { ...next, trip: startTrip(next.profile, seed, district), lastTrip: null };
+  return { ...next, trip: startTrip(next.profile, seed, district, opts), lastTrip: null };
 }
 
 /** The current encounter's battle. The same save always gives the same fight (reload restarts it). */

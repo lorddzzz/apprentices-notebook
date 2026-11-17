@@ -101,8 +101,14 @@ export function startCheckpoint(profile: Profile, district: DistrictId): string 
 }
 
 /** A fresh trip from the first room or from the remembered checkpoint. Throws as `startTrip` does. */
-export function setOutAt(save: SaveData, district: DistrictId, at: StartAt = 'start'): SaveData {
+export function setOutAt(
+  save: SaveData,
+  district: DistrictId,
+  at: StartAt = 'start',
+  page?: 0 | 1 | 2,
+): SaveData {
   if (save.trip) throw new Error('The party is already out');
   const { seed, save: next } = nextTripSeed(save);
-  return { ...next, trip: startTrip(next.profile, seed, district, { at }), lastTrip: null };
+  const opts = page === undefined ? { at } : { at, page };
+  return { ...next, trip: startTrip(next.profile, seed, district, opts), lastTrip: null };
 }

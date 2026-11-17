@@ -19,6 +19,7 @@ import { welcome } from '$engine/recruits';
 import { termTallies } from '../ui/districts/inkQuarter/terms';
 import { BattleSession } from './battle.svelte';
 import { chooseWay, setOutAt } from './crossroads';
+import { applyRoom, needsRoom, type RoomInker, requestRoom, storedRoom, workerInker } from './generation';
 import { namedTitle } from './describe';
 import {
   editAndPersist,
@@ -51,6 +52,19 @@ import {
 import { toast } from './toasts.svelte';
 
 let nextEditorSession = 0;
+
+/** The worker, with a dev-only delay (`window.__inkDelay` ms) to see the "inking the room…" line. */
+function inkerFor(): RoomInker {
+  const base = workerInker();
+  if (!import.meta.env.DEV) return base;
+  return {
+    async ink(profile, trip, room) {
+      const ms = (window as { __inkDelay?: number }).__inkDelay ?? 0;
+      if (ms > 0) await new Promise((r) => setTimeout(r, ms));
+      return base.ink(profile, trip, room);
+    },
+  };
+}
 
 /**
  * The player's game: the save (profile, trip), the Study's page state and persistence.
@@ -86,6 +100,9 @@ export class GameStore {
   private draft = $state.raw<Profile | null>(null);
   private editorSession = $state(++nextEditorSession);
   private readonly latticeViews = new Set<string>();
+  /** Rooms being inked (`seed:room`), and the inker (the worker, made on first use). */
+  private readonly inking_ = new Set<string>();
+  private inker: RoomInker | null = null;
 
   /** Home and each doorway have separate cameras; edits and member switches keep their keys. */
   latticeSessionKey(member: MemberId = this.member): string {
@@ -108,7 +125,9 @@ export class GameStore {
   constructor(
     private readonly backend: SaveBackend,
     private readonly now: () => number,
+    inker?: RoomInker,
   ) {
+    this.inker = inker ?? null;
     const loaded = loadSave(backend, now());
     this.save = settleAtDoor(loaded.save);
     this.recovered = loaded.recovered;
@@ -273,10 +292,10 @@ export class GameStore {
    * Leaves for an open district: the loadout is checked by the engine. `at: 'checkpoint'` starts
    * past the doorway the city remembers (DK-11). Returns why not, or null.
    */
-  setOut(district: DistrictId = 'seam', at: StartAt = 'start'): string | null {
+  setOut(district: DistrictId = 'seam', at: StartAt = 'start', page?: 0 | 1 | 2): string | null {
     if (this.refusal) return this.refusal;
     try {
-      this.commit(setOutAt(this.save, district, at));
+      this.commit(setOutAt(this.save, district, at, page));
     } catch (e) {
       return e instanceof Error ? e.message : 'The party cannot set out';
     }
@@ -292,6 +311,11 @@ export class GameStore {
   ensureBattle(): void {
     const trip = this.save.trip;
     if (this.refusal || this.battle || trip?.status !== 'fight') return;
+    // A drawn room is inked first (EN-4): the screen shows "inking the room…" until it is stored.
+    if (needsRoom(this.save, trip.encounter)) {
+      this.inkAhead();
+      return;
+    }
     let init: ActionResult;
     try {
       init = startBattle(this.save);
@@ -422,6 +446,36 @@ export class GameStore {
     this.battle = null;
   }
 
+  /** A drawn trip's current fight is waiting for its room to be inked (EN-4). */
+  get inking(): boolean {
+    const trip = this.save.trip;
+    return trip?.status === 'fight' && needsRoom(this.save, trip.encounter);
+  }
+
+  /**
+   * Inks the drawn trip's next room off the main thread (P36): the current one in a fight (room 1
+   * right after Set out, or a reload), the next one once the trip is looting. A result for a trip
+   * that has moved on is dropped.
+   */
+  private inkAhead(): void {
+    const trip = this.save.trip;
+    if (this.refusal || !trip || trip.district !== 'inkedPage') return;
+    const room = trip.status === 'fight' ? trip.encounter : trip.status === 'looting' ? trip.encounter + 1 : -1;
+    const key = `${trip.seed}:${room}`;
+    if (!needsRoom(this.save, room) || this.inking_.has(key)) return;
+    this.inking_.add(key);
+    const inker = (this.inker ??= inkerFor());
+    requestRoom(this.save, room, inker)
+      .then((done) => {
+        const layout = storedRoom(done, room);
+        if (layout === null) return;
+        const current = applyRoom(this.save, trip.seed, room, layout);
+        if (current !== this.save) this.commit(current);
+      })
+      .catch(() => toast('The room would not ink', 'warn'))
+      .finally(() => this.inking_.delete(key));
+  }
+
   private commit(save: SaveData): void {
     if (this.refusal) return;
     this.save = save;
@@ -430,5 +484,6 @@ export class GameStore {
     } catch {
       toast('Could not write the save', 'warn');
     }
+    this.inkAhead();
   }
 }

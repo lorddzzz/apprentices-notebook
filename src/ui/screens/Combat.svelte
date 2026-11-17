@@ -35,9 +35,19 @@
       {/snippet}
     </BattleView>
   {/key}
+{:else if game.inking}
+  <p class="inking" data-testid="inking">inking the room…</p>
 {/if}
 
 <style>
+  .inking {
+    margin: 0;
+    padding: calc(var(--space-4) + var(--safe-top)) var(--space-4) var(--space-4);
+    font-family: var(--hand);
+    font-size: 20px;
+    text-align: center;
+    color: var(--ink-soft);
+  }
   .depth {
     flex: none;
     font: 12px var(--mono);
