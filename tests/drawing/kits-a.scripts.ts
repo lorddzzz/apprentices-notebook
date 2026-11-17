@@ -47,6 +47,13 @@ export const SCRIPTS: Partial<Record<MasterId, readonly string[]>> = {
     's draughtsman up;m draughtsman 1,1;s stoker right;m stoker 1,3;e',
     'm draughtsman 1,1;s draughtsman down;m stoker 2,1;s stoker up',
   ],
+  postmaster: [
+    'm draughtsman 1,5;m stoker 0,5;e',
+    'c draughtsman 0,1 up;m draughtsman 1,2;m stoker 0,2;e',
+    'c draughtsman 0,1 right;m draughtsman 3,1;c stoker 1,0 right;m stoker 2,1;e',
+    'c draughtsman 0,1 right;m draughtsman 3,0;c stoker 1,0 right;m stoker 3,1;e',
+    'm draughtsman 4,0;c draughtsman 0,1 down;c stoker 1,0 right',
+  ],
   lamplighter: [
     'm draughtsman 3,6;c draughtsman 0,1 up;m stoker 1,5;e',
     'm draughtsman 2,4;c draughtsman 0,1 right;m stoker 3,3;c stoker 1,0 down',

@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { COSTS, NEEDS } from '$data/drawing';
-import { GEN_KITS, HEART_FRAMES } from '$engine/drawing';
+import { checkGenerated, GEN_KITS, generateRoom, HEART_FRAMES, specFor } from '$engine/drawing';
+import { heartDrawing, heartRoom, inputFor } from './fixtures';
 import { SCRIPTS } from './kits-a.scripts';
-import { heartRoom } from './fixtures';
 
 /**
  * Pack I's kits and frames beyond the shared acceptance tests (EN-K1 to EN-K3): what each frame
  * declares, which master stands on the board and that the scripted solves exist.
  */
 
-const MASTERS = ['marginalia', 'mother', 'lamplighter'] as const;
+const MASTERS = ['marginalia', 'mother', 'lamplighter', 'postmaster'] as const;
 
 describe('Pack I frames (EN-K1 to EN-K3)', () => {
   it('EN-K1: every frame takes its needs and cost from the drawing table', () => {
@@ -53,4 +53,21 @@ describe('Pack I frames (EN-K1 to EN-K3)', () => {
       'canals:landings',
     ]);
   });
+
+  it('EN-K3: the writs bring a return and an order to every room that draws them', () => {
+    const drawing = heartDrawing('postmaster');
+    const kit = GEN_KITS.find((k) => k.district === 'inkQuarter');
+    expect(kit?.rules.map((r) => r.id)).toEqual(['inkQuarter:writs']);
+    expect(kit?.rules[0]?.brings).toEqual(['inkQuarter:return', 'inkQuarter:order']);
+    for (const seed of [1, 2, 3]) {
+      for (let room = 0; room < drawing.length - 1; room++) {
+        const input = inputFor(drawing, seed, room);
+        const made = generateRoom(input);
+        expect(checkGenerated(made.layout, specFor(input, seed))).toEqual([]);
+        const pieces = made.layout.tiles.map((t) => t.piece?.id);
+        expect(pieces).toContain('inkQuarter:return');
+        expect(pieces).toContain('inkQuarter:order');
+      }
+    }
+  }, 120_000);
 });

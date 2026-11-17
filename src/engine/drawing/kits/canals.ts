@@ -1,13 +1,14 @@
 import { cloneData } from '../../clone';
-import type { RuleId } from '../../districts/types';
+import { KIT } from '../../districts/kit';
+import type { RuleId, TripShapeDef } from '../../districts/types';
 import { createRng } from '../../rng';
-import { CANALS_LANDINGS } from '../../districts/canals/shape';
 import type { GenKit, RuleKit, ShapeKit } from '../types';
 import { at, coords, foeKit, isPlain, isWater, lay, needsOf, shuffled } from './seam';
 
 /** The canals' kit (EN-S1, moved here unchanged by EN-W1; P34). */
 
 export const CURRENT: RuleId = 'canals:current';
+const LANDINGS = 'canals:landings';
 
 /**
  * The current's stamp (P4: the rule brings its lanes): one or two straight lanes, side by side
@@ -60,10 +61,15 @@ export const currentKit: RuleKit = {
  * KIT-R3 already lends, under the id the palette offers.
  */
 export const landingsKit: ShapeKit = {
-  id: CANALS_LANDINGS.id,
-  needs: needsOf(CANALS_LANDINGS.id),
+  id: LANDINGS,
+  needs: needsOf(LANDINGS),
   lengths: [3, 4, 5, 6],
-  shape: CANALS_LANDINGS,
+  /** Read when first used: `KIT` must not be touched at module load (the cycle noted in `generate.ts`). */
+  get shape(): TripShapeDef {
+    const lent = KIT.shapes[LANDINGS];
+    if (!lent) throw new RangeError(`No kit for ${LANDINGS}`);
+    return lent;
+  },
 };
 
 /** The canals: the current with its lamps, the eel on its lanes and the moth by its lamps. */

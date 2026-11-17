@@ -10,9 +10,10 @@ import {
   startTrip,
   type Trip,
 } from '$engine';
+import { initInkState } from '$engine/districts/inkQuarter/types';
 import { KIT } from '$engine/districts/kit';
 import { ownerDoor } from '$engine/districts/lowerSeam';
-import type { TripShapeDef } from '$engine/districts/types';
+import type { Json, ShapeInput, TripShapeDef } from '$engine/districts/types';
 import {
   BLOCKED_SHARE,
   type Credits,
@@ -40,6 +41,7 @@ import {
   specFor,
   storeDrawing,
 } from '$engine/drawing';
+import { termCardFor } from '$engine/drawing/kits/inkQuarter';
 import { botTrial } from '$engine/drawing/trial';
 import type {
   FoeKit,
@@ -255,7 +257,7 @@ describe('EN-W1: the contracts', () => {
   });
 
   test('EN-W1: the registries hold the spike’s kits', () => {
-    expect(GEN_KITS.map((k) => k.district)).toEqual(['seam', 'canals']);
+    expect(GEN_KITS.map((k) => k.district)).toEqual(['seam', 'canals', 'inkQuarter']);
     expect(SPIKE_KITS).toBe(GEN_KITS);
     expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
     expect(GEN_KITS[1]?.rules.map((r) => r.id)).toEqual(['canals:current']);
@@ -452,15 +454,31 @@ describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
     const kit = shapeKit('canals:landings');
     expect(kit.lengths).toEqual([3, 4, 5, 6]);
     expect(kit.shape).toBe(KIT.modules.canals?.shapes?.[0]);
+    expect(kit.shape.id).toBe('canals:landings');
     const landings: Drawing = { ...heartDrawing('mother'), shape: 'canals:landings' };
     expect(checkDrawing(p, landings)).toEqual([]);
   });
 
-  frameTests('EN-K3', ['postmaster']);
-  it.fails('EN-K3: no term at the heart', () => {
+  frameTests('EN-K3', ['postmaster'], true);
+  it('EN-K3: no term at the heart', () => {
     const kit = shapeKit('inkQuarter:terms');
     expect(kit.lengths).toEqual([3, 4, 5, 6]);
-    // The pack asserts the heart room's offers carry no term, at every length.
+    // Every room before the heart carries one termed card; the heart's offers carry none.
+    const viewOf = (room: number, length: number, state: unknown) =>
+      ({ trip: { seed: 3 }, kit: {}, state, room, length }) as unknown as ShapeInput<Json>;
+    for (const length of kit.lengths) {
+      for (let room = 0; room < length; room++) {
+        const card = termCardFor(viewOf(room, length, initInkState()));
+        if (room === length - 1) expect(card, `heart of ${length}`).toBeNull();
+        else expect(card?.kind, `room ${room + 1} of ${length}`).toBe('inkQuarter:termed');
+      }
+      // Never at the heart whatever the trip carries; never a second card while a term is open.
+      const open = {
+        terms: [{ id: 't0', def: 'inkQuarter:term-sampler', signedAt: 0, status: 'open' }],
+      };
+      expect(termCardFor(viewOf(length - 1, length, open))).toBeNull();
+      expect(termCardFor(viewOf(1, length, open))).toBeNull();
+    }
   });
 
   frameTests('EN-K4', ['bathSteward']);
