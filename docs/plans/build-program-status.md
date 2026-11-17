@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** design window of 2026-11-17 done (docs only): **EN-G0 decided go** (ending-plan P29); briefs written for DEV-1, EN-W1, the ending's Packs E–L and platform-closure Pack N (N1, N2); the handover text is drafted and waits for the player (EN-G2). Main is d13f93a plus this window's docs; CI on d13f93a is green and deployed. **Next window: routine.**
+**State:** wave 23 merged 2026-11-17 (DEV-1, MET-1, EN-W1, N1; fast gate green on main). **Wave 24 running: Pack E and Pack H** (routine window; usage 23 % of 5h at the spawn). Next: wave 25 (I, G, F2) when E (and H for G) merge; N2 and EN-G2 as below.
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -16,10 +16,6 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 | Wave | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|---|
-| 23 | DEV-1 | the generator dev page scrolls on the phone | Haiku 5.5 high | now |
-| 23 | **EN-W1** (critical path) | contracts, `GEN_LIMITS`, failing acceptance tests | Sonnet 5.5 high | now |
-| 23 | MET-1 | the five missing rule `met` keys (the palette offers one rule today) | Sonnet 5.5 medium | now |
-| 23 | N1 | CL-1, CL-2, CL-3, CL-6 records (docs only; may run as a fourth) | Sonnet 5.5 medium | now |
 | 24 | **E** (critical path) | EN-2 → EN-3 | Sonnet 5.5 high (→ Opus 5.5 high) | EN-W1 |
 | 24 | H | EN-6 | Sonnet 5.5 medium | EN-W1 |
 | 25 | **I** (critical path) | EN-K1 → EN-K2 → EN-K3 | Sonnet 5.5 medium | E |
@@ -37,7 +33,8 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| none | | | | |
+| E | EN-2 → EN-3 | Sonnet 5.5 high | worktree agent (worktree-agent-af055a704dbeeb05e) | spawned 2026-11-17 19:50 |
+| H | EN-6 | Sonnet 5.5 medium | worktree agent (worktree-agent-abb6db643637183ee) | spawned together |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
@@ -46,10 +43,10 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed. Copied into Pack G (the worker chunk must be precached).
 - From F8: Pack K (platform-closure): FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only. For N2's UI review.
 - Foundry: EN-K6 wraps the frame (Pack K). **The foundry's Close was never run** (found by the ledger pass, 2026-11-17): CL-6, records in N1, checks in N2.
-- From EF (EN-5): only `bridges:collapse` declares a `met` key, so the palette offers one rule: **MET-1** adds the other five. The palette reads only `module.trip`, so `canals:landings` is never offered: Pack I.
+- From EF (EN-5): MET-1 merged (bf2a19f). Still owed: the palette reads only `module.trip`, so `canals:landings` is never offered: Pack I. The `district` arg of `metIn` is untested against real lower-Seam floors (nothing builds them yet): whoever wires the floors must pass a `t.district` other than 'canals'.
 - From the design window of 2026-11-17 (ending-plan P30–P36): `GEN_LIMITS`, the kit and frame registries, `InkedTripState`, `storeDrawing`, `startTrip`'s `page`, `DistrictModule.sandbox` (declared by EN-W1); `roomInput` / `storeRoom` / `inkRoom`, the `sandbox` guards and `inkedPage` (Pack E); the lent shapes `inkQuarter:terms`, `bathhouses:heat`, `bridges:span`, `foundry:peal`, `cartographers:doorway` (Packs I, J, K); `EN-K: every element a full household can offer has a kit` loses its `it.fails` in the last kit pack to merge; `Profile.drawings` written by Pack H; `RoomInker` / `requestRoom` (Pack G); `DRAWN_LOOT` and `offersFor` (Pack F2); `ending.handover`, `creditsSeen`, `src/data/ending.ts` (Pack L).
 - Ending, later: CAL-5 the numbers (`GEN_TUNING`, `GEN_LIMITS`, `DRAWN_LOOT`, the pen); EN-14 the Close.
-- Close-out for FD, DK, RV, FN, SM, IQ: CL-1…5 and CL-6 (N1, N2). Plans' "Leaves for later" items: copied into every brief written.
+- Close-out: CL-1…3 and the foundry file are done (N1, 2026-11-17); screenshots saved outside the repo read "not checked" in the verification files. Still open: CL-4, CL-5, CL-6 checks (N2). Plans' "Leaves for later" items: copied into every brief written.
 
 ## Close checklist (per plan; the program's own close is platform-closure Pack N, then CAL)
 Cartographers (2026-11-16, main 01761c5): [x] full gate on main (403 files, 9059 passed, sims in) · [x] full-loop phone check (plan §6, Close verification) · [x] code review (Pack W) · [x] DESIGN §11 / TECH §7 · [x] plan State + roadmap row · [x] ledger clean · [x] CI deployed (d13f93a green, 2026-11-17)

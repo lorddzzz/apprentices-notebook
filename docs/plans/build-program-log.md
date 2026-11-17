@@ -73,6 +73,10 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CG Close | 533caba | Opus high (design window) | 0 | ~12% | full gate green (9059 tests, sims); phone loop at 375x812 (10 screenshots, forced wins); code review: 5 material findings → Pack W; hall joins PLAYABLE_DISTRICTS, bad join filed by room 4 → Pack CG-K |
 | CG-17, CG-18 | 958528f | Sonnet medium | 0 | ~4% | hall in PLAYABLE_DISTRICTS, SAVE-1 pair recorded over 01761c5, bad join filed by room 4 |
 | FX-1, FX-2, FX-3, FX-4, FX-5 | c10252f | Sonnet medium | 0 | ~8% | strikePiece honours struckBy (bells, spans declare theirs); erase-mark-clean neighbour restore (`beside` part); collapseOnce keeps replayed wear; `Unit.riveted`; rival trick page text, doorway Done caption; cut by the 5h limit once, resumed |
+| DEV-1 | 2ef8bbe | Haiku 5.5 high | 0 | ~3% | generator page mounts into #dev and scrolls; phone check at 375x812 (screenshot in build-program-evidence); real iOS Safari not checked |
+| MET-1 | bf2a19f | Sonnet 5.5 medium | 0 | ~6% | five rules declare `met` (current, boilOver, return, bell, pencil); six canals goldens re-stored (+"current"); `metIn`/`learnFromFight` take an optional district so a lower-Seam floor never records the current |
+| EN-W1 | b5e4b25 | Sonnet 5.5 high | 0 | ~9% | GEN_LIMITS, MASTER_HOME, GEN_KITS, HEART_FRAMES, storeDrawing, `page` option, 45 `it.fails` acceptance tests; sim summary identical (firstTry 0.448); Proposals: shared board helpers in kits/seam.ts, marginalia frame is a lazy stub |
+| CL-1, CL-2, CL-3, CL-6 (record half) | c8ff91e..acf5028 | Sonnet 5.5 medium | 0 | ~8% | six DESIGN §11 rows, five TECH §7 rows, six verification files (screenshots outside the repo read "not checked"); SM-15 closed; CL-6 checks left to N2 |
 
 ## Usage
 
@@ -89,3 +93,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 21:10 | ~50 | 77 | CG-G merged; CG-J, CG-H running; briefs empty after them |
 | 2026-11-16 21:40 | ~67 | 79 | waves 19–21 merged (S, T, U, V, CG-G, CG-H, CG-J); briefs empty; cartographers Close next |
 | 2026-11-16 22:25 | 5 (reset at ~22:10) | 1 | wave 22 merged (W, CG-K); fast gate green (8451); session ends, next session resumes |
+| 2026-11-17 19:50 | 23 | 20 | wave 23 merged (DEV-1, MET-1, EN-W1, N1); fast gate green (8461 + 45 expected fail); E, H spawned |
