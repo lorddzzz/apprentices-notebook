@@ -2,7 +2,7 @@
 
 > Design: [footnotes.md](../design/footnotes.md) (all), [rune-design-final.md](../design/rune-design-final.md) §2, §6, §8. Roadmap: **BL-54**, with BL-101 (fine-print audit), BL-104 (solvent discovery) and BL-50 (diagonal aura reach). Prefix **FN**. Brief: [build-program.md](build-program.md).
 >
-> **State: System and Seam content built; district batches belong to the district plans.**
+> **State: System and Seam content built (FN-P1, the threshold playtest, is open); district batches belong to the district plans. Closed 2026-11-17: [footnotes-verification.md](footnotes-verification.md), DESIGN §11 "Footnotes built (FN)", TECH §7 FN row.**
 >
 > Scope: the footnote level system for runes, methods and solvents, its desk and notebook margins, the fine print it needs, the aura diagonal capstone, the Seam content pass, and the template every district batch reuses.
 
