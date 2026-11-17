@@ -90,6 +90,7 @@ const events: readonly DistrictEventDef[] = FOUNDRY_EVENT_TYPES.map((type) => ({
  */
 export const BELLS_RULE: BoardRule<BellsState> = {
   id: BELLS_RULE_ID,
+  met: 'bell',
   slot: 'late',
   order: 90,
   scope: 'piece',

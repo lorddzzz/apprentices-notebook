@@ -458,6 +458,7 @@ export const GUILD_HAND_RULE: BoardRule<GuildHandState> = {
  */
 export const PENCIL_RULE: BoardRule = {
   id: PENCIL_RULE_ID,
+  met: 'pencil',
   slot: 'late',
   order: 60,
   scope: 'piece',

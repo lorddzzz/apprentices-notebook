@@ -20,6 +20,7 @@ import type { BoardRule, DistrictModule, PieceDef, PreviewShape } from './types'
 /** K-8, K-9: the current carries floats, then units, then what waits on the water (jars, Pitch). */
 export const CURRENT_RULE: BoardRule<null> = {
   id: 'canals:current',
+  met: 'current',
   slot: 'carry',
   order: 0,
   scope: 'piece',

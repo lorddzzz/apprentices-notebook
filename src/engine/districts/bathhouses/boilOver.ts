@@ -202,6 +202,7 @@ export function boilOverPreview(s: BattleState, own: BoilOverState): PreviewShap
 
 export const BOIL_OVER_RULE: BoardRule<BoilOverState> = {
   id: BOIL_OVER_RULE_ID,
+  met: 'boilOver',
   slot: 'afterChemistry',
   order: 10,
   scope: 'district',

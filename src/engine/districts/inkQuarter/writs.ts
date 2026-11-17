@@ -145,6 +145,7 @@ function standingOrders(ctx: Ctx): void {
 /** The writs' round-end rule: orders mark, then the round's start tiles are kept. */
 export const WRITS_RULE: BoardRule<WritsState> = {
   id: WRITS_RULE_ID,
+  met: 'return',
   slot: 'late',
   order: 0,
   scope: 'piece',

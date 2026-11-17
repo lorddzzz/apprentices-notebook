@@ -1,4 +1,4 @@
-import { type EnemyId, type LineId, type Meets, TUNING } from '$data';
+import { type DistrictId, type EnemyId, type LineId, type Meets, TUNING } from '$data';
 import type { PaperId } from '$data/districts/index';
 import { hearAfterTrip, hearFromBattle } from '../city';
 import { KIT } from '../districts/kit';
@@ -33,7 +33,11 @@ export function firedLines(log: EventLog): LineId[] {
 }
 
 /** What a fight showed the household: terrain, states, compounds and kinds of foe (the Bench palette, P37). */
-export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: EnemyId[] } {
+export function metIn(
+  b: BattleState,
+  log: EventLog,
+  district?: DistrictId,
+): { met: Meets[]; foes: EnemyId[] } {
   const met = new Set<Meets>();
   const foes = new Set<EnemyId>();
   for (const u of b.units) {
@@ -83,6 +87,11 @@ export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: Enem
         break;
     }
   }
+  // MET-1: rules with no piece of their own record a key. The current is piece-scoped (water), so only
+  // its own district's fights count; a lower-Seam floor with water meets the piece, not the rule.
+  if (b.rules && Object.hasOwn(b.rules, 'canals:current') && district === 'canals')
+    met.add('current');
+  if (b.rules && Object.hasOwn(b.rules, 'bathhouses:boilOver')) met.add('boilOver');
   for (const id of witnessedIn(log)) met.add(id.slice(id.indexOf(':') + 1) as Meets);
   return { met: [...met], foes: [...foes] };
 }
@@ -92,8 +101,13 @@ export function metIn(b: BattleState, log: EventLog): { met: Meets[]; foes: Enem
  * the lines that fired (witnessed, whoever cast them), a footnote point per household firing for
  * each known subject (rival casts earn none), and what the fight met.
  */
-export function learnFromFight(p: Profile, b: BattleState, log: EventLog): Profile {
-  const seen = metIn(b, log);
+export function learnFromFight(
+  p: Profile,
+  b: BattleState,
+  log: EventLog,
+  district?: DistrictId,
+): Profile {
+  const seen = metIn(b, log, district);
   const learned: Profile = {
     ...p,
     named: withAll(p.named, namedIn(log)),
@@ -131,7 +145,7 @@ export function finishEncounter(
   // The spells as fought: a tier earned in this very fight (e.g. an extra exit) must not add cells.
   const fought = perMember(t.party, (m) => compiledFor(foughtWith, m).spells);
   const stats = accumulateStats(t.stats, log, p, fought);
-  const learned = learnFromFight(p, b, log);
+  const learned = learnFromFight(p, b, log, t.district);
   if (b.phase === 'lost') return { profile: learned, trip: null, outcome: 'wiped', stats };
   // The room's paper is filed at once, so a later wipe keeps it (lore registry, DK §9).
   const shape0 = shapeOf(t.district, t);
