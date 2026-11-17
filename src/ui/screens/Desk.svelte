@@ -1,10 +1,10 @@
 <script lang="ts">
   import { SOLVENT_IDS, SOLVENTS } from '$data';
+  import { endingOf } from '$engine/drawing';
   import { deskGroups, deskRows, KIND_LABEL, marginOf } from '../../app/desk';
   import { DeskStore } from '../../app/desk.svelte';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
-  import { endingOf } from '$engine/drawing';
   import BackLink from '../components/common/BackLink.svelte';
   import MarginColumn from '../components/desk/MarginColumn.svelte';
   import SubjectEntry from '../components/desk/SubjectEntry.svelte';

@@ -142,8 +142,8 @@ function isPicked(d: Drawing, element: PickElement, id: string): boolean {
 }
 
 const LIMIT_SENTENCE: Partial<Record<PickElement, string>> = {
-  foe: 'A page holds three kinds of foe at most.',
-  piece: 'A page holds two extra pieces at most.',
+  foe: 'Three kinds at most.',
+  piece: 'Two extra pieces at most.',
 };
 
 const enemyName = (id: string): string => ENEMIES[id as EnemyId]?.name ?? id;

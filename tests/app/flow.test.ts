@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-import { handoverProfile } from '../drawing/fixtures';
 import {
   type FiredCell,
   latticeOf,
@@ -40,6 +39,7 @@ import {
   writeSave,
 } from '../../src/app/save';
 import { NO_TOOL, type ShelfTool } from '../../src/app/study';
+import { handoverProfile } from '../drawing/fixtures';
 import { cast, withLattices } from '../scenarios/harness';
 
 const rune = (r: Extract<ShelfTool, { kind: 'rune' }>['rune']): ShelfTool => ({

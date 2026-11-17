@@ -12,7 +12,7 @@
   const SLOTS = [0, 1, 2] as const;
 </script>
 
-<div class="tabs" role="group" aria-label="Pages">
+<div class="tabs">
   {#each SLOTS as s (s)}
     {@const d = slots[s] ?? null}
     <button

@@ -343,7 +343,7 @@
   {:else if part === 'hall'}
     <HallSheet />
   {:else if part === 'drawing'}
-    {#each drawingFixtures() as fx (fx.title)}
+    {#each drawingFixtures().filter((_, i) => router.params.get('fx') === null || router.params.get('fx') === String(i)) as fx (fx.title)}
       <h2 data-testid="drawing-fixture">{fx.title}</h2>
       <DrawingEditor
         view={fx.view}

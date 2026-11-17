@@ -62,7 +62,7 @@ describe('the drawing table', () => {
     for (const piece of [a, b, c]) q = toggle(q, 'piece', piece as string);
     expect(q.pieces).toEqual([a, b]);
     const v = tableView(p, 0, q, null);
-    expect(v.rows.piece.find((r) => r.id === c)?.greyed).toMatch(/two/);
+    expect(v.rows.piece.find((r) => r.id === c)?.greyed).toMatch(/Two extra/);
     // A picked row can always be taken off again.
     expect(toggle(q, 'piece', a as string).pieces).toEqual([b]);
   });

@@ -16,9 +16,9 @@ import {
   type UnitRef,
 } from '$engine';
 import { KIT } from '$engine/districts/kit';
+import { placeParty, START_SALT } from '$engine/rooms';
 import { sampleHousehold } from '../../app/dev/samples';
 import { blankDrawing, type TableView, tableView } from '../../app/drawing';
-import { placeParty, START_SALT } from '$engine/rooms';
 import { LAB_ROOMS } from '../../app/lab';
 import { EMPTY_OVERLAY, type Overlay } from '../../app/overlay';
 import { type BoardView, viewOfSpec } from '../../app/view';

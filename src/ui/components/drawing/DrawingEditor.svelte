@@ -106,7 +106,7 @@
 
   <section data-testid="drawing-length">
     <h3>Length</h3>
-    <div class="lengths" role="group" aria-label="Length">
+    <div class="lengths">
       {#each LENGTHS as n (n)}
         <button
           type="button"
