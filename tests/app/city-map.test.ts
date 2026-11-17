@@ -201,7 +201,9 @@ describe('the map for seven (DK-16)', () => {
   const drawn = (n: number): Profile => ({
     ...withCity(newProfile(), { hearts: ['seam'] }),
     ending: { handover: true, creditsSeen: false },
-    drawings: [0, 1, 2].map((i) => (i < n ? (FIXTURE_DRAWINGS[i] ?? null) : null)) as Profile['drawings'],
+    drawings: [0, 1, 2].map((i) =>
+      i < n ? (FIXTURE_DRAWINGS[i] ?? null) : null,
+    ) as Profile['drawings'],
   });
   const FIVE = ['canals', 'inkQuarter', 'bathhouses', 'bridges', 'foundry'] as const;
 

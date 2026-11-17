@@ -12,8 +12,8 @@ import FallbackCard from './cards/FallbackCard.svelte';
 import RecruitCard from './cards/RecruitCard.svelte';
 import { CARTOGRAPHERS_UI } from './cartographers';
 import { FOUNDRY_UI } from './foundry';
-import { INK_QUARTER_UI } from './inkQuarter';
 import { INKED_PAGE_UI } from './inkedPage';
+import { INK_QUARTER_UI } from './inkQuarter';
 import { LOWER_SEAM_UI } from './lowerSeam';
 import { SEAM_UI } from './seam';
 

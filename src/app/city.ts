@@ -6,8 +6,8 @@ import {
   type MapEntry,
 } from '$data/districts/index';
 import { type DistrictState, districtState, type Profile, tripParty } from '$engine';
-import { type WeightBand, drawingsOf, endingOf, weightBand } from '$engine/drawing';
 import { type DoorState, floorsFor, lowerSeamOpen, ownerDoor } from '$engine/districts/lowerSeam';
+import { drawingsOf, endingOf, type WeightBand, weightBand } from '$engine/drawing';
 import { startCheckpoint } from './crossroads';
 
 /** The page the map is drawn on is this tall (px); `x`/`y` in the data are percents of it (BL-95). */

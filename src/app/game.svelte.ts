@@ -19,7 +19,6 @@ import { welcome } from '$engine/recruits';
 import { termTallies } from '../ui/districts/inkQuarter/terms';
 import { BattleSession } from './battle.svelte';
 import { chooseWay, setOutAt } from './crossroads';
-import { applyRoom, needsRoom, type RoomInker, requestRoom, storedRoom, workerInker } from './generation';
 import { namedTitle } from './describe';
 import {
   editAndPersist,
@@ -35,6 +34,14 @@ import {
   takeOffer,
   type WipeSummary,
 } from './flow';
+import {
+  applyRoom,
+  needsRoom,
+  type RoomInker,
+  requestRoom,
+  storedRoom,
+  workerInker,
+} from './generation';
 import { forgetView } from './latticeViewport';
 import { newcomers } from './recruitNotes';
 import { go } from './router.svelte';
@@ -460,11 +467,17 @@ export class GameStore {
   private inkAhead(): void {
     const trip = this.save.trip;
     if (this.refusal || !trip || trip.district !== 'inkedPage') return;
-    const room = trip.status === 'fight' ? trip.encounter : trip.status === 'looting' ? trip.encounter + 1 : -1;
+    const room =
+      trip.status === 'fight'
+        ? trip.encounter
+        : trip.status === 'looting'
+          ? trip.encounter + 1
+          : -1;
     const key = `${trip.seed}:${room}`;
     if (!needsRoom(this.save, room) || this.inking_.has(key)) return;
     this.inking_.add(key);
-    const inker = (this.inker ??= inkerFor());
+    this.inker ??= inkerFor();
+    const inker = this.inker;
     requestRoom(this.save, room, inker)
       .then((done) => {
         const layout = storedRoom(done, room);

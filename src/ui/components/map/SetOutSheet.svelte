@@ -1,8 +1,8 @@
 <script lang="ts">
   import { APPRENTICES, type DistrictId } from '$data';
   import { compiledFor, describeSpell, type Profile, tripParty } from '$engine';
-  import { drawingsOf, weightBand } from '$engine/drawing';
   import type { StartAt } from '$engine/districts/types';
+  import { drawingsOf, weightBand } from '$engine/drawing';
   import { TUNED_FOR, TUNED_LINE } from '../../../app/city';
   import { startCheckpoint } from '../../../app/crossroads';
   import { DEPTH_WORDS } from '../../../app/drawing';

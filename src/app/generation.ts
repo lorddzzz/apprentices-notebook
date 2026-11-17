@@ -71,7 +71,7 @@ export function workerInker(): RoomInker {
 /** True when `room` of the save's drawn trip is on the page and not yet inked. */
 export function needsRoom(save: SaveData, room: number): boolean {
   const t = save.trip;
-  if (!t || t.district !== 'inkedPage') return false;
+  if (t?.district !== 'inkedPage') return false;
   try {
     const rooms = parseInkedState(t.kit?.state).rooms;
     return room >= 0 && room < rooms.length && rooms[room] === null;
@@ -83,7 +83,7 @@ export function needsRoom(save: SaveData, room: number): boolean {
 /** The layout stored for `room` of the save's drawn trip, or null. */
 export function storedRoom(save: SaveData, room: number): string | null {
   const t = save.trip;
-  if (!t || t.district !== 'inkedPage') return null;
+  if (t?.district !== 'inkedPage') return null;
   try {
     return parseInkedState(t.kit?.state).rooms[room] ?? null;
   } catch {
