@@ -62,6 +62,7 @@ import {
   heartSpec,
   inputFor,
 } from './fixtures';
+import { scriptedSolve } from './kits-a.scripts';
 
 /**
  * EN-W0 (ending-plan §4, §5): the ending's contracts exist, are inert and read strictly. Every
@@ -394,6 +395,7 @@ function frameTests(pack: string, masters: readonly MasterId[], built = false): 
     for (const master of masters) {
       const spec = heartSpec(inputFor(heartDrawing(master), 1));
       expect(checkGenerated(frameOf(master).fallback, spec)).toEqual([]);
+      expect(scriptedSolve(master).phase, `${master}'s scripted solve`).toBe('won');
     }
   });
   check(`${pack}: the bot trial ends within its op budget`, () => {
