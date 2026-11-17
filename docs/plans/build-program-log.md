@@ -77,6 +77,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | MET-1 | bf2a19f | Sonnet 5.5 medium | 0 | ~6% | five rules declare `met` (current, boilOver, return, bell, pencil); six canals goldens re-stored (+"current"); `metIn`/`learnFromFight` take an optional district so a lower-Seam floor never records the current |
 | EN-W1 | b5e4b25 | Sonnet 5.5 high | 0 | ~9% | GEN_LIMITS, MASTER_HOME, GEN_KITS, HEART_FRAMES, storeDrawing, `page` option, 45 `it.fails` acceptance tests; sim summary identical (firstTry 0.448); Proposals: shared board helpers in kits/seam.ts, marginalia frame is a lazy stub |
 | CL-1, CL-2, CL-3, CL-6 (record half) | c8ff91e..acf5028 | Sonnet 5.5 medium | 0 | ~8% | six DESIGN §11 rows, five TECH §7 rows, six verification files (screenshots outside the repo read "not checked"); SM-15 closed; CL-6 checks left to N2 |
+| EN-6 (Pack H) | d0f0508, 10ecea9 | Sonnet 5.5 medium | 0 | ~17% (shared with E) | drawing table: `src/app/drawing.ts`, DrawingTable + four components, Desk link after the handover, route `drawing`; 7 phone screenshots in build-program-evidence (no dark theme); Proposals: at least one foe required, full rows greyed with a limit sentence; autofixer not run on Desk, Gallery, App |
 
 ## Usage
 

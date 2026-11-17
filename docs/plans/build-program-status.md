@@ -17,7 +17,6 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 | Wave | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|---|
 | 24 | **E** (critical path) | EN-2 → EN-3 | Sonnet 5.5 high (→ Opus 5.5 high) | EN-W1 |
-| 24 | H | EN-6 | Sonnet 5.5 medium | EN-W1 |
 | 25 | **I** (critical path) | EN-K1 → EN-K2 → EN-K3 | Sonnet 5.5 medium | E |
 | 25 | G | EN-4 → EN-7 | Sonnet 5.5 medium | E and H |
 | 25 | F2 | EN-8 | Sonnet 5.5 medium | E |
@@ -34,12 +33,12 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
 | E | EN-2 → EN-3 | Sonnet 5.5 high | worktree agent (worktree-agent-af055a704dbeeb05e) | spawned 2026-11-17 19:50 |
-| H | EN-6 | Sonnet 5.5 medium | worktree agent (worktree-agent-abb6db643637183ee) | spawned together |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
 
 ## Owed (declared by a contract, not yet built)
+- From Pack H (EN-6, merged): svelte-autofixer not run on Desk.svelte, Gallery.svelte, App.svelte (N2's UI review); no dark-theme shots (the theme has none). `Profile.drawings` is written by the table through `storeDrawing`. Pack G edits flow.ts next.
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed. Copied into Pack G (the worker chunk must be precached).
 - From F8: Pack K (platform-closure): FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only. For N2's UI review.
 - Foundry: EN-K6 wraps the frame (Pack K). **The foundry's Close was never run** (found by the ledger pass, 2026-11-17): CL-6, records in N1, checks in N2.

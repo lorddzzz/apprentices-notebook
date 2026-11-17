@@ -71,46 +71,6 @@ Sims: run `tests/sim/generator.test.ts` for EN-2 and `tests/sim/household-sweep.
 
 ---
 
-## Pack H (wave 24; Default: Sonnet 5.5 medium)
-
-```
-Pack H of docs/plans/ending-plan.md: task EN-6 (the drawing table; one new screen with new interactions).
-
-Read: ending-plan.md §2 rows P2-P7 and §5 Pack H; docs/design/ending.md §1.3; pattern: src/ui/screens/Desk.svelte with src/app/desk.ts (a profile-editing screen and its view model).
-Own: src/app/drawing.ts (new), tests/app/drawing.test.ts (new), src/ui/screens/DrawingTable.svelte (new), src/ui/components/drawing/** (new);
-     one branch each for the new route `drawing`: src/app/routes.ts (`Route`, `ROUTES`), src/app/flow.ts (`Screen` gains 'drawingTable'; `resolveScreen`: `route === 'drawing' && !trip && !wipe && endingOf(profile).handover`; add the profile as an optional last parameter, default: closed), src/app/App.svelte (one `{:else if}`), tests/app/flow.test.ts (new cases only);
-     src/ui/screens/Desk.svelte: one link row "The drawing table", shown only when `endingOf(p).handover`;
-     src/ui/screens/galleryFixtures.ts and Gallery.svelte: fixtures for the states below.
-     Read-only: src/engine/** (the engine side is done: paletteOf, penOf, costOf, weightBand, checkDrawing, storeDrawing, drawingsOf, DRAWING_SLOTS, NAME_MAX).
-
-Contract (src/app/drawing.ts; app logic is tested first):
-  export type PickElement = 'rule' | 'foe' | 'piece' | 'shape' | 'heart';
-  export interface ElementRow { element: PickElement; id: string; label: string; cost: number; picked: boolean; greyed: string | null }
-  export interface TableView { slots: (Drawing | null)[]; draft: Drawing; pen: Pen; cost: number; band: WeightBand; depth: string;
-    rows: Record<PickElement, ElementRow[]>; issues: Issue[]; canSave: boolean; locked: boolean }
-  export function blankDrawing(p: Profile): Drawing             // plain, length 3, no rule, the first master of the palette
-  export function tableView(p: Profile, slot: 0 | 1 | 2, draft: Drawing | null, trip: Trip | null): TableView
-  export function toggle(draft: Drawing, element: PickElement, id: string): Drawing   // rule, shape, heart: one of; foes at most 3; pieces at most 2
-  export function saveDraft(save: SaveData, slot: 0 | 1 | 2, draft: Drawing | null): SaveData   // through storeDrawing
-Invariants:
-- Rows come only from `paletteOf(p)` (unmet content is never listed), plus "none" for the rule and "plain" for the shape.
-- `greyed` is the sentence of the `checkDrawing` issue for that row's id on the draft with that element picked (the NEEDS reason), or null. A greyed row stays visible with its sentence and cannot be picked ("the table never hides why").
-- `canSave` is `issues.length === 0 && !locked`; over the pen shows the pen issue's sentence. Each page has the whole pen.
-- `depth` is the band as words: light "a shallow page", medium "a deep page", heavy "the deepest page". Costs and bands come from the engine; no number is written in the UI.
-- An empty slot reads "a district not yet drawn". The name field: trimmed, 1 to NAME_MAX characters, rendered as text (never as HTML).
-- Svelte 5 runes only; svelte-autofixer on every new component.
-Owed by this pack: `Profile.drawings` is written here (through storeDrawing).
-
-Done when:
-- EN-6: tests `EN-6: rows list only the palette`, `EN-6: a row whose need is unmet is greyed with its sentence`, `EN-6: an over-budget draft cannot be saved and says why`, `EN-6: a fourth foe or a third piece is refused`, `EN-6: a page in use by a trip is locked`, `EN-6: the table is closed before the handover` pass.
-- Screens at 375x812 (light; dark too if the theme has it), from Gallery fixtures: three empty pages; a full drawing that fits; an over-budget drawing with the pen line; two greyed rows showing their sentences; the name field focused with the keyboard up; the locked state. Nothing overlaps, every tap target is at least 44 px.
-
-Verify: `pnpm vitest run tests/app/drawing.test.ts tests/app/flow.test.ts --reporter=dot`
-Phone check: yes, port 5191.
-```
-
----
-
 ## Pack I (wave 25; Default: Sonnet 5.5 medium)
 
 ```
