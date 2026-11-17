@@ -151,6 +151,13 @@
 </main>
 
 <style>
+  :global(html),
+  :global(body) {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: auto;
+  }
   :global(body) {
     margin: 0;
     background: var(--parchment);
@@ -161,6 +168,7 @@
     max-width: 480px;
     margin: 0 auto;
     padding: 16px;
+    padding-bottom: env(safe-area-inset-bottom);
   }
   h1 {
     margin: 0 0 4px;

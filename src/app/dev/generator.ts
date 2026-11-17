@@ -7,6 +7,6 @@ import Generator from './Generator.svelte';
  * build input): open `/apprentices-notebook/src/app/dev/generator.html` on the Vite server, on the
  * phone through the machine's address (`pnpm dev` already uses `--host`).
  */
-const target = document.getElementById('app');
-if (!target) throw new Error('#app missing');
+const target = document.getElementById('dev');
+if (!target) throw new Error('#dev missing');
 mount(Generator, { target });
