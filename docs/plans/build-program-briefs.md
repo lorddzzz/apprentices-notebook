@@ -28,36 +28,10 @@ Every brief's "Owed by this pack" items are also in the status file's Owed list.
 
 ---
 
-## Pack J (wave 26; Strong: Sonnet 5.5 high)
+## Pack K (wave 26; Strong: Sonnet 5.5 high) — NOTES AFTER PACK J (read first)
 
-```
-Pack J of docs/plans/ending-plan.md: tasks EN-K4 -> EN-K5 (kits and heart frames for the bathhouses and the bridges).
+Pack J merged (ef59938). Extras for K: frames read `KIT` lazily; J added optional `HeartFrame.masterInCloud`, `GenInput.choice`, `ShapeKit.adjust?` and a 4th optional parameter of `RuleKit.stamp`; `frameTests` in acceptance.test.ts picks `scriptedSolveB` when `SCRIPTS_B` has the master (add your scripts the same way, in kits-c.scripts.ts); the `EN-W1: registries` line now uses `arrayContaining`: extend it for foundry and cartographers. K must also cover the elements the EN-K marker lists for its districts (rules `foundry:bells`, `cartographers:pencil`; the foundry pieces `foundry:bell`, `foundry:rope`; the hall pieces pencil, blank, outline; masters carillonneur and registrar; shapes `foundry:peal`, `cartographers:doorway`) and the foes of those districts (clapper, ringer, detuner, surveyor, eraser, tracer where plain). The kit-less ink-quarter and canals foes/pieces (dummy, snuffer, deadLetter, sorter, sealer, clockSeal, letter, `canals:moor`, the quarter's return/order/forward/address/wax/clockStamp) are in no pack: decide in the next design window or let K add them as a third task if cheap. The termed card (`termCardFor`) is still unwired in F2's offers.
 
-Read: ending-plan.md §2 rows P4, P5, P13-P15, P33-P35 and §5 Pack J; src/engine/drawing/types.ts; pattern: Pack I's src/engine/drawing/kits/inkQuarter.ts and frames/postmaster.ts (a kit with a lent shape and a frame with an authored fallback).
-Own: src/engine/drawing/kits/{bathhouses,bridges}.ts; src/engine/drawing/frames/{steward,chiefWarden}.ts; your lines in kits/index.ts and frames/index.ts; tests/drawing/kits-b.test.ts (new); the EN-K4 and EN-K5 lines of tests/drawing/acceptance.test.ts.
-     Read-only: every file under src/engine/districts/ and src/data/districts/ (P14); import their exported helpers (`BATH_HEART_SETUP`, `BRIDGES_HEART`, the heat and span helpers).
-
-Contract (on main): the kit and frame interfaces of src/engine/drawing/types.ts as Pack I used them (RuleKit.stamp, PieceKit.place/matters/valid, FoeKit.budget/valid, ShapeKit.shape, HeartFrame.fallback).
-Invariants:
-- `needs` is `NEEDS[id] ?? []`, costs from `COSTS`; foe budgets 1 minion, 2 elite; plain foes only.
-- Rising heat (id 'bathhouses:heat'): heat 1 at room 1 rising to 4, spread over the trip's length, the heart always at 4, for every length 3 to 6. It needs boil-over on the drawing (NEEDS).
-- Span choice (id 'bridges:span'): before each room after the first, a choice of sound or crumbling; the choice changes the next room's spec (sound: a bigger board and more foes within the walk's budget; crumbling: the collapse stamp at its fuller setting), never a variant pool (generated rooms have none). The party can never be stranded: every room keeps a walkable route from each P that survives the collapse rule's first step, checked by the kit's `valid`.
-- The Chief Warden's frame stands him on the keystone with piers and spans and no span starts cracked; the Steward's frame stands him on a connected cloud of four or more tiles (the KIT-R3 frame tests name both properties).
-- Each frame's `fallback` passes `checkGenerated` and is won by a fixed action script stored in the test. No tuning: report the bot's pass rate per frame.
-Owed by this pack: if this pack merges after I and K, remove the `it.fails` marker of `EN-K: every element a full household can offer has a kit`.
-
-Done when:
-- EN-K4: `EN-K4: the frame passes checkGenerated over 50 seeds`, `EN-K4: the fallback board passes checkGenerated and has a scripted solve`, `EN-K4: the bot trial ends within its op budget`, `EN-K4: heat reaches 4 at the heart for every length` pass.
-- EN-K5: the same three titled `EN-K5: ...`, plus `EN-K5: never stranded on a span choice`.
-- Pack E's and Pack I's tests pass unchanged.
-
-Verify: `pnpm vitest run tests/drawing --reporter=dot`
-Phone check: no.
-```
-
----
-
-## Pack K (wave 26; Strong: Sonnet 5.5 high)
 
 ```
 Pack K of docs/plans/ending-plan.md: tasks EN-K6 -> EN-K7 (kits and heart frames for the foundry and the Cartographers' hall).
