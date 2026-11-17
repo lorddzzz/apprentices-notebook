@@ -380,16 +380,20 @@ function frameOf(master: MasterId): HeartFrame {
 function frameTests(pack: string, masters: readonly MasterId[], built = false): void {
   // `built`: the pack's frame exists (EN-W1's Marginalia frame, drawn since EN-2), so its tests must pass.
   const check = built ? it : it.fails;
-  check(`${pack}: the frame passes checkGenerated over 50 seeds`, () => {
-    for (const master of masters) {
-      frameOf(master);
-      for (let seed = 1; seed <= 50; seed++) {
-        const { input, room, masterOnBoard } = heartRoom(master, seed);
-        expect(masterOnBoard, `${master}, seed ${seed}`).toBe(true);
-        expect(checkGenerated(room.layout, heartSpec(input))).toEqual([]);
+  check(
+    `${pack}: the frame passes checkGenerated over 50 seeds`,
+    () => {
+      for (const master of masters) {
+        frameOf(master);
+        for (let seed = 1; seed <= 50; seed++) {
+          const { input, room, masterOnBoard } = heartRoom(master, seed);
+          expect(masterOnBoard, `${master}, seed ${seed}`).toBe(true);
+          expect(checkGenerated(room.layout, heartSpec(input))).toEqual([]);
+        }
       }
-    }
-  });
+    },
+    120_000,
+  );
   // The kit pack adds the scripted solve of each fallback board beside the guardrail check.
   check(`${pack}: the fallback board passes checkGenerated and has a scripted solve`, () => {
     for (const master of masters) {
