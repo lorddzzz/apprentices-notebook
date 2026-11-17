@@ -28,7 +28,9 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| E | EN-2 → EN-3 | Sonnet 5.5 high | worktree agent (worktree-agent-af055a704dbeeb05e) | spawned 2026-11-17 19:50 |
+| I | EN-K1 → EN-K3 | Sonnet 5.5 medium | worktree agent (a70566496af515e51) | spawned 2026-11-17 20:40 |
+| G | EN-4 → EN-7 | Sonnet 5.5 medium | worktree agent (a7c445e93bc6ef5ee) | spawned together |
+| F2 | EN-8 | Sonnet 5.5 medium | worktree agent (ac464389dae9910c9) | spawned together |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
