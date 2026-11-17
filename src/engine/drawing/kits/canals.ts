@@ -1,8 +1,9 @@
 import { cloneData } from '../../clone';
 import type { RuleId } from '../../districts/types';
 import { createRng } from '../../rng';
-import type { GenKit, RuleKit } from '../types';
-import { at, coords, foeKit, isPlain, isWater, lay, shuffled } from './seam';
+import { CANALS_LANDINGS } from '../../districts/canals/shape';
+import type { GenKit, RuleKit, ShapeKit } from '../types';
+import { at, coords, foeKit, isPlain, isWater, lay, needsOf, shuffled } from './seam';
 
 /** The canals' kit (EN-S1, moved here unchanged by EN-W1; P34). */
 
@@ -53,12 +54,24 @@ export const currentKit: RuleKit = {
   },
 };
 
+/**
+ * The landings (P15, P33): the canals' own return rule, lent to drawn districts as it is (home
+ * after rooms 1, 3 and 5 that exist), at every length a drawing takes. The shape is the one
+ * KIT-R3 already lends, under the id the palette offers.
+ */
+export const landingsKit: ShapeKit = {
+  id: CANALS_LANDINGS.id,
+  needs: needsOf(CANALS_LANDINGS.id),
+  lengths: [3, 4, 5, 6],
+  shape: CANALS_LANDINGS,
+};
+
 /** The canals: the current with its lamps, the eel on its lanes and the moth by its lamps. */
 export const CANALS_KIT: GenKit = {
   district: 'canals',
   rules: [currentKit],
   pieces: [],
   foes: (['eel', 'moth'] as const).map(foeKit),
-  shapes: [],
+  shapes: [landingsKit],
   frames: [],
 };

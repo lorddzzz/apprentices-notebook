@@ -14,7 +14,6 @@ import {
 } from '$engine/drawing';
 import { mapNodes } from '../../../src/app/city';
 import { FIXTURE_DRAWINGS, fullHousehold } from '../../drawing/fixtures';
-import '../../drawing/motherFrame';
 
 /** The module's own rules (EN-3): snapshot, pure rooms, the lent shape and the sandbox. */
 

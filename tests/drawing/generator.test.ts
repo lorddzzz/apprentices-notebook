@@ -9,7 +9,6 @@ import {
   specFor,
 } from '$engine/drawing';
 import { FIXTURE_DRAWINGS, fullHousehold, heartRoom, heartSpec, inputFor } from './fixtures';
-import './motherFrame';
 
 /**
  * Pack E's acceptance for the production generator (EN-2, EN-5): each test goes through a heart
@@ -76,9 +75,9 @@ describe('EN-2: the production generator', () => {
 
   it('EN-2: unverified fallbacks are zero', () => {
     // The lamp-mother is not here: the lite bot needs 17 to 38 rounds for her (the heart limit is
-    // 16) on the authored canals heart and on any frame of it, so her fallback stays unverified
-    // until the bot has terms for the current (Pack I owns her frame and the canals' kit).
-    for (const master of ['marginalia'] as const) {
+    // 16), so all her hearts reach the fallback and it stays unverified until the bot has terms for
+    // the current. Every other frame is covered (Pack I).
+    for (const master of ['marginalia', 'lamplighter'] as const) {
       for (const seed of SEEDS) {
         const { room, masterOnBoard } = heartRoom(master, seed);
         expect(masterOnBoard).toBe(true);

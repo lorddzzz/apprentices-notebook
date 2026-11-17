@@ -25,9 +25,16 @@ export function paletteOf(p: Profile): Palette {
   const pieces = Object.values(KIT.pieces)
     .filter((d) => d.bench !== undefined && met.includes(d.bench.met))
     .map((d) => d.id);
+  // A shape lent to drawn districts (`module.shapes`, P33) is offered like the module's own, but
+  // `seam:plain` is the 'plain' shape, which every drawing has.
   const shapes: ShapeId[] = DISTRICT_MODULES.flatMap((m) =>
-    m.trip && m.id !== 'lowerSeam' && !m.sandbox && p.city.open.includes(m.id) ? [m.trip.id] : [],
-  );
+    m.id !== 'lowerSeam' && !m.sandbox && p.city.open.includes(m.id)
+      ? [
+          ...(m.trip ? [m.trip.id] : []),
+          ...(m.shapes ?? []).map((s) => s.id).filter((id) => id !== 'seam:plain'),
+        ]
+      : [],
+  ) as ShapeId[];
   const masters: MasterId[] = p.city.hearts.flatMap((d) => {
     const foe = KIT.modules[d]?.heart?.foe;
     return foe !== undefined && isMaster(foe) ? [foe] : [];

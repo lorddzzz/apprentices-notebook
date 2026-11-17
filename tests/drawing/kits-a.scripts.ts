@@ -24,6 +24,33 @@ export const SCRIPTS: Partial<Record<MasterId, readonly string[]>> = {
     'c draughtsman 0,1 up;m draughtsman 1,0;c stoker 1,0 up;m stoker 3,0;e',
     'c draughtsman 0,1 right;m draughtsman 2,1;s stoker left',
   ],
+  mother: [
+    'm draughtsman 1,6;c draughtsman 0,1 up;m stoker 0,6;e',
+    'c draughtsman 0,1 up;m draughtsman 1,3;m stoker 1,7;e',
+    'c draughtsman 0,1 up;m draughtsman 2,2;c stoker 1,0 up;m stoker 1,4;e',
+    'c draughtsman 0,1 left;m draughtsman 1,1;c stoker 1,0 up;m stoker 0,2;e',
+    'c draughtsman 0,1 up;m draughtsman 1,1;c stoker 1,0 right;m stoker 1,3;e',
+    'm draughtsman 1,1;s draughtsman down;c stoker 1,0 up;m stoker 2,1;e',
+    'm draughtsman 1,1;s draughtsman down;m stoker 2,2;c stoker 1,0 left;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker left;m stoker 3,0;e',
+    'm draughtsman 1,1;s draughtsman down;m stoker 2,2;s stoker left;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker left;m stoker 1,3;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker up;m stoker 2,1;e',
+    'm draughtsman 1,1;s draughtsman down;m stoker 2,2;s stoker left;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker left;m stoker 1,3;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker up;m stoker 2,1;e',
+    'm draughtsman 1,1;s draughtsman down;m stoker 2,2;s stoker left;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker left;m stoker 1,3;e',
+    's draughtsman up;m draughtsman 1,1;s stoker up;m stoker 0,2;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker right;m stoker 1,3;e',
+    'm draughtsman 1,1;s draughtsman down;s stoker up;m stoker 0,2;e',
+    's draughtsman up;m draughtsman 1,1;s stoker right;m stoker 1,3;e',
+    'm draughtsman 1,1;s draughtsman down;m stoker 2,1;s stoker up',
+  ],
+  lamplighter: [
+    'm draughtsman 3,6;c draughtsman 0,1 up;m stoker 1,5;e',
+    'm draughtsman 2,4;c draughtsman 0,1 right;m stoker 3,3;c stoker 1,0 down',
+  ],
 };
 
 const DIRS = ['up', 'down', 'left', 'right'] as const;

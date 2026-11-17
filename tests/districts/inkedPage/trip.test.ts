@@ -13,7 +13,6 @@ import {
 } from '$engine';
 import { inkRoom, parseInkedState, storeDrawing } from '$engine/drawing';
 import { FIXTURE_DRAWINGS, fullHousehold } from '../../drawing/fixtures';
-import '../../drawing/motherFrame';
 
 /** Acceptance for the `inkedPage` module (EN-3; P1, P15, P16, P31). */
 

@@ -263,7 +263,7 @@ describe('EN-W1: the contracts', () => {
     const input = inputFor(FIXTURE_DRAWINGS[1] as Drawing, 1, 0);
     expect(specFor(input, 1).kits).toBe(GEN_KITS);
     // The Marginalia's frame is the Seam's heart in a minimal frame (P35).
-    expect(Object.keys(HEART_FRAMES)).toEqual(['marginalia']);
+    expect(Object.keys(HEART_FRAMES)[0]).toBe('marginalia');
     const frame = HEART_FRAMES.marginalia;
     expect(frame).toMatchObject({
       master: 'marginalia',
@@ -388,7 +388,7 @@ function frameTests(pack: string, masters: readonly MasterId[], built = false): 
         }
       }
     },
-    120_000,
+    masters.length * 150_000,
   );
   // The kit pack adds the scripted solve of each fallback board beside the guardrail check.
   check(`${pack}: the fallback board passes checkGenerated and has a scripted solve`, () => {
@@ -428,7 +428,7 @@ describe('EN-K: every kit and frame', () => {
 describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
   frameTests('EN-K1', ['marginalia'], true);
 
-  frameTests('EN-K2', ['mother', 'lamplighter']);
+  frameTests('EN-K2', ['mother', 'lamplighter'], true);
   // Already true (EN-5's needs rows), so a plain test: the eel and the moth are greyed without the current.
   it('EN-K2: eel and moth are greyed without water and lamps', () => {
     const p = fullHousehold();
@@ -440,6 +440,20 @@ describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
     );
     const wet = checkDrawing(p, { ...dry, rule: 'canals:current' });
     expect(wet.filter((i) => i.id === 'eel' || i.id === 'moth')).toEqual([]);
+  });
+
+  it('EN-K2: landings are offered once the canals are open', () => {
+    const p = fullHousehold();
+    const closed = { ...p, city: { ...p.city, open: p.city.open.filter((d) => d !== 'canals') } };
+    expect(paletteOf(closed).shapes).not.toContain('canals:landings');
+    expect(paletteOf(p).shapes).toContain('canals:landings');
+    // The plain shape is every drawing's own, never listed; the kit carries the lent shape at 3 to 6.
+    expect(paletteOf(p).shapes).not.toContain('seam:plain');
+    const kit = shapeKit('canals:landings');
+    expect(kit.lengths).toEqual([3, 4, 5, 6]);
+    expect(kit.shape).toBe(KIT.modules.canals?.shapes?.[0]);
+    const landings: Drawing = { ...heartDrawing('mother'), shape: 'canals:landings' };
+    expect(checkDrawing(p, landings)).toEqual([]);
   });
 
   frameTests('EN-K3', ['postmaster']);

@@ -1,5 +1,7 @@
 import type { MasterId } from '$data';
 import type { HeartFrame } from '../types';
+import { LAMP_MOTHER_FRAME } from './lampMother';
+import { LAMPLIGHTER_FRAME } from './lamplighter';
 import { MARGINALIA_FRAME } from './marginalia';
 
 /**
@@ -7,4 +9,6 @@ import { MARGINALIA_FRAME } from './marginalia';
  */
 export const HEART_FRAMES: Partial<Record<MasterId, HeartFrame>> = {
   marginalia: MARGINALIA_FRAME,
+  mother: LAMP_MOTHER_FRAME,
+  lamplighter: LAMPLIGHTER_FRAME,
 };
