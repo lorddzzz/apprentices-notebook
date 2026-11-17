@@ -3,6 +3,8 @@
   import { deskGroups, deskRows, KIND_LABEL, marginOf } from '../../app/desk';
   import { DeskStore } from '../../app/desk.svelte';
   import { game } from '../../app/instance';
+  import { href } from '../../app/routes';
+  import { endingOf } from '$engine/drawing';
   import BackLink from '../components/common/BackLink.svelte';
   import MarginColumn from '../components/desk/MarginColumn.svelte';
   import SubjectEntry from '../components/desk/SubjectEntry.svelte';
@@ -21,6 +23,12 @@
   </header>
 
   <div class="leaf">
+    {#if endingOf(profile).handover}
+      <a class="link-row" href={href('drawing')} data-testid="desk-drawing-link">
+        <span>The drawing table</span>
+        <span aria-hidden="true">&rarr;</span>
+      </a>
+    {/if}
     {#if held.length > 0}
       <p class="stock" data-testid="desk-stock">
         {#each held as s (s)}
@@ -95,6 +103,24 @@
     min-height: 0;
     overflow-y: auto;
     padding: var(--space-2);
+  }
+  .link-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    margin-bottom: var(--space-2);
+    padding: 0 var(--space-3);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--parchment-dark);
+    color: var(--ink);
+    font-family: var(--hand);
+    font-size: 20px;
+    text-decoration: none;
+  }
+  .link-row:focus-visible {
+    outline: 3px solid var(--select);
   }
   .stock {
     display: flex;

@@ -1,5 +1,23 @@
-import type { ApprenticeId } from '$data';
-import { deriveSeed, type GameEvent, parseBoard, type UnitRef } from '$engine';
+import {
+  type ApprenticeId,
+  DISTRICT_IDS,
+  type Drawing,
+  ENEMY_IDS,
+  type EnemyId,
+  type Meets,
+  RUNES,
+} from '$data';
+import {
+  deriveSeed,
+  type GameEvent,
+  type Profile,
+  parseBoard,
+  type Trip,
+  type UnitRef,
+} from '$engine';
+import { KIT } from '$engine/districts/kit';
+import { sampleHousehold } from '../../app/dev/samples';
+import { blankDrawing, type TableView, tableView } from '../../app/drawing';
 import { placeParty, START_SALT } from '$engine/rooms';
 import { LAB_ROOMS } from '../../app/lab';
 import { EMPTY_OVERLAY, type Overlay } from '../../app/overlay';
@@ -412,4 +430,93 @@ export function hallOverlay(): Overlay {
       units: [],
     },
   };
+}
+
+// ── The drawing table (EN-6) ──
+/** A household past the handover, as the table sees it: a few foes and runes, the Seam and canals open. */
+function handoverHousehold(): Profile {
+  const p = sampleHousehold();
+  return {
+    ...p,
+    ending: { handover: true, creditsSeen: false },
+    foesMet: ['rat', 'familiar', 'sentry'],
+    city: { ...p.city, open: ['seam', 'canals'], hearts: ['seam'] },
+    known: [...new Set([...p.known, ...(Object.keys(RUNES) as Profile['known'])])],
+  };
+}
+
+/** Every district open and everything met: the rows that need other rows show their sentences. */
+function fullHouseholdView(): Profile {
+  const p = handoverHousehold();
+  const met = [
+    ...Object.values(KIT.rules).flatMap((r) => (r.met === undefined ? [] : [r.met])),
+    ...Object.values(KIT.pieces).flatMap((d) => (d.bench === undefined ? [] : [d.bench.met])),
+  ] as Meets[];
+  return {
+    ...p,
+    met: [...new Set(met)],
+    foesMet: [...ENEMY_IDS] as EnemyId[],
+    pages: ['lamplighter:lantern'],
+    city: {
+      ...p.city,
+      open: DISTRICT_IDS.filter((d) => d !== 'lowerSeam'),
+      hearts: DISTRICT_IDS.filter((d) => d !== 'lowerSeam'),
+    },
+  };
+}
+
+export interface DrawingFixture {
+  title: string;
+  view: TableView;
+  slot: 0 | 1 | 2;
+  focusName?: boolean;
+}
+
+const FITS: Drawing = {
+  name: 'The wet room',
+  rule: 'canals:current',
+  foes: ['eel', 'moth'],
+  pieces: [],
+  shape: 'plain',
+  length: 4,
+  heart: 'mother',
+};
+
+export function drawingFixtures(): DrawingFixture[] {
+  const home = handoverHousehold();
+  const full = fullHouseholdView();
+  const lean: Profile = { ...full, known: [] };
+  const overdrawn: Drawing = {
+    name: 'Everything at once',
+    rule: 'canals:current',
+    foes: ['rat', 'familiar', 'sentry'],
+    pieces: [],
+    shape: 'plain',
+    length: 6,
+    heart: 'registrar',
+  };
+  const inUse = {
+    district: 'inkedPage',
+    kit: {
+      state: { slot: 1, drawing: FITS, rooms: [null, null, null, null], inner: null },
+      choices: [],
+      checkpoint: false,
+      bonuses: [],
+    },
+  } as unknown as Trip;
+  const saved = { ...full, drawings: [null, FITS, null] };
+  const noRule = { ...blankDrawing(full), name: 'Wet foes' };
+  return [
+    { title: 'Three empty pages', view: tableView(home, 0, null, null), slot: 0 },
+    { title: 'A full drawing that fits', view: tableView(saved, 1, null, null), slot: 1 },
+    { title: 'Over budget', view: tableView(lean, 0, overdrawn, null), slot: 0 },
+    { title: 'Greyed rows', view: tableView(full, 0, noRule, null), slot: 0 },
+    {
+      title: 'Name field, keyboard up',
+      view: tableView(home, 0, { ...blankDrawing(home), name: 'The lamp' }, null),
+      slot: 0,
+      focusName: true,
+    },
+    { title: 'A page in use by a trip', view: tableView(saved, 1, null, inUse), slot: 1 },
+  ];
 }

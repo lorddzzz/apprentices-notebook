@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { handoverProfile } from '../drawing/fixtures';
 import {
   type FiredCell,
   latticeOf,
@@ -497,4 +498,15 @@ test('reset throws the notebook away for a new game and saves it', () => {
   expect(game.save).toEqual(newSave(77));
   expect(parseSaveText(b.read() ?? '')).toEqual(newSave(77));
   expect(game.inDoorway).toBe(false);
+});
+
+test('the drawing route opens only after the handover, at home', () => {
+  const open = handoverProfile();
+  expect(resolveScreen('drawing', null, null, null, open).screen).toBe('drawingTable');
+  expect(resolveScreen('drawing', null, null, null).screen).toBe('study');
+  expect(resolveScreen('drawing', null, null, null, { ...open, ending: undefined }).screen).toBe(
+    'study',
+  );
+  const wipe: WipeSummary = { encounter: 'x', lost: [], learned: [] };
+  expect(resolveScreen('drawing', null, wipe, null, open).screen).toBe('wiped');
 });

@@ -7,6 +7,7 @@
   import Combat from '../ui/screens/Combat.svelte';
   import Crossroads from '../ui/screens/Crossroads.svelte';
   import Desk from '../ui/screens/Desk.svelte';
+  import DrawingTable from '../ui/screens/DrawingTable.svelte';
   import Loot from '../ui/screens/Loot.svelte';
   import CityMap from '../ui/screens/Map.svelte';
   import Study from '../ui/screens/Study.svelte';
@@ -19,7 +20,7 @@
   import { go, router } from './router.svelte';
   import { toast } from './toasts.svelte';
 
-  const resolved = $derived(resolveScreen(router.route, game.save.trip, game.wipe, game.save.lastTrip));
+  const resolved = $derived(resolveScreen(router.route, game.save.trip, game.wipe, game.save.lastTrip, game.save.profile));
 
   onMount(() => {
     if (game.recovered) {
@@ -63,6 +64,8 @@
     <Bench />
   {:else if resolved.screen === 'desk'}
     <Desk />
+  {:else if resolved.screen === 'drawingTable'}
+    <DrawingTable />
   {:else if resolved.screen === 'gallery'}
     {#await import('../ui/screens/Gallery.svelte') then { default: Gallery }}
       <Gallery />

@@ -30,6 +30,7 @@ import {
   type TripRecap,
   type TripStats,
 } from '$engine';
+import { endingOf } from '$engine/drawing';
 import { newlyAnswered } from '$engine/margins';
 import { knockAtDoor, someoneJoined } from '$engine/recruits';
 import { termTallies } from '../ui/districts/inkQuarter/terms';
@@ -58,6 +59,7 @@ export type Screen =
   | 'gallery'
   | 'bench'
   | 'desk'
+  | 'drawingTable'
   | 'tripPage'
   | 'map'
   | 'threshold';
@@ -81,6 +83,7 @@ export function resolveScreen(
   trip: Trip | null,
   wipe: WipeSummary | null,
   lastTrip: TripRecap | null = null,
+  profile: Profile | null = null,
 ): { screen: Screen; redirect: Route | null } {
   if (route === 'codex' || route === 'lab' || route === 'gallery') {
     return { screen: route, redirect: null };
@@ -91,6 +94,10 @@ export function resolveScreen(
   if (route === 'bench' && !trip && !wipe) return { screen: 'bench', redirect: null };
   // So is the footnote desk.
   if (route === 'desk' && !trip && !wipe) return { screen: 'desk', redirect: null };
+  // The drawing table is the owner's: closed before the handover, and out on a trip.
+  if (route === 'drawing' && !trip && !wipe && profile && endingOf(profile).handover) {
+    return { screen: 'drawingTable', redirect: null };
+  }
   // The map hangs behind the study door, and the threshold rooms are reached from it (K-22).
   if (route === 'map' && !trip && !wipe) return { screen: 'map', redirect: null };
   if (route === 'threshold' && !trip && !wipe) return { screen: 'threshold', redirect: null };

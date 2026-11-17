@@ -7,6 +7,7 @@ export type Route =
   | 'gallery'
   | 'bench'
   | 'desk'
+  | 'drawing'
   | 'map'
   | 'threshold';
 
@@ -19,6 +20,7 @@ export const ROUTES: readonly Route[] = [
   'gallery',
   'bench',
   'desk',
+  'drawing',
   'map',
   'threshold',
 ];

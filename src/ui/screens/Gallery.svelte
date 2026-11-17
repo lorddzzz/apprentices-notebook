@@ -38,6 +38,7 @@
   import Button from '../components/common/Button.svelte';
   import Pips from '../components/common/Pips.svelte';
   import Sheet from '../components/common/Sheet.svelte';
+  import DrawingEditor from '../components/drawing/DrawingEditor.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import SolventIcon from '../components/SolventIcon.svelte';
@@ -45,6 +46,7 @@
   import ToneSheet from '../districts/foundry/ToneSheet.svelte';
   import { METHOD_ART } from '../runeArt';
   import {
+    drawingFixtures,
     FX_DEMOS,
     type FxDemo,
     GLYPH_SAMPLES,
@@ -61,7 +63,7 @@
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall'] as const;
+  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall', 'drawing'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -340,6 +342,21 @@
     <ToneSheet />
   {:else if part === 'hall'}
     <HallSheet />
+  {:else if part === 'drawing'}
+    {#each drawingFixtures() as fx (fx.title)}
+      <h2 data-testid="drawing-fixture">{fx.title}</h2>
+      <DrawingEditor
+        view={fx.view}
+        slot={fx.slot}
+        focusName={fx.focusName}
+        onslot={() => {}}
+        onpick={() => {}}
+        onname={() => {}}
+        onlength={() => {}}
+        onsave={() => {}}
+        onclear={() => {}}
+      />
+    {/each}
   {:else}
     <p>No gallery part "{part}" yet.</p>
   {/if}
