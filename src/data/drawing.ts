@@ -1,4 +1,4 @@
-import type { MasterId } from './types';
+import type { DistrictId, MasterId } from './types';
 
 /**
  * The drawing table's numbers (EN P5, P6, P7, P13, P23): element costs on the pen and the
@@ -50,6 +50,34 @@ export const GEN_TUNING = {
   walkover: { rounds: 2, hpLeft: 1 },
   step: 1,
 } as const;
+
+/**
+ * The generator's limits (P30, decided by EN-G0 from the spike): bot-tested attempts per room and
+ * per heart, the bot's round limits, layout draws per attempt, the foes' distance from a start
+ * point, the blocked share of the board and the phone's timing bars. CAL-5 tunes them here.
+ */
+export const GEN_LIMITS = {
+  attempts: 4,
+  heartAttempts: 3,
+  rounds: 12,
+  heartRounds: 16,
+  draws: 8,
+  foeDistance: 3,
+  blockedShare: 0.3,
+  phone: { medianMs: 500, p95Ms: 2000 },
+} as const;
+
+/** P34: the district each master belongs to (where its kit's frame comes from). */
+export const MASTER_HOME: Record<MasterId, DistrictId> = {
+  marginalia: 'seam',
+  mother: 'canals',
+  lamplighter: 'canals',
+  postmaster: 'inkQuarter',
+  bathSteward: 'bathhouses',
+  chiefWarden: 'bridges',
+  carillonneur: 'foundry',
+  registrar: 'cartographers',
+};
 
 const CURRENT = ['canals:current'];
 const BELLS = ['foundry:bells', 'foundry:bell'];

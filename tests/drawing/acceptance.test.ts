@@ -1,18 +1,44 @@
-import { describe, expect, expectTypeOf, it, test } from 'vitest';
-import type { ApprenticeId, Drawing, EnemyId, MasterId, ShapeId } from '$data';
-import { newSave, type Profile, parseSaveData, type SaveData } from '$engine';
+import { describe, expect, expectTypeOf, it, test, vi } from 'vitest';
+import type { ApprenticeId, DistrictId, Drawing, EnemyId, MasterId, ShapeId } from '$data';
+import { COSTS, GEN_LIMITS, MASTER_HOME } from '$data/drawing';
 import {
+  newProfile,
+  newSave,
+  type Profile,
+  parseSaveData,
+  type SaveData,
+  startTrip,
+  type Trip,
+} from '$engine';
+import { KIT } from '$engine/districts/kit';
+import { ownerDoor } from '$engine/districts/lowerSeam';
+import type { TripShapeDef } from '$engine/districts/types';
+import {
+  BLOCKED_SHARE,
   type Credits,
+  checkDrawing,
+  checkGenerated,
   creditsOf,
   DRAWING_SLOTS,
   drawingsOf,
   EN_SALT,
   endingOf,
+  GEN_KITS,
+  HEART_FRAMES,
   handover,
   ledgerOf,
   MASTER_IDS,
+  MAX_ATTEMPTS,
+  MAX_DRAWS,
+  MIN_FOE_DISTANCE,
   NAME_MAX,
+  paletteOf,
+  parseInkedState,
+  ROOM_ROUNDS,
   readDrawing,
+  SPIKE_KITS,
+  specFor,
+  storeDrawing,
 } from '$engine/drawing';
 import { botTrial } from '$engine/drawing/trial';
 import type {
@@ -25,7 +51,17 @@ import type {
   RuleKit,
   ShapeKit,
 } from '$engine/drawing/types';
-import { botTrial as simBotTrial } from '$engine/sim';
+import { botTrial as simBotTrial, TRIAL_BUDGET } from '$engine/sim';
+import { newTripKit, shapeOf } from '$engine/trip/shape';
+import {
+  FIXTURE_DRAWINGS,
+  fullHousehold,
+  handoverProfile,
+  heartDrawing,
+  heartRoom,
+  heartSpec,
+  inputFor,
+} from './fixtures';
 
 /**
  * EN-W0 (ending-plan §4, §5): the ending's contracts exist, are inert and read strictly. Every
@@ -186,24 +222,138 @@ describe('EN-W0: the stubs and kit interfaces', () => {
   });
 });
 
+// ── EN-W1: the contracts Packs E to L build on (P30-P35) ───────────────────────
+
+describe('EN-W1: the contracts', () => {
+  test('EN-W1: GEN_LIMITS carries the spike’s limits', () => {
+    expect(GEN_LIMITS).toEqual({
+      attempts: 4,
+      heartAttempts: 3,
+      rounds: 12,
+      heartRounds: 16,
+      draws: 8,
+      foeDistance: 3,
+      blockedShare: 0.3,
+      phone: { medianMs: 500, p95Ms: 2000 },
+    });
+    // The generator keeps its exported names, as reads of the data.
+    expect([ROOM_ROUNDS, MAX_ATTEMPTS, MIN_FOE_DISTANCE, BLOCKED_SHARE, MAX_DRAWS]).toEqual([
+      12, 4, 3, 0.3, 8,
+    ]);
+    expect(MASTER_HOME).toEqual({
+      marginalia: 'seam',
+      mother: 'canals',
+      lamplighter: 'canals',
+      postmaster: 'inkQuarter',
+      bathSteward: 'bathhouses',
+      chiefWarden: 'bridges',
+      carillonneur: 'foundry',
+      registrar: 'cartographers',
+    });
+    expect(Object.keys(MASTER_HOME).sort()).toEqual([...MASTER_IDS].sort());
+  });
+
+  test('EN-W1: the registries hold the spike’s kits', () => {
+    expect(GEN_KITS.map((k) => k.district)).toEqual(['seam', 'canals']);
+    expect(SPIKE_KITS).toBe(GEN_KITS);
+    expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
+    expect(GEN_KITS[1]?.rules.map((r) => r.id)).toEqual(['canals:current']);
+    expect(GEN_KITS[1]?.foes.map((f) => f.id)).toEqual(['eel', 'moth']);
+    const input = inputFor(FIXTURE_DRAWINGS[1] as Drawing, 1, 0);
+    expect(specFor(input, 1).kits).toBe(GEN_KITS);
+    // The Marginalia's frame is the Seam's heart in a minimal frame (P35).
+    expect(Object.keys(HEART_FRAMES)).toEqual(['marginalia']);
+    const frame = HEART_FRAMES.marginalia;
+    expect(frame).toMatchObject({
+      master: 'marginalia',
+      cost: COSTS.hearts.marginalia,
+      size: { width: 7, height: 7 },
+      escorts: [],
+      ruleAt: [],
+      needs: [],
+    });
+    expect(frame?.setup).toBe(KIT.modules.seam?.heart);
+    expect(frame?.fallback).toMatchObject({ width: 7, height: 7 });
+    expect(frame?.fallback.tiles).toHaveLength(49);
+    // A shape kit carries the shape it lends (P33).
+    expectTypeOf<ShapeKit['shape']>().toEqualTypeOf<TripShapeDef>();
+  });
+
+  test('EN-W1: storeDrawing refuses an unfit drawing and a page in use', () => {
+    const p = handoverProfile();
+    const plain = FIXTURE_DRAWINGS[0] as Drawing;
+    expect(checkDrawing(p, plain)).toEqual([]);
+    const stored = storeDrawing(p, 1, plain, null);
+    expect(drawingsOf(stored)).toEqual([null, plain, null]);
+    expect(p.drawings).toBeUndefined();
+    // Unfit: the first issue's reason; the eel needs the current, which is not drawn.
+    const wet: Drawing = { ...plain, foes: ['eel'] };
+    const first = checkDrawing(p, wet)[0];
+    expect(first?.reason).toBeTruthy();
+    expect(() => storeDrawing(p, 0, wet, null)).toThrow(first?.reason as string);
+    // Before the handover the table is the owner's.
+    const early = { ...p, ending: undefined };
+    expect(() => storeDrawing(early, 0, plain, null)).toThrow();
+    // A drawn trip locks its own page and no other; a trip of another district never locks.
+    const trip = (district: string, slot: number) =>
+      ({
+        district,
+        kit: {
+          state: { slot, drawing: plain, rooms: [null, null, null], inner: null },
+          choices: [],
+          checkpoint: false,
+          bonuses: [],
+        },
+      }) as unknown as Trip;
+    expect(parseInkedState(trip('inkedPage', 1).kit?.state).slot).toBe(1);
+    expect(() => storeDrawing(stored, 1, null, trip('inkedPage', 1))).toThrow();
+    expect(() => storeDrawing(stored, 0, plain, trip('inkedPage', 1))).not.toThrow();
+    expect(() => storeDrawing(stored, 1, null, trip('bathhouses', 1))).not.toThrow();
+    // Clearing the last slot drops the field again (P22).
+    expect(storeDrawing(stored, 1, null, null).drawings).toBeUndefined();
+    // The state reads strictly.
+    expect(() => parseInkedState({ slot: 3 })).toThrow();
+    expect(() =>
+      parseInkedState({ slot: 0, drawing: plain, rooms: [null], inner: null }),
+    ).toThrow();
+  });
+
+  test('EN-W1: startTrip passes the page to the shape', () => {
+    const base = newProfile();
+    const p: Profile = { ...base, city: { ...base.city, open: ['seam', 'bathhouses'] } };
+    const shape = KIT.modules.bathhouses?.trip;
+    if (!shape) throw new Error('the bathhouses have a trip shape');
+    const spy = vi.spyOn(shape, 'initState');
+    try {
+      startTrip(p, 3, 'bathhouses', { page: 2 });
+      expect(spy).toHaveBeenLastCalledWith(p, { page: 2 });
+      startTrip(p, 3, 'bathhouses');
+      expect(spy).toHaveBeenLastCalledWith(p, undefined);
+    } finally {
+      spy.mockRestore();
+    }
+    // `newTripKit` hands the option on to any shape.
+    const calls: unknown[] = [];
+    const lent: TripShapeDef = {
+      id: 'bathhouses:heat',
+      parseState: () => null,
+      initState: (...args) => {
+        calls.push(args);
+        return null;
+      },
+    };
+    newTripKit({ ...shapeOf('seam'), trip: lent }, undefined, { page: 1 });
+    expect(calls).toEqual([[undefined, { page: 1 }]]);
+  });
+});
+
 // ── Acceptance owed by later tasks (ending-plan §5), by task ──────────────────
 
 // EN-S1 (Pack B) is built: its three tests are in tests/sim/generator.test.ts (they run the bot).
-
-describe('EN-2 and EN-3 (Pack E): the generator and the module', () => {
-  it.todo('EN-2: checkGenerated is green on every seed of every fixture drawing');
-  it.todo('EN-2: same input gives the same layout, attempts and ops');
-  it.todo('EN-2: no foe starts within distance 2 of any P');
-  it.todo('EN-2: depth bands scale the foe budget');
-  it.todo('EN-2: unverified fallbacks are zero');
-  it.todo('EN-3: trips of length 3 and 6 start, reload, return and wipe');
-  it.todo('EN-3: reload replays stored layouts without running the bot');
-  it.todo('EN-3: a redraw during a trip changes nothing');
-  it.todo('EN-3: no hearing, heart, page or recruit is given');
-});
+// Pack E's tests are real `it.fails` in generator.test.ts and tests/districts/inkedPage/trip.test.ts.
 
 describe('EN-5 and EN-8 (Pack F): palette, pen and loot', () => {
-  it.todo('EN-5: every offered combination generates');
+  // EN-8 needs the module's offers, which no contract names yet (EN-8 defines them in Pack F).
   it.todo('EN-8: offers come only from source districts or basics');
   it.todo('EN-8: a page you hold is never offered');
   it.todo('EN-8: solvents come only from drawn districts');
@@ -213,41 +363,172 @@ describe('EN-4 (Pack G): the generation worker', () => {
   it.todo('EN-4: worker results equal the synchronous path');
 });
 
-describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
-  it.todo('EN-K1: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K1: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K1: the bot trial ends within its op budget');
-  it.todo('EN-K2: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K2: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K2: the bot trial ends within its op budget');
-  it.todo('EN-K2: eel and moth are greyed without water and lamps');
-  it.todo('EN-K3: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K3: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K3: the bot trial ends within its op budget');
-  it.todo('EN-K3: no term at the heart');
-  it.todo('EN-K4: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K4: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K4: the bot trial ends within its op budget');
-  it.todo('EN-K4: heat reaches 4 at the heart for every length');
-  it.todo('EN-K5: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K5: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K5: the bot trial ends within its op budget');
-  it.todo('EN-K5: never stranded on a span choice');
-  it.todo('EN-K6: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K6: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K6: the bot trial ends within its op budget');
-  it.todo('EN-K6: bells hang only where rung');
-  it.todo('EN-K7: the frame passes checkGenerated over 50 seeds');
-  it.todo('EN-K7: the fallback board passes checkGenerated and has a scripted solve');
-  it.todo('EN-K7: the bot trial ends within its op budget');
-  it.todo('EN-K7: no return after the point and none needed at the heart');
+// ── Kits and frames (Packs I-K) ─────────────────────────
+
+/** The kit of a shape id, or the error the generator will throw for it (P34). */
+function shapeKit(id: string): ShapeKit {
+  const found = GEN_KITS.flatMap((k) => k.shapes).find((s) => s.id === id);
+  if (!found) throw new RangeError(`No kit for ${id}`);
+  return found;
+}
+function frameOf(master: MasterId): HeartFrame {
+  const found = HEART_FRAMES[master];
+  if (!found) throw new RangeError(`No kit for ${master}`);
+  return found;
+}
+/** The three tests every heart frame shares (EN-K1 to EN-K7), for the masters of one district. */
+function frameTests(pack: string, masters: readonly MasterId[]): void {
+  it.fails(`${pack}: the frame passes checkGenerated over 50 seeds`, () => {
+    for (const master of masters) {
+      frameOf(master);
+      for (let seed = 1; seed <= 50; seed++) {
+        const { input, room, masterOnBoard } = heartRoom(master, seed);
+        expect(masterOnBoard, `${master}, seed ${seed}`).toBe(true);
+        expect(checkGenerated(room.layout, heartSpec(input))).toEqual([]);
+      }
+    }
+  });
+  // The kit pack adds the scripted solve of each fallback board beside the guardrail check.
+  it.fails(`${pack}: the fallback board passes checkGenerated and has a scripted solve`, () => {
+    for (const master of masters) {
+      const spec = heartSpec(inputFor(heartDrawing(master), 1));
+      expect(checkGenerated(frameOf(master).fallback, spec)).toEqual([]);
+    }
+  });
+  it.fails(`${pack}: the bot trial ends within its op budget`, () => {
+    for (const master of masters) {
+      const { room, masterOnBoard } = heartRoom(master, 1);
+      expect(masterOnBoard).toBe(true);
+      expect(room.ops).toBeLessThanOrEqual(TRIAL_BUDGET * GEN_LIMITS.heartAttempts);
+    }
+  });
+}
+
+describe('EN-K: every kit and frame', () => {
+  it.fails('EN-K: every element a full household can offer has a kit', () => {
+    const palette = paletteOf(fullHousehold());
+    const has = {
+      rules: new Set<string>(GEN_KITS.flatMap((k) => k.rules.map((r) => r.id))),
+      foes: new Set<string>(GEN_KITS.flatMap((k) => k.foes.map((f) => f.id))),
+      pieces: new Set<string>(GEN_KITS.flatMap((k) => k.pieces.map((x) => x.id))),
+      shapes: new Set<string>(GEN_KITS.flatMap((k) => k.shapes.map((x) => x.id))),
+    };
+    expect(palette.rules.filter((id) => !has.rules.has(id))).toEqual([]);
+    expect(palette.foes.filter((id) => !has.foes.has(id))).toEqual([]);
+    expect(palette.pieces.filter((id) => !has.pieces.has(id))).toEqual([]);
+    // `canals:landings` is lent by KIT-R3 and listed once the canals open (EN-K2).
+    expect(palette.shapes.filter((id) => !has.shapes.has(id))).toEqual([]);
+    expect(palette.masters.filter((id) => HEART_FRAMES[id] === undefined)).toEqual([]);
+  });
 });
 
+describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
+  frameTests('EN-K1', ['marginalia']);
+
+  frameTests('EN-K2', ['mother', 'lamplighter']);
+  // Already true (EN-5's needs rows), so a plain test: the eel and the moth are greyed without the current.
+  it('EN-K2: eel and moth are greyed without water and lamps', () => {
+    const p = fullHousehold();
+    const dry: Drawing = { ...heartDrawing('marginalia'), foes: ['eel', 'moth'] };
+    const reasons = checkDrawing(p, dry).map((i) => i.reason);
+    expect(reasons).toContain('The eel needs water: draw the current.');
+    expect(reasons).toContain(
+      'The lamp-moth needs lamps: draw the current, which lights its lanes.',
+    );
+    const wet = checkDrawing(p, { ...dry, rule: 'canals:current' });
+    expect(wet.filter((i) => i.id === 'eel' || i.id === 'moth')).toEqual([]);
+  });
+
+  frameTests('EN-K3', ['postmaster']);
+  it.fails('EN-K3: no term at the heart', () => {
+    const kit = shapeKit('inkQuarter:terms');
+    expect(kit.lengths).toEqual([3, 4, 5, 6]);
+    // The pack asserts the heart room's offers carry no term, at every length.
+  });
+
+  frameTests('EN-K4', ['bathSteward']);
+  it.fails('EN-K4: heat reaches 4 at the heart for every length', () => {
+    const kit = shapeKit('bathhouses:heat');
+    expect(kit.lengths).toEqual([3, 4, 5, 6]);
+    // The pack asserts `heatOf` at room `length - 1` is 4 for each length.
+  });
+
+  frameTests('EN-K5', ['chiefWarden']);
+  it.fails('EN-K5: never stranded on a span choice', () => {
+    const kit = shapeKit('bridges:span');
+    expect(kit.lengths).toEqual([3, 4, 5, 6]);
+    // The pack asserts every crossroads offers a way forward, at every length.
+  });
+
+  frameTests('EN-K6', ['carillonneur']);
+  it.fails('EN-K6: bells hang only where rung', () => {
+    const kit = shapeKit('foundry:peal');
+    expect(kit.lengths).toEqual([3, 4, 5, 6]);
+    // The pack asserts great bells hang in the heart room alone.
+  });
+
+  frameTests('EN-K7', ['registrar']);
+  it.fails('EN-K7: no return after the point and none needed at the heart', () => {
+    const kit = shapeKit('cartographers:doorway');
+    expect(kit.lengths).toEqual([3, 4, 5, 6]);
+    // The pack asserts `returnBlocks` after the point of no return and none at the heart.
+  });
+});
+
+// ── Handover and credits (Pack L, engine half) ──────────
+
+/** A household whose door to the owner is open: the Cartographers' heart cleared and the door seen. */
+function doorOpen(): Profile {
+  const p = newProfile();
+  return { ...p, city: { ...p.city, doorSeen: true, hearts: [...p.city.hearts, 'cartographers'] } };
+}
+
 describe('EN-10 and EN-11 (Pack L): handover and credits', () => {
-  it.todo('EN-10: the handover is hidden before the door opens');
-  it.todo('EN-10: the handover is idempotent');
-  it.todo('EN-10: nothing is lost on joining');
-  it.todo('EN-10: gifted pages are learned only when missing');
-  it.todo('EN-11: creditsOf lists districts in opening order');
-  it.todo('EN-11: creditsOf carries the ledger counts');
+  it.fails('EN-10: the handover is hidden before the door opens', () => {
+    const p = newProfile();
+    expect(ownerDoor(p)).toBe('hidden');
+    // Not asked for yet, it changes nothing.
+    expect(handover(p)).toEqual(p);
+  });
+
+  it.fails('EN-10: the handover is idempotent', () => {
+    const once = handover(doorOpen());
+    expect(endingOf(once).handover).toBe(true);
+    expect(handover(once)).toEqual(once);
+  });
+
+  it.fails('EN-10: nothing is lost on joining', () => {
+    const before = doorOpen();
+    const after = handover(before);
+    expect(after.household.members).toEqual(expect.arrayContaining(before.household.members));
+    expect(after.household.members.length).toBeGreaterThan(before.household.members.length);
+    expect(after.known).toEqual(expect.arrayContaining(before.known));
+    expect(after.pages).toEqual(before.pages);
+    expect(after.city).toEqual(before.city);
+  });
+
+  it.fails('EN-10: gifted pages are learned only when missing', () => {
+    const once = handover(doorOpen());
+    expect(new Set(once.known).size).toBe(once.known.length);
+    // Learning again from a household that already has every gifted page adds none.
+    expect(handover({ ...once, ending: undefined }).known).toEqual(once.known);
+  });
+
+  it.fails('EN-11: creditsOf lists districts in opening order', () => {
+    const p = doorOpen();
+    const open = ['seam', 'bridges', 'canals'] as const;
+    const credits = creditsOf({ ...p, city: { ...p.city, open: [...open] } });
+    expect(credits.districts).toEqual([...open]);
+  });
+
+  it.fails('EN-11: creditsOf carries the ledger counts', () => {
+    const ledger = {
+      casts: 41,
+      biggest: { chain: 9, caster: 'draughtsman' as ApprenticeId, name: 'Bonfire' },
+      districts: ['seam', 'canals'] as DistrictId[],
+    };
+    const credits = creditsOf({ ...doorOpen(), ledger });
+    expect(credits.casts).toBe(41);
+    expect(credits.biggest).toEqual(ledger.biggest);
+  });
 });

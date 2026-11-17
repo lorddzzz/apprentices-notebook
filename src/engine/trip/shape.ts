@@ -79,9 +79,14 @@ export const carriesKit = (shape: DistrictShape): boolean =>
   shape.trip !== undefined || shape.checkpoint !== undefined || shape.bonuses !== undefined;
 
 /** A fresh `Trip.kit`, or undefined for a shape that needs none. */
-export function newTripKit(shape: DistrictShape, p?: Profile): TripKitState | undefined {
+export function newTripKit(
+  shape: DistrictShape,
+  p?: Profile,
+  opts?: { page?: 0 | 1 | 2 },
+): TripKitState | undefined {
   if (!carriesKit(shape)) return undefined;
-  return { state: shape.trip?.initState(p) ?? null, choices: [], checkpoint: false, bonuses: [] };
+  const state = shape.trip?.initState(p, opts) ?? null;
+  return { state, choices: [], checkpoint: false, bonuses: [] };
 }
 
 /** What a shape hook reads: the trip with its kit and parsed state. */

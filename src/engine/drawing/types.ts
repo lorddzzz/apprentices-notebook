@@ -1,5 +1,5 @@
 import type { ApprenticeId, DistrictId, Drawing, EnemyId, Habitat, MasterId, ShapeId } from '$data';
-import type { HeartSetup, PieceId, RuleId } from '../districts/types';
+import type { HeartSetup, Json, PieceId, RuleId, TripShapeDef } from '../districts/types';
 import type { Coord } from '../grid';
 import type { BoardSpec } from '../notation';
 import type { Profile } from '../types';
@@ -103,7 +103,12 @@ export interface FoeKit extends Needing {
 }
 export interface ShapeKit extends Needing {
   id: ShapeId;
-  /** `id` is the `TripShapeDef` its owner district registered (DK-E3); hooks take `(trip, roomIndex, length)`. */
+  /**
+   * The shape a drawn trip runs (P33): length-parameterised, under the same id the palette offers,
+   * built in the kit from its district's exported helpers. `'plain'` and `canals:landings` use the
+   * shapes KIT-R3 lends instead.
+   */
+  shape: TripShapeDef;
   /** Lengths the shape can be drawn at. */
   lengths: readonly Drawing['length'][];
 }
@@ -167,6 +172,18 @@ export interface GenIssue {
   guardrail: 'room' | 'distance' | 'reach' | 'kit' | 'needs' | 'blocked' | 'budget' | 'burst';
   reason: string;
   at?: Coord;
+}
+
+// ── The drawn trip (P31) ────────────────────────────────
+/**
+ * `Trip.kit.state` of a drawn trip: the page it set out from, the snapshot of that drawing (P1),
+ * the accepted layouts by room (`null` until inked) and the lent shape's own state.
+ */
+export interface InkedTripState {
+  slot: 0 | 1 | 2;
+  drawing: Drawing;
+  rooms: (string | null)[];
+  inner: Json;
 }
 
 // ── Ending (EN-10, EN-11) ───────────────────────────────

@@ -359,8 +359,11 @@ export interface ShapeInput<S extends Json> {
 export interface TripShapeDef<S extends Json = Json> {
   id: TripShapeId;
   parseState(raw: unknown): S;
-  /** The state a new trip starts with; `p` is the setting-out profile (SM P7: floors fixed here). */
-  initState(p?: Profile): S;
+  /**
+   * The state a new trip starts with; `p` is the setting-out profile (SM P7: floors fixed here).
+   * `opts.page` is the drawing slot a drawn trip sets out from (P32); every other shape ignores it.
+   */
+  initState(p?: Profile, opts?: { page?: number }): S;
   returnBlocks?(input: ShapeInput<S>): readonly ReturnBlock[];
   choices?(input: ShapeInput<S>): readonly CrossroadsChoice[];
   roomSetup?(input: ShapeInput<S>): RoomSetup;
@@ -504,6 +507,11 @@ export interface DistrictModule {
   /** DK-E1: rooms supplied per trip instead of static data (read through `roomsOf`). */
   encounter?(trip: Trip, index: number): EncounterDef;
   length?(trip: Trip): number;
+  /**
+   * A drawn district: its trips give no hearing, heart, key, recruit, rival page or lore (P16).
+   * Nothing reads it yet (EN-3).
+   */
+  sandbox?: true;
   /** A trip-only district's own opening rule (SM P7: the lower Seam opens on the Seam's heart). */
   isOpen?(p: Profile): boolean;
 }

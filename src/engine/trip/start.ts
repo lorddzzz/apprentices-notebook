@@ -25,12 +25,15 @@ export function chargesOf(p: Profile, m: ApprenticeId): Record<SpellKey, number>
  *
  * `at: 'checkpoint'` starts past a checkpoint the city remembers (P5): the first fight is the
  * room after it, still at full HP and charges. Throws when the district has none reached.
+ *
+ * `page` is the drawing slot of a drawn trip (EN P32), handed to the shape's `initState`; every
+ * other district ignores it.
  */
 export function startTrip(
   p: Profile,
   seed: number,
   district: DistrictId = 'seam',
-  opts: { at?: StartAt } = {},
+  opts: { at?: StartAt; page?: 0 | 1 | 2 } = {},
 ): Trip {
   const party = tripParty(p);
   if (party.length === 0) throw new Error('Nobody is in a trip slot');
@@ -40,7 +43,7 @@ export function startTrip(
   const isOpen = KIT.modules[district]?.isOpen ?? ((q: Profile) => q.city.open.includes(district));
   if (!isOpen(p)) throw new Error(`${DISTRICTS[district].name} is not open`);
   const shape = shapeOf(district);
-  const kit = newTripKit(shape, p);
+  const kit = newTripKit(shape, p, opts.page === undefined ? undefined : { page: opts.page });
   let encounter = 0;
   if (opts.at === 'checkpoint') {
     const cp = shape.checkpoint;

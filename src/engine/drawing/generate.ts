@@ -1,17 +1,18 @@
 import { type ApprenticeId, ATTACKS, ENEMIES, type EnemyId } from '$data';
-import { COSTS, GEN_TUNING, NEEDS } from '$data/drawing';
+import { GEN_LIMITS, GEN_TUNING } from '$data/drawing';
 import { createBattle } from '../battle';
-import { cloneData } from '../clone';
-import type { PieceId, RuleId } from '../districts/types';
 import { byReadingOrder, type Coord, key } from '../grid';
-import { type BoardSpec, emptyTile, parseCell, serializeBoard } from '../notation';
+import { type BoardSpec, emptyTile, serializeBoard } from '../notation';
 import { blocksShots, blocksUnits, members } from '../queries';
 import { createRng, deriveSeed, type Rng } from '../rng';
 import { checkRoom } from '../rooms';
 import { compiledFor } from '../run';
 import { TRIAL_BUDGET } from '../sim';
-import type { BattleState, Tile } from '../types';
+import type { BattleState } from '../types';
 import { weightBand } from './cost';
+import { GEN_KITS } from './kits';
+import { CURRENT } from './kits/canals';
+import { at, coords, isHazard, isPlain, isWater, lay, shuffled } from './kits/seam';
 import { botTrial } from './trial';
 import {
   EN_SALT,
@@ -21,7 +22,6 @@ import {
   type GenKit,
   type GenResult,
   type GenSpec,
-  type Need,
   type RuleKit,
 } from './types';
 
@@ -34,48 +34,17 @@ import {
  */
 
 /** P10: the bot must win within this many rounds (the heart's 16 belongs to the frames, EN-2). */
-export const ROOM_ROUNDS = 12;
+export const ROOM_ROUNDS = GEN_LIMITS.rounds;
 /** P10: bot-tested attempts before the safe fallback. */
-export const MAX_ATTEMPTS = 4;
+export const MAX_ATTEMPTS = GEN_LIMITS.attempts;
 /** P8: foes stand at Manhattan distance 3 or more from every start point (two clear tiles between). */
-export const MIN_FOE_DISTANCE = 3;
+export const MIN_FOE_DISTANCE = GEN_LIMITS.foeDistance;
 /** P9: blocked tiles (plates, gates, grates, solid pieces) up to this share of the board. */
-export const BLOCKED_SHARE = 0.3;
+export const BLOCKED_SHARE = GEN_LIMITS.blockedShare;
 /** Layout draws per attempt before the guardrails give up on it (cheap: no bot yet). */
-export const MAX_DRAWS = 8;
+export const MAX_DRAWS = GEN_LIMITS.draws;
 /** P8: Seam ground, 2 to 5 tiles of plates, oil or vents. */
 const GROUND = { min: 2, max: 5 } as const;
-
-const CURRENT: RuleId = 'canals:current';
-
-// ── Kits: the spike's adapter for the Seam and the canals ─────────────
-
-const needsOf = (id: string): readonly Need[] =>
-  (NEEDS[id] ?? []).map((n) => ({
-    anyOf: n.anyOf as readonly (RuleId | PieceId)[],
-    reason: n.reason,
-  }));
-
-const at = (layout: BoardSpec, c: Coord): Tile | undefined =>
-  c.x < 0 || c.y < 0 || c.x >= layout.width || c.y >= layout.height
-    ? undefined
-    : layout.tiles[c.y * layout.width + c.x];
-
-const isWater = (t: Tile): boolean => t.terrain.water !== null;
-/** A tile nothing is laid on: free for ground, lamps, start points and foes of any habitat. */
-const isPlain = (t: Tile): boolean =>
-  !isWater(t) &&
-  !t.terrain.gate &&
-  !t.terrain.grate &&
-  !t.terrain.drop &&
-  !t.terrain.vent &&
-  !t.terrain.lamp &&
-  t.state === null &&
-  t.piece === null &&
-  t.jar === null;
-/** P9 "no unit starting in a burst or fire": fire, a cloud or a vent. */
-const isHazard = (t: Tile): boolean =>
-  t.state?.id === 'fire' || t.state?.id === 'cloud' || t.terrain.vent;
 
 const blank = (width: number, height: number): BoardSpec => ({
   width,
@@ -85,27 +54,6 @@ const blank = (width: number, height: number): BoardSpec => ({
   starts: [],
 });
 
-const lay = (layout: BoardSpec, c: Coord, token: string): void => {
-  layout.tiles[c.y * layout.width + c.x] = parseCell(token, c).tile;
-};
-
-const coords = (layout: BoardSpec): Coord[] =>
-  Array.from({ length: layout.width * layout.height }, (_, i) => ({
-    x: i % layout.width,
-    y: Math.floor(i / layout.width),
-  }));
-
-function shuffled<T>(items: readonly T[], rng: Rng): T[] {
-  const out = [...items];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = rng.int(0, i);
-    const swap = out[i] as T;
-    out[i] = out[j] as T;
-    out[j] = swap;
-  }
-  return out;
-}
-
 const plainFree = (layout: BoardSpec): Coord[] =>
   coords(layout).filter((c) => {
     const t = at(layout, c);
@@ -114,85 +62,8 @@ const plainFree = (layout: BoardSpec): Coord[] =>
 const sameAt = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
-/**
- * The current's stamp (P4: the rule brings its lanes): one or two straight lanes, side by side
- * and flowing one way, across the whole board, then lamps on the banks (the moth needs them). The
- * minimum stamp is one lane and one lamp.
- */
-const currentKit: RuleKit = {
-  id: CURRENT,
-  brings: [],
-  needs: [],
-  stamp(layout, seed, minimum) {
-    const rng = createRng(seed);
-    const out = cloneData(layout);
-    const vertical = rng.int(0, 1) === 0;
-    const lanes = minimum ? 1 : rng.int(1, 2);
-    const span = vertical ? out.width : out.height;
-    const first = rng.int(1, Math.max(1, span - 1 - lanes));
-    const flow = vertical ? (rng.int(0, 1) === 0 ? 'v' : '^') : rng.int(0, 1) === 0 ? '>' : '<';
-    for (const c of coords(out)) {
-      const line = vertical ? c.x : c.y;
-      if (line >= first && line < first + lanes) lay(out, c, `w${flow}`);
-    }
-    const banks = shuffled(
-      coords(out).filter((c) => {
-        const t = at(out, c);
-        return (
-          t !== undefined &&
-          isPlain(t) &&
-          [
-            { x: c.x + 1, y: c.y },
-            { x: c.x - 1, y: c.y },
-            { x: c.x, y: c.y + 1 },
-            { x: c.x, y: c.y - 1 },
-          ].some((n) => {
-            const nt = at(out, n);
-            return nt !== undefined && isWater(nt);
-          })
-        );
-      }),
-      rng,
-    );
-    for (const c of banks.slice(0, minimum ? 1 : rng.int(2, 3))) lay(out, c, 'l');
-    return out;
-  },
-};
-
-const foeKit = (id: EnemyId): FoeKit => {
-  const def = ENEMIES[id];
-  return {
-    id,
-    needs: needsOf(id),
-    budget: def.elite ? COSTS.elite : COSTS.minion,
-    habitat: def.habitat,
-    valid(layout, c) {
-      const t = at(layout, c);
-      if (t === undefined || blocksUnits(t) || isHazard(t)) return false;
-      return def.habitat === 'water' ? isWater(t) : def.habitat === 'land' ? !isWater(t) : true;
-    },
-  };
-};
-
-/** The Seam: its three foes and its ground (no rule of its own). */
-const SEAM_KIT: GenKit = {
-  district: 'seam',
-  rules: [],
-  pieces: [],
-  foes: (['rat', 'familiar', 'sentry'] as const).map(foeKit),
-  shapes: [],
-  frames: [],
-};
-/** The canals: the current with its lamps, the eel on its lanes and the moth by its lamps. */
-const CANALS_KIT: GenKit = {
-  district: 'canals',
-  rules: [currentKit],
-  pieces: [],
-  foes: (['eel', 'moth'] as const).map(foeKit),
-  shapes: [],
-  frames: [],
-};
-export const SPIKE_KITS: readonly GenKit[] = [SEAM_KIT, CANALS_KIT];
+/** The spike's two kits, now the registry (P34): kept as an alias for what already reads it. */
+export const SPIKE_KITS: readonly GenKit[] = GEN_KITS;
 
 const ruleKitOf = (spec: GenSpec): RuleKit | undefined =>
   spec.kits.flatMap((k) => k.rules).find((r) => r.id === spec.drawing.rule);
@@ -230,7 +101,7 @@ export function specFor(input: GenInput, seed: number, budget?: number): GenSpec
       height: clamp(Math.max(hint, 6 + rng.int(0, 1) + Math.min(depth, 2)), 6, 9),
     },
     budget: budget ?? baseBudget(input),
-    kits: SPIKE_KITS,
+    kits: GEN_KITS,
   };
 }
 
