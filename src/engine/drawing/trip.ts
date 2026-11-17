@@ -56,7 +56,16 @@ function checkRoom(state: InkedTripState, room: number): void {
 export function roomInput(p: Profile, t: Trip, room: number = t.encounter): GenInput {
   const state = stateOf(t);
   checkRoom(state, room);
-  return { profile: p, drawing: state.drawing, party: t.party, seed: t.seed, room };
+  // The Crossroads choice taken before this room, for a shape whose choice changes the spec (P15).
+  const choice = t.kit?.choices.find((c) => c.after === room - 1)?.id;
+  return {
+    profile: p,
+    drawing: state.drawing,
+    party: t.party,
+    seed: t.seed,
+    room,
+    ...(choice === undefined ? {} : { choice }),
+  };
 }
 
 /** Stores room `room`'s layout; throws if a different layout is stored there already. */

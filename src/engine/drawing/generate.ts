@@ -136,7 +136,7 @@ export function specFor(input: GenInput, _seed: number, budget?: number): GenSpe
   const rng = createRng(deriveSeed(input.seed, SIZE_SALT + input.room));
   const depth = Math.min(input.room, 3);
   const hint = input.drawing.rule === CURRENT ? 7 : 6;
-  return {
+  const spec: GenSpec = {
     ...base,
     size: {
       width: clamp(5 + rng.int(0, 1) + (depth >= 2 ? 1 : 0), 5, 7),
@@ -144,6 +144,9 @@ export function specFor(input: GenInput, _seed: number, budget?: number): GenSpe
     },
     budget: budget ?? ceiling,
   };
+  // A shape's choice (EN-K5) changes the room's spec on top of the walk's budget.
+  const shape = GEN_KITS.flatMap((k) => k.shapes).find((x) => x.id === input.drawing.shape);
+  return input.choice !== undefined && shape?.adjust ? shape.adjust(spec, input.choice) : spec;
 }
 
 // ── P8: the pipeline ──────────────────────────────────────────────────
@@ -304,7 +307,7 @@ function compose(spec: GenSpec, seed: number, minimum: boolean): BoardSpec {
   const rng = createRng(seed);
   let layout = blank(spec.size.width, spec.size.height);
   const rule = ruleKitOf(spec);
-  if (rule) layout = rule.stamp(layout, deriveSeed(seed, 1), minimum);
+  if (rule) layout = rule.stamp(layout, deriveSeed(seed, 1), minimum, spec.fuller === true);
   seamGround(layout, rng);
   if (!minimum) {
     const pieces = spec.kits

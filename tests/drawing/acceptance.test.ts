@@ -25,6 +25,7 @@ import {
   EN_SALT,
   endingOf,
   GEN_KITS,
+  generateRoom,
   HEART_FRAMES,
   handover,
   ledgerOf,
@@ -41,6 +42,7 @@ import {
   specFor,
   storeDrawing,
 } from '$engine/drawing';
+import { strandedBy } from '$engine/drawing/kits/bridges';
 import { termCardFor } from '$engine/drawing/kits/inkQuarter';
 import { botTrial } from '$engine/drawing/trial';
 import type {
@@ -260,7 +262,9 @@ describe('EN-W1: the contracts', () => {
   test('EN-W1: the registries hold the spike’s kits', () => {
     // Each kit pack adds its district after these (Packs I-K): the registry's first three stay put.
     expect(GEN_KITS.slice(0, 3).map((k) => k.district)).toEqual(['seam', 'canals', 'inkQuarter']);
-    expect(GEN_KITS.map((k) => k.district)).toContain('bathhouses');
+    expect(GEN_KITS.map((k) => k.district)).toEqual(
+      expect.arrayContaining(['bathhouses', 'bridges']),
+    );
     expect(SPIKE_KITS).toBe(GEN_KITS);
     expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
     expect(GEN_KITS[1]?.rules.map((r) => r.id)).toEqual(['canals:current']);
@@ -509,12 +513,41 @@ describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
     }
   });
 
-  frameTests('EN-K5', ['chiefWarden']);
-  it.fails('EN-K5: never stranded on a span choice', () => {
+  frameTests('EN-K5', ['chiefWarden'], true);
+  it('EN-K5: never stranded on a span choice', () => {
     const kit = shapeKit('bridges:span');
     expect(kit.lengths).toEqual([3, 4, 5, 6]);
-    // The pack asserts every crossroads offers a way forward, at every length.
-  });
+    for (const length of kit.lengths) {
+      for (let room = 0; room < length; room++) {
+        const input = {
+          trip: { seed: 3 },
+          kit: {},
+          state: kit.shape.initState(),
+          room,
+          length,
+        } as unknown as ShapeInput<Json>;
+        const choices = kit.shape.choices?.(input) ?? [];
+        // A way on after every room but the heart's; a generated room has no variant pool.
+        expect(
+          choices.map((c) => c.id),
+          `after room ${room + 1} of ${length}`,
+        ).toEqual(room === length - 1 ? [] : ['sound', 'crumbling']);
+        expect(choices.every((c) => c.kind === 'push' && c.variantPool === undefined)).toBe(true);
+        // Whichever span is taken, the room it leads to keeps every start point on its feet.
+        for (const choice of choices) {
+          const drawing: Drawing = {
+            ...heartDrawing('chiefWarden'),
+            shape: 'bridges:span',
+            length,
+          };
+          const made = generateRoom({ ...inputFor(drawing, 1, room + 1), choice: choice.id });
+          expect(strandedBy(made.layout), `${choice.id} before room ${room + 2} of ${length}`).toBe(
+            null,
+          );
+        }
+      }
+    }
+  }, 180_000);
 
   frameTests('EN-K6', ['carillonneur']);
   it.fails('EN-K6: bells hang only where rung', () => {

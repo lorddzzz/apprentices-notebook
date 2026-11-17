@@ -8,7 +8,7 @@ import { sampleHousehold, sampleParty } from '../../src/app/dev/samples';
 import { decode, SCRIPT_SEED } from './kits-a.scripts';
 
 /**
- * The scripted solves of Pack J's fallback boards (EN-K4), stored the way Pack I stored
+ * The scripted solves of Pack J's fallback boards (EN-K4, EN-K5), stored the way Pack I stored
  * theirs (`kits-a.scripts.ts`, whose step format and battle seed they share): one fixed action
  * list per master, recorded once from the lite bot on the authored fallback and replayed here, so
  * nothing is searched. A frame whose fallback no longer wins under its script needs a re-recorded
@@ -20,6 +20,12 @@ export const SCRIPTS_B: Partial<Record<MasterId, readonly string[]>> = {
     'm draughtsman 6,2;c draughtsman 0,1 left;c stoker 1,0 up;m stoker 2,3;e',
     'c draughtsman 0,1 down;m draughtsman 3,2;c stoker 1,0 up;m stoker 1,2;e',
     'c draughtsman 0,1 left;m draughtsman 2,1;c stoker 1,0 right',
+  ],
+  chiefWarden: [
+    'm draughtsman 2,4;c draughtsman 0,1 right;c stoker 1,0 up;m stoker 5,4;e',
+    'c draughtsman 0,1 left;m draughtsman 1,3;c stoker 1,0 left;m stoker 5,1;e',
+    'm draughtsman 1,0;c draughtsman 0,1 right;m stoker 4,0;c stoker 1,0 left;e',
+    'c draughtsman 0,1 right',
   ],
 };
 

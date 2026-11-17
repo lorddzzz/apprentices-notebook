@@ -81,8 +81,11 @@ export interface RuleKit extends Needing {
   id: RuleId;
   /** The pieces the rule brings at no piece cost (P4). */
   brings: readonly PieceId[];
-  /** Stamps the rule's ground; `minimum` is the fallback's smallest stamp (P10). */
-  stamp(layout: BoardSpec, seed: number, minimum: boolean): BoardSpec;
+  /**
+   * Stamps the rule's ground; `minimum` is the fallback's smallest stamp (P10), `fuller` the
+   * fuller setting a trip shape's choice asks for (`GenSpec.fuller`, EN-K5).
+   */
+  stamp(layout: BoardSpec, seed: number, minimum: boolean, fuller?: boolean): BoardSpec;
 }
 export interface PieceKit extends Needing {
   id: PieceId;
@@ -111,6 +114,12 @@ export interface ShapeKit extends Needing {
   shape: TripShapeDef;
   /** Lengths the shape can be drawn at. */
   lengths: readonly Drawing['length'][];
+  /**
+   * What a Crossroads choice of the shape changes in the next room's spec (the bridges' span:
+   * a bigger board and more foes, or the collapse at its fuller setting). `choice` is the id of
+   * the choice taken before the room; the heart's spec is never adjusted. Absent: no change.
+   */
+  adjust?(spec: GenSpec, choice: string): GenSpec;
 }
 /** One master "redrawn in your rules" (P13), EN-owned, one per master. */
 export interface HeartFrame extends Needing {
@@ -152,6 +161,8 @@ export interface GenSpec {
   /** Foe budget in minion-equivalents, scaled by the weight band (P7). */
   budget: number;
   kits: readonly GenKit[];
+  /** The rule stamps at its fuller setting (a shape's choice asked for it, EN-K5). */
+  fuller?: true;
 }
 export interface GenInput {
   profile: Profile;
@@ -160,6 +171,8 @@ export interface GenInput {
   /** The trip seed; each attempt derives its own from it (salts 7000-7999). */
   seed: number;
   room: number;
+  /** The id of the Crossroads choice taken before this room, read by the shape kit's `adjust` (EN-K5). */
+  choice?: string;
   /** The bot's applied-action budget per trial (default `TRIAL_BUDGET`, never wall-clock). */
   budget?: number;
 }
