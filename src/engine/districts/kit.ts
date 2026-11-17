@@ -3,6 +3,7 @@ import { BRIDGES_MODULE } from './bridges';
 import { CANALS_MODULE } from './canals';
 import { CARTOGRAPHERS_MODULE } from './cartographers';
 import { FOUNDRY_MODULE } from './foundry';
+import { INKED_PAGE_MODULE } from './inkedPage';
 import { INK_QUARTER_MODULE } from './inkQuarter';
 import { LOWER_SEAM_MODULE } from './lowerSeam';
 import { buildKit } from './registry';
@@ -24,6 +25,8 @@ export const DISTRICT_MODULES: readonly DistrictModule[] = [
   FOUNDRY_MODULE,
   CARTOGRAPHERS_MODULE,
   LOWER_SEAM_MODULE,
+  // EN P1: last, so every other module's order and salts hold.
+  INKED_PAGE_MODULE,
 ];
 
 /** The assembled registries (rules, pieces, offer kinds, hearing kinds, steps, shapes). */

@@ -101,9 +101,9 @@ test('elites are sentry, eel, snuffer and the mother; minions the rest (P20)', (
 });
 
 test('every district has an edge; the Seam and the canals are walled (P3)', () => {
-  // Seven on the map, then the lower Seam (SM P7), last so the other salts are unchanged.
-  expect(DISTRICT_IDS).toHaveLength(8);
-  expect(DISTRICT_IDS.at(-1)).toBe('lowerSeam');
+  // Seven on the map, then the lower Seam (SM P7) and the inked page (EN P1), last so the other salts are unchanged.
+  expect(DISTRICT_IDS).toHaveLength(9);
+  expect(DISTRICT_IDS.slice(-2)).toEqual(['lowerSeam', 'inkedPage']);
   for (const id of DISTRICT_IDS) expect(['wall', 'drop']).toContain(DISTRICTS[id].edge);
   expect([DISTRICTS.seam.edge, DISTRICTS.canals.edge]).toEqual(['wall', 'wall']);
   // The districts not yet playable are on the map, being drawn: no rooms, never open (P2).

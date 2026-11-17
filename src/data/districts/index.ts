@@ -17,6 +17,7 @@ import { BRIDGES_KIT } from './bridges';
 import { CANALS_KIT } from './canals';
 import { CARTOGRAPHERS_KIT } from './cartographers';
 import { FOUNDRY_KIT } from './foundry';
+import { INKED_PAGE_KIT } from './inkedPage';
 import { INK_QUARTER_KIT } from './inkQuarter';
 import { LOWER_SEAM_KIT } from './lowerSeam';
 import { SEAM_KIT } from './seam';
@@ -231,6 +232,7 @@ export const DISTRICTS: Readonly<Record<DistrictId, DistrictData>> = {
   foundry: FOUNDRY_KIT,
   cartographers: CARTOGRAPHERS_KIT,
   lowerSeam: LOWER_SEAM_KIT,
+  inkedPage: INKED_PAGE_KIT,
 };
 
 /** The same entries by the name the kit's consumers use (tests mock this one). */
@@ -246,6 +248,8 @@ export const DISTRICT_IDS: readonly DistrictId[] = [
   'cartographers',
   // SM P7: last, so every other district's variant salt is unchanged.
   'lowerSeam',
+  // EN P1: after the lower Seam, so every other salt holds.
+  'inkedPage',
 ];
 /** The districts with rooms this build (P2). */
 export const PLAYABLE_DISTRICTS: readonly DistrictId[] = [

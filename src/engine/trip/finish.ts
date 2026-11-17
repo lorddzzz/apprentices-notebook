@@ -150,9 +150,13 @@ export function finishEncounter(
   // The room's paper is filed at once, so a later wipe keeps it (lore registry, DK §9).
   const shape0 = shapeOf(t.district, t);
   const landing = policyAllows(shape0.ret, t.encounter, heartOf(shape0));
-  const filed = findLandingPaper(findPaper(learned, t.district, t.encounter), t.district, landing);
+  // EN P16: a drawn (sandbox) trip files no paper and banks no rival's page.
+  const sandbox = KIT.modules[t.district]?.sandbox === true;
+  const filed = sandbox
+    ? learned
+    : findLandingPaper(findPaper(learned, t.district, t.encounter), t.district, landing);
   const paper = filed.papers.length > learned.papers.length ? filed.papers.at(-1) : undefined;
-  const profile = bankPages(filed, b, t.district, awardsPage);
+  const profile = sandbox ? filed : bankPages(filed, b, t.district, awardsPage);
 
   const enc = roomsOf(t)[t.encounter];
   if (!enc) throw new Error(`No encounter ${t.encounter}`);
@@ -189,6 +193,12 @@ export function finishEncounter(
   };
 }
 
+/** EN P16: a drawn (sandbox) trip carries no key and no recruit home, whatever its loot holds. */
+export const keptLoot = (t: Trip): Trip['loot'] =>
+  KIT.modules[t.district]?.sandbox
+    ? t.loot.filter((i) => i.kind !== 'key' && i.kind !== 'recruit')
+    : t.loot;
+
 /** Each district module's `afterBattleClose`, applied in registry order. */
 function closeDistricts(p: Profile, t: Trip): Profile {
   return Object.values(KIT.modules).reduce((acc, m) => m?.afterBattleClose?.(acc, t) ?? acc, p);
@@ -208,7 +218,7 @@ export function closeBattle(p: Profile, t: Trip, b: BattleState, log: EventLog =
   // A wipe past the checkpoint still leaves it in the city (P5).
   // On a wipe the loot is lost, except what a kind's `onWipe` keeps (DK-7).
   const wiped =
-    r.outcome === 'wiped' ? hearAfterTrip(wipeLoot(owner.profile, t.loot), t, 'wiped') : null;
+    r.outcome === 'wiped' ? hearAfterTrip(wipeLoot(owner.profile, keptLoot(t)), t, 'wiped') : null;
   const after = wiped
     ? { ...wiped, profile: feedLedger(rememberCheckpoint(wiped.profile, t), r.stats) }
     : { profile: owner.profile, heard: [] };

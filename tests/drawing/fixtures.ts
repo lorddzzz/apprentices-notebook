@@ -77,8 +77,8 @@ export function fullHousehold(): Profile {
     pages: ['lamplighter:lantern'],
     city: {
       ...p.city,
-      open: DISTRICT_IDS.filter((d) => d !== 'lowerSeam'),
-      hearts: DISTRICT_IDS.filter((d) => d !== 'lowerSeam'),
+      open: DISTRICT_IDS.filter((d) => d !== 'lowerSeam' && d !== 'inkedPage'),
+      hearts: DISTRICT_IDS.filter((d) => d !== 'lowerSeam' && d !== 'inkedPage'),
     },
   };
 }

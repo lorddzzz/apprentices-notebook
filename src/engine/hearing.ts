@@ -164,6 +164,8 @@ export const hearsAs = (d: DistrictId): DistrictId => DISTRICTS[d].hearsAs ?? d;
 
 /** Whether one condition holds in a scene: its district filter first, then its kind's predicate. */
 export function conditionHolds(c: HearingCondition, s: HearScene): boolean {
+  // EN P16: a drawn (sandbox) trip is heard by nothing, in a fight or after it.
+  if (KIT.modules[s.district]?.sandbox) return false;
   if (c.kind !== 'heart' && c.district !== undefined && c.district !== hearsAs(s.district)) {
     return false;
   }

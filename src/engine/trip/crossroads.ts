@@ -2,6 +2,7 @@ import { hearAfterTrip } from '../city';
 import { feedLedger } from '../ledger';
 import type { Profile, Trip } from '../types';
 import { choicesAt, takeChoice } from './choices';
+import { keptLoot } from './finish';
 import { bankLoot, kindOf, type OfferRegistry, offerRegistry } from './offerKinds';
 import { returnCheck } from './ret';
 import { rememberCheckpoint, roomsOf } from './shape';
@@ -59,6 +60,6 @@ export function returnHome(p: Profile, t: Trip, reg: OfferRegistry = offerRegist
   need(t, 'crossroads', 'cleared');
   const check = returnCheck(t);
   if (!check.ok) throw new Error(check.why || 'There is no landing here');
-  const banked = bankLoot(p, t.loot, reg);
+  const banked = bankLoot(p, keptLoot(t), reg);
   return feedLedger(rememberCheckpoint(hearAfterTrip(banked, t, 'returned').profile, t), t.stats);
 }

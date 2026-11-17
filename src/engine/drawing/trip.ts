@@ -1,13 +1,13 @@
-import type { Json } from '../districts/types';
+import type { Json, TripKitState } from '../districts/types';
 import type { Profile, Trip } from '../types';
 import { readDrawing } from './profile';
-import { notBuilt } from './stub';
 import type { GenInput, InkedTripState } from './types';
 
 /**
- * A drawn trip's state and rooms (P31, EN-W1): `parseInkedState` is built; the three functions
- * that ink a room are stubs until EN-3. A room is generated outside `encounter` (which has no
- * profile), stored in `InkedTripState.rooms`, and replayed from there on every reload.
+ * A drawn trip's state and rooms (P31): a room is generated outside `encounter` (which has no
+ * profile), stored in `InkedTripState.rooms`, and replayed from there on every reload. `inkRoom`,
+ * which runs the generator, lives in `generate.ts`: the `inkedPage` district module imports this
+ * file while the district kit is still loading, so it must not reach the generator's frames.
  */
 
 const badSave = (): never => {
@@ -40,17 +40,36 @@ export function parseInkedState(raw: unknown): InkedTripState {
   return { slot, drawing, rooms: [...rooms] as (string | null)[], inner };
 }
 
-/** What the generator is asked for room `room` (default: the trip's current room), EN-3. */
-export function roomInput(_p: Profile, _t: Trip, _room?: number): GenInput {
-  return notBuilt('EN-3');
+/** The state of a drawn trip (any other district's trip throws). */
+function stateOf(t: Trip): InkedTripState {
+  if (t.district !== 'inkedPage') throw new Error('Not a drawn trip');
+  return parseInkedState(t.kit?.state);
 }
 
-/** Stores room `room`'s layout; throws if a different layout is stored there already. EN-3. */
-export function storeRoom(_t: Trip, _room: number, _layout: string): Trip {
-  return notBuilt('EN-3');
+function checkRoom(state: InkedTripState, room: number): void {
+  if (!Number.isInteger(room) || room < 0 || room >= state.rooms.length) {
+    throw new RangeError(`Room ${room + 1} is not on this page`);
+  }
 }
 
-/** Generates and stores room `room` (default: the current one); a room already stored returns `t` itself. EN-3. */
-export function inkRoom(_p: Profile, _t: Trip, _room?: number): Trip {
-  return notBuilt('EN-3');
+/** What the generator is asked for room `room` (default: the trip's current room), P31. */
+export function roomInput(p: Profile, t: Trip, room: number = t.encounter): GenInput {
+  const state = stateOf(t);
+  checkRoom(state, room);
+  return { profile: p, drawing: state.drawing, party: t.party, seed: t.seed, room };
+}
+
+/** Stores room `room`'s layout; throws if a different layout is stored there already. */
+export function storeRoom(t: Trip, room: number, layout: string): Trip {
+  const state = stateOf(t);
+  checkRoom(state, room);
+  const stored = state.rooms[room] ?? null;
+  if (stored === layout) return t;
+  if (stored !== null) throw new Error(`Room ${room + 1} is already inked`);
+  const next: InkedTripState = {
+    ...state,
+    rooms: state.rooms.map((r, i) => (i === room ? layout : r)),
+  };
+  const kit = t.kit as TripKitState;
+  return { ...t, kit: { ...kit, state: next as unknown as Json } };
 }

@@ -8,13 +8,14 @@ import { createRng, deriveSeed, type Rng } from '../rng';
 import { checkRoom } from '../rooms';
 import { compiledFor } from '../run';
 import { TRIAL_BUDGET } from '../sim';
-import type { BattleState } from '../types';
+import type { BattleState, Profile, Trip } from '../types';
 import { weightBand } from './cost';
 import { HEART_FRAMES } from './frames';
 import { GEN_KITS } from './kits';
 import { CURRENT } from './kits/canals';
 import { at, coords, isHazard, isPlain, isWater, lay, shuffled } from './kits/seam';
 import { botTrial } from './trial';
+import { parseInkedState, roomInput, storeRoom } from './trip';
 import {
   EN_SALT,
   type FoeKit,
@@ -719,4 +720,14 @@ function generateHeart(input: GenInput, frame: HeartFrame): GeneratedRoom {
     dull: false,
     trials,
   };
+}
+
+/**
+ * Generates and stores room `room` of a drawn trip (default: the current one). A room already
+ * stored returns `t` itself, so a reload replays the layout and the bot never runs twice (P31).
+ */
+export function inkRoom(p: Profile, t: Trip, room: number = t.encounter): Trip {
+  const input = roomInput(p, t, room);
+  if (parseInkedState(t.kit?.state).rooms[room] !== null) return t;
+  return storeRoom(t, room, serializeBoard(generateRoom(input).layout));
 }

@@ -6,6 +6,7 @@ import {
   type LootTableId,
 } from '$data';
 import type { KitGoal, KitHearCondition } from '$data/districts/index';
+import { KIT } from './districts';
 import type { Json } from './districts/types';
 import type { EventLog, GameEvent } from './events';
 import { conditionHolds, type HearScene, hearOf } from './hearing';
@@ -96,10 +97,12 @@ export function hearAfterTrip(
 ): { profile: Profile; heard: DistrictId[] } {
   const city: CityState = { ...p.city, trips: p.city.trips + 1 };
   // SM P7: the lower Seam has no heart; its lowest floor cleared marks nothing.
+  // EN P16: a drawn (sandbox) trip never marks a heart.
   if (
     outcome === 'returned' &&
     t.status === 'cleared' &&
-    DISTRICTS[t.district].marksHeart !== false
+    DISTRICTS[t.district].marksHeart !== false &&
+    !KIT.modules[t.district]?.sandbox
   ) {
     city.hearts = add(city.hearts, t.district);
     city.heard = add(city.heard, t.district);

@@ -26,7 +26,7 @@ export function paletteOf(p: Profile): Palette {
     .filter((d) => d.bench !== undefined && met.includes(d.bench.met))
     .map((d) => d.id);
   const shapes: ShapeId[] = DISTRICT_MODULES.flatMap((m) =>
-    m.trip && m.id !== 'lowerSeam' && p.city.open.includes(m.id) ? [m.trip.id] : [],
+    m.trip && m.id !== 'lowerSeam' && !m.sandbox && p.city.open.includes(m.id) ? [m.trip.id] : [],
   );
   const masters: MasterId[] = p.city.hearts.flatMap((d) => {
     const foe = KIT.modules[d]?.heart?.foe;
