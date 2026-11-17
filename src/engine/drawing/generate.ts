@@ -1,4 +1,4 @@
-import { type ApprenticeId, ATTACKS, ENEMIES, type EnemyId } from '$data';
+import { type ApprenticeId, ATTACKS, type Drawing, ENEMIES, type EnemyId } from '$data';
 import { GEN_LIMITS, GEN_TUNING } from '$data/drawing';
 import { createBattle } from '../battle';
 import { byReadingOrder, type Coord, key } from '../grid';
@@ -10,6 +10,7 @@ import { compiledFor } from '../run';
 import { TRIAL_BUDGET } from '../sim';
 import type { BattleState } from '../types';
 import { weightBand } from './cost';
+import { HEART_FRAMES } from './frames';
 import { GEN_KITS } from './kits';
 import { CURRENT } from './kits/canals';
 import { at, coords, isHazard, isPlain, isWater, lay, shuffled } from './kits/seam';
@@ -22,20 +23,22 @@ import {
   type GenKit,
   type GenResult,
   type GenSpec,
+  type HeartFrame,
   type RuleKit,
 } from './types';
 
 /**
- * P8-P10, spike (EN-S1): one room from the trip seed on built content only (the Seam's foes and
- * ground, the canals' current and lamps), judged by the engine bot and redrawn up to four times,
- * then the safe fallback. Pure and deterministic: every draw comes from a salted seed, and the
- * only limit on the bot is its operation budget, never the clock. EN-2 finishes it (the other
- * districts' kits, `matters` scoring, depth budgets).
+ * P8-P10, P28, P35 (EN-S1, EN-2): one room from the trip seed, composed from the kits in `GEN_KITS`
+ * (the Seam's ground, each rule's stamp, the pieces by `matters`, foes by budget) or, for the
+ * heart, from its master's frame in `HEART_FRAMES`; judged by the engine bot and redrawn up to
+ * `GEN_LIMITS.attempts` times (`heartAttempts` at the heart), then the safe fallback. Pure and
+ * deterministic: every draw comes from a salted seed (7000-7999), and the only limit on the bot is
+ * its operation budget, never the clock. Every limit is read from `GEN_LIMITS`.
  */
 
-/** P10: the bot must win within this many rounds (the heart's 16 belongs to the frames, EN-2). */
+/** P10: the bot must win within this many rounds (`heartRounds` at the heart). */
 export const ROOM_ROUNDS = GEN_LIMITS.rounds;
-/** P10: bot-tested attempts before the safe fallback. */
+/** P10: bot-tested attempts before the safe fallback (`heartAttempts` at the heart). */
 export const MAX_ATTEMPTS = GEN_LIMITS.attempts;
 /** P8: foes stand at Manhattan distance 3 or more from every start point (two clear tiles between). */
 export const MIN_FOE_DISTANCE = GEN_LIMITS.foeDistance;
@@ -70,11 +73,39 @@ const ruleKitOf = (spec: GenSpec): RuleKit | undefined =>
 const foeKitOf = (spec: GenSpec, id: EnemyId): FoeKit | undefined =>
   spec.kits.flatMap((k) => k.foes).find((f) => f.id === id);
 
+/** The id of the first element of `drawing` that no kit (or, for the master, no frame) covers (P34). */
+export function missingKit(drawing: Drawing, kits: readonly GenKit[] = GEN_KITS): string | null {
+  const rules = kits.flatMap((k) => k.rules.map((r) => r.id));
+  const foes = kits.flatMap((k) => k.foes.map((f) => f.id));
+  const pieces = kits.flatMap((k) => k.pieces.map((x) => x.id));
+  if (drawing.rule !== null && !rules.includes(drawing.rule)) return drawing.rule;
+  const lost = drawing.foes.find((f) => !foes.includes(f));
+  if (lost !== undefined) return lost;
+  const piece = drawing.pieces.find((x) => !pieces.includes(x));
+  if (piece !== undefined) return piece;
+  return HEART_FRAMES[drawing.heart] === undefined ? drawing.heart : null;
+}
+
+/** Generating a drawing that names an element with no kit, or a master with no frame, throws (P34). */
+function requireKits(drawing: Drawing, kits: readonly GenKit[]): void {
+  const lost = missingKit(drawing, kits);
+  if (lost !== null) throw new RangeError(`No kit for ${lost}`);
+}
+
+const isHeartRoom = (input: GenInput): boolean => input.room >= input.drawing.length - 1;
+
+/** The frame of the drawing's master (the caller has checked it exists). */
+function frameOf(drawing: Drawing): HeartFrame {
+  const frame = HEART_FRAMES[drawing.heart];
+  if (!frame) throw new RangeError(`No kit for ${drawing.heart}`);
+  return frame;
+}
+
 // ── The spec ──────────────────────────────────────────────────────────
 
 const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
-/** P28: the walk's first budget, from the party, the depth and the drawing's weight band. */
+/** P7, P28: the walk's first budget, from the party, the depth and the drawing's weight band. */
 export function baseBudget(input: GenInput): number {
   const depth = Math.min(input.room, 3);
   return (
@@ -84,24 +115,33 @@ export function baseBudget(input: GenInput): number {
   );
 }
 
+/** The salt of a room's size draw (7950 + room): one size per room whatever the attempt. */
+const SIZE_SALT = 7950;
+
 /**
  * P8 size from depth and kit hints (5-7 wide, 6-9 tall: deeper rooms are bigger; the current wants 7
- * rows). `budget` is the walk's budget for this attempt (default: the base budget, P28).
+ * rows), a heart the size of its frame (P35). The size is drawn from the trip seed and the room, not
+ * from the attempt's seed, so every attempt (and every reader of the spec) agrees on it. `budget` is
+ * the walk's budget for this attempt; by default it is the most any attempt can reach (the base
+ * budget plus one step per later attempt, P28), so a layout drawn at any step passes the oracle.
  */
-export function specFor(input: GenInput, seed: number, budget?: number): GenSpec {
-  const rng = createRng(deriveSeed(seed, 7990));
+export function specFor(input: GenInput, _seed: number, budget?: number): GenSpec {
+  const heart = isHeartRoom(input);
+  const base = { drawing: input.drawing, room: input.room, heart, kits: GEN_KITS } as const;
+  const ceiling = baseBudget(input) + (GEN_LIMITS.attempts - 1) * GEN_TUNING.step;
+  if (heart) {
+    return { ...base, size: { ...frameOf(input.drawing).size }, budget: budget ?? ceiling };
+  }
+  const rng = createRng(deriveSeed(input.seed, SIZE_SALT + input.room));
   const depth = Math.min(input.room, 3);
   const hint = input.drawing.rule === CURRENT ? 7 : 6;
   return {
-    drawing: input.drawing,
-    room: input.room,
-    heart: false,
+    ...base,
     size: {
       width: clamp(5 + rng.int(0, 1) + (depth >= 2 ? 1 : 0), 5, 7),
       height: clamp(Math.max(hint, 6 + rng.int(0, 1) + Math.min(depth, 2)), 6, 9),
     },
-    budget: budget ?? baseBudget(input),
-    kits: GEN_KITS,
+    budget: budget ?? ceiling,
   };
 }
 
@@ -193,6 +233,37 @@ const linesUp = (id: EnemyId, from: Coord, p: Coord): boolean => {
   );
 };
 
+/** Puts one foe of kit `k` on a valid, reachable tile at distance 3 or more from every P (none: skipped). */
+function placeKit(layout: BoardSpec, k: FoeKit, rng: Rng, walk: ReadonlySet<string>): void {
+  const def = ENEMIES[k.id];
+  const ok = coords(layout).filter((c) => {
+    const t = at(layout, c);
+    if (t === undefined || !k.valid(layout, c) || layout.units.some((u) => sameAt(u.at, c))) {
+      return false;
+    }
+    // A land foe stays off the lanes (the current would carry it away before it acts).
+    if (k.habitat !== 'water' && isWater(t)) return false;
+    if (layout.starts.some((p) => manhattan(p, c) < MIN_FOE_DISTANCE || linesUp(k.id, c, p))) {
+      return false;
+    }
+    return walk.has(key(c)) || ((def.flies || def.anchored) && castable(layout, walk, c));
+  });
+  // Spread: prefer a tile away from the foes already placed, else any.
+  const apart = ok.filter((c) => layout.units.every((u) => manhattan(u.at, c) >= 2));
+  const pool = apart.length > 0 ? apart : ok;
+  const c = pool[rng.int(0, pool.length - 1)];
+  if (!c) return;
+  layout.units.push({
+    kind: 'enemy',
+    def: k.id,
+    at: { ...c },
+    mark: null,
+    collar: false,
+    shackle: false,
+    shield: 0,
+  });
+}
+
 /** Foes by budget (each kind once first, then by the seed), at distance 3 or more from every P, on reachable tiles. */
 function placeFoes(layout: BoardSpec, spec: GenSpec, rng: Rng, budget: number): void {
   const kits = spec.drawing.foes.flatMap((id) => foeKitOf(spec, id) ?? []);
@@ -213,35 +284,7 @@ function placeFoes(layout: BoardSpec, spec: GenSpec, rng: Rng, budget: number): 
     queue.push(k);
     left -= k.budget;
   }
-  for (const k of queue) {
-    const def = ENEMIES[k.id];
-    const ok = coords(layout).filter((c) => {
-      const t = at(layout, c);
-      if (t === undefined || !k.valid(layout, c) || layout.units.some((u) => sameAt(u.at, c))) {
-        return false;
-      }
-      // A land foe stays off the lanes (the current would carry it away before it acts).
-      if (k.habitat !== 'water' && isWater(t)) return false;
-      if (layout.starts.some((p) => manhattan(p, c) < MIN_FOE_DISTANCE || linesUp(k.id, c, p))) {
-        return false;
-      }
-      return walk.has(key(c)) || ((def.flies || def.anchored) && castable(layout, walk, c));
-    });
-    // Spread: prefer a tile away from the foes already placed, else any.
-    const apart = ok.filter((c) => layout.units.every((u) => manhattan(u.at, c) >= 2));
-    const pool = apart.length > 0 ? apart : ok;
-    const c = pool[rng.int(0, pool.length - 1)];
-    if (!c) continue;
-    layout.units.push({
-      kind: 'enemy',
-      def: k.id,
-      at: { ...c },
-      mark: null,
-      collar: false,
-      shackle: false,
-      shield: 0,
-    });
-  }
+  for (const k of queue) placeKit(layout, k, rng, walk);
   layout.units.sort((a, b) => byReadingOrder(a.at, b.at));
 }
 
@@ -274,6 +317,39 @@ function compose(spec: GenSpec, seed: number, minimum: boolean): BoardSpec {
   return layout;
 }
 
+/**
+ * A heart from its frame (P35): the frame's own setup on a board of the frame's size (master,
+ * escorts of its own, ground, start points), the drawing's rule stamped only on the frame's
+ * `ruleAt` tiles that are still plain, then the frame's listed escorts placed like any foe.
+ */
+function composeHeart(spec: GenSpec, frame: HeartFrame, seed: number): BoardSpec {
+  const rng = createRng(seed);
+  const layout = frame.setup.frame(blank(frame.size.width, frame.size.height), deriveSeed(seed, 1));
+  const rule = ruleKitOf(spec);
+  if (rule && frame.ruleAt.length > 0) {
+    const stamped = rule.stamp(
+      blank(frame.size.width, frame.size.height),
+      deriveSeed(seed, 2),
+      false,
+    );
+    for (const c of frame.ruleAt) {
+      const own = at(layout, c);
+      const tile = at(stamped, c);
+      if (own !== undefined && tile !== undefined && isPlain(own)) {
+        layout.tiles[c.y * layout.width + c.x] = tile;
+      }
+    }
+  }
+  const walk = walkable(layout);
+  for (const id of frame.escorts) {
+    const k = foeKitOf(spec, id);
+    if (!k) throw new RangeError(`No kit for ${id}`);
+    placeKit(layout, k, rng, walk);
+  }
+  layout.units.sort((a, b) => byReadingOrder(a.at, b.at));
+  return layout;
+}
+
 // ── P9: the oracle ────────────────────────────────────────────────────
 
 const have = (spec: GenSpec): Set<string> => {
@@ -299,22 +375,28 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
       `The room is ${layout.width}x${layout.height}, the spec asked ${spec.size.width}x${spec.size.height}`,
     );
   }
+  const frame = spec.heart ? frameOf(spec.drawing) : undefined;
   const foes = layout.units.filter((u) => u.kind === 'enemy');
   const walk = walkable(layout);
   const mine = have(spec);
   let cost = 0;
+  if (frame && !foes.some((u) => u.def === frame.setup.foe)) {
+    add('kit', `The master (${frame.setup.foe}) is not on the board`);
+  }
   for (const f of foes) {
     const id = f.def as EnemyId;
     const def = ENEMIES[id];
-    const kit = foeKitOf(spec, id);
-    if (!kit || !spec.drawing.foes.includes(id)) {
-      add('kit', `${def.name} is not on the drawing or in a kit`, f.at);
-      continue;
-    }
-    cost += kit.budget;
-    if (!kit.valid(layout, f.at)) add('kit', `${def.name} stands where its kit forbids`, f.at);
-    for (const need of kit.needs) {
-      if (!need.anyOf.some((x) => mine.has(x))) add('needs', need.reason, f.at);
+    if (!frame) {
+      const kit = foeKitOf(spec, id);
+      if (!kit || !spec.drawing.foes.includes(id)) {
+        add('kit', `${def.name} is not on the drawing or in a kit`, f.at);
+        continue;
+      }
+      cost += kit.budget;
+      if (!kit.valid(layout, f.at)) add('kit', `${def.name} stands where its kit forbids`, f.at);
+      for (const need of kit.needs) {
+        if (!need.anyOf.some((x) => mine.has(x))) add('needs', need.reason, f.at);
+      }
     }
     for (const p of layout.starts) {
       if (manhattan(p, f.at) < MIN_FOE_DISTANCE) {
@@ -335,18 +417,26 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
       add('reach', 'A start point cannot be walked from', p);
     else if (isHazard(t)) add('burst', 'A start point is in a burst or fire', p);
   }
-  if (cost > spec.budget) add('budget', `Foes cost ${cost}, the budget is ${spec.budget}`);
+  if (!frame && cost > spec.budget) {
+    add('budget', `Foes cost ${cost}, the budget is ${spec.budget}`);
+  }
   if (foes.length === 0) add('budget', 'The room has no foes');
   const blocked = layout.tiles.filter(blocksUnits).length;
   if (blocked > layout.tiles.length * BLOCKED_SHARE) {
     add('blocked', `${blocked} of ${layout.tiles.length} tiles are blocked`);
   }
+  // The current's ground: a room stamps it; a heart has it when its frame does (its own or on `ruleAt`).
   const water = layout.tiles.some(isWater);
   const lamps = layout.tiles.some((t) => t.terrain.lamp);
-  if (spec.drawing.rule === CURRENT && !(water && lamps)) {
+  const ownsCurrent = frame?.setup.rules.includes(CURRENT) ?? false;
+  const stamped = !frame || frame.ruleAt.length > 0 || ownsCurrent;
+  if (spec.drawing.rule === CURRENT && stamped && !(water && lamps)) {
     add('needs', 'The current needs lanes and lamps on the board');
   }
-  if (spec.drawing.rule !== CURRENT && water) add('needs', 'Water without the current');
+  if (spec.drawing.rule !== CURRENT && water && !ownsCurrent) {
+    add('needs', 'Water without the current');
+  }
+  if (frame) return issues;
   const ground = layout.tiles.filter(
     (t) => t.state?.id === 'plate' || t.state?.id === 'slick' || t.terrain.vent,
   ).length;
@@ -402,12 +492,17 @@ function draw(
   spec: GenSpec,
   seed: number,
   minimum: boolean,
+  frame?: HeartFrame,
 ): { layout: BoardSpec; issues: GenIssue[]; draws: number } {
-  let layout = compose(spec, deriveSeed(seed, 0), minimum);
+  const make = (n: number): BoardSpec =>
+    frame
+      ? composeHeart(spec, frame, deriveSeed(seed, n))
+      : compose(spec, deriveSeed(seed, n), minimum);
+  let layout = make(0);
   let issues = checkGenerated(layout, spec);
   let draws = 1;
   while (issues.length > 0 && draws < MAX_DRAWS) {
-    layout = compose(spec, deriveSeed(seed, draws), minimum);
+    layout = make(draws);
     issues = checkGenerated(layout, spec);
     draws++;
   }
@@ -455,7 +550,9 @@ function trial(
   seed: number,
   opBudget: number,
   meta: { attempt: number; salt: number; budget: number; draws: number },
+  heart = false,
 ): RoomTrial {
+  const rounds = heart ? GEN_LIMITS.heartRounds : ROOM_ROUNDS;
   const state = createBattle({
     title: 'A drawn room',
     board: serializeBoard(layout),
@@ -469,7 +566,7 @@ function trial(
     ),
   }).state;
   const r = botTrial(state, opBudget, input.party);
-  const won = r.won && r.state.round <= ROOM_ROUNDS;
+  const won = r.won && r.state.round <= rounds;
   const hpLeft = hpShare(r.state);
   return {
     ...meta,
@@ -477,25 +574,27 @@ function trial(
     won,
     rounds: r.state.round,
     hpLeft,
-    walkover: won && isWalkover(r.state.round, hpLeft),
+    // A heart is a boss on a fixed frame: the walk cannot move its budget, so it is never judged dull.
+    walkover: won && !heart && isWalkover(r.state.round, hpLeft),
     ops: r.ops,
     capped: r.events.some((e) => e.type === 'fizzles' && e.reason === 'cap'),
   };
 }
 
 /**
- * P8-P10 and P28: one room from the trip seed, bot-tested on a walking budget. Attempt `n` (1-4)
- * draws from salt `7000 + 10*room + n`. Attempt 1 uses the base budget; the next uses this one's
- * plus `GEN_TUNING.step` after a walkover, minus it after a loss or a guardrail failure (never
- * below 1). The first won attempt that is not a walkover is offered. When none is fair but one was
- * won, the last won attempt is offered (`verified`, `dull`). When none was won, the safe fallback
- * (salt `7900 + room`, half the base budget) is offered even when it fails (`verified: false`).
- * Hearts come from their frames (EN-2), not from here.
+ * P8-P10, P28 and P35: one room from the trip seed, bot-tested on a walking budget. Attempt `n`
+ * (1 to `GEN_LIMITS.attempts`) draws from salt `7000 + 10*room + n`. Attempt 1 uses the base
+ * budget; the next uses this one's plus `GEN_TUNING.step` after a walkover, minus it after a loss
+ * or a guardrail failure (never below 1). The first won attempt that is not a walkover is offered.
+ * When none is fair but one was won, the last won attempt is offered (`verified`, `dull`). When
+ * none was won, the safe fallback (salt `7900 + room`, half the base budget) is offered even when
+ * it fails (`verified: false`). A heart (the drawing's last room) comes from its master's frame:
+ * `heartAttempts` attempts judged at `heartRounds`, the first win offered, then the frame's own
+ * fallback board. Throws `RangeError('No kit for <id>')` for an element or master with no kit.
  */
 export function generateRoom(input: GenInput): GeneratedRoom {
-  if (input.room >= input.drawing.length - 1) {
-    throw new RangeError('The spike draws rooms, not hearts: a heart is its frame (EN-2)');
-  }
+  requireKits(input.drawing, GEN_KITS);
+  if (isHeartRoom(input)) return generateHeart(input, frameOf(input.drawing));
   const opBudget = input.budget ?? TRIAL_BUDGET;
   const trials: RoomTrial[] = [];
   let ops = 0;
@@ -565,6 +664,59 @@ export function generateRoom(input: GenInput): GeneratedRoom {
     ops,
     verified: t.won === true,
     dull: t.walkover,
+    trials,
+  };
+}
+
+/** P35: a heart from its frame, judged like a room but never as a walkover; then the authored fallback. */
+function generateHeart(input: GenInput, frame: HeartFrame): GeneratedRoom {
+  const opBudget = input.budget ?? TRIAL_BUDGET;
+  const trials: RoomTrial[] = [];
+  let ops = 0;
+  const budget = baseBudget(input);
+  for (let attempt = 1; attempt <= GEN_LIMITS.heartAttempts; attempt++) {
+    const salt = EN_SALT.from + 10 * input.room + attempt;
+    const seed = deriveSeed(input.seed, salt);
+    const spec = specFor(input, seed, budget);
+    const drawn = draw(spec, seed, false, frame);
+    const meta = { attempt, salt, budget, draws: drawn.draws };
+    const t =
+      drawn.issues.length > 0
+        ? heldBack(attempt, salt, budget, drawn)
+        : trial(input, drawn.layout, seed, opBudget, meta, true);
+    trials.push(t);
+    ops += t.ops;
+    if (t.won) {
+      return {
+        layout: drawn.layout,
+        attempts: attempt,
+        fallback: false,
+        ops,
+        verified: true,
+        dull: false,
+        trials,
+      };
+    }
+  }
+  const salt = EN_SALT.fallback + input.room;
+  const layout = frame.fallback;
+  const t = trial(
+    input,
+    layout,
+    deriveSeed(input.seed, salt),
+    opBudget,
+    { attempt: GEN_LIMITS.heartAttempts + 1, salt, budget, draws: 0 },
+    true,
+  );
+  trials.push(t);
+  ops += t.ops;
+  return {
+    layout,
+    attempts: GEN_LIMITS.heartAttempts,
+    fallback: true,
+    ops,
+    verified: t.won === true,
+    dull: false,
     trials,
   };
 }

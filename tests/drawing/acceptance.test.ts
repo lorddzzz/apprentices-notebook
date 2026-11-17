@@ -377,8 +377,10 @@ function frameOf(master: MasterId): HeartFrame {
   return found;
 }
 /** The three tests every heart frame shares (EN-K1 to EN-K7), for the masters of one district. */
-function frameTests(pack: string, masters: readonly MasterId[]): void {
-  it.fails(`${pack}: the frame passes checkGenerated over 50 seeds`, () => {
+function frameTests(pack: string, masters: readonly MasterId[], built = false): void {
+  // `built`: the pack's frame exists (EN-W1's Marginalia frame, drawn since EN-2), so its tests must pass.
+  const check = built ? it : it.fails;
+  check(`${pack}: the frame passes checkGenerated over 50 seeds`, () => {
     for (const master of masters) {
       frameOf(master);
       for (let seed = 1; seed <= 50; seed++) {
@@ -389,13 +391,13 @@ function frameTests(pack: string, masters: readonly MasterId[]): void {
     }
   });
   // The kit pack adds the scripted solve of each fallback board beside the guardrail check.
-  it.fails(`${pack}: the fallback board passes checkGenerated and has a scripted solve`, () => {
+  check(`${pack}: the fallback board passes checkGenerated and has a scripted solve`, () => {
     for (const master of masters) {
       const spec = heartSpec(inputFor(heartDrawing(master), 1));
       expect(checkGenerated(frameOf(master).fallback, spec)).toEqual([]);
     }
   });
-  it.fails(`${pack}: the bot trial ends within its op budget`, () => {
+  check(`${pack}: the bot trial ends within its op budget`, () => {
     for (const master of masters) {
       const { room, masterOnBoard } = heartRoom(master, 1);
       expect(masterOnBoard).toBe(true);
@@ -423,7 +425,7 @@ describe('EN-K: every kit and frame', () => {
 });
 
 describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
-  frameTests('EN-K1', ['marginalia']);
+  frameTests('EN-K1', ['marginalia'], true);
 
   frameTests('EN-K2', ['mother', 'lamplighter']);
   // Already true (EN-5's needs rows), so a plain test: the eel and the moth are greyed without the current.
