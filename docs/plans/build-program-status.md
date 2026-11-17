@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** wave 23 merged 2026-11-17 (DEV-1, MET-1, EN-W1, N1; fast gate green on main). **Wave 24 running: Pack E and Pack H** (routine window; usage 23 % of 5h at the spawn). Next: wave 25 (I, G, F2) when E (and H for G) merge; N2 and EN-G2 as below.
+**State:** waves 23-24 merged 2026-11-17 (DEV-1, MET-1, EN-W1, N1, E, H; fast gate green, 8489). **Wave 25 running: Packs I, G, F2** (routine window; 47 % of 5h at the spawn). Next: wave 26 (J, K) when I merges; N2 quiet after that; L waits for EN-G2.
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -16,10 +16,6 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 | Wave | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|---|
-| 24 | **E** (critical path) | EN-2 → EN-3 | Sonnet 5.5 high (→ Opus 5.5 high) | EN-W1 |
-| 25 | **I** (critical path) | EN-K1 → EN-K2 → EN-K3 | Sonnet 5.5 medium | E |
-| 25 | G | EN-4 → EN-7 | Sonnet 5.5 medium | E and H |
-| 25 | F2 | EN-8 | Sonnet 5.5 medium | E |
 | 26 | J | EN-K4 → EN-K5 | Sonnet 5.5 high | I |
 | 26 | K | EN-K6 → EN-K7 | Sonnet 5.5 high | I |
 | held | L | EN-10 → EN-11 | Sonnet 5.5 medium | E **and EN-G2** (the player's approval) |
@@ -38,6 +34,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
 
 ## Owed (declared by a contract, not yet built)
+- From Pack E (merged): Pack I restores `EN-2: unverified fallbacks are zero` for every frame (it covers the Marginalia only) and deletes tests/drawing/motherFrame.ts; frames must read `KIT` lazily (import cycle); the `heart` is never judged a walkover and the oracle exempts hearts from foe/budget/ground checks (frame owns its foes); `keptLoot` strips keys and recruits from drawn trips; Cleared.svelte reads "The heart of the inked page is quiet" (copy for CAL).
 - From Pack H (EN-6, merged): svelte-autofixer not run on Desk.svelte, Gallery.svelte, App.svelte (N2's UI review); no dark-theme shots (the theme has none). `Profile.drawings` is written by the table through `storeDrawing`. Pack G edits flow.ts next.
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed. Copied into Pack G (the worker chunk must be precached).
 - From F8: Pack K (platform-closure): FU-12 did not see the footnote line slots; DistrictNode.svelte not autofixed; FU-11 checked in the Lab only. For N2's UI review.

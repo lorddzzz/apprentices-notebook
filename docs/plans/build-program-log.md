@@ -78,6 +78,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | EN-W1 | b5e4b25 | Sonnet 5.5 high | 0 | ~9% | GEN_LIMITS, MASTER_HOME, GEN_KITS, HEART_FRAMES, storeDrawing, `page` option, 45 `it.fails` acceptance tests; sim summary identical (firstTry 0.448); Proposals: shared board helpers in kits/seam.ts, marginalia frame is a lazy stub |
 | CL-1, CL-2, CL-3, CL-6 (record half) | c8ff91e..acf5028 | Sonnet 5.5 medium | 0 | ~8% | six DESIGN §11 rows, five TECH §7 rows, six verification files (screenshots outside the repo read "not checked"); SM-15 closed; CL-6 checks left to N2 |
 | EN-6 (Pack H) | d0f0508, 10ecea9 | Sonnet 5.5 medium | 0 | ~17% (shared with E) | drawing table: `src/app/drawing.ts`, DrawingTable + four components, Desk link after the handover, route `drawing`; 7 phone screenshots in build-program-evidence (no dark theme); Proposals: at least one foe required, full rows greyed with a limit sentence; autofixer not run on Desk, Gallery, App |
+| EN-2, EN-3 (Pack E) | 1d7b646, e7642c8, 5e07ca3 | Sonnet 5.5 high | 0 | ~24% (shared with H) | production generator with hearts from frames and the full oracle; `inkedPage` district (sandbox guards, snapshot, stored rooms, lent shape); gate: one frame test timed out under load, timeout raised (5e07ca3). Proposals accepted: `inkRoom` lives in generate.ts (import cycle: frames must read KIT lazily); `EN-2: unverified fallbacks are zero` covers the Marginalia only (lite bot needs 17-38 rounds for the lamp-mother vs 16): Pack I restores it; stand-in mother frame in tests/drawing/motherFrame.ts (Pack I deletes it) |
 
 ## Usage
 
@@ -95,3 +96,5 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 21:40 | ~67 | 79 | waves 19–21 merged (S, T, U, V, CG-G, CG-H, CG-J); briefs empty; cartographers Close next |
 | 2026-11-16 22:25 | 5 (reset at ~22:10) | 1 | wave 22 merged (W, CG-K); fast gate green (8451); session ends, next session resumes |
 | 2026-11-17 19:50 | 23 | 20 | wave 23 merged (DEV-1, MET-1, EN-W1, N1); fast gate green (8461 + 45 expected fail); E, H spawned |
+
+| 2026-11-17 20:40 | 47 | 23 | waves 23-24 merged (E, H); fast gate green (8489); wave 25 spawned (I, G, F2) |
