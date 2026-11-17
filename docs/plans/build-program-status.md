@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** waves 23-24 merged 2026-11-17 (DEV-1, MET-1, EN-W1, N1, E, H; fast gate green, 8489). **Wave 25 running: Packs I, G, F2** (routine window; 47 % of 5h at the spawn). Next: wave 26 (J, K) when I merges; N2 quiet after that; L waits for EN-G2.
+**State:** waves 23-25 merged 2026-11-17 (DEV-1, MET-1, EN-W1, N1, E, H, G, F2, I; fast gate green, 8514; the full gate and sims run only in CI). Session stopped at 72 % of the 5h window (Wrap): wave 26 (J, K) not started. **Next window: routine.** Reset 2026-11-17 23:20 UTC (00:20 CET).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -28,14 +28,14 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| I | EN-K1 → EN-K3 | Sonnet 5.5 medium | worktree agent (a70566496af515e51) | spawned 2026-11-17 20:40 |
-| G | EN-4 → EN-7 | Sonnet 5.5 medium | worktree agent (a7c445e93bc6ef5ee) | spawned together |
-| F2 | EN-8 | Sonnet 5.5 medium | worktree agent (ac464389dae9910c9) | spawned together |
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
 
 ## Owed (declared by a contract, not yet built)
+- From Pack I (merged): `inkQuarter:terms` needs its termed card in the rooms' extras: `termCardFor` (kits/inkQuarter.ts) exists, but F2's derived `offersFor` does not add it; a pack must wire it (put it in J or K's brief, or a small pack). The lamp-mother's hearts always reach her fallback (CAL-4). `EN-K: every element a full household can offer has a kit` stays `it.fails` until J and K merge; kit-less elements: the quarter's foes and pieces, `canals:moor`, `snuffer`, `dummy` (J/K or a design decision: the plan lists no kits for them). The EN-K1 frame test timeout is 150 s per master.
+- From Pack G (merged): MAP_PAGE_HEIGHT is 1900; `window.__inkDelay` is a dev-only flag in game.svelte.ts; BL-111 offline check still needs real Chrome.
+- From Pack F2 (merged): doorway weight is a local constant in loot.ts (move to DRAWN_LOOT at CAL).
 - From Pack E (merged): Pack I restores `EN-2: unverified fallbacks are zero` for every frame (it covers the Marginalia only) and deletes tests/drawing/motherFrame.ts; frames must read `KIT` lazily (import cycle); the `heart` is never judged a walkover and the oracle exempts hearts from foe/budget/ground checks (frame owns its foes); `keptLoot` strips keys and recruits from drawn trips; Cleared.svelte reads "The heart of the inked page is quiet" (copy for CAL).
 - From Pack H (EN-6, merged): svelte-autofixer not run on Desk.svelte, Gallery.svelte, App.svelte (N2's UI review); no dark-theme shots (the theme has none). `Profile.drawings` is written by the table through `storeDrawing`. Pack G edits flow.ts next.
 - BL-111 (H): offline check unmet (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab); App.svelte not autofixed. Copied into Pack G (the worker chunk must be precached).

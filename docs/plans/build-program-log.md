@@ -79,6 +79,9 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CL-1, CL-2, CL-3, CL-6 (record half) | c8ff91e..acf5028 | Sonnet 5.5 medium | 0 | ~8% | six DESIGN §11 rows, five TECH §7 rows, six verification files (screenshots outside the repo read "not checked"); SM-15 closed; CL-6 checks left to N2 |
 | EN-6 (Pack H) | d0f0508, 10ecea9 | Sonnet 5.5 medium | 0 | ~17% (shared with E) | drawing table: `src/app/drawing.ts`, DrawingTable + four components, Desk link after the handover, route `drawing`; 7 phone screenshots in build-program-evidence (no dark theme); Proposals: at least one foe required, full rows greyed with a limit sentence; autofixer not run on Desk, Gallery, App |
 | EN-2, EN-3 (Pack E) | 1d7b646, e7642c8, 5e07ca3 | Sonnet 5.5 high | 0 | ~24% (shared with H) | production generator with hearts from frames and the full oracle; `inkedPage` district (sandbox guards, snapshot, stored rooms, lent shape); gate: one frame test timed out under load, timeout raised (5e07ca3). Proposals accepted: `inkRoom` lives in generate.ts (import cycle: frames must read KIT lazily); `EN-2: unverified fallbacks are zero` covers the Marginalia only (lite bot needs 17-38 rounds for the lamp-mother vs 16): Pack I restores it; stand-in mother frame in tests/drawing/motherFrame.ts (Pack I deletes it) |
+| EN-8 (Pack F2) | 4688dea | Sonnet 5.5 medium | 0 | ~7% | `loot.ts` derived offers + `DRAWN_LOOT`; Proposals: table returned as `guaranteed` specs over `lowerSeam`, doorway weight a local constant, `offersFor` has no profile (a held page may show as a second ink card) |
+| EN-4, EN-7 (Pack G) | b9e66a1, 2ec391d, ebeeaec | Sonnet 5.5 medium | 0 | ~12% | generation worker + sync fallback, prefetch and the inking line; drawn pages under the Seam; BL-111: worker chunk precached in dist/sw.js (offline not checked in a real browser); MAP_PAGE_HEIGHT 1500 → 1900; 5 screenshots |
+| EN-K1, EN-K2, EN-K3 (Pack I) | 156e45a, 602b976, 98ce693, + gate fix | Sonnet 5.5 medium | 0 | ~16% | Marginalia, lamp-mother, Lamplighter, postmaster frames with scripted solves; canals landings and ink-quarter writs/terms kits; the lamp-mother's hearts all reach the fallback (bot needs 17-22 rounds vs 16): CAL-4 watch; gate fix: Pack G and F2 tests imported the deleted motherFrame stand-in |
 
 ## Usage
 
@@ -98,3 +101,5 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-17 19:50 | 23 | 20 | wave 23 merged (DEV-1, MET-1, EN-W1, N1); fast gate green (8461 + 45 expected fail); E, H spawned |
 
 | 2026-11-17 20:40 | 47 | 23 | waves 23-24 merged (E, H); fast gate green (8489); wave 25 spawned (I, G, F2) |
+
+| 2026-11-17 21:15 | 72 | 27 | wave 25 merged (I, G, F2); fast gate green (8514); wave 26 held at Wrap |

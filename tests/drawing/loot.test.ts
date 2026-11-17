@@ -6,7 +6,6 @@ import { weightBand } from '$engine/drawing';
 import { drawnOffers, sourcesOf } from '$engine/drawing/loot';
 import { ownedBy } from '$engine/trip/offers';
 import { FIXTURE_DRAWINGS, fullHousehold } from './fixtures';
-import './motherFrame';
 
 /** EN-8: loot by depth (P7, P16, P17). */
 

@@ -12,7 +12,6 @@ import {
 } from '../../src/app/generation';
 import { handle } from '../../src/app/generation.worker';
 import { FIXTURE_DRAWINGS, fullHousehold } from '../drawing/fixtures';
-import '../drawing/motherFrame';
 
 /** EN-4 (P36): the generation worker's pure core, the synchronous path and the stale-result rule. */
 
