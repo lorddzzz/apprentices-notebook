@@ -1,9 +1,12 @@
 <script lang="ts">
   import { APPRENTICES, type DistrictId } from '$data';
   import { compiledFor, describeSpell, type Profile, tripParty } from '$engine';
+  import { drawingsOf, weightBand } from '$engine/drawing';
   import type { StartAt } from '$engine/districts/types';
   import { TUNED_FOR, TUNED_LINE } from '../../../app/city';
   import { startCheckpoint } from '../../../app/crossroads';
+  import { DEPTH_WORDS } from '../../../app/drawing';
+  import { pageFacts } from '../../districts/inkedPage';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
@@ -12,12 +15,15 @@
     open: boolean;
     /** The district being left for; its checkpoint (if the city remembers one) is offered. */
     district?: DistrictId | null;
+    /** The drawing slot of a drawn page (EN-7): the sheet describes it. */
+    page?: 0 | 1 | 2 | null;
     profile: Profile;
     onclose: () => void;
     onsetout: (at: StartAt) => void;
   }
 
-  let { open, district = null, profile, onclose, onsetout }: Props = $props();
+  let { open, district = null, page = null, profile, onclose, onsetout }: Props = $props();
+  const drawing = $derived(district === 'inkedPage' && page !== null ? (drawingsOf(profile)[page] ?? null) : null);
 
   // The doorway once reached (P5): the default start, the first room the other choice.
   const doorway = $derived(district ? startCheckpoint(profile, district) : null);
@@ -49,6 +55,15 @@
 </script>
 
 <Sheet {open} title="Set out?" {onclose}>
+  {#if drawing}
+    <section class="drawn" data-testid="drawn-page">
+      <h3>{drawing.name}</h3>
+      <p class="depth">{DEPTH_WORDS[weightBand(drawing)]}</p>
+      <ul>
+        {#each pageFacts(drawing) as fact (fact)}<li>{fact}</li>{/each}
+      </ul>
+    </section>
+  {/if}
   {#if carried.length === 0}
     <p class="hint" data-testid="no-party">
       Nobody is in a trip slot. Pick the party on the study's shelf, then come back.
@@ -113,6 +128,30 @@
     margin: 0 0 var(--space-2);
     font-size: 14px;
     color: var(--ink-soft);
+  }
+  .drawn {
+    margin: 0 0 var(--space-2);
+    padding: var(--space-2);
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .drawn h3 {
+    margin: 0;
+    font-family: var(--hand);
+    font-size: 20px;
+    font-weight: normal;
+  }
+  .drawn .depth {
+    margin: 0;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .drawn ul {
+    margin: var(--space-1) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
   }
   .carry {
     margin: 0;

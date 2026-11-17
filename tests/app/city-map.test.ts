@@ -11,8 +11,10 @@ import {
   mapProblems,
   nodeBox,
   nodeTag,
+  pagesExtra,
   underSeam,
 } from '../../src/app/city';
+import { FIXTURE_DRAWINGS } from '../drawing/fixtures';
 
 /** The canals have a doorway here, as in the crossroads tests; their map data stays the real one. */
 vi.mock('$data/districts/index', async (importOriginal) => {
@@ -193,5 +195,39 @@ describe('the map for seven (DK-16)', () => {
     expect(underSeam(seen).door).toBe('sealed');
     const open = withCity(seen, { hearts: ['seam', 'cartographers'] });
     expect(underSeam(open).door).toBe('open');
+  });
+
+  /** The household past the handover with `n` of the fixture drawings on the first pages. */
+  const drawn = (n: number): Profile => ({
+    ...withCity(newProfile(), { hearts: ['seam'] }),
+    ending: { handover: true, creditsSeen: false },
+    drawings: [0, 1, 2].map((i) => (i < n ? (FIXTURE_DRAWINGS[i] ?? null) : null)) as Profile['drawings'],
+  });
+  const FIVE = ['canals', 'inkQuarter', 'bathhouses', 'bridges', 'foundry'] as const;
+
+  test('EN-7: the row under the Seam lists the stair, then up to three pages', () => {
+    const u = underSeam(drawn(3), 3, FIVE);
+    expect(u.stair).toBe(true);
+    expect(u.floors).toHaveLength(5);
+    expect(u.pages.map((x) => x.slot)).toEqual([0, 1, 2]);
+    expect(u.pages.map((x) => x.name)).toEqual(FIXTURE_DRAWINGS.slice(0, 3).map((d) => d.name));
+    expect(u.pages.every((x) => ['light', 'medium', 'heavy'].includes(x.band))).toBe(true);
+    expect(u.blank).toBe(false);
+    // slot order survives a gap
+    const gap = { ...drawn(1), drawings: [null, null, FIXTURE_DRAWINGS[2] ?? null] } as Profile;
+    expect(underSeam(gap).pages.map((x) => x.slot)).toEqual([2]);
+    // before the handover nothing is drawn, and there is no blank page
+    const before = { ...drawn(3), ending: { handover: false, creditsSeen: false } };
+    expect(underSeam(before)).toMatchObject({ pages: [], blank: false });
+    // the handover with no drawing is the blank page
+    expect(underSeam(drawn(0))).toMatchObject({ pages: [], blank: true });
+  });
+
+  test.each([0, 1, 3])('EN-7: nothing overlaps with %i pages and five floors', (n) => {
+    const extra = pagesExtra(underSeam(drawn(n), 3, FIVE));
+    for (const w of [320, 375, 414]) {
+      expect(mapProblems(seven, w, undefined, extra), `${n} pages at ${w}`).toEqual([]);
+    }
+    expect(mapProblems(seven, 375, undefined, pagesExtra({ pages: [], blank: true }))).toEqual([]);
   });
 });

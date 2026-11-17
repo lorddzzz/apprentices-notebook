@@ -6,11 +6,12 @@ import {
   type MapEntry,
 } from '$data/districts/index';
 import { type DistrictState, districtState, type Profile, tripParty } from '$engine';
+import { type WeightBand, drawingsOf, endingOf, weightBand } from '$engine/drawing';
 import { type DoorState, floorsFor, lowerSeamOpen, ownerDoor } from '$engine/districts/lowerSeam';
 import { startCheckpoint } from './crossroads';
 
 /** The page the map is drawn on is this tall (px); `x`/`y` in the data are percents of it (BL-95). */
-export const MAP_PAGE_HEIGHT = 1500;
+export const MAP_PAGE_HEIGHT = 1900;
 /** A node's caption is this wide (px); the layout check and the CSS share it. */
 export const MAP_CAPTION_WIDTH = 150;
 
@@ -160,7 +161,21 @@ export interface UnderSeam {
   canSetOut: boolean;
   /** A quiet line under the stair, or null: nothing below yet, or tuned for three with fewer slotted. */
   quiet: string | null;
+  /** The drawn pages after the stair, in slot order (EN-7): empty before the handover. */
+  pages: DrawnPage[];
+  /** The handover is done and nothing is drawn: the blank page with its line. */
+  blank: boolean;
 }
+
+/** One drawing on the row under the Seam: its slot, its name and its weight band (depth). */
+export interface DrawnPage {
+  slot: 0 | 1 | 2;
+  name: string;
+  band: WeightBand;
+}
+
+/** The blank page's line (ending-text §4). */
+export const BLANK_PAGE_LINE = 'the rest is mine to draw';
 
 /** The lower Seam is tuned for three (SM P7); fewer is a pure challenge, said once and quietly. */
 export const TUNED_FOR = 3;
@@ -181,7 +196,15 @@ export function underSeam(
       : party < TUNED_FOR
         ? TUNED_LINE
         : null;
+  const handover = endingOf(p).handover;
+  const pages: DrawnPage[] = handover
+    ? drawingsOf(p).flatMap((d, i) =>
+        d ? [{ slot: i as 0 | 1 | 2, name: d.name, band: weightBand(d) }] : [],
+      )
+    : [];
   return {
+    pages,
+    blank: handover && pages.length === 0,
     stair,
     door: ownerDoor(p),
     floors: stair
@@ -206,14 +229,26 @@ const OPEN_CAPTION = 70;
 const HEARD_CAPTION = 165;
 const LOCK_BUTTON = 48;
 const UNDER_SEAM = 260; // the margin link, stem, stair, five floor labels, a quiet line and the door
+const PAGE_ROW = 52; // one drawn page: its name, then depth, rule and heart (EN-7)
+const BLANK_ROW = 40; // the blank page and its line
 
-export function nodeBox(n: MapNode, pageWidth: number, pageHeight = MAP_PAGE_HEIGHT): Box {
+/** What the drawn pages add under the Seam, in px. */
+export function pagesExtra(u: Pick<UnderSeam, 'pages' | 'blank'>): number {
+  return u.pages.length * PAGE_ROW + (u.blank ? BLANK_ROW : 0);
+}
+
+export function nodeBox(
+  n: MapNode,
+  pageWidth: number,
+  pageHeight = MAP_PAGE_HEIGHT,
+  underExtra = 0,
+): Box {
   const cx = (n.x / 100) * pageWidth;
   const cy = (n.y / 100) * pageHeight;
   const caption =
     (n.state === 'open' ? OPEN_CAPTION : HEARD_CAPTION) +
     (n.tryLock ? LOCK_BUTTON : 0) +
-    (n.id === 'seam' ? UNDER_SEAM : 0);
+    (n.id === 'seam' ? UNDER_SEAM + underExtra : 0);
   const w = MAP_CAPTION_WIDTH;
   const top = cy - MARK / 2;
   switch (n.label) {
@@ -249,9 +284,10 @@ export function mapProblems(
   nodes: readonly MapNode[],
   pageWidth: number,
   pageHeight = MAP_PAGE_HEIGHT,
+  underExtra = 0,
 ): string[] {
   const out: string[] = [];
-  const boxes = nodes.map((n) => ({ n, box: nodeBox(n, pageWidth, pageHeight) }));
+  const boxes = nodes.map((n) => ({ n, box: nodeBox(n, pageWidth, pageHeight, underExtra) }));
   for (const { n, box } of boxes) {
     if (box.left < 0 || box.right > pageWidth || box.top < 0 || box.bottom > pageHeight) {
       out.push(`${n.id} runs off the page`);

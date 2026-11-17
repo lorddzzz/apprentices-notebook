@@ -16,9 +16,12 @@
   const nodes = $derived(mapNodes(game.profile).map((n) => ({ ...n, fresh: freshOnArrival.has(n.id) })));
   const paths = $derived(mapPaths(nodes));
   const UnderNode = DISTRICT_UI.lowerSeam?.underNode;
+  const UnderPages = DISTRICT_UI.inkedPage?.underPages;
   // Dev check only: `window.__lowerFloors = [...]` draws fixture floors under the Seam.
   const fixtureFloors = import.meta.env.DEV ? (window as { __lowerFloors?: DistrictId[] }).__lowerFloors : undefined;
   let target = $state<DistrictId | null>(null);
+  /** The drawn page Set out is open for (EN-7), when `target` is 'inkedPage'. */
+  let pageSlot = $state<0 | 1 | 2 | null>(null);
   /** A district's own map sheet (the Seam's margin) that is open. */
   let sheetOf = $state<DistrictId | null>(null);
   const Sheet = $derived(sheetOf ? DISTRICT_UI[sheetOf]?.mapSheet?.sheet : undefined);
@@ -44,8 +47,9 @@
 
   function setOut(at: StartAt): void {
     if (!target) return;
-    const why = game.setOut(target, at);
+    const why = game.setOut(target, at, target === 'inkedPage' ? (pageSlot ?? undefined) : undefined);
     target = null;
+    pageSlot = null;
     if (why) toast(why, 'warn');
   }
 </script>
@@ -81,8 +85,12 @@
   <SetOutSheet
     open={target !== null}
     district={target}
+    page={pageSlot}
     profile={game.profile}
-    onclose={() => (target = null)}
+    onclose={() => {
+      target = null;
+      pageSlot = null;
+    }}
     onsetout={setOut}
   />
   {#if Sheet}
@@ -94,6 +102,15 @@
 {#snippet underSeamSlot()}
   {#if UnderNode}
     <UnderNode profile={game.profile} floors={fixtureFloors} onsetout={() => (target = 'lowerSeam')} />
+  {/if}
+  {#if UnderPages}
+    <UnderPages
+      profile={game.profile}
+      onopen={(slot) => {
+        pageSlot = slot;
+        target = 'inkedPage';
+      }}
+    />
   {/if}
 {/snippet}
 

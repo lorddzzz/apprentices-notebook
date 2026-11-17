@@ -13,6 +13,7 @@ import RecruitCard from './cards/RecruitCard.svelte';
 import { CARTOGRAPHERS_UI } from './cartographers';
 import { FOUNDRY_UI } from './foundry';
 import { INK_QUARTER_UI } from './inkQuarter';
+import { INKED_PAGE_UI } from './inkedPage';
 import { LOWER_SEAM_UI } from './lowerSeam';
 import { SEAM_UI } from './seam';
 
@@ -86,6 +87,8 @@ export interface DistrictUi {
   crossroadsLine?: Component<{ trip: Trip; profile: Profile }>;
   /** Drawn under another district's node on the map (the lower Seam's stair under the Seam, SM-11): `onsetout` opens Set out for this district. */
   underNode?: Component<{ profile: Profile; onsetout: () => void; floors?: readonly DistrictId[] }>;
+  /** The drawn pages' row after the stair under the Seam (EN-7): `onopen` opens Set out for that page. */
+  underPages?: Component<{ profile: Profile; onopen: (slot: 0 | 1 | 2) => void }>;
   /** A sheet the district's node on the map opens beside "set out" (the Seam's owner's margin, SM-5). */
   mapSheet?: {
     label: string;
@@ -103,6 +106,7 @@ export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   lowerSeam: LOWER_SEAM_UI,
   foundry: FOUNDRY_UI,
   cartographers: CARTOGRAPHERS_UI,
+  inkedPage: INKED_PAGE_UI,
 };
 
 /**
