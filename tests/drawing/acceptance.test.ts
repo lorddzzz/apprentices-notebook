@@ -265,7 +265,7 @@ describe('EN-W1: the contracts', () => {
     // Each kit pack adds its district after these (Packs I-K): the registry's first three stay put.
     expect(GEN_KITS.slice(0, 3).map((k) => k.district)).toEqual(['seam', 'canals', 'inkQuarter']);
     expect(GEN_KITS.map((k) => k.district)).toEqual(
-      expect.arrayContaining(['bathhouses', 'bridges', 'foundry']),
+      expect.arrayContaining(['bathhouses', 'bridges', 'foundry', 'cartographers']),
     );
     expect(SPIKE_KITS).toBe(GEN_KITS);
     expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
@@ -605,11 +605,24 @@ describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
     }
   });
 
-  frameTests('EN-K7', ['registrar']);
-  it.fails('EN-K7: no return after the point and none needed at the heart', () => {
+  frameTests('EN-K7', ['registrar'], true);
+  it('EN-K7: no return after the point and none needed at the heart', () => {
     const kit = shapeKit('cartographers:doorway');
     expect(kit.lengths).toEqual([3, 4, 5, 6]);
-    // The pack asserts `returnBlocks` after the point of no return and none at the heart.
+    expect('checkpoint' in kit.shape).toBe(false);
+    for (const length of kit.lengths) {
+      const drawing: Drawing = {
+        ...heartDrawing('registrar'),
+        shape: 'cartographers:doorway',
+        length,
+      };
+      for (let room = 0; room < length; room++) {
+        const blocks = kit.shape.returnBlocks?.(shapeInput(drawing, 5, room, null)) ?? [];
+        // Free through room ceil(length / 2); none after it; the heart is always a return point.
+        const free = room < Math.ceil(length / 2) || room === length - 1;
+        expect(blocks.length === 0, `room ${room + 1} of ${length}`).toBe(free);
+      }
+    }
   });
 });
 

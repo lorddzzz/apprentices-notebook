@@ -2,6 +2,7 @@ import type { GenKit } from '../types';
 import { BATH_KIT } from './bathhouses';
 import { BRIDGES_KIT } from './bridges';
 import { CANALS_KIT } from './canals';
+import { CARTOGRAPHERS_KIT } from './cartographers';
 import { FOUNDRY_KIT } from './foundry';
 import { INK_KIT } from './inkQuarter';
 import { SEAM_KIT } from './seam';
@@ -17,4 +18,5 @@ export const GEN_KITS: readonly GenKit[] = [
   BATH_KIT,
   BRIDGES_KIT,
   FOUNDRY_KIT,
+  CARTOGRAPHERS_KIT,
 ];

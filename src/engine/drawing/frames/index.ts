@@ -6,6 +6,7 @@ import { LAMPLIGHTER_FRAME } from './lamplighter';
 import { LAMP_MOTHER_FRAME } from './lampMother';
 import { MARGINALIA_FRAME } from './marginalia';
 import { POSTMASTER_FRAME } from './postmaster';
+import { REGISTRAR_FRAME } from './registrar';
 import { STEWARD_FRAME } from './steward';
 
 /**
@@ -19,4 +20,5 @@ export const HEART_FRAMES: Partial<Record<MasterId, HeartFrame>> = {
   bathSteward: STEWARD_FRAME,
   chiefWarden: CHIEF_WARDEN_FRAME,
   carillonneur: CARILLONNEUR_FRAME,
+  registrar: REGISTRAR_FRAME,
 };
