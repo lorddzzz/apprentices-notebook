@@ -59,8 +59,24 @@ Start at the role's first setting; move to its escalation only after a failed re
 | **Design orchestrator, planner** | The strongest model available, high effort | The strongest model available, high effort | Planning, briefs, Wave 0 and Close reviews, audits |
 
 - A Fast pack that fails review moves to Default; it does not get a second Fast attempt.
-- Pass the role's model and effort when spawning `pack-worker` (its own default is Sonnet 5.5 medium). For Codex model overrides use `fork_turns: "none"` with a standalone prompt. Don't restart a running agent to change its model.
+- Pass the role's model and effort when spawning (see Runners below; `pack-worker`'s own default is Sonnet 5.5 medium). Don't restart a running agent to change its model.
 - Record the model, the effort and any escalation in the log row.
+
+## Runners: Claude and Codex together
+
+Both tools may be available; use both. Usage is spent per tool, so spreading packs over the two tools keeps each window lower. When two or more packs start together, **give them different tools** unless one tool has no headroom (see [usage-pacing.md](usage-pacing.md): read both, then route).
+
+| Runner | How to spawn | Commits | Has |
+|---|---|---|---|
+| **Claude** | The app's `spawn_subagent` (agent `claude`, model and effort from the table), or the `pack-worker` agent where the runtime has agent definitions | The agent, on its branch | Svelte MCP (autofixer), browser tools, everything the session has |
+| **Codex via the app** | `spawn_subagent` with agent `codex` and the table's GPT model | The agent, if its sandbox allows | Whatever the app gives it |
+| **Codex via the CLI** | `node .claude/skills/implement/codex-pack.mjs <worktree> <prompt-file> --model <id> --effort <e>`, started in the background; it exits when the agent is done | **The orchestrator**: the sandbox cannot write git metadata, so the agent edits and tests, then you review its report and commit with the task IDs | Editing, tests, shell. No MCP servers, so no autofixer and no browser |
+
+Routing rules:
+- **Packs that need the Svelte autofixer, a phone check or a commit by the agent go to Claude.** Engine packs, tests, data and refactors with a `Verify` command go to either.
+- Use the app's Codex spawn first. If it fails at start-up with no work done (seen as `failed to load workspace requirements`), don't retry it: fall back to the CLI runner and note it in the status file.
+- **Spawning without an agent definition** (any Codex run, and `spawn_subagent` in apps that cannot name `pack-worker`): create the worktree yourself (`git worktree add .claude/worktrees/pack-<x> -b build/pack-<x> main`, then `pnpm install --frozen-lockfile --prefer-offline`, a few seconds), and put the standing-rules preamble from [templates.md](templates.md) before the brief, with the worktree path filled in.
+- A runner that stops at an ownership edge has not finished the pack: read what it did, commit the verified part as `wip(...)`, widen or re-brief, and send the rest to a second agent on the same branch (it costs one return). Record both runners in the log row (`Codex Terra high → Sonnet medium`).
 
 ## Verify in tiers
 

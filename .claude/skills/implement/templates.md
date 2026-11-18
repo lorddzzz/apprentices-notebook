@@ -49,7 +49,7 @@ Append-only, one line per merged task. Keep the table format so IDs can be match
 
 **Returns** counts review rounds that sent work back (0 = merged on the first report); write an escalation as `from → to`. Usage Δ is per pack when tasks cannot be told apart: put it on the pack's last row. These two columns are how model and effort choices get judged, so fill them every time. Every row has all six cells, and task rows go in the Tasks table only; the ledger script fails on a row that breaks either rule, so run it after adding rows.
 
-Usage readings go in a second table (time, 5h %, weekly %, action), one row per merge batch.
+Usage readings go in a second table (time, Claude 5h % / weekly %, Codex 5h % / weekly %, action), one row per spawn and merge batch; `node .claude/skills/implement/usage.mjs` prints both.
 
 ## Spawn prompt
 
@@ -74,6 +74,35 @@ Verify: `<the pack's test command>`
 ```
 
 For a **Wave 0** pack, replace Contract with: "Define <owned contracts>. Report the public interfaces, the invariants, the integration risks, and everything you declared that later tasks must fill in (the Owed list)."
+
+## Standing-rules preamble (runners without an agent definition)
+
+Paste this before the brief for any Codex run and for any `spawn_subagent` that cannot name `pack-worker`. It is `.claude/agents/pack-worker.md` trimmed to what a runner needs. Fill `<path>`, `<branch>` and the commit rule.
+
+```
+You implement one PACK of an implementation plan in The Apprentice's Notebook. Standing rules (the brief wins where it differs):
+
+START
+1. Your git worktree is <path> on branch <branch>, dependencies installed. Work ONLY there: cd into it for every command and edit files only under it; never touch the main checkout. `git rev-parse --show-toplevel` must end in .claude/worktrees/<name>, else stop and report.
+2. <Claude/app runner:> Run `git merge --ff-only main` (report if it fails). <Codex CLI runner:> The worktree is already at main. Your sandbox cannot write git metadata: no git command that writes (commit, add, merge, checkout, stash); status, diff and log are fine.
+3. Read AGENTS.md and only what the brief lists. Not the status file, the build log, or whole design docs.
+
+WORK
+- Tasks in order, <Claude/app runner:> one commit per task. <Codex CLI runner:> no commits (the orchestrator commits): finish each item with its tests green, then list its files.
+- Edit only the files you OWN. An OPTIONAL field, parameter or registry entry in another file is allowed when the task needs it, behaviour without it is identical and existing tests pass unchanged: do it and list it under Proposals. Anything more (changed behaviour, a changed test) leaves THAT ITEM undone: say so, and carry on with the other items instead of stopping the pack.
+- Stopping early: <Claude/app:> commit what you have as `wip(<area>): <ID> <what is missing>`. <Codex CLI:> leave the files as they are and say what is missing.
+- No balance tuning. Don't edit DESIGN.md, TECH.md, docs/design/*, the roadmap or the status file. No refactors beyond the tasks.
+- src/engine is pure deterministic TypeScript (strict, no `any`, randomness only through engine/rng.ts). A behaviour change ships with a test that fails before the fix.
+
+VERIFY
+Before each commit (or item): the brief's Verify command with --reporter=dot and `pnpm exec tsc --noEmit`. Before your last commit (or the end): `pnpm check:fast > check.log 2>&1; tail -20 check.log` (do not commit check.log; allow it several minutes). Never run tests/sim/ unless the brief says so.
+
+COMMIT (Claude/app runner)
+Stage explicit paths, never `git add -A`: `<type>(<area>): <ID> <summary>` with a body of what you built and the test names, ending with the attribution line the session gives.
+
+REPORT
+Once, under 250 words: per task the commit (or files changed) and the test summary line; what is not done and the exact next step; PROPOSALS (each rule you decided that the brief did not, one line with the reason).
+```
 
 ## Messages to a running agent
 
