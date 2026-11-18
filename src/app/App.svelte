@@ -5,9 +5,11 @@
   import Cleared from '../ui/screens/Cleared.svelte';
   import Codex from '../ui/screens/Codex.svelte';
   import Combat from '../ui/screens/Combat.svelte';
+  import Credits from '../ui/screens/Credits.svelte';
   import Crossroads from '../ui/screens/Crossroads.svelte';
   import Desk from '../ui/screens/Desk.svelte';
   import DrawingTable from '../ui/screens/DrawingTable.svelte';
+  import Handover from '../ui/screens/Handover.svelte';
   import Loot from '../ui/screens/Loot.svelte';
   import CityMap from '../ui/screens/Map.svelte';
   import Study from '../ui/screens/Study.svelte';
@@ -90,6 +92,10 @@
     <CityMap />
   {:else if resolved.screen === 'threshold'}
     <Threshold />
+  {:else if resolved.screen === 'handover'}
+    <Handover />
+  {:else if resolved.screen === 'credits'}
+    <Credits />
   {/if}
   <Toasts />
   <span class="build">{BUILD}</span>

@@ -8,4 +8,4 @@ export const LOWER_SEAM_UI: DistrictUi = {
   underNode: StairSlot,
 };
 
-export { DOOR_PLACEHOLDER, type DoorLine, doorLine } from './door';
+export { type DoorLine, doorLine, doorRow } from './door';

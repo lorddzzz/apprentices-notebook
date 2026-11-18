@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Profile, Trip } from '$engine';
   import Button from '../../components/common/Button.svelte';
-  import { DOOR_PLACEHOLDER, doorLine } from './door';
+  import { doorLine } from './door';
 
   interface Props {
     trip: Trip;
@@ -10,26 +10,23 @@
 
   let { trip, profile }: Props = $props();
   const line = $derived(doorLine(profile, trip));
-  let tried = $state(false);
 </script>
 
 <!--
-  The sealed door (SM-10, P11), on the lowest floor's bottom screen above the way home: nothing while hidden, a greyed
-  line while sealed, "Go through the door" once the Cartographers' heart is cleared. The way through
-  is BL-126's; until it is designed the button only says so, in a line under it.
+  The owner's door (SM-10, P11, P20), on the lowest floor's bottom screen above the way home: nothing
+  while hidden, a greyed line while sealed, and once the Cartographers' heart is cleared a line that
+  points home. The visit itself is a free one from the map, not a way through from here.
 -->
 {#if line}
   <div class="door">
-    <Button
-      variant={line.state === 'open' ? 'primary' : 'quiet'}
-      disabled={line.state === 'sealed'}
-      onclick={() => (tried = true)}
-      testid="door-{line.state}"
-    >
-      <span class="big">{line.label}</span>
-      <span class="sub">{line.sub}</span>
-    </Button>
-    {#if tried}<p class="later" data-testid="door-later">{DOOR_PLACEHOLDER}</p>{/if}
+    {#if line.state === 'sealed'}
+      <Button variant="quiet" disabled onclick={() => {}} testid="door-sealed">
+        <span class="big">{line.label}</span>
+        <span class="sub">{line.sub}</span>
+      </Button>
+    {:else}
+      <p class="open" data-testid="door-open">{line.label}</p>
+    {/if}
   </div>
 {/if}
 
@@ -42,9 +39,9 @@
     padding-block: var(--space-2);
     text-align: center;
   }
-  .later {
-    margin: var(--space-1) 0 0;
-    font-size: 14px;
+  .open {
+    margin: 0;
+    font-size: 16px;
     font-style: italic;
     text-align: center;
     color: var(--ink-soft);

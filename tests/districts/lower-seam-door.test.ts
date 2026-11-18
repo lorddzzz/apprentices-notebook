@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { DistrictId } from '$data';
+import { ENDING_LINES } from '$data/ending';
 import {
   type BattleState,
   beginEncounter,
@@ -15,7 +16,7 @@ import {
   type Trip,
 } from '$engine';
 import { LOWER_SEAM, markDoorSeen, ownerDoor } from '$engine/districts/lowerSeam';
-import { DOOR_PLACEHOLDER, doorLine } from '$ui/districts/lowerSeam';
+import { doorLine, doorRow } from '$ui/districts/lowerSeam';
 
 /**
  * SM-10: the sealed door (P11). `city.doorSeen` is set when the lowest floor's fight closes (win or
@@ -166,12 +167,26 @@ describe('the bottom Crossroads line', () => {
     expect(`${line?.label} ${line?.sub}`).not.toMatch(/cartograph/i);
   });
 
-  test('open: "Go through the door"', () => {
+  test('open: a line that points home, not a way through (P20)', () => {
     expect(doorLine(CLEARED, atBottom(CLEARED))).toMatchObject({
       state: 'open',
-      label: 'Go through the door',
+      label: 'The door stands open. You can visit it from home.',
+      sub: '',
     });
-    expect(DOOR_PLACEHOLDER).toMatch(/not yet written/);
+    expect(ENDING_LINES.inTrip).toBe('The door stands open. You can visit it from home.');
+  });
+
+  test("the map row: the owner's door, then the owner's desk after the visit", () => {
+    expect(doorRow(TWO)).toBeNull();
+    expect(doorRow({ ...TWO, city: { ...TWO.city, doorSeen: true } })).toBeNull();
+    expect(doorRow(CLEARED)).toEqual({
+      label: "The owner's door",
+      sub: 'It is unlatched. Come down when you like; there is nothing to fight.',
+    });
+    expect(doorRow({ ...CLEARED, ending: { handover: true, creditsSeen: false } })).toEqual({
+      label: "Visit the owner's desk",
+      sub: 'Read it again.',
+    });
   });
 
   test('no line on a floor above the bottom, nor on another district', () => {

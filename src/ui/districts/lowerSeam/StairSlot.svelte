@@ -2,6 +2,8 @@
   import type { DistrictId } from '$data';
   import type { Profile } from '$engine';
   import { underSeam } from '../../../app/city';
+  import { href } from '../../../app/routes';
+  import { doorRow } from './door';
 
   interface Props {
     profile: Profile;
@@ -13,6 +15,7 @@
 
   let { profile, onsetout, floors }: Props = $props();
   const under = $derived(underSeam(profile, undefined, floors));
+  const row = $derived(doorRow(profile));
 </script>
 
 <!--
@@ -50,6 +53,12 @@
           <path d="M12 3.5v23.5l7-3V6.5z" class="leaf" />
         {/if}
       </svg>
+    {/if}
+    {#if row}
+      <a class="visit" href={href('handover')} data-testid="door-row">
+        <span class="big">{row.label}</span>
+        <span class="sub">{row.sub}</span>
+      </a>
     {/if}
   {/if}
 </div>
@@ -114,6 +123,27 @@
   }
   .door.sealed {
     stroke: var(--ink-faint);
+  }
+  .visit {
+    display: flex;
+    flex-direction: column;
+    max-width: 200px;
+    min-height: var(--tap);
+    padding: var(--space-1) var(--space-2);
+    text-align: center;
+    text-decoration: none;
+    color: var(--ink);
+    border: 1px solid var(--ink-faint);
+    border-radius: 6px;
+    background: var(--parchment);
+  }
+  .visit .big {
+    font-size: 15px;
+  }
+  .visit .sub {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ink-soft);
   }
   .door .leaf {
     fill: var(--parchment-dark);

@@ -196,15 +196,6 @@ describe('EN-W0: the profile fields', () => {
 });
 
 describe('EN-W0: the stubs and kit interfaces', () => {
-  const profile = newSave(1).profile;
-  const calls: [string, string, () => unknown][] = [
-    ['EN-10', 'handover', () => handover(profile)],
-    ['EN-11', 'creditsOf', () => creditsOf(profile)],
-  ];
-  test.each(calls)('%s: %s throws "not built" until its task', (task, _name, call) => {
-    expect(call).toThrow(`not built (${task})`);
-  });
-
   test('botTrial is the engine bot of EN-0, not a stub', () => {
     expect(botTrial).toBe(simBotTrial);
   });
@@ -635,20 +626,20 @@ function doorOpen(): Profile {
 }
 
 describe('EN-10 and EN-11 (Pack L): handover and credits', () => {
-  it.fails('EN-10: the handover is hidden before the door opens', () => {
+  it('EN-10: the handover is hidden before the door opens', () => {
     const p = newProfile();
     expect(ownerDoor(p)).toBe('hidden');
-    // Not asked for yet, it changes nothing.
-    expect(handover(p)).toEqual(p);
+    // Not asked for yet: it refuses and changes nothing.
+    expect(() => handover(p)).toThrow();
   });
 
-  it.fails('EN-10: the handover is idempotent', () => {
+  it('EN-10: the handover is idempotent', () => {
     const once = handover(doorOpen());
     expect(endingOf(once).handover).toBe(true);
     expect(handover(once)).toEqual(once);
   });
 
-  it.fails('EN-10: nothing is lost on joining', () => {
+  it('EN-10: nothing is lost on joining', () => {
     const before = doorOpen();
     const after = handover(before);
     expect(after.household.members).toEqual(expect.arrayContaining(before.household.members));
@@ -658,21 +649,21 @@ describe('EN-10 and EN-11 (Pack L): handover and credits', () => {
     expect(after.city).toEqual(before.city);
   });
 
-  it.fails('EN-10: gifted pages are learned only when missing', () => {
+  it('EN-10: gifted pages are learned only when missing', () => {
     const once = handover(doorOpen());
     expect(new Set(once.known).size).toBe(once.known.length);
     // Learning again from a household that already has every gifted page adds none.
     expect(handover({ ...once, ending: undefined }).known).toEqual(once.known);
   });
 
-  it.fails('EN-11: creditsOf lists districts in opening order', () => {
+  it('EN-11: creditsOf lists districts in opening order', () => {
     const p = doorOpen();
     const open = ['seam', 'bridges', 'canals'] as const;
     const credits = creditsOf({ ...p, city: { ...p.city, open: [...open] } });
     expect(credits.districts).toEqual([...open]);
   });
 
-  it.fails('EN-11: creditsOf carries the ledger counts', () => {
+  it('EN-11: creditsOf carries the ledger counts', () => {
     const ledger = {
       casts: 41,
       biggest: { chain: 9, caster: 'draughtsman' as ApprenticeId, name: 'Bonfire' },
