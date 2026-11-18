@@ -13,7 +13,7 @@ import {
 import { initInkState } from '$engine/districts/inkQuarter/types';
 import { KIT } from '$engine/districts/kit';
 import { ownerDoor } from '$engine/districts/lowerSeam';
-import type { Json, ShapeInput, TripShapeDef } from '$engine/districts/types';
+import type { BoardEdit, Json, ShapeInput, TripShapeDef } from '$engine/districts/types';
 import {
   BLOCKED_SHARE,
   type Credits,
@@ -55,6 +55,7 @@ import type {
   RuleKit,
   ShapeKit,
 } from '$engine/drawing/types';
+import { parseBoard } from '$engine/notation';
 import { botTrial as simBotTrial, TRIAL_BUDGET } from '$engine/sim';
 import { newTripKit, shapeOf } from '$engine/trip/shape';
 import {
@@ -68,6 +69,7 @@ import {
 } from './fixtures';
 import { scriptedSolve } from './kits-a.scripts';
 import { SCRIPTS_B, scriptedSolveB } from './kits-b.scripts';
+import { SCRIPTS_C, scriptedSolveC, shapeInput } from './kits-c.scripts';
 
 /**
  * EN-W0 (ending-plan §4, §5): the ending's contracts exist, are inert and read strictly. Every
@@ -263,7 +265,7 @@ describe('EN-W1: the contracts', () => {
     // Each kit pack adds its district after these (Packs I-K): the registry's first three stay put.
     expect(GEN_KITS.slice(0, 3).map((k) => k.district)).toEqual(['seam', 'canals', 'inkQuarter']);
     expect(GEN_KITS.map((k) => k.district)).toEqual(
-      expect.arrayContaining(['bathhouses', 'bridges']),
+      expect.arrayContaining(['bathhouses', 'bridges', 'foundry']),
     );
     expect(SPIKE_KITS).toBe(GEN_KITS);
     expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
@@ -404,7 +406,11 @@ function frameTests(pack: string, masters: readonly MasterId[], built = false): 
     for (const master of masters) {
       const spec = heartSpec(inputFor(heartDrawing(master), 1));
       expect(checkGenerated(frameOf(master).fallback, spec)).toEqual([]);
-      const solve = SCRIPTS_B[master] ? scriptedSolveB : scriptedSolve;
+      const solve = SCRIPTS_C[master]
+        ? scriptedSolveC
+        : SCRIPTS_B[master]
+          ? scriptedSolveB
+          : scriptedSolve;
       expect(solve(master).phase, `${master}'s scripted solve`).toBe('won');
     }
   });
@@ -549,11 +555,54 @@ describe('EN-K1 to EN-K7 (Packs I-K): kits and frames', () => {
     }
   }, 180_000);
 
-  frameTests('EN-K6', ['carillonneur']);
-  it.fails('EN-K6: bells hang only where rung', () => {
+  frameTests('EN-K6', ['carillonneur'], true);
+  it('EN-K6: bells hang only where rung', () => {
     const kit = shapeKit('foundry:peal');
     expect(kit.lengths).toEqual([3, 4, 5, 6]);
-    // The pack asserts great bells hang in the heart room alone.
+    const hall = parseBoard(
+      ['. . . . .', '. . . . .', '. . r . .', '. . . . .', '. . . . .', 'P P P P .'].join('\n'),
+    );
+    const heart = frameOf('carillonneur').fallback;
+    const hooks = heart.tiles.flatMap((t, i) =>
+      t.piece?.id === 'foundry:hook'
+        ? [{ x: i % heart.width, y: Math.floor(i / heart.width) }]
+        : [],
+    );
+    expect(hooks).toHaveLength(4);
+    for (const length of kit.lengths) {
+      const drawing: Drawing = { ...heartDrawing('carillonneur'), shape: 'foundry:peal', length };
+      const rooms = {
+        ...Object.fromEntries(Array.from({ length: length - 1 }, (_, i) => [i, hall])),
+        [length - 1]: heart,
+      };
+      const setupAt = (room: number, rung: { room: number; note: number }[]) =>
+        kit.shape.roomSetup?.(shapeInput(drawing, 5, room, { rung }, rooms)) ?? {};
+      const hung = (edits: readonly BoardEdit[] | undefined) =>
+        (edits ?? []).flatMap((e) => {
+          if (!('piece' in e) || e.piece?.id !== 'foundry:greatBell') return [];
+          const d = e.piece.data as { allied: boolean; note: number };
+          return d.allied ? [{ at: e.at, note: d.note }] : [];
+        });
+      // The rooms before the heart lay a great bell but hang none.
+      for (let room = 0; room < length - 1; room++) {
+        const edits = setupAt(room, []).boardEdits;
+        expect(hung(edits), `room ${room + 1} of ${length}`).toEqual([]);
+        expect(edits?.some((e) => 'piece' in e && e.piece?.id === 'foundry:greatBell')).toBe(true);
+      }
+      // The heart hangs one bell on a hook for each note rung, and none for a note not rung.
+      expect(hung(setupAt(length - 1, []).boardEdits)).toEqual([]);
+      for (const rung of [
+        [{ room: 0, note: 1 }],
+        [
+          { room: 0, note: 1 },
+          { room: 2 % (length - 1), note: 3 },
+        ],
+      ]) {
+        const edits = hung(setupAt(length - 1, rung).boardEdits);
+        expect(edits.map((e) => e.note).sort()).toEqual(rung.map((r) => r.note).sort());
+        for (const e of edits) expect(hooks).toContainEqual(e.at);
+      }
+    }
   });
 
   frameTests('EN-K7', ['registrar']);
