@@ -304,7 +304,13 @@ export function overlayFor(
       emphasis: focus?.kind === 'enemy' ? (focus.id === u.id ? 'strong' : 'dim') : 'normal',
     });
   }
-  const rivalRead = rivalDraws(intentState, focus, witnessed, footnotes);
+  const rivalRead = rivalDraws(
+    intentState,
+    focus,
+    witnessed,
+    footnotes,
+    preview && !preview.masked ? preview.result.events : [],
+  );
   for (const at of rivalRead.blanks) {
     if (!highlights.some((h) => h.kind === 'blank' && sameCoord(h.at, at)))
       highlights.push({ kind: 'blank', at });
@@ -384,13 +390,14 @@ function rivalDraws(
   focus: { kind: string; id: UnitId } | null,
   witnessed: ReadonlySet<LineId> | null,
   footnotes: Footnotes,
+  phase: readonly GameEvent[],
 ): { draws: RivalDraw[]; blanks: Coord[]; hurt: Coord[] } {
   const out = { draws: [] as RivalDraw[], blanks: [] as Coord[], hurt: [] as Coord[] };
   for (const u of s.units) {
     if (u.kind !== 'enemy' || !u.rival || !isAlive(u) || !u.intent) continue;
     const i = u.intent;
     if (i.kind !== 'cast' && i.kind !== 'trick' && i.kind !== 'rivalStrike') continue;
-    const read = rivalReadout(s, u, witnessed, footnotes);
+    const read = rivalReadout(s, u, witnessed, footnotes, phase);
     if (!read) continue;
     out.blanks.push(...read.blanks);
     for (const id of read.hurt) {

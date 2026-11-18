@@ -8,6 +8,7 @@ import { tileAt } from '$engine/queries';
 import { hasFootnote } from '$engine/footnotes';
 import { WICK_NOTE } from '$engine/jars';
 import { rivalPreview } from '$engine/rivals';
+import type { EventLog as GameEventLog } from '$engine/events';
 import type { ObjectRef } from '$engine/rivals/types';
 import { simulate } from '$engine/rivals/plan';
 import type { Step } from '$engine/types';
@@ -160,6 +161,7 @@ function lockedPreview(
   lock: ObjectRef,
   opensJar: number | null,
   setup?: (s: ReturnType<typeof createBattle>['state'], rival: EnemyUnit) => void,
+  phase: GameEventLog = [],
 ) {
   const s = createBattle({ title: 't', board: 'L . . D', seed: 1 }).state;
   const rival = s.units.find((u): u is EnemyUnit => u.kind === 'enemy' && !!u.rival);
@@ -181,7 +183,7 @@ function lockedPreview(
       },
     },
   });
-  const out = rivalPreview(s, rival.id);
+  const out = rivalPreview(s, rival.id, {}, phase);
   undo();
   return { out, rival };
 }
@@ -217,5 +219,28 @@ describe('trick preview locks', () => {
     const { out } = lockedPreview({ kind: 'jar', id: 9 }, null);
     expect(out?.landing).toBeNull();
     expect(out?.opens).toEqual([]);
+  });
+
+  it('fails the order for an object made earlier in the phase', () => {
+    const setup = (s: Parameters<typeof tileAt>[0], r: EnemyUnit) => {
+      tileAt(s, parseLabel('B1')).jar = jarOf(r.id, 1);
+    };
+    const made: GameEventLog = [
+      {
+        type: 'jarSealed',
+        at: { x: 1, y: 0 },
+        owner: { id: 'x', name: 'X', member: false, at: { x: 1, y: 0 } },
+        event: 'step',
+        id: 1,
+        peek: null,
+      },
+    ];
+    const fresh = lockedPreview({ kind: 'jar', id: 1 }, 1, setup);
+    const after = lockedPreview({ kind: 'jar', id: 1 }, 1, setup, made);
+    expect(fresh.out?.landing).toEqual({ x: 1, y: 0 });
+    expect(after.out?.landing).toBeNull();
+    expect(after.out?.opens).toEqual([]);
+    expect(after.out?.events.some((e) => e.type === 'orderFails')).toBe(true);
+    expect(after.out?.events.some((e) => e.type === 'jarSealed')).toBe(false);
   });
 });

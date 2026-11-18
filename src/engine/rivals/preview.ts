@@ -112,11 +112,14 @@ function previewStrike(
  * What the rival's shown action would do if it resolved on `state` now (P6), or null when `unit`
  * is not a living rival with a cast, trick or dry-strike intent on show. A stunned rival's action
  * is skipped, with no fallback. Safe to call on any state, including a confirm preview's result.
+ * `phase` is the current resolve phase's events so far: an object made in it makes a locked order
+ * fail, as it will when the action really resolves.
  */
 export function rivalPreview(
   state: BattleState,
   unit: UnitId,
   footnotes: FootnoteIds = {},
+  phase: readonly GameEvent[] = [],
 ): RivalPreviewDetail | null {
   const shown = findUnit(state, unit);
   if (shown?.kind !== 'enemy' || !shown.rival || !isAlive(shown) || !shown.intent) return null;
@@ -127,13 +130,13 @@ export function rivalPreview(
   if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent, footnotes);
   const fallbackLive = fallbackIsLive(state, shown, intent.fallback);
 
-  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes };
+  const ctx: Ctx = { s: cloneData(state), log: [...phase], cast: null, meta: {}, footnotes };
   const e = findUnit(ctx.s, unit);
   if (e?.kind !== 'enemy') return null;
   const before = cloneData(ctx.s);
   // The fallback is shown separately (`fallbackLive`), so the dry run never strikes.
   resolveRivalIntent(ctx, e, { ...cloneData(intent), fallback: null });
-  const events = ctx.log;
+  const events = ctx.log.slice(phase.length);
   const outcome = outcomeOf(events, unit, before);
   const starved = isStarved(events);
   const targets = targetsOf(events, unit);
