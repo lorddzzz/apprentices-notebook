@@ -95,11 +95,8 @@ N2's five `code-review` runs found 49 items, and the foundry's own review (CL-6)
 | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|
 | R1 | engine core: layers, drifts, falls, Bends | Sonnet 5.5 high | now |
-| R2 | drawn trips: the termed card, the lent state, owned pages, the sandbox rule | Sonnet 5.5 high | now (it takes the Owed "termed card" item from Packs I and K) |
-| R3 | rival planner and preview | Sonnet 5.5 medium | now |
 | R4 | footnotes API | Sonnet 5.5 medium | now |
 | R5 | UI: a failed inking, the drawn-page slot | Sonnet 5.5 medium | R2 |
-| R6 | foundry: the drawn bell kits, the Detuner, the pulse, the drawn peal, the bot | Sonnet 5.5 high | now |
 
 ### Pack R1 (Default: Sonnet 5.5 high)
 
@@ -116,36 +113,6 @@ Pack R1: review fixes from N2's CL-4 run (a), engine core. Each item gets a scen
 
 Own: src/engine/mix.ts, push.ts, lattice.ts, solvents.ts, resolve.ts, runes/actions.ts, queries.ts, flow.ts, bursts.ts; new scenario tests under tests/scenarios/.
 Verify: `pnpm check:fast`. No phone check.
-```
-
-### Pack R2 (Default: Sonnet 5.5 high)
-
-```
-Pack R2: review fixes from N2's CL-4 run (b), drawn trips (src/engine/districts/inkedPage.ts, src/engine/drawing/**, src/engine/trip/finish.ts).
-
-1. The termed card (Owed since Pack I): `termCardFor` (src/engine/drawing/kits/inkQuarter.ts) has no caller; `INKED_TRIP.offersFor` must add it in every room but the heart when the lent shape is `inkQuarter:terms`.
-2. Before 1 can work: `lentInput` hands the lent hooks the outer trip, so `releaseHeld(trip)` and `TERMED_KIND.onPick` read and write `trip.kit.state` (the `InkedTripState`), not the lent state. Give the lent hooks a trip view whose `kit.state` is the inner state, and map writes back into `inner`. Test: a drawn terms trip signs a term, breaks it, and its held page is taken back; the state still parses.
-3. Rule question, default held: `offersFor` passes `tripOwned` (the trip's own loot) to `drawnOffersFor`, so a page the household already holds can take an offer slot and turns into duplicate ink. Default: pass the household's pages (`ownedBy(p, t)` needs the profile: add it to `ShapeInput` or read it where the roll runs), so the table offers missing pages first, as ending-plan P7's table reads. Re-record any drawn-loot expectations the change moves and list them in the report.
-4. Parse once: every hook re-parses the snapshot and `lentShape` rebuilds its lookup over GEN_KITS and every module on each call (`roomsOf` does it once per room). Build a `Map` of lent shapes once (falling back to `KIT.shapes`) and pass the parsed state through `viewOf`. Refactor only.
-5. One sandbox rule: the P16 rules are four separate `KIT.modules[d]?.sandbox` checks and `keptLoot` names only `key` and `recruit`. Add `isSandbox(district)` and an opt-in `sandbox: true` flag on `OfferKind` for kinds a drawn trip may bank; `keptLoot` keeps only those. Test: a lent `extra` card of a kind without the flag is not banked.
-
-Own: src/engine/districts/inkedPage.ts, src/engine/drawing/loot.ts, src/engine/drawing/kits/inkQuarter.ts, src/engine/trip/finish.ts, src/engine/trip/offerKinds.ts, src/engine/districts/types.ts; tests/drawing/**.
-Verify: `pnpm vitest run tests/drawing tests/ending tests/app/flow.test.ts --reporter=dot`, then `pnpm check:fast`. No phone check.
-```
-
-### Pack R3 (Default: Sonnet 5.5 medium)
-
-```
-Pack R3: review fixes from N2's CL-4 run (c), the rival planner and preview (src/engine/rivals/plan.ts, preview.ts, tricks.ts, goals.ts).
-
-1. `simulate` (plan.ts ~198) walks the clone with `footnotes: {}` while `destinations` / `safeTile` and the real walk use the household's (already in the status file's Rough edges as "Pack Q's simulate still runs with empty footnotes"). Pass the battle's footnotes into the simulation and into `rivalPreview`'s ctx. Test: with `lamplighter:wick` written, a planned walk across a party step-jar is scored on the board where the jar opened.
-2. The outcome slices the log after the walk (plan.ts ~204), so harm taken on his own walk is not `selfHarm`. Slice from before the walk. Test: a dest whose path crosses his own lantern is not `clean`.
-3. Trick preview (preview.ts ~142-146): `opens` reports the lock as opened on any `jarOpened`, and `landing` is found only for jar locks and ignores a lost order. Match `jarOpened.id` against the lock, keep the computed `outcome.opened`, give trick-object locks their `at`, and no landing when the order fails.
-4. The preview resolves on a fresh log, so `madeThisPhase` (tricks.ts ~230) never sees an object made earlier in the phase. Seed the preview log with the current phase's events (or pass the phase start).
-5. Speed (refactor only, results unchanged): memoize `Outcome` by (dest, intent) across routine steps and clone once per dest (plan.ts ~266); compute the party distance fields once per plan (goals.ts ~94); cache `declaredEffectEvents`' set and reset it in `registerTrick` and its unregister.
-
-Own: src/engine/rivals/**; tests/rivals/**.
-Verify: `pnpm vitest run tests/rivals --reporter=dot`, then `pnpm check:fast`.
 ```
 
 ### Pack R4 (Default: Sonnet 5.5 medium)
@@ -173,24 +140,6 @@ Pack R5: review fixes from N2's CL-4 run (e), UI.
 
 Own: src/app/game.svelte.ts, src/app/city.ts, src/app/crossroads.ts, src/app/flow.ts, src/ui/screens/Combat.svelte, src/ui/districts/inkedPage/PagesSlot.svelte; tests/app/**.
 Verify: `pnpm check:fast`; svelte-autofixer on every changed component. Phone check at 375x812: a drawn trip with a failed inking (dev flag or a rejecting inker), both buttons.
-```
-
-### Pack R6 (Default: Sonnet 5.5 high)
-
-```
-Pack R6: review fixes from N2's foundry review (CL-6), src/engine/districts/foundry/** and src/engine/drawing/kits/foundry.ts. Each behaviour item gets a scenario or kit test that fails before the fix.
-
-1. `holdsOpen` (kits/foundry.ts ~146) calls `keepsReach(layout, new Set())`, comparing the layout with itself, so `bellKit.place`'s reach check and `bellKit.valid` always pass. Compare against the layout before the bell was laid (or pass the bell's tile as blocked on the pre-bell layout). Test: a one-tile corridor is never filled by a bell.
-2. `bellsKit.stamp` (~113) lays 2-4 solid bells on any plain tile above the bottom two rows with no reach, unit or start check (it can lay one on a foe). Use `freeTiles` and `keepsReach` as `bellKit.place` and `lockEdits` do. Generated rooms move: re-run `tests/drawing` and list the layouts whose expected output changes.
-3. `detunerMove` (foes.ts ~212) seeds its distance field from every neighbour of the goal bell, walls and occupied tiles included, so the Detuner can stop beside a wall and never retune. Seed only standable neighbours (as `stepsTo` filters). Also compute the Detuner's own field once in `nearestBell` and pass it to `stepsTo` (~181), not once per bell.
-4. `hurt` (ring.ts ~300) falls back to `straightTwo` on every ring, so a unit pushed two tiles out in line earlier in the same pulse is still hit. Rule question, default held: the fallback applies only to a Coil-widened (`wide`) ring, as the comment states; pass the flags to `hurt`.
-5. `parseFoundryState` (types.ts ~423) drops entries with `room >= FOUNDRY_TUNING.rooms` (4), but a drawn peal of length 5-6 rings a great bell in room 4 and 5. Bound by the trip's length (read it where the drawn kit parses, or store the bound in the state). Test: a length-6 drawn peal hangs every rung room's bell at the heart; old saves still parse.
-6. `pulseTerm` (bot.ts ~15) scores every tone's pulse tiles, also tones already humming this round (they cannot ring again before round end). Skip humming tones (`isHumming`). The weights stay as they are (CAL list §1.1). Record the bot's room-4 and heart rates before and after in the report (no tuning).
-7. `stampHooks` (heartFrame.ts ~43) hand-rolls a nearest-free-tile search that ignores units, starts, drops and water; use `settle()` / `bare()` from `../frame`.
-8. One helper each (refactor only, tests unchanged): `isTone` (use `$data/districts/foundry`'s), the retune wrap (`retunedLabel` foes.ts ~227 and `retune` ring.ts ~173 from one function), `dirTo` / `dirBetween`, `sameXY` / `sameCoord`, bot.ts's hand-made key / grid `key`; the kit names `BELLS_RULE_ID` and `FOUNDRY_SHAPE` instead of the literals.
-
-Own: src/engine/districts/foundry/**, src/engine/drawing/kits/foundry.ts; tests/districts/foundry/**, tests/drawing/kits-c.test.ts (foundry lines only).
-Verify: `pnpm vitest run tests/districts/foundry tests/drawing tests/data/foundry-rooms.test.ts --reporter=dot`, then `pnpm check:fast`; `tests/sim/foundry.test.ts` once at the end (report its numbers, change nothing for them).
 ```
 
 ---

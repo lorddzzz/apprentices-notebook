@@ -95,6 +95,9 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | EN-K4, EN-K5 (Pack J) | 40a1b8a, ef59938 | Sonnet 5.5 high | 0 | ~14% | bathhouses and bridges kits, Steward and Chief Warden frames; bot 50/50 first try, 0 fallbacks (trials never switch boil-over on); additive contract extras: `HeartFrame.masterInCloud`, `GenInput.choice`, `ShapeKit.adjust`, `RuleKit.stamp` 4th arg; extra foe and piece kits |
 | EN-K6, EN-K7 (Pack K) | 15b2b6d, 20971cf | Sonnet 5.5 high | 0 | unknown (no usage tool) | foundry and hall kits, Carillonneur and Registrar frames; bot 50/50 each, 0 fallbacks (the foundry heart IS won by the bot, contrary to CAL-4's note); 22 tests in kits-c.test.ts |
 | EN-10, EN-11 (Pack L) | 076c1ee, a0f2599 | Sonnet 5.5 medium | 0 | unknown (no usage tool) | handover scene, door row, credits scroll, codex 'The owner' tab; phone shots in ending-plan-evidence (light only); autofixer run on trimmed copies |
+| R2 (CL-4 b) | 763015c | Sonnet 5.5 high | 0 | ~12% Claude (shared with R6) | drawn trips: termed card offered, lent trip view (`DistrictModule.lend`), household pages in the roll, one `isSandbox` + `OfferKind.sandbox` opt-in; 5 tests in tests/drawing/lent.test.ts; one commit for five interleaved items |
+| R6 (CL-6) | b6e649d, cf7d742, 3bd4418, cc8a370, f04f61c, 5c422f8, ab5c3b9 | Sonnet 5.5 high | 0 | ~12% Claude (shared with R2) | foundry review: reach checks, Detuner seed, plain-ring hurt, drawn peal length 6, humming tones skipped, stampHooks via settle, helpers; bot rates unchanged (room 4 40/40, heart 37/40), foundry sim 4/4 |
+| R3 (CL-4 c) | 31f4db5 (wip), 8592b0c, f77947c, 059a5a1, b7cb1ce, f2ac6ed | Codex Terra 6.1 high (item 1 part, wip) → Sonnet 5.5 medium | 1 (Codex stopped at a sandbox/ownership edge: no git write, `describe.ts` unowned) | ~4% Codex + ~10% Claude | rival planner: footnotes in simulate and preview, walk self-harm, trick-preview locks, phase-seeded preview, memoized outcomes; additive footnotes/phase args through describe.ts, overlay.ts, battle.svelte.ts |
 
 ## Usage
 
@@ -118,3 +121,5 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-17 21:15 | 72 | 27 | wave 25 merged (I, G, F2); fast gate green (8514); wave 26 held at Wrap |
 
 | 2026-11-17 21:50 | 87 | 29 | Pack J merged; fast gate green (8533); K held (Hold) |
+
+| 2026-11-18 21:18 | 37 (Claude) / 49 (Codex) | 4 / 8 | test cycle: R2, R6, R3 merged; fast gate green (389 files, 8601); read with `claude -p "/usage"` and codex app-server `account/rateLimits/read` |
