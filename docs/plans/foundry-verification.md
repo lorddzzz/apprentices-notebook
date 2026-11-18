@@ -1,6 +1,6 @@
-# Bell foundry: verification (CL-6, record half)
+# Bell foundry: verification (CL-6)
 
-Written 2026-11-17 for [foundry-plan.md](foundry-plan.md) section 5, from the build log rows (`grep -n 'BF-' build-program-log.md build-program-log-archive.md`) and the test files on main. The foundry was built and opened without a Close; this file is that Close's record. One row per acceptance line. "pass" names the test file (re-run for this file, see the note at the end; sim files are not re-run) or the commit that carried the proof. "not checked" means nothing on record can be pointed at: a phone check with no screenshot in the repo counts as not checked. The Close checks themselves (section 3) belong to Pack N2.
+Written 2026-11-17 for [foundry-plan.md](foundry-plan.md) section 5, from the build log rows (`grep -n 'BF-' build-program-log.md build-program-log-archive.md`) and the test files on main. The foundry was built and opened without a Close; this file is that Close's record. One row per acceptance line. "pass" names the test file (re-run for this file, see the note at the end; sim files are not re-run) or the commit that carried the proof. "not checked" means nothing on record can be pointed at: a phone check with no screenshot in the repo counts as not checked. The Close checks themselves (section 3) were run by Pack N2 on 2026-11-18 (phone shots against main 1e2365b, the build stamp in each; full gate on N2's branch).
 
 ## 1. Task acceptance
 
@@ -25,9 +25,9 @@ BF-0 to BF-2 were built before the plan was repacked, so the plan's table has no
 | BF-14: a hearing test, meets and narrowly misses | Hearing | pass (4127679; tests/data/foundry-threshold.test.ts) |
 | BF-15: `checkRoom` passes; a scripted Shove solve from every start point; Retry keeps the same spots; Q3 recorded | Threshold room | pass (6320e44; tests/data/foundry-threshold.test.ts) |
 | BF-16: a fixture floor builds; a strike rings the pair and it hums; no tune or staff appear | Lower-Seam floor | pass (eec836e; tests/data/foundry-intrusion.test.ts) |
-| BF-17: phone check, Lab board at 375x812, light and dark: three tones on a 7x9 board, a ring mid-animation, a Ringer telegraph, humming and muffled bells, a struck-bell highlight; autofixer clean | Board art | not checked: the log says light only (no dark theme exists) and no screenshot is in the repo (logic: tests/ui/foundry-board.test.ts, 038eba7). The log records the autofixer as run on some components only |
-| BF-19: the Bench lists bells and foes only after met; the Lab places every piece and foe; a preset per lock loads (Lab, 375x812, light) | Bench and Lab | pass for Bench and Lab logic (a9dae1d; tests/ui/foundry-bench.test.ts). The phone view: not checked, no screenshot in the repo |
-| BF-18: phone check, Lab heart fixture 7x9 at 375x812, light and dark: banner with the called note and countdown, four hung bells and one tapped to strike, the Peal telegraph; autofixer clean | Heart UI | not checked: light only per the log, no screenshot in the repo (logic: tests/ui/foundry-board.test.ts, 5385674) |
+| BF-17: phone check, Lab board at 375x812, light and dark: three tones on a 7x9 board, a ring mid-animation, a Ringer telegraph, humming and muffled bells, a struck-bell highlight; autofixer clean | Board art | pass for the trip boards at 375x812, light (N2: three tones, Ringer telegraphs, humming and clouded bells on rooms 1-4 and the 7x9 heart; docs/plans/foundry-evidence/cl6-01-room1.jpg, cl6-12-room2.jpg, cl6-13-room3.jpg, cl6-14-room4.jpg, cl6-20-heart.jpg). Dark: not applicable (the app has no dark theme). A ring mid-animation and a struck-bell highlight: not checked (headless shots, no cast played; logic: tests/ui/foundry-board.test.ts, 038eba7) |
+| BF-19: the Bench lists bells and foes only after met; the Lab places every piece and foe; a preset per lock loads (Lab, 375x812, light) | Bench and Lab | pass (a9dae1d; tests/ui/foundry-bench.test.ts). Phone, N2: every Lab preset loads at 375x812 with no horizontal overflow (cl6-4x-lab-tones.jpg, -reach, -match, -unison, -chord, -peal) |
+| BF-18: phone check, Lab heart fixture 7x9 at 375x812, light and dark: banner with the called note and countdown, four hung bells and one tapped to strike, the Peal telegraph; autofixer clean | Heart UI | pass for the banner, called note, countdown, rival bar and Peal telegraph at 375x812 on a real heart (cl6-20-heart.jpg; greyscale cl6-21-heart-greyscale.jpg). Four hung bells with one tapped: not checked (the forced wins hang none; logic: tests/ui/foundry-board.test.ts, 5385674). Dark: not applicable |
 | BF-20: the bot prefers the cast whose ring pulses a foe; 200 seeded trips of random legal play find no throw and no cap overrun | Bot term and fuzz | pass (a8bd59a; tests/sim/foundry.test.ts). The log records that the bot never wins room 4 or the heart headless (CAL-4) |
 | BF-22: golden fixtures identical; `pnpm check:fast` green; a headless trip from room 1 to the heart runs; returning home or a wipe discards the rung bells | The foundry opens | pass (139c416; tests/sim/foundry.test.ts, tests/app/save-compat.test.ts, tests/run/golden.test.ts; fixtures tests/fixtures/saves/foundry-mid-trip.json and foundry-returned.json) |
 | BF-F1: a table of real behaviours without rows; every pair reads sensibly in all four combinations | Audit and draft | pass (e6e3c78; tests/scenarios/foundry-audit-lines.test.ts) |
@@ -42,20 +42,21 @@ BF-0 to BF-2 were built before the plan was repacked, so the plan's table has no
 |---|---|---|
 | Save and reload at every room and mid-heart | Two recorded saves exist (mid-trip, returned) | pass for those two saves (139c416; tests/app/save-compat.test.ts). Every room and mid-heart: not checked |
 | Golden fixtures for Seam and canals stay identical with the foundry registered | Golden trips | pass (139c416; tests/run/golden.test.ts) |
-| Phone: tones in colour and greyscale, light and dark, on a 7x9 board | Close | not checked: CL-6, done by N2 (the BF-1 sheet covers the glyphs, not a 7x9 board) |
-| Phone: each great bell; the threshold; Desk margins for the batch | Close | not checked: CL-6, done by N2 |
+| Phone: tones in colour and greyscale, light and dark, on a 7x9 board | Close | pass (N2: the 7x9 heart in colour and greyscale, cl6-20-heart.jpg, cl6-21-heart-greyscale.jpg; the three tones read apart by stripe, hatch and dots). Dark: not applicable (no dark theme) |
+| Phone: each great bell; the threshold; Desk margins for the batch | Close | pass (N2: the four lock presets reach, match, unison, chord and the peal, cl6-4x-lab-*.jpg, and rooms 1-4 on the trip; the threshold *The far bell* from the map's "Try the lock", cl6-30-map-foundry-locked.jpg, cl6-31-threshold.jpg; Desk margins of Toll, Coil, Unison, Filings and Rivet with seeded points, cl6-50-desk.jpg, cl6-51-desk-toll-margin.jpg, cl6-52-desk-filings-margin.jpg). The threshold was not solved on the phone (its solve from every start point is tests/data/foundry-threshold.test.ts) |
 
 ## 3. Close checks (CL-6)
 
 | Check | How | Result |
 |---|---|---|
-| Full gate: `pnpm check`, sims included | Run once at Close | not checked: CL-6, done by N2 |
-| Full-trip phone check at 375x812 of foundry-plan section 6, screenshots saved under `docs/plans/foundry-evidence/` | `verify` skill | not checked: CL-6, done by N2 |
-| Code review of the foundry's share of kit and districts | `code-review` run | not checked: CL-6, done by N2 |
-| Plan `State:` line and ROADMAP row | Records | not checked: CL-6, done by N2 |
+| Full gate: `pnpm check`, sims included | Run once at Close | pass (N2 branch at e3a7aea, 2026-11-18: 418 files, 9197 passed, 1 expected fail, 2 skipped, 14 todo; tests/sim/foundry.test.ts included) |
+| Full-trip phone check at 375x812 of foundry-plan section 6, screenshots saved under `docs/plans/foundry-evidence/` | `verify` skill | pass (N2: set out from the map, rooms 1-4, the heart, both heart picks, cleared, home, the map's heart mark; fights ended with the dev `forceWin`; no horizontal overflow on any screen; cl6-01 to cl6-25). The crossroads reads the generic "deeper than the lamplight" line in the foundry too (already a CAL copy item) |
+| Code review of the foundry's share of kit and districts | `code-review` run | pass (N2: review (b) of kits and districts found nothing in the foundry, so a separate run over src/engine/districts/foundry/**, the foundry data and its drawing kit found 10 items; 1 fixed in place, the strike's one-blow check skipping foe tone rings; 9 briefed as Pack R6 in build-program-briefs.md) |
+| Plan `State:` line and ROADMAP row | Records | pass (N2, 2026-11-18) |
 
 ## Notes
 
+- Not checked at Close, none a failed check: save and reload at every room and mid-heart (two recorded saves only); a ring mid-animation, a struck-bell highlight and a tapped hung bell on the phone; BF-G1 (the player's playtest).
 - Re-run on 2026-11-17: every non-sim test file cited in the six close-out verification files, together: 112 files, 5327 passed, 12 todo. `tests/sim/` was not run; rows that cite a sim name the log row.
 - Known debt from the log rows, none a failed check: the bot never wins room 4 or the heart headless (CAL-4); six existing tests that assumed the foundry unopened were edited at BF-22; the foundry's art was checked in light only.
 - Rules and proposals of the build: DESIGN section 11, 2026-11-11 "Foundry ring timing and the Detuner", 2026-11-12 and 2026-11-12e design windows, and TECH section 7 "Settle points and kinds on pieces".

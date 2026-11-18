@@ -1,7 +1,7 @@
 # The bell foundry: implementation plan
 
 Design: [district-bell-foundry.md](../design/district-bell-foundry.md). Also [rune-design-final.md](../design/rune-design-final.md) §4.3–4.4, §5.2, §6.3, §11, [party.md](../design/party.md) §2 (the tuner), [rivals.md](../design/rivals.md), [footnotes.md](../design/footnotes.md). Roadmap: **BL-116**. Prefix **BF**. Brief: [build-program.md](build-program.md). Order and packs: [midpoint-audit.md](midpoint-audit.md) §2.2 (Track F), §3 Pack A.
-**State: Built and open (24 of 25 rows merged; only the playtest gate BF-G1 is open). The Close below was never run: it is CL-6 in [platform-closure-plan.md](platform-closure-plan.md) Pack N (verification file, full-trip phone check, code review). The build's proposals were decided in the design window of 2026-11-12 (P21–P26).**
+**State: Built, open and closed (Close 2026-11-18, CL-6 by Pack N2: [foundry-verification.md](foundry-verification.md), full gate, full-trip phone check with screenshots in `foundry-evidence/`, code review with 1 fix and 9 items briefed as Pack R6). 24 of 25 rows merged; only the playtest gate BF-G1 is open (never blocking). The build's proposals were decided in the design window of 2026-11-12 (P21–P26).**
 **Scope:** the carillon towers as a playable district: sympathetic bells by tone, a peal across the trip, the ringers' staff, four rooms and the heart with the Carillonneur (a real rival through RV's API from the start, no stand-in), the far-bell gate, the conducted-burst hearing, the tuner's landmark room, a lower-Seam floor with a pair of bells, and the Resonance footnote batch.
 
 ## 1. Scope and settled rules
