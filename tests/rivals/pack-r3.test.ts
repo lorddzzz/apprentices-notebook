@@ -8,6 +8,8 @@ import { hasFootnote } from '$engine/footnotes';
 import { WICK_NOTE } from '$engine/jars';
 import { rivalPreview } from '$engine/rivals';
 import { simulate } from '$engine/rivals/plan';
+import type { Step } from '$engine/types';
+import { clean } from '$engine/rivals/goals';
 import { registerTrick } from '$engine/rivals/tricks';
 import type { EnemyUnit } from '$engine/types';
 
@@ -100,5 +102,43 @@ describe('rivalPreview footnotes', () => {
     undo();
     expect(without?.events.some((e) => e.type === 'damage')).toBe(true);
     expect(written?.events.some((e) => e.type === 'damage')).toBe(false);
+  });
+});
+
+describe('simulate outcome', () => {
+  it('counts harm taken on his own walk as self-harm, so the plan is not clean', () => {
+    const s = createBattle({ title: 't', board: 'L . . D', seed: 1 }).state;
+    const rival = s.units.find((u): u is EnemyUnit => u.kind === 'enemy' && !!u.rival);
+    const note = VARIANTS.find((v) => v.id === 'lamplighter:wick');
+    if (!rival || !note) throw new Error('fixture');
+    const spark: Step = { role: 'kind', rune: 'spark', at: { x: 0, y: 0 }, auras: [], next: null };
+    const rest: Step = { role: 'kind', rune: 'oil', at: { x: 0, y: 0 }, auras: [], next: spark };
+    tileAt(s, parseLabel('B1')).jar = {
+      owner: rival.id,
+      event: 'step',
+      rest,
+      heading: null,
+      origin: { caster: rival.id, spell: 'lantern', cast: 0 },
+      id: 1,
+      seq: 1,
+    };
+    const undo = registerTrick({
+      id: 'canals:ownWalk',
+      name: 'Own walk',
+      init: () => ({}),
+      draw: () => ({ label: 'fixture', tiles: [], units: [] }),
+      describe: () => 'fixture',
+      action: { plan: () => [], resolve: (_c, _u, _i, own) => own },
+    });
+    const outcome = simulate(
+      s,
+      rival.id,
+      [parseLabel('B1')],
+      { ...TRICK, trick: 'canals:ownWalk' },
+      { [footnoteKeyOf(note)]: note.id },
+    );
+    undo();
+    expect(outcome.selfHarm).toBeGreaterThan(0);
+    expect(clean(outcome)).toBe(false);
   });
 });

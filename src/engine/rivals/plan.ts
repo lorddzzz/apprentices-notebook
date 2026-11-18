@@ -199,13 +199,21 @@ export function simulate(
   const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes };
   const e = findUnit(ctx.s, unit);
   if (e?.kind !== 'enemy') return outcomeOf([], unit, ctx.s);
+  const start = cloneData(ctx.s);
   enemyWalk(ctx, e, path);
-  if (!isAlive(e)) return outcomeOf([], unit, ctx.s);
-  const before = cloneData(ctx.s);
+  // Harm he takes on his own way is self-harm; the rest of the outcome reads the cast alone.
+  const walkHarm = outcomeOf(ctx.log, unit, start).selfHarm;
   const from = ctx.log.length;
+  if (!isAlive(e)) return withSelfHarm(outcomeOf([], unit, ctx.s), walkHarm);
+  const before = cloneData(ctx.s);
   resolveRivalIntent(ctx, e, { ...intent, fallback: null });
-  return outcomeOf(ctx.log.slice(from), unit, before);
+  return withSelfHarm(outcomeOf(ctx.log.slice(from), unit, before), walkHarm);
 }
+
+const withSelfHarm = (o: Outcome, extra: number): Outcome => {
+  o.selfHarm += extra;
+  return o;
+};
 
 // ── Planning ────────────────────────────────────────────
 
