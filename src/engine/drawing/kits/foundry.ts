@@ -6,6 +6,8 @@ import { cloneData } from '../../clone';
 import { alliedBellEdits, type HookTile } from '../../districts/foundry/peal';
 import {
   BELL_PIECE,
+  BELLS_RULE_ID,
+  FOUNDRY_SHAPE,
   type FoundryTripState,
   GREAT_BELL_PIECE,
   HOOK_PIECE,
@@ -38,10 +40,10 @@ import { at, coords, foeKit, isPlain, lay, needsOf, shuffled } from './seam';
  * cycle noted in `generate.ts`. No district file is edited.
  */
 
-export const BELLS: RuleId = 'foundry:bells';
+export const BELLS: RuleId = BELLS_RULE_ID;
 export const BELL = BELL_PIECE;
 export const ROPE = ROPE_PIECE;
-const PEAL = 'foundry:peal';
+const PEAL = FOUNDRY_SHAPE;
 
 const key = (c: Coord): string => `${c.x},${c.y}`;
 const NEIGHBOURS = [
@@ -99,9 +101,10 @@ const freeTiles = (layout: BoardSpec): Coord[] =>
 // ── The rule (P4) ───────────────────────────────────────
 
 /**
- * The sympathetic bells' stamp (P4: the rule brings its bells): three or four bells on plain tiles
+ * The sympathetic bells' stamp (P4: the rule brings its bells): three or four bells on free tiles
  * above the bottom two rows (where the start points go), in two or three tones, so a strike on one
- * rings its tone. The minimum stamp is a low and a mid bell.
+ * rings its tone. The minimum stamp is a low and a mid bell. No bell lands on or beside a unit or a
+ * start point, or cuts the party's way off.
  */
 export const bellsKit: RuleKit = {
   id: BELLS,
@@ -111,18 +114,24 @@ export const bellsKit: RuleKit = {
     const rng = createRng(seed);
     const out = cloneData(layout);
     const free = shuffled(
-      coords(out).filter((c) => {
-        const t = at(out, c);
-        return t !== undefined && isPlain(t) && c.y < out.height - 2;
-      }),
+      freeTiles(out).filter((c) => c.y < out.height - 2),
       rng,
     );
     const tones = shuffled([...TONES], rng);
     const count = minimum ? 2 : rng.int(3, 4);
-    for (let i = 0; i < count; i++) {
-      const c = free[i];
-      const tone = tones[i % (minimum ? 2 : TONES.length)];
-      if (c && tone) lay(out, c, `{bell:${tone}}`);
+    const blocked = new Set<string>();
+    let laid = 0;
+    for (const c of free) {
+      if (laid >= count) break;
+      const tone = tones[laid % (minimum ? 2 : TONES.length)];
+      if (!tone) break;
+      blocked.add(key(c));
+      if (!keepsReach(layout, blocked)) {
+        blocked.delete(key(c));
+        continue;
+      }
+      lay(out, c, `{bell:${tone}}`);
+      laid++;
     }
     return out;
   },
@@ -142,8 +151,21 @@ function toneFor(layout: BoardSpec, rng: ReturnType<typeof createRng>): Tone {
   return here.length > 0 ? (here[rng.int(0, here.length - 1)] as Tone) : (TONES[0] as Tone);
 }
 
-/** Every bell on the layout keeps the party's way open. */
-const holdsOpen = (layout: BoardSpec): boolean => keepsReach(layout, new Set());
+/**
+ * Every bell on the layout keeps the party's way open: with the bells taken off, laying them back
+ * (they are solid) cuts nothing off. A layout is only ever compared with its own bare self.
+ */
+function holdsOpen(layout: BoardSpec): boolean {
+  const bare = cloneData(layout);
+  const bells = new Set<string>();
+  for (const c of coords(bare)) {
+    const tile = at(bare, c);
+    if (tile?.piece?.id !== BELL) continue;
+    tile.piece = null;
+    bells.add(key(c));
+  }
+  return keepsReach(bare, bells);
+}
 
 const bellKit: PieceKit = {
   id: BELL,

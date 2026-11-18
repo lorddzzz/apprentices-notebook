@@ -406,24 +406,42 @@ export const FOUNDRY_MEANINGFUL_TYPES = [
 // ── Trip state (P7) ─────────────────────────────────────
 /** One great bell rung: the 0-based room it hung in and its note (1–4). */
 export type RungBell = { room: number; note: Note };
-/** `Trip.kit.state`: the great bells rung so far, by room (they hang in the heart). */
-export type FoundryTripState = { rung: RungBell[] };
+/**
+ * `Trip.kit.state`: the great bells rung so far, by room (they hang in the heart). `rooms` is the
+ * count of rooms before the heart when it exceeds the foundry's own four (a drawn peal of length 6
+ * has five); absent otherwise and in older saves.
+ */
+export type FoundryTripState = { rung: RungBell[]; rooms?: number };
 export const FOUNDRY_SHAPE: TripShapeId = 'foundry:peal';
 export const initFoundryState = (): FoundryTripState => ({ rung: [] });
 
-/** The forgiving reader: bad entries are dropped, a room counts once (the first), sorted by room. */
+/** The longest peal a drawing may take is six rooms (the heart last): five rooms before it. */
+const MAX_PEAL_ROOMS = 5;
+
+/**
+ * The forgiving reader: bad entries are dropped, a room counts once (the first), sorted by room. A
+ * room must be before the heart: under the foundry's four, or under the `rooms` a longer peal stored.
+ */
 export function parseFoundryState(raw: unknown): FoundryTripState {
-  const list = rec(raw)?.rung;
+  const r0 = rec(raw);
+  const list = r0?.rung;
   if (!Array.isArray(list)) return initFoundryState();
+  const stored = r0?.rooms;
+  const rooms =
+    typeof stored === 'number' && Number.isInteger(stored) && stored > FOUNDRY_TUNING.rooms
+      ? Math.min(stored, MAX_PEAL_ROOMS)
+      : FOUNDRY_TUNING.rooms;
   const byRoom = new Map<number, RungBell>();
   for (const item of list) {
     const r = rec(item);
     const room = r?.room;
     const note = r?.note;
-    if (!Number.isInteger(room) || (room as number) < 0 || (room as number) >= FOUNDRY_TUNING.rooms)
-      continue;
+    if (!Number.isInteger(room) || (room as number) < 0 || (room as number) >= rooms) continue;
     if (!isNote(note)) continue;
     if (!byRoom.has(room as number)) byRoom.set(room as number, { room: room as number, note });
   }
-  return { rung: [...byRoom.values()].sort((a, b) => a.room - b.room) };
+  return {
+    rung: [...byRoom.values()].sort((a, b) => a.room - b.room),
+    ...(rooms > FOUNDRY_TUNING.rooms ? { rooms } : {}),
+  };
 }

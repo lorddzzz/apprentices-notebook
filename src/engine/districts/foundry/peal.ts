@@ -36,7 +36,11 @@ export function pealAfterRoom(
   const state = parseFoundryState(input.state);
   const rung = won ? log.find(isBellRung) : undefined;
   if (!rung) return state;
-  return parseFoundryState({ rung: [...state.rung, { room: input.room, note: rung.data.note }] });
+  // The rooms before the heart bound the rooms: a longer drawn peal keeps its fifth bell.
+  return parseFoundryState({
+    rung: [...state.rung, { room: input.room, note: rung.data.note }],
+    rooms: input.length - 1,
+  });
 }
 
 /** A `{hook}` tile on the heart's board: `note` 0 is a bare hook (filled in reading order, P7). */

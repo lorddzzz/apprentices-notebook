@@ -22,6 +22,7 @@ import {
 import { hooksOf, lockEdits, noteOfRoom, pealSetup } from '$engine/drawing/kits/foundry';
 import type { EventLog } from '$engine/events';
 import { type BoardSpec, parseBoard, serializeBoard } from '$engine/notation';
+import { blocksUnits } from '$engine/queries';
 import { compiledFor } from '$engine/run';
 import { setUpRoom } from '$engine/trip/setup';
 import { sampleParty } from '../../src/app/dev/samples';
@@ -185,6 +186,111 @@ describe('The foundry kit (EN-K6)', () => {
     const roped = parseBoard(['. {rope:mid} .', '. . .', 'P P P'].join('\n'));
     expect(ringer?.valid(roped, { x: 1, y: 0 })).toBe(true);
     expect(ringer?.valid(roped, { x: 0, y: 0 })).toBe(false);
+  });
+
+  describe("R6: bells keep the party's way open", () => {
+    // A one-tile corridor from the start up to a foe: every free tile in it cuts the foe's end off.
+    const corridor = () =>
+      parseBoard(
+        ['= r =', '= . =', '= . =', '= . =', '= . =', '= . =', '= . =', '= . =', '= P ='].join(
+          '\n',
+        ),
+      );
+    const bellPiece = () => {
+      const found = kitOf('foundry').pieces.find((x) => x.id === 'foundry:bell');
+      if (!found) throw new Error('no bell kit');
+      return found;
+    };
+    const withBell = (b: BoardSpec, x: number, y: number) => {
+      const out = structuredClone(b);
+      out.tiles[y * out.width + x] = parseBoard('{bell:low}')
+        .tiles[0] as BoardSpec['tiles'][number];
+      return out;
+    };
+
+    it('R6-1: a one-tile corridor is never filled by a bell, and a bell there is not valid', () => {
+      for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+        expect(bellPiece().place(corridor(), seed)).toBeNull();
+      }
+      for (const y of [2, 3, 4, 5, 6])
+        expect(bellPiece().valid(withBell(corridor(), 1, y))).toBe(false);
+    });
+
+    it('R6-1: a bell in an open room is still valid and still placed', () => {
+      const room = parseBoard(
+        [
+          '. . . . .',
+          '. . . . .',
+          '. . r . .',
+          '. . . . .',
+          '. . . . .',
+          '. . . . .',
+          'P P P P .',
+        ].join('\n'),
+      );
+      const made = bellPiece().place(room, 3);
+      expect(made).not.toBeNull();
+      expect(bellPiece().valid(made as BoardSpec)).toBe(true);
+    });
+
+    it('R6-2: the bells stamp never lies on or beside a unit or start, nor cuts the way off', () => {
+      const rule = kitOf('foundry').rules[0];
+      const walled = parseBoard(
+        [
+          '= = = = = = =',
+          '= . . r . . =',
+          '= = . = . = =',
+          '= . . . . . =',
+          '= . = = = . =',
+          '= . . . . . =',
+          '= . = . = . =',
+          '= . . . . . =',
+          '= P . . . P =',
+          '= . . . . . =',
+        ].join('\n'),
+      );
+      const bellsOf = (b: BoardSpec) =>
+        b.tiles.flatMap((t, i) =>
+          t.piece?.id === 'foundry:bell' ? [{ x: i % b.width, y: Math.floor(i / b.width) }] : [],
+        );
+      const walkable = (b: BoardSpec, skip: ReadonlySet<string>) => {
+        const start = b.starts[0] as { x: number; y: number };
+        const seen = new Set<string>([`${start.x},${start.y}`]);
+        const todo = [start];
+        for (let c = todo.pop(); c; c = todo.pop()) {
+          for (const [dx, dy] of [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+          ] as const) {
+            const n = { x: c.x + dx, y: c.y + dy };
+            const t = b.tiles[n.y * b.width + n.x];
+            const k = `${n.x},${n.y}`;
+            if (!t || n.x < 0 || n.x >= b.width || blocksUnits(t) || skip.has(k) || seen.has(k))
+              continue;
+            seen.add(k);
+            todo.push(n);
+          }
+        }
+        return seen;
+      };
+      for (const seed of Array.from({ length: 40 }, (_, i) => i + 1)) {
+        for (const minimum of [false, true]) {
+          const made = rule?.stamp(walled, seed, minimum) as BoardSpec;
+          const bells = bellsOf(made);
+          const keys = new Set(bells.map((c) => `${c.x},${c.y}`));
+          for (const c of bells) {
+            for (const o of [...walled.units.map((u) => u.at), ...walled.starts]) {
+              expect(Math.abs(o.x - c.x) + Math.abs(o.y - c.y)).toBeGreaterThanOrEqual(2);
+            }
+          }
+          for (const k of walkable(walled, new Set())) {
+            if (!keys.has(k)) expect(walkable(walled, keys).has(k)).toBe(true);
+          }
+        }
+      }
+    });
   });
 
   it('EN-K6: a drawn foundry room has its bells, and every room is judged fair', () => {

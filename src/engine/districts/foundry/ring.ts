@@ -3,12 +3,19 @@ import { cloneData } from '../../clone';
 import { type Ctx, emit, withOrigin } from '../../ctx';
 import { dealDamage } from '../../damage';
 import { hasFootnote } from '../../footnotes';
-import { type Coord, DIRS, type Dir, inBounds, neighbors4, step } from '../../grid';
+import { type Coord, DIRS, type Dir, inBounds, neighbors4, sameCoord, step } from '../../grid';
 import { push } from '../../push';
 import { isCloud, livingUnits, members, tileAt } from '../../queries';
 import type { BattleState, Origin, Unit } from '../../types';
 import type { PieceTriggers, PreviewShape, StruckBy, TilePiece } from '../types';
-import { clapperTone, type ToneMember, toneGroups, toneOfPiece } from './pieces';
+import {
+  clapperTone,
+  dirBetween,
+  shiftTone,
+  type ToneMember,
+  toneGroups,
+  toneOfPiece,
+} from './pieces';
 import {
   BELL_PIECE,
   BELLS_RULE_ID,
@@ -170,8 +177,7 @@ export function retune(ctx: Ctx, at: Coord, delta = 1): boolean {
   if (readBells(ctx).locked?.includes(tileKey(at.x, at.y))) return false; // `rivet-cap-lock`
   const from = toneOfPiece(piece.id, piece.data);
   if (!from) return false;
-  const n = TONES.length;
-  const to = TONES[(((TONES.indexOf(from) + delta) % n) + n) % n] ?? from;
+  const to = shiftTone(from, delta);
   const ev: RetunedEvent = { type: 'foundry:retuned', at: { ...at }, data: { from, to } };
   emit(ctx, ev);
   piece.data = { tone: to };
@@ -238,12 +244,6 @@ export function pulseTiles(s: BattleState, tone: Tone): Coord[] {
   return out.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
-const dirBetween = (from: Coord, to: Coord): Dir | null =>
-  DIRS.find((d) => {
-    const c = step(from, d);
-    return c.x === to.x && c.y === to.y;
-  }) ?? null;
-
 /** One ringing bell: 1 damage then a push away from it, to each unit beside it not yet pulsed this ring. */
 function pulse(
   ctx: Ctx,
@@ -272,34 +272,40 @@ function pulse(
   emit(ctx, ev);
   for (const u of beside) pulsed.add(u.id);
   for (const u of beside)
-    hurt(
+    hurtByPulse(
       ctx,
       u,
       bell,
       origin,
       FOUNDRY_TUNING.pulseDamage,
       FOUNDRY_TUNING.pulsePush + (flags.knell ? 1 : 0), // `toll-cap-knell`
+      !!flags.wide,
     );
 }
 
 /** The direction from `bell` to a tile exactly two tiles out along a row or column, else null. */
 function straightTwo(bell: Coord, to: Coord): Dir | null {
-  const mid = DIRS.find((d) => sameXY(step(step(bell, d), d), to));
+  const mid = DIRS.find((d) => sameCoord(step(step(bell, d), d), to));
   return mid ?? null;
 }
-const sameXY = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 
-function hurt(
+/**
+ * One unit the pulse of `bell` reaches: damage, then a push away from it. Only a Coil-widened ring
+ * (`wide`) reaches a unit two tiles out in line; on any other ring a unit no longer beside the bell
+ * was moved away by a pulse earlier in this ring, and is spared.
+ */
+export function hurtByPulse(
   ctx: Ctx,
   u: Unit,
   bell: Coord,
   origin: Origin | null,
   damage: number = FOUNDRY_TUNING.pulseDamage,
   pushBy: number = FOUNDRY_TUNING.pulsePush,
+  wide = false,
 ): void {
   if (u.hp <= 0 || u.out) return;
-  const dir = dirBetween(bell, u.pos) ?? straightTwo(bell, u.pos);
-  if (!dir) return; // a pulse earlier in this ring moved it away
+  const dir = dirBetween(bell, u.pos) ?? (wide ? straightTwo(bell, u.pos) : null);
+  if (!dir) return;
   dealDamage(ctx, u, damage, 'Bell', [], { heading: dir, at: { ...bell } });
   if (u.hp > 0) push(ctx, u, dir, pushBy, origin);
 }
@@ -318,7 +324,14 @@ function alliedPulse(ctx: Ctx, tone: Tone, bell: Coord, origin: Origin | null): 
   emit(ctx, ev);
   withOrigin(ctx, origin, () => {
     for (const u of beside)
-      hurt(ctx, u, bell, origin, FOUNDRY_TUNING.alliedPulseDamage, FOUNDRY_TUNING.alliedPulsePush);
+      hurtByPulse(
+        ctx,
+        u,
+        bell,
+        origin,
+        FOUNDRY_TUNING.alliedPulseDamage,
+        FOUNDRY_TUNING.alliedPulsePush,
+      );
   });
 }
 

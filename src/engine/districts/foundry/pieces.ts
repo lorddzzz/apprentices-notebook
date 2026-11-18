@@ -1,5 +1,5 @@
 import { isTone, TONES, type Tone } from '$data/districts/foundry';
-import type { Coord } from '../../grid';
+import { type Coord, DIRS, type Dir, sameCoord, step } from '../../grid';
 
 import type { BattleState, Unit } from '../../types';
 import {
@@ -11,6 +11,17 @@ import {
 } from './types';
 
 // No engine-query imports here: this file loads while the kit is built (import cycle).
+
+/** The tone `delta` steps up from `from` (negative steps go down), wrapping low, mid, high, low (P4). */
+export const shiftTone = (from: Tone, delta = 1): Tone => {
+  const n = TONES.length;
+  return TONES[(((TONES.indexOf(from) + delta) % n) + n) % n] ?? from;
+};
+
+/** The direction from `from` to the tile beside it, `to`; null when they are not 4-adjacent. */
+export const dirBetween = (from: Coord, to: Coord): Dir | null =>
+  DIRS.find((d) => sameCoord(step(from, d), to)) ?? null;
+
 const coordOf = (s: BattleState, i: number): Coord => ({
   x: i % s.width,
   y: Math.floor(i / s.width),

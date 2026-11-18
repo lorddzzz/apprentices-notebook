@@ -1,12 +1,19 @@
 import { FOUNDRY_HEART } from '$data/districts/foundry';
 import { type BoardSpec, parseBoard, parseCell } from '../../notation';
-import { cellIndex, type Placement, placeFrame, placementsFrom, type Structure } from '../frame';
+import {
+  cellIndex,
+  type Placement,
+  placeFrame,
+  placementsFrom,
+  type Structure,
+  settle,
+} from '../frame';
 import type { HeartSetup } from '../types';
 import { TUNE_RULE_ID } from './types';
 
 /**
  * The foundry's heart frame (KIT-R3; foundry-plan P24): the Great Bell's four `{hook}` tiles are the
- * stamped structure (each takes the nearest bare tile to its authored spot, so none is lost or
+ * stamped structure (each takes `settle`'s nearest bare tile to its authored spot, so none is lost or
  * stacked on any size), then the Carillonneur, the staff, the bells and the ropes settle by
  * placement, seeded. The tune rule is the heart's rule.
  */
@@ -39,16 +46,7 @@ const stampHooks: Structure = (out: BoardSpec, mirror: boolean): void => {
   for (const h of sourceOfHeart().hooks) {
     const fx = mirror ? 1 - h.at.x : h.at.x;
     const want = { x: Math.round(fx * (out.width - 1)), y: Math.round(h.at.y * (out.height - 1)) };
-    let best: { x: number; y: number } | null = null;
-    for (let y = 0; y < out.height; y++) {
-      for (let x = 0; x < out.width; x++) {
-        const tile = out.tiles[cellIndex(out, { x, y })];
-        if (!tile || tile.piece !== null || tile.state !== null) continue;
-        const d = Math.abs(x - want.x) + Math.abs(y - want.y);
-        const bd = best ? Math.abs(best.x - want.x) + Math.abs(best.y - want.y) : Infinity;
-        if (d < bd) best = { x, y };
-      }
-    }
+    const best = settle(out, want);
     if (!best) continue;
     const cell = parseCell(HOOK, best);
     out.tiles[cellIndex(out, best)] = { ...cell.tile, terrain: { ...cell.tile.terrain } };
