@@ -98,6 +98,10 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | R2 (CL-4 b) | 763015c | Sonnet 5.5 high | 0 | ~12% Claude (shared with R6) | drawn trips: termed card offered, lent trip view (`DistrictModule.lend`), household pages in the roll, one `isSandbox` + `OfferKind.sandbox` opt-in; 5 tests in tests/drawing/lent.test.ts; one commit for five interleaved items |
 | R6 (CL-6) | b6e649d, cf7d742, 3bd4418, cc8a370, f04f61c, 5c422f8, ab5c3b9 | Sonnet 5.5 high | 0 | ~12% Claude (shared with R2) | foundry review: reach checks, Detuner seed, plain-ring hurt, drawn peal length 6, humming tones skipped, stampHooks via settle, helpers; bot rates unchanged (room 4 40/40, heart 37/40), foundry sim 4/4 |
 | R3 (CL-4 c) | 31f4db5 (wip), 8592b0c, f77947c, 059a5a1, b7cb1ce, f2ac6ed | Codex Terra 6.1 high (item 1 part, wip) → Sonnet 5.5 medium | 1 (Codex stopped at a sandbox/ownership edge: no git write, `describe.ts` unowned) | ~4% Codex + ~10% Claude | rival planner: footnotes in simulate and preview, walk self-harm, trick-preview locks, phase-seeded preview, memoized outcomes; additive footnotes/phase args through describe.ts, overlay.ts, battle.svelte.ts |
+| R4 (CL-4 d) | 33f9102 | Sonnet 5.5 medium | 0 | ~5% Claude | footnotes API: a point run per cast, sleeping slots (`sleeping` on SlotView/FrameView), foreign-key cost null, known-id test, tidy; canals-win-2/4/5/6 goldens re-recorded (points only) |
+| R5 (CL-4 e) | bdae800 | Sonnet 5.5 medium | 0 | ~5% Claude | a failed inking offers Try again / Home (Home = abandonFight); `window.__inkFail` dev flag; DrawnPage carries its line; setOutAt calls setOut; headless 375x812 shot by the agent |
+| R7 (CL-4 leftovers) | 80da9b6 | Sonnet 5.5 medium (task 2) + orchestrator (task 1) | 1 (task 1 stopped at Biome's district-import rule; done by the orchestrator in districts/api) | ~5% Claude | `isSandbox` is the one sandbox read; intentPhrase/rivalPhrase/unitLine/rivalSheet take footnotes and phase |
+| R1 (CL-4 a) | ebcab5f | Codex Terra 6.1 high (CLI, two runs) | 1 (first run left item 1 partial, 6 and 7 unowned files; second run with a widened Owns) | ~10% Codex | engine core: tile guard on direct writes, drift jars, bonusFall, Bend rot, Graphite fallback, born collar kept (tally-collar-spend), shared helpers; orchestrator committed |
 
 ## Usage
 
@@ -123,3 +127,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-17 21:50 | 87 | 29 | Pack J merged; fast gate green (8533); K held (Hold) |
 
 | 2026-11-18 21:18 | 37 (Claude) / 49 (Codex) | 4 / 8 | test cycle: R2, R6, R3 merged; fast gate green (389 files, 8601); read with `claude -p "/usage"` and codex app-server `account/rateLimits/read` |
+| 2026-11-18 23:15 UTC | 71 (Claude) / 68 (Codex) | 6 / 11 | R4, R5, R7, R1 merged; fast gate green (398 files, 8649); began at 55 / 53 |
