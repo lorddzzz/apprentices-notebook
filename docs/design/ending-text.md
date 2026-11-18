@@ -1,6 +1,6 @@
 # The handover: text (EN-12)
 
-> **Status: Draft (orchestrator, design window 2026-11-17). Waits for the player's review at EN-G2.** Nothing here is built until it is approved; Pack L reads the approved text as data.
+> **Status: Approved (EN-G2, 2026-11-18), as drafted with no changes.** Pack L builds it as written and reads it as data.
 > Design: [ending.md](ending.md) §1.1. Threads: [district-cartographers.md](district-cartographers.md) §2 (each lands once, marked in the right-hand column). Plan: [ending-plan.md](../plans/ending-plan.md) Pack C.
 > Voice: the owner's hand, as in the margins: plain, warm, a little dry, never grand. Second person. No name is given (BL-40 holds the owner's name and face).
 

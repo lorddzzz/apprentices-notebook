@@ -7,7 +7,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
 - Models: the skill's table (Fast for content, Default for most, Strong only by role or escalation).
-- `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning (everything goes to CAL); **player gates never block**. Only EN-G2 (handover text) waits for the player.
+- `pnpm check:fast` per merge batch; sims and full-loop checks only when a wave or plan closes; no balance tuning (everything goes to CAL); **player gates never block**. EN-G2 (handover text) is approved as drafted (2026-11-18): nothing waits for the player.
 **Reset:** not recorded this window; no wake-up scheduled; resume manually.
 
 ## Next
@@ -17,12 +17,12 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 | Wave | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|---|
 | 26 | K | EN-K6 → EN-K7 | Sonnet 5.5 high | I |
-| held | L | EN-10 → EN-11 | Sonnet 5.5 medium | E **and EN-G2** (the player's approval) |
+| after E | L | EN-10 → EN-11 | Sonnet 5.5 medium | E (EN-G2 approved 2026-11-18) |
 | quiet | N2 | CL-4, CL-5, CL-6 checks (a design-window agent) | strongest, high | no pack running in `src/app` or `src/ui`; best after wave 26 |
 
 2. Then a design window: EN-14 (the ending's Close) and the CAL briefs. Plan B for the generator only if the player's room check fails (Open questions).
 3. Every pack's `check:fast` runs `typecheck:ts` (CI-4); `Meets` may grow.
-4. Hard edges: EN-W1 → E → I → J, K · MET-1 → E (both edit `trip/finish.ts`) · E, H → G · EN-G2 → L · everything → EN-14 → CAL.
+4. Hard edges: EN-W1 → E → I → J, K · MET-1 → E (both edit `trip/finish.ts`) · E, H → G · (EN-G2 approved: no hold) · everything → EN-14 → CAL.
 
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
@@ -56,7 +56,7 @@ Ledger run 2026-11-17: platform-closure 32/42 (open CL-1…6), calibration 0/7, 
 Ledger caveats: IQ-13 shows open but is built. BR-19 = C3 (BR-19a/b) + C3b (BR-19c, merged 0c5af97). FU-13–16 and CAL-4 appear in the log's prose only (FU-13–15 built in SM's track; FU-16 dropped with the dark theme; CAL-4 belongs to CAL). SM-15 is a verification file (N1). EN-12 shows open: its draft is a docs commit (ending-text.md) and it closes at EN-G2. EN-G0 is a gate, decided in the plan (P29). EN-W1, DEV-1, MET-1, CL-6 and Pack W's FX-1…5 are new IDs: EN-W1 and CL-6 are in their plans' tables, DEV-1 and MET-1 only in the briefs. (The ledger does not count `docs: …` record commits or commit bodies, and reads every ID in a log row's first cell.)
 
 ## Open questions for the player (defaults held)
-- **EN-G2, the one question that holds a pack:** read [the handover text](../design/ending-text.md) (six short pages in the owner's hand, the credits lines) and answer its four questions (§5): the voice, the apology for the Marginalia, the last line, the length. Pack L waits for this. *Default held:* wait. Or say "build L on the draft" and the text is swapped when you approve it (ending-plan P37).
+- **EN-G2: approved 2026-11-18, as drafted** ([handover text](../design/ending-text.md)). Pack L builds it as written once E is merged; the player will meet the scene in play.
 - **EN-G0 room check (non-blocking):** once DEV-1 is merged, run `pnpm dev`, open `http://<mac LAN ip>:5173/apprentices-notebook/src/app/dev/generator.html` on the phone and look through seeds 1–20 and 21–40 for broken or dull rooms. *Default held:* go. More than 2 of 20 reopens Plan B (rooms validated at home), decided before Pack G merges.
 - **Cartographers' hall playtest (CG-G1, CG-G4; dev "open all", or a campaign run):** (1) Does the pencil read at a glance: can you tell from the board alone which tiles will be inked and which rubbed out next round, and does round 1 (fates only in the Next round overlay until your first move) feel unfair? (2) The Registrar's circles: does "erase the circle, step off, or kill the holder" feel like a fair puzzle or a sudden loss? (3) The rhythm: do the free rooms 1–3 and then *Through the doorway* feel like a real decision, or do you always go home first? (4) Does the academy feel like a different place from the other districts (the hands, the paper, the lore), or like the same fights on new tiles?
 - Held at default: ending-plan §7 Q1–Q3 (the pen's sources, the bot test at fresh HP, stand-in masters drawable); IQ-20 / IQ-G1, FN-1A A3, FN-4, DK-8, foundry Q2/Q3, FN-A1 M1, cartographers §7 Q1–Q3. Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, CG-G1/G2, HC/AH/RC playtests.
