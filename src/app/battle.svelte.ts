@@ -134,7 +134,7 @@ export class BattleSession {
     if (this.busy) return [];
     // A pending shove, pull, swap or kill can take a member out of harm's way: read the preview.
     const p = this.input.kind === 'confirm' ? this.input.preview : null;
-    return threatenedMembers(p && !p.masked ? p.result.state : this.state);
+    return threatenedMembers(p && !p.masked ? p.result.state : this.state, this.opts.footnotes ?? {});
   }
 
   get caption(): Caption {
