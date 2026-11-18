@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Drawing } from '$data';
 import type { Ctx } from '$engine/ctx';
 import '$engine/districts';
+import { botValue } from '$engine/districts/api';
 import { hurtByPulse } from '$engine/districts/foundry/ring';
 import { type FoundryTripState, parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json } from '$engine/districts/types';
@@ -11,7 +12,7 @@ import type { EventLog } from '$engine/events';
 import type { BoardSpec } from '$engine/notation';
 import { heartDrawing } from '../../drawing/fixtures';
 import { shapeInput } from '../../drawing/kits-c.scripts';
-import { board } from '../../scenarios/harness';
+import { board, withLattices } from '../../scenarios/harness';
 import { unit } from './helpers';
 
 /** CL-6 review fixes (pack R6): the foundry's rules the N2 review found loose. */
@@ -90,5 +91,26 @@ describe('R6-5: a longer drawn peal keeps the bell it rang in its last room befo
     expect(parseFoundryState(old)).toEqual({ rung: [{ room: 3, note: 4 }] });
     expect(parseFoundryState({ rung: [{ room: 4, note: 1 }], rooms: 5 }).rung).toHaveLength(1);
     expect(parseFoundryState({ rung: [{ room: 5, note: 1 }], rooms: 99 }).rung).toEqual([]);
+  });
+});
+
+describe('R6-6: the bot does not count the pulses of a tone that is humming', () => {
+  const ring = (ascii: string, humming: string[]) => {
+    const s = withLattices(ascii, { draughtsman: 'Bolt> Strike' });
+    s.rules = { ...s.rules, 'foundry:bells': { humming, struck: {} } };
+    return s;
+  };
+
+  it('a foe beside a ringing bell is worth a strike; beside a humming one it is worth nothing', () => {
+    const foe = '. . . . .\n. . . . .\n. {bell:low} r . .\n. . . . .\nD . . . .';
+    expect(botValue(ring(foe, []))).toBeGreaterThan(0);
+    expect(botValue(ring(foe, ['low']))).toBe(0);
+    expect(botValue(ring(foe, ['mid']))).toBeGreaterThan(0);
+  });
+
+  it('a member beside a humming bell is not in danger of its pulse', () => {
+    const member = 'r . . . .\n. . . . .\nD {bell:low} . . .';
+    expect(botValue(ring(member, []))).toBeLessThan(0);
+    expect(botValue(ring(member, ['low']))).toBe(0);
   });
 });
