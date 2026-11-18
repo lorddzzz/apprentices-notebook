@@ -181,10 +181,15 @@ export function rivalReadout(
 }
 
 /** A rival's shown cast or trick in words: what it does, where it lands, the fallback, the warning. */
-function rivalPhrase(s: BattleState, e: EnemyUnit): string {
+function rivalPhrase(
+  s: BattleState,
+  e: EnemyUnit,
+  footnotes: Footnotes = {},
+  phase: readonly GameEvent[] = [],
+): string {
   const i = e.intent;
   if (i?.kind !== 'cast' && i?.kind !== 'trick') return '';
-  const read = rivalReadout(s, e);
+  const read = rivalReadout(s, e, null, footnotes, phase);
   const bits = [`will ${rivalVerb(e, i)} (${ordinal(i.order)})`];
   if (i.kind === 'cast') {
     const landing = read?.preview.landing;
@@ -206,7 +211,12 @@ function rivalPhrase(s: BattleState, e: EnemyUnit): string {
   return bits.join(' · ');
 }
 
-export function intentPhrase(s: BattleState, e: EnemyUnit): string {
+export function intentPhrase(
+  s: BattleState,
+  e: EnemyUnit,
+  footnotes: Footnotes = {},
+  phase: readonly GameEvent[] = [],
+): string {
   if (!e.intent) return 'waiting';
   if (e.intent.kind === 'summon')
     return `calls a moth at ${label(e.intent.at)} (${ordinal(e.intent.order)})`;
@@ -217,9 +227,10 @@ export function intentPhrase(s: BattleState, e: EnemyUnit): string {
     return `will ${KIT.steps[e.intent.step]?.describe(e.intent.telegraph) ?? e.intent.telegraph.label} (${ordinal(e.intent.order)})`;
   if (e.intent.kind === 'behaviour')
     return `will ${behaviourVerb(e.intent.id, e.intent.telegraph)} (${ordinal(e.intent.order)})`;
-  if (e.intent.kind === 'cast' || e.intent.kind === 'trick') return rivalPhrase(s, e);
+  if (e.intent.kind === 'cast' || e.intent.kind === 'trick')
+    return rivalPhrase(s, e, footnotes, phase);
   if (e.intent.kind === 'rivalStrike') {
-    const warning = rivalReadout(s, e)?.warning;
+    const warning = rivalReadout(s, e, null, footnotes, phase)?.warning;
     return `${ATTACKS[dryStrikeIntent(e, e.intent).attack].verbs} ${e.intent.dir} (${ordinal(e.intent.order)})${warning ? ` · ${warning}` : ''}`;
   }
   const verb = ATTACKS[e.intent.attack].verbs;
@@ -293,13 +304,18 @@ export function unitTraits(u: TraitSource): string[] {
 }
 
 /** Inspect line: `rat C2 · 2/2 HP · oil-soaked (fire +1) · bites right (2nd), hits Stoker`. */
-export function unitLine(s: BattleState, u: Unit): string {
+export function unitLine(
+  s: BattleState,
+  u: Unit,
+  footnotes: Footnotes = {},
+  phase: readonly GameEvent[] = [],
+): string {
   const bits = [shortName(u), `${u.hp}/${u.maxHp} HP`];
   if (u.shield > 0) bits.push(`shield ${u.shield}`);
   bits.push(...unitTraits(traitSource(u)));
   const tile = tileAt(s, u.pos);
   if (tile.state) bits.push(`in ${LAYER_NAME[tile.state.id]}`);
-  if (u.kind === 'enemy') bits.push(intentPhrase(s, u));
+  if (u.kind === 'enemy') bits.push(intentPhrase(s, u, footnotes, phase));
   return bits.join(' · ');
 }
 
@@ -735,6 +751,7 @@ export function rivalSheet(
   s: BattleState,
   e: EnemyUnit,
   witnessed: ReadonlySet<LineId> | null = null,
+  footnotes: Footnotes = {},
 ): RivalSheetView | null {
   const def = rivalDefOf(e);
   if (!def || !e.rival) return null;
@@ -773,7 +790,7 @@ export function rivalSheet(
     e.hp <= 0
       ? 'Defeated.'
       : e.intent
-        ? `${def.name} ${intentPhrase(s, e)}.`
+        ? `${def.name} ${intentPhrase(s, e, footnotes)}.`
         : `${def.name} is waiting.`;
   return { name: def.name, hp: e.hp, maxHp: e.maxHp, blurb: def.blurb, spells, trick, plan };
 }

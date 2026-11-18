@@ -1,5 +1,6 @@
 import { ENEMIES, type EnemyId, type MasterId, type ShapeId } from '$data';
 import { RIVALS } from '$data/rivals';
+import { isSandbox } from '../districts/api';
 import { DISTRICT_MODULES, KIT } from '../districts/kit';
 import { holdsPage } from '../rivals/pages';
 import type { Profile } from '../types';
@@ -28,7 +29,7 @@ export function paletteOf(p: Profile): Palette {
   // A shape lent to drawn districts (`module.shapes`, P33) is offered like the module's own, but
   // `seam:plain` is the 'plain' shape, which every drawing has.
   const shapes: ShapeId[] = DISTRICT_MODULES.flatMap((m) =>
-    m.id !== 'lowerSeam' && !m.sandbox && p.city.open.includes(m.id)
+    m.id !== 'lowerSeam' && !isSandbox(m.id) && p.city.open.includes(m.id)
       ? [
           ...(m.trip ? [m.trip.id] : []),
           ...(m.shapes ?? []).map((s) => s.id).filter((id) => id !== 'seam:plain'),

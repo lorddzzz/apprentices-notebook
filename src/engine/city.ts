@@ -6,7 +6,7 @@ import {
   type LootTableId,
 } from '$data';
 import type { KitGoal, KitHearCondition } from '$data/districts/index';
-import { KIT } from './districts';
+import { isSandbox } from './districts';
 import type { Json } from './districts/types';
 import type { EventLog, GameEvent } from './events';
 import { conditionHolds, type HearScene, hearOf } from './hearing';
@@ -102,7 +102,7 @@ export function hearAfterTrip(
     outcome === 'returned' &&
     t.status === 'cleared' &&
     DISTRICTS[t.district].marksHeart !== false &&
-    !KIT.modules[t.district]?.sandbox
+    !isSandbox(t.district)
   ) {
     city.hearts = add(city.hearts, t.district);
     city.heard = add(city.heard, t.district);

@@ -1,6 +1,7 @@
 import { type DistrictId, type EnemyId, type LineId, type Meets, TUNING } from '$data';
 import type { PaperId } from '$data/districts/index';
 import { hearAfterTrip, hearFromBattle } from '../city';
+import { isSandbox } from '../districts/api';
 import { KIT } from '../districts/kit';
 import { type EventLog, namedIn } from '../events';
 import { awardFootnotePoints, pointLines, rivalCasters } from '../footnotes';
@@ -193,8 +194,7 @@ export function finishEncounter(
   };
 }
 
-/** EN P16: a drawn district gives no hearing, heart, key, recruit, rival page or lore. */
-export const isSandbox = (district: DistrictId): boolean => KIT.modules[district]?.sandbox === true;
+export { isSandbox };
 
 /** EN P16: a drawn (sandbox) trip banks only the kinds that opt in (`OfferKind.sandbox`), whatever its loot holds. */
 export const keptLoot = (t: Trip, reg: OfferRegistry = offerRegistry()): Trip['loot'] =>

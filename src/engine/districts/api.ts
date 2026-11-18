@@ -1,3 +1,4 @@
+import type { DistrictId } from '$data';
 import type { Ctx } from '../ctx';
 import { type Coord, key } from '../grid';
 import { coordOf, flood } from '../queries';
@@ -122,3 +123,6 @@ export function swapped(ctx: Ctx, swap: SwapMeet): void {
 export function eraseTouches(ctx: Ctx, at: Coord, origin: Origin | null): void {
   for (const m of Object.values(KIT.modules)) m?.eraseAt?.(ctx, at, origin);
 }
+
+/** EN P16: a drawn district gives no hearing, heart, key, recruit, rival page or lore. */
+export const isSandbox = (district: DistrictId): boolean => KIT.modules[district]?.sandbox === true;
