@@ -272,13 +272,14 @@ function pulse(
   emit(ctx, ev);
   for (const u of beside) pulsed.add(u.id);
   for (const u of beside)
-    hurt(
+    hurtByPulse(
       ctx,
       u,
       bell,
       origin,
       FOUNDRY_TUNING.pulseDamage,
       FOUNDRY_TUNING.pulsePush + (flags.knell ? 1 : 0), // `toll-cap-knell`
+      !!flags.wide,
     );
 }
 
@@ -289,17 +290,23 @@ function straightTwo(bell: Coord, to: Coord): Dir | null {
 }
 const sameXY = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 
-function hurt(
+/**
+ * One unit the pulse of `bell` reaches: damage, then a push away from it. Only a Coil-widened ring
+ * (`wide`) reaches a unit two tiles out in line; on any other ring a unit no longer beside the bell
+ * was moved away by a pulse earlier in this ring, and is spared.
+ */
+export function hurtByPulse(
   ctx: Ctx,
   u: Unit,
   bell: Coord,
   origin: Origin | null,
   damage: number = FOUNDRY_TUNING.pulseDamage,
   pushBy: number = FOUNDRY_TUNING.pulsePush,
+  wide = false,
 ): void {
   if (u.hp <= 0 || u.out) return;
-  const dir = dirBetween(bell, u.pos) ?? straightTwo(bell, u.pos);
-  if (!dir) return; // a pulse earlier in this ring moved it away
+  const dir = dirBetween(bell, u.pos) ?? (wide ? straightTwo(bell, u.pos) : null);
+  if (!dir) return;
   dealDamage(ctx, u, damage, 'Bell', [], { heading: dir, at: { ...bell } });
   if (u.hp > 0) push(ctx, u, dir, pushBy, origin);
 }
@@ -318,7 +325,14 @@ function alliedPulse(ctx: Ctx, tone: Tone, bell: Coord, origin: Origin | null): 
   emit(ctx, ev);
   withOrigin(ctx, origin, () => {
     for (const u of beside)
-      hurt(ctx, u, bell, origin, FOUNDRY_TUNING.alliedPulseDamage, FOUNDRY_TUNING.alliedPulsePush);
+      hurtByPulse(
+        ctx,
+        u,
+        bell,
+        origin,
+        FOUNDRY_TUNING.alliedPulseDamage,
+        FOUNDRY_TUNING.alliedPulsePush,
+      );
   });
 }
 
