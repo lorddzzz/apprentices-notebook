@@ -150,11 +150,16 @@
       {/each}
     {:else if tab === 'ending'}
       <p class="lead">What the owner left on the desk, to read again.</p>
-      {#if ending.handover}
-        <a class="replay" href={href('handover')} data-testid="codex-replay-desk">The owner's desk</a>
-      {/if}
-      {#if ending.creditsSeen}
-        <a class="replay" href={href('credits')} data-testid="codex-replay-credits">Credits</a>
+      {#if game.save.trip}
+        <!-- Both routes are closed out on a trip (flow.ts), so the links wait for the study. -->
+        <p class="lead" data-testid="codex-replay-away">Out on a trip: these open again in the study.</p>
+      {:else}
+        {#if ending.handover}
+          <a class="replay" href={href('handover')} data-testid="codex-replay-desk">The owner's desk</a>
+        {/if}
+        {#if ending.creditsSeen}
+          <a class="replay" href={href('credits')} data-testid="codex-replay-credits">Credits</a>
+        {/if}
       {/if}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}

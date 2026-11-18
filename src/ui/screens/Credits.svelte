@@ -13,16 +13,18 @@
   const { biggest } = credits;
   const chainLine = biggest
     ? CREDITS_LINES.chain
-        .replace('{chain}', String(biggest.chain))
-        .replace('{caster}', APPRENTICES[biggest.caster].name)
-        .replace('{name}', biggest.name)
+        .replace('{chain}', () => String(biggest.chain))
+        .replace('{caster}', () => APPRENTICES[biggest.caster].name)
+        .replace('{name}', () => biggest.name)
     : null;
   const tally = `${credits.trips} trips. ${credits.casts} casts.`;
 
-  // Watched to the end or skipped, it counts as seen; leaving by the back link is a skip.
+  // Watched to the end or skipped, it counts as seen; leaving any other way (history back, a
+  // reduced-motion scroll with no animation end) is a skip too.
   function finish(): void {
     if (!endingOf(game.profile).creditsSeen) game.updateProfile(seeCredits);
   }
+  $effect(() => finish);
   function skip(): void {
     finish();
     go('study');
@@ -58,8 +60,10 @@
     height: 100%;
     background: var(--parchment);
   }
+  /* The scroll starts below the Skip button, so no line passes under it. */
   .window {
-    height: 100%;
+    position: absolute;
+    inset: calc(var(--tap) + var(--space-3) + var(--safe-top)) 0 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     background: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(43, 33, 24, 0.06) 27px 28px);
@@ -105,8 +109,9 @@
     border-radius: 18px;
   }
   @keyframes roll {
+    /* Ends with the closing line still on the page (the reel's bottom padding is 60vh). */
     to {
-      transform: translateY(-100%);
+      transform: translateY(calc(-100% + 100vh));
     }
   }
   /* Without motion the credits are a page to scroll, and the skip button still leaves. */

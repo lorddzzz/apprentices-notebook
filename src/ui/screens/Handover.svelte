@@ -4,6 +4,7 @@
   import { endingOf, handover, missingGifts } from '$engine/drawing';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
+  import { toast } from '../../app/toasts.svelte';
   import BackLink from '../components/common/BackLink.svelte';
   import Button from '../components/common/Button.svelte';
 
@@ -21,7 +22,11 @@
       return;
     }
     // Closing the last page is what the handover is; leaving earlier loses nothing.
-    game.updateProfile(handover);
+    const refused = game.updateProfile(handover);
+    if (refused) {
+      toast(refused);
+      return;
+    }
     closed = true;
   }
   const replay = $derived(endingOf(game.profile).handover && !closed);
@@ -49,10 +54,11 @@
       <a class="btn-link quiet" href={href('study')} data-testid="handover-study">To the study</a>
     </div>
   {:else}
-    <button type="button" class="leaf" onclick={next} data-testid="handover-page" aria-label="Next page">
-      <p class="body" data-page={page}>
+    <!-- A tap on the page turns it; only the button closes the last one. -->
+    <button type="button" class="leaf" onclick={() => !last && next()} data-testid="handover-page">
+      <span class="body" data-page={page}>
         {#each parts(HANDOVER_PAGES[page] ?? '') as s, i (i)}{#if s.em}<em>{s.t}</em>{:else}{s.t}{/if}{/each}
-      </p>
+      </span>
     </button>
     <div class="actions">
       <Button onclick={next} testid="handover-next">
@@ -92,6 +98,7 @@
     background: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(43, 33, 24, 0.06) 27px 28px);
   }
   .body {
+    display: block;
     margin: 0;
     font-family: var(--hand);
     font-size: 21px;

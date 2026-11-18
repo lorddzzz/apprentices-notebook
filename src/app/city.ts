@@ -5,6 +5,7 @@ import {
   type DistrictLean,
   type MapEntry,
 } from '$data/districts/index';
+import { ENDING_LINES } from '$data/ending';
 import { type DistrictState, districtState, type Profile, tripParty } from '$engine';
 import { type DoorState, floorsFor, lowerSeamOpen, ownerDoor } from '$engine/districts/lowerSeam';
 import { drawingsOf, endingOf, type WeightBand, weightBand } from '$engine/drawing';
@@ -174,8 +175,8 @@ export interface DrawnPage {
   band: WeightBand;
 }
 
-/** The blank page's line (ending-text §4). */
-export const BLANK_PAGE_LINE = 'the rest is mine to draw';
+/** The blank page's line (ending-text §4), read from the ending's data. */
+export const BLANK_PAGE_LINE = ENDING_LINES.blankPage;
 
 /** The lower Seam is tuned for three (SM P7); fewer is a pure challenge, said once and quietly. */
 export const TUNED_FOR = 3;
