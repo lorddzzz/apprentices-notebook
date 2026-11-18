@@ -258,6 +258,8 @@ export interface OfferKind<I extends KitLootItem = KitLootItem> {
   parse(raw: unknown): I | null;
   /** Card key in `src/ui/districts` (DK-12). */
   card: string;
+  /** A drawn (sandbox) trip may bank this kind home (P16); a kind without it is dropped there. */
+  sandbox?: true;
 }
 /** A module's per-room offers (P7; CG/BF guarantees). */
 export interface RoomOffers {
@@ -354,6 +356,8 @@ export interface ShapeInput<S extends Json> {
   room: number;
   /** Rooms in this trip (DK-E3): static `rooms.length` or the module's `length`. */
   length: number;
+  /** The household the offers are rolled for (set by the roll only; hooks without it see the trip's own). */
+  profile?: Profile;
 }
 /** A trip shape (DK-E3), registered by its owner district and reusable by drawn districts. */
 export interface TripShapeDef<S extends Json = Json> {
@@ -512,6 +516,11 @@ export interface DistrictModule {
    * Read by hearing.ts, city.ts, trip/finish.ts and drawing/palette.ts.
    */
   sandbox?: true;
+  /**
+   * Runs `run` on a view of the trip whose `kit.state` is the one a lent shape reads, and maps the
+   * view's writes back (a drawn trip nests the lent state: P33). Absent: the trip as it is.
+   */
+  lend?(trip: Trip, run: (view: Trip) => Trip): Trip;
   /** A trip-only district's own opening rule (SM P7: the lower Seam opens on the Seam's heart). */
   isOpen?(p: Profile): boolean;
 }

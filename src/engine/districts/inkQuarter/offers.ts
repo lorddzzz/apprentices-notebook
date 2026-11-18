@@ -88,6 +88,7 @@ const isTermId = (v: unknown): v is TermId =>
 
 export const TERMED_KIND: OfferKind<TermedItem> = {
   id: TERMED,
+  sandbox: true,
   roll: (ctx) => {
     const d = termFor(ctx);
     return d ? [{ kind: TERMED, data: { def: d.id } }] : [];

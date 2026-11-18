@@ -44,7 +44,7 @@ function rolled(p: Profile, t: Trip, room: number) {
   const at = { ...t, encounter: room };
   const enc = roomsOf(at)[room];
   if (!enc) throw new Error(`No room ${room}`);
-  const roll = roomRoll(at, enc, null);
+  const roll = roomRoll(at, enc, null, undefined, p);
   const withKit = { profile: p, trip: at, ...(roll.registry ? { registry: roll.registry } : {}) };
   return {
     roll,

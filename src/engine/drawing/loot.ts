@@ -91,8 +91,13 @@ function tableFor(d: Drawing, owned: Owned, tier: Tier, heart: boolean): Entry[]
  * cards are drawn here and handed over as `guaranteed`, so they fill every offer and the fallback
  * table of the roll (the Seam's, never drawn from) adds nothing.
  */
-export function drawnOffersFor(t: Trip, room: number, owned: Owned): RoomOffers {
-  const { drawing } = parseInkedState(t.kit?.state);
+export function drawnOffersFor(
+  t: Trip,
+  room: number,
+  owned: Owned,
+  snapshot: Drawing = parseInkedState(t.kit?.state).drawing,
+): RoomOffers {
+  const drawing = snapshot;
   const heart = room >= drawing.length - 1;
   const band = weightBand(drawing);
   const picks = heart

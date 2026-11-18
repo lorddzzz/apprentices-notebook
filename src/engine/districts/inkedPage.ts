@@ -2,10 +2,12 @@ import type { EncounterDef, LootTableId } from '$data';
 import { cloneData } from '../clone';
 import { checkDrawing } from '../drawing/check';
 import { GEN_KITS } from '../drawing/kits';
+import { termCardFor } from '../drawing/kits/inkQuarter';
 import { drawnOffersFor } from '../drawing/loot';
 import { drawingsOf, endingOf } from '../drawing/profile';
 import { parseInkedState } from '../drawing/trip';
 import type { InkedTripState } from '../drawing/types';
+import { ownedBy } from '../trip/offers';
 import type { Profile, Trip } from '../types';
 import { KIT } from './kit';
 import type { DistrictModule, Json, RoomSetup, ShapeInput, TripShapeDef } from './types';
@@ -20,6 +22,7 @@ import type { DistrictModule, Json, RoomSetup, ShapeInput, TripShapeDef } from '
  */
 
 export const INKED_PAGE = 'inkedPage' as const;
+const TERMS = 'inkQuarter:terms';
 
 /** The room's own fields; the offers come from `offersFor` (EN-8, `drawing/loot.ts`), which replaces these. */
 const LOOT: LootTableId = 'deep';
@@ -30,16 +33,37 @@ const PLACEHOLDER = ['. . . . .', '. . r . .', '. . . . .', '. . . . .', 'P P P 
 
 // ── The lent shape (P33) ────────────────────────────────
 
+const PLAIN = 'seam:plain';
+
+let lentShapes: ReadonlyMap<string, TripShapeDef> | null = null;
+/** Every shape a drawing can borrow, by id: the kits' first, then the modules' (built on first use: the kit reads lazily). */
+function lentTable(): ReadonlyMap<string, TripShapeDef> {
+  lentShapes ??= new Map(GEN_KITS.flatMap((k) => k.shapes).map((s) => [s.id, s.shape]));
+  return lentShapes;
+}
+
 /** The shape a drawing borrows: `'plain'` is the Seam's, the rest are lent by their district's kit or module. */
 function lentShape(shape: string): TripShapeDef {
-  const id = shape === 'plain' ? 'seam:plain' : shape;
+  const id = shape === 'plain' ? PLAIN : shape;
   const lent =
-    GEN_KITS.flatMap((k) => k.shapes).find((s) => s.id === id)?.shape ??
-    Object.values(KIT.modules)
-      .flatMap((m) => m?.shapes ?? [])
-      .find((s) => s.id === id);
+    lentTable().get(id) ?? (KIT.shapes as Readonly<Record<string, TripShapeDef | undefined>>)[id];
   if (!lent) throw new RangeError(`No kit for ${shape}`);
   return lent;
+}
+
+/** The trip as the lent shape reads it: `kit.state` is the lent state, not the nested one (P33). */
+function lentTrip(trip: Trip, inner: Json): Trip {
+  return trip.kit ? { ...trip, kit: { ...trip.kit, state: inner } } : trip;
+}
+
+/** Runs `run` on the lent view of a drawn trip and writes the view's kit state back into `inner`. */
+function lend(trip: Trip, run: (view: Trip) => Trip): Trip {
+  if (!trip.kit) return run(trip);
+  const own = parseInkedState(trip.kit.state);
+  const after = run(lentTrip(trip, lentShape(own.drawing.shape).parseState(own.inner)));
+  return after.kit
+    ? { ...after, kit: { ...after.kit, state: asJson({ ...own, inner: after.kit.state }) } }
+    : after;
 }
 
 /** What the lent shape's hooks read: the trip's own view with the lent state and the drawing's length. */
@@ -48,16 +72,18 @@ function lentInput(
   own: InkedTripState,
   lent: TripShapeDef,
 ): ShapeInput<Json> {
+  const state = lent.parseState(own.inner);
   return {
-    trip: input.trip,
-    kit: input.kit,
-    state: lent.parseState(own.inner),
+    trip: lentTrip(input.trip, state),
+    kit: { ...input.kit, state },
+    state,
     room: input.room,
     length: own.drawing.length,
+    ...(input.profile ? { profile: input.profile } : {}),
   };
 }
 
-/** The state as saved, parsed strictly, and its lent shape with the hooks' input. */
+/** The state as saved, parsed strictly once, and its lent shape with the hooks' input. */
 function viewOf(input: ShapeInput<Json>): {
   own: InkedTripState;
   lent: TripShapeDef;
@@ -68,7 +94,7 @@ function viewOf(input: ShapeInput<Json>): {
   return { own, lent, lentIn: lentInput(input, own, lent) };
 }
 
-/** The pages the trip already carries (a hook has no profile; the roll turns the household's into ink). */
+/** The pages the trip already carries (the fallback when the roll gives no household). */
 const tripOwned = (t: Trip) => ({
   known: t.loot.flatMap((i) => (i.kind === 'rune' ? [i.rune] : [])),
   methods: t.loot.flatMap((i) => (i.kind === 'method' ? [i.method] : [])),
@@ -122,12 +148,17 @@ export const INKED_TRIP: TripShapeDef = {
     return lent.lootAfterRoom?.(lentIn) ?? input.trip.loot;
   },
   offersFor(input) {
-    const { lent, lentIn } = viewOf(input);
+    const { own: state, lent, lentIn } = viewOf(input);
     const lentOwn = lent.offersFor?.(lentIn) ?? null;
     // EN-8: the drawn table, rolled from the snapshot. The shape lends its own cards (`extra`)
-    // but not its table or picks. A page the household holds turns to ink in the roll.
-    const own = drawnOffersFor(input.trip, input.room, tripOwned(input.trip));
-    return { ...own, ...(lentOwn?.extra ? { extra: lentOwn.extra } : {}) };
+    // but not its table or picks. The household's pages (and the trip's) are not offered again;
+    // a roll without the household offers by the trip's own.
+    const owned = input.profile ? ownedBy(input.profile, input.trip) : tripOwned(input.trip);
+    const own = drawnOffersFor(input.trip, input.room, owned, state.drawing);
+    // P15: the terms shape's termed card, one each room but the heart, beside the room's own.
+    const term = lent.id === TERMS ? termCardFor(lentIn) : null;
+    const extra = [...(lentOwn?.extra ?? []), ...(term ? [term] : [])];
+    return { ...own, ...(extra.length > 0 ? { extra } : {}) };
   },
 };
 
@@ -159,6 +190,7 @@ export const INKED_PAGE_MODULE: DistrictModule = {
   id: INKED_PAGE,
   sandbox: true,
   trip: INKED_TRIP,
+  lend,
   isOpen: inkedPageOpen,
   length: (t) => (t.kit ? parseInkedState(t.kit.state).drawing.length : 0),
   encounter: inkedRoom,

@@ -12,7 +12,7 @@ import type {
 } from '../districts/types';
 import type { EventLog } from '../events';
 import { boardRules, initBroughtRules, listRules } from '../rules';
-import type { BattleState, Trip } from '../types';
+import type { BattleState, Profile, Trip } from '../types';
 import { type OfferRegistry, offerRegistry } from './offerKinds';
 import { type DistrictShape, shapeInput, shapeOf } from './shape';
 
@@ -127,8 +127,9 @@ export function roomRoll(
   enc: EncounterDef,
   bonus: BonusObjective | null,
   shape: DistrictShape = shapeOf(t.district, t),
+  profile?: Profile,
 ): RoomRoll {
-  const own = t.kit ? (shape.trip?.offersFor?.(shapeInput(t, shape)) ?? null) : null;
+  const own = t.kit ? (shape.trip?.offersFor?.(shapeInput(t, shape, profile)) ?? null) : null;
   const table = own?.table ?? enc.loot;
   if (!isTable(table)) throw new Error(`No loot table '${table}'`);
   const picks = (own?.picks ?? enc.picks) + (bonus?.reward.kind === 'pick' ? 1 : 0);

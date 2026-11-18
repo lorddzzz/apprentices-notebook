@@ -90,7 +90,7 @@ export function newTripKit(
 }
 
 /** What a shape hook reads: the trip with its kit and parsed state. */
-export function shapeInput(t: Trip, shape: DistrictShape): ShapeInput<Json> {
+export function shapeInput(t: Trip, shape: DistrictShape, profile?: Profile): ShapeInput<Json> {
   const kit = t.kit ?? { state: null, choices: [], checkpoint: false, bonuses: [] };
   return {
     trip: t,
@@ -98,6 +98,7 @@ export function shapeInput(t: Trip, shape: DistrictShape): ShapeInput<Json> {
     state: shape.trip ? shape.trip.parseState(kit.state) : kit.state,
     room: t.encounter,
     length: shape.length,
+    ...(profile ? { profile } : {}),
   };
 }
 

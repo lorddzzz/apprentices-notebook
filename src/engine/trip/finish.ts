@@ -15,7 +15,7 @@ import { compiledFor, recordProof } from '../run';
 import { awardsPage } from '../standIn';
 import { accumulateStats } from '../tripStats';
 import type { ActionResult, BattleState, Profile, Trip, TripStats } from '../types';
-import { wipeLoot } from './offerKinds';
+import { kindOf, type OfferRegistry, offerRegistry, wipeLoot } from './offerKinds';
 import { ownedBy, rollOffers } from './offers';
 import { policyAllows } from './ret';
 import { afterRoomWon, roomRoll } from './setup';
@@ -151,7 +151,7 @@ export function finishEncounter(
   const shape0 = shapeOf(t.district, t);
   const landing = policyAllows(shape0.ret, t.encounter, heartOf(shape0));
   // EN P16: a drawn (sandbox) trip files no paper and banks no rival's page.
-  const sandbox = KIT.modules[t.district]?.sandbox === true;
+  const sandbox = isSandbox(t.district);
   const filed = sandbox
     ? learned
     : findLandingPaper(findPaper(learned, t.district, t.encounter), t.district, landing);
@@ -163,7 +163,7 @@ export function finishEncounter(
   // The room's bonus and the module's `afterRoom` write the kit; then its offers (P7, P13).
   const shape = shapeOf(t.district, t);
   const marked = afterRoomWon(t, b, log, shape);
-  const roll = roomRoll(marked.trip, enc, marked.bonus, shape);
+  const roll = roomRoll(marked.trip, enc, marked.bonus, shape, p);
   const withKit = {
     profile: p,
     trip: marked.trip,
@@ -193,11 +193,12 @@ export function finishEncounter(
   };
 }
 
-/** EN P16: a drawn (sandbox) trip carries no key and no recruit home, whatever its loot holds. */
-export const keptLoot = (t: Trip): Trip['loot'] =>
-  KIT.modules[t.district]?.sandbox
-    ? t.loot.filter((i) => i.kind !== 'key' && i.kind !== 'recruit')
-    : t.loot;
+/** EN P16: a drawn district gives no hearing, heart, key, recruit, rival page or lore. */
+export const isSandbox = (district: DistrictId): boolean => KIT.modules[district]?.sandbox === true;
+
+/** EN P16: a drawn (sandbox) trip banks only the kinds that opt in (`OfferKind.sandbox`), whatever its loot holds. */
+export const keptLoot = (t: Trip, reg: OfferRegistry = offerRegistry()): Trip['loot'] =>
+  isSandbox(t.district) ? t.loot.filter((i) => kindOf(i, reg).sandbox === true) : t.loot;
 
 /** Each district module's `afterBattleClose`, applied in registry order. */
 function closeDistricts(p: Profile, t: Trip): Profile {

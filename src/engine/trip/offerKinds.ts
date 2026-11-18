@@ -48,6 +48,7 @@ const add = <T>(list: readonly T[], x: T): T[] => (list.includes(x) ? [...list] 
 // ── The core kinds ──────────────────────────────────────
 const RUNE_KIND: OfferKind<ItemOf<'rune'>> = {
   id: 'rune',
+  sandbox: true,
   onPick: addToLoot,
   onBank: (p, i) => ({ ...p, known: add(p.known, i.rune) }),
   parse(raw) {
@@ -60,6 +61,7 @@ const RUNE_KIND: OfferKind<ItemOf<'rune'>> = {
 
 const METHOD_KIND: OfferKind<ItemOf<'method'>> = {
   id: 'method',
+  sandbox: true,
   onPick: addToLoot,
   onBank: (p, i) => ({ ...p, methods: add(p.methods, i.method) }),
   parse(raw) {
@@ -72,6 +74,7 @@ const METHOD_KIND: OfferKind<ItemOf<'method'>> = {
 
 const INK_KIND: OfferKind<ItemOf<'ink'>> = {
   id: 'ink',
+  sandbox: true,
   onPick: addToLoot,
   onBank: (p, i) => ({ ...p, ink: p.ink + i.amount }),
   parse(raw) {
@@ -84,6 +87,7 @@ const INK_KIND: OfferKind<ItemOf<'ink'>> = {
 
 const SOLVENT_KIND: OfferKind<ItemOf<'solvent'>> = {
   id: 'solvent',
+  sandbox: true,
   onPick: addToLoot,
   onBank: (p, i) => ({
     ...p,
@@ -100,6 +104,7 @@ const SOLVENT_KIND: OfferKind<ItemOf<'solvent'>> = {
 
 const VELLUM_KIND: OfferKind<ItemOf<'vellum'>> = {
   id: 'vellum',
+  sandbox: true,
   onPick: addToLoot,
   onBank: (p, i) => ({ ...p, vellum: p.vellum + i.amount }),
   parse(raw) {
@@ -113,6 +118,7 @@ const VELLUM_KIND: OfferKind<ItemOf<'vellum'>> = {
 /** A quiet doorway costs the pick but is never banked: it opens field rewiring (plan S11). */
 const DOORWAY_KIND: OfferKind<ItemOf<'doorway'>> = {
   id: 'doorway',
+  sandbox: true,
   onPick: (t) => ({ ...t, status: 'doorway' }),
   onBank: (p) => p,
   parse: (raw) => (fieldsOf(raw, 'doorway') ? { kind: 'doorway' } : null),
@@ -173,13 +179,28 @@ const present = (ks: readonly (OfferKind | undefined)[]): OfferKind[] =>
 /** The registry's kinds in registration order. */
 export const kindsIn = (reg: OfferRegistry): OfferKind[] => present(Object.values(reg.kinds));
 
+/**
+ * A district kind's `onPick` acts on the trip it is given; a drawn trip nests the lent state, so the
+ * pick runs on the module's lent view and its writes are mapped back (`DistrictModule.lend`).
+ */
+const lentKind = (k: OfferKind): OfferKind => ({
+  ...k,
+  onPick: (trip, item) => {
+    const lend = KIT.modules[trip.district]?.lend;
+    return lend ? lend(trip, (view) => k.onPick(view, item)) : k.onPick(trip, item);
+  },
+});
+
 let built: OfferRegistry | null = null;
 /** The game's registry: the sources above, then every district module's kinds and contributors. */
 export function offerRegistry(): OfferRegistry {
   // Built on first use: the kit's modules import the movers, which are still loading at import.
   built ??= buildOfferRegistry([
     ...OFFER_SOURCES,
-    { kinds: present(Object.values(KIT.offerKinds)), contributors: KIT.offerContributors },
+    {
+      kinds: present(Object.values(KIT.offerKinds)).map(lentKind),
+      contributors: KIT.offerContributors,
+    },
   ]);
   return built;
 }
