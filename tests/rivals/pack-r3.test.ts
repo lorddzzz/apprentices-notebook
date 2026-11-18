@@ -3,19 +3,18 @@ import { footnoteKeyOf, VARIANTS } from '$data';
 import { createBattle } from '$engine/battle';
 import { emit, ref } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
-import { parseLabel } from '$engine/notation';
-import { tileAt } from '$engine/queries';
+import type { EventLog as GameEventLog } from '$engine/events';
 import { hasFootnote } from '$engine/footnotes';
 import { WICK_NOTE } from '$engine/jars';
+import { parseLabel } from '$engine/notation';
+import { tileAt } from '$engine/queries';
 import { rivalPreview } from '$engine/rivals';
-import type { EventLog as GameEventLog } from '$engine/events';
-import type { ObjectRef } from '$engine/rivals/types';
+import { clean } from '$engine/rivals/goals';
 import { simulate } from '$engine/rivals/plan';
 import { isEffect } from '$engine/rivals/resolve';
-import type { Step } from '$engine/types';
-import { clean } from '$engine/rivals/goals';
 import { registerTrick } from '$engine/rivals/tricks';
-import type { EnemyUnit } from '$engine/types';
+import type { ObjectRef } from '$engine/rivals/types';
+import type { EnemyUnit, Step } from '$engine/types';
 
 describe('rival walk simulation', () => {
   it('scores the cast on the board after a party jar opened underfoot', () => {

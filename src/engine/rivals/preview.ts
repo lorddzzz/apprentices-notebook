@@ -8,8 +8,8 @@ import { findUnit, isAlive, travel, unitAt } from '../queries';
 import type { BattleState, EnemyUnit, RivalIntent, UnitId } from '../types';
 import { outcomeOf } from './plan';
 import { dryStrikeIntent, isEffect, isStarved, resolveRivalIntent } from './resolve';
-import type { ObjectRef, RivalPreview } from './types';
 import { objectLock } from './tricks';
+import type { ObjectRef, RivalPreview } from './types';
 
 /**
  * The telegraph preview (rivals plan P6, P7; RV-6): the shown action simulated now, on a clone,
