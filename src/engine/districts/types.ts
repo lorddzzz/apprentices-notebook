@@ -509,7 +509,7 @@ export interface DistrictModule {
   length?(trip: Trip): number;
   /**
    * A drawn district: its trips give no hearing, heart, key, recruit, rival page or lore (P16).
-   * Nothing reads it yet (EN-3).
+   * Read by hearing.ts, city.ts, trip/finish.ts and drawing/palette.ts.
    */
   sandbox?: true;
   /** A trip-only district's own opening rule (SM P7: the lower Seam opens on the Seam's heart). */
