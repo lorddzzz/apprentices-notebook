@@ -41,23 +41,24 @@ import { guardCancels } from '../harm';
 import { claimJar, sealJar } from '../jars';
 import { jarLimit } from '../leans';
 import { applyMark, releaseSpent, spendMark } from '../marks';
-import { landOnTile } from '../mix';
+import { landOnTile, PLAIN_KIND, tileHolds } from '../mix';
 import { makePiece, pieceHoldsNothing, pieceVoid, strikable, strikePiece } from '../pieces';
 import { type PushResult, push, wearPlate } from '../push';
 import {
-  blocksUnits,
   findUnit,
   inBoard,
   isAlive,
   isPlate,
+  standableTile,
   tileAt,
   unitAt,
   unitById,
+  unitOf,
 } from '../queries';
 import type { Handler } from '../resolve';
 import { trickResists } from '../rivals/tricks';
 import { SOLVENT_RULES } from '../solvents';
-import { splashSpares } from '../targets';
+import { splashSpares, whereIs } from '../targets';
 import {
   type ErasedPart,
   type ErasedRecord,
@@ -72,19 +73,6 @@ import {
 
 // Numbers the design fixes (§5.2) that have no TUNING key yet: Sentence's push, Hold's duration,
 // Levy's shield per mark. Move them into TUNING when types.ts gains the keys.
-
-/** A unit target's unit; a tile target's unit only if someone now stands there. */
-function unitOf(ctx: Ctx, t: Target): Unit | null {
-  if (t.kind === 'tile') return unitAt(ctx.s, t.at);
-  const u = ctx.s.units.find((x) => x.id === t.unit);
-  return u && isAlive(u) ? u : null;
-}
-
-/** Where a target is now (R7). */
-function posOf(ctx: Ctx, t: Target): Coord | null {
-  if (t.kind === 'tile') return t.at;
-  return unitOf(ctx, t)?.pos ?? null;
-}
 
 const headingOf = (flow: Flow, t: Target): Dir | null => flow.headings.get(targetKey(t)) ?? null;
 
@@ -339,19 +327,12 @@ const hold: Handler = (ctx, t, flow) => {
 /** The Cartographers' pencil piece (its registered id), read here to stamp `swap:unit`. */
 const pencilAt = (ctx: Ctx, c: Coord): boolean => tileAt(ctx.s, c).piece?.id === PENCIL_PIECE;
 
-/** A tile a unit may be set on: real paper, not solid, a drop, water or a void. */
-const standableTile = (ctx: Ctx, c: Coord): boolean => {
-  if (!inBoard(ctx.s, c)) return false;
-  const tile = tileAt(ctx.s, c);
-  return !blocksUnits(tile) && !tile.terrain.drop && !tile.terrain.water && !pieceVoid(tile);
-};
-
 /** `swap-cap-step`: a Swap that finds nobody steps its caster onto the empty paper tile aimed at, within two. */
 function stepOnto(ctx: Ctx, caster: Unit, t: Target, flow: Flow): void {
-  const to = posOf(ctx, t);
+  const to = whereIs(ctx.s, t);
   if (!to || caster.held > 0 || hasTrait(caster, 'anchored')) return;
   const dist = Math.abs(to.x - caster.pos.x) + Math.abs(to.y - caster.pos.y);
-  if (dist === 0 || dist > 2 || !standableTile(ctx, to) || unitAt(ctx.s, to)) return;
+  if (dist === 0 || dist > 2 || !standableTile(ctx.s, to) || unitAt(ctx.s, to)) return;
   const from = { ...caster.pos };
   emit(ctx, {
     type: 'moved',
@@ -509,11 +490,16 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord, flow: Flow, over = true): Hop
     const standing = isPlate(src) && unitAt(s, to);
     if (standing) {
       withLine(ctx, 'draw:unit', () => emit(ctx, { type: 'miss', source: RUNES.draw.name }));
-    } else if (!dst.terrain.gate && !dst.terrain.grate) {
-      emit(ctx, { type: 'drawn', from: { ...from }, to: { ...to }, what: spaced(src.state.id) });
-      dst.state = src.state;
-      src.state = null;
-      moved.state = dst.state.id;
+    } else {
+      const holds = tileHolds(ctx, to, src.state.id);
+      if (holds && !dst.terrain.gate && !dst.terrain.grate) {
+        emit(ctx, { type: 'drawn', from: { ...from }, to: { ...to }, what: spaced(src.state.id) });
+        dst.state = src.state;
+        src.state = null;
+        moved.state = dst.state.id;
+      } else if (!holds) {
+        emit(ctx, { type: 'miss', source: RUNES.draw.name });
+      }
     }
   } else if (
     src.state &&
@@ -553,7 +539,7 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord, flow: Flow, over = true): Hop
 }
 
 const draw: Handler = (ctx, t, flow) => {
-  let at = posOf(ctx, t);
+  let at = whereIs(ctx.s, t);
   if (!at) return;
   const heading = headingOf(flow, t);
   const here = tileAt(ctx.s, at);
@@ -605,7 +591,7 @@ const draw: Handler = (ctx, t, flow) => {
   // `draw-cap-drag`: a unit whose state was drawn from under it goes one tile along, if that tile is free.
   if (state && carried && isAlive(carried) && fn('draw-cap-drag')) {
     const to = step(carried.pos, heading);
-    if (standableTile(ctx, to) && !unitAt(ctx.s, to)) push(ctx, carried, heading, 1, flow.origin);
+    if (standableTile(ctx.s, to) && !unitAt(ctx.s, to)) push(ctx, carried, heading, 1, flow.origin);
   }
   const opts = { cause: 'draw', origin: flow.origin } as const;
   if (state) objectArrives(ctx, { kind: 'state', state: state.id }, state.at, opts);
@@ -642,13 +628,6 @@ function remember(ctx: Ctx, t: Target, parts: readonly ErasedPart[], flow: Flow)
   ctx.s.erased = next;
 }
 
-const PLAIN_KIND: Record<StateId, KindId> = {
-  blot: 'ink',
-  slick: 'oil',
-  cloud: 'steam',
-  plate: 'brass',
-  fire: 'oil',
-};
 const isPlainState = (id: StateId | CompoundId): id is StateId => id in PLAIN_KIND;
 
 /** A restored state logs the event a fresh landing of it would, so playback draws it. */
@@ -774,7 +753,7 @@ function eraseMark(
 const erase: Handler = (ctx, t, flow) => eraseAt(ctx, t, flow, false);
 
 function eraseAt(ctx: Ctx, t: Target, flow: Flow, through: boolean): void {
-  const at = posOf(ctx, t);
+  const at = whereIs(ctx.s, t);
   if (!at) return;
   const tile = tileAt(ctx.s, at);
   const u = unitOf(ctx, t);

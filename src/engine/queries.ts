@@ -15,7 +15,7 @@ import {
   step,
 } from './grid';
 import { habitRule } from './habits';
-import { pieceBlocksShots, pieceBlocksUnits } from './pieces';
+import { pieceBlocksShots, pieceBlocksUnits, pieceVoid } from './pieces';
 import { aimTargets, boltTravel, whereIs } from './resolve';
 import type {
   Aim,
@@ -25,6 +25,7 @@ import type {
   MemberUnit,
   Spell,
   SpellKey,
+  Target,
   Tile,
   Unit,
   UnitId,
@@ -49,6 +50,15 @@ export function tileAt(s: BattleState, c: Coord): Tile {
 
 export function coordOf(s: BattleState, i: number): Coord {
   return { x: i % s.width, y: Math.floor(i / s.width) };
+}
+
+/** Manhattan distance between two tiles. */
+export const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+
+/** The living unit represented by a target, if any. */
+export function unitOf(ctx: { s: BattleState }, t: Target): Unit | null {
+  const u = t.kind === 'tile' ? unitAt(ctx.s, t.at) : findUnit(ctx.s, t.unit);
+  return u && isAlive(u) ? u : null;
 }
 
 /** Alive and in the room: a unit out of the room (P11) is off the board for every query. */
@@ -110,6 +120,12 @@ const standsUp = (t: Tile): boolean => isPlate(t) || t.terrain.gate || t.terrain
  * Pushes, placement and spreading states treat a solid piece like a plate.
  */
 export const blocksUnits = (t: Tile): boolean => standsUp(t) || pieceBlocksUnits(t);
+/** A tile a land unit can be placed on. */
+export const standableTile = (s: BattleState, c: Coord): boolean => {
+  if (!inBoard(s, c)) return false;
+  const tile = tileAt(s, c);
+  return !blocksUnits(tile) && !tile.terrain.drop && !tile.terrain.water && !pieceVoid(tile);
+};
 /** What stops a projectile or a line: the same, but only `unitsAndShots` pieces (P10). */
 export const blocksShots = (t: Tile): boolean => standsUp(t) || pieceBlocksShots(t);
 

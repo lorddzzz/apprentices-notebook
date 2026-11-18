@@ -54,9 +54,9 @@ test('tally:collar fourCombos: twice or shackle, then net or spend', () => {
     collarRun,
   );
   const [twiceNet, twiceSpend, shackleNet, shackleSpend] = runs.map((r) => r.result);
-  // Twice: the collar alone passes (two things); net keeps the collar, spend strikes it off.
+  // Twice: the born collar alone passes (two things); neither net nor spend removes it.
   expect(twiceNet).toEqual({ passed: true, hit: true, collar: 'on', shackle: 0 });
-  expect(twiceSpend).toEqual({ passed: true, hit: true, collar: 'off', shackle: 0 });
+  expect(twiceSpend).toEqual({ passed: true, hit: true, collar: 'on', shackle: 0 });
   // Shackle: the shackle alone passes (two things); spend strikes the shackle off, not a collar.
   expect(shackleNet).toEqual({ passed: true, hit: true, collar: 'off', shackle: 2 });
   expect(shackleSpend).toEqual({ passed: true, hit: true, collar: 'off', shackle: 0 });

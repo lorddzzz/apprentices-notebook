@@ -51,9 +51,10 @@ import {
   livingUnits,
   tileAt,
   unitAt,
+  unitOf,
 } from './queries';
 import { catchIfHot } from './solvents';
-import { splashSpares } from './targets';
+import { splashSpares, whereIs } from './targets';
 import type { Flow, Layer, Origin, Target, Unit } from './types';
 
 /**
@@ -70,6 +71,13 @@ const PLAIN: Readonly<Record<Plain, StateId>> = {
   oil: 'slick',
   steam: 'cloud',
   brass: 'plate',
+};
+export const PLAIN_KIND: Readonly<Record<StateId, Plain>> = {
+  blot: 'ink',
+  slick: 'oil',
+  cloud: 'steam',
+  plate: 'brass',
+  fire: 'oil',
 };
 const PLAIN_STATES: ReadonlySet<Layered> = new Set(['blot', 'slick', 'cloud', 'plate', 'fire']);
 /** Layers that stand up like a plate: no unit may share the tile. */
@@ -139,22 +147,24 @@ function newLayer(id: Layered, kind: Plain, flow: Flow | null): Layer {
   return layer;
 }
 
-function targetCoord(ctx: Ctx, t: Target): Coord | null {
-  if (t.kind === 'tile') return inBoard(ctx.s, t.at) ? t.at : null;
-  const u = findUnit(ctx.s, t.unit);
-  return u && isAlive(u) ? u.pos : null;
-}
-
-/** Ink and Brass land on the unit standing on the target, else the tile (P14). */
-function unitOn(ctx: Ctx, t: Target, at: Coord): Unit | null {
-  if (t.kind === 'unit') {
-    const u = findUnit(ctx.s, t.unit);
-    return u && isAlive(u) ? u : null;
-  }
-  return unitAt(ctx.s, at);
-}
-
 // ── Tiles ───────────────────────────────────────────────
+
+/** Whether an existing layer can be placed on a tile. */
+export function tileHolds(ctx: Ctx, at: Coord, state: Layered): boolean {
+  const tile = tileAt(ctx.s, at);
+  if (
+    Object.hasOwn(PLAIN_KIND, state) &&
+    tile.piece &&
+    kindOnPiece(ctx, at, PLAIN_KIND[state as StateId])
+  )
+    return false;
+  const cloud = ['cloud', 'brandCloud', 'greaseFog', 'bank'].includes(state);
+  return (
+    !pieceHoldsNothing(tile) &&
+    !(pieceHoldsOnlyClouds(tile) && !cloud) &&
+    !((tile.terrain.gate || tile.terrain.grate) && STANDS_UP.has(state))
+  );
+}
 
 /** A Pool soaks its 4 neighbours too: empty or blotted tiles there become slicks. */
 function soakNeighbours(ctx: Ctx, at: Coord, flow: Flow | null): void {
@@ -170,7 +180,12 @@ function soakNeighbours(ctx: Ctx, at: Coord, flow: Flow | null): void {
   for (const n of neighbors.sort(byReadingOrder)) {
     if (!inBoard(s, n)) continue;
     const t = tileAt(s, n);
-    if (blocksUnits(t) || (t.state && t.state.id !== 'blot')) continue;
+    if (
+      blocksUnits(t) ||
+      (t.state && t.state.id !== 'blot') ||
+      !tileHolds(ctx, n, seep && t.state?.id === 'blot' ? 'stain' : 'slick')
+    )
+      continue;
     if (seep && t.state?.id === 'blot') {
       t.state = newLayer('stain', 'oil', flow);
       noteMet(ctx, 'stain');
@@ -202,7 +217,7 @@ function twinWall(ctx: Ctx, at: Coord, flow: Flow | null): void {
   const n = step(at, heading);
   if (!inBoard(ctx.s, n)) return;
   const t = tileAt(ctx.s, n);
-  if (t.state || blocksUnits(t) || unitAt(ctx.s, n)) return;
+  if (t.state || blocksUnits(t) || !tileHolds(ctx, n, 'wall') || unitAt(ctx.s, n)) return;
   emit(ctx, { type: 'landed', kind: 'brass', at: { ...n }, makes: 'wall' });
   t.state = wallLayer(ctx, flow);
   noteMet(ctx, 'wall');
@@ -313,7 +328,14 @@ function layFootnotes(ctx: Ctx, kind: Plain, at: Coord, flow: Flow): void {
       const fresh = newLayer(layer.id, kind, { ...flow, lay: false });
       // A layer with no rounds of its own (a blot, a slick) cannot be shorter.
       const rounds = fresh.rounds > 0 ? fresh.rounds - 1 : 0;
-      if (!t.state && !blocksUnits(t) && !t.terrain.drop && (fresh.rounds === 0 || rounds > 0)) {
+      if (
+        !t.state &&
+        !blocksUnits(t) &&
+        !t.terrain.drop &&
+        (fresh.rounds === 0 || rounds > 0) &&
+        (!STANDS_UP.has(layer.id) || !unitAt(ctx.s, behind)) &&
+        tileHolds(ctx, behind, layer.id)
+      ) {
         if (!STANDS_UP.has(layer.id) || !unitAt(ctx.s, behind)) {
           emit(ctx, { type: 'landed', kind, at: { ...behind }, makes: layer.id });
           t.state = { ...fresh, rounds };
@@ -550,9 +572,10 @@ function steamUnitMargin(ctx: Ctx, unit: Unit, flow: Flow | null): void {
 
 /** Spark: 1 damage to the unit, then it bursts the unit layer, then the tile layer (P14). */
 function sparkLand(ctx: Ctx, t: Target, flow: Flow | null): void {
-  const at = targetCoord(ctx, t);
+  const at = whereIs(ctx.s, t);
+  if (at && t.kind === 'tile' && !inBoard(ctx.s, at)) return;
   if (!at) return;
-  const unit = unitOn(ctx, t, at);
+  const unit = unitOf(ctx, t);
   const struck = strikePiece(ctx, at, 'spark');
   let burstHappened = false;
   const caster = flow ? findUnit(ctx.s, flow.caster) : null;
@@ -599,9 +622,10 @@ function landKindWith(ctx: Ctx, kind: KindId, t: Target, flow: Flow | null): voi
     sparkLand(ctx, t, flow);
     return;
   }
-  const at = targetCoord(ctx, t);
+  const at = whereIs(ctx.s, t);
+  if (at && t.kind === 'tile' && !inBoard(ctx.s, at)) return;
   if (!at) return;
-  const unit = kind === 'ink' || kind === 'brass' ? unitOn(ctx, t, at) : null;
+  const unit = kind === 'ink' || kind === 'brass' ? unitOf(ctx, t) : null;
   if (unit) {
     if (kind === 'ink') inkOnUnit(ctx, unit, flow);
     else brassOnUnit(ctx, unit, flow);
@@ -683,7 +707,7 @@ function spreadSteep(ctx: Ctx): void {
             const beyond = { x: 2 * n.x - c.x, y: 2 * n.y - c.y };
             // `steep-plate-under`: ironwork lets the spread pass under to the tile beyond.
             if ((t.terrain.gate || t.terrain.grate) && fn('steep-plate-under') && open(beyond)) {
-              if (!thin || copyRounds > 0) {
+              if ((!thin || copyRounds > 0) && tileHolds(ctx, beyond, layer.id)) {
                 tileAt(s, beyond).state = copied(layer, copyRounds, fn('steep-spread-once'));
                 under.push(beyond);
                 passed = true;
@@ -726,7 +750,7 @@ function spreadSteep(ctx: Ctx): void {
             crowded = true;
             continue;
           }
-          if (thin && copyRounds <= 0) continue;
+          if ((thin && copyRounds <= 0) || !tileHolds(ctx, n, layer.id)) continue;
           t.state = copied(layer, copyRounds, fn('steep-spread-once'));
           to.push(n);
           next.push(n);

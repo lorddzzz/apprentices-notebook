@@ -596,7 +596,7 @@ function tollBells(
 /** `tally-collar-spend`: the collar or shackle that carried a Tally through is struck off (erased). */
 function spendCollar(ctx: Ctx, t: Target, what: 'collar' | 'shackle'): void {
   const u = t.kind === 'unit' ? findUnit(ctx.s, t.unit) : unitAt(ctx.s, t.at);
-  if (!u || u.hp <= 0) return;
+  if (!u || u.hp <= 0 || (what === 'collar' && u.collar === null)) return;
   withLine(ctx, 'tally:collar', () => {
     emit(ctx, { type: 'erased', at: { ...u.pos }, what });
     if (what === 'shackle') u.shackle = 0;

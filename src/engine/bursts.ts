@@ -20,7 +20,7 @@ import { applyMark, liftMark, spendMark } from './marks';
 import { brassNet, brassPass, cloudNet, cloudPass, oilNet, oilPass, stampGap } from './networks';
 import { strikePiece } from './pieces';
 import { push } from './push';
-import { blocksShots, inBoard, isCloud, livingUnits, tileAt, unitAt } from './queries';
+import { blocksShots, inBoard, isCloud, livingUnits, manhattan, tileAt, unitAt } from './queries';
 import { SOLVENT_RULES } from './solvents';
 import type { Flow, Layer, Mark, Origin, Unit } from './types';
 
@@ -29,7 +29,6 @@ import type { Flow, Layer, Mark, Origin, Unit } from './types';
  * helpers here (named results, marking, reach) are shared with `mix.ts`.
  */
 
-const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const manyOf = (units: readonly Unit[]): Unit[] =>
   [...units].sort((a, b) => byReadingOrder(a.pos, b.pos));
 

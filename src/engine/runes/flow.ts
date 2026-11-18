@@ -16,7 +16,7 @@ import {
 import { ruleOf, sameSide } from '../habits';
 import { sealedContext } from '../jars';
 import { cloudNet } from '../networks';
-import { blocksUnits, inBoard, isCloud, tileAt, unitAt } from '../queries';
+import { blocksUnits, inBoard, isCloud, manhattan, tileAt, unitAt } from '../queries';
 import { targetOn, whereIs } from '../targets';
 import type { BattleState, Flow, Jar, Snapshot, Target, Tile, Unit } from '../types';
 import { targetKey } from '../types';
@@ -497,8 +497,6 @@ function landedAt(snap: Snapshot, key: string): Coord | null {
   const [x, y] = key.slice(2).split(',').map(Number);
   return x === undefined || y === undefined ? null : { x, y };
 }
-
-const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
 /**
  * One target through a trigger: whether it passes, whether only the flow's habit let it through

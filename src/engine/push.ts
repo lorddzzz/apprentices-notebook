@@ -407,7 +407,11 @@ export function push(
     const bonus = pull ? 0 : Math.min(tiles, opts.bonus ?? 0);
     let plan = planPush(ctx, unit, dir, tiles);
     // Whether Mortar's extra tile is the step that ends in the fog.
-    const bonusFall = bonus > 0 && plan.stop?.kind === 'drop' && plan.path.length >= tiles - bonus;
+    const bonusFall =
+      bonus > 0 &&
+      plan.stop?.kind === 'drop' &&
+      plan.path.length >= tiles - bonus &&
+      plan.path.length < tiles;
     // `mortar-unit-rim`: the extra tile is dropped when it would carry the unit into fog.
     if (bonusFall && hasFootnote(ctx, 'mortar-unit-rim')) {
       plan = planPush(ctx, unit, dir, tiles - bonus);

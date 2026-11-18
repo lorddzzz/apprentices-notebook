@@ -239,7 +239,13 @@ interface Frame {
   /** A direction in this frame as seen on the outer lattice. */
   outward(d: Dir): Dir;
   /** Flow stepped onto a cell holding no rune of this frame. */
-  beyond(at: Coord, dir: Dir, via: Trail | null, assign: (st: Step | null) => void): void;
+  beyond(
+    at: Coord,
+    dir: Dir,
+    via: Trail | null,
+    assign: (st: Step | null) => void,
+    rot: number,
+  ): void;
   /** The cell as proof records it. */
   fired(at: Coord, placed: PlacedRune): FiredCell;
   /** Every cell entered, for `Spell.cells`. */
@@ -419,7 +425,7 @@ function compile(
       budget?.spend('work');
       const placed = f.runeAt(cell);
       if (!placed) {
-        f.beyond(cell, dir, via, assign);
+        f.beyond(cell, dir, via, assign, rot);
         return;
       }
       if (f.visited.has(key(cell))) {
@@ -521,7 +527,7 @@ function compile(
       path: outer.path,
       where: (at) => ({ at: g.at, inner: at, glyph: def.id }),
       outward: (d) => rotateDirLocal(d, g.dir),
-      beyond: (_at, dir, via, assign) => {
+      beyond: (_at, dir, via, assign, rot) => {
         const out = rotateDirLocal(dir, g.dir);
         let main: Step | null = null;
         pending.push(() => {
@@ -545,6 +551,8 @@ function compile(
               side = st;
             },
             via,
+            null,
+            rot,
           );
         });
         queueWalk(
@@ -555,6 +563,8 @@ function compile(
             main = st;
           },
           via,
+          null,
+          rot,
         );
       },
       fired: () => ({ at: g.at, rune: null, glyph: g.glyph, dir: g.dir }),
@@ -574,7 +584,7 @@ function compile(
       fired: (at, placed) =>
         placed.dir ? { at, rune: placed.rune, dir: placed.dir } : { at, rune: placed.rune },
       cells,
-      beyond: (at, dir, via, assign) => {
+      beyond: (at, dir, via, assign, rot) => {
         const g = glyphIn(at);
         const def = g ? glyphs[g.glyph] : undefined;
         if (!g || !def || def.kind !== 'payload' || dir !== g.dir) {
@@ -586,7 +596,7 @@ function compile(
           return;
         }
         visited.add(key(at));
-        queueWalk(innerFrame(g, def, frame), def.entry, 'right', assign, via);
+        queueWalk(innerFrame(g, def, frame), def.entry, 'right', assign, via, null, rot);
       },
     };
     return frame;

@@ -27,7 +27,7 @@ import { guardCancels } from './harm';
 import type { Hook } from './hooks';
 import { openJar, sealedContext } from './jars';
 import { spendMark } from './marks';
-import { deepen, landOnTile, layThinCloud } from './mix';
+import { deepen, landOnTile, layThinCloud, PLAIN_KIND } from './mix';
 import { brassNet, cloudNet, cloudPass, isBrass, oilNet, stampGap } from './networks';
 import { makePiece, pieceHoldsNothing, pieceVoid } from './pieces';
 import { push } from './push';
@@ -40,8 +40,10 @@ import {
   isCloud,
   isFire,
   isPlate,
+  standableTile,
   tileAt,
   unitAt,
+  unitOf,
 } from './queries';
 import { trickResists } from './rivals/tricks';
 import { schedule, wakeScheduled } from './schedule';
@@ -113,12 +115,6 @@ const isMemberAt = (s: BattleState, t: Target): boolean => {
   const at = whereIs(s, t);
   return !!at && unitAt(s, at)?.kind === 'member';
 };
-
-/** The living unit a target means: a unit target's, or whoever stands on a tile target. */
-function unitOf(ctx: Ctx, t: Target): Unit | null {
-  const u = t.kind === 'tile' ? unitAt(ctx.s, t.at) : findUnit(ctx.s, t.unit);
-  return u && isAlive(u) ? u : null;
-}
 
 /** Cinder: an oil tile (slick, pool or stain) that is hot, with a Spark's worth of fire. */
 export function catchIfHot(ctx: Ctx, at: Coord, flow: Flow | null): void {
@@ -251,14 +247,6 @@ function reboundMirror(s: BattleState, mirror: Coord, at: Coord): Coord | null {
 
 // ── Graphite ────────────────────────────────────────────
 
-const PLAIN_KIND = {
-  blot: 'ink',
-  slick: 'oil',
-  cloud: 'steam',
-  plate: 'brass',
-  fire: 'oil',
-} as const;
-
 const sameLayer = (a: Layer | null, b: Layer | null): boolean =>
   JSON.stringify(a) === JSON.stringify(b);
 
@@ -359,7 +347,7 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
           const dist = (c: Coord) => Math.abs(c.x - m.home.x) + Math.abs(c.y - m.home.y);
           const free = s.tiles
             .map((_, i) => coordOf(s, i))
-            .filter((c) => !taken.has(key(c)) && !blocksUnits(tileAt(s, c)))
+            .filter((c) => !taken.has(key(c)) && standableTile(s, c))
             .sort((a, b) => dist(a) - dist(b))[0];
           if (free) place(m, free);
         }
@@ -450,12 +438,45 @@ export function driftWaiting(ctx: Ctx): void {
     return jar;
   });
   const landed: Coord[] = [];
+  const driftEvents: (() => void)[] = [];
   jars.forEach((m, n) => {
     const jar = carried[n];
     if (!jar) return;
     const dest = tileAt(s, m.to);
     if (dest.jar) {
-      tileAt(s, m.from).jar = jar; // blocked by a jar that stays: it stays too
+      const start = tileAt(s, m.from);
+      if (!start.jar) {
+        start.jar = jar;
+      } else {
+        const dir = start.terrain.water;
+        const back = dir ? step(m.from, opposite(dir)) : null;
+        const tile = back && inBoard(s, back) ? tileAt(s, back) : null;
+        if (
+          back &&
+          tile &&
+          !tile.jar &&
+          !blocksUnits(tile) &&
+          !tile.terrain.drop &&
+          !pieceHoldsNothing(tile) &&
+          !pieceVoid(tile)
+        ) {
+          tile.jar = jar;
+          driftEvents.unshift(() =>
+            withOrigin(ctx, jar.origin, () =>
+              withLine(ctx, jar.event === 'dusk' ? 'fuse:water' : 'jar:water', () =>
+                emit(ctx, { type: 'drawn', from: { ...m.from }, to: { ...back }, what: 'jar' }),
+              ),
+            ),
+          );
+          landed.push(back);
+        } else {
+          driftEvents.unshift(() =>
+            withOrigin(ctx, jar.origin, () =>
+              emit(ctx, { type: 'jarCrumbles', at: { ...m.from } }),
+            ),
+          );
+        }
+      }
       return;
     }
     dest.jar = jar;
@@ -468,13 +489,16 @@ export function driftWaiting(ctx: Ctx): void {
     )
       jar.heading = m.dir;
     // The drift is the jar's own cast's doing (RV-16): a rival's lantern floating is no household point.
-    withOrigin(ctx, jar.origin, () =>
-      withLine(ctx, jar.event === 'dusk' ? 'fuse:water' : 'jar:water', () =>
-        emit(ctx, { type: 'drawn', from: { ...m.from }, to: { ...m.to }, what: 'jar' }),
+    driftEvents.push(() =>
+      withOrigin(ctx, jar.origin, () =>
+        withLine(ctx, jar.event === 'dusk' ? 'fuse:water' : 'jar:water', () =>
+          emit(ctx, { type: 'drawn', from: { ...m.from }, to: { ...m.to }, what: 'jar' }),
+        ),
       ),
     );
     landed.push(m.to);
   });
+  for (const logDrift of driftEvents) logDrift();
   // A jar floating under a standing unit opens on it (Lantern Walk, P6); with `fuse-water-wake`
   // your Fuse does too.
   for (const at of landed) {
