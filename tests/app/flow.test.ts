@@ -510,3 +510,19 @@ test('the drawing route opens only after the handover, at home', () => {
   const wipe: WipeSummary = { encounter: 'x', lost: [], learned: [] };
   expect(resolveScreen('drawing', null, wipe, null, open).screen).toBe('wiped');
 });
+
+test('the handover route opens only with the door open, at home, with no trip or wipe', () => {
+  const open = handoverProfile();
+  const door = {
+    ...open,
+    ending: undefined,
+    city: { ...open.city, doorSeen: true, hearts: [...open.city.hearts, 'cartographers' as const] },
+  };
+  expect(resolveScreen('handover', null, null, null, door).screen).toBe('handover');
+  expect(resolveScreen('handover', null, null, null).screen).toBe('study');
+  const sealed = { ...door, city: { ...door.city, hearts: ['seam' as const] } };
+  expect(resolveScreen('handover', null, null, null, sealed).screen).toBe('study');
+  expect(resolveScreen('handover', tripAt('fight'), null, null, door).screen).toBe('battle');
+  const wipe: WipeSummary = { encounter: 'x', lost: [], learned: [] };
+  expect(resolveScreen('handover', null, wipe, null, door).screen).toBe('wiped');
+});

@@ -11,6 +11,7 @@ export interface HouseholdRow {
 }
 
 const metOf = (id: ApprenticeId): string => {
+  if (id === 'owner') return 'Came up from the door, at the handover';
   if (!Object.hasOwn(RECRUITS, id)) return 'Here from the start';
   const { found } = RECRUITS[id as keyof typeof RECRUITS];
   return 'district' in found

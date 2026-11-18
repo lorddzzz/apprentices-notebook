@@ -8,6 +8,7 @@
   import Crossroads from '../ui/screens/Crossroads.svelte';
   import Desk from '../ui/screens/Desk.svelte';
   import DrawingTable from '../ui/screens/DrawingTable.svelte';
+  import Handover from '../ui/screens/Handover.svelte';
   import Loot from '../ui/screens/Loot.svelte';
   import CityMap from '../ui/screens/Map.svelte';
   import Study from '../ui/screens/Study.svelte';
@@ -90,6 +91,8 @@
     <CityMap />
   {:else if resolved.screen === 'threshold'}
     <Threshold />
+  {:else if resolved.screen === 'handover'}
+    <Handover />
   {/if}
   <Toasts />
   <span class="build">{BUILD}</span>
