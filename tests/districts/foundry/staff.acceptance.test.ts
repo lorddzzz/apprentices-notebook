@@ -185,6 +185,25 @@ describe('BF-7 the Detuner', () => {
     expect(ev(endTurn(blocked).events, 'foundry:retuned')).toHaveLength(0);
   });
 
+  it('R6-3: the Detuner walks round a wall to a free tile beside the bell and retunes it', () => {
+    // The wall (a layout plate) tile left of the bell is not a place to stand: it must not draw the Detuner to a stop
+    // beside it (it did: the wall's own distance field beat the real neighbours').
+    const ascii = [
+      'D . . . . . . .',
+      '. . . . . . . .',
+      'X . . . = {bell:low} . .',
+      '. . . . . . . .',
+    ].join('\n');
+    let s = board(ascii);
+    let retuned = 0;
+    for (let turn = 0; turn < 6 && retuned === 0; turn++) {
+      const r = endTurn(s);
+      retuned += ev(r.events, 'foundry:retuned').length;
+      s = r.state;
+    }
+    expect(retuned).toBe(1);
+  });
+
   it('BF-7: the Detuner choice is deterministic across seeds', () => {
     const ascii = 'D . . . .\n. . . . .\nX . {bell:high} . .\n. . . . {bell:low}';
     const picks = SEEDS.map((seed) => {

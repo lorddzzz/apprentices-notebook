@@ -20,6 +20,7 @@ import {
   findUnit,
   inBoard,
   isAlive,
+  isOpen,
   livingUnits,
   members,
   tileAt,
@@ -176,9 +177,13 @@ const bellsBeside = (s: BattleState, at: Coord): Coord[] =>
  * P16: walking steps from `e` to a free tile beside `bell` (0 when it already stands beside it),
  * by the foes' own pathing; infinity when none is reachable.
  */
-function stepsTo(s: BattleState, e: EnemyUnit, bell: Coord): number {
+function stepsTo(
+  s: BattleState,
+  e: EnemyUnit,
+  bell: Coord,
+  field: ReadonlyMap<string, number>,
+): number {
   if (manhattan(e.pos, bell) === 1) return 0;
-  const field = distanceField(s, e.pos, e.id);
   let best = Number.POSITIVE_INFINITY;
   for (const n of neighbors4(bell)) {
     if (!inBoard(s, n) || (unitAt(s, n) && !sameCoord(n, e.pos))) continue;
@@ -190,9 +195,10 @@ function stepsTo(s: BattleState, e: EnemyUnit, bell: Coord): number {
 /** The nearest bell by `stepsTo` (ties in reading order); with none reachable, by distance as the crow walks. */
 export function nearestBell(s: BattleState, e: EnemyUnit): Coord | null {
   const bells = bellTiles(s).sort(byReadingOrder);
+  const field = distanceField(s, e.pos, e.id);
   let best: { at: Coord; d: number } | null = null;
   for (const at of bells) {
-    const d = stepsTo(s, e, at);
+    const d = stepsTo(s, e, at, field);
     if (!best || d < best.d) best = { at, d };
   }
   if (best && best.d < Number.POSITIVE_INFINITY) return best.at;
@@ -209,8 +215,9 @@ function detunerMove(ctx: Ctx, e: EnemyUnit): void {
   if (bellsBeside(ctx.s, e.pos).length > 0) return;
   const goal = nearestBell(ctx.s, e);
   if (!goal) return;
+  // Only a tile the Detuner could stand on seeds a field: a wall's or a foe's own would pull it up beside them.
   const fields = neighbors4(goal)
-    .filter((n) => inBoard(ctx.s, n))
+    .filter((n) => isOpen(ctx.s, n, e.id))
     .map((n) => distanceField(ctx.s, n, e.id));
   const score = (c: Coord): number =>
     Math.min(...fields.map((f) => f.get(key(c)) ?? Number.POSITIVE_INFINITY));
