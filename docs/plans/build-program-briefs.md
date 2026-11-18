@@ -28,37 +28,6 @@ Every brief's "Owed by this pack" items are also in the status file's Owed list.
 
 ---
 
-## Pack K (wave 26; Strong: Sonnet 5.5 high) — NOTES AFTER PACK J (read first)
-
-Pack J merged (ef59938). Extras for K: frames read `KIT` lazily; J added optional `HeartFrame.masterInCloud`, `GenInput.choice`, `ShapeKit.adjust?` and a 4th optional parameter of `RuleKit.stamp`; `frameTests` in acceptance.test.ts picks `scriptedSolveB` when `SCRIPTS_B` has the master (add your scripts the same way, in kits-c.scripts.ts); the `EN-W1: registries` line now uses `arrayContaining`: extend it for foundry and cartographers. K must also cover the elements the EN-K marker lists for its districts (rules `foundry:bells`, `cartographers:pencil`; the foundry pieces `foundry:bell`, `foundry:rope`; the hall pieces pencil, blank, outline; masters carillonneur and registrar; shapes `foundry:peal`, `cartographers:doorway`) and the foes of those districts (clapper, ringer, detuner, surveyor, eraser, tracer where plain). The kit-less ink-quarter and canals foes/pieces (dummy, snuffer, deadLetter, sorter, sealer, clockSeal, letter, `canals:moor`, the quarter's return/order/forward/address/wax/clockStamp) are in no pack: decide in the next design window or let K add them as a third task if cheap. The termed card (`termCardFor`) is still unwired in F2's offers.
-
-
-```
-Pack K of docs/plans/ending-plan.md: tasks EN-K6 -> EN-K7 (kits and heart frames for the foundry and the Cartographers' hall).
-
-Read: ending-plan.md §2 rows P4, P5, P13-P15, P33-P35 and §5 Pack K; src/engine/drawing/types.ts; pattern: Pack I's src/engine/drawing/kits/inkQuarter.ts and frames/postmaster.ts.
-Own: src/engine/drawing/kits/{foundry,cartographers}.ts; src/engine/drawing/frames/{carillonneur,registrar}.ts; your lines in kits/index.ts and frames/index.ts; tests/drawing/kits-c.test.ts (new); the EN-K6 and EN-K7 lines of tests/drawing/acceptance.test.ts.
-     Read-only: every file under src/engine/districts/ and src/data/districts/ (P14); import their exported helpers (`FOUNDRY_HEART_SETUP`, the great-bell lock stamps, `CARTOGRAPHERS_HEART_SETUP`, the guild hand's pencil config).
-
-Contract (on main): the kit and frame interfaces of src/engine/drawing/types.ts as Pack I used them.
-Invariants:
-- `needs` is `NEEDS[id] ?? []`, costs from `COSTS`; foe budgets 1 minion, 2 elite; plain foes only (the Registrar's Tracer is an escort of his frame, not a palette foe).
-- A peal (id 'foundry:peal'): one great bell per room before the heart, placed from the foundry's lock stamps; a bell hangs at the heart's hook tiles only if it was rung in its room. It needs bells on the drawing (NEEDS). The Carillonneur's frame has four hook tiles.
-- Free-then-no-return (id 'cartographers:doorway'): free return through room ceil(length / 2), none after it, the heart always a return point, and no checkpoint (a generated trip remembers no room).
-- Pencil and ink as a drawn rule: the rule kit's `stamp` lays pencil tiles; each room's guild-hand config is the hall's default pencil config (the hall's per-room table is not used).
-- Each frame's `fallback` passes `checkGenerated` and is won by a fixed action script stored in the test. The headless bot does not win the foundry's heart today (a calibration item): expect that frame to reach its fallback, do not tune, and report the pass rate.
-Owed by this pack: "Foundry: EN-K6 wraps the frame" (the Carillonneur's `HeartSetup` wrapped as a HeartFrame with its hooks); if this pack merges after I and J, remove the `it.fails` marker of `EN-K: every element a full household can offer has a kit`.
-
-Done when:
-- EN-K6: `EN-K6: the frame passes checkGenerated over 50 seeds`, `EN-K6: the fallback board passes checkGenerated and has a scripted solve`, `EN-K6: the bot trial ends within its op budget`, `EN-K6: bells hang only where rung` pass.
-- EN-K7: the same three titled `EN-K7: ...`, plus `EN-K7: no return after the point and none needed at the heart`.
-- Pack E's and Pack I's tests pass unchanged.
-
-Verify: `pnpm vitest run tests/drawing --reporter=dot`
-Phone check: no.
-```
-
----
 
 ## Pack L (held for EN-G2; Default: Sonnet 5.5 medium)
 

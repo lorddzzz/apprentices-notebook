@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** waves 23-25 and Pack J merged 2026-11-17 (fast gate green, 8533; full gate and sims only in CI; CI on the pushes not yet read). Stopped at 87 % of the 5h window; **Pack K is next** (brief has notes after J), then N2, EN-14; L waits for EN-G2. **Next window: routine.** Reset 2026-11-17 23:20 UTC (00:20 CET).
+**State:** waves 23-25 and Pack J merged 2026-11-17 (fast gate green, 8533; full gate and sims only in CI; CI on the pushes not yet read). Stopped at 87 % of the 5h window; **Pack K merged 2026-11-18** (15b2b6d, 20971cf; fast gate green, 8563). **Pack L is next** (EN-G2 approved), then N2, EN-14. **Next window: routine.** Reset 2026-11-17 23:20 UTC (00:20 CET).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -16,8 +16,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 | Wave | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|---|
-| 26 | K | EN-K6 → EN-K7 | Sonnet 5.5 high | I |
-| after E | L | EN-10 → EN-11 | Sonnet 5.5 medium | E (EN-G2 approved 2026-11-18) |
+| now | L | EN-10 → EN-11 | Sonnet 5.5 medium | E (EN-G2 approved 2026-11-18) |
 | quiet | N2 | CL-4, CL-5, CL-6 checks (a design-window agent) | strongest, high | no pack running in `src/app` or `src/ui`; best after wave 26 |
 
 2. Then a design window: EN-14 (the ending's Close) and the CAL briefs. Plan B for the generator only if the player's room check fails (Open questions).
@@ -32,6 +31,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
 
 ## Owed (declared by a contract, not yet built)
+- From Pack K (merged): `EN-K` marker still `it.fails`: kit-less foes dummy, snuffer, deadLetter, sorter, sealer, clockSeal, letter and pieces `canals:moor`, quarter return/order/forward/address/wax/clockStamp (foes are one-line `foeKit`s; pieces need a design decision: small pack or design window). Proposals not decided: `ShapeKit.stamp?` hook so lock stamps are in bot trials (touches generate.ts); `inkedPage.roomSetup` activating `HEART_FRAMES[heart].setup.rules` in the heart room (so the tune/guild hand list on a plain-shape heart); peal notes repeat 1,2 on length-6 trips. The bot wins both hearts 50/50 (CAL-4's foundry note is stale). Termed card still unwired in F2 offers.
 - From Pack J (merged): the kit-less elements listed in the head of Pack K's brief (quarter and canals foes/pieces are in no pack: decide); `EN-K` marker stays until K. Bath rooms stamp no fog; the Steward bot trials never switch boil-over on (CAL).
 - From Pack I (merged): `inkQuarter:terms` needs its termed card in the rooms' extras: `termCardFor` (kits/inkQuarter.ts) exists, but F2's derived `offersFor` does not add it; a pack must wire it (put it in J or K's brief, or a small pack). The lamp-mother's hearts always reach her fallback (CAL-4). `EN-K: every element a full household can offer has a kit` stays `it.fails` until J and K merge; kit-less elements: the quarter's foes and pieces, `canals:moor`, `snuffer`, `dummy` (J/K or a design decision: the plan lists no kits for them). The EN-K1 frame test timeout is 150 s per master.
 - From Pack G (merged): MAP_PAGE_HEIGHT is 1900; `window.__inkDelay` is a dev-only flag in game.svelte.ts; BL-111 offline check still needs real Chrome.
