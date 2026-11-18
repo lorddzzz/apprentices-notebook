@@ -84,6 +84,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | EN-K1, EN-K2, EN-K3 (Pack I) | 156e45a, 602b976, 98ce693, + gate fix | Sonnet 5.5 medium | 0 | ~16% | Marginalia, lamp-mother, Lamplighter, postmaster frames with scripted solves; canals landings and ink-quarter writs/terms kits; the lamp-mother's hearts all reach the fallback (bot needs 17-22 rounds vs 16): CAL-4 watch; gate fix: Pack G and F2 tests imported the deleted motherFrame stand-in |
 | EN-K4, EN-K5 (Pack J) | 40a1b8a, ef59938 | Sonnet 5.5 high | 0 | ~14% | bathhouses and bridges kits, Steward and Chief Warden frames; bot 50/50 first try, 0 fallbacks (trials never switch boil-over on); additive contract extras: `HeartFrame.masterInCloud`, `GenInput.choice`, `ShapeKit.adjust`, `RuleKit.stamp` 4th arg; extra foe and piece kits |
 | EN-K6, EN-K7 (Pack K) | 15b2b6d, 20971cf | Sonnet 5.5 high | 0 | unknown (no usage tool) | foundry and hall kits, Carillonneur and Registrar frames; bot 50/50 each, 0 fallbacks (the foundry heart IS won by the bot, contrary to CAL-4's note); 22 tests in kits-c.test.ts |
+| EN-10, EN-11 (Pack L) | 076c1ee, a0f2599 | Sonnet 5.5 medium | 0 | unknown (no usage tool) | handover scene, door row, credits scroll, codex 'The owner' tab; phone shots in ending-plan-evidence (light only); autofixer run on trimmed copies |
 
 ## Usage
 
