@@ -9,7 +9,7 @@ import type { BattleState, EnemyUnit, RivalIntent, UnitId } from '../types';
 import { outcomeOf } from './plan';
 import { dryStrikeIntent, isEffect, isStarved, resolveRivalIntent } from './resolve';
 import type { ObjectRef, RivalPreview } from './types';
-import { jarLocation } from './wick';
+import { objectLock } from './tricks';
 
 /**
  * The telegraph preview (rivals plan P6, P7; RV-6): the shown action simulated now, on a clone,
@@ -142,15 +142,16 @@ export function rivalPreview(
     const { path, landing } = flightOf(events, intent, shown.pos);
     return { path, landing, targets, events, opens: outcome.opened, fallbackLive, starved };
   }
-  // A trick names an object: its landing is where that object stands in this state, so a jar's
-  // drift moves the highlight. A lost order has no landing and opens nothing.
+  // A trick names an object: its landing is where that object stands in this state, so a drift
+  // moves the highlight. A lost order (or one made this phase) has no landing and opens nothing.
   const lock = intent.lock;
-  const found = lock?.kind === 'jar' ? jarLocation(state, lock.id) : null;
-  const opens: ObjectRef[] =
-    lock && events.some((ev) => ev.type === 'jarOpened') ? [{ ...lock }] : [...outcome.opened];
+  const held =
+    lock && !events.some((ev) => ev.type === 'orderFails') ? objectLock(state, unit, lock) : null;
+  const found = held?.ok ? held.at : null;
+  const opens: ObjectRef[] = held?.ok ? [...outcome.opened] : [];
   return {
     path: [],
-    landing: found ? { ...found.at } : null,
+    landing: found ? { ...found } : null,
     targets,
     events,
     opens,

@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { footnoteKeyOf, VARIANTS } from '$data';
 import { createBattle } from '$engine/battle';
+import { emit, ref } from '$engine/ctx';
 import { dealDamage } from '$engine/damage';
 import { parseLabel } from '$engine/notation';
 import { tileAt } from '$engine/queries';
 import { hasFootnote } from '$engine/footnotes';
 import { WICK_NOTE } from '$engine/jars';
 import { rivalPreview } from '$engine/rivals';
+import type { ObjectRef } from '$engine/rivals/types';
 import { simulate } from '$engine/rivals/plan';
 import type { Step } from '$engine/types';
 import { clean } from '$engine/rivals/goals';
@@ -140,5 +142,80 @@ describe('simulate outcome', () => {
     undo();
     expect(outcome.selfHarm).toBeGreaterThan(0);
     expect(clean(outcome)).toBe(false);
+  });
+});
+
+const jarOf = (owner: string, id: number) => ({
+  owner,
+  event: 'step' as const,
+  rest: null,
+  heading: null,
+  origin: { caster: owner, spell: 'fixture', cast: 0 },
+  id,
+  seq: id,
+});
+
+/** A rival on `L . . D` showing a trick locked on `lock`; `opensJar` is the jar its resolve opens. */
+function lockedPreview(
+  lock: ObjectRef,
+  opensJar: number | null,
+  setup?: (s: ReturnType<typeof createBattle>['state'], rival: EnemyUnit) => void,
+) {
+  const s = createBattle({ title: 't', board: 'L . . D', seed: 1 }).state;
+  const rival = s.units.find((u): u is EnemyUnit => u.kind === 'enemy' && !!u.rival);
+  if (!rival) throw new Error('no rival');
+  setup?.(s, rival);
+  rival.intent = { ...TRICK, trick: 'canals:lockTest', lock };
+  const undo = registerTrick({
+    id: 'canals:lockTest',
+    name: 'Lock test',
+    init: () => ({}),
+    draw: () => ({ label: 'fixture', tiles: [], units: [] }),
+    describe: () => 'fixture',
+    action: {
+      plan: () => [],
+      resolve: (ctx, unit, _i, own) => {
+        if (opensJar !== null)
+          emit(ctx, { type: 'jarOpened', at: { x: 1, y: 0 }, by: ref(unit), id: opensJar });
+        return own;
+      },
+    },
+  });
+  const out = rivalPreview(s, rival.id);
+  undo();
+  return { out, rival };
+}
+
+describe('trick preview locks', () => {
+  it('reports the jar that opened, not the locked one, when they differ', () => {
+    const setup = (s: Parameters<typeof tileAt>[0], r: EnemyUnit) => {
+      tileAt(s, parseLabel('B1')).jar = jarOf(r.id, 1);
+    };
+    // Jar 2 opening is reported as jar 2, not as the locked jar 1.
+    expect(lockedPreview({ kind: 'jar', id: 1 }, 2, setup).out?.opens).toEqual([
+      { kind: 'jar', id: 2 },
+    ]);
+    expect(lockedPreview({ kind: 'jar', id: 1 }, 1, setup).out?.opens).toEqual([
+      { kind: 'jar', id: 1 },
+    ]);
+  });
+
+  it('lands on a trick object at its tile', () => {
+    const { out } = lockedPreview({ kind: 'trick', id: 7 }, null, (_s, r) => {
+      r.rival?.objects.push({
+        id: 7,
+        trick: 'canals:lockTest',
+        owner: r.id,
+        at: { x: 2, y: 0 },
+        data: {},
+      });
+    });
+    expect(out?.landing).toEqual({ x: 2, y: 0 });
+  });
+
+  it('has no landing and opens nothing when the order is lost', () => {
+    const { out } = lockedPreview({ kind: 'jar', id: 9 }, null);
+    expect(out?.landing).toBeNull();
+    expect(out?.opens).toEqual([]);
   });
 });
