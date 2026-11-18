@@ -87,11 +87,21 @@ export const livingParty = (s: BattleState) => members(s).filter(isAlive);
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
+/** One walking-distance field per living apprentice: build once per plan and pass to `partyDistance`. */
+export type PartyFields = readonly ReadonlyMap<string, number>[];
+export const partyFields = (s: BattleState, self: UnitId): PartyFields =>
+  livingParty(s).map((m) => distanceField(s, m.pos, self));
+
 /** Walking distance from `at` to the nearest living apprentice (Infinity when unreachable). */
-export function partyDistance(s: BattleState, at: Coord, self: UnitId): number {
+export function partyDistance(
+  s: BattleState,
+  at: Coord,
+  self: UnitId,
+  fields: PartyFields = partyFields(s, self),
+): number {
   let best = Number.POSITIVE_INFINITY;
-  for (const m of livingParty(s)) {
-    const d = distanceField(s, m.pos, self).get(key(at));
+  for (const field of fields) {
+    const d = field.get(key(at));
     if (d !== undefined && d < best) best = d;
   }
   return best;
@@ -207,8 +217,10 @@ const placeObjectNear: GoalDef = {
 const approach: GoalDef = {
   id: 'approach',
   moveScore: (input, dest: GoalDest) => {
-    const d = partyDistance(input.state, dest.at, input.unit.id);
-    return Number.isFinite(d) && d < partyDistance(input.state, input.unit.pos, input.unit.id)
+    const fields = input.partyFields?.();
+    const d = partyDistance(input.state, dest.at, input.unit.id, fields);
+    return Number.isFinite(d) &&
+      d < partyDistance(input.state, input.unit.pos, input.unit.id, fields)
       ? -d
       : null;
   },
@@ -217,7 +229,7 @@ const approach: GoalDef = {
 const holdDistance: GoalDef = {
   id: 'holdDistance',
   moveScore: (input, dest) => {
-    const d = partyDistance(input.state, dest.at, input.unit.id);
+    const d = partyDistance(input.state, dest.at, input.unit.id, input.partyFields?.());
     return Number.isFinite(d) ? -Math.abs(d - num(input.params.range, 2)) : null;
   },
 };

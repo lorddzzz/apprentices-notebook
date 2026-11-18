@@ -1,6 +1,6 @@
 import { ATTACKS } from '$data';
 import { cloneData } from '../clone';
-import type { Ctx } from '../ctx';
+import type { Ctx, FootnoteIds } from '../ctx';
 import { dealDamage } from '../damage';
 import type { EventLog, GameEvent } from '../events';
 import { type Coord, DIRS, sameCoord, step } from '../grid';
@@ -8,8 +8,8 @@ import { findUnit, isAlive, travel, unitAt } from '../queries';
 import type { BattleState, EnemyUnit, RivalIntent, UnitId } from '../types';
 import { outcomeOf } from './plan';
 import { dryStrikeIntent, isEffect, isStarved, resolveRivalIntent } from './resolve';
+import { objectLock } from './tricks';
 import type { ObjectRef, RivalPreview } from './types';
-import { jarLocation } from './wick';
 
 /**
  * The telegraph preview (rivals plan P6, P7; RV-6): the shown action simulated now, on a clone,
@@ -76,11 +76,12 @@ function previewStrike(
   state: BattleState,
   unit: UnitId,
   intent: Extract<RivalIntent, { kind: 'rivalStrike' }>,
+  footnotes: FootnoteIds,
 ): RivalPreviewDetail | null {
   const s = cloneData(state);
   const e = findUnit(s, unit);
   if (e?.kind !== 'enemy') return null;
-  const ctx: Ctx = { s, log: [], cast: null, meta: {}, footnotes: {} };
+  const ctx: Ctx = { s, log: [], cast: null, meta: {}, footnotes };
   const att = ATTACKS[dryStrikeIntent(e, intent).attack];
   const dir = intent.dir;
   const done = (path: Coord[], landing: Coord | null): RivalPreviewDetail => ({
@@ -111,24 +112,31 @@ function previewStrike(
  * What the rival's shown action would do if it resolved on `state` now (P6), or null when `unit`
  * is not a living rival with a cast, trick or dry-strike intent on show. A stunned rival's action
  * is skipped, with no fallback. Safe to call on any state, including a confirm preview's result.
+ * `phase` is the current resolve phase's events so far: an object made in it makes a locked order
+ * fail, as it will when the action really resolves.
  */
-export function rivalPreview(state: BattleState, unit: UnitId): RivalPreviewDetail | null {
+export function rivalPreview(
+  state: BattleState,
+  unit: UnitId,
+  footnotes: FootnoteIds = {},
+  phase: readonly GameEvent[] = [],
+): RivalPreviewDetail | null {
   const shown = findUnit(state, unit);
   if (shown?.kind !== 'enemy' || !shown.rival || !isAlive(shown) || !shown.intent) return null;
   const intent = shown.intent;
   if (intent.kind !== 'cast' && intent.kind !== 'trick' && intent.kind !== 'rivalStrike')
     return null;
   if (shown.stunned) return { ...EMPTY, fallbackLive: false };
-  if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent);
+  if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent, footnotes);
   const fallbackLive = fallbackIsLive(state, shown, intent.fallback);
 
-  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes: {} };
+  const ctx: Ctx = { s: cloneData(state), log: [...phase], cast: null, meta: {}, footnotes };
   const e = findUnit(ctx.s, unit);
   if (e?.kind !== 'enemy') return null;
   const before = cloneData(ctx.s);
   // The fallback is shown separately (`fallbackLive`), so the dry run never strikes.
   resolveRivalIntent(ctx, e, { ...cloneData(intent), fallback: null });
-  const events = ctx.log;
+  const events = ctx.log.slice(phase.length);
   const outcome = outcomeOf(events, unit, before);
   const starved = isStarved(events);
   const targets = targetsOf(events, unit);
@@ -137,15 +145,16 @@ export function rivalPreview(state: BattleState, unit: UnitId): RivalPreviewDeta
     const { path, landing } = flightOf(events, intent, shown.pos);
     return { path, landing, targets, events, opens: outcome.opened, fallbackLive, starved };
   }
-  // A trick names an object: its landing is where that object stands in this state, so a jar's
-  // drift moves the highlight. A lost order has no landing and opens nothing.
+  // A trick names an object: its landing is where that object stands in this state, so a drift
+  // moves the highlight. A lost order (or one made this phase) has no landing and opens nothing.
   const lock = intent.lock;
-  const found = lock?.kind === 'jar' ? jarLocation(state, lock.id) : null;
-  const opens: ObjectRef[] =
-    lock && events.some((ev) => ev.type === 'jarOpened') ? [{ ...lock }] : [...outcome.opened];
+  const held =
+    lock && !events.some((ev) => ev.type === 'orderFails') ? objectLock(state, unit, lock) : null;
+  const found = held?.ok ? held.at : null;
+  const opens: ObjectRef[] = held?.ok ? [...outcome.opened] : [];
   return {
     path: [],
-    landing: found ? { ...found.at } : null,
+    landing: found ? { ...found } : null,
     targets,
     events,
     opens,

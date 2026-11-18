@@ -69,7 +69,7 @@ import {
   describeLootFor,
   eventTilesFor,
 } from '../ui/districts/logic';
-import type { InputMode } from './battleInput';
+import type { Footnotes, InputMode } from './battleInput';
 
 /** UI wording: captions, inspect lines, preview summaries. Plain functions, tested. */
 
@@ -166,8 +166,10 @@ export function rivalReadout(
   s: BattleState,
   e: EnemyUnit,
   witnessed: ReadonlySet<LineId> | null = null,
+  footnotes: Footnotes = {},
+  phase: readonly GameEvent[] = [],
 ): RivalReadout | null {
-  const preview = rivalPreview(s, e.id);
+  const preview = rivalPreview(s, e.id, footnotes, phase);
   if (!preview) return null;
   const party = members(s).map((m) => m.id);
   const seen = witnessed ?? new Set(witnessedIn(preview.events));
@@ -584,7 +586,11 @@ export function hintFor(mode: InputMode, s: BattleState): Caption {
 }
 
 /** Members whose tile an enemy attack would hit as things stand. */
-export function threatenedMembers(s: BattleState): string[] {
+export function threatenedMembers(
+  s: BattleState,
+  footnotes: Footnotes = {},
+  phase: readonly GameEvent[] = [],
+): string[] {
   const out: string[] = [];
   for (const u of livingUnits(s)) {
     if (u.kind !== 'enemy') continue;
@@ -595,7 +601,8 @@ export function threatenedMembers(s: BattleState): string[] {
   // A rival's shown spell warns for whoever it would hurt, even by an unwitnessed line (D3).
   for (const u of livingUnits(s)) {
     if (u.kind !== 'enemy' || !u.rival) continue;
-    for (const id of rivalReadout(s, u)?.hurt ?? []) if (!out.includes(id)) out.push(id);
+    for (const id of rivalReadout(s, u, null, footnotes, phase)?.hurt ?? [])
+      if (!out.includes(id)) out.push(id);
   }
   return out;
 }
