@@ -3,7 +3,14 @@ import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit, nameOnce, noteMet } from './bursts';
 import { type Ctx, emit, type FootnoteVariantId, ref, withLine, withOrigin } from './ctx';
 import { gainShield } from './damage';
-import { BELL_PIECE, clapperTone, lockBell, ringTone, toneOfPiece } from './districts/api';
+import {
+  BELL_PIECE,
+  clapperTone,
+  lockBell,
+  PENCIL_PIECE,
+  ringTone,
+  toneOfPiece,
+} from './districts/api';
 import { hasFootnote } from './footnotes';
 import {
   byReadingOrder,
@@ -170,7 +177,7 @@ export function gallnutReach(ctx: Ctx, t: Target, origin: Origin | null, flow: F
 }
 
 /** Whether `at` is brass or touches brass: a plate, or a collared unit (§4.4). */
-const touchesBrass = (s: BattleState, at: Coord, bellsCount = false): boolean =>
+export const touchesBrass = (s: BattleState, at: Coord, bellsCount = false): boolean =>
   isBrass(s, at) ||
   neighbors4(at).some((n) => isBrass(s, n)) ||
   (bellsCount &&
@@ -265,7 +272,7 @@ function boardNow(ctx: Ctx): BoardUndo {
   // Only while the footnotes are written, so a saved undo is unchanged without them: the pencil
   // that stands now (`graphite-unit-redraw`), and the marks and jars already there (`graphite-cap-trace`).
   if (hasFootnote(ctx, 'graphite-unit-redraw')) {
-    board.redraw = s.tiles.flatMap((t, i) => (t.piece?.id === PENCIL_ID ? [coordOf(s, i)] : []));
+    board.redraw = s.tiles.flatMap((t, i) => (t.piece?.id === PENCIL_PIECE ? [coordOf(s, i)] : []));
   }
   if (hasFootnote(ctx, 'graphite-cap-trace')) {
     board.placed = {
@@ -276,9 +283,6 @@ function boardNow(ctx: Ctx): BoardUndo {
   return board;
 }
 
-/** The Cartographers' pencil piece (its registered id), which `graphite-unit-redraw` puts back bare. */
-const PENCIL_ID = 'cartographers:pencil';
-
 /** Puts back what Graphite recorded: states landed are gone, units moved are home (when free). */
 export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = null): void {
   const s = ctx.s;
@@ -287,7 +291,7 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
       // `graphite-unit-redraw`: the paper the invention un-drew comes back as bare pencil first.
       for (const at of undo.redraw ?? []) {
         const tile = tileAt(s, at);
-        if (pieceVoid(tile)) tile.piece = makePiece(PENCIL_ID, { fate: null, due: null });
+        if (pieceVoid(tile)) tile.piece = makePiece(PENCIL_PIECE, { fate: null, due: null });
       }
       // `graphite-cap-trace`: the marks and jars the invention placed are taken back.
       for (const id of undo.placed?.marks ?? []) {

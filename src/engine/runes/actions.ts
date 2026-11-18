@@ -22,7 +22,7 @@ import {
   withOrigin,
 } from '../ctx';
 import { dealDamage, gainShield } from '../damage';
-import { crackedTiles, eraseTouches, swapped } from '../districts/api';
+import { crackedTiles, eraseTouches, PENCIL_PIECE, swapped } from '../districts/api';
 import { hasFootnote } from '../footnotes';
 import {
   byReadingOrder,
@@ -42,7 +42,7 @@ import { claimJar, sealJar } from '../jars';
 import { jarLimit } from '../leans';
 import { applyMark, releaseSpent, spendMark } from '../marks';
 import { landOnTile } from '../mix';
-import { pieceHoldsNothing, pieceVoid, strikable, strikePiece } from '../pieces';
+import { makePiece, pieceHoldsNothing, pieceVoid, strikable, strikePiece } from '../pieces';
 import { type PushResult, push, wearPlate } from '../push';
 import {
   blocksUnits,
@@ -77,7 +77,7 @@ import {
 function unitOf(ctx: Ctx, t: Target): Unit | null {
   if (t.kind === 'tile') return unitAt(ctx.s, t.at);
   const u = ctx.s.units.find((x) => x.id === t.unit);
-  return u && u.hp > 0 ? u : null;
+  return u && isAlive(u) ? u : null;
 }
 
 /** Where a target is now (R7). */
@@ -337,8 +337,7 @@ const hold: Handler = (ctx, t, flow) => {
 };
 
 /** The Cartographers' pencil piece (its registered id), read here to stamp `swap:unit`. */
-const PENCIL_ID = 'cartographers:pencil';
-const pencilAt = (ctx: Ctx, c: Coord): boolean => tileAt(ctx.s, c).piece?.id === PENCIL_ID;
+const pencilAt = (ctx: Ctx, c: Coord): boolean => tileAt(ctx.s, c).piece?.id === PENCIL_PIECE;
 
 /** A tile a unit may be set on: real paper, not solid, a drop, water or a void. */
 const standableTile = (ctx: Ctx, c: Coord): boolean => {
@@ -465,7 +464,6 @@ interface Hop {
 }
 
 /** The Cartographers' pencil, written bare by `draw-drop-mend` (its registered id and data). */
-const BARE_PENCIL = { id: 'cartographers:pencil', data: { fate: null, due: null } } as const;
 
 const spendCarried = (ctx: Ctx, from: Coord): void => {
   const src = tileAt(ctx.s, from);
@@ -498,7 +496,7 @@ function drawHop(ctx: Ctx, from: Coord, to: Coord, flow: Flow, over = true): Hop
     }
     miss(ctx, 'draw', 'draw:drop');
     withLine(ctx, 'draw:drop', () => {
-      if (fn('draw-drop-mend')) dst.piece = structuredClone(BARE_PENCIL);
+      if (fn('draw-drop-mend')) dst.piece = makePiece(PENCIL_PIECE, { fate: null, due: null });
       if (caster && fn('draw-drop-yield')) gainShield(ctx, caster, 1, s.round + 1);
       if (fn('draw-drop-spend')) {
         spendCarried(ctx, from);
