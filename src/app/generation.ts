@@ -12,6 +12,9 @@ export const syncInker: RoomInker = {
   ink: (profile, trip, room) => Promise.resolve(handle({ profile, trip, room })),
 };
 
+/** The worker itself failed (not the engine inside it): only then does the main thread retry. */
+class WorkerFailed extends Error {}
+
 interface Pending {
   resolve(r: { layout: string; ms: number }): void;
   reject(e: Error): void;
@@ -28,7 +31,7 @@ export function workerInker(): RoomInker {
     broken = true;
     worker?.terminate();
     worker = null;
-    for (const p of pending.values()) p.reject(new Error('The worker failed'));
+    for (const p of pending.values()) p.reject(new WorkerFailed('The worker failed'));
     pending.clear();
   };
   const start = (): Worker | null => {
@@ -63,7 +66,10 @@ export function workerInker(): RoomInker {
         pending.set(id, { resolve, reject });
         w.postMessage({ id, profile, trip, room });
       });
-      return viaWorker.catch(() => syncInker.ink(profile, trip, room));
+      // An engine error the worker sent back would fail the same way here: pass it on.
+      return viaWorker.catch((e: unknown) =>
+        e instanceof WorkerFailed ? syncInker.ink(profile, trip, room) : Promise.reject(e),
+      );
     },
   };
 }

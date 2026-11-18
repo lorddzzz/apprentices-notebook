@@ -53,6 +53,7 @@ export function componentsOf(
   return groups;
 }
 
+export { PENCIL_PIECE } from './cartographers/types';
 /**
  * The foundry's bells, for the footnotes that bend them (BF-F2, BF-F3): tones, the strike queue
  * and its flags, retune and its lock, and the bell state the rules read. Re-exported so core files

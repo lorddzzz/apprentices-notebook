@@ -66,8 +66,8 @@ interface Entry {
 /** The weight of the quiet doorway in every tier (not a tuned number: it only fills the pool). */
 const DOORWAY_WEIGHT = 1;
 
-/** The trip's table for one weight tier: pages not in `owned`, solvents of the sources, basics. */
-function tableFor(d: Drawing, owned: Owned, tier: Tier): Entry[] {
+/** The trip's table for one weight tier: pages not in `owned`, solvents of the sources, basics (no doorway at the heart). */
+function tableFor(d: Drawing, owned: Owned, tier: Tier, heart: boolean): Entry[] {
   const w = DRAWN_LOOT.weights[tier];
   const specs = sourcesOf(d).flatMap((s) => tablesOf(s).flatMap((t) => LOOT_TABLES[t].entries));
   const out: Entry[] = [];
@@ -82,7 +82,7 @@ function tableFor(d: Drawing, owned: Owned, tier: Tier): Entry[] {
   }
   add({ kind: 'ink' }, w.ink);
   add({ kind: 'vellum', amount: 1 }, w.vellum);
-  add({ kind: 'doorway' }, DOORWAY_WEIGHT);
+  if (!heart) add({ kind: 'doorway' }, DOORWAY_WEIGHT); // a heart has no doorway (parseTrip)
   return out;
 }
 
@@ -100,7 +100,7 @@ export function drawnOffersFor(t: Trip, room: number, owned: Owned): RoomOffers 
     : band === 'heavy'
       ? DRAWN_LOOT.heavyPicksBeforeHeart
       : DRAWN_LOOT.picks[band];
-  const pool = tableFor(drawing, owned, heart ? 'heavy' : band);
+  const pool = tableFor(drawing, owned, heart ? 'heavy' : band, heart);
   const rng = createRng(deriveSeed(t.seed, 1000 + room));
   const chosen: KitLootSpec[] = [];
   while (chosen.length < TUNING.offersPerWin && pool.length > 0) {

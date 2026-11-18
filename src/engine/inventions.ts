@@ -272,6 +272,7 @@ function networkTouching(ctx: Ctx, at: Coord, cloud = false, gap = 0): Coord[] {
   const seen = new Set<string>();
   const out: Coord[] = [];
   for (const seed of seeds) {
+    if (seen.has(`${seed.x},${seed.y}`)) continue; // a seed on a network already read: no second miss
     const net = cloud ? cloudNet(s, seed, false, gap) : brassNet(s, seed, false, gap);
     stampGap(ctx, net, cloud ? cloudPass(s) : brassPass(s), gap, 'Conduct');
     for (const c of net) {

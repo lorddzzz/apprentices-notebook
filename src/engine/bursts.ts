@@ -188,7 +188,9 @@ function announce(
   flow: Flow | null = null,
 ): void {
   nameOnce(ctx, 'burst', burst);
-  const beyond = bellsBeyond(ctx, flow, tiles);
+  // Fire and stain strike no bell, so they never carry `coil:bell`.
+  const noBells = burst === 'fire' || burst === 'page:stain';
+  const beyond = noBells ? [] : bellsBeyond(ctx, flow, tiles);
   const say = (): void =>
     emit(ctx, {
       type: 'burst',
@@ -199,7 +201,7 @@ function announce(
     });
   if (beyond.length > 0) withLine(ctx, 'coil:bell', say);
   else say();
-  if (burst === 'fire' || burst === 'page:stain') return;
+  if (noBells) return;
   // `coil-bell-pulse`: the ring a Coil-widened burst causes pulses one tile further.
   const wide = !!flow?.auras.includes('coil') && hasFootnote(ctx, 'coil-bell-pulse');
   withStrikeFlags(wide ? { wide: true } : {}, () => {

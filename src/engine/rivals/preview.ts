@@ -116,9 +116,10 @@ export function rivalPreview(state: BattleState, unit: UnitId): RivalPreviewDeta
   const shown = findUnit(state, unit);
   if (shown?.kind !== 'enemy' || !shown.rival || !isAlive(shown) || !shown.intent) return null;
   const intent = shown.intent;
-  if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent);
-  if (intent.kind !== 'cast' && intent.kind !== 'trick') return null;
+  if (intent.kind !== 'cast' && intent.kind !== 'trick' && intent.kind !== 'rivalStrike')
+    return null;
   if (shown.stunned) return { ...EMPTY, fallbackLive: false };
+  if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent);
   const fallbackLive = fallbackIsLive(state, shown, intent.fallback);
 
   const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes: {} };

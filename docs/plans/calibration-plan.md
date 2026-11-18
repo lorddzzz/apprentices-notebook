@@ -1,7 +1,7 @@
 # Calibration: implementation plan (CAL)
 
 Source: [midpoint-audit.md](midpoint-audit.md) §1.2 item 8 and §2.1 (every win-rate band and tuning task leaves the content plans), [build-program.md](build-program.md) §5 (plan changes in force). Prefix **CAL**.
-**State: Planned (runs last, after all content; needs EN-0).**
+**State: Planned (runs last, after EN-14; needs EN-0, merged). §1.1 lists the numbers in engine code found by Pack N2's reviews (2026-11-18).**
 **Scope:** collect every deferred calibration item with its numbers, then run one pass per district on the shared bot (`src/engine/sim/` after EN-0) against the target bands. **No number is tuned while content is built** (player rule, 2026-11-04). The SM-6 branch `worktree-agent-a7d9ce60e430bee68` (commit `4c77215`, tag `ref/sm-6`) is kept for review at CAL-0; delete it only with the player's OK. Its change is recorded in §1.
 
 ## 1. Deferred items (numbers as of `a6e8bfb`)
@@ -26,6 +26,22 @@ All "main" values are what is committed now. "Source" is where the item was reco
 | **EN-13** drawn rooms | `src/data/drawing.ts` (planned, EN-8) | none yet | pen on bot-campaign and real saves, drawn trips per weight band at party 1-3, fallback rate, phone timing | ending-plan.md row EN-13 |
 | EN-S2 generator numbers | `GEN_TUNING`, `src/data/drawing.ts` (EN-S2): `perMember`, `perDepth`, band bonus, `walkover { rounds, hpLeft }`, the walk's step; `ROOM_ROUNDS` 12 (`src/engine/drawing/generate.ts`) | EN-S2's defaults | EN-S1 at `3 + depth + band`: 100 % first try, median win round 2, median HP left 100 % (all walkovers); EN-S2's report has the after numbers | ending-plan P28 |
 | HC-4 bot | `tests/sim/bot.ts` limits | greedy; stalls on some drawn start points; no Hold; never loses an ink room | fixed by EN-0's shared bot where possible; record what remains | status "Rough edges", "Known limits" |
+
+### 1.1 Numbers in engine code (CL-4 review, 2026-11-18)
+
+Found by the five code reviews of Pack N2; none was tuned. CAL moves each into `src/data/` (TUNING, CHEMISTRY or the district's data) with its current value, then tunes it with the rest. Line numbers as of N2's branch.
+
+| Literal | Where | Value |
+|---|---|---|
+| Footnote burst damage | `KEEP_DAMAGE`, `WIDE_DAMAGE`, `FOCUS_DAMAGE`, `SPARE_DAMAGE`, `CHARGE_DAMAGE`, `FLARE_DAMAGE`, `HUM_DAMAGE`, `src/engine/bursts.ts:235-241` | 2, 1, 3, 1, 1, 1, 1 |
+| `spark-slick-long` fire rounds, `spark-slick-hot` fire damage | `src/engine/bursts.ts` (`? 3 : TUNING.fireRounds`, `? 3 : row.damage`) | 3, 3 |
+| `guard-shielded-thick` shield | `src/engine/runes/actions.ts:218` (`? 3 : TUNING.guardShield`) | 3 |
+| `touch-member-runup` cap | `src/engine/runes/actions.ts:182` (`Math.min(3, …)`) | 3 |
+| Sentence's push, Hold's duration, Levy's shield per mark | `src/engine/runes/actions.ts` (the comment at the head of the file says they have no TUNING key yet) | as built |
+| `graphite-cap-pin` Hold | `src/engine/solvents.ts` (`m.u.held = Math.max(m.u.held, 2)`) | 2 rounds |
+| Foundry bot pulse weights | `pulseTerm`, `src/engine/districts/foundry/bot.ts:19-20` | foe +6, +10 more at 1 HP; member -15 |
+| Drawn-room placeholder loot | `LOOT`, `PICKS`, `src/engine/districts/inkedPage.ts:25-26` (`'deep'`, room 1, heart 2): never read, `offersFor` replaces them with `DRAWN_LOOT` | drop them or point them at `DRAWN_LOOT` |
+| Doorway weight | `DOORWAY_WEIGHT`, `src/engine/drawing/loot.ts` (already listed in the status file, Pack F2) | 1 |
 
 ## 2. Target bands (quoted, not set here)
 

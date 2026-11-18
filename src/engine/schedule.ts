@@ -8,11 +8,10 @@ import type { Coord } from './grid';
 import { neighbors4, sameCoord } from './grid';
 import { openJar, runDetached } from './jars';
 import { landKindFree } from './mix';
-import { isBrass } from './networks';
 import { strikePiece } from './pieces';
 import { findUnit, isAlive, tileAt, unitAt } from './queries';
 import { KIND_HANDLERS } from './runes/kinds';
-import { gallnutReach, undoBoard } from './solvents';
+import { gallnutReach, touchesBrass, undoBoard } from './solvents';
 import { axisToward, whereIs } from './targets';
 import type { Origin, Scheduled, Step, Target, Unit, UnitId } from './types';
 
@@ -102,7 +101,7 @@ function run(ctx: Ctx, e: Scheduled): void {
   // `filings-bell-strike`: the second run strikes the bell it comes back to, so it rings again.
   if (bellHere && hasFootnote(ctx, 'filings-bell-strike'))
     withLine(ctx, 'filings:bell', () => strikePiece(ctx, at, 'damage', e.origin));
-  const bare = filings && !touchesBrassAt(ctx, at);
+  const bare = filings && !touchesBrass(ctx.s, at);
   const go = (t: Target): void =>
     runDetached(ctx, stepOf(e), t, e.owner, e.origin, heading, {
       trace: typeof e.step !== 'string',
@@ -127,9 +126,6 @@ function run(ctx: Ctx, e: Scheduled): void {
     else ctx.s.scheduled.push(second);
   }
 }
-
-const touchesBrassAt = (ctx: Ctx, at: Coord): boolean =>
-  isBrass(ctx.s, at) || neighbors4(at).some((n) => isBrass(ctx.s, n));
 
 /**
  * What a Filings run owes after it ran: `filings-bell-twice` queues the third run,

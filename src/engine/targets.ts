@@ -2,7 +2,7 @@ import { type LineId, type SourceRuneId, TUNING } from '$data';
 import type { DraftOptions, FootnoteVariantId } from './ctx';
 import { hasFootnote } from './footnotes';
 import { byReadingOrder, type Coord, type Dir, neighbors4, opposite, square, step } from './grid';
-import { clip, inBoard, isCloud, type Travel, tileAt, travel, unitAt } from './queries';
+import { clip, inBoard, isAlive, isCloud, type Travel, tileAt, travel, unitAt } from './queries';
 import type { Aim, BattleState, Target, Unit } from './types';
 import { targetKey } from './types';
 import { vatHeadings, vatLost, vatOrigin, vatPour, vatTiles } from './vat';
@@ -12,11 +12,11 @@ import { vatHeadings, vatLost, vatOrigin, vatPour, vatTiles } from './vat';
  * the board; `resolve.ts` runs the steps over what they return.
  */
 
-/** A unit target follows its unit (R7); a tile target stays put. null = the unit is gone. */
+/** A unit target follows its unit (R7); a tile target stays put. null = the unit is gone (or out of the room). */
 export function whereIs(s: BattleState, t: Target): Coord | null {
   if (t.kind === 'tile') return t.at;
   const u = s.units.find((x) => x.id === t.unit);
-  return u && u.hp > 0 ? u.pos : null;
+  return u && isAlive(u) ? u.pos : null;
 }
 
 /** Dominant axis from `from` to `to`; a tie goes vertical; the same tile has none. */

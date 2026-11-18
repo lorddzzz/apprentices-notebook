@@ -67,12 +67,14 @@ export function registerTrick<S extends Json>(def: TrickDef<S>): () => void {
     throw new Error(`Trick '${def.id}' is registered twice`);
   // Hooks receive the state `init` made, so widening `S` to `Json` here is safe.
   const t = def as unknown as TrickDef;
-  extra.set(def.id, t);
   // Its own arrival causes join FD's table (FU-4); a core or district cause cannot be redefined.
+  // Checked before anything is registered, so a refused trick leaves nothing behind.
   const causes = KIT.causes as Record<string, EnteredTiles>;
+  for (const c of Object.keys(def.causes ?? {}))
+    if (Object.hasOwn(causes, c)) throw new Error(`District kit: duplicate cause '${c}'`);
+  extra.set(def.id, t);
   const added: string[] = [];
   for (const [c, answers] of Object.entries(def.causes ?? {})) {
-    if (Object.hasOwn(causes, c)) throw new Error(`District kit: duplicate cause '${c}'`);
     causes[c] = answers;
     added.push(c);
   }
