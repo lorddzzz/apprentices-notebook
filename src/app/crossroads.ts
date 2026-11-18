@@ -2,17 +2,16 @@ import type { DistrictId } from '$data';
 import {
   choicesAt,
   type DistrictShape,
-  nextTripSeed,
   type Profile,
   placeOf,
   returnCheck,
   type SaveData,
   shapeOf,
-  startTrip,
   type Trip,
   takeChoice,
 } from '$engine';
 import type { CrossroadsChoice, StartAt } from '$engine/districts/types';
+import { setOut } from './flow';
 
 /** One button at the Crossroads: a way on, or the way home (greyed with its reason). */
 export interface WayView {
@@ -108,7 +107,5 @@ export function setOutAt(
   page?: 0 | 1 | 2,
 ): SaveData {
   if (save.trip) throw new Error('The party is already out');
-  const { seed, save: next } = nextTripSeed(save);
-  const opts = page === undefined ? { at } : { at, page };
-  return { ...next, trip: startTrip(next.profile, seed, district, opts), lastTrip: null };
+  return setOut(save, district, page === undefined ? { at } : { at, page });
 }

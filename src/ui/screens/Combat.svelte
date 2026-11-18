@@ -36,7 +36,15 @@
     </BattleView>
   {/key}
 {:else if game.inking}
-  <p class="inking" data-testid="inking">inking the room…</p>
+  <p class="inking" data-testid="inking">
+    {game.inkFailed ? 'The room would not ink.' : 'inking the room…'}
+  </p>
+  {#if game.inkFailed}
+    <div class="failed">
+      <button type="button" data-testid="ink-retry" onclick={() => game.retryInking()}>Try again</button>
+      <button type="button" data-testid="ink-home" onclick={() => game.leaveInking()}>Home</button>
+    </div>
+  {/if}
 {/if}
 
 <style>
@@ -47,6 +55,22 @@
     font-size: 20px;
     text-align: center;
     color: var(--ink-soft);
+  }
+  .failed {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+  .failed button {
+    min-width: 96px;
+    min-height: 44px;
+    font-family: var(--hand);
+    font-size: 18px;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid var(--ink);
+    cursor: pointer;
   }
   .depth {
     flex: none;

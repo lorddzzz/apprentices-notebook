@@ -60,12 +60,13 @@ import { toast } from './toasts.svelte';
 
 let nextEditorSession = 0;
 
-/** The worker, with a dev-only delay (`window.__inkDelay` ms) to see the "inking the room…" line. */
+/** The worker, with a dev-only delay (`window.__inkDelay` ms) to see the "inking the room…" line, and `window.__inkFail` to see it fail. */
 function inkerFor(): RoomInker {
   const base = workerInker();
   if (!import.meta.env.DEV) return base;
   return {
     async ink(profile, trip, room) {
+      if ((window as { __inkFail?: boolean }).__inkFail) throw new Error('dev: inking refused');
       const ms = (window as { __inkDelay?: number }).__inkDelay ?? 0;
       if (ms > 0) await new Promise((r) => setTimeout(r, ms));
       return base.ink(profile, trip, room);
@@ -110,6 +111,8 @@ export class GameStore {
   /** Rooms being inked (`seed:room`), and the inker (the worker, made on first use). */
   private readonly inking_ = new Set<string>();
   private inker: RoomInker | null = null;
+  /** The `seed:room` whose inking last failed; the Combat screen offers a retry or home. */
+  private inkFailedKey = $state<string | null>(null);
 
   /** Home and each doorway have separate cameras; edits and member switches keep their keys. */
   latticeSessionKey(member: MemberId = this.member): string {
@@ -459,6 +462,23 @@ export class GameStore {
     return trip?.status === 'fight' && needsRoom(this.save, trip.encounter);
   }
 
+  /** The current fight's room would not ink: the screen offers "Try again" and "Home". */
+  get inkFailed(): boolean {
+    const trip = this.save.trip;
+    return !!trip && this.inkFailedKey === `${trip.seed}:${trip.encounter}`;
+  }
+
+  /** "Try again": asks for the failed room once more. */
+  retryInking(): void {
+    this.inkFailedKey = null;
+    this.inkAhead();
+  }
+
+  /** "Home" from a failed inking: the trip closes as an abandoned fight, as an unresumable one does. */
+  leaveInking(): void {
+    this.abandonFight();
+  }
+
   /**
    * Inks the drawn trip's next room off the main thread (P36): the current one in a fight (room 1
    * right after Set out, or a reload), the next one once the trip is looting. A result for a trip
@@ -476,6 +496,7 @@ export class GameStore {
     const key = `${trip.seed}:${room}`;
     if (!needsRoom(this.save, room) || this.inking_.has(key)) return;
     this.inking_.add(key);
+    this.inkFailedKey = null;
     this.inker ??= inkerFor();
     const inker = this.inker;
     requestRoom(this.save, room, inker)
@@ -485,7 +506,10 @@ export class GameStore {
         const current = applyRoom(this.save, trip.seed, room, layout);
         if (current !== this.save) this.commit(current);
       })
-      .catch(() => toast('The room would not ink', 'warn'))
+      .catch(() => {
+        this.inkFailedKey = key;
+        toast('The room would not ink', 'warn');
+      })
       .finally(() => this.inking_.delete(key));
   }
 

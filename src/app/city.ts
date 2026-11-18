@@ -1,4 +1,4 @@
-import { DISTRICT_IDS, DISTRICTS, type DistrictData, type DistrictId } from '$data';
+import { DISTRICT_IDS, DISTRICTS, type DistrictData, type DistrictId, ENEMIES } from '$data';
 import {
   DISTRICT_KIT,
   type DistrictKitData,
@@ -10,6 +10,7 @@ import { type DistrictState, districtState, type Profile, tripParty } from '$eng
 import { type DoorState, floorsFor, lowerSeamOpen, ownerDoor } from '$engine/districts/lowerSeam';
 import { drawingsOf, endingOf, type WeightBand, weightBand } from '$engine/drawing';
 import { startCheckpoint } from './crossroads';
+import { kitLabel } from './drawing';
 
 /** The page the map is drawn on is this tall (px); `x`/`y` in the data are percents of it (BL-95). */
 export const MAP_PAGE_HEIGHT = 1900;
@@ -173,6 +174,8 @@ export interface DrawnPage {
   slot: 0 | 1 | 2;
   name: string;
   band: WeightBand;
+  /** The drawing's rule-and-heart line under its name. */
+  line: string;
 }
 
 /** The blank page's line (ending-text §4), read from the ending's data. */
@@ -200,7 +203,16 @@ export function underSeam(
   const handover = endingOf(p).handover;
   const pages: DrawnPage[] = handover
     ? drawingsOf(p).flatMap((d, i) =>
-        d ? [{ slot: i as 0 | 1 | 2, name: d.name, band: weightBand(d) }] : [],
+        d
+          ? [
+              {
+                slot: i as 0 | 1 | 2,
+                name: d.name,
+                band: weightBand(d),
+                line: `${d.rule === null ? 'no rule' : kitLabel(d.rule)} · ${ENEMIES[d.heart].name}`,
+              },
+            ]
+          : [],
       )
     : [];
   return {

@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { Profile } from '$engine';
-  import { drawingsOf } from '$engine/drawing';
   import { BLANK_PAGE_LINE, underSeam } from '../../../app/city';
   import { DEPTH_WORDS } from '../../../app/drawing';
-  import { pageLine } from './words';
 
   interface Props {
     profile: Profile;
@@ -13,7 +11,6 @@
 
   let { profile, onopen }: Props = $props();
   const under = $derived(underSeam(profile));
-  const drawings = $derived(drawingsOf(profile));
 </script>
 
 <!--
@@ -23,10 +20,9 @@
 {#if under.pages.length > 0 || under.blank}
   <div class="pages" data-testid="under-pages">
     {#each under.pages as page (page.slot)}
-      {@const d = drawings[page.slot]}
       <button type="button" class="page" onclick={() => onopen(page.slot)} data-testid="page-{page.slot}" data-band={page.band}>
         <span class="name">{page.name}</span>
-        {#if d}<span class="sub">{DEPTH_WORDS[page.band]} · {pageLine(d)}</span>{/if}
+        <span class="sub">{DEPTH_WORDS[page.band]} · {page.line}</span>
       </button>
     {/each}
     {#if under.blank}

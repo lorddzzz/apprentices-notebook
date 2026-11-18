@@ -31,6 +31,7 @@ import {
   type TripStats,
 } from '$engine';
 import { ownerDoor } from '$engine/districts/lowerSeam';
+import type { StartAt } from '$engine/districts/types';
 import { endingOf } from '$engine/drawing';
 import { newlyAnswered } from '$engine/margins';
 import { knockAtDoor, someoneJoined } from '$engine/recruits';
@@ -193,7 +194,7 @@ function tripOf(save: SaveData): Trip {
 export function setOut(
   save: SaveData,
   district: DistrictId = 'seam',
-  opts?: { page?: 0 | 1 | 2 },
+  opts?: { page?: 0 | 1 | 2; at?: StartAt },
 ): SaveData {
   if (save.trip) throw new Error('The party is already out');
   const { seed, save: next } = nextTripSeed(save);
