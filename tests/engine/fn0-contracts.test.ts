@@ -79,7 +79,7 @@ describe('FN-0 contracts', () => {
     expect(p.footnotes).toEqual({});
     expect(p.solventsFound).toEqual([]);
     const entry: FootnoteEntry = {
-      points: 30,
+      points: 60,
       slots: { 'shove:wall@1': 'shove-a1', 'shove:wall@2': 'shove-b2' },
       capstone: 'shove-cap',
     };

@@ -7634,7 +7634,7 @@
     ],
     "foesMet": ["rat", "eel", "moth", "barge", "snuffer", "lamplighter", "mother"],
     "footnotes": {
-      "spark": { "points": 4, "slots": {} },
+      "spark": { "points": 5, "slots": {} },
       "bolt": { "points": 1, "slots": {} },
       "oil": { "points": 1, "slots": {} },
       "shove": { "points": 3, "slots": {} }
@@ -7844,7 +7844,7 @@
       ],
       "foesMet": ["rat", "eel", "moth", "barge", "snuffer", "lamplighter", "mother"],
       "footnotes": {
-        "spark": { "points": 4, "slots": {} },
+        "spark": { "points": 5, "slots": {} },
         "bolt": { "points": 1, "slots": {} },
         "oil": { "points": 1, "slots": {} },
         "shove": { "points": 3, "slots": {} }

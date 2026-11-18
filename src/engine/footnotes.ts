@@ -24,8 +24,10 @@ import {
   variantLevel,
   variantLine,
 } from '$data';
+import { RIVAL_PAGES } from '$data/rivals';
 import type { Ctx, FootnoteIds, FootnoteVariantId } from './ctx';
 import type { EventLog } from './events';
+import { holdsPage } from './rivals/pages';
 import type { BattleState, FootnoteEntry, Profile, UnitId } from './types';
 
 /** The content's variants by id: `hasFootnote` sits on the resolution hot path. */
@@ -48,9 +50,20 @@ const EMPTY: FootnoteEntry = { points: 0, slots: {} };
 /** What the write and view functions read besides the profile. */
 export interface FootnoteOpts {
   variants?: readonly VariantDef[];
-  /** True when the household holds that rival's page (RV); without it rival notes stay hidden. */
+  /** Overrides the profile's pages (tests): true when the household holds that rival's page. */
   holdsRivalPage?: (rival: NonNullable<VariantDef['rival']>) => boolean;
 }
+
+/**
+ * Rival notes (footnotes §1, FN-8): a rival's note is a third option in its named slot, shown only
+ * while the household holds that rival's page.
+ */
+export const rivalPagesHeld =
+  (p: Pick<Profile, 'pages'>): NonNullable<FootnoteOpts['holdsRivalPage']> =>
+  (rival) =>
+    Object.values(RIVAL_PAGES).some(
+      (page) => page?.rival === rival && page.note !== null && holdsPage(p, page.id),
+    );
 
 export function footnotePoints(p: Profile, subject: FootnoteSubject): number {
   return p.footnotes[subject]?.points ?? 0;
@@ -100,8 +113,9 @@ export function rivalCasters(b: Pick<BattleState, 'units'>): ReadonlySet<UnitId>
 }
 
 /**
- * The firings that earn points: one per consecutive run of events with one line (not per tile),
- * leaving out events whose origin is a rival's cast. A rival's run breaks the household's.
+ * The firings that earn points: one per consecutive run of events with one line from one cast (not
+ * per tile), leaving out events whose origin is a rival's cast. A rival's run breaks the household's,
+ * and so does a new cast: two Bolt casts on different turns are two firings.
  */
 export function pointLines(log: EventLog, rivals: ReadonlySet<UnitId> = new Set()): LineId[] {
   const out: LineId[] = [];
@@ -109,7 +123,7 @@ export function pointLines(log: EventLog, rivals: ReadonlySet<UnitId> = new Set(
   for (const e of log) {
     if (!e.line) continue;
     const theirs = e.origin !== undefined && rivals.has(e.origin.caster);
-    const key = theirs ? `rival|${e.line}` : e.line;
+    const key = theirs ? `rival|${e.line}` : `${e.origin?.cast ?? ''}|${e.line}`;
     if (key !== last && !theirs) out.push(e.line);
     last = key;
   }
@@ -118,12 +132,12 @@ export function pointLines(log: EventLog, rivals: ReadonlySet<UnitId> = new Set(
 
 // ── Slots ───────────────────────────────────────────────
 
-const shown = (v: VariantDef, opts: FootnoteOpts): boolean =>
-  v.rival === undefined || (opts.holdsRivalPage?.(v.rival) ?? false);
+const shown = (p: Profile, v: VariantDef, opts: FootnoteOpts): boolean =>
+  v.rival === undefined || (opts.holdsRivalPage ?? rivalPagesHeld(p))(v.rival);
 
 /** The subject's authored variants a household can see (rival notes only with the page held). */
-function variantsOf(subject: FootnoteSubject, opts: FootnoteOpts): VariantDef[] {
-  return (opts.variants ?? VARIANTS).filter((v) => v.subject === subject && shown(v, opts));
+function variantsOf(p: Profile, subject: FootnoteSubject, opts: FootnoteOpts): VariantDef[] {
+  return (opts.variants ?? VARIANTS).filter((v) => v.subject === subject && shown(p, v, opts));
 }
 
 export type SlotState = 'open' | 'filled' | 'locked';
@@ -139,8 +153,10 @@ export interface SlotView {
   state: SlotState;
   /** The written variant's id, when filled. */
   written: string | null;
-  /** The choices (empty while locked: a locked margin has no text). */
+  /** The choices (empty while locked: a locked margin has no text; a sleeping slot lists only its written note). */
   options: VariantDef[];
+  /** Written above the subject's level (a threshold change or a migration): it shows but does not act. */
+  sleeping: boolean;
 }
 
 /**
@@ -151,7 +167,7 @@ export function slotsOf(p: Profile, subject: FootnoteSubject, opts: FootnoteOpts
   const level = footnoteLevel(p, subject);
   const entry = p.footnotes[subject] ?? EMPTY;
   const byKey = new Map<FootnoteKey, { line: LineId | null; level: 1 | 2 | 3; v: VariantDef[] }>();
-  for (const v of variantsOf(subject, opts)) {
+  for (const v of variantsOf(p, subject, opts)) {
     const line = variantLine(v);
     if (line !== null && !p.witnessed.includes(line)) continue;
     const key = footnoteKeyOf(v);
@@ -161,6 +177,7 @@ export function slotsOf(p: Profile, subject: FootnoteSubject, opts: FootnoteOpts
   }
   const views = [...byKey].map(([key, s]): SlotView => {
     const written = (s.line === null ? entry.capstone : entry.slots[key as SlotKey]) ?? null;
+    const sleeping = s.level > level && written !== null;
     const state: SlotState = s.level > level ? 'locked' : written ? 'filled' : 'open';
     return {
       key,
@@ -169,7 +186,8 @@ export function slotsOf(p: Profile, subject: FootnoteSubject, opts: FootnoteOpts
       threshold: footnoteThreshold(subject, s.level),
       state,
       written,
-      options: state === 'locked' ? [] : s.v,
+      options: state === 'locked' ? s.v.filter((v) => v.id === written && sleeping) : s.v,
+      sleeping,
     };
   });
   // The capstone last; the rest keep their authored order (desk.ts sorts the levels itself).
@@ -180,10 +198,9 @@ export function slotsOf(p: Profile, subject: FootnoteSubject, opts: FootnoteOpts
 export function footnoteOffers(
   p: Profile,
   subject: FootnoteSubject,
-  variants: readonly VariantDef[] = VARIANTS,
-  opts: Omit<FootnoteOpts, 'variants'> = {},
+  opts: FootnoteOpts = {},
 ): VariantDef[] {
-  return slotsOf(p, subject, { ...opts, variants }).flatMap((s) => s.options);
+  return slotsOf(p, subject, opts).flatMap((s) => s.options);
 }
 
 // ── Costs (P3) ──────────────────────────────────────────
@@ -196,8 +213,14 @@ export interface Spend {
   n: number;
 }
 
-const districtSolvents = (district: DistrictId | undefined): SolventId[] =>
+export const districtSolvents = (district: DistrictId | undefined): SolventId[] =>
   SOLVENT_IDS.filter((s) => SOLVENTS[s].district === district);
+
+/** A slot key's line and level (`<line>@<level>`); the capstone key has neither. */
+export function parseSlotKey(key: FootnoteKey): { line: LineId; level: SlotLevel } {
+  const at = key.lastIndexOf('@');
+  return { line: key.slice(0, at) as LineId, level: Number(key.slice(at + 1)) as SlotLevel };
+}
 
 /** Where the subject comes from: its capstone costs one of each of that district's solvents. */
 export function homeDistrict(subject: FootnoteSubject): DistrictId {
@@ -238,10 +261,9 @@ export function footnoteCost(
       ? all.map((solvent) => ({ solvent, n: 1 }))
       : null;
   }
+  if (!key.startsWith(`${subject}:`)) return null; // a line of another subject, or its capstone
   if (entry.slots[key as SlotKey] !== undefined) return [];
-  const at = key.lastIndexOf('@');
-  const line = key.slice(0, at) as LineId;
-  const count = Number(key.slice(at + 1)) as SlotLevel;
+  const { line, level: count } = parseSlotKey(key);
   const from = districtSolvents(LINES.find((l) => l.id === line)?.district);
   const held = { ...p.solvents };
   const spent = new Map<SolventId, number>();
@@ -267,7 +289,7 @@ export function writeFootnote(
 ): { profile: Profile } | { error: FootnoteError } {
   const v = (opts.variants ?? VARIANTS).find((x) => x.id === variantId);
   if (!v || v.subject !== subject || footnoteKeyOf(v) !== key) return { error: 'unknownVariant' };
-  if (!shown(v, opts)) return { error: 'notHeld' };
+  if (!shown(p, v, opts)) return { error: 'notHeld' };
   const line = variantLine(v);
   if (
     variantLevel(v) > footnoteLevel(p, subject) ||
@@ -294,13 +316,16 @@ export function footnoteIds(p: Profile, variants: readonly VariantDef[] = VARIAN
     FootnoteSubject,
     FootnoteEntry,
   ][]) {
+    const level = footnoteLevel(p, subject);
     const written: [FootnoteKey, string | undefined][] = [
       ...(Object.entries(entry.slots) as [FootnoteKey, string][]),
       [capstoneKey(subject) as CapstoneKey, entry.capstone],
     ];
     for (const [key, id] of written) {
       const v = variants.find((x) => x.id === id);
-      if (v && v.subject === subject && footnoteKeyOf(v) === key) out[key] = v.id;
+      if (v && v.subject === subject && footnoteKeyOf(v) === key && variantLevel(v) <= level) {
+        out[key] = v.id;
+      }
     }
   }
   return out;

@@ -1,5 +1,6 @@
 import {
   capstoneKey,
+  type DistrictId,
   FOOTNOTES,
   type FootnoteKey,
   type FootnoteKind,
@@ -18,8 +19,9 @@ import {
   VARIANTS,
   type VariantDef,
 } from '$data';
-import { RIVAL_PAGES, RIVALS } from '$data/rivals';
+import { RIVALS } from '$data/rivals';
 import {
+  districtSolvents,
   type FootnoteError,
   type FootnoteOpts,
   footnoteCost,
@@ -28,29 +30,16 @@ import {
   homeDistrict,
   knowsSubject,
   type Profile,
+  parseSlotKey,
+  rivalPagesHeld,
   type SlotView,
   type Spend,
   slotsOf,
   writeFootnote,
 } from '$engine';
-import { holdsPage } from '$engine/rivals';
 import { lineText } from './bench';
 
-/**
- * Rival notes (footnotes §1, FN-8): a rival's note is a third option in its named slot, shown only
- * while the household holds that rival's page. The Desk store and the views default to this.
- */
-export const rivalPagesHeld =
-  (p: Pick<Profile, 'pages'>): NonNullable<FootnoteOpts['holdsRivalPage']> =>
-  (rival) =>
-    Object.values(RIVAL_PAGES).some(
-      (page) => page?.rival === rival && page.note !== null && holdsPage(p, page.id),
-    );
-
-const withPages = (p: Profile, opts: FootnoteOpts): FootnoteOpts => ({
-  ...opts,
-  holdsRivalPage: opts.holdsRivalPage ?? rivalPagesHeld(p),
-});
+export { rivalPagesHeld };
 
 /**
  * The footnote desk (design §8, footnotes.md §1, plan FN-4): pure views and the write reducer the
@@ -157,6 +146,8 @@ export interface FrameView {
   variants: VariantView[];
   /** What the first write spends; empty once written (re-picking is free) or when it can't be paid. */
   spends: SpendView[];
+  /** Written above the subject's level: shown as written, but asleep until the level returns. */
+  sleeping: boolean;
   /** Why a first write is not possible right now, in plain words. */
   blocked: string | null;
 }
@@ -177,8 +168,8 @@ export interface MarginView {
 const ROMAN = ['', 'I', 'II', 'III'];
 export const levelNumeral = (level: number): string => ROMAN[level] ?? '';
 
-const districtSolventNames = (district: string | undefined): string[] =>
-  SOLVENT_IDS.filter((s) => SOLVENTS[s].district === district).map((s) => SOLVENTS[s].name);
+const districtSolventNames = (district: DistrictId | undefined): string[] =>
+  districtSolvents(district).map((s) => SOLVENTS[s].name);
 
 /** What a first write needs, in plain words: "Needs Gallnut or Cinder", "Needs 2 of Gallnut or Cinder", "Needs Pitch and Wick". */
 export function needsText(subject: FootnoteSubject, key: FootnoteKey): string {
@@ -186,9 +177,7 @@ export function needsText(subject: FootnoteSubject, key: FootnoteKey): string {
     const names = districtSolventNames(homeDistrict(subject));
     return names.length === 0 ? 'Needs a solvent' : `Needs ${names.join(' and ')}, one each`;
   }
-  const at = key.lastIndexOf('@');
-  const line = key.slice(0, at);
-  const level = Number(key.slice(at + 1));
+  const { line, level } = parseSlotKey(key);
   const names = districtSolventNames(LINES.find((l) => l.id === line)?.district);
   if (names.length === 0) return 'Needs a solvent';
   return `Needs ${level === 2 ? '2 of ' : ''}${names.join(' or ')}`;
@@ -232,6 +221,7 @@ function frameOf(p: Profile, subject: FootnoteSubject, slot: SlotView): FrameVie
     threshold: slot.threshold,
     missing: slot.state === 'locked' ? Math.max(0, slot.threshold - points) : 0,
     variants,
+    sleeping: slot.sleeping,
     spends: (cost ?? []).map((s) => spendView(p, s)),
     blocked: slot.state === 'open' && cost === null ? needsText(subject, slot.key) : null,
   };
@@ -245,7 +235,7 @@ export function marginOf(
 ): MarginView {
   const lines: LineMargin[] = [];
   let capstone: FrameView | null = null;
-  for (const slot of slotsOf(p, subject, withPages(p, opts))) {
+  for (const slot of slotsOf(p, subject, opts)) {
     const frame = frameOf(p, subject, slot);
     if (slot.line === null) {
       capstone = frame;
@@ -284,8 +274,7 @@ export function writeAt(
   variantId: string,
   ctx: WriteContext,
 ): { profile: Profile } | { error: string } {
-  const { atHome, ...rest } = ctx;
-  const opts = withPages(p, rest);
+  const { atHome, ...opts } = ctx;
   if (!atHome) return { error: ROAD_REFUSAL };
   const v = (opts.variants ?? VARIANTS).find((x) => x.id === variantId);
   if (!v || v.subject !== subject) return { error: 'There is no such footnote.' };

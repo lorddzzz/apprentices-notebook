@@ -167,7 +167,7 @@ describe('the margin (slots and capstone)', () => {
 
   test('offers list open and filled choices, capstones included', () => {
     const p = withPoints(profile(), 60);
-    expect(footnoteOffers(p, 'shove', V).map((v) => v.id)).toEqual([
+    expect(footnoteOffers(p, 'shove', { variants: V }).map((v) => v.id)).toEqual([
       't-soft',
       't-hard',
       't-l2a',
@@ -175,7 +175,7 @@ describe('the margin (slots and capstone)', () => {
       't-capa',
       't-capb',
     ]);
-    expect(footnoteOffers(withPoints(profile(), 7), 'shove', V)).toEqual([]);
+    expect(footnoteOffers(withPoints(profile(), 7), 'shove', { variants: V })).toEqual([]);
   });
 });
 
@@ -303,7 +303,7 @@ test.each(VARIANTS)('authored $id resolves from the profile to its context id', 
   const key = footnoteKeyOf(v);
   const written: Profile = {
     ...p,
-    footnotes: { [v.subject]: { points: 8, slots: { [key]: v.id } } },
+    footnotes: { [v.subject]: { points: 1000, slots: { [key]: v.id } } },
   };
   expect(footnoteIds(written)).toEqual({ [key]: v.id });
 });

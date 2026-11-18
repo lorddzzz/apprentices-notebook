@@ -7720,7 +7720,7 @@
       "unit"
     ],
     "foesMet": ["rat", "eel", "moth", "barge", "snuffer", "lamplighter", "mother"],
-    "footnotes": { "spark": { "points": 4, "slots": {} }, "shove": { "points": 5, "slots": {} } },
+    "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 5, "slots": {} } },
     "solventsFound": [],
     "papers": ["canals:ledger-1", "canals:ledger-2", "canals:ledger-3"],
     "pages": ["lamplighter:lantern"],
@@ -7920,7 +7920,7 @@
         "unit"
       ],
       "foesMet": ["rat", "eel", "moth", "barge", "snuffer", "lamplighter", "mother"],
-      "footnotes": { "spark": { "points": 4, "slots": {} }, "shove": { "points": 5, "slots": {} } },
+      "footnotes": { "spark": { "points": 6, "slots": {} }, "shove": { "points": 5, "slots": {} } },
       "solventsFound": [],
       "papers": ["canals:ledger-1", "canals:ledger-2", "canals:ledger-3"],
       "pages": ["lamplighter:lantern"],
