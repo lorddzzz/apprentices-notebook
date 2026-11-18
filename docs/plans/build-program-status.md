@@ -26,6 +26,11 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
+| R2 | drawn trips (5 items) | Claude Sonnet 5.5 high | build/pack-r2 (worktree .claude/worktrees/pack-r2) | spawned 2026-11-18 20:5x |
+| R6 | foundry (8 items) | Claude Sonnet 5.5 high | build/pack-r6 | spawned |
+| R3 | rival planner (5 items) | Codex gpt-6.1-terra high | build/pack-r3 | spawned |
+
+Usage baseline at spawn (test cycle, one wave): Claude 5h 3 % / week 0 % (reset 01:40 CET); Codex 5h 45 % / week 7 % (reset 00:36 CET). Read with `claude -p "/usage"` and the `codex app-server` JSON-RPC call `account/rateLimits/read`. Still to run after this wave: R1, R4, then R5 (after R2).
 
 ## Needs design review (left unmerged by a routine window)
 - none. (Decided 2026-11-17: D5's numbers accepted as built and EN-G0 is a go, ending-plan P29; the fair-within-4 rate of 94.4 % and the dull rate of 5.6 % are CAL-5 watch numbers.)
