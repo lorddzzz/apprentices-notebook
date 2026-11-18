@@ -3,12 +3,19 @@ import { cloneData } from '../../clone';
 import { type Ctx, emit, withOrigin } from '../../ctx';
 import { dealDamage } from '../../damage';
 import { hasFootnote } from '../../footnotes';
-import { type Coord, DIRS, type Dir, inBounds, neighbors4, step } from '../../grid';
+import { type Coord, DIRS, type Dir, inBounds, neighbors4, sameCoord, step } from '../../grid';
 import { push } from '../../push';
 import { isCloud, livingUnits, members, tileAt } from '../../queries';
 import type { BattleState, Origin, Unit } from '../../types';
 import type { PieceTriggers, PreviewShape, StruckBy, TilePiece } from '../types';
-import { clapperTone, type ToneMember, toneGroups, toneOfPiece } from './pieces';
+import {
+  clapperTone,
+  dirBetween,
+  shiftTone,
+  type ToneMember,
+  toneGroups,
+  toneOfPiece,
+} from './pieces';
 import {
   BELL_PIECE,
   BELLS_RULE_ID,
@@ -170,8 +177,7 @@ export function retune(ctx: Ctx, at: Coord, delta = 1): boolean {
   if (readBells(ctx).locked?.includes(tileKey(at.x, at.y))) return false; // `rivet-cap-lock`
   const from = toneOfPiece(piece.id, piece.data);
   if (!from) return false;
-  const n = TONES.length;
-  const to = TONES[(((TONES.indexOf(from) + delta) % n) + n) % n] ?? from;
+  const to = shiftTone(from, delta);
   const ev: RetunedEvent = { type: 'foundry:retuned', at: { ...at }, data: { from, to } };
   emit(ctx, ev);
   piece.data = { tone: to };
@@ -238,12 +244,6 @@ export function pulseTiles(s: BattleState, tone: Tone): Coord[] {
   return out.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
-const dirBetween = (from: Coord, to: Coord): Dir | null =>
-  DIRS.find((d) => {
-    const c = step(from, d);
-    return c.x === to.x && c.y === to.y;
-  }) ?? null;
-
 /** One ringing bell: 1 damage then a push away from it, to each unit beside it not yet pulsed this ring. */
 function pulse(
   ctx: Ctx,
@@ -285,10 +285,9 @@ function pulse(
 
 /** The direction from `bell` to a tile exactly two tiles out along a row or column, else null. */
 function straightTwo(bell: Coord, to: Coord): Dir | null {
-  const mid = DIRS.find((d) => sameXY(step(step(bell, d), d), to));
+  const mid = DIRS.find((d) => sameCoord(step(step(bell, d), d), to));
   return mid ?? null;
 }
-const sameXY = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 
 /**
  * One unit the pulse of `bell` reaches: damage, then a push away from it. Only a Coil-widened ring

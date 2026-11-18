@@ -1,4 +1,5 @@
 import { TONES } from '$data/districts/foundry';
+import { key } from '../../grid';
 import type { BattleState } from '../../types';
 import type { BotTerms } from '../types';
 import { isHumming, pulseTiles } from './ring';
@@ -15,11 +16,11 @@ function pulseTerm(s: BattleState): number {
   const hit = new Set<string>();
   for (const tone of TONES) {
     if (isHumming(s, tone)) continue;
-    for (const c of pulseTiles(s, tone)) hit.add(`${c.x},${c.y}`);
+    for (const c of pulseTiles(s, tone)) hit.add(key(c));
   }
   let v = 0;
   for (const u of s.units) {
-    if (u.bystander || u.hp <= 0 || u.out || !hit.has(`${u.pos.x},${u.pos.y}`)) continue;
+    if (u.bystander || u.hp <= 0 || u.out || !hit.has(key(u.pos))) continue;
     if (u.kind === 'enemy') v += 6 + (u.hp <= 1 ? 10 : 0);
     else v -= 15;
   }

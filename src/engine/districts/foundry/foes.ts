@@ -1,19 +1,9 @@
-import { FOUNDRY_TUNING, TONES, type Tone } from '$data/districts/foundry';
+import { FOUNDRY_TUNING, isTone, type Tone } from '$data/districts/foundry';
 import { candidatesOf, closestTo, nearestMember } from '../../ai';
 import { type Ctx, emit } from '../../ctx';
 import { dealDamage } from '../../damage';
 import { hasFootnote } from '../../footnotes';
-import {
-  byReadingOrder,
-  type Coord,
-  DIRS,
-  type Dir,
-  key,
-  label,
-  neighbors4,
-  sameCoord,
-  step,
-} from '../../grid';
+import { byReadingOrder, type Coord, key, label, neighbors4, sameCoord } from '../../grid';
 import { enemyWalk } from '../../movement';
 import {
   distanceField,
@@ -29,7 +19,7 @@ import {
 import type { Telegraph } from '../../rivals/types';
 import type { BattleState, EnemyUnit, Unit } from '../../types';
 import type { FoeBehaviour, KitId, PreviewShape } from '../types';
-import { clapperTone, ropeTone, toneOfPiece } from './pieces';
+import { clapperTone, dirBetween, ropeTone, shiftTone, toneOfPiece } from './pieces';
 import { isHumming, pulseTiles, retune, ringingBells, ringTone } from './ring';
 import { BELL_PIECE, ROPE_PIECE } from './types';
 
@@ -49,9 +39,6 @@ const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs
 const where = (c: Coord | undefined): string => (c ? label(c) : '?');
 const telegraphOf = (e: EnemyUnit): Telegraph | null =>
   e.intent?.kind === 'behaviour' ? e.intent.telegraph : null;
-const dirTo = (from: Coord, to: Coord): Dir | null =>
-  DIRS.find((d) => sameCoord(step(from, d), to)) ?? null;
-const isTone = (v: string): v is Tone => (TONES as readonly string[]).includes(v);
 
 /** Living apprentices beside `e`, in reading order. */
 const besideMembers = (s: BattleState, e: EnemyUnit): Unit[] =>
@@ -144,7 +131,7 @@ export const CLAPPER_FOE: FoeBehaviour = {
       return;
     }
     dealDamage(ctx, victim, FOUNDRY_TUNING.foes.clapper.bump, 'Bump', [], {
-      heading: dirTo(e.pos, victim.pos),
+      heading: dirBetween(e.pos, victim.pos),
       at: e.pos,
     });
   },
@@ -231,7 +218,7 @@ function detunerMove(ctx: Ctx, e: EnemyUnit): void {
 const retunedLabel = (s: BattleState, bell: Coord): string => {
   const piece = tileAt(s, bell).piece;
   const from = piece ? toneOfPiece(piece.id, piece.data) : null;
-  const to = from ? (TONES[(TONES.indexOf(from) + 1) % TONES.length] ?? from) : 'low';
+  const to = from ? shiftTone(from) : 'low';
   return `retune:${to}`;
 };
 

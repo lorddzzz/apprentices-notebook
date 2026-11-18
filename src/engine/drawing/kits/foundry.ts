@@ -6,6 +6,8 @@ import { cloneData } from '../../clone';
 import { alliedBellEdits, type HookTile } from '../../districts/foundry/peal';
 import {
   BELL_PIECE,
+  BELLS_RULE_ID,
+  FOUNDRY_SHAPE,
   type FoundryTripState,
   GREAT_BELL_PIECE,
   HOOK_PIECE,
@@ -38,10 +40,10 @@ import { at, coords, foeKit, isPlain, lay, needsOf, shuffled } from './seam';
  * cycle noted in `generate.ts`. No district file is edited.
  */
 
-export const BELLS: RuleId = 'foundry:bells';
+export const BELLS: RuleId = BELLS_RULE_ID;
 export const BELL = BELL_PIECE;
 export const ROPE = ROPE_PIECE;
-const PEAL = 'foundry:peal';
+const PEAL = FOUNDRY_SHAPE;
 
 const key = (c: Coord): string => `${c.x},${c.y}`;
 const NEIGHBOURS = [
