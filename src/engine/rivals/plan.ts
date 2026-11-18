@@ -10,7 +10,15 @@ import { WICK_NOTE } from '../jars';
 import { enemyWalk } from '../movement';
 import { findUnit, inBoard, isAlive, isFire, isOpen, tileAt, unitAt } from '../queries';
 import type { Aim, BattleState, EnemyUnit, JarId, RivalIntent, Spell, UnitId } from '../types';
-import { type Detail, goalOf, ownStepJars, partyDistance, setDetail } from './goals';
+import {
+  type Detail,
+  goalOf,
+  ownStepJars,
+  type PartyFields,
+  partyDistance,
+  partyFields,
+  setDetail,
+} from './goals';
 import { isEffect, isStarved, resolveRivalIntent, rivalDefOf, trickOf } from './resolve';
 import { isTrickEvent } from './tricks';
 import type { GoalDef, GoalInput, ObjectRef, Outcome, PlanCandidate } from './types';
@@ -188,6 +196,53 @@ export function outcomeOf(events: EventLog, self: UnitId, before: BattleState): 
   return o;
 }
 
+/** A clone that has walked its path: casts are tried on copies of it, so each tile is walked once. */
+interface Walked {
+  ctx: Ctx;
+  unit: UnitId;
+  /** Self-harm taken on the walk itself. */
+  walkHarm: number;
+  alive: boolean;
+}
+
+function walkClone(
+  state: BattleState,
+  unit: UnitId,
+  path: readonly Coord[],
+  footnotes: FootnoteIds,
+): Walked {
+  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes };
+  const e = findUnit(ctx.s, unit);
+  if (e?.kind !== 'enemy') return { ctx, unit, walkHarm: 0, alive: false };
+  const start = cloneData(ctx.s);
+  enemyWalk(ctx, e, path);
+  // Harm he takes on his own way is self-harm; the rest of the outcome reads the cast alone.
+  return { ctx, unit, walkHarm: outcomeOf(ctx.log, unit, start).selfHarm, alive: isAlive(e) };
+}
+
+const withSelfHarm = (o: Outcome, extra: number): Outcome => {
+  o.selfHarm += extra;
+  return o;
+};
+
+function castFrom(w: Walked, intent: Extract<RivalIntent, { kind: 'cast' | 'trick' }>): Outcome {
+  // `w.ctx.s` is never mutated, so it is the board before the cast.
+  const before = w.ctx.s;
+  if (!w.alive) return withSelfHarm(outcomeOf([], w.unit, before), w.walkHarm);
+  const ctx: Ctx = {
+    s: cloneData(before),
+    log: [...w.ctx.log],
+    cast: cloneData(w.ctx.cast),
+    meta: cloneData(w.ctx.meta),
+    footnotes: w.ctx.footnotes,
+  };
+  const e = findUnit(ctx.s, w.unit);
+  if (e?.kind !== 'enemy') return withSelfHarm(outcomeOf([], w.unit, before), w.walkHarm);
+  const from = ctx.log.length;
+  resolveRivalIntent(ctx, e, { ...intent, fallback: null });
+  return withSelfHarm(outcomeOf(ctx.log.slice(from), w.unit, before), w.walkHarm);
+}
+
 /** Walks `path` and casts `intent` on a clone; the real state and its rng are never touched. */
 export function simulate(
   state: BattleState,
@@ -196,24 +251,38 @@ export function simulate(
   intent: Extract<RivalIntent, { kind: 'cast' | 'trick' }>,
   footnotes: FootnoteIds = {},
 ): Outcome {
-  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes };
-  const e = findUnit(ctx.s, unit);
-  if (e?.kind !== 'enemy') return outcomeOf([], unit, ctx.s);
-  const start = cloneData(ctx.s);
-  enemyWalk(ctx, e, path);
-  // Harm he takes on his own way is self-harm; the rest of the outcome reads the cast alone.
-  const walkHarm = outcomeOf(ctx.log, unit, start).selfHarm;
-  const from = ctx.log.length;
-  if (!isAlive(e)) return withSelfHarm(outcomeOf([], unit, ctx.s), walkHarm);
-  const before = cloneData(ctx.s);
-  resolveRivalIntent(ctx, e, { ...intent, fallback: null });
-  return withSelfHarm(outcomeOf(ctx.log.slice(from), unit, before), walkHarm);
+  return castFrom(walkClone(state, unit, path, footnotes), intent);
 }
 
-const withSelfHarm = (o: Outcome, extra: number): Outcome => {
-  o.selfHarm += extra;
-  return o;
-};
+/** One planning pass's caches: a walked clone per tile, an outcome per (tile, intent). */
+interface PlanCache {
+  footnotes: FootnoteIds;
+  walks: Map<string, Walked>;
+  outcomes: Map<string, Outcome>;
+  /** The party's distance fields, built on first use. */
+  party: () => PartyFields;
+}
+
+function cachedOutcome(
+  s: BattleState,
+  unit: UnitId,
+  dest: Dest,
+  intent: Extract<RivalIntent, { kind: 'cast' | 'trick' }>,
+  cache: PlanCache,
+): Outcome {
+  const dk = key(dest.at);
+  const ok = `${dk}|${JSON.stringify(intent)}`;
+  const known = cache.outcomes.get(ok);
+  if (known) return known;
+  let walked = cache.walks.get(dk);
+  if (!walked) {
+    walked = walkClone(s, unit, dest.path, cache.footnotes);
+    cache.walks.set(dk, walked);
+  }
+  const outcome = castFrom(walked, intent);
+  cache.outcomes.set(ok, outcome);
+  return outcome;
+}
 
 // ── Planning ────────────────────────────────────────────
 
@@ -257,7 +326,7 @@ function bestSpellPlan(
   st: GoalStep,
   action: Extract<GoalAction, { kind: 'spell' }>,
   dests: Dest[],
-  footnotes: FootnoteIds,
+  cache: PlanCache,
 ): PlanCandidate | null {
   const goal = actionGoal(st.goal);
   const spell = e.rival?.spells[action.spell];
@@ -273,7 +342,7 @@ function bestSpellPlan(
         fallback: null,
         order: 0,
       } as const;
-      const outcome = simulate(s, e.id, dest.path, intent, footnotes);
+      const outcome = cachedOutcome(s, e.id, dest, intent, cache);
       if (!outcome.effect) continue;
       const cand: PlanCandidate = { dest: dest.at, path: dest.path, intent, outcome };
       if (!goal.accepts(outcome, input, cand)) continue;
@@ -291,7 +360,7 @@ function bestTrickPlan(
   def: RivalDef,
   st: GoalStep,
   dests: Dest[],
-  footnotes: FootnoteIds,
+  cache: PlanCache,
 ): PlanCandidate | null {
   const goal = actionGoal(st.goal);
   const trick = def.trick ? trickOf(def.trick) : null;
@@ -309,7 +378,7 @@ function bestTrickPlan(
         fallback: null,
         order: 0,
       } as const;
-      const outcome = simulate(s, e.id, dest.path, intent, footnotes);
+      const outcome = cachedOutcome(s, e.id, dest, intent, cache);
       if (!outcome.effect) continue;
       const cand: PlanCandidate = { dest: dest.at, path: dest.path, intent, outcome };
       if (!goal.accepts(outcome, input, cand)) continue;
@@ -326,10 +395,17 @@ function bestMove(
   def: RivalDef,
   st: GoalStep,
   dests: Dest[],
+  cache: PlanCache,
 ): Dest | null {
   const goal = goalOf(st.goal);
   if (!goal?.moveScore) return null;
-  const input: GoalInput = { state: s, unit: e, rival: def, params: st.params ?? {} };
+  const input: GoalInput = {
+    state: s,
+    unit: e,
+    rival: def,
+    params: st.params ?? {},
+    partyFields: cache.party,
+  };
   let best: { dest: Dest; score: number } | null = null;
   for (const dest of dests) {
     const score = goal.moveScore(input, dest);
@@ -339,11 +415,12 @@ function bestMove(
 }
 
 /** Plain approach and strike once every spell is dry (P2): walk closer, strike if adjacent. */
-function dryPlan(s: BattleState, e: EnemyUnit, dests: Dest[]): RivalPlan {
+function dryPlan(s: BattleState, e: EnemyUnit, dests: Dest[], cache: PlanCache): RivalPlan {
+  const fields = cache.party();
   let best = dests[0] ?? { at: e.pos, path: [] };
-  let bestD = partyDistance(s, best.at, e.id);
+  let bestD = partyDistance(s, best.at, e.id, fields);
   for (const d of dests) {
-    const dist = partyDistance(s, d.at, e.id);
+    const dist = partyDistance(s, d.at, e.id, fields);
     if (dist < bestD) {
       best = d;
       bestD = dist;
@@ -371,6 +448,13 @@ export function planRival(
   const def = rivalDefOf(e);
   if (!def) return null;
   const dests = destinations(state, e, move ? def.move : 0, footnotes); // the RivalDef's move, not the shell's
+  let fields: PartyFields | null = null;
+  const cache: PlanCache = {
+    footnotes,
+    walks: new Map(),
+    outcomes: new Map(),
+    party: () => (fields ??= partyFields(state, e.id)),
+  };
   const r = e.rival;
   // Dry of charges: only the wick (it needs a live jar, not a charge) or the plain strike remain.
   const dry = !Object.keys(r.spells).some((id) => (r.charges[id] ?? 0) > 0);
@@ -378,17 +462,17 @@ export function planRival(
   for (const st of routine) {
     const a = st.action;
     if (a.kind === 'spell') {
-      const c = bestSpellPlan(state, e, def, st, a, dests, footnotes);
+      const c = bestSpellPlan(state, e, def, st, a, dests, cache);
       if (c?.intent.kind === 'cast')
         return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
     } else if (a.kind === 'trick') {
-      const c = bestTrickPlan(state, e, def, st, dests, footnotes);
+      const c = bestTrickPlan(state, e, def, st, dests, cache);
       if (c?.intent.kind === 'trick')
         return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
     } else if (a.kind === 'move' && move && !dry) {
-      const d = bestMove(state, e, def, st, dests);
+      const d = bestMove(state, e, def, st, dests, cache);
       if (d?.path.length) return { path: d.path, intent: null };
     }
   }
-  return dry ? dryPlan(state, e, dests) : { path: [], intent: null };
+  return dry ? dryPlan(state, e, dests, cache) : { path: [], intent: null };
 }

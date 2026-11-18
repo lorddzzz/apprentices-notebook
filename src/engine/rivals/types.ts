@@ -117,6 +117,8 @@ export interface GoalInput {
   unit: EnemyUnit;
   rival: RivalDef;
   params: GoalParams;
+  /** The party's distance fields, built once per plan (absent: each goal builds its own). */
+  partyFields?: () => readonly ReadonlyMap<string, number>[];
 }
 /** A tile the rival may walk to this turn and the safe walk there (empty path = stay). */
 export interface GoalDest {

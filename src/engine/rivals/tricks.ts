@@ -73,6 +73,7 @@ export function registerTrick<S extends Json>(def: TrickDef<S>): () => void {
   for (const c of Object.keys(def.causes ?? {}))
     if (Object.hasOwn(causes, c)) throw new Error(`District kit: duplicate cause '${c}'`);
   extra.set(def.id, t);
+  declared = null;
   const added: string[] = [];
   for (const [c, answers] of Object.entries(def.causes ?? {})) {
     causes[c] = answers;
@@ -80,6 +81,7 @@ export function registerTrick<S extends Json>(def: TrickDef<S>): () => void {
   }
   return () => {
     if (extra.get(def.id) === t) extra.delete(def.id);
+    declared = null;
     for (const c of added) delete causes[c];
   };
 }
@@ -146,11 +148,12 @@ export const isTrickEffect = (e: GameEvent): boolean =>
   isTrickEvent(e, 'trickObject') || declaredEffectEvents().has(e.type);
 
 let declared: ReadonlySet<string> | null = null;
-/** Event types tricks declare as effects (`TrickDef.effectEvents`); registered tricks are read each call. */
+/** Event types tricks declare as effects (`TrickDef.effectEvents`); reset when a trick is (un)registered. */
 function declaredEffectEvents(): ReadonlySet<string> {
-  declared ??= new Set(Object.values(trickTable()).flatMap((t) => t.effectEvents ?? []));
-  if (extra.size === 0) return declared;
-  return new Set([...declared, ...[...extra.values()].flatMap((t) => t.effectEvents ?? [])]);
+  declared ??= new Set(
+    [...Object.values(trickTable()), ...extra.values()].flatMap((t) => t.effectEvents ?? []),
+  );
+  return declared;
 }
 
 // ── Objects and locks ───────────────────────────────────

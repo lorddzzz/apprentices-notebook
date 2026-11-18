@@ -11,6 +11,7 @@ import { rivalPreview } from '$engine/rivals';
 import type { EventLog as GameEventLog } from '$engine/events';
 import type { ObjectRef } from '$engine/rivals/types';
 import { simulate } from '$engine/rivals/plan';
+import { isEffect } from '$engine/rivals/resolve';
 import type { Step } from '$engine/types';
 import { clean } from '$engine/rivals/goals';
 import { registerTrick } from '$engine/rivals/tricks';
@@ -242,5 +243,25 @@ describe('trick preview locks', () => {
     expect(after.out?.opens).toEqual([]);
     expect(after.out?.events.some((e) => e.type === 'orderFails')).toBe(true);
     expect(after.out?.events.some((e) => e.type === 'jarSealed')).toBe(false);
+  });
+});
+
+describe('declared effect events cache', () => {
+  it('follows a trick registered and unregistered after the first read', () => {
+    const ev = { type: 'canals:cacheProbe', unit: { id: 'x' } } as unknown as Parameters<
+      typeof isEffect
+    >[0];
+    expect(isEffect(ev)).toBe(false); // fills the cache
+    const undo = registerTrick({
+      id: 'canals:cacheProbe',
+      name: 'Cache probe',
+      init: () => ({}),
+      draw: () => ({ label: 'fixture', tiles: [], units: [] }),
+      describe: () => 'fixture',
+      effectEvents: ['canals:cacheProbe'],
+    });
+    expect(isEffect(ev)).toBe(true);
+    undo();
+    expect(isEffect(ev)).toBe(false);
   });
 });
