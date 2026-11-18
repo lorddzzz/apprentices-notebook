@@ -1,12 +1,14 @@
 <script lang="ts">
   import { type FootnoteSubject, type LineId, METHODS } from '$data';
   import { type CodexRow, codexView, compoundTable, headlineOf, inventionLibrary, nameOf, papersView } from '$engine';
+  import { endingOf } from '$engine/drawing';
   import { noteFor } from '$engine/margins';
   import { lineTextFor } from '../../app/bench';
   import { householdRows } from '../../app/codexHousehold';
   import { rivalPageRows } from '../../app/codexRivals';
   import { marginOf } from '../../app/desk';
   import { game } from '../../app/instance';
+  import { href } from '../../app/routes';
   import CodexEntry from '../components/codex/CodexEntry.svelte';
   import CodexGrid from '../components/codex/CodexGrid.svelte';
   import CodexHousehold from '../components/codex/CodexHousehold.svelte';
@@ -26,6 +28,7 @@
     ['household', 'Household'],
     ['pages', 'Pages'],
     ['papers', 'Papers'],
+    ['ending', 'The owner'],
   ] as const;
   type Tab = (typeof TABS)[number][0];
   let tab = $state<Tab>('runes');
@@ -44,9 +47,11 @@
   const tabs = $derived(
     TABS.filter(
       ([id]) =>
-        (id !== 'pages' || rivalPages.length > 0) && (id !== 'papers' || paperGroups.length > 0),
+        (id !== 'pages' || rivalPages.length > 0) && (id !== 'papers' || paperGroups.length > 0) &&
+        (id !== 'ending' || ending.handover || ending.creditsSeen),
     ),
   );
+  const ending = $derived(endingOf(game.profile));
   const known = $derived(entries.filter((e) => e.known).length);
   // Out on a trip the notebook opens from the road, and closes back onto it.
   const lineText = (id: LineId) => lineTextFor(game.profile, id);
@@ -143,6 +148,14 @@
           </article>
         {/each}
       {/each}
+    {:else if tab === 'ending'}
+      <p class="lead">What the owner left on the desk, to read again.</p>
+      {#if ending.handover}
+        <a class="replay" href={href('handover')} data-testid="codex-replay-desk">The owner's desk</a>
+      {/if}
+      {#if ending.creditsSeen}
+        <a class="replay" href={href('credits')} data-testid="codex-replay-credits">Credits</a>
+      {/if}
     {:else}
       {#each of('idiom') as { entry, known } (entry.id)}
         <CodexIdiom {entry} {known} note={noteFor(game.profile, entry.id)} />
@@ -222,6 +235,17 @@
     font: 700 11px var(--mono);
     text-transform: uppercase;
     color: var(--ink-faint);
+  }
+  .replay {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-1);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--hand);
+    font-size: 20px;
+    color: var(--accent);
+    text-decoration: none;
   }
   .rule {
     margin: 2px 0 0;

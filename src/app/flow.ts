@@ -64,7 +64,8 @@ export type Screen =
   | 'tripPage'
   | 'map'
   | 'threshold'
-  | 'handover';
+  | 'handover'
+  | 'credits';
 
 const TRIP_SCREEN: Record<Trip['status'], Screen> = {
   fight: 'battle',
@@ -103,6 +104,11 @@ export function resolveScreen(
   // The owner's door is a free visit from home: open before the visit, and replayable after.
   if (route === 'handover' && !trip && !wipe && profile && ownerDoor(profile) === 'open') {
     return { screen: 'handover', redirect: null };
+  }
+  // The credits follow the handover and replay from the codex.
+  if (route === 'credits' && !trip && !wipe && profile) {
+    const e = endingOf(profile);
+    if (e.handover || e.creditsSeen) return { screen: 'credits', redirect: null };
   }
   // The map hangs behind the study door, and the threshold rooms are reached from it (K-22).
   if (route === 'map' && !trip && !wipe) return { screen: 'map', redirect: null };

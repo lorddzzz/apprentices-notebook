@@ -20,7 +20,7 @@
 {#if line}
   <div class="door">
     {#if line.state === 'sealed'}
-      <Button variant="quiet" disabled testid="door-sealed">
+      <Button variant="quiet" disabled onclick={() => {}} testid="door-sealed">
         <span class="big">{line.label}</span>
         <span class="sub">{line.sub}</span>
       </Button>

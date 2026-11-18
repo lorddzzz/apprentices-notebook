@@ -511,6 +511,18 @@ test('the drawing route opens only after the handover, at home', () => {
   expect(resolveScreen('drawing', null, wipe, null, open).screen).toBe('wiped');
 });
 
+test('the credits route opens after the handover or once seen, at home only', () => {
+  const open = handoverProfile();
+  expect(resolveScreen('credits', null, null, null, open).screen).toBe('credits');
+  expect(resolveScreen('credits', null, null, null).screen).toBe('study');
+  expect(resolveScreen('credits', null, null, null, { ...open, ending: undefined }).screen).toBe(
+    'study',
+  );
+  const seen = { ...open, ending: { handover: false, creditsSeen: true } };
+  expect(resolveScreen('credits', null, null, null, seen).screen).toBe('credits');
+  expect(resolveScreen('credits', tripAt('fight'), null, null, open).screen).toBe('battle');
+});
+
 test('the handover route opens only with the door open, at home, with no trip or wipe', () => {
   const open = handoverProfile();
   const door = {

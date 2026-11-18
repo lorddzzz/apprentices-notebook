@@ -45,7 +45,8 @@
       {/if}
     </div>
     <div class="actions">
-      <a class="btn-link" href={href('study')} data-testid="handover-study">To the study</a>
+      <a class="btn-link" href={href('credits')} data-testid="handover-credits">Read the credits</a>
+      <a class="btn-link quiet" href={href('study')} data-testid="handover-study">To the study</a>
     </div>
   {:else}
     <button type="button" class="leaf" onclick={next} data-testid="handover-page" aria-label="Next page">
@@ -122,6 +123,12 @@
     min-height: 56px;
     width: 100%;
     font-size: 18px;
+  }
+  .btn-link.quiet {
+    margin-top: var(--space-2);
+    color: var(--ink);
+    background: none;
+    border: 1px solid var(--ink-faint);
   }
   .btn-link {
     color: var(--parchment);

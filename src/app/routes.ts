@@ -10,7 +10,8 @@ export type Route =
   | 'drawing'
   | 'map'
   | 'threshold'
-  | 'handover';
+  | 'handover'
+  | 'credits';
 
 export const ROUTES: readonly Route[] = [
   'study',
@@ -25,6 +26,7 @@ export const ROUTES: readonly Route[] = [
   'map',
   'threshold',
   'handover',
+  'credits',
 ];
 
 export interface Location {

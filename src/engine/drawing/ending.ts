@@ -45,3 +45,9 @@ export function creditsOf(p: Profile): Credits {
     biggest: ledger.biggest,
   };
 }
+
+/** The credits have been watched or skipped (EN-11); idempotent. */
+export function seeCredits(p: Profile): Profile {
+  if (endingOf(p).creditsSeen) return p;
+  return { ...p, ending: { ...endingOf(p), creditsSeen: true } };
+}
