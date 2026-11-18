@@ -88,6 +88,113 @@ Spawn as the skill's design window (one agent, in a worktree), when no pack is r
 
 ---
 
+## Review fixes from N2 (CL-4, 2026-11-18): Packs R1–R5
+
+N2's five `code-review` runs found 49 items, and the foundry's own review (CL-6) 10 more; N2 fixed the small ones in place (the log's CL-4 and CL-6 rows count them). The briefs below hold the larger ones, the rule questions (each with a default) and the refactors. None of them blocks EN-14, but R2 and R6 should merge before CAL-4/CAL-5 read drawn trips and the foundry bot. R1, R3, R4 and R6 own disjoint files and can run together (R1 and R6 both read `src/engine/grid.ts` helpers, neither edits it); run R5 after R2.
+
+| Pack | Tasks | Model / effort | Starts when |
+|---|---|---|---|
+| R1 | engine core: layers, drifts, falls, Bends | Sonnet 5.5 high | now |
+| R2 | drawn trips: the termed card, the lent state, owned pages, the sandbox rule | Sonnet 5.5 high | now (it takes the Owed "termed card" item from Packs I and K) |
+| R3 | rival planner and preview | Sonnet 5.5 medium | now |
+| R4 | footnotes API | Sonnet 5.5 medium | now |
+| R5 | UI: a failed inking, the drawn-page slot | Sonnet 5.5 medium | R2 |
+| R6 | foundry: the drawn bell kits, the Detuner, the pulse, the drawn peal, the bot | Sonnet 5.5 high | now |
+
+### Pack R1 (Default: Sonnet 5.5 high)
+
+```
+Pack R1: review fixes from N2's CL-4 run (a), engine core. Each item gets a scenario test (`scenario` skill) that fails before the fix.
+
+1. States written straight onto tiles skip the piece rules of `landOnTileInner` (kindOnPiece, pieceHoldsNothing, pieceHoldsOnlyClouds, gate/grate): `soakNeighbours` (src/engine/mix.ts ~181), `spreadSteep`'s copy (~730), the `lay-cap-trail` copy (~319), `twinWall`, and `drawHop` in src/engine/runes/actions.ts (~514, the plain move; the `draw-cap-mix` path is guarded). Add one guard (`tileHolds(tile, state)` in mix.ts) and route every direct write through it. Test: a Pool beside a foundry bell and beside a blank leaves them dry; Draw of a slick onto a bell misses.
+2. `driftWaiting` (src/engine/solvents.ts ~454): a jar blocked at its destination is put back on its start tile and overwrites a jar that drifted there this round (lost with no event). Default: the blocked jar stays only if its tile is free; otherwise it stays lifted one step back along its own current, or (no tile) crumbles with a `jarCrumbles` event. Test: three jars on merging currents, none lost silently.
+3. `bonusFall` (src/engine/push.ts ~410) counts slide tiles as Mortar's extra tile, so a slick slide into fog reads as a Mortar fall. Compare the drop step with the pushed tiles only. Test: Mortar Shove of 2 onto a fresh slick into fog: no `mortar-unit-fall` damage.
+4. `Frame.beyond` (src/engine/lattice.ts ~422) drops `rot`, so a Bend just before a payload Glyph, or just before leaving one, loses its quarter turn with `bend-cap-turn`. Carry `rot` through `outerFrame.beyond` / `innerFrame.beyond`. Test: Bend → payload Glyph → Shove pushes the turned way.
+5. The Graphite undo's fallback tile (src/engine/solvents.ts, `undoBoard`, the `free` search) checks only occupancy and `blocksUnits`: it can set a land unit on water, a drop or a void piece. Use the same rule as `standableTile` in actions.ts (move it to queries.ts and share it).
+6. Rule question, default held: with `tally-collar-spend`, `spendCollar` (src/engine/resolve.ts ~597) strips a born brass collar (`collar === null`), which Erase and Sentence never remove. Default: a born collar is not spent (the Tally passes and the collar stays). Record it in DESIGN §11 with the footnote's id.
+7. One helper each, removing the copies: `PLAIN_KIND` (actions.ts and solvents.ts ~247), `unitOf` / `posOf` (actions.ts, solvents.ts ~111, mix.ts `targetCoord` / `unitOn`; all must use `isAlive`, as N2 made `whereIs` do), `manhattan` (flow.ts, bursts.ts). Refactor only: tests unchanged.
+
+Own: src/engine/mix.ts, push.ts, lattice.ts, solvents.ts, resolve.ts, runes/actions.ts, queries.ts, flow.ts, bursts.ts; new scenario tests under tests/scenarios/.
+Verify: `pnpm check:fast`. No phone check.
+```
+
+### Pack R2 (Default: Sonnet 5.5 high)
+
+```
+Pack R2: review fixes from N2's CL-4 run (b), drawn trips (src/engine/districts/inkedPage.ts, src/engine/drawing/**, src/engine/trip/finish.ts).
+
+1. The termed card (Owed since Pack I): `termCardFor` (src/engine/drawing/kits/inkQuarter.ts) has no caller; `INKED_TRIP.offersFor` must add it in every room but the heart when the lent shape is `inkQuarter:terms`.
+2. Before 1 can work: `lentInput` hands the lent hooks the outer trip, so `releaseHeld(trip)` and `TERMED_KIND.onPick` read and write `trip.kit.state` (the `InkedTripState`), not the lent state. Give the lent hooks a trip view whose `kit.state` is the inner state, and map writes back into `inner`. Test: a drawn terms trip signs a term, breaks it, and its held page is taken back; the state still parses.
+3. Rule question, default held: `offersFor` passes `tripOwned` (the trip's own loot) to `drawnOffersFor`, so a page the household already holds can take an offer slot and turns into duplicate ink. Default: pass the household's pages (`ownedBy(p, t)` needs the profile: add it to `ShapeInput` or read it where the roll runs), so the table offers missing pages first, as ending-plan P7's table reads. Re-record any drawn-loot expectations the change moves and list them in the report.
+4. Parse once: every hook re-parses the snapshot and `lentShape` rebuilds its lookup over GEN_KITS and every module on each call (`roomsOf` does it once per room). Build a `Map` of lent shapes once (falling back to `KIT.shapes`) and pass the parsed state through `viewOf`. Refactor only.
+5. One sandbox rule: the P16 rules are four separate `KIT.modules[d]?.sandbox` checks and `keptLoot` names only `key` and `recruit`. Add `isSandbox(district)` and an opt-in `sandbox: true` flag on `OfferKind` for kinds a drawn trip may bank; `keptLoot` keeps only those. Test: a lent `extra` card of a kind without the flag is not banked.
+
+Own: src/engine/districts/inkedPage.ts, src/engine/drawing/loot.ts, src/engine/drawing/kits/inkQuarter.ts, src/engine/trip/finish.ts, src/engine/trip/offerKinds.ts, src/engine/districts/types.ts; tests/drawing/**.
+Verify: `pnpm vitest run tests/drawing tests/ending tests/app/flow.test.ts --reporter=dot`, then `pnpm check:fast`. No phone check.
+```
+
+### Pack R3 (Default: Sonnet 5.5 medium)
+
+```
+Pack R3: review fixes from N2's CL-4 run (c), the rival planner and preview (src/engine/rivals/plan.ts, preview.ts, tricks.ts, goals.ts).
+
+1. `simulate` (plan.ts ~198) walks the clone with `footnotes: {}` while `destinations` / `safeTile` and the real walk use the household's (already in the status file's Rough edges as "Pack Q's simulate still runs with empty footnotes"). Pass the battle's footnotes into the simulation and into `rivalPreview`'s ctx. Test: with `lamplighter:wick` written, a planned walk across a party step-jar is scored on the board where the jar opened.
+2. The outcome slices the log after the walk (plan.ts ~204), so harm taken on his own walk is not `selfHarm`. Slice from before the walk. Test: a dest whose path crosses his own lantern is not `clean`.
+3. Trick preview (preview.ts ~142-146): `opens` reports the lock as opened on any `jarOpened`, and `landing` is found only for jar locks and ignores a lost order. Match `jarOpened.id` against the lock, keep the computed `outcome.opened`, give trick-object locks their `at`, and no landing when the order fails.
+4. The preview resolves on a fresh log, so `madeThisPhase` (tricks.ts ~230) never sees an object made earlier in the phase. Seed the preview log with the current phase's events (or pass the phase start).
+5. Speed (refactor only, results unchanged): memoize `Outcome` by (dest, intent) across routine steps and clone once per dest (plan.ts ~266); compute the party distance fields once per plan (goals.ts ~94); cache `declaredEffectEvents`' set and reset it in `registerTrick` and its unregister.
+
+Own: src/engine/rivals/**; tests/rivals/**.
+Verify: `pnpm vitest run tests/rivals --reporter=dot`, then `pnpm check:fast`.
+```
+
+### Pack R4 (Default: Sonnet 5.5 medium)
+
+```
+Pack R4: review fixes from N2's CL-4 run (d), src/engine/footnotes.ts and src/app/desk.ts.
+
+1. Rule question, default held: `pointLines` (~106) merges two firings of one line when the events between them carry no line, so two Bolt casts on different turns can earn one point. Default: a new run starts at each cast (key the run by `e.origin?.cast`, or reset on `cast` events). This moves footnote points: list every test whose expected points change, and record the decision in DESIGN §11.
+2. `slotsOf` shows a written slot above the current level as locked with no options while `footnoteIds` still activates it (only after a threshold change or a migration). Default: `footnoteIds` drops a variant whose slot is above the subject's level; the Desk shows it as written-but-sleeping. Test with a profile whose level dropped.
+3. `footnoteCost` does not check that `key` belongs to `subject` (a foreign capstone key reads as free). Return null for a foreign key.
+4. Types: `FootnoteVariantId` is `string`, so a mistyped id in a handler is silently false. Make it the union of the content's ids (a generated `as const` list) or add a test that every `hasFootnote` / `fn` literal in src/engine is a known id.
+5. Tidy: rival-note visibility defaults to hidden through an optional callback (desk.ts `withPages`); read it from the profile in footnotes.ts instead. Export one `parseSlotKey` and `districtSolvents` for desk.ts (`needsText`, `districtSolventNames`). `footnoteOffers` takes `opts: FootnoteOpts` like the others.
+
+Own: src/engine/footnotes.ts, src/app/desk.ts, src/data/footnotes/index.ts (types only); tests/footnotes/**, tests/app/desk*.
+Verify: `pnpm check:fast`. Phone check: the Desk at 375x812 (a written slot, a locked slot, a rival note).
+```
+
+### Pack R5 (Default: Sonnet 5.5 medium)
+
+```
+Pack R5: review fixes from N2's CL-4 run (e), UI.
+
+1. A failed inking leaves the drawn trip's fight on "inking the room…" for good (src/app/game.svelte.ts ~488: the catch shows a toast, but `ensureBattle` re-runs only when `save` changes). Default: after a failure the Combat screen shows the inking line with two buttons, "Try again" (re-requests the room) and "Home" (the trip's usual way back). Test in tests/app (an inker that rejects once, then resolves).
+2. Tidy: `PagesSlot.svelte` reads `drawingsOf(profile)` a second time and guards a null that `underSeam().pages` never holds: carry the drawing's line on `DrawnPage`. `crossroads.setOutAt` and `flow.setOut` (src/app/crossroads.ts ~113, src/app/flow.ts ~200) are two near-identical trip starters: make `setOutAt` call `setOut`.
+
+Own: src/app/game.svelte.ts, src/app/city.ts, src/app/crossroads.ts, src/app/flow.ts, src/ui/screens/Combat.svelte, src/ui/districts/inkedPage/PagesSlot.svelte; tests/app/**.
+Verify: `pnpm check:fast`; svelte-autofixer on every changed component. Phone check at 375x812: a drawn trip with a failed inking (dev flag or a rejecting inker), both buttons.
+```
+
+### Pack R6 (Default: Sonnet 5.5 high)
+
+```
+Pack R6: review fixes from N2's foundry review (CL-6), src/engine/districts/foundry/** and src/engine/drawing/kits/foundry.ts. Each behaviour item gets a scenario or kit test that fails before the fix.
+
+1. `holdsOpen` (kits/foundry.ts ~146) calls `keepsReach(layout, new Set())`, comparing the layout with itself, so `bellKit.place`'s reach check and `bellKit.valid` always pass. Compare against the layout before the bell was laid (or pass the bell's tile as blocked on the pre-bell layout). Test: a one-tile corridor is never filled by a bell.
+2. `bellsKit.stamp` (~113) lays 2-4 solid bells on any plain tile above the bottom two rows with no reach, unit or start check (it can lay one on a foe). Use `freeTiles` and `keepsReach` as `bellKit.place` and `lockEdits` do. Generated rooms move: re-run `tests/drawing` and list the layouts whose expected output changes.
+3. `detunerMove` (foes.ts ~212) seeds its distance field from every neighbour of the goal bell, walls and occupied tiles included, so the Detuner can stop beside a wall and never retune. Seed only standable neighbours (as `stepsTo` filters). Also compute the Detuner's own field once in `nearestBell` and pass it to `stepsTo` (~181), not once per bell.
+4. `hurt` (ring.ts ~300) falls back to `straightTwo` on every ring, so a unit pushed two tiles out in line earlier in the same pulse is still hit. Rule question, default held: the fallback applies only to a Coil-widened (`wide`) ring, as the comment states; pass the flags to `hurt`.
+5. `parseFoundryState` (types.ts ~423) drops entries with `room >= FOUNDRY_TUNING.rooms` (4), but a drawn peal of length 5-6 rings a great bell in room 4 and 5. Bound by the trip's length (read it where the drawn kit parses, or store the bound in the state). Test: a length-6 drawn peal hangs every rung room's bell at the heart; old saves still parse.
+6. `pulseTerm` (bot.ts ~15) scores every tone's pulse tiles, also tones already humming this round (they cannot ring again before round end). Skip humming tones (`isHumming`). The weights stay as they are (CAL list §1.1). Record the bot's room-4 and heart rates before and after in the report (no tuning).
+7. `stampHooks` (heartFrame.ts ~43) hand-rolls a nearest-free-tile search that ignores units, starts, drops and water; use `settle()` / `bare()` from `../frame`.
+8. One helper each (refactor only, tests unchanged): `isTone` (use `$data/districts/foundry`'s), the retune wrap (`retunedLabel` foes.ts ~227 and `retune` ring.ts ~173 from one function), `dirTo` / `dirBetween`, `sameXY` / `sameCoord`, bot.ts's hand-made key / grid `key`; the kit names `BELLS_RULE_ID` and `FOUNDRY_SHAPE` instead of the literals.
+
+Own: src/engine/districts/foundry/**, src/engine/drawing/kits/foundry.ts; tests/districts/foundry/**, tests/drawing/kits-c.test.ts (foundry lines only).
+Verify: `pnpm vitest run tests/districts/foundry tests/drawing tests/data/foundry-rooms.test.ts --reporter=dot`, then `pnpm check:fast`; `tests/sim/foundry.test.ts` once at the end (report its numbers, change nothing for them).
+```
+
+---
+
 ## Written in a later design window
 
 | Pack | Tasks | Starts when |
