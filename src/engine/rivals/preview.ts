@@ -1,6 +1,6 @@
 import { ATTACKS } from '$data';
 import { cloneData } from '../clone';
-import type { Ctx } from '../ctx';
+import type { Ctx, FootnoteIds } from '../ctx';
 import { dealDamage } from '../damage';
 import type { EventLog, GameEvent } from '../events';
 import { type Coord, DIRS, sameCoord, step } from '../grid';
@@ -76,11 +76,12 @@ function previewStrike(
   state: BattleState,
   unit: UnitId,
   intent: Extract<RivalIntent, { kind: 'rivalStrike' }>,
+  footnotes: FootnoteIds,
 ): RivalPreviewDetail | null {
   const s = cloneData(state);
   const e = findUnit(s, unit);
   if (e?.kind !== 'enemy') return null;
-  const ctx: Ctx = { s, log: [], cast: null, meta: {}, footnotes: {} };
+  const ctx: Ctx = { s, log: [], cast: null, meta: {}, footnotes };
   const att = ATTACKS[dryStrikeIntent(e, intent).attack];
   const dir = intent.dir;
   const done = (path: Coord[], landing: Coord | null): RivalPreviewDetail => ({
@@ -112,17 +113,21 @@ function previewStrike(
  * is not a living rival with a cast, trick or dry-strike intent on show. A stunned rival's action
  * is skipped, with no fallback. Safe to call on any state, including a confirm preview's result.
  */
-export function rivalPreview(state: BattleState, unit: UnitId): RivalPreviewDetail | null {
+export function rivalPreview(
+  state: BattleState,
+  unit: UnitId,
+  footnotes: FootnoteIds = {},
+): RivalPreviewDetail | null {
   const shown = findUnit(state, unit);
   if (shown?.kind !== 'enemy' || !shown.rival || !isAlive(shown) || !shown.intent) return null;
   const intent = shown.intent;
   if (intent.kind !== 'cast' && intent.kind !== 'trick' && intent.kind !== 'rivalStrike')
     return null;
   if (shown.stunned) return { ...EMPTY, fallbackLive: false };
-  if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent);
+  if (intent.kind === 'rivalStrike') return previewStrike(state, unit, intent, footnotes);
   const fallbackLive = fallbackIsLive(state, shown, intent.fallback);
 
-  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes: {} };
+  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes };
   const e = findUnit(ctx.s, unit);
   if (e?.kind !== 'enemy') return null;
   const before = cloneData(ctx.s);

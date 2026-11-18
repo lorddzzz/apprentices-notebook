@@ -194,8 +194,9 @@ export function simulate(
   unit: UnitId,
   path: readonly Coord[],
   intent: Extract<RivalIntent, { kind: 'cast' | 'trick' }>,
+  footnotes: FootnoteIds = {},
 ): Outcome {
-  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes: {} };
+  const ctx: Ctx = { s: cloneData(state), log: [], cast: null, meta: {}, footnotes };
   const e = findUnit(ctx.s, unit);
   if (e?.kind !== 'enemy') return outcomeOf([], unit, ctx.s);
   enemyWalk(ctx, e, path);
@@ -248,6 +249,7 @@ function bestSpellPlan(
   st: GoalStep,
   action: Extract<GoalAction, { kind: 'spell' }>,
   dests: Dest[],
+  footnotes: FootnoteIds,
 ): PlanCandidate | null {
   const goal = actionGoal(st.goal);
   const spell = e.rival?.spells[action.spell];
@@ -263,7 +265,7 @@ function bestSpellPlan(
         fallback: null,
         order: 0,
       } as const;
-      const outcome = simulate(s, e.id, dest.path, intent);
+      const outcome = simulate(s, e.id, dest.path, intent, footnotes);
       if (!outcome.effect) continue;
       const cand: PlanCandidate = { dest: dest.at, path: dest.path, intent, outcome };
       if (!goal.accepts(outcome, input, cand)) continue;
@@ -281,6 +283,7 @@ function bestTrickPlan(
   def: RivalDef,
   st: GoalStep,
   dests: Dest[],
+  footnotes: FootnoteIds,
 ): PlanCandidate | null {
   const goal = actionGoal(st.goal);
   const trick = def.trick ? trickOf(def.trick) : null;
@@ -298,7 +301,7 @@ function bestTrickPlan(
         fallback: null,
         order: 0,
       } as const;
-      const outcome = simulate(s, e.id, dest.path, intent);
+      const outcome = simulate(s, e.id, dest.path, intent, footnotes);
       if (!outcome.effect) continue;
       const cand: PlanCandidate = { dest: dest.at, path: dest.path, intent, outcome };
       if (!goal.accepts(outcome, input, cand)) continue;
@@ -367,11 +370,11 @@ export function planRival(
   for (const st of routine) {
     const a = st.action;
     if (a.kind === 'spell') {
-      const c = bestSpellPlan(state, e, def, st, a, dests);
+      const c = bestSpellPlan(state, e, def, st, a, dests, footnotes);
       if (c?.intent.kind === 'cast')
         return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
     } else if (a.kind === 'trick') {
-      const c = bestTrickPlan(state, e, def, st, dests);
+      const c = bestTrickPlan(state, e, def, st, dests, footnotes);
       if (c?.intent.kind === 'trick')
         return { path: c.path, intent: { ...c.intent, fallback: fallbackTile(state, c.dest) } };
     } else if (a.kind === 'move' && move && !dry) {
