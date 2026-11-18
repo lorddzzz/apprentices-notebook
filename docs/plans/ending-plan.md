@@ -1,7 +1,7 @@
 # The ending: implementation plan (EN)
 
 > Design: [ending.md](../design/ending.md) (all), [district-cartographers.md](../design/district-cartographers.md) §0 ("The ending") and §2, [district-seam.md](../design/district-seam.md) (the sealed door), [party.md](../design/party.md) §1 (habit rules, start points) and §2 (the tenth). Roadmap: **BL-126**. Brief: [build-program.md](build-program.md). Prefix **EN**.
-> **State: Building (EN-0, EN-W0, EN-5, EN-S1, EN-S2, EN-1 and EN-9 merged; EN-G0 decided: go, P29, design window 2026-11-17; EN-12 drafted in [ending-text.md](../design/ending-text.md) and approved as drafted at EN-G2 (2026-11-18); next: Pack W1 (EN-W1), then Pack E; contracts for Packs E–L decided, P30–P37; briefs in [build-program-briefs.md](build-program-briefs.md)).** Order: [midpoint-audit.md](midpoint-audit.md) §2.2 Track E and §3 Pack D (EN-0 first). Calibration (the old EN-13) moved to the CAL plan.
+> **State: Building: every task to the credits is merged (EN-0 to EN-11 and EN-K1–K7 through EN-W1 and Packs E–L, 2026-11-17/18); EN-G0 decided go (P29), EN-12's text approved at EN-G2 (2026-11-18). Next: EN-14, the ending's Close (a design window), then CAL. N2's reviews briefed the drawn-trip and UI items as Packs R2 and R5 ([build-program-briefs.md](build-program-briefs.md)).** Order: [midpoint-audit.md](midpoint-audit.md) §2.2 Track E and §3 Pack D (EN-0 first). Calibration (the old EN-13) moved to the CAL plan.
 > Scope: the handover visit and credits, the owner as the tenth apprentice, the drawing table with its pen, drawn districts on the map, and the **room generator** with its guardrails and bot test, plus drawn hearts and loot.
 
 ## 1. Scope and settled rules
