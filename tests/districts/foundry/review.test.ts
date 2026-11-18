@@ -3,13 +3,14 @@ import type { Drawing } from '$data';
 import type { Ctx } from '$engine/ctx';
 import '$engine/districts';
 import { botValue } from '$engine/districts/api';
+import { foundryHeartFrame } from '$engine/districts/foundry/heartFrame';
 import { hurtByPulse } from '$engine/districts/foundry/ring';
 import { type FoundryTripState, parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json } from '$engine/districts/types';
 import { GEN_KITS, HEART_FRAMES } from '$engine/drawing';
-import { noteOfRoom, pealSetup } from '$engine/drawing/kits/foundry';
+import { hooksOf, noteOfRoom, pealSetup } from '$engine/drawing/kits/foundry';
 import type { EventLog } from '$engine/events';
-import type { BoardSpec } from '$engine/notation';
+import { type BoardSpec, parseBoard } from '$engine/notation';
 import { heartDrawing } from '../../drawing/fixtures';
 import { shapeInput } from '../../drawing/kits-c.scripts';
 import { board, withLattices } from '../../scenarios/harness';
@@ -112,5 +113,33 @@ describe('R6-6: the bot does not count the pulses of a tone that is humming', ()
     const member = 'r . . . .\n. . . . .\nD {bell:low} . . .';
     expect(botValue(ring(member, []))).toBeLessThan(0);
     expect(botValue(ring(member, ['low']))).toBe(0);
+  });
+});
+
+describe('R6-7: the heart frame hangs its hooks on bare tiles only', () => {
+  // Drops above, start points in the middle, bare ground below: the hooks' authored spots are in the
+  // upper two thirds, so the nearest tile to them is never bare unless the search checks.
+  const heart = () =>
+    parseBoard(
+      [
+        ...Array.from({ length: 3 }, () => '_ _ _ _ _ _ _ _ _'),
+        ...Array.from({ length: 3 }, () => 'P P P P P P P P P'),
+        ...Array.from({ length: 4 }, () => '. . . . . . . . .'),
+      ].join('\n'),
+    );
+
+  it('no hook lies on a start point, a drop or a unit, for any seed, and none is lost', () => {
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const base = heart();
+      const out = foundryHeartFrame(base, seed);
+      const hooks = hooksOf(out);
+      expect(hooks).toHaveLength(4);
+      for (const h of hooks) {
+        const i = h.at.y * base.width + h.at.x;
+        expect(base.tiles[i]?.terrain.drop).toBe(false);
+        expect(base.starts.some((p) => p.x === h.at.x && p.y === h.at.y)).toBe(false);
+        expect(out.units.some((u) => u.at.x === h.at.x && u.at.y === h.at.y)).toBe(false);
+      }
+    }
   });
 });
