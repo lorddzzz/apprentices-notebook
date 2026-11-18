@@ -28,9 +28,12 @@ import type { Ctx, FootnoteIds, FootnoteVariantId } from './ctx';
 import type { EventLog } from './events';
 import type { BattleState, FootnoteEntry, Profile, UnitId } from './types';
 
+/** The content's variants by id: `hasFootnote` sits on the resolution hot path. */
+const VARIANT_BY_ID: ReadonlyMap<string, VariantDef> = new Map(VARIANTS.map((v) => [v.id, v]));
+
 /** True when the household wrote this variant in its slot or capstone. Handlers name ids, never text. */
 export function hasFootnote(ctx: Pick<Ctx, 'footnotes'>, id: FootnoteVariantId): boolean {
-  const variant = VARIANTS.find((v) => v.id === id);
+  const variant = VARIANT_BY_ID.get(id);
   return variant !== undefined && ctx.footnotes[footnoteKeyOf(variant)] === id;
 }
 
@@ -169,7 +172,7 @@ export function slotsOf(p: Profile, subject: FootnoteSubject, opts: FootnoteOpts
       options: state === 'locked' ? [] : s.v,
     };
   });
-  // Lines in first-authored order, level I before II on each; the capstone last.
+  // The capstone last; the rest keep their authored order (desk.ts sorts the levels itself).
   return views.sort((a, b) => (a.line === null ? 1 : 0) - (b.line === null ? 1 : 0));
 }
 
@@ -206,11 +209,6 @@ export function homeDistrict(subject: FootnoteSubject): DistrictId {
     case 'solvent':
       return SOLVENTS[subject as SolventId].district;
   }
-}
-
-/** The district solvent the player holds most of (ties: first listed), or null when none. */
-export function solventFor(p: Profile, line: LineId): SolventId | null {
-  return mostHeld(p.solvents, districtSolvents(LINES.find((l) => l.id === line)?.district));
 }
 
 function mostHeld(held: Profile['solvents'], from: readonly SolventId[]): SolventId | null {
