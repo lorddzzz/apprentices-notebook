@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform-closure](platform-closure-plan.md), [foundry](foundry-plan.md), [ending](ending-plan.md), [cartographers](cartographers-plan.md), [calibration](calibration-plan.md) (last). Briefs: [build-program-briefs.md](build-program-briefs.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`).
 
-**State:** waves 23-25 and Pack J merged 2026-11-17 (fast gate green, 8533; full gate and sims only in CI; CI on the pushes not yet read). Stopped at 87 % of the 5h window; **Pack K merged 2026-11-18** (15b2b6d, 20971cf; fast gate green, 8563). **Pack L merged** (076c1ee, a0f2599; fast gate green, 8576). **N2 done on its branch** (worktree-agent-a3b49046ea7b639a9, not merged yet: CL-4 five reviews + CL-6 foundry Close + CL-5 records and ledger; full `pnpm check` green at e3a7aea, 418 files, 9197 passed; `check:fast` green at the head, 386 files, 8576 passed, after the foundry fix 5b00412). **Next: merge N2, then the EN-14 + CAL design window; Packs R1–R6 (review fixes) are briefed and may run before or beside it.** **Next window: routine.** Reset 2026-11-17 23:20 UTC (00:20 CET).
+**State:** N2 merged 2026-11-18 (57 % of 5h at its end); next R1–R4, R6 then R5. waves 23-25 and Pack J merged 2026-11-17 (fast gate green, 8533; full gate and sims only in CI; CI on the pushes not yet read). Stopped at 87 % of the 5h window; **Pack K merged 2026-11-18** (15b2b6d, 20971cf; fast gate green, 8563). **Pack L merged** (076c1ee, a0f2599; fast gate green, 8576). **N2 done on its branch** (worktree-agent-a3b49046ea7b639a9, not merged yet: CL-4 five reviews + CL-6 foundry Close + CL-5 records and ledger; full `pnpm check` green at e3a7aea, 418 files, 9197 passed; `check:fast` green at the head, 386 files, 8576 passed, after the foundry fix 5b00412). **Next: merge N2, then the EN-14 + CAL design window; Packs R1–R6 (review fixes) are briefed and may run before or beside it.** **Next window: routine.** Reset 2026-11-17 23:20 UTC (00:20 CET).
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
@@ -16,7 +16,7 @@ Plans: [build-program.md](build-program.md) (boundaries); in pack form [platform
 
 | Wave | Pack | Tasks | Model / effort | Starts when |
 |---|---|---|---|---|
-| now | merge N2 | its branch (worktree-agent-a3b49046ea7b639a9): engine, rivals, footnotes, foundry and ending UI fixes, docs | orchestrator | nothing running; `pnpm check:fast` after the merge |
+| done 2026-11-18 | N2 merged | fast gate green (8576); full gate green at e3a7aea in the agent's run | — | CI on the push not yet read |
 | after N2 | R1, R2, R3, R4, R6 (together), then R5 | review fixes from N2 (briefs file "Review fixes from N2") | as each brief | N2 merged; R5 after R2 |
 
 2. Then a design window: EN-14 (the ending's Close) and the CAL briefs (R2 and R6 before CAL-4/CAL-5 read drawn trips and the foundry bot). Plan B for the generator only if the player's room check fails (Open questions).
