@@ -96,8 +96,9 @@ const isAllied = (piece: TilePiece): boolean =>
 /** A strike on the bell at `at`: logged now, queued for the settle point (P18), striker recorded (P8). */
 function strike(ctx: Ctx, at: Coord, piece: TilePiece, by: StruckBy, origin: Origin | null): void {
   // One blow per bell until the queue settles: a Bolt that stops at a bell and the Spark it
-  // carries (or a Storm burst on top of it) strike it once.
-  if (readBells(ctx).queue?.some((q) => q.at.x === at.x && q.at.y === at.y)) {
+  // carries (or a Storm burst on top of it) strike it once. A foe's tone ring queued at this
+  // tile (`q.tone`, as `tagQueued` reads it) is not a blow on the bell.
+  if (readBells(ctx).queue?.some((q) => q.at.x === at.x && q.at.y === at.y && !q.tone)) {
     if (hasFlags(scoped)) tagQueued(ctx, at, scoped);
     return;
   }
