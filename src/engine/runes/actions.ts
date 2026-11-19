@@ -9,6 +9,7 @@ import {
   type StateId,
   TUNING,
 } from '$data';
+import { FOOTNOTE_TUNING } from '../../data/tuning';
 import { hasTrait, objectArrives, relocateAll } from '../arrival';
 import { markUnit, unmarkedBeside } from '../bursts';
 import { cloneData } from '../clone';
@@ -167,7 +168,8 @@ const shove: Handler = (ctx, t, flow) => {
   const selfTouch = touch && u.id === caster.id;
   const unitTouch = touch && u.id !== caster.id;
   // `touch-member-runup`: a tile for each one walked in a straight line, up to 3.
-  if (selfTouch && fn('touch-member-runup')) tiles = Math.max(tiles, Math.min(3, caster.run ?? 0));
+  if (selfTouch && fn('touch-member-runup'))
+    tiles = Math.max(tiles, Math.min(FOOTNOTE_TUNING.touchRunupCap, caster.run ?? 0));
   // `touch-member-tow`: the unit right behind you is pulled along one tile.
   const behind =
     selfTouch && fn('touch-member-tow') ? unitAt(ctx.s, step(u.pos, opposite(heading))) : null;
@@ -203,7 +205,13 @@ const guard: Handler = (ctx, t, flow) => {
   maybeLine(ctx, again ? 'guard:shielded' : null, () => {
     if (!again) return gainShield(ctx, u, TUNING.guardShield, until);
     if (fn('guard-shielded-long')) gainShield(ctx, u, 0, until, true);
-    else gainShield(ctx, u, fn('guard-shielded-thick') ? 3 : TUNING.guardShield, until);
+    else
+      gainShield(
+        ctx,
+        u,
+        fn('guard-shielded-thick') ? FOOTNOTE_TUNING.guardThickShield : TUNING.guardShield,
+        until,
+      );
     if (fn('guard-shielded-thorns') && u.hp > 0) u.thorns = true;
     // `guard-shielded-spill`: the nearest unshielded ally beside it is shielded for 1.
     if (fn('guard-shielded-spill')) {

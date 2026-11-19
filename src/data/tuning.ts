@@ -108,3 +108,19 @@ export const SOLVENT_TUNING = {
   /** Chalk: extra tiles of network depth. */
   chalkReach: 1,
 } as const;
+
+/** Numbers for individual footnote variants. */
+export const FOOTNOTE_TUNING = {
+  markKeepDamage: 2,
+  markWideDamage: 1,
+  plateFocusDamage: 3,
+  plateSpareDamage: 1,
+  plateChargeDamage: 1,
+  markFlareDamage: 1,
+  plateHumDamage: 1,
+  slickLongRounds: 3,
+  slickHotDamage: 3,
+  touchRunupCap: 3,
+  guardThickShield: 3,
+  graphitePinRounds: 2,
+} as const;

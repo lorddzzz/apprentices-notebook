@@ -8,6 +8,7 @@ import {
   type Meets,
   TUNING,
 } from '$data';
+import { FOOTNOTE_TUNING } from '../data/tuning';
 import { type Ctx, emit, ref, reserve, withLine, withOrigin } from './ctx';
 import { burnGates } from './current';
 import { dealDamage } from './damage';
@@ -230,15 +231,6 @@ const fireLayer = (origin: Origin | null, rounds: number = TUNING.fireRounds): L
 
 // ── The five bursts ─────────────────────────────────────
 
-/** Footnote numbers for the Spark margin (seam.md; unbalanced on purpose). */
-const KEEP_DAMAGE = 2;
-const WIDE_DAMAGE = 1;
-const FOCUS_DAMAGE = 3;
-const SPARE_DAMAGE = 1;
-const CHARGE_DAMAGE = 1;
-const FLARE_DAMAGE = 1;
-const HUM_DAMAGE = 1;
-
 /** Detonation: 3 to the unit and its mark is spent. Footnotes: wide, keep, blast (`heading` is the spark's). */
 function detonate(ctx: Ctx, u: Unit, heading: Dir | null = null): void {
   withLine(ctx, sparkLine('mark'), () => {
@@ -250,8 +242,8 @@ function detonate(ctx: Ctx, u: Unit, heading: Dir | null = null): void {
     announce(ctx, 'detonation', from, [from], [u, ...beside]);
     const keep = hasFootnote(ctx, 'spark-mark-keep');
     if (!keep) spendMark(ctx, u); // spent, never released (P31)
-    hit(ctx, [u], keep ? KEEP_DAMAGE : row.damage, 'Detonation', from);
-    hit(ctx, beside, WIDE_DAMAGE, 'Detonation', from);
+    hit(ctx, [u], keep ? FOOTNOTE_TUNING.markKeepDamage : row.damage, 'Detonation', from);
+    hit(ctx, beside, FOOTNOTE_TUNING.markWideDamage, 'Detonation', from);
     if (heading && u.hp > 0 && hasFootnote(ctx, 'spark-mark-blast')) {
       push(ctx, u, heading, 1, u.mark?.origin ?? null);
     }
@@ -303,7 +295,10 @@ export function chargeTrip(ctx: Ctx, unit: Unit, at: Coord): void {
   }
   withOrigin(ctx, origin, () =>
     withLine(ctx, sparkLine('plate'), () =>
-      dealDamage(ctx, unit, CHARGE_DAMAGE, 'Charge', [], { heading: null, at: { ...hot } }),
+      dealDamage(ctx, unit, FOOTNOTE_TUNING.plateChargeDamage, 'Charge', [], {
+        heading: null,
+        at: { ...hot },
+      }),
     ),
   );
 }
@@ -335,7 +330,10 @@ function ignite(
   // `ink-stain-wick`: a stain in the run burns as Inkfire.
   const wick = id !== 'page:stain' && hasFootnote(ctx, 'ink-stain-wick');
   const stains = wick ? tiles.filter((c) => tileAt(s, c).state?.id === 'stain') : [];
-  const rounds = id === 'fire' && hasFootnote(ctx, 'spark-slick-long') ? 3 : TUNING.fireRounds;
+  const rounds =
+    id === 'fire' && hasFootnote(ctx, 'spark-slick-long')
+      ? FOOTNOTE_TUNING.slickLongRounds
+      : TUNING.fireRounds;
   reserve(ctx, 2); // `named` (first time) and `burst`
   for (const c of tiles) tileAt(s, c).state = fireLayer(flow?.origin ?? null, rounds);
   const inked = stains.length ? unitsNear(ctx, stains, reachOf(flow)) : [];
@@ -358,7 +356,9 @@ function ignite(
   hit(
     ctx,
     units,
-    id === 'fire' && hasFootnote(ctx, 'spark-slick-hot') ? 3 : row.damage,
+    id === 'fire' && hasFootnote(ctx, 'spark-slick-hot')
+      ? FOOTNOTE_TUNING.slickHotDamage
+      : row.damage,
     source,
     at,
   );
@@ -428,7 +428,12 @@ function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): voi
   announce(ctx, 'conduct', at, tiles, units, flow);
   // `conduct-network-hum`: brass a conduct left humming this round burns 1 more.
   const humming = tiles.some((c) => ctx.s.hum?.some((h) => h.x === c.x && h.y === c.y)) ? 1 : 0;
-  const damage = (focus ? FOCUS_DAMAGE : spare ? SPARE_DAMAGE : rowFor('plate').damage) + humming;
+  const damage =
+    (focus
+      ? FOOTNOTE_TUNING.plateFocusDamage
+      : spare
+        ? FOOTNOTE_TUNING.plateSpareDamage
+        : rowFor('plate').damage) + humming;
   if (hasFootnote(ctx, 'brass-unit-burn')) {
     // Each unit in turn: a cast collar adds 1 to its hit, then comes off.
     for (const u of units) {
@@ -449,7 +454,7 @@ function conduct(ctx: Ctx, at: Coord, flow: Flow | null, fromPlate = false): voi
   if (fromPlate && hasFootnote(ctx, 'brass-plate-hum')) {
     const walls = tiles.filter((c) => tileAt(ctx.s, c).state?.id === 'wall');
     const hummed = units.filter((u) => walls.some((w) => manhattan(w, u.pos) <= 1 + reach));
-    hit(ctx, hummed, HUM_DAMAGE, 'Hum', at);
+    hit(ctx, hummed, FOOTNOTE_TUNING.plateHumDamage, 'Hum', at);
   }
   if (!fromPlate) return;
   const heading = headingAt(ctx, flow, at);
@@ -488,7 +493,9 @@ function pageDeepMark(ctx: Ctx, u: Unit): void {
     const beside = manyOf(
       livingUnits(ctx.s).filter((n) => neighbors4(from).some((c) => sameTile(c, n.pos))),
     );
-    withLine(ctx, 'ink:mark', () => hit(ctx, beside, FLARE_DAMAGE, 'Flare', from));
+    withLine(ctx, 'ink:mark', () =>
+      hit(ctx, beside, FOOTNOTE_TUNING.markFlareDamage, 'Flare', from),
+    );
   }
 }
 

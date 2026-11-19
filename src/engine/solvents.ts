@@ -1,4 +1,5 @@
 import { ACTIONS, type InventionId, type LineId, SOLVENT_TUNING, type SolventId } from '$data';
+import { FOOTNOTE_TUNING } from '../data/tuning';
 import { objectArrives, relocateAll } from './arrival';
 import { burstAt, markUnit, nameOnce, noteMet } from './bursts';
 import { type Ctx, emit, type FootnoteVariantId, ref, withLine, withOrigin } from './ctx';
@@ -382,7 +383,7 @@ export function undoBoard(ctx: Ctx, undo: BoardUndo, origin: Origin | null = nul
         }
         if (m.u.kind === 'enemy' && hasFootnote(ctx, 'graphite-cap-pin')) {
           // The undo runs as your turn begins, where Hold counts down at once: 2 lasts the enemy phase.
-          m.u.held = Math.max(m.u.held, 2);
+          m.u.held = Math.max(m.u.held, FOOTNOTE_TUNING.graphitePinRounds);
           emit(ctx, { type: 'held', unit: ref(m.u), rounds: m.u.held });
         }
       }
