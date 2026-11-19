@@ -105,6 +105,9 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | EN-K8 (K2a) | 9acce50 | Codex Terra 6.1 high (app spawn) | 1 (stopped uncommitted on one test expectation outside its Owns: canals foes now include the snuffer; orchestrator fixed and committed) | ~8% Codex | kits for snuffer, deadLetter, sorter, sealer and the quarter's return/order/forward stamps; `UNDRAWN` props left out of paletteOf; the span piece needs nothing; EN-K loses `it.fails` |
 | EN-K9, EN-K10 (K2b) | a41288c | Sonnet 5.5 high | 0 | ~12% Claude | the bot judges the room played: heart frame rules activated and listed in the trial; `ShapeKit.stamp?` and the peal's lock stamps at generation; fuzz 74.0 % within 2 attempts, 0 fallbacks, 30/500 dull |
 | CAL-0 | fb1fa95 | Codex Sol 6.1 medium (app spawn) | 0 (sandbox could not write git; orchestrator committed) | ~8% Codex | shared table runner and five adapters, Seam port of ref/sm-6's table, harness review and approval schema; default sims 7 s |
+| CAL-N | 7bea4fd | Codex Terra 6.1 high (app spawn) | 0 (sandbox could not write git; orchestrator committed) | ~4% Codex | burst damages, Spark overrides, runup cap, thick shield and graphite pin duration moved into src/data/tuning.ts, values unchanged; literal review table |
+| CAL-D | 3a2b99f | Codex Terra 6.1 high (app spawn) | 0 (orchestrator committed) | ~4% Codex | doorway weight and drawn placeholder loot/picks data-owned, values unchanged |
+| CAL-B | 5d50468 | Sonnet 5.5 high | 0 | ~10% Claude | bot policy baseline (default / cracks / district), Hold decision: no-Hold retained (BotOptions.hold opt-in, off), foundry pulse weights in FOUNDRY_TUNING.botPulse; bridge party-1 stalls look like a movement loop (CAL-3 note), sounding yoke worse under the district policy (CAL-4 first step) |
 
 ## Usage
 
