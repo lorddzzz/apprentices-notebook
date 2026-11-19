@@ -154,7 +154,7 @@ export const collapseKit: RuleKit = {
 const spanKit: PieceKit = {
   id: SPAN,
   cost: COSTS.piece,
-  needs: needsOf(SPAN),
+  needs: [],
   place(layout, seed) {
     const rng = createRng(seed);
     const out = cloneData(layout);

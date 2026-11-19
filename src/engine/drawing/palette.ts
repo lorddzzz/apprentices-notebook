@@ -1,4 +1,5 @@
 import { ENEMIES, type EnemyId, type MasterId, type ShapeId } from '$data';
+import { UNDRAWN } from '$data/drawing';
 import { RIVALS } from '$data/rivals';
 import { isSandbox } from '../districts/api';
 import { DISTRICT_MODULES, KIT } from '../districts/kit';
@@ -24,7 +25,9 @@ export function paletteOf(p: Profile): Palette {
     .filter((r) => r.met !== undefined && met.includes(r.met))
     .map((r) => r.id);
   const pieces = Object.values(KIT.pieces)
-    .filter((d) => d.bench !== undefined && met.includes(d.bench.met))
+    .filter(
+      (d) => d.bench !== undefined && met.includes(d.bench.met) && !Object.hasOwn(UNDRAWN, d.id),
+    )
     .map((d) => d.id);
   // A shape lent to drawn districts (`module.shapes`, P33) is offered like the module's own, but
   // `seam:plain` is the 'plain' shape, which every drawing has.
@@ -43,7 +46,7 @@ export function paletteOf(p: Profile): Palette {
   if (holdsPage(p, 'lamplighter:lantern')) masters.push('lamplighter');
   return {
     rules,
-    foes: p.foesMet.filter(isPlainFoe),
+    foes: p.foesMet.filter((id) => isPlainFoe(id) && !Object.hasOwn(UNDRAWN, id)),
     pieces,
     shapes,
     masters: [...new Set(masters)],

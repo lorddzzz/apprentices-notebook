@@ -79,6 +79,17 @@ export const MASTER_HOME: Record<MasterId, DistrictId> = {
   registrar: 'cartographers',
 };
 
+/** P38: elements a drawing never offers, id -> reason (for review; never shown). */
+export const UNDRAWN: Readonly<Record<string, string>> = {
+  dummy: 'Lab and tests only',
+  clockSeal: "the postmaster's clock writ lays it",
+  letter: "the quarter threshold's errand object",
+  'inkQuarter:wax': 'the Sealer lays it',
+  'inkQuarter:clockStamp': "the postmaster's clock writ lays it",
+  'inkQuarter:address': 'comes with forwarding',
+  'canals:moor': "it moors the barge's crate only",
+};
+
 const CURRENT = ['canals:current'];
 const BELLS = ['foundry:bells', 'foundry:bell'];
 

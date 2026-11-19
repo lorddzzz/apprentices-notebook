@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { COSTS, NEEDS } from '$data/drawing';
-import { checkGenerated, GEN_KITS, generateRoom, HEART_FRAMES, specFor } from '$engine/drawing';
-import { heartDrawing, heartRoom, inputFor } from './fixtures';
+import type { Drawing } from '$data';
+import { COSTS, NEEDS, UNDRAWN } from '$data/drawing';
+import {
+  checkDrawing,
+  checkGenerated,
+  GEN_KITS,
+  generateRoom,
+  HEART_FRAMES,
+  paletteOf,
+  specFor,
+} from '$engine/drawing';
+import { parseBoard } from '$engine/notation';
+import { fullHousehold, heartDrawing, heartRoom, inputFor } from './fixtures';
 import { SCRIPTS } from './kits-a.scripts';
 
 /**
@@ -70,4 +80,78 @@ describe('Pack I frames (EN-K1 to EN-K3)', () => {
       }
     }
   }, 120_000);
+});
+
+describe('EN-K8: kit-less elements', () => {
+  it('EN-K8: every offered foe and piece generates in a room', () => {
+    const foes = ['snuffer', 'deadLetter', 'sorter', 'sealer'] as const;
+    const pieces = ['inkQuarter:return', 'inkQuarter:order', 'inkQuarter:forward'] as const;
+    for (const id of [...foes, ...pieces]) {
+      const piece = id.startsWith('inkQuarter:');
+      const drawing: Drawing = {
+        ...heartDrawing('marginalia'),
+        rule: null,
+        shape: 'plain',
+        length: 3,
+        foes: piece ? ['rat'] : [id as (typeof foes)[number]],
+        pieces: piece ? [id as (typeof pieces)[number]] : [],
+      };
+      const input = inputFor(drawing, 1, 0);
+      const made = generateRoom(input);
+      expect(checkGenerated(made.layout, specFor(input, 1)), id).toEqual([]);
+      if (piece)
+        expect(
+          made.layout.tiles.some((t) => t.piece?.id === id),
+          id,
+        ).toBe(true);
+    }
+  }, 120_000);
+
+  it('EN-K8: dropped elements are never offered', () => {
+    const palette = paletteOf(fullHousehold());
+    expect([...palette.foes, ...palette.pieces].filter((id) => Object.hasOwn(UNDRAWN, id))).toEqual(
+      [],
+    );
+  });
+
+  it('EN-K8: forwarding lays its address', () => {
+    const kit = GEN_KITS.flatMap((k) => k.pieces).find((p) => p.id === 'inkQuarter:forward');
+    expect(kit).toBeDefined();
+    if (!kit) throw new Error('Missing forwarding kit');
+    const board = parseBoard('. . . . .\n. . . . .\n. . . . .\n. . . . .\nP P P P .');
+    for (let seed = 0; seed < 50; seed++) {
+      const placed = kit.place(board, seed);
+      expect(placed).not.toBeNull();
+      if (!placed) throw new Error('No room for forwarding');
+      const forward = placed.tiles.find((t) => t.piece?.id === 'inkQuarter:forward')?.piece;
+      const address = placed.tiles.find((t) => t.piece?.id === 'inkQuarter:address')?.piece;
+      expect(forward?.data).toEqual(address?.data);
+      expect(kit.valid(placed)).toBe(true);
+      const next = kit.place(placed, seed);
+      expect(
+        next?.tiles.filter((t) => t.piece?.id === 'inkQuarter:forward').map((t) => t.piece?.data),
+      ).toEqual(expect.arrayContaining([{ pair: 'a' }, { pair: 'b' }]));
+    }
+    expect(kit.place(parseBoard('. .\nP P\nP P'), 1)).toBeNull();
+    expect(kit.valid(parseBoard('{forward:a} . .\n. . .\nP P P'))).toBe(false);
+  });
+
+  it('EN-K8: the span piece needs nothing', () => {
+    const drawing: Drawing = {
+      ...heartDrawing('marginalia'),
+      rule: null,
+      pieces: ['bridges:span'],
+      shape: 'plain',
+    };
+    expect(
+      checkDrawing(fullHousehold(), drawing).filter(
+        (i) => i.element === 'piece' && i.id === 'bridges:span',
+      ),
+    ).toEqual([]);
+    expect(
+      checkDrawing(fullHousehold(), { ...drawing, pieces: [], shape: 'bridges:span' }).some(
+        (i) => i.element === 'shape' && i.reason.includes('needs collapse'),
+      ),
+    ).toBe(true);
+  });
 });

@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Drawing } from '$data';
-import {
-  checkDrawing,
-  checkGenerated,
-  generateRoom,
-  missingKit,
-  paletteOf,
-  specFor,
-} from '$engine/drawing';
+import { checkDrawing, checkGenerated, generateRoom, paletteOf, specFor } from '$engine/drawing';
 import { FIXTURE_DRAWINGS, fullHousehold, heartRoom, heartSpec, inputFor } from './fixtures';
 
 /**
@@ -110,8 +103,7 @@ describe('EN-5: every offered combination generates (P23)', () => {
             length: 3,
             heart: master,
           };
-          // Scoped to elements that have a kit (the other districts' kits are Packs I-K).
-          if (checkDrawing(p, drawing).length > 0 || missingKit(drawing) !== null) continue;
+          if (checkDrawing(p, drawing).length > 0) continue;
           if (tried >= 40) continue;
           tried++;
           const room = generateRoom(inputFor(drawing, tried));

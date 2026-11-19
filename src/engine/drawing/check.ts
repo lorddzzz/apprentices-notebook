@@ -48,7 +48,7 @@ export function checkDrawing(p: Profile, d: Drawing): Issue[] {
   const have = onDrawing(d);
   for (const [element, id, known] of elements) {
     if (!known.includes(id)) issues.push({ element, id, reason: 'You have not met this yet.' });
-    for (const need of NEEDS[id] ?? []) {
+    for (const need of element === 'piece' ? [] : (NEEDS[id] ?? [])) {
       if (!need.anyOf.some((x) => have.has(x))) issues.push({ element, id, reason: need.reason });
     }
   }

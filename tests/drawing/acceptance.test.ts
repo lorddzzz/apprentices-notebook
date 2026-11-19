@@ -261,7 +261,7 @@ describe('EN-W1: the contracts', () => {
     expect(SPIKE_KITS).toBe(GEN_KITS);
     expect(GEN_KITS[0]?.foes.map((f) => f.id)).toEqual(['rat', 'familiar', 'sentry']);
     expect(GEN_KITS[1]?.rules.map((r) => r.id)).toEqual(['canals:current']);
-    expect(GEN_KITS[1]?.foes.map((f) => f.id)).toEqual(['eel', 'moth']);
+    expect(GEN_KITS[1]?.foes.map((f) => f.id)).toEqual(['eel', 'moth', 'snuffer']);
     const input = inputFor(FIXTURE_DRAWINGS[1] as Drawing, 1, 0);
     expect(specFor(input, 1).kits).toBe(GEN_KITS);
     // The Marginalia's frame is the Seam's heart in a minimal frame (P35).
@@ -415,7 +415,7 @@ function frameTests(pack: string, masters: readonly MasterId[], built = false): 
 }
 
 describe('EN-K: every kit and frame', () => {
-  it.fails('EN-K: every element a full household can offer has a kit', () => {
+  it('EN-K: every element a full household can offer has a kit', () => {
     const palette = paletteOf(fullHousehold());
     const has = {
       rules: new Set<string>(GEN_KITS.flatMap((k) => k.rules.map((r) => r.id))),

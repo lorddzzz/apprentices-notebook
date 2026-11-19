@@ -77,7 +77,7 @@ export const CANALS_KIT: GenKit = {
   district: 'canals',
   rules: [currentKit],
   pieces: [],
-  foes: (['eel', 'moth'] as const).map(foeKit),
+  foes: (['eel', 'moth', 'snuffer'] as const).map(foeKit),
   shapes: [landingsKit],
   frames: [],
 };
