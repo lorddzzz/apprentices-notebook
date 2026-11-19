@@ -108,6 +108,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CAL-N | 7bea4fd | Codex Terra 6.1 high (app spawn) | 0 (sandbox could not write git; orchestrator committed) | ~4% Codex | burst damages, Spark overrides, runup cap, thick shield and graphite pin duration moved into src/data/tuning.ts, values unchanged; literal review table |
 | CAL-D | 3a2b99f | Codex Terra 6.1 high (app spawn) | 0 (orchestrator committed) | ~4% Codex | doorway weight and drawn placeholder loot/picks data-owned, values unchanged |
 | CAL-B | 5d50468 | Sonnet 5.5 high | 0 | ~10% Claude | bot policy baseline (default / cracks / district), Hold decision: no-Hold retained (BotOptions.hold opt-in, off), foundry pulse weights in FOUNDRY_TUNING.botPulse; bridge party-1 stalls look like a movement loop (CAL-3 note), sounding yoke worse under the district policy (CAL-4 first step) |
+| EN-14 (Close) | 19d2ecf, + docs | Opus 5.5 high (design window) | 0 | – | full gate green at 1e245ef (435 files, 9304 passed); phone states at 375x812 headless, en14-*.jpg (map overflow with 3 pages found); 3 reviews, 27 findings: 8 fixed (peal heart's allied bells, span-choice prefetch, inkers, credits order/casing/tally, bells comments) + 3 known items fixed (one door rule, EN-4 todo, rival-sheet footnotes), 16 briefed (R8 8, R9 5, 3 player questions), 3 to CAL §1.1; ledger 28/32, rest gates |
 
 ## Usage
 

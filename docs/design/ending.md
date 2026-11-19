@@ -1,6 +1,6 @@
 # The ending: the Seam becomes yours
 
-> **Status: Decided** (design round 2026-10-23; not built). Roadmap: BL-126. Plan: [ending-plan.md](../plans/ending-plan.md).
+> **Status: Built (EN-14, 2026-11-20)** (design round 2026-10-23; built by the ending plan, checked in [ending-verification.md](../plans/ending-verification.md)). Roadmap: BL-126. Plan: [ending-plan.md](../plans/ending-plan.md).
 > Summary and decision log: [DESIGN.md](../../DESIGN.md) §6.7 and §11. Story set-up: [district-cartographers.md](district-cartographers.md) §0 ("The ending") and §2, [district-seam.md](district-seam.md) (the sealed door at the bottom of the lower Seam). The tenth apprentice: [party.md](party.md) §2.
 > Names are placeholders until BL-40. Numbers are *tune by playing*.
 

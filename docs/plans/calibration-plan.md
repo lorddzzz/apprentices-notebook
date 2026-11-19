@@ -42,6 +42,13 @@ Found by the five code reviews of Pack N2; none was tuned. CAL moves each into `
 | Foundry bot pulse weights | `pulseTerm`, `src/engine/districts/foundry/bot.ts:19-20` | foe +6, +10 more at 1 HP; member -15 |
 | Drawn-room placeholder loot | `LOOT`, `PICKS`, `src/engine/districts/inkedPage.ts:25-26` (`'deep'`, room 1, heart 2): never read, `offersFor` replaces them with `DRAWN_LOOT` | drop them or point them at `DRAWN_LOOT` |
 | Doorway weight | `DOORWAY_WEIGHT`, `src/engine/drawing/loot.ts` (already listed in the status file, Pack F2) | 1 |
+| *Appended by EN-14 (the ending's Close reviews, 2026-11-20; lines as of 19d2ecf):* | | |
+| Bot value weights | `src/engine/sim/bot.ts:28-33`: `HOLD_PIN`, `HOLD_SELF_PIN`, `LITE_MOVES`, `TRIAL_BUDGET`; the board value `-10·hp − 20` a foe, `30·hp` a member (`:58-62`); Hold's fall gain `10·hp + 20` (`:103`) | 0.5, 2, 6, 6000; as listed. Note: the Hold gain counts a held flier on a cracked tile as falling (fliers never fall), so CAL-B's Hold comparison flattered Hold (brief R8) |
+| Generator room shape | `src/engine/drawing/generate.ts`: `GROUND` (`:53`), `BOLT_REACH` (`:216`), the room sizes and the current's row hint in `specFor` (`:140-145`) | `{min 2, max 5}`, 4, 5-7 × 6-9 by depth, 7 rows under the current |
+| Drawn heat at the heart | `HEART_HEAT`, `src/engine/drawing/kits/bathhouses.ts:53` (a copy of `src/data/districts/bathhouses.ts:56`; Biome forbids a kit importing `$data/districts/*`) | 4 (both) |
+| Pencil share, span sizes | `PENCIL_SHARE`, `src/engine/drawing/kits/cartographers.ts:97`; `adjustSpan`'s caps and the sound span's +1 budget, `src/engine/drawing/kits/bridges.ts:238-247` | `{fuller 0.35, usual 0.3, minimum 0.2}`; 7 × 9, +1 |
+| Drawn picks | `DRAWN_LOOT.picks.heavy`, `src/data/drawing.ts:141`, is never read: `loot.ts:103` uses `heavyPicksBeforeHeart` (2). A weight of 0 in `DRAWN_LOOT` throws in `pickWeighted` today (brief R8) | 1 (unread), 2 |
+| Map layout | `MAP_PAGE_HEIGHT`, `UNDER_SEAM`, `PAGE_ROW`, `BLANK_ROW`, `src/app/city.ts:16, 244-246` (layout, not balance; the door row is not counted and three drawn pages run off the page, brief R9) | 1900, 260, 52, 40 |
 
 ## 2. Target bands (quoted, not set here)
 
