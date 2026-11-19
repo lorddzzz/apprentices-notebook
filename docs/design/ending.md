@@ -70,6 +70,28 @@ A screen at the desk, available after the handover. Three page slots; an empty p
 - **Rewards**: ordinary loot at the drawing's depth (ink, vellum, rune and method pages you lack, the solvents of the districts you drew from); proof, footnote points and witnessed fine print as in any trip fight; a wipe loses the trip's loot as everywhere.
 - The **trip shape** works as in its home district (terms block going home, heat rises, spans are chosen, great bells hang in the heart, a point of no return holds).
 
+### 1.5 What a drawing can offer, element by element (*Proposal*, design window 2026-11-19)
+
+The palette (P3) listed seven foes and seven pieces that no kit could place. The rule: **a foe or piece is drawable when it does something on any board by itself**. A prop that belongs to one room, one errand or one master is not drawable. It is left out of the palette, not shown greyed.
+
+| Element | Decision | Why |
+|---|---|---|
+| Snuffer (canals) | **Gets a kit** (an elite, no needs) | A chaser that puts out fire works on any board |
+| Dead letter, Sorter, Sealer (quarter) | **Get kits** (minions, no needs) | Their behaviours run anywhere. The Sorter moves your own marks, and with none to move it files a hit |
+| Return to sender, Standing order (quarter) | **Get piece kits** (1 each, no needs) | Each stamp brings the writs rule by itself (piece-scoped). With the writs drawn, a pick adds one more |
+| Forwarding (quarter) | **Gets a piece kit** that lays the pair: `{forward:a}` and its `{address:a}` | A forward stamp without its address does nothing |
+| Address (quarter) | **Replaced by Forwarding** (not its own pick) | It comes with the forward stamp |
+| Training dummy | **Dropped** | Lab and tests only |
+| Postmaster's seal, Postmaster's stamp (quarter) | **Dropped** | His clock writ lays them. A drawn postmaster heart lays its own once the heart lists his rules (below) |
+| Letter (quarter threshold) | **Dropped** | An inert errand object, not a foe |
+| Wax seal (quarter) | **Dropped** | The Sealer lays it, and it dies with the Sealer |
+| Mooring (canals) | **Dropped** | It only moors the barge's crate, and drawn rooms have no crate and no goal |
+
+Two more rules follow from the same check (what the bot judges is what you play):
+- **A drawn heart lists its master's own rules** (the clock writ, the tune, the guild hands, boil-over, collapse) on every shape, not only when the drawing's shape happens to add them. The bot trial lists the same rules as the room will.
+- **A shape's room additions are laid when the room is generated**, so the bot is tested on them and the stored room shows them (the peal's great bell and lock stamp). What depends on play stays at the room's start (the heart's allied bells for the notes you rang).
+- **No piece has a need.** The bridges' span piece no longer borrows the span choice's "needs collapse" (a span brings collapse itself).
+
 ## 2. Still open
 
 - The owner's real name and face (BL-40) and the handover's exact text (authored with the build).
