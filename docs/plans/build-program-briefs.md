@@ -8,100 +8,14 @@ A pack starts when the packs in its "Starts when" are merged. Packs on one row o
 
 | Wave | Packs (together) | Runner · model / effort | Starts when |
 |---|---|---|---|
-| 27 | **K2a** the kit-less elements (EN-K8) · **K2b** an honest trial (EN-K9 → EN-K10) | K2a: Codex (CLI runner) · Terra 6.1 high (→ Sol 6.1 high) · K2b: Claude · Sonnet 5.5 high (→ Opus 5.5 high) | now (read CI on the last push first) |
+| 27 | K2a, K2b | merged 2026-11-19 (9acce50, a41288c) | – |
 | 28 | **EN-14** the ending's Close: a design-window agent, not a `pack-worker` | Claude · strongest model, high | K2a and K2b merged, CI green |
 | then | **CAL** the calibration plan (CAL-0 to CAL-5): its briefs live in [calibration-briefs.md](calibration-briefs.md), written separately; they start after EN-14 | as written there | EN-14 merged |
 
 File clashes and how the order avoids them:
 - K2a owns the palette, the needs check, `src/data/drawing.ts` and the canals, quarter and bridges kits; K2b owns `generate.ts`, `drawing/types.ts`, the foundry kit and `districts/inkedPage.ts`. Neither edits the other's files. Both add tests in their own files; K2a alone edits `tests/drawing/acceptance.test.ts` and `tests/drawing/generator.test.ts`.
-- Sims: K2b runs `tests/sim/generator.test.ts` (it changes what every trial runs). K2a runs no sim. EN-14 runs the full gate.
-- Phone checks: none in K2a or K2b (engine only). EN-14 does the ending's full loop.
 
 Every brief's "Owed by this pack" items are also in the status file's Owed list.
-
----
-
-## Pack K2a (Default; Codex CLI runner: Terra 6.1 high)
-
-Prepend the standing-rules preamble (templates.md, Codex CLI runner: the orchestrator commits).
-
-```
-Pack K2a of docs/plans/ending-plan.md: task EN-K8 (P38, the kit-less elements).
-
-Read: ending-plan.md §2 row P38 and §5 Pack K2; docs/design/ending.md §1.5; pattern: src/engine/drawing/kits/bridges.ts (`pierKit`, a PieceKit) and kits/inkQuarter.ts (`writsKit.stamp`, where writs go).
-Own: src/data/drawing.ts (`UNDRAWN`, new), src/engine/drawing/palette.ts, src/engine/drawing/check.ts,
-     src/engine/drawing/kits/canals.ts, src/engine/drawing/kits/inkQuarter.ts, src/engine/drawing/kits/bridges.ts (the `spanKit.needs` line only);
-     tests/drawing/kits-a.test.ts (new EN-K8 cases), the EN-K line of tests/drawing/acceptance.test.ts, the EN-5 combination test in tests/drawing/generator.test.ts.
-
-Contract (on main):
-  // src/engine/drawing/types.ts (unchanged)
-  interface PieceKit extends Needing { id: PieceId; cost: number; place(layout: BoardSpec, seed: number): BoardSpec | null; matters(layout: BoardSpec): number; valid(layout: BoardSpec): boolean }
-  // src/engine/drawing/kits/seam.ts (unchanged): foeKit(id: EnemyId): FoeKit   // budget from `elite`, habitat from the enemy's data, needs from NEEDS
-  // new, src/data/drawing.ts
-  /** P38: elements a drawing never offers, id -> reason (for review; never shown). */
-  export const UNDRAWN: Readonly<Record<string, string>> = {
-    dummy: 'Lab and tests only',
-    clockSeal: "the postmaster's clock writ lays it",
-    letter: "the quarter threshold's errand object",
-    'inkQuarter:wax': 'the Sealer lays it',
-    'inkQuarter:clockStamp': "the postmaster's clock writ lays it",
-    'inkQuarter:address': 'comes with forwarding',
-    'canals:moor': "it moors the barge's crate only",
-  };
-Invariants:
-- `paletteOf(p)` leaves out every id in `UNDRAWN` (foes and pieces); nothing else in the palette changes. The Lab's and the Bench's `paletteOf` (src/app/lab.ts, a different function) are not touched.
-- CANALS_KIT.foes gains `foeKit('snuffer')`. INK_KIT.foes gains `foeKit` of `deadLetter`, `sorter`, `sealer` (no NEEDS rows). INK_KIT.pieces gains three PieceKits at `COSTS.piece`, no needs:
-  `inkQuarter:return` and `inkQuarter:order` lay one `{return}` / `{order}` on a plain tile above the bottom two rows (as `writsKit.stamp` does); `inkQuarter:forward` lays the pair `{forward:a}` and `{address:a}` on two plain tiles above the bottom two rows that are not neighbours, or returns null when the board has no room for both. Pair letters: the first letter not used by a pair already on the board. `valid` is true when every forward stamp on the board has its address.
-- No piece has a need: `checkDrawing` reads `NEEDS[id]` for foes, shapes and hearts only, and `spanKit.needs` is `[]` (today the span piece borrows the span-choice shape's row "A span choice needs collapse", because they share the id `bridges:span`). The shape keeps its need.
-- `sourcesOf` (loot.ts) picks the new kits up by itself (canals for the snuffer, the quarter for its foes and stamps); do not edit loot.ts.
-- No district file is edited (P14). The comment above INK_KIT ("its foes and pieces have no kit yet") is updated.
-Owed by this pack: `EN-K: every element a full household can offer has a kit` loses its `it.fails` (P34); the Owed lines from Packs I, J and K on the kit-less elements close with it.
-
-Done when:
-- EN-K8: `EN-K: every element a full household can offer has a kit` passes with `it.fails` removed and its body unchanged; the EN-5 test `EN-5: every offered combination generates` drops its `missingKit(drawing) !== null` skip and still passes;
-  new tests pass: `EN-K8: every offered foe and piece generates in a room` (each new foe and piece in a 3-room plain drawing with the Marginalia heart: `generateRoom` on room 0 returns a layout that passes `checkGenerated`, and for a piece the piece is on it), `EN-K8: dropped elements are never offered` (fullHousehold's palette holds none of `UNDRAWN`'s ids), `EN-K8: forwarding lays its address` (50 seeds: every `{forward:x}` has its `{address:x}`), `EN-K8: the span piece needs nothing` (`checkDrawing` with piece `bridges:span` and no rule reports no need; the span-choice shape without collapse still does).
-
-Verify: `pnpm vitest run tests/drawing/acceptance.test.ts tests/drawing/kits-a.test.ts tests/drawing/palette.test.ts tests/drawing/generator.test.ts tests/app/drawing.test.ts tests/drawing/loot.test.ts --reporter=dot`
-Phone check: no. Sims: none.
-```
-
----
-
-## Pack K2b (Strong first setting; Claude: Sonnet 5.5 high)
-
-```
-Pack K2b of docs/plans/ending-plan.md: tasks EN-K9 -> EN-K10 (P39, P40: the bot judges the room the player plays).
-
-Read: ending-plan.md §2 rows P10, P39, P40 and §5 Pack K2; docs/design/ending.md §1.5 (the last three bullets); pattern: src/engine/drawing/kits/foundry.ts (`pealSetup`, `lockEdits`) and src/engine/trip/setup.ts (`setUpRoom`, `roomRules`: how a room lists its rules).
-Own: src/engine/drawing/generate.ts (`trial`, `compose`), src/engine/drawing/types.ts (`ShapeKit.stamp?` only), src/engine/drawing/kits/foundry.ts (`pealKit`, `pealSetup`),
-     src/engine/districts/inkedPage.ts (`INKED_TRIP.roomSetup`); tests/drawing/honest-trial.test.ts (new), tests/drawing/kits-c.test.ts (new EN-K10 cases only).
-
-Contract (on main):
-  // src/engine/districts/types.ts (unchanged)
-  interface HeartSetup { foe: EnemyId | KitId; rules: readonly RuleId[]; frame(board: BoardSpec, seed: number): BoardSpec }
-  interface RoomSetup { activate?: readonly RuleId[]; rulesConfig?: ...; boardEdits?: readonly BoardEdit[]; ... }
-  // src/engine/drawing/frames/index.ts (unchanged): HEART_FRAMES: Partial<Record<MasterId, HeartFrame>>  (read lazily: the KIT import cycle)
-  // src/engine/rules.ts (unchanged): listRules(state, ids, config, rules)
-  // src/engine/drawing/kits/foundry.ts (unchanged signatures): lockEdits(layout, note, seed): BoardEdit[]; noteOfRoom(room): Note; pealSetup(input): RoomSetup
-  // new, src/engine/drawing/types.ts
-  interface ShapeKit { ...; /** P40: what the shape lays on room `room` (never the heart) at generation, before the guardrails and the trial. */ stamp?(layout: BoardSpec, room: number, length: number, seed: number): BoardSpec }
-Invariants:
-- EN-K9 (P39): `INKED_TRIP.roomSetup` in the heart room (room === drawing.length - 1) activates the drawing's rule, the lent shape's `activate`, and `HEART_FRAMES[drawing.heart].setup.rules`, with no duplicates. Each frame rule gets the config the district's own heart room passes for it (read the district's `roomSetup`/heart for it, e.g. the tune's `{ seed: trip.seed }`); a config the lent shape already set wins. Rooms before the heart are unchanged.
-- EN-K9: `trial` (generate.ts) lists on the trial battle the drawing's rule and, at the heart, the frame's rules (default config; the lent shape's state-dependent config, such as the baths' heat by room, is not reproduced: write a one-line CAL note in your report). A drawing with no rule and a heart with no rules gives the trial battle exactly as today (the trial seeds and salts unchanged).
-- EN-K10 (P40): `compose` applies the drawing's shape kit's `stamp` (if any) to rooms before the heart, after `startPoints` and before `placeFoes`, with seed `deriveSeed(seed, 3)`; the frame path (`composeHeart`) is untouched. `pealKit.stamp` lays `lockEdits(layout, noteOfRoom(room), seed)`; `checkGenerated` and the trial see the stamped board and the stored layout carries it.
-- EN-K10: `pealSetup` before the heart returns the lock edits only when the stored layout has no `foundry:greatBell` (a trip inked before this change), with today's seed `deriveSeed(trip.seed, 7400 + room)`; otherwise no edits. The heart's allied bells and its tune activation are unchanged. Peal notes repeating on a length-6 trip stay as built.
-Owed by this pack: Pack K's undecided proposals (`ShapeKit.stamp?`, `inkedPage.roomSetup` activating the heart frame's rules), decided as P39/P40. The status file's line "the Steward bot trials never switch boil-over on" closes with EN-K9.
-
-Accepted test changes (list each in the report): `tests/districts/inkedPage/module.test.ts`'s heart-room `activate` expectation (room 3 of a length-4 drawing) may gain the frame's rules; nothing else. EN-K1–K7's tests must pass unchanged; the fallback boards' scripted solves are not re-recorded.
-
-Done when:
-- EN-K9: tests `EN-K9: a drawn heart lists its master's rules on a plain shape` (for every master whose setup lists rules: the postmaster's clock, the Carillonneur's tune, the Registrar's guild hand, the Steward's boil-over, the Chief Warden's collapse), `EN-K9: the trial lists the drawing's rule` (a boil-over drawing's trial battle has `bathhouses:boilOver` in its rules), `EN-K9: the trial lists the heart's rules` pass.
-- EN-K10: tests `EN-K10: a peal room is stored with its great bell` (lengths 3 to 6, every room before the heart), `EN-K10: the trial sees the lock stamp` (the board the trial battle is created from holds the great bell), `EN-K10: a trip inked before stamp still gets its bell` (a stored layout without a great bell gets the edits from `pealSetup`; one with it gets none) pass; `EN-K6: bells hang only where rung` passes unchanged.
-
-Verify: `pnpm vitest run tests/drawing tests/districts/inkedPage tests/districts/foundry/review.test.ts --reporter=dot`
-Phone check: no.
-Sims: run `pnpm vitest run tests/sim/generator.test.ts` after EN-K9 and after EN-K10. Report the fuzz's attempt histogram, fallback and dull rates against EN-G0's (P29: offered within 2 attempts 73.2 %, verified within 4 100 %, dull 28 of 500). A bar that fails because trials now run the real rules is a report item for CAL-5, not a tuning task: do not change `GEN_TUNING` or `GEN_LIMITS`.
-```
 
 ---
 

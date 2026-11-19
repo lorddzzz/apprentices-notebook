@@ -102,6 +102,9 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | R5 (CL-4 e) | bdae800 | Sonnet 5.5 medium | 0 | ~5% Claude | a failed inking offers Try again / Home (Home = abandonFight); `window.__inkFail` dev flag; DrawnPage carries its line; setOutAt calls setOut; headless 375x812 shot by the agent |
 | R7 (CL-4 leftovers) | 80da9b6 | Sonnet 5.5 medium (task 2) + orchestrator (task 1) | 1 (task 1 stopped at Biome's district-import rule; done by the orchestrator in districts/api) | ~5% Claude | `isSandbox` is the one sandbox read; intentPhrase/rivalPhrase/unitLine/rivalSheet take footnotes and phase |
 | R1 (CL-4 a) | ebcab5f | Codex Terra 6.1 high (CLI, two runs) | 1 (first run left item 1 partial, 6 and 7 unowned files; second run with a widened Owns) | ~10% Codex | engine core: tile guard on direct writes, drift jars, bonusFall, Bend rot, Graphite fallback, born collar kept (tally-collar-spend), shared helpers; orchestrator committed |
+| EN-K8 (K2a) | 9acce50 | Codex Terra 6.1 high (app spawn) | 1 (stopped uncommitted on one test expectation outside its Owns: canals foes now include the snuffer; orchestrator fixed and committed) | ~8% Codex | kits for snuffer, deadLetter, sorter, sealer and the quarter's return/order/forward stamps; `UNDRAWN` props left out of paletteOf; the span piece needs nothing; EN-K loses `it.fails` |
+| EN-K9, EN-K10 (K2b) | a41288c | Sonnet 5.5 high | 0 | ~12% Claude | the bot judges the room played: heart frame rules activated and listed in the trial; `ShapeKit.stamp?` and the peal's lock stamps at generation; fuzz 74.0 % within 2 attempts, 0 fallbacks, 30/500 dull |
+| CAL-0 | fb1fa95 | Codex Sol 6.1 medium (app spawn) | 0 (sandbox could not write git; orchestrator committed) | ~8% Codex | shared table runner and five adapters, Seam port of ref/sm-6's table, harness review and approval schema; default sims 7 s |
 
 ## Usage
 
@@ -128,3 +131,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 
 | 2026-11-18 21:18 | 37 (Claude) / 49 (Codex) | 4 / 8 | test cycle: R2, R6, R3 merged; fast gate green (389 files, 8601); read with `claude -p "/usage"` and codex app-server `account/rateLimits/read` |
 | 2026-11-18 23:15 UTC | 71 (Claude) / 68 (Codex) | 6 / 11 | R4, R5, R7, R1 merged; fast gate green (398 files, 8649); began at 55 / 53 |
+| 2026-11-19 | 4 (Claude) / 14 (Codex) at the start | 13 / 15 | design window (Opus, Claude) + CAL briefs (Codex Sol CLI); K2a, K2b, CAL-0 merged; fast gate green (399 files, 8663); CAL-N, CAL-D, CAL-B spawned |

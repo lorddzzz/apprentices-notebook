@@ -57,45 +57,6 @@ runTrip(start: SaveData, flow: TripFlow, hooks: TripHooks, guardMax = 60)
 
 Each engine worker runs its own Verify command plus the required TS check and `pnpm check:fast` before its last commit/report. Only the explicitly listed owners run the slow sims; each brief's Sims line grants run-only ownership of the named commands, including filtered use of the shared table test, without granting edits to that shared test. `CAL=1` is the complete table mode; CAL-0 supplies `CAL_DISTRICTS` to select a pack's districts. The new filenames below are explicitly marked new; the common runner/adapters are created by CAL-0 before later packs receive them.
 
-## Pack CAL-0 (Strong: Sol 6.1 medium; suggested runner: Codex)
-
-```text
-Pack CAL-0 of calibration-plan.md: tasks 1 -> 2 -> 3 (reference review, harness, baseline schema).
-
-Read: calibration-plan.md §§1–4 (including §1.1); git show ref/sm-6:tests/sim/seam-calibration.test.ts; pattern: tests/sim/bridges-calibration.test.ts.
-Owns: tests/sim/calibration-tables.test.ts (new), tests/sim/seam-calibration.test.ts (new, port),
-       tests/sim/calibration/{runner,seam-canals,ink,bath-bridges,foundry-cartographers,drawn}.ts (all new);
-       docs/plans/calibration-harness-review.md (new), docs/plans/calibration-results.md (new; relinquish after merge).
-
-Trace:
-- src/engine/sim/{bot,trip,index}.ts supply the shared policy/loop; tests/sim/bot.ts is only the compatibility export plus recruit policies. The harness lives in tests/, so it may inject src/app/flow.ts callbacks into runTrip without breaking the pure-engine boundary.
-- Authored rooms come from encountersOf / the registered modules: seam.ts, canals.ts, inkQuarter/*, bathhouses.ts, bridges*, foundry*, cartographers/*. Use beginEncounter/startBattle plus module setup, not a cloned old room list. Drawn inputs use drawing/generate.ts, its kits/frames and inkRoom.
-- ref/sm-6 is 4c77215 on worktree-agent-a7d9ce60e430bee68. Its diff changes seam.ts HP, golden.test.ts options, five golden JSON files and adds seam-calibration.test.ts. None of those source/fixture changes belong to this pack.
-- Old SM-6 has TARGETS/SLACK win-rate assertions and a >= n*3 attrition-room assumption. Port its party/layout measurements, not those gates. Existing calibration.test.ts is a separate older two-seed baseline; do not duplicate it as the new runner.
-
-Contract:
-  "CAL-0 first"; "review the kept SM-6 branch and port its seam-calibration.test.ts (SEAM_SIM=1 table)".
-  "The default run is under 20 s and asserts no throw and no cap overrun only."
-  Preserve the shared interfaces quoted above. Test-only adapters and deterministic smoke budgets are allowed; do not change production bot/data.
-  Neither the branch nor tag may be deleted here: "delete it only with the player's OK".
-
-1. Review git show/diff of ref/sm-6 against its parent and current main; write the actual port/fallout list. Include why the 72-HP result must be remeasured, spark still per-tile, the failed old heart-play test, and golden HP inflation. Also record the legal empty-span Shove as an existing save-replay rule, not permission to remove it.
-2. Build one markdown table runner, with one adapter file per later pack. It covers party 1–3, all layouts, fresh and genuinely trip-worn state, both bridge spans, foundry hung bells 0–4, and drawn weight bands. Full mode prints every district; default uses a bounded representative smoke sample rather than running the full matrix. Port SEAM_SIM/SEAM_SEEDS output as a thin use of this shared runner. Keep sample sizes, caps and policy explicit. CAL_DISTRICTS filters names without changing the unfiltered CAL=1 contract.
-3. Create results.md with the approval schema and the harness review link. Quote §2 bands and mark bridges/foundry's canal-band P2 as a Proposal, not a newly settled target. Smoke and table output are evidence, not acceptance based on a win percentage. Transfer results.md to the orchestrator after merge.
-
-Owed by this pack: SM-6 reference review; HC-4 bot limits inventory; shared table surface for CAL-1–5. Record the empty bridges Shove compatibility default and the Registrar-note watch item for CAL-4.
-
-Done when:
-- 'CAL-0: smoke tables do not throw or overrun the event cap' passes; measured default test-file runtime <20 s, including its ported default smoke.
-- CAL=1 output has Seam, canals, quarter, baths, bridges, foundry, academy and drawn tables, with the stated axes and denominators. Missing trip depths are printed, not skipped silently.
-- SEAM_SIM=1 uses the port; review.md lists exactly which reference changes were accepted for the harness and leaves HP/options/fixtures untouched.
-- results.md contains the schema, quoted bands, P2 status and links; no proposed number is labelled approved.
-
-Verify: pnpm vitest run tests/sim/calibration-tables.test.ts tests/sim/seam-calibration.test.ts --reporter=dot
-Sims owned: the two files above. Full measurement: CAL=1 pnpm vitest run tests/sim/calibration-tables.test.ts --reporter=dot
-Phone check: no.
-```
-
 ## Pack CAL-N (Default: Terra 6.1 high; suggested runner: Codex)
 
 ```text
