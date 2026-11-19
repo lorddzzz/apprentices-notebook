@@ -1,4 +1,4 @@
-import type { DistrictId, MasterId } from './types';
+import type { DistrictId, LootTableId, MasterId } from './types';
 
 /**
  * The drawing table's numbers (EN P5, P6, P7, P13, P23): element costs on the pen and the
@@ -141,6 +141,8 @@ export const DRAWN_LOOT = {
   picks: { light: 1, medium: 1, heavy: 1 },
   heavyPicksBeforeHeart: 2,
   heartPicks: 2,
+  doorwayWeight: 1,
+  placeholder: { table: 'deep' as LootTableId, picks: { room: 1, heart: 2 } },
   weights: {
     light: { page: 1, solvent: 1, ink: 3, vellum: 2 },
     medium: { page: 2, solvent: 2, ink: 2, vellum: 2 },

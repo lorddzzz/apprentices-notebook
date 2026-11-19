@@ -1,7 +1,8 @@
-import type { EncounterDef, LootTableId } from '$data';
+import type { EncounterDef } from '$data';
 import { HEART_HEAT } from '$data/districts/bathhouses';
 import { ROOM_PENCIL } from '$data/districts/cartographers/rooms';
 import { DEFAULT_PENCIL } from '$data/districts/cartographers/types';
+import { DRAWN_LOOT } from '$data/drawing';
 import { cloneData } from '../clone';
 import { checkDrawing } from '../drawing/check';
 import { HEART_FRAMES } from '../drawing/frames';
@@ -30,10 +31,6 @@ import type { DistrictModule, Json, RoomSetup, RuleId, ShapeInput, TripShapeDef 
 
 export const INKED_PAGE = 'inkedPage' as const;
 const TERMS = 'inkQuarter:terms';
-
-/** The room's own fields; the offers come from `offersFor` (EN-8, `drawing/loot.ts`), which replaces these. */
-const LOOT: LootTableId = 'deep';
-const PICKS = { room: 1, heart: 2 } as const;
 
 /** A room not inked yet reads as this fixed board; it is never played (`roomSetup` refuses it). */
 const PLACEHOLDER = ['. . . . .', '. . r . .', '. . . . .', '. . . . .', 'P P P P .'].join('\n');
@@ -212,8 +209,8 @@ export function inkedRoom(t: Trip, i: number): EncounterDef {
     depth: i + 1,
     layout,
     variants: [{ name: title, layout }],
-    loot: LOOT,
-    picks: heart ? PICKS.heart : PICKS.room,
+    loot: DRAWN_LOOT.placeholder.table,
+    picks: heart ? DRAWN_LOOT.placeholder.picks.heart : DRAWN_LOOT.placeholder.picks.room,
     heart,
   };
 }

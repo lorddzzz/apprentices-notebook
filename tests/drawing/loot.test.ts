@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { type DistrictId, type Drawing, LOOT_TABLES, type LootTableId } from '$data';
 import { DRAWN_LOOT } from '$data/drawing';
 import { type Profile, rollOffers, roomRoll, roomsOf, startTrip, type Trip } from '$engine';
+import { INKED_TRIP } from '$engine/districts/inkedPage';
 import { weightBand } from '$engine/drawing';
 import { drawnOffers, sourcesOf } from '$engine/drawing/loot';
 import { ownedBy } from '$engine/trip/offers';
+import { shapeInput, shapeOf } from '$engine/trip/shape';
 import { FIXTURE_DRAWINGS, fullHousehold } from './fixtures';
 
 /** EN-8: loot by depth (P7, P16, P17). */
@@ -94,6 +96,279 @@ function sweep(
 }
 
 describe('EN-8: loot by depth', () => {
+  it('CAL-D: placeholder metadata cannot override lent extras', () => {
+    const p = poorHousehold();
+    const d: Drawing = { ...HEAVY, shape: 'inkQuarter:terms', length: 5 };
+    const t = tripOf(p, d, 9);
+    for (const room of [0, d.length - 1]) {
+      const at = { ...t, encounter: room };
+      const enc = roomsOf(at)[room];
+      if (!enc) throw new Error(`No room ${room}`);
+      expect(enc.loot).toBe('deep');
+      expect(enc.picks).toBe(room === 0 ? 1 : 2);
+      const own = drawnOffers(p, at, room);
+      const input = shapeInput(at, shapeOf(INKED, at), p);
+      const delegated = INKED_TRIP.offersFor?.(input);
+      expect(delegated).toMatchObject(own);
+      const roll = roomRoll(at, enc, null, undefined, p);
+      const altered = roomRoll(at, { ...enc, loot: 'shallow', picks: 99 }, null, undefined, p);
+      expect({ table: altered.table, picks: altered.picks }).toEqual({
+        table: roll.table,
+        picks: roll.picks,
+      });
+      expect(roll.picks).toBe(own.picks);
+      const items = rollOffers(at.seed, room, roll.table, at.party, null, ownedBy(p, at), {
+        profile: p,
+        trip: at,
+        ...(roll.registry ? { registry: roll.registry } : {}),
+      });
+      const alteredItems = rollOffers(
+        at.seed,
+        room,
+        altered.table,
+        at.party,
+        null,
+        ownedBy(p, at),
+        {
+          profile: p,
+          trip: at,
+          ...(altered.registry ? { registry: altered.registry } : {}),
+        },
+      );
+      expect(alteredItems).toEqual(items);
+      expect(items.filter((item) => item.kind === 'inkQuarter:termed')).toHaveLength(
+        room === 0 ? 1 : 0,
+      );
+    }
+  });
+
+  it('CAL-D: data-owned defaults preserve drawn offers and picks', () => {
+    const p = poorHousehold();
+    const cases = [FIXTURE_DRAWINGS[0] as Drawing, HEAVY];
+    const results = cases.flatMap((d) =>
+      [1, 9, 23].flatMap((seed) => {
+        const t = tripOf(p, d, seed);
+        return [0, d.length - 1].map((room) => drawnOffers(p, t, room));
+      }),
+    );
+    expect(results).toMatchInlineSnapshot(`
+      [
+        {
+          "guaranteed": [
+            {
+              "kind": "doorway",
+            },
+            {
+              "kind": "rune",
+              "rune": "brass",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "gallnut",
+            },
+          ],
+          "picks": 1,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "method",
+              "method": "conduct",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "cinder",
+            },
+            {
+              "kind": "rune",
+              "rune": "brass",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "ink",
+            },
+            {
+              "kind": "method",
+              "method": "conduct",
+            },
+            {
+              "kind": "rune",
+              "rune": "brass",
+            },
+          ],
+          "picks": 1,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "solvent",
+              "solvent": "cinder",
+            },
+            {
+              "kind": "rune",
+              "rune": "brass",
+            },
+            {
+              "kind": "rune",
+              "rune": "fork",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "amount": 1,
+              "kind": "vellum",
+            },
+            {
+              "kind": "ink",
+            },
+            {
+              "kind": "rune",
+              "rune": "fork",
+            },
+          ],
+          "picks": 1,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "rune",
+              "rune": "fork",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "gallnut",
+            },
+            {
+              "kind": "rune",
+              "rune": "bend",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "ink",
+            },
+            {
+              "kind": "rune",
+              "rune": "brass",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "cinder",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "rune",
+              "rune": "bend",
+            },
+            {
+              "kind": "rune",
+              "rune": "fork",
+            },
+            {
+              "kind": "method",
+              "method": "repeat",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "solvent",
+              "solvent": "wick",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "pitch",
+            },
+            {
+              "kind": "rune",
+              "rune": "bend",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "solvent",
+              "solvent": "gallnut",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "pitch",
+            },
+            {
+              "kind": "rune",
+              "rune": "brass",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "solvent",
+              "solvent": "quicksilver",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "pitch",
+            },
+            {
+              "kind": "method",
+              "method": "conduct",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+        {
+          "guaranteed": [
+            {
+              "kind": "method",
+              "method": "repeat",
+            },
+            {
+              "kind": "solvent",
+              "solvent": "graphite",
+            },
+            {
+              "kind": "method",
+              "method": "conduct",
+            },
+          ],
+          "picks": 2,
+          "table": "lowerSeam",
+        },
+      ]
+    `);
+  });
+
   it('EN-8: offers come only from source districts or basics', () => {
     let pages = 0;
     let solvents = 0;
