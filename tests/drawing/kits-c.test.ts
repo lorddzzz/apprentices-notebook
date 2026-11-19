@@ -23,6 +23,7 @@ import { hooksOf, lockEdits, noteOfRoom, pealSetup } from '$engine/drawing/kits/
 import type { EventLog } from '$engine/events';
 import { type BoardSpec, parseBoard, serializeBoard } from '$engine/notation';
 import { blocksUnits } from '$engine/queries';
+import { deriveSeed } from '$engine/rng';
 import { compiledFor } from '$engine/run';
 import { setUpRoom } from '$engine/trip/setup';
 import { sampleParty } from '../../src/app/dev/samples';
@@ -595,5 +596,73 @@ describe('EN-K: Pack K covers the foundry and the hall', () => {
     expect(Object.keys(HEART_FRAMES)).toEqual(
       expect.arrayContaining(['carillonneur', 'registrar']),
     );
+  });
+});
+
+/** `edits` written onto a copy of `layout` (what a room set up does to a battle's tiles). */
+function withEdits(
+  layout: BoardSpec,
+  edits: readonly ReturnType<typeof lockEdits>[number][],
+): BoardSpec {
+  const out = structuredClone(layout);
+  for (const e of edits) {
+    const tile = out.tiles[e.at.y * out.width + e.at.x];
+    if (!tile) continue;
+    if ('piece' in e) tile.piece = e.piece ?? null;
+    else tile.terrain = { ...tile.terrain, ...e.terrain };
+  }
+  return out;
+}
+
+describe('The peal stamps its rooms at generation (EN-K10, P40)', () => {
+  const GREAT = 'foundry:greatBell';
+  const peal = (length: Drawing['length']): Drawing => ({
+    ...heartDrawing('carillonneur'),
+    shape: 'foundry:peal',
+    length,
+  });
+  const greatBells = (b: BoardSpec) => b.tiles.filter((t) => t.piece?.id === GREAT);
+
+  it('EN-K10: a peal room is stored with its great bell', () => {
+    for (const length of [3, 4, 5, 6] as const) {
+      const drawing = peal(length);
+      for (let room = 0; room < length - 1; room++) {
+        const input = inputFor(drawing, 11 + room, room);
+        const made = generateRoom(input);
+        expect(
+          checkGenerated(made.layout, specFor(input, input.seed)),
+          `${length}/${room}`,
+        ).toEqual([]);
+        const bells = greatBells(made.layout);
+        expect(bells, `${length}/${room}`).toHaveLength(1);
+        expect((bells[0]?.piece?.data as { note: number } | undefined)?.note).toBe(
+          noteOfRoom(room),
+        );
+        // The stored text carries it too.
+        expect(greatBells(parseBoard(serializeBoard(made.layout)))).toHaveLength(1);
+        // The stamped room still reaches its foes and its own start points.
+        expect(stillConnected(made.layout)).toBe(true);
+      }
+    }
+  }, 600_000);
+
+  it('EN-K10: a trip inked before stamp still gets its bell', () => {
+    const drawing = peal(4);
+    const hall = parseBoard(
+      ['. . . . .', '. . . . .', '. . r . .', '. . . . .', '. . . . .', 'P P P P .'].join('\n'),
+    );
+    for (const room of [0, 1, 2]) {
+      const old = pealSetup(shapeInput(drawing, 5, room, null, { [room]: hall }) as never);
+      const edits = old.boardEdits ?? [];
+      expect(edits.length, `room ${room}`).toBeGreaterThan(0);
+      const first = edits[0];
+      expect(first && 'piece' in first && first.piece?.id).toBe(GREAT);
+      expect(edits).toEqual(lockEdits(hall, noteOfRoom(room), deriveSeed(5, 7400 + room)));
+      // A room stored with its bell gets none laid again.
+      const stamped = withEdits(hall, edits);
+      expect(greatBells(stamped)).toHaveLength(1);
+      const fresh = pealSetup(shapeInput(drawing, 5, room, null, { [room]: stamped }) as never);
+      expect(fresh.boardEdits).toBeUndefined();
+    }
   });
 });

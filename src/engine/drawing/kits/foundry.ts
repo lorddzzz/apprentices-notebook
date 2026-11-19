@@ -300,6 +300,18 @@ export function lockEdits(layout: BoardSpec, note: Note, seed: number): BoardEdi
   return edits;
 }
 
+/** `edits` laid on a copy of `layout` (the same writes a room set up makes on a battle's tiles). */
+function withEdits(layout: BoardSpec, edits: readonly BoardEdit[]): BoardSpec {
+  const out = cloneData(layout);
+  for (const e of edits) {
+    const tile = at(out, e.at);
+    if (!tile) continue;
+    if ('piece' in e) tile.piece = e.piece && cloneData(e.piece);
+    else tile.terrain = { ...tile.terrain, ...e.terrain };
+  }
+  return out;
+}
+
 /** The district's peal shape, read when first used (the cycle noted in `generate.ts`). */
 const pealShape = (): TripShapeDef => {
   const shape = KIT.shapes[PEAL];
@@ -327,15 +339,19 @@ export function hooksOf(layout: BoardSpec): HookTile[] {
 
 /**
  * The peal at any length (P15): every room before the heart carries a great bell of its own note
- * (`lockEdits`), and the heart hangs an allied great bell on its hooks for each note that was rung
+ * (`lockEdits`, laid at generation by `pealKit.stamp`, P40), and the heart hangs an allied great bell on its hooks for each note that was rung
  * in its room (`alliedBellEdits`, the district's own rule) and lists the tune. A bell is never
  * hung for a room that did not ring it; a room not won leaves no note in the state.
  */
 export function pealSetup(input: ShapeInput<FoundryTripState>): RoomSetup {
   const layout = storedLayout(input);
   if (input.room < input.length - 1) {
+    // P40: a room is stored with its great bell (`pealKit.stamp`); only a trip inked before that
+    // still lays the lock when the room begins.
+    const stamped =
+      layout !== null && coords(layout).some((c) => pieceAt(layout, c) === GREAT_BELL_PIECE);
     const seed = deriveSeed(input.trip.seed, 7400 + input.room);
-    const boardEdits = layout ? lockEdits(layout, noteOfRoom(input.room), seed) : [];
+    const boardEdits = layout && !stamped ? lockEdits(layout, noteOfRoom(input.room), seed) : [];
     return boardEdits.length > 0 ? { boardEdits } : {};
   }
   const boardEdits = layout ? alliedBellEdits(input.state, hooksOf(layout)) : [];
@@ -355,6 +371,8 @@ export const pealKit: ShapeKit = {
   id: PEAL,
   needs: needsOf(PEAL),
   lengths: [3, 4, 5, 6],
+  stamp: (layout, room, _length, seed) =>
+    withEdits(layout, lockEdits(layout, noteOfRoom(room), seed)),
   get shape(): TripShapeDef {
     const home = pealShape();
     return {

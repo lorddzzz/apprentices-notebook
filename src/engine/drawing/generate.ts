@@ -1,11 +1,13 @@
 import { type ApprenticeId, ATTACKS, type Drawing, ENEMIES, type EnemyId } from '$data';
 import { GEN_LIMITS, GEN_TUNING } from '$data/drawing';
 import { createBattle } from '../battle';
+import type { RuleId } from '../districts/types';
 import { byReadingOrder, type Coord, key } from '../grid';
 import { type BoardSpec, emptyTile, serializeBoard } from '../notation';
 import { blocksShots, blocksUnits, members } from '../queries';
 import { createRng, deriveSeed, type Rng } from '../rng';
 import { checkRoom } from '../rooms';
+import { listRules } from '../rules';
 import { compiledFor } from '../run';
 import { TRIAL_BUDGET } from '../sim';
 import type { BattleState, Profile, Trip } from '../types';
@@ -317,6 +319,11 @@ function compose(spec: GenSpec, seed: number, minimum: boolean): BoardSpec {
     for (const p of pieces) layout = p.place(layout, deriveSeed(seed, 2)) ?? layout;
   }
   startPoints(layout, rng);
+  // P40: the shape's own room additions, seen by the guardrails and the trial (never the heart).
+  const shape = spec.kits.flatMap((k) => k.shapes).find((x) => x.id === spec.drawing.shape);
+  if (shape?.stamp) {
+    layout = shape.stamp(layout, spec.room, spec.drawing.length, deriveSeed(seed, 3));
+  }
   placeFoes(layout, spec, rng, minimum ? halfBudget(spec) : spec.budget);
   return layout;
 }
@@ -550,7 +557,19 @@ const heldBack = (
   capped: false,
 });
 
-/** The room judged fair, not the trip: fresh HP and charges, the party's compiled pages. */
+/**
+ * P39: the rules the room lists when it is played: the drawing's own and, at the heart, its master's.
+ * Each at its default config (the lent shape's state-dependent config is not reproduced here).
+ */
+function trialRules(drawing: Drawing, heart: boolean): RuleId[] {
+  const ids = [
+    ...(drawing.rule === null ? [] : [drawing.rule]),
+    ...(heart ? (HEART_FRAMES[drawing.heart]?.setup.rules ?? []) : []),
+  ];
+  return ids.filter((id, i) => ids.indexOf(id) === i);
+}
+
+/** The room judged fair, not the trip: fresh HP and charges, the party's compiled pages, the room's rules (P39). */
 function trial(
   input: GenInput,
   layout: BoardSpec,
@@ -572,6 +591,8 @@ function trial(
       ]),
     ),
   }).state;
+  const ids = trialRules(input.drawing, heart);
+  if (ids.length > 0) state.rules = listRules(state, ids);
   const r = botTrial(state, opBudget, input.party);
   const won = r.won && r.state.round <= rounds;
   const hpLeft = hpShare(r.state);

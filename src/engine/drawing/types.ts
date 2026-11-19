@@ -120,6 +120,12 @@ export interface ShapeKit extends Needing {
    * the choice taken before the room; the heart's spec is never adjusted. Absent: no change.
    */
   adjust?(spec: GenSpec, choice: string): GenSpec;
+  /**
+   * P40: what the shape lays on room `room` (0-based, never the heart) of a trip of `length` rooms
+   * at generation, after the start points and before the foes, so the guardrails and the bot see
+   * it and the stored layout carries it. Absent: nothing is laid.
+   */
+  stamp?(layout: BoardSpec, room: number, length: number, seed: number): BoardSpec;
 }
 /** One master "redrawn in your rules" (P13), EN-owned, one per master. */
 export interface HeartFrame extends Needing {

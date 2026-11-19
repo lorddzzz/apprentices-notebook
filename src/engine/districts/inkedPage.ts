@@ -1,6 +1,10 @@
 import type { EncounterDef, LootTableId } from '$data';
+import { HEART_HEAT } from '$data/districts/bathhouses';
+import { ROOM_PENCIL } from '$data/districts/cartographers/rooms';
+import { DEFAULT_PENCIL } from '$data/districts/cartographers/types';
 import { cloneData } from '../clone';
 import { checkDrawing } from '../drawing/check';
+import { HEART_FRAMES } from '../drawing/frames';
 import { GEN_KITS } from '../drawing/kits';
 import { termCardFor } from '../drawing/kits/inkQuarter';
 import { drawnOffersFor } from '../drawing/loot';
@@ -9,8 +13,11 @@ import { parseInkedState } from '../drawing/trip';
 import type { InkedTripState } from '../drawing/types';
 import { ownedBy } from '../trip/offers';
 import type { Profile, Trip } from '../types';
+import { BOIL_OVER_RULE_ID } from './bathhouses/types';
+import { GUILD_HAND_RULE_ID } from './cartographers/types';
+import { TUNE_RULE_ID } from './foundry/types';
 import { KIT } from './kit';
-import type { DistrictModule, Json, RoomSetup, ShapeInput, TripShapeDef } from './types';
+import type { DistrictModule, Json, RoomSetup, RuleId, ShapeInput, TripShapeDef } from './types';
 
 /**
  * The inked page (EN P1, P15, P16, P31, P33): the district every drawn trip runs in. A trip carries
@@ -102,6 +109,18 @@ const tripOwned = (t: Trip) => ({
 
 const asJson = (s: InkedTripState): Json => s as unknown as Json;
 
+/**
+ * P39: the config a master's rule gets in the district's own heart room (read, not copied, where a
+ * constant exists): the tune's seed is the trip's, the baths run at their heart heat, the guild's
+ * hand at the hall's last room's pencil. Rules with no config (the clock, the collapse) get none.
+ */
+function heartConfig(id: RuleId, trip: Trip): Json | undefined {
+  if (id === TUNE_RULE_ID) return { seed: trip.seed };
+  if (id === BOIL_OVER_RULE_ID) return { heat: HEART_HEAT };
+  if (id === GUILD_HAND_RULE_ID) return { ...(ROOM_PENCIL.at(-1) ?? DEFAULT_PENCIL) };
+  return undefined;
+}
+
 /** The drawn trip's shape (P1, P15): the snapshot, the stored rooms and the lent shape's hooks. */
 export const INKED_TRIP: TripShapeDef = {
   id: 'inkedPage:page',
@@ -124,11 +143,28 @@ export const INKED_TRIP: TripShapeDef = {
     const { own, lent, lentIn } = viewOf(input);
     if (own.rooms[input.room] == null) throw new Error(`Room ${input.room} is not inked`);
     const setup = lent.roomSetup?.(lentIn) ?? {};
+    // P39: the heart lists its master's rules on every shape, each at the district's heart config
+    // unless the lent shape set its own.
+    const heartRules =
+      input.room === own.drawing.length - 1
+        ? (HEART_FRAMES[own.drawing.heart]?.setup.rules ?? [])
+        : [];
     const activate = [
       ...(own.drawing.rule === null ? [] : [own.drawing.rule]),
       ...(setup.activate ?? []),
+      ...heartRules,
     ].filter((id, i, all) => all.indexOf(id) === i);
-    return { ...setup, ...(activate.length > 0 ? { activate } : {}) };
+    const config: Record<RuleId, Json> = {};
+    for (const id of heartRules) {
+      const c = heartConfig(id, input.trip);
+      if (c !== undefined) config[id] = c;
+    }
+    const rulesConfig = { ...config, ...setup.rulesConfig };
+    return {
+      ...setup,
+      ...(activate.length > 0 ? { activate } : {}),
+      ...(Object.keys(rulesConfig).length > 0 ? { rulesConfig } : {}),
+    };
   },
   returnBlocks(input) {
     const { lent, lentIn } = viewOf(input);
