@@ -1,0 +1,61 @@
+# Calibration results and approval register
+
+Status: **measurement schema; no new number approved**. CAL-0 owns this file until merge, then transfers ownership to the orchestrator. Later passes attach evidence here; CAL-G1 is the player's acceptance gate.
+
+[Harness and SM-6 review](calibration-harness-review.md) · [Plan §2 bands and §4 proposals](calibration-plan.md#2-target-bands-quoted-not-set-here)
+
+## Quoted bands (calibration-plan.md §2)
+
+| District | Band | Citation |
+|---|---|---|
+| Canals | fresh HP, party 2, 50+ seeds per layout: rooms 1-2 at least 85 %, room 3 at least 75 %, room 4 65-80 % with the Lamplighter (fallback at least 80 %), heart 50-65 %; party 3 within +10 points | canals-revisit-plan.md §6 “Bot targets” (line 118) |
+| Seam | heart 40-60 % at party 2, 1 and 3 reported | seam-grows-plan.md row SM-6 |
+| Bathhouses | room win rate within +-10 points of the canal rooms at the same depth, hearts lower by design; at most one boil-over in a median fight at heat 1-2; both outcomes occur | bathhouses-plan.md §6 (line 123) |
+| Ink quarter | terms never beyond a normal room's band; term rooms at least baseline minus 10 points; the heart can be lost | ink-quarter-plan.md row IQ-20 and the settled rules (line 11) |
+| Cartographers | “within the canals' band” at party sizes 1-3 | cartographers-plan.md row CG-9 |
+| Bridges, foundry | **no band is stated.** Proposal: the canals' band, with the foundry's 0-bell heart winnable and 4 bells clearly easier (BF-20 wording) | bridges-plan.md BR-21 and foundry-plan.md BF-20 name no number |
+| Drawn rooms | heart win rates light 60-75 %, medium 45-60 %, heavy 30-45 % (bot, fresh HP) | ending-plan.md row EN-13 |
+
+**P2 remains a Proposal:** canals' bands for bridges/foundry await the player's decision. A printed table or passing smoke test cannot approve P2 or any tuning number.
+
+## Approval schema (copy for each district/pass)
+
+| Field | Required record |
+|---|---|
+| Identity | district, CAL task, code commit, date, evidence/table link |
+| Reproduction | exact command, seed range/count, party lineup and loadout, policy flags, round/action/trip caps |
+| Axes | encounter depth, layout, fresh vs actual trip-worn, bridge span, hung bells 0–4, drawn band/drawing identity |
+| Denominators | wins/reached, reached/attempted trips, zero-reach depths/layouts, stalled/exhausted fights, trip endings |
+| State | entry HP and charges; naturally earned bells on worn trips; no synthetic HP discount |
+| Other outcomes | rounds distribution, falls, boils/first boil, terms, cargo, heart trick/page, generated attempts/fallbacks/walkovers as applicable |
+| Comparison | quoted band/citation, observed miss, policy limits/confounders; “not measured” for missing evidence |
+| Proposal | old → candidate value, reason, affected files/fixtures, P2 status if relevant |
+| Validation | named checks, runtime, golden/heart-play fallout, unchanged production boundary where applicable |
+| Player decision | pending / approved / rejected / exception; player's exact decision, date and decision-log link |
+| Ownership | implementer, orchestrator after merge, next action |
+
+No automatic win-percentage acceptance assertion belongs in CAL-0. A later pass must explain misses; the player decides exceptions and unsettled bands.
+
+## Harness usage and baseline evidence
+
+- `pnpm vitest run tests/sim/calibration-tables.test.ts tests/sim/seam-calibration.test.ts --reporter=dot`: bounded smoke (one seed, founding pair, first layout/axis/depth per district plus real trips; four rounds and 32 applied actions per fight). Ported Seam smoke uses the same surface. Only throws/cap overruns fail; stalls, wipes and missing depths remain evidence.
+- `CAL=1 pnpm vitest run tests/sim/calibration-tables.test.ts --reporter=dot`: all eight tables, parties 1–3, every authored layout, all fresh depths, real trip reach by layout/depth, both spans, foundry fresh 0–4 bells and naturally earned worn bells, drawn light/medium/heavy. Defaults: seeds 1–50, 40 rounds, 600 applied actions, full movement search. Gauge and cracks enabled; first loot, onward, unchanged doorway; 60-step trip guard. This policy differs from historical SM-6; remeasure rather than reuse 58%.
+- `CAL_DISTRICTS=Seam,canals` filters table names (district IDs also accepted). Omitting it preserves all eight tables. `CAL_SEEDS`, `CAL_ROUNDS`, `CAL_BUDGET` override positive integer counts, which are printed. Shortened runs are harness evidence only.
+- `SEAM_SIM=1 SEAM_SEEDS=50 pnpm vitest run tests/sim/seam-calibration.test.ts --reporter=dot`: thin SM-6 port. Optional `SEAM_PAIR=1` and zero-based `SEAM_ROOMS=0,3` narrow fresh output; attrition still starts at depth one.
+
+Fresh layouts are selected through a test-only singleton variant pool before `startBattle`, preserving registered module setup. Worn trips use shared `runTrip` with app callbacks, real HP/charge losses, module state, doorway and loot transitions. An unreached room is printed as UNREACHED with 0/0 wins and 0/N reach. No prior-room wins are assumed. Foundry injected bells are fresh-only; worn bells are earned, not a forced 0–4 condition.
+
+Drawn fixtures use the production generator, kits/heart frames and `inkRoom`: light rat/Marginalia, medium rat+sentry+familiar/Registrar, heavy the same foes/Registrar plus sympathetic bells and rope. Lengths are 3/6/6. The test profile unlocks those elements and supplies the pen through known pages, seven hearts and a Bind capstone; it retains starter lattices. Generation retains production limits: four attempts (three at the heart), eight layout draws per attempt, 12-round trials (16 at the heart), and the shared lite trial policy with its 6,000-action budget. Table round/action overrides govern measured fights, not generation trials. These are representative drawings, not an exhaustive palette or household sweep. CAL-5 owns broader samples and fallback/timing outcomes.
+
+CAL-0 verification (2026-11-19; uncommitted worktree, git index writes denied):
+
+| Check | Result |
+|---|---|
+| Both owned default sims, `--reporter=dot` | 2/2 passed; final measured combined runtime 7.16 s, below 20 s including import/transform and the ported smoke |
+| `pnpm exec tsc --noEmit` | passed |
+| `pnpm check:fast` | passed, 398 files / 8,654 tests; 14 existing todos and one existing unused `over` lint warning in an untouched component |
+| `CAL=1 CAL_SEEDS=1 CAL_ROUNDS=1 CAL_BUDGET=8` on the table file | all eight tables passed; bounded axis/shape evidence only, 69.88 s |
+| `CAL=1 CAL_SEEDS=1` on the table file | all eight tables passed with normal 40-round/600-action caps; 321.37 s; actual worn wins, wipes and stalls observed |
+| `SEAM_SIM=1 SEAM_SEEDS=1` on the port file | passed, 10.90 s; pair/trio reached the heart with carried losses |
+
+The default 50-seed full measurement was not run in CAL-0; later passes must collect it before comparing bands. No baseline percentage is accepted by this schema. Pending: CAL-1–5 collect full calibration evidence, metrics specific to each district, and misses for CAL-G1. CAL-4 must watch the Registrar note and policy limitations. Preserve legal empty-span bridges Shove for save replay.
