@@ -118,6 +118,12 @@ export const FOUNDRY_TUNING = {
   } as Readonly<Record<FoundryFoeId, FoundryFoeStats>>,
   /** P10: the Carillonneur's body (his kit and trick are `RIVALS`'); he never walks. */
   carillonneur: { hp: 14, move: 0 },
+  /**
+   * The sim bot's pulse term (`engine/districts/foundry/bot.ts`, BF-20), read only there: what a
+   * foe standing where the next ring pulses is worth, extra when it is nearly down, and what a
+   * party member there costs. A policy weight, not a game number (CAL-B).
+   */
+  botPulse: { foe: 6, foeNearlyDown: 10, nearlyDownHp: 1, member: 15 },
 } as const;
 
 /**

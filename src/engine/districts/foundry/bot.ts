@@ -1,4 +1,4 @@
-import { TONES } from '$data/districts/foundry';
+import { FOUNDRY_TUNING, TONES } from '$data/districts/foundry';
 import { key } from '../../grid';
 import type { BattleState } from '../../types';
 import type { BotTerms } from '../types';
@@ -18,11 +18,12 @@ function pulseTerm(s: BattleState): number {
     if (isHumming(s, tone)) continue;
     for (const c of pulseTiles(s, tone)) hit.add(key(c));
   }
+  const w = FOUNDRY_TUNING.botPulse;
   let v = 0;
   for (const u of s.units) {
     if (u.bystander || u.hp <= 0 || u.out || !hit.has(key(u.pos))) continue;
-    if (u.kind === 'enemy') v += 6 + (u.hp <= 1 ? 10 : 0);
-    else v -= 15;
+    if (u.kind === 'enemy') v += w.foe + (u.hp <= w.nearlyDownHp ? w.foeNearlyDown : 0);
+    else v -= w.member;
   }
   return v;
 }

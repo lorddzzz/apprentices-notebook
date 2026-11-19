@@ -17,7 +17,17 @@ export interface BotOptions {
   budget?: number;
   /** Lite policy for generation: moves pruned to the `LITE_MOVES` tiles nearest a foe. */
   lite?: boolean;
+  /**
+   * CAL-B: value Hold casts by what the pin is worth. Opt-in for comparisons; off is the prior bot,
+   * and production's `botTrial` does not set it (see docs/plans/calibration-bot-review.md).
+   */
+  hold?: boolean;
 }
+
+/** A Hold on a foe off a cracked tile only pins it: a tie-break below any 1 HP of damage (10). */
+export const HOLD_PIN = 0.5;
+/** A Hold on a member off a cracked tile costs it a turn of walking. */
+export const HOLD_SELF_PIN = 2;
 
 export const LITE_MOVES = 6;
 export const TRIAL_BUDGET = 6000;
@@ -72,10 +82,34 @@ function attacks(s: BattleState, id: ApprenticeId): Action[] {
       ),
   ];
 }
-function bestAttack(s: BattleState, id: ApprenticeId, gauge = false) {
+/** Which Hold benefits a lookup counts: none (prior bot), only falls (a kill), or every pin. */
+type HoldMode = 'off' | 'fall' | 'all';
+
+/**
+ * What the units a cast newly held are worth (CAL-B). Hold's gain is delayed, so `value` alone sees
+ * zero. A foe held on a cracked tile falls at dusk: worth as much as removing it. A foe held
+ * elsewhere only stays where it is (`HOLD_PIN`). A member held costs `HOLD_SELF_PIN`, or its whole
+ * worth when it is pinned on a cracked tile.
+ */
+function holdGain(before: BattleState, after: BattleState, mode: HoldMode): number {
+  if (mode === 'off') return 0;
+  const cracked = crackedTiles(after);
+  let v = 0;
+  for (const u of after.units) {
+    if (u.bystander || u.hp <= 0 || u.held === 0) continue;
+    const was = before.units.find((x) => x.id === u.id);
+    if (!was || was.held > 0) continue;
+    const falls = cracked.some((c) => c.x === u.pos.x && c.y === u.pos.y);
+    if (u.kind === 'enemy') v += falls ? 10 * u.hp + 20 : mode === 'all' ? HOLD_PIN : 0;
+    else v -= falls ? 30 * u.hp : mode === 'all' ? HOLD_SELF_PIN : 0;
+  }
+  return v;
+}
+function bestAttack(s: BattleState, id: ApprenticeId, gauge = false, hold: HoldMode = 'off') {
   let best: { action: Action; gain: number } | null = null;
   for (const action of attacks(s, id)) {
-    const gain = value(applyAction(s, action).state, gauge) - value(s, gauge);
+    const after = applyAction(s, action).state;
+    const gain = value(after, gauge) - value(s, gauge) + holdGain(s, after, hold);
     if (!best || gain > best.gain) best = { action, gain };
   }
   return best;
@@ -95,6 +129,9 @@ export function botFight(
   const gauge = opts.gauge === true;
   const cracks = opts.cracks === true;
   const lite = opts.lite === true;
+  // A Hold before the move spends the turn's action, so it opens only for a fall; after, any pin.
+  const firstHold: HoldMode = opts.hold === true ? 'fall' : 'off';
+  const laterHold: HoldMode = opts.hold === true ? 'all' : 'off';
   const budget = opts.budget ?? Number.POSITIVE_INFINITY;
   let exhausted = false;
   let firstBoil: number | null = null;
@@ -120,7 +157,7 @@ export function botFight(
         continue;
       }
       if (exhausted) break;
-      const first = bestAttack(state, id, gauge);
+      const first = bestAttack(state, id, gauge, firstHold);
       if (first && first.gain > 0) step(first.action);
       if (state.phase !== 'player') break;
       let move: Action | null = null;
@@ -139,7 +176,7 @@ export function botFight(
           -crackCost +
           value(next, gauge) -
           value(state, gauge) +
-          Math.max(0, bestAttack(next, id, gauge)?.gain ?? 0) -
+          Math.max(0, bestAttack(next, id, gauge, laterHold)?.gain ?? 0) -
           distance * 0.01;
         if (candidate > score) {
           score = candidate;
@@ -148,7 +185,7 @@ export function botFight(
       }
       if (move) step(move);
       if (state.phase !== 'player') break;
-      const last = bestAttack(state, id, gauge);
+      const last = bestAttack(state, id, gauge, laterHold);
       if (last && last.gain > 0) step(last.action);
     }
     if (state.phase === 'player') step({ type: 'endTurn' });
