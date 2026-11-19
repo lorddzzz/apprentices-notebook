@@ -5,19 +5,22 @@
   import { namedTitle } from '../../app/describe';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
+  import { placeInText } from '../../app/tripviews';
 
   // Read once on arrival: the scroll is a record of the moment, not a live view.
   const profile = game.profile;
   const credits = creditsOf(profile);
-  const keepers = profile.household.members.map((id) => APPRENTICES[id].name);
+  const keepers = credits.household.map((id) => APPRENTICES[id].name);
   const { biggest } = credits;
   const chainLine = biggest
     ? CREDITS_LINES.chain
         .replace('{chain}', () => String(biggest.chain))
-        .replace('{caster}', () => APPRENTICES[biggest.caster].name)
+        .replace('{caster}', () => placeInText(APPRENTICES[biggest.caster].name))
         .replace('{name}', () => biggest.name)
     : null;
-  const tally = `${credits.trips} trips. ${credits.casts} casts.`;
+  const tally = CREDITS_LINES.tally
+    .replace('{trips}', () => String(credits.trips))
+    .replace('{casts}', () => String(credits.casts));
 
   // Watched to the end or skipped, it counts as seen; leaving any other way (history back, a
   // reduced-motion scroll with no animation end) is a skip too.

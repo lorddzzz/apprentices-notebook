@@ -13,13 +13,14 @@ export const HANDOVER_PAGES: readonly string[] = [
   'The pen is yours. So is the notebook, for good, and the page under this one, which I never drew. I am coming upstairs with two pages of my own, in case your household lacks them, and I will take a seat on the bench like anyone else. Draw something. I would like to see what you put there.',
 ];
 
-/** The credits' headings and fixed lines; `counts` and `chain` take `{trips}`, `{casts}`, `{chain}`, `{caster}`, `{name}`. */
+/** The credits' headings and fixed lines; `tally` takes `{trips}`, `{casts}`, and `chain` takes `{chain}`, `{caster}`, `{name}`. */
 export const CREDITS_LINES = {
   household: 'Kept by',
   districts: 'Inked shut, in this order',
   idioms: 'Named in these pages',
   noIdioms: 'Nothing named yet. There is time.',
   counts: 'For the record',
+  tally: '{trips} trips. {casts} casts.',
   chain: 'The longest chain: {chain}, by {caster}, with {name}.',
   close: 'The rest is yours to draw.',
 };

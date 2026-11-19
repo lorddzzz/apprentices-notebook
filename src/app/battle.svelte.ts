@@ -126,7 +126,7 @@ export class BattleSession {
     if (this.input.kind !== 'inspect') return null;
     const u = unitAt(this.state, this.input.at);
     return u?.kind === 'enemy' && u.rival
-      ? rivalSheet(this.state, u, this.ctx.witnessed ?? null)
+      ? rivalSheet(this.state, u, this.ctx.witnessed ?? null, this.opts.footnotes ?? {})
       : null;
   }
 

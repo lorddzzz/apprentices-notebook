@@ -70,7 +70,11 @@ function lend(trip: Trip, run: (view: Trip) => Trip): Trip {
     : after;
 }
 
-/** What the lent shape's hooks read: the trip's own view with the lent state and the drawing's length. */
+/**
+ * What the lent shape's hooks read: the trip's own view with the lent state and the drawing's
+ * length. `kit` stays the drawn trip's own, so a kit's hook can read the stored rooms (the peal's
+ * heart hangs its bells on the stored hooks); `state` and `trip.kit.state` are the lent state.
+ */
 function lentInput(
   input: ShapeInput<Json>,
   own: InkedTripState,
@@ -79,7 +83,7 @@ function lentInput(
   const state = lent.parseState(own.inner);
   return {
     trip: lentTrip(input.trip, state),
-    kit: { ...input.kit, state },
+    kit: input.kit,
     state,
     room: input.room,
     length: own.drawing.length,

@@ -357,10 +357,6 @@ describe('EN-W1: the contracts', () => {
 
 // The EN-8 tests (offers, held pages, solvents, heavy picks) are in tests/drawing/loot.test.ts.
 
-describe('EN-4 (Pack G): the generation worker', () => {
-  it.todo('EN-4: worker results equal the synchronous path');
-});
-
 // ── Kits and frames (Packs I-K) ─────────────────────────
 
 /** The kit of a shape id, or the error the generator will throw for it (P34). */

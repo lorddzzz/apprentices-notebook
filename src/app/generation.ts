@@ -1,5 +1,5 @@
 import type { Profile, SaveData, Trip } from '$engine';
-import { parseInkedState, storeRoom } from '$engine/drawing';
+import { GEN_KITS, parseInkedState, storeRoom } from '$engine/drawing';
 import { handle } from './generation.worker';
 
 /** EN-4 (P36): a drawn trip's rooms are inked off the main thread, ahead of the fight that needs them. */
@@ -9,7 +9,8 @@ export interface RoomInker {
 
 /** The engine directly: the tests' path, and the fallback when no Worker runs. */
 export const syncInker: RoomInker = {
-  ink: (profile, trip, room) => Promise.resolve(handle({ profile, trip, room })),
+  // async, so an engine error rejects instead of throwing at the call site.
+  ink: async (profile, trip, room) => handle({ profile, trip, room }),
 };
 
 /** The worker itself failed (not the engine inside it): only then does the main thread retry. */
@@ -64,7 +65,13 @@ export function workerInker(): RoomInker {
       const id = next++;
       const viaWorker = new Promise<{ layout: string; ms: number }>((resolve, reject) => {
         pending.set(id, { resolve, reject });
-        w.postMessage({ id, profile, trip, room });
+        try {
+          w.postMessage({ id, profile, trip, room });
+        } catch {
+          // The request would not clone: the main thread inks it instead.
+          pending.delete(id);
+          reject(new WorkerFailed('The request would not clone'));
+        }
       });
       // An engine error the worker sent back would fail the same way here: pass it on.
       return viaWorker.catch((e: unknown) =>
@@ -81,6 +88,24 @@ export function needsRoom(save: SaveData, room: number): boolean {
   try {
     const rooms = parseInkedState(t.kit?.state).rooms;
     return room >= 0 && room < rooms.length && rooms[room] === null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * May `room` be inked ahead, while the trip is still looting? Not when the drawing's shape changes
+ * that room by a Crossroads choice not yet taken (the span choice, EN-K5): inked early, the room
+ * would be stored without it. The fight inks it once the choice is taken.
+ */
+export function inkableAhead(save: SaveData, room: number): boolean {
+  const t = save.trip;
+  if (t?.district !== 'inkedPage' || !t.kit) return false;
+  try {
+    const { drawing } = parseInkedState(t.kit.state);
+    const shape = GEN_KITS.flatMap((k) => k.shapes).find((x) => x.id === drawing.shape);
+    if (!shape?.adjust || room <= 0 || room >= drawing.length - 1) return true;
+    return t.kit.choices.some((c) => c.after === room - 1);
   } catch {
     return false;
   }

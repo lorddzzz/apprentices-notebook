@@ -147,15 +147,8 @@ function floorsOfState(state: unknown): readonly DistrictId[] {
 }
 
 // ── The sealed door (P11) ───────────────────────────────
-export type DoorState = 'hidden' | 'sealed' | 'open';
-/**
- * Derived, never stored: hidden until the lowest floor has been reached once, then sealed until
- * the Cartographers' heart is cleared. Monotone, since both inputs only grow.
- */
-export function ownerDoor(p: { city: DoorCity }): DoorState {
-  if (!p.city.doorSeen) return 'hidden';
-  return p.city.hearts.includes('cartographers') ? 'open' : 'sealed';
-}
+// The rule lives in core (`../door`) so the handover can read it too.
+export { type DoorState, ownerDoor } from '../door';
 
 /**
  * Closes the lowest floor's fight (win or wipe) into `city.doorSeen` (P11): the room was reached,

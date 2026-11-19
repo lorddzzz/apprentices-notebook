@@ -36,6 +36,7 @@ import {
 } from './flow';
 import {
   applyRoom,
+  inkableAhead,
   needsRoom,
   type RoomInker,
   requestRoom,
@@ -495,6 +496,7 @@ export class GameStore {
           : -1;
     const key = `${trip.seed}:${room}`;
     if (!needsRoom(this.save, room) || this.inking_.has(key)) return;
+    if (trip.status === 'looting' && !inkableAhead(this.save, room)) return;
     this.inking_.add(key);
     this.inkFailedKey = null;
     this.inker ??= inkerFor();

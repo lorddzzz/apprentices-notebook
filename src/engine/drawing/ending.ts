@@ -1,5 +1,6 @@
 import type { RuneId } from '$data';
 import { OWNER } from '$data/apprentices/owner';
+import { ownerDoor } from '../door';
 import { joinHousehold } from '../household';
 import { parseLattice } from '../notation';
 import { isGlyph, type Profile } from '../types';
@@ -21,9 +22,7 @@ export function missingGifts(p: Profile): RuneId[] {
 
 /** The handover (ending §1.1): the owner joins, gifted pages are learned, `ending.handover` is set; idempotent. */
 export function handover(p: Profile): Profile {
-  // `ownerDoor(p) === 'open'` (districts/lowerSeam), read here because core engine files may not import a district.
-  if (!(p.city.doorSeen && p.city.hearts.includes('cartographers')))
-    throw new Error('The owner’s door is not open');
+  if (ownerDoor(p) !== 'open') throw new Error('The owner’s door is not open');
   if (endingOf(p).handover) return p;
   const joined = joinHousehold(p, 'owner');
   return {
@@ -36,7 +35,9 @@ export function handover(p: Profile): Profile {
 /** The credits (ending §1.1), derived from the profile: districts in opening order, idioms, ledger counts. */
 export function creditsOf(p: Profile): Credits {
   const ledger = ledgerOf(p);
+  const members = p.household.members;
   return {
+    household: [...members.filter((m) => m !== 'owner'), ...members.filter((m) => m === 'owner')],
     // A save from before the ledger shipped has the city's own opening order.
     districts: [...(ledger.districts.length > 0 ? ledger.districts : p.city.open)],
     idioms: p.named.filter((n) => n.startsWith('idiom:')),

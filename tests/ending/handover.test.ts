@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { newProfile, type Profile } from '$engine';
+import { ownerDoor } from '$engine/districts/lowerSeam';
 import { handover, missingGifts } from '$engine/drawing';
 
 const doorOpen = (): Profile => {
@@ -25,4 +26,15 @@ test('Splash and Steam are the gifts, and only the missing are added', () => {
 test('a sealed door refuses', () => {
   const p = doorOpen();
   expect(() => handover({ ...p, city: { ...p.city, hearts: ['seam'] } })).toThrow();
+});
+
+test('the handover opens exactly when the lower Seam shows the door open', () => {
+  const p = newProfile();
+  for (const doorSeen of [false, true]) {
+    for (const hearts of [['seam'], ['seam', 'cartographers']] as const) {
+      const q = { ...p, city: { ...p.city, doorSeen, hearts: [...hearts] } };
+      if (ownerDoor(q) === 'open') expect(() => handover(q)).not.toThrow();
+      else expect(() => handover(q)).toThrow('The owner’s door is not open');
+    }
+  }
 });

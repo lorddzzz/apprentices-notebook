@@ -27,3 +27,11 @@ test('seeCredits sets creditsSeen once and keeps handover', () => {
   expect(endingOf(seen)).toEqual({ handover: true, creditsSeen: true });
   expect(seeCredits(seen)).toBe(seen);
 });
+
+test('the household is listed in joining order with the owner last (ending-text §3)', () => {
+  const p = newProfile();
+  const members = [...p.household.members];
+  const household = { ...p.household, members: [members[0], 'owner', ...members.slice(1)] };
+  const c = creditsOf({ ...p, household } as typeof p);
+  expect(c.household).toEqual([...members, 'owner']);
+});

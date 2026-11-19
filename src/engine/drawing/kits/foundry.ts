@@ -102,9 +102,9 @@ const freeTiles = (layout: BoardSpec): Coord[] =>
 
 /**
  * The sympathetic bells' stamp (P4: the rule brings its bells): three or four bells on free tiles
- * above the bottom two rows (where the start points go), in two or three tones, so a strike on one
- * rings its tone. The minimum stamp is a low and a mid bell. No bell lands on or beside a unit or a
- * start point, or cuts the party's way off.
+ * above the bottom two rows (where the start points go), in all three tones, so a strike on one
+ * rings its tone. The minimum stamp is two bells of two of the tones, drawn from the seed. No bell
+ * lands on or beside a unit or start point already laid, or cuts off a tile that was reachable.
  */
 export const bellsKit: RuleKit = {
   id: BELLS,
@@ -142,7 +142,7 @@ export const bellsKit: RuleKit = {
 const countOf = (layout: BoardSpec, id: string): number =>
   coords(layout).filter((c) => pieceAt(layout, c) === id).length;
 
-/** A bell of a tone already on the board (so a strike rings more than itself), else the seed's. */
+/** A bell of a tone already on the board (so a strike rings more than itself), else the first tone. */
 function toneFor(layout: BoardSpec, rng: ReturnType<typeof createRng>): Tone {
   const here = coords(layout).flatMap((c) => {
     const p = at(layout, c)?.piece;

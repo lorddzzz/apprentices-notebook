@@ -213,6 +213,8 @@ export interface InkedTripState {
 // ── Ending (EN-10, EN-11) ───────────────────────────────
 /** Credits (ending §1.1): what `creditsOf` lists; every part derives from the profile. */
 export interface Credits {
+  /** The household in joining order, the owner last (ending-text §3). */
+  household: ApprenticeId[];
   /** Districts in opening order. */
   districts: DistrictId[];
   /** Named idioms (`idiom:` entries of `Profile.named`). */

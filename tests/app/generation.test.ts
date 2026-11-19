@@ -1,14 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { Drawing } from '$data';
 import { newSave, type Profile, type SaveData } from '$engine';
 import { parseInkedState } from '$engine/drawing';
 import { setOut } from '../../src/app/flow';
 import {
   applyRoom,
+  inkableAhead,
   needsRoom,
   type RoomInker,
   requestRoom,
   storedRoom,
   syncInker,
+  workerInker,
 } from '../../src/app/generation';
 import { handle } from '../../src/app/generation.worker';
 import { FIXTURE_DRAWINGS, fullHousehold } from '../drawing/fixtures';
@@ -87,5 +90,79 @@ describe('EN-4: the generation worker', () => {
     const rooms = parseInkedState(both.trip?.kit?.state).rooms;
     expect(rooms[0]).not.toBeNull();
     expect(rooms[1]).not.toBeNull();
+  });
+});
+
+describe('EN-14: a room a Crossroads choice changes is not inked ahead', () => {
+  const span: Drawing = {
+    name: 'Spans',
+    rule: 'bridges:collapse',
+    foes: ['rat'],
+    pieces: [],
+    shape: 'bridges:span',
+    length: 4,
+    heart: 'marginalia',
+  };
+  function spanSave(drawing: Drawing): SaveData {
+    const p = household();
+    return setOut(
+      { ...newSave(9), profile: { ...p, drawings: [drawing, null, null] } },
+      'inkedPage',
+      { page: 0 },
+    );
+  }
+  const looting = (save: SaveData, choices: { after: number; id: string }[]): SaveData => {
+    const t = save.trip;
+    if (!t?.kit) throw new Error('no drawn trip');
+    const kit = { ...t.kit, choices: choices.map((c) => ({ ...c })) };
+    return { ...save, trip: { ...t, status: 'looting', encounter: 0, kit } as typeof t };
+  };
+
+  it('waits for the span choice before room 2, and never for the first room or the heart', () => {
+    const save = spanSave(span);
+    expect(inkableAhead(looting(save, []), 1)).toBe(false);
+    expect(inkableAhead(looting(save, [{ after: 0, id: 'sound' }]), 1)).toBe(true);
+    expect(inkableAhead(looting(save, []), 0)).toBe(true);
+    expect(inkableAhead(looting(save, []), 3)).toBe(true);
+  });
+
+  it('inks ahead on a shape without a choice that changes the room', () => {
+    expect(inkableAhead(looting(drawnSave(0), []), 1)).toBe(true);
+  });
+});
+
+describe('EN-14: the inkers fail softly', () => {
+  it('the synchronous path rejects an engine error instead of throwing', () => {
+    const save = drawnSave(0);
+    const trip = save.trip;
+    if (!trip) throw new Error('no trip');
+    let inked: Promise<unknown> | null = null;
+    expect(() => {
+      inked = syncInker.ink(save.profile, trip, 99);
+    }).not.toThrow();
+    return expect(inked).rejects.toThrow('Room 100 is not on this page');
+  });
+
+  it('a request the worker cannot take is inked on the main thread', async () => {
+    class NoClone {
+      onmessage: unknown = null;
+      onerror: unknown = null;
+      onmessageerror: unknown = null;
+      postMessage(): void {
+        throw new Error('DataCloneError');
+      }
+      terminate(): void {}
+    }
+    vi.stubGlobal('Worker', NoClone);
+    try {
+      const save = drawnSave(0);
+      const trip = save.trip;
+      if (!trip) throw new Error('no trip');
+      const got = await workerInker().ink(save.profile, trip, 0);
+      const want = await syncInker.ink(save.profile, trip, 0);
+      expect(got.layout).toBe(want.layout);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
