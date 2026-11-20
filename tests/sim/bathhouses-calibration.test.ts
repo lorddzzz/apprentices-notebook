@@ -1,18 +1,16 @@
+import { writeFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import { BATH_HEART, BATH_ROOMS_12, BATH_ROOMS_34 } from '$data/districts/bathhouses';
 import { compiledFor, createBattle, FOUNDERS, newProfile } from '$engine';
 import { BOIL_OVER_RULE_ID, type BoilOverEvent } from '$engine/districts/bathhouses/types';
 import { listRules } from '$engine/rules';
 import { botFight } from './bot';
+import { bathTables } from './calibration/bath-bridges';
+import { countEnv } from './calibration/runner';
 
-/**
- * Bathhouse bot calibration (BH-16): win rate and boil-over frequency by room, layout and bot,
- * driven straight from the room data (the rooms are not in the kit yet). Measures and prints only:
- * the numbers are tuned at the end of the build. `BATH_SEEDS=30` (or `BATH_TABLE=1`) widens the
- * sample and prints the table; the default few seeds keep this fast.
- */
-
-const SEEDS = Number(process.env.BATH_SEEDS ?? (process.env.BATH_TABLE ? 30 : 3));
+const TABLE = Boolean(process.env.BATH_TABLE);
+const RAW = Boolean(process.env.BATH_RAW_TABLE || (!TABLE && process.env.BATH_SEEDS));
+const SEEDS = countEnv('BATH_SEEDS', TABLE || RAW ? 30 : 3);
 const ROOMS = [...BATH_ROOMS_12, ...BATH_ROOMS_34, BATH_HEART];
 const heatOf = (i: number) => (i >= 4 ? 4 : i + 1) as 1 | 2 | 3 | 4;
 
@@ -74,8 +72,8 @@ describe('bathhouse bot calibration (BH-16)', () => {
     }
   }, 120_000);
 
-  test.skipIf(!process.env.BATH_TABLE && !process.env.BATH_SEEDS)(
-    'table: every room and layout, both bots (BATH_TABLE=1, 30 seeds)',
+  test.skipIf(!RAW)(
+    'historical raw-board table: every room and layout, both bots',
     () => {
       const rows: string[] = [
         '| room | layout | heat | blind win | blind boil/fight | blind party hits/fight | blind 1st boil rd | gauge win | gauge boil/fight | gauge party hits/fight | gauge 1st boil rd |',
@@ -98,3 +96,20 @@ describe('bathhouse bot calibration (BH-16)', () => {
     1_800_000,
   );
 });
+
+test.skipIf(!TABLE)(
+  'live bathhouses: fresh layouts and worn trips',
+  () => {
+    const candidate = Boolean(process.env.BATH_CANDIDATE);
+    const table = bathTables(
+      candidate
+        ? { seeds: SEEDS, parties: [2], policies: ['aware'], freshOnly: true }
+        : { seeds: SEEDS },
+      !candidate,
+    );
+    if (process.env.BATH_OUT) writeFileSync(process.env.BATH_OUT, table);
+    else process.stdout.write(table);
+    expect(table).toContain('| 2 | aware | fresh | 5 | all layouts | 4 |');
+  },
+  36_000_000,
+);

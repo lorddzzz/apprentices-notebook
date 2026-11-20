@@ -24,11 +24,12 @@ import { crackedSet } from '$engine/districts/bridges/preview';
 import { createRng } from '$engine/rng';
 import { endBattle, leaveDoorway, startBattle, takeOffer } from '../../src/app/flow';
 import { botFight } from './bot';
+import { bridgeTable } from './calibration/bath-bridges';
 
 /**
  * Bridges bot, fuzz and calibration (BR-21). Whole trips on both span kinds with parties of one,
  * two and three; the bot never ends a move on a cracked tile when a standing one is reachable.
- * Measures and prints only: no tuning. `BRIDGES_SEEDS=n` (or `BRIDGES_TABLE=1`, 40 seeds) widens
+ * Measures and prints only: no tuning. `BRIDGES_SEEDS=n` (or `BRIDGES_TABLE=1`, 12 seeds) widens
  * the sample and prints the per-room table (docs/plans/bridges-verification.md).
  */
 
@@ -286,3 +287,17 @@ describe('random legal walks on every bridges board (BR-21 fuzz)', () => {
     LONG,
   );
 });
+
+test.skipIf(!TABLE)(
+  'live bridges: fresh layouts and worn trips',
+  () => {
+    const candidate = Boolean(process.env.BRIDGES_CANDIDATE);
+    const table = bridgeTable(
+      candidate ? { seeds: SEEDS, parties: [2], policies: ['aware'] } : { seeds: SEEDS },
+    );
+    if (process.env.BRIDGES_OUT) out(table);
+    else process.stdout.write(table);
+    expect(table).toContain('| 2 | aware | fresh | 5 | sound |');
+  },
+  36_000_000,
+);
