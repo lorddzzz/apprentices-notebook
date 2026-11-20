@@ -49,7 +49,90 @@ export type InkTripRun = {
   /** Cleared, yet the way home was shut. */
   stranded: boolean;
   save: SaveData;
+  /** The heart fight, when the trip reached it (real fights only). */
+  heart: HeartRun | null;
 };
+
+/** The postmaster's recovered page, banked on a heart win (IQ-23). */
+export const POSTMASTER_PAGE_ID = 'postmaster:serveNotice' as const;
+export const HEART_ROOM = 4;
+
+/** One heart fight read back from its log and end state (IQ-23, CAL-2). */
+export type HeartRun = {
+  outcome: 'won' | 'lost' | 'stalled';
+  rounds: number;
+  /** Writs served / lifted (answered) / collected (the clock ran out) in the fight. */
+  served: number;
+  lifted: number;
+  collected: number;
+  /** The first thing the postmaster did: his trick's name or his first cast's spell name. */
+  opener: string | null;
+  /** His trick by name, if he used it at all. */
+  trick: string | null;
+  /** His spell casts (Serve notice / Collect), not his trick. */
+  casts: number;
+  /** His page was banked by this fight's end (won only; a stall ends nothing). */
+  page: boolean;
+  pmHp: number;
+  /** His remaining charges: serveNotice, collect. */
+  charges: [number, number];
+  /** Sum of the party's HP at the end. */
+  partyHp: number;
+};
+
+/** Reads a heart fight (state, log, the save it began from) into a `HeartRun`. */
+export function heartRun(save: SaveData, state: BattleState, events: GameEvent[]): HeartRun {
+  const outcome = state.phase === 'won' ? 'won' : state.phase === 'lost' ? 'lost' : 'stalled';
+  let opener: string | null = null;
+  let trick: string | null = null;
+  let casts = 0;
+  let served = 0;
+  let lifted = 0;
+  let collected = 0;
+  for (const e of events) {
+    if (e.type === 'trickUsed') {
+      trick ??= e.name;
+      opener ??= e.name;
+    } else if (e.type === 'cast' && !e.caster.member && e.caster.name === 'postmaster') {
+      casts++;
+      opener ??= e.spell;
+    } else if (e.type === 'inkQuarter:clockServed') served++;
+    else if (e.type === 'inkQuarter:clockLifted') lifted++;
+    else if (e.type === 'inkQuarter:clockCollected') collected++;
+  }
+  const pm = state.units.find((u) => u.kind === 'enemy' && u.def === 'postmaster');
+  const rival = pm?.kind === 'enemy' ? pm.rival : undefined;
+  const banked =
+    outcome === 'stalled'
+      ? false
+      : endBattle(save, state, events).save.profile.pages.includes(POSTMASTER_PAGE_ID);
+  return {
+    outcome,
+    rounds: state.round,
+    served,
+    lifted,
+    collected,
+    opener,
+    trick,
+    casts,
+    page: banked,
+    pmHp: pm?.hp ?? 0,
+    charges: [rival?.charges.serveNotice ?? 0, rival?.charges.collect ?? 0],
+    partyHp: state.units.reduce((n, u) => n + (u.kind === 'member' ? u.hp : 0), 0),
+  };
+}
+
+/** The heart on a fresh party (full HP and charges), seed `seed`, bot fight of up to `maxRounds`. */
+export function freshHeart(seed: number, def: string | null = null, maxRounds = 40): HeartRun {
+  let save: SaveData = { ...newSave(seed), profile: inkProfile() };
+  save = setOut(save, 'inkQuarter');
+  const t = save.trip as Trip;
+  const kit = t.kit ? { ...t.kit } : undefined;
+  if (kit && def) kit.state = signTerm(parseInkState(kit.state), def as never, HEART_ROOM - 1);
+  save = { ...save, trip: { ...t, encounter: HEART_ROOM, ...(kit ? { kit } : {}) } };
+  const fight = botFight(startBattle(save).state, maxRounds);
+  return heartRun(save, fight.state, fight.events);
+}
 
 export const inkProfile = (): Profile => {
   const p = newProfile();
@@ -103,7 +186,9 @@ export function inkTrip(
     termAtHeart: false,
     stranded: false,
     save,
+    heart: null,
   };
+  let pending: { save: SaveData; state: BattleState; events: GameEvent[] } | null = null;
   const track = (t: Trip) => {
     run.maxOpen = Math.max(run.maxOpen, openOf(t).length);
   };
@@ -124,17 +209,27 @@ export function inkTrip(
                 { type: 'round', round: 1 + ((seed * 7 + t.encounter * 5) % 12) },
               ] as GameEvent[],
             }
-          : botFight(startBattle(s).state, maxRounds),
+          : (() => {
+              const f = botFight(startBattle(s).state, maxRounds);
+              if (t.encounter === HEART_ROOM)
+                pending = { save: s, state: f.state, events: f.events };
+              return f;
+            })(),
       // Out of rounds: a stall counts as a loss in the tables.
-      onStall: (t, state) =>
+      onStall: (t, state) => {
+        if (pending && t.encounter === HEART_ROOM)
+          run.heart = heartRun(pending.save, pending.state, pending.events);
         run.rooms.push({
           room: t.encounter,
           won: false,
           rounds: state.round,
           term: openOf(t)[0]?.def ?? null,
           settled: null,
-        }),
+        });
+      },
       onRoom: (t, state, end) => {
+        if (pending && t.encounter === HEART_ROOM)
+          run.heart = heartRun(pending.save, pending.state, pending.events);
         const open = openOf(t)[0] ?? null;
         const won = end.outcome === 'won';
         const after = end.save.trip;
