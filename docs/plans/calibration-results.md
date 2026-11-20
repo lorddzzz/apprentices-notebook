@@ -79,3 +79,11 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 | IQ-23-M | Postmaster movement | move 1/2 identical to baseline | Leave 0 | pending |
 | IQ-23-O | Postmaster opener | Writ in every row | Keep the writ | pending |
 | IQ-20-T | Terms 5/6/7 | Deltas 0 to -5 points, all pay | Keep | pending |
+
+### CAL-4 (merged 2026-11-20, d8ccf26; tables in foundry-verification.md and cartographers-verification.md)
+| ID | Proposal | Evidence | Player decision |
+|---|---|---|---|
+| CAL-4-A | Registrar HP 10 → 40 (`REGISTRAR_TUNING.hp` plus `REGISTRAR_RIVAL` and `REGISTRAR_SHELL` copies); needs acceptance of party 3 at +13 over the +10 limit | Party 2 aware 60 % (default 57 %), party 3 83 %, party 1 37 %; extra circles do nothing | pending |
+| CAL-4-B | Carillonneur HP stays 14; the player picks a foundry band and says what hung bells should do | Aware bot wins the heart 100 % at party 2 for 0-4 bells (allied pulses hit foes 0 times in 18 four-bell hearts); HP 36 → 97/87 %, HP 60 → 70/70 % with 9 stalls; the "bot never wins the heart" note is stale | pending |
+| CAL-4-C | Academy room-5 numeric target (no canals counterpart) | Party 2 aware room 5 100 % | pending (player names one) |
+| CAL-4-D | Registrar note kept, watch item | A Swap line leaves a foe on pencil in 15/30 states and the note erases it each time; later-fight effect unmeasured | none now |
