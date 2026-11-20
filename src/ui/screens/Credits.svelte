@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { APPRENTICES, DISTRICTS } from '$data';
   import { CREDITS_LINES } from '$data/ending';
   import { creditsOf, endingOf, seeCredits } from '$engine/drawing';
@@ -28,6 +29,20 @@
     if (!endingOf(game.profile).creditsSeen) game.updateProfile(seeCredits);
   }
   $effect(() => finish);
+
+  // The reel moves by `transform`, so while it rolls the window must not scroll (a swipe would add
+  // to the roll). When it ends the window takes over: the roll's offset becomes the scroll position
+  // (no jump) and the end state can be scrolled back through.
+  let rolling = $state(true);
+  let win = $state<HTMLElement | null>(null);
+  async function rolled(e: AnimationEvent): Promise<void> {
+    finish();
+    const reel = e.currentTarget as HTMLElement;
+    const shift = -new DOMMatrixReadOnly(getComputedStyle(reel).transform).m42;
+    rolling = false;
+    await tick();
+    if (win) win.scrollTop = shift;
+  }
   function skip(): void {
     finish();
     go('study');
@@ -35,8 +50,8 @@
 </script>
 
 <section class="credits" data-testid="credits">
-  <div class="window">
-    <div class="reel" data-testid="credits-reel" onanimationend={finish}>
+  <div class="window" class:rolling bind:this={win} data-testid="credits-window">
+    <div class="reel" data-testid="credits-reel" onanimationend={rolled}>
       <h2>{CREDITS_LINES.household}</h2>
       <p>{keepers.join(', ')}</p>
 
@@ -71,10 +86,15 @@
     overscroll-behavior: contain;
     background: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(43, 33, 24, 0.06) 27px 28px);
   }
+  .window.rolling {
+    overflow: hidden;
+  }
   .reel {
     padding: 60vh var(--space-4);
     text-align: center;
     font-family: var(--hand);
+  }
+  .rolling .reel {
     animation: roll 50s linear forwards;
   }
   h2 {
@@ -119,8 +139,13 @@
   }
   /* Without motion the credits are a page to scroll, and the skip button still leaves. */
   @media (prefers-reduced-motion: reduce) {
-    .reel {
+    .window.rolling {
+      overflow-y: auto;
+    }
+    .rolling .reel {
       animation: none;
+    }
+    .reel {
       padding-block: var(--space-6, 48px);
     }
   }
