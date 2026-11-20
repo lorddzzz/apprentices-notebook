@@ -4,9 +4,11 @@ import { DISTRICT_KIT } from '$data/districts/index';
 import { newProfile, openAll, type Profile, solveThreshold } from '$engine';
 import {
   MAP_CAPTION_WIDTH,
+  MAP_PAGE_HEIGHT,
   type MapNode,
   mapNode,
   mapNodes,
+  mapPageHeight,
   mapPaths,
   mapProblems,
   nodeBox,
@@ -231,5 +233,31 @@ describe('the map for seven (DK-16)', () => {
       expect(mapProblems(seven, w, undefined, extra), `${n} pages at ${w}`).toEqual([]);
     }
     expect(mapProblems(seven, 375, undefined, pagesExtra({ pages: [], blank: true }))).toEqual([]);
+  });
+
+  test('R9: the door row counts under the Seam, and the page grows with what hangs from it', () => {
+    // The owner's door open and the handover done: the desk row sits under the pages.
+    const open = (n: number): Profile => ({
+      ...drawn(n),
+      city: {
+        ...drawn(n).city,
+        hearts: ['seam', 'cartographers'],
+        doorSeen: true,
+      } as Profile['city'],
+    });
+    const u = underSeam(open(3), 3, FIVE);
+    expect(u.door).toBe('open');
+    const without = pagesExtra({ pages: u.pages, blank: u.blank });
+    const extra = pagesExtra(u);
+    expect(extra).toBeGreaterThan(without);
+    // today's case: the row counted, the Seam's column ends past the base page's foot
+    const seamBottom = nodeBox(node('seam'), 375, undefined, extra).bottom;
+    expect(seamBottom).toBeGreaterThan(MAP_PAGE_HEIGHT);
+    expect(seamBottom).toBeLessThanOrEqual(mapPageHeight(extra));
+    for (const w of [320, 375, 414]) {
+      expect(mapProblems(seven, w, undefined, extra), `door and 3 pages at ${w}`).toEqual([]);
+    }
+    expect(mapPageHeight(extra)).toBe(MAP_PAGE_HEIGHT + extra);
+    expect(mapPageHeight(0)).toBe(MAP_PAGE_HEIGHT);
   });
 });

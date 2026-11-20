@@ -2,7 +2,9 @@
   import { GIFT_LINE, HANDOVER_PAGES } from '$data/ending';
   import { nameOf } from '$engine';
   import { endingOf, handover, missingGifts } from '$engine/drawing';
+  import { lastPageAction, originOf } from '../../app/drawing';
   import { game } from '../../app/instance';
+  import { go, router } from '../../app/router.svelte';
   import { href } from '../../app/routes';
   import { toast } from '../../app/toasts.svelte';
   import BackLink from '../components/common/BackLink.svelte';
@@ -10,6 +12,9 @@
 
   // What the scene will teach, read once on arrival: after the handover nothing is missing any more.
   const gifts = missingGifts(game.profile);
+  // A replay goes back to where it was opened from (the map's door row by default).
+  const origin = originOf(router.params.get('from'), 'map');
+  const ORIGIN_LABEL = { codex: 'Codex', map: 'Map', study: 'Study' } as const;
   let page = $state(0);
   let closed = $state(false);
   const last = $derived(page === HANDOVER_PAGES.length - 1);
@@ -19,6 +24,11 @@
   function next() {
     if (!last) {
       page += 1;
+      return;
+    }
+    // A replay closes nothing and writes nothing: it goes back.
+    if (lastPageAction(game.profile) === 'return') {
+      go(origin);
       return;
     }
     // Closing the last page is what the handover is; leaving earlier loses nothing.
@@ -34,7 +44,7 @@
 
 <section class="handover" data-testid="handover">
   <header>
-    <BackLink to="map" label="Map" />
+    <BackLink to={origin} label={ORIGIN_LABEL[origin]} />
     {#if !closed}<span class="count" data-testid="handover-count">{page + 1} / {HANDOVER_PAGES.length}</span>{/if}
   </header>
 

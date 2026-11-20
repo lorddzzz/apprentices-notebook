@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Drawing } from '$data';
   import {
-    blankDrawing,
+    afterClear,
     type ElementRow,
     rename,
     saveDraft,
@@ -30,19 +30,22 @@
     draft = change(view.draft);
   }
 
-  function commit(next: Drawing | null, done: string): void {
+  /** True when the store took the page; a refusal is toasted and nothing changes. */
+  function commit(next: Drawing | null, done: string): boolean {
     const message = game.updateProfile((p) => saveDraft({ ...game.save, profile: p }, slot, next).profile);
     if (message !== null) {
       toast(message, 'warn');
-      return;
+      return false;
     }
     draft = null;
     toast(done);
+    return true;
   }
 
   function wipe(): void {
-    commit(null, 'The page is clear again.');
-    draft = blankDrawing(profile);
+    const stored = commit(null, 'The page is clear again.');
+    // Reset only when the store took it: a refusal keeps the editor as it was.
+    draft = afterClear(stored, draft, profile);
   }
 </script>
 

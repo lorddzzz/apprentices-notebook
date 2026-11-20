@@ -244,10 +244,22 @@ const LOCK_BUTTON = 48;
 const UNDER_SEAM = 260; // the margin link, stem, stair, five floor labels, a quiet line and the door
 const PAGE_ROW = 52; // one drawn page: its name, then depth, rule and heart (EN-7)
 const BLANK_ROW = 40; // the blank page and its line
+const DOOR_ROW = 64; // the owner's door row (door or desk) under the pages; measured at 375 wide (R9)
 
-/** What the drawn pages add under the Seam, in px. */
-export function pagesExtra(u: Pick<UnderSeam, 'pages' | 'blank'>): number {
-  return u.pages.length * PAGE_ROW + (u.blank ? BLANK_ROW : 0);
+/**
+ * What hangs under the Seam beyond `UNDER_SEAM`, in px: the drawn pages (or the blank page) and,
+ * while the owner's door is open, its row (`doorRow` is set exactly then).
+ */
+export function pagesExtra(u: Pick<UnderSeam, 'pages' | 'blank'> & { door?: DoorState }): number {
+  return u.pages.length * PAGE_ROW + (u.blank ? BLANK_ROW : 0) + (u.door === 'open' ? DOOR_ROW : 0);
+}
+
+/**
+ * The page's height: the nodes' layer keeps its height (their `y` percents hold), and the page
+ * grows by what hangs under the Seam so the column ends on paper.
+ */
+export function mapPageHeight(underExtra = 0): number {
+  return MAP_PAGE_HEIGHT + underExtra;
 }
 
 export function nodeBox(
@@ -302,7 +314,12 @@ export function mapProblems(
   const out: string[] = [];
   const boxes = nodes.map((n) => ({ n, box: nodeBox(n, pageWidth, pageHeight, underExtra) }));
   for (const { n, box } of boxes) {
-    if (box.left < 0 || box.right > pageWidth || box.top < 0 || box.bottom > pageHeight) {
+    if (
+      box.left < 0 ||
+      box.right > pageWidth ||
+      box.top < 0 ||
+      box.bottom > pageHeight + underExtra
+    ) {
       out.push(`${n.id} runs off the page`);
     }
   }

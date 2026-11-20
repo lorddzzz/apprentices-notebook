@@ -5,9 +5,14 @@ import {
   checkDrawing,
   costOf,
   drawingsOf,
+  endingOf,
+  FOE_LIMIT_SENTENCE,
+  FOES_MAX,
   type Issue,
   NAME_MAX,
   type Pen,
+  PIECE_LIMIT_SENTENCE,
+  PIECES_MAX,
   paletteOf,
   parseInkedState,
   penOf,
@@ -43,8 +48,7 @@ export interface TableView {
   locked: boolean;
 }
 
-export const FOES_MAX = 3;
-export const PIECES_MAX = 2;
+export { FOES_MAX, PIECES_MAX };
 export const LENGTHS: readonly Drawing['length'][] = [3, 4, 5, 6];
 export const LENGTH_WORD: Record<Drawing['length'], string> = {
   3: 'three rooms',
@@ -142,8 +146,8 @@ function isPicked(d: Drawing, element: PickElement, id: string): boolean {
 }
 
 const LIMIT_SENTENCE: Partial<Record<PickElement, string>> = {
-  foe: 'Three kinds at most.',
-  piece: 'Two extra pieces at most.',
+  foe: FOE_LIMIT_SENTENCE,
+  piece: PIECE_LIMIT_SENTENCE,
 };
 
 const enemyName = (id: string): string => ENEMIES[id as EnemyId]?.name ?? id;
@@ -190,9 +194,6 @@ export function tableView(
   const slots = drawingsOf(p);
   const d = draft ?? slots[slot] ?? blankDrawing(p);
   const issues = checkDrawing(p, d);
-  if (d.foes.length === 0) {
-    issues.push({ element: 'foe', id: null, reason: 'Draw at least one foe.' });
-  }
   const locked = pageInUse(trip, slot);
   const rows = {} as Record<PickElement, ElementRow[]>;
   for (const [element, list] of Object.entries(candidates(p)) as [PickElement, Candidate[]][]) {
@@ -220,7 +221,36 @@ export function tableView(
   };
 }
 
+/** The editor's draft after Clear: a blank page once the store took it, the draft as it was when it refused (R9). */
+export function afterClear(stored: boolean, draft: Drawing | null, p: Profile): Drawing | null {
+  return stored ? blankDrawing(p) : draft;
+}
+
 /** Writes (or, with `null`, clears) a page through `storeDrawing`; throws as it does. */
 export function saveDraft(save: SaveData, slot: 0 | 1 | 2, draft: Drawing | null): SaveData {
   return { ...save, profile: storeDrawing(save.profile, slot, draft, save.trip) };
+}
+
+// ── Replays of the ending (R9) ──
+
+/** Where a replayed ending screen returns to: the places that link to the owner's desk and the credits. */
+export const ORIGINS = ['codex', 'map', 'study'] as const;
+export type Origin = (typeof ORIGINS)[number];
+
+/** The `from` param when it names an origin, else `fallback` (a bad or missing value is no error). */
+export function originOf(from: string | null, fallback: Origin): Origin {
+  return ORIGINS.find((o) => o === from) ?? fallback;
+}
+
+/**
+ * What the last page of the handover does: the first visit closes the page (the handover is
+ * written and the closing leaf shown); a replay writes nothing and returns to where it came from.
+ */
+export function lastPageAction(p: Profile): 'close' | 'return' {
+  return endingOf(p).handover ? 'return' : 'close';
+}
+
+/** The credits' default origin: the Codex when they were already seen (only the Codex replays them), else the study. */
+export function creditsFallback(p: Profile): Origin {
+  return endingOf(p).creditsSeen ? 'codex' : 'study';
 }

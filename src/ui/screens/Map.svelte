@@ -3,7 +3,7 @@
   import type { DistrictId } from '$data';
   import { seeMap } from '$engine';
   import type { StartAt } from '$engine/districts/types';
-  import { MAP_PAGE_HEIGHT, mapNodes, mapPaths } from '../../app/city';
+  import { MAP_PAGE_HEIGHT, mapNodes, mapPageHeight, mapPaths, pagesExtra, underSeam } from '../../app/city';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
   import { toast } from '../../app/toasts.svelte';
@@ -19,6 +19,8 @@
   const UnderPages = DISTRICT_UI.inkedPage?.underPages;
   // Dev check only: `window.__lowerFloors = [...]` draws fixture floors under the Seam.
   const fixtureFloors = import.meta.env.DEV ? (window as { __lowerFloors?: DistrictId[] }).__lowerFloors : undefined;
+  // The page grows with what hangs under the Seam (pages, the door row); the nodes keep their layer.
+  const pageHeight = $derived(mapPageHeight(pagesExtra(underSeam(game.profile, undefined, fixtureFloors))));
   let target = $state<DistrictId | null>(null);
   /** The drawn page Set out is open for (EN-7), when `target` is 'inkedPage'. */
   let pageSlot = $state<0 | 1 | 2 | null>(null);
@@ -60,26 +62,28 @@
     <h1>The owner's map</h1>
   </header>
   <div class="scroll" bind:this={scroller}>
-    <div class="page" style:height="{MAP_PAGE_HEIGHT}px">
-      <svg class="paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {#each paths as p (p.id)}
-          <line
-            x1={p.x1}
-            y1={p.y1}
-            x2={p.x2}
-            y2={p.y2}
-            class:dashed={!p.open}
-            vector-effect="non-scaling-stroke"
-          />
+    <div class="page" style:height="{pageHeight}px">
+      <div class="layer" style:height="{MAP_PAGE_HEIGHT}px">
+        <svg class="paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {#each paths as p (p.id)}
+            <line
+              x1={p.x1}
+              y1={p.y1}
+              x2={p.x2}
+              y2={p.y2}
+              class:dashed={!p.open}
+              vector-effect="non-scaling-stroke"
+            />
+          {/each}
+        </svg>
+        {#each nodes as n (n.id)}
+          {#if n.id === 'seam'}
+            <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} under={underSeamSlot} />
+          {:else}
+            <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} />
+          {/if}
         {/each}
-      </svg>
-      {#each nodes as n (n.id)}
-        {#if n.id === 'seam'}
-          <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} under={underSeamSlot} />
-        {:else}
-          <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} />
-        {/if}
-      {/each}
+      </div>
     </div>
   </div>
   <SetOutSheet
@@ -161,6 +165,9 @@
     color: var(--ink);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     clip-path: polygon(0 1%, 8% 0, 22% 1.2%, 40% 0, 61% 1%, 80% 0, 100% 1.4%, 99% 40%, 100% 70%, 98.5% 100%, 70% 99%, 45% 100%, 20% 98.8%, 0 100%, 1% 60%);
+  }
+  .layer {
+    position: relative;
   }
   .paths {
     position: absolute;
