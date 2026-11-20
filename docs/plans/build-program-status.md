@@ -23,6 +23,10 @@ Apply measured calibration changes that meet the agreed targets. Where targets c
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
+| CAL-1 t3 | apply SM-6 72 HP, canals layouts | Codex Terra 6.1 high | clone codex-1218279346, build/cal1-t3 | running (spawned 2026-11-20 ~23:40 CET; Claude 2 %, Codex 48 %) |
+| CAL-4 t3 | Registrar 40 HP, foundry allied bell hits | Codex Sol 6.2 high | clone codex-2960479820, build/cal4-t3 | running |
+| CAL-3 t3 | baths and bridges numbers | Sonnet high | .claude/worktrees/pack-cal3, build/pack-cal3 | running (Claude commits) |
+| CAL-2 t3 | quarter helper delivery | not started | – | next, once a slot frees (session rule: no Opus subagents) |
 
 Usage baseline at spawn (test cycle, one wave): Claude 5h 3 % / week 0 % (reset 01:40 CET); Codex 5h 45 % / week 7 % (reset 00:36 CET). Read with `claude -p "/usage"` and the `codex app-server` JSON-RPC call `account/rateLimits/read`. **Reading usage (works now):** `node .claude/skills/implement/usage.mjs` (both tools: `claude -p "/usage"` and the Codex app-server `account/rateLimits/read`); wave cost ≈ 34 points of Claude 5h (3→37 %) + 4 of Codex (45→49 %). **Codex via the board's spawn works again (smoke-tested 2026-11-19, after the machine restart; it failed with `failed to load workspace requirements` on 2026-11-18): use it first.** Models in the app: `gpt-6.1-terra`, `gpt-6.1-sol`, `gpt-6.2-sol`, `gpt-6.2-astra`. Use Whiteboard’s `git: true` for Codex packs so the worker commits in its clone and the orchestrator fetches the branch. Use the implement skill’s CLI fallback and orchestrator-commits preamble when Git-enabled spawn is unavailable. R1–R7 are done (R1 and a Codex run through the CLI runner; R4, R5, R7 on Claude).
 
