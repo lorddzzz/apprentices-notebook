@@ -59,3 +59,23 @@ CAL-0 verification (2026-11-19; uncommitted worktree, git index writes denied):
 | `SEAM_SIM=1 SEAM_SEEDS=1` on the port file | passed, 10.90 s; pair/trio reached the heart with carried losses |
 
 The default 50-seed full measurement was not run in CAL-0; later passes must collect it before comparing bands. No baseline percentage is accepted by this schema. Pending: CAL-1–5 collect full calibration evidence, metrics specific to each district, and misses for CAL-G1. CAL-4 must watch the Registrar note and policy limitations. Preserve legal empty-span bridges Shove for save replay.
+
+## Approval rows (orchestrator copies from pack reports; decisions pending)
+
+### CAL-1 (merged 2026-11-20, 7a2cc20; tables in seam-grows-verification.md and canals-revisit-verification.md)
+| ID | Current | Proposed decision | Evidence | Player decision |
+|---|---|---|---|---|
+| SM-6 Marginalia | 16 HP, 2 familiars, reach 1 | Apply 72 HP with the golden update in task 3; keep hand settings | Fresh pair 89/150, regression 7/15; worn pair clears 3/50; furnace hall fresh 8/50; solo/pair/trio heart 0/59.3/84.7 % | pending |
+| SM-6 golden | `BOT`, no `SEAM_DEEP` | Add `SEAM_DEEP` `{maxRounds:100,startHp:20}` for win coverage; wipes stay `BOT` | All five replays diverge at 72 HP | pending |
+| CN-13 heart | Mother 56 HP, cap 4, flare 3 | Retain pending a decision on the trio margin and layout spread | Pair 52 %, trio 97.3 % (+45 vs +10 limit), layouts 50/82/24 % | pending |
+| CN-13 room 4 and crate | Live Lamplighter, Snuffer fallback | Retain pending decisions on live-room difficulty and whether the crate limit applies to worn wins | Fresh both 100 % (ceiling 80); pair mooring 0 % fresh, 72.3 % worn live, 17.6 % fallback | pending |
+| CN-13 golden | `DEEP` startHp 20 | Retain | Replays pass | pending |
+
+### CAL-2 (merged 2026-11-20, c5d0caa; tables in ink-quarter-calibration.md)
+| ID | Decision | Measured | Proposed default | Player decision |
+|---|---|---|---|---|
+| IQ-20-L | Clock lever | All data levers 120/120 fresh wins; deadline 1 is the only one that collects (3 %) | Playtest first; keep `CLOCK_TUNING` 3/3/2, `CLOCK_SEAL` 3 | pending |
+| IQ-20-D | A damage source for the heart (design) | Notice-first + Strike + 28 HP: 0 lost, 10.9/14 HP, 15 % stalls | Design round; without it the bot cannot lose the heart | pending |
+| IQ-23-M | Postmaster movement | move 1/2 identical to baseline | Leave 0 | pending |
+| IQ-23-O | Postmaster opener | Writ in every row | Keep the writ | pending |
+| IQ-20-T | Terms 5/6/7 | Deltas 0 to -5 points, all pay | Keep | pending |
