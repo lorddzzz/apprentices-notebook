@@ -298,6 +298,26 @@ export const CANDIDATES: Readonly<Record<string, Candidate>> = {
       });
     },
   },
+  F4: {
+    fields: 'FOUNDRY_TUNING.carillonneur.hp 14 -> 60 (and rivals/carillonneur.ts hp)',
+    apply: () => tryHp('carillonneur', 60),
+  },
+  F5: {
+    fields: 'FOUNDRY_TUNING.carillonneur.hp 14 -> 90 (and rivals/carillonneur.ts hp)',
+    apply: () => tryHp('carillonneur', 90),
+  },
+  /** A policy probe, not a game number: CAL-B asked for the pulse term's member weight at 0 on the yoke. */
+  P0: {
+    fields: 'FOUNDRY_TUNING.botPulse.member 15 -> 0 (bot policy weight only)',
+    apply: () => {
+      const w: Writable<typeof FOUNDRY_TUNING.botPulse> = FOUNDRY_TUNING.botPulse;
+      const was = w.member;
+      w.member = 0;
+      return () => {
+        w.member = was;
+      };
+    },
+  },
   A1: {
     fields: 'REGISTRAR_TUNING.hp 10 -> 20 (and rivals/registrar.ts hp)',
     apply: () => tryHp('registrar', 20),
@@ -305,6 +325,14 @@ export const CANDIDATES: Readonly<Record<string, Candidate>> = {
   A2: {
     fields: 'REGISTRAR_TUNING.hp 10 -> 30 (and rivals/registrar.ts hp)',
     apply: () => tryHp('registrar', 30),
+  },
+  A4: {
+    fields: 'REGISTRAR_TUNING.hp 10 -> 40 (and rivals/registrar.ts hp)',
+    apply: () => tryHp('registrar', 40),
+  },
+  A5: {
+    fields: 'REGISTRAR_TUNING.hp 10 -> 50 (and rivals/registrar.ts hp)',
+    apply: () => tryHp('registrar', 50),
   },
   A3: {
     fields: 'REGISTRAR_TUNING.hp 10 -> 20, circles 1 -> 2, circlesBelowHalf 2 -> 3',

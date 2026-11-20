@@ -218,3 +218,34 @@ Party 2 default: trip ends {"cleared":4,"lost":2,"stalled":2} / 8.
 Party 2 aware: trip ends {"cleared":2,"stalled":5,"lost":1} / 8.
 Party 3 default: trip ends {"cleared":2,"lost":5,"stalled":1} / 8.
 Party 3 aware: trip ends {"stalled":1,"cleared":6,"lost":1} / 8.
+
+## CAL-4 task 2: Registrar's HP candidates and the note's watch case (proposal-only, nothing applied)
+
+Candidates are applied in memory (`CAL4_CAND=<name>`, `CANDIDATES` in `tests/sim/calibration/foundry-cartographers.ts`, restored after the run); no `src/data` file changed. Heart only, authored layouts, 10 seeds per layout (30 fights per cell), aware bot, party 2 unless stated. The Registrar's body is `REGISTRAR_TUNING.hp` 10 (`src/data/rivals/registrar.ts:23`; `REGISTRAR_RIVAL.hp` and `REGISTRAR_SHELL.hp` read it, and the spawned unit reads the shell).
+
+| candidate | source fields | party 2 aware | party 2 default | party 1 aware / default | party 3 aware / default | read |
+|---|---|---|---|---|---|---|
+| committed (8 seeds) | `REGISTRAR_TUNING.hp` 10 | 23/24 (96 %) | 23/24 (96 %) | 11/24 (46 %) / 8/24 (33 %) | 23/24 (96 %) / 24/24 (100 %) | party 2 and 3 about +30 to +45 above the 50-65 % band |
+| A1 | hp 20 | 28/30 (93 %) | n/a | n/a | n/a | above band |
+| A2 | hp 30 | 23/30 (77 %) | n/a | n/a | n/a | above band |
+| A3 | hp 20, `circles` 1 -> 2, `circlesBelowHalf` 2 -> 3 | 28/30 (93 %), **identical to A1** | n/a | n/a | n/a | the bot already steps off circles: 18 fights drew 70 circles (A1) vs 103 (A3) with 4 erasures in both |
+| **A4** | **hp 40** | **18/30 (60 %)** | 17/30 (57 %) | 11/30 (37 %) / 7/30 (23 %) | 25/30 (83 %) / 22/30 (73 %) | **party 2 in band**; party 3 aware is +23 over party 2 (band wants within +10), party 1 under |
+| A5 | hp 50 | 15/30 (50 %) | n/a | n/a | n/a | at the band's floor |
+
+**Result.** A4 (Registrar hp 10 -> 40, three places: `REGISTRAR_TUNING.hp`, and the two copies read through `REGISTRAR_RIVAL`/`REGISTRAR_SHELL`) puts the pair in the canals' heart band (60 %, default bot 57 %) but not the trio: 83 % aware (73 % default), +23 / +16 over party 2 against "within +10". A4 is the proposal's best fit and still a **partial miss at party 3 by 13 points (aware)**; the lone apprentice is at 37 % (23 % default). The remaining levers (circles, the room-6 `ROOM_PENCIL` entry) were not measured beyond A3. The same A4 measurement says nothing about rooms 1-5: they stay above the band at party 2 (100 %), and room 5 has no assigned target (**needs the player**, see the reading above).
+
+### Registrar-note watch case
+
+Fixed case, not a bot play-through (`botFight` passes no footnotes and the starter pages have no Swap): the Draughtsman carries the Registrar's own `Bolt> Swap`; from every authored layout at round 1, 3 layouts x 10 seeds (30 states per room), every one-turn line (stay or any legal walk, then any legal Swap aim) is played to the end of the round with `registrar:swap` written and without it. Reproduce: `CAL4=1 CAL4_SEEDS=10 CAL4_WATCH_OUT=out.md pnpm vitest run tests/sim/cartographers-calibration.test.ts -t watch`.
+
+| room | states | states with a Swap line leaving a foe on pencil (prevalence) | of those, the note erases a foe by round end | lines erasing the Registrar | states won outright by the erase | erased with no note (control) |
+|---|---|---|---|---|---|---|
+| 1 | 30 | 8 (27 %) | 8 | 0 | 0 | 0 |
+| 2 | 30 | 10 (33 %) | 10 | 0 | 0 | 0 |
+| 3 | 30 | 6 (20 %) | 6 | 0 | 0 | 0 |
+| 4 | 30 | 8 (27 %) | 8 | 0 | 0 | 0 |
+| 5 | 30 | 14 (47 %) | 14 | 0 | 0 | 0 |
+| 6 (heart) | 30 | 15 (50 %) | 15 | 0 | 0 | 0 |
+
+Benefit: where the opportunity exists, the note converts it into an erased foe at round end every time (6-15 of 30 states, 20-50 %), and with no note the same lines erase nobody (control 0). The Registrar was never erased and no state was won on round 1: in all three authored hearts he starts on plain floor (`Y`, not `y`), so a Swap cannot leave him on pencil in one turn. **Does it need a player rule decision? Not on these numbers**, because the one case that would matter (the note erasing the Registrar) did not occur in round 1; it is **unmeasured later in a fight** (he moves 1 and the pencil changes), so the check is a watch item, not cleared. The note was not nerfed. Not measured: the note's effect on a played-out fight (the bot does not cast Swap), so its win-rate benefit is unknown.
+

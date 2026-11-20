@@ -48,7 +48,7 @@ const policies = full
   : (['aware'] as const);
 const layouts = (room: number) => (full ? layoutCount('cartographers', room) : 1);
 const ROOMS = 6;
-/** CAL4_ROOMS (0-based) narrows the fresh tables to some rooms; the worn trips always run whole. */
+/** CAL4_ROOMS (0-based) narrows the fresh tables to some rooms; CAL4_SKIP_WORN=1 drops the worn trips. */
 const roomsOnly = process.env.CAL4_ROOMS?.split(',').map(Number);
 const label = (room: number) =>
   room === ROOMS - 1
@@ -120,7 +120,7 @@ test(
       '|---|---|---|---|---|---|---|---|---|---|---|',
     );
     const notes: string[] = [];
-    for (const size of config.parties) {
+    for (const size of process.env.CAL4_SKIP_WORN === '1' ? [] : config.parties) {
       for (const policy of policies) {
         const { worn, ends } = wornTrips('cartographers', size, policy, config);
         worn.forEach((cells, room) => {

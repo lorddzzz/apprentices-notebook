@@ -349,3 +349,42 @@ Party 2 aware: trip ends {"stalled":7,"cleared":1} / 8.
 Party 3 default: trip ends {"stalled":2,"lost":6} / 8.
 Party 3 aware: trip ends {"cleared":5,"stalled":3} / 8.
 
+## 5. CAL-4 task 2: 0-vs-4 pairs, candidates (proposal-only, nothing applied)
+
+Candidates are applied in memory by the test (`CAL4_CAND=<name>`, `CANDIDATES` in `tests/sim/calibration/foundry-cartographers.ts`, restored after the run); no `src/data` file changed. Aware bot, controlled heart, three layouts, 10 seeds each (30 fights per cell), party 2 unless stated.
+
+**0 vs 4 hung bells at 30 seeds per layout (90 pairs; committed numbers).** Reproduce: `CAL4=1 CAL4_SEEDS=30 CAL4_PARTIES=1 CAL4_BELLS=0,4 CAL4_HEART_ONLY=1 ...`.
+
+| party | policy | wins 0 bells | wins 4 bells | both | only 0 | only 4 | neither | rounds 0 -> 4 | HP left % 0 -> 4 |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | default | 43/90 (48 %) | 46/90 (51 %) | 39 | 4 | 7 | 40 | 15.7 -> 16.1 | 33 -> 25 |
+| 1 | aware | 52/90 (58 %) | 62/90 (69 %) | 46 | 6 | 16 | 22 | 21.0 -> 20.6 | 41 -> 47 |
+| 3 | default | 72/90 (80 %) | 79/90 (88 %) | 68 | 4 | 11 | 7 | 8.2 -> 7.5 | 52 -> 51 |
+| 3 | aware | 90/90 (100 %) | 90/90 (100 %) | 90 | 0 | 0 | 0 | 4.7 -> 5.0 | 85 -> 84 |
+
+So 0 bells is winnable at every party size and bot, and 4 bells helps the lone apprentice (+11 points aware, +3 default) and the default-bot trio (+8) by a small margin, but at party 2 and the aware trio the heart is already 100 % with no bells, so there is nothing for 4 bells to improve. The bells' pulse is not the cause: in 18 four-bell party-2 hearts the allied great bells pulsed a foe **0 times** (the foes never stand beside a hook; raising `alliedPulseDamage` 2 -> 3 in candidate F3 changed nothing, results identical to F2). Any 0-vs-4 difference is therefore board geometry and the tune (a bell on each hook), not allied damage.
+
+**Candidates for the Carillonneur's body** (`FOUNDRY_TUNING.carillonneur.hp` 14, `src/data/districts/foundry.ts:120`; also `src/data/rivals/carillonneur.ts` `hp: 14`, and the shell in `src/data/districts/foundry/enemies.ts:72` reads the tuning; all three must change together). The spawned unit reads the shell; the test sets the shell.
+
+| candidate | source fields | wins 0 bells | wins 4 bells | paired both / only 0 / only 4 / neither | rounds 0 -> 4 | stalls 0 / 4 | read |
+|---|---|---|---|---|---|---|---|
+| committed (8 seeds) | carillonneur.hp 14 | 24/24 (100 %) | 24/24 (100 %) | 24 / 0 / 0 / 0 | 5.6 -> 6.0 | 0 / 0 | above band (+35 over the 65 % cap) |
+| F1 | hp 24 | 30/30 (100 %) | 28/30 (93 %) | 28 / 2 / 0 / 0 | 8.2 -> 11.5 | 0 / 2 | above band; 4 bells slightly **harder** |
+| F2 | hp 36 | 29/30 (97 %) | 26/30 (87 %) | 26 / 3 / 0 / 1 | 17.1 -> 19.4 | 1 / 4 | above band; 4 bells harder |
+| F3 | hp 36 + `alliedPulseDamage` 3 | identical to F2 | identical to F2 | 26 / 3 / 0 / 1 | 17.1 -> 19.4 | 1 / 4 | `alliedPulseDamage` has no measured effect |
+| F4 | hp 60 | 21/30 (70 %) | 21/30 (70 %) | 19 / 2 / 2 / 7 | 38.1 -> 35.5 | 9 / 8 | near the band but 30 % of fights hit the 40-round limit with nobody down |
+| F5 | hp 90 | 0/30 | 0/30 | 0 / 0 / 0 / 30 | 41.0 -> 40.4 | 30 / 29 | every fight stalls: a round-limit cliff |
+
+**Result: the P2 band is not reached with a clean number.** The HP lever goes from 97 % (36) to 70 % (60) to 0 % (90) with the loss turning into stalls, not losses, so the 50-65 % band lies on the round-limit cliff between 60 and 90, where the rate measures the bot's 40-round budget. And no candidate makes 4 bells clearly easier at party 2: F1-F2 make them slightly harder (4 vs 0: 93 vs 100 %, 87 vs 97 %), F4 ties. **Quantified miss, player decision needed:** (a) what band the foundry heart should have at party 2 (the canals' 50-65 % is a Proposal, P2), and (b) whether hung bells should do anything the bot can measure (they pulse nothing today unless a foe stands beside a hook). No number is proposed for application.
+
+**Pulse term probe (CAL-B's request).** `CAL4_CAND=P0` sets `FOUNDRY_TUNING.botPulse.member` 15 -> 0, party 1, aware, 10 seeds per layout:
+
+| layout | committed (8 seeds, 0 bells) | member weight 0 (0 bells) | member weight 0 (4 bells) |
+|---|---|---|---|
+| The great bell | 8/8 | 5/10 | 5/10 |
+| The clapper hall | 5/8 | 1/10 | 0/10 |
+| The sounding yoke | 0/8 | 7/10 | 7/10 |
+| all | 13/24 (54 %) | 13/30 (43 %) | 12/30 (40 %) |
+
+The sounding yoke's party-1 result is the member weight (0/8 -> 7/10), not the layout; the other two layouts get worse, so the weight is a policy trade-off and no single value is right. It is a policy label, not balance evidence; the yoke at party 1 should not be read as a balance number. Weights were not changed.
+
