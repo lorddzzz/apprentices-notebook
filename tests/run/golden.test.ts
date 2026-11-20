@@ -57,12 +57,14 @@ interface TripCase {
 }
 const BOT = { maxRounds: 100 };
 const IDLE = { idle: true };
+/** Use a full house's starting HP to keep win coverage for the 72 HP heart (SM-6). */
+const SEAM_DEEP = { maxRounds: 100, startHp: 20 };
 /** The heart is a coin toss for a fresh party (CN-13), so a bot trip only clears it with the HP of a full house. */
 const DEEP = { maxRounds: 100, startHp: 20 };
 const TRIPS: TripCase[] = [
-  { name: 'seam-win-6', district: 'seam', seed: 6, options: BOT, expect: 'returned' },
-  { name: 'seam-win-8', district: 'seam', seed: 8, options: BOT, expect: 'returned' },
-  { name: 'seam-win-9', district: 'seam', seed: 9, options: BOT, expect: 'returned' },
+  { name: 'seam-win-6', district: 'seam', seed: 6, options: SEAM_DEEP, expect: 'returned' },
+  { name: 'seam-win-8', district: 'seam', seed: 8, options: SEAM_DEEP, expect: 'returned' },
+  { name: 'seam-win-9', district: 'seam', seed: 9, options: SEAM_DEEP, expect: 'returned' },
   { name: 'seam-wipe-23', district: 'seam', seed: 23, options: BOT, expect: 'wiped' },
   { name: 'seam-wipe-7', district: 'seam', seed: 7, options: BOT, expect: 'wiped' },
   { name: 'seam-wipe-idle-3', district: 'seam', seed: 3, options: IDLE, expect: 'wiped' },
@@ -129,7 +131,12 @@ describe('golden trips', () => {
       if (RECORDING) {
         const rec = plain(recordTrip(c.district, c.seed, c.options));
         expect(rec.outcome).toBe(c.expect);
-        store(c.name, rec);
+        store(c.name, {
+          ...rec,
+          rooms: rec.rooms.map((room) => ({ ...room, events: noJarIds(room.events) })),
+          profile: noLedger(rec.profile),
+          save: { ...rec.save, profile: noLedger(rec.save.profile) },
+        });
       }
       const golden = load<TripRecord>(c.name);
       expect(golden.outcome).toBe(c.expect);

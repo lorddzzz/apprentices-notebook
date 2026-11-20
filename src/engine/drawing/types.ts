@@ -2,7 +2,7 @@ import type { ApprenticeId, DistrictId, Drawing, EnemyId, Habitat, MasterId, Sha
 import type { HeartSetup, Json, PieceId, RuleId, TripShapeDef } from '../districts/types';
 import type { Coord } from '../grid';
 import type { BoardSpec } from '../notation';
-import type { Profile } from '../types';
+import type { BattleSpec, Profile } from '../types';
 
 /**
  * The ending's contracts (EN-W0; ending-plan §2, §4): the drawing table's derived values, the
@@ -130,6 +130,7 @@ export interface ShapeKit extends Needing {
 /** One master "redrawn in your rules" (P13), EN-owned, one per master. */
 export interface HeartFrame extends Needing {
   master: MasterId;
+  enemyHp?: BattleSpec['enemyHp'];
   cost: number;
   size: { width: number; height: number };
   /** The district's callable setup for its master (`HeartSetup`, DK-E6). */

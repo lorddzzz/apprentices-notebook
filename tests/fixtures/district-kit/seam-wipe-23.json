@@ -2004,7 +2004,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 15
+          "hpLeft": 71
         },
         {
           "type": "moved",
@@ -2140,7 +2140,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 14
+          "hpLeft": 70
         },
         {
           "type": "moved",
@@ -2292,7 +2292,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 13
+          "hpLeft": 69
         },
         {
           "type": "moved",
@@ -2432,7 +2432,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 12
+          "hpLeft": 68
         },
         {
           "type": "moved",
@@ -2591,7 +2591,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 11
+          "hpLeft": 67
         },
         {
           "type": "moved",
@@ -2760,7 +2760,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 10
+          "hpLeft": 66
         },
         {
           "type": "moved",
@@ -2860,7 +2860,7 @@
           "amount": 1,
           "source": "Spark",
           "bonus": [],
-          "hpLeft": 9
+          "hpLeft": 65
         },
         {
           "type": "burst",
@@ -2899,7 +2899,7 @@
           "amount": 3,
           "source": "Detonation",
           "bonus": [],
-          "hpLeft": 6,
+          "hpLeft": 62,
           "line": "spark:mark"
         },
         { "type": "lost" },

@@ -34,6 +34,9 @@ export const COSTS = {
 
 export const BASE_LENGTH = 3;
 
+/** Preserve the drawn heart's difficulty under the generator's lite trial. */
+export const DRAWN_MARGINALIA_HP = 16;
+
 /** P7: light up to `light`, medium up to `medium`, heavy above. */
 export const WEIGHT_BANDS = { light: 9, medium: 14 } as const;
 

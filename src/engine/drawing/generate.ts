@@ -591,6 +591,7 @@ function trial(
   const state = createBattle({
     title: 'A drawn room',
     board: serializeBoard(layout),
+    ...(heart ? { enemyHp: frameOf(input.drawing).enemyHp } : {}),
     seed: deriveSeed(seed, 7991),
     lineup: input.party,
     party: Object.fromEntries(

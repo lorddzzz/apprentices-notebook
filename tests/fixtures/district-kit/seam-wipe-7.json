@@ -2064,7 +2064,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 15
+          "hpLeft": 71
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2195,7 +2195,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 14
+          "hpLeft": 70
         },
         {
           "type": "moved",
@@ -2347,7 +2347,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 13
+          "hpLeft": 69
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2472,7 +2472,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 12
+          "hpLeft": 68
         },
         {
           "type": "moved",
@@ -2603,7 +2603,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 11
+          "hpLeft": 67
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2740,7 +2740,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 10
+          "hpLeft": 66
         },
         {
           "type": "moved",
@@ -2869,7 +2869,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 9
+          "hpLeft": 65
         },
         {
           "type": "moved",
@@ -2902,7 +2902,7 @@
           "amount": 1,
           "source": "Spit",
           "bonus": [],
-          "hpLeft": 8
+          "hpLeft": 64
         },
         {
           "type": "marked",
@@ -3021,7 +3021,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 7
+          "hpLeft": 63
         },
         {
           "type": "moved",
@@ -3243,7 +3243,7 @@
           "amount": 2,
           "source": "Conduct",
           "bonus": [],
-          "hpLeft": 5,
+          "hpLeft": 61,
           "line": "spark:plate"
         },
         { "type": "lost" },

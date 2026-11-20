@@ -104,16 +104,17 @@ function spawnMember(b: BoardUnit, init: PartyInit = {}): MemberUnit {
   };
 }
 
-function spawnEnemy(b: BoardUnit, n: number): EnemyUnit {
+function spawnEnemy(b: BoardUnit, n: number, enemyHp?: BattleSpec['enemyHp']): EnemyUnit {
   const def = ENEMIES[b.def as EnemyId];
+  const hp = enemyHp?.[def.id] ?? def.hp;
   return {
     kind: 'enemy',
     id: `${def.id}-${n}`,
     def: def.id,
     name: def.name,
     pos: { ...b.at },
-    hp: def.hp,
-    maxHp: def.hp,
+    hp,
+    maxHp: hp,
     ...boardMods(b),
     collar: b.collar || def.brass ? null : false,
     elite: def.elite,
@@ -184,7 +185,7 @@ export function createBattle(spec: BattleSpec): ActionResult {
     if (b.kind === 'member') return spawnMember(b, spec.party?.[b.def as MemberId]);
     const n = (counts.get(b.def as EnemyId) ?? 0) + 1;
     counts.set(b.def as EnemyId, n);
-    return spawnEnemy(b, n);
+    return spawnEnemy(b, n, spec.enemyHp);
   });
   const state: BattleState = {
     title: spec.title,
@@ -246,6 +247,7 @@ export function createEncounterBattle(
     board: layout,
     seed,
     party,
+    ...(enc.enemyHp === undefined ? {} : { enemyHp: enc.enemyHp }),
     edge: DISTRICTS[district].edge,
     inventions,
     lineup: place.lineup,
