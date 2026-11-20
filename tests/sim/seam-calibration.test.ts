@@ -1,6 +1,6 @@
 import { test } from 'vitest';
-import { options, table } from './calibration/runner';
-import { seam } from './calibration/seam-canals';
+import { countEnv, options, table } from './calibration/runner';
+import { measure, SWEEPS, seam } from './calibration/seam-canals';
 
 // Port of ref/sm-6's measurements; all policy and traversal live in the shared runner.
 const full = process.env.SEAM_SIM === '1';
@@ -15,3 +15,15 @@ test(
   },
   full ? 36_000_000 : 20_000,
 );
+
+const measurement = process.env.CAL1_MEASURE;
+if (measurement) {
+  const sweep = SWEEPS.find((name) => name === measurement);
+  if (!sweep) throw new Error(`Unknown CAL1_MEASURE: ${measurement}`);
+  test(`CAL-1 measurement: ${sweep}`, () => {
+    const config = options(true);
+    if (sweep === 'canals-legacy') config.seeds = countEnv('CAL_SEEDS', 100);
+    if (process.env.CAL1_PARTY) config.parties = [countEnv('CAL1_PARTY', 2)];
+    process.stdout.write(`${measure(sweep, config)}\n`);
+  }, 36_000_000);
+}
