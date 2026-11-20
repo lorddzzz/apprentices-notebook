@@ -61,6 +61,7 @@ Ledger caveats: IQ-13, BR-19 and EN-12 now have alias rows in the log (N2). FU-1
 - Held at default: ending-plan §7 Q1–Q3 (the pen's sources, the bot test at fresh HP, stand-in masters drawable); IQ-20 / IQ-G1, FN-1A A3, FN-4, DK-8, foundry Q2/Q3, FN-A1 M1, cartographers §7 Q1–Q3. Player gates open (non-blocking): IQ-G1, RV-G1, CN-P1, SM G1–G3, BH-G1, BR-G2, BF-G1, CG-G1/G2, HC/AH/RC playtests.
 
 ## Rough edges (risks)
+- **Heavy drawing tests time out under full parallel load** (2026-11-20, fast gate on main after EN-14: honest-trial EN-K9, generator EN-2/EN-5, acceptance EN-K2 failed at 30-500 s; all 61 pass alone in 307 s; EN-14 saw 24 such timeouts and the same pass-alone result). A gate fix, not a code bug: raise their timeouts or move them to the slow tier (skill: fix the same day). Candidate for a small pack with R8 (it owns the generator tests).
 - **The ending's interim state:** until the last kit pack merges, the drawing table can offer an element that has no kit, and generating it throws `No kit for <id>`. Nothing reaches the player before Pack L (the handover), and the `EN-K: every element…` test closes the gap; do not ship L before J and K.
 - **The headless bot does not win the foundry's heart** (CAL-4): the Carillonneur's drawn heart will fall back to its authored board until calibration. Pack K reports the rate and does not tune.
 - The districts' own trip shapes cannot run on a generated trip (they read home tables), so the kits lend their own (P33): if a district pack later changes a shape's rule, its kit's copy must follow.
