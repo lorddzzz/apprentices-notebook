@@ -4,10 +4,10 @@ import { DISTRICT_KIT } from '$data/districts/index';
 import { newProfile, openAll, type Profile, solveThreshold } from '$engine';
 import {
   MAP_CAPTION_WIDTH,
+  MAP_PAGE_HEIGHT,
   type MapNode,
   mapNode,
   mapNodes,
-  MAP_PAGE_HEIGHT,
   mapPageHeight,
   mapPaths,
   mapProblems,
@@ -239,7 +239,11 @@ describe('the map for seven (DK-16)', () => {
     // The owner's door open and the handover done: the desk row sits under the pages.
     const open = (n: number): Profile => ({
       ...drawn(n),
-      city: { ...drawn(n).city, hearts: ['seam', 'cartographers'], doorSeen: true } as Profile['city'],
+      city: {
+        ...drawn(n).city,
+        hearts: ['seam', 'cartographers'],
+        doorSeen: true,
+      } as Profile['city'],
     });
     const u = underSeam(open(3), 3, FIVE);
     expect(u.door).toBe('open');

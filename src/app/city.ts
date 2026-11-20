@@ -314,7 +314,12 @@ export function mapProblems(
   const out: string[] = [];
   const boxes = nodes.map((n) => ({ n, box: nodeBox(n, pageWidth, pageHeight, underExtra) }));
   for (const { n, box } of boxes) {
-    if (box.left < 0 || box.right > pageWidth || box.top < 0 || box.bottom > pageHeight + underExtra) {
+    if (
+      box.left < 0 ||
+      box.right > pageWidth ||
+      box.top < 0 ||
+      box.bottom > pageHeight + underExtra
+    ) {
       out.push(`${n.id} runs off the page`);
     }
   }
