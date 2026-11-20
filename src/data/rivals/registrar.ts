@@ -20,7 +20,7 @@ export const RUB_OUT = 'cartographers:rubOut';
 export const PULL_IN = 'cartographers:pullIn';
 
 export const REGISTRAR_TUNING = {
-  hp: 10,
+  hp: 40,
   move: 1,
   /** Circles drawn each round, and below half his HP. */
   circles: 1,

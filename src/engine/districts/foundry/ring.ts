@@ -222,8 +222,10 @@ export const GREAT_BELL_TRIGGERS: PieceTriggers = {
 const isMuffled = (s: BattleState, at: Coord): boolean => isCloud(tileAt(s, at));
 
 /** The members that would ring for `tone` now, reading order; muffled bells are silent (P4). */
-function ringMembers(s: BattleState, tone: Tone): ToneMember[] {
-  return toneGroups(s, clapperTone)[tone].filter((m) => m.kind === 'unit' || !isMuffled(s, m.at));
+function ringMembers(s: BattleState, tone: Tone, includeAllied = false): ToneMember[] {
+  return toneGroups(s, clapperTone, includeAllied)[tone].filter(
+    (m) => m.kind === 'unit' || !isMuffled(s, m.at),
+  );
 }
 
 /** The tiles of the bells (and standing Clappers) that would ring for `tone` now, reading order. */
@@ -248,18 +250,21 @@ export function pulseTiles(s: BattleState, tone: Tone): Coord[] {
 function pulse(
   ctx: Ctx,
   tone: Tone,
-  bell: Coord,
+  member: ToneMember,
   pulsed: Set<string>,
   origin: Origin | null,
   flags: StrikeFlags = {},
 ): void {
+  const bell = member.at;
+  const allied = member.kind === 'allied';
   // `coil-bell-pulse` (wide): also the unit two tiles out on each side; `unison-bell-hush` (spare): not your party.
-  const wide = (u: Unit): boolean => !!flags.wide && straightTwo(bell, u.pos) !== null;
+  const wide = !allied && !!flags.wide;
   const beside = livingUnits(ctx.s)
     .filter(
       (u) =>
         !pulsed.has(u.id) &&
-        (dirBetween(bell, u.pos) || wide(u)) &&
+        (dirBetween(bell, u.pos) || (wide && straightTwo(bell, u.pos))) &&
+        (!allied || u.kind === 'enemy') &&
         !(flags.spare && u.kind === 'member'),
     )
     .sort((a, b) => a.pos.y - b.pos.y || a.pos.x - b.pos.x);
@@ -267,7 +272,7 @@ function pulse(
   const ev: PulseEvent = {
     type: 'foundry:pulse',
     at: { ...bell },
-    data: { tone, allied: false, units: beside.map((u) => u.id) },
+    data: { tone, allied, units: beside.map((u) => u.id) },
   };
   emit(ctx, ev);
   for (const u of beside) pulsed.add(u.id);
@@ -277,9 +282,9 @@ function pulse(
       u,
       bell,
       origin,
-      FOUNDRY_TUNING.pulseDamage,
-      FOUNDRY_TUNING.pulsePush + (flags.knell ? 1 : 0), // `toll-cap-knell`
-      !!flags.wide,
+      allied ? FOUNDRY_TUNING.alliedPulseDamage : FOUNDRY_TUNING.pulseDamage,
+      allied ? FOUNDRY_TUNING.alliedPulsePush : FOUNDRY_TUNING.pulsePush + (flags.knell ? 1 : 0),
+      wide,
     );
 }
 
@@ -310,31 +315,6 @@ export function hurtByPulse(
   if (u.hp > 0) push(ctx, u, dir, pushBy, origin);
 }
 
-/** P8: a hung great bell pulses the foes beside it only: more damage, the same push. */
-function alliedPulse(ctx: Ctx, tone: Tone, bell: Coord, origin: Origin | null): void {
-  const beside = livingUnits(ctx.s)
-    .filter((u) => u.kind === 'enemy' && dirBetween(bell, u.pos))
-    .sort((a, b) => a.pos.y - b.pos.y || a.pos.x - b.pos.x);
-  if (beside.length === 0) return;
-  const ev: PulseEvent = {
-    type: 'foundry:pulse',
-    at: { ...bell },
-    data: { tone, allied: true, units: beside.map((u) => u.id) },
-  };
-  emit(ctx, ev);
-  withOrigin(ctx, origin, () => {
-    for (const u of beside)
-      hurtByPulse(
-        ctx,
-        u,
-        bell,
-        origin,
-        FOUNDRY_TUNING.alliedPulseDamage,
-        FOUNDRY_TUNING.alliedPulsePush,
-      );
-  });
-}
-
 /** P6: the great bell at `at` is rung (once): its data reads `rung`, and the room's bonus can see it. */
 function markRung(ctx: Ctx, at: Coord): void {
   const piece = tileAt(ctx.s, at).piece;
@@ -355,7 +335,7 @@ function markRung(ctx: Ctx, at: Coord): void {
  * Chord when three or more other members ring with it.
  */
 function ringGreatBells(ctx: Ctx, ringing: readonly ToneMember[]): void {
-  const others = ringing.filter((m) => m.kind !== 'greatBell').length;
+  const others = ringing.filter((m) => m.kind === 'bell' || m.kind === 'unit').length;
   for (const m of ringing) {
     if (m.kind !== 'greatBell') continue;
     const piece = tileAt(ctx.s, m.at).piece;
@@ -372,8 +352,13 @@ function ring(
   origin: Origin | null,
   cause: RingCause = 'strike',
   flags: StrikeFlags = {},
+  shoved = false,
 ): void {
-  const ringing = ringMembers(ctx.s, tone);
+  const apprentice =
+    shoved ||
+    cause === 'hung' ||
+    (origin !== null && members(ctx.s).some((m) => m.id === origin.caster));
+  const ringing = ringMembers(ctx.s, tone, apprentice);
   const bells = ringing.map((m) => ({ ...m.at }));
   if (bells.length === 0) return;
   withOrigin(ctx, origin, () => {
@@ -391,7 +376,7 @@ function ring(
     });
     ringGreatBells(ctx, ringing);
     const pulsed = new Set<string>();
-    for (const bell of bells) pulse(ctx, tone, bell, pulsed, origin, flags);
+    for (const member of ringing) pulse(ctx, tone, member, pulsed, origin, flags);
   });
 }
 
@@ -409,7 +394,6 @@ function resolveGreat(ctx: Ctx, entry: QueuedStrike, piece: TilePiece): void {
     return;
   }
   if (d.allied) {
-    alliedPulse(ctx, d.hang, entry.at, origin);
     if (!readBells(ctx).humming.includes(d.hang)) ring(ctx, d.hang, origin, 'hung');
     return;
   }
@@ -442,7 +426,14 @@ function resolveStrike(ctx: Ctx, entry: QueuedStrike): void {
     return;
   }
   if (readBells(ctx).humming.includes(tone)) return;
-  ring(ctx, tone, toOrigin(entry.origin), 'strike', mergedFlags(ctx, entry, tone));
+  ring(
+    ctx,
+    tone,
+    toOrigin(entry.origin),
+    'strike',
+    mergedFlags(ctx, entry, tone),
+    entry.by === 'shove',
+  );
 }
 
 /** The ring's flags: this strike's and those of every strike of the same tone still queued behind it. */

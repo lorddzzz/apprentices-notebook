@@ -10,7 +10,7 @@ import {
   type Trip,
 } from '$engine';
 import { CAST_EVENT_CAP } from '$engine/ctx';
-import { GREAT_BELL_PIECE } from '$engine/districts/foundry/types';
+import { GREAT_BELL_PIECE, type PulseEvent } from '$engine/districts/foundry/types';
 import { type BotOptions, botFight, runTrip } from '$engine/sim';
 import { variantFor } from '$engine/trip/place';
 import * as flow from '../../../src/app/flow';
@@ -56,6 +56,9 @@ export interface Sample {
   hpOut: number;
   /** Foundry heart: allied great bells actually hung on the board at the start. */
   hung: number;
+  /** The number of foe targets logged by allied pulses over the fight. */
+  alliedHits: number;
+  carillonneurHits: number;
   /** Members who ended at 0 HP. */
   down: number;
 }
@@ -91,8 +94,17 @@ export function play(
     budget: c.budget,
   });
   let state = initial;
+  let alliedHits = 0;
+  let carillonneurHits = 0;
   for (const action of result.actions) {
     const next = applyAction(state, action);
+    for (const event of next.events) {
+      if (event.type !== 'foundry:pulse') continue;
+      const { allied, units } = (event as PulseEvent).data;
+      if (!allied) continue;
+      alliedHits += units.length;
+      carillonneurHits += units.filter((id) => id.startsWith('carillonneur-')).length;
+    }
     if (
       action.type !== 'endTurn' &&
       action.type !== 'move' &&
@@ -109,12 +121,14 @@ export function play(
       seed,
       won: phase === 'won',
       lost: phase === 'lost',
-      stalled: phase === 'player',
+      stalled: phase === 'player' && !result.exhausted,
       exhausted: result.exhausted,
       rounds: result.state.round,
       hpIn: memberHp(initial),
       hpOut: memberHp(result.state),
       hung: hungBells(initial),
+      alliedHits,
+      carillonneurHits,
       down: result.state.units.filter((u) => u.kind === 'member' && (u.hp <= 0 || u.out)).length,
     },
   };
