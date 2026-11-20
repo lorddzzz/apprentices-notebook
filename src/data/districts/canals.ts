@@ -205,20 +205,21 @@ export const layRival = (layout: string, live: boolean): string =>
 
 /**
  * Room 4 (CN-4, P1/P2/P5/P6): 6×9, five start points. Two lanes, little quay, the water climbs
- * up the screen. The Lamplighter (the Snuffer for now), an eel, one moth, a rat and the crate;
- * the mooring sits upstream of the crate. The eel never starts beside a start point.
+ * up the screen. The Lamplighter (or the Snuffer stand-in), an eel, one moth, a rat and the crate.
+ * The mooring is six drifts upstream on a clear lane. In the uphill reach and the siphon, the eel
+ * and the crate share the lane. The eel never starts beside a start point.
  */
 const CANAL_4: readonly EncounterVariant[] = [
   {
     name: 'The uphill reach',
     layout: board([
-      '. w^ L . w^ .',
+      '. w^{moor} L . w^ .',
       '. w^ . . w^ m',
-      '. w^ . . w^{moor} .',
+      '. w^ . . w^ .',
       'P w^ . . w^ .',
       '. ew^ . . w^ P',
       '. w^ r . w^ .',
-      '. w^ . . kw^ .',
+      '. kw^ . . w^ .',
       'P w^ . P w^ P',
       '. w^ . . w^ .',
     ]),
@@ -240,13 +241,13 @@ const CANAL_4: readonly EncounterVariant[] = [
   {
     name: 'The siphon',
     layout: board([
-      '. . w^ . L .',
+      '. . w^{moor} . L .',
       '. m w^ . . .',
       '. . ew^ . . .',
       'P . w^ . . r',
-      '. . w^{moor} . . .',
+      '. . w^ . . .',
       '. . w^ . P .',
-      '. . w^ w< w< kw<',
+      '. . kw^ w< w< w<',
       'P . w^ . P .',
       '. . w^ . . P',
     ]),
@@ -255,8 +256,8 @@ const CANAL_4: readonly EncounterVariant[] = [
 
 /**
  * The heart (CN-5, P1/P2): 7 wide, 8 tall, five start points, five or six lamps on the rim. The
- * lamp-mother on the water, a Snuffer and a moth. Three pools: a ring clockwise, a ring against
- * the clock, and a lane down the middle. At least two lamps are far from every start point and
+ * lamp-mother on the water, one or two Snuffers and two moths. Three pools: a clockwise ring, a
+ * counterclockwise ring, and a lane down the middle. At least two lamps are far from every start point and
  * foe, so her every-round call has somewhere to land.
  */
 const CANAL_HEART: readonly EncounterVariant[] = [
@@ -278,11 +279,11 @@ const CANAL_HEART: readonly EncounterVariant[] = [
     layout: board([
       'l . . l . . l',
       '. wv w< w< w< w< .',
-      '. Mwv . m . w^ .',
-      '. wv n . m w^ P',
+      '. Mwv n m . w^ .',
+      '. wv . . m w^ P',
       'P wv . . . w^ .',
       '. w> w> w> w> w^ P',
-      '. . . n . . .',
+      'n . . . . . .',
       'l P . . . P l',
     ]),
   },
@@ -290,11 +291,11 @@ const CANAL_HEART: readonly EncounterVariant[] = [
     name: "The lamp-mother's pool",
     layout: board([
       'l . . l . . l',
-      '. w> w> wv w< w< .',
-      '. . m wv . . .',
-      'P . . Mwv . n .',
+      'm w> w> wv w< m .',
+      '. . . wv . . .',
+      'P . . wv . n .',
       '. . . wv . . P',
-      '. . . wv m . .',
+      '. . . Mwv . . .',
       '. P . wv . P .',
       'l . P wv . . l',
     ]),

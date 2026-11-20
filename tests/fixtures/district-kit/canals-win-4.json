@@ -1744,13 +1744,13 @@
               "unit": {
                 "id": "barge-1",
                 "name": "crate",
-                "at": { "x": 4, "y": 6 },
+                "at": { "x": 1, "y": 6 },
                 "member": false,
                 "bystander": true
               },
-              "from": { "x": 4, "y": 6 },
-              "to": { "x": 4, "y": 5 },
-              "path": [{ "x": 4, "y": 5 }],
+              "from": { "x": 1, "y": 6 },
+              "to": { "x": 1, "y": 5 },
+              "path": [{ "x": 1, "y": 5 }],
               "cause": "drift"
             }
           ]
@@ -1992,13 +1992,13 @@
               "unit": {
                 "id": "barge-1",
                 "name": "crate",
-                "at": { "x": 4, "y": 5 },
+                "at": { "x": 1, "y": 5 },
                 "member": false,
                 "bystander": true
               },
-              "from": { "x": 4, "y": 5 },
-              "to": { "x": 4, "y": 4 },
-              "path": [{ "x": 4, "y": 4 }],
+              "from": { "x": 1, "y": 5 },
+              "to": { "x": 1, "y": 4 },
+              "path": [{ "x": 1, "y": 4 }],
               "cause": "drift"
             }
           ]
@@ -2173,13 +2173,13 @@
               "unit": {
                 "id": "barge-1",
                 "name": "crate",
-                "at": { "x": 4, "y": 4 },
+                "at": { "x": 1, "y": 4 },
                 "member": false,
                 "bystander": true
               },
-              "from": { "x": 4, "y": 4 },
-              "to": { "x": 4, "y": 3 },
-              "path": [{ "x": 4, "y": 3 }],
+              "from": { "x": 1, "y": 4 },
+              "to": { "x": 1, "y": 3 },
+              "path": [{ "x": 1, "y": 3 }],
               "cause": "drift"
             }
           ]
@@ -2229,6 +2229,48 @@
           "source": "Burst",
           "bonus": [],
           "hpLeft": 17,
+          "line": "spark:slick",
+          "origin": { "caster": "lamplighter-1", "spell": "0,0", "cast": 2 }
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "barge-1",
+            "name": "crate",
+            "at": { "x": 1, "y": 3 },
+            "member": false,
+            "bystander": true
+          },
+          "amount": 1,
+          "source": "Burst",
+          "bonus": [],
+          "hpLeft": 0,
+          "line": "spark:slick",
+          "origin": { "caster": "lamplighter-1", "spell": "0,0", "cast": 2 }
+        },
+        {
+          "type": "cargoLost",
+          "unit": {
+            "id": "barge-1",
+            "name": "crate",
+            "at": { "x": 1, "y": 3 },
+            "member": false,
+            "bystander": true
+          },
+          "at": { "x": 1, "y": 3 },
+          "source": "Burst",
+          "line": "spark:slick",
+          "origin": { "caster": "lamplighter-1", "spell": "0,0", "cast": 2 }
+        },
+        {
+          "type": "died",
+          "unit": {
+            "id": "barge-1",
+            "name": "crate",
+            "at": { "x": 1, "y": 3 },
+            "member": false,
+            "bystander": true
+          },
           "line": "spark:slick",
           "origin": { "caster": "lamplighter-1", "spell": "0,0", "cast": 2 }
         },
