@@ -29,7 +29,7 @@ const coordOf = (s: BattleState, i: number): Coord => ({
 
 /** One member of a tone: a bell, a hung great bell, or a unit that rings as one (the Clapper, BF-6). */
 export type ToneMember =
-  | { kind: 'bell' | 'greatBell'; at: Coord }
+  | { kind: 'bell' | 'greatBell' | 'allied'; at: Coord }
   | { kind: 'unit'; at: Coord; unit: string };
 
 /**
@@ -69,20 +69,22 @@ export const ropeTone = (data: unknown): Tone => {
 
 /**
  * Every member of every tone, in reading order (bells first, then standing units by id). Allied
- * great bells are not members of the foes' tones: they hang apart (P8).
+ * great bells answer an apprentice's ring and hang apart from the foes' tones (P8).
  */
 export function toneGroups(
   s: BattleState,
   unitTone: UnitToneReader = NO_UNIT_TONES,
+  includeAllied = false,
 ): Record<Tone, ToneMember[]> {
   const groups: Record<Tone, ToneMember[]> = { low: [], mid: [], high: [] };
   s.tiles.forEach((t, i) => {
     if (!t.piece) return;
     const tone = toneOfPiece(t.piece.id, t.piece.data);
     if (!tone) return;
-    if (t.piece.id === GREAT_BELL_PIECE && (t.piece.data as GreatBellData).allied) return;
+    const allied = t.piece.id === GREAT_BELL_PIECE && (t.piece.data as GreatBellData).allied;
+    if (allied && !includeAllied) return;
     groups[tone].push({
-      kind: t.piece.id === BELL_PIECE ? 'bell' : 'greatBell',
+      kind: allied ? 'allied' : t.piece.id === BELL_PIECE ? 'bell' : 'greatBell',
       at: coordOf(s, i),
     });
   });

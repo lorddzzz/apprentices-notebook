@@ -48,8 +48,14 @@ const policies = full
 const layouts = (room: number) => (full ? layoutCount('foundry', room) : 1);
 const roomParties = process.env.CAL4_HEART_ONLY === '1' ? [] : full ? config.parties : [2];
 const HEART = 4;
+/** CAL4_ROOMS narrows the fresh ordinary rooms (0-based); CAL4_SKIP_WORN drops worn trips. */
+const ordinaryRooms = process.env.CAL4_ROOMS?.split(',').map(Number) ?? [0, 1, 2, 3];
 /** CAL4_BELLS narrows the hung-bell columns (a larger-seed 0-vs-4 run); CAL4_HEART_ONLY skips rooms 1-4 and worn trips. */
 const BELLS = (process.env.CAL4_BELLS ?? '0,1,2,3,4').split(',').map(Number);
+
+const HEART_HEADER = `${STAT_HEADER} | allied foe hits | Carillonneur hits`;
+const heartCells = (xs: readonly Sample[]) =>
+  `${statCells(xs)} | ${xs.reduce((n, x) => n + x.alliedHits, 0)} | ${xs.reduce((n, x) => n + x.carillonneurHits, 0)}`;
 
 test(
   'CAL-4: foundry party and hung-bell tables',
@@ -78,7 +84,7 @@ test(
     );
     for (const size of roomParties) {
       for (const policy of policies) {
-        for (let room = 0; room < HEART; room++) {
+        for (const room of ordinaryRooms) {
           for (let v = 0; v < layouts(room); v++) {
             const xs: Sample[] = [];
             for (let seed = 1; seed <= config.seeds; seed++) {
@@ -97,8 +103,8 @@ test(
       '',
       '### Controlled heart: legal peals with exactly N hung bells (authored heart layouts)',
       '',
-      `| party | policy | bells | layout | ${STAT_HEADER} |`,
-      '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+      `| party | policy | bells | layout | ${HEART_HEADER} |`,
+      '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
     );
     const pooled = new Map<string, Sample[]>();
     for (const size of config.parties) {
@@ -117,7 +123,7 @@ test(
             const key = `${size}|${policy}|${bells}`;
             pooled.set(key, [...(pooled.get(key) ?? []), ...xs]);
             out.push(
-              `| ${size} | ${policy} | ${bells} | ${layoutName('foundry', HEART, v)} | ${statCells(xs)} |`,
+              `| ${size} | ${policy} | ${bells} | ${layoutName('foundry', HEART, v)} | ${heartCells(xs)} |`,
             );
           }
         }
@@ -128,14 +134,14 @@ test(
       '',
       '### Controlled heart pooled over the three layouts',
       '',
-      `| party | policy | bells | ${STAT_HEADER} |`,
-      '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+      `| party | policy | bells | ${HEART_HEADER} |`,
+      '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
     );
     for (const size of config.parties)
       for (const policy of policies)
         for (const bells of BELLS)
           out.push(
-            `| ${size} | ${policy} | ${bells} | ${statCells(pooled.get(`${size}|${policy}|${bells}`) ?? [])} |`,
+            `| ${size} | ${policy} | ${bells} | ${heartCells(pooled.get(`${size}|${policy}|${bells}`) ?? [])} |`,
           );
     out.push(
       '',
@@ -164,7 +170,7 @@ test(
       '|---|---|---|---|---|---|---|---|---|---|---|',
     );
     const notes: string[] = [];
-    for (const size of roomParties) {
+    for (const size of process.env.CAL4_SKIP_WORN === '1' ? [] : roomParties) {
       for (const policy of policies) {
         const bellsIn: number[] = [];
         const { worn, ends } = wornTrips('foundry', size, policy, config, (t, _s, initial) => {

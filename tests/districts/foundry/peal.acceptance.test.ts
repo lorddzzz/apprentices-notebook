@@ -8,13 +8,14 @@ import {
   HEART_HOOKS,
   pealRoomSetup,
 } from '$engine/districts/foundry';
+import { greatPeal } from '$engine/districts/foundry/tune';
 import { type FoundryTripState, parseFoundryState } from '$engine/districts/foundry/types';
 import type { Json, ShapeInput } from '$engine/districts/types';
 import { tileAt } from '$engine/queries';
 import { wipeLoot } from '$engine/trip/offerKinds';
 import { variantFor } from '$engine/trip/place';
 import { bonusMet } from '$engine/trip/setup';
-import { act, board, cast, withLattices } from '../../scenarios/harness';
+import { act, board, cast, draft, withLattices } from '../../scenarios/harness';
 import { dataOf, ev, unit } from './helpers';
 
 /**
@@ -125,11 +126,31 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     });
     expect(basicDirs(s, 'draughtsman')).toContain('right');
     const r = act(s, { type: 'shove', unit: 'draughtsman', dir: 'right' });
+    expect(ev(r.events, 'foundry:ring').map(dataOf)).toEqual([
+      { tone: 'low', bells: [{ x: 1, y: 0 }], cause: 'hung' },
+    ]);
     const foe = unit(s, 'sentry-1');
     expect(unit(r.state, 'sentry-1').hp).toBe(foe.hp - 2);
     expect(unit(r.state, 'sentry-1').pos).toEqual({ x: 3, y: 0 });
     expect(unit(r.state, 'draughtsman').hp).toBe(unit(s, 'draughtsman').hp);
     expect(unit(r.state, 'draughtsman').pos).toEqual({ x: 0, y: 0 });
+  });
+
+  it('CAL-4: an apprentice striking a matching tone also pulses the foe beside a hung bell', () => {
+    const s = withLattices(
+      'D . {bell:low} . .\n. . . . b\n. . . S {greatBell:1:allied:rung}',
+      BOLT,
+    );
+    const r = cast(s, 'draughtsman', 'right');
+    expect(ev(r.events, 'foundry:pulse').map(dataOf)).toEqual([
+      { tone: 'low', allied: true, units: ['sentry-1'] },
+    ]);
+    expect(unit(r.state, 'sentry-1').hp).toBe(unit(s, 'sentry-1').hp - 2);
+    expect(unit(r.state, 'stoker').hp).toBe(unit(s, 'stoker').hp);
+
+    const peal = draft(s, (ctx) => greatPeal(ctx));
+    expect(ev(peal.events, 'foundry:ring')).toHaveLength(1);
+    expect(ev(peal.events, 'foundry:pulse')).toHaveLength(0);
   });
 
   it('BF-8: hooks hang the rung notes: a named hook its note, bare hooks the rest in reading order', () => {

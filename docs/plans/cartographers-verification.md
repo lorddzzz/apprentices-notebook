@@ -249,3 +249,32 @@ Fixed case, not a bot play-through (`botFight` passes no footnotes and the start
 
 Benefit: where the opportunity exists, the note converts it into an erased foe at round end every time (6-15 of 30 states, 20-50 %), and with no note the same lines erase nobody (control 0). The Registrar was never erased and no state was won on round 1: in all three authored hearts he starts on plain floor (`Y`, not `y`), so a Swap cannot leave him on pencil in one turn. **Does it need a player rule decision? Not on these numbers**, because the one case that would matter (the note erasing the Registrar) did not occur in round 1; it is **unmeasured later in a fight** (he moves 1 and the pencil changes), so the check is a watch item, not cleared. The note was not nerfed. Not measured: the note's effect on a played-out fight (the bot does not cast Swap), so its win-rate benefit is unknown.
 
+## CAL-4 task 3
+
+Room 5’s `ROOM_PENCIL` row now schedules 80% of unplanned pencil each round (was 40%) and inks 10% of the scheduled tiles (was 45%). The room still draws two new pencil tiles per round. The higher rub rate makes the next few moves matter sooner. Room 5 has its own 65–80% fresh-pair band. The same 18 seeds were used on all three layouts after the change. The before sample uses 30 seeds per layout.
+
+| Room 5 layout | Before | After | After losses | After stalls | After mean rounds | After party HP left |
+|---|---:|---:|---:|---:|---:|---:|
+| The owner’s desk | 29/30 | 15/18 | 3 | 0 | 9.8 | 67% |
+| The unswept floor | 30/30 | 11/18 | 7 | 0 | 15.4 | 51% |
+| The shuttered window | 30/30 | 15/18 | 3 | 0 | 13.8 | 63% |
+| **Pooled, aware bot** | **89/90 (99%)** | **41/54 (76%)** | **13** | **0** | **13.0** | **61%** |
+
+The 0.65/0.25 scheduling and ink candidate with redraw 3 reached 64/72 (89%). With redraw held at 2, 0.95/0.1 reached 21/36 (58%). The selected pair of values meets the band on the larger sample and preserves the existing redraw contract.
+
+### Registrar
+
+`REGISTRAR_TUNING.hp` increased from 10 to 40. The rival, shell and spawned enemy share that value. The district-aware bot played fresh starter parties on each of the three authored layouts, with 30 seeds per layout before and 24 after. Both samples used a 40-round cap and a 600-action budget. No fight exhausted the action budget.
+
+| Party | Target | Before | After | After losses | After stalls | After mean rounds | After party HP left | Gap from target |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 25% | 54/90 (60%) | 26/72 (36%) | 44 | 2 | 14.9 | 38% | +11 pp |
+| 2 | 55% | 85/90 (94%) | 45/72 (63%) | 23 | 4 | 13.6 | 38% | +7.5 pp |
+| 3 | 85% | 88/90 (98%) | 61/72 (85%) | 11 | 0 | 9.9 | 43% | −0.3 pp |
+
+At 42 HP the same seeds yielded 24/72 solo, 44/72 duo and 60/72 trio wins (33%, 61%, 83%). The changes were two solo wins and one duo win closer to target, with one trio win lost. The 40 HP starting point stays because it lands on the trio aim and the nearby results differ by at most two fights per party size. At eight seeds per layout, the default bot’s fresh pair won 14/24 (58%) in the heart and 12/24 (50%) in room 5. The Registrar’s note stays a watch item for later-fight Swap erasures. His circle counts and the decree-based trip wiring checks were kept.
+
+Reproduce the fresh samples with `CAL4=1 CAL4_SEEDS=24 CAL4_POLICIES=aware CAL4_ROOMS=5 CAL4_SKIP_WORN=1` for the heart on `tests/sim/cartographers-calibration.test.ts`. For room 5 use the same options with `CAL4_SEEDS=18 CAL4_PARTIES=2 CAL4_ROOMS=4`. The shared district table passed at `CAL=1 CAL_SEEDS=6 CAL_DISTRICTS=cartographers` on `tests/sim/calibration-tables.test.ts`. The aware bot cleared zero of six worn solo trips, two of six duo trips and two of six trio trips. Three pairs reached room 5 and all three advanced to the heart.
+
+With the Registrar starting at 40 HP, the drawn fallback recording (EN-K7) ends before the fight is won. A fresh replay of the same drawn fallback and seed won in nine rounds. The shared fallback script needs the new recording. [Drawn fallback scripts](../../tests/drawing/kits-c.scripts.ts)
+

@@ -1,3 +1,4 @@
+import { FOUNDRY_TUNING } from '../districts/foundry';
 import type { VariantDef } from '../types';
 import type { RivalDef, RivalPageDef } from './types';
 
@@ -23,7 +24,7 @@ export const CARILLONNEUR_RIVAL: RivalDef = {
   name: 'Carillonneur',
   token: 'V',
   district: 'foundry',
-  hp: 14,
+  hp: FOUNDRY_TUNING.carillonneur.hp,
   move: 0,
   elite: true,
   habitat: 'any',

@@ -94,7 +94,7 @@ describe('his def, page, shell and trick', () => {
     expect(REGISTRAR_RIVAL).toMatchObject({
       token: 'Y',
       district: 'cartographers',
-      hp: 10,
+      hp: 40,
       move: 1,
       elite: true,
       page: PAGE,
@@ -120,7 +120,7 @@ describe('his def, page, shell and trick', () => {
     });
     expect(board('Y').units.find((u) => u.kind === 'enemy')).toMatchObject({
       def: 'registrar',
-      hp: 10,
+      hp: REGISTRAR_RIVAL.hp,
     });
     expect(CARTOGRAPHERS_MODULE.tricks?.map((t) => t.id)).toEqual([REGISTRAR_TRICK_ID]);
     expect(trickOf(REGISTRAR_TRICK_ID)).toBe(STRIKE_FROM_THE_REGISTER);

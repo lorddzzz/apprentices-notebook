@@ -110,14 +110,14 @@ export const FOUNDRY_TUNING = {
   tonesInRoom: { 1: 2, 2: 2, 3: 3, 4: 3, heart: 3 },
   layoutsPerDepth: 3,
   minStarts: 4,
-  /** P12: foe numbers as placeholders; the Carillonneur is about 14 HP. */
+  /** P12: the foundry staff's bodies and movement. */
   foes: {
     ringer: { hp: 4, move: 0, anchored: true, bump: 0 },
     detuner: { hp: 3, move: 2, anchored: false, bump: 0 },
-    clapper: { hp: 5, move: 1, anchored: false, bump: 1 },
+    clapper: { hp: 6, move: 2, anchored: false, bump: 4 },
   } as Readonly<Record<FoundryFoeId, FoundryFoeStats>>,
   /** P10: the Carillonneur's body (his kit and trick are `RIVALS`'); he never walks. */
-  carillonneur: { hp: 14, move: 0 },
+  carillonneur: { hp: 57, move: 0 },
   /**
    * The sim bot's pulse term (`engine/districts/foundry/bot.ts`, BF-20), read only there: what a
    * foe standing where the next ring pulses is worth, extra when it is nearly down, and what a

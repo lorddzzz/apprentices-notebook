@@ -388,3 +388,52 @@ So 0 bells is winnable at every party size and bot, and 4 bells helps the lone a
 
 The sounding yoke's party-1 result is the member weight (0/8 -> 7/10), not the layout; the other two layouts get worse, so the weight is a policy trade-off and no single value is right. It is a policy label, not balance evidence; the yoke at party 1 should not be read as a balance number. Weights were not changed.
 
+## 6. CAL-4 task 3
+
+The sympathetic ring used the foes’ tone groups for every strike. Those groups exclude hung bells, so only a direct strike could pulse from a hook. Apprentice rings now include matching, unmuffled hung bells. Their pulses still use the existing adjacent, foe-only targeting. The ring’s reading order, one hit per unit and humming limit apply to the whole ring. The regression reproduces the missing pulse from a matching-tone Bolt and checks that the Great Peal still uses the foes’ groups. A separate assertion covers the hum when a hung bell is the only bell of its tone.
+
+With the fix alone at 14 Carillonneur HP and the original staff tuning, four hung bells logged two allied foe hits in 18 aware-bot fights (seeds 1–6 on each layout), up from zero in the previous sample. Both hits landed on staff. The authored hooks sit at the edges, outside the anchored Carillonneur’s adjacent tiles on all three layouts.
+
+The selected data are `FOUNDRY_TUNING.carillonneur.hp` 14 → 57 and Clapper HP/move/bump 5/1/1 → 6/2/4. The rival and shell read the same HP field. The candidate comparisons below use the pulse fix throughout. Zero- and four-bell fights share their seeds and layouts within each row.
+
+| Carillonneur HP | Clapper HP/move/bump | Zero bells | Four bells | Stalls, zero / four | Fresh pair room 4 |
+|---:|---|---:|---:|---:|---:|
+| 56 | 5/1/1 | 23/36 (64%) | 26/36 (72%) | 13 / 9 | — |
+| **57** | **6/2/4** | **5/18 (28%)** | **12/18 (67%)** | **9 / 6** | **18/18 (100%)** |
+| 57 | 8/2/4 | 6/24 (25%) | 15/24 (63%) | 13 / 9 | 24/24 (100%) |
+| 58 | 9/1/4 | 8/21 (38%) | 11/21 (52%) | 13 / 4 | 21/21 (100%) |
+| 62 | 5/1/1 | 9/21 (43%) | 13/21 (62%) | 12 / 8 | — |
+| 52 | 12/1/7 | 13/21 (62%) | 4/21 (19%) | 4 / 7 | 14/21 (67%) |
+| 59 | 14/1/6 | 3/36 (8%) | 4/36 (11%) | 32 / 23 | 21/36 (58%) |
+
+The selected candidate meets the zero-bell band and gives the largest paired improvement in these comparisons. Nine pairs won only with four bells, two won only with zero, three won both and four won neither. Four bells still miss the lower bound by 13.3 percentage points. The 40-round limit accounts for all six four-bell non-wins. The 8 HP candidate broke the Rivet position regression: its Clapper survived the delayed pulse and was pushed after the hold expired. Both Rivet checks pass at 6 HP. The 12 HP, 7 damage Clapper reached the room-4 band and reversed the advantage of bells in the heart. Room 4 remains 20 points above its ceiling with the selected shared staff values.
+
+### Fresh-pair ordinary rooms
+
+Each row pools three authored layouts. The district-aware bot used seeds 1–30 before and 1–6 after. There were no losses, stalls or action-budget stops in either sample.
+
+| Room | Before | After | Win target |
+|---:|---:|---:|---:|
+| 1 | 90/90 (100%) | 18/18 (100%) | ≥85% |
+| 2 | 90/90 (100%) | 18/18 (100%) | ≥85% |
+| 3 | 90/90 (100%) | 18/18 (100%) | ≥75% |
+| 4 | 90/90 (100%) | 18/18 (100%) | 65–80% |
+
+### Fresh-pair controlled hearts
+
+The aware bot played each bell count with the same six seeds (1–6) and all three authored layouts after tuning. Before tuning it played seeds 1–30 on the same layouts. All before rows had zero stalls and losses. Neither run exhausted the action budget. HP left is pooled across all fights. Allied hits count foe targets in the allied pulse events.
+
+| Hung bells | Before wins | Before rounds | Before HP left | After wins | After losses | After stalls | After rounds | After HP left | After allied hits (Carillonneur) |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 90/90 | 5.8 | 87% | 5/18 (28%) | 4 | 9 | 33.5 | 23% | 0 (0) |
+| 1 | 90/90 | 5.8 | 86% | 8/18 (44%) | 0 | 10 | 39.1 | 35% | 0 (0) |
+| 2 | 90/90 | 5.8 | 86% | 11/18 (61%) | 0 | 7 | 36.4 | 46% | 0 (0) |
+| 3 | 90/90 | 6.0 | 86% | 11/18 (61%) | 0 | 7 | 37.6 | 40% | 0 (0) |
+| 4 | 90/90 | 6.4 | 87% | 12/18 (67%) | 0 | 6 | 37.3 | 36% | 0 (0) |
+
+The selected bot runs still logged zero allied hits. The layout and counter-toll affect the fight even when enemies stay outside the pulse. With the default bot, zero bells won 6/18 (33%) and four bells won 5/18 (28%). The default bot stalled seven and 11 times at those counts. Before tuning, two of 30 worn pairs reached the heart with one naturally earned bell each and one won. After tuning, three of six worn pairs stalled in room 3 and the other three stalled in room 4. The controlled hearts use legal injected peals to measure the fight independently of the approach.
+
+Reproduce with `CAL4=1 CAL4_SEEDS=6 CAL4_PARTIES=2 CAL4_POLICIES=aware` on `tests/sim/foundry-calibration.test.ts`. Test hooks beside enemy approach lanes before another HP increase, then measure allied hits and the 0–4 curve again. Measure room 4 independently of the heart before changing their shared staff stats further.
+
+The drawn Carillonneur’s recorded fallback solve (EN-K6) attempts to move a downed apprentice under the selected tuning. A fresh replay of the same drawn fallback and seed won in 35 rounds. The shared fallback script needs the new recording. [Drawn fallback scripts](../../tests/drawing/kits-c.scripts.ts)
+

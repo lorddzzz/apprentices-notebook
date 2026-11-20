@@ -59,7 +59,7 @@ export const ROOM_PENCIL: readonly PencilConfig[] = [
   { share: 0.3, perRound: 1 / 3, inkBias: 0.55, redraw: 0 },
   { share: 0.25, perRound: 1 / 3, inkBias: 0.5, redraw: 0 },
   { share: 1 / 3, perRound: 0.4, inkBias: 0.5, redraw: 1 },
-  { share: 0.4, perRound: 0.4, inkBias: 0.45, redraw: 2 },
+  { share: 0.4, perRound: 0.8, inkBias: 0.1, redraw: 2 },
   { share: 0.4, perRound: 0.4, inkBias: 0.45, redraw: 2 },
 ];
 
