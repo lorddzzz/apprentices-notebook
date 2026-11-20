@@ -1,24 +1,24 @@
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { afterAll, expect, test } from 'vitest';
+import * as flow from '../../src/app/flow';
 import {
   atRoom,
   type Config,
+  candidateFromEnv,
   layoutCount,
   layoutName,
+  POLICY_NAMES,
   paired,
   party,
   play,
   type Sample,
   STAT_HEADER,
-  stats,
   statCells,
-  candidateFromEnv,
-  POLICY_NAMES,
+  stats,
   withBells,
   wornTrips,
 } from './calibration/foundry-cartographers';
 import { countEnv } from './calibration/runner';
-import * as flow from '../../src/app/flow';
 
 /**
  * CAL-4 (BF-20, BF-21): the foundry's genuine bot tables. Nothing here forces a victory: every fight

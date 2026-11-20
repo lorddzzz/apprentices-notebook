@@ -1,17 +1,17 @@
 import { appendFileSync, writeFileSync } from 'node:fs';
 import { afterAll, expect, test } from 'vitest';
+import { encountersOf } from '$data';
 import { applyAction, type BattleState, type GameEvent } from '$engine';
 import { legalAims, legalMoves, memberById } from '$engine/queries';
-import { encountersOf } from '$data';
-import { withLattices } from '../scenarios/harness';
-import { withFootnotes } from '../scenarios/footnoteHarness';
 import * as flow from '../../src/app/flow';
+import { withFootnotes } from '../scenarios/footnoteHarness';
+import { withLattices } from '../scenarios/harness';
 import {
   atRoom,
   type Config,
+  candidateFromEnv,
   layoutCount,
   layoutName,
-  candidateFromEnv,
   POLICY_NAMES,
   party,
   play,

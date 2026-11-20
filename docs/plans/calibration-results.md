@@ -87,3 +87,11 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 | CAL-4-B | Carillonneur HP stays 14; the player picks a foundry band and says what hung bells should do | Aware bot wins the heart 100 % at party 2 for 0-4 bells (allied pulses hit foes 0 times in 18 four-bell hearts); HP 36 → 97/87 %, HP 60 → 70/70 % with 9 stalls; the "bot never wins the heart" note is stale | pending |
 | CAL-4-C | Academy room-5 numeric target (no canals counterpart) | Party 2 aware room 5 100 % | pending (player names one) |
 | CAL-4-D | Registrar note kept, watch item | A Swap line leaves a foe on pencil in 15/30 states and the note erases it each time; later-fight effect unmeasured | none now |
+
+### CAL-3 (merged 2026-11-20, ca3466e; tables in bathhouses-verification.md and bridges-verification.md)
+| ID | Proposal | Evidence | Player decision |
+|---|---|---|---|
+| BH-16 pressure | Keep current values pending review of the Steward's opening Steam hall and first stoke | Heat quarters (2,4)/(3,8)/(3,8)/(3,8), capacity/feeder/stoke 24/1/1 pips; first boil dusk 2; 24/24 heart wins; zero boils in 168 non-heart fights. Fresh pair matches canals in rooms 1-4; heart 90/90 vs canals 50/90 (+44 pts); worn pair median boils at heat 2 is 3 (limit 1) | pending |
+| BH-16 bodies | Keep current values pending a decision on timing and heart difficulty | Heat (2,4)/(3,8)/(3,8)/(2,6), capacity/feeder/stoke 32/1/1, attendant/boilerman/bather/Steward HP 7/5/5/20, fallback damage 2: first boil dusk 3, heart 24/24, room 4 20/24 (8 seeds/layout) | pending |
+| BH-16 acceptance | Replace the historical two-win assertion with authored timing and an agreed win band? | Existing assertion passes and stays | pending |
+| P2 / BR-21 | Adopt the canals' fresh-pair band for bridges (with a room-4 mapping), or a bridge-specific band? | Stone 3/1, keystone 8, Chief 14, foes 5/4/4, elite fall 4: fresh hearts still 8/8 per span; worn room-3 stalls up (sound 6→7, crumbling 0→4 of 8). Baseline: fresh pairs 50/50 hearts on both spans, worn pairs clear 0, worn trios 11/50 sound and 50/50 crumbling | pending |
