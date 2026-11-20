@@ -5,6 +5,7 @@ import {
   checkDrawing,
   costOf,
   drawingsOf,
+  endingOf,
   type Issue,
   NAME_MAX,
   type Pen,
@@ -223,4 +224,28 @@ export function tableView(
 /** Writes (or, with `null`, clears) a page through `storeDrawing`; throws as it does. */
 export function saveDraft(save: SaveData, slot: 0 | 1 | 2, draft: Drawing | null): SaveData {
   return { ...save, profile: storeDrawing(save.profile, slot, draft, save.trip) };
+}
+
+// ── Replays of the ending (R9) ──
+
+/** Where a replayed ending screen returns to: the places that link to the owner's desk and the credits. */
+export const ORIGINS = ['codex', 'map', 'study'] as const;
+export type Origin = (typeof ORIGINS)[number];
+
+/** The `from` param when it names an origin, else `fallback` (a bad or missing value is no error). */
+export function originOf(from: string | null, fallback: Origin): Origin {
+  return ORIGINS.find((o) => o === from) ?? fallback;
+}
+
+/**
+ * What the last page of the handover does: the first visit closes the page (the handover is
+ * written and the closing leaf shown); a replay writes nothing and returns to where it came from.
+ */
+export function lastPageAction(p: Profile): 'close' | 'return' {
+  return endingOf(p).handover ? 'return' : 'close';
+}
+
+/** The credits' default origin: the Codex when they were already seen (only the Codex replays them), else the study. */
+export function creditsFallback(p: Profile): Origin {
+  return endingOf(p).creditsSeen ? 'codex' : 'study';
 }
