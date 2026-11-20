@@ -17,6 +17,9 @@ import { MASTER_IDS } from './types';
 
 export const DRAWING_SLOTS = 3;
 export const NAME_MAX = 24;
+/** A drawing holds 1 to `FOES_MAX` kinds of foe and at most `PIECES_MAX` extra pieces (what `readDrawing` keeps). */
+export const FOES_MAX = 3;
+export const PIECES_MAX = 2;
 
 export const emptyDrawings = (): (Drawing | null)[] =>
   Array.from({ length: DRAWING_SLOTS }, () => null);
@@ -43,10 +46,11 @@ export function readDrawing(v: unknown): Drawing | null {
   const name = v.name.trim();
   if (name.length < 1 || name.length > NAME_MAX) return null;
   if (v.rule !== null && !isKitId(v.rule)) return null;
-  if (!Array.isArray(v.foes) || v.foes.length < 1 || v.foes.length > 3) return null;
+  if (!Array.isArray(v.foes) || v.foes.length < 1 || v.foes.length > FOES_MAX) return null;
   const foes = v.foes.map((f) => idOf(ENEMY_IDS, f));
   if (foes.some((f) => f === undefined)) return null;
-  if (!Array.isArray(v.pieces) || v.pieces.length > 2 || !v.pieces.every(isKitId)) return null;
+  if (!Array.isArray(v.pieces) || v.pieces.length > PIECES_MAX || !v.pieces.every(isKitId))
+    return null;
   if (v.shape !== 'plain' && !isKitId(v.shape)) return null;
   const length = v.length;
   if (length !== 3 && length !== 4 && length !== 5 && length !== 6) return null;

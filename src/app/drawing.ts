@@ -6,9 +6,13 @@ import {
   costOf,
   drawingsOf,
   endingOf,
+  FOE_LIMIT_SENTENCE,
+  FOES_MAX,
   type Issue,
   NAME_MAX,
   type Pen,
+  PIECE_LIMIT_SENTENCE,
+  PIECES_MAX,
   paletteOf,
   parseInkedState,
   penOf,
@@ -44,8 +48,7 @@ export interface TableView {
   locked: boolean;
 }
 
-export const FOES_MAX = 3;
-export const PIECES_MAX = 2;
+export { FOES_MAX, PIECES_MAX };
 export const LENGTHS: readonly Drawing['length'][] = [3, 4, 5, 6];
 export const LENGTH_WORD: Record<Drawing['length'], string> = {
   3: 'three rooms',
@@ -143,8 +146,8 @@ function isPicked(d: Drawing, element: PickElement, id: string): boolean {
 }
 
 const LIMIT_SENTENCE: Partial<Record<PickElement, string>> = {
-  foe: 'Three kinds at most.',
-  piece: 'Two extra pieces at most.',
+  foe: FOE_LIMIT_SENTENCE,
+  piece: PIECE_LIMIT_SENTENCE,
 };
 
 const enemyName = (id: string): string => ENEMIES[id as EnemyId]?.name ?? id;
@@ -191,9 +194,6 @@ export function tableView(
   const slots = drawingsOf(p);
   const d = draft ?? slots[slot] ?? blankDrawing(p);
   const issues = checkDrawing(p, d);
-  if (d.foes.length === 0) {
-    issues.push({ element: 'foe', id: null, reason: 'Draw at least one foe.' });
-  }
   const locked = pageInUse(trip, slot);
   const rows = {} as Record<PickElement, ElementRow[]>;
   for (const [element, list] of Object.entries(candidates(p)) as [PickElement, Candidate[]][]) {
