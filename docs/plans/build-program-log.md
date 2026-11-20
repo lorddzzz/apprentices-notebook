@@ -136,3 +136,4 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-18 21:18 | 37 (Claude) / 49 (Codex) | 4 / 8 | test cycle: R2, R6, R3 merged; fast gate green (389 files, 8601); read with `claude -p "/usage"` and codex app-server `account/rateLimits/read` |
 | 2026-11-18 23:15 UTC | 71 (Claude) / 68 (Codex) | 6 / 11 | R4, R5, R7, R1 merged; fast gate green (398 files, 8649); began at 55 / 53 |
 | 2026-11-19 | 4 (Claude) / 14 (Codex) at the start | 13 / 15 | design window (Opus, Claude) + CAL briefs (Codex Sol CLI); K2a, K2b, CAL-0 merged; fast gate green (399 files, 8663); CAL-N, CAL-D, CAL-B spawned |
+| 2026-11-20 | 13 (Claude) / 12 (Codex) | 2 / 12 | R8 (Codex Sol 6.2 high, 0 returns, orchestrator committed) and R9 (Sonnet high, 0 returns, Codex.svelte links by orchestrator) merged; fast gate green (413 files, 8701) |

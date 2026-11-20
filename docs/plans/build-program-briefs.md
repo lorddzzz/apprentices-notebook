@@ -10,7 +10,7 @@ A pack starts when the packs in its "Starts when" are merged. Packs on one row o
 |---|---|---|---|
 | 27 | K2a, K2b | merged 2026-11-19 (9acce50, a41288c) | – |
 | 28 | **EN-14** the ending's Close: a design-window agent, not a `pack-worker` | Claude · strongest model, high | K2a and K2b merged, CI green |
-| 29 | **R8** (generator and kits) and **R9** (the ending's screens), EN-14's fix packs; file-disjoint | `pack-worker` · Default (Sonnet medium) | EN-14 merged; R8 before CAL-5 and any CAL pack that edits `src/engine/sim/` or `src/engine/drawing/` |
+| 29 (merged 2026-11-20) | **R8** (generator and kits) and **R9** (the ending's screens), EN-14's fix packs; file-disjoint | `pack-worker` · Default (Sonnet medium) | EN-14 merged; R8 before CAL-5 and any CAL pack that edits `src/engine/sim/` or `src/engine/drawing/` |
 | then | **CAL** the calibration plan (CAL-0 to CAL-5): its briefs live in [calibration-briefs.md](calibration-briefs.md), written separately; they start after EN-14 | as written there | EN-14 merged |
 
 File clashes and how the order avoids them:
@@ -46,41 +46,6 @@ The orchestrator then pushes once, confirms CI deployed that commit, and updates
 ```
 
 ---
-
-## R8: the generator and kits, EN-14's larger findings (Default role; engine)
-
-Written by EN-14 (2026-11-20). Starts when EN-14 is merged; runs before CAL-5 and before any CAL pack that edits `src/engine/sim/` or `src/engine/drawing/` (the files clash; nothing else does). Spawn `pack-worker` with:
-
-```
-R8: EN-14's review findings on the generator and kits (docs/plans/ending-verification.md §3 lists them).
-Own: src/engine/drawing/{generate,check,loot}.ts, src/engine/drawing/kits/{foundry,cartographers,bridges,inkQuarter}.ts, src/engine/districts/api.ts (one reader), src/engine/sim/bot.ts, tests/drawing/r8-*.test.ts (new). Not src/data/ (numbers are CAL's).
-Rule: every fix ships with a test that fails before it; the fuzz (`EN-S1: guardrails hold on 500 seeds`, `EN-2: …`) stays green; a change to generated layouts is expected (no golden holds drawn rooms) but no number in src/data/ moves. Report the before/after of the 500-seed fuzz summary (offered within 2 and 4 attempts, dull, fallbacks, ops median).
-1. Reach guards that see nothing: `compose` (generate.ts) places pieces before `startPoints` and `placeFoes`, so `holdsOpen` (cartographers.ts:161), the outline's "3 from a start" filter (:183), `bellKit.place` (foundry.ts:184) and `bellsKit.stamp`'s `keepsReach` (foundry.ts:129) check an empty layout. Lay the start points before the pieces (or run the guards after), keeping P8's order otherwise.
-2. The start-point reach guardrail (generate.ts:430) seeds `walkable` from every start, so a start sealed in a pocket passes. Check that the starts share one region (or each reaches a foe).
-3. Piece seeds: `compose` passes `deriveSeed(seed, 2)` to every piece's `place`; salt each piece apart (`2 + i`).
-4. `checkDrawing` reads `KIT.rules[r].activatedBy.pieces`, the guardrail reads `RuleKit.brings`: one source for "what a rule brings" (derive one from the other), with a test that every rule's two lists agree.
-5. A trial plays to 40 rounds though only 12 (16) count: pass the round limit to `botTrial`. Report the ops saved.
-6. `holdGain` (bot.ts:102) counts a held flier on a cracked tile as falling; match collapse's exemptions (`flies`). Hold is off by default, so the sims do not move; note it for CAL-B's Hold comparison.
-7. `tableFor`/the pick loop (loot.ts:108) throws on a zero weight once only zero-weight entries remain: skip entries of weight 0.
-8. A drawn trip's termed card (`termCardFor`, kits/inkQuarter.ts:134) can offer a term whose reward page the household or the trip already holds; the quarter's `termFor` filters those (and honours `guaranteedWhileLacking`). Reach the quarter's `pagesHeld`/`rewardPage` through `districts/api` (the lint rule), and filter the same way.
-Done when: the eight tests pass; `pnpm check:fast` green; the fuzz summary before/after is in the commit body.
-```
-
-## R9: the ending's screens, EN-14's larger findings (Default role; UI)
-
-Written by EN-14 (2026-11-20). Starts when EN-14 is merged; file-disjoint from CAL, so it may run beside any CAL pack. Spawn `pack-worker` with:
-
-```
-R9: EN-14's review findings on the ending's screens (docs/plans/ending-verification.md §3; screenshots docs/plans/ending-evidence/en14-*.jpg).
-Own: src/ui/screens/{Credits,Handover,DrawingTable}.svelte, src/ui/screens/Map.svelte, src/app/city.ts (the layout budget), src/app/drawing.ts, src/engine/drawing/{check,profile}.ts, tests/app/r9-*.test.ts (new), tests/app/city*.test.ts (the map layout tests).
-Rule: behaviour fixes ship with a test that fails before it; each UI change gets a 375x812 shot (`verify`) and a clean svelte-autofixer. No copy changes beyond the ones named.
-1. Map overflow (en14-map-three-pages.jpg): with the door row and three drawn pages the column under the Seam runs about 32 px past the page's foot. `UNDER_SEAM` (city.ts:244) does not count the door row and the page does not grow with `pagesExtra`. Count the row when `doorRow(profile)` is set and make `mapProblems` fail on today's case before the fix; then grow the page (or move the Seam) so the case passes.
-2. Credits scroll: the reel moves by `transform` inside a scrollable `.window`, so a swipe adds to the roll and the end state cannot be scrolled back. Make the window `overflow: hidden` while the roll runs and switch to plain scrolling on `animationend`.
-3. Replays return to the wrong place: Codex → credits → Skip lands in the study, Codex → the owner's desk → Back lands on the map; a replayed scene ends on the first visit's closing leaf and writes the save. Carry the origin (a `from` param) for Back and Skip; skip the closing leaf and the write on a replay.
-4. Clear on the drawing table resets the editor even when the store refused it: `commit` returns whether it stored; `wipe` resets only on success.
-5. `storeDrawing` accepts a drawing `readDrawing` drops (no foe, more than 3 foes, more than 2 pieces): move the 1-3 foes and ≤2 pieces checks into `checkDrawing` (each with its sentence, the table's `LIMIT_SENTENCE` wording) and drop the app-side zero-foe push.
-Done when: the five fixes each have their test or shot; `pnpm check:fast` green.
-```
 
 ## Questions EN-14 leaves for the player (no pack until answered)
 
