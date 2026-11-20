@@ -214,6 +214,31 @@ The substitution affects fresh room 4 and the worn route from room 4 onward. All
 Full-trip clears with the stand-in are 0/50 solo, 0/50 pair and 1/50 trio. The solo ends are 37 losses and 13 stalls, the pair ends are 34 losses and 16 stalls, and the other 49 trio runs are losses.
 
 
-### CAL-1 proposal handoff
+### CAL-1 task 3
 
-The mother remains at 56 HP, moth cap four and flare every third round, with the current heart layouts. The pooled fresh pair meets the heart band and the trio gap exceeds its limit. The Lamplighter's room exceeds its upper bound and worn room 4 exceeds the pair crate threshold. The stand-in meets its fresh floor and pair crate threshold. The pending decisions cover the live room-4 and heart misses and the scope of the crate target. The canal win goldens retain `DEEP` with `startHp: 20` for recorded coverage. Their inflated HP is excluded from these balance tables.
+The Lamp-mother stays at 56 HP, moth cap four and flare every third round. Heart B moves its Snuffers to C3 and A7. Heart C moves the Lamp-mother down the lane to D6 and the moths to A2 and F2. The uphill reach and the siphon move the crate onto the eel's lane, six drifts from the mooring on a clear route. The uphill reach uses B7 to B1 and the siphon uses C7 to C1. Both retain their original start points.
+
+The registered-room comparison uses `CAL_DISTRICTS=canals CAL=1 pnpm vitest run tests/sim/calibration-tables.test.ts --reporter=dot`. The live and stand-in crate counts come from the same seeds using `CAL1_PARTY=2 CAL1_MEASURE=canals-live` and `CAL1_PARTY=2 CAL1_MEASURE=canals-stand-in` with the measurement case in `tests/sim/seam-calibration.test.ts`. The fresh cohorts use seeds 1–50 per layout and the worn cohorts start 50 trips. Both use starter lattices, gauge plus cracks, 40 rounds, a 600-action budget, first loot and the unchanged doorway page.
+
+| Pair measure | Before | After | Target |
+| --- | --- | --- | --- |
+| Fresh heart A / B / C | 25/50 / 41/50 / 12/50 | 25/50 / 31/50 / 38/50 | Layout spread 58 → 26 percentage points |
+| Fresh heart pooled | 78/150 (52.0%) | 94/150 (62.7%) | 50–65% |
+| Fresh room 4, live | 150/150 | 150/150 | 65–80%, still 20 points above the ceiling |
+| Fresh room 4, stand-in | 150/150 | 150/150 | At least 80% |
+| Fresh crate mooring, room 2 / live room 4 | 0/150 / 0/150 | 0/150 / 0/150 | At most 25% of wins |
+| Worn crate mooring, room 2 / live room 4 | 0/50 / 34/47 (72.3%) | 0/50 / 10/47 (21.3%) | At most 25% of wins |
+| Worn crate mooring, stand-in room 4 | 6/34 (17.6%) | 0/36 | At most 25% of wins |
+| Worn trips cleared, live / stand-in | 0/50 / 0/50 | 3/50 / 2/50 | Attrition reported |
+
+Live worn crate counts by room-four layout are A 0/17, B 3/11 and C 7/19. The live pair reached room 4 on 48 of 50 trips and won 47, as before. They reached the heart with about 9.6 HP and zero charges, compared with 10.2 HP and zero charges before. Heart C accounts for all three live clears and nine heart stalls. The fresh stand-in crate rate remained 0/150.
+
+The fresh solo still wins 0/150 hearts. Heart C changes from 50 solo losses to 50 stalls at the round limit. Worn solo trips still clear 0/50, with 32 losses and 18 stalls after, compared with 37 losses and 13 stalls before. The fresh trio stays at 146/150 (97.3%), so the trio gap narrows from 45.3 to 34.7 percentage points. Worn trio clears rise from 3/50 to 9/50, with 36 losses and five stalls, all of the stalls in heart C.
+
+Eight-seed tests of the Lamplighter at 10–36 HP still won every fresh pair fight in the uphill reach and siphon. At 60 HP the uphill reach won 9/12, with three round-limit stalls and a 27.8-round mean, up from about three rounds at 6 HP. A 42 HP Lamplighter crashed the live lamp market at fresh pair seed 9, round 6. In move scoring, the Stoker's hypothetical move from B1 to C1 opens the Lamplighter's step jar. Spark and pool fire take the Stoker to 0 HP, then the bot tries to score a south Shove in that hypothetical state. The rival's 6 HP is retained. Placement and terrain candidates that passed the layout checks also kept the fresh pair undefeated in screening.
+
+An uphill reach candidate with a B8–B2 crate route and an A9 start reproduced the same bot flaw at worn trio seed 8. At round 5, a hypothetical move to C2 opens a lantern which kills the Draughtsman, then the bot tries to score a north Shove with her. The original uphill reach resolves this seed. The selected B7–B1 route and the original A8 start ran all 17 worn-trio visits to the uphill reach without a bot exception.
+
+Canal win replays still use the original seeds and `DEEP` at 20 HP per apprentice. Seeds 2 and 5 no longer moor the crate in room 4 and still clear the heart. Seed 4's event changes concern the crate's drift, and seed 6 replayed the existing fixture.
+
+The four-file play-through and replay check passed 21/21 with recording off. The canal layout and live Lamplighter scenario checks passed 22/22. The fast gate passed 8,702 tests across 413 files.

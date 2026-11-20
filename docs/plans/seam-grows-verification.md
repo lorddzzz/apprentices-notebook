@@ -147,4 +147,10 @@ At 72 HP the fresh heart clears are **0/150 (0%)** solo, **89/150 (59.3%)** pair
 
 At 72 HP, full-trip clears drop from 17/46/50 to **0/3/21 out of 50** for solo/pair/trio, with a +36-point trio-minus-pair margin. Earlier worn fights match at both HP values. At 72 HP the solo has 27 losses and 23 stalls, the pair 42 losses and 5 stalls, and the trio 28 losses and 1 stall. The pair reaches every heart in both sweeps with about 12.3 HP and 1.0 charge, then averages 7.2 HP out at 16 HP or 0.7 at 72 HP. Full-trip attrition is reported alongside the fresh band.
 
-The 72 HP candidate clears the fresh-pair band and the unchanged heart-play test. The live default stays at 16 HP for the proposal handoff. Changing it makes all five affected recorded trips diverge, so the proposed HP and the approved golden options and fixtures belong in the same update. The current Seam win trips still use `BOT` and the five owned fixtures are unchanged.
+### Applied in CAL-1 task 3
+
+The authored Marginalia is now 72 HP, up from 16 HP. At normal starting HP the measured fresh-pair rate moves from 150/150 to 89/150 (100% to 59.3%), inside the 40–60% band. Trip-worn pair clears drop from 46/50 to 3/50. Furnace hall remains the hardest fresh layout at 8/50; A and C clear 35/50 and 46/50. Familiars and hand reach retain their measured values.
+
+The drawn frame inherited authored HP before this change. At 72 HP the EN-2 lite-bot check produced an unverified fallback within the 16-round heart limit. The drawn frame now supplies its own 16 HP to both the trial and the playable encounter, including reloads. This preserves the drawn encounter's previous difficulty and generation limits.
+
+The three win goldens now use `SEAM_DEEP` with `maxRounds: 100` and `startHp: 20` for replay coverage. The three furnace hall wins took 158, 142, and 116 actions, up from 48, 44, and 40. In the two `BOT` wipe recordings, the heart damage events report 56 more HP left and the action counts are identical. All five outcomes were preserved. The recording pass wrote ledger and jar fields the replay ignores; the saved fixtures and future recordings omit those fields. The four-file replay and play-through check passed 21/21 with recording off.
