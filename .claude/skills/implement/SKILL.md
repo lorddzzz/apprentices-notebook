@@ -12,7 +12,7 @@ You are the **orchestrator**. You own contracts, briefs, reviews, merges and the
 | The work is | Do this |
 |---|---|
 | **Small** (up to about 5 tasks, one area) | No status file or log. Do it directly, or spawn one agent with one brief. Run the fast gate, review, commit, then the Close steps that apply |
-| **A plan** (one `docs/plans/<feature>-plan.md`) | Everything below, with `<plan>-status.md` and `<plan>-log.md`. If only one agent will ever run at a time, skip worktrees: the agent commits on a branch `build/<plan>` in the main checkout, and you edit nothing there while it runs. Use worktrees as soon as two agents overlap |
+| **A plan** (one `docs/plans/<feature>-plan.md`) | Everything below, with `<plan>-status.md` and `<plan>-log.md`. A single worker can use a branch `build/<plan>` in the main checkout if its runner supports that workflow and you leave the checkout free for it. Whiteboard’s Git-enabled Codex runner uses a clone even for one worker. Use separate worktrees or worker clones when workers overlap |
 | **A program** (several plans) | Everything below, with one status file and one log for the whole program and a boundary map of which plan owns which system |
 
 ## Start or resume
@@ -36,7 +36,7 @@ A **pack** is one agent run: two to four tasks that touch the same files, done i
 
 ### The brief
 
-Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules and its worktree isolation, so the brief holds only what differs per pack. If you spawn any other agent type to write files while another agent runs, pass `isolation: "worktree"` yourself, and never tell the player an agent is in a worktree unless the spawn said so. A good brief lets the agent start without exploring:
+Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules and its worktree isolation, so the brief holds only what differs per pack. For other agent types writing files concurrently, use Whiteboard’s Git-enabled clone, request `isolation: "worktree"` where supported, or prepare a separate pack worktree as described under Runners. A good brief lets the agent start without exploring:
 
 - **Owns:** the exact files or directories. Everything else is read-only. Before writing this list, trace the task through the code: where the new behaviour is called from, which shared type or registry it must touch, which tests and fixtures it will change. A brief whose Owns list was guessed from the plan stops its pack before the first commit.
 - **Read:** at most three things: the plan rows, one design section, and **one pattern file** to copy (the nearest finished example).
@@ -69,13 +69,13 @@ Both tools may be available; use both. Usage is spent per tool, so spreading pac
 | Runner | How to spawn | Commits | Has |
 |---|---|---|---|
 | **Claude** | The app's `spawn_subagent` (agent `claude`, model and effort from the table), or the `pack-worker` agent where the runtime has agent definitions | The agent, on its branch | Svelte MCP (autofixer), browser tools, everything the session has |
-| **Codex via the app** | `spawn_subagent` with agent `codex` and the table's GPT model | The agent, if its sandbox allows | Whatever the app gives it |
-| **Codex via the CLI** | `node .claude/skills/implement/codex-pack.mjs <worktree> <prompt-file> --model <id> --effort <e>`, started in the background; it exits when the agent is done | **The orchestrator**: the sandbox cannot write git metadata, so the agent edits and tests, then you review its report and commit with the task IDs | Editing, tests, shell. No MCP servers, so no autofixer and no browser |
+| **Codex via Whiteboard** | `spawn_subagent` with `agent: "codex"`, `git: true` and the table's GPT model | **The worker** commits on a branch in Whiteboard’s clone | Whatever the app gives it |
+| **Codex via the CLI** | `node .claude/skills/implement/codex-pack.mjs <worktree> <prompt-file> --model <id> --effort <e>`, started in the background; it exits when the agent is done | **The orchestrator** reviews and commits in the pack worktree | Editing, tests, shell. No MCP servers, so no autofixer and no browser |
 
 Routing rules:
-- **Packs that need the Svelte autofixer, a phone check or a commit by the agent go to Claude.** Engine packs, tests, data and refactors with a `Verify` command go to either.
-- Use the app's Codex spawn first. If it fails at start-up with no work done (seen as `failed to load workspace requirements`), don't retry it: fall back to the CLI runner and note it in the status file.
-- **Spawning without an agent definition** (any Codex run, and `spawn_subagent` in apps that cannot name `pack-worker`): create the worktree yourself (`git worktree add .claude/worktrees/pack-<x> -b build/pack-<x> main`, then `pnpm install --frozen-lockfile --prefer-offline`, a few seconds), and put the standing-rules preamble from [templates.md](templates.md) before the brief, with the worktree path filled in.
+- **Packs that need the Svelte autofixer or a phone check go to Claude.** Engine packs, tests, data and refactors with a `Verify` command go to either.
+- Use Whiteboard’s Git-enabled Codex spawn first. Commit anything the worker needs and verify the chat checkout’s `HEAD` is the intended base. Whiteboard clones that commit for each spawn. Give the worker a branch name and the Whiteboard clone preamble in [templates.md](templates.md). The worker installs dependencies in the clone, verifies its pack, and reports its branch and commit IDs. Keep the clone path from the receipt or result.
+- If Whiteboard’s Git-enabled spawn is unavailable or fails at startup with no work done, use the Codex CLI runner and record the fallback in the status file. Prepare a pack worktree with `git worktree add .claude/worktrees/pack-<x> -b build/pack-<x> main` and install dependencies there with `pnpm install --frozen-lockfile --prefer-offline`. Give the worker the absolute path and the orchestrator-commits preamble. The worker reports verified file paths by task, and the orchestrator reviews and commits in that worktree. Use the prepared-worktree preamble for Claude spawns without a `pack-worker` definition as well.
 - A runner that stops at an ownership edge has not finished the pack: read what it did, commit the verified part as `wip(...)`, widen or re-brief, and send the rest to a second agent on the same branch (it costs one return). Record both runners in the log row (`Codex Terra high → Sonnet medium`).
 
 ## Verify in tiers
@@ -101,11 +101,11 @@ Verification is the largest avoidable cost. Each tier runs once, at its own leve
 
 When a pack reports:
 
-1. **Review** the test diff and the public surface (exported names, contracts, data shapes) against the brief's Done-when. For UI, look at the screenshots. Leave line-level review to the Close review.
+1. **Import and review.** For a Whiteboard clone, run `git fetch -- "<clone path>" "refs/heads/<branch>"` in the source checkout. This writes source Git metadata under the orchestrator’s approval policy. Verify the reported tip against `FETCH_HEAD` and retain it on a local pack branch if review spans another fetch. Review the test diff and the public surface (exported names, contracts, data shapes) against the brief's Done-when. For UI, look at the screenshots. Leave line-level review to the Close review.
 2. **Widen, don't park, when the request is additive.** A pack that stopped because it needs an edit outside its Owns list gets a message granting it, in any kind of window, when the edit only adds something optional, behaviour without it is identical and existing tests pass unchanged. Park the pack under Needs design review only when the edit changes a rule, a contract, a test or a fixture.
 3. **One return per pack.** Send the agent one message with every correction and the reason. If a problem remains after that: fix it yourself when it is small (about 30 lines), otherwise write a new brief with the review notes and spawn it at the role's escalation setting.
 4. **Squash-merge** one commit per task (in the log row, note the model, effort and how many times the work was sent back). Put the detail in the commit body (what was built, test names, accepted Proposals): `git log --grep '<ID>'` finds it later for free.
-5. **Record** in the same commit: one row in the log with all six cells (ID, commit, model and effort, returns, usage Δ, one clause), and the status file's Next, Owed and Rough edges. The usage Δ is the reading at the pack's report minus the reading at its spawn, shared between packs that ran together. Remove the pack's worktree and branch now, but never one with uncommitted changes or commits that are not on `main`: commit them as `wip` on the branch and list the branch under Running or partial.
+5. **Record** in the same commit: one row in the log with all six cells (ID, commit, model and effort, returns, usage Δ, one clause), and the status file's Next, Owed and Rough edges. The usage Δ is the reading at the pack's report minus the reading at its spawn, shared between packs that ran together. Remove the pack’s worktree and branch after integration. For Whiteboard clones, remove the clone after fetching and integrating its work and once the worker no longer needs to resume. Whiteboard retains these clones under its state directory’s `-workers` sibling. Keep any unintegrated or uncommitted work and list its branch and checkout path under Running or partial.
 6. Check usage, then start the next pack.
 
 **Owed list.** Whenever a contract leaves something for later ("each district registers its frame when it runs", "BF-5 routes X before Y"), write it in the status file's **Owed** list with the task that must do it, and copy it into that task's brief. Fields that are declared and never filled are the commonest kind of hidden work.

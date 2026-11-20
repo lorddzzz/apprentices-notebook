@@ -77,31 +77,32 @@ For a **Wave 0** pack, replace Contract with: "Define <owned contracts>. Report 
 
 ## Standing-rules preamble (runners without an agent definition)
 
-Paste this before the brief for any Codex run and for any `spawn_subagent` that cannot name `pack-worker`. It is `.claude/agents/pack-worker.md` trimmed to what a runner needs. Fill `<path>`, `<branch>` and the commit rule.
+Paste this before the brief for any Codex run and for any `spawn_subagent` that cannot name `pack-worker`. It is `.claude/agents/pack-worker.md` trimmed to what a runner needs. Fill in `<branch>` and keep the applicable startup and commit rules. Whiteboard with `git: true` uses **Whiteboard clone** and **worker commits**. The Codex CLI uses **prepared worktree** and **orchestrator commits**. Fill in the absolute `<path>` for a prepared worktree.
 
 ```
 You implement one PACK of an implementation plan in The Apprentice's Notebook. Standing rules (the brief wins where it differs):
 
 START
-1. Your git worktree is <path> on branch <branch>, dependencies installed. Work ONLY there: cd into it for every command and edit files only under it; never touch the main checkout. `git rev-parse --show-toplevel` must end in .claude/worktrees/<name>, else stop and report.
-2. <Claude/app runner:> Run `git merge --ff-only main` (report if it fails). <Codex CLI runner:> The worktree is already at main. Your sandbox cannot write git metadata: no git command that writes (commit, add, merge, checkout, stash); status, diff and log are fine.
+1. <Whiteboard clone:> Work only in the clone you start in. Check its root and HEAD with Git, create <branch> from that HEAD, and install dependencies with `pnpm install --frozen-lockfile --prefer-offline`. Use the clone’s starting commit as the base for the pack.
+   <Prepared worktree:> Work only in <path> on <branch>, with dependencies already installed. Check the worktree root and branch before editing.
+2. <Whiteboard clone:> Keep your commits local for the orchestrator to fetch. <Prepared worktree with worker commits:> Run `git merge --ff-only main` and report if it fails. <Orchestrator commits:> Use read-only Git commands such as status, diff and log. The orchestrator handles Git writes.
 3. Read AGENTS.md and only what the brief lists. Not the status file, the build log, or whole design docs.
 
 WORK
-- Tasks in order, <Claude/app runner:> one commit per task. <Codex CLI runner:> no commits (the orchestrator commits): finish each item with its tests green, then list its files.
+- Tasks in order. <Worker commits:> One commit per task. <Orchestrator commits:> Finish each item with its tests green and list its changed files by task.
 - Edit only the files you OWN. An OPTIONAL field, parameter or registry entry in another file is allowed when the task needs it, behaviour without it is identical and existing tests pass unchanged: do it and list it under Proposals. Anything more (changed behaviour, a changed test) leaves THAT ITEM undone: say so, and carry on with the other items instead of stopping the pack.
-- Stopping early: <Claude/app:> commit what you have as `wip(<area>): <ID> <what is missing>`. <Codex CLI:> leave the files as they are and say what is missing.
+- Stopping early. <Worker commits:> Commit what you have as `wip(<area>): <ID> <what is missing>`. <Orchestrator commits:> Leave the files as they are and say what is missing.
 - No balance tuning. Don't edit DESIGN.md, TECH.md, docs/design/*, the roadmap or the status file. No refactors beyond the tasks.
 - src/engine is pure deterministic TypeScript (strict, no `any`, randomness only through engine/rng.ts). A behaviour change ships with a test that fails before the fix.
 
 VERIFY
 Before each commit (or item): the brief's Verify command with --reporter=dot and `pnpm exec tsc --noEmit`. Before your last commit (or the end): `pnpm check:fast > check.log 2>&1; tail -20 check.log` (do not commit check.log; allow it several minutes). Never run tests/sim/ unless the brief says so.
 
-COMMIT (Claude/app runner)
+COMMIT (worker commits only)
 Stage explicit paths, never `git add -A`: `<type>(<area>): <ID> <summary>` with a body of what you built and the test names, ending with the attribution line the session gives.
 
 REPORT
-Once, under 250 words: per task the commit (or files changed) and the test summary line; what is not done and the exact next step; PROPOSALS (each rule you decided that the brief did not, one line with the reason).
+Once, under 250 words: the branch name for worker commits, per task the commit (or files changed) and the test summary line; what is not done and the exact next step; PROPOSALS (each rule you decided that the brief did not, one line with the reason).
 ```
 
 ## Messages to a running agent
