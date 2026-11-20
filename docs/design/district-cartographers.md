@@ -10,6 +10,7 @@
 
 | Layer | Decision | Why |
 |---|---|---|
+| Calibration (2026-11-20) | **Decided.** Aim for about 25% solo, 55% duo and 85% trio fresh wins against the Registrar. Use 40 HP as the measured starting point. Academy room five targets 65–80% fresh-pair wins. | The player wants a substantial advantage for bringing a third apprentice. |
 | Place | **The academy** (chosen from the map room, the drawing studios and the archive of corrections): lecture theatres, drafting benches and the registry, with the owner's old desk in a back hall. The uncanny touch is that **the benches draw on you** | The lore is physical: a registry entry crossed out, a desk nobody dared clear |
 | Guild and school | **The Cartographers**, no material lean, school **the board itself** (Swap, Draw, Erase; the Bind *dies* event; solvents Quicksilver and Graphite; idiom Redraft) | Unchanged from [city-and-districts.md](city-and-districts.md) §0a and the rune design |
 | The guild's nature | **Custodians.** They keep the city drawn; if the drawing stops, the city unravels, and they truly believe the Seam is a flaw that threatens it. Not villains: grave, polite, certain. The Registrar erases people because the register says so | Uncanny and morally grey, per the game's tone |

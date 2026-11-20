@@ -10,6 +10,7 @@
 
 | Question | Decision | Why |
 |---|---|---|
+| Drawn crossroads and closing text (2026-11-20) | **Decided.** Skip the span choice immediately before a drawn heart and the academy doorway on three-room drawings. Keep the handover closing line and the Codex trip-tab line. Credits list every opened district in opening order, including districts opened by key. | Show route choices where they change the trip. The credits recall how the household explored the city. |
 | The scene at the door | **A quiet handover.** No fight. The owner writes one last line and hands you the pen; the join holds because you hold it now. Then the credits | Warm and open-ended, as the Cartographers' round set it; the Registrar was the last fight |
 | What "the Seam becomes yours" plays like | **A drawing table**: you compose a district from what you collected (a board rule, foes, pieces, a trip shape, a heart) and the city plays it as a seeded trip that differs every time | Turns everything learned into a toy, and keeps the build loop alive after the credits |
 | The owner | **Joins the household** as the tenth apprentice (the parked "tenth arrival") | The story's last beat is a person, not a message |

@@ -12,6 +12,7 @@
 
 | Layer | Decision | Why |
 |---|---|---|
+| Calibration (2026-11-20) | **Decided.** On each span, aim for 75–90% fresh-pair heart wins and 25–35% worn-pair clears per trip started. Count stalls separately from losses. These are working targets to test. | A fresh team can lose, and a team that spent charges reaching the Chief still has a route to victory. |
 | Place | **The arches in the fog**: aqueduct arches across white nothing, the drop hidden in mist; quiet and vertiginous. (Chosen from the toll-bridges, the masons' scaffold-spans and the chain bridges.) | A thin floor with real stakes |
 | Guild and lean | **The bridge-wardens**, lean **height** (the drop), school **Structure** (Hold, Brink, Lay; the Bind *pushed* event; solvents Mortar and Chalk; idiom The Long Drop) | Unchanged from [city-and-districts.md](city-and-districts.md) §0a and the rune design |
 | Uncanny touch | **You can't see what the arches carry water to.** Spans lead to places that aren't there | Stone spans to nowhere, as the district theme says |

@@ -2,6 +2,8 @@
 
 Source: [midpoint-audit.md](midpoint-audit.md) §1.2 item 8 and §2.1 (every win-rate band and tuning task leaves the content plans), [build-program.md](build-program.md) §5 (plan changes in force). Prefix **CAL**.
 **State: Planned (runs last, after EN-14; needs EN-0, merged). §1.1 lists the numbers in engine code found by Pack N2's reviews (2026-11-18).**
+**Standing decision.** Apply measured calibration changes that meet the agreed targets. Where targets conflict or remain out of reach, the build team chooses and applies the best supported option, records the tradeoff and remaining miss, and verifies the result. The player delegated these decisions for the rest of calibration on 2026-11-20.
+
 **Scope:** collect every deferred calibration item with its numbers, then run one pass per district on the shared bot (`src/engine/sim/` after EN-0) against the target bands. **No number is tuned while content is built** (player rule, 2026-11-04). The SM-6 branch `worktree-agent-a7d9ce60e430bee68` (commit `4c77215`, tag `ref/sm-6`) is kept for review at CAL-0; delete it only with the player's OK. Its change is recorded in §1.
 
 ## 1. Deferred items (numbers as of `a6e8bfb`)
@@ -54,12 +56,12 @@ Found by the five code reviews of Pack N2; none was tuned. CAL moves each into `
 
 | District | Band | Citation |
 |---|---|---|
-| Canals | fresh HP, party 2, 50+ seeds per layout: rooms 1-2 at least 85 %, room 3 at least 75 %, room 4 65-80 % with the Lamplighter (fallback at least 80 %), heart 50-65 %; party 3 within +10 points | canals-revisit-plan.md §6 "Bot targets" (line 118) |
+| Canals | fresh HP, party 2, 50+ seeds per layout: rooms 1-2 at least 85 %, room 3 at least 75 %, room 4 65-80 % with the Lamplighter (fallback at least 80 %), heart 50–65%. The heart allows a larger trio advantage. Narrow the layout spread. In the live fourth room, the 25% accidental-mooring ceiling applies separately to fresh and worn pair wins | canals-revisit-plan.md §6 "Bot targets" (line 118) |
 | Seam | heart 40-60 % at party 2, 1 and 3 reported | seam-grows-plan.md row SM-6 |
-| Bathhouses | room win rate within +-10 points of the canal rooms at the same depth, hearts lower by design; at most one boil-over in a median fight at heat 1-2; both outcomes occur | bathhouses-plan.md §6 (line 123) |
+| Bathhouses | Ordinary rooms within ±10 points of the canals at the same depth. Give the party until round three to react to the Steward’s first boil. Aim for 40–55% fresh-pair heart wins and a median of at most one boil per ordinary fight at heat one or two. | BH-16 and player round 2026-11-20 |
 | Ink quarter | terms never beyond a normal room's band; term rooms at least baseline minus 10 points; the heart can be lost | ink-quarter-plan.md row IQ-20 and the settled rules (line 11) |
-| Cartographers | "within the canals' band" at party sizes 1-3 | cartographers-plan.md row CG-9 |
-| Bridges, foundry | **no band is stated.** Proposal: the canals' band, with the foundry's 0-bell heart winnable and 4 bells clearly easier (BF-20 wording) | bridges-plan.md BR-21 and foundry-plan.md BF-20 name no number |
+| Cartographers | Depths 1–4 use the canals comparison. Aim for about 25% solo, 55% duo and 85% trio fresh wins against the Registrar. Use 40 HP as the measured starting point. Academy room five targets 65–80% fresh-pair wins. | CG-9 and player round 2026-11-20 |
+| Bridges, foundry | Foundry heart, fresh pair: 20–30% wins with zero bells and 80–90% with four. On each span, aim for 75–90% fresh-pair heart wins and 25–35% worn-pair clears per trip started. Count stalls separately from losses. These are working targets to test. Ordinary foundry rooms target at least 85% fresh-pair wins in rooms 1–2, at least 75% in room 3 and 65–80% in room 4. | bridges-plan.md BR-21 and foundry-plan.md BF-20 name no number |
 | Drawn rooms | heart win rates light 60-75 %, medium 45-60 %, heavy 30-45 % (bot, fresh HP) | ending-plan.md row EN-13 |
 
 ## 3. Tasks
@@ -72,18 +74,18 @@ Found by the five code reviews of Pack N2; none was tuned. CAL moves each into `
 | CAL-3 | Bathhouses and bridges: BH-16 levers, BR-21 numbers; decide whether the bot learns Hold | M | tables inside the §2 band or the proposal's; no median boil before round 3 |
 | CAL-4 | Foundry and cartographers (BF-20, BF-21, CG-9/10): tables at party 1-3, hung bells 0-4 | M | as CAL-3; 0 bells winnable, 4 clearly easier |
 | CAL-5 | Drawn rooms (EN-13, with EN-S2's generator numbers) and the shared household sweep | M | EN-13's three weight bands; offered rooms stay inside EN-S2's walkover limit; `tests/sim/household-sweep.test.ts` unchanged in result |
-| CAL-G1 | **Gate (orchestrator):** the player sees the final tables before the playtest; the player decides any band the plan could not meet | S | tables committed to a verification file; the player's call logged |
+| CAL-G1 | **Gate (orchestrator):** the player sees the final tables before the playtest; the orchestrator records the applied decision and residual miss for any unmet band | S | tables committed to a verification file; delegated decisions logged |
 
 ## 4. Proposals, contracts and open questions
 
 | # | Proposal | Reason |
 |---|---|---|
 | P1 | **Record before drop.** Tag `ref/sm-6` (`4c77215`) is set; the SM-6 branch stays until the CAL-0 review, then goes only with the player's OK; §1 holds the data change, the tag holds the sim and the fixtures | The audit says the branch will not survive two more weeks of data changes |
-| P2 | **Bridges and foundry use the canals' band** (§2) until the player names one | Neither plan states a number; BR-21 and BF-20 only say "recorded" or "inside the target band" |
+| P2 | Bridge trip and heart targets and foundry heart endpoints decided in §2. Ordinary foundry targets decided in §2 | Neither plan states a number; BR-21 and BF-20 only say "recorded" or "inside the target band" |
 | P3 | **Order inside a pass:** bot fixes first (Hold, cracks, pulses), then data numbers, then re-record golden fixtures once at the end | Golden fixtures break on any data change; one re-record avoids churn |
-| P4 | **A band the data cannot reach by numbers** (the bot never loses an ink room) becomes a filed design question, not a rule change | Player decides rules; the plan decides numbers |
+| P4 | **A band the data cannot reach by numbers** (the bot never loses an ink room) gets a focused design brief and a measured follow-up | The team owns the decision under the standing delegation |
 
 **Provides:** one table runner and one markdown table per district, committed to each district's verification file. **Consumes:** EN-0's `src/engine/sim/`, every content plan finished (BF-12, CG-10, EN-8), the closure plan's GATE-1 (`tests/sim/` holds the long runs). **Leaves for later tasks:** none; this plan ends the build.
-**Open questions for the player:** IQ-20/IQ-G1's lever (status file "Open questions", default: playtest first); whether a heart that the bot cannot clear under attrition (canals 0/100, ink 3 %, Seam at 72 HP) should stay that hard for a human.
+**Follow-up:** Test the quarter helper and evaluate carried-trip attrition against the district decisions. Record any unresolved measurement limits at Close.
 
 **Execution notes:** CAL-0 first; CAL-1 to CAL-4 are file-disjoint (data per district) and run two at a time; each pass ends with the pack's own sim (this plan owns sims). Close with one full `pnpm check`.

@@ -10,6 +10,7 @@
 
 | Layer | Decision | Why |
 |---|---|---|
+| Heart calibration (2026-11-20) | **Decided.** Keep the opening writ. Test a visible delivery by a helper that the player can interrupt before it hurts the party. Keep the existing clock, movement and terms for this trial. | A delivery gives the party a threat it can see and answer. |
 | Place | **The dead-letter office**: sorting halls of undelivered letters, wax seals, brass tubes, sand trays for blotting. (Chosen from the vat rows, the court of small print, the binding-ink works, the debtors' exchange and the sponging-house.) Wax and Sand, the district's solvents, come straight from it | A place built around promises that were never kept; the solvents belong to the room |
 | Guild and lean | **The Notaries**, lean **Ink** (as the district table has it), school **Contracts** | Unchanged from [city-and-districts.md](city-and-districts.md) §0a |
 | Uncanny touch and lore | **Letters to the owner**: among the undelivered mail are letters addressed to the owner in the Cartographers' hand; their expulsion notice is here, never delivered. Pieces are found across the rooms (BL-41 lore delivery) | A real lore thread that points at the final district |

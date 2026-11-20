@@ -47,11 +47,11 @@ The orchestrator then pushes once, confirms CI deployed that commit, and updates
 
 ---
 
-## Questions EN-14 leaves for the player (no pack until answered)
+## Drawn crossroads follow-up (approved 2026-11-20)
 
-- **The span choice before the heart** (kits/bridges.ts `spanChoices`): the Crossroads before a drawn heart offers sound or crumbling, but the heart is its frame and the choice changes nothing. *Default:* hide the choice before the heart (P15 reads "before each room after the first"; the home district's heart has no span either). A one-line change plus the EN-K5 test's expectation, so it needs the player's yes.
-- **The doorway warning on a length-3 drawing** (kits/cartographers.ts `doorwayChoices`): after room 2 of 3 the doorway warns "no way home until the heart", and the next room is the heart. *Default:* offer no doorway when only the heart lies past it (the doc comment's intent); the EN-K7 test's length-5 cases are unchanged.
-- **The credits' districts** (ending-text §3, *Inked shut, in this order*): every opened district is listed, also one opened by a key whose heart was never cleared. *Default:* keep as approved (by the handover the player has cleared the Cartographers' heart, and a district left uncleared is rare).
+- In the drawn bridges kit, suppress the sound/crumbling choice before the heart. Update EN-K5 and check that earlier spans still offer both routes.
+- In the drawn academy kit, suppress the doorway when only the heart lies beyond it. Cover the three-room drawing and retain the existing five-room cases in EN-K7.
+- The handover closes with “The owner takes a seat on the bench. The drawing table is on the desk.” The Codex trip tab reads “Out on a trip: these open again in the study.” Keep both lines and credit every opened district in opening order, including key-opened districts.
 
 ---
 

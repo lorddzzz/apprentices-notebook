@@ -6,6 +6,8 @@
 
 **One-liner:** the owner's own drawing, where the canals, the ink-makers' quarter and the bathhouses grind into each other wrongly. It stays the **gentle two-apprentice tutorial** and then **grows**: after the owner's margins have been faced, a **lower Seam** opens with one floor for each district you've opened, each grinding a piece of that district's terrain into the basics. At the bottom is the owner's sealed door.
 
+**Decided (2026-11-20).** The Marginalia has 72 HP. The measured fresh pair wins 59.3% at this value, and a worn pair clears 3 of 50 full trips.
+
 ## What this revisit had to honor
 
 | Source | What it asks of the Seam |

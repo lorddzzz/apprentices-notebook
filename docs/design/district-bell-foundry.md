@@ -10,6 +10,7 @@
 
 | Layer | Decision | Why |
 |---|---|---|
+| Heart calibration (2026-11-20) | **Decided.** Ordinary foundry rooms target at least 85% fresh-pair wins in rooms 1–2, at least 75% in room 3 and 65–80% in room 4. Allied bells should hit enemies in the tower. Aim for 20–30% fresh-pair wins with zero bells and 80–90% with four. Measure one through three on the same seeds. | Ringing the district’s optional bells should materially improve the odds. |
 | Place | **The carillon towers, with the tuning halls** (more of the towers): belfry stairs, ringers' galleries, rope and clockwork, with the long quiet halls of hung bells inside the later rooms. (Chosen from the casting floors and the cracked-bell yard too.) | Vertical and musical, with a quiet counterpoint |
 | Guild and lean | **The bell foundry guild** (name later, BL-40; the Bellwrights?), lean **brass**, school **Resonance** (Toll, Coil, Unison; no method; solvents Rivet and Filings; idiom Peal) | Unchanged from [city-and-districts.md](city-and-districts.md) §0a and the rune design |
 | Uncanny touch | **The bells ring a tune that the streets obey, and a wrong note moves a street.** In the tuning halls, sound is solid: you can lean on a chord | The foundry's job in the city, felt on the board |

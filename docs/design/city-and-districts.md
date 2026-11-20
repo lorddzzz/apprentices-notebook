@@ -248,6 +248,8 @@ A great lantern floating mid-pool, far bigger than the lamps on the quays. The m
 
 ## 5b. Revisit after the household and district rounds (2026-10-22)
 
+**Decided in calibration (2026-11-20).** Keep the Lamp-mother at 56 HP and allow a substantial trio advantage. Bring the hardest and easiest layouts closer together while retaining the 50–65% pooled fresh-pair target. Target 65–80% fresh-pair wins in the live fourth room. Accidental crate mooring should occur in at most 25% of wins, measured separately for fresh and trip-worn pairs. Test layout changes.
+
 The canals are built; this revisit brings them up to the standard of the four newer districts ([ink-makers](district-ink-makers.md), [bathhouses](district-bathhouses.md), [bridges](district-bridges.md), [foundry](district-bell-foundry.md)) and adds what the [household](party.md) §0b needs. **Player picks:** the recruit's landing, the Lamplighter rival and the lore thread. **Claude's calls** (the player delegated the rest, "redesign anything below the standard"; *Proposal*, veto freely): the optional barge cargo, the key's carrier, the rooms' re-laying, the lamp-mother's rhythm and the drop rule.
 
 | Topic | Decision | Why |

@@ -12,6 +12,7 @@
 
 | Layer | Decision | Why |
 |---|---|---|
+| Heart calibration (2026-11-20) | **Decided.** Give the party until round three to react to the Steward’s first boil. Aim for 40–55% fresh-pair heart wins and a median of at most one boil per ordinary fight at heat one or two. | The player has time to respond before pressure builds. |
 | Place | **The grand thermae**: vaulted bath-halls with mosaics, long pools and attendants in white; every door opens onto a larger hall. (Chosen from the laundries, the cure-house and the pump-house.) | Big, lush rooms give clouds room to grow |
 | Guild and lean | A **bathhouse guild** (name later, BL-40), lean **Steam**, school **Areas** (Vat, Seep, Steep; no method; solvents Bath salt and Fog jar; idiom Steam Room) | Unchanged from [city-and-districts.md](city-and-districts.md) §0a and the rune design |
 | Uncanny touch | **People who stay too long become part of the steam.** The dissolved bathers are those who did | Ties the foes, the place and the cloud rule together |
