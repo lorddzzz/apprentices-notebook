@@ -2,6 +2,7 @@
 import { INK_TERMS } from '$data/districts/inkQuarter/terms';
 import { COSTS } from '$data/drawing';
 import { cloneData } from '../../clone';
+import { inkTermFor } from '../../districts/api';
 import { KIT } from '../../districts/kit';
 import type {
   Json,
@@ -59,7 +60,12 @@ export const writsKit: RuleKit = {
 const stampTiles = (layout: BoardSpec) =>
   coords(layout).filter((c) => {
     const tile = at(layout, c);
-    return tile !== undefined && isPlain(tile) && c.y < layout.height - 2;
+    return (
+      tile !== undefined &&
+      isPlain(tile) &&
+      c.y < layout.height - 2 &&
+      !layout.starts.some((p) => p.x === c.x && p.y === c.y)
+    );
   });
 
 const stampKit = (name: 'return' | 'order'): PieceKit => ({
@@ -122,27 +128,17 @@ const inkShape = (): TripShapeDef => {
   return shape;
 };
 
-type TermRow = { id: string; signedAt: number; def: string; status: string };
-
 /**
- * The termed card of room `input.room` (P15: one each room, none at the heart): a term of the
- * district's list that fits the room and was not signed before on this trip, or the first unsigned
- * term of an earlier room when the list has none for this deep a room. None while a term is open
- * (P5: at most one) and none at the heart (nothing would settle it). The drawn trip's offers
- * (EN-8) add this card beside the room's normal ones.
+ * The termed card of a drawn room (P15). When no eligible term fits this room, roll among the
+ * earlier terms. The heart has no card because there is no next room to settle it.
  */
 export function termCardFor(input: ShapeInput<Json>): KitLootItem | null {
-  if (input.room >= input.length - 1) return null;
-  const parsed = inkShape().parseState(input.state) as { terms?: readonly TermRow[] };
-  const terms = parsed.terms ?? [];
-  if (terms.some((t) => t.status === 'open')) return null;
-  const signed = new Set(terms.map((t) => t.def));
-  const unsigned = INK_TERMS.filter((d) => !signed.has(d.id));
-  const here = unsigned.filter((d) => d.rooms.includes(input.room));
-  const earlier = unsigned.filter((d) => Math.max(...d.rooms) <= input.room);
-  const pool = here.length > 0 ? here : earlier;
-  const pick =
-    pool[createRng(deriveSeed(input.trip.seed, 7300 + input.room)).int(0, pool.length - 1)];
+  const { room, length, trip } = input;
+  if (room >= length - 1) return null;
+  const seed = deriveSeed(trip.seed, 7300 + room);
+  const here = INK_TERMS.filter((term) => term.rooms.includes(room));
+  const earlier = INK_TERMS.filter((term) => Math.max(...term.rooms) < room);
+  const pick = inkTermFor(input, here, seed) ?? inkTermFor(input, earlier, seed);
   return pick ? { kind: TERMED, data: { def: pick.id } } : null;
 }
 

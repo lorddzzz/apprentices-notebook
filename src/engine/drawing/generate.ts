@@ -15,6 +15,7 @@ import { weightBand } from './cost';
 import { HEART_FRAMES } from './frames';
 import { GEN_KITS } from './kits';
 import { CURRENT } from './kits/canals';
+import { BELLS } from './kits/foundry';
 import { at, coords, isHazard, isPlain, isWater, lay, shuffled } from './kits/seam';
 import { botTrial } from './trial';
 import { parseInkedState, roomInput, storeRoom } from './trip';
@@ -63,7 +64,12 @@ const blank = (width: number, height: number): BoardSpec => ({
 const plainFree = (layout: BoardSpec): Coord[] =>
   coords(layout).filter((c) => {
     const t = at(layout, c);
-    return t !== undefined && isPlain(t) && !layout.units.some((u) => sameAt(u.at, c));
+    return (
+      t !== undefined &&
+      isPlain(t) &&
+      !layout.units.some((u) => sameAt(u.at, c)) &&
+      !layout.starts.some((p) => sameAt(p, c))
+    );
   });
 const sameAt = (a: Coord, b: Coord): boolean => a.x === b.x && a.y === b.y;
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
@@ -182,14 +188,14 @@ function startPoints(layout: BoardSpec, rng: Rng): void {
     .map((c) => ({ ...c }));
 }
 
-/** Tiles a party can walk to from any start point (units ignored). */
+/** Tiles a party can walk to from its first start point (units ignored). */
 function walkable(layout: BoardSpec): Set<string> {
-  const seen = new Set<string>();
-  const queue = layout.starts.filter((c) => {
-    const t = at(layout, c);
-    return t !== undefined && !blocksUnits(t);
-  });
-  for (const c of queue) seen.add(key(c));
+  const start = layout.starts[0];
+  if (!start) return new Set();
+  const tile = at(layout, start);
+  if (!tile || blocksUnits(tile)) return new Set();
+  const seen = new Set([key(start)]);
+  const queue = [start];
   for (let c = queue.shift(); c; c = queue.shift()) {
     for (const n of [
       { x: c.x + 1, y: c.y },
@@ -301,24 +307,27 @@ function halfBudget(spec: GenSpec): number {
 }
 
 /**
- * One layout from one seed: size, rule stamp, Seam ground, pieces, start points, foes (P8). The
- * stamp comes before the ground in the spike so ground never lands under a lane. `minimum` is the
- * safe fallback: half the foe budget, the rule's minimum stamp, no pieces.
+ * One layout from one seed (P8): rule stamp, Seam ground, starts, pieces, shape, foes. The bell
+ * stamp needs starts first to keep their paths open. The safe fallback uses half the foe budget,
+ * the rule's minimum stamp and no pieces.
  */
 function compose(spec: GenSpec, seed: number, minimum: boolean): BoardSpec {
   const rng = createRng(seed);
   let layout = blank(spec.size.width, spec.size.height);
   const rule = ruleKitOf(spec);
+  if (rule?.id === BELLS) startPoints(layout, rng);
   if (rule) layout = rule.stamp(layout, deriveSeed(seed, 1), minimum, spec.fuller === true);
   seamGround(layout, rng);
+  if (rule?.id !== BELLS) startPoints(layout, rng);
   if (!minimum) {
     const pieces = spec.kits
       .flatMap((k) => k.pieces)
       .filter((p) => spec.drawing.pieces.includes(p.id))
       .sort((a, b) => b.matters(layout) - a.matters(layout));
-    for (const p of pieces) layout = p.place(layout, deriveSeed(seed, 2)) ?? layout;
+    for (const [i, piece] of pieces.entries()) {
+      layout = piece.place(layout, deriveSeed(seed, 2 + i)) ?? layout;
+    }
   }
-  startPoints(layout, rng);
   // P40: the shape's own room additions, seen by the guardrails and the trial (never the heart).
   const shape = spec.kits.flatMap((k) => k.shapes).find((x) => x.id === spec.drawing.shape);
   if (shape?.stamp) {
@@ -593,7 +602,7 @@ function trial(
   }).state;
   const ids = trialRules(input.drawing, heart);
   if (ids.length > 0) state.rules = listRules(state, ids);
-  const r = botTrial(state, opBudget, input.party);
+  const r = botTrial(state, opBudget, input.party, { maxRounds: rounds });
   const won = r.won && r.state.round <= rounds;
   const hpLeft = hpShare(r.state);
   return {

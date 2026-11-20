@@ -1,4 +1,5 @@
 import type { ApprenticeId } from '$data';
+import { hasTrait } from '../arrival';
 import { basicDirs } from '../basicActions';
 import { applyAction } from '../battle';
 import { botValue, crackedTiles } from '../districts/api';
@@ -87,9 +88,9 @@ type HoldMode = 'off' | 'fall' | 'all';
 
 /**
  * What the units a cast newly held are worth (CAL-B). Hold's gain is delayed, so `value` alone sees
- * zero. A foe held on a cracked tile falls at dusk: worth as much as removing it. A foe held
- * elsewhere only stays where it is (`HOLD_PIN`). A member held costs `HOLD_SELF_PIN`, or its whole
- * worth when it is pinned on a cracked tile.
+ * zero. A grounded foe held on a cracked tile falls at dusk and counts as removed. Other foes
+ * only stay where they are (`HOLD_PIN`). A held member costs `HOLD_SELF_PIN`, or its whole worth
+ * when it is pinned on a cracked tile.
  */
 function holdGain(before: BattleState, after: BattleState, mode: HoldMode): number {
   if (mode === 'off') return 0;
@@ -99,7 +100,7 @@ function holdGain(before: BattleState, after: BattleState, mode: HoldMode): numb
     if (u.bystander || u.hp <= 0 || u.held === 0) continue;
     const was = before.units.find((x) => x.id === u.id);
     if (!was || was.held > 0) continue;
-    const falls = cracked.some((c) => c.x === u.pos.x && c.y === u.pos.y);
+    const falls = !hasTrait(u, 'flies') && cracked.some((c) => c.x === u.pos.x && c.y === u.pos.y);
     if (u.kind === 'enemy') v += falls ? 10 * u.hp + 20 : mode === 'all' ? HOLD_PIN : 0;
     else v -= falls ? 30 * u.hp : mode === 'all' ? HOLD_SELF_PIN : 0;
   }
@@ -201,8 +202,8 @@ export function botTrial(
   initial: BattleState,
   budget = TRIAL_BUDGET,
   order?: readonly ApprenticeId[],
-  opts: BotOptions = {},
+  opts: BotOptions & { maxRounds?: number } = {},
 ) {
-  const r = botFight(initial, 40, order, { ...opts, lite: true, budget });
+  const r = botFight(initial, opts.maxRounds ?? 40, order, { ...opts, lite: true, budget });
   return { ...r, won: r.state.phase === 'won' && !r.exhausted, ops: r.actions.length };
 }

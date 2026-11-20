@@ -79,7 +79,7 @@ function holdsOpen(layout: BoardSpec): boolean {
 const countOf = (layout: BoardSpec, id: string): number =>
   coords(layout).filter((c) => pieceAt(layout, c) === id).length;
 
-/** A plain tile above the bottom two rows (where the start points go). */
+/** A free plain tile above the bottom two rows. */
 const freeAbove = (layout: BoardSpec): Coord[] =>
   coords(layout).filter((c) => {
     const t = at(layout, c);
@@ -87,7 +87,8 @@ const freeAbove = (layout: BoardSpec): Coord[] =>
       t !== undefined &&
       isPlain(t) &&
       c.y < layout.height - 2 &&
-      !layout.units.some((u) => manhattan(u.at, c) === 0)
+      !layout.units.some((u) => manhattan(u.at, c) === 0) &&
+      !layout.starts.some((p) => manhattan(p, c) === 0)
     );
   });
 

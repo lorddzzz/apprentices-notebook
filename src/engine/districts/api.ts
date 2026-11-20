@@ -1,12 +1,15 @@
 import type { DistrictId } from '$data';
+import type { TermDef } from '$data/districts/inkQuarter/types';
 import type { Ctx } from '../ctx';
 import { type Coord, key } from '../grid';
 import { coordOf, flood } from '../queries';
+import { newProfile } from '../run';
 import { choicesAt, takeChoice } from '../trip/choices';
 import { returnCheck } from '../trip/ret';
 import type { BattleState, Origin, Trip } from '../types';
+import { termFor } from './inkQuarter/offers';
 import { KIT } from './kit';
-import type { CrossroadsChoice, ReturnCheck, SwapMeet } from './types';
+import type { CrossroadsChoice, Json, ReturnCheck, ShapeInput, SwapMeet } from './types';
 
 /**
  * Kit operations named in the plan's contracts (§4). The trip-shape ones (DK-5a) delegate to
@@ -126,3 +129,28 @@ export function eraseTouches(ctx: Ctx, at: Coord, origin: Origin | null): void {
 
 /** EN P16: a drawn district gives no hearing, heart, key, recruit, rival page or lore. */
 export const isSandbox = (district: DistrictId): boolean => KIT.modules[district]?.sandbox === true;
+
+/** Rolls terms preselected by a lent shape, using the quarter's page and signing rules. */
+export function inkTermFor(
+  { trip, kit, state, profile }: Pick<ShapeInput<Json>, 'trip' | 'kit' | 'state' | 'profile'>,
+  candidates: readonly TermDef[],
+  seed: number,
+): TermDef | null {
+  if (candidates.length === 0) return null;
+  // The caller has checked the drawn room. Roll those candidates in the quarter's first slot.
+  return termFor(
+    {
+      profile: profile ?? { ...newProfile(), known: [], methods: [], solventsFound: [] },
+      trip: {
+        ...trip,
+        district: 'inkQuarter',
+        kit: { ...kit, state },
+        loot: trip.loot ?? [],
+      },
+      room: 0,
+      table: 'lowerSeam',
+      seed,
+    },
+    candidates.map((term) => ({ ...term, rooms: [0] })),
+  );
+}

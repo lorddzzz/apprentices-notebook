@@ -69,6 +69,7 @@ function tableFor(d: Drawing, owned: Owned, tier: Tier, heart: boolean): Entry[]
   const specs = sourcesOf(d).flatMap((s) => tablesOf(s).flatMap((t) => LOOT_TABLES[t].entries));
   const out: Entry[] = [];
   const add = (spec: LootSpec, weight: number): void => {
+    if (weight === 0) return;
     const dupe = out.some((e) => JSON.stringify(e.spec) === JSON.stringify(spec));
     if (!dupe) out.push({ spec, weight });
   };

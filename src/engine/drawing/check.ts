@@ -1,8 +1,8 @@
 import type { Drawing } from '$data';
 import { NEEDS } from '$data/drawing';
-import { KIT } from '../districts/kit';
 import type { Profile } from '../types';
 import { costOf } from './cost';
+import { GEN_KITS } from './kits';
 import { paletteOf, penOf } from './palette';
 import { NAME_MAX } from './profile';
 import type { DrawingElement, Issue } from './types';
@@ -12,8 +12,8 @@ function onDrawing(d: Drawing): Set<string> {
   const have = new Set<string>(d.pieces);
   if (d.rule !== null) {
     have.add(d.rule);
-    const how = KIT.rules[d.rule]?.activatedBy;
-    if (how?.kind === 'piece') for (const piece of how.pieces) have.add(piece);
+    const rule = GEN_KITS.flatMap((kit) => kit.rules).find((rule) => rule.id === d.rule);
+    for (const piece of rule?.brings ?? []) have.add(piece);
   }
   return have;
 }

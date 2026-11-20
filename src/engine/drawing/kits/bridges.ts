@@ -162,6 +162,7 @@ const spanKit: PieceKit = {
       coords(out).filter(
         (c) =>
           plainAt(out, c) &&
+          !out.starts.some((p) => p.x === c.x && p.y === c.y) &&
           NEIGHBOURS.some((d) => pieceAt(out, { x: c.x + d.x, y: c.y + d.y }) === SPAN),
       ),
       rng,
