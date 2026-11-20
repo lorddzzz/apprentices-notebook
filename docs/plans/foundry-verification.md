@@ -28,7 +28,7 @@ BF-0 to BF-2 were built before the plan was repacked, so the plan's table has no
 | BF-17: phone check, Lab board at 375x812, light and dark: three tones on a 7x9 board, a ring mid-animation, a Ringer telegraph, humming and muffled bells, a struck-bell highlight; autofixer clean | Board art | pass for the trip boards at 375x812, light (N2: three tones, Ringer telegraphs, humming and clouded bells on rooms 1-4 and the 7x9 heart; docs/plans/foundry-evidence/cl6-01-room1.jpg, cl6-12-room2.jpg, cl6-13-room3.jpg, cl6-14-room4.jpg, cl6-20-heart.jpg). Dark: not applicable (the app has no dark theme). A ring mid-animation and a struck-bell highlight: not checked (headless shots, no cast played; logic: tests/ui/foundry-board.test.ts, 038eba7) |
 | BF-19: the Bench lists bells and foes only after met; the Lab places every piece and foe; a preset per lock loads (Lab, 375x812, light) | Bench and Lab | pass (a9dae1d; tests/ui/foundry-bench.test.ts). Phone, N2: every Lab preset loads at 375x812 with no horizontal overflow (cl6-4x-lab-tones.jpg, -reach, -match, -unison, -chord, -peal) |
 | BF-18: phone check, Lab heart fixture 7x9 at 375x812, light and dark: banner with the called note and countdown, four hung bells and one tapped to strike, the Peal telegraph; autofixer clean | Heart UI | pass for the banner, called note, countdown, rival bar and Peal telegraph at 375x812 on a real heart (cl6-20-heart.jpg; greyscale cl6-21-heart-greyscale.jpg). Four hung bells with one tapped: not checked (the forced wins hang none; logic: tests/ui/foundry-board.test.ts, 5385674). Dark: not applicable |
-| BF-20: the bot prefers the cast whose ring pulses a foe; 200 seeded trips of random legal play find no throw and no cap overrun | Bot term and fuzz | pass (a8bd59a; tests/sim/foundry.test.ts). The log records that the bot never wins room 4 or the heart headless (CAL-4) |
+| BF-20: the bot prefers the cast whose ring pulses a foe; 200 seeded trips of random legal play find no throw and no cap overrun | Bot term and fuzz | pass (a8bd59a; tests/sim/foundry.test.ts). The log records that the bot never wins room 4 or the heart headless (CAL-4). **Corrected by CAL-4 (section 4 below):** the pair and trio bots win the controlled heart in 92-100 % of fights (aware) and Pack K's 50/50 drawn wins were not a fluke; the lone apprentice wins it 54-71 % |
 | BF-22: golden fixtures identical; `pnpm check:fast` green; a headless trip from room 1 to the heart runs; returning home or a wipe discards the rung bells | The foundry opens | pass (139c416; tests/sim/foundry.test.ts, tests/app/save-compat.test.ts, tests/run/golden.test.ts; fixtures tests/fixtures/saves/foundry-mid-trip.json and foundry-returned.json) |
 | BF-F1: a table of real behaviours without rows; every pair reads sensibly in all four combinations | Audit and draft | pass (e6e3c78; tests/scenarios/foundry-audit-lines.test.ts) |
 | BF-FG: approved text is the spec | Design window 2026-11-12e | pass (DESIGN section 11, 2026-11-12 "Design window 2026-11-12e") |
@@ -60,3 +60,292 @@ BF-0 to BF-2 were built before the plan was repacked, so the plan's table has no
 - Re-run on 2026-11-17: every non-sim test file cited in the six close-out verification files, together: 112 files, 5327 passed, 12 todo. `tests/sim/` was not run; rows that cite a sim name the log row.
 - Known debt from the log rows, none a failed check: the bot never wins room 4 or the heart headless (CAL-4); six existing tests that assumed the foundry unopened were edited at BF-22; the foundry's art was checked in light only.
 - Rules and proposals of the build: DESIGN section 11, 2026-11-11 "Foundry ring timing and the Detuner", 2026-11-12 and 2026-11-12e design windows, and TECH section 7 "Settle points and kinds on pieces".
+
+## 4. CAL-4: foundry party and hung-bell tables (2026-11-20)
+
+Produced by `tests/sim/foundry-calibration.test.ts` (test `CAL-4: foundry party and hung-bell tables`). Reproduce: `CAL4=1 CAL4_SEEDS=8 CAL4_PARTIES=2 CAL4_OUT=out.md pnpm vitest run tests/sim/foundry-calibration.test.ts` (one process per party, about 1-1.5 h each under load; the default run is a smoke of about 20 fights, no gate but no throw, no event-cap overrun and the hung-bell count equal to the request). Every fight is `botFight` on the room as the trip builds it (`flow.startBattle`), 40 rounds, 600 applied actions, lite off, starter lattices, no forced victory. Two policies are kept side by side because they differ: **default** (`botFight` with no options) and **aware** (`gauge + cracks`, CAL-B's declared district policy; the foundry's pulse term is read through `gauge`). 8 seeds per layout (24 fights per pooled cell). Party 1 = Draughtsman, 2 = + Stoker, 3 = + Runaway.
+
+**Controlled heart.** The heart is started at each of its three authored layouts with a legal trip peal written before `startBattle`: bells from the first N rooms, each its own note (room + 1), N = 0..4. The test asserts that exactly N allied great bells hang on the board. These trials are labelled *controlled*: nobody earned the bells. Same seed, same layout in every bell column, so columns are paired. **Earned bells** come only from the real worn trips table at the end (the bot rings a great bell about once a trip at best: mean 0-1 at the heart's entry).
+
+Columns: wins/n, win %, lost (party wiped), stalled (round limit, nobody down), budget stops (action budget spent first), mean rounds, median win round, member HP left as % of entry HP over all fights and over wins, mean members down.
+
+### Reading the foundry tables
+
+- **Pair and trio hearts are far above the P2 (canals') band.** Aware bot, controlled heart, pooled: party 2 wins 24/24 at every bell count (band 50-65 %), party 3 24/24; the default bot wins 75-100 % (party 2) and 79-88 % (party 3). Party 1 wins 13-17 of 24 (54-71 %), inside the band, but with n = 24 per cell and 3-4 stalls (round limit) under the aware bot at 2-3 bells.
+- **0 bells is winnable at every party size** (party 1 54-58 %, party 2 92-100 %, party 3 83-100 %).
+- **4 bells is not "clearly easier" today, and the 0-vs-4 gap cannot show at a saturated rate.** Paired 0 vs 4 (24 pairs): party 1 aware 13 both / 0 only-0 / 4 only-4 / 7 neither (rounds 18.8 -> 20.8, HP 37 -> 39 %); party 1 default 13 / 1 / 0 / 10 (HP 44 -> 30 %: bells hurt the default bot, which stands in its own bells' reach); party 2 aware 24 / 0 / 0 / 0; party 2 default 22 / 0 / 2 / 0; party 3 aware 24/0/0/0; party 3 default 18 / 2 / 1 / 3. No minimum point gap for "clearly easier" was invented; section 5 repeats the pair at 30 seeds for parties 1 and 3.
+- The old "bot never wins the foundry heart" note is stale: see the corrected BF-20 row in section 1.
+- **Rooms 1-4 fresh (aware bot, pooled over layouts):** party 2 and 3 100 % in every room; party 1 100 / 92 / 100 / **33 %**: 15 of the 24 room-4 fights stall at the round limit with nobody down ("The clock floor" 1/8 wins, 7 stalls; "The escapement" 0/8, 8 stalls; "The weights" 7/8), so that row reads as the aware bot not finishing the room, a bot limit; the default bot wins 92 / 83 / 100 / 58 %. Room 4 at party 2 (100 %) is above the band's 65-80 %.
+- **Worn trips** (real loot and carried HP): the lone apprentice almost never reaches the heart (aware: stalls at rooms 2-3; default: wiped in room 2); the pair under the aware bot clears 1/8 trips, the trio 5/8. Stalls in worn rooms 3-4 (party 1-2 aware, 20-34 mean rounds) are the bot unable to finish a room it wins fresh; the cause was not examined (the room is won fresh in 100 % of party 2 fights), so they are labelled a likely bot limit, not balance evidence.
+- Policy differences worth keeping: the aware bot is better everywhere the foundry is crowded (party 2 heart 100 % vs 75-100 %, party 3 100 % vs 79-88 %), so default-policy rows measure the bot. Party 1 aware has stalls (round limit) that default turns into losses.
+- CAL-B asked CAL-4 to test the pulse term's member weight at 0 on the sounding yoke at party 1 first; that was **not done** here (see "not done" in section 5).
+
+### Band status (P2, a Proposal; canals' band at party 2, aware bot, fresh)
+
+| Room | Band | Foundry party 2 | Status |
+|---|---|---|---|
+| 1-2 | at least 85 % | 100 / 100 % | in band |
+| 3 | at least 75 % | 100 % | in band |
+| 4 | 65-80 % | 100 % | **above** (+20) |
+| heart | 50-65 % | 92-100 % (0-4 bells) | **above** (+27 to +50) |
+| party 3 within +10 of party 2 | | 100 vs 100 % | holds, both above |
+
+#### Fresh rooms 1-4 (all layouts)
+
+| party | policy | room | layout | wins/n | win % | lost | stalled | budget stops | mean rounds | median win round | HP left % (all) | HP left % (wins) | mean members down |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | default | 1 | The first flight | 6/8 | 75 | 2 | 0 | 0 | 3.8 | 4 | 63 | 83 | 0.3 |
+| 1 | default | 1 | The landing | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 88 | 88 | 0.0 |
+| 1 | default | 1 | The stairwell | 8/8 | 100 | 0 | 0 | 0 | 5.0 | 5 | 100 | 100 | 0.0 |
+| 1 | default | 2 | The gallery rail | 8/8 | 100 | 0 | 0 | 0 | 5.0 | 5 | 75 | 75 | 0.0 |
+| 1 | default | 2 | The rope loft | 6/8 | 75 | 2 | 0 | 0 | 6.5 | 7 | 63 | 83 | 0.3 |
+| 1 | default | 2 | The sounding floor | 6/8 | 75 | 2 | 0 | 0 | 7.3 | 7 | 50 | 67 | 0.3 |
+| 1 | default | 3 | The long hall | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 67 | 67 | 0.0 |
+| 1 | default | 3 | The quiet nave | 8/8 | 100 | 0 | 0 | 0 | 5.3 | 5 | 88 | 88 | 0.0 |
+| 1 | default | 3 | The tuning floor | 8/8 | 100 | 0 | 0 | 0 | 5.4 | 5 | 63 | 63 | 0.0 |
+| 1 | default | 4 | The clock floor | 7/8 | 88 | 1 | 0 | 0 | 7.6 | 7 | 42 | 48 | 0.1 |
+| 1 | default | 4 | The escapement | 4/8 | 50 | 4 | 0 | 0 | 11.5 | 6 | 42 | 83 | 0.5 |
+| 1 | default | 4 | The weights | 3/8 | 38 | 5 | 0 | 0 | 8.9 | 5 | 25 | 67 | 0.6 |
+| 1 | aware | 1 | The first flight | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 88 | 88 | 0.0 |
+| 1 | aware | 1 | The landing | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 88 | 88 | 0.0 |
+| 1 | aware | 1 | The stairwell | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 83 | 83 | 0.0 |
+| 1 | aware | 2 | The gallery rail | 8/8 | 100 | 0 | 0 | 0 | 5.0 | 5 | 75 | 75 | 0.0 |
+| 1 | aware | 2 | The rope loft | 6/8 | 75 | 0 | 2 | 0 | 15.5 | 6 | 96 | 94 | 0.0 |
+| 1 | aware | 2 | The sounding floor | 8/8 | 100 | 0 | 0 | 0 | 6.5 | 7 | 96 | 96 | 0.0 |
+| 1 | aware | 3 | The long hall | 8/8 | 100 | 0 | 0 | 0 | 4.4 | 4 | 100 | 100 | 0.0 |
+| 1 | aware | 3 | The quiet nave | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 5 | 90 | 90 | 0.0 |
+| 1 | aware | 3 | The tuning floor | 8/8 | 100 | 0 | 0 | 0 | 6.0 | 7 | 79 | 79 | 0.0 |
+| 1 | aware | 4 | The clock floor | 1/8 | 13 | 0 | 7 | 0 | 36.6 | 6 | 94 | 50 | 0.0 |
+| 1 | aware | 4 | The escapement | 0/8 | 0 | 0 | 8 | 0 | 41.0 | — | 100 | — | 0.0 |
+| 1 | aware | 4 | The weights | 7/8 | 88 | 0 | 1 | 0 | 14.1 | 12 | 96 | 100 | 0.0 |
+| 2 | default | 1 | The first flight | 8/8 | 100 | 0 | 0 | 0 | 3.0 | 3 | 65 | 65 | 0.5 |
+| 2 | default | 1 | The landing | 8/8 | 100 | 0 | 0 | 0 | 3.5 | 4 | 84 | 84 | 0.0 |
+| 2 | default | 1 | The stairwell | 8/8 | 100 | 0 | 0 | 0 | 2.9 | 3 | 78 | 78 | 0.0 |
+| 2 | default | 2 | The gallery rail | 8/8 | 100 | 0 | 0 | 0 | 2.5 | 3 | 100 | 100 | 0.0 |
+| 2 | default | 2 | The rope loft | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 75 | 75 | 0.3 |
+| 2 | default | 2 | The sounding floor | 7/8 | 88 | 1 | 0 | 0 | 5.0 | 3 | 78 | 89 | 0.3 |
+| 2 | default | 3 | The long hall | 8/8 | 100 | 0 | 0 | 0 | 3.0 | 3 | 89 | 89 | 0.0 |
+| 2 | default | 3 | The quiet nave | 8/8 | 100 | 0 | 0 | 0 | 3.4 | 4 | 86 | 86 | 0.0 |
+| 2 | default | 3 | The tuning floor | 8/8 | 100 | 0 | 0 | 0 | 3.4 | 4 | 94 | 94 | 0.0 |
+| 2 | default | 4 | The clock floor | 8/8 | 100 | 0 | 0 | 0 | 3.8 | 4 | 91 | 91 | 0.0 |
+| 2 | default | 4 | The escapement | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 92 | 92 | 0.0 |
+| 2 | default | 4 | The weights | 8/8 | 100 | 0 | 0 | 0 | 4.3 | 3 | 83 | 83 | 0.1 |
+| 2 | aware | 1 | The first flight | 8/8 | 100 | 0 | 0 | 0 | 3.0 | 4 | 94 | 94 | 0.0 |
+| 2 | aware | 1 | The landing | 8/8 | 100 | 0 | 0 | 0 | 3.5 | 4 | 93 | 93 | 0.0 |
+| 2 | aware | 1 | The stairwell | 8/8 | 100 | 0 | 0 | 0 | 2.9 | 3 | 93 | 93 | 0.0 |
+| 2 | aware | 2 | The gallery rail | 8/8 | 100 | 0 | 0 | 0 | 2.9 | 3 | 98 | 98 | 0.0 |
+| 2 | aware | 2 | The rope loft | 8/8 | 100 | 0 | 0 | 0 | 3.5 | 4 | 99 | 99 | 0.0 |
+| 2 | aware | 2 | The sounding floor | 8/8 | 100 | 0 | 0 | 0 | 3.1 | 3 | 97 | 97 | 0.0 |
+| 2 | aware | 3 | The long hall | 8/8 | 100 | 0 | 0 | 0 | 3.0 | 3 | 98 | 98 | 0.0 |
+| 2 | aware | 3 | The quiet nave | 8/8 | 100 | 0 | 0 | 0 | 3.1 | 3 | 94 | 94 | 0.0 |
+| 2 | aware | 3 | The tuning floor | 8/8 | 100 | 0 | 0 | 0 | 3.6 | 4 | 91 | 91 | 0.0 |
+| 2 | aware | 4 | The clock floor | 8/8 | 100 | 0 | 0 | 0 | 3.4 | 3 | 91 | 91 | 0.0 |
+| 2 | aware | 4 | The escapement | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 98 | 98 | 0.0 |
+| 2 | aware | 4 | The weights | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 4 | 91 | 91 | 0.0 |
+| 3 | default | 1 | The first flight | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 3 | 69 | 69 | 0.4 |
+| 3 | default | 1 | The landing | 8/8 | 100 | 0 | 0 | 0 | 3.0 | 3 | 84 | 84 | 0.0 |
+| 3 | default | 1 | The stairwell | 8/8 | 100 | 0 | 0 | 0 | 3.0 | 3 | 70 | 70 | 0.4 |
+| 3 | default | 2 | The gallery rail | 6/8 | 75 | 2 | 0 | 0 | 9.9 | 2 | 63 | 84 | 1.0 |
+| 3 | default | 2 | The rope loft | 8/8 | 100 | 0 | 0 | 0 | 5.1 | 3 | 73 | 73 | 0.4 |
+| 3 | default | 2 | The sounding floor | 8/8 | 100 | 0 | 0 | 0 | 4.5 | 3 | 79 | 79 | 0.1 |
+| 3 | default | 3 | The long hall | 8/8 | 100 | 0 | 0 | 0 | 2.9 | 3 | 94 | 94 | 0.0 |
+| 3 | default | 3 | The quiet nave | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 3 | 74 | 74 | 0.1 |
+| 3 | default | 3 | The tuning floor | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 3 | 96 | 96 | 0.0 |
+| 3 | default | 4 | The clock floor | 8/8 | 100 | 0 | 0 | 0 | 3.1 | 3 | 90 | 90 | 0.0 |
+| 3 | default | 4 | The escapement | 8/8 | 100 | 0 | 0 | 0 | 5.6 | 4 | 83 | 83 | 0.3 |
+| 3 | default | 4 | The weights | 6/8 | 75 | 2 | 0 | 0 | 17.5 | 19 | 26 | 35 | 1.9 |
+| 3 | aware | 1 | The first flight | 8/8 | 100 | 0 | 0 | 0 | 2.4 | 2 | 96 | 96 | 0.0 |
+| 3 | aware | 1 | The landing | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 3 | 97 | 97 | 0.0 |
+| 3 | aware | 1 | The stairwell | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 3 | 95 | 95 | 0.0 |
+| 3 | aware | 2 | The gallery rail | 8/8 | 100 | 0 | 0 | 0 | 2.1 | 2 | 98 | 98 | 0.0 |
+| 3 | aware | 2 | The rope loft | 8/8 | 100 | 0 | 0 | 0 | 2.5 | 3 | 94 | 94 | 0.0 |
+| 3 | aware | 2 | The sounding floor | 8/8 | 100 | 0 | 0 | 0 | 2.9 | 3 | 98 | 98 | 0.0 |
+| 3 | aware | 3 | The long hall | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 3 | 99 | 99 | 0.0 |
+| 3 | aware | 3 | The quiet nave | 8/8 | 100 | 0 | 0 | 0 | 3.1 | 3 | 96 | 96 | 0.0 |
+| 3 | aware | 3 | The tuning floor | 8/8 | 100 | 0 | 0 | 0 | 3.1 | 3 | 96 | 96 | 0.0 |
+| 3 | aware | 4 | The clock floor | 8/8 | 100 | 0 | 0 | 0 | 3.4 | 3 | 96 | 96 | 0.0 |
+| 3 | aware | 4 | The escapement | 8/8 | 100 | 0 | 0 | 0 | 3.6 | 4 | 98 | 98 | 0.0 |
+| 3 | aware | 4 | The weights | 8/8 | 100 | 0 | 0 | 0 | 3.4 | 3 | 90 | 90 | 0.0 |
+
+#### Controlled heart: legal peals with exactly N hung bells (authored heart layouts)
+
+| party | policy | bells | layout | wins/n | win % | lost | stalled | budget stops | mean rounds | median win round | HP left % (all) | HP left % (wins) | mean members down |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | default | 0 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 20.9 | 21 | 65 | 74 | 0.1 |
+| 1 | default | 0 | The clapper hall | 1/8 | 13 | 7 | 0 | 0 | 12.1 | 25 | 6 | 50 | 0.9 |
+| 1 | default | 0 | The sounding yoke | 6/8 | 75 | 2 | 0 | 0 | 19.8 | 23 | 63 | 83 | 0.3 |
+| 1 | default | 1 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 20.9 | 21 | 65 | 74 | 0.1 |
+| 1 | default | 1 | The clapper hall | 2/8 | 25 | 6 | 0 | 0 | 13.6 | 25 | 8 | 33 | 0.8 |
+| 1 | default | 1 | The sounding yoke | 6/8 | 75 | 2 | 0 | 0 | 19.8 | 23 | 63 | 83 | 0.3 |
+| 1 | default | 2 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 20.9 | 21 | 65 | 74 | 0.1 |
+| 1 | default | 2 | The clapper hall | 2/8 | 25 | 6 | 0 | 0 | 12.1 | 25 | 8 | 33 | 0.8 |
+| 1 | default | 2 | The sounding yoke | 6/8 | 75 | 2 | 0 | 0 | 21.3 | 25 | 50 | 67 | 0.3 |
+| 1 | default | 3 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 20.9 | 21 | 65 | 74 | 0.1 |
+| 1 | default | 3 | The clapper hall | 0/8 | 0 | 8 | 0 | 0 | 9.0 | — | 0 | — | 1.0 |
+| 1 | default | 3 | The sounding yoke | 6/8 | 75 | 2 | 0 | 0 | 21.3 | 25 | 50 | 67 | 0.3 |
+| 1 | default | 4 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 19.4 | 21 | 65 | 74 | 0.1 |
+| 1 | default | 4 | The clapper hall | 0/8 | 0 | 8 | 0 | 0 | 8.1 | — | 0 | — | 1.0 |
+| 1 | default | 4 | The sounding yoke | 6/8 | 75 | 2 | 0 | 0 | 22.0 | 26 | 25 | 33 | 0.3 |
+| 1 | aware | 0 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 22.3 | 23 | 50 | 50 | 0.0 |
+| 1 | aware | 0 | The clapper hall | 5/8 | 63 | 3 | 0 | 0 | 20.5 | 26 | 60 | 97 | 0.4 |
+| 1 | aware | 0 | The sounding yoke | 0/8 | 0 | 8 | 0 | 0 | 13.8 | — | 0 | — | 1.0 |
+| 1 | aware | 1 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 21.6 | 22 | 50 | 50 | 0.0 |
+| 1 | aware | 1 | The clapper hall | 5/8 | 63 | 3 | 0 | 0 | 20.8 | 26 | 44 | 70 | 0.4 |
+| 1 | aware | 1 | The sounding yoke | 2/8 | 25 | 6 | 0 | 0 | 16.3 | 26 | 8 | 33 | 0.8 |
+| 1 | aware | 2 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 22.5 | 22 | 42 | 42 | 0.0 |
+| 1 | aware | 2 | The clapper hall | 5/8 | 63 | 0 | 3 | 0 | 30.4 | 24 | 73 | 67 | 0.0 |
+| 1 | aware | 2 | The sounding yoke | 2/8 | 25 | 6 | 0 | 0 | 16.3 | 26 | 8 | 33 | 0.8 |
+| 1 | aware | 3 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 22.5 | 22 | 42 | 42 | 0.0 |
+| 1 | aware | 3 | The clapper hall | 5/8 | 63 | 0 | 3 | 0 | 30.1 | 24 | 73 | 67 | 0.0 |
+| 1 | aware | 3 | The sounding yoke | 1/8 | 13 | 6 | 1 | 0 | 18.4 | 28 | 8 | 33 | 0.8 |
+| 1 | aware | 4 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 22.5 | 22 | 42 | 42 | 0.0 |
+| 1 | aware | 4 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 21.4 | 21 | 67 | 67 | 0.0 |
+| 1 | aware | 4 | The sounding yoke | 1/8 | 13 | 6 | 1 | 0 | 18.4 | 28 | 8 | 33 | 0.8 |
+| 2 | default | 0 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 5.9 | 5 | 67 | 77 | 0.3 |
+| 2 | default | 0 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.9 | 6 | 62 | 62 | 0.0 |
+| 2 | default | 0 | The sounding yoke | 7/8 | 88 | 1 | 0 | 0 | 7.3 | 6 | 71 | 82 | 0.3 |
+| 2 | default | 1 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 5.9 | 5 | 67 | 77 | 0.3 |
+| 2 | default | 1 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.9 | 6 | 62 | 62 | 0.0 |
+| 2 | default | 1 | The sounding yoke | 7/8 | 88 | 1 | 0 | 0 | 7.3 | 6 | 71 | 82 | 0.3 |
+| 2 | default | 2 | The great bell | 7/8 | 88 | 1 | 0 | 0 | 5.9 | 5 | 67 | 77 | 0.3 |
+| 2 | default | 2 | The clapper hall | 4/8 | 50 | 4 | 0 | 0 | 10.0 | 6 | 38 | 75 | 1.0 |
+| 2 | default | 2 | The sounding yoke | 7/8 | 88 | 1 | 0 | 0 | 7.3 | 6 | 71 | 82 | 0.3 |
+| 2 | default | 3 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.4 | 5 | 74 | 74 | 0.0 |
+| 2 | default | 3 | The clapper hall | 4/8 | 50 | 4 | 0 | 0 | 9.9 | 6 | 37 | 73 | 1.0 |
+| 2 | default | 3 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.9 | 6 | 79 | 79 | 0.0 |
+| 2 | default | 4 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.8 | 6 | 74 | 74 | 0.0 |
+| 2 | default | 4 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 6.4 | 7 | 65 | 65 | 0.0 |
+| 2 | default | 4 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.9 | 6 | 79 | 79 | 0.0 |
+| 2 | aware | 0 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 6.0 | 6 | 85 | 85 | 0.0 |
+| 2 | aware | 0 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.8 | 6 | 91 | 91 | 0.0 |
+| 2 | aware | 0 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.1 | 5 | 87 | 87 | 0.0 |
+| 2 | aware | 1 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 6.0 | 6 | 85 | 85 | 0.0 |
+| 2 | aware | 1 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.8 | 6 | 91 | 91 | 0.0 |
+| 2 | aware | 1 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.1 | 5 | 85 | 85 | 0.0 |
+| 2 | aware | 2 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 6.0 | 6 | 85 | 85 | 0.0 |
+| 2 | aware | 2 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.9 | 6 | 92 | 92 | 0.0 |
+| 2 | aware | 2 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.0 | 5 | 86 | 86 | 0.0 |
+| 2 | aware | 3 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.8 | 6 | 83 | 83 | 0.0 |
+| 2 | aware | 3 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.8 | 6 | 91 | 91 | 0.0 |
+| 2 | aware | 3 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 6.1 | 5 | 89 | 89 | 0.0 |
+| 2 | aware | 4 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.8 | 6 | 83 | 83 | 0.0 |
+| 2 | aware | 4 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 6.1 | 6 | 90 | 90 | 0.0 |
+| 2 | aware | 4 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 6.1 | 5 | 89 | 89 | 0.0 |
+| 3 | default | 0 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 6 | 58 | 58 | 0.5 |
+| 3 | default | 0 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 5 | 56 | 56 | 0.5 |
+| 3 | default | 0 | The sounding yoke | 4/8 | 50 | 4 | 0 | 0 | 11.4 | 5 | 42 | 84 | 1.5 |
+| 3 | default | 1 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 6 | 58 | 58 | 0.5 |
+| 3 | default | 1 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 5 | 56 | 56 | 0.5 |
+| 3 | default | 1 | The sounding yoke | 4/8 | 50 | 4 | 0 | 0 | 11.4 | 5 | 42 | 84 | 1.5 |
+| 3 | default | 2 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 6 | 58 | 58 | 0.5 |
+| 3 | default | 2 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.5 | 5 | 58 | 58 | 0.3 |
+| 3 | default | 2 | The sounding yoke | 4/8 | 50 | 4 | 0 | 0 | 11.4 | 5 | 40 | 80 | 1.5 |
+| 3 | default | 3 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.6 | 6 | 59 | 59 | 0.4 |
+| 3 | default | 3 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.3 | 5 | 58 | 58 | 0.1 |
+| 3 | default | 3 | The sounding yoke | 5/8 | 63 | 3 | 0 | 0 | 10.1 | 5 | 48 | 76 | 1.1 |
+| 3 | default | 4 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 5.6 | 6 | 59 | 59 | 0.4 |
+| 3 | default | 4 | The clapper hall | 6/8 | 75 | 2 | 0 | 0 | 8.0 | 6 | 39 | 52 | 1.1 |
+| 3 | default | 4 | The sounding yoke | 5/8 | 63 | 3 | 0 | 0 | 10.1 | 5 | 48 | 76 | 1.1 |
+| 3 | aware | 0 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 4.5 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 0 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 0 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 4.6 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 1 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 4.5 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 1 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 1 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 2 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 4.5 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 2 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 2 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 3 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 4.6 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 3 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 3 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.0 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 4 | The great bell | 8/8 | 100 | 0 | 0 | 0 | 4.6 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 4 | The clapper hall | 8/8 | 100 | 0 | 0 | 0 | 5.3 | 5 | 86 | 86 | 0.0 |
+| 3 | aware | 4 | The sounding yoke | 8/8 | 100 | 0 | 0 | 0 | 5.0 | 5 | 88 | 88 | 0.0 |
+
+#### Controlled heart pooled over the three layouts
+
+| party | policy | bells | wins/n | win % | lost | stalled | budget stops | mean rounds | median win round | HP left % (all) | HP left % (wins) | mean members down |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | default | 0 | 14/24 | 58 | 10 | 0 | 0 | 17.6 | 23 | 44 | 76 | 0.4 |
+| 1 | default | 1 | 15/24 | 63 | 9 | 0 | 0 | 18.1 | 23 | 45 | 72 | 0.4 |
+| 1 | default | 2 | 15/24 | 63 | 9 | 0 | 0 | 18.1 | 25 | 41 | 66 | 0.4 |
+| 1 | default | 3 | 13/24 | 54 | 11 | 0 | 0 | 17.0 | 25 | 38 | 71 | 0.5 |
+| 1 | default | 4 | 13/24 | 54 | 11 | 0 | 0 | 16.5 | 21 | 30 | 55 | 0.5 |
+| 1 | aware | 0 | 13/24 | 54 | 11 | 0 | 0 | 18.8 | 23 | 37 | 68 | 0.5 |
+| 1 | aware | 1 | 15/24 | 63 | 9 | 0 | 0 | 19.5 | 25 | 34 | 54 | 0.4 |
+| 1 | aware | 2 | 15/24 | 63 | 6 | 3 | 0 | 23.0 | 24 | 41 | 49 | 0.3 |
+| 1 | aware | 3 | 14/24 | 58 | 6 | 4 | 0 | 23.7 | 24 | 41 | 50 | 0.3 |
+| 1 | aware | 4 | 17/24 | 71 | 6 | 1 | 0 | 20.8 | 22 | 39 | 53 | 0.3 |
+| 2 | default | 0 | 22/24 | 92 | 2 | 0 | 0 | 6.3 | 6 | 67 | 73 | 0.2 |
+| 2 | default | 1 | 22/24 | 92 | 2 | 0 | 0 | 6.3 | 6 | 67 | 73 | 0.2 |
+| 2 | default | 2 | 18/24 | 75 | 6 | 0 | 0 | 7.7 | 6 | 59 | 78 | 0.5 |
+| 2 | default | 3 | 20/24 | 83 | 4 | 0 | 0 | 7.0 | 6 | 63 | 76 | 0.3 |
+| 2 | default | 4 | 24/24 | 100 | 0 | 0 | 0 | 6.0 | 6 | 73 | 73 | 0.0 |
+| 2 | aware | 0 | 24/24 | 100 | 0 | 0 | 0 | 5.6 | 6 | 88 | 88 | 0.0 |
+| 2 | aware | 1 | 24/24 | 100 | 0 | 0 | 0 | 5.6 | 6 | 87 | 87 | 0.0 |
+| 2 | aware | 2 | 24/24 | 100 | 0 | 0 | 0 | 5.6 | 6 | 88 | 88 | 0.0 |
+| 2 | aware | 3 | 24/24 | 100 | 0 | 0 | 0 | 5.9 | 6 | 88 | 88 | 0.0 |
+| 2 | aware | 4 | 24/24 | 100 | 0 | 0 | 0 | 6.0 | 6 | 88 | 88 | 0.0 |
+| 3 | default | 0 | 20/24 | 83 | 4 | 0 | 0 | 7.5 | 5 | 52 | 63 | 0.8 |
+| 3 | default | 1 | 20/24 | 83 | 4 | 0 | 0 | 7.5 | 5 | 52 | 63 | 0.8 |
+| 3 | default | 2 | 20/24 | 83 | 4 | 0 | 0 | 7.5 | 5 | 52 | 63 | 0.8 |
+| 3 | default | 3 | 21/24 | 88 | 3 | 0 | 0 | 7.0 | 5 | 55 | 63 | 0.5 |
+| 3 | default | 4 | 19/24 | 79 | 5 | 0 | 0 | 7.9 | 5 | 49 | 61 | 0.9 |
+| 3 | aware | 0 | 24/24 | 100 | 0 | 0 | 0 | 4.6 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 1 | 24/24 | 100 | 0 | 0 | 0 | 4.7 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 2 | 24/24 | 100 | 0 | 0 | 0 | 4.7 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 3 | 24/24 | 100 | 0 | 0 | 0 | 4.8 | 5 | 88 | 88 | 0.0 |
+| 3 | aware | 4 | 24/24 | 100 | 0 | 0 | 0 | 5.0 | 5 | 87 | 87 | 0.0 |
+
+#### Paired 0 bells vs 4 bells (same seed and layout; `wins 0 / wins 4` counts)
+
+| party | policy | both won | only 0 bells | only 4 bells | neither | n | rounds 0 → 4 | HP left % (all) 0 → 4 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | default | 13 | 1 | 0 | 10 | 24 | 17.6 → 16.5 | 44 → 30 |
+| 1 | aware | 13 | 0 | 4 | 7 | 24 | 18.8 → 20.8 | 37 → 39 |
+| 2 | default | 22 | 0 | 2 | 0 | 24 | 6.3 → 6.0 | 67 → 73 |
+| 2 | aware | 24 | 0 | 0 | 0 | 24 | 5.6 → 6.0 | 88 → 88 |
+| 3 | default | 18 | 2 | 1 | 3 | 24 | 7.5 → 7.9 | 52 → 49 |
+| 3 | aware | 24 | 0 | 0 | 0 | 24 | 4.6 → 5.0 | 88 → 87 |
+
+#### Real worn trips (bells earned, not injected)
+
+| party | policy | room | wins/reached | win % | stalled | lost | budget stops | mean rounds | HP left % | mean bells at entry |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | default | 1 | 8/8 | 100 | 0 | 0 | 0 | 4.4 | 90 | — |
+| 1 | default | 2 | 0/8 | 0 | 0 | 8 | 0 | 8.6 | 0 | — |
+| 1 | default | 3 | 0/0 | — | 0 | 0 | 0 | — | — | — |
+| 1 | default | 4 | 0/0 | — | 0 | 0 | 0 | — | — | — |
+| 1 | default | 5 (heart) | 0/0 | — | 0 | 0 | 0 | — | — | — |
+| 1 | aware | 1 | 8/8 | 100 | 0 | 0 | 0 | 4.0 | 83 | — |
+| 1 | aware | 2 | 3/8 | 38 | 5 | 0 | 0 | 29.8 | 85 | — |
+| 1 | aware | 3 | 0/3 | 0 | 2 | 1 | 0 | 29.3 | 56 | — |
+| 1 | aware | 4 | 0/0 | — | 0 | 0 | 0 | — | — | — |
+| 1 | aware | 5 (heart) | 0/0 | — | 0 | 0 | 0 | — | — | — |
+| 2 | default | 1 | 8/8 | 100 | 0 | 0 | 0 | 3.4 | 75 | — |
+| 2 | default | 2 | 8/8 | 100 | 0 | 0 | 0 | 4.3 | 83 | — |
+| 2 | default | 3 | 3/8 | 38 | 1 | 4 | 0 | 13.0 | 35 | — |
+| 2 | default | 4 | 1/3 | 33 | 0 | 2 | 0 | 7.7 | 0 | — |
+| 2 | default | 5 (heart) | 0/1 | 0 | 0 | 1 | 0 | 1.0 | 0 | 1 |
+| 2 | aware | 1 | 8/8 | 100 | 0 | 0 | 0 | 3.1 | 91 | — |
+| 2 | aware | 2 | 7/8 | 88 | 1 | 0 | 0 | 7.9 | 95 | — |
+| 2 | aware | 3 | 4/7 | 57 | 3 | 0 | 0 | 20.9 | 83 | — |
+| 2 | aware | 4 | 1/4 | 25 | 3 | 0 | 0 | 33.5 | 88 | — |
+| 2 | aware | 5 (heart) | 1/1 | 100 | 0 | 0 | 0 | 20.0 | 43 | 1 |
+| 3 | default | 1 | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 78 | — |
+| 3 | default | 2 | 8/8 | 100 | 0 | 0 | 0 | 3.9 | 82 | — |
+| 3 | default | 3 | 7/8 | 88 | 0 | 1 | 0 | 5.1 | 65 | — |
+| 3 | default | 4 | 2/7 | 29 | 2 | 3 | 0 | 20.1 | 34 | — |
+| 3 | default | 5 (heart) | 0/2 | 0 | 0 | 2 | 0 | 6.5 | 0 | 0,1 |
+| 3 | aware | 1 | 8/8 | 100 | 0 | 0 | 0 | 2.4 | 96 | — |
+| 3 | aware | 2 | 8/8 | 100 | 0 | 0 | 0 | 2.8 | 96 | — |
+| 3 | aware | 3 | 8/8 | 100 | 0 | 0 | 0 | 3.6 | 94 | — |
+| 3 | aware | 4 | 7/8 | 88 | 1 | 0 | 0 | 10.1 | 88 | — |
+| 3 | aware | 5 (heart) | 5/7 | 71 | 2 | 0 | 0 | 25.1 | 28 | 1,1,1,1,1,0,1 |
+Party 1 default: trip ends {"lost":8} / 8.
+Party 1 aware: trip ends {"stalled":7,"lost":1} / 8.
+Party 2 default: trip ends {"lost":7,"stalled":1} / 8.
+Party 2 aware: trip ends {"stalled":7,"cleared":1} / 8.
+Party 3 default: trip ends {"stalled":2,"lost":6} / 8.
+Party 3 aware: trip ends {"cleared":5,"stalled":3} / 8.
+
