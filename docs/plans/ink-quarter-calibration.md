@@ -83,3 +83,60 @@ Reduced sample: 30 seeds per room, founding pair, fresh party (seeds 1000-1029).
 - `CLOCK_TUNING` left unchanged (deadline 3, cooldown 2). The bot answers the clock whatever the number: with deadline 2 and cooldown 1, 80 heart fights gave 91 serves and 0 collections; deadline 1 gave 3 collections in 49 fights. Engine tests (ink-clock, ink-standin) also hard-code serve+3, so a change needs those updated.
 - Terms re-checked (30 seeds, every term and room): all won 30/30 and paid 30/30, so sampler 5, bind 6, wax 7 stand. Bind's limit is now the room-3 max (6): no slack.
 - Not reached: the 85-95% room win rate and a 60-80% heart win rate. The postal foes cannot damage the party (dead letters and Sorters have no attack, the Sealer only holds), so a fresh party can only lose by stalling. More rounds, not more losses, is all layouts can buy. The heart needs a damaging foe, a larger `collect`, or a sturdier clock seal (data/engine outside this pass).
+
+## CAL-2 baseline (2026-11-20): the postmaster rows and term deltas
+
+Measured before any lever was tried, on the current data (`CLOCK_TUNING` 3/3/2, seal 3 HP, postmaster 14 HP, move 0, terms 5/6/7). `INK_CAL=1 pnpm vitest run tests/sim/ink-calibration.test.ts` (120 fresh seeds, 1000-1119; about 25 minutes under load). Bot: the shared greedy bot, founding pair. These are the numbers to remeasure after any change, not targets. The older tables above are history; where they differ (room 4 reached 9 % then, 43 % now) the layouts were hardened in between.
+
+### Per room, fresh party, each term against its room without one
+
+| room | term | win | baseline win | delta (pts) | paid | broken | median rounds | max rounds |
+|---|---|---|---|---|---|---|---|---|
+| 1 | none | 100% | - | - | - | - | 3 | 3 |
+| 2 | none | 100% | - | - | - | - | 3 | 4 |
+| 2 | sampler | 100% | 100% | 0 | 100% | 0% | 3 | 4 |
+| 3 | none | 100% | - | - | - | - | 4 | 6 |
+| 3 | bind | 100% | 100% | 0 | 100% | 0% | 4 | 6 |
+| 3 | wax | 100% | 100% | 0 | 100% | 0% | 4 | 6 |
+| 3 | sand | 100% | 100% | 0 | 100% | 0% | 4 | 6 |
+| 4 | none | 100% | - | - | - | - | 4 | 5 |
+| 4 | wax | 100% | 100% | 0 | 100% | 0% | 4 | 5 |
+| 4 | sand | 100% | 100% | 0 | 100% | 0% | 4 | 5 |
+| 4 | ledger | 100% | 100% | 0 | 100% | 0% | 4 | 8 |
+| 5 (heart) | none | 100% | - | - | - | - | 5 | 6 |
+| 5 (heart) | wax | 100% | 100% | 0 | 100% | 0% | 5 | 6 |
+| 5 (heart) | sand | 100% | 100% | 0 | 100% | 0% | 5 | 7 |
+| 5 (heart) | ledger | 95% | 100% | -5 | 95% | 0% | 5 | 7 |
+
+Paid and broken are shares of all 120 fights (of the won, paid + broken = the win rate); a lost room settles neither.
+
+Paid and broken are shares of all 120 fights; a lost room settles neither.
+
+### The postmaster at the heart, fresh party (his trick, opener and page)
+
+| sample | fights | won | lost | stalled | served / lifted / collected | opener | trick | page banked | median rounds | median HP left | mean charges (notice, collect) | mean party HP |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| fresh, no term | 120 | 120 (100%) | 0 (0%) | 0 (0%) | 134 / 131 / 0 | the clock writ x120 | the clock writ x120 | 120/120 wins | 5 | 0 | 4.9, 5.0 | 13.2 |
+| fresh, wax | 120 | 120 (100%) | 0 (0%) | 0 (0%) | 134 / 131 / 0 | the clock writ x120 | the clock writ x120 | 120/120 wins | 5 | 0 | 4.9, 5.0 | 13.2 |
+| fresh, sand | 120 | 120 (100%) | 0 (0%) | 0 (0%) | 134 / 131 / 0 | the clock writ x120 | the clock writ x120 | 120/120 wins | 5 | 0 | 4.9, 5.0 | 13.2 |
+| fresh, ledger | 120 | 114 (95%) | 0 (0%) | 6 (5%) | 150 / 136 / 0 | the clock writ x120 | the clock writ x120 | 114/114 wins | 5 | 0 | 4.8, 5.0 | 13.1 |
+
+### Real trips under the three signing policies
+
+| policy | reached room 2 | 3 | 4 | 5 (heart) | cleared | signed per trip | terms paid / broken / unsettled |
+|---|---|---|---|---|---|---|---|
+| never | 100% | 94% | 43% | 1% | 0% | 0.0 | 0 / 0 / 0 |
+| always | 100% | 94% | 43% | 1% | 0% | 2.4 | 123 / 42 / 120 |
+| winRoom | 100% | 94% | 43% | 1% | 0% | 0.3 | 0 / 0 / 34 |
+
+### Worn heart: the trip's own heart fight, 500 trips (never policy, seeds 20000-20499; `INK_WORN=500`)
+
+| sample | fights | won | lost | stalled | served / lifted / collected | opener | trick | his casts per fight | page banked | median rounds | median HP left | mean charges (notice, collect) | mean party HP |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| worn, never | 6 | 3 (50%) | 0 (0%) | 3 (50%) | 20 / 18 / 1 | the clock writ x6 | the clock writ x6 | 1.5 | 3/3 wins | 41 | 0 | 3.5, 5.0 | 4.5 |
+
+Reading the tables:
+- **Terms:** no term room is more than 5 points under its baseline (the ledger at the heart: 114/120 against 120/120, six stalls), and every term pays in every win. The 10-point rule and "terms never beyond a normal room's band" hold; with every room at 100% there is nothing for a term to be harder than. In real trips (policy `always`) terms are paid 123 times, broken 42 and left unsettled 120 (the trip ended first).
+- **Postmaster, fresh:** 120/120 won, 0 lost, 0 stalled; the page banks on every win. His opener is always the clock writ (round 1, first routine step): served 134 times, lifted 131, collected 0. He casts 0.1 times a fight: he is dead by round 5 with 5/5 charges, so his Bolt> Ink Sentence kit is almost never used. The pair ends with about 13.2 of 14 HP.
+- **Postmaster, worn:** about 1 trip in 100 reaches the heart (1 of 120; 6 of 500 on the larger sample). Of those 6: 3 won (page banked 3/3), 3 stalled out of charges at the 40-round cap, **0 lost**; 20 writs served, 18 lifted, 1 collected. The old "heart cleared 3 %" is now a heart reached on about 1 % of trips, because room 4 is reached by 43 %.
+- **The heart has never been lost** in 480 fresh fights (four sign states) and 7 worn ones. The bot's only failures are stalls from spent charges. That is the quantified miss for "the heart can be lost".
