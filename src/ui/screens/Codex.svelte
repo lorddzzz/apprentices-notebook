@@ -155,10 +155,10 @@
         <p class="lead" data-testid="codex-replay-away">Out on a trip: these open again in the study.</p>
       {:else}
         {#if ending.handover}
-          <a class="replay" href={href('handover')} data-testid="codex-replay-desk">The owner's desk</a>
+          <a class="replay" href={href('handover', { from: 'codex' })} data-testid="codex-replay-desk">The owner's desk</a>
         {/if}
         {#if ending.creditsSeen}
-          <a class="replay" href={href('credits')} data-testid="codex-replay-credits">Credits</a>
+          <a class="replay" href={href('credits', { from: 'codex' })} data-testid="codex-replay-credits">Credits</a>
         {/if}
       {/if}
     {:else}
