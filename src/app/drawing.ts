@@ -221,6 +221,11 @@ export function tableView(
   };
 }
 
+/** The editor's draft after Clear: a blank page once the store took it, the draft as it was when it refused (R9). */
+export function afterClear(stored: boolean, draft: Drawing | null, p: Profile): Drawing | null {
+  return stored ? blankDrawing(p) : draft;
+}
+
 /** Writes (or, with `null`, clears) a page through `storeDrawing`; throws as it does. */
 export function saveDraft(save: SaveData, slot: 0 | 1 | 2, draft: Drawing | null): SaveData {
   return { ...save, profile: storeDrawing(save.profile, slot, draft, save.trip) };
