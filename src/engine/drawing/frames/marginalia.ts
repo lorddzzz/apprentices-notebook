@@ -1,4 +1,4 @@
-import { COSTS } from '$data/drawing';
+import { COSTS, DRAWN_MARGINALIA_HP } from '$data/drawing';
 import { KIT } from '../../districts/kit';
 import type { HeartSetup } from '../../districts/types';
 import { type BoardSpec, parseBoard } from '../../notation';
@@ -27,6 +27,7 @@ const FALLBACK = [
 
 export const MARGINALIA_FRAME: HeartFrame = {
   master: 'marginalia',
+  enemyHp: { marginalia: DRAWN_MARGINALIA_HP },
   cost: COSTS.hearts.marginalia,
   needs: needsOf('marginalia'),
   size: SIZE,

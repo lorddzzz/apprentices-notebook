@@ -1,7 +1,7 @@
 {
   "district": "seam",
   "seed": 8,
-  "options": { "maxRounds": 100 },
+  "options": { "maxRounds": 100, "startHp": 20 },
   "rooms": [
     {
       "encounter": 0,
@@ -1243,7 +1243,105 @@
         { "type": "shove", "unit": "stoker", "dir": "down" },
         { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
         { "type": "endTurn" },
-        { "type": "shove", "unit": "stoker", "dir": "right" }
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 1, "y": 1 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 1 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 1, "y": 1 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 1 } },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 3, "y": 0 } },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "down" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 1 } },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 3, "y": 0 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "draughtsman", "dir": "left" },
+        { "type": "move", "unit": "draughtsman", "to": { "x": 4, "y": 0 } },
+        { "type": "shove", "unit": "stoker", "dir": "down" },
+        { "type": "move", "unit": "stoker", "to": { "x": 2, "y": 1 } },
+        { "type": "endTurn" },
+        { "type": "shove", "unit": "stoker", "dir": "right" },
+        { "type": "move", "unit": "stoker", "to": { "x": 1, "y": 1 } },
+        { "type": "endTurn" }
       ],
       "events": [
         { "type": "battleStart", "title": "The furnace hall" },
@@ -1649,7 +1747,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 15
+          "hpLeft": 71
         },
         {
           "type": "moved",
@@ -1694,7 +1792,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 14
+          "hpLeft": 70
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -1778,7 +1876,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 13
+          "hpLeft": 69
         },
         {
           "type": "moved",
@@ -1828,7 +1926,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 12
+          "hpLeft": 68
         },
         {
           "type": "moved",
@@ -1932,7 +2030,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 11
+          "hpLeft": 67
         },
         {
           "type": "moved",
@@ -1990,7 +2088,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 10
+          "hpLeft": 66
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2013,7 +2111,7 @@
           "amount": 1,
           "source": "Spark",
           "bonus": [],
-          "hpLeft": 7
+          "hpLeft": 19
         },
         { "type": "miss", "source": "Spark" },
         { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
@@ -2081,7 +2179,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 9
+          "hpLeft": 65
         },
         {
           "type": "moved",
@@ -2131,7 +2229,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 8
+          "hpLeft": 64
         },
         {
           "type": "moved",
@@ -2254,7 +2352,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 7
+          "hpLeft": 63
         },
         {
           "type": "moved",
@@ -2299,7 +2397,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 6
+          "hpLeft": 62
         },
         { "type": "phase", "phase": "resolve" },
         {
@@ -2383,7 +2481,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 5
+          "hpLeft": 61
         },
         {
           "type": "moved",
@@ -2433,7 +2531,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 4
+          "hpLeft": 60
         },
         {
           "type": "moved",
@@ -2536,7 +2634,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 3
+          "hpLeft": 59
         },
         {
           "type": "moved",
@@ -2586,7 +2684,7 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
-          "hpLeft": 2
+          "hpLeft": 58
         },
         {
           "type": "moved",
@@ -2643,7 +2741,7 @@
           "amount": 1,
           "source": "Kettle",
           "bonus": [],
-          "hpLeft": 5,
+          "hpLeft": 19,
           "line": "steam:kettle"
         },
         {
@@ -2657,7 +2755,7 @@
           "amount": 1,
           "source": "Kettle",
           "bonus": [],
-          "hpLeft": 1,
+          "hpLeft": 57,
           "line": "steam:kettle"
         },
         { "type": "stateFades", "tiles": [{ "x": 4, "y": 0 }, { "x": 6, "y": 4 }] },
@@ -2720,6 +2818,3490 @@
           "amount": 1,
           "source": "Crush",
           "bonus": [],
+          "hpLeft": 56
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 1, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "spark",
+            "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
+          }
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 18
+        },
+        { "type": "named", "what": "burst", "id": "detonation", "line": "spark:mark" },
+        {
+          "type": "burst",
+          "burst": "detonation",
+          "at": { "x": 1, "y": 1 },
+          "tiles": [{ "x": 1, "y": 1 }],
+          "units": [{ "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true }],
+          "line": "spark:mark"
+        },
+        {
+          "type": "markSpent",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "released": false,
+          "line": "spark:mark"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 3,
+          "source": "Detonation",
+          "bonus": [],
+          "hpLeft": 15,
+          "line": "spark:mark"
+        },
+        { "type": "miss", "source": "Spark" },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 55
+        },
+        { "type": "named", "what": "burst", "id": "conduct", "line": "spark:collar" },
+        {
+          "type": "burst",
+          "burst": "conduct",
+          "at": { "x": 3, "y": 1 },
+          "tiles": [
+            { "x": 2, "y": 0 },
+            { "x": 3, "y": 0 },
+            { "x": 3, "y": 1 },
+            { "x": 3, "y": 2 },
+            { "x": 3, "y": 3 }
+          ],
+          "units": [
+            {
+              "id": "draughtsman",
+              "name": "Draughtsman",
+              "at": { "x": 4, "y": 0 },
+              "member": true
+            },
+            {
+              "id": "marginalia-1",
+              "name": "marginalia",
+              "at": { "x": 3, "y": 1 },
+              "member": false
+            }
+          ],
+          "line": "spark:collar"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 2,
+          "source": "Conduct",
+          "bonus": [],
+          "hpLeft": 17,
+          "line": "spark:collar"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 2,
+          "source": "Conduct",
+          "bonus": [],
+          "hpLeft": 53,
+          "line": "spark:collar"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 16,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 52,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 0, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 11 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:ink",
+            "telegraph": {
+              "label": "ink",
+              "tiles": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "write Ink on D1–F1"
+        },
+        { "type": "phase", "phase": "player" },
+        { "type": "named", "what": "idiom", "id": "cashingIn" },
+        { "type": "named", "what": "idiom", "id": "peal" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 51
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "from": { "x": 1, "y": 1 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 50
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "ink",
+            "tiles": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }]
+          }
+        },
+        {
+          "type": "marked",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "deep": false,
+          "bound": null
+        },
+        { "type": "landed", "kind": "ink", "at": { "x": 4, "y": 0 }, "makes": "blot" },
+        { "type": "landed", "kind": "ink", "at": { "x": 5, "y": 0 }, "makes": "blot" },
+        { "type": "stateFades", "tiles": [{ "x": 2, "y": 0 }, { "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 12 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:oil",
+            "telegraph": {
+              "label": "oil",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "write Oil on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 49
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 48
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "oil",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        { "type": "landed", "kind": "oil", "at": { "x": 2, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 3, "y": 0 }, "makes": "slick" },
+        { "type": "mixed", "at": { "x": 4, "y": 0 }, "compound": "stain", "line": "oil:blot" },
+        { "type": "stateFades", "tiles": [{ "x": 0, "y": 0 }] },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 13 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:steam",
+            "telegraph": {
+              "label": "steam",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Steam on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 2, "y": 1 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 47
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 46
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "steam",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 2, "y": 0 },
+          "compound": "greaseFog",
+          "line": "steam:slick"
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 3, "y": 0 },
+          "compound": "greaseFog",
+          "line": "steam:slick"
+        },
+        {
+          "type": "washed",
+          "at": { "x": 4, "y": 0 },
+          "was": "stain",
+          "now": "cloud",
+          "line": "steam:compound"
+        },
+        { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 14 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:brass",
+            "telegraph": {
+              "label": "brass",
+              "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Brass on B2–D2"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 45
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 44
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "brass",
+            "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
+          }
+        },
+        { "type": "landed", "kind": "brass", "at": { "x": 1, "y": 1 }, "makes": "plate" },
+        { "type": "landed", "kind": "brass", "at": { "x": 2, "y": 1 }, "makes": "plate" },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 0, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 15 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:spark",
+            "telegraph": {
+              "label": "spark",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "strike Spark on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 43
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "from": { "x": 2, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 42
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "spark",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        { "type": "miss", "source": "Spark" },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 14
+        },
+        { "type": "miss", "source": "Spark" },
+        { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 16 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:ink",
+            "telegraph": {
+              "label": "ink",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Ink on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 2, "y": 1 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 41
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 40
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "ink",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "marked",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "deep": false,
+          "bound": null
+        },
+        { "type": "landed", "kind": "ink", "at": { "x": 3, "y": 0 }, "makes": "blot" },
+        { "type": "named", "what": "compound", "id": "deepMark", "line": "ink:mark" },
+        {
+          "type": "mixed",
+          "at": { "x": 4, "y": 0 },
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "compound": "deepMark",
+          "line": "ink:mark"
+        },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }, { "x": 2, "y": 1 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 17 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:oil",
+            "telegraph": {
+              "label": "oil",
+              "tiles": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Oil on B1–D1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 39
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "from": { "x": 2, "y": 0 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 38
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "oil",
+            "tiles": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }]
+          }
+        },
+        { "type": "named", "what": "compound", "id": "pool", "line": "oil:slick" },
+        { "type": "mixed", "at": { "x": 1, "y": 0 }, "compound": "pool", "line": "oil:slick" },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 2, "y": 0 },
+          "makes": "slick",
+          "line": "oil:slick"
+        },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 1, "y": 1 },
+          "makes": "slick",
+          "line": "oil:slick"
+        },
+        { "type": "mixed", "at": { "x": 2, "y": 0 }, "compound": "pool", "line": "oil:slick" },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 3, "y": 0 },
+          "makes": "slick",
+          "line": "oil:slick"
+        },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 2, "y": 1 },
+          "makes": "slick",
+          "line": "oil:slick"
+        },
+        { "type": "mixed", "at": { "x": 3, "y": 0 }, "compound": "pool", "line": "oil:slick" },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 4, "y": 0 },
+          "makes": "slick",
+          "line": "oil:slick"
+        },
+        {
+          "type": "landed",
+          "kind": "oil",
+          "at": { "x": 3, "y": 1 },
+          "makes": "slick",
+          "line": "oil:slick"
+        },
+        { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 18 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:steam",
+            "telegraph": {
+              "label": "steam",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "write Steam on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 37
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 36
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "steam",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "washed",
+          "at": { "x": 2, "y": 0 },
+          "was": "pool",
+          "now": "cloud",
+          "line": "steam:compound"
+        },
+        {
+          "type": "washed",
+          "at": { "x": 3, "y": 0 },
+          "was": "pool",
+          "now": "cloud",
+          "line": "steam:compound"
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 4, "y": 0 },
+          "compound": "greaseFog",
+          "line": "steam:slick"
+        },
+        { "type": "stateFades", "tiles": [{ "x": 0, "y": 0 }, { "x": 1, "y": 0 }] },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 19 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:brass",
+            "telegraph": {
+              "label": "brass",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Brass on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 2, "y": 1 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 35
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 34
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "brass",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        { "type": "mixed", "at": { "x": 2, "y": 0 }, "compound": "kettle", "line": "brass:cloud" },
+        { "type": "mixed", "at": { "x": 3, "y": 0 }, "compound": "kettle", "line": "brass:cloud" },
+        {
+          "type": "mixed",
+          "at": { "x": 4, "y": 0 },
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "compound": "shackle",
+          "line": "brass:mark"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 13,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 15,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 33,
+          "line": "steam:kettle"
+        },
+        { "type": "stateFades", "tiles": [{ "x": 4, "y": 0 }, { "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 20 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:spark",
+            "telegraph": {
+              "label": "spark",
+              "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "strike Spark on B2–D2"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 32
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 1, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "spark",
+            "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
+          }
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 12
+        },
+        {
+          "type": "burst",
+          "burst": "detonation",
+          "at": { "x": 1, "y": 1 },
+          "tiles": [{ "x": 1, "y": 1 }],
+          "units": [{ "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true }],
+          "line": "spark:mark"
+        },
+        {
+          "type": "markSpent",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "released": false,
+          "line": "spark:mark"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 3,
+          "source": "Detonation",
+          "bonus": [],
+          "hpLeft": 9,
+          "line": "spark:mark"
+        },
+        {
+          "type": "burst",
+          "burst": "fire",
+          "at": { "x": 1, "y": 1 },
+          "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }],
+          "units": [
+            { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+            {
+              "id": "marginalia-1",
+              "name": "marginalia",
+              "at": { "x": 3, "y": 1 },
+              "member": false
+            }
+          ],
+          "line": "spark:slick"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 2,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 7,
+          "line": "spark:slick"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 2,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 30,
+          "line": "spark:slick"
+        },
+        { "type": "named", "what": "burst", "id": "surge", "line": "spark:fire" },
+        {
+          "type": "burst",
+          "burst": "surge",
+          "at": { "x": 2, "y": 1 },
+          "tiles": [{ "x": 2, "y": 1 }],
+          "units": [{ "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true }],
+          "line": "spark:fire"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Arc",
+          "bonus": [],
+          "hpLeft": 6,
+          "line": "spark:fire"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 29
+        },
+        {
+          "type": "burst",
+          "burst": "conduct",
+          "at": { "x": 3, "y": 1 },
+          "tiles": [
+            { "x": 2, "y": 0 },
+            { "x": 3, "y": 0 },
+            { "x": 3, "y": 1 },
+            { "x": 3, "y": 2 },
+            { "x": 3, "y": 3 }
+          ],
+          "units": [
+            {
+              "id": "draughtsman",
+              "name": "Draughtsman",
+              "at": { "x": 4, "y": 0 },
+              "member": true
+            },
+            {
+              "id": "marginalia-1",
+              "name": "marginalia",
+              "at": { "x": 3, "y": 1 },
+              "member": false
+            }
+          ],
+          "line": "spark:collar"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 2,
+          "source": "Conduct",
+          "bonus": [],
+          "hpLeft": 13,
+          "line": "spark:collar"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 2,
+          "source": "Conduct",
+          "bonus": [],
+          "hpLeft": 27,
+          "line": "spark:collar"
+        },
+        {
+          "type": "burst",
+          "burst": "surge",
+          "at": { "x": 3, "y": 1 },
+          "tiles": [{ "x": 3, "y": 1 }],
+          "units": [
+            {
+              "id": "marginalia-1",
+              "name": "marginalia",
+              "at": { "x": 3, "y": 1 },
+              "member": false
+            },
+            { "id": "draughtsman", "name": "Draughtsman", "at": { "x": 4, "y": 0 }, "member": true }
+          ],
+          "line": "spark:fire"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 3,
+          "source": "Surge",
+          "bonus": [],
+          "hpLeft": 24,
+          "line": "spark:fire"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Arc",
+          "bonus": [],
+          "hpLeft": 12,
+          "line": "spark:fire"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 11,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 23,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 5,
+          "line": "spark:slick"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 22,
+          "line": "spark:slick"
+        },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 0, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 21 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:ink",
+            "telegraph": {
+              "label": "ink",
+              "tiles": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "write Ink on D1–F1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 21
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "from": { "x": 1, "y": 1 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 20
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "ink",
+            "tiles": [{ "x": 3, "y": 0 }, { "x": 4, "y": 0 }, { "x": 5, "y": 0 }]
+          }
+        },
+        {
+          "type": "marked",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "deep": false,
+          "bound": null
+        },
+        { "type": "landed", "kind": "ink", "at": { "x": 4, "y": 0 }, "makes": "blot" },
+        { "type": "miss", "source": "Ink", "line": "ink:blot" },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 4,
+          "line": "spark:slick"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Fire",
+          "bonus": [],
+          "hpLeft": 19,
+          "line": "spark:slick"
+        },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }, { "x": 6, "y": 4 }]
+        },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 22 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:oil",
+            "telegraph": {
+              "label": "oil",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "write Oil on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 18
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 17
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "oil",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        { "type": "landed", "kind": "oil", "at": { "x": 2, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 3, "y": 0 }, "makes": "slick" },
+        { "type": "mixed", "at": { "x": 4, "y": 0 }, "compound": "stain", "line": "oil:blot" },
+        { "type": "stateFades", "tiles": [{ "x": 0, "y": 0 }] },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 23 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:steam",
+            "telegraph": {
+              "label": "steam",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Steam on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 2, "y": 1 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 16
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 15
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "steam",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 2, "y": 0 },
+          "compound": "greaseFog",
+          "line": "steam:slick"
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 3, "y": 0 },
+          "compound": "greaseFog",
+          "line": "steam:slick"
+        },
+        {
+          "type": "washed",
+          "at": { "x": 4, "y": 0 },
+          "was": "stain",
+          "now": "cloud",
+          "line": "steam:compound"
+        },
+        { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 24 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:brass",
+            "telegraph": {
+              "label": "brass",
+              "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Brass on B2–D2"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 14
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 13
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "brass",
+            "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
+          }
+        },
+        { "type": "landed", "kind": "brass", "at": { "x": 1, "y": 1 }, "makes": "plate" },
+        { "type": "landed", "kind": "brass", "at": { "x": 2, "y": 1 }, "makes": "plate" },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 0, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 25 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:spark",
+            "telegraph": {
+              "label": "spark",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "strike Spark on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 12
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "from": { "x": 2, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 11
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "spark",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        { "type": "miss", "source": "Spark" },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 3
+        },
+        { "type": "miss", "source": "Spark" },
+        { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 26 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:ink",
+            "telegraph": {
+              "label": "ink",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Ink on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 2, "y": 1 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 10
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 9
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 2, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "ink",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "marked",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "deep": false,
+          "bound": null
+        },
+        { "type": "landed", "kind": "ink", "at": { "x": 3, "y": 0 }, "makes": "blot" },
+        {
+          "type": "mixed",
+          "at": { "x": 4, "y": 0 },
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "compound": "deepMark",
+          "line": "ink:mark"
+        },
+        {
+          "type": "stateFades",
+          "tiles": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }, { "x": 2, "y": 1 }]
+        },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 27 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:oil",
+            "telegraph": {
+              "label": "oil",
+              "tiles": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Oil on B1–D1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 0 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 8
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 0 }, "member": true },
+          "from": { "x": 2, "y": 0 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 7
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "oil",
+            "tiles": [{ "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }]
+          }
+        },
+        { "type": "landed", "kind": "oil", "at": { "x": 1, "y": 0 }, "makes": "slick" },
+        { "type": "landed", "kind": "oil", "at": { "x": 2, "y": 0 }, "makes": "slick" },
+        { "type": "mixed", "at": { "x": 3, "y": 0 }, "compound": "stain", "line": "oil:blot" },
+        { "type": "stateFades", "tiles": [{ "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 28 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:steam",
+            "telegraph": {
+              "label": "steam",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["draughtsman"]
+            },
+            "order": 1
+          },
+          "verb": "write Steam on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 6
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 3, "y": 0 },
+            "member": true
+          },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 4, "y": 1 },
+          "path": [{ "x": 4, "y": 0 }, { "x": 4, "y": 1 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 5
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 3, "y": 0 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "steam",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "mixed",
+          "at": { "x": 2, "y": 0 },
+          "compound": "greaseFog",
+          "line": "steam:slick"
+        },
+        {
+          "type": "washed",
+          "at": { "x": 3, "y": 0 },
+          "was": "stain",
+          "now": "cloud",
+          "line": "steam:compound"
+        },
+        { "type": "landed", "kind": "steam", "at": { "x": 4, "y": 0 }, "makes": "cloud" },
+        { "type": "stateFades", "tiles": [{ "x": 0, "y": 0 }] },
+        { "type": "vent", "at": { "x": 0, "y": 0 } },
+        { "type": "round", "round": 29 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:brass",
+            "telegraph": {
+              "label": "brass",
+              "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "write Brass on C1–E1"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "left"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 2, "y": 1 },
+          "dir": "left"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 4
+        },
+        {
+          "type": "moved",
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 1 },
+            "member": true
+          },
+          "from": { "x": 4, "y": 1 },
+          "to": { "x": 4, "y": 0 },
+          "path": [{ "x": 4, "y": 0 }],
+          "cause": "walk"
+        },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "down"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 3, "y": 2 },
+          "dir": "down"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 3
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 0 }, "member": true },
+          "from": { "x": 3, "y": 0 },
+          "to": { "x": 2, "y": 1 },
+          "path": [{ "x": 2, "y": 0 }, { "x": 2, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "brass",
+            "tiles": [{ "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 }]
+          }
+        },
+        {
+          "type": "washed",
+          "at": { "x": 2, "y": 0 },
+          "was": "greaseFog",
+          "now": "plate",
+          "line": "brass:compound"
+        },
+        { "type": "mixed", "at": { "x": 3, "y": 0 }, "compound": "kettle", "line": "brass:cloud" },
+        {
+          "type": "mixed",
+          "at": { "x": 4, "y": 0 },
+          "unit": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "compound": "shackle",
+          "line": "brass:mark"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "draughtsman",
+            "name": "Draughtsman",
+            "at": { "x": 4, "y": 0 },
+            "member": true
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 10,
+          "line": "steam:kettle"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Kettle",
+          "bonus": [],
+          "hpLeft": 2,
+          "line": "steam:kettle"
+        },
+        { "type": "stateFades", "tiles": [{ "x": 4, "y": 0 }, { "x": 6, "y": 4 }] },
+        { "type": "vent", "at": { "x": 6, "y": 4 } },
+        { "type": "round", "round": 30 },
+        { "type": "phase", "phase": "enemy" },
+        {
+          "type": "telegraph",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "intent": {
+            "kind": "step",
+            "step": "seam:write:spark",
+            "telegraph": {
+              "label": "spark",
+              "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }],
+              "units": ["stoker"]
+            },
+            "order": 1
+          },
+          "verb": "strike Spark on B2–D2"
+        },
+        { "type": "phase", "phase": "player" },
+        {
+          "type": "shove",
+          "by": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "dir": "right"
+        },
+        {
+          "type": "crush",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "into": "wall",
+          "damage": 1,
+          "at": { "x": 4, "y": 1 },
+          "dir": "right"
+        },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Crush",
+          "bonus": [],
+          "hpLeft": 1
+        },
+        {
+          "type": "moved",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 1 }, "member": true },
+          "from": { "x": 2, "y": 1 },
+          "to": { "x": 1, "y": 1 },
+          "path": [{ "x": 1, "y": 1 }],
+          "cause": "walk"
+        },
+        { "type": "phase", "phase": "resolve" },
+        {
+          "type": "seam:hand",
+          "unit": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "data": {
+            "kind": "spark",
+            "tiles": [{ "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }]
+          }
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
+          "hpLeft": 2
+        },
+        {
+          "type": "burst",
+          "burst": "detonation",
+          "at": { "x": 1, "y": 1 },
+          "tiles": [{ "x": 1, "y": 1 }],
+          "units": [{ "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true }],
+          "line": "spark:mark"
+        },
+        {
+          "type": "markSpent",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "released": false,
+          "line": "spark:mark"
+        },
+        {
+          "type": "damage",
+          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "amount": 3,
+          "source": "Detonation",
+          "bonus": [],
+          "hpLeft": 0,
+          "line": "spark:mark"
+        },
+        {
+          "type": "died",
+          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 1 }, "member": true },
+          "line": "spark:mark"
+        },
+        { "type": "miss", "source": "Spark" },
+        {
+          "type": "damage",
+          "target": {
+            "id": "marginalia-1",
+            "name": "marginalia",
+            "at": { "x": 3, "y": 1 },
+            "member": false
+          },
+          "amount": 1,
+          "source": "Spark",
+          "bonus": [],
           "hpLeft": 0
         },
         {
@@ -2774,7 +6356,13 @@
           "compound:stain",
           "compound:greaseFog",
           "compound:kettle",
-          "compound:shackle"
+          "compound:shackle",
+          "burst:detonation",
+          "idiom:cashingIn",
+          "idiom:peal",
+          "compound:deepMark",
+          "compound:pool",
+          "burst:surge"
         ],
         "proofCasts": 10,
         "elegance": [],
@@ -2834,7 +6422,12 @@
       "brass:compound",
       "brass:cloud",
       "brass:mark",
-      "steam:kettle"
+      "steam:kettle",
+      "spark:mark",
+      "ink:mark",
+      "oil:slick",
+      "spark:fire",
+      "ink:blot"
     ],
     "named": [
       "burst:fire",
@@ -2844,7 +6437,13 @@
       "compound:stain",
       "compound:greaseFog",
       "compound:kettle",
-      "compound:shackle"
+      "compound:shackle",
+      "burst:detonation",
+      "idiom:cashingIn",
+      "idiom:peal",
+      "compound:deepMark",
+      "compound:pool",
+      "burst:surge"
     ],
     "met": [
       "minion",
@@ -2862,16 +6461,19 @@
       "stain",
       "greaseFog",
       "shackle",
+      "deepMark",
+      "pool",
       "edge",
       "unit",
       "compound"
     ],
     "foesMet": ["rat", "familiar", "sentry", "marginalia"],
     "footnotes": {
-      "spark": { "points": 6, "slots": {} },
+      "spark": { "points": 16, "slots": {} },
       "bolt": { "points": 3, "slots": {} },
-      "oil": { "points": 5, "slots": {} },
-      "shove": { "points": 1, "slots": {} }
+      "oil": { "points": 9, "slots": {} },
+      "shove": { "points": 1, "slots": {} },
+      "ink": { "points": 3, "slots": {} }
     },
     "solventsFound": [],
     "papers": [],
@@ -2951,7 +6553,7 @@
     "encounter": 3,
     "status": "cleared",
     "party": ["draughtsman", "stoker"],
-    "hp": { "draughtsman": 5, "stoker": 7 },
+    "hp": { "draughtsman": 10, "stoker": 1 },
     "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
     "loot": [
       { "kind": "rune", "rune": "brass" },
@@ -2996,7 +6598,13 @@
         "compound:stain",
         "compound:greaseFog",
         "compound:kettle",
-        "compound:shackle"
+        "compound:shackle",
+        "burst:detonation",
+        "idiom:cashingIn",
+        "idiom:peal",
+        "compound:deepMark",
+        "compound:pool",
+        "burst:surge"
       ],
       "proofCasts": 10,
       "elegance": [],
@@ -3058,7 +6666,12 @@
         "brass:compound",
         "brass:cloud",
         "brass:mark",
-        "steam:kettle"
+        "steam:kettle",
+        "spark:mark",
+        "ink:mark",
+        "oil:slick",
+        "spark:fire",
+        "ink:blot"
       ],
       "named": [
         "burst:fire",
@@ -3068,7 +6681,13 @@
         "compound:stain",
         "compound:greaseFog",
         "compound:kettle",
-        "compound:shackle"
+        "compound:shackle",
+        "burst:detonation",
+        "idiom:cashingIn",
+        "idiom:peal",
+        "compound:deepMark",
+        "compound:pool",
+        "burst:surge"
       ],
       "met": [
         "minion",
@@ -3086,16 +6705,19 @@
         "stain",
         "greaseFog",
         "shackle",
+        "deepMark",
+        "pool",
         "edge",
         "unit",
         "compound"
       ],
       "foesMet": ["rat", "familiar", "sentry", "marginalia"],
       "footnotes": {
-        "spark": { "points": 6, "slots": {} },
+        "spark": { "points": 16, "slots": {} },
         "bolt": { "points": 3, "slots": {} },
-        "oil": { "points": 5, "slots": {} },
-        "shove": { "points": 1, "slots": {} }
+        "oil": { "points": 9, "slots": {} },
+        "shove": { "points": 1, "slots": {} },
+        "ink": { "points": 3, "slots": {} }
       },
       "solventsFound": [],
       "papers": [],
@@ -3175,7 +6797,7 @@
       "encounter": 3,
       "status": "cleared",
       "party": ["draughtsman", "stoker"],
-      "hp": { "draughtsman": 5, "stoker": 7 },
+      "hp": { "draughtsman": 10, "stoker": 1 },
       "charges": { "draughtsman": { "0,1": 0 }, "stoker": { "1,0": 0 } },
       "loot": [
         { "kind": "rune", "rune": "brass" },
@@ -3220,7 +6842,13 @@
           "compound:stain",
           "compound:greaseFog",
           "compound:kettle",
-          "compound:shackle"
+          "compound:shackle",
+          "burst:detonation",
+          "idiom:cashingIn",
+          "idiom:peal",
+          "compound:deepMark",
+          "compound:pool",
+          "burst:surge"
         ],
         "proofCasts": 10,
         "elegance": [],

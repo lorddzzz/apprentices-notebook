@@ -608,6 +608,7 @@ export interface BattleSpec {
   edge?: EdgeRule; // default 'wall' (P3)
   party?: Partial<Record<MemberId, PartyInit>>; // member tokens on the board are spawned; this overrides hp/spells/charges
   hp?: Readonly<Record<string, number>>; // by label, any unit
+  enemyHp?: Readonly<Partial<Record<EnemyId, number>>>; // starting and maximum HP by enemy definition
   intents?: Readonly<Record<string, Dir>>; // by label; if given, round-1 AI telegraph is skipped, unlisted enemies idle
   /** Rival intents pinned by label (RV-2): telegraphed every round in place of planning. */
   pins?: Readonly<Record<string, RivalIntent>>;

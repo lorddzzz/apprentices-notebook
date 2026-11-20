@@ -271,7 +271,7 @@ export const MARGINALIA: EnemyDef = {
   id: 'marginalia',
   name: 'marginalia',
   token: 'G',
-  hp: 16,
+  hp: 72,
   move: 0,
   attack: null,
   ai: 'idle',

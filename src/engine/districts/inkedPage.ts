@@ -207,6 +207,7 @@ export function inkedRoom(t: Trip, i: number): EncounterDef {
   const heart = i === drawing.length - 1;
   const title = heart ? `${drawing.name}: the heart` : `${drawing.name}, room ${i + 1}`;
   const layout = rooms[i] ?? PLACEHOLDER;
+  const enemyHp = heart ? HEART_FRAMES[drawing.heart]?.enemyHp : undefined;
   return {
     id: `${INKED_PAGE}:${slot}:${i}`,
     title,
@@ -216,6 +217,7 @@ export function inkedRoom(t: Trip, i: number): EncounterDef {
     loot: DRAWN_LOOT.placeholder.table,
     picks: heart ? DRAWN_LOOT.placeholder.picks.heart : DRAWN_LOOT.placeholder.picks.room,
     heart,
+    ...(enemyHp === undefined ? {} : { enemyHp }),
   };
 }
 

@@ -50,6 +50,14 @@ const setOut = (p: Profile, slot: 0 | 1 | 2, seed = 5): Trip =>
   inkRoom(p, startTrip(p, seed, INKED, { page: slot }));
 
 describe('EN-3: the inkedPage module', () => {
+  it('EN-3: the drawn Marginalia starts at 16 HP after inking and reloading', () => {
+    const p = household();
+    const t = startTrip(p, 5, INKED, { page: 0 });
+    const heart = inkRoom(p, { ...t, encounter: 2 });
+    const { state } = beginEncounter(p, json(heart));
+    expect(state.units.find((u) => u.def === 'marginalia')).toMatchObject({ hp: 16, maxHp: 16 });
+  });
+
   it('EN-3: trips of length 3 and 6 start, reload, return and wipe', () => {
     const p = household([FIXTURE_DRAWINGS[0] as Drawing, null, FIXTURE_DRAWINGS[2] as Drawing]);
     for (const [slot, length] of [

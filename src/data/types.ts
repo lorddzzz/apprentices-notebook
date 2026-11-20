@@ -566,6 +566,7 @@ export interface EncounterDef {
   loot: LootTableId;
   picks: number; // heart: 2
   heart: boolean;
+  enemyHp?: Readonly<Partial<Record<EnemyId, number>>>;
 }
 
 export type LootSpec =
