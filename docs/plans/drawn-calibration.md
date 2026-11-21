@@ -1,6 +1,12 @@
 # Drawn calibration (CAL-5)
 
-Measured on the authored-district revision `29063e5` after the CAL-1–4 applications. The drawn Marginalia has its own 16 HP. The source revision already includes the 72 HP authored Marginalia, revised canal layouts, baths 32/1/1 and Steward 38, Chief Warden 28, quarter deliveries, Registrar 40 and Carillonneur 57.
+Tasks 1–2 below were measured on `29063e5` after the CAL-1–4 applications. The drawn Marginalia has its own 16 HP. That revision includes the 72 HP authored Marginalia, revised canal layouts, baths 32/1/1 and Steward 38, Chief Warden 28, quarter deliveries, Registrar 40 and Carillonneur 57.
+
+## Task 3 measurement protocol
+
+The application starts from `48ac3f0`, with the 32 HP authored Chief and 28 HP drawn Chief, the Carillonneur's H2 hook, the 12/6 HP loft and the bot attack guard. Freeze the corpus, lineups, starter pages, seeds and fight policy below for the paired comparison. Judge walkovers across all fresh ordinary offers, with unverified and invalid layouts reported alongside that rate. Compare the three fresh heart bands to EN-13 with equal weight across lineup sizes and masters, and print each lineup separately.
+
+The household results below are historical. The starting revision's HC-9 random-walk assertion already excludes out-of-room units, which keep their last tile when they fall. Rerun the entire 50-seed household sweep on the application without edits to its tests. Run one slow sim at a time under `caffeinate -i`.
 
 ## Corpus and reproduction
 
