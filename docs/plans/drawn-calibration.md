@@ -335,11 +335,14 @@ Retain `DRAWN_MARGINALIA_HP = 16`. Doubling the drawn frame's HP kept all 36 app
 | `pnpm typecheck:ts` | Passed |
 | `pnpm check:fast` | 413 files, 8,709 passed, 13 todo. Existing PenPot lint warning. |
 | Historical generator fuzz | 9/9 passed |
+| Shared drawn table smoke, filtered to inkedPage | 1/1 passed |
 | Drawn smoke, palette and loot | 19/19 passed, including stored-room reload and the length-six peal probe |
 | Production corpus | 822 fresh fights and 471 carried fights across 144 trips. All report checks passed. The balance and guardrail misses are in the tables. |
 | Paired candidates | 178 ordinary offers for step two and 36 Marginalia hearts at 32 HP, plus the pen/cost/loot comparisons |
 | Unchanged household smoke | 24/25 passed. The random-walk occupancy assertion is red. |
 | Unchanged random-walk test isolated in default and full mode with `--testTimeout=120000` | Same deterministic assertion failure in both modes |
-| Full 50-seed household sweep | Started with unchanged assertions. The full-mode random-walk gate has already reproduced the failure. |
+| Full 50-seed household sweep | The full-mode random-walk gate reproduced the failure in isolation. The unfiltered run passed the placement checks and the first 5,350-fight batch (Draughtsman solo, 107 layouts × 50 seeds). Remaining batches were running at handoff. |
 
 Household repro is Bridge 3.4, **The lantern ledge**, seed 5218, Stoker/Tuner/Owner, zero-based walk 21 and action 14 (`endTurn`). The Owner had 5 HP and `out: "fell"` before and after the Mason legally moved from (2,4) to (1,4). The retained position of the fallen member is also (1,4). The assertion counts every positive-HP unit, while the actual board-occupancy query requires both positive HP and presence in the room. The assertion therefore compares three distinct tiles with four records. Keep the occupied-tile uniqueness invariant and review whether the household check should use the engine's `isAlive` predicate in a separate pack. The household fixture and assertions are unedited.
+
+The first full batch reported 60% wins, 23% losses and 17% stalls. The Draughtsman lost all 150 authored Seam hearts. In the canals he lost 100 and stalled 50, with zero wins. These are the household bot's authored-room results, a separate cohort from the drawn combat tables.
