@@ -76,6 +76,15 @@ export const GEN_LIMITS = {
   phone: { medianMs: 500, p95Ms: 2000 },
 } as const;
 
+/**
+ * Added to the drawn master's HP by weight band (the heart's lever; CAL-5 measures it). Only the
+ * master's HP moves, never its escorts'. Zero keeps the frame's own HP.
+ */
+export const DRAWN_HEART_HP_BONUS = { light: 0, medium: 0, heavy: 0 } satisfies Record<
+  'light' | 'medium' | 'heavy',
+  number
+>;
+
 /** P34: the district each master belongs to (where its kit's frame comes from). */
 export const MASTER_HOME: Record<MasterId, DistrictId> = {
   marginalia: 'seam',

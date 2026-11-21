@@ -3,6 +3,7 @@ export * from './cost';
 export * from './ending';
 export * from './frames';
 export * from './generate';
+export * from './heart';
 export * from './kits';
 export * from './palette';
 export * from './profile';

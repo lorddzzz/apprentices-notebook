@@ -230,6 +230,9 @@ describe('EN-S2: the walk', () => {
         if (a.won) {
           expect(b.budget).toBe(a.budget + step);
           if (a.walkover) ups++;
+        } else if (a.won === null) {
+          // A held-back attempt ran no bot: it carries no difficulty signal (CAL-5G).
+          expect(b.budget).toBe(a.budget);
         } else {
           expect(b.budget).toBe(Math.max(1, a.budget - step));
         }

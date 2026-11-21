@@ -4,10 +4,11 @@ import { HEART_HEAT } from '$data/districts/bathhouses';
 import { ROOM_PENCIL } from '$data/districts/cartographers/rooms';
 import { type Profile, startTrip } from '$engine';
 import { INKED_TRIP } from '$engine/districts/inkedPage';
-import type { Json, ShapeInput } from '$engine/districts/types';
-import { generateRoom, HEART_FRAMES, parseInkedState } from '$engine/drawing';
+import type { Json, RuleId, ShapeInput } from '$engine/districts/types';
+import { generateRoom, HEART_FRAMES, heartConfig, parseInkedState } from '$engine/drawing';
 import type { InkedTripState } from '$engine/drawing/types';
-import type { Trip } from '$engine/types';
+import { listRules } from '$engine/rules';
+import type { BattleState, Trip } from '$engine/types';
 import { fullHousehold, heartDrawing, inputFor } from './fixtures';
 
 /**
@@ -145,6 +146,34 @@ describe('EN-K9: the trial runs the rules of the room (P39)', () => {
     expect(lists.length).toBeGreaterThan(0);
     for (const rules of lists) expect(rules).toEqual([]);
     for (const s of trials.states) expect(s.rules).toBeUndefined();
+  }, 300_000);
+});
+
+describe('CAL-5G: the heart trial judges the heart the player gets', () => {
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
+  it('CAL-5G: the heart trial runs each frame rule at the config the played heart gets', () => {
+    for (const master of ['bathSteward', 'carillonneur', 'registrar'] as const) {
+      const drawing = heartDrawing(master);
+      const played = roomSetupOf(drawing, drawing.length - 1).rulesConfig ?? {};
+      const ids = Object.keys(played) as RuleId[];
+      expect(ids.length, master).toBeGreaterThan(0);
+      trials.states.length = 0;
+      generateRoom(inputFor(drawing, SEED));
+      expect(trials.states.length, master).toBeGreaterThan(0);
+      for (const s of trials.states) {
+        const battle = s as unknown as BattleState;
+        for (const id of ids) {
+          const want = listRules(battle, [id], { [id]: played[id] as Json })[id];
+          expect(s.rules?.[id], `${master} ${id}`).toEqual(want);
+          // The default config would give another state: the case bites.
+          expect(s.rules?.[id], `${master} ${id} default`).not.toEqual(listRules(battle, [id])[id]);
+        }
+      }
+    }
+    // The configs themselves: the baths' heart heat, the tune's trip seed, the hall's last pencil.
+    expect(heartConfig('bathhouses:boilOver', SEED)).toEqual({ heat: HEART_HEAT });
+    expect(heartConfig('foundry:tune', SEED)).toEqual({ seed: SEED });
+    expect(heartConfig('cartographers:guildHand', SEED)).toEqual(ROOM_PENCIL.at(-1));
   }, 300_000);
 });
 

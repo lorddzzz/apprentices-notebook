@@ -1,7 +1,7 @@
 import { type ApprenticeId, ATTACKS, type Drawing, ENEMIES, type EnemyId } from '$data';
 import { GEN_LIMITS, GEN_TUNING } from '$data/drawing';
 import { createBattle } from '../battle';
-import type { RuleId } from '../districts/types';
+import type { Json, RuleId } from '../districts/types';
 import { byReadingOrder, type Coord, key } from '../grid';
 import { type BoardSpec, emptyTile, serializeBoard } from '../notation';
 import { blocksShots, blocksUnits, members } from '../queries';
@@ -13,6 +13,7 @@ import { TRIAL_BUDGET } from '../sim';
 import type { BattleState, Profile, Trip } from '../types';
 import { weightBand } from './cost';
 import { HEART_FRAMES } from './frames';
+import { heartConfig, heartEnemyHp } from './heart';
 import { GEN_KITS } from './kits';
 import { CURRENT } from './kits/canals';
 import { BELLS } from './kits/foundry';
@@ -568,7 +569,8 @@ const heldBack = (
 
 /**
  * P39: the rules the room lists when it is played: the drawing's own and, at the heart, its master's.
- * Each at its default config (the lent shape's state-dependent config is not reproduced here).
+ * The heart's frame rules run at the config the played heart gives them (`heartConfig`); the lent
+ * shape's state-dependent config is not reproduced here.
  */
 function trialRules(drawing: Drawing, heart: boolean): RuleId[] {
   const ids = [
@@ -576,6 +578,16 @@ function trialRules(drawing: Drawing, heart: boolean): RuleId[] {
     ...(heart ? (HEART_FRAMES[drawing.heart]?.setup.rules ?? []) : []),
   ];
   return ids.filter((id, i) => ids.indexOf(id) === i);
+}
+
+/** The heart's frame rules at the config the played heart gives them (the drawing's own rule stays at its default). */
+function heartConfigs(input: GenInput, heart: boolean): Record<RuleId, Json> {
+  const config: Record<RuleId, Json> = {};
+  for (const id of heart ? (HEART_FRAMES[input.drawing.heart]?.setup.rules ?? []) : []) {
+    const c = heartConfig(id, input.seed);
+    if (c !== undefined) config[id] = c;
+  }
+  return config;
 }
 
 /** The room judged fair, not the trip: fresh HP and charges, the party's compiled pages, the room's rules (P39). */
@@ -591,7 +603,7 @@ function trial(
   const state = createBattle({
     title: 'A drawn room',
     board: serializeBoard(layout),
-    ...(heart ? { enemyHp: frameOf(input.drawing).enemyHp } : {}),
+    ...(heart ? { enemyHp: heartEnemyHp(input.drawing) } : {}),
     seed: deriveSeed(seed, 7991),
     lineup: input.party,
     party: Object.fromEntries(
@@ -602,7 +614,7 @@ function trial(
     ),
   }).state;
   const ids = trialRules(input.drawing, heart);
-  if (ids.length > 0) state.rules = listRules(state, ids);
+  if (ids.length > 0) state.rules = listRules(state, ids, heartConfigs(input, heart));
   const r = botTrial(state, opBudget, input.party, { maxRounds: rounds });
   const won = r.won && r.state.round <= rounds;
   const hpLeft = hpShare(r.state);
@@ -623,7 +635,7 @@ function trial(
  * P8-P10, P28 and P35: one room from the trip seed, bot-tested on a walking budget. Attempt `n`
  * (1 to `GEN_LIMITS.attempts`) draws from salt `7000 + 10*room + n`. Attempt 1 uses the base
  * budget; the next uses this one's plus `GEN_TUNING.step` after a walkover, minus it after a loss
- * or a guardrail failure (never below 1). The first won attempt that is not a walkover is offered.
+ * (never below 1); an attempt the guardrails held back (no bot ran) keeps its budget. The first won attempt that is not a walkover is offered.
  * When none is fair but one was won, the last won attempt is offered (`verified`, `dull`). When
  * none was won, the safe fallback (salt `7900 + room`, half the base budget) is offered even when
  * it fails (`verified: false`). A heart (the drawing's last room) comes from its master's frame:
@@ -666,7 +678,7 @@ export function generateRoom(input: GenInput): GeneratedRoom {
       };
     }
     if (t.won) lastWon = drawn.layout;
-    budget = Math.max(1, budget + (t.won ? GEN_TUNING.step : -GEN_TUNING.step));
+    if (t.won !== null) budget = Math.max(1, budget + (t.won ? GEN_TUNING.step : -GEN_TUNING.step));
   }
   if (lastWon) {
     return {

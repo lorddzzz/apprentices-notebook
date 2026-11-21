@@ -1,11 +1,9 @@
 import type { EncounterDef } from '$data';
-import { HEART_HEAT } from '$data/districts/bathhouses';
-import { ROOM_PENCIL } from '$data/districts/cartographers/rooms';
-import { DEFAULT_PENCIL } from '$data/districts/cartographers/types';
 import { DRAWN_LOOT } from '$data/drawing';
 import { cloneData } from '../clone';
 import { checkDrawing } from '../drawing/check';
 import { HEART_FRAMES } from '../drawing/frames';
+import { heartConfig, heartEnemyHp } from '../drawing/heart';
 import { GEN_KITS } from '../drawing/kits';
 import { termCardFor } from '../drawing/kits/inkQuarter';
 import { drawnOffersFor } from '../drawing/loot';
@@ -14,9 +12,6 @@ import { parseInkedState } from '../drawing/trip';
 import type { InkedTripState } from '../drawing/types';
 import { ownedBy } from '../trip/offers';
 import type { Profile, Trip } from '../types';
-import { BOIL_OVER_RULE_ID } from './bathhouses/types';
-import { GUILD_HAND_RULE_ID } from './cartographers/types';
-import { TUNE_RULE_ID } from './foundry/types';
 import { KIT } from './kit';
 import type { DistrictModule, Json, RoomSetup, RuleId, ShapeInput, TripShapeDef } from './types';
 
@@ -110,18 +105,6 @@ const tripOwned = (t: Trip) => ({
 
 const asJson = (s: InkedTripState): Json => s as unknown as Json;
 
-/**
- * P39: the config a master's rule gets in the district's own heart room (read, not copied, where a
- * constant exists): the tune's seed is the trip's, the baths run at their heart heat, the guild's
- * hand at the hall's last room's pencil. Rules with no config (the clock, the collapse) get none.
- */
-function heartConfig(id: RuleId, trip: Trip): Json | undefined {
-  if (id === TUNE_RULE_ID) return { seed: trip.seed };
-  if (id === BOIL_OVER_RULE_ID) return { heat: HEART_HEAT };
-  if (id === GUILD_HAND_RULE_ID) return { ...(ROOM_PENCIL.at(-1) ?? DEFAULT_PENCIL) };
-  return undefined;
-}
-
 /** The drawn trip's shape (P1, P15): the snapshot, the stored rooms and the lent shape's hooks. */
 export const INKED_TRIP: TripShapeDef = {
   id: 'inkedPage:page',
@@ -157,7 +140,7 @@ export const INKED_TRIP: TripShapeDef = {
     ].filter((id, i, all) => all.indexOf(id) === i);
     const config: Record<RuleId, Json> = {};
     for (const id of heartRules) {
-      const c = heartConfig(id, input.trip);
+      const c = heartConfig(id, input.trip.seed);
       if (c !== undefined) config[id] = c;
     }
     const rulesConfig = { ...config, ...setup.rulesConfig };
@@ -207,7 +190,7 @@ export function inkedRoom(t: Trip, i: number): EncounterDef {
   const heart = i === drawing.length - 1;
   const title = heart ? `${drawing.name}: the heart` : `${drawing.name}, room ${i + 1}`;
   const layout = rooms[i] ?? PLACEHOLDER;
-  const enemyHp = heart ? HEART_FRAMES[drawing.heart]?.enemyHp : undefined;
+  const enemyHp = heart ? heartEnemyHp(drawing) : undefined;
   return {
     id: `${INKED_PAGE}:${slot}:${i}`,
     title,
