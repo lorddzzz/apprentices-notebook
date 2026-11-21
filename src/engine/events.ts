@@ -170,7 +170,8 @@ export type GameEvent = (
   | { type: 'mixed'; at: Coord; unit?: UnitRef; compound: CompoundId }
   | { type: 'washed'; at: Coord; was: CompoundId; now: StateId }
   | { type: 'burst'; burst: BurstId; at: Coord; tiles: Coord[]; units: UnitRef[] }
-  | { type: 'stateFades'; tiles: Coord[] }
+  /** `erased`: the state was taken off outright (paper un-drawn), not worn out by a round-end tick. */
+  | { type: 'stateFades'; tiles: Coord[]; erased?: true }
   | { type: 'afterglowSpent'; at: Coord }
   | { type: 'afterglowDrifts'; from: Coord; to: Coord }
   | { type: 'spreadState'; from: Coord; to: Coord[] }

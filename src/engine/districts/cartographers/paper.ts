@@ -119,7 +119,7 @@ export function undrawPencil(
   if (opts.salvage) salvage(ctx, at);
   if (tile.state) {
     tile.state = null;
-    emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
+    emit(ctx, { type: 'stateFades', tiles: [{ ...at }], erased: true });
   }
   if (tile.jar) {
     tile.jar = null;
@@ -184,7 +184,7 @@ function sweepBeside(ctx: Ctx, at: Coord): void {
     const t = tileAt(ctx.s, c);
     if (t.state) {
       t.state = null;
-      emit(ctx, { type: 'stateFades', tiles: [{ ...c }] });
+      emit(ctx, { type: 'stateFades', tiles: [{ ...c }], erased: true });
     }
     if (t.jar) {
       t.jar = null;
@@ -253,7 +253,7 @@ export function outlineStruck(
   if (hasFootnote(ctx, 'erase-cap-salvage')) {
     if (tile.state) {
       tile.state = null;
-      emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
+      emit(ctx, { type: 'stateFades', tiles: [{ ...at }], erased: true });
     }
     if (tile.jar) {
       tile.jar = null;

@@ -265,7 +265,7 @@ function rubOut(ctx: Ctx, at: Coord, round: number): void {
   emit(ctx, ev);
   if (tile.state) {
     tile.state = null;
-    emit(ctx, { type: 'stateFades', tiles: [{ ...at }] });
+    emit(ctx, { type: 'stateFades', tiles: [{ ...at }], erased: true });
   }
   if (tile.jar) {
     tile.jar = null;
