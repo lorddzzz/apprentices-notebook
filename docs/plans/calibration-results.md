@@ -97,3 +97,14 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 | BH-16 bodies | Keep current values pending a decision on timing and heart difficulty | Heat (2,4)/(3,8)/(3,8)/(2,6), capacity/feeder/stoke 32/1/1, attendant/boilerman/bather/Steward HP 7/5/5/20, fallback damage 2: first boil dusk 3, heart 24/24, room 4 20/24 (8 seeds/layout) | Use the round-three candidate as an experiment. It won 24/24 fresh hearts, so the body values still need tuning. |
 | BH-16 acceptance | Replace the historical two-win assertion with authored timing and an agreed win band? | Existing assertion passes and stays | Test the authored warning time and both fight outcomes. Replace the historical two-win expectation when the revised encounter is verified against the agreed target. |
 | P2 / BR-21 | Adopt the canals' fresh-pair band for bridges (with a room-4 mapping), or a bridge-specific band? | Stone 3/1, keystone 8, Chief 14, foes 5/4/4, elite fall 4: fresh hearts still 8/8 per span; worn room-3 stalls up (sound 6→7, crumbling 0→4 of 8). Baseline: fresh pairs 50/50 hearts on both spans, worn pairs clear 0, worn trios 11/50 sound and 50/50 crumbling | On each span, aim for 75–90% fresh-pair heart wins and 25–35% worn-pair clears per trip started. Count stalls separately from losses. These are working targets to test. Retain current values for the next comparison. Investigate low-charge stalls on the approach before increasing enemy HP. |
+
+## Task 3 applications (2026-11-21, delegated; details in each district's verification file)
+| ID | Applied | Result | Remaining miss |
+|---|---|---|---|
+| SM-6 | Marginalia 72 HP, SEAM_DEEP golden win config; drawn frame keeps 16 | fresh pair 89/150 | none |
+| CN-13 | heart layouts B/C rebalanced, eel-lane crate routes, Mother 56 | layouts 50/62/76 %, pooled 62.7 %; mooring 0 % fresh / 21.3 % worn | room 4 live 100 % (target 65-80); Lamplighter 42 HP crashes the bot (`Stoker is down`) |
+| IQ-20-D2 | postmaster deliveries: 4 shielded letters, burst 4 | fresh heart 79 % won / 10 % lost / 11 % stalled; worn 6/6 lost | IQ-20-W: wax bar at the heart 75 → 55 % (paid 61 %) |
+| BH-16 | heat 2/3/3/2 quarters, capacity 32, feeder/stoke 1, bodies 6/4/4, Steward 38, fallback damage 2 | see bathhouses-verification.md | check the heart band 40-55 % in CAL-5/G1 |
+| BR-21 | Chief Warden 28 (32 hit the drawn-room generator, EN-K8) | sound heart may overshoot 75-90 % | remeasure |
+| CAL-4-A | Registrar 40 HP | solo/duo/trio 36/63/85 % | solo +11 pp, duo +8 pp |
+| CAL-4-B/C | allied pulses fixed; Carillonneur 57, clapper 6/2/4; room-5 pencil | paired 0-4 bells 28/44/61/61/67 %; room 5 76 % | four bells 13 pp short; foundry room 4 100 % |

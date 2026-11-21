@@ -137,3 +137,8 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-18 23:15 UTC | 71 (Claude) / 68 (Codex) | 6 / 11 | R4, R5, R7, R1 merged; fast gate green (398 files, 8649); began at 55 / 53 |
 | 2026-11-19 | 4 (Claude) / 14 (Codex) at the start | 13 / 15 | design window (Opus, Claude) + CAL briefs (Codex Sol CLI); K2a, K2b, CAL-0 merged; fast gate green (399 files, 8663); CAL-N, CAL-D, CAL-B spawned |
 | 2026-11-20 | 13 (Claude) / 12 (Codex) | 2 / 12 | R8 (Codex Sol 6.2 high, 0 returns, orchestrator committed) and R9 (Sonnet high, 0 returns, Codex.svelte links by orchestrator) merged; fast gate green (413 files, 8701) |
+| CAL-1 (task 3) | 00eb312 | Codex Terra 6.1 high → Codex Sol 6.2 high | 1 | ~8% Codex | Seam 72 HP + SEAM_DEEP goldens; canal heart layouts 50/62/76 %; crate routes; drawn Marginalia stays 16; room 4 still 100 % (miss); first run left no commits, redone |
+| CAL-2 (task 3) | 7abda4b | Sonnet high | 0 | ~6% | postmaster deliveries (4 shielded letters, burst 4): fresh hearts 79/10/11 % won/lost/stalled; wax bar at the heart 75 → 55 by the orchestrator (IQ-20-W) |
+| CAL-3 (task 3) | 3778348, a16a2bd, a1d1bfa | Sonnet high | 0 | ~10% | baths bodies/heat/gauge 32/1/1, Steward 38; Chief Warden 28 (32 broke drawn generation, EN-K8); sound span may overshoot band |
+| CAL-4 (task 3) | 6717f88 | Codex Sol 6.2 high | 0 | ~8% Codex | Registrar 40 (36/63/85 %); sympathetic allied pulses hit foes; Carillonneur 57; room-5 pencil 76 %; four bells 13 pp short; room 4 100 %; orchestrator committed from /tmp patches |
+| CAL fix pack | 69e2db3 | Sonnet high | 0 | ~6% | 17 tests pinned to old numbers updated; EN-K4/K5 fallback solves re-recorded; fast gate green 413 files, 8709 |
