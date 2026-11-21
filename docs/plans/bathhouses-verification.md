@@ -2,6 +2,30 @@
 
 Measurements for [bathhouses-plan.md](bathhouses-plan.md) §6.
 
+## CAL-F4 out-of-sample heart confirmation (BH-16)
+
+The 38 HP Steward gave 70 wins in 150 fights (46.7%) on seeds 31–80, the same rate
+as 42 in 90 on seeds 1–30. Retain the current tuning under the 40–55% pooled target.
+All 80 non-wins stalled at 40 rounds and no fight exhausted the 600-action budget.
+The earliest first boil was dusk 3 and the median was dusk 4. This heart-only sweep
+uses heat 4. The CAL-3 table below records the heat 1–2 check.
+
+The aware bot used gauge and cracks, with Hold scoring off. The fresh founding pair
+entered with 14 HP and 10 charges on Bolt → Ink → Strike and Bolt → Oil → Spark.
+The table gives medians for boils and first-boil timing across the whole sample,
+and for rounds and remaining combined HP among wins.
+
+| Depth 5 layout | Wins | Losses | Stalls | Boils/fight | Median boils | First boil dusk, median / earliest | Median win round | Median HP left on wins |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Caldarium #1 | 28/50 | 0 | 22 | 2.82 | 2 | 4 / 3 | 14 | 11 |
+| Caldarium #2 | 29/50 | 0 | 21 | 3.84 | 3 | 3 / 3 | 11 | 7 |
+| Caldarium #3 | 13/50 | 0 | 37 | 3.46 | 4 | 4 / 4 | 15 | 8 |
+| All three | 70/150 | 0 | 80 | 3.37 | 4 | 4 / 3 | 13 | 8 |
+
+```sh
+caffeinate -i env BATH_TABLE=1 BATH_CANDIDATE=1 BATH_DEPTHS=5 BATH_FIRST_SEED=31 BATH_SEEDS=50 BATH_OUT=/tmp/calf4-baths.md pnpm exec vitest run tests/sim/bathhouses-calibration.test.ts -t 'live bathhouses' --reporter=dot --maxWorkers=1
+```
+
 ## Authored calibration (CAL-3, BH-16)
 
 Reproduce with `BATH_TABLE=1 pnpm vitest run tests/sim/bathhouses-calibration.test.ts --reporter=dot`.
