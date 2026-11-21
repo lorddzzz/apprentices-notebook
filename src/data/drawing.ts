@@ -34,6 +34,9 @@ export const COSTS = {
 
 export const BASE_LENGTH = 3;
 
+/** P6: pen contributions from campaign progress and mastery. */
+export const PEN_TUNING = { perHeart: 1, pagesPerPoint: 4, perCapstone: 1 } as const;
+
 /** Preserve the drawn heart's difficulty under the generator's lite trial. */
 export const DRAWN_MARGINALIA_HP = 16;
 
