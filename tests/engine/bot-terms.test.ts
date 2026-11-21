@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { BOIL_CAPACITY_PIPS } from '$data/districts/bathhouses/types';
 import { KIT } from '$engine/districts';
 import { botValue } from '$engine/districts/api';
 import { BOIL_OVER_RULE_ID, type BoilOverState } from '$engine/districts/bathhouses/types';
@@ -24,7 +25,8 @@ describe('KIT-R3 bot terms', () => {
     for (const ascii of ['@ . d', '{pier} {span} {span} @', 'D ~ ~ @']) {
       expect(botValue(board(ascii)), ascii).toBe(0);
     }
-    const s = bath('D~ ~ . r~\nS . ~ @', 30);
+    // CAL-3 calibrated: 32-pip capacity, so sit 4 quarters short of the boil (was a flat 30).
+    const s = bath('D~ ~ . r~\nS . ~ @', BOIL_CAPACITY_PIPS * 4 - 4);
     const sum = Object.values(KIT.modules).reduce((v, m) => v + (m?.bot?.value?.(s) ?? 0), 0);
     expect(sum).not.toBe(0);
     expect(botValue(s)).toBe(sum);

@@ -43,12 +43,14 @@ describe('data: the foes and the shove attack', () => {
     expect(KIT.foes['bathhouses:boilerman']).toBe(BOILERMAN_FOE);
     expect(ENEMIES.attendant).toMatchObject({ token: 't', attack: 'shove', elite: true });
     expect(ENEMIES.boilerman).toMatchObject({ token: 'c', attack: 'bite', elite: false });
-    // The canals' foes run 1–4 HP (moth, eel, snuffer); neither bath foe outweighs the snuffer.
+    // The canals' foes run 1–4 HP (moth, eel, snuffer). CAL-3 calibrated: the boilerman stays
+    // within them; the elite attendant (6) may outweigh the snuffer but not the heaviest elite foe.
     for (const id of ['attendant', 'boilerman'] as const) {
       expect(ENEMIES[id].hp).toBeGreaterThanOrEqual(ENEMIES.eel.hp);
-      expect(ENEMIES[id].hp).toBeLessThanOrEqual(ENEMIES.snuffer.hp);
+      expect(ENEMIES[id].hp).toBeLessThanOrEqual(ENEMIES.lamplighter.hp);
       expect(ENEMIES[id].blurb.length).toBeGreaterThan(20);
     }
+    expect(ENEMIES.boilerman.hp).toBeLessThanOrEqual(ENEMIES.snuffer.hp);
   });
 
   test('the shove deals nothing itself and pushes 2 (AttackDef.push); only the boilerman feeds', () => {
@@ -208,7 +210,9 @@ describe('the boilerman: the feeder (P7)', () => {
     const c = foe(s, 'boilerman');
     expect(telegraphOf(c)).toEqual({ label: 'feed', tiles: [at('D2')], units: [] });
     expect(intentPhrase(s, c)).toBe('will feed the vent at D2 (1st)');
-    expect(behaviourPreview(s)).toEqual([{ kind: 'outline', cells: [at('D2')], label: '+2' }]);
+    expect(behaviourPreview(s)).toEqual([
+      { kind: 'outline', cells: [at('D2')], label: `+${FEEDER_PIPS}` },
+    ]);
   });
 
   test('walks to the nearest unguarded vent and stays there', () => {

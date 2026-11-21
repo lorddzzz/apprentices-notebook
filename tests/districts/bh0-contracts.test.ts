@@ -89,9 +89,11 @@ describe('BH-0 trip state', () => {
 describe('BH-0 contracts', () => {
   test('heat table: four rows, whole-pip capacity', () => {
     expect(Object.keys(HEAT)).toEqual(['1', '2', '3', '4']);
-    expect(BOIL_CAPACITY_PIPS).toBe(12);
+    expect(BOIL_CAPACITY_PIPS).toBe(32); // CAL-3 calibrated (was 12)
     const h: HeatLevel = 4;
-    expect(HEAT[h].tileQuarters).toBeGreaterThan(HEAT[1].tileQuarters);
+    // CAL-3 calibrated: heat 4 tiles equal heat 1's (2); the hotter rows still out-vent and out-tile it.
+    expect(HEAT[h].ventQuarters).toBeGreaterThan(HEAT[1].ventQuarters);
+    expect(HEAT[3].tileQuarters).toBeGreaterThan(HEAT[1].tileQuarters);
   });
 
   test('types: rule state is JSON, traits and the steam cause join the unions, attacks may push', () => {

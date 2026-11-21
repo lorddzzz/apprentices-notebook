@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { HeatLevel } from '$data/districts/bathhouses/types';
+import { BOIL_CAPACITY_PIPS, type HeatLevel } from '$data/districts/bathhouses/types';
 import type { BattleState } from '$engine';
 import { BOIL_OVER_RULE_ID, type BoilOverState } from '$engine/districts/bathhouses/types';
 import { listRules, rulePreview } from '$engine/rules';
@@ -14,6 +14,8 @@ import { board, draft } from '../scenarios/harness';
 /** BH-12: what the gauge says in words, how its boil-over is played, and who is warned. */
 
 const ID = BOIL_OVER_RULE_ID;
+/** CAL-3 calibrated: capacity is `BOIL_CAPACITY_PIPS` pips; the near-boil fixtures sit 2 quarters short. */
+const NEAR = BOIL_CAPACITY_PIPS * 4 - 2;
 
 function bath(ascii: string, heat: HeatLevel = 1, pressure = 0): BattleState {
   const s = structuredClone(board(ascii));
@@ -31,12 +33,12 @@ describe('gaugeLine', () => {
   test('quiet: whole pips now, and where it rises to', () => {
     const l = gaugeLine(bath('D ~ ~', 1, 9));
     expect(l).toMatchObject({ boils: false, harm: [] });
-    expect(l?.text).toBe('Steam 2 of 12, rising to 3');
-    expect(gaugeLine(bath('D . .', 1, 8))?.text).toBe('Steam 2 of 12');
+    expect(l?.text).toBe(`Steam 2 of ${BOIL_CAPACITY_PIPS}, rising to 3`);
+    expect(gaugeLine(bath('D . .', 1, 8))?.text).toBe(`Steam 2 of ${BOIL_CAPACITY_PIPS}`);
   });
 
   test('boiling: names the party members it would storm', () => {
-    const l = gaugeLine(bath('D~ r~ .', 1, 46));
+    const l = gaugeLine(bath('D~ r~ .', 1, NEAR));
     expect(l?.boils).toBe(true);
     expect(l?.harm).toHaveLength(1);
     expect(l?.text).toContain('will be stormed for 2');
@@ -44,7 +46,7 @@ describe('gaugeLine', () => {
   });
 
   test('boiling with nobody of yours in the steam says so', () => {
-    const l = gaugeLine(bath('D . .\nr~ ~ .', 1, 46));
+    const l = gaugeLine(bath('D . .\nr~ ~ .', 1, NEAR));
     expect(l?.boils).toBe(true);
     expect(l?.harm).toEqual([]);
     expect(l?.text).toContain('none of yours');
@@ -53,9 +55,16 @@ describe('gaugeLine', () => {
 
 describe('the meter shape feeds the strip', () => {
   test('forecast and danger ride one meter, with a pulse on each member in the steam', () => {
-    const shapes = rulePreview(bath('D~ r~ .', 1, 46)).flatMap((r) => [...r.shapes]);
+    const shapes = rulePreview(bath('D~ r~ .', 1, NEAR)).flatMap((r) => [...r.shapes]);
     expect(shapes.filter((s) => s.kind === 'meter')).toEqual([
-      { kind: 'meter', label: 'Pressure', value: 11, max: 12, forecast: 12, danger: true },
+      {
+        kind: 'meter',
+        label: 'Pressure',
+        value: BOIL_CAPACITY_PIPS - 1,
+        max: BOIL_CAPACITY_PIPS,
+        forecast: BOIL_CAPACITY_PIPS,
+        danger: true,
+      },
     ]);
     expect(shapes.filter((s) => s.kind === 'pulse')).toHaveLength(1);
   });
@@ -63,7 +72,7 @@ describe('the meter shape feeds the strip', () => {
 
 describe('boil-over playback', () => {
   test('the round end that boils plays one boil fx over the stormed tiles, and takes a beat', () => {
-    const s = bath('D~ r~ .', 1, 46);
+    const s = bath('D~ r~ .', 1, NEAR);
     const events = draft(s, (ctx) => roundEnd(ctx)).events;
     const ev = events.find((e) => e.type === 'bathhouses:boilOver');
     expect(ev).toBeDefined();

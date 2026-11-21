@@ -70,7 +70,11 @@ describe('the thermae Lab scenarios', () => {
   });
 
   test('holding still in the boil-over room boils it over', () => {
-    const r = holdStill(labBattle('boil-over'));
+    // CAL-3 calibrated: the gauge holds 32 pips, so on the scenario's thin 2 HP the foes finish
+    // the party before it fills; a fuller party sees the room boil over.
+    const s = structuredClone(labBattle('boil-over'));
+    for (const u of s.units) if (u.kind === 'member') u.hp = u.maxHp = 10;
+    const r = holdStill(s);
     expect(r.events.some((e) => e.type === 'bathhouses:boilOver')).toBe(true);
   });
 

@@ -6,6 +6,7 @@ import {
   BATH_RECRUIT_KIT,
   TOWEL_BEARER_CARD,
 } from '$data/districts/bathhouses';
+import { BOIL_CAPACITY_PIPS } from '$data/districts/bathhouses/types';
 import { DISTRICT_KIT } from '$data/districts/index';
 import { newProfile, type Profile, startTrip, type Trip } from '$engine';
 import { AREAS_GUARANTEE } from '$engine/districts/bathhouses/trip';
@@ -146,7 +147,10 @@ describe('the boil-over leaves her unhurt', () => {
     s.rules = listRules(s, [BOIL_OVER_RULE_ID], { [BOIL_OVER_RULE_ID]: { heat: 1 } });
     s.rules = {
       ...s.rules,
-      [BOIL_OVER_RULE_ID]: { ...(s.rules[BOIL_OVER_RULE_ID] as BoilOverState), pressure: 47 },
+      [BOIL_OVER_RULE_ID]: {
+        ...(s.rules[BOIL_OVER_RULE_ID] as BoilOverState),
+        pressure: BOIL_CAPACITY_PIPS * 4 - 2,
+      },
     };
     for (const u of s.units) if (u.kind === 'enemy') u.intent = null;
     const bearer = s.units.find((u) => u.id === 'towelBearer');
