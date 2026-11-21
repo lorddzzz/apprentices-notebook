@@ -2,7 +2,8 @@
   import { ENEMIES, type EnemyId } from '$data';
   import type { BoardSpec } from '$engine';
   import { type GeneratedRoom, generateRoom, offeredTrial } from '$engine/drawing';
-  import { sampleInput } from './samples';
+  import { workerInker } from '../generation';
+  import { calibrationCase, sampleInput } from './samples';
 
   const COUNT = 20;
   const ARROWS = { up: '↑', down: '↓', left: '←', right: '→' } as const;
@@ -13,17 +14,56 @@
     party: number;
     room: GeneratedRoom;
     ms: number;
+    /** Production worker on the same room (calibration corpus only): its own reported ms, and the round trip. */
+    workerMs?: number;
+    wallMs?: number;
   }
+  type Corpus = 'spike' | 'calibration';
 
   let from = $state(1);
   let rows = $state.raw<Row[]>([]);
   let running = $state(false);
+  let corpus = $state<Corpus>('spike');
+  let count = $state(COUNT);
+  let warm = $state(false);
 
   const sorted = (xs: number[]): number[] => [...xs].sort((a, b) => a - b);
   const pct = (xs: number[], p: number): number =>
     sorted(xs)[Math.min(xs.length - 1, Math.floor(p * xs.length))] ?? 0;
 
   const accepted = $derived(rows.filter((r) => !r.room.fallback));
+  const workerRows = $derived(rows.filter((r) => !r.room.fallback && r.workerMs !== undefined));
+  const stats = (xs: number[]) => ({
+    median: Math.round(pct(xs, 0.5)),
+    p95: Math.round(pct(xs, 0.95)),
+  });
+  const workerSummary = $derived({
+    n: workerRows.length,
+    inside: stats(workerRows.map((r) => r.workerMs ?? 0)),
+    roundTrip: stats(workerRows.map((r) => r.wallMs ?? 0)),
+  });
+  const exportJson = $derived(
+    JSON.stringify(
+      {
+        corpus,
+        agent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
+        viewport: typeof window === 'undefined' ? '' : `${window.innerWidth}x${window.innerHeight}`,
+        warm,
+        definition:
+          'ms = performance.now() around generateRoom (direct, main thread); workerMs = ms reported by the production worker; wallMs = main-thread round trip of workerInker().ink',
+        samples: rows.map((r) => ({
+          seed: r.seed,
+          fallback: r.room.fallback,
+          attempts: r.room.attempts,
+          ms: r.ms,
+          workerMs: r.workerMs,
+          wallMs: r.wallMs,
+        })),
+      },
+      null,
+      1,
+    ),
+  );
   const summary = $derived({
     median: Math.round(pct(accepted.map((r) => r.ms), 0.5)),
     p95: Math.round(pct(accepted.map((r) => r.ms), 0.95)),
@@ -64,23 +104,33 @@
 
   async function run() {
     running = true;
+    warm = rows.length > 0;
     rows = [];
-    for (let i = 0; i < COUNT; i++) {
+    const inker = workerInker();
+    for (let i = 0; i < count; i++) {
       await new Promise((resolve) => setTimeout(resolve, 0));
       const seed = from + i;
-      const input = sampleInput(seed);
+      const cal = corpus === 'calibration' ? await calibrationCase(seed) : null;
+      const input = cal ? cal.input : sampleInput(seed);
       const t0 = performance.now();
       const room = generateRoom(input);
       const ms = performance.now() - t0;
+      let timing: Pick<Row, 'workerMs' | 'wallMs'> = {};
+      if (cal) {
+        const w0 = performance.now();
+        const reply = await inker.ink(cal.profile, cal.trip, cal.room);
+        timing = { workerMs: reply.ms, wallMs: performance.now() - w0 };
+      }
       const d = input.drawing;
       rows = [
         ...rows,
         {
           seed,
-          title: `${d.rule ? 'current' : 'plain'} · ${d.foes.join(', ')} · room ${input.room + 1} of ${d.length}`,
+          title: `${cal ? `${d.name} · ` : ''}${d.rule ? 'current' : 'plain'} · ${d.foes.join(', ')} · room ${input.room + 1} of ${d.length}`,
           party: input.party.length,
           room,
           ms,
+          ...timing,
         },
       ];
     }
@@ -91,12 +141,20 @@
 <main>
   <h1>Generator spike</h1>
   <p class="note">
-    Twenty drawn rooms from seeds {from} to {from + COUNT - 1}, generated here and timed on this
+    {count} drawn rooms from seeds {from} to {from + count - 1}, generated here and timed on this
     device (the room's attempts, the bot trials and the fallback included).
   </p>
   <div class="bar">
+    <label>
+      Corpus
+      <select bind:value={corpus} disabled={running}>
+        <option value="spike">Spike (seeds 1–40)</option>
+        <option value="calibration">CAL-5 frozen drawings</option>
+      </select>
+    </label>
     <label>From seed <input type="number" min="1" bind:value={from} disabled={running} /></label>
-    <button type="button" onclick={run} disabled={running}>{running ? 'Inking…' : 'Run 20'}</button>
+    <label>Rooms <input type="number" min="1" max="200" bind:value={count} disabled={running} /></label>
+    <button type="button" onclick={run} disabled={running}>{running ? 'Inking…' : `Run ${count}`}</button>
   </div>
 
   {#if rows.length > 0}
@@ -106,6 +164,18 @@
       <div><b>{summary.firstTry}/{rows.length}</b> first try</div>
       <div><b>{summary.fallbacks}</b> fallbacks, <b>{summary.unverified}</b> unverified, <b>{summary.dull}</b> dull</div>
       <div><b>{summary.ops}</b> median ops per room</div>
+      {#if workerSummary.n > 0}
+        <div>
+          Production worker ({workerSummary.n} accepted): <b>{workerSummary.inside.median} ms</b> median,
+          <b>{workerSummary.inside.p95} ms</b> p95 inside; round trip <b>{workerSummary.roundTrip.median} ms</b> /
+          <b>{workerSummary.roundTrip.p95} ms</b>
+        </div>
+      {/if}
+      <div>{warm ? 'warm run' : 'cold run (first since load)'}</div>
+      <details>
+        <summary>Raw samples (JSON)</summary>
+        <textarea id="raw-samples" readonly rows="6">{exportJson}</textarea>
+      </details>
     </section>
   {/if}
 
@@ -132,6 +202,9 @@
         </span>
         <span>{row.room.ops} ops</span>
         <span>{Math.round(row.ms)} ms</span>
+        {#if row.workerMs !== undefined}
+          <span>worker {Math.round(row.workerMs)} ms ({Math.round(row.wallMs ?? 0)} round trip)</span>
+        {/if}
       </footer>
       <footer class="walk">
         <span>budget {row.room.trials.map((t) => t.budget).join(' → ')}</span>
@@ -184,6 +257,19 @@
     gap: 12px;
     align-items: center;
     margin-bottom: 12px;
+  }
+  .bar {
+    flex-wrap: wrap;
+  }
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font: 0.7rem monospace;
+  }
+  select {
+    width: auto;
+    padding: 6px;
+    font: inherit;
   }
   input {
     width: 5rem;
