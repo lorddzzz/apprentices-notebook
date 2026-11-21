@@ -18,7 +18,35 @@ The full `CAL5=1 CAL5_DETAIL=1` baseline on `48ac3f0` passed 6/6 in 859 seconds.
 | Medium (45–60%) | 68/96 (70.8%) | 68/8/20 | 15/21/32 | 10.8 pp |
 | Heavy (30–45%) | 71/96 (74.0%) | 71/5/20 | 14/25/32 | 29.0 pp |
 
-Fresh ordinary walkovers were 76/534 (14.2%), split 28/102 light, 21/192 medium and 27/240 heavy. Of 534 offered layouts, 351 were fair within four draws of the budget, 107 were fallback offers and 105 were unverified. The oracle flagged 99 offered layouts. The 288 fresh heart offers included 98 fallbacks, 92 unverified. The Lamp-mother's 12 pair fallbacks were all unverified, then won through the app in rounds 17–23. The Carillonneur's 12 pair fallbacks were all unverified and produced 5 losses and 7 stalls. All 12 trios won against each master. Carried trips reached 68 hearts and cleared 24/144 trips, with 42 losses and 78 stalls.
+Fresh ordinary walkovers were 76/534 (14.2%), split 28/102 light, 21/192 medium and 27/240 heavy. Of 534 offered layouts, 351 were fair within four attempts, 107 were fallback offers and 105 were unverified. The oracle flagged 99 offered layouts. The 288 fresh heart offers included 98 fallbacks, 92 unverified. The Lamp-mother's 12 pair fallbacks were all unverified, then won through the app in rounds 17–23. The Carillonneur's 12 pair fallbacks were all unverified and produced 5 losses and 7 stalls. All 12 trios won against each master. Carried trips reached 68 hearts and cleared 24/144 trips, with 42 losses and 78 stalls.
+
+### Paired data candidates on the final authored revision
+
+The comparison uses all 534 fresh ordinary offers, paired by name, depth, lineup and seeds 1–2. Reproduce by setting `bandBonus` to each candidate in `src/data/drawing.ts` and running the same command with `CAL5=1 CAL5_ORDINARY=1 CAL5_DETAIL=1` and `-t 'production corpus tables'`. For the step candidate, use `CAL5_CANDIDATE=step2` with the default band bonuses. The full fight policy and production trial limits match the baseline.
+
+| Candidate | Walkovers L/M/H | Walkovers total | Fair | Fallback | Unverified | Invalid offers | App W/L/S |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `bandBonus` 0/1/2, step 1 | 28/21/27 | 76 (14.2%) | 351 | 107 | 105 | 99 | 510/6/18 |
+| `bandBonus` 1/2/3, step 1 | 28/16/28 | 72 (13.5%) | 348 | 123 | 111 | 102 | 489/10/35 |
+| `bandBonus` 2/3/4, step 1 | 27/15/30 | 72 (13.5%) | 340 | 127 | 113 | 102 | 481/16/37 |
+| `bandBonus` 0/1/2, step 2 | 25/27/51 | 103 (19.3%) | 354 | 77 | 77 | 77 | 509/7/18 |
+
+Solo accounted for 57 of the baseline's 76 walkovers. A lower party slope (`perMember` 1 with `bandBonus` 3/4/5) would give the solo/pair/trio budgets already measured at +2/+1/+0, respectively. Selecting those rows gives 68 walkovers, 113 unverified and 102 invalid in 534 fresh offers. Increasing the opening budget traded a small improvement in walkovers for more unverified offers and failed layout checks.
+
+### Delegated application and register rows
+
+Retain the production data. The two-point step prevented 28 unverified offers but added 27 walkovers, 24 of them heavy. Both measured budget increases left walkovers above 10% and increased invalid offers. The frozen corpus preserves the pen and loot decisions from tasks 1–2. With the starting data retained, the full starting-revision rerun is also the application measurement. Fresh heart rates stay 76.0%, 70.8% and 74.0%, and fresh ordinary walkovers stay 14.2%. Heart scaling, piece reach and peal allocation are separate design findings.
+
+| Pack | Tunable / source | Current | Candidate | Baseline measurement | Candidate measurement | Band / miss | Bot / corpus / command / revision | Player decision | Applied revision / rerun |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CAL-5 | `GEN_TUNING.bandBonus` | 0/1/2 | 1/2/3 | 76 walkovers, 105 unverified, 99 invalid of 534 | 72/111/102 | 13.5%, +3.5 pp | Final paired fresh ordinary corpus, `48ac3f0` | Retain 0/1/2 under delegation | Full source-default rerun |
+| CAL-5 | `GEN_TUNING.bandBonus` | 0/1/2 | 2/3/4 | 76 walkovers, 105 unverified, 99 invalid of 534 | 72/113/102 | 13.5%, +3.5 pp | Same paired corpus | Retain 0/1/2 under delegation | Full source-default rerun |
+| CAL-5 | `GEN_TUNING.perMember` and `bandBonus` | 2 and 0/1/2 | 1 and 3/4/5 | 76 walkovers, 105 unverified, 99 invalid of 534 | 68/113/102 from effective budgets measured at +2/+1/+0 | 12.7%, +2.7 pp | Recombined solo/pair/trio rows from paired corpus | Retain 2 and 0/1/2 under delegation | Full source-default rerun |
+| CAL-5 | `GEN_TUNING.step` | 1 | 2 | 76 walkovers, 105 unverified, 99 invalid of 534 | 103/77/77 | 19.3%, +9.3 pp | Same paired corpus, `CAL5_CANDIDATE=step2` | Retain 1 under delegation | Full source-default rerun |
+| CAL-5 | Drawn heart weight scaling | Frame HP | Master HP offsets +4/+12/+24 | 73/68/71 wins of 96 per band | Prototype pending | +1.0/+10.8/+29.0 pp | Full fresh app-path hearts, `48ac3f0` | Defer to design | Defaults rerun |
+| CAL-5 | Piece reach and minimum stamp | Foot-only local checks | Cast reach 4 and validate stamped pieces | 99/534 invalid ordinary offers | Prototype pending | 99 flagged | Final paired corpus, seed-1 kit probes | Defer to design | Defaults rerun |
+| CAL-5 | Length-six peal hook allocation | Sorted notes | Distinct notes first | `1,2,3,4,1` hung as `1,1,2,3` | Prototype pending | Note 4 displaced | Full rerun's save/reload setup probe | Defer to design | Defaults rerun |
+| CAL-5 | Steward lite trial heat | 1 | 4, matching app heart | Heat four in the app fight, rule default one in lite trial | Prototype pending | Setup parity | `trialRules`, `heartConfig` and full fresh corpus | Defer to design | Defaults rerun |
 
 ### Design findings for a separate brief
 
