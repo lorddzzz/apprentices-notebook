@@ -125,6 +125,9 @@
   {#each notes.filter((i) => i.element !== 'pen') as issue (issue.reason)}
     <p class="note-issue" data-testid="drawing-issue">{issue.reason}</p>
   {/each}
+  {#each view.caveats as caveat (caveat)}
+    <p class="note-caveat" data-testid="drawing-caveat">{caveat}</p>
+  {/each}
 
   <div class="actions">
     <Button
@@ -215,6 +218,12 @@
   }
   .note-issue {
     margin: var(--space-2) var(--space-1) 0;
+  }
+  .note-caveat {
+    margin: var(--space-2) var(--space-1) 0;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
   }
   .lengths {
     display: grid;

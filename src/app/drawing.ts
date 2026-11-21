@@ -1,9 +1,10 @@
-import { type Drawing, ENEMIES, type EnemyId } from '$data';
+import { DISTRICTS, type Drawing, ENEMIES, type EnemyId } from '$data';
 import { COSTS } from '$data/drawing';
 import type { Profile, SaveData, Trip } from '$engine';
 import {
   checkDrawing,
   costOf,
+  drawingCaveats,
   drawingsOf,
   endingOf,
   FOE_LIMIT_SENTENCE,
@@ -20,6 +21,7 @@ import {
   type WeightBand,
   weightBand,
 } from '$engine/drawing';
+import { placeInText } from './tripviews';
 
 /** The drawing table's view model (EN-6): rows from the palette, greyed reasons, pen and depth. */
 
@@ -44,6 +46,8 @@ export interface TableView {
   depth: string;
   rows: Record<PickElement, ElementRow[]>;
   issues: Issue[];
+  /** Notes under the issues (a peal with a hookless master); they never block saving. */
+  caveats: string[];
   canSave: boolean;
   locked: boolean;
 }
@@ -185,6 +189,22 @@ export function pageInUse(trip: Trip | null, slot: 0 | 1 | 2): boolean {
   return parseInkedState(trip.kit?.state).slot === slot;
 }
 
+/** The cleared screen's heading: a drawn trip names its drawing, any other its district. */
+export function clearedHeading(trip: Trip): string {
+  const place = (): string => {
+    if (trip.district === 'seam') return 'the Seam';
+    if (trip.district === ('inkedPage' as string)) {
+      try {
+        return parseInkedState(trip.kit?.state).drawing.name;
+      } catch {
+        // an unreadable page falls back to the district's own name
+      }
+    }
+    return placeInText(DISTRICTS[trip.district].name);
+  };
+  return `The heart of ${place()} is quiet.`;
+}
+
 export function tableView(
   p: Profile,
   slot: 0 | 1 | 2,
@@ -216,6 +236,7 @@ export function tableView(
     depth: DEPTH_WORDS[band],
     rows,
     issues,
+    caveats: drawingCaveats(d),
     canSave: issues.length === 0 && !locked,
     locked,
   };

@@ -56,7 +56,12 @@ export interface HookTile {
 export function alliedBellEdits(state: FoundryTripState, hooks: readonly HookTile[]): BoardEdit[] {
   const notes: number[] = state.rung.map((r) => r.note).sort((a, b) => a - b);
   const named = new Set(hooks.map((h) => h.note).filter((n) => n > 0));
-  const spare: number[] = notes.filter((n) => !named.has(n));
+  const unnamed = notes.filter((n) => !named.has(n));
+  // Distinct notes first, so a repeated note cannot displace a higher one; duplicates fill what is left.
+  const spare: number[] = [
+    ...unnamed.filter((n, i) => unnamed.indexOf(n) === i),
+    ...unnamed.filter((n, i) => unnamed.indexOf(n) !== i),
+  ];
   const edits: BoardEdit[] = [];
   const bell = (note: Note): TilePiece => {
     const data: GreatBellData = { note, hang: DEFAULT_HANG[note], allied: true, rung: true };

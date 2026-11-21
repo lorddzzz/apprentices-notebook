@@ -1,8 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import type { Drawing } from '$data';
 import { newSave, type Profile, type Trip } from '$engine';
-import { drawingsOf, paletteOf, penOf } from '$engine/drawing';
-import { blankDrawing, EMPTY_SLOT, saveDraft, tableView, toggle } from '../../src/app/drawing';
+import { drawingsOf, PEAL_NO_HOOKS_SENTENCE, paletteOf, penOf } from '$engine/drawing';
+import {
+  blankDrawing,
+  clearedHeading,
+  EMPTY_SLOT,
+  saveDraft,
+  tableView,
+  toggle,
+} from '../../src/app/drawing';
 import { resolveScreen } from '../../src/app/flow';
 import { fullHousehold, handoverProfile } from '../drawing/fixtures';
 
@@ -105,5 +112,54 @@ describe('the drawing table', () => {
     });
     const trip = { status: 'fight' } as unknown as Trip;
     expect(resolveScreen('drawing', trip, null, null, handoverProfile()).screen).toBe('battle');
+  });
+});
+
+describe('CAL-5P: the hookless peal caveat', () => {
+  const peal = (p: Profile, heart: Drawing['heart']): Drawing => ({
+    ...named(blankDrawing(p), 'Bells'),
+    shape: 'foundry:peal',
+    pieces: [],
+    heart,
+  });
+
+  test('CAL-5P: a peal with a hookless master shows the caveat and can still be saved', () => {
+    const p = fullHousehold();
+    const d = { ...peal(p, 'marginalia'), rule: 'foundry:bells' as Drawing['rule'] };
+    const v = tableView(p, 0, d, null);
+    expect(v.caveats).toEqual([PEAL_NO_HOOKS_SENTENCE]);
+    expect(v.issues).toEqual([]); // a caveat is never an Issue
+    expect(v.canSave).toBe(true);
+    expect(v.rows.heart.find((r) => r.id === 'marginalia')?.greyed).toBeNull(); // no row is greyed by it
+    const saved = saveDraft({ ...newSave(1), profile: p }, 0, d);
+    expect(drawingsOf(saved.profile)[0]?.shape).toBe('foundry:peal');
+  });
+
+  test('CAL-5P: a peal with the Carillonneur shows no caveat', () => {
+    const p = fullHousehold();
+    expect(tableView(p, 0, peal(p, 'carillonneur'), null).caveats).toEqual([]);
+    expect(tableView(p, 0, { ...peal(p, 'marginalia'), shape: 'plain' }, null).caveats).toEqual([]);
+  });
+});
+
+describe('CAL-5P: the cleared heading', () => {
+  const tripOf = (district: string, drawing: Drawing): Trip =>
+    ({
+      district,
+      kit: {
+        state: { slot: 0, drawing, rooms: [null, null, null], inner: null },
+        choices: [],
+        checkpoint: false,
+        bonuses: [],
+      },
+    }) as unknown as Trip;
+
+  test('CAL-5P: a cleared drawn trip names its drawing', () => {
+    const p = handoverProfile();
+    const d = named(blankDrawing(p), 'Heavy Marginalia');
+    expect(clearedHeading(tripOf('inkedPage', d))).toBe('The heart of Heavy Marginalia is quiet.');
+    // Control: a home district keeps its own name.
+    expect(clearedHeading(tripOf('seam', d))).toBe('The heart of the Seam is quiet.');
+    expect(clearedHeading(tripOf('canals', d))).toBe('The heart of the oil-lit canals is quiet.');
   });
 });

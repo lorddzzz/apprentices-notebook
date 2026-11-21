@@ -2,7 +2,9 @@ import type { Drawing } from '$data';
 import { NEEDS } from '$data/drawing';
 import type { Profile } from '../types';
 import { costOf } from './cost';
+import { HEART_FRAMES } from './frames';
 import { GEN_KITS } from './kits';
+import { hooksOf } from './kits/foundry';
 import { paletteOf, penOf } from './palette';
 import { FOES_MAX, NAME_MAX, PIECES_MAX } from './profile';
 import type { DrawingElement, Issue } from './types';
@@ -22,6 +24,17 @@ function onDrawing(d: Drawing): Set<string> {
 export const NO_FOE_SENTENCE = 'Draw at least one foe.';
 export const FOE_LIMIT_SENTENCE = 'Three kinds at most.';
 export const PIECE_LIMIT_SENTENCE = 'Two extra pieces at most.';
+
+/** A peal drawn with a master whose heart has no `{hook}` tiles: told at the table, never an issue. */
+export const PEAL_NO_HOOKS_SENTENCE =
+  "This heart has no hooks: the peal's great bells ring in their rooms but none hangs at the heart.";
+
+/** Caveats: what a drawing will do that the player may not expect. They never block saving. */
+export function drawingCaveats(d: Drawing): string[] {
+  const frame = HEART_FRAMES[d.heart];
+  const hookless = frame === undefined || hooksOf(frame.fallback).length === 0;
+  return d.shape === 'foundry:peal' && hookless ? [PEAL_NO_HOOKS_SENTENCE] : [];
+}
 
 /** P5: every unmet need, element or limit, each with its sentence; empty when the drawing may be saved. */
 export function checkDrawing(p: Profile, d: Drawing): Issue[] {

@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { DISTRICTS } from '$data';
+  import { clearedHeading } from '../../app/drawing';
   import { game } from '../../app/instance';
-  import { placeInText } from '../../app/tripviews';
   import Button from '../components/common/Button.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
   import TripStatus from '../components/trip/TripStatus.svelte';
@@ -22,7 +21,7 @@
         <h1>The stair ends here.</h1>
         <p>The lowest floor is quiet. Take it all home.</p>
       {:else}
-        <h1>The heart of {trip.district === 'seam' ? 'the Seam' : placeInText(DISTRICTS[trip.district].name)} is quiet.</h1>
+        <h1>{clearedHeading(trip)}</h1>
         <p>Nothing deeper answers. Take it all home.</p>
       {/if}
     </header>

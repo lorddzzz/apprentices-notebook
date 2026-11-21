@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FOUNDRY_ROOMS_12 } from '$data/districts/foundry';
+import { FOUNDRY_ROOMS_12, type Note } from '$data/districts/foundry';
 import { type EventLog, newProfile, returnHome, startTrip } from '$engine';
 import { basicDirs } from '$engine/basicActions';
 import {
@@ -193,6 +193,16 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
       [4, 1],
       [6, 3],
     ]); // the hook for note 2 hangs nothing: that room's bell was not rung
+  });
+
+  it('CAL-5P: five rungs 1,2,3,4,1 hang 1,2,3,4 on four bare hooks', () => {
+    const hooks = [0, 2, 4, 6].map((x) => ({ at: { x, y: 0 }, note: 0 }));
+    const notes = (rungNotes: Note[]): number[] =>
+      alliedBellEdits({ rung: rungNotes.map((note, room) => ({ room, note })) }, hooks).map((e) =>
+        'piece' in e ? ((e.piece?.data ?? { note: 0 }) as { note: number }).note : 0,
+      );
+    expect(notes([1, 2, 3, 4, 1])).toEqual([1, 2, 3, 4]);
+    expect(notes([1, 1, 2, 2, 3])).toEqual([1, 2, 3, 1]); // duplicates fill only what distinct notes leave
   });
 
   it('BF-8: roomSetup hangs an allied bell at each hook for every note rung', () => {
