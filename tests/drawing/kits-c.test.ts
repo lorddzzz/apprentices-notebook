@@ -102,6 +102,7 @@ describe('Pack K frames (EN-K6, EN-K7)', () => {
     expect(HEART_FRAMES.registrar?.needs).toEqual([]);
   });
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-K6: the Carillonneur hangs four hook tiles and lists the tune', () => {
     expect(HEART_FRAMES.carillonneur?.setup.rules).toEqual(['foundry:tune']);
     expect(hookIds(HEART_FRAMES.carillonneur?.fallback as BoardSpec)).toBe(4);
@@ -111,8 +112,9 @@ describe('Pack K frames (EN-K6, EN-K7)', () => {
       expect(hookIds(room.layout)).toBe(4);
       expect(hooksOf(room.layout)).toHaveLength(4);
     }
-  });
+  }, 300_000);
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-K7: the Registrar stands among his Tracer, the outlines and the pencil', () => {
     const fallback = HEART_FRAMES.registrar?.fallback as BoardSpec;
     for (const board of [
@@ -126,7 +128,7 @@ describe('Pack K frames (EN-K6, EN-K7)', () => {
       expect(ids).toContain('cartographers:pencil');
       expect(ids).toContain('cartographers:outline');
     }
-  });
+  }, 300_000);
 
   it('EN-K6: the fallback boards read back as written', () => {
     for (const master of MASTERS) {

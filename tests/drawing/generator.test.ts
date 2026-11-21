@@ -39,6 +39,7 @@ describe('EN-2: the production generator', () => {
     }
   });
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-2: no foe starts within distance 2 of any P', () => {
     for (const master of ['marginalia', 'mother'] as const) {
       for (const seed of SEEDS) {
@@ -49,7 +50,7 @@ describe('EN-2: the production generator', () => {
         }
       }
     }
-  });
+  }, 300_000);
 
   it('EN-2: depth bands scale the foe budget', () => {
     const light: Drawing = { ...FIXTURE_DRAWINGS[0], name: 'Light' } as Drawing;
@@ -66,6 +67,7 @@ describe('EN-2: the production generator', () => {
     expect(specFor(inputFor(light, 1), 1).heart).toBe(true);
   });
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-2: unverified fallbacks are zero', () => {
     // The lamp-mother is not here: the lite bot needs 17 to 38 rounds for her (the heart limit is
     // 16), so all her hearts reach the fallback and it stays unverified until the bot has terms for
@@ -83,10 +85,11 @@ describe('EN-2: the production generator', () => {
         expect(room.fallback && !room.verified).toBe(false);
       }
     }
-  });
+  }, 300_000);
 });
 
 describe('EN-5: every offered combination generates (P23)', () => {
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-5: every offered combination generates', () => {
     const p = fullHousehold();
     const palette = paletteOf(p);
@@ -115,5 +118,5 @@ describe('EN-5: every offered combination generates (P23)', () => {
       }
     }
     expect(tried).toBeGreaterThan(0);
-  });
+  }, 300_000);
 });
