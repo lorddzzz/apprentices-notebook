@@ -57,6 +57,16 @@ Retain the production data. The two-point step prevented 28 unverified offers bu
 | Length-six peal | Keep all **5** room entries in trip state. Reserve one hook for each distinct earned note first, honoring named hooks, then use duplicate notes to fill remaining bare hooks. For **4** bare hooks and entries `1,2,3,4,1`, expect `1,2,3,4`. For **0** hooks, hang zero and disclose that limitation when drawing the peal. |
 | Steward judge parity | The app activates boil-over at heat **4** and the lite trial uses the rule default of **1**. Test heat **4** for both trial paths, including the authored fallback, against the same fresh corpus. |
 
+### Task 3 verification
+
+| Check | Result on the retained defaults |
+| --- | --- |
+| `pnpm check:fast` | 414 files, 8,723 tests passed, 13 todo. Existing lint warnings in PenPot and the foundry bench test. |
+| Full CAL-5 drawn corpus | 6/6 passed, including palette coverage, pen, loot, stored-room reload and peal setup. |
+| Historical-corpus generator fuzz | 9/9 passed in 115 seconds, including 500 layouts and 50 deterministic replays. |
+
+The 500-seed fuzz had 30 walkovers (6.0%) and no fallback, unverified offer, invalid layout or event cap. It offered 370/500 within two attempts and verified all 500 within four. Fair within four was 470/500 (94.0%) against the 94.4% watch value. Offered win round and HP-left medians were 3 and 85.7%. Desktop median/p95 was 179/407 ms. The production corpus's 14.2% walkovers and 99 invalid offers remain separate misses.
+
 ## Corpus and reproduction
 
 The frozen corpus contains eight drawings per weight band and one of each master in each band. They cover every offered rule and shape at least once and lengths 3–6. The entries pair several masters with different shapes or drawing rules and hold their shipped frame setup. The roster is the Draughtsman, then the Stoker, then the Lamp-pole Runaway. Each member uses their starter lattice, with compiled source coordinates, paths and charge counts in the `CAL5 CONFIG` output. The profile fixtures specify synthetic milestone inputs for pen and device reproduction. Player-exported saves were unavailable. [Drawings](../../tests/fixtures/calibration/drawings.ts) · [Profiles](../../tests/fixtures/calibration/profiles.json)
@@ -71,7 +81,7 @@ caffeinate -i env CAL5=1 CAL5_MASTER=marginalia CAL5_CANDIDATE=marginalia32 pnpm
 caffeinate -i env HOUSEHOLD_SWEEP=1 pnpm vitest run tests/sim/household-sweep.test.ts --reporter=dot
 ```
 
-Defaults are seeds 1–2 per fresh ordinary encounter, 1–4 per fresh heart and 1–2 per carried trip. The emitter prints distributions in p05/median/p95 order, by master, band, party and depth, and exposes per-room JSON with `CAL5_DETAIL=1`. It includes generation outcomes even when app setup or a fight throws. Candidate overrides are confined to the Vitest module for this file. The historical generator sweep and household assertions retain the production configuration. Desktop generation timings use Node 24.19 on macOS 26.7.3 (x86_64), with concurrent machine load. CAL-P owns device measurements.
+Defaults are seeds 1–2 per fresh ordinary encounter, 1–4 per fresh heart and 1–2 per carried trip. The emitter prints distributions in p05/median/p95 order, by master, band, party and depth, and exposes per-room JSON with `CAL5_DETAIL=1`. It includes generation outcomes even when app setup or a fight throws. Tasks 1–2 injected their candidates through the corpus test's Vitest module. The historical generator sweep and household assertions use the production configuration. Desktop generation timings use Node 24.19 on macOS 26.7.3 (x86_64), with concurrent machine load. CAL-P owns device measurements.
 
 ## Historical 500-seed EN-S1/EN-S2 sweep
 
