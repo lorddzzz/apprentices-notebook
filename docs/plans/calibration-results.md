@@ -114,3 +114,12 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 |---|---|---|---|
 | CAL-F2 room 4 | Lamplighter 18 HP, two eels | fresh pair 150/0/0, 5 rounds, 11 HP; mooring fresh 0 → 22 %, worn 21.3 → 42.6 % (ceiling 25 %) | Rejected under delegation: no win-rate gain, worn mooring regressed. Room 4 stays at 100 % wins as an open miss; a stronger Lamplighter kit is player question 3 (default no). Patch kept at /tmp/calf2.mbox. |
 | CAL-F2 Snuffer fallback | two eels and rats | 150/0/0; mooring fresh 0 %, worn 19.1 % | Not applied with the rest. |
+
+### CAL-F3 and CAL-F4 (applied 2026-11-21)
+| ID | Applied | Result | Remaining miss |
+|---|---|---|---|
+| CAL-F3 hooks | H2: first hook beside the Carillonneur, pulse damage 2 | 0 bells 16/60 (27 %), 4 bells 56/60 (93 %) | four bells 3 pp over the ceiling |
+| CAL-F3 loft | clapper 12, detuner 6 | room 4 44/60 (73 %): 3 losses, 13 stalls | stall-shaped (player Q1, default: stalls are misses) |
+| CAL-F3 Registrar | move kept 1 (move 2: 26/72/81 %) | solo +11, duo +8 pp | accepted |
+| CAL-F4 Chief | authored 32 HP (drawn stays 28) | sound 80 %, crumbling 67.5 % fresh pair | crumbling 7.5 pp short; worn pairs clear 0/40 per span |
+| CAL-F4 Steward | 38 kept | 46.7 % hearts, first boil dusk 3-4 | none |

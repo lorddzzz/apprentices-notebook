@@ -142,3 +142,8 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CAL-3 (task 3) | 3778348, a16a2bd, a1d1bfa | Sonnet high | 0 | ~10% | baths bodies/heat/gauge 32/1/1, Steward 38; Chief Warden 28 (32 broke drawn generation, EN-K8); sound span may overshoot band |
 | CAL-4 (task 3) | 6717f88 | Codex Sol 6.2 high | 0 | ~8% Codex | Registrar 40 (36/63/85 %); sympathetic allied pulses hit foes; Carillonneur 57; room-5 pencil 76 %; four bells 13 pp short; room 4 100 %; orchestrator committed from /tmp patches |
 | CAL fix pack | 69e2db3 | Sonnet high | 0 | ~6% | 17 tests pinned to old numbers updated; EN-K4/K5 fallback solves re-recorded; fast gate green 413 files, 8709 |
+| CAL-5 (tasks 1-2, WIP) | 63b596a | Codex Sol 6.2 high | 0 | ~14% Codex | drawn heart bands, pen, corpus measured; task 3 and full household sweep owed; rerun after the F packs |
+| CAL-F1 | a6a6814 | Codex Sol 6.2 high | 0 | ~8% Codex | bot attack guard (`Stoker is down` closed), fight-ending scoring, drawn Chief 28 pinned |
+| CAL-F2 | not merged | Codex Sol 6.2 high | 0 | ~10% Codex | canals room 4 candidate rejected (wins 100 %, worn mooring 42.6 %); patch /tmp/calf2.mbox |
+| CAL-F3 | de18cbb, ed1a3dc | Sonnet high ×2 | 0 | ~8% Claude | H2 hook (0 bells 27 %, 4 bells 93 %), loft clapper 12/detuner 6 (73 %, stall-shaped), Registrar move kept at 1 |
+| CAL-F4 | f9f0090 | Codex Sol 6.2 high | 0 | ~10% Codex | authored Chief 32 (sound 80 %, crumbling 67.5 %: 7.5 pp short); baths Steward 38 kept (46.7 %); one Lab test fixed by the orchestrator |
