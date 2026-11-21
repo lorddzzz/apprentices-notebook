@@ -1,4 +1,4 @@
-import { COSTS } from '$data/drawing';
+import { COSTS, DRAWN_CHIEF_WARDEN_HP } from '$data/drawing';
 import { KIT } from '../../districts/kit';
 import type { HeartSetup } from '../../districts/types';
 import { type BoardSpec, parseBoard } from '../../notation';
@@ -37,6 +37,7 @@ let setup: HeartSetup | undefined;
 
 export const CHIEF_WARDEN_FRAME: HeartFrame = {
   master: 'chiefWarden',
+  enemyHp: { chiefWarden: DRAWN_CHIEF_WARDEN_HP },
   cost: COSTS.hearts.chiefWarden,
   needs: needsOf('chiefWarden'),
   size: SIZE,

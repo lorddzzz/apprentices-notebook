@@ -40,6 +40,9 @@ export const PEN_TUNING = { perHeart: 1, pagesPerPoint: 4, perCapstone: 1 } as c
 /** Preserve the drawn heart's difficulty under the generator's lite trial. */
 export const DRAWN_MARGINALIA_HP = 16;
 
+/** Preserve the drawn heart's difficulty under the generator's lite trial. */
+export const DRAWN_CHIEF_WARDEN_HP = 28;
+
 /** P7: light up to `light`, medium up to `medium`, heavy above. */
 export const WEIGHT_BANDS = { light: 9, medium: 14 } as const;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Drawing } from '$data';
-import { COSTS, NEEDS } from '$data/drawing';
+import { COSTS, DRAWN_CHIEF_WARDEN_HP, NEEDS } from '$data/drawing';
 import {
   type BattleState,
   beginEncounter,
@@ -101,6 +101,25 @@ describe('Pack J frames (EN-K4, EN-K5)', () => {
       expect(strandedBy(room.layout)).toBeNull();
     }
   }, 300_000);
+
+  it('CAL-F1: the drawn Chief Warden keeps DRAWN_CHIEF_WARDEN_HP', () => {
+    expect(HEART_FRAMES.chiefWarden?.enemyHp).toEqual({ chiefWarden: DRAWN_CHIEF_WARDEN_HP });
+
+    const page = heartDrawing('chiefWarden');
+    const owner: Profile = { ...fullHousehold(), drawings: [page, null, null] };
+    const trip = {
+      ...startTrip(owner, 1, 'inkedPage', { page: 0 }),
+      encounter: page.length - 1,
+    };
+    const battle = beginEncounter(owner, inkRoom(owner, trip)).state;
+    expect(battle.units).toContainEqual(
+      expect.objectContaining({
+        def: 'chiefWarden',
+        hp: DRAWN_CHIEF_WARDEN_HP,
+        maxHp: DRAWN_CHIEF_WARDEN_HP,
+      }),
+    );
+  });
 
   it('EN-K5: the authored fallback keeps its footing and its party on their feet', () => {
     const fallback = HEART_FRAMES.chiefWarden?.fallback;
