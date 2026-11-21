@@ -163,7 +163,7 @@ describe('BR-0 tuning and tokens', () => {
     expect(SPAN_KINDS).toEqual(['sound', 'crumbling']);
     expect(BRIDGE_TUNING.stone).toEqual({ sound: 2, crumbling: 1 }); // P3
     expect(BRIDGE_TUNING.keystoneHp).toBe(6); // P7
-    expect(BRIDGE_TUNING.chiefHp).toBe(10);
+    expect(BRIDGE_TUNING.chiefHp).toBe(28); // CAL-3 calibrated (was 10)
     expect(BRIDGE_TUNING.eliteFall).toBe(4); // P5
     expect(BRIDGE_TUNING.rooms + 1).toBe(5); // P1: four rooms and the heart
     expect(BRIDGE_TUNING.choices).toBe(4);
