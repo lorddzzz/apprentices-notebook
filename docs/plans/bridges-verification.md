@@ -596,3 +596,25 @@ release tests, not here.
 ## CAL-3 orchestrator note (2026-11-21): Chief Warden HP 28, not 32
 
 The worker's 32 HP held the fresh-pair heart band but made the drawn-room test `kits-a` EN-K8 time out (generation could not find a walkable drawing); 10, 14, 20 and 28 pass, 32 does not (29–31 untested). Chosen under the delegation: 28, which keeps generation working. The sound-span fresh-pair heart may overshoot the 75–90 % band at 28 (16-seed check: 16/16 sound, 15/16 crumbling): a quantified open miss, remeasured in CAL-5/G1. `BRIDGE_TUNING.chiefHp`, the foe table and `rivals/chiefWarden.ts` all read 28.
+
+## CAL-F4 authored Chief Warden
+
+### 30 HP timing diagnosis
+
+After CAL-F1, the drawn heart takes its HP from its own frame. With the three authored HP
+entries temporarily set to 30, the aware fresh founding pair ran one heart fight at a time
+for seeds 1–40 on each span. The 80 fights took 36.94 s of bot time. No fight approached
+the five-minute stop, and the earlier long run did not reproduce.
+
+| Span | Fights | Median fight time | Slowest fight |
+| --- | --- | --- | --- |
+| Sound | 40 | 583 ms | Seed 36, 976 ms |
+| Crumbling | 40 | 291 ms | Seed 28, 453 ms |
+
+```sh
+caffeinate -i env BRIDGES_TABLE=1 BRIDGES_CANDIDATE=1 BRIDGES_DEPTHS=5 BRIDGES_SEEDS=40 BRIDGES_TRACE=1 BRIDGES_OUT=/tmp/calf4-chief30.md pnpm exec vitest run tests/sim/bridges-calibration.test.ts -t 'live bridges' --reporter=dot --maxWorkers=1
+```
+
+The starting-tree fast gate passed typechecking and lint. It had one failure in 414
+test files, reproduced in isolation. The Foundry Lab bench fixture still expects a hung
+bell at A1 after CAL-F3 moved that hook.
