@@ -112,6 +112,7 @@ interface Sample {
     hpShare: number | undefined;
     guardrails: string[];
     offeredIssues: string[];
+    offeredIssueReasons: string[];
     capped: boolean;
     bells: number;
     stampMin?: number;
@@ -202,6 +203,7 @@ function measureRoom(
   const offered = offeredTrial(result);
   const tiles = tilesWithNotes(result.layout.tiles);
   const spec = specFor(input, deriveSeed(seed, offered?.salt ?? 0), offered?.budget);
+  const offeredIssues = checkGenerated(result.layout, spec);
   sample.generation = {
     fallback: result.fallback,
     verified: result.verified,
@@ -215,7 +217,8 @@ function measureRoom(
     rounds: offered?.won ? offered.rounds : undefined,
     hpShare: offered?.won ? offered.hpLeft : undefined,
     guardrails: result.trials.flatMap((t) => t.guardrails.map((issue) => issue.guardrail)),
-    offeredIssues: checkGenerated(result.layout, spec).map((issue) => issue.guardrail),
+    offeredIssues: offeredIssues.map((issue) => issue.guardrail),
+    offeredIssueReasons: offeredIssues.map((issue) => issue.reason),
     capped: result.trials.some((t) => t.capped),
     bells: tiles.bells,
     ...(drawing.rule === 'foundry:bells' && !spec.heart
