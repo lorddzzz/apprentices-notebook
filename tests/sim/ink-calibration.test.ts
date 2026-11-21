@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import { encountersOf } from '$data';
-import { CLOCK_SEAL, CLOCK_TUNING, POSTMASTER } from '$data/districts/inkQuarter/enemies';
+import {
+  CLOCK_SEAL,
+  CLOCK_TUNING,
+  INK_FOE_TUNING,
+  POSTMASTER,
+} from '$data/districts/inkQuarter/enemies';
 import { INK_TERMS } from '$data/districts/inkQuarter/terms';
 import { POSTMASTER_RIVAL } from '$data/rivals/postmaster';
 import { HEART_HEADER, heartRow } from './calibration/ink';
@@ -180,9 +185,19 @@ test.skipIf(!BIG)(
 type Mut<T> = { -readonly [K in keyof T]: T[K] extends number ? number : T[K] };
 const LEVERS: { id: string; kind: 'lever' | 'movement' | 'opener'; set: () => void }[] = [
   {
-    id: 'baseline (deadline 3, collect 3, cooldown 2, seal 3 HP, move 0)',
+    id: 'as applied (CAL-2 deliveries: 4 shielded letters, burst 4; deadline 3, collect 3, cooldown 2, seal 3 HP, move 0)',
     kind: 'lever',
     set: () => {},
+  },
+  {
+    id: 'delivery burst 2 (the plain letter weight; shields stay)',
+    kind: 'lever',
+    set: () => (mut(INK_FOE_TUNING).counterBurst = 2),
+  },
+  {
+    id: 'delivery burst 6',
+    kind: 'lever',
+    set: () => (mut(INK_FOE_TUNING).counterBurst = 6),
   },
   { id: 'collect 6', kind: 'lever', set: () => (mut(CLOCK_TUNING).collect = 6) },
   { id: 'collect 8', kind: 'lever', set: () => (mut(CLOCK_TUNING).collect = 8) },
@@ -322,6 +337,7 @@ test.skipIf(!process.env.INK_LEVERS)(
     const snap = {
       tuning: { ...CLOCK_TUNING },
       seal: CLOCK_SEAL.hp,
+      burst: INK_FOE_TUNING.counterBurst,
       move: POSTMASTER_RIVAL.move,
       hp: POSTMASTER.hp,
       routine: [...POSTMASTER_RIVAL.routine],
@@ -340,6 +356,7 @@ test.skipIf(!process.env.INK_LEVERS)(
       } finally {
         Object.assign(mut(CLOCK_TUNING), snap.tuning);
         mut(CLOCK_SEAL).hp = snap.seal;
+        mut(INK_FOE_TUNING).counterBurst = snap.burst;
         mut(POSTMASTER_RIVAL).move = snap.move;
         setHp(snap.hp);
         mut(POSTMASTER_RIVAL).routine = snap.routine;

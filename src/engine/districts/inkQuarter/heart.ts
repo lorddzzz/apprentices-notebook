@@ -1,3 +1,4 @@
+import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
 import type { BoardSpec } from '../../notation';
 import { type Placement, placeFrame } from '../frame';
 import type { BotTerms, HeartSetup } from '../types';
@@ -19,12 +20,17 @@ const SALT = 7100;
 /** The ink quarter's bot reads no extra state (it has no gauge): the terms are registered, empty. */
 export const INK_BOT: BotTerms = {};
 
+/** A dead letter at his counter: one of his deliveries, under its wax shields (CAL-2). */
+const LETTER = `x${'+'.repeat(INK_FOE_TUNING.counterShield)}`;
+
 /** Postmaster first (token `p`), then the roster, then the stamps. `x` dead letter, `z` Sealer. */
 const PLACEMENTS: readonly Placement[] = [
   { token: 'p', at: { x: 0.5, y: 0.15 } },
   { token: 'z', at: { x: 0.85, y: 0 } },
-  { token: 'x', at: { x: 0.15, y: 0 } },
-  { token: 'x', at: { x: 0.2, y: 0.3 } },
+  { token: LETTER, at: { x: 0.15, y: 0 } },
+  { token: LETTER, at: { x: 0.2, y: 0.3 } },
+  { token: LETTER, at: { x: 0.8, y: 0.3 } },
+  { token: LETTER, at: { x: 0.5, y: 0.3 } },
   { token: '{return}', at: { x: 0.5, y: 0.45 } },
   { token: '{order}', at: { x: 0.15, y: 0.6 } },
   { token: '{order}', at: { x: 0.85, y: 0.6 } },

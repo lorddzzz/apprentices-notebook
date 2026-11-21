@@ -68,6 +68,18 @@ describe('page banking at the heart', () => {
     expect(wins).toBeGreaterThan(0);
   });
 
+  // CAL-2: his deliveries (shielded dead letters, burst 4) can wipe a fresh pair. Seed 1014 is a
+  // measured loss of the 120-seed table; before the deliveries every fresh heart was won or stalled.
+  test('the heart can be lost: a bot fight is wiped by his deliveries and banks no page', () => {
+    const save = heartSave(1014);
+    const fight = botFight(startBattle(save).state, 40);
+    expect(fight.state.phase).toBe('lost');
+    expect(fight.events.some((e) => e.type === 'foeBursts')).toBe(true);
+    const end = endBattle(save, fight.state, fight.events);
+    expect(end.outcome).toBe('wiped');
+    expect(end.save.profile.pages).toEqual([]);
+  });
+
   test('a wiped heart keeps a held page and banks none', () => {
     const lost = (profile: SaveData['profile']) => {
       const save = { ...heartSave(7), profile };

@@ -11,6 +11,16 @@ import type { EnemyDef } from '../../types';
 export const INK_FOE_TUNING = {
   /** The dead letter's burst on delivery. */
   deadLetterBurst: 2,
+  /**
+   * CAL-2: the postmaster's counter. While he stands, his dead letters are *deliveries* (the same
+   * visible `deliver` telegraph, a round ahead): they burst for this much, and each arrives under
+   * `counterShield` wax shields, so killing one takes a real cast. The party can kill, outpace or
+   * step out of every one; if it does not, the heart can be lost.
+   */
+  counterBurst: 4,
+  counterShield: 3,
+  /** Dead letters at his counter (the heart roster and every heart layout agree). */
+  counterLetters: 4,
   /** The Sorter's plain file when it has no mark to forward. */
   sorterFile: 1,
   /** How far (Manhattan) the Sealer can mark a tile for its seal. */

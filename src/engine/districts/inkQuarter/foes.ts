@@ -33,6 +33,12 @@ function approach(ctx: Ctx, e: EnemyUnit): void {
   enemyWalk(ctx, e, best?.path ?? []);
 }
 
+/** A dead letter's burst: while the postmaster stands, his letters are his deliveries (CAL-2). */
+export const deliveryBurst = (s: BattleState): number =>
+  enemies(s).some((u) => u.def === 'postmaster' && isAlive(u))
+    ? INK_FOE_TUNING.counterBurst
+    : INK_FOE_TUNING.deadLetterBurst;
+
 /** A tile in words for a telegraph line ("A1"). */
 const where = (c: Coord | undefined): string => (c ? label(c) : '?');
 
@@ -69,7 +75,7 @@ export const DEAD_LETTER_FOE: FoeBehaviour = {
     e.hp = 0;
     kill(ctx, e, false); // the blot comes from `onDeath`
     const dir = DIRS.find((d) => sameCoord(step(from, d), to.pos)) ?? null;
-    dealDamage(ctx, to, INK_FOE_TUNING.deadLetterBurst, 'Dead letter', [], {
+    dealDamage(ctx, to, deliveryBurst(ctx.s), 'Dead letter', [], {
       heading: dir,
       at: from,
     });
