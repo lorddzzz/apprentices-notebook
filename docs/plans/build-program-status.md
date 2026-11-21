@@ -1,8 +1,8 @@
 # Build program status (resume here)
 
-Plans: [build-program.md](build-program.md), [calibration-plan.md](calibration-plan.md) (the last plan). Briefs: [calibration-briefs.md](calibration-briefs.md), [calibration-followup-briefs.md](calibration-followup-briefs.md), [build-program-briefs.md](build-program-briefs.md). Results and decisions: [calibration-results.md](calibration-results.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`). Older Owed lists, checklists and rough edges: [build-program-status-archive.md](build-program-status-archive.md) (not read on resume).
+Plans: [build-program.md](build-program.md), [calibration-plan.md](calibration-plan.md) (the last plan). Briefs: [drawn-calibration-briefs.md](drawn-calibration-briefs.md) (CAL-5S/G/P/R, next), [calibration-briefs.md](calibration-briefs.md) (CAL-G1), [build-program-briefs.md](build-program-briefs.md). Results and decisions: [calibration-results.md](calibration-results.md), [drawn-calibration.md](drawn-calibration.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`). Older Owed lists, checklists and rough edges: [build-program-status-archive.md](build-program-status-archive.md) (not read on resume).
 
-**State:** 2026-11-21, session closed. Nothing running. Every plan is built; calibration (CAL-0..5, F1..F4, P) is merged except the items under Next. **Next window: routine, then a design window.**
+**State:** 2026-11-21, design window done (briefs for the CAL-5 structural findings, ledger clean). Nothing running. Every plan is built; calibration (CAL-0..4, F1..F5, P, CAL-5 tasks 1-2 and the rerun) is merged; CAL-5 task 3 is the packs under Next. **Next window: routine.**
 
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
@@ -13,11 +13,10 @@ Plans: [build-program.md](build-program.md), [calibration-plan.md](calibration-p
 ## Next
 
 0. Read CI on the last push (sims run only there). A red run is a fix pack first.
-1. **Household sweep, sharded** (CAL-5 stopped after about 3 h in one process): one `HOUSEHOLD_SWEEP=1 HOUSEHOLD_SEEDS=10` run per district (`-t`), each in the background with its own log and a 30-minute cap, or as a CI nightly job. It is a safety/placement gate; its win rates are not targets.
-2. **Design window** (Opus high, docs only): kit and frame briefs for the structural findings in [drawn-calibration.md](drawn-calibration.md): drawn hearts light 78 / medium 66 / heavy 78 % vs 60-75 / 45-60 / 30-45; 99 of 534 offered boards invalid on piece reach (one reach rule for kits and generator); walkovers 14.2 % vs 10; the fourth peal note displaced on length-6 trips (duplicate-note rule); weight-linked heart HP. Then CAL-5 task 3 remeasures (Codex, sharded).
-3. **CAL-G1** (design window): the final tables from calibration-results.md and the verification files.
-4. Needs the player's phone: real-iPhone timing (CAL-P owes it; emulated 108-111 ms median, 505-526 ms p95) and the BL-111 offline check (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab).
-5. Open calibration misses (numbers in calibration-results.md): canals room 4 wins 100 % (target 65-80; the CAL-F2 candidate was rejected, worn mooring 42.6 %); foundry four bells 93 % (3 pp over 90); foundry loft 73 % but stall-shaped; Registrar solo +11 / duo +8 pp (move 1 kept); authored Chief crumbling 67.5 % (7.5 pp short, sound 80 %); quarter heart stalls 11 %; bridges worn pairs clear 0/40.
+1. **Window 1** ([drawn-calibration-briefs.md](drawn-calibration-briefs.md)), three packs with disjoint files: **CAL-5S** household sweep, 11 shards at `HOUSEHOLD_SEEDS=10` (Codex Sol 6.2 high; the window's only slow-sim runner) · **CAL-5G** one reach rule → held-back walk → heart HP mechanism (bonus 0) → Steward parity (Claude Sonnet high; its generator fuzz waits for S) · **CAL-5P** peal notes distinct first → hookless-heart caveat → drawn Cleared copy (Claude Sonnet high, phone check).
+2. **Window 2:** **CAL-5R** drawn remeasure, sharded (Codex Sol 6.2 high), once G and P are merged and S has finished. Then **CAL-G1** (design window).
+3. Needs the player's phone (non-blocking): real-iPhone timing (CAL-P: emulated 108-111 ms median, 505-526 ms p95) and the BL-111 offline check (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab).
+4. Open authored misses, for CAL-G1's tables (numbers in calibration-results.md): canals room 4 at 100 %; foundry four bells 93 %; foundry loft 73 % (stall-shaped); Registrar solo +11 / duo +8 pp; authored Chief crumbling 67.5 %; quarter heart stalls 11 %; bridges worn pairs clear 0/40.
 
 ## Running or partial
 none. (Reading usage: `node .claude/skills/implement/usage.mjs`. Codex: board `spawn_subagent` with `git: true`; the worker's patch comes back as `/tmp/<pack>.mbox`.)
@@ -26,13 +25,19 @@ none. (Reading usage: `node .claude/skills/implement/usage.mjs`. Codex: board `s
 none.
 
 ## Owed (declared by a contract, not yet built)
-Items still open from the earlier lists (full wording in the archive): `battle.svelte.ts:129` passes no footnotes to `rivalSheet`; a drawn bell stamp may lay fewer than 2-4 bells on a cramped board; `ShapeKit.stamp?` hook so lock stamps join the bot trials; `inkedPage.roomSetup` activating heart-frame rules; the doorway weight constant in loot.ts belongs in `DRAWN_LOOT`; Cleared.svelte's "The heart of the inked page is quiet" copy; the Registrar note's later-fight effect is unmeasured; the generator page logs one unexamined 404. A design window runs the ledger and prunes this list.
+- Cleared.svelte reads "The heart of the inked page is quiet" for a drawn trip — owed by CAL-5P (P3).
+- DESIGN §11 rows at merge: held-back attempt keeps its budget (P28 wording; CAL-5G), weight-linked heart HP default 0 (CAL-5G, numbers by CAL-5R), peal distinct-first and the hookless caveat (CAL-5P) — owed by the orchestrator.
+- CAL-5 register rows deferred to design (heart weight, piece reach, length-six peal, Steward parity) — owed by CAL-5R; copied into calibration-results.md at its merge.
+- The Registrar note's later-fight effect is unmeasured (watch) — CAL-G1 notes it.
+- The dev generator page logs one unexamined 404 (CAL-P) — CAL-G1 or a routine fix.
 
 ## Close checklist
 Cartographers, Foundry, Ending: done (CI deployed after each push; ending's player gates EN-G1/EN-G3 open and non-blocking). Calibration closes with CAL-G1: full gate, one `code-review` of the plan's diff, DESIGN §11 / TECH §7 rows for the calibrated numbers, ledger (`node .claude/skills/implement/ledger.mjs docs/plans/build-program-log.md docs/plans/calibration-plan.md`), push and CI.
 
 ## Open questions for the player (defaults held)
-- calibration-followup-briefs.md top: do 40-round stalls count as heart misses (default yes); may hung bells act directly on the Carillonneur (default no); may the Lamplighter's kit get stronger (default no).
+- Do 40-round stalls count as heart misses? Default yes. May hung bells act directly on the Carillonneur? Default no. May the Lamplighter's kit get stronger? Default no.
+- A peal drawn with a master whose heart has no hooks: default, hang nothing and say so at the drawing table (CAL-5P). The alternative, earned bells hanging on any heart, is a rule.
+- What makes a heavy drawing's heart harder: default, master HP by weight (CAL-5G/R). If every HP candidate stalls or goes unverified, the next lever is escorts by weight (a rule; not built).
 - Playtest gates (non-blocking): EN-G1/G3 (do three drawn districts feel different? any room unfair or a walkover? was a heavy drawing's loot worth its pen? did the handover feel like an ending?), IQ-G1, CG-G1, BH-G1, BR-G2, BF-G1.
 
 ## Rough edges

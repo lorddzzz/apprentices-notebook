@@ -202,6 +202,8 @@ Phone check: no.
 
 ## Pack CAL-5 (Default: Terra 6.1 high; suggested runner: Codex)
 
+Tasks 1-2 and the rerun are merged. Task 3 continues as packs CAL-5S, G, P and R in [drawn-calibration-briefs.md](drawn-calibration-briefs.md); the text below is history.
+
 ```text
 Pack CAL-5 of calibration-plan.md: tasks 1 -> 2 -> 3 (drawn/household baseline, pen and candidates, approved pass).
 

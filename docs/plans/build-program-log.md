@@ -119,6 +119,7 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CAL-F2 | not merged | Codex Sol 6.2 high | 0 | ~10% Codex | canals room 4 candidate rejected (wins 100 %, worn mooring 42.6 %); patch /tmp/calf2.mbox |
 | CAL-F3 | de18cbb, ed1a3dc | Sonnet high ×2 | 0 | ~8% Claude | H2 hook (0 bells 27 %, 4 bells 93 %), loft clapper 12/detuner 6 (73 %, stall-shaped), Registrar move kept at 1 |
 | CAL-F4 | f9f0090 | Codex Sol 6.2 high | 0 | ~10% Codex | authored Chief 32 (sound 80 %, crumbling 67.5 %: 7.5 pp short); baths Steward 38 kept (46.7 %); one Lab test fixed by the orchestrator |
+| CAL-F5 | 5695632 | Sonnet 5.5 high | 0 | – | Wax out of room 4's terms; meetability bar back to 75 % (row added by the 2026-11-21 design window) |
 | CAL-P | aba8a07 | Sonnet medium | 0 | ~4% Claude | emulated 375x812 evidence (15 states), dev generator page corpus selector and worker timing; real iPhone owed |
 | CAL-5 (rerun, task 3 partial) | c16d2ee | Codex Sol 6.2 high | 0 | ~10% Codex | final-revision measurement; defaults retained; fuzz 9/9; full household sweep stopped after about 3 h by the orchestrator (to be sharded); docs only |
 
