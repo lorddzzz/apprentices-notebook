@@ -20,6 +20,17 @@ The full `CAL5=1 CAL5_DETAIL=1` baseline on `48ac3f0` passed 6/6 in 859 seconds.
 
 Fresh ordinary walkovers were 76/534 (14.2%), split 28/102 light, 21/192 medium and 27/240 heavy. Of 534 offered layouts, 351 were fair within four attempts, 107 were fallback offers and 105 were unverified. The oracle flagged 99 offered layouts. The 288 fresh heart offers included 98 fallbacks, 92 unverified. The Lamp-mother's 12 pair fallbacks were all unverified, then won through the app in rounds 17–23. The Carillonneur's 12 pair fallbacks were all unverified and produced 5 losses and 7 stalls. All 12 trios won against each master. Carried trips reached 68 hearts and cleared 24/144 trips, with 42 losses and 78 stalls.
 
+| Fresh master | W/L/S of 36 | Offered fallbacks | Unverified |
+| --- | --- | ---: | ---: |
+| Marginalia | 36/0/0 | 0 | 0 |
+| Lamp-mother | 24/0/12 | 24 | 24 |
+| Lamplighter | 35/1/0 | 1 | 0 |
+| Postmaster | 31/0/5 | 12 | 12 |
+| Bath-Steward | 28/0/8 | 17 | 14 |
+| Chief Warden | 23/0/13 | 12 | 12 |
+| Carillonneur | 12/5/19 | 25 | 25 |
+| Registrar | 23/12/1 | 7 | 5 |
+
 ### Paired data candidates on the final authored revision
 
 The comparison uses all 534 fresh ordinary offers, paired by name, depth, lineup and seeds 1–2. Reproduce by setting `bandBonus` to each candidate in `src/data/drawing.ts` and running the same command with `CAL5=1 CAL5_ORDINARY=1 CAL5_DETAIL=1` and `-t 'production corpus tables'`. For the step candidate, use `CAL5_CANDIDATE=step2` with the default band bonuses. The full fight policy and production trial limits match the baseline.
@@ -64,8 +75,16 @@ Retain the production data. The two-point step prevented 28 unverified offers bu
 | `pnpm check:fast` | 414 files, 8,723 tests passed, 13 todo. Existing lint warnings in PenPot and the foundry bench test. |
 | Full CAL-5 drawn corpus | 6/6 passed, including palette coverage, pen, loot, stored-room reload and peal setup. |
 | Historical-corpus generator fuzz | 9/9 passed in 115 seconds, including 500 layouts and 50 deterministic replays. |
+| Full household sweep | The unfiltered invocation ended with exit 143 after 11 passes. The remaining 14 cases were restarted in full mode. |
 
 The 500-seed fuzz had 30 walkovers (6.0%) and no fallback, unverified offer, invalid layout or event cap. It offered 370/500 within two attempts and verified all 500 within four. Fair within four was 470/500 (94.0%) against the 94.4% watch value. Offered win round and HP-left medians were 3 and 85.7%. Desktop median/p95 was 179/407 ms. The production corpus's 14.2% walkovers and 99 invalid offers remain separate misses.
+
+The unfiltered household run passed three placement checks, five 5,350-fight lineup batches and the 2,140-fight Draughtsman, Stoker and Runaway batches, for 33,170 fresh fights. The process received SIGTERM (shell status 143) without a reported assertion failure. The retry keeps `HOUSEHOLD_SWEEP=1` with the same assertion source and excludes those completed cases by full test name.
+
+```sh
+caffeinate -i env HOUSEHOLD_SWEEP=1 pnpm vitest run tests/sim/household-sweep.test.ts --reporter=dot \
+  -t '^(?!.*(?:rooms hold up for every party size|no throw, no overrun, every room fought|(?:draughtsman|stoker|runaway) alone plays their rooms)).*$'
+```
 
 ## Corpus and reproduction
 
@@ -393,7 +412,7 @@ Retain `DRAWN_MARGINALIA_HP = 16`. Doubling the drawn frame's HP kept all 36 app
 | CAL-5 | `DRAWN_LOOT.weights.heavy.page` | 3 | 4 | Heavy heart 393 method cards | 452 of 1,536 | Lower consumable share | Seeded loot, high handover | Retain 3 | Defaults measured |
 | CAL-5 | Length-six peal | Five rooms, four hooks | Decide duplicate-note and hookless behaviour | Setup hangs 1/1/2/3 from 1/2/3/4/1 | Structural candidate pending | Fourth distinct note displaced | Save/reload setup probe, carried seed 2 | Defer to kit brief | Retained shape and frame |
 
-## Verification and household gate
+## Historical verification and household gate (tasks 1–2)
 
 | Check | Result |
 | --- | --- |
