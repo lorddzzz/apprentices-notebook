@@ -19,7 +19,7 @@ export const CHIEF_WARDEN_RIVAL: RivalDef = {
   name: 'Chief Warden',
   token: 'K',
   district: 'bridges',
-  hp: 28,
+  hp: 32,
   move: 0,
   elite: true,
   habitat: 'any',

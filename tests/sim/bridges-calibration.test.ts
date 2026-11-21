@@ -25,6 +25,7 @@ import { createRng } from '$engine/rng';
 import { endBattle, leaveDoorway, startBattle, takeOffer } from '../../src/app/flow';
 import { botFight } from './bot';
 import { bridgeTable } from './calibration/bath-bridges';
+import { countEnv } from './calibration/runner';
 
 /**
  * Bridges bot, fuzz and calibration (BR-21). Whole trips on both span kinds with parties of one,
@@ -34,7 +35,7 @@ import { bridgeTable } from './calibration/bath-bridges';
  */
 
 const TABLE = Boolean(process.env.BRIDGES_TABLE);
-const SEEDS = Number(process.env.BRIDGES_SEEDS ?? (TABLE ? 12 : 1));
+const SEEDS = countEnv('BRIDGES_SEEDS', TABLE ? 12 : 1);
 /** Table lines go to the file named by `BRIDGES_OUT` (console output is lost in a long vitest run). */
 const out = (text: string) => {
   if (process.env.BRIDGES_OUT) appendFileSync(process.env.BRIDGES_OUT, `${text}\n`);
@@ -292,12 +293,21 @@ test.skipIf(!TABLE)(
   'live bridges: fresh layouts and worn trips',
   () => {
     const candidate = Boolean(process.env.BRIDGES_CANDIDATE);
-    const table = bridgeTable(
-      candidate ? { seeds: SEEDS, parties: [2], policies: ['aware'] } : { seeds: SEEDS },
-    );
+    const depths = process.env.BRIDGES_DEPTHS?.split(',').map(Number);
+    const table = bridgeTable({
+      seeds: SEEDS,
+      firstSeed: countEnv('BRIDGES_FIRST_SEED', 1),
+      parties: candidate ? [2] : process.env.BRIDGES_PARTIES?.split(',').map(Number),
+      policies: candidate ? ['aware'] : undefined,
+      depths,
+      freshOnly: depths !== undefined,
+      traceFight: process.env.BRIDGES_TRACE
+        ? (line) => (process.env.BRIDGES_OUT ? out(line) : process.stdout.write(`${line}\n`))
+        : undefined,
+    });
     if (process.env.BRIDGES_OUT) out(table);
     else process.stdout.write(table);
-    expect(table).toContain('| 2 | aware | fresh | 5 | sound |');
+    expect(table).toMatch(/\| aware \| fresh \| \d+ \| (opening|sound) \|/);
   },
   36_000_000,
 );

@@ -133,16 +133,18 @@ test.skipIf(!TABLE)(
   'live bathhouses: fresh layouts and worn trips',
   () => {
     const candidate = Boolean(process.env.BATH_CANDIDATE);
+    const firstSeed = countEnv('BATH_FIRST_SEED', 1);
     const table = bathTables(
       candidate
         ? {
             seeds: SEEDS,
+            firstSeed,
             parties: [2],
             policies: ['aware'],
             freshOnly: true,
             depths: process.env.BATH_DEPTHS?.split(',').map(Number),
           }
-        : { seeds: SEEDS },
+        : { seeds: SEEDS, firstSeed },
       !candidate,
     );
     if (process.env.BATH_OUT) writeFileSync(process.env.BATH_OUT, table);

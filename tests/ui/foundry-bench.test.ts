@@ -99,8 +99,17 @@ describe('a preset per lock loads in the Lab', () => {
     );
     expect(hung).toHaveLength(4);
     expect(s.rules?.['foundry:tune']).toBeDefined();
-    expect(s.units.some((u) => u.def === 'carillonneur')).toBe(true);
-    expect(tileAt(s, { x: 0, y: 0 }).piece?.id).toBe('foundry:greatBell');
+    const boss = s.units.find((u) => u.def === 'carillonneur');
+    expect(boss).toBeDefined();
+    // CAL-F3 H2: the first hung bell hangs beside the Carillonneur.
+    const beside = s.tiles.some(
+      (t, i) =>
+        t.piece?.id === 'foundry:greatBell' &&
+        Math.abs((i % s.width) - (boss?.pos.x ?? -9)) +
+          Math.abs(Math.floor(i / s.width) - (boss?.pos.y ?? -9)) ===
+          1,
+    );
+    expect(beside).toBe(true);
   });
   test('the tune-alone fixture has the Carillonneur and none of the staff', () => {
     const s = scenarioBattle(resolveScenario('foundry-peal').def, { lab: true });

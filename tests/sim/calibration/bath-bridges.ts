@@ -38,6 +38,9 @@ export interface Sample {
   botFirstBoil: number | null;
   falls: number;
   entryHp: number;
+  entryCharges: number;
+  rounds: number;
+  hpLeft: number;
   bossHp: number | undefined;
 }
 
@@ -54,11 +57,13 @@ interface Row {
 
 interface Config {
   seeds: number;
+  firstSeed?: number;
   parties?: readonly number[];
   policies?: readonly Policy[];
   freshOnly?: boolean;
   /** Keep only these 1-based depths (tuning runs). */
   depths?: readonly number[];
+  traceFight?: (line: string) => void;
 }
 
 const POLICIES: readonly Policy[] = ['aware', 'blind'];
@@ -99,6 +104,11 @@ function measure(state: BattleState, result: ReturnType<typeof botFight>): Sampl
     botFirstBoil: result.firstBoil,
     falls,
     entryHp: members.reduce((hp, u) => hp + u.hp, 0),
+    entryCharges: members.flatMap((u) => Object.values(u.charges)).reduce((sum, n) => sum + n, 0),
+    rounds: result.state.round,
+    hpLeft: result.state.units
+      .filter((u) => u.kind === 'member' && !u.out)
+      .reduce((hp, u) => hp + u.hp, 0),
     bossHp: state.units.find((u) => u.def === 'bathSteward' || u.def === 'chiefWarden')?.hp,
   };
 }
@@ -108,6 +118,8 @@ function sweep(district: District, config: Config): Row[] {
   const rooms = encountersOf(district);
   const policies = config.policies ?? POLICIES;
   const axes = district === 'bridges' ? SPAN_KINDS : ['authored'];
+  const firstSeed = config.firstSeed ?? 1;
+  const nextSeed = firstSeed + config.seeds;
   for (const party of config.parties ?? [1, 2, 3]) {
     const who = PARTIES[party - 1];
     if (!who) throw new Error(`Unknown party size ${party}`);
@@ -119,18 +131,32 @@ function sweep(district: District, config: Config): Row[] {
     });
     for (const policy of policies) {
       const aware = policy === 'aware';
-      const play = (save: SaveData, row: Row) => {
+      const play = (save: SaveData, row: Row, seed: number) => {
         const state = flow.startBattle(save).state;
         if (district === 'bathhouses' && !boilOverState(state)) {
           throw new Error(`Missing authored gauge: ${state.title}`);
         }
+        const trace = config.traceFight;
+        const label = `${row.mode} ${row.axis} depth ${row.depth} layout ${row.variant + 1} seed ${seed}`;
+        trace?.(`start ${label}`);
+        const started = performance.now();
         const result = botFight(state, ROUNDS, who, {
           gauge: aware,
           cracks: aware,
           hold: false,
           budget: BUDGET,
         });
-        row.samples.push(measure(state, result));
+        const elapsed = performance.now() - started;
+        const sample = measure(state, result);
+        row.samples.push(sample);
+        trace?.(
+          `end ${label}: ${elapsed.toFixed(0)} ms, ${sample.outcome}, round ${sample.rounds}, ${result.actions.length} actions`,
+        );
+        if (trace && elapsed > 300_000) {
+          throw new Error(
+            `Fight exceeded five minutes: ${label}, round ${sample.rounds}, ${result.actions.length} actions, units ${JSON.stringify(result.state.units)}`,
+          );
+        }
         return result;
       };
       for (const axis of axes) {
@@ -162,7 +188,7 @@ function sweep(district: District, config: Config): Row[] {
           (row) => row.axis !== 'opening' || freshOpening,
         );
         for (const row of fresh) {
-          for (let seed = 1; seed <= config.seeds; seed++) {
+          for (let seed = firstSeed; seed < nextSeed; seed++) {
             const save = start(seed);
             const { trip } = save;
             const depth = row.depth - 1;
@@ -176,7 +202,7 @@ function sweep(district: District, config: Config): Row[] {
                 choices: [{ after: depth - 1, id: axis, pool: [row.variant] }],
               },
             };
-            play(save, row);
+            play(save, row, seed);
           }
         }
         rows.push(...fresh);
@@ -185,7 +211,7 @@ function sweep(district: District, config: Config): Row[] {
           ? (['trip-worn', 'trip-worn cooled'] as const)
           : (['trip-worn'] as const)) {
           const worn = makeRows(mode);
-          for (let seed = 1; seed <= config.seeds; seed++) {
+          for (let seed = firstSeed; seed < nextSeed; seed++) {
             runTrip(
               start(seed),
               {
@@ -208,7 +234,7 @@ function sweep(district: District, config: Config): Row[] {
                   const variant = variantFor(trip, depth);
                   const row = worn.find((r) => r.depth === depth + 1 && r.variant === variant);
                   if (!row) throw new Error(`Unexpected trip layout ${depth + 1}#${variant + 1}`);
-                  return play(save, row);
+                  return play(save, row, seed);
                 },
               },
             );
@@ -275,8 +301,18 @@ function aggregate(rows: Row[], by: (row: Row) => (string | number)[]): Row[] {
   return [...groups.values()];
 }
 
-const caption = (n: number) =>
-  `Seeds 1–${n}, ${ROUNDS} rounds, ${BUDGET} applied actions, full starter-lattice bot. Aware uses gauge + cracks. Blind uses neither. Hold is off in both. Worn trips carry actual HP and charges, take the first loot and leave the doorway unchanged; cooled trips prioritize the cold plunge. Opening bridge layouts precede the first span choice.`;
+const caption = ({ seeds, firstSeed = 1 }: Config) =>
+  `Seeds ${firstSeed}–${firstSeed + seeds - 1}, ${ROUNDS} rounds, ${BUDGET} applied actions, full starter-lattice bot. Aware uses gauge + cracks. Blind uses neither. Hold is off in both. Worn trips carry actual HP and charges, take the first loot and leave the doorway unchanged; cooled trips prioritize the cold plunge. Opening bridge layouts precede the first span choice.`;
+
+const durationHeadings = ['entry charges', 'median rounds (wins)', 'median HP left (wins)'];
+const durationCells = (samples: Sample[]) => {
+  const wins = samples.filter((s) => s.outcome === 'win');
+  return [
+    mean(column(samples, (s) => s.entryCharges)),
+    median(column(wins, (s) => s.rounds)),
+    median(column(wins, (s) => s.hpLeft)),
+  ];
+};
 
 export function bathTables(config: Config, compareCanals: boolean): string {
   const rows = sweep('bathhouses', config);
@@ -306,6 +342,7 @@ export function bathTables(config: Config, compareCanals: boolean): string {
     'budget',
     'entry HP',
     'Steward HP',
+    ...durationHeadings,
   ];
   const table = (r: Row, layout: string) => {
     const s = r.samples;
@@ -340,11 +377,12 @@ export function bathTables(config: Config, compareCanals: boolean): string {
       count(s, 'budget'),
       mean(column(s, (x) => x.entryHp)),
       [...new Set(column(s, (x) => x.bossHp))].join(', ') || '—',
+      ...durationCells(s),
     ]);
   };
   const header = [markdown(headings), markdown(headings.map(() => '---'))];
   return [
-    caption(config.seeds),
+    caption(config),
     '',
     'First boil uses the round in the event log, before the following round starts. The legacy bot column uses the post-action round. Both medians exclude fights without a boil. Win/loss counts exclude stalls and exhausted budgets.',
     '',
@@ -387,11 +425,26 @@ export function bathTables(config: Config, compareCanals: boolean): string {
 
 export function bridgeTable(config: Config): string {
   const rows = sweep('bridges', config);
+  const headings = [
+    'party',
+    'policy',
+    'state',
+    'depth',
+    'span',
+    'wins/fights',
+    'losses',
+    'stalls',
+    'budget',
+    'member falls/fight',
+    'entry HP',
+    'Chief HP',
+    ...durationHeadings,
+  ];
   return [
-    caption(config.seeds),
+    caption(config),
     '',
-    '| party | policy | state | depth | span | wins/fights | losses | stalls | budget | member falls/fight | entry HP | Chief HP |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    markdown(headings),
+    markdown(headings.map(() => '---')),
     ...aggregate(rows, (r) => [...ids(r), r.axis]).map((r) => {
       const s = r.samples;
       return markdown([
@@ -404,6 +457,7 @@ export function bridgeTable(config: Config): string {
         mean(column(s, (x) => x.falls)),
         mean(column(s, (x) => x.entryHp)),
         [...new Set(column(s, (x) => x.bossHp))].join(', ') || '—',
+        ...durationCells(s),
       ]);
     }),
   ].join('\n');
