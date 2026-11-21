@@ -91,6 +91,7 @@ START
 WORK
 - Tasks in order. <Worker commits:> One commit per task. <Orchestrator commits:> Finish each item with its tests green and list its changed files by task.
 - Edit only the files you OWN. An OPTIONAL field, parameter or registry entry in another file is allowed when the task needs it, behaviour without it is identical and existing tests pass unchanged: do it and list it under Proposals. Anything more (changed behaviour, a changed test) leaves THAT ITEM undone: say so, and carry on with the other items instead of stopping the pack.
+- A red gate outside your files (heavy drawing tests that time out under load, tests of other areas): commit your verified work as `wip(<area>): <ID> <the outside failure>` and describe the failure; never leave work uncommitted. <Whiteboard clone:> Before you finish, write `git format-patch` of your commits to `/tmp/<pack>.mbox` and report the path: the orchestrator cannot read Whiteboard's worker folder, and a fetch from it is denied.
 - Stopping early. <Worker commits:> Commit what you have as `wip(<area>): <ID> <what is missing>`. <Orchestrator commits:> Leave the files as they are and say what is missing.
 - No balance tuning. Don't edit DESIGN.md, TECH.md, docs/design/*, the roadmap or the status file. No refactors beyond the tasks.
 - src/engine is pure deterministic TypeScript (strict, no `any`, randomness only through engine/rng.ts). A behaviour change ships with a test that fails before the fix.
