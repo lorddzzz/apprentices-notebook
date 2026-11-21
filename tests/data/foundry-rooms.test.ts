@@ -8,12 +8,16 @@ import {
   FOUNDRY_RECRUIT_KIT,
   FOUNDRY_ROOMS_12,
   FOUNDRY_ROOMS_34,
+  FOUNDRY_TUNING,
   foundryShallow,
 } from '$data/districts/foundry';
 import type { KitRoomDef } from '$data/districts/index';
 import {
   type BattleState,
+  compiledFor,
+  createEncounterBattle,
   type Dir,
+  deriveSeed,
   newProfile,
   type Profile,
   parseBoard,
@@ -26,9 +30,9 @@ import { type FoundryTripState, TUNE_RULE_ID } from '$engine/districts/foundry/t
 import type { ShapeInput } from '$engine/districts/types';
 import { joinHousehold } from '$engine/household';
 import { guaranteesFor, isReady, preconditionsOf, recruitOffers } from '$engine/recruits';
-import { checkRoom } from '$engine/rooms';
-import { setUpRoom } from '$engine/trip/setup';
-import type { DistrictShape } from '$engine/trip/shape';
+import { checkRoom, startSeedFor } from '$engine/rooms';
+import { roomSetupFor, setUpRoom } from '$engine/trip/setup';
+import { type DistrictShape, shapeOf } from '$engine/trip/shape';
 import { ev } from '../districts/foundry/helpers';
 import { act, cast, type Step, withLattices } from '../scenarios/harness';
 
@@ -285,6 +289,54 @@ describe('foundry rooms 3 and 4 (BF-11)', () => {
     const dead = play(v.layout, hit, { hp: { D4: 1 } }); // D4 is the Clapper's tile
     expect(dead.state.units.find((u) => u.id === 'clapper-1')?.hp).toBeLessThanOrEqual(0);
     expect(rung(dead.events)).toHaveLength(0);
+  });
+});
+
+const loftRoom: KitRoomDef = four;
+describe('the clockwork loft staff (CAL-F3)', () => {
+  /** Room 4 set up as the trip does: the room's own `enemyHp` (or an override) through the encounter battle. */
+  function loft(enemyHp?: KitRoomDef['enemyHp']): BattleState {
+    const base = newProfile();
+    const profile = {
+      ...base,
+      city: { ...base.city, open: [...base.city.open, 'foundry' as const] },
+    };
+    const encounter = 3;
+    const trip = { ...startTrip(profile, 9, 'foundry'), encounter };
+    const party = Object.fromEntries(
+      trip.party.map((id) => [
+        id,
+        { hp: trip.hp[id], spells: compiledFor(profile, id).spells, charges: trip.charges[id] },
+      ]),
+    );
+    const room: KitRoomDef = { ...loftRoom, ...(enemyHp === undefined ? {} : { enemyHp }) };
+    const { state } = createEncounterBattle(
+      room,
+      party,
+      deriveSeed(trip.seed, encounter),
+      0,
+      'foundry',
+      {},
+      { lineup: trip.party, startSeed: startSeedFor(trip, encounter) },
+    );
+    const shape = shapeOf('foundry', trip);
+    return setUpRoom(state, shape, roomSetupFor(trip, shape));
+  }
+  const hpOf = (s: BattleState, def: string): number[] =>
+    s.units.filter((u) => u.def === def).map((u) => u.hp);
+
+  test("CAL-F3: the clockwork loft spawns its staff at the room's HP", () => {
+    expect(four.enemyHp).toBeUndefined(); // the room carries no HP of its own: the staff keeps its own
+    const plain = loft();
+    expect(hpOf(plain, 'clapper')).toEqual([FOUNDRY_TUNING.foes.clapper.hp]);
+    expect(hpOf(plain, 'detuner')).toEqual([
+      FOUNDRY_TUNING.foes.detuner.hp,
+      FOUNDRY_TUNING.foes.detuner.hp,
+    ]);
+    const tuned = loft({ clapper: 12, detuner: 6 });
+    expect(hpOf(tuned, 'clapper')).toEqual([12]);
+    expect(hpOf(tuned, 'detuner')).toEqual([6, 6]);
+    expect(hpOf(tuned, 'ringer')).toEqual(hpOf(plain, 'ringer')); // an unnamed foe keeps its HP
   });
 });
 

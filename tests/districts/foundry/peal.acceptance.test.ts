@@ -153,6 +153,20 @@ describe('BF-8 the peal across the trip (P7, P8)', () => {
     expect(ev(peal.events, 'foundry:pulse')).toHaveLength(0);
   });
 
+  it('CAL-F3: a hung bell beside the Carillonneur pulses him on a matching ring', () => {
+    const s = withLattices(
+      'D . {bell:low} . . .\n. . . . . .\n. . . {greatBell:1:allied:rung} V .',
+      BOLT,
+    );
+    const r = cast(s, 'draughtsman', 'right');
+    expect(ev(r.events, 'foundry:pulse').map(dataOf)).toEqual([
+      { tone: 'low', allied: true, units: ['carillonneur-1'] },
+    ]);
+    // anchored, so the push holds him in place and crushes for 1 on top of the pulse's 2
+    expect(unit(r.state, 'carillonneur-1').pos).toEqual(unit(s, 'carillonneur-1').pos);
+    expect(unit(r.state, 'carillonneur-1').hp).toBe(unit(s, 'carillonneur-1').hp - 3);
+  });
+
   it('BF-8: hooks hang the rung notes: a named hook its note, bare hooks the rest in reading order', () => {
     const edits = alliedBellEdits(
       {
