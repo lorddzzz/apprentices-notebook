@@ -592,3 +592,7 @@ gatehouse span, great arch, long arcade, tall arcade.
 Data numbers (stone, foe counts, HP) are not tuned. The bot never uses the Hold or the
 span-choice for loot value; one key per trip and trip replay after reload are covered by the
 release tests, not here.
+
+## CAL-3 orchestrator note (2026-11-21): Chief Warden HP 28, not 32
+
+The worker's 32 HP held the fresh-pair heart band but made the drawn-room test `kits-a` EN-K8 time out (generation could not find a walkable drawing); 10, 14, 20 and 28 pass, 32 does not (29–31 untested). Chosen under the delegation: 28, which keeps generation working. The sound-span fresh-pair heart may overshoot the 75–90 % band at 28 (16-seed check: 16/16 sound, 15/16 crumbling): a quantified open miss, remeasured in CAL-5/G1. `BRIDGE_TUNING.chiefHp`, the foe table and `rivals/chiefWarden.ts` all read 28.
