@@ -1,6 +1,90 @@
 # Drawn calibration (CAL-5)
 
-Measured on the authored-district revision `29063e5` after the CAL-1–4 applications. The drawn Marginalia has its own 16 HP. The source revision already includes the 72 HP authored Marginalia, revised canal layouts, baths 32/1/1 and Steward 38, Chief Warden 28, quarter deliveries, Registrar 40 and Carillonneur 57.
+Tasks 1–2 below were measured on `29063e5` after the CAL-1–4 applications. The drawn Marginalia has its own 16 HP. That revision includes the 72 HP authored Marginalia, revised canal layouts, baths 32/1/1 and Steward 38, Chief Warden 28, quarter deliveries, Registrar 40 and Carillonneur 57.
+
+## Task 3 measurement protocol
+
+The application starts from `48ac3f0`, with the 32 HP authored Chief and 28 HP drawn Chief, the Carillonneur's H2 hook, the 12/6 HP loft and the bot attack guard. Freeze the corpus, lineups, starter pages, seeds and fight policy below for the paired comparison. Judge walkovers across all fresh ordinary offers, with unverified and invalid layouts reported alongside that rate. Compare the three fresh heart bands to EN-13 with equal weight across lineup sizes and masters, and print each lineup separately.
+
+The household results below are historical. The starting revision's HC-9 random-walk assertion already excludes out-of-room units, which keep their last tile when they fall. Rerun the entire 50-seed household sweep on the application without edits to its tests. Run one slow sim at a time under `caffeinate -i`.
+
+### Starting-revision rerun
+
+The full `CAL5=1 CAL5_DETAIL=1` baseline on `48ac3f0` passed 6/6 in 859 seconds. It measured 822 fresh fights, 471 carried fights and 144 actual trips with zero fight errors, operation-budget stops or generator event caps. Fresh hearts entered with HP/charges of 6/5, 14/10 and 20/16 for solo, pair and trio. The results below include fallbacks.
+
+| Band | Fresh pooled wins | W/L/S | Solo/pair/trio wins, each of 32 | Above upper band |
+| --- | ---: | --- | --- | ---: |
+| Light (60–75%) | 73/96 (76.0%) | 73/5/18 | 17/25/31 | 1.0 pp |
+| Medium (45–60%) | 68/96 (70.8%) | 68/8/20 | 15/21/32 | 10.8 pp |
+| Heavy (30–45%) | 71/96 (74.0%) | 71/5/20 | 14/25/32 | 29.0 pp |
+
+Fresh ordinary walkovers were 76/534 (14.2%), split 28/102 light, 21/192 medium and 27/240 heavy. Of 534 offered layouts, 351 were fair within four attempts, 107 were fallback offers and 105 were unverified. The oracle flagged 99 offered layouts. The 288 fresh heart offers included 98 fallbacks, 92 unverified. The Lamp-mother's 12 pair fallbacks were all unverified, then won through the app in rounds 17–23. The Carillonneur's 12 pair fallbacks were all unverified and produced 5 losses and 7 stalls. All 12 trios won against each master. Carried trips reached 68 hearts and cleared 24/144 trips, with 42 losses and 78 stalls.
+
+| Fresh master | W/L/S of 36 | Offered fallbacks | Unverified |
+| --- | --- | ---: | ---: |
+| Marginalia | 36/0/0 | 0 | 0 |
+| Lamp-mother | 24/0/12 | 24 | 24 |
+| Lamplighter | 35/1/0 | 1 | 0 |
+| Postmaster | 31/0/5 | 12 | 12 |
+| Bath-Steward | 28/0/8 | 17 | 14 |
+| Chief Warden | 23/0/13 | 12 | 12 |
+| Carillonneur | 12/5/19 | 25 | 25 |
+| Registrar | 23/12/1 | 7 | 5 |
+
+### Paired data candidates on the final authored revision
+
+The comparison uses all 534 fresh ordinary offers, paired by name, depth, lineup and seeds 1–2. Reproduce by setting `bandBonus` to each candidate in `src/data/drawing.ts` and running the same command with `CAL5=1 CAL5_ORDINARY=1 CAL5_DETAIL=1` and `-t 'production corpus tables'`. For the step candidate, use `CAL5_CANDIDATE=step2` with the default band bonuses. The full fight policy and production trial limits match the baseline.
+
+| Candidate | Walkovers L/M/H | Walkovers total | Fair | Fallback | Unverified | Invalid offers | App W/L/S |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `bandBonus` 0/1/2, step 1 | 28/21/27 | 76 (14.2%) | 351 | 107 | 105 | 99 | 510/6/18 |
+| `bandBonus` 1/2/3, step 1 | 28/16/28 | 72 (13.5%) | 348 | 123 | 111 | 102 | 489/10/35 |
+| `bandBonus` 2/3/4, step 1 | 27/15/30 | 72 (13.5%) | 340 | 127 | 113 | 102 | 481/16/37 |
+| `bandBonus` 0/1/2, step 2 | 25/27/51 | 103 (19.3%) | 354 | 77 | 77 | 77 | 509/7/18 |
+
+Solo accounted for 57 of the baseline's 76 walkovers. A lower party slope (`perMember` 1 with `bandBonus` 3/4/5) would give the solo/pair/trio budgets already measured at +2/+1/+0, respectively. Selecting those rows gives 68 walkovers, 113 unverified and 102 invalid in 534 fresh offers. Increasing the opening budget traded a small improvement in walkovers for more unverified offers and failed layout checks.
+
+### Delegated application and register rows
+
+Retain the production data. The two-point step prevented 28 unverified offers but added 27 walkovers, 24 of them heavy. Both measured budget increases left walkovers above 10% and increased invalid offers. The frozen corpus preserves the pen and loot decisions from tasks 1–2. With the starting data retained, the full starting-revision rerun is also the application measurement. Fresh heart rates stay 76.0%, 70.8% and 74.0%, and fresh ordinary walkovers stay 14.2%. Heart scaling, piece reach and peal allocation are separate design findings.
+
+| Pack | Tunable / source | Current | Candidate | Baseline measurement | Candidate measurement | Band / miss | Bot / corpus / command / revision | Player decision | Applied revision / rerun |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CAL-5 | `GEN_TUNING.bandBonus` | 0/1/2 | 1/2/3 | 76 walkovers, 105 unverified, 99 invalid of 534 | 72/111/102 | 13.5%, +3.5 pp | Final paired fresh ordinary corpus, `48ac3f0` | Retain 0/1/2 under delegation | Full source-default rerun |
+| CAL-5 | `GEN_TUNING.bandBonus` | 0/1/2 | 2/3/4 | 76 walkovers, 105 unverified, 99 invalid of 534 | 72/113/102 | 13.5%, +3.5 pp | Same paired corpus | Retain 0/1/2 under delegation | Full source-default rerun |
+| CAL-5 | `GEN_TUNING.perMember` and `bandBonus` | 2 and 0/1/2 | 1 and 3/4/5 | 76 walkovers, 105 unverified, 99 invalid of 534 | 68/113/102 from effective budgets measured at +2/+1/+0 | 12.7%, +2.7 pp | Recombined solo/pair/trio rows from paired corpus | Retain 2 and 0/1/2 under delegation | Full source-default rerun |
+| CAL-5 | `GEN_TUNING.step` | 1 | 2 | 76 walkovers, 105 unverified, 99 invalid of 534 | 103/77/77 | 19.3%, +9.3 pp | Same paired corpus, `CAL5_CANDIDATE=step2` | Retain 1 under delegation | Full source-default rerun |
+| CAL-5 | Drawn heart weight scaling | Frame HP | Master HP offsets +4/+12/+24 | 73/68/71 wins of 96 per band | Prototype pending | +1.0/+10.8/+29.0 pp | Full fresh app-path hearts, `48ac3f0` | Defer to design | Defaults rerun |
+| CAL-5 | Piece reach and minimum stamp | Foot-only local checks | Cast reach 4 and validate stamped pieces | 99/534 invalid ordinary offers | Prototype pending | 99 flagged | Final paired corpus, seed-1 kit probes | Defer to design | Defaults rerun |
+| CAL-5 | Length-six peal hook allocation | Sorted notes | Distinct notes first | `1,2,3,4,1` hung as `1,1,2,3` | Prototype pending | Note 4 displaced | Full rerun's save/reload setup probe | Defer to design | Defaults rerun |
+| CAL-5 | Steward lite trial heat | 1 | 4, matching app heart | Heat four in the app fight, rule default one in lite trial | Prototype pending | Setup parity | `trialRules`, `heartConfig` and full fresh corpus | Defer to design | Defaults rerun |
+
+### Design findings for a separate brief
+
+| Finding | Exact prototype to measure |
+| --- | --- |
+| Heart weight | `baseBudget` reads the weight band, but `composeHeart` uses the master's frame and `checkGenerated` exempts heart foe cost. Test adding **4/12/24 HP** to the drawn master's effective base HP for light/medium/heavy, respectively. Use the same HP in the lite trial, fallback trial and app encounter. Treat these as exploratory values. The prior Marginalia 16 → 32 probe delayed wins and made 12 offers unverified without reducing wins. Track losses, stalls and verification separately. |
+| Piece reach | In the Cartographers paper and bridge pier checks, require every start to remain connected on foot. For an anchored or flying foe also allow an unobstructed cardinal cast of at most **4 tiles** from the reached region, evaluated after unsupported bridge spans are removed. Validate selected pieces present in the minimum fallback stamp. Compare `Medium Lamplighter` and `Heavy Mother` at seed 1 and require **0** invalid offers in the full corpus. |
+| Length-six peal | Keep all **5** room entries in trip state. Reserve one hook for each distinct earned note first, honoring named hooks, then use duplicate notes to fill remaining bare hooks. For **4** bare hooks and entries `1,2,3,4,1`, expect `1,2,3,4`. For **0** hooks, hang zero and disclose that limitation when drawing the peal. |
+| Steward judge parity | The app activates boil-over at heat **4** and the lite trial uses the rule default of **1**. Test heat **4** for both trial paths, including the authored fallback, against the same fresh corpus. |
+
+### Task 3 verification
+
+| Check | Result on the retained defaults |
+| --- | --- |
+| `pnpm check:fast` | 414 files, 8,723 tests passed, 13 todo. Existing lint warnings in PenPot and the foundry bench test. |
+| Full CAL-5 drawn corpus | 6/6 passed, including palette coverage, pen, loot, stored-room reload and peal setup. |
+| Historical-corpus generator fuzz | 9/9 passed in 115 seconds, including 500 layouts and 50 deterministic replays. |
+| Full household sweep | The unfiltered invocation ended with exit 143 after 11 passes. The remaining 14 cases were restarted in full mode. |
+
+The 500-seed fuzz had 30 walkovers (6.0%) and no fallback, unverified offer, invalid layout or event cap. It offered 370/500 within two attempts and verified all 500 within four. Fair within four was 470/500 (94.0%) against the 94.4% watch value. Offered win round and HP-left medians were 3 and 85.7%. Desktop median/p95 was 179/407 ms. The production corpus's 14.2% walkovers and 99 invalid offers remain separate misses.
+
+The unfiltered household run passed three placement checks, five 5,350-fight lineup batches and the 2,140-fight Draughtsman, Stoker and Runaway batches, for 33,170 fresh fights. The process received SIGTERM (shell status 143) without a reported assertion failure. The retry keeps `HOUSEHOLD_SWEEP=1` with the same assertion source and excludes those completed cases by full test name.
+
+```sh
+caffeinate -i env HOUSEHOLD_SWEEP=1 pnpm vitest run tests/sim/household-sweep.test.ts --reporter=dot \
+  -t '^(?!.*(?:rooms hold up for every party size|no throw, no overrun, every room fought|(?:draughtsman|stoker|runaway) alone plays their rooms)).*$'
+```
 
 ## Corpus and reproduction
 
@@ -16,7 +100,7 @@ caffeinate -i env CAL5=1 CAL5_MASTER=marginalia CAL5_CANDIDATE=marginalia32 pnpm
 caffeinate -i env HOUSEHOLD_SWEEP=1 pnpm vitest run tests/sim/household-sweep.test.ts --reporter=dot
 ```
 
-Defaults are seeds 1–2 per fresh ordinary encounter, 1–4 per fresh heart and 1–2 per carried trip. The emitter prints distributions in p05/median/p95 order, by master, band, party and depth, and exposes per-room JSON with `CAL5_DETAIL=1`. It includes generation outcomes even when app setup or a fight throws. Candidate overrides are confined to the Vitest module for this file. The historical generator sweep and household assertions retain the production configuration. Desktop generation timings use Node 24.19 on macOS 26.7.3 (x86_64), with concurrent machine load. CAL-P owns device measurements.
+Defaults are seeds 1–2 per fresh ordinary encounter, 1–4 per fresh heart and 1–2 per carried trip. The emitter prints distributions in p05/median/p95 order, by master, band, party and depth, and exposes per-room JSON with `CAL5_DETAIL=1`. It includes generation outcomes even when app setup or a fight throws. Tasks 1–2 injected their candidates through the corpus test's Vitest module. The historical generator sweep and household assertions use the production configuration. Desktop generation timings use Node 24.19 on macOS 26.7.3 (x86_64), with concurrent machine load. CAL-P owns device measurements.
 
 ## Historical 500-seed EN-S1/EN-S2 sweep
 
@@ -328,7 +412,7 @@ Retain `DRAWN_MARGINALIA_HP = 16`. Doubling the drawn frame's HP kept all 36 app
 | CAL-5 | `DRAWN_LOOT.weights.heavy.page` | 3 | 4 | Heavy heart 393 method cards | 452 of 1,536 | Lower consumable share | Seeded loot, high handover | Retain 3 | Defaults measured |
 | CAL-5 | Length-six peal | Five rooms, four hooks | Decide duplicate-note and hookless behaviour | Setup hangs 1/1/2/3 from 1/2/3/4/1 | Structural candidate pending | Fourth distinct note displaced | Save/reload setup probe, carried seed 2 | Defer to kit brief | Retained shape and frame |
 
-## Verification and household gate
+## Historical verification and household gate (tasks 1–2)
 
 | Check | Result |
 | --- | --- |
