@@ -5,7 +5,7 @@ import { applyAction } from '../battle';
 import { botValue, crackedTiles } from '../districts/api';
 import type { GameEvent } from '../events';
 import { FOUNDERS } from '../household';
-import { castableSpells, legalAims, legalMoves, memberById } from '../queries';
+import { castableSpells, isAlive, legalAims, legalMoves, memberById } from '../queries';
 import type { Action, BattleState } from '../types';
 
 /** Deterministic, deliberately small greedy bot: value harm, avoid friendly fire, then approach. */
@@ -72,6 +72,7 @@ function basics(s: BattleState, id: ApprenticeId): Action[] {
   return basicDirs(s, id).map((dir): Action => ({ type: m.action, unit: id, dir }) as Action);
 }
 function attacks(s: BattleState, id: ApprenticeId): Action[] {
+  if (s.phase !== 'player' || !isAlive(memberById(s, id))) return [];
   return [
     ...basics(s, id),
     ...castableSpells(s, id)
@@ -154,7 +155,7 @@ export function botFight(
   };
   for (let n = 0; n < maxRounds && state.phase === 'player' && !exhausted; n++) {
     for (const id of order) {
-      if (state.phase !== 'player' || memberById(state, id).hp === 0 || memberById(state, id).out) {
+      if (state.phase !== 'player' || !isAlive(memberById(state, id))) {
         continue;
       }
       if (exhausted) break;
@@ -166,6 +167,7 @@ export function botFight(
       for (const to of movesOf(state, id, lite)) {
         const action: Action = { type: 'move', unit: id, to };
         const next = applyAction(state, action).state;
+        if (next.phase !== 'won' && !isAlive(memberById(next, id))) continue;
         const enemies = next.units.filter((u) => u.kind === 'enemy' && !u.bystander && u.hp > 0);
         const distance = Math.min(
           ...enemies.map((u) => Math.abs(u.pos.x - to.x) + Math.abs(u.pos.y - to.y)),
