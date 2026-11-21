@@ -123,3 +123,9 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 | CAL-F3 Registrar | move kept 1 (move 2: 26/72/81 %) | solo +11, duo +8 pp | accepted |
 | CAL-F4 Chief | authored 32 HP (drawn stays 28) | sound 80 %, crumbling 67.5 % fresh pair | crumbling 7.5 pp short; worn pairs clear 0/40 per span |
 | CAL-F4 Steward | 38 kept | 46.7 % hearts, first boil dusk 3-4 | none |
+
+### CAL-P (merged 2026-11-21; docs/plans/calibration-phone.md)
+| ID | Result | Status |
+|---|---|---|
+| EN-13 timing, emulated (HeadlessChrome 153, macOS), 60 rooms, 49 accepted / 11 fallbacks | direct median/p95 cold 111/526 ms, warm 108/505 ms; worker round trip cold 116/520, warm 119/522 ms | bar (median 0.5 s, p95 2 s) met on desktop CPU only; real iPhone owed |
+| Phone states 375x812 | 15 screenshots in calibration-evidence/, no horizontal overflow, no app console errors; light trip played, medium/heavy only to the dialog | generator page logs one unexamined 404 |
