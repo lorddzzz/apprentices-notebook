@@ -582,8 +582,8 @@ export function projectWith(view: BoardView, e: GameEvent): BoardView {
       break;
     }
     case 'stateFades':
-      // Graphite's undo removes a state outright; round-end fades only take what ran out.
-      if (e.line?.startsWith('graphite:')) setState(v, e.tiles, null);
+      // Graphite's undo and an un-drawn tile remove a state outright; round-end fades only take what ran out.
+      if (e.erased || e.line?.startsWith('graphite:')) setState(v, e.tiles, null);
       else for (const c of e.tiles) fadeAt(v, c);
       break;
     case 'spreadState': {

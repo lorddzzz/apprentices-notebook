@@ -8,7 +8,8 @@ import type { TermDef } from './types';
  *
  * - Room 1 always carries the sampler (a second pick for ink, never a page).
  * - Bind is guaranteed in room 2 while the household lacks it, with a gentle condition.
- * - Wax and Sand are termed in rooms 2-4; each page is offered on a term until it is found.
+ * - Wax is termed in rooms 2-3, Sand in rooms 2-4; each page is offered on a term until it is found.
+ *   Wax is not signed in room 4: its next room is the heart, a longer, losable fight (CAL-F5).
  */
 export const INK_TERMS: readonly TermDef[] = [
   {
@@ -41,7 +42,7 @@ export const INK_TERMS: readonly TermDef[] = [
     reward: { kind: 'page', spec: { kind: 'solvent', solvent: 'wax' } },
     stake: { kind: 'reward' },
     condition: { kind: 'withinRounds', rounds: 7 },
-    rooms: [1, 2, 3],
+    rooms: [1, 2],
     text: {
       reward: 'a pot of Wax',
       condition: 'win the next room within 7 rounds',

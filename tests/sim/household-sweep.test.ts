@@ -463,9 +463,10 @@ describe('random legal walks on every room (HC-9 fuzz)', () => {
           expect(visible(projected), `${room.name} ${who.join('+')} #${n} ${action.type}`).toEqual(
             visible(viewOf(result.state)),
           );
-          // No two living units share a tile.
+          // No two units on the board share a tile. A member out of the room (fell, erased) keeps
+          // hp and its last tile by design (`removeFromRoom`), and is not on the board.
           const alive = result.state.units
-            .filter((u) => u.hp > 0)
+            .filter((u) => u.hp > 0 && !u.out)
             .map((u) => `${u.pos.x},${u.pos.y}`);
           expect(new Set(alive).size).toBe(alive.length);
           state = result.state;

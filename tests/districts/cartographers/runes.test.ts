@@ -3,6 +3,7 @@ import { type InventionDef, LINES } from '$data';
 import { type BattleState, type GameEvent, libraryOf, parseLabel, tileAt } from '$engine';
 import { BLANK_PIECE, PENCIL_PIECE } from '$engine/districts/cartographers/types';
 import { idiomPre, idiomsIn } from '$engine/idioms';
+import { projectWith, viewOf } from '../../../src/app/view';
 import { act, board, cast, withLattices } from '../../scenarios/harness';
 
 /**
@@ -43,6 +44,17 @@ describe('CG-3 board runes on paper', () => {
     const e = cast(eraseTouch('D b{pencil} . . r'), 'draughtsman', touch('B1'));
     expect(unit(e.state, 'sentry-1')).toMatchObject({ hp: 1, stunned: true });
     expect(pieceAt(e.state, 'B1')?.id).toBe(BLANK_PIECE);
+  });
+
+  it('CG-5: an eraser un-drawing a tile with a lasting state projects the state gone (HC-9 fuzz)', () => {
+    // A bank with rounds to spare is no round-end fade: the event must say it went outright.
+    const s = board('S{pencil}{bank} . F . d D');
+    const r = act(s, { type: 'endTurn' });
+    expect(ofType(r.events, 'cartographers:undrawn')).toHaveLength(1);
+    expect(tileAt(r.state, at('A1')).state).toBeNull();
+    expect(ofType(r.events, 'stateFades')).toMatchObject([{ erased: true }]);
+    const projected = r.events.reduce(projectWith, viewOf(s));
+    expect(projected.tiles.map((t) => t.state)).toEqual(viewOf(r.state).tiles.map((t) => t.state));
   });
 
   it('CG-3: erase on an outline un-draws the foe', () => {
