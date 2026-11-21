@@ -13,8 +13,8 @@ Plans: [build-program.md](build-program.md), [calibration-plan.md](calibration-p
 ## Next
 
 0. Read CI on the last push (sims run only there). A red run is a fix pack first.
-1. **Window 1** ([drawn-calibration-briefs.md](drawn-calibration-briefs.md)), three packs with disjoint files: **CAL-5S** household sweep, 11 shards at `HOUSEHOLD_SEEDS=10` (Codex Sol 6.2 high; the window's only slow-sim runner) · **CAL-5G** one reach rule → held-back walk → heart HP mechanism (bonus 0) → Steward parity (Claude Sonnet high; its generator fuzz waits for S) · **CAL-5P** peal notes distinct first → hookless-heart caveat → drawn Cleared copy (Claude Sonnet high, phone check).
-2. **Window 2:** **CAL-5R** drawn remeasure, sharded (Codex Sol 6.2 high), once G and P are merged and S has finished. Then **CAL-G1** (design window).
+1. **CAL-5S** household sweep (Codex, running, bridges shard in progress; patch will be /tmp/cal5-sweep.mbox). CAL-5P, CAL-5G (G1-G4) merged and fast-gate green; **not pushed yet** (hold for the batch).
+2. When S has finished: run `tests/sim/generator.test.ts` and the 500-seed fuzz on main (baseline 94.0 %, 30, 0, 0) for the reach-rule after-numbers; then **CAL-5R** drawn remeasure, sharded (Codex Sol 6.2 high). Then **CAL-G1** (design window). DESIGN §11 rows owed: budget stays after a failed layout check; any foe cast-reachable (castReach 4); update the brief's G1 text.
 3. Needs the player's phone (non-blocking): real-iPhone timing (CAL-P: emulated 108-111 ms median, 505-526 ms p95) and the BL-111 offline check (real Chrome: `pnpm build && pnpm preview`, SW installed, offline: home, a Seam trip, the Lab).
 4. Open authored misses, for CAL-G1's tables (numbers in calibration-results.md): canals room 4 at 100 %; foundry four bells 93 %; foundry loft 73 % (stall-shaped); Registrar solo +11 / duo +8 pp; authored Chief crumbling 67.5 %; quarter heart stalls 11 %; bridges worn pairs clear 0/40.
 
