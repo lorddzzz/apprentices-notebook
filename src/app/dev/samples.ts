@@ -1,6 +1,14 @@
 import { APPRENTICE_IDS, type ApprenticeId, type Drawing, type EnemyId } from '$data';
-import { createRng, FOUNDERS, joinHousehold, newProfile } from '$engine';
-import type { GenInput } from '$engine/drawing';
+import {
+  createRng,
+  FOUNDERS,
+  joinHousehold,
+  newProfile,
+  type Profile,
+  startTrip,
+  type Trip,
+} from '$engine';
+import { type GenInput, roomInput } from '$engine/drawing';
 
 /**
  * EN-S1: the sample drawings the fuzz and the dev page (`generator.html`) feed the generator. A
@@ -52,4 +60,26 @@ export function sampleInput(seed: number): GenInput {
     seed: rng.int(1, 0x7fffffff),
     room: rng.int(0, length - 2),
   };
+}
+
+/** CAL-P: the frozen CAL-5 corpus, read-only from the test fixtures; the spike corpus above stays the default. */
+export interface CalibrationCase {
+  profile: Profile;
+  trip: Trip;
+  room: number;
+  input: GenInput;
+}
+
+/** Seed `seed` takes drawing `(seed - 1) mod n` of the corpus, one room of it, on the pair household. */
+export async function calibrationCase(seed: number): Promise<CalibrationCase> {
+  const { CAL_DRAWINGS, CAL_PARTIES, calibrationProfile } = await import(
+    '../../../tests/fixtures/calibration/drawings'
+  );
+  const base = calibrationProfile(CAL_PARTIES.pair);
+  const drawing = CAL_DRAWINGS[(seed - 1) % CAL_DRAWINGS.length];
+  if (!drawing) throw new Error('The calibration corpus is empty');
+  const profile: Profile = { ...base, drawings: [drawing, null, null] };
+  const trip = startTrip(profile, seed, 'inkedPage', { page: 0 });
+  const room = createRng(seed).int(0, drawing.length - 1);
+  return { profile, trip, room, input: roomInput(profile, trip, room) };
 }
