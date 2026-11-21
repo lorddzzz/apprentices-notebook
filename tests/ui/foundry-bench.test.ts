@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { LOCKS } from '$data/districts/foundry';
 import { newProfile, type Profile, parseCell, scenarioBattle } from '$engine';
-import { tileAt } from '$engine/queries';
 import { sceneEntries, sceneItems } from '../../src/app/bench';
 import { PALETTE, resolveScenario, withLabRules } from '../../src/app/lab';
 

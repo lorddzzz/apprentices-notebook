@@ -36,7 +36,7 @@ A **pack** is one agent run: two to four tasks that touch the same files, done i
 
 ### The brief
 
-Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules and its worktree isolation, so the brief holds only what differs per pack. For other agent types writing files concurrently, use Whiteboard’s Git-enabled clone, request `isolation: "worktree"` where supported, or prepare a separate pack worktree as described under Runners. A good brief lets the agent start without exploring:
+Spawn the `pack-worker` agent with the brief in [templates.md](templates.md). The agent's definition carries the standing rules and its worktree isolation, so the brief holds only what differs per pack. For other agent types writing files concurrently, use Whiteboard’s Git-enabled clone, request `isolation: "worktree"` where supported, or prepare a separate pack worktree as described under Runners. A good brief lets the agent start without exploring (and names the **base commit** the pack starts from, so an exported patch applies cleanly on `main`):
 
 - **Owns:** the exact files or directories. Everything else is read-only. For a pack that changes authored numbers, also list the tests that pin the old values (`grep` the old numbers across `tests/`) and put them in Owns: a pack that leaves them red cannot pass its own gate, and a fix pack is a second spawn. Before writing this list, trace the task through the code: where the new behaviour is called from, which shared type or registry it must touch, which tests and fixtures it will change. A brief whose Owns list was guessed from the plan stops its pack before the first commit.
 - **Read:** at most three things: the plan rows, one design section, and **one pattern file** to copy (the nearest finished example).
@@ -48,16 +48,17 @@ Store briefs for packs that are not started yet in `docs/plans/<plan>-briefs.md`
 
 ### Model choice
 
-Start at the role's first setting; move to its escalation only after a failed review. These settings are deliberately on the cheap side and are an experiment: the log's Model and Returns columns decide whether they stay.
+Start at the role's first setting; move to its escalation only after a failed review. Hybrid, decided after the calibration window (2026-11-21: Sonnet high and Sol 6.2 high packs merged with 0 returns; Terra's one pack returned nothing; an Opus-high design window wrote the briefs that let F1 and F3 land clean): **design work on Opus high, packs on Sonnet high or Sol 6.2 high, Terra only for content from a precise spec.** The log's Model and Returns columns keep judging it.
 
 | Role | Claude | GPT | Use for |
 |---|---|---|---|
 | **Fast** | Haiku 5.5 high | Luna 6 high (`gpt-6-luna`) | Content and data from an approved text or a precise spec, pattern-following screens, log and fact gathering |
-| **Default** | Sonnet 5.5 medium → Sonnet 5.5 high or Opus 5.5 medium | Terra 6.1 high (`gpt-6.1-terra`) → Sol 6.1 high (`gpt-6.1-sol`) | Most packs: engine logic with tests already written, Svelte screens, tests, refactors, debugging |
-| **Strong** | Sonnet 5.5 high → Opus 5.5 high | Sol 6.1 medium → Sol 6.1 extra high | A Wave 0 with no template to follow, hard algorithms, cross-cutting refactors |
-| **Routine orchestrator** | Sonnet 5.5 medium | Sol 6.1 medium | See "Two kinds of window" |
-| **Design orchestrator, planner** | The strongest model available, high effort | The strongest model available, high effort | Planning, briefs, Wave 0 and Close reviews, audits |
+| **Default** | Sonnet 5.5 high (`sonnet`) → Opus 5.5 medium | Sol 6.2 high (`gpt-6.2-sol`) → Sol 6.2 xhigh | Most packs: engine logic with tests already written, Svelte screens, tests, refactors, debugging |
+| **Strong** | Opus 5.5 high | Sol 6.2 xhigh | A Wave 0 with no template to follow, hard algorithms, cross-cutting refactors |
+| **Routine orchestrator** | Sonnet 5.5 medium | Sol 6.2 medium | See "Two kinds of window" |
+| **Design orchestrator, planner** | Opus 5.5 high, one window per wave (docs only, no sims) | The strongest model available, high effort | Planning, briefs with traced Owns and held defaults, bug diagnosis from code, Wave 0 and Close reviews, audits |
 
+- **Spread by task type, not by count** (experiment, below): long measurement and sweep packs (little editing, hours of sims) go to Codex Sol; edit-heavy packs (UI, engine logic, test updates, Svelte) and anything needing the autofixer or a browser go to Claude. Check both tools' usage at each spawn; shift a pack of either type to the other tool when one is past 50 % and the other under 30 %.
 - A Fast pack that fails review moves to Default; it does not get a second Fast attempt.
 - Pass the role's model and effort when spawning (see Runners below; `pack-worker`'s own default is Sonnet 5.5 medium). Don't restart a running agent to change its model.
 - Record the model, the effort and any escalation in the log row.
@@ -94,9 +95,17 @@ Verification is the largest avoidable cost. Each tier runs once, at its own leve
 - Send check output to a file and read the tail. A passing run's output is never worth reading in full.
 - Only a pack that owns the slow sims runs them.
 - A test that fails on timing, not logic, is a bug in the gate: fix its timeout or move it to the slow tier the same day. The heavy drawing tests (generator EN-2/EN-5, honest-trial EN-K9, kits-c EN-K6) are the known case: they need a longer timeout or the slow tier, and meanwhile rerun them alone with `--testTimeout=400000` before calling a gate red. Don't rerun and carry on.
-- Push once per merge batch, records included, so CI finishes on a commit instead of being cancelled by the next push.
+- Push once per merge batch, records included, so CI finishes on a commit instead of being cancelled by the next push. Hold every push until the batch's last merge and record are in; a second push inside a CI run cancels it (it happened three times in the calibration window).
+- **A Claude pack runs `pnpm check:fast` to the end before it reports**, and a pack that changes authored numbers also runs the tests that pin them (see Owns). CAL-2 and CAL-3 skipped this and left 17 red tests for a fix pack.
 - The slow sims run only in CI, so a red run is the only signal that a pack broke them. A red run is a fix pack in the current wave, started before any new pack. A pack that changes what the sims can reach (opens a district, adds a member, a habit or a rule to the defaults) names the sim files to run in its brief.
 - **Phone checks.** A pack that adds a new interaction (a gesture, a new control, an animation that carries meaning) verifies it itself at 375×812 before reporting. A pack whose screens follow an existing pattern (another district's banner, card or token) does not start a browser: you check all such screens together, once, when the wave ends, and fix small defects yourself.
+
+## Time-boxes and sharded sweeps
+
+A calibration or sweep pack once sat three hours in one household-sweep process and was stopped with its work unmerged. So:
+- **Every brief states a wall-clock budget** (default: 90 minutes for a pack, 30 minutes for any single command). A command that would exceed it is **sharded**: one run per district or lineup, each in the background with its own log and its own cap, `HOUSEHOLD_SEEDS` (or the sim's seed variable) **at 10, not 50**, and the pack reports the shards that finished. A full-seed run is a nightly CI job, not a pack's gate.
+- **The orchestrator time-boxes measurement packs automatically** (experiment): when a pack is past its budget, or its sim log has not grown for 20 minutes, send the checkpoint message; five minutes later stop it and take the exported patch. Stopping early with a patch is a normal outcome, recorded in the log row, not a failure.
+- **Workers export a patch after every commit** (`git format-patch <base>..HEAD > /tmp/<pack>.mbox`, overwritten each time), so a stop or a rate limit loses nothing.
 
 ## Review, merge, record
 
@@ -120,7 +129,7 @@ Orchestration does not need the strongest model all the time. The orchestrator's
 | Window | Orchestrator | Does |
 |---|---|---|
 | **Design** | The strongest model available | Planning and replanning, Wave 0 review, writing the briefs file for the coming packs, the one return a pack is allowed when the problem is a contract or design question, Close reviews, audits |
-| **Routine** | Sonnet 5.5 medium or Sol 6.1 medium | Spawns packs from the briefs file as written, checks reports against Done-when, runs the gates, merges, records, paces usage |
+| **Routine** | Sonnet 5.5 medium or Sol 6.2 medium | Spawns packs from the briefs file as written, checks reports against Done-when, runs the gates, merges, records, paces usage |
 
 A routine orchestrator does not decide contracts or accept Proposals that change a rule. When a report needs that, it leaves the pack unmerged under **Needs design review** in the status file with the branch and the question, and goes on to the next pack. A program normally runs one design window, then routine windows until the briefs run out or the review list has three entries. One parked pack is not a reason for a design window while other briefs can run.
 
@@ -143,3 +152,14 @@ These steps are tasks: list them in the status file when the plan starts, so the
 5. Hand over: what can be played, what was verified and what was not, decisions, rough edges, usage, and two to four playtest questions about feel and direction.
 
 At the start of every design window of a long program, run the ledger and read the Owed list. Drift is cheap to fix early.
+
+## Experiments in progress (judge them in the log, drop what does not pay)
+
+Each is tried from the next session on; record the result in the log's usage table or a row's Note, and move the winner into the rules above.
+
+| Experiment | What to try | Judge by |
+|---|---|---|
+| **Sharded sweeps, 10 seeds** | Every sweep or calibration pack runs per-district shards at `*_SEEDS=10` with a cap per shard (Time-boxes above) | Wall time per pack against the old 50-seed runs (CAL-5 took about 3 h and never finished); do the 10-seed rates stay within the bands' noise? If a shard's rate swings more than 10 points on a rerun, raise that shard to 20 |
+| **Automatic time-box for measurement packs** | Orchestrator sends the checkpoint message at the budget or after 20 minutes without log growth, and stops the pack five minutes later | Packs that end with a usable patch vs packs lost; pack wall time in the log's Note |
+| **Spread by task type** | Long measurement and sweeps on Codex Sol, edit-heavy packs on Claude (Routing rules) | Peak of each tool's 5h use per window (the calibration window stayed under 50 % on both); returns per pack by tool |
+

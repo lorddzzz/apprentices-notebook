@@ -57,6 +57,7 @@ In Claude, spawn the `pack-worker` agent (`.claude/agents/pack-worker.md` holds 
 
 ```
 Pack <name> of docs/plans/<plan>.md: tasks <ID> → <ID> → <ID>.
+Base commit: <sha of main when you spawn>. Budget: <90 min pack, 30 min per command>.
 
 Read: <plan rows / section>; <design section>; pattern: <file to follow>.
 Own: <files and directories>.
@@ -91,6 +92,7 @@ START
 WORK
 - Tasks in order. <Worker commits:> One commit per task. <Orchestrator commits:> Finish each item with its tests green and list its changed files by task.
 - Edit only the files you OWN. An OPTIONAL field, parameter or registry entry in another file is allowed when the task needs it, behaviour without it is identical and existing tests pass unchanged: do it and list it under Proposals. Anything more (changed behaviour, a changed test) leaves THAT ITEM undone: say so, and carry on with the other items instead of stopping the pack.
+- Time budget: the brief gives a wall-clock budget (default 90 minutes for the pack, 30 for any one command). Shard anything longer, one background run per district with its own log and `*_SEEDS=10`; overwrite `/tmp/<pack>.mbox` with `git format-patch <base>..HEAD` after every commit; at the budget, or when the orchestrator sends a checkpoint message, commit as `wip(...)`, report the shards that finished and stop.
 - A red gate outside your files (heavy drawing tests that time out under load, tests of other areas): commit your verified work as `wip(<area>): <ID> <the outside failure>` and describe the failure; never leave work uncommitted. <Whiteboard clone:> Before you finish, write `git format-patch` of your commits to `/tmp/<pack>.mbox` and report the path: the orchestrator cannot read Whiteboard's worker folder, and a fetch from it is denied.
 - Stopping early. <Worker commits:> Commit what you have as `wip(<area>): <ID> <what is missing>`. <Orchestrator commits:> Leave the files as they are and say what is missing.
 - No balance tuning. Don't edit DESIGN.md, TECH.md, docs/design/*, the roadmap or the status file. No refactors beyond the tasks.
