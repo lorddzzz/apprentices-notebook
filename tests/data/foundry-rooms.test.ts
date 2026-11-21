@@ -326,8 +326,15 @@ describe('the clockwork loft staff (CAL-F3)', () => {
     s.units.filter((u) => u.def === def).map((u) => u.hp);
 
   test("CAL-F3: the clockwork loft spawns its staff at the room's HP", () => {
-    expect(four.enemyHp).toBeUndefined(); // the room carries no HP of its own: the staff keeps its own
-    const plain = loft();
+    // the room carries its own staff HP (CAL-F3); the shared staff stats, which the heart reads, stay
+    expect(four.enemyHp).toEqual({ clapper: 12, detuner: 6 });
+    expect(FOUNDRY_ROOMS_34[0]?.enemyHp).toBeUndefined(); // room 3 keeps the shared staff
+    expect(
+      loft()
+        .units.filter((u) => u.def === 'clapper')
+        .map((u) => u.hp),
+    ).toEqual([12]);
+    const plain = loft({});
     expect(hpOf(plain, 'clapper')).toEqual([FOUNDRY_TUNING.foes.clapper.hp]);
     expect(hpOf(plain, 'detuner')).toEqual([
       FOUNDRY_TUNING.foes.detuner.hp,
@@ -376,6 +383,19 @@ describe('the heart (BF-12)', () => {
       for (const s of spec.starts)
         for (const b of bells)
           expect(Math.abs(s.x - b.x) + Math.abs(s.y - b.y), v.name).toBeGreaterThan(1);
+    });
+  });
+
+  test('CAL-F3: the first hook of every heart layout sits beside the Carillonneur, the second does not', () => {
+    FOUNDRY_HEART.variants?.forEach((v, i) => {
+      const rows = v.layout.split('\n').map((r) => r.trim().split(/\s+/));
+      const y = rows.findIndex((r) => r.includes('V'));
+      const x = rows[y]?.indexOf('V') ?? -1;
+      const [first, second] = HEART_HOOKS[i] ?? [];
+      const dist = (h?: { at: { x: number; y: number } }) =>
+        h ? Math.abs(h.at.x - x) + Math.abs(h.at.y - y) : -1;
+      expect(dist(first), v.name).toBe(1);
+      expect(dist(second), v.name).toBeGreaterThan(1);
     });
   });
 

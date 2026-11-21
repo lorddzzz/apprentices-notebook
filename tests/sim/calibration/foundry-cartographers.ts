@@ -1,6 +1,6 @@
 import { type ApprenticeId, ENEMIES, encountersOf } from '$data';
-import { FOUNDRY_TUNING } from '$data/districts/foundry';
-import { REGISTRAR_TUNING } from '$data/rivals/registrar';
+import { FOUNDRY_ROOMS_34, FOUNDRY_TUNING } from '$data/districts/foundry';
+import { REGISTRAR_RIVAL, REGISTRAR_TUNING } from '$data/rivals/registrar';
 import {
   applyAction,
   type BattleState,
@@ -282,6 +282,28 @@ const tryHp = (id: 'carillonneur' | 'registrar', hp: number) => {
     shell.hp = was;
   };
 };
+/** The rival's move is read from its RivalDef (`rivals/plan.ts`) and, for the AI's walk, the shell. */
+const tryMove = (id: 'registrar', move: number) => {
+  const shell: Writable<(typeof ENEMIES)[typeof id]> = ENEMIES[id];
+  const def: Writable<typeof REGISTRAR_RIVAL> = REGISTRAR_RIVAL;
+  const was = { shell: shell.move, def: def.move };
+  shell.move = move;
+  def.move = move;
+  return () => {
+    shell.move = was.shell;
+    def.move = was.def;
+  };
+};
+/** The loft is the second room of FOUNDRY_ROOMS_34; its `enemyHp` is read when the encounter battle spawns. */
+const tryLoft = (enemyHp: Readonly<Record<string, number>>) => {
+  const room: { enemyHp?: Readonly<Record<string, number>> } | undefined = FOUNDRY_ROOMS_34[1];
+  if (!room) throw new Error('Missing room 4');
+  const was = room.enemyHp;
+  room.enemyHp = enemyHp;
+  return () => {
+    room.enemyHp = was;
+  };
+};
 const compose =
   (...restores: (() => void)[]) =>
   () => {
@@ -319,6 +341,24 @@ export const CANDIDATES: Readonly<Record<string, Candidate>> = {
   F5: {
     fields: 'FOUNDRY_TUNING.carillonneur.hp 14 -> 90 (and rivals/carillonneur.ts hp)',
     apply: () => tryHp('carillonneur', 90),
+  },
+  /** CAL-F3 task 2: room 4 ('The clockwork loft') carries its own staff HP; the heart's staff is untouched. */
+  R1: {
+    fields: 'foundry-loft enemyHp { clapper: 12 } (room 4 only; heart staff unchanged)',
+    apply: () => tryLoft({ clapper: 12 }),
+  },
+  R2: {
+    fields: 'foundry-loft enemyHp { clapper: 12, detuner: 6 } (room 4 only)',
+    apply: () => tryLoft({ clapper: 12, detuner: 6 }),
+  },
+  R3: {
+    fields: 'foundry-loft enemyHp { clapper: 16, detuner: 6 } (room 4 only)',
+    apply: () => tryLoft({ clapper: 16, detuner: 6 }),
+  },
+  /** CAL-F3 task 3: the Registrar's movement, on the shell the fight spawns from. */
+  M2: {
+    fields: 'REGISTRAR_TUNING.move 1 -> 2 (and rivals/registrar.ts move)',
+    apply: () => tryMove('registrar', 2),
   },
   /** A policy probe, not a game number: CAL-B asked for the pulse term's member weight at 0 on the yoke. */
   P0: {
