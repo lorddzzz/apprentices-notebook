@@ -1,4 +1,4 @@
-import { CLOCK_TUNING } from '$data/districts/inkQuarter/enemies';
+import { CLOCK_TUNING, INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
 import type { Ctx } from '../../ctx';
 import { byReadingOrder, type Coord } from '../../grid';
 import { coordOf, isAlive, livingUnits, members, unitAt } from '../../queries';
@@ -28,8 +28,15 @@ export const CLOCK_WRIT_TRICK_ID = 'inkQuarter:clockWrit' as const;
 export const SERVE_GOAL_ID = 'inkQuarter:serveWrit' as const;
 export const COLLECT_GOAL_ID = 'inkQuarter:collectMarks' as const;
 
-/** The heart's foes (IQ-10 places them): the postmaster (token `p`), a Sealer, two dead letters. */
-export const HEART_ROSTER = ['postmaster', 'sealer', 'deadLetter', 'deadLetter'] as const;
+/**
+ * The heart's foes (IQ-10 places them): the postmaster (token `p`), a Sealer and his dead letters
+ * (`INK_FOE_TUNING.counterLetters` of them, his deliveries, CAL-2).
+ */
+export const HEART_ROSTER: readonly string[] = [
+  'postmaster',
+  'sealer',
+  ...Array.from({ length: INK_FOE_TUNING.counterLetters }, () => 'deadLetter'),
+];
 
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 

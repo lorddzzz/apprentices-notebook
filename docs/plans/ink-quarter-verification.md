@@ -81,3 +81,16 @@ ROADMAP rows to add or update:
 - Debt Collection on a real ink room board (partial coverage).
 - Dark-mode pass of the ink pieces once the theme setting can be forced by the verify tooling.
 - Plan open questions 1-4 are still defaults (no break on purpose; order marks apprentices; notary note on Sentence; collection hits foes).
+
+## 4. CAL-2: the postmaster's deliveries (2026-11-21)
+
+Before and after, fresh founding pair at the heart, 120 seeds (1000-1119), `mode='bot'`. Full tables, probes and proposals: [ink-quarter-calibration.md](ink-quarter-calibration.md#cal-2-applied-2026-11-21-the-postmasters-deliveries).
+
+| | won | lost | stalled | mean party HP | page banked |
+|---|---|---|---|---|---|
+| before (2 plain letters, burst 2) | 100% | 0% | 0% | 13.2 | on every win |
+| after (4 letters, 3 shields, burst 4 at his counter) | 79% | 10% | 11% | 5.8 | on every win, none on a loss or stall |
+
+Worn pair (500 trips): heart reached 6 times; before 3 won / 3 stalled / 0 lost, after 0 won / 6 lost. Term rooms: rooms 2-4 unchanged (all 100%, all paid); heart wax / sand 79% (baseline 79%), ledger 91% (+12). Wax at the heart is broken in 22% of fights (limit 7, median 7 rounds).
+
+Regressions: `tests/rivals/postmaster.test.ts` ("his deliveries": telegraph a round ahead in words, lands at burst 4, killing the letter or stepping out prevents it, plain burst without the postmaster); `tests/sim/postmaster-heart.test.ts` ("the heart can be lost", seed 1014); `tests/districts/heart-frames.test.ts` (recorded frame with four shielded letters). No phone check (no UI art change; the telegraph line reads "burst for 4").

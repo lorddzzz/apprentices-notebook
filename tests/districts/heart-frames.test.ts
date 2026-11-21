@@ -35,12 +35,12 @@ const foesOf = (b: BoardSpec): string[] =>
     .map((u) => u.def)
     .sort();
 
-/** The ink frame's boards before the helper took over its steps (7x9, seeds 1-4). */
+/** The ink frame's boards (7x9, seeds 1-4): the postmaster's four shielded deliveries (CAL-2). */
 const INK_RECORDED: readonly string[] = [
-  '. x       . .        . z       .\n. .       . .        p .       .\n. x       . .        . .       .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
-  '. x       . .        . z       .\n. .       . .        p .       .\n. x       . .        . .       .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
-  '. z       . .        . x       .\n. .       . .        p .       .\n. .       . .        . x       .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
-  '. x       . .        . z       .\n. .       . .        p .       .\n. x       . .        . .       .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
+  '. x+++    . .        . z       .\n. .       . .        p .       .\n. x+++    . x+++     . x+++    .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
+  '. x+++    . .        . z       .\n. .       . .        p .       .\n. x+++    . x+++     . x+++    .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
+  '. z       . .        . x+++    .\n. .       . .        p .       .\n. x+++    . x+++     . x+++    .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
+  '. x+++    . .        . z       .\n. .       . .        p .       .\n. x+++    . x+++     . x+++    .\n. .       . .        . .       .\n. .       . {return} . .       .\n. {order} . .        . {order} .\n. .       . .        . .       .\n. .       . .        . .       .\nP P       P P        . .       .',
 ];
 
 /**
@@ -234,7 +234,7 @@ describe('KIT-R3 heart frames', () => {
     }
   });
 
-  test("KIT-R3: the frame helper leaves the ink frame's boards unchanged", () => {
+  test("KIT-R3: the ink frame places the postmaster's four shielded deliveries", () => {
     const heart = heartOf('inkQuarter');
     const got = [1, 2, 3, 4].map((seed) => serializeBoard(heart.frame(blank(7, 9), seed)));
     expect(got).toEqual(INK_RECORDED);

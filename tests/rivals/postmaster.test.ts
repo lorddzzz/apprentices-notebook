@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
 import { RIVAL_PAGES, RIVALS } from '$data/rivals';
 import { POSTMASTER_PAGE } from '$data/rivals/postmaster';
 import {
@@ -21,6 +22,7 @@ import { footnoteIds } from '$engine/footnotes';
 import { bankPages, pagesHeld, rivalNoteVisible } from '$engine/rivals/pages';
 import { listRules } from '$engine/rules';
 import { awardsPage } from '$engine/standIn';
+import { intentPhrase } from '../../src/app/describe';
 import { marginOf, writeAt } from '../../src/app/desk';
 import { withFootnotes } from '../scenarios/footnoteHarness';
 import { castWith } from '../scenarios/footnotes/castHelper';
@@ -222,5 +224,60 @@ describe('his page', () => {
       spell: 'serveNotice',
       lattice: 'Bolt> Ink Sentence',
     });
+  });
+});
+
+// CAL-2: his dead letters at the counter are deliveries, a visible and preventable damage source.
+describe('his deliveries (the heart can be lost)', () => {
+  const AT_COUNTER = 'S x+++ . . p\n. . . . .';
+  const letter = (s: BattleState): EnemyUnit => {
+    const u = s.units.find((v) => v.kind === 'enemy' && v.def === 'deadLetter');
+    if (u?.kind !== 'enemy') throw new Error('no letter');
+    return u;
+  };
+
+  test('telegraphed a round ahead, in words, at the counter weight', () => {
+    const s = heart(AT_COUNTER);
+    expect(letter(s).intent).toMatchObject({ kind: 'behaviour', telegraph: { label: 'deliver' } });
+    expect(intentPhrase(s, letter(s))).toMatch(
+      new RegExp(`^will deliver to Stoker and burst for ${INK_FOE_TUNING.counterBurst} `),
+    );
+    expect(INK_FOE_TUNING.counterBurst).toBeGreaterThan(INK_FOE_TUNING.deadLetterBurst);
+    expect(letter(s).shield).toBe(INK_FOE_TUNING.counterShield);
+    expect(hp(s, 'stoker')).toBeGreaterThan(INK_FOE_TUNING.counterBurst);
+  });
+
+  test('left alone it lands: the telegraphed apprentice takes the counter burst', () => {
+    const s = heart(AT_COUNTER);
+    const r = endTurn(s);
+    expectLogIncludes(r.events, ['dead letter at B1 bursts', 'dead letter at B1 dies']);
+    expectLogIncludes(r.events, [`Dead letter hits Stoker for ${INK_FOE_TUNING.counterBurst}`]);
+    expect(hp(r.state, 'stoker')).toBe(hp(s, 'stoker') - INK_FOE_TUNING.counterBurst);
+  });
+
+  test('preventable by killing it: the wax shields then the letter, and nothing is delivered', () => {
+    const s = heart(AT_COUNTER);
+    const r = draft(s, (ctx) =>
+      dealDamage(ctx, letter(ctx.s), INK_FOE_TUNING.counterShield + 1, 'Strike'),
+    );
+    expect(letter(r.state).hp).toBe(0);
+    expect(hp(endTurn(r.state).state, 'stoker')).toBe(hp(s, 'stoker'));
+  });
+
+  test('preventable by stepping out: an addressee moved off hits nothing', () => {
+    const gone = structuredClone(heart(AT_COUNTER));
+    const stoker = gone.units.find((u) => u.id === 'stoker');
+    if (!stoker) throw new Error('board');
+    stoker.pos = at('D2');
+    const r = endTurn(gone);
+    expectLogIncludes(r.events, ['Dead letter hits nothing']);
+    expect(hp(r.state, 'stoker')).toBe(hp(gone, 'stoker'));
+  });
+
+  test('only his: with no postmaster on the board a letter is the plain burst', () => {
+    const s = board('S x . .');
+    expect(intentPhrase(s, s.units.find((u) => u.def === 'deadLetter') as EnemyUnit)).toContain(
+      `burst for ${INK_FOE_TUNING.deadLetterBurst}`,
+    );
   });
 });

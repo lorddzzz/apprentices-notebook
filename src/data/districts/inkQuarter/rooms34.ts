@@ -1,6 +1,7 @@
 import type { RuleId } from '$engine/districts/types';
 import type { EncounterDef, EncounterVariant, LootTableId } from '../../types';
 import type { KitRoomDef } from '../index';
+import { INK_FOE_TUNING } from './enemies';
 import { INK_LETTERS } from './papers';
 
 /**
@@ -27,6 +28,9 @@ export const HEART_RULES: readonly RuleId[] = ['inkQuarter:clock'];
 export const NOTARY_DESK = { x: 5, y: 7 } as const;
 
 const board = (rows: readonly string[]): string => rows.join('\n');
+
+/** A heart dead letter: one of the postmaster's deliveries, under its wax shields (CAL-2). */
+const X = `x${'+'.repeat(INK_FOE_TUNING.counterShield)}`;
 
 function room(
   id: string,
@@ -143,18 +147,18 @@ const INK_4: readonly EncounterVariant[] = [
 ];
 
 /**
- * The heart, *The postmaster's counter* (7x9): the stand-in postmaster `p`, a Sealer and two
- * dead letters (`HEART_ROSTER`). He never walks, so he sits behind the counter at the top.
+ * The heart, *The postmaster's counter* (7x9): the stand-in postmaster `p`, a Sealer and his four
+ * shielded dead letters (`HEART_ROSTER`; deliveries, CAL-2). He never walks, so he sits behind the counter at the top.
  */
 const INK_HEART: readonly EncounterVariant[] = [
   {
     name: 'The long counter',
     layout: board([
-      '. . x . z . .',
+      `. . ${X} . z . .`,
       '. . . p . . .',
-      '. x . . . . .',
+      `. ${X} . . . . .`,
       '. . . {return} . . .',
-      '. . . . . . .',
+      `. . ${X} . . ${X} .`,
       '. {order} . . . {order} .',
       '. . . . . . .',
       'P . P . P . .',
@@ -164,12 +168,12 @@ const INK_HEART: readonly EncounterVariant[] = [
   {
     name: 'The sorting window',
     layout: board([
-      '. z . . x . .',
+      `. z . . ${X} . .`,
       '. . . p . . .',
-      '. . . . . x .',
+      `. . . . . ${X} .`,
       '. . . . . . .',
       '. {return} . . {order} . .',
-      '. . . . . . .',
+      `. ${X} . . . ${X} .`,
       '. . . . . . .',
       'P . . P . . .',
       '. P . . . . P',
@@ -178,11 +182,11 @@ const INK_HEART: readonly EncounterVariant[] = [
   {
     name: 'The dead-letter shelf',
     layout: board([
-      'x . . p . . z',
+      `${X} . . p . . z`,
       '. . . . . . .',
-      '. . . . . x .',
+      `. . . . . ${X} .`,
       '. {order} . . {return} . .',
-      '. . . . . . .',
+      `. ${X} . . ${X} . .`,
       '. . . . . . .',
       'P . . P . . .',
       '. P . . . . .',

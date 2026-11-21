@@ -1,6 +1,7 @@
 import { INK_FOE_TUNING } from '$data/districts/inkQuarter/enemies';
 import { INK_TERMS } from '$data/districts/inkQuarter/terms';
 import { type BattleState, type EnemyUnit, findUnit, type LootItem, label } from '$engine';
+import { deliveryBurst } from '$engine/districts/inkQuarter/foes';
 import type { Telegraph } from '$engine/rivals/types';
 import { ordinal, shortName } from '../../../app/describe';
 import type { DistrictDescribe } from '../logic';
@@ -19,7 +20,7 @@ function postalPhrase(s: BattleState, tg: Telegraph): string | null {
   switch (tg.label) {
     case 'deliver': {
       const to = named(0);
-      return to ? `deliver to ${to} and burst for ${INK_FOE_TUNING.deadLetterBurst}` : null;
+      return to ? `deliver to ${to} and burst for ${deliveryBurst(s)}` : null;
     }
     case 'forward': {
       const from = named(0);
