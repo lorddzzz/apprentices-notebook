@@ -8,6 +8,27 @@ The application starts from `48ac3f0`, with the 32 HP authored Chief and 28 HP d
 
 The household results below are historical. The starting revision's HC-9 random-walk assertion already excludes out-of-room units, which keep their last tile when they fall. Rerun the entire 50-seed household sweep on the application without edits to its tests. Run one slow sim at a time under `caffeinate -i`.
 
+### Starting-revision rerun
+
+The full `CAL5=1 CAL5_DETAIL=1` baseline on `48ac3f0` passed 6/6 in 859 seconds. It measured 822 fresh fights, 471 carried fights and 144 actual trips with zero fight errors, operation-budget stops or generator event caps. Fresh hearts entered with HP/charges of 6/5, 14/10 and 20/16 for solo, pair and trio. The results below include fallbacks.
+
+| Band | Fresh pooled wins | W/L/S | Solo/pair/trio wins, each of 32 | Above upper band |
+| --- | ---: | --- | --- | ---: |
+| Light (60–75%) | 73/96 (76.0%) | 73/5/18 | 17/25/31 | 1.0 pp |
+| Medium (45–60%) | 68/96 (70.8%) | 68/8/20 | 15/21/32 | 10.8 pp |
+| Heavy (30–45%) | 71/96 (74.0%) | 71/5/20 | 14/25/32 | 29.0 pp |
+
+Fresh ordinary walkovers were 76/534 (14.2%), split 28/102 light, 21/192 medium and 27/240 heavy. Of 534 offered layouts, 351 were fair within four draws of the budget, 107 were fallback offers and 105 were unverified. The oracle flagged 99 offered layouts. The 288 fresh heart offers included 98 fallbacks, 92 unverified. The Lamp-mother's 12 pair fallbacks were all unverified, then won through the app in rounds 17–23. The Carillonneur's 12 pair fallbacks were all unverified and produced 5 losses and 7 stalls. All 12 trios won against each master. Carried trips reached 68 hearts and cleared 24/144 trips, with 42 losses and 78 stalls.
+
+### Design findings for a separate brief
+
+| Finding | Exact prototype to measure |
+| --- | --- |
+| Heart weight | `baseBudget` reads the weight band, but `composeHeart` uses the master's frame and `checkGenerated` exempts heart foe cost. Test adding **4/12/24 HP** to the drawn master's effective base HP for light/medium/heavy, respectively. Use the same HP in the lite trial, fallback trial and app encounter. Treat these as exploratory values. The prior Marginalia 16 → 32 probe delayed wins and made 12 offers unverified without reducing wins. Track losses, stalls and verification separately. |
+| Piece reach | In the Cartographers paper and bridge pier checks, require every start to remain connected on foot. For an anchored or flying foe also allow an unobstructed cardinal cast of at most **4 tiles** from the reached region, evaluated after unsupported bridge spans are removed. Validate selected pieces present in the minimum fallback stamp. Compare `Medium Lamplighter` and `Heavy Mother` at seed 1 and require **0** invalid offers in the full corpus. |
+| Length-six peal | Keep all **5** room entries in trip state. Reserve one hook for each distinct earned note first, honoring named hooks, then use duplicate notes to fill remaining bare hooks. For **4** bare hooks and entries `1,2,3,4,1`, expect `1,2,3,4`. For **0** hooks, hang zero and disclose that limitation when drawing the peal. |
+| Steward judge parity | The app activates boil-over at heat **4** and the lite trial uses the rule default of **1**. Test heat **4** for both trial paths, including the authored fallback, against the same fresh corpus. |
+
 ## Corpus and reproduction
 
 The frozen corpus contains eight drawings per weight band and one of each master in each band. They cover every offered rule and shape at least once and lengths 3–6. The entries pair several masters with different shapes or drawing rules and hold their shipped frame setup. The roster is the Draughtsman, then the Stoker, then the Lamp-pole Runaway. Each member uses their starter lattice, with compiled source coordinates, paths and charge counts in the `CAL5 CONFIG` output. The profile fixtures specify synthetic milestone inputs for pen and device reproduction. Player-exported saves were unavailable. [Drawings](../../tests/fixtures/calibration/drawings.ts) · [Profiles](../../tests/fixtures/calibration/profiles.json)
