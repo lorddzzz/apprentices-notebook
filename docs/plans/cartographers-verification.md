@@ -278,3 +278,15 @@ Reproduce the fresh samples with `CAL4=1 CAL4_SEEDS=24 CAL4_POLICIES=aware CAL4_
 
 With the Registrar starting at 40 HP, the drawn fallback recording (EN-K7) ends before the fight is won. A fresh replay of the same drawn fallback and seed won in nine rounds. The shared fallback script needs the new recording. [Drawn fallback scripts](../../tests/drawing/kits-c.scripts.ts)
 
+
+### CAL-F3 task 3: Registrar move 2 (screened, not applied; 2026-11-21)
+
+`REGISTRAR_TUNING.move` 1 → 2 on the heart only, parties 1–3, aware bot, 24 seeds per layout (72 fights per size), 40 rounds, 600 actions. `CAL4=1 CAL4_CAND=M2 CAL4_PARTIES=1,2,3 CAL4_POLICIES=aware CAL4_ROOMS=5 CAL4_SKIP_WORN=1 CAL4_SEEDS=24`. The candidate (`M2` in `tests/sim/calibration/foundry-cartographers.ts`) sets `move` on both the RivalDef, which the rival planner reads, and the shell. Apply rule: solo ≤ 31 %, duo ≤ 61 %, trio ≥ 80 %.
+
+| Party | Target | Move 1 (current, 40 HP) | Move 2 | Move 2 losses / stalls | Move 2 median win round | Move 2 party HP left | Apply rule |
+|---:|---:|---:|---:|---|---:|---:|---|
+| 1 | 25 % | 26/72 (36 %) | 19/72 (26 %) | 51 / 2 | 16 | 29 % | ≤ 31 %: met |
+| 2 | 55 % | 45/72 (63 %) | 52/72 (72 %) | 19 / 1 | 11 | 39 % | ≤ 61 %: **missed** (moved away from target) |
+| 3 | 85 % | 61/72 (85 %) | 58/72 (81 %) | 10 / 4 | 8 | 43 % | ≥ 80 %: met |
+
+Move 2 helps the solo party (−10 pp) but the duo goes up by 9 pp, which is the wrong way, so the rule's three conditions do not all hold. **Move 1 stays.** The miss is recorded as accepted under the standing delegation: solo +11 pp (36 % vs 25 %) and duo +8 pp (63 % vs 55 %), trio on target; the move-1 rerun at 24 seeds reproduces the earlier row exactly (26/72, 45/72, 61/72). Non-wins are mostly losses (44 / 23 / 11 at move 1), not stalls. The Registrar-note watch item is unchanged, and nothing in `src/data/rivals/registrar.ts` changed.

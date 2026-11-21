@@ -1,6 +1,6 @@
 import { type ApprenticeId, ENEMIES, encountersOf } from '$data';
 import { FOUNDRY_ROOMS_34, FOUNDRY_TUNING } from '$data/districts/foundry';
-import { REGISTRAR_TUNING } from '$data/rivals/registrar';
+import { REGISTRAR_RIVAL, REGISTRAR_TUNING } from '$data/rivals/registrar';
 import {
   applyAction,
   type BattleState,
@@ -282,12 +282,16 @@ const tryHp = (id: 'carillonneur' | 'registrar', hp: number) => {
     shell.hp = was;
   };
 };
+/** The rival's move is read from its RivalDef (`rivals/plan.ts`) and, for the AI's walk, the shell. */
 const tryMove = (id: 'registrar', move: number) => {
   const shell: Writable<(typeof ENEMIES)[typeof id]> = ENEMIES[id];
-  const was = shell.move;
+  const def: Writable<typeof REGISTRAR_RIVAL> = REGISTRAR_RIVAL;
+  const was = { shell: shell.move, def: def.move };
   shell.move = move;
+  def.move = move;
   return () => {
-    shell.move = was;
+    shell.move = was.shell;
+    def.move = was.def;
   };
 };
 /** The loft is the second room of FOUNDRY_ROOMS_34; its `enemyHp` is read when the encounter battle spawns. */
