@@ -4,8 +4,9 @@ import { basicDirs } from '../basicActions';
 import { applyAction } from '../battle';
 import { botValue, crackedTiles } from '../districts/api';
 import type { GameEvent } from '../events';
+import type { Coord } from '../grid';
 import { FOUNDERS } from '../household';
-import { castableSpells, isAlive, legalAims, legalMoves, memberById } from '../queries';
+import { castableSpells, isAlive, legalAims, legalMoves, manhattan, memberById } from '../queries';
 import type { Action, BattleState } from '../types';
 
 /** Deterministic, deliberately small greedy bot: value harm, avoid friendly fire, then approach. */
@@ -33,12 +34,12 @@ export const HOLD_SELF_PIN = 2;
 export const LITE_MOVES = 6;
 export const TRIAL_BUDGET = 6000;
 
-const nearestFoe = (s: BattleState, to: { x: number; y: number }): number =>
-  Math.min(
-    ...s.units
-      .filter((u) => u.kind === 'enemy' && !u.bystander && u.hp > 0)
-      .map((u) => Math.abs(u.pos.x - to.x) + Math.abs(u.pos.y - to.y)),
-  );
+function nearestFoe(s: BattleState, to: Coord): number {
+  const distances = s.units
+    .filter((u) => u.kind === 'enemy' && !u.bystander && isAlive(u))
+    .map((u) => manhattan(u.pos, to));
+  return distances.length === 0 ? 0 : Math.min(...distances);
+}
 
 function movesOf(s: BattleState, id: ApprenticeId, lite: boolean) {
   const all = legalMoves(s, id);
@@ -168,10 +169,7 @@ export function botFight(
         const action: Action = { type: 'move', unit: id, to };
         const next = applyAction(state, action).state;
         if (next.phase !== 'won' && !isAlive(memberById(next, id))) continue;
-        const enemies = next.units.filter((u) => u.kind === 'enemy' && !u.bystander && u.hp > 0);
-        const distance = Math.min(
-          ...enemies.map((u) => Math.abs(u.pos.x - to.x) + Math.abs(u.pos.y - to.y)),
-        );
+        const distance = nearestFoe(next, to);
         // A cracked tile costs more than any attack gains, so it is picked only when nothing else is legal.
         const crackCost =
           cracks && crackedTiles(next).some((c) => c.x === to.x && c.y === to.y) ? 1e6 : 0;
