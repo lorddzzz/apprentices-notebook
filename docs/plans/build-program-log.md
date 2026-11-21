@@ -109,6 +109,18 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | CAL-D | 3a2b99f | Codex Terra 6.1 high (app spawn) | 0 (orchestrator committed) | ~4% Codex | doorway weight and drawn placeholder loot/picks data-owned, values unchanged |
 | CAL-B | 5d50468 | Sonnet 5.5 high | 0 | ~10% Claude | bot policy baseline (default / cracks / district), Hold decision: no-Hold retained (BotOptions.hold opt-in, off), foundry pulse weights in FOUNDRY_TUNING.botPulse; bridge party-1 stalls look like a movement loop (CAL-3 note), sounding yoke worse under the district policy (CAL-4 first step) |
 | EN-14 (Close) | 19d2ecf, + docs | Opus 5.5 high (design window) | 0 | – | full gate green at 1e245ef (435 files, 9304 passed); phone states at 375x812 headless, en14-*.jpg (map overflow with 3 pages found); 3 reviews, 27 findings: 8 fixed (peal heart's allied bells, span-choice prefetch, inkers, credits order/casing/tally, bells comments) + 3 known items fixed (one door rule, EN-4 todo, rival-sheet footnotes), 16 briefed (R8 8, R9 5, 3 player questions), 3 to CAL §1.1; ledger 28/32, rest gates |
+| CAL-1 (task 3) | 00eb312 | Codex Terra 6.1 high → Codex Sol 6.2 high | 1 | ~8% Codex | Seam 72 HP + SEAM_DEEP goldens; canal heart layouts 50/62/76 %; crate routes; drawn Marginalia stays 16; room 4 still 100 % (miss); first run left no commits, redone |
+| CAL-2 (task 3) | 7abda4b | Sonnet high | 0 | ~6% | postmaster deliveries (4 shielded letters, burst 4): fresh hearts 79/10/11 % won/lost/stalled; wax bar at the heart 75 → 55 by the orchestrator (IQ-20-W) |
+| CAL-3 (task 3) | 3778348, a16a2bd, a1d1bfa | Sonnet high | 0 | ~10% | baths bodies/heat/gauge 32/1/1, Steward 38; Chief Warden 28 (32 broke drawn generation, EN-K8); sound span may overshoot band |
+| CAL-4 (task 3) | 6717f88 | Codex Sol 6.2 high | 0 | ~8% Codex | Registrar 40 (36/63/85 %); sympathetic allied pulses hit foes; Carillonneur 57; room-5 pencil 76 %; four bells 13 pp short; room 4 100 %; orchestrator committed from /tmp patches |
+| CAL fix pack | 69e2db3 | Sonnet high | 0 | ~6% | 17 tests pinned to old numbers updated; EN-K4/K5 fallback solves re-recorded; fast gate green 413 files, 8709 |
+| CAL-5 (tasks 1-2, WIP) | 63b596a | Codex Sol 6.2 high | 0 | ~14% Codex | drawn heart bands, pen, corpus measured; task 3 and full household sweep owed; rerun after the F packs |
+| CAL-F1 | a6a6814 | Codex Sol 6.2 high | 0 | ~8% Codex | bot attack guard (`Stoker is down` closed), fight-ending scoring, drawn Chief 28 pinned |
+| CAL-F2 | not merged | Codex Sol 6.2 high | 0 | ~10% Codex | canals room 4 candidate rejected (wins 100 %, worn mooring 42.6 %); patch /tmp/calf2.mbox |
+| CAL-F3 | de18cbb, ed1a3dc | Sonnet high ×2 | 0 | ~8% Claude | H2 hook (0 bells 27 %, 4 bells 93 %), loft clapper 12/detuner 6 (73 %, stall-shaped), Registrar move kept at 1 |
+| CAL-F4 | f9f0090 | Codex Sol 6.2 high | 0 | ~10% Codex | authored Chief 32 (sound 80 %, crumbling 67.5 %: 7.5 pp short); baths Steward 38 kept (46.7 %); one Lab test fixed by the orchestrator |
+| CAL-P | aba8a07 | Sonnet medium | 0 | ~4% Claude | emulated 375x812 evidence (15 states), dev generator page corpus selector and worker timing; real iPhone owed |
+| CAL-5 (rerun, task 3 partial) | c16d2ee | Codex Sol 6.2 high | 0 | ~10% Codex | final-revision measurement; defaults retained; fuzz 9/9; full household sweep stopped after about 3 h by the orchestrator (to be sharded); docs only |
 
 ## Usage
 
@@ -126,26 +138,10 @@ Returns "–" means the row did not record it. Usage Δ was not recorded before 
 | 2026-11-16 21:40 | ~67 | 79 | waves 19–21 merged (S, T, U, V, CG-G, CG-H, CG-J); briefs empty; cartographers Close next |
 | 2026-11-16 22:25 | 5 (reset at ~22:10) | 1 | wave 22 merged (W, CG-K); fast gate green (8451); session ends, next session resumes |
 | 2026-11-17 19:50 | 23 | 20 | wave 23 merged (DEV-1, MET-1, EN-W1, N1); fast gate green (8461 + 45 expected fail); E, H spawned |
-
 | 2026-11-17 20:40 | 47 | 23 | waves 23-24 merged (E, H); fast gate green (8489); wave 25 spawned (I, G, F2) |
-
 | 2026-11-17 21:15 | 72 | 27 | wave 25 merged (I, G, F2); fast gate green (8514); wave 26 held at Wrap |
-
 | 2026-11-17 21:50 | 87 | 29 | Pack J merged; fast gate green (8533); K held (Hold) |
-
 | 2026-11-18 21:18 | 37 (Claude) / 49 (Codex) | 4 / 8 | test cycle: R2, R6, R3 merged; fast gate green (389 files, 8601); read with `claude -p "/usage"` and codex app-server `account/rateLimits/read` |
 | 2026-11-18 23:15 UTC | 71 (Claude) / 68 (Codex) | 6 / 11 | R4, R5, R7, R1 merged; fast gate green (398 files, 8649); began at 55 / 53 |
 | 2026-11-19 | 4 (Claude) / 14 (Codex) at the start | 13 / 15 | design window (Opus, Claude) + CAL briefs (Codex Sol CLI); K2a, K2b, CAL-0 merged; fast gate green (399 files, 8663); CAL-N, CAL-D, CAL-B spawned |
 | 2026-11-20 | 13 (Claude) / 12 (Codex) | 2 / 12 | R8 (Codex Sol 6.2 high, 0 returns, orchestrator committed) and R9 (Sonnet high, 0 returns, Codex.svelte links by orchestrator) merged; fast gate green (413 files, 8701) |
-| CAL-1 (task 3) | 00eb312 | Codex Terra 6.1 high → Codex Sol 6.2 high | 1 | ~8% Codex | Seam 72 HP + SEAM_DEEP goldens; canal heart layouts 50/62/76 %; crate routes; drawn Marginalia stays 16; room 4 still 100 % (miss); first run left no commits, redone |
-| CAL-2 (task 3) | 7abda4b | Sonnet high | 0 | ~6% | postmaster deliveries (4 shielded letters, burst 4): fresh hearts 79/10/11 % won/lost/stalled; wax bar at the heart 75 → 55 by the orchestrator (IQ-20-W) |
-| CAL-3 (task 3) | 3778348, a16a2bd, a1d1bfa | Sonnet high | 0 | ~10% | baths bodies/heat/gauge 32/1/1, Steward 38; Chief Warden 28 (32 broke drawn generation, EN-K8); sound span may overshoot band |
-| CAL-4 (task 3) | 6717f88 | Codex Sol 6.2 high | 0 | ~8% Codex | Registrar 40 (36/63/85 %); sympathetic allied pulses hit foes; Carillonneur 57; room-5 pencil 76 %; four bells 13 pp short; room 4 100 %; orchestrator committed from /tmp patches |
-| CAL fix pack | 69e2db3 | Sonnet high | 0 | ~6% | 17 tests pinned to old numbers updated; EN-K4/K5 fallback solves re-recorded; fast gate green 413 files, 8709 |
-| CAL-5 (tasks 1-2, WIP) | 63b596a | Codex Sol 6.2 high | 0 | ~14% Codex | drawn heart bands, pen, corpus measured; task 3 and full household sweep owed; rerun after the F packs |
-| CAL-F1 | a6a6814 | Codex Sol 6.2 high | 0 | ~8% Codex | bot attack guard (`Stoker is down` closed), fight-ending scoring, drawn Chief 28 pinned |
-| CAL-F2 | not merged | Codex Sol 6.2 high | 0 | ~10% Codex | canals room 4 candidate rejected (wins 100 %, worn mooring 42.6 %); patch /tmp/calf2.mbox |
-| CAL-F3 | de18cbb, ed1a3dc | Sonnet high ×2 | 0 | ~8% Claude | H2 hook (0 bells 27 %, 4 bells 93 %), loft clapper 12/detuner 6 (73 %, stall-shaped), Registrar move kept at 1 |
-| CAL-F4 | f9f0090 | Codex Sol 6.2 high | 0 | ~10% Codex | authored Chief 32 (sound 80 %, crumbling 67.5 %: 7.5 pp short); baths Steward 38 kept (46.7 %); one Lab test fixed by the orchestrator |
-| CAL-P | aba8a07 | Sonnet medium | 0 | ~4% Claude | emulated 375x812 evidence (15 states), dev generator page corpus selector and worker timing; real iPhone owed |
-| CAL-5 (rerun, task 3 partial) | c16d2ee | Codex Sol 6.2 high | 0 | ~10% Codex | final-revision measurement; defaults retained; fuzz 9/9; full household sweep stopped after about 3 h by the orchestrator (to be sharded); docs only |
