@@ -190,3 +190,89 @@ What the numbers say:
 | IQ-23-M | Postmaster movement | `move` 1 and 2: identical to baseline | Leave `move` 0 (the shell and the rival agree); a move needs a routine step that uses it |
 | IQ-23-O | Postmaster opener | opener is the writ in every row; a notice-first routine casts 0.8 times a fight | Keep the writ as the opener; a non-Bolt opener only if the player wants his kit to matter |
 | IQ-20-T | Terms 5/6/7 | deltas 0, 0, 0, 0 to -5 points; all pay | Keep (no layouts changed) |
+
+## CAL-2 applied (2026-11-21): the postmaster's deliveries
+
+Player decisions kept (docs/plans/calibration-results.md, CAL-2): `CLOCK_TUNING` 3/3/2, `CLOCK_SEAL` 3 HP, postmaster `move` 0, the opening writ, terms 5/6/7. Approved direction: a visible, preventable delivery by a helper that can hurt the party.
+
+### What was applied
+
+The smallest change that fits the ink quarter's existing telegraphs: **the postmaster's dead letters are his deliveries.** No new foe, rune, event or UI art.
+- The dead letter already telegraphs `deliver` (the addressed apprentice's tile, a round ahead) and bursts only if that apprentice is still beside it. So it is preventable three ways: kill it, step out of its reach, or leave it and take the hit.
+- While the postmaster stands, a letter bursts for `INK_FOE_TUNING.counterBurst` (4, was 2) and the telegraph text says so (`deliveryBurst`, engine `foes.ts`, read by the UI's `describe.ts`). Letters in rooms 1-4 are unchanged (burst 2).
+- The heart fields `counterLetters` (4, was 2) dead letters, each under `counterShield` (3) wax shields (`x+++`), so killing one takes a real cast (shields, then 1 HP). The heart roster, the three authored layouts (`rooms34.ts`) and the frame placements (`heart.ts`) all read these tunables; the roster test and the recorded frame golden were updated to match.
+- Unchanged: clock collection, bound-mark release, banking rules, the postmaster's routine, lattice, HP and move.
+
+### Why this and not the alternatives (30-seed probes, fresh pair, heart only)
+
+| candidate | won | lost | stalled | mean party HP (of 14) |
+|---|---|---|---|---|
+| old heart (2 plain letters), burst 2 / 4 / 8 | 100% | 0 | 0 | 13.4 |
+| 6 plain letters, burst 2 / 6 | 97% | 0 | 3% | 12.7 |
+| Sorter added to each layout, file 1 / 3 / 5 | 100% | 0 | 0 | 13.3 |
+| 4 letters, 4 HP, burst 4 (global letter HP) | 100% | 0 | 0 | 10.6 |
+| 4 letters, 6 HP, burst 6 (global) | 77% | 0 | 23% | 4.5 |
+| 4 letters, 10 HP, burst 6 (global) | 33% | 53% | 13% | 1.3 |
+| 4 letters, 3 shields, burst 4 (chosen) | 87% | 3% | 10% | 5.2 |
+| 4 letters, 5 shields, burst 4 | 93% | 7% | 0 | 4.1 |
+
+- Plain 1-HP letters never deliver whatever their burst or number: the party's casts kill them first. A delivery only matters if it survives a round, so it needs a body.
+- A Sorter never files: it prefers to forward the marks the party's own Bolts leave on foes, so its hit never fires.
+- A sturdier letter by HP would change rooms 1-4 too; shields on the heart's letters are layout data and touch only the heart.
+
+### After (120 fresh seeds 1000-1119, founding pair, `mode='bot'`; `INK_CAL=1`, `INK_LEVERS=1`, `INK_WORN=500`)
+
+Heart, fresh pair, before and after. Wins, losses and stalls are separate (a stall is the bot running out of charges at the 40-round cap).
+
+| sample | won | lost | stalled | served / lifted / collected | his casts per fight | page banked | median rounds | mean party HP |
+|---|---|---|---|---|---|---|---|---|
+| before, no term | 120 (100%) | 0 | 0 | 134 / 131 / 0 | 0.1 | 120/120 | 5 | 13.2 |
+| **after, no term** | 95 (79%) | **12 (10%)** | 13 (11%) | 268 / 234 / 4 | 0.5 | 95/95 | 7 | 5.8 |
+| after, wax | 95 (79%) | 12 (10%) | 13 (11%) | 268 / 234 / 4 | 0.5 | 95/95 | 7 | 5.8 |
+| after, sand | 95 (79%) | 12 (10%) | 13 (11%) | 268 / 235 / 4 | 0.7 | 95/95 | 7 | 5.8 |
+| after, ledger | 109 (91%) | 6 (5%) | 5 (4%) | 255 / 233 / 0 | 0.6 | 109/109 | 7 | 5.9 |
+
+Burst sensitivity (same letters and shields, 120 seeds): burst 2 gives 93% won, 0 lost, 8% stalled, 8.5 HP left; burst 4 (applied) 79 / 10 / 11 %; burst 6 gives 65% won, 24% lost, 11% stalled, 3.8 HP left.
+
+Term rooms against their baseline (same code, no term), win rate in points:
+
+| room | term | before | after | delta before | delta after | paid after | broken after |
+|---|---|---|---|---|---|---|---|
+| 2-4 | every term | 100% | 100% | 0 | 0 | 100% | 0% |
+| 5 (heart) | wax | 100% | 79% | 0 | 0 | 58% | 22% |
+| 5 (heart) | sand | 100% | 79% | 0 | 0 | 79% | 0% |
+| 5 (heart) | ledger | 95% | 91% | -5 | **+12** | 91% | 0% |
+
+Rooms 1-4 are identical to the baseline (letters outside the heart keep burst 2). Every term room is at or above its baseline minus 10 (the ledger heart is 12 points *above* it; cause not investigated, plausibly the handicap changes the bot's line, so read it as noise on a 120-seed sample). Terms are never harder than a normal room by win rate. One side effect to review: **wax at the heart is now broken in 22% of fights** (limit 7 rounds, heart median 7, max 19), because the heart takes longer now. Terms stay 5/6/7 as decided; raising wax to 9 or more is a proposal below.
+
+Worn pair, the trip's own heart (500 trips, never policy, seeds 20000-20499): 6 trips reach the heart (1 in 80). **All 6 lost (0 won, 0 stalled)**; before, 3 won, 3 stalled and 0 lost. 11 writs served, 9 lifted. Real trips still end at room 4-5 (heart reached on 1% of trips, cleared 0%), unchanged from the baseline.
+
+### Status against the contract
+
+- "The heart can be lost": met. 12 of 120 fresh hearts are lost (10%), 6 of 6 worn ones; losses and stalls are reported separately (12 lost, 13 stalled). Regression: `postmaster-heart.test.ts` seed 1014 is a wipe that banks no page.
+- "Terms never beyond a normal room's band; term rooms at least baseline minus 10": met (table above).
+- 'a won heart banks the page, once' (seeds 1001 and 1002 win; 1000 now stalls) and 'a wiped heart keeps a held page and banks none': pass unchanged. No page is banked on a loss or stall (`page banked` equals wins in every row).
+- No numeric target was set or tuned beyond "can be lost". The 79 / 10 / 11 split is the first value tried that loses, not a calibrated one.
+
+### Open conflict: a losable heart against the wax term's meetability check
+
+The applied values (3 shields, burst 4) make the heart losable, but the fight now takes longer (median 7 rounds, max 19), and the term check "in a clear majority of wins the condition holds" (`ink-calibration.test.ts`, at least 75% of wins paid) **fails for wax fought at the heart**: 58 paid of 95 wins (61%) in the 120-seed run, and 0 of 1 won on the 2-seed quick check (seed 1000 stalls, seed 1001 settles broken). That test is unchanged, and the decision to keep terms 5/6/7 was kept, so the two cannot both hold at these values. Measured alternatives (120 fresh seeds, wax signed, heart only; 4 letters throughout):
+
+| shields / burst | won | lost | stalled | wax rounds <= 7 among wins | quick check |
+|---|---|---|---|---|---|
+| 3 / 4 (applied) | 95 | 12 | 13 | 73% by round count, 61% settled paid | fails |
+| 3 / 3 | 111 | 0 | 9 | 79% | fails (2 seeds) |
+| 2 / 4 | 120 | 0 | 0 | 79% | passes |
+| 2 / 5 | 114 | 0 | 6 | 78% | passes |
+| 2 / 7 (60 seeds: 2 / 8 gave 4 lost of 60) | 114 | 0 | 6 | 52% | not run |
+| 1 / 6, 8, 12 (60 seeds) | 59 | 0 | 1 | 93-100% | not run |
+
+Losses came only with a long fight (the deliveries need time to land), so every setting that loses also pushes wax past 7 rounds. Ways out, all player rules: (a) keep 3 / 4 and drop wax from the room-4 loot (`terms.ts` `rooms: [1, 2]`, so it is never fought at the heart); (b) raise wax's limit (9 or more); (c) accept a lower meetability bar at the heart; (d) take 2 / 5 (passes, no loss, 6 stalls) and give up "the heart can be lost" until a rule choice.
+
+### Proposals (none applied)
+
+| ID | Proposal | Evidence | Default |
+|---|---|---|---|
+| IQ-20-D2 | Keep `counterBurst` 4 / shield 3 / 4 letters, or step to burst 2 (0% lost) or 6 (24% lost) | table above | Keep; tune at the playtest gate (IQ-G1) |
+| IQ-20-W | Wax limit 7 breaks in 22% of heart fights now | heart median 7, max 19 | Keep 7 until the playtest (the player decided to keep 5/6/7); 9 would pay it in most won fights |
+| IQ-20-S | 13 of 120 fresh hearts stall at the cap | the pair runs out of charges against shielded letters | Leave as a stall; the bot is greedy and never dodges |
