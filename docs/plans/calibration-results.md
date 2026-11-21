@@ -108,3 +108,9 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 | BR-21 | Chief Warden 28 (32 hit the drawn-room generator, EN-K8) | sound heart may overshoot 75-90 % | remeasure |
 | CAL-4-A | Registrar 40 HP | solo/duo/trio 36/63/85 % | solo +11 pp, duo +8 pp |
 | CAL-4-B/C | allied pulses fixed; Carillonneur 57, clapper 6/2/4; room-5 pencil | paired 0-4 bells 28/44/61/61/67 %; room 5 76 % | four bells 13 pp short; foundry room 4 100 % |
+
+### CAL-F2 (measured 2026-11-21, not applied)
+| ID | Candidate C4 | Measured | Decision |
+|---|---|---|---|
+| CAL-F2 room 4 | Lamplighter 18 HP, two eels | fresh pair 150/0/0, 5 rounds, 11 HP; mooring fresh 0 → 22 %, worn 21.3 → 42.6 % (ceiling 25 %) | Rejected under delegation: no win-rate gain, worn mooring regressed. Room 4 stays at 100 % wins as an open miss; a stronger Lamplighter kit is player question 3 (default no). Patch kept at /tmp/calf2.mbox. |
+| CAL-F2 Snuffer fallback | two eels and rats | 150/0/0; mooring fresh 0 %, worn 19.1 % | Not applied with the rest. |
