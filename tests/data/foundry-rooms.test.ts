@@ -326,8 +326,15 @@ describe('the clockwork loft staff (CAL-F3)', () => {
     s.units.filter((u) => u.def === def).map((u) => u.hp);
 
   test("CAL-F3: the clockwork loft spawns its staff at the room's HP", () => {
-    expect(four.enemyHp).toBeUndefined(); // the room carries no HP of its own: the staff keeps its own
-    const plain = loft();
+    // the room carries its own staff HP (CAL-F3); the shared staff stats, which the heart reads, stay
+    expect(four.enemyHp).toEqual({ clapper: 12, detuner: 6 });
+    expect(FOUNDRY_ROOMS_34[0]?.enemyHp).toBeUndefined(); // room 3 keeps the shared staff
+    expect(
+      loft()
+        .units.filter((u) => u.def === 'clapper')
+        .map((u) => u.hp),
+    ).toEqual([12]);
+    const plain = loft({});
     expect(hpOf(plain, 'clapper')).toEqual([FOUNDRY_TUNING.foes.clapper.hp]);
     expect(hpOf(plain, 'detuner')).toEqual([
       FOUNDRY_TUNING.foes.detuner.hp,

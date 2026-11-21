@@ -452,3 +452,27 @@ Aware bot, fresh pair, controlled hearts (legal injected peals), 40 rounds and 6
 H1 is over the ceiling (one bell is enough), so the brief's branch for "four bells over 90 %" applied: H2, with the first hook of each layout beside the Carillonneur (great bell A1 → C1, clapper hall A1 → D1, sounding yoke A3 → C1) and the second hook where it was (G1, G1, G3). H3 (`alliedPulseDamage` 3) is for the other branch and was not run; `alliedPulseDamage` stays 2. Allied hits are `foundry:pulse` foe targets, not distinct fights. Zero bells is untouched by the hooks (no bell hangs), and the paired 0-vs-4 at the confirm is 15 both, 1 only-zero, 41 only-four, 3 neither.
 
 Confirm per layout (20 seeds each): four bells great bell 17/20, clapper hall 20/20, sounding yoke 19/20; zero bells 5/20, 6/20, 5/20. Four bells at 56/60 (93 %) is 3 points over the 90 % ceiling, inside the sampling noise of the 6-seed screen (89 %) and well inside the closest-candidate rule (H1 100 %, H0 67 %). Non-wins at four bells are 4 losses, 0 stalls: loss-shaped. Zero bells: 6 losses, 38 stalls (stall-shaped, as before).
+
+## 8. CAL-F3 task 2: the clockwork loft (room 4) staff HP (2026-11-21)
+
+Aware bot, fresh pair, `CAL4=1 CAL4_CAND=R1|R2|R3 CAL4_PARTIES=2 CAL4_POLICIES=aware CAL4_ROOMS=3 CAL4_SKIP_WORN=1 CAL4_BELLS=0`, 40 rounds, 600 actions. Candidates set the room-4 def's `enemyHp` in memory (`tests/sim/calibration/foundry-cartographers.ts`); the shared `FOUNDRY_TUNING.foes` (Clapper 6/2/4, Detuner 3) are untouched, so the heart cannot move. Band 65–80 %.
+
+| `enemyHp` of room 4 | clock floor | escapement | weights | Pooled (12 seeds each) | Lost / stalled |
+|---|---:|---:|---:|---:|---|
+| none (CAL-4 task 3) | 18/18 over 3 layouts, 6 seeds | | | 100 % | 0 / 0 |
+| R1 `{ clapper: 12 }` | 12/12 | 12/12 | 10/12 | 34/36 (94 %) | 0 / 2 |
+| **R2 `{ clapper: 12, detuner: 6 }`** | 11/12 | 4/12 | 10/12 | **25/36 (69 %)** | 2 / 9 |
+| R3 `{ clapper: 16, detuner: 6 }` | 7/12 | 4/12 | 10/12 | 21/36 (58 %) | 2 / 13 |
+
+R1 is above the band and R3 below, so R2 is the first candidate in band and the pick. Confirmed at 20 seeds per layout, with the data applied (not through the harness):
+
+| Layout | Wins | Lost | Stalled | Mean rounds | HP left % (all) |
+|---|---:|---:|---:|---:|---:|
+| clock floor | 18/20 (90 %) | 0 | 2 | 9.2 | 63 |
+| escapement | 9/20 (45 %) | 0 | 11 | 24.9 | 57 |
+| weights | 17/20 (85 %) | 3 | 0 | 6.0 | 75 |
+| **pooled** | **44/60 (73 %)** | 3 | 13 | | |
+
+In band (65–80 %), though the spread across layouts is wide (45–90 %), and the non-wins are mostly stalls: 13 of 16, nearly all on the escapement, where the 12-HP Clapper is a stall-shaped fight. This is an instance of player question 1 (stalls count as non-wins; the escapement's median win round is 5, so winners are fast and the rest do not finish). No loss-shaped candidate reached the band. Room 3 stays 60/60 on its three layouts, and the heart's rerun at 20 seeds per layout is identical to section 7 (0 bells 27 %, 4 bells 93 %).
+
+Applied: `foundry-loft` `enemyHp: { clapper: 12, detuner: 6 }` (`LOFT_STAFF_HP`). Pinned by 'CAL-F3: the clockwork loft spawns its staff at the room's HP'.

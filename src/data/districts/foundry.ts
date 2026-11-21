@@ -396,6 +396,13 @@ const FOUNDRY_4: readonly EncounterVariant[] = [
   },
 ];
 
+/**
+ * CAL-F3: room 4's staff HP, a room-level override. The shared `FOUNDRY_TUNING.foes` also stand in the
+ * heart (Clapper 6, Detuner 3), where raising them reversed the bells' advantage; the loft alone
+ * needed a harder staff to reach 65-80 % (fresh pair, aware: 100 % before, 73 % after).
+ */
+const LOFT_STAFF_HP = { clapper: 12, detuner: 6 } as const;
+
 export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
   foundryRoom(
     'foundry-hall',
@@ -416,6 +423,7 @@ export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
     'foundry:deep',
     greatBellBonus('Ring the great bell: one ring of three other bells makes the chord.'),
     LEDGER_IDS[3],
+    LOFT_STAFF_HP,
   ),
 ];
 
