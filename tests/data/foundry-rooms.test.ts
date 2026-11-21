@@ -379,6 +379,19 @@ describe('the heart (BF-12)', () => {
     });
   });
 
+  test('CAL-F3: the first hook of every heart layout sits beside the Carillonneur, the second does not', () => {
+    FOUNDRY_HEART.variants?.forEach((v, i) => {
+      const rows = v.layout.split('\n').map((r) => r.trim().split(/\s+/));
+      const y = rows.findIndex((r) => r.includes('V'));
+      const x = rows[y]?.indexOf('V') ?? -1;
+      const [first, second] = HEART_HOOKS[i] ?? [];
+      const dist = (h?: { at: { x: number; y: number } }) =>
+        h ? Math.abs(h.at.x - x) + Math.abs(h.at.y - y) : -1;
+      expect(dist(first), v.name).toBe(1);
+      expect(dist(second), v.name).toBeGreaterThan(1);
+    });
+  });
+
   test("BF-12: the heart's tune is seeded from the trip seed", () => {
     expect(setupFor(0).rulesConfig).toEqual({ [TUNE_RULE_ID]: { seed: trip.seed } });
     const s = setUpRoom(withLattices(FOUNDRY_HEART.layout, {}), shape, setupFor(0));

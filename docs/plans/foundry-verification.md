@@ -437,3 +437,18 @@ Reproduce with `CAL4=1 CAL4_SEEDS=6 CAL4_PARTIES=2 CAL4_POLICIES=aware` on `test
 
 The drawn Carillonneur’s recorded fallback solve (EN-K6) attempts to move a downed apprentice under the selected tuning. A fresh replay of the same drawn fallback and seed won in 35 rounds. The shared fallback script needs the new recording. [Drawn fallback scripts](../../tests/drawing/kits-c.scripts.ts)
 
+
+## 7. CAL-F3 task 1: heart hooks (2026-11-21)
+
+Aware bot, fresh pair, controlled hearts (legal injected peals), 40 rounds and 600 actions. `CAL4=1 CAL4_PARTIES=2 CAL4_POLICIES=aware CAL4_HEART_ONLY=1 CAL4_SKIP_WORN=1 CAL4_SEEDS=6` (screen) and `CAL4_SEEDS=20 CAL4_BELLS=0,4` (confirm), on `tests/sim/foundry-calibration.test.ts`. Layouts: three, so 18 fights per count at the screen and 60 at the confirm. Band: 20–30 % at zero bells, 80–90 % at four, and 1–3 bells not falling by more than one fight in 18.
+
+| Hooks | Bells | 0 | 1 | 2 | 3 | 4 | Allied foe hits at 4 (on the Carillonneur) |
+|---|---|---:|---:|---:|---:|---:|---|
+| H0, edge hooks (CAL-4 task 3), 6 seeds | wins/18 | 5 (28 %) | 8 (44 %) | 11 (61 %) | 11 (61 %) | 12 (67 %) | 0 (0) |
+| H1, first two hooks beside him, 6 seeds | wins/18 | 5 (28 %) | 18 (100 %) | 18 (100 %) | 18 (100 %) | 18 (100 %) | 373 (300) |
+| **H2, only the first hook beside him, 6 seeds** | wins/18 | 5 (28 %) | 18 (100 %) | 18 (100 %) | 17 (94 %) | 16 (89 %) | 177 (145) |
+| **H2 confirm, 20 seeds per layout** | wins/60 | 16 (27 %) | — | — | — | 56 (93 %) | 618 (503) |
+
+H1 is over the ceiling (one bell is enough), so the brief's branch for "four bells over 90 %" applied: H2, with the first hook of each layout beside the Carillonneur (great bell A1 → C1, clapper hall A1 → D1, sounding yoke A3 → C1) and the second hook where it was (G1, G1, G3). H3 (`alliedPulseDamage` 3) is for the other branch and was not run; `alliedPulseDamage` stays 2. Allied hits are `foundry:pulse` foe targets, not distinct fights. Zero bells is untouched by the hooks (no bell hangs), and the paired 0-vs-4 at the confirm is 15 both, 1 only-zero, 41 only-four, 3 neither.
+
+Confirm per layout (20 seeds each): four bells great bell 17/20, clapper hall 20/20, sounding yoke 19/20; zero bells 5/20, 6/20, 5/20. Four bells at 56/60 (93 %) is 3 points over the 90 % ceiling, inside the sampling noise of the 6-seed screen (89 %) and well inside the closest-candidate rule (H1 100 %, H0 67 %). Non-wins at four bells are 4 losses, 0 stalls: loss-shaped. Zero bells: 6 losses, 38 stalls (stall-shaped, as before).
