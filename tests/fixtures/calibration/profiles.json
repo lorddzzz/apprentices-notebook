@@ -1,0 +1,37 @@
+[
+  {
+    "id": "opening",
+    "source": "synthetic campaign milestone",
+    "districts": 1,
+    "pages": 8,
+    "capstones": []
+  },
+  {
+    "id": "mid-campaign",
+    "source": "synthetic campaign milestone",
+    "districts": 4,
+    "pages": 18,
+    "capstones": []
+  },
+  {
+    "id": "handover-low",
+    "source": "synthetic campaign milestone",
+    "districts": 7,
+    "pages": 25,
+    "capstones": []
+  },
+  {
+    "id": "handover-high",
+    "source": "synthetic campaign milestone",
+    "districts": 7,
+    "pages": 31,
+    "capstones": ["bolt", "splash", "touch", "shove", "swap"]
+  },
+  {
+    "id": "full-palette",
+    "source": "synthetic full-palette fixture",
+    "districts": 7,
+    "pages": null,
+    "capstones": ["bolt", "splash", "touch", "shove", "swap", "guard", "steam"]
+  }
+]

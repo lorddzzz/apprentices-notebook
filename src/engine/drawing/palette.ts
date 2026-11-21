@@ -1,5 +1,5 @@
 import { ENEMIES, type EnemyId, type MasterId, type ShapeId } from '$data';
-import { UNDRAWN } from '$data/drawing';
+import { PEN_TUNING, UNDRAWN } from '$data/drawing';
 import { RIVALS } from '$data/rivals';
 import { isSandbox } from '../districts/api';
 import { DISTRICT_MODULES, KIT } from '../districts/kit';
@@ -53,12 +53,14 @@ export function paletteOf(p: Profile): Palette {
   };
 }
 
-/** P6: 1 per heart cleared, 1 per four known rune pages, 1 per level-III capstone. */
+/** P6: the pen grows with cleared hearts, known rune pages and level-III capstones. */
 export function penOf(p: Profile): Pen {
   const parts = {
-    hearts: p.city.hearts.length,
-    pages: Math.floor(p.known.length / 4),
-    capstones: Object.values(p.footnotes).filter((e) => e?.capstone !== undefined).length,
+    hearts: p.city.hearts.length * PEN_TUNING.perHeart,
+    pages: Math.floor(p.known.length / PEN_TUNING.pagesPerPoint),
+    capstones:
+      Object.values(p.footnotes).filter((e) => e?.capstone !== undefined).length *
+      PEN_TUNING.perCapstone,
   };
   return { total: parts.hearts + parts.pages + parts.capstones, parts };
 }
