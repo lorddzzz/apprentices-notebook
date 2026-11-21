@@ -618,3 +618,121 @@ caffeinate -i env BRIDGES_TABLE=1 BRIDGES_CANDIDATE=1 BRIDGES_DEPTHS=5 BRIDGES_S
 The starting-tree fast gate passed typechecking and lint. It had one failure in 414
 test files, reproduced in isolation. The Foundry Lab bench fixture still expects a hung
 bell at A1 after CAL-F3 moved that hook.
+
+
+### Authored HP selection and confirmation
+
+All three values use seeds 1–40 per span at depth 5 with a fresh, aware founding pair.
+The Draughtsman uses Bolt → Ink → Strike and the Stoker uses Bolt → Oil → Spark.
+The pair starts with 14 combined HP and 10 charges. The table lists wins, losses and
+40-round stalls. None of the heart fights exhausted the 600-action budget.
+
+| Chief HP | Sound W/L/S | Crumbling W/L/S | Median win round, sound/crumbling | Median winning HP left, sound/crumbling | Total outside 75–90% |
+| --- | --- | --- | --- | --- | --- | --- |
+| 28 (starting value) | 40/0/0 | 38/2/0 | 5/4 | 12/12 | 15 pp |
+| 30 | 40/0/0 | 27/13/0 | 5/5 | 12/12 | 17.5 pp |
+| 32 | 32/0/8 | 27/13/0 | 5/5 | 11/12 | 7.5 pp |
+
+Applied 32 HP to the authored Chief, his foe entry and his rival. It has the smallest
+combined miss and puts sound at 80%. Crumbling is 7.5 points below band at 67.5%,
+with 0.28 apprentice falls per fight. The authored rerun matched the prior 32 HP
+pair figures. The drawn frame spawns at 28 HP, confirmed through `inkRoom` and
+`beginEncounter`. The EN-K5 fallback replay now uses the frame's HP override just
+as the generator and played heart do. Its existing script wins. EN-K8 passes.
+
+Aware worn pairs cleared 0/40 on each span, with 5 sound and 17 crumbling heart
+arrivals. Sound recorded five stalls with zero entry charges and zero falls. Crumbling
+recorded four losses, 13 stalls and 0.24 falls per heart arrival at 0.18 entry charges.
+The trio adds the Runaway's Touch → Oil → Spark. Aware worn trios reached all hearts,
+cleared 0/40 sound and 1/40 crumbling, and averaged 0.15 and 0.30 falls per heart arrival.
+The worn-pair target remains 25–35% clears per trip started.
+
+```sh
+caffeinate -i env BRIDGES_TABLE=1 BRIDGES_CANDIDATE=1 BRIDGES_DEPTHS=5 BRIDGES_SEEDS=40 BRIDGES_OUT=/tmp/calf4-chief28.md pnpm exec vitest run tests/sim/bridges-calibration.test.ts -t 'live bridges' --reporter=dot --maxWorkers=1
+caffeinate -i env BRIDGES_TABLE=1 BRIDGES_PARTIES=2,3 BRIDGES_SEEDS=40 BRIDGES_OUT=/tmp/calf4-chief32-authored.md pnpm exec vitest run tests/sim/bridges-calibration.test.ts -t 'live bridges' --reporter=dot --maxWorkers=1
+```
+
+<details><summary>40-seed authored repeat at 32 HP, fresh and trip-worn</summary>
+
+Seeds 1–40, 40 rounds, 600 applied actions, full starter-lattice bot. Aware uses gauge + cracks. Blind uses neither. Hold is off in both. Worn trips carry actual HP and charges, take the first loot and leave the doorway unchanged; cooled trips prioritize the cold plunge. Opening bridge layouts precede the first span choice.
+
+| party | policy | state | depth | span | wins/fights | losses | stalls | budget | member falls/fight | entry HP | Chief HP | entry charges | median rounds (wins) | median HP left (wins) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2 | aware | fresh | 1 | opening | 120/120 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | aware | fresh | 2 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 3.00 | 14.00 |
+| 2 | aware | fresh | 3 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 3.00 | 14.00 |
+| 2 | aware | fresh | 4 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 3.00 | 14.00 |
+| 2 | aware | fresh | 5 | sound | 32/40 | 0 | 8 | 0 | 0.00 | 14.00 | 32 | 10.00 | 5.00 | 11.00 |
+| 2 | aware | trip-worn | 1 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | aware | trip-worn | 2 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — | 6.33 | 3.00 | 13.00 |
+| 2 | aware | trip-worn | 3 | sound | 14/40 | 0 | 26 | 0 | 0.00 | 13.28 | — | 2.13 | 3.00 | 13.00 |
+| 2 | aware | trip-worn | 4 | sound | 5/14 | 0 | 9 | 0 | 0.00 | 12.64 | — | 0.43 | 3.00 | 13.00 |
+| 2 | aware | trip-worn | 5 | sound | 0/5 | 0 | 5 | 0 | 0.00 | 12.60 | 32 | 0.00 | — | — |
+| 2 | aware | fresh | 2 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | aware | fresh | 3 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | aware | fresh | 4 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | aware | fresh | 5 | crumbling | 27/40 | 13 | 0 | 0 | 0.28 | 14.00 | 32 | 10.00 | 5.00 | 12.00 |
+| 2 | aware | trip-worn | 1 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | aware | trip-worn | 2 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — | 6.33 | 2.00 | 14.00 |
+| 2 | aware | trip-worn | 3 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — | 3.30 | 2.00 | 14.00 |
+| 2 | aware | trip-worn | 4 | crumbling | 17/40 | 0 | 23 | 0 | 0.00 | 13.47 | — | 0.78 | 2.00 | 14.00 |
+| 2 | aware | trip-worn | 5 | crumbling | 0/17 | 4 | 13 | 0 | 0.24 | 13.53 | 32 | 0.18 | — | — |
+| 2 | blind | fresh | 1 | opening | 120/120 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | blind | fresh | 2 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 3.00 | 14.00 |
+| 2 | blind | fresh | 3 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 3.00 | 14.00 |
+| 2 | blind | fresh | 4 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 3.00 | 14.00 |
+| 2 | blind | fresh | 5 | sound | 32/40 | 0 | 8 | 0 | 0.00 | 14.00 | 32 | 10.00 | 5.00 | 11.00 |
+| 2 | blind | trip-worn | 1 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | blind | trip-worn | 2 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — | 6.33 | 3.00 | 13.00 |
+| 2 | blind | trip-worn | 3 | sound | 13/40 | 1 | 26 | 0 | 0.10 | 13.28 | — | 2.13 | 3.00 | 13.00 |
+| 2 | blind | trip-worn | 4 | sound | 5/13 | 0 | 8 | 0 | 0.00 | 12.38 | — | 0.31 | 3.00 | 13.00 |
+| 2 | blind | trip-worn | 5 | sound | 0/5 | 0 | 5 | 0 | 0.00 | 12.60 | 32 | 0.00 | — | — |
+| 2 | blind | fresh | 2 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | blind | fresh | 3 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | blind | fresh | 4 | crumbling | 80/80 | 0 | 0 | 0 | 0.04 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | blind | fresh | 5 | crumbling | 22/40 | 13 | 5 | 0 | 0.40 | 14.00 | 32 | 10.00 | 5.00 | 11.00 |
+| 2 | blind | trip-worn | 1 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 14.00 | — | 10.00 | 2.00 | 14.00 |
+| 2 | blind | trip-worn | 2 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — | 6.33 | 2.00 | 14.00 |
+| 2 | blind | trip-worn | 3 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — | 3.30 | 2.00 | 14.00 |
+| 2 | blind | trip-worn | 4 | crumbling | 17/40 | 0 | 23 | 0 | 0.00 | 13.47 | — | 0.78 | 2.00 | 14.00 |
+| 2 | blind | trip-worn | 5 | crumbling | 0/17 | 4 | 13 | 0 | 0.24 | 13.53 | 32 | 0.18 | — | — |
+| 3 | aware | fresh | 1 | opening | 120/120 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | fresh | 2 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | fresh | 3 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 3.00 | 20.00 |
+| 3 | aware | fresh | 4 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | fresh | 5 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 20.00 | 32 | 16.00 | 5.00 | 16.00 |
+| 3 | aware | trip-worn | 1 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | trip-worn | 2 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 19.68 | — | 12.43 | 2.00 | 19.50 |
+| 3 | aware | trip-worn | 3 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 19.45 | — | 8.05 | 3.00 | 19.00 |
+| 3 | aware | trip-worn | 4 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 19.05 | — | 4.38 | 3.00 | 19.00 |
+| 3 | aware | trip-worn | 5 | sound | 0/40 | 1 | 39 | 0 | 0.15 | 18.98 | 32 | 2.35 | — | — |
+| 3 | aware | fresh | 2 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | fresh | 3 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | fresh | 4 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | fresh | 5 | crumbling | 40/40 | 0 | 0 | 0 | 0.10 | 20.00 | 32 | 16.00 | 4.00 | 17.00 |
+| 3 | aware | trip-worn | 1 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | aware | trip-worn | 2 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 19.68 | — | 12.43 | 2.00 | 20.00 |
+| 3 | aware | trip-worn | 3 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 19.68 | — | 9.40 | 2.00 | 20.00 |
+| 3 | aware | trip-worn | 4 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 19.52 | — | 6.65 | 2.00 | 20.00 |
+| 3 | aware | trip-worn | 5 | crumbling | 1/40 | 0 | 39 | 0 | 0.30 | 19.48 | 32 | 4.97 | 7.00 | 14.00 |
+| 3 | blind | fresh | 1 | opening | 120/120 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | fresh | 2 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | fresh | 3 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 3.00 | 20.00 |
+| 3 | blind | fresh | 4 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | fresh | 5 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 20.00 | 32 | 16.00 | 5.00 | 16.00 |
+| 3 | blind | trip-worn | 1 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | trip-worn | 2 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 19.68 | — | 12.43 | 2.00 | 19.50 |
+| 3 | blind | trip-worn | 3 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 19.45 | — | 8.05 | 3.00 | 19.00 |
+| 3 | blind | trip-worn | 4 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 19.05 | — | 4.38 | 3.00 | 19.00 |
+| 3 | blind | trip-worn | 5 | sound | 0/40 | 1 | 39 | 0 | 0.15 | 18.98 | 32 | 2.35 | — | — |
+| 3 | blind | fresh | 2 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | fresh | 3 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | fresh | 4 | crumbling | 80/80 | 0 | 0 | 0 | 0.04 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | fresh | 5 | crumbling | 40/40 | 0 | 0 | 0 | 0.23 | 20.00 | 32 | 16.00 | 4.00 | 17.00 |
+| 3 | blind | trip-worn | 1 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 20.00 | — | 16.00 | 2.00 | 20.00 |
+| 3 | blind | trip-worn | 2 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 19.68 | — | 12.43 | 2.00 | 20.00 |
+| 3 | blind | trip-worn | 3 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 19.68 | — | 9.40 | 2.00 | 20.00 |
+| 3 | blind | trip-worn | 4 | crumbling | 40/40 | 0 | 0 | 0 | 0.03 | 19.52 | — | 6.65 | 2.00 | 20.00 |
+| 3 | blind | trip-worn | 5 | crumbling | 1/40 | 0 | 39 | 0 | 0.30 | 19.30 | 32 | 4.97 | 7.00 | 14.00 |
+
+</details>

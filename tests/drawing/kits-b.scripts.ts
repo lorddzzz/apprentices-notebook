@@ -56,6 +56,7 @@ export function scriptedSolveB(master: MasterId): BattleState {
   let state = createBattle({
     title: 'A scripted fallback',
     board: serializeBoard(frame.fallback),
+    enemyHp: frame.enemyHp,
     seed: SCRIPT_SEED,
     lineup: party,
     party: Object.fromEntries(party.map((id) => [id, { spells: compiledFor(profile, id).spells }])),
