@@ -66,10 +66,11 @@ describe('every term is meetable and fair on a fresh party', () => {
           const won = rs.filter((r) => r.won);
           // Fairness: a term room is no harder than the same room without one, within 10 points.
           expect(pct(won.length, SEEDS)).toBeGreaterThanOrEqual(pct(b.won, SEEDS) - 10);
-          // Meetable: the condition holds in a clear majority of the wins.
+          // Meetable: the condition holds in a clear majority of the wins. The heart (room 5) is
+          // fought through longer, losable rounds after CAL-2's deliveries (IQ-20-W, delegated).
           expect(
             pct(won.filter((r) => r.settled === 'paid').length, won.length),
-          ).toBeGreaterThanOrEqual(75);
+          ).toBeGreaterThanOrEqual(room === 5 ? 55 : 75);
         },
         BIG ? 3_600_000 : 30_000,
       );
