@@ -2,10 +2,10 @@ import { COSTS } from '$data/drawing';
 import { cloneData } from '../../clone';
 import { KIT } from '../../districts/kit';
 import type { PieceId, RuleId, TripShapeDef } from '../../districts/types';
-import type { Coord } from '../../grid';
+import { type Coord, key } from '../../grid';
 import type { BoardSpec } from '../../notation';
-import { blocksUnits } from '../../queries';
 import { createRng } from '../../rng';
+import { fallenSpans, foeReached, footRegion, standsAfter, unsupportedSpans } from '../reach';
 import type { FoeKit, GenKit, PieceKit, RuleKit, ShapeKit } from '../types';
 import { at, coords, foeKit, isPlain, lay, needsOf, shuffled } from './seam';
 
@@ -19,7 +19,6 @@ import { at, coords, foeKit, isPlain, lay, needsOf, shuffled } from './seam';
 export const COLLAPSE: RuleId = 'bridges:collapse';
 export const SPAN: PieceId = 'bridges:span';
 export const PIER: PieceId = 'bridges:pier';
-const KEYSTONE: PieceId = 'bridges:keystone';
 
 const NEIGHBOURS = [
   { x: 1, y: 0 },
@@ -32,76 +31,26 @@ const plainAt = (layout: BoardSpec, c: Coord): boolean => {
   const t = at(layout, c);
   return t !== undefined && isPlain(t);
 };
-const isNet = (layout: BoardSpec, c: Coord): boolean => {
-  const id = pieceAt(layout, c);
-  return id === SPAN || id === PIER || id === KEYSTONE;
-};
 
-/**
- * Span tiles in a network (spans, piers and keystones, 4-connected) that holds no pier or keystone:
- * the tiles the collapse would drop at the first dusk (the district's support model, P2).
- */
-export function unsupportedSpans(layout: BoardSpec): Coord[] {
-  const seen = new Set<string>();
-  const out: Coord[] = [];
-  for (const start of coords(layout)) {
-    if (!isNet(layout, start) || seen.has(`${start.x},${start.y}`)) continue;
-    const group: Coord[] = [];
-    const queue = [start];
-    seen.add(`${start.x},${start.y}`);
-    for (let c = queue.pop(); c; c = queue.pop()) {
-      group.push(c);
-      for (const d of NEIGHBOURS) {
-        const n = { x: c.x + d.x, y: c.y + d.y };
-        if (isNet(layout, n) && !seen.has(`${n.x},${n.y}`)) {
-          seen.add(`${n.x},${n.y}`);
-          queue.push(n);
-        }
-      }
-    }
-    if (group.every((c) => pieceAt(layout, c) === SPAN)) out.push(...group);
-  }
-  return out;
-}
-
-/** A tile a walker can stand on once `gone` has fallen: not blocked, not fog, not water. */
-const standing = (layout: BoardSpec, c: Coord, gone: ReadonlySet<string>): boolean => {
-  const t = at(layout, c);
-  return (
-    t !== undefined &&
-    !gone.has(`${c.x},${c.y}`) &&
-    !blocksUnits(t) &&
-    !t.terrain.drop &&
-    t.terrain.water === null
-  );
-};
+export { unsupportedSpans };
 
 /**
  * Why the party could be stranded on this layout, or `null` when it cannot: after the collapse
  * rule's first step (every unsupported span falls) every start point still stands, all of them
- * are joined by one walkable region, and every foe stands in it. The room check the span kit's
- * `valid` runs (EN-K5: never stranded).
+ * are joined by one walkable region, and every foe is reached (on foot or, for a flying, anchored
+ * or water foe, by a cast: the shared rule in `reach.ts`). The room check the span kit's `valid`
+ * runs (EN-K5: never stranded).
  */
 export function strandedBy(layout: BoardSpec): string | null {
-  const gone = new Set(unsupportedSpans(layout).map((c) => `${c.x},${c.y}`));
+  const gone = fallenSpans(layout);
   const [first, ...rest] = layout.starts;
   if (!first) return 'The room has no start point';
-  if (![first, ...rest].every((c) => standing(layout, c, gone))) {
+  if (![first, ...rest].every((c) => standsAfter(layout, c, gone))) {
     return 'A start point falls at the first dusk';
   }
-  const seen = new Set<string>([`${first.x},${first.y}`]);
-  const queue = [first];
-  for (let c = queue.pop(); c; c = queue.pop()) {
-    for (const d of NEIGHBOURS) {
-      const n = { x: c.x + d.x, y: c.y + d.y };
-      if (standing(layout, n, gone) && !seen.has(`${n.x},${n.y}`)) {
-        seen.add(`${n.x},${n.y}`);
-        queue.push(n);
-      }
-    }
-  }
-  if (rest.some((c) => !seen.has(`${c.x},${c.y}`))) return 'The start points are cut apart';
-  const foe = layout.units.find((u) => u.kind === 'enemy' && !seen.has(`${u.at.x},${u.at.y}`));
+  const region = footRegion(layout, gone);
+  if (rest.some((c) => !region.has(key(c)))) return 'The start points are cut apart';
+  const foe = layout.units.find((u) => u.kind === 'enemy' && !foeReached(layout, region, u));
   return foe ? 'A foe is cut off from the party' : null;
 }
 

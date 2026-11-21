@@ -233,6 +233,7 @@ describe('EN-W1: the contracts', () => {
       draws: 8,
       foeDistance: 3,
       blockedShare: 0.3,
+      castReach: 4,
       phone: { medianMs: 500, p95Ms: 2000 },
     });
     // The generator keeps its exported names, as reads of the data.

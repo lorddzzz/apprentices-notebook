@@ -7,6 +7,7 @@ export * from './heart';
 export * from './kits';
 export * from './palette';
 export * from './profile';
+export * from './reach';
 export * from './trial';
 export * from './trip';
 export * from './types';

@@ -73,6 +73,8 @@ export const GEN_LIMITS = {
   draws: 8,
   foeDistance: 3,
   blockedShare: 0.3,
+  /** The bolt's reach in tiles: a flying, anchored or water foe a straight cast can land on counts as reached. */
+  castReach: 4,
   phone: { medianMs: 500, p95Ms: 2000 },
 } as const;
 

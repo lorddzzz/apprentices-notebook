@@ -4,7 +4,7 @@ import { createBattle } from '../battle';
 import type { Json, RuleId } from '../districts/types';
 import { byReadingOrder, type Coord, key } from '../grid';
 import { type BoardSpec, emptyTile, serializeBoard } from '../notation';
-import { blocksShots, blocksUnits, members } from '../queries';
+import { blocksUnits, members } from '../queries';
 import { createRng, deriveSeed, type Rng } from '../rng';
 import { checkRoom } from '../rooms';
 import { listRules } from '../rules';
@@ -18,6 +18,7 @@ import { GEN_KITS } from './kits';
 import { CURRENT } from './kits/canals';
 import { BELLS } from './kits/foundry';
 import { at, coords, isHazard, isPlain, isWater, lay, shuffled } from './kits/seam';
+import { foeReached, footRegion } from './reach';
 import { botTrial } from './trial';
 import { parseInkedState, roomInput, storeRoom } from './trip';
 import {
@@ -189,51 +190,6 @@ function startPoints(layout: BoardSpec, rng: Rng): void {
     .map((c) => ({ ...c }));
 }
 
-/** Tiles a party can walk to from its first start point (units ignored). */
-function walkable(layout: BoardSpec): Set<string> {
-  const start = layout.starts[0];
-  if (!start) return new Set();
-  const tile = at(layout, start);
-  if (!tile || blocksUnits(tile)) return new Set();
-  const seen = new Set([key(start)]);
-  const queue = [start];
-  for (let c = queue.shift(); c; c = queue.shift()) {
-    for (const n of [
-      { x: c.x + 1, y: c.y },
-      { x: c.x - 1, y: c.y },
-      { x: c.x, y: c.y + 1 },
-      { x: c.x, y: c.y - 1 },
-    ]) {
-      const t = at(layout, n);
-      if (t === undefined || blocksUnits(t) || seen.has(key(n))) continue;
-      seen.add(key(n));
-      queue.push(n);
-    }
-  }
-  return seen;
-}
-
-const DIRS = [
-  { x: 1, y: 0 },
-  { x: -1, y: 0 },
-  { x: 0, y: 1 },
-  { x: 0, y: -1 },
-] as const;
-/** The bolt's reach: a tile in line with a walkable one, nothing standing up between. */
-const BOLT_REACH = 4;
-function castable(layout: BoardSpec, walk: ReadonlySet<string>, c: Coord): boolean {
-  for (const d of DIRS) {
-    for (let i = 1; i <= BOLT_REACH; i++) {
-      const n = { x: c.x + d.x * i, y: c.y + d.y * i };
-      const t = at(layout, n);
-      if (t === undefined) break;
-      if (walk.has(key(n))) return true;
-      if (blocksShots(t)) break;
-    }
-  }
-  return false;
-}
-
 /** The foe's reach on turn 1 along a line (a sentry's shot), which distance alone does not cover. */
 const linesUp = (id: EnemyId, from: Coord, p: Coord): boolean => {
   const attack = ENEMIES[id].attack;
@@ -248,7 +204,6 @@ const linesUp = (id: EnemyId, from: Coord, p: Coord): boolean => {
 
 /** Puts one foe of kit `k` on a valid, reachable tile at distance 3 or more from every P (none: skipped). */
 function placeKit(layout: BoardSpec, k: FoeKit, rng: Rng, walk: ReadonlySet<string>): void {
-  const def = ENEMIES[k.id];
   const ok = coords(layout).filter((c) => {
     const t = at(layout, c);
     if (t === undefined || !k.valid(layout, c) || layout.units.some((u) => sameAt(u.at, c))) {
@@ -259,7 +214,7 @@ function placeKit(layout: BoardSpec, k: FoeKit, rng: Rng, walk: ReadonlySet<stri
     if (layout.starts.some((p) => manhattan(p, c) < MIN_FOE_DISTANCE || linesUp(k.id, c, p))) {
       return false;
     }
-    return walk.has(key(c)) || ((def.flies || def.anchored) && castable(layout, walk, c));
+    return foeReached(layout, walk, { def: k.id, at: c });
   });
   // Spread: prefer a tile away from the foes already placed, else any.
   const apart = ok.filter((c) => layout.units.every((u) => manhattan(u.at, c) >= 2));
@@ -281,7 +236,7 @@ function placeKit(layout: BoardSpec, k: FoeKit, rng: Rng, walk: ReadonlySet<stri
 function placeFoes(layout: BoardSpec, spec: GenSpec, rng: Rng, budget: number): void {
   const kits = spec.drawing.foes.flatMap((id) => foeKitOf(spec, id) ?? []);
   if (kits.length === 0) return;
-  const walk = walkable(layout);
+  const walk = footRegion(layout);
   const queue: FoeKit[] = [];
   let left = budget;
   for (const k of kits) {
@@ -361,7 +316,7 @@ function composeHeart(spec: GenSpec, frame: HeartFrame, seed: number): BoardSpec
       }
     }
   }
-  const walk = walkable(layout);
+  const walk = footRegion(layout);
   for (const id of frame.escorts) {
     const k = foeKitOf(spec, id);
     if (!k) throw new RangeError(`No kit for ${id}`);
@@ -398,7 +353,7 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
   }
   const frame = spec.heart ? frameOf(spec.drawing) : undefined;
   const foes = layout.units.filter((u) => u.kind === 'enemy');
-  const walk = walkable(layout);
+  const walk = footRegion(layout);
   const mine = have(spec);
   let cost = 0;
   if (frame && !foes.some((u) => u.def === frame.setup.foe)) {
@@ -426,7 +381,7 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
         add('distance', `${def.name} fires along a line to a start point`, f.at);
       }
     }
-    if (!walk.has(key(f.at)) && !((def.flies || def.anchored) && castable(layout, walk, f.at))) {
+    if (!foeReached(layout, walk, f)) {
       add('reach', `${def.name} cannot be reached`, f.at);
     }
     const t = at(layout, f.at);
@@ -465,8 +420,10 @@ export function checkGenerated(layout: BoardSpec, spec: GenSpec): GenIssue[] {
     (t) => t.state?.id === 'plate' || t.state?.id === 'slick' || t.terrain.vent,
   ).length;
   if (ground < GROUND.min) add('needs', `The Seam ground has ${ground} tiles, want ${GROUND.min}+`);
+  // A selected piece is judged only when it is on the board (the minimum fallback lays none).
+  const laid = new Set(layout.tiles.flatMap((t) => (t.piece ? [t.piece.id] : [])));
   for (const k of spec.kits.flatMap((x) => x.pieces)) {
-    if (spec.drawing.pieces.includes(k.id) && !k.valid(layout)) {
+    if (spec.drawing.pieces.includes(k.id) && laid.has(k.id) && !k.valid(layout)) {
       add('kit', `Piece ${k.id} is not valid on this layout`);
     }
   }

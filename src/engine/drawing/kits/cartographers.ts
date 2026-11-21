@@ -20,9 +20,8 @@ import type {
 } from '../../districts/types';
 import type { Coord } from '../../grid';
 import type { BoardSpec } from '../../notation';
-import { blocksUnits } from '../../queries';
 import { createRng } from '../../rng';
-import type { Tile } from '../../types';
+import { partyReach } from '../reach';
 import type { FoeKit, GenKit, PieceKit, RuleKit, ShapeKit } from '../types';
 import { at, coords, foeKit, isPlain, lay, needsOf, shuffled } from './seam';
 
@@ -36,7 +35,6 @@ import { at, coords, foeKit, isPlain, lay, needsOf, shuffled } from './seam';
 export const PENCIL: RuleId = PENCIL_RULE_ID;
 const DOORWAY = 'cartographers:doorway';
 
-const key = (c: Coord): string => `${c.x},${c.y}`;
 const NEIGHBOURS = [
   { x: 1, y: 0 },
   { x: -1, y: 0 },
@@ -45,35 +43,11 @@ const NEIGHBOURS = [
 ] as const;
 const manhattan = (a: Coord, b: Coord): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const pieceAt = (layout: BoardSpec, c: Coord): string | undefined => at(layout, c)?.piece?.id;
-const standable = (t: Tile): boolean =>
-  !blocksUnits(t) && !t.terrain.drop && t.terrain.water === null;
-
-/** Tiles reachable on foot from the first start point. */
-function reach(layout: BoardSpec): Set<string> {
-  const seen = new Set<string>();
-  const first = layout.starts[0];
-  if (!first) return seen;
-  const queue: Coord[] = [first];
-  seen.add(key(first));
-  for (let c = queue.pop(); c; c = queue.pop()) {
-    for (const d of NEIGHBOURS) {
-      const n = { x: c.x + d.x, y: c.y + d.y };
-      const t = at(layout, n);
-      if (t === undefined || !standable(t) || seen.has(key(n))) continue;
-      seen.add(key(n));
-      queue.push(n);
-    }
-  }
-  return seen;
-}
 
 /** Paper that stands up (blank paper, an outline) leaves every start point and foe reachable. */
 function holdsOpen(layout: BoardSpec): boolean {
-  const seen = reach(layout);
-  return (
-    layout.starts.every((p) => seen.has(key(p))) &&
-    layout.units.every((u) => seen.has(key(u.at)) || at(layout, u.at)?.piece?.id === PENCIL_PIECE)
-  );
+  const { startsJoined, unreached } = partyReach(layout);
+  return startsJoined && unreached.every((c) => at(layout, c)?.piece?.id === PENCIL_PIECE);
 }
 
 const countOf = (layout: BoardSpec, id: string): number =>
