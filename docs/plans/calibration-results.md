@@ -129,3 +129,55 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 |---|---|---|
 | EN-13 timing, emulated (HeadlessChrome 153, macOS), 60 rooms, 49 accepted / 11 fallbacks | direct median/p95 cold 111/526 ms, warm 108/505 ms; worker round trip cold 116/520, warm 119/522 ms | bar (median 0.5 s, p95 2 s) met on desktop CPU only; real iPhone owed |
 | Phone states 375x812 | 15 screenshots in calibration-evidence/, no horizontal overflow, no app console errors; light trip played, medium/heavy only to the dialog | generator page logs one unexamined 404 |
+
+## Household sweep, sharded (10 seeds)
+
+CAL-5 safety and placement measurement on `bade83e4daa093894ba3b08c5f858e357ec438d2`, 2026-11-21 (macOS x64, Node 24.19.0, Vitest 5.0.3). The frozen install completed using a local pnpm store after the registry DNS lookup failed.
+
+The checked-in HC-9 suite groups cases by lineup. A temporary Vitest adapter prefixed case names by district, scoped the room and trip loops, and logged completed samples and failure context. Seam and Canals used the original case order and Vitest console buffering. The other five shards ran the random-walk and trip suites before the fresh-fight batches and streamed console output. For the legacy drawn-versus-fixed case, the adapter retained each district's totals for the original combined assertion across Seam and Canals.
+
+```sh
+CAL5_DISTRICT="$district" HOUSEHOLD_SWEEP=1 HOUSEHOLD_SEEDS=10 \
+  pnpm vitest run tests/sim/household-sweep.test.ts -t "$district" \
+  --config /tmp/cal5-sweep-run/vite.config.mjs --reporter=verbose
+```
+
+Logs are `/tmp/cal5-sweep-<district>.log`. The supervisor ran up to two shards at once, with a 30-minute command cap, a 20-minute log inactivity cap and a 90-minute total budget. The watchdog checked every second. Fresh fights and carried trips used seeds 1–10, starter pages, and the HC-9 greedy bot's 40-round limit. Full-mode placement retained its 50 fixed seeds per layout and lineup, plus 30 seeded random parties per layout. The scoped fuzz case sampled 400 legal walks per district, up to 30 actions each, wherever it ran.
+
+Fresh rates pool the five standard lineups over completed layout-and-lineup batches. D is Draughtsman, S is Stoker and R is Runaway. The pool includes losses and stalls in its denominator. The ten additional solo cases and the legacy comparison have separate samples. Win rates are descriptive.
+
+| District | Shard status | Safety failures | Pooled fresh wins | D / S / D+S / D+S+R / S+R+D | Fresh W/L/S | Trips cleared | Wall (m:ss) |
+|---|---|---|---|---|---|---|---:|
+| Seam | Finished (25 passed) | None | 519/600 (86.5%) | 75.0% / 75.0% / 90.8% / 93.3% / 98.3% | 519/66/15 | 7/50 | 25:38 |
+| Canals | Unfinished (30-minute command timeout) | No logged test failure | 675/750 (90.0%) | 80.0% / 80.0% / 92.0% / 98.0% / 100.0% | 675/55/20 | — | 30:00 |
+| Ink quarter | Finished (24 passed) | None | 632/750 (84.3%) | 45.3% / 82.7% / 94.7% / 98.7% / 100.0% | 632/64/54 | 0/50 | 19:40 |
+| Bathhouses | Finished (24 passed) | None | 559/750 (74.5%) | 17.3% / 67.3% / 88.0% / 100.0% / 100.0% | 559/117/74 | 0/50 | 23:57 |
+| Bridges | Unfinished (30-minute command timeout) | No logged test failure | 791/850 (93.1%) | 79.4% / 88.2% / 97.6% / 100.0% / 100.0% | 791/2/57 | 0/50 | 30:01 |
+| Foundry | Finished (24 passed) | None | 540/750 (72.0%) | 46.0% / 60.7% / 81.3% / 86.0% / 86.0% | 540/168/42 | 0/50 | 13:39 |
+| Cartographers | Unfinished (90-minute overall budget) | No logged test failure | 828/900 (92.0%) | 69.4% / 94.4% / 96.1% / 100.0% / 100.0% | 828/7/65 | 1/50 | 18:44 |
+
+All seven districts passed the three room-layout and placement cases, covering 107 authored layouts. All five standard fresh-fight lineups completed in every district, totaling 5,350 fights. Every district except Canals passed the whole-trip and random-walk cases, totaling 300 carried trips and 2,400 legal walks. The legacy combined drawn-versus-fixed assertion remains unverified. Seam reported 109 drawn wins and 120 fixed wins over 120 fights per mode. Canals did not reach that case.
+
+### Seed sensitivity
+
+The swing is the absolute change in win rate between seeds 1–5 and 6–10, in percentage points. Layout-and-lineup counts cover completed samples, including the separate solo cases.
+
+| District | Pooled swing | Layout-and-lineup cells over 10 pp | Largest cell swing |
+|---|---:|---:|---:|
+| Seam | 3.7 pp | 7/180 | 60 pp |
+| Canals | 1.3 pp | 5/135 | 60 pp |
+| Ink quarter | 0.5 pp | 29/225 | 40 pp |
+| Bathhouses | 0.8 pp | 43/225 | 60 pp |
+| Bridges | 0.7 pp | 8/149 | 20 pp |
+| Foundry | 4.8 pp | 47/225 | 40 pp |
+| Cartographers | 1.3 pp | 7/160 | 60 pp |
+
+The pooled rates and lineup rates stayed within 10 pp.
+
+### Failures and unfinished work
+
+No invariant failure, crash, or unplaceable room was logged. The full sweep remains incomplete.
+
+- Canals — Unfinished (30-minute command timeout). The last completed case was the solo Notary. The solo Towel-bearer and later solo cases, legacy comparison, whole trips, and random walks did not finish.
+- Bridges — Unfinished (30-minute command timeout). The solo Notary completed 13 of 17 layouts and was interrupted at 4.3, The thin arch. The later solo cases did not run.
+- Cartographers — Unfinished (90-minute overall budget). The solo Notary completed 16 of 18 layouts and was interrupted at 6.2, The struck name. The later solo cases did not run.
