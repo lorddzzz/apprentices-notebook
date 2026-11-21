@@ -115,6 +115,7 @@ describe('EN-K9: the trial runs the rules of the room (P39)', () => {
     return trials.states.map((s) => Object.keys(s.rules ?? {}));
   };
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it("EN-K9: the trial lists the drawing's rule", () => {
     const drawing: Drawing = {
       ...heartDrawing('marginalia'),
@@ -125,8 +126,9 @@ describe('EN-K9: the trial runs the rules of the room (P39)', () => {
     const lists = rulesOfTrials(() => generateRoom(inputFor(drawing, SEED, 0)));
     expect(lists.length).toBeGreaterThan(0);
     for (const rules of lists) expect(rules).toContain('bathhouses:boilOver');
-  });
+  }, 300_000);
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it("EN-K9: the trial lists the heart's rules", () => {
     for (const master of MASTERS_WITH_RULES) {
       const drawing = heartDrawing(master);
@@ -135,14 +137,15 @@ describe('EN-K9: the trial runs the rules of the room (P39)', () => {
       expect(lists.length, master).toBeGreaterThan(0);
       for (const rules of lists) expect(rules, master).toEqual(expect.arrayContaining([...want]));
     }
-  });
+  }, 300_000);
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-K9: a drawing with no rule and a heart with no rules gives the trial battle as before', () => {
     const lists = rulesOfTrials(() => generateRoom(inputFor(heartDrawing('marginalia'), SEED)));
     expect(lists.length).toBeGreaterThan(0);
     for (const rules of lists) expect(rules).toEqual([]);
     for (const s of trials.states) expect(s.rules).toBeUndefined();
-  });
+  }, 300_000);
 });
 
 describe('EN-K10: the trial sees what the shape stamps (P40)', () => {

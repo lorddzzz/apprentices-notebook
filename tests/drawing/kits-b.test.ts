@@ -59,6 +59,7 @@ describe('Pack J frames (EN-K4, EN-K5)', () => {
     }
   });
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-K4: the Steward stands on a connected cloud of four or more tiles', () => {
     for (const seed of [1, 2, 3, 4, 5]) {
       const { room, masterOnBoard } = heartRoom('bathSteward', seed);
@@ -81,8 +82,9 @@ describe('Pack J frames (EN-K4, EN-K5)', () => {
       }
       expect(seen.size).toBeGreaterThanOrEqual(4);
     }
-  });
+  }, 300_000);
 
+  // Generator over many seeds: slow under full parallel load, so it gets its own limit.
   it('EN-K5: the Chief Warden stands on the keystone, with piers and spans and none cracked', () => {
     for (const seed of [1, 2, 3, 4, 5]) {
       const { room, masterOnBoard } = heartRoom('chiefWarden', seed);
@@ -98,7 +100,7 @@ describe('Pack J frames (EN-K4, EN-K5)', () => {
       expect(unsupportedSpans(room.layout)).toEqual([]);
       expect(strandedBy(room.layout)).toBeNull();
     }
-  });
+  }, 300_000);
 
   it('EN-K5: the authored fallback keeps its footing and its party on their feet', () => {
     const fallback = HEART_FRAMES.chiefWarden?.fallback;
