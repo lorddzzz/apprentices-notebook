@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { HEAT, type HeatLevel } from '$data/districts/bathhouses/types';
+import { BOIL_CAPACITY_PIPS, HEAT, type HeatLevel } from '$data/districts/bathhouses/types';
 import { type BattleState, type GameEvent, parseLabel } from '$engine';
 import { KIT } from '$engine/districts';
 import {
@@ -19,8 +19,10 @@ import { act, board, draft } from '../../scenarios/harness';
 /**
  * The boil-over gauge (bathhouses-plan P1–P3; BH-1). Each board lists the rule as a bathhouse room
  * (or a Lab board) would, at a heat; `pressure` sets the gauge before the round end. Capacity is
- * 12 pips = 48 quarters; heat 1 weighs a cloud tile 2 quarters and a vent 4.
+ * `BOIL_CAPACITY_PIPS` pips (`CAP` quarters, so recalibrating it needs no edit here); heat 1 weighs a
+ * cloud tile 2 quarters and a vent 4.
  */
+const CAP = BOIL_CAPACITY_PIPS * 4;
 
 const at = parseLabel;
 const ID = BOIL_OVER_RULE_ID;
@@ -69,11 +71,11 @@ describe('activation: this district and boards that list it', () => {
     expect(rulePreview(r.state).find((p) => p.rule === ID)).toBeUndefined();
   });
 
-  test('config: heat from `{ heat }`, anything else reads as heat 1; capacity 48 quarters', () => {
+  test('config: heat from `{ heat }`, anything else reads as heat 1; capacity `CAP` quarters', () => {
     const s = board('D');
     expect(listRules(s, [ID], { [ID]: { heat: 3 } })[ID]).toEqual({
       pressure: 0,
-      capacity: 48,
+      capacity: CAP,
       heat: 3,
     });
     expect(listRules(s, [ID])[ID]).toMatchObject({ heat: 1 });
@@ -115,10 +117,10 @@ describe('fill (P1, P2)', () => {
 
 describe('boil-over (P2, P3)', () => {
   test('boil-at-cap: at capacity every unit on a cloud takes 2 in reading order, then it resets', () => {
-    // heat 1, 44 + 2 clouds × 2 = 48: boils exactly at the cap.
-    const s = bath('r~ . D~\n. . .', 1, 44);
+    // heat 1, CAP-4 + 2 clouds × 2 = CAP: boils exactly at the cap.
+    const s = bath('r~ . D~\n. . .', 1, CAP - 4);
     const r = dusk(s);
-    expect(pressureEv(r.events)?.data).toMatchObject({ from: 44, to: 48 });
+    expect(pressureEv(r.events)?.data).toMatchObject({ from: CAP - 4, to: CAP });
     expect(boilEv(r.events)?.data).toEqual({
       tiles: [at('A1'), at('C1')],
       units: ['rat-1', 'draughtsman'],
@@ -132,16 +134,16 @@ describe('boil-over (P2, P3)', () => {
     expect(gauge(r.state).pressure).toBe(0);
   });
 
-  test('one quarter short: it fills to 47 and nothing is hurt', () => {
-    const r = dusk(bath('r~ . D~', 1, 43));
-    expect(gauge(r.state).pressure).toBe(47);
+  test('one quarter short: it fills to CAP-1 and nothing is hurt', () => {
+    const r = dusk(bath('r~ . D~', 1, CAP - 5));
+    expect(gauge(r.state).pressure).toBe(CAP - 1);
     expect(boilEv(r.events)).toBeUndefined();
     expect(ofType(r.events, 'damage')).toEqual([]);
   });
 
-  test('surplus-dropped: 46 + 12 boils and resets to 0, not 10', () => {
-    const r = dusk(bath('D~ ~ ~ ~ @', 1, 46));
-    expect(pressureEv(r.events)?.data).toMatchObject({ from: 46, to: 48 });
+  test('surplus-dropped: CAP-2 + 12 boils and resets to 0, not the surplus', () => {
+    const r = dusk(bath('D~ ~ ~ ~ @', 1, CAP - 2));
+    expect(pressureEv(r.events)?.data).toMatchObject({ from: CAP - 2, to: CAP });
     expect(boilEv(r.events)).toBeDefined();
     expect(gauge(r.state).pressure).toBe(0);
     const next = dusk(r.state);
@@ -149,14 +151,14 @@ describe('boil-over (P2, P3)', () => {
   });
 
   test('units off the cloud are untouched; the event lists every cloud tile', () => {
-    const r = dusk(bath('D ~ r~ . r', 1, 47));
+    const r = dusk(bath('D ~ r~ . r', 1, CAP - 1));
     expect(boilEv(r.events)?.data).toEqual({ tiles: [at('B1'), at('C1')], units: ['rat-1'] });
     expect(damageTo(r.events, 'draughtsman')).toEqual([]);
     expect(damageTo(r.events, 'rat-2')).toEqual([]);
   });
 
   test('shielded: the shield takes what it can, the hit still counts', () => {
-    const r = dusk(bath('D+~ ~', 1, 47));
+    const r = dusk(bath('D+~ ~', 1, CAP - 1));
     expect(damageTo(r.events, 'draughtsman')).toHaveLength(1);
     expect(ofType(r.events, 'shieldAbsorbs')).toEqual([
       expect.objectContaining({ absorbed: 1, left: 0 }),
@@ -166,7 +168,7 @@ describe('boil-over (P2, P3)', () => {
   });
 
   test('downed: a member at 0 HP on the cloud is not listed and takes nothing', () => {
-    const s = bath('D~ S~ r', 1, 47);
+    const s = bath('D~ S~ r', 1, CAP - 1);
     unit(s, 'stoker').hp = 0;
     const r = dusk(s);
     expect(boilEv(r.events)?.data).toMatchObject({ units: ['draughtsman'] });
@@ -175,7 +177,7 @@ describe('boil-over (P2, P3)', () => {
 
   test('towel-bearer: a steamproof apprentice is skipped (`unharmed`), the rest are hit', () => {
     const opts = { kits: { draughtsman: { habit: 'steamproof' as const } } };
-    const s = bath('D~ r~', 1, 47, opts);
+    const s = bath('D~ r~', 1, CAP - 1, opts);
     const f = forecastBoilOver(s, gauge(s));
     expect(f.units).toEqual(['draughtsman', 'rat-1']);
     expect(f.harm).toEqual([]);
@@ -194,7 +196,7 @@ describe('the battle ends after the whole step', () => {
     events.filter((e) => e.type === 'won' || e.type === 'lost').map((e) => e.type);
 
   test('a boil-over killing the last foe wins', () => {
-    const s = bath('D . r~', 1, 47);
+    const s = bath('D . r~', 1, CAP - 1);
     unit(s, 'rat-1').hp = 2;
     const r = endTurn(s);
     expect(ends(r.events)).toEqual(['won']);
@@ -202,7 +204,7 @@ describe('the battle ends after the whole step', () => {
   });
 
   test('a boil-over downing the last member loses', () => {
-    const s = bath('D~ . r', 1, 47);
+    const s = bath('D~ . r', 1, CAP - 1);
     unit(s, 'draughtsman').hp = 2;
     const r = endTurn(s);
     expect(ends(r.events)).toEqual(['lost']);
@@ -210,7 +212,7 @@ describe('the battle ends after the whole step', () => {
   });
 
   test('both at once: every hit lands first, then the room is won (foes are checked first)', () => {
-    const s = bath('D~ . r~', 1, 47);
+    const s = bath('D~ . r~', 1, CAP - 1);
     unit(s, 'draughtsman').hp = 2;
     unit(s, 'rat-1').hp = 2;
     const r = endTurn(s);
@@ -224,7 +226,7 @@ describe('the battle ends after the whole step', () => {
 
 describe('the event cap (DK request g, FD-6)', () => {
   test('eight units in the cloud: every hit and death is logged, nothing fizzles', () => {
-    const s = bath('D~ S~ r~ r~\nm~ m~ d~ d~', 1, 47);
+    const s = bath('D~ S~ r~ r~\nm~ m~ d~ d~', 1, CAP - 1);
     for (const u of s.units) if (u.kind === 'enemy') u.hp = 2;
     const r = draft(s, (ctx) => {
       ctx.eventCap = 5; // a cast's cap; the round end is not a cast and must not cut the boil
@@ -241,9 +243,9 @@ describe('the event cap (DK request g, FD-6)', () => {
 
 describe('forecast and preview (P4)', () => {
   test('forecast equals the later result, through a full End turn', () => {
-    const s = bath('D~ ~ . r~\nS . ~ @', 2, 30);
+    const s = bath('D~ ~ . r~\nS . ~ @', 2, CAP - 18);
     const f = forecastBoilOver(s, gauge(s));
-    expect(f).toMatchObject({ value: 30, capacity: 48, boils: true, harm: ['draughtsman'] });
+    expect(f).toMatchObject({ value: CAP - 18, capacity: CAP, boils: true, harm: ['draughtsman'] });
     const r = act(s, { type: 'endTurn' });
     expect(pressureEv(r.events)?.data).toEqual({
       from: f.value,
@@ -265,11 +267,25 @@ describe('forecast and preview (P4)', () => {
   test('preview: the meter in whole pips, next round, and a harm ring when it boils', () => {
     const calm = bath('D ~ ~', 1, 9);
     expect(rulePreview(calm).find((p) => p.rule === ID)?.shapes).toEqual([
-      { kind: 'meter', label: 'Pressure', value: 2, max: 12, forecast: 3, danger: false },
+      {
+        kind: 'meter',
+        label: 'Pressure',
+        value: 2,
+        max: BOIL_CAPACITY_PIPS,
+        forecast: 3,
+        danger: false,
+      },
     ]);
-    const hot = bath('D~ r~ .', 1, 46);
+    const hot = bath('D~ r~ .', 1, CAP - 2);
     expect(rulePreview(hot).find((p) => p.rule === ID)?.shapes).toEqual([
-      { kind: 'meter', label: 'Pressure', value: 11, max: 12, forecast: 12, danger: true },
+      {
+        kind: 'meter',
+        label: 'Pressure',
+        value: Math.floor((CAP - 2) / 4),
+        max: BOIL_CAPACITY_PIPS,
+        forecast: BOIL_CAPACITY_PIPS,
+        danger: true,
+      },
       { kind: 'tile', at: at('A1'), tone: 'warn' },
       { kind: 'tile', at: at('B1'), tone: 'warn' },
       { kind: 'pulse', at: at('A1') },
@@ -281,7 +297,7 @@ describe('the marked line (BH-9)', () => {
   test('a numeric line in quarter-pips is kept; anything else is dropped', () => {
     expect(initBoilOver({ heat: 2, line: 32 })).toEqual({
       pressure: 0,
-      capacity: 48,
+      capacity: CAP,
       heat: 2,
       line: 32,
     });

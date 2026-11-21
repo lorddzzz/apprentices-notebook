@@ -9,7 +9,92 @@ through live loot and onward flow. Falls in the CAL-3 table count apprentices re
 Wins, losses, round-limit stalls and action-budget stops are recorded separately. The Chief HP is
 read from the actual spawned rival.
 
-### Twelve-seed authored baseline
+### Approved numbers applied (CAL-3 task 3)
+
+The player's decision of 2026-11-20: on each span, 75–90% fresh-pair heart wins and 25–35% worn-pair
+clears per trip started; count stalls separately from losses; investigate low-charge approach
+stalls before raising enemy HP; keep current values unless a measured candidate is better. No
+change to Hold, span support or collapse, or stoke mechanics.
+
+**Stall investigation.** Eight worn pairs per span, traced fight by fight. Every worn-pair stall
+ended with the foes still at full HP (a Gargoyle at 3, a Warden at 4, the Chief at 10) and the
+party holding 0–2 charges in total across both apprentices (for example `{"0,1":0}` and
+`{"1,0":0}` at round 41). A worn pair reaches room 3 with no spell left and the bot has no
+charge-free way to hurt a foe on the span. Stalls are therefore charge exhaustion, not foe HP:
+raising the Chief's HP does not move them, and lowering the room foes' HP to 3/2/2 moved
+worn room-3 sound arrivals from 7/16 to 16/16 and crumbling room-4 arrivals from 8/16 to
+16/16, but every worn pair that then reached the heart stalled there too (0/9 sound, 0/16
+crumbling, with 0–2 charges left; Chief at 5 HP or at 10 on those stalled boards). So a worn
+pair cannot clear at any Chief HP from 10 to 18 that was measured: the 25–35% worn target is
+not reachable by enemy numbers. The room foes were left at 4/3/3 because the lower bodies did
+not improve any clear.
+
+**Heart candidates (aware fresh pair, 16 seeds per span, hearts only changed).** Chief HP 10
+(current), 14, 18, 20: 16/16 on both spans; foes 3/2/2 with Chief 10, 14, 18: 16/16;
+keystone HP 14 with Chief 10: 16/16. Chief HP 28: sound 16/16, crumbling 15/16 (one loss).
+Chief HP 32: sound 14/16 (2 stalls), crumbling 13/16 (3 losses). Chief HP 40: sound 8/16
+(8 stalls), crumbling 13/16 (3 losses). The Chief's HP alone moves the fresh heart;
+keystone HP and the room foes' HP did not. Chief HP 30 was also queued at 40 seeds
+and ran for over an hour without finishing (a 16-seed retry exceeded 14 minutes against
+three minutes for 28 or 32); the cause was not found, so 30 is unmeasured.
+
+| Value | Before | After |
+| --- | --- | --- |
+| Chief Warden HP (`BRIDGE_TUNING.chiefHp`, `foes.chiefWarden.hp`, `rivals/chiefWarden.ts`, spawned) | 10 | 32 |
+| Everything else (stone 2/1, keystone 6, elite fall 4, Warden/Gargoyle/Mason 4/3/3) | — | unchanged |
+
+| Metric (aware fresh pair; before: 12-seed baseline and 16-seed control; after: 40 seeds) | Before | After | Target |
+| --- | --- | --- | --- |
+| Fresh heart wins, sound | 12/12 and 16/16 | 32/40 = 80.0% (8 stalls, 0 losses) | 75–90% |
+| Fresh heart wins, crumbling | 12/12 and 16/16 | 27/40 = 67.5% (13 losses, 0 stalls) | 75–90% |
+| Worn pair clears per trip started, sound | 0/12 and 0/16 | 0/40 (5 reached the heart; 0/5) | 25–35% |
+| Worn pair clears per trip started, crumbling | 0/12 and 0/16 | 0/40 (17 reached the heart; 0/17: 4 losses, 13 stalls) | 25–35% |
+| Heart wins per worn arrival (diagnostic) | 0/1 sound, 0/7 crumbling | 0/5 sound, 0/17 crumbling | — |
+| Worn stalls: room 3 sound, room 4 crumbling | 6/8 and 2/8 (8 seeds) | 26/40 and 23/40 | reported separately |
+| Fresh pair falls per heart fight | 0.00 | 0.00 sound, 0.28 crumbling | — |
+| Fresh rooms 1–4, both spans | 100% | 80/80 at every depth, both spans | unchanged |
+
+**Remaining misses and trade-off.** Crumbling is 7.5 points under the fresh band at 32, while sound
+is inside it: crumbling hearts lose pairs to falls (0.28 members per fight, 13 losses) where
+sound ones stall, so one Chief HP cannot centre both; 28 left crumbling at 15/16 and sound at
+16/16, and 32 gives 80%/67.5%. The sound-centred value was kept because the measured losses
+come with falls, which a number cannot change without touching collapse rules. The worn-clear
+target (0% against 25–35%) is missed by the full amount and is a charge economy and bot
+limit (CAL-B owns the shared policy; charges refilling or a charge-free damage line for the
+bot would be needed), not an enemy-number problem. Proposed decision for the player: accept the
+sound/crumbling split, or choose a different Chief HP per span kind (a data change but a new
+field), and decide whether the worn-clear target should be tested again after the bot or loot
+change.
+
+<details><summary>40-seed aware pair table after the change (Chief 32)</summary>
+
+Seeds 1–40, 40 rounds, 600 applied actions, full starter-lattice bot. Aware uses gauge + cracks. Blind uses neither. Hold is off in both. Worn trips carry actual HP and charges, take the first loot and leave the doorway unchanged; cooled trips prioritize the cold plunge. Opening bridge layouts precede the first span choice.
+
+| party | policy | state | depth | span | wins/fights | losses | stalls | budget | member falls/fight | entry HP | Chief HP |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2 | aware | fresh | 1 | opening | 120/120 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 2 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 3 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 4 | sound | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 5 | sound | 32/40 | 0 | 8 | 0 | 0.00 | 14.00 | 32 |
+| 2 | aware | trip-worn | 1 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | trip-worn | 2 | sound | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — |
+| 2 | aware | trip-worn | 3 | sound | 14/40 | 0 | 26 | 0 | 0.00 | 13.28 | — |
+| 2 | aware | trip-worn | 4 | sound | 5/14 | 0 | 9 | 0 | 0.00 | 12.64 | — |
+| 2 | aware | trip-worn | 5 | sound | 0/5 | 0 | 5 | 0 | 0.00 | 12.60 | 32 |
+| 2 | aware | fresh | 2 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 3 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 4 | crumbling | 80/80 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | fresh | 5 | crumbling | 27/40 | 13 | 0 | 0 | 0.28 | 14.00 | 32 |
+| 2 | aware | trip-worn | 1 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 14.00 | — |
+| 2 | aware | trip-worn | 2 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — |
+| 2 | aware | trip-worn | 3 | crumbling | 40/40 | 0 | 0 | 0 | 0.00 | 13.63 | — |
+| 2 | aware | trip-worn | 4 | crumbling | 17/40 | 0 | 23 | 0 | 0.00 | 13.47 | — |
+| 2 | aware | trip-worn | 5 | crumbling | 0/17 | 4 | 13 | 0 | 0.24 | 13.53 | 32 |
+
+</details>
+
+### Before: Twelve-seed authored baseline
 
 The aware fresh solo stalled in 12/12 sound hearts and 11/12 crumbling hearts, winning the
 remaining crumbling fight. The fresh pair won 12/12 per heart. The worn pair stalled nine

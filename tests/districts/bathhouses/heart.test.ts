@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { ENEMIES } from '$data';
 import { BATH_HEART, HEART_HEAT, STEWARD_TUNING } from '$data/districts/bathhouses';
+import { BOIL_CAPACITY_PIPS } from '$data/districts/bathhouses/types';
 import { RIVALS } from '$data/rivals';
 import { BATH_STEWARD_RIVAL } from '$data/rivals/bathSteward';
 import { type BattleState, type GameEvent, parseLabel } from '$engine';
@@ -65,6 +66,9 @@ describe('data and registration', () => {
   });
 });
 
+/** Capacity in quarter-pips; the stoke test needs no edit when the gauge is recalibrated. */
+const CAP = BOIL_CAPACITY_PIPS * 4;
+
 describe('the stoke', () => {
   test('two apprentices in his cloud: he stokes (+stokePips, an effect), then the gauge boils', () => {
     const s0 = replanned(heart('H~ S~ D~', 0));
@@ -75,9 +79,9 @@ describe('the stoke', () => {
   });
 
   test('the stoke caps at capacity; without the gauge the trick plans nothing', () => {
-    const full = act(replanned(heart('H~ S~ D~', 46)), endTurn);
+    const full = act(replanned(heart('H~ S~ D~', CAP - 2)), endTurn);
     const stoke = ofType(full.events, STOKE)[0] as { data?: { from: number; to: number } };
-    expect(stoke.data?.to).toBe(48);
+    expect(stoke.data?.to).toBe(CAP);
     const s = heart('H~ S~ D~');
     expect(STEWARD_TRICK.action?.plan(s, steward(s), null)).toHaveLength(1);
     const bare = board('H~ S~ D~');
