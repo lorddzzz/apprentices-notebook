@@ -200,6 +200,7 @@ function foundryRoom(
   loot: KitRoomDef['loot'],
   bonus: BonusObjective,
   lore: PaperId,
+  enemyHp?: KitRoomDef['enemyHp'],
 ): KitRoomDef {
   return {
     id,
@@ -212,6 +213,7 @@ function foundryRoom(
     heart: false,
     bonus,
     lore,
+    ...(enemyHp === undefined ? {} : { enemyHp }),
   };
 }
 
@@ -423,14 +425,15 @@ export const FOUNDRY_ROOMS_34: readonly KitRoomDef[] = [
  * with a Ringer on a rope at each side of him and the staff below; four `{hook}` tiles are bare
  * (by reading order, P7): each rung note hangs an allied great bell there (`pealRoomSetup`). The
  * party starts along the bottom rows, no start point beside a bell, so the Peal's pulses reach
- * foes first. The frame (`foundry/heartFrame.ts`) reads the first layout.
+ * foes first. The first two hooks hang beside the Carillonneur (CAL-F3 H1, an unscreened default),
+ * so a hung bell pulses him. The frame (`foundry/heartFrame.ts`) reads the first layout.
  */
 const HOOK = '{hook}';
 const FOUNDRY_HEART_VARIANTS: readonly EncounterVariant[] = [
   {
     name: 'The great bell',
     layout: board(
-      `${HOOK} . . V . . ${HOOK}`,
+      `. . ${HOOK} V ${HOOK} . .`,
       `. . ${ROPE.low} . ${ROPE.high} . .`,
       '. . . . . . .',
       `. ${M} . Q . ${L} .`,
@@ -444,7 +447,7 @@ const FOUNDRY_HEART_VARIANTS: readonly EncounterVariant[] = [
   {
     name: 'The clapper hall',
     layout: board(
-      `${HOOK} . . . V . ${HOOK}`,
+      `. . . ${HOOK} V ${HOOK} .`,
       `. . . ${ROPE.mid} . ${ROPE.high} .`,
       `. ${L} . . . . .`,
       `. . . . ${H} . .`,
@@ -458,9 +461,9 @@ const FOUNDRY_HEART_VARIANTS: readonly EncounterVariant[] = [
   {
     name: 'The sounding yoke',
     layout: board(
-      '. . . V . . .',
+      `. . ${HOOK} V ${HOOK} . .`,
       `. . ${ROPE.high} . ${ROPE.low} . .`,
-      `${HOOK} . . . . . ${HOOK}`,
+      '. . . . . . .',
       `. ${M} . . . ${H} .`,
       '. . Q . . . .',
       `${HOOK} . . . X . ${HOOK}`,
