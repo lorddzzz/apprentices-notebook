@@ -29,7 +29,7 @@ export const BATH_STEWARD_RIVAL: RivalDef = {
   name: 'Bath-Steward',
   token: 'H',
   district: 'bathhouses',
-  hp: 14,
+  hp: 38,
   move: 0,
   elite: true,
   habitat: 'any',
@@ -50,7 +50,7 @@ export const BATH_STEWARD_RIVAL: RivalDef = {
     { goal: 'hitParty', action: { kind: 'spell', spell: 'shove' } },
   ],
   trick: STEWARD_TRICK_ID,
-  fallback: { damage: 1 },
+  fallback: { damage: 2 },
   dryStrike: 'shove',
   page: 'bathSteward:steamHall',
 };

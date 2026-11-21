@@ -29,7 +29,7 @@ type District = 'bathhouses' | 'bridges' | 'canals';
 type Policy = 'aware' | 'blind';
 type Mode = 'fresh' | 'fresh cooled' | 'trip-worn' | 'trip-worn cooled';
 
-interface Sample {
+export interface Sample {
   outcome: 'win' | 'loss' | 'stall' | 'budget';
   heat: HeatLevel | undefined;
   boils: number;
@@ -57,6 +57,8 @@ interface Config {
   parties?: readonly number[];
   policies?: readonly Policy[];
   freshOnly?: boolean;
+  /** Keep only these 1-based depths (tuning runs). */
+  depths?: readonly number[];
 }
 
 const POLICIES: readonly Policy[] = ['aware', 'blind'];
@@ -137,6 +139,7 @@ function sweep(district: District, config: Config): Row[] {
         const makeRows = (mode: Mode) =>
           rooms.flatMap((room, depth) => {
             if (mode === 'fresh cooled' && (depth < 1 || depth > 3)) return [];
+            if (config.depths && !config.depths.includes(depth + 1)) return [];
             const pool =
               district === 'bridges' && depth > 0
                 ? spanVariantPool(depth, axis === 'sound' ? 'sound' : 'crumbling')
@@ -218,6 +221,31 @@ function sweep(district: District, config: Config): Row[] {
   return rows;
 }
 
+/** One authored fresh fight (1-based depth, 0-based layout) for the aware party of `party`, as the sweeps play it. */
+export function freshBathFight(
+  party: number,
+  depth: number,
+  variant: number,
+  seed: number,
+): Sample {
+  const who = PARTIES[party - 1];
+  if (!who) throw new Error(`Unknown party size ${party}`);
+  const profile = profileFor(who);
+  const save = { ...newSave(seed), profile, trip: startTrip(profile, seed, 'bathhouses') };
+  const { trip } = save;
+  const kit = trip.kit ?? { state: null, choices: [], checkpoint: false, bonuses: [] };
+  save.trip = {
+    ...trip,
+    encounter: depth - 1,
+    kit: { ...kit, choices: [{ after: depth - 2, id: 'authored', pool: [variant] }] },
+  };
+  const state = flow.startBattle(save).state;
+  return measure(
+    state,
+    botFight(state, ROUNDS, who, { gauge: true, cracks: true, hold: false, budget: BUDGET }),
+  );
+}
+
 const markdown = (cells: (string | number)[]) => `| ${cells.join(' | ')} |`;
 const mean = (values: number[]) =>
   values.length ? (values.reduce((sum, n) => sum + n, 0) / values.length).toFixed(2) : '—';
@@ -226,6 +254,7 @@ const median = (values: number[]) => {
   values.sort((a, b) => a - b);
   return mean(values.slice(Math.floor((values.length - 1) / 2), Math.floor(values.length / 2) + 1));
 };
+const earliest = (values: number[]) => (values.length ? Math.min(...values) : '—');
 const column = (samples: Sample[], read: (s: Sample) => number | undefined | null) =>
   samples.flatMap((s) => read(s) ?? []);
 const count = (samples: Sample[], outcome: Sample['outcome']) =>
@@ -267,6 +296,7 @@ export function bathTables(config: Config, compareCanals: boolean): string {
     'boils/fight',
     'median boils',
     'first boil dusk',
+    'earliest boil dusk',
     'legacy bot round',
     'no boil',
     'member hits/fight',
@@ -300,6 +330,7 @@ export function bathTables(config: Config, compareCanals: boolean): string {
       mean(column(s, (x) => x.boils)),
       median(column(s, (x) => x.boils)),
       median(column(s, (x) => x.firstBoil)),
+      earliest(column(s, (x) => x.firstBoil)),
       median(column(s, (x) => x.botFirstBoil)),
       dry.length,
       mean(column(s, (x) => x.memberHits)),

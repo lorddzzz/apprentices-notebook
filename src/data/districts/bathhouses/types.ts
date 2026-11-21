@@ -56,13 +56,13 @@ export interface HeatRow {
 export const HEAT: Readonly<Record<HeatLevel, HeatRow>> = {
   1: { tileQuarters: 2, ventQuarters: 4 },
   2: { tileQuarters: 3, ventQuarters: 8 },
-  3: { tileQuarters: 4, ventQuarters: 8 },
-  4: { tileQuarters: 5, ventQuarters: 12 },
+  3: { tileQuarters: 3, ventQuarters: 8 },
+  4: { tileQuarters: 2, ventQuarters: 6 },
 };
 /** P1: the gauge holds 12 whole pips. */
-export const BOIL_CAPACITY_PIPS = 12;
+export const BOIL_CAPACITY_PIPS = 32;
 /** P7: a boilerman beside a vent adds this many whole pips a round. */
-export const FEEDER_PIPS = 2;
+export const FEEDER_PIPS = 1;
 
 /** A room of the thermae: rooms 1–4 base heat 1–4, the heart 4 (P5; BH-7, BH-8). */
 export type BathRoomDef = KitRoomDef & { heatBase: HeatLevel };

@@ -173,7 +173,7 @@ export const ATTENDANT: EnemyDef = {
   id: 'attendant',
   name: 'attendant',
   token: BATH_FOE_TOKENS.attendant,
-  hp: 4,
+  hp: 6,
   move: 2,
   attack: 'shove',
   ai: 'idle',
@@ -188,7 +188,7 @@ export const BOILERMAN: EnemyDef = {
   id: 'boilerman',
   name: 'boilerman',
   token: BATH_FOE_TOKENS.boilerman,
-  hp: 3,
+  hp: 4,
   move: 2,
   attack: 'bite',
   ai: 'idle',
@@ -210,7 +210,7 @@ export const DISSOLVED_BATHER: EnemyDef = {
   id: 'dissolvedBather',
   name: 'bather',
   token: BATH_FOE_TOKENS.dissolvedBather,
-  hp: 3,
+  hp: 4,
   move: 2,
   attack: 'bite',
   ai: 'idle',
@@ -522,7 +522,7 @@ export const STEWARD_TUNING = {
   /** Cloud tiles one lay adds (his own tile first, then toward the nearest apprentice). */
   layTiles: 4,
   /** Whole pips one stoke adds to the gauge (every third round). */
-  stokePips: 4,
+  stokePips: 1,
 } as const;
 
 /**
@@ -535,7 +535,7 @@ export const BATH_STEWARD: EnemyDef = {
   id: 'bathSteward',
   name: 'Bath-Steward',
   token: BATH_FOE_TOKENS.bathSteward,
-  hp: 14,
+  hp: 38,
   move: 0,
   attack: 'shove',
   ai: 'idle',

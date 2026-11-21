@@ -5,7 +5,7 @@ import { compiledFor, createBattle, FOUNDERS, newProfile } from '$engine';
 import { BOIL_OVER_RULE_ID, type BoilOverEvent } from '$engine/districts/bathhouses/types';
 import { listRules } from '$engine/rules';
 import { botFight } from './bot';
-import { bathTables } from './calibration/bath-bridges';
+import { bathTables, freshBathFight } from './calibration/bath-bridges';
 import { countEnv } from './calibration/runner';
 
 const TABLE = Boolean(process.env.BATH_TABLE);
@@ -63,11 +63,11 @@ const median = (a: number[]) => {
 };
 
 describe('bathhouse bot calibration (BH-16)', () => {
-  test('quick: both bots win a layout per room and both terminate', () => {
+  test('quick: both bots terminate in every room', () => {
     for (let i = 0; i < ROOMS.length; i++) {
       for (const gauge of [false, true]) {
         const c = run(i, 0, gauge, 2);
-        expect(c.wins, `${ROOMS[i]?.title} gauge=${gauge}`).toBe(2);
+        expect(c.fights, `${ROOMS[i]?.title} gauge=${gauge}`).toBe(2);
       }
     }
   }, 120_000);
@@ -97,19 +97,57 @@ describe('bathhouse bot calibration (BH-16)', () => {
   );
 });
 
+/**
+ * The authored encounters, as a trip deals them (CAL-3; the player set the targets on 2026-11-20):
+ * the fresh pair gets until round three to react to the first boil, wins the ordinary rooms
+ * nearly always, and meets a heart it wins about half the time (a win band of 40-55 % over wide
+ * samples; this smaller sample asserts only that both outcomes occur).
+ */
+describe('authored bathhouse encounters (CAL-3)', () => {
+  const layouts = [3, 3, 3, 3, 3];
+  const fights = (depths: number[], seeds: number) =>
+    depths.flatMap((depth) =>
+      Array.from({ length: layouts[depth - 1] ?? 0 }, (_, v) =>
+        Array.from({ length: seeds }, (_, k) => freshBathFight(2, depth, v, k + 1)),
+      ).flat(),
+    );
+
+  test('first boil timing: no boil before round 3 in any room or layout', () => {
+    const boiled = fights([1, 2, 3, 4, 5], 3).flatMap((f) => f.firstBoil ?? []);
+    expect(boiled.length).toBeGreaterThan(0);
+    expect(Math.min(...boiled)).toBeGreaterThanOrEqual(3);
+  }, 300_000);
+
+  test('ordinary rooms are won almost always; the heart is won and not won', () => {
+    const rooms = fights([1, 2, 3, 4], 4);
+    expect(rooms.filter((f) => f.outcome === 'win').length / rooms.length).toBeGreaterThanOrEqual(
+      0.9,
+    );
+    const heart = fights([5], 8).map((f) => f.outcome === 'win');
+    expect(heart).toContain(true);
+    expect(heart).toContain(false);
+  }, 600_000);
+});
+
 test.skipIf(!TABLE)(
   'live bathhouses: fresh layouts and worn trips',
   () => {
     const candidate = Boolean(process.env.BATH_CANDIDATE);
     const table = bathTables(
       candidate
-        ? { seeds: SEEDS, parties: [2], policies: ['aware'], freshOnly: true }
+        ? {
+            seeds: SEEDS,
+            parties: [2],
+            policies: ['aware'],
+            freshOnly: true,
+            depths: process.env.BATH_DEPTHS?.split(',').map(Number),
+          }
         : { seeds: SEEDS },
       !candidate,
     );
     if (process.env.BATH_OUT) writeFileSync(process.env.BATH_OUT, table);
     else process.stdout.write(table);
-    expect(table).toContain('| 2 | aware | fresh | 5 | all layouts | 4 |');
+    expect(table).toContain('| 2 | aware | fresh | 5 | all layouts |');
   },
   36_000_000,
 );

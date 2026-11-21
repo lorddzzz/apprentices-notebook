@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import type { MemberId } from '$data';
-import { BATH_HEART, BATHER_AREA_SOURCES } from '$data/districts/bathhouses';
+import {
+  BATH_HEART,
+  BATH_STEWARD,
+  BATHER_AREA_SOURCES,
+  STEWARD_TUNING,
+} from '$data/districts/bathhouses';
 import { BATHHOUSES } from '$data/footnotes/bathhouses';
 import { RIVAL_PAGES, RIVALS } from '$data/rivals';
 import { BATH_STEWARD_PAGE, BATH_STEWARD_RIVAL, STEWARD_TRICK_ID } from '$data/rivals/bathSteward';
@@ -62,7 +67,7 @@ describe('data', () => {
   test('the def, its page and the Seep note link', () => {
     expect(BATH_STEWARD_RIVAL).toMatchObject({
       token: 'H',
-      hp: 14,
+      hp: BATH_STEWARD.hp, // the shell and the live master share one body
       move: 0,
       page: BATH_STEWARD_PAGE.id,
     });
@@ -104,7 +109,7 @@ describe('the trial scene', () => {
     const r = endTurn(s);
     expectLogIncludes(r.events, [
       'Bath-Steward at B2 uses the Steward',
-      'the Steward stokes the house (+4)',
+      `the Steward stokes the house (+${STEWARD_TUNING.stokePips})`,
     ]);
     const lines = describeLog(r.events);
     expect(lines).not.toContain('sets something aside');
@@ -161,7 +166,7 @@ describe('listed and banked', () => {
     expect(RIVALS.bathSteward).toBe(BATH_STEWARD_RIVAL);
     expect(board('H').units.find((u) => u.kind === 'enemy')).toMatchObject({
       def: 'bathSteward',
-      hp: 14,
+      hp: BATH_STEWARD_RIVAL.hp,
     });
     expect(awardsPage({ def: 'bathSteward' })).toBe(true);
     expect(BATH_HEART.heart).toBe(true);

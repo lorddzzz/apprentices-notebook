@@ -12,7 +12,611 @@ heat 4. Fresh canal comparisons use the same party, bot, seed range and depth, w
 authored canal layout. Room 4 uses the current Lamplighter setup. Deltas are bath wins minus canal
 wins in percentage points.
 
-### Thirty-seed authored baseline
+### Approved numbers applied (CAL-3 task 3)
+
+The player's decisions of 2026-11-20 were: give the party until round three to react to the first
+boil; 40–55% fresh-pair heart wins; at most one boil in a median ordinary fight at heat 1–2;
+ordinary rooms within ±10 points of the canals; use the round-three candidate as the starting
+point. Reproduce with `BATH_TABLE=1 BATH_SEEDS=30 BATH_OUT=/tmp/cal-3-baths.md pnpm vitest run tests/sim/bathhouses-calibration.test.ts -t 'live bathhouses' --reporter=dot`
+(about 50 minutes). Tuning screens used `BATH_CANDIDATE=1 BATH_DEPTHS=4,5` (fresh pair, aware).
+
+| Value | Before | After |
+| --- | --- | --- |
+| Heat 1/2/3/4 tile, vent (quarters) | (2,4) (3,8) (4,8) (5,12) | (2,4) (3,8) (3,8) (2,6) |
+| Capacity, feeder, stoke (pips) | 12, 2, 4 | 32, 1, 1 |
+| Attendant, boilerman, bather HP | 4, 3, 3 | 6, 4, 4 |
+| Bath-Steward HP (shell and rival) | 14 | 38 |
+| Steward fallback damage | 1 | 2 |
+
+The round-three candidate's foe HP (7/5/5) and Steward HP (20) were tuned: with 7/5/5 room 4
+fell to 83–87% (the canals' 100% less 10 points is 90%), and the heart still won 24/24 at HP 20.
+Stoke 3 with HP 24 and fallback 3 left the heart at 48/48. Fallback 3 and 4 never changed a
+result (the fallback strike did not fire in these fights), so only Steward HP moved the heart.
+Aware fresh pair, hearts, seeds 1–16 on three layouts (48 fights) for HP 28 (40/48) and HP 32
+(28/48); seeds 1–24 (72 fights) for HP 34 (38/72), HP 36 with foes 7/5/5 (36/72) and with
+6/4/4 (41/72), and HP 38 with 6/4/4 (36/72). HP 38 sits at the centre of the band. The 30-seed table below has 42/90.
+
+| Metric (aware fresh pair, seeds 1–30 × 3 layouts) | Before | After | Target |
+| --- | --- | --- | --- |
+| Rooms 1/2/3/4 wins | 90/90 each | 90/90, 90/90, 90/90, 89/90 | canal ±10 points |
+| Delta to canal rooms 1–4 | 0.0 | 0.0, 0.0, 0.0, −1.1 | within ±10 |
+| Heart wins | 90/90 (canal 50/90) | 42/90 = 46.7% (canal 50/90) | 40–55% |
+| Heart stalls / losses | 0 / 0 | 48 / 0 | reported separately |
+| Heart median boils / first boil dusk (median, earliest) | 3 / 1 | 3.5 / 4, 3 | first boil not before 3 |
+| Median boils, heat 1–2 rooms (fresh) | 0–1 | 0 | at most 1 |
+| Worn pair median boils, room 3 | 3 | 1 | at most 1 |
+| Fresh trio heart | — | 90/90 (canal 87/90) | — |
+
+The blind pair gives the same wins (42/90 at the heart, 89/90 in room 4) with 3.89 member hits per
+heart fight against 2.16 aware.
+
+**Remaining miss and trade-off.** All 48 non-wins at the heart are stalls at the 40-round limit
+with the Steward alive; there are no losses. The stoke is now one pip and a boil costs
+2 HP per member in the cloud (3.4 boils and 2.2 member hits per heart fight), so the pair
+survives while the extra Steward HP is what takes the win rate to the band. A fight that goes on for 40
+rounds is a grind rather than a defeat; if the player wants a heart the pair loses rather than
+abandons, the rival's routine or stoke timing needs a decision (not a number). Fresh rooms 1–3 saw no boil at all
+(the boil timing holds trivially there; before, the same rooms boiled from dusk 2). Room 4 boiled in 1 of 90. The worn
+pair is now weaker: room 2 won 20/30 and room 3 4/20 on the base route, since carried charges
+meet the larger bodies. This is recorded, not tuned (no worn target). Median boils at heat 1–2
+stay at most 1 in every row, worn included.
+
+**Tests.** The historical raw-board "two wins in every room" assertion is replaced by "both bots
+terminate". Two authored tests were added: no first boil before dusk 3 in any room or layout
+(three seeds each, pair), and ordinary rooms won at least 90% with the heart both won and not
+won (eight seeds on three layouts). `boil-over`, `heart` and `bathSteward` tests now read the
+capacity, stoke and Steward HP from data instead of hard-coding them.
+
+<details><summary>Full 30-seed live table after the change (all parties, both policies, worn and cooled, canals)</summary>
+
+Seeds 1–30, 40 rounds, 600 applied actions, full starter-lattice bot. Aware uses gauge + cracks. Blind uses neither. Hold is off in both. Worn trips carry actual HP and charges, take the first loot and leave the doorway unchanged; cooled trips prioritize the cold plunge. Opening bridge layouts precede the first span choice.
+
+First boil uses the round in the event log, before the following round starts. The legacy bot column uses the post-action round. Both medians exclude fights without a boil. Win/loss counts exclude stalls and exhausted budgets.
+
+#### Baths by depth and effective heat
+
+| party | policy | state | depth | layout | heat | wins/fights | fresh canal wins/fights | delta pp | boils/fight | median boils | first boil dusk | earliest boil dusk | legacy bot round | no boil | member hits/fight | wins/losses if boil | wins/losses if no boil | stalls | budget | entry HP | Steward HP |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | aware | fresh | 1 | all layouts | 1 | 58/90 | 90/90 | -35.6 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 58/32 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 2 | all layouts | 2 | 31/90 | 90/90 | -65.6 | 0.49 | 0.00 | 8.00 | 8 | 9.00 | 46 | 0.00 | 27/17 | 4/42 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 3 | all layouts | 3 | 0/90 | 90/90 | -100.0 | 0.60 | 1.00 | 8.00 | 8 | 9.00 | 36 | 0.00 | 0/54 | 0/36 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 4 | all layouts | 4 | 0/90 | 90/90 | -100.0 | 0.09 | 0.00 | 10.00 | 10 | 11.00 | 82 | 0.00 | 0/8 | 0/82 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 5 | all layouts | 4 | 10/90 | 0/90 | 11.1 | 4.38 | 4.00 | 4.00 | 3 | 5.00 | 0 | 0.53 | 10/0 | 0/0 | 80 | 0 | 6.00 | 38 |
+| 1 | aware | fresh cooled | 2 | all layouts | 1 | 23/90 | 90/90 | -74.4 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 23/67 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 3 | all layouts | 2 | 0/90 | 90/90 | -100.0 | 0.60 | 1.00 | 8.00 | 8 | 9.00 | 36 | 0.00 | 0/54 | 0/36 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 4 | all layouts | 3 | 0/90 | 90/90 | -100.0 | 0.34 | 0.00 | 8.00 | 8 | 9.00 | 59 | 0.00 | 0/31 | 0/59 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn | 1 | all layouts | 1 | 18/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 18/12 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn | 2 | all layouts | 2 | 1/18 | — | — | 0.39 | 0.00 | 8.00 | 8 | 9.00 | 12 | 0.00 | 1/5 | 0/12 | 0 | 0 | 3.28 | — |
+| 1 | aware | trip-worn | 3 | all layouts | 3 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 2.00 | — |
+| 1 | aware | trip-worn | 4 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 1 | all layouts | 1 | 18/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 18/12 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn cooled | 2 | all layouts | 1 | 2/18 | — | — | 0.06 | 0.00 | 12.00 | 12 | 13.00 | 17 | 0.00 | 1/0 | 1/16 | 0 | 0 | 3.28 | — |
+| 1 | aware | trip-worn cooled | 3 | all layouts | 2 | 0/2 | — | — | 0.00 | 0.00 | — | — | — | 2 | 0.00 | 0/0 | 0/2 | 0 | 0 | 1.50 | — |
+| 1 | aware | trip-worn cooled | 4 | all layouts | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | fresh | 1 | all layouts | 1 | 58/90 | 90/90 | -35.6 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 58/32 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 2 | all layouts | 2 | 20/90 | 90/90 | -77.8 | 0.46 | 0.00 | 8.00 | 8 | 9.00 | 49 | 0.12 | 16/25 | 4/45 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 3 | all layouts | 3 | 0/90 | 90/90 | -100.0 | 0.52 | 1.00 | 8.00 | 8 | 9.00 | 43 | 0.11 | 0/47 | 0/43 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 4 | all layouts | 4 | 0/90 | 90/90 | -100.0 | 0.09 | 0.00 | 10.00 | 10 | 11.00 | 82 | 0.00 | 0/8 | 0/82 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 5 | all layouts | 4 | 4/90 | 0/90 | 4.4 | 4.40 | 4.00 | 4.00 | 3 | 5.00 | 0 | 1.60 | 4/6 | 0/0 | 80 | 0 | 6.00 | 38 |
+| 1 | blind | fresh cooled | 2 | all layouts | 1 | 23/90 | 90/90 | -74.4 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 23/67 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 3 | all layouts | 2 | 0/90 | 90/90 | -100.0 | 0.52 | 1.00 | 8.00 | 8 | 9.00 | 43 | 0.11 | 0/47 | 0/43 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 4 | all layouts | 3 | 0/90 | 90/90 | -100.0 | 0.34 | 0.00 | 8.00 | 8 | 9.00 | 59 | 0.00 | 0/31 | 0/59 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn | 1 | all layouts | 1 | 18/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 18/12 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn | 2 | all layouts | 2 | 1/18 | — | — | 0.33 | 0.00 | 8.00 | 8 | 9.00 | 12 | 0.11 | 1/5 | 0/12 | 0 | 0 | 3.28 | — |
+| 1 | blind | trip-worn | 3 | all layouts | 3 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 2.00 | — |
+| 1 | blind | trip-worn | 4 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 1 | all layouts | 1 | 18/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 18/12 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn cooled | 2 | all layouts | 1 | 2/18 | — | — | 0.06 | 0.00 | 12.00 | 12 | 13.00 | 17 | 0.00 | 1/0 | 1/16 | 0 | 0 | 3.28 | — |
+| 1 | blind | trip-worn cooled | 3 | all layouts | 2 | 0/2 | — | — | 0.00 | 0.00 | — | — | — | 2 | 0.00 | 0/0 | 0/2 | 0 | 0 | 1.50 | — |
+| 1 | blind | trip-worn cooled | 4 | all layouts | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | fresh | 1 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 2 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 3 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 4 | all layouts | 4 | 89/90 | 90/90 | -1.1 | 0.01 | 0.00 | 10.00 | 10 | 11.00 | 89 | 0.00 | 0/1 | 89/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 5 | all layouts | 4 | 42/90 | 50/90 | -8.9 | 3.37 | 3.50 | 4.00 | 3 | 5.00 | 0 | 2.16 | 42/0 | 0/0 | 48 | 0 | 14.00 | 38 |
+| 2 | aware | fresh cooled | 2 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 3 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 4 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.01 | 0.00 | 8.00 | 8 | 8.00 | 89 | 0.00 | 1/0 | 89/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn | 2 | all layouts | 2 | 20/30 | — | — | 0.60 | 0.00 | 9.50 | 8 | 10.50 | 16 | 0.00 | 4/9 | 16/0 | 1 | 0 | 13.53 | — |
+| 2 | aware | trip-worn | 3 | all layouts | 3 | 4/20 | — | — | 0.85 | 1.00 | 8.00 | 8 | 9.00 | 4 | 0.00 | 4/12 | 0/4 | 0 | 0 | 10.70 | — |
+| 2 | aware | trip-worn | 4 | all layouts | 4 | 0/4 | — | — | 0.00 | 0.00 | — | — | — | 4 | 0.00 | 0/0 | 0/4 | 0 | 0 | 5.00 | — |
+| 2 | aware | trip-worn | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn cooled | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn cooled | 2 | all layouts | 1 | 19/30 | — | — | 0.17 | 0.00 | 13.00 | 13 | 14.00 | 26 | 0.00 | 2/1 | 17/9 | 1 | 0 | 13.53 | — |
+| 2 | aware | trip-worn cooled | 3 | all layouts | 2 | 4/19 | — | — | 0.84 | 1.00 | 8.00 | 8 | 9.00 | 4 | 0.00 | 4/11 | 0/4 | 0 | 0 | 10.74 | — |
+| 2 | aware | trip-worn cooled | 4 | all layouts | 3 | 0/4 | — | — | 0.25 | 0.00 | 8.00 | 8 | 9.00 | 3 | 0.00 | 0/1 | 0/3 | 0 | 0 | 5.00 | — |
+| 2 | aware | trip-worn cooled | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | fresh | 1 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 2 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 3 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 4 | all layouts | 4 | 89/90 | 90/90 | -1.1 | 0.01 | 0.00 | 10.00 | 10 | 11.00 | 89 | 0.00 | 0/1 | 89/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 5 | all layouts | 4 | 42/90 | 50/90 | -8.9 | 3.40 | 3.50 | 4.00 | 3 | 5.00 | 0 | 3.89 | 42/0 | 0/0 | 48 | 0 | 14.00 | 38 |
+| 2 | blind | fresh cooled | 2 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 3 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 4 | all layouts | 3 | 89/90 | 90/90 | -1.1 | 0.01 | 0.00 | 8.00 | 8 | 9.00 | 89 | 0.00 | 0/1 | 89/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn | 2 | all layouts | 2 | 17/30 | — | — | 0.53 | 0.00 | 9.50 | 8 | 10.50 | 16 | 0.20 | 1/13 | 16/0 | 0 | 0 | 13.53 | — |
+| 2 | blind | trip-worn | 3 | all layouts | 3 | 1/17 | — | — | 0.76 | 1.00 | 8.00 | 8 | 9.00 | 4 | 0.12 | 1/12 | 0/4 | 0 | 0 | 11.47 | — |
+| 2 | blind | trip-worn | 4 | all layouts | 4 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 7.00 | — |
+| 2 | blind | trip-worn | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn cooled | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn cooled | 2 | all layouts | 1 | 17/30 | — | — | 0.17 | 0.00 | 12.00 | 12 | 13.00 | 26 | 0.10 | 0/3 | 17/9 | 1 | 0 | 13.53 | — |
+| 2 | blind | trip-worn cooled | 3 | all layouts | 2 | 1/17 | — | — | 0.76 | 1.00 | 8.00 | 8 | 9.00 | 4 | 0.12 | 1/12 | 0/4 | 0 | 0 | 11.59 | — |
+| 2 | blind | trip-worn cooled | 4 | all layouts | 3 | 0/1 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 0 | 0.00 | 0/1 | 0/0 | 0 | 0 | 7.00 | — |
+| 2 | blind | trip-worn cooled | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | aware | fresh | 1 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 2 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 3 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 4 | all layouts | 4 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 5 | all layouts | 4 | 90/90 | 87/90 | 3.3 | 1.01 | 1.00 | 4.00 | 3 | 5.00 | 13 | 1.12 | 77/0 | 13/0 | 0 | 0 | 20.00 | 38 |
+| 3 | aware | fresh cooled | 2 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 3 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 4 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn | 2 | all layouts | 2 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 19.43 | — |
+| 3 | aware | trip-worn | 3 | all layouts | 3 | 16/30 | — | — | 0.97 | 1.00 | 9.00 | 8 | 10.00 | 11 | 0.00 | 5/14 | 11/0 | 0 | 0 | 18.77 | — |
+| 3 | aware | trip-worn | 4 | all layouts | 4 | 2/16 | — | — | 0.69 | 1.00 | 10.00 | 10 | 11.00 | 6 | 0.00 | 2/8 | 0/6 | 0 | 0 | 11.56 | — |
+| 3 | aware | trip-worn | 5 | all layouts | 4 | 0/2 | — | — | 2.00 | 2.00 | 4.50 | 4 | 5.50 | 0 | 2.50 | 0/2 | 0/0 | 0 | 0 | 5.00 | 38 |
+| 3 | aware | trip-worn cooled | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn cooled | 2 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 19.43 | — |
+| 3 | aware | trip-worn cooled | 3 | all layouts | 2 | 16/30 | — | — | 0.97 | 1.00 | 9.00 | 8 | 10.00 | 11 | 0.00 | 5/14 | 11/0 | 0 | 0 | 18.77 | — |
+| 3 | aware | trip-worn cooled | 4 | all layouts | 3 | 1/16 | — | — | 0.75 | 1.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 1/9 | 0/6 | 0 | 0 | 11.56 | — |
+| 3 | aware | trip-worn cooled | 5 | all layouts | 4 | 0/1 | — | — | 4.00 | 4.00 | 3.00 | 3 | 4.00 | 0 | 1.00 | 0/0 | 0/0 | 1 | 0 | 3.00 | 38 |
+| 3 | blind | fresh | 1 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 2 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 3 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 4 | all layouts | 4 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 5 | all layouts | 4 | 90/90 | 87/90 | 3.3 | 0.94 | 1.00 | 4.00 | 3 | 5.00 | 13 | 2.33 | 77/0 | 13/0 | 0 | 0 | 20.00 | 38 |
+| 3 | blind | fresh cooled | 2 | all layouts | 1 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 3 | all layouts | 2 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 4 | all layouts | 3 | 90/90 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 90 | 0.00 | 0/0 | 90/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn | 2 | all layouts | 2 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 19.43 | — |
+| 3 | blind | trip-worn | 3 | all layouts | 3 | 14/30 | — | — | 0.87 | 1.00 | 9.00 | 8 | 10.00 | 11 | 0.30 | 3/16 | 11/0 | 0 | 0 | 18.77 | — |
+| 3 | blind | trip-worn | 4 | all layouts | 4 | 0/14 | — | — | 0.57 | 1.00 | 10.00 | 10 | 11.00 | 6 | 0.07 | 0/8 | 0/6 | 0 | 0 | 12.00 | — |
+| 3 | blind | trip-worn | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | trip-worn cooled | 1 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn cooled | 2 | all layouts | 1 | 30/30 | — | — | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 19.43 | — |
+| 3 | blind | trip-worn cooled | 3 | all layouts | 2 | 14/30 | — | — | 0.87 | 1.00 | 9.00 | 8 | 10.00 | 11 | 0.30 | 3/16 | 11/0 | 0 | 0 | 18.77 | — |
+| 3 | blind | trip-worn cooled | 4 | all layouts | 3 | 0/14 | — | — | 0.79 | 1.00 | 8.00 | 8 | 9.00 | 5 | 0.21 | 0/9 | 0/5 | 0 | 0 | 12.00 | — |
+| 3 | blind | trip-worn cooled | 5 | all layouts | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+
+<details><summary>Baths by layout</summary>
+
+| party | policy | state | depth | layout | heat | wins/fights | fresh canal wins/fights | delta pp | boils/fight | median boils | first boil dusk | earliest boil dusk | legacy bot round | no boil | member hits/fight | wins/losses if boil | wins/losses if no boil | stalls | budget | entry HP | Steward HP |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | aware | fresh | 1 | The changing hall #1 | 1 | 11/30 | 90/90 | -63.3 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 11/19 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 1 | The scrubbing floor #2 | 1 | 26/30 | 90/90 | -13.3 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 26/4 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 1 | The tepidarium #3 | 1 | 21/30 | 90/90 | -30.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 21/9 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 2 | The steam gallery #1 | 2 | 8/30 | 90/90 | -73.3 | 0.60 | 1.00 | 8.00 | 8 | 9.00 | 12 | 0.00 | 8/10 | 0/12 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 2 | The laundry #2 | 2 | 19/30 | 90/90 | -36.7 | 0.63 | 1.00 | 8.00 | 8 | 9.00 | 11 | 0.00 | 19/0 | 0/11 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 2 | The boiler passage #3 | 2 | 4/30 | 90/90 | -86.7 | 0.23 | 0.00 | 8.00 | 8 | 9.00 | 23 | 0.00 | 0/7 | 4/19 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 3 | The frigidarium #1 | 3 | 0/30 | 90/90 | -100.0 | 0.57 | 1.00 | 8.00 | 8 | 9.00 | 13 | 0.00 | 0/17 | 0/13 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 3 | The long pool hall #2 | 3 | 0/30 | 90/90 | -100.0 | 0.43 | 0.00 | 9.00 | 8 | 10.00 | 17 | 0.00 | 0/13 | 0/17 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 3 | The mosaic court #3 | 3 | 0/30 | 90/90 | -100.0 | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 0/24 | 0/6 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 4 | The great caldarium #1 | 4 | 0/30 | 90/90 | -100.0 | 0.27 | 0.00 | 10.00 | 10 | 11.00 | 22 | 0.00 | 0/8 | 0/22 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 4 | The sudatorium #2 | 4 | 0/30 | 90/90 | -100.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 0/30 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 4 | The hot springs #3 | 4 | 0/30 | 90/90 | -100.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 0/30 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh | 5 | The steward's caldarium #1 | 4 | 8/30 | 0/90 | 26.7 | 3.53 | 4.00 | 4.00 | 3 | 5.00 | 0 | 1.00 | 8/0 | 0/0 | 22 | 0 | 6.00 | 38 |
+| 1 | aware | fresh | 5 | The steward's caldarium #2 | 4 | 2/30 | 0/90 | 6.7 | 6.00 | 6.00 | 3.00 | 3 | 4.00 | 0 | 0.07 | 2/0 | 0/0 | 28 | 0 | 6.00 | 38 |
+| 1 | aware | fresh | 5 | The steward's caldarium #3 | 4 | 0/30 | 0/90 | 0.0 | 3.60 | 4.00 | 4.00 | 4 | 5.00 | 0 | 0.53 | 0/0 | 0/0 | 30 | 0 | 6.00 | 38 |
+| 1 | aware | fresh cooled | 2 | The steam gallery #1 | 1 | 0/30 | 90/90 | -100.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 0/30 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 2 | The laundry #2 | 1 | 19/30 | 90/90 | -36.7 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 19/11 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 2 | The boiler passage #3 | 1 | 4/30 | 90/90 | -86.7 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 4/26 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 3 | The frigidarium #1 | 2 | 0/30 | 90/90 | -100.0 | 0.57 | 1.00 | 8.00 | 8 | 9.00 | 13 | 0.00 | 0/17 | 0/13 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 3 | The long pool hall #2 | 2 | 0/30 | 90/90 | -100.0 | 0.43 | 0.00 | 9.00 | 8 | 10.00 | 17 | 0.00 | 0/13 | 0/17 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 3 | The mosaic court #3 | 2 | 0/30 | 90/90 | -100.0 | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 0/24 | 0/6 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 4 | The great caldarium #1 | 3 | 0/30 | 90/90 | -100.0 | 0.27 | 0.00 | 8.00 | 8 | 9.00 | 22 | 0.00 | 0/8 | 0/22 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 4 | The sudatorium #2 | 3 | 0/30 | 90/90 | -100.0 | 0.63 | 1.00 | 8.00 | 8 | 9.00 | 11 | 0.00 | 0/19 | 0/11 | 0 | 0 | 6.00 | — |
+| 1 | aware | fresh cooled | 4 | The hot springs #3 | 3 | 0/30 | 90/90 | -100.0 | 0.13 | 0.00 | 8.00 | 8 | 9.00 | 26 | 0.00 | 0/4 | 0/26 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn | 1 | The changing hall #1 | 1 | 4/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 4/7 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn | 1 | The scrubbing floor #2 | 1 | 8/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 8/2 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn | 1 | The tepidarium #3 | 1 | 6/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 6/3 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn | 2 | The steam gallery #1 | 2 | 0/5 | — | — | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 2 | 0.00 | 0/3 | 0/2 | 0 | 0 | 3.40 | — |
+| 1 | aware | trip-worn | 2 | The laundry #2 | 2 | 1/9 | — | — | 0.33 | 0.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 1/2 | 0/6 | 0 | 0 | 3.22 | — |
+| 1 | aware | trip-worn | 2 | The boiler passage #3 | 2 | 0/4 | — | — | 0.00 | 0.00 | — | — | — | 4 | 0.00 | 0/0 | 0/4 | 0 | 0 | 3.25 | — |
+| 1 | aware | trip-worn | 3 | The frigidarium #1 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 3 | The long pool hall #2 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 3 | The mosaic court #3 | 3 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 2.00 | — |
+| 1 | aware | trip-worn | 4 | The great caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 4 | The sudatorium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 4 | The hot springs #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 1 | The changing hall #1 | 1 | 4/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 4/7 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn cooled | 1 | The scrubbing floor #2 | 1 | 8/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 8/2 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn cooled | 1 | The tepidarium #3 | 1 | 6/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 6/3 | 0 | 0 | 6.00 | — |
+| 1 | aware | trip-worn cooled | 2 | The steam gallery #1 | 1 | 1/5 | — | — | 0.20 | 0.00 | 12.00 | 12 | 13.00 | 4 | 0.00 | 1/0 | 0/4 | 0 | 0 | 3.40 | — |
+| 1 | aware | trip-worn cooled | 2 | The laundry #2 | 1 | 1/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 1/8 | 0 | 0 | 3.22 | — |
+| 1 | aware | trip-worn cooled | 2 | The boiler passage #3 | 1 | 0/4 | — | — | 0.00 | 0.00 | — | — | — | 4 | 0.00 | 0/0 | 0/4 | 0 | 0 | 3.25 | — |
+| 1 | aware | trip-worn cooled | 3 | The frigidarium #1 | 2 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 3 | The long pool hall #2 | 2 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 1.00 | — |
+| 1 | aware | trip-worn cooled | 3 | The mosaic court #3 | 2 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 2.00 | — |
+| 1 | aware | trip-worn cooled | 4 | The great caldarium #1 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 4 | The sudatorium #2 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 4 | The hot springs #3 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | aware | trip-worn cooled | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | fresh | 1 | The changing hall #1 | 1 | 11/30 | 90/90 | -63.3 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 11/19 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 1 | The scrubbing floor #2 | 1 | 26/30 | 90/90 | -13.3 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 26/4 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 1 | The tepidarium #3 | 1 | 21/30 | 90/90 | -30.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 21/9 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 2 | The steam gallery #1 | 2 | 0/30 | 90/90 | -100.0 | 0.50 | 0.50 | 8.00 | 8 | 9.00 | 15 | 0.27 | 0/15 | 0/15 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 2 | The laundry #2 | 2 | 16/30 | 90/90 | -46.7 | 0.63 | 1.00 | 8.00 | 8 | 9.00 | 11 | 0.10 | 16/3 | 0/11 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 2 | The boiler passage #3 | 2 | 4/30 | 90/90 | -86.7 | 0.23 | 0.00 | 8.00 | 8 | 9.00 | 23 | 0.00 | 0/7 | 4/19 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 3 | The frigidarium #1 | 3 | 0/30 | 90/90 | -100.0 | 0.57 | 1.00 | 8.00 | 8 | 8.00 | 13 | 0.33 | 0/17 | 0/13 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 3 | The long pool hall #2 | 3 | 0/30 | 90/90 | -100.0 | 0.20 | 0.00 | 8.00 | 8 | 9.00 | 24 | 0.00 | 0/6 | 0/24 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 3 | The mosaic court #3 | 3 | 0/30 | 90/90 | -100.0 | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 0/24 | 0/6 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 4 | The great caldarium #1 | 4 | 0/30 | 90/90 | -100.0 | 0.27 | 0.00 | 10.00 | 10 | 11.00 | 22 | 0.00 | 0/8 | 0/22 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 4 | The sudatorium #2 | 4 | 0/30 | 90/90 | -100.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 0/30 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 4 | The hot springs #3 | 4 | 0/30 | 90/90 | -100.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 0/30 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh | 5 | The steward's caldarium #1 | 4 | 2/30 | 0/90 | 6.7 | 3.53 | 4.00 | 4.00 | 3 | 5.00 | 0 | 2.00 | 2/6 | 0/0 | 22 | 0 | 6.00 | 38 |
+| 1 | blind | fresh | 5 | The steward's caldarium #2 | 4 | 2/30 | 0/90 | 6.7 | 6.00 | 6.00 | 3.00 | 3 | 4.00 | 0 | 1.60 | 2/0 | 0/0 | 28 | 0 | 6.00 | 38 |
+| 1 | blind | fresh | 5 | The steward's caldarium #3 | 4 | 0/30 | 0/90 | 0.0 | 3.67 | 4.00 | 4.00 | 4 | 5.00 | 0 | 1.20 | 0/0 | 0/0 | 30 | 0 | 6.00 | 38 |
+| 1 | blind | fresh cooled | 2 | The steam gallery #1 | 1 | 0/30 | 90/90 | -100.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 0/30 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 2 | The laundry #2 | 1 | 19/30 | 90/90 | -36.7 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 19/11 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 2 | The boiler passage #3 | 1 | 4/30 | 90/90 | -86.7 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 4/26 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 3 | The frigidarium #1 | 2 | 0/30 | 90/90 | -100.0 | 0.57 | 1.00 | 8.00 | 8 | 8.00 | 13 | 0.33 | 0/17 | 0/13 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 3 | The long pool hall #2 | 2 | 0/30 | 90/90 | -100.0 | 0.20 | 0.00 | 8.00 | 8 | 9.00 | 24 | 0.00 | 0/6 | 0/24 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 3 | The mosaic court #3 | 2 | 0/30 | 90/90 | -100.0 | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 0/24 | 0/6 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 4 | The great caldarium #1 | 3 | 0/30 | 90/90 | -100.0 | 0.27 | 0.00 | 8.00 | 8 | 9.00 | 22 | 0.00 | 0/8 | 0/22 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 4 | The sudatorium #2 | 3 | 0/30 | 90/90 | -100.0 | 0.63 | 1.00 | 8.00 | 8 | 9.00 | 11 | 0.00 | 0/19 | 0/11 | 0 | 0 | 6.00 | — |
+| 1 | blind | fresh cooled | 4 | The hot springs #3 | 3 | 0/30 | 90/90 | -100.0 | 0.13 | 0.00 | 8.00 | 8 | 9.00 | 26 | 0.00 | 0/4 | 0/26 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn | 1 | The changing hall #1 | 1 | 4/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 4/7 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn | 1 | The scrubbing floor #2 | 1 | 8/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 8/2 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn | 1 | The tepidarium #3 | 1 | 6/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 6/3 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn | 2 | The steam gallery #1 | 2 | 0/5 | — | — | 0.60 | 1.00 | 8.00 | 8 | 9.00 | 2 | 0.40 | 0/3 | 0/2 | 0 | 0 | 3.40 | — |
+| 1 | blind | trip-worn | 2 | The laundry #2 | 2 | 1/9 | — | — | 0.33 | 0.00 | 8.00 | 8 | 9.00 | 6 | 0.00 | 1/2 | 0/6 | 0 | 0 | 3.22 | — |
+| 1 | blind | trip-worn | 2 | The boiler passage #3 | 2 | 0/4 | — | — | 0.00 | 0.00 | — | — | — | 4 | 0.00 | 0/0 | 0/4 | 0 | 0 | 3.25 | — |
+| 1 | blind | trip-worn | 3 | The frigidarium #1 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 3 | The long pool hall #2 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 3 | The mosaic court #3 | 3 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 2.00 | — |
+| 1 | blind | trip-worn | 4 | The great caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 4 | The sudatorium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 4 | The hot springs #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 1 | The changing hall #1 | 1 | 4/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 4/7 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn cooled | 1 | The scrubbing floor #2 | 1 | 8/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 8/2 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn cooled | 1 | The tepidarium #3 | 1 | 6/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 6/3 | 0 | 0 | 6.00 | — |
+| 1 | blind | trip-worn cooled | 2 | The steam gallery #1 | 1 | 1/5 | — | — | 0.20 | 0.00 | 12.00 | 12 | 13.00 | 4 | 0.00 | 1/0 | 0/4 | 0 | 0 | 3.40 | — |
+| 1 | blind | trip-worn cooled | 2 | The laundry #2 | 1 | 1/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 1/8 | 0 | 0 | 3.22 | — |
+| 1 | blind | trip-worn cooled | 2 | The boiler passage #3 | 1 | 0/4 | — | — | 0.00 | 0.00 | — | — | — | 4 | 0.00 | 0/0 | 0/4 | 0 | 0 | 3.25 | — |
+| 1 | blind | trip-worn cooled | 3 | The frigidarium #1 | 2 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 3 | The long pool hall #2 | 2 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 1.00 | — |
+| 1 | blind | trip-worn cooled | 3 | The mosaic court #3 | 2 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 2.00 | — |
+| 1 | blind | trip-worn cooled | 4 | The great caldarium #1 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 4 | The sudatorium #2 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 4 | The hot springs #3 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 1 | blind | trip-worn cooled | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | fresh | 1 | The changing hall #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 1 | The scrubbing floor #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 1 | The tepidarium #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 2 | The steam gallery #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 2 | The laundry #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 2 | The boiler passage #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 3 | The frigidarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 3 | The long pool hall #2 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 3 | The mosaic court #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 4 | The great caldarium #1 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 4 | The sudatorium #2 | 4 | 29/30 | 90/90 | -3.3 | 0.03 | 0.00 | 10.00 | 10 | 11.00 | 29 | 0.00 | 0/1 | 29/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 4 | The hot springs #3 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh | 5 | The steward's caldarium #1 | 4 | 10/30 | 50/90 | -22.2 | 3.30 | 4.00 | 4.00 | 3 | 5.00 | 0 | 2.13 | 10/0 | 0/0 | 20 | 0 | 14.00 | 38 |
+| 2 | aware | fresh | 5 | The steward's caldarium #2 | 4 | 18/30 | 50/90 | 4.4 | 3.80 | 3.00 | 3.00 | 3 | 4.00 | 0 | 1.93 | 18/0 | 0/0 | 12 | 0 | 14.00 | 38 |
+| 2 | aware | fresh | 5 | The steward's caldarium #3 | 4 | 14/30 | 50/90 | -8.9 | 3.00 | 3.00 | 4.00 | 4 | 5.00 | 0 | 2.40 | 14/0 | 0/0 | 16 | 0 | 14.00 | 38 |
+| 2 | aware | fresh cooled | 2 | The steam gallery #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 2 | The laundry #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 2 | The boiler passage #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 3 | The frigidarium #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 3 | The long pool hall #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 3 | The mosaic court #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 4 | The great caldarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 4 | The sudatorium #2 | 3 | 30/30 | 90/90 | 0.0 | 0.03 | 0.00 | 8.00 | 8 | 8.00 | 29 | 0.00 | 1/0 | 29/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | fresh cooled | 4 | The hot springs #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn | 2 | The steam gallery #1 | 2 | 5/8 | — | — | 1.25 | 1.00 | 8.50 | 8 | 9.50 | 2 | 0.00 | 3/2 | 2/0 | 1 | 0 | 13.50 | — |
+| 2 | aware | trip-worn | 2 | The laundry #2 | 2 | 12/14 | — | — | 0.21 | 0.00 | 11.00 | 10 | 12.00 | 11 | 0.00 | 1/2 | 11/0 | 0 | 0 | 13.57 | — |
+| 2 | aware | trip-worn | 2 | The boiler passage #3 | 2 | 3/8 | — | — | 0.63 | 1.00 | 9.00 | 9 | 10.00 | 3 | 0.00 | 0/5 | 3/0 | 0 | 0 | 13.50 | — |
+| 2 | aware | trip-worn | 3 | The frigidarium #1 | 3 | 0/4 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 0 | 0.00 | 0/4 | 0/0 | 0 | 0 | 10.00 | — |
+| 2 | aware | trip-worn | 3 | The long pool hall #2 | 3 | 2/12 | — | — | 0.92 | 1.00 | 8.00 | 8 | 9.00 | 2 | 0.00 | 2/8 | 0/2 | 0 | 0 | 10.33 | — |
+| 2 | aware | trip-worn | 3 | The mosaic court #3 | 3 | 2/4 | — | — | 0.50 | 0.50 | 9.00 | 9 | 10.00 | 2 | 0.00 | 2/0 | 0/2 | 0 | 0 | 12.50 | — |
+| 2 | aware | trip-worn | 4 | The great caldarium #1 | 4 | 0/2 | — | — | 0.00 | 0.00 | — | — | — | 2 | 0.00 | 0/0 | 0/2 | 0 | 0 | 3.50 | — |
+| 2 | aware | trip-worn | 4 | The sudatorium #2 | 4 | 0/2 | — | — | 0.00 | 0.00 | — | — | — | 2 | 0.00 | 0/0 | 0/2 | 0 | 0 | 6.50 | — |
+| 2 | aware | trip-worn | 4 | The hot springs #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn cooled | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn cooled | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn cooled | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 14.00 | — |
+| 2 | aware | trip-worn cooled | 2 | The steam gallery #1 | 1 | 4/8 | — | — | 0.63 | 0.50 | 13.00 | 13 | 14.00 | 4 | 0.00 | 2/1 | 2/2 | 1 | 0 | 13.50 | — |
+| 2 | aware | trip-worn cooled | 2 | The laundry #2 | 1 | 12/14 | — | — | 0.00 | 0.00 | — | — | — | 14 | 0.00 | 0/0 | 12/2 | 0 | 0 | 13.57 | — |
+| 2 | aware | trip-worn cooled | 2 | The boiler passage #3 | 1 | 3/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 3/5 | 0 | 0 | 13.50 | — |
+| 2 | aware | trip-worn cooled | 3 | The frigidarium #1 | 2 | 0/3 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 0 | 0.00 | 0/3 | 0/0 | 0 | 0 | 11.67 | — |
+| 2 | aware | trip-worn cooled | 3 | The long pool hall #2 | 2 | 2/12 | — | — | 0.92 | 1.00 | 8.00 | 8 | 9.00 | 2 | 0.00 | 2/8 | 0/2 | 0 | 0 | 9.92 | — |
+| 2 | aware | trip-worn cooled | 3 | The mosaic court #3 | 2 | 2/4 | — | — | 0.50 | 0.50 | 9.00 | 9 | 10.00 | 2 | 0.00 | 2/0 | 0/2 | 0 | 0 | 12.50 | — |
+| 2 | aware | trip-worn cooled | 4 | The great caldarium #1 | 3 | 0/2 | — | — | 0.00 | 0.00 | — | — | — | 2 | 0.00 | 0/0 | 0/2 | 0 | 0 | 3.50 | — |
+| 2 | aware | trip-worn cooled | 4 | The sudatorium #2 | 3 | 0/2 | — | — | 0.50 | 0.50 | 8.00 | 8 | 9.00 | 1 | 0.00 | 0/1 | 0/1 | 0 | 0 | 6.50 | — |
+| 2 | aware | trip-worn cooled | 4 | The hot springs #3 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn cooled | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn cooled | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | aware | trip-worn cooled | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | fresh | 1 | The changing hall #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 1 | The scrubbing floor #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 1 | The tepidarium #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 2 | The steam gallery #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 2 | The laundry #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 2 | The boiler passage #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 3 | The frigidarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 3 | The long pool hall #2 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 3 | The mosaic court #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 4 | The great caldarium #1 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 4 | The sudatorium #2 | 4 | 29/30 | 90/90 | -3.3 | 0.03 | 0.00 | 10.00 | 10 | 11.00 | 29 | 0.00 | 0/1 | 29/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 4 | The hot springs #3 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh | 5 | The steward's caldarium #1 | 4 | 13/30 | 50/90 | -12.2 | 3.10 | 4.00 | 4.00 | 3 | 5.00 | 0 | 3.57 | 13/0 | 0/0 | 17 | 0 | 14.00 | 38 |
+| 2 | blind | fresh | 5 | The steward's caldarium #2 | 4 | 14/30 | 50/90 | -8.9 | 4.17 | 6.00 | 3.00 | 3 | 4.00 | 0 | 4.60 | 14/0 | 0/0 | 16 | 0 | 14.00 | 38 |
+| 2 | blind | fresh | 5 | The steward's caldarium #3 | 4 | 15/30 | 50/90 | -5.6 | 2.93 | 2.50 | 4.00 | 3 | 5.00 | 0 | 3.50 | 15/0 | 0/0 | 15 | 0 | 14.00 | 38 |
+| 2 | blind | fresh cooled | 2 | The steam gallery #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 2 | The laundry #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 2 | The boiler passage #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 3 | The frigidarium #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 3 | The long pool hall #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 3 | The mosaic court #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 4 | The great caldarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 4 | The sudatorium #2 | 3 | 29/30 | 90/90 | -3.3 | 0.03 | 0.00 | 8.00 | 8 | 9.00 | 29 | 0.00 | 0/1 | 29/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | fresh cooled | 4 | The hot springs #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn | 2 | The steam gallery #1 | 2 | 2/8 | — | — | 1.00 | 1.00 | 8.50 | 8 | 9.50 | 2 | 0.63 | 0/6 | 2/0 | 0 | 0 | 13.50 | — |
+| 2 | blind | trip-worn | 2 | The laundry #2 | 2 | 12/14 | — | — | 0.21 | 0.00 | 11.00 | 10 | 12.00 | 11 | 0.07 | 1/2 | 11/0 | 0 | 0 | 13.57 | — |
+| 2 | blind | trip-worn | 2 | The boiler passage #3 | 2 | 3/8 | — | — | 0.63 | 1.00 | 9.00 | 9 | 10.00 | 3 | 0.00 | 0/5 | 3/0 | 0 | 0 | 13.50 | — |
+| 2 | blind | trip-worn | 3 | The frigidarium #1 | 3 | 0/3 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 0 | 0.00 | 0/3 | 0/0 | 0 | 0 | 11.67 | — |
+| 2 | blind | trip-worn | 3 | The long pool hall #2 | 3 | 1/10 | — | — | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 2 | 0.00 | 1/7 | 0/2 | 0 | 0 | 11.00 | — |
+| 2 | blind | trip-worn | 3 | The mosaic court #3 | 3 | 0/4 | — | — | 0.50 | 0.50 | 9.00 | 9 | 10.00 | 2 | 0.50 | 0/2 | 0/2 | 0 | 0 | 12.50 | — |
+| 2 | blind | trip-worn | 4 | The great caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn | 4 | The sudatorium #2 | 4 | 0/1 | — | — | 0.00 | 0.00 | — | — | — | 1 | 0.00 | 0/0 | 0/1 | 0 | 0 | 7.00 | — |
+| 2 | blind | trip-worn | 4 | The hot springs #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn cooled | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn cooled | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn cooled | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 14.00 | — |
+| 2 | blind | trip-worn cooled | 2 | The steam gallery #1 | 1 | 2/8 | — | — | 0.63 | 0.50 | 12.00 | 12 | 13.00 | 4 | 0.38 | 0/3 | 2/2 | 1 | 0 | 13.50 | — |
+| 2 | blind | trip-worn cooled | 2 | The laundry #2 | 1 | 12/14 | — | — | 0.00 | 0.00 | — | — | — | 14 | 0.00 | 0/0 | 12/2 | 0 | 0 | 13.57 | — |
+| 2 | blind | trip-worn cooled | 2 | The boiler passage #3 | 1 | 3/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 3/5 | 0 | 0 | 13.50 | — |
+| 2 | blind | trip-worn cooled | 3 | The frigidarium #1 | 2 | 0/3 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 0 | 0.00 | 0/3 | 0/0 | 0 | 0 | 11.67 | — |
+| 2 | blind | trip-worn cooled | 3 | The long pool hall #2 | 2 | 1/10 | — | — | 0.80 | 1.00 | 8.00 | 8 | 9.00 | 2 | 0.00 | 1/7 | 0/2 | 0 | 0 | 11.20 | — |
+| 2 | blind | trip-worn cooled | 3 | The mosaic court #3 | 2 | 0/4 | — | — | 0.50 | 0.50 | 9.00 | 9 | 10.00 | 2 | 0.50 | 0/2 | 0/2 | 0 | 0 | 12.50 | — |
+| 2 | blind | trip-worn cooled | 4 | The great caldarium #1 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn cooled | 4 | The sudatorium #2 | 3 | 0/1 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 0 | 0.00 | 0/1 | 0/0 | 0 | 0 | 7.00 | — |
+| 2 | blind | trip-worn cooled | 4 | The hot springs #3 | 3 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn cooled | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn cooled | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 2 | blind | trip-worn cooled | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | aware | fresh | 1 | The changing hall #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 1 | The scrubbing floor #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 1 | The tepidarium #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 2 | The steam gallery #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 2 | The laundry #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 2 | The boiler passage #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 3 | The frigidarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 3 | The long pool hall #2 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 3 | The mosaic court #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 4 | The great caldarium #1 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 4 | The sudatorium #2 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 4 | The hot springs #3 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh | 5 | The steward's caldarium #1 | 4 | 30/30 | 87/90 | 3.3 | 1.13 | 1.00 | 4.00 | 3 | 5.00 | 0 | 1.30 | 30/0 | 0/0 | 0 | 0 | 20.00 | 38 |
+| 3 | aware | fresh | 5 | The steward's caldarium #2 | 4 | 30/30 | 87/90 | 3.3 | 1.23 | 1.00 | 3.00 | 3 | 4.00 | 1 | 0.87 | 29/0 | 1/0 | 0 | 0 | 20.00 | 38 |
+| 3 | aware | fresh | 5 | The steward's caldarium #3 | 4 | 30/30 | 87/90 | 3.3 | 0.67 | 1.00 | 4.00 | 3 | 5.00 | 12 | 1.20 | 18/0 | 12/0 | 0 | 0 | 20.00 | 38 |
+| 3 | aware | fresh cooled | 2 | The steam gallery #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 2 | The laundry #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 2 | The boiler passage #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 3 | The frigidarium #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 3 | The long pool hall #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 3 | The mosaic court #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 4 | The great caldarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 4 | The sudatorium #2 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | fresh cooled | 4 | The hot springs #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn | 2 | The steam gallery #1 | 2 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.50 | — |
+| 3 | aware | trip-worn | 2 | The laundry #2 | 2 | 14/14 | — | — | 0.00 | 0.00 | — | — | — | 14 | 0.00 | 0/0 | 14/0 | 0 | 0 | 19.21 | — |
+| 3 | aware | trip-worn | 2 | The boiler passage #3 | 2 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.75 | — |
+| 3 | aware | trip-worn | 3 | The frigidarium #1 | 3 | 4/8 | — | — | 1.38 | 2.00 | 9.00 | 8 | 10.00 | 2 | 0.00 | 2/4 | 2/0 | 0 | 0 | 18.25 | — |
+| 3 | aware | trip-worn | 3 | The long pool hall #2 | 3 | 7/16 | — | — | 0.94 | 1.00 | 8.50 | 8 | 9.50 | 4 | 0.00 | 3/9 | 4/0 | 0 | 0 | 19.00 | — |
+| 3 | aware | trip-worn | 3 | The mosaic court #3 | 3 | 5/6 | — | — | 0.50 | 0.00 | 11.00 | 11 | 12.00 | 5 | 0.00 | 0/1 | 5/0 | 0 | 0 | 18.83 | — |
+| 3 | aware | trip-worn | 4 | The great caldarium #1 | 4 | 1/5 | — | — | 0.60 | 0.00 | 10.50 | 10 | 11.50 | 3 | 0.00 | 1/1 | 0/3 | 0 | 0 | 11.00 | — |
+| 3 | aware | trip-worn | 4 | The sudatorium #2 | 4 | 1/7 | — | — | 0.86 | 1.00 | 10.00 | 10 | 11.00 | 1 | 0.00 | 1/5 | 0/1 | 0 | 0 | 12.29 | — |
+| 3 | aware | trip-worn | 4 | The hot springs #3 | 4 | 0/4 | — | — | 0.50 | 0.50 | 11.00 | 10 | 12.00 | 2 | 0.00 | 0/2 | 0/2 | 0 | 0 | 11.00 | — |
+| 3 | aware | trip-worn | 5 | The steward's caldarium #1 | 4 | 0/2 | — | — | 2.00 | 2.00 | 4.50 | 4 | 5.50 | 0 | 2.50 | 0/2 | 0/0 | 0 | 0 | 5.00 | 38 |
+| 3 | aware | trip-worn | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | aware | trip-worn | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | aware | trip-worn cooled | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn cooled | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn cooled | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 20.00 | — |
+| 3 | aware | trip-worn cooled | 2 | The steam gallery #1 | 1 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.50 | — |
+| 3 | aware | trip-worn cooled | 2 | The laundry #2 | 1 | 14/14 | — | — | 0.00 | 0.00 | — | — | — | 14 | 0.00 | 0/0 | 14/0 | 0 | 0 | 19.21 | — |
+| 3 | aware | trip-worn cooled | 2 | The boiler passage #3 | 1 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.75 | — |
+| 3 | aware | trip-worn cooled | 3 | The frigidarium #1 | 2 | 4/8 | — | — | 1.38 | 2.00 | 9.00 | 8 | 10.00 | 2 | 0.00 | 2/4 | 2/0 | 0 | 0 | 18.25 | — |
+| 3 | aware | trip-worn cooled | 3 | The long pool hall #2 | 2 | 7/16 | — | — | 0.94 | 1.00 | 8.50 | 8 | 9.50 | 4 | 0.00 | 3/9 | 4/0 | 0 | 0 | 19.00 | — |
+| 3 | aware | trip-worn cooled | 3 | The mosaic court #3 | 2 | 5/6 | — | — | 0.50 | 0.00 | 11.00 | 11 | 12.00 | 5 | 0.00 | 0/1 | 5/0 | 0 | 0 | 18.83 | — |
+| 3 | aware | trip-worn cooled | 4 | The great caldarium #1 | 3 | 0/5 | — | — | 0.60 | 0.00 | 8.00 | 8 | 9.00 | 3 | 0.00 | 0/2 | 0/3 | 0 | 0 | 11.00 | — |
+| 3 | aware | trip-worn cooled | 4 | The sudatorium #2 | 3 | 1/7 | — | — | 1.00 | 1.00 | 8.00 | 8 | 9.00 | 1 | 0.00 | 1/5 | 0/1 | 0 | 0 | 12.29 | — |
+| 3 | aware | trip-worn cooled | 4 | The hot springs #3 | 3 | 0/4 | — | — | 0.50 | 0.50 | 8.50 | 8 | 9.50 | 2 | 0.00 | 0/2 | 0/2 | 0 | 0 | 11.00 | — |
+| 3 | aware | trip-worn cooled | 5 | The steward's caldarium #1 | 4 | 0/1 | — | — | 4.00 | 4.00 | 3.00 | 3 | 4.00 | 0 | 1.00 | 0/0 | 0/0 | 1 | 0 | 3.00 | 38 |
+| 3 | aware | trip-worn cooled | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | aware | trip-worn cooled | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | fresh | 1 | The changing hall #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 1 | The scrubbing floor #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 1 | The tepidarium #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 2 | The steam gallery #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 2 | The laundry #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 2 | The boiler passage #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 3 | The frigidarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 3 | The long pool hall #2 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 3 | The mosaic court #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 4 | The great caldarium #1 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 4 | The sudatorium #2 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 4 | The hot springs #3 | 4 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh | 5 | The steward's caldarium #1 | 4 | 30/30 | 87/90 | 3.3 | 1.10 | 1.00 | 4.00 | 3 | 5.00 | 0 | 2.90 | 30/0 | 0/0 | 0 | 0 | 20.00 | 38 |
+| 3 | blind | fresh | 5 | The steward's caldarium #2 | 4 | 30/30 | 87/90 | 3.3 | 1.13 | 1.00 | 3.00 | 3 | 4.00 | 1 | 2.57 | 29/0 | 1/0 | 0 | 0 | 20.00 | 38 |
+| 3 | blind | fresh | 5 | The steward's caldarium #3 | 4 | 30/30 | 87/90 | 3.3 | 0.60 | 1.00 | 4.00 | 3 | 5.00 | 12 | 1.53 | 18/0 | 12/0 | 0 | 0 | 20.00 | 38 |
+| 3 | blind | fresh cooled | 2 | The steam gallery #1 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 2 | The laundry #2 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 2 | The boiler passage #3 | 1 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 3 | The frigidarium #1 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 3 | The long pool hall #2 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 3 | The mosaic court #3 | 2 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 4 | The great caldarium #1 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 4 | The sudatorium #2 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | fresh cooled | 4 | The hot springs #3 | 3 | 30/30 | 90/90 | 0.0 | 0.00 | 0.00 | — | — | — | 30 | 0.00 | 0/0 | 30/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn | 2 | The steam gallery #1 | 2 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.50 | — |
+| 3 | blind | trip-worn | 2 | The laundry #2 | 2 | 14/14 | — | — | 0.00 | 0.00 | — | — | — | 14 | 0.00 | 0/0 | 14/0 | 0 | 0 | 19.21 | — |
+| 3 | blind | trip-worn | 2 | The boiler passage #3 | 2 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.75 | — |
+| 3 | blind | trip-worn | 3 | The frigidarium #1 | 3 | 4/8 | — | — | 1.00 | 1.00 | 9.00 | 8 | 10.00 | 2 | 0.38 | 2/4 | 2/0 | 0 | 0 | 18.25 | — |
+| 3 | blind | trip-worn | 3 | The long pool hall #2 | 3 | 5/16 | — | — | 1.00 | 1.00 | 8.50 | 8 | 9.50 | 4 | 0.31 | 1/11 | 4/0 | 0 | 0 | 19.00 | — |
+| 3 | blind | trip-worn | 3 | The mosaic court #3 | 3 | 5/6 | — | — | 0.33 | 0.00 | 11.00 | 11 | 12.00 | 5 | 0.17 | 0/1 | 5/0 | 0 | 0 | 18.83 | — |
+| 3 | blind | trip-worn | 4 | The great caldarium #1 | 4 | 0/4 | — | — | 0.50 | 0.50 | 10.00 | 10 | 11.00 | 2 | 0.00 | 0/2 | 0/2 | 0 | 0 | 12.75 | — |
+| 3 | blind | trip-worn | 4 | The sudatorium #2 | 4 | 0/6 | — | — | 0.83 | 1.00 | 10.00 | 10 | 11.00 | 1 | 0.17 | 0/5 | 0/1 | 0 | 0 | 12.17 | — |
+| 3 | blind | trip-worn | 4 | The hot springs #3 | 4 | 0/4 | — | — | 0.25 | 0.00 | 12.00 | 12 | 13.00 | 3 | 0.00 | 0/1 | 0/3 | 0 | 0 | 11.00 | — |
+| 3 | blind | trip-worn | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | trip-worn | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | trip-worn | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | trip-worn cooled | 1 | The changing hall #1 | 1 | 11/11 | — | — | 0.00 | 0.00 | — | — | — | 11 | 0.00 | 0/0 | 11/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn cooled | 1 | The scrubbing floor #2 | 1 | 10/10 | — | — | 0.00 | 0.00 | — | — | — | 10 | 0.00 | 0/0 | 10/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn cooled | 1 | The tepidarium #3 | 1 | 9/9 | — | — | 0.00 | 0.00 | — | — | — | 9 | 0.00 | 0/0 | 9/0 | 0 | 0 | 20.00 | — |
+| 3 | blind | trip-worn cooled | 2 | The steam gallery #1 | 1 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.50 | — |
+| 3 | blind | trip-worn cooled | 2 | The laundry #2 | 1 | 14/14 | — | — | 0.00 | 0.00 | — | — | — | 14 | 0.00 | 0/0 | 14/0 | 0 | 0 | 19.21 | — |
+| 3 | blind | trip-worn cooled | 2 | The boiler passage #3 | 1 | 8/8 | — | — | 0.00 | 0.00 | — | — | — | 8 | 0.00 | 0/0 | 8/0 | 0 | 0 | 19.75 | — |
+| 3 | blind | trip-worn cooled | 3 | The frigidarium #1 | 2 | 4/8 | — | — | 1.00 | 1.00 | 9.00 | 8 | 10.00 | 2 | 0.38 | 2/4 | 2/0 | 0 | 0 | 18.25 | — |
+| 3 | blind | trip-worn cooled | 3 | The long pool hall #2 | 2 | 5/16 | — | — | 1.00 | 1.00 | 8.50 | 8 | 9.50 | 4 | 0.31 | 1/11 | 4/0 | 0 | 0 | 19.00 | — |
+| 3 | blind | trip-worn cooled | 3 | The mosaic court #3 | 2 | 5/6 | — | — | 0.33 | 0.00 | 11.00 | 11 | 12.00 | 5 | 0.17 | 0/1 | 5/0 | 0 | 0 | 18.83 | — |
+| 3 | blind | trip-worn cooled | 4 | The great caldarium #1 | 3 | 0/4 | — | — | 0.50 | 0.50 | 8.00 | 8 | 9.00 | 2 | 0.25 | 0/2 | 0/2 | 0 | 0 | 12.75 | — |
+| 3 | blind | trip-worn cooled | 4 | The sudatorium #2 | 3 | 0/6 | — | — | 1.17 | 1.00 | 8.00 | 8 | 9.00 | 1 | 0.33 | 0/5 | 0/1 | 0 | 0 | 12.17 | — |
+| 3 | blind | trip-worn cooled | 4 | The hot springs #3 | 3 | 0/4 | — | — | 0.50 | 0.50 | 8.50 | 8 | 9.50 | 2 | 0.00 | 0/2 | 0/2 | 0 | 0 | 11.00 | — |
+| 3 | blind | trip-worn cooled | 5 | The steward's caldarium #1 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | trip-worn cooled | 5 | The steward's caldarium #2 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+| 3 | blind | trip-worn cooled | 5 | The steward's caldarium #3 | 4 | 0/0 | — | — | — | — | — | — | — | 0 | — | 0/0 | 0/0 | 0 | 0 | — | — |
+
+</details>
+
+<details><summary>Fresh canal comparison by layout</summary>
+
+| party | policy | depth | layout | wins/fights | stalls | budget |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | aware | 1 | The towpath #1 | 30/30 | 0 | 0 |
+| 1 | aware | 1 | The coal wharf #2 | 30/30 | 0 | 0 |
+| 1 | aware | 1 | The lamplit quay #3 | 30/30 | 0 | 0 |
+| 1 | aware | 2 | The drowned arcade #1 | 30/30 | 0 | 0 |
+| 1 | aware | 2 | The eel steps #2 | 30/30 | 0 | 0 |
+| 1 | aware | 2 | The lock cottage #3 | 30/30 | 0 | 0 |
+| 1 | aware | 3 | The sluice #1 | 30/30 | 0 | 0 |
+| 1 | aware | 3 | The crossing #2 | 30/30 | 0 | 0 |
+| 1 | aware | 3 | The tanners' cut #3 | 30/30 | 0 | 0 |
+| 1 | aware | 4 | The uphill reach #1 | 30/30 | 0 | 0 |
+| 1 | aware | 4 | The lamp market #2 | 30/30 | 0 | 0 |
+| 1 | aware | 4 | The siphon #3 | 30/30 | 0 | 0 |
+| 1 | aware | 5 | The lamp-mother's pool #1 | 0/30 | 0 | 0 |
+| 1 | aware | 5 | The lamp-mother's pool #2 | 0/30 | 0 | 0 |
+| 1 | aware | 5 | The lamp-mother's pool #3 | 0/30 | 0 | 0 |
+| 1 | blind | 1 | The towpath #1 | 30/30 | 0 | 0 |
+| 1 | blind | 1 | The coal wharf #2 | 30/30 | 0 | 0 |
+| 1 | blind | 1 | The lamplit quay #3 | 30/30 | 0 | 0 |
+| 1 | blind | 2 | The drowned arcade #1 | 30/30 | 0 | 0 |
+| 1 | blind | 2 | The eel steps #2 | 30/30 | 0 | 0 |
+| 1 | blind | 2 | The lock cottage #3 | 30/30 | 0 | 0 |
+| 1 | blind | 3 | The sluice #1 | 30/30 | 0 | 0 |
+| 1 | blind | 3 | The crossing #2 | 30/30 | 0 | 0 |
+| 1 | blind | 3 | The tanners' cut #3 | 30/30 | 0 | 0 |
+| 1 | blind | 4 | The uphill reach #1 | 30/30 | 0 | 0 |
+| 1 | blind | 4 | The lamp market #2 | 30/30 | 0 | 0 |
+| 1 | blind | 4 | The siphon #3 | 30/30 | 0 | 0 |
+| 1 | blind | 5 | The lamp-mother's pool #1 | 0/30 | 0 | 0 |
+| 1 | blind | 5 | The lamp-mother's pool #2 | 0/30 | 0 | 0 |
+| 1 | blind | 5 | The lamp-mother's pool #3 | 0/30 | 0 | 0 |
+| 2 | aware | 1 | The towpath #1 | 30/30 | 0 | 0 |
+| 2 | aware | 1 | The coal wharf #2 | 30/30 | 0 | 0 |
+| 2 | aware | 1 | The lamplit quay #3 | 30/30 | 0 | 0 |
+| 2 | aware | 2 | The drowned arcade #1 | 30/30 | 0 | 0 |
+| 2 | aware | 2 | The eel steps #2 | 30/30 | 0 | 0 |
+| 2 | aware | 2 | The lock cottage #3 | 30/30 | 0 | 0 |
+| 2 | aware | 3 | The sluice #1 | 30/30 | 0 | 0 |
+| 2 | aware | 3 | The crossing #2 | 30/30 | 0 | 0 |
+| 2 | aware | 3 | The tanners' cut #3 | 30/30 | 0 | 0 |
+| 2 | aware | 4 | The uphill reach #1 | 30/30 | 0 | 0 |
+| 2 | aware | 4 | The lamp market #2 | 30/30 | 0 | 0 |
+| 2 | aware | 4 | The siphon #3 | 30/30 | 0 | 0 |
+| 2 | aware | 5 | The lamp-mother's pool #1 | 15/30 | 0 | 0 |
+| 2 | aware | 5 | The lamp-mother's pool #2 | 25/30 | 0 | 0 |
+| 2 | aware | 5 | The lamp-mother's pool #3 | 10/30 | 0 | 0 |
+| 2 | blind | 1 | The towpath #1 | 30/30 | 0 | 0 |
+| 2 | blind | 1 | The coal wharf #2 | 30/30 | 0 | 0 |
+| 2 | blind | 1 | The lamplit quay #3 | 30/30 | 0 | 0 |
+| 2 | blind | 2 | The drowned arcade #1 | 30/30 | 0 | 0 |
+| 2 | blind | 2 | The eel steps #2 | 30/30 | 0 | 0 |
+| 2 | blind | 2 | The lock cottage #3 | 30/30 | 0 | 0 |
+| 2 | blind | 3 | The sluice #1 | 30/30 | 0 | 0 |
+| 2 | blind | 3 | The crossing #2 | 30/30 | 0 | 0 |
+| 2 | blind | 3 | The tanners' cut #3 | 30/30 | 0 | 0 |
+| 2 | blind | 4 | The uphill reach #1 | 30/30 | 0 | 0 |
+| 2 | blind | 4 | The lamp market #2 | 30/30 | 0 | 0 |
+| 2 | blind | 4 | The siphon #3 | 30/30 | 0 | 0 |
+| 2 | blind | 5 | The lamp-mother's pool #1 | 15/30 | 0 | 0 |
+| 2 | blind | 5 | The lamp-mother's pool #2 | 25/30 | 0 | 0 |
+| 2 | blind | 5 | The lamp-mother's pool #3 | 10/30 | 0 | 0 |
+| 3 | aware | 1 | The towpath #1 | 30/30 | 0 | 0 |
+| 3 | aware | 1 | The coal wharf #2 | 30/30 | 0 | 0 |
+| 3 | aware | 1 | The lamplit quay #3 | 30/30 | 0 | 0 |
+| 3 | aware | 2 | The drowned arcade #1 | 30/30 | 0 | 0 |
+| 3 | aware | 2 | The eel steps #2 | 30/30 | 0 | 0 |
+| 3 | aware | 2 | The lock cottage #3 | 30/30 | 0 | 0 |
+| 3 | aware | 3 | The sluice #1 | 30/30 | 0 | 0 |
+| 3 | aware | 3 | The crossing #2 | 30/30 | 0 | 0 |
+| 3 | aware | 3 | The tanners' cut #3 | 30/30 | 0 | 0 |
+| 3 | aware | 4 | The uphill reach #1 | 30/30 | 0 | 0 |
+| 3 | aware | 4 | The lamp market #2 | 30/30 | 0 | 0 |
+| 3 | aware | 4 | The siphon #3 | 30/30 | 0 | 0 |
+| 3 | aware | 5 | The lamp-mother's pool #1 | 27/30 | 0 | 0 |
+| 3 | aware | 5 | The lamp-mother's pool #2 | 30/30 | 0 | 0 |
+| 3 | aware | 5 | The lamp-mother's pool #3 | 30/30 | 0 | 0 |
+| 3 | blind | 1 | The towpath #1 | 30/30 | 0 | 0 |
+| 3 | blind | 1 | The coal wharf #2 | 30/30 | 0 | 0 |
+| 3 | blind | 1 | The lamplit quay #3 | 30/30 | 0 | 0 |
+| 3 | blind | 2 | The drowned arcade #1 | 30/30 | 0 | 0 |
+| 3 | blind | 2 | The eel steps #2 | 30/30 | 0 | 0 |
+| 3 | blind | 2 | The lock cottage #3 | 30/30 | 0 | 0 |
+| 3 | blind | 3 | The sluice #1 | 30/30 | 0 | 0 |
+| 3 | blind | 3 | The crossing #2 | 30/30 | 0 | 0 |
+| 3 | blind | 3 | The tanners' cut #3 | 30/30 | 0 | 0 |
+| 3 | blind | 4 | The uphill reach #1 | 30/30 | 0 | 0 |
+| 3 | blind | 4 | The lamp market #2 | 30/30 | 0 | 0 |
+| 3 | blind | 4 | The siphon #3 | 30/30 | 0 | 0 |
+| 3 | blind | 5 | The lamp-mother's pool #1 | 27/30 | 0 | 0 |
+| 3 | blind | 5 | The lamp-mother's pool #2 | 30/30 | 0 | 0 |
+| 3 | blind | 5 | The lamp-mother's pool #3 | 30/30 | 0 | 0 |
+
+</details>
+
+</details>
+
+### Before: Thirty-seed authored baseline
 
 The aware fresh pair won 90/90 at every depth. The matching canal pair won 90/90 in rooms
 1–4 and 50/90 at the heart. Ordinary bath rooms met the ±10-point comparison at 0.0 points.
