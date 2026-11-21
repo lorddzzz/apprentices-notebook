@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { BRIDGE_HEART } from '$data/districts/bridges';
+import { CHIEF_WARDEN } from '$data/districts/bridges/enemies';
+import { BRIDGE_TUNING } from '$data/districts/bridges/types';
 import { RIVAL_PAGES, RIVALS } from '$data/rivals';
 import {
   type BattleState,
@@ -27,6 +29,12 @@ import { withLattices } from '../scenarios/harness';
  */
 
 const PAGE = 'chiefWarden:mindTheEdge' as const;
+
+test('the tuning block, the board shell and the live rival share one body (CAL-3)', () => {
+  expect(CHIEF_WARDEN.hp).toBe(BRIDGE_TUNING.chiefHp);
+  expect(BRIDGE_TUNING.foes.chiefWarden.hp).toBe(BRIDGE_TUNING.chiefHp);
+  expect(RIVALS.chiefWarden?.hp).toBe(BRIDGE_TUNING.chiefHp);
+});
 
 const heartFight = () => {
   const save = setOut(
