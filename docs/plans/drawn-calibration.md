@@ -619,3 +619,50 @@ The budget left part of the independent corpus rerun outstanding. The structural
 | CAL-5R | `GEN_TUNING.perMember` and `bandBonus` | 2 and 0/1/2 | 1 and 3/4/5 | 484/2,670 walkovers, 16 unverified, 2539/38/93 W/L/S, 4 median rounds, 13 median HP left | 414/2,670 walkovers, 71 unverified, 0 invalid, 2443/75/152 W/L/S, 4 median rounds, 13 median HP left | 414/2670 (15.5%); 5.5 pp above 10% | Fresh ordinary, 24 drawings × lineups 1–3, seeds 1–10, `CAL5_ORDINARY=1`, `slope1` at `540903d` | Reject, +55 unverified | Defaults at `540903d`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
 | CAL-5R | Steward trial parity (CAL-5G) | Trial heat 1, app heat 4 | Heat 4 on both paths | Fresh 28/0/8 W/L/S, 17 fallback, 14 unverified | Fresh 28/0/8 W/L/S, 40 median rounds, 8 median HP left; 94/94 trial and 36/36 app at heat 4 | Trial/app parity met | Three Steward drawings, lineups 1–3, fresh seeds 1–4 and carried seeds 1–2, b1–b3 | Retain shipped shared heart config | Shipped at `8c7192f`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
 | CAL-5R | Length-six peal (CAL-5P) | Sorted earned notes | Distinct notes first; disclose hookless limit | `1,2,3,4,1` hung `1,1,2,3` | Same entries hang `1,2,3,4`; carried Heavy Carillonneur trio seed 2 0/1/0 W/L/S, round 10, 0 HP left | Fourth distinct note restored | Seed 1 save/reload setup probe; seed 2 carried, b1–b3 | Retain shipped hook allocation and notice | Shipped at `8c7192f`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+
+## Drawn Steward HP (CAL-5H)
+
+The drawn Steward had inherited the authored Steward's 38 HP. H1 pinned the drawn frame at the same value so the generator's lite trial, its fallback trial and the played heart share one independently tunable value. The authored Steward keeps 38 HP.
+
+### H2 paired screen
+
+The screen ran on `ea68122` with one fresh heart per drawing, lineup and seed. The Light, Medium and Heavy Steward drawings use lengths 3, 5 and 6. Each shard covers seeds 1–10 and 90 hearts, 30 per lineup. The full-palette starter lineups are Draughtsman solo, Draughtsman and Stoker, and those two with the Lamp-pole Runaway. Their compiled pages are Bolt–Ink–Strike (5 charges), Bolt–Oil–Spark (5), and Touch–Oil–Spark (6), respectively. Entry party HP/charges are 6/5, 14/10 and 20/16. The played fights use the full bot with gauge and cracks, a 40-round cap and a 600-action budget. The production heart judge keeps its limits of three attempts, eight draws per attempt, 16 rounds and 6,000 applied actions per trial. Stalls count as non-wins. Medians use the corpus reporter's upper middle observation when the sample size is even.
+
+Run each command separately. The baseline clears the candidate override. Candidate shards run in descending HP order and stop at the first passing value.
+
+```sh
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- env -u CAL5_CANDIDATE \
+  CAL5=1 CAL5_MASTER=bathSteward CAL5_HEART_SEEDS=10 CAL5_DETAIL=1 \
+  pnpm vitest run tests/sim/drawn-calibration.test.ts --reporter=dot
+
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- env \
+  CAL5=1 CAL5_MASTER=bathSteward CAL5_HEART_SEEDS=10 CAL5_DETAIL=1 CAL5_CANDIDATE="$candidate" \
+  pnpm vitest run tests/sim/drawn-calibration.test.ts --reporter=dot
+```
+
+The table uses app-path outcomes and remaining party HP and charges. Heat cells give the starting heat and observation count. Trial counts include retry and fallback trials, and wall time is for the whole shard.
+
+| Shard / HP | Lineup | W/L/S | Median rounds | Median win rounds | Median HP left | Median charges left | Fallback / unverified | Trial heat × count | App heat × count | Wall time |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| s1 / 38 | Solo | 30/0/0 | 40 | 40 | 4 | 0 | 30 / 30 | 4 × 120 | 4 × 30 | — |
+| s1 / 38 | Pair | 12/0/18 | 41 | 15 | 7 | 0 | 8 / 2 | 4 × 75 | 4 × 30 | — |
+| s1 / 38 | Trio | 30/0/0 | 7 | 7 | 15 | 3 | 0 / 0 | 4 × 30 | 4 × 30 | — |
+| s1 / 38 | All | 72/0/18 | 38 | 15 | 7 | 0 | 38 / 32 | 4 × 225 | 4 × 90 | 160.23 s |
+| s2 / 30 | Solo | 30/0/0 | 32 | 32 | 4 | 0 | 30 / 30 | 4 × 120 | 4 × 30 | — |
+| s2 / 30 | Pair | 19/1/10 | 9 | 7 | 10 | 0 | 1 / 0 | 4 × 48 | 4 × 30 | — |
+| s2 / 30 | Trio | 30/0/0 | 6 | 6 | 16 | 5 | 0 / 0 | 4 × 30 | 4 × 30 | — |
+| s2 / 30 | All | 79/1/10 | 9 | 8 | 9 | 0 | 31 / 30 | 4 × 198 | 4 × 90 | 127.50 s |
+| s3 / 24 | Solo | 30/0/0 | 26 | 26 | 4 | 0 | 30 / 30 | 4 × 120 | 4 × 30 | — |
+| s3 / 24 | Pair | 29/0/1 | 6 | 6 | 10 | 1 | 0 / 0 | 4 × 34 | 4 × 30 | — |
+| s3 / 24 | Trio | 30/0/0 | 5 | 5 | 17 | 6 | 0 / 0 | 4 × 30 | 4 × 30 | — |
+| s3 / 24 | All | 89/0/1 | 7 | 6 | 10 | 1 | 30 / 30 | 4 × 184 | 4 × 90 | 109.72 s |
+| s4 / 14 | Solo | 24/0/6 | 16 | 16 | 4 | 0 | 20 / 13 | 4 × 99 | 4 × 30 | — |
+| s4 / 14 | Pair | 30/0/0 | 4 | 4 | 11 | 3 | 0 / 0 | 4 × 30 | 4 × 30 | — |
+| s4 / 14 | Trio | 30/0/0 | 4 | 4 | 19 | 9 | 0 / 0 | 4 × 30 | 4 × 30 | — |
+| s4 / 14 | All | 84/0/6 | 5 | 4 | 11 | 3 | 20 / 13 | 4 × 159 | 4 × 90 | 88.95 s |
+
+All four shards passed 6/6 tests, with zero invalid offers, held attempts, fight errors, action-budget stops or generator event caps. Every observed trial and app heat was 4.
+
+**Pick 14 HP under G1-3.** At 38, 30 and 24 HP, solo median wins took 40, 32 and 26 rounds. At 14 HP the solo, pair and trio medians were 16, 4 and 4, all within 25. Total stalls fell from 18 to 6 and unverified offers fell from 32 to 13. The six remaining stalls were all solo. Pair went from 12 wins in 30 runs to 30 in 30.
+
+On the paired seeds 1–4, the Steward changes from 10/8/10 to 10/11/11 wins across light/medium/heavy. Against the full CAL-5R denominator of 96 per band, the candidate's pooled EN-13 cost is 0, +3 and +1 wins (0.0, +3.1 and +1.0 percentage points). The application rerun verifies those deltas.
