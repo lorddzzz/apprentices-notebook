@@ -59,7 +59,7 @@ A screen at the desk, available after the handover. Three page slots; an empty p
 
 - **The pen** is the drawing budget, shown like an ink pot: 1 per known rune page, 1 per footnote level reached anywhere in the household, 2 per district heart cleared. A drawing must fit the pen; every page has the whole pen (pages don't share it).
 - **Compatibility is visible**: a combination that cannot work (a master whose heart needs water, drawn without the current or lanes) is greyed with the reason, like the Bench. The table never hides why.
-- A drawing's **weight** (its total cost) is shown as its depth: heavier drawings play harder and offer richer loot.
+- A drawing's **weight** (its total cost) is shown as its depth: heavier drawings play harder and offer richer loot. *As calibrated (CAL-G1, 2026-11-22):* the weight makes the rooms before the heart harder, through their foe budget. The heart is its master's and plays the same at every weight. Escorts by weight is the deferred lever.
 - Redraw at home only. A drawing in use by a trip is locked until that trip ends.
 
 ### 1.4 Playing a drawn district
