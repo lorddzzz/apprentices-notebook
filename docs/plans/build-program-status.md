@@ -2,7 +2,7 @@
 
 Plans: [build-program.md](build-program.md), [calibration-plan.md](calibration-plan.md) (the last plan). Briefs: [drawn-calibration-briefs.md](drawn-calibration-briefs.md) (CAL-5H, next), [calibration-briefs.md](calibration-briefs.md) (CAL-G1 Close), [build-program-briefs.md](build-program-briefs.md). Results and decisions: [calibration-results.md](calibration-results.md), [drawn-calibration.md](drawn-calibration.md). Log: [build-program-log.md](build-program-log.md) (not read on resume; `git log --grep '<ID>'`). Older Owed lists, checklists and rough edges: [build-program-status-archive.md](build-program-status-archive.md) (not read on resume).
 
-**State:** 2026-11-22, CAL-G1 design window done on `build/design-g1` (docs only): every measured miss has a disposition (calibration-results.md "CAL-G1 dispositions", G1-1..G1-12), and one fix is briefed (CAL-5H). Nothing running. Every plan is built; calibration through CAL-5R is merged. **Next window: routine** (merge `build/design-g1`, spawn CAL-5H, then the CAL-G1 Close).
+**State:** 2026-11-22, calibration closed (CAL-5R, CAL-5H merged; CAL-G1 dispositions recorded; full gate green at 24c6af5; code review clean). Every plan is built. Nothing running. Open: the full drawn-trip phone loop at 375x812 (the closing session had no browser tools), real-iPhone timing, BL-111 offline check, nightly rerun of unfinished sweep shards, player gates and questions below. **Next window: routine, only if the player wants more work.**
 
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.

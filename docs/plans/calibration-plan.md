@@ -1,7 +1,7 @@
 # Calibration: implementation plan (CAL)
 
 Source: [midpoint-audit.md](midpoint-audit.md) §1.2 item 8 and §2.1 (every win-rate band and tuning task leaves the content plans), [build-program.md](build-program.md) §5 (plan changes in force). Prefix **CAL**.
-**State: Planned (runs last, after EN-14; needs EN-0, merged). §1.1 lists the numbers in engine code found by Pack N2's reviews (2026-11-18).**
+**State: Built (2026-11-22). Closed by CAL-G1 with recorded misses; see [calibration-verification.md](calibration-verification.md). Phone loop and real-device checks open.**
 **Standing decision.** Apply measured calibration changes that meet the agreed targets. Where targets conflict or remain out of reach, the build team chooses and applies the best supported option, records the tradeoff and remaining miss, and verifies the result. The player delegated these decisions for the rest of calibration on 2026-11-20.
 
 **Scope:** collect every deferred calibration item with its numbers, then run one pass per district on the shared bot (`src/engine/sim/` after EN-0) against the target bands. **No number is tuned while content is built** (player rule, 2026-11-04). The SM-6 branch `worktree-agent-a7d9ce60e430bee68` (commit `4c77215`, tag `ref/sm-6`) is kept for review at CAL-0; delete it only with the player's OK. Its change is recorded in §1.
