@@ -213,3 +213,9 @@ Decided from the measured numbers above, in [drawn-calibration.md](drawn-calibra
 | G1-10 | Bridges worn pairs clear 0/40 per span | 25-35 % per trip started | **Retain**, recorded miss (the whole band). Not an enemy-number problem | Every worn-pair stall ends with 0-2 charges left and foes near full HP. Lower room foes (3/2/2) brought every pair to the heart, and all still stalled there. Chief HP 10-18 cleared none. The household sweep's carried trips clear 0-7 of 50 in every district, so the bot's charge economy is the limit. Charge refills or a charge-free damage line would be a rule (player) |
 | G1-11 | Quarter heart 11 % stalls (fresh 79 / 10 / 11 % W/L/S) | the heart can be lost | **Retain** | The heart now loses (10 %), as IQ-20-D asked. Stalls are the greedy bot running out of charges against shielded letters (IQ-20-S) |
 | G1-12 | Dev generator page logs one 404 (CAL-P) | — | **No pack.** CAL-G1's 375×812 browser check confirms the URL | Probable cause: `src/app/dev/generator.html` declares no icon, so the browser requests `/favicon.ico`. The page is dev-only and not shipped |
+
+## CAL-5H approval row (drawn Steward HP; applied 9aae581)
+
+| Pack | Tunable / source | Current | Candidate | Baseline | Candidate | Band / miss | Command / revision | Decision | Applied |
+|---|---|---:|---:|---|---|---|---|---|---|
+| CAL-5H | `DRAWN_STEWARD_HP` (src/data/drawing.ts) | 38 | 14 | 72/0/18 W/L/S, median wins solo/pair/trio 40/15/7, 38 fallback, 32 unverified | 84/0/6, median wins 16/4/4, 20 fallback, 13 unverified, heat 4 | Final EN-13: light 74.0 % in band; medium 78.1 % (+18.1 pp); heavy 74.0 % (+29.0 pp), kept as recorded misses (G1-1) | `CAL5_MASTER=bathSteward CAL5_CANDIDATE=steward14`, seeds 1-10 | Apply 14 under G1-3 | 9aae581; reruns passed. Proposal: EN-K4 fallback replay now ends at the Stoker's round-three cast (assertion unchanged) |
