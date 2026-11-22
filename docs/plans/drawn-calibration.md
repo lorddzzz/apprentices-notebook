@@ -666,3 +666,67 @@ All four shards passed 6/6 tests, with zero invalid offers, held attempts, fight
 **Pick 14 HP under G1-3.** At 38, 30 and 24 HP, solo median wins took 40, 32 and 26 rounds. At 14 HP the solo, pair and trio medians were 16, 4 and 4, all within 25. Total stalls fell from 18 to 6 and unverified offers fell from 32 to 13. The six remaining stalls were all solo. Pair went from 12 wins in 30 runs to 30 in 30.
 
 On the paired seeds 1–4, the Steward changes from 10/8/10 to 10/11/11 wins across light/medium/heavy. Against the full CAL-5R denominator of 96 per band, the candidate's pooled EN-13 cost is 0, +3 and +1 wins (0.0, +3.1 and +1.0 percentage points). The application rerun verifies those deltas.
+
+### H3 application and final EN-13 rerun
+
+Apply `DRAWN_STEWARD_HP = 14` in the drawn frame. **Proposal (conditional fixture).** At 14 HP the existing EN-K4 fallback replay failed with “The battle is over”. The Stoker's rightward cast in round 3 is the winning action. The `SCRIPTS_B.bathSteward` replay ends there, and the existing EN-K4 guardrail and `phase === 'won'` assertions pass.
+
+The three application shards use the 14 HP source default. They are paired to the CAL-5R baseline on heart seeds 1–4, eight masters per band and the three fresh starter lineups above. Each band gives the masters and lineups equal weight (96 offers). W/L/S counts app-path wins, losses and stalls, including fights on fallback layouts. The lineup cells give W/L/S and then median rounds, party HP left and charges left.
+
+```sh
+# band=light, medium, heavy in separate runs
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- env \
+  CAL5=1 CAL5_HEARTS=1 CAL5_DETAIL=1 CAL5_BAND="$band" \
+  pnpm vitest run tests/sim/drawn-calibration.test.ts --reporter=dot
+```
+
+| Band (target) | Pooled wins | W/L/S | Solo | Pair | Trio | Median rounds / win rounds / HP / charges | Fallback / unverified | EN-13 miss | Wins vs CAL-5R | Wall time |
+| --- | ---: | --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: |
+| Light (60–75%) | 71/96 (74.0%) | 71/5/20 | 14/1/17 · 41/6/0 | 26/4/2 · 6/11/1 | 31/0/1 · 5/17/7 | 10/6/8/1 | 33 / 32 | In band | 0 | 123.88 s |
+| Medium (45–60%) | 75/96 (78.1%) | 75/4/17 | 17/1/14 · 20/6/0 | 26/3/3 · 6/10/2 | 32/0/0 · 5/17/6 | 11/7/8/1 | 30 / 27 | +18.1 pp | +3 | 117.12 s |
+| Heavy (30–45%) | 71/96 (74.0%) | 71/3/22 | 14/1/17 · 41/6/0 | 26/2/4 · 6/12/1 | 31/0/1 · 5/16/6 | 10/6/7/1 | 30 / 29 | +29.0 pp | +1 | 126.81 s |
+
+| Band | Master | Solo | Pair | Trio | W/L/S | Median win rounds | Fallback / unverified |
+| --- | --- | --- | --- | --- | --- | ---: | ---: |
+| Light | Carillonneur | 0/0/4 · 41/6/4 | 0/3/1 · 15/0/1 | 4/0/0 · 12/8/0 | 4/3/5 | 12 | 10 / 10 |
+| Light | Lamplighter | 4/0/0 · 7/5/0 | 4/0/0 · 3/14/6 | 4/0/0 · 2/20/11 | 12/0/0 | 3 | 1 / 0 |
+| Light | Marginalia | 4/0/0 · 12/5/0 | 4/0/0 · 4/14/4 | 4/0/0 · 3/19/10 | 12/0/0 | 4 | 0 / 0 |
+| Light | Mother | 0/0/4 · 41/4/0 | 4/0/0 · 23/5/0 | 4/0/0 · 14/7/0 | 8/0/4 | 20 | 8 / 8 |
+| Light | Postmaster | 3/0/1 · 21/6/0 | 3/0/1 · 7/8/0 | 4/0/0 · 6/15/5 | 10/0/2 | 7 | 4 / 4 |
+| Light | Registrar | 1/1/2 · 41/6/0 | 3/1/0 · 13/13/0 | 3/0/1 · 8/17/4 | 7/2/3 | 10 | 5 / 5 |
+| Light | Steward | 2/0/2 · 41/5/0 | 4/0/0 · 4/10/4 | 4/0/0 · 4/19/10 | 10/0/2 | 4 | 1 / 1 |
+| Light | Warden | 0/0/4 · 41/6/0 | 4/0/0 · 6/12/1 | 4/0/0 · 5/17/7 | 8/0/4 | 6 | 4 / 4 |
+| Medium | Carillonneur | 0/0/4 · 41/6/4 | 0/1/3 · 41/4/0 | 4/0/0 · 12/8/0 | 4/1/7 | 12 | 8 / 8 |
+| Medium | Lamplighter | 4/0/0 · 7/6/0 | 4/0/0 · 4/13/7 | 4/0/0 · 2/20/11 | 12/0/0 | 4 | 0 / 0 |
+| Medium | Marginalia | 4/0/0 · 12/6/0 | 4/0/0 · 5/13/5 | 4/0/0 · 4/19/11 | 12/0/0 | 5 | 0 / 0 |
+| Medium | Mother | 0/0/4 · 41/3/0 | 4/0/0 · 17/5/0 | 4/0/0 · 13/10/0 | 8/0/4 | 17 | 8 / 8 |
+| Medium | Postmaster | 3/0/1 · 20/6/0 | 4/0/0 · 20/6/3 | 4/0/0 · 7/16/8 | 11/0/1 | 20 | 4 / 4 |
+| Medium | Registrar | 3/1/0 · 15/6/0 | 2/2/0 · 15/11/2 | 4/0/0 · 13/17/4 | 9/3/0 | 14 | 3 / 3 |
+| Medium | Steward | 3/0/1 · 16/4/0 | 4/0/0 · 5/12/4 | 4/0/0 · 4/19/10 | 11/0/1 | 4 | 3 / 0 |
+| Medium | Warden | 0/0/4 · 41/6/0 | 4/0/0 · 6/12/1 | 4/0/0 · 5/17/6 | 8/0/4 | 5 | 4 / 4 |
+| Heavy | Carillonneur | 0/0/4 · 41/6/4 | 0/1/3 · 41/4/0 | 4/0/0 · 12/8/0 | 4/1/7 | 12 | 8 / 8 |
+| Heavy | Lamplighter | 3/1/0 · 6/5/1 | 4/0/0 · 4/13/5 | 4/0/0 · 3/20/12 | 11/1/0 | 3 | 0 / 0 |
+| Heavy | Marginalia | 4/0/0 · 12/5/0 | 4/0/0 · 4/14/4 | 4/0/0 · 4/19/10 | 12/0/0 | 4 | 0 / 0 |
+| Heavy | Mother | 0/0/4 · 41/3/0 | 4/0/0 · 22/5/0 | 4/0/0 · 13/10/0 | 8/0/4 | 17 | 8 / 8 |
+| Heavy | Postmaster | 2/0/2 · 41/6/0 | 4/0/0 · 7/6/1 | 4/0/0 · 5/15/6 | 10/0/2 | 7 | 4 / 4 |
+| Heavy | Registrar | 2/0/2 · 41/6/0 | 3/1/0 · 9/12/0 | 3/0/1 · 8/17/5 | 8/1/3 | 9 | 3 / 3 |
+| Heavy | Steward | 3/0/1 · 16/4/0 | 4/0/0 · 5/13/3 | 4/0/0 · 4/18/9 | 11/0/1 | 5 | 3 / 2 |
+| Heavy | Warden | 0/0/4 · 41/6/0 | 3/0/1 · 6/12/1 | 4/0/0 · 5/17/6 | 7/0/5 | 5 | 4 / 4 |
+
+All three shards passed 6/6 tests, with zero invalid offers, fight errors, action-budget stops or generator event caps. The 21 other master rows reproduced the CAL-5R results in the published columns. The Steward's 61 trial starts and 36 played starts were all at heat 4. The 36 Steward fights ended 32/0/4 W/L/S, with 7 fallback and 3 unverified offers, down from 17 and 14. Solo median wins took 16 rounds in each band. The four remaining stalls were all solo, two light and one each medium and heavy.
+
+The light band stays at 74.0%. Two Steward solo wins became stalls and two pair stalls became wins. Medium and heavy exceed their upper bounds by 18.1 and 29.0 percentage points. The applied tradeoff adds three medium wins and one heavy win across the matched 288-heart corpus.
+
+#### Approval row for the calibration register
+
+| Pack | Tunable / source | Current | Candidate | Baseline measurement | Candidate measurement | Band / miss | Bot / corpus / command / revision | Player decision | Applied revision / rerun |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CAL-5H | `DRAWN_STEWARD_HP` in `src/data/drawing.ts` | 38 | 14 | 72/0/18 W/L/S, solo/pair/trio median wins 40/15/7 rounds, 38 fallback and 32 unverified | 84/0/6 W/L/S, median wins 16/4/4, 20 fallback and 13 unverified, all starts at heat 4 | EN-13 light 74.0% in band, medium 78.1% (+18.1 pp), heavy 74.0% (+29.0 pp). Pooled wins change 0/+3/+1 vs CAL-5R | Fresh app-path hearts, Steward screen seeds 1–10, three drawings × three lineups, `CAL5_MASTER=bathSteward`, `steward14` at `ea68122`. Commands and tables above | Apply 14 under CAL-G1 G1-3. Highest HP meeting all three criteria | CAL-5H H3 on `build/cal-5h`. Source-default fresh rerun seeds 1–4, 96 per band. Conditional EN-K4 replay ends at the round-three win |
+
+#### Regression checks
+
+| Check | Result |
+| --- | --- |
+| CAL-5H drawing verification command | 78/78 passed in five files, including the new HP case, EN-2, the EN-K4 scripted solve, and the heart-HP and honest-trial cases. |
+| Authored Bathhouses calibration (`tests/sim/bathhouses-calibration.test.ts`) | All three default cases passed. |
+| `pnpm check:fast` | Passed in 298 s. 417 files, 8,741 tests passed and 13 todo. Biome reported the existing PenPot warning. |

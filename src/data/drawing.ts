@@ -44,7 +44,7 @@ export const DRAWN_MARGINALIA_HP = 16;
 export const DRAWN_CHIEF_WARDEN_HP = 28;
 
 /** Preserve the drawn heart's difficulty under the generator's lite trial. */
-export const DRAWN_STEWARD_HP = 38;
+export const DRAWN_STEWARD_HP = 14;
 
 /** P7: light up to `light`, medium up to `medium`, heavy above. */
 export const WEIGHT_BANDS = { light: 9, medium: 14 } as const;

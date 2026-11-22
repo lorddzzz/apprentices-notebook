@@ -18,24 +18,11 @@ import { decode, SCRIPT_SEED } from './kits-a.scripts';
 export const SCRIPTS_B: Partial<Record<MasterId, readonly string[]>> = {
   // CAL-3 calibrated: re-recorded from the lite bot after the bath and bridge body numbers moved
   // (Steward HP 38, gauge 32 pips; Chief Warden HP 28). The openings match the earlier scripts.
+  // CAL-5H: the 14 HP Steward falls to the Stoker's cast in round 3, where this replay now ends.
   bathSteward: [
     'm draughtsman 6,2;c draughtsman 0,1 left;c stoker 1,0 up;m stoker 2,3;e',
     'c draughtsman 0,1 down;m draughtsman 3,2;c stoker 1,0 up;m stoker 1,2;e',
-    'c draughtsman 0,1 left;m draughtsman 2,1;c stoker 1,0 right;m stoker 2,3;e',
-    'c draughtsman 0,1 down;m draughtsman 2,0;m stoker 3,1;e',
-    'c draughtsman 0,1 right;m draughtsman 1,0;c stoker 1,0 up;m stoker 2,0;e',
-    'm draughtsman 3,1;s draughtsman up;c stoker 1,0 right;m stoker 1,0;e',
-    'm draughtsman 2,0;m stoker 3,1;e',
-    'm draughtsman 3,1;s draughtsman up;m stoker 2,0;e',
-    'm draughtsman 3,1;s draughtsman up;m stoker 1,0;e',
-    'm draughtsman 2,0;m stoker 3,1;e',
-    'm draughtsman 1,0;m stoker 2,0;e',
-    'm draughtsman 3,1;m stoker 1,0;e',
-    'm draughtsman 2,0;m stoker 3,1;e',
-    'm draughtsman 1,0;s stoker up;m stoker 2,0;e',
-    'm draughtsman 3,1;s draughtsman up;m stoker 1,0;e',
-    's draughtsman up;m draughtsman 2,0;m stoker 3,1;s stoker up;e',
-    'm draughtsman 1,0;s stoker up',
+    'c draughtsman 0,1 left;m draughtsman 2,1;c stoker 1,0 right',
   ],
   chiefWarden: [
     'm draughtsman 2,4;c draughtsman 0,1 right;c stoker 1,0 up;m stoker 5,4;e',
