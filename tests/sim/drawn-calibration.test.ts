@@ -41,6 +41,24 @@ import { countEnv, options } from './calibration/runner';
 vi.mock('$data/drawing', async (original) => {
   const data = await original<typeof import('$data/drawing')>();
   switch (process.env.CAL5_CANDIDATE) {
+    case 'heart4-12-24':
+      return { ...data, DRAWN_HEART_HP_BONUS: { light: 4, medium: 12, heavy: 24 } };
+    case 'heart2-6-12':
+      return { ...data, DRAWN_HEART_HP_BONUS: { light: 2, medium: 6, heavy: 12 } };
+    case 'band123':
+      return {
+        ...data,
+        GEN_TUNING: { ...data.GEN_TUNING, bandBonus: { light: 1, medium: 2, heavy: 3 } },
+      };
+    case 'slope1':
+      return {
+        ...data,
+        GEN_TUNING: {
+          ...data.GEN_TUNING,
+          perMember: 1,
+          bandBonus: { light: 3, medium: 4, heavy: 5 },
+        },
+      };
     case 'step2':
       return { ...data, GEN_TUNING: { ...data.GEN_TUNING, step: 2 } };
     case 'pen5':

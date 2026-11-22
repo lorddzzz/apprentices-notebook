@@ -512,3 +512,66 @@ Heart fight results come from the app path and include fallbacks. Stalls count a
 The carried sample cleared 16/144 trips, with 46 losses and 82 stalls, and reached 54 hearts. All 94 fresh Steward trials and 10 carried trials started at heat 4, including the 17 fresh and two carried offered fallback trials. All 36 fresh and four carried app-path Steward hearts also started at heat 4. The length-six peal setup probe preserved all five entries from `1,2,3,4,1` through save/reload and hung `1,2,3,4` on four hooks. The hookless caveat remains in effect.
 
 The separate 500-seed fuzz passed 9/9 in 114 s. It had 26/500 walkovers (5.2%), zero invalid or unverified offers, zero held attempts and zero event caps. Fair within four was 474/500 (94.8%) and fair within two was 370/500 (74.0%). Offered medians were 3 rounds and 85.7% HP left. Desktop generation median/p95 was 175/404 ms.
+
+### 2. Paired candidates
+
+Use the same seed ranges, lineups, fresh entry HP/charges and fight policy as in the structural baseline. All candidate overrides are scoped to the corpus test. Use one candidate value at a time and add `CAL5_BAND=light|medium|heavy` to split a capped candidate. The ordinary screen ran because the baseline's 18.1% exceeded 10%.
+
+```sh
+# candidate=heart4-12-24, then heart2-6-12 if rejected or stall-shaped
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- env \
+  CAL5=1 CAL5_SEEDS=10 CAL5_DETAIL=1 CAL5_HEARTS=1 CAL5_CANDIDATE="$candidate" \
+  pnpm vitest run tests/sim/drawn-calibration.test.ts --reporter=dot
+# candidate=band123 or slope1
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- env \
+  CAL5=1 CAL5_SEEDS=10 CAL5_DETAIL=1 CAL5_ORDINARY=1 CAL5_CANDIDATE="$candidate" \
+  pnpm vitest run tests/sim/drawn-calibration.test.ts -t 'production corpus tables' --reporter=dot
+```
+
+#### Heart HP
+
+Each candidate produced 288 fresh heart fights with zero walkovers, invalid offers, fight errors, operation-budget stops or generation event caps. The cap on unverified offers is 104, from the 99-offer baseline plus five. Both candidates exceeded it and were rejected on the corpus screen.
+
+| Candidate | Band | Wins | App W/L/S | Solo W/L/S | Pair W/L/S | Trio W/L/S | Median rounds / win rounds / HP left | Fallback / unverified | EN-13 miss |
+| --- | --- | ---: | --- | --- | --- | --- | ---: | ---: | --- |
+| 0/0/0 | All | 213/288 (74.0%) | 213/12/63 | 49/3/44 | 70/9/17 | 94/0/2 | 12 / 7 / 6 | 103 / 99 | — |
+| 0/0/0 | Light | 71/96 (74.0%) | 71/5/20 | 16/1/15 | 24/4/4 | 31/0/1 | 12 / 7 / 7 | 37 / 35 | In band |
+| 0/0/0 | Medium | 72/96 (75.0%) | 72/4/20 | 18/1/13 | 22/3/7 | 32/0/0 | 12 / 8 / 7 | 33 / 31 | 15.0 pp above |
+| 0/0/0 | Heavy | 70/96 (72.9%) | 70/3/23 | 15/1/16 | 24/2/6 | 31/0/1 | 10 / 7 / 6 | 33 / 33 | 27.9 pp above |
+| 4/12/24 | All | 197/288 (68.4%) | 197/24/67 | 33/12/51 | 75/8/13 | 89/4/3 | 16 / 9 / 6 | 144 / 139 | — |
+| 4/12/24 | Light | 71/96 (74.0%) | 71/6/19 | 13/1/18 | 27/4/1 | 31/1/0 | 13 / 8 / 6 | 39 / 38 | In band |
+| 4/12/24 | Medium | 66/96 (68.8%) | 66/10/20 | 12/5/15 | 25/2/5 | 29/3/0 | 20 / 10 / 6 | 48 / 46 | 8.8 pp above |
+| 4/12/24 | Heavy | 60/96 (62.5%) | 60/8/28 | 8/6/18 | 23/2/7 | 29/0/3 | 25 / 13 / 6 | 57 / 55 | 17.5 pp above |
+| 2/6/12 | All | 206/288 (71.5%) | 206/19/63 | 38/10/48 | 72/9/15 | 96/0/0 | 14 / 9 / 6 | 128 / 125 | — |
+| 2/6/12 | Light | 71/96 (74.0%) | 71/5/20 | 13/1/18 | 26/4/2 | 32/0/0 | 12 / 7 / 7 | 38 / 37 | In band |
+| 2/6/12 | Medium | 67/96 (69.8%) | 67/6/23 | 12/4/16 | 23/2/7 | 32/0/0 | 15 / 9 / 6 | 43 / 42 | 9.8 pp above |
+| 2/6/12 | Heavy | 68/96 (70.8%) | 68/8/20 | 13/5/14 | 23/3/6 | 32/0/0 | 16 / 11 / 6 | 47 / 46 | 25.8 pp above |
+
+The 4/12/24 shard passed all six tests in 476 s and added 40 unverified offers. The 2/6/12 shard passed all six tests in 447 s and added 26. Each candidate's medium and heavy non-wins were mostly stalls. No band median win lasted more than 25 rounds. The playtest watch applies to these narrower groups whose median win exceeded 25 rounds.
+
+- **0/0/0** Heavy Steward solo (40), Light Steward solo (40), Medium Steward pooled (40), Medium Steward solo (40).
+- **4/12/24** Heavy Carillonneur pooled (39), Heavy Carillonneur trio (39), Heavy Marginalia solo (30), Heavy Mother pooled (31), Heavy Mother pair (37), Heavy Steward pooled (33), Heavy Steward pair (33), Medium Carillonneur pooled (27), Medium Carillonneur trio (27), Medium Mother pooled (27), Medium Mother pair (27), Medium Postmaster pooled (31), Medium Postmaster solo (32), Medium Postmaster pair (31), Medium Steward pair (31).
+- **2/6/12** Heavy Carillonneur pooled (27), Heavy Carillonneur trio (27), Heavy Mother pooled (29), Heavy Mother pair (38), Heavy Postmaster solo (36), Medium Postmaster pooled (26), Medium Postmaster solo (26), Medium Postmaster pair (27), Medium Steward pair (26).
+
+#### Ordinary budgets
+
+Both cases keep the depth term and the step at 1. The band change adds one budget point to each lineup. The slope change adds two to solo and one to pair, and keeps the trio budget.
+
+| Tuning | Band | Offers | Walkovers | Miss vs 10% | App W/L/S | Median rounds / win rounds / HP | Fair | Fallback | Unverified | Invalid |
+| --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| defaults | All | 2670 | 484/2670 (18.1%) | 8.1 pp | 2539/38/93 | 4 / 4 / 13 | 2162 | 45 | 16 | 0 |
+| defaults | Light | 510 | 153/510 (30.0%) | 20.0 pp | 508/0/2 | 3 / 3 / 14 | 357 | 0 | 0 | 0 |
+| defaults | Medium | 960 | 154/960 (16.0%) | 6.0 pp | 929/10/21 | 4 / 4 / 12 | 806 | 0 | 0 | 0 |
+| defaults | Heavy | 1200 | 177/1200 (14.8%) | 4.8 pp | 1102/28/70 | 5 / 5 / 13 | 999 | 45 | 16 | 0 |
+| band123 | All | 2670 | 408/2670 (15.3%) | 5.3 pp | 2466/58/146 | 4 / 4 / 13 | 2200 | 89 | 42 | 0 |
+| band123 | Light | 510 | 130/510 (25.5%) | 15.5 pp | 504/1/5 | 3 / 3 / 13 | 380 | 0 | 0 | 0 |
+| band123 | Medium | 960 | 125/960 (13.0%) | 3.0 pp | 906/17/37 | 4 / 4 / 12 | 828 | 11 | 0 | 0 |
+| band123 | Heavy | 1200 | 153/1200 (12.8%) | 2.8 pp | 1056/40/104 | 5 / 5 / 13 | 992 | 78 | 42 | 0 |
+| slope1 | All | 2670 | 414/2670 (15.5%) | 5.5 pp | 2443/75/152 | 4 / 4 / 13 | 2152 | 139 | 71 | 0 |
+| slope1 | Light | 510 | 134/510 (26.3%) | 16.3 pp | 506/3/1 | 3 / 3 / 13 | 376 | 0 | 0 | 0 |
+| slope1 | Medium | 960 | 145/960 (15.1%) | 5.1 pp | 888/27/45 | 4 / 4 / 12 | 797 | 23 | 3 | 0 |
+| slope1 | Heavy | 1200 | 135/1200 (11.2%) | 1.2 pp | 1049/45/106 | 5 / 5 / 13 | 979 | 116 | 68 | 0 |
+
+Both ordinary shards passed the corpus test in 1,114 s and 1,139 s. The candidates improved the walkover rate and left it above 10%. They increased unverified ordinary offers from 16 to 42 and 71, respectively, so both are rejected. Both had zero invalid offers, fight errors, operation stops and generation event caps. Their median win rounds stayed below 25 across the ordinary bands.
+
+The candidates were rejected at the corpus screen. The final data checks cover the retained values.
