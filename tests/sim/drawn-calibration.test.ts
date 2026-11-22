@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { type Drawing, PLAYABLE_DISTRICTS } from '$data';
 import {
   COSTS,
+  DRAWN_HEART_HP_BONUS,
   DRAWN_LOOT,
   DRAWN_MARGINALIA_HP,
   GEN_LIMITS,
@@ -9,6 +10,7 @@ import {
   PEN_TUNING,
 } from '$data/drawing';
 import { newSave, type Profile, parseSaveData, serializeBoard, startTrip } from '$engine';
+import { boilOverState } from '$engine/districts/bathhouses/boilOver';
 import type { Json } from '$engine/districts/types';
 import {
   checkDrawing,
@@ -61,6 +63,19 @@ vi.mock('$data/drawing', async (original) => {
     default:
       return data;
   }
+});
+
+const trialHeats = vi.hoisted(() => [] as number[]);
+vi.mock('$engine/drawing/trial', async (original) => {
+  const real = await original<typeof import('$engine/drawing/trial')>();
+  return {
+    ...real,
+    botTrial: (...args: Parameters<typeof real.botTrial>) => {
+      const heat = boilOverState(args[0])?.heat;
+      if (heat !== undefined) trialHeats.push(heat);
+      return real.botTrial(...args);
+    },
+  };
 });
 
 const bandInName = (d: Drawing) => d.name.split(' ')[0]?.toLowerCase();
@@ -147,7 +162,8 @@ function spread(xs: readonly (number | undefined)[]) {
 
 function fightRow(group: Sample[], attempted: number) {
   const fights = group.flatMap((s) => s.fight ?? []);
-  const wins = fights.filter((s) => s.outcome === 'won').length;
+  const victories = fights.filter((s) => s.outcome === 'won');
+  const wins = victories.length;
   const losses = fights.filter((s) => s.outcome === 'lost').length;
   return {
     attempted,
@@ -158,6 +174,7 @@ function fightRow(group: Sample[], attempted: number) {
     stalls: fights.length - wins - losses,
     budgetStops: fights.filter((s) => s.exhausted).length,
     rounds: spread(fights.map((s) => s.rounds)),
+    winRounds: spread(victories.map((s) => s.rounds)),
     hpIn: spread(fights.map((s) => s.entryHp)),
     chargesIn: spread(fights.map((s) => s.entryCharges)),
     hpLeft: spread(fights.map((s) => s.hp)),
@@ -183,8 +200,10 @@ function generationRow(group: Sample[]) {
     unverified: runs.length - accepted.length,
     dull: runs.filter((s) => s.dull).length,
     walkovers: runs.filter((s) => s.walkover).length,
+    heldAttempts: runs.reduce((total, s) => total + s.heldAttempts, 0),
     guardrails: counts(runs.flatMap((s) => s.guardrails)),
     offeredIssues: counts(runs.flatMap((s) => s.offeredIssues)),
+    invalid: runs.filter((s) => s.offeredIssues.length > 0).length,
     capped: runs.filter((s) => s.capped).length,
     budgets: counts(runs.flatMap((s) => s.budget ?? [])),
     winRounds: spread(runs.map((s) => s.rounds)),
@@ -197,29 +216,62 @@ function generationRow(group: Sample[]) {
   };
 }
 
+function walkoverRows(ordinary: Sample[]) {
+  const rows = new Map<
+    string,
+    {
+      mode: Sample['mode'];
+      band: ReturnType<typeof weightBand>;
+      depth: number;
+      party: number;
+      path: 'fallback' | 'dull';
+      cause: 'both' | 'rounds' | 'full HP';
+      count: number;
+    }
+  >();
+  for (const { mode, drawing, depth, party, generation } of ordinary) {
+    if (!generation?.walkover) continue;
+    const band = weightBand(drawing);
+    const path = generation.fallback ? 'fallback' : 'dull';
+    const short =
+      generation.rounds !== undefined && generation.rounds <= GEN_TUNING.walkover.rounds;
+    const fullHp =
+      generation.hpShare !== undefined && generation.hpShare >= GEN_TUNING.walkover.hpLeft;
+    const cause = short ? (fullHp ? 'both' : 'rounds') : 'full HP';
+    const key = [mode, band, depth, party.length, path, cause].join('/');
+    const row = rows.get(key);
+    if (row) row.count++;
+    else rows.set(key, { mode, band, depth, party: party.length, path, cause, count: 1 });
+  }
+  return [...rows.values()];
+}
+
 test('CAL-5: drawn heart bands and production corpus tables', { timeout: 3_600_000 }, () => {
   const full = process.env.CAL5 === '1';
-  const candidate = process.env.CAL5_ORDINARY === '1';
+  const onlyOrdinary = process.env.CAL5_ORDINARY === '1';
   const selected = process.env.CAL5_DRAWING;
   const master = process.env.CAL5_MASTER;
-  const drawings = selected
+  const band = process.env.CAL5_BAND;
+  const onlyHearts = process.env.CAL5_HEARTS === '1' || master !== undefined;
+  const pool = selected
     ? CAL_DRAWINGS.filter((d) => d.name === selected)
     : master
       ? CAL_DRAWINGS.filter((d) => d.heart === master)
       : full
         ? CAL_DRAWINGS
         : CAL_DRAWINGS.filter((d) => d.name === 'Light Marginalia');
+  const drawings = band === undefined ? pool : pool.filter((d) => bandInName(d) === band);
   expect(drawings.length).toBeGreaterThan(0);
   const opts = {
     ...options(full, 'CAL5_SEEDS'),
     seeds: countEnv('CAL5_SEEDS', full ? 2 : 1),
     hearts: countEnv('CAL5_HEART_SEEDS', full ? 4 : 1),
-    carried: candidate || master ? 0 : countEnv('CAL5_TRIP_SEEDS', full ? 2 : 1),
-    onlyOrdinary: candidate,
-    onlyHearts: master !== undefined,
+    carried: onlyOrdinary || onlyHearts ? 0 : countEnv('CAL5_TRIP_SEEDS', full ? 2 : 1),
+    onlyOrdinary,
+    onlyHearts,
     parties: full && process.env.CAL5_PAIR !== '1' ? [1, 2, 3] : [2],
   };
-  const { samples, ends, loadouts } = measureDrawn(drawings, opts);
+  const { samples, ends, loadouts } = measureDrawn(drawings, opts, trialHeats);
   const parties = opts.parties;
   const depths = [1, 2, 3, 4, 5, 'heart'] as const;
   const bands = ['light', 'medium', 'heavy'];
@@ -230,11 +282,13 @@ test('CAL-5: drawn heart bands and production corpus tables', { timeout: 3_600_0
     limits: GEN_LIMITS,
     tuning: GEN_TUNING,
     marginaliaHp: DRAWN_MARGINALIA_HP,
+    heartHpBonus: DRAWN_HEART_HP_BONUS,
     loadouts,
     drawings: drawings.map((d) => ({ ...d, cost: costOf(d) })),
   });
   const ordinary = samples.filter((s) => s.depth < s.drawing.length);
   const hearts = samples.filter((s) => s.depth === s.drawing.length);
+  console.table(walkoverRows(ordinary));
   for (const mode of ['fresh', 'carried'] as const) {
     for (const [room, group] of [
       ['ordinary', ordinary],
@@ -310,6 +364,7 @@ test('CAL-5: drawn heart bands and production corpus tables', { timeout: 3_600_0
         setupNotes: fight?.greatNotes,
         peal: fight?.peal,
         allied: fight?.alliedBells,
+        trialHeats: generation?.trialHeats,
         heat: fight?.heat,
         pressure: fight?.pressure,
         boils: fight?.boils,

@@ -430,3 +430,85 @@ Retain `DRAWN_MARGINALIA_HP = 16`. Doubling the drawn frame's HP kept all 36 app
 Household repro is Bridge 3.4, **The lantern ledge**, seed 5218, Stoker/Tuner/Owner, zero-based walk 21 and action 14 (`endTurn`). The Owner had 5 HP and `out: "fell"` before and after the Mason legally moved from (2,4) to (1,4). The retained position of the fallen member is also (1,4). The assertion counts every positive-HP unit, while the actual board-occupancy query requires both positive HP and presence in the room. The assertion therefore compares three distinct tiles with four records. Keep the occupied-tile uniqueness invariant and review whether the household check should use the engine's `isAlive` predicate in a separate pack. The household fixture and assertions are unedited.
 
 The first full batch reported 60% wins, 23% losses and 17% stalls. The Draughtsman lost all 150 authored Seam hearts. In the canals he lost 100 and stalled 50, with zero wins. These are the household bot's authored-room results, a separate cohort from the drawn combat tables.
+
+## Task 3 remeasure (CAL-5R)
+
+### 1. Structural baseline
+
+The baseline uses the shipped data at `8c7192f`. The frozen corpus and policies above still apply, with fresh ordinary seeds expanded to 1–10 for this pack. Fresh hearts use seeds 1–4 (96 per band, weighted equally by all three lineups and eight masters) and carried trips use seeds 1–2 (48 per band). Fresh lineups enter with HP/charges of 6/5, 14/10 and 20/16. The ordinary seeds 1–2 subset is paired to the historical `48ac3f0` run.
+
+```sh
+# b1–b3, run separately with band=light, medium, heavy
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- env \
+  CAL5=1 CAL5_SEEDS=10 CAL5_DETAIL=1 CAL5_BAND="$band" \
+  pnpm vitest run tests/sim/drawn-calibration.test.ts --reporter=dot
+# b4
+caffeinate -i perl -e 'alarm 1800; exec @ARGV' -- \
+  pnpm vitest run tests/sim/generator.test.ts --reporter=dot
+```
+
+All three corpus shards passed 6/6 in 419 s, 612 s and 766 s, respectively. There were zero invalid offers, fight errors, operation-budget stops or generation event caps. On the paired ordinary seeds, invalid offers fell from 99 to 0, fair offers rose from 351 to 436, fallbacks fell from 107 to 8 and unverified offers fell from 105 to 6. Walkovers rose from 76/534 (14.2%) to 90/534 (16.9%). The ten-seed walkover rate misses the 10% ceiling by 8.1 percentage points. The matched sample's former 653 held kit issues fell to zero. The heart holds below all came from start-to-foe distance.
+
+| Sample | Offers | Fair | Fallback | Unverified | Walkovers | Invalid | Held attempts | Held issues | App W/L/S | Median rounds / HP |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |
+| Fresh ordinary · All | 2670 | 2162 | 45 | 16 | 484/2670 (18.1%) | 0 | 0 | — | 2539/38/93 | 4 / 13 |
+| Fresh ordinary · Light | 510 | 357 | 0 | 0 | 153/510 (30.0%) | 0 | 0 | — | 508/0/2 | 3 / 14 |
+| Fresh ordinary · Medium | 960 | 806 | 0 | 0 | 154/960 (16.0%) | 0 | 0 | — | 929/10/21 | 4 / 12 |
+| Fresh ordinary · Heavy | 1200 | 999 | 45 | 16 | 177/1200 (14.8%) | 0 | 0 | — | 1102/28/70 | 5 / 13 |
+| Fresh ordinary · paired seeds 1–2 | 534 | 436 | 8 | 6 | 90/534 (16.9%) | 0 | 0 | — | 509/6/19 | 4 / 13 |
+| Fresh hearts | 288 | 185 | 103 | 99 | 0/288 (0.0%) | 0 | 15 | distance 15 | 213/12/63 | 12 / 6 |
+| Carried ordinary | 384 | 316 | 0 | 0 | 68/384 (17.7%) | 0 | 0 | — | 294/38/52 | 4 / 10 |
+| Carried hearts | 54 | 31 | 23 | 21 | 0/54 (0.0%) | 0 | 3 | distance 3 | 16/8/30 | 41 / 4 |
+
+Fresh ordinary walkovers below use the lite trial on the offered path. Each cell gives dull-path counts, then fallback counts. Each triple is short-only (at most two rounds), full-HP-only, and both. A dash indicates no eligible room.
+
+| Band | Party size | Depth 1 | Depth 2 | Depth 3 | Depth 4 | Depth 5 |
+| --- | ---: | --- | --- | --- | --- | --- |
+| Light | 1 | 0/49/1 · 0/0/0 | 0/47/1 · 0/0/0 | 0/0/0 · 0/0/0 | — | — |
+| Light | 2 | 5/11/9 · 0/0/0 | 2/3/4 · 0/0/0 | 0/0/0 · 0/0/0 | — | — |
+| Light | 3 | 4/2/5 · 0/0/0 | 3/2/5 · 0/0/0 | 0/0/0 · 0/0/0 | — | — |
+| Medium | 1 | 0/27/1 · 0/0/0 | 0/26/0 · 0/0/0 | 0/29/0 · 0/0/0 | 0/17/0 · 0/0/0 | 0/1/0 · 0/0/0 |
+| Medium | 2 | 1/9/4 · 0/0/0 | 0/5/1 · 0/0/0 | 0/7/0 · 0/0/0 | 0/3/0 · 0/0/0 | 0/0/0 · 0/0/0 |
+| Medium | 3 | 4/4/3 · 0/0/0 | 2/4/1 · 0/0/0 | 0/5/0 · 0/0/0 | 0/0/0 · 0/0/0 | 0/0/0 · 0/0/0 |
+| Heavy | 1 | 1/27/0 · 0/0/0 | 0/30/0 · 0/0/0 | 0/25/0 · 0/2/0 | 0/19/0 · 0/9/0 | 0/15/0 · 0/10/0 |
+| Heavy | 2 | 0/3/2 · 0/0/0 | 1/5/0 · 0/0/0 | 0/6/0 · 0/0/0 | 0/8/0 · 0/0/0 | 0/9/0 · 0/0/0 |
+| Heavy | 3 | 0/1/0 · 0/0/0 | 0/2/0 · 0/0/0 | 0/1/0 · 0/0/0 | 0/0/0 · 0/0/0 | 1/0/0 · 0/0/0 |
+
+Heart fight results come from the app path and include fallbacks. Stalls count as non-wins. HP left is total remaining party HP. Rounds and HP medians include all outcomes, except the separate win-round median.
+
+| Band | Pooled wins | W/L/S | Solo W/L/S · rounds/HP | Pair W/L/S · rounds/HP | Trio W/L/S · rounds/HP | Rounds | Win rounds | HP left | Fallback / unverified | EN-13 miss |
+| --- | ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
+| Light | 71/96 (74.0%) | 71/5/20 | 16/1/15 · 40/6 | 24/4/4 · 11/11 | 31/0/1 · 6/16 | 12 | 7 | 7 | 37 / 35 | In band |
+| Medium | 72/96 (75.0%) | 72/4/20 | 18/1/13 · 40/6 | 22/3/7 · 15/8 | 32/0/0 · 7/16 | 12 | 8 | 7 | 33 / 31 | 15.0 pp above |
+| Heavy | 70/96 (72.9%) | 70/3/23 | 15/1/16 · 41/6 | 24/2/6 · 9/10 | 31/0/1 · 6/16 | 10 | 7 | 6 | 33 / 33 | 27.9 pp above |
+
+| Band | Master | Solo W/L/S · rounds/HP | Pair W/L/S · rounds/HP | Trio W/L/S · rounds/HP | Total W/L/S | Median win rounds | Fallback / unverified |
+| --- | --- | --- | --- | --- | --- | ---: | ---: |
+| Light | Carillonneur | 0/0/4 · 41/6 | 0/3/1 · 15/0 | 4/0/0 · 12/8 | 4/3/5 | 12 | 10 / 10 |
+| Light | Lamplighter | 4/0/0 · 7/5 | 4/0/0 · 3/14 | 4/0/0 · 2/20 | 12/0/0 | 3 | 1 / 0 |
+| Light | Marginalia | 4/0/0 · 12/5 | 4/0/0 · 4/14 | 4/0/0 · 3/19 | 12/0/0 | 4 | 0 / 0 |
+| Light | Mother | 0/0/4 · 41/4 | 4/0/0 · 23/5 | 4/0/0 · 14/7 | 8/0/4 | 20 | 8 / 8 |
+| Light | Postmaster | 3/0/1 · 21/6 | 3/0/1 · 7/8 | 4/0/0 · 6/15 | 10/0/2 | 7 | 4 / 4 |
+| Light | Registrar | 1/1/2 · 41/6 | 3/1/0 · 13/13 | 3/0/1 · 8/17 | 7/2/3 | 10 | 5 / 5 |
+| Light | Steward | 4/0/0 · 40/4 | 2/0/2 · 41/11 | 4/0/0 · 7/13 | 10/0/2 | 17 | 5 / 4 |
+| Light | Warden | 0/0/4 · 41/6 | 4/0/0 · 6/12 | 4/0/0 · 5/17 | 8/0/4 | 6 | 4 / 4 |
+| Medium | Carillonneur | 0/0/4 · 41/6 | 0/1/3 · 41/4 | 4/0/0 · 12/8 | 4/1/7 | 12 | 8 / 8 |
+| Medium | Lamplighter | 4/0/0 · 7/6 | 4/0/0 · 4/13 | 4/0/0 · 2/20 | 12/0/0 | 4 | 0 / 0 |
+| Medium | Marginalia | 4/0/0 · 12/6 | 4/0/0 · 5/13 | 4/0/0 · 4/19 | 12/0/0 | 5 | 0 / 0 |
+| Medium | Mother | 0/0/4 · 41/3 | 4/0/0 · 17/5 | 4/0/0 · 13/10 | 8/0/4 | 17 | 8 / 8 |
+| Medium | Postmaster | 3/0/1 · 20/6 | 4/0/0 · 20/6 | 4/0/0 · 7/16 | 11/0/1 | 20 | 4 / 4 |
+| Medium | Registrar | 3/1/0 · 15/6 | 2/2/0 · 15/11 | 4/0/0 · 13/17 | 9/3/0 | 14 | 3 / 3 |
+| Medium | Steward | 4/0/0 · 40/4 | 0/0/4 · 41/8 | 4/0/0 · 7/17 | 8/0/4 | 40 | 6 / 4 |
+| Medium | Warden | 0/0/4 · 41/6 | 4/0/0 · 6/12 | 4/0/0 · 5/17 | 8/0/4 | 5 | 4 / 4 |
+| Heavy | Carillonneur | 0/0/4 · 41/6 | 0/1/3 · 41/4 | 4/0/0 · 12/8 | 4/1/7 | 12 | 8 / 8 |
+| Heavy | Lamplighter | 3/1/0 · 6/5 | 4/0/0 · 4/13 | 4/0/0 · 3/20 | 11/1/0 | 3 | 0 / 0 |
+| Heavy | Marginalia | 4/0/0 · 12/5 | 4/0/0 · 4/14 | 4/0/0 · 4/19 | 12/0/0 | 4 | 0 / 0 |
+| Heavy | Mother | 0/0/4 · 41/3 | 4/0/0 · 22/5 | 4/0/0 · 13/10 | 8/0/4 | 17 | 8 / 8 |
+| Heavy | Postmaster | 2/0/2 · 41/6 | 4/0/0 · 7/6 | 4/0/0 · 5/15 | 10/0/2 | 7 | 4 / 4 |
+| Heavy | Registrar | 2/0/2 · 41/6 | 3/1/0 · 9/12 | 3/0/1 · 8/17 | 8/1/3 | 9 | 3 / 3 |
+| Heavy | Steward | 4/0/0 · 40/4 | 2/0/2 · 41/13 | 4/0/0 · 8/9 | 10/0/2 | 15 | 6 / 6 |
+| Heavy | Warden | 0/0/4 · 41/6 | 3/0/1 · 6/12 | 4/0/0 · 5/17 | 7/0/5 | 5 | 4 / 4 |
+
+The carried sample cleared 16/144 trips, with 46 losses and 82 stalls, and reached 54 hearts. All 94 fresh Steward trials and 10 carried trials started at heat 4, including the 17 fresh and two carried offered fallback trials. All 36 fresh and four carried app-path Steward hearts also started at heat 4. The length-six peal setup probe preserved all five entries from `1,2,3,4,1` through save/reload and hung `1,2,3,4` on four hooks. The hookless caveat remains in effect.
+
+The separate 500-seed fuzz passed 9/9 in 114 s. It had 26/500 walkovers (5.2%), zero invalid or unverified offers, zero held attempts and zero event caps. Fair within four was 474/500 (94.8%) and fair within two was 370/500 (74.0%). Offered medians were 3 rounds and 85.7% HP left. Desktop generation median/p95 was 175/404 ms.

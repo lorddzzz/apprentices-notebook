@@ -110,6 +110,8 @@ interface Sample {
     budget: number | undefined;
     rounds: number | undefined;
     hpShare: number | undefined;
+    trialHeats?: number[];
+    heldAttempts: number;
     guardrails: string[];
     offeredIssues: string[];
     offeredIssueReasons: string[];
@@ -179,6 +181,7 @@ function measureRoom(
   opts: Options,
   samples: Sample[],
   cache: Map<number, GeneratedRoom>,
+  trialHeats: readonly number[],
 ) {
   const trip = activeTrip(save);
   const input = roomInput(save.profile, trip);
@@ -197,6 +200,7 @@ function measureRoom(
   // Fresh and carried openings have identical generation inputs. Reuse that output and time only
   // the fresh call. Later rooms may have a shape choice or profiles with banked footnote progress.
   const reused = mode === 'carried' && room === 0 ? cache.get(seed) : undefined;
+  const heatOffset = trialHeats.length;
   const result = reused ?? generateRoom(input);
   if (mode === 'fresh' && room === 0) cache.set(seed, result);
   const ms = performance.now() - started;
@@ -204,6 +208,19 @@ function measureRoom(
   const tiles = tilesWithNotes(result.layout.tiles);
   const spec = specFor(input, deriveSeed(seed, offered?.salt ?? 0), offered?.budget);
   const offeredIssues = checkGenerated(result.layout, spec);
+  if (offeredIssues.length > 0) {
+    console.log(
+      'CAL5 INVALID',
+      JSON.stringify({
+        name: drawing.name,
+        depth: sample.depth,
+        mode,
+        party,
+        seed,
+        issues: offeredIssues,
+      }),
+    );
+  }
   sample.generation = {
     fallback: result.fallback,
     verified: result.verified,
@@ -216,6 +233,10 @@ function measureRoom(
     budget: offered?.budget,
     rounds: offered?.won ? offered.rounds : undefined,
     hpShare: offered?.won ? offered.hpLeft : undefined,
+    ...(spec.heart && drawing.heart === 'bathSteward'
+      ? { trialHeats: trialHeats.slice(heatOffset) }
+      : {}),
+    heldAttempts: result.trials.filter((t) => t.won === null).length,
     guardrails: result.trials.flatMap((t) => t.guardrails.map((issue) => issue.guardrail)),
     offeredIssues: offeredIssues.map((issue) => issue.guardrail),
     offeredIssueReasons: offeredIssues.map((issue) => issue.reason),
@@ -268,7 +289,11 @@ export interface DrawnOptions extends Options {
   onlyHearts?: boolean;
 }
 
-export function measureDrawn(drawings: readonly Drawing[], opts: DrawnOptions) {
+export function measureDrawn(
+  drawings: readonly Drawing[],
+  opts: DrawnOptions,
+  trialHeats: readonly number[],
+) {
   const samples: Sample[] = [];
   const ends: { name: string; party: number; seed: number; end: string }[] = [];
   const loadouts = [];
@@ -292,7 +317,7 @@ export function measureDrawn(drawings: readonly Drawing[], opts: DrawnOptions) {
       const safelyMeasure = (save: SaveData, mode: Mode) => {
         const index = samples.length;
         try {
-          return measureRoom(save, mode, opts, samples, cache);
+          return measureRoom(save, mode, opts, samples, cache, trialHeats);
         } catch (error) {
           const s = samples[index];
           if (!s) throw error;
