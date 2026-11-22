@@ -12,7 +12,7 @@ Order
 | Measurement 3 | **CAL-5** drawn trips, pen and household sweep | Codex / Default: Terra 6.1 / high | CAL-1–4 measurement reports integrated, kit completeness green; repeat after any approved authored-data changes. |
 | Device | **CAL-P** CAL-5 phone evidence (**Claude only**) | Claude / Default: Sonnet 5.5 / medium | CAL-5's input corpus and current candidate are frozen. Can overlap a district approval continuation only if it cannot change the measured drawing/heart or its dependencies. |
 | Approval continuations | Resume **CAL-1 + CAL-2**, then **CAL-3 + CAL-4**, then **CAL-5**, for their third task | Same runner/model as the originating pack | Use the recorded decisions and standing delegation in `calibration-results.md`. CAL-1's conditional SM-6 exception is described below. |
-| Close | **CAL-G1** final tables, full gate and handoff (**Claude only**, orchestrator) | Claude / design orchestrator: strongest available / high | Every measurement delivered; every proposed change applied or explicitly retained/deferred; final CAL-5/P reruns include all applied changes. |
+| Close | **CAL-G1** final tables, full gate and handoff (**Claude only**, orchestrator; decisions taken 2026-11-22, after CAL-5H) | Claude / routine orchestrator / Opus high | Every measurement delivered; every proposed change applied or explicitly retained/deferred; final CAL-5/P reruns include all applied changes. |
 
 Two measurement workers maximum; do not overlap slow sweeps with a full gate. All engine/data/bot packs have a CLI Verify command and prefer Codex. Use the Whiteboard clone and worker-commits rules from `.claude/skills/implement/templates.md` with `git: true`. Use the orchestrator-commits rules for the CLI fallback. Default escalation is Terra 6.1 high → Sol 6.1 high; Strong escalation is Sol 6.1 medium → Sol 6.1 extra high, only after failed review. Claude Default escalates Sonnet 5.5 medium → Sonnet 5.5 high or Opus 5.5 medium. A runner shortage may serialize Codex packs; no need to route a phone task to it.
 
@@ -270,12 +270,14 @@ Phone check: yes, port 5194; pnpm dev --port 5194, /apprentices-notebook/src/app
 Sims: none; reads CAL-5's output, never starts another full fuzz.
 ```
 
-## Pack CAL-G1 (design orchestrator: strongest available, high; suggested runner: Claude only)
+## Pack CAL-G1 Close (routine orchestrator, Opus high; suggested runner: Claude only)
+
+The decisions of task 1 were taken by the CAL-G1 design window on 2026-11-22: [calibration-results.md "CAL-G1 dispositions"](calibration-results.md#cal-g1-dispositions-design-window-2026-11-22-under-the-standing-delegation), rows G1-1 to G1-12. The one fix chosen, CAL-5H, is in [drawn-calibration-briefs.md](drawn-calibration-briefs.md). The Close starts when CAL-5H has merged. It decides nothing new: a measured surprise at the full gate goes to a fix pack, or back to a design window if it needs a rule.
 
 ```text
 Pack CAL-G1 of calibration-plan.md: tasks 1 -> 2 -> 3 (decisions, final gate/loop, records).
 
-Read: calibration-plan.md §3 CAL-G1 and §4; docs/plans/calibration-results.md; pattern: docs/plans/foundry-verification.md.
+Read: calibration-plan.md §3 CAL-G1 and §4; docs/plans/calibration-results.md ("CAL-G1 dispositions" and the CAL-5H row); pattern: docs/plans/foundry-verification.md.
 Owns: docs/plans/calibration-results.md, docs/plans/calibration-verification.md (new), docs/plans/calibration-evidence/ (after CAL-P);
        docs/plans/calibration-plan.md (State/decision records), docs/plans/build-program-status.md,
        docs/plans/build-program-log.md (append records only; do not read for context), docs/plans/calibration-briefs.md (remove merged briefs);
@@ -291,8 +293,8 @@ Contract:
   "Close with one full pnpm check." Only this pack owns that full gate; each district pack owns its named sweeps.
   No proposed band becomes settled, and no unresolved measured miss becomes a pass, without a recorded disposition under the standing delegation. Missing evidence stays visible. SM-6 reference deletion still requires explicit player OK and is not part of this pack.
 
-1. Assemble final district links, baseline/candidate/applied rows and player decisions in results.md; show the table before the playtest. Use the recorded player decisions for district targets and the quarter helper. Resolve any remaining misses under the standing delegation and publish their measured size. While decisions are pending, complete independent verification and records; approval continuations run in their original owned packs. Record retain/defer explicitly instead of applying unapproved values.
-2. After approved applications and final CAL-5/P reruns, run the full gate once on merged main and the full drawn-trip loop at 375×812. Record exact revision, summary, screenshots and device limits. Review the calibration diff for unintended rule changes; material findings get a fix pack and the relevant verification rerun, not broader write ownership here.
+1. Assemble final district links, baseline/candidate/applied rows and player decisions in results.md; show the table before the playtest. Use the recorded player decisions for district targets and the quarter helper. The remaining misses are already resolved (G1-1..G1-12); copy CAL-5H's row and its final EN-13 table (or the CAL-5R heart table if it retained 38), and publish each miss with its measured size and disposition. Use G1-2's reading for EN-S2: the fuzz is the gate, and the corpus is shown by lineup.
+2. After CAL-5H, run the full gate once on merged main and the full drawn-trip loop at 375×812 (on the dev generator page, note the URL of its one 404 for G1-12). Record exact revision, summary, screenshots and device limits. Review the calibration diff for unintended rule changes; material findings get a fix pack and the relevant verification rerun, not broader write ownership here.
 3. Write calibration-verification.md and closure records (plan State, DESIGN §11 accepted choices, TECH §7 data/bot changes, roadmap, status and task records). Run the existing ledger mechanically and account for every open/prose-only CAL ID. The orchestrator commits/pushes when its runtime permits and confirms CI/deploy for that revision. Do not mark complete with unverified gates, unrecorded decisions or application work owed.
 
 Owed by this pack: CAL-G1 table-before-playtest and recorded band decisions; final full gate; build closure. Missing real phone/save data must be explicit in verification and status, not fabricated or silently dropped.
