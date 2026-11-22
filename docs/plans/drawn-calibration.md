@@ -575,3 +575,47 @@ Both cases keep the depth term and the step at 1. The band change adds one budge
 Both ordinary shards passed the corpus test in 1,114 s and 1,139 s. The candidates improved the walkover rate and left it above 10%. They increased unverified ordinary offers from 16 to 42 and 71, respectively, so both are rejected. Both had zero invalid offers, fight errors, operation stops and generation event caps. Their median win rounds stayed below 25 across the ordinary bands.
 
 The candidates were rejected at the corpus screen. The final data checks cover the retained values.
+
+### 3. Retained data and independent rerun
+
+Retain `DRAWN_HEART_HP_BONUS = 0/0/0` and `GEN_TUNING` with per-member 2, band bonus 0/1/2 and step 1. Both HP candidates exceeded the +5 unverified-offer allowance. Both budget candidates exceeded the 16-unverified baseline. The production data for the application is the shipped baseline data from `8c7192f`.
+
+The independent application rerun uses the four baseline commands above at `540903d`. The fuzz runs first, followed by heavy, medium and light, to verify the two missed heart bands within the pack budget. The acceptance check is:
+
+```sh
+pnpm check:fast
+pnpm vitest run tests/sim/drawn-calibration.test.ts tests/drawing/heart-hp.test.ts \
+  tests/drawing/generator.test.ts --reporter=dot --testTimeout=400000
+```
+
+| Applied check | Result |
+| --- | --- |
+| `fast` | Passed in 336 s. 417 files, 8,740 tests passed and 13 todo. Biome reported the existing PenPot warning. |
+| `a-fuzz` | Passed in 116 s. 9/9 tests, 26/500 walkovers, 0 unverified. |
+| `a-heavy` | Passed in 736 s. 6/6 tests, zero invalid offers. Fresh ordinary 177/1200 (14.8%) walkovers. Fresh hearts 70/3/23 W/L/S, 10 median rounds, 6 median HP left. |
+| `a-medium` | Passed in 575 s. 6/6 tests, zero invalid offers. Fresh ordinary 154/960 (16.0%) walkovers. Fresh hearts 72/4/20 W/L/S, 12 median rounds, 7 median HP left. |
+| `a-light` | Stopped after 106 s at the pack wall-clock limit. |
+| `verify` | Passed in 49 s. 15 passed (15). |
+
+Each completed corpus rerun reproduced the baseline's room samples apart from timing. The two reported EN-S2 rates come from different corpora: the drawn corpus misses at 18.1%, and the 500-seed fuzz passes at 5.2%.
+The budget left part of the independent corpus rerun outstanding. The structural baseline covers all bands with these same production data.
+
+#### Remaining misses for CAL-G1
+
+- EN-13 medium 72/96 (75.0%, +15.0 pp) and heavy 70/96 (72.9%, +27.9 pp). Light 71/96 (74.0%) is inside its band. The rejected HP candidates leave escorts by weight as the next lever for design.
+- EN-S2 ordinary walkovers 484/2,670 (18.1%, +8.1 pp) in the extended corpus, and 90/534 (16.9%, +6.9 pp) in the matched historical seed range. Most walkovers were solo offers at full HP.
+- Steward playtest feel watch has 40-round median wins for the light, medium and heavy solos and for pooled Medium Steward.
+- Independent applied data rerun outstanding for light.
+
+#### Approval rows for the calibration register
+
+| Pack | Tunable / source | Current | Candidate | Baseline measurement | Candidate measurement | Band / miss | Bot / corpus / command / revision | Player decision | Applied revision / rerun |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CAL-5R | Piece reach (CAL-5G) | Foot-only kit checks; all selected pieces checked | Shared footing and cardinal cast reach 4; check stamped pieces after unsupported spans fall | 99/534 invalid, 510/6/18 W/L/S | 0/534 paired invalid; 509/6/19 W/L/S, 4 median rounds, 13 median HP left; 0/2,670 invalid across seeds 1–10 | Zero invalid offers met | Ordinary seeds 1–2 paired, `48ac3f0` → `8c7192f`, b1–b3 | Retain shipped reach rule | Shipped at `8c7192f`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | Held-back budget (CAL-5G) | −1 on hold | 0 on hold | 76/534 walkovers, 653 held kit issues, 510/6/18 W/L/S | 90/534 walkovers, zero held kit issues; 509/6/19 W/L/S, 4 median rounds, 13 median HP left | 16.9%, 6.9 pp above 10% in paired sample | Ordinary seeds 1–2 paired, `48ac3f0` → `8c7192f`, b1–b3; EN-S2 fuzz and CAL-5G reach test | Retain shipped budget rule; structural changes measured together | Shipped at `8c7192f`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | `DRAWN_HEART_HP_BONUS` | 0/0/0 | 4/12/24 | 213/12/63 W/L/S, 12 median rounds, 6 median HP left, 99 unverified | 197/24/67 W/L/S, 16 median rounds, 6 median HP left, 139 unverified | 74.0% / 68.8% / 62.5%; medium +8.8 pp, heavy +17.5 pp | Fresh hearts, 24 drawings × lineups 1–3, seeds 1–4, `CAL5_HEARTS=1`, `heart4-12-24` at `540903d` | Reject, +40 unverified and stall-shaped misses | Defaults at `540903d`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | `DRAWN_HEART_HP_BONUS` | 0/0/0 | 2/6/12 | 213/12/63 W/L/S, 12 median rounds, 6 median HP left, 99 unverified | 206/19/63 W/L/S, 14 median rounds, 6 median HP left, 125 unverified | 74.0% / 69.8% / 70.8%; medium +9.8 pp, heavy +25.8 pp | Fresh hearts, 24 drawings × lineups 1–3, seeds 1–4, `CAL5_HEARTS=1`, `heart2-6-12` at `540903d` | Reject, +26 unverified and stall-shaped misses | Defaults at `540903d`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | `GEN_TUNING.bandBonus` | 0/1/2 | 1/2/3 | 484/2,670 walkovers, 16 unverified, 2539/38/93 W/L/S, 4 median rounds, 13 median HP left | 408/2,670 walkovers, 42 unverified, 0 invalid, 2466/58/146 W/L/S, 4 median rounds, 13 median HP left | 408/2670 (15.3%); 5.3 pp above 10% | Fresh ordinary, 24 drawings × lineups 1–3, seeds 1–10, `CAL5_ORDINARY=1`, `band123` at `540903d` | Reject, +26 unverified | Defaults at `540903d`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | `GEN_TUNING.perMember` and `bandBonus` | 2 and 0/1/2 | 1 and 3/4/5 | 484/2,670 walkovers, 16 unverified, 2539/38/93 W/L/S, 4 median rounds, 13 median HP left | 414/2,670 walkovers, 71 unverified, 0 invalid, 2443/75/152 W/L/S, 4 median rounds, 13 median HP left | 414/2670 (15.5%); 5.5 pp above 10% | Fresh ordinary, 24 drawings × lineups 1–3, seeds 1–10, `CAL5_ORDINARY=1`, `slope1` at `540903d` | Reject, +55 unverified | Defaults at `540903d`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | Steward trial parity (CAL-5G) | Trial heat 1, app heat 4 | Heat 4 on both paths | Fresh 28/0/8 W/L/S, 17 fallback, 14 unverified | Fresh 28/0/8 W/L/S, 40 median rounds, 8 median HP left; 94/94 trial and 36/36 app at heat 4 | Trial/app parity met | Three Steward drawings, lineups 1–3, fresh seeds 1–4 and carried seeds 1–2, b1–b3 | Retain shipped shared heart config | Shipped at `8c7192f`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
+| CAL-5R | Length-six peal (CAL-5P) | Sorted earned notes | Distinct notes first; disclose hookless limit | `1,2,3,4,1` hung `1,1,2,3` | Same entries hang `1,2,3,4`; carried Heavy Carillonneur trio seed 2 0/1/0 W/L/S, round 10, 0 HP left | Fourth distinct note restored | Seed 1 save/reload setup probe; seed 2 carried, b1–b3 | Retain shipped hook allocation and notice | Shipped at `8c7192f`; Independent rerun passed for fuzz, heavy, medium; light outstanding |
