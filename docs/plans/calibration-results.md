@@ -128,6 +128,8 @@ The default 50-seed full measurement was not run in CAL-0; later passes must col
 | ID | Result | Status |
 |---|---|---|
 | EN-13 timing, emulated (HeadlessChrome 153, macOS), 60 rooms, 49 accepted / 11 fallbacks | direct median/p95 cold 111/526 ms, warm 108/505 ms; worker round trip cold 116/520, warm 119/522 ms | bar (median 0.5 s, p95 2 s) met on desktop CPU only; real iPhone owed |
+| EN-13 timing, **real iPhone** (iOS 18.7, Safari, 2026-11-22, 60 rooms, 58 accepted / 2 fallbacks, 9 dull, 26 median ops) | direct median/p95 cold 144/349 ms, warm 152/371 ms; worker inside cold 206/505, warm 221/537 ms; round trip cold 214/774, warm 222/682 ms | **bar met** (median 0.5 s, p95 2 s) with about 4x margin at p95. The two fallback rooms (seeds 2, 31) cost 1.3 s and 2.4 s in the worker (warm), outside the accepted-room bar: the worst-case wait before a fallback room |
+| BL-111 offline check, real iPhone, live site, fresh save (2026-11-22) | home, a Seam trip (fight, loot) and the Lab all worked in Airplane Mode | **met**; set-out on a drawn page offline (generation worker chunk) not tried |
 | Phone states 375x812 | 15 screenshots in calibration-evidence/, no horizontal overflow, no app console errors; light trip played, medium/heavy only to the dialog | generator page logs one unexamined 404 |
 
 ## Household sweep, sharded (10 seeds)
