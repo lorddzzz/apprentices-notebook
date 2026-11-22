@@ -78,6 +78,12 @@ vi.mock('$data/drawing', async (original) => {
       };
     case 'marginalia32':
       return { ...data, DRAWN_MARGINALIA_HP: 32 };
+    case 'steward30':
+      return { ...data, DRAWN_STEWARD_HP: 30 };
+    case 'steward24':
+      return { ...data, DRAWN_STEWARD_HP: 24 };
+    case 'steward14':
+      return { ...data, DRAWN_STEWARD_HP: 14 };
     default:
       return data;
   }

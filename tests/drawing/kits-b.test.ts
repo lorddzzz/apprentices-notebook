@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Drawing } from '$data';
-import { COSTS, DRAWN_CHIEF_WARDEN_HP, NEEDS } from '$data/drawing';
+import { COSTS, DRAWN_CHIEF_WARDEN_HP, DRAWN_STEWARD_HP, NEEDS } from '$data/drawing';
 import {
   type BattleState,
   beginEncounter,
@@ -117,6 +117,25 @@ describe('Pack J frames (EN-K4, EN-K5)', () => {
         def: 'chiefWarden',
         hp: DRAWN_CHIEF_WARDEN_HP,
         maxHp: DRAWN_CHIEF_WARDEN_HP,
+      }),
+    );
+  });
+
+  it('CAL-5H: the drawn Steward keeps DRAWN_STEWARD_HP', () => {
+    expect(HEART_FRAMES.bathSteward?.enemyHp).toEqual({ bathSteward: DRAWN_STEWARD_HP });
+
+    const page = heartDrawing('bathSteward');
+    const owner: Profile = { ...fullHousehold(), drawings: [page, null, null] };
+    const trip = {
+      ...startTrip(owner, 1, 'inkedPage', { page: 0 }),
+      encounter: page.length - 1,
+    };
+    const battle = beginEncounter(owner, inkRoom(owner, trip)).state;
+    expect(battle.units).toContainEqual(
+      expect.objectContaining({
+        def: 'bathSteward',
+        hp: DRAWN_STEWARD_HP,
+        maxHp: DRAWN_STEWARD_HP,
       }),
     );
   });

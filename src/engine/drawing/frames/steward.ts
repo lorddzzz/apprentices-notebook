@@ -1,4 +1,4 @@
-import { COSTS } from '$data/drawing';
+import { COSTS, DRAWN_STEWARD_HP } from '$data/drawing';
 import { KIT } from '../../districts/kit';
 import type { HeartSetup } from '../../districts/types';
 import { type BoardSpec, parseBoard } from '../../notation';
@@ -10,7 +10,7 @@ import type { HeartFrame } from '../types';
  * stands the Steward on a connected cloud pool of four or more tiles, with the vents and a
  * dissolved bather settled around it, so the frame has no escorts of its own and no place for the
  * drawing's rule (the boil-over is the heart's own, its heat the shape's). `KIT` is read lazily
- * (see `generate.ts`'s import cycle).
+ * (see `generate.ts`'s import cycle). The drawn heart has its own HP for the lite trial.
  */
 
 const SIZE = { width: 7, height: 8 } as const;
@@ -36,6 +36,7 @@ let setup: HeartSetup | undefined;
 
 export const STEWARD_FRAME: HeartFrame = {
   master: 'bathSteward',
+  enemyHp: { bathSteward: DRAWN_STEWARD_HP },
   cost: COSTS.hearts.bathSteward,
   needs: needsOf('bathSteward'),
   size: SIZE,
