@@ -18,7 +18,8 @@ const PAIR = {
     starterPage: ['.     .   .      . .', 'Bolt> Ink Strike . .', 'x     .   .      . x'].join(
       '\n',
     ),
-    blurb: 'Marks his targets in ink before anything else touches them.',
+    blurb:
+      'Marks his targets in ink before anything else touches them. Measures twice and still apologises for the third line.',
   },
   stoker: {
     id: 'stoker',
@@ -39,7 +40,8 @@ const PAIR = {
       '. .     .',
       'x .     x',
     ].join('\n'),
-    blurb: 'Keeps the furnace lit and trusts a good fire to settle most arguments.',
+    blurb:
+      'Keeps the furnace lit and trusts a good fire to settle most arguments. Never met a fire worth leaving unfinished.',
   },
 } as const satisfies Readonly<Record<string, ApprenticeDef<string>>>;
 

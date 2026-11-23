@@ -689,7 +689,7 @@ export const BATH_LEDGERS: readonly import('./index').PaperDef[] = [
     4,
     3,
     'The caldarium',
-    'Ilse Marr, a day and a night, past counting. Stayed. The tiles sweat; the steam keeps the names of those who stood in it, and reads them back to the vent when the gauge is high.',
+    'Ilse Marr, a day and a night, past counting. Stayed. The tiles sweat; the steam keeps the names of those who stood in it, and is in no hurry to give them back.',
   ),
   entry(
     5,

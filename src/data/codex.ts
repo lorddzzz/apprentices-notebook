@@ -431,32 +431,32 @@ export const CODEX: readonly CodexEntryDef[] = [
 ];
 
 /**
- * The rival's personal trick as the page shows it (rivals P12): named, and marked as theirs alone.
+ * The rival's personal trick as the page shows it (rivals P12): named, and marked as his alone.
  * The trick is never part of a recovered page or its Bench trial (rivals §3).
  */
 export const RIVAL_TRICK_TEXT: Readonly<Record<string, { name: string; text: string }>> = {
   'canals:longWick': {
     name: 'The long wick',
-    text: 'Opens a jar from afar. Theirs alone, not in the trial.',
+    text: 'He opens his jar from afar. His alone, not in the trial.',
   },
   'inkQuarter:clockWrit': {
     name: 'The clock writ',
-    text: 'A writ served with a clock: break the seal or stand on the stamp, or every mark collects. Theirs alone, not in the trial.',
+    text: 'He serves a writ with a clock: break his seal or stand on his stamp, or every mark collects. His alone, not in the trial.',
   },
   'bathhouses:steamsAway': {
     name: 'Steams away',
-    text: 'Struck inside a cloud, disperses and re-forms anywhere in that connected cloud; cut the cloud to hurt. Theirs alone, not in the trial.',
+    text: 'Struck inside a cloud, he disperses and re-forms anywhere in that connected cloud; cut the cloud to hurt him. His alone, not in the trial.',
   },
   'bridges:keystoneRight': {
     name: 'Right of way',
-    text: 'While the keystone stands, cannot be pushed, held or dropped. Theirs alone, not in the trial.',
+    text: 'While the keystone stands he cannot be pushed, held or dropped. His alone, not in the trial.',
   },
   'foundry:playsATune': {
     name: 'Plays a tune',
-    text: 'Each round, rings one note of a four-note tune, and after the fourth the Great Peal rings every bell at once. Theirs alone, not in the trial.',
+    text: 'Each round he rings one note of a four-note tune, and after the fourth the Great Peal rings every bell at once. His alone, not in the trial.',
   },
   'cartographers:strikeFromTheRegister': {
     name: 'Strike from the register',
-    text: 'Each round, pencil circles ring a unit, and at round end whoever is still circled is erased from the fight. Theirs alone, not in the trial.',
+    text: 'Each round pencil circles ring a unit, and at round end whoever is still circled is erased from the fight. His alone, not in the trial.',
   },
 };

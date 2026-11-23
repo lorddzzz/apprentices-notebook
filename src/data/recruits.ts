@@ -72,7 +72,8 @@ export const RECRUITS = {
     lean: { trained: 'timing', gifted: 'seam' },
     habit: RECRUIT_HABITS.runaway,
     starterPage: page('Touch> Oil Spark'),
-    blurb: "A Lamplighter's apprentice who ran off with the pole, and hooks things with it.",
+    blurb:
+      "A Lamplighter's apprentice who ran off with the pole, and hooks things with it. Slept under a lamp-pole for a month and counts it as lodging.",
     found: { district: 'canals' },
     beat: [{ kind: 'landmark' }],
     runes: { all: ['fuse'] },
@@ -89,7 +90,8 @@ export const RECRUITS = {
     lean: { trained: 'contracts', gifted: 'seam' },
     habit: RECRUIT_HABITS.notary,
     starterPage: page('Splash> Ink Steam'),
-    blurb: 'A clerk who stamps things true, and swaps desks with anyone.',
+    blurb:
+      'A clerk who stamps things true, and swaps desks with anyone. Writes the date on everything, the soup included.',
     found: { district: 'inkQuarter' },
     beat: [{ kind: 'landmark' }],
     runes: { all: ['tally'] },
@@ -106,7 +108,8 @@ export const RECRUITS = {
     lean: { trained: 'areas', gifted: 'seam' },
     habit: RECRUIT_HABITS.towelBearer,
     starterPage: page('Splash> Steam'),
-    blurb: 'Big, calm and steam-soaked; holds the cloud while foes boil in it.',
+    blurb:
+      'Big, calm and steam-soaked; holds the cloud while foes boil in it. Brings a fresh towel to every fight.',
     found: { district: 'bathhouses' },
     beat: [{ kind: 'landmark' }],
     runes: { all: [], any: ['vat', 'seep', 'steep'] },
@@ -123,7 +126,8 @@ export const RECRUITS = {
     lean: { trained: 'structure', gifted: 'seam' },
     habit: RECRUIT_HABITS.warden,
     starterPage: page('Bolt> Shove Strike'),
-    blurb: "Left the Keystone Watch and brought the wardens' chalk to your side.",
+    blurb:
+      "Left the Keystone Watch and brought the wardens' chalk to your side. Still walks on the inside of every bridge.",
     found: { district: 'bridges' },
     beat: [{ kind: 'landmark' }],
     runes: { all: ['hold'] },
@@ -140,7 +144,7 @@ export const RECRUITS = {
     lean: { trained: 'resonance', gifted: 'seam' },
     habit: RECRUIT_HABITS.tuner,
     starterPage: page('Bolt> Brass Strike'),
-    blurb: 'Listens for what is slightly out of tune.',
+    blurb: 'Listens for what is slightly out of tune. Hums the note a room is out by.',
     found: { district: 'foundry' },
     beat: [{ kind: 'landmark' }],
     runes: { all: ['unison'] },
@@ -157,7 +161,8 @@ export const RECRUITS = {
     lean: { trained: 'seam', gifted: 'seam' },
     habit: RECRUIT_HABITS.copyist,
     starterPage: page('Touch> Ink Strike'),
-    blurb: 'A student who has been copying pamphlets about your notebook.',
+    blurb:
+      'A student who has been copying out pages about your notebook. Copies faithfully, then adds one small mistake, signed.',
     found: { door: 'A' },
     beat: [{ kind: 'joined', who: 'runaway' }, { kind: 'idiomNamed' }],
     runes: { all: ['touch'] },
@@ -174,7 +179,8 @@ export const RECRUITS = {
     lean: { trained: 'board', gifted: 'board' },
     habit: RECRUIT_HABITS.exile,
     starterPage: page('Bolt> Oil Draw'),
-    blurb: 'A guild student rubbed from the register; a grumpy Cartographer in exile.',
+    blurb:
+      'A guild student rubbed from the register; a grumpy Cartographer in exile. Has opinions about every list.',
     found: { door: 'B' },
     beat: [{ kind: 'provenInvention' }],
     runes: { all: ['swap', 'draw', 'erase'] },

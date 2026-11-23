@@ -1,7 +1,7 @@
 # Narrative audit and first draft pass (BL-40 follow-up)
 
-> **Status: Draft 2026-11-23**, for the player's review. Nothing here is in `src/` yet except the names ([names-and-voice.md](names-and-voice.md), applied in `2257fd4`). On approval, the text below is built as data the way the handover was (EN-12: draft, approve, build).
-> Voice: cozy and wistful; the owner's hand plain, warm, a little dry, never grand; found and optional (margins, letters, ledgers, short lines at thresholds and bosses). Rules for the owner: they/them, never named before the handover's signature.
+> **Status: Built 2026-11-23** on the player's "apply all" (§2.1–2.4, §2.6, §2.7 in `src/data/narration.ts`, the blurbs, the rivals' `opening` lines and the Cartographers' letters; §2.5 is a style key, no ship step). The text below is the draft as written; where the build differs, §2.4 and §5 say so.
+> Voice: cozy and wistful; the owner's hand plain, warm, a little dry, never grand; found and optional (margins, letters, ledgers, short lines at thresholds and bosses). Rules for the owner: he/him, never named before the handover's signature.
 > Method: a scan of `src/data/` (text files, blurbs), the screens' static copy (`src/ui/screens/`) and the lore docs. It is a sample, not a line-by-line read; the full continuity read-through (BL-41's remainder) is §3.
 
 ## 1. What exists
@@ -50,14 +50,14 @@ Cleared (replace the second line only; the first stays): *Take it all home. The 
 | Who | Line |
 |---|---|
 | Pell, the Draughtsman | Measures twice and still apologises for the third line. |
-| Joost, the Stoker | Never met a fire he did not want to see through. |
+| Joost, the Stoker | Never met a fire worth leaving unfinished. |
 | Hanneke, the Runaway | Slept under a lamp-pole for a month and counts it as lodging. |
 | Floris, the Junior Notary | Writes the date on everything, including the soup. |
-| Mieke, the Towel-bearer | Calm in a room where everyone else is boiling. |
+| Mieke, the Towel-bearer | Brings a fresh towel to every fight. |
 | Willem, the Warden | Still walks on the inside of every bridge. |
 | Tess, the Tuner | Hums the note a room is out by. |
-| Nelle, the Copyist | Copies faithfully, and adds one small mistake of her own. |
-| Wessel, the Unregistered | Is not on any list, and has opinions about all of them. |
+| Nelle, the Copyist | Copies faithfully, then adds one small mistake, signed. |
+| Wessel, the Unregistered | Has opinions about every list. |
 
 ### 2.5 How each guild speaks (a tone key for writers; one sample line each)
 
@@ -75,10 +75,10 @@ Cleared (replace the second line only; the first stays): *Take it all home. The 
 | Rival | Line |
 |---|---|
 | Gerrit Velt, Lamplighter | *The lamps are lit. You may stay while they are.* |
-| Hedda Brenn, Postmaster | *Undeliverable, I am afraid. Both of you.* |
+| Hendrik Brenn, Postmaster | *Undeliverable, I am afraid. Both of you.* |
 | Bertus Haas, Bath-Steward | *Towels are provided. Tempers are not.* |
 | Aldert Roos, Chief Warden | *I keep the middle of the bridge. Come and stand in it.* |
-| Lidewij Tauw, Carillonneur | *Listen. That is the tune. Now try to play it back.* |
+| Lodewijk Tauw, Carillonneur | *Listen. That is the tune. Now try to play it back.* |
 | the Registrar | *Your name is not on the roll.* (no personal name) |
 
 ### 2.7 The Seam's formal name
@@ -94,3 +94,11 @@ A continuity read of the existing thread against the names and voice: name leaks
 1. §2.1–2.3 and §2.7 first: they change screens and need a phone-size browser check (not possible in the session that wrote this).
 2. §2.4 and §2.6: data strings only (`blurb` additions, rival `opening` lines and the sheet/header that shows them).
 3. §2.5 as a style key used when new text is written; no ship step of its own.
+
+## 5. As built
+
+- **§2.1** a dismissible card at the top of the Study (`FirstEvening.svelte`), shown while the notebook has never cast and never out on a trip; nothing is stored, so it returns each session until the first cast.
+- **§2.2** `MAP_HEADING`; **§2.3** `wipeLine(place)` picks one of three by the place they fell (the same place reads the same); the cleared line is `LOWEST_FLOOR_LINE`.
+- **§2.4** appended to each blurb, written without pronouns (the earlier draft inferred some from names).
+- **§2.6** a rival's `opening`, shown in italics at the top of the rival sheet; the log keeps using titles. The Postmaster is Hendrik Brenn and the Carillonneur Lodewijk Tauw (names-and-voice §2).
+- **§2.7** the Cartographers' five dead letters are recast in the passive and headed *Re: Sheet 0, northern edge* (letters 1–2) and *Re: Non-Conforming Join, Sheet 0* (3–5).

@@ -738,6 +738,8 @@ export interface RivalSheetView {
   name: string;
   /** Personal name, or null for the faceless office. */
   person: string | null;
+  /** The line the rival speaks on stepping in, or null. */
+  opening: string | null;
   hp: number;
   maxHp: number;
   blurb: string;
@@ -789,7 +791,7 @@ export function rivalSheet(
     };
   });
   const trick = def.trick
-    ? (RIVAL_TRICK_TEXT[def.trick] ?? { name: def.trick, text: 'Theirs alone.' })
+    ? (RIVAL_TRICK_TEXT[def.trick] ?? { name: def.trick, text: 'His alone.' })
     : null;
   const plan =
     e.hp <= 0
@@ -800,6 +802,7 @@ export function rivalSheet(
   return {
     name: def.name,
     person: def.person ?? null,
+    opening: def.opening ?? null,
     hp: e.hp,
     maxHp: e.maxHp,
     blurb: def.blurb,

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { wipeLine } from '$data/narration';
   import { namedTitle } from '../../app/describe';
   import { game } from '../../app/instance';
   import Button from '../components/common/Button.svelte';
@@ -10,7 +11,7 @@
 {#if wipe}
   <section class="wiped" data-testid="wiped">
     <header>
-      <h1>The party is wiped out.</h1>
+      <h1>{wipeLine(wipe.encounter)}</h1>
       <p>They fell at {wipe.encounter.toLowerCase()}.</p>
     </header>
 

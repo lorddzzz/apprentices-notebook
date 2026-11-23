@@ -49,7 +49,7 @@ export const CARTOGRAPHERS_PAPERS: readonly PaperDef[] = [
   paper(
     'badJoin',
     'The bad join',
-    'Where the canals, the quarter and the baths were pieced together, the guild joined them badly, and nothing anchors a join: no lamps, no bell, nothing to hold it still. That is the Seam. The owner went in to keep it, and the keeping drew a real place on the paper.',
+    'Where the canals, the quarter and the baths were pieced together, they were joined badly, and nothing anchors a join: no lamps, no bell, nothing to hold it still. That is the Seam. It is recorded that the owner went in to keep it, and that the keeping drew a real place on the paper.',
     { kind: 'room', room: 3 },
   ),
 ];

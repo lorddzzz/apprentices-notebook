@@ -12,9 +12,10 @@
 | Title | **Keep *The Apprentice's Notebook*** and add a tagline. |
 | Story density | **Found and optional**: margins, letters and ledgers read by choice; short lines at thresholds and bosses only. |
 | Apprentices | **Given name plus trade epithet** ("Pell, the Draughtsman"): name first in the UI, trade as the subtitle. |
-| The owner | Never named in the margins; **named once, at the end** (handover or registry). They/them. |
+| The owner | Never named in the margins; **named once, at the end** (handover or registry). He/him. |
 | The Seam | Keeps its in-world name; the Cartographers' letters use a cold formal catalogue name for it. |
 | The player | No named protagonist: "you", the new tenant. |
+| Pronouns | **He/him for the owner and for every rival**, the Registrar included (the footnote docs already wrote every rival as "he"). Apprentices and the player are never gendered in text; blurbs and lines avoid pronouns for them. Decided by the player 2026-11-23. |
 
 ## 1. The names
 
@@ -58,10 +59,10 @@
 | Today | Name |
 |---|---|
 | Lamplighter | **Gerrit Velt** |
-| Postmaster | **Hedda Brenn** |
+| Postmaster | **Hendrik Brenn** |
 | Bath-Steward | **Bertus Haas** |
 | Chief Warden | **Aldert Roos** |
-| Carillonneur | **Lidewij Tauw** |
+| Carillonneur | **Lodewijk Tauw** |
 | Registrar | stays **the Registrar**: the one faceless office |
 
 ## 2. Judgment calls (where proposals clashed)
@@ -73,6 +74,7 @@
 - **Bertus, not Wendel, for the Bath-Steward:** avoids a W cluster with Willem and Wessel.
 - **Lampwater / Lamplighters and Thermae / Thermae Guild** are deliberate pairs (the guild and its district share a stem), as with Bellwrights and Klokhof.
 - **"the Unregistered"** (Wessel) instead of "Erased student": it carries the erasure as a status and echoes the Registrar.
+- **Hendrik and Lodewijk, not Hedda and Lidewij:** the pronoun decision (he/him for every rival) made the first two names read against the text, so the Postmaster and the Carillonneur were renamed.
 - Not used, for the record: the other three sets' alternatives (e.g. Radegem, Salvera, Lieve, Iven, Ansel Marra, Campanella, Carta Morta). Recoverable from this commit's message and the chat, not kept here.
 
 ## 3. Applying it (done)

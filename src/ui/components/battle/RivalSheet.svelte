@@ -15,6 +15,7 @@
 <Sheet open={view !== null} title={view ? (view.person ? `${view.person}, ${view.name}` : view.name) : 'Rival'} {onclose}>
   {#if view}
     <div class="rival" data-testid="rival-sheet">
+      {#if view.opening}<p class="opening" data-testid="rival-opening">“{view.opening}”</p>{/if}
       <p class="plan" data-testid="rival-plan">{view.plan}</p>
       <p class="blurb">{view.blurb} <span class="hp">{view.hp}/{view.maxHp} HP</span></p>
 
@@ -64,6 +65,12 @@
 </Sheet>
 
 <style>
+  .opening {
+    margin: 0 0 var(--space-2);
+    font-family: var(--hand);
+    font-style: italic;
+    font-size: 17px;
+  }
   .rival {
     padding: var(--space-2) var(--space-3) var(--space-3);
     overflow-wrap: anywhere;

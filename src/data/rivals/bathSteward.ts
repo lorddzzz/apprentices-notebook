@@ -28,6 +28,7 @@ export const BATH_STEWARD_RIVAL: RivalDef = {
   id: 'bathSteward',
   name: 'Bath-Steward',
   person: 'Bertus Haas',
+  opening: 'Towels are provided. Tempers are not.',
   token: 'H',
   district: 'bathhouses',
   hp: 38,

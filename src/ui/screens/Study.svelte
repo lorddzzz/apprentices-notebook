@@ -52,6 +52,7 @@
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import NoteUnderDoor from '../components/recruits/NoteUnderDoor.svelte';
   import FairCopySheet from '../components/study/FairCopySheet.svelte';
+  import FirstEvening from '../components/study/FirstEvening.svelte';
   import GlyphRanking from '../components/study/GlyphRanking.svelte';
   import GlyphSheet from '../components/study/GlyphSheet.svelte';
   import HouseholdShelf from '../components/study/HouseholdShelf.svelte';
@@ -245,6 +246,8 @@
       ondesk={deskUnlocked(profile) ? () => go('desk') : null}
     />
   {/if}
+
+  <FirstEvening />
 
   <NoteUnderDoor />
 

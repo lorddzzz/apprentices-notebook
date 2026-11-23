@@ -14,6 +14,7 @@ export const LAMPLIGHTER: RivalDef = {
   id: 'lamplighter',
   name: 'Lamplighter',
   person: 'Gerrit Velt',
+  opening: 'The lamps are lit. You may stay while they are.',
   token: 'L',
   district: 'canals',
   hp: 6,

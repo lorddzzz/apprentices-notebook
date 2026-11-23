@@ -30,6 +30,7 @@ export const REGISTRAR_TUNING = {
 export const REGISTRAR_RIVAL: RivalDef = {
   id: 'registrar',
   name: 'Registrar',
+  opening: 'Your name is not on the roll.',
   token: 'Y',
   district: 'cartographers',
   hp: REGISTRAR_TUNING.hp,

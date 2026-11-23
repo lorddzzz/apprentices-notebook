@@ -18,6 +18,7 @@ export const CHIEF_WARDEN_RIVAL: RivalDef = {
   id: 'chiefWarden',
   name: 'Chief Warden',
   person: 'Aldert Roos',
+  opening: 'I keep the middle of the bridge. Come and stand in it.',
   token: 'K',
   district: 'bridges',
   hp: 32,

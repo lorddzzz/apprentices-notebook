@@ -14,14 +14,14 @@
 | Lowercase placeholders: "the thermae" (handover p2, bathhouses hearing and chimney note), "the academy" (hall hearing line), "keystone watch" (Willem's blurb) | *the Thermae*, *the hall*, *Keystone Watch* |
 | `ending-text.md` §2 had no signature row, so a builder following it could omit it | Row added |
 
-## Open (judgment calls, not changed)
+## Judgment calls, decided and applied (player: "use your best ideas, make it consistent", he/him)
 
-| # | Finding | Options |
-|---|---|---|
-| R1 | **The Cartographers' dead letters** (`inkQuarter/papers.ts`, letters 1–5) say "we ask again, with some patience", "the guild has no wish to be unkind", "we regret": a guild that wishes and regrets. The key in [narrative-audit.md](narrative-audit.md) §2.5 makes them passive ("It was determined…"), and the formal heading *Re: Non-Conforming Join, Sheet 0* has no home in `src/`. | Recast the five letters in the passive and add the heading (new writing, a short task), or keep the warmer polite-but-firm reading and drop the passive rule from §2.5. |
-| R2 | **Rival pronouns.** Docs ([footnotes-content](footnotes-content/) canals, ink quarter, baths) still say "his page", "he serves a notice". Names set no gender. | Sweep to "their"/"the", or decide each rival's pronoun once. |
-| R3 | **Credit lines** on rival pages say the role ("Copied from the Lamplighter's route sheet"), not the person. | Name the person (*Gerrit Velt's route sheet*), or keep the roles on purpose. |
-| R4 | The Copyist's blurb says "copying pamphlets about your notebook"; nothing else in the repo mentions pamphlets. | Reword ("copying out pages about your notebook") or add the pamphlets to the hall's lore. |
-| R5 | `cartographers/lore.ts` badJoin states the owner's act plainly ("The owner went in to keep it"); the guild voice is passive. | Optional recast; keep "no lamps, no bell". |
-| R6 | Design docs (`city-and-districts.md`, `district-cartographers.md`) still say "academy" and the old district names as plain labels. | Fine as labels; add one gloss line per doc if wanted. |
-| R7 | Bath ledger 4 ("the steam … reads them back to the vent") is eerier than the Thermae Guild's soothing manner. | Soften ("is in no hurry to give them back") or keep the chill. |
+| # | Call |
+|---|---|
+| R1 | **Recast the Cartographers' letters in the passive** and give them the formal heading (*Re: Non-Conforming Join, Sheet 0*; the first two, written before the Seam is named, are *Re: Sheet 0, northern edge*). The guild never wishes or regrets as a person; nothing is anyone's decision. The badJoin lore line follows (*It is recorded that the owner went in to keep it*, the joining in the passive). |
+| R2 | **Pronouns: he/him for the owner and for every rival**, which is what the footnote docs already said. The "Theirs alone" rewrite was reverted. The two rival names that read against it were changed: **Hendrik Brenn** (Postmaster), **Lodewijk Tauw** (Carillonneur). Apprentices and the player stay ungendered in text. |
+| R3 | **Credit lines keep the role** ("Copied from the Lamplighter's route sheet"): a route sheet belongs to the office, so the in-world voice stays institutional. Rival names appear on the sheet and header, where the player meets the person. |
+| R4 | The Copyist copies out **pages** about the notebook, not pamphlets. |
+| R5 | Done with R1. |
+| R6 | Left as is: "academy" and the old district labels in design docs are plain labels; the names doc is the key. |
+| R7 | Ledger 4 softened: the steam *is in no hurry to give them back*. |

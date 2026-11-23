@@ -65,6 +65,8 @@ export interface RivalDef {
   name: string;
   /** Personal name (names-and-voice.md), shown beside the title on cards; the Registrar has none. */
   person?: string;
+  /** One line as the rival steps in, shown on the rival's sheet (narrative-audit §2.6). */
+  opening?: string;
   /** Board token, one letter, checked against every other token (`RIVAL_TOKENS`). */
   token: string;
   /** Home district: a page banks only from a fight there (build program §4, RV-15). */

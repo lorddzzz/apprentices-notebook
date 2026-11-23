@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { LOWEST_FLOOR_LINE } from '$data/narration';
   import { clearedHeading } from '../../app/drawing';
   import { game } from '../../app/instance';
   import Button from '../components/common/Button.svelte';
@@ -19,7 +20,7 @@
     <header>
       {#if lower}
         <h1>The stair ends here.</h1>
-        <p>The lowest floor is quiet. Take it all home.</p>
+        <p>{LOWEST_FLOOR_LINE}</p>
       {:else}
         <h1>{clearedHeading(trip)}</h1>
         <p>Nothing deeper answers. Take it all home.</p>

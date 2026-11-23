@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import type { DistrictId } from '$data';
+  import { MAP_HEADING } from '$data/narration';
   import { seeMap } from '$engine';
   import type { StartAt } from '$engine/districts/types';
   import { MAP_PAGE_HEIGHT, mapNodes, mapPageHeight, mapPaths, pagesExtra, underSeam } from '../../app/city';
@@ -59,7 +60,7 @@
 <div class="map" data-testid="map">
   <header>
     <a class="back" href={href('study')} data-testid="map-back">&larr; The study</a>
-    <h1>The owner's map</h1>
+    <h1>{MAP_HEADING}</h1>
   </header>
   <div class="scroll" bind:this={scroller}>
     <div class="page" style:height="{pageHeight}px">
@@ -139,11 +140,15 @@
   h1 {
     margin: 0;
     font-family: var(--hand);
-    font-size: 22px;
+    font-size: 20px;
+    line-height: 1.1;
+    text-align: right;
     font-weight: normal;
     color: var(--parchment);
   }
   .back {
+    flex: none;
+    white-space: nowrap;
     display: inline-flex;
     align-items: center;
     min-height: var(--tap);
