@@ -73,7 +73,7 @@ The "Needs before it starts" and "Unlocks" columns of §2.3 are the dependency m
 
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
-| BL-40 | Real names | design / S | story | ready | Title, apprentices, city and Seam remain placeholders. |
+| BL-40 | Real names | design / S | story | **decided 2026-11-23, unapplied** | Names and voice in [names-and-voice.md](design/names-and-voice.md). Remaining: apply them to data, UI, tests and the handover text (one task). |
 | BL-41 | Owner's mystery and lore delivery | content / M | story, codex | **covered by the plans** | The channel is DK's lore registry (`Profile.papers`, DK §9) plus SM's answering margins; each district plan writes its own thread (CN lamp-ledgers, IQ letters, BH bather's ledger, BR mason's ledgers, BF the Seam's missing bell, CG the registry and the owner's desk) and EN writes the handover. Remaining: a read-through of the whole thread once the texts exist. |
 | BL-42 | Audio | feature / M | audio | needs-design | Tone, free assets or synthesis, mute/reduced distractions and iOS gesture/PWA behavior. |
 

@@ -20,6 +20,7 @@
 | The Seam, revisited (the owner's drawing) | [district-seam.md](district-seam.md) | **Decided** 2026-10-22; base Seam built, growth unbuilt | §6.7 | [seam-grows-plan.md](../plans/seam-grows-plan.md) |
 | The Cartographers' hall (the academy) | [district-cartographers.md](district-cartographers.md) | **Decided** 2026-10-22, trip shape revised 2026-10-23; unbuilt | §6.7 | [cartographers-plan.md](../plans/cartographers-plan.md) |
 | The ending: the Seam becomes yours | [ending.md](ending.md), text draft [ending-text.md](ending-text.md) | **Decided** 2026-10-23; building (generator go 2026-11-17; the handover text waits for review) | §6.7 | [ending-plan.md](../plans/ending-plan.md) |
+| Names and voice | [names-and-voice.md](names-and-voice.md) | **Decided** 2026-11-23; unapplied in `src/` | §9.4 | — |
 | Growing lattice pages | [growing-pages.md](growing-pages.md) | **Built** 2026-10-21; automatic growth, phone pan/Fit and Glyph revision growth | §6.2 | [growing-pages-plan.md](../plans/growing-pages-plan.md) |
 
 ## Current references and historical material
