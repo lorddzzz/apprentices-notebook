@@ -6,7 +6,7 @@
 
 ## 0. Voice rules
 
-- **Same hand as the first note.** Short, dry, plain words; the owner's habits stay (asides about himself, small trade jokes, "my teacher"). No exclamation marks, no archaisms.
+- **Same hand as the first note.** Short, dry, plain words; the owner's habits stay (asides about themself, small trade jokes, "my teacher"). No exclamation marks, no archaisms.
 - **An answer replies to its first note.** It picks up the note's own phrase or image and turns it ("Mind what stands in the way" becomes who stands in the way now).
 - **It speaks to you.** First notes were written for anyone; answers notice what *you* did (you proved it, mastered it, performed it). The eeriness is that someone saw.
 - **The owner is still in the drawing, but never says so.** Hints only: "in here", "down here", a light left on, notes that sank, something being held. Nothing names the owner, the Seam's join, the door or the Cartographers; nothing explains.
