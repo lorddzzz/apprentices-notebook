@@ -20,7 +20,7 @@ import {
 } from '$engine';
 import { parseSaveText, saveText } from '../../src/app/save';
 
-/** A household with only the Draughtsman, so the Stoker can join as a newcomer. */
+/** A household with only the Pell, so the Joost can join as a newcomer. */
 function draughtsmanAlone(): Profile {
   const p = newProfile();
   const { stoker: _page, ...lattices } = p.lattices;

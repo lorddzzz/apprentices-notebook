@@ -180,7 +180,7 @@ test('buildSteps: the final view fills in a sealed jar’s peek from the step it
   const sealed: GameEvent = {
     type: 'jarSealed',
     at: { x: 2, y: 0 },
-    owner: { id: 'stoker', name: 'Stoker', at: { x: 0, y: 0 }, member: true },
+    owner: { id: 'stoker', name: 'Joost', at: { x: 0, y: 0 }, member: true },
     event: 'step',
     id: 1,
     peek: 'oil',

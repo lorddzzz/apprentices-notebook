@@ -36,7 +36,7 @@ test('createBattle spawns units in reading order with ids rat-1, rat-2', () => {
   expect(rat2).toMatchObject({ collar: null, pos: { x: 1, y: 1 } });
   expect(dummy).toMatchObject({ mark: { deep: false, bound: null }, hp: 12 });
   expect(draughtsman).toMatchObject({ kind: 'member', hp: 6, move: 3, moved: false, acted: false });
-  expect(unitAtLabel(s, 'A2').name).toBe('Stoker');
+  expect(unitAtLabel(s, 'A2').name).toBe('Joost');
   expect(s).toMatchObject({ round: 1, phase: 'player', castSeq: 0, landed: [], lab: false });
   // A sentry is born brass (a layout collar) and an elite (P20); members count as elites.
   expect(board('b', { title: 't' }).units[0]).toMatchObject({ collar: null, elite: true });
@@ -103,7 +103,7 @@ test('illegal action throws with reason', () => {
   const moved = act(open, { type: 'move', unit: 'draughtsman', to: { x: 1, y: 0 } });
   const again = { type: 'move', unit: 'draughtsman', to: { x: 2, y: 0 } } as const;
   expect(() => act(moved.state, again)).toThrow(IllegalActionError);
-  expect(() => act(moved.state, again)).toThrow('Draughtsman has already moved');
+  expect(() => act(moved.state, again)).toThrow('Pell has already moved');
 
   const s = board('D r . d');
   expect(isLegal(s, { type: 'move', unit: 'draughtsman', to: { x: 1, y: 0 } })).toMatch(
@@ -116,12 +116,10 @@ test('illegal action throws with reason', () => {
   expect(isLegal(s, { type: 'shove', unit: 'draughtsman', dir: 'left' })).toBe(
     'Nothing to shove left',
   );
-  expect(isLegal(s, { type: 'undoMove', unit: 'draughtsman' })).toBe(
-    'Draughtsman has no move to undo',
-  );
+  expect(isLegal(s, { type: 'undoMove', unit: 'draughtsman' })).toBe('Pell has no move to undo');
   const aim = { kind: 'dir', dir: 'right' } as const;
   expect(isLegal(s, { type: 'cast', unit: 'draughtsman', spell: '0,0', aim })).toBe(
-    'Draughtsman has no spell at 0,0',
+    'Pell has no spell at 0,0',
   );
   expect(isLegal(s, { type: 'endTurn' })).toBeNull();
 });
@@ -149,10 +147,10 @@ test('a downed member and a finished battle refuse actions', () => {
 
   const down = board('D S d', { hp: { A1: 1 } });
   const bumped = act(down, { type: 'shove', unit: 'stoker', dir: 'left' });
-  expect(bumped.lines).toContain('Draughtsman is down');
+  expect(bumped.lines).toContain('Pell is down');
   expect(bumped.state.phase).toBe('player');
   expect(isLegal(bumped.state, { type: 'move', unit: 'draughtsman', to: { x: 0, y: 0 } })).toBe(
-    'Draughtsman is down',
+    'Pell is down',
   );
 });
 

@@ -58,7 +58,7 @@ function startAt(at: Coord, layout = INK_THRESHOLD.board): BattleState {
 const memberAt = (s: BattleState): Coord => memberById(s, 'draughtsman').pos;
 const castUp = (s: BattleState) => {
   const spell = memberById(s, 'draughtsman').spells[0];
-  if (!spell) throw new Error('the Draughtsman has no spell');
+  if (!spell) throw new Error('the Pell has no spell');
   return applyAction(s, {
     type: 'cast',
     unit: 'draughtsman',

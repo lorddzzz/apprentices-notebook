@@ -99,7 +99,7 @@ describe('locked aim', () => {
 
 describe('the starved-chain fallback', () => {
   test('full starvation strikes only the pre-shown, occupied, adjacent tile', () => {
-    // The Bolt finds Draughtsman and Tally fails: nothing happens. Stoker's tile A1 was shown.
+    // The Bolt finds Pell and Tally fails: nothing happens. Joost's tile A1 was shown.
     const s = pinned('S . . .\nL . . D', 'A2', cast('x', 'right', 'A1'), 'Bolt> Tally Strike');
     const before = unitAtLabel(s, 'A1').hp;
     const r = act(s, endTurn);
@@ -133,7 +133,7 @@ describe('the starved-chain fallback', () => {
   test('a partial chain keeps its effects and earns no fallback', () => {
     const s = pinned('S . . .\nL . . D', 'A2', cast('x', 'right', 'A1'), 'Bolt> Ink Tally Strike');
     const r = act(s, endTurn);
-    expect(r.events.some((e) => e.type === 'marked')).toBe(true); // Ink marks Draughtsman, Tally fails
+    expect(r.events.some((e) => e.type === 'marked')).toBe(true); // Ink marks Pell, Tally fails
     expect(fallbacks(r.events)).toEqual([]);
     expect(unitAtLabel(r.state, 'A1').hp).toBe(unitAtLabel(s, 'A1').hp);
   });

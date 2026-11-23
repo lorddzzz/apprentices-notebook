@@ -17,6 +17,7 @@ export const CHIEF_WARDEN_TRICK_ID = 'bridges:keystoneRight';
 export const CHIEF_WARDEN_RIVAL: RivalDef = {
   id: 'chiefWarden',
   name: 'Chief Warden',
+  person: 'Aldert Roos',
   token: 'K',
   district: 'bridges',
   hp: 32,

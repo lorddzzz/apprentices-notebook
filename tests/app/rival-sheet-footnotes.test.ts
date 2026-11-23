@@ -32,6 +32,6 @@ test('the session passes its footnotes to the rival sheet', async () => {
   const session = new BattleSession({ state: s, events: [] }, 'lab', { footnotes: written });
   session.input = { kind: 'inspect', at: rival.pos, member: null, moves: [] };
   seen.length = 0;
-  expect(session.rivalSheet?.plan).toContain('Draughtsman will be hurt');
+  expect(session.rivalSheet?.plan).toContain('Pell will be hurt');
   expect(seen.at(-1)).toEqual(written);
 });

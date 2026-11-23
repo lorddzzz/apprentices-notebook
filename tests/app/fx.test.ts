@@ -266,7 +266,7 @@ test('attack trails follow the attack range and stop at the edge', () => {
 // ── One beat per event ────────────────────────────────────────────────────────────────────────
 
 const rat = ref(a);
-const stoker: UnitRef = { id: 'stoker', name: 'Stoker', at: { x: 0, y: 0 }, member: true };
+const stoker: UnitRef = { id: 'stoker', name: 'Joost', at: { x: 0, y: 0 }, member: true };
 const intent = { kind: 'attack', attack: 'bite', dir: 'left', order: 1 } as const;
 
 /** One sample of every event in the union: a new event type fails to compile until it is added. */

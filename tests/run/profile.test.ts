@@ -62,7 +62,7 @@ test('canPlace reasons', () => {
   expect(canPlace(q, 'draughtsman', { x: 4, y: 1 }, 'strike')).toBe('Not enough ink');
 });
 
-test('the Stoker is trained in the Seam: its runes cost him 1 less (P33, P36)', () => {
+test('the Joost is trained in the Seam: its runes cost him 1 less (P33, P36)', () => {
   const p = newProfile();
   expect(inkUsed(latticeOf(p, 'stoker'))).toBe(4); // priced without a lean
   const s = compiledFor(p, 'stoker').spells[0];

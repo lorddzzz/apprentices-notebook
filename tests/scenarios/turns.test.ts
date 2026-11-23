@@ -19,11 +19,7 @@ const tile = (s: BattleState, lbl: string) => tileAt(s, parseLabel(lbl));
 describe('intents resolve', () => {
   test('bite resolves', () => {
     const r = act(board('r D'), endTurn);
-    expectLogIncludes(r.events, [
-      'Enemies act',
-      'rat at A1 bites right',
-      'Bite hits Draughtsman for 1',
-    ]);
+    expectLogIncludes(r.events, ['Enemies act', 'rat at A1 bites right', 'Bite hits Pell for 1']);
     expect(unitAtLabel(r.state, 'B1').hp).toBe(5);
   });
 
@@ -31,8 +27,8 @@ describe('intents resolve', () => {
     const r = act(board('f D'), endTurn);
     expectLogIncludes(r.events, [
       'familiar at A1 spits right',
-      'Spit hits Draughtsman for 1',
-      'Draughtsman is marked',
+      'Spit hits Pell for 1',
+      'Pell is marked',
     ]);
   });
 
@@ -83,7 +79,7 @@ describe('intents resolve', () => {
     expectLogIncludes(r.events, [
       'Enemies act',
       'sentry at A1 fires right',
-      'Line hits Draughtsman for 2',
+      'Line hits Pell for 2',
     ]);
   });
 
@@ -109,9 +105,9 @@ describe('intents resolve', () => {
     expectLogIncludes(r.events, [
       'Enemies act',
       'rat at A1 bites right',
-      'Bite hits Draughtsman for 1',
+      'Bite hits Pell for 1',
       'rat at C1 bites left',
-      'Bite hits Draughtsman for 1',
+      'Bite hits Pell for 1',
     ]);
   });
 
@@ -238,8 +234,8 @@ describe('the round', () => {
     expect(describeLog(r.events)).toEqual([
       'Enemies act',
       'sentry at A1 fires right',
-      'Line hits Draughtsman for 2',
-      'Draughtsman is down',
+      'Line hits Pell for 2',
+      'Pell is down',
       'The party is wiped out',
     ]);
     expect(r.state.phase).toBe('lost');

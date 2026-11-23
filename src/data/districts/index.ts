@@ -191,7 +191,10 @@ export type KitGate =
 /** The full shape after DK-17 (one entry per district file). */
 export interface DistrictData {
   id: DistrictId;
+  /** Proper name (names-and-voice.md): 'Lampwater'. */
   name: string;
+  /** Plain trade label shown beside it on the map: 'the oil-lit canals'; '' when the name says it. */
+  plain: string;
   lean: DistrictLean;
   guild: string;
   edge: EdgeRule;

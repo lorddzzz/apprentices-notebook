@@ -23,7 +23,7 @@ import { board } from './harness';
 const at = parseLabel;
 const NOTE = LAMPLIGHTER_WICK.id;
 
-/** The Draughtsman's step-jar: a Strike on whoever opens it. */
+/** The Pell's step-jar: a Strike on whoever opens it. */
 const strikeJar = (): Jar => ({
   owner: 'draughtsman',
   event: 'step',

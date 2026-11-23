@@ -56,7 +56,7 @@ const breakSeal = (s: BattleState) =>
     dealDamage(ctx, seal, 3, 'Strike');
   });
 
-/** Stoker in his row, two tiles of floor behind her: his Serve notice has room to push. */
+/** Joost in his row, two tiles of floor behind her: his Serve notice has room to push. */
 const IN_LINE = '. . . . . .\n. . S . . p\n. . . . . .';
 
 describe('the clock writ, his trick', () => {
@@ -106,8 +106,8 @@ describe('the clock writ, his trick', () => {
     const r = endTurn(s);
     expectLogIncludes(r.events, [
       'the clock runs out: 1 mark collect',
-      "Stoker's mark is spent",
-      'Clock hits Stoker for 3',
+      "Joost's mark is spent",
+      'Clock hits Joost for 3',
       "postmaster's seal at F2 dies",
     ]);
     expect(hp(r.state, 'stoker')).toBe(hp(s, 'stoker') - 3);
@@ -133,9 +133,9 @@ describe('his kit and routine', () => {
       'postmaster at F2 casts Bolt left',
       'bolt aims at stoker',
       'Bolt lands at C2',
-      'Stoker is marked',
-      "Stoker's mark is spent",
-      'Stoker is pushed left to A2',
+      'Joost is marked',
+      "Joost's mark is spent",
+      'Joost is pushed left to A2',
     ]);
     expect(r.state.units.find((u) => u.id === 'stoker')?.pos).toEqual(at('A2'));
   });
@@ -240,7 +240,7 @@ describe('his deliveries (the heart can be lost)', () => {
     const s = heart(AT_COUNTER);
     expect(letter(s).intent).toMatchObject({ kind: 'behaviour', telegraph: { label: 'deliver' } });
     expect(intentPhrase(s, letter(s))).toMatch(
-      new RegExp(`^will deliver to Stoker and burst for ${INK_FOE_TUNING.counterBurst} `),
+      new RegExp(`^will deliver to Joost and burst for ${INK_FOE_TUNING.counterBurst} `),
     );
     expect(INK_FOE_TUNING.counterBurst).toBeGreaterThan(INK_FOE_TUNING.deadLetterBurst);
     expect(letter(s).shield).toBe(INK_FOE_TUNING.counterShield);
@@ -251,7 +251,7 @@ describe('his deliveries (the heart can be lost)', () => {
     const s = heart(AT_COUNTER);
     const r = endTurn(s);
     expectLogIncludes(r.events, ['dead letter at B1 bursts', 'dead letter at B1 dies']);
-    expectLogIncludes(r.events, [`Dead letter hits Stoker for ${INK_FOE_TUNING.counterBurst}`]);
+    expectLogIncludes(r.events, [`Dead letter hits Joost for ${INK_FOE_TUNING.counterBurst}`]);
     expect(hp(r.state, 'stoker')).toBe(hp(s, 'stoker') - INK_FOE_TUNING.counterBurst);
   });
 

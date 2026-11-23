@@ -25,7 +25,7 @@ import {
 const M = 'draughtsman';
 const c = (x: number, y: number) => ({ x, y });
 
-/** A profile whose Draughtsman page holds `ascii`, with `casts` copies of the whole spell as proof. */
+/** A profile whose Pell page holds `ascii`, with `casts` copies of the whole spell as proof. */
 function proven(ascii: string, casts = TUNING.provenCasts): Profile {
   let p = setMemberLattice(newProfile(), M, parseLattice(ascii));
   const lattice = latticeOf(p, M);

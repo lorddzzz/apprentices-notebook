@@ -53,7 +53,7 @@ describe('Lab kits (pure)', () => {
     expect(setKit({}, 'draughtsman', { habit: null })).toEqual({ draughtsman: { habit: null } });
   });
 
-  test('the Draughtsman given Hop and long Touch plays both', () => {
+  test('the Pell given Hop and long Touch plays both', () => {
     const s = lab({ draughtsman: { action: 'hop', habit: 'longTouch' } });
     const me = memberById(s, 'draughtsman');
     expect(me.action).toBe('hop');
@@ -64,7 +64,7 @@ describe('Lab kits (pure)', () => {
     expect(legalAims(lab(), 'draughtsman', '0,0')).not.toContainEqual(c1);
     const touched = applyAction(s, { type: 'cast', unit: 'draughtsman', spell: '0,0', aim: c1 });
     expect(touched.events.some((e) => e.type === 'aimed' && e.habit === 'longTouch')).toBe(true);
-    // Hop down two tiles to A3; the Draughtsman's own Shove would have had nothing there to do.
+    // Hop down two tiles to A3; the Pell's own Shove would have had nothing there to do.
     const hop = applyAction(s, { type: 'hop', unit: 'draughtsman', dir: 'down' });
     expect(hop.events.some((e) => e.type === 'hop')).toBe(true);
     expect(memberById(hop.state, 'draughtsman').pos).toEqual(parseLabel('A3'));
@@ -114,7 +114,7 @@ describe('Lab kits in the store', () => {
     return l;
   };
 
-  test('giving the Draughtsman Hop and long Touch lets him play both; undo takes them back', async () => {
+  test('giving the Pell Hop and long Touch lets him play both; undo takes them back', async () => {
     const l = newLab();
     const session = l.session;
     if (!session) throw new Error('no session');

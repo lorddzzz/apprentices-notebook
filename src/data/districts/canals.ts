@@ -443,7 +443,8 @@ export const CANAL_LEDGERS: readonly PaperDef[] = [
  */
 export const CANALS_KIT: DistrictData = {
   id: 'canals',
-  name: 'The oil-lit canals',
+  name: 'Lampwater',
+  plain: 'the oil-lit canals',
   guild: 'The Lamplighters',
   edge: 'wall',
   rooms: CANAL_ROOMS,

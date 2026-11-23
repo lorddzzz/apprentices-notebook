@@ -107,7 +107,7 @@ describe('the Marginalia', () => {
       expectLog(r.events, [
         'the Marginalia writes Ink on B2–D2',
         'ink lands at B2 as blot',
-        'Stoker is marked',
+        'Joost is marked',
         'ink lands at D2 as blot',
       ]);
       expect(unitOf(r.state, 'stoker').mark).not.toBeNull();
@@ -146,7 +146,7 @@ describe('the Marginalia', () => {
       const r = hand(board(OPEN), 'spark');
       expectLogIncludes(r.events, [
         'Spark hits nothing',
-        'Spark hits Stoker for 1',
+        'Spark hits Joost for 1',
         'Spark hits nothing',
       ]);
       expect(unitOf(r.state, 'stoker').hp).toBe(unitOf(board(OPEN), 'stoker').hp - 1);
@@ -227,9 +227,9 @@ describe('the Marginalia', () => {
     expectLogIncludes(r.events, [
       'the Marginalia strikes Spark on B2–D2',
       'Spark hits familiar at B2 for 1',
-      'storm bursts at B2, hitting familiar at B2, Stoker, rat at D2',
+      'storm bursts at B2, hitting familiar at B2, Joost, rat at D2',
       'Storm hits familiar at B2 for 2',
-      'Storm hits Stoker for 2',
+      'Storm hits Joost for 2',
       'Storm hits rat at D2 for 2',
     ]);
     // Like a three-target cast, each tile's spark bursts the cloud again (no network dedupe).

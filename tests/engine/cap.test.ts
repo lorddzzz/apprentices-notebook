@@ -43,12 +43,12 @@ function drawn(v: BoardView) {
   };
 }
 
-/** The Draughtsman casts his first spell right with `cap` events allowed. */
+/** The Pell casts his first spell right with `cap` events allowed. */
 function castWithCap(s: BattleState, cap: number): { state: BattleState; events: GameEvent[] } {
   const ctx: Ctx = { s: cloneData(s), log: [], cast: null, meta: {}, footnotes: {}, eventCap: cap };
   const m = ctx.s.units.find((u) => u.id === 'draughtsman');
   const spell = m?.kind === 'member' ? m.spells[0]?.key : undefined;
-  if (spell === undefined) throw new Error('the Draughtsman has no spell');
+  if (spell === undefined) throw new Error('the Pell has no spell');
   castAction(ctx, { type: 'cast', unit: 'draughtsman', spell, aim: { kind: 'dir', dir: 'right' } });
   return { state: ctx.s, events: ctx.log };
 }
@@ -86,7 +86,7 @@ const CHAINS: Record<string, () => BattleState> = {
     withLattices('D r r r r .\n. = = = = .', { draughtsman: 'Bolt> inv:zap' }, { inventions: lib }),
 };
 
-/** A Shove pushes the rat onto the Stoker's step-jar, which strikes whoever opens it. */
+/** A Shove pushes the rat onto the Joost's step-jar, which strikes whoever opens it. */
 function pushOntoJar(): BattleState {
   const s = cloneData(
     withLattices('D r . .\nS . . .', { draughtsman: 'Bolt> Shove' }, { hp: { B1: 20 } }),
@@ -179,12 +179,12 @@ describe('the event cap (BL-107)', () => {
     };
     const [d, mid, far] = [who('A1'), who('B1'), who('C1')];
     // Gate every tile but the first two: the far rat's own tile no longer takes a unit, so the
-    // board has no free tile for the Draughtsman once the far rat takes A1.
+    // board has no free tile for the Pell once the far rat takes A1.
     for (const t of s.tiles) {
       if (t !== tileAt(s, at('A1')) && t !== tileAt(s, at('B1'))) t.terrain.gate = true;
     }
     const ctx: Ctx = { s, log: [], cast: null, meta: {}, footnotes: {}, eventCap: UNCAPPED };
-    // The Draughtsman wants B1 (the middle rat stands there, unmoved); the far rat wants A1.
+    // The Pell wants B1 (the middle rat stands there, unmoved); the far rat wants A1.
     undoBoard(ctx, {
       tiles: [],
       units: [

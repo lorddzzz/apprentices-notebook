@@ -69,6 +69,6 @@ describe('sketch map helpers', () => {
 
   test('nodeTag joins the lean text and guild', () => {
     const n = mapNode(withCity({ heard: ['seam', 'canals'] }), 'canals');
-    expect(n && nodeTag(n)).toBe('Oil and water · The Lamplighters');
+    expect(n && nodeTag(n)).toBe('the oil-lit canals · Oil and water · The Lamplighters');
   });
 });

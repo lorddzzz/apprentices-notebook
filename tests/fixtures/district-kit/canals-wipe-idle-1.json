@@ -44,7 +44,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 2, "y": 6 }, "member": true },
           "amount": 2,
           "source": "Lunge",
           "bonus": [],
@@ -100,7 +100,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 2, "y": 6 }, "member": true },
           "amount": 2,
           "source": "Lunge",
           "bonus": [],
@@ -159,7 +159,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 2, "y": 6 }, "member": true },
           "amount": 1,
           "source": "Bite",
           "bonus": [],
@@ -173,7 +173,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 2, "y": 6 }, "member": true },
           "amount": 2,
           "source": "Lunge",
           "bonus": [],
@@ -225,7 +225,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           },
@@ -242,7 +242,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 2, "y": 6 }, "member": true },
           "amount": 1,
           "source": "Bite",
           "bonus": [],
@@ -250,7 +250,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 2, "y": 6 }, "member": true }
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 2, "y": 6 }, "member": true }
         },
         {
           "type": "attack",
@@ -303,7 +303,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           },
@@ -356,7 +356,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           },
@@ -375,7 +375,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           },
@@ -415,7 +415,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           },
@@ -434,7 +434,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           },
@@ -447,7 +447,7 @@
           "type": "died",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 8 },
             "member": true
           }

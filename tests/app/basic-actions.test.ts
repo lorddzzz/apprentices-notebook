@@ -27,7 +27,7 @@ import { at } from './battleFixtures';
 const pad = (row: string): string => [row, ...Array(7).fill('. . . . . .')].join('\n');
 const unseen: PreviewCtx = { witnessed: new Set() };
 
-/** A Lab battle where the Draughtsman (or `who`) is given `action`, whatever her registry entry says. */
+/** A Lab battle where the Pell (or `who`) is given `action`, whatever her registry entry says. */
 function withAction(
   board: string,
   action: BasicActionId,
@@ -101,7 +101,7 @@ describe('the basic mode', () => {
     expect(basicOf(s, 'draughtsman')).toBeNull();
     expect(onBasic(s, memberMode(s, 'draughtsman')).mode).toMatchObject({
       kind: 'member',
-      note: 'Draughtsman has already acted.',
+      note: 'Pell has already acted.',
     });
   });
 
@@ -257,7 +257,7 @@ describe('Swap', () => {
     const confirm = expectKind(onCell(s, mode, at('B1')).mode, 'confirm');
     expect(confirm.preview.action).toEqual({ type: 'swap', unit: 'draughtsman', dir: 'right' });
     expect(confirm.preview.targets).toEqual([at('B1')]);
-    expect(confirm.preview.summary).toBe('Swap rat right: Draughtsman and rat B1 trade places');
+    expect(confirm.preview.summary).toBe('Swap rat right: Pell and rat B1 trade places');
     const ov = overlayFor(s, confirm);
     expect(ov.highlights).toContainEqual({ kind: 'arc', from: at('A1'), to: at('B1'), both: true });
     expect(ov.ghosts).toMatchObject([

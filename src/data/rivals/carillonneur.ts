@@ -22,6 +22,7 @@ export const RING_TRUE = 'foundry:ringTrue';
 export const CARILLONNEUR_RIVAL: RivalDef = {
   id: 'carillonneur',
   name: 'Carillonneur',
+  person: 'Lidewij Tauw',
   token: 'V',
   district: 'foundry',
   hp: FOUNDRY_TUNING.carillonneur.hp,

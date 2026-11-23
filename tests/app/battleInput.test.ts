@@ -165,7 +165,7 @@ describe('battle input', () => {
     const s = battleOf(CAST_BOARD);
     const member = memberMode(s, 'draughtsman');
     expect(hintFor(IDLE, s).text).toMatch(/Tap a party member/);
-    expect(hintFor(member, s).text).toBe('Draughtsman: tap a dot to move or pick a spell.');
+    expect(hintFor(member, s).text).toBe('Pell: tap a dot to move or pick a spell.');
     const aim = onSpell(s, member, '0,1').mode;
     expect(hintFor(aim, s).text).toMatch(/^Bolt: tap any tile/);
     const confirm = onCell(s, aim, at('D1')).mode;
@@ -174,7 +174,7 @@ describe('battle input', () => {
 
   test('end-turn warning names only members with a usable spell and a legal aim', () => {
     const s = labBattle('sandbox');
-    expect(unspentCasters(s)).toEqual(['Draughtsman', 'Stoker']);
+    expect(unspentCasters(s)).toEqual(['Pell', 'Joost']);
     // A member who has already acted is not named.
     const cast = applyAction(s, {
       type: 'cast',
@@ -182,10 +182,10 @@ describe('battle input', () => {
       spell: '0,1',
       aim: { kind: 'dir', dir: 'up' },
     }).state;
-    expect(unspentCasters(cast)).toEqual(['Stoker']);
+    expect(unspentCasters(cast)).toEqual(['Joost']);
     // Out of charges in a real (non-lab) battle: no usable spell, no warning.
     const real = labBattle('sandbox', false);
-    expect(unspentCasters(real)).toContain('Stoker');
+    expect(unspentCasters(real)).toContain('Joost');
     const spent = {
       ...real,
       units: real.units.map((u) =>
@@ -194,7 +194,7 @@ describe('battle input', () => {
           : u,
       ),
     };
-    expect(unspentCasters(spent)).not.toContain('Stoker');
+    expect(unspentCasters(spent)).not.toContain('Joost');
   });
 
   test('only the active mode lights an action button', () => {

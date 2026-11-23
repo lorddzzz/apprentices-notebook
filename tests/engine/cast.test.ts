@@ -49,7 +49,7 @@ test('no charges → illegal', () => {
 test('cannot cast twice in a turn', () => {
   const s = withLattices('D . d', { draughtsman: 'Bolt>' });
   const r = cast(s, 'draughtsman', 'right');
-  expect(isLegal(r.state, boltRight)).toBe('Draughtsman has already acted');
+  expect(isLegal(r.state, boltRight)).toBe('Pell has already acted');
 });
 
 test('casting clears the move undo', () => {
@@ -93,7 +93,7 @@ test('a cast logs who casts, where it aims and how the line flies, then a silent
   const s = withLattices('D . r . S', { draughtsman: 'Bolt> Strike' });
   const r = cast(s, 'draughtsman', 'right');
   expectLog(r.events, [
-    'Draughtsman casts Bolt right',
+    'Pell casts Bolt right',
     'bolt aims at rat-1',
     'Bolt lands at C1',
     'Strike hits rat at C1 for 2',
@@ -131,13 +131,13 @@ test('every event of a cast carries its origin; casts count up', () => {
 test('bolt with no unit in its line aims at the last tile in range (P21), range 4', () => {
   const s = withLattices('D . . . . r', { draughtsman: 'Bolt>' });
   expectLog(cast(s, 'draughtsman', 'right').events, [
-    'Draughtsman casts Bolt right',
+    'Pell casts Bolt right',
     'bolt aims at E1',
     'Bolt lands at E1',
   ]);
 });
 
-test('a gifted Bolt reaches one tile further (P36: the Stoker is gifted in the Seam)', () => {
+test('a gifted Bolt reaches one tile further (P36: the Joost is gifted in the Seam)', () => {
   const s = withLattices('S . . . . .', { stoker: 'Bolt>' });
   expectLogIncludes(cast(s, 'stoker', 'right').events, ['bolt aims at F1']);
 });
@@ -145,7 +145,7 @@ test('a gifted Bolt reaches one tile further (P36: the Stoker is gifted in the S
 test('a cloud or a plate stops the line and is the target', () => {
   const cloud = withLattices('D . ~ r', { draughtsman: 'Bolt>' });
   expectLog(cast(cloud, 'draughtsman', 'right').events, [
-    'Draughtsman casts Bolt right',
+    'Pell casts Bolt right',
     'bolt aims at C1',
     'Bolt is stopped by the cloud at C1',
   ]);

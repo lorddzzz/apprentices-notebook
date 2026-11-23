@@ -2,7 +2,7 @@
 
 > **Status: Approved (EN-G2, 2026-11-18), as drafted with no changes.** Pack L builds it as written and reads it as data.
 > Design: [ending.md](ending.md) §1.1. Threads: [district-cartographers.md](district-cartographers.md) §2 (each lands once, marked in the right-hand column). Plan: [ending-plan.md](../plans/ending-plan.md) Pack C.
-> Voice: the owner's hand, as in the margins: plain, warm, a little dry, never grand. Second person. No name is given (BL-40 holds the owner's name and face).
+> Voice: the owner's hand, as in the margins: plain, warm, a little dry, never grand. Second person. The name (Marit Vos, [names-and-voice.md](names-and-voice.md)) is signed once, under page 6, and in the credits.
 
 ## 1. The door on the map
 

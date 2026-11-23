@@ -170,7 +170,7 @@ const ref = (id: string, name: string, x: number, y: number, member = false): Un
   member,
 });
 
-const stoker = ref('stoker', 'Stoker', 0, 1, true);
+const stoker = ref('stoker', 'Joost', 0, 1, true);
 const rat1 = ref('rat-1', 'rat', 2, 1);
 const rat2 = ref('rat-2', 'rat', 4, 1);
 
@@ -382,7 +382,7 @@ export function hallOverlay(): Overlay {
   return {
     ...EMPTY_OVERLAY,
     highlights: [
-      // The Registrar's circle on the Stoker's pencil, held by the Eraser (a guild hand), still shown.
+      // The Registrar's circle on the Joost's pencil, held by the Eraser (a guild hand), still shown.
       {
         kind: 'district',
         key: 'cartographers:circle',

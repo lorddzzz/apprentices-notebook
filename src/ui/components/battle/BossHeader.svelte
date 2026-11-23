@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ENEMIES } from '$data';
+  import { RIVALS } from '$data/rivals';
   import type { UnitView } from '../../../app/view';
 
   interface Props {
@@ -12,12 +13,17 @@
   const bosses = $derived(
     units.filter((u) => u.kind === 'enemy' && u.alive && ENEMIES[u.def as keyof typeof ENEMIES].boss),
   );
+  /** "Gerrit Velt, Lamplighter" for a named rival; the plain title otherwise. */
+  const label = (u: UnitView): string => {
+    const person = RIVALS[u.def as keyof typeof RIVALS]?.person;
+    return person ? `${person}, ${u.name}` : u.name;
+  };
 </script>
 
 {#each bosses as b (b.id)}
   <div class="boss" data-testid="boss-header">
-    <span class="name">{b.name}</span>
-    <div class="bar" role="img" aria-label="{b.name}: {b.hp} of {b.maxHp} HP">
+    <span class="name">{label(b)}</span>
+    <div class="bar" role="img" aria-label="{label(b)}: {b.hp} of {b.maxHp} HP">
       <div class="fill" style:width="{(100 * b.hp) / b.maxHp}%"></div>
     </div>
     <span class="hp">{b.hp}/{b.maxHp}</span>

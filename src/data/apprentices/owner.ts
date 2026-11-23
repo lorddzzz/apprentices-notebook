@@ -3,12 +3,13 @@ import type { ApprenticeDef } from '../types';
 /**
  * The tenth apprentice (party.md §2, ending P18): the one who held the join. Never offered: no
  * `found` or `beat`, so recruit offers and the recruit parse (which read `RECRUITS`) never see
- * them. Joins at the handover (EN-10). Real name, face and art are BL-40.
+ * them. Joins at the handover (EN-10). The name is Marit Vos (names-and-voice.md); the full name is revealed once, at the end. Face and art are the art pass.
  */
 export const OWNER = {
   owner: {
     id: 'owner',
-    name: 'The owner',
+    name: 'Marit',
+    trade: 'Mender',
     token: 'O',
     look: { hue: 'gilt', shape: 'ring' },
     hp: 5,

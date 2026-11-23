@@ -133,7 +133,7 @@ describe('answering the writ (P9)', () => {
     const s = draft(withClock('S . . d'), serve('C1', 'B1')).state;
     const r = draft(s, (ctx) => moveMember(ctx, member(ctx.s, 'stoker'), at('B1')));
     expectLog(r.events, [
-      'Stoker moves to B1',
+      'Joost moves to B1',
       'the clock writ is answered on the stamp and lifts',
       "postmaster's seal at C1 dies",
     ]);
@@ -154,15 +154,15 @@ describe('answering the writ (P9)', () => {
   });
 
   test('return-does-not-answer: sent back onto the stamp by return to sender, the writ stands', () => {
-    // The Stoker starts the round on A1, under the clock's stamp; it walks onto the return stamp
+    // The Joost starts the round on A1, under the clock's stamp; it walks onto the return stamp
     // at C1 and is sent back to A1 with cause `return`, which the clock stamp ignores.
     const s = withClock('S . {return} .\n. . . d', [WRITS_RULE_ID]);
     const served = draft(s, serve('B2', 'A1')).state;
     const r = draft(served, (ctx) => moveMember(ctx, member(ctx.s, 'stoker'), at('C1')));
     expectLog(r.events, [
-      'Stoker moves to C1',
-      'the stamp at C1 returns Stoker to sender',
-      'Stoker moves to A1',
+      'Joost moves to C1',
+      'the stamp at C1 returns Joost to sender',
+      'Joost moves to A1',
     ]);
     expect(member(r.state, 'stoker').pos).toEqual(at('A1'));
     expect(openClock(r.state)).not.toBeNull();

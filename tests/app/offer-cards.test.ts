@@ -100,14 +100,14 @@ describe('the recruit card', () => {
   test('says someone joins you, with her token and name', () => {
     const card = recruitCard({ apprentice: 'runaway' });
     expect(card?.def.token).toBe('R');
-    expect(card?.title).toBe('Lamp-pole runaway');
+    expect(card?.title).toBe('Hanneke');
     expect(card?.text).toMatch(/^Someone joins you\./);
     expect(card?.text).toContain(card?.def.blurb);
   });
 
   test('lootLine names her instead of printing an id', () => {
     expect(lootLine(item)).toEqual({
-      title: 'Lamp-pole runaway',
+      title: 'Hanneke',
       text: expect.stringMatching(/^Someone joins you\./),
     });
     expect(lootLine({ kind: 'recruit', apprentice: 'nobody' as 'runaway' }).title).toBe('recruit');

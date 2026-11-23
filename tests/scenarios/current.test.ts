@@ -110,8 +110,8 @@ describe('floats drift (K-8)', () => {
 describe('units drift (K-9)', () => {
   test('a member and a rat in the lane are carried', () => {
     const r = round(board(`Dw> w> .\nrw> w> .${DUMMY}`));
-    expect(core(r.events)).toEqual(['Draughtsman drifts to B1; rat at A2 drifts to B2']);
-    expect(unitAtLabel(r.state, 'B1').name).toBe('Draughtsman');
+    expect(core(r.events)).toEqual(['Pell drifts to B1; rat at A2 drifts to B2']);
+    expect(unitAtLabel(r.state, 'B1').name).toBe('Pell');
     expect(unitAtLabel(r.state, 'B2').name).toBe('rat');
   });
 
@@ -164,7 +164,7 @@ describe('wading (K-7)', () => {
     const r = draft(s, (ctx) =>
       moveMember(ctx, unitAtLabel(ctx.s, 'A1') as never, parseLabel('B1')),
     );
-    expect(unitAtLabel(r.state, 'B1').name).toBe('Draughtsman');
+    expect(unitAtLabel(r.state, 'B1').name).toBe('Pell');
   });
 });
 

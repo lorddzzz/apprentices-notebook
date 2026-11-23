@@ -124,7 +124,7 @@ describe('the draw descriptor to a TrickDraw (pure)', () => {
       sequence: [2, 4],
       countdown: 1,
     });
-    expect(d.where).toBe('C1, B3, D3, Draughtsman');
+    expect(d.where).toBe('C1, B3, D3, Pell');
   });
 
   test('an object off the board has no place; a long list is cut', () => {

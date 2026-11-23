@@ -98,7 +98,7 @@ describe('the trial scene', () => {
     expect(isCloud(tileAt(r.state, at('E2')))).toBe(true); // wide: Vat 2x2 and Seep's neighbours
     r = endTurn(r.state);
     expectLogIncludes(r.events, ['Bath-Steward at B2 casts Bolt right']);
-    expect(describeLog(r.events)).toContain('Draughtsman is pushed right to D2');
+    expect(describeLog(r.events)).toContain('Pell is pushed right to D2');
     expect(rivalOf(r.state).rival?.charges).toMatchObject({ steamHall: 4, shove: 4 });
   });
 
@@ -218,7 +218,7 @@ describe('the Steward’s note on Seep (level II, seep:member)', () => {
   });
 
   test('written: an ally of yours on a cloud beside the target is passed over, the rest re-forms', () => {
-    // Seep Strike on the rat at B1: the Stoker beside it stands on cloud, with free cloud to E1.
+    // Seep Strike on the rat at B1: the Joost beside it stands on cloud, with free cloud to E1.
     const room = () =>
       withLattices(
         'D r S~ ~ ~\n. . . . .',

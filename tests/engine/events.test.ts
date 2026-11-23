@@ -2,8 +2,8 @@ import { expect, test } from 'vitest';
 import { describe, type GameEvent, isSilent, namedIn, type UnitRef } from '$engine';
 
 const at = (x: number, y: number) => ({ x, y });
-const draughtsman: UnitRef = { id: 'draughtsman', name: 'Draughtsman', at: at(0, 0), member: true };
-const stoker: UnitRef = { id: 'stoker', name: 'Stoker', at: at(4, 6), member: true };
+const draughtsman: UnitRef = { id: 'draughtsman', name: 'Pell', at: at(0, 0), member: true };
+const stoker: UnitRef = { id: 'stoker', name: 'Joost', at: at(4, 6), member: true };
 const rat: UnitRef = { id: 'rat-1', name: 'rat', at: at(2, 1), member: false };
 const sentry: UnitRef = { id: 'sentry-1', name: 'sentry', at: at(0, 0), member: false };
 const crate: UnitRef = { id: 'barge-1', name: 'crate', at: at(2, 1), member: false };
@@ -31,7 +31,7 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
         path: [at(3, 6), at(2, 6), at(1, 6)],
         cause: 'walk',
       },
-      'Stoker moves to B7',
+      'Joost moves to B7',
     ],
     [
       {
@@ -45,22 +45,20 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
       'rat at C2 moves to D2',
     ],
   ],
-  moveUndone: [
-    [{ type: 'moveUndone', unit: draughtsman, to: at(0, 0) }, 'Draughtsman steps back to A1'],
-  ],
-  pull: [[{ type: 'pull', by: stoker, target: rat, dir: 'left' }, 'Stoker pulls rat at C2']],
-  hop: [[{ type: 'hop', unit: stoker, dir: 'right' }, 'Stoker hops right']],
+  moveUndone: [[{ type: 'moveUndone', unit: draughtsman, to: at(0, 0) }, 'Pell steps back to A1']],
+  pull: [[{ type: 'pull', by: stoker, target: rat, dir: 'left' }, 'Joost pulls rat at C2']],
+  hop: [[{ type: 'hop', unit: stoker, dir: 'right' }, 'Joost hops right']],
   swapWith: [
-    [{ type: 'swapWith', by: stoker, target: rat, dir: 'right' }, 'Stoker swaps with rat at C2'],
+    [{ type: 'swapWith', by: stoker, target: rat, dir: 'right' }, 'Joost swaps with rat at C2'],
   ],
   unharmed: [
     [
       { type: 'unharmed', unit: stoker, source: 'Storm', harm: 'steam' },
-      'Storm leaves Stoker unharmed',
+      'Storm leaves Joost unharmed',
     ],
   ],
   shove: [
-    [{ type: 'shove', by: stoker, target: rat, dir: 'right' }, 'Stoker shoves rat at C2 right'],
+    [{ type: 'shove', by: stoker, target: rat, dir: 'right' }, 'Joost shoves rat at C2 right'],
   ],
   cast: [
     [
@@ -71,7 +69,7 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
         aim: { kind: 'dir', dir: 'down' },
         aimText: 'down',
       },
-      'Draughtsman casts Bolt down',
+      'Pell casts Bolt down',
     ],
   ],
   lands: [[{ type: 'lands', source: 'Bolt', at: at(5, 0), path: [] }, 'Bolt lands at F1']],
@@ -94,13 +92,13 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   shieldAbsorbs: [
     [
       { type: 'shieldAbsorbs', unit: stoker, absorbed: 1, left: 1 },
-      "Stoker's shield absorbs 1 (1 left)",
+      "Joost's shield absorbs 1 (1 left)",
     ],
   ],
-  shieldGained: [[{ type: 'shieldGained', unit: stoker, amount: 2 }, 'Stoker gains a shield of 2']],
+  shieldGained: [[{ type: 'shieldGained', unit: stoker, amount: 2 }, 'Joost gains a shield of 2']],
   died: [
     [{ type: 'died', unit: rat }, 'rat at C2 dies'],
-    [{ type: 'died', unit: stoker }, 'Stoker is down'],
+    [{ type: 'died', unit: stoker }, 'Joost is down'],
   ],
   telegraph: [
     [{ type: 'telegraph', unit: sentry, intent, verb: 'fire' }, 'sentry at A1 will fire right'],
@@ -226,7 +224,7 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
         path: [rat.at],
         cause: 'swap',
       },
-      'Stoker and rat at C2 swap places',
+      'Joost and rat at C2 swap places',
     ],
   ],
   drawn: [
@@ -266,7 +264,7 @@ const FIXTURES: { [T in GameEvent['type']]: Fixture<T>[] } = {
   jarSealed: [
     [
       { type: 'jarSealed', at: at(1, 1), owner: draughtsman, event: 'dusk', id: 1, peek: null },
-      'Draughtsman seals a jar at B2 (opens at dusk)',
+      'Pell seals a jar at B2 (opens at dusk)',
     ],
   ],
   jarOpened: [

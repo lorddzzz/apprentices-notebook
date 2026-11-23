@@ -237,6 +237,7 @@ export const SEAM_ROOMS: readonly EncounterDef[] = BASE.map((e) => ({
 export const SEAM_KIT: DistrictData = {
   id: 'seam',
   name: 'The Seam',
+  plain: '',
   guild: "No guild: the owner's drawing",
   edge: 'wall',
   rooms: SEAM_ROOMS,

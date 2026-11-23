@@ -32,7 +32,7 @@ test('sentry-cloud-block: a cloud stops the line, and without it the line hits (
   expectLogIncludes(act(open, { type: 'endTurn' }).events, [
     'Enemies act',
     'sentry at A1 fires right',
-    'Line hits Draughtsman for 2',
+    'Line hits Pell for 2',
   ]);
 });
 
@@ -41,8 +41,8 @@ test('shield absorbs a bite', () => {
   const r = act(s0, { type: 'endTurn' });
   expectLogIncludes(r.events, [
     'rat at A1 bites right',
-    'Bite hits Stoker for 1',
-    "Stoker's shield absorbs 1 (1 left)",
+    'Bite hits Joost for 1',
+    "Joost's shield absorbs 1 (1 left)",
   ]);
   const stoker = memberById(r.state, 'stoker');
   expect(stoker.hp).toBe(8);
@@ -54,8 +54,8 @@ test('a familiar spit lands Ink: a mark on whoever it hits (P11)', () => {
   const r = act(s0, { type: 'endTurn' });
   expectLogIncludes(r.events, [
     'familiar at A1 spits right',
-    'Spit hits Draughtsman for 1',
-    'Draughtsman is marked',
+    'Spit hits Pell for 1',
+    'Pell is marked',
   ]);
   expect(memberById(r.state, 'draughtsman').mark).toMatchObject({ deep: false, bound: null });
 });

@@ -187,14 +187,14 @@ export function lockProfile(kind: ThresholdRecord['kind']): Profile {
   };
 }
 
-/** Plays the lock with one cast of the Draughtsman's first spell, aimed right. */
+/** Plays the lock with one cast of the Pell's first spell, aimed right. */
 export function playLock(kind: ThresholdRecord['kind']): ThresholdRecord {
   const gate = DISTRICTS.canals.gate;
   if (gate.kind !== 'threshold') throw new Error('the canals have a threshold');
   const p = lockProfile(kind);
   const start = thresholdStart(p, gate.room);
   const spell = memberById(start.state, 'draughtsman').spells[0];
-  if (!spell) throw new Error('the Draughtsman has no spell');
+  if (!spell) throw new Error('the Pell has no spell');
   const r = applyAction(start.state, {
     type: 'cast',
     unit: 'draughtsman',

@@ -59,7 +59,7 @@ describe('the map for seven (DK-16)', () => {
     expect(node('bridges')).toMatchObject({ lean: 'height', leanText: 'Height, the drop' });
     expect(node('foundry')).toMatchObject({ lean: 'brass', leanText: 'Brass' });
     expect(node('cartographers')).toMatchObject({ lean: 'paper', leanText: 'Unfinished paper' });
-    expect(nodeTag(node('bathhouses'))).toBe('Steam · The bath-keepers');
+    expect(nodeTag(node('bathhouses'))).toBe('the bathhouses · Steam · The Thermae Guild');
   });
 
   test('seven positions, none shared, the Seam lowest with its caption below', () => {

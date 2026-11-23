@@ -24,7 +24,7 @@ import {
  * BF-3 acceptance (foundry-plan §2 P2, P3, P5; BF-T2). One test per settled rule; each is
  * `it.fails` until BF-3 builds the strike, the ring queue, the hum and the pulses, and the marker
  * comes off with it. Bell notation: `{bell:low|mid|high}`; a muffled bell is `~{bell:…}` (a cloud
- * on its tile). Rats have 2 HP, sentries `b` 5, the Draughtsman and the Stoker 6.
+ * on its tile). Rats have 2 HP, sentries `b` 5, the Pell and the Joost 6.
  */
 
 const BOLT = { draughtsman: 'Bolt> Strike' } as const;

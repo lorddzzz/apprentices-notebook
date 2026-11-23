@@ -678,7 +678,7 @@ describe('revisionWarning', () => {
   test('names the page whose ink the new inside pushes over', () => {
     const p = placed(defOf(CASHING), v1Ink);
     const heavier = spellInside(...CASHING.cells, rune('coil', 1, 1));
-    expect(revisionWarning(p, 'g1', heavier)).toBe("Pushes the Draughtsman's page ink over");
+    expect(revisionWarning(p, 'g1', heavier)).toBe("Pushes the Pell's page ink over");
     // Roomy enough: no warning.
     expect(revisionWarning(placed(defOf(CASHING), 20), 'g1', heavier)).toBeNull();
   });
@@ -690,14 +690,14 @@ describe('revisionWarning', () => {
     };
     const heavier = spellInside(...CASHING.cells, rune('coil', 1, 1));
     expect(revisionWarning(p, 'g1', heavier)).toBe(
-      "Puts the Coil you don't know on the Draughtsman's page",
+      "Puts the Coil you don't know on the Pell's page",
     );
   });
 
   test('the fresh record loses the Economy discount, and the warning says so', () => {
     const p = placed(defOf(CASHING), v1Ink - 1, { 'g1@1': best(1, 0) }); // fits only with 1 ink off
     expect(validateLoadout(p)).toEqual({});
-    expect(revisionWarning(p, 'g1', CASHING)).toBe("Pushes the Draughtsman's page ink over");
+    expect(revisionWarning(p, 'g1', CASHING)).toBe("Pushes the Pell's page ink over");
   });
 
   test('a page already over before the revision is not blamed on it', () => {
@@ -715,7 +715,7 @@ describe('revisionWarning', () => {
 
 describe('revertWarning', () => {
   const HEAVY = spellInside(...CASHING.cells, rune('coil', 1, 1));
-  /** v2 (HEAVY) is current, v1 (CASHING) archived, a copy on the Draughtsman's page. */
+  /** v2 (HEAVY) is current, v1 (CASHING) archived, a copy on the Pell's page. */
   const twoVersions = (capacity: number, records: Record<string, GlyphRecord> = {}): Profile => {
     const v2 = reviseGlyph(profileWith(defOf(CASHING)), 'g1', HEAVY);
     return {
@@ -744,16 +744,14 @@ describe('revertWarning', () => {
     const back = revertGlyph(twoVersions(20), 'g1', 1);
     const tight = { ...back, ink: v1Ink };
     expect(validateLoadout(tight)).toEqual({});
-    expect(revertWarning(tight, 'g1', 2)).toBe("Pushes the Draughtsman's page ink over");
+    expect(revertWarning(tight, 'g1', 2)).toBe("Pushes the Pell's page ink over");
   });
 
   test('names the runes the old inside needs that you do not own', () => {
     const back = revertGlyph(twoVersions(20), 'g1', 1);
     const p = { ...back, known: back.known.filter((r) => r !== 'coil') };
     expect(validateLoadout(p)).toEqual({});
-    expect(revertWarning(p, 'g1', 2)).toBe(
-      "Puts the Coil you don't know on the Draughtsman's page",
-    );
+    expect(revertWarning(p, 'g1', 2)).toBe("Puts the Coil you don't know on the Pell's page");
   });
 
   test('losing the Economy discount is said, and so is the ink it costs', () => {
@@ -767,7 +765,7 @@ describe('revertWarning', () => {
       glyphArchive: tight.glyphArchive.map((g) => ({ ...g, cells: CASHING.cells })),
     };
     expect(revertWarning(same, 'g1', 2)).toBe(
-      "Loses the 1-ink Economy discount; Pushes the Draughtsman's page ink over",
+      "Loses the 1-ink Economy discount; Pushes the Pell's page ink over",
     );
   });
 

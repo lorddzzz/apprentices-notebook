@@ -16,7 +16,7 @@ import {
  * starting seven runes and Shove. One scripted solution per (event, room, variant), then a search
  * bot over every seating of the pair on each room's start points.
  *
- * Scripts (`tests/sim/seamHearing.ts`): `D>C3` moves the Draughtsman, `S!up` casts the Stoker's
+ * Scripts (`tests/sim/seamHearing.ts`): `D>C3` moves the Pell, `S!up` casts the Joost's
  * page up, `D^left` is a Shove, `/` ends the turn. Seats are start points in reading order.
  */
 

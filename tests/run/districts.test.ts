@@ -78,7 +78,7 @@ describe('the city this build (P2, P3)', () => {
   test('a drawn district is heard from its named result or its rumour, and never opens', () => {
     const p = newProfile();
     const t = startTrip(p, 1);
-    const stoker = { id: 'stoker', name: 'Stoker', at: { x: 0, y: 0 }, member: true };
+    const stoker = { id: 'stoker', name: 'Joost', at: { x: 0, y: 0 }, member: true };
     const log: EventLog = [
       { type: 'cast', caster: stoker, spell: 'a', aim: { kind: 'self' }, aimText: '' },
       {

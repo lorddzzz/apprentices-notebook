@@ -21,7 +21,7 @@ const foe = (s: BattleState, def: string) => {
 };
 const stoker = (s: BattleState) => {
   const u = s.units.find((v) => v.id === 'stoker');
-  if (!u) throw new Error('no Stoker');
+  if (!u) throw new Error('no Joost');
   return u;
 };
 const waxLeft = (s: BattleState, lbl: string) =>
@@ -48,7 +48,7 @@ describe('the Sealer', () => {
   test('held unit: the seal lands on whoever still stands there and holds them', () => {
     const s = board('S . z');
     const r = act(s, { type: 'endTurn' });
-    expectLogIncludes(r.events, ['a wax seal lands at A1', 'Stoker is held']);
+    expectLogIncludes(r.events, ['a wax seal lands at A1', 'Joost is held']);
     expect(waxLeft(r.state, 'A1')).toBe(1); // wore a round at this turn's end
     expect(stoker(r.state).held).toBe(1); // 2 from the landing, 1 after the new round began
     expect(legalMoves(r.state, 'stoker')).toEqual([]);
@@ -68,10 +68,10 @@ describe('the Sealer', () => {
     const s = board('D . {wax:2} .');
     const r = draft(s, (ctx) => {
       const d = unitAt(ctx.s, at('A1'));
-      if (d?.kind !== 'member') throw new Error('no Draughtsman');
+      if (d?.kind !== 'member') throw new Error('no Pell');
       moveMember(ctx, d, at('C1'));
     });
-    expectLog(r.events, ['Draughtsman moves to C1', 'Draughtsman is held']);
+    expectLog(r.events, ['Pell moves to C1', 'Pell is held']);
     expect(unitAt(r.state, at('C1'))?.held).toBe(2);
   });
 
@@ -81,7 +81,7 @@ describe('the Sealer', () => {
     const r = draft(sealed, (ctx) => {
       push(ctx, stoker(ctx.s), 'right', 1, null);
     });
-    expectLogIncludes(r.events, ['Stoker is held']);
+    expectLogIncludes(r.events, ['Joost is held']);
     expect(stoker(r.state).pos).toEqual(at('A1'));
   });
 
@@ -155,7 +155,7 @@ describe('placing a seal (the stake and the clock reuse it)', () => {
     const r = draft(s, (ctx) => {
       expect(placeSeal(ctx, at('A1'))).toBe(true);
     });
-    expectLog(r.events, ['a wax seal lands at A1', 'Stoker is held']);
+    expectLog(r.events, ['a wax seal lands at A1', 'Joost is held']);
     expect(sealAt(r.state, at('A1'))?.data).toEqual({ rounds: 2, by: '' });
   });
 

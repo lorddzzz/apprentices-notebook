@@ -195,7 +195,7 @@ function rigObject(
   }
 }
 
-/** A Flow for calling an Action handler directly: the Draughtsman casting with `heading`. */
+/** A Flow for calling an Action handler directly: the Pell casting with `heading`. */
 function flowOf(s: BattleState, t: Target, heading: Dir | null): Flow {
   return {
     caster: 'draughtsman',
@@ -211,7 +211,7 @@ function flowOf(s: BattleState, t: Target, heading: Dir | null): Flow {
   };
 }
 
-/** Runs one Action rune's handler on `t`, as the Draughtsman's cast would. */
+/** Runs one Action rune's handler on `t`, as the Pell's cast would. */
 function runAction(ctx: Ctx, rune: 'swap' | 'draw', t: Target, heading: Dir | null): void {
   const step: Step = { role: 'action', rune, auras: [], next: null, at: { x: 0, y: 0 } };
   ACTION_HANDLERS[rune](ctx, t, flowOf(ctx.s, t, heading), step);
@@ -238,7 +238,7 @@ const walkFoe = (path: string[]) => (ctx: Ctx, u: Unit) => {
   if (u.kind !== 'enemy') throw new Error('not a foe');
   enemyWalk(ctx, u, path.map(at));
 };
-/** The Draughtsman's basic action toward the right (the kit is not checked: `apply` runs it). */
+/** The Pell's basic action toward the right (the kit is not checked: `apply` runs it). */
 const basic = (a: 'pull' | 'hop' | 'swap') => (ctx: Ctx) =>
   BASIC_ACTIONS[a].apply(ctx, 'draughtsman', 'right');
 const pushRight = (tiles: number) => (ctx: Ctx, u: Unit) => {
@@ -321,7 +321,7 @@ const CAUSES: Record<Cause, Partial<Record<Trait, Rig>>> = {
     land: { ascii: ROWS('r o . .'), subject: 'A1', hookAt: 'C1', run: pushRight(1) },
     swimmer: { ascii: ROWS('ew> w>o w> w>'), subject: 'A1', hookAt: 'C1', run: pushRight(1) },
   },
-  // The Draughtsman at A1 swaps with the subject at B1: the subject lands on A1.
+  // The Pell at A1 swaps with the subject at B1: the subject lands on A1.
   swap: Object.fromEntries(
     (['land', 'flier', 'swimmer', 'anchored'] as const).map((trait) => [
       trait,
@@ -339,16 +339,16 @@ const CAUSES: Record<Cause, Partial<Record<Trait, Rig>>> = {
       } satisfies Rig,
     ]),
   ),
-  // AH-1: the Draughtsman on A1 pulls the subject on C1 one tile, onto B1.
+  // AH-1: the Pell on A1 pulls the subject on C1 one tile, onto B1.
   pull: {
     land: { ascii: ROWS('D . r .'), subject: 'C1', hookAt: 'B1', hp: 5, run: basic('pull') },
     flier: { ascii: ROWS('D . m .'), subject: 'C1', hookAt: 'B1', hp: 5, run: basic('pull') },
     swimmer: { ascii: ROWS('Dw> w> ew> w>'), subject: 'C1', hookAt: 'B1', run: basic('pull') },
   },
-  // AH-1: the Draughtsman hops from A1 to C1 (she is the subject); `hop over` rigs B1, under the arc.
+  // AH-1: the Pell hops from A1 to C1 (she is the subject); `hop over` rigs B1, under the arc.
   hop: { land: { ascii: ROWS('D . . .'), subject: 'A1', hookAt: 'C1', run: basic('hop') } },
   'hop over': { land: { ascii: ROWS('D . . .'), subject: 'A1', hookAt: 'B1', run: basic('hop') } },
-  // AH-1: the Draughtsman's basic Swap with the subject on B1: it lands on A1. Fliers, swimmers
+  // AH-1: the Pell's basic Swap with the subject on B1: it lands on A1. Fliers, swimmers
   // off water and the anchored are refused (legality, below).
   'basic swap': {
     land: { ascii: ROWS('D r . .'), subject: 'B1', hookAt: 'A1', run: basic('swap') },

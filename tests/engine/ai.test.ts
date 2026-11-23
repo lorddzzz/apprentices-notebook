@@ -46,7 +46,7 @@ describe('rat (chaser)', () => {
   });
 
   test('chooses the target by walking distance, ties to the earlier party member', () => {
-    // The Stoker and the Draughtsman are both two steps away: the rat heads for the Draughtsman.
+    // The Joost and the Pell are both two steps away: the rat heads for the Pell.
     const r = endTurn('S . r . D');
     expectLogIncludes(r.events, [
       'rat at C1 moves to D1',

@@ -45,7 +45,7 @@ const endTurn = (s: BattleState, fns: FootnoteIds) => step(s, { type: 'endTurn' 
 
 describe('quicksilver:edge', () => {
   const HP = 9;
-  /** Strike down the row from the Draughtsman; hp lost by each unit named, after the mirrored copy. */
+  /** Strike down the row from the Pell; hp lost by each unit named, after the mirrored copy. */
   const strike = (room: string, hit: string[], fns: FootnoteIds) => {
     const s = withLattices(
       room,
@@ -87,7 +87,7 @@ describe('quicksilver:edge', () => {
     const hit = plain.row[0] ?? 0;
     expect(plain.self).toEqual([hit, 0, hit]); // F1 is the target; its mirror is A1
     expect(plain.middle).toBe(hit);
-    expect(plain.friend).toBe(true); // the copy lands on the Stoker
+    expect(plain.friend).toBe(true); // the copy lands on the Joost
     expect(plain.blank).toBe(0);
     const runs = fourCombos(
       'quicksilver:edge',
@@ -99,12 +99,12 @@ describe('quicksilver:edge', () => {
     // turn + middle: top to bottom, and a target on the middle row acts twice.
     expect(tm?.row).toEqual([hit, 0, hit]);
     expect(tm?.middle).toBe(hit * 2);
-    // turn + spare: the copy skips the friend across the other axis (the Stoker is not on it anyway).
+    // turn + spare: the copy skips the friend across the other axis (the Joost is not on it anyway).
     expect(ts?.row).toEqual([hit, 0, hit]);
     // self + middle: the copy goes through you; the target on you is acted on twice.
     expect(sm?.self).toEqual([0, hit, hit]);
     expect(sm?.middle).toBe(hit);
-    // self + spare: the copy's natural pair; the Stoker is out of its way.
+    // self + spare: the copy's natural pair; the Joost is out of its way.
     expect(ss?.friend).toBe(false); // the copy reflects through you, off the board here
   });
 
@@ -159,7 +159,7 @@ describe('graphite:unit', () => {
   const undone = (fns: FootnoteIds, turns: number, stuck = false) => {
     const swapped = castWith(swapRoom(), tileAim('B1'), fns).state;
     if (stuck) {
-      // The Stoker takes the Draughtsman's home tile, the dummy wanders to C1.
+      // The Joost takes the Pell's home tile, the dummy wanders to C1.
       unit(swapped, 'stoker').pos = parseLabel('A1');
       unit(swapped, 'dummy-1').pos = parseLabel('C1');
     }

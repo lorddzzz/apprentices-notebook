@@ -15,12 +15,12 @@ export function labBattle(id: string, lab = true): BattleState {
   return scenarioBattle(scenario(id), { lab, lattices: fallbackLattices() });
 }
 
-/** A battle on a board of our own, members on their start lattices (Draughtsman `Bolt> Ink Strike`: spell '0,1'). */
+/** A battle on a board of our own, members on their start lattices (Pell `Bolt> Ink Strike`: spell '0,1'). */
 export function battleOf(board: string, lab = true): BattleState {
   return scenarioBattle({ board }, { lab, lattices: fallbackLattices() });
 }
 
-/** The Draughtsman at A1 with a dummy three tiles right, the Stoker below: a Bolt right hits the dummy. */
+/** The Pell at A1 with a dummy three tiles right, the Joost below: a Bolt right hits the dummy. */
 export const CAST_BOARD = [
   'D . . d . .',
   '. . . . . .',
@@ -32,7 +32,7 @@ export const CAST_BOARD = [
   '. S . . . .',
 ].join('\n');
 
-/** The Stoker at A1 with a rat beside it: a shove right pushes the rat along the row. */
+/** The Joost at A1 with a rat beside it: a shove right pushes the rat along the row. */
 export const SHOVE_BOARD = [
   'S r . . . .',
   '. . . . . .',

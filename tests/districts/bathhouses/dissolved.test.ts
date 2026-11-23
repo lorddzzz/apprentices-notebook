@@ -206,7 +206,7 @@ describe('the bite: only from an open tile, only at an apprentice on one', () =>
     const s = structuredClone(board('D s', { hp: { A1: 6 } }));
     expect(telegraphOf(bather(s))).toMatchObject({ label: 'bite', units: ['draughtsman'] });
     const r = act(s, { type: 'endTurn' });
-    expectLogIncludes(r.events, ['Bite hits Draughtsman for 1']);
+    expectLogIncludes(r.events, ['Bite hits Pell for 1']);
   });
 
   test('dissolved, it cannot bite: beside the apprentice from a cloud it waits', () => {

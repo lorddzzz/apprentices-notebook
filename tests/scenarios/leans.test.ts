@@ -41,14 +41,14 @@ describe('gifted: push', () => {
 
   test('gifted-shove-pushes-2', () => {
     const gifted = cast(withLattices(board, lattice), 'stoker', 'right');
-    expect(unit(gifted.state, 'rat-1').pos).toEqual(at('D1')); // 1 + 1 (Stoker is gifted in the Seam)
+    expect(unit(gifted.state, 'rat-1').pos).toEqual(at('D1')); // 1 + 1 (Joost is gifted in the Seam)
     const plain = cast(gift(withLattices(board, lattice), 'stoker', null), 'stoker', 'right');
     expect(unit(plain.state, 'rat-1').pos).toEqual(at('C1'));
   });
 
   test('gifted-sentence-pushes-3', () => {
     const s = withLattices('D r! . . . .', { draughtsman: 'Bolt> Sentence' });
-    const r = cast(s, 'draughtsman', 'right'); // Draughtsman is gifted in Contracts
+    const r = cast(s, 'draughtsman', 'right'); // Pell is gifted in Contracts
     expect(unit(r.state, 'rat-1').pos).toEqual(at('E1')); // 2 + 1
     const plain = cast(gift(s, 'draughtsman', null), 'draughtsman', 'right');
     expect(unit(plain.state, 'rat-1').pos).toEqual(at('D1'));
@@ -87,7 +87,7 @@ describe('gifted: round', () => {
 
     const hold = withLattices('S r . .', { stoker: 'Bolt> Hold' });
     const held = (s: BattleState) => unit(cast(s, 'stoker', 'right').state, 'rat-1').held;
-    // Hold belongs to Structure: give the Stoker that gift for this one.
+    // Hold belongs to Structure: give the Joost that gift for this one.
     expect(held(gift(hold, 'stoker', 'structure'))).toBe(held(hold) + 1);
 
     const brass = withLattices('S . . .\n. . . r', { stoker: 'Bolt> Brass' });
@@ -123,7 +123,7 @@ describe('gifted: tile', () => {
         return false;
       }
     };
-    // The Stoker is gifted in the Seam (Splash); Vat belongs to Areas.
+    // The Joost is gifted in the Seam (Splash); Vat belongs to Areas.
     for (const [rune, school, near, far] of [
       ['Splash', 'seam', 'D1', 'E1'],
       ['Vat', 'areas', 'B1', 'C1'],
@@ -166,7 +166,7 @@ describe('trained: -1 ink, minimum 1 (P33)', () => {
     expect(inkOf('strike', {}, stoker)).toBe(1);
     expect(inkOf('ink', {}, stoker)).toBe(1);
     expect(inkOf('fork', {}, stoker)).toBe(1);
-    // Only the trained school: the Draughtsman pays full for the Seam, less for Timing.
+    // Only the trained school: the Pell pays full for the Seam, less for Timing.
     expect(inkOf('bolt', {}, draughtsman)).toBe(2);
     expect(inkOf('jar', {}, draughtsman)).toBe(inkOf('jar', {}, null) - 1);
     expect(inkOf('afterglow', {}, draughtsman)).toBe(inkOf('afterglow', {}, null) - 1);
@@ -175,7 +175,7 @@ describe('trained: -1 ink, minimum 1 (P33)', () => {
   });
 });
 
-describe('Stoker: his Forks act on the tile ahead too', () => {
+describe('Joost: his Forks act on the tile ahead too', () => {
   // Strike on the left road, Oil on the right road.
   const FORK = '. Strike .\nBolt> Fork .\n. Oil .';
   const arena = '. r . .\nS r . .\n. r . .';
@@ -203,7 +203,7 @@ describe('Stoker: his Forks act on the tile ahead too', () => {
     expectLogIncludes(r.events, ['oil lands at B3 as slick', 'Strike hits rat at C2 for 2']);
   });
 
-  test('the Draughtsman does not have it', () => {
+  test('the Pell does not have it', () => {
     const r = cast(
       withLattices(arena.replace('S', 'D'), { draughtsman: FORK }),
       'draughtsman',
@@ -213,7 +213,7 @@ describe('Stoker: his Forks act on the tile ahead too', () => {
   });
 });
 
-describe('Draughtsman: he keeps two jars', () => {
+describe('Pell: he keeps two jars', () => {
   const jar = (cast_: number, event: 'step' | 'dusk' = 'step') => ({
     owner: 'draughtsman',
     event,
@@ -234,7 +234,7 @@ describe('Draughtsman: he keeps two jars', () => {
     const third = draft(two, (ctx) => sealJar(ctx, at('C3'), jar(3)));
     expectLogIncludes(third.events, [
       'the jar at D1 crumbles empty',
-      'Draughtsman seals a jar at C3 (opens on a step)',
+      'Pell seals a jar at C3 (opens on a step)',
     ]);
     expect(jarAt(third.state, 'D1')).toBeNull();
     expect(jarAt(third.state, 'B2')).not.toBeNull();
@@ -251,14 +251,14 @@ describe('Draughtsman: he keeps two jars', () => {
     const third = cast(endTurn(second.state).state, 'draughtsman', 'left');
     expectLogIncludes(third.events, [
       'the jar at C2 crumbles empty',
-      'Draughtsman seals a jar at A2 (opens on a step)',
+      'Pell seals a jar at A2 (opens on a step)',
     ]);
     expect(jarAt(third.state, 'C2')).toBeNull();
     expect(jarAt(third.state, 'B3')).not.toBeNull();
     expect(jarAt(third.state, 'A2')).not.toBeNull();
   });
 
-  test('the Stoker keeps one: a second jar crumbles his first', () => {
+  test('the Joost keeps one: a second jar crumbles his first', () => {
     const start = withLattices('S . . .\n. . . .', {});
     const jarOf = (n: number) => ({ ...jar(n), owner: 'stoker' });
     const one = draft(start, (ctx) => sealJar(ctx, at('D1'), jarOf(1))).state;

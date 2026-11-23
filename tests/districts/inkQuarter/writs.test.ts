@@ -120,13 +120,13 @@ describe('return to sender (P2)', () => {
     const s = withWrits('D . {return} .\n. . . r');
     const r = draft(s, (ctx) => {
       const d = unitAt(ctx.s, at('A1'));
-      if (d?.kind !== 'member') throw new Error('no Draughtsman');
+      if (d?.kind !== 'member') throw new Error('no Pell');
       moveMember(ctx, d, at('C1'));
     });
     expectLog(r.events, [
-      'Draughtsman moves to C1',
-      'the stamp at C1 returns Draughtsman to sender',
-      'Draughtsman moves to A1',
+      'Pell moves to C1',
+      'the stamp at C1 returns Pell to sender',
+      'Pell moves to A1',
     ]);
     expect(unitAt(r.state, at('A1'))?.id).toBe('draughtsman');
     expect(canUndoMove(r.state, 'draughtsman')).toBe(false);
@@ -193,8 +193,8 @@ describe('standing order (P4)', () => {
     expectLogIncludes(r.events, [
       'the standing order marks rat at A1',
       'rat at A1 is marked',
-      'the standing order marks Draughtsman',
-      'Draughtsman is marked',
+      'the standing order marks Pell',
+      'Pell is marked',
     ]);
     const rat = unitAt(r.state, at('A1'));
     expect(rat?.mark).toMatchObject({ deep: false, bound: null, origin: null });

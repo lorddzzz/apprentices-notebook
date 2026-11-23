@@ -20,7 +20,7 @@ const at = parseLabel;
 const endTurn = (s: BattleState) => act(s, { type: 'endTurn' });
 const layer = (s: BattleState, lbl: string) => tileAt(s, at(lbl)).state;
 
-/** The Draughtsman's spells compiled from `lattice`, with `diagonal` auras reaching diagonally. */
+/** The Pell's spells compiled from `lattice`, with `diagonal` auras reaching diagonally. */
 const spells = (lattice: string, diagonal: AuraRuneId[]): Spell[] =>
   compileLattice(parseLattice(lattice), {}, {}, MEMBERS.draughtsman.lean, {
     diagonalAuras: diagonal,

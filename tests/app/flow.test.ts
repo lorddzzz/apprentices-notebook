@@ -218,7 +218,7 @@ test('a failing write is reported, and the edit still applies', () => {
 });
 
 test('a known rune goes on as often as the ink allows, and the tool stays in hand', () => {
-  // Knowledge, not copies (P34): the Draughtsman holds 8 ink; Bolt, Ink and Strike take 5.
+  // Knowledge, not copies (P34): the Pell holds 8 ink; Bolt, Ink and Strike take 5.
   let save = save0();
   let tool = rune('spark');
   const sockets = [
@@ -439,7 +439,7 @@ test('highlights: discovery first, a chain of 3+, and a chain of 2 is left out',
   );
   expect(hs.map((h) => h.kind)).toEqual(['discovery', 'chain']);
   expect(hs[0]?.text).toContain('Stain');
-  expect(hs[1]?.text).toContain('Stoker');
+  expect(hs[1]?.text).toContain('Joost');
   expect(hs[1]?.text).toContain('4 reactions');
   const small = {
     ...stats,

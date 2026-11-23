@@ -140,8 +140,8 @@ describe('harm warning (D3, P42)', () => {
     const s = lab(pad('S D {wall} . . .'));
     const p = previewOf(s, shoveRight, unseen);
     expect(p.hurt).toEqual(['draughtsman']);
-    expect(p.warning).toBe('Draughtsman will be hurt');
-    expect(p.summary).toBe('Shove Draughtsman right. Draughtsman will be hurt');
+    expect(p.warning).toBe('Pell will be hurt');
+    expect(p.summary).toBe('Shove Pell right. Pell will be hurt');
     expect(p.summary).not.toMatch(/\d|wall|crush/i);
     const mode = {
       kind: 'confirm',
@@ -151,7 +151,7 @@ describe('harm warning (D3, P42)', () => {
       preview: p,
     } as const;
     expect(hintFor(mode, s)).toEqual({
-      text: 'Shove Draughtsman right. Draughtsman will be hurt. Tap again or Confirm.',
+      text: 'Shove Pell right. Pell will be hurt. Tap again or Confirm.',
       tone: 'warn',
     });
     const o = overlayFor(s, mode);
@@ -162,7 +162,7 @@ describe('harm warning (D3, P42)', () => {
     const s = lab(pad('S D w> . . .'));
     const p = previewOf(s, shoveRight, unseen);
     expect(p.hurt).toEqual(['draughtsman']);
-    expect(p.warning).toBe('Draughtsman will be hurt');
+    expect(p.warning).toBe('Pell will be hurt');
   });
 
   test('harm-warning-witnessed: the amount shows once the line is witnessed', () => {
@@ -170,9 +170,7 @@ describe('harm warning (D3, P42)', () => {
     const p = previewOf(s, shoveRight, { witnessed: new Set<LineId>(['shove:wall']) });
     expect(p.masked).toBe(false);
     expect(p.hurt).toEqual(['draughtsman']);
-    expect(p.summary).toMatch(
-      /^Shove Draughtsman right: Draughtsman −\d+\. Draughtsman will be hurt$/,
-    );
+    expect(p.summary).toMatch(/^Shove Pell right: Pell −\d+\. Pell will be hurt$/);
   });
 
   test('a foe hurt by the party is no warning', () => {

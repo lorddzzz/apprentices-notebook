@@ -238,7 +238,7 @@ describe('mooring (P5)', () => {
     expect(crate(r.state).moored).toBe(true);
     const s = structuredClone(r.state);
     const d = s.units.find((u) => u.id === 'draughtsman');
-    if (!d) throw new Error('no Draughtsman');
+    if (!d) throw new Error('no Pell');
     d.pos = at('D1');
     expect(isLegal(s, basic('pull', 'left'))).toMatch(/can't be moved/);
   });

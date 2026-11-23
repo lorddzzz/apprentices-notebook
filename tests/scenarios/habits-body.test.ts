@@ -19,7 +19,7 @@ import { act, board, draft } from './harness';
 /**
  * The body habits (actions-habits plan P12, P14; party.md §2): the runaway's `fuseOnStep` (her own
  * Fuse jar opens on any arrival of hers) and the towel-bearer's `steamproof` (steam deals her no
- * damage, and a warded hit is not a hit). Each is given to the Draughtsman through the kits.
+ * damage, and a warded hit is not a hit). Each is given to the Pell through the kits.
  */
 
 type Member = 'draughtsman' | 'stoker';
@@ -39,7 +39,7 @@ const unit = (s: BattleState, id: string): Unit => {
   if (!u) throw new Error(`no ${id}`);
   return u;
 };
-/** A battle with a Fuse jar on `jarAt`; the Draughtsman carries `habit` unless kits say more. */
+/** A battle with a Fuse jar on `jarAt`; the Pell carries `habit` unless kits say more. */
 const withJar = (
   ascii: string,
   jarAt: string,
@@ -133,7 +133,7 @@ describe('steamproof: steam never hurts her (P14)', () => {
     ]);
     expect(damageTo(r.events, 'draughtsman')).toEqual([]);
     expect(damageTo(r.events, 'rat-1')).toHaveLength(1);
-    expect(r.lines).toContain('Storm leaves Draughtsman unharmed');
+    expect(r.lines).toContain('Storm leaves Pell unharmed');
   });
 
   test('Thunderhead and the Kettle blowing skip her', () => {

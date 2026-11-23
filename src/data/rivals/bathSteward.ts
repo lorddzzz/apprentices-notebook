@@ -27,6 +27,7 @@ export const CLOUDS_BIG = 'bathhouses:cloudsBig';
 export const BATH_STEWARD_RIVAL: RivalDef = {
   id: 'bathSteward',
   name: 'Bath-Steward',
+  person: 'Bertus Haas',
   token: 'H',
   district: 'bathhouses',
   hp: 38,

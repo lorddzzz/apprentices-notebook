@@ -15,6 +15,7 @@ const COLLECT = 'Splash> Levy';
 export const POSTMASTER_RIVAL: RivalDef = {
   id: 'postmaster',
   name: 'Postmaster',
+  person: 'Hedda Brenn',
   token: 'p',
   district: 'inkQuarter',
   hp: 14,

@@ -34,7 +34,7 @@ describe('the Warden: chalk circle', () => {
       { kind: 'pulse', at: at('A1') },
     ]);
     const r = act(s, { type: 'endTurn' });
-    expectLogIncludes(r.events, ['Stoker is held']);
+    expectLogIncludes(r.events, ['Joost is held']);
     // 2 on resolve, 1 left at the party's turn: she can't walk
     expect(unit(r.state, 'stoker').held).toBe(1);
     expect(() => act(r.state, { type: 'move', unit: 'stoker', to: at('B1') })).toThrow();
@@ -57,7 +57,7 @@ describe('the Warden: chalk circle', () => {
   });
 
   test('reads the cracked set: the one on a cracked tile is chalked before the nearer one', () => {
-    // No pier: the span at G1 is cracked. Stoker (B1) is nearer than Draughtsman (G1).
+    // No pier: the span at G1 is cracked. Joost (B1) is nearer than Pell (G1).
     const s = board('. S . j . . D{span}');
     expect(crackedSet(s).map((c) => `${c.x},${c.y}`)).toEqual(['6,0']);
     expect(tg(foe(s, 'warden'))?.units).toEqual(['draughtsman']);
@@ -71,7 +71,7 @@ describe('the Warden: chalk circle', () => {
     expect(tg(foe(s, 'warden'))?.tiles[0]).toEqual(at('E1'));
     const r = act(s, { type: 'endTurn' });
     const lines = r.lines;
-    const held = lines.findIndex((l) => l.includes('Stoker is held'));
+    const held = lines.findIndex((l) => l.includes('Joost is held'));
     const fall = lines.findIndex((l) => /falls|fall/i.test(l));
     expect(held).toBeGreaterThanOrEqual(0);
     expect(fall).toBeGreaterThan(held);
@@ -87,7 +87,7 @@ describe('the Warden: chalk circle', () => {
 });
 
 describe('the Gargoyle: carry', () => {
-  // The Stoker stands on B1 (sound); D1 is cut off by the fog at C1 and cracked; y beside her.
+  // The Joost stands on B1 (sound); D1 is cut off by the fog at C1 and cracked; y beside her.
   const CARRY = '{pier} S{span} _ {span} {span}\n. y . . .\n. . . . D';
 
   test('names the apprentice and the cracked tile it will set her on, and shows it', () => {

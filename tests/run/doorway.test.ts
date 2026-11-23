@@ -202,7 +202,7 @@ describe('charges follow the rune type (S12)', () => {
     };
     const r = applyDoorway(p, inDoorway(p, START_CHARGES), lattices);
     const spent = Object.values(r.trip.charges.stoker ?? {}).sort();
-    // the Stoker holds the 4 and the 2 (the Draughtsman has no source left)
+    // the Joost holds the 4 and the 2 (the Pell has no source left)
     expect(spent).toEqual([2, 4]);
     expect(r.trip.charges.draughtsman).toEqual({});
   });
@@ -224,7 +224,7 @@ describe('charges follow the rune type (S12)', () => {
   test('removing a Bolt for good drops its count, and a later Bolt starts full', () => {
     const base = newProfile();
     const p: Profile = base; // knowledge, not copies: a second Bolt needs nothing more
-    // doorway 1: take the Draughtsman's Bolt out
+    // doorway 1: take the Pell's Bolt out
     const bare = {
       ...p.lattices,
       draughtsman: pageOf(p, 'draughtsman').filter((r) => !('rune' in r && r.rune === 'bolt')),
@@ -232,7 +232,7 @@ describe('charges follow the rune type (S12)', () => {
     const one = applyDoorway(p, inDoorway(p, START_CHARGES), bare);
     expect(one.trip.charges.draughtsman).toEqual({});
     // doorway 2: put one back; the lifted count (2) was dropped by the first doorway, but the
-    // Stoker's 4 is the only count left, so the new Bolt starts full rather than taking 2.
+    // Joost's 4 is the only count left, so the new Bolt starts full rather than taking 2.
     const two = applyDoorway(
       one.profile,
       { ...one.trip, status: 'doorway' },
@@ -283,7 +283,7 @@ describe('charges follow the rune type (S12)', () => {
     const glyphSpell = spells.find((s) => s.glyph === 'g1');
     const plain = spells.find((s) => !s.glyph);
     expect(glyphSpell && r.trip.charges.draughtsman?.[glyphSpell.key]).toBe(2);
-    // a new plain Bolt: the Stoker's 4 stays with the Stoker's Bolt, this one starts full
+    // a new plain Bolt: the Joost's 4 stays with the Joost's Bolt, this one starts full
     expect(plain && r.trip.charges.draughtsman?.[plain.key]).toBe(5);
     expect(r.trip.charges.stoker).toEqual({ '1,0': 4 });
   });

@@ -128,7 +128,7 @@ describe('steamproof-boil-over-hook: the call BH makes (dealDamage with harm: st
         habit: 'steamproof',
       }),
     ]);
-    expect(r.lines).toEqual(['Boil-over leaves Draughtsman unharmed']);
+    expect(r.lines).toEqual(['Boil-over leaves Pell unharmed']);
   });
 
   test('anyone without the ward takes it', () => {

@@ -18,8 +18,9 @@ import type { DistrictData, KitRoomDef } from './index';
  */
 export const BRIDGES_KIT: DistrictData = {
   id: 'bridges',
-  name: 'The bridges',
-  guild: 'The bridge-wardens',
+  name: 'The Fog Arches',
+  plain: 'the bridges',
+  guild: 'The Keystone Watch',
   edge: 'drop', // bridge rooms only (P10); the Seam and canals keep their walls
   rooms: [],
   ret: { kind: 'any' },

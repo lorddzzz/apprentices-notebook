@@ -232,7 +232,7 @@ describe('Ink quarter', () => {
   });
 
   test('sand-recoil-hits-hitter', () => {
-    // The Stoker strikes the marked rat from the right; the sand shove turns back on him, away
+    // The Joost strikes the marked rat from the right; the sand shove turns back on him, away
     // from the rat, and the rat stays where it is.
     const s = withLattices(
       '. D r S .',
@@ -266,7 +266,7 @@ describe('Ink quarter', () => {
   });
 
   test('sand-impulse-pushes-the-casters-network-back', () => {
-    // A conducted action acts on whoever set it off: the pulse runs through the Draughtsman's own
+    // A conducted action acts on whoever set it off: the pulse runs through the Pell's own
     // brass, aimed back at him (the rat beside it goes too).
     const s = withLattices('. D r\n. = =', { draughtsman: 'Bolt> inv:impulse-sand' }, opts);
     const r = cast(s, 'draughtsman', 'right');

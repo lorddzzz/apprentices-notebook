@@ -29,6 +29,7 @@ export interface MapNode {
   line: string; // the owner's line, once heard
   barred: string; // how the way is barred; empty when open
   lean: DistrictLean['lean'];
+  plain: string; // the plain trade label under the proper name
   leanText: string; // the lean as the caption says it
   guild: string;
   fresh: boolean; // heard since the map was last seen: new ink
@@ -70,6 +71,7 @@ export function mapNode(
     id,
     state,
     name: d.name,
+    plain: d.plain,
     x: at.x,
     y: at.y,
     label: at.label,
@@ -144,7 +146,7 @@ export function mapPaths(nodes: readonly MapNode[]): MapPath[] {
 
 /** The small caption under a node's name. */
 export function nodeTag(n: MapNode): string {
-  return [n.leanText, n.guild].filter(Boolean).join(' · ');
+  return [n.plain, n.leanText, n.guild].filter(Boolean).join(' · ');
 }
 
 /** One floor of the lower Seam, as the stair lists it (SM-11). */

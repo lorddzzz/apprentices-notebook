@@ -62,7 +62,8 @@ const page = (chain: string): string => {
 export const RECRUITS = {
   runaway: {
     id: 'runaway',
-    name: 'Lamp-pole runaway',
+    name: 'Hanneke',
+    trade: 'Runaway',
     token: 'R',
     look: { hue: 'amber', shape: 'triangle' },
     hp: 6,
@@ -78,7 +79,8 @@ export const RECRUITS = {
   },
   notary: {
     id: 'notary',
-    name: 'Junior notary',
+    name: 'Floris',
+    trade: 'Junior Notary',
     token: 'N',
     look: { hue: 'moss', shape: 'diamond' },
     hp: 6,
@@ -94,7 +96,8 @@ export const RECRUITS = {
   },
   towelBearer: {
     id: 'towelBearer',
-    name: 'Towel-bearer',
+    name: 'Mieke',
+    trade: 'Towel-bearer',
     token: 'B',
     look: { hue: 'teal', shape: 'hexagon' },
     hp: 9,
@@ -110,7 +113,8 @@ export const RECRUITS = {
   },
   warden: {
     id: 'warden',
-    name: 'Defector warden',
+    name: 'Willem',
+    trade: 'Warden',
     token: 'W',
     look: { hue: 'plum', shape: 'pentagon' },
     hp: 7,
@@ -126,7 +130,8 @@ export const RECRUITS = {
   },
   tuner: {
     id: 'tuner',
-    name: 'Tuner',
+    name: 'Tess',
+    trade: 'Tuner',
     token: 'T',
     look: { hue: 'rose', shape: 'star' },
     hp: 6,
@@ -142,7 +147,8 @@ export const RECRUITS = {
   },
   copyist: {
     id: 'copyist',
-    name: 'The Copyist',
+    name: 'Nelle',
+    trade: 'Copyist',
     token: 'C',
     look: { hue: 'ochre', shape: 'cross' },
     hp: 6,
@@ -158,7 +164,8 @@ export const RECRUITS = {
   },
   exile: {
     id: 'exile',
-    name: 'Erased student',
+    name: 'Wessel',
+    trade: 'Unregistered',
     token: 'E',
     look: { hue: 'indigo', shape: 'drop' },
     hp: 6,

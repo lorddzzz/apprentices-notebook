@@ -68,7 +68,7 @@ describe('the desired scene', () => {
 
   test('lays a lantern, keeps it, herds you onto it, then lays another and opens it with the wick', () => {
     let s = board(START, { hp: { E3: 12 } });
-    // Round 1: no jar, so he aims a lantern near the party (E1 is beside Draughtsman's E3).
+    // Round 1: no jar, so he aims a lantern near the party (E1 is beside Pell's E3).
     expect(rivalOf(s).intent).toMatchObject({
       kind: 'cast',
       spell: 'lantern',
@@ -94,10 +94,7 @@ describe('the desired scene', () => {
     });
     const before = hp(r.state, 'draughtsman');
     r = act(r.state, endTurn);
-    expectLogIncludes(r.events, [
-      'Draughtsman is pushed right to E1',
-      'the jar at E1 opens under Draughtsman',
-    ]);
+    expectLogIncludes(r.events, ['Pell is pushed right to E1', 'the jar at E1 opens under Pell']);
     expect(hp(r.state, 'draughtsman')).toBeLessThan(before);
 
     // The jar is spent, so he lays another, under you this time.
@@ -115,14 +112,14 @@ describe('the desired scene', () => {
     expect(r.lines).toContain('lamplighter at A1 will use the long wick');
     const hurt = hp(r.state, 'draughtsman');
     r = act(r.state, endTurn);
-    expectLogIncludes(r.events, ['the jar at E1 opens under Draughtsman']);
+    expectLogIncludes(r.events, ['the jar at E1 opens under Pell']);
     expect(hp(r.state, 'draughtsman')).toBeLessThan(hurt);
     expect(rivalOf(r.state).rival?.charges).toEqual({ lantern: 3, herd: 4 }); // the wick is free
   });
 
   test('his own trap catches him: shoved onto his lantern, it opens under him', () => {
     let s = board('S L D . .\n. . . . .\n. . . . .');
-    s = act(s, endTurn).state; // the lantern lands under Draughtsman at C1
+    s = act(s, endTurn).state; // the lantern lands under Pell at C1
     expect(jarAt(s, 'C1')?.owner).toBe(rivalOf(s).id);
     expect(rivalOf(s).intent).toMatchObject({ kind: 'trick' });
     s = act(s, { type: 'move', unit: 'draughtsman', to: at('C3') }).state;
@@ -181,7 +178,7 @@ describe('he keeps the jar he holds', () => {
   });
 
   test('a lantern that would crumble his own is never planned; he does not re-lay', () => {
-    // His jar waits at A3, far from the party. A lantern at E1 is within reach of Draughtsman,
+    // His jar waits at A3, far from the party. A lantern at E1 is within reach of Pell,
     // but laying it would crumble the jar he holds (one jar at a time).
     const s = structuredClone(board('L . . . D\n. . . . .\n. . . . .'));
     tileAt(s, at('A3')).jar = jarFor(rivalOf(s).id, 1);

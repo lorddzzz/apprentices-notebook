@@ -33,14 +33,14 @@ describe('the dead letter', () => {
   test('delivery: beside its addressee it is addressed, then bursts for 2 and leaves a blot', () => {
     const s = board('S x . .', { hp: { A1: 6 } });
     expect(intentPhrase(s, foe(s, 'deadLetter'))).toBe(
-      'will deliver to Stoker and burst for 2 (1st)',
+      'will deliver to Joost and burst for 2 (1st)',
     );
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, [
       'dead letter at B1 bursts',
       'dead letter at B1 dies',
       'ink lands at B1 as blot',
-      'Dead letter hits Stoker for 2',
+      'Dead letter hits Joost for 2',
     ]);
     expect(hpOf(r.state, 'stoker')).toBe(4);
     expect(stateAt(r.state, 'B1')).toBe('blot');
@@ -101,10 +101,10 @@ describe('the Sorter', () => {
   test('forwards the mark on a foe onto the apprentice (Lift-style move)', () => {
     const s = board('S u . d!', { hp: { A1: 6 } });
     expect(intentPhrase(s, foe(s, 'sorter'))).toBe(
-      'will forward the mark on dummy D1 to Stoker (1st)',
+      'will forward the mark on dummy D1 to Joost (1st)',
     );
     const r = act(s, { type: 'endTurn' });
-    expectLogIncludes(r.events, ['the mark moves from dummy at D1 to Stoker']);
+    expectLogIncludes(r.events, ['the mark moves from dummy at D1 to Joost']);
     expect(r.state.units.find((u) => u.id === 'stoker')?.mark).not.toBeNull();
     expect(r.state.units.find((u) => u.id === 'dummy-1')?.mark).toBeNull();
   });
@@ -140,9 +140,9 @@ describe('the Sorter', () => {
 
   test('with no mark to forward it files a 1-damage hit at an adjacent apprentice', () => {
     const s = board('S u . .', { hp: { A1: 6 } });
-    expect(intentPhrase(s, foe(s, 'sorter'))).toBe('will file Stoker for 1 (1st)');
+    expect(intentPhrase(s, foe(s, 'sorter'))).toBe('will file Joost for 1 (1st)');
     const r = act(s, { type: 'endTurn' });
-    expectLogIncludes(r.events, ['File hits Stoker for 1']);
+    expectLogIncludes(r.events, ['File hits Joost for 1']);
     expect(hpOf(r.state, 'stoker')).toBe(5);
   });
 

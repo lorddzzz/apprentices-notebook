@@ -174,7 +174,7 @@ describe('baseOf', () => {
   });
 });
 
-/** A small scenario of our own: the Stoker bolts a rat. Runes have no effects yet, so only the aim shows. */
+/** A small scenario of our own: the Joost bolts a rat. Runes have no effects yet, so only the aim shows. */
 const CHAIN: ScenarioDef = {
   id: 'chain',
   title: 'Chain',

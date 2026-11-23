@@ -192,7 +192,7 @@ describe('cards and the dormant flag (HC P12)', () => {
 
   test('a card reads only registry fields: body, school chips, seat', () => {
     const card = cardOf(crowded(), 'stoker');
-    expect(card.def).toMatchObject({ name: 'Stoker', hp: 8, move: 3, action: 'shove' });
+    expect(card.def).toMatchObject({ name: 'Joost', hp: 8, move: 3, action: 'shove' });
     expect(card.trained).toBe('Seam');
     expect(card.gifted).toBeNull(); // trained and gifted in one school: one chip
     expect(card.slot).toBe(1);
@@ -219,6 +219,6 @@ describe('Set Out needs a party', () => {
     expect(loadoutBlocker(p)).toBeNull();
     const r = placeInSlot(setSlot(p, 1, null), null, 'runaway');
     if (!('profile' in r)) throw new Error('expected the seat to fill');
-    expect(loadoutBlocker(r.profile)).toMatch(/^Lamp-pole runaway: /);
+    expect(loadoutBlocker(r.profile)).toMatch(/^Hanneke: /);
   });
 });

@@ -161,6 +161,6 @@ describe('AH-W0 contracts: basic actions and harm', () => {
         harm: 'steam',
       }),
     );
-    expect(r.lines).toEqual(['Storm hits Stoker for 2']);
+    expect(r.lines).toEqual(['Storm hits Joost for 2']);
   });
 });

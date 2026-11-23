@@ -13,7 +13,8 @@ import { INK_TABLE_IDS } from './inkQuarter/types';
  */
 export const INK_QUARTER_KIT: DistrictData = {
   id: 'inkQuarter',
-  name: "The ink-makers' quarter",
+  name: 'Verloren Corner',
+  plain: "the ink-makers' quarter",
   guild: 'The Notaries',
   edge: 'wall',
   rooms: [...INK_ROOMS_12, ...INK_ROOMS_34],

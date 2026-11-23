@@ -219,7 +219,7 @@ describe('LabStore with a lineup', () => {
     expect(l.starts.map((c) => `${c.x},${c.y}`)).toEqual(['0,0']);
     l.paint(at('A1'));
     expect(l.starts).toHaveLength(0);
-    l.paint(at('B7')); // the Draughtsman stands there
+    l.paint(at('B7')); // the Pell stands there
     expect(l.starts).toHaveLength(0);
     l.paint(at('E5')); // the brass plate
     expect(l.starts).toHaveLength(0);

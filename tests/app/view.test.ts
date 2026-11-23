@@ -46,7 +46,7 @@ function fixture(): BoardView {
 
 const ref = (id: string, at: Coord): UnitRef => ({
   id,
-  name: id === 'rat-1' ? 'rat' : 'Draughtsman',
+  name: id === 'rat-1' ? 'rat' : 'Pell',
   at,
   member: id === 'draughtsman',
 });
@@ -379,7 +379,7 @@ test('viewOfSpec maps parseBoard tiles and units', () => {
   expect(unitOf(v, 'rat-2').pos).toEqual({ x: 2, y: 2 });
   const sentry = unitOf(v, 'sentry-1');
   expect(sentry).toMatchObject({ collar: true, hp: 5 });
-  expect(unitOf(v, 'draughtsman')).toMatchObject({ kind: 'member', hp: 6, name: 'Draughtsman' });
+  expect(unitOf(v, 'draughtsman')).toMatchObject({ kind: 'member', hp: 6, name: 'Pell' });
 });
 
 test('viewOfSpec carries compounds, plates, the drop and unit mods', () => {
@@ -884,7 +884,7 @@ describe('readable lines for the new board', () => {
       };
     }
     expect(tileLine(first as Tile, A(0, 0))).toBe(
-      "A1: Draughtsman's jar (opens at dusk, starts with Guard)",
+      "A1: Pell's jar (opens at dusk, starts with Guard)",
     );
   });
 
@@ -910,7 +910,7 @@ describe('readable lines for the new board', () => {
     setTile(v, 0, 0, { jar: { owner: 'draughtsman', event: 'step', peek: 'oil' } });
     expect(cellLabel(v, A(1, 0))).toBe('B1: rat, 2 of 2 HP, deeply marked, holding recoil');
     expect(cellLabel(v, A(0, 0))).toBe(
-      `A1: ${hero.name}, 6 of 6 HP, marked, sealed jar of Draughtsman, opens on a step, starts with oil`,
+      `A1: ${hero.name}, 6 of 6 HP, marked, sealed jar of Pell, opens on a step, starts with oil`,
     );
   });
 

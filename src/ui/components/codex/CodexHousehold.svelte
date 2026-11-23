@@ -19,7 +19,7 @@
   <header>
     <ApprenticeToken {def} size={34} />
     <div>
-      <h3>{def.name}</h3>
+      <h3>{def.name}, the {def.trade}</h3>
       <span class="met" data-testid="codex-household-met">{row.met}</span>
     </div>
   </header>

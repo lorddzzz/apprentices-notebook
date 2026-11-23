@@ -28,7 +28,7 @@ describe('jars open on a step', () => {
     // Everything before the Seal happens now; everything after it waits in the jar.
     expectLogIncludes(sealed.events, [
       'ink lands at D1 as blot',
-      'Draughtsman seals a jar at D1 (opens on a step)',
+      'Pell seals a jar at D1 (opens on a step)',
     ]);
     expect(sealed.lines.join('\n')).not.toContain('Spark');
     expect(jarAt(sealed.state, 'D1')).toMatchObject({ owner: 'draughtsman', event: 'step' });
@@ -36,11 +36,11 @@ describe('jars open on a step', () => {
 
     const stepped = moveTo(sealed.state, 'D1');
     expectLogIncludes(stepped.events, [
-      'Draughtsman moves to D1',
-      'the jar at D1 opens under Draughtsman',
+      'Pell moves to D1',
+      'the jar at D1 opens under Pell',
       'D1: stain',
     ]);
-    expect(stepped.lines.join('\n')).toContain('Spark hits Draughtsman');
+    expect(stepped.lines.join('\n')).toContain('Spark hits Pell');
     expect(jarAt(stepped.state, 'D1')).toBeNull();
   });
 
@@ -49,15 +49,12 @@ describe('jars open on a step', () => {
     const sealed = cast(start, 'draughtsman', 'right');
     expect(unit(sealed.state, 'draughtsman').shield).toBe(0);
     const stepped = moveTo(sealed.state, 'D1');
-    expectLogIncludes(stepped.events, [
-      'Draughtsman moves to D1',
-      'the jar at D1 opens under Draughtsman',
-    ]);
+    expectLogIncludes(stepped.events, ['Pell moves to D1', 'the jar at D1 opens under Pell']);
     expect(unit(stepped.state, 'draughtsman').shield).toBeGreaterThan(0);
   });
 
   test('foe-trips-jar', () => {
-    // The rat walks beside the Draughtsman, onto the jar at B1 (J5).
+    // The rat walks beside the Pell, onto the jar at B1 (J5).
     const start = withLattices('D . r', { draughtsman: 'Touch> Jar Strike' });
     const sealed = cast(start, 'draughtsman', { kind: 'tile', at: at('B1') });
     expect(jarAt(sealed.state, 'B1')?.owner).toBe('draughtsman');
@@ -84,7 +81,7 @@ describe('jars open on a step', () => {
     };
     tileAt(s, at('B1')).jar = jar;
     const stepped = moveTo(s, 'B1');
-    expectLogIncludes(stepped.events, ['the jar at B1 opens under Draughtsman']);
+    expectLogIncludes(stepped.events, ['the jar at B1 opens under Pell']);
     expect(unit(stepped.state, 'draughtsman').hp).toBeLessThan(unit(s, 'draughtsman').hp);
   });
 
@@ -122,7 +119,7 @@ describe('jars open at dusk', () => {
   test('fuse-opens-at-dusk', () => {
     const start = withLattices('D . . .\n. . . r', { draughtsman: 'Bolt> Fuse Oil' });
     const sealed = cast(start, 'draughtsman', 'right');
-    expectLogIncludes(sealed.events, ['Draughtsman seals a jar at D1 (opens at dusk)']);
+    expectLogIncludes(sealed.events, ['Pell seals a jar at D1 (opens at dusk)']);
     expect(tileAt(sealed.state, at('D1')).state).toBeNull();
     // A step on a dusk jar does nothing.
     const walked = moveTo(sealed.state, 'D1');
@@ -133,7 +130,7 @@ describe('jars open at dusk', () => {
   });
 });
 
-/** Draughtsman without his habit: one jar (the two-jar habit has its own test in leans.test.ts). */
+/** Pell without his habit: one jar (the two-jar habit has its own test in leans.test.ts). */
 const withoutHabit = (s: BattleState): BattleState => {
   const c = structuredClone(s);
   const d = unit(c, 'draughtsman');
@@ -152,7 +149,7 @@ describe('one jar per apprentice', () => {
     const second = cast(next, 'draughtsman', 'down');
     expectLogIncludes(second.events, [
       'the jar at D1 crumbles empty',
-      'Draughtsman seals a jar at A3 (opens on a step)',
+      'Pell seals a jar at A3 (opens on a step)',
     ]);
     expect(jarAt(second.state, 'D1')).toBeNull();
     expect(jarAt(second.state, 'A3')).not.toBeNull();
@@ -172,7 +169,7 @@ describe('one jar per apprentice', () => {
     const sealed = cast(s, 'draughtsman', 'right');
     expectLogIncludes(sealed.events, [
       'the jar at D1 crumbles empty',
-      'Draughtsman seals a jar at D1 (opens on a step)',
+      'Pell seals a jar at D1 (opens on a step)',
     ]);
     expect(jarAt(sealed.state, 'D1')?.owner).toBe('draughtsman');
   });

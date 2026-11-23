@@ -9,7 +9,7 @@ import { cast, expectLogIncludes, withLattices } from './harness';
 /**
  * The lattice habits that bend a trigger or a source (actions-habits plan P11, P13, P16, P17;
  * party.md §2): the notary's `markTwice` (Tally), the tuner's `nearUnison` (Unison) and the
- * Copyist's `longTouch` (Touch). Each is given to the Draughtsman through the harness kits; the
+ * Copyist's `longTouch` (Touch). Each is given to the Pell through the harness kits; the
  * same page cast without the habit behaves as it always has. Actions and Kinds are fakes.
  */
 
@@ -71,7 +71,7 @@ describe('nearUnison: a cast beside the target counts (P16)', () => {
   const pages = { stoker: 'Bolt> Oil', draughtsman: 'Bolt> Unison Strike' };
 
   test('a landing on the tile beside the target lets the rest through', () => {
-    // The Stoker's Bolt runs out at E1 (a tile target); the rat stands right below it at E2.
+    // The Joost's Bolt runs out at E1 (a tile target); the rat stands right below it at E2.
     const f = fakes();
     const first = castWith(
       f,

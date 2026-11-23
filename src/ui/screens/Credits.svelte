@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import { APPRENTICES, DISTRICTS } from '$data';
-  import { CREDITS_LINES } from '$data/ending';
+  import { CREDITS_LINES, OWNER_FULL_NAME } from '$data/ending';
   import { creditsOf, endingOf, seeCredits } from '$engine/drawing';
   import { namedTitle } from '../../app/describe';
   import { creditsFallback, originOf } from '../../app/drawing';
@@ -14,7 +14,7 @@
   const credits = creditsOf(profile);
   // Skip returns to where the credits were opened from; read once, as the roll is.
   const origin = originOf(router.params.get('from'), creditsFallback(profile));
-  const keepers = credits.household.map((id) => APPRENTICES[id].name);
+  const keepers = credits.household.map((id) => (id === 'owner' ? OWNER_FULL_NAME : APPRENTICES[id].name));
   const { biggest } = credits;
   const chainLine = biggest
     ? CREDITS_LINES.chain

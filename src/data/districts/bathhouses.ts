@@ -25,8 +25,9 @@ import type { DistrictData } from './index';
  */
 export const BATHHOUSES_KIT: DistrictData = {
   id: 'bathhouses',
-  name: 'The bathhouses',
-  guild: 'The bath-keepers',
+  name: 'The Thermae',
+  plain: 'the bathhouses',
+  guild: 'The Thermae Guild',
   edge: 'wall',
   rooms: [],
   ret: { kind: 'any' },

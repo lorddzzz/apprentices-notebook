@@ -93,7 +93,7 @@ test('parseSaveData rejects garbage and malformed current fields', () => {
     ['profile.household.members', []],
     ['profile.household.members', ['draughtsman', 'draughtsman', 'stoker']],
     ['profile.household.members', ['draughtsman', 'ghost']],
-    ['profile.household.members', ['draughtsman']], // the Stoker's page is left over
+    ['profile.household.members', ['draughtsman']], // the Joost's page is left over
     ['profile.household.slots', ['stoker', 'stoker', null]],
     ['profile.household.slots', ['draughtsman', null]],
     ['profile.lattices.stoker', undefined],

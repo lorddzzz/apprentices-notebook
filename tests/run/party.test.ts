@@ -26,7 +26,7 @@ import {
 import { nearestMember } from '$engine/ai';
 import { startSeedFor } from '$engine/rooms';
 
-// A test-only third apprentice (RECRUITS is empty until RC): the Draughtsman's starter page, a
+// A test-only third apprentice (RECRUITS is empty until RC): the Pell's starter page, a
 // frailer body and Pull instead of Shove, so the P14 shove gate has someone to refuse.
 vi.mock('../../src/data/recruits', async (orig) => {
   const real = await orig<typeof import('../../src/data/recruits')>();
@@ -272,7 +272,7 @@ describe('battle rules over the registry', () => {
   });
 
   test("P15: a foe's tie between two apprentices goes to registry order, not slot order", () => {
-    // Two start points the same walk from the rat; the Stoker is slotted first.
+    // Two start points the same walk from the rat; the Joost is slotted first.
     const board = ['P . r . P', '. . . . .'].join('\n');
     for (const seed of [1, 2, 3, 4]) {
       const lineup = ['stoker', 'draughtsman'] as const;

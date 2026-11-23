@@ -46,6 +46,7 @@
     >
       <ApprenticeToken {def} size={24} />
       <span class="name">{def.name}</span>
+      <span class="trade">{def.trade}</span>
       <span class="stats">
         <span>{def.hp} HP · {def.move} mv</span>
         <ActionIcon action={def.action} size={14} />
@@ -111,6 +112,14 @@
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+  }
+  .trade {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.75;
   }
   .name {
     max-width: 100%;

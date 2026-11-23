@@ -60,6 +60,7 @@ export const FIXTURE_ROOMS: readonly EncounterDef[] = [
 export const FIXTURE_DATA: DistrictData = {
   id: 'bridges',
   name: 'The fixture span',
+  plain: '',
   guild: 'The fixture wardens',
   // Edge rule (P3): `drop` pushes off the board edge; the gap piece is the kit's own fall.
   edge: 'wall',

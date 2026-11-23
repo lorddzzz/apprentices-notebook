@@ -103,7 +103,7 @@ test('revision reaching local x=7 casts like its flat counterpart and survives s
   expect(insideIssues(straight)).toEqual([]);
   expect(profile.glyphs[0]?.exits).toEqual([{ from: { x: 7, y: 0 }, dir: 'right' }]);
   const result = castPage(reload(profile));
-  expectLogIncludes(result.events, ['Draughtsman casts Bolt right', 'bolt aims at dummy-1']);
+  expectLogIncludes(result.events, ['Pell casts Bolt right', 'bolt aims at dummy-1']);
   expect(innerFired(result.events, 'g1')).toContain('7,0');
   const flat = compileLattice(growingLattice(straight.cells)).spells;
   const flatCast = cast(
@@ -218,6 +218,6 @@ test('many admitted eight-cell Spell Glyph placements retain sparse Source ident
   expect(compiled.spells.at(-1)?.key).toBe('10190,5');
   expect(compiled.spells.every((spell) => spell.path.length === 8)).toBe(true);
   const result = castPage(admitted);
-  expectLogIncludes(result.events, ['Draughtsman casts Bolt right', 'bolt aims at dummy-1']);
+  expectLogIncludes(result.events, ['Pell casts Bolt right', 'bolt aims at dummy-1']);
   expect(innerFired(result.events, 'g1')).toContain('7,0');
 });

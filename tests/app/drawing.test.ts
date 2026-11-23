@@ -160,6 +160,6 @@ describe('CAL-5P: the cleared heading', () => {
     expect(clearedHeading(tripOf('inkedPage', d))).toBe('The heart of Heavy Marginalia is quiet.');
     // Control: a home district keeps its own name.
     expect(clearedHeading(tripOf('seam', d))).toBe('The heart of the Seam is quiet.');
-    expect(clearedHeading(tripOf('canals', d))).toBe('The heart of the oil-lit canals is quiet.');
+    expect(clearedHeading(tripOf('canals', d))).toBe('The heart of Lampwater is quiet.');
   });
 });

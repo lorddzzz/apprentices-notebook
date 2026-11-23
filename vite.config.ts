@@ -38,7 +38,7 @@ export default defineConfig({
       manifest: {
         name: "The Apprentice's Notebook",
         short_name: 'Notebook',
-        description: 'A turn-based rune-inscribing game.',
+        description: 'The last tenant left the lamp lit. A turn-based rune-inscribing game.',
         display: 'standalone',
         orientation: 'portrait',
         scope: BASE,

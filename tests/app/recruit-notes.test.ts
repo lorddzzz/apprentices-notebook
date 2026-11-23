@@ -30,7 +30,7 @@ const learn = (p: Profile, runes: readonly RuneId[]): Profile => ({
   ...p,
   known: [...new Set([...p.known, ...runes])],
 });
-/** The Copyist's beats: the runaway home, her runes, a named idiom. */
+/** Nelle's beats: the runaway home, her runes, a named idiom. */
 const copyistReady = (named: string[] = ['idiom:bonfire']): Profile => ({
   ...learn(joinHousehold(newProfile(), 'runaway'), preconditionsOf('copyist').runes.all),
   named,
@@ -74,7 +74,7 @@ describe('notes under the door', () => {
     const [note, ...rest] = notesUnderDoor(g.profile);
     expect(rest).toEqual([]);
     expect(note?.id).toBe('copyist');
-    expect(note?.name).toBe('The Copyist');
+    expect(note?.name).toBe('Nelle');
     expect(note?.card.slot).toBeNull();
     expect(note?.card.habit?.line).toBeTruthy();
     expect(inHousehold(g.profile, 'copyist')).toBe(false);
@@ -124,7 +124,7 @@ describe('the trip page line', () => {
     const [line, ...rest] = joinedHighlights(joined);
     expect(rest).toEqual([]);
     expect(line?.kind).toBe('joined');
-    expect(line?.text).toContain('Lamp-pole runaway');
+    expect(line?.text).toContain('Hanneke');
     expect(joinedHighlights([])).toEqual([]);
   });
 });

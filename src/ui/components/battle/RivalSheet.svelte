@@ -12,7 +12,7 @@
   let { view, onclose }: Props = $props();
 </script>
 
-<Sheet open={view !== null} title={view?.name ?? 'Rival'} {onclose}>
+<Sheet open={view !== null} title={view ? (view.person ? `${view.person}, ${view.name}` : view.name) : 'Rival'} {onclose}>
   {#if view}
     <div class="rival" data-testid="rival-sheet">
       <p class="plan" data-testid="rival-plan">{view.plan}</p>

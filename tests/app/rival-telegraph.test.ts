@@ -116,7 +116,7 @@ describe('D2 and D3: blanks and the harm ring', () => {
     expect(o.highlights).toContainEqual({ kind: 'hurt', at: at('A3') });
     expect(threatenedMembers(s)).toContain('draughtsman');
     const text = intentPhrase(s, rivalOf(s));
-    expect(text).toContain('Draughtsman will be hurt');
+    expect(text).toContain('Pell will be hurt');
     // The reason stays blank: no rune, no amount.
     expect(text).not.toMatch(/damage|fire|\d+ damage/i);
   });

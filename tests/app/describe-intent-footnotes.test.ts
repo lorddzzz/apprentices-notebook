@@ -30,8 +30,8 @@ test('a rival strike warning is previewed with the footnotes passed to intentPhr
   if (!rival) throw new Error('no rival');
   const written = withFootnotes(['touch-unit-reach']);
 
-  expect(intentPhrase(s, rival)).toContain('Draughtsman will be hurt');
+  expect(intentPhrase(s, rival)).toContain('Pell will be hurt');
   expect(seen.at(-1)).toEqual({});
-  expect(intentPhrase(s, rival, written)).toContain('Draughtsman will be hurt');
+  expect(intentPhrase(s, rival, written)).toContain('Pell will be hurt');
   expect(seen.at(-1)).toEqual(written);
 });

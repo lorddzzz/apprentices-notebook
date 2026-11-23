@@ -124,7 +124,7 @@ const library = libraryOf([
 ]);
 const endTurn = (s: BattleState) => act(s, { type: 'endTurn' });
 
-/** A Jar the Stoker sealed on B2, with the Draughtsman beside it holding `lattice` (no hand-set jar). */
+/** A Jar the Joost sealed on B2, with the Pell beside it holding `lattice` (no hand-set jar). */
 const jarSealed = (lattice: string): BattleState => {
   const s = withLattices('. S . .\nD . . r', {
     stoker: 'Touch> Jar Guard',
@@ -136,7 +136,7 @@ const jarSealed = (lattice: string): BattleState => {
 /** One scenario per live row: the events of the case that fires it. */
 const FIRES: Record<string, () => readonly GameEvent[]> = {
   'swap:held': () => {
-    // The Stoker holds the rat, then the Draughtsman's Swap meets the hold (no hand-set state).
+    // The Joost holds the rat, then the Pell's Swap meets the hold (no hand-set state).
     const s = withLattices('D r S', { draughtsman: 'Touch> Swap', stoker: 'Touch> Hold' });
     const held = cast(s, 'stoker', touch('B1')).state;
     return cast(held, 'draughtsman', touch('B1')).events;
@@ -150,7 +150,7 @@ const FIRES: Record<string, () => readonly GameEvent[]> = {
   'erase:mark': () => run(board('D r!'), 'erase', [unitTarget('rat-1')]).events,
   'erase:deepMark': () => run(board('D r!!'), 'erase', [unitTarget('rat-1')]).events,
   'erase:collar': () => {
-    // A cast collar (a born one is part of the creature): the Stoker's Brass, then the Erase.
+    // A cast collar (a born one is part of the creature): the Joost's Brass, then the Erase.
     const s = withLattices('D r S', { draughtsman: 'Touch> Erase', stoker: 'Touch> Brass' });
     const collared = cast(s, 'stoker', touch('B1')).state;
     return cast(collared, 'draughtsman', touch('B1')).events;

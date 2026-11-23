@@ -11,7 +11,7 @@ import {
 
 test('the oil-chain fixture reads as one chain, line by line', () => {
   expect(describeLog(OIL_CHAIN_EVENTS)).toEqual([
-    'Stoker casts Bolt right',
+    'Joost casts Bolt right',
     'bolt aims at rat-1',
     'Bolt hits rat at C2 for 2',
     'rat at C2 dies',

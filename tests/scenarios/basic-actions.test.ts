@@ -54,13 +54,13 @@ const lines = (r: { events: readonly { line?: string }[] }) =>
 describe('Pull (P4)', () => {
   test('pull-to-adjacent: a unit two tiles away comes one tile toward the caster', () => {
     const r = act(board('D . r .', kit('pull')), basic('pull', 'right'));
-    expectLog(r.events, ['Draughtsman pulls rat at C1', 'rat at C1 is pulled left to B1']);
+    expectLog(r.events, ['Pell pulls rat at C1', 'rat at C1 is pulled left to B1']);
     expect(r.events[1]).toMatchObject({ type: 'push', cause: 'pull' });
     expect(unit(r.state, 'rat-1').pos).toEqual(at('B1'));
     expect(unit(r.state, 'draughtsman')).toMatchObject({ pos: at('A1'), acted: true });
   });
 
-  test('pull-ally-out-of-telegraph: the Stoker is pulled out of the rat bite', () => {
+  test('pull-ally-out-of-telegraph: the Joost is pulled out of the rat bite', () => {
     const s = board('D . S r', { ...kit('pull'), intents: { D1: 'left' } });
     const r = act(s, basic('pull', 'right'));
     expect(unit(r.state, 'stoker').pos).toEqual(at('B1'));
@@ -70,24 +70,20 @@ describe('Pull (P4)', () => {
 
   test('pull-into-canal: a minion is gone, an elite takes 4 and is stunned', () => {
     const minion = act(board('D w> r d', kit('pull')), basic('pull', 'right'));
-    expectLog(minion.events, [
-      'Draughtsman pulls rat at C1',
-      'rat at C1 drops at B1',
-      'rat at C1 dies',
-    ]);
+    expectLog(minion.events, ['Pell pulls rat at C1', 'rat at C1 drops at B1', 'rat at C1 dies']);
     expect(minion.events[1]).toMatchObject({ line: 'pull:drop' });
     const elite = act(board('D w> S d', kit('pull')), basic('pull', 'right'));
     expectLog(elite.events, [
-      'Draughtsman pulls Stoker',
-      'Stoker drops at B1',
-      'Drop hits Stoker for 4',
-      'Stoker is stunned',
+      'Pell pulls Joost',
+      'Joost drops at B1',
+      'Drop hits Joost for 4',
+      'Joost is stunned',
     ]);
   });
 
   test('pull-blocked-by-plate: no crush, the unit stays', () => {
     const r = act(board('D = r', kit('pull')), basic('pull', 'right'));
-    expectLog(r.events, ['Draughtsman pulls rat at C1', 'Pull hits nothing']);
+    expectLog(r.events, ['Pell pulls rat at C1', 'Pull hits nothing']);
     expect(lines(r)).toEqual(['pull:plate']);
     expect(unit(r.state, 'rat-1')).toMatchObject({ pos: at('C1'), hp: 2 });
   });
@@ -97,23 +93,20 @@ describe('Pull (P4)', () => {
       unitAtLabel(c, 'C1').held = 1;
     });
     const r = act(s, basic('pull', 'right'));
-    expectLog(r.events, ['Draughtsman pulls rat at C1', 'rat at C1 is held']);
+    expectLog(r.events, ['Pell pulls rat at C1', 'rat at C1 is held']);
     expect(lines(r)).toEqual(['pull:held']);
     expect(unit(r.state, 'draughtsman')).toMatchObject({ acted: true });
   });
 
   test('pull-eel-stays: a swimmer is not pulled out of the water', () => {
     const r = act(board('D . ew>', kit('pull')), basic('pull', 'right'));
-    expectLog(r.events, ['Draughtsman pulls eel at C1', 'Pull hits nothing']);
+    expectLog(r.events, ['Pell pulls eel at C1', 'Pull hits nothing']);
     expect(lines(r)).toEqual(['pull:water']);
   });
 
   test('pull-moth-over-drop: a flier is pulled over the drop and never falls', () => {
     const r = act(board('D _ m', kit('pull')), basic('pull', 'right'));
-    expectLog(r.events, [
-      'Draughtsman pulls lamp-moth at C1',
-      'lamp-moth at C1 is pulled left to B1',
-    ]);
+    expectLog(r.events, ['Pell pulls lamp-moth at C1', 'lamp-moth at C1 is pulled left to B1']);
     expect(lines(r)).toEqual(['pull:flier']);
     expect(unit(r.state, 'moth-1')).toMatchObject({ pos: at('B1'), hp: 1 });
   });
@@ -133,7 +126,7 @@ describe('Pull (P4)', () => {
     expect(act(jar, basic('pull', 'right')).events.some((e) => e.type === 'jarOpened')).toBe(true);
     const r = act(board('D {stain} r', kit('pull')), basic('pull', 'right'));
     expectLog(r.events, [
-      'Draughtsman pulls rat at C1',
+      'Pell pulls rat at C1',
       'rat at C1 is pulled left to B1',
       'rat at B1 is marked',
     ]);
@@ -143,7 +136,7 @@ describe('Pull (P4)', () => {
 describe('Hop (P3, P5)', () => {
   test('hop-over-rat: she leaps two tiles, over the unit between', () => {
     const r = act(board('D r .', kit('hop')), basic('hop', 'right'));
-    expectLog(r.events, ['Draughtsman hops right', 'Draughtsman moves to C1']);
+    expectLog(r.events, ['Pell hops right', 'Pell moves to C1']);
     expect(r.events[1]).toMatchObject({ type: 'moved', cause: 'hop', path: [at('C1')] });
     expect(unit(r.state, 'draughtsman')).toMatchObject({
       pos: at('C1'),
@@ -200,17 +193,14 @@ describe('Hop (P3, P5)', () => {
 describe('Swap (P6)', () => {
   test('swap-foe-onto-slick: the rat takes her slick tile, she takes its tile', () => {
     const r = act(board('Do r', kit('swap')), basic('swap', 'right'));
-    expectLog(r.events, [
-      'Draughtsman swaps with rat at B1',
-      'Draughtsman and rat at B1 swap places',
-    ]);
+    expectLog(r.events, ['Pell swaps with rat at B1', 'Pell and rat at B1 swap places']);
     expect(r.events[1]).toMatchObject({ type: 'swapped', cause: 'swap' });
     expect(unit(r.state, 'rat-1').pos).toEqual(at('A1'));
     expect(tileAt(r.state, at('A1')).state).toMatchObject({ id: 'slick' });
     expect(unit(r.state, 'draughtsman')).toMatchObject({ pos: at('B1'), lastMove: 'right' });
   });
 
-  test('swap-ally-out-of-telegraph: the Stoker leaves the bite, the Draughtsman takes it', () => {
+  test('swap-ally-out-of-telegraph: the Joost leaves the bite, the Pell takes it', () => {
     const s = board('D S r', { ...kit('swap'), intents: { C1: 'left' } });
     const r = act(s, basic('swap', 'right'));
     const end = act(r.state, { type: 'endTurn' });
@@ -230,7 +220,7 @@ describe('Swap (P6)', () => {
       unitAtLabel(c, 'B1').held = 1;
     });
     const r = act(s, basic('swap', 'right'));
-    expectLog(r.events, ['Draughtsman swaps with rat at B1', 'rat at B1 is held']);
+    expectLog(r.events, ['Pell swaps with rat at B1', 'rat at B1 is held']);
     expect(lines(r)).toEqual(['swap:held']);
     expect(unit(r.state, 'draughtsman')).toMatchObject({ pos: at('A1'), acted: true });
   });

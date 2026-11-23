@@ -67,7 +67,7 @@ const circlesOf = (s: BattleState): GuildHandState['circles'] =>
 // ── swap:held ──────────────────────────────────────────
 
 describe('swap:held', () => {
-  // A held rat at B1 with a second rat below it; or the Draughtsman held and the rat free.
+  // A held rat at B1 with a second rat below it; or the Pell held and the rat free.
   const ROOM = 'D r . .\n. r . .';
   const meet = (fns: FootnoteIds, who: 'target' | 'caster') => {
     const s = withLattices(ROOM, { draughtsman: 'Touch> Swap' });
@@ -137,7 +137,7 @@ describe('swap:held', () => {
 // ── swap:unit ──────────────────────────────────────────
 
 describe('swap:unit', () => {
-  // Both tiles carry pencil: the Draughtsman on A1 (rub), a rat on B1 (ink). A Swap trades them.
+  // Both tiles carry pencil: the Pell on A1 (rub), a rat on B1 (ink). A Swap trades them.
   const ROOM = 'D{pencil:rub@3} r{pencil:ink@3} . . r\n. . . . .';
   const run = (fns: FootnoteIds, room = ROOM) => {
     const s = hall(withLattices(room, { draughtsman: 'Touch> Swap' }));
@@ -290,7 +290,7 @@ describe('swap capstones', () => {
 // ── draw:jar ───────────────────────────────────────────
 
 describe('draw:jar', () => {
-  /** The Stoker seals a jar on B2; the Draughtsman (A2) then draws it along the row. */
+  /** The Joost seals a jar on B2; the Pell (A2) then draws it along the row. */
   const jarRoom = (row: string): BattleState => {
     const s = withLattices(`. S . . . d\n${row}`, {
       stoker: 'Touch> Jar Guard',
@@ -379,7 +379,7 @@ describe('draw:jar', () => {
 // ── draw:drop ──────────────────────────────────────────
 
 describe('draw:drop', () => {
-  // A slick at B1, blank paper at C1, free paper beyond. The Draughtsman draws it right.
+  // A slick at B1, blank paper at C1, free paper beyond. The Pell draws it right.
   const ROOM = 'D o {blank} . r';
   const run = (fns: FootnoteIds) => {
     const s = withLattices(ROOM, { draughtsman: 'Touch> Draw' });
@@ -478,7 +478,7 @@ describe('draw capstones', () => {
 // ── erase:unit ─────────────────────────────────────────
 
 describe('erase:unit', () => {
-  // The Draughtsman un-draws B1 under a rat. B2 is pencil under the Stoker, C1 holds a slick.
+  // The Pell un-draws B1 under a rat. B2 is pencil under the Joost, C1 holds a slick.
   const ROOM = 'D r{pencil} o .\n. S{pencil} . d';
   const run = (fns: FootnoteIds) => {
     const s = withLattices(ROOM, { draughtsman: 'Touch> Erase' });
@@ -520,7 +520,7 @@ describe('erase:unit', () => {
     expect(ws?.b2).toBe('blank');
     expect(ws?.stoker).not.toBe('erased');
     expect(ws?.stoker).not.toBe('B2');
-    // wide + sweep: the Stoker is erased, and the slick beside goes.
+    // wide + sweep: the Joost is erased, and the slick beside goes.
     expect(ww).toMatchObject({ b1: 'blank', b2: 'blank', c1: null, stoker: 'erased' });
   });
 
@@ -534,7 +534,7 @@ describe('erase:unit', () => {
   });
 
   test('erase-unit-spare: a party member on pencil you un-draw is set down on the nearest paper', () => {
-    // The Stoker stands on the tile aimed at.
+    // The Joost stands on the tile aimed at.
     const s = withLattices('D S{pencil} . . r', { draughtsman: 'Touch> Erase' });
     const plain = touch(s, 'B1', {});
     expect(unit(plain.state, 'stoker').out).toBe('erased');

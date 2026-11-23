@@ -50,7 +50,7 @@
           "type": "cast",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 3 },
             "member": true
           },
@@ -98,7 +98,7 @@
           "type": "trace",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 3 },
             "member": true
           },
@@ -120,7 +120,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 3 },
             "member": true
           },
@@ -131,7 +131,7 @@
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 5 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 3, "y": 5 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "up" },
           "aimText": "up",
@@ -201,7 +201,7 @@
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 5 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 3, "y": 5 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -218,7 +218,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 3, "y": 5 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 3, "y": 5 }, "member": true },
           "from": { "x": 3, "y": 5 },
           "to": { "x": 2, "y": 3 },
           "path": [{ "x": 3, "y": 4 }, { "x": 3, "y": 3 }, { "x": 2, "y": 3 }],
@@ -245,7 +245,7 @@
           "type": "cast",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 4 },
             "member": true
           },
@@ -293,7 +293,7 @@
           "type": "trace",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 4 },
             "member": true
           },
@@ -403,7 +403,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 3, "y": 6 },
             "member": true
           },
@@ -416,7 +416,7 @@
           "type": "cast",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 5, "y": 5 },
             "member": true
           },
@@ -479,7 +479,7 @@
           "type": "trace",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 5, "y": 5 },
             "member": true
           },
@@ -499,7 +499,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 6 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 1, "y": 6 }, "member": true },
           "from": { "x": 1, "y": 6 },
           "to": { "x": 1, "y": 4 },
           "path": [{ "x": 1, "y": 5 }, { "x": 1, "y": 4 }],
@@ -507,7 +507,7 @@
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 1, "y": 4 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "left" },
           "aimText": "left",
@@ -577,7 +577,7 @@
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 1, "y": 4 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -615,7 +615,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 5, "y": 5 },
             "member": true
           },
@@ -626,7 +626,7 @@
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 1, "y": 4 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "up" },
           "aimText": "up",
@@ -703,7 +703,7 @@
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 1, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 1, "y": 4 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -817,7 +817,7 @@
           "type": "cast",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 7 },
             "member": true
           },
@@ -865,7 +865,7 @@
           "type": "trace",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 7 },
             "member": true
           },
@@ -887,7 +887,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 7 },
             "member": true
           },
@@ -898,7 +898,7 @@
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 5, "y": 4 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "up" },
           "aimText": "up",
@@ -968,7 +968,7 @@
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 5, "y": 4 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -985,7 +985,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 4 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 5, "y": 4 }, "member": true },
           "from": { "x": 5, "y": 4 },
           "to": { "x": 5, "y": 1 },
           "path": [{ "x": 5, "y": 3 }, { "x": 5, "y": 2 }, { "x": 5, "y": 1 }],
@@ -1026,7 +1026,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 4 },
             "member": true
           },
@@ -1039,7 +1039,7 @@
           "type": "cast",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 1 },
             "member": true
           },
@@ -1095,7 +1095,7 @@
           "type": "trace",
           "caster": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 1 },
             "member": true
           },
@@ -1115,7 +1115,7 @@
         },
         {
           "type": "cast",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 5, "y": 1 }, "member": true },
           "spell": "Bolt",
           "aim": { "kind": "dir", "dir": "left" },
           "aimText": "left",
@@ -1213,7 +1213,7 @@
         },
         {
           "type": "trace",
-          "caster": { "id": "stoker", "name": "Stoker", "at": { "x": 5, "y": 1 }, "member": true },
+          "caster": { "id": "stoker", "name": "Joost", "at": { "x": 5, "y": 1 }, "member": true },
           "spell": "1,0",
           "cells": [
             { "at": { "x": 1, "y": 0 }, "rune": "bolt", "dir": "down" },
@@ -1369,7 +1369,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 6 },
             "member": true
           },
@@ -1380,7 +1380,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 6 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 6 }, "member": true },
           "from": { "x": 6, "y": 6 },
           "to": { "x": 6, "y": 3 },
           "path": [{ "x": 6, "y": 5 }, { "x": 6, "y": 4 }, { "x": 6, "y": 3 }],
@@ -1510,7 +1510,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 3 },
             "member": true
           },
@@ -1521,7 +1521,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "from": { "x": 6, "y": 3 },
           "to": { "x": 6, "y": 2 },
           "path": [{ "x": 6, "y": 2 }],
@@ -1555,7 +1555,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 2 },
             "member": true
           },
@@ -1568,7 +1568,7 @@
           "type": "marked",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 2 },
             "member": true
           },
@@ -1588,7 +1588,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -1596,7 +1596,7 @@
         },
         {
           "type": "marked",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "deep": false,
           "bound": null
         },
@@ -1651,7 +1651,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 2 },
             "member": true
           },
@@ -1662,7 +1662,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "from": { "x": 6, "y": 2 },
           "to": { "x": 6, "y": 3 },
           "path": [{ "x": 6, "y": 3 }],
@@ -1713,7 +1713,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -1723,7 +1723,7 @@
         {
           "type": "mixed",
           "at": { "x": 6, "y": 3 },
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "compound": "deepMark",
           "line": "ink:mark"
         },
@@ -1789,7 +1789,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 0, "y": 3 },
             "member": true
           },
@@ -1800,7 +1800,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "from": { "x": 6, "y": 3 },
           "to": { "x": 6, "y": 2 },
           "path": [{ "x": 6, "y": 2 }],
@@ -1861,7 +1861,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -1878,7 +1878,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 2 },
             "member": true
           },
@@ -1955,7 +1955,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 2 },
             "member": true
           },
@@ -1968,7 +1968,7 @@
           "type": "shove",
           "by": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2008,7 +2008,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "from": { "x": 6, "y": 2 },
           "to": { "x": 6, "y": 3 },
           "path": [{ "x": 6, "y": 3 }],
@@ -2052,7 +2052,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -2061,7 +2061,7 @@
         {
           "type": "mixed",
           "at": { "x": 6, "y": 3 },
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "compound": "deepMark",
           "line": "ink:mark"
         },
@@ -2104,7 +2104,7 @@
           "type": "shove",
           "by": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2146,7 +2146,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2157,7 +2157,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "from": { "x": 6, "y": 3 },
           "to": { "x": 6, "y": 2 },
           "path": [{ "x": 6, "y": 2 }],
@@ -2203,7 +2203,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -2256,7 +2256,7 @@
           "type": "shove",
           "by": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 3, "y": 1 },
             "member": true
           },
@@ -2298,7 +2298,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 3, "y": 1 },
             "member": true
           },
@@ -2309,7 +2309,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "from": { "x": 6, "y": 2 },
           "to": { "x": 6, "y": 3 },
           "path": [{ "x": 6, "y": 3 }],
@@ -2345,7 +2345,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -2354,7 +2354,7 @@
         {
           "type": "mixed",
           "at": { "x": 6, "y": 3 },
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "compound": "deepMark",
           "line": "ink:mark"
         },
@@ -2396,7 +2396,7 @@
           "type": "shove",
           "by": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2438,7 +2438,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2449,7 +2449,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "from": { "x": 6, "y": 3 },
           "to": { "x": 6, "y": 2 },
           "path": [{ "x": 6, "y": 2 }],
@@ -2502,7 +2502,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -2555,7 +2555,7 @@
           "type": "shove",
           "by": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 3, "y": 1 },
             "member": true
           },
@@ -2597,7 +2597,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 3, "y": 1 },
             "member": true
           },
@@ -2608,7 +2608,7 @@
         },
         {
           "type": "moved",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 2 }, "member": true },
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 2 }, "member": true },
           "from": { "x": 6, "y": 2 },
           "to": { "x": 6, "y": 3 },
           "path": [{ "x": 6, "y": 3 }],
@@ -2659,7 +2659,7 @@
         },
         {
           "type": "damage",
-          "target": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true },
+          "target": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true },
           "amount": 1,
           "source": "Spit",
           "bonus": [],
@@ -2667,7 +2667,7 @@
         },
         {
           "type": "died",
-          "unit": { "id": "stoker", "name": "Stoker", "at": { "x": 6, "y": 3 }, "member": true }
+          "unit": { "id": "stoker", "name": "Joost", "at": { "x": 6, "y": 3 }, "member": true }
         },
         {
           "type": "stateFades",
@@ -2724,7 +2724,7 @@
           "type": "shove",
           "by": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2766,7 +2766,7 @@
           "type": "moved",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 2, "y": 0 },
             "member": true
           },
@@ -2793,7 +2793,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 1, "y": 0 },
             "member": true
           },
@@ -2809,7 +2809,7 @@
           "at": { "x": 1, "y": 0 },
           "tiles": [{ "x": 1, "y": 0 }],
           "units": [
-            { "id": "draughtsman", "name": "Draughtsman", "at": { "x": 1, "y": 0 }, "member": true }
+            { "id": "draughtsman", "name": "Pell", "at": { "x": 1, "y": 0 }, "member": true }
           ],
           "line": "spark:mark"
         },
@@ -2817,7 +2817,7 @@
           "type": "markSpent",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 1, "y": 0 },
             "member": true
           },
@@ -2828,7 +2828,7 @@
           "type": "damage",
           "target": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 1, "y": 0 },
             "member": true
           },
@@ -2842,7 +2842,7 @@
           "type": "died",
           "unit": {
             "id": "draughtsman",
-            "name": "Draughtsman",
+            "name": "Pell",
             "at": { "x": 1, "y": 0 },
             "member": true
           },

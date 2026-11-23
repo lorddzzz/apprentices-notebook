@@ -125,7 +125,7 @@ const CAUSES: Record<Cause, Partial<Record<Trait, Rig>>> = {
     land: { ascii: rows(`r o ${STAMP} .`), subject: 'A1', run: pushRight(1) },
     swimmer: { ascii: rows(`ew> w>o w>${STAMP} w>`), subject: 'A1', run: pushRight(1) },
   },
-  // The Draughtsman on the stamp (A1) swaps with the subject on B1, which lands on the stamp.
+  // The Pell on the stamp (A1) swaps with the subject on B1, which lands on the stamp.
   swap: allTraits((t) => ({
     ascii: rows(
       t === 'swimmer' ? `Dw>${STAMP} ${TOKEN.swimmer}w> w> w>` : `D${STAMP} ${TOKEN[t]} . .`,
@@ -133,16 +133,16 @@ const CAUSES: Record<Cause, Partial<Record<Trait, Rig>>> = {
     subject: 'B1',
     run: swapRune,
   })),
-  // The Draughtsman on A1 pulls the subject on C1 onto the stamp on B1.
+  // The Pell on A1 pulls the subject on C1 onto the stamp on B1.
   pull: {
     land: { ascii: rows(`D ${STAMP} r .`), subject: 'C1', hp: 5, run: basic('pull') },
     flier: { ascii: rows(`D ${STAMP} m .`), subject: 'C1', hp: 5, run: basic('pull') },
     swimmer: { ascii: rows(`Dw> w>${STAMP} ew> w>`), subject: 'C1', run: basic('pull') },
   },
-  // The Draughtsman hops from A1 onto the stamp on C1; `hop over` puts it under the arc (B1).
+  // The Pell hops from A1 onto the stamp on C1; `hop over` puts it under the arc (B1).
   hop: { land: { ascii: rows(`D . ${STAMP} .`), subject: 'A1', run: basic('hop') } },
   'hop over': { land: { ascii: rows(`D ${STAMP} . .`), subject: 'A1', run: basic('hop') } },
-  // The basic Swap: the Draughtsman on the stamp swaps with the rat on B1.
+  // The basic Swap: the Pell on the stamp swaps with the rat on B1.
   'basic swap': { land: { ascii: rows(`D${STAMP} r . .`), subject: 'B1', run: basic('swap') } },
   // The current carries a rat off its lane onto the stamp on B1.
   drift: { land: { ascii: rows(`rw> ${STAMP} . .`), subject: 'A1', run: (ctx) => drift(ctx) } },

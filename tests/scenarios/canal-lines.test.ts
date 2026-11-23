@@ -14,7 +14,7 @@ const linesOf = (events: readonly GameEvent[], type: GameEvent['type']): (LineId
   events.filter((e) => e.type === type).map((e) => e.line);
 const endTurn = (s: BattleState) => act(s, { type: 'endTurn' });
 
-/** Without the Draughtsman's two-jar habit: one jar, Jar and Fuse together. */
+/** Without the Pell's two-jar habit: one jar, Jar and Fuse together. */
 const oneJar = (s: BattleState): BattleState => {
   const c = structuredClone(s);
   const d = c.units.find((u) => u.id === 'draughtsman');

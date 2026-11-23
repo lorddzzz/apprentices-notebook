@@ -40,7 +40,7 @@ const jarReady = (pages: Profile['pages']): Profile => ({
 const levelOne = (p: Profile) => marginOf(p, 'jar').lines[0]?.frames[0];
 const offered = (p: Profile) => (levelOne(p)?.variants ?? []).map((v) => v.id);
 
-/** The Draughtsman's step-jar on B1: a Strike on whoever opens it. */
+/** The Pell's step-jar on B1: a Strike on whoever opens it. */
 const strikeJar = (): Jar => ({
   owner: 'draughtsman',
   event: 'step',

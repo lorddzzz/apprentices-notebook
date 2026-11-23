@@ -100,7 +100,7 @@ test('the lean prices a rune: a trained school pays one less', () => {
   const lattice = parseLattice('Bolt> . .');
   const stoker: EditContext = { lattice, capacity: 8, member: 'stoker' }; // trained in the Seam
   const draughtsman: EditContext = { lattice, capacity: 8, member: 'draughtsman' };
-  expect(inkLeft(lattice, 8, {}, {}, 'stoker')).toBe(7); // Bolt costs 1 for the Stoker
+  expect(inkLeft(lattice, 8, {}, {}, 'stoker')).toBe(7); // Bolt costs 1 for the Joost
   expect(inkLeft(lattice, 8, {}, {}, 'draughtsman')).toBe(6);
   expect(editSocket(stoker, { x: 1, y: 0 }, rune('bolt'), false).decision.kind).toBe('place');
   expect(editSocket(draughtsman, { x: 1, y: 0 }, rune('bolt'), false).decision.kind).toBe('place');
@@ -174,7 +174,7 @@ test('lab context: unlimited ink', () => {
   expect(r.tool).toEqual(rune('coil'));
 });
 
-test('shelfSlots: the first evening for the Draughtsman', () => {
+test('shelfSlots: the first evening for the Pell', () => {
   const d = parseLattice(MEMBERS.draughtsman.startLattice);
   const slots = shelfSlots(START_KNOWN, d, 8, {}, {}, 'draughtsman');
   expect(slots).toHaveLength(RUNE_IDS.length);
@@ -183,7 +183,7 @@ test('shelfSlots: the first evening for the Draughtsman', () => {
   expect(by('coil')).toMatchObject({ known: false, usable: false, reason: 'Not found yet' });
   expect(by('ink')?.cost).toBe(1);
   expect(slots.filter((s) => s.known)).toHaveLength(START_KNOWN.length);
-  // trained in the Seam, the Stoker pays one less for a Seam source
+  // trained in the Seam, the Joost pays one less for a Seam source
   const s = shelfSlots(START_KNOWN, d, 8, {}, {}, 'stoker');
   expect(s.find((x) => x.rune === 'bolt')?.cost).toBe(1);
 });
@@ -254,7 +254,7 @@ test('editProfile leaves the input profile untouched and only the edited member 
   const r = editProfile(p, 'draughtsman', { x: 2, y: 1 }, { kind: 'rune', rune: 'spark' }, false);
   expect(p).toEqual(snapshot);
   expect(r.profile.lattices.stoker).toBe(p.lattices.stoker);
-  // Spark replaces Strike on the Draughtsman's page
+  // Spark replaces Strike on the Pell's page
   expect(socketAt(latticeOf(r.profile, 'draughtsman'), { x: 2, y: 1 })).toMatchObject({
     rune: 'spark',
   });

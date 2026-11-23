@@ -22,7 +22,7 @@ const only = (events: readonly GameEvent[]) => {
   if (!t || rest.length > 0) throw new Error('expected exactly one trace');
   return t;
 };
-const who = { id: 'draughtsman', name: 'Draughtsman', at: c(0, 0), member: true };
+const who = { id: 'draughtsman', name: 'Pell', at: c(0, 0), member: true };
 const trace = (cells: FiredCell[], meaningful = true, id = 'draughtsman'): GameEvent => ({
   type: 'trace',
   caster: { ...who, id },

@@ -13,6 +13,7 @@ const HERD = 'Bolt> Oil Shove';
 export const LAMPLIGHTER: RivalDef = {
   id: 'lamplighter',
   name: 'Lamplighter',
+  person: 'Gerrit Velt',
   token: 'L',
   district: 'canals',
   hp: 6,

@@ -43,7 +43,7 @@ describe('Conduct', () => {
     const s = withLattices('D r r .\n. = = .', { draughtsman: 'Bolt> inv:impulse' }, opts);
     const r = cast(s, 'draughtsman', 'right');
     expectLog(r.events, [
-      'Draughtsman casts Bolt right',
+      'Pell casts Bolt right',
       'bolt aims at rat-1',
       'Bolt lands at B1',
       'shove travels the brass to rat at B1, rat at C1',
@@ -62,9 +62,9 @@ describe('Conduct', () => {
     const s = withLattices('D = S\n. = .\n. . . . r', { draughtsman: 'Touch> inv:shelter' }, opts);
     const r = cast(s, 'draughtsman', { kind: 'self' });
     expectLogIncludes(r.events, [
-      'guard travels the brass to Draughtsman, Stoker',
-      'Draughtsman gains a shield of 2',
-      'Stoker gains a shield of 2',
+      'guard travels the brass to Pell, Joost',
+      'Pell gains a shield of 2',
+      'Joost gains a shield of 2',
     ]);
     expect(unitAtLabel(r.state, 'A1').shield).toBe(2);
     expect(unitAtLabel(r.state, 'C1').shield).toBe(2);
@@ -175,7 +175,7 @@ describe('Repeat', () => {
     const now = cast(s, 'draughtsman', 'right');
     const moved = act(now.state, { type: 'move', unit: 'draughtsman', to: at('B1') });
     const next = endTurn(moved.state);
-    expect(next.lines).toContain('Draughtsman is crushed against dummy at C1 for 1');
+    expect(next.lines).toContain('Pell is crushed against dummy at C1 for 1');
   });
 
   test('nested-repeat-of-impulse-runs', () => {
@@ -271,7 +271,7 @@ describe('Bind', () => {
     expect(count(storm.events, 'released')).toBe(3);
     expect(count(storm.events, 'crush')).toBe(3);
     expect(storm.lines).toContain('rat at D2 is crushed against rat at C2 for 1');
-    expect(storm.lines).toContain('Crush hits Draughtsman for 1');
+    expect(storm.lines).toContain('Crush hits Pell for 1');
     expect(storm.lines).toContain('Brand storm hits rat at B2 for 2');
     expect(storm.state.units.filter((u) => u.mark)).toEqual([]);
   });
@@ -292,7 +292,7 @@ describe('Bind', () => {
       "rat at B2's mark releases impulse",
       'shove travels the brass to rat at B2, rat at D2',
     ]);
-    // Both subjects are pushed away from the Stoker's spark, up the board.
+    // Both subjects are pushed away from the Joost's spark, up the board.
     expect(unitAtLabel(hit.state, 'B1').id).toBe('rat-1');
     expect(unitAtLabel(hit.state, 'D1').id).toBe('rat-2');
   });

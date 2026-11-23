@@ -24,7 +24,7 @@
   <header>
     <ApprenticeToken {def} size={34} />
     <div class="who">
-      <h3>{def.name}</h3>
+      <h3>{def.name}, <span class="trade">the {def.trade}</span></h3>
       <span class="where">{seated ? `In seat ${(card.slot ?? 0) + 1}` : 'On the bench'}</span>
     </div>
   </header>
@@ -104,6 +104,11 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+  }
+  .trade {
+    font-size: 0.8em;
+    font-weight: normal;
+    opacity: 0.8;
   }
   h3 {
     margin: 0;

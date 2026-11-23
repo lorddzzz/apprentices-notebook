@@ -86,8 +86,8 @@ describe('the attendant: heading choice (P9)', () => {
 
   test('ties between apprentices go to reading order', () => {
     const s = board(rows('. . .', '. D .', '. t .', '. S .', '. . .'));
-    // Draughtsman (B2) and Stoker (B4) both have a 1-tile run up/down and left/right; the
-    // Draughtsman comes first in reading order and `up` first in DIRS.
+    // Pell (B2) and Joost (B4) both have a 1-tile run up/down and left/right; the
+    // Pell comes first in reading order and `up` first in DIRS.
     expect(aimShove(s, foe(s, 'attendant'))).toMatchObject({
       victim: { id: 'draughtsman' },
       dir: 'up',
@@ -111,10 +111,10 @@ describe('the attendant: shove and crush through the push pipeline', () => {
     });
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, [
-      'attendant at D3 shoves Stoker left',
-      'Stoker is pushed left to B3',
-      'Stoker is crushed against the plate for 2',
-      'Crush hits Stoker for 2',
+      'attendant at D3 shoves Joost left',
+      'Joost is pushed left to B3',
+      'Joost is crushed against the plate for 2',
+      'Crush hits Joost for 2',
     ]);
     expect(hpOf(r.state, 'stoker')).toBe(4);
     expect(posOf(r.state, 'stoker')).toEqual(at('B3'));
@@ -124,9 +124,9 @@ describe('the attendant: shove and crush through the push pipeline', () => {
     const s = board('S t . .', { hp: { A1: 6 } });
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, [
-      'attendant at B1 shoves Stoker up',
-      'Stoker is crushed against the wall for 1',
-      'Crush hits Stoker for 1',
+      'attendant at B1 shoves Joost up',
+      'Joost is crushed against the wall for 1',
+      'Crush hits Joost for 1',
     ]);
     expect(hpOf(r.state, 'stoker')).toBe(5);
     expect(posOf(r.state, 'stoker')).toEqual(at('A1'));
@@ -139,8 +139,8 @@ describe('the attendant: shove and crush through the push pipeline', () => {
     expect(aimShove(s, foe(s, 'attendant'))).toMatchObject({ dir: 'left', distance: 1 });
     const r = act(s, { type: 'endTurn' });
     expectLogIncludes(r.events, [
-      'Stoker is crushed against rat at A3 for 2',
-      'Crush hits Stoker for 2',
+      'Joost is crushed against rat at A3 for 2',
+      'Crush hits Joost for 2',
       'Crush hits rat at A3 for 1',
     ]);
     expect(hpOf(r.state, 'stoker')).toBe(4);
@@ -240,7 +240,7 @@ describe('the boilerman: the feeder (P7)', () => {
     const s = board(rows('. . . . .', '. . . @ c', '. . . . S'), { hp: { E3: 6 } });
     expect(telegraphOf(foe(s, 'boilerman'))?.label).toBe('bite');
     const r = act(s, { type: 'endTurn' });
-    expectLogIncludes(r.events, ['Bite hits Stoker for 1']);
+    expectLogIncludes(r.events, ['Bite hits Joost for 1']);
     expect(hpOf(r.state, 'stoker')).toBe(5);
   });
 });

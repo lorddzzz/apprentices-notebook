@@ -105,7 +105,7 @@ describe('stun, hold and guard', () => {
     expect(unit(guarded.state, 'draughtsman').shield).toBe(2);
     const r = endTurn(guarded.state);
     // The telegraphed bite is soaked, and what is left of the shield lapses with the turn.
-    expect(r.lines.join('\n')).toContain('Bite hits Draughtsman for 1');
+    expect(r.lines.join('\n')).toContain('Bite hits Pell for 1');
     expect(unit(r.state, 'draughtsman').hp).toBe(unit(guarded.state, 'draughtsman').hp);
     expect(unit(r.state, 'draughtsman').shield).toBe(0);
     expect(unit(r.state, 'draughtsman').guardUntil).toBeNull();

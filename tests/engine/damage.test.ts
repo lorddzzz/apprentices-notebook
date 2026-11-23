@@ -15,14 +15,14 @@ test('shield absorbs first', () => {
     memberById(ctx.s, 'stoker').shield = 2;
     dealDamage(ctx, memberById(ctx.s, 'stoker'), 2, 'Bite');
   });
-  expect(full.lines).toEqual(['Bite hits Stoker for 2', "Stoker's shield absorbs 2 (0 left)"]);
+  expect(full.lines).toEqual(['Bite hits Joost for 2', "Joost's shield absorbs 2 (0 left)"]);
   expect(memberById(full.state, 'stoker')).toMatchObject({ hp: 8, shield: 0 });
 
   const partial = draft(s, (ctx) => {
     memberById(ctx.s, 'stoker').shield = 1;
     dealDamage(ctx, memberById(ctx.s, 'stoker'), 2, 'Line');
   });
-  expect(partial.lines).toEqual(['Line hits Stoker for 2', "Stoker's shield absorbs 1 (0 left)"]);
+  expect(partial.lines).toEqual(['Line hits Joost for 2', "Joost's shield absorbs 1 (0 left)"]);
   expect(memberById(partial.state, 'stoker').hp).toBe(7);
   // The board token `+` is shield too.
   expect(memberById(board('S++ d'), 'stoker').shield).toBe(2);
@@ -48,7 +48,7 @@ test('member is down', () => {
   const r = draft(board('D d', { hp: { A1: 1 } }), (ctx) =>
     dealDamage(ctx, memberById(ctx.s, 'draughtsman'), 1, 'Bite'),
   );
-  expect(r.lines).toEqual(['Bite hits Draughtsman for 1', 'Draughtsman is down']);
+  expect(r.lines).toEqual(['Bite hits Pell for 1', 'Pell is down']);
   expect(memberById(r.state, 'draughtsman').hp).toBe(0);
 });
 
@@ -61,7 +61,7 @@ test('a dying moth bursts and lights the slick it stood on', () => {
     'lamp-moth at B1 dies',
     'lamp-moth at B1 bursts',
     'fire bursts at B1',
-    'Burst hits Draughtsman for 1',
+    'Burst hits Pell for 1',
   ]);
   expect(r.state.tiles[2]?.state?.id).toBe('fire');
 });

@@ -10,6 +10,7 @@ import type { DistrictData } from './index';
 export const INKED_PAGE_KIT: DistrictData = {
   id: 'inkedPage',
   name: 'The inked page',
+  plain: '',
   guild: "No guild: the owner's drawing",
   edge: 'wall',
   rooms: [],

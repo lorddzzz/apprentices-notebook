@@ -6,7 +6,8 @@ import type { ApprenticeDef, Lean, MemberDef } from './types';
 const PAIR = {
   draughtsman: {
     id: 'draughtsman',
-    name: 'Draughtsman',
+    name: 'Pell',
+    trade: 'Draughtsman',
     token: 'D',
     look: { hue: 'slate', shape: 'circle' },
     hp: 6,
@@ -21,7 +22,8 @@ const PAIR = {
   },
   stoker: {
     id: 'stoker',
-    name: 'Stoker',
+    name: 'Joost',
+    trade: 'Stoker',
     token: 'S',
     look: { hue: 'rust', shape: 'square' },
     hp: 8,

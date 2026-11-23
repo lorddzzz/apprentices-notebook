@@ -104,7 +104,7 @@ describe('BF-4 cascade proof', () => {
   });
 });
 
-/** A 7×5 board: the Draughtsman at A3, a bell at C3 in his line, then random bells and rats. */
+/** A 7×5 board: the Pell at A3, a bell at C3 in his line, then random bells and rats. */
 function net(seed: number): string {
   const rnd = seeded(seed);
   const tones = ['low', 'mid', 'high'];

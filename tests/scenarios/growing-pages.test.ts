@@ -70,7 +70,7 @@ Bolt> Oil Spark . . . Ink . .`);
   expect(inkUsed(revealed)).toBe(inkUsed(fixed));
   for (const key of ['0,2', '0,5']) {
     const original = play(fixed, key);
-    expectLogIncludes(original.events, ['Draughtsman casts Bolt right', 'bolt aims at dummy-1']);
+    expectLogIncludes(original.events, ['Pell casts Bolt right', 'bolt aims at dummy-1']);
     for (const page of [growing, revealed, roundtrip]) {
       const replay = play(page, key);
       expect(replay.events).toEqual(original.events);
@@ -197,7 +197,7 @@ test('billion-cell gaps remain sparse through save, export, compile and an actua
   expect(imported.runes).toEqual(page.runes);
   expect(compileLattice(imported).spells[0]?.path).toHaveLength(2);
   expectLogIncludes(play(imported, '-1000000000,-100').events, [
-    'Draughtsman casts Bolt right',
+    'Pell casts Bolt right',
     'bolt aims at dummy-1',
   ]);
 });

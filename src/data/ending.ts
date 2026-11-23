@@ -1,7 +1,11 @@
 /**
  * The handover's text (EN-10, EN-11): approved as drafted at EN-G2, 2026-11-18. Copied word for
- * word from docs/design/ending-text.md; the owner's hand, so no name is given (BL-40).
+ * word from docs/design/ending-text.md; the owner's hand. The name is signed once, under the last page, and in the credits
+ * (names-and-voice.md): nowhere earlier.
  */
+
+/** The owner's full name, revealed at the end only. */
+export const OWNER_FULL_NAME = 'Marit Vos';
 
 /** The scene, six pages tapped through. */
 export const HANDOVER_PAGES: readonly string[] = [

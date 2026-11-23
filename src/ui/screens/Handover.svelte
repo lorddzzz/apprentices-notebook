@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GIFT_LINE, HANDOVER_PAGES } from '$data/ending';
+  import { GIFT_LINE, HANDOVER_PAGES, OWNER_FULL_NAME } from '$data/ending';
   import { nameOf } from '$engine';
   import { endingOf, handover, missingGifts } from '$engine/drawing';
   import { lastPageAction, originOf } from '../../app/drawing';
@@ -68,6 +68,7 @@
     <button type="button" class="leaf" onclick={() => !last && next()} data-testid="handover-page">
       <span class="body" data-page={page}>
         {#each parts(HANDOVER_PAGES[page] ?? '') as s, i (i)}{#if s.em}<em>{s.t}</em>{:else}{s.t}{/if}{/each}
+        {#if last}<span class="sig" data-testid="handover-signature">{OWNER_FULL_NAME}</span>{/if}
       </span>
     </button>
     <div class="actions">
@@ -106,6 +107,12 @@
     text-align: left;
     color: var(--ink);
     background: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(43, 33, 24, 0.06) 27px 28px);
+  }
+  .sig {
+    display: block;
+    margin-top: 14px;
+    text-align: right;
+    font-style: italic;
   }
   .body {
     display: block;

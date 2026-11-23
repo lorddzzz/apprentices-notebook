@@ -120,7 +120,10 @@ export function tileLine(tile: Tile, at: Coord): string {
   if (tile.state) parts.push(layerPhrase(tile.state));
   if (tile.jar) {
     const first = firstRune(tile.jar.rest);
-    const owner = tile.jar.owner.replace(/^./, (c) => c.toUpperCase());
+    const ownerId = tile.jar.owner;
+    const owner = isApprenticeId(ownerId)
+      ? APPRENTICES[ownerId].name
+      : ownerId.replace(/^./, (c) => c.toUpperCase());
     parts.push(
       `${owner}'s jar (opens ${tile.jar.event === 'step' ? 'on a step' : 'at dusk'}${first ? `, starts with ${runeName(first)}` : ''})`,
     );
@@ -733,6 +736,8 @@ export interface RivalSheetSpell {
 /** What selecting a rival shows (rivals §1: reading a rival). */
 export interface RivalSheetView {
   name: string;
+  /** Personal name, or null for the faceless office. */
+  person: string | null;
   hp: number;
   maxHp: number;
   blurb: string;
@@ -792,7 +797,16 @@ export function rivalSheet(
       : e.intent
         ? `${def.name} ${intentPhrase(s, e, footnotes)}.`
         : `${def.name} is waiting.`;
-  return { name: def.name, hp: e.hp, maxHp: e.maxHp, blurb: def.blurb, spells, trick, plan };
+  return {
+    name: def.name,
+    person: def.person ?? null,
+    hp: e.hp,
+    maxHp: e.maxHp,
+    blurb: def.blurb,
+    spells,
+    trick,
+    plan,
+  };
 }
 
 // ── The bathhouses' gauge (BH-12) ───────────────────────

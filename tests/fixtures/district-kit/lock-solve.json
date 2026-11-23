@@ -15,7 +15,7 @@
       "type": "cast",
       "caster": {
         "id": "draughtsman",
-        "name": "Draughtsman",
+        "name": "Pell",
         "at": { "x": 2, "y": 3 },
         "member": true
       },
@@ -63,7 +63,7 @@
       "type": "trace",
       "caster": {
         "id": "draughtsman",
-        "name": "Draughtsman",
+        "name": "Pell",
         "at": { "x": 2, "y": 3 },
         "member": true
       },

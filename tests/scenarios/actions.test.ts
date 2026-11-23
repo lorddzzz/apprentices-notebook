@@ -97,7 +97,7 @@ test('guarded-hit-still-hit: a fully shielded hit leaves hp alone but still coun
 test('guard gives 2 shield until the next player phase; shields stack, and gifted lasts a round longer', () => {
   const s = board('D r');
   const r = run(s, 'guard', [unit('draughtsman')]);
-  expectLog(r.events, ['Draughtsman gains a shield of 2']);
+  expectLog(r.events, ['Pell gains a shield of 2']);
   expect(find(r.state, 'draughtsman')).toMatchObject({ shield: 2, guardUntil: s.round + 1 });
   const again = run(r.state, 'guard', [unit('draughtsman')]);
   expect(find(again.state, 'draughtsman').shield).toBe(4);
@@ -134,7 +134,7 @@ test('hold stops the unit changing tiles: pushes and swaps fail, and holding aga
 test('swap-with-caster: the target and the caster trade places', () => {
   hooks.seen.length = 0;
   const r = run(board('D . r'), 'swap', [unit('rat-1')]);
-  expectLog(r.events, ['Draughtsman and rat at C1 swap places']);
+  expectLog(r.events, ['Pell and rat at C1 swap places']);
   expect(find(r.state, 'draughtsman').pos).toEqual({ x: 2, y: 0 });
   expect(find(r.state, 'rat-1').pos).toEqual({ x: 0, y: 0 });
   // One simultaneous relocation through the arrival pipeline (FD-3): no per-tile notifications.

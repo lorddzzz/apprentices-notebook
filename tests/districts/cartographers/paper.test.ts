@@ -87,7 +87,7 @@ describe('CG-1 paper pieces', () => {
     });
     expect(r.events.some((e) => e.type === 'dropped')).toBe(false);
     expect(pieceAt(r.state, 'C1')?.id).toBe(BLANK_PIECE); // the paper is untouched
-    expect(r.state.phase).toBe('player'); // the Draughtsman still holds the room
+    expect(r.state.phase).toBe('player'); // the Pell still holds the room
 
     // The trip hauls her back at 1 HP once the room is won.
     const p = newProfile();

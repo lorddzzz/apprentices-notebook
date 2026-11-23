@@ -66,8 +66,8 @@ const S = 'stoker' as const;
 
 /**
  * Pages written only with Bolt, Strike, Guard, Ink, Oil and Spark (each apprentice also has her
- * Shove). The founders' own pages, except: the Draughtsman drops Strike to leave a mark standing
- * (a rat has 2 HP), and the Stoker drops Oil to spark a cloud or a plate bare (Oil on either makes
+ * Shove). The founders' own pages, except: the Pell drops Strike to leave a mark standing
+ * (a rat has 2 HP), and the Joost drops Oil to spark a cloud or a plate bare (Oil on either makes
  * a compound, which bursts as something else).
  */
 export const LOADOUTS: Readonly<
@@ -80,7 +80,7 @@ export const LOADOUTS: Readonly<
   theWall: { draughtsman: 'Bolt> Ink Strike', stoker: 'Bolt> Oil Spark' },
 };
 
-/** The layout with the Draughtsman on start point `i`, the Stoker on `j` (reading order). */
+/** The layout with the Pell on start point `i`, the Joost on `j` (reading order). */
 export function seat(layout: string, i: number, j: number): string {
   let n = -1;
   return layout
@@ -269,8 +269,8 @@ const castDir = (s: BattleState, id: MemberId, dir: Dir): Action => ({
 const shove = (id: MemberId, dir: Dir): Action => ({ type: 'shove', unit: id, dir });
 
 // ── Scripts: a fight's actions in one line ──────────────
-// `D>C3` moves the Draughtsman to C3, `S!right` casts the Stoker's spell right, `D^up` is the
-// Draughtsman's Shove up, `/` ends the turn.
+// `D>C3` moves the Pell to C3, `S!right` casts the Joost's spell right, `D^up` is the
+// Pell's Shove up, `/` ends the turn.
 
 const WHO: Readonly<Record<string, MemberId>> = { D, S };
 const LETTER: Readonly<Record<string, string>> = { draughtsman: 'D', stoker: 'S' };
@@ -372,7 +372,7 @@ function triggers(event: SeamEvent, s: BattleState): Plan[] {
             continue;
           }
           if (count < 2) continue;
-          // One short: the Draughtsman walks in, or shoves a foe in.
+          // One short: the Pell walks in, or shoves a foe in.
           const drIn = unitsReached(v, net, reach).some((u) => u.id === D);
           if (!drIn) {
             for (const to of spots(s, D)) {
@@ -411,7 +411,7 @@ function triggers(event: SeamEvent, s: BattleState): Plan[] {
           if (t.reason !== 'unit' || t.unit.kind !== 'enemy') continue;
           const f = t.unit;
           const mark = [...go(s, D, at), castDir(s, D, dir)];
-          // The Stoker's bolt stops on the marked foe, or her Shove crushes it.
+          // The Joost's bolt stops on the marked foe, or her Shove crushes it.
           for (const sat of spots(v, S)) {
             if (same(sat, at)) continue;
             const w = moved(v, S, sat);

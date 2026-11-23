@@ -96,7 +96,7 @@ describe('threshold screen logic', () => {
     };
     const start = thresholdStart(solving, gate.room).state;
     const spell = memberById(start, 'draughtsman').spells[0];
-    if (!spell) throw new Error('the Draughtsman has no spell');
+    if (!spell) throw new Error('the Pell has no spell');
     const r = applyAction(start, {
       type: 'cast',
       unit: 'draughtsman',
@@ -111,10 +111,10 @@ describe('threshold screen logic', () => {
   });
 
   test('a fire only kills the rat: the room stays shut', () => {
-    const p = heardCanals(); // Bolt, Oil, Spark on the Draughtsman
+    const p = heardCanals(); // Bolt, Oil, Spark on the Pell
     const start = thresholdStart(p, gate.room).state;
     const spell = memberById(start, 'draughtsman').spells[0];
-    if (!spell) throw new Error('the Draughtsman has no spell');
+    if (!spell) throw new Error('the Pell has no spell');
     const r = applyAction(start, {
       type: 'cast',
       unit: 'draughtsman',

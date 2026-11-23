@@ -25,7 +25,7 @@ const sealed = () => {
 
 test('holding a jar reads its owner, its trigger and what it holds', () => {
   const s = sealed();
-  expect(holdLine(s, at('D1'))).toBe("D1: Draughtsman's jar, opens on a step, holds Oil, Spark");
+  expect(holdLine(s, at('D1'))).toBe("D1: Pell's jar, opens on a step, holds Oil, Spark");
 });
 
 test('the runes of a jar come in walking order', () => {

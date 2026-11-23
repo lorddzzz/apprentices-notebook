@@ -180,7 +180,7 @@ function randomProfile(rng: Rng): Profile {
   const base = newProfile();
   let p = learn(base, [...pickSome(rng, ALL_PRE_RUNES, 45), ...pickSome(rng, RUNE_IDS, 10)]);
   for (const id of pickSome(rng, RECRUIT_IDS, 20)) {
-    // The Copyist comes after the runaway (her beat); a random notebook keeps that order.
+    // Nelle comes after the runaway (her beat); a random notebook keeps that order.
     if (id === 'copyist' && !inHousehold(p, 'runaway')) continue;
     p = joinHousehold(p, id);
   }

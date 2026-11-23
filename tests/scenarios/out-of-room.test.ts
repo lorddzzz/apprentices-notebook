@@ -32,7 +32,7 @@ describe('a member out of the room', () => {
     const r = draft(board('D S . . r', { hp: { B1: 6 } }), (ctx) =>
       removeFromRoom(ctx, 'stoker', 'fell'),
     );
-    expectLog(r.events, ['Stoker falls out of the room']);
+    expectLog(r.events, ['Joost falls out of the room']);
     const stoker = unit(r.state, 'stoker');
     expect(stoker).toMatchObject({ out: 'fell', hp: 6 });
     expect(isAlive(stoker)).toBe(false);
@@ -40,7 +40,7 @@ describe('a member out of the room', () => {
     expect(r.state.phase).toBe('player');
     // She can't act; the other apprentice still can.
     expect(isLegal(r.state, { type: 'move', unit: 'stoker', to: parseLabel('C1') })).toBe(
-      'Stoker is out of the room',
+      'Joost is out of the room',
     );
     expect(
       isLegal(r.state, { type: 'move', unit: 'draughtsman', to: parseLabel('B1') }),
@@ -122,7 +122,7 @@ describe('the preview caption (FU-A)', () => {
     const fell = draft(before, (ctx) => removeFromRoom(ctx, 'stoker', 'fell'));
     const gone = draft(before, (ctx) => removeFromRoom(ctx, 'rat-1', 'erased'));
     const act0 = { type: 'endTurn' } as const;
-    expect(previewSummary(before, act0, fell.events)).toContain('Stoker is out of the room');
+    expect(previewSummary(before, act0, fell.events)).toContain('Joost is out of the room');
     const rat = previewSummary(before, act0, gone.events);
     expect(rat).toContain('is out of the room');
     expect(rat).not.toContain('dies');

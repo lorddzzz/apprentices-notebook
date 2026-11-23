@@ -32,11 +32,11 @@ const over = (b: BattleState, phase: 'won' | 'lost'): BattleState => ({
   }),
 });
 
-/** The Stoker's real first cast (Bolt, Oil, Spark up an empty column) and the log it leaves. */
+/** The Joost's real first cast (Bolt, Oil, Spark up an empty column) and the log it leaves. */
 function realFight(p: Profile, t: Trip) {
   const start = beginEncounter(p, t);
   const spell = memberById(start.state, 'stoker').spells[0];
-  if (!spell) throw new Error('the Stoker has no spell');
+  if (!spell) throw new Error('the Joost has no spell');
   const r = applyAction(start.state, {
     type: 'cast',
     unit: 'stoker',

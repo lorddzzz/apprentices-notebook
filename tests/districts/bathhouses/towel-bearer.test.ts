@@ -167,7 +167,7 @@ describe('the boil-over leaves her unhurt', () => {
 describe('card copy', () => {
   test('the recruit card names her and says someone joins; the district keeps its own line', () => {
     expect(recruitCard({ apprentice: 'towelBearer' })).toMatchObject({
-      title: 'Towel-bearer',
+      title: 'Mieke',
       text: expect.stringContaining('Someone joins you.'),
     });
     expect(TOWEL_BEARER_CARD.blurb).toMatch(/boil-over/);

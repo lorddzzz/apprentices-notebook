@@ -17,7 +17,9 @@ test('a joined recruit appears with her district; an unjoined one does not', () 
   expect(ids(p)).not.toContain('runaway');
   const joined = joinHousehold(p, 'runaway');
   expect(ids(joined)).toEqual(['draughtsman', 'stoker', 'runaway']);
-  expect(householdRows(joined).find((r) => r.card.def.id === 'runaway')?.met).toContain('canals');
+  expect(householdRows(joined).find((r) => r.card.def.id === 'runaway')?.met).toContain(
+    'Lampwater',
+  );
 });
 
 test('a note under the door reveals the Copyist; nobody else is named', () => {

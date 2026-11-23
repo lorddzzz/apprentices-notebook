@@ -9,7 +9,8 @@ import type { DistrictData } from './index';
  */
 export const LOWER_SEAM_KIT: DistrictData = {
   id: 'lowerSeam',
-  name: 'The lower Seam',
+  name: 'The Underjoin',
+  plain: 'the lower Seam',
   guild: "No guild: the owner's drawing",
   edge: 'wall',
   rooms: [],

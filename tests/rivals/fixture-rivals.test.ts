@@ -49,7 +49,7 @@ describe('the authoring API', () => {
 });
 
 describe('clock contract: action trick, trick object, round end, district goal', () => {
-  // The stamp is his first free neighbour (B1); Draughtsman can reach it in one move.
+  // The stamp is his first free neighbour (B1); Pell can reach it in one move.
   const START = '. . . D .\n. L . . .\n. . . . .';
 
   test('he serves a writ; unanswered it collects from everyone, answered it is met', () => {
@@ -66,7 +66,7 @@ describe('clock contract: action trick, trick object, round end, district goal',
     expect(hp(r.state, 'draughtsman')).toBe(10 - CLOCK_DAMAGE);
     expect(rivalOf(r.state).rival?.objects).toEqual([]);
 
-    // Answered: Draughtsman walks onto the stamp before it falls due.
+    // Answered: Pell walks onto the stamp before it falls due.
     let m = endTurn(s);
     m = act(m.state, { type: 'move', unit: 'draughtsman', to: at('B1') });
     m = endTurn(m.state);
@@ -162,7 +162,7 @@ describe('plays a tune: per-round mark after the actions', () => {
     expect(hp(s, 'draughtsman')).toBe(10 - PEAL_DAMAGE);
     expect(rivalOf(s).rival?.trick).toEqual({ note: 0 });
 
-    // Muted: Stoker stands on the second note's tile (D3) and the tune starts over.
+    // Muted: Joost stands on the second note's tile (D3) and the tune starts over.
     let m = endTurn(fixtureBoard(START, TUNE.def)).state;
     expect(rivalOf(m).rival?.mark?.tiles).toEqual([at('D3')]);
     m = act(m, { type: 'move', unit: 'stoker', to: at('D3') }).state;
@@ -177,12 +177,12 @@ describe('strike from the register: mark, circles, round-end erase', () => {
 
   test('a circled apprentice who stays is erased at round end; one who steps away is not', () => {
     const s = fixtureBoard(START, REGISTER.def);
-    // Only Draughtsman is within his reach (Stoker at F6 is three away).
+    // Only Pell is within his reach (Joost at F6 is three away).
     expect(rivalOf(s).rival?.mark?.tiles).toEqual([at('B2')]);
 
     const stays = endTurn(s);
     expectLogIncludes(stays.events, ['lamplighter at C3 sets something down at B2']);
-    expectLogIncludes(stays.events, ['Draughtsman is erased out of the room']);
+    expectLogIncludes(stays.events, ['Pell is erased out of the room']);
     expect(rivalOf(stays.state).rival?.objects).toEqual([]);
 
     const moved = act(s, { type: 'move', unit: 'draughtsman', to: at('A1') });

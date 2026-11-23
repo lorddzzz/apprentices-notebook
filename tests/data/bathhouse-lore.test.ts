@@ -10,7 +10,7 @@ import { cast, withLattices } from '../scenarios/harness';
  * shown on real fights in the Seam: two apprentices and a rat in one cloud, one Spark.
  */
 
-/** Stoker casts `Bolt> Spark` right into the cloud beside her; the whole connected cloud storms. */
+/** Joost casts `Bolt> Spark` right into the cloud beside her; the whole connected cloud storms. */
 function sparkInCloud(board: string): EventLog {
   const s = withLattices(board, { stoker: 'Bolt> Spark' });
   return cast(s, 'stoker', 'right').events;

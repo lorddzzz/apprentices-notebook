@@ -234,7 +234,7 @@ describe('the defector warden at the watchpost', () => {
 
   test('her card copy', () => {
     expect(recruitCard({ apprentice: 'warden' })).toMatchObject({
-      title: 'Defector warden',
+      title: 'Willem',
       text: expect.stringContaining('Someone joins you.'),
     });
     expect(WARDEN_CARD.blurb).toMatch(/Hold/);

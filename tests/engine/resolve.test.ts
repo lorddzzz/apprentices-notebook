@@ -47,7 +47,7 @@ describe('what a rune receives', () => {
   });
 
   test('the gift follows the step, not the cast', () => {
-    // The Stoker is gifted in the Seam: Oil (Seam) is gifted, Sentence (Contracts) is not.
+    // The Joost is gifted in the Seam: Oil (Seam) is gifted, Sentence (Contracts) is not.
     const stoker = fakes();
     castWith(
       stoker,
@@ -56,7 +56,7 @@ describe('what a rune receives', () => {
       'up',
     );
     expect(stoker.flows.map((fl) => fl.gifted)).toEqual([true, false]);
-    // The Draughtsman is the other way round.
+    // The Pell is the other way round.
     const draughtsman = fakes();
     castWith(
       draughtsman,

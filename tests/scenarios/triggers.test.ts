@@ -174,7 +174,7 @@ describe('Unison (another apprentice landed on this target this turn)', () => {
     expect(alone.calls).toEqual([]);
     expectLogIncludes(r.events, ['unison: the chain stops']);
 
-    // After the Stoker's cast reached the same rat, it passes.
+    // After the Joost's cast reached the same rat, it passes.
     const f = fakes();
     const first = castWith(f, withLattices(BOARD, lattices), 'stoker', 'right');
     expect(first.state.landed).toEqual([{ caster: 'stoker', targets: ['u:rat-1'] }]);

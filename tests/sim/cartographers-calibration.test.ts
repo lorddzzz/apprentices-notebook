@@ -147,7 +147,7 @@ test(
  * Watch case (CG-J, the Registrar's note `registrar:swap`): a member's Swap that leaves a foe on
  * pencil circles it, and a circled foe still on its tile at round end is erased from the fight. The
  * greedy bot cannot cast Swap from its starter pages and `botFight` passes no footnotes, so the
- * case is fixed instead: the Draughtsman carries the Registrar's own `Bolt> Swap`, and from each
+ * case is fixed instead: the Pell carries the Registrar's own `Bolt> Swap`, and from each
  * authored room layout at round 1 every one-turn line (stay or walk, then one Swap cast) is played
  * out to the end of the round with the note written and without it. Counts: states where some line
  * leaves a foe on pencil (prevalence), states where the noted line erases a foe at round end, and

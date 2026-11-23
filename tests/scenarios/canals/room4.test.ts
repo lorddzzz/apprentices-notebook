@@ -111,10 +111,7 @@ describe('his desired scene on the lamp market', () => {
     play(act(s, { type: 'move', unit: 'draughtsman', to: at('D5') }));
     r = play(act(s, endTurn));
     r = play(act(s, endTurn));
-    expectLogIncludes(r.events, [
-      'Draughtsman is pushed down to D6',
-      'the jar at D6 opens under Draughtsman',
-    ]);
+    expectLogIncludes(r.events, ['Pell is pushed down to D6', 'the jar at D6 opens under Pell']);
 
     // The jar is spent, so he lays another under you, then shows and uses the long wick.
     expect(lamplighterOf(s).intent).toMatchObject({ kind: 'cast', spell: 'lantern' });

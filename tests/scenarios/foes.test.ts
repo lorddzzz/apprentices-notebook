@@ -43,7 +43,7 @@ describe('eel (K-14)', () => {
   test('lunges only from water, and the eel never stands on land', () => {
     const r = play(board(lane), 3);
     expect(r.lines).toContain('eel at B2 lunges left');
-    expect(r.lines).toContain('Lunge hits Draughtsman for 2');
+    expect(r.lines).toContain('Lunge hits Pell for 2');
     const eel = r.state.units.find((u) => u.def === 'eel');
     expect(
       eel && tile(r.state, `${'ABCDEF'[eel.pos.x]}${eel.pos.y + 1}`).terrain.water,
@@ -132,7 +132,7 @@ describe('lamp-moth (K-16)', () => {
       'lamp-moth at B2 bursts',
       'lamp-moth at B2 dies',
       'fire bursts at B2',
-      'Burst hits Draughtsman for 1',
+      'Burst hits Pell for 1',
       'Burst hits dummy at A2 for 1',
       'Burst hits rat at C2 for 1',
     ]);
@@ -166,7 +166,7 @@ describe('lamp-moth (K-16)', () => {
       'Spark hits lamp-moth at B1 for 1',
       'lamp-moth at B1 dies',
       'lamp-moth at B1 bursts',
-      'Burst hits Stoker for 1',
+      'Burst hits Joost for 1',
       'Burst hits dummy at C1 for 1',
     ]);
   });

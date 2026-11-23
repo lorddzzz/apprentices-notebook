@@ -63,6 +63,8 @@ export interface RivalDef {
   id: RivalId;
   /** Display name, capitalised: "Lamplighter" until a district names him (P15). */
   name: string;
+  /** Personal name (names-and-voice.md), shown beside the title on cards; the Registrar has none. */
+  person?: string;
   /** Board token, one letter, checked against every other token (`RIVAL_TOKENS`). */
   token: string;
   /** Home district: a page banks only from a fight there (build program §4, RV-15). */

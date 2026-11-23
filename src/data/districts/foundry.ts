@@ -133,8 +133,9 @@ export const FOUNDRY_TUNING = {
  */
 export const FOUNDRY_KIT: DistrictData = {
   id: 'foundry',
-  name: 'The bell foundry',
-  guild: 'The founders',
+  name: 'Klokhof',
+  plain: 'the bell foundry',
+  guild: 'The Bellwrights',
   edge: 'wall',
   rooms: [],
   tokens: FOUNDRY_TOKENS,

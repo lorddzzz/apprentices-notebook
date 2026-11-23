@@ -141,7 +141,7 @@ describe('BL-105: the rest of the sealed context (FD-4, P9)', () => {
   });
 
   // The jar runs with the habit it was sealed with, even if the caster's lean changed since.
-  it('habit-jar: a Stoker dusk jar forks ahead as sealed', () => {
+  it('habit-jar: a Joost dusk jar forks ahead as sealed', () => {
     const arena = '. r . .\nS r . .\n. r . .';
     const lattice = '. . Strike .\nBolt> Fuse Fork .\n. . Oil .';
     const sealed = cast(withLattices(arena, { stoker: lattice }), 'stoker', 'right');
@@ -177,10 +177,10 @@ const at = parseLabel;
 
 describe('BL-106: dusk opens the jars it found (FD-5, P10)', () => {
   /**
-   *   D r . .     B1: the Draughtsman's dusk jar (Shove right, then Fuse → Strike)
-   *   S . . .     C1: the Stoker's dusk jar (Strike)
+   *   D r . .     B1: the Pell's dusk jar (Shove right, then Fuse → Strike)
+   *   S . . .     C1: the Joost's dusk jar (Strike)
    * The B1 jar opens first, pushes the rat onto C1 and seals a new jar there, replacing the
-   * Stoker's. Before FD-5 dusk only remembered coordinates, so the new jar opened this same dusk.
+   * Joost's. Before FD-5 dusk only remembered coordinates, so the new jar opened this same dusk.
    */
   function duskWithReplacement() {
     const s = withLattices('D r . .\nS . . .', {}, { hp: { B1: 20 } });
@@ -197,7 +197,7 @@ describe('BL-106: dusk opens the jars it found (FD-5, P10)', () => {
       'the jar at B1 opens under rat at B1',
       'rat at B1 is pushed right to C1',
       'the jar at C1 crumbles empty',
-      'Draughtsman seals a jar at C1 (opens at dusk)',
+      'Pell seals a jar at C1 (opens at dusk)',
     ]);
     expect(tileAt(dusk.state, at('C1')).jar?.owner).toBe('draughtsman');
   });

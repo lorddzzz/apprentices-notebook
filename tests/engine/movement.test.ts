@@ -10,7 +10,7 @@ const shove = (unit: string, dir: 'up' | 'right' | 'down' | 'left') =>
 
 test('member moves along BFS path and remembers its last step (P22)', () => {
   const r = act(board('D . . .\n. . . d'), move('draughtsman', 'C2'));
-  expectLog(r.events, ['Draughtsman moves to C2']);
+  expectLog(r.events, ['Pell moves to C2']);
   expect(r.events[0]).toMatchObject({ path: [to('B1'), to('C1'), to('C2')] });
   expect(memberById(r.state, 'draughtsman')).toMatchObject({
     pos: to('C2'),
@@ -23,7 +23,7 @@ test('member moves along BFS path and remembers its last step (P22)', () => {
 test('cannot move twice', () => {
   const r = act(board('D . . .\n. . . d'), move('draughtsman', 'B1'));
   expect(() => act(r.state, move('draughtsman', 'C1'))).toThrow(IllegalActionError);
-  expect(isLegal(r.state, move('draughtsman', 'C1'))).toBe('Draughtsman has already moved');
+  expect(isLegal(r.state, move('draughtsman', 'C1'))).toBe('Pell has already moved');
 });
 
 test('cannot move through units or plates, or beyond the move range', () => {
@@ -45,7 +45,7 @@ test('undo restores the position and forgets the last step', () => {
   const s = board('D . i\n. . d');
   const moved = act(s, move('draughtsman', 'C1'));
   const back = act(moved.state, { type: 'undoMove', unit: 'draughtsman' });
-  expectLog(back.events, ['Draughtsman steps back to A1']);
+  expectLog(back.events, ['Pell steps back to A1']);
   expect(memberById(back.state, 'draughtsman')).toMatchObject({
     pos: to('A1'),
     moved: false,
@@ -63,7 +63,7 @@ test('undo cleared after acting', () => {
   const shoved = act(moved.state, shove('draughtsman', 'down'));
   expect(canUndoMove(shoved.state, 'draughtsman')).toBe(false);
   expect(isLegal(shoved.state, { type: 'undoMove', unit: 'draughtsman' })).toBe(
-    'Draughtsman has no move to undo',
+    'Pell has no move to undo',
   );
 });
 
@@ -99,24 +99,21 @@ test('being pushed clears undo', () => {
   const s = board('. D . .\nS . . d');
   const dMoved = act(s, move('draughtsman', 'B2'));
   const pushed = act(dMoved.state, shove('stoker', 'right'));
-  expectLog(pushed.events, [
-    'Stoker shoves Draughtsman right',
-    'Draughtsman is pushed right to C2',
-  ]);
+  expectLog(pushed.events, ['Joost shoves Pell right', 'Pell is pushed right to C2']);
   expect(memberById(pushed.state, 'draughtsman').undo).toBeNull();
 });
 
 test('shove pushes one tile and uses the action (P12)', () => {
   const r = act(board('S r . . d'), shove('stoker', 'right'));
-  expectLog(r.events, ['Stoker shoves rat at B1 right', 'rat at B1 is pushed right to C1']);
+  expectLog(r.events, ['Joost shoves rat at B1 right', 'rat at B1 is pushed right to C1']);
   expect(memberById(r.state, 'stoker').acted).toBe(true);
-  expect(isLegal(r.state, shove('stoker', 'right'))).toBe('Stoker has already acted');
+  expect(isLegal(r.state, shove('stoker', 'right'))).toBe('Joost has already acted');
 });
 
 test('a shove into a unit crushes: 1 to the pushed unit, 1 to what it hit (P19)', () => {
   const r = act(board('S r b'), shove('stoker', 'right'));
   expectLog(r.events, [
-    'Stoker shoves rat at B1 right',
+    'Joost shoves rat at B1 right',
     'rat at B1 is crushed against sentry at C1 for 1',
     'Crush hits rat at B1 for 1',
     'Crush hits sentry at C1 for 1',
@@ -126,7 +123,7 @@ test('a shove into a unit crushes: 1 to the pushed unit, 1 to what it hit (P19)'
 test('a shove into the edge of a walled district crushes against the wall (P3)', () => {
   const edge = act(board('. S r\n. . d'), shove('stoker', 'right'));
   expectLog(edge.events, [
-    'Stoker shoves rat at C1 right',
+    'Joost shoves rat at C1 right',
     'rat at C1 is crushed against the wall for 1',
     'Crush hits rat at C1 for 1',
   ]);
@@ -135,7 +132,7 @@ test('a shove into the edge of a walled district crushes against the wall (P3)',
 test('a shove into a plate hurts only the pushed unit', () => {
   const r = act(board('S r =\n. . d'), shove('stoker', 'right'));
   expectLog(r.events, [
-    'Stoker shoves rat at B1 right',
+    'Joost shoves rat at B1 right',
     'rat at B1 is crushed against the plate for 1',
     'Crush hits rat at B1 for 1',
   ]);

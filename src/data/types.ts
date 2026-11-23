@@ -345,7 +345,10 @@ export type TokenShape =
 /** One apprentice's kit (party.md §0b): body, action, lean, habit, starter page, look. */
 export interface ApprenticeDef<Id extends string = ApprenticeId> {
   id: Id;
+  /** Given name (names-and-voice.md): what the log and the cards call them. */
   name: string;
+  /** Trade epithet shown beside the name: 'Draughtsman'. */
+  trade: string;
   token: string; // board token, one unique letter: 'D'
   look: { hue: ApprenticeHue; shape: TokenShape };
   hp: number;

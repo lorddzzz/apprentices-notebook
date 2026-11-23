@@ -12,7 +12,8 @@ import type { DistrictData } from './index';
  */
 export const CARTOGRAPHERS_KIT: DistrictData = {
   id: 'cartographers',
-  name: "The Cartographers' hall",
+  name: 'The Sestante',
+  plain: "the Cartographers' hall",
   guild: 'The Cartographers',
   edge: 'wall',
   rooms: withLore(CARTOGRAPHERS_ROOMS),
