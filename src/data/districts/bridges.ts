@@ -173,8 +173,8 @@ export const BRIDGES_LEDGER: readonly BridgeLedgerLine[] = [
   ledger(
     'heart',
     'The join',
-    'The span guild',
-    'The span guild abandoned the join, and its last entries run toward the Seam. The guild is gone from the rolls; the spans are not. Whoever comes after us should know that the stone was cut to meet something, and that the meeting was never recorded.',
+    'The Keystone Watch',
+    'The drawing withdrew the plan, and our last entries run toward the Seam. The plan is gone from the rolls; the spans are not. Whoever comes after us should know that the stone was cut to meet something, and that the meeting was never recorded.',
     { kind: 'heart' },
   ),
 ];

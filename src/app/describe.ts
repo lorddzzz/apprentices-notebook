@@ -789,7 +789,7 @@ export function rivalSheet(
     };
   });
   const trick = def.trick
-    ? (RIVAL_TRICK_TEXT[def.trick] ?? { name: def.trick, text: 'His alone.' })
+    ? (RIVAL_TRICK_TEXT[def.trick] ?? { name: def.trick, text: 'Theirs alone.' })
     : null;
   const plan =
     e.hp <= 0

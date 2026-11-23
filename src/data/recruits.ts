@@ -123,7 +123,7 @@ export const RECRUITS = {
     lean: { trained: 'structure', gifted: 'seam' },
     habit: RECRUIT_HABITS.warden,
     starterPage: page('Bolt> Shove Strike'),
-    blurb: "Left the keystone watch and brought the wardens' chalk to your side.",
+    blurb: "Left the Keystone Watch and brought the wardens' chalk to your side.",
     found: { district: 'bridges' },
     beat: [{ kind: 'landmark' }],
     runes: { all: ['hold'] },

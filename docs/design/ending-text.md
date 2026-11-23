@@ -22,6 +22,7 @@
 | 4 | When it began to tear I went in and held it. I tried ink first. The hands that climbed your pages and the Marginalia were mine once: attempts that stayed after I stopped needing them. I am sorry about those. Then I tried simply staying, and that worked, so I stayed. It has been some years. | Leftover spirits and the Marginalia; the owner still in the drawing |
 | 5 | It does not need holding now. You inked it shut from the other side, one district at a time, without being asked. So here is the last line I will write in this book: *the join holds, and it was not me who made it hold.* | The last line written |
 | 6 | The pen is yours. So is the notebook, for good, and the page under this one, which I never drew. I am coming upstairs with two pages of my own, in case your household lacks them, and I will take a seat on the bench like anyone else. Draw something. I would like to see what you put there. | The pen handed over; the gifted pages (P18); the owner joins |
+| — | *Signed under page 6, once: **Marit Vos**.* | The owner's name, revealed at the end only |
 
 After page 6: the owner's token joins the household bench (O); any of **Splash** and **Steam** the household lacks is shown as learned, *"from the owner's own pages"*; the drawing table appears on the desk.
 

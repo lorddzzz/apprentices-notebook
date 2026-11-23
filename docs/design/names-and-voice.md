@@ -1,6 +1,6 @@
 # Names and voice (BL-40)
 
-> **Status: Decided 2026-11-23** (design round with the player; names drawn from four subagent proposals, two Haiku and two Luna, plus Claude's own set, then merged by Claude under "take your lean"). **Not yet applied to `src/`**: data and UI still show the placeholders (§3).
+> **Status: Decided 2026-11-23** (design round with the player; names drawn from four subagent proposals, two Haiku and two Luna, plus Claude's own set, then merged by Claude under "take your lean"). **Applied to `src/` in `2257fd4`** (the phone-size browser check is still owed).
 > Summary: [DESIGN.md](../../DESIGN.md) §9.4 and the §11 log. Backlog: [ROADMAP](../ROADMAP.md) BL-40, BL-41. Voice precedent: [ending-text.md](ending-text.md).
 
 ## 0. Decisions
@@ -75,6 +75,6 @@
 - **"the Unregistered"** (Wessel) instead of "Erased student": it carries the erasure as a status and echoes the Registrar.
 - Not used, for the record: the other three sets' alternatives (e.g. Radegem, Salvera, Lieve, Iven, Ansel Marra, Campanella, Carta Morta). Recoverable from this commit's message and the chat, not kept here.
 
-## 3. Applying it (open)
+## 3. Applying it (done)
 
 Names live in `src/data/` (apprentices, recruits, rivals, districts, enemies where a rival is named), in UI text and in tests that assert them. A rename should be one task: data + UI strings + `ending-text.md` references + tests, then `pnpm check:fast`. The owner's name goes into the handover's last page or the registry line, not into the margins. Open: where exactly the owner's name lands (BL-41's read-through decides).

@@ -34,7 +34,7 @@ export const CARTOGRAPHERS_KIT: DistrictData = {
       atLeast: 5,
       except: ['registrar'],
       voice: 'owner',
-      text: 'Five fragments of one plan. The owner draws in the academy.',
+      text: 'Five fragments of one plan. The owner draws in the hall.',
     },
   ],
 };

@@ -249,7 +249,7 @@ A **workbench with a sense of place**: the same tools as a plain editor, framed 
 
 ### 9.4 Names (**decided 2026-11-23**)
 
-The placeholders are replaced: the city is Halvemeer, the apprentices have given names (Pell, Joost, …), the owner is Marit Vos (revealed once, at the end), and each district has a proper name beside its plain label. Tone: cozy and wistful. Full list and judgment calls: [names-and-voice.md](docs/design/names-and-voice.md). Not yet applied in `src/`.
+The placeholders are replaced: the city is Halvemeer, the apprentices have given names (Pell, Joost, …), the owner is Marit Vos (revealed once, at the end), and each district has a proper name beside its plain label. Tone: cozy and wistful. Full list and judgment calls: [names-and-voice.md](docs/design/names-and-voice.md). Applied in `src/` 2026-11-23.
 
 ### 9.5 v0 rule defaults (*Proposal*: Claude's defaults, tune by playing)
 

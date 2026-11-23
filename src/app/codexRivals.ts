@@ -50,7 +50,7 @@ export function rivalPageRows(p: Profile): RivalPageRow[] {
     const trick = rival.trick
       ? (RIVAL_TRICK_TEXT[rival.trick] ?? {
           name: rival.trick,
-          text: 'His alone, not in the trial.',
+          text: 'Theirs alone, not in the trial.',
         })
       : null;
     rows.push({

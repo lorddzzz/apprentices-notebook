@@ -44,6 +44,6 @@ test("FX-5: every rival's trick has page text", () => {
   for (const r of Object.values(RIVALS)) {
     if (!r.trick) continue;
     expect(RIVAL_TRICK_TEXT[r.trick], r.trick).toBeDefined();
-    expect(RIVAL_TRICK_TEXT[r.trick]?.text).toContain('His alone, not in the trial.');
+    expect(RIVAL_TRICK_TEXT[r.trick]?.text).toContain('Theirs alone, not in the trial.');
   }
 });

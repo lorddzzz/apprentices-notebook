@@ -83,8 +83,9 @@ describe('the bather ledger (BH-10, P13)', () => {
   test("the owner's entry is the heart's", () => {
     const heart = BATH_LEDGERS[4];
     expect(heart?.title).toBe("In the owner's hand");
-    expect(heart?.text).toContain('your own');
-    for (const p of BATH_LEDGERS.slice(0, 4)) expect(p.text).not.toContain('your own');
+    expect(heart?.text).toContain('a hand you will come to know');
+    for (const p of BATH_LEDGERS.slice(0, 4))
+      expect(p.text).not.toContain('a hand you will come to know');
   });
 
   test('the kit carries them, and each room names its ledger entry', () => {

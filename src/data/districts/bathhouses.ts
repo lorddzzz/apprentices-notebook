@@ -45,7 +45,7 @@ export const BATHHOUSES_KIT: DistrictData = {
       atLeast: 3,
       district: 'seam',
       voice: 'owner',
-      text: 'Steam remembers who stood in it. The owner inks in the thermae.',
+      text: 'Steam remembers who stood in it. The owner inks in the Thermae.',
     },
     { kind: 'trips', atLeast: 4, voice: 'rumour' },
   ],
@@ -677,7 +677,7 @@ export const BATH_LEDGERS: readonly import('./index').PaperDef[] = [
     2,
     1,
     'Warm',
-    'Maret of the lamp-yard, three hours, warm to the shoulder. Stayed. She says she can no longer tell where the water stops and the air begins, and that it is a comfort.',
+    'Anke of the barge-yard, three hours, warm to the shoulder. Stayed. She says she can no longer tell where the water stops and the air begins, and that it is a comfort.',
   ),
   entry(
     3,
@@ -695,12 +695,12 @@ export const BATH_LEDGERS: readonly import('./index').PaperDef[] = [
     5,
     4,
     "In the owner's hand",
-    'Entered under a name you know, in a hand you know: your own, for the baths you took while studying the join, years of hours. Stayed. The Steward has left it open at this page. He has not read the rest.',
+    'Entered in a hand you will come to know: years of hours, taken to watch the seam from the warm side. Stayed. The Steward has kept the page open, and never asked.',
   ),
 ];
 
 /**
- * The thermae's chimney in the lower Seam (bathhouses-plan P12; BH-11): the existing vent terrain
+ * The Thermae's chimney in the lower Seam (bathhouses-plan P12; BH-11): the existing vent terrain
  * in a bath-mosaic skin (art only), two vents per floor close enough that their clouds overlap.
  * No gauge and no heat: district-scoped rules never ride on a floor (DK P9), so `pieces` and `rules`
  * are empty. Three 7 wide, 8 tall floors, Seam foes only, five or more start points.
