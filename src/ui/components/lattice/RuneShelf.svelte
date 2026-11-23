@@ -29,6 +29,13 @@
     ondetail?: (rune: RuneRef) => void;
     /** Opens "Your Glyphs, ranked" from the Fair copies tab (task U2 adds the link). */
     onranking?: () => void;
+    /**
+     * A drawer (the Study): at rest one row that scrolls sideways through every role; pulled up
+     * (swipe or the arrow) it is the whole shelf by role. Picking a rune drops it back to one row.
+     */
+    drawer?: boolean;
+    /** The drawer is pulled up. */
+    up?: boolean;
   }
 
   let {
@@ -41,6 +48,8 @@
     ondetail,
     erase = false,
     onranking,
+    drawer = false,
+    up = $bindable(false),
   }: Props = $props();
 
   // Unknown runes are the Codex's business; the shelf shows what can be inscribed.
@@ -61,13 +70,32 @@
   );
   const tabbed = $derived(glyphs.length > 0 || made.length > 0);
 
+  // Dropped to one row after a pick; a swipe up or down on the handle moves it.
+  const open = $derived(drawer && up);
+  const resting = $derived(drawer && !up);
+  function choose(next: ShelfTool): void {
+    if (drawer) up = false;
+    onselect(next);
+  }
+  let swipeFrom: number | null = null;
+  function swipeStart(e: PointerEvent): void {
+    swipeFrom = e.clientY;
+  }
+  function swipeEnd(e: PointerEvent): void {
+    if (swipeFrom === null) return;
+    const dy = e.clientY - swipeFrom;
+    swipeFrom = null;
+    if (dy < -20) up = true;
+    else if (dy > 20) up = false;
+  }
+
   function tapGlyph(slot: GlyphSlot): void {
     if (!slot.usable) {
       if (slot.reason) onreject?.(slot.reason);
       return;
     }
     const same = tool.kind === 'glyph' && tool.glyph === slot.glyph.id;
-    onselect(same ? { kind: 'none' } : { kind: 'glyph', glyph: slot.glyph.id });
+    choose(same ? { kind: 'none' } : { kind: 'glyph', glyph: slot.glyph.id });
   }
 
   function tap(slot: ShelfSlot): void {
@@ -76,7 +104,7 @@
       return;
     }
     const same = tool.kind === 'rune' && tool.rune === slot.rune;
-    onselect(same ? { kind: 'none' } : { kind: 'rune', rune: slot.rune });
+    choose(same ? { kind: 'none' } : { kind: 'rune', rune: slot.rune });
   }
 </script>
 
@@ -88,7 +116,7 @@
       class:on={erasing}
       aria-pressed={erasing}
       data-testid="erase"
-      onclick={() => onselect(erasing ? { kind: 'none' } : { kind: 'erase' })}
+      onclick={() => choose(erasing ? { kind: 'none' } : { kind: 'erase' })}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
         <path d="M4 15l9-9a2 2 0 0 1 3 0l3 3a2 2 0 0 1 0 3l-8 8H8z" />
@@ -106,8 +134,27 @@
   <b>{slot.cost}</b>
 {/snippet}
 
-{#if tabbed}
-  <div class="tabs" role="tablist" aria-label="Shelf">
+{#if tabbed || drawer}
+  <div
+    class="tabs"
+    class:drawer
+    role="presentation"
+    onpointerdown={drawer ? swipeStart : undefined}
+    onpointerup={drawer ? swipeEnd : undefined}
+    onpointercancel={drawer ? () => (swipeFrom = null) : undefined}
+  >
+    {#if drawer}
+      <button
+        type="button"
+        class="pull"
+        data-testid="drawer-pull"
+        aria-expanded={up}
+        aria-label={up ? 'Put the drawer down' : 'Pull the drawer up for every role'}
+        onclick={() => (up = !up)}
+      >
+        {up ? '▼' : '▲'}
+      </button>
+    {/if}
     <button
       type="button"
       role="tab"
@@ -150,7 +197,7 @@
 
 {#if tab === 'inventions'}
   <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
-  <div class="copies" data-testid="shelf" role="group" aria-label="Inventions">
+  <div class="copies" class:rest={resting} class:open data-testid="shelf" role="group" aria-label="Inventions">
     {@render eraser()}
     {#each made as slot (slot.rune)}
       {@const selected = tool.kind === 'rune' && tool.rune === slot.rune}
@@ -176,7 +223,7 @@
     {/each}
   </div>
 {:else if tab === 'glyphs'}
-  {#if onranking}
+  {#if onranking && !resting}
     <div class="ranked-row">
       <button type="button" class="ranked" data-testid="ranked" onclick={() => onranking()}>
         Ranked ›
@@ -184,7 +231,7 @@
     </div>
   {/if}
   <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
-  <div class="copies" data-testid="shelf" role="group" aria-label="Fair copies">
+  <div class="copies" class:rest={resting} class:open data-testid="shelf" role="group" aria-label="Fair copies">
     {@render eraser()}
     {#each glyphs as slot (slot.glyph.id)}
       {@const selected = tool.kind === 'glyph' && tool.glyph === slot.glyph.id}
@@ -221,7 +268,7 @@
   </div>
 {:else}
 <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
-<div class="shelf" data-testid="shelf" role="group" aria-label="Rune shelf">
+<div class="shelf" class:rest={resting} class:open data-testid="shelf" role="group" aria-label="Rune shelf">
   {#each groups as group, i (group.role)}
     <span class="role" style:--dot="var({ROLE_COLOR[group.role]})" data-role-head={group.role}>
       {roleName(group.role)}
@@ -232,6 +279,7 @@
       <button
         type="button"
         class="slot"
+        style:--dot="var({ROLE_COLOR[group.role]})"
         class:selected
         class:spent={!slot.usable}
         aria-pressed={selected}
@@ -266,6 +314,46 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: none;
+  }
+  /* The resting drawer: one row, every role in order, scrolling sideways. */
+  .rest {
+    display: flex;
+    gap: 4px;
+    max-height: none;
+    overflow: auto hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  .rest .role {
+    display: none;
+  }
+  .rest .slot {
+    flex: none;
+    width: 52px;
+    border-top: 3px solid var(--dot);
+    scroll-snap-align: start;
+  }
+  .rest .copy {
+    flex: none;
+    width: 150px;
+  }
+  .shelf.open,
+  .copies.open {
+    max-height: min(44vh, 330px);
+  }
+  .tabs.drawer {
+    touch-action: pan-x;
+  }
+  .pull {
+    flex: none;
+    width: 44px;
+    min-height: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(241, 230, 204, 0.18);
+    color: var(--parchment);
+    font-size: 14px;
+    cursor: pointer;
   }
   .role {
     display: flex;
@@ -308,6 +396,9 @@
     display: flex;
     gap: var(--space-1);
     margin-bottom: 2px;
+  }
+  .tabs .tab {
+    min-width: 0;
   }
   .tab {
     flex: 1;

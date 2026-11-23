@@ -1,6 +1,6 @@
 # The Study layout (room for the page)
 
-> **Status: Exploring** (direction chosen 2026-11-23; unbuilt). Summary: [DESIGN.md](../../DESIGN.md) §11 (2026-11-23). Sketches: the *Home-screen-redesign* whiteboard. Roadmap: BL-134. Supersedes the screen layout in DESIGN.md §9.3 (v0 study screen); the sense of place stays, at a smaller size.
+> **Status: Built** (2026-11-23; tune by playing at 375×812). Summary: [DESIGN.md](../../DESIGN.md) §11 (2026-11-23). Sketches: the *Home-screen-redesign* whiteboard. Roadmap: BL-134. Supersedes the screen layout in DESIGN.md §9.3 (v0 study screen); the sense of place stays, at a smaller size.
 
 ## Problem
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import {
     type CellKey,
     type CompiledLattice,
@@ -38,6 +39,10 @@
     selection?: ReadonlySet<string>;
     /** Cells of plain spells that never fired on the last trip (M15; task U6 draws a dashed ring). */
     deadCells?: ReadonlySet<CellKey>;
+    /** Fit / Edit scale float on the page (the Study) instead of owning a row. */
+    floating?: boolean;
+    /** Extra buttons that join Fit and Edit scale. */
+    controls?: Snippet;
     ontap: (at: Coord) => void;
     onlongpress: (at: Coord) => void;
   }
@@ -54,6 +59,8 @@
     glow = new Set(),
     selection = new Set(),
     deadCells = new Set(),
+    floating = false,
+    controls,
     ontap,
     onlongpress,
   }: Props = $props();
@@ -70,7 +77,7 @@
 </script>
 
 <div class="lattice" data-testid="lattice">
-  <LatticeViewport {sessionKey} {occupied} onCellTap={ontap} onCellHold={onlongpress} {cellLabel}>
+  <LatticeViewport {sessionKey} {occupied} {floating} {controls} onCellTap={ontap} onCellHold={onlongpress} {cellLabel}>
     {#snippet cell(at)}
       {@const k = key(at)}
       {@const placed = placements.get(k)}

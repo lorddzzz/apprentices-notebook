@@ -81,7 +81,7 @@ The "Needs before it starts" and "Unlocks" columns of §2.3 are the dependency m
 
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
-| BL-134 | Study layout: full-page notebook | feature / M | study | ready | [study-layout.md](design/study-layout.md): seat tabs as page tabs with a household sheet ("At home"), title bar, floating ink/Fit/Fair copy, rune drawer resting at one row. Keeps the doorway mode. |
+| BL-134 | Study layout: full-page notebook | feature / M | study | built, awaiting playtest | [study-layout.md](design/study-layout.md): seat tabs as page tabs with a household sheet ("At home"), title bar, floating ink/Fit/Fair copy, rune drawer resting at one row. Keeps the doorway mode. |
 | BL-100 | Rune art and editor polish | polish / M | runes, study | ready | Redraw margin, strike, coil, brink, bind, chalk, filings, quicksilver. Audit invention names/art in every shelf/caption and optional shelf metadata/duplicated flow geometry. Implementation leftovers now have their own IDs above and in §4. |
 | BL-50 | Diagonal aura reach | feature / M | lattice, mastery | **decided as an aura capstone 2026-10-23**; needs BL-54 and readable overlays **→ FN-11, FN-12** | One of each aura's two capstones (Afterglow, Steep, Coil: also acts through diagonally touching cells); design the overlay in the same build. [Footnotes](design/footnotes.md) §1. |
 | BL-51 | Additional runes beyond the 31 | content / M each | runes | idea | New Source/Shape/Trigger behavior only if it adds something current methods and wiring cannot express. Pull/hop as personal basic actions belong to BL-43 first. No aspect assignment needed. |

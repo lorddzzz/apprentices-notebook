@@ -75,15 +75,14 @@
     <ellipse cx="238" cy="43" rx="9" ry="3.2" fill="var(--lamp)" />
   </svg>
 
-  <h1 class:crowded={onbench && ondesk}>The Study</h1>
-  {#if rumour}
-    <p class="rumour" data-testid="rumour-line">{rumour}</p>
-  {/if}
+  <div class="words">
+    <h1>The Study</h1>
+  </div>
 
   <div class="buttons">
     {#if onbench}
       <button type="button" class="knob" aria-label="The bench (research)" data-testid="bench-button" onclick={onbench}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
           <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />
           <path d="M7.5 15h9" />
         </svg>
@@ -91,34 +90,37 @@
     {/if}
     {#if ondesk}
       <button type="button" class="knob" aria-label="The footnote desk" data-testid="desk-button" onclick={ondesk}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
           <path d="M5 4h10l4 4v12H5z" />
           <path d="M14 4v5h5M8 13h8M8 17h5" />
         </svg>
       </button>
     {/if}
     <button type="button" class="knob" aria-label="Read the notebook (codex)" data-testid="codex-button" onclick={oncodex}>
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
         <path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v13c-3-1-6-1-8 1-2-2-5-2-8-1z" />
         <path d="M12 6v13" />
       </svg>
     </button>
     <button type="button" class="knob" aria-label="Menu" data-testid="menu-button" onclick={onmenu}>
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
       </svg>
     </button>
   </div>
 </header>
+{#if rumour}
+  <p class="rumour" data-testid="rumour-line">{rumour}</p>
+{/if}
 
 <style>
   .scene {
     position: relative;
     flex: none;
-    height: 84px;
+    height: 52px;
     overflow: hidden;
-    border-bottom: 5px solid var(--wood);
-    box-shadow: 0 3px 0 var(--wood-deep);
+    border-bottom: 3px solid var(--wood);
+    box-shadow: 0 2px 0 var(--wood-deep);
   }
   .art {
     position: absolute;
@@ -126,45 +128,50 @@
     width: 100%;
     height: 100%;
   }
-  h1 {
+  .words {
     position: absolute;
-    left: 112px;
-    top: 28px;
+    left: 104px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 96px;
+  }
+  h1 {
     margin: 0;
-    font-size: 21px;
+    font-size: 19px;
     font-weight: normal;
     font-style: italic;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.02em;
     color: var(--parchment);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
   }
-  /* four knobs reach under the title, so it rides above them */
-  h1.crowded {
-    top: 4px;
-  }
   .rumour {
-    position: absolute;
-    left: 112px;
-    top: 6px;
+    flex: none;
     margin: 0;
-    font: italic 12px var(--mono);
+    padding: 2px var(--space-3);
+    font: italic 11px var(--mono);
     color: var(--parchment);
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.3);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .buttons {
     position: absolute;
-    right: var(--space-2);
-    bottom: var(--space-2);
+    right: 4px;
+    top: 50%;
     display: flex;
-    gap: var(--space-1);
+    gap: 2px;
+    transform: translateY(-50%);
   }
   .knob {
     display: grid;
     place-items: center;
-    width: var(--tap);
-    height: var(--tap);
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: 1.5px solid rgba(241, 230, 204, 0.45);
     border-radius: 50%;

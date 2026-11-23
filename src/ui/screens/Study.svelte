@@ -20,6 +20,7 @@
     revisionWarning,
     setExtraExit,
     socketAt,
+    tripParty,
   } from '$engine';
   import { deskUnlocked } from '../../app/desk';
   import {
@@ -33,6 +34,7 @@
   import { go } from '../../app/router.svelte';
   import { href } from '../../app/routes';
   import {
+    benchOf,
     benchUnlocked,
     bookmarksOf,
     doorwayDoneCaption,
@@ -70,6 +72,9 @@
   const copies = $derived(glyphSlots(profile, game.member));
   // The editor's bookmarks follow the trip slots, plus whoever's page is open (HC-7).
   const bookmarks = $derived(bookmarksOf(profile, game.member));
+  const party = $derived(tripParty(profile));
+  let householdOpen = $state(false);
+  let drawerUp = $state(false);
 
   // Fair copy: proven cells glow; the mode selects the maximal proven cluster and trims it.
   const glow = $derived(glowCells(profile, game.member));
@@ -255,6 +260,8 @@
     {profile}
     locked={game.save.trip !== null}
     open={game.member}
+    show={householdOpen}
+    onclose={() => (householdOpen = false)}
     onopen={switchMember}
     onbring={(id, seat) => game.bring(id, seat)}
     onhome={(id) => game.sendHome(id)}
@@ -282,6 +289,12 @@
       onranking={() => (ranking = true)}
       onargs={(at) => (argAt = at)}
       {deadCells}
+      household={{
+        more: benchOf(profile).length,
+        onmore: () => (householdOpen = true),
+        visiting: new Set(bookmarks.filter((id) => !party.includes(id))),
+      }}
+      bind:drawerUp
       fair={{
         available: !field && glow.size > 0,
         active: fairLive,
@@ -323,6 +336,7 @@
     </LatticeEditor>
   </div>
 
+  {#if !drawerUp}
   <div class="doorway">
     {#if field}
       <button
@@ -359,6 +373,7 @@
       </button>
     {/if}
   </div>
+  {/if}
 
   <FairCopySheet
     preview={fairOpen ? preview : null}
@@ -480,7 +495,7 @@
   .desk {
     flex: 1;
     min-height: 0;
-    padding: var(--space-2) var(--space-2) 0;
+    padding: var(--space-1) var(--space-1) 0;
   }
   .fairinfo {
     padding: var(--space-1) var(--space-2);

@@ -16,8 +16,11 @@
     cell: Snippet<[Coord]>;
     overlay?: Snippet<[CellBounds]>;
     cellLabel?: (at: Coord) => string;
+    /** The controls float over the page's top right corner instead of owning a row. */
+    floating?: boolean;
+    controls?: Snippet;
   }
-  let { sessionKey, readonly = false, occupied, onCellTap, onCellHold, cell, overlay, cellLabel = latticeLabel }: Props = $props();
+  let { sessionKey, readonly = false, occupied, onCellTap, onCellHold, cell, overlay, cellLabel = latticeLabel, floating = false, controls }: Props = $props();
   let surface = $state<HTMLDivElement>();
   let width = $state(0);
   let height = $state(0);
@@ -69,10 +72,11 @@
 </script>
 
 <div class="paper-viewport" data-testid="lattice-viewport" data-mode={view.mode}>
-  <div class="paper-controls">
+  <div class="paper-controls" class:floating>
+    {@render controls?.()}
     <button type="button" onclick={() => update(framePage(occupied, size, true))}>Fit</button>
     <button type="button" onclick={() => update(editAt(view, { x: width / 2, y: height / 2 }, size))}>{readonly ? 'Read scale' : 'Edit scale'}</button>
-    {#if view.mode === 'fit'}<span>Tap a region to {readonly ? 'read' : 'edit'}</span>{/if}
+    {#if view.mode === 'fit' && !floating}<span>Tap a region to {readonly ? 'read' : 'edit'}</span>{/if}
   </div>
   {#key sessionKey}
   <div class="paper-surface" bind:this={surface} {@attach measure} {@attach gestures}>
@@ -103,6 +107,9 @@
   .paper-controls button { min-width: var(--tap, 44px); min-height: 44px; padding: 0 var(--space-3, 12px); border: 2px solid var(--line); border-radius: var(--radius); background: var(--parchment); color: var(--ink); font-size: 16px; cursor: pointer; }
   .paper-controls button:active { transform: translateY(1px); filter: brightness(1.15); }
   .paper-controls button:focus-visible { outline: 3px solid var(--select); outline-offset: 2px; }
+  .paper-viewport { position: relative; }
+  .paper-controls.floating { position: absolute; top: 6px; right: 6px; z-index: 2; gap: 6px; padding: 0; flex-wrap: nowrap; }
+  .paper-controls.floating :global(button) { min-height: 36px; padding: 0 var(--space-2, 8px); font-size: 14px; background: rgba(241, 230, 204, 0.92); }
   .paper-controls span { font-size: 0.8rem; }
   .paper-surface { position: relative; width: 100%; height: var(--lattice-surface-height, min(52vh, 420px)); min-height: var(--lattice-surface-min-height, 240px); flex: var(--lattice-surface-flex, none); overflow: clip; touch-action: none; user-select: none; background: var(--paper, #f3ead6); }
   .paper-cell { position: absolute; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; overflow: hidden; }

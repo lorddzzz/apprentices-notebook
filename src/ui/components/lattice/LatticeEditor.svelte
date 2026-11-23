@@ -72,6 +72,19 @@
     onargs?: (at: Coord) => void;
     /** Cells of plain spells that never fired on the last trip (M15), ringed on the page. */
     deadCells?: ReadonlySet<CellKey>;
+    /**
+     * The Study's notebook layout: seat tabs with HP · move and a "+N" for the household sheet,
+     * the ink pot and Fit floating on the page, the shelf as a drawer. Absent in the Lab.
+     */
+    household?: {
+      /** Apprentices at home (not in a seat). */
+      more: number;
+      onmore: () => void;
+      /** Tabs for pages opened for someone at home: dashed. */
+      visiting: ReadonlySet<MemberId>;
+    };
+    /** The drawer is pulled up (the door hides meanwhile). */
+    drawerUp?: boolean;
   }
 
   let {
@@ -97,6 +110,8 @@
     onranking,
     onargs,
     deadCells = new Set(),
+    household,
+    drawerUp = $bindable(false),
   }: Props = $props();
 
   let focus = $state<SpellKey | null>(null);
@@ -194,44 +209,75 @@
   const spellIndex = $derived(compiled.spells.findIndex((s) => s.key === liveFocus));
 </script>
 
+{#snippet faircontrol()}
+  <button
+    type="button"
+    class="fair"
+    class:on={fairOn}
+    aria-pressed={fairOn}
+    data-testid="fair-mode"
+    onclick={() => {
+      inspected = null;
+      fair?.ontoggle();
+    }}
+  >
+    Fair copy
+  </button>
+{/snippet}
+
 <div class="editor" data-testid="editor">
-  <div class="bookmarks" role="tablist" aria-label="Party member">
+  <div class="bookmarks" class:notebook={household !== undefined} role="tablist" aria-label="Party member">
     {#each members as id (id)}
       <button
         type="button"
         role="tab"
         class="mark"
         class:on={id === member}
-        class:crowded={members.length > 2}
+        class:crowded={!household && members.length > 2}
+        class:visiting={household?.visiting.has(id)}
         style:--tint="var(--hue-{APPRENTICES[id].look.hue})"
         aria-selected={id === member}
-        aria-label={APPRENTICES[id].name}
+        aria-label={household
+          ? `${APPRENTICES[id].name}, ${APPRENTICES[id].hp} HP, moves ${APPRENTICES[id].move}`
+          : APPRENTICES[id].name}
         data-member={id}
         onclick={() => switchMember(id)}
       >
-        <ApprenticeToken def={APPRENTICES[id]} size={18} />
-        <span class="mname">{APPRENTICES[id].name}</span>
+        <ApprenticeToken def={APPRENTICES[id]} size={household ? 22 : 18} />
+        {#if household}
+          <span class="mtext">
+            <span class="mname">{APPRENTICES[id].name}</span>
+            <span class="mstats">{APPRENTICES[id].hp} · {APPRENTICES[id].move}</span>
+          </span>
+        {:else}
+          <span class="mname">{APPRENTICES[id].name}</span>
+        {/if}
       </button>
     {/each}
-    <span class="grow"></span>
-    <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
-  </div>
-
-  <div class="page" style:--lattice-controls-reserve={fair ? '110px' : '0px'}>
-    {#if fair?.available}
+    {#if household}
       <button
         type="button"
-        class="fair"
-        class:on={fairOn}
-        aria-pressed={fairOn}
-        data-testid="fair-mode"
-        onclick={() => {
-          inspected = null;
-          fair.ontoggle();
-        }}
+        class="more"
+        data-testid="household-open"
+        aria-label={household.more > 0 ? `The household, ${household.more} at home` : 'The household'}
+        onclick={household.onmore}
       >
-        Fair copy
+        {household.more > 0 ? `+${household.more}` : '+'}
       </button>
+    {:else}
+      <span class="grow"></span>
+      <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
+    {/if}
+  </div>
+
+  <div class="page" class:notebook={household !== undefined} style:--lattice-controls-reserve={fair && !household ? '110px' : '0px'}>
+    {#if household}
+      <div class="inkfloat">
+        <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
+      </div>
+    {/if}
+    {#if !household && fair?.available}
+      {@render faircontrol()}
     {/if}
     <LatticeGrid
       {sessionKey}
@@ -244,6 +290,8 @@
       glow={fair?.glow}
       selection={fair?.selected}
       {deadCells}
+      floating={household !== undefined}
+      controls={household && fair?.available ? faircontrol : undefined}
       ontap={(at) => tap(at, false)}
       onlongpress={(at) => tap(at, true)}
     />
@@ -356,6 +404,8 @@
       }}
       erase
       {onranking}
+      drawer={household !== undefined}
+      bind:up={drawerUp}
     />
   {/if}
 
@@ -418,6 +468,58 @@
   /* With three or more bookmarks the idle ones show only their token; the open one keeps its name. */
   .mark.crowded:not(.on) .mname {
     display: none;
+  }
+  .bookmarks.notebook {
+    gap: 3px;
+  }
+  .notebook .mark {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: flex-start;
+    padding: 0 6px;
+  }
+  .notebook .mark.on {
+    flex-grow: 1.25;
+  }
+  .mtext {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.1;
+    text-align: left;
+  }
+  .mtext .mname {
+    font-size: 14px;
+  }
+  .mstats {
+    font: 11px var(--mono);
+    opacity: 0.85;
+  }
+  .mark.visiting:not(.on) {
+    border-style: dashed;
+  }
+  .more {
+    flex: none;
+    min-width: 44px;
+    min-height: var(--tap);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: rgba(241, 230, 204, 0.32);
+    color: var(--parchment);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .inkfloat {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    z-index: 2;
+    padding: 0 6px;
+    border-radius: var(--radius);
+    background: rgba(241, 230, 204, 0.85);
+    pointer-events: none;
   }
   /* The selected tab is the page's own tab: filled, taller, joined to the page below. */
   .mark.on {
