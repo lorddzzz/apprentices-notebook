@@ -1,11 +1,11 @@
 # Roadmap and backlog
 
-> Updated 2026-11-11 (statuses corrected by the [midpoint audit](plans/midpoint-audit.md)); 2026-10-29: every decided design has an implementation plan, ordered in §2. Live build state: [build-program-status.md](plans/build-program-status.md). Done log: [ROADMAP-done.md](ROADMAP-done.md).
+> Updated 2026-11-24 (BL-135 UX and UI polish started); 2026-11-11 (statuses corrected by the [midpoint audit](plans/midpoint-audit.md)); 2026-10-29: every decided design has an implementation plan, ordered in §2. Live build state: [build-program-status.md](plans/build-program-status.md). Done log: [ROADMAP-done.md](ROADMAP-done.md).
 > Current references: [DESIGN.md](../DESIGN.md), [rune rules](design/rune-design-final.md), [party](design/party.md), [districts](design/city-and-districts.md), [rivals](design/rivals.md). Evidence and plan deviations: [rune audit](plans/rune-redesign-audit.md).
 
 ## How to use this doc
 
-- IDs are stable: move entries, never renumber. New IDs start after BL-134 (BL-127 district kit, BL-128 foundations, BL-129–131 the household split of BL-43).
+- IDs are stable: move entries, never renumber. New IDs start after BL-135 (BL-127 district kit, BL-128 foundations, BL-129–131 the household split of BL-43).
 - Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Build program](#2-build-program-order-of-execution), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
 - An item gets a focused design round when needed, then an implementation plan. Items a plan absorbed point at it ("→ FD-6"); they leave this doc when that task merges. Update design/technical decisions with the build and move completed work to ROADMAP-done.md.
 - No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
@@ -81,6 +81,7 @@ The "Needs before it starts" and "Unlocks" columns of §2.3 are the dependency m
 
 | ID | Work | Type / size | Area | Status | Scope |
 |---|---|---|---|---|---|
+| BL-135 | UX and UI polish: one look across the game | design + polish / XL | all screens | **in progress** (started 2026-11-24; baseline done) | [ux-polish.md](design/ux-polish.md): baseline of every screen, direction and system rounds, then per-family plans. Rules, content and balance frozen. Includes BL-100 (rune art), BL-75 (accessibility), BL-73 (larger screens) where they fit. |
 | BL-134 | Study layout: full-page notebook | feature / M | study | built, awaiting playtest | [study-layout.md](design/study-layout.md): seat tabs as page tabs with a household sheet ("At home"), title bar, floating ink/Fit/Fair copy, rune drawer resting at one row. Keeps the doorway mode. |
 | BL-100 | Rune art and editor polish | polish / M | runes, study | ready | Redraw margin, strike, coil, brink, bind, chalk, filings, quicksilver. Audit invention names/art in every shelf/caption and optional shelf metadata/duplicated flow geometry. Implementation leftovers now have their own IDs above and in §4. |
 | BL-50 | Diagonal aura reach | feature / M | lattice, mastery | **decided as an aura capstone 2026-10-23**; needs BL-54 and readable overlays **→ FN-11, FN-12** | One of each aura's two capstones (Afterglow, Steep, Coil: also acts through diagonally touching cells); design the overlay in the same build. [Footnotes](design/footnotes.md) §1. |

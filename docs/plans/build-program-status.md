@@ -4,6 +4,8 @@ Plans: [build-program.md](build-program.md), [calibration-plan.md](calibration-p
 
 **State:** 2026-11-22, calibration closed (CAL-5R, CAL-5H merged; CAL-G1 dispositions recorded; full gate green at 24c6af5; code review clean). Every plan is built. Nothing running. Open: the full drawn-trip phone loop at 375x812 (the closing session had no browser tools), a drawn-page set-out offline (generation worker precache), nightly rerun of unfinished sweep shards, player gates and questions below. **Next window: routine, only if the player wants more work.**
 
+**Side track (2026-11-24):** UX and UI polish (BL-135, [ux-polish.md](../design/ux-polish.md)) is in progress: baseline documented; direction and system rounds are next. It does not block calibration.
+
 **Session rules (player):**
 - Pace by the 5h limit; ignore the weekly limit unless > 97 %. The player resumes manually in a fresh session at each reset (CET = UTC+1); schedule a wake-up only when it opens a new session.
 - A routine window starts a due design window itself as a subagent, without asking; player questions go to Open questions with a default held.
