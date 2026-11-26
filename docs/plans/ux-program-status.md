@@ -4,7 +4,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 
 **State:** building; UX-G1 closed; waiting on Claude/Codex 5h windows to recover · **next window:** routine (orchestrator Sonnet; design windows for briefs/reviews on Opus high)
 **Session rules:** player delegated model choice for subagents (free to override the skill's table); Claude packs Opus high for UF 0a/0b/0c and playback, Sonnet high elsewhere; raster art on Codex Sol high via Whiteboard `git:true` (Codex weekly 61% at start: keep Codex packs few); 2-3 packs at once on disjoint files; engine read-only.
-**Player rule (2026-11-26):** Claude 5h at 80%: tune Claude down until reset 22:59 Belgrade (no new Claude packs; let running ones finish). Codex 5h is low: use Codex as much as possible despite weekly 61%.
+**Player rule (23:25, current run):** ignore weekly limits, watch only 5h windows; balance Claude and Codex, use both as much as possible, never hit the limit (especially Claude). Earlier: **Player rule (2026-11-26):** Claude 5h at 80%: tune Claude down until reset 22:59 Belgrade (no new Claude packs; let running ones finish). Codex 5h is low: use Codex as much as possible despite weekly 61%.
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
@@ -20,6 +20,8 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 |---|---|---|---|---|
 | UA-floors | floors-v2 + board-repeat check | Codex Sol high | art/floors-v2 in clone codex-1179364949 | running (sid cdf8e8f35d01), spawned 23:20 |
 | UA-C | UA-9 party (9 apprentices) | Codex Sol high | art/party in clone codex-4123911851 | running (sid 2b6329cf9110); orchestrator must rclone-upload masters from the worker's report (raws under /tmp) |
+| UF-E | UF-16 rune glyph redraw | Sonnet high | build/pack-ufe @ a7bda57 | running (sid 853944fca36e) |
+| UT-A | UT-1→UT-3 trip logic | Codex Sol high | build/ut-a in clone codex-326206261 | running (sid 590a9ce39647); flow.ts additive edit granted |
 | UF-A | UF-5→UF-7 faces+Gallery | Sonnet high | build/pack-ufa @ 9f63d48 | running (sid 2369faf1c508) |
 | UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 (uncommitted UF-8 work in worktree) | RESUMED 23:20 (sid f1a64b41f2fc) |
 
