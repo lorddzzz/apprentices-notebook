@@ -8,6 +8,7 @@
 | FT-4 (FT Pack 0b) | 6f76e9e | Codex Sol / high | 0 | ~3% Codex | fightArt.ts, fightTheme, crestFor; 7 tests; crestSnippet got optional props (accepted) |
 | UA-P (processing) | see git log art(pilot) | Codex Sol / high (CLI) | 0 | ~25% Codex 5h | processed 4 pilot sources; tooling worked, sidecar gaps noted; generation half was done earlier by the player |
 | FT-1, FT-2, FT-3, FT-3b | 2912ae1..7a955df (+FT-3b) | Codex Sol / high | 0 | ~25% Codex | projectBatch/firsts, hold table, input routing; 35 tests; FT-3b done by orchestrator (prefs guard for fake document) |
+| UA-7, UA-8 (B2) | see git log art(anchors-2) | Codex Sol / high | 0 | ~10% Codex | map plate + Sestante anchors; 237 KB accepted; orchestrator looked at the sheet, looks right |
 | UF-4 | be2c0e6 | Opus / high | 0 | ~5% | dev fixture loader (memory backend, go replace), burnt-threshold replay + study-fresh, grey=1; report lost, reviewed from branch |
 | UF-2 | b49271d | Opus / high | 0 | ~6% | registry, artMeta, role art:check (both gates), inventory; 26+8+5 tests; proposals accepted (2 MiB single-asset cap, ±4 px ground tolerance) |
 
