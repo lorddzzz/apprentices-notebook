@@ -1,0 +1,65 @@
+{
+  "id": "portraits/shared/copyist",
+  "screen": "party",
+  "district": "shared",
+  "subject": "copyist",
+  "state": null,
+  "role": "portrait",
+  "size": [192, 192],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/portraits/shared/copyist.master.png",
+    "sha256": "30612b9843098cd7929cdb57a502eed4e7ea1f86f35b8ab365f545ee2698ef61",
+    "origSize": [564, 564],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "018705f99fcf96bb4b2619ad1c8b86acfff4ef429c45eab5d29d32d7371f418c",
+      "e2f8cbebeed85674ef0da2b94a647e8da117f89ad6d75d40c0cdefd38aeb32ab",
+      "969bb517ae98146fd5135486c9c261a7b9e462a2f7aa3f50d21bb27d5ea4b874",
+      "f51fdd3c64e7e8366e20e481379ae7adbb5e675f8560c2209b98974b763d3332"
+    ]
+  },
+  "crop": "Head-and-shoulders portrait from the accepted identity, preserving pose, silhouette markers, clothing and colours. Source rectangle [270,0,564,564] at native scale from the full identity PNG. Flatten on plain Seam mid swatch #55625E.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "top-left; warm lamp edge and cool folds",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#6B6412",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#55625E"
+  ],
+  "model": "unexposed",
+  "prompt": "Head-and-shoulders portrait from the accepted identity, preserving pose, silhouette markers, clothing and colours. Source rectangle [270,0,564,564] at native scale from the full identity PNG. Flatten on plain Seam mid swatch #55625E.\n\nOriginal identity prompt:\nUse case: stylized-concept. Create one new production identity painting for The Apprentice's Notebook: Nelle, the Copyist. An apprentice pamphlet-copying student wearing a low soft cloth cap that curves over the ears and has a small pen tucked behind one ear; sleeve guards on both forearms. Crouched, compact posture, slightly bent knees; a large unmarked squared wooden writing board tilted like a diamond against the hip, one corner protruding significantly out at elbow height to make a strong silhouette. Ochre edging on a sleeve guard. The surface of the board is blank, matte and uninterrupted.\nImage 1 shows the three APPROVED neighboring characters, an ensemble reference only for body proportions, camera, finish and scale. Invent this identity according to the subject description. Output one person only. Image 2 is a clean crop for matte paint and lighting. Image 3 is the palette strip: district dark/mid/light #253235 #55625E #BC9273; then the small clothing accent #6B6412; then the city night colors #1F2A3A #3A4148 #5D666D #A9BCC6. Hold these swatches' color saturation in the major masses and keep warm colored lamplight over cool cloth. Match the style, proportions and finish of the attached approved anchors.\nComposition: one standing complete head-to-boots sprite cutout at the largest available native portrait dimensions (2:3 if possible). High 3/4 tactics camera, from slightly above, facing screen right like the references. Foreshorten tops of head and boots. Fit both boots fully in-frame, centered and planted with the feet close to the bottom-center baseline, leaving narrow transparent margins all around. When fitted on the 128×176 game canvas the body reads at about 1.3 cells. Real RGBA transparency around every edge and between limbs and props. There is no ground, no backdrop or visible checkerboard, no contact shadow, no baked shadow, and no side rim light. Sparse engraved edge marks with clean outer contour and fine paint grain, simplified forms. Silhouette key that must survive at 24 px in greyscale: Low rounded cloth cap, condensed stance and a big diagonally canted writing board with an angular projecting corner.\nNo glyphs, seals with symbols, pseudo-lettering, insignia, flags, border, ground, shadow or matte fringe. Do not use any reference character as the output. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/units/shared/copyist.master.png",
+    "art-src/anchors/party/draughtsman-identity.approved.webp",
+    "art-src/anchors/party/stoker-identity.approved.webp",
+    "art-src/anchors/party/runaway-identity.approved.webp",
+    "docs/art/style-sheet.md#3.1%2C3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "party",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "30612b9843098cd7929cdb57a502eed4e7ea1f86f35b8ab365f545ee2698ef61",
+      "size": [564, 564]
+    },
+    "notes": ["flattened onto the background colour (the raw had transparency)"]
+  },
+  "nativeCrop": [270, 0, 564, 564],
+  "parentMasterSha256": "018705f99fcf96bb4b2619ad1c8b86acfff4ef429c45eab5d29d32d7371f418c"
+}

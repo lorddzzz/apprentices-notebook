@@ -1,0 +1,61 @@
+{
+  "id": "portraits/shared/runaway",
+  "screen": "party",
+  "district": "shared",
+  "subject": "runaway",
+  "state": null,
+  "role": "portrait",
+  "size": [192, 192],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/portraits/shared/runaway.master.png",
+    "sha256": "60afacf77f848f5fb06e22afb62990eaed7f750ecf23de1e9559e76ec8a4fc85",
+    "origSize": [574, 574],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "4f0bbe4c048a6dc3bb9a4a32d82bd4e27a2a9124d6ca48e064a45e34749e75ab",
+      "082bb394c6ff5cae0f8a4992375cbb951a028c6b16c36bf1ef9a0456f7d739b7"
+    ]
+  },
+  "crop": "Promoted approved UX-G1 portrait byte-for-byte, at 192×192 q80. Head and shoulders from the accepted identity cutout before scaling, source rectangle [273,27,574,574]. Flattened on plain Seam mid #55625E.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "top-left; warm lamp edge and cool folds",
+  "palette": [
+    "#172C39",
+    "#456675",
+    "#BC8A57",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#55625E",
+    "#8F5A00"
+  ],
+  "model": "unexposed",
+  "prompt": "Hanneke, the Runaway, a narrow standing Lamplighter apprentice with a short rain cape and a tall hooked lamplighter's pole carried at the near side, facing screen right. Paint one complete head-to-boots cutout centered in a tall canvas at the largest available native resolution, padded on all sides. High three-quarter tactics camera, including visibly foreshortened tops of head and boots. Both boots fully visible near bottom centre, firmly planted, with no contact or cast shadow; the runtime adds a short soft shadow down-right. Top-left diffuse key with faint amber lamp edge and deep cool folds. District swatches #172C39 #456675 #BC8A57. World palette #1F2A3A #3A4148 #5D666D #A9BCC6 with only a small amber #8F5A00 accent. Crisp broad outer shape, matte paint masses, minimal engraved edges, no side rim. Silhouette key at 24 px: a pronounced pointed rain hood, narrow tapering cape and a clearly visible crook on a slim pole slightly taller than the whole figure. Keep the pole close alongside the body with a dark contrasting clean edge, no glow. Image 1 is subject appearance only, extend it to the boots. Image 2 is the clean paint crop; image 3 the swatch strip. Match the style, proportions and finish of the attached approved anchors. Ignore every interface element in the subject crop and omit any symbols or visual marks. Real alpha transparency with empty space all around, no scenery and no matte. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. Critical correction: the transparent PNG must contain only boots, clothing and the hooked pole; all pixels around and between the soles must be genuinely empty transparent pixels. No dark oval, platform, translucent grey pixels under or near either boot or pole, grounding ellipse, or painted ground whatsoever. Extend the crook higher than the pointed hood, and hold the tip above foot level.",
+  "references": [
+    "art-src/anchors/party/runaway-portrait.approved.webp",
+    "art-src/anchors/party/runaway-identity.approved.webp",
+    "docs/design/art-studies/lampwater-v2.png#xywh=573,660,110,104",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "party",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "60afacf77f848f5fb06e22afb62990eaed7f750ecf23de1e9559e76ec8a4fc85",
+      "size": [574, 574]
+    },
+    "notes": ["flattened onto the background colour (the raw had transparency)"]
+  }
+}

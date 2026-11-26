@@ -1,0 +1,61 @@
+{
+  "id": "portraits/shared/stoker",
+  "screen": "party",
+  "district": "shared",
+  "subject": "stoker",
+  "state": null,
+  "role": "portrait",
+  "size": [192, 192],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/portraits/shared/stoker.master.png",
+    "sha256": "bfc6778ce447bd989787e2676b055351e49eb9b745f2dad6f4665e54a7940148",
+    "origSize": [618, 618],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "e5108064570819171b447be8fc8fc12ef183829df8d5a0b5c7657e4ed44759f1",
+      "9ba60f3fdc3375190a2e1265be5c85b62206273593739102d98f7574159d7a00"
+    ]
+  },
+  "crop": "Promoted approved UX-G1 portrait byte-for-byte, at 192×192 q80. Head and shoulders from the accepted identity cutout before scaling, source rectangle [183,21,618,618]. Flattened on plain Seam mid #55625E.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "top-left; warm lamp edge and cool folds",
+  "palette": [
+    "#172C39",
+    "#456675",
+    "#BC8A57",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#55625E",
+    "#A2471F"
+  ],
+  "model": "unexposed",
+  "prompt": "Joost, the Stoker, a broad standing apprentice in a dark leather apron, sleeves rolled at the elbows, hands easy at the sides, facing slightly screen right. Paint one complete head-to-boots cutout centered in a tall canvas at the largest available native resolution, padded on all sides. High three-quarter tactics camera, including visibly foreshortened tops of head and boots. Both boots fully visible near bottom centre, firmly planted, with no contact or cast shadow; the runtime adds a short soft shadow down-right. Top-left diffuse key with faint amber lamp edge and deep cool folds. District swatches #172C39 #456675 #BC8A57. World palette #1F2A3A #3A4148 #5D666D #A9BCC6 with only a small rust #A2471F accent. Crisp broad outer shape, matte paint masses, minimal engraved edges, no side rim. Silhouette key at 24 px: a broad block of shoulders, bare head with dark cropped hair and a strong block of dark beard, and a substantial apron outline. No hat, no tools. Image 1 is subject appearance only, extend it to the boots. Image 2 is the clean paint crop; image 3 the swatch strip. Match the style, proportions and finish of the attached approved anchors. Ignore every interface element in the subject crop and omit any symbols or visual marks. Real alpha transparency with empty space all around, no scenery and no matte. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/party/stoker-portrait.approved.webp",
+    "art-src/anchors/party/stoker-identity.approved.webp",
+    "docs/design/art-studies/lampwater-v2.png#xywh=177,906,109,109",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "party",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "bfc6778ce447bd989787e2676b055351e49eb9b745f2dad6f4665e54a7940148",
+      "size": [618, 618]
+    },
+    "notes": ["flattened onto the background colour (the raw had transparency)"]
+  }
+}
