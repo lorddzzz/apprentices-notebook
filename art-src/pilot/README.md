@@ -40,3 +40,20 @@ Reference crops are reproducible from `docs/design/art-studies/`. Coordinates ar
 ### scene
 
 > Create an opaque background crop for a 750×800 Seam fight backdrop, using the attached Seam study as a paint and architecture reference. Near-square portrait aspect around 15:16. High overhead tactics camera over an old rain-damp working undercroft, nearly orthographic through the central battle area. Suggest The Seam with two adjacent brick courses that barely meet along the upper framing, a slim oxidized pipe by the left edge, a dark metal vent high at the right edge and only a fragment of steps at lower right. Keep the interior clear and subdued, populated with broad quiet wet slate value masses with no gameplay grid. Use dominant charcoal teal #253235, subdued stone #55625E, traces of copper #BC9273 at the upper left, top-left diffuse light, matte gouache and sparse engraved edges. No standing people, creatures, oil patches, steam clouds, tactical markings, numerals, icons, HUD, borders, labels or text. Put the environment at the edges and leave the wide center low contrast for the tactical layers.
+
+## Processing results
+
+| Asset | Decoded size | Shipped WebP bytes | `pnpm art:process` wall time |
+| --- | --- | ---: | ---: |
+| Pell (q80, alpha) | 128 × 176 | 5,920 | 2.844 s |
+| Floor A (q80) | 128 × 128 | 356 | 2.702 s |
+| Floor B (q80, 40 px edge blend) | 128 × 128 | 332 | 3.079 s |
+| Scene (q76) | 750 × 800 | 12,358 | 2.843 s |
+
+- Pell's planted boot anchors at source (408,1498), 1,429 px below the crown. The decoded boot ends at row 159 at x=64, placing contact at (64,160) on both light and dark tiles. Source alpha 0–254 passed the transparency and halo checks. The cutout looked clean on white and dark grounds. No defringe was applied.
+- Both tiles were checked in 3×3 repeats and in both mixed orders. `art:sheet` passed all eight joints, with worst B over A at 2.5, limit 6.4 and a natural step of 0.4. A|B and B|A measured 1.64 and 2.09. The default 8 px blend passed numerically but left a visible grid in B. A 40 px blend reduced the grid while retaining a distinct B.
+- Scene focal point (0.50,0.48). The source already matches the cover aspect to the nearest pixel, so the crop used all 1214 × 1295 pixels. The central 60% stayed subdued in the 375 px preview. The scratch q80 encode was 15,368 bytes, 3,010 bytes larger than the shipped q76.
+- `art:check` passed. Seam used 13,046 of 1,500,000 bytes, shared+home 5,920 of 4,500,000 bytes, and total 18,966 of 15,000,000 bytes. The [contact sheet](../../docs/art/contact/pilot.png) is 730,275 bytes and the review silhouette is 598 bytes.
+- At the pilot mix of one figure, two tiles and one scene per four assets, 250 WebPs would use about 1.19 MB (18,966 ÷ 4 × 250). The sample omits maps, plates and other roles, so this measures that mix only.
+- The processor proposed four `*.master.png` archive paths. The original four `pilot/*.png` records match the local dimensions, byte counts and hashes. Restored the manifest byte for byte and pointed each sidecar to its existing record. No uploads ran.
+- The CLI omitted the focal point and edge-band override from the sidecars, so those were recorded manually. Generated JSON initially failed Biome formatting and passed after formatting. The sheet shows A|B separately and includes B|A in the mixed grid. Both orders were also reviewed side by side.
