@@ -8,7 +8,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
-1. FT-4 (Pack 0b) merged (6f76e9e: fightArt.ts, DistrictUi.fightTheme, crestFor, 3 stubs; autofixer not run on the stubs: Close). UF-11/12/13 merged (main.ts imports prefs). UA-1/UA-2 merged (bcae482; sharp, art:process/sheet; style sheet in docs/art). Pilot: generation was already done (art-src/pilot, masters in R2); processing half runs on Codex CLI. UF-4 merged (be2c0e6; report text was lost, reviewed from the branch: 9 tests pass; loader at src/app/dev, fixtures: threshold-canals-burnt, study-fresh). UF-1/UF-3 merged (32bfbb2: tokens, six stubs, header.ts, prefs stub). UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). 0a is merged: FT 0b, UH-0, UT-1 and UF Pack A may start; UF-B and UF-C now run (4 packs briefly with 0c and UA-A).
+1. UA-P pilot processed (README results + docs/art/contact/pilot.png on main; pilot assets kept on branch art/pilot, not merged). Measured: Pell 5.9 KB, floors ~0.35 KB each, scene 12.4 KB (q76); art:check ok; ~1.19 MB per 250 assets for that mix (too low a mix to trust: re-estimate with real anchors). Floor B needed a 40 px edge blend; 8 px left a grid. FT-4 (Pack 0b) merged (6f76e9e: fightArt.ts, DistrictUi.fightTheme, crestFor, 3 stubs; autofixer not run on the stubs: Close). UF-11/12/13 merged (main.ts imports prefs). UA-1/UA-2 merged (bcae482; sharp, art:process/sheet; style sheet in docs/art). Pilot: generation was already done (art-src/pilot, masters in R2); processing half runs on Codex CLI. UF-4 merged (be2c0e6; report text was lost, reviewed from the branch: 9 tests pass; loader at src/app/dev, fixtures: threshold-canals-burnt, study-fresh). UF-1/UF-3 merged (32bfbb2: tokens, six stubs, header.ts, prefs stub). UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). 0a is merged: FT 0b, UH-0, UT-1 and UF Pack A may start; UF-B and UF-C now run (4 packs briefly with 0c and UA-A).
 2. After 0b merges: UA Pack A (Claude, UA-1→UA-2), then UA Pack P pilot (Codex).
 3. After 0a merges: UF Packs A/B/C (faces+Gallery, shared components, prefs+menu), FT Pack 0b, UH-0, UT-1 per their briefs files.
 4. Grant order (R24): App.svelte UF-13 → UH-13 → UE-8; flow.ts UT-2 → UE-4; Gallery UF-6/7 → UD-3 → UE-6; package.json UF 0b → UA-A.
@@ -18,12 +18,13 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 |---|---|---|---|---|
 | UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 (uncommitted UF-8 work in worktree) | STOPPED for Claude usage (80%); resume_subagent f1a64b41f2fc when Claude < 60% |
 | FT-0 | FT-1→FT-3 | Codex Sol high | build/ft-0 in clone codex-3397433455 | running (sid 65ed65c433ad) |
-| UA-P | pilot processing | Codex Sol high via CLI | art/pilot (.claude/worktrees/pack-pilot), sources copied in | running; log /tmp/pilot-run.log, report /tmp/pilot-prompt.md.report.md; orchestrator commits |
 
 ## Needs design review (left unmerged by a routine window)
 - none
 
 ## Owed (declared by a contract, not yet built)
+- Pilot items not done: clean-checkout binary handoff via Whiteboard clone, offline install/precache measurement under the deployed base, phone-size look at the pilot assets — owed to UA B1 (first real Codex clone pack) and Close
+- art:process CLI omits focal point/edge-band in sidecars (hand-recorded in pilot): UA tooling fix when a pack needs it
 - Svelte autofixer on the WHOLE MenuSheet.svelte (UF-C ran an abridged copy; flagged `view` assigned in an $effect) — owed by Close review / whoever next edits MenuSheet (UH-D5)
 - Study's menu entry reads "The Lab" once MenuSheet replaces it (UH-D5)
 - UF-C check:fast red only on heavy drawing EN-K6 timeout (known load flake, rerun alone with --testTimeout=400000)
