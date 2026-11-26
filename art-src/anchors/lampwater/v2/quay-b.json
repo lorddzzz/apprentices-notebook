@@ -1,0 +1,61 @@
+{
+  "id": "anchors/lampwater/v2/quay-b",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "quay",
+  "state": "b",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "70d148abcb66840825706ea3d740cda2127846990dcce6dcab5e33034cad586a",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "1c1e0a0074b874dba73b9b374c30b4c49b4d8b5e95dcf6dd4943e49e73bc8ec4",
+      "ba25aeb2b0287d4c314e0ece98f0197b34152274876322b6529012f1bfb617e9",
+      "230a42a66e690ac35b91a268b8bde4d1a5726745eea67dce357d124b502dae83"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Even diffuse material value. Scene carries light.",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Image 1 is the material identity from the earlier Lampwater anchor and image 2 is a clean gouache paint crop from the Lampwater study. Ignore any reflection, border or interface detail from the references. Image 3 is the palette strip (Lampwater's dark, mid, light first; city swatches next). Match the style, proportions and finish of the attached anchors. Generate one opaque edge-to-edge square ground texture at the largest native square resolution, strict overhead orthographic. Material: damp, flat night-blue masonry on Lampwater's quay. A worn quay of broad water-rounded blocks with a few shallow irregular curved joins. Show faint late chisel wear at different angles and subdued pebbly aggregate inside one slab. The narrow joins curve and break rather than forming a grid. Master the look of a well-used early modern stone quay in matte painted gouache, not polished marble. Base colour chromatic blue-grey between #172C39 and #456675, near #3D5561. A little dusty amber #BC8A57 mineral patina is optional as a dyed stone colour only, matched in value to the stone. Pattern detail may be moderately readable but limited to thin dark stone marks roughly 8–14 luma steps below their surroundings; no raised edges, shadowed bevels, reflection or end of the quay. Keep even low contrast in the large value masses everywhere. The scene supplies the upper-left key and warm lamps: give this tile even diffuse material value without any cast shadows, highlights, bright spots, light pools, reflections, shine, vignette, rim light, radial gradient, or centered motif. Broad matte 2D gouache paint with fine grain and sparse engraved material detail. Keep the texture recognizable at 51 px; equal value at edges and center, no border or perimeter seam. No text, letters, numbers, UI, frames, arrows, grid lines, reach dots, health bars, targeting rings, watermark, objects or figures.",
+  "references": [
+    "art-src/anchors/lampwater/quay-v1.webp",
+    "docs/design/art-studies/lampwater-v2.png#xywh=570,801,92,104",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "9fcbb8e7-2db3-4e97-a513-fc0c7cbc2850",
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "floors-v2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "70d148abcb66840825706ea3d740cda2127846990dcce6dcab5e33034cad586a",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "notes": ["edges shared with art-src/anchors/lampwater/v2/quay-a.webp"],
+    "toneGrade": {
+      "adjustment": "Centred the palette and softened broad tone while retaining narrow stone or ripple structure.",
+      "generationSha256": "9d8cd6a0af3398a8ae65bd392f994032316710ebc9eb21b8565f43f8e62997a3"
+    },
+    "edgeBand": 32,
+    "perimeter": {
+      "pixels": 1,
+      "method": "Use A’s decoded q80 perimeter, averaging opposing edges to make them equal.",
+      "finalEncoding": "Lossless WebP preserves exact RGB edges and the q80 interior."
+    }
+  },
+  "candidate": "v2"
+}

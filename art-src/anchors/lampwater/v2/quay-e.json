@@ -1,0 +1,61 @@
+{
+  "id": "anchors/lampwater/v2/quay-e",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "quay",
+  "state": "e",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "5ef544556f0ef65ea0321c28bb65d47ace851ad9c30697d948cd8111a515e1ee",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "1c1e0a0074b874dba73b9b374c30b4c49b4d8b5e95dcf6dd4943e49e73bc8ec4",
+      "ba25aeb2b0287d4c314e0ece98f0197b34152274876322b6529012f1bfb617e9",
+      "230a42a66e690ac35b91a268b8bde4d1a5726745eea67dce357d124b502dae83"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Even diffuse material value. Scene carries light.",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Input 1 identifies the Lampwater quay's cool wet stone; input 2 is its clean painted finish from the study; input 3 is the district and city palette strip. Match the approved matte painted finish, material and colours. Generate a single opaque square game tile, filling the largest native square available edge to edge, viewed directly overhead in orthographic projection. This distinct variation is a broad patch of old rubbed, pitted blue-grey quay stone. Show clearly recognizable interrupted pebbly aggregate and shallow small dark spalls spread unevenly across the field, with a few short irregular worn scrape marks, no continuous horizontal groove, no large slab divisions, no clean rows, no broad unbroken crack. The flattened pigment marks are narrow but wide enough to survive downsampling to 51 pixels, roughly 25–35 pixels wide at their broadest on the source. Use the district's blue-grey stone around #3D5561 between #172C39 and #456675, with hue variations in similarly valued pigment. If you use #BC8A57 at all, it is faint darkened mineral colour at matching value, never illumination. Broad matte gouache strokes and fine dry-paint grain; shallow tool and stone marks rendered in the pigment. Keep the broad value even in all parts of the tile. Apply no directional shade, cast shadow, bright pits, light pools, highlights, specular dots, vignette, radial patch, warm reflection, frame or rim, since the upper-left key and the lamp pool are scene layers. No text, letters, numbers, interface, arrows, frames, grid lines, reach dots, health bars, targeting rings, people, lamppost or watermark.",
+  "references": [
+    "art-src/anchors/lampwater/quay-v1.webp",
+    "docs/design/art-studies/lampwater-v2.png#xywh=570,801,92,104",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "19577286-5248-475b-a832-380cc1126419",
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "floors-v2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "5ef544556f0ef65ea0321c28bb65d47ace851ad9c30697d948cd8111a515e1ee",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "notes": ["edges shared with art-src/anchors/lampwater/v2/quay-a.webp"],
+    "toneGrade": {
+      "adjustment": "Centred the palette and softened broad tone while retaining narrow stone or ripple structure.",
+      "generationSha256": "adf0b30a226797c7be4a83197dae33482ad865647d2922293a0d334e7cb3d530"
+    },
+    "edgeBand": 32,
+    "perimeter": {
+      "pixels": 1,
+      "method": "Use A’s decoded q80 perimeter, averaging opposing edges to make them equal.",
+      "finalEncoding": "Lossless WebP preserves exact RGB edges and the q80 interior."
+    }
+  },
+  "candidate": "v2"
+}
