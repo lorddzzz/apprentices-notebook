@@ -7,7 +7,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
-1. Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). Merge 0a first (unblocks FT/UH/UT).
+1. UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). Merge 0a first (unblocks FT/UH/UT).
 2. After 0b merges: UA Pack A (Claude, UA-1→UA-2), then UA Pack P pilot (Codex).
 3. After 0a merges: UF Packs A/B/C (faces+Gallery, shared components, prefs+menu), FT Pack 0b, UH-0, UT-1 per their briefs files.
 4. Grant order (R24): App.svelte UF-13 → UH-13 → UE-8; flow.ts UT-2 → UE-4; Gallery UF-6/7 → UD-3 → UE-6; package.json UF 0b → UA-A.
@@ -16,13 +16,15 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
 | UF-0a | UF-1→UF-3 | Opus high | build/pack-0a (.claude/worktrees/pack-0a) @ 17c2414 | running (sid 9535fa81dde9) |
-| UF-0b | UF-2 | Opus high | build/pack-0b @ 17c2414 | running (sid fbb373894898) |
+| UA-A | UA-1→UA-2 | Sonnet high | build/pack-uaa (.claude/worktrees/pack-uaa) @ b49271d | running (sid 68c7971a9a57) |
 | UF-0c | UF-4 | Opus high | build/pack-0c @ 17c2414 | running (sid 7e353f0dab94) |
 
 ## Needs design review (left unmerged by a routine window)
 - none
 
 ## Owed (declared by a contract, not yet built)
+- First registry consumer (UF-7 Gallery or FT) imports `ArtImage` so art enters precache — owed by UF-7/FT
+- Retype AppHeader `strip` to `ArtId` from src/ui/art — owed by UF Pack B (0a declares a local alias)
 - FT-2/FT-3 switch timing stand-in to `motionScale()` — owed by UF-11; needed by FT
 - UH-13 App.svelte edit follows UF-13 (R1)
 
