@@ -227,7 +227,9 @@ Plus (plan §7): every material state side by side has a distinct silhouette and
 
 ## 10. Known drift and study conflicts
 
-**Known drift:** _(empty; filled from review notes as packs land)_
+**Known drift:**
+
+- **UX-G1 (2026-11-26, player):** finish approved (matte gouache; keep an eye on drifting too grey: hold the district swatch saturation), Pell's flat brim and the ~1.3-cell figure scale approved, marks readable over the art in colour and greyscale. **One trait failed: repeated ground tiles show an obvious lighting pattern** (each tile carries its own pooled highlight, which tiles into a visible dot grid across a 7-column board). Rule for every floor set from now on: **no baked light pools, bright spots or vignette in a ground tile**; tiles carry even, low-contrast stone value only; light is the scene layer's job and a code-drawn lamp pool. Ship **at least four** floor variants per ground, with different stone patterns (not just lighting) and edge-shared; `art:sheet` must show a **full-board repeat check** (7×7 and 7×9 filled by a seeded random variant pick) and the review compares its value mean/variance per cell to catch a visible lattice. The seam/v1 floor-a..d and Lampwater quay/water tiles are therefore **not approved**: regenerate under this rule before UA-11/UA-13 scale them. Approved components (promoted as `*.approved.webp`): the three party figures, portraits and identity references, Seam sentry/slick/cloud/plate/vent, Lampwater eel/lamp-post/lamp-pool.
 
 **Conflicts between the v2 studies, resolved here (the bible wins; UA-3 settles the figures):**
 
