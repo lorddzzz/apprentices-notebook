@@ -1,9 +1,9 @@
 {
   "policy": "Masters (native-resolution generator sources, PNG) are NOT in Git. Each entry here is committed with its hash; the file lives in the external art archive. See TECH.md §7 and UA-D15.",
   "archive": {
-    "provider": "undecided",
-    "bucket": "undecided",
-    "note": "Set provider and bucket when chosen; keep a second copy on a local drive."
+    "provider": "Cloudflare R2",
+    "bucket": "apprentices-notebook-art",
+    "note": "Private bucket. Keep a second copy on a local drive. Token is bucket-scoped (Object Read & Write); rclone remote is r2."
   },
   "masters": [
     {
@@ -12,7 +12,7 @@
       "height": 1536,
       "bytes": 1563631,
       "sha256": "e436a4671cfc7eb837fe0b63686d8d0c04ac12e6e9f849d6b5972a35f0994620",
-      "archiveKey": null
+      "archiveKey": "r2:apprentices-notebook-art/pilot/pell.png"
     },
     {
       "file": "pilot/floor-a.png",
@@ -20,7 +20,7 @@
       "height": 1254,
       "bytes": 2117421,
       "sha256": "cd3ce158481dfb45ea826c3dcf987e316d2db5b7af32a4aafee83c35f984c9ed",
-      "archiveKey": null
+      "archiveKey": "r2:apprentices-notebook-art/pilot/floor-a.png"
     },
     {
       "file": "pilot/floor-b.png",
@@ -28,7 +28,7 @@
       "height": 1254,
       "bytes": 1931472,
       "sha256": "4a4f66b70814c038a2053208071a5141bad60934cb46a63e40931ef714524765",
-      "archiveKey": null
+      "archiveKey": "r2:apprentices-notebook-art/pilot/floor-b.png"
     },
     {
       "file": "pilot/scene.png",
@@ -36,7 +36,7 @@
       "height": 1295,
       "bytes": 1855681,
       "sha256": "4ff9930e354a5196955c2af88ffd697a8f76d62cd5d807c5c38daad256844875",
-      "archiveKey": null
+      "archiveKey": "r2:apprentices-notebook-art/pilot/scene.png"
     }
   ]
 }
