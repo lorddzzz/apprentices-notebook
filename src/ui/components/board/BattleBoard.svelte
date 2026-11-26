@@ -35,13 +35,17 @@
     overlay?: Overlay;
     fx?: Fx[];
     fxKey?: number;
+    /** A fight discards float timers when its playback ends. */
+    playbackActive?: boolean;
     /** Playback: draw intents as chevrons from the view instead of full paths from the overlay. */
     minimal?: boolean;
     /** Draw the active rules' "Next round" preview: the current's floats, cracks, outlines, ghosts. */
     showNext?: boolean;
-    ontap: (at: Coord) => void;
+    ontap: (at: Coord, pressedAt?: number) => void;
+    /** Record which session input period began this pointer press. */
+    cellInputEpoch?: () => number;
     /** Press and hold on a tile (J3: read out a jar or a mark). The tap that ends the hold is swallowed. */
-    onhold?: (at: Coord) => void;
+    onhold?: (at: Coord, pressedAt?: number) => void;
   }
 
   let {
@@ -49,10 +53,12 @@
     overlay = EMPTY_OVERLAY,
     fx = [],
     fxKey = 0,
+    playbackActive,
     minimal = false,
     showNext = false,
     ontap,
     onhold,
+    cellInputEpoch,
   }: Props = $props();
 
   // The districts' own layers (KIT-R2): each draws its `layer` or nothing.
@@ -61,15 +67,18 @@
   const HOLD_MS = 450;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
   let held = false;
+  let pressedAt: number | undefined;
 
   function startHold(at: Coord): void {
     held = false;
     cancelHold();
+    const epoch = cellInputEpoch?.();
+    pressedAt = epoch;
     if (!onhold) return;
     holdTimer = setTimeout(() => {
       holdTimer = null;
       held = true;
-      onhold(at);
+      onhold(at, epoch);
     }, HOLD_MS);
   }
 
@@ -78,13 +87,15 @@
     holdTimer = null;
   }
 
-  function tapped(at: Coord): void {
+  function tapped(at: Coord, event: MouseEvent): void {
     cancelHold();
+    const epoch = event.detail > 0 ? pressedAt : undefined;
+    pressedAt = undefined;
     if (held) {
       held = false;
       return;
     }
-    ontap(at);
+    ontap(at, epoch);
   }
 
   const cells = $derived(
@@ -180,7 +191,9 @@
   <RivalMarks {rivals} layer="badges" />
   <MarksLayer {marks} layer="badges" />
   <BadgeLayer badges={overlay.badges} {ghosts} occupied={living.map((u) => u.pos)} />
-  <FxLayer {fx} {fxKey} width={view.width} height={view.height} />
+  {#if playbackActive !== false}
+    <FxLayer {fx} {fxKey} width={view.width} height={view.height} />
+  {/if}
 
   {#each cells as { at } (`${at.x},${at.y}`)}
     <!-- biome-ignore lint/a11y/useSemanticElements: SVG cells cannot be <button> -->
@@ -193,11 +206,14 @@
       role="button"
       tabindex="0"
       aria-label={cellLabel(view, at)}
-      onclick={() => tapped(at)}
+      onclick={(event) => tapped(at, event)}
       onpointerdown={() => startHold(at)}
       onpointerup={cancelHold}
       onpointerleave={cancelHold}
-      onpointercancel={cancelHold}
+      onpointercancel={() => {
+        cancelHold();
+        pressedAt = undefined;
+      }}
       oncontextmenu={(e) => {
         if (onhold) e.preventDefault();
       }}

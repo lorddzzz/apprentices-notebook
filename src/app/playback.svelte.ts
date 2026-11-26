@@ -29,8 +29,15 @@ function currentMotion(): MotionSettings {
 interface PlayOptions {
   knowledge?: KnowledgeSnapshot;
   sourceOffset?: number;
+  freezeAt?: number;
   onProjected?: (shown: ShownStep[]) => void;
   onShown?: (step: Step) => void;
+}
+
+export interface PlaybackReadout {
+  n: number;
+  total: number;
+  text: string;
 }
 
 export interface StepMarker {
@@ -44,9 +51,11 @@ export class Playback {
   steps = $state.raw<Step[]>([]);
   index = $state(-1);
   speed = $state<PlaybackSpeed>(1);
+  private shownTotal = $state(0);
   private readonly seq: Sequencer;
   private readonly motion: () => MotionSettings;
   private settings: MotionSettings = { scale: 1, reduced: false };
+  private freezeOnNext: number | null = null;
 
   constructor({ clock = browserClock, motion = currentMotion }: PlaybackSettings = {}) {
     this.seq = new Sequencer(clock);
@@ -59,6 +68,13 @@ export class Playback {
 
   get current(): Step | null {
     return this.steps[this.index] ?? null;
+  }
+
+  get readout(): PlaybackReadout | null {
+    const step = this.current;
+    return step?.n === undefined
+      ? null
+      : { n: step.n, total: this.shownTotal, text: step.text ?? step.line };
   }
 
   get beat(): Beat | null {
@@ -100,6 +116,10 @@ export class Playback {
     options.onProjected?.(shown);
     if (steps.length === 0) return Promise.resolve();
     this.steps = steps;
+    this.shownTotal = shown.length;
+    const ordinal = import.meta.env.DEV ? options.freezeAt || this.freezeOnNext : null;
+    this.freezeOnNext = null;
+    const frozenAt = ordinal === null ? -1 : steps.findIndex((step) => step.n === ordinal);
     return new Promise((resolve) => {
       this.seq.run(
         steps.map((s) => s.ms),
@@ -112,11 +132,25 @@ export class Playback {
         () => {
           this.index = -1;
           this.steps = [];
+          this.shownTotal = 0;
           resolve();
         },
-        (i) => this.stepMs(steps[i]),
+        {
+          atSpeed: (i) => this.stepMs(steps[i]),
+          ...(frozenAt >= 0 && { frozenAt }),
+        },
       );
     });
+  }
+
+  /** Dev fixtures can stop on a one-based visible step in this or the next batch. */
+  freezeAt(shownOrdinal: number): void {
+    if (!import.meta.env.DEV || !Number.isInteger(shownOrdinal) || shownOrdinal < 1) return;
+    if (!this.playing) {
+      this.freezeOnNext = shownOrdinal;
+      return;
+    }
+    this.seq.freezeAt(this.steps.findIndex((step) => step.n === shownOrdinal));
   }
 
   speedUp(): void {

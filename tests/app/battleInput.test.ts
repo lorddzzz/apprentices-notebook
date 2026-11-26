@@ -1,5 +1,6 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { applyAction, type BattleState, castableSpells, memberById } from '$engine';
+import { BattleSession } from '../../src/app/battle.svelte';
 import {
   activeAction,
   afterAction,
@@ -207,5 +208,114 @@ describe('battle input', () => {
     expect(activeAction(aim)).toEqual({ spell: key, basic: false });
     const confirm = onCell(s, aim, at('B1')).mode;
     expect(activeAction(confirm)).toEqual({ spell: key, basic: false });
+  });
+});
+
+describe('battle session playback routing', () => {
+  function fight(): BattleSession {
+    return new BattleSession({ state: battleOf(CAST_BOARD), events: [] }, 'trip', {});
+  }
+
+  function move(session: BattleSession): Promise<void> {
+    return session.dispatch({ type: 'move', unit: 'stoker', to: at('C8') });
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test('board tap speeds up, other controls inert, Skip finishes', async () => {
+    const session = fight();
+    session.selectMember('stoker');
+    const done = move(session);
+    const { state, input, log, armed } = session;
+    session.tapCell(at('A1'));
+    expect(session.busy).toBe(true);
+    expect(session.playback.speed).toBe(2);
+    session.selectMember('draughtsman');
+    session.chooseSpell('0,1');
+    session.chooseBasic();
+    session.undoMove();
+    session.confirm();
+    session.cancel();
+    session.endTurn();
+    expect(session.busy).toBe(true);
+    expect(session.playback.speed).toBe(2);
+    expect(session).toMatchObject({ state, input, log, armed });
+    session.skip();
+    await done;
+    expect(session.busy).toBe(false);
+    expect(session.view.units.find(({ id }) => id === 'stoker')?.pos).toEqual(at('C8'));
+  });
+
+  test('rapid taps cap at ×4', async () => {
+    const session = fight();
+    const done = move(session);
+    for (let i = 0; i < 10; i++) session.tapCell(at('A1'));
+    expect(session.busy).toBe(true);
+    expect(session.playback.speed).toBe(4);
+    vi.advanceTimersByTime(64);
+    expect(session.busy).toBe(true);
+    vi.advanceTimersByTime(1);
+    await done;
+    expect(session.busy).toBe(false);
+  });
+
+  test('idle tap does nothing', () => {
+    const session = fight();
+    const { input, state, log } = session;
+    session.tapReadout();
+    expect(session.playback.speed).toBe(1);
+    expect(session).toMatchObject({ input, state, log });
+  });
+
+  test('held pointer across the end of playback does not activate', async () => {
+    const session = fight();
+    session.selectMember('stoker');
+    const done = move(session);
+    const pressedAt = session.cellInputEpoch;
+    const { input } = session;
+    vi.runAllTimers();
+    await done;
+    session.holdCell(at('A1'), pressedAt);
+    session.tapCell(at('A1'), pressedAt);
+    expect(session.input).toBe(input);
+    expect(session.peek).toBeNull();
+    session.tapCell(at('A1'), session.cellInputEpoch);
+    expect(session.selected).toBe('draughtsman');
+  });
+
+  test('taps during the enemy turn', () => {
+    const session = fight();
+    session.endTurn();
+    expect(session.armed).toBe(true);
+    session.endTurn();
+    expect(session.busy).toBe(true);
+    expect(session.log[0]).toEqual({ type: 'phase', phase: 'resolve' });
+    const { log, input } = session;
+    session.tapReadout();
+    expect(session.playback.speed).toBe(2);
+    session.endTurn();
+    expect(session.playback.speed).toBe(2);
+    session.tapCell(at('A1'));
+    expect(session.playback.speed).toBe(4);
+    expect(session).toMatchObject({ log, input, busy: true });
+    vi.runAllTimers();
+    expect(session.busy).toBe(false);
+  });
+
+  test('taps during the end overlay', () => {
+    const session = fight();
+    session.forceEnd('won');
+    session.peek = 'A held cell';
+    const { input, log, state } = session;
+    session.tapCell(at('A1'));
+    session.tapReadout();
+    expect(session.over).toBe(true);
+    expect(session).toMatchObject({ input, log, state, peek: 'A held cell' });
   });
 });

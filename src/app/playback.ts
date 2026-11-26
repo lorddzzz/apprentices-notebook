@@ -258,12 +258,18 @@ export interface Clock {
 type OnStep = (i: number, snapped?: true) => void;
 type AtSpeed = (i: number, baseMs: number) => number;
 
+interface SequenceOptions {
+  atSpeed?: AtSpeed;
+  frozenAt?: number;
+}
+
 interface ActiveRun {
   durations: readonly number[];
   onStep: OnStep;
   onDone: () => void;
   atSpeed?: AtSpeed;
   index: number;
+  frozen: boolean;
 }
 
 /**
@@ -282,11 +288,34 @@ export class Sequencer {
     return this.active !== null;
   }
 
-  run(durations: readonly number[], onStep: OnStep, onDone: () => void, atSpeed?: AtSpeed): void {
+  run(
+    durations: readonly number[],
+    onStep: OnStep,
+    onDone: () => void,
+    { atSpeed, frozenAt }: SequenceOptions = {},
+  ): void {
     this.skip();
-    const run: ActiveRun = { durations, onStep, onDone, index: -1, ...(atSpeed && { atSpeed }) };
+    const run: ActiveRun = {
+      durations,
+      onStep,
+      onDone,
+      index: -1,
+      frozen: false,
+      ...(atSpeed && { atSpeed }),
+    };
     this.active = run;
-    this.show(run, 0);
+    if (frozenAt !== undefined && (durations[frozenAt] ?? 0) > 0) this.freezeAt(frozenAt);
+    else this.show(run, 0);
+  }
+
+  freezeAt(index: number): void {
+    const run = this.active;
+    if (!run || (run.durations[index] ?? 0) <= 0) return;
+    this.cancel();
+    run.frozen = true;
+    if (run.index === index) return;
+    run.index = index;
+    run.onStep(index);
   }
 
   /** Jump to the last step and finish. No-op when idle; onDone fires exactly once. */
@@ -318,7 +347,7 @@ export class Sequencer {
     }
     run.index = i;
     run.onStep(i);
-    if (this.active !== run) return;
+    if (this.active !== run || run.frozen) return;
     const baseMs = run.durations[i] ?? 0;
     this.schedule(run, run.atSpeed?.(i, baseMs) ?? baseMs);
   }

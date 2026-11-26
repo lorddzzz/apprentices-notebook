@@ -95,10 +95,12 @@
       overlay={session.overlay}
       fx={session.fx}
       fxKey={session.fxKey}
+      playbackActive={busy}
       minimal={busy}
       showNext={showNext || danger}
-      ontap={(at) => session.tapCell(at)}
-      onhold={(at) => session.holdCell(at)}
+      cellInputEpoch={() => session.cellInputEpoch}
+      ontap={(at, pressedAt) => session.tapCell(at, pressedAt)}
+      onhold={(at, pressedAt) => session.holdCell(at, pressedAt)}
     />
     {#if meters.length > 0}
       <div class="meters">
@@ -124,7 +126,12 @@
     {/if}
   </div>
 
-  <Caption text={session.caption.text} tone={session.caption.tone} ontap={() => session.skip()} />
+  <Caption
+    text={session.caption.text}
+    tone={session.caption.tone}
+    ontap={() => session.skip()}
+    onreadouttap={() => session.tapReadout()}
+  />
 
   <PartyStrip
     members={party}

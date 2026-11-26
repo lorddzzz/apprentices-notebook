@@ -2,14 +2,15 @@
   interface Props {
     text: string;
     tone: 'hint' | 'event' | 'warn';
-    /** Tapping the caption skips playback. */
     ontap: () => void;
+    /** Playback can use the caption as its tappable readout. */
+    onreadouttap?: () => void;
   }
 
-  let { text, tone, ontap }: Props = $props();
+  let { text, tone, ontap, onreadouttap }: Props = $props();
 </script>
 
-<button type="button" class="caption {tone}" data-testid="caption" aria-live="polite" onclick={ontap}>
+<button type="button" class="caption {tone}" data-testid="caption" aria-live="polite" onclick={onreadouttap ?? ontap}>
   <span class="text">{text}</span>
 </button>
 

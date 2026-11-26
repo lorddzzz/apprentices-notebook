@@ -3,6 +3,7 @@ import type { GameEvent } from '$engine';
 import { BattleSession } from '../../src/app/battle.svelte';
 import { type Clock, Sequencer } from '../../src/app/playback';
 import { Playback } from '../../src/app/playback.svelte';
+import { go } from '../../src/app/router.svelte';
 import { STEP_MS } from '../../src/app/timing';
 import { at, battleOf, CAST_BOARD } from './battleFixtures';
 import { plainBoard } from './viewFixtures';
@@ -180,4 +181,65 @@ test('FX cleared at rest', async () => {
   await skipped;
   expect(session.fx).toEqual([]);
   expect(vi.getTimerCount()).toBe(0);
+});
+
+test('logLine follows the shown step', async () => {
+  const session = new BattleSession({ state: battleOf(CAST_BOARD), events: [] }, 'trip', {});
+  const done = session.dispatch({
+    type: 'cast',
+    unit: 'draughtsman',
+    spell: '0,1',
+    aim: { kind: 'dir', dir: 'right' },
+  });
+  const notes = session.projectedLog;
+  expect(session.readout).toEqual({ n: 1, total: notes.length, text: notes[0]?.text });
+  expect(session.logLine).toBe(notes[0]?.text);
+  vi.advanceTimersToNextTimer();
+  expect(session.readout).toEqual({ n: 2, total: notes.length, text: notes[1]?.text });
+  expect(session.logLine).toBe(notes[1]?.text);
+  expect(session.markers.map(({ n }) => n)).toEqual(
+    notes
+      .slice(0, 2)
+      .filter(({ anchor }) => anchor !== null)
+      .map(({ n }) => n),
+  );
+  session.skip();
+  await done;
+});
+
+test('no readout when idle', async () => {
+  const session = new BattleSession({ state: battleOf(CAST_BOARD), events: [] }, 'trip', {});
+  expect(session.readout).toBeNull();
+  expect(session.logLine).toBeNull();
+  const done = session.dispatch({ type: 'move', unit: 'stoker', to: at('C8') });
+  vi.runAllTimers();
+  await done;
+  expect(session.readout).toBeNull();
+  expect(session.logLine).toBeNull();
+  expect(session.beat).toBeNull();
+  expect(session.markers).toEqual([]);
+});
+
+test('dev step freezes on a shown ordinal', async () => {
+  go('lab', { step: '2' }, { replace: true });
+  try {
+    const session = new BattleSession({ state: battleOf(CAST_BOARD), events: [] }, 'lab', {});
+    const done = session.dispatch({
+      type: 'cast',
+      unit: 'draughtsman',
+      spell: '0,1',
+      aim: { kind: 'dir', dir: 'right' },
+    });
+    vi.runAllTimers();
+    expect(session.busy).toBe(true);
+    expect(session.readout?.n).toBe(2);
+    expect(session.playback.current?.event.type).toBe('aimed');
+    session.playback.freezeAt(3);
+    expect(session.readout?.n).toBe(3);
+    expect(vi.getTimerCount()).toBe(0);
+    session.skip();
+    await done;
+  } finally {
+    go('lab', {}, { replace: true });
+  }
 });

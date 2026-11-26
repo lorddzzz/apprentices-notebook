@@ -28,7 +28,7 @@ import {
   selectedOf,
   unspentCasters,
 } from './battleInput';
-import type { KnowledgeSnapshot } from './beats';
+import type { Beat, KnowledgeSnapshot } from './beats';
 import {
   type Caption,
   hintFor,
@@ -41,7 +41,8 @@ import { castLead, type Fx } from './fx';
 import { EMPTY_OVERLAY, type Overlay, overlayFor } from './overlay';
 import { holdLine } from './peek';
 import { type LogStep, logStepOf, projectHistory } from './playback';
-import { Playback } from './playback.svelte';
+import { Playback, type PlaybackReadout, type StepMarker } from './playback.svelte';
+import { router } from './router.svelte';
 import { toast } from './toasts.svelte';
 import { type BoardView, viewOf, withoutIntents } from './view';
 
@@ -121,6 +122,22 @@ export class BattleSession {
     return this.playback.playing;
   }
 
+  get readout(): PlaybackReadout | null {
+    return this.playback.readout;
+  }
+
+  get markers(): StepMarker[] {
+    return this.playback.markers;
+  }
+
+  get beat(): Beat | null {
+    return this.playback.beat;
+  }
+
+  get logLine(): string | null {
+    return this.readout?.text ?? null;
+  }
+
   get view(): BoardView {
     return this.playback.current?.view ?? viewOf(this.state);
   }
@@ -164,8 +181,8 @@ export class BattleSession {
   }
 
   get caption(): Caption {
-    const step = this.playback.current;
-    if (step) return { text: step.line, tone: 'event' };
+    const line = this.logLine;
+    if (line !== null) return { text: line, tone: 'event' };
     if (this.peek) return { text: this.peek, tone: 'hint' };
     if (this.armed) {
       const who = unspentCasters(this.state, this.opts.footnotes ?? {}).join(' and ');
@@ -178,16 +195,29 @@ export class BattleSession {
     return !this.busy && this.state.phase !== 'player';
   }
 
-  // ── Input (any tap during playback skips it instead) ──
+  // ── Input ──
 
-  tapCell(at: { x: number; y: number }): void {
-    if (this.swallow()) return;
+  /** A press may finish only in the playback or idle period in which it began. */
+  get cellInputEpoch(): number {
+    return this.run * 2 + Number(this.busy);
+  }
+
+  tapCell(at: { x: number; y: number }, pressedAt = this.cellInputEpoch): void {
+    if (pressedAt !== this.cellInputEpoch) return;
+    if (this.swallow()) {
+      this.tapReadout();
+      return;
+    }
     this.apply(onCell(this.state, this.input, at, this.ctx));
   }
 
+  tapReadout(): void {
+    this.playback.speedUp();
+  }
+
   /** Long-press on a tile: reads out a jar or a mark in the hint line (J3). */
-  holdCell(at: { x: number; y: number }): void {
-    if (this.busy || this.state.phase !== 'player') return;
+  holdCell(at: { x: number; y: number }, pressedAt = this.cellInputEpoch): void {
+    if (pressedAt !== this.cellInputEpoch || this.swallow()) return;
     this.peek = holdLine(this.state, at);
   }
 
@@ -310,6 +340,7 @@ export class BattleSession {
     return this.playback.play(start, events, lead, {
       knowledge,
       sourceOffset,
+      freezeAt: import.meta.env.DEV ? Number(router.params.get('step')) : 0,
       onProjected: (shown) => {
         this.notes = [...this.notes, ...shown.map(logStepOf)];
       },
@@ -328,8 +359,6 @@ export class BattleSession {
   }
 
   private swallow(): boolean {
-    if (!this.busy) return false;
-    this.skip();
-    return true;
+    return this.busy || this.over;
   }
 }
