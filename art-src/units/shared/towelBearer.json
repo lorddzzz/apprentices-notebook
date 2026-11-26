@@ -1,0 +1,97 @@
+{
+  "id": "units/shared/towelBearer",
+  "screen": "party",
+  "district": "shared",
+  "subject": "towelBearer",
+  "state": null,
+  "role": "figure",
+  "size": [128, 176],
+  "alpha": true,
+  "groundContact": [64, 160],
+  "master": {
+    "path": "art-src/units/shared/towelBearer.master.png",
+    "sha256": "352f4864ae7786661e7e0e504c7cf29b4f4c1c1955a249c2b2630a178b2de3ac",
+    "origSize": [1024, 1536],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "e2f8cbebeed85674ef0da2b94a647e8da117f89ad6d75d40c0cdefd38aeb32ab",
+      "969bb517ae98146fd5135486c9c261a7b9e462a2f7aa3f50d21bb27d5ea4b874",
+      "e38d8f717f31d83e75aeba700cb2cefb26df0270162af6290a1bb57ab4ac474e"
+    ]
+  },
+  "crop": "Original native RGBA identity cutout. Measured foot contact maps to (64,160); 150 px body draw height. Standard processor shadow.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "top-left; warm lamp edge and cool folds",
+  "palette": [
+    "#25373B",
+    "#5F8482",
+    "#ACC7BE",
+    "#17625C",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#55625E"
+  ],
+  "model": "unexposed",
+  "prompt": "Use case: stylized-concept. Create one new production identity painting for The Apprentice's Notebook: Mieke, the Towel-bearer. The widest body of the party with smoothly rounded shoulders and sturdy legs braced apart; big, calm, rolled sleeves with visible cuffs, a tied headcloth with prominent side knot, thick cotton towel rope draped diagonally over one shoulder and bundled into a loop with a visible opening. Broad trousers, short practical apron, warm linen with blue-green folds and a small deep teal cloth knot. Wide in every value mass but still compact enough to fit a single cell.\nImage 1 shows the three APPROVED neighboring characters, an ensemble reference only for body proportions, camera, finish and scale. Invent this identity according to the subject description. Output one person only. Image 2 is a clean crop for matte paint and lighting. Image 3 is the palette strip: district dark/mid/light #25373B #5F8482 #ACC7BE; then the small clothing accent #17625C; then the city night colors #1F2A3A #3A4148 #5D666D #A9BCC6. Hold these swatches' color saturation in the major masses and keep warm colored lamplight over cool cloth. Match the style, proportions and finish of the attached approved anchors.\nComposition: one standing complete head-to-boots sprite cutout at the largest available native portrait dimensions (2:3 if possible). High 3/4 tactics camera, from slightly above, facing screen right like the references. Foreshorten tops of head and boots. Fit both boots fully in-frame, centered and planted with the feet close to the bottom-center baseline, leaving narrow transparent margins all around. When fitted on the 128×176 game canvas the body reads at about 1.3 cells. Real RGBA transparency around every edge and between limbs and props. There is no ground, no backdrop or visible checkerboard, no contact shadow, no baked shadow, and no side rim light. Sparse engraved edge marks with clean outer contour and fine paint grain, simplified forms. Silhouette key that must survive at 24 px in greyscale: Low rounded body, distinctive headcloth knot at one side, rope loop displaced clearly from one shoulder.\nNo glyphs, seals with symbols, pseudo-lettering, insignia, flags, border, ground, shadow or matte fringe. Do not use any reference character as the output. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/party/draughtsman-identity.approved.webp",
+    "art-src/anchors/party/stoker-identity.approved.webp",
+    "art-src/anchors/party/runaway-identity.approved.webp",
+    "docs/art/style-sheet.md#3.1%2C3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "party",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "352f4864ae7786661e7e0e504c7cf29b4f4c1c1955a249c2b2630a178b2de3ac",
+      "size": [1024, 1536]
+    },
+    "figure": {
+      "groundContact": [451, 1523],
+      "bodyHeight": 1498,
+      "drawHeight": 150,
+      "scale": 0.10013
+    },
+    "notes": ["defringed 12146 partial-alpha pixels"]
+  },
+  "referencePreparation": [
+    {
+      "kind": "ensemble",
+      "sources": [
+        "art-src/anchors/party/draughtsman-identity.approved.webp",
+        "art-src/anchors/party/stoker-identity.approved.webp",
+        "art-src/anchors/party/runaway-identity.approved.webp"
+      ],
+      "recipe": "Three approved identities, figures and portraits as a 660×680 lineup on #D2C7B1."
+    },
+    {
+      "kind": "style crop",
+      "source": "art-src/anchors/party/draughtsman-identity.approved.webp",
+      "rect": [103, 59, 449, 665]
+    },
+    {
+      "kind": "palette strip",
+      "source": "docs/art/style-sheet.md#3.1%2C3.4",
+      "colors": [
+        "#25373B",
+        "#5F8482",
+        "#ACC7BE",
+        "#17625C",
+        "#1F2A3A",
+        "#3A4148",
+        "#5D666D",
+        "#A9BCC6"
+      ]
+    }
+  ]
+}

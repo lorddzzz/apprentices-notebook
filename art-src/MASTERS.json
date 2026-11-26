@@ -37,6 +37,78 @@
       "bytes": 1855681,
       "sha256": "4ff9930e354a5196955c2af88ffd697a8f76d62cd5d807c5c38daad256844875",
       "archiveKey": "r2:apprentices-notebook-art/pilot/scene.png"
+    },
+    {
+      "file": "units/shared/draughtsman.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1523803,
+      "sha256": "7ff59d5dddac86c6d12dcb7fea1e8afe1fec5f5af0603e820d581ec3d8182ab4",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/draughtsman.master.png"
+    },
+    {
+      "file": "units/shared/stoker.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1708356,
+      "sha256": "d29f7389dc72b28fc822586685147baf6bf3e4782dcd4520909c406fa80da26c",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/stoker.master.png"
+    },
+    {
+      "file": "units/shared/runaway.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1558694,
+      "sha256": "c5f8b5750bcb1e593302222141cbc561adb2059ba3b810014d5d17c8d4965b8f",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/runaway.master.png"
+    },
+    {
+      "file": "units/shared/notary.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1488943,
+      "sha256": "b91f7939960b5a8bb237ede095f6e372ebb0038bc8864b7cf60bc9ef5f8f3c43",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/notary.master.png"
+    },
+    {
+      "file": "units/shared/towelBearer.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 2060914,
+      "sha256": "352f4864ae7786661e7e0e504c7cf29b4f4c1c1955a249c2b2630a178b2de3ac",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/towelBearer.master.png"
+    },
+    {
+      "file": "units/shared/warden.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1762882,
+      "sha256": "c86eb9ead526c015fc05cfce17c413e6cea0028a4689ae471222efdadb26b13e",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/warden.master.png"
+    },
+    {
+      "file": "units/shared/tuner.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1718324,
+      "sha256": "2eef38b1af0593b3e366ad9c2ea6d96fa8520d5eb557ab58dbb0fb36f624c2dd",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/tuner.master.png"
+    },
+    {
+      "file": "units/shared/copyist.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1868606,
+      "sha256": "018705f99fcf96bb4b2619ad1c8b86acfff4ef429c45eab5d29d32d7371f418c",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/copyist.master.png"
+    },
+    {
+      "file": "units/shared/exile.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1793065,
+      "sha256": "e5d508375e779cadcf86fafd12e515e1db3189eb6d259925a6021b110627c155",
+      "archiveKey": "r2:apprentices-notebook-art/units/shared/exile.master.png"
     }
   ]
 }
