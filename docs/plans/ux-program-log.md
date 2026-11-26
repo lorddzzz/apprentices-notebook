@@ -19,3 +19,4 @@
 |---|---|---|---|
 | 2026-11-26 start | 1% / 19% | 3% / 61% | wave 0 spawn |
 | 22:48 | 93% / 27% | 92% / 75% | throttled; B1 merged |
+| 23:17 | 0% / 27% | 0% / 75% | windows reset; spawned UA floors + UA-C party (Codex), UF-A (Claude), resumed UF-B |

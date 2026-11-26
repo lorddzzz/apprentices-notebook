@@ -18,7 +18,10 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 (uncommitted UF-8 work in worktree) | STOPPED for Claude usage (80%); resume_subagent f1a64b41f2fc when Claude < 60% |
+| UA-floors | floors-v2 + board-repeat check | Codex Sol high | art/floors-v2 in clone codex-1179364949 | running (sid cdf8e8f35d01), spawned 23:20 |
+| UA-C | UA-9 party (9 apprentices) | Codex Sol high | art/party in clone codex-4123911851 | running (sid 2b6329cf9110); orchestrator must rclone-upload masters from the worker's report (raws under /tmp) |
+| UF-A | UF-5→UF-7 faces+Gallery | Sonnet high | build/pack-ufa @ 9f63d48 | running (sid 2369faf1c508) |
+| UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 (uncommitted UF-8 work in worktree) | RESUMED 23:20 (sid f1a64b41f2fc) |
 
 ## Needs design review (left unmerged by a routine window)
 - none
