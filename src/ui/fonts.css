@@ -1,0 +1,32 @@
+/* The two faces (UF-P1), self-hosted. Latin subsets with the OpenType layout kept (smcp, c2sc,
+   onum, lnum, ...). Sources and OFL notices: public/fonts/LICENSES.txt. Only the Garamond regular
+   is preloaded (index.html); the rest load on first use, swap in over the system fallbacks. */
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/EBGaramond-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/EBGaramond-Italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/EBGaramond-SemiBold.woff2") format("woff2");
+}
+/* Titles and the owner's hand; never below 20 px (UF-P1). */
+@font-face {
+  font-family: "Pinyon Script";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/PinyonScript-Regular.woff2") format("woff2");
+}

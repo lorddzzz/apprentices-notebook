@@ -1,6 +1,12 @@
 /* The one token file (C1). Sections: type, worlds, districts, meaning colours, overlays,
    materials and runes, spacing and shape, motion, legacy aliases. New code uses the C1 names;
    the legacy names at the end stay until UE's Close deletes them (UF-P3). */
+/* UF-5: the two self-hosted faces. The opt-in rule after the import (no one sets data-fonts)
+   keeps the flat parser in tests/ui/tokens.test.ts from folding the import into :root. */
+@import "./fonts.css";
+:where([data-fonts="strict"]) {
+  font-synthesis: none;
+}
 
 /* ---- type ---- */
 :root {
