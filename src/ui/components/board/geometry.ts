@@ -16,6 +16,69 @@ export function boardViewBox(width: number, height: number): string {
   return `${-GUTTER} ${-GUTTER} ${width * CELL + GUTTER} ${height * CELL + GUTTER}`;
 }
 
+/** A standing figure rises a third of a cell into the row above (FT-D10). */
+export const LAP = CELL / 3;
+
+/** FT-D9's fight budget in CSS px: header, bottom stack, the gap between blocks, side padding. */
+export const FIGHT_BUDGET = { header: 56, stack: 200, gap: 6, padX: 8 } as const;
+
+export interface Size {
+  w: number;
+  h: number;
+}
+
+/** The rectangle left for the board (label gutter included) on a phone of `screen` px with safe insets. */
+export function fightBoardRect(screen: Size, safe: { top: number; bottom: number }): Size {
+  const { header, stack, gap, padX } = FIGHT_BUDGET;
+  return {
+    w: screen.w - 2 * padX,
+    h: screen.h - safe.top - safe.bottom - header - stack - 2 * gap,
+  };
+}
+
+export interface BoardLayout {
+  /** Px per drawing unit; the board is exactly as large as the rectangle allows, never larger. */
+  scale: number;
+  /** One cell's side in px: the visual size and the hit target. */
+  cell: number;
+  /** The board with its label gutter, in px. */
+  width: number;
+  height: number;
+  /** The label gutter on the left and top, in px. */
+  gutter: number;
+  /** How far a standing figure rises into the row above, in px (a third of a cell). */
+  lap: number;
+  /** Px from the top of the rectangle to the top of row 1: the gutter plus the slack a wide rectangle leaves. */
+  headroom: number;
+}
+
+/**
+ * Fits a `cols` x `rows` board with its label gutter into the available rectangle (FT-D9). Mirrors
+ * the svg's `viewBox` + `meet` scaling: the rectangle includes the gutters, and the scale is never
+ * clamped up, so a board can never overflow the rectangle it was given.
+ */
+export function boardLayout(
+  cols: number,
+  rows: number,
+  availW: number,
+  availH: number,
+): BoardLayout {
+  const unitsW = cols * CELL + GUTTER;
+  const unitsH = rows * CELL + GUTTER;
+  const scale = Math.max(0, Math.min(availW / unitsW, availH / unitsH));
+  const height = unitsH * scale;
+  const cell = CELL * scale;
+  return {
+    scale,
+    cell,
+    width: unitsW * scale,
+    height,
+    gutter: GUTTER * scale,
+    lap: LAP * scale,
+    headroom: GUTTER * scale + (Math.max(availH, 0) - height) / 2,
+  };
+}
+
 export function pointsAttr(points: readonly Coord[]): string {
   return points.map((p) => `${round(p.x)},${round(p.y)}`).join(' ');
 }

@@ -160,7 +160,7 @@
       <text x={x * CELL + CELL / 2} y="-6" text-anchor="middle">{c}</text>
     {/each}
     {#each rows as r, y (r)}
-      <text x="-8" y={y * CELL + CELL / 2 + 7} text-anchor="middle">{r}</text>
+      <text x="-8" y={y * CELL + CELL / 2 + 6} text-anchor="middle">{r}</text>
     {/each}
   </g>
 
@@ -236,7 +236,7 @@
     overflow: visible;
   }
   .labels text {
-    font: 22px var(--mono);
+    font: 18px var(--mono);
     fill: var(--ink-soft);
   }
   .hit {
