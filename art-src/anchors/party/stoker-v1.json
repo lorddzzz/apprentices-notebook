@@ -1,0 +1,67 @@
+{
+  "id": "anchors/party/stoker-v1",
+  "screen": "party",
+  "district": "shared",
+  "subject": "stoker",
+  "state": null,
+  "role": "figure",
+  "size": [128, 176],
+  "alpha": true,
+  "groundContact": [64, 160],
+  "master": {
+    "origSize": [1024, 1536],
+    "sha256": "d29f7389dc72b28fc822586685147baf6bf3e4782dcd4520909c406fa80da26c",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "9ba60f3fdc3375190a2e1265be5c85b62206273593739102d98f7574159d7a00",
+      "9acf687f80a3786712ee10dc3d9a0997d7a196897cc77f2e9b85fb1530b9674c",
+      "9b61de7ccc7a9b523a9198f811e4c15c0a09e9eb42f6839467edbd4d5ca78c91",
+      "c3cdcf6ee2952e8f3496e0325507f066531e488a8f93156874d99b4862773139"
+    ]
+  },
+  "crop": "Original identity cutout with measured planted boot contact, 150 px body and standard processor shadow.",
+  "focal": null,
+  "angle": "high-3/4",
+  "light": "top-left; diffuse amber edge, cool folds",
+  "palette": [
+    "#172C39",
+    "#456675",
+    "#BC8A57",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#55625E",
+    "#A2471F"
+  ],
+  "model": "unexposed",
+  "prompt": "Joost, the Stoker, a broad standing apprentice in a dark leather apron, sleeves rolled at the elbows, hands easy at the sides, facing slightly screen right. Paint one complete head-to-boots cutout centered in a tall canvas at the largest available native resolution, padded on all sides. High three-quarter tactics camera, including visibly foreshortened tops of head and boots. Both boots fully visible near bottom centre, firmly planted, with no contact or cast shadow; the runtime adds a short soft shadow down-right. Top-left diffuse key with faint amber lamp edge and deep cool folds. District swatches #172C39 #456675 #BC8A57. World palette #1F2A3A #3A4148 #5D666D #A9BCC6 with only a small rust #A2471F accent. Crisp broad outer shape, matte paint masses, minimal engraved edges, no side rim. Silhouette key at 24 px: a broad block of shoulders, bare head with dark cropped hair and a strong block of dark beard, and a substantial apron outline. No hat, no tools. Image 1 is subject appearance only, extend it to the boots. Image 2 is the clean paint crop; image 3 the swatch strip. Match the style, proportions and finish of the attached approved anchors. Ignore every interface element in the subject crop and omit any symbols or visual marks. Real alpha transparency with empty space all around, no scenery and no matte. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/party/stoker-identity-v1.webp",
+    "docs/design/art-studies/lampwater-v2.png#xywh=177,906,109,109",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "d29f7389dc72b28fc822586685147baf6bf3e4782dcd4520909c406fa80da26c",
+      "size": [1024, 1536]
+    },
+    "figure": {
+      "groundContact": [354, 1501],
+      "bodyHeight": 1428,
+      "drawHeight": 150,
+      "scale": 0.10504
+    },
+    "notes": ["defringed 10272 partial-alpha pixels"]
+  }
+}
