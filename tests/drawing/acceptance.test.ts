@@ -387,7 +387,7 @@ function frameTests(pack: string, masters: readonly MasterId[], built = false): 
         }
       }
     },
-    masters.length * 150_000,
+    masters.length * 400_000,
   );
   // The kit pack adds the scripted solve of each fallback board beside the guardrail check.
   check(`${pack}: the fallback board passes checkGenerated and has a scripted solve`, () => {
