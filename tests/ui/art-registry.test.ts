@@ -61,8 +61,9 @@ test('registry: no art → artUrl null', () => {
   // The live registry is exactly the WebPs on disk (none until UA's first pack).
   const onDisk = listArtFiles(process.cwd())
     .filter((f) => f.endsWith('.webp'))
-    .map((f) => f.slice(0, -5));
-  expect(artIds()).toEqual(onDisk);
+    .map((f) => f.slice(0, -5))
+    .sort();
+  expect([...artIds()].sort()).toEqual(onDisk);
 });
 
 test('registry: ArtImage draws the fallback when the art is not shipped', () => {
