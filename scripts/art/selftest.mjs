@@ -4,7 +4,7 @@
  * temporary root (deleted afterwards; nothing lands in src/assets/art). Covers both modes
  * (--ship, --scratch), a figure whose shadow, hem and pole tip hang below the feet (foot lands
  * at (64,160), boss at (96,232), on a light and a dark tile), an alpha-edge halo, role-rule
- * failures, and a floor set with the mixed A-D neighbour check (a bad set must fail).
+ * failures, mixed floor neighbours, and full-board repeats with and without baked light pools.
  * `--keep` leaves the temp root in place so the contact sheets can be looked at.
  */
 import { spawnSync } from 'node:child_process';
@@ -67,8 +67,8 @@ async function writeFigure(file, mattes = false) {
     .toFile(file);
 }
 
-/** Deterministic blotchy ground texture, darker at the edges by `vignette` so it does not tile on its own. */
-async function writeFloor(file, seed, vignette) {
+/** Deterministic floor texture. Bad edges and a baked pool are tested independently. */
+async function writeFloor(file, seed, { vignette = 0, pool = false } = {}) {
   const N = 512;
   let s = seed;
   const rnd = () => {
@@ -97,8 +97,11 @@ async function writeFloor(file, seed, vignette) {
   for (let y = 0; y < N; y++) {
     for (let x = 0; x < N; x++) {
       const d = Math.min(x, y, N - 1 - x, N - 1 - y) / (N / 2);
-      const base = 85 + at(6, lo, x, y) * 50 + at(24, hi, x, y) * 18 + (rnd() - 0.5) * 8;
-      const v = base - vignette * (1 - d) ** 2 * 60;
+      const noise = at(6, lo, x, y) + at(24, hi, x, y) * 0.36 + (rnd() - 0.5) * 0.16;
+      const base = 85 + noise * (vignette ? 50 : 16 * Math.min(1, d * 8));
+      const radius = Math.hypot(x - N / 2, y - N / 2) / (N / 2);
+      const light = pool ? 55 * Math.max(0, 1 - (radius / 0.8) ** 2) ** 2 : 0;
+      const v = base - vignette * (1 - d) ** 2 * 60 + light;
       const i = (y * N + x) * 3;
       buf[i] = Math.max(0, Math.min(255, v));
       buf[i + 1] = Math.max(0, Math.min(255, v * 1.12));
@@ -304,10 +307,10 @@ try {
   ]);
   ok(r.code !== 0 && /--ground-contact/.test(r.out), 'a figure without a ground contact fails');
 
-  // 6. Floor set: with shared edges it passes the mixed A-D check; without them it fails.
-  const names = ['a', 'b', 'c', 'd'];
+  // 6. Floor sets: even passes; seams and baked light pools fail independently.
+  const names = ['a', 'b', 'c', 'd', 'e'];
   for (const [i, n] of names.entries())
-    await writeFloor(join(raw, `floor-${n}.png`), 1000 + i * 77, 0.4 + i * 0.25);
+    await writeFloor(join(raw, `floor-${n}.png`), 1000 + i * 77);
   const tileArgs = (extra) => ['--ship', '--role', 'tile-opaque', '--size', '128x128', ...extra];
   r = proc(
     join(raw, 'floor-a.png'),
@@ -326,21 +329,42 @@ try {
   }
   r = run('sheet.mjs', ['selftest-floors', '--root', root]);
   ok(
-    r.code === 0 && /PASS mixed-neighbour check/.test(r.out),
-    `the floor set passes the mixed A-D check\n${r.out}`,
+    r.code === 0 &&
+      /PASS mixed-neighbour check.*50 joints/.test(r.out) &&
+      r.out.match(/PASS board repeat check/g)?.length === 2,
+    `the even floor set passes all 50 mixed joints and both repeat boards\n${r.out}`,
   );
   for (const [i, n] of names.entries()) {
-    proc(
-      join(raw, `floor-${n}.png`),
-      `tiles/canals/floor-${n}`,
-      tileArgs(['--tile', '--pack', 'selftest-badfloors']),
-    );
-    void i;
+    const file = join(raw, `bad-${n}.png`);
+    await writeFloor(file, 1000 + i * 77, { vignette: 0.4 + i * 0.25 });
+    proc(file, `tiles/canals/floor-${n}`, tileArgs(['--tile', '--pack', 'selftest-badfloors']));
   }
   r = run('sheet.mjs', ['selftest-badfloors', '--root', root]);
   ok(
     r.code === 1 && /FAIL mixed-neighbour check/.test(r.out),
     `a set that does not share edges fails the mixed check\n${r.out.split('\n').slice(0, 2).join('\n')}`,
+  );
+
+  for (const [i, n] of names.entries()) {
+    const file = join(raw, `pool-${n}.png`);
+    await writeFloor(file, 1000 + i * 77, { pool: true });
+    r = proc(file, `repeat/pool-${n}`, [
+      '--scratch',
+      '--role',
+      'tile-opaque',
+      '--size',
+      '128x128',
+      '--pack',
+      'selftest-pools',
+    ]);
+    ok(r.code === 0, `baked pool fixture ${n} processes\n${r.out}`);
+  }
+  r = run('sheet.mjs', ['selftest-pools', '--root', root]);
+  ok(
+    r.code === 1 &&
+      /PASS mixed-neighbour check.*50 joints/.test(r.out) &&
+      r.out.match(/FAIL board repeat check/g)?.length === 2,
+    `baked pools fail both repeat boards even with clean joints\n${r.out}`,
   );
 
   // 7. Sheets for the figures (both a ship pack and an anchor pack).

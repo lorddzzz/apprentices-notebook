@@ -3,13 +3,24 @@
  * `pnpm art:sheet <pack>`: renders `docs/art/contact/<pack>.png` (UA-2, style-sheet §8). Every
  * asset of the pack (sidecars whose `pack` equals the name, or `--ids a,b`) on light and dark
  * grounds, in greyscale, at 24 px (figures, portraits), at the real cell size on a light and a dark
- * tile, 3x3 self-tiling and the MIXED A-D neighbour check for floor sets, and a 375 px board crop
- * for scenes. Exits 1 when a floor set fails the mixed-neighbour check.
+ * tile, 3x3 self-tiling and two full-board repeats for floor sets, and a 375 px board crop for
+ * scenes. Exits 1 when a floor set fails the mixed-neighbour or repeat check.
  */
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { fail, listSidecars, loadRgba, mixedSeamReport, sharp } from './common.mjs';
+import {
+  BOARD_COLS,
+  BOARD_ROWS,
+  boardPicks,
+  CELL,
+  CELL_SPREAD_LIMIT,
+  drawTileBoard,
+  LATTICE_LIMIT,
+  repeatReport,
+  resizeTile,
+} from './tile-board.mjs';
 
 const LIGHT = '#E9DFC8';
 const DARK = '#101820';
@@ -244,9 +255,9 @@ if (mats.length) {
   await flow(items);
 }
 
-// ── 5. Tiles: 3x3 self-tiling, floor sets, the mixed neighbour check ──
+// ── 5. Tiles: self-tiling, full-board repeats and mixed neighbours ──
 const tiles = assets.filter((a) => a.role === 'tile-opaque');
-let mixedFailed = false;
+let floorFailed = false;
 if (tiles.length) {
   header('Ground tiles: 3x3 self-tiling');
   const items = [];
@@ -268,13 +279,33 @@ if (tiles.length) {
 
   const sets = new Map();
   for (const a of tiles) {
-    const m = a.id.match(/^(.*)-([a-d])$/);
-    if (!m) continue;
-    sets.set(m[1], [...(sets.get(m[1]) ?? []), { ...a, letter: m[2] }]);
+    const variant = a.id.match(/^(.*)-([a-z])$/);
+    const standalone = /\/(floor|quay(?:-lit)?|water)(-v\d+)?$/.test(a.id);
+    if (!variant && !standalone) continue;
+    const [name, letter] = variant ? variant.slice(1) : [a.id, 'a'];
+    sets.set(name, [...(sets.get(name) ?? []), { ...a, letter }]);
   }
   for (const [name, variants] of sets) {
-    if (variants.length < 2) continue;
     variants.sort((a, b) => a.letter.localeCompare(b.letter));
+    const scaled = await Promise.all(variants.map((a) => resizeTile(a.rgba)));
+    for (const rows of BOARD_ROWS) {
+      const picks = boardPicks(BOARD_COLS, rows, scaled.length);
+      const report = repeatReport(scaled, picks, BOARD_COLS, rows);
+      const verdict = report.pass ? 'PASS' : 'FAIL';
+      if (!report.pass) floorFailed = true;
+      const metrics = `lattice ${report.score.toFixed(2)} / ${LATTICE_LIMIT}; cell mean spread ${report.between.toFixed(2)} / ${CELL_SPREAD_LIMIT}; within-cell spread ${report.within.toFixed(2)}`;
+      const size = `${BOARD_COLS}×${rows}`;
+      header(`Floor set ${short(name)} ${size}: repeat ${verdict}. ${metrics}`);
+      console.log(`${verdict} board repeat check ${name} ${size}: ${metrics}`);
+      const board = await drawTileBoard(scaled, picks, BOARD_COLS, rows);
+      await flow(
+        [
+          { label: 'colour', render: () => board },
+          { label: 'greyscale', render: () => png(sharp(board).greyscale()) },
+        ].map((item) => ({ ...item, w: BOARD_COLS * CELL, h: rows * CELL })),
+      );
+    }
+    if (variants.length < 2) continue;
     const n = variants[0].w;
     const rgbOf = async (a) => ({
       name: a.letter.toUpperCase(),
@@ -288,7 +319,7 @@ if (tiles.length) {
     const report = mixedSeamReport(await Promise.all(variants.map(rgbOf)), n);
     const worst = report.pairs.reduce((m, p) => (p.step > m.step ? p : m), report.pairs[0]);
     const verdict = report.pass ? 'PASS' : 'FAIL';
-    if (!report.pass) mixedFailed = true;
+    if (!report.pass) floorFailed = true;
     header(
       `Floor set ${short(name)} (${variants.map((v) => v.letter.toUpperCase()).join('')}): mixed neighbours ${verdict}. Worst joint ${worst.a}${worst.dir === 'h' ? '|' : '/'}${worst.b} ${worst.step.toFixed(1)} vs limit ${report.limit.toFixed(1)} (natural step ${report.natural.toFixed(1)})`,
     );
@@ -397,4 +428,4 @@ await solid(SHEET_W, y + PAD, PAGE)
   .png()
   .toFile(outFile);
 console.log(`sheet: ${outFile} (${SHEET_W}x${y + PAD}, ${assets.length} asset(s))`);
-if (mixedFailed) process.exit(1);
+if (floorFailed) process.exitCode = 1;
