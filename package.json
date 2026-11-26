@@ -23,13 +23,16 @@
     "check:changed": "vitest run --changed main --exclude 'tests/sim/**'",
     "check:fast": "pnpm typecheck:svelte && pnpm typecheck:ts && pnpm lint && pnpm art:check && vitest run --exclude 'tests/sim/**'",
     "icons": "pwa-assets-generator",
-    "art:check": "node --experimental-strip-types scripts/art-check.ts"
+    "art:check": "node --experimental-strip-types scripts/art-check.ts",
+    "art:process": "node scripts/art/process.mjs",
+    "art:sheet": "node scripts/art/sheet.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^24.19.2",
     "@vite-pwa/assets-generator": "^2.0.0",
+    "sharp": "0.35.5",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",
