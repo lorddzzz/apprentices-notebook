@@ -12,7 +12,18 @@ import type { WipeSummary } from '../flow';
 import type { GameStore } from '../game.svelte';
 import type { Route } from '../routes';
 import type { ThresholdStore } from '../threshold.svelte';
-import { fightSave } from './recipes';
+import {
+  benchProfile,
+  deskProfile,
+  doorwaySave,
+  fightSave,
+  fullHouseProfile,
+  heldPageProfile,
+  midProfile,
+  RECIPE_SEED,
+  threeSeats,
+  unlockedSave,
+} from './recipes';
 
 /**
  * UF-4 / C8: dev-only state fixtures, opened at `#/fixture?name=<id>[&step=n][&grey=1]`. Each
@@ -26,7 +37,9 @@ export type FixtureId =
   | 'study-fresh'
   | 'fight-seam'
   | 'fight-lampwater'
-  | 'fight-wide-7x9';
+  | 'fight-wide-7x9'
+  // UF-15a (Pack D2)
+  | HomeFixtureId;
 
 /** What a setup recipe may reach besides the game: the app's transient stores and the URL's step. */
 export interface FixtureContext {
@@ -88,7 +101,139 @@ export function lockSolveAction(state: Parameters<typeof memberById>[0]): Action
 
 const FIXTURE_SEED = 1;
 
+// ══ UF-15a (Pack D2): study and home ══
+// Recipes live in `recipes.ts` (home section). Pending, not stubbed: `pocket-readonly`,
+// `homecoming-first`, `homecoming-quiet` (their screens come with FT-25 and UH-14).
+
+export type HomeFixtureId =
+  | 'study-mid'
+  | 'study-three-seats'
+  | 'study-unlocked'
+  | 'study-doorway'
+  | 'study-trip-out'
+  | 'study-first-evening'
+  | 'household-full'
+  | 'codex-early'
+  | 'bench-mid'
+  | 'bench-trial'
+  | 'desk-empty'
+  | 'desk-open-row'
+  | 'desk-expanded';
+
+const plain =
+  (profile: () => ReturnType<typeof midProfile>): (() => SaveData) =>
+  () => ({
+    ...newSave(RECIPE_SEED),
+    profile: profile(),
+  });
+
+const HOME_FIXTURES: Record<HomeFixtureId, Fixture> = {
+  'study-mid': {
+    id: 'study-mid',
+    route: 'study',
+    save: plain(midProfile),
+    expect: 'door',
+    note: 'A notebook some trips old: three seats, the Seam and the canals open, no first evening.',
+  },
+  'study-three-seats': {
+    id: 'study-three-seats',
+    route: 'study',
+    save: plain(threeSeats),
+    expect: 'household-open',
+    note: 'The founders and a recruit seated: three seat tabs, the household button.',
+  },
+  'study-unlocked': {
+    id: 'study-unlocked',
+    route: 'study',
+    save: unlockedSave,
+    expect: 'desk-button',
+    taps: ['rumour-line'],
+    note: 'Bench, Desk and Codex all unlocked, a rumour showing, three seats. (The room objects are buttons that leave the Study, so only the rumour note is tapped.)',
+  },
+  'study-doorway': {
+    id: 'study-doorway',
+    route: 'trip',
+    save: doorwaySave,
+    expect: 'field-header',
+    taps: ['field-done'],
+    note: 'A quiet doorway (the trip route shows the Study): the Study in field mode ("A quiet doorway", Done in place of the door).',
+  },
+  'study-trip-out': {
+    id: 'study-trip-out',
+    route: 'trip',
+    save: () => {
+      const save = doorwaySave();
+      return { ...save, profile: fullHouseProfile(), trip: save.trip };
+    },
+    expect: 'field-header',
+    taps: ['household-open', 'shelf-lock'],
+    note: 'Out on a trip the Study is only reachable in a doorway: the household sheet is open and the seats are locked ("shelf-lock").',
+  },
+  'study-first-evening': {
+    id: 'study-first-evening',
+    route: 'study',
+    save: () => newSave(RECIPE_SEED),
+    expect: 'first-evening',
+    taps: ['first-evening', 'first-evening-page'],
+    note: 'A brand-new notebook with the first-evening page open.',
+  },
+  'household-full': {
+    id: 'household-full',
+    route: 'study',
+    save: plain(fullHouseProfile),
+    expect: 'household-open',
+    taps: ['household-open', 'bench-open'],
+    note: 'Every apprentice but the owner at home (the owner joins at the handover, R14), three seated; the household sheet open.',
+  },
+  'codex-early': {
+    id: 'codex-early',
+    route: 'codex',
+    save: () => newSave(RECIPE_SEED),
+    expect: 'codex-entry',
+    taps: ['codex-count'],
+    note: 'The Codex of a new notebook: mostly unseen entries.',
+  },
+  'bench-mid': {
+    id: 'bench-mid',
+    route: 'bench',
+    save: plain(benchProfile),
+    expect: 'methods',
+    note: 'The Bench with two method pages and a solvent in hand.',
+  },
+  'bench-trial': {
+    id: 'bench-trial',
+    route: 'bench',
+    params: { page: 'lamplighter:lantern' },
+    save: plain(heldPageProfile),
+    expect: 'page-trial',
+    note: 'A held rival page tried on its authored board (the Bench opened with `?page=`).',
+  },
+  'desk-empty': {
+    id: 'desk-empty',
+    route: 'desk',
+    save: plain(() => deskProfile(false)),
+    expect: 'desk-empty',
+    note: 'The footnote desk with no rune that has earned a point: the voice line.',
+  },
+  'desk-open-row': {
+    id: 'desk-open-row',
+    route: 'desk',
+    save: plain(() => deskProfile(true)),
+    expect: 'desk-open-shove',
+    note: 'One rune row (Shove) with a margin line open to write.',
+  },
+  'desk-expanded': {
+    id: 'desk-expanded',
+    route: 'desk',
+    save: plain(() => deskProfile(true)),
+    expect: 'desk-subject-shove',
+    taps: ['desk-subject-shove', 'desk-margin'],
+    note: 'The Shove row opened: its margin column shows.',
+  },
+};
+
 export const FIXTURES: Record<FixtureId, Fixture> = {
+  ...HOME_FIXTURES,
   'threshold-canals-burnt': {
     id: 'threshold-canals-burnt',
     route: 'threshold',

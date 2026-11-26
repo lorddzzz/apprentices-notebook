@@ -5,16 +5,30 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { DISTRICTS } from '$data';
 import { applyAction, type GameEvent, newSave } from '$engine';
-import { FIXTURES, fixtureIds, lockProfile, lockSolveAction } from '../../src/app/dev/fixtures';
+// Pack D2 (UF-15a/b/f) imports
+import { trialPage } from '../../src/app/bench';
+import { deskRows, deskUnlocked } from '../../src/app/desk';
+import {
+  FIXTURES,
+  type FixtureId,
+  fixtureIds,
+  lockProfile,
+  lockSolveAction,
+} from '../../src/app/dev/fixtures';
 import {
   type FixtureDocument,
   fixtureRequest,
   settle,
   type Tappable,
 } from '../../src/app/dev/loader';
+import { isFirstEvening } from '../../src/app/firstEvening';
+import type { Screen } from '../../src/app/flow';
 import { resolveScreen } from '../../src/app/flow';
+import type { GameStore } from '../../src/app/game.svelte';
 import { SAVE_KEY, saveText } from '../../src/app/save';
+import { benchUnlocked } from '../../src/app/study';
 import { thresholdStart } from '../../src/app/threshold';
+import { rumourLine } from '../../src/app/tripviews';
 
 /**
  * UF-4 / C8: the dev fixture loader. The browser is faked with the few globals the app touches
@@ -339,4 +353,194 @@ describe('fixture loader (production)', () => {
       rmSync(out, { recursive: true, force: true });
     }
   }, 180_000);
+});
+
+// ══ Pack D2 (UF-15a/b/f): study, home, map and glyph fixtures ══
+//
+// The fake document "mounts" a testid when the app's own predicates (`resolveScreen`, `benchUnlocked`,
+// `deskRows`, ...) would show it, and records taps so a sheet a tap opens mounts afterwards. A fixture
+// whose expect or tap target is not mounted fails `runFixture`; the phone run checks the real DOM.
+
+interface UiProbe {
+  game: GameStore;
+  route: string;
+  params: URLSearchParams;
+  /** Testids tapped so far (a tap that opens a sheet mounts what the sheet shows). */
+  tapped: Set<string>;
+}
+
+/** What the screen named by `resolveScreen` shows, by testid. Unknown ids are not mounted. */
+function mountedModel(p: UiProbe, id: string): boolean {
+  const { game } = p;
+  const profile = game.profile;
+  const screen = resolveScreen(
+    p.route as Parameters<typeof resolveScreen>[0],
+    game.save.trip,
+    game.wipe,
+    game.save.lastTrip,
+    profile,
+  ).screen;
+  const field = game.inDoorway;
+  if (screen === 'study') {
+    switch (id) {
+      case 'study':
+      case 'codex-button':
+      case 'household-open':
+        return true;
+      case 'field-header':
+      case 'field-done':
+        return field;
+      case 'menu-button':
+      case 'door':
+        return !field;
+      case 'bench-button':
+        return !field && benchUnlocked(profile);
+      case 'desk-button':
+        return !field && deskUnlocked(profile);
+      case 'rumour-line':
+        return !field && rumourLine(game.save.lastTrip) !== null;
+      case 'first-evening':
+        return isFirstEvening(profile, game.save.trip !== null);
+      case 'first-evening-page':
+        return p.tapped.has('first-evening');
+      case 'bench-open':
+        return p.tapped.has('household-open');
+      case 'shelf-lock':
+        return p.tapped.has('household-open') && game.save.trip !== null;
+    }
+    return false;
+  }
+  // CodexEntry (the Runes tab, open by default) and the header count.
+  if (screen === 'codex') return ['codex', 'codex-entry', 'codex-count'].includes(id);
+  if (screen === 'bench') {
+    const page = p.params.get('page');
+    if (id === 'bench') return true;
+    if (id === 'methods') return page === null;
+    if (id === 'page-trial') return page !== null && trialPage(profile, page) !== null;
+    return false;
+  }
+  if (screen === 'desk') {
+    const rows = deskRows(profile);
+    if (id === 'desk') return true;
+    if (id === 'desk-empty') return rows.length === 0;
+    const subject = /^desk-(?:subject|open)-(.+)$/.exec(id)?.[1];
+    if (subject !== undefined) {
+      const row = rows.find((r) => r.subject === subject);
+      return id.startsWith('desk-open-') ? (row?.open ?? 0) > 0 : row !== undefined;
+    }
+    if (id === 'desk-margin') return [...p.tapped].some((t) => t.startsWith('desk-subject-'));
+    return false;
+  }
+  return false;
+}
+
+/** Runs one fixture through the real loader on a fake browser; returns the loaded game and screen. */
+async function loadAll(ids: readonly FixtureId[]) {
+  const b = fakeBrowser('', saveText(newSave(1)));
+  vi.resetModules();
+  const { GameStore } = await import('../../src/app/game.svelte');
+  const { memoryBackend } = await import('../../src/app/save');
+  const { runFixture } = await import('../../src/app/dev/loader');
+  const { FIXTURES } = await import('../../src/app/dev/fixtures');
+  const { router } = await import('../../src/app/router.svelte');
+  const { threshold } = await import('../../src/app/threshold.svelte');
+  const game = new GameStore(memoryBackend(), () => 0);
+  const tapped = new Set<string>();
+  const probe = (): UiProbe => ({ game, route: router.route, params: router.params, tapped });
+  b.setMounted((id) => mountedModel(probe(), id));
+  const out: {
+    id: FixtureId;
+    screen: Screen;
+    redirect: string | null;
+    ok: boolean;
+    why: string;
+  }[] = [];
+  const doc: FixtureDocument = {
+    documentElement: b.root,
+    querySelector(selector) {
+      const id = /^\[data-testid="(.+)"\]$/.exec(selector)?.[1];
+      if (id === undefined || !mountedModel(probe(), id)) return null;
+      return { click: () => tapped.add(id) };
+    },
+  };
+  for (const id of ids) {
+    tapped.clear();
+    const r = await runFixture(
+      { name: id, step: null, grey: false },
+      { game, threshold, doc, timeoutMs: 150 },
+    );
+    const at = resolveScreen(
+      router.route,
+      game.save.trip,
+      game.wipe,
+      game.save.lastTrip,
+      game.profile,
+    );
+    out.push({
+      id,
+      screen: at.screen,
+      redirect: at.redirect,
+      ok: r.ok,
+      why: r.ok ? '' : r.why,
+    });
+  }
+  return { out, FIXTURES, game };
+}
+
+const HOME_SCREEN: Record<string, Screen> = {
+  'study-mid': 'study',
+  'study-three-seats': 'study',
+  'study-unlocked': 'study',
+  'study-doorway': 'study',
+  'study-trip-out': 'study',
+  'study-first-evening': 'study',
+  'household-full': 'study',
+  'codex-early': 'codex',
+  'bench-mid': 'bench',
+  'bench-trial': 'bench',
+  'desk-empty': 'desk',
+  'desk-open-row': 'desk',
+  'desk-expanded': 'desk',
+};
+
+describe('UF-15a study and home fixtures', () => {
+  test('fixtures: study and home states exist and show their expected state', async () => {
+    const ids = Object.keys(HOME_SCREEN) as FixtureId[];
+    for (const id of ids) expect(fixtureIds(), id).toContain(id);
+    const { out, game } = await loadAll(ids);
+    for (const r of out) {
+      expect(r.why, r.id).toBe('');
+      expect(r.ok, r.id).toBe(true);
+      // The intended screen, with no redirect (a fixture never lands somewhere else).
+      expect(r.screen, r.id).toBe(HOME_SCREEN[r.id]);
+      expect(r.redirect, r.id).toBeNull();
+    }
+    expect(game).toBeDefined();
+  });
+
+  test('fixtures: home fixtures hold their own state, not only the route', async () => {
+    const { threeSeats, midProfile, unlockedSave, fullHouseProfile, doorwaySave, deskProfile } =
+      await import('../../src/app/dev/recipes');
+    const { tripParty } = await import('$engine');
+    expect(tripParty(threeSeats())).toHaveLength(3);
+    expect(isFirstEvening(midProfile(), false)).toBe(false);
+    const u = unlockedSave();
+    expect(benchUnlocked(u.profile)).toBe(true);
+    expect(deskUnlocked(u.profile)).toBe(true);
+    expect(rumourLine(u.lastTrip)).toMatch(/^A rumour of /);
+    expect(tripParty(u.profile)).toHaveLength(3);
+    const full = fullHouseProfile();
+    expect(full.household.members).not.toContain('owner');
+    expect(full.household.members.length - tripParty(full).length).toBeGreaterThan(1);
+    expect(doorwaySave().trip?.status).toBe('doorway');
+    expect(deskRows(deskProfile(false))).toEqual([]);
+    expect(deskRows(deskProfile(true)).map((r) => [r.subject, r.open > 0])).toEqual([
+      ['shove', true],
+    ]);
+  });
+
+  // Not stubbed as passing: their screens are built by later packs (new testids, new props).
+  test.todo('fixtures: pocket-readonly (PENDING: the Study `readonly` prop, UH-3 / FT-25)');
+  test.todo('fixtures: homecoming-first (PENDING: the homecoming scene page, UH-14)');
+  test.todo('fixtures: homecoming-quiet (PENDING: the homecoming scene page, UH-14)');
 });
