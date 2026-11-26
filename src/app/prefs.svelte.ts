@@ -78,7 +78,8 @@ const BASE_DURATIONS = { quick: 250, base: 400, held: 800 } as const;
 
 function applyDurations(scale: number): void {
   if (typeof document === 'undefined') return;
-  const style = document.documentElement.style;
+  const style = document.documentElement?.style;
+  if (typeof style?.setProperty !== 'function') return;
   for (const [name, ms] of Object.entries(BASE_DURATIONS)) {
     style.setProperty(`--dur-${name}`, `${ms * scale}ms`);
   }
