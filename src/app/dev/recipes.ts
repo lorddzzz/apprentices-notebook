@@ -1,9 +1,11 @@
 import {
   APPRENTICE_IDS,
   type DistrictId,
+  type Drawing,
   FOOTNOTES,
   METHOD_IDS,
   RUNE_IDS,
+  RUNES,
   type RuneId,
   SOLVENT_IDS,
 } from '$data';
@@ -16,6 +18,7 @@ import {
   startTrip,
   type TripRecap,
 } from '$engine';
+import { shapeOf } from '$engine/trip/shape';
 import { setOut } from '../flow';
 import { sampleHousehold, sampleParty } from './samples';
 
@@ -157,4 +160,83 @@ export function benchProfile(): Profile {
 /** A held rival page (the Lamplighter's lantern) for the Bench's page trial on its authored board. */
 export function heldPageProfile(): Profile {
   return { ...midProfile(), pages: ['lamplighter:lantern'] };
+}
+
+// ══ Map (UF-15b): the city map and the Set-out sheet ══
+
+const cityOf = (p: Profile, open: readonly DistrictId[], heard: readonly DistrictId[] = []) => ({
+  ...p.city,
+  heard: [...new Set([...open, ...heard])],
+  open: [...open],
+  fresh: [],
+});
+
+/** A new notebook: only the Seam is on the map. */
+export const mapFreshProfile = (): Profile => threeSeats();
+
+/** The Seam open, two districts heard of but barred (their nodes are smudged, the frontier). */
+export function mapFrontierProfile(): Profile {
+  const p = threeSeats();
+  return { ...p, city: cityOf(p, ['seam'], ['canals', 'inkQuarter']) };
+}
+
+/** The Marginalia fallen (the Seam's heart cleared) with floors open below: the stair and its floors. */
+export function lowerSeamProfile(): Profile {
+  const p = threeSeats();
+  return {
+    ...p,
+    city: {
+      ...cityOf(p, ['seam', 'canals', 'inkQuarter']),
+      hearts: ['seam'],
+    },
+  };
+}
+
+/**
+ * The checkpoint recipe (copied from the Cartographers' own rule, `rememberCheckpoint`): the city
+ * remembers the quiet doorway, so Set out offers "start past it". The Seam has no checkpoint, so
+ * the start-point radios are only ever offered for a district that has one.
+ */
+export function rememberedCheckpoint(p: Profile): Profile {
+  const after = shapeOf('cartographers').checkpoint?.after;
+  if (after === undefined) throw new Error('The Cartographers have no checkpoint to remember');
+  return {
+    ...p,
+    city: {
+      ...cityOf(p, [...new Set([...p.city.open, 'cartographers' as const])]),
+      checkpoints: { ...p.city.checkpoints, cartographers: after },
+    },
+  };
+}
+
+/** The drawing the plain Seam page uses (tests/drawing/fixtures.ts, copied): drawable with a pen of 3. */
+export const PLAIN_SEAM_PAGE: Drawing = {
+  name: 'Plain Seam',
+  rule: null,
+  foes: ['rat', 'familiar', 'sentry'],
+  pieces: [],
+  shape: 'plain',
+  length: 3,
+  heart: 'marginalia',
+};
+
+/** A household past the handover (copied from `handoverProfile`) with one drawn page in slot 0. */
+export function inkedPagesProfile(): Profile {
+  const p = sampleHousehold();
+  return {
+    ...p,
+    ending: { handover: true, creditsSeen: false },
+    foesMet: ['rat', 'familiar', 'sentry'],
+    // heard ⊇ open ⊇ hearts: the save boundary refuses a ladder that skips a rung.
+    city: { ...cityOf(p, ['seam', 'canals']), hearts: ['seam'] },
+    known: [...new Set([...p.known, ...(Object.keys(RUNES) as Profile['known'])])],
+    drawings: [PLAIN_SEAM_PAGE, null, null],
+  };
+}
+
+/** Nobody in a trip slot: Set out is disabled and says why. */
+export function emptyPartyProfile(): Profile {
+  let p = threeSeats();
+  for (const slot of [0, 1, 2] as const) p = setSlot(p, slot, null);
+  return p;
 }

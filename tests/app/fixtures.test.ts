@@ -3,10 +3,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { DistrictId } from '$data';
 import { DISTRICTS } from '$data';
-import { applyAction, type GameEvent, newSave } from '$engine';
+import { applyAction, type GameEvent, newSave, tripParty } from '$engine';
+import { drawingsOf } from '$engine/drawing';
 // Pack D2 (UF-15a/b/f) imports
 import { trialPage } from '../../src/app/bench';
+import { mapNodes, underSeam } from '../../src/app/city';
+import { startCheckpoint } from '../../src/app/crossroads';
 import { deskRows, deskUnlocked } from '../../src/app/desk';
 import {
   FIXTURES,
@@ -431,6 +435,50 @@ function mountedModel(p: UiProbe, id: string): boolean {
     if (id === 'desk-margin') return [...p.tapped].some((t) => t.startsWith('desk-subject-'));
     return false;
   }
+  if (screen === 'map') return mapMounted(p, id);
+  return false;
+}
+
+/** The map (`Map.svelte`, `DistrictNode`, `StairSlot`, `PagesSlot`) and the Set-out sheet a node tap opens. */
+function mapMounted(p: UiProbe, id: string): boolean {
+  const profile = p.game.profile;
+  const nodes = mapNodes(profile);
+  const under = underSeam(profile);
+  // The district the Set-out sheet is open for: the last node or page tapped.
+  const last = [...p.tapped].reverse().find((t) => /^open-|^page-\d$/.test(t));
+  const sheet = last === undefined ? null : last.startsWith('page-') ? 'inkedPage' : last.slice(5);
+  const party = tripParty(profile).length;
+  switch (id) {
+    case 'map':
+    case 'under-seam':
+      return true;
+    case 'stair-floors':
+      return under.stair && under.canSetOut;
+    case 'under-pages':
+      return under.pages.length > 0 || under.blank;
+    case 'carry':
+      return sheet !== null && party > 0;
+    case 'no-party':
+      return sheet !== null && party === 0;
+    case 'set-out':
+    case 'not-yet':
+      return sheet !== null;
+    case 'starts':
+    case 'start-checkpoint':
+    case 'start-first':
+      return sheet !== null && party > 0 && startCheckpoint(profile, sheet as DistrictId) !== null;
+    case 'drawn-page':
+      return sheet === 'inkedPage' && drawingsOf(profile)[0] !== undefined;
+  }
+  const node = /^node-(.+)$/.exec(id)?.[1];
+  if (node !== undefined) return nodes.some((n) => n.id === node);
+  const open = /^open-(.+)$/.exec(id)?.[1];
+  if (open === 'lowerSeam') return under.stair && under.canSetOut;
+  if (open !== undefined) return nodes.some((n) => n.id === open && n.state === 'open');
+  const floor = /^floor-(.+)$/.exec(id)?.[1];
+  if (floor !== undefined) return under.floors.some((f) => f.id === floor);
+  const page = /^page-(\d)$/.exec(id)?.[1];
+  if (page !== undefined) return under.pages.some((x) => x.slot === Number(page));
   return false;
 }
 
@@ -543,4 +591,67 @@ describe('UF-15a study and home fixtures', () => {
   test.todo('fixtures: pocket-readonly (PENDING: the Study `readonly` prop, UH-3 / FT-25)');
   test.todo('fixtures: homecoming-first (PENDING: the homecoming scene page, UH-14)');
   test.todo('fixtures: homecoming-quiet (PENDING: the homecoming scene page, UH-14)');
+});
+
+const MAP_SCREEN: Record<string, Screen> = {
+  'map-fresh': 'map',
+  'map-frontier': 'map',
+  'map-lower-seam': 'map',
+  'map-inked-pages': 'map',
+  'setout-seam': 'map',
+  'setout-startpoint': 'map',
+  'setout-empty-party': 'map',
+  'setout-drawn-page': 'map',
+};
+
+describe('UF-15b map fixtures', () => {
+  test('fixtures: map and set-out fixtures resolve to the map and show their expected state', async () => {
+    const ids = Object.keys(MAP_SCREEN) as FixtureId[];
+    for (const id of ids) expect(fixtureIds(), id).toContain(id);
+    const { out } = await loadAll(ids);
+    for (const r of out) {
+      expect(r.why, r.id).toBe('');
+      expect(r.screen, r.id).toBe('map');
+      expect(r.redirect, r.id).toBeNull();
+    }
+  });
+
+  test('fixtures: setout-startpoint uses the remembered-Cartographers-checkpoint recipe (the Seam has none)', async () => {
+    const { rememberedCheckpoint, mapFreshProfile } = await import('../../src/app/dev/recipes');
+    const { shapeOf } = await import('$engine/trip/shape');
+    // The Seam has no checkpoint to remember; the Cartographers' quiet doorway is the first one.
+    expect(shapeOf('seam').checkpoint).toBeUndefined();
+    const plain = mapFreshProfile();
+    expect(startCheckpoint(plain, 'seam')).toBeNull();
+    expect(startCheckpoint(plain, 'cartographers')).toBeNull();
+    const p = rememberedCheckpoint(plain);
+    expect(p.city.checkpoints).toEqual({
+      cartographers: shapeOf('cartographers').checkpoint?.after,
+    });
+    expect(p.city.open).toContain('cartographers');
+    expect(startCheckpoint(p, 'cartographers')).toBe('the quiet doorway');
+    expect(startCheckpoint(p, 'seam')).toBeNull();
+    // The loader's save boundary accepts it (parseCheckpoints checks the room against the shape).
+    const { loadSave, memoryBackend } = await import('../../src/app/save');
+    const text = saveText({ ...newSave(1), profile: p });
+    expect(loadSave(memoryBackend(text), 0).recovered).toBe(false);
+  });
+
+  test('fixtures: map fixtures hold their own state, not only the route', async () => {
+    const r = await import('../../src/app/dev/recipes');
+    expect(mapNodes(r.mapFreshProfile()).map((n) => n.id)).toEqual(['seam']);
+    const frontier = mapNodes(r.mapFrontierProfile());
+    expect(
+      frontier
+        .filter((n) => n.state === 'heard')
+        .map((n) => n.id)
+        .sort(),
+    ).toEqual(['canals', 'inkQuarter']);
+    const lower = underSeam(r.lowerSeamProfile());
+    expect(lower.stair && lower.canSetOut).toBe(true);
+    expect(lower.floors.length).toBeGreaterThan(0);
+    const pages = underSeam(r.inkedPagesProfile());
+    expect(pages.pages.map((x) => x.slot)).toEqual([0]);
+    expect(tripParty(r.emptyPartyProfile())).toEqual([]);
+  });
 });

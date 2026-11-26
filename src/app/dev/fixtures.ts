@@ -16,11 +16,17 @@ import {
   benchProfile,
   deskProfile,
   doorwaySave,
+  emptyPartyProfile,
   fightSave,
   fullHouseProfile,
   heldPageProfile,
+  inkedPagesProfile,
+  lowerSeamProfile,
+  mapFreshProfile,
+  mapFrontierProfile,
   midProfile,
   RECIPE_SEED,
+  rememberedCheckpoint,
   threeSeats,
   unlockedSave,
 } from './recipes';
@@ -38,8 +44,9 @@ export type FixtureId =
   | 'fight-seam'
   | 'fight-lampwater'
   | 'fight-wide-7x9'
-  // UF-15a (Pack D2)
-  | HomeFixtureId;
+  // UF-15a, UF-15b (Pack D2)
+  | HomeFixtureId
+  | MapFixtureId;
 
 /** What a setup recipe may reach besides the game: the app's transient stores and the URL's step. */
 export interface FixtureContext {
@@ -232,8 +239,88 @@ const HOME_FIXTURES: Record<HomeFixtureId, Fixture> = {
   },
 };
 
+// ══ UF-15b (Pack D2): the map and the Set-out sheet ══
+// Set out is a Sheet the map opens by a tap on a district node; the last tap waits for a testid
+// the sheet itself shows, so a fixture whose sheet did not open fails.
+
+export type MapFixtureId =
+  | 'map-fresh'
+  | 'map-frontier'
+  | 'map-lower-seam'
+  | 'map-inked-pages'
+  | 'setout-seam'
+  | 'setout-startpoint'
+  | 'setout-empty-party'
+  | 'setout-drawn-page';
+
+const MAP_FIXTURES: Record<MapFixtureId, Fixture> = {
+  'map-fresh': {
+    id: 'map-fresh',
+    route: 'map',
+    save: plain(mapFreshProfile),
+    expect: 'open-seam',
+    note: 'A new notebook: only the Seam is on the map.',
+  },
+  'map-frontier': {
+    id: 'map-frontier',
+    route: 'map',
+    save: plain(mapFrontierProfile),
+    expect: 'node-canals',
+    taps: ['node-inkQuarter'],
+    note: 'The Seam open, the canals and the Ink Quarter heard of but barred (the frontier).',
+  },
+  'map-lower-seam': {
+    id: 'map-lower-seam',
+    route: 'map',
+    save: plain(lowerSeamProfile),
+    expect: 'under-seam',
+    taps: ['stair-floors', 'floor-canals'],
+    note: 'The Seam heart cleared: the stair, its floors and "Go down" hang under the Seam node.',
+  },
+  'map-inked-pages': {
+    id: 'map-inked-pages',
+    route: 'map',
+    save: plain(inkedPagesProfile),
+    expect: 'under-pages',
+    note: 'After the handover with one drawn page: its node hangs under the Seam (setout-drawn-page taps it).',
+  },
+  'setout-seam': {
+    id: 'setout-seam',
+    route: 'map',
+    save: plain(mapFreshProfile),
+    expect: 'open-seam',
+    taps: ['open-seam', 'carry'],
+    note: 'The Seam node tapped: the Set out sheet with the party and what it carries (the Seam has no checkpoint, so no start radios).',
+  },
+  'setout-startpoint': {
+    id: 'setout-startpoint',
+    route: 'map',
+    save: plain(() => rememberedCheckpoint(mapFreshProfile())),
+    expect: 'open-cartographers',
+    taps: ['open-cartographers', 'starts', 'start-checkpoint'],
+    note: "Recipe `rememberedCheckpoint`: the city remembers the Cartographers' quiet doorway, so Set out offers the start-point radios.",
+  },
+  'setout-empty-party': {
+    id: 'setout-empty-party',
+    route: 'map',
+    save: plain(emptyPartyProfile),
+    expect: 'open-seam',
+    taps: ['open-seam', 'no-party'],
+    note: 'Nobody in a trip slot: Set out is disabled and the sheet says why.',
+  },
+  'setout-drawn-page': {
+    id: 'setout-drawn-page',
+    route: 'map',
+    save: plain(inkedPagesProfile),
+    expect: 'page-0',
+    taps: ['page-0', 'drawn-page'],
+    note: "A drawn page tapped: Set out opens with the page's name, depth and facts.",
+  },
+};
+
 export const FIXTURES: Record<FixtureId, Fixture> = {
   ...HOME_FIXTURES,
+  ...MAP_FIXTURES,
   'threshold-canals-burnt': {
     id: 'threshold-canals-burnt',
     route: 'threshold',
