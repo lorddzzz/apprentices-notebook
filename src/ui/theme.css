@@ -1,26 +1,134 @@
-:root {
-  --parchment: #f1e6cc;
-  --parchment-dark: #e2d2ae;
-  --ink: #2b2118;
-  --ink-soft: #5a4a3a;
-  --accent: #8b3a2b;
-  --lamp: #e8b04a;
-  --night: #1f2a3a;
-  --parchment-deep: #d6c39a;
-  --ink-faint: rgba(43, 33, 24, 0.45);
-  --line: rgba(43, 33, 24, 0.22);
+/* The one token file (C1). Sections: type, worlds, districts, meaning colours, overlays,
+   materials and runes, spacing and shape, motion, legacy aliases. New code uses the C1 names;
+   the legacy names at the end stay until UE's Close deletes them (UF-P3). */
 
-  /* materials (tile layers and material-rune frames) */
-  --m-ink: #1d2a4a;
-  --m-oil: #7a6420;
-  --m-oil-tint: rgba(122, 100, 32, 0.3);
-  --m-steam: #a9bcc6;
-  --m-spark: #e2a312;
-  --m-brass: #b5882e;
-  --m-brass-dark: #7a5a1a;
-  --m-fire: #d2552a;
-  --m-fire-tint: rgba(210, 85, 42, 0.4);
-  --vent: #55606a;
+/* ---- type ---- */
+:root {
+  /* Two faces only (UF-P1); Pack A self-hosts them, the system fallbacks render until then. */
+  --font-serif: "EB Garamond", Georgia, "Iowan Old Style", serif;
+  --font-script: "Pinyon Script", "Snell Roundhand", "Segoe Script", "Bradley Hand", cursive;
+  --font-hand: var(--font-script);
+  --font-mono: ui-monospace, Menlo, monospace; /* dev pages only */
+
+  --type-xs: 12px;
+  --type-sm: 14px;
+  --type-md: 16px;
+  --type-lg: 20px;
+  --type-xl: 24px;
+  --type-title: 32px;
+}
+
+/* Small caps from the font's own smcp, never uppercased text (UF-P2). About 30 unmigrated
+   components already use a scoped class named "label", so the utility applies only under a C1
+   world root (no screen declares data-world before its plan migrates it). Specificity stays
+   that of a bare .label. */
+:where([data-world]) .label,
+.label:where([data-world]) {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+}
+
+/* ---- worlds: a screen root declares data-world="home|city|system" ---- */
+:root {
+  --home-wall: #2e2420;
+  --home-wood: #6b4a2f;
+  --home-wood-dark: #4a3426;
+  --home-wood-deep: #2a1d15;
+  --home-lamp: #e8b04a;
+  --home-paper: #f1e6cc;
+  --home-paper-dark: #e2d2ae;
+  --home-paper-deep: #d6c39a;
+  --home-ink: #2b2118;
+  --home-ink-soft: #5a4a3a;
+
+  --city-night: #1f2a3a;
+  --city-stone: #3a4148; /* wet stone */
+  --city-stone-light: #5d666d;
+  --city-rain: #a9bcc6; /* rain light */
+  --city-ink: #e9e2d0;
+
+  --system-paper: #f1e6cc;
+  --system-ink: #2b2118;
+  --system-line: rgba(43, 33, 24, 0.22);
+}
+
+[data-world="home"] {
+  --world-bg: var(--home-wood-dark);
+  --world-fg: var(--home-paper);
+  --world-paper: var(--home-paper);
+  --world-line: rgba(241, 230, 204, 0.22);
+}
+[data-world="city"] {
+  --world-bg: var(--city-night);
+  --world-fg: var(--city-ink);
+  --world-paper: var(--home-paper);
+  --world-line: rgba(169, 188, 198, 0.3);
+}
+[data-world="system"] {
+  --world-bg: var(--system-paper);
+  --world-fg: var(--system-ink);
+  --world-paper: var(--system-paper);
+  --world-line: var(--system-line);
+}
+
+/* ---- district light (board §7, UF-P5). Screen roots only until UD-1 renames the SVG marks'
+   data-district attribute (R7): every selector carries the [data-world] prefix. ---- */
+[data-world][data-district="seam"] {
+  --district-dark: #253235;
+  --district-mid: #55625e;
+  --district-light: #bc9273;
+}
+[data-world][data-district="canals"] {
+  --district-dark: #172c39;
+  --district-mid: #456675;
+  --district-light: #bc8a57;
+}
+[data-world][data-district="inkQuarter"] {
+  --district-dark: #272632;
+  --district-mid: #656475;
+  --district-light: #a28d6d;
+}
+[data-world][data-district="bathhouses"] {
+  --district-dark: #25373b;
+  --district-mid: #5f8482;
+  --district-light: #acc7be;
+}
+[data-world][data-district="bridges"] {
+  --district-dark: #252f39;
+  --district-mid: #596d79;
+  --district-light: #adbbbc;
+}
+[data-world][data-district="foundry"] {
+  --district-dark: #292a2a;
+  --district-mid: #6f6956;
+  --district-light: #b19060;
+}
+[data-world][data-district="cartographers"] {
+  --district-dark: #28323a;
+  --district-mid: #768890;
+  --district-light: #d5d7cc;
+}
+[data-world][data-district="lowerSeam"] {
+  --district-dark: #232d30;
+  --district-mid: #535e59;
+  --district-light: #8f9280;
+}
+[data-world][data-district="inkedPage"] {
+  --district-dark: #373239;
+  --district-mid: #867a72;
+  --district-light: #d9cdb5;
+}
+
+/* ---- meaning colours: identical in every world and district ---- */
+:root {
+  --danger: #b3261e;
+  --danger-tint: rgba(179, 38, 30, 0.16);
+  --gold: #c9a227; /* firsts and discoveries only */
+  --shield: #4f7ea8;
+  --reach: rgba(47, 79, 111, 0.35);
+  --select: #e8b04a; /* the amber selection ring */
+  --habit: #7b3a6c; /* a habit decided here (AH-6) */
+  --enemy: #2b2118;
 
   /* rune families */
   --f-source: #8b3a2b;
@@ -37,10 +145,6 @@
   --role-seal: #c98a14; /* lamp-amber */
   --role-aura: #6a4a9a; /* violet */
 
-  /* roles */
-  --member-draughtsman: var(--hue-slate);
-  --member-stoker: var(--hue-rust);
-
   /* apprentice hues (HC P13): ink on parchment, each >= 4.5:1 against --parchment */
   --hue-slate: #2f4f6f;
   --hue-rust: #a2471f;
@@ -52,35 +156,79 @@
   --hue-ochre: #6b6412;
   --hue-indigo: #4a3f94;
   --hue-gilt: #6e5200; /* the owner's */
+  --member-draughtsman: var(--hue-slate);
+  --member-stoker: var(--hue-rust);
   --token-fill: var(--parchment);
-  --enemy: #2b2118;
-  --danger: #b3261e;
-  --danger-tint: rgba(179, 38, 30, 0.16);
-  --shield: #4f7ea8;
-  --habit: #7b3a6c; /* a habit decided here (AH-6) */
-  --select: #e8b04a;
-  --reach: rgba(47, 79, 111, 0.35);
+}
 
-  /* the attic study */
-  --wall: #2e2420;
-  --wood: #6b4a2f;
-  --wood-dark: #4a3426;
-  --wood-deep: #2a1d15;
+/* ---- overlays: only ever declared here, in :root, never under [data-world]/[data-district]
+   (UF-P4). Declared on :root, the var() resolves here, so a district override of a meaning
+   colour cannot reach them. The preview is the "Next round" oil paint, not the amber --select. ---- */
+:root {
+  --overlay-danger: var(--danger);
+  --overlay-reach: var(--reach);
+  --overlay-preview: var(--m-oil);
+  --overlay-first: var(--gold);
+  --overlay-shield: var(--shield);
+}
 
-  --hand: "Snell Roundhand", "Segoe Script", "Bradley Hand", cursive;
-  --mono: ui-monospace, Menlo, monospace;
-  --tap: 44px;
-  --radius: 6px;
+/* ---- materials (tile layers and material-rune frames) ---- */
+:root {
+  --m-ink: #1d2a4a;
+  --m-oil: #7a6420;
+  --m-oil-tint: rgba(122, 100, 32, 0.3);
+  --m-steam: #a9bcc6;
+  --m-spark: #e2a312;
+  --m-brass: #b5882e;
+  --m-brass-dark: #7a5a1a;
+  --m-fire: #d2552a;
+  --m-fire-tint: rgba(210, 85, 42, 0.4);
+  --vent: #55606a;
+}
 
+/* ---- spacing, shape, safe areas ---- */
+:root {
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 16px;
   --space-4: 24px;
+  --space-5: 32px;
+  --tap: 44px;
+  --radius: 6px;
+  --shadow-1: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 8px 24px rgba(43, 33, 24, 0.35);
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* ---- motion (UF-11 scales these by motionScale()) ---- */
+:root {
+  --dur-quick: 250ms;
+  --dur-base: 400ms;
+  --dur-held: 800ms;
+}
+
+/* ---- legacy aliases (UF-P3): unmigrated screens read these; UE's Close deletes them ---- */
+:root {
+  --parchment: var(--home-paper);
+  --parchment-dark: var(--home-paper-dark);
+  --parchment-deep: var(--home-paper-deep);
+  --ink: var(--home-ink);
+  --ink-soft: var(--home-ink-soft);
+  --ink-faint: rgba(43, 33, 24, 0.45);
+  --line: rgba(43, 33, 24, 0.22);
+  --accent: #8b3a2b;
+  --lamp: var(--home-lamp);
+  --night: var(--city-night);
+  --wall: var(--home-wall);
+  --wood: var(--home-wood);
+  --wood-dark: var(--home-wood-dark);
+  --wood-deep: var(--home-wood-deep);
+  --hand: var(--font-script);
+  --mono: var(--font-mono);
 }
 
 /* Dark surfaces (no dark mode ships yet): the same hues lifted to >= 4.5:1 against --night. */
