@@ -8,7 +8,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
-1. UF-1/UF-3 merged (32bfbb2: tokens, six stubs, header.ts, prefs stub). UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). 0a is merged: FT 0b, UH-0, UT-1 and UF Pack A may start; UF-B and UF-C now run (4 packs briefly with 0c and UA-A).
+1. UF-4 merged (be2c0e6; report text was lost, reviewed from the branch: 9 tests pass; loader at src/app/dev, fixtures: threshold-canals-burnt, study-fresh). UF-1/UF-3 merged (32bfbb2: tokens, six stubs, header.ts, prefs stub). UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). 0a is merged: FT 0b, UH-0, UT-1 and UF Pack A may start; UF-B and UF-C now run (4 packs briefly with 0c and UA-A).
 2. After 0b merges: UA Pack A (Claude, UA-1→UA-2), then UA Pack P pilot (Codex).
 3. After 0a merges: UF Packs A/B/C (faces+Gallery, shared components, prefs+menu), FT Pack 0b, UH-0, UT-1 per their briefs files.
 4. Grant order (R24): App.svelte UF-13 → UH-13 → UE-8; flow.ts UT-2 → UE-4; Gallery UF-6/7 → UD-3 → UE-6; package.json UF 0b → UA-A.
@@ -21,7 +21,6 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 | FT-0b | FT-4 contracts | Codex Sol high | build/ft-0b in clone codex-843645866 | running (sid 816825947242) |
 | UF-C | UF-11→UF-13 | Sonnet high | build/pack-ufc @ 32bfbb2 | running (sid 39548c31f5e5) |
 | UA-A | UA-1→UA-2 | Sonnet high | build/pack-uaa (.claude/worktrees/pack-uaa) @ b49271d | running (sid 68c7971a9a57) |
-| UF-0c | UF-4 | Opus high | build/pack-0c @ 17c2414 | running (sid 7e353f0dab94) |
 
 ## Needs design review (left unmerged by a routine window)
 - none
