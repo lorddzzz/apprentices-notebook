@@ -3,10 +3,14 @@ import { join } from 'node:path';
 import { createRawSnippet } from 'svelte';
 import { render } from 'svelte/server';
 import { describe, expect, test, vi } from 'vitest';
+import { toast, toasts } from '../../src/app/toasts.svelte';
 import ActionButton from '../../src/ui/components/common/ActionButton.svelte';
 import AppHeader from '../../src/ui/components/common/AppHeader.svelte';
 import Card from '../../src/ui/components/common/Card.svelte';
+import Sheet from '../../src/ui/components/common/Sheet.svelte';
 import StepMarker from '../../src/ui/components/common/StepMarker.svelte';
+import { swipeCloses } from '../../src/ui/components/common/sheetSwipe';
+import Toasts from '../../src/ui/components/common/Toasts.svelte';
 import Unseen from '../../src/ui/components/common/Unseen.svelte';
 
 /** UF-8…UF-10: the looks of the C7 components. Server render plus the component CSS as text. */
@@ -102,8 +106,9 @@ describe('UF-8 AppHeader, ActionButton, Card', () => {
     expect(disabled).toMatch(/border-style:\s*dashed/);
     expect(disabled).toMatch(/font-style:\s*italic/);
     expect(declsFor(styles, '.danger').join(';')).toContain('var(--danger)');
-    const body = render(ActionButton, { props: { label: 'Go', onclick: () => {}, disabled: true } })
-      .body;
+    const body = render(ActionButton, {
+      props: { label: 'Go', onclick: () => {}, disabled: true },
+    }).body;
     expect(body).toContain('disabled');
     expect(body).toContain('Go');
   });
@@ -154,5 +159,77 @@ describe('UF-9 Unseen and StepMarker', () => {
     const goldRule = declsFor(css('StepMarker.svelte'), '.gold').join(';');
     expect(goldRule).toMatch(/box-shadow:[^;]*var\(--parchment\)[^;]*var\(--gold\)/);
     expect(declsFor(css('StepMarker.svelte'), '.step').join(';')).toContain('border-radius: 50%');
+  });
+});
+
+describe('UF-10 Sheet and Toasts', () => {
+  const sheetProps = (extra: Record<string, unknown> = {}) => ({
+    open: true,
+    title: 'The notebook',
+    onclose: () => {},
+    children: text('body text'),
+    ...extra,
+  });
+
+  test('components: Sheet keeps its dialog contract and the ✕ and tap-out close controls', () => {
+    const body = render(Sheet, { props: sheetProps() }).body;
+    expect(body).toContain('role="dialog"');
+    expect(body).toContain('aria-modal="true"');
+    expect(body).toContain('aria-label="The notebook"');
+    expect(body).toMatch(/class="scrim[^"]*"[^>]*aria-label="Close"/);
+    expect(body).toMatch(/class="close tap[^"]*"[^>]*aria-label="Close"/);
+    expect(body).toContain('body text');
+    expect(render(Sheet, { props: sheetProps({ open: false }) }).body).not.toContain('dialog');
+  });
+
+  test('components: Sheet size is auto (70%) or tall (86%)', () => {
+    expect(render(Sheet, { props: sheetProps() }).body).toMatch(/panel auto[ "]/);
+    expect(render(Sheet, { props: sheetProps({ size: 'tall' }) }).body).toMatch(/panel tall[ "]/);
+    const styles = css('Sheet.svelte');
+    expect(declsFor(styles, '.panel').join(';')).toContain('max-height: 70%');
+    expect(declsFor(styles, '.panel.tall').join(';')).toContain('max-height: 86%');
+    expect(declsFor(styles, '.close').join(';')).toMatch(/min-height:\s*var\(--tap\)/);
+  });
+
+  test('components: Sheet swipe-down starts on the handle and title row, not the body', () => {
+    const src = source('Sheet.svelte');
+    const markup = src.slice(src.indexOf('{#if open}'), src.indexOf('<style>'));
+    const grip = markup.slice(markup.indexOf('class="grip"'), markup.indexOf('class="body"'));
+    expect(grip).toContain('onpointerdown');
+    expect(grip).toContain('class="handle"');
+    expect(grip).toContain('<h2>');
+    expect(markup.slice(markup.indexOf('class="body"'))).not.toContain('onpointer');
+    expect(declsFor(css('Sheet.svelte'), '.grip').join(';')).toContain('touch-action: none');
+    expect(declsFor(css('Sheet.svelte'), '.body').join(';')).toContain('overflow-y: auto');
+  });
+
+  test('components: swipeCloses needs a long or a quick downward drag', () => {
+    expect(swipeCloses(0, 100, 300)).toBe(false);
+    expect(swipeCloses(-80, 100, 300)).toBe(false);
+    expect(swipeCloses(20, 10, 300)).toBe(false); // short, even if quick
+    expect(swipeCloses(60, 400, 300)).toBe(false); // medium and slow: springs back
+    expect(swipeCloses(60, 100, 300)).toBe(true); // medium and quick: a flick
+    expect(swipeCloses(120, 2000, 300)).toBe(true); // long and slow
+    expect(swipeCloses(40, 1000, 100)).toBe(true); // 30% of a short sheet
+  });
+
+  test('components: Sheet reduced motion fades instead of sliding', () => {
+    const styles = css('Sheet.svelte');
+    expect(declsFor(styles, '.reduced .panel').join(';')).toMatch(/animation:\s*fade/);
+    expect(styles).toMatch(/prefers-reduced-motion: reduce[\s\S]*animation-name: fade/);
+    expect(source('Sheet.svelte')).toContain('prefs.reduced');
+  });
+
+  test('components: Toasts keep the store and both tones; warn is not colour alone', () => {
+    toasts.items = [];
+    toast('Saved');
+    toast('Out of ink', 'warn');
+    const body = render(Toasts, { props: {} }).body;
+    expect(body).toMatch(/class="toast info[ "]/);
+    expect(body).toMatch(/class="toast warn[ "]/);
+    expect(body).toContain('role="status"');
+    expect(body.match(/class="mark[ "]/g)).toHaveLength(1);
+    expect(declsFor(css('Toasts.svelte'), '.warn').join(';')).toMatch(/border-style:\s*dashed/);
+    toasts.items = [];
   });
 });

@@ -4,11 +4,15 @@
 
 <div class="toasts" role="status" aria-live="polite" data-testid="toasts">
   {#each toasts.items as t (t.id)}
-    <div class="toast {t.tone}">{t.text}</div>
+    <div class="toast {t.tone}">
+      {#if t.tone === 'warn'}<span class="mark" aria-hidden="true">!</span>{/if}
+      {t.text}
+    </div>
   {/each}
 </div>
 
 <style>
+  /* Small facts only: one short line each; warn also carries a "!" so it never relies on colour. */
   .toasts {
     position: absolute;
     left: var(--space-3);
@@ -22,17 +26,37 @@
     pointer-events: none;
   }
   .toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     max-width: 100%;
     padding: var(--space-2) var(--space-3);
+    border: 1px solid rgba(241, 230, 204, 0.3);
     border-radius: var(--radius);
     background: var(--ink);
     color: var(--parchment);
-    font-size: 14px;
-    box-shadow: 0 2px 8px rgba(43, 33, 24, 0.4);
-    animation: rise 160ms ease-out;
+    font-family: var(--font-serif);
+    font-size: var(--type-md);
+    box-shadow: var(--shadow-2);
+    animation: rise var(--dur-quick) ease-out;
   }
   .warn {
+    border-color: var(--parchment);
+    border-style: dashed;
     background: var(--danger);
+  }
+  .mark {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    font-size: var(--type-xs);
+    font-weight: bold;
+    line-height: 1;
   }
   @keyframes rise {
     from {
@@ -40,9 +64,14 @@
       transform: translateY(8px);
     }
   }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .toast {
-      animation: none;
+      animation-name: fade;
     }
   }
 </style>
