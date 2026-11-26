@@ -5,6 +5,7 @@ import {
   applyAction,
   type BattleState,
   type GameEvent,
+  namedIn,
   type SpellKey,
   type UnitId,
   unitAt,
@@ -27,9 +28,11 @@ import {
   selectedOf,
   unspentCasters,
 } from './battleInput';
+import type { KnowledgeSnapshot } from './beats';
 import {
   type Caption,
   hintFor,
+  namedTitle,
   type RivalSheetView,
   rivalSheet,
   threatenedMembers,
@@ -37,14 +40,19 @@ import {
 import { castLead, type Fx } from './fx';
 import { EMPTY_OVERLAY, type Overlay, overlayFor } from './overlay';
 import { holdLine } from './peek';
+import { type LogStep, logStepOf, projectHistory } from './playback';
 import { Playback } from './playback.svelte';
 import { toast } from './toasts.svelte';
 import { type BoardView, viewOf, withoutIntents } from './view';
 
 export type SessionMode = 'trip' | 'lab';
 
+export type WhenDiscoveryShows = (announce: (ids: readonly string[]) => void) => void;
+
 export interface SessionOptions {
-  onEvents?: (events: GameEvent[]) => void;
+  onEvents?: (events: GameEvent[], whenDiscoveryShows?: WhenDiscoveryShows) => void;
+  /** Named results already in the notebook or announced on this trip. */
+  named?: readonly string[];
   /** The footnotes the household wrote (`footnoteIds`): the engine reads them for their lines. */
   footnotes?: Footnotes;
   /**
@@ -62,6 +70,7 @@ export interface SessionOptions {
 export class BattleSession {
   state: BattleState;
   log: GameEvent[];
+  private notes = $state.raw<LogStep[]>([]);
   input: InputMode = $state.raw(IDLE);
   /** End turn was tapped once while someone could still cast; any other input disarms it. */
   armed = $state(false);
@@ -80,7 +89,9 @@ export class BattleSession {
     this.log = $state.raw([...init.events]);
     this.input = afterAction(init.state, IDLE);
     if (opts.intro && init.events.length) {
-      void this.play(withoutIntents(viewOf(init.state)), init.events);
+      void this.play(withoutIntents(viewOf(init.state)), init.events, this.knowledge([]), 0);
+    } else {
+      this.notes = projectHistory(viewOf(init.state), this.log, this.knowledge([]));
     }
   }
 
@@ -91,6 +102,19 @@ export class BattleSession {
       footnotes: this.opts.footnotes ?? {},
       witnessed: known ? new Set([...known, ...witnessedIn(this.log)]) : null,
     };
+  }
+
+  private knowledge(log: readonly GameEvent[]): KnowledgeSnapshot {
+    const witnessed = this.opts.witnessed;
+    return {
+      named: new Set([...(this.opts.named ?? []), ...namedIn(log)]),
+      witnessed:
+        this.mode === 'trip' && witnessed ? new Set([...witnessed, ...witnessedIn(log)]) : null,
+    };
+  }
+
+  get projectedLog(): readonly LogStep[] {
+    return this.notes;
   }
 
   get busy(): boolean {
@@ -221,14 +245,28 @@ export class BattleSession {
       toast(err instanceof Error ? err.message : String(err), 'warn');
       return;
     }
+    const sourceOffset = this.log.length;
+    const knowledge = this.knowledge(this.log);
     this.opts.onAction?.({ state: prev, log: this.log }, action);
     this.armed = false;
     this.peek = null;
     this.state = r.state;
     this.log = [...this.log, ...r.events];
     this.input = afterAction(r.state, this.input);
-    this.opts.onEvents?.(r.events);
-    await this.play(viewOf(prev), r.events, castLead(prev, action, r.events));
+    let announce = (ids: readonly string[]): void => {
+      for (const id of ids) toast(`New in the notebook: ${namedTitle(id)}`);
+    };
+    this.opts.onEvents?.(r.events, (onShown) => {
+      announce = onShown;
+    });
+    await this.play(
+      viewOf(prev),
+      r.events,
+      knowledge,
+      sourceOffset,
+      castLead(prev, action, r.events),
+      announce,
+    );
   }
 
   /** Lab: swaps in an edited or earlier state (and log); the input and playback reset. */
@@ -238,6 +276,7 @@ export class BattleSession {
     this.peek = null;
     this.state = state;
     this.log = log;
+    this.notes = projectHistory(viewOf(state), log, this.knowledge([]));
     this.input = afterAction(state, IDLE);
   }
 
@@ -259,9 +298,26 @@ export class BattleSession {
     this.playback.skip();
   }
 
-  private play(start: BoardView, events: readonly GameEvent[], lead: Fx[] = []): Promise<void> {
+  private play(
+    start: BoardView,
+    events: readonly GameEvent[],
+    knowledge: KnowledgeSnapshot,
+    sourceOffset: number,
+    lead: Fx[] = [],
+    announce?: (ids: readonly string[]) => void,
+  ): Promise<void> {
     this.run += 1;
-    return this.playback.play(start, events, lead);
+    return this.playback.play(start, events, lead, {
+      knowledge,
+      sourceOffset,
+      onProjected: (shown) => {
+        this.notes = [...this.notes, ...shown.map(logStepOf)];
+      },
+      onShown: (step) => {
+        const ids = step.first?.flatMap((mark) => (mark.kind === 'named' ? [mark.id] : []));
+        if (ids?.length) announce?.(ids);
+      },
+    });
   }
 
   private apply(r: InputResult): void {

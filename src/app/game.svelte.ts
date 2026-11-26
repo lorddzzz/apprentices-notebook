@@ -17,7 +17,7 @@ import {
 import type { StartAt } from '$engine/districts/types';
 import { welcome } from '$engine/recruits';
 import { termTallies } from '../ui/districts/inkQuarter/terms';
-import { BattleSession } from './battle.svelte';
+import { BattleSession, type WhenDiscoveryShows } from './battle.svelte';
 import { chooseWay, setOutAt } from './crossroads';
 import { namedTitle } from './describe';
 import {
@@ -344,7 +344,8 @@ export class GameStore {
       toast('This fight could not be resumed and starts over.', 'warn');
     }
     this.battle = new BattleSession(init, 'trip', {
-      onEvents: (events) => this.announce(events),
+      onEvents: (events, whenShown) => this.announce(events, whenShown),
+      named: [...this.save.profile.named, ...this.toasted],
       onAction: (_, action) => this.commit(recordBattleAction(this.save, action)),
       footnotes: footnoteIds(this.save.profile),
       witnessed: this.save.profile.witnessed,
@@ -444,12 +445,17 @@ export class GameStore {
     forceLose: (): void => this.battle?.forceEnd('lost'),
   };
 
-  private announce(events: GameEvent[]): void {
+  private announce(events: GameEvent[], whenShown?: WhenDiscoveryShows): void {
     const fresh = newDiscoveries(events, this.save.profile.named, this.toasted);
-    for (const id of fresh) {
-      this.toasted.push(id);
-      toast(`New in the notebook: ${namedTitle(id)}`);
-    }
+    const show = (ids: readonly string[]): void => {
+      for (const id of ids) {
+        if (!fresh.includes(id)) continue;
+        this.toasted.push(id);
+        toast(`New in the notebook: ${namedTitle(id)}`);
+      }
+    };
+    if (whenShown) whenShown(show);
+    else show(fresh);
   }
 
   private dropBattle(): void {
