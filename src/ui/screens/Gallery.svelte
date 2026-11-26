@@ -39,6 +39,7 @@
   import Pips from '../components/common/Pips.svelte';
   import Sheet from '../components/common/Sheet.svelte';
   import DrawingEditor from '../components/drawing/DrawingEditor.svelte';
+  import ArtPage from '../components/gallery/ArtPage.svelte';
   import GreyToggle from '../components/gallery/GreyToggle.svelte';
   import TokensPage from '../components/gallery/TokensPage.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
@@ -65,7 +66,7 @@
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall', 'drawing', 'tokens'] as const;
+  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall', 'drawing', 'tokens', 'art'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -362,6 +363,8 @@
     {/each}
   {:else if part === 'tokens'}
     <TokensPage />
+  {:else if part === 'art'}
+    <ArtPage />
   {:else}
     <p>No gallery part "{part}" yet.</p>
   {/if}
