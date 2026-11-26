@@ -1,5 +1,8 @@
 <script lang="ts">
-  /** C7 (frozen props). A numbered disc; gold (firsts) adds a double ring, readable in greyscale. */
+  /**
+   * C7 (frozen props). A numbered disc; gold (firsts) keeps the shape and adds a second ring with a
+   * paper gap, so it stays distinguishable in greyscale (the ring count, not the hue).
+   */
   interface Props {
     n: number;
     gold?: boolean;

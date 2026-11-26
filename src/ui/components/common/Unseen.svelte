@@ -21,15 +21,18 @@
 </span>
 
 <style>
+  /* One look for chip, box and silhouette: the same dashed frame, faint ink, italic serif. */
   .unseen {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-1);
-    border: 1px dashed var(--ink-faint);
+    border: 2px dashed var(--ink-faint);
+    background: rgba(43, 33, 24, 0.05);
     color: var(--ink-faint);
     font-family: var(--font-serif);
     font-style: italic;
+    letter-spacing: 0.08em;
   }
   .box {
     min-width: var(--tap);
@@ -44,7 +47,9 @@
   }
   .silhouette {
     flex-direction: column;
-    padding: var(--space-1);
+    min-width: var(--tap);
+    min-height: var(--tap);
+    padding: var(--space-1) var(--space-2);
     border-radius: var(--radius);
   }
   svg {
@@ -54,5 +59,6 @@
   }
   .text {
     font-size: var(--type-sm);
+    letter-spacing: 0;
   }
 </style>

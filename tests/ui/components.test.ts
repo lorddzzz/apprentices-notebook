@@ -6,6 +6,8 @@ import { describe, expect, test, vi } from 'vitest';
 import ActionButton from '../../src/ui/components/common/ActionButton.svelte';
 import AppHeader from '../../src/ui/components/common/AppHeader.svelte';
 import Card from '../../src/ui/components/common/Card.svelte';
+import StepMarker from '../../src/ui/components/common/StepMarker.svelte';
+import Unseen from '../../src/ui/components/common/Unseen.svelte';
 
 /** UF-8…UF-10: the looks of the C7 components. Server render plus the component CSS as text. */
 
@@ -116,5 +118,41 @@ describe('UF-8 AppHeader, ActionButton, Card', () => {
     expect(css('Card.svelte')).not.toMatch(/min-height|\bheight:/);
     const body = render(Card, { props: { children: text('hello') } }).body;
     expect(body).toContain('hello');
+  });
+});
+
+describe('UF-9 Unseen and StepMarker', () => {
+  test('components: Unseen renders box, chip and silhouette with one dashed frame', () => {
+    const styles = css('Unseen.svelte');
+    expect(declsFor(styles, '.unseen').join(';')).toMatch(/border:\s*2px dashed/);
+    for (const shape of ['box', 'chip'] as const) {
+      const body = render(Unseen, { props: { shape } }).body;
+      expect(body).toContain(`unseen ${shape}`);
+      expect(body).toContain('???');
+    }
+    const sil = render(Unseen, { props: { shape: 'silhouette' } }).body;
+    expect(sil).toContain('<svg');
+    expect(sil).not.toContain('???');
+  });
+
+  test('components: Unseen label is optional and names the image', () => {
+    const none = render(Unseen, { props: {} }).body;
+    expect(none).toContain('aria-label="Not seen yet"');
+    expect(none).not.toContain('class="text"');
+    const named = render(Unseen, { props: { shape: 'chip', label: 'A rival' } }).body;
+    expect(named).toContain('aria-label="A rival"');
+    expect(named).toContain('A rival');
+  });
+
+  test('components: StepMarker sizes 24 and 32, gold adds a second ring', () => {
+    expect(render(StepMarker, { props: { n: 3 } }).body).toContain('--size: 24px');
+    expect(render(StepMarker, { props: { n: 3, size: 32 } }).body).toContain('--size: 32px');
+    const gold = render(StepMarker, { props: { n: 1, gold: true } }).body;
+    expect(gold).toContain('step gold');
+    expect(render(StepMarker, { props: { n: 1 } }).body).not.toContain('gold');
+    // two extra rings (a paper gap and a gold ring) around the base border: three edges in total
+    const goldRule = declsFor(css('StepMarker.svelte'), '.gold').join(';');
+    expect(goldRule).toMatch(/box-shadow:[^;]*var\(--parchment\)[^;]*var\(--gold\)/);
+    expect(declsFor(css('StepMarker.svelte'), '.step').join(';')).toContain('border-radius: 50%');
   });
 });
