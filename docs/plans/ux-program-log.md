@@ -9,6 +9,7 @@
 | UA-P (processing) | see git log art(pilot) | Codex Sol / high (CLI) | 0 | ~25% Codex 5h | processed 4 pilot sources; tooling worked, sidecar gaps noted; generation half was done earlier by the player |
 | FT-1, FT-2, FT-3, FT-3b | 2912ae1..7a955df (+FT-3b) | Codex Sol / high | 0 | ~25% Codex | projectBatch/firsts, hold table, input routing; 35 tests; FT-3b done by orchestrator (prefs guard for fake document) |
 | UA-7, UA-8 (B2) | see git log art(anchors-2) | Codex Sol / high | 0 | ~10% Codex | map plate + Sestante anchors; 237 KB accepted; orchestrator looked at the sheet, looks right |
+| UA-3..UA-6, UX-G1 (B1) | see git log art(anchors-1) | Codex Sol / high | 0 | ~25% Codex | 28 scratch anchors, 453 KB; two generation retries (Hanneke shadow/hook, vent brackets); 10 UX-G1 views |
 | UF-4 | be2c0e6 | Opus / high | 0 | ~5% | dev fixture loader (memory backend, go replace), burnt-threshold replay + study-fresh, grey=1; report lost, reviewed from branch |
 | UF-2 | b49271d | Opus / high | 0 | ~6% | registry, artMeta, role art:check (both gates), inventory; 26+8+5 tests; proposals accepted (2 MiB single-asset cap, ±4 px ground tolerance) |
 
@@ -17,3 +18,4 @@
 | Time | Claude 5h / week | Codex 5h / week | Action |
 |---|---|---|---|
 | 2026-11-26 start | 1% / 19% | 3% / 61% | wave 0 spawn |
+| 22:48 | 93% / 27% | 92% / 75% | throttled; B1 merged |
