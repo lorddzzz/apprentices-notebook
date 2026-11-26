@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
+import { artMetaPlugin } from './scripts/art-check.ts';
+import { PRECACHE_GLOBS, PRECACHE_MAX_BYTES } from './src/ui/art/spec.ts';
 
 function buildHash(): string {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7);
@@ -32,6 +34,7 @@ export default defineConfig({
   },
   plugins: [
     svelte(),
+    artMetaPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon-180x180.png', 'favicon.ico'],
@@ -57,7 +60,7 @@ export default defineConfig({
           },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'] },
+      workbox: { globPatterns: PRECACHE_GLOBS, maximumFileSizeToCacheInBytes: PRECACHE_MAX_BYTES },
     }),
   ],
   test: {

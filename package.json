@@ -19,10 +19,11 @@
     "typecheck:svelte": "svelte-check --tsconfig ./tsconfig.json --incremental",
     "typecheck:ts": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsc.tsbuildinfo",
     "typecheck": "pnpm typecheck:svelte && pnpm typecheck:ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "check": "pnpm typecheck && pnpm lint && pnpm art:check && pnpm test",
     "check:changed": "vitest run --changed main --exclude 'tests/sim/**'",
-    "check:fast": "pnpm typecheck:svelte && pnpm typecheck:ts && pnpm lint && vitest run --exclude 'tests/sim/**'",
-    "icons": "pwa-assets-generator"
+    "check:fast": "pnpm typecheck:svelte && pnpm typecheck:ts && pnpm lint && pnpm art:check && vitest run --exclude 'tests/sim/**'",
+    "icons": "pwa-assets-generator",
+    "art:check": "node --experimental-strip-types scripts/art-check.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
