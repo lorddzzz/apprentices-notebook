@@ -13,6 +13,7 @@
 | UF-8, UF-9, UF-10 | f4a8293, 88d6590, d7470fd | Sonnet / high | 1 (stopped/resumed for usage) | ~15% | AppHeader/ActionButton/Card/Unseen/StepMarker looks, Sheet size+swipe, Toasts; first report lost, reviewed from branch |
 | UF-16 | bb330ab | Sonnet / high | 0 | ~4% | eight glyphs redrawn; 8 runeArt tests; 20/48 px colour+grey screenshots |
 | UA floors-v2 | see git log art(floors-v2) | Codex Sol / high | 0 | ~15% Codex | repeat check in art:sheet + selftest; 13 floors 34.8 KB; 3 retries; lattice 4.8->0.24 |
+| UF-5, UF-6, UF-7 | 93d2eaa..a717092 | Sonnet / high | 0 | ~12% | fonts (OFL, 170 KB), Gallery tokens/art pages, grey toggle; report lost, reviewed from branch |
 | UF-4 | be2c0e6 | Opus / high | 0 | ~5% | dev fixture loader (memory backend, go replace), burnt-threshold replay + study-fresh, grey=1; report lost, reviewed from branch |
 | UF-2 | b49271d | Opus / high | 0 | ~6% | registry, artMeta, role art:check (both gates), inventory; 26+8+5 tests; proposals accepted (2 MiB single-asset cap, ±4 px ground tolerance) |
 
