@@ -7,7 +7,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
-1. UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). Merge 0a first (unblocks FT/UH/UT).
+1. UF-1/UF-3 merged (32bfbb2: tokens, six stubs, header.ts, prefs stub). UF-2 merged (b49271d; C2 frozen: registry, artMeta, art:check in both gates; first consumer must import the registry to enter precache; UA-A adds sharp). Wave 0 running: UF Pack 0a (tokens/stubs, UF-1→UF-3), 0b (art registry, UF-2), 0c (fixture loader, UF-4). 0a is merged: FT 0b, UH-0, UT-1 and UF Pack A may start; UF-B and UF-C now run (4 packs briefly with 0c and UA-A).
 2. After 0b merges: UA Pack A (Claude, UA-1→UA-2), then UA Pack P pilot (Codex).
 3. After 0a merges: UF Packs A/B/C (faces+Gallery, shared components, prefs+menu), FT Pack 0b, UH-0, UT-1 per their briefs files.
 4. Grant order (R24): App.svelte UF-13 → UH-13 → UE-8; flow.ts UT-2 → UE-4; Gallery UF-6/7 → UD-3 → UE-6; package.json UF 0b → UA-A.
@@ -15,7 +15,8 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| UF-0a | UF-1→UF-3 | Opus high | build/pack-0a (.claude/worktrees/pack-0a) @ 17c2414 | running (sid 9535fa81dde9) |
+| UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 | running (sid f1a64b41f2fc) |
+| UF-C | UF-11→UF-13 | Sonnet high | build/pack-ufc @ 32bfbb2 | running (sid 39548c31f5e5) |
 | UA-A | UA-1→UA-2 | Sonnet high | build/pack-uaa (.claude/worktrees/pack-uaa) @ b49271d | running (sid 68c7971a9a57) |
 | UF-0c | UF-4 | Opus high | build/pack-0c @ 17c2414 | running (sid 7e353f0dab94) |
 
@@ -24,7 +25,9 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 
 ## Owed (declared by a contract, not yet built)
 - First registry consumer (UF-7 Gallery or FT) imports `ArtImage` so art enters precache — owed by UF-7/FT
-- Retype AppHeader `strip` to `ArtId` from src/ui/art — owed by UF Pack B (0a declares a local alias)
+- Retype header.ts `ArtId` to registry's and render `strip` via ArtImage — owed by UF-B (in its brief)
+- `.label` small caps only under `[data-world]`; screens that gain data-world lose their scoped `.label` styling — owed by each screen plan
+- AppHeader needs a positioned screen root for MenuSheet — owed by each screen plan
 - FT-2/FT-3 switch timing stand-in to `motionScale()` — owed by UF-11; needed by FT
 - UH-13 App.svelte edit follows UF-13 (R1)
 
