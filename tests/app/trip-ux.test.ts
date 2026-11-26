@@ -1,5 +1,7 @@
 import { render } from 'svelte/server';
 import { expect, test } from 'vitest';
+import { DISTRICTS } from '$data';
+import type { KitGoal } from '$data/districts/index';
 import {
   applyAction,
   type GameEvent,
@@ -20,7 +22,16 @@ import { GameStore } from '../../src/app/game.svelte';
 import { game as appGame } from '../../src/app/instance';
 import { router } from '../../src/app/router.svelte';
 import { memoryBackend, saveText } from '../../src/app/save';
-import { carriedHome, offerNovelty, wipeCause, wipeFixture, wipeRooms } from '../../src/app/tripUx';
+import {
+  carriedHome,
+  frontierMarks,
+  offerNovelty,
+  type PictogramId,
+  thresholdPictogram,
+  wipeCause,
+  wipeFixture,
+  wipeRooms,
+} from '../../src/app/tripUx';
 import { placeInText } from '../../src/app/tripviews';
 import { viewOf } from '../../src/app/view';
 import Wiped from '../../src/ui/screens/Wiped.svelte';
@@ -312,4 +323,52 @@ test('wipeFixture: the Seam and checkpoint give distinct final boards', () => {
   expect(first.final?.phase).toBe('lost');
   expect(first.cause).toBe(`The party fell in ${placeInText(first.encounter)}.`);
   expect(first.encounter).not.toBe(seam.encounter);
+});
+
+test('frontierMarks: none when no visible frontier', () => {
+  const profile = newProfile();
+  expect(frontierMarks(profile)).toEqual([]);
+  profile.city.heard.push('canals');
+  expect(frontierMarks(profile)).toEqual([]);
+
+  // Without the Seam, the map has no trunk to attach to, even with a visible node.
+  profile.city.heard = [];
+  profile.city.open = ['canals'];
+  expect(frontierMarks(profile)).toEqual([]);
+});
+
+test('frontierMarks: hearsAs entries and hidden under-Seam entries excluded', () => {
+  const profile = newProfile();
+  profile.city.open.push('lowerSeam', 'inkedPage');
+  expect(DISTRICTS.lowerSeam.hearsAs).toBe('seam');
+  expect(DISTRICTS.inkedPage.hearsAs).toBe('seam');
+  expect(frontierMarks(profile)).toEqual([]);
+});
+
+test('frontierMarks: marks an unheard node only where the map draws its path', () => {
+  const profile = newProfile();
+  profile.city.open.push('canals'); // Visible in the map projection even before hearing it.
+  const { x, y } = DISTRICTS.canals.map;
+  expect(frontierMarks(profile)).toEqual([{ id: 'canals', x, y }]);
+  profile.city.heard.push('canals');
+  expect(frontierMarks(profile)).toEqual([]);
+});
+
+test('thresholdPictogram: every goal kind maps', () => {
+  const goals: [KitGoal, PictogramId][] = [
+    [{ happens: 'burst', atLeast: 1 }, 'spark'],
+    [{ hurt: 'rat-1', atLeast: 1 }, 'strike'],
+    [{ dies: 'rat-1' }, 'erase'],
+    [{ spared: 'rat-1' }, 'guard'],
+    [{ tile: 'A1', has: 'fire' }, 'lay'],
+    [{ all: [{ dies: 'rat-1' }, { spared: 'rat-2' }] }, 'goal'],
+    [{ withinRounds: 2, goal: { spared: 'rat-1' } }, 'goal'],
+    [{ piece: 'foundry:bell', state: 'rung' }, 'goal'],
+    [{ rule: 'foundry:bells', key: 'rung', atLeast: 1 }, 'goal'],
+    [{ outOfRoom: 'rat-1', cause: 'fell' }, 'goal'],
+    [{ happens: 'burst', unit: 'rat-1' }, 'goal'],
+    [{ noneDowned: true }, 'goal'],
+    [{ reach: ['A1'] }, 'goal'],
+  ];
+  for (const [goal, pictogram] of goals) expect(thresholdPictogram(goal)).toBe(pictogram);
 });

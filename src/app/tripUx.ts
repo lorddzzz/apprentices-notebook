@@ -1,4 +1,5 @@
 import { ATTACKS } from '$data';
+import type { KitGoal } from '$data/districts/index';
 import {
   applyAction,
   type BattleState,
@@ -14,6 +15,7 @@ import {
   type Trip,
   who,
 } from '$engine';
+import { type MapNode, mapNodes, mapPaths } from './city';
 import type { WipeSummary } from './flow';
 import { placeInText } from './tripviews';
 
@@ -170,4 +172,44 @@ export function wipeFixture(kind: 'seam' | 'first-room' | 'nothing-lost'): WipeS
     cause: wipeCause(final, kind === 'seam' ? log : []),
     final,
   };
+}
+
+export function frontierMarks(profile: Profile): Pick<MapNode, 'id' | 'x' | 'y'>[] {
+  const nodes = mapNodes(profile);
+  const paths = mapPaths(nodes);
+  return nodes.flatMap(({ id, x, y }) => {
+    if (profile.city.heard.includes(id)) return [];
+    const attached = paths.some(
+      (path) => (path.x1 === x && path.y1 === y) || (path.x2 === x && path.y2 === y),
+    );
+    return attached ? [{ id, x, y }] : [];
+  });
+}
+
+/** `goal` is the hollow diamond used for an open bonus objective. Other ids use rune art. */
+export type PictogramId = 'goal' | 'spark' | 'strike' | 'erase' | 'guard' | 'lay';
+
+export function thresholdPictogram(goal: KitGoal): PictogramId {
+  switch (true) {
+    case 'all' in goal:
+    case 'withinRounds' in goal:
+    case 'piece' in goal:
+    case 'rule' in goal:
+    case 'outOfRoom' in goal:
+    case 'noneDowned' in goal:
+    case 'reach' in goal:
+      return 'goal';
+    case 'happens' in goal:
+      return 'unit' in goal ? 'goal' : 'spark';
+    case 'hurt' in goal:
+      return 'strike';
+    case 'dies' in goal:
+      return 'erase';
+    case 'spared' in goal:
+      return 'guard';
+    case 'tile' in goal:
+      return 'lay';
+    default:
+      return goal satisfies never;
+  }
 }
