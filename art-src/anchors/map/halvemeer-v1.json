@@ -1,0 +1,197 @@
+{
+  "id": "anchors/map/halvemeer-v1",
+  "screen": "map",
+  "district": "city",
+  "subject": "halvemeer",
+  "state": null,
+  "role": "map-plate",
+  "size": [750, 3800],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [750, 3800],
+    "sha256": "49354d18587a51daef03ddd069581280180f4dc64c0bfc41b51c363c19ac14f6",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "47e9917370b4a3f7a011b2a19bba74cd45bcd7b8adeab27842f78e444698d791",
+      "e941f026b4fb673581dbe8fcef963f0b252a1e44eb666ec8abab4b2cddc64144"
+    ]
+  },
+  "crop": "Three 887 × 1774 opaque panels downsampled to 750 × 1500, at y = 0, 1150 and 2300. Centre-aligned 350 px overlaps share previous-panel artwork and canal landmarks. Feathered joins y = 1348–1410 and 2582–2638. No enlargement.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "upper-left diffuse; warm aged paper with a cooler upper wash and sparse reflected lamp light",
+  "palette": [
+    "#ECE3D1",
+    "#DEC8A7",
+    "#BDA382",
+    "#A6AAB0",
+    "#7A9090",
+    "#647675",
+    "#F1E6CC",
+    "#1F2A3A"
+  ],
+  "model": "unexposed",
+  "prompt": "Use case: illustration-story. Asset: upper overlapping panel of an antique, hand-painted ink-and-wash cartographic survey of Halvemeer, a narrow waterbound guild city. Generate one edge-to-edge opaque portrait image at the largest available native resolution, aspect exactly 1:2, preferably 1024×2048 or larger. It will downsample to 750×1500 as part of a 750×3800 scrolling map. Camera: flat orthographic survey directly from above, drawn on one smooth continuous sheet of aged paper with no exterior background. Input 1 is the panel's fixed composition guide. Follow its river courses, crossings and butted-off side canals faithfully; the two pale clearings must remain completely clean aged paper with only a faint interrupted graphite edge, no road or building inside. The lower 23% is a join with the next panel: keep the east inlet, its confluence and the banks there close to the position and shape in the guide. Input 2 is the Study's paper grain crop. Input 3 is the Lampwater quay's painted architecture crop. Input 4 is a palette strip. Match the style, proportions and finish of the attached approved anchors as represented by these working study crops. Do not reproduce UI or the palette blocks.\n\nLighting: gentle diffuse top-left, cold blue-gray wash near the top like daylight reflected through rain, warm ochre paper becoming slightly warmer toward the bottom, faint amber at a few edges. Paper #ECE3D1 #DEC8A7 #F1E6CC, ink #647675, water #7A9090 #A6AAB0; work in low contrast across the inner field. Sparse drybrush grain, broken graphite banks and planted retaining walls. The map needs character in the uneven watercolor pooling, tiny quay steps, reed beds, and little old roof masses at the far edges and upper quarter. Preserve lots of legible bare paper between the clearings for future separate route overlays; no drawn routes. Delicate fold creases are paper texture and should be irregular and soft. Silhouette key at thumbnail width: a narrow, gently S-shaped slate-water inlet in warm cream paper; bank shapes broad, sparse and legible. Allow the illustration to bleed to every boundary, with no frame or outer dark edge. Avoid decorative symbols including cartouches, compass roses, north arrows, glyphs, hatching that looks like writing, legend, labels, flags, people and ships. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.\nUse case: illustration-story. Asset: middle overlapping panel of the owner's aged-paper, ink-and-wash survey of Halvemeer. Generate one uninterrupted, fully opaque, edge-to-edge portrait image at the largest available native resolution, exact 1:2 aspect, ideally 1024×2048 or larger; production downsample is 750×1500. Camera: cartographic survey seen directly overhead, with small high-angle painted roof silhouettes only well away from the two bare district areas. Input 1 is the compulsory fixed geometry guide and its top 23.33% is already painted by the previous panel. Crucial overlap: reproduce this top band as faithfully as possible, including the width and x positions of the left canal and central canal, the incoming northeast branch curving into the central canal, and the single bridge spanning the central canal near the bottom of the painted band. Continue both canals through the band into the unpainted guide below with continuous banks and water paint; replace the flat sketch only with a natural continuation of the same top panel. Follow the outlined canals and their positions in the lower 77%, and paint a single narrow stone crossing wherever the guide marks one. Never add an extra crossing. Keep the pair of oversized pale areas around 25% and 75% across and 32% down this panel completely empty smooth warm pencil-and-paper fields with only a faint irregular graphite trace at their edges. A broad, calm passage of paper should remain between and around these areas for separate route art. In the final 23% keep water and banks faithful to the guide for the next join. Input 2 is a very small Study paper grain crop. Input 3 is a Lampwater quay finish crop. Input 4 is the map palette strip. Match the style, proportions and finish of the attached approved anchors as represented by these study crops and the north overlap. Do not copy UI, swatches or graphic guides.\n\nLighting: subdued diffuse upper-left light; warm oatmeal paper #ECE3D1 #DEC8A7 #F1E6CC, weathered grayed wash #7A9090 #A6AAB0 and cool desaturated graphite #647675; a few soft lamp reflections in blue-gray canals. Broad matte transparent ink-and-wash masses in subdued cool blushes, warm honey around the old mortared quay steps and sparse distant ledges; very small broken ink details at material edges. A subtle horizontal paper crease is fine if barely visible. Silhouette key at thumbnail width: one stone-banked ribbon of water and its curved branch, with large paper breaths between the banks. No painted routes, connections, neat borders, road diagram, decorative flourishes, cartouches, symbols, text, numbers, illegible writing, isolated motifs, people, flags or folded outer margin. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.\nUse case: illustration-story. Asset: southern overlapping panel of the owner's cartographic ink-and-wash survey of Halvemeer, a waterbound guild city painted on warm aged paper. One opaque edge-to-edge portrait canvas of exactly 1:2 aspect at largest available native resolution, ideally 1024×2048 or larger; this band downscales to 750×1500 for a 750×3800 continuous scroll. Camera: flat survey directly from above with very sparing high-angle copper-ink roof masses like the north panel. Input 1 is the placement guide. Its painted top 23.33% is an exact overlap with the preceding band: preserve the old west waterway hugging the far left, the central stone footbridge at the top-left part of the central canal, its size and diagonal orientation, and the central canal's southeastern bend through the overlap. Continue those banks through the guide below. The central canal becomes narrow and pale at the passage behind three contiguous oversized district clearings 24%, 50% and 75% across in the top half. The blank fields must follow the guide and remain blank, clean parchment, with a faint interrupted graphite contour only. Let the washed course pick up further down to bend around the right of the bottom district clearing, centered halfway across and at 80% panel height. Preserve that large clearing exactly and preserve a calm paper connection vertically from the central clearing. Mute any canal where the three clearings touch. Show a little weathered retaining wall, quay steps and sparsely engraved old roof silhouettes along the far left and far right at the lower quarter, tiny subtle reeds on some outer bends. Use the guide's stone crossing where marked; paint no other passage across or between the clearings. Keep the final paper region quiet, warm and gently weathered, with a barely visible folded paper crease and small stains. Input 2 is the Study clean paint grain, input 3 the Lampwater painted quay, input 4 the shared palette. Match the style, proportions and finish of the attached approved anchors as represented by these study crops and previous overlap. Omit the graphical guide and swatches.\n\nLight: diffuse upper-left, muted warm reflected indoor light against gray-blue ink washes, faint lamp highlights near the edges. Palette: paper #ECE3D1 #DEC8A7 #F1E6CC, ink and cold washes #647675 #7A9090 #A6AAB0, discreet dark paint #1F2A3A. Pale amber-buff paper and cooler canal wash have the same value range as the painted part of the guide. Broken graphite and softly lost edges; very few small engraved details. Silhouette key: a quiet broad old paper valley turned by a soft blue-green canal at the right; lightly suggested quays. No illustrated routes, connecting arrows, symbols, pseudo-writing, labels, building signs, flags, cartouches, figures, watermarks, split lines, margins or border design. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/study-v2.png",
+    "docs/design/art-studies/lampwater-v2.png"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "49354d18587a51daef03ddd069581280180f4dc64c0bfc41b51c363c19ac14f6",
+      "size": [750, 3800]
+    }
+  },
+  "imageTool": "image_gen",
+  "registration": {
+    "viewport": [375, 812],
+    "plateCss": [375, 1900],
+    "reserveSize": [220, 260],
+    "maskSha256": "3a48de10bfd4f7800cc6845a67d12d0e8df74a15d469f8ba31bcc1d328d34d0e",
+    "mask": "Feathered rounded reserve at each node: max of 1 minus smoothstep(0.76, 0.97, cubic-radius), cubic-radius = (abs(dx/109)^3 + abs(dy/128)^3)^(1/3).",
+    "centers": [
+      {
+        "district": "foundry",
+        "percent": [25, 22],
+        "sourcePx": [187.5, 836]
+      },
+      {
+        "district": "cartographers",
+        "percent": [75, 22],
+        "sourcePx": [562.5, 836]
+      },
+      {
+        "district": "inkQuarter",
+        "percent": [25, 43],
+        "sourcePx": [187.5, 1634]
+      },
+      {
+        "district": "bridges",
+        "percent": [75, 43],
+        "sourcePx": [562.5, 1634]
+      },
+      {
+        "district": "canals",
+        "percent": [25, 70],
+        "sourcePx": [187.5, 2660]
+      },
+      {
+        "district": "seam",
+        "percent": [50, 72],
+        "sourcePx": [375, 2736]
+      },
+      {
+        "district": "bathhouses",
+        "percent": [75, 70],
+        "sourcePx": [562.5, 2660]
+      },
+      {
+        "district": "lowerSeam",
+        "percent": [50, 92],
+        "sourcePx": [375, 3496]
+      }
+    ]
+  },
+  "generationInputs": [
+    {
+      "panel": "map-panel-1.png",
+      "sourceSize": [887, 1774],
+      "sourceSha256": "d1d80100461a552c6074282df44f29266006af04c5dcad6e19aa9eda5e13f92c",
+      "placementPx": [0, 0],
+      "attachments": [
+        {
+          "name": "map-guide-1.png",
+          "sha256": "a4167be7f74cd0b68b79296d58203544b7a21589009df9180522dd3b365ff340",
+          "source": "Fixed survey of banks and registered pencil reserves."
+        },
+        {
+          "name": "study-clean-paint.png",
+          "sha256": "7054d7f840aed087bef22b932648e6b097ad2deb7ea5deb13a1226305789b9c5",
+          "source": "docs/design/art-studies/study-v2.png",
+          "crop": [345, 1037, 97, 16]
+        },
+        {
+          "name": "lampwater-quay.png",
+          "sha256": "2e11c9ebfd5bb1e5e3b22ee128706806eb58610d604ebc3a2c5f15fe9ab90244",
+          "source": "docs/design/art-studies/lampwater-v2.png",
+          "crop": [24, 284, 96, 87]
+        },
+        {
+          "name": "map-palette.png",
+          "sha256": "d9020a4a6db47875eb60d54a0459d6199375eaa1ba57ba44bb2239831aa30e0d",
+          "source": "Palette strip in the order given by palette."
+        }
+      ]
+    },
+    {
+      "panel": "map-panel-2.png",
+      "sourceSize": [887, 1774],
+      "sourceSha256": "d3cb62c5b7f9572766c8b63e5900b8b7efb9faba187d4affe5ebdf4bf4425a06",
+      "placementPx": [0, 1150],
+      "attachments": [
+        {
+          "name": "map-guide-2-overlap.png",
+          "sha256": "cdacb8de9ce06cc8e89e6283c49c0d26fd380f4346d8fb9d07aecc51a06340c1",
+          "source": "Fixed survey of banks and registered pencil reserves plus the preceding panel's last 350 px."
+        },
+        {
+          "name": "study-clean-paint.png",
+          "sha256": "7054d7f840aed087bef22b932648e6b097ad2deb7ea5deb13a1226305789b9c5",
+          "source": "docs/design/art-studies/study-v2.png",
+          "crop": [345, 1037, 97, 16]
+        },
+        {
+          "name": "lampwater-quay.png",
+          "sha256": "2e11c9ebfd5bb1e5e3b22ee128706806eb58610d604ebc3a2c5f15fe9ab90244",
+          "source": "docs/design/art-studies/lampwater-v2.png",
+          "crop": [24, 284, 96, 87]
+        },
+        {
+          "name": "map-palette.png",
+          "sha256": "d9020a4a6db47875eb60d54a0459d6199375eaa1ba57ba44bb2239831aa30e0d",
+          "source": "Palette strip in the order given by palette."
+        }
+      ]
+    },
+    {
+      "panel": "map-panel-3.png",
+      "sourceSize": [887, 1774],
+      "sourceSha256": "cc8ec2a9e152fa5a1398eec8f126d13470d780e2b420070bd92178afc2974c64",
+      "placementPx": [0, 2300],
+      "attachments": [
+        {
+          "name": "map-guide-3-overlap.png",
+          "sha256": "097eb8b4e3c3f3954cd50e7c3b083a3340e2a2b40361149ffa9df16c41e6c23f",
+          "source": "Fixed survey of banks and registered pencil reserves plus the preceding panel's last 350 px."
+        },
+        {
+          "name": "study-clean-paint.png",
+          "sha256": "7054d7f840aed087bef22b932648e6b097ad2deb7ea5deb13a1226305789b9c5",
+          "source": "docs/design/art-studies/study-v2.png",
+          "crop": [345, 1037, 97, 16]
+        },
+        {
+          "name": "lampwater-quay.png",
+          "sha256": "2e11c9ebfd5bb1e5e3b22ee128706806eb58610d604ebc3a2c5f15fe9ab90244",
+          "source": "docs/design/art-studies/lampwater-v2.png",
+          "crop": [24, 284, 96, 87]
+        },
+        {
+          "name": "map-palette.png",
+          "sha256": "d9020a4a6db47875eb60d54a0459d6199375eaa1ba57ba44bb2239831aa30e0d",
+          "source": "Palette strip in the order given by palette."
+        }
+      ]
+    }
+  ]
+}
