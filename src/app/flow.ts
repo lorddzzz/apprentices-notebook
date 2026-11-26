@@ -41,12 +41,17 @@ import { allMasks } from './faircopy';
 import type { Route } from './routes';
 import { parseSaveText, type SaveBackend, writeSave } from './save';
 import { editProfile, type ShelfTool, type SocketDecision } from './study';
+import { wipeCause, wipeRooms } from './tripUx';
 
 /** What a wipe leaves to read: the lost loot and what the notebook learned anyway. */
 export interface WipeSummary {
   encounter: string;
   lost: LootItem[];
   learned: string[];
+  rooms?: { place: string; result: 'cleared' | 'fell' }[];
+  cause?: string;
+  /** The final battle stays with the transient summary. */
+  final?: BattleState;
 }
 
 export type Screen =
@@ -263,7 +268,17 @@ export function endBattle(
         : lastTrip,
   };
   const wipe: WipeSummary | null =
-    r.outcome === 'wiped' ? { encounter: battle.title, lost: [...trip.loot], learned } : null;
+    r.outcome === 'wiped'
+      ? {
+          encounter: battle.title,
+          lost: [...trip.loot],
+          learned,
+          // A terminal loss event marks a finished live or replayed battle.
+          ...(log.some((event) => event.type === 'lost')
+            ? { rooms: wipeRooms(trip), cause: wipeCause(battle, log), final: battle }
+            : {}),
+        }
+      : null;
   return { save: next, outcome: r.outcome, wipe, learned, paper: r.paper ?? null };
 }
 
