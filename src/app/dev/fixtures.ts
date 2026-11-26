@@ -6,7 +6,10 @@ import {
   newSave,
   type Profile,
   parseLattice,
+  pushOn,
   type SaveData,
+  startTrip,
+  type Trip,
 } from '$engine';
 import type { WipeSummary } from '../flow';
 import type { GameStore } from '../game.svelte';
@@ -23,14 +26,23 @@ import {
   glyphProfile,
   heldPageProfile,
   inkedPagesProfile,
+  lowerProfile,
   lowerSeamProfile,
   mapFreshProfile,
   mapFrontierProfile,
   midProfile,
+  mooredCrate,
+  openProfile,
+  paperRoom,
   RECIPE_SEED,
   rememberedCheckpoint,
+  THREE_OFFERS,
+  takeAll,
   threeSeats,
+  tripAfter,
+  tripCleared,
   unlockedSave,
+  winRoom,
 } from './recipes';
 
 /**
@@ -49,7 +61,9 @@ export type FixtureId =
   // UF-15a, UF-15b, UF-15f (Pack D2)
   | HomeFixtureId
   | MapFixtureId
-  | GlyphFixtureId;
+  | GlyphFixtureId
+  // UF-14 (Pack D1)
+  | D1FixtureId;
 
 /** What a setup recipe may reach besides the game: the app's transient stores and the URL's step. */
 export interface FixtureContext {
@@ -381,10 +395,144 @@ const GLYPH_FIXTURES: Record<GlyphFixtureId, Fixture> = {
   },
 };
 
+// ── Pack D1 (UF-14a/b/c): trip, wipe and ending late states ──
+// A separate block so the parallel packs' fixtures merge without touching it.
+
+export type D1FixtureId =
+  | 'threshold-canals'
+  | 'threshold-nothing'
+  | 'crossroads-seam'
+  | 'crossroads-span'
+  | 'crossroads-no-way-home'
+  | 'cleared-seam'
+  | 'cleared-lower-seam'
+  | 'loot-three'
+  | 'loot-bonus'
+  | 'loot-paper-found';
+
+/** A fresh save on `profile`, at home or out on `trip`. */
+function saveOn(profile: Profile, trip: Trip | null = null): SaveData {
+  return { ...newSave(FIXTURE_SEED), profile, trip };
+}
+
+/** The seam trip's first room, won and still looting. */
+function seamLooting(profile: Profile): Trip {
+  return winRoom(profile, startTrip(profile, 7, 'seam'));
+}
+
+const D1_FIXTURES: Record<D1FixtureId, Fixture> = {
+  'threshold-canals': {
+    id: 'threshold-canals',
+    route: 'threshold',
+    params: { d: 'canals' },
+    save: () => saveOn(lockProfile()),
+    expect: 'threshold-goal',
+    note: 'The canal lock as the party first finds it: heard, barred, the live room with its goal line. UT-6 puts an intro stage in front (tap `enter`): see the todo in the test.',
+  },
+  'threshold-nothing': {
+    id: 'threshold-nothing',
+    route: 'threshold',
+    params: { d: 'canals' },
+    save: () => saveOn(openProfile(['canals'])),
+    expect: 'threshold-note',
+    note: 'A threshold link to a district that is already open: no plan, "Nothing to try here" with its one line of voice.',
+  },
+  'crossroads-seam': {
+    id: 'crossroads-seam',
+    route: 'trip',
+    save: () => {
+      const p = newProfile();
+      return saveOn(p, tripAfter(p, 'seam', 1));
+    },
+    expect: 'push',
+    note: 'The Seam after room 1: the one way on, and the way home with the finds kept.',
+  },
+  'crossroads-span': {
+    id: 'crossroads-span',
+    route: 'trip',
+    save: () => {
+      const p = openProfile(['bridges']);
+      return saveOn(p, tripAfter(p, 'bridges', 1));
+    },
+    expect: 'way-sound',
+    note: 'The bridges after room 1: two span cards (the sound span, the crumbling span) instead of Push on.',
+  },
+  'crossroads-no-way-home': {
+    id: 'crossroads-no-way-home',
+    route: 'trip',
+    save: () => {
+      const p = openProfile(['cartographers']);
+      return saveOn(p, tripAfter(p, 'cartographers', 3));
+    },
+    expect: 'no-way-home',
+    note: 'The Cartographers after room 3, the last crossroads with a way home: the push warns "no way home" for the rooms after it.',
+  },
+  'cleared-seam': {
+    id: 'cleared-seam',
+    route: 'trip',
+    save: () => {
+      const p = newProfile();
+      return saveOn(p, tripCleared(p, 'seam'));
+    },
+    expect: 'cleared',
+    note: 'The Seam cleared to its heart: the way home is all that is left, with the whole trip carried.',
+  },
+  'cleared-lower-seam': {
+    id: 'cleared-lower-seam',
+    route: 'trip',
+    save: () => {
+      const p = lowerProfile();
+      return saveOn(p, tripCleared(p, 'lowerSeam'));
+    },
+    expect: 'cleared',
+    note: 'The lowest floor of the lower Seam cleared: "The stair ends here", with the owner-door line when it applies.',
+  },
+  'loot-three': {
+    id: 'loot-three',
+    route: 'trip',
+    save: () => {
+      const p = newProfile();
+      const t = seamLooting(p);
+      return saveOn(p, { ...t, offers: [...THREE_OFFERS], picksLeft: 1 });
+    },
+    expect: 'offers',
+    note: 'Room 1 won, three cards to choose from: a rune the notebook lacks, ink, a district card; one pick.',
+  },
+  'loot-bonus': {
+    id: 'loot-bonus',
+    route: 'trip',
+    save: () => {
+      const p = openProfile(['canals']);
+      // The canals' second room carries the mooring bonus: met by the moored-crate event in its log.
+      const t = takeAll(winRoom(p, startTrip(p, 7, 'canals')));
+      return saveOn(p, winRoom(p, pushOn(t), [mooredCrate()]));
+    },
+    expect: 'bonus-pick',
+    note: 'The canals room 2 won with the crate moored: the "bonus pick earned" line and one more pick to take.',
+  },
+  'loot-paper-found': {
+    id: 'loot-paper-found',
+    route: 'trip',
+    save: () => {
+      const p = openProfile(['bathhouses']);
+      return saveOn(p, paperRoom(p, 'bathhouses').trip);
+    },
+    setup: (game) => {
+      const trip = game.save.trip;
+      if (!trip) throw new Error('No trip to file a paper in');
+      const { paper, room } = paperRoom(game.profile, 'bathhouses');
+      game.found = { seed: trip.seed, room, paper };
+    },
+    expect: 'paper-found',
+    note: "A bathhouses room won that filed its paper (a bather's ledger) for the first time: the transient `game.found` notice above the offers.",
+  },
+};
+
 export const FIXTURES: Record<FixtureId, Fixture> = {
   ...HOME_FIXTURES,
   ...MAP_FIXTURES,
   ...GLYPH_FIXTURES,
+  ...D1_FIXTURES,
   'threshold-canals-burnt': {
     id: 'threshold-canals-burnt',
     route: 'threshold',

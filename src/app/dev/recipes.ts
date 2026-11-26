@@ -10,24 +10,35 @@ import {
   SOLVENT_IDS,
   TUNING,
 } from '$data';
+import type { PaperId } from '$data/districts/index';
 import {
+  type BattleState,
+  beginEncounter,
   type CastSample,
   type Cluster,
   clustersOf,
   compileGlyph,
   type FiredCell,
+  finishEncounter,
+  type GameEvent,
   type GlyphDef,
   type GlyphRecord,
   joinHousehold,
+  type LootItem,
   latticeOf,
+  newProfile,
   newSave,
   type Profile,
   parseLattice,
+  pickLoot,
+  pushOn,
   type SaveData,
   setMemberLattice,
   setSlot,
   startTrip,
+  type Trip,
   type TripRecap,
+  takeChoice,
   versionKey,
 } from '$engine';
 import { shapeOf } from '$engine/trip/shape';
@@ -326,4 +337,121 @@ export function glyphProfile(): Profile {
     ...folded,
     glyphRecords: { ...folded.glyphRecords, [versionKey(def.id, def.version)]: glyphRecord(def) },
   };
+}
+
+/**
+ * UF-14 / R21: setup recipes for the fixtures. Dev code only: every one is built from engine
+ * calls (never from `tests/`, never from recorded JSON), so a save-version bump cannot rot them.
+ * The patterns are copied from `tests/drawing/fixtures.ts` and the crossroads tests.
+ */
+
+// ── Pack D1 · UF-14a: trip late states ──────────────────────────────────────
+
+/** A notebook with `open` districts heard and open after the Seam. */
+export function openProfile(open: readonly DistrictId[] = []): Profile {
+  const p = newProfile();
+  const all: DistrictId[] = ['seam', ...open];
+  return { ...p, city: { ...p.city, heard: all, open: all } };
+}
+
+/** The battle as if the party had won it (the crossroads tests' `won`). */
+function won(b: BattleState): BattleState {
+  const s = structuredClone(b);
+  s.phase = 'won';
+  for (const u of s.units) if (u.kind === 'enemy') u.hp = 0;
+  return s;
+}
+
+/** Wins the current room through the engine's own close: the trip is looting (or the way on). */
+export function winRoom(p: Profile, t: Trip, log: readonly GameEvent[] = []): Trip {
+  const end = finishEncounter(p, t, won(beginEncounter(p, t).state), [...log]);
+  if (!end.trip) throw new Error('The room did not close into a trip');
+  return end.trip;
+}
+
+/** Takes every pick of the looting trip (the first offer each time). */
+export function takeAll(t: Trip): Trip {
+  let trip = t;
+  for (let guard = 0; guard < 12 && trip.status === 'looting'; guard++) trip = pickLoot(trip, 0);
+  return trip;
+}
+
+/** Goes on from a crossroads: the module's way on if it has one named, else push on. */
+function goOn(t: Trip, way: string | undefined): Trip {
+  return way === undefined ? pushOn(t) : takeChoice(t, way);
+}
+
+/**
+ * A trip that has won `rooms` rooms and taken all its picks: standing at the next crossroads (or
+ * cleared, past the heart). `ways[i]` names the crossroads choice taken after room `i`.
+ */
+export function tripAfter(
+  p: Profile,
+  district: DistrictId,
+  rooms: number,
+  ways: readonly (string | undefined)[] = [],
+): Trip {
+  let t = startTrip(p, 7, district);
+  for (let i = 0; i < rooms; i++) {
+    if (t.status === 'crossroads') t = goOn(t, ways[i - 1]);
+    t = takeAll(winRoom(p, t));
+  }
+  return t;
+}
+
+/** Wins rooms until the trip is cleared (the heart won and its picks taken). */
+export function tripCleared(p: Profile, district: DistrictId): Trip {
+  let t = startTrip(p, 7, district);
+  for (let guard = 0; guard < 20 && t.status !== 'cleared'; guard++) {
+    if (t.status === 'crossroads') t = pushOn(t);
+    t = takeAll(winRoom(p, t));
+  }
+  if (t.status !== 'cleared') throw new Error(`${district} did not clear`);
+  return t;
+}
+
+/** The canals' crate, moored: a room's mooring bonus (one more pick) is met by this event. */
+export function mooredCrate(): GameEvent {
+  return {
+    type: 'moored',
+    unit: { id: 'barge-1', name: 'Crate', at: { x: 0, y: 0 }, member: false },
+    at: { x: 0, y: 0 },
+  };
+}
+
+/** The first paper a won room files for the first time, with the room it was filed in. */
+export function filedPaper(
+  p: Profile,
+  t: Trip,
+): { trip: Trip; paper: PaperId; room: number } | null {
+  const end = finishEncounter(p, t, won(beginEncounter(p, t).state), []);
+  return end.trip && end.paper ? { trip: end.trip, paper: end.paper, room: t.encounter } : null;
+}
+
+/** Three cards: a rune the notebook lacks, ink, and a district card (a key). */
+export const THREE_OFFERS: readonly LootItem[] = [
+  { kind: 'rune', rune: 'fork' },
+  { kind: 'ink', amount: 2 },
+  { kind: 'key', district: 'canals' },
+];
+
+/** A notebook the lower Seam is open on: the Seam's heart fallen, the canals open as its one floor. */
+export function lowerProfile(): Profile {
+  const p = openProfile(['canals']);
+  return { ...p, city: { ...p.city, hearts: ['seam'] } };
+}
+
+/** The first room of `district` whose win files a paper for the first time: that room, won and looting. */
+export function paperRoom(
+  p: Profile,
+  district: DistrictId,
+): { trip: Trip; paper: PaperId; room: number } {
+  let t = startTrip(p, 7, district);
+  for (let guard = 0; guard < 8; guard++) {
+    const found = filedPaper(p, t);
+    if (found) return found;
+    t = takeAll(winRoom(p, t));
+    if (t.status === 'crossroads') t = pushOn(t);
+  }
+  throw new Error(`No ${district} room files a paper`);
 }

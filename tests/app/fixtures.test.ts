@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import type { DistrictId } from '$data';
 import { DISTRICTS } from '$data';
 import {
@@ -12,10 +12,12 @@ import {
   type GameEvent,
   newSave,
   rewardsOf,
+  roomsOf,
   tripParty,
   versionKey,
 } from '$engine';
 import { drawingsOf } from '$engine/drawing';
+import { shapeOf } from '$engine/trip/shape';
 // Pack D2 (UF-15a/b/f) imports
 import { trialPage } from '../../src/app/bench';
 import { mapNodes, underSeam } from '../../src/app/city';
@@ -740,4 +742,191 @@ describe('UF-15f glyph and Fair copy recipes', () => {
     expect(glyph && p.glyphRecords[versionKey(glyph.id, glyph.version)]?.casts).toBeGreaterThan(0);
     expect(glyph?.cells.some((c) => canBeOpen(c.rune))).toBe(true);
   });
+});
+
+// ── Pack D1 (UF-14): late-state fixtures ─────────────────────────────────────────────────────────
+// The fake document "mounts" the testids the CURRENT screens would show for the state the fixture
+// built, read through the same view models the screens use (crossroadsView, paperNote, planThreshold,
+// the Loot bonus rule). A fixture whose state did not come out as intended therefore never reaches
+// `ready`: the loader fails on the missing expect testid.
+
+type Stores = {
+  game: Awaited<ReturnType<typeof coldLoad>>['game'];
+  router: Awaited<ReturnType<typeof coldLoad>>['router'];
+  threshold: Awaited<ReturnType<typeof coldLoad>>['threshold'];
+};
+
+async function tripMountedModel({
+  game,
+  router,
+  threshold,
+}: Stores): Promise<(id: string) => boolean> {
+  const { crossroadsView } = await import('../../src/app/crossroads');
+  const { planThreshold } = await import('../../src/app/threshold');
+  const { paperNote } = await import('../../src/app/lootviews');
+  return (id) => {
+    const trip = game.save.trip;
+    const { screen } = resolveScreen(
+      router.route,
+      trip,
+      game.wipe,
+      game.save.lastTrip,
+      game.profile,
+    );
+    const ids = new Set<string>();
+    if (screen === 'study') ids.add('study');
+    if (screen === 'threshold') {
+      ids.add('threshold');
+      const plan = planThreshold(game.profile, router.params.get('d'));
+      if (threshold.solved && threshold.district !== null) ids.add('threshold-solved');
+      else if (plan.ok) ids.add('threshold-goal');
+      else ids.add('threshold-note');
+    }
+    if (screen === 'wiped') ids.add('wiped');
+    if (screen === 'cleared') ids.add('cleared');
+    if (screen === 'handover') ids.add('handover').add('handover-page');
+    if (screen === 'drawingTable') ids.add('drawing-table');
+    if (screen === 'credits') ids.add('credits').add('credits-reel');
+    if (screen === 'crossroads' && trip) {
+      ids.add('crossroads').add('ways');
+      const view = crossroadsView(trip);
+      for (const w of view.ways) {
+        ids.add(w.testid);
+        if (w.warn) ids.add('no-way-home');
+      }
+      if (view.home) {
+        ids.add(view.home.testid);
+        if (view.home.disabled) ids.add('no-landing');
+      }
+    }
+    if (screen === 'loot' && trip) {
+      ids.add('loot').add('offers').add('picks-left').add('take');
+      for (let i = 0; i < trip.offers.length; i++) ids.add(`offer-${i}`);
+      // Loot.svelte's bonus rule: a met room bonus leaves more picks than the room's base.
+      const bonus = shapeOf(trip.district).bonuses?.[trip.encounter];
+      const base = roomsOf(trip)[trip.encounter]?.picks ?? 1;
+      if (
+        trip.kit?.bonuses.includes(trip.encounter) &&
+        bonus?.reward.kind === 'pick' &&
+        trip.picksLeft > base
+      ) {
+        ids.add('bonus-pick');
+      }
+      const found = game.found;
+      if (found && found.seed === trip.seed && found.room === trip.encounter) {
+        if (paperNote(found.paper)) ids.add('paper-found');
+      }
+    }
+    return ids.has(id);
+  };
+}
+
+/** Opens `name` on a cold page and returns the stores once the loader reports it ready. */
+async function openFixture(name: string): Promise<{ b: Browser } & Stores> {
+  const planted = saveText({ ...newSave(424242), seedCounter: 424242 });
+  const b = fakeBrowser(`#/fixture?name=${name}`, planted);
+  const stores = await coldLoad(b);
+  b.setMounted(await tripMountedModel(stores));
+  await ready(b, name);
+  return { b, ...stores };
+}
+
+describe('UF-14a: trip late states', () => {
+  const D1_TRIP = [
+    'threshold-canals',
+    'threshold-nothing',
+    'crossroads-seam',
+    'crossroads-span',
+    'crossroads-no-way-home',
+    'cleared-seam',
+    'cleared-lower-seam',
+    'loot-three',
+    'loot-bonus',
+    'loot-paper-found',
+  ] as const;
+
+  test('fixtures: trip late states resolve to their screens and show their expected state', async () => {
+    const screens: Record<string, string> = {
+      'threshold-canals': 'threshold',
+      'threshold-nothing': 'threshold',
+      'threshold-canals-burnt': 'threshold',
+      'crossroads-seam': 'crossroads',
+      'crossroads-span': 'crossroads',
+      'crossroads-no-way-home': 'crossroads',
+      'cleared-seam': 'cleared',
+      'cleared-lower-seam': 'cleared',
+      'loot-three': 'loot',
+      'loot-bonus': 'loot',
+      'loot-paper-found': 'loot',
+    };
+    for (const id of [...D1_TRIP, 'threshold-canals-burnt'] as const) {
+      const f = FIXTURES[id];
+      const { game, router, threshold } = await openFixture(id);
+      // Entered through the router, no redirect, and the intended screen.
+      const r = resolveScreen(
+        router.route,
+        game.save.trip,
+        game.wipe,
+        game.save.lastTrip,
+        game.profile,
+      );
+      expect(r.redirect, id).toBeNull();
+      expect(r.screen, id).toBe(screens[id]);
+      expect(f.expect, id).toMatch(/\S/);
+      // The semantic state, beyond the screen.
+      switch (id) {
+        case 'threshold-canals':
+          expect(threshold.solved).toBe(false);
+          expect(game.profile.city.open).not.toContain('canals');
+          break;
+        case 'threshold-nothing':
+          expect(game.profile.city.open).toContain('canals');
+          break;
+        case 'crossroads-seam':
+          expect(game.save.trip?.district).toBe('seam');
+          expect(game.save.trip?.encounter).toBe(0);
+          break;
+        case 'crossroads-span':
+          expect(game.save.trip?.district).toBe('bridges');
+          break;
+        case 'crossroads-no-way-home':
+          expect(game.save.trip?.district).toBe('cartographers');
+          break;
+        case 'cleared-seam':
+          expect(game.save.trip?.district).toBe('seam');
+          break;
+        case 'cleared-lower-seam':
+          expect(game.save.trip?.district).toBe('lowerSeam');
+          break;
+        case 'loot-three':
+          expect(game.save.trip?.offers.map((o) => o.kind)).toEqual(['rune', 'ink', 'key']);
+          expect(game.profile.known).not.toContain('fork');
+          break;
+        case 'loot-bonus':
+          expect(game.save.trip?.kit?.bonuses).toEqual([1]);
+          break;
+        case 'loot-paper-found':
+          expect(game.found?.seed).toBe(game.save.trip?.seed);
+          break;
+        default:
+      }
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
+  }, 60_000);
+
+  test('fixtures: a wrong expected testid fails the loader instead of passing', async () => {
+    const planted = saveText({ ...newSave(424242), seedCounter: 424242 });
+    const b = fakeBrowser('#/fixture?name=crossroads-seam', planted);
+    const stores = await coldLoad(b);
+    const model = await tripMountedModel(stores);
+    b.setMounted((id) => id !== 'push' && model(id));
+    await vi.waitFor(() => expect(b.root.dataset.fixtureState).toBe('failed'), {
+      timeout: 8000,
+      interval: 20,
+    });
+    expect(b.root.dataset.fixtureError).toMatch(/"push" never mounted/);
+  }, 20_000);
+
+  it.todo('threshold-canals: the intro stage and its `enter` tap (UT-6 builds the stage)');
 });
