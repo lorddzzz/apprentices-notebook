@@ -8,3 +8,6 @@ coverage
 check.log
 .svelte-check/
 *.tsbuildinfo
+# Art masters live in the external archive (UA-D15); hashes are in art-src/MASTERS.json
+art-src/**/*.png
+art-src/**/*.tiff
