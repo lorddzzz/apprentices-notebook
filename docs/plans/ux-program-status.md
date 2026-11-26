@@ -15,9 +15,9 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| UF-0a | UF-1→UF-3 | Opus high | build/pack-0a (.claude/worktrees/pack-0a) @ 17c2414 | spawning |
-| UF-0b | UF-2 | Opus high | build/pack-0b @ 17c2414 | spawning |
-| UF-0c | UF-4 | Opus high | build/pack-0c @ 17c2414 | spawning |
+| UF-0a | UF-1→UF-3 | Opus high | build/pack-0a (.claude/worktrees/pack-0a) @ 17c2414 | running (sid 9535fa81dde9) |
+| UF-0b | UF-2 | Opus high | build/pack-0b @ 17c2414 | running (sid fbb373894898) |
+| UF-0c | UF-4 | Opus high | build/pack-0c @ 17c2414 | running (sid 7e353f0dab94) |
 
 ## Needs design review (left unmerged by a routine window)
 - none
