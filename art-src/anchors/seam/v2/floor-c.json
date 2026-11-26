@@ -1,0 +1,61 @@
+{
+  "id": "anchors/seam/v2/floor-c",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "floor",
+  "state": "c",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "a1cf4cb3a81b68a318e08d1a0449667e634ee70f855e3e3c5c0110556ed87e78",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "e69ef3e2a5f1786e57864a160663e85fd3084e5a22fed3b60822fb45ce544011",
+      "31e6b6e4fbf9660309d7ed4a2a63da5e8fbb350c58b803ee0ce8f6f558408d4e",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Even diffuse material value. Scene carries light.",
+  "palette": ["#253235", "#55625E", "#BC9273", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Image 1 is the Seam material identity. Image 2 is the clean study's dark slate paint crop; image 3 is the palette, with the district triple first. Match the style, proportions and finish of the attached anchors. Generate a single opaque edge-to-edge square game ground texture at the largest native square resolution, strictly overhead orthographic. This variation must visibly read as a fractured flagstone, with three clearly recognisable irregular hairline fissures, including a shallow angled fork, offset to opposite thirds of the square. Each fissure is drawn in quiet darker green stone pigment 8–14 sRGB luma steps below the local stone, around 25 pixels wide on a 1254 px canvas at its broadest, broken and tapering. No raised bevel or rim on either side of any fissure. Fissures branch shallowly like natural geological fractures, with no enclosed shapes or writing. Broad matte hand-painted gouache finish, fine paint grain, sparse ink only at material edges. Keep the base plane even across the square, in chromatic green slate between #253235 and #55625E with restrained mineral patina based on #BC9273. Stone pattern should be recognizable when downscaled to 51 pixels; the short, darker lines come from the material, with no directional shading. Keep large color masses equal-valued and quiet across center and edges. Lit by the scene's upper-left key elsewhere: render this material under even diffuse exposure without a cast shadow, shimmer, rim light, bright spots, amber lighting, center glow or vignette. The perspective, colours and old slate finish match the references, while the physical stone topology is the distinct variation described above. No text, letters, numbers, UI, frames, arrows, grid lines, reach dots, HP, targeting rings, watermark, objects, figures or cutout.",
+  "references": [
+    "art-src/anchors/seam/v1/floor-a.webp",
+    "docs/design/art-studies/seam-v2.png#xywh=560,755,75,72",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "da93e5cc-a219-4503-beb8-e28182e0217c",
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "floors-v2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "a1cf4cb3a81b68a318e08d1a0449667e634ee70f855e3e3c5c0110556ed87e78",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "notes": ["edges shared with art-src/anchors/seam/v2/floor-a.webp"],
+    "toneGrade": {
+      "adjustment": "Centred the palette and softened broad tone while retaining narrow stone or ripple structure.",
+      "generationSha256": "ae594459dbf2f1cced93b70447a335e75d62731553839d58ab10516dc64aa833"
+    },
+    "edgeBand": 26,
+    "perimeter": {
+      "pixels": 1,
+      "method": "Use A’s decoded q80 perimeter, averaging opposing edges to make them equal.",
+      "finalEncoding": "Lossless WebP preserves exact RGB edges and the q80 interior."
+    }
+  },
+  "candidate": "v2"
+}
