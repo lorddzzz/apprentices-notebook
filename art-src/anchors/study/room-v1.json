@@ -1,0 +1,64 @@
+{
+  "id": "anchors/study/room-v1",
+  "screen": "study",
+  "district": "home",
+  "subject": "room",
+  "state": null,
+  "role": "scene",
+  "size": [750, 1624],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [852, 1846],
+    "sha256": "b62a05874532f03689e5ecb0b4555eb13db3f559e6b51a6c3572cdfce98483a9",
+    "processor": "art-process@1",
+    "quality": 76,
+    "refSha256": [
+      "47e9917370b4a3f7a011b2a19bba74cd45bcd7b8adeab27842f78e444698d791",
+      "23ab9e60c06bfb432d127078a1e62953016c0be294daf7e6e451ba193d4f0106",
+      "b0fd4ffb20109410a202a8f9b6136064754d0f5956c535a929be2ba7c4ba0975"
+    ]
+  },
+  "crop": "Cover crop through the full vertical attic composition.",
+  "focal": [0.5, 0.5],
+  "angle": "flat",
+  "light": "top-left key; warm amber lamp against blue window light",
+  "palette": [
+    "#FAD48E",
+    "#FBA731",
+    "#8C4C1D",
+    "#2B63A2",
+    "#346489",
+    "#283549",
+    "#6B351D",
+    "#553530",
+    "#693A26",
+    "#432824",
+    "#4C3139",
+    "#E7BA8D",
+    "#29232E",
+    "#592A20"
+  ],
+  "model": "unexposed",
+  "prompt": "Paint a complete attic study background for The Apprentice's Notebook, one opaque full-bleed vertical scene, at least 850×1840 pixels, ideally 1024×2218. Match the tall 750:1624 aspect ratio at the largest native resolution available. Straight-down-facing desk area seen in a gently downward flat scene composition with the attic behind it. Match the four regions of image 1 as painted, grounded real objects: in the top 22% the cold blue rain window on the left and warm brass oil lamp at the far right under worn roof timber, with a couple of bare closed books on the shelf; directly below, a single row of three plain, unmarked paper index tabs resting on a narrow worn timber lip; from roughly 26% to 67% down, one single empty broad smooth rubbed cream notebook page spanning almost the full width, with fine worn edge and modest visible binding at far left; below it, a shallow real wooden drawer with a few empty plain paper or brass plates resting inside; at the bottom, an inset worn timber door or cabinet hatch with a wide completely unmarked blank brass nameplate and a little amber spill along a seam. The entire middle of the large cream page is completely empty and calm with broad near-uniform cream, ample area reserved to write, no crease through the writing surface. Seat papers and drawer plates are real objects with natural rough-cut edges, each completely blank. At the very top the window and the globe of the lamp are both visible so the first 224 of 1624 rows can serve as a room header crop. Cool rain hues #2B63A2 #346489 #283549 against warm top-left ambient key and local amber lamp #FAD48E #FBA731 #8C4C1D. Palette includes worn timber #6B351D #553530 #693A26 #432824, shadow #4C3139, page #E7BA8D with cream #F1E6CC, ink #29232E and dark leather #592A20. Restrained grain on the blank page, matte gouache and scarce engraved edge accents on the wood and lamp. A few ordinary unmarked room objects at the outer edges only. Small-size shape key: one blank light page surrounded by deep warm timber, with rain-blue window and amber lamp at the crown. Image 1 is composition and object identity only; erase every label, flourish, decorative glyph, outline, button, slot icon, ink squiggle and number that appears in the reference. Image 2 is the clean paint crop; image 3 the palette strip. Match the style, proportions and finish of the attached approved anchors. No writing even on closed book spines, no signs, no calligraphy, no icon-like emblems. Real paper and physical blank plates only. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/study-v2.png",
+    "docs/design/art-studies/study-v2.png#xywh=0,4,307,249",
+    "docs/art/style-sheet.md#3.3"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "b62a05874532f03689e5ecb0b4555eb13db3f559e6b51a6c3572cdfce98483a9",
+      "size": [852, 1846]
+    }
+  },
+  "candidate": "v1"
+}
