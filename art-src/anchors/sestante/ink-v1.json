@@ -1,0 +1,79 @@
+{
+  "id": "anchors/sestante/ink-v1",
+  "screen": "fight",
+  "district": "cartographers",
+  "subject": "floor",
+  "state": "ink",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "5213c67e838b6b8031606e2a0475fc794ca91e5f364f8f490916b9a06be95cfb",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "3f394c5ae290303dd9ee4d39e751bd5ba3b77d9e5c8fa662b676a8c98bb15037",
+      "304ff788cfbd0e3aa2158b4e60f66d1cbc50f2468752444f0ca9f07b03d99a50",
+      "fd3a6dfd158729b324a287c8049d6ba0812d1ca9fb5e12e60eadb8f3ca1649a0"
+    ]
+  },
+  "crop": "Full square source downsampled with the standard offset-wrap blend.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "diffuse upper-left; low-contrast blue charcoal ink",
+  "palette": [
+    "#28323A",
+    "#768890",
+    "#D5D7CC",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#E9E2D0",
+    "#BC8A57"
+  ],
+  "model": "unexposed",
+  "prompt": "Use case: stylized-concept. Asset: one opaque square solid-ink cell for The Sestante, with native resolution as large as available, same square aspect as input 1, for downsampling to 128×128. Convert the ghosted drawing into a permanent slate flag made of fully laid, blue-charcoal-black matte ink. Let one clearly dark continuous ink value mass fill almost the whole square; ink should dominate all the way to each of the four edges, with matching perimeter tone. Keep just the original internal irregular bevel-like silhouette attempt as a suggestion of slate pooling, very slightly darker than its surroundings, appearing along an interrupted broken edge in the dark ink. No bright paper ring around it and no framed square. The provisional graphite hatch should largely disappear when it inks in; a short, soft broken pooling edge off center is enough. Silhouette key at 51 px: broad opaque dark gray field that reads as solid and occupiable beside mid-tone graphite and ivory paper. Aim for #3A444A average value, delicate restrained matte paint grain, ink feathering present mainly toward the upper-left and one subdued glaze. Keep the broad interior calm for figures. Input 1 is the approved ghosted-pencil cell's native source, the base of this exact family. Input 2 is a crop of the accepted Sestante academy's matte painted floor, for finish only. Input 3 is the shared palette strip. Match the style, proportions and finish of the attached approved anchors. Do not reproduce swatch blocks. Camera: straight-down overhead square ground. Lighting: soft upper-left light, cool and low contrast with no hotspot; no cast shadow. District swatches #28323A #768890 #D5D7CC. Secondary city tones #1F2A3A #3A4148 #5D666D #A9BCC6. No row of tiles, border, bevel, tabletop, diagonal seam through the center, hardware, external scene, letters or pseudo-writing, numbers, dots, false UI edge, corner marks, units, glyphs, icons or printed pattern. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/seam-v2.png",
+    "art-src/anchors/sestante/academy-v1.webp",
+    "art-src/anchors/sestante/pencil-v1.webp"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "5213c67e838b6b8031606e2a0475fc794ca91e5f364f8f490916b9a06be95cfb",
+      "size": [1254, 1254]
+    },
+    "tile": true
+  },
+  "imageTool": "image_gen",
+  "generationInputs": [
+    {
+      "name": "sestante-pencil.png",
+      "source": "Pencil native image, represented by art-src/anchors/sestante/pencil-v1.webp",
+      "sha256": "394c65db1a38c1f9a61d248ce1c3782699f4910c40eb7a9f3ab1ea0148373b91"
+    },
+    {
+      "name": "academy-paint-crop.png",
+      "source": "Academy native image, represented by art-src/anchors/sestante/academy-v1.webp",
+      "sha256": "1929eef2ab4e87a39722f59996c595aa434e34ecefe3ab1528ce040921cae019",
+      "crop": [150, 204, 350, 365]
+    },
+    {
+      "name": "sestante-palette.png",
+      "source": "Palette strip in the order given by palette.",
+      "sha256": "e18317230d0062955a7e459f11ec84b21f34ab32a943bcf9dcc14920f4de5421"
+    }
+  ],
+  "generationSourceSha256": "5213c67e838b6b8031606e2a0475fc794ca91e5f364f8f490916b9a06be95cfb"
+}

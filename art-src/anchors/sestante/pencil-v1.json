@@ -1,0 +1,73 @@
+{
+  "id": "anchors/sestante/pencil-v1",
+  "screen": "fight",
+  "district": "cartographers",
+  "subject": "floor",
+  "state": "pencil",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "86cb253b8823e36905fe9a868dfd2c93d1b905cb290f07c84f2bf2a753980128",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "3f394c5ae290303dd9ee4d39e751bd5ba3b77d9e5c8fa662b676a8c98bb15037",
+      "304ff788cfbd0e3aa2158b4e60f66d1cbc50f2468752444f0ca9f07b03d99a50"
+    ]
+  },
+  "crop": "Full square source downsampled after feathering 6 px at the output perimeter across opposite edges to preserve the graphite footprint.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "diffuse upper-left; soft graphite relief on cool vellum",
+  "palette": [
+    "#28323A",
+    "#768890",
+    "#D5D7CC",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#E9E2D0",
+    "#BC8A57"
+  ],
+  "model": "unexposed",
+  "prompt": "Use case: stylized-concept. Asset: a single square opaque ghosted-pencil floor cell for The Sestante's unfinished drawn world, 128×128 delivered; make a native high-resolution square of the largest available size. The scene is a physical rubbed gray vellum surface with one provisional stone flag barely present in pencil, laid flat. Camera: strict overhead orthographic square ground. Input 1 is the one loose rough-contour shape guide: the broad ghosted slate field covers roughly 80–85% of the image, with an off-square fractured silhouette softened by vellum grain. The shape is drawn directly into the paper, not an object sitting above it. Input 2 is the accepted Sestante academy paint/stone crop for style, and input 3 is the Sestante palette strip. Match the style, proportions and finish of the attached approved anchors. Use the guide only for the broad interior footprint and graphite edge, never reproduce a geometric flat vector shape or swatch blocks.\n\nLighting: upper-left diffuse key, cool graphite room tone #28323A #768890 #D5D7CC with a trace of warm paper, no hotspot. The underlying smooth smoky vellum around the perimeter should be mid light gray, approximately #A5A8A3; maintain a slightly darker ghosted graphite field around #858E90. Give the image one visual focus with a loose, lightly drawn graphite stone shape, a very few short diagonal hatch strokes just inside a broken edge and restrained scuffed drybrush, enough pencil character to read against a solid ink state at 51 px. Quiet matte grain, faintly interrupted drawing blending into its support, large areas of simple tone under units. Silhouette key: light cloudy graphite shape with unfinished localized hatch nestled in gray paper. Fill the image to all four edges with matching tone at each edge for repeat; no beveled border or tabletop, no edges of the outer square painted, no row of tiles, checkerboard, glyph, icons, specks that form letters, corner marks, targeting cue or frame. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": ["docs/design/art-studies/seam-v2.png", "art-src/anchors/sestante/academy-v1.webp"],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "86cb253b8823e36905fe9a868dfd2c93d1b905cb290f07c84f2bf2a753980128",
+      "size": [1254, 1254]
+    }
+  },
+  "imageTool": "image_gen",
+  "generationInputs": [
+    {
+      "name": "sestante-tile-guide.png",
+      "source": "Footprint and value study for the provisional graphite flag.",
+      "sha256": "edd65cf69b0430433e4106c212b4e97681af037a5c9bd1988500981a553be65b"
+    },
+    {
+      "name": "academy-paint-crop.png",
+      "source": "Academy native image, represented by art-src/anchors/sestante/academy-v1.webp",
+      "sha256": "1929eef2ab4e87a39722f59996c595aa434e34ecefe3ab1528ce040921cae019",
+      "crop": [150, 204, 350, 365]
+    },
+    {
+      "name": "sestante-palette.png",
+      "source": "Palette strip in the order given by palette.",
+      "sha256": "e18317230d0062955a7e459f11ec84b21f34ab32a943bcf9dcc14920f4de5421"
+    }
+  ],
+  "generationSourceSha256": "394c65db1a38c1f9a61d248ce1c3782699f4910c40eb7a9f3ab1ea0148373b91"
+}

@@ -1,0 +1,70 @@
+{
+  "id": "anchors/sestante/academy-v1",
+  "screen": "fight",
+  "district": "cartographers",
+  "subject": "academy",
+  "state": null,
+  "role": "scene",
+  "size": [750, 800],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1214, 1296],
+    "sha256": "2d66694175134f1739db32c3139747ba34f85f3031b90a5461721541762f72fe",
+    "processor": "art-process@1",
+    "quality": 76,
+    "refSha256": ["3f394c5ae290303dd9ee4d39e751bd5ba3b77d9e5c8fa662b676a8c98bb15037"]
+  },
+  "crop": "Centred from the 1214 × 1296 source. Downsampled at q76.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "upper-left cool ambient light; muted amber work lamps at perimeter benches",
+  "palette": [
+    "#28323A",
+    "#768890",
+    "#D5D7CC",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#E9E2D0",
+    "#BC8A57"
+  ],
+  "model": "unexposed",
+  "prompt": "Use case: stylized-concept. Asset: background-only fight scene in The Sestante, Halvemeer's old cartography academy. Opaque edge-to-edge portrait about 15:16, target 750×800, generate at the largest available native resolution with both dimensions above target. Camera: high overhead looking down across a flat broad central space, close to orthographic in the fighting area, very similar height and angle to the Seam study. Input 1 is the composition guide: translate the side masses into long graphite-dark drafting benches, with a small stack of blank rubbed vellum on a few benches, slate architectural edges, straightedges and sparse drafting hardware comfortably outside the center. Hold the entire central 60 percent of the scene open and quiet, one matte broad shaded gray-blue floor mass, no boards, square pattern or objects there. Create a real room, with asymmetric benches partly cropped off by the edges. An uncanny suggestion that a floor edge is turning into paper at the far corner is welcome, as an extremely subtle material texture rather than a magical effect. Input 2 is a UI-free Seam paint and wall texture crop. Input 3 is the Sestante palette strip. Match the style, proportions and finish of the attached approved anchors as represented by the work-in-progress study crop; do not reproduce UI or swatches.\n\nLighting: upper-left diffuse light through unseen cold rainy windows, weak warm work-lamp light only on two edges. Low contrast and chroma throughout, especially the center. Sestante swatches charcoal blue #28323A, graphite #768890 and rubbed vellum #D5D7CC; secondary stone colors #3A4148 #5D666D #A9BCC6, with a trace of muted brass #BC8A57. Bench texture matte wood blackened by graphite, broken dry-grain brushwork, strokes kept broad on the floor and sparse at the material edges. Silhouette key at tiny size: long drafting bench aprons surrounding uninterrupted cool floor. Draw no people or creatures. Blank work surfaces and clean paper only. No readable or pseudo-writing, cartographic annotations, framing border, diagrams, straight lines across the fighting area, chessboard, embossed ornament or vignette. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": ["docs/design/art-studies/seam-v2.png"],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-2",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "2d66694175134f1739db32c3139747ba34f85f3031b90a5461721541762f72fe",
+      "size": [1214, 1296]
+    }
+  },
+  "imageTool": "image_gen",
+  "generationInputs": [
+    {
+      "name": "sestante-scene-guide.png",
+      "source": "Composition study for a calm centre with side drafting benches.",
+      "sha256": "a23f60d03c12cb91b413718da6dcbd06bd9b05d9752b3d2e5b3f9318e6d5d548"
+    },
+    {
+      "name": "seam-paint-crop.png",
+      "source": "docs/design/art-studies/seam-v2.png",
+      "sha256": "dda1c3c33bc118991e066ca72f09ac06b8bbf08dcf0adb57e1116726be1d3a82",
+      "crop": [14, 319, 85, 338]
+    },
+    {
+      "name": "sestante-palette.png",
+      "source": "Palette strip in the order given by palette.",
+      "sha256": "e18317230d0062955a7e459f11ec84b21f34ab32a943bcf9dcc14920f4de5421"
+    }
+  ],
+  "generationSourceSha256": "2d66694175134f1739db32c3139747ba34f85f3031b90a5461721541762f72fe"
+}
