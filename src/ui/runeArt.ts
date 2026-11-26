@@ -13,7 +13,7 @@ export const RUNE_ART: Record<RuneId, string> = {
   touch: 'M3 12h9M9 9l3 3-3 3M17 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
   vat: 'M3 6h18M5 6v12a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V6M5 11h14',
   // Actions
-  strike: 'M4 4h11v6H4zM9.5 10v10',
+  strike: 'M12 3v10M7 8l5 5 5-5M5 17l-2 2M12 18v3M19 17l2 2',
   shove: 'M6 6l6 6-6 6M12 6l6 6-6 6',
   guard: 'M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z',
   sentence: 'M3 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0M13 12h8M18 9l3 3-3 3',
@@ -36,7 +36,7 @@ export const RUNE_ART: Record<RuneId, string> = {
   toll: 'M6 15v-4a6 6 0 0 1 12 0v4l2 2H4zM10 20a2 2 0 0 0 4 0M12 3v2',
   // Triggers
   tally: 'M4 5v14M9 5v14M14 5v14M19 5v14M2 16L22 8',
-  brink: 'M2 7h12v13h8',
+  brink: 'M2 8h10M12 8c3 0 4 2 4 4v8M12 16l4 4 4-4',
   unison: 'M3 12a6 6 0 1 0 12 0a6 6 0 1 0-12 0M9 12a6 6 0 1 0 12 0a6 6 0 1 0-12 0',
   // Seals
   jar: 'M5 4h14v4H5zM7 8v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V8M7 13h10',
@@ -45,7 +45,7 @@ export const RUNE_ART: Record<RuneId, string> = {
   afterglow: 'M6 17a6 6 0 0 1 12 0M3 17h18M12 7v2M6.3 11.3L4.9 9.9M17.7 11.3l1.4-1.4',
   steep:
     'M3 10h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5zM17 12.5h2a2.25 2.25 0 0 1 0 4.5h-2M7 7c-1-1.5 1-2.5 0-4M12 7c-1-1.5 1-2.5 0-4',
-  coil: 'M3 12h3l3-6 3 12 3-12 3 12 3-6h3',
+  coil: 'M12 12A2 2 0 0 1 14 10A4 4 0 0 1 18 14A6 6 0 0 1 12 20A8 8 0 0 1 4 12A10 10 0 0 1 14 2',
 };
 
 /** Runes drawn filled as well as stroked. */
@@ -58,8 +58,8 @@ export const DIRECTIONAL_ART: ReadonlySet<RuneId> = new Set<RuneId>(['bolt', 'to
 export const METHOD_ART: Record<MethodId, string> = {
   conduct: 'M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0M13 6L8 13h4l-2 5 5-7h-4z',
   repeat: 'M4 12V8a3 3 0 0 1 3-3h10M14 2l3 3-3 3M20 12v4a3 3 0 0 1-3 3H7M10 16l-3 3 3 3',
-  margin: 'M4 3v18M4 7h9a4 4 0 0 1 0 8H4',
-  bind: 'M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M10.5 10.5L4 4M13.5 10.5L20 4M10.5 13.5L4 20M13.5 13.5L20 20',
+  margin: 'M4 3v18M7 3v18M12 8h8M12 13h8M12 18h5',
+  bind: 'M5 8h6a4 4 0 0 1 0 8H5a4 4 0 0 1 0-8zM13 8h6a4 4 0 0 1 0 8h-6a4 4 0 0 1 0-8z',
   lift: 'M12 20m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0M12 17V4M7 9l5-5 5 5',
 };
 
@@ -75,10 +75,11 @@ export const SOLVENT_ART: Record<SolventId, string> = {
   bathSalt: 'M4 18h16M6 18l2-4h8l2 4M12 3l3 5-3 6-3-6z',
   fogJar: 'M9 3h6M10 3v4l-4 5v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8l-4-5V3M7 15c2-1 3 1 5 0s3-1 5 0',
   mortar: 'M4 11h16c0 5-3.5 9-8 9s-8-4-8-9zM15 3l-4 7',
-  chalk: 'M11 13l6-6 3 3-6 6zM5 20h6M3 16h4',
+  chalk: 'M17 3l4 4-12 12-4-4zM3 21q2-3 4 0t4 0',
   rivet: 'M6 9a6 4 0 0 1 12 0M6 9h12M12 9v10M9 19h6',
-  filings: 'M5 17l3-3M10 13l3-3M15 17l3-3M4 21h16',
-  quicksilver: 'M3 16c0-2 4-4 9-4s9 2 9 4-4 4-9 4-9-2-9-4zM7 14.5c1-.8 2.5-1 4-1',
+  filings: 'M3 20h18M5 20l7-8 7 8M7 6l2 3M14 5l-1 4M18 8l-3 2',
+  quicksilver:
+    'M9 14m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0M6.5 12a3 3 0 0 1 2-1.5M18 8m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0M19 18m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0',
   graphite: 'M6 9l4-3h12l-4 3zM6 14l4-3h12l-4 3zM6 19l4-3h12l-4 3z',
 };
 

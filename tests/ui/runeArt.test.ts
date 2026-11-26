@@ -114,6 +114,15 @@ describe('rune art', () => {
     expect(paths.size).toBe(RUNE_IDS.length);
   });
 
+  it('runeArt: no two glyphs share a path', () => {
+    const seen = new Map<string, string>();
+    for (const [label, d] of allPaths()) {
+      const norm = d.replace(/\s+/g, '');
+      expect(seen.get(norm), `${label} repeats ${seen.get(norm)}`).toBeUndefined();
+      seen.set(norm, label);
+    }
+  });
+
   it('draws ink and spark filled', () => {
     expect(FILLED_ART.has('ink')).toBe(true);
     expect(FILLED_ART.has('spark')).toBe(true);
