@@ -1,0 +1,50 @@
+{
+  "id": "anchors/lampwater/quay-v1",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "quay",
+  "state": null,
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "9c788f9600be8d59a79e90e3868600db2d3310f6adc20cc40c87411954b6cfc9",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "878f8e40de3f9a29c26bad179c0b6080d222a1480eea63e003914c1cf831be60",
+      "9b61de7ccc7a9b523a9198f811e4c15c0a09e9eb42f6839467edbd4d5ca78c91",
+      "c3cdcf6ee2952e8f3496e0325507f066531e488a8f93156874d99b4862773139"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; amber quay lamps against blue-black canal water",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Opaque square repeatable wet stone quay ground. Strict overhead orthographic camera. Fill the square canvas edge to edge with one broad matte blue-grey weathered slate landing, in broad areas with restrained subtle wear. Slight grooves are sparse and confined inside the stone. Pale mist-blue flecks and faint amber reflected light within the centre only. Keep all four sides even, low-contrast and seamless. No cubical cut, no perspective edge, no strip of water, no outer outline or kerb. Use the largest native resolution offered. Top-left diffuse key and sparse local lamp light. District palette #172C39 #456675 #BC8A57 and world #1F2A3A #3A4148 #5D666D #A9BCC6. Matte paint edges with fine grain and only physically necessary engraved detail; no side rim. Small-size silhouette key: one continuous low-contrast wet slate ground plane. Image 1 defines the subject, ignore its tactical marks and interface. Image 2 is the clean gouache style crop, image 3 the palette strip. Match the style, proportions and finish of the attached approved anchors. Opaque paint edge-to-edge. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/lampwater-v2.png#xywh=543,793,128,117",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "9c788f9600be8d59a79e90e3868600db2d3310f6adc20cc40c87411954b6cfc9",
+      "size": [1254, 1254]
+    },
+    "tile": true
+  },
+  "candidate": "v1"
+}

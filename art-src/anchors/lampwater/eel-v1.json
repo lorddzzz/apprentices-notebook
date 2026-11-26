@@ -1,0 +1,56 @@
+{
+  "id": "anchors/lampwater/eel-v1",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "eel",
+  "state": null,
+  "role": "figure",
+  "size": [128, 176],
+  "alpha": true,
+  "groundContact": [64, 160],
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "64c314484994cc390cd7a918983a430226d8a76701ee0ed1e7f9ad1234487c68",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "bcba1ce9f1993d12c9de3dcde4aa59ea055bebc22023ab2ee0cbb49d71d9d5a2",
+      "9b61de7ccc7a9b523a9198f811e4c15c0a09e9eb42f6839467edbd4d5ca78c91",
+      "c3cdcf6ee2952e8f3496e0325507f066531e488a8f93156874d99b4862773139"
+    ]
+  },
+  "crop": "Full cutout; virtual contact projected beneath the central body at water level so the tapered foreground tail remains inside the canvas.",
+  "focal": null,
+  "angle": "high-3/4",
+  "light": "top-left; amber quay lamps against blue-black canal water",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "One complete canal eel, isolated transparent creature sprite, in a padded square canvas at high three-quarter tactics camera, looking down on the curved back. Compact powerful irregular S-curve of a long sinuous eel, head swept toward screen-right, a subtly thicker rounded head narrowing into a slender whiplike tail. Dark petrol-blue slate wet skin with a restrained olive-bronze edge on the top-left, one natural small dull pale eye, broad matte paint masses and sparse engraved fin detail. Body held close to the water surface with a weight-bearing bend below the head, no water or splash around it, no contact or cast shadow. Capture the entire tapered tail. No snake scales, fins like wings, letters, crystals or decorations. Use the largest native resolution offered. Top-left diffuse key and sparse local lamp light. District palette #172C39 #456675 #BC8A57 and world #1F2A3A #3A4148 #5D666D #A9BCC6. Matte paint edges with fine grain and only physically necessary engraved detail; no side rim. Small-size silhouette key: unmistakable bent eel with a thick blunt head and fine flexible tail. Image 1 defines the subject, ignore its tactical marks and interface. Image 2 is the clean gouache style crop, image 3 the palette strip. Match the style, proportions and finish of the attached approved anchors. Real alpha transparency around the item. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/lampwater-v2.png#xywh=445,692,101,63",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "64c314484994cc390cd7a918983a430226d8a76701ee0ed1e7f9ad1234487c68",
+      "size": [1254, 1254]
+    },
+    "figure": {
+      "groundContact": [620, 1040],
+      "bodyHeight": 890,
+      "drawHeight": 80,
+      "scale": 0.08989
+    },
+    "notes": ["defringed 8754 partial-alpha pixels"]
+  },
+  "candidate": "v1"
+}

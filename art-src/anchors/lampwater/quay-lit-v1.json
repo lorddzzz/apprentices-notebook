@@ -1,0 +1,52 @@
+{
+  "id": "anchors/lampwater/quay-lit-v1",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "quay",
+  "state": "lit",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "535eb919d7358597dd06c3711c3bf7db482b2201cc47ab4116bf2d1055726cac",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "302c0c657839f1145aa5bc315358038ccdb7eab480a84e1252f7c7fc9937b012",
+      "9b61de7ccc7a9b523a9198f811e4c15c0a09e9eb42f6839467edbd4d5ca78c91",
+      "c3cdcf6ee2952e8f3496e0325507f066531e488a8f93156874d99b4862773139"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; amber quay lamps against blue-black canal water",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Create one alternate lit quay tile from image 1 at the largest native square size, output role 128 square. Strict orthographic overhead, same continuous blue-grey wet slate. Leave the outer 30 percent unchanged, including every perimeter pixel. Add only a restrained warm amber reflection and a few painted wet sheen flecks across the centre of the existing stones. Top-left key from an off-tile amber lamp. Keep the same basic values and texture with boundaries that blend smoothly. Palette #172C39 #456675 #BC8A57 and #1F2A3A #3A4148 #5D666D #A9BCC6. Matte broad paint and sparse engraved stone edges; no lights or objects embedded in the ground and no sharp glow outline. Small-size silhouette key: same broad quay ground with a subdued warm reflection only. Image 1 is the exact base and subject reference. Image 2 is the clean lamp and paint style crop. Image 3 is the palette strip. Match the style, proportions and finish of the attached approved anchors. Edge-to-edge opaque, no perspective or marks. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/lampwater/quay-v1.webp",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "535eb919d7358597dd06c3711c3bf7db482b2201cc47ab4116bf2d1055726cac",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "notes": ["edges shared with art-src/anchors/lampwater/quay-v1.webp"],
+    "edgeBlend": 40
+  },
+  "candidate": "v1"
+}

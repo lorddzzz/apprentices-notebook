@@ -1,0 +1,49 @@
+{
+  "id": "anchors/lampwater/fight-v1",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "fight",
+  "state": null,
+  "role": "scene",
+  "size": [750, 800],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1214, 1295],
+    "sha256": "654127ee912621fac3ce85b6f1a7e1890340bbd328ad630ebdb01554d6f3575e",
+    "processor": "art-process@1",
+    "quality": 76,
+    "refSha256": [
+      "e941f026b4fb673581dbe8fcef963f0b252a1e44eb666ec8abab4b2cddc64144",
+      "9b61de7ccc7a9b523a9198f811e4c15c0a09e9eb42f6839467edbd4d5ca78c91",
+      "c3cdcf6ee2952e8f3496e0325507f066531e488a8f93156874d99b4862773139"
+    ]
+  },
+  "crop": "Centred cover crop across both landings and the southward canal.",
+  "focal": [0.5, 0.5],
+  "angle": "flat",
+  "light": "top-left; amber quay lamps against blue-black canal water",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Create an opaque 15:16 near-square tactical fight scene at largest resolution, a high overhead view across the old canal district of Lampwater. Damp masonry landings flank blue-black moving water, with low arched warehouse frontage and a few softly glowing amber work windows at upper left, fragmentary quay posts or steps at the right margin and worn stone edges. Calm central 60% for units and UI: quiet dark water and misty broad cool stone masses. Canal runs down the frame, ripples are painted subtle with no symbols. Matte texture, lower contrast and saturation than painted units and tiles. No figures, no creatures, no markings, no sign, no flag or heraldry. All atmospheric complexity stays at outside margins. Treat the reference screenshot architecture and mood as the only aspects to preserve. Use the largest native resolution offered. Top-left diffuse key and sparse local lamp light. District palette #172C39 #456675 #BC8A57 and world #1F2A3A #3A4148 #5D666D #A9BCC6. Matte paint edges with fine grain and only physically necessary engraved detail; no side rim. Small-size silhouette key: blue-black water between two slick landings with local amber work lights. Image 1 defines the subject, ignore its tactical marks and interface. Image 2 is the clean gouache style crop, image 3 the palette strip. Match the style, proportions and finish of the attached approved anchors. Opaque paint edge-to-edge. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/lampwater-v2.png",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "654127ee912621fac3ce85b6f1a7e1890340bbd328ad630ebdb01554d6f3575e",
+      "size": [1214, 1295]
+    }
+  },
+  "candidate": "v1"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "anchors/lampwater/water-v1",
+  "screen": "fight",
+  "district": "canals",
+  "subject": "water",
+  "state": null,
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1093, 1438],
+    "sha256": "90fe6765463a072fb6c8ceb8a0ace0a75ea297fd9bbf41bedae5e2a051a157b7",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "fceb9f47ed4c0381aa411537ad7f76329f053260502fc309cda6569c34e4b9b8",
+      "9b61de7ccc7a9b523a9198f811e4c15c0a09e9eb42f6839467edbd4d5ca78c91",
+      "c3cdcf6ee2952e8f3496e0325507f066531e488a8f93156874d99b4862773139"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; amber quay lamps against blue-black canal water",
+  "palette": ["#172C39", "#456675", "#BC8A57", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Opaque square repeatable canal water tile, strict orthographic overhead. Fill the entire square edge to edge with blue-black water, lacquered matte gouache instead of gloss. A small series of transverse irregular ripple ridges sweep gently down and slightly outward from upper left towards the lower edge; progressively softer wake trails imply all water moving toward the bottom edge. Few small desaturated cool reflections interrupt the deep blue base, limited faint amber flecks. Maintain an even subdued perimeter. No whirlpool, direction symbol, wakes shaped like arrows, foam icons, shore, fixture, creature or outline. Use the largest native resolution offered. Top-left diffuse key and sparse local lamp light. District palette #172C39 #456675 #BC8A57 and world #1F2A3A #3A4148 #5D666D #A9BCC6. Matte paint edges with fine grain and only physically necessary engraved detail; no side rim. Small-size silhouette key: quiet predominantly blue-black water with a slight downward-moving current. Image 1 defines the subject, ignore its tactical marks and interface. Image 2 is the clean gouache style crop, image 3 the palette strip. Match the style, proportions and finish of the attached approved anchors. Opaque paint edge-to-edge. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/lampwater-v2.png#xywh=444,382,95,125",
+    "docs/design/art-studies/lampwater-v2.png#xywh=166,388,124,125",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "90fe6765463a072fb6c8ceb8a0ace0a75ea297fd9bbf41bedae5e2a051a157b7",
+      "size": [1093, 1438]
+    },
+    "tile": true
+  },
+  "candidate": "v1"
+}
