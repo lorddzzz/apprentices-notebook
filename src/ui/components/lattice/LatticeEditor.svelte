@@ -27,6 +27,7 @@
   import RuneGlyph from '../RuneGlyph.svelte';
   import InkPot from './InkPot.svelte';
   import LatticeGrid from './LatticeGrid.svelte';
+  import { plate } from './plate';
   import RuneShelf from './RuneShelf.svelte';
   import SpellList from './SpellList.svelte';
 
@@ -82,7 +83,16 @@
       onmore: () => void;
       /** Tabs for pages opened for someone at home: dashed. */
       visiting: ReadonlySet<MemberId>;
+      /** Trip seats with nobody in them: dashed "Empty" tabs that open the household sheet. Default 0. */
+      empty?: number;
     };
+    /**
+     * A page to read and move, not to edit (the fight's pocket notebook): no shelf or drawer, no
+     * Fair copy, no ink pot; socket tap, hold and keyboard activation do nothing. The page, seat
+     * tabs, spell strip, pan, Fit and scale stay. Give it its own `sessionKey` so it never moves
+     * the Study's view.
+     */
+    readonly?: boolean;
     /** The drawer is pulled up (the door hides meanwhile). */
     drawerUp?: boolean;
   }
@@ -111,6 +121,7 @@
     onargs,
     deadCells = new Set(),
     household,
+    readonly = false,
     drawerUp = $bindable(false),
   }: Props = $props();
 
@@ -157,9 +168,12 @@
         ? glyphCost(heldGlyph, inventions, lean)
         : 0,
   );
-  const fairOn = $derived(fair?.active === true);
+  const fairOn = $derived(!readonly && fair?.active === true);
+  const notebook = $derived(household !== undefined);
+  const showFair = $derived(!readonly && fair?.available === true);
 
   function tap(at: Coord, longPress: boolean): void {
+    if (readonly) return;
     if (fair?.active && !longPress) {
       fair.ontap(at);
       return;
@@ -225,8 +239,14 @@
   </button>
 {/snippet}
 
-<div class="editor" data-testid="editor">
-  <div class="bookmarks" class:notebook={household !== undefined} role="tablist" aria-label="Party member">
+<div class="editor" class:notebook data-testid="editor">
+  <div
+    class="bookmarks"
+    class:notebook
+    role="tablist"
+    aria-label="Party member"
+    style:--plate-seat={plate('seat-tab')}
+  >
     {#each members as id (id)}
       <button
         type="button"
@@ -243,7 +263,7 @@
         data-member={id}
         onclick={() => switchMember(id)}
       >
-        <ApprenticeToken def={APPRENTICES[id]} size={household ? 22 : 18} />
+        <ApprenticeToken def={APPRENTICES[id]} size={household ? 26 : 18} />
         {#if household}
           <span class="mtext">
             <span class="mname">{APPRENTICES[id].name}</span>
@@ -255,9 +275,20 @@
       </button>
     {/each}
     {#if household}
+      {#each { length: household.empty ?? 0 } as _, i (i)}
+        <button
+          type="button"
+          class="mark empty"
+          data-testid="seat-empty"
+          aria-label="An empty seat: bring someone from the household"
+          onclick={household.onmore}
+        >
+          Empty
+        </button>
+      {/each}
       <button
         type="button"
-        class="more"
+        class="plus"
         data-testid="household-open"
         aria-label={household.more > 0 ? `The household, ${household.more} at home` : 'The household'}
         onclick={household.onmore}
@@ -266,17 +297,27 @@
       </button>
     {:else}
       <span class="grow"></span>
-      <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
+      {#if !readonly}
+        <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
+      {/if}
     {/if}
   </div>
 
-  <div class="page" class:notebook={household !== undefined} style:--lattice-controls-reserve={fair && !household ? '110px' : '0px'}>
-    {#if household}
+  <div
+    class="page"
+    class:notebook
+    class:framed={plate('page-frame') !== undefined}
+    style:--lattice-controls-reserve={showFair && !household ? '110px' : '0px'}
+    style:--plate-frame={plate('page-frame')}
+    style:--plate-paper={plate('paper-tile')}
+    style:--plate-paper-size={plate('paper-tile') ? '256px 256px' : undefined}
+  >
+    {#if household && !readonly}
       <div class="inkfloat">
         <InkPot used={inkUsed(lattice, glyphs, inventions, lean)} {capacity} {pending} />
       </div>
     {/if}
-    {#if !household && fair?.available}
+    {#if !household && showFair}
       {@render faircontrol()}
     {/if}
     <LatticeGrid
@@ -290,14 +331,16 @@
       glow={fair?.glow}
       selection={fair?.selected}
       {deadCells}
+      {readonly}
+      {notebook}
       floating={household !== undefined}
-      controls={household && fair?.available ? faircontrol : undefined}
+      controls={household && showFair ? faircontrol : undefined}
       ontap={(at) => tap(at, false)}
       onlongpress={(at) => tap(at, true)}
     />
   </div>
 
-  <div class="info" data-testid="info">
+  <div class="info" class:strip={notebook} data-testid="info" style:--plate-strip={plate('spell-strip')}>
     {#if tool.kind === 'erase'}
       <p class="line pad">Tap a rune to erase it. Holding a rune also lifts it.</p>
     {:else if heldGlyph}
@@ -346,7 +389,7 @@
     {:else if infoRune && infoDetail}
       {@const arrow = hasArrow(infoRune)}
       <div class="rune" data-testid="rune-detail">
-        <RuneGlyph rune={infoRune} {inventions} dir={arrow ? 'right' : undefined} size={36} />
+        <RuneGlyph rune={infoRune} {inventions} dir={arrow ? 'right' : undefined} size={notebook ? 30 : 36} />
         <div class="grow">
           <p class="line head">
             <span class="title">
@@ -363,6 +406,26 @@
           <p class="rule clamp">{infoDetail.headline}{arrow ? ' Tap it to turn.' : ''}</p>
         </div>
       </div>
+    {:else if focusedSpell && notebook}
+      <button
+        type="button"
+        class="reading ribbon"
+        data-testid="reading"
+        aria-haspopup="dialog"
+        aria-label={`${describeSpell(focusedSpell, inventions)}. Tap to read the spells on this page.`}
+        onclick={() => (reading = true)}
+      >
+        <span class="steps" aria-hidden="true">
+          {#each describeSpell(focusedSpell, inventions).split(' → ') as step, i (i)}
+            {#if i > 0}<span class="arrow">→</span>{/if}
+            <span class="chip">{step}</span>
+          {/each}
+        </span>
+        {#if compiled.spells.length > 1}
+          <span class="nth" aria-hidden="true">{spellIndex + 1}/{compiled.spells.length}</span>
+        {/if}
+        <Pips value={focusedSpell.charges} max={focusedSpell.charges} tone="charge" />
+      </button>
     {:else if focusedSpell}
       <button
         type="button"
@@ -386,27 +449,29 @@
     {/if}
   </div>
 
-  {#if fairOn && fairinfo}
-    <div class="fairpanel">
-      {@render fairinfo()}
-    </div>
-  {:else}
-    <RuneShelf
-      {slots}
-      {tool}
-      onselect={pick}
-      {onreject}
-      glyphs={glyphSlots}
-      {inventions}
-      ondetail={(r) => {
-        inspected = null;
-        detail = r;
-      }}
-      erase
-      {onranking}
-      drawer={household !== undefined}
-      bind:up={drawerUp}
-    />
+  {#if !readonly}
+    {#if fairOn && fairinfo}
+      <div class="fairpanel">
+        {@render fairinfo()}
+      </div>
+    {:else}
+      <RuneShelf
+        {slots}
+        {tool}
+        onselect={pick}
+        {onreject}
+        glyphs={glyphSlots}
+        {inventions}
+        ondetail={(r) => {
+          inspected = null;
+          detail = r;
+        }}
+        erase
+        {onranking}
+        drawer={household !== undefined}
+        bind:up={drawerUp}
+      />
+    {/if}
   {/if}
 
   <Sheet open={reading} title="Spells on this page" onclose={() => (reading = false)}>
@@ -498,7 +563,7 @@
   .mark.visiting:not(.on) {
     border-style: dashed;
   }
-  .more {
+  .plus {
     flex: none;
     min-width: 44px;
     min-height: var(--tap);
@@ -523,6 +588,7 @@
   }
   /* The selected tab is the page's own tab: filled, taller, joined to the page below. */
   .mark.on {
+    position: relative;
     z-index: 2;
     min-width: 0;
     min-height: calc(var(--tap) + 6px);
@@ -680,6 +746,196 @@
     border: 1px solid var(--lamp);
     border-radius: var(--radius);
     background: var(--parchment-dark);
+  }
+
+  /* ── The Study's notebook (household): painted plates when shipped, CSS without ── */
+  .editor.notebook {
+    position: relative;
+    gap: 8px;
+    font-family: var(--font-serif);
+  }
+  .bookmarks.notebook {
+    align-items: stretch;
+    min-height: var(--tap);
+  }
+  .editor.notebook .mark {
+    border: 1.5px solid #b9a679;
+    border-radius: 10px;
+    border-image-source: var(--plate-seat, none);
+    border-image-slice: 24 fill;
+    border-image-width: 12px;
+    background: var(--home-paper-dark);
+    color: var(--home-ink);
+    font-family: var(--font-serif);
+    margin-bottom: 0;
+    min-height: var(--tap);
+  }
+  .editor.notebook .mark.on {
+    min-height: var(--tap);
+    border-color: var(--select);
+    border-width: 2px;
+    background: var(--home-paper);
+    color: var(--home-ink);
+    box-shadow: 0 0 10px rgba(232, 176, 74, 0.75), inset 0 -3px 0 var(--tint);
+  }
+  .editor.notebook .mark.visiting:not(.on),
+  .editor.notebook .mark.empty {
+    border-style: dashed;
+    border-image: none;
+    background: rgba(241, 230, 204, 0.55);
+  }
+  .editor.notebook .mark.empty {
+    flex: 1 1 0;
+    min-width: 0;
+    font: italic 16px var(--font-serif);
+    color: var(--home-ink-soft);
+  }
+  .editor.notebook .mtext .mname {
+    font-size: 16px;
+    line-height: 1.05;
+  }
+  .editor.notebook .mstats {
+    font: 13px/1.1 var(--font-serif);
+    font-variant-numeric: lining-nums;
+    color: var(--home-ink-soft);
+    opacity: 1;
+  }
+  .editor.notebook .plus {
+    border: 1.5px solid #b9a679;
+    border-radius: 10px;
+    border-image-source: var(--plate-seat, none);
+    border-image-slice: 24 fill;
+    border-image-width: 12px;
+    background: var(--home-paper-dark);
+    color: var(--home-ink);
+    font: 600 20px var(--font-serif);
+    font-variant-numeric: lining-nums;
+    min-width: var(--tap);
+  }
+  /* The page: a leaf with a binding edge on the left, its own frame when UA's plate ships. */
+  .editor.notebook .page.notebook {
+    border: 2px solid var(--wood-deep);
+    border-left: 10px solid var(--wood-deep);
+    border-radius: 6px 12px 12px 6px;
+    background-color: var(--home-paper-dark);
+    background-image: var(--plate-paper, radial-gradient(ellipse at 50% 35%, #f6ecd2 0%, #ecdcb6 70%, #dfcb9d 100%));
+    background-size: var(--plate-paper-size, 100% 100%);
+    box-shadow: inset 0 0 18px rgba(90, 60, 30, 0.3), 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  .editor.notebook .page.notebook.framed {
+    border: 12px solid transparent;
+    border-left-width: 18px;
+    border-image: var(--plate-frame) 64 64 64 96 fill / 12px 12px 12px 18px / 0 stretch;
+    box-shadow: none;
+  }
+  .editor.notebook .page.notebook .inkfloat {
+    top: 6px;
+    left: 8px;
+    background: none;
+    padding: 0;
+  }
+  .editor.notebook .info.strip {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--plate-strip, linear-gradient(#5a3d6b, #45305a));
+    background-size: 100% 100%;
+    color: var(--home-paper);
+    box-shadow: inset 0 0 0 1.5px rgba(241, 230, 204, 0.28);
+    transform: none;
+  }
+  .strip .soft,
+  .strip .rule,
+  .strip .fine {
+    color: rgba(241, 230, 204, 0.82);
+  }
+  .strip .fine {
+    font: italic 12px var(--font-serif);
+  }
+  .strip .line,
+  .strip .rule {
+    font-family: var(--font-serif);
+  }
+  .strip .rune {
+    gap: var(--space-2);
+  }
+  .strip .clamp {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .strip .peek {
+    border-color: rgba(241, 230, 204, 0.5);
+    background: rgba(241, 230, 204, 0.9);
+    color: var(--home-ink);
+  }
+  .ribbon {
+    color: var(--home-paper);
+    font-family: var(--font-serif);
+  }
+  .steps {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .chip {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 2px 10px;
+    overflow: hidden;
+    border: 1px solid #b9a679;
+    border-radius: 6px;
+    background: var(--home-paper);
+    color: var(--home-ink);
+    font: 17px/1.15 var(--font-serif);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arrow {
+    flex: none;
+    font-size: 18px;
+    color: var(--home-paper);
+  }
+  .nth {
+    flex: none;
+    font: italic 13px var(--font-serif);
+    font-variant-numeric: lining-nums;
+    opacity: 0.85;
+  }
+  .editor.notebook .fairpanel {
+    border-radius: 10px;
+  }
+
+  /* Short phones (UH-D2): gaps 8 → 4, the strip is one line. The seat tabs never compress. */
+  @media (max-height: 740px) {
+    .editor.notebook {
+      gap: 4px;
+    }
+    .editor.notebook .info.strip {
+      height: 32px;
+    }
+    .strip .rule,
+    .strip .fine,
+    .strip .rune :global(svg) {
+      display: none;
+    }
+    .strip .pad {
+      padding: 0 var(--space-2);
+    }
+    .strip .chip {
+      padding: 0 8px;
+      font-size: 15px;
+    }
+    .strip .buttons {
+      flex-direction: row;
+    }
+    .strip .buttons .peek {
+      min-height: 26px;
+    }
   }
 </style>
 

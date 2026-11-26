@@ -2,10 +2,11 @@
   import { type Snippet, untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
   import { PAPER } from '$data/tuning';
-  import { type Coord, key, latticeLabel, parseLatticeKey } from '$engine';
+  import { type Coord, key, latticeLabel } from '$engine';
   import { type CellBounds, pageBounds } from '$engine/page';
-  import { cellTabStop, editAt, editCell, framePage, panView, rememberView, renderedCells, resizeView, screenToCell, sessionView, type ViewTransform, visibleWindow, worldToScreen } from '../../../app/latticeViewport';
+  import { cellTabStop, editAt, framePage, rememberView, renderedCells, resizeView, sessionView, type ViewTransform, visibleWindow, worldToScreen } from '../../../app/latticeViewport';
   import { latticePan } from '../../attach/latticePan';
+  import { latticeGestures } from './latticeGestures';
 
   interface Props {
     sessionKey: string;
@@ -53,25 +54,23 @@
     const rect = surface.getBoundingClientRect();
     return { x: client.x - rect.left, y: client.y - rect.top };
   }
-  function activate(at: Coord): void {
-    if (view.mode === 'fit') {
-      update(editCell(at, size));
-
-    }
-    else if (!readonly) onCellTap(at);
-  }
-  const gestures = latticePan({
-    onPan: delta => update(panView(view, delta)),
-    onTap: client => {
-      const hit = view.mode === 'fit' ? surface?.ownerDocument.elementFromPoint(client.x, client.y)?.closest<HTMLElement>('[data-at]') : null;
-      const at = hit && surface?.contains(hit) && hit.dataset.at ? parseLatticeKey(hit.dataset.at) : screenToCell(view, point(client));
-      activate(at);
+  const { activate, options: panOptions } = latticeGestures({
+    readonly: () => readonly,
+    view: () => view,
+    size: () => size,
+    update,
+    point,
+    hit: client => {
+      const hit = surface?.ownerDocument.elementFromPoint(client.x, client.y)?.closest<HTMLElement>('[data-at]');
+      return hit && surface?.contains(hit) && hit.dataset.at ? hit.dataset.at : null;
     },
-    onHold: client => { if (!readonly && view.mode === 'edit') onCellHold(screenToCell(view, point(client))); },
+    onCellTap: at => onCellTap(at),
+    onCellHold: at => onCellHold(at),
   });
+  const gestures = latticePan(panOptions);
 </script>
 
-<div class="paper-viewport" data-testid="lattice-viewport" data-mode={view.mode}>
+<div class="paper-viewport" class:floating data-testid="lattice-viewport" data-mode={view.mode}>
   <div class="paper-controls" class:floating>
     {@render controls?.()}
     <button type="button" onclick={() => update(framePage(occupied, size, true))}>Fit</button>
@@ -109,7 +108,8 @@
   .paper-controls button:focus-visible { outline: 3px solid var(--select); outline-offset: 2px; }
   .paper-viewport { position: relative; }
   .paper-controls.floating { position: absolute; top: 6px; right: 6px; z-index: 2; gap: 6px; padding: 0; flex-wrap: nowrap; }
-  .paper-controls.floating :global(button) { min-height: 36px; padding: 0 var(--space-2, 8px); font-size: 14px; background: rgba(241, 230, 204, 0.92); }
+  .paper-controls.floating :global(button) { min-height: var(--tap, 44px); padding: 0 var(--space-2, 8px); border-width: 1.5px; border-color: var(--home-ink-soft, #5a4a3a); font: 600 15px var(--font-serif); background: rgba(241, 230, 204, 0.94); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+  .paper-viewport.floating .paper-surface { background: transparent; }
   .paper-controls span { font-size: 0.8rem; }
   .paper-surface { position: relative; width: 100%; height: var(--lattice-surface-height, min(52vh, 420px)); min-height: var(--lattice-surface-min-height, 240px); flex: var(--lattice-surface-flex, none); overflow: clip; touch-action: none; user-select: none; background: var(--paper, #f3ead6); }
   .paper-cell { position: absolute; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; overflow: hidden; }

@@ -43,6 +43,10 @@
     floating?: boolean;
     /** Extra buttons that join Fit and Edit scale. */
     controls?: Snippet;
+    /** The page can be read and moved but not edited: socket tap, hold and keyboard activation do nothing. */
+    readonly?: boolean;
+    /** The Study's notebook look: round sockets and the rune's name under each rune. */
+    notebook?: boolean;
     ontap: (at: Coord) => void;
     onlongpress: (at: Coord) => void;
   }
@@ -61,6 +65,8 @@
     deadCells = new Set(),
     floating = false,
     controls,
+    readonly = false,
+    notebook = false,
     ontap,
     onlongpress,
   }: Props = $props();
@@ -76,8 +82,8 @@
   };
 </script>
 
-<div class="lattice" data-testid="lattice">
-  <LatticeViewport {sessionKey} {occupied} {floating} {controls} onCellTap={ontap} onCellHold={onlongpress} {cellLabel}>
+<div class="lattice" class:notebook data-testid="lattice">
+  <LatticeViewport {sessionKey} {readonly} {occupied} {floating} {controls} onCellTap={ontap} onCellHold={onlongpress} {cellLabel}>
     {#snippet cell(at)}
       {@const k = key(at)}
       {@const placed = placements.get(k)}
@@ -90,6 +96,9 @@
             glyphKind={glyphs[placed.glyph]?.kind ?? 'spell'} size={44} />
         {:else if placed}
           <RuneGlyph rune={placed.rune} {inventions} dir={placed.dir} dim={idle.has(k)} size={44} />
+        {/if}
+        {#if notebook && placed}
+          <span class="rname" data-testid="rune-name">{placed && isGlyph(placed) ? (glyphs[placed.glyph]?.name ?? placed.glyph) : nameOf(placed.rune, inventions)}</span>
         {/if}
         {#if numbers.has(k)}<span class="step" data-testid="step-{k}">{numbers.get(k)}</span>{/if}
       </span>
@@ -176,6 +185,32 @@
     background: var(--f-source);
     color: var(--parchment);
     font: 700 11px var(--mono);
+    pointer-events: none;
+  }
+  /* The notebook page: round sockets as on the painted page, the rune's name on a small paper tag. */
+  .notebook .socket {
+    border-radius: 50%;
+  }
+  .notebook .socket.dead::after {
+    border-radius: 50%;
+  }
+  .rname {
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translateX(-50%);
+    max-width: 58px;
+    padding: 0 4px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--home-paper);
+    color: var(--home-ink);
+    font: 12px/14px var(--font-serif);
+    font-variant-caps: small-caps;
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     pointer-events: none;
   }
   .socket :global(svg) {
