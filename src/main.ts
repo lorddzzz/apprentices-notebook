@@ -3,6 +3,7 @@ import { mount } from 'svelte';
 import App from './app/App.svelte';
 import { game, lab } from './app/instance';
 import { requestPersistence } from './app/save';
+import './app/prefs.svelte';
 import './ui/theme.css';
 
 registerSW({ immediate: true });
