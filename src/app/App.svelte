@@ -16,7 +16,6 @@
   import Threshold from '../ui/screens/Threshold.svelte';
   import TripPage from '../ui/screens/TripPage.svelte';
   import Wiped from '../ui/screens/Wiped.svelte';
-  import { BUILD } from './build';
   import { resolveScreen } from './flow';
   import { game } from './instance';
   import { go, router } from './router.svelte';
@@ -98,7 +97,6 @@
     <Credits />
   {/if}
   <Toasts />
-  <span class="build">{BUILD}</span>
 </main>
 
 <style>
@@ -120,14 +118,5 @@
     max-width: 100%;
     margin-top: var(--space-3);
     padding: var(--space-3);
-  }
-  .build {
-    position: absolute;
-    right: calc(var(--safe-right) + var(--space-2));
-    bottom: calc(var(--safe-bottom) + var(--space-2));
-    font: 11px ui-monospace, Menlo, monospace;
-    color: var(--ink);
-    opacity: 0.55;
-    pointer-events: none;
   }
 </style>
