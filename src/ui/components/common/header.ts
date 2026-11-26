@@ -3,8 +3,8 @@ import type { Route } from '../../../app/routes';
 
 /** AppHeader's public types and the crest adapter (C7), importable from plain .ts as well. */
 
-/** Until Pack 0b's src/ui/art/registry.ts merges (then this is retyped to its ArtId). */
-export type ArtId = string;
+/** The registry's id type (type-only: nothing of the art index is pulled in by this file). */
+export type { ArtId } from '../../art/registry';
 
 export type HeaderVariant = 'study' | 'subroom' | 'city' | 'system';
 

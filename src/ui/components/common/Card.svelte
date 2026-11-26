@@ -19,6 +19,7 @@
     color: var(--ink);
   }
   .paper {
+    border: 1px solid var(--parchment-deep);
     background: var(--parchment);
     box-shadow: var(--shadow-1);
   }
