@@ -39,6 +39,8 @@
   import Pips from '../components/common/Pips.svelte';
   import Sheet from '../components/common/Sheet.svelte';
   import DrawingEditor from '../components/drawing/DrawingEditor.svelte';
+  import GreyToggle from '../components/gallery/GreyToggle.svelte';
+  import TokensPage from '../components/gallery/TokensPage.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import SolventIcon from '../components/SolventIcon.svelte';
@@ -63,7 +65,7 @@
 
   let sheetOpen = $state(false);
 
-  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall', 'drawing'] as const;
+  const PARTS = ['glyphs', 'board', 'rooms', 'fx', 'tricks', 'lattice', 'foundry', 'hall', 'drawing', 'tokens'] as const;
 
   // board part
   const showcase = showcaseView();
@@ -162,6 +164,7 @@
   <header>
     <BackLink to="lab" label="Lab" />
     <h1>Gallery</h1>
+    <GreyToggle />
   </header>
   <nav aria-label="Gallery parts">
     {#each PARTS as p (p)}
@@ -357,6 +360,8 @@
         onclear={() => {}}
       />
     {/each}
+  {:else if part === 'tokens'}
+    <TokensPage />
   {:else}
     <p>No gallery part "{part}" yet.</p>
   {/if}
