@@ -15,6 +15,7 @@ import type { WipeSummary } from '../flow';
 import type { GameStore } from '../game.svelte';
 import type { Route } from '../routes';
 import type { ThresholdStore } from '../threshold.svelte';
+import { wipeFixture } from '../tripUx';
 import {
   benchProfile,
   deskProfile,
@@ -43,6 +44,7 @@ import {
   tripCleared,
   unlockedSave,
   winRoom,
+  wipeCrossedCheckpoint,
 } from './recipes';
 
 /**
@@ -408,7 +410,11 @@ export type D1FixtureId =
   | 'cleared-lower-seam'
   | 'loot-three'
   | 'loot-bonus'
-  | 'loot-paper-found';
+  | 'loot-paper-found'
+  | 'wiped-seam'
+  | 'wiped-first-room'
+  | 'wiped-crossed-checkpoint'
+  | 'wiped-nothing-lost';
 
 /** A fresh save on `profile`, at home or out on `trip`. */
 function saveOn(profile: Profile, trip: Trip | null = null): SaveData {
@@ -525,6 +531,38 @@ const D1_FIXTURES: Record<D1FixtureId, Fixture> = {
     },
     expect: 'paper-found',
     note: "A bathhouses room won that filed its paper (a bather's ledger) for the first time: the transient `game.found` notice above the offers.",
+  },
+  'wiped-seam': {
+    id: 'wiped-seam',
+    route: 'trip',
+    save: () => saveOn(newProfile()),
+    wipe: () => wipeFixture('seam'),
+    expect: 'wiped',
+    note: 'A two-room Seam run from zero (one cleared, one fell) with a provable cause, a lost find and the final battle kept.',
+  },
+  'wiped-first-room': {
+    id: 'wiped-first-room',
+    route: 'trip',
+    save: () => saveOn(newProfile()),
+    wipe: () => wipeFixture('first-room'),
+    expect: 'wiped',
+    note: 'A checkpoint-start run (Cartographers, from the quiet doorway) that fell in its first room: one `fell` line, the neutral cause, the final kept.',
+  },
+  'wiped-crossed-checkpoint': {
+    id: 'wiped-crossed-checkpoint',
+    route: 'trip',
+    save: () => saveOn(newProfile()),
+    wipe: () => wipeCrossedCheckpoint(),
+    expect: 'wiped',
+    note: 'A start-from-zero Cartographers run that cleared three rooms, crossing the checkpoint, and fell in the fourth.',
+  },
+  'wiped-nothing-lost': {
+    id: 'wiped-nothing-lost',
+    route: 'trip',
+    save: () => saveOn(newProfile()),
+    wipe: () => wipeFixture('nothing-lost'),
+    expect: 'wiped',
+    note: 'The older minimal summary: an encounter, nothing lost, nothing learned; no rooms, cause or final (See it is hidden).',
   },
 };
 

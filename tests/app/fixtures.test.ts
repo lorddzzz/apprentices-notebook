@@ -930,3 +930,71 @@ describe('UF-14a: trip late states', () => {
 
   it.todo('threshold-canals: the intro stage and its `enter` tap (UT-6 builds the stage)');
 });
+
+describe('UF-14b: wipes', () => {
+  test('fixtures: wipe fixtures carry three distinct payloads', async () => {
+    const seam = FIXTURES['wiped-seam'].wipe?.();
+    const first = FIXTURES['wiped-first-room'].wipe?.();
+    const none = FIXTURES['wiped-nothing-lost'].wipe?.();
+    const crossed = FIXTURES['wiped-crossed-checkpoint'].wipe?.();
+    if (!seam || !first || !none || !crossed) throw new Error('a wipe fixture has no payload');
+
+    // wiped-seam: a two-room run from zero: one cleared, one fell, a lost find, a provable cause.
+    expect(seam.rooms?.map((r) => r.result)).toEqual(['cleared', 'fell']);
+    expect(seam.lost).toEqual([{ kind: 'rune', rune: 'fork' }]);
+    expect(seam.cause).toMatch(/\S/);
+    expect(seam.final).toBeDefined();
+
+    // wiped-first-room: a checkpoint start that fell at once: one `fell` line, nothing lost.
+    expect(first.rooms?.map((r) => r.result)).toEqual(['fell']);
+    expect(first.lost).toEqual([]);
+    expect(first.cause).toMatch(/^The party fell in /);
+    expect(first.final).toBeDefined();
+
+    // wiped-nothing-lost: the older minimal summary: no rooms, cause or final (See it is hidden).
+    expect(none.lost).toEqual([]);
+    expect(none.rooms).toBeUndefined();
+    expect(none.cause).toBeUndefined();
+    expect(none.final).toBeUndefined();
+
+    // wiped-crossed-checkpoint: three rooms cleared past the doorway, then the fall.
+    expect(crossed.rooms?.map((r) => r.result)).toEqual(['cleared', 'cleared', 'cleared', 'fell']);
+    expect(crossed.final).toBeDefined();
+
+    // Distinct: no two payloads tell the same story.
+    const shapes = [seam, first, none, crossed].map((w) =>
+      JSON.stringify({
+        rooms: w.rooms?.length ?? null,
+        lost: w.lost.length,
+        cause: w.cause ?? null,
+        at: w.encounter,
+      }),
+    );
+    expect(new Set(shapes).size).toBe(4);
+  }, 30_000);
+
+  test('fixtures: wiped fixtures resolve to the Wiped screen from memory, not from the save', async () => {
+    for (const id of [
+      'wiped-seam',
+      'wiped-first-room',
+      'wiped-crossed-checkpoint',
+      'wiped-nothing-lost',
+    ] as const) {
+      const f = FIXTURES[id];
+      expect(f.save().trip, id).toBeNull();
+      const { game, router } = await openFixture(id);
+      expect(game.wipe, id).not.toBeNull();
+      expect(game.wipe?.encounter, id).toBe(f.wipe?.().encounter);
+      const r = resolveScreen(
+        router.route,
+        game.save.trip,
+        game.wipe,
+        game.save.lastTrip,
+        game.profile,
+      );
+      expect(r, id).toEqual({ screen: 'wiped', redirect: null });
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
+  }, 60_000);
+});

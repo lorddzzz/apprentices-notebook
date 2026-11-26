@@ -12,6 +12,8 @@ import {
 } from '$data';
 import type { PaperId } from '$data/districts/index';
 import {
+  applyAction,
+  applyDoorway,
   type BattleState,
   beginEncounter,
   type CastSample,
@@ -26,6 +28,7 @@ import {
   joinHousehold,
   type LootItem,
   latticeOf,
+  namedIn,
   newProfile,
   newSave,
   type Profile,
@@ -42,7 +45,8 @@ import {
   versionKey,
 } from '$engine';
 import { shapeOf } from '$engine/trip/shape';
-import { setOut } from '../flow';
+import { setOut, type WipeSummary } from '../flow';
+import { wipeCause, wipeRooms } from '../tripUx';
 import { sampleHousehold, sampleParty } from './samples';
 
 /**
@@ -454,4 +458,35 @@ export function paperRoom(
     if (t.status === 'crossroads') t = pushOn(t);
   }
   throw new Error(`No ${district} room files a paper`);
+}
+
+// ── Pack D1 · UF-14b: the wipe that crossed the checkpoint ──────────────────
+
+/**
+ * `wipeFixture`'s fourth shape: a start-from-zero run in the Cartographers' quarter that cleared
+ * rooms 1 to 3 (past the quiet doorway, the checkpoint) and fell in room 4. Three rooms stand
+ * cleared in the recap, the cause is the neutral observed loss (no battle log is kept).
+ */
+export function wipeCrossedCheckpoint(): WipeSummary {
+  const profile = openProfile(['cartographers']);
+  let trip = tripAfter(profile, 'cartographers', 3);
+  // Room 3's crossroads names the quiet doorway: through it (rewiring changes nothing), into room 4.
+  trip = takeChoice(trip, 'doorway');
+  trip = applyDoorway(profile, trip, profile.lattices).trip;
+  if (trip.status !== 'fight') throw new Error('The crossing fixture is not in a fight');
+  let { state: final, events: log } = beginEncounter(profile, trip);
+  for (let turn = 0; turn < 30 && final.phase === 'player'; turn++) {
+    const next = applyAction(final, { type: 'endTurn' });
+    final = next.state;
+    log = [...log, ...next.events];
+  }
+  if (final.phase !== 'lost') throw new Error('The crossing fixture did not end in a wipe');
+  return {
+    encounter: final.title,
+    lost: trip.loot,
+    learned: namedIn(log),
+    rooms: wipeRooms(trip),
+    cause: wipeCause(final, []),
+    final,
+  };
 }
