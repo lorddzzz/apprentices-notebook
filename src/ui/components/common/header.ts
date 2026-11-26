@@ -28,20 +28,27 @@ export const HEADER_WORLD: Readonly<Record<HeaderVariant, 'home' | 'city' | 'sys
 
 /**
  * The `crest` adapter: a plain disc carrying the id's initial (also the server render), and,
- * when a crest component is passed, that component mounted inside the disc with `{ id }`.
+ * when a crest component is passed, that component mounted inside the disc with its props
+ * (`{ id }` by default).
  * Takes the component as an argument so this file imports nothing from the fight or the trip.
  */
-export function crestSnippet<I extends string>(id: I, component?: Component<{ id: I }>): Snippet {
+export function crestSnippet<I extends string, Props extends Record<string, unknown>>(
+  id: I,
+  ...crest: [component?: Component<{ id: I }>] | [component: Component<Props>, props: Props]
+): Snippet {
   return createRawSnippet(() => ({
     render: () =>
       `<span class="crest-disc" data-crest="${id.replace(/[^\w-]/g, '')}" aria-hidden="true">${(id[0] ?? '?').toUpperCase()}</span>`,
     setup: (node) => {
-      if (!component) return;
+      if (!crest[0]) return;
       node.textContent = '';
       node.classList.add('mounted');
-      const crest = mount(component, { target: node, props: { id } });
+      const mounted =
+        crest.length === 2
+          ? mount(crest[0], { target: node, props: crest[1] })
+          : mount(crest[0], { target: node, props: { id } });
       return () => {
-        void unmount(crest);
+        void unmount(mounted);
       };
     },
   }));

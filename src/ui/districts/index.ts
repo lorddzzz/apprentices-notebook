@@ -1,10 +1,12 @@
-import type { Component } from 'svelte';
+import type { Component, Snippet } from 'svelte';
 import type { DistrictId } from '$data';
 import type { BattleState, Coord, Profile, Trip } from '$engine';
 import type { DistrictEvent, Json, PreviewShape, RuleId } from '$engine/districts/types';
 import type { GameEvent } from '$engine/events';
 import type { Fx } from '../../app/fx';
 import type { BoardView, UnitView } from '../../app/view';
+import type { DistrictFightTheme } from '../components/board/fightArt';
+import { crestSnippet } from '../components/common/header';
 import { BATHHOUSES_UI } from './bathhouses';
 import { BRIDGES_UI } from './bridges';
 import { CANALS_UI } from './canals';
@@ -42,6 +44,8 @@ export interface UnitArtProps {
 export type BoardLayerSlot = 'under' | 'badges';
 
 export interface DistrictUi {
+  /** Scene, tile and crest art for the district's fight board. */
+  fightTheme?: DistrictFightTheme;
   /** By foe def id (KIT-R2): draws one foe's token inside a board tile; absent = the default token. */
   unitArt?: Readonly<Record<string, Component<UnitArtProps>>>;
   /** By foe def id: the dashed "next round" ghost of a foe that has art of its own. */
@@ -108,6 +112,12 @@ export const DISTRICT_UI: Readonly<Partial<Record<DistrictId, DistrictUi>>> = {
   cartographers: CARTOGRAPHERS_UI,
   inkedPage: INKED_PAGE_UI,
 };
+
+/** The district's vector crest, or a disc with the district's initial. */
+export function crestFor(id: DistrictId, size = 32): Snippet {
+  const crest = DISTRICT_UI[id]?.fightTheme?.crest;
+  return crest ? crestSnippet(id, crest, { size }) : crestSnippet(id);
+}
 
 /**
  * The banners to draw in the battle HUD: the trip's district's own, or every district's when
