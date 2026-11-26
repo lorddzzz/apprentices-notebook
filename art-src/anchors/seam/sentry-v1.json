@@ -1,0 +1,68 @@
+{
+  "id": "anchors/seam/sentry-v1",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "sentry",
+  "state": null,
+  "role": "figure",
+  "size": [128, 176],
+  "alpha": true,
+  "groundContact": [64, 160],
+  "master": {
+    "origSize": [1024, 1536],
+    "sha256": "14aa07c9024b07a05161787e9300e2e9daab847aa5241abad0c38ae7db05dbcb",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "09ab6df32149b87487de3c5548f21c1b8427f869aac3d0f5890556ef0d8bd581",
+      "df715d37ed8edbd4fb1eb3678c7b8f1f1c7040d592f31543c9aed12ee2750d5b",
+      "83694a01f2ca0bb82543cf6fec4c33fed9f90dcf289f98b5a264d915621d4897"
+    ]
+  },
+  "crop": "Measured planted boot contact, scaled to 143 px body height to keep the broad cannon inside the canvas.",
+  "focal": null,
+  "angle": "high-3/4",
+  "light": "top-left; subdued diffuse amber, cool damp stone",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#55606A"
+  ],
+  "model": "unexposed",
+  "prompt": "A single standing compact brass sentry automaton, one head-to-boots cutout in a tall padded transparent canvas. Match the blocky body and broad cylindrical arm from the subject study. High three-quarter tactics camera with visible top planes, facing slightly screen right. Dull patinated brass #B5882E #7A5A1A, block torso, squared slit head, compressed stout legs and one simple hollow cylinder in place of the near forearm. Plain plates, no face markings, no muzzle flash, no baked shadows or floor. One foot stands slightly nearer camera with a clearly visible contact point at bottom centre. A separate short down-right shadow will be composed in production. Use the largest native resolution offered. Top-left diffuse key and sparse local amber reflection. Palette #253235 #55625E #BC9273 and #1F2A3A #3A4148 #5D666D #A9BCC6 with restrained material accents. Broad matte painted texture, crisp only on reading edges, no side rim light. At small size: small square head, heavy metal shoulders and unmistakable single barrel forearm. Image 1 is the subject study crop, ignore all baked tactical or interface content. Image 2 is the clean gouache paint crop. Image 3 is the swatch strip. Match the style, proportions and finish of the attached approved anchors. True isolated alpha with no shadow or painted backdrop. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/seam-v2.png#xywh=436,508,103,96",
+    "docs/design/art-studies/seam-v2.png#xywh=70,385,105,90",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "14aa07c9024b07a05161787e9300e2e9daab847aa5241abad0c38ae7db05dbcb",
+      "size": [1024, 1536]
+    },
+    "figure": {
+      "groundContact": [350, 1485],
+      "bodyHeight": 1418,
+      "drawHeight": 143,
+      "scale": 0.10085
+    },
+    "notes": ["defringed 12419 partial-alpha pixels"]
+  },
+  "candidate": "v1"
+}

@@ -1,0 +1,61 @@
+{
+  "id": "anchors/seam/cloud-v1",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "steam",
+  "state": "cloud",
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "2a0a5d036c2d1b863f6aa953f201beecb4e6dabfcd3e7d2b9fa3d0011caeee94",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "a2329e98eec88add5390d96dd85572e1452e52bd84ec314552c0e403fcb53c7d",
+      "df715d37ed8edbd4fb1eb3678c7b8f1f1c7040d592f31543c9aed12ee2750d5b",
+      "83694a01f2ca0bb82543cf6fec4c33fed9f90dcf289f98b5a264d915621d4897"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; subdued diffuse amber, cool damp stone",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#55606A"
+  ],
+  "model": "unexposed",
+  "prompt": "Square isolated overhead cutout of a modest loose steam cloud on real transparency, centered with 12% empty padding, intended for 128×128. Scalloped connected soft billows, drift diagonal from bottom left to upper right a little, ragged thin translucent edges and softly translucent center through which a figure would read; cool pale #A9BCC6 with warm-grey restraint. Paint soft natural irregular billows only, no symbols or curls drawn as marks, no nozzle, no floor. Use the largest native resolution offered. Top-left diffuse key and sparse local amber reflection. Palette #253235 #55625E #BC9273 and #1F2A3A #3A4148 #5D666D #A9BCC6 with restrained material accents. Broad matte painted texture, crisp only on reading edges, no side rim light. At small size: scalloped cloud edge reads against a flat puddle in greyscale. Image 1 is the subject study crop, ignore all baked tactical or interface content. Image 2 is the clean gouache paint crop. Image 3 is the swatch strip. Match the style, proportions and finish of the attached approved anchors. True isolated alpha with no shadow or painted backdrop. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/seam-v2.png#xywh=650,345,133,96",
+    "docs/design/art-studies/seam-v2.png#xywh=70,385,105,90",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": "cloud",
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "2a0a5d036c2d1b863f6aa953f201beecb4e6dabfcd3e7d2b9fa3d0011caeee94",
+      "size": [1254, 1254]
+    }
+  },
+  "candidate": "v1"
+}

@@ -1,0 +1,64 @@
+{
+  "id": "anchors/seam/v1/floor-b",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "floor",
+  "state": "b",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "a45c0ad81d9c21e5f6e19fd4e0d221edc537fe166f16c50ce16d42488f75cea5",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "cfe097d1ebf548b99323c9199629ff2492977ec9d781e36cf7a93e6a86f259ea",
+      "df715d37ed8edbd4fb1eb3678c7b8f1f1c7040d592f31543c9aed12ee2750d5b",
+      "83694a01f2ca0bb82543cf6fec4c33fed9f90dcf289f98b5a264d915621d4897"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; subdued diffuse amber, cool damp stone",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#55606A"
+  ],
+  "model": "unexposed",
+  "prompt": "Create a low-contrast square alternate floor tile from image 1 at largest native size; this variation is for 128 square after processing. Orthographic overhead continuous damp masonry. Keep a generous 30 percent unchanged border on all sides including colour, contrast, brush, aspect ratio and exact perimeter. At the centre only paint a slightly smoother thin rubbed irregular mortar repair in the existing grey-green stone. Keep the patch broad, worn into its surroundings, natural and quiet. One small low-contrast mark is enough. Upper-left muted key, top-left low amber warmth. Seam swatches #253235 #55625E #BC9273; world #1F2A3A #3A4148 #5D666D #A9BCC6. Sparse engraving strokes, soft tiny paint grain, quiet diffuse texture. The small-size visual key is one subdued old stone patch in the existing continuous slate ground. Image 1 base tile and subject identity, image 2 clean gouache paint crop, image 3 palette strip. Match the style, proportions and finish of the attached approved anchors. No seams, tiles within tiles, sprites, frames, overlays, or UI. Fill the square edge to edge opaque. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/v1/floor-a.webp",
+    "docs/design/art-studies/seam-v2.png#xywh=70,385,105,90",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "a45c0ad81d9c21e5f6e19fd4e0d221edc537fe166f16c50ce16d42488f75cea5",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "notes": ["edges shared with art-src/anchors/seam/v1/floor-a.webp"],
+    "edgeBlend": 40
+  },
+  "candidate": "v1"
+}

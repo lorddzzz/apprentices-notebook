@@ -1,0 +1,62 @@
+{
+  "id": "anchors/seam/v1/floor-a",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "floor",
+  "state": "a",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "cdaa8c3b181f68df9dc6cf934a4363870a481f254920915fd9813538cbfdfbcc",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "af3326eb2cf6d02bc52e9dd3854e309478a6ec00a560c67f18efb390b70fc921",
+      "df715d37ed8edbd4fb1eb3678c7b8f1f1c7040d592f31543c9aed12ee2750d5b",
+      "83694a01f2ca0bb82543cf6fec4c33fed9f90dcf289f98b5a264d915621d4897"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; subdued diffuse amber, cool damp stone",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#55606A"
+  ],
+  "model": "unexposed",
+  "prompt": "One opaque square repeatable broad worn flagstone ground tile, strictly orthographic overhead. Fill the largest available square canvas edge-to-edge. Gray green/slate damp masonry, broad quiet slabs of subtle non-directional paint grain and thin damp copper haze confined to the interior. Even perimeter values, no dressed slab perimeter, mortar around the cell, perspective or objects. Use the largest native resolution offered. Top-left diffuse key and sparse local amber reflection. Palette #253235 #55625E #BC9273 and #1F2A3A #3A4148 #5D666D #A9BCC6 with restrained material accents. Broad matte painted texture, crisp only on reading edges, no side rim light. At small size: one broad quiet value mass with a low-contrast rubbed patch. Image 1 is the subject study crop, ignore all baked tactical or interface content. Image 2 is the clean gouache paint crop. Image 3 is the swatch strip. Match the style, proportions and finish of the attached approved anchors. Opaque edge-to-edge paint. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/seam-v2.png#xywh=55,358,134,123",
+    "docs/design/art-studies/seam-v2.png#xywh=70,385,105,90",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "cdaa8c3b181f68df9dc6cf934a4363870a481f254920915fd9813538cbfdfbcc",
+      "size": [1254, 1254]
+    },
+    "tile": true
+  },
+  "candidate": "v1"
+}

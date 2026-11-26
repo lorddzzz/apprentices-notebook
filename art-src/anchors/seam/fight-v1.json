@@ -1,0 +1,64 @@
+{
+  "id": "anchors/seam/fight-v1",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "fight",
+  "state": null,
+  "role": "scene",
+  "size": [750, 800],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "origSize": [1214, 1295],
+    "sha256": "c7d0e13df6347be9c8c8fac9224bc17f38dfbfafa9b7d4d5236ab729c0e5f835",
+    "processor": "art-process@1",
+    "quality": 76,
+    "refSha256": [
+      "480b95a9328c1079d89a741dfa9d112e7842bbe508287e1fdd2132677972de71",
+      "12799847e5817accc448fa314c5cd972c3cb82b6f25e7e235fe0fc1ca61bb538",
+      "df715d37ed8edbd4fb1eb3678c7b8f1f1c7040d592f31543c9aed12ee2750d5b",
+      "83694a01f2ca0bb82543cf6fec4c33fed9f90dcf289f98b5a264d915621d4897"
+    ]
+  },
+  "crop": "Centred cover crop; framing includes the stair, mismatched brick courses and central open battle area.",
+  "focal": [0.5, 0.5],
+  "angle": "flat",
+  "light": "top-left; subdued diffuse amber, cool damp stone",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#55606A"
+  ],
+  "model": "unexposed",
+  "prompt": "Edit image 1, the first opaque Seam fight background, as a full 15:16 painting at largest native resolution, ultimately 750×800. Preserve the quiet broad central 60% matte slate floor, the overhead tactical camera, stair at lower right, pipe at far left and diffuse upper-left glow. Remove the bright four right-angle graphic corners around the vent and repaint the whole vent and immediate masonry as physical architecture. The vent is a small dark recess under an uneven top course of bricks, with iron slats only. Absolutely no paired brackets or pale marks around it. Make the two adjacent brickwork courses near top visibly fail to align by a subtle half-brick offset, maintain the masonry as a peripheral element. Matte gouache, engraved edge grain, lower contrast than tiles. Palette #253235 #55625E #BC9273 #1F2A3A #3A4148 #5D666D #A9BCC6, very subdued amber. Small-size shape key is a continuous subdued ground and offset marginal brickwork. Image 2 is a subject architecture study only and its HUD, grid and decorative brackets must be ignored. Image 3 is the clean style crop and image 4 the palette strip. Match the style, proportions and finish of the attached approved anchors; no figures, graphic marks, or gameplay. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "Seam fight source, first pass (rejected and retained only as an edit input)",
+    "docs/design/art-studies/seam-v2.png#xywh=21,230,810,1025",
+    "docs/design/art-studies/seam-v2.png#xywh=70,385,105,90",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "c7d0e13df6347be9c8c8fac9224bc17f38dfbfafa9b7d4d5236ab729c0e5f835",
+      "size": [1214, 1295]
+    }
+  },
+  "candidate": "v1",
+  "revision": "First pass repeated four tactical corner brackets around the vent. The reference edit repainted the vent as physical architecture and clarified the misaligned brickwork."
+}

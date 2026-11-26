@@ -1,0 +1,62 @@
+{
+  "id": "anchors/seam/plate-v1",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "brass",
+  "state": "plate",
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "origSize": [1254, 1254],
+    "sha256": "eb2310bbac96244bfe5a0c4b5a1db7d87e7ac9c511ad83d221e9040cccb118cd",
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "99bffe5c96c9b98e3bc8e1a3e02cfb16ed16b7a1f1e80dd73681f96d949f6f75",
+      "df715d37ed8edbd4fb1eb3678c7b8f1f1c7040d592f31543c9aed12ee2750d5b",
+      "83694a01f2ca0bb82543cf6fec4c33fed9f90dcf289f98b5a264d915621d4897"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "top-left; subdued diffuse amber, cool damp stone",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#55606A"
+  ],
+  "model": "unexposed",
+  "prompt": "Square cutout of a plain squared brass floor plate overhead, centered with 12% empty border on real transparency, intended for 128×128. Flat tarnished brass #B5882E #7A5A1A, shallow beveled squared edge, wear concentrated near metal edges. The center is plain flat metal with a few soft scratches, four dark flush rivets slightly inset. No central embossed emblem, engraving motif, decoration or corner ticks. Use the largest native resolution offered. Top-left diffuse key and sparse local amber reflection. Palette #253235 #55625E #BC9273 and #1F2A3A #3A4148 #5D666D #A9BCC6 with restrained material accents. Broad matte painted texture, crisp only on reading edges, no side rim light. At small size: read as one squared low slab with clipped bevels, separate from slatted vent. Image 1 is the subject study crop, ignore all baked tactical or interface content. Image 2 is the clean gouache paint crop. Image 3 is the swatch strip. Match the style, proportions and finish of the attached approved anchors. True isolated alpha with no shadow or painted backdrop. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "docs/design/art-studies/seam-v2.png#xywh=322,889,89,98",
+    "docs/design/art-studies/seam-v2.png#xywh=70,385,105,90",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "anchors-1",
+  "slice": null,
+  "bbox": null,
+  "layerId": "plate",
+  "process": {
+    "mode": "scratch",
+    "source": {
+      "sha256": "eb2310bbac96244bfe5a0c4b5a1db7d87e7ac9c511ad83d221e9040cccb118cd",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 7331 partial-alpha pixels"]
+  },
+  "candidate": "v1"
+}
