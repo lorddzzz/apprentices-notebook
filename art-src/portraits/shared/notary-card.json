@@ -1,0 +1,66 @@
+{
+  "id": "portraits/shared/notary-card",
+  "screen": "party",
+  "district": "shared",
+  "subject": "notary",
+  "state": "card",
+  "role": "card",
+  "size": [222, 330],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/portraits/shared/notary-card.master.png",
+    "sha256": "086376916a7cea3430d86b7e3b39a5f00b3ee56dd13b6ddb9fe3f13cf816ce25",
+    "origSize": [629, 935],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "b91f7939960b5a8bb237ede095f6e372ebb0038bc8864b7cf60bc9ef5f8f3c43",
+      "e2f8cbebeed85674ef0da2b94a647e8da117f89ad6d75d40c0cdefd38aeb32ab",
+      "969bb517ae98146fd5135486c9c261a7b9e462a2f7aa3f50d21bb27d5ea4b874",
+      "a86c480d11684f7ebdfccf08a964f040867ce350b8f7960ce2c1c70fa7980074"
+    ]
+  },
+  "crop": "Three-quarter bust card from the accepted identity, preserving pose, silhouette markers, clothing and colours. Source rectangle [166,0,629,935] at native scale from the full identity PNG. Flatten on plain warm paper tone #E7D4B6.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "top-left; warm lamp edge and cool folds",
+  "palette": [
+    "#272632",
+    "#656475",
+    "#A28D6D",
+    "#44651F",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#55625E",
+    "#E7D4B6"
+  ],
+  "model": "unexposed",
+  "prompt": "Three-quarter bust card from the accepted identity, preserving pose, silhouette markers, clothing and colours. Source rectangle [166,0,629,935] at native scale from the full identity PNG. Flatten on plain warm paper tone #E7D4B6.\n\nOriginal identity prompt:\nUse case: stylized-concept. Create one new production identity painting for The Apprentice's Notebook: Floris, the Junior Notary. A tall reed-thin clerk, with a stiff upright collar that breaks the neck contour, snug round brimless skullcap, round brass spectacles that catch a light glint, a low-slung sharply squared ledger satchel jutting out at the hip, lean legs in straight pants. Ink-purple wool in the district's blue-violet mid with a small moss green collar tab. Hands relaxed; slightly hunched, elbows in.\nImage 1 shows the three APPROVED neighboring characters, an ensemble reference only for body proportions, camera, finish and scale. Invent this identity according to the subject description. Output one person only. Image 2 is a clean crop for matte paint and lighting. Image 3 is the palette strip: district dark/mid/light #272632 #656475 #A28D6D; then the small clothing accent #44651F; then the city night colors #1F2A3A #3A4148 #5D666D #A9BCC6. Hold these swatches' color saturation in the major masses and keep warm colored lamplight over cool cloth. Match the style, proportions and finish of the attached approved anchors.\nComposition: one standing complete head-to-boots sprite cutout at the largest available native portrait dimensions (2:3 if possible). High 3/4 tactics camera, from slightly above, facing screen right like the references. Foreshorten tops of head and boots. Fit both boots fully in-frame, centered and planted with the feet close to the bottom-center baseline, leaving narrow transparent margins all around. When fitted on the 128×176 game canvas the body reads at about 1.3 cells. Real RGBA transparency around every edge and between limbs and props. There is no ground, no backdrop or visible checkerboard, no contact shadow, no baked shadow, and no side rim light. Sparse engraved edge marks with clean outer contour and fine paint grain, simplified forms. Silhouette key that must survive at 24 px in greyscale: Pencil-thin tall pillar, paired collar points, round skullcap and the low rectangular hip satchel.\nNo glyphs, seals with symbols, pseudo-lettering, insignia, flags, border, ground, shadow or matte fringe. Do not use any reference character as the output. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/units/shared/notary.master.png",
+    "art-src/anchors/party/draughtsman-identity.approved.webp",
+    "art-src/anchors/party/stoker-identity.approved.webp",
+    "art-src/anchors/party/runaway-identity.approved.webp",
+    "docs/art/style-sheet.md#3.1%2C3.4"
+  ],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-26",
+  "pack": "party",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "086376916a7cea3430d86b7e3b39a5f00b3ee56dd13b6ddb9fe3f13cf816ce25",
+      "size": [629, 935]
+    },
+    "notes": ["flattened onto the background colour (the raw had transparency)"]
+  },
+  "nativeCrop": [166, 0, 629, 935],
+  "parentMasterSha256": "b91f7939960b5a8bb237ede095f6e372ebb0038bc8864b7cf60bc9ef5f8f3c43"
+}

@@ -181,6 +181,78 @@
       "bytes": 839685,
       "sha256": "7549126c755238a53bb94bea5978f2e57ab68a2c45d218a08e9cf4af0d1183f8",
       "archiveKey": "r2:apprentices-notebook-art/portraits/shared/exile.master.png"
+    },
+    {
+      "file": "portraits/shared/draughtsman-card.master.png",
+      "width": 629,
+      "height": 935,
+      "bytes": 1118818,
+      "sha256": "504d45a1afbfd3800f15112564587d672ab37806f69cb219f39ad3b471c488d0",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/draughtsman-card.master.png"
+    },
+    {
+      "file": "portraits/shared/stoker-card.master.png",
+      "width": 703,
+      "height": 1045,
+      "bytes": 1471367,
+      "sha256": "2b80a4e8feab2af2dbe321096374f3216b785e65c65f5bc48aca22aaf80f5f3a",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/stoker-card.master.png"
+    },
+    {
+      "file": "portraits/shared/runaway-card.master.png",
+      "width": 629,
+      "height": 935,
+      "bytes": 1124570,
+      "sha256": "15e4f734080d1861bb32e72a88a2cbcd5f8c0afdd55e39020b66ad33da4a798d",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/runaway-card.master.png"
+    },
+    {
+      "file": "portraits/shared/notary-card.master.png",
+      "width": 629,
+      "height": 935,
+      "bytes": 1093839,
+      "sha256": "086376916a7cea3430d86b7e3b39a5f00b3ee56dd13b6ddb9fe3f13cf816ce25",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/notary-card.master.png"
+    },
+    {
+      "file": "portraits/shared/towelBearer-card.master.png",
+      "width": 777,
+      "height": 1155,
+      "bytes": 2094370,
+      "sha256": "19da35103e3fcf03370fb2e8e1d091ac5ddfc32fead5352a139a975d624dc4a3",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/towelBearer-card.master.png"
+    },
+    {
+      "file": "portraits/shared/warden-card.master.png",
+      "width": 703,
+      "height": 1045,
+      "bytes": 1394903,
+      "sha256": "48711fc421931ee62a3d7a8154c0dc939d26605e7da0852b7def41650f30577a",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/warden-card.master.png"
+    },
+    {
+      "file": "portraits/shared/tuner-card.master.png",
+      "width": 703,
+      "height": 1045,
+      "bytes": 1468758,
+      "sha256": "5abc25721b51105d3e40ddb5a035ac6209194eb86d798260e9e099e5c7801ef7",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/tuner-card.master.png"
+    },
+    {
+      "file": "portraits/shared/copyist-card.master.png",
+      "width": 777,
+      "height": 1155,
+      "bytes": 1813614,
+      "sha256": "1695c579d9bfea98b5dc3e9e02c5c7a00c9151b1a3dfebb064e642d01ef3dfff",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/copyist-card.master.png"
+    },
+    {
+      "file": "portraits/shared/exile-card.master.png",
+      "width": 740,
+      "height": 1100,
+      "bytes": 1657877,
+      "sha256": "88fbe29152c5442c9dbbdf15d93d4213e1112d5179c6ec3c664688405ab0e096",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/shared/exile-card.master.png"
     }
   ]
 }
