@@ -4,6 +4,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 
 **State:** building (wave 0) · **next window:** routine (orchestrator Sonnet; design windows for briefs/reviews on Opus high)
 **Session rules:** player delegated model choice for subagents (free to override the skill's table); Claude packs Opus high for UF 0a/0b/0c and playback, Sonnet high elsewhere; raster art on Codex Sol high via Whiteboard `git:true` (Codex weekly 61% at start: keep Codex packs few); 2-3 packs at once on disjoint files; engine read-only.
+**Player rule (2026-11-26):** Claude 5h at 80%: tune Claude down until reset 22:59 Belgrade (no new Claude packs; let running ones finish). Codex 5h is low: use Codex as much as possible despite weekly 61%.
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
@@ -15,7 +16,9 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 ## Running or partial
 | Pack | Tasks | Model | Branch @ commit | State |
 |---|---|---|---|---|
-| UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 | running (sid f1a64b41f2fc) |
+| UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 (uncommitted UF-8 work in worktree) | STOPPED for Claude usage (80%); resume_subagent f1a64b41f2fc when Claude < 60% |
+| FT-0 | FT-1→FT-3 | Codex Sol high | build/ft-0 in clone codex-3397433455 | running (sid 65ed65c433ad) |
+| FT-0b | FT-4 contracts | Codex Sol high | build/ft-0b in clone codex-843645866 | running (sid 816825947242) |
 | UF-C | UF-11→UF-13 | Sonnet high | build/pack-ufc @ 32bfbb2 | running (sid 39548c31f5e5) |
 | UA-A | UA-1→UA-2 | Sonnet high | build/pack-uaa (.claude/worktrees/pack-uaa) @ b49271d | running (sid 68c7971a9a57) |
 | UF-0c | UF-4 | Opus high | build/pack-0c @ 17c2414 | running (sid 7e353f0dab94) |
