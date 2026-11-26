@@ -380,3 +380,8 @@ export function castLead(prev: BattleState, action: Action, events: readonly Gam
   if (!caster || path.length === 0) return [];
   return [{ kind: 'trail', cells: [{ ...caster.pos }, ...path], tone: 'source' }];
 }
+
+/** Reduced motion suppresses travel effects independently of the playback time scale. */
+export function playbackFx(effects: Fx[], reduced: boolean): Fx[] {
+  return reduced ? effects.filter(({ kind }) => kind !== 'trail' && kind !== 'slide') : effects;
+}

@@ -1,14 +1,30 @@
 import { prefersReducedMotion } from 'svelte/motion';
 import type { Coord, GameEvent } from '$engine';
-import { type KnowledgeSnapshot, NO_FIRSTS } from './beats';
+import { type Beat, holdMs, type KnowledgeSnapshot, NO_FIRSTS } from './beats';
 import type { Fx } from './fx';
 import { type Clock, projectBatch, Sequencer, type ShownStep, type Step } from './playback';
+import { motionScale, type PlaybackSpeed } from './timing';
 import type { BoardView } from './view';
 
 const browserClock: Clock = {
+  now: () => performance.now(),
   set: (fn, ms) => globalThis.setTimeout(fn, ms) as unknown as number,
   clear: (h) => globalThis.clearTimeout(h),
 };
+
+interface MotionSettings {
+  scale: number;
+  reduced: boolean;
+}
+
+interface PlaybackSettings {
+  clock?: Clock;
+  motion?: () => MotionSettings;
+}
+
+function currentMotion(): MotionSettings {
+  return { scale: motionScale(), reduced: prefersReducedMotion.current };
+}
 
 interface PlayOptions {
   knowledge?: KnowledgeSnapshot;
@@ -27,7 +43,15 @@ export interface StepMarker {
 export class Playback {
   steps = $state.raw<Step[]>([]);
   index = $state(-1);
-  private readonly seq = new Sequencer(browserClock);
+  speed = $state<PlaybackSpeed>(1);
+  private readonly seq: Sequencer;
+  private readonly motion: () => MotionSettings;
+  private settings: MotionSettings = { scale: 1, reduced: false };
+
+  constructor({ clock = browserClock, motion = currentMotion }: PlaybackSettings = {}) {
+    this.seq = new Sequencer(clock);
+    this.motion = motion;
+  }
 
   get playing(): boolean {
     return this.index >= 0;
@@ -35,6 +59,15 @@ export class Playback {
 
   get current(): Step | null {
     return this.steps[this.index] ?? null;
+  }
+
+  get beat(): Beat | null {
+    const beat = this.current?.beat;
+    return beat && beat.kind !== 'ordinary' ? beat : null;
+  }
+
+  get dimmed(): boolean {
+    return this.beat !== null;
   }
 
   get markers(): StepMarker[] {
@@ -55,12 +88,14 @@ export class Playback {
     options: PlayOptions = {},
   ): Promise<void> {
     this.seq.skip();
+    this.speed = 1;
+    this.settings = this.motion();
     const { steps, shown } = projectBatch(
       start,
       events,
       options.knowledge ?? NO_FIRSTS,
-      prefersReducedMotion.current ? 0.5 : 1,
-      { lead, sourceOffset: options.sourceOffset ?? 0 },
+      this.settings.scale,
+      { lead, sourceOffset: options.sourceOffset ?? 0, reduced: this.settings.reduced },
     );
     options.onProjected?.(shown);
     if (steps.length === 0) return Promise.resolve();
@@ -79,11 +114,29 @@ export class Playback {
           this.steps = [];
           resolve();
         },
+        (i) => this.stepMs(steps[i]),
       );
     });
   }
 
+  speedUp(): void {
+    if (!this.playing || this.speed === 4) return;
+    this.speed = this.speed === 1 ? 2 : 4;
+    this.seq.shortenRemaining(this.stepMs(this.current));
+  }
+
   skip(): void {
     this.seq.skip();
+  }
+
+  dispose(): void {
+    this.seq.dispose();
+  }
+
+  private stepMs(step: Step | null | undefined): number {
+    if (!step) return 0;
+    return step.beat && step.beat.kind !== 'ordinary'
+      ? holdMs(this.speed, this.settings.scale, this.settings.reduced)
+      : step.ms / this.speed;
   }
 }

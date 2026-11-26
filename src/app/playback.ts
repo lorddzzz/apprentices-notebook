@@ -1,7 +1,7 @@
 import type { LineId } from '$data';
 import { type Coord, describe, type GameEvent, isSilent, namedIn, witnessedIn } from '$engine';
 import { type Beat, beatOf, type FirstMark, type KnowledgeSnapshot, NO_FIRSTS } from './beats';
-import { type Fx, fxFor } from './fx';
+import { type Fx, fxFor, playbackFx } from './fx';
 import { durationOf, STEP_MS } from './timing';
 import { type BoardView, projectWith } from './view';
 
@@ -32,6 +32,7 @@ interface BatchOptions {
   lead?: readonly Fx[];
   sourceOffset?: number;
   logOnly?: boolean;
+  reduced?: boolean;
 }
 
 export interface BatchProjection {
@@ -46,7 +47,7 @@ export function buildSteps(
   scale = 1,
   lead: readonly Fx[] = [],
 ): Step[] {
-  return projectBatch(start, events, NO_FIRSTS, scale, { lead }).steps;
+  return projectBatch(start, events, NO_FIRSTS, scale, { lead, reduced: scale < 1 }).steps;
 }
 
 export function projectBatch(
@@ -54,7 +55,7 @@ export function projectBatch(
   events: readonly GameEvent[],
   knowledge: KnowledgeSnapshot,
   scale = 1,
-  { lead = [], sourceOffset = 0, logOnly = false }: BatchOptions = {},
+  { lead = [], sourceOffset = 0, logOnly = false, reduced = false }: BatchOptions = {},
 ): BatchProjection {
   const steps: Step[] = [];
   const shown: ShownStep[] = [];
@@ -64,9 +65,7 @@ export function projectBatch(
     if (isSilent(event)) continue;
     const fx = logOnly
       ? []
-      : [...fxFor(event, view), ...(i === 0 ? lead : [])].filter(
-          (f) => scale >= 1 || (f.kind !== 'trail' && f.kind !== 'slide'),
-        );
+      : playbackFx([...fxFor(event, view), ...(i === 0 ? lead : [])], reduced);
     if (!logOnly) view = projectWith(view, event);
     if (event.type === 'round') round = event.round;
     const text = describe(event) ?? '';
@@ -253,6 +252,18 @@ export function logStepOf({
 export interface Clock {
   set(fn: () => void, ms: number): number;
   clear(handle: number): void;
+  now?(): number;
+}
+
+type OnStep = (i: number, snapped?: true) => void;
+type AtSpeed = (i: number, baseMs: number) => number;
+
+interface ActiveRun {
+  durations: readonly number[];
+  onStep: OnStep;
+  onDone: () => void;
+  atSpeed?: AtSpeed;
+  index: number;
 }
 
 /**
@@ -262,11 +273,8 @@ export interface Clock {
  */
 export class Sequencer {
   private handle: number | null = null;
-  private active: {
-    count: number;
-    onStep: (i: number, snapped?: true) => void;
-    onDone: () => void;
-  } | null = null;
+  private deadline: number | null = null;
+  private active: ActiveRun | null = null;
 
   constructor(private readonly clock: Clock) {}
 
@@ -274,49 +282,73 @@ export class Sequencer {
     return this.active !== null;
   }
 
-  run(
-    durations: readonly number[],
-    onStep: (i: number, snapped?: true) => void,
-    onDone: () => void,
-  ): void {
+  run(durations: readonly number[], onStep: OnStep, onDone: () => void, atSpeed?: AtSpeed): void {
     this.skip();
-    if (durations.length === 0) {
-      onDone();
-      return;
-    }
-    this.active = { count: durations.length, onStep, onDone };
-    this.show(durations, 0);
+    const run: ActiveRun = { durations, onStep, onDone, index: -1, ...(atSpeed && { atSpeed }) };
+    this.active = run;
+    this.show(run, 0);
   }
 
   /** Jump to the last step and finish. No-op when idle; onDone fires exactly once. */
   skip(): void {
+    this.finish(true);
+  }
+
+  dispose(): void {
+    this.finish();
+  }
+
+  shortenRemaining(ms: number): void {
+    const run = this.active;
+    if (run && this.deadline !== null && this.deadline - this.now() > ms) {
+      this.schedule(run, ms);
+    }
+  }
+
+  private now(): number {
+    return this.clock.now?.() ?? performance.now();
+  }
+
+  private show(run: ActiveRun, from: number): void {
+    let i = from;
+    while (i < run.durations.length && (run.durations[i] ?? 0) <= 0) i++;
+    if (i >= run.durations.length) {
+      this.finish();
+      return;
+    }
+    run.index = i;
+    run.onStep(i);
+    if (this.active !== run) return;
+    const baseMs = run.durations[i] ?? 0;
+    this.schedule(run, run.atSpeed?.(i, baseMs) ?? baseMs);
+  }
+
+  private schedule(run: ActiveRun, ms: number): void {
+    this.cancel();
+    this.deadline = this.now() + ms;
+    this.handle = this.clock.set(() => {
+      if (this.active !== run) return;
+      this.handle = null;
+      this.deadline = null;
+      this.show(run, run.index + 1);
+    }, ms);
+  }
+
+  private finish(snap = false): void {
     const run = this.active;
     if (!run) return;
     this.cancel();
     this.active = null;
-    run.onStep(run.count - 1, true);
-    run.onDone();
-  }
-
-  private show(durations: readonly number[], from: number): void {
-    const run = this.active;
-    if (!run) return;
-    let i = from;
-    while (i < durations.length && (durations[i] ?? 0) <= 0) i++;
-    if (i >= durations.length) {
-      this.active = null;
+    try {
+      if (snap) run.onStep(run.durations.length - 1, true);
+    } finally {
       run.onDone();
-      return;
     }
-    run.onStep(i);
-    this.handle = this.clock.set(() => {
-      this.handle = null;
-      this.show(durations, i + 1);
-    }, durations[i] ?? 0);
   }
 
   private cancel(): void {
     if (this.handle !== null) this.clock.clear(this.handle);
     this.handle = null;
+    this.deadline = null;
   }
 }

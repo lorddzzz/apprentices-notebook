@@ -1,6 +1,7 @@
 import { LINES, type LineId } from '$data';
 import type { GameEvent } from '$engine';
 import { namedTitle } from './describe';
+import { HOLD_MS, type PlaybackSpeed } from './timing';
 
 export interface KnowledgeSnapshot {
   named: ReadonlySet<string>;
@@ -45,4 +46,8 @@ export function beatOf(
     return { kind: 'first', name, first: true };
   }
   return { kind: 'ordinary', name: '', first: false };
+}
+
+export function holdMs(speed: PlaybackSpeed, scale: number, reduced: boolean): number {
+  return (reduced ? HOLD_MS.reduced : HOLD_MS[speed]) * scale;
 }

@@ -2,7 +2,17 @@ import { type GameEvent, isDistrictEvent } from '$engine';
 
 export const STEP_MS = { quiet: 0, short: 160, normal: 260, big: 420, banner: 500 } as const;
 
-/** Base playback duration per event (before the reduced-motion scale). */
+export type PlaybackSpeed = 1 | 2 | 4;
+
+/** Held beat timings at Motion Normal. The 1× entry mirrors `--dur-held`. */
+export const HOLD_MS = { 1: 800, 2: 250, 4: 100, reduced: 300 } as const;
+
+/** FT-3b replaces this stand-in with the UF-11 device preference. */
+export function motionScale(): number {
+  return 1;
+}
+
+/** Base playback duration per event before the Motion preference and playback speed. */
 export function durationOf(e: GameEvent): number {
   switch (e.type) {
     case 'battleStart':

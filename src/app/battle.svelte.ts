@@ -295,7 +295,7 @@ export class BattleSession {
   }
 
   dispose(): void {
-    this.playback.skip();
+    this.playback.dispose();
   }
 
   private play(
