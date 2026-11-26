@@ -12,6 +12,7 @@ import type { WipeSummary } from '../flow';
 import type { GameStore } from '../game.svelte';
 import type { Route } from '../routes';
 import type { ThresholdStore } from '../threshold.svelte';
+import { fightSave } from './recipes';
 
 /**
  * UF-4 / C8: dev-only state fixtures, opened at `#/fixture?name=<id>[&step=n][&grey=1]`. Each
@@ -20,7 +21,12 @@ import type { ThresholdStore } from '../threshold.svelte';
  * state a save cannot hold, enters `route` and waits for `expect` before tapping `taps`.
  */
 
-export type FixtureId = 'threshold-canals-burnt' | 'study-fresh';
+export type FixtureId =
+  | 'threshold-canals-burnt'
+  | 'study-fresh'
+  | 'fight-seam'
+  | 'fight-lampwater'
+  | 'fight-wide-7x9';
 
 /** What a setup recipe may reach besides the game: the app's transient stores and the URL's step. */
 export interface FixtureContext {
@@ -108,6 +114,30 @@ export const FIXTURES: Record<FixtureId, Fixture> = {
     save: () => newSave(FIXTURE_SEED),
     expect: 'study',
     note: 'A brand-new notebook in the Study.',
+  },
+  // UF-15c: static fight boards, the first room of a fresh trip (`setOut`, then the Combat
+  // screen's own `startBattle`). `end-turn` only mounts once the intro has played and the party
+  // may act, so the idle state is what the loader waits for.
+  'fight-seam': {
+    id: 'fight-seam',
+    route: 'trip',
+    save: () => fightSave('seam', lockProfile()),
+    expect: 'end-turn',
+    note: 'The Seam, first fight, at its real 6×6 board: idle, the party to move.',
+  },
+  'fight-lampwater': {
+    id: 'fight-lampwater',
+    route: 'trip',
+    save: () => fightSave('canals', lockProfile()),
+    expect: 'end-turn',
+    note: 'Lampwater (the canals), first fight, at its real 5×9 board (no Lampwater room is 7×9: rooms run 5×9, 6×9, 7×7, 6×9, 7×8): idle, the party to move.',
+  },
+  'fight-wide-7x9': {
+    id: 'fight-wide-7x9',
+    route: 'trip',
+    save: () => fightSave('bridges', lockProfile()),
+    expect: 'end-turn',
+    note: 'The Fog Arches (bridges), first fight, 7 columns × 9 rows: the widest and tallest board a trip opens on. Idle, the party to move.',
   },
 };
 

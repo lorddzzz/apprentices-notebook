@@ -102,6 +102,14 @@ async function coldLoad(b: Browser) {
     if (id === 'threshold-solved') {
       return screen === 'threshold' && threshold.solved && threshold.district !== null;
     }
+    // Footer.svelte: the End turn button shows when the party may act (no playback, player phase).
+    // Combat.svelte builds the battle in an effect; the fake does the same, then skips the intro.
+    if (id === 'end-turn') {
+      if (screen !== 'battle') return false;
+      game.ensureBattle();
+      game.battle?.skip();
+      return game.battle?.state.phase === 'player' && !game.battle.busy;
+    }
     return false;
   });
   return { game, router, threshold };
@@ -139,8 +147,8 @@ describe('fixture request', () => {
     expect(fixtureRequest('')).toBeNull();
   });
 
-  test('fixtures: the two proven fixtures are listed', () => {
-    expect(fixtureIds()).toEqual(['threshold-canals-burnt', 'study-fresh']);
+  test('fixtures: the proven fixtures are listed', () => {
+    expect(fixtureIds()).toEqual(expect.arrayContaining(['threshold-canals-burnt', 'study-fresh']));
     for (const id of fixtureIds()) expect(FIXTURES[id].id).toBe(id);
   });
 });
@@ -251,6 +259,50 @@ describe('fixture loader (cold load)', () => {
     b.window.dispatchEvent(new Event('hashchange'));
     expect(b.location.reload).toHaveBeenCalledOnce();
     expect(b.root.dataset.fixture).toBeUndefined();
+  });
+});
+
+describe('fight fixtures (UF-15c)', () => {
+  const planted = saveText({ ...newSave(424242), seedCounter: 424242 });
+  // The real board: the first room of each district, from the app's own setOut and startBattle.
+  const BOARDS = [
+    ['fight-seam', 'seam', 6, 6],
+    ['fight-lampwater', 'canals', 5, 9],
+    ['fight-wide-7x9', 'bridges', 7, 9],
+  ] as const;
+
+  test('fixtures: fight-seam, fight-lampwater and fight-wide-7x9 resolve to the fight screen with the real board dimensions and the idle expected testid', async () => {
+    const b = fakeBrowser('#/fixture?name=fight-seam', planted);
+    const { game, router } = await coldLoad(b);
+    for (const [name, district, width, height] of BOARDS) {
+      b.location.hash = `#/fixture?name=${name}`;
+      b.window.dispatchEvent(new Event('hashchange'));
+      await ready(b, name);
+      expect(FIXTURES[name].expect).toBe('end-turn');
+      expect(FIXTURES[name].route).toBe('trip');
+      // The trip route is kept: no redirect rewrote it.
+      expect(b.replaced.at(-1)).toBe('#/trip');
+      expect(router.route).toBe('trip');
+      const trip = game.save.trip;
+      expect(trip?.district).toBe(district);
+      expect(trip?.status).toBe('fight');
+      expect(trip?.encounter).toBe(0);
+      expect(
+        resolveScreen(router.route, game.save.trip, game.wipe, game.save.lastTrip, game.profile),
+      ).toEqual({ screen: 'battle', redirect: null });
+      // The live battle is the one startBattle gives, at the district's real size, idle.
+      const battle = game.battle;
+      expect(battle?.state.phase).toBe('player');
+      expect(battle?.busy).toBe(false);
+      expect(battle?.state.width).toBe(width);
+      expect(battle?.state.height).toBe(height);
+      expect(battle?.view.width).toBe(width);
+      expect(battle?.view.height).toBe(height);
+    }
+    // Only engine and app-flow calls: the player's save was never read, written or removed.
+    expect(b.storage.get(SAVE_KEY)).toBe(planted);
+    expect(b.writes).toEqual([]);
+    expect(b.location.reload).not.toHaveBeenCalled();
   });
 });
 
