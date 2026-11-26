@@ -7,12 +7,12 @@ Decision IDs used by the program and the decisions review (aligned after review;
 
 | ID | Proposal | Subject | Status |
 |---|---|---|---|
-| UD-D1 | 1 | Theme registration (FT defines, UD fills; borrowed-asset precedence pinned) | agreed |
-| UD-D2 | 3 | Mark rules: decorative marks vs tactical signals | **changed after review** |
-| UD-D3 | 5 | Orchestrator-run readability gate (fallback and painted art; painted failure blocks the asset's deploy, not the code merge) | **changed after review** |
-| UD-D4 | 4 | Crests are vector components (adapted to the header snippet at the call site) | **changed after review** |
-| UD-D5 | 7 | Evidence per district (a shared parameterised checklist, committed evidence files) | new numbering |
-| UD-D6 | 6 | Drawn pages borrow and keep the lent rule's visual tell | **changed after review** |
+| Decision UD-D1 | 1 | Theme registration (FT defines, UD fills; borrowed-asset precedence pinned) | agreed |
+| Decision UD-D2 | 3 | Mark rules: decorative marks vs tactical signals | **changed after review** |
+| Decision UD-D3 | 5 | Orchestrator-run readability gate (fallback and painted art; painted failure blocks the asset's deploy, not the code merge) | **changed after review** |
+| Decision UD-D4 | 4 | Crests are vector components (adapted to the header snippet at the call site) | **changed after review** |
+| Decision UD-D5 | 7 | Evidence per district (a shared parameterised checklist, committed evidence files) | new numbering |
+| Decision UD-D6 | 6 | Drawn pages borrow and keep the lent rule's visual tell | **changed after review** |
 | (none) | 2 | `data-district` → `data-mark` rename (R7), cited as "Proposal 2 / R7", distinct from UD-D2 | **changed after review** |
 
 Scope: restyle `src/ui/districts/*` so every district-specific mark obeys the flat, never-themed overlay and the bible's per-district rule; register one theme entry per district (C1 `[data-district]`, crest, scene); a greyscale + squint check per district before merge. Covers the six districts below, the lower Seam (Underjoin) and player-drawn pages; marks of the Seam and Lampwater get the same restyle after FT's proving pass. Rules, content, engine and balance are untouched.
@@ -83,7 +83,7 @@ Checked: `src/ui/districts/index.ts` (the `DistrictUi` registry, global lookups 
 
 Order (changed after review): **Pack 7 (Seam and Lampwater marks) runs first as the proving pass**, as soon as FT A2b, FT Pack B and the fixtures have merged, before its pattern is copied; Packs 1–6 then run two or three at a time, each with its UA art pack beside it. Each later district merges its code on passing zero-art evidence; its art deploys only after the readability gate passes on painted art. Order by risk after the proof: Klokhof, Fog Arches and Verloren Corner first; Thermae and Sestante next; Pack 6 last. Every pack owns a **disjoint pair of test files** (Proposal 7); none edits a shared test.
 
-### Pack 0: Foundation (role: Default; UI; depends on: UF-1, UF-6, UF-15; FT-4 and FT-12)
+### Pack 0: Foundation (role: Default; UI; depends on: UF-1, UF-6, UF-15d (district fight fixtures); FT-4 and FT-12)
 Owns: `src/ui/districts/index.ts` (confirm FT-4's field; add only the Underjoin crest fallback and the drawn-page blank crest registration), `src/ui/districts/logic.ts` (no change expected), the **11** files of Proposal 2, `src/ui/districts/fixtures.ts` (new), `src/ui/screens/galleryDistricts.ts` (new adapter), `tests/ui/districtMarks/harness.ts` (new), `tests/ui/fixtures.test.ts` (additions only), `tests/ui/districtTheme/` and `tests/ui/districtMarks/` skeleton (one empty-but-passing file per district, owned afterwards by that district's pack).
 Pattern: `tests/ui/rule-preview-layer.test.ts`.
 
@@ -152,7 +152,7 @@ Pattern: `tests/ui/rule-preview-layer.test.ts`.
 
 - Tests: per-district `tests/ui/districtMarks/<dir>.test.ts` (decorative rules, tactical signals in the overlay group with overlay tokens) and `tests/ui/districtTheme/<id>.test.ts` (theme + crest registered, overlay tokens not overridden); existing `tests/districts/*` and `tests/ui/*` unchanged. Vitest has no browser layout: rendered structure and target sizes are checked in a browser or by server-render markup, as appropriate.
 - Verify commands name real files: Seam → `tests/districts/marginalia.test.ts`; canals → `tests/districts/canal-floor.test.ts tests/districts/canal-ledgers.test.ts`; Underjoin → `tests/districts/lower-seam-floor.test.ts tests/districts/lower-seam-door.test.ts tests/districts/lower-seam-trip.test.ts`; drawn page → `tests/districts/inkedPage tests/districts/trip-shapes-lent.test.ts tests/districts/heart-frames.test.ts`; others → `tests/districts/<dir>`.
-- **Shared readability checklist (UD-G), parameterised by district recipe:** each state of the district is told apart by shape alone; danger arrows, reach dots and the cast outline are the first thing read; HP and intent are not covered; marks and signals at the real cell size (44–50 px at 7×9, ~58 px at 6×8); squint (blur 3 px) still shows tile state and figures apart; a vertically adjacent pair, a top-edge boss, stacked FX, real z-order; the threatened cell, the harmed party member, HP and the underlying tile identifiable; colour/greyscale/blur with painted art and with zero art; no tap target under 44 px added; hit rects above all art. One evidence set per distinct candidate.
+- **Shared readability checklist (UD-G), parameterised by district recipe:** each state of the district is told apart by shape alone; danger arrows, reach dots and the cast outline are the first thing read; HP and intent are not covered; marks and signals at the real cell size (≥ 44 px, ~51 px at 7 columns, per FT-D9/R20; 38 px visual at 375×667; hit rects stay the whole cell); squint (blur 3 px) still shows tile state and figures apart; a vertically adjacent pair, a top-edge boss, stacked FX, real z-order; the threatened cell, the harmed party member, HP and the underlying tile identifiable; colour/greyscale/blur with painted art and with zero art; no tap target under 44 px added; hit rects above all art. One evidence set per distinct candidate.
 - Phone check: no for UD-1; per pack the orchestrator checks the recipe and one live mid-trip save. Gate failures: code failures go back to the pack; art failures hold the asset off deployable main; R9 failures go to FT with a required rerun.
 - Checked at Close of the program only: offline precache of district art (UF art check), whole-game look.
 

@@ -18,7 +18,7 @@ Own: src/ui/theme.css; src/ui/components/common/{AppHeader,ActionButton,Card,Uns
 Contract (quoted from the program; do not redefine):
 C1 Tokens: theme.css stays the one token file, in sections. Type: --font-serif, --font-script, --font-hand (alias of --font-script; two faces only, UF-P1); scale --type-xs|sm|md|lg|xl|title; utility class .label (small caps); --font-mono kept for dev pages. World palettes --home-*, --city-*; a screen declares data-world="home|city|system". District light: [data-world][data-district="<id>"] (no bare [data-district]) sets --district-dark|mid|light (ids = DISTRICT_IDS: seam #253235/#55625E/#BC9273, canals #172C39/#456675/#BC8A57, inkQuarter #272632/#656475/#A28D6D, bathhouses #25373B/#5F8482/#ACC7BE, bridges #252F39/#596D79/#ADBBBC, foundry #292A2A/#6F6956/#B19060, cartographers #28323A/#768890/#D5D7CC, lowerSeam #232D30/#535E59/#8F9280, inkedPage #373239/#867A72/#D9CDB5). Meaning colours identical everywhere: --danger, --gold (unique to firsts and discoveries), rune-role hues, apprentice hues. --overlay-* (danger, reach, preview, first, shield) only in :root; **--overlay-preview must NOT alias the amber --select selection colour** (check the current preview paint and alias that, or declare a distinct value; a test asserts it). Spacing 4/8/16/24/32, --tap 44px, --radius, --shadow-1|2, --dur-quick|base|held = 250/400/800 ms. Keep every legacy name as an alias and the .desk .editor skin rules untouched. Fonts: declare the stacks with system fallbacks now; Pack A adds the faces.
 C7 stubs, frozen props after you render a Study header and a two-line fight header (plain look, tokens only):
- AppHeader {variant:'home'|'city'|'system'; title; subtitle?; status?: Snippet (second line, fight: name/HP/rule); back?:{label; to: Route}|{label; onback}; crest?: Snippet; strip?: ArtId; right?: Snippet; height?: 56|64|72|88}; every icon-only control takes an accessible name; (⋯ always last, opens MenuSheet); export a crestSnippet(id) adapter (disc fallback) so FT/UT can pass a component as a Snippet
+ AppHeader {variant:'study'|'subroom'|'city'|'system' (88/64/56/56, R28; the fight's two-line header is city); title; subtitle?; status?: Snippet (second line, fight: name/HP/rule); back?:{label; to: Route}|{label; onback}; crest?: Snippet; strip?: ArtId; right?: Snippet}; every icon-only control takes an accessible name; (⋯ always last, opens MenuSheet); export a crestSnippet(id) adapter (disc fallback) so FT/UT can pass a component as a Snippet
  ActionButton {kind?:'primary'|'secondary'|'quiet'; danger?; disabled?; onclick; label?; testid?; children?}
  Card {tone?:'paper'|'plain'; children}; Unseen {shape?:'box'|'chip'|'silhouette'; label?}; StepMarker {n; gold?; size?:24|32}; MenuSheet {open; onclose}
  prefs.svelte.ts exports prefs {motion:'normal'|'quick'}, motionScale() (stub: 1, final signature) and a live reduced-motion getter prefs.reduced (reacts to OS preference changes), from this first stub.
@@ -89,7 +89,7 @@ Owed by this pack: nothing (Owed list: none).
 
 Done when:
 - UF-5: tests `fonts: every @font-face file exists`, `fonts: precache globs match woff2`, `fonts: --font-* stacks name the shipped faces` pass; sample screenshot at 375x812; on the phone run document.fonts.check confirms the loaded faces and .label shows real small caps on real copy.
-- UF-6: `#/gallery?part=tokens` shows type scale, both world palettes, 9 district swatches, meaning colours, spacing, ActionButton kinds, three AppHeader variants; `?grey=1` greyscales any Gallery part (screenshot of `board` part) and, through UF-4's loader, any fixture.
+- UF-6: `#/gallery?part=tokens` shows type scale, both world palettes, 9 district swatches, meaning colours, spacing, ActionButton kinds, four AppHeader variants; `?grey=1` greyscales any Gallery part (screenshot of `board` part) and, through UF-4's loader, any fixture.
 - UF-7: `#/gallery?part=art` lists every registered ArtId at real size grouped by family and scope with per-scope bytes against budget and a flag for a missing sidecar; empty tree shows one line; with two temp assets shows both (screenshot, then remove the temp files).
 
 Verify: `pnpm vitest run tests/ui --reporter=dot`
@@ -107,7 +107,7 @@ Base commit: <main at spawn>. Budget: 90 min pack, 30 min per command.
 Read: plan §2 (UF-P11), §4; docs/design/art-studies/study-v2.png and seam-v2.png (the target look); src/ui/components/common/Sheet.svelte (pattern for Sheet).
 Own: common/{AppHeader,ActionButton,Card,Unseen,StepMarker,Sheet,Toasts}.svelte; tests/ui/components.test.ts.
 Contract (props frozen by Pack 0; do not change names or types, only add optional ones):
- AppHeader {variant:'home'|'city'|'system'; title; subtitle?; back?:{label; to: Route}|{label; onback}; crest?: Snippet; strip?: ArtId; right?: Snippet; height?: 56|64|72|88}: home = wood bar, script title (--font-script), optional strip art; city = night bar, crest snippet left (vector, from crestFor), no back on a trip, round/depth as subtitle; system = paper bar, small-caps title. Height 64 by default (88 for the Study's strip header, UH-D1/R12: strip art 750×224, top 176 px header and lower 48 px bleed behind the seat tabs, cropped by object-fit; 56 for Lab/Gallery; 72 spare). The back control and every icon >= 44x44. ⋯ always last in the right slot and opens MenuSheet. Without art, strip/crest fall back to flat world colours.
+ AppHeader {variant:'study'|'subroom'|'city'|'system'; title; subtitle?; status?: Snippet; back?:{label; to: Route}|{label; onback}; crest?: Snippet; strip?: ArtId; right?: Snippet}: study (88, home world) = wood bar, script title (--font-script), strip art 750×224 (UH-D1/R12: top 176 px header, lower 48 px bleed behind the seat tabs, cropped by object-fit); subroom (64, home world: Codex, Bench, Desk, Drawing table; 750×128 strip); city (56) = night bar, crest snippet left (vector, from crestFor), no back on a trip, round/depth as subtitle, also the fight's two-line header; system (56) = paper bar, small-caps title (Lab/Gallery). The back control and every icon >= 44x44. ⋯ always last in the right slot and opens MenuSheet. Without art, strip/crest fall back to flat world colours.
  ActionButton: one primary per screen (gold-edged lamp fill on home/city, ink fill on system); secondary outlined; quiet text; danger = --danger. Disabled is visibly distinct without colour alone.
  Card sizes to content (no min-height). Unseen: dashed frame + ??? or a silhouette, one style for chip/box; label optional. StepMarker: numbered disc, gold variant (--gold ring, same shape, distinguishable in greyscale by a double ring), 24 and 32 px.
  Sheet keeps open/title/onclose/children and gains optional size 'auto'|'tall' (max 70% / 86% height), a handle, title row + ✕, tap-out, Escape, swipe-down on the handle/title row only (pointer events, never on the scrolling body); reduced motion = fade; world-aware paper.
@@ -115,7 +115,7 @@ Contract (props frozen by Pack 0; do not change names or types, only add optiona
 Owed by this pack: nothing.
 
 Done when:
-- UF-8: Gallery tokens page (Pack A) or a temporary harness shows all three AppHeader variants, ActionButton kinds and Card at 375x812; test `components: tappable controls declare min-height var(--tap)`.
+- UF-8: Gallery tokens page (Pack A) or a temporary harness shows all four AppHeader variants, ActionButton kinds and Card at 375x812; test `components: tappable controls declare min-height var(--tap)`.
 - UF-9: Unseen and StepMarker in both variants, colour and greyscale screenshots.
 - UF-10: the Study menu sheet and the welcome sheet behave as before (tap-out, ✕, Escape) and look restyled; swipe-down on the handle closes; body scroll does not close it; toast info and warn screenshot.
 
@@ -149,16 +149,16 @@ Phone check: yes, port 5193
 
 ---
 
-## Pack D: State fixtures (UF-14a..c → UF-15a..f), role Default (Sonnet high); one task per subset, spawned when its first consumer needs it
+## Packs D1–D4: State fixtures (D1 = UF-14a..c; D2 = UF-15a, 15b, 15f; D3 = UF-15c, 15d; D4 = UF-15g, 15e), role Default (Sonnet high); one task per subset, spawned when its first consumer needs it
 
 ```
-Pack D (subset <UF-14x/15x>) of docs/plans/ux-foundations-plan.md.
+Pack D<n> (subset <UF-14x/15x>) of docs/plans/ux-foundations-plan.md.
 Base commit: <main at spawn>. Budget: 90 min per subset, 30 min per command.
 
 Read: plan §2 (UF-P6), §3 (risks) and Pack D's subset table; src/app/dev/{fixtures,loader}.ts (Pack 0c); pattern: tests/drawing/fixtures.ts (handoverProfile, fullHousehold) and tests/fixtures/saves/record.ts (lock-solve recording).
 Own: src/app/dev/fixtures.ts (append), src/app/dev/recipes.ts, tests/app/fixtures.test.ts.
 Contract (R21): Fixture {id; route: Route; params?; save: SaveData; setup?: (game)=>void; expect: testid; wipe?: WipeSummary; taps?: string[]; step?: number; note}; every fixture satisfies resolveScreen(...) with redirect null and the intended screen, AND shows its semantic expected state (a mounted testid; the loader waits for it before taps; a missing tap target fails). Recipes: start-point radios use a remembered Cartographers checkpoint (Seam has none); filed-paper notice sets game.found; burnt threshold replays the lock-solve recording to set threshold.solved; wipes use UT-2's wipeFixture() with three distinct payloads (checkpoint-start first-room, start-from-zero crossing the checkpoint, nothing-lost); a frozen chain needs a deterministic replay setup giving the real start board and events; district fights are `fight-<id>` for all nine DISTRICT_IDS at their real board size (setOut + startBattle). Late profile from tests/drawing/fixtures.ts copied into dev code (never import tests/ from src/). The id list is the plan's "Fixture list" table (copy it into the test).
-Subsets: 14a trip late states + loot; 14b wipes (only after UT-2 merges: no stub-only pass; a pending test is reported as pending); 14c ending states; 15a study + home (incl. study-unlocked, pocket-readonly); 15b map (+ setout-startpoint); 15c fight (after FT-3 for step); 15d district fights; 15e lab + Gallery parts (after UF-6/7); 15f glyph/Fair-copy recipes.
+Subsets: 14a trip late states + loot; 14b wipes (only after UT-2 merges: no stub-only pass; a pending test is reported as pending); 14c ending states; 15a study + home (incl. study-unlocked, pocket-readonly); 15b map (+ setout-startpoint); 15c static fight boards (no FT dependency); 15d district fights; 15g interactive/replayed fight states (after FT-3 for step; per-fixture expected testids skipped visibly until the FT screen merges); 15e lab + Gallery parts (after UF-6/7); 15f glyph/Fair-copy recipes.
 Owed by this pack: if a state cannot be reached from engine/app calls, say which and why (do not edit the engine).
 
 Done when: per subset, the plan's Pack D row: tests that each fixture resolves to its screen and shows its expected state; one screenshot each at 375x812 (list in report); tap and frozen-step assertions fail on a missing target or mismatched step.

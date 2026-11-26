@@ -81,14 +81,14 @@ Pattern: `tests/app/playback.test.ts` (fake clock with elapsed-time source).
 | FT-3 | `BattleSession` getters (`readout`, `markers`, `beat`, `logLine`), busy-input routing, `freezeAt(shown ordinal)` | M | tests through the **real handlers**: `board tap speeds up, other controls inert, Skip finishes`, `rapid taps cap at ×4`, `idle tap does nothing`, `held pointer across the end of playback does not activate`, `taps during the enemy turn`, `logLine follows the shown step`, `no readout when idle`; existing playback/fx tests unchanged |
 | FT-3b | Motion hookup (named owner): when UF-11 is on main, switch `motionScale()` to `prefs.svelte.ts` and re-run the speed × motion matrix | S | the matrix tests pass on the real pref; dispatched via the Owed list |
 
-### Pack 0b: Art and prop contract (role: Default; app-layer; independent of Pack 0, parallel)
+### Pack 0b: Art and prop contract (role: Default; app-layer; independent of Pack 0, parallel; depends on: UF-2 for the `enemyArtId` inventory mapping, R27)
 Owns: `src/ui/components/board/fightArt.ts` (new), `src/ui/districts/index.ts` (additive: `fightTheme?`, `crestFor`, R1), stubs `board/StepMarkerLayer.svelte`, `battle/Readout.svelte`, `battle/BeatCard.svelte`, `tests/ui/fightArt.test.ts`, `tests/ui/crest.test.ts`.
 
 | ID | Goal | Size | Done when |
 |---|---|---|---|
 | FT-4 | Stubs (render nothing, typed props) + `fightArtIds` keyed by owning definition, `DistrictFightTheme`, `FIGHT_KITS`, `enemyArtId` use (UF-2 mapping), `figureSize(assetId)` (boss 192×256, rival 128×176, mother/marginalia large); `fightTheme?` and `crestFor(id)` (R1, R2) | S | tests `fightArtIds builds convention ids`, `borrowed foe resolves its owning district` (deadLetter → `foes/inkQuarter/dead-letter`), `figureSize by asset id`, `crestFor falls back to a disc`; typecheck; stubs importable |
 
-### Pack A1: Layout spike, scene, tiles, five-layer skeleton (role: Default; UI; depends on: FT-4, UF-1…UF-4 and UF's early `fight-wide-7x9`)
+### Pack A1: Layout spike, scene, tiles, five-layer skeleton (role: Default; UI; depends on: FT-4, UF-1…UF-4 and UF-15c (static boards incl. `fight-wide-7x9`); **dispatched as two spawns in order: A1a = FT-5s, FT-5 (spike and `boardLayout`; the FT-5s gate), A1b = FT-6, FT-7, FT-8 (≤ 3 tasks each)**)
 Owns: `components/board/BattleBoard.svelte`, `TileLayer.svelte`, `SceneLayer.svelte` (new), `geometry.ts`, `art.ts`, `label.ts`, `tests/ui/geometry.test.ts`, `tests/ui/boardLayout.test.ts` (new).
 Pattern: `TileLayer.svelte` (vector stays as fallback).
 
@@ -117,7 +117,7 @@ Owns: `HighlightLayer`, `IntentLayer`, `MarksLayer`, `StepLayer` (enemy telegrap
 | FT-12 | Seam + Lampwater `fightTheme` entries (scene, tile tone, crest, arena); `unitArt`/`boardLayers` still render | S | `fight-seam`, `fight-lampwater` render with and without art |
 | FT-12g | **Overlap readability gate (FT-D10) on the proving boards**; R9 (Thermae steam) check: three joined cells, one isolated cell, one bather | gate | colour + greyscale + 3 px blur pairs for each case in FT-D10, art and zero art, recorded; failures go back here with a rerun |
 
-### Pack B: Fight header, bottom stack and parent wiring (role: Default; UI; depends on: FT Pack 0, Pack 0b, UF-3, UF-8…UF-10, UF-12; may run beside A1)
+### Pack B: Fight header, bottom stack and parent wiring (role: Default; UI; depends on: FT Pack 0, Pack 0b, UF-3, UF-8…UF-10, UF-12; may run beside A1; **dispatched as B1 = FT-13, FT-14, FT-15 and then B2 = FT-16, FT-16w (the parent wiring; "B (FT-16w)" below means B2)**)
 Owns: `ui/screens/Combat.svelte`, `components/battle/{BattleView,TopBar,FightHeader (new),Caption,PartyStrip,ActionBar,SpellSheet (new),Footer,LogLine (new),LogSheet}.svelte`, `src/app/spellChip.ts` (new), `tests/app/spellChip.test.ts`, `tests/ui/battleView.test.ts` (new, server-render of the hosts).
 Pattern: `PartyStrip.svelte`, `Footer.svelte`.
 
@@ -185,7 +185,7 @@ Pattern: `LogSheet.svelte`, UF `Sheet`.
 ## 8. Execution notes
 
 - Critical path: **FT Pack 0 and Pack 0b (parallel) → A1 (FT-5s spike gates everything after) → A2a → A2b** with **B** beside A1 (disjoint files, B owns parent wiring), then **C** (needs A1 skeleton + B's stubs), then **D** and **E** (disjoint except sequential grants on `BattleView`/`Combat`; D before E's FT-27). Two to three packs at a time.
-- Starts after UF Pack 0 (UF-1…UF-4: tokens, `ArtImage`, fixture loader; UF's early `fight-wide-7x9`); B and E also need UF-8…UF-10 and UF-12; FT-25 needs UH-3 (R3).
+- Starts after UF Pack 0 (UF-1…UF-4: tokens, `ArtImage`, fixture loader; UF-15c's static `fight-wide-7x9`); B and E also need UF-8…UF-10 and UF-12; FT-25 needs UH-3 (R3).
 - Size: about 32 tasks, 9 packs (Pack 0, 0b, A1, A2a, A2b, B, C, D, E), risk concentrated in FT-1/FT-2 and FT-9. Art swaps in later with no code change, but **a district's art deploys only after its readability gate passes** (UD).
 
 ## Review resolution (2026-11-26, review 2 and review 3 #2)

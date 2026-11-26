@@ -8,7 +8,7 @@ Plan: [ux-ending-plan.md](ux-ending-plan.md). Spawn format: [templates.md](../..
 Pack A of docs/plans/ux-ending-plan.md: tasks UE-1 → UE-2 → UE-3.
 Base commit: <main at spawn>. Budget: 90 min pack, 30 min per command.
 
-Depends on: UF-8…UF-10, UF-14, UH-0, FT-4 (crestFor); may start on these providers without waiting for all districts. Read: plan §1, §2 (1–7 as they touch these screens), §3; board frames "Ending 1–3" (docs/plans/ux-board-snapshot.txt lines 198–218); pattern: src/ui/screens/Study.svelte.
+Depends on: UF-8…UF-10, UF-14c, UH-0, FT-4 (crestFor); may start on these providers without waiting for all districts. Read: plan §1, §2 (1–7 as they touch these screens), §3; board frames "Ending 1–3" (docs/plans/ux-board-snapshot.txt lines 198–218); pattern: src/ui/screens/Study.svelte.
 Own: src/ui/screens/DrawingTable.svelte, Handover.svelte, Credits.svelte; src/ui/components/drawing/*; src/ui/components/ending/* (new); tests/ui/handover-profile.test.ts and tests/ui/credits-seen.test.ts (new, granted).
 Contract (on main):
 - C1: root of each screen has `data-world="home"`; tokens only, no new hex literals; `--overlay-*` untouched.
@@ -33,7 +33,7 @@ Phone check: yes, port 5195, for UE-3 (tap-pause); screenshots in docs/plans/ux-
 Pack B of docs/plans/ux-ending-plan.md: tasks UE-4 → UE-5 → UE-6.
 Base commit: <main at spawn>. Budget: 90 min pack, 30 min per command.
 
-Depends on: UF-6, UF-7, UF-8…UF-12, UF-15, FT-8, UD-3 (Gallery order UF-6/UF-7 → UD-3 → UE-6); UT-2 merged first (it also edits flow.ts, R1: UT-2 → UE-4). The Lab placeholder-board API is pinned with FT before UE-5 (see Contract). Read: plan §2 (4, 6), §3; board "OUTSIDE THE FICTION" (snapshot lines 362–390); pattern: src/ui/screens/Lab.svelte (as is).
+Depends on: UF-6, UF-7, UF-8…UF-12, UF-15e, FT-8, UD-3 (Gallery order UF-6/UF-7 → UD-3 → UE-6); UT-2 merged first (it also edits flow.ts, R1: UT-2 → UE-4). The Lab placeholder-board API is pinned with FT before UE-5 (see Contract). Read: plan §2 (4, 6), §3; board "OUTSIDE THE FICTION" (snapshot lines 362–390); pattern: src/ui/screens/Lab.svelte (as is).
 Own: src/ui/screens/Lab.svelte, Gallery.svelte, galleryFixtures.ts, galleryTricks.ts; src/ui/components/lab/*; src/app/flow.ts (the resolveScreen guard only); tests/app/dev-gate.test.ts (new).
 Contract (on main):
 - C1: roots carry `data-world="system"`: no scene, no art, vector icons only.

@@ -143,10 +143,10 @@ Contract (on main):
 Owed by this pack: nothing.
 
 Done when:
-- UH-10: bench-mid at 375×812: grid starts directly under the headline, Trial reachable by thumb; bench-page-trial: a held page uses its authored board at its own size (the ordinary Bench is 6×5), Back goes to Codex; colour and greyscale pair of the trial board (`&grey=1`); tests/app/bench*.test.ts green.
+- UH-10: bench-mid at 375×812: grid starts directly under the headline, Trial reachable by thumb; bench-trial: a held page uses its authored board at its own size (the ordinary Bench is 6×5), Back goes to Codex; colour and greyscale pair of the trial board (`&grey=1`); tests/app/bench*.test.ts green.
 - UH-11: every subject swatch shows shape and letter; `git diff --stat` shows no change in components/lab/ or components/board/.
 
-Verify: `pnpm vitest run tests/app/bench.test.ts tests/app/bench-page-trial.test.ts tests/app/bench-registry.test.ts --reporter=dot && pnpm exec tsc --noEmit`
+Verify: `pnpm vitest run tests/app/bench.test.ts tests/app/bench-trial.test.ts tests/app/bench-registry.test.ts --reporter=dot && pnpm exec tsc --noEmit`
 Phone check: no (the orchestrator checks this wave's screens)
 ```
 

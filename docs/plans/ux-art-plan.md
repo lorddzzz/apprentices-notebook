@@ -14,7 +14,7 @@ Out of scope: crests (vector, UF/UD), rune glyphs, icons, step markers, tactical
 
 - **UA-D1 Ids follow the code, names follow the bible; every game id maps explicitly (R27).** Scope = data `DistrictId` (`seam canals inkQuarter bathhouses bridges foundry cartographers lowerSeam inkedPage`); the style sheet maps bible names: Lampwater = canals, Verloren Corner = inkQuarter, Thermae = bathhouses, Fog Arches = bridges, Klokhof = foundry, Sestante = cartographers, Underjoin = lowerSeam, player-drawn = inkedPage. Subject names for people use the stable data id (`draughtsman`, `stoker`, `runaway`, `notary`, `towelBearer`, `warden`, `tuner`, `copyist`, `exile`, `owner`), not the placeholder names (BL-40 renames), so a rename never moves a file. **Every id in `ENEMY_IDS` (33), the rivals, bosses, loot offer kinds (incl. the `key` offer) and the real threshold locks maps to an ArtId, shared alias or vector fallback in UF's `src/ui/art/inventory.ts` (R27); pack tables derive their counts from enumerated id lists, and conversions (`deadLetter`→`dead-letter`, `chiefWarden`→`chief-warden`, `dissolvedBather`→`bather`) are explicit. `barge` is drawn by canals' CrateArt and `clockSeal` by inkQuarter's StaffToken: they stay vector fallbacks unless a pack's list says otherwise. Game data is never changed for art.**
 - **UA-D2 Nine apprentices in the party pack; Marit (`owner`) with the ending pack.** Code has 9 playable (pair + 7 recruits) + the tenth, `owner`, who joins at the handover; the board's "10 apprentices + owner = 11" is off by one. The owner's face and name are kept for the reveal (bible, Underjoin), so her figure, portrait and card are not generated or shipped until pack T (the ending pack, UA-27; "UA-S" in earlier drafts). Every figure also has a 4th asset: a 222×330 household **card** (board §6 household sheet).
-- **UA-D3 Boss and rival figures stay 1 cell.** The board draws boss figures 2×2 cells, but the engine has no unit footprint (`EnemyDef`, `RivalDef` have no size) and is frozen. Rivals (people) use the 128×176 figure canvas; the two bosses (Marginalia, lamp-mother) use **192×256, feet y = 232**, centred on their cell and allowed to overlap neighbours by art only. **Redefines** the board's "2×2 cells" (FT must draw by row; no engine change). Foes are 6 rivals + 2 bosses + 24 plain foes (counted per pack); the board's "7 boss + 4 rival" becomes 2 bosses + 6 rivals as the code has them.
+- **UA-D3 Boss and rival figures stay 1 cell.** The board draws boss figures 2×2 cells, but the engine has no unit footprint (`EnemyDef`, `RivalDef` have no size) and is frozen. Rivals (people) use the 128×176 figure canvas; the two bosses (Marginalia, lamp-mother) use **192×256, feet y = 232**, centred on their cell and allowed to overlap neighbours by art only. **Redefines** the board's "2×2 cells" (FT must draw by row; no engine change). Foes are 6 rivals + 2 bosses + 25 plain ids (33 in `ENEMY_IDS`; two of the 25, `barge` and `clockSeal`, stay vector fallbacks, so 23 plain foes are painted; counted per pack); the board's "7 boss + 4 rival" becomes 2 bosses + 6 rivals as the code has them.
 - **UA-D4 Silhouette crops are derived, not generated.** C4's 48×48 greyscale silhouette is produced by `art:process` from the figure and goes on the contact sheet and Gallery review, not into `src/assets/`.
 - **UA-D5 Materials are shared, grounds are per district.** Painted material states (oil, steam, brass plate, fire, the 10 compounds, vents, jars) live in `tiles/shared/`, painted light-neutral so they sit on any ground; districts add floor variants, border tiles, terrain and pieces. Only `plate`, `skidPlate`, `kettle`, `wall` get a `-worn` second state (the layers with hit pips, `PLATE_LIKE` in `board/art.ts`). Corner marks stay vector (FT).
 - **UA-D6 FX and flourishes ship as `props/shared/fx-*` / `flourish-*`** (no new family): **one hero frame** per effect (512×128 canvas holding one centred frame, or 128² per effect; `fx-*` 128² alpha, `flourish-*` 512×256), animated by code (FT scales, rotates and fades it). Frame strips only if a later review asks (changed after review: four-frame strips dropped; GPT image models do not hold frames steady).
@@ -57,8 +57,8 @@ Phase column = program §4. "UF-2" = UF's registry + `art:check` merged (UF Pack
 | B1 Anchors (fight, study, party) | UA-3 party silhouettes, UA-4 Seam composite, UA-5 Lampwater composite, UA-6 attic study | Strong | Codex | 0 | A, **P** | 0 (anchors) | n/a (≈20 candidates, not 60) |
 | B2 Anchors (story) | UA-7 owner's map plate (panels), UA-8 Sestante (needs a Seam comparison from B1 for its final sheet) | Strong | Codex | 0 | A, P (B1's Seam comparison for the final sheet) | 0 (anchors) | n/a |
 | **UX-G1** | player approves component files in separate real-size views (R22) | gate | player | 0 | B1, B2 | | |
-| C Party | UA-9 nine apprentices (figure, portrait, card), derived from one identity reference each | Strong | Codex | 1 | G1 (scaling), UF Pack 0b | 27 | 0.55 MB (re-estimate after P) |
-| D Seam fight | UA-10 materials, UA-11 Seam ground, scene, foes, Marginalia | Strong | Codex | 1 | G1, UF Pack 0b; **C's figures (or approved B1 copies) for the composite** | 35 (enumerated: 20 materials + 2 jars + 2 scenes + 5 grounds + 5 foes + 1 portrait; the count is derived from the list) | 1.0 MB |
+| C Party | UA-9 nine apprentices (figure, portrait, card), derived from one identity reference each | Strong | Codex | 1 | G1 (scaling), UF Pack 0b, FT-5s (the measured cell formula) | 27 | 0.55 MB (re-estimate after P) |
+| D Seam fight | UA-10 materials, UA-11 Seam ground, scene, foes, Marginalia | Strong | Codex | 1 | G1, UF Pack 0b, FT-5s; **C's figures (or approved B1 copies) for the composite** | 35 (enumerated: 20 materials + 2 jars + 2 scenes + 5 grounds + 5 foes + 1 portrait; the count is derived from the list) | 1.0 MB |
 | E FX | UA-12 FX hero frames and flourishes (one frame each; code animates) | Default | Codex | 2 | D | 12 | 0.2 MB |
 | F Lampwater | UA-13 Lampwater ground, props, foes, lamp-mother, lamplighter (named files only; K owns canals crossroads/threshold) | Strong | Codex | 2 | G1, D (materials) | 24 | 1.0 MB |
 | G Home | UA-14 header (night, 750×224), objects, plates, tiles, door (named files) | Strong | Codex | 3 | G1, A | 15 | 1.0 MB |
@@ -75,6 +75,39 @@ Phase column = program §4. "UF-2" = UF's registry + `art:check` merged (UF Pack
 | R Underjoin | UA-25 (map patch counted in the map allowance; verify its rendered slot below Seam first) | Default | Codex | 5 | same | 8 | 0.5 MB |
 | S Player-drawn | UA-26 | Default | Codex | 5 | **G1 (and D for materials)**; M–R not required | 3 | 0.3 MB |
 | T Ending | UA-27 handover scene, drawing-table strip, Marit figure/portrait/card | Strong | Codex | 6 | G1, G | 5 | 0.45 MB |
+
+Task rows (ledger-visible; one row per UA task, counts as in the pack table; the briefs hold the lists):
+
+| ID | Pack | Task |
+|---|---|---|
+| UA-P | P Pilot | one figure, one tile, one scene crop through the whole pipeline; measure |
+| UA-1 | A | style sheet, recipe, review checklist |
+| UA-2 | A | `scripts/art/*` (scratch + ship), `sharp`, `art:process`/`art:sheet` grant |
+| UA-3 | B1 | party silhouettes (Pell, Joost, Hanneke) anchor |
+| UA-4 | B1 | Seam composite anchor |
+| UA-5 | B1 | Lampwater composite anchor |
+| UA-6 | B1 | attic study anchor |
+| UA-7 | B2 | owner's map plate anchor |
+| UA-8 | B2 | Sestante anchor |
+| UA-9 | C | nine apprentices (27 files) |
+| UA-10 | D | shared materials + jars (22) |
+| UA-11 | D | Seam ground, scenes, foes, Marginalia (13) |
+| UA-12 | E | FX hero frames and flourishes (12) |
+| UA-13 | F | Lampwater (24) |
+| UA-14 | G | home header, objects, plates (15) |
+| UA-15 | H | room strips (6) |
+| UA-16 | I | transitions and homecoming (4) |
+| UA-17 | J | map base + seven ink patches (8) |
+| UA-18 | K | trip scenes (14) |
+| UA-19 | L | finds (7) |
+| UA-20 | M | Verloren Corner (19) |
+| UA-21 | N | Thermae (14) |
+| UA-22 | O | Fog Arches (19) |
+| UA-23 | P Klokhof | Klokhof (16) |
+| UA-24 | Q | Sestante (15) |
+| UA-25 | R | Underjoin (8) |
+| UA-26 | S | player-drawn (3) |
+| UA-27 | T | ending (5) |
 
 Order notes: **pilot first**, then B1 and B2 run in parallel (disjoint `art-src/anchors/<name>/`). C and D run in parallel after G1 (disjoint scopes; both wait for UF-2). Districts M–Q may run two at a time. Ids and exact lists: briefs. Total shipped ≈ 250 assets, ≈ 12–13 MB (C5 total ≤ 15 MB holds with slack); **all pack sizes are re-estimated after the pilot**; the combined install (precache) is budgeted as well as source WebPs.
 
@@ -121,6 +154,6 @@ Critical path for art: A (≈1 h Claude; its `package.json` + lockfile edit wait
 | R1-4 UX-G1 | UA-D11/D12 and R22: real cell formula, separate phone views, one set per anchor, approval names component files; usable tiles/figures promoted directly; B2 gets B1's Seam comparison. |
 | R1-5 Inventory | UA-D1/R27 mapping (UF data + test); Pack D count derived from the enumerated list; K paints only the five real locks; L covers the `key` offer by existing fallback. |
 | R1-6 Wave 0 split | UF's Pack 0a/0b/0c (see UF plan); UA depends on 0b only. |
-| R1-7 Ownership/prereqs | UA-A gets `pnpm-lock.yaml` after Pack 0b; plan files committed before spawn (R24); named-file Owns for F/K, J/R, G/H/T, C/T (briefs); G → H/I ordering; D needs C's figures or approved B1 copies; S needs G1; UF-7 is final-review only; pack timeout keeps accepted partial assets on an exportable branch with missing ids attached; fast gate before commits; sizes re-estimated after the pilot. |
+| R1-7 Ownership/prereqs | UA Pack A (UA-2) gets `pnpm-lock.yaml` after Pack 0b; plan files committed before spawn (R24); named-file Owns for F/K, J/R, G/H/T, C/T (briefs); G → H/I ordering; D needs C's figures or approved B1 copies; S needs G1; UF-7 is final-review only; pack timeout keeps accepted partial assets on an exportable branch with missing ids attached; fast gate before commits; sizes re-estimated after the pilot. |
 | R1-8 Gates | UA §7 adds pilot install/offline measurements, native/display lettering review and per-district greyscale pairs (R25). |
 | R3-5 Map | UA-D8/R19: patches with bbox in master pixels, no margin writing, both hearsAs excluded from frontier marks is UT's. |

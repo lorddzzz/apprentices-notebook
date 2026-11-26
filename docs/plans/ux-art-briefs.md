@@ -152,7 +152,7 @@ Phone check: no
 
 ---
 
-### Pack C: Party (Codex; UA-9). Branch art/party. Depends on G1 (scaling), UF Pack 0b
+### Pack C: Party (Codex; UA-9). Branch art/party. Depends on G1 (scaling), UF Pack 0b, FT-5s
 
 ```
 Pack C of docs/plans/ux-art-plan.md: task UA-9.
@@ -183,7 +183,7 @@ Verify: `pnpm art:check && pnpm art:sheet party`
 Phone check: no (orchestrator reviews via the Gallery art page)
 ```
 
-### Pack D: Seam fight (Codex; UA-10, UA-11). Branch art/seam-fight. Depends on G1, UF-2
+### Pack D: Seam fight (Codex; UA-10, UA-11). Branch art/seam-fight. Depends on G1, UF-2, FT-5s
 
 ```
 Pack D of docs/plans/ux-art-plan.md: tasks UA-10 → UA-11.
@@ -194,7 +194,7 @@ Contract (C2/C4): tiles 128²; foes 128×176 alpha (feet y=160); boss 192×256 a
 Owed: material states, Seam pieces for FT; marginalia boss art.
 Assets (35: 20 materials + 2 jars + 2 scenes + 5 grounds + 5 foes + 1 portrait; the expected count is derived from this enumerated list and checked by the inventory test):
 UA-10 tiles/shared (alpha 128², neutral-light so they sit on any ground), 20:
- blot (plain ink pool), slick (oil: sheen + droplet), cloud (steam: scalloped edge + cloud), plate, plate-worn (brass: squared plate, dented), fire, mark-plain, mark-deep (debt marks, ink seal shapes), stain, brand-cloud, pool, grease-fog, skid-plate, skid-plate-worn, bank (fog bank), kettle, kettle-worn, wall (stood stone/brass wall), wall-worn, vent (iron grate; visible haze).
+ blot (plain ink pool), slick (oil: sheen + droplet), cloud (steam: scalloped edge + cloud), plate, plate-worn (brass: squared plate, dented), fire, mark-plain, mark-deep (debt marks, ink seal shapes), stain, brand-cloud, pool, grease-fog, skid-plate, skid-plate-worn, bank (fog bank), kettle, kettle-worn, wall (stood stone/brass wall), wall-worn, vent (iron grate; visible haze). (The 20 = the 5 states + 8 compounds + 2 mark looks + 4 `-worn` + vent; the `deepMark` layer uses `mark-deep`; `shackle` is a unit collar and stays a vector fallback, R27.)
  props/shared (alpha 128²), 2: jar-step, jar-dusk (sealed jar, two glass/seal looks; contents peek is vector).
 UA-11 Seam, 13:
  scenes/seam/fight (750×800 muted: damp masonry, patched floor, vent haze, pipe on the left, stair at the lower right; no units), scenes/seam/arena (darker heart variant).
@@ -318,11 +318,11 @@ Every pack's list includes: `scenes/<id>/fight` (750×800 muted), `scenes/<id>/a
 
 | Pack (UA id, branch) | Bible paragraph to follow | Extra assets | Count |
 |---|---|---|---|
-| M Verloren Corner (UA-20, `inkQuarter`) #272632 #656475 #A28D6D | "A dead-letter office of sorters' racks, dusty labels and desaturated wax. Distinct stamps for Return to Sender, Forwarding, Standing Order. Recovered letters hint at the owner's expulsion." | props/inkQuarter (alpha 128²): address, clock, forward, order, return, wax; foes/inkQuarter (128×176): dead-letter, sorter, sealer, letter, postmaster (rival); portraits/inkQuarter/postmaster | 19 |
-| N Thermae (UA-21, `bathhouses`) #25373B #5F8482 #ACC7BE | "Blue-green mosaic, limestone, tiers of pale steam. Cloud edges show which cells join; treatment inside the cell stays translucent. Pressure gauge with a readable threshold. Bathers dissolve into the same cloud." | props/bathhouses: feeder (gauge, 128²), bench; foes: attendant, boilerman, bather, bath-steward; portraits/bathhouses/bath-steward | 14 |
-| O Fog Arches (UA-22, `bridges`) #252F39 #596D79 #ADBBBC | "Slate bridges over a soft fog drop with pier caps in chalk light. Sound, chipped, cracked, collapsing stone by fracture shape and edge. Keep the load path to a pier visible across the mist." | tiles/bridges: span-sound, span-chipped, span-cracked, span-collapsing (opaque 128², differ by fracture shape in greyscale), drop-edge (open side); props/bridges: pier, keystone; foes: warden, gargoyle, mason, chief-warden; portraits/bridges/chief-warden | 19 |
-| P Klokhof (UA-23, `foundry`) #292A2A #6F6956 #B19060 | "Bell towers, tuning galleries, dull bronze, rope. Match bells by pattern as well as hue. Pulses around separated bells are code; the Great Bell dominates the heart." | props/foundry: bell, great-bell (192×256 alpha, feet y=232), rope, hook; foes: ringer, detuner, clapper, carillonneur; portraits/foundry/carillonneur | 16 |
-| Q Sestante (UA-24, `cartographers`) #28323A #768890 #D5D7CC | "Cool graphite and drafting benches. Ghosted pencil, solid ink, empty erased space are three distinct reads. The Registrar feels like an office made human. Paper becomes literal." | tiles/cartographers: pencil, outline, blank (opaque 128², use the approved B2 anchors; three reads must hold in greyscale); foes: surveyor, eraser, tracer, registrar; portraits/cartographers/registrar | 15 |
+| M Verloren Corner (UA-20, `inkQuarter`) #272632 #656475 #A28D6D | "A dead-letter office of sorters' racks, dusty labels and desaturated wax. Distinct stamps for Return to Sender, Forwarding, Standing Order. Recovered letters hint at the owner's expulsion." | props/inkQuarter (alpha 128²): address, clock, forward, order, return, wax; foes/inkQuarter (128×176): dead-letter, sorter, sealer, letter, postmaster (rival); portraits/inkQuarter/postmaster | 19 = 7 + 6 props + 5 foes + 1 portrait (clockSeal: vector, StaffToken) |
+| N Thermae (UA-21, `bathhouses`) #25373B #5F8482 #ACC7BE | "Blue-green mosaic, limestone, tiers of pale steam. Cloud edges show which cells join; treatment inside the cell stays translucent. Pressure gauge with a readable threshold. Bathers dissolve into the same cloud." | props/bathhouses: feeder (gauge, 128²), bench; foes: attendant, boilerman, bather, bath-steward; portraits/bathhouses/bath-steward | 14 = 7 + 2 props + 4 foes + 1 portrait (`dissolvedBather` → `bather`) |
+| O Fog Arches (UA-22, `bridges`) #252F39 #596D79 #ADBBBC | "Slate bridges over a soft fog drop with pier caps in chalk light. Sound, chipped, cracked, collapsing stone by fracture shape and edge. Keep the load path to a pier visible across the mist." | tiles/bridges: span-sound, span-chipped, span-cracked, span-collapsing (opaque 128², differ by fracture shape in greyscale), drop-edge (open side); props/bridges: pier, keystone; foes: warden, gargoyle, mason, chief-warden; portraits/bridges/chief-warden | 19 = 7 + 5 tiles + 2 props + 4 foes + 1 portrait |
+| P Klokhof (UA-23, `foundry`) #292A2A #6F6956 #B19060 | "Bell towers, tuning galleries, dull bronze, rope. Match bells by pattern as well as hue. Pulses around separated bells are code; the Great Bell dominates the heart." | props/foundry: bell, great-bell (192×256 alpha, feet y=232), rope, hook; foes: ringer, detuner, clapper, carillonneur; portraits/foundry/carillonneur | 16 = 7 + 4 props + 4 foes + 1 portrait |
+| Q Sestante (UA-24, `cartographers`) #28323A #768890 #D5D7CC | "Cool graphite and drafting benches. Ghosted pencil, solid ink, empty erased space are three distinct reads. The Registrar feels like an office made human. Paper becomes literal." | tiles/cartographers: pencil, outline, blank (opaque 128², use the approved B2 anchors; three reads must hold in greyscale); foes: surveyor, eraser, tracer, registrar; portraits/cartographers/registrar | 15 = 7 + 3 tiles + 4 foes + 1 portrait |
 
 For N–Q the `tiles/<id>/border`, floors and scenes are counted in the totals (2 scenes + 4 floors + 1 border = 7; extras listed above). For Verloren Corner, Thermae and Klokhof the district's rival and portrait are listed; the rival is a 1-cell person figure (128×176).
 
