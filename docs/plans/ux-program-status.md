@@ -25,7 +25,7 @@ Closed 2026-11-27 (player): finish, Pell brim, scale, marks approved; floors red
 
 ## Running or partial
 Session rules (2026-11-27 eve, player): max 2 Claude + 1 Codex subagents; Codex only for art, Terra 6.1 medium, none after weekly 96% (was 92%); Claude Sonnet 5.5 medium or Haiku 5.5 high, none new when 5h > 75%; every spawn says 'report in under 200 words'; split fixtures one file per subset; decide with the suggested default and note it.
-Merged this session: small fix pack (single safe-area inset, 44 px, stripFallback, fixtures fight-lampwater-trio/fight-multispell; `--font-hand` alias NOT changed: pinned by fonts/tokens tests), UT-6 Threshold. Running: `build/pack-ute` (UT-9), `build/pack-utb` (UT-4/5), Codex `art/fx` (clone ~/.ai-whiteboard-workers/codex-642718914).
+Merged this session: small fix pack (single safe-area inset, 44 px, stripFallback, fixtures fight-lampwater-trio/fight-multispell; `--font-hand` alias NOT changed: pinned by fonts/tokens tests), UT-6 Threshold. UT-9 Wiped merged (proposal: register `scenes/shared/wiped` in art spec; autofixer run on SeeItSheet clean). Running: `build/pack-uhc` (UH-6/7), `build/pack-utb` (UT-4/5), Codex `art/fx` (clone ~/.ai-whiteboard-workers/codex-642718914).
  Stray: branch `art/pilot` (pilot assets, not merged; delete when no longer wanted) and leftover branch `worktree-agent-a7d9ce60e430bee68` (from an older session; check, then delete).
 
 ## Merged so far (2026-11-26/27)
