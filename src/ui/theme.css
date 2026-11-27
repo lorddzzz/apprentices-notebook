@@ -13,7 +13,8 @@
   /* Two faces only (UF-P1); Pack A self-hosts them, the system fallbacks render until then. */
   --font-serif: "EB Garamond", Georgia, "Iowan Old Style", serif;
   --font-script: "Pinyon Script", "Snell Roundhand", "Segoe Script", "Bradley Hand", cursive;
-  --font-hand: var(--font-script); /* pinned by tests/ui/fonts + tokens; script is for 20 px and up */
+  /* Pinned by tests/ui/fonts + tokens; script is for 20 px and up. */
+  --font-hand: var(--font-script);
   --font-mono: ui-monospace, Menlo, monospace; /* dev pages only */
 
   --type-xs: 12px;
