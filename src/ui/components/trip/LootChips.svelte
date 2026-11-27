@@ -1,12 +1,9 @@
 <script lang="ts">
-  import { APPRENTICES, RUNES } from '$data';
+  import { APPRENTICES } from '$data';
   import type { LootItem } from '$engine';
   import { lootName } from '../../../app/describe';
   import { offerLabelFor } from '../../districts';
-  import { METHOD_ART } from '../../runeArt';
-  import ApprenticeToken from '../common/ApprenticeToken.svelte';
-  import RuneGlyph from '../RuneGlyph.svelte';
-  import SolventIcon from '../SolventIcon.svelte';
+  import LootMark from './LootMark.svelte';
 
   interface Props {
     items: readonly LootItem[];
@@ -21,21 +18,7 @@
 <ul class="chips" class:lost data-testid="loot-list">
   {#each items as item, i (i)}
     <li class="chip" data-kind={item.kind}>
-      {#if item.kind === 'rune'}
-        <RuneGlyph rune={item.rune} dir={RUNES[item.rune].arrow ? 'right' : undefined} size={28} />
-      {:else if item.kind === 'solvent'}
-        <span class="icon"><SolventIcon solvent={item.solvent} size={22} /></span>
-      {:else if item.kind === 'method'}
-        <span class="icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="A method page">
-            <path d={METHOD_ART[item.method]} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-      {:else if item.kind === 'recruit'}
-        <ApprenticeToken def={APPRENTICES[item.apprentice]} size={26} />
-      {:else}
-        <span class="icon" aria-hidden="true">{item.kind === 'ink' ? '●' : item.kind === 'key' ? '⚷' : '✎'}</span>
-      {/if}
+      <LootMark {item} />
       <span class="name">{item.kind === 'recruit' ? APPRENTICES[item.apprentice].name : (offerLabelFor(item) ?? lootName(item))}</span>
     </li>
   {:else}
@@ -57,12 +40,6 @@
     padding-left: 4px;
     min-height: 36px;
     font-size: 14px;
-  }
-  .icon {
-    display: inline-grid;
-    place-items: center;
-    width: 24px;
-    color: var(--m-ink);
   }
   .lost .name {
     text-decoration: line-through;

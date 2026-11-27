@@ -1,0 +1,146 @@
+<script lang="ts">
+  import { APPRENTICES, MEMBERS } from '$data';
+  import { compiledFor, type Profile, roomsOf, type Trip } from '$engine';
+  import { DISTRICT_UI, tripLinesFor } from '../../districts';
+  import ApprenticeToken from '../common/ApprenticeToken.svelte';
+  import Pips from '../common/Pips.svelte';
+  import RuneGlyph from '../RuneGlyph.svelte';
+
+  /**
+   * UT-7. The trip's state as one flat strip: depth, finds, then each seat's HP and charges. No
+   * card around it (the screen's paper is the ground), a hairline above and below.
+   */
+  interface Props {
+    trip: Trip;
+    profile: Profile;
+    /** The Crossroads shows it bigger: HP and charges decide push on or go home. */
+    large?: boolean;
+  }
+
+  let { trip, profile, large = false }: Props = $props();
+
+  const Badge = $derived(DISTRICT_UI[trip.district]?.tripBadge);
+  const terms = $derived(tripLinesFor(trip));
+  const rows = $derived(
+    trip.party.map((m) => ({
+      id: m,
+      name: MEMBERS[m].name,
+      hp: trip.hp[m] ?? 0,
+      maxHp: MEMBERS[m].hp,
+      spells: compiledFor(profile, m).spells.map((s) => ({
+        key: s.key,
+        source: s.source,
+        dir: s.path[0]?.dir,
+        left: trip.charges[m]?.[s.key] ?? 0,
+        max: s.charges,
+      })),
+    })),
+  );
+</script>
+
+<div class="strip" class:large data-testid="trip-status">
+  <p class="depth">
+    {trip.status === 'fight' ? 'Depth' : 'Cleared'} {trip.encounter + 1} / {roomsOf(trip).length}
+    <span class="finds">· {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}</span>
+  </p>
+  {#if Badge}<Badge {trip} {profile} />{/if}
+  {#each terms as t, i (i)}
+    <p class="term {t.status}" data-testid="trip-term">{t.text}</p>
+  {/each}
+  {#each rows as r (r.id)}
+    <div class="row" data-member={r.id}>
+      <span class="who"><ApprenticeToken def={APPRENTICES[r.id]} size="strip" /><span class="name">{r.name}</span></span>
+      <span class="hp"><Pips value={r.hp} max={r.maxHp} /><span class="num">{r.hp}/{r.maxHp}</span></span>
+      <span class="spells">
+        {#each r.spells as s (s.key)}
+          <span class="spell" data-spell={s.source}>
+            <RuneGlyph rune={s.source} dir={s.dir} size={large ? 32 : 24} />
+            <Pips value={s.left} max={s.max} tone="charge" />
+          </span>
+        {/each}
+      </span>
+    </div>
+  {/each}
+</div>
+
+<style>
+  .strip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-2) var(--space-1);
+    border-block: 1px solid var(--line);
+    font-size: var(--type-sm);
+  }
+  .large {
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    font-size: var(--type-md);
+  }
+  .depth {
+    margin: 0;
+    font-size: 13px;
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .term {
+    margin: 0;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .term.open {
+    color: var(--ink);
+  }
+  .term.broken {
+    color: var(--danger);
+  }
+  /* Name and HP share a line, the spells sit under them: a long name ("Lamp-pole runaway") never reaches the pips. */
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'who hp' 'spells spells';
+    align-items: center;
+    gap: 4px var(--space-2);
+  }
+  .who {
+    grid-area: who;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hp {
+    grid-area: hp;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .num {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+  }
+  .spells {
+    grid-area: spells;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--space-2);
+  }
+  .large .spells {
+    gap: var(--space-3);
+  }
+  .spell {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+</style>
