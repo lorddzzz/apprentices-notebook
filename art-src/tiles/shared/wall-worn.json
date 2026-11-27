@@ -1,0 +1,59 @@
+{
+  "id": "tiles/shared/wall-worn",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "wall",
+  "state": "worn",
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/shared/wall-worn.master.png",
+    "sha256": "6d1530056679aed1c2890fcf9b4151e1b63397da4b96017b341c7874f3c0d756",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "0751bdb302792a6bee1ff5f199e21fda544491f6ef8f15e170e5c8fab6526764",
+      "1f92e0649f31cab0830ebe6763429abf9cbf46b8088101957d335ad1ebd82eaf",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square cover crop.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "Neutral diffuse top-left; restrained pigment highlights.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#B5882E"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: make the WORN state of the exact 128×128 standing stone-and-brass wall tile in image 1, retain its high three-quarter camera, wide squat proportions, two horizontal courses, substantial thick stone cap, right-facing side with the same depth, and low brass edge strip. Remove a single broad stepped chunk from the cap and upper row on its upper-right or central shoulder, so the outline is distinct at 24px, and split the below masonry once. Keep the exact same footprint lower down, scale on the square, diffuse top-left key, colour and texture. No added third course or different camera. Silence the ground and preserve real RGBA and padding. Seam #253235 #55625E #BC9273, city #1F2A3A #3A4148 #5D666D #A9BCC6, brass #B5882E. Broad matte painted value masses, finer carved edge accents. Image 1 is the exact asset identity; image 2 is approved paint edge quality; image 3 is the palette. Match the style, proportions and finish of the attached approved anchors. No pips, corner marks, ambient ground shadow, background or masonry outside the silhouette. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "tiles/shared/wall.master.png",
+    "art-src/anchors/seam/plate.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "88956717-9e19-4d33-bfb0-c3ebf43f2c35",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": "wall",
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "6d1530056679aed1c2890fcf9b4151e1b63397da4b96017b341c7874f3c0d756",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 6782 partial-alpha pixels"]
+  }
+}

@@ -253,6 +253,182 @@
       "bytes": 1657877,
       "sha256": "88fbe29152c5442c9dbbdf15d93d4213e1112d5179c6ec3c664688405ab0e096",
       "archiveKey": "r2:apprentices-notebook-art/portraits/shared/exile-card.master.png"
+    },
+    {
+      "file": "tiles/shared/blot.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 707414,
+      "sha256": "92848e417c87e5ddcb2abf0c8a3b510692a2da44acbde165d18b8ef36571b862",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/blot.master.png"
+    },
+    {
+      "file": "tiles/shared/slick.master.png",
+      "width": 1261,
+      "height": 1247,
+      "bytes": 511977,
+      "sha256": "7941a5ee3bae4deaf7242cf82a195017ca85b1a93b121722aadb012cdb02d642",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/slick.master.png"
+    },
+    {
+      "file": "tiles/shared/cloud.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 680753,
+      "sha256": "fd4a84f25ece6e183ae2da9f5dd5eeb561ffd72c9edd564c7b160c31839333b6",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/cloud.master.png"
+    },
+    {
+      "file": "tiles/shared/plate.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1240623,
+      "sha256": "03a9f0397e69635009675d30d8c6e9931aa72403c9f841c428bdb7899e120b4c",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/plate.master.png"
+    },
+    {
+      "file": "tiles/shared/fire.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 809798,
+      "sha256": "8d211b9a9c7132a002134ecd7f1e9a6d43dfaf7543dc2b51290a10e445ff6978",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/fire.master.png"
+    },
+    {
+      "file": "tiles/shared/mark-plain.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 778592,
+      "sha256": "6e31c6c471c529fd63123ce87bdd1e704c96836daa97c44af0488e5a1aa6c27e",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/mark-plain.master.png"
+    },
+    {
+      "file": "tiles/shared/mark-deep.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 389222,
+      "sha256": "4fac7f05e3a87c8b98e08c5094015cb16236fb49d1444d9a1c70f736ac005a6b",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/mark-deep.master.png"
+    },
+    {
+      "file": "tiles/shared/stain.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 806760,
+      "sha256": "79aadfea5e5717b3fe950ad039e8269c4119d91dbd2db47a4a21f495daf900d9",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/stain.master.png"
+    },
+    {
+      "file": "tiles/shared/brand-cloud.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 794721,
+      "sha256": "ecb7e0807b433c92a87913efca6cf1df72bfd3c82f157637dec5888c3a974e4c",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/brand-cloud.master.png"
+    },
+    {
+      "file": "tiles/shared/pool.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 752338,
+      "sha256": "61f87afe57579911b0c91a3a192292e96a78623e1d3fd7e373afc78aa5fa3d8b",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/pool.master.png"
+    },
+    {
+      "file": "tiles/shared/grease-fog.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 673224,
+      "sha256": "76e2de47b78e5107e89320428728a26a23e98cbfd4f47189cdfc7f8d4dc18962",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/grease-fog.master.png"
+    },
+    {
+      "file": "tiles/shared/skid-plate-worn.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 851881,
+      "sha256": "c52ae81e1de0d8c3c0ff4f39ba83b842985e1e1e861e10c5b407850103a4e26a",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/skid-plate-worn.master.png"
+    },
+    {
+      "file": "tiles/shared/bank.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 633661,
+      "sha256": "6b9f79880e6cd89f254a0e032d22c70a79edf4d9f5004808c6bffc0621d93e6d",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/bank.master.png"
+    },
+    {
+      "file": "tiles/shared/kettle.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1195995,
+      "sha256": "36c5dd65357b448e758b9760dea628d27f07ed4b4de762e4d587dfbda578fc0b",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/kettle.master.png"
+    },
+    {
+      "file": "tiles/shared/wall.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1200963,
+      "sha256": "0751bdb302792a6bee1ff5f199e21fda544491f6ef8f15e170e5c8fab6526764",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/wall.master.png"
+    },
+    {
+      "file": "tiles/shared/vent.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1019778,
+      "sha256": "5544f230e3545113069c11637bc5f0a94014ab97298f19f1fe30b370a627c44e",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/vent.master.png"
+    },
+    {
+      "file": "props/shared/jar-step.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1124429,
+      "sha256": "401b0098735d4e022d44d531372d828ce8ae6c8ebad0f29f60e489c9edbd23ed",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/jar-step.master.png"
+    },
+    {
+      "file": "props/shared/jar-dusk.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 713856,
+      "sha256": "10de7211f26d2fd36a86091ad45f0e24735d8daab761f6b04d81a4c57b784216",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/jar-dusk.master.png"
+    },
+    {
+      "file": "tiles/shared/plate-worn.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1016791,
+      "sha256": "aa9e9c63b7a17e56bdc88ddf79651aa7f690a436d514e5703d728e3809c1fa1a",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/plate-worn.master.png"
+    },
+    {
+      "file": "tiles/shared/skid-plate.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 819710,
+      "sha256": "ead1ed83748dc9fc6ef2f7dffe1740ce98e9e820d0d701248554b09900e418fb",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/skid-plate.master.png"
+    },
+    {
+      "file": "tiles/shared/kettle-worn.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 873043,
+      "sha256": "d452ac5483cb05e808d4f9cb5a5923ae5300a600f493e1d1a9394b4ca1597a94",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/kettle-worn.master.png"
+    },
+    {
+      "file": "tiles/shared/wall-worn.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1126683,
+      "sha256": "6d1530056679aed1c2890fcf9b4151e1b63397da4b96017b341c7874f3c0d756",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/shared/wall-worn.master.png"
     }
   ]
 }

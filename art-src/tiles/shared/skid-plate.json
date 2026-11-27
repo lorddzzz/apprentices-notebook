@@ -1,0 +1,61 @@
+{
+  "id": "tiles/shared/skid-plate",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "skid-plate",
+  "state": null,
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/shared/skid-plate.master.png",
+    "sha256": "ead1ed83748dc9fc6ef2f7dffe1740ce98e9e820d0d701248554b09900e418fb",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "c52ae81e1de0d8c3c0ff4f39ba83b842985e1e1e861e10c5b407850103a4e26a",
+      "1f92e0649f31cab0830ebe6763429abf9cbf46b8088101957d335ad1ebd82eaf",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square cover crop.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "Neutral diffuse top-left; restrained pigment highlights.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#B5882E",
+    "#7A5A1A",
+    "#7A6420"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: Edit the exact worn skid plate in image 1 into the FRESH version. Repair the bitten-out long RIGHT edge to make a single straight clean edge, and straighten the tip of the integrated curved bronze skid shoe just a little. Preserve its distinctive long trapezoid, forward curved skid shoe at bottom-left, exact direction, footprint, face height, and two dark streaks of oil on warm dull brass. Top-down steep three-quarter view, do not flip, rotate or redesign. At 24 px silhouette key is the long clean trapezoid and bent skid shoe. The Apprentice’s Notebook tile art of the same chosen object at largest source square resolution, to downsample to 128×128. Camera: high three-quarter at the exact angle of image 1. Lighting: upper-left diffuse neutral light, retain the existing subdued highlights and colour. Palette Seam #253235 #55625E #BC9273; city #1F2A3A #3A4148 #5D666D #A9BCC6; brass #B5882E #7A5A1A, oil #7A6420. Edges and texture: broad matte planes, subtle fine grain, sparse engraved texture along material edges. Image 1 is the exact object identity and camera source to edit. Image 2 is the approved gouache finish, image 3 is the palette strip. Match the style, proportions and finish of the attached approved anchors. Return true RGBA, single isolated subject with margin, no floor, ground shadow, halo, decorative corner marks, bolt-like pips or debris. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "tiles/shared/skid-plate-worn.master.png",
+    "art-src/anchors/seam/plate.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "a981c786-6c0f-4776-9acc-b1baf448d1ed",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": "skidPlate",
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "ead1ed83748dc9fc6ef2f7dffe1740ce98e9e820d0d701248554b09900e418fb",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 5969 partial-alpha pixels"]
+  }
+}

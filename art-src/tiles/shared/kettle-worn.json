@@ -1,0 +1,60 @@
+{
+  "id": "tiles/shared/kettle-worn",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "kettle",
+  "state": "worn",
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/shared/kettle-worn.master.png",
+    "sha256": "d452ac5483cb05e808d4f9cb5a5923ae5300a600f493e1d1a9394b4ca1597a94",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "36c5dd65357b448e758b9760dea628d27f07ed4b4de762e4d587dfbda578fc0b",
+      "1f92e0649f31cab0830ebe6763429abf9cbf46b8088101957d335ad1ebd82eaf",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square cover crop.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "Neutral diffuse top-left; restrained pigment highlights.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#B5882E",
+    "#7A5A1A"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: Edit the exact brass boiler in image 1 into the WORN version. Its tapering spout on screen-right is now sharply kinked halfway up and has a broken tip. Leave its spout on screen-right. A great bite has been crushed into the dome's top-left edge. Cock the existing flat lid and diminish the steam. Preserve its squat proportions, no handle design, existing position, scale, upper planes and local lighting. At 24 px key silhouette is the short kinked spout and dented dome. No added handle, gauges, steam pips or fittings. The Apprentice’s Notebook tile art of the same chosen object at largest source square resolution, to downsample to 128×128. Camera: high three-quarter at the exact angle of image 1. Lighting: upper-left diffuse neutral light, retain the existing subdued highlights and colour. Palette Seam #253235 #55625E #BC9273; city #1F2A3A #3A4148 #5D666D #A9BCC6; brass #B5882E #7A5A1A, oil #7A6420. Edges and texture: broad matte planes, subtle fine grain, sparse engraved texture along material edges. Image 1 is the exact object identity and camera source to edit. Image 2 is the approved gouache finish, image 3 is the palette strip. Match the style, proportions and finish of the attached approved anchors. Return true RGBA, single isolated subject with margin, no floor, ground shadow, halo, decorative corner marks, bolt-like pips or debris. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "tiles/shared/kettle.master.png",
+    "art-src/anchors/seam/plate.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "73219a65-62ee-45f5-bf3b-141cf88a2406",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": "kettle",
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "d452ac5483cb05e808d4f9cb5a5923ae5300a600f493e1d1a9394b4ca1597a94",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 6195 partial-alpha pixels"]
+  }
+}

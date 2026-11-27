@@ -1,0 +1,60 @@
+{
+  "id": "tiles/shared/plate-worn",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "plate",
+  "state": "worn",
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/shared/plate-worn.master.png",
+    "sha256": "aa9e9c63b7a17e56bdc88ddf79651aa7f690a436d514e5703d728e3809c1fa1a",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "03a9f0397e69635009675d30d8c6e9931aa72403c9f841c428bdb7899e120b4c",
+      "1f92e0649f31cab0830ebe6763429abf9cbf46b8088101957d335ad1ebd82eaf",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square cover crop.",
+  "focal": [0.5, 0.5],
+  "angle": "high-3/4",
+  "light": "Neutral diffuse top-left; restrained pigment highlights.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#B5882E",
+    "#7A5A1A"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: Edit the exact plate in image 1 into the WORN version of the same standing brass tile. Crush the upper-left corner visibly inward, break off the largest piece, and add a short deep diagonal fracture meeting the left edge, leaving most of the broad centre intact. Change only the wear. Lock the same large silhouette except the missing top-left corner, exact same physical thickness, position, right-handed perspective, scale, overall outline, side planes and translucent outer edge. Do not mirror or pivot the plate. At 24 px key silhouette is the missing corner. The Apprentice’s Notebook tile art of the same chosen object at largest source square resolution, to downsample to 128×128. Camera: high three-quarter at the exact angle of image 1. Lighting: upper-left diffuse neutral light, retain the existing subdued highlights and colour. Palette Seam #253235 #55625E #BC9273; city #1F2A3A #3A4148 #5D666D #A9BCC6; brass #B5882E #7A5A1A, oil #7A6420. Edges and texture: broad matte planes, subtle fine grain, sparse engraved texture along material edges. Image 1 is the exact object identity and camera source to edit. Image 2 is the approved gouache finish, image 3 is the palette strip. Match the style, proportions and finish of the attached approved anchors. Return true RGBA, single isolated subject with margin, no floor, ground shadow, halo, decorative corner marks, bolt-like pips or debris. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "tiles/shared/plate.master.png",
+    "art-src/anchors/seam/plate.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "b960cb54-b568-4c0a-a659-30a78e2b032e",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": "plate",
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "aa9e9c63b7a17e56bdc88ddf79651aa7f690a436d514e5703d728e3809c1fa1a",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 6135 partial-alpha pixels"]
+  }
+}

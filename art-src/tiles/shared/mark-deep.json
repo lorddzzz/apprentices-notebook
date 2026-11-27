@@ -1,0 +1,59 @@
+{
+  "id": "tiles/shared/mark-deep",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "mark",
+  "state": "deep",
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/shared/mark-deep.master.png",
+    "sha256": "4fac7f05e3a87c8b98e08c5094015cb16236fb49d1444d9a1c70f736ac005a6b",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "f2009b8a6a98b210b11187096ad69287e0550dfb8b2a37dd4017556c8752a98d",
+      "cca59d4ce5c82d4560d95dcbf482b5c26264143d67d89060fec70fc54899481f",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square cover crop.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Neutral diffuse top-left; restrained pigment highlights.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: One deep ink seal for a 128×128 tactics cell in The Apprentice’s Notebook, maximum resolution square sprite. Shape: a compact low silhouette consisting of THREE very short pointed wedge lobes radiating from a single irregular connected dark navy ink impression. Strict overhead view. This is wet blue-black pigment #1D2A4A pressed flat onto a surface, with extremely shallow thickness like silk-screen ink. The interior is a wide dark pigment mass with a restrained short cool silken flicker at the edge. Do not paint any extrusion, faceting, metal, stone chips, gold flecks, stamp tool, footprint, letters, glyph, ring or border. The dense spread of the 3 short sharply cut wedge tips will read in greyscale at 24 px. Keep the silhouette centered with 18 percent transparent padding. Return isolated true RGBA; no surface, no shadow, no gray matte halo, no corner marks or pips. Neutral diffuse upper-left light. Seam #253235 #55625E #BC9273; city #1F2A3A #3A4148 #5D666D #A9BCC6; material pigment #1D2A4A. The first reference shows approved wet material paint, the second shows matte brushwork, and the third gives colour swatches. Match the style, proportions and finish of the attached approved anchors. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/slick.approved.webp",
+    "art-src/anchors/seam/cloud.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "02ec60b9-7e41-4d6c-9f4d-dece9a377734",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": "deepMark",
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "4fac7f05e3a87c8b98e08c5094015cb16236fb49d1444d9a1c70f736ac005a6b",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 4583 partial-alpha pixels"]
+  }
+}

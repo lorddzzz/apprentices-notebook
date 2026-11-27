@@ -1,0 +1,63 @@
+{
+  "id": "tiles/shared/blot",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "blot",
+  "state": null,
+  "role": "material-overlay-alpha",
+  "size": [128, 128],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/shared/blot.master.png",
+    "sha256": "92848e417c87e5ddcb2abf0c8a3b510692a2da44acbde165d18b8ef36571b862",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "f2009b8a6a98b210b11187096ad69287e0550dfb8b2a37dd4017556c8752a98d",
+      "cca59d4ce5c82d4560d95dcbf482b5c26264143d67d89060fec70fc54899481f",
+      "1f92e0649f31cab0830ebe6763429abf9cbf46b8088101957d335ad1ebd82eaf",
+      "cb251aa453e470a39bac23e9b4d98801d92dcaac1e803d9ed63cd76426d74d94",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square cover crop.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Neutral diffuse top-left; restrained pigment highlights.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: Plain spilled blue-black ink pool #1D2A4A. Compact round blackberry-like liquid silhouette, solid center and three short lobes, just one subdued thin blue reflection; no oil sheen, drips or satellites. Paint one production sprite for The Apprentice’s Notebook, at the largest native square resolution, for a 128×128 tile read at 51 px. Camera: strict overhead, orthographic over a square cell. Composition: single object centred, 7–13% transparent padding around every edge, no object cut off. Lighting: neutral diffuse upper-left light, subtle material shading only, suited to any district ground. City #1F2A3A, #3A4148, #5D666D, #A9BCC6; Seam #253235, #55625E, #BC9273. Keep coloured pigments as saturated as the applied swatches. Edges and texture: broad quiet paint masses, crisp material contour, fine broken matt grain and a few engraved material edges. Silhouette key: the distinctive overall shape described in the asset above must survive greyscale at 24 pixels. References: image 1 is the approved slick material identity or the closest material analogue, other anchor images show the matching paint finish, last image is the Seam and city palette strip. Match the style, proportions and finish of the attached approved anchors. Return real transparent RGBA, no backdrop or stone under the material, no boundary halo, drop shadow, vignette, scattered granules or corner marks, no pips. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/slick.approved.webp",
+    "art-src/anchors/seam/cloud.approved.webp",
+    "art-src/anchors/seam/plate.approved.webp",
+    "art-src/anchors/seam/vent.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "63f08e31-94ba-44b0-97af-d32af8a3dd4f",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": "blot",
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "92848e417c87e5ddcb2abf0c8a3b510692a2da44acbde165d18b8ef36571b862",
+      "size": [1254, 1254]
+    },
+    "notes": ["defringed 5469 partial-alpha pixels"]
+  }
+}
