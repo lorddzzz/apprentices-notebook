@@ -32,7 +32,6 @@
   } from '../../app/faircopy';
   import { game } from '../../app/instance';
   import { go } from '../../app/router.svelte';
-  import { href } from '../../app/routes';
   import {
     benchOf,
     benchUnlocked,
@@ -50,12 +49,12 @@
   import { toast } from '../../app/toasts.svelte';
   import { rumourLine } from '../../app/tripviews';
   import Button from '../components/common/Button.svelte';
-  import Sheet from '../components/common/Sheet.svelte';
   import ArgPicker from '../components/lattice/ArgPicker.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import NoteUnderDoor from '../components/recruits/NoteUnderDoor.svelte';
   import AtticHeader from '../components/study/AtticHeader.svelte';
+  import Door from '../components/study/Door.svelte';
   import FairCopySheet from '../components/study/FairCopySheet.svelte';
   import FirstEvening from '../components/study/FirstEvening.svelte';
   import GlyphRanking from '../components/study/GlyphRanking.svelte';
@@ -144,42 +143,6 @@
         : null,
   );
   const emptySeats = $derived(seatsOf(profile).filter((s) => s === null).length);
-  type Panel = 'closed' | 'menu' | 'paste' | 'copy' | 'reset';
-  let panel = $state<Panel>('closed');
-  let pasted = $state('');
-  let copyText = $state('');
-
-  async function copySave(): Promise<void> {
-    const text = game.exportText();
-    try {
-      await navigator.clipboard.writeText(text);
-      panel = 'closed';
-      toast('Save copied');
-    } catch {
-      // No clipboard access (some iOS contexts): show the text to select by hand.
-      copyText = text;
-      panel = 'copy';
-    }
-  }
-
-  function loadPasted(): void {
-    const err = game.importText(pasted);
-    if (err) {
-      toast(err, 'warn');
-      return;
-    }
-    pasted = '';
-    panel = 'closed';
-    toast('Save loaded');
-  }
-
-  function resetAll(): void {
-    game.reset();
-    panel = 'closed';
-    // A full reload clears every screen's in-memory state too: the next visit is a first one.
-    go('study');
-    location.reload();
-  }
 
   function finishField(): void {
     const why = game.finishDoorway();
@@ -226,16 +189,6 @@
     if (why === null) argAt = null;
     return why;
   }
-
-  const title = $derived(
-    panel === 'paste'
-      ? 'Paste save'
-      : panel === 'copy'
-        ? 'Copy save'
-        : panel === 'reset'
-          ? 'Start over'
-          : 'The study',
-  );
 </script>
 
 <div class="study" data-testid="study">
@@ -247,7 +200,8 @@
     {note}
   />
 
-  <!-- positioned, so these rows paint above the header's 24 px bleed -->
+  <!-- display: contents, so their sheets still cover the whole screen; the cards are positioned
+       to paint above the header's 24 px bleed -->
   <div class="rows">
     <FirstEvening />
     <NoteUnderDoor />
@@ -334,43 +288,26 @@
     </LatticeEditor>
   </div>
 
-  {#if !drawerUp}
-  <div class="doorway">
-    {#if field}
-      <button
-        type="button"
-        class="door done"
-        disabled={blocker !== null}
-        onclick={finishField}
-        data-testid="field-done"
-        aria-describedby="done-note"
-      >
-        <span class="words">
-          <span class="label">Done</span>
-          <span class="caption" id="done-note">{doneCaption}</span>
-        </span>
-      </button>
-    {:else}
-      <button
-        type="button"
-        class="door"
-        disabled={blocker !== null}
-        onclick={() => go('map')}
-        data-testid="door"
-        aria-describedby="door-note"
-      >
-        <svg class="arch" width="28" height="36" viewBox="0 0 28 36" aria-hidden="true">
-          <path d="M3 35V14a11 11 0 0 1 22 0v21z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="2" />
-          <path d="M14 3v32M8.5 10v25M19.5 10v25" stroke="var(--wood-deep)" stroke-opacity="0.6" />
-          <circle cx="20.5" cy="23" r="1.8" fill="var(--lamp)" />
-        </svg>
-        <span class="words">
-          <span class="label">Out into the city</span>
-          <span class="caption" id="door-note">{doorCaption}</span>
-        </span>
-      </button>
-    {/if}
-  </div>
+  <!-- the slot is kept while the drawer is up, so the page above never moves -->
+  {#if field}
+    <Door
+      done
+      label="Done"
+      caption={doneCaption}
+      disabled={blocker !== null}
+      hidden={drawerUp}
+      onclick={finishField}
+      testid="field-done"
+    />
+  {:else}
+    <Door
+      label="Out into the city"
+      caption={doorCaption}
+      disabled={blocker !== null}
+      hidden={drawerUp}
+      onclick={() => go('map')}
+      testid="door"
+    />
   {/if}
 
   <FairCopySheet
@@ -421,62 +358,6 @@
     onapply={applyArgs}
     onclose={() => (argAt = null)}
   />
-
-  <Sheet open={panel !== 'closed'} {title} onclose={() => (panel = 'closed')}>
-    {#if panel === 'menu'}
-      <div class="menu">
-        <a class="item tap" href={href('lab', { scenario: 'sandbox' })} data-testid="menu-lab">Visit the Lab</a>
-        <Button variant="quiet" label="Copy save" onclick={copySave} testid="copy-save" />
-        <Button
-          variant="quiet"
-          label="Paste save"
-          onclick={() => (panel = 'paste')}
-          testid="paste-save"
-        />
-        <Button
-          variant="quiet"
-          label="Start over"
-          onclick={() => (panel = 'reset')}
-          testid="reset-save"
-        />
-      </div>
-      <p class="hint">
-        Your notebook lives in this browser. Copy the save somewhere safe: phones sometimes clear
-        site data.
-      </p>
-    {:else if panel === 'paste'}
-      <p class="hint">Paste a copied save here. It replaces the notebook you have now.</p>
-      <textarea
-        bind:value={pasted}
-        rows="5"
-        spellcheck="false"
-        autocapitalize="off"
-        placeholder="Paste save text"
-        aria-label="Save text"
-        data-testid="paste-text"
-      ></textarea>
-      <div class="row">
-        <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
-        <Button variant="danger" label="Replace my save" onclick={loadPasted} testid="paste-go" />
-      </div>
-    {:else if panel === 'reset'}
-      <p class="hint">
-        This wipes the whole notebook (runes, glyphs, folios, trip) and begins a new game. Copy the
-        save first if you might want it back.
-      </p>
-      <div class="row">
-        <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
-        <Button variant="danger" label="Wipe everything" onclick={resetAll} testid="reset-go" />
-      </div>
-    {:else if panel === 'copy'}
-      <p class="hint">Copying was blocked. Select the text below and copy it by hand.</p>
-      <textarea readonly rows="5" value={copyText} aria-label="Save text" data-testid="copy-text"
-      ></textarea>
-      <div class="row">
-        <Button variant="quiet" label="Back" onclick={() => (panel = 'menu')} />
-      </div>
-    {/if}
-  </Sheet>
 </div>
 
 <style>
@@ -491,9 +372,11 @@
       linear-gradient(var(--wood-dark), #3a281c);
   }
   .rows {
+    display: contents;
+  }
+  .rows > :global(:not(.overlay)) {
     position: relative;
     z-index: 1;
-    flex: none;
   }
   .desk {
     flex: 1;
@@ -529,85 +412,5 @@
     justify-content: space-between;
     gap: var(--space-2);
     margin-top: var(--space-1);
-  }
-  .done {
-    justify-content: center;
-  }
-  .doorway {
-    flex: none;
-    padding: var(--space-2) var(--space-2) calc(var(--space-2) + 14px);
-  }
-  .door {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    width: 100%;
-    min-height: 52px;
-    padding: 0 var(--space-3);
-    border: 2px solid var(--wood-deep);
-    border-radius: var(--radius);
-    background:
-      repeating-linear-gradient(90deg, transparent 0 44px, rgba(0, 0, 0, 0.3) 44px 45px),
-      linear-gradient(#37271c, #2a1d15);
-    color: var(--parchment);
-    text-align: left;
-    box-shadow: 0 5px 0 -1px rgba(232, 176, 74, 0.55); /* lamplight under the door */
-  }
-  .door:disabled {
-    cursor: default;
-  }
-  .arch {
-    flex: none;
-  }
-  .words {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
-  }
-  .label {
-    font-size: 17px;
-    font-style: italic;
-  }
-  .caption {
-    font-size: 12px;
-    color: rgba(241, 230, 204, 0.7);
-  }
-  .menu {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  .item {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 var(--space-3);
-    border: 2px solid var(--line);
-    border-radius: var(--radius);
-    font-size: 16px;
-    text-decoration: none;
-  }
-  .hint {
-    margin: var(--space-3) 0 var(--space-2);
-    font-size: 13px;
-    color: var(--ink-soft);
-  }
-  textarea {
-    display: block;
-    width: 100%;
-    padding: var(--space-2);
-    border: 2px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--parchment-dark);
-    font: 16px/1.3 var(--mono);
-    resize: none;
-  }
-  .row {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-2);
-    margin-top: var(--space-3);
   }
 </style>
