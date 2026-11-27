@@ -8,6 +8,7 @@ import { DISTRICTS } from '$data';
 import {
   applyAction,
   canBeOpen,
+  compiledFor,
   emptyRecord,
   type GameEvent,
   newSave,
@@ -333,6 +334,22 @@ describe('fight fixtures (UF-15c)', () => {
     expect(b.storage.get(SAVE_KEY)).toBe(planted);
     expect(b.writes).toEqual([]);
     expect(b.location.reload).not.toHaveBeenCalled();
+  });
+
+  test('fixtures: fight-lampwater-trio seats three members and fight-multispell gives Pell two spells', async () => {
+    const b = fakeBrowser('#/fixture?name=fight-seam', planted);
+    const { game } = await coldLoad(b);
+    for (const name of ['fight-lampwater-trio', 'fight-multispell'] as const) {
+      b.location.hash = `#/fixture?name=${name}`;
+      b.window.dispatchEvent(new Event('hashchange'));
+      await ready(b, name);
+      expect(FIXTURES[name].route).toBe('trip');
+      expect(game.save.trip?.district).toBe('canals');
+      expect(game.battle?.state.width).toBe(5);
+      expect(game.battle?.state.height).toBe(9);
+      expect(tripParty(game.profile)).toHaveLength(3);
+    }
+    expect(compiledFor(game.profile, 'draughtsman').spells.length).toBeGreaterThanOrEqual(2);
   });
 });
 

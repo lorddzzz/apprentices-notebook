@@ -280,6 +280,7 @@
   /* The trip's fight: the city night world, edge to edge (the screen's safe padding is taken back
      so the header's own inset and the page colour reach the notch). Stack gaps are 12 (FT-D9). */
   .battle.fight {
+    --header-lift: 0px;
     height: calc(100% + var(--safe-top) + var(--safe-bottom));
     margin: calc(-1 * var(--safe-top)) calc(-1 * var(--safe-right)) calc(-1 * var(--safe-bottom))
       calc(-1 * var(--safe-left));

@@ -16,6 +16,7 @@ import type { GameStore } from '../game.svelte';
 import type { Route } from '../routes';
 import type { ThresholdStore } from '../threshold.svelte';
 import { wipeFixture } from '../tripUx';
+import { FIGHT_EXTRA_FIXTURES, type FightExtraFixtureId } from './fixtures/fightFixtures';
 import {
   benchProfile,
   creditsProfile,
@@ -68,7 +69,8 @@ export type FixtureId =
   | MapFixtureId
   | GlyphFixtureId
   // UF-14 (Pack D1)
-  | D1FixtureId;
+  | D1FixtureId
+  | FightExtraFixtureId;
 
 /** What a setup recipe may reach besides the game: the app's transient stores and the URL's step. */
 export interface FixtureContext {
@@ -611,6 +613,7 @@ export const FIXTURES: Record<FixtureId, Fixture> = {
   ...MAP_FIXTURES,
   ...GLYPH_FIXTURES,
   ...D1_FIXTURES,
+  ...FIGHT_EXTRA_FIXTURES,
   'threshold-canals-burnt': {
     id: 'threshold-canals-burnt',
     route: 'threshold',

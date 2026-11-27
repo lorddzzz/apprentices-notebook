@@ -916,7 +916,7 @@
       gap: 4px;
     }
     .editor.notebook .info.strip {
-      height: 32px;
+      height: 44px;
     }
     .strip .rule,
     .strip .fine,

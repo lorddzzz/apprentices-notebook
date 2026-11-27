@@ -87,6 +87,24 @@ describe('UF-8 AppHeader, ActionButton, Card', () => {
     expect(css('AppHeader.svelte')).toMatch(/background:[^;]*var\(--(world-bg|home-wood-dark)\)/);
   });
 
+  test('components: AppHeader stripFallback renders only while the strip art is missing', () => {
+    const stripFallback = createRawSnippet(() => ({
+      render: () => '<i class="fallback-art">x</i>',
+    }));
+    const props = {
+      variant: 'subroom' as const,
+      title: 'Codex',
+      strip: 'scenes/home/codex-strip' as const,
+      stripFallback,
+    };
+    shipped.ids = new Set();
+    expect(render(AppHeader, { props }).body).toContain('fallback-art');
+    shipped.ids = new Set(['scenes/home/codex-strip']);
+    const withArt = render(AppHeader, { props }).body;
+    expect(withArt).toContain('<img');
+    expect(withArt).not.toContain('fallback-art');
+  });
+
   test('components: AppHeader city header shows the crest slot left of the title', () => {
     const body = render(AppHeader, {
       props: {

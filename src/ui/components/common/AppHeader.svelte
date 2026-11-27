@@ -39,11 +39,13 @@
     back?: HeaderBack;
     crest?: Snippet;
     strip?: ArtId;
+    /** Drawn inside the strip's box when the strip art is not shipped (default: the flat world colour). */
+    stripFallback?: Snippet;
     /** Extra controls; the ⋯ menu always comes after them. Icon-only controls need an aria-label. */
     right?: Snippet;
   }
 
-  let { variant, title, subtitle, status, back, crest, strip, right }: Props = $props();
+  let { variant, title, subtitle, status, back, crest, strip, stripFallback, right }: Props = $props();
 
   let menuOpen = $state(false);
 </script>
@@ -57,7 +59,7 @@
   style:--header-h="{HEADER_HEIGHT[variant]}px"
 >
   {#if strip}
-    <span class="strip" aria-hidden="true"><ArtImage id={strip} fit="cover" /></span>
+    <span class="strip" aria-hidden="true"><ArtImage id={strip} fit="cover" fallback={stripFallback} /></span>
   {/if}
   {#if back}
     {#if 'to' in back}
@@ -109,6 +111,10 @@
     align-items: center;
     gap: var(--space-2);
     height: calc(var(--header-h) + var(--safe-top));
+    /* The screen root already pads by the safe area; the header takes that padding back so it
+       owns the inset once (its bar paints into the notch). A parent that has already taken the
+       padding back (the fight) sets --header-lift: 0px. */
+    margin-top: calc(-1 * var(--header-lift, var(--safe-top)));
     padding: var(--safe-top) var(--space-1) 0 var(--space-1);
     border-bottom: 1px solid var(--world-line);
     background: var(--world-bg);
