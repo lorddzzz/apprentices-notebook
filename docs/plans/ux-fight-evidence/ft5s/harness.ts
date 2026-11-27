@@ -12,11 +12,13 @@ import { mount } from 'svelte';
 import { parseBoard } from '$engine';
 import { viewOfSpec } from '../../../../src/app/view';
 import BattleBoard from '../../../../src/ui/components/board/BattleBoard.svelte';
+import { SHOWCASE_BOARD } from '../../../../src/ui/screens/galleryFixtures';
 import '../../../../src/ui/theme.css';
 
 const q = new URLSearchParams(location.search);
-const cols = Number(q.get('cols') ?? 7);
-const rows = Number(q.get('rows') ?? 9);
+const showcase = q.get('board') === 'showcase';
+const cols = showcase ? 6 : Number(q.get('cols') ?? 7);
+const rows = showcase ? 8 : Number(q.get('rows') ?? 9);
 const state = q.get('state') ?? 'normal';
 const height = Number(q.get('h') ?? 812);
 const top = Number(q.get('top') ?? 44);
@@ -50,7 +52,8 @@ function ascii(): string {
   return grid.map((r) => r.join(' ')).join('\n');
 }
 
-const view = viewOfSpec(parseBoard(ascii()));
+const view = viewOfSpec(parseBoard(showcase ? SHOWCASE_BOARD : ascii()));
+if (q.get('grey') === '1') document.documentElement.style.filter = 'grayscale(1)';
 (window as unknown as { __taps: string[]; __holds: string[] }).__taps = [];
 (window as unknown as { __taps: string[]; __holds: string[] }).__holds = [];
 const log = window as unknown as { __taps: string[]; __holds: string[] };
@@ -123,6 +126,7 @@ mount(BattleBoard, {
   target: wrap,
   props: {
     view,
+    kit: q.get('district') ? { district: q.get('district') } : undefined,
     ontap: (at: { x: number; y: number }) => log.__taps.push(`${at.x},${at.y}`),
     onhold: (at: { x: number; y: number }) => log.__holds.push(`${at.x},${at.y}`),
   },

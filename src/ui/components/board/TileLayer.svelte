@@ -1,15 +1,30 @@
 <script lang="ts">
   import type { Coord, Dir } from '$engine';
   import type { TileView } from '../../../app/view';
-  import { DROP, maxHits, PLATE_LIKE } from './art';
+  import { DROP, firstArt, materialOf, maxHits, PLATE_LIKE, stampsOf, TILE_STAMP } from './art';
+  import { FIGHT_KITS, type FightArtContext, fightArtIds } from './fightArt';
   import { cellOrigin } from './geometry';
 
   interface Props {
     tile: TileView;
     at: Coord;
+    /** The room's district (FT-D7): its tile art, else the shared art, else the vector below. */
+    kit?: FightArtContext;
   }
 
-  let { tile, at }: Props = $props();
+  let { tile, at, kit }: Props = $props();
+
+  const owner = $derived(kit?.district);
+  const material = $derived(materialOf(tile));
+  const floorArt = $derived(firstArt(fightArtIds(owner, { kind: 'tile', material: 'floor' })));
+  // A material with its own art replaces the vector body; the stamp, pips and timers stay vector.
+  const bodyArt = $derived(
+    material === 'floor' ? null : firstArt(fightArtIds(owner, { kind: 'tile', material })),
+  );
+  const stamps = $derived(stampsOf(tile));
+  // With a scene behind the grid the vector floor lets it show through.
+  const floorOpacity = $derived(owner ? 0.62 : 1);
+  const floorFill = $derived((owner && FIGHT_KITS[owner]?.tileTone) || 'var(--parchment)');
 
   const origin = $derived(cellOrigin(at));
   const FLAME = 'M12 3c3 4 5 6 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z';
@@ -22,7 +37,7 @@
   const BLOT =
     'M28 54C25 36 42 24 56 29C72 23 82 40 75 55C84 68 68 80 54 73C42 82 24 71 28 54Z';
   // Clouds, brand clouds, grease fog and banks are drawn over the units by SteamLayer.
-  const LINGERING = ['stain', 'pool', 'skidPlate', 'kettle', 'wall'];
+  const LINGERING = ['fire', 'stain', 'pool', 'skidPlate', 'kettle', 'wall'];
   // Plates, skid plates, kettles and walls wear: pips for the hits left, a crack on a damaged wall.
   const pips = $derived(tile.state && PLATE_LIKE.has(tile.state) ? tile.hits : 0);
   const worn = $derived(tile.state === 'wall' && tile.hits > 0 && tile.hits < maxHits('wall'));
@@ -32,7 +47,16 @@
 </script>
 
 <g transform="translate({origin.x} {origin.y})">
-  <rect width="100" height="100" fill="var(--parchment)" stroke="var(--line)" stroke-width="1.5" />
+  {#if floorArt}
+    <image href={floorArt.url} width="100" height="100" />
+  {:else}
+    <rect width="100" height="100" fill={floorFill} fill-opacity={floorOpacity} stroke="var(--line)" stroke-width="1.5" />
+  {/if}
+  {#if bodyArt}
+    <image href={bodyArt.url} width="100" height="100" data-art={material} />
+  {/if}
+
+  {#if !bodyArt}
 
   {#if tile.water}
     <rect x="1" y="1" width="98" height="98" fill="var(--shield)" opacity="0.3" data-state="water" />
@@ -67,9 +91,6 @@
       <path d={FLAME} transform="translate(44 14) scale(2.9)" />
       <path d={FLAME} transform="translate(56 48) scale(1.9)" />
     </g>
-    {#if tile.rounds > 0}
-      <text x="93" y="95" text-anchor="end" font-size="24" font-weight="bold" fill="var(--ink)" font-family="var(--mono)">{tile.rounds}</text>
-    {/if}
   {/if}
 
   {#if tile.state === 'plate'}
@@ -159,18 +180,6 @@
     </g>
   {/if}
 
-  {#if pips > 0}
-    <g data-trait="hits" fill="var(--ink)" stroke="var(--parchment)" stroke-width="2.5">
-      {#each { length: pips } as _, i (i)}
-        <circle cx={14 + i * 14} cy="14" r="5.5" />
-      {/each}
-    </g>
-  {/if}
-
-  {#if timed > 0}
-    <text x="91" y="95" text-anchor="end" font-size="22" font-weight="bold" fill="var(--ink)" stroke="var(--parchment)" stroke-width="4" paint-order="stroke" font-family="var(--mono)">{timed}</text>
-  {/if}
-
   {#if tile.grate}
     <g data-state="grate" stroke="var(--ink)" stroke-width="6" stroke-linecap="round">
       <path d="M8 8v84M32 8v84M56 8v84M80 8v84" />
@@ -210,6 +219,37 @@
       <rect x="9" y="9" width="82" height="82" fill="none" stroke="var(--parchment)" stroke-width="3" stroke-dasharray="10 8" opacity="0.7" />
     </g>
   {/if}
+  {/if}
+
+  {#if pips > 0}
+    <g data-trait="hits" fill="var(--ink)" stroke="var(--parchment)" stroke-width="2.5">
+      {#each { length: pips } as _, i (i)}
+        <circle cx={14 + i * 14} cy="14" r="5.5" />
+      {/each}
+    </g>
+  {/if}
+
+  {#if timed > 0}
+    <text x="91" y="95" text-anchor="end" font-size="22" font-weight="bold" fill="var(--ink)" stroke="var(--parchment)" stroke-width="4" paint-order="stroke" font-family="var(--mono)">{timed}</text>
+  {/if}
+
+  {#each stamps as key, i (key)}
+    {@const st = TILE_STAMP[key]}
+    {#if st}
+      <g
+        data-stamp={key}
+        transform="translate({72 - i * 28} 4)"
+        fill={st.filled ? 'var(--ink)' : 'none'}
+        stroke="var(--ink)"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="-2" y="-2" width="28" height="28" rx="3" fill="var(--parchment)" fill-opacity="0.82" stroke="none" />
+        <path d={st.path} fill-rule="evenodd" />
+      </g>
+    {/if}
+  {/each}
 </g>
 
 <style>

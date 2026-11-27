@@ -1,4 +1,10 @@
-import { describe, expect, test } from 'vitest';
+import { render } from 'svelte/server';
+import { describe, expect, test, vi } from 'vitest';
+import { viewOfSpec } from '../../src/app/view';
+import { parseBoard } from '../../src/engine';
+import { sceneRect, stampsOf, TILE_STAMP } from '../../src/ui/components/board/art';
+import BattleBoard from '../../src/ui/components/board/BattleBoard.svelte';
+
 import {
   boardLayout,
   boardViewBox,
@@ -85,5 +91,112 @@ describe('FT-5 boardLayout', () => {
     expect(vbH).toBe(9 * CELL + GUTTER);
     const l = boardLayout(7, 9, 359, 466);
     expect(l.scale).toBeCloseTo(Math.min(359 / (vbW ?? 1), 466 / (vbH ?? 1)), 12);
+  });
+});
+
+/** FT-6, FT-7, FT-8: the five layers, the read-only board, the scene and the material stamps. */
+
+const shipped = vi.hoisted(() => ({ ids: new Set<string>() }));
+vi.mock('../../src/ui/art/registry', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../../src/ui/art/registry')>();
+  return {
+    ...real,
+    artUrl: (id: string) => (shipped.ids.has(id) ? `/art/${id}.webp` : null),
+    artSize: () => null,
+  };
+});
+
+const BOARD = ['D S .', 'o r *', '. ~ {wall}'].join('\n');
+const view = () => viewOfSpec(parseBoard(BOARD));
+const html = (props: Record<string, unknown>) =>
+  render(BattleBoard, { props: { view: view(), ...props } }).body;
+
+describe('FT-8 BattleBoard layers', () => {
+  test('layers appear in order scene<tiles<units<overlay<fx', () => {
+    const out = html({ ontap: () => {} });
+    const at = ['scene', 'tiles', 'units', 'overlay', 'fx'].map((l) =>
+      out.indexOf(`data-layer="${l}"`),
+    );
+    expect(at.every((i) => i >= 0)).toBe(true);
+    expect([...at].sort((a, b) => a - b)).toEqual(at);
+    // The hit rects come after every layer, above all artwork.
+    expect(out.indexOf('data-hit')).toBeGreaterThan(at[4] ?? Infinity);
+  });
+
+  test('the scrim covers scene, tiles and units but sits below the overlay', () => {
+    const out = html({ ontap: () => {}, beat: { kind: 'burst', name: 'Burst', first: false } });
+    const scrim = out.indexOf('data-scrim');
+    expect(scrim).toBeGreaterThan(out.indexOf('data-layer="units"'));
+    expect(scrim).toBeLessThan(out.indexOf('data-layer="overlay"'));
+    expect(html({ ontap: () => {} })).not.toContain('data-scrim');
+  });
+
+  test('readonly renders no hit rects and no focusable cells', () => {
+    const live = html({ ontap: () => {} });
+    expect(live).toMatch(/class="hit[ "]/);
+    expect(live).toContain('tabindex="0"');
+    const ro = html({ readonly: true });
+    expect(ro).not.toMatch(/class="hit[ "]/);
+    expect(ro).not.toContain('data-hit');
+    expect(ro).not.toContain('tabindex');
+    expect(ro).not.toContain('role="button"');
+  });
+});
+
+describe('FT-6 SceneLayer', () => {
+  test('a district with no shipped art draws the vector wash; no district draws nothing', () => {
+    shipped.ids.clear();
+    expect(html({ kit: { district: 'seam' } })).toContain('data-scene="wash"');
+    expect(html({ kit: { district: 'canals' } })).toContain('data-scene="wash"');
+    expect(html({})).not.toContain('data-scene');
+    expect(html({ kit: { district: 'seam' } })).not.toContain('<image');
+  });
+
+  test('shipped scene art is an <image> with its real href, covering the board', () => {
+    shipped.ids.add('scenes/seam/fight');
+    try {
+      const out = html({ kit: { district: 'seam' } });
+      expect(out).toContain('data-scene="art"');
+      expect(out).toContain('href="/art/scenes/seam/fight.webp"');
+    } finally {
+      shipped.ids.clear();
+    }
+    const r = sceneRect(6, 6, 'scenes/seam/fight');
+    expect(r.w).toBeGreaterThanOrEqual(624 - 1e-9);
+    expect(r.h).toBeGreaterThanOrEqual(624 - 1e-9);
+    expect(r.x).toBeLessThanOrEqual(-24 + 1e-9);
+    expect(r.x + r.w).toBeGreaterThanOrEqual(600 - 1e-9);
+  });
+});
+
+describe('FT-7 TileLayer', () => {
+  test('every material has its own stamp silhouette, so none needs colour', () => {
+    const paths = Object.values(TILE_STAMP).map((s) => s.path);
+    expect(new Set(paths).size).toBe(paths.length);
+  });
+
+  test('a tile wears the stamp of its layer or terrain; clouds wear none', () => {
+    const base = { vent: false };
+    expect(stampsOf({ ...base, state: 'fire' })).toEqual(['fire']);
+    expect(stampsOf({ ...base, state: 'cloud' })).toEqual([]);
+    expect(stampsOf({ ...base, state: null, water: 'down' })).toEqual(['water']);
+    expect(stampsOf({ ...base, state: 'wall', water: 'down' })).toEqual(['wall', 'water']);
+    expect(stampsOf({ ...base, state: null })).toEqual([]);
+  });
+
+  test('tile art replaces the vector body but the stamp stays vector', () => {
+    shipped.ids.add('tiles/seam/slick');
+    try {
+      const out = html({ kit: { district: 'seam' } });
+      expect(out).toContain('href="/art/tiles/seam/slick.webp"');
+      expect(out).toContain('data-art="slick"');
+      expect(out).toContain('data-stamp="slick"');
+      expect(out).not.toContain('data-state="slick"');
+    } finally {
+      shipped.ids.clear();
+    }
+    const plain = html({ kit: { district: 'seam' } });
+    expect(plain).toContain('data-state="slick"');
+    expect(plain).toContain('data-stamp="slick"');
   });
 });
