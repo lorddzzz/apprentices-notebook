@@ -19,6 +19,7 @@
 | UH-0 | c461097 | Sonnet / high | 0 | ~4% | HomeStrip + RoomObject (hidden keeps footprint); proposals noted |
 | UF-15c (D3) | dd6708e | Sonnet / high | 0 | ~5% | three static fight fixtures; report lost, reviewed from branch |
 | FT-5s, FT-5, FT-6, FT-7, FT-8 | c37a157, b73c98a, cce6f8a | Sonnet / high | 1 (limit pause) | ~12% | layout spike + measured table, boardLayout, SceneLayer, tile art/stamps, five-layer board; 186 ui tests |
+| UH-3, UH-4, UH-5 | fb6b3e6..885998d | Sonnet / high | 1 (limit pause) | ~12% | lattice readonly + notebook page + seat tabs + drawer overlay; gestures unchanged on phone; 5x5 sockets deferred to UH-A |
 | UF-4 | be2c0e6 | Opus / high | 0 | ~5% | dev fixture loader (memory backend, go replace), burnt-threshold replay + study-fresh, grey=1; report lost, reviewed from branch |
 | UF-2 | b49271d | Opus / high | 0 | ~6% | registry, artMeta, role art:check (both gates), inventory; 26+8+5 tests; proposals accepted (2 MiB single-asset cap, ±4 px ground tolerance) |
 
