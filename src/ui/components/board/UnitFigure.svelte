@@ -4,7 +4,9 @@
   import type { BoardView, UnitView } from '../../../app/view';
   import { unitArtFor } from '../../districts';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
-  import { runePath } from './art';
+  import { firstArt, runePath } from './art';
+  import { type FightArtContext, fightArtIds, figureSize } from './fightArt';
+  import { FEET, FIGURE_SCALE } from './figure';
   import { CELL } from './geometry';
 
   interface Props {
@@ -13,9 +15,11 @@
     dim: boolean;
     /** The board the unit stands on: a district's art may read its tile (a bather in a cloud is steam). */
     view: BoardView;
+    /** The room's district: figure art ships per district (FT-D7). None = the vector. */
+    kit?: FightArtContext;
   }
 
-  let { unit, selected, dim, view }: Props = $props();
+  let { unit, selected, dim, view, kit }: Props = $props();
 
   // A foe a district registered art for (KIT-R2); any other draws the default token below.
   const Art = $derived(unitArtFor(unit.def));
@@ -26,8 +30,32 @@
       : ENEMIES[unit.def as keyof typeof ENEMIES].token,
   );
   const apprentice = $derived(unit.kind === 'member' ? APPRENTICES[unit.def as keyof typeof APPRENTICES] : null);
-  const pipText = $derived(unit.maxHp > 8);
-  const pipX = $derived(50 - (unit.maxHp * 11 - 3) / 2);
+  // The painted figure (FT-9): the first shipped id of its lookup, else the vector below.
+  const art = $derived(
+    firstArt(
+      fightArtIds(
+        kit?.district,
+        unit.kind === 'member'
+          ? { kind: 'member', def: unit.def as keyof typeof APPRENTICES }
+          : { kind: 'foe', def: unit.def as keyof typeof ENEMIES },
+        kit?.arena,
+      ),
+    ),
+  );
+  const size = $derived(art ? figureSize(art.id) : null);
+  // Figure scale is cell/128 whatever the canvas: the feet sit at FEET, the canvas hangs above.
+  const fig = $derived(
+    size
+      ? {
+          w: size.w * FIGURE_SCALE,
+          h: size.h * FIGURE_SCALE,
+          x: 50 - (size.w * FIGURE_SCALE) / 2,
+          y: FEET - size.feetY * FIGURE_SCALE,
+        }
+      : null,
+  );
+  // Side rim: the party in its apprentice hue, foes dark (never colour alone: foes sit right, party left).
+  const rim = $derived(apprentice ? `var(--hue-${apprentice.look.hue})` : 'var(--ink)');
   const CY = 42;
   // A shackle is a chain of brass links round the token; a bound mark shows the action it holds.
   const LINKS = Array.from({ length: 12 }, (_, i) => i);
@@ -41,11 +69,41 @@
   out:fade={{ duration: 220 }}
 >
   {#if selected}
-    <circle cx="50" cy={CY} r="44" fill="var(--select)" opacity="0.4" />
-    <circle cx="50" cy={CY} r="42" fill="none" stroke="var(--select)" stroke-width="5" />
+    <!-- Dark under-stroke, light core, dashes: reads in greyscale on any ground (FT-10). -->
+    <g data-trait="selected" fill="none">
+      <ellipse cx="50" cy={FEET} rx="42" ry="14" stroke="var(--ink)" stroke-width="11" />
+      <ellipse cx="50" cy={FEET} rx="42" ry="14" stroke="var(--parchment)" stroke-width="6" />
+      <ellipse cx="50" cy={FEET} rx="42" ry="14" stroke="var(--select)" stroke-width="3" stroke-dasharray="9 7" />
+    </g>
+    {#if !art}
+      <circle cx="50" cy={CY} r="44" fill="var(--select)" opacity="0.4" />
+      <circle cx="50" cy={CY} r="42" fill="none" stroke="var(--select)" stroke-width="5" />
+    {/if}
   {/if}
 
-  {#if apprentice}
+  {#if art && fig}
+    <g data-figure={art.id}>
+      <ellipse
+        cx="50"
+        cy={FEET}
+        rx="30"
+        ry="9"
+        fill="none"
+        stroke={rim}
+        stroke-width="4"
+        stroke-opacity="0.85"
+        data-rim={apprentice ? 'party' : 'foe'}
+      />
+      <image href={art.url} x={fig.x} y={fig.y} width={fig.w} height={fig.h} />
+      <path
+        d="M{apprentice ? 14 : 86} {FEET - 34}V{FEET - 4}"
+        stroke={rim}
+        stroke-width="5"
+        stroke-linecap="round"
+        data-rim-side={apprentice ? 'left' : 'right'}
+      />
+    </g>
+  {:else if apprentice}
     <ApprenticeToken def={apprentice} size="board" x={0} y={CY - 50} />
   {:else if unit.def === 'rat'}
     <circle cx="50" cy={CY} r="27" fill="var(--enemy)" />
@@ -166,25 +224,8 @@
         stroke-width="2.5"
         stroke-linejoin="round"
       />
-      <text x="20" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="#fff" font-family="var(--mono)">{unit.shield}</text>
+      <text x="20" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="#fff" font-family="var(--font-serif)">{unit.shield}</text>
     </g>
-  {/if}
-
-  {#if pipText}
-    <text x="50" y="91" text-anchor="middle" font-size="20" fill="var(--ink)" font-family="var(--mono)">{unit.hp}/{unit.maxHp}</text>
-  {:else}
-    {#each { length: unit.maxHp } as _, i (i)}
-      <rect
-        x={pipX + i * 11}
-        y="82"
-        width="8"
-        height="13"
-        rx="1.5"
-        fill={i < unit.hp ? 'var(--ink)' : 'var(--parchment)'}
-        stroke="var(--ink)"
-        stroke-width="2"
-      />
-    {/each}
   {/if}
 </g>
 

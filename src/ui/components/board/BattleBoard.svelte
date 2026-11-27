@@ -18,8 +18,10 @@
   import BadgeLayer from './BadgeLayer.svelte';
   import FxLayer from './FxLayer.svelte';
   import type { FightArtContext } from './fightArt';
+  import { byRow } from './figure';
   import { boardLayout, boardViewBox, CELL, GUTTER } from './geometry';
   import HighlightLayer from './HighlightLayer.svelte';
+  import HpPips from './HpPips.svelte';
   import IntentLayer from './IntentLayer.svelte';
   import JarLayer from './JarLayer.svelte';
   import { cellLabel } from './label';
@@ -32,7 +34,7 @@
   import StepLayer from './StepLayer.svelte';
   import StepMarkerLayer from './StepMarkerLayer.svelte';
   import TileLayer from './TileLayer.svelte';
-  import UnitToken from './UnitToken.svelte';
+  import UnitFigure from './UnitFigure.svelte';
 
   interface Props {
     view: BoardView;
@@ -127,6 +129,8 @@
     })),
   );
   const living = $derived(view.units.filter((u) => u.alive));
+  // Drawn by row, then column: a lower figure overdraws the row above (FT-D10).
+  const figures = $derived(byRow(living));
   const intents = $derived<IntentDraw[]>(
     minimal
       ? living.flatMap((u) =>
@@ -209,8 +213,8 @@
 
   <!-- 3 units: figures, jars, clouds over them, the districts' badges -->
   <g data-layer="units">
-    {#each living as unit (unit.id)}
-      <UnitToken {unit} selected={overlay.selected === unit.id} dim={false} {view} />
+    {#each figures as unit (unit.id)}
+      <UnitFigure {unit} selected={overlay.selected === unit.id} dim={false} {view} {kit} />
     {/each}
 
     <JarLayer {view} />
@@ -235,6 +239,7 @@
   <!-- 4 overlay: what the next moves mean, always above every figure -->
   <g data-layer="overlay">
     <HighlightLayer highlights={overlay.highlights} />
+    <HpPips units={living} />
     {#if next}<RulePreviewLayer shapes={next.shapes} />{/if}
     <StepLayer {steps} layer="under" />
     <IntentLayer {intents} {minimal} layer="paths" />
