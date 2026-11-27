@@ -1,15 +1,18 @@
 <script lang="ts">
-  import Button from '../common/Button.svelte';
+  import ActionButton from '../common/ActionButton.svelte';
+  import LogLine from './LogLine.svelte';
 
   interface Props {
-    /** What the left button does: open the log, or step back out of targeting. */
+    /** `cancel` shows a Cancel beside the log button: targeting steps back one level. */
     left: 'log' | 'cancel';
-    /** What the right button does. `confirm-wait`: targeting, nothing to confirm yet. */
+    /** What the main button does. `confirm-wait`: targeting, nothing to confirm yet. */
     right: 'end' | 'confirm' | 'confirm-wait' | 'skip' | 'none';
     armed: boolean;
     confirmLabel: string;
-    /** The previewed action would hurt the party: say so beside the confirm button (D3). */
+    /** The previewed action would hurt the party: the confirm button says so (D3). */
     hurtsParty?: boolean;
+    /** The playback readout, for the log button's accessible name. */
+    logLine?: string | null;
     onlog: () => void;
     oncancel: () => void;
     onconfirm: () => void;
@@ -23,6 +26,7 @@
     armed,
     confirmLabel,
     hurtsParty = false,
+    logLine = null,
     onlog,
     oncancel,
     onconfirm,
@@ -31,36 +35,41 @@
   }: Props = $props();
 </script>
 
+<!-- One row, 52 px: the log button, then the controls of the input state; one primary at most. -->
 <footer class="footer" data-testid="footer">
-  <div class="left">
-    {#if left === 'cancel'}
-      <Button variant="quiet" label="Cancel" onclick={oncancel} testid="cancel" />
-    {:else}
-      <Button variant="quiet" label="Log" onclick={onlog} testid="log" />
-    {/if}
-  </div>
-  <div class="right">
+  <LogLine line={logLine} disabled={right === 'skip'} {onlog} />
+  {#if left === 'cancel'}
+    <div class="cell side">
+      <ActionButton kind="secondary" label="Cancel" onclick={oncancel} testid="cancel" />
+    </div>
+  {/if}
+  <div class="cell main">
     {#if right === 'confirm' || right === 'confirm-wait'}
-      {#if right === 'confirm' && hurtsParty}
-        <span class="hurt" data-testid="hurt-warning">Your party will be hurt</span>
-      {/if}
-      <Button
-        label={right === 'confirm'
-          ? hurtsParty
-            ? 'Confirm anyway'
-            : `Confirm ${confirmLabel}`
-          : 'Pick a target'}
-        variant={right === 'confirm' && hurtsParty ? 'danger' : 'primary'}
+      <ActionButton
+        kind="primary"
+        danger={right === 'confirm' && hurtsParty}
         disabled={right === 'confirm-wait'}
         onclick={onconfirm}
         testid="confirm"
-      />
+      >
+        {#if right === 'confirm-wait'}
+          Pick a target
+        {:else if hurtsParty}
+          <span class="two">
+            <span>Confirm anyway</span>
+            <span class="hurt" data-testid="hurt-warning">Your party will be hurt</span>
+          </span>
+        {:else}
+          Confirm {confirmLabel}
+        {/if}
+      </ActionButton>
     {:else if right === 'skip'}
-      <Button variant="quiet" label="Skip ▸▸" onclick={onskip} testid="skip" />
+      <ActionButton kind="secondary" label="Skip ▸▸" onclick={onskip} testid="skip" />
     {:else if right === 'end'}
-      <Button
-        variant={armed ? 'danger' : 'primary'}
-        label={armed ? 'End turn?' : 'End turn ▸'}
+      <ActionButton
+        kind="primary"
+        danger={armed}
+        label={armed ? 'End turn?' : 'End turn →'}
         onclick={onendturn}
         testid="end-turn"
       />
@@ -70,35 +79,40 @@
 
 <style>
   .footer {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-2);
-    height: 48px;
-    flex: none;
-    align-items: center;
-  }
-  .right {
     display: flex;
+    gap: 6px;
+    height: 52px;
+    flex: none;
+    align-items: stretch;
+  }
+  .cell {
+    display: flex;
+    min-width: 0;
+  }
+  .side {
+    flex: 0 0 96px;
+  }
+  .main {
+    flex: 1 1 0;
+  }
+  .cell :global(.action) {
+    flex: 1;
+    min-width: 0;
+    height: 52px;
+    padding: 0 var(--space-2);
+    overflow: hidden;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .two {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-2);
-    justify-content: flex-end;
     min-width: 0;
   }
   .hurt {
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: 96px;
-    font-size: 11px;
+    font-size: var(--type-xs);
     font-weight: bold;
-    line-height: 1.15;
-    color: var(--danger);
-    text-align: right;
-  }
-  .right :global(.btn) {
-    max-width: 100%;
-    min-width: 140px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
   }
 </style>

@@ -31,7 +31,7 @@
   };
 </script>
 
-<Sheet {open} title="Battle log" {onclose}>
+<Sheet {open} title="Field notes" {onclose}>
   <div class="log" data-testid="log-sheet">
     {#each groups as g (g.round)}
       <h3>Round {g.round}</h3>
