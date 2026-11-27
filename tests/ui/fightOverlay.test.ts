@@ -1,13 +1,25 @@
 import { readFileSync } from 'node:fs';
 import { render } from 'svelte/server';
-import { describe, expect, test } from 'vitest';
-import { type Action, scenarioBattle } from '$engine';
+import { describe, expect, test, vi } from 'vitest';
+import { type Action, parseBoard, scenarioBattle } from '$engine';
 import { type PreviewCtx, previewOf } from '../../src/app/battleInput';
 import { fallbackLattices } from '../../src/app/lab';
 import { EMPTY_OVERLAY, type Overlay, overlayFor, type StepDraw } from '../../src/app/overlay';
-import { viewOf } from '../../src/app/view';
+import { viewOf, viewOfSpec } from '../../src/app/view';
 import BattleBoard from '../../src/ui/components/board/BattleBoard.svelte';
+import { FIGHT_KITS } from '../../src/ui/components/board/fightArt';
+import { unitArtFor } from '../../src/ui/districts';
 import { at } from '../app/battleFixtures';
+
+const shipped = vi.hoisted(() => ({ ids: new Set<string>() }));
+vi.mock('../../src/ui/art/registry', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../../src/ui/art/registry')>();
+  return {
+    ...real,
+    artUrl: (id: string) => (shipped.ids.has(id) ? `/art/${id}.webp` : null),
+    artSize: () => null,
+  };
+});
 
 /** FT-11: the flat overlay (FT-D10). Red = danger, dots = reach, outline = cast preview, harm always shown. */
 
@@ -135,4 +147,48 @@ describe('telegraph pills', () => {
     const pill = (out: string) => out.match(/<g data-step="Toll"[\s\S]*?<\/g>/)?.[0];
     expect(pill(withMarkers)).toBe(pill(without));
   });
+});
+
+describe('FT-12 proving districts', () => {
+  const boards = [
+    ['seam', 'marginalia', 6, 6],
+    ['canals', 'barge', 5, 9],
+  ] as const;
+  const row = (w: number) => ['r', ...Array(w - 1).fill('.')].join(' ');
+
+  test.each(boards)('%s registers a fightTheme (tone, crest) and keeps its unitArt', (id, def) => {
+    const kit = FIGHT_KITS[id];
+    expect(kit?.id).toBe(id);
+    expect(kit?.tileTone).toBeTruthy();
+    expect(kit?.crest).toBeTruthy();
+    expect(unitArtFor(def)).toBeTruthy();
+  });
+
+  test.each(boards)(
+    '%s renders with zero art (vector wash) and with the scene shipped',
+    (id, def, w, h) => {
+      const spec = [row(w), ...Array(h - 1).fill(Array(w).fill('.').join(' '))].join('\n');
+      const view = () => {
+        const v = viewOfSpec(parseBoard(spec));
+        const foe = v.units.find((u) => u.kind === 'enemy');
+        if (foe) Object.assign(foe, { def });
+        return v;
+      };
+      const props = { kit: { district: id }, ontap: () => {} } as const;
+      shipped.ids = new Set();
+      const zero = render(BattleBoard, { props: { ...props, view: view() } }).body;
+      expect(zero).toContain('data-scene="wash"');
+      expect(zero).not.toContain('<image');
+      expect(zero).toContain('data-testid="board"');
+      // The district's own foe art still draws (not the default token) with no art shipped.
+      const plain = render(BattleBoard, {
+        props: { kit: { district: id }, ontap: () => {}, view: viewOfSpec(parseBoard(spec)) },
+      }).body;
+      expect(zero).not.toEqual(plain);
+      shipped.ids = new Set([`scenes/${id}/fight`]);
+      const art = render(BattleBoard, { props: { ...props, view: view() } }).body;
+      expect(art).toContain('data-scene="art"');
+      expect(art).toContain(`/art/scenes/${id}/fight.webp`);
+    },
+  );
 });

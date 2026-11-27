@@ -3,6 +3,7 @@ import CycleBanner from './CycleBanner.svelte';
 import HandTile from './HandTile.svelte';
 import { HAND_HIGHLIGHT } from './hands';
 import MarginaliaArt from './MarginaliaArt.svelte';
+import SeamCrest from './SeamCrest.svelte';
 import SeamMargin from './SeamMargin.svelte';
 
 /**
@@ -10,6 +11,8 @@ import SeamMargin from './SeamMargin.svelte';
  * on each tile its next hand will write on.
  */
 export const SEAM_UI: DistrictUi = {
+  // Scene, tile and arena art resolve by convention (`scenes/seam/fight`, `tiles/seam/*`); the vector floor is a warm paper tone.
+  fightTheme: { id: 'seam', tileTone: '#d8c2a6', crest: SeamCrest },
   banners: [CycleBanner],
   unitArt: { marginalia: MarginaliaArt },
   highlightArt: { [HAND_HIGHLIGHT]: HandTile },
