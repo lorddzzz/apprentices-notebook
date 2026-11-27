@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { APPRENTICES, type DistrictId } from '$data';
+  import { APPRENTICES, DISTRICTS, type DistrictId } from '$data';
+  import { DISTRICT_KIT } from '$data/districts/index';
   import { compiledFor, describeSpell, type Profile, tripParty } from '$engine';
   import type { StartAt } from '$engine/districts/types';
   import { drawingsOf, weightBand } from '$engine/drawing';
@@ -7,8 +8,8 @@
   import { startCheckpoint } from '../../../app/crossroads';
   import { DEPTH_WORDS } from '../../../app/drawing';
   import { pageFacts } from '../../districts/inkedPage';
+  import ActionButton from '../common/ActionButton.svelte';
   import ApprenticeToken from '../common/ApprenticeToken.svelte';
-  import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
 
   interface Props {
@@ -23,6 +24,8 @@
   }
 
   let { open, district = null, page = null, profile, onclose, onsetout }: Props = $props();
+  const place = $derived(district ? DISTRICTS[district].name : null);
+  const roomCount = $derived(district ? (DISTRICT_KIT[district]?.rooms?.length ?? null) : null);
   const drawing = $derived(district === 'inkedPage' && page !== null ? (drawingsOf(profile)[page] ?? null) : null);
 
   // The doorway once reached (P5): the default start, the first room the other choice.
@@ -54,7 +57,12 @@
   );
 </script>
 
-<Sheet {open} title="Set out?" {onclose}>
+<Sheet {open} title="Set out?" {onclose} size="tall">
+  {#if place && !drawing}
+    <p class="where" data-testid="setout-where">
+      <strong>{place}</strong>{#if roomCount}<span>&ensp;·&ensp;{roomCount} rooms deep</span>{/if}
+    </p>
+  {/if}
   {#if drawing}
     <section class="drawn" data-testid="drawn-page">
       <h3>{drawing.name}</h3>
@@ -75,7 +83,7 @@
     </p>
     <ul class="carry" data-testid="carry">
       {#each carried as c (c.def.id)}
-        <li>
+        <li class="chip">
           <strong><ApprenticeToken def={c.def} size="ledger" /> {c.def.name}</strong>
           <span>{c.spells.join('; ') || 'no spells inscribed'}</span>
         </li>
@@ -118,8 +126,8 @@
     </fieldset>
   {/if}
   <div class="row">
-    <Button variant="quiet" label="Not yet" onclick={onclose} testid="not-yet" />
-    <Button label="Set out" disabled={carried.length === 0} onclick={() => onsetout(at)} testid="set-out" />
+    <ActionButton kind="quiet" onclick={onclose} testid="not-yet">Not yet</ActionButton>
+    <ActionButton disabled={carried.length === 0} onclick={() => onsetout(at)} testid="set-out">Set out</ActionButton>
   </div>
 </Sheet>
 
@@ -159,10 +167,27 @@
     list-style: none;
     font-size: 15px;
   }
-  .carry li {
+  .where {
+    margin: 0 0 var(--space-2);
+    font-size: 16px;
+  }
+  .where span {
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .carry {
     display: flex;
     flex-direction: column;
-    padding: 4px 0;
+    gap: var(--space-1);
+  }
+  .carry li.chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
   }
   .carry span {
     font-size: 14px;
@@ -193,7 +218,7 @@
     display: flex;
     align-items: flex-start;
     gap: var(--space-2);
-    min-height: var(--tap);
+    min-height: 44px;
     box-sizing: border-box;
     padding: var(--space-2);
     border: 2px solid var(--line);
@@ -225,5 +250,8 @@
     justify-content: space-between;
     gap: var(--space-2);
     margin-top: var(--space-3);
+  }
+  .row :global(.action) {
+    min-height: 44px;
   }
 </style>
