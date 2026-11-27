@@ -43,23 +43,25 @@
     NO_TOOL,
     profileShelf,
     revisionPalette,
+    seatsOf,
     setGlyphArgs,
     setGlyphOpenCells,
   } from '../../app/study';
   import { toast } from '../../app/toasts.svelte';
+  import { rumourLine } from '../../app/tripviews';
   import Button from '../components/common/Button.svelte';
   import Sheet from '../components/common/Sheet.svelte';
   import ArgPicker from '../components/lattice/ArgPicker.svelte';
   import LatticeEditor from '../components/lattice/LatticeEditor.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
   import NoteUnderDoor from '../components/recruits/NoteUnderDoor.svelte';
+  import AtticHeader from '../components/study/AtticHeader.svelte';
   import FairCopySheet from '../components/study/FairCopySheet.svelte';
   import FirstEvening from '../components/study/FirstEvening.svelte';
   import GlyphRanking from '../components/study/GlyphRanking.svelte';
   import GlyphSheet from '../components/study/GlyphSheet.svelte';
   import HouseholdShelf from '../components/study/HouseholdShelf.svelte';
   import RevisionEditor from '../components/study/RevisionEditor.svelte';
-  import StudyScene from '../components/study/StudyScene.svelte';
 
   // In a quiet doorway the Study is the field editor: the banked collection only, no Bench, no
   // Fair copy, and "Done" in place of the door. Edits live in a draft until Done.
@@ -128,14 +130,24 @@
     blocker ?? 'The owner\'s map of the city',
   );
   const doneCaption = $derived(blocker ?? doorwayDoneCaption(game.save.trip));
+  // The header's paper note: the rumour heard on the last trip (K-20), or a doorway's rule.
+  const rumour = $derived(rumourLine(game.save.lastTrip));
+  const note = $derived(
+    field
+      ? {
+          text: 'Rewire the pages with what you own. Spent charges stay spent.',
+          title: 'A quiet doorway',
+          testid: 'field-note',
+        }
+      : rumour
+        ? { text: rumour, title: 'A rumour', testid: 'rumour-line' }
+        : null,
+  );
+  const emptySeats = $derived(seatsOf(profile).filter((s) => s === null).length);
   type Panel = 'closed' | 'menu' | 'paste' | 'copy' | 'reset';
   let panel = $state<Panel>('closed');
   let pasted = $state('');
   let copyText = $state('');
-
-  function openMenu(): void {
-    panel = 'menu';
-  }
 
   async function copySave(): Promise<void> {
     const text = game.exportText();
@@ -227,34 +239,19 @@
 </script>
 
 <div class="study" data-testid="study">
-  {#if field}
-    <header class="field" data-testid="field-header">
-      <div class="fwords">
-        <h1>A quiet doorway</h1>
-        <p>Rewire the pages with what you own. Spent charges stay spent.</p>
-      </div>
-      <button
-        type="button"
-        class="fcodex"
-        onclick={() => go('codex')}
-        data-testid="codex-button"
-        aria-label="Read the notebook (codex)"
-      >
-        Codex
-      </button>
-    </header>
-  {:else}
-    <StudyScene
-      oncodex={() => go('codex')}
-      onmenu={openMenu}
-      onbench={benchUnlocked(profile) ? () => go('bench') : null}
-      ondesk={deskUnlocked(profile) ? () => go('desk') : null}
-    />
-  {/if}
+  <AtticHeader
+    doorway={field}
+    oncodex={() => go('codex')}
+    onbench={!field && benchUnlocked(profile) ? () => go('bench') : null}
+    ondesk={!field && deskUnlocked(profile) ? () => go('desk') : null}
+    {note}
+  />
 
-  <FirstEvening />
-
-  <NoteUnderDoor />
+  <!-- positioned, so these rows paint above the header's 24 px bleed -->
+  <div class="rows">
+    <FirstEvening />
+    <NoteUnderDoor />
+  </div>
 
   <HouseholdShelf
     {profile}
@@ -293,6 +290,7 @@
         more: benchOf(profile).length,
         onmore: () => (householdOpen = true),
         visiting: new Set(bookmarks.filter((id) => !party.includes(id))),
+        empty: emptySeats,
       }}
       bind:drawerUp
       fair={{
@@ -492,6 +490,11 @@
       repeating-linear-gradient(90deg, transparent 0 58px, rgba(0, 0, 0, 0.18) 58px 59px),
       linear-gradient(var(--wood-dark), #3a281c);
   }
+  .rows {
+    position: relative;
+    z-index: 1;
+    flex: none;
+  }
   .desk {
     flex: 1;
     min-height: 0;
@@ -526,40 +529,6 @@
     justify-content: space-between;
     gap: var(--space-2);
     margin-top: var(--space-1);
-  }
-  .field {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    flex: none;
-    min-height: 64px;
-    padding: var(--space-2) var(--space-3);
-    background: linear-gradient(#2c3a4b, #1f2a38);
-    border-bottom: 2px solid var(--wood-deep);
-    color: var(--parchment);
-  }
-  .fwords h1 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: normal;
-    font-style: italic;
-  }
-  .fwords p {
-    margin: 2px 0 0;
-    font-size: 12px;
-    line-height: 1.25;
-    color: rgba(241, 230, 204, 0.75);
-  }
-  .fcodex {
-    flex: none;
-    min-height: var(--tap);
-    padding: 0 var(--space-3);
-    border: 2px solid var(--wood-deep);
-    border-radius: var(--radius);
-    background: rgba(0, 0, 0, 0.25);
-    color: var(--parchment);
-    font-size: 14px;
   }
   .done {
     justify-content: center;

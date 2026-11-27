@@ -1,20 +1,11 @@
 <script lang="ts">
-  import { game } from '../../../app/instance';
-  import { rumourLine } from '../../../app/tripviews';
-
-  interface Props {
-    oncodex: () => void;
-    onmenu: () => void;
-    /** Set once the Bench is unlocked; null hides the entry. */
-    onbench?: (() => void) | null;
-    /** Set once a rune has footnote points; null hides the entry. */
-    ondesk?: (() => void) | null;
-  }
-
-  let { oncodex, onmenu, onbench = null, ondesk = null }: Props = $props();
-
-  // A rumour heard on the last trip, shown while that trip is still the last one (K-20).
-  const rumour = $derived(rumourLine(game.save.lastTrip));
+  /**
+   * UH-1: the zero-art fallback of the attic strip, art only. AtticHeader (through HomeStrip)
+   * paints it behind the header's own title and controls whenever `scenes/home/attic-header-night`
+   * is not shipped. It holds no text and no control, so a painted and an unpainted Study have the
+   * same single control per object. The SVG is 88 px tall and sits on the header's bottom edge;
+   * whatever lies above it (the safe area) is the ceiling beam's colour.
+   */
 
   // Rain streaks inside the window: [x, y, delay in ms]. Fixed so the scene never reshuffles.
   const DROPS: readonly (readonly [number, number, number])[] = [
@@ -28,8 +19,8 @@
   ];
 </script>
 
-<header class="scene" data-testid="scene">
-  <svg class="art" viewBox="0 0 375 84" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<div class="scene" data-testid="scene" aria-hidden="true">
+  <svg class="art" viewBox="0 0 375 88" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
     <defs>
       <radialGradient id="lamp-glow" cx="0.5" cy="0.5" r="0.5">
         <stop offset="0" stop-color="var(--lamp)" stop-opacity="0.75" />
@@ -40,17 +31,17 @@
         <stop offset="0" stop-color="#16202e" />
         <stop offset="1" stop-color="#2b3d52" />
       </linearGradient>
-      <clipPath id="panes"><rect x="18" y="16" width="76" height="52" /></clipPath>
+      <clipPath id="panes"><rect x="18" y="16" width="76" height="56" /></clipPath>
     </defs>
 
-    <rect width="375" height="84" fill="var(--wall)" />
+    <rect width="375" height="88" fill="var(--wall)" />
     <!-- ceiling beam -->
     <rect width="375" height="9" fill="var(--wood-deep)" />
     <path d="M0 9h375" stroke="#000" stroke-opacity="0.35" />
 
     <!-- window -->
-    <rect x="12" y="10" width="88" height="64" rx="3" fill="var(--wood)" />
-    <rect x="18" y="16" width="76" height="52" fill="url(#night)" />
+    <rect x="12" y="10" width="88" height="68" rx="3" fill="var(--wood)" />
+    <rect x="18" y="16" width="76" height="56" fill="url(#night)" />
     <g clip-path="url(#panes)">
       <circle cx="78" cy="30" r="9" fill="#cdd8e2" opacity="0.18" />
       <g class="rain" stroke="#b7c7d6" stroke-width="1.4" stroke-linecap="round" opacity="0.7">
@@ -62,129 +53,38 @@
         {/each}
       </g>
     </g>
-    <path d="M56 16v52M18 42h76" stroke="var(--wood)" stroke-width="4" />
-    <rect x="8" y="70" width="96" height="6" rx="2" fill="var(--wood-dark)" />
+    <path d="M56 16v56M18 44h76" stroke="var(--wood)" stroke-width="4" />
+    <rect x="8" y="74" width="96" height="6" rx="2" fill="var(--wood-dark)" />
     <!-- a pot plant on the sill -->
-    <path d="M24 70l2-8h8l2 8z" fill="#8b3a2b" />
-    <path d="M30 62c-5-4-6-9-3-12 3 2 4 7 3 12zM30 62c4-3 8-5 9-10-5 0-8 5-9 10z" fill="#4f6b3a" />
+    <path d="M24 74l2-8h8l2 8z" fill="#8b3a2b" />
+    <path d="M30 66c-5-4-6-9-3-12 3 2 4 7 3 12zM30 66c4-3 8-5 9-10-5 0-8 5-9 10z" fill="#4f6b3a" />
 
     <!-- hanging lamp -->
-    <circle cx="238" cy="40" r="52" fill="url(#lamp-glow)" />
-    <path d="M238 9v22" stroke="var(--wood-deep)" stroke-width="2" />
-    <path d="M226 42a12 11 0 0 1 24 0z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="1.5" />
-    <ellipse cx="238" cy="43" rx="9" ry="3.2" fill="var(--lamp)" />
+    <circle cx="300" cy="40" r="52" fill="url(#lamp-glow)" />
+    <path d="M300 9v22" stroke="var(--wood-deep)" stroke-width="2" />
+    <path d="M288 42a12 11 0 0 1 24 0z" fill="var(--wood-dark)" stroke="var(--wood-deep)" stroke-width="1.5" />
+    <ellipse cx="300" cy="43" rx="9" ry="3.2" fill="var(--lamp)" />
+
+    <!-- the shelf line the objects stand on -->
+    <rect y="82" width="375" height="6" fill="var(--wood)" />
+    <path d="M0 82h375" stroke="var(--lamp)" stroke-opacity="0.5" />
   </svg>
-
-  <div class="words">
-    <h1>The Study</h1>
-  </div>
-
-  <div class="buttons">
-    {#if onbench}
-      <button type="button" class="knob" aria-label="The bench (research)" data-testid="bench-button" onclick={onbench}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
-          <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />
-          <path d="M7.5 15h9" />
-        </svg>
-      </button>
-    {/if}
-    {#if ondesk}
-      <button type="button" class="knob" aria-label="The footnote desk" data-testid="desk-button" onclick={ondesk}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
-          <path d="M5 4h10l4 4v12H5z" />
-          <path d="M14 4v5h5M8 13h8M8 17h5" />
-        </svg>
-      </button>
-    {/if}
-    <button type="button" class="knob" aria-label="Read the notebook (codex)" data-testid="codex-button" onclick={oncodex}>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
-        <path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v13c-3-1-6-1-8 1-2-2-5-2-8-1z" />
-        <path d="M12 6v13" />
-      </svg>
-    </button>
-    <button type="button" class="knob" aria-label="Menu" data-testid="menu-button" onclick={onmenu}>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
-      </svg>
-    </button>
-  </div>
-</header>
-{#if rumour}
-  <p class="rumour" data-testid="rumour-line">{rumour}</p>
-{/if}
+</div>
 
 <style>
   .scene {
-    position: relative;
-    flex: none;
-    height: 52px;
+    position: absolute;
+    inset: 0;
     overflow: hidden;
-    border-bottom: 3px solid var(--wood);
-    box-shadow: 0 2px 0 var(--wood-deep);
+    background: var(--wood-deep);
+    pointer-events: none;
   }
   .art {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-  .words {
-    position: absolute;
-    left: 104px;
-    top: 0;
+    left: 0;
     bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    max-width: 96px;
-  }
-  h1 {
-    margin: 0;
-    font-size: 19px;
-    font-weight: normal;
-    font-style: italic;
-    letter-spacing: 0.02em;
-    color: var(--parchment);
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
-    white-space: nowrap;
-  }
-  .rumour {
-    flex: none;
-    margin: 0;
-    padding: 2px var(--space-3);
-    font: italic 11px var(--mono);
-    color: var(--parchment);
-    background: rgba(0, 0, 0, 0.3);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .buttons {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    display: flex;
-    gap: 2px;
-    transform: translateY(-50%);
-  }
-  .knob {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: 1.5px solid rgba(241, 230, 204, 0.45);
-    border-radius: 50%;
-    background: rgba(26, 18, 12, 0.55);
-    color: var(--parchment);
-    cursor: pointer;
-  }
-  .knob:active {
-    background: rgba(232, 176, 74, 0.35);
-  }
-  .knob:focus-visible {
-    outline: 3px solid var(--select);
-    outline-offset: 2px;
+    width: 100%;
+    height: 88px;
   }
   .rain path {
     animation: fall 0.85s linear infinite;
