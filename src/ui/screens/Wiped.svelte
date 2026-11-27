@@ -2,20 +2,41 @@
   import { wipeLine } from '$data/narration';
   import { namedTitle } from '../../app/describe';
   import { game } from '../../app/instance';
-  import Button from '../components/common/Button.svelte';
+  import ArtImage from '../art/ArtImage.svelte';
+  import type { ArtId } from '../art/registry';
+  import ActionButton from '../components/common/ActionButton.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
+  import SeeItSheet from '../components/trip/SeeItSheet.svelte';
+  import WipedLines from '../components/trip/WipedLines.svelte';
 
   const wipe = $derived(game.wipe);
+  let seeing = $state(false);
 </script>
 
-{#if wipe}
-  <section class="wiped" data-testid="wiped">
-    <header>
-      <h1>{wipeLine(wipe.encounter)}</h1>
-      <p>They fell at {wipe.encounter.toLowerCase()}.</p>
-    </header>
+{#snippet dusk()}
+  <svg viewBox="0 0 375 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path d="M0 170 L120 140 L255 140 L375 170 L375 220 L0 220 Z" fill="var(--city-stone)" opacity="0.6" />
+    <rect x="186" y="96" width="3" height="60" fill="var(--ink-soft)" opacity="0.7" />
+    <circle cx="187" cy="92" r="6" fill="var(--lamp)" opacity="0.5" />
+  </svg>
+{/snippet}
 
-    <div class="mid">
+{#if wipe}
+  <section class="wiped" data-world="city" data-testid="wiped">
+    <div class="scene" aria-hidden="true">
+      <ArtImage id={'scenes/shared/wiped' as ArtId} fit="cover" fallback={dusk} />
+    </div>
+
+    <div class="body">
+      <h1>{wipeLine(wipe.encounter)}</h1>
+
+      <WipedLines
+        encounter={wipe.encounter}
+        cause={wipe.cause}
+        rooms={wipe.rooms}
+        onsee={wipe.final ? () => (seeing = true) : undefined}
+      />
+
       <div class="block">
         <h2>Lost with them</h2>
         {#if wipe.lost.length}
@@ -30,7 +51,7 @@
         {#if wipe.learned.length}
           <ul class="learned" data-testid="learned">
             {#each wipe.learned as id (id)}
-              <li class="chip">{namedTitle(id)}</li>
+              <li class="chip new">{namedTitle(id)}</li>
             {/each}
           </ul>
         {:else}
@@ -38,12 +59,17 @@
         {/if}
       </div>
     </div>
-    <div class="choices">
-      <Button onclick={() => game.readTrip()} testid="read-trip">Read the trip</Button>
-      <Button variant="quiet" onclick={() => game.dismissWipe()} testid="back-to-study"
-        >Back to the study</Button
+
+    <footer>
+      <ActionButton onclick={() => game.dismissWipe()} testid="back-to-study">Home</ActionButton>
+      <ActionButton kind="secondary" onclick={() => game.readTrip()} testid="read-trip"
+        >Read the trip</ActionButton
       >
-    </div>
+    </footer>
+
+    {#if wipe.final}
+      <SeeItSheet open={seeing} final={wipe.final} onclose={() => (seeing = false)} />
+    {/if}
   </section>
 {/if}
 
@@ -51,10 +77,32 @@
   .wiped {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
     height: 100%;
-    padding: var(--space-4) var(--space-3) calc(var(--space-3) + 14px);
+    font-family: var(--font-serif);
+    color: var(--ink);
     background: linear-gradient(var(--parchment), var(--parchment-dark));
+  }
+  .scene {
+    flex: none;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(var(--city-night), var(--city-stone));
+  }
+  .scene :global(img),
+  .scene :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .body {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: 0;
+    padding: var(--space-3);
+    overflow-y: auto;
   }
   h1 {
     margin: 0;
@@ -62,15 +110,12 @@
     font-weight: normal;
     color: var(--danger);
   }
-  header p {
-    margin: 4px 0 0;
-    font-size: 14px;
-    font-style: italic;
-    color: var(--ink-soft);
-  }
   h2 {
     margin: 0 0 var(--space-2);
-    font: 13px var(--mono);
+    font-size: var(--type-sm);
+    font-weight: normal;
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
     color: var(--ink-soft);
   }
   .none {
@@ -86,21 +131,21 @@
     padding: 0;
     list-style: none;
   }
-  .mid {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--space-4);
+  .chip.new {
+    border-color: var(--gold);
   }
-  .choices {
+  footer {
     display: flex;
+    flex: none;
     flex-direction: column;
     gap: var(--space-2);
+    padding: var(--space-2) var(--space-3) calc(var(--space-3) + 14px);
+    border-top: 1px solid var(--line);
+    background: var(--parchment);
   }
-  .wiped :global(.btn) {
-    min-height: 56px;
+  footer :global(.action) {
     width: 100%;
+    min-height: 52px;
     font-size: 18px;
   }
 </style>
