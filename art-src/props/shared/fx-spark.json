@@ -1,0 +1,50 @@
+{
+  "id": "props/shared/fx-spark",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "fx-spark",
+  "state": null,
+  "role": "material-overlay-alpha",
+  "size": [
+    128,
+    128
+  ],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/shared/fx-spark.master.png",
+    "sha256": "701f8c6071529c1c5b7877293e3ff8061600b9220fd9bab413236fbbfa173c7a",
+    "origSize": [
+      1536,
+      1024
+    ],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "flat",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "A single small isolated game particle: one bright jumping golden spark with a few tiny scattered flecks. No objects, no squares, no clouds, no smoke, no frames, no checkerboard. Transparent background; empty space around particle. Painted matte gouache, understated fine grain, upper-left light. Match only brush texture and palette of reference images, never copy their objects or backgrounds. Gold #E2A312, cream #FAD48E, brass #B5882E. Flat camera. No words, writing, symbols, UI, tactical marks or watermark.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "fx",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "701f8c6071529c1c5b7877293e3ff8061600b9220fd9bab413236fbbfa173c7a",
+      "size": [
+        1536,
+        1024
+      ]
+    }
+  }
+}

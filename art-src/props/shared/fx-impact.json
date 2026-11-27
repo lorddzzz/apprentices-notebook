@@ -1,0 +1,50 @@
+{
+  "id": "props/shared/fx-impact",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "fx-impact",
+  "state": null,
+  "role": "material-overlay-alpha",
+  "size": [
+    128,
+    128
+  ],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/shared/fx-impact.master.png",
+    "sha256": "c4da65fca018c80933539fe5349b228df372c294a07e4b5d4692728506eb8611",
+    "origSize": [
+      1254,
+      1254
+    ],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "flat",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "One isolated game particle: one bright ivory and amber impact flash with short broken rays. No objects, no squares, no smoke, no frames, no checkerboard, no dark halo. Transparent background; empty space around particle. Painted matte gouache, understated fine grain, upper-left light. Image 1 is subject reference; image 2 is the approved style reference; image 3 is a palette strip. Match only brush texture and palette of reference images, never copy their objects or backgrounds. Colors #1F2A3A #A9BCC6 #D2552A #E2A312 #B5882E #FAD48E. Flat camera. No words, writing, symbols, UI, tactical marks or watermark. One center-weighted single frame. Square composition.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "fx",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "c4da65fca018c80933539fe5349b228df372c294a07e4b5d4692728506eb8611",
+      "size": [
+        1254,
+        1254
+      ]
+    }
+  }
+}

@@ -541,6 +541,78 @@
       "bytes": 436817,
       "sha256": "243944871184d44f6d78a21b0ec4ce235f854db29d59104ee161f2a9e448a8dd",
       "archiveKey": "r2:apprentices-notebook-art/portraits/seam/marginalia.master.png"
+    },
+    {
+      "file": "props/shared/fx-fire.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 475614,
+      "sha256": "2c8e97cf4a60fbdd9cfa5a26a0c6bb7f56c121a887670813a6358681e70c41b7",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-fire.master.png"
+    },
+    {
+      "file": "props/shared/fx-steam.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 571778,
+      "sha256": "cca3bf19f3716f77590abf5f463688ae65f9757d6ed7826254d40d81dba1cef6",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-steam.master.png"
+    },
+    {
+      "file": "props/shared/fx-spark.master.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 649416,
+      "sha256": "701f8c6071529c1c5b7877293e3ff8061600b9220fd9bab413236fbbfa173c7a",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-spark.master.png"
+    },
+    {
+      "file": "props/shared/fx-brass-ring.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 245385,
+      "sha256": "1b44fcc5b260834046e6d1ad0093b788212aab083186dde1f5945fc844d0d449",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-brass-ring.master.png"
+    },
+    {
+      "file": "props/shared/fx-ink-splash.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 240439,
+      "sha256": "c4dd2ab7313c5d32c43492bfe692267c6a312a47edf8792ef4f5e8049c6b0cd7",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-ink-splash.master.png"
+    },
+    {
+      "file": "props/shared/fx-impact.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 458541,
+      "sha256": "c4da65fca018c80933539fe5349b228df372c294a07e4b5d4692728506eb8611",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-impact.master.png"
+    },
+    {
+      "file": "props/shared/fx-shield-pulse.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 357211,
+      "sha256": "55fc650fb4eeb25dc758c0a18f837bd89daa5fa272fd4e6aa7698441c67eae61",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/fx-shield-pulse.master.png"
+    },
+    {
+      "file": "props/shared/flourish-burst.master.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 1345922,
+      "sha256": "9497d211301e99ced0d5178498350b50cab233877bf2d24ed18e6518ea951565",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/flourish-burst.master.png"
+    },
+    {
+      "file": "props/shared/flourish-first-gold.master.png",
+      "width": 1752,
+      "height": 897,
+      "bytes": 571894,
+      "sha256": "cdadbb839fc41df7962706088dbe4347ad95069a4897f41a320419ee51fd7548",
+      "archiveKey": "r2:apprentices-notebook-art/props/shared/flourish-first-gold.master.png"
     }
   ]
 }

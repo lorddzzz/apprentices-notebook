@@ -1,0 +1,50 @@
+{
+  "id": "props/shared/flourish-first-gold",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "flourish-first-gold",
+  "state": null,
+  "role": "strip",
+  "size": [
+    512,
+    256
+  ],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/shared/flourish-first-gold.master.png",
+    "sha256": "cdadbb839fc41df7962706088dbe4347ad95069a4897f41a320419ee51fd7548",
+    "origSize": [
+      1752,
+      897
+    ],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "flat",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "One isolated game particle: a wide celebration flare of small gold streaks and flecks in #C9A227. No objects, no squares, no smoke, no frames, no checkerboard, no dark halo. Transparent background; empty space around particle. Painted matte gouache, understated fine grain, upper-left light. Image 1 is subject reference; image 2 is the approved style reference; image 3 is a palette strip. Match only brush texture and palette of reference images, never copy their objects or backgrounds. Colors #1F2A3A #A9BCC6 #D2552A #E2A312 #B5882E #FAD48E. Flat camera. No words, writing, symbols, UI, tactical marks or watermark. One center-weighted single frame. Wide landscape composition.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "fx",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "cdadbb839fc41df7962706088dbe4347ad95069a4897f41a320419ee51fd7548",
+      "size": [
+        1752,
+        897
+      ]
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "props/shared/fx-ink-splash",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "fx-ink-splash",
+  "state": null,
+  "role": "material-overlay-alpha",
+  "size": [
+    128,
+    128
+  ],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/shared/fx-ink-splash.master.png",
+    "sha256": "c4dd2ab7313c5d32c43492bfe692267c6a312a47edf8792ef4f5e8049c6b0cd7",
+    "origSize": [
+      1254,
+      1254
+    ],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "flat",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "One isolated game particle: small indigo droplets and fine brushstroke splashes, NO cloudy mass or shadow. No solid objects, no squares, no smoke, no opaque clouds, no frames, no checkerboard, no dark halo. Transparent background; empty space around particle. Painted matte gouache, understated fine grain, upper-left light. Image 1 is subject reference; image 2 is approved style reference; image 3 is palette strip. Match only brush texture and palette of reference images, never copy their objects or backgrounds. Colors #1F2A3A #A9BCC6 #D2552A #E2A312 #B5882E #FAD48E. Flat camera. No words, writing, symbols, UI, tactical marks or watermark. One center-weighted single frame. Square composition.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "fx",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "c4dd2ab7313c5d32c43492bfe692267c6a312a47edf8792ef4f5e8049c6b0cd7",
+      "size": [
+        1254,
+        1254
+      ]
+    }
+  }
+}

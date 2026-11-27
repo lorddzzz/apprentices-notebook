@@ -1,0 +1,50 @@
+{
+  "id": "props/shared/fx-steam",
+  "screen": "fight",
+  "district": "shared",
+  "subject": "fx-steam",
+  "state": null,
+  "role": "material-overlay-alpha",
+  "size": [
+    128,
+    128
+  ],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/shared/fx-steam.master.png",
+    "sha256": "cca3bf19f3716f77590abf5f463688ae65f9757d6ed7826254d40d81dba1cef6",
+    "origSize": [
+      1254,
+      1254
+    ],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "flat",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "One isolated game particle: a small puff of pale blue billowing vapor with scalloped wisps. No objects, no squares, no smoke, no frames, no checkerboard, no dark halo. Transparent background; empty space around particle. Painted matte gouache, understated fine grain, upper-left light. Image 1 is subject reference; image 2 is the approved style reference; image 3 is a palette strip. Match only brush texture and palette of reference images, never copy their objects or backgrounds. Colors #1F2A3A #A9BCC6 #D2552A #E2A312 #B5882E #FAD48E. Flat camera. No words, writing, symbols, UI, tactical marks or watermark. One center-weighted single frame. Square composition.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "fx",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "cca3bf19f3716f77590abf5f463688ae65f9757d6ed7826254d40d81dba1cef6",
+      "size": [
+        1254,
+        1254
+      ]
+    }
+  }
+}
