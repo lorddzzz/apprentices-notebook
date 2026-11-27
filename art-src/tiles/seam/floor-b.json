@@ -1,0 +1,65 @@
+{
+  "id": "tiles/seam/floor-b",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "floor",
+  "state": "b",
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/seam/floor-b.master.png",
+    "sha256": "44ebc7cf642d29b9991a59cf5d5c9935facad6be2b203f9e69b2cee9e5712b64",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "6b381f05d018f1c4bd36a67557044e8c3e07cc8b856496c078d8f8fedace772a",
+      "e69ef3e2a5f1786e57864a160663e85fd3084e5a22fed3b60822fb45ce544011",
+      "31e6b6e4fbf9660309d7ed4a2a63da5e8fbb350c58b803ee0ce8f6f558408d4e",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square crop covering the tile.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Even diffuse material value. Scene carries light.",
+  "palette": ["#253235", "#55625E", "#BC9273", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Image 1 is the material identity for The Seam's rain-damp green slate. Image 2 is the clean gameplay-study paint crop. Image 3 gives the district swatches (first three) and the city context. Match the matte gouache finish and sparse engraved material texture of these references. Generate one opaque edge-to-edge square texture for a game ground tile, largest native square offered, strict overhead orthographic view. Pattern for this variant: Three staggered flush masonry repairs of unequal lengths, each defined by short interrupted shallow tool scratches. An offset straight repair line and tiny scattered spalls distinguish this stone from the oblique laminations. Show several fragments of masonry or surface marks, with no enclosing slab edge. The stone is evenly exposed in cold night colour: make the entire square equally quiet and level in luminance, edge to edge. Use chromatic muted green slate around the middle of #253235 and #55625E, with occasional muted #BC9273 stone patina at matching value. Let subdued hue changes and narrow mineral/flaked edges define the material. Upper-left lighting and warm pools are applied later in the scene; render an even matte material sample with no warm reflections, speculars, bright patches, dark patches, rim light, vignette, directional shading, cast shadows or central bloom. Broad gouache paint, fine paint grain, sparse shallow ink detail in the stone. Keep the short marks distinct and the material readable at 51 pixels. No text, letters, numbers, UI, frame, arrows, grid lines, reach dots, HP, targeting rings, watermark, objects, figures or cutout.",
+  "references": [
+    "art-src/anchors/seam/v2/floor-b.webp",
+    "art-src/anchors/seam/v1/floor-a.webp",
+    "docs/design/art-studies/seam-v2.png#xywh=560,755,75,72",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "f78be677-0b8f-4067-af6c-d77566c08b73",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "44ebc7cf642d29b9991a59cf5d5c9935facad6be2b203f9e69b2cee9e5712b64",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "notes": [
+      "Reproduced the original edge blend against the pre-perimeter q80 floor-a, then locked the approved perimeter."
+    ],
+    "edgeBand": 40,
+    "toneGrade": {
+      "adjustment": "Centred the palette and softened broad tone while retaining narrow stone or ripple structure.",
+      "generationSha256": "7ffcf5bd9468b5b03619a644f1390742405dd2cc60ee87e4eb05df6b77352972"
+    },
+    "perimeter": {
+      "pixels": 1,
+      "method": "Restored the exact decoded approved v2 edge ring after reprocessing.",
+      "finalEncoding": "Lossless WebP preserves exact RGB edges and the q80 interior."
+    }
+  }
+}

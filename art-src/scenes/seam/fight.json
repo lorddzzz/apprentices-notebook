@@ -1,0 +1,51 @@
+{
+  "id": "scenes/seam/fight",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "fight",
+  "state": null,
+  "role": "scene",
+  "size": [750, 800],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/scenes/seam/fight.master.png",
+    "sha256": "d26d72f82c194126ead97ce25124fedb4a1b7a5972f4aef1ba1a6530ffedae76",
+    "origSize": [1214, 1295],
+    "processor": "art-process@1",
+    "quality": 76,
+    "refSha256": [
+      "ebad20d4a97b8051b5dc3217fcae4b270531a0b0ec00489b44292cd1cd3bb4e8",
+      "67926e9d2bca526f7248b74dbc113a6e1c97595c54ef39921faca539efa6cb11",
+      "cb251aa453e470a39bac23e9b4d98801d92dcaac1e803d9ed63cd76426d74d94",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred 15:16 cover crop; slightly upper-biased to hold the offset brick courses and vent.",
+  "focal": [0.5, 0.48],
+  "angle": "flat",
+  "light": "Subdued top-left warm key against cool Seam stone.",
+  "palette": ["#253235", "#55625E", "#BC9273", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Asset: one opaque 15:16 near-square portrait battle backdrop, intended to downsample to 750×800 at the largest native resolution. An old damp undercroft rear space, viewed almost overhead. Keep the full central 60 percent and immediate surround an unoccupied low-contrast cold green-black matte slate floor with a few faint patch repairs. At the TOP edge two masonry courses join with a slight mismatch of height, a recessed iron vent on the upper right breathes a faint trace of cold haze, a slim patinated pipe follows the far LEFT margin, and a short old stair partly enters at the LOWER RIGHT. Place necessary characteristic features near the edge but just inside the 15:16 cover frame, so they read at 375 px. Very restrained diffuse warm light upper-left at the perimeter, small subdued damp highlights only. Strongest silhouette is the tucked staircase, undercropped by the corner. Camera: flat tactical backdrop, almost overhead, no horizon, high sense of depth only on the outside margins. Palette: Seam #253235 #55625E #BC9273, and city #1F2A3A #3A4148 #5D666D #A9BCC6. Subdued upper-left key, lower contrast and saturation than the ground tile and figures. Put warm/cool contrast at the outer architectural edges. Broad matte gouache and fine broken material grain, distant architecture stays soft, no active visual detail in the middle. Image 1 is Seam architecture identity; image 2 is the approved even floor paint; image 3 is approved hardware paint; image 4 is the Seam palette strip, in that order. Match the style, proportions and finish of the attached approved anchors. No figures, creatures, labels, signs, UI or layout symbols. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/fight-v1.webp",
+    "art-src/anchors/seam/v2/floor-a.webp",
+    "art-src/anchors/seam/vent.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "d78a40a4-8701-44bf-b9c2-1331c1692520",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "d26d72f82c194126ead97ce25124fedb4a1b7a5972f4aef1ba1a6530ffedae76",
+      "size": [1214, 1295]
+    }
+  }
+}

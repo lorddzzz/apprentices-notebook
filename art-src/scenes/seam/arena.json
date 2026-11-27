@@ -1,0 +1,49 @@
+{
+  "id": "scenes/seam/arena",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "arena",
+  "state": null,
+  "role": "scene",
+  "size": [750, 800],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/scenes/seam/arena.master.png",
+    "sha256": "a5a0c0bc25191c5b947c9b3dc89563fac358cfec885c6973f3d855ac33589baa",
+    "origSize": [1214, 1295],
+    "processor": "art-process@1",
+    "quality": 76,
+    "refSha256": [
+      "67926e9d2bca526f7248b74dbc113a6e1c97595c54ef39921faca539efa6cb11",
+      "cb251aa453e470a39bac23e9b4d98801d92dcaac1e803d9ed63cd76426d74d94",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "15:16 cover crop biased toward the upper arch and offset brick courses.",
+  "focal": [0.5, 0.45],
+  "angle": "flat",
+  "light": "Subdued top-left warm key against cool Seam stone.",
+  "palette": ["#253235", "#55625E", "#BC9273", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Asset: an opaque 15:16 vertical near-square backdrop at the largest resolution for the Marginalia's darker heart arena in the old Halvemeer undercroft, to downsample to 750×800. Match the style, proportions and finish of the attached approved anchors. Image 1 is the approved cold worn slate and quiet terrain texture, image 2 is the approved old iron grate material, image 3 is the colour strip. Camera: overhead tactical camera, near orthographic. This is a distinct chamber. Enormous empty quiet center occupying at least 70% of the composition on very dark charcoal blue-green low-contrast smooth patched flagstone, dark #253235, even deep cool ambience. The upper edge is broken by a shallow dark masonry arch opening and two buttress stubs made of visibly mismatched ancient brick courses, their joining seam subtly off-center. Left margin has an old short downward broken pipe with a dim warm top-left glint. At the far right edge make a recessed tall iron vent with faint, cool, contained haze. Far lower RIGHT short steep stone stair slips out of the framing into a dark vault. Distinguishing silhouette: the low offset arch and misaligned masonry, only at the upper margin. No bright reflections outside the extreme upper and side edges. Palette Seam #253235 #55625E #BC9273 and city #1F2A3A #3A4148 #5D666D #A9BCC6, deliberately darker and muted, warm only at the upper left. Edges and texture: broad quiet matte gouache, broken grain and occasional engraved stone detail around the periphery. No figures, creatures, suspended objects, signs or tactical elements. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/v2/floor-a.webp",
+    "art-src/anchors/seam/vent.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "b8ea97dc-bcb3-4bcc-b899-7e9f3a22b53c",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "a5a0c0bc25191c5b947c9b3dc89563fac358cfec885c6973f3d855ac33589baa",
+      "size": [1214, 1295]
+    }
+  }
+}

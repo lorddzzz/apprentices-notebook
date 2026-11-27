@@ -429,6 +429,70 @@
       "bytes": 1126683,
       "sha256": "6d1530056679aed1c2890fcf9b4151e1b63397da4b96017b341c7874f3c0d756",
       "archiveKey": "r2:apprentices-notebook-art/tiles/shared/wall-worn.master.png"
+    },
+    {
+      "file": "tiles/seam/floor-a.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2185087,
+      "sha256": "1d62151dd86635729baba70406a943925d169e64c0c665f813efd2ee7308e5af",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/seam/floor-a.master.png"
+    },
+    {
+      "file": "tiles/seam/floor-b.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1803781,
+      "sha256": "44ebc7cf642d29b9991a59cf5d5c9935facad6be2b203f9e69b2cee9e5712b64",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/seam/floor-b.master.png"
+    },
+    {
+      "file": "tiles/seam/floor-c.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1839870,
+      "sha256": "a1cf4cb3a81b68a318e08d1a0449667e634ee70f855e3e3c5c0110556ed87e78",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/seam/floor-c.master.png"
+    },
+    {
+      "file": "tiles/seam/floor-d.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1987215,
+      "sha256": "d54769fa2b77735f65ef2697fa3448ad81b17a0699e1aeb131dec6a2c126b66f",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/seam/floor-d.master.png"
+    },
+    {
+      "file": "tiles/seam/floor-e.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2187015,
+      "sha256": "278c4f149b2e03cce136cd857c7d9cada6cfa16bbe5c877e8d08674cdbb3b038",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/seam/floor-e.master.png"
+    },
+    {
+      "file": "tiles/seam/border.master.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1564350,
+      "sha256": "fb0aa221551317387dde66d896c4f4fcdfc95bf39fd29d7c42ea25de96462696",
+      "archiveKey": "r2:apprentices-notebook-art/tiles/seam/border.master.png"
+    },
+    {
+      "file": "scenes/seam/fight.master.png",
+      "width": 1214,
+      "height": 1295,
+      "bytes": 1776816,
+      "sha256": "d26d72f82c194126ead97ce25124fedb4a1b7a5972f4aef1ba1a6530ffedae76",
+      "archiveKey": "r2:apprentices-notebook-art/scenes/seam/fight.master.png"
+    },
+    {
+      "file": "scenes/seam/arena.master.png",
+      "width": 1214,
+      "height": 1295,
+      "bytes": 1961187,
+      "sha256": "a5a0c0bc25191c5b947c9b3dc89563fac358cfec885c6973f3d855ac33589baa",
+      "archiveKey": "r2:apprentices-notebook-art/scenes/seam/arena.master.png"
     }
   ]
 }

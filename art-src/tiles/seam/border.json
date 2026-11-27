@@ -1,0 +1,57 @@
+{
+  "id": "tiles/seam/border",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "border",
+  "state": null,
+  "role": "tile-opaque",
+  "size": [128, 128],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/tiles/seam/border.master.png",
+    "sha256": "fb0aa221551317387dde66d896c4f4fcdfc95bf39fd29d7c42ea25de96462696",
+    "origSize": [1254, 1254],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "ebad20d4a97b8051b5dc3217fcae4b270531a0b0ec00489b44292cd1cd3bb4e8",
+      "67926e9d2bca526f7248b74dbc113a6e1c97595c54ef39921faca539efa6cb11",
+      "cb251aa453e470a39bac23e9b4d98801d92dcaac1e803d9ed63cd76426d74d94",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Centred square and offset-wrap; even wall course.",
+  "focal": [0.5, 0.5],
+  "angle": "overhead",
+  "light": "Even diffuse material value; lighting is supplied by the scene.",
+  "palette": ["#253235", "#55625E", "#BC9273", "#1F2A3A", "#3A4148", "#5D666D", "#A9BCC6"],
+  "model": "unexposed",
+  "prompt": "Asset: one fully opaque square production tile at the largest native resolution. A seamless square opaque wall-course ground tile for The Seam. Strict orthographic overhead, edge-to-edge material. Paint two subdued damp-masonry courses passing horizontally through both sides of the square with a single barely offset stone join, wide intact matte slate masses and sparse broken edge grain. Keep horizontal lines at exactly the same heights on opposite sides and keep the top and bottom consistent. Low quiet even value; absolutely no baked light pool, light spot, vignette, highlight, directional shadow, bezel, border graphic, dark corner, centre motif or enclosed stone outline. Target 128×128, edges will be offset-wrapped. Keep quiet greens distinguishable from the flatter Seam floor, with dark mortar only modestly darker than stone. At 51px silhouette key is two broad continuous masonry courses, avoiding a high contrast grid. Camera: strict orthographic overhead for a square ground layer. Palette: Seam #253235 #55625E #BC9273, and city #1F2A3A #3A4148 #5D666D #A9BCC6. Even neutral material light and no upper-left directional gradient. Broad matte gouache and fine broken material grain, distant architecture stays soft, no active visual detail in the middle. Image 1 is Seam architecture identity; image 2 is the approved even floor paint; image 3 is approved hardware paint; image 4 is the Seam palette strip, in that order. Match the style, proportions and finish of the attached approved anchors. No figures, creatures, labels, signs, UI or layout symbols. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/fight-v1.webp",
+    "art-src/anchors/seam/v2/floor-a.webp",
+    "art-src/anchors/seam/vent.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "2e1d1ad7-2dbd-4094-ad9d-20e813adfa2d",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "fb0aa221551317387dde66d896c4f4fcdfc95bf39fd29d7c42ea25de96462696",
+      "size": [1254, 1254]
+    },
+    "tile": true,
+    "perimeter": {
+      "pixels": 1,
+      "method": "Matched opposing RGB pixels on the outer ring and tapered the correction through the next eight pixels.",
+      "finalEncoding": "Lossless WebP preserves the exact edge pass."
+    }
+  }
+}
