@@ -1,32 +1,36 @@
 <script lang="ts">
   import type { CrossroadsView } from '../../../app/crossroads';
-  import Button from '../common/Button.svelte';
+  import ChoiceCard from './ChoiceCard.svelte';
 
+  /**
+   * UT-8. Every way on as a card. Push on is a card that only informs (its button is the primary
+   * in `CrossroadsActions`); any other way (a span, a doorway) is a card you tap. The way home is
+   * not here: it stays separate (UT-D7).
+   */
   interface Props {
     view: CrossroadsView;
     onway: (id: string) => void;
-    onhome: () => void;
   }
 
-  let { view, onway, onhome }: Props = $props();
+  let { view, onway }: Props = $props();
 </script>
 
 <div class="ways" data-testid="ways">
   {#each view.ways as w (w.id)}
-    <Button disabled={w.disabled} onclick={() => onway(w.id)} testid={w.testid}>
-      <span class="big">{w.label}</span>
-      {#if w.note}<span class="sub" data-testid="way-note">{w.note}</span>{/if}
-      <span class="sub">{w.sub}</span>
-      {#if w.warn}<span class="warn" data-testid="no-way-home">{w.warn}</span>{/if}
-    </Button>
+    {#if w.id === 'push'}
+      <ChoiceCard sub={w.sub} note={w.note} warn={w.warn} disabled={w.disabled} />
+    {:else}
+      <ChoiceCard
+        label={w.label}
+        note={w.note}
+        sub={w.sub}
+        warn={w.warn}
+        disabled={w.disabled}
+        onpick={() => onway(w.id)}
+        testid={w.testid}
+      />
+    {/if}
   {/each}
-  {#if view.home}
-    {@const h = view.home}
-    <Button variant="quiet" disabled={h.disabled} onclick={onhome} testid={h.testid}>
-      <span class="big">{h.label}</span>
-      <span class="sub" data-testid={h.disabled ? 'no-landing' : undefined}>{h.sub}</span>
-    </Button>
-  {/if}
 </div>
 
 <style>
@@ -34,26 +38,5 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-  }
-  .ways :global(.btn) {
-    flex-direction: column;
-    gap: 0;
-    min-height: 60px;
-    width: 100%;
-    padding-block: var(--space-2);
-    text-align: center;
-  }
-  .big {
-    font-size: 19px;
-  }
-  .sub {
-    font-size: 13px;
-    opacity: 0.85;
-  }
-  .warn {
-    margin-top: 2px;
-    font-size: 13px;
-    font-style: italic;
-    color: var(--lamp);
   }
 </style>

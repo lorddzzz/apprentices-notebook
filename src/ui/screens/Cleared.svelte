@@ -2,45 +2,49 @@
   import { LOWEST_FLOOR_LINE } from '$data/narration';
   import { clearedHeading } from '../../app/drawing';
   import { game } from '../../app/instance';
-  import Button from '../components/common/Button.svelte';
-  import LootChips from '../components/trip/LootChips.svelte';
-  import TripStatus from '../components/trip/TripStatus.svelte';
-  import { DISTRICT_UI } from '../districts';
+  import ActionButton from '../components/common/ActionButton.svelte';
+  import AppHeader from '../components/common/AppHeader.svelte';
+  import CarriedList from '../components/trip/CarriedList.svelte';
+  import CityScene from '../components/trip/CityScene.svelte';
+  import StakeHeading from '../components/trip/StakeHeading.svelte';
+  import { crestFor, DISTRICT_UI } from '../districts';
 
   const trip = $derived(game.save.trip);
   // The bottom of a trip is this screen, not a Crossroads; a district may add a line above the
   // way home (the lower Seam's door, SM-10).
   const Line = $derived(trip ? DISTRICT_UI[trip.district]?.crossroadsLine : undefined);
+  const crest = $derived(trip ? crestFor(trip.district) : undefined);
   // The lower Seam has no heart: its bottom floor is quiet, not the Marginalia's page.
   const lower = $derived(trip?.district === 'lowerSeam');
 </script>
 
 {#if trip}
-  <section class="cleared" data-testid="cleared">
-    <header>
-      {#if lower}
-        <h1>The stair ends here.</h1>
-        <p>{LOWEST_FLOOR_LINE}</p>
-      {:else}
-        <h1>{clearedHeading(trip)}</h1>
-        <p>Nothing deeper answers. Take it all home.</p>
-      {/if}
-    </header>
+  <section class="cleared" data-world="city" data-district={trip.district} data-testid="cleared">
+    <AppHeader variant="city" title="District cleared" {crest} />
 
-    <div class="mid">
-      <TripStatus {trip} profile={game.profile} large />
+    <div class="body">
+      <CityScene district={trip.district} kind="stair" />
 
-      <div class="finds">
-        <h2>Carried home</h2>
-        <LootChips items={trip.loot} />
+      <div class="page">
+        <StakeHeading
+          heading={lower ? 'The stair ends here.' : clearedHeading(trip)}
+          line={lower ? LOWEST_FLOOR_LINE : 'Nothing deeper answers. Take it all home.'}
+        />
+
+        <div class="finds">
+          <h2>Carried home</h2>
+          <CarriedList profile={game.profile} loot={trip.loot} />
+        </div>
+
+        {#if Line}<Line {trip} profile={game.profile} />{/if}
       </div>
     </div>
 
-    {#if Line}<Line {trip} profile={game.profile} />{/if}
-
-    <Button onclick={() => game.returnHome()} testid="return">
-      Return home with {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}
-    </Button>
+    <footer>
+      <ActionButton onclick={() => game.returnHome()} testid="return">
+        Return home with {trip.loot.length} {trip.loot.length === 1 ? 'find' : 'finds'}
+      </ActionButton>
+    </footer>
   </section>
 {/if}
 
@@ -48,38 +52,40 @@
   .cleared {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
     height: 100%;
-    padding: var(--space-3) var(--space-3) calc(var(--space-3) + 14px);
+    font-family: var(--font-serif);
+    color: var(--ink);
   }
-  h1 {
-    margin: 0;
-    font-size: 26px;
-    font-weight: normal;
-  }
-  header p {
-    margin: 4px 0 0;
-    font-size: 14px;
-    font-style: italic;
-    color: var(--ink-soft);
-  }
-  h2 {
-    margin: 0 0 var(--space-2);
-    font: 13px var(--mono);
-    color: var(--ink-soft);
-  }
-  .mid {
+  .body {
     display: flex;
-    flex: 1;
+    flex: 1 1 0;
     flex-direction: column;
-    justify-content: center;
-    gap: var(--space-3);
     min-height: 0;
     overflow-y: auto;
   }
-  .cleared :global(.btn) {
-    min-height: 56px;
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+  h2 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--type-sm);
+    font-weight: normal;
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  footer {
+    flex: none;
+    padding: var(--space-2) var(--space-3) calc(var(--space-3) + 14px);
+    border-top: 1px solid var(--line);
+    background: var(--parchment);
+  }
+  footer :global(.action) {
     width: 100%;
+    min-height: 52px;
     font-size: 18px;
   }
 </style>

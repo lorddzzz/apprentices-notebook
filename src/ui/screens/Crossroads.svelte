@@ -3,14 +3,19 @@
   import { crossroadsView } from '../../app/crossroads';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
+  import AppHeader from '../components/common/AppHeader.svelte';
+  import CityScene from '../components/trip/CityScene.svelte';
+  import CrossroadsActions from '../components/trip/CrossroadsActions.svelte';
   import CrossroadsChoices from '../components/trip/CrossroadsChoices.svelte';
   import LootChips from '../components/trip/LootChips.svelte';
-  import TripStatus from '../components/trip/TripStatus.svelte';
-  import { DISTRICT_UI } from '../districts';
+  import StakeHeading from '../components/trip/StakeHeading.svelte';
+  import TripStrip from '../components/trip/TripStrip.svelte';
+  import { crestFor, DISTRICT_UI } from '../districts';
 
   const trip = $derived(game.save.trip);
   // The district module names the ways on; the Seam and the canals get push and return (P4).
   const Note = $derived(trip ? DISTRICT_UI[trip.district]?.crossroadsNote : undefined);
+  const crest = $derived(trip ? crestFor(trip.district) : undefined);
   // A choice's ledger note (BR-7) leads its second line; a choice without one reads as before.
   const view = $derived.by(() => {
     if (!trip) return null;
@@ -25,30 +30,34 @@
 </script>
 
 {#if trip && view}
-  <section class="crossroads" data-testid="crossroads">
-    <header>
-      <h1>{view.heading}</h1>
-      <p>You are deeper than the lamplight reaches. Look at what you have left.</p>
-    </header>
+  <section class="crossroads" data-world="city" data-district={trip.district} data-testid="crossroads">
+    <AppHeader variant="city" title="Crossroads" {crest} />
 
-    <div class="mid">
-      <TripStatus {trip} profile={game.profile} large />
+    <div class="body">
+      <CityScene district={trip.district} kind="crossroads" />
 
-      <div class="finds">
-        <h2>Carried, not yet safe</h2>
-        <LootChips items={trip.loot} />
+      <div class="page">
+        <StakeHeading
+          heading={view.heading}
+          line="You are deeper than the lamplight reaches. Look at what you have left."
+        />
+
+        {#if Note}<Note {trip} />{/if}
+        <CrossroadsChoices {view} onway={(id) => game.chooseWay(id)} />
+
+        <div class="finds">
+          <h2>Carried, not yet safe</h2>
+          <LootChips items={trip.loot} />
+        </div>
+
+        <TripStrip {trip} profile={game.profile} large />
       </div>
     </div>
 
-    <div class="choices">
-      {#if Note}<Note {trip} />{/if}
-      <CrossroadsChoices
-        {view}
-        onway={(id) => (id === 'push' ? game.pushOn() : game.chooseWay(id))}
-        onhome={() => game.returnHome()}
-      />
+    <footer>
       <a class="link" href={href('codex')}>Read the notebook</a>
-    </div>
+      <CrossroadsActions {view} onpush={() => game.pushOn()} onhome={() => game.returnHome()} />
+    </footer>
   </section>
 {/if}
 
@@ -56,48 +65,45 @@
   .crossroads {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
     height: 100%;
+    font-family: var(--font-serif);
+    color: var(--ink);
+  }
+  .body {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-height: 0;
     overflow-y: auto;
-    padding: var(--space-3) var(--space-3) calc(var(--space-3) + 14px);
   }
-  h1 {
-    margin: 0;
-    font-size: 26px;
-    font-weight: normal;
-  }
-  header p {
-    margin: 4px 0 0;
-    font-size: 14px;
-    font-style: italic;
-    color: var(--ink-soft);
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3);
   }
   h2 {
     margin: 0 0 var(--space-2);
-    font-size: 13px;
+    font-size: var(--type-sm);
     font-weight: normal;
-    font-family: var(--mono);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
     color: var(--ink-soft);
   }
-  .mid {
+  footer {
     display: flex;
-    flex: 1 0 auto;
+    flex: none;
     flex-direction: column;
-    justify-content: center;
-    gap: var(--space-3);
-  }
-  .crossroads > :global(*) {
-    flex-shrink: 0;
-  }
-  .choices {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3) calc(var(--space-3) + 14px);
+    border-top: 1px solid var(--line);
+    background: var(--parchment);
   }
   .link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-height: var(--tap);
+    font-size: var(--type-sm);
   }
 </style>
