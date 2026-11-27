@@ -19,11 +19,11 @@
   import PartSheet from '../components/bench/PartSheet.svelte';
   import PartSlots from '../components/bench/PartSlots.svelte';
   import SolventRow from '../components/bench/SolventRow.svelte';
+  import SubjectSwatches from '../components/bench/SubjectSwatches.svelte';
   import WriteSheet from '../components/bench/WriteSheet.svelte';
   import BattleBoard from '../components/board/BattleBoard.svelte';
   import Button from '../components/common/Button.svelte';
   import HomeStrip from '../components/home/HomeStrip.svelte';
-  import Palette from '../components/lab/Palette.svelte';
 
   const bench = new BenchStore(game);
   const profile = $derived(bench.profile);
@@ -128,7 +128,7 @@
       {/if}
     </p>
     {#if !page}
-      <Palette
+      <SubjectSwatches
         selected={bench.item}
         entries={sceneEntries(profile)}
         onselect={(item) => (bench.item = item)}
