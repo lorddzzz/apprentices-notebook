@@ -23,6 +23,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 | UF-D1 | UF-14a/b/c fixtures | Sonnet high | build/pack-ufd1 @ 46680f3 | PAUSED by the 5h limit (sid bc21a71bb6c0); resume_subagent when a Claude slot is free (max 3 Claude packs) |
 
 | UH-B | UH-3→UH-5 lattice page/drawer | Sonnet high | build/pack-uhb @ c461097 | running (sid ac77b309ea0b); UH-3 first: FT-25 waits for it |
+| UA-D | UA-10, UA-11 Seam fight art (36 assets) | Codex Sol high (images only) | art/seam-fight in clone codex-2350314665 | running (sid e589253d50f6); orchestrator uploads raws from /tmp/seam-fight-work/raw |
 | FT-B | FT-13..16w header/stack/wiring | Sonnet high | build/pack-ftb @ cce6f8a | running (sid 47505c2b1536) |
 | UF-A | UF-5→UF-7 faces+Gallery | Sonnet high | build/pack-ufa @ 9f63d48 | running (sid 2369faf1c508) |
 | UF-B | UF-8→UF-10 | Sonnet high | build/pack-ufb @ 32bfbb2 (uncommitted UF-8 work in worktree) | RESUMED 23:20 (sid f1a64b41f2fc) |
