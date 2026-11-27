@@ -5,19 +5,13 @@
   "subject": "fx-shield-pulse",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-shield-pulse.master.png",
     "sha256": "55fc650fb4eeb25dc758c0a18f837bd89daa5fa272fd4e6aa7698441c67eae61",
-    "origSize": [
-      1254,
-      1254
-    ],
+    "origSize": [1254, 1254],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "55fc650fb4eeb25dc758c0a18f837bd89daa5fa272fd4e6aa7698441c67eae61",
-      "size": [
-        1254,
-        1254
-      ]
+      "size": [1254, 1254]
     }
   }
 }

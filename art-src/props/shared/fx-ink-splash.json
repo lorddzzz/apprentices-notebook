@@ -5,19 +5,13 @@
   "subject": "fx-ink-splash",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-ink-splash.master.png",
     "sha256": "c4dd2ab7313c5d32c43492bfe692267c6a312a47edf8792ef4f5e8049c6b0cd7",
-    "origSize": [
-      1254,
-      1254
-    ],
+    "origSize": [1254, 1254],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "c4dd2ab7313c5d32c43492bfe692267c6a312a47edf8792ef4f5e8049c6b0cd7",
-      "size": [
-        1254,
-        1254
-      ]
+      "size": [1254, 1254]
     }
   }
 }

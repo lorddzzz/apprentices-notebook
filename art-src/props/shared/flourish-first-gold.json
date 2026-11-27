@@ -5,19 +5,13 @@
   "subject": "flourish-first-gold",
   "state": null,
   "role": "strip",
-  "size": [
-    512,
-    256
-  ],
+  "size": [512, 256],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/flourish-first-gold.master.png",
     "sha256": "cdadbb839fc41df7962706088dbe4347ad95069a4897f41a320419ee51fd7548",
-    "origSize": [
-      1752,
-      897
-    ],
+    "origSize": [1752, 897],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "cdadbb839fc41df7962706088dbe4347ad95069a4897f41a320419ee51fd7548",
-      "size": [
-        1752,
-        897
-      ]
+      "size": [1752, 897]
     }
   }
 }

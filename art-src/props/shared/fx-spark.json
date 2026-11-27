@@ -5,19 +5,13 @@
   "subject": "fx-spark",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-spark.master.png",
     "sha256": "701f8c6071529c1c5b7877293e3ff8061600b9220fd9bab413236fbbfa173c7a",
-    "origSize": [
-      1536,
-      1024
-    ],
+    "origSize": [1536, 1024],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "701f8c6071529c1c5b7877293e3ff8061600b9220fd9bab413236fbbfa173c7a",
-      "size": [
-        1536,
-        1024
-      ]
+      "size": [1536, 1024]
     }
   }
 }

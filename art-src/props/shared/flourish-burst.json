@@ -5,19 +5,13 @@
   "subject": "flourish-burst",
   "state": null,
   "role": "strip",
-  "size": [
-    512,
-    256
-  ],
+  "size": [512, 256],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/flourish-burst.master.png",
     "sha256": "9497d211301e99ced0d5178498350b50cab233877bf2d24ed18e6518ea951565",
-    "origSize": [
-      1672,
-      941
-    ],
+    "origSize": [1672, 941],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "9497d211301e99ced0d5178498350b50cab233877bf2d24ed18e6518ea951565",
-      "size": [
-        1672,
-        941
-      ]
+      "size": [1672, 941]
     }
   }
 }

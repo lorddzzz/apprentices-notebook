@@ -5,19 +5,13 @@
   "subject": "fx-impact",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-impact.master.png",
     "sha256": "c4da65fca018c80933539fe5349b228df372c294a07e4b5d4692728506eb8611",
-    "origSize": [
-      1254,
-      1254
-    ],
+    "origSize": [1254, 1254],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "c4da65fca018c80933539fe5349b228df372c294a07e4b5d4692728506eb8611",
-      "size": [
-        1254,
-        1254
-      ]
+      "size": [1254, 1254]
     }
   }
 }

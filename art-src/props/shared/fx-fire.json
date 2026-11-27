@@ -5,19 +5,13 @@
   "subject": "fx-fire",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-fire.master.png",
     "sha256": "2c8e97cf4a60fbdd9cfa5a26a0c6bb7f56c121a887670813a6358681e70c41b7",
-    "origSize": [
-      1254,
-      1254
-    ],
+    "origSize": [1254, 1254],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "2c8e97cf4a60fbdd9cfa5a26a0c6bb7f56c121a887670813a6358681e70c41b7",
-      "size": [
-        1254,
-        1254
-      ]
+      "size": [1254, 1254]
     }
   }
 }

@@ -5,19 +5,13 @@
   "subject": "fx-brass-ring",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-brass-ring.master.png",
     "sha256": "1b44fcc5b260834046e6d1ad0093b788212aab083186dde1f5945fc844d0d449",
-    "origSize": [
-      1254,
-      1254
-    ],
+    "origSize": [1254, 1254],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "1b44fcc5b260834046e6d1ad0093b788212aab083186dde1f5945fc844d0d449",
-      "size": [
-        1254,
-        1254
-      ]
+      "size": [1254, 1254]
     }
   }
 }

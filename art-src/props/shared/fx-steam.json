@@ -5,19 +5,13 @@
   "subject": "fx-steam",
   "state": null,
   "role": "material-overlay-alpha",
-  "size": [
-    128,
-    128
-  ],
+  "size": [128, 128],
   "alpha": true,
   "groundContact": null,
   "master": {
     "path": "art-src/props/shared/fx-steam.master.png",
     "sha256": "cca3bf19f3716f77590abf5f463688ae65f9757d6ed7826254d40d81dba1cef6",
-    "origSize": [
-      1254,
-      1254
-    ],
+    "origSize": [1254, 1254],
     "processor": "art-process@1",
     "quality": 80,
     "refSha256": []
@@ -41,10 +35,7 @@
     "mode": "ship",
     "source": {
       "sha256": "cca3bf19f3716f77590abf5f463688ae65f9757d6ed7826254d40d81dba1cef6",
-      "size": [
-        1254,
-        1254
-      ]
+      "size": [1254, 1254]
     }
   }
 }
