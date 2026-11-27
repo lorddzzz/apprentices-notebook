@@ -97,13 +97,15 @@
     color: var(--accent);
   }
   .by {
-    font: 700 11px var(--mono);
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-variant: small-caps;
     text-transform: uppercase;
     color: var(--ink-faint);
   }
   .annotation {
     margin: var(--space-2) 0 var(--space-1);
-    font-family: var(--hand);
+    font-family: var(--font-serif);
     font-size: 17px;
     line-height: 1.3;
     color: var(--ink);
@@ -125,7 +127,9 @@
     color: var(--ink-soft);
   }
   .count {
-    font: 700 12px var(--mono);
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-variant: small-caps;
     letter-spacing: 0;
   }
   .parts {
@@ -156,7 +160,9 @@
     font-size: 14px;
   }
   .state {
-    font: 700 10px var(--mono);
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-variant: small-caps;
     text-transform: uppercase;
   }
   .hint {
@@ -198,7 +204,9 @@
   }
   .tag {
     margin-left: var(--space-1);
-    font: 700 10px var(--mono);
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-variant: small-caps;
     text-transform: uppercase;
     color: var(--ink-faint);
   }

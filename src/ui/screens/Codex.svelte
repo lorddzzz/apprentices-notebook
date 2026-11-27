@@ -14,7 +14,8 @@
   import CodexHousehold from '../components/codex/CodexHousehold.svelte';
   import CodexIdiom from '../components/codex/CodexIdiom.svelte';
   import RivalPage from '../components/codex/RivalPage.svelte';
-  import BackLink from '../components/common/BackLink.svelte';
+  import HomeStrip from '../components/home/HomeStrip.svelte';
+  import { nextTab } from '../components/codex/tabs';
   import RuneGlyph from '../components/RuneGlyph.svelte';
 
   const TABS = [
@@ -60,6 +61,12 @@
   // The first note, or the owner's answer once its page's margin has answered (SM-14).
   const noteOf = (row: CodexRow) => (row.known ? noteFor(game.profile, row.entry.id) : undefined);
   const back = $derived(game.save.trip ? 'trip' : 'study');
+  const following = $derived(nextTab(tabs.map(([id]) => id), tab));
+  let page_el = $state<HTMLElement>();
+  const turn = (to: Tab) => {
+    tab = to;
+    page_el?.scrollTo({ top: 0 });
+  };
 </script>
 
 {#snippet page(row: CodexRow)}
@@ -74,10 +81,15 @@
 {/snippet}
 
 <section class="codex" data-testid="codex">
-  <header>
-    <BackLink to={back} label={back === 'trip' ? 'Back to the road' : 'Study'} />
-    <span class="count" data-testid="codex-count">{known} / {entries.length} known</span>
-  </header>
+  <HomeStrip
+    strip="scenes/home/codex-strip"
+    title="Codex"
+    back={{ to: back, label: back === 'trip' ? 'Back to the road' : 'Study' }}
+  >
+    {#snippet right()}
+      <span class="count" data-testid="codex-count">{known} / {entries.length} known</span>
+    {/snippet}
+  </HomeStrip>
 
   <nav class="tabs" aria-label="Notebook sections">
     {#each tabs as [id, name] (id)}
@@ -86,12 +98,12 @@
         class:on={tab === id}
         aria-pressed={tab === id}
         data-testid="codex-tab-{id}"
-        onclick={() => (tab = id)}>{name}</button
+        onclick={() => turn(id)}>{name}</button
       >
     {/each}
   </nav>
 
-  <div class="page">
+  <div class="page" bind:this={page_el}>
     {#if tab === 'runes'}
       {#each of('rune') as row (row.entry.id)}
         {@render page(row)}
@@ -166,6 +178,11 @@
         <CodexIdiom {entry} {known} note={noteFor(game.profile, entry.id)} />
       {/each}
     {/if}
+    {#if following}
+      <button type="button" class="next" data-testid="codex-next" onclick={() => turn(following)}>
+        Next page &rsaquo;
+      </button>
+    {/if}
   </div>
 </section>
 
@@ -176,39 +193,53 @@
     height: 100%;
     background: var(--parchment);
   }
-  header {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-right: var(--space-3);
-    border-bottom: 2px solid var(--ink);
-    background: var(--parchment-dark);
-  }
   .count {
-    font: 700 14px var(--mono);
+    font-size: 14px;
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+    color: var(--ink);
   }
+  /* One scroll row; the edges fade where more tabs wait. */
   .tabs {
     flex: none;
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: var(--space-1) var(--space-2);
+    gap: var(--space-3);
+    padding: 0 var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
     border-bottom: 1px solid var(--line);
+    mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 24px), transparent);
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
   .tabs button {
-    min-height: 32px;
-    padding: 0 10px;
-    border: 1px solid var(--ink-faint);
-    border-radius: 16px;
+    flex: none;
+    min-height: var(--tap);
+    padding: 0 2px;
+    border: 0;
+    border-bottom: 3px solid transparent;
     background: none;
-    font: 700 12px var(--mono);
+    font: 15px var(--font-serif);
+    font-variant: small-caps;
+    letter-spacing: 0.06em;
     color: var(--ink-soft);
   }
   .tabs button.on {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--parchment);
+    border-bottom-color: var(--accent);
+    color: var(--ink);
+  }
+  .next {
+    display: block;
+    min-height: var(--tap);
+    margin: var(--space-3) 0 0 auto;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    font: 17px var(--font-serif);
+    font-variant: small-caps;
+    letter-spacing: 0.06em;
+    color: var(--accent);
   }
   .made {
     display: flex;
@@ -222,8 +253,8 @@
   }
   .paper .body {
     margin: 4px 0 0;
-    font-family: var(--hand);
-    font-size: 17px;
+    font-family: var(--font-serif);
+    font-size: 16px;
     line-height: 1.35;
     color: var(--ink);
   }
@@ -237,8 +268,9 @@
   }
   .mline {
     margin: 0;
-    font: 700 11px var(--mono);
-    text-transform: uppercase;
+    font-size: 13px;
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
     color: var(--ink-faint);
   }
   .replay {
@@ -259,8 +291,9 @@
     color: var(--ink-soft);
   }
   .empty {
-    font-family: var(--hand);
-    font-size: 17px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 16px;
     color: var(--ink-faint);
   }
   .page {
@@ -273,8 +306,9 @@
   }
   .lead {
     margin: var(--space-1) 0 var(--space-3);
-    font-family: var(--hand);
-    font-size: 17px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 16px;
     color: var(--ink-soft);
   }
   h2 {

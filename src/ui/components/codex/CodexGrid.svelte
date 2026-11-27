@@ -66,7 +66,9 @@
   .head {
     align-self: center;
     text-align: center;
-    font: 700 11px var(--mono);
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-variant: small-caps;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-soft);
@@ -93,7 +95,7 @@
     background: var(--parchment-dark);
   }
   .name {
-    font-family: var(--hand);
+    font-family: var(--font-serif);
     font-size: 17px;
     line-height: 1.05;
     color: var(--accent);
@@ -122,10 +124,11 @@
   }
   .note {
     margin: 6px 0 0;
-    padding-left: var(--space-2);
-    border-left: 2px solid rgba(139, 58, 43, 0.45);
-    font-family: var(--hand);
-    font-size: 16px;
+    padding: 4px var(--space-2);
+    border-left: 3px solid rgba(139, 58, 43, 0.45);
+    background: var(--parchment-dark);
+    font-family: var(--font-script);
+    font-size: 20px;
     line-height: 1.25;
     color: var(--accent);
   }

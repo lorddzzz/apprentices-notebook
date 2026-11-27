@@ -57,7 +57,9 @@
     color: var(--c);
   }
   .met {
-    font: 700 11px var(--mono);
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-variant: small-caps;
     text-transform: uppercase;
     color: var(--ink-faint);
   }

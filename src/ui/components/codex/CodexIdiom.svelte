@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CodexEntryDef } from '$data';
   import type { NoteView } from '$engine/margins';
+  import Unseen from '../common/Unseen.svelte';
 
   interface Props {
     entry: CodexEntryDef;
@@ -16,22 +17,14 @@
 
 <article class="entry" class:unknown={!known} data-testid="codex-entry" data-known={known} data-id={entry.id}>
   <div class="mark">
-    <svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true">
-      <circle
-        cx="20"
-        cy="20"
-        r="17"
-        fill={known ? 'var(--parchment)' : 'none'}
-        stroke={known ? 'var(--accent)' : 'var(--ink-faint)'}
-        stroke-width="2"
-        stroke-dasharray={known ? undefined : '4 3'}
-      />
-      {#if known}
-        <text x="20" y="27" text-anchor="middle" font-size="20" fill="var(--accent)" font-family="var(--hand)">{initial}</text>
-      {:else}
-        <text x="20" y="26.5" text-anchor="middle" font-size="18" fill="var(--ink-faint)" font-family="var(--hand)">?</text>
-      {/if}
-    </svg>
+    {#if known}
+      <svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="17" fill="var(--parchment)" stroke="var(--accent)" stroke-width="2" />
+        <text x="20" y="27" text-anchor="middle" font-size="20" fill="var(--accent)" font-family="var(--font-script)">{initial}</text>
+      </svg>
+    {:else}
+      <Unseen shape="box" />
+    {/if}
   </div>
 
   <div class="text">
@@ -48,7 +41,7 @@
     {:else}
       <h3 class="blank" aria-label="Not found yet">???</h3>
       {#if entry.hint}
-        <p class="note faded">{entry.hint}</p>
+        <p class="hint">{entry.hint}</p>
       {/if}
     {/if}
   </div>
@@ -80,10 +73,18 @@
   }
   .blank {
     padding-top: 10px;
-    font-family: var(--hand);
+    font-family: var(--font-serif);
+    font-style: italic;
     font-variant: normal;
-    font-size: 20px;
+    font-size: 17px;
     letter-spacing: 0.2em;
+    color: var(--ink-faint);
+  }
+  .hint {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 1.3;
     color: var(--ink-faint);
   }
   .rule {
@@ -92,15 +93,13 @@
     line-height: 1.3;
     color: var(--ink-soft);
   }
-  .faded {
-    opacity: 0.6;
-  }
   .note {
-    margin: 6px 0 0 var(--space-1);
-    padding-left: var(--space-2);
-    border-left: 2px solid rgba(139, 58, 43, 0.45);
-    font-family: var(--hand);
-    font-size: 16px;
+    margin: 6px 0 0;
+    padding: 4px var(--space-2);
+    border-left: 3px solid rgba(139, 58, 43, 0.45);
+    background: var(--parchment-dark);
+    font-family: var(--font-script);
+    font-size: 20px;
     line-height: 1.25;
     color: var(--accent);
   }
@@ -109,9 +108,9 @@
   }
   .answered {
     margin: 6px 0 0 var(--space-1);
-    font: 700 10px var(--mono);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 13px;
+    font-variant: small-caps;
+    letter-spacing: 0.06em;
     color: var(--ink-faint);
   }
   .note.answer {

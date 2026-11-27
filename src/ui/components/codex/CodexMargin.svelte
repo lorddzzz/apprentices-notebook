@@ -12,6 +12,8 @@
     ...(margin.capstone ? [{ f: margin.capstone, title: 'Capstone' }] : []),
   ]);
 
+  const written = $derived(rows.filter((r) => r.f.state === 'filled').length);
+
   const status = (f: FrameView): string =>
     f.state === 'filled'
       ? (f.variants.find((v) => v.chosen)?.text ?? 'Written')
@@ -22,6 +24,7 @@
 
 {#if rows.length > 0}
   <div class="margin" data-testid="codex-margin">
+    <p class="tally" data-testid="codex-margin-count">Margin, {written} / {rows.length} written</p>
     {#each rows as { f, title } (f.key)}
       <p class="frame {f.state}" data-testid="codex-frame-{f.key}" data-state={f.state}>
         <span class="title">{title}</span>
@@ -38,6 +41,11 @@
     gap: 3px;
     margin-top: 6px;
   }
+  .tally {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
   .frame {
     display: flex;
     gap: var(--space-2);
@@ -52,14 +60,14 @@
   .frame.filled {
     border: 1px solid var(--ink);
     color: var(--accent);
-    font-family: var(--hand);
-    font-size: 15px;
+    font-family: var(--font-serif);
+    font-size: 14px;
   }
   .title {
     flex: none;
     padding-top: 2px;
-    font: 700 11px var(--mono);
+    font-size: 13px;
+    font-variant: small-caps;
     letter-spacing: 0.05em;
-    text-transform: uppercase;
   }
 </style>
