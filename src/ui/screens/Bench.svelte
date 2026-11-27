@@ -21,8 +21,8 @@
   import SolventRow from '../components/bench/SolventRow.svelte';
   import WriteSheet from '../components/bench/WriteSheet.svelte';
   import BattleBoard from '../components/board/BattleBoard.svelte';
-  import BackLink from '../components/common/BackLink.svelte';
   import Button from '../components/common/Button.svelte';
+  import HomeStrip from '../components/home/HomeStrip.svelte';
   import Palette from '../components/lab/Palette.svelte';
 
   const bench = new BenchStore(game);
@@ -59,10 +59,12 @@
 </script>
 
 <section class="bench" data-testid="bench">
-  <header>
-    <BackLink to={page ? 'codex' : 'study'} label={page ? 'Codex' : 'Study'} />
-    <h1>{page ? 'Page trial' : 'The Bench'}</h1>
-  </header>
+  <HomeStrip
+    strip="scenes/home/bench-strip"
+    title={page ? 'Page trial' : 'The Bench'}
+    back={page ? { to: 'codex', label: 'Codex' } : { to: 'study', label: 'Study' }}
+  />
+  <div class="body">
 
   {#if page}
     <div class="top" data-testid="page-trial">
@@ -102,7 +104,7 @@
   {/if}
 
   <div class="scene">
-    <div class="board-wrap" data-testid="scene" class:aiming={bench.aiming}>
+    <div class="board-wrap" data-testid="scene" class:aiming={bench.aiming} class:authored={page !== null}>
       {#if session}
         <BattleBoard
           view={session.view}
@@ -139,28 +141,29 @@
         {/each}
       </ul>
     {/if}
-    <div class="actions">
-      <Button
-        variant="quiet"
-        label={bench.aiming ? 'Cancel aim' : 'Trial'}
-        disabled={!page && !status.valid}
-        onclick={() => bench.startAiming()}
-        testid="trial"
-      />
-      {#if page}
-        <Button variant="quiet" label="Reset" onclick={() => bench.resetScene()} testid="reset-scene" />
-      {:else}
-        <Button variant="quiet" label="Clear" onclick={() => bench.clearScene()} testid="clear-scene" />
-        <Button
-          label="Name and write"
-          disabled={!status.valid}
-          onclick={() => (writing = true)}
-          testid="write"
-        />
-      {/if}
-    </div>
     {#if written}
       <p class="done" data-testid="written">{written} is written. It is on the Study shelf.</p>
+    {/if}
+  </div>
+  </div>
+  <div class="actions">
+    <Button
+      label={bench.aiming ? 'Cancel aim' : 'Trial'}
+      disabled={!page && !status.valid}
+      onclick={() => bench.startAiming()}
+      testid="trial"
+    />
+    {#if page}
+      <Button variant="quiet" label="Reset" onclick={() => bench.resetScene()} testid="reset-scene" />
+    {:else}
+      <Button variant="quiet" label="Clear" onclick={() => bench.clearScene()} testid="clear-scene" />
+      <Button
+        variant="quiet"
+        label="Name and write"
+        disabled={!status.valid}
+        onclick={() => (writing = true)}
+        testid="write"
+      />
     {/if}
   </div>
 
@@ -195,20 +198,14 @@
     background: var(--parchment);
     overflow: hidden;
   }
-  header {
-    flex: none;
+  .body {
+    flex: 1;
+    min-height: 0;
     display: flex;
-    align-items: center;
-    margin: 0 calc(var(--space-2) * -1);
-    padding-right: var(--space-3);
-    border-bottom: 2px solid var(--ink);
-    background: var(--parchment-dark);
-  }
-  h1 {
-    margin: 0 auto;
-    font-size: 20px;
-    font-weight: normal;
-    letter-spacing: 0.03em;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .top {
     flex: none;
@@ -217,7 +214,7 @@
     gap: 6px;
   }
   .read {
-    min-height: 74px;
+    min-height: 56px;
     padding: 4px var(--space-2);
     border-left: 3px solid var(--ink);
     background: rgba(43, 33, 24, 0.05);
@@ -226,7 +223,7 @@
     margin: 0;
   }
   .headline {
-    font-family: var(--hand);
+    font-family: Georgia, serif;
     font-size: 17px;
     line-height: 1.2;
   }
@@ -246,16 +243,24 @@
     color: var(--ink-soft);
   }
   .scene {
-    flex: 1;
-    min-height: 0;
+    flex: none;
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
+  /* The ordinary Bench is 6x5 cells at 58 px (the fight board's cell, plus its label gutter);
+     a page trial keeps its authored board and takes the room that is left. */
   .board-wrap {
-    flex: 1;
-    min-height: 120px;
+    width: 362px;
+    height: 304px;
+    margin: 0 0 0 calc((100% - 362px) / 2);
     border-radius: var(--radius);
+  }
+  .board-wrap.authored {
+    width: 100%;
+    height: auto;
+    min-height: 304px;
+    margin: 0;
   }
   .board-wrap.aiming {
     outline: 3px solid var(--select);
@@ -279,14 +284,15 @@
     flex: none;
     display: flex;
     gap: var(--space-2);
+    padding-top: 4px;
   }
-  .actions :global(.btn:last-child) {
+  .actions :global(.btn:first-child) {
     flex: 1;
   }
   .done {
     flex: none;
     margin: 0;
-    font-family: var(--hand);
+    font-family: Georgia, serif;
     font-size: 16px;
   }
 </style>
