@@ -236,6 +236,16 @@ Done when: 24 files; art:check; the sheet shows the real-camera composite (water
 Verify: `pnpm art:check && pnpm art:sheet canals`
 ```
 
+### Pack F2: process the Lampwater raws (Claude Sonnet medium; UA-13 part 2). Branch art/canals, worktree `.claude/worktrees/art-canals`
+
+Codex generated 23 of 24 Lampwater raws but its sandbox could not run `art:process`. Raws + prompts + `MANIFEST.md` (estimated contact points, heights, roles) are in `~/art-raw-staging/canals-raw/` (copy also at `r2:apprentices-notebook-art/_staging/canals-raw/`). Missing: `tiles/canals/lamp-pool` (both drafts rejected: painted stone; regenerate later). Report in under 200 words.
+
+Steps (the orchestrator did the same for Home/FX: see `git log --grep 'art(home)'`):
+1. Cutouts (foes, lamp, props) are on a flat grey background: write a throwaway script OUTSIDE the repo (/tmp) that flood-fills the background from the corners to alpha, feathers 1 px, then run `pnpm art:process <cutout.png> <ArtId> --ship --role figure --ground-contact x,y --height h --size 128x176` (boss: `--role boss-figure --size 192x256`; props `--role material-overlay-alpha --size 128x128 --alpha`; add `--defringe` when the halo check fails). Check contact/height visually (the manifest values are estimates; flying and low figures (eel, moth) need judgement). Raw figures carry more specular detail than anchors: acceptable if they read at 24 px.
+2. Ground tiles (floor-a..d, water-a/b, quay-edge, lock-gate, grate) are opaque `tile-opaque` 128x128: use `--tile` (seamless) and `--edge-from <floor-a processed>` for the floor variants A-D so edges match; check mixed neighbours with `pnpm art:sheet canals`. Water must flow downward with no painted arrow. Terrain has strong amber highlights: if a tile breaks the even-lit v2 rule (art:sheet lattice check) lower its contrast or leave it out and list it.
+3. Scenes (fight, arena) `--role scene --size 750x800`, portrait-aspect crop with `--focal`; centre calm. Portraits `--role portrait --size 192x192`.
+4. Fill each sidecar's `prompt` (from `<name>-prompt.txt`), `pack:"canals"`, `model:"unexposed (Codex built-in image tool)"`, run `pnpm exec biome format --write art-src`, upload each raw as master (`rclone copyto --s3-no-check-bucket <raw> r2:apprentices-notebook-art/<ArtId>.master.png`, check sha256 against art-src/MASTERS.json), `pnpm art:check && pnpm art:sheet canals`, commit `art(canals): UA-13 <n> of 24`, mbox to /tmp/canals.mbox. Look at the contact sheet and reject any asset with lettering, halos or a seam.
+
 ### Pack G: Home (Codex; UA-14). Branch art/home. Depends on G1, A
 
 ```
