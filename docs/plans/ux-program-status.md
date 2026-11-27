@@ -4,7 +4,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 
 **State:** building; UX-G1 closed; waiting on Claude/Codex 5h windows to recover · **next window:** routine (orchestrator Sonnet; design windows for briefs/reviews on Opus high)
 **Session rules:** player delegated model choice for subagents (free to override the skill's table); Claude packs Opus high for UF 0a/0b/0c and playback, Sonnet high elsewhere; raster art on Codex Sol high via Whiteboard `git:true` (Codex weekly 61% at start: keep Codex packs few); 2-3 packs at once on disjoint files; engine read-only.
-**Player rule (23:25, current run):** ignore weekly limits, watch only 5h windows; balance Claude and Codex, use both as much as possible, never hit the limit (especially Claude). Earlier: **Player rule (2026-11-26):** Claude 5h at 80%: tune Claude down until reset 22:59 Belgrade (no new Claude packs; let running ones finish). Codex 5h is low: use Codex as much as possible despite weekly 61%.
+**Player rule (2026-11-27 07:20, current):** Codex weekly is 88%: use Codex ONLY for image creation (art packs), not for coding. Claude hit its 5h limit overnight at 4 concurrent packs although the usage script read ~60%: the Claude reading lags; run at most 3 Claude packs and keep headroom. **Earlier rule (23:25):** ignore weekly limits, watch only 5h windows; balance Claude and Codex, use both as much as possible, never hit the limit (especially Claude). Earlier: **Player rule (2026-11-26):** Claude 5h at 80%: tune Claude down until reset 22:59 Belgrade (no new Claude packs; let running ones finish). Codex 5h is low: use Codex as much as possible despite weekly 61%.
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
 
 ## Next
@@ -20,7 +20,8 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 |---|---|---|---|---|
 | UH-0 | UH-0 home kit | Sonnet high | build/pack-uh0 @ 1eb8997 | running (sid 2f793f3a3b8a) |
 | UF-D2 | UF-15a/b/f fixtures | Sonnet high | build/pack-ufd2 @ 5370c14 | running (sid e8e65abfb716) |
-| UF-D1 | UF-14a/b/c fixtures | Sonnet high | build/pack-ufd1 @ 46680f3 | running (sid bc21a71bb6c0) |
+| UF-D1 | UF-14a/b/c fixtures | Sonnet high | build/pack-ufd1 @ 46680f3 | PAUSED by the 5h limit (sid bc21a71bb6c0); resume_subagent when a Claude slot is free (max 3 Claude packs) |
+
 | UH-B | UH-3→UH-5 lattice page/drawer | Sonnet high | build/pack-uhb @ c461097 | running (sid ac77b309ea0b); UH-3 first: FT-25 waits for it |
 | FT-A1 | FT-5s..FT-8 board layout spike | Sonnet high | build/pack-fta1 @ dd6708e | running (sid de0a32fb9c87); FT-5s measured table must be signed by orchestrator before FT A2a / UA-10..13 scaling |
 | UF-A | UF-5→UF-7 faces+Gallery | Sonnet high | build/pack-ufa @ 9f63d48 | running (sid 2369faf1c508) |
