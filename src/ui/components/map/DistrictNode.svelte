@@ -132,6 +132,11 @@
     stroke: var(--ink);
     stroke-width: 1.5;
   }
+  .heard .tag,
+  .heard .line,
+  .heard .smudge {
+    opacity: 0.75;
+  }
   .heard .dot {
     fill: var(--ink-faint);
     stroke: var(--ink-faint);
@@ -232,17 +237,18 @@
     color: var(--m-ink);
     border-bottom-color: var(--m-ink);
   }
-  .fresh .mark {
-    animation: fresh-ink 1.4s ease-out;
+  .fresh .mark,
+  .fresh .caption {
+    animation: fresh-ink var(--dur-base) ease-out;
   }
   @keyframes fresh-ink {
     from {
-      transform: scale(0.2);
       opacity: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .fresh .mark {
+    .fresh .mark,
+    .fresh .caption {
       animation: none;
     }
   }

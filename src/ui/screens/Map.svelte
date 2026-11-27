@@ -8,6 +8,12 @@
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
   import { toast } from '../../app/toasts.svelte';
+  import { frontierMarks } from '../../app/tripUx';
+  import ArtImage from '../art/ArtImage.svelte';
+  import { artMeta } from '../art/meta';
+  import { artUrl, type ArtId } from '../art/registry';
+  import AppHeader from '../components/common/AppHeader.svelte';
+  import Unseen from '../components/common/Unseen.svelte';
   import DistrictNode from '../components/map/DistrictNode.svelte';
   import SetOutSheet from '../components/map/SetOutSheet.svelte';
   import { DISTRICT_UI } from '../districts';
@@ -16,6 +22,40 @@
   const freshOnArrival = new Set<DistrictId>(game.profile.city.fresh);
   const nodes = $derived(mapNodes(game.profile).map((n) => ({ ...n, fresh: freshOnArrival.has(n.id) })));
   const paths = $derived(mapPaths(nodes));
+  const marks = $derived(frontierMarks(game.profile));
+  // One transform for every layer (UT-D8): the plate, each ink crop, the paths and the marks are
+  // placed in percents of the node layer, which is its real width x MAP_PAGE_HEIGHT. A crop's
+  // bbox is in 750x3800 master pixels, so the same percents hold at 375, 430 and the 480 column.
+  const PLATE_W = 750;
+  const PLATE_H = 3800;
+  interface Crop {
+    id: DistrictId;
+    art: ArtId;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    fresh: boolean;
+  }
+  const crops = $derived(
+    nodes.flatMap((n): Crop[] => {
+      if (n.state !== 'open') return [];
+      const art: ArtId = `map/city/ink-${n.id}`;
+      const box = artUrl(art) ? artMeta(art)?.bbox : undefined;
+      if (!box) return [];
+      return [
+        {
+          id: n.id,
+          art,
+          left: (box.x / PLATE_W) * 100,
+          top: (box.y / PLATE_H) * 100,
+          width: (box.w / PLATE_W) * 100,
+          height: (box.h / PLATE_H) * 100,
+          fresh: n.fresh,
+        },
+      ];
+    }),
+  );
   const UnderNode = DISTRICT_UI.lowerSeam?.underNode;
   const UnderPages = DISTRICT_UI.inkedPage?.underPages;
   // Dev check only: `window.__lowerFloors = [...]` draws fixture floors under the Seam.
@@ -40,8 +80,12 @@
     if (!el) return;
     void tick().then(() => {
       el.scrollTop = el.scrollHeight;
-      const topFresh = [...freshOnArrival]
-        .map((id) => el.querySelector<HTMLElement>(`[data-testid="node-${id}"]`))
+      // The frontier: new ink, else a genuine frontier mark; the highest of them.
+      const topFresh = [
+        ...[...freshOnArrival].map((id) => `[data-testid="node-${id}"]`),
+        ...marks.map((m) => `[data-testid="frontier-${m.id}"]`),
+      ]
+        .map((q) => el.querySelector<HTMLElement>(q))
         .filter((e): e is HTMLElement => e !== null)
         .sort((a, b) => a.offsetTop - b.offsetTop)[0];
       topFresh?.scrollIntoView({ block: 'center' });
@@ -57,14 +101,32 @@
   }
 </script>
 
-<div class="map" data-testid="map">
-  <header>
-    <a class="back" href={href('study')} data-testid="map-back">&larr; The study</a>
-    <h1>{MAP_HEADING}</h1>
-  </header>
+<div class="map" data-testid="map" data-world="city">
+  <AppHeader variant="city" title={MAP_HEADING}>
+    {#snippet crest()}
+      <a class="back" href={href('study')} data-testid="map-back">&larr; Study</a>
+    {/snippet}
+  </AppHeader>
   <div class="scroll" bind:this={scroller}>
     <div class="page" style:height="{pageHeight}px">
       <div class="layer" style:height="{MAP_PAGE_HEIGHT}px">
+        <div class="plate" aria-hidden="true" data-testid="map-plate">
+          <ArtImage id="map/city/halvemeer" fit="cover" />
+        </div>
+        {#each crops as c (c.id)}
+          <div
+            class="ink"
+            class:fresh={c.fresh}
+            data-testid={`ink-${c.id}`}
+            style:left="{c.left}%"
+            style:top="{c.top}%"
+            style:width="{c.width}%"
+            style:height="{c.height}%"
+            aria-hidden="true"
+          >
+            <ArtImage id={c.art} fit="cover" />
+          </div>
+        {/each}
         <svg class="paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           {#each paths as p (p.id)}
             <line
@@ -73,10 +135,16 @@
               x2={p.x2}
               y2={p.y2}
               class:dashed={!p.open}
+              class:fresh={freshOnArrival.has(p.id as DistrictId)}
               vector-effect="non-scaling-stroke"
             />
           {/each}
         </svg>
+        {#each marks as m (m.id)}
+          <span class="frontier" style:left="{m.x}%" style:top="{m.y}%" data-testid={`frontier-${m.id}`}>
+            <Unseen shape="chip" />
+          </span>
+        {/each}
         {#each nodes as n (n.id)}
           {#if n.id === 'seam'}
             <DistrictNode node={n} onopen={() => (target = n.id)} onsheet={() => (sheetOf = n.id)} under={underSeamSlot} />
@@ -123,42 +191,28 @@
   .map {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
     box-sizing: border-box;
     height: 100%;
-    padding: var(--space-3);
-    padding-top: calc(var(--space-3) + var(--safe-top));
+    padding-top: var(--safe-top);
     background: var(--wall);
     overflow-x: hidden;
   }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-  }
-  h1 {
-    margin: 0;
-    font-family: var(--hand);
-    font-size: 20px;
-    line-height: 1.1;
-    text-align: right;
-    font-weight: normal;
-    color: var(--parchment);
-  }
   .back {
-    flex: none;
-    white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    min-height: var(--tap);
-    color: var(--parchment);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-1);
+    white-space: nowrap;
+    color: inherit;
     text-decoration: none;
   }
   /* The page is taller than the screen: the Seam sits low and the districts climb above it. */
   .scroll {
     flex: 1;
     min-height: 0;
+    box-sizing: border-box;
+    padding: var(--space-2) var(--space-3) var(--space-3);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -174,11 +228,35 @@
   .layer {
     position: relative;
   }
+  /* Base plate: the node layer's real width x 1900 px, whatever the width (stretched, not cropped). */
+  .plate,
+  .ink {
+    position: absolute;
+    pointer-events: none;
+  }
+  .plate {
+    inset: 0;
+  }
+  .plate :global(img),
+  .ink :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill !important;
+  }
+  .ink.fresh {
+    animation: ink-in var(--dur-base) ease-out;
+  }
   .paths {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+  .frontier {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   line {
     stroke: var(--ink);
@@ -188,5 +266,19 @@
   line.dashed {
     stroke: var(--ink-faint);
     stroke-dasharray: 3 6;
+  }
+  line.fresh {
+    animation: ink-in var(--dur-base) ease-out;
+  }
+  @keyframes ink-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ink.fresh,
+    line.fresh {
+      animation: none;
+    }
   }
 </style>
