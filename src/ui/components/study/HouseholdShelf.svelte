@@ -7,6 +7,7 @@
   import Button from '../common/Button.svelte';
   import Sheet from '../common/Sheet.svelte';
   import ApprenticeFull from './ApprenticeFull.svelte';
+  import ApprenticePortrait from './ApprenticePortrait.svelte';
   import { type DropTarget, drag, dragCard } from './drag.svelte';
   import SeatCard from './SeatCard.svelte';
 
@@ -71,7 +72,7 @@
 </script>
 
 <div class="sheets">
-  <Sheet open={show} title="The household" {onclose}>
+  <Sheet open={show} title="The household" size="tall" {onclose}>
     <p class="hint">Three go out. {locked ? TRIP_LOCK : 'Hold a card and drag it onto a seat.'}</p>
     <section class="row" style:--n={seats.length} aria-label="Seats" data-testid="shelf">
       {#each seats as id, i (i)}
@@ -106,7 +107,7 @@
               aria-label="{c.def.name}, {c.def.hp} HP. About them"
               onclick={() => (sheet = id)}
             >
-              <ApprenticeToken def={c.def} size={30} />
+              <ApprenticePortrait def={c.def} size={96} />
               <span class="tname">{c.def.name}</span>
               <span class="tstats">{c.def.hp} · {c.def.move}</span>
             </button>
@@ -154,8 +155,8 @@
     outline-offset: 2px;
   }
   .tiles {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     margin: 0;
     padding: 0;
@@ -170,9 +171,9 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    width: 76px;
-    min-height: 84px;
-    padding: 6px 2px;
+    width: 100%;
+    min-height: 150px;
+    padding: 4px;
     border: 2px solid var(--c);
     border-radius: var(--radius);
     background: var(--parchment);
@@ -182,14 +183,14 @@
   .tname {
     max-width: 100%;
     overflow: hidden;
-    font-size: 12px;
+    font-size: var(--type-xs);
     font-weight: bold;
     color: var(--c);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .tstats {
-    font: 11px var(--mono);
+    font-size: var(--type-xs);
     color: var(--ink-soft);
   }
   .lock {

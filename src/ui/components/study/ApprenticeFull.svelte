@@ -1,10 +1,10 @@
 <script lang="ts">
   import { game } from '../../../app/instance';
   import { ACTION_INFO, type CardView } from '../../../app/study';
-  import ApprenticeToken from '../common/ApprenticeToken.svelte';
   import Button from '../common/Button.svelte';
   import HabitFinePrint from '../common/HabitFinePrint.svelte';
   import ActionIcon from './ActionIcon.svelte';
+  import ApprenticePortrait from './ApprenticePortrait.svelte';
 
   interface Props {
     card: CardView;
@@ -22,7 +22,7 @@
 
 <article class="full" style:--c="var(--hue-{def.look.hue})" data-testid="card-{def.id}">
   <header>
-    <ApprenticeToken {def} size={34} />
+    <ApprenticePortrait {def} size={64} />
     <div class="who">
       <h3>{def.name}, <span class="trade">the {def.trade}</span></h3>
       <span class="where">{seated ? `In seat ${(card.slot ?? 0) + 1}` : 'On the bench'}</span>
@@ -69,7 +69,7 @@
     {/if}
   </dl>
   <footer>
-    <Button variant="quiet" label="Open page" onclick={onopen} testid="open-{def.id}" />
+    <Button label="Open page" onclick={onopen} testid="open-{def.id}" />
     {#if seated}
       <Button
         variant="quiet"
@@ -79,7 +79,7 @@
         testid="home-{def.id}"
       />
     {:else}
-      <Button label="Bring" disabled={lock !== null} onclick={onbring} testid="bring-{def.id}" />
+      <Button variant="quiet" label="Bring" disabled={lock !== null} onclick={onbring} testid="bring-{def.id}" />
     {/if}
   </footer>
   {#if lock}<p class="lock">{lock}</p>{/if}

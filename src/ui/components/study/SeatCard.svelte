@@ -1,8 +1,9 @@
 <script lang="ts">
   import type { ApprenticeId } from '$data';
   import type { CardView } from '../../../app/study';
-  import ApprenticeToken from '../common/ApprenticeToken.svelte';
+  import Unseen from '../common/Unseen.svelte';
   import ActionIcon from './ActionIcon.svelte';
+  import ApprenticePortrait from './ApprenticePortrait.svelte';
   import { type DropTarget, dragCard } from './drag.svelte';
 
   interface Props {
@@ -44,7 +45,7 @@
       use:dragCard={{ id: def.id, ondrop }}
       onclick={() => onopen(def.id)}
     >
-      <ApprenticeToken {def} size={24} />
+      <ApprenticePortrait {def} size={96} />
       <span class="name">{def.name}</span>
       <span class="trade">{def.trade}</span>
       <span class="stats">
@@ -62,9 +63,8 @@
       <span aria-hidden="true">i</span>
     </button>
   {:else}
-    <button type="button" class="face blank" onclick={onfill} data-testid="seat-{seat}-fill">
-      <span class="plus" aria-hidden="true">+</span>
-      <span class="name">Empty seat</span>
+    <button type="button" class="face blank" aria-label="Empty seat" onclick={onfill} data-testid="seat-{seat}-fill">
+      <Unseen shape="silhouette" label="Empty seat" />
     </button>
   {/if}
 </div>
@@ -87,8 +87,8 @@
   }
   .seat.empty {
     border-style: dashed;
-    border-color: rgba(241, 230, 204, 0.4);
-    background: rgba(0, 0, 0, 0.22);
+    border-color: var(--ink-faint);
+    background: transparent;
     box-shadow: none;
   }
   .seat.over {
@@ -99,15 +99,15 @@
   .face {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 2px;
     width: 100%;
-    min-height: 78px;
-    padding: 6px 4px;
+    min-height: 150px;
+    padding: 4px;
     border: 0;
     background: none;
     color: var(--ink);
-    text-align: left;
+    text-align: center;
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
@@ -116,7 +116,7 @@
   .trade {
     max-width: 100%;
     overflow: hidden;
-    font-size: 9px;
+    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
     opacity: 0.75;
@@ -134,25 +134,17 @@
   .stats {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 4px;
     width: 100%;
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--ink-soft);
     white-space: nowrap;
   }
   .blank {
     align-items: center;
     justify-content: center;
-    color: rgba(241, 230, 204, 0.75);
-  }
-  .blank .name {
-    font-weight: normal;
-    color: inherit;
-  }
-  .plus {
-    font-size: 22px;
-    line-height: 1;
+    color: var(--ink-faint);
   }
   .info {
     position: absolute;
