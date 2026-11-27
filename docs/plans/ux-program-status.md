@@ -20,7 +20,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 |---|---|---|---|---|
 | UH-0 | UH-0 home kit | Sonnet high | build/pack-uh0 @ 1eb8997 | running (sid 2f793f3a3b8a) |
 | UF-D2 | UF-15a/b/f fixtures | Sonnet high | build/pack-ufd2 @ 5370c14 | running (sid e8e65abfb716) |
-| UF-D1 | UF-14a/b/c fixtures | Sonnet high | build/pack-ufd1 @ 46680f3 | RESUMED 2026-11-27 (sid bc21a71bb6c0); will conflict with D2/D3 in src/app/dev/{fixtures,recipes}.ts: merge by hand (keep both sides, union imports) |
+| UF-D1 | UF-14a/b/c fixtures (19) | Sonnet high | build/pack-ufd1, rebase onto main in progress (sid 24f1d3d18a66) | done; apply /tmp/pack-ufd1-rebased.mbox with git am when the rebase agent reports. Pending todo: threshold-canals intro stage (UT-6); wipe fixtures show the old Wiped screen until UT-9 |
 
 | UH-B | UH-3→UH-5 lattice page/drawer | Sonnet high | build/pack-uhb @ c461097 | running (sid ac77b309ea0b); UH-3 first: FT-25 waits for it |
 | UA-D | UA-10, UA-11 Seam fight art (36 assets) | Codex Sol high (images only) | art/seam-fight in clone codex-2350314665 | running (sid e589253d50f6); orchestrator uploads raws from /tmp/seam-fight-work/raw |
