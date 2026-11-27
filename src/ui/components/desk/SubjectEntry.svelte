@@ -2,6 +2,7 @@
   import type { MethodId, RuneId, SolventId } from '$data';
   import type { SubjectRow } from '../../../app/desk';
   import { METHOD_ART } from '../../runeArt';
+  import Pips from '../common/Pips.svelte';
   import RuneGlyph from '../RuneGlyph.svelte';
   import SolventIcon from '../SolventIcon.svelte';
 
@@ -12,7 +13,6 @@
   }
 
   let { row, open, ontoggle }: Props = $props();
-  const LEVELS = ['I', 'II', 'III'];
 </script>
 
 <button
@@ -43,11 +43,7 @@
   </span>
   <span class="body">
     <span class="name">{row.name}</span>
-    <span class="pips" role="img" aria-label="Level {row.level} of 3">
-      {#each LEVELS as numeral, i (numeral)}
-        <span class="pip" class:on={i < row.level}>{numeral}</span>
-      {/each}
-    </span>
+    <span class="pips"><Pips value={row.level} max={3} tone="ink" /></span>
     <span class="points">
       {row.points} points{row.toNext === null ? '' : `, ${row.toNext} to the next level`}
     </span>
@@ -63,13 +59,13 @@
     align-items: center;
     gap: var(--space-2);
     width: 100%;
-    min-height: 56px;
+    height: 72px;
     padding: 6px var(--space-2);
     border: 2px solid var(--line);
     border-radius: var(--radius);
     background: var(--parchment-dark);
     color: var(--ink);
-    font: 15px Georgia, serif;
+    font: 15px var(--font-serif);
     text-align: left;
     cursor: pointer;
   }
@@ -102,22 +98,6 @@
   }
   .pips {
     display: inline-flex;
-    gap: 3px;
-  }
-  .pip {
-    min-width: 22px;
-    padding: 0 3px;
-    border: 1.5px solid var(--ink-faint);
-    border-radius: 4px;
-    font-size: 11px;
-    line-height: 16px;
-    text-align: center;
-    color: var(--ink-faint);
-  }
-  .pip.on {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--parchment);
   }
   .mark {
     flex: none;

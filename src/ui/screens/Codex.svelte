@@ -14,8 +14,8 @@
   import CodexHousehold from '../components/codex/CodexHousehold.svelte';
   import CodexIdiom from '../components/codex/CodexIdiom.svelte';
   import RivalPage from '../components/codex/RivalPage.svelte';
-  import HomeStrip from '../components/home/HomeStrip.svelte';
   import { nextTab } from '../components/codex/tabs';
+  import HomeStrip from '../components/home/HomeStrip.svelte';
   import RuneGlyph from '../components/RuneGlyph.svelte';
 
   const TABS = [
@@ -197,7 +197,7 @@
     font-size: 14px;
     font-variant: small-caps;
     letter-spacing: 0.04em;
-    color: var(--ink);
+    color: var(--parchment);
   }
   /* One scroll row; the edges fade where more tabs wait. */
   .tabs {

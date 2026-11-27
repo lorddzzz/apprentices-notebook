@@ -63,7 +63,7 @@
 
 <style>
   .frame {
-    padding: var(--space-2);
+    padding: var(--space-1);
     border: 2px solid var(--ink);
     border-radius: var(--radius);
     background: rgba(43, 33, 24, 0.05);
@@ -78,6 +78,7 @@
   }
   .head {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: var(--space-2);
     margin: 0 0 var(--space-1);
@@ -105,7 +106,7 @@
   }
   .pair {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: 1fr;
     gap: var(--space-2);
   }
   .variant {
@@ -119,7 +120,7 @@
     border-radius: var(--radius);
     background: var(--parchment-dark);
     color: var(--ink);
-    font: 13px/1.3 Georgia, serif;
+    font: 13px/1.3 var(--font-serif);
     text-align: left;
     cursor: pointer;
   }
@@ -132,8 +133,8 @@
     background: #f6e3b4;
   }
   .text {
-    font-family: var(--hand);
-    font-size: 15px;
+    font-family: var(--font-serif);
+    font-size: 14px;
     line-height: 1.2;
   }
   .credit {

@@ -5,22 +5,32 @@
   import { DeskStore } from '../../app/desk.svelte';
   import { game } from '../../app/instance';
   import { href } from '../../app/routes';
-  import BackLink from '../components/common/BackLink.svelte';
   import MarginColumn from '../components/desk/MarginColumn.svelte';
   import SubjectEntry from '../components/desk/SubjectEntry.svelte';
+  import HomeStrip from '../components/home/HomeStrip.svelte';
   import SolventIcon from '../components/SolventIcon.svelte';
 
   const desk = new DeskStore(game);
   const profile = $derived(desk.profile);
   const groups = $derived(deskGroups(deskRows(profile)));
+  const pot = $derived(groups.reduce((n, g) => n + g.rows.reduce((m, r) => m + r.points, 0), 0));
+  let filter = $state<'all' | 'rune' | 'method' | 'solvent'>('all');
+  const FILTERS = [
+    ['all', 'All'],
+    ['rune', 'Runes'],
+    ['method', 'Methods'],
+    ['solvent', 'Solvents'],
+  ] as const;
+  const shown = $derived(filter === 'all' ? groups : groups.filter((g) => g.kind === filter));
   const held = $derived(SOLVENT_IDS.filter((s) => profile.solvents[s] > 0));
 </script>
 
 <section class="desk" data-testid="desk">
-  <header>
-    <BackLink to="study" label="Study" />
-    <h1>The Desk</h1>
-  </header>
+  <HomeStrip
+    strip="scenes/home/desk-strip"
+    title="The Desk"
+    back={{ to: 'study', label: 'Study' }}
+  />
 
   <div class="leaf">
     {#if endingOf(profile).handover}
@@ -38,12 +48,21 @@
     {/if}
 
     {#if groups.length === 0}
-      <p class="empty" data-testid="desk-empty">
-        Nothing to footnote yet. A rune, method or solvent earns a point each time one of its lines
-        plays out in a fight. Come back after a trip.
-      </p>
+      <p class="empty" data-testid="desk-empty">Nothing to footnote yet. Come back after a trip.</p>
     {:else}
-      {#each groups as group (group.kind)}
+      <p class="pot" data-testid="desk-pot">Points earned <b>{pot}</b></p>
+      <nav class="filters" aria-label="Show">
+        {#each FILTERS as [id, name] (id)}
+          <button
+            type="button"
+            class:on={filter === id}
+            aria-pressed={filter === id}
+            data-testid="desk-filter-{id}"
+            onclick={() => (filter = id)}>{name}</button
+          >
+        {/each}
+      </nav>
+      {#each shown as group (group.kind)}
         <h2 data-testid="desk-group-{group.kind}">{KIND_LABEL[group.kind]}</h2>
         <ul class="subjects">
           {#each group.rows as row (row.subject)}
@@ -76,19 +95,39 @@
     background: var(--parchment);
     overflow: hidden;
   }
-  header {
-    flex: none;
-    display: flex;
-    align-items: center;
-    padding-right: var(--space-3);
-    border-bottom: 2px solid var(--ink);
-    background: var(--parchment-dark);
+  .pot {
+    margin: 0 var(--space-1) var(--space-1);
+    font-size: 15px;
+    font-variant: small-caps;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
   }
-  h1 {
-    margin: 0 auto;
+  .pot b {
     font-size: 20px;
-    font-weight: normal;
-    letter-spacing: 0.03em;
+    color: var(--ink);
+  }
+  .filters {
+    display: flex;
+    gap: var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .filters button {
+    flex: none;
+    min-height: var(--tap);
+    padding: 0 2px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    font: 15px var(--font-serif);
+    font-variant: small-caps;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .filters button.on {
+    border-bottom-color: var(--accent);
+    color: var(--ink);
   }
   h2 {
     margin: var(--space-3) var(--space-1) var(--space-1);
@@ -144,7 +183,8 @@
   }
   .empty {
     margin: var(--space-3) var(--space-1);
-    font-family: var(--hand);
+    font-family: var(--font-serif);
+    font-style: italic;
     font-size: 18px;
     line-height: 1.3;
     color: var(--ink-soft);
