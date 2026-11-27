@@ -1,8 +1,8 @@
 <script lang="ts">
   import { ENEMIES } from '$data';
   import type { BoardView } from '../../../app/view';
-  import type { BoardLayerSlot } from '..';
   import { cellCenter, cellOrigin } from '../../components/board/geometry';
+  import type { BoardLayerSlot } from '..';
   import { crackedTiles, hasBridges } from './board';
   import { carryArrow, chalkOf, perimeter } from './view';
 

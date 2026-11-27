@@ -96,12 +96,12 @@
         stroke-dasharray="0.1 13"
       />
     {:else if h.kind === 'hurt'}
-      <!-- A party member the previewed action would hurt (D3): the cell edge, plus a corner mark clear of the figure, its HP (bottom centre) and the intent badge (top left). -->
+      <!-- A party member the previewed action would hurt (D3): the cell edge, plus a mark in the top-right corner, clear of the figure, its HP row (bottom) and the intent order badge (top left). -->
       {@const o = cellOrigin(h.at)}
-      <g data-state="hurt" data-corner="bottom-right">
+      <g data-state="hurt" data-corner="top-right">
         <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="var(--danger-tint)" stroke="var(--overlay-danger)" stroke-width="5" stroke-dasharray="3 9" stroke-linecap="round" />
-        <circle cx={o.x + 84} cy={o.y + 84} r="13" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3" />
-        <path d="M{o.x + 84} {o.y + 77}v8m0 4v1" stroke="#fff" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx={o.x + 84} cy={o.y + 16} r="13" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3" />
+        <path d="M{o.x + 84} {o.y + 9}v8m0 4v1" stroke="#fff" stroke-width="3.5" stroke-linecap="round" />
       </g>
     {:else if h.kind === 'district'}
       {@const Art = highlightArtFor(h.key)}

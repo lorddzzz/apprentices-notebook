@@ -23,6 +23,11 @@
         : [],
     ),
   );
+
+  // A cloud over a figure thins so the figure, its side rim and its face stay readable (FT-D10 gate).
+  const standing = $derived(new Set(view.units.filter((u) => u.alive).map((u) => `${u.pos.x},${u.pos.y}`)));
+  const thin = (at: { x: number; y: number }, full: number): number =>
+    standing.has(`${at.x},${at.y}`) ? full * 0.6 : full;
 </script>
 
 <g pointer-events="none">
@@ -31,7 +36,7 @@
     <g transform="translate({o.x} {o.y})" data-state={c.id}>
       {#if c.id === 'bank'}
         <!-- Bank: a thick bank of cloud with a bolt in its belly -->
-        <g fill="var(--m-steam)" opacity="0.85" stroke="var(--ink-soft)" stroke-opacity="0.6" stroke-width="3">
+        <g fill="var(--m-steam)" opacity={thin(c.at, 0.85)} stroke="var(--ink-soft)" stroke-opacity="0.6" stroke-width="3">
           <circle cx="26" cy="62" r="22" />
           <circle cx="74" cy="62" r="22" />
           <circle cx="50" cy="66" r="24" />
@@ -41,7 +46,7 @@
         </g>
         <path d="M54 30 38 56h12l-6 20 20-28H52z" fill="var(--m-spark)" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" />
       {:else}
-        <g fill="var(--m-steam)" opacity="0.62" stroke="#fff" stroke-opacity="0.55" stroke-width="2">
+        <g fill="var(--m-steam)" opacity={thin(c.at, 0.62)} stroke="#fff" stroke-opacity="0.55" stroke-width="2">
           <circle cx="34" cy="58" r="25" />
           <circle cx="64" cy="60" r="24" />
           <circle cx="50" cy="38" r="26" />

@@ -105,10 +105,10 @@ describe('previews', () => {
     }).body;
     const hurt = body.match(/<g data-state="hurt"[^>]*>[\s\S]*?<\/g>/);
     expect(hurt).not.toBeNull();
-    // In the bottom-right corner of Pell's cell (B1: x 100..200, y 0..100), danger red.
-    expect(hurt?.[0]).toContain('data-corner="bottom-right"');
+    // In the top-right corner of Pell's cell (B1: x 100..200, y 0..100), danger red.
+    expect(hurt?.[0]).toContain('data-corner="top-right"');
     expect(hurt?.[0]).toContain('cx="184"');
-    expect(hurt?.[0]).toContain('cy="84"');
+    expect(hurt?.[0]).toContain('cy="16"');
     expect(hurt?.[0]).toContain('var(--overlay-danger)');
     // Masked: nothing about the cause or the amount is drawn.
     expect(overlay.badges).toEqual([]);
