@@ -46,10 +46,10 @@
   {#each highlights as h, i (i)}
     {#if h.kind === 'reach'}
       {@const c = cellCenter(h.at)}
-      <circle cx={c.x} cy={c.y} r="15" fill="var(--reach)" stroke="var(--member-draughtsman)" stroke-width="3" />
+      <circle cx={c.x} cy={c.y} r="15" fill="var(--overlay-reach)" stroke="var(--member-draughtsman)" stroke-width="3" />
     {:else if h.kind === 'aim'}
       {@const o = cellOrigin(h.at)}
-      <rect data-state={h.habit ? 'aim-habit' : 'aim'} x={o.x + 3} y={o.y + 3} width="94" height="94" rx="6" fill={h.habit ? 'var(--habit)' : 'var(--reach)'} opacity={h.habit ? 0.45 : 0.4} />
+      <rect data-state={h.habit ? 'aim-habit' : 'aim'} x={o.x + 3} y={o.y + 3} width="94" height="94" rx="6" fill={h.habit ? 'var(--habit)' : 'var(--overlay-reach)'} opacity={h.habit ? 0.45 : 0.4} />
       {#if h.chevron}
         <polyline
           points={pointsAttr(chevron(h.at, h.chevron))}
@@ -62,7 +62,7 @@
       {/if}
     {:else if h.kind === 'target'}
       {@const o = cellOrigin(h.at)}
-      <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="none" stroke="var(--danger)" stroke-width="6" />
+      <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="none" stroke="var(--overlay-danger)" stroke-width="6" />
     {:else if h.kind === 'effect'}
       {@const o = cellOrigin(h.at)}
       <rect
@@ -96,9 +96,13 @@
         stroke-dasharray="0.1 13"
       />
     {:else if h.kind === 'hurt'}
-      <!-- A party member the previewed action would hurt (D3). -->
-      {@const c = cellCenter(h.at)}
-      <circle data-state="hurt" cx={c.x} cy={c.y - 6} r="44" fill="var(--danger)" fill-opacity="0.18" stroke="var(--danger)" stroke-width="7" />
+      <!-- A party member the previewed action would hurt (D3): the cell edge, plus a corner mark clear of the figure, its HP (bottom centre) and the intent badge (top left). -->
+      {@const o = cellOrigin(h.at)}
+      <g data-state="hurt" data-corner="bottom-right">
+        <rect x={o.x + 4} y={o.y + 4} width="92" height="92" rx="6" fill="var(--danger-tint)" stroke="var(--overlay-danger)" stroke-width="5" stroke-dasharray="3 9" stroke-linecap="round" />
+        <circle cx={o.x + 84} cy={o.y + 84} r="13" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3" />
+        <path d="M{o.x + 84} {o.y + 77}v8m0 4v1" stroke="#fff" stroke-width="3.5" stroke-linecap="round" />
+      </g>
     {:else if h.kind === 'district'}
       {@const Art = highlightArtFor(h.key)}
       {#if Art}<Art at={h.at} to={h.to} data={h.data} />{/if}

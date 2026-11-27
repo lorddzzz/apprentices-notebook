@@ -10,7 +10,7 @@
 
   type TileShape = Extract<PreviewShape, { kind: 'tile' }>;
   const TONE: Record<TileShape['tone'], string> = {
-    warn: 'var(--danger)',
+    warn: 'var(--overlay-danger)',
     cracked: 'var(--ink-soft)',
     falls: 'var(--ink)',
     drawn: 'var(--m-ink)',
@@ -49,11 +49,11 @@
         {@const o = cellOrigin(sh.to)}
         {@const b = cellCenter(sh.to)}
         <g data-shape="float">
-          <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--m-oil)" stroke-width="5" stroke-dasharray="3 11" stroke-linecap="round" opacity="0.8" />
-          <rect x={o.x + 10} y={o.y + 10} width="80" height="80" rx="12" fill="var(--m-oil)" fill-opacity="0.18" stroke="var(--m-oil)" stroke-width="5" stroke-dasharray="10 8" />
+          <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--overlay-preview)" stroke-width="5" stroke-dasharray="3 11" stroke-linecap="round" opacity="0.8" />
+          <rect x={o.x + 10} y={o.y + 10} width="80" height="80" rx="12" fill="var(--overlay-preview)" fill-opacity="0.18" stroke="var(--overlay-preview)" stroke-width="5" stroke-dasharray="10 8" />
         </g>
       {:else}
-        <circle data-shape="float" cx={a.x} cy={a.y} r="22" fill="none" stroke="var(--m-oil)" stroke-width="5" stroke-dasharray="4 8" opacity="0.8" />
+        <circle data-shape="float" cx={a.x} cy={a.y} r="22" fill="none" stroke="var(--overlay-preview)" stroke-width="5" stroke-dasharray="4 8" opacity="0.8" />
       {/if}
     {:else if sh.kind === 'ghost'}
       <!-- A unit the current carries (the crate included): a trail to its next tile; the ghost token is BadgeLayer's. -->
@@ -65,7 +65,7 @@
       {@const ux = dx / len}
       {@const uy = dy / len}
       {@const tip = { x: b.x - ux * 36, y: b.y - uy * 36 }}
-      <g data-shape="ghost-trail" stroke="var(--m-oil)" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9">
+      <g data-shape="ghost-trail" stroke="var(--overlay-preview)" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9">
         <line x1={a.x + ux * 38} y1={a.y + uy * 38} x2={tip.x} y2={tip.y} stroke-width="5" stroke-dasharray="3 11" />
         <path d="M{tip.x - ux * 18 - uy * 16} {tip.y - uy * 18 + ux * 16}L{tip.x + ux * 4} {tip.y + uy * 4}L{tip.x - ux * 18 + uy * 16} {tip.y - uy * 18 - ux * 16}" stroke-width="6" />
       </g>
@@ -101,7 +101,7 @@
       </g>
     {:else if sh.kind === 'pulse'}
       {@const c = cellCenter(sh.at)}
-      <g data-shape="pulse" fill="none" stroke="var(--danger)" stroke-linecap="round">
+      <g data-shape="pulse" fill="none" stroke="var(--overlay-danger)" stroke-linecap="round">
         <circle cx={c.x} cy={c.y} r="18" stroke-width="6" />
         <circle cx={c.x} cy={c.y} r="34" stroke-width="4" stroke-dasharray="5 9" opacity="0.8" />
         <circle cx={c.x} cy={c.y} r="46" stroke-width="3" stroke-dasharray="3 11" opacity="0.55" />

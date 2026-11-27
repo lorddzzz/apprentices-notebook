@@ -1,14 +1,15 @@
 <script lang="ts">
   import { ENEMIES } from '$data';
   import type { BoardView } from '../../../app/view';
+  import type { BoardLayerSlot } from '..';
   import { cellCenter, cellOrigin } from '../../components/board/geometry';
   import { crackedTiles, hasBridges } from './board';
   import { carryArrow, chalkOf, perimeter } from './view';
 
   interface Props {
     view: BoardView;
-    /** `under` (fog, outlines, telegraphs) goes beneath the tokens; `badges` above them. */
-    layer: 'under' | 'badges';
+    /** `under` (the fog: a surface piece) goes beneath the figures; `badges` above them; `signals` (tactical: fracture perimeter, chalk, carry arrow) in the overlay group, above every figure. */
+    layer: BoardLayerSlot;
   }
 
   let { view, layer }: Props = $props();
@@ -34,9 +35,10 @@
 </script>
 
 <!--
-  The bridges' board marks (BR-14). Under the tokens: fog over every fallen tile, a dashed outline
+  The bridges' board marks (BR-14), split by role (FT-D10). Surface piece, under the figures: fog
+  over every fallen tile. Tactical signals, in the overlay group above every figure: a dashed outline
   round each cracked section (the section that will fall at dusk), the Warden's chalk circle on its
-  victim and the Gargoyle's carry arrow. Above them: a badge on each unit standing on a crack.
+  victim and the Gargoyle's carry arrow. Badges, above the figures: a mark on each unit standing on a crack.
 -->
 {#if bridged}
   <g pointer-events="none" data-layer="bridges-{layer}">
@@ -52,10 +54,10 @@
           </g>
         </g>
       {/each}
-
+    {:else if layer === 'signals'}
       {#if cracked.length > 0}
         <path d={perimeter(cracked)} fill="none" stroke="var(--parchment)" stroke-width="11" stroke-linecap="round" opacity="0.9" />
-        <path d={perimeter(cracked)} fill="none" stroke="var(--danger)" stroke-width="6" stroke-dasharray="14 9" stroke-linecap="round" data-outline="cracked" />
+        <path d={perimeter(cracked)} fill="none" stroke="var(--overlay-danger)" stroke-width="6" stroke-dasharray="14 9" stroke-linecap="round" data-outline="cracked" />
       {/if}
 
       {#each circles as c (c.id)}
@@ -71,16 +73,16 @@
         {@const a = carryArrow(c.from, c.to)}
         <g data-carry={c.id}>
           <path d={a.line} fill="none" stroke="var(--parchment)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
-          <path d={a.line} fill="none" stroke="var(--danger)" stroke-width="8" stroke-linecap="round" stroke-dasharray="3 14" />
+          <path d={a.line} fill="none" stroke="var(--overlay-danger)" stroke-width="8" stroke-linecap="round" stroke-dasharray="3 14" />
           <path d={a.head} fill="none" stroke="var(--parchment)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
-          <path d={a.head} fill="none" stroke="var(--danger)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+          <path d={a.head} fill="none" stroke="var(--overlay-danger)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
         </g>
       {/each}
-    {:else}
+    {:else if layer === 'badges'}
       {#each standing as u (u.id)}
         {@const o = cellOrigin(u.pos)}
         <g data-fall-badge={u.id} transform="translate({o.x + 83} {o.y + 17})">
-          <circle r="15" fill="var(--danger)" stroke="var(--parchment)" stroke-width="3.5" />
+          <circle r="15" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3.5" />
           <path d="M-8 -5L0 4L8 -5M-8 3L0 12L8 3" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" transform="scale(0.75) translate(0 -3)" />
         </g>
       {/each}

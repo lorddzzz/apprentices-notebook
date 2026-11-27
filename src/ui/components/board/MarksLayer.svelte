@@ -21,23 +21,23 @@
         {#if m.kind === 'summon'}
           {@const o = cellOrigin(m.at)}
           {@const to = cellCenter(m.at)}
-          <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="var(--lamp)" stroke-width="7" stroke-dasharray="4 14" stroke-linecap="round" />
-          <rect x={o.x + 3} y={o.y + 3} width="94" height="94" rx="10" fill="var(--lamp)" opacity="0.4" />
-          <circle cx={to.x} cy={to.y - 18} r="30" fill="none" stroke="var(--lamp)" stroke-width="6" class="pulse" />
+          <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="var(--overlay-danger)" stroke-width="7" stroke-dasharray="4 14" stroke-linecap="round" />
+          <rect x={o.x + 3} y={o.y + 3} width="94" height="94" rx="10" fill="var(--overlay-danger)" opacity="0.4" />
+          <circle cx={to.x} cy={to.y - 18} r="30" fill="none" stroke="var(--overlay-danger)" stroke-width="6" class="pulse" />
         {:else}
           {#each m.targets as t (`${t.x},${t.y}`)}
             {@const c = cellCenter(t)}
-            <circle cx={c.x} cy={c.y - 8} r="40" fill="var(--danger-tint)" stroke="var(--danger)" stroke-width="5" stroke-dasharray="10 7" />
+            <circle cx={c.x} cy={c.y - 8} r="40" fill="var(--danger-tint)" stroke="var(--overlay-danger)" stroke-width="5" stroke-dasharray="10 7" />
           {/each}
         {/if}
       {:else}
         {@const b = { x: cellOrigin(m.from).x + 16, y: cellOrigin(m.from).y + 16 }}
         {#if m.kind === 'flare'}
           {#each m.targets as t (`${t.x},${t.y}`)}
-            <path d={STAR} transform="translate({cellOrigin(t).x + 82} {cellOrigin(t).y + 22}) scale(0.8)" fill="var(--danger)" stroke="var(--parchment)" stroke-width="3" />
+            <path d={STAR} transform="translate({cellOrigin(t).x + 82} {cellOrigin(t).y + 22}) scale(0.8)" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3" />
           {/each}
         {/if}
-        <circle cx={b.x} cy={b.y} r="16" fill={m.kind === 'summon' ? 'var(--lamp)' : 'var(--danger)'} stroke="var(--parchment)" stroke-width="3" />
+        <circle cx={b.x} cy={b.y} r="16" fill={m.kind === 'summon' ? 'var(--overlay-danger)' : 'var(--overlay-danger)'} stroke="var(--parchment)" stroke-width="3" />
         <text x={b.x} y={b.y + 9} text-anchor="middle" font-size="24" font-weight="bold" fill={m.kind === 'summon' ? 'var(--ink)' : '#fff'} font-family="var(--mono)">{m.order}</text>
       {/if}
     </g>

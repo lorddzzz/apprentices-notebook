@@ -9,7 +9,7 @@
 
   let { view }: Props = $props();
 
-  // A jar sits in the corner of its tile, over whoever stands there: owner's colour, a rune peek.
+  // A jar sits on the left edge of its tile, above the HP row (y 72+) and below the intent badge, over whoever stands there: owner's colour, a rune peek.
   const JAR = 'M10 3h18v6c7 3 10 8 10 15v7c0 4-3 7-7 7H7c-4 0-7-3-7-7v-7c0-7 3-12 10-15z';
   // 'step': a footfall chevron; 'dusk': a crescent.
   const STEP = 'M-5-2 0 3 5-2';
@@ -28,7 +28,7 @@
   {#each jars as { jar, at } (`${at.x},${at.y}`)}
     {@const o = cellOrigin(at)}
     {@const peek = runePath(jar.peek)}
-    <g transform="translate({o.x + 3} {o.y + 57})" data-state="jar" data-owner={jar.owner} data-event={jar.event}>
+    <g transform="translate({o.x + 3} {o.y + 32})" data-state="jar" data-owner={jar.owner} data-event={jar.event}>
       <path d={JAR} fill="var(--member-{jar.owner}, var(--ink-soft))" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" />
       <rect x="8" y="-1" width="22" height="6" rx="2.5" fill="var(--parchment)" stroke="var(--ink)" stroke-width="2.5" />
       {#if peek}

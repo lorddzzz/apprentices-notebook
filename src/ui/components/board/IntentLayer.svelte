@@ -42,17 +42,17 @@
             y1={arrow.tail.y}
             x2={base.x}
             y2={base.y}
-            stroke="var(--danger)"
+            stroke="var(--overlay-danger)"
             stroke-width={d.emphasis === 'strong' ? 10 : 7}
             stroke-linecap="round"
             stroke-dasharray={d.blocked ? '14 10' : undefined}
           />
-          <polygon points={pointsAttr(arrow.head)} fill="var(--danger)" stroke="var(--danger)" stroke-width="3" stroke-linejoin="round" />
+          <polygon points={pointsAttr(arrow.head)} fill="var(--overlay-danger)" stroke="var(--overlay-danger)" stroke-width="3" stroke-linejoin="round" />
         {:else if minimal}
           <polyline
             points={pointsAttr(chevron(d.from, d.dir))}
             fill="none"
-            stroke="var(--danger)"
+            stroke="var(--overlay-danger)"
             stroke-width="9"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -60,9 +60,9 @@
         {/if}
       {:else}
         {#if d.attack === 'burst'}
-          <path d="M{badge.x} {badge.y - 22}L{badge.x + 6} {badge.y - 8}L{badge.x + 21} {badge.y - 12}L{badge.x + 12} {badge.y}L{badge.x + 21} {badge.y + 12}L{badge.x + 6} {badge.y + 8}L{badge.x} {badge.y + 22}L{badge.x - 6} {badge.y + 8}L{badge.x - 21} {badge.y + 12}L{badge.x - 12} {badge.y}L{badge.x - 21} {badge.y - 12}L{badge.x - 6} {badge.y - 8}z" fill="var(--danger)" stroke="var(--parchment)" stroke-width="3" stroke-linejoin="round" />
+          <path d="M{badge.x} {badge.y - 22}L{badge.x + 6} {badge.y - 8}L{badge.x + 21} {badge.y - 12}L{badge.x + 12} {badge.y}L{badge.x + 21} {badge.y + 12}L{badge.x + 6} {badge.y + 8}L{badge.x} {badge.y + 22}L{badge.x - 6} {badge.y + 8}L{badge.x - 21} {badge.y + 12}L{badge.x - 12} {badge.y}L{badge.x - 21} {badge.y - 12}L{badge.x - 6} {badge.y - 8}z" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3" stroke-linejoin="round" />
         {:else}
-          <circle cx={badge.x} cy={badge.y} r="16" fill="var(--danger)" stroke="var(--parchment)" stroke-width="3" />
+          <circle cx={badge.x} cy={badge.y} r="16" fill="var(--overlay-danger)" stroke="var(--parchment)" stroke-width="3" />
         {/if}
         <text x={badge.x} y={badge.y + 9} text-anchor="middle" font-size="24" font-weight="bold" fill="#fff" font-family="var(--mono)">{d.order}</text>
       {/if}

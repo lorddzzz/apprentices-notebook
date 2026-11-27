@@ -16,7 +16,7 @@
 
   let { badges, ghosts, occupied = [] }: Props = $props();
 
-  const FILL = { damage: 'var(--danger)', kill: 'var(--ink)', shield: 'var(--shield)' } as const;
+  const FILL = { damage: 'var(--overlay-danger)', kill: 'var(--ink)', shield: 'var(--overlay-shield)' } as const;
   const tokenOf = (g: Ghost): string =>
     g.kind === 'member'
       ? MEMBERS[g.def as keyof typeof MEMBERS].token
@@ -62,7 +62,7 @@
     {:else if b.kind === 'unharmed'}
       <!-- A warded hit (AH-6): a calm shield, never the red ring. -->
       <g data-state="unharmed-badge" transform="translate({o.x + 80} {o.y + 20})">
-        <circle r="16" fill="var(--shield)" stroke="var(--parchment)" stroke-width="3" />
+        <circle r="16" fill="var(--overlay-shield)" stroke="var(--parchment)" stroke-width="3" />
         <path d="M0 -9 L8 -5 V1 C8 6 4 9 0 11 C-4 9 -8 6 -8 1 V-5 Z" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" />
       </g>
     {:else}

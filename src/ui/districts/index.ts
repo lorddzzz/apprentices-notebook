@@ -40,8 +40,8 @@ export interface UnitArtProps {
   view: BoardView;
 }
 
-/** Where a board layer draws: `under` the tokens, or `badges` above them. */
-export type BoardLayerSlot = 'under' | 'badges';
+/** Where a board layer draws: `under` the figures, `badges` above them, or `signals` in the overlay group (tactical, above every figure). */
+export type BoardLayerSlot = 'under' | 'badges' | 'signals';
 
 export interface DistrictUi {
   /** Scene, tile and crest art for the district's fight board. */

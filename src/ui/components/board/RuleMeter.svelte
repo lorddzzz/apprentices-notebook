@@ -55,7 +55,7 @@
     color: var(--ink);
   }
   .meter.danger {
-    border-color: var(--danger);
+    border-color: var(--overlay-danger);
     background: var(--danger-tint);
   }
   .label {
@@ -80,11 +80,11 @@
     background: var(--ink-soft);
   }
   .pip.fc {
-    background: repeating-linear-gradient(135deg, var(--danger) 0 2px, var(--parchment-dark) 2px 4px);
-    box-shadow: inset 0 0 0 1px var(--danger);
+    background: repeating-linear-gradient(135deg, var(--overlay-danger) 0 2px, var(--parchment-dark) 2px 4px);
+    box-shadow: inset 0 0 0 1px var(--overlay-danger);
   }
   .danger .pip.on {
-    background: var(--danger);
+    background: var(--overlay-danger);
   }
   .bar {
     position: relative;
@@ -102,10 +102,10 @@
     display: block;
   }
   .fill {
-    background: var(--danger);
+    background: var(--overlay-danger);
   }
   .ghost {
-    background: repeating-linear-gradient(135deg, var(--danger) 0 2px, transparent 2px 4px);
+    background: repeating-linear-gradient(135deg, var(--overlay-danger) 0 2px, transparent 2px 4px);
     opacity: 0.6;
   }
   .num {
@@ -113,7 +113,7 @@
   }
   .up {
     margin-left: 2px;
-    color: var(--danger);
+    color: var(--overlay-danger);
     font-weight: bold;
   }
   .danger .num {
