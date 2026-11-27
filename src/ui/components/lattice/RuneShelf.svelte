@@ -11,6 +11,7 @@
   import { longpress } from '../../attach/longpress';
   import { ROLE_COLOR } from '../../runeArt';
   import RuneGlyph from '../RuneGlyph.svelte';
+  import { plate } from './plate';
 
   interface Props {
     slots: ShelfSlot[];
@@ -69,6 +70,22 @@
         : picked,
   );
   const tabbed = $derived(glyphs.length > 0 || made.length > 0);
+
+  // On short phones the drawer's closed ends shrink to the tabs row alone (UH-D2), so a tab opens it.
+  let compact = $state(false);
+  $effect(() => {
+    const query = window.matchMedia('(max-height: 740px)');
+    const sync = (): void => {
+      compact = query.matches;
+    };
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  });
+  function pickTab(next: Tab): void {
+    picked = next;
+    if (drawer && compact && !up) up = true;
+  }
 
   // Dropped to one row after a pick; a swipe up or down on the handle moves it.
   const open = $derived(drawer && up);
@@ -134,16 +151,53 @@
   <b>{slot.cost}</b>
 {/snippet}
 
-{#if tabbed || drawer}
+{#snippet tabsrow()}
   <div
     class="tabs"
     class:drawer
-    role="presentation"
+    role={drawer ? 'tablist' : 'presentation'}
     onpointerdown={drawer ? swipeStart : undefined}
     onpointerup={drawer ? swipeEnd : undefined}
     onpointercancel={drawer ? () => (swipeFrom = null) : undefined}
   >
     {#if drawer}
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        class:on={tab === 'runes'}
+        aria-selected={tab === 'runes'}
+        data-testid="tab-runes"
+        onclick={() => pickTab('runes')}
+      >
+        Runes
+      </button>
+      {#if made.length > 0}
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:on={tab === 'inventions'}
+          aria-selected={tab === 'inventions'}
+          data-testid="tab-inventions"
+          onclick={() => pickTab('inventions')}
+        >
+          Inventions <small>{made.length}</small>
+        </button>
+      {/if}
+      {#if glyphs.length > 0}
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:on={tab === 'glyphs'}
+          aria-selected={tab === 'glyphs'}
+          data-testid="tab-glyphs"
+          onclick={() => pickTab('glyphs')}
+        >
+          Glyphs <small>{glyphs.length}</small>
+        </button>
+      {/if}
       <button
         type="button"
         class="pull"
@@ -152,49 +206,53 @@
         aria-label={up ? 'Put the drawer down' : 'Pull the drawer up for every role'}
         onclick={() => (up = !up)}
       >
-        {up ? '▼' : '▲'}
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d={up ? 'M4 7l5 5 5-5' : 'M4 11l5-5 5 5'} />
+        </svg>
       </button>
-    {/if}
-    <button
-      type="button"
-      role="tab"
-      class="tab"
-      class:on={tab === 'runes'}
-      aria-selected={tab === 'runes'}
-      data-testid="tab-runes"
-      onclick={() => (picked = 'runes')}
-    >
-      Runes
-    </button>
-    {#if made.length > 0}
+    {:else if tabbed}
       <button
         type="button"
         role="tab"
         class="tab"
-        class:on={tab === 'inventions'}
-        aria-selected={tab === 'inventions'}
-        data-testid="tab-inventions"
-        onclick={() => (picked = 'inventions')}
+        class:on={tab === 'runes'}
+        aria-selected={tab === 'runes'}
+        data-testid="tab-runes"
+        onclick={() => (picked = 'runes')}
       >
-        Inventions <small>{made.length}</small>
+        Runes
       </button>
-    {/if}
-    {#if glyphs.length > 0}
-    <button
-      type="button"
-      role="tab"
-      class="tab"
-      class:on={tab === 'glyphs'}
-      aria-selected={tab === 'glyphs'}
-      data-testid="tab-glyphs"
-      onclick={() => (picked = 'glyphs')}
-    >
-      Fair copies <small>{glyphs.length}</small>
-    </button>
+      {#if made.length > 0}
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:on={tab === 'inventions'}
+          aria-selected={tab === 'inventions'}
+          data-testid="tab-inventions"
+          onclick={() => (picked = 'inventions')}
+        >
+          Inventions <small>{made.length}</small>
+        </button>
+      {/if}
+      {#if glyphs.length > 0}
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:on={tab === 'glyphs'}
+          aria-selected={tab === 'glyphs'}
+          data-testid="tab-glyphs"
+          onclick={() => (picked = 'glyphs')}
+        >
+          Fair copies <small>{glyphs.length}</small>
+        </button>
+      {/if}
     {/if}
   </div>
-{/if}
+{/snippet}
 
+{#snippet body()}
 {#if tab === 'inventions'}
   <!-- biome-ignore lint/a11y/useSemanticElements: a fieldset would drag in browser chrome -->
   <div class="copies" class:rest={resting} class:open data-testid="shelf" role="group" aria-label="Inventions">
@@ -301,6 +359,22 @@
     {/each}
   {/each}
 </div>
+{/if}
+{/snippet}
+
+{#if drawer}
+  <!-- The drawer keeps one reserved footprint in the layout; opening grows the panel upward over
+       the strip and the page's lower edge, so nothing above it resizes (UH-D4). -->
+  <div class="dw" class:compact style:--plate-top={plate('drawer-top')} style:--plate-mid={plate('drawer-mid')} style:--plate-bottom={plate('drawer-bottom')} style:--plate-card={plate('rune-card')}>
+    <div class="panel" class:open class:rested={resting} data-testid="drawer">
+      {@render tabsrow()}
+      <div class="mid">{@render body()}</div>
+      <div class="cap" aria-hidden="true"></div>
+    </div>
+  </div>
+{:else}
+  {#if tabbed}{@render tabsrow()}{/if}
+  {@render body()}
 {/if}
 
 <style>
@@ -531,5 +605,152 @@
   }
   .poor b {
     color: var(--danger);
+  }
+
+  /* ── The drawer (the Study, UH-D4) ──
+     A reserved footprint in the layout; the panel is anchored to its bottom edge and grows upward
+     as an overlay, so the page above never resizes. Painted plates when shipped, wood and ivory
+     in CSS without them. */
+  .dw {
+    --closed: 124px;
+    position: relative;
+    flex: none;
+    height: var(--closed);
+  }
+  .dw.compact {
+    --closed: 56px;
+  }
+  .panel {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px 10px 0 0;
+    background: var(--plate-mid, linear-gradient(var(--wood), var(--wood-dark)));
+    background-size: 100% auto;
+    box-shadow: 0 -2px 0 rgba(232, 176, 74, 0.35), 0 -6px 14px rgba(0, 0, 0, 0.35);
+    color: var(--parchment);
+    font-family: var(--font-serif);
+  }
+  .panel.open {
+    box-shadow: 0 -2px 0 rgba(232, 176, 74, 0.5), 0 -10px 24px rgba(0, 0, 0, 0.5);
+  }
+  .dw .tabs {
+    flex: none;
+    align-items: flex-end;
+    height: 48px;
+    margin: 0;
+    padding: 0 var(--space-1);
+    gap: 4px;
+    border-radius: 10px 10px 0 0;
+    background: var(--plate-top, linear-gradient(rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.12)));
+    background-size: 100% 100%;
+  }
+  .dw .tab {
+    flex: 0 1 auto;
+    min-width: 0;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 1px solid rgba(241, 230, 204, 0.3);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: rgba(241, 230, 204, 0.16);
+    color: var(--parchment);
+    font: 16px/1 var(--font-serif);
+    font-variant-caps: small-caps;
+    letter-spacing: 0.04em;
+  }
+  .dw .tab.on {
+    border-color: var(--home-paper);
+    background: var(--home-paper);
+    color: var(--home-ink);
+    font-weight: 600;
+  }
+  .dw .tab small {
+    font: 12px var(--font-serif);
+    font-variant-numeric: lining-nums;
+    opacity: 0.8;
+  }
+  .dw .pull {
+    width: var(--tap);
+    min-height: var(--tap);
+    margin-left: auto;
+    border: 0;
+    background: none;
+    color: var(--parchment);
+    display: grid;
+    place-items: center;
+  }
+  .mid {
+    flex: none;
+    height: 68px;
+    padding: 4px var(--space-1) 0;
+    overflow: hidden;
+  }
+  .panel.open .mid {
+    height: auto;
+    padding-bottom: 4px;
+  }
+  .dw.compact .panel.rested .mid {
+    display: none;
+  }
+  .cap {
+    flex: none;
+    height: 8px;
+    background: var(--plate-bottom, linear-gradient(transparent, rgba(0, 0, 0, 0.35)));
+    background-size: cover;
+    background-position: top;
+  }
+  .dw .shelf,
+  .dw .copies {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .dw .rest {
+    height: 100%;
+    align-items: stretch;
+  }
+  .dw .shelf.open,
+  .dw .copies.open {
+    max-height: min(40vh, 290px);
+  }
+  .dw .role {
+    font: 600 12px/14px var(--font-serif);
+    font-variant-caps: small-caps;
+    letter-spacing: 0.08em;
+  }
+  .dw .slot,
+  .dw .copy {
+    border: 1px solid #b9a679;
+    background: var(--plate-card, none), var(--home-paper);
+    background-size: 100% 100%;
+    color: var(--home-ink);
+  }
+  .dw .slot.selected,
+  .dw .copy.selected {
+    border: 2px solid var(--select);
+    box-shadow: 0 0 8px rgba(232, 176, 74, 0.7);
+  }
+  .dw .count,
+  .dw .badges {
+    font: 12px/1 var(--font-serif);
+    font-variant-numeric: lining-nums;
+  }
+  .dw .ename {
+    font: 12px var(--font-serif);
+    font-variant-caps: small-caps;
+  }
+  .dw .ranked {
+    color: var(--parchment);
+    font-family: var(--font-serif);
+  }
+  .dw .meta small {
+    font-family: var(--font-serif);
+    font-size: 12px;
   }
 </style>
