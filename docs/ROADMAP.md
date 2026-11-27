@@ -5,7 +5,7 @@
 
 ## How to use this doc
 
-- IDs are stable: move entries, never renumber. New IDs start after BL-135 (BL-127 district kit, BL-128 foundations, BL-129–131 the household split of BL-43).
+- IDs are stable: move entries, never renumber. New IDs start after BL-136 (BL-127 district kit, BL-128 foundations, BL-129–131 the household split of BL-43).
 - Sections: [1 Now](#1-now-correctness-and-plan-leftovers), [2 Build program](#2-build-program-order-of-execution), [3 Backlog](#3-backlog-ideas-ready-to-pick), [4 Tech](#4-tech-and-tooling), [5 Parked](#5-parked-cut-or-deferred), [6 Questions](#6-open-design-questions), [7 Done](#7-done-log).
 - An item gets a focused design round when needed, then an implementation plan. Items a plan absorbed point at it ("→ FD-6"); they leave this doc when that task merges. Update design/technical decisions with the build and move completed work to ROADMAP-done.md.
 - No standalone playtest tasks: the player supplies feedback when they choose; record resulting changes against the relevant item. `needs-feedback` means a decision depends on that feedback.
@@ -20,6 +20,7 @@ Items BL-101, 102, 104–108, 119 are absorbed by plan tasks (FN-1A/9/10, DK-14,
 |---|---|---|---|---|---|
 | BL-132 | AH leftovers | polish / S | combat, tests | partly done | Missing phone captures (light/dark, masked Pull into a plate, Tally, long Touch, jar hint, fine-print card). |
 | BL-133 | RC leftovers | bug + polish / S | lab, study, trip | mostly done | `lootLine` returns "recruit" for recruit items (fix there, drop the LootChips special case); tighten recruit save cards to the seven; `TripRecap.joined` so the "joined" line survives a reload. |
+| BL-136 | Floor liveliness: fix flat, dull ground after UX-G1 | art + design / M | fight board art (UA-11, UA-13 and later district grounds) | idea, to explore | Player feedback 2026-11-27 on floors v2 (even-lit tiles fixed the visible light lattice but now read flat and dull). Ideas, none decided: a light pattern here and there (a code-drawn or painted lamp pool placed by the scene, not baked per tile, not a regular grid); more floor variants and more distinct stone patterns; more bespoke ground (hand-placed painted decals: cracks, stains, patches, puddles) laid by a seeded per-board pass; environment props that are non-interactable and ignorable (crates, rubble, pipes, drains, barrels) placed on edge/dead cells away from play, never on cells that carry rules. Constraints to keep: the lattice check in `art:sheet` must still pass, tactical overlay unaffected, nothing may look like a rule marker, props must not block intent/preview/reach reads (greyscale + squint check), and nothing may hide or imply a cell the engine treats differently. Explore after UA-11 (Seam ground) is generated, as a look test on `fight-seam` and `fight-lampwater`; decide with the player at the next art review. |
 
 ## 2. Build program: order of execution
 

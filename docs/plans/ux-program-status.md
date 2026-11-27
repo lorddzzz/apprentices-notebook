@@ -56,6 +56,7 @@ Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md
 - UX-G1 answers (above). Pell hat = flat brim (settles the open question). Figure scale kept.
 
 ## Open questions for the player (defaults held)
+- BL-136 (roadmap): floors v2 read flat/dull; ideas to explore after UA-11: scene-placed light patterns, more variants, bespoke decals, ignorable props. Held; UA-11/UA-13 briefs must carry it as an explicit look test.
 - Handwriting face (asked by UF-5 result): default no third face; notes in Garamond Italic.
 See ux-decisions-review.md (UX-G1 anchors, Pell's hat, handwriting face, forward-to-map plate, rotate prompt).
 
