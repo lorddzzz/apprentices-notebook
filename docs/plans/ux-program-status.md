@@ -25,7 +25,7 @@ Closed 2026-11-27 (player): finish, Pell brim, scale, marks approved; floors red
 
 ## Running or partial
 Session rules (2026-11-27 eve, player): max 2 Claude + 1 Codex subagents; Codex only for art, Terra 6.1 medium, none after weekly 96% (was 92%); Claude Sonnet 5.5 medium or Haiku 5.5 high, none new when 5h > 75%; every spawn says 'report in under 200 words'; split fixtures one file per subset; decide with the suggested default and note it.
-Running: `build/pack-fix` (worktree pack-fix), `build/pack-utc` (worktree pack-utc), Codex `art/fx` (clone ~/.ai-whiteboard-workers/codex-642718914).
+Merged this session: small fix pack (single safe-area inset, 44 px, stripFallback, fixtures fight-lampwater-trio/fight-multispell; `--font-hand` alias NOT changed: pinned by fonts/tokens tests), UT-6 Threshold. Running: `build/pack-ute` (UT-9), `build/pack-utb` (UT-4/5), Codex `art/fx` (clone ~/.ai-whiteboard-workers/codex-642718914).
  Stray: branch `art/pilot` (pilot assets, not merged; delete when no longer wanted) and leftover branch `worktree-agent-a7d9ce60e430bee68` (from an older session; check, then delete).
 
 ## Merged so far (2026-11-26/27)
@@ -51,7 +51,7 @@ UF: 1-16 (tokens, stubs, registry+art:check, fixtures 14a/b/c 15a/b/c/f, fonts, 
 - AppHeader needs a positioned screen root for MenuSheet — owed by each screen plan
 - UH-13 App.svelte edit follows UF-13 (R1: UF-13 done; UH-13 and UE-8 still to do)
 - UT-D follow-ups: Crossroads/Cleared pocket button (UT-10, after FT-24); 'Read the notebook' is still the codex link; span screens have no filled primary (rule held: tapping a span card acts, Go home outlined: tell the player); fixtures checked only at 375x812 (check 430/480 at the phase end)
-- UT-D/UH-A: `AppHeader` adds safe-top on top of App.svelte padding (double inset)
+- Fix-pack follow-ups: audit ~35 `var(--hand)` uses below 20 px (alias pinned by tests); `.peek` buttons in the Study strip 26 px; Svelte autofixer only ran on a stub for `stripFallback`; Threshold: AppHeader back button testid is fixed (`header-back`), `threshold-leave` sits in the right slot (add a `testid` prop to `back` if wanted); `it.todo` in fixtures.test.ts for threshold-canals to become a real test
 
 ## Close checklist
 - [ ] full gate on main · [ ] full-loop phone check · [ ] code review · [ ] DESIGN §11 / TECH §7 · [ ] plan State + roadmap row · [ ] ledger clean · [ ] CI deployed
