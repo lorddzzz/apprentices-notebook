@@ -1,3 +1,22 @@
+<script lang="ts" module>
+  /**
+   * What the end overlay may say beyond the result (FT-23 fills it in; every field is optional
+   * and absent sections are left out). Derived before `finishBattle`, never after.
+   */
+  export interface EndSummary {
+    /** One field-note line. */
+    note?: string;
+    carried?: readonly string[];
+    firsts?: readonly string[];
+    decided?: string;
+  }
+
+  /** What the inspection rules let the overlay name: a null `witnessed` means nothing is masked (Lab). */
+  export interface EndInspection {
+    witnessed: ReadonlySet<string> | null;
+  }
+</script>
+
 <script lang="ts">
   import Button from '../common/Button.svelte';
 
@@ -6,6 +25,9 @@
     label: string;
     oncontinue: () => void;
     onlog: () => void;
+    /** Pack D's stub contract (FT-D14): accepted now, drawn by FT-23. */
+    summary?: EndSummary | null;
+    inspection?: EndInspection | null;
   }
 
   let { phase, label, oncontinue, onlog }: Props = $props();

@@ -2,39 +2,37 @@
   interface Props {
     text: string;
     tone: 'hint' | 'event' | 'warn';
-    ontap: () => void;
-    /** Playback can use the caption as its tappable readout. */
-    onreadouttap?: () => void;
   }
 
-  let { text, tone, ontap, onreadouttap }: Props = $props();
+  let { text, tone }: Props = $props();
 </script>
 
-<button type="button" class="caption {tone}" data-testid="caption" aria-live="polite" onclick={onreadouttap ?? ontap}>
+<!-- Overlays the board's top edge (FT-D9): 24 px, one line; a warning may take a second. It is
+     no control: taps reach the cells under it, and tap-faster is the board's (busy: any cell). -->
+<div class="caption {tone}" data-testid="caption" role="status" aria-live="polite">
   <span class="text">{text}</span>
-</button>
+</div>
 
 <style>
   .caption {
     display: flex;
     align-items: center;
     width: 100%;
-    height: 44px;
-    flex: none;
-    padding: 0 var(--space-2);
-    border: 0;
-    border-left: 3px solid var(--line);
-    background: transparent;
-    text-align: left;
-    font-size: 13px;
-    line-height: 1.3;
-    cursor: default;
+    min-height: 24px;
+    padding: 2px var(--space-2);
+    border-left: 3px solid var(--world-line, var(--line));
+    background: color-mix(in srgb, var(--world-bg, var(--parchment)) 88%, transparent);
+    color: var(--world-fg, var(--ink));
+    font-family: var(--font-serif);
+    font-size: var(--type-xs);
+    line-height: 1.15;
+    pointer-events: none;
   }
   .text {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     overflow: hidden;
   }
   .event {
@@ -43,6 +41,11 @@
   }
   .warn {
     border-left-color: var(--danger);
-    color: var(--danger);
+    border-left-width: 5px;
+    font-weight: bold;
+  }
+  .warn .text {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 </style>
