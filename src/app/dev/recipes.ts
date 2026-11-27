@@ -8,15 +8,27 @@ import {
   RUNES,
   type RuneId,
   SOLVENT_IDS,
+  TUNING,
 } from '$data';
 import {
+  type CastSample,
+  type Cluster,
+  clustersOf,
+  compileGlyph,
+  type FiredCell,
+  type GlyphDef,
+  type GlyphRecord,
   joinHousehold,
+  latticeOf,
   newSave,
   type Profile,
+  parseLattice,
   type SaveData,
+  setMemberLattice,
   setSlot,
   startTrip,
   type TripRecap,
+  versionKey,
 } from '$engine';
 import { shapeOf } from '$engine/trip/shape';
 import { setOut } from '../flow';
@@ -239,4 +251,79 @@ export function emptyPartyProfile(): Profile {
   let p = threeSeats();
   for (const slot of [0, 1, 2] as const) p = setSlot(p, slot, null);
   return p;
+}
+
+// ══ Glyph and Fair copy (UF-15f): a proven chain, a folded Glyph with a record ══
+
+/** Pell's page. The glyph fixtures open his seat (the Study's first). */
+export const GLYPH_MEMBER = 'draughtsman' as const;
+/** One chain of four runes the proof recipe fires as a whole spell (tests/app/faircopy.test.ts, copied). */
+const PROVEN_CHAIN = 'Bolt> Ink Tally Spark .';
+
+/**
+ * Pell's page holds `ascii` and `casts` copies of its whole spell are on record as proof, so the
+ * cells glow (Fair copy shows up) and `compileGlyph` accepts the cluster.
+ */
+export function provenPage(p: Profile, ascii = PROVEN_CHAIN, casts = TUNING.provenCasts): Profile {
+  let next = setMemberLattice(p, GLYPH_MEMBER, parseLattice(ascii));
+  const lattice = latticeOf(next, GLYPH_MEMBER);
+  const whole = largestSpell(next);
+  const mask: FiredCell[] = whole.cells.map((at) => {
+    const r = lattice.runes.find((x) => x.at.x === at.x && x.at.y === at.y);
+    if (!r || 'glyph' in r) throw new Error('No rune under a proven cell');
+    return r.dir ? { at, rune: r.rune, dir: r.dir } : { at, rune: r.rune };
+  });
+  // Written as the field itself: proof is the engine's to record (`recordProof`, pinned to src/engine).
+  const masks = Array.from({ length: Math.min(casts, TUNING.proofMasksPerMember) }, () =>
+    mask.map((f) => ({ ...f })),
+  );
+  next = { ...next, proof: { ...next.proof, [GLYPH_MEMBER]: masks } };
+  // The household knows the runes it wrote (a loadout with an unknown rune blocks the door).
+  return learnPages(next);
+}
+
+function largestSpell(p: Profile): Cluster {
+  const whole = clustersOf(latticeOf(p, GLYPH_MEMBER))
+    .filter((c) => c.kind === 'spell')
+    .sort((a, b) => b.cells.length - a.cells.length)[0];
+  if (!whole) throw new Error('The page holds no spell cluster');
+  return whole;
+}
+
+/** The Study in Fair copy's reach: a proven chain on Pell's page, three seats. */
+export function fairCopyReadyProfile(): Profile {
+  return provenPage(threeSeats());
+}
+
+/** A Glyph record with `casts` meaningful casts at tier silver on both measures (extra exit, one open cell). */
+function glyphRecord(def: GlyphDef, casts = 12): GlyphRecord {
+  const recent: CastSample[] = Array.from({ length: Math.min(casts, TUNING.tierWindow) }, () => ({
+    harm: 4,
+    cost: 3,
+    meaningful: true,
+  }));
+  const fired = Object.fromEntries(def.cells.map((c) => [`${c.at.x},${c.at.y}`, casts]));
+  return {
+    casts,
+    harm: casts * 4,
+    meaningful: casts,
+    recent,
+    best: { economy: 2, reliability: 2 },
+    fired,
+  };
+}
+
+/**
+ * Pell's proven chain folded into the Glyph "Cashing In" (v1) with a played record: the Glyph shelf,
+ * the ranked list, the profiler, the settings and the revision editor all have something to show.
+ */
+export function glyphProfile(): Profile {
+  const p = provenPage({ ...threeSeats(), vellum: 5 });
+  const folded = compileGlyph(p, GLYPH_MEMBER, largestSpell(p), 'Cashing In');
+  const def = folded.glyphs[0];
+  if (!def) throw new Error('The Fair copy made no Glyph');
+  return {
+    ...folded,
+    glyphRecords: { ...folded.glyphRecords, [versionKey(def.id, def.version)]: glyphRecord(def) },
+  };
 }

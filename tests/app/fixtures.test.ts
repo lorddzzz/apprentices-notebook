@@ -5,7 +5,16 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { DistrictId } from '$data';
 import { DISTRICTS } from '$data';
-import { applyAction, type GameEvent, newSave, tripParty } from '$engine';
+import {
+  applyAction,
+  canBeOpen,
+  emptyRecord,
+  type GameEvent,
+  newSave,
+  rewardsOf,
+  tripParty,
+  versionKey,
+} from '$engine';
 import { drawingsOf } from '$engine/drawing';
 // Pack D2 (UF-15a/b/f) imports
 import { trialPage } from '../../src/app/bench';
@@ -25,6 +34,7 @@ import {
   settle,
   type Tappable,
 } from '../../src/app/dev/loader';
+import { glowCells } from '../../src/app/faircopy';
 import { isFirstEvening } from '../../src/app/firstEvening';
 import type { Screen } from '../../src/app/flow';
 import { resolveScreen } from '../../src/app/flow';
@@ -412,7 +422,7 @@ function mountedModel(p: UiProbe, id: string): boolean {
       case 'shelf-lock':
         return p.tapped.has('household-open') && game.save.trip !== null;
     }
-    return false;
+    return glyphMounted(p, id);
   }
   // CodexEntry (the Runes tab, open by default) and the header count.
   if (screen === 'codex') return ['codex', 'codex-entry', 'codex-count'].includes(id);
@@ -436,6 +446,44 @@ function mountedModel(p: UiProbe, id: string): boolean {
     return false;
   }
   if (screen === 'map') return mapMounted(p, id);
+  return false;
+}
+
+/** Study sheets of UF-15f: the Fair copy mode, the Glyph shelf, the ranked list, the Glyph sheet, the revision editor. */
+function glyphMounted(p: UiProbe, id: string): boolean {
+  const { game, tapped } = p;
+  const profile = game.profile;
+  const glyph = profile.glyphs[0];
+  const glow = glowCells(profile, game.member).size > 0;
+  const settings =
+    glyph !== undefined &&
+    (glyph.cells.some((c) => canBeOpen(c.rune)) ||
+      rewardsOf(profile.glyphRecords[versionKey(glyph.id, glyph.version)] ?? emptyRecord())
+        .extraExit);
+  switch (id) {
+    case 'drawer-pull':
+      return true;
+    case 'fair-mode':
+      return glow;
+    case 'fair-info':
+      return glow && tapped.has('fair-mode');
+    case 'tab-glyphs':
+      return glyph !== undefined;
+    case 'ranked':
+      return glyph !== undefined && tapped.has('drawer-pull') && tapped.has('tab-glyphs');
+    case 'glyph-ranking':
+    case 'rank-row':
+      return glyph !== undefined && tapped.has('ranked');
+    case 'glyph-profiler':
+    case 'glyph-revise':
+      return glyph !== undefined && tapped.has('rank-row');
+    case 'glyph-settings-toggle':
+      return settings && tapped.has('rank-row');
+    case 'glyph-open-count':
+      return settings && tapped.has('glyph-settings-toggle');
+    case 'revision-editor':
+      return tapped.has('glyph-revise');
+  }
   return false;
 }
 
@@ -653,5 +701,43 @@ describe('UF-15b map fixtures', () => {
     const pages = underSeam(r.inkedPagesProfile());
     expect(pages.pages.map((x) => x.slot)).toEqual([0]);
     expect(tripParty(r.emptyPartyProfile())).toEqual([]);
+  });
+});
+
+const GLYPH_IDS = [
+  'faircopy-ready',
+  'glyph-ranking',
+  'glyph-profiler',
+  'glyph-settings',
+  'glyph-revision',
+] as const satisfies readonly FixtureId[];
+
+describe('UF-15f glyph and Fair copy recipes', () => {
+  test('fixtures: glyph and Fair copy recipes open their sheets and show the expected testids', async () => {
+    for (const id of GLYPH_IDS) expect(fixtureIds(), id).toContain(id);
+    const { out, FIXTURES } = await loadAll(GLYPH_IDS);
+    for (const r of out) {
+      expect(r.why, r.id).toBe('');
+      expect(r.screen, r.id).toBe('study');
+      expect(r.redirect, r.id).toBeNull();
+    }
+    // The recipes name the testid that proves each sheet (the last tap waits for it).
+    expect(FIXTURES['faircopy-ready'].taps?.at(-1)).toBe('fair-info');
+    expect(FIXTURES['glyph-ranking'].taps?.at(-1)).toBe('glyph-ranking');
+    expect(FIXTURES['glyph-profiler'].taps?.at(-1)).toBe('glyph-profiler');
+    expect(FIXTURES['glyph-settings'].taps?.at(-1)).toBe('glyph-open-count');
+    expect(FIXTURES['glyph-revision'].taps?.at(-1)).toBe('revision-editor');
+  });
+
+  test('fixtures: the glyph recipes build real state (a proven chain, a folded Glyph with a record)', async () => {
+    const r = await import('../../src/app/dev/recipes');
+    const ready = r.fairCopyReadyProfile();
+    expect(glowCells(ready, 'draughtsman').size).toBeGreaterThan(0);
+    expect(ready.glyphs).toEqual([]);
+    const p = r.glyphProfile();
+    const glyph = p.glyphs[0];
+    expect(glyph?.name).toBe('Cashing In');
+    expect(glyph && p.glyphRecords[versionKey(glyph.id, glyph.version)]?.casts).toBeGreaterThan(0);
+    expect(glyph?.cells.some((c) => canBeOpen(c.rune))).toBe(true);
   });
 });

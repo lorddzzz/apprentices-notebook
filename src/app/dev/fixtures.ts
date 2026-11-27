@@ -17,8 +17,10 @@ import {
   deskProfile,
   doorwaySave,
   emptyPartyProfile,
+  fairCopyReadyProfile,
   fightSave,
   fullHouseProfile,
+  glyphProfile,
   heldPageProfile,
   inkedPagesProfile,
   lowerSeamProfile,
@@ -44,9 +46,10 @@ export type FixtureId =
   | 'fight-seam'
   | 'fight-lampwater'
   | 'fight-wide-7x9'
-  // UF-15a, UF-15b (Pack D2)
+  // UF-15a, UF-15b, UF-15f (Pack D2)
   | HomeFixtureId
-  | MapFixtureId;
+  | MapFixtureId
+  | GlyphFixtureId;
 
 /** What a setup recipe may reach besides the game: the app's transient stores and the URL's step. */
 export interface FixtureContext {
@@ -318,9 +321,70 @@ const MAP_FIXTURES: Record<MapFixtureId, Fixture> = {
   },
 };
 
+// ══ UF-15f (Pack D2): Glyph and Fair copy recipes ══
+// The sheets are Study-local state, so each recipe opens its sheet through `taps`, every tap waiting
+// for a testid the previous one made appear. Glyph fixtures share `glyphProfile` (a folded Glyph with
+// a played record); `faircopy-ready` shares `fairCopyReadyProfile` (a proven chain, nothing folded).
+
+export type GlyphFixtureId =
+  | 'faircopy-ready'
+  | 'glyph-ranking'
+  | 'glyph-profiler'
+  | 'glyph-settings'
+  | 'glyph-revision';
+
+/** Study → pull the rune drawer up ("Ranked ›" hides while it rests) → Glyphs tab → "Ranked ›": the ranked list sheet. */
+const TO_RANKING = ['drawer-pull', 'tab-glyphs', 'ranked'];
+/** ...→ the first row: the Glyph's sheet (profiler, settings, rename). */
+const TO_GLYPH = [...TO_RANKING, 'rank-row'];
+
+const GLYPH_FIXTURES: Record<GlyphFixtureId, Fixture> = {
+  'faircopy-ready': {
+    id: 'faircopy-ready',
+    route: 'study',
+    save: plain(fairCopyReadyProfile),
+    expect: 'fair-mode',
+    taps: ['fair-mode', 'fair-info'],
+    note: 'The Study in Fair copy mode: the proven chain glows and the info panel offers to fold it.',
+  },
+  'glyph-ranking': {
+    id: 'glyph-ranking',
+    route: 'study',
+    save: plain(glyphProfile),
+    expect: 'tab-glyphs',
+    taps: [...TO_RANKING, 'glyph-ranking'],
+    note: 'The ranked list of Glyphs (sheet) over the Study.',
+  },
+  'glyph-profiler': {
+    id: 'glyph-profiler',
+    route: 'study',
+    save: plain(glyphProfile),
+    expect: 'tab-glyphs',
+    taps: [...TO_GLYPH, 'glyph-profiler'],
+    note: 'The Glyph sheet: the profiler (header, inside, ink, versions).',
+  },
+  'glyph-settings': {
+    id: 'glyph-settings',
+    route: 'study',
+    save: plain(glyphProfile),
+    expect: 'tab-glyphs',
+    taps: [...TO_GLYPH, 'glyph-settings-toggle', 'glyph-open-count'],
+    note: 'The Glyph sheet with its settings unfolded (open cells, extra exit).',
+  },
+  'glyph-revision': {
+    id: 'glyph-revision',
+    route: 'study',
+    save: plain(glyphProfile),
+    expect: 'tab-glyphs',
+    taps: [...TO_GLYPH, 'glyph-revise', 'revision-editor'],
+    note: 'The revision editor open on the Glyph ("Revise…").',
+  },
+};
+
 export const FIXTURES: Record<FixtureId, Fixture> = {
   ...HOME_FIXTURES,
   ...MAP_FIXTURES,
+  ...GLYPH_FIXTURES,
   'threshold-canals-burnt': {
     id: 'threshold-canals-burnt',
     route: 'threshold',
