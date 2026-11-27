@@ -18,7 +18,7 @@
   const rows = $derived(rankGlyphs(profile));
 </script>
 
-<Sheet {open} title="Your Glyphs, ranked" {onclose}>
+<Sheet {open} title="Your Glyphs, ranked" size="tall" {onclose}>
   {#if rows.length === 0}
     <p class="soon">No Glyphs yet. Fold a proven chain into a Fair copy first.</p>
   {:else}
@@ -98,7 +98,7 @@
   }
   .top small {
     flex: none;
-    font: 11px var(--mono);
+    font: 12px var(--font-serif);
     color: var(--ink-soft);
   }
   .marks {
@@ -106,7 +106,7 @@
     flex: none;
     gap: var(--space-1);
     margin-left: auto;
-    font: 12px var(--mono);
+    font: 12px var(--font-serif);
   }
   .meta,
   .to {

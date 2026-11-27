@@ -202,7 +202,7 @@
   }
   .count {
     margin-left: var(--space-1);
-    font: 12px var(--mono);
+    font: 12px var(--font-serif);
     font-weight: 400;
     color: var(--ink-soft);
   }
@@ -253,7 +253,7 @@
     padding: 0 3px;
     border-radius: 3px;
     background: var(--parchment);
-    font: 700 11px var(--mono);
+    font: 700 12px var(--font-serif);
     line-height: 14px;
   }
   .err {

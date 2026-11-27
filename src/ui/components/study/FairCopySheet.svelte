@@ -41,7 +41,7 @@
   }
 </script>
 
-<Sheet open={preview !== null} title="Fair copy" onclose={close}>
+<Sheet open={preview !== null} title="Fair copy" size="tall" onclose={close}>
   {#if preview}
     <ol class="chain" data-testid="fair-chain" aria-label="The selected runes in order">
       {#each preview.chain as step (`${step.at.x},${step.at.y}`)}
@@ -151,7 +151,7 @@
     font-size: 16px;
   }
   .ink b {
-    font-family: var(--mono);
+    font-family: var(--font-serif);
   }
   .slide {
     margin: 0 0 var(--space-2);
@@ -200,7 +200,7 @@
     padding: 0 3px;
     border-radius: 3px;
     background: var(--parchment);
-    font: 700 11px var(--mono);
+    font: 700 12px var(--font-serif);
     line-height: 14px;
   }
   .field {
@@ -217,7 +217,7 @@
     border-radius: var(--radius);
     background: var(--parchment-dark);
     color: var(--ink);
-    font: 16px var(--hand);
+    font: 16px var(--font-serif);
   }
   .warn,
   .block {

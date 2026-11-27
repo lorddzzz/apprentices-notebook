@@ -243,7 +243,7 @@
   .entry-label, .local-exit {
     position: absolute;
     z-index: 1;
-    font: 700 12px/14px var(--mono);
+    font: 700 12px/14px var(--font-serif);
     background: var(--parchment);
   }
   .entry-label { left: 0; top: 0; }
@@ -281,11 +281,11 @@
   }
   .door {
     translate: -30px 0;
-    font: 12px var(--mono);
+    font: 12px var(--font-serif);
     color: var(--ink-soft);
   }
   .exit {
-    font: 700 20px/1 var(--mono);
+    font: 700 20px/1 var(--font-serif);
     color: var(--lamp);
   }
   .exit.up { translate: 0 -28px; }
@@ -312,7 +312,7 @@
     white-space: nowrap;
     border-radius: 3px;
     background: var(--parchment);
-    font: 700 11px var(--mono);
+    font: 700 12px var(--font-serif);
     line-height: 14px;
     color: var(--ink);
   }

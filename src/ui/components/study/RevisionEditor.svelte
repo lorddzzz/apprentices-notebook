@@ -148,7 +148,7 @@
   };
 </script>
 
-<Sheet open={inside !== null} {title} onclose={leave}>
+<Sheet open={inside !== null} {title} size="tall" onclose={leave}>
   {#if current}
     <div class="editor" data-testid="revision-editor">
       <p class="ink" data-testid="revision-ink">
@@ -273,7 +273,7 @@
     border-radius: 8px;
     background: var(--lamp);
     color: var(--ink);
-    font: 700 10px/14px var(--mono);
+    font: 700 12px/14px var(--font-serif);
     pointer-events: none;
   }
   .rule {

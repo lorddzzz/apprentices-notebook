@@ -50,7 +50,7 @@
     text-align: left;
   }
   .evening .lamp {
-    font-family: var(--hand);
+    font-family: var(--font-serif);
     font-style: italic;
     font-size: 17px;
   }
@@ -62,7 +62,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    font-family: var(--hand);
+    font-family: var(--font-serif);
     font-size: 19px;
     line-height: 26px;
   }
@@ -70,6 +70,7 @@
     margin: 0;
   }
   .place {
+    line-height: 20px;
     font-size: 14px;
     opacity: 0.75;
   }
@@ -80,10 +81,10 @@
     align-self: flex-start;
     min-height: var(--tap);
     padding: 0 var(--space-3);
-    border: 1px solid var(--lamp);
+    border: 0;
     border-radius: var(--radius);
-    background: transparent;
-    color: var(--lamp);
+    background: var(--ink);
+    color: var(--parchment);
     font-family: inherit;
     font-size: 17px;
   }

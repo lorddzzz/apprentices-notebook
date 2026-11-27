@@ -56,7 +56,7 @@
   }
 </script>
 
-<Sheet open={glyph !== null} title="Fair copy" onclose={close}>
+<Sheet open={glyph !== null} title="Fair copy" size="tall" onclose={close}>
   {#if glyph}
     {#if saved}
       <GlyphProfiler glyph={saved} {profile} {readonly} {onrevert} {onrevise} />
@@ -97,7 +97,7 @@
     border-radius: var(--radius);
     background: var(--parchment-dark);
     color: var(--ink);
-    font: 16px var(--hand);
+    font: 16px var(--font-serif);
   }
   .err {
     margin: var(--space-1) 0 0;
