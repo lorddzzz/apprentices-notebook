@@ -613,6 +613,118 @@
       "bytes": 571894,
       "sha256": "cdadbb839fc41df7962706088dbe4347ad95069a4897f41a320419ee51fd7548",
       "archiveKey": "r2:apprentices-notebook-art/props/shared/flourish-first-gold.master.png"
+    },
+    {
+      "file": "scenes/home/attic-header-night.master.png",
+      "width": 2170,
+      "height": 725,
+      "bytes": 1967004,
+      "sha256": "6320f046fe67d6cc849c1c4e7d586913d01f679319aa4516198a11c2ce0cfba2",
+      "archiveKey": "r2:apprentices-notebook-art/scenes/home/attic-header-night.master.png"
+    },
+    {
+      "file": "props/home/jar.master.png",
+      "width": 1199,
+      "height": 1312,
+      "bytes": 1114489,
+      "sha256": "2c491e91146987e70f8a2d71552c3e75f3d9183f04d995a788e994ca697afd40",
+      "archiveKey": "r2:apprentices-notebook-art/props/home/jar.master.png"
+    },
+    {
+      "file": "props/home/desk.master.png",
+      "width": 1312,
+      "height": 1199,
+      "bytes": 1537041,
+      "sha256": "95e5d661661839b82c1dc6a869d67582cf00ad3cb1121d918ca35c708f58baca",
+      "archiveKey": "r2:apprentices-notebook-art/props/home/desk.master.png"
+    },
+    {
+      "file": "props/home/ink-pot.master.png",
+      "width": 1312,
+      "height": 1199,
+      "bytes": 953851,
+      "sha256": "e7051a9e13ef2b668af43f386461beb67804f55f367f03df4fcbe3e215da00ea",
+      "archiveKey": "r2:apprentices-notebook-art/props/home/ink-pot.master.png"
+    },
+    {
+      "file": "props/home/book.master.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2353182,
+      "sha256": "16897e5c5cb4db91f0d38126b825ae429ee786d2a819728f2e43eae81d1ce627",
+      "archiveKey": "r2:apprentices-notebook-art/props/home/book.master.png"
+    },
+    {
+      "file": "ui-plates/home/paper-tile.master.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 289631,
+      "sha256": "70876129ba86c7c5236441d33d81a91fbb22adf9d99f04c10160b9933876e4cc",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/paper-tile.master.png"
+    },
+    {
+      "file": "ui-plates/home/wood-tile.master.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 396956,
+      "sha256": "d527b29743e7c00eb7a79bfb01826300c3af2e002b5ca8e88e8e66d6ce72240f",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/wood-tile.master.png"
+    },
+    {
+      "file": "ui-plates/home/page-frame.master.png",
+      "width": 1350,
+      "height": 1165,
+      "bytes": 915621,
+      "sha256": "b2c22ab4f769343da6be250abdfbc34938fbe054060eb1056cbb7fa1f8a3c123",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/page-frame.master.png"
+    },
+    {
+      "file": "ui-plates/home/drawer-top.master.png",
+      "width": 2170,
+      "height": 725,
+      "bytes": 895610,
+      "sha256": "7d134518f9d1536595088734dc1122de9db42ea9a900b0bc175abd496d984e87",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/drawer-top.master.png"
+    },
+    {
+      "file": "ui-plates/home/drawer-mid.master.png",
+      "width": 2170,
+      "height": 725,
+      "bytes": 1837673,
+      "sha256": "4d87f842e67b0be2aa8033cc71160cdd02ee97f5084c51eb302e25dd10095abc",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/drawer-mid.master.png"
+    },
+    {
+      "file": "ui-plates/home/drawer-bottom.master.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 800448,
+      "sha256": "fe17a493926742837de75799886d65ad6ed9f6f21d456584e8aa50c2551a8964",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/drawer-bottom.master.png"
+    },
+    {
+      "file": "ui-plates/home/spell-strip.master.png",
+      "width": 2170,
+      "height": 725,
+      "bytes": 1495695,
+      "sha256": "4831dea1d9125febdd9ea7f397743cad7e8c44a10335f272f58b4e5f55241810",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/spell-strip.master.png"
+    },
+    {
+      "file": "ui-plates/home/seat-tab.master.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1889491,
+      "sha256": "fbb70cef0d47ebd2fc4a0fc905a2f4a84865fe70ed07931c2b5a336c93a7fc26",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/seat-tab.master.png"
+    },
+    {
+      "file": "ui-plates/home/rune-card.master.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2244266,
+      "sha256": "6cc2a5ca89ea9f4195f14f80e59d9946e2777e41452f29be33bdf024bef904d2",
+      "archiveKey": "r2:apprentices-notebook-art/ui-plates/home/rune-card.master.png"
     }
   ]
 }

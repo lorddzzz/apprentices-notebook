@@ -1,0 +1,41 @@
+{
+  "id": "ui-plates/home/wood-tile",
+  "screen": "study",
+  "district": "home",
+  "subject": "wood-tile",
+  "state": null,
+  "role": "strip",
+  "size": [512, 512],
+  "alpha": false,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/ui-plates/home/wood-tile.master.png",
+    "sha256": "d527b29743e7c00eb7a79bfb01826300c3af2e002b5ca8e88e8e66d6ce72240f",
+    "origSize": [512, 512],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "Centre crop of the raw (paper: 600px interior, no border), resized to 512, offset-wrap seamless blend; master is the seamless intermediate, the raw is at /tmp/home-raw only",
+  "focal": null,
+  "angle": "",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "Flat seamless dark brown timber texture, evenly lit, matching edges for seamless tiling. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. No lettering or pseudo-writing. Match the style, proportions and finish of the attached approved anchors. Palette: lamp #FAD48E, window #2B63A2, timber #553530, paper #F1E6CC, ink #29232E. Keep plate centers calm.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "home",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "d527b29743e7c00eb7a79bfb01826300c3af2e002b5ca8e88e8e66d6ce72240f",
+      "size": [512, 512]
+    }
+  }
+}

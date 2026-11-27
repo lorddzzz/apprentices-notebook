@@ -1,0 +1,41 @@
+{
+  "id": "ui-plates/home/seat-tab",
+  "screen": "study",
+  "district": "home",
+  "subject": "seat-tab",
+  "state": null,
+  "role": "nine-slice",
+  "size": [192, 88],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/ui-plates/home/seat-tab.master.png",
+    "sha256": "fbb70cef0d47ebd2fc4a0fc905a2f4a84865fe70ed07931c2b5a336c93a7fc26",
+    "origSize": [2172, 724],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "Isolated ivory paper tab with calm empty center, transparent background. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. No lettering or pseudo-writing. Match the style, proportions and finish of the attached approved anchors. Palette: lamp #FAD48E, window #2B63A2, timber #553530, paper #F1E6CC, ink #29232E. Keep plate centers calm.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "home",
+  "slice": [24, 24, 24, 24],
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "fbb70cef0d47ebd2fc4a0fc905a2f4a84865fe70ed07931c2b5a336c93a7fc26",
+      "size": [2172, 724]
+    }
+  }
+}

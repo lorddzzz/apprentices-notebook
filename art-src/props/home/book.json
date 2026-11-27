@@ -1,0 +1,42 @@
+{
+  "id": "props/home/book",
+  "screen": "study",
+  "district": "home",
+  "subject": "book",
+  "state": null,
+  "role": "strip",
+  "size": [160, 160],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/home/book.master.png",
+    "sha256": "16897e5c5cb4db91f0d38126b825ae429ee786d2a819728f2e43eae81d1ce627",
+    "origSize": [1536, 1024],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "Create a single isolated worn red leather book prop, using the attached study images as identity and style reference and the party and seam references for palette and finish. High three-quarter view, fixed bottom baseline, thin ivory edge, no baked shadow, transparent background. Warm lamp key from upper left; palette #592A20 #FAD48E #553530 #2B63A2. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. No lettering, pseudo-writing or symbols. Match the style, proportions and finish of the attached approved anchors.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "home",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "16897e5c5cb4db91f0d38126b825ae429ee786d2a819728f2e43eae81d1ce627",
+      "size": [1536, 1024]
+    },
+    "notes": ["defringed 7795 partial-alpha pixels"]
+  }
+}

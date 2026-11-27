@@ -1,0 +1,41 @@
+{
+  "id": "ui-plates/home/drawer-top",
+  "screen": "study",
+  "district": "home",
+  "subject": "drawer-top",
+  "state": null,
+  "role": "strip",
+  "size": [750, 96],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/ui-plates/home/drawer-top.master.png",
+    "sha256": "7d134518f9d1536595088734dc1122de9db42ea9a900b0bc175abd496d984e87",
+    "origSize": [2170, 725],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "Isolated wide horizontal dark timber drawer top lip, transparent background. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. No lettering or pseudo-writing. Match the style, proportions and finish of the attached approved anchors. Palette: lamp #FAD48E, window #2B63A2, timber #553530, paper #F1E6CC, ink #29232E. Keep plate centers calm.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "home",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "7d134518f9d1536595088734dc1122de9db42ea9a900b0bc175abd496d984e87",
+      "size": [2170, 725]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "props/home/desk",
+  "screen": "study",
+  "district": "home",
+  "subject": "desk",
+  "state": null,
+  "role": "strip",
+  "size": [160, 160],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/props/home/desk.master.png",
+    "sha256": "95e5d661661839b82c1dc6a869d67582cf00ad3cb1121d918ca35c708f58baca",
+    "origSize": [1312, 1199],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "A single closed plain ledger with a pen, thin ivory outline, transparent backdrop. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. No lettering or pseudo-writing. Match the style, proportions and finish of the attached approved anchors. Palette: lamp #FAD48E, window #2B63A2, timber #553530, paper #F1E6CC, ink #29232E. Keep plate centers calm.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "home",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "95e5d661661839b82c1dc6a869d67582cf00ad3cb1121d918ca35c708f58baca",
+      "size": [1312, 1199]
+    }
+  }
+}

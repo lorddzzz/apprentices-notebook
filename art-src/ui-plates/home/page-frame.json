@@ -1,0 +1,41 @@
+{
+  "id": "ui-plates/home/page-frame",
+  "screen": "study",
+  "district": "home",
+  "subject": "page-frame",
+  "state": null,
+  "role": "nine-slice",
+  "size": [512, 512],
+  "alpha": true,
+  "groundContact": null,
+  "master": {
+    "path": "art-src/ui-plates/home/page-frame.master.png",
+    "sha256": "b2c22ab4f769343da6be250abdfbc34938fbe054060eb1056cbb7fa1f8a3c123",
+    "origSize": [1350, 1165],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": []
+  },
+  "crop": "",
+  "focal": null,
+  "angle": "",
+  "light": "top-left",
+  "palette": [],
+  "model": "unexposed (Codex built-in image tool)",
+  "prompt": "Isolated open notebook edge with rings on left and curled paper edge, transparent center and background; blank, no writing. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark. No lettering or pseudo-writing. Match the style, proportions and finish of the attached approved anchors. Palette: lamp #FAD48E, window #2B63A2, timber #553530, paper #F1E6CC, ink #29232E. Keep plate centers calm.",
+  "references": [],
+  "generationId": null,
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "home",
+  "slice": [64, 64, 64, 96],
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "b2c22ab4f769343da6be250abdfbc34938fbe054060eb1056cbb7fa1f8a3c123",
+      "size": [1350, 1165]
+    }
+  }
+}
