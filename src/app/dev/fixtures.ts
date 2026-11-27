@@ -18,15 +18,18 @@ import type { ThresholdStore } from '../threshold.svelte';
 import { wipeFixture } from '../tripUx';
 import {
   benchProfile,
+  creditsProfile,
   deskProfile,
   doorwaySave,
   emptyPartyProfile,
+  FIXTURE_PAGES,
   fairCopyReadyProfile,
   fightSave,
   fullHouseProfile,
   glyphProfile,
   heldPageProfile,
   inkedPagesProfile,
+  lateProfile,
   lowerProfile,
   lowerSeamProfile,
   mapFreshProfile,
@@ -414,7 +417,11 @@ export type D1FixtureId =
   | 'wiped-seam'
   | 'wiped-first-room'
   | 'wiped-crossed-checkpoint'
-  | 'wiped-nothing-lost';
+  | 'wiped-nothing-lost'
+  | 'drawing-blank'
+  | 'drawing-two-inked'
+  | 'handover-ready'
+  | 'credits-full';
 
 /** A fresh save on `profile`, at home or out on `trip`. */
 function saveOn(profile: Profile, trip: Trip | null = null): SaveData {
@@ -563,6 +570,39 @@ const D1_FIXTURES: Record<D1FixtureId, Fixture> = {
     wipe: () => wipeFixture('nothing-lost'),
     expect: 'wiped',
     note: 'The older minimal summary: an encounter, nothing lost, nothing learned; no rooms, cause or final (See it is hidden).',
+  },
+  'drawing-blank': {
+    id: 'drawing-blank',
+    route: 'drawing',
+    save: () => saveOn({ ...lateProfile(), ending: { handover: true, creditsSeen: false } }),
+    expect: 'drawing-table',
+    note: 'The drawing table after the handover, no page drawn yet: three blank slots.',
+  },
+  'drawing-two-inked': {
+    id: 'drawing-two-inked',
+    route: 'drawing',
+    save: () =>
+      saveOn({
+        ...lateProfile(),
+        ending: { handover: true, creditsSeen: false },
+        drawings: [...FIXTURE_PAGES, null],
+      }),
+    expect: 'drawing-table',
+    note: 'The drawing table with two pages inked (the plain Seam, the wet room) and one slot free.',
+  },
+  'handover-ready': {
+    id: 'handover-ready',
+    route: 'handover',
+    save: () => saveOn(lateProfile()),
+    expect: 'handover-page',
+    note: "The owner's door open (hearts cleared, full household), the handover not yet performed: the first leaf of the scene.",
+  },
+  'credits-full': {
+    id: 'credits-full',
+    route: 'credits',
+    save: () => saveOn(creditsProfile()),
+    expect: 'credits-reel',
+    note: 'The credits for a finished household: every district open, every heart cleared, all nine apprentices joined.',
   },
 };
 

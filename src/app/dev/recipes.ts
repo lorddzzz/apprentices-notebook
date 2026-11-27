@@ -1,9 +1,13 @@
 import {
   APPRENTICE_IDS,
+  DISTRICT_IDS,
   type DistrictId,
   type Drawing,
+  ENEMY_IDS,
+  type EnemyId,
   FOOTNOTES,
   METHOD_IDS,
+  type Meets,
   RUNE_IDS,
   RUNES,
   type RuneId,
@@ -44,6 +48,7 @@ import {
   takeChoice,
   versionKey,
 } from '$engine';
+import { KIT } from '$engine/districts/kit';
 import { shapeOf } from '$engine/trip/shape';
 import { setOut, type WipeSummary } from '../flow';
 import { wipeCause, wipeRooms } from '../tripUx';
@@ -489,4 +494,78 @@ export function wipeCrossedCheckpoint(): WipeSummary {
     cause: wipeCause(final, []),
     final,
   };
+}
+
+// ── Pack D1 · UF-14c: ending late states ────────────────────────────────────
+
+/** Two drawn pages (copied from the drawing tests' fixture drawings). */
+export const FIXTURE_PAGES: readonly Drawing[] = [
+  {
+    name: 'Plain Seam',
+    rule: null,
+    foes: ['rat', 'familiar', 'sentry'],
+    pieces: [],
+    shape: 'plain',
+    length: 3,
+    heart: 'marginalia',
+  },
+  {
+    name: 'The wet room',
+    rule: 'canals:current',
+    foes: ['eel', 'moth'],
+    pieces: [],
+    shape: 'plain',
+    length: 4,
+    heart: 'mother',
+  },
+];
+
+/** A household past the handover with a pen of at least 3 (`handoverProfile`, copied). */
+export function handoverReady(): Profile {
+  const p = sampleHousehold();
+  return {
+    ...p,
+    ending: { handover: true, creditsSeen: false },
+    foesMet: ['rat', 'familiar', 'sentry'],
+    // The save parser wants every open district heard (the tests' copy never parses).
+    city: { ...p.city, heard: ['seam', 'canals'], open: ['seam', 'canals'], hearts: ['seam'] },
+    known: [...new Set([...p.known, ...(Object.keys(RUNES) as Profile['known'])])],
+  };
+}
+
+/** Every district open, every heart cleared, everything met (`fullHousehold`, copied). */
+export function fullHouseholdProfile(): Profile {
+  const p = handoverReady();
+  const met = [
+    ...Object.values(KIT.rules).flatMap((r) => (r.met === undefined ? [] : [r.met])),
+    ...Object.values(KIT.pieces).flatMap((d) => (d.bench === undefined ? [] : [d.bench.met])),
+  ] as Meets[];
+  const reachable = DISTRICT_IDS.filter((d) => d !== 'lowerSeam' && d !== 'inkedPage');
+  return {
+    ...p,
+    met: [...new Set(met)],
+    foesMet: [...ENEMY_IDS] as EnemyId[],
+    pages: ['lamplighter:lantern'],
+    city: { ...p.city, heard: reachable, open: reachable, hearts: reachable },
+  };
+}
+
+/**
+ * The late profile every ending fixture starts from: the full household, the owner's door seen and
+ * open (the Cartographers' heart is cleared), the handover not yet performed.
+ */
+export function lateProfile(): Profile {
+  const p = fullHouseholdProfile();
+  return {
+    ...p,
+    ending: { handover: false, creditsSeen: false },
+    city: { ...p.city, doorSeen: true },
+  };
+}
+
+/** The credits' household: everyone who ever joined (all nine apprentices), the handover done. */
+export function creditsProfile(): Profile {
+  const p = lateProfile();
+  const all = APPRENTICE_IDS.reduce((acc, id) => joinHousehold(acc, id), p);
+  return { ...all, ending: { handover: true, creditsSeen: false } };
 }

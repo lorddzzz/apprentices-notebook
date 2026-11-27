@@ -998,3 +998,40 @@ describe('UF-14b: wipes', () => {
     }
   }, 60_000);
 });
+
+describe('UF-14c: ending states', () => {
+  test('fixtures: ending states resolve', async () => {
+    // The engine barrel first: the district modules have an import cycle that needs this order.
+    await import('$engine');
+    const { ownerDoor } = await import('$engine/door');
+    const { endingOf } = await import('$engine/drawing');
+    const { APPRENTICE_IDS } = await import('$data');
+    const expected = {
+      'drawing-blank': { screen: 'drawingTable', handover: true },
+      'drawing-two-inked': { screen: 'drawingTable', handover: true },
+      'handover-ready': { screen: 'handover', handover: false },
+      'credits-full': { screen: 'credits', handover: true },
+    } as const;
+    for (const id of Object.keys(expected) as (keyof typeof expected)[]) {
+      const { game, router } = await openFixture(id);
+      const p = game.profile;
+      const r = resolveScreen(router.route, game.save.trip, game.wipe, game.save.lastTrip, p);
+      // The late profile: the owner's door open, the Cartographers' heart cleared.
+      expect(r, id).toEqual({ screen: expected[id].screen, redirect: null });
+      expect(ownerDoor(p), id).toBe('open');
+      expect(p.city.hearts, id).toContain('cartographers');
+      expect(endingOf(p).handover, id).toBe(expected[id].handover);
+      if (id === 'drawing-blank') expect(p.drawings ?? [], id).toEqual([]);
+      if (id === 'drawing-two-inked') {
+        expect(
+          p.drawings?.filter((d) => d !== null).map((d) => d?.name),
+          id,
+        ).toEqual(['Plain Seam', 'The wet room']);
+      }
+      if (id === 'credits-full')
+        expect(p.household.members, id).toHaveLength(APPRENTICE_IDS.length);
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
+  }, 60_000);
+});
