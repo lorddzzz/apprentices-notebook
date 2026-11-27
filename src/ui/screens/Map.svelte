@@ -11,7 +11,7 @@
   import { frontierMarks } from '../../app/tripUx';
   import ArtImage from '../art/ArtImage.svelte';
   import { artMeta } from '../art/meta';
-  import { artUrl, type ArtId } from '../art/registry';
+  import { type ArtId, artUrl } from '../art/registry';
   import AppHeader from '../components/common/AppHeader.svelte';
   import Unseen from '../components/common/Unseen.svelte';
   import DistrictNode from '../components/map/DistrictNode.svelte';
