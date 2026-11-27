@@ -24,6 +24,7 @@
 | UF-14a, UF-14b, UF-14c (D1) | bfd8c69..80220b4 | Sonnet / high (+ medium rebase helper) | 1 (limit pause) | ~10% | 19 trip/wipe/ending fixtures; hand-rebase over D2/D3 delegated | 
 | UA-10, UA-11 (D Seam fight) | see git log art(seam-fight) | Codex Sol / high | 0 | ~20% Codex | 36 assets 180 KB; 6 visual retries; floors per the no-baked-light rule; masters uploaded by orchestrator |
 | UH-1, UH-2 | 86d7434, 7daa977 | Sonnet / high | 1 (limit pause) | ~12% | Study shell; page budget NOT met (double safe-area inset); 8 proposals/follow-ups in status |
+| FT-13, FT-14, FT-15, FT-16, FT-16w | 28b6e19..955f85b | Sonnet / high | 1 (limit pause) | ~15% | spell chip, header, stack 200 px, wiring; 34 tests; 49.6 px cells at 812, 38.2 at 667 |
 | UF-4 | be2c0e6 | Opus / high | 0 | ~5% | dev fixture loader (memory backend, go replace), burnt-threshold replay + study-fresh, grey=1; report lost, reviewed from branch |
 | UF-2 | b49271d | Opus / high | 0 | ~6% | registry, artMeta, role art:check (both gates), inventory; 26+8+5 tests; proposals accepted (2 MiB single-asset cap, ±4 px ground tolerance) |
 
