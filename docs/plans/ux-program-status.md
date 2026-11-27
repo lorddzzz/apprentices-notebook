@@ -2,7 +2,7 @@
 
 Program: [ux-program](ux-program.md). Log: [ux-program-log.md](ux-program-log.md) (not read on resume; `git log --grep '<ID>'` has task details).
 
-**State:** holding (session closed 2026-11-27 after finishing all started packs) · **next window:** routine (Sonnet medium orchestrator is enough; a design window only for the Close and for new briefs)
+**State:** running (session 2026-11-27 evening: packs fix, UT-C on Claude Sonnet medium; Art E on Codex Terra 6.1 medium) · **next window:** routine (Sonnet medium orchestrator is enough; a design window only for the Close and for new briefs)
 **Session rules:** player delegated model choice for subagents (free to override the skill's table); Claude packs Opus high for UF 0a/0b/0c and playback, Sonnet high elsewhere; raster art on Codex Sol high via Whiteboard `git:true` (Codex weekly 61% at start: keep Codex packs few); 2-3 packs at once on disjoint files; engine read-only.
 **Player rule (2026-11-27 07:20, current):** Codex weekly is 88%: use Codex ONLY for image creation (art packs), not for coding. Claude hit its 5h limit overnight at 4 concurrent packs although the usage script read ~60%: the Claude reading lags; run at most 3 Claude packs and keep headroom. **Earlier rule (23:25):** ignore weekly limits, watch only 5h windows; balance Claude and Codex, use both as much as possible, never hit the limit (especially Claude). Earlier: **Player rule (2026-11-26):** Claude 5h at 80%: tune Claude down until reset 22:59 Belgrade (no new Claude packs; let running ones finish). Codex 5h is low: use Codex as much as possible despite weekly 61%.
 **Reset:** n/a (Claude 5h 1% at start, resets 23:00 Belgrade)
@@ -24,7 +24,9 @@ Everything started is merged. Nothing is running. Claude: cap 3 packs at once (t
 Closed 2026-11-27 (player): finish, Pell brim, scale, marks approved; floors redone (v2) and shipped for the Seam. Player noted floors read flat/dull: BL-136 in the roadmap (ideas parked).
 
 ## Running or partial
-Nothing running. Stray: branch `art/pilot` (pilot assets, not merged; delete when no longer wanted) and leftover branch `worktree-agent-a7d9ce60e430bee68` (from an older session; check, then delete).
+Session rules (2026-11-27 eve, player): max 2 Claude + 1 Codex subagents; Codex only for art, Terra 6.1 medium, none after weekly 96% (was 92%); Claude Sonnet 5.5 medium or Haiku 5.5 high, none new when 5h > 75%; every spawn says 'report in under 200 words'; split fixtures one file per subset; decide with the suggested default and note it.
+Running: `build/pack-fix` (worktree pack-fix), `build/pack-utc` (worktree pack-utc), Codex `art/fx` (clone ~/.ai-whiteboard-workers/codex-642718914).
+ Stray: branch `art/pilot` (pilot assets, not merged; delete when no longer wanted) and leftover branch `worktree-agent-a7d9ce60e430bee68` (from an older session; check, then delete).
 
 ## Merged so far (2026-11-26/27)
 UF: 1-16 (tokens, stubs, registry+art:check, fixtures 14a/b/c 15a/b/c/f, fonts, Gallery tokens+art pages, shared components, prefs, MenuSheet, glyph redraw). UA: style sheet + tools, pilot, anchors B1/B2, floors v2, party (27), Seam fight (36). FT: playback logic 1-3, contracts 4, board layout spike + board 5s-8, spell chip/header/stack/wiring 13-16w. UH: 0-5, 1-2 (kit, lattice page/drawer, Study shell). UT: 1-3 logic, 7-8 (loot, crossroads, cleared). Details: the log file.
