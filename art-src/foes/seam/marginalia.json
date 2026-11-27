@@ -1,0 +1,72 @@
+{
+  "id": "foes/seam/marginalia",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "marginalia",
+  "state": null,
+  "role": "boss-figure",
+  "size": [192, 256],
+  "alpha": true,
+  "groundContact": [96, 232],
+  "master": {
+    "path": "art-src/foes/seam/marginalia.master.png",
+    "sha256": "963fc06b44bd2ee76e607a50e01a98c56b1dea3d7eb5300cd2d4f25b6d946fa6",
+    "origSize": [1086, 1448],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "bd759853635259754d139929e526821949d73a24984f8c4a7c9fca49412d0563",
+      "35a49b2f750abb1e50802cb2b8c0f764ede46310298ef0333ad6a46202fa6714",
+      "f2009b8a6a98b210b11187096ad69287e0550dfb8b2a37dd4017556c8752a98d",
+      "cca59d4ce5c82d4560d95dcbf482b5c26264143d67d89060fec70fc54899481f",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Ground contact placed between the paper feet at the lower sole. The full five-hand silhouette remains on the source canvas.",
+  "focal": null,
+  "angle": "high-3/4",
+  "light": "Subdued top-left warm key against cool Seam stone.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#E2A312"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: One original boss called the Marginalia, a living hand-and-page figure grown from the edge of a blank folded notebook leaf. Sculptural cream rag paper folds form a single upward hood with an ink shadow in place of a face, half-open page torso, and two short folded paper feet planted near bottom centre. FIVE widely silhouetted human-like hands branch from the tall compact body and surround the hood on sturdy arm folds with clear negative gaps. The five distinct hand materials are (1) upper left opaque blue-black ink fingers with sharply jagged tips, (2) lower left olive-ochre oily dripping hand, (3) upper right pale cool scalloped steam hand with fingers gathered from vapor, (4) middle right squared dull-gold brass articulated hand, (5) lower right chunky amber spark hand made from angular hot charged material, subtle light contained in its fingers. Exactly five hands, all visibly part of one creature, no loose sparks. Keep the silhouette narrow enough for the 192×256 sprite, tallest paper point central, feet below midline, full hands in frame. Silhouette key is the uneven five-limbed outline around a peaked blank folded leaf. Blank pages have sparse paint grain and torn fibrous edges, absolutely no scribbles, glyphs, script or writing. Image 1 gives the blank rag folio and tactical camera, images 2–4 are approved foe and material paint references, final image is the palette strip. One full head-to-feet game sprite at the largest native portrait resolution for The Apprentice’s Notebook, downsampled to 192×256. Camera: steep high three-quarter tactics view, sees upper planes and feet, slight face toward screen right, full figure centered with transparent padding on every side. Clearly planted contact on the near foot or support near the bottom centre. Lighting: faint upper-left edge light only, warm muted local worklight, no side rim, no baked shadow, painted floor, display base or other objects. Palette Seam #253235 #55625E #BC9273, city #1F2A3A #3A4148 #5D666D #A9BCC6, painted pigments ink #1D2A4A, oil #7A6420, steam #A9BCC6, brass #B5882E and spark #E2A312. Edges: broad matte gouache, crisp where silhouette matters, fine paint granulation, short engraved accents. Make the key silhouette clear at 24 px in greyscale. Match the style, proportions and finish of the attached approved anchors. Return genuine isolated RGBA with no backdrop and no alpha fringe. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/party/draughtsman.approved.webp",
+    "art-src/anchors/seam/sentry.approved.webp",
+    "art-src/anchors/seam/slick.approved.webp",
+    "art-src/anchors/seam/cloud.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "7d5bddaa-089f-4dad-8afa-5482b38ff88f",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "963fc06b44bd2ee76e607a50e01a98c56b1dea3d7eb5300cd2d4f25b6d946fa6",
+      "size": [1086, 1448]
+    },
+    "figure": {
+      "groundContact": [500, 1418],
+      "bodyHeight": 1395,
+      "drawHeight": 220,
+      "scale": 0.15771
+    },
+    "notes": ["defringed 26480 partial-alpha pixels"]
+  }
+}

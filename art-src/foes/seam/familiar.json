@@ -1,0 +1,70 @@
+{
+  "id": "foes/seam/familiar",
+  "screen": "fight",
+  "district": "seam",
+  "subject": "familiar",
+  "state": null,
+  "role": "figure",
+  "size": [128, 176],
+  "alpha": true,
+  "groundContact": [64, 160],
+  "master": {
+    "path": "art-src/foes/seam/familiar.master.png",
+    "sha256": "d1ad01387ecbcc38a2b23bcf97cf91a9d0c6100ae3352c564ad37f77bf530003",
+    "origSize": [1070, 1470],
+    "processor": "art-process@1",
+    "quality": 80,
+    "refSha256": [
+      "f2009b8a6a98b210b11187096ad69287e0550dfb8b2a37dd4017556c8752a98d",
+      "cca59d4ce5c82d4560d95dcbf482b5c26264143d67d89060fec70fc54899481f",
+      "35a49b2f750abb1e50802cb2b8c0f764ede46310298ef0333ad6a46202fa6714",
+      "f4b8994df1e220014bc2e09d207b800596202d40f1c3db2d670fceb9f6331a0c"
+    ]
+  },
+  "crop": "Measured broad ink foot. The smaller body leaves headroom beneath taller foes.",
+  "focal": null,
+  "angle": "high-3/4",
+  "light": "Subdued top-left warm key against cool Seam stone.",
+  "palette": [
+    "#253235",
+    "#55625E",
+    "#BC9273",
+    "#1F2A3A",
+    "#3A4148",
+    "#5D666D",
+    "#A9BCC6",
+    "#1D2A4A",
+    "#7A6420",
+    "#B5882E",
+    "#E2A312"
+  ],
+  "model": "unexposed",
+  "prompt": "Asset: One small leftover inky spirit carrying a lot of dark Prussian blue #1D2A4A in broad matte shapes. The body resembles a crooked upright ink-drop with a big bent wick crest, two long silhouette flaps hanging asymmetrically, and one broad foot formed from hardened ink clearly planted bottom-centre. A small twisted pale warm plane suggests a curious face, and a forward upper muzzle can spit. Original compact cartoon-dark fantasy silhouette, smaller and much more upright than a rat, no animal ears, mouth lettering, separate liquid trail, diffuse glow or floating motes. The key silhouette is an upturned single ink wick over a squat body. Image 1 defines ink-liquid colour and weight; images 2 and 3 give approved edge treatment and camera. One full head-to-feet game sprite at the largest native portrait resolution for The Apprentice’s Notebook, downsampled to 128×176. Camera: steep high three-quarter tactics view, sees upper planes and feet, slight face toward screen right, full figure centered with transparent padding on every side. Clearly planted contact on the near foot or support near the bottom centre. Lighting: faint upper-left edge light only, warm muted local worklight, no side rim, no baked shadow, painted floor, display base or other objects. Palette Seam #253235 #55625E #BC9273, city #1F2A3A #3A4148 #5D666D #A9BCC6, painted pigments ink #1D2A4A, oil #7A6420, steam #A9BCC6, brass #B5882E and spark #E2A312. Edges: broad matte gouache, crisp where silhouette matters, fine paint granulation, short engraved accents. Make the key silhouette clear at 24 px in greyscale. Match the style, proportions and finish of the attached approved anchors. Return genuine isolated RGBA with no backdrop and no alpha fringe. Painted 2D game art, broad matte gouache-like value masses, fine paint grain, sparse engraved ink detail at material edges. Light from the upper left. Warm lamp light against cold blue night; wet surfaces catch small highlights. Soft distant detail. No text, no letters, no numbers, no UI, no frames, no arrows, no grid lines, no reach dots, no health bars, no targeting rings, no watermark.",
+  "references": [
+    "art-src/anchors/seam/slick.approved.webp",
+    "art-src/anchors/seam/cloud.approved.webp",
+    "art-src/anchors/seam/sentry.approved.webp",
+    "docs/art/style-sheet.md#3.1,3.4"
+  ],
+  "generationId": "19f5090d-9a9a-4059-9dfd-d2615d5b2efa",
+  "seed": null,
+  "date": "2026-11-27",
+  "pack": "seam-fight",
+  "slice": null,
+  "bbox": null,
+  "layerId": null,
+  "process": {
+    "mode": "ship",
+    "source": {
+      "sha256": "d1ad01387ecbcc38a2b23bcf97cf91a9d0c6100ae3352c564ad37f77bf530003",
+      "size": [1070, 1470]
+    },
+    "figure": {
+      "groundContact": [525, 1301],
+      "bodyHeight": 1155,
+      "drawHeight": 103,
+      "scale": 0.08918
+    },
+    "notes": ["defringed 9665 partial-alpha pixels"]
+  }
+}

@@ -493,6 +493,54 @@
       "bytes": 1961187,
       "sha256": "a5a0c0bc25191c5b947c9b3dc89563fac358cfec885c6973f3d855ac33589baa",
       "archiveKey": "r2:apprentices-notebook-art/scenes/seam/arena.master.png"
+    },
+    {
+      "file": "foes/seam/rat.master.png",
+      "width": 1070,
+      "height": 1470,
+      "bytes": 566470,
+      "sha256": "77e6810bf6b3ec863a0f2834d55f59d31ffdde71325027e2ca3f5af6c8137f55",
+      "archiveKey": "r2:apprentices-notebook-art/foes/seam/rat.master.png"
+    },
+    {
+      "file": "foes/seam/sentry.master.png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1986000,
+      "sha256": "14aa07c9024b07a05161787e9300e2e9daab847aa5241abad0c38ae7db05dbcb",
+      "archiveKey": "r2:apprentices-notebook-art/foes/seam/sentry.master.png"
+    },
+    {
+      "file": "foes/seam/familiar.master.png",
+      "width": 1070,
+      "height": 1470,
+      "bytes": 782415,
+      "sha256": "d1ad01387ecbcc38a2b23bcf97cf91a9d0c6100ae3352c564ad37f77bf530003",
+      "archiveKey": "r2:apprentices-notebook-art/foes/seam/familiar.master.png"
+    },
+    {
+      "file": "foes/seam/dummy.master.png",
+      "width": 1070,
+      "height": 1470,
+      "bytes": 1003038,
+      "sha256": "e1c92e6f3ac70ed43649396defd8d9063f6255a15849c36ed427d2758bd6299a",
+      "archiveKey": "r2:apprentices-notebook-art/foes/seam/dummy.master.png"
+    },
+    {
+      "file": "foes/seam/marginalia.master.png",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 1966655,
+      "sha256": "963fc06b44bd2ee76e607a50e01a98c56b1dea3d7eb5300cd2d4f25b6d946fa6",
+      "archiveKey": "r2:apprentices-notebook-art/foes/seam/marginalia.master.png"
+    },
+    {
+      "file": "portraits/seam/marginalia.master.png",
+      "width": 540,
+      "height": 540,
+      "bytes": 436817,
+      "sha256": "243944871184d44f6d78a21b0ec4ce235f854db29d59104ee161f2a9e448a8dd",
+      "archiveKey": "r2:apprentices-notebook-art/portraits/seam/marginalia.master.png"
     }
   ]
 }
